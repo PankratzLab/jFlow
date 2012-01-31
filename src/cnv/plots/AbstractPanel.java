@@ -22,6 +22,8 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import mining.Distance;
+
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -40,12 +42,15 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int AXIS_THICKNESS = 4;
 	public static final int TICK_THICKNESS = 3;
 	public static final int TICK_LENGTH = 15;
-	public static final int LOOKUP_RESOLUTION = 20;
+	public static final int DEFAULT_LOOKUP_RESOLUTION = 20;
 	public static final int AXIS_FONT_SIZE = 28;
 	public static final double DOUBLE_INACCURACY_HEDGE = 0.00001;
 	public static final double MINIMUM_ZOOM_PROPORTION_WINDOW = 0.0001;
 	public static final float DEFAULT_MOUSE_WHEEL_MULTIPLIER = 0.5f;
 	public static final int DEFAULT_PLOTPOINTSET_SIZE = 1000000;
+	public static final int SIZE = 12;//zx
+	public static final double HIGHLIGHT_DISTANCE = 20;//= Math.sqrt(SIZE*SIZE/2);//zx
+
 	
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX = 0;
@@ -85,12 +90,14 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int lastIndexInPlotPointSet;
 	private int currentIndexInPlotPointSet;
 	private String tempDirectory;
+	private int lookupResolution;//zx
+
 	
 	public AbstractPanel() {
 		displayXaxis = true;
 		displayYaxis = true;
 		displayGrid = false;
-		createLookup = false;
+		createLookup = true;
 		missingWidth = -1;
 		nanWidth = -1;
 		forcePlotXmax = forcePlotYmax = forcePlotXmin = forcePlotYmin = Float.NaN;
@@ -143,7 +150,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 		
 //		currentPlotPointSet<totalNumPlotPointSets && currentIndexInPlotPointSet<=lastIndexInPlotPointSet
-		boolean hi = true;
+//		boolean hi = true;
 		point = null;
 		
 		return point;
@@ -240,6 +247,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		long time;
 		
 		generatePoints();
+		setLookupResolution(DEFAULT_LOOKUP_RESOLUTION);//zx
 		assignAxisLabels();
 		
 //        time = new Date().getTime();
@@ -356,7 +364,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-		locLookup.clear();
+		//locLookup.clear();	// -- This was here since Nathan's original code.
 		
 		if (errorMessage != null) {
 			g.drawString(errorMessage, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(errorMessage)/2+WIDTH_Y_AXIS, (getHeight()-HEAD_BUFFER-HEIGHT_X_AXIS)/2-20+HEAD_BUFFER);
@@ -387,8 +395,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			
 				if (createLookup) {
-					xLook = (int)Math.floor(getX(points[i].getRawX())/LOOKUP_RESOLUTION);
-					yLook = (int)Math.floor(getY(points[i].getRawY())/LOOKUP_RESOLUTION);
+					xLook = (int)Math.floor(getX(points[i].getRawX())/lookupResolution);
+					yLook = (int)Math.floor(getY(points[i].getRawY())/lookupResolution);
 					for (int j = xLook-1; j<=xLook+1; j++) {
 						for (int k = yLook-1; k<=yLook+1; k++) {
 							pos = j+"x"+k;
@@ -403,6 +411,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		}
 		
+		buildLookupTableOfNearbyPoints();//zx
 		keys = HashVec.getKeys(layers);
 		order = Sort.quicksort(Array.toIntArray(keys));
 		for (int i = 0; i<keys.length; i++) {
@@ -565,7 +574,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			g.drawOval(getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
 			break;
 		case PlotPoint.MISSING:
-			g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
+			//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
+			if (PlotPoint.MISSING_STR=="X" || PlotPoint.MISSING_STR=="x"){
+				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())-point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())+point.getSize()/4);//zx
+				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())+point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())-point.getSize()/4);//zx
+			}
+			else {
+				g.setFont(new Font("Arial", 0, point.getSize()));//zx
+				g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())+point.getSize()/2);//zx
+				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));//zx
+			}
 			break;
 		case PlotPoint.NOT_A_NUMBER:
 			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
@@ -682,6 +700,53 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void createImage() {
 		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		drawAll(image.createGraphics());
+	}
+	
+	//zx
+	public void setLookupResolution(int lookupResolution) {
+		this.lookupResolution = lookupResolution;
+	}
+	
+	//zx
+	public void buildLookupTableOfNearbyPoints() {
+		int x, y;
+		String pos;
+		locLookup.clear();
+		//System.out.println("---Beginning of locLookup---\npos\tLocation\tSample Index");//test point
+		for (int i = 0; i<points.length; i++) {
+			//x = (int)Math.floor(getX(data[i][0])/LOOKUP_RESOLUTION);
+			//y = (int)Math.floor(getY(data[i][1])/LOOKUP_RESOLUTION);
+			x = (int)Math.floor(getX(points[i].getRawX())/lookupResolution);
+			y = (int)Math.floor(getY(points[i].getRawY())/lookupResolution);
+			for (int j = x-1; j<=x+1; j++) {
+				for (int k = y-1; k<=y+1; k++) {
+					pos = j+"x"+k;
+					if (locLookup.containsKey(pos)) {
+						locLookup.get(pos).add(i);
+					} else {
+						locLookup.put(pos, new IntVector(new int[] {i}));
+					}
+					//System.out.println(pos+"\t("+getX(points[i].getRawX())+", "+getY(points[i].getRawY())+")\t"+i);//test point
+				}
+			}
+		}
+		//System.out.println("---End of locLookup---\n\n\n");//test point
+	}
+
+	//zx
+	public IntVector lookupNearbyPoints(int x, int y, String pos) {
+		IntVector iv = locLookup.get(pos);
+		IntVector indeciesOfDataPoints = new IntVector();
+		//System.out.println("---Log of lookup process---\nMouse pos\tMouse location\tNumber of nearby samples\tNearby sample index\tNearby sample location\tDistance");//test point
+		for (int i = 0; iv!=null&&i<iv.size(); i++) {
+			//System.out.println("sample index:"+iv.elementAt(i)+"\t pos: "+pos+"\t number of nearby points: "+(iv==null?"null":iv.size())+"\t mouse: ("+x+", "+y+")\t nearby point: ("+getX(points[iv.elementAt(i)].getRawX())+","+getY(points[iv.elementAt(i)].getRawY())+")\t Distance: "+Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())}));
+			//System.out.println(pos+"\t("+x+", "+y+")\t"+(iv==null?"null":iv.size())+"\t"+iv.elementAt(i)+"\t("+getX(points[iv.elementAt(i)].getRawX())+", "+getY(points[iv.elementAt(i)].getRawY())+")\t"+Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())}));//test point
+			if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
+				indeciesOfDataPoints.add(iv.elementAt(i));
+			}
+		}
+		//System.out.println("\t indeciesOfDataPoints: "+indeciesOfDataPoints.size());
+		return indeciesOfDataPoints;
 	}
 	
 }

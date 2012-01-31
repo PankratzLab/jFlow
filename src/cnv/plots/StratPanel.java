@@ -175,7 +175,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		String trav;
 		boolean tagalong;
 
-		currentClass = sp.getCurrentClass();
+		currentClass = sp.getCurrentVariable();
 		currentPair = sp.getCurrentPair();
 		if (prevPair == null || !Matrix.equals(currentPair, prevPair)) {
 			resetZoomProportions();

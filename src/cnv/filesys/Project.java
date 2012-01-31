@@ -92,6 +92,7 @@ public class Project extends Properties {
 	public static final String MOSAIC_ARMS_FILENAME = "MOSAIC_ARMS_FILENAME";
 	public static final String NUM_THREADS = "NUM_THREADS";
 	public static final String LONG_FORMAT = "LONG_FORMAT";
+	public static final String NUM_MARKERS_PER_FILE = "NUM_MARKERS_PER_FILE";
 
 	private boolean jar;
 

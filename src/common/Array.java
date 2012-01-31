@@ -1404,6 +1404,24 @@ public class Array {
 	}
 
 	/**
+	 * Creates an array of Strings and copies the contents of an array of int
+	 * 
+	 * @param array
+	 *            array of int
+	 * @return an array of the converted Strings
+	 */
+	public static String[] toStringArray(int[] array) {
+		String[] new_array;
+		
+		new_array = new String[array.length];
+		for (int i = 0; i < array.length; i++) {
+			new_array[i] = array[i]+"";
+		}
+		
+		return new_array;
+	}
+
+	/**
 	 * Creates an array of Strings and copies the contents of an array of doubles
 	 * 
 	 * @param array

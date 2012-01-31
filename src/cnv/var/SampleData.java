@@ -10,6 +10,8 @@ import cnv.filesys.*;
 
 public class SampleData {
 	public static final String[] BASIC_CLASSES = {"All", "Genotype"};
+	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
+	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 
 	private String[] filters;
@@ -20,6 +22,7 @@ public class SampleData {
 	private Hashtable<String,String> lookup;
 	private Hashtable<String,IndiPheno> sampleHash;
 	private boolean failedToLoad;
+	private int sexClassIndex;
 
 	public SampleData(Project proj, boolean loadCNVs) {
 		this(proj, loadCNVs?proj.getFilenames(Project.CNV_FILENAMES):null);
@@ -137,6 +140,9 @@ public class SampleData {
 			System.exit(2);
 		}
 		
+		sexClassIndex = ext.indexOfStr("Sex", classes, false, true);
+		System.out.println(Array.toStr(classes));
+		
 		if (cnvFilesnames.length > 0) {
 			loadCNVs(cnvFilesnames, proj.getJarStatus());
 		} else {
@@ -148,6 +154,10 @@ public class SampleData {
 	
 	public boolean failedToLoad() {
 		return failedToLoad;
+	}
+	
+	public int getSexClassIndex() {
+		return sexClassIndex;
 	}
 	
 	public void loadCNVs(String[] files, boolean jar) {

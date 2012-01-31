@@ -30,9 +30,9 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	private CheckBoxTree tree;
 	private StratPanel stratPanel;
 	private JLabel descriptor;
-	private JPanel classPanelBottom;
+	private JPanel legendPanel;
 	private SampleData sampleData;
-	private int currentClass;
+	private int currentVariable;
 	private boolean swapAxes;
 	private boolean maskMissing;
 	
@@ -101,7 +101,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 		classPanel = new JPanel(new BorderLayout());
 		classPanelTop = new JPanel();
-		classPanelBottom = new JPanel();
+		legendPanel = new JPanel();
 		label = new JLabel("Color code by:");
 		label.setFont(new Font("Arial", 0, 14));
 		classPanelTop.add(label);
@@ -112,7 +112,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 				if (jrb.isSelected()) {
 					for (int i = 0; i<sampleData.getNumActualClasses(); i++) {
 						if (jrb.getText().equals(sampleData.getActualClassName(i))) {
-							currentClass = i;
+							currentVariable = i;
 							updateGUI();
 						}
 					}
@@ -134,14 +134,14 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		classPanelTop.addComponentListener(new JPanelFlowLayoutComponentListener());
 		classRadioButtons[0].setSelected(true);
 
-		classPanelBottom.setBackground(BACKGROUND_COLOR);
-		classPanelBottom.setLayout(new FlowLayout());
-		classPanelBottom.add(new JLabel("Place holder"));
+		legendPanel.setBackground(BACKGROUND_COLOR);
+		legendPanel.setLayout(new FlowLayout());
+		legendPanel.add(new JLabel("Place holder"));
 //		classPanelBottom.addComponentListener(new JPanelFlowLayoutComponentListener());
 		
 		classPanel.setBackground(BACKGROUND_COLOR);
 		classPanel.add(classPanelTop, BorderLayout.NORTH);
-		classPanel.add(classPanelBottom, BorderLayout.SOUTH);
+		classPanel.add(legendPanel, BorderLayout.SOUTH);
 		getContentPane().add(classPanel, BorderLayout.SOUTH);
 
 //		tree.selectFirstTwo();
@@ -164,19 +164,19 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		String[][] colorKeys;
 		String[] keys;
 		
-		classPanelBottom.removeAll();
-		classPanelBottom.repaint();
+		legendPanel.removeAll();
+		legendPanel.repaint();
 		label = new JLabel("Color key:");
 		label.setFont(new Font("Arial", 0, 14));
-		classPanelBottom.add(label);
-		colorKeys = sampleData.getActualClassColorKey(currentClass);
+		legendPanel.add(label);
+		colorKeys = sampleData.getActualClassColorKey(currentVariable);
 		for (int i = 0; i<colorKeys.length; i++) {
 			block = new JLabel(new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(colorKeys[i][0])]));
 			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
 			hash.remove(colorKeys[i][0]);
 			label.setFont(new Font("Arial", 0, 14));
-			classPanelBottom.add(block);
-			classPanelBottom.add(label);
+			legendPanel.add(block);
+			legendPanel.add(label);
 		}
 		keys = HashVec.getKeys(hash);
 		for (int i = 0; i<keys.length; i++) {
@@ -184,12 +184,12 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 				block = new JLabel(new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
 				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
 				label.setFont(new Font("Arial", 0, 14));
-				classPanelBottom.add(block);
-				classPanelBottom.add(label);
+				legendPanel.add(block);
+				legendPanel.add(label);
 			}
 		}
 		
-		classPanelBottom.validate();
+		legendPanel.validate();
 	}
 
 	public SampleData getSampleData() {
@@ -235,8 +235,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
     public void treeCollapsed(TreeExpansionEvent event) {
     }
 	
-	public int getCurrentClass() {
-		return currentClass;
+	public int getCurrentVariable() {
+		return currentVariable;
 	}
 
 	public int[][] getCurrentPair() {

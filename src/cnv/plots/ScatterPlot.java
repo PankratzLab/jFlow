@@ -1,14 +1,21 @@
 package cnv.plots;
 
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
+import stats.ContingencyTable;
+import stats.ProbDist;
+import stats.CTable;
+
 import java.awt.*;
 import java.awt.event.*;
 
 import cnv.filesys.*;
+import cnv.gui.ColorIcon;
 import cnv.gui.CycleRadio;
 import common.*;
 import cnv.var.*;
@@ -33,10 +40,17 @@ public class ScatterPlot extends JFrame implements ActionListener {
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
 	private JPanel classPanel;
+	private JPanel legendPanel;
+	private JPanel bottomPanel;
 	private ScatterPanel scatPanel;
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 	private JPanel typePanel;
+	private JPanel qcPanel;//zx
+	//private JLabel qcPanelLabel;//zx
+	//private JLabel qcCallRateLabel;//zxu
+	//private JLabel qcHwePvalueLabel;//zxu
+	//private JPanel typePanelRadioButton;//
 
 	private Project proj;
 	private MarkerData[] markerData;
@@ -49,7 +63,8 @@ public class ScatterPlot extends JFrame implements ActionListener {
 	private String[] commentList;
 	private int markerIndex;
 	private int previousMarkerIndex;
-	private JLabel markerName, commentLabel;
+	//private JLabel markerName, commentLabel;
+	private JTextField markerName, commentLabel;
 	private String[] samples;
 	private int currentClass;
 	private int plot_type;
@@ -88,11 +103,21 @@ public class ScatterPlot extends JFrame implements ActionListener {
 
 		JPanel descrPanel = new JPanel();
 		descrPanel.setLayout(new GridLayout(3, 1));
-		markerName = new JLabel("", JLabel.CENTER);
+		//markerName = new JLabel("", JLabel.CENTER);
+		markerName = new JTextField("");//zx
+		markerName.setBorder(null);//zx
+		markerName.setEditable(false);//zx
+		markerName.setBackground(BACKGROUND_COLOR);//zx
+		markerName.setHorizontalAlignment(JTextField.CENTER);
 		markerName.setFont(new Font("Arial", 0, 20));
 		descrPanel.add(markerName);
 
-		commentLabel = new JLabel("", JLabel.CENTER);
+		//commentLabel = new JLabel("", JLabel.CENTER);
+		commentLabel = new JTextField("");//zx
+		commentLabel.setBorder(null);//zx
+		commentLabel.setEditable(false);//zx
+		commentLabel.setBackground(BACKGROUND_COLOR);//zx
+		commentLabel.setHorizontalAlignment(JTextField.CENTER);//zx
 		commentLabel.setFont(new Font("Arial", 0, 14));
 		descrPanel.add(commentLabel);
 
@@ -110,6 +135,8 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		navigationField = new JTextField("", 8);
 		navigationField.setHorizontalAlignment(JTextField.CENTER);
 		navigationField.setFont(new Font("Arial", 0, 14));
+		//navigationField.setEditable(false);//zx
+		navigationField.setBackground(BACKGROUND_COLOR);//zx
 		navigationField.addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent focusevent) {}
 
@@ -147,8 +174,8 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		getContentPane().add(descrPanel, BorderLayout.NORTH);
 
 		typePanel = new JPanel();
-		// typePanel.setLayout(new BoxLayout(typePanel, BoxLayout.PAGE_AXIS));
-//		typePanel.setLayout(new GridLayout(20, 1));
+		//typePanel.setLayout(new BoxLayout(typePanel, BoxLayout.PAGE_AXIS));
+		//typePanel.setLayout(new GridLayout(20, 1));
 		typePanel.setLayout(new GridBagLayout());
 		
         GridBagConstraints gbc = new GridBagConstraints();   
@@ -170,6 +197,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 				}
 			}
 		};
+		// --- Beginning of the original block ---
 		ButtonGroup typeRadio = new ButtonGroup();
 		JRadioButton[] typeRadioButtons = new JRadioButton[MarkerData.TYPES.length];
 		for (int i = 0; i<MarkerData.TYPES.length; i++) {
@@ -180,6 +208,33 @@ public class ScatterPlot extends JFrame implements ActionListener {
 			typeRadioButtons[i].setBackground(BACKGROUND_COLOR);
 			typePanel.add(typeRadioButtons[i], gbc);
 		}
+		// --- End of the original block ---
+		
+		/*
+		// --- Beginning of the new block ---
+		typePanelRadioButton = new JPanel();//
+		typePanelRadioButton.setLayout(new GridLayout(MarkerData.TYPES.length,2));//
+		ButtonGroup typeRadio = new ButtonGroup();
+		JRadioButton[] typeRadioButtons = new JRadioButton[MarkerData.TYPES.length];
+		JTextField[] typeRadioTexts = new JTextField[MarkerData.TYPES.length];//
+		for (int i = 0; i<MarkerData.TYPES.length; i++) {
+			//typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);
+			typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);//
+			//typeRadioButtons[i].setFont(new Font("Arial", 0, 14));
+			typeRadio.add(typeRadioButtons[i]);
+			typeRadioButtons[i].addItemListener(typeListener);
+			typeRadioButtons[i].setBackground(BACKGROUND_COLOR);
+			//typePanel.add(typeRadioButtons[i], gbc);
+			typePanelRadioButton.add(typeRadioButtons[i]);//
+			typeRadioTexts[i]=new JTextField(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1]);//
+			typeRadioTexts[i].setBackground(BACKGROUND_COLOR);//
+			typeRadioTexts[i].setFont(new Font("Arial",0,14));//
+			typeRadioTexts[i].setBorder(null);//
+			typePanelRadioButton.add(typeRadioTexts[i]);//
+		}
+		typePanel.add(typePanelRadioButton, gbc);//
+		// --- End of the new block ---
+		 */
 
 		JSlider slider = new JSlider(JSlider.HORIZONTAL, 2, 20, DEFAULT_SIZE);
 		slider.setSize(new Dimension(250, 20));
@@ -208,6 +263,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 				gcThreshold = (float)slider.getValue()/100f;
 				gcLabel.setText("GC > "+ext.formDeci(gcThreshold, 2, true));
 				scatPanel.paintAgain();
+				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");//zx
 			}
 		});
 		typePanel.add(slider, gbc);
@@ -258,7 +314,8 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		typePanel.add(label, gbc);
 		centBoxes = new JCheckBox[centList.length];
 		displayCents = new boolean[centList.length];
-		centLabels = new JLabel[centList.length];		
+		centLabels = new JLabel[centList.length];
+		//System.out.println(centList.length+"\n");//zx
 		for (int i = 0; i<centList.length; i++) {
 			centBoxes[i] = new JCheckBox(centList[i]);
 			centBoxes[i].setFont(new Font("Arial", 0, 14));
@@ -274,13 +331,39 @@ public class ScatterPlot extends JFrame implements ActionListener {
 			typePanel.add(centLabels[i], gbc);
 		}
 		
-        JLabel padding = new JLabel();   
-        gbc.weighty = 1.0;   
-        typePanel.add(padding, gbc);   
+        //JLabel padding = new JLabel();//np
+        //gbc.weighty = 1.0;
+        //typePanel.add(padding, gbc);
+		//private JLabel qcPanelLabel;//zx
+		//private JLabel qcCallRateLabel;//zxu
+		//private JLabel qcHwePvalueLabel;//zxu
+
+		qcPanel = new JPanel();//zx
+		qcPanel.setLayout(new GridLayout(8, 1));//zx
+		qcPanel.setBackground(BACKGROUND_COLOR);//zx
+		/*
+        qcPanelLabel = new JLabel("                      ", JLabel.CENTER);//zx
+        qcPanel.add(qcPanelLabel);//zx
+        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
+        qcPanel.add(qcPanelLabel);//zx
+		
+        qcCallRateLabel = new JLabel("Call Rate: "+ScatterPanel.getCallRate()+"%", JLabel.LEFT);//zx
+        qcCallRateLabel.setFont(new Font("Arial", 0, 14));//zx
+        qcPanel.add(qcCallRateLabel);//zx
+
+        qcHwePvalueLabel = new JLabel("HWE p-value: ", JLabel.LEFT);//zx
+        qcHwePvalueLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcHwePvalueLabel);//zx
+		*/
+		typePanel.add(qcPanel);//zx
 
         typePanel.setBackground(BACKGROUND_COLOR);
 		getContentPane().add(typePanel, BorderLayout.EAST);
 
+		bottomPanel = new JPanel();
+		bottomPanel.setLayout(new GridLayout(2, 1));
+        //bottomPanel.setBackground(BACKGROUND_COLOR);
 		classPanel = new JPanel();
 		label = new JLabel("Color code by:");
 		label.setFont(new Font("Arial", 0, 14));
@@ -310,7 +393,36 @@ public class ScatterPlot extends JFrame implements ActionListener {
 			classPanel.add(classRadioButtons[i]);
 		}
 		classPanel.setBackground(BACKGROUND_COLOR);
-		getContentPane().add(classPanel, BorderLayout.SOUTH);
+		bottomPanel.add(classPanel);
+		
+		legendPanel = new JPanel();
+        legendPanel.setBackground(BACKGROUND_COLOR);
+		//JLabel legend1 = new JLabel("Color Key: ");
+		//legend1.setFont(new Font("Arial", 0, 14));
+		//legendPanel.add(legend1);
+		
+		/*
+		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
+			legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
+			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
+		}
+		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
+		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
+		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
+		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
+		
+		// test point 1
+		System.out.println("Length of the two dimisional Array: \t"+sampleData.getActualClassColorKey(currentClass).length);
+		System.out.println("currentClass\t dimension2\t dimension3\t Value");
+		System.out.println(currentClass+"\t 0\t 0\t"+sampleData.getActualClassColorKey(currentClass)[0][0]);
+		System.out.println(currentClass+"\t 0\t 1\t"+sampleData.getActualClassColorKey(currentClass)[0][1]);
+		System.out.println(currentClass+"\t 1\t 1\t"+sampleData.getActualClassColorKey(currentClass)[1][0]);
+		System.out.println(currentClass+"\t 1\t 1\t"+sampleData.getActualClassColorKey(currentClass)[1][1]);
+		*/
+			
+		bottomPanel.add(legendPanel);
+		
+		getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		classRadioButtons[1].setSelected(true);
 
 		InputMap inputMap = scatPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -406,9 +518,11 @@ public class ScatterPlot extends JFrame implements ActionListener {
 			displayIndex(navigationField);
 			updateGUI();
 		} else if (command.equals(CAPTURE)) {
+			System.out.println("command.equals(CAPTURE)");//zx
 			count = 1;
 			do {
 				filename = markerList[markerIndex]+"_"+MarkerData.TYPES[plot_type][0]+"-"+MarkerData.TYPES[plot_type][1]+(count==1?"":" v"+count);
+				System.out.println(filename);//zx
 				count++;
 			} while (new File(proj.getProjectDir()+filename+".png").exists());
 			scatPanel.screenCapture(proj.getProjectDir()+filename+".png");
@@ -498,14 +612,18 @@ public class ScatterPlot extends JFrame implements ActionListener {
 	public boolean maskMissing() {
 		return maskMissing;
 	}
+	
 	public void loadFile() {
 		BufferedReader reader;
 		Vector<String> markerNames = new Vector<String>();
 		Vector<String> markerComments = new Vector<String>();
 		String[] line;
 		String filename;
+		Vector<String> missingMarkers;
 		
+		missingMarkers = new Vector<String>();
 		filename = proj.getFilename(Project.DISPLAY_MARKERS_FILENAME);
+		//System.out.println("filename: "+filename);//zx
 		try {
 			try {
 				reader = Files.getReader(filename, jar, true, false);
@@ -519,10 +637,14 @@ public class ScatterPlot extends JFrame implements ActionListener {
 						markerNames.add(line[0]);
 						markerComments.add(line.length>1?line[1]:"");
 					} else {
-						System.err.println("Error - could not find "+line[0]+" in the lookup table");
+//						System.err.println("Error - could not find "+line[0]+" in the lookup table");
+						missingMarkers.add(line[0]);
 					}
 				}
 				reader.close();
+				if (missingMarkers.size() > 0) {
+					JOptionPane.showMessageDialog(null, "Error - the following markers were not found in the MarkerSet:\n"+Array.toStr(Array.toStringArray(missingMarkers), "\n"), "Error", JOptionPane.ERROR_MESSAGE);
+				}
 			} catch (FileNotFoundException fnfe) {
 				System.err.println("Error: file \""+filename+"\" not found in current directory");
 				System.exit(1);
@@ -535,6 +657,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 			markerList = Array.toStringArray(markerNames);
 			commentList = Array.toStringArray(markerComments);
 			markerData = MarkerSet.loadFromList(proj, markerList);
+			//System.out.println("markerName: "+markerData.+);//zx
 			markerIndex = 0;
 			previousMarkerIndex = -1;
 		} catch (Exception e) {
@@ -554,7 +677,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		int[] indices;
 		
 		files = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".cent", jar);
-		System.out.println("Found "+files.length+" .cent files in "+proj.getDir(Project.DATA_DIRECTORY));
+		//System.out.println("Found "+files.length+" .cent files in "+proj.getDir(Project.DATA_DIRECTORY));
 		
 		hash = new Hashtable<String,String>();
 		for (int i = 0; i<markerList.length; i++) {
@@ -637,6 +760,168 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		}
 		previousMarkerIndex = markerIndex;
 	}
+
+	public void updateColorKey(Hashtable<String,String> hash) {
+		JLabel label, block;
+		String[][] colorKeys;
+		String[] keys;
+		legendPanel.removeAll();
+		legendPanel.repaint();
+		//JLabel legend = new JLabel("Color Key: ");
+		//legend.setFont(new Font("Arial", 0, 14));
+		//legendPanel.add(legend);
+		
+		//legendPanel.removeAll();
+		//legendPanel.repaint();
+		label = new JLabel("Color key:");
+		label.setFont(new Font("Arial", 0, 14));
+		legendPanel.add(label);
+		if (currentClass < SampleData.BASIC_CLASSES.length) {
+			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
+		} else {		
+			colorKeys = sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length);
+		}
+		for (int i = 0; i<colorKeys.length; i++) {
+			block = new JLabel(new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(colorKeys[i][0])]));
+			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
+			hash.remove(colorKeys[i][0]);
+			label.setFont(new Font("Arial", 0, 14));
+			legendPanel.add(block);
+			legendPanel.add(label);
+		}
+		keys = HashVec.getKeys(hash);
+		for (int i = 0; i<keys.length; i++) {
+			if (!keys[i].equals("-1")) {
+				block = new JLabel(new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
+				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
+				label.setFont(new Font("Arial", 0, 14));
+				legendPanel.add(block);
+				legendPanel.add(label);
+			}
+		}
+
+		
+/**		
+		//colorKeys = sampleData.getActualClassColorKey(currentClass);
+		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
+			legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
+			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
+			hash.remove(arg0)
+		}
+//		for (int i = 0; i<colorKeys.length; i++) {
+//			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
+//		}
+		/*
+		keys = HashVec.getKeys(hash);
+		for (int i = 0; i<keys.length; i++) {
+			if (!keys[i].equals("-1")) {
+				block = new JLabel(new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
+				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
+				label.setFont(new Font("Arial", 0, 14));
+				legendPanel.add(block);
+				legendPanel.add(label);
+			}
+		}
+		*/
+//*/
+
+		legendPanel.validate();
+		
+		/*
+		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
+		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
+		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
+		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
+		*/
+	}
+
+
+	public void updateQcPanel(int[][] dataForQc) {
+		float callRate=0;//zx
+		JLabel qcPanelLabel;//zx
+		//JLabel qcCallRateLabel;//zxu
+		//JLabel qcHwePvalueLabel;//zxu
+		int[] alleleCounts;
+		double hweP;
+		//int[][] sexContingecyTable = new int[2][2];
+		CTable classCount;
+		
+		alleleCounts = new int[3]; 
+		for (int i=0; i<dataForQc[0].length; i++){//zx
+			if (dataForQc[0][i]<=0) {
+				callRate++;//zx
+			} else {
+				alleleCounts[dataForQc[0][i]-1]++;
+			}
+		}
+		hweP = AlleleFreq.HWEsig(alleleCounts);
+		callRate=(dataForQc[0].length-callRate)*100/dataForQc[0].length;//zx
+		
+		qcPanel.removeAll();
+		qcPanel.repaint();
+		
+        qcPanelLabel = new JLabel("", JLabel.CENTER);//zx
+        qcPanel.add(qcPanelLabel);//zx
+        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
+        qcPanel.add(qcPanelLabel);//zx
+		
+        //qcCallRateLabel = new JLabel("Call Rate: "+(dataForQc.length-missing)*100/dataForQc.length+"%", JLabel.LEFT);//zx
+        qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+        qcPanel.add(qcPanelLabel);//zx
+
+        qcPanelLabel = new JLabel("HWE p-value: "+ext.prettyP(hweP), JLabel.LEFT);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+
+		ToolTipManager.sharedInstance().setDismissDelay(100000);
+
+		classCount = new CTable(dataForQc[0], dataForQc[1], SampleData.KEYS_FOR_BASIC_CLASSES[1],
+				sampleData.getActualClassColorKey(0));
+		qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(2)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTableForCallRate()), 1) ), JLabel.LEFT);//zx
+		qcPanelLabel.setToolTipText(classCount.generateToolTipTextForCallRate());
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+
+		if (currentClass>2) {
+			classCount = new CTable(dataForQc[0], dataForQc[2], SampleData.KEYS_FOR_BASIC_CLASSES[1],
+					currentClass<SampleData.BASIC_CLASSES.length?SampleData.KEYS_FOR_BASIC_CLASSES[currentClass]:sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
+			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTableForCallRate()), 1) ), JLabel.LEFT);//zx
+			qcPanelLabel.setToolTipText(classCount.generateToolTipTextForCallRate());
+	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+			qcPanel.add(qcPanelLabel);//zx
+		}
+
+		classCount = new CTable(dataForQc[0], dataForQc[1], SampleData.KEYS_FOR_BASIC_CLASSES[1],
+				sampleData.getActualClassColorKey(0));
+		qcPanelLabel = new JLabel("Allele Freq by Sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getAlleleFreqBySex()), 1)), JLabel.LEFT);//zx
+		qcPanelLabel.setToolTipText(classCount.generateToolTipTextForAllelFreq());
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+
+		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+
+//		AlleleFreq.calcFrequency(genotypes);
+		
+		
+		/*
+		qcPanelLabel = new JLabel(""+sexContingecyTable[0][1], JLabel.LEFT);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+		qcPanelLabel = new JLabel(""+sexContingecyTable[1][0], JLabel.LEFT);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+		qcPanelLabel = new JLabel(""+sexContingecyTable[1][1], JLabel.LEFT);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+		*/
+
+		qcPanel.validate();
+	}
+
 
 	public void displayIndex(JTextField field) {
 		field.setText((markerIndex+1)+" of "+markerList.length);

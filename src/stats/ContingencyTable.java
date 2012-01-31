@@ -632,6 +632,11 @@ public class ContingencyTable {
 		}
 	}
 	
+	public static int[][] generateContingencyTable(int[] array1, int[] array2) {
+		
+		return null;
+	}
+	
 	public static void main(String[] args) throws IOException {
 		demo();
 	}

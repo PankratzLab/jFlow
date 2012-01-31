@@ -8,6 +8,7 @@ import javax.swing.*;
 
 import common.*;
 //import cnv.analysis.Mosaicism;
+import cnv.analysis.Mosaicism;
 import cnv.filesys.*;
 import cnv.manage.*;
 import cnv.plots.*;
@@ -26,13 +27,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String SCATTER = "Scatter module";
 	public static final String QQ = "QQ module";
 	public static final String STRAT = "Stratify module";
-	public static final String MOSAIC = "Mosaic module";
+	public static final String MOSAICISM = "Determine mosaic arms";
+	public static final String MOSAIC_PLOT = "Mosaic module";
 	public static final String TRAILER = "Trailer module";
 	public static final String EDIT = "Edit";
 	public static final String REFRESH = "Refresh";
 	public static final String TEST = "Test";
 
-	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, LRR_SD, SCATTER, QQ, STRAT, MOSAIC, TRAILER, TEST}; 
+	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, LRR_SD, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, TRAILER, TEST}; 
 
 	private boolean jar;
 	private JComboBox projectsBox;
@@ -131,10 +133,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				cnv.manage.ParseIllumina.createFiles(proj, 2);
 	//			nohup vis -Xmx1g cnv.manage.ParseIllumina threads=6 proj=current.proj
 			} else if (command.equals(EXTRACT_PLOTS)) {
-//				ExtractPlots.extractAll(proj, 0, false);
-				ExtractPlots.extractAll(proj, 0, true); // compact if no LRR was provided
+				ExtractPlots.extractAll(proj, 0, !ExtractPlots.containsLRR(proj));
+				//ExtractPlots.extractAll(proj, 0, true); // compact if no LRR was provided
 			} else if (command.equals(SLIM_PLOTS)) {
-				ExtractPlots.breakUpMarkerCollections(proj, 250);
+				ExtractPlots.breakUpMarkerCollections(proj, Integer.parseInt(proj.getProperty(Project.NUM_MARKERS_PER_FILE)));
 	//			nohup vis -Xmx15g -d64 cnv.manage.ExtractPlots per=250 proj=current.proj
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				cnv.manage.PlinkFormat.createPlink(proj);
@@ -151,7 +153,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)));
 			} else if (command.equals(STRAT)) {
 				StratPlot.loadStratificationResults(proj);
-			} else if (command.equals(MOSAIC)) {
+			} else if (command.equals(MOSAICISM)) {
+				Mosaicism.findOutliers(proj);
+			} else if (command.equals(MOSAIC_PLOT)) {
 				MosaicPlot.loadMosaicismResults(proj);
 			} else if (command.equals(TRAILER)) {
 				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);

@@ -14,7 +14,8 @@ import cnv.filesys.Project;
 import cnv.gui.LaunchAction;
 import mining.Distance;
 
-public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
+//public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
+public abstract class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 	public static final long serialVersionUID = 3L;
 	public static final int HEAD_BUFFER = 25;
 //	public static final int HEIGHT_X_AXIS = 55;
@@ -369,7 +370,7 @@ public class MosaicPanel extends JPanel implements MouseListener, MouseMotionLis
 		} else if (event.getButton()==MouseEvent.BUTTON3) { // right click
 		}
 
-		System.out.println("Click with "+prox.size()+" in proximity");
+		//System.out.println("Click with "+prox.size()+" in proximity");
 		if (prox!=null&&prox.size()>0) {
 			menu = new JPopupMenu();
 			for (int i = 0; i<prox.size(); i++) {

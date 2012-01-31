@@ -15,6 +15,7 @@ public class LaunchAction extends AbstractAction {
 	public static final int LAUNCH_TRAILER = 1;
 	public static final int COPY_ID = 2;
 	public static final int APPEND_ID = 3;
+	public static final int LAUNCH_SCATTER = 4;
 
 	private Project proj;
 	private String sample;
@@ -33,9 +34,9 @@ public class LaunchAction extends AbstractAction {
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
 
-	public LaunchAction(Project proj, String sample, Color color) {
+	public LaunchAction(int type, Project proj, String sample, Color color) {
 		super(sample);
-		this.type = COPY_ID;
+		this.type = type;
 		this.proj = proj;
 		this.jar = proj.getJarStatus();
 		this.sample = sample;
@@ -56,7 +57,12 @@ public class LaunchAction extends AbstractAction {
 		switch (type) {
         case LAUNCH_TRAILER:
     		ext.setClipboard(sample+"\t"+loc);
-    		new Trailer(proj, sample, proj.getFilenames(Project.CNV_FILENAMES), loc.substring(0, loc.length()-1));
+    		new Trailer(proj, sample, proj.getFilenames(Project.CNV_FILENAMES), loc.endsWith("p")||loc.endsWith("q")?loc.substring(0, loc.length()-1):loc);
+	        break;
+        case LAUNCH_SCATTER:
+    		ext.setClipboard(sample+"\t"+loc);
+//    		new Trailer(proj, sample, proj.getFilenames(Project.CNV_FILENAMES), loc.substring(0, loc.length()-1));
+//    		new Scatter
 	        break;
         case COPY_ID:
     		ext.setClipboard(sample);

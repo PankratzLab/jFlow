@@ -126,32 +126,41 @@ public class ext {
 	}
 
 	public static int indexOfStr(String target, String[] array, boolean caseSensitive, boolean exactMatch, Logger log, boolean verbose) {
-		int index;
+		int[] indices;
 		
-		index = -1;
+		indices = indicesOfStr(target, array, caseSensitive, exactMatch);
+
+		if (indices.length == 0) {
+			if (verbose) {
+				log.reportError("Error - '"+target+"' was not found in array");
+			}
+			return -1;
+		}
+		
+		if (indices.length > 1 && verbose) {
+			log.reportError("Warning - '"+target+"' was found more than once in the array");
+		}
+		
+		return indices[0];
+	}
+	
+	public static int[] indicesOfStr(String target, String[] array, boolean caseSensitive, boolean exactMatch) {
+		IntVector indices;
+		
+		indices = new IntVector();
 		for (int i = 0; i<array.length; i++) {
 			if (exactMatch) {
 				if (caseSensitive?array[i].equals(target):array[i].toLowerCase().equals(target.toLowerCase())) {
-					if (index != -1 && verbose) {
-						log.reportError("Warning - '"+target+"' was found more than once in the array");
-					}
-					index = i;
+					indices.add(i);
 				}
 			} else {
 				if (caseSensitive?array[i].contains(target)||target.contains(array[i]):array[i].toLowerCase().contains(target.toLowerCase())||target.toLowerCase().contains(array[i].toLowerCase())) {
-					if (index != -1 && verbose) {
-						log.reportError("Warning - '"+target+"' was found more than once in the array");
-					}
-					index = i;
+					indices.add(i);
 				}
 			}
 		}
 		
-		if (index == -1 && verbose) {
-			log.reportError("Error - '"+target+"' was not found in array");
-		}
-		
-		return index;
+		return indices.toArray();
 	}
 
 	public static int indexOfChar(char target, char[] array) {

@@ -45,6 +45,25 @@ public class ExtractPlots {
 			sampleToSNPmajor(proj, indicesSets[i], fingerprint, compact_XYonly, outputFiles[i]);
 		}
 	}
+	
+	public static boolean containsLRR(Project proj) {
+		return proj.getFullSample(proj.getSampleList().getSamples()[0]).getLRRs() != null;
+//		
+//		boolean result;
+//		//Extracts one first;
+//		extract(proj, proj.getDir(Project.PLOT_DIRECTORY)+"Markers.test.scat", true);
+//		//read the result of the extracted
+//		MarkerDataCollection temp = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+"Markers.test.scat", false);
+//		//test to see if the result is null
+//		if (temp.getCollection()[0].getLRRs()[0]==(float)0) {
+//			result = true;
+//		} else {
+//			result = false;
+//		}
+//		(new File(proj.getDir(Project.PLOT_DIRECTORY)+"Markers.test.scat")).delete();
+//		return result;			
+	}
+	
 
 	public static void sampleToSNPmajor(Project proj, int[] indices, long fingerprint, boolean compact_XYonly, String outputFile) {
 		SampleList list;
@@ -154,6 +173,7 @@ public class ExtractPlots {
 		return ext.replaceAllWith(str, ":", ".");
 	}
 
+	// extracts just those markers listed in filename
 	public static void extract(Project proj, String filename, boolean compact) {
 		String[] targets;
 		SampleList sampleList;

@@ -2,6 +2,9 @@ package cnv.filesys;
 
 import java.io.*;
 import java.util.*;
+
+import javax.swing.JOptionPane;
+
 import common.*;
 
 public class MarkerSet implements Serializable {
@@ -177,13 +180,15 @@ public class MarkerSet implements Serializable {
 		long fingerprint, time;
 		boolean jar;
 		MarkerData[] collection, markerData;
-		int index;
+		int[] indices;
 		MarkerLookup markerLookup;
+		Vector<String> missingMarkers;
 
 		jar = proj.getJarStatus();
 		markerLookup = proj.getMarkerLookup();
 		fingerprint = proj.getSampleList().getFingerprint();
 
+		missingMarkers = new Vector<String>();
 		time = new Date().getTime();
 		for (int i = 0; i<markerNames.length; i++) {
 			if (markerLookup.contains(markerNames[i])) {
@@ -195,9 +200,14 @@ public class MarkerSet implements Serializable {
 				}
 				v.add(markerNames[i]+"\t"+line[1]);
 			} else {
-				System.err.println("Error - could not find "+markerNames[0]+" in the lookup table");
+//				System.err.println("Error - could not find "+markerNames[0]+" in the lookup table");
+				missingMarkers.add(markerNames[0]);
 			}
 		}
+		if (missingMarkers.size() > 0) {
+			JOptionPane.showMessageDialog(null, "Error - the following markers were not found in the MarkerSet: "+Array.toStr(Array.toStringArray(missingMarkers), " "), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+		
 		keys = HashVec.getKeys(hash);
 		markerData = new MarkerData[markerNames.length];
 		for (int i = 0; i<keys.length; i++) {
@@ -205,20 +215,23 @@ public class MarkerSet implements Serializable {
 			collection = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+keys[i], jar).getCollection();
 			for (int j = 0; j<v.size(); j++) {
 				line = v.elementAt(j).split("[\\s]+");
-				index = ext.indexOfStr(line[0], markerNames);
-				if (index==-1) {
+				indices = ext.indicesOfStr(line[0], markerNames, true, true);
+				
+				if (indices.length==0) {
 					System.err.println("Error - How can this be?");
-				} else {
-					markerData[index] = collection[Integer.parseInt(line[1])];
-					if (markerData[index].getFingerprint()!=fingerprint) {
-						System.err.println("Error - ");
-
-					}
+				}
+				for (int k = 0; k<indices.length; k++) {
+					markerData[indices[k]] = collection[Integer.parseInt(line[1])];
+					if (markerData[indices[k]].getFingerprint()!=fingerprint) {
+						System.err.println("Error - mismatched fingerprint after MarkerLookup");
+					}					
 				}
 			}
 		}
 
 		System.out.println("Finished loading MarkerData in "+ext.getTimeElapsed(time));
+		
+		System.out.println("markerData length: "+markerData.length);//zx
 
 		return markerData;
 	}
