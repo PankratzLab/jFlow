@@ -1,0 +1,42 @@
+package common;
+
+//import java.io.*;
+//import java.util.*;
+import java.awt.*;
+import javax.swing.*;
+
+public class ProgressBarDialog extends JDialog {
+	public static final long serialVersionUID = 1L;
+
+	private JProgressBar pb;
+
+	public ProgressBarDialog(String frameText, int min, int max, int width, int height) {
+		super((JFrame)null, frameText);
+
+		pb = new JProgressBar(min, max);
+		pb.setPreferredSize(new Dimension(175, 20));
+		pb.setStringPainted(true);
+		pb.setValue(0);
+
+		JPanel center_panel = new JPanel();
+		center_panel.add(pb);
+
+		getContentPane().add(center_panel, BorderLayout.CENTER);
+		pack();
+		setVisible(true);
+		setLocation(width/2-87, height/2-10);
+		// setLocationRelativeTo(null); // center on screen
+
+		toFront(); // raise above other java windows
+
+	}
+
+	public void setProgress(int value) {
+		pb.setValue(value);
+		pb.setString((int)((double)value/(double)(pb.getMaximum()-pb.getMinimum())*100)+"%");
+	}
+
+	public void close() {
+		dispose();
+	}
+}

@@ -1,0 +1,568 @@
+package gwas;
+
+import java.io.*;
+import java.util.*;
+
+import mining.Transformations;
+import common.*;
+import filesys.*;
+import stats.*;
+
+public class CreateDatabaseFromPlink {
+	public static final String[] POSSIBLE_MODELS = {"ADD", "DOM", "REC"};
+	public static final int ADDITIVE_MODEL = 0;
+	public static final int DOMINANT_MODEL = 1;
+	public static final int RECESSIVE_MODEL = 2;
+	
+	public static void createDatabase(String filename, Logger log) {
+		createDatabase("", filename, log);
+	}
+	
+	public static void createDatabase(String dir, String filename, Logger log) {
+		BufferedReader reader;
+        PrintWriter writer;
+        String[] line;
+        Hashtable<String,String> notes;
+//        Vector<String> v = new Vector<String>();
+        int count;
+        String[] markerNames;
+        String pedfile, mapfile, freqfile, outfile;
+        String[][] alleles;
+        Vector<int[]> vModels;
+        int[][] models;
+        String allele;
+        int markerIndex, modelIndex;
+        String[][] params;
+        SnpMarkerSet markerSet;
+        boolean labelAlleles, listPositions, displayNotes, maskModel;
+        byte[] chrs;
+        int[] positions;
+        
+        params = Files.parseControlFile(filename, false, "plink", new String[] {"plink.ped", "plink.map", "plink.frq", "newDatabase.xln labelAlleles=false listPositions=false displayNote=false maskModel=false", "rs11550605\tADD", "rs10808555\tREC ADD", "rs7837328\tADD DOM REC", "rs3730881\tADD DOM"}, log);
+        
+        if (params == null) {
+        	return;
+        }
+        
+        labelAlleles = false;
+        listPositions = false;
+        displayNotes = false;
+        maskModel = false;
+    	pedfile = params[0][0];
+    	mapfile = params[1][0];
+    	markerSet = new SnpMarkerSet(dir+mapfile, false, log);
+        markerNames = markerSet.getMarkerNames();
+        chrs = markerSet.getChrs();
+        positions = markerSet.getPositions();
+        notes = new Hashtable<String, String>();
+        
+    	freqfile = params[2][0];
+    	alleles = HashVec.loadFileToStringMatrix(dir+freqfile, true, new int[] {2,3}, false);
+    	outfile = params[3][0];    	
+    	for (int i = 1; i < params[3].length; i++) {
+    		if (params[3][i].startsWith("labelAlleles=")) {
+        		labelAlleles = ext.parseBooleanArg(params[3][i], log);
+    		} else if (params[3][i].startsWith("listPositions=")) {
+    			listPositions = ext.parseBooleanArg(params[3][i], log);
+    		} else if (params[3][i].startsWith("displayNotes=")) {
+    			displayNotes = ext.parseBooleanArg(params[3][i], log);
+    		} else if (params[3][i].startsWith("maskModel=")) {
+    			maskModel = ext.parseBooleanArg(params[3][i], log);
+    		} else {
+    			log.reportError("Error - don't know what to do with argument: "+params[3][i]);
+    		}
+		}
+
+    	if (!Array.equals(markerNames, HashVec.loadFileToStringArray(dir+freqfile, true, new int[] {1}, false), true)) {
+    		log.reportError("Error - the freq file does not match the map file");
+    		return;
+    	}
+
+        vModels = new Vector<int[]>();
+        for (int i = 4; i < params.length; i++) {
+        	markerIndex = ext.indexOfStr(params[i][0], markerNames);
+        	if (markerIndex == -1) {
+        		log.reportError("Error - marker '"+params[i][0]+"' was not found in "+mapfile);
+        	} else {
+        		for (int j = 1; j<params[i].length; j++) {
+        			if (params[i][j].toLowerCase().startsWith("note=")) {
+        				notes.put(params[i][0], params[i][j].substring(5));
+        			} else {
+	        			modelIndex = ext.indexOfStr(params[i][j], POSSIBLE_MODELS);
+		        		if (modelIndex == -1) {
+		        			log.reportError("Error - '"+params[i][j]+"' is an invalid model");
+		        		} else {
+		        			vModels.add(new int[] {markerIndex, modelIndex});
+		        		}
+        			}
+                }
+        	}
+		}
+        
+        models = Matrix.toMatrix(vModels);
+        
+        try {
+            reader = new BufferedReader(new FileReader(dir+pedfile));
+            writer = new PrintWriter(new FileWriter(dir+outfile));
+            if (listPositions) {
+                writer.print("\t\t\tChr:");
+                for (int i = 0; i<models.length; i++) {
+                	writer.print("\t"+chrs[models[i][0]]);
+                }
+                writer.println();
+                writer.print("\t\t\tPosition:");
+                for (int i = 0; i<models.length; i++) {
+                	writer.print("\t"+positions[models[i][0]]);
+                }
+                writer.println();
+            }
+            if (labelAlleles) {
+                writer.print("\t\t\tMinor allele, counted:");
+                for (int i = 0; i<models.length; i++) {
+                	writer.print("\t"+alleles[models[i][0]][0]);
+                }
+                writer.println();
+                writer.print("\t\t\tOther allele:");
+                for (int i = 0; i<models.length; i++) {
+                	writer.print("\t"+alleles[models[i][0]][1]);
+                }
+                writer.println();
+            }
+            if (displayNotes) {
+                writer.print("\t\t\tNote:");
+                for (int i = 0; i<models.length; i++) {
+                	writer.print("\t"+(notes.containsKey(markerNames[models[i][0]])?notes.get(markerNames[models[i][0]]):"."));
+                }
+                writer.println();
+            }
+            writer.print("FID\tIID\tGender\tAffected");
+            for (int i = 0; i<models.length; i++) {
+            	writer.print("\t"+markerNames[models[i][0]]+(maskModel?"":"_"+POSSIBLE_MODELS[models[i][1]]));
+            }
+            writer.println();
+            while (reader.ready()) {
+            	line = reader.readLine().trim().split("[\\s]+");
+            	writer.print(line[0]+"\t"+line[1]+"\t"+(line[4].equals("1")?"1":(line[4].equals("2")?"0":"."))+"\t"+(line[5].equals("2")?"1":(line[5].equals("1")?"0":".")));
+            	for (int i = 0; i<models.length; i++) {
+                	count = 0;
+            		for (int j = 0; j<2; j++) {
+            			allele = line[6+models[i][0]*2+j];
+            			if (allele.equals("0")) {
+            				count = -9;
+            			} else if (allele.equals(alleles[models[i][0]][0])) {
+            				count++;
+            			} else if (!allele.equals(alleles[models[i][0]][1])) {
+            				log.reportError("Error - mismatched alleles, expecting "+alleles[models[i][0]][0]+" or "+alleles[models[i][0]][1]+" and got '"+allele+"'");
+            			}
+
+                    }
+            		if (count < 0) {
+            			writer.print("\t.");
+            		} else {
+            			switch (models[i][1]) {
+            			case ADDITIVE_MODEL:
+            				writer.print("\t"+count);
+            				break;
+            			case DOMINANT_MODEL:
+            				writer.print("\t"+(count>=1?1:0));
+            				break;
+            			case RECESSIVE_MODEL:
+            				writer.print("\t"+(count>=2?1:0));
+            				break;
+            			default:
+            				log.reportError("Error - model not translated");
+            				writer.print("\t."+count);
+            				break;
+            			}
+            		}
+                }
+            	writer.println();
+            }
+            writer.close();
+            reader.close();
+        } catch (FileNotFoundException fnfe) {
+        	log.reportError("Error: file \""+pedfile+"\" not found in current directory");
+        	log.reportException(fnfe);
+            return;
+        } catch (IOException ioe) {
+        	log.reportError("Error reading file \""+pedfile+"\"");
+        	log.reportException(ioe);
+        	return;
+        }
+	}
+
+	public static void createScore(String filename, Logger log) {
+		BufferedReader reader;
+        PrintWriter writer;
+        String[] line, header;
+        Vector<String[]> v = new Vector<String[]>();
+        String dbfile, outfile;
+//        double[] freqs;
+        int[] varIndices;
+        double[] weights;
+        double constant;
+        String[] ids;
+        double[] scores, normalized;
+        int numInds;
+        boolean normalize;
+        double[][] data;
+        String[][] params;
+
+		params = Files.parseControlFile(filename, false, "score", new String[] { "database.xln normalize", "newScore.xln", "Gender  1.006", "rs3730881_ADD  -2.297", "rs10808555_REC  0.800", "rs3087367_DOM  -0.498", "Constant  -0.360" }, log);
+		if (params != null) {
+        	dbfile = params[0][0];
+        	normalize = false;
+        	for (int i = 1; i<params[0].length; i++) {
+        		if (params[0][i].equals("normalize")) {
+        			normalize = true;
+        		} else {
+        			log.reportError("Error - unknown argument after database filename: "+params[0][i]);
+        		}
+            }
+        	outfile = params[1][0];
+
+        	constant = 0;
+        	for (int i = 2; i < params.length; i++) {
+	        	if (params[i][0].toLowerCase().startsWith("constant")) {
+	        		constant = Double.parseDouble(params[i][1]);
+	        	} else {
+	        		v.add(params[i]);
+	        	}
+			}
+
+        	varIndices = new int[v.size()];
+	        weights = new double[v.size()];
+	        numInds = Files.countLines(dbfile, true);
+	        try {
+                reader = new BufferedReader(new FileReader(dbfile));
+                header = reader.readLine().trim().split("[\\s]+");
+		        for (int i = 0; i<v.size(); i++) {
+		        	line = v.elementAt(i);
+
+		        	varIndices[i] = ext.indexOfStr(line[0], header);
+		        	if (varIndices[i] == -1) {
+		        		log.reportError("Error - variable '"+line[0]+"' was not found in "+dbfile);
+		        	} else {
+		        		weights[i] = Double.parseDouble(line[1]);
+		        	}
+		        }
+                
+		        ids = new String[numInds];
+		        scores = new double[numInds];
+		        
+		        if (normalize) {
+		        	data = new double[varIndices.length][numInds];
+			        for (int i = 0; i<numInds; i++) {
+	                	line = reader.readLine().trim().split("[\\s]+");
+	                	ids[i] = line[0]+"\t"+line[1];
+	                	for (int j = 0; j<varIndices.length; j++) {
+	                		data[j][i] = Double.parseDouble(line[varIndices[j]]);
+	                	}
+                    }
+                	for (int j = 0; j<varIndices.length; j++) {
+                		data[j] = Transformations.transform(data[j], Transformations.NORMALIZE);
+                	}
+			        for (int i = 0; i<numInds; i++) {
+	                	scores[i] = constant;
+	                	for (int j = 0; j<weights.length; j++) {
+	                		scores[i] += weights[j]*data[j][i];
+	                	}
+                    }
+		        } else {
+			        for (int i = 0; i<numInds; i++) {
+	                	line = reader.readLine().trim().split("[\\s]+");
+	                	ids[i] = line[0]+"\t"+line[1];
+	                	scores[i] = constant;
+	                	for (int j = 0; j<weights.length; j++) {
+	                		scores[i] += weights[j]*Double.parseDouble(line[varIndices[j]]);
+	                	}
+                    }
+		        }
+                reader.close();
+                
+                normalized = Transformations.transform(scores, Transformations.NORMALIZE);
+                try {
+	                writer = new PrintWriter(new FileWriter(outfile));
+	                writer.println(header[0]+"\t"+header[1]+"\tscore\tnormalized\tlogit");
+	                for (int i = 0; i<ids.length; i++) {
+	                	writer.println(ids[i]+"\t"+scores[i]+"\t"+normalized[i]+"\t"+Maths.logit(scores[i]));
+                    }
+	                writer.close();
+                } catch (Exception e) {
+                	log.reportError("Error writing to "+outfile);
+                	log.reportException(e);
+                }
+            } catch (FileNotFoundException fnfe) {
+            	log.reportError("Error: file \""+dbfile+"\" not found in current directory");
+                return;
+            } catch (IOException ioe) {
+            	log.reportError("Error reading file \""+dbfile+"\"");
+                return;
+            }
+		}
+	}
+	
+	public static void createCountsMatrix(String filename, Logger log) {
+		BufferedReader reader;
+        PrintWriter writer;
+        String[] line;
+        int count, index;
+        String[] markerNames;
+        String tpedfile, freqfile, outfile, temp;
+        String[][] alleles;
+        String allele;
+        String[][] params;
+        boolean anyMissing = false;
+        int numIndividuals = -1;
+        Hashtable<String,String> hash;
+        IntVector monomorphs;
+        
+        params = Files.parseControlFile(filename, false, "simpleM", new String[] {"plink.tped", "plink.frq", "simpleM.txt", "# in order to generate the tped file, use the following command:", "# plink --bfile plink --recode --transpose"}, log);
+        if (params == null) {
+        	return;
+        }
+        
+    	tpedfile = params[0][0];
+    	freqfile = params[1][0];
+        markerNames = HashVec.loadFileToStringArray(freqfile, true, new int[] {1}, false);
+    	alleles = HashVec.loadFileToStringMatrix(freqfile, true, new int[] {2,3}, false);
+    	outfile = params[2][0];    	
+
+        monomorphs = new IntVector();
+        try {
+            reader = new BufferedReader(new FileReader(tpedfile));
+            writer = new PrintWriter(new FileWriter(outfile));
+        	for (int i = 0; i<markerNames.length; i++) {
+        		hash = new Hashtable<String, String>();
+            	line = reader.readLine().trim().split("[\\s]+");
+            	if (!line[1].equals(markerNames[i])) {
+            		log.reportError("Error - the freq file does not match the map file at line "+(i+1)+"; expecting "+markerNames[i]+", found "+line[1]);
+            		return;
+            	}
+            	if (i==0) {
+            		numIndividuals = (line.length - 4) / 2;
+            	} else if ((line.length - 4) / 2 != numIndividuals) {
+            		log.reportError("Error - mismatched number of indiviudals in line "+(i+1)+"; due to previous lines, expecting "+numIndividuals+"*2+4="+(numIndividuals*2+4)+", found "+line.length); 
+            	}
+        		for (int j = 0; j<numIndividuals; j++) {
+                   	count = 0;
+               		for (int k = 0; k<2; k++) {
+            			allele = line[4+j*2+k];
+            			if (allele.equals("0")) {
+            				count = -9;
+            			} else if (allele.equals(alleles[i][0])) {
+            				count++;
+            			} else if (!allele.equals(alleles[i][1])) {
+            				log.reportError("Error - mismatched alleles, expecting "+alleles[i][0]+" or "+alleles[i][1]+" and got '"+allele+"'");
+            			}
+                    }
+            		if (count < 0) {
+            			if (!anyMissing) {
+            				log.reportError("Warning - there are missing values in the genotype data; setting value to zero; impute if you want better accuracy");
+            				anyMissing = true;            			
+            			}
+            			count = 0;
+            		}
+               		hash.put(count+"", "");
+            		writer.print((j==0?"":"\t")+count);
+                }
+            	writer.println();
+            	if (hash.size() < 2) {
+        			if (monomorphs.size() == 0) {
+        				log.reportError("Warning - there are monomorphic markers in the genotype data; these will be filtered out since it would otherwise cause the simpleM algorithm to fail");
+        			}
+        			monomorphs.add(i);
+            	}
+            }
+            writer.close();
+            reader.close();
+        } catch (FileNotFoundException fnfe) {
+        	log.reportError("Error: file \""+tpedfile+"\" not found in current directory");
+        	log.reportException(fnfe);
+            return;
+        } catch (IOException ioe) {
+        	log.reportError("Error reading file \""+tpedfile+"\"");
+        	log.reportException(ioe);
+        	return;
+        }
+        
+        if (monomorphs.size() > 0) {
+        	log.report("There were "+monomorphs.size()+" monomorphic markers that will be filtered out");
+        	Files.writeList(Array.subArray(markerNames, monomorphs.toArray()), ext.parseDirectoryOfFile(filename)+"monomorphs.dat");
+    		temp = outfile+".bak";
+    		new File(outfile).renameTo(new File(temp));
+        	try {
+				reader = new BufferedReader(new FileReader(temp));
+				writer = new PrintWriter(new FileWriter(outfile));
+				count = 0;
+				index = 0;
+				while (reader.ready()) {
+					temp = reader.readLine();
+					if (index < monomorphs.size() && count == monomorphs.elementAt(index)) {
+						index++;
+					} else {
+						writer.println(temp);
+					}
+					count++;
+				}
+				writer.close();
+				reader.close();
+			} catch (FileNotFoundException fnfe) {
+				System.err.println("Error: file \"" + temp + "\" not found in current directory");
+				System.exit(1);
+			} catch (IOException ioe) {
+				System.err.println("Error reading file \"" + temp + "\"");
+				System.exit(2);
+			}
+			new File(temp).delete();
+        }
+        
+        try {
+			reader = new BufferedReader(new FileReader("/home/npankrat/bin/simpleM_Exec.R"));
+			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)+"simpleM.R"));
+			while (reader.ready()) {
+				temp = reader.readLine();
+				if (temp.startsWith("fn_In <- ")) {
+					writer.println("fn_In <- \""+ext.parseDirectoryOfFile(filename)+"simpleM.txt"+"\"");
+				} else {
+					writer.println(temp);
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + "/home/npankrat/bin/simpleM_Exec.R" + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + "/home/npankrat/bin/simpleM_Exec.R" + "\"");
+			System.exit(2);
+		}
+	}
+	
+	public static void toGWAF(String pedfile, String mapfile, String freqfile, String outfile) {
+		BufferedReader reader;
+        PrintWriter writer;
+        String[] line;
+        int count;
+        String[] markerNames;
+        String[][] alleles;
+        String allele;
+        SnpMarkerSet markerSet;
+        Logger log;
+        
+        log = new Logger();
+        
+    	markerSet = new SnpMarkerSet(mapfile, false, log);
+        markerNames = markerSet.getMarkerNames();
+    	alleles = HashVec.loadFileToStringMatrix(freqfile, true, new int[] {0,2,3}, false);
+    	if (markerNames.length != alleles.length) {
+    		log.reportError("Error - different number of markers in map file and frq file");
+			System.exit(1);
+    	}
+    	for (int i = 0; i < markerNames.length; i++) {
+    		if (markerNames[i].equals(alleles[i][0])) {
+    			log.reportError("Error - marker name mismatch at index "+i+": found "+markerNames[i]+" in map file and "+alleles[i][0]+" in frq file");
+    			System.exit(1);
+    		}
+		}
+
+        try {
+            reader = new BufferedReader(new FileReader(pedfile));
+            writer = new PrintWriter(new FileWriter(outfile));
+
+            writer.print("id");
+            for (int i = 0; i<markerNames.length; i++) {
+            	writer.print(","+markerNames[i]);
+            }
+            writer.println();
+
+            while (reader.ready()) {
+            	line = reader.readLine().trim().split("[\\s]+");
+            	writer.print(line[1]);
+            	for (int i = 0; i<markerNames.length; i++) {
+                	count = 0;
+            		for (int j = 0; j<2; j++) {
+            			allele = line[6+i*2+j];
+            			if (allele.equals("0")) {
+            				count = -9;
+            			} else if (allele.equals(alleles[i][1])) {
+            				count++;
+            			} else if (!allele.equals(alleles[i][2])) {
+            				System.err.println("Error - mismatched alleles, expecting "+alleles[i][1]+" or "+alleles[i][2]+" and got '"+allele+"'");
+            			}
+
+                    }
+       				writer.print(","+(count < 0?"":count));
+                }
+            	writer.println();
+            }
+            writer.close();
+            reader.close();
+        } catch (FileNotFoundException fnfe) {
+        	log.reportError("Error: file \""+pedfile+"\" not found in current directory");
+        	log.reportException(fnfe);
+            return;
+        } catch (IOException ioe) {
+        	log.reportError("Error reading file \""+pedfile+"\"");
+        	log.reportException(ioe);
+        	return;
+        }
+		
+	}
+	
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String pedfile = "plink.ped";
+		String mapfile = "plink.map";
+		String freqfile = "plink.frq";
+		String outfile = "gwaf.csv";
+
+		String usage = "\n" +
+		"gwas.CreateDatabaseFromPlink\n" +
+		" *** see Launch for createDatabase, createScore, and createCountsMatrix (for simpleM)***\n" + 
+		"  For convert toGWAF, use the following arguments:\n" + 
+		"   (1) .ped filename (i.e. ped=" + pedfile + " (default))\n" + 
+		"   (2) .map filename (i.e. map=" + mapfile + " (default))\n" + 
+		"   (3) .frq filename (i.e. frq=" + freqfile + " (default))\n" + 
+		"   (4) output filename (i.e. gwaf=" + outfile + " (default))\n" + 
+		"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("ped=")) {
+				pedfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("map=")) {
+				mapfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("frq=")) {
+				freqfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("gwaf=")) {
+				outfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		
+		String dir = "D:\\BOSS\\GWAF\\";
+		pedfile = dir+"plink.ped";
+		mapfile = dir+"plink.map";
+		freqfile = dir+"plink.frq";
+		outfile = dir+"gwaf.csv";
+		
+		try {
+//			createCountsMatrix("simpleM.crf", new Logger(null));
+			toGWAF(pedfile, mapfile, freqfile, outfile);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
