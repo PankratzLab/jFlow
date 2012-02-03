@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 //import java.util.Date;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -28,6 +29,7 @@ import common.Array;
 import common.Grafik;
 import common.HashVec;
 import common.IntVector;
+import common.ProgressBarDialog;
 import common.Sort;
 import common.ext;
 import stats.Maths;
@@ -90,7 +92,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int lastIndexInPlotPointSet;
 	private int currentIndexInPlotPointSet;
 	private String tempDirectory;
-	private int lookupResolution;//zx
+	private int lookupResolution;	   //zx
+	private boolean flow;			   //zx: If resizing is not yet done, don't start generatePoints() or drawAll();
+	private boolean finalImage;		   //zx: If drawAll() is not yet done, don't start paintComponent();
 
 	
 	public AbstractPanel() {
@@ -114,6 +118,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
+		finalImage=true;//zx
+		flow=true;//zx
 		
 		colorScheme = new Color[] {Color.BLACK, Color.GRAY};
 		addMouseListener(this);
@@ -175,11 +181,17 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 
 	public void paintComponent(Graphics g) {
-		if (image==null) {
+		if (getFinalImage()&&image==null) {
 			createImage();
 			repaint();
 		}
 		g.drawImage(image, 0, 0, this);
+//		g.setColor(Color.WHITE);
+//		g.fillRect(0, 0, getWidth(), getHeight());
+//		if (finalImage&&image!=null) {
+//			g.drawImage(image, 0, 0, this);
+//		}
+
 	}
 
 	public void screenCapture(String filename) {
@@ -244,27 +256,36 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		String trav;
 		String[] keys;
 		int[] order;
-//		long time;
+		int step;
+		long time;
+		ProgressBarDialog prog;//zx
 		
+		//zx
+		if (points.length==0) {
+			System.out.println("Error: no data. The cnv.plots.AbstractPanel.points is null.");
+			return;
+		}
+		
+		setFinalImage(false);
 		generatePoints();
 		setLookupResolution(DEFAULT_LOOKUP_RESOLUTION);//zx
 		assignAxisLabels();
-		
-//        time = new Date().getTime();
-		
+
 		minimumObservedRawX = Float.MAX_VALUE;
 		maximumObservedRawX = Float.MIN_VALUE;
 		minimumObservedRawY = Float.MAX_VALUE;
 		maximumObservedRawY = Float.MIN_VALUE;
-		for (int i = 0; i<points.length; i++) {
+		for (int i = 0; i<points.length&&flow; i++) {
 			if (points[i] != null) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, points[i].getRawX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, points[i].getRawX());
 				minimumObservedRawY = Maths.min(minimumObservedRawY, points[i].getRawY());
 				maximumObservedRawY = Maths.max(maximumObservedRawY, points[i].getRawY());
+				//System.out.println(minimumObservedRawX+"\t"+maximumObservedRawX+"\t"+minimumObservedRawY+"\t"+maximumObservedRawY);//zx
+				//System.out.println(points[i].getRawX()+"\t"+points[i].getRawY());//zx
 			}
         }
-		for (int i = 0; lines != null && i<lines.length; i++) {
+		for (int i = 0; lines != null && i<lines.length&&flow; i++) {
 			if (lines[i] != null) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, lines[i].getStartX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, lines[i].getStartX());
@@ -282,6 +303,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		maximumObservedRawX = maximumObservedRawX==Float.MIN_VALUE?1:maximumObservedRawX;
 		minimumObservedRawY = minimumObservedRawY==Float.MAX_VALUE?0:minimumObservedRawY;
 		maximumObservedRawY = maximumObservedRawY==Float.MIN_VALUE?1:maximumObservedRawY;
+		//System.out.println(minimumObservedRawX+"\t"+maximumObservedRawX+"\t"+minimumObservedRawY+"\t"+maximumObservedRawY);//zx
 
 //		otherwise step is off
 		minimumObservedRawX = minimumObservedRawX>0?0:minimumObservedRawX;
@@ -299,9 +321,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			minimumObservedRawY = minimumObservedRawX;
 		}
 		
-		g.setColor(Color.WHITE);
+		//g.setColor(Color.WHITE);
+//		g.setColor(Color.BLACK);//zx tmp
 		g.fillRect(0, 0, getWidth(), getHeight());
 		g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
+//		System.out.println("getWidth: "+getWidth()+"\t getHeight: "+getHeight());
 		
 		fontMetrics = g.getFontMetrics(g.getFont());
 		missingWidth = fontMetrics.stringWidth("X");
@@ -364,18 +388,25 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-		//locLookup.clear();	// -- This was here since Nathan's original code.
 		
 		if (errorMessage != null) {
 			g.drawString(errorMessage, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(errorMessage)/2+WIDTH_Y_AXIS, (getHeight()-HEAD_BUFFER-HEIGHT_X_AXIS)/2-20+HEAD_BUFFER);
 		}
 		
-		for (int i = 0; lines!=null&&i<lines.length; i++) {
+		for (int i = 0; lines!=null&&i<lines.length&&flow; i++) {
 			Grafik.drawThickLine(g, getX(lines[i].getStartX()), getY(lines[i].getStartY()), getX(lines[i].getStopX()), getY(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
         }
-		
+		time = new Date().getTime();
+		prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 500);//zx
+//		System.out.println("points.length: "+(points.length)+"\3*points.length: "+3*(points.length));
+		step = (points.length)/100;
+
+		locLookup.clear();	// -- This was here since Nathan's original code.
 		layers = new Hashtable<String,Vector<PlotPoint>>();
-		for (int i = 0; i<points.length; i++) {
+		for (int i = 0; i<points.length&&flow; i++) {
+			if (i%step==0){
+				prog.setProgress(i);//zx
+			}
 			if (points[i] == null || points[i].getColor() == -1) {
 //			if (points[i] == null || points[i].getColor() == -1 || (points[i].getRawX() < 1 && points[i].getRawY() < 1)) {
 				
@@ -393,7 +424,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 					layer.add(points[i]);
 				}
-			
 				if (createLookup) {
 					xLook = (int)Math.floor(getX(points[i].getRawX())/lookupResolution);
 					yLook = (int)Math.floor(getY(points[i].getRawY())/lookupResolution);
@@ -405,16 +435,21 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 							} else {
 								locLookup.put(pos, new IntVector(new int[] {i}));
 							}
+							//System.out.println("pos: "+pos+"\t sample id: "+i);//zx
 						}
 					}
 				}
 			}
 		}
 		
-		buildLookupTableOfNearbyPoints();//zx
+		//buildLookupTableOfNearbyPoints();//zx Looks like it gets duplicated with the above
+		//for (int i=0; i<locLookup.size(); i++) {
+		//	System.out.println(locLookup.get(i));
+		//}
+
 		keys = HashVec.getKeys(layers);
 		order = Sort.quicksort(Array.toIntArray(keys));
-		for (int i = 0; i<keys.length; i++) {
+		for (int i = 0; i<keys.length&&flow; i++) {
 			layer = layers.get(keys[order[i]]);
 			for (int j = 0; j<layer.size(); j++) {
 				drawPoint(g, layer.elementAt(j));
@@ -429,7 +464,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				g.drawLine(getX(0), getY(d), getX(canvasSectionMaximumX), getY(d));
 			}
 		}
-//		 System.out.println("Took "+ext.getTimeElapsed(time)+" to paint");
+		setFinalImage(true);
+		prog.close();//zxu
+		//System.out.println("Paint time: "+ext.getTimeElapsed(time));		
 	}
 	
 	public void mouseClicked(MouseEvent e) {}
@@ -700,6 +737,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void createImage() {
 		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		drawAll(image.createGraphics());
+		flow = true;
+//		repaint();
+//		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 	}
 	
 	//zx
@@ -708,6 +748,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	//zx
+	/*
 	public void buildLookupTableOfNearbyPoints() {
 		int x, y;
 		String pos;
@@ -732,14 +773,15 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 		//System.out.println("---End of locLookup---\n\n\n");//test point
 	}
+	*/
 
 	//zx
 	public IntVector lookupNearbyPoints(int x, int y, String pos) {
 		IntVector iv = locLookup.get(pos);
+		//System.out.print("\t iv size: "+iv.size());
 		IntVector indeciesOfDataPoints = new IntVector();
 		//System.out.println("---Log of lookup process---\nMouse pos\tMouse location\tNumber of nearby samples\tNearby sample index\tNearby sample location\tDistance");//test point
 		for (int i = 0; iv!=null&&i<iv.size(); i++) {
-			//System.out.println("sample index:"+iv.elementAt(i)+"\t pos: "+pos+"\t number of nearby points: "+(iv==null?"null":iv.size())+"\t mouse: ("+x+", "+y+")\t nearby point: ("+getX(points[iv.elementAt(i)].getRawX())+","+getY(points[iv.elementAt(i)].getRawY())+")\t Distance: "+Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())}));
 			//System.out.println(pos+"\t("+x+", "+y+")\t"+(iv==null?"null":iv.size())+"\t"+iv.elementAt(i)+"\t("+getX(points[iv.elementAt(i)].getRawX())+", "+getY(points[iv.elementAt(i)].getRawY())+")\t"+Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())}));//test point
 			if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
 				indeciesOfDataPoints.add(iv.elementAt(i));
@@ -748,5 +790,25 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		//System.out.println("\t indeciesOfDataPoints: "+indeciesOfDataPoints.size());
 		return indeciesOfDataPoints;
 	}
+
+	public void setFinalImage(boolean finalImage) {
+		this.finalImage = finalImage;
+	}
+
+	public boolean getFinalImage() {
+		return finalImage;
+	}
+
+	public void setFlow(boolean flow) {
+		this.flow = flow;
+	}
+
+	public boolean getFlow() {
+		return flow;
+	}
 	
+	public void interruptFlow() {
+		flow = false;
+	}
+
 }

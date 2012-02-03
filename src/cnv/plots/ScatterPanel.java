@@ -131,19 +131,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		System.out.println("generating");
 //		time = new Date().getTime();
 
-		//System.out.print("plotType:\t currentClass:\t markerIndex:\t datapoints:\t gcScore\t alleleCounts\n");//zx
 		plotType = sp.getPlotType();
-		//System.out.print("plotType: "+plotType+"\t");//zx
 		currentClass = sp.getCurrentClass();
-		//System.out.print("currentClass: "+currentClass+"\t");//zx
 		markerIndex = sp.getMarkerIndex();
-		//System.out.print("markerIndex: "+markerIndex+"\t");//zx
 		datapoints = markerData[markerIndex].getDatapoints(plotType);
-		//System.out.print("datapoints: "+datapoints.length+"\t");//zx
 		gcScores = markerData[markerIndex].getGCs();
-		//System.out.print("gcScores: "+gcScores.length+"\t");//zx
 		alleleCounts = markerData[markerIndex].getAB_Genotypes();
-		//System.out.print("alleleCounts: "+alleleCounts.length+"\n");//zx
 		chr = markerData[markerIndex].getChr();
 		position = markerData[markerIndex].getPosition();
 		size = sp.getPointSize();
@@ -153,6 +146,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		displayCents = sp.getDisplayCents();
 		cents = sp.getCents();
 		centSize = 20;
+		//System.out.print("plotType:\t currentClass:\t markerIndex:\t datapoints:\t gcScore\t alleleCounts\n");//zx
+		//System.out.print("plotType: "+plotType+"\t");//zx
+		//System.out.print("currentClass: "+currentClass+"\t");//zx
+		//System.out.print("markerIndex: "+markerIndex+"\t");//zx
+		//System.out.print("datapoints: "+datapoints.length+"\t");//zx
+		//System.out.print("gcScores: "+gcScores.length+"\t");//zx
+		//System.out.print("alleleCounts: "+alleleCounts.length+"\n");//zx
 		
 		//System.out.println("datapoints[0]: "+datapoints[0]+"\t datapoints[1]"+datapoints[1]);//zx
 		if (datapoints[0] == null || datapoints[1] == null) {
@@ -343,6 +343,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//iv = locLookup.get(pos);
 		//indeciesOfDataPoint = lookupNearbyPoints(x, y, pos);
 		indeciesOfNearbySamples = lookupNearbyPoints(x, y, pos);
+		//System.out.println("Number of nearby samples: "+(indeciesOfNearbySamples==null?0:indeciesOfNearbySamples.size()));//zx test point
 		//prox = new IntVector();
 
 		plotType = sp.getPlotType();
@@ -361,7 +362,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5)));
 		xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
 
-		System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));
+		//System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));//zx test point
 		for (int l = 0; indeciesOfNearbySamples!=null&&l<indeciesOfNearbySamples.size(); l++) {
 			i = indeciesOfNearbySamples.elementAt(l);
 			indi = sampleHash.get(samples[i]);

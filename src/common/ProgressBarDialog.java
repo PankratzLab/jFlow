@@ -9,9 +9,18 @@ public class ProgressBarDialog extends JDialog {
 	public static final long serialVersionUID = 1L;
 
 	private JProgressBar pb;
+	private long timeStarted;
+	private long timeDelay;
 
 	public ProgressBarDialog(String frameText, int min, int max, int width, int height) {
+		this(frameText, min, max, width, height, 0);
+	}
+	
+	public ProgressBarDialog(String frameText, int min, int max, int width, int height, int timeDelay) {
 		super((JFrame)null, frameText);
+		
+		this.timeDelay = timeDelay;
+		timeStarted = System.currentTimeMillis();
 
 		pb = new JProgressBar(min, max);
 		pb.setPreferredSize(new Dimension(175, 20));
@@ -30,10 +39,16 @@ public class ProgressBarDialog extends JDialog {
 		toFront(); // raise above other java windows
 
 	}
+	
+	public void setTimeDelay(long delay) {
+		this.timeDelay = delay;
+	}
 
 	public void setProgress(int value) {
-		pb.setValue(value);
-		pb.setString((int)((double)value/(double)(pb.getMaximum()-pb.getMinimum())*100)+"%");
+		if (System.currentTimeMillis() - timeStarted > timeDelay) {
+			pb.setValue(value);
+			pb.setString((int)((double)value/(double)(pb.getMaximum()-pb.getMinimum())*100)+"%");
+		}
 	}
 
 	public void close() {

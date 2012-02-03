@@ -3,6 +3,7 @@ package cnv.plots;
 import java.io.*;
 import java.util.*;
 import common.*;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -10,12 +11,15 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
 
+import cnv.filesys.MarkerData;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.gui.LaunchAction;
+import cnv.var.SampleData;
 import mining.Distance;
 
 //public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
-public abstract class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
+public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 	public static final long serialVersionUID = 3L;
 	public static final int HEAD_BUFFER = 25;
 //	public static final int HEIGHT_X_AXIS = 55;
@@ -59,15 +63,15 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 	private double plotXmax, plotYmax;
 	private String prevPos = "";
 	private BufferedImage image;
-	private Hashtable<String,IntVector> locLookup;
+	//private Hashtable<String,IntVector> locLookup;//zx
 	private Hashtable<String,IntVector> sampLookup;
 	private IntVector prox;
 	private Hashtable<String,String> colorHash;
 	private Hashtable<String,String> failedHash;
 	private int prevWidth;
 	private int prevHeight;
-	private boolean flow;
-	private boolean finalImage;
+	//private boolean flow;
+	//private boolean finalImage;//zx
 	private Repress patience;
 
 	public MosaicPanel(Project proj, String[][] samples, double[][] data) {
@@ -136,27 +140,29 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addComponentListener(this);
+		
+		//setFlow(true);
 	}
 
-	public void paintComponent(Graphics g) {
-		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, getWidth(), getHeight());
-		if (finalImage&&image!=null) {
-			g.drawImage(image, 0, 0, this);
-		}
-	}
+//	public void paintComponent(Graphics g) {
+//		g.setColor(Color.WHITE);
+//		g.fillRect(0, 0, getWidth(), getHeight());
+//		if (finalImage&&image!=null) {
+//			g.drawImage(image, 0, 0, this);
+//		}
+//	}
 
-	public void interruptFlow() {
-		flow = false;
-	}
+//	public void interruptFlow() {
+//		flow = false;
+//	}
 
-	public void createImage() {
-		repaint();
-		flow = true;
-		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-		drawAll(image.createGraphics());
-		repaint();
-	}
+//	public void createImage() {
+//		repaint();
+//		flow = true;
+//		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+//		drawAll(image.createGraphics());
+//		repaint();
+//	}
 
 	public void savePlotToFile() {
 		try {
@@ -166,6 +172,7 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 		}
 	}
 
+	/*
 	public void drawAll(Graphics g) {
 		double xStep = X_STEP;
 		double yStep = Y_STEP;
@@ -297,14 +304,15 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 		finalImage = true;
 		System.out.println("Took "+ext.getTimeElapsed(time)+" to paint");
 	}
+	*/
 
-	public int getX(double x) {
-		return (int)((x-minX)/(plotXmax-minX)*(double)(xMax-xMin))+xMin;
-	}
-
-	public int getY(double y) {
-		return getHeight()-(int)((y-minY)/(plotYmax-minY)*(double)(yMax-yMin)+yMin);
-	}
+//	public int getX(double x) {
+//		return (int)((x-minX)/(plotXmax-minX)*(double)(xMax-xMin))+xMin;
+//	}
+//
+//	public int getY(double y) {
+//		return getHeight()-(int)((y-minY)/(plotYmax-minY)*(double)(yMax-yMin)+yMin);
+//	}
 
 	public void mouseMoved(MouseEvent event) {
 		Graphics g = getGraphics();
@@ -312,7 +320,7 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 		String pos;
 		int x, y;
 
-		if (finalImage) {
+		if (getFinalImage()) {
 			x = event.getX();
 			y = event.getY();
 
@@ -324,8 +332,11 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 			if (!pos.equals(prevPos)) {
 				repaint();
 			}
-			iv = locLookup.get(pos);
+
+			//iv = locLookup.get(pos);
+			iv = lookupNearbyPoints(x, y, pos);
 			prox = new IntVector();
+			//System.out.println("pos: "+pos+"\t iv.size():"+(iv==null?"null":iv.size()));//zx test point
 			g.setColor(Color.RED);
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(data[iv.elementAt(i)][0]), getY(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
@@ -395,7 +406,7 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 	public void componentMoved(ComponentEvent e) {}
 
 	public void componentResized(ComponentEvent e) {
-
+		setFlow(false);//zx
 		if (prevWidth==-1) {
 			prevWidth = getWidth();
 			prevHeight = getHeight();
@@ -412,11 +423,79 @@ public abstract class MosaicPanel extends AbstractPanel implements MouseListener
 			prevWidth = getWidth();
 			prevHeight = getHeight();
 		}
+		setFlow(true);//zx
 	}
 
 	public void componentShown(ComponentEvent e) {}
 
 	public static void main(String[] args) {
 		MosaicPlot.main(args);
+	}
+
+	/**
+	 * Assigns x-Axis label and y-axis label to the panel.
+	 */
+	@Override
+	void assignAxisLabels() {
+		xAxisLabel = "Standard deviation of BAF values";
+		yAxisLabel = "Inter-quartile range of BAF values";
+	}
+
+	/**
+	 * Generate the array "protected PlotPoint[] points" from the following:
+	 * 		samples   - the array of sample indices. One sample is represented as one data point in the graph
+	 * 		type      - Missing (4), Not_A_Number (3), or Filled_Circle (1) 
+	 *		data      - double[][], with data[][0] being the X, and data[][1] being the Y;
+	 *		size      - the size of the points on the drawing;
+	 *		classcode - All (0), GenotypeCode (1), Sex (2) or etc
+	 *		layer:    - layer (0 or 1) of the drawing. For MosaicPanel, we only use 0.
+	 */
+	@Override
+	void generatePoints() {
+		byte color;
+		String[] files;
+		files = new File(proj.getDir(Project.IND_DIRECTORY)).list(new FilenameFilter() {
+			public boolean accept(File file, String filename) {
+				return filename.endsWith("");
+			}
+		});
+		if (files==null) {
+			files = new String[0];
+		}
+		
+		points = new PlotPoint[data.length];
+		for (int i = 0; i<data.length&&getFlow(); i++) {
+			if (colorHash.containsKey(samples[i][0]+"\t"+samples[i][1])) {
+				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
+				color = (byte) Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]));
+			} else {
+				color = (byte) ((byte) ext.indexOfStr(samples[i][0]+".samp", files)>=0?0:1);	// What is the color code for Color.GRAY
+			}
+			points[i] = new PlotPoint("",
+									  (byte) 1,
+									  (float) data[i][0],
+									  (float) data[i][1],
+									  (byte) SIZE,
+									  (byte) color,
+									  (byte) 0
+									  );
+		}
+		//SampleData sampleData = new SampleData(proj, true);
+		/*
+		String[] markerList = Array.toStringArray(markerNames);
+		MarkerData[] markerData = MarkerSet.loadFromList(proj, markerList);
+		for (int i=0; i<samples.length; i++) {
+			points[i] = new PlotPoint(samples[i][0],
+											 1,
+											 markerData[1].getDatapoints(0)[0][i],
+											 markerData[1].getDatapoints(0)[1][i],
+											 SIZE,
+											 0,
+											 0
+											);
+		}
+		*/
+		
+		//Color color;
 	}
 }
