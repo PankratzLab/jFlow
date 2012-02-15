@@ -3,6 +3,7 @@ package cnv.filesys;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import stats.Correlation;
 import common.Array;
@@ -141,6 +142,16 @@ public class MarkerData implements Serializable {
 
 	public byte[] getAB_Genotypes() {
 		return abGenotypes;
+	}
+
+	public byte[] getAB_GenotypesAfterFilters(ArrayList<MarkerFilter> filters, float gcThreshold) {
+		byte[] newGenotypes;
+		
+		// apply filters from abGenotypes -> newGenotypes
+		newGenotypes = abGenotypes;
+		
+		
+		return newGenotypes;
 	}
 
 	public String[] getAlleleMappings() {

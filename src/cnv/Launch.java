@@ -144,7 +144,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				new File(proj.getProjectDir()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
-	//			vis cnv.manage.PlinkFormat root=../plink genome=6 
+	//			vis cnv.manage.PlinkFormat root=../plink genome=6
 			} else if (command.equals(LRR_SD)) {
 				cnv.qc.LrrSd.init(proj, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 			} else if (command.equals(SCATTER)) {

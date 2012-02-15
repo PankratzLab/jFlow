@@ -7,9 +7,9 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import stats.CTable;
 import stats.ContingencyTable;
 import stats.ProbDist;
-import stats.CTable;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -262,6 +262,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 				JSlider slider = (JSlider)ce.getSource();
 				gcThreshold = (float)slider.getValue()/100f;
 				gcLabel.setText("GC > "+ext.formDeci(gcThreshold, 2, true));
+				scatPanel.setUpdateQcPanel(true);//zx
 				scatPanel.paintAgain();
 				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");//zx
 			}
@@ -376,6 +377,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 					for (int i = 0; i<sampleData.getNumClasses(); i++) {
 						if (jrb.getText().equals(sampleData.getClassName(i))) {
 							currentClass = i;
+							scatPanel.setUpdateQcPanel(true);//zx
 							updateGUI();
 						}
 					}
@@ -504,18 +506,22 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		if (command.equals(FIRST)) {
 			markerIndex = 0;
 			displayIndex(navigationField);
+			scatPanel.setUpdateQcPanel(true);
 			updateGUI();
 		} else if (command.equals(PREVIOUS)) {
 			markerIndex = Math.max(markerIndex-1, 0);
 			displayIndex(navigationField);
+			scatPanel.setUpdateQcPanel(true);
 			updateGUI();
 		} else if (command.equals(NEXT)) {
 			markerIndex = Math.min(markerIndex+1, markerList.length-1);
 			displayIndex(navigationField);
+			scatPanel.setUpdateQcPanel(true);
 			updateGUI();
 		} else if (command.equals(LAST)) {
 			markerIndex = markerList.length-1;
 			displayIndex(navigationField);
+			scatPanel.setUpdateQcPanel(true);
 			updateGUI();
 		} else if (command.equals(CAPTURE)) {
 			System.out.println("command.equals(CAPTURE)");//zx
@@ -836,7 +842,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 	}
 
 
-	public void updateQcPanel(int[][] dataForQc) {
+	public void updateQcPanel(int[] genotype, String[] sex, String[] otherClass) {
 		float callRate=0;//zx
 		JLabel qcPanelLabel;//zx
 		//JLabel qcCallRateLabel;//zxu
@@ -845,17 +851,23 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		double hweP;
 		//int[][] sexContingecyTable = new int[2][2];
 		CTable classCount;
+		String[] called;
 		
-		alleleCounts = new int[3]; 
-		for (int i=0; i<dataForQc[0].length; i++){//zx
-			if (dataForQc[0][i]<=0) {
+		alleleCounts = new int[3];
+		called = new String[genotype.length];
+		for (int i=0; i<genotype.length; i++){//zx
+			if (genotype[i]<=0) {
+				called[i] = "-1";
 				callRate++;//zx
 			} else {
-				alleleCounts[dataForQc[0][i]-1]++;
+				called[i] = "1";
+				alleleCounts[genotype[i]-1]++;
+//				alleleCounts[genotype[i]]++;
 			}
+			
 		}
 		hweP = AlleleFreq.HWEsig(alleleCounts);
-		callRate=(dataForQc[0].length-callRate)*100/dataForQc[0].length;//zx
+		callRate=(genotype.length-callRate)*100/genotype.length;//zx
 		
 		qcPanel.removeAll();
 		qcPanel.repaint();
@@ -866,7 +878,6 @@ public class ScatterPlot extends JFrame implements ActionListener {
         qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
         qcPanel.add(qcPanelLabel);//zx
 		
-        //qcCallRateLabel = new JLabel("Call Rate: "+(dataForQc.length-missing)*100/dataForQc.length+"%", JLabel.LEFT);//zx
         qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);//zx
         qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
         qcPanel.add(qcPanelLabel);//zx
@@ -877,32 +888,49 @@ public class ScatterPlot extends JFrame implements ActionListener {
 
 		ToolTipManager.sharedInstance().setDismissDelay(100000);
 
-		classCount = new CTable(dataForQc[0], dataForQc[1], SampleData.KEYS_FOR_BASIC_CLASSES[1],
-				sampleData.getActualClassColorKey(0));
-		qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(2)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTableForCallRate()), 1) ), JLabel.LEFT);//zx
-		qcPanelLabel.setToolTipText(classCount.generateToolTipTextForCallRate());
+		classCount = new CTable(called, sex);//This is the problem.
+		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
+		classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(0));
+		qcPanelLabel = new JLabel("Callrate by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable()), 1) ), JLabel.LEFT);//zx
+		//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}));
+		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
         qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
 		qcPanel.add(qcPanelLabel);//zx
 
-		if (currentClass>2) {
-			classCount = new CTable(dataForQc[0], dataForQc[2], SampleData.KEYS_FOR_BASIC_CLASSES[1],
-					currentClass<SampleData.BASIC_CLASSES.length?SampleData.KEYS_FOR_BASIC_CLASSES[currentClass]:sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
-			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTableForCallRate()), 1) ), JLabel.LEFT);//zx
-			qcPanelLabel.setToolTipText(classCount.generateToolTipTextForCallRate());
+		classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
+		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
+		classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
+		qcPanelLabel = new JLabel("Allele Freq by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable()), 1)), JLabel.LEFT);//zx
+		//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}, {".","Missing"}});
+		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+		qcPanel.add(qcPanelLabel);//zx
+
+
+		if (currentClass>=(SampleData.BASIC_CLASSES.length+1)) {
+			classCount = new CTable(called, otherClass);//This is the problem.
+			classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
+			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable()), 1) ), JLabel.LEFT);//zx
+			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+			//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}));
+			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+			qcPanel.add(qcPanelLabel);//zx
+	
+			classCount = new CTable(CTable.extrapolateCounts(otherClass, genotype));
+			classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
+			//classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
+			qcPanelLabel = new JLabel("Allele Freq by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable()), 1)), JLabel.LEFT);//zx
+			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+			//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
+			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
 	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
 			qcPanel.add(qcPanelLabel);//zx
 		}
 
-		classCount = new CTable(dataForQc[0], dataForQc[1], SampleData.KEYS_FOR_BASIC_CLASSES[1],
-				sampleData.getActualClassColorKey(0));
-		qcPanelLabel = new JLabel("Allele Freq by Sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getAlleleFreqBySex()), 1)), JLabel.LEFT);//zx
-		qcPanelLabel.setToolTipText(classCount.generateToolTipTextForAllelFreq());
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-
-		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
+//		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);//zx
+//      qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//		qcPanel.add(qcPanelLabel);//zx
 
 //		AlleleFreq.calcFrequency(genotypes);
 		

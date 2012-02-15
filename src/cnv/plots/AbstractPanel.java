@@ -65,7 +65,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected String prevPos = "";
 	protected Hashtable<String,IntVector> locLookup;
 	protected PlotPoint[] points;						// make private when worked out
-	protected AbstractLine[] lines;
+	protected GenericLine[] lines;
+	//protected GenericRectangle[] rectangles;
 	protected String xAxisLabel;
 	protected String yAxisLabel;
 	protected boolean displayXaxis;
@@ -92,10 +93,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int lastIndexInPlotPointSet;
 	private int currentIndexInPlotPointSet;
 	private String tempDirectory;
-	private int lookupResolution;	   //zx
-	private boolean flow;			   //zx: If resizing is not yet done, don't start generatePoints() or drawAll();
-	private boolean finalImage;		   //zx: If drawAll() is not yet done, don't start paintComponent();
-
+	private int lookupResolution;		//zx
+	private boolean flow;				//zx: A control variable. If resizing is not yet done, don't start generatePoints() or drawAll();
+	private boolean finalImage;			//zx: A control variable. If drawAll() is not yet done, don't start paintComponent();
 	
 	public AbstractPanel() {
 		displayXaxis = true;

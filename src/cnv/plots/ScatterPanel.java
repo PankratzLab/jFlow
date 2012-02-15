@@ -70,7 +70,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	protected IntVector prox;
 	protected SampleData sampleData;
 	private Hashtable<String,IntVector> locLookup;//zx
-	IntVector indeciesOfNearbySamples;//zx
+	IntVector indeciesOfNearbySamples;	//zx
+	private boolean updateQcPanel;		//zx: A control variable. Do not update QcPanel when resizing, or etc.
 
 
 
@@ -82,6 +83,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		this.markerData = sp.getMarkerData();
 		this.sampleData = sp.getSampleData();
 		locLookup = new Hashtable<String,IntVector>();//zx
+		updateQcPanel = true;//zx
 		
 		setColorScheme(DEFAULT_COLORS);
 
@@ -125,7 +127,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int numCents, count;
 		byte centSize;
 		float x, y;
-		int[][] dataForQc;//zx
+		//int[][] dataForQc;//zx
+		int[] genotype;
+		String[] sex;
+		String[] otherClass;
 		CountVector classCounts;//zx
 
 //		System.out.println("generating");
@@ -198,7 +203,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			forcePlotXmax = 1;
 		}
 
-		dataForQc = new int[3][samples.length];//zx
+		//dataForQc = new int[3][samples.length];//zx
+		//genotype = markerData[markerIndex].getAB_GenotypesAfterFilters(null, sp.getGCthreshold());
+		genotype = new int[samples.length];
+		sex = new String[samples.length];
+		otherClass = new String[samples.length];
 		classCounts = new CountVector();
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleHash.get(samples[i]);
@@ -233,16 +242,32 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				layer = (byte)((sampleData.getClassCategoryAndIndex(currentClass)[0]==2 && classCode > 0)?1:0);
 				if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) {
 					classCounts.add(0+"");
-					dataForQc[0][i]=0;//zx
+					genotype[i]=0;//zx
 				} else {
 					classCounts.add(classCode+"");
 				}
 				points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:xFontSize, classCode, layer);
-				dataForQc[0][i]=genotypeCode;//zx
-				dataForQc[1][i]=sexCode;//zx
-				dataForQc[2][i]=classCode;//zx
+				genotype[i]=genotypeCode;
+				//sex[i]=(sexCode==1?"Female":(sexCode==2?"Male":"Missing"));
+				//for (int j=0; j<sampleData.getActualClassColorKey(0).length; j++) {
+				//	if (sampleData.getActualClassColorKey(0)[j][0].equals(determineCodeFromClass(2, alleleCounts[i], indi, chr, position)+"")){
+				//		sex[i]=sampleData.getActualClassColorKey(0)[j][1];
+				//		break;
+				//	}
+				//	sex[i]="Missing";
+				//}
+				sex[i] = determineCodeFromClass(2, alleleCounts[i], indi, chr, position)+"";
+				
+				//for (int j=0; j<sampleData.getActualClassColorKey(1).length; j++) {
+				//	if (sampleData.getActualClassColorKey(1)[j][0].equals(classCode+"")){
+				//		otherClass[i]=sampleData.getActualClassColorKey(1)[j][1];
+				//		break;
+				//	}
+				//	otherClass[i]="Missing";
+				//}
 				//classCounts.add(code+"");//np
 				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;//zx
+				otherClass[i] = determineCodeFromClass(3, alleleCounts[i], indi, chr, position)+"";
 			} else {
 				System.err.println("Error - no data for "+samples[i]);
 			}
@@ -251,7 +276,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 		//callRate=(samples.length-callRate)*100/samples.length;//zx
 		
-		sp.updateQcPanel(dataForQc);//zx
+		if (getUpdateQcPanel()) {
+			//sp.updateQcPanel(dataForQc);//zx
+			//sp.updateQcPanel(dataForQc[0], dataForQc[1], dataForQc[2]);//zx
+			sp.updateQcPanel(genotype, sex, otherClass);//zx
+			setUpdateQcPanel(false);
+		}
 		sp.updateColorKey(classCounts.convertToHash());
 		/*
 		if (currentClass == 1) {
@@ -376,6 +406,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 		prevPos = pos;
 	}
+
+    public void mouseDragged(MouseEvent e) {
+    }
 
 	/*
 	// Begin of original section
@@ -504,6 +537,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 	public static void main(String[] args) {
 		ScatterPlot.main(new String[] {"-notJar"});
+	}
+
+	public void setUpdateQcPanel(boolean updateQcPanel) {
+		this.updateQcPanel = updateQcPanel;
+	}
+
+	public boolean getUpdateQcPanel() {
+		return updateQcPanel;
 	}
 
 }
