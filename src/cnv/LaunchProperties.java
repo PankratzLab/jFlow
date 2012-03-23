@@ -9,7 +9,7 @@ public class LaunchProperties extends Properties {
 	public static final long serialVersionUID = 1L;
 
 	public static final String DEFAULT_PROPERTIES_FILE = "launch.properties";
-//	public static final String PROPERTIES_FILE = "/Documents and Settings/npankrat/My Documents/jProjects/launch.properties";
+//	public static final String PROPERTIES_FILE = "C:/zxTmp/workspace/Genvisis_Simplified1/launch.properties";
 	public static final String PROJECTS_DIR = "PROJECTS_DIR";
 	public static final String LAST_PROJECT_OPENED = "LAST_PROJECT_OPENED";
 	

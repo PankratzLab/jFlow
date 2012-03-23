@@ -144,14 +144,104 @@ public class MarkerData implements Serializable {
 		return abGenotypes;
 	}
 
-	public byte[] getAB_GenotypesAfterFilters(ArrayList<MarkerFilter> filters, float gcThreshold) {
-		byte[] newGenotypes;
+	public boolean[] getHighlightStatus(ClusterFilter clusterFilter) {
+		byte[] original;
+		boolean[] result;
+		float[] realX;
+		float[] realY;
 		
-		// apply filters from abGenotypes -> newGenotypes
-		newGenotypes = abGenotypes;
+		original = getAB_Genotypes(); 
+		result = new boolean[original.length];
+		for (int i=0; i<original.length; i++) {
+			result[i] = false;
+		}
+		result=new boolean[original.length];
+			// get appropriate data (X/Y Theta/R LRR/BAF)
+			switch(clusterFilter.getPlotType()) {
+			case 0:
+				realX = getX_Raws();
+				realY = getY_Raws();
+				break;
+			case 1:
+				realX = getXs();
+				realY = getYs();
+				break;
+			case 2:
+				realX = getThetas();
+				realY = getRs();
+				break;
+			case 3:
+				realX = getBAFs();
+				realY = getLRRs();
+				break;
+			default:
+				realX = getXs();
+				realY = getYs();
+			}
+			// iterate through all samples
+			for (int j=0; j<result.length; j++) {
+				if (realX[j]>=clusterFilter.getXMin()
+						&& realY[j]>=clusterFilter.getYMin()
+						&& realX[j]<=clusterFilter.getXMax()
+						&& realY[j]<=clusterFilter.getYMax()) {
+					result[j]=true;
+				}
+			}
+		return result;		
 		
+	}
+	
+	public byte[] getAB_GenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, String markerName, float gcThreshold) {
+		byte[] result, original;
+		float[] realX;
+		float[] realY;
+		ArrayList<ClusterFilter> clusterFilters;
 		
-		return newGenotypes;
+		original = getAB_Genotypes(); 
+		result = new byte[original.length];
+		for (int i=0; i<original.length; i++) {
+			if (getGCs()[i]<gcThreshold) {
+				result[i]=(byte)-1;
+			} else {
+				result[i] = original[i];
+			}
+		}
+		
+		clusterFilters = clusterFilterCollection.getClusterFilters(markerName);
+		for (int i=0; clusterFilters != null && i < clusterFilters.size(); i++) {
+			// get appropriate data (X/Y Theta/R LRR/BAF)
+			switch(clusterFilters.get(i).getPlotType()) {
+			case 0:
+				realX = getX_Raws();
+				realY = getY_Raws();
+				break;
+			case 1:
+				realX = getXs();
+				realY = getYs();
+				break;
+			case 2:
+				realX = getThetas();
+				realY = getRs();
+				break;
+			case 3:
+				realX = getBAFs();
+				realY = getLRRs();
+				break;
+			default:
+				realX = getXs();
+				realY = getYs();
+			}
+			// iterate through all samples
+			for (int j=0; j<result.length; j++) {
+				if (realX[j]>=clusterFilters.get(i).getXMin()
+				 && realY[j]>=clusterFilters.get(i).getYMin()
+				 && realX[j]<=clusterFilters.get(i).getXMax()
+				 && realY[j]<=clusterFilters.get(i).getYMax()) {
+					result[j]=clusterFilters.get(i).getNewGenotype();
+				}
+			}
+		}
+		return result;		
 	}
 
 	public String[] getAlleleMappings() {

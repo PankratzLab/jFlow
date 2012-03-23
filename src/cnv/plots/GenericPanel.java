@@ -28,6 +28,8 @@ public class GenericPanel extends AbstractPanel implements ComponentListener {
 		return false;
 	}
 	
+	public void highlightPoints() {}
+	
 	public void generatePoints() {
 		int count;
 		

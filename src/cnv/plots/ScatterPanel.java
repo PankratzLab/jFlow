@@ -1,17 +1,24 @@
+/*
+ * Revised in Feb, 2012. Add mouse dragged feature.
+ */
 package cnv.plots;
 
 //import java.util.Date;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import javax.swing.JPopupMenu;
 
+import cnv.filesys.ClusterFilter;
+import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.gui.LaunchAction;
@@ -19,9 +26,13 @@ import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import cnv.var.IndiPheno;
 import filesys.Segment;
+import filesys.SerialHash;
 //import common.CountVector;
 import common.CountVector;
+import common.HashVec;
 import common.IntVector;
+import common.Sort;
+import common.ext;
 //import common.ext;
 //import mining.Distance;
 import common.Array;
@@ -65,14 +76,17 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	};
 	
 	protected MarkerData[] markerData;
+	byte[] alleleCounts;				//zx
 	protected ScatterPlot sp;
 	protected String[] samples;
 	protected IntVector prox;
 	protected SampleData sampleData;
-	private Hashtable<String,IntVector> locLookup;//zx
 	IntVector indeciesOfNearbySamples;	//zx
 	private boolean updateQcPanel;		//zx: A control variable. Do not update QcPanel when resizing, or etc.
-
+	private int mouseStartX ;
+	private int mouseStartY ;
+	private int mouseEndX ;
+	private int mouseEndY ;
 
 
 	public ScatterPanel(ScatterPlot sp) {
@@ -82,13 +96,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		this.samples = sp.getSamples();
 		this.markerData = sp.getMarkerData();
 		this.sampleData = sp.getSampleData();
-		locLookup = new Hashtable<String,IntVector>();//zx
-		updateQcPanel = true;//zx
+//		locLookup = new Hashtable<String,IntVector>();//zx
+		this.updateQcPanel = true;//zx
 		
 		setColorScheme(DEFAULT_COLORS);
 
-		addMouseListener(this);
-		addMouseMotionListener(this);
+//		addMouseListener(this);
+//		addMouseMotionListener(this);
 		addComponentListener(this);
 		setZoomable(true, true);
 	}
@@ -110,13 +124,27 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 	}	
 	
+	public void highlightPoints() {
+		byte defaultSize;
+		
+		defaultSize = sp.getPointSize();
+		for (int i = 0; i < points.length; i++) {
+			if (points[i].isHighlighted()) {
+				points[i].setSize((byte)(defaultSize*1.5));
+			} else {
+				points[i].setSize((byte)(defaultSize));
+			}
+			
+		}
+	}
+
 	public void generatePoints() {
 		int position, markerIndex, plotType, currentClass;
 		Hashtable<String,IndiPheno> sampleHash;
 		byte chr, genotypeCode, sexCode, classCode, type;
 		float[][] datapoints;
-		byte[] alleleCounts;
-		float gcThreshold;
+//		byte[] alleleCounts;
+//		float gcThreshold;
 		byte layer;
 		float[] gcScores;
 		IndiPheno indi;
@@ -132,34 +160,28 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		String[] sex;
 		String[] otherClass;
 		CountVector classCounts;//zx
+//		ClusterFilterCollection clusterFilterCollection;//zx
 
-//		System.out.println("generating");
 //		time = new Date().getTime();
 
 		plotType = sp.getPlotType();
 		currentClass = sp.getCurrentClass();
 		markerIndex = sp.getMarkerIndex();
+//		gcThreshold = sp.getGCthreshold();
 		datapoints = markerData[markerIndex].getDatapoints(plotType);
 		gcScores = markerData[markerIndex].getGCs();
-		alleleCounts = markerData[markerIndex].getAB_Genotypes();
+//		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
+//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
+		alleleCounts = markerData[markerIndex].getAB_GenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
 		chr = markerData[markerIndex].getChr();
 		position = markerData[markerIndex].getPosition();
 		size = sp.getPointSize();
 		xFontSize = (byte)(size*2);
-		gcThreshold = sp.getGCthreshold();
 		sampleHash = sampleData.getSampleHash();
 		displayCents = sp.getDisplayCents();
 		cents = sp.getCents();
 		centSize = 20;
-		//System.out.print("plotType:\t currentClass:\t markerIndex:\t datapoints:\t gcScore\t alleleCounts\n");//zx
-		//System.out.print("plotType: "+plotType+"\t");//zx
-		//System.out.print("currentClass: "+currentClass+"\t");//zx
-		//System.out.print("markerIndex: "+markerIndex+"\t");//zx
-		//System.out.print("datapoints: "+datapoints.length+"\t");//zx
-		//System.out.print("gcScores: "+gcScores.length+"\t");//zx
-		//System.out.print("alleleCounts: "+alleleCounts.length+"\n");//zx
 		
-		//System.out.println("datapoints[0]: "+datapoints[0]+"\t datapoints[1]"+datapoints[1]);//zx
 		if (datapoints[0] == null || datapoints[1] == null) {
 			errorMessage = "Data not available:";
 			points = new PlotPoint[0]; 
@@ -212,10 +234,15 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleHash.get(samples[i]);
 			if (indi!=null) {
-				genotypeCode = determineCodeFromClass(1, alleleCounts[i], indi, chr, position);
-				if (gcScores[i]<gcThreshold) {
-					genotypeCode = 0;
-				}
+				genotypeCode = (byte)(alleleCounts[i]+1);
+//				genotypeCode = determineCodeFromClass(1, alleleCounts[i], indi, chr, position);
+//				if (gcScores[i]<gcThreshold) {
+//					genotypeCode = 0;
+//				}
+//				clusterFilterCollection = sp.getClusterFilterCollection();
+//				clusterFilterCollection.filterMarker(markerData[markerIndex]);
+				
+				
 				// additional genotypeFilters
 				if (currentClass == 1) {
 					classCode = genotypeCode;
@@ -234,7 +261,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 				if (Float.isNaN(datapoints[0][i]) || Float.isNaN(datapoints[1][i])) {
 					type = PlotPoint.NOT_A_NUMBER;
-				} else if (gcScores[i]<gcThreshold) {
+				} else if (alleleCounts[i]==-1) {
 					type = PlotPoint.MISSING;
 				} else {
 					type = PlotPoint.FILLED_CIRCLE;
@@ -245,6 +272,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					genotype[i]=0;//zx
 				} else {
 					classCounts.add(classCode+"");
+				}
+				if (classCode < 0) {
+					System.err.println("Error - classCOde is less than 0 ("+classCode+")");
 				}
 				points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:xFontSize, classCode, layer);
 				genotype[i]=genotypeCode;
@@ -277,8 +307,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//callRate=(samples.length-callRate)*100/samples.length;//zx
 		
 		if (getUpdateQcPanel()) {
-			//sp.updateQcPanel(dataForQc);//zx
-			//sp.updateQcPanel(dataForQc[0], dataForQc[1], dataForQc[2]);//zx
 			sp.updateQcPanel(genotype, sex, otherClass);//zx
 			setUpdateQcPanel(false);
 		}
@@ -292,10 +320,23 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 		*/
 //		System.out.println("Generated points in "+ext.getTimeElapsed(time));
-
+		
+		Hashtable<String, String> hash = new Hashtable<String, String>();
+		for (int i = 0; i < points.length; i++) {
+			hash.put(points[i].getLayer()+"", "");
+		}
+		setLayersInBase(Array.toByteArray(Sort.putInOrder(Array.toIntArray(HashVec.getKeys(hash)))));
+//    	rectangles = sp.getClusterFilterCollection().getRectangles(sp.getMarkerName(), sp.getCurrentClusterFilter(), (byte) plotType, (byte)1, false, false, (byte)0, (byte)99);
+    	generateRectangles();
+//    	System.out.println("Rectangles length: "+rectangles.length+" size: "+sp.getClusterFilterCollection().getSize(sp.getMarkerName())+" currentClusterFilter: "+sp.getCurrentClusterFilter());
+//		if (sp.getClusterFilterCollection().getSize(sp.getMarkerName())>0) {
+//			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
+//		}
+		if (sp.getCurrentClusterFilter()>=0) {
+			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
+		}
+		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter());
 	}
-	
-	
 
 	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
 		int[] classes, indices;
@@ -347,7 +388,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		IndiPheno indi;
 		Hashtable<String,IndiPheno> sampleHash = sampleData.getSampleHash();
 		float[] gcScores;
-		byte[] alleleCounts;
+//		byte[] alleleCounts;
 		float gcThreshold;
 		int xWidth;
 		int plotType, currentClass;
@@ -381,7 +422,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		markerIndex = sp.getMarkerIndex();
 		datapoints = markerData[markerIndex].getDatapoints(plotType);
 		gcScores = markerData[markerIndex].getGCs();
-		alleleCounts = markerData[markerIndex].getAB_Genotypes();
+//		alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		chr = markerData[markerIndex].getChr();
 		position = markerData[markerIndex].getPosition();
 		gcThreshold = sp.getGCthreshold();
@@ -396,22 +437,20 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		for (int l = 0; indeciesOfNearbySamples!=null&&l<indeciesOfNearbySamples.size(); l++) {
 			i = indeciesOfNearbySamples.elementAt(l);
 			indi = sampleHash.get(samples[i]);
-			//g.setColor(colorScheme[determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
-			g.setColor(Color.YELLOW);
-			if (gcScores[i]<gcThreshold) {
-				g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize*1.5/2.0)-1);
+			g.setColor(colorScheme[determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
+			//g.setColor(Color.YELLOW);
+//			if (gcScores[i]<gcThreshold) {
+			if (alleleCounts[i]==-1) {
+				g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize/2.0));
 			} else {
-				g.fillOval(getX(datapoints[0][i])-(int)(size*1.5)/2, getY(datapoints[1][i])-(int)(size*1.5)/2, (int)(size*1.5), (int)(size*1.5));
+				g.fillOval(getX(datapoints[0][i])-(int)(size*2)/2, getY(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
 			}
 		}
 		prevPos = pos;
 	}
 
-    public void mouseDragged(MouseEvent e) {
-    }
-
-	/*
 	// Begin of original section
+	/*
 	public void mouseMoved(MouseEvent event) {
 		Graphics g = getGraphics();
 		IntVector iv;
@@ -484,7 +523,62 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	// End of original section
 	*/
 
+    public void mousePressed(MouseEvent e) {
+    	mouseStartX = e.getX();
+    	mouseStartY = e.getY();
+    }
 
+    public void mouseReleased(MouseEvent e) {
+    	mouseEndX = e.getX();
+    	mouseEndY = e.getY();
+    	highlightRectangle = null;
+    	
+    	if (Math.abs(mouseEndX-mouseStartX)>(sp.getPointSize()/2) || Math.abs(mouseEndX-mouseStartX)>(sp.getPointSize()/2)) {
+	    	// Automatically predict the new genotype and assigns to the last filter.
+	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
+	    											  new ClusterFilter((byte)sp.getPlotType(),
+																		(float)Math.min(getRawX(mouseStartX), getRawX(mouseEndX)),
+																		(float)Math.min(getRawY(mouseStartY), getRawY(mouseEndY)),
+																		(float)Math.max(getRawX(mouseStartX), getRawX(mouseEndX)),
+																		(float)Math.max(getRawY(mouseStartY), getRawY(mouseEndY)),
+																		markerData[sp.getMarkerIndex()]));
+	    	sp.saveClusterFilterCollection();
+	    	sp.clusterFilterCollectionUpdated(true);
+			setPointsGenerated(false);
+			setUpdateQcPanel(true);
+	    	generateRectangles();
+			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
+			sp.displayClusterFilterIndex();
+			paintAgain();
+	    }
+
+    	// Save the filters into files on hard drives;
+
+    }
+
+    public void mouseDragged(MouseEvent e) {
+    	ClusterFilter clusterFilter;
+    	mouseEndX = e.getX();
+    	mouseEndY = e.getY();
+    	highlightRectangle = new GenericRectangle((float)getRawX(mouseStartX), (float)getRawY(mouseStartY), (float)getRawX(mouseEndX), (float)getRawY(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
+
+    	clusterFilter = new ClusterFilter((byte)sp.getPlotType(),
+    			(float)Math.min(getRawX(mouseStartX), getRawX(mouseEndX)),
+    			(float)Math.min(getRawY(mouseStartY), getRawY(mouseEndY)),
+    			(float)Math.max(getRawX(mouseStartX), getRawX(mouseEndX)),
+    			(float)Math.max(getRawY(mouseStartY), getRawY(mouseEndY)),
+    			(byte)0);
+    	highlightPoints(markerData[sp.getMarkerIndex()].getHighlightStatus(clusterFilter));
+    	setExtraLayersVisible(new byte[] {99});
+    	repaint();
+    }
+
+//	public void paintComponent(Graphics g) {
+//		System.out.println("inner");
+//		this.paintComponent(g);
+////		super(g);
+//	}
+    
 	public void mouseClicked(MouseEvent event) {
 		JPopupMenu menu;
 		MarkerData mData;
@@ -522,8 +616,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //	public void mousePressed(MouseEvent e) {}
 //
 //	public void mouseReleased(MouseEvent e) {}
-//
-//	public void mouseDragged(MouseEvent e) {}
 
 	public void componentHidden(ComponentEvent e) {}
 
@@ -535,9 +627,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 	public void componentShown(ComponentEvent e) {}
 
-	public static void main(String[] args) {
-		ScatterPlot.main(new String[] {"-notJar"});
-	}
+//	public static void main(String[] args) {
+//		ScatterPlot.main(new String[] {"-notJar"});
+//	}
 
 	public void setUpdateQcPanel(boolean updateQcPanel) {
 		this.updateQcPanel = updateQcPanel;
@@ -547,4 +639,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		return updateQcPanel;
 	}
 
+	public void generateRectangles() {
+    	rectangles = sp.getClusterFilterCollection().getRectangles(sp.getMarkerName(), (byte) sp.getPlotType(), (byte)1, false, false, (byte)7, (byte)99);
+	}
+
+	public GenericRectangle[] getRectangles() {
+    	return rectangles;
+	}
 }

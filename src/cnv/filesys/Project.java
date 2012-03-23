@@ -93,6 +93,8 @@ public class Project extends Properties {
 	public static final String NUM_THREADS = "NUM_THREADS";
 	public static final String LONG_FORMAT = "LONG_FORMAT";
 	public static final String NUM_MARKERS_PER_FILE = "NUM_MARKERS_PER_FILE";
+	public static final String CLUSTER_FILTER_COLLECTION_FILENAME = "CLUSTER_FILTER_COLLECTION_FILENAME";
+	public static final String SEXCHECK_RESULTS_FILENAME = "SEXCHECK_RESULTS_FILENAME";
 
 	private boolean jar;
 
@@ -148,12 +150,16 @@ public class Project extends Properties {
 	}
 	
 	public String getFilename(String fileType, boolean make, boolean verbose) {
+		return getFilename(fileType, null, make, verbose);
+	}
+	
+	public String getFilename(String fileType, String subdirectory, boolean make, boolean verbose) {
 		String file = null;
 		
 		if (containsKey(fileType)) {
 			file = getProperty(fileType);
 			if (!file.startsWith("/") && file.indexOf(":") == -1) {
-				file = getProperty(PROJECT_DIRECTORY)+file;
+				file = getProperty(PROJECT_DIRECTORY)+(subdirectory==null?"":getProperty(subdirectory))+file;
 			}
 			if (!Files.exists(file, getJarStatus())) {
 				if (make) {

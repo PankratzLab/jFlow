@@ -2536,7 +2536,36 @@ public class Array {
 		}
 
 		return max;
-	}	
+	}
+
+
+	/**
+	 * Converts frequency counts into proportions. So, the input looks similar to this:
+	 * 				FrequencyCount
+	 * 			   ---------------
+	 * 		Female		152
+	 * 		Male		148
+	 * 
+	 * The output looks like this:
+	 * 				FrequencyCount
+	 * 			   ---------------
+	 * 		Female		50.67%
+	 * 		Male		49.33%
+	 * 
+	 * @param counts the frequency counts in array format
+	 * @return the corresponding proportion in array format
+	 */
+	public static double[] getProportions(int[] counts) {
+		int total=0;
+		double result[] = new double[counts.length];
+		for (int i=0; i<counts.length; i++) {
+			total += counts[i];
+		}
+		for (int i=0; i<counts.length; i++) {
+			result[i] = (double) counts[i]/(double) total;
+		}
+		return result;
+	}
 	
 	public static void main(String[] args) {
 	    int[] counts = new int[10];

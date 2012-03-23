@@ -23,6 +23,8 @@ public class SampleData {
 	private Hashtable<String,IndiPheno> sampleHash;
 	private boolean failedToLoad;
 	private int sexClassIndex;
+	private String clusterUserSpecified;
+	
 	public SampleData(Project proj, boolean loadCNVs) {
 		this(proj, loadCNVs?proj.getFilenames(Project.CNV_FILENAMES):null);
 	}

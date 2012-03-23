@@ -4,13 +4,14 @@ package cnv.manage;
 import java.io.*;
 import java.util.*;
 
+import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.FullSample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import common.*;
 
 public class PlinkFormat {
-	public static void createPlink(Project proj) {
+	public static void createPlink(Project proj, String clusterFilterFilename) {
 		BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,String> hash;
@@ -26,9 +27,10 @@ public class PlinkFormat {
 		byte genIndex;
 		String genotype;
 		int count;
-		double gcThreshold;
+		float gcThreshold;
 		float[] gcs;
 		String targetMarkers;
+		ClusterFilterCollection clusterFilterCollection;
 
 		System.out.println(ext.getTime());
 		hash = new Hashtable<String,String>();
@@ -87,7 +89,7 @@ public class PlinkFormat {
 			System.exit(2);
 		}
 
-		gcThreshold = proj.getDouble(Project.GC_THRESHOLD);
+		gcThreshold = (float)proj.getDouble(Project.GC_THRESHOLD);
 		if (gcThreshold < 0) {
 			System.err.println("Error - GC_THRESHOLD must be greater than zero (not "+gcThreshold+")");
 		}
@@ -95,6 +97,19 @@ public class PlinkFormat {
 			System.err.println("Error - GC_THRESHOLD must be less than one (not "+gcThreshold+")");
 		}
 		System.out.println("Using a GC threshold of "+gcThreshold+" (less than or equal to will be set to missing, greater than is kept)");
+		
+		clusterFilterCollection = null;
+		if (clusterFilterFilename != null) {
+			clusterFilterFilename = proj.getProperty(Project.PROJECT_DIRECTORY)+proj.getProperty(Project.DATA_DIRECTORY)+clusterFilterFilename;
+			if (Files.exists(clusterFilterFilename, proj.getJarStatus())) {
+//				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
+				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
+			} else {
+				System.err.println("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
+				return;
+			}
+		}
+		
 		try {
 			reader = new BufferedReader(new FileReader(proj.getFilename(Project.PEDIGREE_FILENAME)));
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"gwas.ped"));
@@ -115,11 +130,15 @@ public class PlinkFormat {
 							writer.print("\t0\t0");
 						}
 					} else {
-						genotypes = fsamp.getForwardGenotypes();
+						if (clusterFilterFilename == null) {
+							genotypes = fsamp.getForwardGenotypes(gcThreshold);
+						} else {
+							genotypes = markerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(clusterFilterCollection, gcThreshold));
+						}
 						gcs = fsamp.getGCs();
 						for (int i = 0; i<indices.length; i++) {
 							genIndex = genotypes[indices[i]];
-							if (genIndex==0 || gcs[indices[i]] <= gcThreshold) {
+							if (genIndex==0) {
 								writer.print("\t0\t0");
 							} else {
 								genotype = FullSample.ALLELE_PAIRS[genIndex];
@@ -174,13 +193,15 @@ public class PlinkFormat {
 		int numArgs = args.length;
 		String filename = Project.DEFAULT_PROJECT;
 		String pick = "";
+		String filters = null;
 
 		String usage = "\\n"+
 		"cnv.manage.PlinkFormat requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"     requires pedigree file and targets file to be delineated in the Project properties file\n"+
+		"   (2) filename of cluster filters to use during processing (i.e. filters=data/clusterFilters.ser (not the default))\n"+
 		"  OR\n"+
-		"   (1) pick targets to include in the PLINK file from an Illumina map file (i.e. pick=filename.csv (not the default))\n"+
+		"   (2) pick targets to include in the PLINK file from an Illumina map file (i.e. pick=filename.csv (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -189,6 +210,9 @@ public class PlinkFormat {
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("filters=")) {
+				filters = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("pick=")) {
 				pick = args[i].split("=")[1];
@@ -204,7 +228,7 @@ public class PlinkFormat {
 			if (!pick.equals("")) {
 				pickTargets(pick);
 			} else {
-				createPlink(new Project(filename, false));
+				createPlink(new Project(filename, false), filters);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

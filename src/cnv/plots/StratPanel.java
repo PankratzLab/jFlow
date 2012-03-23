@@ -167,6 +167,8 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		}
 	}
 	
+	public void highlightPoints() {}
+
 	public void generatePoints() {
 		int currentClass;
 		byte colorCode;

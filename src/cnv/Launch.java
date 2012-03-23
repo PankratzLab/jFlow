@@ -30,11 +30,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String MOSAICISM = "Determine mosaic arms";
 	public static final String MOSAIC_PLOT = "Mosaic module";
 	public static final String TRAILER = "Trailer module";
+	public static final String GENDER_PLOT = "Gender module";
 	public static final String EDIT = "Edit";
 	public static final String REFRESH = "Refresh";
 	public static final String TEST = "Test";
 
-	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, LRR_SD, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, TRAILER, TEST}; 
+	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, LRR_SD, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, GENDER_PLOT, TRAILER, TEST}; 
 
 	private boolean jar;
 	private JComboBox projectsBox;
@@ -139,12 +140,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				ExtractPlots.breakUpMarkerCollections(proj, Integer.parseInt(proj.getProperty(Project.NUM_MARKERS_PER_FILE)));
 	//			nohup vis -Xmx15g -d64 cnv.manage.ExtractPlots per=250 proj=current.proj
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
-				cnv.manage.PlinkFormat.createPlink(proj);
-				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-				new File(proj.getProjectDir()+"genome/").mkdirs();
-				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
-	//			vis cnv.manage.PlinkFormat root=../plink genome=6
+				String filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
+				if ( filename==null || (!filename.equals("cancel")) ) {
+					cnv.manage.PlinkFormat.createPlink(proj, filename);
+					CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+					new File(proj.getProjectDir()+"genome/").mkdirs();
+					CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
+					CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+		//			vis cnv.manage.PlinkFormat root=../plink genome=6
+				}
 			} else if (command.equals(LRR_SD)) {
 				cnv.qc.LrrSd.init(proj, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 			} else if (command.equals(SCATTER)) {
@@ -159,6 +163,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				MosaicPlot.loadMosaicismResults(proj);
 			} else if (command.equals(TRAILER)) {
 				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
+			} else if (command.equals(GENDER_PLOT)) {
+				JOptionPane.showMessageDialog(null, "Currently under construction. Please check back later.");
+				GenderPlot.loadGenderResults(proj);
 			} else if (command.equals(EDIT)) {
 				try {
 	//				Runtime.getRuntime().exec("C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe \"C:"+ext.replaceAllWith(projects[index], "/", "\\")+"\"");

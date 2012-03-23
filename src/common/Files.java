@@ -1362,10 +1362,10 @@ public class Files {
 	}
 
 	public static String[] list(String directory, final String suffix, boolean jar) {
-		return list(directory, null, suffix, jar);
+		return list(directory, null, suffix, true, jar);
 	}
 	
-	public static String[] list(String directory, final String prefix, final String suffix, boolean jar) {
+	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
 		if (jar) {
 			try {
 //				System.err.println("I haven't been able to get listFiles() to work inside a jar file yet");
@@ -1402,11 +1402,20 @@ public class Files {
 			
 			files = new File(directory).list(new FilenameFilter() {
 				public boolean accept(File file, String filename) {
-					if (prefix != null && !prefix.equals("") && !filename.startsWith(prefix)) {
-						return false;
-					}
-					if (suffix != null && !suffix.equals("") && !filename.endsWith(suffix)) {
-						return false;
+					if (caseSensitive) {
+						if (prefix != null && !prefix.equals("") && !filename.startsWith(prefix)) {
+							return false;
+						}
+						if (suffix != null && !suffix.equals("") && !filename.endsWith(suffix)) {
+							return false;
+						}
+					} else {
+						if (prefix != null && !prefix.equals("") && !filename.toLowerCase().startsWith(prefix.toLowerCase())) {
+							return false;
+						}
+						if (suffix != null && !suffix.equals("") && !filename.toLowerCase().endsWith(suffix.toLowerCase())) {
+							return false;
+						}
 					}
 					return true;
 				}
@@ -1764,7 +1773,7 @@ public class Files {
 					if (new File(trav+".taken").exists()) {
 						done = false;
 					} else {
-						files = list("./", trav+".", ".reserved", false);
+						files = list("./", trav+".", ".reserved", true, false);
 						if (files.length > 1) {
 							rands = new int[files.length];
 							for (int i = 0; i < rands.length; i++) {

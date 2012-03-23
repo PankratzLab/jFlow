@@ -19,7 +19,7 @@ import cnv.var.SampleData;
 import mining.Distance;
 
 //public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
-public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
+public class GenderPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 	public static final long serialVersionUID = 3L;
 	public static final int HEAD_BUFFER = 25;
 //	public static final int HEIGHT_X_AXIS = 55;
@@ -74,7 +74,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	//private boolean finalImage;//zx
 	private Repress patience;
 
-	public MosaicPanel(Project proj, String[][] samples, double[][] data) {
+	public GenderPanel(Project proj, String[][] samples, double[][] data) {
 		BufferedReader reader;
 		String[] line;
 		int[] indices;
@@ -418,7 +418,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 				patience.cancel();
 				patience = null;
 			}
-			new Thread(patience = new Repress(this, 100)).start();
+//			new Thread(patience = new Repress(this, 100)).start();
 
 			prevWidth = getWidth();
 			prevHeight = getHeight();
@@ -437,8 +437,8 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	 */
 	@Override
 	void assignAxisLabels() {
-		xAxisLabel = "Standard deviation of BAF values";
-		yAxisLabel = "Inter-quartile range of BAF values";
+		xAxisLabel = "LRR";
+		yAxisLabel = "LRR";
 	}
 
 	public void highlightPoints() {}

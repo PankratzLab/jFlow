@@ -1,0 +1,198 @@
+package cnv.filesys;
+
+import java.io.Serializable;
+import java.util.Hashtable;
+
+import common.HashVec;
+import common.IntVector;
+
+import cnv.var.SampleData;
+import cnv.plots.PlotPoint;
+
+/**
+ * This is a data structure to hold a single filter to screen the data points with. 
+ * @author npankratz and zxu
+ *
+ */
+public class ClusterFilter implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	private byte plotType;
+	private float rawXMin;
+	private float rawYMin;
+	private float rawXmax;
+	private float rawYmax;
+	private byte newGenotype;
+	
+	public ClusterFilter () {
+	}
+	
+	public ClusterFilter (byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax) {
+		this(plotType, rawXMin, rawYMin, rawXmax, rawYmax, (byte) 0);
+	}
+	
+	public ClusterFilter (byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax, byte newGenotype) {
+		this.plotType = plotType;
+		this.rawXMin = rawXMin;
+		this.rawYMin = rawYMin;
+		this.rawXmax = rawXmax;
+		this.rawYmax = rawYmax;
+		this.newGenotype = newGenotype;
+	}
+	
+	public ClusterFilter (byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax, MarkerData markerData) {
+		this.plotType = plotType;
+		this.rawXMin = rawXMin;
+		this.rawYMin = rawYMin;
+		this.rawXmax = rawXmax;
+		this.rawYmax = rawYmax;
+		this.newGenotype = suggestedNewGenoType(markerData);
+	}
+	
+	public byte getPlotType () {
+		return this.plotType;
+	}
+	
+	public void setNewGenotype (byte newGenotype) {
+		this.newGenotype=newGenotype;
+	}
+	
+	public byte getNewGenotype () {
+		return this.newGenotype;
+	}
+	
+	public float getXMin () {
+		return rawXMin;
+	}
+
+	public float getYMin () {
+		return rawYMin;
+	}
+
+	public float getXMax () {
+		return rawXmax;
+	}
+
+	public float getYMax () {
+		return rawYmax;
+	}
+
+//	public float[] getXYBoundary () {
+//		return new float[] {rawXMin, rawYMin, rawXmax, rawYmax};
+//	}
+	
+	public byte suggestedNewGenoType (MarkerData markerData) {
+		float[] realX;
+		float[] realY;
+		byte result=-1;
+		float xSum, ySum;
+//		String[] keys;
+		Hashtable<String,IntVector> hash;
+		String cluster;
+		float distance;
+		float distancetemp = 0;
+		byte[] genotypes;
+		IntVector iv;
+		float[][] clusterCenters;
+		byte[] genotypeCount;
+		byte oldGenotype;
+		int genotypeFrequencyCount;
+
+		switch(getPlotType()) {
+		case 0:
+			realX = markerData.getX_Raws();
+			realY = markerData.getY_Raws();
+			break;
+		case 1:
+			realX = markerData.getXs();
+			realY = markerData.getYs();
+			break;
+		case 2:
+			realX = markerData.getThetas();
+			realY = markerData.getRs();
+			break;
+		case 3:
+			realX = markerData.getBAFs();
+			realY = markerData.getLRRs();
+			break;
+		default:
+			realX = markerData.getXs();
+			realY = markerData.getYs();
+		}
+		
+		hash = new Hashtable<String, IntVector>();
+		genotypes = markerData.getAB_Genotypes();
+		// iterate through all samples
+		for (int i=0; i<genotypes.length; i++) {
+			if (realX[i]>=getXMin()
+					&& realY[i]>=getYMin()
+					&& realX[i]<=getXMax()
+					&& realY[i]<=getYMax()) {
+				cluster = "3";
+			} else {
+				cluster = genotypes[i]+"";
+			}
+			if (hash.containsKey(cluster)) {
+				iv = hash.get(cluster);
+			} else {
+				hash.put(cluster, iv = new IntVector());
+			}
+			iv.add(i);
+		}
+		
+		// Find the old genotype
+		iv = hash.get("3");
+		if (iv!=null) {
+			genotypeCount = new byte[] {0,0,0};
+			for (int i=0; i<3; i++){
+				for (int j=0; j<iv.size(); j++) {
+					if (genotypes[iv.toArray()[j]]==i) {
+						genotypeCount[i]++;
+					}
+				}
+			}
+			oldGenotype=-1;
+			genotypeFrequencyCount=-1;
+			for (byte i=0; i<3; i++){
+				if (genotypeCount[i]>genotypeFrequencyCount) {
+					genotypeFrequencyCount=genotypeCount[i];
+					oldGenotype=i;
+				}
+			}
+
+			//Find the genotype of the closest  
+//			keys = HashVec.getKeys(hash);
+//			clusterCenters = new float[keys.length][2];
+			clusterCenters = new float[4][2];
+			distance = Float.MAX_VALUE;
+			for (byte i = 3; i>=0; i--) {
+				iv = hash.get(i+"");
+				if (iv!=null) {
+					xSum = 0;
+					ySum = 0;
+					for (int j=0; j<iv.size(); j++) {
+						xSum = xSum + realX[iv.toArray()[j]];
+						ySum = ySum + realY[iv.toArray()[j]];
+					}
+					clusterCenters[i] = new float[] {xSum/iv.size(), ySum/iv.size()};
+					if (i!=3) {
+						distancetemp = (float) Math.sqrt(Math.pow(clusterCenters[i][0]-clusterCenters[3][0],2)+Math.pow(clusterCenters[i][1]-clusterCenters[3][1],2));
+						if (distancetemp < distance) {
+							distance = distancetemp;
+							result = i;
+						}
+					}
+				}
+			}
+
+			if (oldGenotype==result) {
+				result=-1;
+			}
+
+		}
+		
+		return result;
+	}
+
+
+}

@@ -45,6 +45,8 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 		return false;
 	}
 	
+	public void highlightPoints() {}
+
 	public void generatePoints() {
 		int[] keys;
 		int count;
@@ -57,12 +59,12 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
         }
 		max = (int)Math.ceil((-1*Math.log10(1.0/(double)max)));
 		if (rotated) {
-			lines[0] = new GenericLine(0, 0, max, 0, (byte)2, (byte)1);
+			lines[0] = new GenericLine(0, 0, max, 0, (byte)2, (byte)1, (byte)0);
 		} else if (log10) { 
 //			lines[0] = new PlotLine(0, 0, (float)(-1*Math.log10((1.0/pvals.length))), (float)(-1*Math.log10((1.0/pvals.length))), (byte)2, (byte)1);
-			lines[0] = new GenericLine(0, 0, max, max, (byte)2, (byte)1);
+			lines[0] = new GenericLine(0, 0, max, max, (byte)2, (byte)1, (byte)0);
 		} else {
-			lines[0] = new GenericLine(0, 0, 1, 1, (byte)2, (byte)1);
+			lines[0] = new GenericLine(0, 0, 1, 1, (byte)2, (byte)1, (byte)0);
 		}
 
 		count = 0;

@@ -9,11 +9,13 @@ import common.*;
 
 public class MarkerSet implements Serializable {
 	public static final long serialVersionUID = 1L;
+	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
 
 	private long fingerprint;
 	private String[] markerNames;
 	private byte[] chrs;
 	private int[] positions;
+	private byte[][] alleles; // two alleles per marker, with the A allele in index 0 and the B allele in index 1, the value is the index in MarkerSet.ALLELES 
 
 	public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
 		if (markerNames.length!=chrs.length||markerNames.length!=positions.length) {
@@ -56,6 +58,10 @@ public class MarkerSet implements Serializable {
 
 	public int[] getPositions() {
 		return positions;
+	}
+
+	public byte[][] getAlleles() {
+		return alleles;
 	}
 
 	public int[][] getPositionsByChr() {
@@ -235,4 +241,37 @@ public class MarkerSet implements Serializable {
 
 		return markerData;
 	}
+	
+	public byte[] translateABtoForwardGenotypes(byte[] abGenotypes) {
+		byte[] result = new byte[abGenotypes.length];
+		String geno;
+		
+		for (int i=0; i<abGenotypes.length; i++) {
+			switch (abGenotypes[i]) {
+			case 0:
+				geno = alleles[i][0]+alleles[i][0]+"";
+				break;
+			case 1:
+				geno = alleles[i][0]+alleles[i][1]+"";
+				break;
+			case 2:
+				geno = alleles[i][1]+alleles[i][1]+"";
+				break;
+			case -1:
+				geno = FullSample.ALLELE_PAIRS[0];
+				break;
+			default:
+				System.err.println("Error - invalid AB genotype: "+abGenotypes[i]);
+				geno = null;
+			}
+			for (byte j=0; j<FullSample.ALLELE_PAIRS.length; j++) {
+				if (geno.equals(FullSample.ALLELE_PAIRS[j])) {
+					result[i]=j;
+				}
+			}
+		}
+		
+		return result;
+	}
+
 }

@@ -155,6 +155,68 @@ public class FullSample implements Serializable {
 		return forwardGenotypes;
 	}
 
+	public byte[] getForwardGenotypes(float gcThreshold) {
+		byte[] result = new byte[forwardGenotypes.length];
+		
+		for (int i = 0; i < result.length; i++) {
+			if (gcs[i] <= gcThreshold) {
+				result[i] = (byte)0;
+			} else {
+				result[i] = forwardGenotypes[i];
+			}
+		}
+
+		return result;
+	}
+	
+
+	public byte[] getAB_GenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+		byte[] result = new byte[abGenotypes.length];
+		float realX;
+		float realY;
+
+		for (int i=0; i<result.length; i++) {
+			if (getGCs()[i]<gcThreshold) {
+				result[i]=(byte)-1;					//???????
+			} else {
+				for (int j=0; j<clusterFilterCollection.getMarkerNames().length; j++) {
+					for (int k=0; k<clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).size(); k++) {
+						switch(clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getPlotType()) {
+						case 0:
+							realX = xRaws[i];
+							realY = yRaws[i];
+							break;
+						case 1:
+							realX = xs[i];
+							realY = ys[i];
+							break;
+						case 2:
+							realX = thetas[i];
+							realY = rs[i];
+							break;
+						case 3:
+							realX = bafs[i];
+							realY = lrrs[i];
+							break;
+						default:
+							realX = xs[i];
+							realY = ys[i];
+						}
+						if (realX>=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getXMin()
+						 && realY>=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getYMin()
+						 && realX<=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getXMax()
+						 && realY<=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getYMax()) {
+							result[i]=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getNewGenotype(); //???
+						} else {
+							result[i]=abGenotypes[j];
+						}
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
 	public byte[] getAB_Genotypes() {
 		return abGenotypes;
 	}
