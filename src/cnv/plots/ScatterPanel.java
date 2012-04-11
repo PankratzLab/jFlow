@@ -310,16 +310,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			sp.updateQcPanel(genotype, sex, otherClass);//zx
 			setUpdateQcPanel(false);
 		}
-		sp.updateColorKey(classCounts.convertToHash());
-		/*
-		if (currentClass == 1) {
-			// special case
-			// sp.updateColorKey(classCounts.convertToHash());
-		} else {
-			sp.updateColorKey(classCounts.convertToHash());
-		}
-		*/
-//		System.out.println("Generated points in "+ext.getTimeElapsed(time));
+//		sp.updateColorKey(classCounts.convertToHash());
 		
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		for (int i = 0; i < points.length; i++) {

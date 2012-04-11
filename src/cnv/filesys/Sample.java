@@ -3,6 +3,9 @@ package cnv.filesys;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+
+import common.Array;
+import common.DoubleVector;
 import common.Files;
 
 public class Sample implements Serializable {
@@ -63,4 +66,15 @@ public class Sample implements Serializable {
 	public static Sample load(String filename, boolean jar) {
 		return (Sample)Files.readSerial(filename, jar, true);
 	}
+
+	public boolean hasBimodalBAF(byte chr, int startPosition, int endPosition) {
+		DoubleVector dv = new DoubleVector();
+		for (int i=0; i<bafs.length; i++) {
+			if (bafs[i]>0.15 && bafs[i]<0.85) {
+				dv.add(bafs[i]);
+			}
+		}
+		return Array.isBimodal(dv.toArray());
+	}
+
 }

@@ -41,6 +41,9 @@ public class SampleData {
 		int dnaIndex, famIndex, indIndex;
 //		Hashtable<String,IndiPheno> sampleHash; 
 		String filename;
+		CountVector sexCountHash;
+		String[] sexValues;
+		int[] sexCounts;
 
 		failedToLoad = true;
 		if (cnvFilesnames == null) {
@@ -101,7 +104,10 @@ public class SampleData {
 					}
                 }
 			}
+			sexClassIndex = ext.indexFactors(new String[][] {{"Sex", "CLASS=Sex", "Gender", "CLASS=Gender"}}, classes, false, true, true, false)[0];
+			System.out.println(Array.toStr(classes));
 
+			sexCountHash = new CountVector();
 			sampleHash = new Hashtable<String,IndiPheno>();
 			lookup = new Hashtable<String,String>();
 			while (reader.ready()) {
@@ -129,10 +135,33 @@ public class SampleData {
 					iv.add(line[classIs.elementAt(i)].equals(".")||Integer.parseInt(line[classIs.elementAt(i)])<0?Integer.MIN_VALUE:Integer.parseInt(line[classIs.elementAt(i)]));
 				}
 				indi.setClasses(iv.toArray());
+				if (sexClassIndex != -1) {
+					sexCountHash.add(indi.getClasses()[sexClassIndex]+"");					
+				}
 
 				sampleHash.put(line[dnaIndex], indi);
 			}
 			reader.close();
+			
+			if (sexClassIndex != -1) {
+				sexValues = sexCountHash.getValues();
+				sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
+				if (!sexValues[0].equals("2")) {
+					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+					JOptionPane.showMessageDialog(null, "descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+//
+//				sexCountHash.sort(true);
+//				sexValues = sexCountHash.getValues();
+//				sexCounts = sexCountHash.getCounts();
+//				if (!sexValues[0].equals("2")) {
+//					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+//					JOptionPane.showMessageDialog(null, "ascending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+//				}
+//			
+			} else {
+				JOptionPane.showMessageDialog(null, "Error - variable names 'Sex' was found in the SampleData file; also make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
 			System.exit(1);
@@ -141,8 +170,7 @@ public class SampleData {
 			System.exit(2);
 		}
 		
-		sexClassIndex = ext.indexOfStr("Sex", classes, false, true);
-		System.out.println(Array.toStr(classes));
+		
 		
 		if (cnvFilesnames.length > 0) {
 			loadCNVs(cnvFilesnames, proj.getJarStatus());
@@ -159,6 +187,25 @@ public class SampleData {
 	
 	public int getSexClassIndex() {
 		return sexClassIndex;
+	}
+	
+	public int getSexForIndividual(String id) {
+		IndiPheno indi;
+		
+		indi = sampleHash.get(id);
+		if (indi == null) {
+			indi = sampleHash.get(lookup.get(id));
+		}
+		if (indi == null) {
+			System.err.println("Error - id '"+id+"' was not present in the SampleData");
+			return -1;
+		}
+		
+		if (indi.getClasses()[sexClassIndex] == Integer.MIN_VALUE) {
+			return -1;
+		} else {
+			return indi.getClasses()[sexClassIndex];
+		}
 	}
 	
 	public void loadCNVs(String[] files, boolean jar) {

@@ -2,7 +2,11 @@ package cnv.analysis;
 
 import java.io.*;
 import java.util.*;
+
+import javax.swing.JOptionPane;
 //import cnv.analysis.FilterCalls;
+import cnv.filesys.FullSample;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
@@ -143,7 +147,7 @@ public class PennCNV {
 		}
 	}
 
-	public static void parseResults(Project proj, String filename, boolean all) {
+	public static void parseResults(Project proj, String filename) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -207,6 +211,148 @@ public class PennCNV {
 		}
 	}
 
+	public static void populationBAF(Project proj) {
+		PrintWriter writer;
+		FullSample samp;
+		String[] sampleList;
+		String[] markerNames;
+		double[] bafSum;
+		int[] bafCounts, genoCounts;
+		float[] bafs;
+		double[] bafAverage;
+//		Hashtable<String, String> samples;
+		MarkerSet markerSet;
+		byte[] chrs, genotypes;
+		int[] positions;
+		String filename, output;
+		
+		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
+		
+		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
+			sampleList = proj.getSampleList().getSamples();
+			output = proj.getProjectDir()+"custom.pfb";
+		} else if (Files.exists(filename, proj.getJarStatus())) {
+			System.out.print("filename: "+filename);
+			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
+			output = proj.getProjectDir()+ext.rootOf(filename)+".pfb";
+		} else {
+			JOptionPane.showMessageDialog(null, "Failed to load \""+filename+"\"", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		markerSet = proj.getMarkerSet();
+		markerNames = markerSet.getMarkerNames();
+		chrs = markerSet.getChrs();
+		positions = markerSet.getPositions();
+		bafSum = new double[chrs.length];
+		bafCounts = new int[chrs.length];
+		genoCounts = new int[chrs.length];
+		for (int i=0; i<sampleList.length; i++) {
+			samp = proj.getFullSample(sampleList[i]);
+			bafs = samp.getBAFs();
+			genotypes = samp.getAB_Genotypes();
+			for (int j=0; j<bafSum.length; j++) {
+				if (!Float.isNaN(bafs[j])) {
+					bafSum[j] += bafs[j];
+					bafCounts[j]++;
+					if (genotypes[j] >= 0) {
+						genoCounts[j]++;
+					}
+				}
+			}
+		}
+		bafAverage = new double[chrs.length];
+		for (int i=0; i<bafSum.length; i++) {
+			if (genoCounts[i]!=0) {
+				bafAverage[i] = bafSum[i] / bafCounts[i];
+			} else {
+				bafAverage[i] = 2;
+			}
+		}
+
+		try {
+			writer = new PrintWriter(new FileWriter(output));
+			writer.println("markerName\tchr\tposition\tpopulationBAF");
+			for (int i = 0; i<markerNames.length; i++) {
+				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
+			}
+			writer.close();
+			System.out.println("Population BAF file is now ready at: "+output);
+		} catch (Exception e) {
+			System.err.println("Error writing to '" + output + "'");
+			e.printStackTrace();
+		}
+	}
+
+	public static void cnvMap(Project proj) {
+		PrintWriter writer;
+		FullSample samp;
+		String[] sampleList;
+		String[] markerNames;
+		byte[][] result;
+		int[] bafCounts, genoCounts;
+		float[] bafs;
+		float[] lrrs;
+		double[] bafAverage;
+//		Hashtable<String, String> samples;
+		MarkerSet markerSet;
+		byte[] chrs, genotypes;
+		int[] positions;
+		String filename, output;
+		
+		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
+		
+		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
+			sampleList = proj.getSampleList().getSamples();
+			output = proj.getProjectDir()+"custom.pfb";
+		} else if (Files.exists(filename, proj.getJarStatus())) {
+			System.out.print("filename: "+filename);
+			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
+			output = proj.getProjectDir()+ext.rootOf(filename)+".pfb";
+		} else {
+			JOptionPane.showMessageDialog(null, "Failed to load \""+filename+"\"", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		markerSet = proj.getMarkerSet();
+		markerNames = markerSet.getMarkerNames();
+		chrs = markerSet.getChrs();
+		positions = markerSet.getPositions();
+		result = new byte[chrs.length][sampleList.length];
+		bafCounts = new int[chrs.length];
+		genoCounts = new int[chrs.length];
+
+		for (int i=0; i<sampleList.length; i++) {
+			samp = proj.getFullSample(sampleList[i]);
+			bafs = samp.getBAFs();
+			lrrs = samp.getLRRs();
+			genotypes = samp.getAB_Genotypes();
+			for (int j=0; j<lrrs.length; j++) {
+				if (!Float.isNaN(lrrs[j])) {
+					if (deleteion)
+					result[i][j] = detectDeletion();
+					if (genotypes[j] >= 0) {
+						genoCounts[j]++;
+					}
+				}
+			}
+		}
+
+		try {
+			writer = new PrintWriter(new FileWriter(output));
+			writer.println("markerName\tchr\tposition\tpopulationBAF");
+			for (int i = 0; i<markerNames.length; i++) {
+				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
+			}
+			writer.close();
+			System.out.println("Population BAF file is now ready at: "+output);
+		} catch (Exception e) {
+			System.err.println("Error writing to '" + output + "'");
+			e.printStackTrace();
+		}
+	}
+
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = Project.DEFAULT_PROJECT;
@@ -215,20 +361,23 @@ public class PennCNV {
 //		String logfile = "";
 //		String rawcnvs = "conf.rawcnv";
 //		String rawcnvs = "penncnv.rawcnv";
-		String rawcnvs = "";
+		String rawcnvs = null;
 		int batch = 0;
 		boolean lists = false;
-		boolean all = false;
 		Project proj;
+		boolean parsePFB = false;
 
 		String usage = "\n"+
-		"cnv.park.PennCNV requires 0-1 arguments\n"+
-		"   (0) project properties filename (i.e. proj="+filename+" (default))\n"+
-		"   (1) number of batches to do (i.e. batch=12 (not the default))\n"+
-		"   (2) create lists for batches (i.e. -lists (not the default))\n"+
-		"   (3) log file (i.e. log=final.cnv (not the default))\n"+
-		"   (4) raw cnvs to parse (i.e. raw=final.rawcnv (not the default))\n"+
-		"   (5) use all indiviudals (i.e. -all (not the default))\n"+
+		"cnv.analysis.PennCNV requires 0-1 arguments\n"+
+		"   (1) project properties filename (i.e. proj="+filename+" (default))\n"+
+		"   (2) number of batches to do (i.e. batch=12 (not the default))\n"+
+		"   (3) create lists for batches (i.e. -lists (not the default))\n"+
+		" OR\n"+
+		"   (2) compute populationo frequence of b allele file (using paramters in properties file) (i.e. -pfb (not the default))\n"+
+		" OR\n"+
+		"   (1) parse warnings from log file (i.e. log=final.log (not the default))\n"+
+		" OR\n"+
+		"   (1) raw cnvs to parse (i.e. raw=final.rawcnv (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -250,8 +399,8 @@ public class PennCNV {
 			} else if (args[i].startsWith("raw=")) {
 				rawcnvs = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("-all")) {
-				all = true;
+			} else if (args[i].startsWith("-pfb")) {
+				parsePFB = true;
 				numArgs--;
 			}
 		}
@@ -264,12 +413,12 @@ public class PennCNV {
 			
 			if (batch>0) {
 				batch(proj, batch, lists);
-			}
-			if (!logfile.equals("")) {
+			} else if (parsePFB) {
+				populationBAF(proj);
+			} else if (logfile != null) {
 				parseWarnings(proj, logfile);
-			}
-			if (!rawcnvs.equals("")) {
-				parseResults(proj, rawcnvs, all);
+			} else if (rawcnvs != null) {
+				parseResults(proj, rawcnvs);
 			}
 
 		} catch (Exception e) {

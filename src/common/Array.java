@@ -2581,4 +2581,101 @@ public class Array {
 	    Files.writeList(Array.toStr(counts).split("[\\s]+"), "oi.xln");
 
     }
+
+	public static boolean isBimodal(double[] array) {
+		return isBimodal(array, 0.5, 100);
+	}
+
+	public static boolean isBimodal(double[] array, double percentDropInPeak, int numBins) {
+		return isBimodal(array, percentDropInPeak, (max(array)-min(array))/(double)numBins);
+	}
+	
+	public static boolean isBimodal(double[] array, double percentDropInPeak, double binSize) {
+		int numBins;
+		int[] freqBinCounts,freqBinCountsSmooth;
+		double minValue, maxFreq, localMinFreq;
+
+		numBins = (int) ((Array.max(array)-Array.min(array))/binSize);
+		minValue = Array.min(array);
+		freqBinCounts = new int[numBins];
+		for (int i=0; i<array.length; i++) {
+			freqBinCounts[(int) (Math.floor(array[i]-minValue)/binSize)]++;
+		}
+
+		//smoothing
+		freqBinCountsSmooth = new int[freqBinCounts.length];
+		for (int i=1; i<numBins-1; i++) {
+			freqBinCountsSmooth[i]=(freqBinCounts[i-1]+freqBinCounts[i]+freqBinCounts[i+1])/3;
+		}
+		freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
+		freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
+		
+		maxFreq = Double.NEGATIVE_INFINITY;
+		localMinFreq = Double.POSITIVE_INFINITY;
+		for (int i=0; i<numBins; i++) {
+			if (freqBinCountsSmooth[i]>maxFreq) {
+				maxFreq = freqBinCountsSmooth[i];
+			} else if (freqBinCountsSmooth[i]<(maxFreq*percentDropInPeak) && freqBinCountsSmooth[i]<localMinFreq) {
+				localMinFreq = freqBinCountsSmooth[i];
+			} else if (freqBinCountsSmooth[i]>=(maxFreq*percentDropInPeak)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+//	public static boolean isMultimodal(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired, double binSize) {
+//		return getLocalModes(array, percentDropFromPeakRequired, percentRegainInPeakRequired, binSize).length > 1;
+//	}
+//	
+//	public static double[] getLocalModes(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired, double binSize) {
+//		int numBins;
+//		int[] freqBinCounts;
+//		double[] freqBinCountsSmooth;
+//		double minValue;
+//		
+//		numBins = (int) ((Array.max(array)-Array.min(array))/binSize);
+//		minValue = Array.min(array);
+//		freqBinCounts = new int[numBins];
+//		for (int i=0; i<array.length; i++) {
+//			freqBinCounts[(int) (Math.floor(array[i]-minValue)/binSize)]++;
+//		}
+//
+//		//smoothing
+//		freqBinCountsSmooth = new double[freqBinCounts.length];
+//		for (int i=1; i<numBins-1; i++) {
+//			freqBinCountsSmooth[i]=(freqBinCounts[i-1]+freqBinCounts[i]+freqBinCounts[i+1])/3;
+//		}
+//		freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
+//		freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
+//
+//		return getLocalMaxima(freqBinCountsSmooth, percentDropInPeak);
+//	}
+//	
+//	public static double[] getLocalMaxima(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired) {
+//		double minValue, max, localMax, localMin;
+//		DoubleVector maxima;
+//		
+//		maxima = new DoubleVector();
+//		
+//		max = max(array);
+//
+//		localMax = Double.NEGATIVE_INFINITY;
+//		localMin = Double.POSITIVE_INFINITY;
+//		for (int i=0; i<array.length; i++) {
+//			if (array[i]>localMax) {
+//				localMax = array[i];
+//			} else if (localMax > max*percentRegainInPeakRequired && array[i]<(localMax*percentDropFromPeakRequired) && array[i]<localMin) {
+//				localMin = array[i];
+//				maxima.add(localMax);
+//				localMax = Double.NEGATIVE_INFINITY
+//			} else if (array[i]>=(localMax*percentDropFromPeakRequired)) {
+////				return true;
+//			}
+//		}
+////		return false;
+//		
+//		return maxima.toArray();
+//	}
+	
 }

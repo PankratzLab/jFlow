@@ -24,7 +24,8 @@ public class Project extends Properties {
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/HumanHap550_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortium.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplication.properties";
-	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
+//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
+	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
@@ -65,6 +66,7 @@ public class Project extends Properties {
 	public static final String MARKERSET_FILENAME = "MARKERSET_FILENAME";
 	public static final String MARKERLOOKUP_FILENAME = "MARKERLOOKUP_FILENAME";
 	public static final String SAMPLELIST_FILENAME = "SAMPLELIST_FILENAME";
+	public static final String SAMPLE_SUBSET_FILENAME = "SAMPLE_SUBSET_FILENAME";
 	public static final String SAMPLE_DATA_FILENAME = "SAMPLE_DATA_FILENAME";
 	public static final String ORIGINAL_CENTROIDS_FILENAME = "ORIGINAL_CENTROIDS_FILENAME";
 	public static final String GENOTYPE_CENTROIDS_FILENAME = "GENOTYPE_CENTROIDS_FILENAME";
@@ -170,7 +172,7 @@ public class Project extends Properties {
 			}
 		} else {
 			System.err.println("Error - file '"+fileType+"' is undefined in cnv.filesys.Project");
-		} 
+		}
 
 		return file;
 	}

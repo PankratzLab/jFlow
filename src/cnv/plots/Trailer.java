@@ -49,7 +49,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	public static final int SIZE = 4;
 	public static final int MIN_BUFFER = 10000;
 	// public static final String DEFAULT_SAMPLE_DATA = "data/SampleData.dat";
-
+	public static final int DEFAULT_STARTX = 20;
+	public static final int DEFAULT_STARTY = 20;
+	public static final int DEFAULT_WIDTH = 1000;
+	public static final int DEFAULT_HEIGHT = 720;
+	
 	// private static final String ALT_UP = "ALT UP";
 	// private static final String ALT_DOWN = "ALT DOWN";
 	// private static final String ALT_LEFT = "ALT LEFT";
@@ -120,9 +124,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
+		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	}
+	public Trailer(Project proj, String selectedSample, String[] filenames, String location, int startX, int startY, int width, int height) {
 		super("CNVis - Trailer");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
+		System.out.println("startX: "+startX+"\t startY: "+startY+"\t width: "+width+"\t height: "+height);
 		System.out.println(Array.toStr(filenames, "; "));
 
 		long time;
@@ -531,7 +539,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		System.out.println("All in "+ext.getTimeElapsed(time));
 
 		parseLocation(location);
-		setBounds(20, 20, 1000, 720);
+//		setBounds(20, 20, 1000, 720);
+		setBounds(startX, startY, width, height);
 		setVisible(true);
 	}
 	

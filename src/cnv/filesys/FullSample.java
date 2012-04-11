@@ -3,6 +3,9 @@ package cnv.filesys;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+
+import common.Array;
+import common.DoubleVector;
 import common.Files;
 
 public class FullSample implements Serializable {
@@ -311,4 +314,5 @@ public class FullSample implements Serializable {
 			fsamp.compareCalculationsFile(proj, proj.getMarkerNames(), proj.getProjectDir()+samples[i]+"_comp.xln");
         }
     }
+
 }

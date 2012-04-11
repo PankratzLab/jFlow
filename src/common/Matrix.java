@@ -288,6 +288,20 @@ public class Matrix {
     }
 
 	/**
+     * Creates an array of byte and copies the contents of a vector of byte into it
+     * 
+     * @param v
+     * @return an array of bytes copied from a vector of byte
+     */
+	public static byte[] toByteArry(Vector<Byte> v) {
+		byte[] result = new byte[v.size()];
+		for (int i=0; i<v.size(); i++) {
+			result[i] = v.get(i);
+		}
+		return result;
+	}
+	
+	/**
      * Creates a matrix of float and copies the contents of a vector of float
      * arrays into it
      * 
@@ -717,4 +731,5 @@ public class Matrix {
 		System.out.println();
 		
     }
+
 }
