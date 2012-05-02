@@ -486,6 +486,8 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 									  (byte) 0
 									  );
 		}
+		setSwapable(false);
+
 		//SampleData sampleData = new SampleData(proj, true);
 		/*
 		String[] markerList = Array.toStringArray(markerNames);

@@ -196,6 +196,7 @@ public class MarkerData implements Serializable {
 		float[] realX;
 		float[] realY;
 		ArrayList<ClusterFilter> clusterFilters;
+		int counter;
 		
 		original = getAB_Genotypes(); 
 		result = new byte[original.length];
@@ -231,14 +232,19 @@ public class MarkerData implements Serializable {
 				realX = getXs();
 				realY = getYs();
 			}
-			// iterate through all samples
+			counter = 0;
 			for (int j=0; j<result.length; j++) {
 				if (realX[j]>=clusterFilters.get(i).getXMin()
 				 && realY[j]>=clusterFilters.get(i).getYMin()
 				 && realX[j]<=clusterFilters.get(i).getXMax()
 				 && realY[j]<=clusterFilters.get(i).getYMax()) {
 					result[j]=clusterFilters.get(i).getNewGenotype();
+					counter ++;
 				}
+			}
+			if (counter == 0) {
+				clusterFilterCollection.deleteClusterFilter(markerName, (byte) i);
+				i--;
 			}
 		}
 		return result;		

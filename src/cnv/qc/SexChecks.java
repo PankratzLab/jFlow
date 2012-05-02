@@ -74,7 +74,6 @@ public class SexChecks {
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY)+"markerGenderChecks.xln"));
-//			writer.println("SNP\tX abs(T)\tY abs(T)\tRaw X abs(T)\tRaw Y abs(T)\tTheta abs(T)\tR abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tRaw X p\tRaw Y p\tRaw XY r2\tTheta p\tR p\tTheta/R r2\tBAF p\tLRR p\tBAF/LRR r2");
 			writer.println("SNP\tX abs(T)\tY abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tBAF p\tLRR p\tBAF/LRR r2");
 			for (int i=0; i<files.length; i++) {
 				markerData = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+files[i], proj.getJarStatus()).getCollection();

@@ -976,6 +976,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public byte getCurrentClusterFilter() {
+		while (currentClusterFilter >= clusterFilterCollection.getSize(getMarkerName())) {
+			currentClusterFilter--;
+		}
 		return currentClusterFilter;
 	}
 	
@@ -995,9 +998,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				scatPanel.generateRectangles();
 				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 			}
-		}
-
-		if (clusterFilterCollection.getClusterFilters(getMarkerName()) != null) {
+//		}
+//
+//		if (clusterFilterCollection.getSize(getMarkerName()) > 0) {
 			currentFilter = clusterFilterCollection.getClusterFilters(getMarkerName()).get(currentClusterFilter);
 			scatPanel.highlightPoints(markerData[markerIndex].getHighlightStatus(currentFilter));
 		}

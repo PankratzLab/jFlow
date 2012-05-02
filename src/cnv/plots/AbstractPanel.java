@@ -91,7 +91,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected String errorMessage;
 	protected float mouseWheelMultiplier;
 	protected boolean zoomable;
-	protected boolean flipable;	//zx 4/27/2012
+	protected boolean swapable;	//zx 4/27/2012
 	protected boolean invertable;	// zx 4/27/2012
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
@@ -122,7 +122,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		forcePlotXmax = forcePlotYmax = forcePlotXmin = forcePlotYmin = Float.NaN;
 		mouseWheelMultiplier = DEFAULT_MOUSE_WHEEL_MULTIPLIER;
 		zoomable = false;
-		flipable = true;	//zx 4/27/2012
+		swapable = true;	//zx 4/27/2012
 		resetZoomProportions();
 		plotPointSetSize = DEFAULT_PLOTPOINTSET_SIZE;
 		points = new PlotPoint[plotPointSetSize];
@@ -145,8 +145,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
-		
-		this.add(new JButton());
 	}
 	
 	public void addPlotPoint(PlotPoint point) {
@@ -439,7 +437,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
 			}
 			
-			if (flipable) {
+			if (swapable) {
 				BufferedImage img;
 				File file = new File("/workspace/Genvisis/images/flip_and_invert/flip_10p.jpg");
 				new javax.swing.JLabel();
@@ -1119,6 +1117,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		return pointsGenerated;
 	}
 	
+	public void setSwapable(boolean swapable) {
+		this.swapable = swapable;
+	}
+
+	public boolean isSwapable() {
+		return swapable;
+	}
 
 	public void drawRectThick (Graphics g, int x, int y, int width, int height, byte thickness) {
     	for (byte i=0; i<thickness; i++) {

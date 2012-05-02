@@ -7,18 +7,18 @@ package cnv.plots;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+//import java.awt.Point;
+//import java.awt.event.ComponentEvent;
+//import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Hashtable;
 import javax.swing.JPopupMenu;
 
 import cnv.filesys.ClusterFilter;
-import cnv.filesys.ClusterFilterCollection;
+//import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.gui.LaunchAction;
@@ -26,13 +26,13 @@ import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import cnv.var.IndiPheno;
 import filesys.Segment;
-import filesys.SerialHash;
+//import filesys.SerialHash;
 //import common.CountVector;
 import common.CountVector;
 import common.HashVec;
 import common.IntVector;
 import common.Sort;
-import common.ext;
+//import common.ext;
 //import common.ext;
 //import mining.Distance;
 import common.Array;
@@ -324,6 +324,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		if (sp.getClusterFilterCollection().getSize(sp.getMarkerName())>0) {
 //			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
 //		}
+    	setSwapable(false);
 		if (sp.getCurrentClusterFilter()>=0) {
 			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
 		}
