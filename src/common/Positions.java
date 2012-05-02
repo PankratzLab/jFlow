@@ -119,7 +119,7 @@ public class Positions {
     	if (chromosome.startsWith("chr")) {
     		chromosome = chromosome.substring(3);
     	}
-    
+
     	if (chromosome.equals("XY") || chromosome.equals("PAR")) {
     		chr = 25;
     	} else if (chromosome.equalsIgnoreCase("X")) {
@@ -128,7 +128,7 @@ public class Positions {
     		chr = 24;
     	} else if (chromosome.equalsIgnoreCase("MT")||chromosome.equalsIgnoreCase("M")||chromosome.equalsIgnoreCase("Mito")) {
     		chr = 26;
-    	} else if (chromosome.equalsIgnoreCase("un")||chromosome.equalsIgnoreCase("multi")||chromosome.equalsIgnoreCase("altonly")||chromosome.equalsIgnoreCase("noton")) {
+    	} else if (chromosome.equalsIgnoreCase("un")||chromosome.equalsIgnoreCase("multi")||chromosome.equalsIgnoreCase("altonly")||chromosome.equalsIgnoreCase("noton")||chromosome.contains("random")) {
     		chr = 0;
     	} else {
     		try {

@@ -50,163 +50,82 @@ public class SexChecks {
 		System.out.println("Took "+ext.getTimeElapsed(time)+" to parse "+samples.length+" samples");
 	}
 
-	public static void markerByMarker(Project proj, String filename, String plots_dir) {
-		BufferedReader reader;
+	public static void markerByMarker(Project proj) {
 		PrintWriter writer;
-		String[] line;
-		int count;
-		String[] snpNames, samples;
-		int[] fieldIndices;
-		int[] genders;
-		Vector<double[]> xys, raw_xys, thetars, lrrbafs;
+		String[] samples;
+		Vector<double[]> xys, baflrrs; // raw_xys, thetars, 
+		float[] xs, ys, lrrs, bafs;
 		Vector<String> intensityDeps;
 		LogisticRegression lr;
-		String trav, output;
-		boolean satisfied = false;
-		int sampIndex;
-
-		trav = ext.rootOf(filename);
-		System.err.println("Lookup: "+trav);
-
-		while (!satisfied&&trav.length()>0) {
-			try {
-				Integer.parseInt(trav.charAt(trav.length()-1)+"");
-				satisfied = true;
-			} catch (NumberFormatException nfe) {
-				trav = trav.substring(0, trav.length()-1);
-			}
+		String output;
+		MarkerData[] markerData;			//zx
+        String[] files;						//zx
+        SampleData sampleData;
+        int[] sexes;
+        
+        sampleData = proj.getSampleData(false);
+        samples = proj.getSamples();
+        sexes = new int[samples.length];
+        for (int i = 0; i < samples.length; i++) {
+        	sexes[i] = sampleData.getSexForIndividual(samples[i]);
 		}
-		if (trav.length()==0) {
-			System.err.println("Error - expecting a filename that starts with a number (not '"+ext.rootOf(filename)+"')");
-			System.exit(1);
-		}
+ 		
+		files = Files.list(proj.getDir(Project.PLOT_DIRECTORY), ".scat", false);		//zx
 
-		snpNames = Array.toStringArray(HashVec.loadFileToVec(filename, false, false, true, true));
-		// does this do what it's supposed to? The proj.getFilename used to be a ManageFiles.getFilename. Is this the same? 
-		samples =  Array.toStringArray(HashVec.loadFileToVec(plots_dir+trav+"/"+proj.getFilename(snpNames[0]), true, true, false));
-//		samples = null;
-
-		genders = Array.intArray(samples.length, -1);
 		try {
-			reader = new BufferedReader(new FileReader(proj.getFilename(Project.SAMPLE_DATA_FILENAME)));
-			fieldIndices = ext.indexFactors(SAMPLE_FIELDS, reader.readLine().trim().split("\t", -1), false, true);
-			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
-				sampIndex = ext.indexOfStr(line[fieldIndices[0]], samples);
-				if (sampIndex!=-1) {
-					genders[sampIndex] = Integer.parseInt(line[fieldIndices[2]]);
-				}
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\"");
-			System.exit(2);
-		}
-
-		if (!new File(RESULTS_DIR).exists()) {
-			new File(RESULTS_DIR).mkdirs();
-		}
-		try {
-			writer = new PrintWriter(new FileWriter(RESULTS_DIR+ext.rootOf(filename)+"_genderChecks.xln"));
-			writer.println("SNP\tX abs(T)\tY abs(T)\tRaw X abs(T)\tRaw Y abs(T)\tTheta abs(T)\tR abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tRaw X p\tRaw Y p\tRaw XY r2\tTheta p\tR p\tTheta/R r2\tBAF p\tLRR p\tBAF/LRR r2");
-			for (int i = 0; i<snpNames.length; i++) {
-				System.err.println(snpNames[i]);
-				intensityDeps = new Vector<String>();
-				xys = new Vector<double[]>();
-				raw_xys = new Vector<double[]>();
-				thetars = new Vector<double[]>();
-				lrrbafs = new Vector<double[]>();
-
-				try {
-					reader = new BufferedReader(new FileReader(plots_dir+trav+"/"+snpNames[i]));
-					fieldIndices = ext.indexFactors(SNP_FIELDS, reader.readLine().trim().split("\t", -1), false, true);
-					count = 0;
-					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
-						if (!line[fieldIndices[0]].equals(samples[count])) {
-							System.err.println("Error - out of sync on marker "+snpNames[i]);
-							System.exit(1);
+			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY)+"markerGenderChecks.xln"));
+//			writer.println("SNP\tX abs(T)\tY abs(T)\tRaw X abs(T)\tRaw Y abs(T)\tTheta abs(T)\tR abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tRaw X p\tRaw Y p\tRaw XY r2\tTheta p\tR p\tTheta/R r2\tBAF p\tLRR p\tBAF/LRR r2");
+			writer.println("SNP\tX abs(T)\tY abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tBAF p\tLRR p\tBAF/LRR r2");
+			for (int i=0; i<files.length; i++) {
+				markerData = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+files[i], proj.getJarStatus()).getCollection();
+				for (int j = 0; j < markerData.length; j++) {
+					output = markerData[j].getMarkerName();
+					
+					xs = markerData[j].getXs();
+					ys = markerData[j].getYs();
+					bafs = markerData[j].getBAFs();
+					lrrs = markerData[j].getLRRs();
+					
+					intensityDeps = new Vector<String>();
+					xys = new Vector<double[]>();
+					baflrrs = new Vector<double[]>();
+					for (int s = 0; s < samples.length; s++) {
+						if (ext.isValidDouble(lrrs[s]+"")) {
+							intensityDeps.add(sexes[s]+"");
+							xys.add(new double[] {xs[s], ys[s]});
+							baflrrs.add(new double[] {bafs[s], lrrs[s]});
 						}
-						if (genders[count]!=-1) {
-							if (!line[fieldIndices[8]].equals("NaN")) {
-								intensityDeps.add(genders[count]+"");
-								xys.add(new double[] {Double.parseDouble(line[fieldIndices[1]]), Double.parseDouble(line[fieldIndices[2]])});
-								raw_xys.add(new double[] {Double.parseDouble(line[fieldIndices[3]]), Double.parseDouble(line[fieldIndices[4]])});
-								thetars.add(new double[] {Double.parseDouble(line[fieldIndices[5]]), Double.parseDouble(line[fieldIndices[6]])});
-								lrrbafs.add(new double[] {Double.parseDouble(line[fieldIndices[7]]), Double.parseDouble(line[fieldIndices[8]])});
-							}
-						}
-						count++;
 					}
-					reader.close();
-				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""+plots_dir+trav+"/"+snpNames[i]+"\" not found in current directory");
-					System.exit(1);
-				} catch (IOException ioe) {
-					System.err.println("Error reading file \""+plots_dir+trav+"/"+snpNames[i]+"\"");
-					System.exit(2);
+					
+					
+					if (intensityDeps.size()==0) {
+						System.err.println("Warning - no data for marker "+markerData[j].getMarkerName());
+						output += "\t.\t.\t.\t.\t.\t.\t.\t.";
+					} else {
+						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 0)).getPvalue());
+						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 1)).getPvalue());
+						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 0)).getPvalue());
+						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 1)).getPvalue());
+					}
+	
+					lr = null;
+					try {
+						lr = new LogisticRegression(intensityDeps, xys);
+						output += "\t"+lr.getSigs()[1]+"\t"+lr.getSigs()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
+					} catch (Exception e) {
+						output += "\t.\t.\t.";
+					}
+					try {
+						lr = new LogisticRegression(intensityDeps, baflrrs);
+						output += "\t"+lr.getSigs()[1]+"\t"+lr.getSigs()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
+					} catch (Exception e) {
+						output += "\t.\t.\t.";
+					}
+	
+					writer.println(output);
+					writer.flush();
 				}
-
-				line = new String[30];
-				output = snpNames[i];
-
-				if (intensityDeps.size()==0) {
-					System.err.println("Warning - no data for marker "+snpNames[i]);
-					output += "\t.\t.\t.\t.\t.\t.\t.\t.";
-					line[12] = "NoData";
-					line[13] = "NoData";
-					line[14] = "NoData";
-				} else {
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 0)).getT());
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 1)).getT());
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(raw_xys), 0)).getT());
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(raw_xys), 1)).getT());
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(thetars), 0)).getT());
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(thetars), 1)).getT());
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(lrrbafs), 0)).getT());
-					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(lrrbafs), 1)).getT());
-				}
-
-				lr = null;
-				try {
-					lr = new LogisticRegression(intensityDeps, xys);
-					output += "\t"+lr.getWalds()[1]+"\t"+lr.getWalds()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
-					lr.dumpData(snpNames[i]+"_xys.xln");
-				} catch (Exception e) {
-					output += "\t.\t.\t.";
-				}
-
-				try {
-					lr = new LogisticRegression(intensityDeps, raw_xys);
-					output += "\t"+lr.getWalds()[1]+"\t"+lr.getWalds()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
-					lr.dumpData(snpNames[i]+"_raw_xys.xln");
-				} catch (Exception e) {
-					output += "\t.\t.\t.";
-				}
-
-				try {
-					lr = new LogisticRegression(intensityDeps, thetars);
-					output += "\t"+lr.getWalds()[1]+"\t"+lr.getWalds()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
-					lr.dumpData(snpNames[i]+"_thetar.xln");
-				} catch (Exception e) {
-					output += "\t.\t.\t.";
-				}
-
-				try {
-					lr = new LogisticRegression(intensityDeps, lrrbafs);
-					output += "\t"+lr.getWalds()[1]+"\t"+lr.getWalds()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
-					// lr.dumpData(snpNames[i]+"_lrr_baf.xln");
-				} catch (Exception e) {
-					output += "\t.\t.\t.";
-				}
-
-				writer.println(output);
-				writer.flush();
 			}
-
 			writer.close();
 		} catch (Exception e) {
 			System.err.println("Error writing results");
@@ -580,7 +499,7 @@ public class SexChecks {
 			System.exit(1);
 		}
 
-		check = true;
+//		check = true;
 		try {
 			proj = new Project(filename, false);
 
@@ -593,7 +512,7 @@ public class SexChecks {
 			} else if (drop) {
 				dropMarkers(allMarkers, markersToDrop);
 			} else {
-				markerByMarker(proj, null, plotsDir);
+				markerByMarker(proj);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

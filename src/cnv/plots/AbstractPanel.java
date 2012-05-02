@@ -5,6 +5,10 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -13,6 +17,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.text.DecimalFormat;
 //import java.util.Date;
 import java.util.Date;
@@ -20,8 +25,10 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 import mining.Distance;
 
@@ -34,7 +41,7 @@ import common.Sort;
 import common.ext;
 import stats.Maths;
 
-public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
+public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
 	public static final int HEAD_BUFFER = 25;
@@ -84,6 +91,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected String errorMessage;
 	protected float mouseWheelMultiplier;
 	protected boolean zoomable;
+	protected boolean flipable;	//zx 4/27/2012
+	protected boolean invertable;	// zx 4/27/2012
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
 	private boolean inDrag;
@@ -100,6 +109,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private byte[] layersInBase;
 	private byte[] extraLayersVisible;
 	private boolean pointsGenerated;
+	private Timer waitingTimer;		//zx: A control variable to reduce the repaint() operations during component resizing;
+	private final int DELAY = 30;	//zx: A control variable to reduce the repaint() operations during component resizing;
 	
 	public AbstractPanel() {
 		displayXaxis = true;
@@ -111,6 +122,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		forcePlotXmax = forcePlotYmax = forcePlotXmin = forcePlotYmin = Float.NaN;
 		mouseWheelMultiplier = DEFAULT_MOUSE_WHEEL_MULTIPLIER;
 		zoomable = false;
+		flipable = true;	//zx 4/27/2012
 		resetZoomProportions();
 		plotPointSetSize = DEFAULT_PLOTPOINTSET_SIZE;
 		points = new PlotPoint[plotPointSetSize];
@@ -133,6 +145,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
+		
+		this.add(new JButton());
 	}
 	
 	public void addPlotPoint(PlotPoint point) {
@@ -281,7 +295,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		long time;
 		ProgressBarDialog prog;//zx
     	int recX, recY, recWidth, recHeight;
+    	
+//    	System.out.println("flow="+flow);
 		
+//    	System.err.println("Error - called");
 		if (points.length==0) {
 			System.err.println("Error: no data. The cnv.plots.AbstractPanel.points is null.");
 			return;
@@ -298,12 +315,22 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		setLookupResolution(DEFAULT_LOOKUP_RESOLUTION);
 		assignAxisLabels();
 
+		//zx 4/30/2012 swap X Y
+		if (invertable) {
+			for (int i=0; i<points.length; i++) {
+//				float temp = points[i].getRawX();
+//				points[i].setRawX() = points[i].getRawY();
+//				points[i].getRawY() = temp;
+			}
+		}
+		
 		// Scan for rawX, rawY range of the data points
 		minimumObservedRawX = Float.MAX_VALUE;
 		maximumObservedRawX = Float.MIN_VALUE;
 		minimumObservedRawY = Float.MAX_VALUE;
 		maximumObservedRawY = Float.MIN_VALUE;
 		for (int i = 0; i<points.length&&flow; i++) {
+//		for (int i = 0; i<points.length; i++) {
 			if (points[i] != null) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, points[i].getRawX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, points[i].getRawX());
@@ -312,6 +339,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
         }
 		for (int i = 0; lines != null && i<lines.length&&flow; i++) {
+//		for (int i = 0; lines != null && i<lines.length; i++) {
 			if (lines[i] != null) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, lines[i].getStartX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, lines[i].getStartX());
@@ -410,6 +438,32 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
 			}
+			
+			if (flipable) {
+				BufferedImage img;
+				File file = new File("/workspace/Genvisis/images/flip_and_invert/flip_10p.jpg");
+				new javax.swing.JLabel();
+				try {
+					img = ImageIO.read(file);
+					g.drawImage(img, 70, getHeight()-75, null);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				file = new File("/workspace/Genvisis/images/flip_and_invert/right_10.gif");
+				try {
+					img = ImageIO.read(file);
+					g.drawImage(img, 70, getHeight()-35, null);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				file = new File("/workspace/Genvisis/images/flip_and_invert/up_10.gif");
+				try {
+					img = ImageIO.read(file);
+					g.drawImage(img, 55, getHeight()-75, null);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		
 			if (errorMessage != null) {
 				g.drawString(errorMessage, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(errorMessage)/2+WIDTH_Y_AXIS, (getHeight()-HEAD_BUFFER-HEIGHT_X_AXIS)/2-20+HEAD_BUFFER);
@@ -421,9 +475,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
+//		System.err.println("("+canvasSectionMinimumX+"-"+canvasSectionMaximumX+","+canvasSectionMinimumY+"-"+canvasSectionMaximumY+")");
 
 		// Draw the lines
 		for (int i = 0; lines!=null&&i<lines.length&&flow; i++) {
+//		for (int i = 0; lines!=null&&i<lines.length; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
 				Grafik.drawThickLine(g, getX(lines[i].getStartX()), getY(lines[i].getStartY()), getX(lines[i].getStopX()), getY(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
 			}
@@ -431,6 +487,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		// Draw the rectangles for clusterFilters
 		for (int i = 0; rectangles!=null&&i<rectangles.length&&flow; i++) {
+//		for (int i = 0; rectangles!=null&&i<rectangles.length; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
 //				recX = getX(Math.min((int)rectangles[i].getStartX(), (int)rectangles[i].getStopX()));
 //				recY = getY(Math.min((int)rectangles[i].getStartY(), (int)rectangles[i].getStopY()));
@@ -472,28 +529,36 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	    	drawRectThick(g, recX, recY, recWidth, recHeight, (byte) 1);
 		}
 
-		// Draw progress bar
-		if (base) {
-			time = new Date().getTime();
-			prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 500);//zx
-//			System.out.println("points.length: "+(points.length)+"\3*points.length: "+3*(points.length));
-		} else {
-			prog = null;
-		}
-		step = (points.length)/100;
+//		// Draw progress bar
+//		if (base) {
+//			time = new Date().getTime();
+//			prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
+////			System.out.println("points.length: "+(points.length)+"\3*points.length: "+3*(points.length));
+//		} else {
+//			prog = null;
+//		}
 
 		// Draw data points, also build the lookup matrix for nearby points.
 		locLookup.clear();	// -- This was here since Nathan's original code.
+		prog = null;
+		time = new Date().getTime();
+		step = (points.length)/100;
 		layers = new Hashtable<String,Vector<PlotPoint>>();
 		for (int i = 0; i<points.length&&flow; i++) {
+//		for (int i = 0; i<points.length; i++) {
 			if (base && i%step==0){
-				prog.setProgress(i);//zx
+				if (new Date().getTime() - time > 1000) {
+					if (prog == null) {
+						prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
+					}
+					prog.setProgress(i);//zx
+				}
 			}
 			if (points[i] == null || points[i].getColor() == -1) {
 //			if (points[i] == null || points[i].getColor() == -1 || (points[i].getRawX() < 1 && points[i].getRawY() < 1)) {
 				
 			} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
-				System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
+//				System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
 			} else {
 				trav = points[i].getLayer()+"";
 				if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
@@ -534,6 +599,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		keys = HashVec.getKeys(layers);
 		order = Sort.quicksort(Array.toIntArray(keys));
 		for (int i = 0; i<keys.length&&flow; i++) {
+//		for (int i = 0; i<keys.length; i++) {
 			layer = layers.get(keys[order[i]]);
 			for (int j = 0; j<layer.size(); j++) {
 				drawPoint(g, layer.elementAt(j));
@@ -549,7 +615,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		}
 		setFinalImage(true);
-		if (base) {
+		if (base && prog != null) {
 			prog.close();//zxu
 		}
 		//System.out.println("Paint time: "+ext.getTimeElapsed(time));
@@ -634,6 +700,61 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}			
 			zoomProportionally(e.getWheelRotation()>0, e.getPoint(), false);
 		}
+	}
+
+	public void componentHidden(ComponentEvent e) {}
+
+	public void componentMoved(ComponentEvent e) {}
+
+	public void componentResized(ComponentEvent e) {
+		setFlow(false);//zx
+
+		if (this.waitingTimer==null) {
+			/* Start waiting for DELAY to elapse. */
+			this.waitingTimer = new Timer(DELAY,this);
+			this.waitingTimer.start();
+		}
+		else {
+			/* Event came too soon, swallow it by resetting the timer.. */
+			this.waitingTimer.restart();
+		}
+
+//		createImage();
+
+//		if (patience!=null) {
+//			patience.cancel();
+//			patience = null;
+//		}
+//		if (prevWidth==-1) {
+//			prevWidth = getWidth();
+//			prevHeight = getHeight();
+//		} else if (prevWidth!=getWidth()||prevHeight!=getHeight()) {
+////			image = null;
+////			repaint();
+////			new Thread(patience = new Repress(this, 100)).start();
+//
+//			prevWidth = getWidth();
+//			prevHeight = getHeight();
+//		}
+//		setFlow(true);//zx
+	}
+
+	public void componentShown(ComponentEvent e) {}
+
+	public void actionPerformed(ActionEvent ae)
+	{
+	  /* Timer finished? */
+	  if (ae.getSource()==this.waitingTimer)
+	  {
+	    /* Stop timer */
+	    this.waitingTimer.stop();
+	    this.waitingTimer = null;
+	    /* Resize */
+		setFlow(true);//zx
+	    createImage();
+	    repaint();
+	    setFlow(false);//zx
+	  }
 	}
 
 	public void zoomProportionally(boolean outNotIn, Point p, boolean center) {
@@ -912,11 +1033,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	public void createImage() {
-		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-		drawAll(image.createGraphics(), true);
-		flow = true;
-//		repaint();
-//		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+		if (getWidth() > 350 && getHeight() > 0 ) {
+			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+			drawAll(image.createGraphics(), true);
+			flow = true;
+//			repaint();
+//			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+		}
 	}
 	
 	//zx

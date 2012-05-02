@@ -272,7 +272,7 @@ public class PennCNV {
 
 		try {
 			writer = new PrintWriter(new FileWriter(output));
-			writer.println("markerName\tchr\tposition\tpopulationBAF");
+			writer.println("Name\tChr\tPosition\tPFB");
 			for (int i = 0; i<markerNames.length; i++) {
 				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
 			}
@@ -284,74 +284,139 @@ public class PennCNV {
 		}
 	}
 
-	public static void cnvMap(Project proj) {
-		PrintWriter writer;
-		FullSample samp;
-		String[] sampleList;
-		String[] markerNames;
-		byte[][] result;
-		int[] bafCounts, genoCounts;
-		float[] bafs;
-		float[] lrrs;
-		double[] bafAverage;
-//		Hashtable<String, String> samples;
+	public static void gcModel(Project proj, String gcFile, String outputFile, int numwindow) {
 		MarkerSet markerSet;
-		byte[] chrs, genotypes;
+		String[] markerNames;
+		byte[] chrs;
 		int[] positions;
-		String filename, output;
-		
-		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
-		
-		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
-			sampleList = proj.getSampleList().getSamples();
-			output = proj.getProjectDir()+"custom.pfb";
-		} else if (Files.exists(filename, proj.getJarStatus())) {
-			System.out.print("filename: "+filename);
-			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
-			output = proj.getProjectDir()+ext.rootOf(filename)+".pfb";
-		} else {
-			JOptionPane.showMessageDialog(null, "Failed to load \""+filename+"\"", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 
+		BufferedReader reader;
+		String[] line;
+		double[] gc;
+		PrintWriter writer;
+		byte curchr;
+		int curstart, curend, curcount;
+		double cursum;
+		Hashtable<Byte, Byte> seen_chr = new Hashtable<Byte, Byte>();
+
+		int[] snp_count;
+		double[] snp_sum;
+		byte prechr     = -1;
+		int prestart    = -1;
+		int preend      = 0;
+		int windowcount = 0;
+		int windowsum   = 0;
+
+		int chr_index;
+//		byte[] seen_chr;
+//		int count= 0;
+		
+//		alldata[];						//to be used in both the SnpFile (.pdf file) block and the GcFile block.
+		
+		// generate or load SnpFile (pbf file or Population B Allele Frequency)
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
-		chrs = markerSet.getChrs();
-		positions = markerSet.getPositions();
-		result = new byte[chrs.length][sampleList.length];
-		bafCounts = new int[chrs.length];
-		genoCounts = new int[chrs.length];
+		chrs = markerSet.getChrs();	//to be used only in the SnpFile (.pdf file) block. But then in the outputFile.
+		positions = markerSet.getPositions();	//to be used only in the SnpFile (.pdf file) block. But then in the GcFile block.
+//		while (SnpFile.length) {
+//			push @{$alldata{$curchr}}, [$curpos, $curname];
+//			chrs[i] = curchr;
+//			positions[i] = curpos;
+//		}
 
-		for (int i=0; i<sampleList.length; i++) {
-			samp = proj.getFullSample(sampleList[i]);
-			bafs = samp.getBAFs();
-			lrrs = samp.getLRRs();
-			genotypes = samp.getAB_Genotypes();
-			for (int j=0; j<lrrs.length; j++) {
-				if (!Float.isNaN(lrrs[j])) {
-					if (deleteion)
-					result[i][j] = detectDeletion();
-					if (genotypes[j] >= 0) {
-						genoCounts[j]++;
-					}
-				}
-			}
+		// How do we know whether "numwindow==null" ???
+		if (numwindow==0) {
+			numwindow = 100;
 		}
 
+		snp_count = new int[markerNames.length];
+		snp_sum = new double[markerNames.length];
+		chr_index=0;
+		// load gcFile
 		try {
-			writer = new PrintWriter(new FileWriter(output));
-			writer.println("markerName\tchr\tposition\tpopulationBAF");
+			reader = new BufferedReader(new FileReader(gcFile));
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				curchr = Positions.chromosomeNumber(line[1]);
+				curstart = Integer.parseInt(line[2]);
+				curend = Integer.parseInt(line[3]);
+				curcount = Integer.parseInt(line[11]);
+				cursum = Double.parseDouble(line[12]);
+				
+				if (curchr > 0) { //skip the random chromosomes!
+					//skip these annotations for 1Mb sliding windows (since we only care about 5kb window)
+//					m/1K.wib/ and next;
+//					curdata = alldata[curchr];
+//					if (curdata) {
+					
+					if (curchr == prechr) {
+						if (curstart < prestart) {
+							System.err.println("Error in gcFile: a record in chr"+curchr+" has position "+curstart+", less then the previous position $prestart");
+							System.exit(1);
+						}
+					} else if (seen_chr.containsKey(curchr)) {
+							System.err.println("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+gcFile+": at "+curchr+":"+curstart);
+							System.exit(1);
+					} else {
+						seen_chr.put(curchr,(byte)1);
+					}
+					
+//					chr_index[curchr]= 0;
+//					(curdata-1);
+
+					if (chrs[chr_index]==curchr) {
+						while (positions[chr_index]<Math.max(curstart - numwindow*5120, 0)) {
+							chr_index ++;						
+						}
+					} else if (chrs[chr_index]<curchr) {
+						while (chr_index<chrs.length && chrs[chr_index]!=curchr) {
+							chr_index ++;
+						}
+						if (chr_index==chrs.length) {
+							chr_index --;
+						}
+					} else {
+						chr_index = 0;
+						while (chr_index<chrs.length && chrs[chr_index]!=curchr) {
+							chr_index ++;
+						}
+						if (chr_index==chrs.length) {
+							chr_index --;
+						}
+					}
+					for (int i = chr_index; i<snp_count.length && chrs[i]==curchr && positions[i]<=(curend + numwindow*5120); i++) {
+						snp_count[i] += curcount;
+						snp_sum[i] += cursum;
+					}
+//					}
+//					count++;
+				}
+				prestart = curstart;
+				prechr = curchr;
+				}
+			reader.close();
+		} catch (Exception e) {
+			System.err.println("Error reading from '" + gcFile + "'");
+			e.printStackTrace();
+			System.exit(0);
+		}
+		
+		// load pfb file or generate it
+		
+		// output the result
+		try {
+			writer = new PrintWriter(new FileWriter(outputFile));
+			writer.println("Name\tChr\tPosition\tGC");
 			for (int i = 0; i<markerNames.length; i++) {
-				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
+				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+(snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
 			}
 			writer.close();
-			System.out.println("Population BAF file is now ready at: "+output);
+			System.out.println("Population BAF file is now ready at: "+outputFile);
 		} catch (Exception e) {
-			System.err.println("Error writing to '" + output + "'");
+			System.err.println("Error writing to '" + outputFile + "'");
 			e.printStackTrace();
 		}
 	}
-
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;

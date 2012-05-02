@@ -2,24 +2,26 @@ package cnv.plots;
 
 import java.io.*;
 import java.util.*;
+
+
 import common.*;
 
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
+
 import java.awt.image.BufferedImage;
 import javax.imageio.*;
 
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.gui.LaunchAction;
-import cnv.var.SampleData;
 import mining.Distance;
 
 //public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
-public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
+//public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener, ActionListener {
+public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int HEAD_BUFFER = 25;
 //	public static final int HEIGHT_X_AXIS = 55;
@@ -86,7 +88,10 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	private int prevHeight;
 	//private boolean flow;
 	//private boolean finalImage;//zx
-	private Repress patience;
+//	private Repress patience;
+//	private Timer waitingTimer;		//zx
+//	private final int DELAY = 10;	//zx
+
 
 	public SexPanel(Project proj, String[][] samples, double[][] data, byte[] sexes, byte[] estimatedSexes) {
 		this(proj, samples, data);
@@ -263,38 +268,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 
 	public void mouseExited(MouseEvent e) {}
 
-	public void mousePressed(MouseEvent e) {}
-
-	public void mouseReleased(MouseEvent e) {}
-
 	public void mouseDragged(MouseEvent e) {}
-
-	public void componentHidden(ComponentEvent e) {}
-
-	public void componentMoved(ComponentEvent e) {}
-
-	public void componentResized(ComponentEvent e) {
-		setFlow(false);//zx
-		if (prevWidth==-1) {
-			prevWidth = getWidth();
-			prevHeight = getHeight();
-		} else if (prevWidth!=getWidth()||prevHeight!=getHeight()) {
-			image = null;
-			repaint();
-
-			if (patience!=null) {
-				patience.cancel();
-				patience = null;
-			}
-//			new Thread(patience = new Repress(this, 100)).start();
-
-			prevWidth = getWidth();
-			prevHeight = getHeight();
-		}
-		setFlow(true);//zx
-	}
-
-	public void componentShown(ComponentEvent e) {}
 
 	public static void main(String[] args) {
 		MosaicPlot.main(args);
@@ -339,7 +313,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 		points = new PlotPoint[data.length];
 //		setColorScheme(new Color[] {Color.GRAY, Color.BLUE, Color.PINK});
 		setColorScheme(this.colorScheme);
-		for (int i = 0; i<data.length&&getFlow(); i++) {
+//		for (int i = 0; i<data.length&&getFlow(); i++) {
+		for (int i = 0; i<data.length; i++) {
 			/*
 			if (colorHash.containsKey(samples[i][0]+"\t"+samples[i][1])) {
 				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];

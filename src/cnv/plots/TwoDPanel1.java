@@ -15,6 +15,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
+
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
 import javax.swing.JPopupMenu;
 
 import cnv.filesys.ClusterFilter;
@@ -39,7 +42,7 @@ import common.Array;
 //import mining.Distance;
 
 //public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
-public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
+public class TwoDPanel1 extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
 			   									  new Color(23, 58, 172), // dark blue
@@ -78,7 +81,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	
 	protected MarkerData[] markerData;
 	byte[] alleleCounts;				//zx
-	protected ScatterPlot sp;
+	protected TwoDPlot1 sp;
 	protected String[] samples;
 	protected IntVector prox;
 	protected SampleData sampleData;
@@ -90,13 +93,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	private int mouseEndY ;
 
 
-	public ScatterPanel(ScatterPlot sp) {
+	public TwoDPanel1(TwoDPlot1 twoDPlot) {
 		super();
 		
-		this.sp = sp;
-		this.samples = sp.getSamples();
-		this.markerData = sp.getMarkerData();
-		this.sampleData = sp.getSampleData();
+		this.sp = twoDPlot;
+		this.samples = twoDPlot.getSamples();
+		this.markerData = twoDPlot.getMarkerData();
+		this.sampleData = twoDPlot.getSampleData();
 //		locLookup = new Hashtable<String,IntVector>();//zx
 		this.updateQcPanel = true;//zx
 		

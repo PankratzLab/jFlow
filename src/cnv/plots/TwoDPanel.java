@@ -15,6 +15,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
+
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
 import cnv.filesys.ClusterFilter;
@@ -39,7 +43,7 @@ import common.Array;
 //import mining.Distance;
 
 //public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
-public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
+public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
 			   									  new Color(23, 58, 172), // dark blue
@@ -78,7 +82,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	
 	protected MarkerData[] markerData;
 	byte[] alleleCounts;				//zx
-	protected ScatterPlot sp;
+	protected TwoDPlot sp;
 	protected String[] samples;
 	protected IntVector prox;
 	protected SampleData sampleData;
@@ -90,13 +94,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	private int mouseEndY ;
 
 
-	public ScatterPanel(ScatterPlot sp) {
+	public TwoDPanel(TwoDPlot twoDPlot) {
 		super();
 		
-		this.sp = sp;
-		this.samples = sp.getSamples();
-		this.markerData = sp.getMarkerData();
-		this.sampleData = sp.getSampleData();
+		this.sp = twoDPlot;
+		this.samples = twoDPlot.getSamples();
+		this.markerData = twoDPlot.getMarkerData();
+		this.sampleData = twoDPlot.getSampleData();
 //		locLookup = new Hashtable<String,IntVector>();//zx
 		this.updateQcPanel = true;//zx
 		
@@ -307,10 +311,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 		//callRate=(samples.length-callRate)*100/samples.length;//zx
 		
-		if (getUpdateQcPanel()) {
-			sp.updateQcPanel(genotype, sex, otherClass);//zx
-			setUpdateQcPanel(false);
-		}
+//		if (getUpdateQcPanel()) {
+//			sp.updateQcPanel(genotype, sex, otherClass);//zx
+//			setUpdateQcPanel(false);
+//		}
 //		sp.updateColorKey(classCounts.convertToHash());
 		
 		Hashtable<String, String> hash = new Hashtable<String, String>();
@@ -540,7 +544,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			setUpdateQcPanel(true);
 	    	generateRectangles();
 			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
-			sp.displayClusterFilterIndex();
+//			sp.displayClusterFilterIndex();
 			paintAgain();
 	    }
 
@@ -572,6 +576,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //	}
     
 	public void mouseClicked(MouseEvent event) {
+		System.out.println("mouse location: ("+event.getPoint().x+", "+event.getPoint().y+")");
+		if(event.getPoint().x>=70 && event.getPoint().x<=90 && event.getPoint().y>=(getHeight()-55) && event.getPoint().y<=(getHeight()-75)) {
+			JOptionPane.showMessageDialog(null, "You've just clicked the invert button", "Message", JOptionPane.PLAIN_MESSAGE);
+		}
+		
 		JPopupMenu menu;
 		MarkerData mData;
 		String markerPosition;

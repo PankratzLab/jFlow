@@ -115,6 +115,10 @@ public class CNVariant extends Segment {
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean jar) {
+		return loadPlinkFile(filename, null, jar);
+	}
+	
+	public static CNVariant[] loadPlinkFile(String filename, Hashtable<String,String> sampleHash, boolean jar) {
 		BufferedReader reader;
 		Vector<CNVariant> v = null;
 		String[] line;
@@ -129,7 +133,10 @@ public class CNVariant extends Segment {
 				reader.reset();
 			}
 			while (reader.ready()) {
-				v.add(new CNVariant(reader.readLine().trim().split("[\\s]+")));
+				line = reader.readLine().trim().split("[\\s]+");
+				if (sampleHash == null || sampleHash.containsKey(line[0]+"\t"+line[1])) {
+					v.add(new CNVariant(line));
+				}
 			}
 			reader.close();
 
@@ -174,6 +181,22 @@ public class CNVariant extends Segment {
 		}
 	}
 
+	public static CNVariant[] putInOrder(CNVariant[] array, int[] order) {
+		CNVariant[] newArray;
+
+		newArray = new CNVariant[array.length];
+		for (int i = 0; i<order.length; i++) {
+			newArray[i] = array[order[i]];
+		}
+
+		return newArray;
+	}
+	
+	public static CNVariant[] sort(CNVariant[] array) {
+		return putInOrder(array, quicksort(array));
+	}
+	
+	
 	public static void main(String[] args) {
 		String file1 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\penncnv\\again_noGenderProblems\\conf_0kb_5SNP_10.0.cnv";
 		String file2 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\quantisnp\\noGenderProblems\\conf_0kb_5SNP_10.0.cnv";

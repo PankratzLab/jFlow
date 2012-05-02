@@ -7,6 +7,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import common.*;
+import cnv.analysis.CnvBySampleID;
 import cnv.analysis.Mosaicism;
 import cnv.filesys.*;
 import cnv.manage.*;
@@ -36,8 +37,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String REFRESH = "Refresh";
 	public static final String POPULATIONBAF = "Population BAF";
 	public static final String TEST = "Test";
+	public static final String GCMODEL = "GC Model";
+	public static final String TWOD = "2D Plot";
 
-	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST}; 
+	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD}; 
 
 	private boolean jar;
 	private JComboBox<String> projectsBox;
@@ -196,6 +199,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				System.out.println("Testing latest subroutine");
 //				Mosaicism.checkForOverlap(proj);
 				ParseIllumina.parseAlleleLookup(proj);
+			} else if (command.equals(GCMODEL)) {
+				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
+			} else if (command.equals(TWOD)) {
+				new TwoDPlot(proj);
 			} else {
 				System.err.println("Error - unknown command '"+command+"'");
 			}

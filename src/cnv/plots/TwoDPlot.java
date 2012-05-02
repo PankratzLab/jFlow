@@ -15,12 +15,14 @@ import java.awt.event.*;
 
 import cnv.filesys.*;
 import cnv.gui.AutoSaveClusterFilterCollection;
+import cnv.gui.CheckBoxTree;
 import cnv.gui.ColorIcon;
 import cnv.gui.CycleRadio;
 import common.*;
 import cnv.var.*;
 
-public class ScatterPlot extends JFrame implements ActionListener, WindowListener {
+//public class TwoDPlot extends JFrame implements ActionListener, WindowListener {
+public class TwoDPlot extends JFrame implements WindowListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 	public static final int DEFAULT_GC_THRESHOLD = 25;
@@ -45,7 +47,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JPanel classPanel;
 	private JPanel legendPanel;
 //	private JPanel bottomPanel;
-	private ScatterPanel scatPanel;
+	private TwoDPanel twoDPanel;
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 //	private JPanel typePanel;
@@ -91,8 +93,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JRadioButton[] typeRadioButtons;
 	private JRadioButton[] classRadioButtons;
 	
-	public ScatterPlot(Project project) {
-		super("ScatterPlot");
+	public TwoDPlot(Project project) {
+		super("2D Plot");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		proj = project;
@@ -116,20 +118,31 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		loadClusterFilterFiles();
 		autoSaveCFC = null;
 		
-		scatPanel = new ScatterPanel(this);
-		getContentPane().add(scatPanel, BorderLayout.CENTER);
+		plot_type = 1;
+		displayCents = new boolean[centList.length];
+		for (int i=0; centList!=null && i<centList.length; i++) {
+			displayCents[i]=false;
+		}
+		
+		twoDPanel = new TwoDPanel(this);
+//		scatPanel.add(new JLabel("I now can add JComponent here. But how can I add one on the left?"));
+		
+//		UIManager.put("PopupMenuUI", "CustomPopupMenuUI");
+		this.setJMenuBar(menuBar());
+
+		getContentPane().add(twoDPanel, BorderLayout.CENTER);
 		getContentPane().add(markerPanel(), BorderLayout.NORTH);
-		getContentPane().add(controlPanel(), BorderLayout.EAST);
+//		getContentPane().add(controlPanel(), BorderLayout.EAST);
 		getContentPane().add(colorPanel(), BorderLayout.SOUTH);
 
 		inputMapAndActionMap();
 
-		scatPanel.setPointsGenerated(false);//zx
-		scatPanel.setUpdateQcPanel(true);//zx???
+		twoDPanel.setPointsGenerated(false);//zx
+		twoDPanel.setUpdateQcPanel(true);//zx???
 //		scatPanel.generateRectangles();
-		scatPanel.setExtraLayersVisible(new byte[] {99});
+		twoDPanel.setExtraLayersVisible(new byte[] {99});
 		updateGUI();
-		displayIndex(navigationField);
+//		displayIndex(navigationField);
 //		clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 //		currentClusterFilter=0;
 //		setCurrentClusterFilter((byte) (clusterFilterCollection.getSize(getMarkerName())-1));
@@ -140,18 +153,18 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			currentClusterFilter = (byte)(clusterFilterCollection.getSize(getMarkerName())-1);
 		}
 //		scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-		displayClusterFilterIndex();
+//		displayClusterFilterIndex();
 		clusterFilterCollectionUpdated = false;
 //    	newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)+1);
-		symmetryBox.setSelected(true);
+//		symmetryBox.setSelected(true);
 		if (centList.length > 0) {
 			centBoxes[0].setSelected(true);
 		}
 		
-		next.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT);
+//		next.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT);
 //		next.setActionMap(actionMap);
 //		previous.setActionMap(actionMap);
-		scatPanel.grabFocus();
+		twoDPanel.grabFocus();
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
@@ -178,294 +191,294 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		commentLabel.setFont(new Font("Arial", 0, 14));
 		descrPanel.add(commentLabel);
 
-		JPanel navigationPanel = new JPanel();
-		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
-		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
-		first.addActionListener(this);
-		first.setActionCommand(FIRST);
-		first.setPreferredSize(new Dimension(20, 20));
-		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
-		previous.addActionListener(this);
-		previous.setActionCommand(PREVIOUS);
-		previous.setPreferredSize(new Dimension(20, 20));
-		navigationField = new JTextField("", 8);
-		navigationField.setHorizontalAlignment(JTextField.CENTER);
-		navigationField.setFont(new Font("Arial", 0, 14));
-		//navigationField.setEditable(false);//zx
-		navigationField.setBackground(BACKGROUND_COLOR);//zx
-		navigationField.addFocusListener(new FocusListener() {
-			public void focusGained(FocusEvent focusevent) {}
-
-			public void focusLost(FocusEvent fe) {
-				try {
-					int trav = Integer.valueOf(((JTextField)fe.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
-					if (trav>=0&&trav<markerList.length) {
-						markerIndex = trav;
-//						scatPanel.setPointsGenerated(false);//zx
-//						scatPanel.setUpdateQcPanel(true);//zx???
-//						updateGUI();
-					}
-				} catch (NumberFormatException nfe) {}
-				displayIndex((JTextField)fe.getSource());
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
-//				currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-				setCurrentClusterFilter();
-//				scatPanel.generateRectangles();
-//				if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//					scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//				}
-				updateGUI();
-				displayClusterFilterIndex();
-			}
-		});
-
-		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
-		next.addActionListener(this);
-		next.setActionCommand(NEXT);
-		next.setPreferredSize(new Dimension(20, 20));
-		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
-		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
-		last.addActionListener(this);
-		last.setActionCommand(LAST);
-		last.setPreferredSize(new Dimension(20, 20));
-		navigationPanel.add(first);
-		navigationPanel.add(previous);
-		navigationPanel.add(navigationField);
-		navigationPanel.add(next);
-		navigationPanel.add(last);
-
-		navigationPanel.setBackground(BACKGROUND_COLOR);
-		descrPanel.add(navigationPanel);
+//		JPanel navigationPanel = new JPanel();
+//		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
+//		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+//		first.addActionListener(this);
+//		first.setActionCommand(FIRST);
+//		first.setPreferredSize(new Dimension(20, 20));
+//		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
+//		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+//		previous.addActionListener(this);
+//		previous.setActionCommand(PREVIOUS);
+//		previous.setPreferredSize(new Dimension(20, 20));
+//		navigationField = new JTextField("", 8);
+//		navigationField.setHorizontalAlignment(JTextField.CENTER);
+//		navigationField.setFont(new Font("Arial", 0, 14));
+//		//navigationField.setEditable(false);//zx
+//		navigationField.setBackground(BACKGROUND_COLOR);//zx
+//		navigationField.addFocusListener(new FocusListener() {
+//			public void focusGained(FocusEvent focusevent) {}
+//
+//			public void focusLost(FocusEvent fe) {
+//				try {
+//					int trav = Integer.valueOf(((JTextField)fe.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
+//					if (trav>=0&&trav<markerList.length) {
+//						markerIndex = trav;
+////						scatPanel.setPointsGenerated(false);//zx
+////						scatPanel.setUpdateQcPanel(true);//zx???
+////						updateGUI();
+//					}
+//				} catch (NumberFormatException nfe) {}
+//				displayIndex((JTextField)fe.getSource());
+//				twoDPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(true);//zx???
+////				currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
+//				setCurrentClusterFilter();
+////				scatPanel.generateRectangles();
+////				if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////					scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////				}
+//				updateGUI();
+////				displayClusterFilterIndex();
+//			}
+//		});
+//
+//		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
+//		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+//		next.addActionListener(this);
+//		next.setActionCommand(NEXT);
+//		next.setPreferredSize(new Dimension(20, 20));
+//		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
+//		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+//		last.addActionListener(this);
+//		last.setActionCommand(LAST);
+//		last.setPreferredSize(new Dimension(20, 20));
+//		navigationPanel.add(first);
+//		navigationPanel.add(previous);
+//		navigationPanel.add(navigationField);
+//		navigationPanel.add(next);
+//		navigationPanel.add(last);
+//
+//		navigationPanel.setBackground(BACKGROUND_COLOR);
+//		descrPanel.add(navigationPanel);
 		descrPanel.setBackground(BACKGROUND_COLOR);
 		return descrPanel;
     }
 
-	private JComponent controlPanel() {
-		JPanel controlPanel = new JPanel();
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
-		//typePanel.setLayout(new GridLayout(20, 1));
-//		typePanel.setLayout(new GridBagLayout());
-		controlPanel.setBackground(BACKGROUND_COLOR);
-//		typePanel.setBorder();
-//		typePanel.setSize(50, 100);
-		
-        GridBagConstraints gbc = new GridBagConstraints();   
-        gbc.insets = new Insets(1,3,0,30);   
-        gbc.weightx = 1.0;   
-        gbc.fill = GridBagConstraints.HORIZONTAL;   
-        gbc.gridwidth = GridBagConstraints.REMAINDER;   
-
-		JPanel tabPanel;
-		tabbedPane = new JTabbedPane();
-		tabbedPane.setBackground(BACKGROUND_COLOR);
-		tabPanel = new JPanel();
-//		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
-		tabPanel.setLayout(new GridBagLayout());
-		tabPanel.setSize(50, 100);
-		tabPanel.setBackground(BACKGROUND_COLOR);
-
-		tabPanel.add(sizeSliderPanel(), gbc);
-		tabPanel.add(gcSliderPanel(), gbc);
-
-		ItemListener symmetryListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-//				scatPanel.setPointsGenerated(true);//zx ??? Why not true?
-//				scatPanel.setUpdateQcPanel(false);//zx ??? Why cannot set to false?
-				updateGUI();
-			}
-		};
-		
-		symmetryBox = new JCheckBox("Symmetric axes");
-		symmetryBox.setFont(new Font("Arial", 0, 14));
-		symmetryBox.addItemListener(symmetryListener);
-		symmetryBox.setBackground(BACKGROUND_COLOR);
-
-		tabPanel.add(symmetryBox, gbc);
-//		tabPanel.add(symmetryBox);
-		
-		JButton button = new JButton(CAPTURE);
-		button.addActionListener(this);
-		button.setActionCommand(CAPTURE);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
-
-		button = new JButton(DUMP);
-		button.addActionListener(this);
-		button.setActionCommand(DUMP);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
-		
-		button = new JButton(MASK_MISSING);
-		button.addActionListener(this);
-		button.setActionCommand(MASK_MISSING);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
-
-//		typePanel.addTab("Control", null, tabPanel, "Manipulate the chart");
-//		typePanel.setMnemonicAt(0, KeyEvent.VK_1);
+//	private JComponent controlPanel() {
+//		JPanel controlPanel = new JPanel();
+//		//typePanel.setLayout(new BoxLayout(typePanel, BoxLayout.PAGE_AXIS));
+//		//typePanel.setLayout(new GridLayout(20, 1));
+////		typePanel.setLayout(new GridBagLayout());
+//		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+//		controlPanel.setBackground(BACKGROUND_COLOR);
+////		typePanel.setBorder();
+////		typePanel.setSize(50, 100);
+//		
+//        GridBagConstraints gbc = new GridBagConstraints();   
+//        gbc.insets = new Insets(1,3,0,30);   
+//        gbc.weightx = 1.0;   
+//        gbc.fill = GridBagConstraints.HORIZONTAL;   
+//        gbc.gridwidth = GridBagConstraints.REMAINDER;   
+//
+//		JPanel tabPanel;
+//		tabbedPane = new JTabbedPane();
+//		tabbedPane.setBackground(BACKGROUND_COLOR);
+//		tabPanel = new JPanel();
+////		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
+//		tabPanel.setLayout(new GridBagLayout());
+//		tabPanel.setBackground(BACKGROUND_COLOR);
+//
+//		tabPanel.add(sizeSliderPanel(), gbc);
+//		tabPanel.add(gcSliderPanel(), gbc);
+//
+//		ItemListener symmetryListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+////				scatPanel.setPointsGenerated(true);//zx ??? Why not true?
+////				scatPanel.setUpdateQcPanel(false);//zx ??? Why cannot set to false?
+//				updateGUI();
+//			}
+//		};
+//		
+//		symmetryBox = new JCheckBox("Symmetric axes");
+//		symmetryBox.setFont(new Font("Arial", 0, 14));
+//		symmetryBox.addItemListener(symmetryListener);
+//		symmetryBox.setBackground(BACKGROUND_COLOR);
+//
+//		tabPanel.add(symmetryBox, gbc);
+////		tabPanel.add(symmetryBox);
+//		
+//		JButton button = new JButton(CAPTURE);
+//		button.addActionListener(this);
+//		button.setActionCommand(CAPTURE);
+//		tabPanel.add(button, gbc);
+////		tabPanel.add(button);
+//
+//		button = new JButton(DUMP);
+//		button.addActionListener(this);
+//		button.setActionCommand(DUMP);
+//		tabPanel.add(button, gbc);
+////		tabPanel.add(button);
+//		
+//		button = new JButton(MASK_MISSING);
+//		button.addActionListener(this);
+//		button.setActionCommand(MASK_MISSING);
+//		tabPanel.add(button, gbc);
+////		tabPanel.add(button);
+//
+////		typePanel.addTab("Control", null, tabPanel, "Manipulate the chart");
+////		typePanel.setMnemonicAt(0, KeyEvent.VK_1);
+////
+////		tabPanel = new JPanel();
+//
+//		tabPanel.add(clusterFilterPanel(), gbc);
+////		tabPanel.add(clusterFilterPanel());
+//
+//		tabbedPane.addTab("Control", null, tabPanel, "Manipulate the chart");
+//		tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 //
 //		tabPanel = new JPanel();
+//		
+//		ItemListener centListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
+//				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
+//				centLabels[index].setVisible(displayCents[index]);
+//				twoDPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(false);//zx
+//				updateGUI();
+//			}
+//		};
+//		JLabel label = new JLabel("  ");
+//		label.setFont(new Font("Arial", 0, 20));
+//		tabPanel.add(label, gbc);
+////		tabPanel.add(label);
+//		label = new JLabel("Centroids:");
+//		label.setFont(new Font("Arial", 0, 20));
+//		label.setHorizontalAlignment(JLabel.CENTER);
+//		tabPanel.add(label, gbc);
+////		tabPanel.add(label);
+//		centBoxes = new JCheckBox[centList.length];
+//		displayCents = new boolean[centList.length];
+//		centLabels = new JLabel[centList.length];
+//		//System.out.println(centList.length+"\n");//zx
+//		for (int i = 0; i<centList.length; i++) {
+//			centBoxes[i] = new JCheckBox(centList[i]);
+//			centBoxes[i].setFont(new Font("Arial", 0, 14));
+//			centBoxes[i].setSelected(displayCents[i]);
+//			centBoxes[i].addItemListener(centListener);
+//			centBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5+i], 5));
+//			centBoxes[i].setBorderPainted(true);
+//			centBoxes[i].setBackground(BACKGROUND_COLOR);
+//			tabPanel.add(centBoxes[i], gbc);
+////			tabPanel.add(centBoxes[i]);
+//			
+//			centLabels[i] = new JLabel("LRR correlation not performed");
+//			centLabels[i].setVisible(displayCents[i]);
+//			tabPanel.add(centLabels[i], gbc);
+////			tabPanel.add(centLabels[i]);
+//		}
+//		
+//        //JLabel padding = new JLabel();//np
+//        //gbc.weighty = 1.0;
+//        //typePanel.add(padding, gbc);
+//		//private JLabel qcPanelLabel;//zx
+//		//private JLabel qcCallRateLabel;//zxu
+//		//private JLabel qcHwePvalueLabel;//zxu
+//
+//		tabbedPane.addTab("Centroid", null, tabPanel, "Displays the centroid");
+//		tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
+//
+////		tabPanel = new JPanel();
+//
+//		qcPanel = new JPanel();//zx
+//		qcPanel.setLayout(new GridLayout(8, 1));//zx
+//		qcPanel.setBackground(BACKGROUND_COLOR);//zx
+//		/*
+//        qcPanelLabel = new JLabel("                      ", JLabel.CENTER);//zx
+//        qcPanel.add(qcPanelLabel);//zx
+//        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
+//        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
+//        qcPanel.add(qcPanelLabel);//zx
+//		
+//        qcCallRateLabel = new JLabel("Call Rate: "+ScatterPanel.getCallRate()+"%", JLabel.LEFT);//zx
+//        qcCallRateLabel.setFont(new Font("Arial", 0, 14));//zx
+//        qcPanel.add(qcCallRateLabel);//zx
+//
+//        qcHwePvalueLabel = new JLabel("HWE p-value: ", JLabel.LEFT);//zx
+//        qcHwePvalueLabel.setFont(new Font("Arial", 0, 14));//zx
+//		qcPanel.add(qcHwePvalueLabel);//zx
+//		*/
+//
+////		tabbedPane.addTab("QC", null, tabPanel, "Displays the QC result");
+////		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
+//
+//		controlPanel.add(tabbedPane);
+//
+//		controlPanel.add(plotTypePanel());
+//		controlPanel.add(qcPanel);//zx
+//        return controlPanel;
+//    }
 
-		tabPanel.add(clusterFilterPanel(), gbc);
-//		tabPanel.add(clusterFilterPanel());
-
-		tabbedPane.addTab("Control", null, tabPanel, "Manipulate the chart");
-		tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
-
-		tabPanel = new JPanel();
-		
-		ItemListener centListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
-				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
-				centLabels[index].setVisible(displayCents[index]);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(false);//zx
-				updateGUI();
-			}
-		};
-		JLabel label = new JLabel("  ");
-		label.setFont(new Font("Arial", 0, 20));
-		tabPanel.add(label, gbc);
-//		tabPanel.add(label);
-		label = new JLabel("Centroids:");
-		label.setFont(new Font("Arial", 0, 20));
-		label.setHorizontalAlignment(JLabel.CENTER);
-		tabPanel.add(label, gbc);
-//		tabPanel.add(label);
-		centBoxes = new JCheckBox[centList.length];
-		displayCents = new boolean[centList.length];
-		centLabels = new JLabel[centList.length];
-		//System.out.println(centList.length+"\n");//zx
-		for (int i = 0; i<centList.length; i++) {
-			centBoxes[i] = new JCheckBox(centList[i]);
-			centBoxes[i].setFont(new Font("Arial", 0, 14));
-			centBoxes[i].setSelected(displayCents[i]);
-			centBoxes[i].addItemListener(centListener);
-			centBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5+i], 5));
-			centBoxes[i].setBorderPainted(true);
-			centBoxes[i].setBackground(BACKGROUND_COLOR);
-			tabPanel.add(centBoxes[i], gbc);
-//			tabPanel.add(centBoxes[i]);
-			
-			centLabels[i] = new JLabel("LRR correlation not performed");
-			centLabels[i].setVisible(displayCents[i]);
-			tabPanel.add(centLabels[i], gbc);
-//			tabPanel.add(centLabels[i]);
-		}
-		
-        //JLabel padding = new JLabel();//np
-        //gbc.weighty = 1.0;
-        //typePanel.add(padding, gbc);
-		//private JLabel qcPanelLabel;//zx
-		//private JLabel qcCallRateLabel;//zxu
-		//private JLabel qcHwePvalueLabel;//zxu
-
-		tabbedPane.addTab("Centroid", null, tabPanel, "Displays the centroid");
-		tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
-
-//		tabPanel = new JPanel();
-
-		qcPanel = new JPanel();//zx
-		qcPanel.setLayout(new GridLayout(8, 1));//zx
-		qcPanel.setBackground(BACKGROUND_COLOR);//zx
-		/*
-        qcPanelLabel = new JLabel("                      ", JLabel.CENTER);//zx
-        qcPanel.add(qcPanelLabel);//zx
-        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
-        qcPanel.add(qcPanelLabel);//zx
-		
-        qcCallRateLabel = new JLabel("Call Rate: "+ScatterPanel.getCallRate()+"%", JLabel.LEFT);//zx
-        qcCallRateLabel.setFont(new Font("Arial", 0, 14));//zx
-        qcPanel.add(qcCallRateLabel);//zx
-
-        qcHwePvalueLabel = new JLabel("HWE p-value: ", JLabel.LEFT);//zx
-        qcHwePvalueLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcHwePvalueLabel);//zx
-		*/
-
-//		tabbedPane.addTab("QC", null, tabPanel, "Displays the QC result");
-//		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
-
-		controlPanel.add(tabbedPane);
-
-		controlPanel.add(plotTypePanel());
-		controlPanel.add(qcPanel);//zx
-        return controlPanel;
-    }
-
-	private JComponent plotTypePanel() {
-		JPanel plotTypePanel = new JPanel();
-//		plotTypePanel.setLayout(new BoxLayout(plotTypePanel, BoxLayout.Y_AXIS));
-		plotTypePanel.setLayout(new GridLayout(4, 1));
-		plotTypePanel.setBackground(BACKGROUND_COLOR);
-
-		ItemListener typeListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButton jrb = (JRadioButton)ie.getItem();
-				if (jrb.isSelected()) {
-					for (int i = 0; i<MarkerData.TYPES.length; i++) {
-						if (jrb.getText().equals(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1])) {
-							plot_type = i;
-							scatPanel.setPointsGenerated(false);//zx
-							scatPanel.setUpdateQcPanel(true);//zx???
-//							scatPanel.generateRectangles();//zx???
-//							if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//								scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//							}
-							updateGUI();
-						}
-					}
-				}
-			}
-		};
-		// --- Beginning of the original block ---
-		ButtonGroup typeRadio = new ButtonGroup();
-		typeRadioButtons = new JRadioButton[MarkerData.TYPES.length];
-		for (int i = 0; i<MarkerData.TYPES.length; i++) {
-			typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);
-			typeRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			typeRadio.add(typeRadioButtons[i]);
-			typeRadioButtons[i].addItemListener(typeListener);
-			typeRadioButtons[i].setBackground(BACKGROUND_COLOR);
-//			tabPanel.add(typeRadioButtons[i], gbc);
-			plotTypePanel.add(typeRadioButtons[i]);
-		}
-		typeRadioButtons[1].setSelected(true);
-
-		return plotTypePanel;
-		// --- End of the original block ---
-		
-		/*
-		// --- Beginning of the new block ---
-		typePanelRadioButton = new JPanel();//
-		typePanelRadioButton.setLayout(new GridLayout(MarkerData.TYPES.length,2));//
-		ButtonGroup typeRadio = new ButtonGroup();
-		JRadioButton[] typeRadioButtons = new JRadioButton[MarkerData.TYPES.length];
-		JTextField[] typeRadioTexts = new JTextField[MarkerData.TYPES.length];//
-		for (int i = 0; i<MarkerData.TYPES.length; i++) {
-			//typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);
-			typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);//
-			//typeRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			typeRadio.add(typeRadioButtons[i]);
-			typeRadioButtons[i].addItemListener(typeListener);
-			typeRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			//typePanel.add(typeRadioButtons[i], gbc);
-			typePanelRadioButton.add(typeRadioButtons[i]);//
-			typeRadioTexts[i]=new JTextField(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1]);//
-			typeRadioTexts[i].setBackground(BACKGROUND_COLOR);//
-			typeRadioTexts[i].setFont(new Font("Arial",0,14));//
-			typeRadioTexts[i].setBorder(null);//
-			typePanelRadioButton.add(typeRadioTexts[i]);//
-		}
-		typePanel.add(typePanelRadioButton, gbc);//
-		// --- End of the new block ---
-		 */
-	}
+//	private JComponent plotTypePanel() {
+//		JPanel plotTypePanel = new JPanel();
+////		plotTypePanel.setLayout(new BoxLayout(plotTypePanel, BoxLayout.Y_AXIS));
+//		plotTypePanel.setLayout(new GridLayout(4, 1));
+//		plotTypePanel.setBackground(BACKGROUND_COLOR);
+//
+//		ItemListener typeListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				JRadioButton jrb = (JRadioButton)ie.getItem();
+//				if (jrb.isSelected()) {
+//					for (int i = 0; i<MarkerData.TYPES.length; i++) {
+//						if (jrb.getText().equals(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1])) {
+//							plot_type = i;
+//							twoDPanel.setPointsGenerated(false);//zx
+//							twoDPanel.setUpdateQcPanel(true);//zx???
+////							scatPanel.generateRectangles();//zx???
+////							if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////								scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////							}
+//							updateGUI();
+//						}
+//					}
+//				}
+//			}
+//		};
+//		// --- Beginning of the original block ---
+//		ButtonGroup typeRadio = new ButtonGroup();
+//		typeRadioButtons = new JRadioButton[MarkerData.TYPES.length];
+//		for (int i = 0; i<MarkerData.TYPES.length; i++) {
+//			typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);
+//			typeRadioButtons[i].setFont(new Font("Arial", 0, 14));
+//			typeRadio.add(typeRadioButtons[i]);
+//			typeRadioButtons[i].addItemListener(typeListener);
+//			typeRadioButtons[i].setBackground(BACKGROUND_COLOR);
+////			tabPanel.add(typeRadioButtons[i], gbc);
+//			plotTypePanel.add(typeRadioButtons[i]);
+//		}
+//		typeRadioButtons[1].setSelected(true);
+//
+//		return plotTypePanel;
+//		// --- End of the original block ---
+//		
+//		/*
+//		// --- Beginning of the new block ---
+//		typePanelRadioButton = new JPanel();//
+//		typePanelRadioButton.setLayout(new GridLayout(MarkerData.TYPES.length,2));//
+//		ButtonGroup typeRadio = new ButtonGroup();
+//		JRadioButton[] typeRadioButtons = new JRadioButton[MarkerData.TYPES.length];
+//		JTextField[] typeRadioTexts = new JTextField[MarkerData.TYPES.length];//
+//		for (int i = 0; i<MarkerData.TYPES.length; i++) {
+//			//typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);
+//			typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);//
+//			//typeRadioButtons[i].setFont(new Font("Arial", 0, 14));
+//			typeRadio.add(typeRadioButtons[i]);
+//			typeRadioButtons[i].addItemListener(typeListener);
+//			typeRadioButtons[i].setBackground(BACKGROUND_COLOR);
+//			//typePanel.add(typeRadioButtons[i], gbc);
+//			typePanelRadioButton.add(typeRadioButtons[i]);//
+//			typeRadioTexts[i]=new JTextField(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1]);//
+//			typeRadioTexts[i].setBackground(BACKGROUND_COLOR);//
+//			typeRadioTexts[i].setFont(new Font("Arial",0,14));//
+//			typeRadioTexts[i].setBorder(null);//
+//			typePanelRadioButton.add(typeRadioTexts[i]);//
+//		}
+//		typePanel.add(typePanelRadioButton, gbc);//
+//		// --- End of the new block ---
+//		 */
+//	}
 
 	private JComponent sizeSliderPanel() {
 		JPanel sizeSliderPanel = new JPanel();
@@ -485,9 +498,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				JSlider slider = (JSlider)ce.getSource();
 				sizeLabel.setText("Size = "+slider.getValue());
 				size = (byte)slider.getValue();
-				scatPanel.setPointsGenerated(true);//zx
-				scatPanel.setUpdateQcPanel(false);//zx???
-				scatPanel.paintAgain();
+				twoDPanel.setPointsGenerated(true);//zx
+				twoDPanel.setUpdateQcPanel(false);//zx???
+				twoDPanel.paintAgain();
 			}
 		});
 //		tabPanel.add(slider, gbc);
@@ -516,9 +529,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				JSlider slider = (JSlider)ce.getSource();
 				gcThreshold = (float)slider.getValue()/100f;
 				gcLabel.setText("GC > "+ext.formDeci(gcThreshold, 2, true));
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx
-				scatPanel.paintAgain();
+				twoDPanel.setPointsGenerated(false);//zx
+				twoDPanel.setUpdateQcPanel(true);//zx
+				twoDPanel.paintAgain();
 				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");//zx
 			}
 		});
@@ -545,8 +558,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 						if (jrb.getText().equals(sampleData.getClassName(i))) {
 							currentClass = i;
 //							scatPanel.setPointsGenerated(true);//zx Why should be false?
-							scatPanel.setPointsGenerated(false);//zx
-							scatPanel.setUpdateQcPanel(true);//zx
+							twoDPanel.setPointsGenerated(false);//zx
+							twoDPanel.setUpdateQcPanel(true);//zx
 							updateGUI();
 						}
 					}
@@ -574,7 +587,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		//legendPanel.add(legend1);
 		
 		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-			legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
+			legendPanel.add(new JLabel(new ColorIcon(12,12,twoDPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
 			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
 		}
 //		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
@@ -588,118 +601,117 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return bottomPanel;
 	}
 
-	private JComponent clusterFilterPanel() {
-		JPanel clusterFilterPanel = new JPanel();
-		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
-//		clusterFilterPanel.setLayout(new BoxLayout(clusterFilterPanel, BoxLayout.PAGE_AXIS));
-		clusterFilterPanel.setSize(50, 10);
-		
-//		JButton first1 = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
-//		first1.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
-//		first1.addActionListener(this);
-//		first1.setActionCommand(FIRST);
-//		first1.setPreferredSize(new Dimension(20, 20));
-		JButton backward = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		backward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
-		backward.addActionListener(this);
-		backward.setActionCommand(CLUSTER_FILTER_BACKWARD);
-		backward.setPreferredSize(new Dimension(20, 20));
-		clusterFilterNavigation = new JTextField("", 5);
-		clusterFilterNavigation.setHorizontalAlignment(JTextField.CENTER);
-		clusterFilterNavigation.setFont(new Font("Arial", 0, 14));
-		//navigationField.setEditable(false);//zx
-		clusterFilterNavigation.setBackground(BACKGROUND_COLOR);//zx
-		clusterFilterNavigation.addFocusListener(new FocusListener() {
-			public void focusGained(FocusEvent focusevent) {}
-
-			public void focusLost(FocusEvent fe) {
-				try {
-					int trav = Integer.valueOf(((JTextField)fe.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
-					if (trav>=0&&trav<clusterFilterCollection.getSize(getMarkerName())) {
-//						currentClusterFilter = (byte) trav;
-						setCurrentClusterFilter((byte) trav);
-					}
-				} catch (NumberFormatException nfe) {}
-//				clusterFilterNavigation.setText((currentClusterFilter+1)+" of "+clusterFilterCollection.getSize(getMarkerName()));
-				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(true);//zx
-//				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);
-//				scatPanel.generateRectangles();
-				updateGUI();
-				displayClusterFilterIndex();
-			}
-		});
-
-		JButton forward = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		forward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
-		forward.addActionListener(this);
-		forward.setActionCommand(CLUSTER_FILTER_FORWARD);
-		forward.setPreferredSize(new Dimension(20, 20));
-//		JButton last1 = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
-//		last1.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
-//		last1.addActionListener(this);
-//		last1.setActionCommand(LAST);
-//		last1.setPreferredSize(new Dimension(20, 20));
-		JButton delete = new JButton(Grafik.getImageIcon("images/delete9.png", true));
-		delete.setDisabledIcon(Grafik.getImageIcon("images/delete8.png", true));
-		delete.addActionListener(this);
-		delete.setActionCommand(CLUSTER_FILTER_DELETE);
-		delete.setPreferredSize(new Dimension(20, 20));
-//		clusterFilterPanel.add(first1);
-		clusterFilterPanel.add(backward);
-		clusterFilterPanel.add(clusterFilterNavigation);
-		clusterFilterPanel.add(forward);
-//		clusterFilterPanel.add(last1);
-		clusterFilterPanel.add(delete);
-
-    	newGenotype = new JComboBox(new String[] {"-","A/A","A/B","B/B"});
-		ActionListener newGenotypeListener = new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				byte newGenotypeSelected;
-				if ((String)newGenotype.getSelectedItem()=="-") {
-					newGenotypeSelected=(byte)-1;
-				} else if ((String)newGenotype.getSelectedItem()=="A/A") {
-					newGenotypeSelected=(byte)0;
-				} else if ((String)newGenotype.getSelectedItem()=="A/B") {
-					newGenotypeSelected=(byte)1;
-				} else if ((String)newGenotype.getSelectedItem()=="B/B") {
-					newGenotypeSelected=(byte)2;
-				} else {
-					newGenotypeSelected=(byte)-9;
-				}
-//				byte index = (byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-				if ((clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)!=newGenotypeSelected)) {					//??????
-					saveClusterFilterCollection();
-				}
-				clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
-//				System.out.println("e.getActionCommand: "+e.getActionCommand()+"\te.getWhen: "+e.getWhen()+"\te.getSource: "+e.getSource());
-//				if (e.getActionCommand().equals("comboBoxChanged")) {					//??????
-//				if (e.getWhen()>1000) {					//??????
+//	private JComponent clusterFilterPanel() {
+//		JPanel clusterFilterPanel = new JPanel();
+//		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
+//		clusterFilterPanel.setSize(50, 10);
+//		
+////		JButton first1 = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
+////		first1.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+////		first1.addActionListener(this);
+////		first1.setActionCommand(FIRST);
+////		first1.setPreferredSize(new Dimension(20, 20));
+//		JButton backward = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
+//		backward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+//		backward.addActionListener(this);
+//		backward.setActionCommand(CLUSTER_FILTER_BACKWARD);
+//		backward.setPreferredSize(new Dimension(20, 20));
+//		clusterFilterNavigation = new JTextField("", 5);
+//		clusterFilterNavigation.setHorizontalAlignment(JTextField.CENTER);
+//		clusterFilterNavigation.setFont(new Font("Arial", 0, 14));
+//		//navigationField.setEditable(false);//zx
+//		clusterFilterNavigation.setBackground(BACKGROUND_COLOR);//zx
+//		clusterFilterNavigation.addFocusListener(new FocusListener() {
+//			public void focusGained(FocusEvent focusevent) {}
+//
+//			public void focusLost(FocusEvent fe) {
+//				try {
+//					int trav = Integer.valueOf(((JTextField)fe.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
+//					if (trav>=0&&trav<clusterFilterCollection.getSize(getMarkerName())) {
+////						currentClusterFilter = (byte) trav;
+//						setCurrentClusterFilter((byte) trav);
+//					}
+//				} catch (NumberFormatException nfe) {}
+////				clusterFilterNavigation.setText((currentClusterFilter+1)+" of "+clusterFilterCollection.getSize(getMarkerName()));
+//				displayClusterFilterIndex();
+//				twoDPanel.setPointsGenerated(true);//zx
+////				scatPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(true);
+////				scatPanel.generateRectangles();
+//				updateGUI();
+//				displayClusterFilterIndex();
+//			}
+//		});
+//
+//		JButton forward = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
+//		forward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+//		forward.addActionListener(this);
+//		forward.setActionCommand(CLUSTER_FILTER_FORWARD);
+//		forward.setPreferredSize(new Dimension(20, 20));
+////		JButton last1 = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
+////		last1.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+////		last1.addActionListener(this);
+////		last1.setActionCommand(LAST);
+////		last1.setPreferredSize(new Dimension(20, 20));
+//		JButton delete = new JButton(Grafik.getImageIcon("images/delete9.png", true));
+//		delete.setDisabledIcon(Grafik.getImageIcon("images/delete8.png", true));
+//		delete.addActionListener(this);
+//		delete.setActionCommand(CLUSTER_FILTER_DELETE);
+//		delete.setPreferredSize(new Dimension(20, 20));
+////		clusterFilterPanel.add(first1);
+//		clusterFilterPanel.add(backward);
+//		clusterFilterPanel.add(clusterFilterNavigation);
+//		clusterFilterPanel.add(forward);
+////		clusterFilterPanel.add(last1);
+//		clusterFilterPanel.add(delete);
+//
+//    	newGenotype = new JComboBox(new String[] {"-","A/A","A/B","B/B"});
+//		ActionListener newGenotypeListener = new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				byte newGenotypeSelected;
+//				if ((String)newGenotype.getSelectedItem()=="-") {
+//					newGenotypeSelected=(byte)-1;
+//				} else if ((String)newGenotype.getSelectedItem()=="A/A") {
+//					newGenotypeSelected=(byte)0;
+//				} else if ((String)newGenotype.getSelectedItem()=="A/B") {
+//					newGenotypeSelected=(byte)1;
+//				} else if ((String)newGenotype.getSelectedItem()=="B/B") {
+//					newGenotypeSelected=(byte)2;
+//				} else {
+//					newGenotypeSelected=(byte)-9;
+//				}
+////				byte index = (byte) (clusterFilterCollection.getSize(getMarkerName())-1);
+//				if ((clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)!=newGenotypeSelected)) {					//??????
 //					saveClusterFilterCollection();
 //				}
-//				scatPanel.setPointsGenerated(true);//zx
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
-				//updateGUI();
-				scatPanel.paintAgain();
-			}
-			public void comboBoxChanged(ActionEvent e) {
-				System.out.println("Why cannot I see this comboBox changed?");
-			}
-		};
-    	newGenotype.addActionListener(newGenotypeListener);
-//		newGenotype.setActionCommand(NEW_GENOTYPE);//???
-    	clusterFilterPanel.add(newGenotype);
-//		typePanel.add(newGenotype, gbc);
-
-		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
-
-		return clusterFilterPanel;
-	}
+//				clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
+////				System.out.println("e.getActionCommand: "+e.getActionCommand()+"\te.getWhen: "+e.getWhen()+"\te.getSource: "+e.getSource());
+////				if (e.getActionCommand().equals("comboBoxChanged")) {					//??????
+////				if (e.getWhen()>1000) {					//??????
+////					saveClusterFilterCollection();
+////				}
+////				scatPanel.setPointsGenerated(true);//zx
+//				twoDPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(true);//zx???
+//				//updateGUI();
+//				twoDPanel.paintAgain();
+//			}
+//			public void comboBoxChanged(ActionEvent e) {
+//				System.out.println("Why cannot I see this comboBox changed?");
+//			}
+//		};
+//    	newGenotype.addActionListener(newGenotypeListener);
+////		newGenotype.setActionCommand(NEW_GENOTYPE);//???
+//    	clusterFilterPanel.add(newGenotype);
+////		typePanel.add(newGenotype, gbc);
+//
+//		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
+//
+//		return clusterFilterPanel;
+//	}
 
 	private void inputMapAndActionMap() {
-		InputMap inputMap = scatPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		InputMap inputMap = twoDPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
@@ -710,178 +722,204 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), PREVIOUS);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), NEXT);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.CTRL_MASK), LAST);
-		ActionMap actionMap = scatPanel.getActionMap();
+		ActionMap actionMap = twoDPanel.getActionMap();
 		actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
 		actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
 		actionMap.put(ALT_LEFT, new CycleRadio(classRadioButtons, -1));
 		actionMap.put(ALT_RIGHT, new CycleRadio(classRadioButtons, 1));
-		actionMap.put(FIRST, new AbstractAction() {
-			public static final long serialVersionUID = 4L;
-
-			public void actionPerformed(ActionEvent e) {
-				markerIndex = 0;
-				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
-				updateGUI();
-			}
-		});
-		actionMap.put(PREVIOUS, new AbstractAction() {
-			public static final long serialVersionUID = 5L;
-
-			public void actionPerformed(ActionEvent e) {
-				markerIndex = Math.max(markerIndex-1, 0);
-				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
-				updateGUI();
-			}
-		});
-		actionMap.put(NEXT, new AbstractAction() {
-			public static final long serialVersionUID = 6L;
-
-			public void actionPerformed(ActionEvent e) {
-				markerIndex = Math.min(markerIndex+1, markerList.length-1);
-				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
-				updateGUI();
-			}
-		});
-		actionMap.put(LAST, new AbstractAction() {
-			public static final long serialVersionUID = 7L;
-
-			public void actionPerformed(ActionEvent e) {
-				markerIndex = markerList.length-1;
-				displayIndex(navigationField);
-				updateGUI();
-			}
-		});
-		scatPanel.setActionMap(actionMap);
+//		actionMap.put(FIRST, new AbstractAction() {
+//			public static final long serialVersionUID = 4L;
+//
+//			public void actionPerformed(ActionEvent e) {
+//				markerIndex = 0;
+//				displayIndex(navigationField);
+//				twoDPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(true);//zx???
+//				updateGUI();
+//			}
+//		});
+//		actionMap.put(PREVIOUS, new AbstractAction() {
+//			public static final long serialVersionUID = 5L;
+//
+//			public void actionPerformed(ActionEvent e) {
+//				markerIndex = Math.max(markerIndex-1, 0);
+//				displayIndex(navigationField);
+//				twoDPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(true);//zx???
+//				updateGUI();
+//			}
+//		});
+//		actionMap.put(NEXT, new AbstractAction() {
+//			public static final long serialVersionUID = 6L;
+//
+//			public void actionPerformed(ActionEvent e) {
+//				markerIndex = Math.min(markerIndex+1, markerList.length-1);
+//				displayIndex(navigationField);
+//				twoDPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(true);//zx???
+//				updateGUI();
+//			}
+//		});
+//		actionMap.put(LAST, new AbstractAction() {
+//			public static final long serialVersionUID = 7L;
+//
+//			public void actionPerformed(ActionEvent e) {
+//				markerIndex = markerList.length-1;
+//				displayIndex(navigationField);
+//				updateGUI();
+//			}
+//		});
+		twoDPanel.setActionMap(actionMap);
 	}
 
-	public void actionPerformed(ActionEvent ae) {
-		String command = ae.getActionCommand();
-		String filename;
-		int count;
+//	public void actionPerformed(ActionEvent ae) {
+//		String command = ae.getActionCommand();
+//		String filename;
+//		int count;
+//
+//		if (command.equals(FIRST)) {
+//			markerIndex = 0;
+//			displayIndex(navigationField);
+//			twoDPanel.setPointsGenerated(false);//zx
+//			twoDPanel.setUpdateQcPanel(true);
+////			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
+//			setCurrentClusterFilter();
+////			scatPanel.generateRectangles();
+////			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////			}
+//			updateGUI();
+//			displayClusterFilterIndex();
+//		} else if (command.equals(PREVIOUS)) {
+//			markerIndex = Math.max(markerIndex-1, 0);
+//			displayIndex(navigationField);
+//			twoDPanel.setPointsGenerated(false);//zx
+//			twoDPanel.setUpdateQcPanel(true);
+////			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
+//			setCurrentClusterFilter();
+////			scatPanel.generateRectangles();
+////			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////			}
+//			updateGUI();
+//			displayClusterFilterIndex();
+//		} else if (command.equals(NEXT)) {
+//			markerIndex = Math.min(markerIndex+1, markerList.length-1);
+//			displayIndex(navigationField);
+//			twoDPanel.setPointsGenerated(false);//zx
+//			twoDPanel.setUpdateQcPanel(true);
+////			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
+//			setCurrentClusterFilter();
+////			scatPanel.generateRectangles();
+////			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////			}
+//			updateGUI();
+//			displayClusterFilterIndex();
+//		} else if (command.equals(LAST)) {
+//			markerIndex = markerList.length-1;
+//			displayIndex(navigationField);
+//			twoDPanel.setPointsGenerated(false);//zx
+//			twoDPanel.setUpdateQcPanel(true);
+////			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
+//			setCurrentClusterFilter();
+////			scatPanel.generateRectangles();
+////			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////			}
+//			updateGUI();
+//			displayClusterFilterIndex();
+//		} else if (command.equals(CLUSTER_FILTER_BACKWARD)) {
+//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+//				twoDPanel.rectangles[currentClusterFilter].setColor((byte)7);
+//				//scatPanel.setRectangles();
+//				setCurrentClusterFilter((byte) Math.max(currentClusterFilter-1, 0));
+////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+//				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
+//				displayClusterFilterIndex();
+//				twoDPanel.setPointsGenerated(false);
+//				//scatPanel.setUpdateQcPanel(true);
+//				updateGUI();
+//			}
+//		} else if (command.equals(CLUSTER_FILTER_FORWARD)) {
+//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+//				twoDPanel.rectangles[currentClusterFilter].setColor((byte)7);
+//				//scatPanel.setRectangles();
+//				setCurrentClusterFilter((byte) Math.min(currentClusterFilter+1, (clusterFilterCollection.getSize(getMarkerName())==0?0:(clusterFilterCollection.getSize(getMarkerName())-1))));
+////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+//				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
+//				displayClusterFilterIndex();
+//				twoDPanel.setPointsGenerated(false);
+//				//scatPanel.setUpdateQcPanel(true);
+//				updateGUI();
+//			}
+//		} else if (command.equals(CLUSTER_FILTER_DELETE)) {
+//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+//				//scatPanel.clearRectangles(currentClusterFilter);
+//				clusterFilterCollection.deleteClusterFilter(getMarkerName(), currentClusterFilter);
+//				setCurrentClusterFilter((byte) Math.min(currentClusterFilter, clusterFilterCollection.getSize(getMarkerName())-1));
+//				saveClusterFilterCollection();
+//				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
+//				displayClusterFilterIndex();
+//				twoDPanel.setPointsGenerated(false);//zx
+//				twoDPanel.setUpdateQcPanel(true);
+//				//scatPanel.repaint();
+//				//scatPanel.paintAgain();
+//				twoDPanel.generateRectangles();
+////				if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////					scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////				}
+//				updateGUI();
+//			}
+//		} else if (command.equals(CAPTURE)) {
+//			count = 1;
+//			do {
+//				filename = markerList[markerIndex]+"_"+MarkerData.TYPES[plot_type][0]+"-"+MarkerData.TYPES[plot_type][1]+(count==1?"":" v"+count);
+//				count++;
+//			} while (new File(proj.getProjectDir()+filename+".png").exists());
+//			twoDPanel.screenCapture(proj.getProjectDir()+filename+".png");
+//		} else if (command.equals(DUMP)) {
+//			count = 1;
+//			do {
+//				filename = markerList[markerIndex]+"_dump"+(count==1?"":" v"+count);
+//				count++;
+//			} while (new File(proj.getProjectDir()+filename+".xln").exists());
+//			markerData[markerIndex].writeToFile(samples, proj.getProjectDir()+filename+".xln");
+//		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
+//			maskMissing = !maskMissing;
+//			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
+//			twoDPanel.setPointsGenerated(false);//zx
+//			twoDPanel.setUpdateQcPanel(true);//zx
+//			updateGUI();
+//		} else {
+//			System.err.println("Error - unknown command '"+command+"'");
+//		}
+//	}
 
-		if (command.equals(FIRST)) {
-			markerIndex = 0;
-			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-		} else if (command.equals(PREVIOUS)) {
-			markerIndex = Math.max(markerIndex-1, 0);
-			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-		} else if (command.equals(NEXT)) {
-			markerIndex = Math.min(markerIndex+1, markerList.length-1);
-			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-		} else if (command.equals(LAST)) {
-			markerIndex = markerList.length-1;
-			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-		} else if (command.equals(CLUSTER_FILTER_BACKWARD)) {
-			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-				scatPanel.rectangles[currentClusterFilter].setColor((byte)7);
-				//scatPanel.setRectangles();
-				setCurrentClusterFilter((byte) Math.max(currentClusterFilter-1, 0));
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
-				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);
-				//scatPanel.setUpdateQcPanel(true);
-				updateGUI();
-			}
-		} else if (command.equals(CLUSTER_FILTER_FORWARD)) {
-			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-				scatPanel.rectangles[currentClusterFilter].setColor((byte)7);
-				//scatPanel.setRectangles();
-				setCurrentClusterFilter((byte) Math.min(currentClusterFilter+1, (clusterFilterCollection.getSize(getMarkerName())==0?0:(clusterFilterCollection.getSize(getMarkerName())-1))));
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
-				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);
-				//scatPanel.setUpdateQcPanel(true);
-				updateGUI();
-			}
-		} else if (command.equals(CLUSTER_FILTER_DELETE)) {
-			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-				//scatPanel.clearRectangles(currentClusterFilter);
-				clusterFilterCollection.deleteClusterFilter(getMarkerName(), currentClusterFilter);
-				setCurrentClusterFilter((byte) Math.min(currentClusterFilter, clusterFilterCollection.getSize(getMarkerName())-1));
-				saveClusterFilterCollection();
-				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
-				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);
-				//scatPanel.repaint();
-				//scatPanel.paintAgain();
-				scatPanel.generateRectangles();
-//				if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//					scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//				}
-				updateGUI();
-			}
-		} else if (command.equals(CAPTURE)) {
-			count = 1;
-			do {
-				filename = markerList[markerIndex]+"_"+MarkerData.TYPES[plot_type][0]+"-"+MarkerData.TYPES[plot_type][1]+(count==1?"":" v"+count);
-				count++;
-			} while (new File(proj.getProjectDir()+filename+".png").exists());
-			scatPanel.screenCapture(proj.getProjectDir()+filename+".png");
-		} else if (command.equals(DUMP)) {
-			count = 1;
-			do {
-				filename = markerList[markerIndex]+"_dump"+(count==1?"":" v"+count);
-				count++;
-			} while (new File(proj.getProjectDir()+filename+".xln").exists());
-			markerData[markerIndex].writeToFile(samples, proj.getProjectDir()+filename+".xln");
-		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
-			maskMissing = !maskMissing;
-			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);//zx
-			updateGUI();
-		} else {
-			System.err.println("Error - unknown command '"+command+"'");
-		}
+	private JMenuBar menuBar() {
+		JMenuBar menuBar;
+		JMenu menu;
+		
+		menuBar = new JMenuBar();
+		menu = new JMenu("File");
+		menuBar.add(menu);
+		menu.add(new JMenuItem("Open"));
+		menu.add(new JMenuItem("Save"));
+		menu.add(new JMenuItem("Close"));
+		menu.add(new JMenuItem("Exit"));
+		menu = new JMenu("Edit");
+		menuBar.add(menu);
+		menu.add(new JMenuItem("Cut"));
+		menu.add(new JMenuItem("Copy"));
+		menu.add(new JMenuItem("Paste"));
+		menu.add(new JMenuItem("Paste Image"));
+		menu.add(new JMenuItem("Find"));
+		menu = new JMenu("Help");
+		menuBar.add(menu);
+		menu.add(new JMenuItem("Contents"));
+		menu.add(new JMenuItem("Search"));
+		menu.add(new JMenuItem("About"));
+		return menuBar;
 	}
 
 	private void loadClusterFilterFiles() {
@@ -991,15 +1029,15 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		if (currentClusterFilter >= 0) {
 		if (clusterFilterCollection.getSize(getMarkerName())>0) {
 			newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(markerList[markerIndex], currentClusterFilter)+1);
-			if (scatPanel.getRectangles()!=null) {
-				scatPanel.generateRectangles();
-				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+			if (twoDPanel.getRectangles()!=null) {
+				twoDPanel.generateRectangles();
+				twoDPanel.rectangles[currentClusterFilter].setColor((byte)0);
 			}
 		}
 
 		if (clusterFilterCollection.getClusterFilters(getMarkerName()) != null) {
 			currentFilter = clusterFilterCollection.getClusterFilters(getMarkerName()).get(currentClusterFilter);
-			scatPanel.highlightPoints(markerData[markerIndex].getHighlightStatus(currentFilter));
+			twoDPanel.highlightPoints(markerData[markerIndex].getHighlightStatus(currentFilter));
 		}
 	}
 	
@@ -1149,12 +1187,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				classPanel.setEnabled(markerData[markerIndex].getFingerprint()==sampleListFingerprint);
 			}
 		}
+		/*
 		if (plot_type >= 2) {
 			symmetryBox.setEnabled(false);
-			scatPanel.setSymmetricAxes(false);
+			twoDPanel.setSymmetricAxes(false);
 		} else {
 			symmetryBox.setEnabled(true);
-			scatPanel.setSymmetricAxes(symmetryBox.isSelected());
+			twoDPanel.setSymmetricAxes(symmetryBox.isSelected());
 		}
 		if (plot_type == 3) {
 			boolean recomputed = false;
@@ -1170,8 +1209,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
             }
 		}
+		*/
 		
-		scatPanel.paintAgain();
+		twoDPanel.paintAgain();
 		if (markerIndex != previousMarkerIndex) {
 			updateCentLabels();
 		}
@@ -1253,124 +1293,124 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 
-	public void updateQcPanel(int[] genotype, String[] sex, String[] otherClass) {
-		float callRate=0;//zx
-		JLabel qcPanelLabel;//zx
-		//JLabel qcCallRateLabel;//zxu
-		//JLabel qcHwePvalueLabel;//zxu
-		int[] alleleCounts;
-		double hweP;
-		//int[][] sexContingecyTable = new int[2][2];
-		CTable classCount;
-		String[] called;
-		
-		alleleCounts = new int[3];
-		called = new String[genotype.length];
-		for (int i=0; i<genotype.length; i++){//zx
-			if (genotype[i]<=0) {
-				called[i] = "-1";
-				callRate++;//zx
-			} else {
-				called[i] = "1";
-				alleleCounts[genotype[i]-1]++;
-//				alleleCounts[genotype[i]]++;
-			}
-			
-		}
-		hweP = AlleleFreq.HWEsig(alleleCounts);
-		callRate=(genotype.length-callRate)*100/genotype.length;//zx
-		
-		qcPanel.removeAll();
-		qcPanel.repaint();
-		
-        qcPanelLabel = new JLabel("", JLabel.CENTER);//zx
-        qcPanel.add(qcPanelLabel);//zx
-        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
-        qcPanel.add(qcPanelLabel);//zx
-		
-        qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-        qcPanel.add(qcPanelLabel);//zx
-
-        qcPanelLabel = new JLabel("HWE p-value: "+ext.prettyP(hweP), JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-
-		ToolTipManager.sharedInstance().setDismissDelay(100000);
-
-		classCount = new CTable(called, sex);//This is the problem.
-		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
-		classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(0));
-		qcPanelLabel = new JLabel("Callrate by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);//zx
-		//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}));
-		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-
-		classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
-		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
-		classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
-		qcPanelLabel = new JLabel("Allele Freq by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);//zx
-		//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}, {".","Missing"}});
-		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-
-
-		if (currentClass>=(SampleData.BASIC_CLASSES.length+1)) {
-			classCount = new CTable(called, otherClass);//This is the problem.
-			classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
-			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);//zx
-			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
-			//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}));
-			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-			qcPanel.add(qcPanelLabel);//zx
-	
-			classCount = new CTable(CTable.extrapolateCounts(otherClass, genotype));
-			classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
-			//classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
-			qcPanelLabel = new JLabel("Allele Freq by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);//zx
-			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
-			//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
-			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-			qcPanel.add(qcPanelLabel);//zx
-		}
-
-//		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);//zx
-//      qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//	public void updateQcPanel(int[] genotype, String[] sex, String[] otherClass) {
+//		float callRate=0;//zx
+//		JLabel qcPanelLabel;//zx
+//		//JLabel qcCallRateLabel;//zxu
+//		//JLabel qcHwePvalueLabel;//zxu
+//		int[] alleleCounts;
+//		double hweP;
+//		//int[][] sexContingecyTable = new int[2][2];
+//		CTable classCount;
+//		String[] called;
+//		
+//		alleleCounts = new int[3];
+//		called = new String[genotype.length];
+//		for (int i=0; i<genotype.length; i++){//zx
+//			if (genotype[i]<=0) {
+//				called[i] = "-1";
+//				callRate++;//zx
+//			} else {
+//				called[i] = "1";
+//				alleleCounts[genotype[i]-1]++;
+////				alleleCounts[genotype[i]]++;
+//			}
+//			
+//		}
+//		hweP = AlleleFreq.HWEsig(alleleCounts);
+//		callRate=(genotype.length-callRate)*100/genotype.length;//zx
+//		
+//		qcPanel.removeAll();
+//		qcPanel.repaint();
+//		
+//        qcPanelLabel = new JLabel("", JLabel.CENTER);//zx
+//        qcPanel.add(qcPanelLabel);//zx
+//        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
+//        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
+//        qcPanel.add(qcPanelLabel);//zx
+//		
+//        qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);//zx
+//        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//        qcPanel.add(qcPanelLabel);//zx
+//
+//        qcPanelLabel = new JLabel("HWE p-value: "+ext.prettyP(hweP), JLabel.LEFT);//zx
+//        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
 //		qcPanel.add(qcPanelLabel);//zx
+//
+//		ToolTipManager.sharedInstance().setDismissDelay(100000);
+//
+//		classCount = new CTable(called, sex);//This is the problem.
+//		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
+//		classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(0));
+//		qcPanelLabel = new JLabel("Callrate by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);//zx
+//		//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}));
+//		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+//        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//		qcPanel.add(qcPanelLabel);//zx
+//
+//		classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
+//		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
+//		classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
+//		qcPanelLabel = new JLabel("Allele Freq by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);//zx
+//		//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}, {".","Missing"}});
+//		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+//        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//		qcPanel.add(qcPanelLabel);//zx
+//
+//
+//		if (currentClass>=(SampleData.BASIC_CLASSES.length+1)) {
+//			classCount = new CTable(called, otherClass);//This is the problem.
+//			classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
+//			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);//zx
+//			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+//			//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}));
+//			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+//	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//			qcPanel.add(qcPanelLabel);//zx
+//	
+//			classCount = new CTable(CTable.extrapolateCounts(otherClass, genotype));
+//			classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
+//			//classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
+//			qcPanelLabel = new JLabel("Allele Freq by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);//zx
+//			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+//			//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
+//			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+//	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//			qcPanel.add(qcPanelLabel);//zx
+//		}
+//
+////		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);//zx
+////      qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+////		qcPanel.add(qcPanelLabel);//zx
+//
+////		AlleleFreq.calcFrequency(genotypes);
+//		
+//		
+//		/*
+//		qcPanelLabel = new JLabel(""+sexContingecyTable[0][1], JLabel.LEFT);//zx
+//        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//		qcPanel.add(qcPanelLabel);//zx
+//		qcPanelLabel = new JLabel(""+sexContingecyTable[1][0], JLabel.LEFT);//zx
+//        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//		qcPanel.add(qcPanelLabel);//zx
+//		qcPanelLabel = new JLabel(""+sexContingecyTable[1][1], JLabel.LEFT);//zx
+//        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
+//		qcPanel.add(qcPanelLabel);//zx
+//		*/
+//
+//		qcPanel.validate();
+//	}
 
-//		AlleleFreq.calcFrequency(genotypes);
-		
-		
-		/*
-		qcPanelLabel = new JLabel(""+sexContingecyTable[0][1], JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-		qcPanelLabel = new JLabel(""+sexContingecyTable[1][0], JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-		qcPanelLabel = new JLabel(""+sexContingecyTable[1][1], JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-		*/
 
-		qcPanel.validate();
-	}
-
-
-	public void displayIndex(JTextField field) {
-		field.setText((markerIndex+1)+" of "+markerList.length);
-	}
+//	public void displayIndex(JTextField field) {
+//		field.setText((markerIndex+1)+" of "+markerList.length);
+//	}
 	
-	public void displayClusterFilterIndex() {
-		clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))
-										+" of "
-										+clusterFilterCollection.getSize(getMarkerName()));
-	}
+//	public void displayClusterFilterIndex() {
+//		clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))
+//										+" of "
+//										+clusterFilterCollection.getSize(getMarkerName()));
+//	}
 
 	public void saveClusterFilterCollection() {
 		clusterFilterCollectionUpdated(true);
@@ -1390,7 +1430,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
 
 		try {
-			new ScatterPlot(new Project(filename, jar));
+			new TwoDPlot(new Project(filename, jar));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -15,12 +15,13 @@ import java.awt.event.*;
 
 import cnv.filesys.*;
 import cnv.gui.AutoSaveClusterFilterCollection;
+import cnv.gui.CheckBoxTree;
 import cnv.gui.ColorIcon;
 import cnv.gui.CycleRadio;
 import common.*;
 import cnv.var.*;
 
-public class ScatterPlot extends JFrame implements ActionListener, WindowListener {
+public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 	public static final int DEFAULT_GC_THRESHOLD = 25;
@@ -45,7 +46,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JPanel classPanel;
 	private JPanel legendPanel;
 //	private JPanel bottomPanel;
-	private ScatterPanel scatPanel;
+	private TwoDPanel1 scatPanel;
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 //	private JPanel typePanel;
@@ -91,8 +92,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JRadioButton[] typeRadioButtons;
 	private JRadioButton[] classRadioButtons;
 	
-	public ScatterPlot(Project project) {
-		super("ScatterPlot");
+	private JMenuBar menuBar;
+	private JMenu menu;
+	
+	public TwoDPlot1(Project project) {
+		super("2D Plot");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		proj = project;
@@ -116,7 +120,62 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		loadClusterFilterFiles();
 		autoSaveCFC = null;
 		
-		scatPanel = new ScatterPanel(this);
+		scatPanel = new TwoDPanel1(this);
+//		scatPanel.add(new JLabel("I now can add JComponent here. But how can I add one on the left?"));
+		
+//		UIManager.put("PopupMenuUI", "CustomPopupMenuUI");
+		menuBar = new JMenuBar();
+		this.setJMenuBar(menuBar);
+		menu = new JMenu("File");
+		menuBar.add(menu);
+		menu.add(new JMenuItem("Open"));
+		menu.add(new JMenuItem("Save"));
+		menu.add(new JMenuItem("Close"));
+		menu.add(new JMenuItem("Exit"));
+		menu = new JMenu("Edit");
+		menuBar.add(menu);
+		menu.add(new JMenuItem("Cut"));
+		menu.add(new JMenuItem("Copy"));
+		menu.add(new JMenuItem("Paste"));
+		menu.add(new JMenuItem("Paste Image"));
+		menu.add(new JMenuItem("Find"));
+		menu = new JMenu("Help");
+		menuBar.add(menu);
+		menu.add(new JMenuItem("Contents"));
+		menu.add(new JMenuItem("Search"));
+		menu.add(new JMenuItem("About"));
+
+		String[] BUTTONS = {"SWAP_AXES", "INVERT_X", "INVERT_Y", "MASK_MISSING", "REFRESH_SAMPLE_DATA"};
+
+		JPanel treePanel, classPanel, classPanelTop;
+		
+		treePanel = new JPanel();
+		treePanel.setBackground(BACKGROUND_COLOR);
+		treePanel.setLayout(new BorderLayout());
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setBackground(BACKGROUND_COLOR);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+		
+		JButton button;
+		for (int i = 0; i<BUTTONS.length; i++) {
+			button = new JButton(BUTTONS[i]);
+			button.setMinimumSize(new Dimension(200, 20));
+			button.setMaximumSize(new Dimension(200, 20));
+	        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+			button.addActionListener(this);
+			buttonPanel.add(button);
+        }
+		treePanel.add(buttonPanel, BorderLayout.NORTH);
+		
+//		tree = new CheckBoxTree(names, 2);
+//		treePanel.add(new JScrollPane(tree), BorderLayout.CENTER);
+//		getContentPane().add(treePanel, BorderLayout.WEST);
+//		tree.addTreeSelectionListener(this);
+////		tree.addTreeExpansionListener(this);
+//		treePanel.setPreferredSize(new Dimension(200,500));
+		
+		getContentPane().add(treePanel, BorderLayout.WEST);
 		getContentPane().add(scatPanel, BorderLayout.CENTER);
 		getContentPane().add(markerPanel(), BorderLayout.NORTH);
 		getContentPane().add(controlPanel(), BorderLayout.EAST);
@@ -245,30 +304,29 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	private JComponent controlPanel() {
 		JPanel controlPanel = new JPanel();
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
+		//typePanel.setLayout(new BoxLayout(typePanel, BoxLayout.PAGE_AXIS));
 		//typePanel.setLayout(new GridLayout(20, 1));
 //		typePanel.setLayout(new GridBagLayout());
+		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
 		controlPanel.setBackground(BACKGROUND_COLOR);
 //		typePanel.setBorder();
 //		typePanel.setSize(50, 100);
 		
-        GridBagConstraints gbc = new GridBagConstraints();   
-        gbc.insets = new Insets(1,3,0,30);   
-        gbc.weightx = 1.0;   
-        gbc.fill = GridBagConstraints.HORIZONTAL;   
-        gbc.gridwidth = GridBagConstraints.REMAINDER;   
+//        GridBagConstraints gbc = new GridBagConstraints();   
+//        gbc.insets = new Insets(1,3,0,30);   
+//        gbc.weightx = 1.0;   
+//        gbc.fill = GridBagConstraints.HORIZONTAL;   
+//        gbc.gridwidth = GridBagConstraints.REMAINDER;   
 
 		JPanel tabPanel;
 		tabbedPane = new JTabbedPane();
 		tabbedPane.setBackground(BACKGROUND_COLOR);
 		tabPanel = new JPanel();
-//		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
-		tabPanel.setLayout(new GridBagLayout());
-		tabPanel.setSize(50, 100);
+		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
 		tabPanel.setBackground(BACKGROUND_COLOR);
 
-		tabPanel.add(sizeSliderPanel(), gbc);
-		tabPanel.add(gcSliderPanel(), gbc);
+		tabPanel.add(sizeSliderPanel());
+		tabPanel.add(gcSliderPanel());
 
 		ItemListener symmetryListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
@@ -283,34 +341,34 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		symmetryBox.addItemListener(symmetryListener);
 		symmetryBox.setBackground(BACKGROUND_COLOR);
 
-		tabPanel.add(symmetryBox, gbc);
-//		tabPanel.add(symmetryBox);
+//		tabPanel.add(symmetryBox, gbc);
+		tabPanel.add(symmetryBox);
 		
 		JButton button = new JButton(CAPTURE);
 		button.addActionListener(this);
 		button.setActionCommand(CAPTURE);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
+//		tabPanel.add(button, gbc);
+		tabPanel.add(button);
 
 		button = new JButton(DUMP);
 		button.addActionListener(this);
 		button.setActionCommand(DUMP);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
+//		tabPanel.add(button, gbc);
+		tabPanel.add(button);
 		
 		button = new JButton(MASK_MISSING);
 		button.addActionListener(this);
 		button.setActionCommand(MASK_MISSING);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
+//		tabPanel.add(button, gbc);
+		tabPanel.add(button);
 
 //		typePanel.addTab("Control", null, tabPanel, "Manipulate the chart");
 //		typePanel.setMnemonicAt(0, KeyEvent.VK_1);
 //
 //		tabPanel = new JPanel();
 
-		tabPanel.add(clusterFilterPanel(), gbc);
-//		tabPanel.add(clusterFilterPanel());
+//		tabPanel.add(clusterFilterPanel(), gbc);
+		tabPanel.add(clusterFilterPanel());
 
 		tabbedPane.addTab("Control", null, tabPanel, "Manipulate the chart");
 		tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
@@ -329,13 +387,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		};
 		JLabel label = new JLabel("  ");
 		label.setFont(new Font("Arial", 0, 20));
-		tabPanel.add(label, gbc);
-//		tabPanel.add(label);
+//		tabPanel.add(label, gbc);
+		tabPanel.add(label);
 		label = new JLabel("Centroids:");
 		label.setFont(new Font("Arial", 0, 20));
 		label.setHorizontalAlignment(JLabel.CENTER);
-		tabPanel.add(label, gbc);
-//		tabPanel.add(label);
+//		tabPanel.add(label, gbc);
+		tabPanel.add(label);
 		centBoxes = new JCheckBox[centList.length];
 		displayCents = new boolean[centList.length];
 		centLabels = new JLabel[centList.length];
@@ -348,13 +406,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			centBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5+i], 5));
 			centBoxes[i].setBorderPainted(true);
 			centBoxes[i].setBackground(BACKGROUND_COLOR);
-			tabPanel.add(centBoxes[i], gbc);
-//			tabPanel.add(centBoxes[i]);
+//			tabPanel.add(centBoxes[i], gbc);
+			tabPanel.add(centBoxes[i]);
 			
 			centLabels[i] = new JLabel("LRR correlation not performed");
 			centLabels[i].setVisible(displayCents[i]);
-			tabPanel.add(centLabels[i], gbc);
-//			tabPanel.add(centLabels[i]);
+//			tabPanel.add(centLabels[i], gbc);
+			tabPanel.add(centLabels[i]);
 		}
 		
         //JLabel padding = new JLabel();//np
@@ -400,8 +458,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	private JComponent plotTypePanel() {
 		JPanel plotTypePanel = new JPanel();
-//		plotTypePanel.setLayout(new BoxLayout(plotTypePanel, BoxLayout.Y_AXIS));
-		plotTypePanel.setLayout(new GridLayout(4, 1));
+		plotTypePanel.setLayout(new BoxLayout(plotTypePanel, BoxLayout.Y_AXIS));
 		plotTypePanel.setBackground(BACKGROUND_COLOR);
 
 		ItemListener typeListener = new ItemListener() {
@@ -591,7 +648,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JComponent clusterFilterPanel() {
 		JPanel clusterFilterPanel = new JPanel();
 		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
-//		clusterFilterPanel.setLayout(new BoxLayout(clusterFilterPanel, BoxLayout.PAGE_AXIS));
 		clusterFilterPanel.setSize(50, 10);
 		
 //		JButton first1 = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
@@ -1390,7 +1446,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
 
 		try {
-			new ScatterPlot(new Project(filename, jar));
+			new TwoDPlot1(new Project(filename, jar));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

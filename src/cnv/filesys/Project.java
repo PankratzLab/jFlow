@@ -25,7 +25,8 @@ public class Project extends Properties {
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortium.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplication.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
-	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
+//	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
+	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/practice.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";

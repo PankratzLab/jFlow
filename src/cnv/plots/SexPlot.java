@@ -4,17 +4,19 @@ package cnv.plots;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import cnv.filesys.Project;
 import cnv.gui.ColorIcon;
 import cnv.qc.SexChecks;
 
-public class SexPlot extends JFrame implements ActionListener {
+public class SexPlot extends JFrame{
 	public static final long serialVersionUID = 1L;
 
 	SexPanel sexPanel;
@@ -43,7 +45,7 @@ public class SexPlot extends JFrame implements ActionListener {
 
 		JPanel legendPanel = colorLegendPanel();
 		getContentPane().add(legendPanel, BorderLayout.SOUTH);
-		
+
 		repaint();
 
 		setBounds(20, 20, 1000, 720);
@@ -66,12 +68,6 @@ public class SexPlot extends JFrame implements ActionListener {
 		return colorLegendPanel;
 	}
 
-	public void actionPerformed(ActionEvent ae) {
-		String command = ae.getActionCommand();
-
-		System.err.println("Error - unknown command '"+command+"'");
-	}
-
 	public static void loadGenderResults(Project proj) {
 		BufferedReader reader;
 		String[] line;
@@ -79,7 +75,7 @@ public class SexPlot extends JFrame implements ActionListener {
 		Vector<double[]> datapoints;
 		Vector<Byte> sexes;
 		Vector<Byte> estimatedSexes;
-
+	
 		samples = new Vector<String[]>();
 		datapoints = new Vector<double[]>();
 		sexes = new Vector<Byte>();
@@ -106,7 +102,7 @@ public class SexPlot extends JFrame implements ActionListener {
 			System.err.println("Error reading file \""+proj.getProjectDir()+"sexCheck.xln"+"\"");
 			System.exit(2);
 		}
-
+	
 		new SexPlot(proj, Matrix.toStringArrays(samples), Matrix.toDoubleArrays(datapoints), Matrix.toByteArry(sexes), Matrix.toByteArry(estimatedSexes));
 	}
 
@@ -139,4 +135,5 @@ public class SexPlot extends JFrame implements ActionListener {
 			e.printStackTrace();
 		}
 	}
+
 }

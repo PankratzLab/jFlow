@@ -19,7 +19,8 @@ import cnv.var.SampleData;
 import mining.Distance;
 
 //public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
-public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
+//public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
+public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int HEAD_BUFFER = 25;
 //	public static final int HEIGHT_X_AXIS = 55;
@@ -72,7 +73,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	private int prevHeight;
 	//private boolean flow;
 	//private boolean finalImage;//zx
-	private Repress patience;
+//	private Repress patience;
 
 	public MosaicPanel(Project proj, String[][] samples, double[][] data) {
 		BufferedReader reader;
@@ -141,7 +142,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		addMouseMotionListener(this);
 		addComponentListener(this);
 		
-		//setFlow(true);
+		setFlow(true);
 	}
 
 //	public void paintComponent(Graphics g) {
@@ -401,6 +402,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 
 	public void mouseDragged(MouseEvent e) {}
 
+	/*
 	public void componentHidden(ComponentEvent e) {}
 
 	public void componentMoved(ComponentEvent e) {}
@@ -427,6 +429,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	}
 
 	public void componentShown(ComponentEvent e) {}
+	*/
 
 	public static void main(String[] args) {
 		MosaicPlot.main(args);
@@ -467,6 +470,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		
 		points = new PlotPoint[data.length];
 		for (int i = 0; i<data.length&&getFlow(); i++) {
+//		for (int i = 0; i<data.length; i++) {
 			if (colorHash.containsKey(samples[i][0]+"\t"+samples[i][1])) {
 				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
 				color = (byte) Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]));
