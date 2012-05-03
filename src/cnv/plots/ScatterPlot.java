@@ -124,8 +124,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		inputMapAndActionMap();
 
-		scatPanel.setPointsGenerated(false);//zx
-		scatPanel.setUpdateQcPanel(true);//zx???
+		scatPanel.setPointsGeneratable(true);//zx
+		scatPanel.setQcPanelUpdatable(true);//zx???
 //		scatPanel.generateRectangles();
 		scatPanel.setExtraLayersVisible(new byte[] {99});
 		updateGUI();
@@ -208,8 +208,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					}
 				} catch (NumberFormatException nfe) {}
 				displayIndex((JTextField)fe.getSource());
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);//zx???
 //				currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 				setCurrentClusterFilter();
 //				scatPanel.generateRectangles();
@@ -322,8 +322,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
 				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
 				centLabels[index].setVisible(displayCents[index]);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(false);//zx
 				updateGUI();
 			}
 		};
@@ -411,8 +411,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					for (int i = 0; i<MarkerData.TYPES.length; i++) {
 						if (jrb.getText().equals(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1])) {
 							plot_type = i;
-							scatPanel.setPointsGenerated(false);//zx
-							scatPanel.setUpdateQcPanel(true);//zx???
+							scatPanel.setPointsGeneratable(true);//zx
+							scatPanel.setQcPanelUpdatable(true);//zx???
 //							scatPanel.generateRectangles();//zx???
 //							if (clusterFilterCollection.getSize(getMarkerName())>0) {
 //								scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
@@ -485,8 +485,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				JSlider slider = (JSlider)ce.getSource();
 				sizeLabel.setText("Size = "+slider.getValue());
 				size = (byte)slider.getValue();
-				scatPanel.setPointsGenerated(true);//zx
-				scatPanel.setUpdateQcPanel(false);//zx???
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(false);//zx???
 				scatPanel.paintAgain();
 			}
 		});
@@ -516,8 +516,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				JSlider slider = (JSlider)ce.getSource();
 				gcThreshold = (float)slider.getValue()/100f;
 				gcLabel.setText("GC > "+ext.formDeci(gcThreshold, 2, true));
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);//zx
 				scatPanel.paintAgain();
 				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");//zx
 			}
@@ -545,8 +545,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 						if (jrb.getText().equals(sampleData.getClassName(i))) {
 							currentClass = i;
 //							scatPanel.setPointsGenerated(true);//zx Why should be false?
-							scatPanel.setPointsGenerated(false);//zx
-							scatPanel.setUpdateQcPanel(true);//zx
+							scatPanel.setPointsGeneratable(true);//zx
+							scatPanel.setQcPanelUpdatable(true);//zx
 							updateGUI();
 						}
 					}
@@ -622,9 +622,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				} catch (NumberFormatException nfe) {}
 //				clusterFilterNavigation.setText((currentClusterFilter+1)+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(true);//zx
-//				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);
 //				scatPanel.generateRectangles();
 				updateGUI();
 				displayClusterFilterIndex();
@@ -678,9 +677,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //				if (e.getWhen()>1000) {					//??????
 //					saveClusterFilterCollection();
 //				}
-//				scatPanel.setPointsGenerated(true);//zx
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);//zx???
 				//updateGUI();
 				scatPanel.paintAgain();
 			}
@@ -721,8 +719,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = 0;
 				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);//zx???
 				updateGUI();
 			}
 		});
@@ -732,8 +730,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = Math.max(markerIndex-1, 0);
 				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);//zx???
 				updateGUI();
 			}
 		});
@@ -743,8 +741,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = Math.min(markerIndex+1, markerList.length-1);
 				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);//zx???
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);//zx???
 				updateGUI();
 			}
 		});
@@ -754,6 +752,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = markerList.length-1;
 				displayIndex(navigationField);
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);//zx???
 				updateGUI();
 			}
 		});
@@ -768,8 +768,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		if (command.equals(FIRST)) {
 			markerIndex = 0;
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
+			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
 //			scatPanel.generateRectangles();
@@ -781,8 +781,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		} else if (command.equals(PREVIOUS)) {
 			markerIndex = Math.max(markerIndex-1, 0);
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
+			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
 //			scatPanel.generateRectangles();
@@ -794,8 +794,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		} else if (command.equals(NEXT)) {
 			markerIndex = Math.min(markerIndex+1, markerList.length-1);
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
+			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
 //			scatPanel.generateRectangles();
@@ -807,8 +807,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		} else if (command.equals(LAST)) {
 			markerIndex = markerList.length-1;
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);
+			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
 //			scatPanel.generateRectangles();
@@ -825,7 +825,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);
+				scatPanel.setPointsGeneratable(true);	// why not scatPanel.setPointsGeneratable(false);
 				//scatPanel.setUpdateQcPanel(true);
 				updateGUI();
 			}
@@ -837,7 +837,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);
+				scatPanel.setPointsGeneratable(true);	// why not scatPanel.setPointsGeneratable(false);
 				//scatPanel.setUpdateQcPanel(true);
 				updateGUI();
 			}
@@ -849,8 +849,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				saveClusterFilterCollection();
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);//zx
-				scatPanel.setUpdateQcPanel(true);
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(true);
 				//scatPanel.repaint();
 				//scatPanel.paintAgain();
 				scatPanel.generateRectangles();
@@ -876,8 +876,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
 			maskMissing = !maskMissing;
 			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
-			scatPanel.setPointsGenerated(false);//zx
-			scatPanel.setUpdateQcPanel(true);//zx
+			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setQcPanelUpdatable(true);//zx
 			updateGUI();
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");

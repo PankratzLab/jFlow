@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 //import java.util.Date;
 import java.util.Date;
 import java.util.Hashtable;
@@ -108,7 +109,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private boolean finalImage;			//zx: A control variable. If drawAll() is not yet done, don't start paintComponent();
 	private byte[] layersInBase;
 	private byte[] extraLayersVisible;
-	private boolean pointsGenerated;
+	private boolean pointsGeneratable;
 	private Timer waitingTimer;		//zx: A control variable to reduce the repaint() operations during component resizing;
 	private final int DELAY = 30;	//zx: A control variable to reduce the repaint() operations during component resizing;
 	
@@ -139,7 +140,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		locLookup = new Hashtable<String,IntVector>();
 		finalImage=true;//zx
 		flow=true;//zx
-		pointsGenerated = false;
+		pointsGeneratable = true;
 		
 		colorScheme = new Color[] {Color.BLACK, Color.GRAY};
 		addMouseListener(this);
@@ -294,8 +295,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		ProgressBarDialog prog;//zx
     	int recX, recY, recWidth, recHeight;
     	
-//    	System.out.println("flow="+flow);
-		
 //    	System.err.println("Error - called");
 		if (points.length==0) {
 			System.err.println("Error: no data. The cnv.plots.AbstractPanel.points is null.");
@@ -304,9 +303,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
-		if (!pointsGenerated) {
+		if (pointsGeneratable) {
 			generatePoints();
-			pointsGenerated = true;
+			pointsGeneratable = false;
 		}
 		highlightPoints();
 
@@ -336,6 +335,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				maximumObservedRawY = Maths.max(maximumObservedRawY, points[i].getRawY());
 			}
         }
+
 		for (int i = 0; lines != null && i<lines.length&&flow; i++) {
 //		for (int i = 0; lines != null && i<lines.length; i++) {
 			if (lines[i] != null) {
@@ -394,6 +394,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
 				plotXmin = plotMinMaxStep[0];
 				plotXmax = plotMinMaxStep[1];
+
 				sigFigs = getNumSigFig(plotMinMaxStep[2]);
 				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
@@ -542,8 +543,14 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		time = new Date().getTime();
 		step = (points.length)/100;
 		layers = new Hashtable<String,Vector<PlotPoint>>();
+		
+//		System.out.println("points.length:"+points.length);	//zx
+		
 		for (int i = 0; i<points.length&&flow; i++) {
 //		for (int i = 0; i<points.length; i++) {
+			
+//			System.out.println("i: "+i+"\t"+points[i].getRawX()+","+points[i].getRawY()+"\t "+points[i].getLayer()+","+points[i].getColor()+","+points[i].getSize());
+			
 			if (base && i%step==0){
 				if (new Date().getTime() - time > 1000) {
 					if (prog == null) {
@@ -1033,8 +1040,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void createImage() {
 		if (getWidth() > 350 && getHeight() > 0 ) {
 			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-			drawAll(image.createGraphics(), true);
 			flow = true;
+			drawAll(image.createGraphics(), true);
 //			repaint();
 //			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		}
@@ -1109,12 +1116,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		flow = false;
 	}
 	
-	public void setPointsGenerated(boolean pointsGenerated) {
-		this.pointsGenerated = pointsGenerated;
+	public void setPointsGeneratable(boolean pointsGeneratable) {
+		this.pointsGeneratable = pointsGeneratable;
 	}
 
-	public boolean isPointsGenerated() {
-		return pointsGenerated;
+	public boolean isPointsGeneratable() {
+		return pointsGeneratable;
 	}
 	
 	public void setSwapable(boolean swapable) {

@@ -137,7 +137,7 @@ public class TwoDPlot extends JFrame implements WindowListener {
 
 		inputMapAndActionMap();
 
-		twoDPanel.setPointsGenerated(false);//zx
+		twoDPanel.setPointsGeneratable(true);//zx
 		twoDPanel.setUpdateQcPanel(true);//zx???
 //		scatPanel.generateRectangles();
 		twoDPanel.setExtraLayersVisible(new byte[] {99});
@@ -498,7 +498,7 @@ public class TwoDPlot extends JFrame implements WindowListener {
 				JSlider slider = (JSlider)ce.getSource();
 				sizeLabel.setText("Size = "+slider.getValue());
 				size = (byte)slider.getValue();
-				twoDPanel.setPointsGenerated(true);//zx
+				twoDPanel.setPointsGeneratable(true);//zx
 				twoDPanel.setUpdateQcPanel(false);//zx???
 				twoDPanel.paintAgain();
 			}
@@ -529,7 +529,7 @@ public class TwoDPlot extends JFrame implements WindowListener {
 				JSlider slider = (JSlider)ce.getSource();
 				gcThreshold = (float)slider.getValue()/100f;
 				gcLabel.setText("GC > "+ext.formDeci(gcThreshold, 2, true));
-				twoDPanel.setPointsGenerated(false);//zx
+				twoDPanel.setPointsGeneratable(true);//zx
 				twoDPanel.setUpdateQcPanel(true);//zx
 				twoDPanel.paintAgain();
 				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");//zx
@@ -558,7 +558,7 @@ public class TwoDPlot extends JFrame implements WindowListener {
 						if (jrb.getText().equals(sampleData.getClassName(i))) {
 							currentClass = i;
 //							scatPanel.setPointsGenerated(true);//zx Why should be false?
-							twoDPanel.setPointsGenerated(false);//zx
+							twoDPanel.setPointsGeneratable(true);//zx
 							twoDPanel.setUpdateQcPanel(true);//zx
 							updateGUI();
 						}

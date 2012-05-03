@@ -83,6 +83,11 @@ public class ClusterFilterCollection implements Serializable {
 	public void deleteClusterFilter(String markerName, byte index) {
 		if (hash.containsKey(markerName) && hash.get(markerName).size()>index) {
 			hash.get(markerName).remove(index);
+			if (hash.get(markerName).size()==0) {
+				hash.remove(markerName);
+			}
+		} else {
+			System.err.println("Error deleting the cluster filter: either no cluster filter associate with this marker name, or the index for the cluster filter to be deleted does not exist.");
 		}
 	}
 

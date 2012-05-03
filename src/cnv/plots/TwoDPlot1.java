@@ -183,7 +183,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 
 		inputMapAndActionMap();
 
-		scatPanel.setPointsGenerated(false);//zx
+		scatPanel.setPointsGeneratable(true);//zx
 		scatPanel.setUpdateQcPanel(true);//zx???
 //		scatPanel.generateRectangles();
 		scatPanel.setExtraLayersVisible(new byte[] {99});
@@ -267,7 +267,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 					}
 				} catch (NumberFormatException nfe) {}
 				displayIndex((JTextField)fe.getSource());
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);//zx???
 //				currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 				setCurrentClusterFilter();
@@ -380,7 +380,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
 				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
 				centLabels[index].setVisible(displayCents[index]);
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(false);//zx
 				updateGUI();
 			}
@@ -468,7 +468,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 					for (int i = 0; i<MarkerData.TYPES.length; i++) {
 						if (jrb.getText().equals(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1])) {
 							plot_type = i;
-							scatPanel.setPointsGenerated(false);//zx
+							scatPanel.setPointsGeneratable(true);//zx
 							scatPanel.setUpdateQcPanel(true);//zx???
 //							scatPanel.generateRectangles();//zx???
 //							if (clusterFilterCollection.getSize(getMarkerName())>0) {
@@ -542,7 +542,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 				JSlider slider = (JSlider)ce.getSource();
 				sizeLabel.setText("Size = "+slider.getValue());
 				size = (byte)slider.getValue();
-				scatPanel.setPointsGenerated(true);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(false);//zx???
 				scatPanel.paintAgain();
 			}
@@ -573,7 +573,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 				JSlider slider = (JSlider)ce.getSource();
 				gcThreshold = (float)slider.getValue()/100f;
 				gcLabel.setText("GC > "+ext.formDeci(gcThreshold, 2, true));
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);//zx
 				scatPanel.paintAgain();
 				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");//zx
@@ -602,7 +602,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 						if (jrb.getText().equals(sampleData.getClassName(i))) {
 							currentClass = i;
 //							scatPanel.setPointsGenerated(true);//zx Why should be false?
-							scatPanel.setPointsGenerated(false);//zx
+							scatPanel.setPointsGeneratable(true);//zx
 							scatPanel.setUpdateQcPanel(true);//zx
 							updateGUI();
 						}
@@ -678,8 +678,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 				} catch (NumberFormatException nfe) {}
 //				clusterFilterNavigation.setText((currentClusterFilter+1)+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(true);//zx
-//				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);
 //				scatPanel.generateRectangles();
 				updateGUI();
@@ -735,7 +734,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 //					saveClusterFilterCollection();
 //				}
 //				scatPanel.setPointsGenerated(true);//zx
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);//zx???
 				//updateGUI();
 				scatPanel.paintAgain();
@@ -777,7 +776,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = 0;
 				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);//zx???
 				updateGUI();
 			}
@@ -788,7 +787,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = Math.max(markerIndex-1, 0);
 				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);//zx???
 				updateGUI();
 			}
@@ -799,7 +798,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = Math.min(markerIndex+1, markerList.length-1);
 				displayIndex(navigationField);
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);//zx???
 				updateGUI();
 			}
@@ -810,6 +809,8 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = markerList.length-1;
 				displayIndex(navigationField);
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setUpdateQcPanel(true);//zx???
 				updateGUI();
 			}
 		});
@@ -824,7 +825,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 		if (command.equals(FIRST)) {
 			markerIndex = 0;
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
+			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setUpdateQcPanel(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -837,7 +838,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 		} else if (command.equals(PREVIOUS)) {
 			markerIndex = Math.max(markerIndex-1, 0);
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
+			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setUpdateQcPanel(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -850,7 +851,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 		} else if (command.equals(NEXT)) {
 			markerIndex = Math.min(markerIndex+1, markerList.length-1);
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
+			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setUpdateQcPanel(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -863,7 +864,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 		} else if (command.equals(LAST)) {
 			markerIndex = markerList.length-1;
 			displayIndex(navigationField);
-			scatPanel.setPointsGenerated(false);//zx
+			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setUpdateQcPanel(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -881,7 +882,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 //				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);
+				scatPanel.setPointsGeneratable(true);
 				//scatPanel.setUpdateQcPanel(true);
 				updateGUI();
 			}
@@ -893,7 +894,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 //				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);
+				scatPanel.setPointsGeneratable(true);
 				//scatPanel.setUpdateQcPanel(true);
 				updateGUI();
 			}
@@ -905,7 +906,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 				saveClusterFilterCollection();
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				scatPanel.setPointsGenerated(false);//zx
+				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setUpdateQcPanel(true);
 				//scatPanel.repaint();
 				//scatPanel.paintAgain();
@@ -932,7 +933,7 @@ public class TwoDPlot1 extends JFrame implements ActionListener, WindowListener 
 		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
 			maskMissing = !maskMissing;
 			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
-			scatPanel.setPointsGenerated(false);//zx
+			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setUpdateQcPanel(true);//zx
 			updateGUI();
 		} else {

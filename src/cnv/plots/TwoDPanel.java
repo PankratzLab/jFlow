@@ -540,7 +540,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 																		markerData[sp.getMarkerIndex()]));
 	    	sp.saveClusterFilterCollection();
 	    	sp.clusterFilterCollectionUpdated(true);
-			setPointsGenerated(false);
+			setPointsGeneratable(true);
 			setUpdateQcPanel(true);
 	    	generateRectangles();
 			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));

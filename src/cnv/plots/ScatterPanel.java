@@ -174,6 +174,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
 //		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData[markerIndex].getAB_GenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
+		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter());
+		sp.displayClusterFilterIndex();
 		chr = markerData[markerIndex].getChr();
 		position = markerData[markerIndex].getPosition();
 		size = sp.getPointSize();
@@ -309,7 +311,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		if (getUpdateQcPanel()) {
 			sp.updateQcPanel(genotype, sex, otherClass);//zx
-			setUpdateQcPanel(false);
+			setQcPanelUpdatable(false);
 		}
 //		sp.updateColorKey(classCounts.convertToHash());
 		
@@ -537,8 +539,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 																		markerData[sp.getMarkerIndex()]));
 	    	sp.saveClusterFilterCollection();
 	    	sp.clusterFilterCollectionUpdated(true);
-			setPointsGenerated(false);
-			setUpdateQcPanel(true);
+			setPointsGeneratable(true);
+			setQcPanelUpdatable(true);
 	    	generateRectangles();
 			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
 			sp.displayClusterFilterIndex();
@@ -624,7 +626,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		ScatterPlot.main(new String[] {"-notJar"});
 //	}
 
-	public void setUpdateQcPanel(boolean updateQcPanel) {
+	public void setQcPanelUpdatable(boolean updateQcPanel) {
 		this.updateQcPanel = updateQcPanel;
 	}
 
