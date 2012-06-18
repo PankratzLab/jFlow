@@ -62,7 +62,7 @@ public class PennCNV {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, data;
-		String temp, trav = null;
+		String temp, sampleID = null;
 		Hashtable<String,String[]> hash = new Hashtable<String,String[]>();
 		Vector<String> v = new Vector<String>();
 		SampleData sampleData;
@@ -79,8 +79,8 @@ public class PennCNV {
 				line = temp.trim().split("[\\s]+");
 				try {
 					if (temp.contains("quality summary")) {
-						trav = line[4].substring(line[4].lastIndexOf("/")+1, line[4].indexOf(":"));
-						v.add(trav);
+						sampleID = line[4].substring(line[4].lastIndexOf("/")+1, line[4].indexOf(":"));
+						v.add(sampleID);
 						data = new String[QC_HEADS.length+ERRORS.length];
 						for (int i = 0; i<ERRORS.length; i++) {
 							data[i] = ".";
@@ -92,14 +92,14 @@ public class PennCNV {
 						for (int i = 0; i<QC_HEADS.length; i++) {
 							data[ERRORS.length+i] = line[5+i].split("=")[1];
 						}
-						hash.put(trav, data);
+						hash.put(sampleID, data);
 					} else if (temp.startsWith("WARNING")) {
 						if (temp.contains("Small-sized CNV calls")) {
 							// use old trav
 						} else {
-							trav = line[3].substring(line[3].lastIndexOf("/")+1);
+							sampleID = line[3].substring(line[3].lastIndexOf("/")+1);
 						}
-						data = hash.get(trav);
+						data = hash.get(sampleID);
 						err = -1;
 						for (int i = 0; i<ERRORS.length; i++) {
 							if (temp.contains(ERRORS[i])) {
@@ -131,9 +131,9 @@ public class PennCNV {
 			writer.println();
 			int[] keys = Sort.quicksort(Array.toStringArray(v));
 			for (int i = 0; i<v.size(); i++) {
-				trav = v.elementAt(keys[i]);
-				data = hash.get(trav);
-				writer.print(trav+"\t"+sampleData.lookup(trav));
+				sampleID = v.elementAt(keys[i]);
+				data = hash.get(sampleID);
+				writer.print(sampleID+"\t"+sampleData.lookup(sampleID)[1]);
 				writer.print("\t"+(data[1].equals("1")||data[2].equals("1")||Double.parseDouble(data[6])>lrrSD_cutoff?"0":"1"));
 				writer.println("\t"+Array.toStr(data));
 			}
@@ -157,7 +157,7 @@ public class PennCNV {
 		int[] position;
 		String score;
 		SampleData sampleData;
-		String ind;
+		String famIndPair;
 		Hashtable<String,String> hash;
 
 		sampleData = proj.getSampleData(false);
@@ -172,13 +172,13 @@ public class PennCNV {
 				position = Positions.parseUCSClocation(line[0]);
 				trav = line[4];
 				trav = trav.substring(trav.lastIndexOf("/")+1);
-				ind = sampleData.lookup(trav);
-				if (ind == null) {
+				famIndPair = sampleData.lookup(trav)[1];
+				if (famIndPair == null) {
 					if (!hash.containsKey(trav)) {
 						System.err.println("Error - '"+trav+"' was not found in "+proj.getFilename(Project.SAMPLE_DATA_FILENAME));
 						hash.put(trav, "");
 					}
-					ind = trav+"\t"+trav;
+					famIndPair = trav+"\t"+trav;
 				}
 
 				if (line.length<8||!line[7].startsWith("conf=")) {
@@ -190,7 +190,7 @@ public class PennCNV {
 				} else {
 					score = ext.formDeci(Double.parseDouble(line[7].substring(5)), 4, true);
 				}
-				writer.println(ind+"\t"+position[0]+"\t"+position[1]+"\t"+position[2]+"\t"+line[3].substring(line[3].indexOf("=")+1)+"\t"+score+"\t"+line[1].substring(7));
+				writer.println(famIndPair+"\t"+position[0]+"\t"+position[1]+"\t"+position[2]+"\t"+line[3].substring(line[3].indexOf("=")+1)+"\t"+score+"\t"+line[1].substring(7));
 			}
 			reader.close();
 			writer.close();

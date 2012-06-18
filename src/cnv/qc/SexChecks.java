@@ -425,18 +425,18 @@ public class SexChecks {
 
 	public static void writeToFile (Project proj, byte[] estimatedSex) {
 		PrintWriter writer;
-		String trav;
+		String famIndPair;
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"sexCheck.xln"));
 			writer.println(Array.toStr(SEX_HEADER));
 			for (int i = 0; i<samples.length; i++) {
-				trav = sampleData.lookup(samples[i]);
-				if (trav == null) {
+				famIndPair = sampleData.lookup(samples[i])[1];
+				if (famIndPair == null) {
 					System.err.println("Error - no data for sample '"+samples[i]+"'");
 					writer.print(samples[i]+"\t"+".\t.\t-9\t-9");
 				} else {
-					writer.print(samples[i]+"\t"+trav+"\t"+sampleData.getSexForIndividual(samples[i])+"\t"+estimatedSex[i]);
+					writer.print(samples[i]+"\t"+famIndPair+"\t"+sampleData.getSexForIndividual(samples[i])+"\t"+estimatedSex[i]);
 				}
 				writer.println("\t"+ext.formDeci(lrrsX[i]/numXs[i], 7)+"\t"+numXs[i]+"\t"+numX_10_90[i]+"\t"+ext.formDeci((double)numX_10_90[i]/(double)numXs[i], 4)+"\t"+ext.formDeci(lrrsY[i]/numYs[i], 7)+"\t"+numYs[i]);
 			}

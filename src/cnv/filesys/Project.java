@@ -27,6 +27,7 @@ public class Project extends Properties {
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
 //	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
 	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/practice.properties";
+//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/twodplot.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
@@ -98,6 +99,7 @@ public class Project extends Properties {
 	public static final String NUM_MARKERS_PER_FILE = "NUM_MARKERS_PER_FILE";
 	public static final String CLUSTER_FILTER_COLLECTION_FILENAME = "CLUSTER_FILTER_COLLECTION_FILENAME";
 	public static final String SEXCHECK_RESULTS_FILENAME = "SEXCHECK_RESULTS_FILENAME";
+	public static final String TWOD_LOADED_FILENAMES = "TWOD_LOADED_FILENAMES";
 
 	private boolean jar;
 

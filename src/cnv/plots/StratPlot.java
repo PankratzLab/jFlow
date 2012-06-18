@@ -240,7 +240,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	}
 
 	public int[][] getCurrentPair() {
-		int[][] currentPair = tree.getSelectionIndices(); 
+		int[][] currentPair = tree.getSelectionIndices();
+		System.out.println(Array.toStr(currentPair[1]) +"\t"+ Array.toStr(currentPair[0]));
 		return swapAxes?new int[][] {currentPair[1], currentPair[0]}:currentPair;
 	}
 	
@@ -304,12 +305,13 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	}
 
 	public static void main(String[] args) {
-		String filename = Project.DEFAULT_PROJECT;
+//		String filename = Project.DEFAULT_PROJECT;
+		String filename = "/workspace/Genvisis/projects/practice.properties";
 //		String filename = "projects/demo_indian_diabetes.properties";
-		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
+//		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
 		
 		try {
-			loadStratificationResults(new Project(filename, jar));
+			loadStratificationResults(new Project(filename, false));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

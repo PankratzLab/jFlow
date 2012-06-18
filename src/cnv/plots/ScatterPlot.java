@@ -573,10 +573,10 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		//legend1.setFont(new Font("Arial", 0, 14));
 		//legendPanel.add(legend1);
 		
-		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-			legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
-			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
-		}
+//		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
+//			legendPanel.add(new JLabel(new ColorIcon(12,12,ScatterPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
+//			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
+//		}
 //		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
 //		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
 //		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
@@ -992,6 +992,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		this.currentClusterFilter = currentClusterFilter;
 		
 //		if (currentClusterFilter >= 0) {
+//		System.out.print("Before: image=="+(scatPanel.image==null?"null":"BImg")+"\t");
 		if (clusterFilterCollection.getSize(getMarkerName())>0) {
 			newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(markerList[markerIndex], currentClusterFilter)+1);
 			if (scatPanel.getRectangles()!=null) {
@@ -1004,6 +1005,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			currentFilter = clusterFilterCollection.getClusterFilters(getMarkerName()).get(currentClusterFilter);
 			scatPanel.highlightPoints(markerData[markerIndex].getHighlightStatus(currentFilter));
 		}
+//		System.out.println("After: image=="+(scatPanel.image==null?"null":"BImg"));
+
 	}
 	
 	public void setCurrentClusterFilter() {
@@ -1014,7 +1017,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		double[] comp;
 		String str;
 
-		if (markerData[markerIndex].getLRRs() != null) {
+		if (markerData != null && markerData[markerIndex] != null && markerData[markerIndex].getLRRs() != null) {
 			for (int i = 0; i<centList.length; i++) {
 				comp = markerData[markerIndex].compareLRRs(cents[i][markerIndex]);
 				str = comp[0]+"";
@@ -1140,6 +1143,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void updateGUI() {
+		if (markerData == null) {
+			return;
+		}
 		if (markerList.length==0) {
 			markerName.setText("Error: marker data was not successfully loaded");
 			commentLabel.setText("Check to make sure MarkerLookup is synchronized with the current data");

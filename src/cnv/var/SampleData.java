@@ -19,7 +19,10 @@ public class SampleData {
 	private String[] classes;
 	private String[][][] classColorKeys;
 	private String[] cnvClasses;
-	private Hashtable<String,String> lookup;
+//	private Hashtable<String,String> sampleLookup;
+//	private Hashtable<String,String> famIndLookup;
+//	private Hashtable<String,String> indLookup;
+	private Hashtable<String,String[]> lookup;
 	private Hashtable<String,IndiPheno> sampleHash;
 	private boolean failedToLoad;
 	private int sexClassIndex;
@@ -44,6 +47,7 @@ public class SampleData {
 		CountVector sexCountHash;
 		String[] sexValues;
 		int[] sexCounts;
+		String[] ids;
 
 		failedToLoad = true;
 		if (cnvFilesnames == null) {
@@ -109,14 +113,15 @@ public class SampleData {
 
 			sexCountHash = new CountVector();
 			sampleHash = new Hashtable<String,IndiPheno>();
-			lookup = new Hashtable<String,String>();
+			lookup = new Hashtable<String, String[]>();
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
 				indi = new IndiPheno();
-//				if (loadCNVs && files.length > 0) {
-					lookup.put(line[dnaIndex], line[famIndex]+"\t"+line[indIndex]);
-					lookup.put(line[famIndex]+"\t"+line[indIndex], line[dnaIndex]);
-//				}
+				
+				ids = new String[] {line[dnaIndex], line[famIndex]+"\t"+line[indIndex], line[indIndex]};
+				lookup.put(line[dnaIndex], ids);
+				lookup.put(line[famIndex]+"\t"+line[indIndex], ids);
+				lookup.put(line[indIndex], ids);
 				
 				dv = new DoubleVector();
 				for (int i = 0; i<filterIs.size(); i++) {
@@ -139,7 +144,7 @@ public class SampleData {
 					sexCountHash.add(indi.getClasses()[sexClassIndex]+"");					
 				}
 
-				sampleHash.put(line[dnaIndex], indi);
+				sampleHash.put(line[dnaIndex].toLowerCase(), indi);
 			}
 			reader.close();
 			
@@ -191,11 +196,23 @@ public class SampleData {
 	
 	public int getSexForIndividual(String id) {
 		IndiPheno indi;
+		String[] ids;
 		
 		indi = sampleHash.get(id);
+//		indi = sampleHash.get("S_"+id);
+//		sampleLookup.put("FI_"+line[famIndex]+"\t"+line[indIndex], "S_"+line[dnaIndex]);
+//		sampleLookup.put("I_"+line[indIndex], "S_"+line[dnaIndex]);
+//		famIndLookup.put("I_"+line[indIndex], "FI_"+line[famIndex]+"\t"+line[indIndex]);
+//		famIndLookup.put("S_"+line[dnaIndex], "FI_"+line[famIndex]+"\t"+line[indIndex]);
+//		indLookup.put("FI_"+line[famIndex]+"\t"+line[dnaIndex], "I_"+line[indIndex]);
+//		indLookup.put("S_"+line[dnaIndex], "I_"+line[indIndex]);
 		if (indi == null) {
-			indi = sampleHash.get(lookup.get(id));
+			ids = lookup.get(id);
+			if (ids != null) {
+				indi = sampleHash.get(ids[0]);
+			}
 		}
+		
 		if (indi == null) {
 			System.err.println("Error - id '"+id+"' was not present in the SampleData");
 			return -1;
@@ -229,7 +246,9 @@ public class SampleData {
 		inds = HashVec.getKeys(sampleHash);
 		for (int i = 0; i<inds.length; i++) {
 			indi = sampleHash.get(inds[i]);
-			trav = lookup.get(inds[i]);
+//			trav = lookup.get(inds[i]);
+//			trav = famIndLookup.get("S_"+inds[i]);
+			trav = lookup.get(inds[i])[1];
 
 			finalHashes = new Vector<Hashtable<String,CNVariant[]>>();
 			for (int j = 0; j<files.length; j++) {
@@ -269,12 +288,12 @@ public class SampleData {
 	}
 
 	
-	public String lookup(String str) {
+	public String[] lookup(String str) {
 		return lookup.get(str);
 	}
 	
-	public Hashtable<String,IndiPheno> getSampleHash() {
-		return sampleHash;
+	public IndiPheno getIndiFromSampleHash(String sampleID) {
+		return sampleHash.get(sampleID.toLowerCase());
 	}
 	
 	public String[] getListOfSamples() {

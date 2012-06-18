@@ -3,6 +3,7 @@ package cnv.plots;
 import java.util.*;
 
 import common.*;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -128,6 +129,8 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		sampleData = sp.getSampleData();
 		sampleList = HashVec.getKeys(hash);
 		
+		setNullMessage("Select two factors to plot");
+		
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addComponentListener(this);
@@ -174,11 +177,12 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		byte colorCode;
 		float[][] data;
 		int[][] currentPair;
-		String trav;
+		String sampleID;
 		boolean tagalong;
 
 		currentClass = sp.getCurrentVariable();
 		currentPair = sp.getCurrentPair();
+		System.out.println(Array.toStr(currentPair[1]) +"\t"+ Array.toStr(currentPair[0]));
 		if (prevPair == null || !Matrix.equals(currentPair, prevPair)) {
 			resetZoomProportions();
 		}
@@ -199,14 +203,14 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 			for (int i = 0; i<sampleList.length; i++) {
 				data = hash.get(sampleList[i]);
 				if (data[currentPair[0][0]] != null && data[currentPair[1][0]] != null && !Float.isNaN(data[currentPair[0][0]][currentPair[0][1]])  && !Float.isNaN(data[currentPair[1][0]][currentPair[1][1]])) {
-					trav = sampleData.lookup(sampleList[i]);
-					if (trav == null) {
+					sampleID = sampleData.lookup(sampleList[i])[0];
+					if (sampleID == null) {
 						System.err.println("Error - could not look up "+sampleList[i]); // looks up any individual present in any .mds file that was loaded, even those not in the current file
 						tagalong = true;
 						colorCode = 0;
 					} else {
 						tagalong = false;
-						colorCode = sampleData.getClassForInd(trav, currentClass);
+						colorCode = sampleData.getClassForInd(sampleID, currentClass);
 						if (colorCode == -1 && !sp.maskMissing()) {
 							colorCode = 0;
 						}

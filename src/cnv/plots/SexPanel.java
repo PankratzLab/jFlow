@@ -335,5 +335,6 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 									  );
 		}
 		//Color color;
+		setSwapable(false);
 	}
 }

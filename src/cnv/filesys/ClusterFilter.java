@@ -94,7 +94,7 @@ public class ClusterFilter implements Serializable {
 		byte[] genotypes;
 		IntVector iv;
 		float[][] clusterCenters;
-		byte[] genotypeCount;
+		int[] genotypeCount;
 		byte oldGenotype;
 		int genotypeFrequencyCount;
 
@@ -143,24 +143,32 @@ public class ClusterFilter implements Serializable {
 		// Find the old genotype
 		iv = hash.get("3");
 		if (iv!=null) {
-			genotypeCount = new byte[] {0,0,0};
+			/*
+			 * Search for the genotype of majority of the data points
+			 * If there is any data point with missing value found, the majority's genotype is set to Missing Value. 
+			 */
+			genotypeCount = new int[] {0,0,0};
+			oldGenotype=-2;
 			for (int i=0; i<3; i++){
 				for (int j=0; j<iv.size(); j++) {
 					if (genotypes[iv.toArray()[j]]==i) {
 						genotypeCount[i]++;
+					} else if (genotypes[iv.toArray()[j]]==-1) {
+						oldGenotype=-1;
 					}
 				}
 			}
-			oldGenotype=-1;
-			genotypeFrequencyCount=-1;
-			for (byte i=0; i<3; i++){
-				if (genotypeCount[i]>genotypeFrequencyCount) {
-					genotypeFrequencyCount=genotypeCount[i];
-					oldGenotype=i;
+			if (oldGenotype==-2) {
+				genotypeFrequencyCount=-1;
+				for (byte i=0; i<3; i++){
+					if (genotypeCount[i]>genotypeFrequencyCount) {
+						genotypeFrequencyCount=genotypeCount[i];
+						oldGenotype=i;
+					}
 				}
 			}
 
-			//Find the genotype of the closest  
+			//Find the genotype to suggest, by the closest distance  
 //			keys = HashVec.getKeys(hash);
 //			clusterCenters = new float[keys.length][2];
 			clusterCenters = new float[4][2];

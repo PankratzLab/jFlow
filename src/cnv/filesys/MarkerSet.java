@@ -218,6 +218,10 @@ public class MarkerSet implements Serializable {
 		markerData = new MarkerData[markerNames.length];
 		for (int i = 0; i<keys.length; i++) {
 			v = hash.get(keys[i]);
+			if (!Files.exists(proj.getDir(Project.PLOT_DIRECTORY)+keys[i], jar)) {
+				JOptionPane.showMessageDialog(null, "Error - could not load data from '"+proj.getDir(Project.PLOT_DIRECTORY)+keys[i]+"'; because the file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
+				return null;
+			}
 			collection = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+keys[i], jar).getCollection();
 			for (int j = 0; j<v.size(); j++) {
 				line = v.elementAt(j).split("[\\s]+");

@@ -42,7 +42,7 @@ import common.Sort;
 import common.ext;
 import stats.Maths;
 
-public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
+public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
 	public static final int HEAD_BUFFER = 25;
@@ -114,7 +114,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private String nullMessage;
 	private boolean randomTest;
 	
-	public AbstractPanel() {
+	public AbstractPanel2() {
 		displayXaxis = true;
 		displayYaxis = true;
 		displayGrid = false;

@@ -130,18 +130,18 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		defaultSize = sp.getPointSize();
 		for (int i = 0; i < points.length; i++) {
-			if (points[i].isHighlighted()) {
-				points[i].setSize((byte)(defaultSize*1.5));
-			} else {
-				points[i].setSize((byte)(defaultSize));
+			if (points[i] != null) {
+				if (points[i].isHighlighted()) {
+					points[i].setSize((byte)(defaultSize*1.5));
+				} else {
+					points[i].setSize((byte)(defaultSize));
+				}
 			}
-			
 		}
 	}
 
 	public void generatePoints() {
 		int position, markerIndex, plotType, currentClass;
-		Hashtable<String,IndiPheno> sampleHash;
 		byte chr, genotypeCode, sexCode, classCode, type;
 		float[][] datapoints;
 //		byte[] alleleCounts;
@@ -164,6 +164,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		ClusterFilterCollection clusterFilterCollection;//zx
 
 //		time = new Date().getTime();
+		
+		if (markerData == null) {
+			return;
+		}
 
 		plotType = sp.getPlotType();
 		currentClass = sp.getCurrentClass();
@@ -174,13 +178,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
 //		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData[markerIndex].getAB_GenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
-		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter());
+//		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 		sp.displayClusterFilterIndex();
 		chr = markerData[markerIndex].getChr();
 		position = markerData[markerIndex].getPosition();
 		size = sp.getPointSize();
 		xFontSize = (byte)(size*2);
-		sampleHash = sampleData.getSampleHash();
 		displayCents = sp.getDisplayCents();
 		cents = sp.getCents();
 		centSize = 20;
@@ -235,7 +238,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		otherClass = new String[samples.length];
 		classCounts = new CountVector();
 		for (int i = 0; i<samples.length; i++) {
-			indi = sampleHash.get(samples[i]);
+			indi = sampleData.getIndiFromSampleHash(samples[i]);
 			if (indi!=null) {
 				genotypeCode = (byte)(alleleCounts[i]+1);
 //				genotypeCode = determineCodeFromClass(1, alleleCounts[i], indi, chr, position);
@@ -264,7 +267,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 				if (Float.isNaN(datapoints[0][i]) || Float.isNaN(datapoints[1][i])) {
 					type = PlotPoint.NOT_A_NUMBER;
-				} else if (alleleCounts[i]==-1) {
+//				} else if (currentClass==1 && alleleCounts[i]==-1) {
+				} else if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
 					type = PlotPoint.MISSING;
 				} else {
 					type = PlotPoint.FILLED_CIRCLE;
@@ -302,7 +306,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;//zx
 				otherClass[i] = determineCodeFromClass(3, alleleCounts[i], indi, chr, position)+"";
 			} else {
-				System.err.println("Error - no data for "+samples[i]);
+				System.err.println("Error - no data pts for "+samples[i]);
+				sex[i] = "missing";
+				points[numCents*3+i] = new PlotPoint(samples[i], PlotPoint.MISSING, datapoints[0][i], datapoints[1][i], (byte)(xFontSize*2), (byte)0, (byte)99);
 			}
 			
 			// create grid
@@ -313,7 +319,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			sp.updateQcPanel(genotype, sex, otherClass);//zx
 			setQcPanelUpdatable(false);
 		}
-//		sp.updateColorKey(classCounts.convertToHash());
+		sp.updateColorKey(classCounts.convertToHash());
 		
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		for (int i = 0; i < points.length; i++) {
@@ -330,7 +336,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		if (sp.getCurrentClusterFilter()>=0) {
 			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
 		}
-		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter());
+//		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 	}
 
 	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
@@ -381,7 +387,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 		float[][] datapoints;
 		IndiPheno indi;
-		Hashtable<String,IndiPheno> sampleHash = sampleData.getSampleHash();
 		float[] gcScores;
 //		byte[] alleleCounts;
 		float gcThreshold;
@@ -394,6 +399,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		byte size, xFontSize;
 		
 		//IntVector indeciesOfDataPoint;//zx
+		
+		
+		if (markerData == null) {
+			return;
+		}
 
 		x = event.getX();
 		y = event.getY();
@@ -431,11 +441,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));//zx test point
 		for (int l = 0; indeciesOfNearbySamples!=null&&l<indeciesOfNearbySamples.size(); l++) {
 			i = indeciesOfNearbySamples.elementAt(l);
-			indi = sampleHash.get(samples[i]);
+			indi = sampleData.getIndiFromSampleHash(samples[i]);
 			g.setColor(colorScheme[determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
 			//g.setColor(Color.YELLOW);
 //			if (gcScores[i]<gcThreshold) {
-			if (alleleCounts[i]==-1) {
+//			if (currentClass==1 && alleleCounts[i]==-1) {
+			if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
 				g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize/2.0));
 			} else {
 				g.fillOval(getX(datapoints[0][i])-(int)(size*2)/2, getY(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
@@ -454,7 +465,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 		float[][] datapoints;
 		IndiPheno indi;
-		Hashtable<String,IndiPheno> sampleHash = sampleData.getSampleHash();
+//		Hashtable<String,IndiPheno> sampleHash = sampleData.getSampleHash();
 		float[] gcScores;
 		byte[] alleleCounts;
 		float gcThreshold;
@@ -499,7 +510,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		for (int l = 0; iv!=null&&l<iv.size(); l++) {
 			i = iv.elementAt(l);
 			if (Distance.euclidean(new int[] {x, y}, new int[] {getX(datapoints[0][i]), getY(datapoints[1][i])})<Math.sqrt(size*size/2)) {
-				indi = sampleHash.get(samples[i]);
+				indi = sampleData.getIndiFromSampleHash(samples[i]);
 				if (indi!=null) {
 					g.setColor(colorScheme[determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
 					if (gcScores[i]<gcThreshold) {
