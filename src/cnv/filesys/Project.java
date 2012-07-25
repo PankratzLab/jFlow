@@ -277,6 +277,7 @@ public class Project extends Properties {
 		if (Files.exists(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus())) {
 			return Sample.load(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus());
 		} else {
+			
 			return null;
 		}
 	}

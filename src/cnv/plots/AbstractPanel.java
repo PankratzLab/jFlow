@@ -96,6 +96,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean invertable;	//4/27/2012
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
+	protected IntVector indicesOfNaNSamples;	//zx
 	private boolean inDrag;
 	private int startX, startY;
 	private int plotPointSetSize;
@@ -301,8 +302,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		ProgressBarDialog prog;//zx
     	int recX, recY, recWidth, recHeight;
     	
-//   		System.out.println("pointsGeneratable="+pointsGeneratable);
-    	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
 		if (randomTest) {
@@ -383,9 +382,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		minimumObservedRawY = minimumObservedRawY>0?0:minimumObservedRawY;
 		
 		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX:forcePlotXmin;
-		maximumObservedRawX = Float.isNaN(forcePlotXmax)?maximumObservedRawX:forcePlotXmax;
+//		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX-(maximumObservedRawX-minimumObservedRawX)*(float)0.01:forcePlotXmin;
+//		maximumObservedRawX = Float.isNaN(forcePlotXmax)?maximumObservedRawX:forcePlotXmax;
+		maximumObservedRawX = Float.isNaN(forcePlotXmax)?(maximumObservedRawX+(maximumObservedRawX-minimumObservedRawX)*(float)0.01):forcePlotXmax;
 		minimumObservedRawY = Float.isNaN(forcePlotYmin)?minimumObservedRawY:forcePlotYmin;
-		maximumObservedRawY = Float.isNaN(forcePlotYmax)?maximumObservedRawY:forcePlotYmax;
+//		minimumObservedRawY = Float.isNaN(forcePlotYmin)?(minimumObservedRawY-(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmin;
+//		maximumObservedRawY = Float.isNaN(forcePlotYmax)?maximumObservedRawY:forcePlotYmax;
+		maximumObservedRawY =  Float.isNaN(forcePlotYmax)?(maximumObservedRawY+(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmax;
 		
 		if (makeSymmetric) {
 			maximumObservedRawX = Math.max(maximumObservedRawX, maximumObservedRawY);
@@ -395,6 +398,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 		
 		if (base) {
+			indicesOfNaNSamples = new IntVector();
 		
 			//g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
@@ -502,7 +506,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		System.err.println("("+canvasSectionMinimumX+"-"+canvasSectionMaximumX+","+canvasSectionMinimumY+"-"+canvasSectionMaximumY+")");
 
 		// Draw the lines
-		for (int i = 0; lines!=null&&i<lines.length&&flow; i++) {
+		for (int i = 0; lines!=null && i<lines.length && flow; i++) {
 //		for (int i = 0; lines!=null&&i<lines.length; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
 				Grafik.drawThickLine(g, getX(lines[i].getStartX()), getY(lines[i].getStartY()), getX(lines[i].getStopX()), getY(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
@@ -510,7 +514,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         }
 
 		// Draw the rectangles for clusterFilters
-		for (int i = 0; rectangles!=null&&i<rectangles.length&&flow; i++) {
+		for (int i = 0; rectangles!=null && i<rectangles.length && flow; i++) {
 //		for (int i = 0; rectangles!=null&&i<rectangles.length; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
 //				recX = getX(Math.min((int)rectangles[i].getStartX(), (int)rectangles[i].getStopX()));
@@ -563,13 +567,14 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		}
 
 		// Draw data points, also build the lookup matrix for nearby points.
-		locLookup.clear();	// -- This was here since Nathan's original code.
+		locLookup.clear();	// -- This was here in Nathan's original code.
 		prog = null;
 		time = new Date().getTime();
 		step = Math.max((points.length)/100, 1);
 		layers = new Hashtable<String,Vector<PlotPoint>>();
 		
-		for (int i = 0; i<points.length&&flow; i++) {
+		for (int i = 0; i<points.length && flow; i++) {
+//			System.out.println("loop");
 //		for (int i = 0; i<points.length; i++) {
 			if (base && i%step==0){
 				if (new Date().getTime() - time > 1000) {
@@ -588,7 +593,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				trav = points[i].getLayer()+"";
 				if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
 					if (trav.equals("0")) {
-						drawPoint(g, points[i]);
+						if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+							drawPoint(g, points[i]);
+						} else if (base) {
+							indicesOfNaNSamples.add(i);
+						}
 					} else {
 						if (layers.containsKey(trav)) {
 							layer = layers.get(trav);
@@ -627,10 +636,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		for (int i = 0; i<keys.length; i++) {
 			layer = layers.get(keys[order[i]]);
 			for (int j = 0; j<layer.size(); j++) {
-				drawPoint(g, layer.elementAt(j));
+				if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+					drawPoint(g, layer.elementAt(j));
+				} else {
+					indicesOfNaNSamples.add(j);
+					//TODO This is a problem
+				}
             }
         }
 
+		if (indicesOfNaNSamples!=null && indicesOfNaNSamples.size()>0) {
+			g.drawString(PlotPoint.NAN_STR+" (n="+indicesOfNaNSamples.size()+")", getX(0)-nanWidth/2, getY(0)+60+points[0].getSize()/2);
+		}
+		
 		if (base && displayGrid) {
 			for (double d = 0; d < 1.0; d+=0.1) {
 				g.drawLine(getX(d), getY(0), getX(d), getY(canvasSectionMaximumY));
@@ -856,7 +874,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				zoomSubsets[j][i] = i;
 			}
 		}
-	}	
+	}
 	
 	public void drawPoint(Graphics g, PlotPoint point) {
 		g.setColor(colorScheme[point.getColor()]);
@@ -881,7 +899,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 			break;
 		case PlotPoint.NOT_A_NUMBER:
-			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
+//			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
 			break;
 		default:
 			System.err.println("Error - invalid PlotPoint type");
@@ -1112,7 +1130,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		//System.out.print("\t iv size: "+iv.size());
 		IntVector indeciesOfDataPoints = new IntVector();
 		//System.out.println("---Log of lookup process---\nMouse pos\tMouse location\tNumber of nearby samples\tNearby sample index\tNearby sample location\tDistance");//test point
-		for (int i = 0; iv!=null&&i<iv.size(); i++) {
+		for (int i = 0; iv!=null && i<iv.size(); i++) {
 			//System.out.println(pos+"\t("+x+", "+y+")\t"+(iv==null?"null":iv.size())+"\t"+iv.elementAt(i)+"\t("+getX(points[iv.elementAt(i)].getRawX())+", "+getY(points[iv.elementAt(i)].getRawY())+")\t"+Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())}));//test point
 			if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
 				indeciesOfDataPoints.add(iv.elementAt(i));

@@ -211,6 +211,19 @@ public class PennCNV {
 		}
 	}
 
+	/**
+	 * Calculate the population BAF (B Allele Frequency based on all the samples available in the) data. Output is going to be saved on disk. In PennCnv, this file is also called snpFile.
+	 * @param proj The project you are going to run PennCNV on.
+	 * 
+	 * The output file looks like the the following:
+	 * 	Name    	Chr     Position    PFB
+	 * 	rs1000113   5       150220269   0.564615751221256
+	 * 	rs1000115   9       112834321   0.565931333264192
+	 * 	rs10001190  4       6335534		0.5668604380025
+	 * 	rs10002186  4       38517993    0.57141752993563
+	 * 	rs10002743  4       6327482		0.567557695424774
+	 * 
+	 */
 	public static void populationBAF(Project proj) {
 		PrintWriter writer;
 		FullSample samp;
@@ -284,6 +297,41 @@ public class PennCNV {
 		}
 	}
 
+
+	/**
+	 * Generate the GCModel file needed by PennCNV software (http://www.openbioinformatics.org/penncnv/).
+	 * @param proj The project you are going to run PennCNV on.
+	 * @param gcFile The user-supplied genome builds. Positions within each chromosome must be sorted by increasing order. For example, http://hgdownload.cse.ucsc.edu/goldenPath/hg18/database/gc5Base.txt.gz
+	 * @param outputFile The name of the GCModel file.
+	 * @param numwindow For each SNP, GC Content is calculated for the range of numwindow*5120 before its location through numwindow*5120 after. To use the default setting of 100, please enter 0.
+	 * 
+	 * In order to be able to cross-reference with the same feature in PennCNV, this code intends to base on cal_gc_snp.pl in PennCNV package. But since the difference between Java and Perl, significant structural changes have been made.
+	 * 
+	 * A sample gcfile looks like below (There is no header line):
+	 *	585     chr1    0       5120    chr1.0  5       1024    0       /gbdb/hg18/wib/gc5Base.wib      0       100     1024    59840   3942400
+	 *	585     chr1    5120    10240   chr1.1  5       1024    1024    /gbdb/hg18/wib/gc5Base.wib      0       100     1024    59900   3904400
+	 *	585     chr1    10240   15360   chr1.2  5       1024    2048    /gbdb/hg18/wib/gc5Base.wib      0       100     1024    55120   3411200
+	 *	585     chr1    15360   20480   chr1.3  5       1024    3072    /gbdb/hg18/wib/gc5Base.wib      0       100     1024    49900   3078800
+	 *	585     chr1    20480   25600   chr1.4  5       1024    4096    /gbdb/hg18/wib/gc5Base.wib      0       100     1024    47600   2682400
+	 *
+	 * A sample gcModel file (the output) look like this:
+	 *	Name    	Chr     Position    GC
+	 *	rs4961  	4       2876505 	48.6531211131841
+	 *	rs3025091   11      102219838   38.1080923507463
+	 *	rs3092963   3       46371942    44.4687694340796
+	 *	rs3825776   15      56534122    40.7894123134328
+	 *	rs17548390  6       3030512 	45.3604050062189
+	 *	rs2276302   11      113355350   43.8200598569652
+	 *     
+	 * snpFile or pfb file (Population B Allele Frequency) is an additional data file that is required by the corresponding feature in PennCNV but not here. It looks like the this:
+	 * 	Name    	Chr     Position    PFB
+	 * 	rs1000113   5       150220269   0.564615751221256
+	 * 	rs1000115   9       112834321   0.565931333264192
+	 * 	rs10001190  4       6335534		0.5668604380025
+	 * 	rs10002186  4       38517993    0.57141752993563
+	 * 	rs10002743  4       6327482		0.567557695424774
+	 * 
+	 */
 	public static void gcModel(Project proj, String gcFile, String outputFile, int numwindow) {
 		MarkerSet markerSet;
 		String[] markerNames;
@@ -292,37 +340,25 @@ public class PennCNV {
 
 		BufferedReader reader;
 		String[] line;
-		double[] gc;
 		PrintWriter writer;
 		byte curchr;
 		int curstart, curend, curcount;
+		boolean skip = false;
 		double cursum;
 		Hashtable<Byte, Byte> seen_chr = new Hashtable<Byte, Byte>();
 
 		int[] snp_count;
 		double[] snp_sum;
-		byte prechr     = -1;
-		int prestart    = -1;
-		int preend      = 0;
-		int windowcount = 0;
-		int windowsum   = 0;
+		byte prechr = -1;
+		int prestart = -1;
 
 		int chr_index;
-//		byte[] seen_chr;
-//		int count= 0;
-		
-//		alldata[];						//to be used in both the SnpFile (.pdf file) block and the GcFile block.
 		
 		// generate or load SnpFile (pbf file or Population B Allele Frequency)
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		chrs = markerSet.getChrs();	//to be used only in the SnpFile (.pdf file) block. But then in the outputFile.
 		positions = markerSet.getPositions();	//to be used only in the SnpFile (.pdf file) block. But then in the GcFile block.
-//		while (SnpFile.length) {
-//			push @{$alldata{$curchr}}, [$curpos, $curname];
-//			chrs[i] = curchr;
-//			positions[i] = curpos;
-//		}
 
 		// How do we know whether "numwindow==null" ???
 		if (numwindow==0) {
@@ -332,6 +368,7 @@ public class PennCNV {
 		snp_count = new int[markerNames.length];
 		snp_sum = new double[markerNames.length];
 		chr_index=0;
+
 		// load gcFile
 		try {
 			reader = new BufferedReader(new FileReader(gcFile));
@@ -343,57 +380,49 @@ public class PennCNV {
 				curcount = Integer.parseInt(line[11]);
 				cursum = Double.parseDouble(line[12]);
 				
-				if (curchr > 0) { //skip the random chromosomes!
-					//skip these annotations for 1Mb sliding windows (since we only care about 5kb window)
-//					m/1K.wib/ and next;
-//					curdata = alldata[curchr];
-//					if (curdata) {
-					
+				// For each record in gcFile, scan snpFile for the range of +/- numwindow*5120  
+				if (curchr>0) {
 					if (curchr == prechr) {
 						if (curstart < prestart) {
 							System.err.println("Error in gcFile: a record in chr"+curchr+" has position "+curstart+", less then the previous position $prestart");
 							System.exit(1);
 						}
 					} else if (seen_chr.containsKey(curchr)) {
-							System.err.println("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+gcFile+": at "+curchr+":"+curstart);
-							System.exit(1);
+						System.err.println("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+gcFile+": at "+curchr+":"+curstart);
+						System.exit(1);
 					} else {
 						seen_chr.put(curchr,(byte)1);
-					}
-					
-//					chr_index[curchr]= 0;
-//					(curdata-1);
-
-					if (chrs[chr_index]==curchr) {
-						while (positions[chr_index]<Math.max(curstart - numwindow*5120, 0)) {
-							chr_index ++;						
+	
+						skip = false;
+						if (chrs[chr_index]>curchr) {
+							chr_index=0;
 						}
-					} else if (chrs[chr_index]<curchr) {
-						while (chr_index<chrs.length && chrs[chr_index]!=curchr) {
+						while (chr_index<(chrs.length) && chrs[chr_index]!=curchr) {
 							chr_index ++;
 						}
-						if (chr_index==chrs.length) {
-							chr_index --;
-						}
-					} else {
-						chr_index = 0;
-						while (chr_index<chrs.length && chrs[chr_index]!=curchr) {
+					}
+	
+					if (!(curchr == prechr && skip)) {
+						while (chr_index<chrs.length && chrs[chr_index]==curchr && positions[chr_index]<Math.max(curstart - numwindow*5120, 0)) {
 							chr_index ++;
 						}
-						if (chr_index==chrs.length) {
-							chr_index --;
+						if (chr_index>=chrs.length) {
+							chr_index=0;
+							skip=true;
+						} else if (chrs[chr_index]!=curchr) {
+							skip=true;
+						} else {
+							for (int i = chr_index; i<snp_count.length && chrs[i]==curchr && positions[i]<=(curend + numwindow*5120); i++) {
+								snp_count[i] += curcount;
+								snp_sum[i] += cursum;
+							}
 						}
 					}
-					for (int i = chr_index; i<snp_count.length && chrs[i]==curchr && positions[i]<=(curend + numwindow*5120); i++) {
-						snp_count[i] += curcount;
-						snp_sum[i] += cursum;
-					}
-//					}
-//					count++;
+	
+					prestart = curstart;
+					prechr = curchr;
 				}
-				prestart = curstart;
-				prechr = curchr;
-				}
+			}
 			reader.close();
 		} catch (Exception e) {
 			System.err.println("Error reading from '" + gcFile + "'");

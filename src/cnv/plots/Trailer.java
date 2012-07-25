@@ -530,7 +530,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         } else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
         	track = GeneTrack.load(GeneSet.REFSEQ_TRACK, jar);
         } else {
-			JOptionPane.showMessageDialog(this, "Gene track is not installed. Gene boundaries will not be displayed.", "FYI", JOptionPane.INFORMATION_MESSAGE);
+//			JOptionPane.showMessageDialog(this, "Gene track is not installed. Gene boundaries will not be displayed.", "FYI", JOptionPane.INFORMATION_MESSAGE);
         	track = null;
         }
 		System.out.println("Loaded track in "+ext.getTimeElapsed(time));
@@ -824,7 +824,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			sample = newSample;
 			time = new Date().getTime();
 			System.out.print("Found "+sample+"...");
-			indiPheno = sampleData.getIndiPheno(sample);
+			indiPheno = sampleData.getIndiPheno(sample.toLowerCase());
 			if (indiPheno == null) {
 				JOptionPane.showMessageDialog(this, "Sample '"+sample+"' was not present in the SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
 				return;

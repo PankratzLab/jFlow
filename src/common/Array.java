@@ -2624,58 +2624,101 @@ public class Array {
 		return false;
 	}
 
-//	public static boolean isMultimodal(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired, double binSize) {
-//		return getLocalModes(array, percentDropFromPeakRequired, percentRegainInPeakRequired, binSize).length > 1;
-//	}
-//	
-//	public static double[] getLocalModes(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired, double binSize) {
-//		int numBins;
-//		int[] freqBinCounts;
-//		double[] freqBinCountsSmooth;
-//		double minValue;
-//		
-//		numBins = (int) ((Array.max(array)-Array.min(array))/binSize);
-//		minValue = Array.min(array);
-//		freqBinCounts = new int[numBins];
-//		for (int i=0; i<array.length; i++) {
-//			freqBinCounts[(int) (Math.floor(array[i]-minValue)/binSize)]++;
-//		}
-//
-//		//smoothing
-//		freqBinCountsSmooth = new double[freqBinCounts.length];
-//		for (int i=1; i<numBins-1; i++) {
-//			freqBinCountsSmooth[i]=(freqBinCounts[i-1]+freqBinCounts[i]+freqBinCounts[i+1])/3;
-//		}
-//		freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
-//		freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
-//
-//		return getLocalMaxima(freqBinCountsSmooth, percentDropInPeak);
-//	}
-//	
-//	public static double[] getLocalMaxima(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired) {
-//		double minValue, max, localMax, localMin;
-//		DoubleVector maxima;
-//		
-//		maxima = new DoubleVector();
-//		
-//		max = max(array);
-//
-//		localMax = Double.NEGATIVE_INFINITY;
-//		localMin = Double.POSITIVE_INFINITY;
-//		for (int i=0; i<array.length; i++) {
-//			if (array[i]>localMax) {
-//				localMax = array[i];
-//			} else if (localMax > max*percentRegainInPeakRequired && array[i]<(localMax*percentDropFromPeakRequired) && array[i]<localMin) {
-//				localMin = array[i];
-//				maxima.add(localMax);
-//				localMax = Double.NEGATIVE_INFINITY
-//			} else if (array[i]>=(localMax*percentDropFromPeakRequired)) {
-////				return true;
-//			}
-//		}
-////		return false;
-//		
-//		return maxima.toArray();
-//	}
+	public static boolean isMultimodal(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima, double binSize) {
+		return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima, binSize, true).length > 1;
+	}
+	
+	public static double[] getLocalModes(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima) {
+		return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima, (max(array)-min(array))/40, true);
+	}
+	
+	public static double[] getLocalModes(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima, double binSize, boolean sensitiveToSmallNumbers) {
+		int numBins;
+		int[] freqBinCounts;
+		double[] freqBinCountsSmooth;
+		double minValue;
+		int[] indicesOfLocalMaxima;
+		double[] modes;
+		
+		numBins = (int) ((Array.max(array)-Array.min(array))/binSize)+1;
+		minValue = Array.min(array);
+		freqBinCounts = new int[numBins];
+		for (int i=0; i<array.length; i++) {
+			freqBinCounts[(int)Math.floor((array[i]-minValue)/binSize)]++;
+		}
+
+		//smoothing
+		freqBinCountsSmooth = new double[freqBinCounts.length];
+		for (int i=1; i<numBins-1; i++) {
+			freqBinCountsSmooth[i]=(freqBinCounts[i-1]+freqBinCounts[i]+freqBinCounts[i+1])/3;
+		}
+		if (freqBinCounts.length >= 2) {
+			freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
+			freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
+		}
+
+		if (sensitiveToSmallNumbers) {
+			proportionOfGlobalMaxRequiredForLocalMaxima = Math.max(proportionOfGlobalMaxRequiredForLocalMaxima, Math.min(0.50, proportionOfGlobalMaxRequiredForLocalMaxima*proportionOfGlobalMaxRequiredForLocalMaxima*300/array.length));
+			if (array.length < 50) {
+//				System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
+			}
+		}
+		
+		indicesOfLocalMaxima = getIndicesOfLocalMaxima(freqBinCountsSmooth, proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima);
+		modes = new double[indicesOfLocalMaxima.length];
+		for (int i = 0; i < modes.length; i++) {
+			modes[i] = minValue+indicesOfLocalMaxima[i]*binSize+binSize/2;
+		}
+		return modes;
+	}
+
+	public static double[] smooth(double[] array, int numOfPositionsInOneDirection) {
+		double[] smoothed;
+		
+		smoothed = new double[array.length];
+
+		return smoothed;
+	}
+	
+	public static int[] getIndicesOfLocalMaxima(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima) {
+		double globalMax, localMax, localMin;
+		int indexOfLocalMax;
+		IntVector indicesOfMaxima;
+		
+		indicesOfMaxima = new IntVector();
+		
+		globalMax = max(array);
+		if (globalMax == min(array)) {
+			globalMax++;
+		}
+		
+		localMax = Double.NEGATIVE_INFINITY;
+		localMin = Double.POSITIVE_INFINITY;
+		indexOfLocalMax = -1;
+		for (int i=0; i<array.length; i++) {
+			if (array[i]>localMax) {
+				localMax = array[i];
+				indexOfLocalMax = i;
+			}
+			if (localMax >= globalMax*proportionOfGlobalMaxRequiredForLocalMaxima && array[i]<=(localMax*proportionOfLastPeakRequiredForNewLocalMinima)) {
+//				System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
+				localMin = array[i];
+				indicesOfMaxima.add(indexOfLocalMax);
+				localMax = Double.NEGATIVE_INFINITY;
+			}
+			if (array[i]>=(globalMax*proportionOfGlobalMaxRequiredForLocalMaxima)) {
+				if (localMin != Double.POSITIVE_INFINITY) {
+//					System.out.println("localMin="+localMin);
+				}
+				localMin = Double.POSITIVE_INFINITY;
+			}
+		}
+		if (localMin != Double.POSITIVE_INFINITY && localMax >= globalMax*proportionOfGlobalMaxRequiredForLocalMaxima && indexOfLocalMax != -1) {
+//			System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
+			indicesOfMaxima.add(indexOfLocalMax);
+		}
+		
+		return indicesOfMaxima.toArray();
+	}
 	
 }

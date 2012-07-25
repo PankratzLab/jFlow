@@ -23,7 +23,7 @@ import cnv.var.*;
 public class ScatterPlot extends JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
-	public static final int DEFAULT_GC_THRESHOLD = 25;
+	public static final int DEFAULT_GC_THRESHOLD = 15;
 	private static final String ALT_UP = "ALT UP";
 	private static final String ALT_DOWN = "ALT DOWN";
 	private static final String ALT_LEFT = "ALT LEFT";
@@ -1262,7 +1262,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 
-	public void updateQcPanel(int[] genotype, String[] sex, String[] otherClass) {
+	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass) {
 		float callRate=0;//zx
 		JLabel qcPanelLabel;//zx
 		//JLabel qcCallRateLabel;//zxu
@@ -1275,16 +1275,38 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		
 		alleleCounts = new int[3];
 		called = new String[genotype.length];
-		for (int i=0; i<genotype.length; i++){//zx
-			if (genotype[i]<=0) {
-				called[i] = "-1";
-				callRate++;//zx
-			} else {
-				called[i] = "1";
-				alleleCounts[genotype[i]-1]++;
-//				alleleCounts[genotype[i]]++;
+		if (chr==23) {
+			for (int i=0; i<genotype.length; i++) {
+				if (genotype[i]<=0) {
+					called[i] = "-1";
+					callRate++;//zx
+				} else {
+					called[i] = "1";
+					if (sex[i].equals("2")) {
+						alleleCounts[genotype[i]-1]++;
+					}
+				}
 			}
-			
+		} else if (chr==24) {
+			for (int i=0; i<genotype.length; i++) {
+				if (genotype[i]<=0) {
+					called[i] = "-1";
+					callRate++;//zx
+				} else {
+					called[i] = "1";
+				}
+			}
+		} else {
+			for (int i=0; i<genotype.length; i++) {
+				if (genotype[i]<=0) {
+					called[i] = "-1";
+					callRate++;//zx
+				} else {
+					called[i] = "1";
+					alleleCounts[genotype[i]-1]++;
+				}
+				
+			}
 		}
 		hweP = AlleleFreq.HWEsig(alleleCounts);
 		callRate=(genotype.length-callRate)*100/genotype.length;//zx

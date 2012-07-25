@@ -15,7 +15,7 @@ public class MarkerSet implements Serializable {
 	private String[] markerNames;
 	private byte[] chrs;
 	private int[] positions;
-	private byte[][] alleles; // two alleles per marker, with the A allele in index 0 and the B allele in index 1, the value is the index in MarkerSet.ALLELES 
+//	private byte[][] alleles; // two alleles per marker, with the A allele in index 0 and the B allele in index 1, the value is the index in MarkerSet.ALLELES 
 
 	public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
 		if (markerNames.length!=chrs.length||markerNames.length!=positions.length) {
@@ -58,10 +58,6 @@ public class MarkerSet implements Serializable {
 
 	public int[] getPositions() {
 		return positions;
-	}
-
-	public byte[][] getAlleles() {
-		return alleles;
 	}
 
 	public int[][] getPositionsByChr() {
@@ -231,7 +227,12 @@ public class MarkerSet implements Serializable {
 					System.err.println("Error - How can this be?");
 				}
 				for (int k = 0; k<indices.length; k++) {
-					markerData[indices[k]] = collection[Integer.parseInt(line[1])];
+					try {
+						markerData[indices[k]] = collection[Integer.parseInt(line[1])];
+					} catch (Exception e) {
+						System.err.println("Error - failed to load data for marker '"+line[0]+"' which is in collection "+line[1]+" may need to regenerate the markerLookup file");
+					}
+					
 					if (markerData[indices[k]].getFingerprint()!=fingerprint) {
 						System.err.println("Error - mismatched fingerprint after MarkerLookup");
 					}					
@@ -246,20 +247,20 @@ public class MarkerSet implements Serializable {
 		return markerData;
 	}
 	
-	public byte[] translateABtoForwardGenotypes(byte[] abGenotypes) {
+	public byte[] translateABtoForwardGenotypes(byte[] abGenotypes, char[][] abLookup) {
 		byte[] result = new byte[abGenotypes.length];
 		String geno;
 		
 		for (int i=0; i<abGenotypes.length; i++) {
 			switch (abGenotypes[i]) {
 			case 0:
-				geno = alleles[i][0]+alleles[i][0]+"";
+				geno = abLookup[i][0]+""+abLookup[i][0];
 				break;
 			case 1:
-				geno = alleles[i][0]+alleles[i][1]+"";
+				geno = abLookup[i][0]+""+abLookup[i][1];
 				break;
 			case 2:
-				geno = alleles[i][1]+alleles[i][1]+"";
+				geno = abLookup[i][1]+""+abLookup[i][1];
 				break;
 			case -1:
 				geno = FullSample.ALLELE_PAIRS[0];
@@ -268,6 +269,7 @@ public class MarkerSet implements Serializable {
 				System.err.println("Error - invalid AB genotype: "+abGenotypes[i]);
 				geno = null;
 			}
+//			System.out.println(geno);
 			for (byte j=0; j<FullSample.ALLELE_PAIRS.length; j++) {
 				if (geno.equals(FullSample.ALLELE_PAIRS[j])) {
 					result[i]=j;
@@ -277,5 +279,4 @@ public class MarkerSet implements Serializable {
 		
 		return result;
 	}
-
 }

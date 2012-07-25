@@ -1527,7 +1527,7 @@ public class Files {
 	        			return;
 	        		}
 	                reader = new BufferedReader(new FileReader(originalFiles[i]));
-	                for (int j = 0; j < skips[i]; j++) {
+	                for (int j = 0; skips != null && j < skips[i]; j++) {
 	                	reader.readLine();
 					}
 	                while (reader.ready()) {

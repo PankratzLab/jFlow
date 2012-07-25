@@ -119,9 +119,9 @@ public class SampleData {
 				indi = new IndiPheno();
 				
 				ids = new String[] {line[dnaIndex], line[famIndex]+"\t"+line[indIndex], line[indIndex]};
-				lookup.put(line[dnaIndex], ids);
-				lookup.put(line[famIndex]+"\t"+line[indIndex], ids);
-				lookup.put(line[indIndex], ids);
+				lookup.put(line[dnaIndex].toLowerCase(), ids);
+				lookup.put(line[famIndex].toLowerCase()+"\t"+line[indIndex].toLowerCase(), ids);
+				lookup.put(line[indIndex].toLowerCase(), ids);
 				
 				dv = new DoubleVector();
 				for (int i = 0; i<filterIs.size(); i++) {
@@ -198,7 +198,7 @@ public class SampleData {
 		IndiPheno indi;
 		String[] ids;
 		
-		indi = sampleHash.get(id);
+		indi = sampleHash.get(id.toLowerCase());
 //		indi = sampleHash.get("S_"+id);
 //		sampleLookup.put("FI_"+line[famIndex]+"\t"+line[indIndex], "S_"+line[dnaIndex]);
 //		sampleLookup.put("I_"+line[indIndex], "S_"+line[dnaIndex]);
@@ -207,7 +207,7 @@ public class SampleData {
 //		indLookup.put("FI_"+line[famIndex]+"\t"+line[dnaIndex], "I_"+line[indIndex]);
 //		indLookup.put("S_"+line[dnaIndex], "I_"+line[indIndex]);
 		if (indi == null) {
-			ids = lookup.get(id);
+			ids = lookup.get(id.toLowerCase());
 			if (ids != null) {
 				indi = sampleHash.get(ids[0]);
 			}
@@ -248,7 +248,7 @@ public class SampleData {
 			indi = sampleHash.get(inds[i]);
 //			trav = lookup.get(inds[i]);
 //			trav = famIndLookup.get("S_"+inds[i]);
-			trav = lookup.get(inds[i])[1];
+			trav = lookup.get(inds[i].toLowerCase())[1];
 
 			finalHashes = new Vector<Hashtable<String,CNVariant[]>>();
 			for (int j = 0; j<files.length; j++) {
@@ -289,7 +289,7 @@ public class SampleData {
 
 	
 	public String[] lookup(String str) {
-		return lookup.get(str);
+		return lookup.get(str.toLowerCase());
 	}
 	
 	public IndiPheno getIndiFromSampleHash(String sampleID) {
@@ -301,14 +301,14 @@ public class SampleData {
 	}
 
 	public IndiPheno getIndiPheno(String sample) {
-		return sampleHash.get(sample);
+		return sampleHash.get(sample.toLowerCase());
 	}
 	
 	public byte getClassForInd(String sample, int currentClass) {
 		int[] classes;
 		IndiPheno indi;
 		
-		indi = sampleHash.get(sample);
+		indi = sampleHash.get(sample.toLowerCase());
 		if (indi == null) {
 			return 0;
 		}

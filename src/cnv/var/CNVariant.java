@@ -2,6 +2,7 @@ package cnv.var;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 import filesys.Segment;
 
@@ -152,6 +153,51 @@ public class CNVariant extends Segment {
 		return null;
 	}
 	
+	public static void mergeCNVs(String filename) {
+			BufferedReader reader;
+			String[] line;
+			PrintWriter writer;
+			Hashtable<String, Vector<CNVariant>> hash;
+			hash = new Hashtable<String, Vector<CNVariant>>();
+			StringVector markerNames;
+			ByteVector chrs;
+			IntVector positions;
+			
+	//		hash.add(fID+"\t"+iId, Vector<CNVariant>);
+			try {
+				reader = new BufferedReader(new FileReader(filename));
+	
+				markerNames = new StringVector();
+				chrs = new ByteVector();
+				positions = new IntVector();
+	
+				reader.readLine();
+				while(reader.ready()) {
+					line = reader.readLine().trim().split("[\\s]+");
+					markerNames.add(line[0]);
+					chrs.add((byte)Positions.chromosomeNumber(line[1]));
+					positions.add(Integer.parseInt(line[2]));
+				}
+				reader.close();
+				/*
+				new MarkerSet(markerNames, chrs, positions).serialize(filename+".ser");
+
+				writer = new PrintWriter(new FileWriter("????"));
+				for (int i = 0; i<temp.length; i++) {
+					writer.println(temp[i].toPlinkFormat());
+				}
+				writer.close();
+				*/
+
+			} catch (FileNotFoundException fnfe) {
+				System.err.println("Error: file \""+filename+"\" not found in current directory");
+				System.exit(1);
+			} catch (IOException ioe) {
+				System.err.println("Error reading file \""+filename+"\"");
+				System.exit(2);
+			}
+		}
+
 	public static void findConsensus(String file1, String file2) {
 		PrintWriter writer;
 		CNVariant[] list1, list2, consensus;
@@ -195,7 +241,6 @@ public class CNVariant extends Segment {
 	public static CNVariant[] sort(CNVariant[] array) {
 		return putInOrder(array, quicksort(array));
 	}
-	
 	
 	public static void main(String[] args) {
 		String file1 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\penncnv\\again_noGenderProblems\\conf_0kb_5SNP_10.0.cnv";

@@ -26,6 +26,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String LRR_SD = "Check LRR stdevs";
 	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
 	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
+	public static final String CNP_SCAN = "Scan for Problem SNP";
 	public static final String SCATTER = "Scatter module";
 	public static final String QQ = "QQ module";
 	public static final String STRAT = "Stratify module";
@@ -40,7 +41,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String GCMODEL = "GC Model";
 	public static final String TWOD = "2D Plot";
 
-	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD}; 
+	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD}; 
 
 	private boolean jar;
 	private JComboBox<String> projectsBox;
@@ -148,7 +149,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	//			nohup vis -Xmx15g -d64 cnv.manage.ExtractPlots per=250 proj=current.proj
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				String filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
-				if ( filename==null || (!filename.equals("cancel")) ) {
+				if ( filename!=null || (!filename.equals("cancel")) ) {
+//					String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
+//					if () {
+//						
+//					}
 					cnv.manage.PlinkFormat.createPlink(proj, filename);
 					CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
 					new File(proj.getProjectDir()+"genome/").mkdirs();
@@ -168,6 +173,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
 			} else if (command.equals(LRR_SD)) {
 				cnv.qc.LrrSd.init(proj, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+			} else if (command.equals(CNP_SCAN)) {
+				new ScanForProblemSnp(proj, "CNPScanResult.txt");
 			} else if (command.equals(SCATTER)) {
 				new ScatterPlot(proj);
 			} else if (command.equals(QQ)) {
@@ -198,7 +205,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			} else if (command.equals(TEST)) {
 				System.out.println("Testing latest subroutine");
 //				Mosaicism.checkForOverlap(proj);
-				ParseIllumina.parseAlleleLookup(proj);
+//				ParseIllumina.parseAlleleLookup(proj);
+				new Test_CnpDetection(proj);
 			} else if (command.equals(GCMODEL)) {
 				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
 			} else if (command.equals(TWOD)) {

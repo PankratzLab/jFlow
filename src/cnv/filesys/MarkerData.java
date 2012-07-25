@@ -5,8 +5,13 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import mining.Distance;
+
 import stats.Correlation;
 import common.Array;
+import common.CmdLine;
+import common.DoubleVector;
+import common.IntVector;
 
 public class MarkerData implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -144,6 +149,17 @@ public class MarkerData implements Serializable {
 		return abGenotypes;
 	}
 
+	public int[] getAB_GenotypeCount() {
+		int[] result;
+		result = new int[3];
+		for (int i=0; i<abGenotypes.length; i++) {
+			if(abGenotypes[i]!=-1) {
+				result[abGenotypes[i]]++;
+			}
+		}
+		return result;
+	}
+
 	public boolean[] getHighlightStatus(ClusterFilter clusterFilter) {
 		byte[] original;
 		boolean[] result;
@@ -196,6 +212,7 @@ public class MarkerData implements Serializable {
 		float[] realX;
 		float[] realY;
 		ArrayList<ClusterFilter> clusterFilters;
+		ClusterFilter clusterFilter;
 		int counter;
 		
 		original = getAB_Genotypes(); 
@@ -211,7 +228,8 @@ public class MarkerData implements Serializable {
 		clusterFilters = clusterFilterCollection.getClusterFilters(markerName);
 		for (int i=0; clusterFilters != null && i < clusterFilters.size(); i++) {
 			// get appropriate data (X/Y Theta/R LRR/BAF)
-			switch(clusterFilters.get(i).getPlotType()) {
+			clusterFilter = clusterFilters.get(i);
+			switch(clusterFilter.getPlotType()) {
 			case 0:
 				realX = getX_Raws();
 				realY = getY_Raws();
@@ -234,11 +252,8 @@ public class MarkerData implements Serializable {
 			}
 			counter = 0;
 			for (int j=0; j<result.length; j++) {
-				if (realX[j]>=clusterFilters.get(i).getXMin()
-				 && realY[j]>=clusterFilters.get(i).getYMin()
-				 && realX[j]<=clusterFilters.get(i).getXMax()
-				 && realY[j]<=clusterFilters.get(i).getYMax()) {
-					result[j]=clusterFilters.get(i).getNewGenotype();
+				if (realX[j]>=clusterFilter.getXMin() && realY[j]>=clusterFilter.getYMin() && realX[j]<=clusterFilter.getXMax() && realY[j]<=clusterFilter.getYMax()) {
+					result[j]=clusterFilter.getNewGenotype();
 					counter ++;
 				}
 			}
@@ -303,4 +318,177 @@ public class MarkerData implements Serializable {
 			e.printStackTrace();
 		}
 	}
+	
+	public int detectCNP() {
+		return detectCNP(0.05, 0.15);
+	}
+
+	public int detectCNP(double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima) {
+		float[][] clusterCenters;
+		DoubleVector x = new DoubleVector();
+		DoubleVector y = new DoubleVector();
+		float ab_bb_xMidpoint, aa_ab_yMidpoint; 
+		
+		clusterCenters = Centroids.computeClusterCenters(this, null, 0.50);
+////		if (clusterCenters[0].length == 0 || clusterCenters[1].length == 0 || clusterCenters[2].length == 0) {
+////			return -1;
+////		}
+//		if (clusterCenters[0]!=null && clusterCenters[0].length!=0 && clusterCenters[1]!=null && clusterCenters[1].length!=0 && (clusterCenters[2]==null || clusterCenters[2].length==0)) {
+////			ab_bb_xMidpoint = 0;	//should this be maximum?
+//			ab_bb_xMidpoint = 1;
+//			aa_ab_yMidpoint = Array.mean(new float[] {clusterCenters[0][1], clusterCenters[1][1]});
+//		} else if ((clusterCenters[0]==null || clusterCenters[0].length==0) && clusterCenters[1]!=null && clusterCenters[1].length!= 0 && clusterCenters[2]!=null && clusterCenters[2].length!=0) {
+//			ab_bb_xMidpoint = Array.mean(new float[] {clusterCenters[1][0], clusterCenters[2][0]});
+////			aa_ab_yMidpoint = 0;	//should this be maximum?
+//			aa_ab_yMidpoint = 1;
+//		} else {
+//			ab_bb_xMidpoint = Array.mean(new float[] {clusterCenters[1][0], clusterCenters[2][0]});
+//			aa_ab_yMidpoint = Array.mean(new float[] {clusterCenters[0][1], clusterCenters[1][1]});
+//		}
+		
+		if (clusterCenters[0] == null) {
+			clusterCenters[0] = new float[] {1, 0};
+		}
+
+		if (clusterCenters[1] == null) {
+			clusterCenters[1] = new float[] {1, 1};
+		}
+
+		if (clusterCenters[2] == null) {
+			clusterCenters[2] = new float[] {0, 1};
+		}		
+		
+		ab_bb_xMidpoint = Array.mean(new float[] {clusterCenters[1][0], clusterCenters[2][0]});
+		aa_ab_yMidpoint = Array.mean(new float[] {clusterCenters[0][1], clusterCenters[1][1]});
+		
+
+		x = new DoubleVector();
+		y = new DoubleVector();
+
+		for (int i=0; i<xs.length; i++) {
+			if (xs[i] < ab_bb_xMidpoint) {
+				x.add(xs[i]);
+			}
+			if (ys[i] < aa_ab_yMidpoint) {
+				y.add(ys[i]);
+			}
+		}
+
+//		if (Array.isBimodal(x.toArray()) || Array.isBimodal(y.toArray())) {
+//			return 1;
+//		} else {
+//			return 0;
+//		}
+//		System.out.print(x.size()+"\t"+y.size()+"\t");
+
+		return (x.size()>0?Array.getLocalModes(x.toArray(), proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima).length:0) + (y.size()>0?Array.getLocalModes(y.toArray(), proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima).length:0);
+	}
+
+	public byte[] detectClusters() {
+		return detectClusters(0.01, 3);
+	}
+
+	public byte[] detectClusters(double epsilon, int minPoints) {
+		byte currentClusterLabel;
+		byte[] clusterLabels;
+		IntVector neighborPoints;
+		IntVector neighborPointsExt;
+		boolean exit;
+		ArrayList<ArrayList<Integer>> clusters;
+		
+		currentClusterLabel = 1;
+		clusterLabels = new byte[xs.length];
+		for (int i=0; i<xs.length; i++) {
+			if (clusterLabels[i]!=0) {
+				neighborPoints = new IntVector();
+				for (int j=0; j<xs.length; j++) {
+					if (Distance.euclidean(new double[] {xs[i], ys[i]}, new double[] {xs[j], ys[j]}) <= epsilon) {
+						neighborPoints.add(j);
+					}
+				}
+	
+				if (neighborPoints.size() < minPoints) {
+					//TODO border point vs. noise point
+				} else {
+					clusterLabels[i]=currentClusterLabel;
+					exit = false;
+					while (!exit) {
+						neighborPointsExt = new IntVector();
+						for (int j=i; j<neighborPoints.size(); j++) {
+							if (clusterLabels[j]!=0) {
+								clusterLabels[j]=currentClusterLabel;
+								for (int k=0; k<xs.length; k++) {
+									if (!neighborPoints.contains(k) && !neighborPointsExt.contains(k) && Distance.euclidean(new double[] {xs[j], ys[j]}, new double[] {xs[k], ys[k]}) <= epsilon) {
+										neighborPointsExt.add(k);
+										clusterLabels[k]=currentClusterLabel;
+									}
+								}
+							}
+							if (neighborPointsExt.size()>0) {
+								neighborPoints=neighborPointsExt;
+								exit = false;
+							} else {
+								exit = true;
+							}
+						}
+					}
+				}
+				currentClusterLabel ++;
+			}
+		}
+
+		return clusterLabels;
+	}
+
+//	public byte[] detectClusters(double epsilon, int minPoints) {
+//		byte currentClusterLabel;
+//		byte[] clusterLabels;
+//		IntVector neighborPoints;
+//		IntVector neighborPointsExt;
+//		boolean exit;
+//		
+//		currentClusterLabel = 1;
+//		clusterLabels = new byte[xs.length];
+//		for (int i=0; i<xs.length; i++) {
+//			if (clusterLabels[i]!=0) {
+//				neighborPoints = new IntVector();
+//				for (int j=0; j<xs.length; j++) {
+//					if (Distance.euclidean(new double[] {xs[i], ys[i]}, new double[] {xs[j], ys[j]}) <= epsilon) {
+//						neighborPoints.add(j);
+//					}
+//				}
+//	
+//				if (neighborPoints.size() < minPoints) {
+//					//TODO border point vs. noise point
+//				} else {
+//					clusterLabels[i]=currentClusterLabel;
+//					exit = false;
+//					while (!exit) {
+//						neighborPointsExt = new IntVector();
+//						for (int j=i; j<neighborPoints.size(); j++) {
+//							if (clusterLabels[j]!=0) {
+//								clusterLabels[j]=currentClusterLabel;
+//								for (int k=0; k<xs.length; k++) {
+//									if (!neighborPoints.contains(k) && !neighborPointsExt.contains(k) && Distance.euclidean(new double[] {xs[j], ys[j]}, new double[] {xs[k], ys[k]}) <= epsilon) {
+//										neighborPointsExt.add(k);
+//										clusterLabels[k]=currentClusterLabel;
+//									}
+//								}
+//							}
+//							if (neighborPointsExt.size()>0) {
+//								neighborPoints=neighborPointsExt;
+//								exit = false;
+//							} else {
+//								exit = true;
+//							}
+//						}
+//					}
+//				}
+//				currentClusterLabel ++;
+//			}
+//		}
+//
+//		return clusterLabels;
+//	}
+
 }

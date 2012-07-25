@@ -128,7 +128,7 @@ public class ClusterFilter implements Serializable {
 					&& realY[i]>=getYMin()
 					&& realX[i]<=getXMax()
 					&& realY[i]<=getYMax()) {
-				cluster = "3";
+				cluster = "3";	//"3" identifies the data points within the cluster filter
 			} else {
 				cluster = genotypes[i]+"";
 			}
@@ -140,7 +140,7 @@ public class ClusterFilter implements Serializable {
 			iv.add(i);
 		}
 		
-		// Find the old genotype
+		// Find the existing genotype of the data points within the cluster filter
 		iv = hash.get("3");
 		if (iv!=null) {
 			/*
@@ -158,6 +158,7 @@ public class ClusterFilter implements Serializable {
 					}
 				}
 			}
+			// Search for the maximum in int[] genotypeCount 
 			if (oldGenotype==-2) {
 				genotypeFrequencyCount=-1;
 				for (byte i=0; i<3; i++){
@@ -190,6 +191,9 @@ public class ClusterFilter implements Serializable {
 							result = i;
 						}
 					}
+				} else if (i!=3 && genotypeCount[i]>0 && genotypeCount[i]==Math.max(genotypeCount[0], Math.max(genotypeCount[1], genotypeCount[2]))) {
+					result = i;
+					break;
 				}
 			}
 

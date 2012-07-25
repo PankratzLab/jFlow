@@ -3,6 +3,7 @@ package cnv.filesys;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import common.Array;
 import common.DoubleVector;
@@ -173,46 +174,49 @@ public class FullSample implements Serializable {
 	}
 	
 
-	public byte[] getAB_GenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
-		byte[] result = new byte[abGenotypes.length];
+	public byte[] getAB_GenotypesAfterFilters(String[] markerNames, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+		byte[] result;
 		float realX;
 		float realY;
+		ClusterFilter clusterFilter;
+		ArrayList<ClusterFilter> clusterFilterArray;
 
-		for (int i=0; i<result.length; i++) {
+		result = new byte[abGenotypes.length];
+		for (int i=0; i<markerNames.length; i++) {
 			if (getGCs()[i]<gcThreshold) {
-				result[i]=(byte)-1;					//???????
+				result[i]=(byte)-1;
 			} else {
-				for (int j=0; j<clusterFilterCollection.getMarkerNames().length; j++) {
-					for (int k=0; k<clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).size(); k++) {
-						switch(clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getPlotType()) {
-						case 0:
-							realX = xRaws[i];
-							realY = yRaws[i];
-							break;
-						case 1:
-							realX = xs[i];
-							realY = ys[i];
-							break;
-						case 2:
-							realX = thetas[i];
-							realY = rs[i];
-							break;
-						case 3:
-							realX = bafs[i];
-							realY = lrrs[i];
-							break;
-						default:
-							realX = xs[i];
-							realY = ys[i];
-						}
-						if (realX>=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getXMin()
-						 && realY>=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getYMin()
-						 && realX<=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getXMax()
-						 && realY<=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getYMax()) {
-							result[i]=clusterFilterCollection.getClusterFilters(clusterFilterCollection.getMarkerNames()[j]).get(k).getNewGenotype(); //???
-						} else {
-							result[i]=abGenotypes[j];
-						}
+				result[i]=abGenotypes[i];
+			}
+			
+			clusterFilterArray = clusterFilterCollection.getClusterFilters(markerNames[i]);
+			if (clusterFilterArray != null) {
+				for (int j=0; j<clusterFilterArray.size(); j++) {
+					clusterFilter = clusterFilterArray.get(j);
+					switch(clusterFilter.getPlotType()) {
+					case 0:
+						realX = xRaws[i];
+						realY = yRaws[i];
+						break;
+					case 1:
+						realX = xs[i];
+						realY = ys[i];
+						break;
+					case 2:
+						realX = thetas[i];
+						realY = rs[i];
+						break;
+					case 3:
+						realX = bafs[i];
+						realY = lrrs[i];
+						break;
+					default:
+						System.err.println("Error - invalid PlotType in ClusterFilter #"+(j+1)+" for marker '"+markerNames[i]+"'");
+						realX = -9;
+						realY = -9;
+					}
+					if (realX>=clusterFilter.getXMin() && realY>=clusterFilter.getYMin() && realX<=clusterFilter.getXMax() && realY<=clusterFilter.getYMax()) {
+						result[i]=clusterFilter.getNewGenotype();
 					}
 				}
 			}

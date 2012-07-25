@@ -15,6 +15,7 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.IntVector;
+import common.ext;
 
 import cnv.plots.GenericRectangle;
 
@@ -60,8 +61,8 @@ public class ClusterFilterCollection implements Serializable {
 		return (byte) (hash.get(markerName)==null?0:hash.get(markerName).size());//???
 	}
 
-	public byte getSize () {
-		return (byte) (hash==null?0:hash.size());//???
+	public int getSize () {
+		return (hash==null?0:hash.size());
 	}
 
 	//??? How to select the last filter???
@@ -256,6 +257,28 @@ public class ClusterFilterCollection implements Serializable {
 		return result;
 	}
 
+	public static String getGenotypeLookupTableSelection(Project proj) {
+		/*
+		return (String) JOptionPane.showInputDialog(null,
+													"Please select a cluster filter file:",
+													"Apply Cluster Filters",
+													JOptionPane.QUESTION_MESSAGE,
+													null,
+													Files.list(proj.getDir(Project.DATA_DIRECTORY), null, proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME), false, proj.getJarStatus()),
+													proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME));
+		*/
+
+		String result;
+		result = (String)JOptionPane.showInputDialog(null,
+													"Please select a AB genotyp lookup table:",
+													"Select AB Genotype Lookup Table",
+													JOptionPane.QUESTION_MESSAGE,
+													null,
+													new String[] {"Lookup Table 1", "Lookup Table 2", "Lookup Table 3"},
+													proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME));
+		return result;
+	}
+
 	public static String getClusterFilterFilenameSelection_Old(Project proj) {
 		JFrame frame;
 		JLabel label;
@@ -317,6 +340,107 @@ public class ClusterFilterCollection implements Serializable {
 		}
 
 		return index<=0?null:options.get(index);
+	}
+	
+	public static void merge(String[] filenames, String outfile) {
+		String[] markerNames;
+		ClusterFilterCollection master, trav;
+		Vector<String> v = new Vector<String>();
+		ArrayList<ClusterFilter> masterArray, travArray;
+		
+		master = new ClusterFilterCollection();
+		for (int i = 0; i < filenames.length; i++) {
+			trav = load(filenames[i], false);
+			markerNames = trav.getMarkerNames();
+			for (int j = 0; j < markerNames.length; j++) {
+				masterArray = master.getClusterFilters(markerNames[j]);
+				travArray = trav.getClusterFilters(markerNames[j]);
+				if (masterArray != null) {
+					HashVec.addIfAbsent(markerNames[j], v);
+				}
+				for (int k = 0; k < travArray.size(); k++) {
+					master.addClusterFilter(markerNames[j], travArray.get(k));
+				}
+			}
+		}
+		
+		master.serialize(outfile);
+		
+		if (v.size() > 0) {
+			System.out.println("The following markers had cluster filters in multiple files:");
+			System.out.println(Array.toStr(Array.toStringArray(v), "\n"));
+		}
+			
+	}
+	
+	public static void describe(String filename) {
+		PrintWriter writer;
+		String[] markerNames;
+		ClusterFilterCollection trav;
+		int count;
+		
+		trav = load(filename, false);
+
+		count = 0;
+		try {
+			writer = new PrintWriter(new FileWriter(ext.rootOf(filename)+"_described.xln"));
+			writer.println("MarkerName\t#filters");
+			markerNames = trav.getMarkerNames();
+			for (int i = 0; i < markerNames.length; i++) {
+				writer.println(markerNames[i]+"\t"+trav.getClusterFilters(markerNames[i]).size());
+				count += trav.getClusterFilters(markerNames[i]).size();
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + ext.rootOf(filename)+"_described.xln");
+			e.printStackTrace();
+		}
+		
+		System.out.println("There were a total of "+count+" clusterFilters across "+trav.getSize()+" markers");
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String[] filenames = null;
+		String out = "merged.ser";
+		String filename = "clusterFilters.ser";
+
+		String usage = "\n" + 
+				"cnv.filesys.ClusterFilterCollection requires 0-1 arguments\n" +
+				"   (1) names of clusterFilter files to merge (i.e. files=file1.ser,file2.ser,file3.ser (not the default))\n" + 
+				"   (2) output filename (i.e. out="+out+" (default))\n" +
+				" OR:\n" +
+				"   (1) names of clusterFilter file to describe (i.e. files="+filename+" (default))\n" + 
+				"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("files=")) {
+				filenames = args[i].split("=")[1].split(",");
+				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				out = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+//		filenames = new String[] {"clusterFilters_part1.ser", "clusterFilters_part2.ser"};
+		try {
+			if (filenames != null) {
+				merge(filenames, out);
+			} else {
+				describe(filename);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 }

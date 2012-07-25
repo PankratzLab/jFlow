@@ -4,6 +4,7 @@ package cnv.manage;
 import java.io.*;
 import java.util.*;
 
+import cnv.filesys.ABLookup;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.FullSample;
 import cnv.filesys.MarkerSet;
@@ -28,9 +29,9 @@ public class PlinkFormat {
 		String genotype;
 		int count;
 		float gcThreshold;
-		float[] gcs;
 		String targetMarkers;
 		ClusterFilterCollection clusterFilterCollection;
+		char[][] abLookup;
 
 		System.out.println(ext.getTime());
 		hash = new Hashtable<String,String>();
@@ -108,6 +109,9 @@ public class PlinkFormat {
 				System.err.println("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
 				return;
 			}
+			abLookup = new ABLookup(markerNames, proj.getProjectDir()+"AB_lookup.dat", true, true).getLookup();
+		} else {
+			abLookup = null;
 		}
 		
 		try {
@@ -115,7 +119,10 @@ public class PlinkFormat {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"gwas.ped"));
 			count = 1;
 			while (reader.ready()) {
-				System.out.println(count++);
+				count++;
+				if (count % 100 == 0) {
+					System.out.println(count);
+				}
 				line = reader.readLine().split("[\\s]+");
 				writer.print(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
 				if (line[6].equals(".")) {
@@ -133,9 +140,8 @@ public class PlinkFormat {
 						if (clusterFilterFilename == null) {
 							genotypes = fsamp.getForwardGenotypes(gcThreshold);
 						} else {
-							genotypes = markerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(clusterFilterCollection, gcThreshold));
+							genotypes = markerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(markerNames, clusterFilterCollection, gcThreshold), abLookup);
 						}
-						gcs = fsamp.getGCs();
 						for (int i = 0; i<indices.length; i++) {
 							genIndex = genotypes[indices[i]];
 							if (genIndex==0) {
