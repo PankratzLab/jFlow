@@ -9,44 +9,44 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
+import cnv.var.SampleData;
+
 import common.Array;
 import common.Files;
 import common.HashVec;
 import common.ext;
-import cnv.var.SampleData;
 
 public class Project extends Properties {
 	public static final long serialVersionUID = 1L;
-//	public static final String DEFAULT_PROJECT = "these.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/pd_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/HumanHap550_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortium.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplication.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
-//	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
+	// public static final String DEFAULT_PROJECT = "these.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/pd_win.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/HumanHap550_win.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortium.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplication.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
+	// public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
 	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/practice.properties";
-//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/twodplot.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/demo.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/pd_win.properties";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/HumanHap550_win.properties";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/myron_excision.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_excision.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/sing550_win.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortium.properties";
+	// public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/twodplot.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
+	// public static final String DEFAULT_PROJECT = "/home/npankrat/projects/demo.proj";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/pd_win.properties";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/HumanHap550_win.properties";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/myron_excision.proj";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_excision.proj";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/sing550_win.proj";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortium.properties";
 	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortiumReplication.properties";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_indian_diabetes.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/boss.proj";
-	
-	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/demo.properties";
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_win.properties";
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/load_win.properties";
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/sing550_win.proj";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_indian_diabetes.proj";
+	// public static final String DEFAULT_CURRENT = "/home/npankrat/projects/boss.proj";
 
+	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/demo.properties";
+	// public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_win.properties";
+	// public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/load_win.properties";
+	// public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/sing550_win.proj";
 
 	public static final String DEFAULT_PROPERTIES = "cnv/filesys/default.properties";
 
@@ -100,52 +100,53 @@ public class Project extends Properties {
 	public static final String CLUSTER_FILTER_COLLECTION_FILENAME = "CLUSTER_FILTER_COLLECTION_FILENAME";
 	public static final String SEXCHECK_RESULTS_FILENAME = "SEXCHECK_RESULTS_FILENAME";
 	public static final String TWOD_LOADED_FILENAMES = "TWOD_LOADED_FILENAMES";
+	public static final String GENETRACK_FILENAME = "GENETRACK_FILENAME";
 
 	private boolean jar;
 
 	public Project() {
 		Files.loadProperties(this, DEFAULT_PROPERTIES, true, true, false);
 	}
-	
+
 	public Project(String filename, boolean jar) {
 		this();
-		
+
 		screenProperties(filename);
 		Files.loadProperties(this, filename, jar, true, false);
 
-        setProperty(PROJECT_DIRECTORY, ext.verifyDirFormat(getProperty(PROJECT_DIRECTORY)));
-        setProperty(SOURCE_DIRECTORY, ext.verifyDirFormat(getProperty(SOURCE_DIRECTORY)));
-        setProperty(PROJECT_PROPERTIES_FILENAME, filename);
-        
-        this.jar = jar;
+		setProperty(PROJECT_DIRECTORY, ext.verifyDirFormat(getProperty(PROJECT_DIRECTORY)));
+		setProperty(SOURCE_DIRECTORY, ext.verifyDirFormat(getProperty(SOURCE_DIRECTORY)));
+		setProperty(PROJECT_PROPERTIES_FILENAME, filename);
+
+		this.jar = jar;
 	}
 
 	public String getDir(String directory) {
 		return getDir(directory, false);
 	}
-	
+
 	public String getDir(String directory, boolean mkdirs) {
 		String dir = null;
-		
+
 		if (containsKey(directory)) {
 			dir = getProperty(directory);
 			if (!dir.startsWith("/") && dir.indexOf(":") == -1) {
-				dir = getProperty(PROJECT_DIRECTORY)+dir;
+				dir = getProperty(PROJECT_DIRECTORY) + dir;
 			}
 			if (!Files.exists(dir, jar)) {
 				if (mkdirs && !jar) {
 					new File(dir).mkdirs();
 				} else {
-					System.err.println("Error - file '"+dir+"' does not exist");
+					System.err.println("Error - file '" + dir + "' does not exist");
 				}
 			}
 		} else {
-			System.err.println("Error - directory '"+directory+"' is undefined in cnv.filesys.Project");
+			System.err.println("Error - directory '" + directory + "' is undefined in cnv.filesys.Project");
 		}
-		
+
 		return dir;
 	}
-	
+
 	public String getProjectDir() {
 		return getProperty(PROJECT_DIRECTORY);
 	}
@@ -153,77 +154,76 @@ public class Project extends Properties {
 	public String getFilename(String fileType) {
 		return getFilename(fileType, false, true);
 	}
-	
+
 	public String getFilename(String fileType, boolean make, boolean verbose) {
 		return getFilename(fileType, null, make, verbose);
 	}
-	
+
 	public String getFilename(String fileType, String subdirectory, boolean make, boolean verbose) {
 		String file = null;
-		
+
 		if (containsKey(fileType)) {
 			file = getProperty(fileType);
 			if (!file.startsWith("/") && file.indexOf(":") == -1) {
-				file = getProperty(PROJECT_DIRECTORY)+(subdirectory==null?"":getProperty(subdirectory))+file;
+				file = getProperty(PROJECT_DIRECTORY) + (subdirectory == null ? "" : getProperty(subdirectory)) + file;
 			}
 			if (!Files.exists(file, getJarStatus())) {
 				if (make) {
 					new File(ext.parseDirectoryOfFile(file)).mkdirs();
 				} else if (verbose) {
-					System.err.println("Error - file '"+file+"' does not exist");
+					System.err.println("Error - file '" + file + "' does not exist");
 				}
 			}
 		} else {
-			System.err.println("Error - file '"+fileType+"' is undefined in cnv.filesys.Project");
+			System.err.println("Error - file '" + fileType + "' is undefined in cnv.filesys.Project");
 		}
 
 		return file;
 	}
-	
+
 	public String[] getFilenames(String type) {
 		return getFilenames(type, false);
 	}
-	
+
 	public String[] getFilenames(String type, boolean suppressMissing) {
 		String[] files = null;
 		Vector<String> v;
-		
+
 		v = new Vector<String>();
 		if (containsKey(type)) {
 			files = getProperty(type).split(";");
 			if (files.length == 1 && files[0].equals("")) {
 				files = new String[0];
 			}
-			
-			for (int i = 0; i<files.length; i++) {
+
+			for (int i = 0; i < files.length; i++) {
 				if (!files[i].startsWith("/") && files[i].indexOf(":") == -1) {
-					files[i] = getProperty(PROJECT_DIRECTORY)+files[i];
+					files[i] = getProperty(PROJECT_DIRECTORY) + files[i];
 				}
 				if (!Files.exists(files[i], getJarStatus()) && !suppressMissing) {
-					System.err.println("Error - file '"+files[i]+"' does not exist");
+					System.err.println("Error - file '" + files[i] + "' does not exist");
 				} else {
 					v.add(files[i]);
 				}
-            }
+			}
 		} else {
-			System.err.println("Error - file '"+type+"' is undefined in cnv.filesys.Project");
-		} 
+			System.err.println("Error - file '" + type + "' is undefined in cnv.filesys.Project");
+		}
 
 		return Array.toStringArray(v);
 	}
-	
+
 	public double getDouble(String variable) {
 		String trav;
-		
+
 		trav = getProperty(variable);
 		try {
 			return Double.parseDouble(trav);
 		} catch (NumberFormatException nfe) {
-			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
+			System.err.println("Error - '" + trav + "' is not a valid value for " + variable);
 			return Double.NaN;
-		}		
+		}
 	}
-	
 
 	public MarkerSet getMarkerSet() {
 		if (Files.exists(getFilename(MARKERSET_FILENAME), getJarStatus())) {
@@ -256,7 +256,7 @@ public class Project extends Properties {
 
 	public String[] getSamples() {
 		SampleList sampleList;
-		
+
 		sampleList = getSampleList();
 		if (sampleList == null) {
 			return null;
@@ -266,18 +266,18 @@ public class Project extends Properties {
 	}
 
 	public FullSample getFullSample(String sample) {
-		if (Files.exists(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus())) {
-			return FullSample.load(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus());
+		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + ".fsamp", getJarStatus())) {
+			return FullSample.load(getDir(SAMPLE_DIRECTORY) + sample + ".fsamp", getJarStatus());
 		} else {
 			return null;
 		}
 	}
 
 	public Sample getSample(String sample) {
-		if (Files.exists(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus())) {
-			return Sample.load(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus());
+		if (Files.exists(getDir(IND_DIRECTORY) + sample + ".samp", getJarStatus())) {
+			return Sample.load(getDir(IND_DIRECTORY) + sample + ".samp", getJarStatus());
 		} else {
-			
+
 			return null;
 		}
 	}
@@ -286,42 +286,41 @@ public class Project extends Properties {
 		return new SampleData(this, loadCNVs);
 	}
 
-	public Hashtable<String,String> getFilteredHash() {
+	public Hashtable<String, String> getFilteredHash() {
 		if (getProperty(FILTERED_MARKERS_FILENAME).equals("")) {
-			return new Hashtable<String,String>();
+			return new Hashtable<String, String>();
 		} else if (Files.exists(getFilename(FILTERED_MARKERS_FILENAME), getJarStatus())) {
-			return HashVec.loadFileToHashString(getFilename(FILTERED_MARKERS_FILENAME), 0, new int[] {0}, "", false, getJarStatus());
+			return HashVec.loadFileToHashString(getFilename(FILTERED_MARKERS_FILENAME), 0, new int[] { 0 }, "", false, getJarStatus());
 		} else {
-			System.err.println("Error - '"+getProperty(FILTERED_MARKERS_FILENAME)+"' not found");
-			return new Hashtable<String,String>();
+			System.err.println("Error - '" + getProperty(FILTERED_MARKERS_FILENAME) + "' not found");
+			return new Hashtable<String, String>();
 		}
 	}
-
 
 	public Vector<String> getStratResults() {
 		String[] files;
 		Vector<String> v;
 
 		files = Files.list(getProjectDir(), ".mds", getJarStatus());
-	
+
 		v = new Vector<String>();
 		if (files == null) {
 			System.err.println("Error - no .mds files found in directory");
 		} else {
-			for (int i = 0; i<files.length; i++) {
-				v.add(getProjectDir()+files[i]);
-				System.out.println(getProjectDir()+files[i]);
-	        }
+			for (int i = 0; i < files.length; i++) {
+				v.add(getProjectDir() + files[i]);
+				System.out.println(getProjectDir() + files[i]);
+			}
 		}
-		
+
 		return v;
 	}
-	
+
 	public String getSourceFileDelimiter() {
 		String str;
-		
+
 		str = getProperty(SOURCE_FILE_DELIMITER);
-		
+
 		if (str.toUpperCase().equals("COMMA")) {
 			return ",";
 		} else if (str.toUpperCase().equals("TAB")) {
@@ -329,81 +328,81 @@ public class Project extends Properties {
 		} else if (str.toUpperCase().equals("SPACE")) {
 			return "[\\s]+";
 		} else {
-			System.err.println("Error - invalid delimiter specified: '"+str+"'");
+			System.err.println("Error - invalid delimiter specified: '" + str + "'");
 			return ",";
-		} 
-	}	
-	
+		}
+	}
+
 	public boolean getJarStatus() {
 		return jar;
 	}
-	
+
 	public String[] getRegionLists() {
 		return getProperty(REGION_LIST_FILENAMES).trim().split(";");
 	}
-	
+
 	public void screenProperties(String filename) {
 		BufferedReader reader;
-        String[] line;
-        String trav;
-        boolean changed;
-        Vector<String> knowns, unknowns, corrections;
-        
-        changed = false;
-        knowns = Array.toStringVector(HashVec.getKeys(this, false, false));
-        unknowns = new Vector<String>();
-        corrections = new Vector<String>();
-        try {
-	        reader = new BufferedReader(new FileReader(filename));
-	        while (reader.ready()) {
-	        	trav = reader.readLine();
-	        	line = trav.trim().split("=");
-	        	if (line[0].startsWith("#") || line[0].startsWith("??_") || line[0].equals("")) {
-	        		corrections.add(trav);
-	        		if (line[0].length() > 0 && getProperty(line[0].substring(1)) != null) {
-	        			knowns.remove(line[0].substring(1));
-	        		}
-	        	} else {
-	        		if (getProperty(line[0]) == null) {
-	        			unknowns.add(line[0]);
-	        			corrections.add("??_"+trav);
-	        		} else {
-	        			knowns.remove(line[0]);
-	        			corrections.add(trav);
-	        		}
-	        	}
-	        }
-	        reader.close();
-        } catch (FileNotFoundException fnfe) {
-	        System.err.println("Error: file \""+filename+"\" not found in current directory");
-	        System.exit(1);
-        } catch (IOException ioe) {
-	        System.err.println("Error reading file \""+filename+"\"");
-	        System.exit(2);
-        }
-        
-        if (unknowns.size() > 0) {
-        	System.err.println("Error - check spelling for the following unexpected propert"+(unknowns.size()==1?"y":"ies")+" in "+filename+":");
-        	changed = true;
-        }
-        for (int i = 0; i < unknowns.size(); i++) {
-        	System.err.println("        "+unknowns.elementAt(i));
+		String[] line;
+		String trav;
+		boolean changed;
+		Vector<String> knowns, unknowns, corrections;
+
+		changed = false;
+		knowns = Array.toStringVector(HashVec.getKeys(this, false, false));
+		unknowns = new Vector<String>();
+		corrections = new Vector<String>();
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			while (reader.ready()) {
+				trav = reader.readLine();
+				line = trav.trim().split("=");
+				if (line[0].startsWith("#") || line[0].startsWith("??_") || line[0].equals("")) {
+					corrections.add(trav);
+					if (line[0].length() > 0 && getProperty(line[0].substring(1)) != null) {
+						knowns.remove(line[0].substring(1));
+					}
+				} else {
+					if (getProperty(line[0]) == null) {
+						unknowns.add(line[0]);
+						corrections.add("??_" + trav);
+					} else {
+						knowns.remove(line[0]);
+						corrections.add(trav);
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
 		}
-        
-        if (knowns.size() > 0) {
-        	changed = true;
-        	corrections.add("");
-        	corrections.add("# A few more paramters that were not originally defined:");
-        }
-        for (int i = 0; i < knowns.size(); i++) {
-        	corrections.add("#"+knowns.elementAt(i)+"="+getProperty(knowns.elementAt(i)));
-		}        
-        
-        if (changed) {
-        	new File(filename).renameTo(new File(filename+".bak"));
-        	Files.backup(ext.removeDirectoryInfo(filename+".bak"), ext.parseDirectoryOfFile(filename), ext.parseDirectoryOfFile(filename), true);
-        	Files.writeList(Array.toStringArray(corrections), filename);
-        }
+
+		if (unknowns.size() > 0) {
+			System.err.println("Error - check spelling for the following unexpected propert" + (unknowns.size() == 1 ? "y" : "ies") + " in " + filename + ":");
+			changed = true;
+		}
+		for (int i = 0; i < unknowns.size(); i++) {
+			System.err.println("        " + unknowns.elementAt(i));
+		}
+
+		if (knowns.size() > 0) {
+			changed = true;
+			corrections.add("");
+			corrections.add("# A few more paramters that were not originally defined:");
+		}
+		for (int i = 0; i < knowns.size(); i++) {
+			corrections.add("#" + knowns.elementAt(i) + "=" + getProperty(knowns.elementAt(i)));
+		}
+
+		if (changed) {
+			new File(filename).renameTo(new File(filename + ".bak"));
+			Files.backup(ext.removeDirectoryInfo(filename + ".bak"), ext.parseDirectoryOfFile(filename), ext.parseDirectoryOfFile(filename), true);
+			Files.writeList(Array.toStringArray(corrections), filename);
+		}
 	}
 
 	public static void main(String[] args) {
