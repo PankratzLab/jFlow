@@ -18,6 +18,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 
 import cnv.analysis.Mosaicism;
@@ -144,9 +145,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 			buttonPanel.add(button);
 		}
 
+		// Embed the button panel inside a scroll pane to improve usability at lower resolutions (i.e. laptops)
+		JScrollPane jsp = new JScrollPane(buttonPanel);
+		jsp.setPreferredSize(new Dimension(250, 800));
+
 		pane.add(projectPanel, BorderLayout.NORTH);
 		pane.add(new JSeparator(), BorderLayout.CENTER);
-		pane.add(buttonPanel, BorderLayout.SOUTH);
+		// pane.add(buttonPanel, BorderLayout.SOUTH);
+		pane.add(jsp, BorderLayout.SOUTH);
 	}
 
 	public void actionPerformed(ActionEvent ae) {
