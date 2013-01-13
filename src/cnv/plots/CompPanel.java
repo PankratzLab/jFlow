@@ -10,14 +10,18 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 
+import cnv.var.CNVariant;
+
 /**
  * @author Michael Vieths
  * 
  */
 public class CompPanel extends JPanel implements MouseListener {// extends AbstractPanel {
 	public static final long serialVersionUID = 1L;
-	GenericRectangle[] rectangles;
+	CNVRectangle[] rectangles;
 	float scalingFactor;
+
+	private Color[] colorScheme = { Color.RED, Color.GREEN, Color.BLUE };
 
 	public CompPanel(CompPlot cp) {
 		// super();
@@ -30,11 +34,8 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 		addMouseListener(this);
 	}
 
-	void setRectangles(GenericRectangle[] rects) {
+	void setRectangles(CNVRectangle[] rects) {
 		rectangles = rects;
-		// for (int i = 0; i < rectangles.length; i++) {
-		// System.out.println("=== Rectangle startX=" + rectangles[i].getStartX() + " startY=" + rectangles[i].getStartY() + " stopX=" + rectangles[i].getStopX() + " stopY=" + rectangles[i].getStopY());
-		// }
 		repaint();
 	}
 
@@ -49,6 +50,7 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 
 	@Override
 	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
 		// We'll need to scale the relative base to the window size
 		for (int i = 0; i < rectangles.length; i++) {
 			int width = Math.round(((int) rectangles[i].getStopX() - (int) rectangles[i].getStartX()) * scalingFactor);
@@ -56,11 +58,26 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 			int x = Math.round((int) rectangles[i].getStartX() * scalingFactor);
 			int y = (i * height);
 
+			CNVariant cnv = rectangles[i].getCNV();
+			int copies = cnv.getCN();
+			Color baseColor = Color.GREEN;
+
+			if (copies > 2) {
+				// It's a duplication, make it darker
+				for (int j = 2; j < copies; j++) {
+					baseColor = baseColor.darker();
+				}
+			} else if (copies < 2) {
+				// It's a deletion, make it brighter
+				for (int j = 2; j <= 0; --j) {
+					baseColor = baseColor.brighter();
+				}
+			}
+
 			System.out.println("=== Rectangle startX=" + x + " startY=" + y + " stopX=" + (x + width) + " stopY=" + (y + height));
-			g.setColor(Color.GREEN);
+			g.setColor(baseColor);
 			g.fillRect(x, y, width, height);
 		}
-
 	}
 
 	@Override

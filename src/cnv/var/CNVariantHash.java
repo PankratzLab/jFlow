@@ -147,9 +147,15 @@ public class CNVariantHash implements Serializable {
 	 *            Starting position
 	 * @param stop
 	 *            Ending position
+	 * @param minProbes
+	 *            Minimum number of probes (markers)
+	 * @param minSizeKb
+	 *            Minimum size in kilobases
+	 * @param minQualityScore
+	 *            Minimum quality score
 	 * @return Sorted array of CNVs in the region
 	 */
-	public CNVariant[] getAllInRegion(byte chr, int start, int stop) {
+	public CNVariant[] getAllInRegion(byte chr, int start, int stop, int minProbes, int minSizeKb, int minQualityScore) {
 		Vector<CNVariant> inRegion = new Vector<CNVariant>();
 
 		Enumeration<String> e = hashes.keys();
@@ -169,9 +175,11 @@ public class CNVariantHash implements Serializable {
 						if ((myStop < start) || (myStart > stop)) {
 							// We stop before the window, or start after it
 						} else {
-							inRegion.add(cnv[i]);
+							int minSizeBases = minSizeKb * 1000;
+							if ((cnv[i].getNumMarkers() >= minProbes) && (cnv[i].getSize() >= minSizeBases) && (cnv[i].getScore() >= minQualityScore)) {
+								inRegion.add(cnv[i]);
+							}
 						}
-
 					}
 				}
 			}

@@ -21,7 +21,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	private static final long serialVersionUID = 1L;
 
 	private String displayMode = "Full";
-	private int probes = 50; // Default to 50 probes (maximum)
+	private int probes = 25; // Default to 25 probes
 	private int minSize = 100;
 	private int qualityScore = 50;
 
@@ -59,6 +59,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		probesSlider.setPaintTicks(true);
 		probesSlider.setPaintLabels(true);
 		probesSlider.setMaximum(50);
+		probesSlider.setValue(probes);
 		probesSlider.addChangeListener(this);
 		add(probesSlider);
 
@@ -68,6 +69,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 
 		minSizeSlider = new JSlider();
 		minSizeSlider.setMaximum(1000);
+		minSizeSlider.setValue(minSize);
 		minSizeSlider.setPaintTicks(true);
 		minSizeSlider.setPaintLabels(true);
 		minSizeSlider.addChangeListener(this);
@@ -79,6 +81,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 
 		qualityScoreSlider = new JSlider();
 		qualityScoreSlider.setMaximum(100);
+		qualityScoreSlider.setValue(qualityScore);
 		qualityScoreSlider.setPaintTicks(true);
 		qualityScoreSlider.setPaintLabels(true);
 		qualityScoreSlider.addChangeListener(this);

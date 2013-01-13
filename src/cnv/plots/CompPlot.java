@@ -60,7 +60,7 @@ public class CompPlot extends JFrame {
 	int minSize;
 	int qualityScore;
 	String displayMode;
-	Vector<GenericRectangle> rectangles;
+	Vector<CNVRectangle> rectangles;
 
 	// From RegionNavigator
 	private String geneLocation;
@@ -103,11 +103,16 @@ public class CompPlot extends JFrame {
 
 		// Parse out the location chromosome/start base/end base
 		int[] location = Positions.parseUCSClocation(DEFAULT_LOCATION);
-		rectangles = new Vector<GenericRectangle>();
+		rectangles = new Vector<CNVRectangle>();
 
 		setupGUI();
-		loadCNVs(location);
 
+		// Initialize the filter attributes
+		probes = compConfig.getProbes();
+		minSize = compConfig.getMinSize();
+		qualityScore = compConfig.getQualityScore();
+
+		loadCNVs(location);
 	}
 
 	private void setupGUI() {
@@ -177,7 +182,7 @@ public class CompPlot extends JFrame {
 			// fileN: CNV1..CNVN
 			// All CNVs in each file, when they are rendered, will be a single color
 			// Any CNVs where CNVariant.getCN() > 2 will be a different shade of that color
-			variants[i] = cnvhs[i].getAllInRegion((byte) location[0], location[1], location[2]);
+			variants[i] = cnvhs[i].getAllInRegion((byte) location[0], location[1], location[2], probes, minSize, qualityScore);
 		}
 
 		System.out.println("Window is from " + location[1] + " to " + location[2] + ", a window of " + (location[2] - location[1]));
@@ -187,21 +192,20 @@ public class CompPlot extends JFrame {
 			for (int j = 0; j < variants[i].length; j++) {
 				CNVariant x = variants[i][j];
 				System.out.println("    Variant" + j + " at " + x.getUCSClocation() + " has " + x.getCN() + " copies");
+
 				int startX = (int) x.getStart() - location[1];
 				int stopX = (int) x.getStop() - location[1];
 
-				// GenericRectangle cnvRect = new GenericRectangle(x.getStart(), (j * 10) + 50, x.getStop(), (j * 10) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
-				GenericRectangle cnvRect = new GenericRectangle(startX, (j * 10) + 50, stopX, (j * 10) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
-				// GenericRectangle cnvRect = new GenericRectangle(0 + (j * 10), (j * 10) + 50, 20 + (j * 10), (j * 10) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
+				CNVRectangle cnvRect = new CNVRectangle(startX, (j * 10) + 50, stopX, (j * 10) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
+				cnvRect.setCNV(x);
 				rectangles.add(cnvRect);
 			}
 		}
 
 		if (rectangles != null) {
-			compPanel.setRectangles(rectangles.toArray(new GenericRectangle[0]));
+			compPanel.setRectangles(rectangles.toArray(new CNVRectangle[0]));
 			compPanel.setWindow(location[2] - location[1]);
 		}
-
 	}
 
 	public String[] getFiles() {
@@ -222,16 +226,19 @@ public class CompPlot extends JFrame {
 	public void setProbes(int p) {
 		System.out.println("Changing probes");
 		probes = p;
+		loadCNVs(location);
 	}
 
 	public void setMinSize(int ms) {
 		System.out.println("Changing minimum size");
 		minSize = ms;
+		loadCNVs(location);
 	}
 
 	public void setQualityScore(int qs) {
 		System.out.println("Changing quality score");
 		qualityScore = qs;
+		loadCNVs(location);
 	}
 
 	public void setDisplayMode(String dm) {
@@ -277,5 +284,21 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 		default:
 			System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
 		}
+	}
+}
+
+class CNVRectangle extends GenericRectangle {
+	private CNVariant cnv;
+
+	public CNVRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
+		super(startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer);
+	}
+
+	public CNVariant getCNV() {
+		return cnv;
+	}
+
+	public void setCNV(CNVariant cnv) {
+		this.cnv = cnv;
 	}
 }
