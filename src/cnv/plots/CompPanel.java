@@ -10,8 +10,6 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 
-import cnv.var.CNVariant;
-
 /**
  * @author Michael Vieths
  * 
@@ -58,24 +56,7 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 			int x = Math.round((int) rectangles[i].getStartX() * scalingFactor);
 			int y = (i * height);
 
-			CNVariant cnv = rectangles[i].getCNV();
-			int copies = cnv.getCN();
-			Color baseColor = Color.GREEN;
-
-			if (copies > 2) {
-				// It's a duplication, make it darker
-				for (int j = 2; j < copies; j++) {
-					baseColor = baseColor.darker();
-				}
-			} else if (copies < 2) {
-				// It's a deletion, make it brighter
-				for (int j = 2; j <= 0; --j) {
-					baseColor = baseColor.brighter();
-				}
-			}
-
-			System.out.println("=== Rectangle startX=" + x + " startY=" + y + " stopX=" + (x + width) + " stopY=" + (y + height));
-			g.setColor(baseColor);
+			g.setColor(rectangles[i].getCNVColor());
 			g.fillRect(x, y, width, height);
 		}
 	}

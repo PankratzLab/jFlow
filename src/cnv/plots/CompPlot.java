@@ -4,6 +4,7 @@
 package cnv.plots;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -39,6 +40,8 @@ public class CompPlot extends JFrame {
 	// public static final String DEFAULT_LOCATION = "chr17:15,609,472-40,824,368"; // USP32
 	// public static final String DEFAULT_LOCATION = "chr6:161,590,461-163,364,497"; // PARK2
 	public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
+
+	public Color[] colorScheme = { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.ORANGE };
 
 	Project proj;
 	private String[] files;
@@ -185,19 +188,18 @@ public class CompPlot extends JFrame {
 			variants[i] = cnvhs[i].getAllInRegion((byte) location[0], location[1], location[2], probes, minSize, qualityScore);
 		}
 
-		System.out.println("Window is from " + location[1] + " to " + location[2] + ", a window of " + (location[2] - location[1]));
-
 		for (int i = 0; i < cnvhs.length; i++) {
-			System.out.println("=== variant[" + i + "]");
+			// System.out.println("=== variant[" + i + "]");
 			for (int j = 0; j < variants[i].length; j++) {
 				CNVariant x = variants[i][j];
-				System.out.println("    Variant" + j + " at " + x.getUCSClocation() + " has " + x.getCN() + " copies");
+				// System.out.println("    Variant" + j + " at " + x.getUCSClocation() + " has " + x.getCN() + " copies");
 
 				int startX = (int) x.getStart() - location[1];
 				int stopX = (int) x.getStop() - location[1];
 
 				CNVRectangle cnvRect = new CNVRectangle(startX, (j * 10) + 50, stopX, (j * 10) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
 				cnvRect.setCNV(x);
+				cnvRect.setCNVColor(colorScheme[i]);
 				rectangles.add(cnvRect);
 			}
 		}
@@ -224,19 +226,16 @@ public class CompPlot extends JFrame {
 	 * Methods to set values pulled from CompConfig
 	 */
 	public void setProbes(int p) {
-		System.out.println("Changing probes");
 		probes = p;
 		loadCNVs(location);
 	}
 
 	public void setMinSize(int ms) {
-		System.out.println("Changing minimum size");
 		minSize = ms;
 		loadCNVs(location);
 	}
 
 	public void setQualityScore(int qs) {
-		System.out.println("Changing quality score");
 		qualityScore = qs;
 		loadCNVs(location);
 	}
@@ -287,8 +286,16 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 	}
 }
 
+/**
+ * CNVRectangle describes a rectangle to be rendered in CompPanel
+ * 
+ * @author Michael Vieths
+ * 
+ *         Contains the CNVariant and a color based on the file from which it came
+ */
 class CNVRectangle extends GenericRectangle {
 	private CNVariant cnv;
+	private Color CNVColor;
 
 	public CNVRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
 		super(startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer);
@@ -300,5 +307,37 @@ class CNVRectangle extends GenericRectangle {
 
 	public void setCNV(CNVariant cnv) {
 		this.cnv = cnv;
+	}
+
+	public Color getCNVColor() {
+		return CNVColor;
+	}
+
+	/**
+	 * Sets the color to render for the CNV. Adjusts the brightness based on number of copies.
+	 * 
+	 * @param CNVColor
+	 */
+	public void setCNVColor(Color CNVColor) {
+		int copies = cnv.getCN();
+		// Need to adjust the brightness
+		float[] hsbVals = Color.RGBtoHSB(CNVColor.getRed(), CNVColor.getGreen(), CNVColor.getBlue(), null);
+		float newBrightness = hsbVals[2];
+
+		if (copies > 2) {
+			// It's a duplication, make it brighter
+			newBrightness *= (copies - 2);
+
+		} else if (copies == 1) {
+			// It's a deletion, make it darker
+			newBrightness *= 0.5f;
+		} else if (copies == 0) {
+			// No copies, make it black
+			newBrightness = 0;
+		} else {
+			// Normal number of copies, no change in brightness
+		}
+
+		this.CNVColor = Color.getHSBColor(hsbVals[0], hsbVals[1], newBrightness);
 	}
 }
