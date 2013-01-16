@@ -6,6 +6,7 @@ package cnv.plots;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -199,7 +200,8 @@ public class CompPlot extends JFrame {
 
 				CNVRectangle cnvRect = new CNVRectangle(startX, (j * 10) + 50, stopX, (j * 10) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
 				cnvRect.setCNV(x);
-				cnvRect.setCNVColor(colorScheme[i]);
+				// Modulus the scheme we choose so it will wrap around in the event of too many files instead of throwing an exception
+				cnvRect.setCNVColor(colorScheme[i % colorScheme.length]);
 				rectangles.add(cnvRect);
 			}
 		}
@@ -296,6 +298,7 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 class CNVRectangle extends GenericRectangle {
 	private CNVariant cnv;
 	private Color CNVColor;
+	private Rectangle rect;
 
 	public CNVRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
 		super(startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer);
@@ -332,12 +335,20 @@ class CNVRectangle extends GenericRectangle {
 			// It's a deletion, make it darker
 			newBrightness *= 0.5f;
 		} else if (copies == 0) {
-			// No copies, make it black
-			newBrightness = 0;
+			// No copies, make it much darker
+			newBrightness *= 0.2f;
 		} else {
 			// Normal number of copies, no change in brightness
 		}
 
 		this.CNVColor = Color.getHSBColor(hsbVals[0], hsbVals[1], newBrightness);
+	}
+
+	public Rectangle getRect() {
+		return rect;
+	}
+
+	public void setRect(int x, int y, int width, int height) {
+		rect = new Rectangle(x, y, width, height);
 	}
 }

@@ -3,23 +3,24 @@
  */
 package cnv.plots;
 
-import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
+
+import cnv.var.CNVariant;
 
 /**
  * @author Michael Vieths
  * 
  */
-public class CompPanel extends JPanel implements MouseListener {// extends AbstractPanel {
+public class CompPanel extends JPanel implements MouseListener, MouseMotionListener {// extends AbstractPanel {
 	public static final long serialVersionUID = 1L;
 	CNVRectangle[] rectangles;
 	float scalingFactor;
-
-	private Color[] colorScheme = { Color.RED, Color.GREEN, Color.BLUE };
 
 	public CompPanel(CompPlot cp) {
 		// super();
@@ -30,6 +31,7 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 		// colorScheme[1] = Color.red;
 		// colorScheme[2] = Color.green;
 		addMouseListener(this);
+		addMouseMotionListener(this);
 	}
 
 	void setRectangles(CNVRectangle[] rects) {
@@ -56,6 +58,9 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 			int x = Math.round((int) rectangles[i].getStartX() * scalingFactor);
 			int y = (i * height);
 
+			// Store the rectangle for later bounds checking
+			rectangles[i].setRect(x, y, width, height);
+
 			g.setColor(rectangles[i].getCNVColor());
 			g.fillRect(x, y, width, height);
 		}
@@ -63,7 +68,13 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+		for (int i = 0; i < rectangles.length; i++) {
+			Rectangle rect = rectangles[i].getRect();
+			if (rect.contains(e.getPoint())) {
+				// TODO link off to Trailer
+				break;
+			}
+		}
 	}
 
 	@Override
@@ -88,5 +99,25 @@ public class CompPanel extends JPanel implements MouseListener {// extends Abstr
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		setToolTipText(null);
+		for (int i = 0; i < rectangles.length; i++) {
+			Rectangle rect = rectangles[i].getRect();
+			if (rect.contains(e.getPoint())) {
+				CNVariant cnv = rectangles[i].getCNV();
+				String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: " + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: " + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: " + cnv.getScore() + "</html>";
+				setToolTipText(toolTipText);
+				break;
+			}
+		}
 	}
 }
