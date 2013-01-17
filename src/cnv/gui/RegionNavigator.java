@@ -63,22 +63,22 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		if (source.equals(firstButton)) {
 			System.out.println("First button pressed");
 			String loc = textField.getText();
-			firePropertyChange("location", region, loc);
+			firePropertyChange("firstRegion", region, loc);
 			region = loc;
 		} else if (source.equals(leftButton)) {
 			System.out.println("Left button pressed");
 			String loc = textField.getText();
-			firePropertyChange("location", region, loc);
+			firePropertyChange("previousRegion", region, loc);
 			region = loc;
 		} else if (source.equals(rightButton)) {
 			System.out.println("Right button pressed");
 			String loc = textField.getText();
-			firePropertyChange("location", region, loc);
+			firePropertyChange("nextRegion", region, loc);
 			region = loc;
 		} else if (source.equals(lastButton)) {
 			System.out.println("Last button pressed");
 			String loc = textField.getText();
-			firePropertyChange("location", region, loc);
+			firePropertyChange("lastRegion", region, loc);
 			region = loc;
 		} else if (source.equals(textField)) {
 			System.out.println("Changed region to " + textField.getText());

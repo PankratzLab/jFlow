@@ -9,7 +9,10 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Vector;
 
 import javax.swing.BoxLayout;
@@ -25,6 +28,8 @@ import cnv.gui.RegionNavigator;
 import cnv.var.CNVariant;
 import cnv.var.CNVariantHash;
 
+import common.Files;
+import common.Matrix;
 import common.Positions;
 
 import filesys.GeneSet;
@@ -47,6 +52,10 @@ public class CompPlot extends JFrame {
 	Project proj;
 	private String[] files;
 	GeneTrack track;
+	String[] regionsList; // List of the region files
+	int regionsListIndex; // Current file in the regionslist
+	int regionIndex; // The current region
+	String[][] regions;
 
 	// UI Components
 	public JPanel compView;
@@ -90,12 +99,22 @@ public class CompPlot extends JFrame {
 			System.out.println("  " + files[i]);
 		}
 
+		// Get a list of the regions
+		regionsList = proj.getFilenames(Project.REGION_LIST_FILENAMES);
+		regionsListIndex = 0;
+		if (regionsList.length > 0) {
+			if (Files.exists(regionsList[regionsListIndex], proj.getJarStatus())) {
+				loadRegions();
+			} else {
+				System.err.println("Error - couldn't find '" + regionsList[regionsListIndex] + "' in data directory; populating with CNVs of current subject");
+			}
+		}
+		regionIndex = -1;
+
 		location = Positions.parseUCSClocation(geneLocation);
 
 		// Get the GeneTrack
-		String geneTrackFile = "D:\\Users\\Foeclan\\Documents\\School\\BICB\\Genvisis\\data\\RefSeq.gtrack";
-		// String geneTrackFile = proj.getFilename(Project.GENETRACK_FILENAME);
-		// String geneTrackFile = "D:/home/npankrat/NCBI/RefSeq.gtrack";
+		String geneTrackFile = proj.getFilename(Project.GENETRACK_FILENAME);
 		if (new File(geneTrackFile).exists()) {
 			track = GeneTrack.load(geneTrackFile, false);
 		} else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
@@ -212,6 +231,32 @@ public class CompPlot extends JFrame {
 		}
 	}
 
+	public void loadRegions() {
+		BufferedReader reader;
+		Vector<String[]> v;
+		String[] line;
+
+		try {
+			reader = Files.getReader(regionsList[regionsListIndex], proj.getJarStatus(), false, false);
+			v = new Vector<String[]>();
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("\t");
+				if (line.length > 1 && line[1].startsWith("chr")) {
+					v.add(line);
+				}
+			}
+			regions = Matrix.toStringArrays(v);
+			System.out.println("Loaded " + regionsList.length + " regions");
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + regionsList[regionsListIndex] + "\" not found in data directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + regionsList[regionsListIndex] + "\"");
+			System.exit(2);
+		}
+	}
+
 	public String[] getFiles() {
 		return files;
 	}
@@ -279,7 +324,16 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 		case "displayMode":
 			compPlot.setDisplayMode((String) pve.getNewValue());
 			break;
-		case "location":
+		case "firstRegion":
+			compPlot.setLocation((String) pve.getNewValue());
+			break;
+		case "previousRegion":
+			compPlot.setLocation((String) pve.getNewValue());
+			break;
+		case "nextRegion":
+			compPlot.setLocation((String) pve.getNewValue());
+			break;
+		case "lastRegion":
 			compPlot.setLocation((String) pve.getNewValue());
 			break;
 		default:
