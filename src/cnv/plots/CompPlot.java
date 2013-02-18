@@ -9,10 +9,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Vector;
 
 import javax.swing.BoxLayout;
@@ -27,9 +24,8 @@ import cnv.gui.FileNavigator;
 import cnv.gui.RegionNavigator;
 import cnv.var.CNVariant;
 import cnv.var.CNVariantHash;
+import cnv.var.Region;
 
-import common.Files;
-import common.Matrix;
 import common.Positions;
 
 import filesys.GeneSet;
@@ -52,10 +48,6 @@ public class CompPlot extends JFrame {
 	Project proj;
 	private String[] files;
 	GeneTrack track;
-	String[] regionsList; // List of the region files
-	int regionsListIndex; // Current file in the regionslist
-	int regionIndex; // The current region
-	String[][] regions;
 
 	// UI Components
 	public JPanel compView;
@@ -65,7 +57,6 @@ public class CompPlot extends JFrame {
 	public ChromosomeViewer chromosomeViewer;
 	public CompPropertyChangeListener cpcl;
 	public CompPanel compPanel;
-	// public JPanel compPanel;
 
 	// Variables configured via subpanels
 	// From CompConfig
@@ -76,7 +67,6 @@ public class CompPlot extends JFrame {
 	Vector<CNVRectangle> rectangles;
 
 	// From RegionNavigator
-	private String geneLocation;
 	private int[] location = new int[3];
 
 	public CompPlot(Project proj) {
@@ -89,8 +79,6 @@ public class CompPlot extends JFrame {
 
 	private void init() {
 		// Position
-		// Starting position is a defined constant
-		geneLocation = DEFAULT_LOCATION;
 
 		// Get a list of the .cnv files
 		files = proj.getFilenames(Project.CNV_FILENAMES);
@@ -98,20 +86,6 @@ public class CompPlot extends JFrame {
 		for (int i = 0; i < files.length; i++) {
 			System.out.println("  " + files[i]);
 		}
-
-		// Get a list of the regions
-		regionsList = proj.getFilenames(Project.REGION_LIST_FILENAMES);
-		regionsListIndex = 0;
-		if (regionsList.length > 0) {
-			if (Files.exists(regionsList[regionsListIndex], proj.getJarStatus())) {
-				loadRegions();
-			} else {
-				System.err.println("Error - couldn't find '" + regionsList[regionsListIndex] + "' in data directory; populating with CNVs of current subject");
-			}
-		}
-		regionIndex = -1;
-
-		location = Positions.parseUCSClocation(geneLocation);
 
 		// Get the GeneTrack
 		String geneTrackFile = proj.getFilename(Project.GENETRACK_FILENAME);
@@ -125,7 +99,6 @@ public class CompPlot extends JFrame {
 		}
 
 		// Parse out the location chromosome/start base/end base
-		int[] location = Positions.parseUCSClocation(DEFAULT_LOCATION);
 		rectangles = new Vector<CNVRectangle>();
 
 		setupGUI();
@@ -135,7 +108,7 @@ public class CompPlot extends JFrame {
 		minSize = compConfig.getMinSize();
 		qualityScore = compConfig.getQualityScore();
 
-		loadCNVs(location);
+		setLocation(regionNavigator.getRegion());
 	}
 
 	private void setupGUI() {
@@ -143,9 +116,9 @@ public class CompPlot extends JFrame {
 		setSize(1000, 720);
 
 		// Close this window but not the entire application on close
-		// setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		// Close the whole thing for debugging purposes
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		cpcl = new CompPropertyChangeListener(this);
 
@@ -156,7 +129,7 @@ public class CompPlot extends JFrame {
 		JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 
-		regionNavigator = new RegionNavigator(geneLocation);
+		regionNavigator = new RegionNavigator(proj);
 		regionNavigator.addPropertyChangeListener(cpcl);
 		topPanel.add(regionNavigator);
 
@@ -231,32 +204,6 @@ public class CompPlot extends JFrame {
 		}
 	}
 
-	public void loadRegions() {
-		BufferedReader reader;
-		Vector<String[]> v;
-		String[] line;
-
-		try {
-			reader = Files.getReader(regionsList[regionsListIndex], proj.getJarStatus(), false, false);
-			v = new Vector<String[]>();
-			while (reader.ready()) {
-				line = reader.readLine().trim().split("\t");
-				if (line.length > 1 && line[1].startsWith("chr")) {
-					v.add(line);
-				}
-			}
-			regions = Matrix.toStringArrays(v);
-			System.out.println("Loaded " + regionsList.length + " regions");
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + regionsList[regionsListIndex] + "\" not found in data directory");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + regionsList[regionsListIndex] + "\"");
-			System.exit(2);
-		}
-	}
-
 	public String[] getFiles() {
 		return files;
 	}
@@ -265,9 +212,9 @@ public class CompPlot extends JFrame {
 		this.files = files;
 	}
 
-	public String getGeneLocation() {
-		return geneLocation;
-	}
+	// public String getGeneLocation() {
+	// return geneLocation;
+	// }
 
 	/*
 	 * Methods to set values pulled from CompConfig
@@ -295,11 +242,12 @@ public class CompPlot extends JFrame {
 	/*
 	 * Method to set values pulled from RegionNavigator
 	 */
-	public void setLocation(String region) {
-		System.out.println("Changing location");
-		location = Positions.parseUCSClocation(region);
+	public void setLocation(Region region) {
+		System.out.println("Setting location to " + region.getRegion());
+		location = Positions.parseUCSClocation(region.getRegion());
 		chromosomeViewer.updateView(location[0], location[1], location[2]);
 		loadCNVs(location);
+		chromosomeViewer.repaint();
 	}
 }
 
@@ -324,17 +272,13 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 		case "displayMode":
 			compPlot.setDisplayMode((String) pve.getNewValue());
 			break;
-		case "firstRegion":
-			compPlot.setLocation((String) pve.getNewValue());
-			break;
-		case "previousRegion":
-			compPlot.setLocation((String) pve.getNewValue());
-			break;
-		case "nextRegion":
-			compPlot.setLocation((String) pve.getNewValue());
-			break;
-		case "lastRegion":
-			compPlot.setLocation((String) pve.getNewValue());
+		// case "firstRegion":
+		// case "previousRegion":
+		// case "nextRegion":
+		// case "lastRegion":
+		case "location":
+			System.out.println("Changing from " + pve.getOldValue() + " to " + pve.getNewValue());
+			compPlot.setLocation((Region) pve.getNewValue());
 			break;
 		default:
 			System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());

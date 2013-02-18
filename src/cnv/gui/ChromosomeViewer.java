@@ -58,47 +58,50 @@ public class ChromosomeViewer extends JPanel {
 		GeneData[] genes;
 		int[][] exons;
 		Vector<Segment> v = new Vector<Segment>();
-		Vector<Segment> segVector = new Vector<Segment>();
-		Segment[] segs, segArray;
+		Segment[] segs;
 		int width, begin, end;
 
-		System.out.println("Start = " + startPosition + "  Stop = " + stopPosition + " Difference is " + (stopPosition - startPosition));
+		// System.out.println("Start = " + startPosition + "  Stop = " + stopPosition + " Difference is " + (stopPosition - startPosition));
 		if (track == null) {
 			System.out.println("Track is null");
 		}
 
-		if (track != null && stopPosition - startPosition < 10000000) {
-			genes = track.getBetween(chromosome, startPosition, stopPosition, 30);
-			g.setColor(Color.BLACK);
-			for (int i = 0; i < genes.length; i++) {
-				begin = getX(genes[i].getStart());
-				end = getX(genes[i].getStop());
-				g.drawRoundRect(begin, 0 * 15, end - begin, 10, 2, 2);
-				v.add(new Segment(begin, end));
-				exons = genes[i].getExonBoundaries();
-				for (int j = 0; j < exons.length; j++) {
-					begin = getX(exons[j][0]);
-					end = getX(exons[j][1]);
-					if (j == 0 || j == exons.length - 1) {
-						g.fillRoundRect(begin, 0 * 15, end - begin + 1, 10, 2, 2);
-					} else {
-						g.fillRect(begin, 0 * 15, end - begin + 1, 10);
+		try {
+			if (track != null && stopPosition - startPosition < 10000000) {
+				genes = track.getBetween(chromosome, startPosition, stopPosition, 30);
+				g.setColor(Color.BLACK);
+				for (int i = 0; i < genes.length; i++) {
+					begin = getX(genes[i].getStart());
+					end = getX(genes[i].getStop());
+					g.drawRoundRect(begin, 0 * 15, end - begin, 10, 2, 2);
+					v.add(new Segment(begin, end));
+					exons = genes[i].getExonBoundaries();
+					for (int j = 0; j < exons.length; j++) {
+						begin = getX(exons[j][0]);
+						end = getX(exons[j][1]);
+						if (j == 0 || j == exons.length - 1) {
+							g.fillRoundRect(begin, 0 * 15, end - begin + 1, 10, 2, 2);
+						} else {
+							g.fillRect(begin, 0 * 15, end - begin + 1, 10);
+						}
+
 					}
-
 				}
-			}
-			Segment.mergeOverlapsAndSort(v);
-			segs = Segment.toArray(v);
-			g.setFont(new Font("Arial", 0, 14));
+				Segment.mergeOverlapsAndSort(v);
+				segs = Segment.toArray(v);
+				g.setFont(new Font("Arial", 0, 14));
 
-			for (int i = 0; i < genes.length; i++) {
-				begin = getX(genes[i].getStart());
-				width = g.getFontMetrics(g.getFont()).stringWidth(genes[i].getGeneName());
-				if (!Segment.overlapsAny(new Segment(begin - width - 5, begin - 1), segs)) {
-					g.drawString(genes[i].getGeneName(), begin - width - 3, 0 * 15 + 10);
+				for (int i = 0; i < genes.length; i++) {
+					begin = getX(genes[i].getStart());
+					width = g.getFontMetrics(g.getFont()).stringWidth(genes[i].getGeneName());
+					if (!Segment.overlapsAny(new Segment(begin - width - 5, begin - 1), segs)) {
+						g.drawString(genes[i].getGeneName(), begin - width - 3, 0 * 15 + 10);
+					}
 				}
-			}
 
+			}
+		} catch (Exception ex) {
+			System.out.println("Missing data in gene track");
 		}
 	}
 
