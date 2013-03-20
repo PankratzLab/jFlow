@@ -3,6 +3,7 @@
  */
 package cnv.plots;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
@@ -17,19 +18,14 @@ import cnv.var.CNVariant;
  * @author Michael Vieths
  * 
  */
-public class CompPanel extends JPanel implements MouseListener, MouseMotionListener {// extends AbstractPanel {
+public class CompPanel extends JPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 1L;
 	CNVRectangle[] rectangles;
 	float scalingFactor;
+	CNVariant selectedCNV;
+	int rectangleHeight = 10;
 
 	public CompPanel(CompPlot cp) {
-		// super();
-		// displayXaxis = false;
-		// displayYaxis = false;
-		// colorScheme = new Color[3];
-		// colorScheme[0] = Color.blue;
-		// colorScheme[1] = Color.red;
-		// colorScheme[2] = Color.green;
 		addMouseListener(this);
 		addMouseMotionListener(this);
 	}
@@ -37,6 +33,10 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	void setRectangles(CNVRectangle[] rects) {
 		rectangles = rects;
 		repaint();
+	}
+
+	void setRectangleHeight(int height) {
+		rectangleHeight = height;
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		// We'll need to scale the relative base to the window size
 		for (int i = 0; i < rectangles.length; i++) {
 			int width = Math.round(((int) rectangles[i].getStopX() - (int) rectangles[i].getStartX()) * scalingFactor);
-			int height = 10;
+			int height = rectangleHeight;
 			int x = Math.round((int) rectangles[i].getStartX() * scalingFactor);
 			int y = (i * height);
 
@@ -62,7 +62,15 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 			rectangles[i].setRect(x, y, width, height);
 
 			g.setColor(rectangles[i].getCNVColor());
-			g.fillRect(x, y, width, height);
+
+			if (rectangles[i].isSelected()) {
+				g.fillRect(x, y, width, height);
+				g.setColor(Color.BLACK);
+				g.setPaintMode();
+				g.drawRect(x, y - 1, width, height);
+			} else {
+				g.fillRect(x, y, width, height);
+			}
 		}
 	}
 
@@ -71,10 +79,16 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		for (int i = 0; i < rectangles.length; i++) {
 			Rectangle rect = rectangles[i].getRect();
 			if (rect.contains(e.getPoint())) {
+				CNVariant currentCNV = rectangles[i].getCNV();
+				firePropertyChange("selectedCNV", selectedCNV, currentCNV);
+				selectedCNV = currentCNV;
+				rectangles[i].setSelected(true);
 				// TODO link off to Trailer
-				break;
+			} else {
+				rectangles[i].setSelected(false);
 			}
 		}
+		repaint();
 	}
 
 	@Override

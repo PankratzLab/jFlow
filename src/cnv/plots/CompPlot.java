@@ -16,6 +16,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import cnv.filesys.Project;
 import cnv.gui.ChromosomeViewer;
@@ -63,6 +64,7 @@ public class CompPlot extends JFrame {
 	int probes;
 	int minSize;
 	int qualityScore;
+	int rectangleHeight;
 	String displayMode;
 	Vector<CNVRectangle> rectangles;
 
@@ -107,6 +109,7 @@ public class CompPlot extends JFrame {
 		probes = compConfig.getProbes();
 		minSize = compConfig.getMinSize();
 		qualityScore = compConfig.getQualityScore();
+		rectangleHeight = compConfig.getRectangleHeight();
 
 		setLocation(regionNavigator.getRegion());
 	}
@@ -146,7 +149,9 @@ public class CompPlot extends JFrame {
 		chromosomeViewer.setPreferredSize(new Dimension(800, 15));
 
 		compPanel = new CompPanel(this);
-		viewers.add(compPanel, BorderLayout.CENTER);
+		compPanel.addPropertyChangeListener(cpcl);
+		JScrollPane jsp = new JScrollPane(compPanel);
+		viewers.add(jsp, BorderLayout.CENTER);
 
 		compView.add(viewers);
 
@@ -190,7 +195,7 @@ public class CompPlot extends JFrame {
 				int startX = (int) x.getStart() - location[1];
 				int stopX = (int) x.getStop() - location[1];
 
-				CNVRectangle cnvRect = new CNVRectangle(startX, (j * 10) + 50, stopX, (j * 10) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
+				CNVRectangle cnvRect = new CNVRectangle(startX, (j * rectangleHeight) + 50, stopX, (j * rectangleHeight) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
 				cnvRect.setCNV(x);
 				// Modulus the scheme we choose so it will wrap around in the event of too many files instead of throwing an exception
 				cnvRect.setCNVColor(colorScheme[i % colorScheme.length]);
@@ -199,6 +204,9 @@ public class CompPlot extends JFrame {
 		}
 
 		if (rectangles != null) {
+			// Set the preferred size of the window to be large enough to encompass all of the rectangles
+			compPanel.setPreferredSize(new Dimension(800, (rectangles.size() * rectangleHeight) + rectangleHeight));
+			compPanel.setRectangleHeight(rectangleHeight);
 			compPanel.setRectangles(rectangles.toArray(new CNVRectangle[0]));
 			compPanel.setWindow(location[2] - location[1]);
 		}
@@ -234,16 +242,24 @@ public class CompPlot extends JFrame {
 		loadCNVs(location);
 	}
 
+	public void setRectangleHeight(int height) {
+		rectangleHeight = height;
+		loadCNVs(location);
+	}
+
 	public void setDisplayMode(String dm) {
 		System.out.println("Changing display mode");
 		displayMode = dm;
+	}
+
+	public void setSelectedCNV(CNVariant cnv) {
+		compConfig.setSelectedCNV(cnv);
 	}
 
 	/*
 	 * Method to set values pulled from RegionNavigator
 	 */
 	public void setLocation(Region region) {
-		System.out.println("Setting location to " + region.getRegion());
 		location = Positions.parseUCSClocation(region.getRegion());
 		chromosomeViewer.updateView(location[0], location[1], location[2]);
 		loadCNVs(location);
@@ -269,6 +285,9 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 		case "qualityScore":
 			compPlot.setQualityScore(Integer.parseInt(pve.getNewValue().toString()));
 			break;
+		case "rectangleHeight":
+			compPlot.setRectangleHeight(Integer.parseInt(pve.getNewValue().toString()));
+			break;
 		case "displayMode":
 			compPlot.setDisplayMode((String) pve.getNewValue());
 			break;
@@ -277,11 +296,15 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 		// case "nextRegion":
 		// case "lastRegion":
 		case "location":
-			System.out.println("Changing from " + pve.getOldValue() + " to " + pve.getNewValue());
+			// System.out.println("Changing from " + pve.getOldValue() + " to " + pve.getNewValue());
 			compPlot.setLocation((Region) pve.getNewValue());
 			break;
-		default:
+		case "selectedCNV":
 			System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
+			compPlot.setSelectedCNV((CNVariant) pve.getNewValue());
+			break;
+		default:
+			// System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
 		}
 	}
 }
@@ -297,9 +320,11 @@ class CNVRectangle extends GenericRectangle {
 	private CNVariant cnv;
 	private Color CNVColor;
 	private Rectangle rect;
+	private boolean selected;
 
 	public CNVRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
 		super(startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer);
+		selected = false;
 	}
 
 	public CNVariant getCNV() {
@@ -348,5 +373,13 @@ class CNVRectangle extends GenericRectangle {
 
 	public void setRect(int x, int y, int width, int height) {
 		rect = new Rectangle(x, y, width, height);
+	}
+
+	public void setSelected(boolean sel) {
+		selected = sel;
+	}
+
+	public boolean isSelected() {
+		return selected;
 	}
 }
