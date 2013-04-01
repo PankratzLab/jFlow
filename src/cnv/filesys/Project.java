@@ -103,6 +103,7 @@ public class Project extends Properties {
 	public static final String CLUSTER_FILTER_COLLECTION_FILENAME = "CLUSTER_FILTER_COLLECTION_FILENAME";
 	public static final String SEXCHECK_RESULTS_FILENAME = "SEXCHECK_RESULTS_FILENAME";
 	public static final String TWOD_LOADED_FILENAMES = "TWOD_LOADED_FILENAMES";
+	public static final String GENETRACK_FILENAME = "GENETRACK_FILENAME";
 	public static final String AB_LOOKUP_FILENAME = "AB_LOOKUP_FILENAME";
 
 	private boolean jar;
