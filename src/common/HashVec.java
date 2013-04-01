@@ -167,9 +167,9 @@ public class HashVec {
 	}
 
 	public static Hashtable<String,String> loadFileToHashNull(String[] list) {
-		Hashtable<String,String> hash = new Hashtable<String,String>();
+		Hashtable<String,String> hash = new Hashtable<String,String>((list == null?10:list.length));
 		
-		for (int i = 0; i<list.length; i++) {
+		for (int i = 0; list != null && i<list.length; i++) {
 			hash.put(list[i], "");
 		}
 
