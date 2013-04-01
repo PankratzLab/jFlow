@@ -47,8 +47,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties";
 	public static final String REFRESH = "Refresh";
+	public static final String COMP = "Comp module";
 
-//	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD}; 
+//	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD, COMP}; 
 
 	private Project proj;
 	private boolean jar;
@@ -168,7 +169,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			String[][] menus = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 //								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", EXTRACT_PLOTS, SLIM_PLOTS},
 								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", TRANSPOSE_DATA},
-								{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD},
+								{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, COMP},
 								{"Tools", CHECK_SEX, LRR_SD, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, MOSAICISM, POPULATIONBAF, GCMODEL, DENOVO_CNV, SUMCNVBYSAM, TEST},
 								{"Help", "Contents", "Search", "About"}};
 
@@ -389,6 +390,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(TWOD)) {
 //			new TwoDPlot(proj);
 			TwoDPlot.main(null);
+		} else if (command.equals(COMP)) {
+			new CompPlot(proj);
 		} else if (command.equals(EDIT)) {
 			new PropertyEditor(proj);
 //				try {

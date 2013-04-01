@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
@@ -18,6 +17,8 @@ import common.ext;
 import cnv.var.SampleData;
 
 public class Project extends Properties {
+	private static final long serialVersionUID = 1L;
+
 //	public static final String DEFAULT_PROJECT = "these.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/pd_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
