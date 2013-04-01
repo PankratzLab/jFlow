@@ -275,35 +275,31 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 	}
 
 	public void propertyChange(PropertyChangeEvent pve) {
-		switch (pve.getPropertyName()) {
-		case "probes":
+		String propertyName;
+		
+		propertyName = pve.getPropertyName();
+		
+		if (propertyName.equals("probes")) {
 			compPlot.setProbes(Integer.parseInt(pve.getNewValue().toString()));
-			break;
-		case "minSize":
+		} else if (propertyName.equals("minSize")) {
 			compPlot.setMinSize(Integer.parseInt(pve.getNewValue().toString()));
-			break;
-		case "qualityScore":
+		} else if (propertyName.equals("qualityScore")) {
 			compPlot.setQualityScore(Integer.parseInt(pve.getNewValue().toString()));
-			break;
-		case "rectangleHeight":
+		} else if (propertyName.equals("rectangleHeight")) {
 			compPlot.setRectangleHeight(Integer.parseInt(pve.getNewValue().toString()));
-			break;
-		case "displayMode":
+		} else if (propertyName.equals("displayMode")) {
 			compPlot.setDisplayMode((String) pve.getNewValue());
-			break;
-		// case "firstRegion":
-		// case "previousRegion":
-		// case "nextRegion":
-		// case "lastRegion":
-		case "location":
+//		} else if (propertyName.equals("firstRegion")) {
+//		} else if (propertyName.equals("previousRegion")) {
+//		} else if (propertyName.equals("nextRegion")) {
+//		} else if (propertyName.equals("lastRegion")) {
+		} else if (propertyName.equals("location")) {
 			// System.out.println("Changing from " + pve.getOldValue() + " to " + pve.getNewValue());
 			compPlot.setLocation((Region) pve.getNewValue());
-			break;
-		case "selectedCNV":
+		} else if (propertyName.equals("selectedCNV")) {
 			System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
 			compPlot.setSelectedCNV((CNVariant) pve.getNewValue());
-			break;
-		default:
+		} else {
 			// System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
 		}
 	}
