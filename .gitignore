@@ -1,0 +1,9 @@
+/bin
+*.class
+/.settings
+.classpath
+.project
+/projects
+*.jardesc
+/launch.properties
+/.current
