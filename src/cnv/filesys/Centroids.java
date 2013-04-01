@@ -353,11 +353,34 @@ public class Centroids implements Serializable {
         }
 	}
 	
+//	public static void recompute(Project proj, String centroidsFile) {
+//		MarkerSet markerSet;
+//		Centroids centroids;
+//        Sample fsamp;
+//        Sample_old samp;
+//        String[] samples;
+//        float[][][] cents;
+//        
+//		markerSet = proj.getMarkerSet();
+//		centroids = load(centroidsFile, proj.getJarStatus());
+//		if (centroids.getFingerprint() != markerSet.getFingerprint()) {
+//			System.err.println("Error - fingerprint for Centroids file '"+centroidsFile+"' does not match the fingerprint for the current MarkerSet");
+//		}
+//
+//        cents = centroids.getCentroids(); 
+//        samples = proj.getSamples();
+//        for (int i = 0; i<samples.length; i++) {
+//        	fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
+//        	samp = new Sample_old(fsamp.getFingerprint(), fsamp.getLRRs(cents), fsamp.getBAFs(cents), fsamp.getAB_Genotypes());
+//        	samp.serialize(proj.getDir(Project.IND_DIRECTORY)+samples[i]+".samp");
+//        }
+//	}
+
 	public static void recompute(Project proj, String centroidsFile) {
 		MarkerSet markerSet;
 		Centroids centroids;
-        FullSample fsamp;
-        Sample samp;
+        Sample fsamp;
+//        Sample samp;
         String[] samples;
         float[][][] cents;
         
@@ -370,9 +393,9 @@ public class Centroids implements Serializable {
         cents = centroids.getCentroids(); 
         samples = proj.getSamples();
         for (int i = 0; i<samples.length; i++) {
-        	fsamp = proj.getFullSample(samples[i]);
-        	samp = new Sample(fsamp.getFingerprint(), fsamp.getLRRs(cents), fsamp.getBAFs(cents), fsamp.getAB_Genotypes());
-        	samp.serialize(proj.getDir(Project.IND_DIRECTORY)+samples[i]+".samp");
+        	fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
+//        	samp = new Sample(fsamp.getFingerprint(), fsamp.getLRRs(cents), fsamp.getBAFs(cents), fsamp.getAB_Genotypes());
+        	fsamp.serialize(proj.getDir(Project.IND_DIRECTORY)+samples[i]+".samp");
         }
 	}
 

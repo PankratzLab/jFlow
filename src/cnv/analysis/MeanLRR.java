@@ -15,6 +15,7 @@ public class MeanLRR {
 		PrintWriter writer;
 		MarkerSet markerSet;
 		SampleList sampleList;
+//		Sample_old samp;
 		Sample samp;
 		String[] samples, markerNames;
 		byte[] chrs;
@@ -81,7 +82,8 @@ public class MeanLRR {
 				System.out.println((i+1)+" of "+samples.length+" ("+ext.getTimeElapsed(time)+")");
 		        time = new Date().getTime();
 			}
-			samp = proj.getSample(samples[i]);
+//			samp = proj.getSample(samples[i]);
+			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			lrrs = samp.getLRRs();
 			for (int j = 0; j<cnps.length; j++) {
 				sum = 0;

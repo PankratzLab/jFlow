@@ -21,6 +21,7 @@ public class Mosaicism {
 	public static void findOutliers(Project proj) {
 		PrintWriter writer;
 		String[] samples;
+//		Sample_old samp;
 		Sample samp;
 
 		int chr;
@@ -81,7 +82,8 @@ public class Mosaicism {
 			for (int i = 0; i<samples.length; i++) {
 				System.out.println((i+1)+" of "+samples.length+" in "+ext.getTimeElapsed(time));
 				time = new Date().getTime();
-				samp = proj.getSample(samples[i]);
+//				samp = proj.getSample(samples[i]);
+				samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 				if (samp.getFingerprint()!=markerSet.getFingerprint()) {
 					System.err.println("Error - cannot estimate mosaics if MarkerSet and Sample ("+samples[i]+") don't use the same markers");
 					return;
@@ -144,7 +146,7 @@ public class Mosaicism {
         	System.err.println("Error - need to specify the name of a CNV file in the project properties file before running Mosaicism.checkForOverlap()");
         	return;
         }
-        sampleData = new SampleData(proj, new String[] {cnvFiles[0]});
+        sampleData = proj.getSampleData(new String[] {cnvFiles[0]});
         if (Files.exists(proj.getProjectDir()+"lrr_sd.xln", proj.getJarStatus())) {
         	lrrsdHash = HashVec.loadFileToHashString(proj.getProjectDir()+"lrr_sd.xln", false);
         } else {

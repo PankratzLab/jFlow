@@ -82,6 +82,27 @@ public class ext {
 		return str;
 	}
 
+	public static String prettyUpSize(long size, int numSigFigs) {
+		String str = size+"";
+		if (str.length()>12) {
+//			return formDeci((double)Integer.parseInt(str)/1000000000000l, numSigFigs)+" TB";
+			return formDeci((double)size/1048576000000l, numSigFigs)+" TB";
+		}
+		if (str.length()>9) {
+//			return formDeci((double)Integer.parseInt(str)/1000000000, numSigFigs)+" GB";
+			return formDeci((double)size/1048576000, numSigFigs)+" GB";
+		}
+		if (str.length()>6) {
+//			return formDeci((double)Integer.parseInt(str)/1000000, numSigFigs)+" MB";
+			return formDeci((double)size/1048576, numSigFigs)+" MB";
+		}
+		if (str.length()>3) {
+//			return formDeci((double)Integer.parseInt(str)/1000, numSigFigs)+" KB";
+			return formDeci((double)size/1024, numSigFigs)+" KB";
+		}
+		return str;
+	}
+
 	public static int indexOfInt(int target, int[] array) {
 		int index = -1;
 
@@ -1141,4 +1162,28 @@ public class ext {
 		
 		return linkRoot.substring(0, linkRoot.lastIndexOf("/")+1)+dir;
 	}
+
+    public static int countInstancesOf(String str, String pattern) {
+        int count;
+        String trav;
+       
+        trav = str;
+        count = 0;
+        while (trav.contains(pattern)) {
+                        trav = trav.substring(trav.indexOf(pattern)+pattern.length());
+                        count++;
+        }
+        
+        return count;
+    }
+	
+	public static String determineDelimiter(String str) {
+        if (str.contains("\t")) {
+                        return "\t";
+        } else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")) {
+                        return ",";
+        } else {
+                        return "[\\s]+";
+        }
+     }
 }

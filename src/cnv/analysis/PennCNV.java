@@ -5,7 +5,7 @@ import java.util.*;
 
 import javax.swing.JOptionPane;
 //import cnv.analysis.FilterCalls;
-import cnv.filesys.FullSample;
+import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
@@ -226,7 +226,7 @@ public class PennCNV {
 	 */
 	public static void populationBAF(Project proj) {
 		PrintWriter writer;
-		FullSample samp;
+		Sample samp;
 		String[] sampleList;
 		String[] markerNames;
 		double[] bafSum;
@@ -261,7 +261,7 @@ public class PennCNV {
 		bafCounts = new int[chrs.length];
 		genoCounts = new int[chrs.length];
 		for (int i=0; i<sampleList.length; i++) {
-			samp = proj.getFullSample(sampleList[i]);
+			samp = proj.getFullSampleFromRandomAccessFile(sampleList[i]);
 			bafs = samp.getBAFs();
 			genotypes = samp.getAB_Genotypes();
 			for (int j=0; j<bafSum.length; j++) {
@@ -287,7 +287,8 @@ public class PennCNV {
 			writer = new PrintWriter(new FileWriter(output));
 			writer.println("Name\tChr\tPosition\tPFB");
 			for (int i = 0; i<markerNames.length; i++) {
-				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
+//				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
+				writer.println(markerNames[i] + "\t" + (chrs[i]<23?chrs[i]:(chrs[i]==23?"X":(chrs[i]==24?"Y":(chrs[i]==25?"XY":(chrs[i]==26?"M":"Un"))))) + "\t" + positions[i] + "\t" + bafAverage[i]);
 			}
 			writer.close();
 			System.out.println("Population BAF file is now ready at: "+output);
@@ -437,10 +438,11 @@ public class PennCNV {
 			writer = new PrintWriter(new FileWriter(outputFile));
 			writer.println("Name\tChr\tPosition\tGC");
 			for (int i = 0; i<markerNames.length; i++) {
-				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+(snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
+//				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+(snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
+				writer.println(markerNames[i] + "\t" + (chrs[i]<23?chrs[i]:(chrs[i]==23?"X":(chrs[i]==24?"Y":(chrs[i]==25?"XY":(chrs[i]==26?"M":"Un"))))) + "\t"+positions[i] + "\t" + (snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
 			}
 			writer.close();
-			System.out.println("Population BAF file is now ready at: "+outputFile);
+			System.out.println("Population gcmodel file is now ready at: "+outputFile);
 		} catch (Exception e) {
 			System.err.println("Error writing to '" + outputFile + "'");
 			e.printStackTrace();
@@ -448,6 +450,9 @@ public class PennCNV {
 	}
 	
 	public static void main(String[] args) {
+		populationBAF(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false));
+//		gcModel(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false), "C:/projects/gcModel/gc5Base.txt", "C:/projects/gcModel/ourResult.gcModel", 100);
+		/*
 		int numArgs = args.length;
 		String filename = Project.DEFAULT_PROJECT;
 //		String logfile = "conf.log";
@@ -518,5 +523,6 @@ public class PennCNV {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	*/
 	}
 }

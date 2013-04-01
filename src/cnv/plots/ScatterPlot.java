@@ -17,6 +17,7 @@ import cnv.filesys.*;
 import cnv.gui.AutoSaveClusterFilterCollection;
 import cnv.gui.ColorIcon;
 import cnv.gui.CycleRadio;
+import cnv.manage.MarkerDataLoaderRunnable;
 import common.*;
 import cnv.var.*;
 
@@ -58,7 +59,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JComboBox newGenotype;
 
 	private Project proj;
-	private MarkerData[] markerData;
+//	private MarkerData[] markerData;
 	private String[] markerList;
 	private float[][][][] cents;
 	private String[] centList;
@@ -90,31 +91,51 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private AutoSaveClusterFilterCollection autoSaveCFC;
 	private JRadioButton[] typeRadioButtons;
 	private JRadioButton[] classRadioButtons;
+	private boolean[] loaded1;
+	private MarkerDataLoaderRunnable markerDataLoader;
+	private Thread thread2;
+    private Vector<Thread> threadsRunning;
 	
-	public ScatterPlot(Project project) {
+	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
 		super("ScatterPlot");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
+		long time = new Date().getTime();
+		
 		proj = project;
 		jar = proj.getJarStatus();
+		threadsRunning = new Vector<Thread>();
 		size = DEFAULT_SIZE;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 //		clusterFilterCollectionUpdated = false;
-		
+
 		SampleList list = proj.getSampleList();
+//		SampleList list2 = proj.getSampleList2();
 		samples = list.getSamples();
 		sampleListFingerprint = list.getFingerprint();
-		sampleData = new SampleData(proj, true);
+		sampleData = proj.getSampleData(true);
 		markerLookup = proj.getMarkerLookup();
-		loadFile();
+		
+		markerList = initMarkerList;
+		commentList = initCommentList;
 		if (markerList == null) {
-			return;
+			loadMarkerListFromFile();
+			if (markerList == null) {
+				return;
+			}
 		}
+		loadMarkerDataFromList();
+		if (commentList == null) {
+			commentList = Array.stringArray(markerList.length, "");
+		}
+		
+		System.err.println("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
 		addWindowListener(this);
 		sessionID = (new Date().getTime()+"").substring(5);
 		loadClusterFilterFiles();
 		autoSaveCFC = null;
+		System.err.println("4\t"+ext.getTimeElapsed(time));
 		
 		scatPanel = new ScatterPanel(this);
 		getContentPane().add(scatPanel, BorderLayout.CENTER);
@@ -148,6 +169,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			centBoxes[0].setSelected(true);
 		}
 		
+
 		next.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT);
 //		next.setActionMap(actionMap);
 //		previous.setActionMap(actionMap);
@@ -155,6 +177,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
+
+		System.err.println("5\t"+ext.getTimeElapsed(time));
 	}
 
 	private JComponent markerPanel() {
@@ -780,6 +804,12 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			displayClusterFilterIndex();
 		} else if (command.equals(PREVIOUS)) {
 			markerIndex = Math.max(markerIndex-1, 0);
+//			if (markerData[markerIndex] == null) {
+//			if (!loaded[markerIndex]) {
+//				loadMarkerData(markerIndex);
+//				loaded[markerIndex] = true;
+////				scatPanel.updateMarkerData(markerData);
+//			}
 			displayIndex(navigationField);
 			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setQcPanelUpdatable(true);
@@ -793,6 +823,12 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			displayClusterFilterIndex();
 		} else if (command.equals(NEXT)) {
 			markerIndex = Math.min(markerIndex+1, markerList.length-1);
+//			if (markerData[markerIndex] == null) {
+//			if (!loaded[markerIndex]) {
+//				loadMarkerData(markerIndex);
+//				loaded[markerIndex] = true;
+////				scatPanel.updateMarkerData(markerData);
+//			}
 			displayIndex(navigationField);
 			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setQcPanelUpdatable(true);
@@ -806,6 +842,12 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			displayClusterFilterIndex();
 		} else if (command.equals(LAST)) {
 			markerIndex = markerList.length-1;
+//			if (markerData[markerIndex] == null) {
+//			if (!loaded[markerIndex]) {
+//				loadMarkerData(markerIndex);
+//				loaded[markerIndex] = true;
+////				scatPanel.updateMarkerData(markerData);
+//			}
 			displayIndex(navigationField);
 			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setQcPanelUpdatable(true);
@@ -872,7 +914,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				filename = markerList[markerIndex]+"_dump"+(count==1?"":" v"+count);
 				count++;
 			} while (new File(proj.getProjectDir()+filename+".xln").exists());
-			markerData[markerIndex].writeToFile(samples, proj.getProjectDir()+filename+".xln");
+//			markerData[markerIndex].writeToFile(samples, proj.getProjectDir()+filename+".xln");
+			getCurrentMarkerData().writeToFile(samples, proj.getProjectDir()+filename+".xln");
 		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
 			maskMissing = !maskMissing;
 			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
@@ -885,21 +928,21 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	private void loadClusterFilterFiles() {
-		String[] otherClusterFilerFiles;
+		String[] otherClusterFilTerFiles;
 		int choice;
 		String[] options = new String[] {"Yes, load and delete old file", "No, delete old file", "Cancel and close ScatterPlot"};
 		
-		otherClusterFilerFiles = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".tempClusterFilters.ser", jar);
-		if (otherClusterFilerFiles.length > 0) {
+		otherClusterFilTerFiles = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".tempClusterFilters.ser", jar);
+		if (otherClusterFilTerFiles.length > 0) {
 			choice = JOptionPane.showOptionDialog(null, "Error - either multiple instances of ScatterPlot are running or ScatterPlot failed to close properly\n" +
 														"last time. The ability to generate new ClusterFilters will be disabled until this file has been\n" +
 														"removed. Do you want to delete it and load the contents of the temporary file into memory?",
 												  "Error", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				// load the last one in otherClusterFilerFiles[]
-				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilerFiles[otherClusterFilerFiles.length-1], jar);
-				for (int i=0; i<otherClusterFilerFiles.length; i++) {
-					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilerFiles[i])).delete();
+				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[otherClusterFilTerFiles.length-1], jar);
+				for (int i=0; i<otherClusterFilTerFiles.length; i++) {
+					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[i])).delete();
 				}
 			} else if (choice == 1) {
 				// load permanent
@@ -908,8 +951,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				} else {
 					clusterFilterCollection = new ClusterFilterCollection();
 				}
-				for (int i=0; i<otherClusterFilerFiles.length; i++) {
-					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilerFiles[i])).delete();
+				for (int i=0; i<otherClusterFilTerFiles.length; i++) {
+					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[i])).delete();
 				}
 			} else {
 				System.exit(1);
@@ -939,10 +982,10 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return sampleData;
 	}
 
-	public MarkerData[] getMarkerData() {
-		return markerData;
-	}
-
+//	public MarkerData[] getMarkerData1() {
+//		return markerData;
+//	}
+//
 	public int getMarkerIndex() {
 		return markerIndex;
 	}
@@ -1003,7 +1046,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //
 //		if (clusterFilterCollection.getSize(getMarkerName()) > 0) {
 			currentFilter = clusterFilterCollection.getClusterFilters(getMarkerName()).get(currentClusterFilter);
-			scatPanel.highlightPoints(markerData[markerIndex].getHighlightStatus(currentFilter));
+			scatPanel.highlightPoints(getCurrentMarkerData().getHighlightStatus(currentFilter));
 		}
 //		System.out.println("After: image=="+(scatPanel.image==null?"null":"BImg"));
 
@@ -1016,19 +1059,23 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	public void updateCentLabels() {
 		double[] comp;
 		String str;
+		MarkerData markerData;
 
-		if (markerData != null && markerData[markerIndex] != null && markerData[markerIndex].getLRRs() != null) {
-			for (int i = 0; i<centList.length; i++) {
-				comp = markerData[markerIndex].compareLRRs(cents[i][markerIndex]);
-				str = comp[0]+"";
-	
-				for (int j = 2; j<str.length(); j++) {
-					if (str.charAt(j) != '9') {
-						str = str.substring(0, Math.min(j+2, str.length()));
-					}
+		if (markerDataLoader != null) {
+			markerData = getCurrentMarkerData();
+			if (markerData.getLRRs() != null) {
+				for (int i = 0; i<centList.length; i++) {
+					comp = markerData.compareLRRs(cents[i][markerIndex]);
+					str = comp[0]+"";
+		
+					for (int j = 2; j<str.length(); j++) {
+						if (str.charAt(j) != '9') {
+							str = str.substring(0, Math.min(j+2, str.length()));
+						}
+			        }
+					centLabels[i].setText("LRR corr="+str+", err="+ext.formDeci(comp[1], 3));
 		        }
-				centLabels[i].setText("LRR corr="+str+", err="+ext.formDeci(comp[1], 3));
-	        }
+			}
 		}
 	}
 
@@ -1036,7 +1083,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return maskMissing;
 	}
 	
-	public void loadFile() {
+	public void loadMarkerListFromFile() {
 		BufferedReader reader;
 		Vector<String> markerNames = new Vector<String>();
 		Vector<String> markerComments = new Vector<String>();
@@ -1079,16 +1126,88 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 			markerList = Array.toStringArray(markerNames);
 			commentList = Array.toStringArray(markerComments);
-			markerData = MarkerSet.loadFromList(proj, markerList);
-			//System.out.println("markerName: "+markerData.+);//zx
-			markerIndex = 0;
-			previousMarkerIndex = -1;
 		} catch (Exception e) {
 			System.err.println("Error loading: "+filename);
 			e.printStackTrace();
 		}
 	}
 	
+	public void loadMarkerDataFromList() {
+		markerDataLoader = new MarkerDataLoaderRunnable(proj, markerList);
+		thread2 = new Thread(markerDataLoader);
+		threadsRunning.add(thread2);
+		thread2.start();
+
+		markerIndex = 0;
+		previousMarkerIndex = -1;
+	}
+	
+	public boolean markerDataIsActive() {
+		return markerDataLoader != null;
+	}
+	
+	public MarkerData getCurrentMarkerData() {
+		MarkerData markerData;
+		int count;
+		
+		count = 0;
+		while((markerData = markerDataLoader.getMarkerData(markerIndex)) == null) {
+			markerDataLoader.requestIndexBeTheNextFileToLoad(markerIndex);
+			try {
+				Thread.sleep(250);
+				count++;
+			} catch (InterruptedException ie) {
+			}
+			if (count > 8 && count % 8 == 0) {
+				System.err.println("Error - have been waiting on markerDataLoader to load "+markerList[markerIndex]+" for "+(count/4)+" secounds");
+			}
+		}
+		
+		return markerData;
+	}
+	
+	
+//	public synchronized void loadMarkerData(int markerIndex) {
+////		thread2.suspend();
+//		markerDataLoader.requestIndexBeTheNextFileToLoad(markerIndex);
+////		markerData[markerIndex] = MarkerSet.loadFromList(proj, new String[] {markerList[markerIndex]})[0];
+////		loaded[markerIndex] = true;
+////		thread2.resume();
+//
+////		try {
+//////			Thread.sleep(5000);
+//////			thread2.sleep(5000); //TODO
+//////			thread2.wait(5000);
+//////			thread2.interrupt();
+////			thread2.wait();
+////			markerData[markerIndex] = MarkerSet.loadFromList(proj, new String[] {markerList[markerIndex]})[0];
+////			loaded[markerIndex] = true;
+////			thread2.notify();
+////		} catch (InterruptedException e) {
+////			// TODO Auto-generated catch block
+////			e.printStackTrace();
+////		}
+//	}
+
+//	public void loadMarkerData(int markerIndex) {
+////		thread2.suspend();
+////		markerData[markerIndex] = MarkerSet.loadFromList(proj, new String[] {markerList[markerIndex]})[0];
+////		loaded[markerIndex] = true;
+////		thread2.resume();
+//
+//		try {
+////			Thread.sleep(5000);
+//			thread2.sleep(5000); //TODO
+////			thread2.wait(5000);
+////			thread2.interrupt();
+//			markerData[markerIndex] = MarkerSet.loadFromList(proj, new String[] {markerList[markerIndex]})[0];
+//			loaded[markerIndex] = true;
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
+//
 	public void loadCentroids() {
 		String[] markerNames, files;
 		Centroids trav;
@@ -1143,9 +1262,18 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void updateGUI() {
-		if (markerData == null) {
+		System.out.println("updating");
+		
+		if (markerDataLoader == null) {
 			return;
 		}
+		
+//		if (markerData[markerIndex]==null) {
+//			System.out.println("Marker data is null at index "+markerIndex);
+////			create visual that we're loading data, (write to scatter panel "Loading data from file")
+//			loadMarkerData(markerIndex);
+//		}
+		
 		if (markerList.length==0) {
 			markerName.setText("Error: marker data was not successfully loaded");
 			commentLabel.setText("Check to make sure MarkerLookup is synchronized with the current data");
@@ -1155,7 +1283,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			commentLabel.setText(commentList[markerIndex]);
 
 			if (classPanel!=null) {
-				classPanel.setEnabled(markerData[markerIndex].getFingerprint()==sampleListFingerprint);
+				classPanel.setEnabled(getCurrentMarkerData().getFingerprint()==sampleListFingerprint);
 			}
 		}
 		if (plot_type >= 2) {
@@ -1170,7 +1298,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			for (int i = 0; i<centBoxes.length; i++) {
 				if (centBoxes[i].isSelected()) {
 					if (!recomputed) {
-						markerData[markerIndex].recompute(cents[i][markerIndex]);
+						getCurrentMarkerData().recompute(cents[i][markerIndex]);
 						recomputed = true;
 					} else {
 						centBoxes[i].setSelected(false);
@@ -1418,10 +1546,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	public static void main(String[] args) {
 		String filename = Project.DEFAULT_SCATTER_PROJECT;
-		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
+//		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
+		boolean jar = false;
 
 		try {
-			new ScatterPlot(new Project(filename, jar));
+			new ScatterPlot(new Project(filename, jar), null, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1444,6 +1573,14 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			autoSaveCFC.kill();
 		} else {
 		}
+
+		//TODO notify all threads (e.g., MarkerDataLoaders) that they need to close
+    	for (int i = 0; i < threadsRunning.size(); i++) {
+    		threadsRunning.elementAt(i).stop();
+		}
+		markerDataLoader.kill();
+
+		
 	}
 
 	public void windowDeactivated(WindowEvent e) {}

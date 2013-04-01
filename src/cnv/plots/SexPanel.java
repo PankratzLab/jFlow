@@ -42,13 +42,13 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	public static final int DOUBLE_CLICK_INTERVAL = 500;
 	public static final double NUM_SD_FOR_OUTLIERS = 3.0;
 
-	public static Color[] colorScheme = { Color.BLACK,				// black.		for 0 - missing
-										  Color.BLUE,					// blue.		for 1 - normal male
-										  Color.PINK,					// pink.		for 2 - normal female
+	public static Color[] colorScheme = { new Color(0, 0, 0),		// black.		for 0 - missing
+										  new Color(0, 0, 255),		// blue.		for 1 - normal male
+										  new Color(255, 175, 175),	// pink.		for 2 - normal female
 										  new Color(0, 0, 139),		// dark blue.	for 3 - full Klinefelter's XXY
 										  new Color(51, 153, 255),	// light blue.	for 4 - mosaic Klinefelter's
-										  Color.RED,					// red.			for 5 - Triple X
-										  new Color(66, 28, 82),		// dark purple. for 6 - Turner's XO without mosaicism
+										  new Color(255, 0, 0),		// red.			for 5 - Triple X
+										  new Color(66, 28, 82),	// dark purple. for 6 - Turner's XO without mosaicism
 										  new Color(189, 174, 198)	// light purple.for 7 - mosaic Turner's
 	};
 
@@ -223,7 +223,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				}
 			}
 			// if (linkSamples && prox != null && prox.size() > 0) {
-			if (prox!=null&&prox.size()>0) {
+			if (prox!=null && prox.size()>0) {
 				for (int i = 0; i<prox.size(); i++) {
 					iv = sampLookup.get(samples[prox.elementAt(i)][0]);
 					g.setColor(Color.YELLOW);

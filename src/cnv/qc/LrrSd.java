@@ -23,7 +23,7 @@ public class LrrSd extends Parallelizable {
 	
 	public void run() {
 		PrintWriter writer;
-		FullSample fsamp;
+		Sample fsamp;
 		float[][][] cents;
 		byte[] chrs;
 		float[] lrrs;
@@ -39,12 +39,13 @@ public class LrrSd extends Parallelizable {
 			
 			for (int i = 0; i<samples.length; i++) {
 	        	System.out.println((i+1)+" of "+samples.length);
-				fsamp = proj.getFullSample(samples[i]);
+				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
 				chrs = proj.getMarkerSet().getChrs();
 				lrrs = null;
 				if (fsamp == null) {
 					System.err.println("Error - "+samples[i]+".fsamp not found in samples directory");
-					lrrs =  proj.getSample(samples[i]).getLRRs();
+//					lrrs =  proj.getSample(samples[i]).getLRRs();
+					lrrs =  proj.getPartialSampleFromRandomAccessFile(samples[i]).getLRRs();
 				} else {
 					lrrs = cents==null?fsamp.getLRRs():fsamp.getLRRs(cents);
 					lrrs = Array.subArray(lrrs, 0, Array.indexOfByte(chrs, (byte)23));

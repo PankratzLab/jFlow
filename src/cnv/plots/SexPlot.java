@@ -84,7 +84,7 @@ public class SexPlot extends JFrame{
 			reader = Files.getReader(proj.getProjectDir()+"sexCheck.xln", proj.getJarStatus(), true, true);
 			ext.checkHeader(reader.readLine().trim().split("\t"), SexChecks.SEX_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split("\t", -1);
 				if (ext.isMissingValue(line[4]) || ext.isMissingValue(line[8]) ) {
 					System.err.println("Error - sample '"+line[0]+"' does not have a valid meanLRR for X or Y");
 				} else {

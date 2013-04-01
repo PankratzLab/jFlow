@@ -1,5 +1,6 @@
 package cnv.gui;
 
+import cnv.plots.ScatterPlot;
 import cnv.plots.Trailer;
 import common.Array;
 import common.ext;
@@ -18,11 +19,14 @@ public class LaunchAction extends AbstractAction {
 	public static final int LAUNCH_TRAILER = 1;
 	public static final int COPY_ID = 2;
 	public static final int APPEND_ID = 3;
-	public static final int LAUNCH_SCATTER = 4;
+	public static final int APPEND_ID_TO_FILE = 4;
+	public static final int LAUNCH_SCATTER = 5;
+	public static final int LABEL_ONLY = 6;
 
 	private Project proj;
 	private String sample;
 	private String filename;
+	private String marker;
 	private String[] loc;
 	private int type;
 	private boolean jar;
@@ -63,6 +67,15 @@ public class LaunchAction extends AbstractAction {
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
 	
+	public LaunchAction(Project proj, String marker, Color color) {
+		super(marker);
+		this.type = LAUNCH_SCATTER;
+		this.proj = proj;
+		this.jar = proj.getJarStatus();
+		this.marker = marker;
+		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
+	}
+	
 	public LaunchAction(int type, Project proj, String sample, Color color) {
 		super(sample);
 		this.type = type;
@@ -74,12 +87,27 @@ public class LaunchAction extends AbstractAction {
 
 	public LaunchAction(String filename, Project proj, String sample, Color color) {
 		super(sample);
-		this.type = APPEND_ID;
+		this.type = APPEND_ID_TO_FILE;
 		this.filename = filename;
 		this.proj = proj;
 		this.jar = proj.getJarStatus();
 		this.sample = sample;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
+	}
+
+	public LaunchAction(String text) {
+		super(text);
+		this.type = LABEL_ONLY;
+	}
+	
+	public LaunchAction(String text, boolean append) {
+		super((append?"Append":"Copy")+" to clipboard: "+ext.replaceAllWith(text, "\t", "  "));
+		if (append) {
+			this.type = APPEND_ID;
+		} else {
+			this.type = COPY_ID;
+		}
+		sample = text;
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -99,15 +127,19 @@ public class LaunchAction extends AbstractAction {
 	        break;
         case LAUNCH_SCATTER:
     		ext.setClipboard(sample+"\t"+loc);
-//    		new Trailer(proj, sample, proj.getFilenames(Project.CNV_FILENAMES), loc.substring(0, loc.length()-1));
-//    		new Scatter
+    		new ScatterPlot(proj, new String[] {marker}, null);
 	        break;
         case COPY_ID:
     		ext.setClipboard(sample);
 	        break;
         case APPEND_ID:
+    		ext.setClipboard(ext.getClipboard()+"\n"+sample);
+	        break;
+        case APPEND_ID_TO_FILE:
     		ext.setClipboard(sample);
     		ext.appendToFile(sample, filename);
+	        break;
+        case LABEL_ONLY:
 	        break;
         default:
 	        break;

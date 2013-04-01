@@ -64,6 +64,10 @@ public class PlotPoint implements Serializable {
 		return layer;
 	}
 
+	public void setLayer(byte layer) {
+		this.layer = layer;
+	}
+
 	public void setHighlighted(boolean status) {
 		highlight = status;
 	}

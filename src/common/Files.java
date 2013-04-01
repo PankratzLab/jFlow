@@ -5,6 +5,10 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.jar.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import filesys.*;
 import parse.*;
@@ -45,11 +49,14 @@ public class Files {
 	public static void batchIt(String root_batch_name, int sleep, int start, int stop, int numBatches, String commands) {
 		PrintWriter[] writers = new PrintWriter[numBatches];
 		PrintWriter writer;
+		String batchName;
 
 		try {
 			for (int i = 0; i<numBatches; i++) {
-				writers[i] = new PrintWriter(new FileWriter(i==0&&numBatches==1?root_batch_name:root_batch_name+"."+(i+1)));
-				writers[i].println("#/bin/sh\n");
+				writers[i] = new PrintWriter(new FileWriter(getBatchName(root_batch_name, i, numBatches)));
+				if (!System.getProperty("os.name").startsWith("Windows")) {
+					writers[i].println("#/bin/sh\n");
+				}
 				if (sleep>0) {
 					writers[i].println("sleep "+sleep+"\n");
 				}
@@ -65,9 +72,10 @@ public class Files {
 			}
 			for (int i = 0; i<numBatches; i++) {
 				writers[i].close();
-				chmod(i==0&&numBatches==1?root_batch_name:root_batch_name+"."+(i+1), i==0);
+				batchName = getBatchName(root_batch_name, i, numBatches);
+				chmod(batchName, i==0);
 				if (numBatches>1) {
-					writer.println("nohup ./"+root_batch_name+"."+(i+1)+" > "+(i+1)+".out &");
+					writer.println("nohup ./"+batchName+" > "+(i+1)+".out &");
 				}
 
 			}
@@ -78,7 +86,17 @@ public class Files {
 		} catch (IOException ioe) {
 			throw new RuntimeException("Problem creating batch files named "+root_batch_name);
 		}
-
+	}
+	
+	private static String getBatchName(String root, int i, int numBatches) {
+		String batchName;
+		
+		batchName = numBatches==1?root:root+"."+(i+1);
+		if (System.getProperty("os.name").startsWith("Windows")) {
+			batchName += ".bat";
+		}
+		
+		return batchName;
 	}
 
 	public static void qsub(String root, int start, int stop, String commands) {
@@ -234,16 +252,65 @@ public class Files {
 		} catch (IOException ioe) {
 			throw new RuntimeException("Problem creating batch files named "+root_batch_name);
 		}
-
 	}
-
-	public static void qsub(String root, String commands, String[][] iterations) {
-		PrintWriter writer, writer2;
-		String filename, trav;
+	
+	public static void qsub(String root_batch_name, int numBatches, String commands, String[][] iterations) {
+		PrintWriter[] writers = new PrintWriter[numBatches];
+		PrintWriter writer;
+		String trav;
 		String[] lines;
+		int index;
 
 		try {
-			writer2 = new PrintWriter(new FileWriter("master."+(root==null?"qsub":root)));
+			if (numBatches>1) {
+				writer = new PrintWriter(new FileWriter("master." + root_batch_name));
+				for (int i = 0; i<numBatches; i++) {
+					writers[i] = new PrintWriter(new FileWriter(root_batch_name + "_" + (i+1) + ".qsub"));
+			        writers[i].println("#!/bin/bash");
+			        writers[i].println("#$ -cwd");
+			        writers[i].println("#$ -S /bin/bash");
+					writers[i].println();
+					writers[i].println("echo \"start at: \" `date`");
+					writer.println("qsub " + root_batch_name + "_" + (i+1) + ".qsub");
+				}
+			} else {
+				writer = null;
+				writers[0] = new PrintWriter(new FileWriter(root_batch_name + ".qsub"));
+			}
+
+
+			for (int i = 0; i<iterations.length; i++) {
+				trav = commands;
+				for (int j = 0; j<iterations[i].length; j++) {
+					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
+				}
+				lines = trav.split("\\n");
+				index = i % numBatches;
+				for (int k = 0; k<lines.length; k++) {
+					writers[index].println(lines[k]);
+				}
+			}
+
+			for (int i = 0; i<numBatches; i++) {
+				writers[i].println("echo \"end at: \" `date`");
+				writers[i].close();
+				chmod("master."+(i==0&&numBatches==1?root_batch_name:root_batch_name+"_"+(i+1)));
+			}
+			if (numBatches>1) {
+				writer.close();
+			}
+		} catch (IOException ioe) {
+			throw new RuntimeException("Problem creating batch files named "+root_batch_name);
+		}
+	}
+
+	
+	public static void qsub(String root, String commands, String[][] iterations) {
+		PrintWriter writer;
+		String filename, trav;
+
+		try {
+			writer = new PrintWriter(new FileWriter("master."+(root==null?"qsub":root)));
 			for (int i = 0; i<iterations.length; i++) {
 				filename = (root==null?"":root+"_")+i+".qsub"; 
 
@@ -251,30 +318,36 @@ public class Files {
 				for (int j = 0; j<iterations[i].length; j++) {
 					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
 				}
-				lines = trav.split("\\n");
-
-				try {
-					writer = new PrintWriter(new FileWriter(filename));
-			        writer.println("#!/bin/bash");
-			        writer.println("#$ -cwd");
-			        writer.println("#$ -S /bin/bash");
-					writer.println();
-					writer.println("echo \"start at: \" `date`");
-					for (int j = 0; j<lines.length; j++) {
-						writer.println(lines[j]);
-					}
-					writer.println("echo \"end at: \" `date`");
-					writer.close();
-					chmod(filename, false);
-					writer2.println("qsub "+filename);
-				} catch (IOException ioe) {
-					throw new RuntimeException("Problem creating "+filename);
-				}
+				qsub(filename, trav);
+				writer.println("qsub "+filename);
 			}
-			writer2.close();
+			writer.close();
 			Files.chmod("master."+(root==null?"qsub":root));
 		} catch (IOException ioe) {
 			throw new RuntimeException("Problem creating master batch file");
+		}
+	}
+	
+	public static void qsub(String filename, String command) {
+		PrintWriter writer;
+		String[] lines;
+
+		lines = command.split("\\n");
+		try {
+			writer = new PrintWriter(new FileWriter(filename));
+	        writer.println("#!/bin/bash");
+	        writer.println("#$ -cwd");
+	        writer.println("#$ -S /bin/bash");
+			writer.println();
+			writer.println("echo \"start at: \" `date`");
+			for (int j = 0; j<lines.length; j++) {
+				writer.println(lines[j]);
+			}
+			writer.println("echo \"end at: \" `date`");
+			writer.close();
+			chmod(filename, false);
+		} catch (IOException ioe) {
+			throw new RuntimeException("Problem creating "+filename);
 		}
 	}
 
@@ -453,30 +526,63 @@ public class Files {
 	}
 
 	public static BufferedReader getReader(String filename, String[] alt_locs) throws FileNotFoundException {
-		BufferedReader reader = null;
+		BufferedReader reader;
 
-		if (new File(filename).exists()) {
-			reader = new BufferedReader(new FileReader(filename));
-		} else {
-			for (int i = 0; i<alt_locs.length; i++) {
-				if (reader==null&&new File(alt_locs[i]+"/"+filename).exists()) {
-					reader = new BufferedReader(new FileReader(alt_locs[i]+"/"+filename));
-				}
-			}
+		reader = null;
+		for (int i = -1; reader==null&&i<alt_locs.length; i++) {
+			reader = getAppropriateReader(i==-1?filename:alt_locs[i]+"/"+filename);
 		}
 
 		if (reader==null) {
 			throw new FileNotFoundException("Error: file \""+filename+"\" not found in current directory, or any of the alternate directories");
 		}
-
+		
 		return reader;
+	}
+	
+	public static BufferedReader getAppropriateReader(String filename) throws FileNotFoundException {
+		InputStreamReader isReader = null;
+
+		if (!Files.exists(filename, false)) {
+			return null;
+		}
+
+		if (filename.endsWith(".gz")) {
+			try {
+				isReader = new InputStreamReader(new GZIPInputStream(new FileInputStream(filename)));
+			} catch (IOException e) {
+				System.err.println("Error accessing '"+filename+"'");
+				e.printStackTrace();
+			}
+		} else if (filename.endsWith(".zip")) {
+			try {
+				isReader = new InputStreamReader(new ZipInputStream(new FileInputStream(filename)));
+			} catch (IOException e) {
+				System.err.println("Error accessing '"+filename+"'");
+				e.printStackTrace();
+			}
+		} else {
+			isReader = new FileReader(filename);
+		}
+
+		return isReader==null?null:new BufferedReader(isReader);
 	}
 
 	public static PrintWriter getWriter(String filename) {
+		return getAppropriateWriter(filename);
+	}
+	
+	public static PrintWriter getAppropriateWriter(String filename) {
 		PrintWriter writer = null;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			if (filename.endsWith(".gz")) {
+				writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(filename)));
+			} else if (filename.endsWith(".zip")) {
+				writer = new PrintWriter(new ZipOutputStream(new FileOutputStream(filename)));
+			} else {
+				writer = new PrintWriter(new FileWriter(filename));
+			}			
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" could not be written to (it's probably open)");
 			System.exit(1);
@@ -741,6 +847,8 @@ public class Files {
     		hash.put(ignoreCase?keys[i].toLowerCase():keys[i], i+"");
         }
         data = new String[fileParameters.length][keys.length+1][];
+        
+        System.out.println(ext.addCommas(Runtime.getRuntime().maxMemory())+" memory available");
 
         try {
             for (int i = 0; i<fileParameters.length; i++) {
@@ -872,7 +980,7 @@ public class Files {
                 log.report("Parsing data from '"+line[0]+"'");
             	parser = new GenParser(line, log);
 
-                if (headers[i] != null && !ext.checkHeader(parser.getOriginalColumnNames(), headers[i], true, log, false)) {
+                if (headers != null && headers[i] != null && !ext.checkHeader(parser.getOriginalColumnNames(), headers[i], true, log, false)) {
                 	log.reportError("Error - unexpected header for file "+line[0]);
                 	System.exit(1);
                 }
@@ -923,7 +1031,9 @@ public class Files {
         			readers[i].readLine();
         		}
 			}
-        	writer.println();
+    		if (finalHeader) {
+    			writer.println();
+    		}
 
         	counter = 0;
             while (readers[0].ready()) {
@@ -1240,7 +1350,7 @@ public class Files {
 				if (jar) {
 					return new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(filename)));
 				} else {
-					return new BufferedReader(new FileReader(filename));
+					return getAppropriateReader(filename);
 				}
 			} else {
 				if (verbose) {
@@ -1305,10 +1415,14 @@ public class Files {
 	}
 
 	public static Object readSerial(String filename) {
-		return readSerial(filename, false, true);
+		return readSerial(filename, false, new Logger(), true);
 	}
 
 	public static Object readSerial(String filename, boolean jar, boolean kill) {
+		return readSerial(filename, jar, new Logger(), kill);
+	}
+	
+	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill) {
 		ObjectInputStream ois;
 		Object o = null;
 
@@ -1321,8 +1435,8 @@ public class Files {
 			o = ois.readObject();
 			ois.close();
 		} catch (Exception e) {
-			System.err.println("Error - failed to load "+filename);
-			e.printStackTrace();
+			log.reportError("Error - failed to load "+filename);
+			log.reportException(e);
 			if (kill) {
 				System.exit(1);
 			}
@@ -1362,7 +1476,7 @@ public class Files {
 	}
 
 	public static String[] list(String directory, final String suffix, boolean jar) {
-		return list(directory, null, suffix, true, jar);
+		return list(directory, null, suffix, false, jar);
 	}
 	
 	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
@@ -1417,9 +1531,13 @@ public class Files {
 							return false;
 						}
 					}
+					if (new File(file, filename).isDirectory()) {
+						return false;
+					}
 					return true;
 				}
 			});
+			
 			
 			if (files == null) {
 				return new String[0];
@@ -1467,6 +1585,83 @@ public class Files {
 			});
 		}
 	}
+	
+//	public static void summarizeAllFilesInDirectory(String dir) {
+//		PrintWriter writer;
+//		String[] data;
+//		
+//		data = listAllFilesInTree(dir, false);
+//		try {
+//			writer = new PrintWriter(new FileWriter(dir+"summaryOfFiles.xln"));
+//			writer.println("Full filename\tdirectory\tfilename\troot\textension");
+//			for (int i = 0; i < data.length; i++) {
+//				writer.println(data[i]+"\t"+ext.parseDirectoryOfFile(data[i])+"\t"+ext.removeDirectoryInfo(data[i])+"\t"+ext.rootOf(data[i])+"\t"+data[i].substring(data[i].lastIndexOf(".")+1));
+//			}
+//			writer.close();
+//		} catch (Exception e) {
+//			System.err.println("Error writing to " + dir+"summaryOfFiles.xln");
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	public static void summarizeDirectoryFromParameters(String filename, Logger log) {
+//		String[][] params;
+//		
+//		params = parseControlFile(filename, false, "dir", new String[] {"directory"}, log);
+//		if (params != null) {
+//			summarizeAllFilesInDirectory(params[0][0]);
+//		}
+//	}
+	
+//	public static String[] listAllFilesInTree(String dir, boolean jar) {
+//		Vector<String> allFiles;
+//		
+//		allFiles = new Vector<String>();
+//		traverseTree(dir, "", allFiles, jar);
+//		return Array.toStringArray(allFiles);
+//	}
+
+//	private static void traverseTree(String root, String dir, Vector<String> allFiles, boolean jar) {
+//		String[] dirs;
+//		
+//		dirs = listDirectories(root+dir, jar);
+//		for (int i = 0; i < dirs.length; i++) {
+//			traverseTree(root, dir+dirs[i]+"/", allFiles, jar);
+//		}
+//		
+//		HashVec.addAllInArrayToVector(Array.addPrefixSuffixToArray(list(root+dir, null, jar), dir, null), allFiles);
+//	}
+	
+	public static void copySpecificFiles(String filename, Logger log) {
+		String[][] params;
+		String sourceDir, targetDir;
+		boolean lower;
+		
+		lower = false;
+		params = parseControlFile(filename, false, "copy", new String[] {"sourceDirectory/", "targetDirectory/ -toLowerCase", "file1.txt", "file2.txt"}, log);
+		if (params != null) {
+			sourceDir = params[0][0];
+			targetDir = params[1][0];
+			for (int i = 1; i < params[1].length; i++) {
+				if (params[1][i].equals("-toLowerCase")) {
+					lower = true;
+				} else {
+					System.err.println("Error - don't know what to do with argument: "+params[1][i]);
+				}
+			}
+			new File(targetDir).mkdirs();
+			for (int i = 2; i < params.length; i++) {
+				try {
+					java.nio.file.Files.copy(new File(sourceDir+params[i][0]).toPath(), new File(targetDir+(lower?params[i][0].toLowerCase():params[i][0])).toPath());
+				} catch (IOException e) {
+					System.err.println("Error - failed to copy '"+params[i][0]+"'");
+					e.printStackTrace();
+				}
+			}
+		}		
+	}
+	
+
 
 	public static void more(String filename) {
 		BufferedReader reader;
@@ -1567,6 +1762,19 @@ public class Files {
         }
 
         return -1;
+	}
+	
+	public static void write(String str, String filename) {
+        PrintWriter writer;
+        
+		try {
+	        writer = new PrintWriter(new FileWriter(filename));
+	        writer.println(str);
+	        writer.close();
+        } catch (Exception e) {
+	        System.err.println("Error writing to "+filename);
+	        e.printStackTrace();
+        }
 	}
 	
 	public static void writeList(String[] list, String filename) {
@@ -1773,7 +1981,7 @@ public class Files {
 					if (new File(trav+".taken").exists()) {
 						done = false;
 					} else {
-						files = list("./", trav+".", ".reserved", true, false);
+						files = list("./", trav+".", ".reserved", false, false);
 						if (files.length > 1) {
 							rands = new int[files.length];
 							for (int i = 0; i < rands.length; i++) {
@@ -1823,15 +2031,24 @@ public class Files {
 		return max;
 	}
 	
+	public static String[] getHeaderOfFile(String filename, Logger log) {
+		return getHeaderOfFile(filename, null, log);
+	}
+	
 	public static String[] getHeaderOfFile(String filename, String delimiter, Logger log) {
 		BufferedReader reader;
+		String temp;
 		String[] line;
 		
 		line = null;
 		try {
 	        reader = new BufferedReader(new FileReader(filename));
 	        if (reader.ready()) {
-	        	line = reader.readLine().trim().split(delimiter);
+	        	temp = reader.readLine();
+	        	if (delimiter == null) {
+	        		delimiter = ext.determineDelimiter(temp);
+	        	}
+	        	line = temp.trim().split(delimiter);
 	        }
 	        reader.close();
         } catch (FileNotFoundException fnfe) {
@@ -1927,6 +2144,16 @@ public class Files {
 		return "[\\s]+";
 	}
 	
+	public static void moveFilesMoved(String filesMoved, String dir) {
+		String[] files;
+		
+		files = HashVec.loadFileToStringArray(filesMoved, false, new int[] {0}, false);
+		new File(dir+"moved/").mkdirs();
+		for (int i = 0; i < files.length; i++) {
+			new File(dir+files[i]).renameTo(new File(dir+"moved/"+files[i]));
+		}
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
@@ -1938,6 +2165,9 @@ public class Files {
 		boolean findNextRep = false;
 		int lastKnownRep = 0;
 		int patienceInMilliseconds = 1000;
+		String transpose = null;
+		boolean commaDelimited = false;
+		String dir = null;
 
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
@@ -1951,6 +2181,13 @@ public class Files {
 		"   (2) (required) patterns to match when incrementing rep (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n" +
 		"   (3) passing the last known rep, speeds things up (i.e. lastRep=" + lastKnownRep + " (default))\n" + 
 		"   (4) time to wait in milliseconds, in order to ensure no ties (i.e. wait=" + patienceInMilliseconds + " (default))\n" + 
+		"  OR\n" +
+		"   (1) transpose file (i.e. transpose=file.txt (not the default))\n" +
+		"   (2) comma-delimited (i.e. commaDelimited="+commaDelimited+" (default))\n" +
+		"  OR\n" +
+		"   (1) move files already successfully (i.e. currently hard coded (not the default))\n" +
+		"  OR\n" +
+		"   (1) list all files in directory and all its subdirectories (i.e. dir=./ (not the default))\n" +
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -1981,6 +2218,15 @@ public class Files {
 			} else if (args[i].startsWith("wait=")) {
 				patienceInMilliseconds = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("transpose=")) {
+				transpose = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("commaDelimited=")) {
+				commaDelimited = ext.parseBooleanArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("dir=")) {
+				dir = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -2007,10 +2253,19 @@ public class Files {
 //			findNextRep = true;
 //			patterns = new String[] {"perms#.qsub"};
 			
+//			String filesMoved = "D:/data/GEDI/all.out";
+//			String directory = "D:/data/GEDI/penn_data/";
+//			moveFilesMoved(filesMoved, directory);
+//			System.exit(1);
+			
 			if (findNextRep && patterns !=null) {
 				System.out.println(findNextRepSafely(patterns, numDigits, lastKnownRep, patienceInMilliseconds));
 			} else if (filename != null) {
 				makeQsub(filename, start, stop, separate, patterns);
+			} else if (transpose != null) {
+				transpose(transpose, commaDelimited?",":"\t");
+//			} else if (dir != null) {
+//				summarizeAllFilesInDirectory(dir);
 			} else {
 				System.err.println(usage);
 			}

@@ -1,13 +1,10 @@
 package cnv.filesys;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Hashtable;
-
-import common.HashVec;
 import common.IntVector;
-
-import cnv.var.SampleData;
-import cnv.plots.PlotPoint;
+import common.ext;
 
 /**
  * This is a data structure to hold a single filter to screen the data points with. 
@@ -97,6 +94,8 @@ public class ClusterFilter implements Serializable {
 		int[] genotypeCount;
 		byte oldGenotype;
 		int genotypeFrequencyCount;
+		int[] genotypeIndices;
+		
 
 		switch(getPlotType()) {
 		case 0:
@@ -119,7 +118,7 @@ public class ClusterFilter implements Serializable {
 			realX = markerData.getXs();
 			realY = markerData.getYs();
 		}
-		
+
 		hash = new Hashtable<String, IntVector>();
 		genotypes = markerData.getAB_Genotypes();
 		// iterate through all samples
@@ -150,10 +149,11 @@ public class ClusterFilter implements Serializable {
 			genotypeCount = new int[] {0,0,0};
 			oldGenotype=-2;
 			for (int i=0; i<3; i++){
-				for (int j=0; j<iv.size(); j++) {
-					if (genotypes[iv.toArray()[j]]==i) {
+				genotypeIndices = iv.toArray();
+				for (int j=0; j<genotypeIndices.length; j++) {
+					if (genotypes[genotypeIndices[j]]==i) {
 						genotypeCount[i]++;
-					} else if (genotypes[iv.toArray()[j]]==-1) {
+					} else if (genotypes[genotypeIndices[j]]==-1) {
 						oldGenotype=-1;
 					}
 				}
@@ -174,14 +174,16 @@ public class ClusterFilter implements Serializable {
 //			clusterCenters = new float[keys.length][2];
 			clusterCenters = new float[4][2];
 			distance = Float.MAX_VALUE;
+
 			for (byte i = 3; i>=0; i--) {
 				iv = hash.get(i+"");
 				if (iv!=null) {
 					xSum = 0;
 					ySum = 0;
+					genotypeIndices = iv.toArray();
 					for (int j=0; j<iv.size(); j++) {
-						xSum = xSum + realX[iv.toArray()[j]];
-						ySum = ySum + realY[iv.toArray()[j]];
+						xSum = xSum + realX[genotypeIndices[j]];
+						ySum = ySum + realY[genotypeIndices[j]];
 					}
 					clusterCenters[i] = new float[] {xSum/iv.size(), ySum/iv.size()};
 					if (i!=3) {
@@ -200,7 +202,6 @@ public class ClusterFilter implements Serializable {
 			if (oldGenotype==result) {
 				result=-1;
 			}
-
 		}
 		
 		return result;

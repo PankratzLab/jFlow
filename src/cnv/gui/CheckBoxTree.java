@@ -4,16 +4,19 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.JTree.DynamicUtilTreeNode;
+//import javax.swing.JTree.DynamicUtilTreeNode;
 import javax.swing.event.*;
 import javax.swing.tree.*;
+
+import common.Array;
+import common.IntVector;
 
 public class CheckBoxTree extends JTree implements ItemListener {
 	public static final long serialVersionUID = 1L;
 	
 	private JCheckBox[] selections;
 //	private Branch root;
-	private int count = 0;
+//	private int count = 0;
 	private boolean dynamic;
 	
 	public CheckBoxTree(String[][] names, int maxSelectable) {
@@ -45,8 +48,8 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		
 		deselect = null;
 		checkbox = (JCheckBox)itemEvent.getSource();
-		System.out.println("State change ("+(++count)+"): "+checkbox.getName()+" is "+checkbox.isSelected());
-		System.out.println("There are "+selections.length+" elements in selections");
+//		System.out.println("State change ("+(++count)+"): "+checkbox.getName()+" is "+checkbox.isSelected());
+//		System.out.println("There are "+selections.length+" elements in selections");
 		if (checkbox.isSelected()) {
 			found = false;
 			for (index = 0; index<selections.length && !found; index++) {
@@ -81,23 +84,22 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		Font font;
 		Boolean booleanValue;
 		boolean focusPainted;
-		JCheckBox selection1, selection2;
-		int row1, row2;
+		JCheckBox[] travSelections;
+		IntVector expansions;
 		
-		selection1 = selections[0];
-		selection2 = selections[1];
-//		getExpandedState();
-		row1=-1;
-		row2=-1;
+		travSelections = new JCheckBox[selections.length];
+		for (int i = 0; i < selections.length; i++) {
+			travSelections[i] = selections[i];
+		}
+
+		expansions = new IntVector();
 		for (int i=0; i<getRowCount(); i++) {
 			if (isExpanded(i)) {
-				if (row1==-1) {
-					row1=i;
-				} else {
-					row2=i;
-				}
+				expansions.add(i);
+				collapseRow(i);
 			}
 		}
+
 		setSelectionPath(null);
 
 		font = UIManager.getFont("Tree.font");
@@ -107,6 +109,8 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		model = getModel();
 		
 		Object root = model.getRoot();
+//		DynamicUtilTreeNode root = (DynamicUtilTreeNode)model.getRoot();
+//		root.setAllowsChildren(true);
 		
 		JCheckBox[] boxes = new JCheckBox[namesOfNodes.length];
 		for (int j = 0; j<boxes.length; j++) {
@@ -118,30 +122,20 @@ public class CheckBoxTree extends JTree implements ItemListener {
         }
 //        DynamicUtilTreeNode.createChildren(root, new Branch(nameOfBranch, boxes));
 //		Object ob = new Branch(nameOfBranch, boxes);
+		((DefaultMutableTreeNode)root).setAllowsChildren(true);
         DynamicUtilTreeNode.createChildren((DefaultMutableTreeNode) root, new Branch[] {new Branch(nameOfBranch, boxes)});
 
         dynamic = true;
         ((DefaultTreeModel)model).reload();
         
-		if (row1>=0) {
-			expandRow(row1);
+        for (int i = expansions.size()-1; i >= 0 ; i--) {
+    		expandRow(expansions.elementAt(i));
 		}
-		if (row2>=0) {
-			expandRow(row2);
-		}
-		if (selection1 != null) {
-			selection1.setSelected(true);
-			// reexpand tree
-//			setExpandedState(anchorPath, focusPainted);
-//			for (int i=0; i<getRowCount(); i++) {
-//				expandRow(i);
-//			}
-//		    DefaultMutableTreeNode  rooot;
-//		    rooot = (DefaultMutableTreeNode) getModel().getRoot();
-//		    scrollPathToVisible(new TreePath(rooot.getLastLeaf().getPath()));
-		}
-		if (selection2 != null) {
-			selection2.setSelected(true);
+
+		for (int i = 0; i < selections.length; i++) {
+			if (travSelections[i] != null) {
+				travSelections[i].setSelected(true);
+			}
 		}
 	}
 	
@@ -173,85 +167,161 @@ public class CheckBoxTree extends JTree implements ItemListener {
 //        model.reload();
 //	}
 	
-	public void deleteSelectedNode() {
-		DefaultMutableTreeNode selectedNode;
-		JCheckBox selection1, selection2;
-		int row1, row2, index;
-		DefaultMutableTreeNode root;	//, branch;
-		DefaultTreeModel model;
-		
-		selectedNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
-		if (selectedNode == null) {
-			System.err.println("Error - nothing selected");
-			return;
-		}
-
-		selection1 = selections[0];
-		selection2 = selections[1];
-		setSelectionPath(null);
-		row1=-1;
-		row2=-1;
-		for (int i=0; i<getRowCount(); i++) {
-			if (isExpanded(i)) {
-				if (row1==-1) {
-					row1=i;
-				} else {
-					row2=i;
-				}
-			}
-		}
-
-
-//		index = -1;
-		index = getSelectedPathComponent();
-		model = (DefaultTreeModel)getModel();		
-		root = (DefaultMutableTreeNode)model.getRoot();
-//		for (int i=0; i<root.getChildCount(); i++ ) {
-////			branch = (DefaultMutableTreeNode)getModel().getChild(getModel().getRoot(), i);
-//			branch = (DefaultMutableTreeNode)model.getChild(root, i);
-//			if (branch == selectedNode) {
-//				index = i;
-//			}
+//	public void deleteSelectedNode() {
+//		DefaultMutableTreeNode selectedNode;
+//		int[][] selectionTmp;
+//		String[] selects;
+//		int row1, row2, index;
+//		DefaultMutableTreeNode root;	//, branch;
+//		DefaultTreeModel model;
+//		
+//		selectedNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+//		if (selectedNode == null) {
+//			System.err.println("Error - No root of a branch is selected.");
+//			return;
+//		}
+//		index = getSelectedPathComponent();
+//		model = (DefaultTreeModel)getModel();		
+//		root = (DefaultMutableTreeNode)model.getRoot();
+//
+//		selectionTmp = new int[selections.length][2];
+//		selects = new String[2];
+//		for (int i=0; i<selectionTmp.length; i++) {
+//			selects[i] = selections[i].getName();
 //			
-//			if (selectedNode.getUserObject() instanceof JCheckBox) {
-//				Branch br = (Branch)branch.getUserObject();
-//				for (int j=0; j<branch.getChildCount(); j++ ) {
-//					JCheckBox box = (JCheckBox)br.elementAt(j);
-//					if (box == (JCheckBox)(selectedNode.getUserObject())){
-//						index = i;
-//					}
+//			selectionTmp[i][0] = selections[i].getX();
+//			selectionTmp[i][1] = selections[i].getY();
+//			//TODO What's the relationship between selections[] and getSelectedPathComponent()???
+//			if ( getSelectionValues()[i][0].equals(getSelectedPathComponent()) ) {
+//				selectionTmp[i] = null;
+//			}
+//		}
+//		setSelectionPath(null);
+//		selections[0]=null;
+//		selections[1]=null;
+//		row1=-1;
+//		row2=-1;
+//		for (int i=0; i<getRowCount(); i++) {
+//			if (isExpanded(i)) {
+//				if (row1==-1) {
+//					row1=i;
+//				} else {
+//					row2=i;
 //				}
 //			}
 //		}
-		if (index != -1) {
-			root.remove(index);
-		} else {
-			System.err.println("Branch "+selectedNode+" not found.");
-		}
+//
+////		for (int i=0; i<root.getChildCount(); i++ ) {
+//////			branch = (DefaultMutableTreeNode)getModel().getChild(getModel().getRoot(), i);
+////			branch = (DefaultMutableTreeNode)model.getChild(root, i);
+////			if (branch == selectedNode) {
+////				index = i;
+////			}
+////			
+////			if (selectedNode.getUserObject() instanceof JCheckBox) {
+////				Branch br = (Branch)branch.getUserObject();selections
+////				for (int j=0; j<branch.getChildCount(); j++ ) {
+////					JCheckBox box = (JCheckBox)br.elementAt(j);
+////					if (box == (JCheckBox)(selectedNode.getUserObject())){
+////						index = i;
+////					}
+////		index = -1;
+////				}
+////			}
+////		}
+//		if (index != -1) {
+//			root.remove(index);
+//		} else {
+//			System.err.println("Branch "+selectedNode+" not foungetSelectionIndicesd.");
+//		}
+//		
+//        model.reload();
+//        
+//        if (row1>=-1) {
+//        	if (row1<index) {
+//        		expandRow(row1);
+//        	} else if (row1>index) {
+//        		expandRow(row1-1);
+//        	}
+//        }
+//        
+//        if (row2>=-1) {
+//        	if (row2<index) {
+//        		expandRow(row2);
+//        	} else if (row2>index) {
+//        		expandRow(row2-1);
+//        	}
+//        }
+//        
+//		for (int i=0; i<selectionTmp.length; i++) {
+//	        if (selectionTmp[i] != null) {
+//	        	setSelectionPath(getPathForLocation(selectionTmp[i][0],selectionTmp[i][1]));
+//				selections[i].setSelected(true);//TODO
+//			}
+//	        if (selects[i] != null) {
+//	        	
+//	        	setSelectionPath(getPathForLocation(selectionTmp[i][0],selectionTmp[i][1]));
+//				selections[i].setSelected(true);//TODO
+//			}
+//		}
+//	}
+//	
+
+	// TODO if node to be deleted has selected values, then it may fail down stream in the parent appication (e.g., TwoDPlot), tried to make a work around below (currently commented out), but it does not work 
+	public void deleteSelectedNode() {
+		DefaultMutableTreeNode selectedNode;
+		int index;
+		DefaultMutableTreeNode root;	//, branch;
+		DefaultTreeModel model;
+		IntVector expansions;
+//		JCheckBox[] travSelections;
 		
+		selectedNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+		if (selectedNode == null) {
+			System.err.println("Error - No root of a branch is selected.");
+			return;
+		}
+		index = getSelectedPathComponent();
+		model = (DefaultTreeModel)getModel();		
+		root = (DefaultMutableTreeNode)model.getRoot();
+		
+//		travSelections = new JCheckBox[selections.length];
+//		for (int i = selections.length-1; i >= 0 ; i--) {
+//			travSelections[i] = selections[i];
+//			if (selections[i] != null) {
+//				selections[i].setSelected(false);
+////				selections[i] = null;
+//			}
+//		}
+
+		setSelectionPath(null);
+
+		// Reserve the Tree Expansion/Collapse status
+		expansions = new IntVector();
+		for (int i=0; i<getRowCount(); i++) {
+			if (isExpanded(i)) {
+				if (i != index) {
+					expansions.add(i);
+				}
+				collapseRow(i);
+			}
+		}
+
+		root.remove(index);
         model.reload();
         
-        if (row1>=-1) {
-        	if (row1<index) {
-        		expandRow(row1);
-        	} else if (row1>index) {
-        		expandRow(row1-1);
-        	}
-        }
+//		for (int i = 0; i < selections.length; i++) {
+//			if (travSelections[i] != null) {
+//				selections[i] = travSelections[i];
+//				selections[i].setSelected(true);
+//			} else {
+//				System.out.println("nothing to select for index "+i);
+//			}
+//		}
         
-        if (row2>=-1) {
-        	if (row2<index) {
-        		expandRow(row2);
-        	} else if (row2>index) {
-        		expandRow(row2-1);
-        	}
-        }
-        
-        if (selection1 != null) {
-			selection1.setSelected(true);
-		}
-		if (selection2 != null) {
-			selection2.setSelected(true);
+        // Restore the tree expansion/collapse status
+        for (int i = expansions.size()-1; i >= 0 ; i--) {
+    		expandRow(expansions.elementAt(i)-(expansions.elementAt(i)<index?0:1));
 		}
 	}
 	
@@ -318,7 +388,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		
 		selectedNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
 		if (selectedNode == null) {
-			System.err.println("Error - nothing selected");
+			System.err.println("Error - No root of a branch is selected");
 			return -1;
 		}
 

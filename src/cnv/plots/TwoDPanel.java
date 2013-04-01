@@ -15,8 +15,12 @@ import java.util.Hashtable;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
+import mining.Distance;
+
 import cnv.filesys.MarkerData;
+import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
+import cnv.filesys.Sample;
 import cnv.gui.LaunchAction;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
@@ -24,17 +28,22 @@ import cnv.var.IndiPheno;
 import filesys.Segment;
 //import common.CountVector;
 import common.CountVector;
+import common.Files;
 import common.HashVec;
 import common.IntVector;
+import common.Logger;
+import common.Positions;
 import common.Sort;
+import common.ext;
 //import common.ext;
 //import mining.Distance;
 import common.Array;
 //import mining.Distance;
 
 //public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
-public class TwoDPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
+public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
+	public static final int LOOKUP_RESOLUTION = 20;
 	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
 			   									  new Color(23, 58, 172), // dark blue
 			   									  new Color(201, 30, 10), // deep red
@@ -74,8 +83,8 @@ public class TwoDPanel extends AbstractPanel2 implements MouseListener, MouseMot
 //	byte[] alleleCounts;				//zx
 	protected TwoDPlot tdp;
 //	protected String[] samples;
-	protected IntVector prox;
-	protected SampleData sampleData;
+//	protected IntVector prox;
+//	protected SampleData sampleData;
 	IntVector indeciesOfNearbySamples;	//zx
 	private boolean updateQcPanel;		//zx: A control variable. Do not update QcPanel when resizing, or etc.
 	private int mouseStartX ;
@@ -83,14 +92,20 @@ public class TwoDPanel extends AbstractPanel2 implements MouseListener, MouseMot
 	private int mouseEndX ;
 	private int mouseEndY ;
 	private boolean swapAxes;
+	private Logger log;
+	private MarkerLookup markerLookup;
+	private SampleData sampleData;
+	private Project proj;
 
-	public TwoDPanel(TwoDPlot twoDPlot) {
+	public TwoDPanel(TwoDPlot twoDPlot, Logger log) {
 		super();
 		
 		this.tdp = twoDPlot;
+		this.log = log;
+		this.proj = tdp.getProject();
 //		this.samples = twoDPlot.getSamples();
 //		this.markerData = twoDPlot.getMarkerData();
-		this.sampleData = twoDPlot.getSampleData();
+//		this.sampleData = twoDPlot.getSampleData();
 		locLookup = new Hashtable<String,IntVector>();//??? zx
 //		this.updateQcPanel = true;//zx
 		
@@ -116,6 +131,19 @@ public class TwoDPanel extends AbstractPanel2 implements MouseListener, MouseMot
 		addMouseMotionListener(this);
 		addComponentListener(this);
 		setZoomable(true, true);
+		
+		sampleData = null;
+		if (proj == null) {
+			markerLookup = new MarkerLookup(new Hashtable<String, String>());
+		} else {
+			markerLookup = proj.getMarkerLookup();
+			System.out.println("Marker data is available for this project");
+			if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+				sampleData = proj.getSampleData(false);
+				System.out.println("Sample lookup is available for this project");
+			}
+		}
+		
 	}
 	
 	public void refreshOtherComponents() {
@@ -126,46 +154,6 @@ public class TwoDPanel extends AbstractPanel2 implements MouseListener, MouseMot
 		displayXaxis = displayYaxis = true;
 		xAxisLabel = swapAxes? tdp.getNamesSelected()[1]:tdp.getNamesSelected()[0];
 		yAxisLabel = swapAxes? tdp.getNamesSelected()[0]:tdp.getNamesSelected()[1];
-		
-//		xAxisLabel = MarkerData.TYPES[sp.getPlotType()][swapAxes?0:1];
-//		yAxisLabel = MarkerData.TYPES[sp.getPlotType()][swapAxes?1:0];
-
-//		xAxisLabel = swapAxes?
-//						tdp.getNamesHash().keySet().toArray()[tdp.getCurrentPair()[0][0]][tdp.getCurrentPair()[0][1]]:
-//						tdp.getNamesHash().keySet().toArray()[tdp.getCurrentPair()[1][0]][tdp.getCurrentPair()[1][1]];
-//		yAxisLabel = swapAxes?
-//						tdp.getNamesHash().keys().toString()[tdp.getCurrentPair()[1][0]][tdp.getCurrentPair()[1][1]]:
-//						tdp.getNamesHash().keys().toString()[tdp.getCurrentPair()[0][0]][tdp.getCurrentPair()[0][1]];
-
-		/*
-		int[][] currentPair;
-		
-		currentPair = sp.getCurrentPair();
-		if (names.length == 0) {
-			sp.setDescriptor("Error - no files with .mds extension were present in the project directory");
-			displayXaxis = displayYaxis = false;
-		} else if (currentPair[0][0] == -1 || currentPair[1][0] == -1) {
-			sp.setDescriptor("Double click on one of the files within the box on the left-hand side and select two of its components");
-			if (currentPair[0][0] == -1) {
-				displayXaxis = false;
-			} else {
-				xAxisLabel = names[currentPair[0][0]][0]+"_"+names[currentPair[0][0]][currentPair[0][1]+1];
-				displayXaxis = true;
-			}
-			if (currentPair[1][0] == -1) {
-				displayYaxis = false;
-			} else {
-				yAxisLabel = names[currentPair[1][0]][0]+"_"+names[currentPair[1][0]][currentPair[1][1]+1];
-				displayYaxis = true;
-			}
-		} else {
-			xAxisLabel = names[currentPair[0][0]][0]+"_"+names[currentPair[0][0]][currentPair[0][1]+1];
-			yAxisLabel = names[currentPair[1][0]][0]+"_"+names[currentPair[1][0]][currentPair[1][1]+1];
-			sp.setDescriptor(xAxisLabel+" x "+yAxisLabel);
-			displayXaxis = displayYaxis = true;
-		}
-		*/
-
 	}
 	
 	public boolean invertX() {
@@ -204,156 +192,92 @@ public class TwoDPanel extends AbstractPanel2 implements MouseListener, MouseMot
 				points[i] = new PlotPoint(i+"", PlotPoint.FILLED_CIRCLE, currentData[i][0], currentData[i][1], (byte)5, (byte)0, (byte)0);
 			}
 		}
-		if (points.length > 0) {
-			System.out.println(points.length);
-		}
-
-//		CountVector classCounts;
-//
-//		if (sampleData.getActualClassName(currentClass).equals("Site")) {
-//			setColorScheme(BLUES);
-//		} else {
-//			setColorScheme(DEFAULT_COLORS);
-//		}
-//		
-//		points = new PlotPoint[sampleList.length]; 
-//		classCounts.clear();
-//		for (int i = 0; i<sampleList.length; i++) {
-//			data = hash.get(sampleList[i]);
-//			if (data[currentPair[0][0]] != null && data[currentPair[1][0]] != null && !Float.isNaN(data[currentPair[0][0]][currentPair[0][1]])  && !Float.isNaN(data[currentPair[1][0]][currentPair[1][1]])) {
-//				trav = sampleData.lookup(sampleList[i]);
-//				if (trav == null) {
-//					System.err.println("Error - could not look up "+sampleList[i]); // looks up any individual present in any .mds file that was loaded, even those not in the current file
-//					tagalong = true;
-//					colorCode = 0;
-//				} else {
-//					tagalong = false;
-//					colorCode = sampleData.getClassForInd(trav, currentClass);
-//					if (colorCode == -1 && !sp.maskMissing()) {
-//						colorCode = 0;
-//					}
-//				}
-//
-//				points[i] = new PlotPoint(sampleList[i], PlotPoint.FILLED_CIRCLE, data[currentPair[0][0]][currentPair[0][1]], data[currentPair[1][0]][currentPair[1][1]], tagalong?SIZE_TAGALONGS:SIZE, colorCode, (byte)(colorCode>0?1:0));
-//				classCounts.add(colorCode+"");
-//			}
-//		}
-//		sp.updateColorKey(getClassCounts().convertToHash());
-
 	}
 
-	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
-		int[] classes, indices;
-		CNVariant[] segs;
-		int index;
-		
-		indices = sampleData.getClassCategoryAndIndex(currentClass);
-		switch (indices[0]) {
-        case 0:
-			if (SampleData.BASIC_CLASSES[indices[1]].equals("All")) {
-				return 0;
-			} else if (SampleData.BASIC_CLASSES[indices[1]].equals("Genotype")) {
-				return (byte)(alleleCount+1);
-			} else {
-				return 0;
-			}
-        case 1:
-    		classes = indi.getClasses();
-			if (classes[indices[1]] == Integer.MIN_VALUE) {
-				return -1;
-			} else {
-				return (byte)classes[indices[1]];
-			}
-        case 2:
-			segs = indi.getCNVs(indices[1], chr);
-			if (segs == null) {
-				return 0;
-			} else {
-				index = Segment.binarySearchForOverlap(new Segment((byte)-1, position, position), segs); 
-				if (index == -1) {
-					return 0;
-				} else {
-					return (byte)(segs[index].getChr()+1);
-				}
-			}
-        default:
-        	System.err.println("Error - invalid class index");
-        	return 0;
-        }
-	}	
-
-
-	public void mouseMoved(MouseEvent event) {
-		Graphics g = getGraphics();
-		String pos;
-		int x, y;
-
-		float[][] datapoints;
-		IndiPheno indi;
-		float[] gcScores;
-//		byte[] alleleCounts;
-//		float gcThreshold;
-		int xWidth;
-		int plotType, currentClass;
-		int i;
-		byte chr;
-		int position;
-		int markerIndex;
-		byte size, xFontSize;
-		
-//		System.out.println("mouse moved");
-		
+//	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
+//		int[] classes, indices;
+//		CNVariant[] segs;
+//		int index;
 //		
-//		//IntVector indeciesOfDataPoint;//zx
-//
-//		x = event.getX();
-//		y = event.getY();
-//
-//		canvasSectionMinimumX = WIDTH_Y_AXIS;
-//		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-//		canvasSectionMinimumY = HEIGHT_X_AXIS;
-//		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-//		pos = (int)Math.floor(x/DEFAULT_LOOKUP_RESOLUTION)+"x"+(int)Math.floor(y/DEFAULT_LOOKUP_RESOLUTION);
-//		if (!pos.equals(prevPos)) {
-//			repaint();
-//		}
-//		//iv = locLookup.get(pos);
-//		//indeciesOfDataPoint = lookupNearbyPoints(x, y, pos);
-//		indeciesOfNearbySamples = lookupNearbyPoints(x, y, pos);
-//		//System.out.println("Number of nearby samples: "+(indeciesOfNearbySamples==null?0:indeciesOfNearbySamples.size()));//zx test point
-//		//prox = new IntVector();
-//
-//		plotType = tdp.getPlotType();
-//		currentClass = tdp.getCurrentClass();
-//		markerIndex = tdp.getMarkerIndex();
-//		datapoints = markerData[markerIndex].getDatapoints(plotType);
-//		gcScores = markerData[markerIndex].getGCs();
-////		alleleCounts = markerData[markerIndex].getAB_Genotypes();
-//		chr = markerData[markerIndex].getChr();
-//		position = markerData[markerIndex].getPosition();
-////		gcThreshold = sp.getGCthreshold();
-//
-//		size = tdp.getPointSize();
-//		xFontSize = (byte)(size*2);
-//
-//		g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5)));
-//		xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
-//
-//		//System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));//zx test point
-//		for (int l = 0; indeciesOfNearbySamples!=null&&l<indeciesOfNearbySamples.size(); l++) {
-//			i = indeciesOfNearbySamples.elementAt(l);
-//			indi = sampleData.getIndiFromSampleHash(samples[i]);
-//			g.setColor(colorScheme[determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
-//			//g.setColor(Color.YELLOW);
-////			if (gcScores[i]<gcThreshold) {
-//			if (alleleCounts[i]==-1) {
-//				g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize/2.0));
+//		indices = sampleData.getClassCategoryAndIndex(currentClass);
+//		switch (indices[0]) {
+//        case 0:
+//			if (SampleData.BASIC_CLASSES[indices[1]].equals("All")) {
+//				return 0;
+//			} else if (SampleData.BASIC_CLASSES[indices[1]].equals("Genotype")) {
+//				return (byte)(alleleCount+1);
 //			} else {
-//				g.fillOval(getX(datapoints[0][i])-(int)(size*2)/2, getY(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
+//				return 0;
 //			}
+//        case 1:
+//    		classes = indi.getClasses();
+//			if (classes[indices[1]] == Integer.MIN_VALUE) {
+//				return -1;
+//			} else {
+//				return (byte)classes[indices[1]];
+//			}
+//        case 2:
+//			segs = indi.getCNVs(indices[1], chr);
+//			if (segs == null) {
+//				return 0;
+//			} else {
+//				index = Segment.binarySearchForOverlap(new Segment((byte)-1, position, position), segs); 
+//				if (index == -1) {
+//					return 0;
+//				} else {
+//					return (byte)(segs[index].getChr()+1);
+//				}
+//			}
+//        default:
+//        	System.err.println("Error - invalid class index");
+//        	return 0;
+//        }
+//	}	
+
+
+//	public void mouseMoved(MouseEvent event) {
+//		Graphics g = getGraphics();
+//		IntVector iv;
+//		String pos;
+//		int x, y, dataPointIndex;
+//		byte size, xFontSize;
+//
+//		if (getFinalImage()) {
+//			x = event.getX();
+//			y = event.getY();
+//
+//			canvasSectionMinimumX = WIDTH_Y_AXIS;
+//			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+//			canvasSectionMinimumY = HEIGHT_X_AXIS;
+//			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
+//			pos = (int)Math.floor(x / LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / LOOKUP_RESOLUTION);
+//			if (!pos.equals(prevPos)) {
+//				repaint();
+//			}
+//
+//			iv = lookupNearbyPoints(x, y, pos);
+//			prox = new IntVector();
+//
+//			size = SIZE * 2;
+//			xFontSize = (byte)(size*2);
+//			g.setColor(Color.RED);
+//			for (int i = 0; iv!=null && i<iv.size(); i++) {
+//				dataPointIndex = iv.elementAt(i);
+//				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[dataPointIndex].getRawX()), getY(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
+//					g.setColor(Color.YELLOW);
+//					prox.add(dataPointIndex);
+//					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+//
+//					// } else {
+//					// g.setColor(Color.BLACK);
+//					// g.fillOval(getX(data[iv.elementAt(i)][0])-SIZE/2,
+//					// getY(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
+//				}
+//			}
+//
+//			prevPos = pos;
 //		}
-//		prevPos = pos;
-	}
+//	}
 
 	// Begin of original section
 	/*
@@ -443,41 +367,86 @@ public class TwoDPanel extends AbstractPanel2 implements MouseListener, MouseMot
 //		this.paintComponent(g);
 ////		super(g);
 //	}
+
     
-	public void mouseClicked(MouseEvent event) {
-//		System.out.println("mouse location: ("+event.getPoint().x+", "+event.getPoint().y+")");
-		if(event.getPoint().x>=70 && event.getPoint().x<=90 && event.getPoint().y>=(getHeight()-55) && event.getPoint().y<=(getHeight()-75)) {
-			JOptionPane.showMessageDialog(null, "You've just clicked the invert button", "Message", JOptionPane.PLAIN_MESSAGE);
-		}
-		
+	public void mouseClicked(MouseEvent e) {
 		JPopupMenu menu;
-		MarkerData mData;
-		String markerPosition;
-		int window;
-		// float[][] datapoints = markerData[sp.getMarkerIndex()].getDatapoints(sp.getPlotType());
+		int[] linkKeyIndicies;
+		String[][] linkKeyValues;
+//		boolean scatter, trailer;
+		String[] ids;
+		String markerName;
+		String sample, region;
+		int[] positions;
 
-		/*
-		if (event.getButton()==MouseEvent.BUTTON1) { // left click
-		} else if (event.getButton()==MouseEvent.BUTTON3) { // right click
-		}
-		*/
-
-		System.out.println("mouse clicked");
-		
-//		window = Integer.parseInt(tdp.getProject().getProperty(Project.NUM_MARKERS_PER_FILE));
-//		mData = markerData[tdp.getMarkerIndex()];
-//		markerPosition = "chr"+mData.getChr()+":"+(mData.getPosition()-window)+"-"+(mData.getPosition()+window);
-//		if (indeciesOfNearbySamples!=null&&indeciesOfNearbySamples.size()>0) {
-//			menu = new JPopupMenu();
-//			for (int i = 0; i<indeciesOfNearbySamples.size(); i++) {
-//				// menu.add(samples[prox.elementAt(i)] +"
-//				// ("+datapoints[0][prox.elementAt(i)]+",
-//				// "+datapoints[1][prox.elementAt(i)]+")");
-//
-//				menu.add(new LaunchAction(tdp.getProject(), samples[indeciesOfNearbySamples.elementAt(i)], markerPosition, Color.BLACK));
-//			}
-//			menu.show(this, event.getX(), event.getY());
+//		if (e.getButton()==MouseEvent.BUTTON1) { // left click
+//		} else if (e.getButton()==MouseEvent.BUTTON3) { // right click
 //		}
+
+		linkKeyIndicies = tdp.getCurrentLinkKeyColumnLabels();
+		linkKeyValues = tdp.getCurrentLinkKeyValues();
+		if (linkKeyValues == null) {
+			return;
+		}
+		
+		if (prox != null && prox.size() > 0) {
+			menu = new JPopupMenu();
+			for (int i = 0; i < prox.size(); i++) {
+				menu.add(new LaunchAction(linkKeyValues[prox.elementAt(i)][0] + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
+
+				if (linkKeyIndicies[3] >= 0) {
+					markerName = linkKeyValues[prox.elementAt(i)][3];
+					if (markerLookup.get(markerName) != null) {
+						menu.add(new LaunchAction(proj, markerName, Color.CYAN));
+					}
+				}
+				
+				sample = null;
+				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, log, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
+					sample = linkKeyValues[prox.elementAt(i)][2];
+				}
+				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
+					ids = null;
+					if (linkKeyIndicies[1] >= 0) { // if FID present
+						ids = sampleData.lookup(linkKeyValues[prox.elementAt(i)][1]+"\t"+linkKeyValues[prox.elementAt(i)][0]);
+					}
+					if (ids == null) {
+						ids = sampleData.lookup(linkKeyValues[prox.elementAt(i)][0]);
+					}
+					if (ids != null && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, log, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
+						sample = ids[0];
+					}
+				}
+
+				positions = new int[] {-1,-1,-1};
+				region = null;
+				if (linkKeyIndicies[4] >= 0) {
+					region = linkKeyValues[prox.elementAt(i)][4];
+				} else if (linkKeyIndicies[5] >= 0) {
+					positions[0] = Positions.chromosomeNumber(linkKeyValues[prox.elementAt(i)][5]);
+					if (positions[0] != -1) {
+						if (linkKeyIndicies[6] >= 0) {
+							try {
+								positions[1] = Integer.parseInt(linkKeyValues[prox.elementAt(i)][6]);
+							} catch (NumberFormatException nfe) {
+							}
+						}
+						if (linkKeyIndicies[7] >= 0) {
+							try {
+								positions[2] = Integer.parseInt(linkKeyValues[prox.elementAt(i)][7]);
+							} catch (NumberFormatException nfe) {
+							}
+						}
+						region = Positions.getUCSCformat(positions);
+					}
+				}
+				
+				if (sample != null && region != null) {
+					menu.add(new LaunchAction(proj, sample, region, Color.GRAY));
+				}
+			}
+			menu.show(this, e.getX(), e.getY());
+		}
 	}
 
 //	public void mouseEntered(MouseEvent e) {}

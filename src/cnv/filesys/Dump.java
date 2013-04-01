@@ -2,18 +2,22 @@ package cnv.filesys;
 
 import java.io.*;
 
+import common.ext;
+
 public class Dump {
 	public static void dump(String filename) {
         PrintWriter writer;
         
     	try {
-	        if (filename.endsWith(".fsamp")) {
-	        	FullSample fsamp = FullSample.load(filename, false);
+//	        if (filename.endsWith(".fsamp")) {
+	        if (filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION)) {
+//	        	Sample fsamp = Sample.loadFromSerialized(filename, false);
+	        	Sample fsamp = Sample.loadFromRandomAccessFile(filename, false);
 	        	float[] gcs = fsamp.getGCs();
 	        	float[] xs = fsamp.getXs();
 	        	float[] ys = fsamp.getYs();
-	        	float[] xRaws = fsamp.getX_Raws();
-	        	float[] yRaws = fsamp.getY_Raws();
+//	        	float[] xRaws = fsamp.getX_Raws();
+//	        	float[] yRaws = fsamp.getY_Raws();
 	        	float[] thetas = fsamp.getThetas();
 	        	float[] rs = fsamp.getRs();
 	        	float[] lrrs = fsamp.getLRRs();
@@ -23,8 +27,8 @@ public class Dump {
 
 	            writer = new PrintWriter(new FileWriter(filename+"_"+fsamp.getSampleName()+"_"+fsamp.getFingerprint()+".xln"));
 	        	writer.println(
-	        			(xRaws==null?"":"Raw_X\t")+
-	        			(yRaws==null?"":"Raw_Y\t")+
+//	        			(xRaws==null?"":"Raw_X\t")+
+//	        			(yRaws==null?"":"Raw_Y\t")+
 	        			(xs==null?"":"X\t")+
 	        			(ys==null?"":"Y\t")+
 	        			(thetas==null?"":"Theta\t")+
@@ -37,8 +41,8 @@ public class Dump {
 	        			);
 	        	for (int i = 0; i<xs.length; i++) {
 	        		writer.println(
-	        				(xRaws==null?"":xRaws[i]+"\t")+
-	        				(yRaws==null?"":yRaws[i]+"\t")+
+//	        				(xRaws==null?"":xRaws[i]+"\t")+
+//	        				(yRaws==null?"":yRaws[i]+"\t")+
 	        				(xs==null?"":xs[i]+"\t")+
 	        				(ys==null?"":ys[i]+"\t")+
 	        				(thetas==null?"":thetas[i]+"\t")+
@@ -46,9 +50,10 @@ public class Dump {
 	        				(bafs==null?"":bafs[i]+"\t")+
 	        				(lrrs==null?"":lrrs[i]+"\t")+
 	        				(gcs==null?"":gcs[i]+"\t")+
-	        				(forwardGenotypes==null?"":FullSample.ALLELE_PAIRS[forwardGenotypes[i]]+"\t")+
-	        				(abGenotypes==null?"":(abGenotypes[i]==-1?"--":FullSample.AB_PAIRS[abGenotypes[i]]))
+	        				(forwardGenotypes==null?"":Sample.ALLELE_PAIRS[forwardGenotypes[i]]+"\t")+
+	        				(abGenotypes==null?"":(abGenotypes[i]==-1?"--":Sample.AB_PAIRS[abGenotypes[i]]))
 	        				);
+//	        		ext.formDeci(float, 4, true)
                 }
 		        writer.close();
 	        } else if (filename.endsWith(".bim")) {

@@ -25,6 +25,7 @@ public class SexChecks {
 
 	static MarkerSet markerSet;
 	static SampleData sampleData;
+//	static Sample_old samp;
 	static Sample samp;
 	static String[] samples;
 	static int[] numXs;
@@ -279,7 +280,8 @@ public class SexChecks {
 			numXs[i] = numYs[i] = numX_10_90[i] = 0;
 			lrrsX[i] = lrrsY[i] = 0;
 
-			samp = proj.getSample(samples[i]);
+//			samp = proj.getSample(samples[i]);
+			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			if (samp==null) {
 				System.err.println("Error - could not load sample: "+samples[i]);
 				System.exit(1);

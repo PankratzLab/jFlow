@@ -29,7 +29,10 @@ import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.Timer;
+
+import cnv.gui.LaunchAction;
 
 import mining.Distance;
 
@@ -97,6 +100,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
 	protected IntVector indicesOfNaNSamples;	//zx
+	protected IntVector prox;
+
 	private boolean inDrag;
 	private int startX, startY;
 	private int plotPointSetSize;
@@ -114,6 +119,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private Timer waitingTimer;		//A control variable to reduce the repaint() operations during component resizing;
 	private String nullMessage;
 	private boolean randomTest;
+
 	
 	public AbstractPanel() {
 		displayXaxis = true;
@@ -687,14 +693,71 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void refreshOtherComponents() {
 	}
 	
-	public void mouseClicked(MouseEvent e) {}
+	public void mouseClicked(MouseEvent e) {
+//		JPopupMenu menu;
+//
+//		if (e.getButton()==MouseEvent.BUTTON1) { // left click
+//			// linkSamples = !linkSamples;
+//		} else if (e.getButton()==MouseEvent.BUTTON3) { // right click
+//		}
+//
+//		//System.out.println("Click with "+prox.size()+" in proximity");
+//		if (prox != null && prox.size() > 0) {
+//			menu = new JPopupMenu();
+//			for (int i = 0; i<prox.size(); i++) {
+//				menu.add(new LaunchAction("Scatter Plot"));
+//			}
+//			menu.show(this, e.getX(), e.getY());
+//		}
+	}
 
 	public void mouseEntered(MouseEvent e) {}
 
 	public void mouseExited(MouseEvent e) {}
 
-	public void mouseMoved(MouseEvent e) {}
+//	public void mouseMoved(MouseEvent e) {}
 	
+	public void mouseMoved(MouseEvent event) {
+		Graphics g = getGraphics();
+		IntVector indicesOfNearbyPoints;
+		String pos;
+		int x, y, dataPointIndex;
+		byte size, xFontSize;
+
+		if (getFinalImage()) {
+			x = event.getX();
+			y = event.getY();
+
+			canvasSectionMinimumX = WIDTH_Y_AXIS;
+			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+			canvasSectionMinimumY = HEIGHT_X_AXIS;
+			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
+			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
+			if (!pos.equals(prevPos)) {
+				repaint();
+			}
+
+			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
+			prox = new IntVector();
+
+			size = SIZE * 2;
+			xFontSize = (byte)(size*2);
+			g.setColor(Color.RED);
+			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
+				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
+				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[dataPointIndex].getRawX()), getY(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
+					prox.add(dataPointIndex);
+//					g.setColor(Color.YELLOW);
+//					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+					g.drawOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+
+				}
+			}
+
+			prevPos = pos;
+		}
+	}
+
 	public void mousePressed(MouseEvent e) {
 		startX = e.getPoint().x;
 		startY = e.getPoint().y;
@@ -888,11 +951,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			break;
 		case PlotPoint.MISSING:
 			//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
-			if (PlotPoint.MISSING_STR=="X" || PlotPoint.MISSING_STR=="x"){
+			if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")){
 				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())-point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())+point.getSize()/4);//zx
 				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())+point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())-point.getSize()/4);//zx
-			}
-			else {
+			} else {
 				g.setFont(new Font("Arial", 0, point.getSize()));//zx
 				g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())+point.getSize()/2);//zx
 				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));//zx
@@ -1071,9 +1133,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			System.err.println("Error - mismatched array size when highlighting");
 		} else {
 			for (int i=0; i<points.length; i++) {
-				if (array[i]) {
+				if (points[i]!=null && array[i]) {
 					points[i].setHighlighted(true);
-				} else {
+				} else if (points[i]!=null) {
 					points[i].setHighlighted(false);
 				}
 				

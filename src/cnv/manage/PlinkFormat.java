@@ -6,7 +6,7 @@ import java.util.*;
 
 import cnv.filesys.ABLookup;
 import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.FullSample;
+import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import common.*;
@@ -23,7 +23,7 @@ public class PlinkFormat {
 		int[] positions;
 		boolean prob;
 		MarkerSet markerSet;
-		FullSample fsamp;
+		Sample fsamp;
 		byte[] genotypes;
 		byte genIndex;
 		String genotype;
@@ -130,7 +130,7 @@ public class PlinkFormat {
 						writer.print("\t0\t0");
 					}
 				} else {
-					fsamp = proj.getFullSample(line[6]);
+					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
 					if (fsamp==null) {
 						System.err.println("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+".fsamp was not found in directory: "+proj.getDir(Project.SAMPLE_DIRECTORY));
 						for (int i = 0; i<indices.length; i++) {
@@ -147,7 +147,7 @@ public class PlinkFormat {
 							if (genIndex==0) {
 								writer.print("\t0\t0");
 							} else {
-								genotype = FullSample.ALLELE_PAIRS[genIndex];
+								genotype = Sample.ALLELE_PAIRS[genIndex];
 								writer.print("\t"+genotype.charAt(0)+"\t"+genotype.charAt(1));
 							}
 						}

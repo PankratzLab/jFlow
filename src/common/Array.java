@@ -74,6 +74,27 @@ public class Array {
 	}
 
 	/**
+	 * Return the minimum in an array of bytes
+	 * 
+	 * @param array
+	 *            array of integers
+	 * @return the minimum
+	 */
+	public static byte min(byte[] array) {
+		byte min;
+
+		if (array.length==0) {
+			System.err.println("Error - impossible to find the min of an empty array");
+			return (Byte) null;
+		}
+		min = array[0];
+		for (int i = 1; i<array.length; i++) {
+			min = (byte) Math.min(array[i], min);
+		}
+		return min;
+	}
+
+	/**
 	 * Return the index of the minimum in an array of floats
 	 * 
 	 * @param array
@@ -213,6 +234,27 @@ public class Array {
 		max = array[0];
 		for (int i = 1; i<array.length; i++) {
 			max = Math.max(array[i], max);
+		}
+		return max;
+	}
+
+	/**
+	 * Return the maximum in an array of bytes
+	 * 
+	 * @param array
+	 *            array of numbers
+	 * @return the maximum
+	 */
+	public static byte max(byte[] array) {
+		byte max;
+
+		if (array.length==0) {
+			System.err.println("Error - impossible to find the max of an empty array");
+			return (Byte) null;
+		}
+		max = array[0];
+		for (int i = 1; i<array.length; i++) {
+			max = (byte) Math.max(array[i], max);
 		}
 		return max;
 	}
@@ -1071,6 +1113,37 @@ public class Array {
 	}
 
 	/**
+	 * Determines the specified quantile of an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param q
+	 *            quantile to be determined
+	 * @return specified quantile of the array
+	 */
+	public static int quantWithExtremeForTie(int[] array, double q) {
+		int keys[] = Sort.quicksort(array);
+
+		try {
+			if (q>1||q<0) {
+				return (0);
+			} else {
+				double index = (array.length+1)*q;
+				if (index-(int)index==0) {
+					return array[keys[(int)index-1]];
+				} else if (q < 0.5) {
+					return array[keys[(int)Math.floor(index)-1]];
+				} else {
+					return array[keys[(int)Math.ceil(index)-1]];
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1234567890;
+		}
+	}
+	
+	/**
 	 * Determines the specified quantiles of an array of numbers
 	 * 
 	 * @param array
@@ -1330,6 +1403,28 @@ public class Array {
 		return v.toArray(new String[v.size()]);
 	}
 
+	/**
+	 * Creates an array of Strings and copies the contents of a Hashtbable into it (in the correct order)
+	 * 
+	 * @param hash
+	 *            Hashtable of Strings as keys, and their index position as the value
+	 * @return an array of Strings from the Hashtable
+	 */
+	public static String[] toStringArray(Hashtable<String, Integer> hash) {
+		Enumeration<String> enumer;
+		String[] array;
+		String trav;
+
+		enumer = hash.keys();
+		array = new String[hash.size()];
+		while (enumer.hasMoreElements()) {
+			trav = enumer.nextElement();
+			array[hash.get(trav).intValue()] = trav;
+		}
+		
+		return array;
+	}
+	
 	/**
 	 * Creates an array of Strings and copies the contents of a Vector into it in the specified order
 	 * 

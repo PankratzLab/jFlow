@@ -30,8 +30,26 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final String ADD_DATA_FILE = "Add Data File";
 	public static final String REMOVE_DATA_FILE = "Remove Data File";
 	public static final String SET_AS_COLORKEY = "Set as Color Key";
-	public static final String SET_AS_KINKKEY = "Set as Link Key";
-	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_KINKKEY};
+	public static final String SET_AS_LINKKEY = "Set as Link Key";
+	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY};
+	public static final String[][] LINKERS = {
+		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample"}, 
+		{"Family ID", "FamID", "FID"}, 
+		{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"}, 
+		{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
+		{"Region", "UCSC", "Band", "Arm"},	// will link to Trailer
+		{"Chromosome", "Chr"},	// secondary link to Trailer
+		{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
+		{"Stop Position", "Stop", "End"} // secondary link to Trailer
+	};
+	public static int IID_INDEX_IN_LINKERS = 0;
+	public static int FID_INDEX_IN_LINKERS = 1;
+	public static int DNA_INDEX_IN_LINKERS = 2;
+	public static int MARKER_INDEX_IN_LINKERS = 3;
+	public static int REGION_INDEX_IN_LINKERS = 4;
+	public static int CHR_INDEX_IN_LINKERS = 5;
+	public static int POS_INDEX_IN_LINKERS = 6;
+	public static int STOP_POS_INDEX_IN_LINKERS = 7;
 
 	private JPanel classPanel;
 	private JPanel legendPanel;
@@ -40,61 +58,53 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private JLayeredPane layeredPane;
 
 	private Project proj;
-	private MarkerData[] markerData;
-	private String[] markerList;
-	private String[] commentList;
-	private int markerIndex;
-	//private JLabel markerName, commentLabel;
-	private JTextField markerName, commentLabel;
-	private String[] samples;
-	private int currentClass;
+//	private int currentClass;
 //	private int plot_type;
 	private byte size;
-	//	private Hashtable<String,IndiPheno> sampleData;
-	private long sampleListFingerprint;
-	private MarkerLookup markerLookup;
 	private boolean jar;
-	private SampleData sampleData;
-	private boolean maskMissing;
-	private JRadioButton[] typeRadioButtons;
-	private JRadioButton[] classRadioButtons;
+//	private SampleData sampleData;
+//	private boolean maskMissing;
+//	private JRadioButton[] typeRadioButtons;
+//	private JRadioButton[] classRadioButtons;
 	private JButton flipButton, invXButton, invYButton;
 	private boolean flipStatus, xInvStatus, yInvStatus;
 	private CheckBoxTree tree;
 	private Vector<String> treeFilenameLookup;
 //	Hashtable<String, String[][]> dataHash;
 	Hashtable<String, Vector<String[]>> dataHash;
+//	Hashtable<String, Hashtable<String, String[]>> dataHash;
 	Hashtable<String, String[]> namesHash;
 	Hashtable<String, boolean[]> numericHash;
-	String[][] treeFileVariableNameLookup;	
+	String[][] treeFileVariableNameLookup;
+	Hashtable<String, int[]> keyIndices;
+	Logger log;
 	
-	public TwoDPlot(Project project) {
+	public TwoDPlot() {
+		this(null, new Logger());
+	}
+
+	public TwoDPlot(Project project, Logger log) {
 		String[] previouslyLoadedFiles;
 		
+//		log = new Logger();
+		this.log = log;
 		proj = project;
 		jar = proj.getJarStatus();
 		size = DEFAULT_SIZE;
 //		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 		
 		treeFilenameLookup = new Vector<String>();
+		//TODO Need to save the previously loaded files in other location.
 		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
 //		dataHash = new Hashtable<String,String[][]>();
 		dataHash = new Hashtable<String, Vector<String[]>>();
-		namesHash = new Hashtable<String,String[]>();
-		numericHash = new Hashtable<String,boolean[]>();
+		namesHash = new Hashtable<String, String[]>();
+		numericHash = new Hashtable<String, boolean[]>();
+		keyIndices = new Hashtable<String, int[]>();
 		for (int i = 0; i < previouslyLoadedFiles.length; i++) {
 			loadFile(previouslyLoadedFiles[i]);
 		}
 		
-		
-//		SampleList list = proj.getSampleList();
-//		samples = list.getSamples();
-//		sampleListFingerprint = list.getFingerprint();
-		sampleData = new SampleData(proj, true);
-//		markerLookup = proj.getMarkerLookup();
-//		if (markerList == null) {
-//			return;
-//		}
 		
 //		plot_type = 1;
 		setLayout(new BorderLayout());
@@ -102,7 +112,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		SpringLayout layout = new SpringLayout();
 //        setLayout(layout);
 
-		twoDPanel = new TwoDPanel(this);
+		twoDPanel = new TwoDPanel(this, log);
 //		twoDPanel.setBounds(0,0,1000,600);
 //		twoDPanel.setPreferredSize(new Dimension(1000, 600));	//???zx
 
@@ -144,10 +154,30 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         }
 		treePanel.add(buttonPanel, BorderLayout.NORTH);
 
+		//TODO the problem here was how to initialize the variable tree here. But it turned out that it is not necessarily, because updateTree() already does it.
+		initializeTree();
+		updateTree();
 //		tree = new CheckBoxTree();
 //		initializeTree();
-		updateTree();
 //		tree = new CheckBoxTree(namesHash.toArray(), 2);
+
+//		String[] keys = HashVec.getKeys(namesHash);
+//		byte len = 0;
+//		for (int i=0; i<keys.length; i++) {
+//			len += namesHash.get(keys[i]).length;
+//		}
+//		String[][] tmp = new String[len][2];
+//		len = 0;
+//		for (int i=0; i<keys.length; i++) {
+//			for (int j=0; j<namesHash.get(keys[i]).length; j++) {
+//				tmp[len][0]=keys[i];
+//				tmp[len][1]=namesHash.get(keys[i])[j];
+//				len ++;
+//			}
+//		}
+//		tree = new CheckBoxTree(tmp, 2);
+
+
 		treePanel.add(new JScrollPane(tree), BorderLayout.CENTER);
 		tree.addTreeSelectionListener(this);
 //		tree.addTreeExpansionListener(this);
@@ -196,9 +226,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		setVisible(true);
 	}
 	
-	public SampleData getSampleData() {
-		return sampleData;
-	}
+//	public SampleData getSampleData() {
+//		return sampleData;
+//	}
 
 	public void refreshOtherButtons() {
 //		twoDPanel.repaint();
@@ -209,60 +239,60 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	private JComponent colorLegendPanel() {
 		JPanel bottomPanel = new JPanel();
-		bottomPanel.setLayout(new GridLayout(2, 1));
-        //bottomPanel.setBackground(BACKGROUND_COLOR);
-		classPanel = new JPanel();
-		JLabel label = new JLabel("Color code by:");
-		label.setFont(new Font("Arial", 0, 14));
-		classPanel.add(label);
-
-		ItemListener classListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButton jrb = (JRadioButton)ie.getItem();
-				if (jrb.isSelected()) {
-					for (int i = 0; i<sampleData.getNumClasses(); i++) {
-						if (jrb.getText().equals(sampleData.getClassName(i))) {
-							currentClass = i;
-//							scatPanel.setPointsGenerated(true);//zx Why should be false?
-							twoDPanel.setPointsGeneratable(true);//zx
-							twoDPanel.setUpdateQcPanel(true);//zx
-							updateGUI();
-						}
-					}
-				}
-			}
-		};
-		ButtonGroup classRadio = new ButtonGroup();
-		classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
-		for (int i = 0; i<sampleData.getNumClasses(); i++) {
-			classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
-			classRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			classRadio.add(classRadioButtons[i]);
-			classRadioButtons[i].addItemListener(classListener);
-			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			classPanel.add(classRadioButtons[i]);
-		}
-		classPanel.setBackground(BACKGROUND_COLOR);
-		bottomPanel.add(classPanel);
-		
-		legendPanel = new JPanel();
-        legendPanel.setBackground(BACKGROUND_COLOR);
-
-        //JLabel legend1 = new JLabel("Color Key: ");
-		//legend1.setFont(new Font("Arial", 0, 14));
-		//legendPanel.add(legend1);
-		
-		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-			legendPanel.add(new JLabel(new ColorIcon(12,12,twoDPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
-			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
-		}
-//		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
-//		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
-//		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
-//		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
-		
-		bottomPanel.add(legendPanel);
-		classRadioButtons[1].setSelected(true);
+//		bottomPanel.setLayout(new GridLayout(2, 1));
+//        //bottomPanel.setBackground(BACKGROUND_COLOR);
+//		classPanel = new JPanel();
+//		JLabel label = new JLabel("Color code by:");
+//		label.setFont(new Font("Arial", 0, 14));
+//		classPanel.add(label);
+//
+//		ItemListener classListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				JRadioButton jrb = (JRadioButton)ie.getItem();
+//				if (jrb.isSelected()) {
+//					for (int i = 0; i<sampleData.getNumClasses(); i++) {
+//						if (jrb.getText().equals(sampleData.getClassName(i))) {
+//							currentClass = i;
+////							scatPanel.setPointsGenerated(true);//zx Why should be false?
+//							twoDPanel.setPointsGeneratable(true);//zx
+//							twoDPanel.setUpdateQcPanel(true);//zx
+//							updateGUI();
+//						}
+//					}
+//				}
+//			}
+//		};
+//		ButtonGroup classRadio = new ButtonGroup();
+//		classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
+//		for (int i = 0; i<sampleData.getNumClasses(); i++) {
+//			classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
+//			classRadioButtons[i].setFont(new Font("Arial", 0, 14));
+//			classRadio.add(classRadioButtons[i]);
+//			classRadioButtons[i].addItemListener(classListener);
+//			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
+//			classPanel.add(classRadioButtons[i]);
+//		}
+//		classPanel.setBackground(BACKGROUND_COLOR);
+//		bottomPanel.add(classPanel);
+//		
+//		legendPanel = new JPanel();
+//        legendPanel.setBackground(BACKGROUND_COLOR);
+//
+//        //JLabel legend1 = new JLabel("Color Key: ");
+//		//legend1.setFont(new Font("Arial", 0, 14));
+//		//legendPanel.add(legend1);
+//		
+//		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
+//			legendPanel.add(new JLabel(new ColorIcon(12,12,twoDPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
+//			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
+//		}
+////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
+////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
+////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
+////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
+//		
+//		bottomPanel.add(legendPanel);
+//		classRadioButtons[1].setSelected(true);
 
 		return bottomPanel;
 	}
@@ -336,10 +366,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
 		ActionMap actionMap = twoDPanel.getActionMap();
-		actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
-		actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
-		actionMap.put(ALT_LEFT, new CycleRadio(classRadioButtons, -1));
-		actionMap.put(ALT_RIGHT, new CycleRadio(classRadioButtons, 1));
+//		actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
+//		actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
+//		actionMap.put(ALT_LEFT, new CycleRadio(classRadioButtons, -1));
+//		actionMap.put(ALT_RIGHT, new CycleRadio(classRadioButtons, 1));
 //		actionMap.put(FIRST, new AbstractAction() {
 //			public static final long serialVersionUID = 4L;
 //
@@ -444,6 +474,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public void actionPerformed(ActionEvent ae) {
 		boolean found = false;
 		String command = ae.getActionCommand();
+		byte numberOfSelectedNodes;
+		String[] keys;
 
 		if (command.equals(ADD_DATA_FILE)) {
 			JFileChooser fileChooser = new JFileChooser(proj.getProjectDir());
@@ -463,17 +495,24 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	        	}
 	        }
 		} else if (command.equals(REMOVE_DATA_FILE)) {
-			tree.deleteSelectedNode();
-			System.out.println("Finished deleting trees.\t"+tree.getSelectionValues()[0][0]);
-//			dataHash.remove(tree.getSelectionValues()[0][0]);//???
-//			namesHash.remove(tree.getSelectionValues()[0][0]);//???
-//			numericHash.remove(tree.getSelectionValues()[0][0]);//???
-//			treeFilenameLookup.remove(tree.getSelectionValues()[0][0]);//???
-			System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
+			numberOfSelectedNodes = (byte) tree.getSelectedPathComponent();
+			if (numberOfSelectedNodes != -1) {
+				keys = HashVec.getKeys(dataHash); // keys is better to be block variable than a class variable. Otherwise, keys need to be updated every time there is an adding or deleting.
+				tree.deleteSelectedNode();
+				dataHash.remove(keys[numberOfSelectedNodes]);//TODO tree.getSelectionValues()[0][0] is not the branch to delete.
+				namesHash.remove(keys[numberOfSelectedNodes]);
+				keyIndices.remove(keys[numberOfSelectedNodes]);
+				numericHash.remove(keys[numberOfSelectedNodes]);
+				treeFilenameLookup.remove(keys[numberOfSelectedNodes]);
+			}
+//			System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
+//			System.out.println("\n==== End =====\n");
 		} else if (command.equals(SET_AS_COLORKEY)) {
 			// TODO.
-		} else if (command.equals(SET_AS_KINKKEY)) {
+		} else if (command.equals(SET_AS_LINKKEY)) {
 			// TODO.
+//			tree.getSelectionPath();
+			int[] tmp1 = tree.getSelectionRows();
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
@@ -485,28 +524,127 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public String[] getNamesSelected() {
 		String[] result = new String[2];
-		String[][] temp = tree.getSelectionValues();
+		String[][] selectionValues = tree.getSelectionValues();
 		
-		if (temp[0][0] == null || temp[1][0] == null) {
-			result[0] = " ";
-			result[1] = " ";
+		if (selectionValues[0][0] == null || selectionValues[1][0] == null) {
+			result[0] = "";
+			result[1] = "";
 		} else {
-			result[0] = ext.removeDirectoryInfo(temp[0][0]) + " _ " + namesHash.get(temp[0][0])[Integer.parseInt(temp[0][1])];
-			result[1] = ext.removeDirectoryInfo(temp[1][0]) + " _ " + namesHash.get(temp[1][0])[Integer.parseInt(temp[1][1])];
+			result[0] = ext.removeDirectoryInfo(selectionValues[0][0]) + " _ " + namesHash.get(selectionValues[0][0])[Integer.parseInt(selectionValues[0][1])];
+			result[1] = ext.removeDirectoryInfo(selectionValues[1][0]) + " _ " + namesHash.get(selectionValues[1][0])[Integer.parseInt(selectionValues[1][1])];
 		}
 		return result;
 	}
+	
+	public int[] getCurrentLinkKeyColumnLabels() {
+		String[][] selectedValues;
+		
+		selectedValues = tree.getSelectionValues();
+		if (selectedValues == null ||  selectedValues[0][0] == null) {
+			return null;
+		}
+		return keyIndices.get(selectedValues[0][0]);
+	}
+
+	public String[][] getCurrentLinkKeyValues() {
+		String[][] linkKeyValues;
+		int[] linkKeyColumnLabels;
+		Vector<String[]> dataOfSelectedFile;
+		String[][] selectedValues;
+		
+		selectedValues = tree.getSelectionValues();
+		if (selectedValues[0][0] == null ||  selectedValues[0][1] == null) {
+			return null;
+		}
+		linkKeyColumnLabels = keyIndices.get(selectedValues[0][0]);
+		dataOfSelectedFile = dataHash.get(tree.getSelectionValues()[0][0]);
+		linkKeyValues = new String[dataOfSelectedFile.size()][linkKeyColumnLabels.length];
+		for (int i=0; i<linkKeyValues.length; i++) {
+			for (int j=0; j<linkKeyColumnLabels.length; j++) {
+				if (linkKeyColumnLabels[j] >= 0) {
+					linkKeyValues[i][j] = dataOfSelectedFile.elementAt(i)[linkKeyColumnLabels[j]];
+				}
+			}
+		}
+		return linkKeyValues;
+	}
+
+	public Project getProject() {
+		return proj;
+	}
+
+
+
+//	public float[][] getDataSelected() {
+//		float[][] result;
+//		String[][] selectedNodes = tree.getSelectionValues();
+//
+////		System.out.println("tree.getSelectionValues():\t"+temp[0][0]+", "+temp[0][1]+", "+temp[1][0]+", "+temp[1][1]);
+//
+//		if (selectedNodes[0][0] == null || selectedNodes[1][0] == null) {
+//			result = new float[0][0];
+////			result = null;
+//		} else {
+//			result = new float[dataHash.get(selectedNodes[0][0]).size()][2];
+//			for (int i=0; i<result.length; i++) {
+//				result[i][0] = Float.valueOf( dataHash.get(selectedNodes[0][0]).elementAt(i)[Integer.parseInt(selectedNodes[0][1])]);
+//				result[i][1] = Float.valueOf( dataHash.get(selectedNodes[1][0]).elementAt(i)[Integer.parseInt(selectedNodes[1][1])]);
+//			}
+//		}
+//		return result;
+//	}
+
 
 	public float[][] getDataSelected() {
 		float[][] result;
-		String[][] temp = tree.getSelectionValues();
-		if (temp[0][0] == null || temp[1][0] == null) {
+		String[][] selectedNodes;
+		Vector<String[]> dataOfSelectedFile;
+		Hashtable<String, String> xHash, yHash;
+		String[] line;
+		int selectedColumn;
+		String[] keys;
+		Vector<String[]> v;
+
+		selectedNodes = tree.getSelectionValues();
+		if (selectedNodes[0][0] == null || selectedNodes[1][0] == null) {
 			result = new float[0][0];
+//			result = null;
 		} else {
-			result = new float[dataHash.get(temp[0][0]).size()][2];
+			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
+			dataOfSelectedFile = dataHash.get(selectedNodes[0][0]);
+			if (keyIndices.get(selectedNodes[0][0]) == null) {
+				System.out.println("Please set link key for the file '" + selectedNodes[0][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
+				return new float[0][0];
+			}
+			xHash = new Hashtable<String, String>();
+			for (int i=0; i<dataOfSelectedFile.size(); i++) {
+				line = dataOfSelectedFile.elementAt(i);
+				xHash.put(line[keyIndices.get(selectedNodes[0][0])[0]], line[selectedColumn]);
+			}
+
+			selectedColumn = Integer.parseInt(selectedNodes[1][1]);
+			dataOfSelectedFile = dataHash.get(selectedNodes[1][0]);
+			if (keyIndices.get(selectedNodes[1][0]) == null) {
+				System.out.println("Please set link key for the file '" + selectedNodes[1][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
+				return new float[0][0];
+			}
+			yHash = new Hashtable<String, String>();
+			for (int i=0; i<dataOfSelectedFile.size(); i++) {
+				line = dataOfSelectedFile.elementAt(i);
+				yHash.put(line[keyIndices.get(selectedNodes[1][0])[0]], line[selectedColumn]);
+			}
+
+			keys = HashVec.getKeys(xHash, false, false);
+			v = new Vector<String[]>();
+			for (int i=0; i<keys.length; i++) {
+				if (yHash.containsKey(keys[i])) {
+					v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i])});
+				}
+			}
+			result = new float[v.size()][2];
 			for (int i=0; i<result.length; i++) {
-				result[i][0] = Float.valueOf( dataHash.get(temp[0][0]).elementAt(i)[Integer.parseInt(temp[0][1])]);
-				result[i][1] = Float.valueOf( dataHash.get(temp[1][0]).elementAt(i)[Integer.parseInt(temp[1][1])]);
+				result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+				result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
 			}
 		}
 		return result;
@@ -520,9 +658,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		}
 //	}
 
-	public boolean maskMissing() {
-		return maskMissing;
-	}
+//	public boolean maskMissing() {
+//		return maskMissing;
+//	}
 
 	public void updateGUI() {
 //		if (markerList.length==0) {
@@ -568,77 +706,46 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void updateColorKey(Hashtable<String,String> hash) {
-		JLabel label, block;
-		String[][] colorKeys;
-		String[] keys;
-		legendPanel.removeAll();
-		legendPanel.repaint();
-		//JLabel legend = new JLabel("Color Key: ");
-		//legend.setFont(new Font("Arial", 0, 14));
-		//legendPanel.add(legend);
-		
-		//legendPanel.removeAll();
-		//legendPanel.repaint();
-		label = new JLabel("Color key:");
-		label.setFont(new Font("Arial", 0, 14));
-		legendPanel.add(label);
-		if (currentClass < SampleData.BASIC_CLASSES.length) {
-			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
-		} else {		
-			colorKeys = sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length);
-		}
-		for (int i = 0; i<colorKeys.length; i++) {
-			block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(colorKeys[i][0])]));
-			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
-			hash.remove(colorKeys[i][0]);
-			label.setFont(new Font("Arial", 0, 14));
-			legendPanel.add(block);
-			legendPanel.add(label);
-		}
-		keys = HashVec.getKeys(hash);
-		for (int i = 0; i<keys.length; i++) {
-			if (!keys[i].equals("-1")) {
-				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
-				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
-				label.setFont(new Font("Arial", 0, 14));
-				legendPanel.add(block);
-				legendPanel.add(label);
-			}
-		}
-
-		
-/**		
-		//colorKeys = sampleData.getActualClassColorKey(currentClass);
-		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-			legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
-			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
-			hash.remove(arg0)
-		}
-//		for (int i = 0; i<colorKeys.length; i++) {
-//			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
+//		JLabel label, block;
+//		String[][] colorKeys;
+//		String[] keys;
+//		legendPanel.removeAll();
+//		legendPanel.repaint();
+//		//JLabel legend = new JLabel("Color Key: ");
+//		//legend.setFont(new Font("Arial", 0, 14));
+//		//legendPanel.add(legend);
+//		
+//		//legendPanel.removeAll();
+//		//legendPanel.repaint();
+//		label = new JLabel("Color key:");
+//		label.setFont(new Font("Arial", 0, 14));
+//		legendPanel.add(label);
+//		if (currentClass < SampleData.BASIC_CLASSES.length) {
+//			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
+//		} else {		
+////			colorKeys = sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length);
+//			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
 //		}
-		/*
-		keys = HashVec.getKeys(hash);
-		for (int i = 0; i<keys.length; i++) {
-			if (!keys[i].equals("-1")) {
-				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
-				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
-				label.setFont(new Font("Arial", 0, 14));
-				legendPanel.add(block);
-				legendPanel.add(label);
-			}
-		}
-		*/
-//*/
-
-		legendPanel.validate();
-		
-		/*
-		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
-		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
-		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
-		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
-		*/
+//		for (int i = 0; i<colorKeys.length; i++) {
+//			block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(colorKeys[i][0])]));
+//			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
+//			hash.remove(colorKeys[i][0]);
+//			label.setFont(new Font("Arial", 0, 14));
+//			legendPanel.add(block);
+//			legendPanel.add(label);
+//		}
+//		keys = HashVec.getKeys(hash);
+//		for (int i = 0; i<keys.length; i++) {
+//			if (!keys[i].equals("-1")) {
+//				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
+//				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
+//				label.setFont(new Font("Arial", 0, 14));
+//				legendPanel.add(block);
+//				legendPanel.add(label);
+//			}
+//		}
+//
+//		legendPanel.validate();
 	}
 
 
@@ -684,9 +791,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public void loadFile(String filename) {
 		BufferedReader reader;
 		String[] line;
-//		boolean sol;
-		String trav, temp;
-		int n;
+		boolean found = false;
+		String readBuffer;
+		int[] linkKeyIndices;
 
 		if (treeFilenameLookup.contains(filename)) {
 			return;
@@ -696,30 +803,37 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			reader = new BufferedReader(new FileReader(filename));
 			treeFilenameLookup.add(filename);
 //			filename = ext.removeDirectoryInfo(filename); // Strip "/" from filename
-			temp = reader.readLine();
-			if (temp.contains("\t")) {
-				namesHash.put(filename, temp.trim().split("\t",-1));
+
+			readBuffer = reader.readLine();
+			if (readBuffer.contains("\t")) {
+				line = readBuffer.trim().split("\t",-1);
 			} else {
-				namesHash.put(filename, temp.trim().split("[\\s]+"));
+				line = readBuffer.trim().split("[\\s]+");
 			}
+			namesHash.put(filename, line);
+			
+			
+			linkKeyIndices = ext.indexFactors(LINKERS, line, false, true, false, log, false);
+			
+			if (linkKeyIndices[0] == -1) {
+				log.report("ID linker not automatically identified for file '" + filename + "'; assuming the first column.");
+				linkKeyIndices[0] = 0;
+			}
+			
+			keyIndices.put(filename, linkKeyIndices);
+			
 			numericHash.put(filename, new boolean[namesHash.get(filename).length]);
         	for (int i=0; i<numericHash.get(filename).length; i++) {
         		numericHash.get(filename)[i] = true;
         	}
+
         	dataHash.put(filename, new Vector<String[]>());
-//            if (!namesHash.get(filename)[0].equals("FID") || !namesHash.get(filename)[1].equals("IID")) {
-//            	System.err.println("Error - different format than expected; first two columns should be FID and IID");
-//            	throw new IOException();
-//            }
-//            sol = line[2].equals("SOL");
-//            n = line.length-(sol?3:2);
             while (reader.ready()) {
-				if (temp.contains("\t")) {
+				if (readBuffer.contains("\t")) {
 					line = reader.readLine().trim().split("\t",-1);
 				} else {
 					line = reader.readLine().trim().split("[\\s]+");
 				}
-            	trav = line[0]+"\t"+line[1];
             	dataHash.get(filename).add(line);
             	for (int i=0; i<line.length; i++) {
             		if (!ext.isValidDouble(line[i])) {
@@ -734,8 +848,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             System.err.println("Error reading file \""+filename+"\"");
         }
 	}
+
+	private void initializeTree() {
+		tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], 2);
+	}
 	
 	private void updateTree() {
+		String[] namesOfBranches;
+		String[] branchHandles;
+		String[][] namesOfNodes;
+
+		
 //        TreePath[] prev;
 //        
 //    	prev = tree.getSelectionPaths();
@@ -744,9 +867,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         for (int i=0; i<treeFilenameLookup.size(); i++) {
     		treeFileVariableNameLookup[i] = namesHash.get(treeFilenameLookup.elementAt(i));
         	if (tree==null) {
-        		String[] namesOfBranches = new String[1];
-        		String[] branchHandles = new String[1];
-        		String[][] namesOfNodes = new String[1][];
+        		namesOfBranches = new String[1];
+        		branchHandles = new String[1];
+        		namesOfNodes = new String[1][];
         		namesOfBranches[0]=ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i));
         		branchHandles[0]=treeFilenameLookup.elementAt(i);
         		namesOfNodes[0] = treeFileVariableNameLookup[i];
@@ -773,7 +896,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	     * this method should be invoked from the
 	     * event-dispatching thread.
 	     */
-	private static void createAndShowGUI(Project proj) {
+	private static void createAndShowGUI(Project proj, Logger log) {
 
 		//Create and set up the window.
 		JFrame frame = new JFrame("2D Plot");
@@ -781,7 +904,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         //Create and set up the content pane.
-        TwoDPlot twoDPlot = new TwoDPlot(proj);
+        TwoDPlot twoDPlot = new TwoDPlot(proj, log);
         frame.setJMenuBar(twoDPlot.menuBar());
         twoDPlot.setOpaque(true); //content panes must be opaque
         frame.setContentPane(twoDPlot);
@@ -799,7 +922,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGUI(new Project("/workspace/Genvisis/projects/twodplot.properties", false));
+//                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/twodplot.properties", false), new Logger());
+                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false), new Logger());
             }
         });
 		

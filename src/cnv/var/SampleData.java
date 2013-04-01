@@ -26,11 +26,8 @@ public class SampleData {
 	private Hashtable<String,IndiPheno> sampleHash;
 	private boolean failedToLoad;
 	private int sexClassIndex;
+	private int excludeClassIndex;
 	private String clusterUserSpecified;
-	
-	public SampleData(Project proj, boolean loadCNVs) {
-		this(proj, loadCNVs?proj.getFilenames(Project.CNV_FILENAMES):null);
-	}
 	
 	public SampleData(Project proj, String[] cnvFilesnames) {
 		BufferedReader reader;
@@ -109,13 +106,15 @@ public class SampleData {
                 }
 			}
 			sexClassIndex = ext.indexFactors(new String[][] {{"Sex", "CLASS=Sex", "Gender", "CLASS=Gender"}}, classes, false, true, true, false)[0];
+			excludeClassIndex = ext.indexFactors(new String[][] {{"Exclude", "CLASS=Exclude"}}, classes, false, true, true, false)[0];
 			System.out.println(Array.toStr(classes));
 
 			sexCountHash = new CountVector();
 			sampleHash = new Hashtable<String,IndiPheno>();
 			lookup = new Hashtable<String, String[]>();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+//				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split("\t", -1);
 				indi = new IndiPheno();
 				
 				ids = new String[] {line[dnaIndex], line[famIndex]+"\t"+line[indIndex], line[indIndex]};
@@ -222,6 +221,34 @@ public class SampleData {
 			return -1;
 		} else {
 			return indi.getClasses()[sexClassIndex];
+		}
+	}
+	
+	public boolean excludeIndividual(String id) {
+		IndiPheno indi;
+		String[] ids;
+		
+		if (excludeClassIndex == -1) {
+			return false;
+		}
+		
+		indi = sampleHash.get(id.toLowerCase());
+		if (indi == null) {
+			ids = lookup.get(id.toLowerCase());
+			if (ids != null) {
+				indi = sampleHash.get(ids[0]);
+			}
+		}
+		
+		if (indi == null) {
+			System.err.println("Error - id '"+id+"' was not present in the SampleData");
+			return false;
+		}
+		
+		if (indi.getClasses()[excludeClassIndex] == Integer.MIN_VALUE) {
+			return false;
+		} else {
+			return indi.getClasses()[excludeClassIndex] == 1;
 		}
 	}
 	

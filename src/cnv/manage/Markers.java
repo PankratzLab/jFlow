@@ -18,6 +18,7 @@ public class Markers {
 		byte[] chrs;
 		int[] positions, keys;
 		String[] line;
+		int count;
 
 		snpPositions = HashVec.loadFileToHashString(markerDatabase, 0, new int[] {1, 2}, "\t", false);
 		if (markerNames == null) {
@@ -27,6 +28,7 @@ public class Markers {
 			markerNames = HashVec.getKeys(snpPositions);
 		}
 
+		count = 0;
 		System.out.println(ext.getTime()+"\tOrdering markers");
 		chrs = new byte[markerNames.length];
 		positions = new int[markerNames.length];
@@ -36,9 +38,17 @@ public class Markers {
 				chrs[i] = Positions.chromosomeNumber(line[0]);
 				positions[i] = Integer.parseInt(line[1]);
 			} else {
-				System.err.println("Error - '"+markerNames[i]+"' was not listed in the file of SNP positions");
-				return null;
+				if (count == 0) {
+					System.err.println("The following marker(s) were not listed in the file of SNP positions");
+				}
+				count++;
+				System.err.println(markerNames[i]+"\t0\t"+count);
+//				return null;
 			}
+		}
+		
+		if (count > 0) {
+			return null;
 		}
 
 		keys = Sort.orderTwoLayers(chrs, positions);

@@ -1,6 +1,13 @@
 package cnv.filesys;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.util.Date;
+import java.util.Hashtable;
+
 import common.Files;
 
 public class MarkerDataCollection implements Serializable {
@@ -40,5 +47,19 @@ public class MarkerDataCollection implements Serializable {
 
 	public static MarkerDataCollection load(String filename, boolean jar) {
 		return (MarkerDataCollection)Files.readSerial(filename, jar, true);
+	}
+
+	/**
+	 * So far only TransposeDate.extractForDemo(...) needs to save MarkerDataCollection, and serialize() works better for it.
+	 * So, we are not going to write code for saveToRandomAccessFile() and loadFromRandomAccessFile();
+	 */
+	public static void saveToRandomAccessFile() {
+	}
+
+	/**
+	 * So far only TransposeDate.extractForDemo(...) needs to save MarkerDataCollection, and serialize() works better for it.
+	 * So, we are not going to write code for saveToRandomAccessFile() and loadFromRandomAccessFile();
+	 */
+	public static void loadFromRandomAccessFile(String filename, boolean jar) {
 	}
 }

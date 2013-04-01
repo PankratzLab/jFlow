@@ -129,6 +129,7 @@ public class MarkerSet implements Serializable {
 		return sum;
 	}
 	
+//	public void checkFingerprint(Sample_old samp) {
 	public void checkFingerprint(Sample samp) {
 		if (samp.getFingerprint() != fingerprint) {
 			System.err.println("Error - Sample has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
@@ -191,7 +192,7 @@ public class MarkerSet implements Serializable {
 		fingerprint = proj.getSampleList().getFingerprint();
 
 		missingMarkers = new Vector<String>();
-		time = new Date().getTime();
+//		time = new Date().getTime();
 		for (int i = 0; i<markerNames.length; i++) {
 			if (markerLookup.contains(markerNames[i])) {
 				line = markerLookup.get(markerNames[i]).split("[\\s]+");
@@ -210,6 +211,7 @@ public class MarkerSet implements Serializable {
 			JOptionPane.showMessageDialog(null, "Error - the following markers were not found in the MarkerSet: "+Array.toStr(Array.toStringArray(missingMarkers), " "), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
+		time = new Date().getTime();
 		keys = HashVec.getKeys(hash);
 		markerData = new MarkerData[markerNames.length];
 		for (int i = 0; i<keys.length; i++) {
@@ -234,15 +236,13 @@ public class MarkerSet implements Serializable {
 					}
 					
 					if (markerData[indices[k]].getFingerprint()!=fingerprint) {
-						System.err.println("Error - mismatched fingerprint after MarkerLookup");
+						System.err.println("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: " + markerData[indices[k]].getFingerprint() + ", while expecting: " + fingerprint);
 					}					
 				}
 			}
 		}
 
-		System.out.println("Finished loading MarkerData in "+ext.getTimeElapsed(time));
-		
-		System.out.println("markerData length: "+markerData.length);//zx
+//		System.out.println("Finished loading MarkerData in "+ext.getTimeElapsed(time));
 
 		return markerData;
 	}
@@ -263,15 +263,15 @@ public class MarkerSet implements Serializable {
 				geno = abLookup[i][1]+""+abLookup[i][1];
 				break;
 			case -1:
-				geno = FullSample.ALLELE_PAIRS[0];
+				geno = Sample.ALLELE_PAIRS[0];
 				break;
 			default:
 				System.err.println("Error - invalid AB genotype: "+abGenotypes[i]);
 				geno = null;
 			}
 //			System.out.println(geno);
-			for (byte j=0; j<FullSample.ALLELE_PAIRS.length; j++) {
-				if (geno.equals(FullSample.ALLELE_PAIRS[j])) {
+			for (byte j=0; j<Sample.ALLELE_PAIRS.length; j++) {
+				if (geno.equals(Sample.ALLELE_PAIRS[j])) {
 					result[i]=j;
 				}
 			}

@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import cnv.filesys.Project;
 
+import common.HashVec;
 import common.StringVector;
 import common.CmdLine;
 import common.ext;
@@ -21,7 +22,7 @@ public class DeNovoCNV {
 
 	private static Project proj;
 	
-	public static void loadData(String outfile) {
+	public static void generatePedigreeOfTrios(String pedigreeFileName) {
 		BufferedReader reader;
 		String[] line;
 		PrintWriter writer;
@@ -32,7 +33,7 @@ public class DeNovoCNV {
 //		trav = new HashVec();
 		try {
 //	        reader = Files.getReader(new FileReader(filename), proj.getJarStatus(), true, false);
-			reader = new BufferedReader(new FileReader(outfile));
+			reader = new BufferedReader(new FileReader(pedigreeFileName));
 //			reader.readLine();
 			//TODO detect the column number of FID IID FAID MOID
 			fId = new StringVector();
@@ -42,17 +43,19 @@ public class DeNovoCNV {
 			dna = new StringVector();
             while (reader.ready()) {
             	line = reader.readLine().trim().split("\t",-1);
-            	if (line[6]!=null && !line[6].equals(".")) {
+//            	if (line[6]!=null && !line[6].equals(".")) {
+            	if (line[4]!=null && !line[4].equals(".")) {
             		fId.add(line[0]);
             		iId.add(line[0]+"\t"+line[1]);
             		faId.add(line[2]);
             		moId.add(line[3]);
-            		dna.add(line[6]);
+//            		dna.add(line[6]);
+            		dna.add(line[4]);
             	}
             }
             reader.close();
 
-            writer = new PrintWriter(new FileWriter("D:/PedigreeTempOutput.txt"));
+            writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(pedigreeFileName) + "PedigreeOfTrios.txt"));
 			writer.println("fId\tiId\tfaId\tmoId\tiDna\tfaDna\tmoDna");
 			for (int i=0; i<iId.size(); i++) {
 				if (iId.contains(fId.elementAt(i)+"\t"+ faId.elementAt(i)) && iId.contains(fId.elementAt(i)+"\t"+moId.elementAt(i))) {
@@ -67,61 +70,78 @@ public class DeNovoCNV {
 			writer.flush();
 			writer.close();
         } catch (FileNotFoundException fnfe) {
-        	System.err.println("Error: file \""+outfile+"\" not found in current directory");
+        	System.err.println("Error: file \""+pedigreeFileName+"\" not found in current directory");
         } catch (IOException ioe) {
-            System.err.println("Error reading file \""+outfile+"\"");
+            System.err.println("Error reading file \""+pedigreeFileName+"\"");
         }
+		System.out.println("Pedigree of Trios is ready at " + ext.parseDirectoryOfFile(pedigreeFileName) + "PedigreeOfTrios.txt");
 	}
 	
-	public static void runPennCnv(String infile) {
+	/**
+	 * 
+	 * @param pedigreeOfTrio
+	 */
+	public static void runPennCnv(String pedigreeOfTrio, String cnvOutputDir, String sampleDir, String rawCnvFileNameNoPath) {
 		BufferedReader reader;
 		String[] line;
 		
-		if (!(new File("penn_output")).exists()) {
-			new File("penn_output").mkdir();
+		if (!(new File(cnvOutputDir)).exists()) {
+			new File(cnvOutputDir).mkdir();
 		}
-		PennCNV.populationBAF(proj);
-		PennCNV.gcModel(proj, "D:/PennCNV_Related/GcModel/gc5Base_hg18.txt", "penn_output/gcmodel", 0);
+//		PennCNV.populationBAF(proj);
+//		PennCNV.gcModel(proj, "D:/PennCNV_Related/GcModel/gc5Base_hg18.txt", "penn_output/gcmodel", 0);
 		
 		try {
-			reader = new BufferedReader(new FileReader(infile));
+			reader = new BufferedReader(new FileReader(pedigreeOfTrio));
 			line = reader.readLine().trim().split("[\\s]+");
 //			ext.checkHeader(line, expected, kill)
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t",-1);
 				for (int i=4; i<=6; i++) {
-					if (!(new File("penn_data/"+line[i])).exists()) {
+					if (!(new File(sampleDir + line[i])).exists()) {
 						cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null);
 					}
 				}
 				if (System.getProperty("os.name").startsWith("Windows")) {
 					//TODO How to get hmm, pfb, and gcmodel files?
-					CmdLine.run("perl C:/penncnv/detect_cnv.pl -joint -hmm C:/penncnv/lib/hh550.hmm -pfb custom.pfb penn_data/"+line[4]+" penn_data/"+line[5]+" penn_data/"+line[6]+" -out "+line[4]+".jointcnv", "penn_output");
-					(new File("penn_output/resultAll.jointcnv")).renameTo(new File("penn_output/resultAll_tmp.jointcnv"));
-					common.Files.cat(new String[] {"penn_output/"+line[4]+".jointcnv", "penn_output/resultAll_tmp.jointcnv"}, "penn_output/resultAll.jointcnv", null, null);
-					(new File("penn_output/"+line[4]+".jointcnv")).delete();
-					if (!(new File("penn_output/resultAll_tmp.jointcnv")).delete()) {
-						System.err.println("Error deleting the temporaryfile 'resultAll_tmp.jointcnv'.");
-					}
+					CmdLine.run("perl C:/penncnv/detect_cnv.pl -joint -hmm C:/penncnv/lib/hh550.hmm -pfb C:/penncnv/lib/hh550.hg18.pfb -gcmodel C:/penncnv/lib/hh550.hg18.gcmodel " + sampleDir + line[4] + " " + sampleDir + line[5] + " " + sampleDir + line[6] + " -out " + line[4] + ".jointcnv", cnvOutputDir);
+					CmdLine.run("perl C:/penncnv/detect_cnv.pl -trio -hmm C:/penncnv/lib/hh550.hmm -pfb C:/penncnv/lib/hh550.hg18.pfb -cnv " + cnvOutputDir + rawCnvFileNameNoPath + " " + sampleDir + line[4] + " " + sampleDir + line[5] + " " + sampleDir + line[6] + " -out " + line[4] + ".triocnv", cnvOutputDir);
+//					(new File(cnvOutputDir+"resultAll.jointcnv")).renameTo(new File(cnvOutputDir + "resultAll_tmp.jointcnv"));
+//					common.Files.cat(new String[] {cnvOutputDir+line[4]+".jointcnv", cnvOutputDir+"resultAll_tmp.jointcnv"}, cnvOutputDir+"resultAll.jointcnv", null, null);
+//					(new File(cnvOutputDir + line[4] + ".jointcnv")).delete();
+//					if (!(new File("penn_output/resultAll_tmp.jointcnv")).delete()) {
+//						System.err.println("Error deleting the temporaryfile 'resultAll_tmp.jointcnv'.");
+//					}
 				}
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+infile+"\" not found in current directory");
+			System.err.println("Error: file \""+pedigreeOfTrio+"\" not found in current directory");
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+infile+"\"");
+			System.err.println("Error reading file \""+pedigreeOfTrio+"\"");
 		}
 		PennCNV.parseResults(proj, "penn_output/resultAll.jointcnv");
+	}
+	
+	public static void batch(String pedigreeOfTrio) {
+		String command;
+		String[][] iterations;
+		
+		command = "perl C:/penncnv/detect_cnv.pl -joint -hmm C:/penncnv/lib/hh550.hmm -pfb C:/penncnv/lib/hh550.hg18.pfb -gcmodel C:/penncnv/lib/hh550.hg18.gcmodel [%1] [%2] [%3] -out [%1].jointcnv";
+		
+		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
+		
+		common.Files.qsub("denovo", 20, command, iterations);
 	}
 
 	/**
 	 * A script to select relevant sample data and move them to another folder
 	 */
-	public static void selectFilesToTestInPennCNV() {
+	public static void selectFilesToTestInPennCNV(String trioCnvFileName) {
 		BufferedReader reader;
 		String[] line;
 		try {
-			reader = new BufferedReader(new FileReader("D:/BOSS_outputFiles/TriosForDenovoCnv.txt"));
+			reader = new BufferedReader(new FileReader(trioCnvFileName));
 //			line = reader.readLine().trim().split("[\\s]+");
 			reader.readLine();
 			while (reader.ready()) {
@@ -145,7 +165,6 @@ public class DeNovoCNV {
 	 * A script to select relevant sample data and move them to another folder
 	 */
 	public static void detectDenovoCnv() {
-
 	    File folder = new File("D:/BOSS_outputFiles/joint_results/");
 	    File[] listOfFiles = folder.listFiles();
 		BufferedReader reader;
@@ -214,14 +233,15 @@ public class DeNovoCNV {
 	}
 	
 	public static void main(String[] args) {
-		proj = new Project("C:/workspace/Genvisis/projects/boss.properties", false);
-		PennCNV.populationBAF(proj);
-		PennCNV.gcModel(proj, "D:/PennCNV_Related/GcModel/gc5Base_hg18.txt", "D:/PennCNV_Related/GcModel/BOSS_Genvisis.gcmodel", 0);
+//		proj = new Project("C:/workspace/Genvisis/projects/boss.properties", false);
+//		PennCNV.populationBAF(proj);
+//		PennCNV.gcModel(proj, "D:/PennCNV_Related/GcModel/gc5Base_hg18.txt", "D:/PennCNV_Related/GcModel/BOSS_Genvisis.gcmodel", 0);
 
-//		loadData("D:/BOSS_pedigree_wDNA.txt");
-//		runPennCnv("D:/TriosForDenovoCnv.txt");
+//		generatePedigreeOfTrios("D:/GEDI/GEDI_CNV_Pedigree.txt");
+//		runPennCnv("D:/GEDI/PedigreeOfTrios.txt", "D:/GEDI/cnv_output/", "D:/GEDI/samples_all/", "gedi_all.rawcnv");
+		batch("D:/GEDI/PedigreeOfTrios.txt");
 
-//		selectFilesToTestInPennCNV();
+//		selectFilesToTestInPennCNV("D:/BOSS_outputFiles/TriosForDenovoCnv.txt");
 
 //		detectDenovoCnv();
 

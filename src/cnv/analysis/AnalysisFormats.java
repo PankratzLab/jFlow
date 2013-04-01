@@ -51,6 +51,7 @@ public class AnalysisFormats implements Runnable {
 	public static void penncnv(Project proj, String[] samples, Hashtable<String,String> hash) {
 		PrintWriter writer;
 		String[] markerNames = proj.getMarkerNames();
+//		Sample_old samp;
 		Sample samp;
 		float[] lrrs, bafs;
 		byte[] genotypes;
@@ -58,17 +59,19 @@ public class AnalysisFormats implements Runnable {
 		new File(proj.getProjectDir()+"penn_data/").mkdirs();
 		for (int i = 0; i<samples.length; i++) {
 			System.out.println(ext.getTime()+"\tTransforming "+(i+1)+" of "+samples.length);
-			samp = proj.getSample(samples[i]);
+//			samp = proj.getSample(samples[i]);
+			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
-			genotypes = samp.getGenotypes();
+//			genotypes = samp.getGenotypes();
+			genotypes = samp.getAB_Genotypes();
 
 			try {
 				writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"penn_data/"+samples[i]));
 				writer.println("Name\t"+samples[i]+".GType\t"+samples[i]+".Log R Ratio\t"+samples[i]+".B Allele Freq");
 				for (int j = 0; j<markerNames.length; j++) {
 					if (hash == null || hash.containsKey(markerNames[j])) {
-						writer.println(markerNames[j]+"\t"+(genotypes[j]==-1?"NC":FullSample.AB_PAIRS[genotypes[j]])+"\t"+lrrs[j]+"\t"+bafs[j]);
+						writer.println(markerNames[j]+"\t"+(genotypes[j]==-1?"NC":Sample.AB_PAIRS[genotypes[j]])+"\t"+lrrs[j]+"\t"+bafs[j]);
 					}
 				}
 				writer.close();
@@ -83,6 +86,7 @@ public class AnalysisFormats implements Runnable {
 		PrintWriter writer;
 		MarkerSet set;
 		String[] markerNames = proj.getMarkerNames();
+//		Sample_old samp;
 		Sample samp;
 		float[] lrrs, bafs;
 		byte[] chrs;
@@ -95,7 +99,8 @@ public class AnalysisFormats implements Runnable {
 		new File(proj.getProjectDir()+"quanti_data/").mkdirs();
 		for (int i = 0; i<samples.length; i++) {
 			System.out.println(ext.getTime()+"\tTransforming "+(i+1)+" of "+samples.length);
-			samp = proj.getSample(samples[i]);
+//			samp = proj.getSample(samples[i]);
+			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			set.checkFingerprint(samp);
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();

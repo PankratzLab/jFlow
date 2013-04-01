@@ -298,7 +298,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				if (lrrs != null) {
 					for (int i = startMarker; i<=stopMarker; i++) {
 						if (!Float.isNaN(lrrs[i])) {
-							if (genotypes[i]==-1) {
+							if (genotypes != null && genotypes[i]==-1) {
 								g.setFont(new Font("Arial", 0, 10));
 								g.drawString("+", getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER+5);
 							} else {
@@ -503,7 +503,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		previousChr.setActionMap(actionMap);
 
 		sample = selectedSample==null?samplesPresent[0]:selectedSample;
-		sampleData = new SampleData(proj, cnvFilenames);
+		sampleData = proj.getSampleData(cnvFilenames);
 		if (sampleData.failedToLoad()) {
 			return;
 		}
@@ -717,7 +717,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		dropped = new boolean[numMarkers];
 		chrBoundaries = new int[27][2];
 		for (int i = 0; i<chrBoundaries.length; i++) {
-			chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
+//			chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
+			chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
 		}
 		chr = 0;
 		for (int i = 0; i<numMarkers; i++) {
@@ -738,11 +739,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 
 	public void loadValues() {
-//		long time;
+		long time;
+//		Sample_old samp;
 		Sample samp;
 
-//		time = new Date().getTime();
-		samp = proj.getSample(sample);
+		time = new Date().getTime();
+//		samp = proj.getSample(sample);
+		samp = proj.getPartialSampleFromRandomAccessFile(sample);
 		if (samp == null) {
 			System.err.println("Error - sample '"+sample+"' not found in "+proj.getDir(Project.IND_DIRECTORY));
 		} else if ( samp.getFingerprint()!=fingerprint) {
@@ -750,11 +753,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		} else {
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
-			genotypes = samp.getGenotypes();
+//			genotypes = samp.getGenotypes();
+			genotypes = samp.getAB_Genotypes();
 
 			lrrMin = Array.min(lrrs);
 			lrrMax = Array.max(lrrs);
-//			System.out.println("Reading in data for "+sample+".samp took "+ext.getTimeElapsed(time));
+			System.out.println("Reading in data for "+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" took "+ext.getTimeElapsed(time));
 		}
 		// lrrMin = Math.floor(lrrMin);
 		// lrrMax = Math.ceil(lrrMax);
