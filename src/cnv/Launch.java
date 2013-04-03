@@ -1,9 +1,7 @@
 package cnv;
 
 import java.io.*;
-import java.util.Date;
-import java.util.Vector;
-//import java.util.*;
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -13,7 +11,7 @@ import common.*;
 import cnv.analysis.DeNovoCNV;
 import cnv.analysis.Mosaicism;
 import cnv.filesys.*;
-import cnv.gui.PropertyEditor;
+//import cnv.gui.PropertyEditor;
 import cnv.manage.*;
 import cnv.plots.*;
 
@@ -25,7 +23,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
 	public static final String PARSE_FILES_CSV = "Parse .csv files";
 	public static final String TRANSPOSE_DATA = "Transpose data";
-//	public static final String SLIM_PLOTS = "Slim plots";
 	public static final String CHECK_SEX = "Check sex";
 	public static final String LRR_SD = "Check LRR Stdevs";
 	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
@@ -48,6 +45,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EDIT = "Project Properties";
 	public static final String REFRESH = "Refresh";
 	public static final String COMP = "Comp module";
+	public static final String KITANDKABOODLE = "Kit and Kaboodle";
+	
 
 //	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD, COMP}; 
 
@@ -110,6 +109,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //		frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 		frame.setVisible(true);
 
+		// TODO only instantiate when used
 		frame.proj = new Project(frame.launchProperties.getDirectory()+frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED), frame.jar);
 		frame.output.append("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
     }
@@ -152,7 +152,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	    //Create a scrolled text area.
 	    output = new JTextArea(5, 30);
 	    output.setEditable(false);
-	    output.append("Genvsis, by Nathan Pankratz Lab, (c)2012.   Version 0.99.1083. \n\n"+(new Date()));
+	    output.append("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 	    scrollPane = new JScrollPane(output);
 	
 	    //Add the text area to the content pane.
@@ -168,7 +168,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 						
 			String[][] menus = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 //								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", EXTRACT_PLOTS, SLIM_PLOTS},
-								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", TRANSPOSE_DATA},
+								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", TRANSPOSE_DATA, KITANDKABOODLE},
 								{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, COMP},
 								{"Tools", CHECK_SEX, LRR_SD, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, MOSAICISM, POPULATIONBAF, GCMODEL, DENOVO_CNV, SUMCNVBYSAM, TEST},
 								{"Help", "Contents", "Search", "About"}};
@@ -344,7 +344,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //			nohup vis -Xmx15g -d64 cnv.manage.ExtractPlots per=250 proj=current.proj
 		} else if (command.equals(GENERATE_PLINK_FILES)) {
 			String filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
-			if ( filename!=null || (!filename.equals("cancel")) ) {
+			System.out.println("using "+filename);
+			if ( filename==null || (!filename.equals("cancel")) ) {
 //					String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
 //					if () {
 //						
@@ -356,14 +357,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
 	//			vis cnv.manage.PlinkFormat root=../plink genome=6
 			}
-			/*
-			cnv.manage.PlinkFormat.createPlink(proj);
-			CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-			new File(proj.getProjectDir()+"genome/").mkdirs();
-			CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-			CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
-//			vis cnv.manage.PlinkFormat root=../plink genome=6
-			*/
 		} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 			cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
 		} else if (command.equals(LRR_SD)) {
@@ -393,14 +386,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(COMP)) {
 			new CompPlot(proj);
 		} else if (command.equals(EDIT)) {
-			new PropertyEditor(proj);
-//				try {
-//	//				Runtime.getRuntime().exec("C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe \"C:"+ext.replaceAllWith(projects[index], "/", "\\")+"\"");
-//					Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
-//					System.out.println("tried to open "+projects[index]+" which "+(new File(dir+projects[index]).exists()?"does":"does not")+" exist");
-//				} catch (IOException ioe) {
-//					System.err.println("Error - failed to open WordPad");
-//				}
+//			new PropertyEditor(proj);
+			
+			int index = projectsBox.getSelectedIndex();
+			String dir = launchProperties.getDirectory();
+			try {
+				Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
+				System.out.println("tried to open "+projects[index]+" which "+(new File(dir+projects[index]).exists()?"does":"does not")+" exist");
+			} catch (IOException ioe) {
+				System.err.println("Error - failed to open Notepad");
+			}
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
 			System.out.println("Refreshed list of projects");
@@ -409,75 +404,24 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(SUMCNVBYSAM)) {
 			cnv.manage.ExportCNVsToPedFormat.main(null);
 		} else if (command.equals(TEST)) {
-			output.append("Testing new program: DataSource(proj).convertFullSampleToJdbc()\n");
-//			Mosaicism.checkForOverlap(proj);
-//			ParseIllumina.parseAlleleLookup(proj);
-//			new TestCnpDetectAlgorithm(proj);
-
-//			String[] x = proj.getMarkerSet().getMarkerNames();
-//			String[] x = proj.getSamples();
-//			String[] x = proj.getSampleList().getSamples();
-//			int max = 0;
-//			int min = 100000;
-//			int n = 0;
-//			for (int i=0; i<x.length; i++) {
-//				n = x[i].toCharArray().length;
-//				if (n>max) { max = n; }
-//				if (n<min) { min = n; }
-//			}
-//			System.out.println("min="+min+"\tmax="+max);
-
-//			new DataSource(proj).createDerbyDb();
-//			new DataSource(proj).convertFullSampleToJdbc();
-//			new ScatterPlotJdbc2(proj);
-
-//			DataSource.generateTxtFileForTesting(proj);
-
-//			DataByRaf.convertFullSampleToRAF1(proj);
-//			DataByRaf.convertFullSampleToRAF2(proj);
-//			DataByRaf.convertFullSampleToRaf3(proj);
-
-//			long time = new Date().getTime();
-//			long incr = 10000;
-//			String[] samples = proj.getSamples();
-//			for (int i=0; i<samples.length; i++) {
-//				if (new Date().getTime() - time > incr) {
-//					System.out.println("Parsed "+i+" samples in "+(incr/1000)+" secs");
-//					incr += 10000;
-//				}
-//				FullSample.load(proj.getDir(Project.SAMPLE_DIRECTORY, true)+samples[i]+".fsamp", proj.getJarStatus());
-//			}
-//			System.out.println("Finished loading from Serializable in: "+(new Date().getTime() - time)+" ms");
-
-
-//			DataByRafByMarker.convertFullSampleToRAF1_Intensity_Sample(proj);
-//			DataInRafByMarker.convertFullSampleToRAF1b_Sample_Intensity(proj);
-//			DataInRafByMarker.test_convertFullSampleToRAF1b_Sample_Intensity(proj);
-//			DataInRafBySample.convertFullSampleToRaf9(proj);
-//			DataInRafByMarker_Bak.convertFullSampleToRAF9(proj, 200000);
-
-//			File markerLookup;
-//			TransposeData.transposeData(proj, 150000000, true); // compact if no LRR was provided
-//			markerLookup = new File(proj.getProjectDir()+"data/markerLookup.bml");
-//		    if (markerLookup.exists()) {
-//		    	markerLookup.renameTo(new File(proj.getProjectDir()+"data/markerLookup_150.bml"));
-//		    }
-//			TransposeData.transposeData(proj, 600000000, true); // compact if no LRR was provided
-//			markerLookup = new File(proj.getProjectDir()+"data/markerLookup.bml");
-//		    if (markerLookup.exists()) {
-//		    	markerLookup.renameTo(new File(proj.getProjectDir()+"data/markerLookup_600.bml"));
-//		    }
-//			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
-//			markerLookup = new File(proj.getProjectDir()+"data/markerLookup.bml");
-//		    if (markerLookup.exists()) {
-//		    	markerLookup.renameTo(new File(proj.getProjectDir()+"data/markerLookup_2000.bml"));
-//		    }
-			
-			String[] samp1 = proj.getSamples();
-			SampleList samp2 = proj.getSampleList();
-			System.out.println("");
+			output.append("No new program to test\n");
 		} else if (command.equals(GCMODEL)) {
 			cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
+		} else if (command.equals(KITANDKABOODLE)) {
+			cnv.manage.ParseIllumina.createFiles(proj, 2);
+
+			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
+
+			cnv.manage.PlinkFormat.createPlink(proj, filename);
+			CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+			new File(proj.getProjectDir()+"genome/").mkdirs();
+			CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
+			CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+
+			cnv.qc.LrrSd.init(proj, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+			
+			cnv.qc.SexChecks.sexCheck(proj);
+			
 		} else if (command.equals(EXIT)) {
 			System.exit(0);
 		} else {
@@ -497,9 +441,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //    	for (int i = 0; i < threadsRunning.size(); i++) {
 //
 //		}
-    	
-//    	props.setProperty(LaunchProperties.LAST_PROJECT_OPENED, projects[projectsBox.getSelectedIndex()]);
-//    	props.save();
     }
     
     public void windowClosed(WindowEvent we) {}
@@ -519,22 +460,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			proj = new Project(launchProperties.getDirectory()+projects[i], jar);
 			output.append("\nCurrent project: " + ext.rootOf(projects[i]) + "\n");
 			output.setCaretPosition(output.getDocument().getLength());
-			try {
-				Files.writeList(new String[] {"LAST_PROJECT_OPENED="+projects[i], "PROJECTS_DIR="+ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath())+"projects/"}, launchPropertiesFile);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+
+			launchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED, projects[projectsBox.getSelectedIndex()]);
+			launchProperties.save();
     	}
-//        JMenuItem source = (JMenuItem)(e.getSource());
-//        String s = "Item event detected.\n"
-//                   + "    Event source: " + source.getText()
-//                   + " (an instance of " + source.getClass().getName() + ")\n"
-//                   + "    New state: "
-//                   + ((e.getStateChange() == ItemEvent.SELECTED) ?
-//                     "selected":"unselected");
-//        output.append(s + "\n");
-//        output.setCaretPosition(output.getDocument().getLength());
     }
 
 	public static void main(String[] args) {

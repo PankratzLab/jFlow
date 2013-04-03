@@ -27,7 +27,6 @@ public class SampleData {
 	private boolean failedToLoad;
 	private int sexClassIndex;
 	private int excludeClassIndex;
-	private String clusterUserSpecified;
 	
 	public SampleData(Project proj, String[] cnvFilesnames) {
 		BufferedReader reader;
@@ -43,7 +42,6 @@ public class SampleData {
 		String filename;
 		CountVector sexCountHash;
 		String[] sexValues;
-		int[] sexCounts;
 		String[] ids;
 
 		failedToLoad = true;
@@ -130,13 +128,13 @@ public class SampleData {
 
 				dv = new DoubleVector();
 				for (int i = 0; i<covarIs.size(); i++) {
-					dv.add(line[covarIs.elementAt(i)].equals(".")?Double.NaN:Double.parseDouble(line[covarIs.elementAt(i)]));
+					dv.add(ext.isMissingValue(line[covarIs.elementAt(i)])?Double.NaN:Double.parseDouble(line[covarIs.elementAt(i)]));
 				}
 				indi.setCovars(dv.toArray());
 
 				iv = new IntVector();
 				for (int i = 0; i<classIs.size(); i++) {
-					iv.add(line[classIs.elementAt(i)].equals(".")||Integer.parseInt(line[classIs.elementAt(i)])<0?Integer.MIN_VALUE:Integer.parseInt(line[classIs.elementAt(i)]));
+					iv.add(ext.isMissingValue(line[classIs.elementAt(i)])||Integer.parseInt(line[classIs.elementAt(i)])<0?Integer.MIN_VALUE:Integer.parseInt(line[classIs.elementAt(i)]));
 				}
 				indi.setClasses(iv.toArray());
 				if (sexClassIndex != -1) {
