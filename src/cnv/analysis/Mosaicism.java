@@ -177,6 +177,7 @@ public class Mosaicism {
 	    		reader = new BufferedReader(new FileReader(listOfMosaicArms));
 		        line = reader.readLine().trim().split("[\\s]+");
 		        if (!ext.checkHeader(line, new String[] {"Sample", "Arm"}, false)) {
+		        	reader.close();
 		        	return;
 		        }
 
