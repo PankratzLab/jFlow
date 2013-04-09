@@ -206,7 +206,7 @@ public class ParseIllumina implements Runnable {
 
 					samp = new Sample(sampleName, fingerprint, data, genotypes);
 //					samp.serialize(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
-					samp.saveToRandomAccessFile2(filename);
+					samp.saveToRandomAccessFile(filename);
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \""+files[i]+"\" not found in current directory");
 					return;
@@ -662,10 +662,10 @@ public class ParseIllumina implements Runnable {
 								}
 								
 								samp = new Sample(sampleName, fingerprint, data, genotypes);
-								samp.saveToRandomAccessFile2(filename);
+								samp.saveToRandomAccessFile(filename);
 							}
 							if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
-								samp = Sample.loadFromRandomAccessFile2(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
+								samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
 							} else {

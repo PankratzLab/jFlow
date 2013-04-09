@@ -192,7 +192,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						}
 						if (!Float.isNaN(lrrs[i])) {
 							if (dropped[i]) {
-								g.drawString("X", getX(positions[i]), getHeight()-(int)((double)(lrrs[i]-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
+//								g.drawString("X", getX(positions[i]), getHeight()-(int)((double)(lrrs[i]-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
 							} else if (lrrs[i] < min){
 								g.drawString("v", getX(positions[i]), getHeight()-(int)((double)(min-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
 							} else if (lrrs[i] > max){
@@ -298,7 +298,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				if (lrrs != null) {
 					for (int i = startMarker; i<=stopMarker; i++) {
 						if (!Float.isNaN(lrrs[i])) {
-							if (genotypes != null && genotypes[i]==-1) {
+							if (dropped[i]) {
+								g.drawString("X", getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER+5);
+							} else if (genotypes != null && genotypes[i]==-1) {
 								g.setFont(new Font("Arial", 0, 10));
 								g.drawString("+", getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER+5);
 							} else {
@@ -673,7 +675,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	public void createSampleList() {
 		long time = new Date().getTime();
-		String[] filesPresent = Files.list(proj.getDir(Project.IND_DIRECTORY), ".samp", jar);
+		String[] filesPresent = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
 		FontMetrics fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
 		String refresh = "refresh list";
 		int maxWidth = fontMetrics.stringWidth(refresh);
@@ -740,20 +742,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	public void loadValues() {
 		long time;
-//		Sample_old samp;
 		Sample samp;
 
 		time = new Date().getTime();
-//		samp = proj.getSample(sample);
 		samp = proj.getPartialSampleFromRandomAccessFile(sample);
 		if (samp == null) {
-			System.err.println("Error - sample '"+sample+"' not found in "+proj.getDir(Project.IND_DIRECTORY));
+			System.err.println("Error - sample '"+sample+"' not found in "+proj.getDir(Project.SAMPLE_DIRECTORY));
 		} else if ( samp.getFingerprint()!=fingerprint) {
-			System.err.println("Error - Sample "+proj.getDir(Project.IND_DIRECTORY)+sample+".samp has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
+			System.err.println("Error - Sample "+proj.getDir(Project.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
 		} else {
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
-//			genotypes = samp.getGenotypes();
 			genotypes = samp.getAB_Genotypes();
 
 			lrrMin = Array.min(lrrs);
@@ -848,7 +847,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 	        }
 			if (!found) {
-				if (Files.exists(proj.getDir(Project.IND_DIRECTORY)+newSample+".samp", jar)) {
+				if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY)+newSample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
 					createSampleList();
 					updateSample(newSample);
 				} else {

@@ -2,13 +2,7 @@
 package cnv.filesys;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.*;
-
-import common.Files;
-
 
 public class Compression {
 
@@ -19,9 +13,9 @@ public class Compression {
 	public static final byte[] REDUCED_PRECISION_LRR_NAN_BYTES = new byte[] {(byte) 2, (byte) 0, (byte) 0};	//-13.1072
 	public static final byte[] REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES = new byte[] {(byte) 2, (byte) 0, (byte) 1}; //-13.1071
 	public static final float REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT = (float) -13.1071; //{2, 0, 1}
-	public static final int BYTES_PER_SAMPLE_MARKER = 22;
-	public static final int BYTES_PER_SAMPLE_MARKER_2 = 12;
-	public static final int BYTES_PER_SAMPLE_MARKER_10 = 10;
+//	public static final int BYTES_PER_SAMPLE_MARKER = 22;
+	public static final int BYTES_PER_SAMPLE_MARKER = 12;
+//	public static final int BYTES_PER_SAMPLE_MARKER_10 = 10;
 
 
 	public static byte[] objToBytes(Object obj) throws IOException{

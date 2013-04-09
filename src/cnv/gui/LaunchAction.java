@@ -13,6 +13,7 @@ import java.awt.Toolkit;
 import javax.swing.*;
 
 import cnv.filesys.Project;
+import cnv.filesys.Sample;
 
 public class LaunchAction extends AbstractAction {
 	public static final long serialVersionUID = 1L;
@@ -149,7 +150,7 @@ public class LaunchAction extends AbstractAction {
 	public boolean isEnabled() {
 		switch (type) {
         case LAUNCH_TRAILER:
-    		return Files.exists(proj.getDir(Project.IND_DIRECTORY)+sample+".samp", jar);
+    		return Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar); // needs to be updated anyway
         default:
         	return true;
         }

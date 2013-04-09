@@ -367,7 +367,7 @@ public class ABLookup {
         		}
         	}
         	fsamp.setAB_Genotypes(abGenotypes);
-        	fsamp.saveToRandomAccessFile2(proj.getDir(Project.SAMPLE_DIRECTORY)+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION);
+        	fsamp.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY)+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION);
         }
 	}
 	

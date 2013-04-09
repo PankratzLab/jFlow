@@ -150,8 +150,6 @@ public class ParseAffymetrix implements Runnable {
 
 					samp = new Sample(sampleName, fingerprint, data, genotypes);
 					samp.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
-//					samp.serialize(proj.getDir(Project.SAMPLE_DIRECTORY, true)+trav+".fsamp");
-//					samp.convertToSample().serialize(proj.getDir(Project.IND_DIRECTORY, true)+trav+".samp");
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \""+files[i]+"\" not found in current directory");
 					return;

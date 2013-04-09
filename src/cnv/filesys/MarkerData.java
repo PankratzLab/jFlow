@@ -215,7 +215,12 @@ public class MarkerData implements Serializable {
 		ClusterFilter clusterFilter;
 		int counter;
 		
-		original = getAB_Genotypes(); 
+		if (clusterFilterCollection == null) {
+			return getAB_Genotypes();
+		}
+		
+		
+		original = getAB_Genotypes();
 		result = new byte[original.length];
 		for (int i=0; i<original.length; i++) {
 			if (getGCs()[i]<gcThreshold) {

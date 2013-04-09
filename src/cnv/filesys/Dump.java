@@ -2,8 +2,6 @@ package cnv.filesys;
 
 import java.io.*;
 
-import common.ext;
-
 public class Dump {
 	public static void dump(String filename) {
         PrintWriter writer;

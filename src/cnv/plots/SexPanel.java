@@ -315,7 +315,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 		setColorScheme(this.colorScheme);
 //		for (int i = 0; i<data.length&&getFlow(); i++) {
 		for (int i = 0; i<data.length; i++) {
-			/*
+			/* TODO would be nice to move this functionality (grey out those samples with no sample data) to TwoDPlot
 			if (colorHash.containsKey(samples[i][0]+"\t"+samples[i][1])) {
 				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
 				color = (byte) Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]));

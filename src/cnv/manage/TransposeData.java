@@ -914,7 +914,7 @@ public class TransposeData {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER_2 - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
+		bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
 		numBytesPerMarker = allSamplesInProj.length * bytesPerSampMark;
 //		writeBufferSeekStep = numBytesPerMarker - BYTES_PER_SAMPLE_MARKER;
 		if (new File(proj.getProjectDir()).getFreeSpace() <= (allSamplesInProj.length * (long)allMarkersInProj.length * bytesPerSampMark)) {

@@ -353,34 +353,10 @@ public class Centroids implements Serializable {
         }
 	}
 	
-//	public static void recompute(Project proj, String centroidsFile) {
-//		MarkerSet markerSet;
-//		Centroids centroids;
-//        Sample fsamp;
-//        Sample_old samp;
-//        String[] samples;
-//        float[][][] cents;
-//        
-//		markerSet = proj.getMarkerSet();
-//		centroids = load(centroidsFile, proj.getJarStatus());
-//		if (centroids.getFingerprint() != markerSet.getFingerprint()) {
-//			System.err.println("Error - fingerprint for Centroids file '"+centroidsFile+"' does not match the fingerprint for the current MarkerSet");
-//		}
-//
-//        cents = centroids.getCentroids(); 
-//        samples = proj.getSamples();
-//        for (int i = 0; i<samples.length; i++) {
-//        	fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-//        	samp = new Sample_old(fsamp.getFingerprint(), fsamp.getLRRs(cents), fsamp.getBAFs(cents), fsamp.getAB_Genotypes());
-//        	samp.serialize(proj.getDir(Project.IND_DIRECTORY)+samples[i]+".samp");
-//        }
-//	}
-
 	public static void recompute(Project proj, String centroidsFile) {
 		MarkerSet markerSet;
 		Centroids centroids;
-        Sample fsamp;
-//        Sample samp;
+        Sample original, sample;
         String[] samples;
         float[][][] cents;
         
@@ -393,9 +369,9 @@ public class Centroids implements Serializable {
         cents = centroids.getCentroids(); 
         samples = proj.getSamples();
         for (int i = 0; i<samples.length; i++) {
-        	fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-//        	samp = new Sample(fsamp.getFingerprint(), fsamp.getLRRs(cents), fsamp.getBAFs(cents), fsamp.getAB_Genotypes());
-        	fsamp.serialize(proj.getDir(Project.IND_DIRECTORY)+samples[i]+".samp");
+        	original = proj.getFullSampleFromRandomAccessFile(samples[i]);
+        	sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes());
+        	sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION);
         }
 	}
 

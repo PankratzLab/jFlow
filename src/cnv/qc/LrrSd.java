@@ -39,20 +39,13 @@ public class LrrSd extends Parallelizable {
 			
 			for (int i = 0; i<samples.length; i++) {
 	        	System.out.println((i+1)+" of "+samples.length);
-				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
+				fsamp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 				chrs = proj.getMarkerSet().getChrs();
-				lrrs = null;
 				if (fsamp == null) {
-					System.err.println("Error - "+samples[i]+".fsamp not found in samples directory");
-//					lrrs =  proj.getSample(samples[i]).getLRRs();
-					lrrs =  proj.getPartialSampleFromRandomAccessFile(samples[i]).getLRRs();
+					System.err.println("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
 					lrrs = cents==null?fsamp.getLRRs():fsamp.getLRRs(cents);
 					lrrs = Array.subArray(lrrs, 0, Array.indexOfByte(chrs, (byte)23));
-				}
-				if (lrrs == null) {
-					System.err.println("Error - could not find "+samples[i]+".fsamp or "+samples[i]+".samp");
-				} else {
 					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true));
 					writer.flush();
 				}

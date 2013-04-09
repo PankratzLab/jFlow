@@ -176,6 +176,16 @@ public class HashVec {
 		return hash;
 	}
 
+	public static Hashtable<String,Integer> loadFileToHashIndex(String[] list) {
+		Hashtable<String,Integer> hash = new Hashtable<String,Integer>((list == null?10:list.length));
+		
+		for (int i = 0; list != null && i<list.length; i++) {
+			hash.put(list[i], i);
+		}
+
+		return hash;
+	}
+
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, boolean onlyFirstColumn, boolean onlyIfAbsent) {
 		return loadFileToVec(filename, ignoreFirstLine, onlyFirstColumn?new int[] {0}:null, onlyIfAbsent, false);
 	}

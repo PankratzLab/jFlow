@@ -14,6 +14,7 @@ import javax.imageio.*;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Sample;
 import cnv.gui.LaunchAction;
 import cnv.var.SampleData;
 import mining.Distance;
@@ -459,9 +460,9 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	void generatePoints() {
 		byte color;
 		String[] files;
-		files = new File(proj.getDir(Project.IND_DIRECTORY)).list(new FilenameFilter() {
+		files = new File(proj.getDir(Project.SAMPLE_DIRECTORY)).list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
-				return filename.endsWith("");
+				return filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
 			}
 		});
 		if (files==null) {
@@ -475,7 +476,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
 				color = (byte) Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]));
 			} else {
-				color = (byte) ((byte) ext.indexOfStr(samples[i][0]+".samp", files)>=0?0:1);	// What is the color code for Color.GRAY
+				color = (byte) ((byte) ext.indexOfStr(samples[i][0]+Sample.SAMPLE_DATA_FILE_EXTENSION, files)>=0?0:1);	// What is the color code for Color.GRAY
 			}
 			points[i] = new PlotPoint("",
 									  (byte) 1,

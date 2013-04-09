@@ -63,7 +63,6 @@ public class Project extends Properties {
 	public static final String PARSE_AT_AT_SYMBOL = "PARSE_AT_AT_SYMBOL";
 	public static final String JAR_STATUS = "JAR_STATUS";
 	public static final String SAMPLE_DIRECTORY = "SAMPLE_DIRECTORY";
-	public static final String IND_DIRECTORY = "IND_DIRECTORY";
 	public static final String DATA_DIRECTORY = "DATA_DIRECTORY";
 	public static final String PLOT_DIRECTORY = "PLOT_DIRECTORY";
 	public static final String RESULTS_DIRECTORY = "RESULTS_DIRECTORY";
@@ -297,7 +296,7 @@ public class Project extends Properties {
 
 	public Sample getFullSampleFromRandomAccessFile(String sample) {
 		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
-			return Sample.loadFromRandomAccessFile2(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus());
+			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus());
 		} else {
 			return null;
 		}
@@ -311,27 +310,9 @@ public class Project extends Properties {
 		}
 	}
 
-//	public FullSample getFullSampleFromSerialized(String sample) {
-//		if (Files.exists(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus())) {
-//			return Sample.loadFromSerialized(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus());
-//		} else {
-//			return null;
-//		}
-//	}
-
-
-//	public Sample_old getSample(String sample) {
-//		if (Files.exists(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus())) {
-//			return Sample_old.load(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus());
-//		} else {
-//			
-//			return null;
-//		}
-//	}
-
 	public Sample getPartialSampleFromRandomAccessFile(String sample) {
 		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
-			return Sample.loadFromRandomAccessFile2(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, getJarStatus());
+			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, getJarStatus());
 		} else {
 			return null;
 		}
