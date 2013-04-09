@@ -122,7 +122,6 @@ public class SampleData {
 			sampleHash = new Hashtable<String,IndiPheno>();
 			lookup = new Hashtable<String, String[]>();
 			while (reader.ready()) {
-//				line = reader.readLine().split("[\\s]+");
 				line = reader.readLine().split("\t", -1);
 				indi = new IndiPheno();
 				
