@@ -38,7 +38,7 @@ public class MarkerMetrics {
 			eol = "\n";
 		}
         
-        sampleData = proj.getSampleData(false);
+        sampleData = proj.getSampleData(2, false);
         samples = proj.getSamples();
         sexes = new int[samples.length];
         for (int i = 0; i < samples.length; i++) {
@@ -73,7 +73,7 @@ public class MarkerMetrics {
 				markerName = markerData.getMarkerName();
 				xs = markerData.getXs();
 				ys = markerData.getYs();
-				abGenotypes = markerData.getAB_GenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
 				
 				values = new DoubleVector[3][4][3]; // x/y/r, genotype, sex
 				for (int s = 0; s < samples.length; s++) {
