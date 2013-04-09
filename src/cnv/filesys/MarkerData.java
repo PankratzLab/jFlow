@@ -5,13 +5,8 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import mining.Distance;
-
 import stats.Correlation;
-import common.Array;
-import common.CmdLine;
-import common.DoubleVector;
-import common.IntVector;
+import common.*;
 
 public class MarkerData implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -207,7 +202,7 @@ public class MarkerData implements Serializable {
 		
 	}
 	
-	public byte[] getAB_GenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, String markerName, float gcThreshold) {
+	public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, String markerName, float gcThreshold) {
 		byte[] result, original;
 		float[] realX;
 		float[] realY;

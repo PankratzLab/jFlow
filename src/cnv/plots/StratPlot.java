@@ -71,7 +71,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		treePanel.setPreferredSize(new Dimension(200,500));
 
 		
-		sampleData = proj.getSampleData(false);
+		sampleData = proj.getSampleData(2, false);
 		if (sampleData.getNumActualClasses() == -1) {
 			System.err.println("Error - Failed to load SampleData... closing");
 			return;
@@ -218,7 +218,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 			updateGUI();
 		} else if (command.equals(REFRESH_SAMPLE_DATA)) {
 			proj.resetSampleData();
-			sampleData = proj.getSampleData(false);
+			sampleData = proj.getSampleData(2, false);
 			stratPanel.pushSampleData();
 			updateGUI();
 		} else {

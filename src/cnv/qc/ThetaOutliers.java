@@ -126,7 +126,7 @@ public class ThetaOutliers {
 		IntVector result;
 
 		if (clusterFilterCollection != null) {
-			genotypes = markerData.getAB_GenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), 0);
+			genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), 0);
 		} else {
 			genotypes = markerData.getAB_Genotypes();
 		}

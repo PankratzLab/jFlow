@@ -114,7 +114,7 @@ public class FindVNTRs {
 			return;
 		}
 
-		sampleData = proj.getSampleData(false);
+		sampleData = proj.getSampleData(2, false);
 		famIndPair = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0, 1}, false);
 		affStats = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {5}, false);
 		hash = new Hashtable<String,String>();

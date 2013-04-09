@@ -39,40 +39,40 @@ import common.Array;
 //public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
-	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-			   									  new Color(23, 58, 172), // dark blue
-			   									  new Color(201, 30, 10), // deep red
-			   									  new Color(140, 20, 180), // deep purple
-			   									  new Color(33, 87, 0), // dark green
-			   									  new Color(55, 129, 252), // light blue
-			   									  new Color(94, 88, 214), // light purple
-			   									  new Color(189, 243, 61), // light green
-			   									  new Color(217, 109, 194), // pink
-			   									new Color(0, 0, 128), // ALL KINDS OF BLUES
-			   									new Color(100, 149, 237),
-			   									new Color(72, 61, 139),
-			   									new Color(106, 90, 205),
-			   									new Color(123, 104, 238),
-			   									new Color(132, 112, 255),
-			   									new Color(0, 0, 205),
-			   									new Color(65, 105, 225),
-			   									new Color(0, 0, 255),
-			   									new Color(30, 144, 255),
-			   									new Color(0, 191, 255),
-			   									new Color(135, 206, 250),
-			   									new Color(135, 206, 250),
-			   									new Color(70, 130, 180),
-			   									new Color(176, 196, 222),
-			   									new Color(173, 216, 230),
-			   									new Color(176, 224, 230),
-			   									new Color(175, 238, 238),
-			   									new Color(0, 206, 209),
-			   									new Color(72, 209, 204),
-			   									new Color(64, 224, 208),
-			   									new Color(0, 255, 255),
-			   									new Color(224, 255, 255),
-
-	};
+//	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
+//			   									  new Color(23, 58, 172), // dark blue
+//			   									  new Color(201, 30, 10), // deep red
+//			   									  new Color(140, 20, 180), // deep purple
+//			   									  new Color(33, 87, 0), // dark green
+//			   									  new Color(55, 129, 252), // light blue
+//			   									  new Color(94, 88, 214), // light purple
+//			   									  new Color(189, 243, 61), // light green
+//			   									  new Color(217, 109, 194), // pink
+//			   									new Color(0, 0, 128), // ALL KINDS OF BLUES
+//			   									new Color(100, 149, 237),
+//			   									new Color(72, 61, 139),
+//			   									new Color(106, 90, 205),
+//			   									new Color(123, 104, 238),
+//			   									new Color(132, 112, 255),
+//			   									new Color(0, 0, 205),
+//			   									new Color(65, 105, 225),
+//			   									new Color(0, 0, 255),
+//			   									new Color(30, 144, 255),
+//			   									new Color(0, 191, 255),
+//			   									new Color(135, 206, 250),
+//			   									new Color(135, 206, 250),
+//			   									new Color(70, 130, 180),
+//			   									new Color(176, 196, 222),
+//			   									new Color(173, 216, 230),
+//			   									new Color(176, 224, 230),
+//			   									new Color(175, 238, 238),
+//			   									new Color(0, 206, 209),
+//			   									new Color(72, 209, 204),
+//			   									new Color(64, 224, 208),
+//			   									new Color(0, 255, 255),
+//			   									new Color(224, 255, 255),
+//
+//	};
 	
 	protected MarkerData[] markerData1;
 	byte[] alleleCounts;				//zx
@@ -83,11 +83,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	protected IntVector indicesOfNearbySamples;	//zx
 //	protected IntVector indeciesOfNaNSamples;	//zx
 	private boolean updateQcPanel;		//zx: A control variable. Do not update QcPanel when resizing, or etc.
-	private int mouseStartX ;
-	private int mouseStartY ;
-	private int mouseEndX ;
-	private int mouseEndY ;
-
+	private int mouseStartX;
+	private int mouseStartY;
+	private int mouseEndX;
+	private int mouseEndY;
 
 	public ScatterPanel(ScatterPlot sp) {
 		super();
@@ -100,7 +99,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		this.updateQcPanel = true;//zx
 //		this.indeciesOfNaNSamples = new IntVector();
 		
-		setColorScheme(DEFAULT_COLORS);
+//		setColorScheme(DEFAULT_COLORS);
+		setColorScheme(ColorKeyPanel.DEFAULT_COLORS);
 
 //		addMouseListener(this);
 //		addMouseMotionListener(this);
@@ -141,7 +141,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	}
 
 	public void generatePoints() {
-		int position, markerIndex, plotType, currentClass;
+		int position, markerIndex, plotType;
 		byte chr, genotypeCode, classCode, type;
 		float[][] datapoints;
 //		byte[] alleleCounts;
@@ -159,9 +159,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int[] genotype;
 		String[] sex;
 		String[] otherClass;
-		CountVector classCounts;//zx
+		CountVector uniqueValueCounts;//zx
 //		ClusterFilterCollection clusterFilterCollection;//zx
 		MarkerData markerData;
+		int currentClass;
 
 //		time = new Date().getTime();
 		
@@ -177,7 +178,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		datapoints = markerData.getDatapoints(plotType);
 		//		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
 //		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
-		alleleCounts = markerData.getAB_GenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
+		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 		sp.displayClusterFilterIndex();
 		chr = markerData.getChr();
@@ -236,7 +237,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		genotype = new int[samples.length];
 		sex = new String[samples.length];
 		otherClass = new String[samples.length];
-		classCounts = new CountVector();
+		uniqueValueCounts = new CountVector();
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
 			
@@ -259,7 +260,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				if (currentClass == 1) {
 					classCode = genotypeCode;
 				} else {
-					classCode = determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position);
+					classCode = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position);
 				}
 				if (sampleData.getSexClassIndex() == -1) {
 				} else {
@@ -279,10 +280,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 				layer = (byte)((sampleData.getClassCategoryAndIndex(currentClass)[0]==2 && classCode > 0)?1:0);
 				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
-					classCounts.add(0+"");
+					uniqueValueCounts.add(0+"");
 					genotype[i]=0;//zx
 				} else {
-					classCounts.add(classCode+"");
+					uniqueValueCounts.add(classCode+"");
 				}
 				if (classCode < 0) {
 					System.err.println("Error - classCOde is less than 0 ("+classCode+")");
@@ -297,7 +298,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				//	}
 				//	sex[i]="Missing";
 				//}
-				sex[i] = determineCodeFromClass(2, alleleCounts[i], indi, chr, position)+"";
+				sex[i] = sampleData.determineCodeFromClass(2, alleleCounts[i], indi, chr, position)+"";
 				
 				//for (int j=0; j<sampleData.getActualClassColorKey(1).length; j++) {
 				//	if (sampleData.getActualClassColorKey(1)[j][0].equals(classCode+"")){
@@ -308,7 +309,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				//}
 				//classCounts.add(code+"");//np
 				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;//zx
-				otherClass[i] = determineCodeFromClass(3, alleleCounts[i], indi, chr, position)+"";
+				otherClass[i] = sampleData.determineCodeFromClass(3, alleleCounts[i], indi, chr, position)+"";
 			} else {
 				System.err.println("Error - no data pts for "+samples[i]);
 				sex[i] = "missing";
@@ -323,7 +324,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			sp.updateQcPanel(chr, genotype, sex, otherClass);//zx
 			setQcPanelUpdatable(false);
 		}
-		sp.updateColorKey(classCounts.convertToHash());
+		sp.updateColorKey(uniqueValueCounts.convertToHash());
 		
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		for (int i = 0; i < points.length; i++) {
@@ -552,46 +553,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //	//		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 //		}
 
-	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
-		int[] classes, indices;
-		CNVariant[] segs;
-		int index;
-		
-		indices = sampleData.getClassCategoryAndIndex(currentClass);
-		switch (indices[0]) {
-        case 0:
-			if (SampleData.BASIC_CLASSES[indices[1]].equals("All")) {
-				return 0;
-			} else if (SampleData.BASIC_CLASSES[indices[1]].equals("Genotype")) {
-				return (byte)(alleleCount+1);
-			} else {
-				return 0;
-			}
-        case 1:
-    		classes = indi.getClasses();
-			if (classes[indices[1]] == Integer.MIN_VALUE) {
-				return -1;
-			} else {
-				return (byte)classes[indices[1]];
-			}
-        case 2:
-			segs = indi.getCNVs(indices[1], chr);
-			if (segs == null) {
-				return 0;
-			} else {
-				index = Segment.binarySearchForOverlap(new Segment((byte)-1, position, position), segs); 
-				if (index == -1) {
-					return 0;
-				} else {
-					return (byte)(segs[index].getChr()+1);
-				}
-			}
-        default:
-        	System.err.println("Error - invalid class index");
-        	return 0;
-        }
-	}	
-
 //	public void updateMarkerData (MarkerData[] markerData) {
 //		this.markerData = markerData;
 //		repaint();
@@ -663,7 +624,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		for (int l = 0; indicesOfNearbySamples!=null && l<indicesOfNearbySamples.size(); l++) {
 			i = indicesOfNearbySamples.elementAt(l);
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
-			g.setColor(colorScheme[determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
+			g.setColor(colorScheme[sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
 			//g.setColor(Color.YELLOW);
 //			if (gcScores[i]<gcThreshold) {
 //			if (currentClass==1 && alleleCounts[i]==-1) {
@@ -898,7 +859,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	public GenericRectangle[] getRectangles() {
     	return rectangles;
 	}
-	
+
+//	public void setCurrentClass (byte newCurrentClass) {
+//		currentClass = newCurrentClass;
+//	}
+//
+
+
 //	public boolean isCNV () {
 //		DoubleVector x = new DoubleVector();
 //		DoubleVector y = new DoubleVector();
