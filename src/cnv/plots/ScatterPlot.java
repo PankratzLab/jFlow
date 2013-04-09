@@ -72,7 +72,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	//private JLabel markerName, commentLabel;
 	private JTextField markerName, commentLabel;
 	private String[] samples;
-	private int currentClass;
+//	private byte currentClass;
 	private int plot_type;
 	private byte size;
 	private float gcThreshold;
@@ -95,6 +95,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private MarkerDataLoaderRunnable markerDataLoader;
 	private Thread thread2;
     private Vector<Thread> threadsRunning;
+    private ColorKeyPanel colorKeyPanel;
 	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
 		super("ScatterPlot");
@@ -113,7 +114,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		SampleList list2 = proj.getSampleList2();
 		samples = list.getSamples();
 		sampleListFingerprint = list.getFingerprint();
-		sampleData = proj.getSampleData(true);
+		sampleData = proj.getSampleData(2, true);
 		markerLookup = proj.getMarkerLookup();
 		
 		markerList = initMarkerList;
@@ -141,7 +142,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		getContentPane().add(scatPanel, BorderLayout.CENTER);
 		getContentPane().add(markerPanel(), BorderLayout.NORTH);
 		getContentPane().add(controlPanel(), BorderLayout.EAST);
-		getContentPane().add(colorPanel(), BorderLayout.SOUTH);
+//		getContentPane().add(colorPanel(), BorderLayout.SOUTH);
+		colorKeyPanel = new ColorKeyPanel(sampleData, scatPanel);
+		getContentPane().add(colorKeyPanel, BorderLayout.SOUTH);
 
 		inputMapAndActionMap();
 
@@ -177,8 +180,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
-
-		System.err.println("5\t"+ext.getTimeElapsed(time));
 	}
 
 	private JComponent markerPanel() {
@@ -369,7 +370,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			centBoxes[i].setFont(new Font("Arial", 0, 14));
 			centBoxes[i].setSelected(displayCents[i]);
 			centBoxes[i].addItemListener(centListener);
-			centBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5+i], 5));
+			centBoxes[i].setBorder(BorderFactory.createLineBorder(ColorKeyPanel.DEFAULT_COLORS[5+i], 5));
 			centBoxes[i].setBorderPainted(true);
 			centBoxes[i].setBackground(BACKGROUND_COLOR);
 			tabPanel.add(centBoxes[i], gbc);
@@ -552,65 +553,65 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return gcSliderPanel;
 	}
 
-	private JComponent colorPanel() {
-		JPanel bottomPanel = new JPanel();
-		bottomPanel.setLayout(new GridLayout(2, 1));
-        //bottomPanel.setBackground(BACKGROUND_COLOR);
-		classPanel = new JPanel();
-		JLabel label = new JLabel("Color code by:");
-		label.setFont(new Font("Arial", 0, 14));
-		classPanel.add(label);
-
-		ItemListener classListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButton jrb = (JRadioButton)ie.getItem();
-				if (jrb.isSelected()) {
-					for (int i = 0; i<sampleData.getNumClasses(); i++) {
-						if (jrb.getText().equals(sampleData.getClassName(i))) {
-							currentClass = i;
-//							scatPanel.setPointsGenerated(true);//zx Why should be false?
-							scatPanel.setPointsGeneratable(true);//zx
-							scatPanel.setQcPanelUpdatable(true);//zx
-							updateGUI();
-						}
-					}
-				}
-			}
-		};
-		ButtonGroup classRadio = new ButtonGroup();
-		classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
-		for (int i = 0; i<sampleData.getNumClasses(); i++) {
-			classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
-			classRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			classRadio.add(classRadioButtons[i]);
-			classRadioButtons[i].addItemListener(classListener);
-			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			classPanel.add(classRadioButtons[i]);
-		}
-		classPanel.setBackground(BACKGROUND_COLOR);
-		bottomPanel.add(classPanel);
-		
-		legendPanel = new JPanel();
-        legendPanel.setBackground(BACKGROUND_COLOR);
-
-        //JLabel legend1 = new JLabel("Color Key: ");
-		//legend1.setFont(new Font("Arial", 0, 14));
-		//legendPanel.add(legend1);
-		
-//		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-//			legendPanel.add(new JLabel(new ColorIcon(12,12,ScatterPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
-//			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
+//	private JComponent colorPanel() {
+//		JPanel bottomPanel = new JPanel();
+//		bottomPanel.setLayout(new GridLayout(2, 1));
+//        //bottomPanel.setBackground(BACKGROUND_COLOR);
+//		classPanel = new JPanel();
+//		JLabel label = new JLabel("Color code by:");
+//		label.setFont(new Font("Arial", 0, 14));
+//		classPanel.add(label);
+//
+//		ItemListener classListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				JRadioButton jrb = (JRadioButton)ie.getItem();
+//				if (jrb.isSelected()) {
+//					for (int i = 0; i<sampleData.getNumClasses(); i++) {
+//						if (jrb.getText().equals(sampleData.getClassName(i))) {
+//							currentClass = i;
+////							scatPanel.setPointsGenerated(true);//zx Why should be false?
+//							scatPanel.setPointsGeneratable(true);//zx
+//							scatPanel.setQcPanelUpdatable(true);//zx
+//							updateGUI();
+//						}
+//					}
+//				}
+//			}
+//		};
+//		ButtonGroup classRadio = new ButtonGroup();
+//		classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
+//		for (int i = 0; i<sampleData.getNumClasses(); i++) {
+//			classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
+//			classRadioButtons[i].setFont(new Font("Arial", 0, 14));
+//			classRadio.add(classRadioButtons[i]);
+//			classRadioButtons[i].addItemListener(classListener);
+//			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
+//			classPanel.add(classRadioButtons[i]);
 //		}
-//		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
-//		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
-//		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
-//		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
-		
-		bottomPanel.add(legendPanel);
-		classRadioButtons[1].setSelected(true);
-
-		return bottomPanel;
-	}
+//		classPanel.setBackground(BACKGROUND_COLOR);
+//		bottomPanel.add(classPanel);
+//		
+//		legendPanel = new JPanel();
+//        legendPanel.setBackground(BACKGROUND_COLOR);
+//
+//        //JLabel legend1 = new JLabel("Color Key: ");
+//		//legend1.setFont(new Font("Arial", 0, 14));
+//		//legendPanel.add(legend1);
+//		
+////		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
+////			legendPanel.add(new JLabel(new ColorIcon(12,12,ScatterPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
+////			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
+////		}
+////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
+////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
+////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
+////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
+//		
+//		bottomPanel.add(legendPanel);
+//		classRadioButtons[1].setSelected(true);
+//
+//		return bottomPanel;
+//	}
 
 	private JComponent clusterFilterPanel() {
 		JPanel clusterFilterPanel = new JPanel();
@@ -994,8 +995,12 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return markerList[markerIndex];
 	}
 
+//	public void setCurrentClass(byte newCurrentClass) {
+//		currentClass = newCurrentClass;
+//	}
+
 	public int getCurrentClass() {
-		return currentClass;
+		return colorKeyPanel.getCurrentClass();
 	}
 
 	public int getPlotType() {
@@ -1013,7 +1018,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	public boolean[] getDisplayCents() {
 		return displayCents;
 	}
-	
+
 	public ClusterFilterCollection getClusterFilterCollection() {
 		return clusterFilterCollection;
 	}
@@ -1262,8 +1267,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void updateGUI() {
-		System.out.println("updating");
-		
 		if (markerDataLoader == null) {
 			return;
 		}
@@ -1316,78 +1319,83 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void updateColorKey(Hashtable<String,String> hash) {
-		JLabel label, block;
-		String[][] colorKeys;
-		String[] keys;
-		legendPanel.removeAll();
-		legendPanel.repaint();
-		//JLabel legend = new JLabel("Color Key: ");
-		//legend.setFont(new Font("Arial", 0, 14));
-		//legendPanel.add(legend);
-		
-		//legendPanel.removeAll();
-		//legendPanel.repaint();
-		label = new JLabel("Color key:");
-		label.setFont(new Font("Arial", 0, 14));
-		legendPanel.add(label);
-		if (currentClass < SampleData.BASIC_CLASSES.length) {
-			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
-		} else {		
-			colorKeys = sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length);
-		}
-		for (int i = 0; i<colorKeys.length; i++) {
-			block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(colorKeys[i][0])]));
-			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
-			hash.remove(colorKeys[i][0]);
-			label.setFont(new Font("Arial", 0, 14));
-			legendPanel.add(block);
-			legendPanel.add(label);
-		}
-		keys = HashVec.getKeys(hash);
-		for (int i = 0; i<keys.length; i++) {
-			if (!keys[i].equals("-1")) {
-				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
-				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
-				label.setFont(new Font("Arial", 0, 14));
-				legendPanel.add(block);
-				legendPanel.add(label);
-			}
-		}
-
-		
-/**		
-		//colorKeys = sampleData.getActualClassColorKey(currentClass);
-		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-			legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
-			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
-			hash.remove(arg0)
-		}
-//		for (int i = 0; i<colorKeys.length; i++) {
-//			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
-//		}
-		/*
-		keys = HashVec.getKeys(hash);
-		for (int i = 0; i<keys.length; i++) {
-			if (!keys[i].equals("-1")) {
-				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
-				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
-				label.setFont(new Font("Arial", 0, 14));
-				legendPanel.add(block);
-				legendPanel.add(label);
-			}
-		}
-		*/
-//*/
-
-		legendPanel.validate();
-		
-		/*
-		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
-		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
-		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
-		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
-		*/
+		colorKeyPanel.updateColorKey(hash);
 	}
+
+
+//	public void updateColorKey(Hashtable<String,String> hash) {
+//		JLabel label, block;
+//		String[][] colorKeys;
+//		String[] keys;
+//		legendPanel.removeAll();
+//		legendPanel.repaint();
+//		//JLabel legend = new JLabel("Color Key: ");
+//		//legend.setFont(new Font("Arial", 0, 14));
+//		//legendPanel.add(legend);
+//		
+//		//legendPanel.removeAll();
+//		//legendPanel.repaint();
+//		label = new JLabel("Color key:");
+//		label.setFont(new Font("Arial", 0, 14));
+//		legendPanel.add(label);
+//		if (currentClass < SampleData.BASIC_CLASSES.length) {
+//			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
+//		} else {		
+//			colorKeys = sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length);
+//		}
+//		for (int i = 0; i<colorKeys.length; i++) {
+//			block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(colorKeys[i][0])]));
+//			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
+//			hash.remove(colorKeys[i][0]);
+//			label.setFont(new Font("Arial", 0, 14));
+//			legendPanel.add(block);
+//			legendPanel.add(label);
+//		}
+//		keys = HashVec.getKeys(hash);
+//		for (int i = 0; i<keys.length; i++) {
+//			if (!keys[i].equals("-1")) {
+//				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
+//				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
+//				label.setFont(new Font("Arial", 0, 14));
+//				legendPanel.add(block);
+//				legendPanel.add(label);
+//			}
+//		}
+//
+//		
+///**		
+//		//colorKeys = sampleData.getActualClassColorKey(currentClass);
+//		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
+//			legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
+//			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
+//			hash.remove(arg0)
+//		}
+////		for (int i = 0; i<colorKeys.length; i++) {
+////			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
+////		}
+//		/*
+//		keys = HashVec.getKeys(hash);
+//		for (int i = 0; i<keys.length; i++) {
+//			if (!keys[i].equals("-1")) {
+//				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
+//				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
+//				label.setFont(new Font("Arial", 0, 14));
+//				legendPanel.add(block);
+//				legendPanel.add(label);
+//			}
+//		}
+//		*/
+////*/
+//
+//		legendPanel.validate();
+//		
+//		/*
+//		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
+//		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
+//		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
+//		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
+//		*/
+//	}
 
 
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass) {
@@ -1400,6 +1408,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		//int[][] sexContingecyTable = new int[2][2];
 		CTable classCount;
 		String[] called;
+		int currentClass;
 		
 		alleleCounts = new int[3];
 		called = new String[genotype.length];
@@ -1476,7 +1485,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
         qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
 		qcPanel.add(qcPanelLabel);//zx
 
-
+		currentClass = getCurrentClass();
 		if (currentClass>=(SampleData.BASIC_CLASSES.length+1)) {
 			classCount = new CTable(called, otherClass);//This is the problem.
 			classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));

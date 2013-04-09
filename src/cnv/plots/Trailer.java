@@ -503,7 +503,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		previousChr.setActionMap(actionMap);
 
 		sample = selectedSample==null?samplesPresent[0]:selectedSample;
-		sampleData = proj.getSampleData(cnvFilenames);
+		sampleData = proj.getSampleData(2, cnvFilenames);
 		if (sampleData.failedToLoad()) {
 			return;
 		}

@@ -341,11 +341,11 @@ public class Project extends Properties {
 		sampleData = null;
 	}
 
-	public SampleData getSampleData(boolean loadCNVs) {
-		return getSampleData(loadCNVs?getFilenames(Project.CNV_FILENAMES):null);
+	public SampleData getSampleData(int numberOfBasicClassesToLoad, boolean loadCNVs) {
+		return getSampleData(numberOfBasicClassesToLoad, loadCNVs?getFilenames(Project.CNV_FILENAMES):null);
 	}
 
-	public SampleData getSampleData(String[] cnvFilenames) {
+	public SampleData getSampleData(int numberOfBasicClassesToLoad, String[] cnvFilenames) {
 		if (cnvFilenames != null) {
 			for (int i = 0; i < cnvFilenames.length; i++) {
 				if (!cnvFilesLoadedInSampleData.containsKey(cnvFilenames[i])) {
@@ -355,7 +355,7 @@ public class Project extends Properties {
 		}
 		
 		if (sampleData == null) {
-			sampleData = new SampleData(this, cnvFilenames);
+			sampleData = new SampleData(this, numberOfBasicClassesToLoad, cnvFilenames);
 //			System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv files":Array.toStr(cnvFilenames, "/")));
 			cnvFilesLoadedInSampleData = HashVec.loadFileToHashNull(cnvFilenames);
 		}

@@ -5,6 +5,7 @@ import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -15,6 +16,7 @@ import cnv.gui.ColorIcon;
 import cnv.gui.CycleRadio;
 import common.*;
 import cnv.var.*;
+import filesys.Segment;
 
 public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener, TreeExpansionListener {
 	public static final long serialVersionUID = 1L;
@@ -51,18 +53,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static int POS_INDEX_IN_LINKERS = 6;
 	public static int STOP_POS_INDEX_IN_LINKERS = 7;
 
-	private JPanel classPanel;
-	private JPanel legendPanel;
-//	private JPanel bottomPanel;
+	//	private JPanel bottomPanel;
 	private TwoDPanel twoDPanel;
 	private JLayeredPane layeredPane;
+	private ColorKeyPanel colorKeyPanel;
 
 	private Project proj;
 //	private int currentClass;
 //	private int plot_type;
 	private byte size;
 	private boolean jar;
-//	private SampleData sampleData;
+	private SampleData sampleData;
 //	private boolean maskMissing;
 //	private JRadioButton[] typeRadioButtons;
 //	private JRadioButton[] classRadioButtons;
@@ -77,6 +78,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	Hashtable<String, boolean[]> numericHash;
 	String[][] treeFileVariableNameLookup;
 	Hashtable<String, int[]> keyIndices;
+//	Vector<String> colorKeyVariables;
+//	String[][] colorKeyUniqueValues;
 	Logger log;
 	
 	public TwoDPlot() {
@@ -92,6 +95,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		jar = proj.getJarStatus();
 		size = DEFAULT_SIZE;
 //		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
+
+		sampleData = proj.getSampleData(1, true);
 		
 		treeFilenameLookup = new Vector<String>();
 		//TODO Need to save the previously loaded files in other location.
@@ -100,6 +105,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		dataHash = new Hashtable<String, Vector<String[]>>();
 		namesHash = new Hashtable<String, String[]>();
 		numericHash = new Hashtable<String, boolean[]>();
+//		colorKeyVariables = new Vector<String>();
 		keyIndices = new Hashtable<String, int[]>();
 		for (int i = 0; i < previouslyLoadedFiles.length; i++) {
 			loadFile(previouslyLoadedFiles[i]);
@@ -154,29 +160,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         }
 		treePanel.add(buttonPanel, BorderLayout.NORTH);
 
-		//TODO the problem here was how to initialize the variable tree here. But it turned out that it is not necessarily, because updateTree() already does it.
 		initializeTree();
 		updateTree();
-//		tree = new CheckBoxTree();
-//		initializeTree();
-//		tree = new CheckBoxTree(namesHash.toArray(), 2);
-
-//		String[] keys = HashVec.getKeys(namesHash);
-//		byte len = 0;
-//		for (int i=0; i<keys.length; i++) {
-//			len += namesHash.get(keys[i]).length;
-//		}
-//		String[][] tmp = new String[len][2];
-//		len = 0;
-//		for (int i=0; i<keys.length; i++) {
-//			for (int j=0; j<namesHash.get(keys[i]).length; j++) {
-//				tmp[len][0]=keys[i];
-//				tmp[len][1]=namesHash.get(keys[i])[j];
-//				len ++;
-//			}
-//		}
-//		tree = new CheckBoxTree(tmp, 2);
-
 
 		treePanel.add(new JScrollPane(tree), BorderLayout.CENTER);
 		tree.addTreeSelectionListener(this);
@@ -198,7 +183,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		add(twoDPanel, BorderLayout.CENTER);
 //		add(layeredPane, BorderLayout.CENTER);
 		
-		add(colorLegendPanel(), BorderLayout.SOUTH);
+		colorKeyPanel = new ColorKeyPanel(proj.getSampleData(1, true), twoDPanel);
+		add(colorKeyPanel, BorderLayout.SOUTH);
 
 		inputMapAndActionMap();
 
@@ -235,66 +221,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		flipButton.repaint();
 		invXButton.repaint();
 		invYButton.repaint();
-	}
-
-	private JComponent colorLegendPanel() {
-		JPanel bottomPanel = new JPanel();
-//		bottomPanel.setLayout(new GridLayout(2, 1));
-//        //bottomPanel.setBackground(BACKGROUND_COLOR);
-//		classPanel = new JPanel();
-//		JLabel label = new JLabel("Color code by:");
-//		label.setFont(new Font("Arial", 0, 14));
-//		classPanel.add(label);
-//
-//		ItemListener classListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-//				JRadioButton jrb = (JRadioButton)ie.getItem();
-//				if (jrb.isSelected()) {
-//					for (int i = 0; i<sampleData.getNumClasses(); i++) {
-//						if (jrb.getText().equals(sampleData.getClassName(i))) {
-//							currentClass = i;
-////							scatPanel.setPointsGenerated(true);//zx Why should be false?
-//							twoDPanel.setPointsGeneratable(true);//zx
-//							twoDPanel.setUpdateQcPanel(true);//zx
-//							updateGUI();
-//						}
-//					}
-//				}
-//			}
-//		};
-//		ButtonGroup classRadio = new ButtonGroup();
-//		classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
-//		for (int i = 0; i<sampleData.getNumClasses(); i++) {
-//			classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
-//			classRadioButtons[i].setFont(new Font("Arial", 0, 14));
-//			classRadio.add(classRadioButtons[i]);
-//			classRadioButtons[i].addItemListener(classListener);
-//			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
-//			classPanel.add(classRadioButtons[i]);
-//		}
-//		classPanel.setBackground(BACKGROUND_COLOR);
-//		bottomPanel.add(classPanel);
-//		
-//		legendPanel = new JPanel();
-//        legendPanel.setBackground(BACKGROUND_COLOR);
-//
-//        //JLabel legend1 = new JLabel("Color Key: ");
-//		//legend1.setFont(new Font("Arial", 0, 14));
-//		//legendPanel.add(legend1);
-//		
-//		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-//			legendPanel.add(new JLabel(new ColorIcon(12,12,twoDPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
-//			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
-//		}
-////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
-////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
-////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
-////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
-//		
-//		bottomPanel.add(legendPanel);
-//		classRadioButtons[1].setSelected(true);
-
-		return bottomPanel;
 	}
 
 	private void generateFlipButton() {
@@ -508,11 +434,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //			System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
 //			System.out.println("\n==== End =====\n");
 		} else if (command.equals(SET_AS_COLORKEY)) {
-			// TODO.
+//			colorKeyVariables.add(tree.getSelectedPathComponentName());
+//			colorKeyVariables.add(getNamesSelected()[0]);
 		} else if (command.equals(SET_AS_LINKKEY)) {
-			// TODO.
-//			tree.getSelectionPath();
-			int[] tmp1 = tree.getSelectionRows();
+			tree.getSelectionRows();
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
@@ -573,6 +498,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return proj;
 	}
 
+//	public int[] getCurrentDataLabels() {
+//		int currentClass = colorKeyPanel.getCurrentClass();
+//		int currentDataLabels;
+//
+//		currentDataLabels = new int[currentData.length];
+//		for (int i=0; )
+//	}
+
 
 
 //	public float[][] getDataSelected() {
@@ -595,7 +528,67 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	}
 
 
+
+//	public float[][] getDataSelected() {
+//		float[][] result;
+//		String[][] selectedNodes;
+//		Vector<String[]> dataOfSelectedFile;
+//		Hashtable<String, String> xHash, yHash;
+//		String[] line;
+//		int selectedColumn;
+//		String[] keys;
+//		Vector<String[]> v;
+//
+//		selectedNodes = tree.getSelectionValues();
+//		if (selectedNodes[0][0] == null || selectedNodes[1][0] == null) {
+//			result = new float[0][0];
+////			result = null;
+//		} else {
+//			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
+//			dataOfSelectedFile = dataHash.get(selectedNodes[0][0]);
+//			if (keyIndices.get(selectedNodes[0][0]) == null) {
+//				System.out.println("Please set link key for the file '" + selectedNodes[0][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
+//				return new float[0][0];
+//			}
+//			xHash = new Hashtable<String, String>();
+//			for (int i=0; i<dataOfSelectedFile.size(); i++) {
+//				line = dataOfSelectedFile.elementAt(i);
+//				xHash.put(line[keyIndices.get(selectedNodes[0][0])[0]], line[selectedColumn]);
+//			}
+//
+//			selectedColumn = Integer.parseInt(selectedNodes[1][1]);
+//			dataOfSelectedFile = dataHash.get(selectedNodes[1][0]);
+//			if (keyIndices.get(selectedNodes[1][0]) == null) {
+//				System.out.println("Please set link key for the file '" + selectedNodes[1][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
+//				return new float[0][0];
+//			}
+//			yHash = new Hashtable<String, String>();
+//			for (int i=0; i<dataOfSelectedFile.size(); i++) {
+//				line = dataOfSelectedFile.elementAt(i);
+//				yHash.put(line[keyIndices.get(selectedNodes[1][0])[0]], line[selectedColumn]);
+//			}
+//
+//			keys = HashVec.getKeys(xHash, false, false);
+//			v = new Vector<String[]>();
+//			for (int i=0; i<keys.length; i++) {
+//				if (yHash.containsKey(keys[i])) {
+//					v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i])});
+//				}
+//			}
+//			result = new float[v.size()][2];
+//			for (int i=0; i<result.length; i++) {
+//				result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+//				result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+//			}
+//		}
+//		return result;
+//	}
+
 	public float[][] getDataSelected() {
+		return getDataSelected(false);
+	}
+
+	public float[][] getDataSelected(boolean includeColorKeyValue) {
 		float[][] result;
 		String[][] selectedNodes;
 		Vector<String[]> dataOfSelectedFile;
@@ -604,6 +597,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		int selectedColumn;
 		String[] keys;
 		Vector<String[]> v;
+		int currentClass;
+		String[] ids;
+		byte colorCode;
 
 		selectedNodes = tree.getSelectionValues();
 		if (selectedNodes[0][0] == null || selectedNodes[1][0] == null) {
@@ -612,6 +608,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		} else {
 			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
 			dataOfSelectedFile = dataHash.get(selectedNodes[0][0]);
+			currentClass = colorKeyPanel.getCurrentClass();
 			if (keyIndices.get(selectedNodes[0][0]) == null) {
 				System.out.println("Please set link key for the file '" + selectedNodes[0][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
 				return new float[0][0];
@@ -636,19 +633,41 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			keys = HashVec.getKeys(xHash, false, false);
 			v = new Vector<String[]>();
-			for (int i=0; i<keys.length; i++) {
-				if (yHash.containsKey(keys[i])) {
-					v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i])});
+			if (includeColorKeyValue) {
+				for (int i=0; i<keys.length; i++) {
+					if (yHash.containsKey(keys[i])) {
+							ids = sampleData.lookup(keys[i]);
+							if (ids == null) {
+								colorCode = 0;
+							} else {
+								colorCode = sampleData.determineCodeFromClass(currentClass, (byte)0, sampleData.getIndiFromSampleHash(ids[0]), (byte)0, 0);
+							}
+							v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i]), colorCode + ""});
+					}
 				}
-			}
-			result = new float[v.size()][2];
-			for (int i=0; i<result.length; i++) {
-				result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
-				result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+				result = new float[v.size()][3];
+				for (int i=0; i<result.length; i++) {
+					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+					result[i][2] = Integer.parseInt(v.elementAt(i)[3]);
+				}
+
+			} else {
+				for (int i=0; i<keys.length; i++) {
+					if (yHash.containsKey(keys[i])) {
+						v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i])});
+					}
+				}
+				result = new float[v.size()][2];
+				for (int i=0; i<result.length; i++) {
+					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+				}
 			}
 		}
 		return result;
 	}
+
 
 	//	public int[][] getCurrentPair() {
 //		if (tree.getSelectionIndices()[0][0]<0 || tree.getSelectionIndices()[0][1]<0 || tree.getSelectionIndices()[1][0]<0 || tree.getSelectionIndices()[1][1]<0) {
@@ -706,48 +725,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void updateColorKey(Hashtable<String,String> hash) {
-//		JLabel label, block;
-//		String[][] colorKeys;
-//		String[] keys;
-//		legendPanel.removeAll();
-//		legendPanel.repaint();
-//		//JLabel legend = new JLabel("Color Key: ");
-//		//legend.setFont(new Font("Arial", 0, 14));
-//		//legendPanel.add(legend);
-//		
-//		//legendPanel.removeAll();
-//		//legendPanel.repaint();
-//		label = new JLabel("Color key:");
-//		label.setFont(new Font("Arial", 0, 14));
-//		legendPanel.add(label);
-//		if (currentClass < SampleData.BASIC_CLASSES.length) {
-//			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
-//		} else {		
-////			colorKeys = sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length);
-//			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
-//		}
-//		for (int i = 0; i<colorKeys.length; i++) {
-//			block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(colorKeys[i][0])]));
-//			label = new JLabel(colorKeys[i][1]+" (n="+(hash.containsKey(colorKeys[i][0])?hash.get(colorKeys[i][0]):"0")+")");
-//			hash.remove(colorKeys[i][0]);
-//			label.setFont(new Font("Arial", 0, 14));
-//			legendPanel.add(block);
-//			legendPanel.add(label);
-//		}
-//		keys = HashVec.getKeys(hash);
-//		for (int i = 0; i<keys.length; i++) {
-//			if (!keys[i].equals("-1")) {
-//				block = new JLabel(new ColorIcon(12, 12, ScatterPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
-//				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+hash.get(keys[i])+")");
-//				label.setFont(new Font("Arial", 0, 14));
-//				legendPanel.add(block);
-//				legendPanel.add(label);
-//			}
-//		}
-//
-//		legendPanel.validate();
+		colorKeyPanel.updateColorKey(hash);
 	}
-
 
 
 //	public void displayIndex(JTextField field) {
@@ -791,7 +770,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public void loadFile(String filename) {
 		BufferedReader reader;
 		String[] line;
-		boolean found = false;
 		String readBuffer;
 		int[] linkKeyIndices;
 

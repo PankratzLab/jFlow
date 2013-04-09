@@ -39,7 +39,7 @@ public class SexChecks {
 		time = new Date().getTime();
 
 		markerSet = proj.getMarkerSet();
-		sampleData = proj.getSampleData(false);
+		sampleData = proj.getSampleData(2, false);
 
 		System.out.println("Took "+ext.getTimeElapsed(time)+" to hash samples");
 		time = new Date().getTime();
@@ -64,7 +64,7 @@ public class SexChecks {
         SampleData sampleData;
         int[] sexes;
         
-        sampleData = proj.getSampleData(false);
+        sampleData = proj.getSampleData(2, false);
         samples = proj.getSamples();
         sexes = new int[samples.length];
         for (int i = 0; i < samples.length; i++) {

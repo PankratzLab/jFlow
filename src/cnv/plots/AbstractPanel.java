@@ -742,7 +742,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 			size = SIZE * 2;
 			xFontSize = (byte)(size*2);
-			g.setColor(Color.RED);
+			g.setColor(Color.GRAY);
 			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
 				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[dataPointIndex].getRawX()), getY(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {

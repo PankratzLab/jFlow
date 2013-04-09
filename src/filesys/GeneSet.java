@@ -6,8 +6,10 @@ import common.*;
 
 public class GeneSet implements Serializable {
 	public static final long serialVersionUID = 1L;
-	public static final String DIRECTORY = "/home/npankrat/NCBI/";
-	public static final String REFSEQ_FILE = "refGene.txt";
+//	public static final String DIRECTORY = "/home/npankrat/NCBI/";
+	public static final String DIRECTORY = "N:/statgen/NCBI/";
+//	public static final String REFSEQ_FILE = "refGene.txt";
+	public static final String REFSEQ_FILE = "refGene_hg19.txt";
 	public static final String REFSEQ_DB = "RefSeq.genes";
 	public static final String REFSEQ_TRACK = "RefSeq.gtrack";
 	public static final String REFSEQ_SEGS = "RefSeq_2k.segs";

@@ -139,7 +139,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			markerLookup = proj.getMarkerLookup();
 			System.out.println("Marker data is available for this project");
 			if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
-				sampleData = proj.getSampleData(false);
+				sampleData = proj.getSampleData(1, false);
 				System.out.println("Sample lookup is available for this project");
 			}
 		}
@@ -183,15 +183,37 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	}
 
 	public void generatePoints() {
-		float[][] currentData = tdp.getDataSelected();
+		float[][] currentData;
+		CountVector uniqueValueCounts;
+		byte type;
+//		String[] twoDPlot.get
+
+		currentData= tdp.getDataSelected(true);
+		uniqueValueCounts = new CountVector();
+//		sampleData.getClass();
+
 		points = new PlotPoint[currentData.length];
 		for (int i = 0; i < points.length; i++) {
-			if (swapAxes) {
-				points[i] = new PlotPoint(i+"", PlotPoint.FILLED_CIRCLE, currentData[i][1], currentData[i][0], (byte)5, (byte)0, (byte)0);
+			if (Float.isNaN(currentData[i][0]) || Float.isNaN(currentData[i][1])) {
+				type = PlotPoint.NOT_A_NUMBER;
+				uniqueValueCounts.add("0");
+//			} else if (alleleCounts[i]==-1) {
+//				type = PlotPoint.MISSING;
+//				uniqueValueCounts.add("0");
 			} else {
-				points[i] = new PlotPoint(i+"", PlotPoint.FILLED_CIRCLE, currentData[i][0], currentData[i][1], (byte)5, (byte)0, (byte)0);
+				type = PlotPoint.FILLED_CIRCLE;
+				uniqueValueCounts.add((byte)currentData[i][2] + "");
 			}
+
+			if (swapAxes) {
+				points[i] = new PlotPoint(i+"", type, currentData[i][1], currentData[i][0], (byte)5, (byte)currentData[i][2], (byte)0);
+			} else {
+				points[i] = new PlotPoint(i+"", type, currentData[i][0], currentData[i][1], (byte)5, (byte)currentData[i][2], (byte)0);
+			}
+
 		}
+		
+		tdp.updateColorKey(uniqueValueCounts.convertToHash());
 	}
 
 //	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {

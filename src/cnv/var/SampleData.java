@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 
 import common.*;
 import cnv.filesys.*;
+import filesys.Segment;
 
 public class SampleData {
 	public static final String[] BASIC_CLASSES = {"All", "Genotype"};
@@ -14,6 +15,7 @@ public class SampleData {
 	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 
+	public String[] basicClasses;
 	private String[] filters;
 	private String[] covars;
 	private String[] classes;
@@ -28,7 +30,7 @@ public class SampleData {
 	private int sexClassIndex;
 	private int excludeClassIndex;
 	
-	public SampleData(Project proj, String[] cnvFilesnames) {
+	public SampleData(Project proj, int numberOfBasicClassesToUse, String[] cnvFilesnames) {
 		BufferedReader reader;
 		String[] line, header;
 		IntVector filterIs = new IntVector();
@@ -47,6 +49,15 @@ public class SampleData {
 		failedToLoad = true;
 		if (cnvFilesnames == null) {
 			cnvFilesnames = new String[0];
+		}
+		
+		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
+			System.err.println("Error - selected number of basic classes to use exceeds the number defined");
+			numberOfBasicClassesToUse = BASIC_CLASSES.length;
+		}
+		basicClasses = new String[numberOfBasicClassesToUse];
+		for (int i = 0; i < basicClasses.length; i++) {
+			basicClasses[i] = BASIC_CLASSES[i];
 		}
 		
 		try {
@@ -301,11 +312,29 @@ public class SampleData {
 	}
 
 	public String[] getClasses() {
-		if (classes == null) {
-			return new String[0];
+		return getClasses(false);
+	}
+
+	public String[] getClasses(boolean includeBasicClasses) {
+		String[] result;
+
+		if (!includeBasicClasses && classes == null) {
+			result = new String[0];
+		} else if (!includeBasicClasses && classes != null) {
+			result = classes;
+		} else if (includeBasicClasses && classes == null) {
+			result = basicClasses;
 		} else {
-			return classes;
+			result = new String[basicClasses.length + classes.length];
+			for (int i = 0; i < basicClasses.length; i ++) {
+				result[i] = basicClasses[i];
+			}
+			for (int i = 0; i < classes.length; i ++) {
+				result[i + basicClasses.length] = classes[i];
+			}
 		}
+
+		return result;
 	}
 
 	public String[] getCnvClasses() {
@@ -346,7 +375,7 @@ public class SampleData {
 	}
 	
 	public int getNumClasses() {
-		return BASIC_CLASSES.length+classes.length+cnvClasses.length;
+		return basicClasses.length+classes.length+cnvClasses.length;
 	}
 
 	public int getNumActualClasses() {
@@ -359,15 +388,15 @@ public class SampleData {
 	public int[] getClassCategoryAndIndex(int index) {
 		int[] indices = new int[2];
 
-		if (index<BASIC_CLASSES.length) {
+		if (index<basicClasses.length) {
 			indices[0] = 0;
 			indices[1] = index;
-		} else if (index<BASIC_CLASSES.length+classes.length) {
+		} else if (index<basicClasses.length+classes.length) {
 			indices[0] = 1;
-			indices[1] = index-BASIC_CLASSES.length;
-		} else if (index<BASIC_CLASSES.length+classes.length+cnvClasses.length) {
+			indices[1] = index-basicClasses.length;
+		} else if (index<basicClasses.length+classes.length+cnvClasses.length) {
 			indices[0] = 2;
-			indices[1] = index-BASIC_CLASSES.length-classes.length;
+			indices[1] = index-basicClasses.length-classes.length;
 		} else {
 			System.err.println("Error - invalid class index");
 		}
@@ -380,7 +409,7 @@ public class SampleData {
 		
 		switch (indices[0]) {
 		case 0:
-			return BASIC_CLASSES[indices[1]];
+			return basicClasses[indices[1]];
 		case 1:
 			return classes[indices[1]];
 		case 2:
@@ -396,5 +425,46 @@ public class SampleData {
 
 	public String[][] getActualClassColorKey(int index) {
 		return classColorKeys[index];
+	}
+	
+	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
+		int[] classes, indices;
+		CNVariant[] segs;
+		int index;
+		
+		indices = getClassCategoryAndIndex(currentClass);
+		switch (indices[0]) {
+        case 0:
+			if (basicClasses[indices[1]].equals("All")) {
+				return 0;
+			} else if (basicClasses[indices[1]].equals("Genotype")) {
+				return (byte)(alleleCount+1);
+			} else {
+				return 0;
+			}
+        case 1:
+    		classes = indi.getClasses();
+			if (classes[indices[1]] == Integer.MIN_VALUE) {
+				return -1;
+			} else {
+				return (byte)classes[indices[1]];
+			}
+        case 2:
+			segs = indi.getCNVs(indices[1], chr);
+			if (segs == null) {
+				return 0;
+			} else {
+				index = Segment.binarySearchForOverlap(new Segment((byte)-1, position, position), segs); 
+				if (index == -1) {
+					return 0;
+				} else {
+					return (byte)(segs[index].getChr()+1);
+				}
+			}
+        default:
+        	System.err.println("Error - invalid class index");
+        	return 0;
+        }
 	}	
+	
 }

@@ -90,8 +90,8 @@ public class CompPlot extends JFrame {
 		}
 
 		// Get the GeneTrack
-		String geneTrackFile = proj.getFilename(Project.GENETRACK_FILENAME);
-		if (new File(geneTrackFile).exists()) {
+		String geneTrackFile = proj.getFilename(Project.GENETRACK_FILENAME, false, false);
+		if (geneTrackFile != null && !geneTrackFile.endsWith("/") && new File(geneTrackFile).exists()) {
 			track = GeneTrack.load(geneTrackFile, false);
 		} else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
 			track = GeneTrack.load(GeneSet.REFSEQ_TRACK, false);

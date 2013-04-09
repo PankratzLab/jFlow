@@ -69,7 +69,7 @@ public class PennCNV {
 		int err;
 		double lrrSD_cutoff;
 		
-		sampleData = proj.getSampleData(false);
+		sampleData = proj.getSampleData(2, false);
 		lrrSD_cutoff = proj.getDouble(Project.LRRSD_CUTOFF);
 				
 		try {
@@ -160,7 +160,7 @@ public class PennCNV {
 		String famIndPair;
 		Hashtable<String,String> hash;
 
-		sampleData = proj.getSampleData(false);
+		sampleData = proj.getSampleData(2, false);
 		try {
 			reader = new BufferedReader(new FileReader(proj.getProjectDir()+filename));
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.rootOf(filename)+".cnv"));

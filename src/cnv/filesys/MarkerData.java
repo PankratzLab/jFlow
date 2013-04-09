@@ -207,7 +207,7 @@ public class MarkerData implements Serializable {
 		
 	}
 	
-	public byte[] getAB_GenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, String markerName, float gcThreshold) {
+	public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, String markerName, float gcThreshold) {
 		byte[] result, original;
 		float[] realX;
 		float[] realY;
