@@ -3,7 +3,6 @@ package common;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-
 import stats.ProbDist;
 
 public class Array {
@@ -332,7 +331,7 @@ public class Array {
 	 * 
 	 * @param array
 	 *            array of floats to be converted
-	 * @return array of the converted doubles
+	 * @return array of the converted numbers
 	 */
 	public static double[] toDoubleArray(byte[] array) {
 		double[] arr = new double[array.length];
@@ -373,6 +372,25 @@ public class Array {
 		double[] arr = new double[array.length];
 		for (int i = 0; i<array.length; i++) {
 			arr[i] = array[i];
+		}
+		return arr;
+	}
+
+	/**
+	 * Creates an array of floats from the contents of a double array
+	 * 
+	 * @param array
+	 *            array of doubles to be converted
+	 * @return array of the converted numbers
+	 */
+	public static float[] toFloatArray(double[] array) {
+		float[] arr = new float[array.length];
+		for (int i = 0; i<array.length; i++) {
+			try {
+				arr[i] = (float)array[i];
+			} catch (NumberFormatException nfe) {
+				System.err.println("Error - failed to convert '"+array[i]+"' into a double");
+			}
 		}
 		return arr;
 	}
@@ -663,6 +681,24 @@ public class Array {
 	 */
 	public static int sum(int[] array) {
 		int sum = 0;
+
+		for (int i = 0; i<array.length; i++) {
+			sum += array[i];
+		}
+
+		return sum;
+	}
+
+
+	/**
+	 * Calculates the sum of an array
+	 * 
+	 * @param array
+	 *            an array of long
+	 * @return sum of the array
+	 */
+	public static long sum(long[] array) {
+		long sum = 0;
 
 		for (int i = 0; i<array.length; i++) {
 			sum += array[i];
@@ -968,6 +1004,26 @@ public class Array {
 	}
 	
 	/**
+	 * Returns the quantiles of an array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return array of quantiles
+	 */
+	public static double[] quantiles(double[] array) {
+		double[] quantiles;
+		int[] order;
+		
+		order = Sort.quicksort(array);
+		quantiles = new double[array.length];
+		for (int i = 0; i<quantiles.length; i++) {
+			quantiles[order[i]] = ((double)i+1)/((double)quantiles.length+1);
+		}
+
+		return quantiles;
+	}
+	
+	/**
 	 * Inverse-normalizes an array of numbers
 	 * 
 	 * @param array
@@ -975,25 +1031,46 @@ public class Array {
 	 * @return array of inverse-normalized values
 	 */
 	public static double[] inverseNormalize(double[] array) {
-		double[] probits = new double[array.length];
-		double rankDiv;
-		int[] order;
+		double[] probits, quantiles;
 		
-		order = Sort.quicksort(array);
-
+		quantiles = quantiles(array);
+		probits = new double[array.length];
 		for (int i = 0; i<probits.length; i++) {
-			rankDiv = ((double)i+1)/((double)probits.length+1);
-			if (rankDiv<0.5) {
-				probits[order[i]] = ProbDist.NormDistReverse(rankDiv*2)*-1;
+			if (quantiles[i]<0.5) {
+				probits[i] = ProbDist.NormDistReverse(quantiles[i]*2)*-1;
 			} else {
-				rankDiv = 1-rankDiv;
-				probits[order[i]] = ProbDist.NormDistReverse(rankDiv*2)*1;
+				quantiles[i] = 1-quantiles[i];
+				probits[i] = ProbDist.NormDistReverse(quantiles[i]*2)*1;
 			}
 		}
 
 		return probits;
 	}
 	
+	/**
+	 * Inverse-normalizes an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return array of inverse-normalized values
+	 */
+	public static double[] inverseTdist(double[] array, int df) {
+		double[] newValues, quantiles;
+		
+		quantiles = quantiles(array);
+		newValues = new double[array.length];
+		for (int i = 0; i<newValues.length; i++) {
+			if (quantiles[i]<0.5) {
+				newValues[i] = ProbDist.TDistReverse(quantiles[i]*2, df)*-1;
+			} else {
+				quantiles[i] = 1-quantiles[i];
+				newValues[i] = ProbDist.TDistReverse(quantiles[i]*2, df)*1;
+			}
+		}
+
+		return newValues;
+	}
+
 	/**
 	 * Returns the bootstrapped median of an array
 	 * 
@@ -1062,6 +1139,37 @@ public class Array {
 					return array[keys[(int)index-1]];
 				} else {
 					return q*array[keys[(int)Math.floor(index)-1]]+(1-q)*array[keys[(int)Math.ceil(index)-1]];
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1234567890;
+		}
+	}
+
+	/**
+	 * Determines the specified quantile of an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param q
+	 *            quantile to be determined
+	 * @return specified quantile of the array
+	 */
+	public static int quantWithExtremeForTie(int[] array, double q) {
+		int keys[] = Sort.quicksort(array);
+
+		try {
+			if (q>1||q<0) {
+				return (0);
+			} else {
+				double index = (array.length+1)*q;
+				if (index-(int)index==0) {
+					return array[keys[(int)index-1]];
+				} else if (q < 0.5) {
+					return array[keys[(int)Math.floor(index)-1]];
+				} else {
+					return array[keys[(int)Math.ceil(index)-1]];
 				}
 			}
 		} catch (Exception e) {
@@ -1386,7 +1494,25 @@ public class Array {
 	}
 
 	/**
-	 * Creates an array of Strings and copies the contents of an array of longs
+	 * Creates an array of Strings and copies the contents of an array of int
+	 * 
+	 * @param array
+	 *            array of int
+	 * @return an array of the converted Strings
+	 */
+	public static String[] toStringArray(int[] array) {
+		String[] new_array;
+		
+		new_array = new String[array.length];
+		for (int i = 0; i < array.length; i++) {
+			new_array[i] = array[i]+"";
+		}
+		
+		return new_array;
+	}
+
+	/**
+	 * Creates an array of Strings and copies the contents of an array of long
 	 * 
 	 * @param array
 	 *            array of long
@@ -1632,12 +1758,32 @@ public class Array {
 	 * returns either the index or -1 if not found
 	 * 
 	 * @param array
-	 *            an array of integers
+	 *            an array of int
 	 * @param target
 	 *            the number to find
 	 * @return the index or -1 if not found
 	 */
 	public static int indexOfInt(int[] array, int target) {
+		for (int i = 0; i<array.length; i++) {
+			if (array[i]==target) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Tries to finds the first instance of a given character within an array and
+	 * returns either the index or -1 if not found
+	 * 
+	 * @param array
+	 *            an array of char
+	 * @param target
+	 *            the character to find
+	 * @return the index or -1 if not found
+	 */
+	public static int indexOfChar(char[] array, char target) {
 		for (int i = 0; i<array.length; i++) {
 			if (array[i]==target) {
 				return i;
@@ -1704,6 +1850,36 @@ public class Array {
 	public static int[] subArray(int[] array, int start) {
 		return subArray(array, start, array.length);
 	}
+	
+	/**
+	 * Creates a new array using only the strings at indices with a true in the boolean array
+	 * 
+	 * @param array
+	 *            an array of Strings
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static int[] subArray(int[] array, boolean[] use) {
+		int[] subarray;
+		int count;
+
+		if (array.length != use.length) {
+			System.err.println("Error - mismatched array lengths for boolean subset");
+			return null;
+		}
+		
+		count = 0;
+		subarray = new int[booleanArraySum(use)];
+		for (int i = 0; i<array.length; i++) {
+			if (use[i]) {
+				subarray[count] = array[i];
+				count++;
+			}
+		}
+
+		return subarray;
+	}
 
 	/**
 	 * Creates a new array using only the indices between start and stop
@@ -1742,7 +1918,7 @@ public class Array {
 	 * @return the subset of the original array
 	 */
 	public static double[] subArray(double[] array, int start) {
-		return subArray(array, start);
+		return subArray(array, start, array.length);
 	}
 
 	/**
@@ -1847,6 +2023,36 @@ public class Array {
 				strs[i] = missingValue;
 			} else {
 				strs[i] = array[indices[i]];
+			}
+		}
+
+		return strs;
+	}
+
+	/**
+	 * Creates a new array using only the strings at indices with a true in the boolean array
+	 * 
+	 * @param array
+	 *            an array of Strings
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static String[] subArray(String[] array, boolean[] use) {
+		String[] strs;
+		int count;
+
+		if (array.length != use.length) {
+			System.err.println("Error - mismatched array lengths for boolean subset");
+			return null;
+		}
+		
+		count = 0;
+		strs = new String[booleanArraySum(use)];
+		for (int i = 0; i<array.length; i++) {
+			if (use[i]) {
+				strs[count] = array[i];
+				count++;
 			}
 		}
 
@@ -2012,7 +2218,7 @@ public class Array {
 	}
 
 	/**
-	 * Calculates the inter quartile range of an array
+	 * Calculates the interquartile range of an array
 	 * 
 	 * @param array
 	 *            an array of numbers
@@ -2518,20 +2724,167 @@ public class Array {
 		}
 
 		return max;
-	}	
+	}
 	
+	public static String[] addPrefixSuffixToArray(String[] array, String prefix, String suffix) {
+		String[] newArray;
+		
+		newArray = new String[array.length];
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = (prefix==null?"":prefix)+array[i]+(suffix==null?"":suffix);
+		}
+		
+		return newArray;
+	}
+	
+	public static boolean isBimodal(double[] array) {
+		return isBimodal(array, 0.5, 100);
+	}
+
+	public static boolean isBimodal(double[] array, double percentDropInPeak, int numBins) {
+		return isBimodal(array, percentDropInPeak, (max(array)-min(array))/(double)numBins);
+	}
+	
+	public static boolean isBimodal(double[] array, double percentDropInPeak, double binSize) {
+		int numBins;
+		int[] freqBinCounts,freqBinCountsSmooth;
+		double minValue, maxFreq, localMinFreq;
+
+		numBins = (int) ((Array.max(array)-Array.min(array))/binSize);
+		minValue = Array.min(array);
+		freqBinCounts = new int[numBins];
+		for (int i=0; i<array.length; i++) {
+			freqBinCounts[(int) (Math.floor(array[i]-minValue)/binSize)]++;
+		}
+
+		//smoothing
+		freqBinCountsSmooth = new int[freqBinCounts.length];
+		for (int i=1; i<numBins-1; i++) {
+			freqBinCountsSmooth[i]=(freqBinCounts[i-1]+freqBinCounts[i]+freqBinCounts[i+1])/3;
+		}
+		freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
+		freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
+		
+		maxFreq = Double.NEGATIVE_INFINITY;
+		localMinFreq = Double.POSITIVE_INFINITY;
+		for (int i=0; i<numBins; i++) {
+			if (freqBinCountsSmooth[i]>maxFreq) {
+				maxFreq = freqBinCountsSmooth[i];
+			} else if (freqBinCountsSmooth[i]<(maxFreq*percentDropInPeak) && freqBinCountsSmooth[i]<localMinFreq) {
+				localMinFreq = freqBinCountsSmooth[i];
+			} else if (freqBinCountsSmooth[i]>=(maxFreq*percentDropInPeak)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isMultimodal(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired, double binSize) {
+		return getLocalModes(array, percentDropFromPeakRequired, percentRegainInPeakRequired, binSize).length > 1;
+	}
+	
+	public static double[] getLocalModes(double[] array, double percentDropFromPeakRequired, double percentOfGlobalMaxRequiredForPeak, double binSize) {
+		int numBins;
+		int[] freqBinCounts;
+		double[] freqBinCountsSmooth;
+		double minValue;
+		int[] indicesOfLocalMaxima;
+		double[] modes;
+		
+		numBins = (int) ((Array.max(array)-Array.min(array))/binSize)+1;
+		minValue = Array.min(array);
+		freqBinCounts = new int[numBins];
+		for (int i=0; i<array.length; i++) {
+			freqBinCounts[(int)Math.floor((array[i]-minValue)/binSize)]++;
+		}
+
+		//smoothing
+		freqBinCountsSmooth = new double[freqBinCounts.length];
+		for (int i=1; i<numBins-1; i++) {
+			freqBinCountsSmooth[i]=(freqBinCounts[i-1]+freqBinCounts[i]+freqBinCounts[i+1])/3;
+		}
+		freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
+		freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
+
+		indicesOfLocalMaxima = getIndicesOfLocalMaxima(freqBinCountsSmooth, percentDropFromPeakRequired, percentOfGlobalMaxRequiredForPeak);
+		modes = new double[indicesOfLocalMaxima.length];
+		for (int i = 0; i < modes.length; i++) {
+			modes[i] = minValue+indicesOfLocalMaxima[i]*binSize+binSize/2;
+		}
+		return modes;
+	}
+
+	public static double[] smooth(double[] array, int numOfPositionsInOneDirection) {
+		double[] smoothed;
+		
+		smoothed = new double[array.length];
+
+		return smoothed;
+	}
+	
+	public static int[] getIndicesOfLocalMaxima(double[] array, double percentDropFromPeakRequired, double percentOfGlobalMaxRequiredForPeak) {
+		double globalMax, localMax, localMin;
+		int indexOfLocalMax;
+		IntVector indicesOfMaxima;
+		
+		indicesOfMaxima = new IntVector();
+		
+		globalMax = max(array);
+
+		localMax = Double.NEGATIVE_INFINITY;
+		localMin = Double.POSITIVE_INFINITY;
+		indexOfLocalMax = -1;
+		for (int i=0; i<array.length; i++) {
+			if (array[i]>localMax) {
+				localMax = array[i];
+				indexOfLocalMax = i;
+			}
+			if (localMax >= globalMax*percentOfGlobalMaxRequiredForPeak && array[i]<(localMax*percentDropFromPeakRequired)) {
+				System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
+				localMin = array[i];
+				indicesOfMaxima.add(indexOfLocalMax);
+				localMax = Double.NEGATIVE_INFINITY;
+			}
+			if (array[i]>=(globalMax*percentOfGlobalMaxRequiredForPeak)) {
+				if (localMin != Double.POSITIVE_INFINITY) {
+					System.out.println("localMin="+localMin);
+				}
+				localMin = Double.POSITIVE_INFINITY;
+			}
+		}
+		if (localMin != Double.POSITIVE_INFINITY && localMax >= globalMax*percentOfGlobalMaxRequiredForPeak && indexOfLocalMax != -1) {
+			System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
+			indicesOfMaxima.add(indexOfLocalMax);
+		}
+		
+		return indicesOfMaxima.toArray();
+	}
+	
+	public static boolean[] indicesToBooleanArray(int[] rowsToKeep, int sizeOfArray) {
+		boolean[] array;
+		
+		array = booleanArray(sizeOfArray, false);
+		for (int i = 0; i < rowsToKeep.length; i++) {
+			array[rowsToKeep[i]] = true;
+		}
+		
+		return array;
+	}
+
 	public static void main(String[] args) {
-	    int[] counts = new int[10];
-	    int[] trav;
-	    
-	    for (int i = 0; i<100000; i++) {
-	    	trav = random(10, 5);
-	    	for (int j = 0; j<trav.length; j++) {
-	    		counts[trav[j]]++;
-            }
+	    double alleleFreq = 0.2;
+	    double stdev = 0.12;
+	    double[] array = new double[10000];
+	    for (int i = 0; i<array.length; i++) {
+	    	array[i] = 0;
+	    	for (int j = 0; j < 2; j++) {
+		    	array[i] += Math.random() < alleleFreq?0.5:0;
+			}
+	    	array[i] += (Math.random()<0.5?-1:1)*ProbDist.NormDistReverse(Math.random())*stdev;
         }
+	    System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01)));
 	    
-	    Files.writeList(Array.toStr(counts).split("[\\s]+"), "oi.xln");
+	    Files.writeList(Array.toStringArray(array), "oi.xln");
 
     }
 }

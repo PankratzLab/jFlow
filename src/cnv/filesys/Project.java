@@ -9,6 +9,8 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -18,29 +20,32 @@ import cnv.var.SampleData;
 public class Project extends Properties {
 	public static final long serialVersionUID = 1L;
 //	public static final String DEFAULT_PROJECT = "these.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/pd_win.properties";
+//	public static final String DEFAULT_PROJECT = "D:/home/npankrat/projects/pd_win.properties";
+//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
+	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI_exome_slim.properties";
+//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/TsaiPilot.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/HumanHap550_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortium.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplication.properties";
-	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
+//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/demo.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/pd_win.properties";
+	public static final String DEFAULT_CURRENT = "D:/home/npankrat/projects/pd_win.properties";
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/HumanHap550_win.properties";
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/myron_excision.proj";
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_excision.proj";
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/sing550_win.proj";
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortium.properties";
-	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortiumReplication.properties";
+//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortiumReplication.properties";
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_indian_diabetes.proj";
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/boss.proj";
 	
-	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/demo.properties";
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_win.properties";
+//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/demo.properties";
+	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_win.properties";
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/sing550_win.proj";
 
@@ -229,6 +234,7 @@ public class Project extends Properties {
 		if (Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
 			return MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
 		} else {
+			JOptionPane.showMessageDialog(null, "The marker lookup table is being requested but has not yet been created", "Error", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
 	}

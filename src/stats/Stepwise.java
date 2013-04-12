@@ -17,8 +17,7 @@ public class Stepwise {
 	private String[] varNames;
 	private int maxNameSize;
 	private Vector<IntVector> increments;
-
-	RegressionModel finalModel;
+	private RegressionModel finalModel;
 
 	public Stepwise(Vector<String> deps, Vector<double[]> indeps) {
 		Xs = indeps;

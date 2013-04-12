@@ -559,6 +559,86 @@ public class Plink {
 		}
 	}
 	
+	public static void parseDiffMode6(String filename) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		Hashtable<String, int[]> indHash, markerHash;
+		int count;
+		int index;
+		int[] counts;
+		String[] keys;
+		
+		count = 0;
+		indHash = new Hashtable<String, int[]>();
+		markerHash = new Hashtable<String, int[]>();
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			writer = new PrintWriter(new FileWriter(filename+".xln"));
+			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), new String[] {"SNP", "FID", "IID", "NEW", "OLD"}, true);
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				count++;
+				if (count % 1000000 == 0) {
+					System.out.println(count);
+				}
+				if (!line[1].endsWith("-1") && !line[1].endsWith("-2")) {
+					if (line[3].equals("0/0")) {
+						index = 0;
+					} else if (line[4].equals("0/0")) {
+						index = 1;
+					} else {
+						index = 2;
+					}
+					if (indHash.containsKey(line[1]+"\t"+line[2])) {
+						counts = indHash.get(line[1]+"\t"+line[2]);
+					} else {
+						indHash.put(line[1]+"\t"+line[2], counts = new int[3]);
+					}
+					counts[index]++;
+					if (markerHash.containsKey(line[0])) {
+						counts = markerHash.get(line[0]);
+					} else {
+						markerHash.put(line[0], counts = new int[3]);
+					}
+					counts[index]++;
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
+		}
+		
+		try {
+			writer = new PrintWriter(new FileWriter(filename+"_ind.xln"));
+			keys = HashVec.getKeys(indHash);
+			for (int i = 0; i < keys.length; i++) {
+				writer.println(keys[i]+"\t"+Array.toStr(indHash.get(keys[i])));
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + filename+"_ind.xln");
+			e.printStackTrace();
+		}
+
+		try {
+			writer = new PrintWriter(new FileWriter(filename+"_markers.xln"));
+			keys = HashVec.getKeys(markerHash);
+			for (int i = 0; i < keys.length; i++) {
+				writer.println(keys[i]+"\t"+Array.toStr(markerHash.get(keys[i])));
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + filename+"markers.xln");
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		int genom = 0;
@@ -576,14 +656,18 @@ public class Plink {
 												{0, 0.30, 0.10, 0.40}, // sibling
 												{0, 0.40, 0, 0}, // second degree, avuncular, gg
 												{0, 0.20, 0, 0}, // third degree, cousins
-												{0, 0.10, 0, 0}, // forth degree 
+												{0, 0.10, 0, 0}, // fourth degree 
 		};
 		int removeOutTo = 4;
 		boolean filterPairs = false;
 		String mperm = null;
+		
+		parseDiffMode6("C:/GEDI_Exome2/mergeCompare/comp.diff");
+		parseDiffMode6("C:/GEDI_exome/mergeCompareOriginal/comp.diff");
+		System.exit(1);
 
 		String usage = "\n"+
-		"cnv.manage.PlinkFormat requires 0-1 arguments\n"+
+		"gwas.Plink requires 0-1 arguments\n"+
 		"   (1) collapse parallelized .mperm files with the given pattern and the specified number of reps per file (i.e. mperm=perm#.assoc.mperm,100000 (not the default))\n"+
 		"  OR\n"+
 		"   (1) number of parts to break into --genome on (i.e. genome=8 (not the default))\n"+

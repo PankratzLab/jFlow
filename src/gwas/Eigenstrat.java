@@ -2,6 +2,7 @@
 // turned out there was just a bug in the Eigensoft package itself when markers were listed out of order (it sorts them, but the weights get off)
 // to avoid this problem, make sure to perform a --make-bed after any merging (i.e. with HapMap data)
 // after fancy MAF weighting, the final score is divided by the square root of the sample size
+
 // probably want to start using a Logger at some point
 
 package gwas;
@@ -103,12 +104,13 @@ public class Eigenstrat {
         int count;
         double sampleSizeCorrection;
         
+        System.out.println("Loading allele frequencies to use for missing genotypes...");
+        mafHash = HashVec.loadFileToHashString(sourceRoot+".frq", 1, new int[] {2,3,4}, " ", false);
         System.out.println("Indexing alleles...");
         strandHash = HashVec.loadFileToHashString(sourceRoot+".snp", 0, new int[] {4,5}, " ", false);
-        mafHash = HashVec.loadFileToHashString(sourceRoot+".frq", 1, new int[] {2,3,4}, " ", false);
-
+        
         System.out.print("Parsing weights...");
-        numEigens = Files.getHeaderOfFile(sourceRoot+".weights.out", "\t", new Logger(null)).length - 3;
+        numEigens = Files.getHeaderOfFile(sourceRoot+".weights.out", "[\\s]+", new Logger(null)).length - 3;
         weightsHash = HashVec.loadFileToHashString(sourceRoot+".weights.out", 0, Array.subArray(Array.intArray(numEigens+3), 3, numEigens+3), "\t", false);
         System.out.println("found weights for "+weightsHash.size()+" markers");
 
@@ -419,6 +421,9 @@ public class Eigenstrat {
 		    System.err.println(usage);
 		    System.exit(1);
 	    }
+
+	    parse = true;
+	    
 	    
 	    try {
 	    	if (create) {

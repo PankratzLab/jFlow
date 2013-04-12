@@ -805,6 +805,65 @@ public class Sort {
 		return finalIndices;
 	}
 
+	/**
+	 * Sorts by the first array first and then by the second; returns the order
+	 * 
+	 * @param first
+	 *            first order array
+	 * @param second
+	 *            second order array
+	 * @return array of sorted indices
+	 */
+	public static int[] orderTwoLayers(int[] first, int firstDirection, String[] second, int secondDirection) {
+		String[] primaryKeys, secondaryKeys;
+		int count;
+		int[] primaryValues, finalIndices, primaryIndices, secondaryIndices;
+		String[] secondaryValues;
+		Hashtable<String,Hashtable<String,String>> mapFirstToSecond;
+		Hashtable<String,String> hash, finalKeyHash;
+
+		if (first.length!=second.length) {
+			System.err.println("Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
+			System.exit(1);
+		}
+
+		mapFirstToSecond = new Hashtable<String,Hashtable<String,String>>();
+		for (int i = 0; i<first.length; i++) {
+			HashVec.addToHashHash(mapFirstToSecond, first[i]+"", i+"", second[i]+"");
+		}
+
+		count = 0;
+		finalKeyHash = new Hashtable<String,String>();
+		primaryValues = new int[mapFirstToSecond.size()];
+		primaryKeys = HashVec.getKeys(mapFirstToSecond);
+		for (int i = 0; i<primaryKeys.length; i++) {
+			primaryValues[i] = Integer.parseInt(primaryKeys[i]);
+		}
+		primaryIndices = quicksort(primaryValues, firstDirection);
+		for (int i = 0; i<primaryKeys.length; i++) {
+			hash = mapFirstToSecond.get(primaryKeys[primaryIndices[i]]);
+			if (hash!=null) {
+				secondaryValues = new String[hash.size()];
+				secondaryKeys = HashVec.getKeys(hash);
+				for (int j = 0; j<secondaryKeys.length; j++) {
+					secondaryValues[j] = hash.get(secondaryKeys[j]);
+				}
+				secondaryIndices = quicksort(secondaryValues, secondDirection);
+				for (int j = 0; j<secondaryIndices.length; j++) {
+					finalKeyHash.put(secondaryKeys[secondaryIndices[j]], count+"");
+					count++;
+				}
+			}
+		}
+
+		finalIndices = new int[first.length];
+		for (int i = 0; i<first.length; i++) {
+			finalIndices[Integer.parseInt(finalKeyHash.get(i+""))] = i;
+		}
+
+		return finalIndices;
+	}
+
 	public static int[] ranks(double[] array, int direction) {
 		int[] ranks;
 		int[] order;

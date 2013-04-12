@@ -172,7 +172,18 @@ public class Zip {
 			e.printStackTrace();
 		}
 
-	}	
+	}
+	
+	public static void gzipEverythingInDirectory(String dir, Logger log) {
+		String[] files;
+		
+		files = Files.list(dir, null, false);
+		for (int i = 0; i < files.length; i++) {
+			log.report("compressing file #"+(i+1)+" of "+files.length+" ("+files[i]+")");
+			gzip(dir+files[i]);
+		}
+	}
+	
 	public static void unzipParticularFile(String target, String zipfile, String destination) {
 		unzipParticularFiles(new String[] {target}, zipfile, destination);
 	}
@@ -250,8 +261,10 @@ public class Zip {
 		// unzipParticularFile("plots\\rs3881953_plots.xls", "dir.zip",
 		// "destination");
 		try {
-			String dir = new File(".").getCanonicalPath();
-			zipDirectory(".", "../"+dir.substring(Math.max(dir.lastIndexOf("/"), dir.lastIndexOf("\\"))+1)+".zip");
+//			String dir = new File(".").getCanonicalPath();
+//			zipDirectory(".", "../"+dir.substring(Math.max(dir.lastIndexOf("/"), dir.lastIndexOf("\\"))+1)+".zip");
+			gzipEverythingInDirectory("D:/data/GEDI/penn_data/", new Logger());
+//			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

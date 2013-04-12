@@ -48,8 +48,8 @@ public class CNVariantHash implements Serializable {
 				cnv = new CNVariant(temp.trim().split("[\\s]+"));
 				trav = cnv.getFamilyID()+"\t"+cnv.getIndividualID();
 				if (structureType == CONSTRUCT_ALL) {
-					cnv.setFamilyID(null);
-					cnv.setIndividualID(null);
+//					cnv.setFamilyID(null); // CompPanel will still need to link to the proper IDs
+//					cnv.setIndividualID(null);
 					trav = "all";					
 				}
 
@@ -87,7 +87,7 @@ public class CNVariantHash implements Serializable {
 			finalHash = new Hashtable<String,CNVariant[]>();
 			chrs = HashVec.getKeys(vHash);
 			for (int j = 0; j<chrs.length; j++) {
-				finalHash.put(chrs[j], CNVariant.toArray(vHash.get(chrs[j])));
+				finalHash.put(chrs[j], CNVariant.toCNVariantArray(vHash.get(chrs[j])));
             }
 			hashes.put(inds[i], finalHash);
         }

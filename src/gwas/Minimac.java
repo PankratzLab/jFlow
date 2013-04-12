@@ -807,7 +807,7 @@ public class Minimac {
 		"   (3) (optional) update IDs with ../new_header and ../new_plink.fam when running (i.e. -update (not the default))\n" +
 		"   (4) (optional) amount of memory in Gb to reserve on each node (i.e. mem=4 (not the default))\n" +
 		" OR\n"+
-		"   (1) set up qsubs for mach2dat using pheno file (i.e. mach2dat=pheno.dat (not the default))\n"+
+		"   (1) set up qsubs for mach2dat using .PED style phenotype file which can have additional covariates (i.e. mach2dat=plink.fam (not the default))\n"+
 		"";
 
 		for (int i = 0; i < args.length; i++) {

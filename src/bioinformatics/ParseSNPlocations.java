@@ -117,7 +117,7 @@ public class ParseSNPlocations {
 	        		if (dbMarkerSet == null) {
 	        			log.report("Loading database...");
 
-	        			dbMarkerSet = SnpMarkerSet.load(db, false);
+	        			dbMarkerSet = SnpMarkerSet.load(db, false, log);
 	        			dbRSnumbers = dbMarkerSet.getRSnumbers();
 	        			dbPositions = dbMarkerSet.getPositions();
 	        			dbChrs = dbMarkerSet.getChrs();
@@ -197,7 +197,8 @@ public class ParseSNPlocations {
 	}
 
 	public static void hashParse(String snpListFile, String db, String mergeDB, boolean useExistingPositions, Logger log) {
-		boolean hi = true;
+//		boolean reminderToCode = true;
+		// TODO Auto-generated catch block
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;

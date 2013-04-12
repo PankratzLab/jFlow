@@ -31,7 +31,7 @@ public class FilterCalls {
 			System.err.println("Error - could not find \""+individualsToKeepFile+"\" in directory; will not be able to filter by indiviudals");
 			individualsToKeepFile = null;
 		}
-		individualsToKeepList = individualsToKeepFile==null?null:HashVec.loadFileToStringArray(individualsToKeepFile, false, false, new int[] {0,1}, false, "\t"); 
+		individualsToKeepList = individualsToKeepFile==null?null:HashVec.loadFileToStringArray(individualsToKeepFile, false, false, new int[] {0,1}, true, false, "\t"); 
 
 		filter(dir, in, out, delSize, dupSize, number, score, filterRegions, commonInOutOrIgnore, individualsToKeepList, breakupCentromeres);
 	}
@@ -45,15 +45,16 @@ public class FilterCalls {
 		Hashtable<String, String> indHash;
 		int count, countCentromeric;
 
-		problemRegions = filterRegions?Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true)+DEFAULT_PROBLEMATIC_REGIONS):new Segment[0];
+		problemRegions = filterRegions?Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true)+DEFAULT_PROBLEMATIC_REGIONS, false):new Segment[0];
 		centromereMidpoints = loadCentromereMidpoints(Positions.CENTROMERE_MIDPOINT_SEGS);
-		commonReference = Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true)+DEFAULT_COMMON_CNP_REFERENCE);
+		commonReference = commonInOutOrIgnore!=COMMON_IGNORED?Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true)+DEFAULT_COMMON_CNP_REFERENCE, false):new Segment[0];
 		
-		indHash = individualsToKeepList==null?null:HashVec.loadFileToHashNull(individualsToKeepList);
+		indHash = individualsToKeepList==null?null:HashVec.loadToHashNull(individualsToKeepList);
 
 		try {
 			reader = new BufferedReader(new FileReader(dir+in));
 			writer = new PrintWriter(new FileWriter(dir+out));
+			System.out.println("Writing to '"+dir+out+"'");
 			writer.println(reader.readLine());
 			count = 0;
 			countCentromeric = 0;
@@ -113,15 +114,15 @@ public class FilterCalls {
         } else if (new File(segmentFile+".segs").exists()) {
         	segList = SegmentList.load(segmentFile+".segs", false);
         } else {
-        	segList = SegmentList.parseSegmentList(segmentFile);
+        	segList = SegmentList.parseSegmentList(segmentFile, false);
         	segList.serialize(segmentFile+".segs");
         }
 
         genesByChr = segList.getLists();
 
         try {
-	        reader = new BufferedReader(new FileReader(filein));
-	        writer = new PrintWriter(new FileWriter(fileout));
+	        reader = new BufferedReader(new FileReader(dir+filein));
+	        writer = new PrintWriter(new FileWriter(dir+fileout));
 	        writer.println(reader.readLine());
 	        while (reader.ready()) {
 	        	cnv = new CNVariant(reader.readLine().trim().split("[\\s]+"));
@@ -132,10 +133,10 @@ public class FilterCalls {
 	        reader.close();
             writer.close();
         } catch (FileNotFoundException fnfe) {
-	        System.err.println("Error: file \""+filein+"\" not found in current directory");
+	        System.err.println("Error: file \""+dir+filein+"\" not found in current directory");
 	        System.exit(1);
         } catch (IOException ioe) {
-	        System.err.println("Error reading file \""+filein+"\"");
+	        System.err.println("Error reading file \""+dir+filein+"\"");
 	        System.exit(2);
         }	
 	}	
@@ -400,6 +401,9 @@ public class FilterCalls {
 			System.err.println(usage);
 			System.exit(1);
 		}
+
+		FilterCalls.filterOnSegments("D:/data/GEDI/global/homoDelsOverlappingGenesOnly/", "conf.cnv", "conf_overlappingGenes.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, false);
+		System.exit(1);
 		
 //		breakCent = true;
 //		out = "noCentromeric.cnv";

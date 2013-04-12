@@ -2,12 +2,16 @@ package common;
 
 import java.io.*;
 
-public class Logger {
+import javax.swing.JTextArea;
+
+public class Logger implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public static final int LEVEL_ONE = 1;
 	
 	private String filename;
 	private boolean logging;
 	private int level;
+	private JTextArea textArea;
 	
 	public Logger() {
 		this(null, false);
@@ -20,6 +24,7 @@ public class Logger {
 	public Logger(String filename, boolean append) {
 		this(filename, append, 10); 
 	}
+	
 	public Logger(String filename, boolean append, int level) {
 		this.filename = filename;
 		logging = filename!=null;
@@ -27,6 +32,11 @@ public class Logger {
 			new File(filename).delete();
 		}
 		this.level = level;
+		this.textArea = null;
+	}
+	
+	public void linkTextArea(JTextArea text) {
+		textArea = text;
 	}
 	
 	public String getFilename() {
@@ -35,6 +45,10 @@ public class Logger {
 
 	public int getLevel() {
 		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
 	}
 
 	public void report(String str) {
@@ -55,6 +69,12 @@ public class Logger {
 				System.out.print(str);
 			}
 		}
+		
+		if (level >= levelRequiredToReport && textArea != null) {
+			textArea.setText(textArea.getText() + str+ (line?"\r\n":""));
+			textArea.setCaretPosition(textArea.getDocument().getLength());
+		}
+
 		if (level >= levelRequiredToReport && logging) {
 			try {
 		        writer = new PrintWriter(new FileWriter(filename, true));
@@ -89,6 +109,12 @@ public class Logger {
 				System.err.print(err);
 			}
 		}
+
+		if (level >= levelRequiredToReport && textArea != null) {
+			textArea.setText(textArea.getText() + err+ (line?"\r\n":""));
+			textArea.setCaretPosition(textArea.getDocument().getLength());
+		}
+
 		if (level >= levelRequiredToReport && logging) {
 			try {
 		        writer = new PrintWriter(new FileWriter(filename, true));
@@ -114,6 +140,7 @@ public class Logger {
 		
 		e.printStackTrace();
 		if (level >= levelRequiredToReport && logging) {
+			e.printStackTrace();
 			try {
 		        writer = new PrintWriter(new FileWriter(filename, true));
 				e.printStackTrace(writer);

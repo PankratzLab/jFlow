@@ -34,11 +34,12 @@ public class CreateDatabaseFromPlink {
         int markerIndex, modelIndex;
         String[][] params;
         SnpMarkerSet markerSet;
-        boolean labelAlleles, listPositions, displayNotes, maskModel;
+        boolean labelAlleles, listPositions, displayNotes, maskModel, maskFIDs, maskSex, maskAffStat, allMarkers, commaDelimited;
         byte[] chrs;
         int[] positions;
+        String delimiter;
         
-        params = Files.parseControlFile(filename, false, "plink", new String[] {"plink.ped", "plink.map", "plink.frq", "newDatabase.xln labelAlleles=false listPositions=false displayNote=false maskModel=false", "rs11550605\tADD", "rs10808555\tREC ADD", "rs7837328\tADD DOM REC", "rs3730881\tADD DOM"}, log);
+        params = Files.parseControlFile(filename, false, "plink", new String[] {"plink.ped", "plink.map", "plink.frq", "newDatabase.xln labelAlleles=false listPositions=false displayNotes=false maskModel=false maskFamID=false maskSex=false maskAffectionStatus=false allMarkers=false commaDelimited=false", "rs11550605\tADD", "rs10808555\tREC ADD note=CriticalMutation", "rs7837328\tADD DOM REC", "rs3730881\tADD DOM"}, log);
         
         if (params == null) {
         	return;
@@ -48,6 +49,11 @@ public class CreateDatabaseFromPlink {
         listPositions = false;
         displayNotes = false;
         maskModel = false;
+        maskFIDs = false;
+        maskSex = false;
+        maskAffStat = false;
+        allMarkers = false;
+        commaDelimited = false;
     	pedfile = params[0][0];
     	mapfile = params[1][0];
     	markerSet = new SnpMarkerSet(dir+mapfile, false, log);
@@ -68,6 +74,16 @@ public class CreateDatabaseFromPlink {
     			displayNotes = ext.parseBooleanArg(params[3][i], log);
     		} else if (params[3][i].startsWith("maskModel=")) {
     			maskModel = ext.parseBooleanArg(params[3][i], log);
+    		} else if (params[3][i].startsWith("maskFamID=")) {
+    			maskFIDs = ext.parseBooleanArg(params[3][i], log);
+    		} else if (params[3][i].startsWith("maskSex=")) {
+    			maskSex = ext.parseBooleanArg(params[3][i], log);
+    		} else if (params[3][i].startsWith("maskAffectionStatus=")) {
+    			maskAffStat = ext.parseBooleanArg(params[3][i], log);    			
+    		} else if (params[3][i].startsWith("allMarkers=")) {
+    			allMarkers = ext.parseBooleanArg(params[3][i], log);
+    		} else if (params[3][i].startsWith("commaDelimited=")) {
+    			commaDelimited = ext.parseBooleanArg(params[3][i], log);
     		} else {
     			log.reportError("Error - don't know what to do with argument: "+params[3][i]);
     		}
@@ -79,70 +95,90 @@ public class CreateDatabaseFromPlink {
     	}
 
         vModels = new Vector<int[]>();
-        for (int i = 4; i < params.length; i++) {
-        	markerIndex = ext.indexOfStr(params[i][0], markerNames);
-        	if (markerIndex == -1) {
-        		log.reportError("Error - marker '"+params[i][0]+"' was not found in "+mapfile);
-        	} else {
-        		for (int j = 1; j<params[i].length; j++) {
-        			if (params[i][j].toLowerCase().startsWith("note=")) {
-        				notes.put(params[i][0], params[i][j].substring(5));
-        			} else {
-	        			modelIndex = ext.indexOfStr(params[i][j], POSSIBLE_MODELS);
-		        		if (modelIndex == -1) {
-		        			log.reportError("Error - '"+params[i][j]+"' is an invalid model");
-		        		} else {
-		        			vModels.add(new int[] {markerIndex, modelIndex});
-		        		}
-        			}
-                }
+        if (allMarkers) {
+        	if (params.length > 4) {
+        		System.err.println("Error - The allMarkers flagged was set to true, so all markers will be exported and the following lines will be ignored");
+        		for (int i = 4; i < params.length; i++) {
+        			System.err.println("'"+Array.toStr(params[i], "  ")+"'");
+				}
         	}
-		}
-        
+        	if (!maskModel) {
+        		maskModel = true;
+        		System.out.println("Since all markers are being exported, masking the default model ("+POSSIBLE_MODELS[0]+")");
+        	}
+        	for (int i = 0; i < markerNames.length; i++) {
+    			vModels.add(new int[] {i, 0});
+			}
+        } else {
+	        for (int i = 4; i < params.length; i++) {
+	        	markerIndex = ext.indexOfStr(params[i][0], markerNames);
+	        	if (markerIndex == -1) {
+	        		log.reportError("Error - marker '"+params[i][0]+"' was not found in "+mapfile);
+	        	} else {
+	        		for (int j = 1; j<params[i].length; j++) {
+	        			if (params[i][j].toLowerCase().startsWith("note=")) {
+	        				notes.put(params[i][0], params[i][j].substring(5));
+	        			} else {
+		        			modelIndex = ext.indexOfStr(params[i][j], POSSIBLE_MODELS);
+			        		if (modelIndex == -1) {
+			        			log.reportError("Error - '"+params[i][j]+"' is an invalid model");
+			        		} else {
+			        			vModels.add(new int[] {markerIndex, modelIndex});
+			        		}
+	        			}
+	                }
+	        	}
+			}
+        }        
         models = Matrix.toMatrix(vModels);
         
+        if (commaDelimited) {
+        	delimiter = ",";
+        } else {
+        	delimiter = "\t";
+        }
         try {
             reader = new BufferedReader(new FileReader(dir+pedfile));
             writer = new PrintWriter(new FileWriter(dir+outfile));
             if (listPositions) {
-                writer.print("\t\t\tChr:");
+                writer.print((maskFIDs?"":delimiter)+(maskSex?"":delimiter)+(maskAffStat?"":delimiter)+"Chr:");
                 for (int i = 0; i<models.length; i++) {
-                	writer.print("\t"+chrs[models[i][0]]);
+                	writer.print(delimiter+chrs[models[i][0]]);
                 }
                 writer.println();
-                writer.print("\t\t\tPosition:");
+                writer.print((maskFIDs?"":delimiter)+(maskSex?"":delimiter)+(maskAffStat?"":delimiter)+"Position:");
                 for (int i = 0; i<models.length; i++) {
-                	writer.print("\t"+positions[models[i][0]]);
+                	writer.print(delimiter+positions[models[i][0]]);
                 }
                 writer.println();
             }
             if (labelAlleles) {
-                writer.print("\t\t\tMinor allele, counted:");
+                writer.print((maskFIDs?"":delimiter)+(maskSex?"":delimiter)+(maskAffStat?"":delimiter)+"Minor allele, counted:");
                 for (int i = 0; i<models.length; i++) {
-                	writer.print("\t"+alleles[models[i][0]][0]);
+                	writer.print(delimiter+alleles[models[i][0]][0]);
                 }
                 writer.println();
-                writer.print("\t\t\tOther allele:");
+                writer.print((maskFIDs?"":delimiter)+(maskSex?"":delimiter)+(maskAffStat?"":delimiter)+"Other allele:");
                 for (int i = 0; i<models.length; i++) {
-                	writer.print("\t"+alleles[models[i][0]][1]);
+                	writer.print(delimiter+alleles[models[i][0]][1]);
                 }
                 writer.println();
             }
             if (displayNotes) {
-                writer.print("\t\t\tNote:");
+                writer.print((maskFIDs?"":delimiter)+(maskSex?"":delimiter)+(maskAffStat?"":delimiter)+"Note:");
                 for (int i = 0; i<models.length; i++) {
-                	writer.print("\t"+(notes.containsKey(markerNames[models[i][0]])?notes.get(markerNames[models[i][0]]):"."));
+                	writer.print(delimiter+(notes.containsKey(markerNames[models[i][0]])?notes.get(markerNames[models[i][0]]):"."));
                 }
                 writer.println();
             }
-            writer.print("FID\tIID\tGender\tAffected");
+            writer.print((maskFIDs?"":"FID"+delimiter)+"IID"+(maskSex?"":delimiter+"Gender")+(maskAffStat?"":delimiter+"Affected"));
             for (int i = 0; i<models.length; i++) {
-            	writer.print("\t"+markerNames[models[i][0]]+(maskModel?"":"_"+POSSIBLE_MODELS[models[i][1]]));
+            	writer.print(delimiter+markerNames[models[i][0]]+(maskModel?"":"_"+POSSIBLE_MODELS[models[i][1]]));
             }
             writer.println();
             while (reader.ready()) {
             	line = reader.readLine().trim().split("[\\s]+");
-            	writer.print(line[0]+"\t"+line[1]+"\t"+(line[4].equals("1")?"1":(line[4].equals("2")?"0":"."))+"\t"+(line[5].equals("2")?"1":(line[5].equals("1")?"0":".")));
+            	writer.print((maskFIDs?"":line[0]+delimiter)+line[1]+(maskSex?"":delimiter+(line[4].equals("1")?"1":(line[4].equals("2")?"0":".")))+(maskAffStat?"":delimiter+(line[5].equals("2")?"1":(line[5].equals("1")?"0":"."))));
             	for (int i = 0; i<models.length; i++) {
                 	count = 0;
             		for (int j = 0; j<2; j++) {
@@ -157,21 +193,21 @@ public class CreateDatabaseFromPlink {
 
                     }
             		if (count < 0) {
-            			writer.print("\t.");
+            			writer.print(delimiter+".");
             		} else {
             			switch (models[i][1]) {
             			case ADDITIVE_MODEL:
-            				writer.print("\t"+count);
+            				writer.print(delimiter+count);
             				break;
             			case DOMINANT_MODEL:
-            				writer.print("\t"+(count>=1?1:0));
+            				writer.print(delimiter+(count>=1?1:0));
             				break;
             			case RECESSIVE_MODEL:
-            				writer.print("\t"+(count>=2?1:0));
+            				writer.print(delimiter+(count>=2?1:0));
             				break;
             			default:
             				log.reportError("Error - model not translated");
-            				writer.print("\t."+count);
+            				writer.print(delimiter+"."+count);
             				break;
             			}
             		}
@@ -439,7 +475,7 @@ public class CreateDatabaseFromPlink {
 		}
 	}
 	
-	public static void toGWAF(String pedfile, String mapfile, String freqfile, String outfile) {
+	public static void toGWAF(String pedfile, String mapfile, String freqfile, String rlinker, String outfile) {
 		BufferedReader reader;
         PrintWriter writer;
         String[] line;
@@ -449,6 +485,7 @@ public class CreateDatabaseFromPlink {
         String allele;
         SnpMarkerSet markerSet;
         Logger log;
+		Hashtable<String, String> hash;
         
         log = new Logger();
         
@@ -465,6 +502,12 @@ public class CreateDatabaseFromPlink {
     			System.exit(1);
     		}
 		}
+    	
+    	if (rlinker == null) {
+    		hash = new Hashtable<String, String>();
+    	} else {
+    		hash = HashVec.loadFileToHashString(rlinker, new int[] {0}, new int[] {2}, false, "", false, false, false);
+    	}
 
         try {
             reader = new BufferedReader(new FileReader(pedfile));
@@ -478,6 +521,13 @@ public class CreateDatabaseFromPlink {
 
             while (reader.ready()) {
             	line = reader.readLine().trim().split("[\\s]+");
+            	if (rlinker != null) {
+            		if (hash.containsKey(line[1])) {
+            			line[1] = hash.get(line[1]);
+            		} else {
+            			System.err.println("Error - failed to lookup "+line[1]+" in the Rlinker file: "+rlinker);
+            		}            		
+            	}
             	writer.print(line[1]);
             	for (int i = 0; i<markerNames.length; i++) {
                 	count = 0;
@@ -507,7 +557,39 @@ public class CreateDatabaseFromPlink {
         	log.reportException(ioe);
         	return;
         }
+	}
+
+	public static void gwafFromParamters(String filename, Logger log) {
+		Vector<String> params;
+		String pedfile, mapfile, freqfile, rlinker, outfile;
 		
+		params = Files.parseControlFile(filename, "gwaf", new String[] {"plink.ped", "plink.map", "plink.frq", "leslie_lange.FHS.IBC.CEU.Rlinker", "gwaf.csv", "# set Rlinker file to null if none is needed"}, log);
+		if (params != null) {
+    		pedfile = params.remove(0);
+    		mapfile = params.remove(0);
+    		freqfile = params.remove(0);
+    		rlinker = params.remove(0);
+    		if (rlinker.toLowerCase().equals("null")) {
+    			rlinker = null;
+    		}
+    		outfile = params.remove(0);
+//    		for (int i = 0; i < files.length; i++) {
+//    			line = params.elementAt(i).trim().split("[\\s]+");
+//    			files[i] = line[0];
+//    			for (int j = 1; j < line.length; j++) {
+//        			if (line[j].startsWith("skip=") || line[j].startsWith("skips=")) {
+//            			skips[i] = Integer.parseInt(line[j].split("=")[1]);
+//        			} else if (line[j].equals(",")) {
+//            			delimiters[i] = ",";
+//        			} else if (line[j].equalsIgnoreCase("tab")) {
+//            			delimiters[i] = "\t";
+//        			} else {
+//        				System.err.println("Error - invalid argument (\""+line[j]+"\") ");
+//        			}
+//				}
+//			}
+    		toGWAF(pedfile, mapfile, freqfile, rlinker, outfile);
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -515,6 +597,7 @@ public class CreateDatabaseFromPlink {
 		String pedfile = "plink.ped";
 		String mapfile = "plink.map";
 		String freqfile = "plink.frq";
+		String rlinker = null;
 		String outfile = "gwaf.csv";
 
 		String usage = "\n" +
@@ -524,7 +607,8 @@ public class CreateDatabaseFromPlink {
 		"   (1) .ped filename (i.e. ped=" + pedfile + " (default))\n" + 
 		"   (2) .map filename (i.e. map=" + mapfile + " (default))\n" + 
 		"   (3) .frq filename (i.e. frq=" + freqfile + " (default))\n" + 
-		"   (4) output filename (i.e. gwaf=" + outfile + " (default))\n" + 
+		"   (4) String->int Rlinker filename with CARe_ID FID IID (i.e. rlinker=" + rlinker + " (default))\n" + 
+		"   (5) output filename (i.e. gwaf=" + outfile + " (default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -540,6 +624,9 @@ public class CreateDatabaseFromPlink {
 			} else if (args[i].startsWith("frq=")) {
 				freqfile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("rlinker=")) {
+				rlinker = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("gwaf=")) {
 				outfile = args[i].split("=")[1];
 				numArgs--;
@@ -552,15 +639,23 @@ public class CreateDatabaseFromPlink {
 			System.exit(1);
 		}
 		
-		String dir = "D:\\BOSS\\GWAF\\";
+//		String dir = "D:\\BOSS\\GWAF\\";
+//		pedfile = dir+"plink.ped";
+//		mapfile = dir+"plink.map";
+//		freqfile = dir+"plink.frq";
+//		rlinker = null;
+//		outfile = dir+"gwaf.csv";
+
+		String dir = "D:/CARe/CARe_geno_data_and_misc/IBC/FHS/iSELECT/gwaf/";
 		pedfile = dir+"plink.ped";
 		mapfile = dir+"plink.map";
 		freqfile = dir+"plink.frq";
+		rlinker = dir+"leslie_lange.FHS.IBC.CEU.Rlinker";
 		outfile = dir+"gwaf.csv";
 		
 		try {
 //			createCountsMatrix("simpleM.crf", new Logger(null));
-			toGWAF(pedfile, mapfile, freqfile, outfile);
+			toGWAF(pedfile, mapfile, freqfile, rlinker, outfile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -13,11 +13,8 @@ public class SasOutput {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		String temp, trav;
+		String temp;
 		Hashtable<String, String> hash = new Hashtable<String, String>();
-		Vector<String> v = new Vector<String>();
-		int count;
-		long time;
 		
 		String type, stratum;
 		boolean inMeans;

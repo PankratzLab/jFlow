@@ -1,8 +1,11 @@
 package common;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class FloatVector {
+public class FloatVector implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	private Vector<String> v;
 
 	public FloatVector() {

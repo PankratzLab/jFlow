@@ -7,7 +7,8 @@ import common.*;
 
 public class GWAF {
 	public static final String[] HEADER_IMPUTED = {"phen", "snp", "N", "AF", "h2q", "beta", "se", "pval"};
-	public static final String[] HEADER_GENOTYPED = {"cut and paste actual header"};
+	public static final String[] HEADER_GENOTYPED = {"phen", "snp", "n0", "n1", "n2", "h2q", "beta", "se", "chisq", "df", "model", "pval"};
+	public static final String[] HEADER_SUMMARY = {"MarkerName", "beta", "StdErr", "Pvalue", "N", "freqA1", "MAF"};
 //	public static final String DELIMITER = "\t";
 	public static final String DELIMITER = ",";
 	
@@ -20,7 +21,7 @@ public class GWAF {
 		boolean first;
 		IntVector iv, headerIndices;
 		double freq, maf;
-		int numPer, lineOffset;
+		int numPer, lineOffset, n;
 		
 		if (outfile == null) {
 			outfile = ext.rootOf(ext.replaceAllWithSafer(outfileTemplate, "#", ""))+(DELIMITER.equals(",")?".csv":".xln");
@@ -72,7 +73,7 @@ public class GWAF {
 						
 						ext.checkHeader(header, expectedHeader, true);
 						if (first) {
-							writer.println("MarkerName"+DELIMITER+"beta"+DELIMITER+"StdErr"+DELIMITER+"Pvalue"+DELIMITER+"N"+DELIMITER+"freqA1"+DELIMITER+"MAF");
+							writer.println(Array.toStr(HEADER_SUMMARY, DELIMITER));
 							first = false;
 						}
 						count = 0;
@@ -83,15 +84,19 @@ public class GWAF {
 								System.err.println("Error - truncated file at marker number "+count+(line.length>1?" ("+line[1]+")":"")+" in file '"+ext.replaceAllWith(outfileTemplate, "#", trav+"")+"'");
 							}
 							if (imputedNotGenotype) {
+								n = Integer.parseInt(line[2]);
 								freq = Double.parseDouble(line[3]);
 							} else {
-								freq = Double.parseDouble(line[3]); // update
+								n = Integer.parseInt(line[2])+Integer.parseInt(line[3])+Integer.parseInt(line[4]);
+								freq = ( Double.parseDouble(line[4])*2+Double.parseDouble(line[3])*1 )/(double)(n*2);
+								
 							}
 							maf = freq>0.50?1-freq:freq;
+
 							if (imputedNotGenotype) {
-								writer.println(line[1]+DELIMITER+line[5]+DELIMITER+line[6]+DELIMITER+line[7]+DELIMITER+line[2]+DELIMITER+freq+DELIMITER+maf);
+								writer.println(line[1]+DELIMITER+line[5]+DELIMITER+line[6]+DELIMITER+line[7]+DELIMITER+n+DELIMITER+freq+DELIMITER+maf);
 							} else {
-								writer.println(line[1]+DELIMITER+line[5]+DELIMITER+line[6]+DELIMITER+line[7]+DELIMITER+line[2]+DELIMITER+freq+DELIMITER+maf);
+								writer.println(line[1]+DELIMITER+line[6]+DELIMITER+line[7]+DELIMITER+line[11]+DELIMITER+n+DELIMITER+freq+DELIMITER+maf);
 							}
 						}
 						if (numPer == -1) {
@@ -112,7 +117,11 @@ public class GWAF {
 				} else {
 					iv.add(trav);
 				}
-				trav++;
+				if (trav < 0) {
+					trav = Integer.MAX_VALUE;
+				} else {
+					trav++;
+				}
 			}
 			if (first) {
 				log.reportError("Error - no files were found matching the template '"+outfileTemplate+"'");
@@ -122,60 +131,242 @@ public class GWAF {
 			System.err.println("Error writing to " + ext.rootOf(outfileTemplate)+".xln");
 			e.printStackTrace();
 		}
-		
+	}
 
+	public static final String[] IBC_OUTPUT_FORMAT1 = {"CHR", "POS", "SNP", "STRAND (Illumina)", "STRAND (HapMap)", "N", "EFFECT_ALLELE1", "NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE", "P_VAL"};
+	public static final String[] TRADITIONAL_OUTPUT_FORMAT = {"Chr", "Position", "MarkerName", "Strand", "HapMapStrand", "N", "Effect_allele", "Reference_allele", "Freq1", "BETA", "SE", "P-value"};
+
+	public static void parseToMetal(String resultsFile, String infoFile, String markersToReport, String outfile, boolean includeN, boolean includeFreq, boolean includeMAF) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp, trav;
+		Hashtable<String, String> markerHash, alleleHash;
+		String delimiter;
 		
+		String dir = "";
+		
+		
+		if (outfile == null) {
+			outfile = ext.rootOf(resultsFile, false)+"_out.csv";
+		}
+		
+		if (markersToReport != null) {
+			markerHash = HashVec.loadFileToHashNull(dir+markersToReport, false);
+		} else {
+			markerHash = null;
+		}
+		
+		alleleHash = HashVec.loadFileToHashString(dir+infoFile, new int[] {0}, new int[] {1,2}, false, "\t", true, false, false);
+		
+		try {
+			reader = Files.getAppropriateReader(dir+resultsFile);
+			writer = Files.getAppropriateWriter(dir+outfile);
+			temp = reader.readLine().trim();
+			delimiter = ext.determineDelimiter(temp);
+			line = temp.split(delimiter);
+			ext.checkHeader(line, GWAF.HEADER_SUMMARY, true);
+//			writer.println(Array.toStr(IBC_OUTPUT_FORMAT));
+			writer.print("MarkerName\tAllele1\tAllele2\tEffect\tStdErr\tP-value");
+			if (includeN) {
+				writer.print("\tN");
+			}
+			if (includeFreq) {
+				writer.print("\tFreqA1");
+			}
+			if (includeMAF) {
+				writer.print("\tMAF");
+			}
+			writer.println();
+			while (reader.ready()) {
+				line = reader.readLine().trim().split(delimiter);
+				trav = line[0];
+				if ((markerHash == null || markerHash.containsKey(trav)) && !line[3].equals("")) {
+					writer.print(trav);
+					if (alleleHash.containsKey(trav)) {
+						writer.print("\t"+alleleHash.get(trav));
+					} else {
+						System.err.println("Error - no alleles from info file for "+trav);
+						writer.print("\t.\t.");
+					}
+//					public static final String[] HEADER_SUMMARY = {"MarkerName", "beta", "StdErr", "Pvalue", "N", "freqA1", "MAF"};
+					writer.print("\t"+line[1]+"\t"+line[2]+"\t"+line[3]);
+					if (includeN) {
+						writer.print("\t"+line[4]);
+					}
+					if (includeFreq) {
+						writer.print("\t"+line[5]);
+					}
+					if (includeMAF) {
+						writer.print("\t"+line[6]);
+					}					
+					writer.println();
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + resultsFile + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + resultsFile + "\"");
+			System.exit(2);
+		}
 	}
 	
-	public static void batch(String phenoFile, String pheno, String[] covars, String geneticDataTemplate, int startAt, boolean imputedNotGenotype, String pedfile, String outfileTemplate, String qsubRoot, String[] nodesToUse, int numBatches) {
+	
+	public static void parseToMetal(String resultsFile, String mapFile, String originalFrqFile, String markersToReport, String outfile) {
+//		BufferedReader reader;
+//		PrintWriter writer;
+//		String[] line;
+//		String temp, trav;
+//		Hashtable<String, String> markerHash, mapHash, originalFreqHash; // , customFreqHash;
+//		String delimiter;
+//		
+//		String dir = "";
+//		
+//		
+//		if (outfile == null) {
+//			outfile = ext.rootOf(resultsFile, false)+"_out.csv";
+//		}
+//		
+//		if (markersToReport != null) {
+//			markerHash = HashVec.loadFileToHashNull(dir+markersToReport, false);
+//		} else {
+//			markerHash = null;
+//		}
+//		
+//		mapHash = HashVec.loadFileToHashString(dir+mapFile, new int[] {1}, new int[] {0,3}, false, "\t", false, false, false);
+//		originalFreqHash = HashVec.loadFileToHashString(dir+originalFrqFile, new int[] {1}, new int[] {2,3}, false, "\t", false, false, false); // add 4 if you want global frequency
+////		originalFreqHash = HashVec.loadFileToHashString(originalFrqFile, new int[] {1}, customFrqFile==null?new int[] {2,3,4}:new int[] {2,3}, false, "\t", false, false, false); // add 4 if you want global frequency instead of custom Freq
+//
+//		
+////		if (customFrqFile != null) {
+////			System.err.println("Error - use of custom freq file is not currently implemented; still only computes from file");
+////			customFreqHash = HashVec.loadFileToHashString(originalFrqFile, new int[] {1}, new int[] {2,3,4}, false, "\t", false, false, false); // add 4 if you want global frequency instead of custom Freq
+////		} else {
+////			customFreqHash = null;
+////		}
+//		
+//		try {
+//			reader = Files.getAppropriateReader(dir+resultsFile);
+//			writer = Files.getAppropriateWriter(dir+outfile);
+//			temp = reader.readLine().trim();
+//			delimiter = ext.determineDelimiter(temp);
+//			line = temp.split(delimiter);
+//			ext.checkHeader(line, GWAF.HEADER_SUMMARY, true);
+////			writer.println(Array.toStr(IBC_OUTPUT_FORMAT));
+//			writer.println(Array.toStr(TRADITIONAL_OUTPUT_FORMAT));
+//			while (reader.ready()) {
+//				line = reader.readLine().trim().split(delimiter);
+//				trav = line[0];
+//				if ((markerHash == null || markerHash.containsKey(trav)) && !line[3].equals("")) {
+//					if (mapHash.containsKey(trav)) {
+//						writer.print(mapHash.get(trav));
+//					} else if (mapHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
+//						writer.print(mapHash.get(ext.replaceAllWith(trav, ".", "-")));
+//					} else {
+//						System.err.println("Error - no map position for "+trav);
+//						writer.print(".\t.");
+//					}
+//					writer.print("\t"+trav+"\tNA\t+\t"+line[4]);
+//					if (originalFreqHash.containsKey(trav)) {
+//						writer.print("\t"+originalFreqHash.get(trav));
+//					} else if (originalFreqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
+//						writer.print("\t"+originalFreqHash.get(ext.replaceAllWith(trav, ".", "-")));
+//					} else {
+//						System.err.println("Error - no alleles from original .frq file for "+trav);
+//						writer.print("\t.\t.");
+//					}
+//					writer.println("\t"+line[5]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]);
+//				}
+//			}
+//			reader.close();
+//			writer.close();
+//		} catch (FileNotFoundException fnfe) {
+//			System.err.println("Error: file \"" + resultsFile + "\" not found in current directory");
+//			System.exit(1);
+//		} catch (IOException ioe) {
+//			System.err.println("Error reading file \"" + resultsFile + "\"");
+//			System.exit(2);
+//		}
+	}
+	
+	
+	// use numBatches=1 if you want to run in another directory on Windows 
+	public static void batch(String dir, String phenoFile, String pheno, String[] covars, String model, String geneticDataTemplate, int startAt, boolean imputedNotGenotype, String pedfile, String outfileTemplate, String rootTemplate, String[] nodesToUse, int numBatches) {
 		PrintWriter writer;
 		String[] list;
 		int count; //, step;
 		Vector<String> v;
 		
-		if (qsubRoot == null) {
-			qsubRoot = "batches/"+pheno+"_file#";
-		} else if (qsubRoot.endsWith(".qsub")) {
-			qsubRoot = qsubRoot.substring(0, qsubRoot.lastIndexOf("."));
-		}		
+		if (rootTemplate == null) {
+			rootTemplate = "batches/"+pheno+"_file#";
+		} else if (rootTemplate.endsWith(".qsub")) {
+			rootTemplate = rootTemplate.substring(0, rootTemplate.lastIndexOf("."));
+		}
+		
+		if (covars.length == 1 && covars[0].equalsIgnoreCase("null")) {
+			covars = null;
+		}
 		
 		new File("batches/").mkdirs();
 		count = startAt;		
 		try {
-			while (new File(ext.replaceAllWith(geneticDataTemplate, "#", count+"")).exists()) {
-				writer = new PrintWriter(new FileWriter(ext.insertNumbers(qsubRoot, count)+".R"));
+			if (!Files.exists(dir+"kmat.Rfile", false)) {
+				writer = new PrintWriter(new FileWriter(dir+"createKmat.R"));
 				writer.println("library(kinship)");
 				writer.println("library(GWAF)");
+				writer.println("cdata <- read.csv(\""+pedfile+"\", header=T)");
+				writer.println("kmat <- makekinship(cdata$famid, cdata$id, cdata$fa, cdata$mo)");
+				writer.println("kmat<-kmat*2");
+				writer.println("save(kmat, file=\"kmat.Rfile\")");
+				writer.close();
+			}
+
+			while (new File(ext.replaceAllWith(dir+geneticDataTemplate, "#", count+"")).exists() && (geneticDataTemplate.contains("#") || count == startAt)) {
+				writer = new PrintWriter(new FileWriter(dir+ext.insertNumbers(rootTemplate, count)+".R"));
+				writer.println("library(kinship)");
+				writer.println("library(GWAF)");
+				
 				if (imputedNotGenotype) {
 					writer.println("lme.batch.imputed(\""+phenoFile+"\", \""+ext.replaceAllWith(geneticDataTemplate, "#", count+"")+"\", \""+pedfile+"\", \""+pheno+"\", \"kmat.Rfile\", covars="+(covars==null?"NULL":"c(\""+Array.toStr(covars, "\",\"")+"\")")+", \""+ext.replaceAllWith(outfileTemplate, "#", count+"")+"\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
 				} else {
-					writer.println("lme.batch(\""+phenoFile+"\", \""+ext.replaceAllWith(geneticDataTemplate, "#", count+"")+"\", \""+pedfile+"\", \""+pheno+"\", \"kmat.Rfile\", model=\"a\", covars="+(covars==null?"NULL":"c(\""+Array.toStr(covars, "\",\"")+"\")")+", \""+ext.replaceAllWith(outfileTemplate, "#", count+"")+"\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
+					writer.println("lme.batch(\""+phenoFile+"\", \""+ext.replaceAllWith(geneticDataTemplate, "#", count+"")+"\", \""+pedfile+"\", \""+pheno+"\", \"kmat.Rfile\", model=\""+model+"\", covars="+(covars==null?"NULL":"c(\""+Array.toStr(covars, "\",\"")+"\")")+", \""+ext.replaceAllWith(outfileTemplate, "#", count+"")+"\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
 				}
 
 				writer.close();
 				count++;
 			}
 			count--;
-			System.out.println("last file seen was '"+"gwaf/file"+count+".fhsR.gz'");
+			System.out.println("last file seen was '"+ext.replaceAllWith(dir+geneticDataTemplate, "#", count+""));
 			if (numBatches < 1) {
 				if (nodesToUse == null) {
-					v = Array.toStringVector(Files.qsub("", qsubRoot, startAt, count, "R --no-save < "+qsubRoot+".R > "+qsubRoot+".log", null, -1, null));
+					v = Array.toStringVector(Files.qsub(dir, rootTemplate, startAt, count, "R --no-save < "+rootTemplate+".R > "+rootTemplate+".log", null, -1, null));
 				} else {
 					v = new Vector<String>();
 //					step = (int)Math.ceil((double)((count-startAt)+1)/(double)nodesToUse.length);
 //					for (int i = 0; i < nodesToUse.length; i++) {
 //						list = Files.qsub("", null, i*step+startAt, i==nodesToUse.length-1?count:((i+1)*step+startAt-1), "R --no-save < batches/"+pheno+"_gwaf#.R > batches/"+pheno+"_file#.log", "batches/"+pheno+"_file", null, -1, nodesToUse[i]);
 					for (int i = startAt; i <= count; i++) {
-						list = Files.qsub("", qsubRoot, i, i, "R --no-save < "+qsubRoot+".R > "+qsubRoot+".log", null, -1, nodesToUse[i%nodesToUse.length]);
+						list = Files.qsub(dir, rootTemplate, i, i, "R --no-save < "+rootTemplate+".R > "+rootTemplate+".log", null, -1, nodesToUse[i%nodesToUse.length]);
 						for (int j = 0; j < list.length; j++) {
 							v.add(list[j]);
 						}
 					}
 				}
-				Files.writeList(Array.toStringArray(v), "master."+pheno);
-				Files.chmod("master."+pheno);
+				if (!Files.exists(dir+"kmat.Rfile", false)) {
+					v.insertElementAt("R --no-save < createKmat.R > createKmat.log", 0);
+				}
+				Files.writeList(Array.toStringArray(v), dir+"master."+pheno);
+				Files.chmod(dir+"master."+pheno);
 			} else {
-				Files.batchIt("run."+pheno, -1, startAt, count, numBatches, "R --no-save < batches/"+pheno+"_gwaf#.R > batches/"+pheno+"_file#.log");
+				if (System.getProperty("os.name").startsWith("Windows")) {
+					Files.write("R --no-save < createKmat.R > createKmat.log", dir+"createKmat.bat");
+					Files.batchIt((numBatches==1?dir:"")+"run."+pheno, -1, startAt, count, numBatches, "R --no-save 0< "+rootTemplate+".R 1> "+rootTemplate+".log 2> "+rootTemplate+".err.log");
+				} else {
+					Files.batchIt((numBatches==1?dir:"")+"run."+pheno, -1, startAt, count, numBatches, "R --no-save < "+rootTemplate+".R > "+rootTemplate+".log");
+				}
 			}
 		} catch (Exception e) {
 			System.err.println("Error queuing up file " + count);
@@ -183,6 +374,56 @@ public class GWAF {
 		}
 	}
 	
+	public static void splitFiles(String split, int blockSize, String geneticDataTemplate) {
+		BufferedReader reader;
+		PrintWriter writer;
+		PrintWriter[] writers;
+		String[] line;
+		int numOutFiles;
+		String delimiter;
+		String dir;
+		
+		delimiter = Files.determineDelimiter(split, new Logger());
+		dir = ext.parseDirectoryOfFile(geneticDataTemplate);
+		new File(dir).mkdirs();
+		
+		try {
+			reader = Files.getAppropriateReader(split);
+			reader.mark(1000000);
+			line = reader.readLine().trim().split(delimiter);
+			numOutFiles = (int)Math.ceil((double)line.length/(double)blockSize);
+			writers = new PrintWriter[numOutFiles];
+			for (int i = 0; i < numOutFiles; i++) {
+				writers[i] = Files.getAppropriateWriter(ext.replaceAllWith(geneticDataTemplate, "#", i+""));
+			}
+			reader.reset();
+			while (reader.ready()) {
+				line = reader.readLine().trim().split(delimiter, -1);
+				writer = null;
+				for (int i = 1; i < line.length; i++) {
+					if (i % blockSize == 1) {
+						writer = writers[i/blockSize];
+						writer.print(line[0]);
+					}
+					writer.print(delimiter+line[i]);
+				}
+				for (int i = 0; i < numOutFiles; i++) {
+					writers[i].println();
+				}
+			}
+			reader.close();
+			for (int i = 0; i < numOutFiles; i++) {
+				writers[i].close();
+			}
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + split + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + split + "\"");
+			System.exit(2);
+		}		
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String phenoFile = "pheno.csv";
@@ -198,26 +439,34 @@ public class GWAF {
 		boolean parse = false;
 		boolean imputedNotGenotype = true;
 		String outfile = null;
+		String split = null;
+		int blockSize=5000;
+		String model = "a";
 
 		String usage = "\n" + 
 		"gwas.GWAF requires 0-1 arguments\n" + 
 		"   (1) name of file with phenotypes (i.e. phenoFile=" + phenoFile + " (default; currently needs to be comma-delimited))\n" + 
 		"   (2) name of phenotype to run (i.e. pheno=" + pheno + " (default))\n" + 
 		"   (3) name of covariates to include (i.e. covars=" + covars + " (default; null leads to none; comma-delimited))\n" + 
-		"   (4) format of genotype filenames (i.e. genoPrimer=" + geneticDataTemplate + " (default; can be zipped))\n" + 
-		"   (5) number to start looking for file pattern (i.e. startAt=" + startAt + " (default))\n" +
-		"   (6) data is imputed not genotyped (i.e. imputed=" + imputedNotGenotype + " (default))\n" +
-		"   (7) name of pedigree file (i.e. pedfile=" + pedfile + " (default))\n" + 
-		"   (8) template for output files (i.e. outfileTemplate=" + outfileTemplate + " (default))\n" +
-		"   (9) template for qsub files (i.e. qsubRoot=[trait]_file#.qsub (default))\n" +
-		"   (10) nodes to use (i.e. nodesToUse=" + nodesToUse + " (default; qsubs only; full names, comma-delimited))\n" + 
-		"   (11) number of batches to create (i.e. numBatches=" + numBatches + " (default; anything less than 1 leads to qsubs being made))\n" +
+		"   (4) genetic model to use (i.e. model=" + model + " (default))\n" + 
+		"   (5) format of genotype filenames (i.e. genoPrimer=" + geneticDataTemplate + " (default; can be zipped))\n" + 
+		"   (6) number to start looking for file pattern (i.e. startAt=" + startAt + " (default))\n" +
+		"   (7) data is imputed not genotyped (i.e. imputed=" + imputedNotGenotype + " (default))\n" +
+		"   (8) name of pedigree file (i.e. pedfile=" + pedfile + " (default))\n" + 
+		"   (9) template for output files (i.e. outfileTemplate=" + outfileTemplate + " (default))\n" +
+		"   (10) template for qsub files (i.e. qsubRoot=[trait]_file#.qsub (default))\n" +
+		"   (11) nodes to use (i.e. nodesToUse=" + nodesToUse + " (default; qsubs only; full names, comma-delimited))\n" + 
+		"   (12) number of batches to create (i.e. numBatches=" + numBatches + " (default; anything less than 1 leads to qsubs being made))\n" +
 		" OR\n" +
 		"   (1) parse results (i.e. -parseResults (not the default))\n" +
 		"   (2) template for output files (i.e. outfileTemplate=" + outfileTemplate + " (default))\n" + 
 		"   (3) number to start looking for file pattern (i.e. startAt=" + startAt + " (default))\n" + 
 		"   (4) data is imputed not genotyped (i.e. imputed=" + imputedNotGenotype + " (default))\n" +
 		"   (5) name of parsed output file (i.e. out=" + outfile + " (default))\n" +
+		" OR\n" +
+		"   (1) split file into subfiles (i.e. split=gwaf.csv (not the default))\n" +
+		"   (2) size of chunks (i.e. size="+blockSize+" (default))\n" + 
+		"   (3) template for output files (i.e. genoPrimer="+geneticDataTemplate+" (default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -232,6 +481,9 @@ public class GWAF {
 				numArgs--;
 			} else if (args[i].startsWith("covars=")) {
 				covars = args[i].split("=")[1].split(",");
+				numArgs--;
+			} else if (args[i].startsWith("model=")) {
+				model = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("genoPrimer=")) {
 				geneticDataTemplate = args[i].split("=")[1];
@@ -263,6 +515,12 @@ public class GWAF {
 			} else if (args[i].startsWith("out=")) {
 				outfile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("split=")) {
+				split = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("size=")) {
+				blockSize = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -275,10 +533,16 @@ public class GWAF {
 //			outfileTemplate = "FHS_whites/inverseNormalizedPhenoWithConditionals_withCondi_results#.csv";
 //			parse = true;
 			
+//			outfileTemplate = "pta_results#.csv";
+//			parse = true;
+//			imputedNotGenotype = false;
+
 			if (parse) {
 				parse(outfileTemplate, startAt, imputedNotGenotype, outfile);
+			} else if (split != null) {
+				splitFiles(split, blockSize, geneticDataTemplate);
 			} else {
-				batch(phenoFile, pheno, covars, geneticDataTemplate, startAt, imputedNotGenotype, pedfile, outfileTemplate, qsubRoot, nodesToUse, numBatches);
+				batch("", phenoFile, pheno, covars, model, geneticDataTemplate, startAt, imputedNotGenotype, pedfile, outfileTemplate, qsubRoot, nodesToUse, numBatches);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

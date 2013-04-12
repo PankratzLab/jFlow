@@ -28,7 +28,7 @@ public class diff {
 	    fingerprint = fingerprint*1000+(int)(Math.random()*1000);
 //	    fingerprint = (10000+Long.parseLong(ext.right(fingerprint+"", 5)))*1000+(int)(Math.random()*1000);
 //	    System.out.println(fingerprint);
-	    Files.writeList(new String[] {filename}, fingerprint+".difftemp");
+	    Files.write(filename, fingerprint+".difftemp");
 	    for (int i = 0; i < 15; i++) {
 	    	try {
 	    		Thread.sleep(200);

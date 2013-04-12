@@ -366,9 +366,9 @@ public class Traits {
 		}
 		
 		for (int rep = 1; rep <= 200; rep++) {
-//			Files.combine(HashVec.loadFileToStringArray(pheno_dir+"unr_phen."+rep, false, true, new int[] {0}, false, ","), new String[] {pheno_dir+"unr_phen."+rep+" 0 0=IID 4=Q1 1=SEX 2=AGE 3=SMOKE ,", mds_file+" 0 3=C1 4=C2"}, "FID", pheno_dir+"pheno_C2."+rep, new Logger(null), false);
-//			Files.combine(HashVec.loadFileToStringArray(pheno_dir+"unr_phen."+rep, false, true, new int[] {0}, false, ","), new String[] {pheno_dir+"unr_phen."+rep+" 0 0=IID 4=Q1 1=SEX 2=AGE 3=SMOKE ,", mds_file+" 0 3=C1 4=C2 5=C3 6=C4 7=C5 8=C6 9=C7 10=C8 11=C9 12=C10"}, "FID", pheno_dir+"pheno_C10."+rep, new Logger(null), false);
-			Files.combine(HashVec.loadFileToStringArray(pheno_dir+"unr_phen."+rep, false, true, new int[] {0}, false, ","), new String[] {pheno_dir+"unr_phen."+rep+" 0 0=IID 7=Affected 4=Q1 5=Q2 1=SEX 2=AGE 3=SMOKE ,", mds_file+comps}, "FID", pheno_dir+"pheno_C"+numComps+"."+rep, new Logger(null), false);
+//			Files.combine(HashVec.loadFileToStringArray(pheno_dir+"unr_phen."+rep, false, true, new int[] {0}, true, false, ","), new String[] {pheno_dir+"unr_phen."+rep+" 0 0=IID 4=Q1 1=SEX 2=AGE 3=SMOKE ,", mds_file+" 0 3=C1 4=C2"}, "FID", pheno_dir+"pheno_C2."+rep, new Logger(null), false);
+//			Files.combine(HashVec.loadFileToStringArray(pheno_dir+"unr_phen."+rep, false, true, new int[] {0}, true, false, ","), new String[] {pheno_dir+"unr_phen."+rep+" 0 0=IID 4=Q1 1=SEX 2=AGE 3=SMOKE ,", mds_file+" 0 3=C1 4=C2 5=C3 6=C4 7=C5 8=C6 9=C7 10=C8 11=C9 12=C10"}, "FID", pheno_dir+"pheno_C10."+rep, new Logger(null), false);
+			Files.combine(HashVec.loadFileToStringArray(pheno_dir+"unr_phen."+rep, false, true, new int[] {0}, true, false, ","), new String[] {pheno_dir+"unr_phen."+rep+" 0 0=IID 7=Affected 4=Q1 5=Q2 1=SEX 2=AGE 3=SMOKE ,", mds_file+comps}, "FID", pheno_dir+"pheno_C"+numComps+"."+rep, new Logger(null), false);
 		}
 	}
 
@@ -580,12 +580,12 @@ public class Traits {
 		double mean, stdev;
 		double[][] matrix;
 		
-		ids = HashVec.loadFileToStringArray(pheno_dir+pheno_root+".1", false, true, new int[] {0}, false, commaDelimited?",":"[\\s]+");
+		ids = HashVec.loadFileToStringArray(pheno_dir+pheno_root+".1", false, true, new int[] {0}, true, false, commaDelimited?",":"[\\s]+");
 		
 		counts = new int[ids.length][stddevThresholds.length];
 		matrix = new double[ids.length][200];
 		for (int rep = 1; rep <= 200; rep++) {
-			values = Array.toDoubleArray(Array.toStringArray(HashVec.loadFileToVec(pheno_dir+pheno_root+"."+rep, true, new int[] {col}, false, false, commaDelimited?",":"[\\s]+")));
+			values = Array.toDoubleArray(Array.toStringArray(HashVec.loadFileToVec(pheno_dir+pheno_root+"."+rep, true, new int[] {col}, true, false, false, commaDelimited?",":"[\\s]+")));
 			mean = Array.mean(values);
 			stdev = Array.stdev(values);
 			for (int i = 0; i < ids.length; i++) {

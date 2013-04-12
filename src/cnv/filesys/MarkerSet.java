@@ -11,6 +11,7 @@ public class MarkerSet implements Serializable {
 	private String[] markerNames;
 	private byte[] chrs;
 	private int[] positions;
+//	private char[][] abAlleles;
 
 	public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
 		if (markerNames.length!=chrs.length||markerNames.length!=positions.length) {
@@ -80,6 +81,33 @@ public class MarkerSet implements Serializable {
         }
 		
 		return positionsByChr;
+	}
+
+	public int[][] getIndicesByChr() {
+		IntVector iv;
+		byte chr;
+		int[][] indicesByChr;
+		boolean done;
+		
+		indicesByChr = new int[27][0];
+		
+		chr = 0;
+		iv = new IntVector(20000);
+		done = false;
+		for (int i = 0; !done; i++) {
+			if (i==chrs.length || chrs[i] != chr) {
+				indicesByChr[chr] = iv.toArray();
+				chr = i==chrs.length?0:chrs[i];
+				iv = new IntVector(20000);
+			}
+			if (i==chrs.length) {
+				done = true;
+			} else {
+				iv.add(i);
+			}
+        }
+		
+		return indicesByChr;
 	}
 
 	public long getFingerprint() {

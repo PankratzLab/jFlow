@@ -31,6 +31,12 @@ public class HashVec {
 			return true;
 		}
 	}
+	
+	public static void addAllInArrayToVector(String[] array, Vector<String> vector) {
+		for (int i = 0; i < array.length; i++) {
+			vector.add(array[i]);
+		}
+	}
 
 	@SuppressWarnings({ "rawtypes" })
 	public static String[] getKeys(Hashtable hash) {
@@ -166,11 +172,21 @@ public class HashVec {
 		return loadFileToHashString(filename, 0, null, null, ignoreFirstLine);
 	}
 
-	public static Hashtable<String,String> loadFileToHashNull(String[] list) {
+	public static Hashtable<String,String> loadToHashNull(String[] list) {
 		Hashtable<String,String> hash = new Hashtable<String,String>();
 		
 		for (int i = 0; i<list.length; i++) {
 			hash.put(list[i], "");
+		}
+
+		return hash;
+	}
+
+	public static Hashtable<String,String> loadToHashIndices(String[] list) {
+		Hashtable<String,String> hash = new Hashtable<String,String>();
+		
+		for (int i = 0; i<list.length; i++) {
+			hash.put(list[i], i+"");
 		}
 
 		return hash;
@@ -192,15 +208,15 @@ public class HashVec {
 		return Array.toStringArray(loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar));
 	}
 
-	public static String[] loadFileToStringArray(String filename, boolean jar, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent, String delimiter) {
-		return Array.toStringArray(loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar, delimiter));
+	public static String[] loadFileToStringArray(String filename, boolean jar, boolean ignoreFirstLine, int[] cols, boolean trimFirst, boolean onlyIfAbsent, String delimiter) {
+		return Array.toStringArray(loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar, delimiter));
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent, boolean jar) {
-		return loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar, "[\\s]+");
+		return loadFileToVec(filename, ignoreFirstLine, cols, true, onlyIfAbsent, jar, "[\\s]+");
 	}
 
-	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent, boolean jar, String delimiter) {
+	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols, boolean trimFirst, boolean onlyIfAbsent, boolean jar, String delimiter) {
 		BufferedReader reader = null;
 		Vector<String> v = new Vector<String>();
 		String trav;
@@ -216,7 +232,11 @@ public class HashVec {
 			while (reader.ready()) {
 				trav = reader.readLine();
 				if (cols!=null) {
-					line = trav.trim().split(delimiter, -1);
+					if (trimFirst) {
+						line = trav.trim().split(delimiter, -1); // trim() needed for all PLINK files
+					} else {
+						line = trav.split(delimiter, -1);
+					}
 					trav = "";
 					for (int i = 0; i<cols.length; i++) {
 						if (line.length <= cols[i]) {
@@ -255,6 +275,9 @@ public class HashVec {
 
 		try {
 			reader = Files.getReader(filename, jar, true, false);
+			if (reader == null) {
+				return null;
+			}
 			if (ignoreFirstLine) {
 				reader.readLine();
 			}
@@ -341,7 +364,7 @@ public class HashVec {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (commaDelimitedFile) {
-					line = temp.split(",");
+					line = temp.split(",", -1);
 				} else if (temp.indexOf("\t")==-1) {
 					line = temp.trim().split("[\\s]+");
 				} else {
@@ -360,7 +383,7 @@ public class HashVec {
 					} else if (allowMissingData) {
 						temp += ((i==0)?"":delimiterWithinHash)+".";
 					} else {
-						System.err.println("Error - not enough columns for key '"+key+"'; and allMissingData was not flagged");
+						System.err.println("Error - not enough columns for key '"+key+"'; and allowMissingData was not flagged");
 					}
 				}
 				hash.put(key, temp);

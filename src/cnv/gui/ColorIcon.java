@@ -8,7 +8,7 @@ import java.awt.Insets;
 import javax.swing.Icon;
 
 public class ColorIcon extends Component implements Icon {
-	static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;
 	private int width;
 	private int height;
 	private Color color;

@@ -83,7 +83,7 @@ public class GeneTrack implements Serializable {
 	        }
 		}
 		
-		return GeneData.toArray(v);
+		return GeneData.toGeneDataArray(v);
 	}
 	
 	public int[] lookupPosition(String geneName) {

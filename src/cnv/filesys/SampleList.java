@@ -70,7 +70,7 @@ public class SampleList implements Serializable {
 				}
 			});
 		} else {
-			System.err.println("Error - failed to find the SAMPLE_DIRECTORY and the IND_DIRECTORY; no SmapleList could be generated");
+			System.err.println("Error - failed to find the SAMPLE_DIRECTORY and the IND_DIRECTORY; no SampleList could be generated");
 			return null;
 		}
 			

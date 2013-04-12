@@ -18,15 +18,20 @@ public class Markers {
 		byte[] chrs;
 		int[] positions, keys;
 		String[] line;
+		Vector<String> v;
 
 		snpPositions = HashVec.loadFileToHashString(markerDatabase, 0, new int[] {1, 2}, "\t", false);
 		if (markerNames == null) {
 			if (snpPositions.containsKey("Marker")) {
 				snpPositions.remove("Marker");
 			}
+			if (snpPositions.containsKey("Name")) {
+				snpPositions.remove("Name");
+			}
 			markerNames = HashVec.getKeys(snpPositions);
 		}
 
+		v = new Vector<String>();
 		System.out.println(ext.getTime()+"\tOrdering markers");
 		chrs = new byte[markerNames.length];
 		positions = new int[markerNames.length];
@@ -36,9 +41,13 @@ public class Markers {
 				chrs[i] = Positions.chromosomeNumber(line[0]);
 				positions[i] = Integer.parseInt(line[1]);
 			} else {
-				System.err.println("Error - '"+markerNames[i]+"' was not listed in the file of SNP positions");
-				return null;
+				v.add(markerNames[i]);
 			}
+		}
+		if (v.size() > 0) {
+			System.err.println("Error - The there "+(v.size()==1?"was one":"were "+v.size())+" markers found in the FinalReport file that were not listed in the file of SNP positions; halting parse operation");
+			Files.writeList(Array.toStringArray(v), ext.parseDirectoryOfFile(markerDatabase)+"markersNotInPositionsFile.txt");
+			return null;			
 		}
 
 		keys = Sort.orderTwoLayers(chrs, positions);
@@ -56,7 +65,9 @@ public class Markers {
 		String[] line;
 		int[] indices;
 		String delimiter;
+		long time;
 	
+		time = new Date().getTime();
 		delimiter = proj.getSourceFileDelimiter();
 		try {
 			reader = new BufferedReader(new FileReader(proj.getProjectDir()+snpTable));
@@ -76,6 +87,7 @@ public class Markers {
 			System.err.println("Error reading file \""+snpTable+"\"");
 			return;
 		}
+		System.out.println("Finished parsing "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+" in " + ext.getTimeElapsed(time));
 	}
 
 	public static void useAlleleLookup(String filename, int alleleCol, String lookupFile, int setFrom, int setTo) {
@@ -143,11 +155,12 @@ public class Markers {
 		String usage = "\n" +
 		"cnv.manage.Markers requires 0-1 arguments\n" +
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (2) filename of SNP Table (i.e. snps=Table.csv (not the default))\n"+
 		" OR:\n"+
-		"   (1) use allele lookup to convert a file form forward to TOP strand (i.e. convert=file.txt (not the default))\n"+
-		"   (2) column of A1 in file (i.e. col="+alleleCol+" (default))\n"+
-		"   (3) allele set to lookup from (i.e. from="+setFrom+" (default; if 1+8 columns fo 4 pairs, then use indices 0-3))\n"+
-		"   (4) allele set to lookup to (i.e. to="+setTo+" (default))\n"+
+		"   (2) use allele lookup to convert a file form forward to TOP strand (i.e. convert=file.txt (not the default))\n"+
+		"   (3) column of A1 in file (i.e. col="+alleleCol+" (default))\n"+
+		"   (4) allele set to lookup from (i.e. from="+setFrom+" (default; if 1+8 columns fo 4 pairs, then use indices 0-3))\n"+
+		"   (5) allele set to lookup to (i.e. to="+setTo+" (default))\n"+
 		"";
 
 		for (int i = 0; i < args.length; i++) {

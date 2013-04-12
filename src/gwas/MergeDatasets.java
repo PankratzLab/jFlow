@@ -78,13 +78,13 @@ public class MergeDatasets {
 	        		genotypeCounts[j] = Array.toIntArray(line[2].split("/"));
 
 	        		switch (Metal.determineStrandConfig(new String[] {line[0], line[1]}, refAlleles)) {
-	        		case Metal.STRAND_CONFIG_SAME_FLIPPED:
+	        		case Metal.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
 //	        			countFlipped[i]++;
-	        		case Metal.STRAND_CONFIG_SAME:
+	        		case Metal.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
 	                    break;
-	        		case Metal.STRAND_CONFIG_OPPOSITE_FLIPPED:
+	        		case Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
 //	        			countFlipped[i]++;
-	        		case Metal.STRAND_CONFIG_OPPOSITE:
+	        		case Metal.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
 	        			temp = genotypeCounts[j][0];
 	        			genotypeCounts[j][0] = genotypeCounts[j][2];
 	        			genotypeCounts[j][2] = temp;

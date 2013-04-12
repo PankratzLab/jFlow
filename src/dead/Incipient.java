@@ -1338,7 +1338,8 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 }
 
 class WindowIssues extends WindowAdapter {
-	Incipient inc;
+	private Incipient inc;
+	
 	protected WindowIssues(Incipient inc) {
 		this.inc = inc;
 	}
@@ -1350,14 +1351,9 @@ class WindowIssues extends WindowAdapter {
 }
 
 class AboutPanel extends JPanel {   // can we get rid of this please?
-	static final long serialVersionUID = 1L;
-	ImageIcon aboutimage = null;
-	//	Incipient inc = null;
-	JDialog aboutbox;
-
+	public static final long serialVersionUID = 1L;
+	private ImageIcon aboutimage = null;
 	public AboutPanel(JDialog aboutbox) {
-		//	    this.inc = inc;
-		this.aboutbox = aboutbox;
 		aboutimage = new ImageIcon("kem_goz.jpg");
 		setOpaque(false);
 	}
@@ -1373,9 +1369,9 @@ class AboutPanel extends JPanel {   // can we get rid of this please?
 }
 
 class IPanel extends JPanel {
-	static final long serialVersionUID = 1L;
-	int prefX;
-	int prefY;
+	public static final long serialVersionUID = 1L;
+	private int prefX;
+	private int prefY;
 
 	public IPanel(int x, int y) {
 		prefX = x;
@@ -1440,8 +1436,8 @@ class IPanel extends JPanel {
 //}
 
 class OkAction extends AbstractAction {
-	static final long serialVersionUID = 1L;
-    JDialog aboutBox;
+	public static final long serialVersionUID = 1L;
+	private JDialog aboutBox;
 
     protected OkAction(JDialog aboutBox) {
         super("OkAction");

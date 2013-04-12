@@ -22,6 +22,7 @@ public class UCSCtrack {
         double value;
         boolean ignoreWhenAbsentInResultsFile, separateMap, neg_log;
         Vector<String> paramV;
+        boolean displayMarkerName;
 
     	String[] filterValues, filterOps;
     	int[] filterCols;
@@ -54,6 +55,7 @@ public class UCSCtrack {
     	commaDelimited = false;
     	tabDelimited = false;
     	ignoreFirstLine = true;
+    	displayMarkerName = false;
     	filters = new Vector<String>();
     	outfile = ext.rootOf(resultsFile)+".bed";
     	for (int j = 1; j<line.length; j++) {
@@ -71,6 +73,8 @@ public class UCSCtrack {
     			stopIndex = Integer.parseInt(line[j].split("=")[1]);
     		} else if (line[j].equals(",")) {
     			commaDelimited = true;
+    		} else if (line[j].equals("displayMarkerName")) {
+    			displayMarkerName = true;
     		} else if (line[j].equals("tab")) {
     			tabDelimited = true;
     		} else if (line[j].equals("neg_log")) {
@@ -136,7 +140,9 @@ public class UCSCtrack {
 			    		}
 			        }
 			    	if (passedFilter) {
-						if (line[valueIndex].equals(".")||line[valueIndex].toUpperCase().startsWith("NA")) {
+			    		if (valueIndex == -1) {
+							value = 1;
+						} else if (line[valueIndex].equals(".")||line[valueIndex].toUpperCase().startsWith("NA")) {
 							value = -1;
 						} else {
 							value = Double.parseDouble(line[valueIndex]);
@@ -156,7 +162,7 @@ public class UCSCtrack {
 								start++;
 								stop++;
 							}
-							writer.println("chr"+Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))+"\t"+start+"\t"+stop+"\t"+ext.formDeci(value, SIG_FIGS));
+							writer.println("chr"+Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))+"\t"+start+"\t"+stop+(displayMarkerName?"\t"+line[markerIndex]:"")+"\t"+ext.formDeci(value, SIG_FIGS));
 							prevStart = start;
 						}
 			    	}
@@ -228,9 +234,9 @@ public class UCSCtrack {
 						}
 						if (hash.containsKey(ignoreCase?line[markerIndex].toLowerCase():line[markerIndex])) {
 							value = hash.get(ignoreCase?line[markerIndex].toLowerCase():line[markerIndex]).doubleValue();
-							writer.println("chr"+Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))+"\t"+start+"\t"+stop+"\t"+ext.formDeci(value, SIG_FIGS));
+							writer.println("chr"+Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))+"\t"+start+"\t"+stop+(displayMarkerName?"\t"+line[markerIndex]:"")+"\t"+ext.formDeci(value, SIG_FIGS));
 						} else if (!ignoreWhenAbsentInResultsFile) {
-							writer.println("chr"+Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))+"\t"+start+"\t"+stop+"\t"+ext.formDeci(-2, SIG_FIGS));
+							writer.println("chr"+Positions.chromosomeNumberInverse(Integer.parseInt(line[chrIndex]))+"\t"+start+"\t"+stop+"\t"+(displayMarkerName?"\t"+line[markerIndex]:"")+"\t"+ext.formDeci(-2, SIG_FIGS));
 						}
 						prevStart = start;
 					}

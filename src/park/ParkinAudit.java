@@ -723,35 +723,35 @@ public class ParkinAudit {
 }
 
 class MutationCarrier {
-	String UniqueID;
-	String FamID;
-	String IndID;
-	int AOO;
-	int firstPlate;
-	double lod;
-	boolean inLab;
-	int numberFamMems;
-	boolean seanSeqd;
-	boolean dianeSeqd;
-	boolean MLPAd;
-	String[] seanMutations;
-	String[] dianeMutations;
-	String[] knownPolymorphisms;
-	String[] MLPAresults;
-	String[][] categories;
-	int numMutations;
-	int numSeq;
-	int numDosage;
-	int mutClass;
-	boolean partiallyChecked;
-	boolean fullyChecked;
-	boolean familyMemberFullyChecked;
-	boolean familyMemberPartiallyChecked;
-	boolean randomCandidate;
-	boolean shouldBe;
-	boolean butWasnt;
-	String dna;
-	Vector<String> mutations;
+	public String UniqueID;
+	public String FamID;
+	public String IndID;
+	public int AOO;
+	public int firstPlate;
+	public double lod;
+	public boolean inLab;
+	public int numberFamMems;
+	public boolean seanSeqd;
+	public boolean dianeSeqd;
+	public boolean MLPAd;
+	public String[] seanMutations;
+	public String[] dianeMutations;
+	public String[] knownPolymorphisms;
+	public String[] MLPAresults;
+	public String[][] categories;
+	public int numMutations;
+	public int numSeq;
+	public int numDosage;
+	public int mutClass;
+	public boolean partiallyChecked;
+	public boolean fullyChecked;
+	public boolean familyMemberFullyChecked;
+	public boolean familyMemberPartiallyChecked;
+	public boolean randomCandidate;
+	public boolean shouldBe;
+	public boolean butWasnt;
+	public String dna;
+	public Vector<String> mutations;
 
 	public MutationCarrier() {
 		firstPlate = -1;

@@ -19,8 +19,15 @@ public class Transformations {
 	public static final int NORMALIZE = 9;
 	public static final int STANDARDIZE_RANGE = 10;
 	public static final int INVERSE_NORMALIZE = 11;
+	public static final int QUANTILE = 12;
+	public static final int INVERSE_TDIST_5DF = 13;
+
 	
 	public static double[] transform(double[] array, int type) {
+		return transform(array, type, new Logger());
+	}
+	
+	public static double[] transform(double[] array, int type, Logger log) {
 		switch (type) {
 		case IDENTITY:
 			return array;
@@ -30,6 +37,10 @@ public class Transformations {
 			return Array.normalize(array);
 		case INVERSE_NORMALIZE:
 			return Array.inverseNormalize(array);
+		case QUANTILE:
+			return Array.quantiles(array);
+		case INVERSE_TDIST_5DF:
+			return Array.inverseTdist(array, 5);
 		case STANDARDIZE_RANGE:
 			return standardizeRange(array);
 		case LOG_NATURAL:
@@ -43,15 +54,19 @@ public class Transformations {
 		case CUBED:
 			return cubedTransform(array);
 		case BOXCOX_LL:
-			return new BoxCox(array).getTransform_MaxLL();
+			return new BoxCox(array, log).getTransform_MaxLL();
 		case BOXCOX_KURT:
-			return new BoxCox(array).getTransform_MinKurt();
+			return new BoxCox(array, log).getTransform_MinKurt();
 		default:
-			System.err.println("Error - '"+type+"' does not map to an implemented method; using NORMALIZE");
+			log.reportError("Error - '"+type+"' does not map to an implemented method; using NORMALIZE");
 			return Array.normalize(array);
 		}
 	}
 
+	public static float[] transform(float[] array, int type) {
+		return Array.toFloatArray(transform(Array.toDoubleArray(array), type, new Logger()));
+	}
+	
 	public static double[][] transform(double[][] data, int type) {
 		double[] array;
 
@@ -60,7 +75,7 @@ public class Transformations {
 			for (int j = 0; j<data.length; j++) {
 				array[j] = data[j][i];
 			}
-			array = transform(array, type);
+			array = transform(array, type, new Logger());
 			for (int j = 0; j<data.length; j++) {
 				data[j][i] = array[j];
 			}
@@ -188,7 +203,7 @@ public class Transformations {
 		IntVector duds;
 		int count;
 		
-		line = HashVec.loadFileToStringArray(filename, false, ignoreFirstLine, new int[] {column}, false, commaDelimited?",":"[\\s]+");
+		line = HashVec.loadFileToStringArray(filename, false, ignoreFirstLine, new int[] {column}, true, false, commaDelimited?",":"[\\s]+");
 		dv = new DoubleVector();
 		duds = new IntVector();
 		for (int i = 0; i < line.length; i++) {
@@ -198,7 +213,7 @@ public class Transformations {
 				duds.add(i);
 			}
 		}
-		transformed = Array.toStringArray(transform(dv.toArray(), type));
+		transformed = Array.toStringArray(transform(dv.toArray(), type, new Logger()));
 		for (int i = 0; i < duds.size(); i++) {
 			Array.addStrToArray(".", transformed, duds.elementAt(i));
 		}
@@ -238,8 +253,13 @@ public class Transformations {
 	public static void fromParameters(String filename, Logger log) {
 		Vector<String> paramV;
 		String[] defaults;
+		String types;
 
-		defaults = new String[] {"file=input.txt", "out=output.txt", "ignoreFirstLine=false", "col=0", "comma=false", "replace=false", "type=11", "# add -h as an argument if you want a full description"};
+		types = "";
+		for (int i = 0; i < LABELS.length; i++) {
+			types += " "+i+"="+LABELS[i];
+		}
+		defaults = new String[] {"file=input.txt", "out=output.txt", "ignoreFirstLine=false", "col=0", "comma=false", "replace=false", "type=11", "#possible types:"+types};
 		for (int i = 0; i < LABELS.length; i++) {
 			Array.addStrToArray("# "+i+"="+LABELS[i], defaults);
 		}
@@ -312,13 +332,13 @@ public class Transformations {
 			System.exit(1);
 		}
 		try {
-			filename = "unr_phen.1";
-			commaDelimited = true;
-			col = 4;
-			replace = false;
-			ignoreFirstLine = true;
-			type = Transformations.INVERSE_NORMALIZE;
-			
+//			filename = "unr_phen.1";
+//			commaDelimited = true;
+//			col = 4;
+//			replace = false;
+//			ignoreFirstLine = true;
+//			type = Transformations.INVERSE_NORMALIZE;
+//			
 			if (outfile == null) {
 				outfile = filename+"."+LABELS[type];
 			}	

@@ -1,3 +1,4 @@
+// The speed of CountHash is constant for a fixed number of entries. CountVector has a comparable speed up to 50 unique values and then becomes much slower: 50% slower at 100 values, twice as slow at 200 values, 8x at 1000 values, nearly linear
 package common;
 
 import java.util.*;

@@ -51,6 +51,7 @@ public class GenderChecks {
 		sampleData = proj.getSampleData(false);
 
 		System.out.println("Took "+ext.getTimeElapsed(time)+" to hash samples");
+		System.out.println("Counting by 100s:");
 		time = new Date().getTime();
 
 		samples = proj.getSamples();
@@ -412,12 +413,14 @@ public class GenderChecks {
 		"qc.GenderChecks requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"   (2) check sex of indiviudals (i.e. -check (not the default))\n"+
-		"   (3) marker lookup file (i.e. file=1a.txt (not the default))\n"+
-		"   (4) batch all (i.e. batch=4 (not the default))\n"+
-		"   (5) parse all results (i.e. -parse (not the default))\n"+
-		"   (6) drop markers (i.e. -drop (not the default))\n"+
-		"   (7) file with all markers (i.e. all="+allMarkers+" (default file))\n"+
-		"   (8) list of bad markers (i.e. drop="+markersToDrop+" (default file))\n"+
+		" OR\n"+
+		"   (2) marker lookup file (i.e. file=1a.txt (not the default))\n"+
+		"   (3) batch all (i.e. batch=4 (not the default))\n"+
+		" OR\n"+
+		"   (4) parse all results (i.e. -parse (not the default))\n"+
+		"   (5) drop markers (i.e. -drop (not the default))\n"+
+		"   (6) file with all markers (i.e. all="+allMarkers+" (default file))\n"+
+		"   (7) list of bad markers (i.e. drop="+markersToDrop+" (default file))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {

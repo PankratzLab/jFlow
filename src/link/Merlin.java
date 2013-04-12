@@ -104,10 +104,10 @@ public class Merlin {
 	}
 
 	public static void createMerlinFiles(int chr, int trait) {
-		createMerlinFiles(chr, "chr"+ext.chrome(chr), trait);
+		createMerlinFiles(chr, "chr"+ext.chrome(chr), trait, null);
 	}
 	
-	public static void createMerlinFiles(int chr, String root, int trait) {
+	public static void createMerlinFiles(int chr, String root, int trait, String[] covariateNames) {
 		PrintWriter writer;
 		LinkageMap map;
 		String[] markerNames;
@@ -131,6 +131,9 @@ public class Merlin {
 			case QUANTITATIVE_TRAIT:
 				writer.println("T trait");
 				break;
+			}
+			for (int i = 0; covariateNames != null && i<covariateNames.length; i++) {
+				writer.println("C "+covariateNames[i]);
 			}
 			for (int i = 0; i<markerNames.length; i++) {
 				writer.println("M "+markerNames[i]);
@@ -176,7 +179,7 @@ public class Merlin {
 		conf = 0;
 		try {
 	        reader = new BufferedReader(new FileReader("re_chrom"+ext.chrome(chr)+".pre"));
-	        while (binary && conf < 10 && reader.ready()) {
+	        while (binary && conf < 100 && reader.ready()) {
 	        	line = reader.readLine().trim().split("[\\s]+");
 	        	if (line[5].equals("0")) {
 	        		

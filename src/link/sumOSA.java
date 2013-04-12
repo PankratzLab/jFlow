@@ -11,15 +11,15 @@ public class sumOSA {
 	public static String[] SUGGESTIONS = {"struct111-/", "struct100-/", "mm/struct111-/", "gh/struct111-/", "mm/struct100-/", "gh/struct100-/"};
 
 	public class osaChrom {
-		int maxPos;
-		double baseLOD;
-		double maxLOD;
-		int totalFams;
-		int maxFams;
-		String pval;
-		double cutoff;
-		int repsCompleted;
-		int repsRequested;
+		private int maxPos;
+		private double baseLOD;
+		private double maxLOD;
+		private int totalFams;
+		private int maxFams;
+		private String pval;
+		public double cutoff;
+		public int repsCompleted;
+		public int repsRequested;
 
 		public osaChrom(int numFams) {
 			totalFams = numFams;

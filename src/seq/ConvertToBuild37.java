@@ -32,7 +32,7 @@ public class ConvertToBuild37 {
 		err = new Hashtable<String, String>();
 		files = Files.list(dir, ".err", false);
 		for (int i = 0; i < files.length; i++) {
-			lines = HashVec.loadFileToStringArray(dir+files[i], false, false, new int[] {0}, false, ",");
+			lines = HashVec.loadFileToStringArray(dir+files[i], false, false, new int[] {0}, true, false, ",");
 			for (int j = 0; j < lines.length; j++) {
 				if (lines[j].equals("#Deleted in new")) {
 					err.put(lines[j+1], "");

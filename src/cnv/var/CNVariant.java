@@ -91,7 +91,8 @@ public class CNVariant extends Segment {
 		return familyID+"_"+individualID+"_"+chr+"_"+start+"_"+stop+"_"+cn+"_"+numMarkers;
 	}
 	
-	public static CNVariant[] toArray(Vector<CNVariant> v) {
+	// used to be just toArray, which overrode Segment.toArray, but Ant thinks this is a compile error for some reason
+	public static CNVariant[] toCNVariantArray(Vector<CNVariant> v) {
 		CNVariant[] cnvs;
 
 		cnvs = new CNVariant[v==null?0:v.size()];
@@ -133,7 +134,7 @@ public class CNVariant extends Segment {
 			}
 			reader.close();
 
-			return CNVariant.sortCNVs(CNVariant.toArray(v));
+			return CNVariant.sortCNVs(CNVariant.toCNVariantArray(v));
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" not found in current directory");
 			fnfe.printStackTrace();
@@ -160,7 +161,7 @@ public class CNVariant extends Segment {
 				}
 			}
 		}
-		consensus = sortCNVs(CNVariant.toArray(v));
+		consensus = sortCNVs(CNVariant.toCNVariantArray(v));
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(file1)+"_"+ext.rootOf(file2)+"_consensus.cnv"));

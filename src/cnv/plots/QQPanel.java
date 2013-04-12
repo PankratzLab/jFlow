@@ -26,11 +26,13 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 		if (log10) {
 			if (rotated) {
 				xAxisLabel = "-log10(rank/n)";
-				yAxisLabel = "-log10(p-value)";
+				yAxisLabel = "-log10(p-value) - -log10(rank/n)";
 			} else {
 				xAxisLabel = "-log10(rank/n)";
-				yAxisLabel = "-log10(p-value) - -log10(rank/n)";
+				yAxisLabel = "-log10(p-value)";
 			}
+			plotXmin = 0;
+			plotYmin = 0;
 		} else {
 			xAxisLabel = "Expected quantiles";
 			yAxisLabel = "Observed quantiles";

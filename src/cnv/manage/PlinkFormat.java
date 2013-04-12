@@ -29,6 +29,7 @@ public class PlinkFormat {
 		double gcThreshold;
 		float[] gcs;
 		String targetMarkers;
+		String temp;
 
 		System.out.println(ext.getTime());
 		hash = new Hashtable<String,String>();
@@ -101,7 +102,8 @@ public class PlinkFormat {
 			count = 1;
 			while (reader.ready()) {
 				System.out.println(count++);
-				line = reader.readLine().split("[\\s]+");
+				temp = reader.readLine();
+				line = temp.split(ext.determineDelimiter(temp));
 				writer.print(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
 				if (line[6].equals(".")) {
 					for (int i = 0; i<indices.length; i++) {

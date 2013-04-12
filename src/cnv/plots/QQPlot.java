@@ -32,7 +32,7 @@ public class QQPlot extends JFrame implements ActionListener {
 		new Color(55, 129, 252), // dark blue
 		new Color(140, 20, 180), // deep purple
 		new Color(201, 30, 10), new Color(217, 109, 194), // deep red/pink
-		new Color(33, 31, 53), new Color(255, 255, 255), // dark dark / light light
+		new Color(33, 31, 53), // new Color(255, 255, 255), // dark dark / light light
 		new Color(94, 88, 214), // light purple
 		new Color(189, 243, 61), // light green
 		new Color(33, 87, 0),  // dark green
@@ -44,8 +44,8 @@ public class QQPlot extends JFrame implements ActionListener {
 		};
 	
 
-	public QQPlot(String[] labels, double[][] pvals, boolean log10, boolean rotated) {
-		super("Q-Q Plot");
+	public QQPlot(String plotLabel, String[] labels, double[][] pvals, boolean log10, boolean rotated, boolean symmetric) {
+		super(plotLabel);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		System.out.println("Loading data for "+ext.listWithCommas(labels));
@@ -54,6 +54,7 @@ public class QQPlot extends JFrame implements ActionListener {
 //		plotsPanel.setLayout(new GridLayout(1, 2));
 
 		QQPanel panelA = new QQPanel(pvals, log10, rotated);
+		panelA.setSymmetricAxes(symmetric);
 		panelA.setColorScheme(COLOR_SCHEME);
 		if (!log10) {
 			panelA.setForcePlotXmax(1);
@@ -103,7 +104,23 @@ public class QQPlot extends JFrame implements ActionListener {
 		System.err.println("Error - unknown command '"+command+"'");
 	}
 
-	public static void loadPvals(String[] filenames, boolean displayQuantiles, boolean displayStandardQQ, boolean displayRotatedQQ) {
+//	public static String formatFilenames(String[] filenames, int[] indices, String[] labels) {
+//		String str;
+//		
+//		if (filenames.length != indices.length || filenames.length != labels.length) {
+//			System.err.println("Error - mismatched array lengths ("+filenames.length+"/"+indices.length+"/"+labels.length+")");
+//			return null;
+//		}
+//		
+//		str="";
+//		for (int i = 0; i < filenames.length; i++) {
+//			str += (i==0?"":";")+filenames[i]+","+indices[i]+"="+labels[i];
+//		}
+//		
+//		return str;		
+//	}
+//	
+	public static void loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles, boolean displayStandardQQ, boolean displayRotatedQQ, double maxToPlot, boolean symmetric) {
 		BufferedReader reader;
 		String[] labels;
 		double[][] pvals;
@@ -111,7 +128,16 @@ public class QQPlot extends JFrame implements ActionListener {
 		String trav;
 		boolean error, header;
 		int[] cols;
-
+		double minPval;
+		String delimiter;
+		String temp;
+		
+		if (maxToPlot < 0) {
+			minPval = -1;
+		} else {
+			minPval = 1/Math.pow(10, maxToPlot);
+		}
+		
 		error = false;
 		labels = new String[filenames.length];
 		pvals = new double[filenames.length][];
@@ -130,10 +156,19 @@ public class QQPlot extends JFrame implements ActionListener {
 				} catch (Exception e) {}
 			}
 			System.out.println("Loading "+labels[i]);
+			delimiter = Files.determineDelimiter(filenames[i], new Logger());
 			try {
 				reader = Files.getReader(filenames[i], JAR, true, true);
 				count = 0;
-				trav = reader.readLine().trim().split("[\\s]+")[cols[i]];
+				temp = reader.readLine();
+				try {
+					trav = temp.trim().split(delimiter, -1)[cols[i]];
+				} catch (Exception e) {
+					System.err.println("Error - could not parse "+filenames[i]+" completely:");
+					System.err.println(temp);
+					e.printStackTrace();
+					return;
+				}
 				try {
 					if (!ext.isMissingValue(trav)) {
 						Double.parseDouble(trav);
@@ -146,7 +181,7 @@ public class QQPlot extends JFrame implements ActionListener {
 					header = true;
 				}
 				while (reader.ready()) {
-					trav = reader.readLine().trim().split("[\\s]+")[cols[i]];
+					trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
 					if (!ext.isMissingValue(trav)) {
 						count++;
 					}
@@ -160,9 +195,13 @@ public class QQPlot extends JFrame implements ActionListener {
 					reader.readLine();					
 				}
 				while (reader.ready()) {
-					trav = reader.readLine().trim().split("[\\s]+")[cols[i]];
+					trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
 					if (!ext.isMissingValue(trav)) {
 						pvals[i][count] = Double.parseDouble(trav);
+						if (pvals[i][count] < minPval) {
+							pvals[i][count] = minPval;
+						}
+							
 						count++;
 					}
 				}
@@ -183,13 +222,13 @@ public class QQPlot extends JFrame implements ActionListener {
 		}
 		
 		if (displayQuantiles) {
-			new QQPlot(labels, pvals, false, false);
+			new QQPlot(plotLabel, labels, pvals, false, false, false);
 		}
 		if (displayStandardQQ) {
-			new QQPlot(labels, pvals, true, false);
+			new QQPlot(plotLabel, labels, pvals, true, false, symmetric);
 		}
 		if (displayRotatedQQ) {
-			new QQPlot(labels, pvals, true, true);
+			new QQPlot(plotLabel, labels, pvals, true, true, false);
 		}
 	}
 
@@ -253,14 +292,16 @@ public class QQPlot extends JFrame implements ActionListener {
 		boolean displayQuantiles = false;
 		boolean displayStandardQQ = true;
 		boolean displayRotatedQQ = true;
+		double maxToPlot = -1;
+		boolean symmetric = false;
+		String plotLabel = "Q-Q Plot";
 
 		String usage = "\n"+
 		"plot.QQPlot requires 0-1 arguments\n"+
 		"   (1) name of files with p-values (i.e. files="+Array.toStr(filenames, ";")+" (default))\n"+
-		"   (2) name of files with p-values (i.e. file="+Array.toStr(filenames, ";")+" (default))\n"+
-		"   (1) name of files with p-values (i.e. file="+Array.toStr(filenames, ";")+" (default))\n"+
-		"   (1) name of files with p-values (i.e. file="+Array.toStr(filenames, ";")+" (default))\n"+
-		"   (1) name of files with p-values (i.e. file="+Array.toStr(filenames, ";")+" (default))\n"+
+		"   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"+
+		"   (3) make symmetric (i.e. -symmetric (not the default))\n"+
+		"   (4) name of plot, for frame (i.e. plotLabel="+plotLabel+" (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -268,13 +309,16 @@ public class QQPlot extends JFrame implements ActionListener {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (args[i].startsWith("files=")) {
-				filenames = args[i].split("=")[1].split(";");
+				filenames = args[i].substring(6).split(";");
 				numArgs--;
 			} else if (args[i].startsWith("prefix=")) {
 				computePrefix = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("max=")) {
 				max = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("maxToPlot=")) {
+				maxToPlot = Double.parseDouble(args[i].split("=")[1]);
 				numArgs--;
 			} else if (args[i].startsWith("-quantiles")) {
 				displayQuantiles = true;
@@ -285,18 +329,26 @@ public class QQPlot extends JFrame implements ActionListener {
 			} else if (args[i].startsWith("-rotatedQQ")) {
 				displayRotatedQQ = true;
 				numArgs--;
+			} else if (args[i].startsWith("-symmetric")) {
+				symmetric = true;
+				numArgs--;
+			} else if (args[i].startsWith("plotLabel=")) {
+				plotLabel = args[i].split("=")[1];
+				numArgs--;
 			}
 		}
 		if (numArgs!=0) {
 			System.err.println(usage);
 			System.exit(1);
 		}
-
+		
+		System.out.println("Found "+filenames.length+" files to parse: \n"+Array.toStr(filenames, "\n"));
+		
 		try {
 			if (computePrefix != null) {
 				computeCI(computeDir, computePrefix, max);
 			} else {
-				loadPvals(filenames, displayQuantiles, displayStandardQQ, displayRotatedQQ);
+				loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ, maxToPlot, symmetric);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

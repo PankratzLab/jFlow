@@ -111,9 +111,10 @@ public class Segment implements Serializable {
 		return true;
 	}
 	
+	// this method must be run separately for each chromosome
 	public static void mergeOverlapsAndSort(Vector<Segment> segments) {
 		byte chr;
-		int[][] exonBoundaries;
+		int[][] segBoundaries;
 		int count, start, stop;
 		
 		if (segments.size() == 0) {
@@ -121,17 +122,17 @@ public class Segment implements Serializable {
 		}
 
 		chr = segments.elementAt(0).getChr();
-		exonBoundaries = convertListToSortedBoundaries(segments);
+		segBoundaries = convertListToSortedBoundaries(segments);
 
 		segments.clear();
-		for (int i = 0; i<exonBoundaries.length; i++) {
-			if (exonBoundaries[i][0] != -1) {
+		for (int i = 0; i<segBoundaries.length; i++) {
+			if (segBoundaries[i][0] != -1) {
 				count = 0;
-				start = exonBoundaries[i][0];
-				stop = exonBoundaries[i][1];
-				while (i+count < exonBoundaries.length && (exonBoundaries[i+count][0] <= stop || exonBoundaries[i+count][0] == -1)) {
-					stop = Math.max(stop, exonBoundaries[i+count][1]);
-					exonBoundaries[i+count][0] = -1;
+				start = segBoundaries[i][0];
+				stop = segBoundaries[i][1];
+				while (i+count < segBoundaries.length && (segBoundaries[i+count][0] <= stop || segBoundaries[i+count][0] == -1)) {
+					stop = Math.max(stop, segBoundaries[i+count][1]);
+					segBoundaries[i+count][0] = -1;
 					count++;
 				}
 				segments.add(new Segment(chr, start, stop));
@@ -161,7 +162,7 @@ public class Segment implements Serializable {
 	}
 
 	public static int[][] convertListToSortedBoundaries(Vector<Segment> segs) {
-		int[][] exonBoundaries = new int[segs.size()][2];
+		int[][] segBoundaries = new int[segs.size()][2];
 		int[] starts, keys;
 		
 		starts = new int[segs.size()];
@@ -171,11 +172,11 @@ public class Segment implements Serializable {
 		keys = Sort.quicksort(starts);
 		
 		for (int i = 0; i<segs.size(); i++) {
-			exonBoundaries[i][0] = segs.elementAt(keys[i]).getStart();
-			exonBoundaries[i][1] = segs.elementAt(keys[i]).getStop();
+			segBoundaries[i][0] = segs.elementAt(keys[i]).getStart();
+			segBoundaries[i][1] = segs.elementAt(keys[i]).getStop();
         }
 
-		return exonBoundaries;
+		return segBoundaries;
 	}
 	
 	public static Segment[] toArray(Vector<Segment> setVec) {
@@ -260,14 +261,21 @@ public class Segment implements Serializable {
         return segs;
 	}
 	
-	public static Segment[] loadUCSCregions(String filename) {
+	public static Segment[] loadUCSCregions(String filename, boolean ignoreFirstLine) {
+		return loadUCSCregions(filename, 0, ignoreFirstLine);
+	}
+	
+	public static Segment[] loadUCSCregions(String filename, int column, boolean ignoreFirstLine) {
 		BufferedReader reader;
 		Vector<Segment> v = new Vector<Segment>();
 
 		try {
 	        reader = new BufferedReader(new FileReader(filename));
+	        if (ignoreFirstLine) {
+	        	reader.readLine();
+	        }
 	        while (reader.ready()) {
-				v.add(new Segment(reader.readLine().trim().split("[\\s]+")[0]));
+				v.add(new Segment(reader.readLine().trim().split("[\\s]+")[column]));
 	        }
 	        reader.close();
         } catch (FileNotFoundException fnfe) {
@@ -281,5 +289,29 @@ public class Segment implements Serializable {
 		return Segment.toArray(v);
 	}
 
-	
+	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, boolean ignoreFirstLine) {
+		BufferedReader reader;
+		Vector<Segment> v = new Vector<Segment>();
+		String[] line;
+
+		try {
+	        reader = new BufferedReader(new FileReader(filename));
+	        if (ignoreFirstLine) {
+	        	reader.readLine();
+	        }
+	        while (reader.ready()) {
+	        	line = reader.readLine().trim().split("[\\s]+");
+				v.add(new Segment(Positions.chromosomeNumber(line[chrCol]), Integer.parseInt(line[startCol]), Integer.parseInt(line[stopCol])));
+	        }
+	        reader.close();
+        } catch (FileNotFoundException fnfe) {
+	        System.err.println("Error: file \""+filename+"\" not found in current directory");
+	        System.exit(1);
+        } catch (IOException ioe) {
+	        System.err.println("Error reading file \""+filename+"\"");
+	        System.exit(2);
+        }
+
+		return Segment.toArray(v);
+	}
 }

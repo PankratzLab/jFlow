@@ -22,13 +22,17 @@ public class SnpMarkerSet implements Serializable {
 	public static final int MACH_MLINFO_FORMAT = 8;
 	public static final int HAPLOVIEW_INFO_FORMAT = 9;
 	public static final int MINIMAC_INFO_FORMAT = 10;
+	public static final int PLINK_MAP_FORMAT_WITHOUT_CM = 11;
+	public static final int INFO_FOR_BURDEN_TESTING = 12;
 
 //	public static final String[][] NATURAL_PAIRINGS = {{"A", "T"}, {"C", "G"}};
 	public static final String[] NULL_ALLLES = {"0", "-"};
 	public static final String[] INDEL_ALLLES = {"I", "D"};
 	
 	public static final String[] HAPMAP_CM_SRC_HEADER = {"position", "COMBINED_rate(cM/Mb)", "Genetic_Map(cM)"};
-	public static final String[][] HEADERS = {null, null, null, null, null, {"Marker", "Chr", "Position"}, null, {"Marker", "Chr", "Position", "Annotation"}, {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"}, null, {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR", "EmpRsq", "Dose1", "Dose2"}};
+	public static final String[][] HEADERS = {null, null, null, null, null, {"Marker", "Chr", "Position"}, null, {"Marker", "Chr", "Position", "Annotation"}, {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"}, null, {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR", "EmpRsq", "Dose1", "Dose2"}, null, {"Marker", "Chr", "Position", "REF", "ALT", "gene", "AAF", "Function"}};
+
+	public static final String[][] HEADER_ELEMEMTS = {{"MarkerName", "SNP", "Marker", "Variant", "AnalysisUnit"}, {"Chr", "Chromosome", "CHROM"}, {"Pos", "Position", "POS"}, {"centiMorgans", "cM"}, {"Allele1", "A1", "Al1", "ALT", "alt"}, {"Allele2", "A2", "Al2", "REF", "ref"}};
 	
 	/** 0            1    2         3             4   5   6+         */
 	/** Marker name, Chr, Position, centiMorgans, A1, A2, annotation */
@@ -42,7 +46,10 @@ public class SnpMarkerSet implements Serializable {
 										   {0,  1,  2, -1, -1, -1, 3},
 										   {0, -1, -1, -1,  1,  2, 3, 4, 5, 6},
 										   {0, -1,  1, -1, -1, -1},
-										   {0, -1, -1, -1,  1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+										   {0, -1, -1, -1,  1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+										   {1,  0,  2, -1, -1, -1},
+										   {0, 1, 2, -1,  3,  4, 5, 6, 7},
+										   // make sure to add an entry into HEADERS as well
 };
 	
 	private long fingerprint;
@@ -95,19 +102,36 @@ public class SnpMarkerSet implements Serializable {
 	}
 	
 	public SnpMarkerSet(String filename, int type, boolean verbose, Logger log) {
-		this(filename, INDICES[type], HEADERS[type]!=null, verbose, log);
+		this(filename, type==-1?determineIndices(filename, log):INDICES[type], HEADERS[type]!=null, verbose, log);
 	}
 	
+	public static int[] determineIndices(String filename, Logger log) {
+		return ext.indexFactors(HEADER_ELEMEMTS, Files.getHeaderOfFile(filename, null, log), true, true, true, log, false);
+	}
+
 	public SnpMarkerSet(String filename, int[] indices, boolean header, boolean verbose, Logger log) {
+		this(filename, Files.determineDelimiter(filename, log), indices, header, null, verbose, log);
+	}
+	
+	public SnpMarkerSet(String filename, String delimiter, int[] indices, boolean header, String[][] stringReplacements, boolean verbose, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		int count;
 		String[] markerNames;
+		String temp;
 		
 		try {
 			count = Files.countLines(filename, false);
 
+			if (indices == null) {
+				temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];
+				temp = ext.replaceAllWith(temp, stringReplacements);
+				indices = ext.indexFactors(SnpMarkerSet.HEADER_ELEMEMTS, temp.split(delimiter), true, true, false, log, false);
+				header = true;
+			}
+
 			reader = new BufferedReader(new FileReader(filename));
+			
 			if (header) {
 				reader.readLine();
 				count--;
@@ -132,7 +156,11 @@ public class SnpMarkerSet implements Serializable {
 				annotation = new String[count][indices.length-6];
 			}
 			for (int i = 0; i<count; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
+				temp = reader.readLine();
+				if (stringReplacements != null) {
+					temp = ext.replaceAllWith(temp, stringReplacements);
+				}
+				line = temp.split(delimiter, -1);
 				markerNames[i] = line[indices[0]];
 				if (indices[1] != -1) {
 					chrs[i] = Positions.chromosomeNumber(line[indices[1]]);
@@ -151,7 +179,11 @@ public class SnpMarkerSet implements Serializable {
 				}
 				if (indices.length > 6) {
 					for (int j = 6; j < indices.length; j++) {
-						annotation[i][j-6] = line[indices[j]];
+						try {
+							annotation[i][j-6] = line[indices[j]];
+						} catch (Exception e) {
+							System.out.println("hi!");
+						}
 					}
 				}
 			}
@@ -416,7 +448,11 @@ public class SnpMarkerSet implements Serializable {
 	}
 
 	public static SnpMarkerSet load(String filename, boolean jar) {
-		return (SnpMarkerSet)Files.readSerial(filename, jar, true);
+		return load(filename, jar, new Logger());
+	}
+	
+	public static SnpMarkerSet load(String filename, boolean jar, Logger log) {
+		return (SnpMarkerSet)Files.readSerial(filename, jar, log, true);
 	}
 
 	public static long fingerprint(int[] rsNumbers) {
@@ -506,6 +542,7 @@ public class SnpMarkerSet implements Serializable {
 		int index;
 		Hashtable<Integer,Integer> mergeHash;
 		Integer trav, next;
+		boolean annotateMerges;
 
 		log.report(ext.getTime());
 		markerNames = getMarkerNames();
@@ -519,6 +556,12 @@ public class SnpMarkerSet implements Serializable {
 
 		log.report("Searching database...");
 
+		annotateMerges = false;
+		if (annotation == null) {
+			annotateMerges = true;
+			annotation = new String[markerNames.length][1];
+		}
+		
 		mergeHash = null;
 		chrs = new byte[markerNames.length];
 		positions = new int[markerNames.length];
@@ -545,12 +588,18 @@ public class SnpMarkerSet implements Serializable {
 						}
 						if (markerNames[i].equals("rs"+trav)) {
 							log.reportError("\n\n****ERROR**** failed to find "+markerNames[i]+" in any NCBI database ****ERROR****\n\n");
+							if (annotateMerges) {
+								annotation[i][0] = ".";
+							}
 						} else if (trav != null) {
 							log.reportError("FYI - "+markerNames[i]+" has merged with rs"+trav);
 							index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
 							chrs[i] = dbChrs[index];
 							positions[i] = dbPositions[index]+ParseSNPlocations.OFFSET;
 							index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
+							if (annotateMerges) {
+								annotation[i][0] = "rs"+trav;
+							}
 						} else {
 							log.reportError("Error - tried and failed to find a merge record for "+markerNames[i]);
 						}
@@ -559,6 +608,9 @@ public class SnpMarkerSet implements Serializable {
 						log.reportError("Error - could not find "+markerNames[i]+" in "+db);
 						chrs[i] = (byte)0;
 						positions[i] = 0;
+						if (annotateMerges) {
+							annotation[i][0] = ".";
+						}
 					}
 				} else {
 					if (dbChrs[index] == ParseSNPlocations.UNMAPPED) {
@@ -573,11 +625,17 @@ public class SnpMarkerSet implements Serializable {
 						chrs[i] = dbChrs[index];
 						positions[i] = dbPositions[index]+ParseSNPlocations.OFFSET;
 					}
+					if (annotateMerges) {
+						annotation[i][0] = markerNames[i];
+					}
 				}
 			} else {
 				log.reportError("Error - can't look up a SNP without an rs number ("+markerNames[i]+")");
 				chrs[i] = (byte)0;
 				positions[i] = 0;
+				if (annotateMerges) {
+					annotation[i][0] = ".";
+				}
 			}
         }
 
@@ -611,6 +669,23 @@ public class SnpMarkerSet implements Serializable {
         }
 		
 		return chrHash;
+	}
+	
+	public Hashtable<String, Segment> getSegments() {
+		Hashtable<String, Segment> segHash;
+		String[] markerNames;
+		byte[] chrs;
+		int[] positions;
+
+		markerNames = getMarkerNames();
+		chrs = getChrs();
+		positions = getPositions();
+		segHash = new Hashtable<String,Segment>(markerNames.length);
+		for (int i = 0; i<markerNames.length; i++) {
+			segHash.put(markerNames[i], new Segment(chrs[i], positions[i], positions[i]+1));
+        }
+		
+		return segHash;
 	}
 	
 	public static Hashtable<String, String> loadSnpMarkerSetToChrHash(String filenameSource) {
@@ -664,7 +739,7 @@ public class SnpMarkerSet implements Serializable {
 		error = false;
 		numMissing = 0;
 		markerNames = getMarkerNames();
-		hash = HashVec.loadFileToHashNull(markerNames);
+		hash = HashVec.loadToHashNull(markerNames);
 		for (int i = 0; i < markersToKeep.length; i++) {
 			if (hash.containsKey(markersToKeep[i])) {
 				count++;
@@ -707,7 +782,7 @@ public class SnpMarkerSet implements Serializable {
 		} else {
 			newAnnotation = new String[count][];
 		}
-		hash = HashVec.loadFileToHashNull(markersToKeep);
+		hash = HashVec.loadToHashNull(markersToKeep);
 		count = 0;
 		for (int i = 0; i < markerNames.length; i++) {
 			if (hash.containsKey(markerNames[i])) {
@@ -745,7 +820,11 @@ public class SnpMarkerSet implements Serializable {
 		} else if (filename.endsWith(".snps")) {
 			return NAMES_ONLY;
 		} else if (filename.endsWith(".info")) {
-			return HAPLOVIEW_INFO_FORMAT;
+			if (Files.exists(filename, false) && Files.getHeaderOfFile(filename, "[\\s]+", new Logger())[0].equals("SNP")) {
+				return MACH_MLINFO_FORMAT;	
+			} else {
+				return HAPLOVIEW_INFO_FORMAT;
+			}
 		} else if (filename.endsWith(".mlinfo") || filename.endsWith(".pinfo")) {
 			return MACH_MLINFO_FORMAT;
 		} else if (filename.endsWith(".minfo")) {
@@ -753,6 +832,8 @@ public class SnpMarkerSet implements Serializable {
 		} else if (filename.endsWith(".xln") || filename.endsWith(".txt") || filename.endsWith(".dat")) {
 			System.err.println("Warning - assuming three columns with headers: MarkerName, Chr, Position");
 			return GENERIC_FORMAT_IGNORE_FIRST_LINE;
+		} else if (filename.endsWith(".burdenInfo")) {
+			return INFO_FOR_BURDEN_TESTING;
 		} else {
 			System.err.println("Error - format of file ('"+filename+"') could not be deduced solely by the filename extension");
 			return -1;
@@ -806,6 +887,76 @@ public class SnpMarkerSet implements Serializable {
 	        System.err.println("Error writing to "+dir+"master.map");
 	        e.printStackTrace();
         }
+	}
+	
+	public static SnpMarkerSet merge(SnpMarkerSet[] sets) {
+		Hashtable<String, String> indices;
+		String[][] arraysOfMarkerNames, annotation;
+		boolean[] hasPositions, hasAlleles;
+		String[] markerNames;
+		byte[] chrs, travChrs;
+		int[] rawPositions, travPositions;
+		char[][] alleles, travAlleles;
+		int index;
+		
+		arraysOfMarkerNames = new String[sets.length][];
+		hasPositions = new boolean[sets.length];
+		hasAlleles = new boolean[sets.length];
+		for (int i = 0; i < sets.length; i++) {
+			arraysOfMarkerNames[i] = sets[i].getMarkerNames();
+			hasPositions[i] = sets[i].getChrs() != null;
+			hasAlleles[i] = sets[i].getAlleles() != null;
+		}
+		annotation = Unique.proc(arraysOfMarkerNames, false);
+		markerNames = Matrix.extractColumn(annotation, 0);
+		annotation = Array.toMatrix(Matrix.extractColumns(annotation, Array.subArray(Array.intArray(sets.length+2), 1), "\t"));
+		
+		indices = HashVec.loadToHashIndices(markerNames);
+		if (Array.booleanArraySum(hasPositions) > 0) {
+			chrs = Array.byteArray(markerNames.length, (byte)-9);
+			rawPositions = new int[markerNames.length];
+			
+			for (int i = 0; i < sets.length; i++) {
+				if (hasPositions[i]) {
+					travChrs = sets[i].getChrs();
+					travPositions = sets[i].getPositions();
+					for (int j = 0; j < arraysOfMarkerNames[i].length; j++) {
+						index = Integer.parseInt(indices.get(arraysOfMarkerNames[i][j]));
+						if (chrs[index] == (byte)-9) {
+							chrs[index] = travChrs[j];
+							rawPositions[index] = travPositions[j];
+						} else if (travChrs[j] != 0 && (chrs[index] != travChrs[j] || rawPositions[index] != travPositions[j])) {
+							System.err.println("Error - mismatched chr:position for marker "+arraysOfMarkerNames[i][j]+" ("+travChrs[j]+":"+travPositions[j]+" but previously "+chrs[index]+":"+rawPositions[index]+")");
+						}
+					}
+				}
+			}
+			
+		} else {
+			chrs = null;
+			rawPositions = null;
+		}
+		if (Array.booleanArraySum(hasAlleles) > 0) {
+			alleles = new char[markerNames.length][];
+			
+			for (int i = 0; i < sets.length; i++) {
+				if (hasPositions[i]) {
+					travAlleles = sets[i].getAlleles();
+					for (int j = 0; j < arraysOfMarkerNames[i].length; j++) {
+						index = Integer.parseInt(indices.get(arraysOfMarkerNames[i][j]));
+						if (alleles[index] == null) {
+							alleles[index] = travAlleles[j];
+						} else if ((travAlleles[j][0] != alleles[index][0] && travAlleles[j][0] != alleles[index][1]) || (travAlleles[j][1] != alleles[index][0] && travAlleles[j][1] != alleles[index][1])) {
+							System.err.println("Error - mismatched alleles for marker "+arraysOfMarkerNames[i][j]+" ("+travAlleles[j][0]+"/"+travAlleles[j][1]+" but previously "+alleles[index][0]+"/"+alleles[index][1]+")");
+						}						
+					}
+				}
+			}
+		} else {
+			alleles = null;
+		}
+		
+		return new SnpMarkerSet(markerNames, chrs, rawPositions, alleles, annotation, true, false);		
 	}
 	
 	public static void main(String[] args) {

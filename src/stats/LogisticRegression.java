@@ -13,12 +13,12 @@ public class LogisticRegression extends RegressionModel {
 	private int offset;
 	private double CSRsquare;
 
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings("unchecked")
 	public LogisticRegression(Vector iDeps, Vector iIndeps) {
 		this(iDeps, iIndeps, false, true);
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	public LogisticRegression(Vector vDeps, Vector vIndeps, boolean bypassDataChecks, boolean verbose) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataChecks, verbose);
 	}
@@ -35,6 +35,10 @@ public class LogisticRegression extends RegressionModel {
 		this(Array.toDoubleArray(deps), Matrix.toDoubleArrays(indeps), bypassDataChecks, verbose);
 	}
 
+	public LogisticRegression(int[] deps, double[] indeps) {
+		this(Array.toDoubleArray(deps), Matrix.toMatrix(indeps), false, true);
+	}
+
 	public LogisticRegression(double[] deps, double[] indeps) {
 		this(deps, Matrix.toMatrix(indeps), false, true);
 	}
@@ -44,11 +48,31 @@ public class LogisticRegression extends RegressionModel {
 	}
 
 	public LogisticRegression(double[] deps, double[][] indeps, boolean bypassDataChecks, boolean verbose) {
+		this(deps, indeps, null, bypassDataChecks, verbose);
+	}
+	
+	public LogisticRegression(double[] deps, double[][] indeps, String[] indepVariableNames, boolean bypassDataChecks, boolean verbose) {
 		this.deps = deps;
 		this.indeps = indeps;
 		this.verbose = verbose;
 		this.analysisFailed = false;
 		this.logistic = true;
+		
+		varNames = new String[indeps[0].length+1];
+		
+		if (indeps.length > 0) {
+			M = indeps[0].length;
+			varNames = new String[M+1];
+			varNames[0] = "Constant";
+			for (int i = 1; i<M+1; i++) {
+				varNames[i] = "Indep "+i;
+			}
+			maxNameSize = (M+1)<10?8:7+((M+1)+"").length();
+			
+			if (indepVariableNames != null) {
+				setVarNames(indepVariableNames);
+			}
+		}
 		
 		if (!bypassDataChecks) {
 			checkForMissingData();
@@ -97,12 +121,6 @@ public class LogisticRegression extends RegressionModel {
 			return;
 		}
 		M = indeps[0].length;
-		
-		varNames = new String[M+1];
-		for (int i = 0; i<M+1; i++) {
-			varNames[i] = (i==0?"Constant":"Indep "+i);
-		}
-		maxNameSize = (M+1)<10?8:7+((M+1)+"").length();
 
 		double x;
 		double q;
@@ -338,39 +356,41 @@ public class LogisticRegression extends RegressionModel {
 
 	public String getSummary() {
 		String str = "";
+		String delimiter;
 
 		if (analysisFailed) {
 			return "Did not run";
 		}
 
+		delimiter = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
 		if (onePer) {
-			str += "One per family was permuted "+numPermutations+" times\n";
-			str += "Statistics were bootstrapped "+numBootReps+" times\n";
-			str += "\n";
-			str += "Average of "+ext.formDeci((double)logCounts[0]/numPermutations, 2)+" cases with Y="+offset+"\n";
-			str += "Average of "+ext.formDeci((double)logCounts[1]/numPermutations, 2)+" cases with Y="+(offset+1)+"\n";
-			str += "Number of independent observations: "+Array.unique(famIDs).length+"\n";
-			str += "\n";
+			str += "One per family was permuted "+numPermutations+" times"+delimiter;
+			str += "Statistics were bootstrapped "+numBootReps+" times"+delimiter;
+			str += ""+delimiter;
+			str += "Average of "+ext.formDeci((double)logCounts[0]/numPermutations, 2)+" cases with Y="+offset+""+delimiter;
+			str += "Average of "+ext.formDeci((double)logCounts[1]/numPermutations, 2)+" cases with Y="+(offset+1)+""+delimiter;
+			str += "Number of independent observations: "+Array.unique(famIDs).length+""+delimiter;
+			str += ""+delimiter;
 		} else {
-			str += sY0+" cases with Y="+offset+"\n";
-			str += sY1+" cases with Y="+(offset+1)+"\n";
-			str += "Total "+(sY0+sY1)+"\n";
-			str += "\n";
-			str += "-2 Log likelihood = "+ext.formDeci(logLikeNull, 3)+" (Null)\n";
-			str += "-2 Log likelihood = "+ext.formDeci(logLikeFinal, 3)+" (Converged)\n";
-			str += "ChiSquare = "+ext.formDeci(overall, 3)+", df = "+overallDF+", p = "+ext.formDeci(overallSig, 3, true)+"\n";
-			str += "Cox & Snell R-square = "+ext.formDeci(CSRsquare, 3, true)+", Nagelkerke R-square = "+ext.formDeci(Rsquare, 3, true)+"\n";
-			str += "\n";
+			str += sY0+" cases with Y="+offset+""+delimiter;
+			str += sY1+" cases with Y="+(offset+1)+""+delimiter;
+			str += "Total "+(sY0+sY1)+""+delimiter;
+			str += ""+delimiter;
+			str += "-2 Log likelihood = "+ext.formDeci(logLikeNull, 3)+" (Null)"+delimiter;
+			str += "-2 Log likelihood = "+ext.formDeci(logLikeFinal, 3)+" (Converged)"+delimiter;
+			str += "ChiSquare = "+ext.formDeci(overall, 3)+", df = "+overallDF+", p = "+ext.formDeci(overallSig, 3, true)+""+delimiter;
+			str += "Cox & Snell R-square = "+ext.formDeci(CSRsquare, 3, true)+", Nagelkerke R-square = "+ext.formDeci(Rsquare, 4, true)+""+delimiter;
+			str += ""+delimiter;
 		}
 
-		str += "Coefficients:\n";
-		str += ext.formStr("Model", maxNameSize, true)+"\t   Beta\t StdErr\t   Wald\t   Sig.\t  O.R.\n";
-		str += modelSummary()+"\n";
+		str += "Coefficients:"+delimiter;
+		str += ext.formStr("Model", maxNameSize, true)+"\t   Beta\t StdErr\t   Wald\t   Sig.\t  O.R."+delimiter;
+		str += modelSummary()+""+delimiter;
 
 		if (!onePer) {
-			// str += "\n";
+			// str += ""+delimiter;
 			// for (int i = 0; i<5; i++) {
-			// str += residuals[i]+"\n";
+			// str += residuals[i]+""+delimiter;
 			// }
 		}
 

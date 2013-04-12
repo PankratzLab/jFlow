@@ -21,9 +21,19 @@ public class ForestPlot {
         String markerListFile = null;
         String studyListFile = null;
         Vector<String> params;
-        boolean studyFirst = true;
+        boolean studyFirst = false;
+        boolean convertToLog = false;
 
-		params = Files.parseControlFile(filename, "forest", new String[] {"hits_parsed.xln", "# optional file lists which SNPs to parse (default is all)", "targets=hits.txt", "# optional file listing order of studies (default is the order they are in the data file) as well as an optional second tab delimited column with what to rename the study as", "order=studies.txt", "# if the study comes after the underscore (i.e. Beta_StudyA instead of StudyA_Beta) then use the following flag:", "studyFirst=false"}, log);
+		params = Files.parseControlFile(filename, "forest", new String[] {"hits_parsed.xln", 
+				"# optional file lists which SNPs to parse (default is all)", 
+				"targets=hits.txt", 
+				"# optional file listing order of studies (default is the order they are in the data file) as well as an optional second tab delimited column with what to rename the study as", 
+				"order=studies.txt", 
+				"# if the study comes after the underscore (i.e. Beta_StudyA instead of StudyA_Beta) then use the following flag:",
+				"studyFirst=false",
+				"# if you want the betas to be plotted as odds ratios then use the following flag:",
+				"convertToLog=true"
+				}, log);
 		if (params != null) {
 			datafile = params.elementAt(0).trim();
 			for (int i = 1; i < params.size(); i++) {
@@ -34,16 +44,18 @@ public class ForestPlot {
 	        		studyListFile = ext.parseStringArg(trav, null);
     		    } else if (trav.startsWith("studyFirst=")){
     		    	studyFirst = ext.parseBooleanArg(trav, log);
+    		    } else if (trav.startsWith("convertToLog=")){
+    		    	convertToLog = ext.parseBooleanArg(trav, log);
     		    } else if (!trav.startsWith("#")){
     		    	log.reportError("Error - don't know what to do with argument: "+trav);
     		    }
 	        }
 
-			generateForests(ext.parseDirectoryOfFile(filename), datafile, studyFirst, markerListFile, studyListFile, log);
+			generateForests(ext.parseDirectoryOfFile(filename), datafile, studyFirst, convertToLog, markerListFile, studyListFile, log);
 		}
 	}
 
-	public static void generateForests(String dir, String datafile, boolean studyFirst, String markerListFile, String studyListFile, Logger log) {
+	public static void generateForests(String dir, String datafile, boolean studyFirst, boolean convertToLog, String markerListFile, String studyListFile, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, data;
@@ -170,8 +182,8 @@ public class ForestPlot {
 						writer.println("library(rmeta)");
 						writer.println("### forest plot");
 						writer.println("metaplot(input.data$Beta, input.data$SE, nn=(input.data$SE)^-2, input.data$Cohort,");
-						writer.println("logeffect=F, boxsize=0.4,logticks=T, col=meta.colors(\"black\"),");
-						writer.println("xlab=\""+line[markerIndex]+" OR\", ylab=\"Cohort\")");
+						writer.println("logeffect="+(convertToLog?"T":"F")+", boxsize=0.4,logticks=T, col=meta.colors(\"black\"),");
+						writer.println("xlab=\""+line[markerIndex]+" "+(convertToLog?"OR":"beta")+"\", ylab=\"Cohort\")");
 						writer.close();						
 					} catch (Exception e) {
 						System.err.println("Error writing to " + filename);

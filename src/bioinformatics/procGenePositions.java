@@ -8,7 +8,8 @@ import common.*;
 public class procGenePositions {
 	// public static final String[] SOURCES = {"reference", "Celera"};
 	// public static final boolean[] IMPORTANT = {true, true};
-	public static final String[] SOURCES = {"reference", "Celera", "c22_H2", "c5_H2", "c6_COX", "c6_QBL", "DR53", "CRA_TCAGchr7v2"};
+//	public static final String[] SOURCES = {"reference", "Celera", "c22_H2", "c5_H2", "c6_COX", "c6_QBL", "DR53", "CRA_TCAGchr7v2"};
+	public static final String[] SOURCES = {"GRCh37.p5-Primary Assembly", "HuRef-Primary Assembly"};
 
 	public static final boolean[] IMPORTANT = {true, true, false, false, false, false, false, false};
 
@@ -140,8 +141,8 @@ public class procGenePositions {
 						if (!trav[j].chr.equals(".")) {
 							gps = GenePosition.newArray(SOURCES.length);
 							gps[j] = (GenePosition)trav[j].clone();
-							gps[j].name = gps[j].name+"_asPlacedBy_"+SOURCES[j];
-							hash.put(geneIDs[i]+"_asPlacedBy_"+SOURCES[j], gps);
+							gps[j].name = gps[j].name+"_asPlacedBy_"+ext.replaceWithLinuxSafeCharacters(SOURCES[j], true);
+							hash.put(geneIDs[i]+"_asPlacedBy_"+ext.replaceWithLinuxSafeCharacters(SOURCES[j], true), gps);
 						}
 					}
 					hash.remove(geneIDs[i]);
@@ -311,7 +312,7 @@ public class procGenePositions {
 			System.err.println("7");
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir+"genes.xls"));
+				writer = new PrintWriter(new FileWriter(dir+"genes.xln"));
 				writer.print("GeneID");
 				for (int i = 0; i<SOURCES.length; i++) {
 					if (IMPORTANT[i]) {
@@ -364,6 +365,8 @@ public class procGenePositions {
 		int numArgs = args.length;
 		String dir = "/home/npankrat/NCBI/NCBI/";
 		String filename = "seq_gene.md";
+		// latest found in:
+		// ftp://ftp.ncbi.nih.gov/genomes/MapView/Homo_sapiens/sequence/BUILD.37.3/initial_release/
 
 		String usage = "\n"+
 		"park.procGenePositions requires 0-1 arguments\n"+

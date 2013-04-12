@@ -1,16 +1,18 @@
 import java.io.*;
 
+import link.Heritability;
 import link.TrimFam;
 import mining.Transformations;
 import bioinformatics.*;
 import common.*;
 import parse.*;
+import seq.Vcf;
 import gwas.*;
 import db.*;
 
 
 public class Launch {
-	public static final String[] LAUNCH_TYPES = {"hits", "dummy", "counts", "miss", "indep", "genes", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transpose", "forest"};
+	public static final String[] LAUNCH_TYPES = {"hits", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies"};
 
 	public static void run(String filename, Logger log) throws Elision { // dir is necessary for UpdateCRFdb
 		BufferedReader reader;
@@ -22,7 +24,10 @@ public class Launch {
 			
 			log.report("Launching option '"+temp+"'");
 
-			if (temp.equals("hits")) {
+			if (temp == null || temp.equals("")) {
+				log.reportError("Below is a list of valid launch types:");
+				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
+			} else if (temp.equals("hits")) {
 				LookupTable.fromParameters(filename, log);
 			} else if (temp.equals("dummy")) {
 				DummyDataset.createFromParameters(filename, log);
@@ -34,6 +39,10 @@ public class Launch {
 				IndependentSNPs.selectFromParameters(filename, log);
 			} else if (temp.equals("genes")) {
 				MapGenesToSNPs.filter(filename, log);
+			} else if (temp.equals("filterSNPs")) {
+				FilterSNPsByRegion.fromParameters(filename, log);
+			} else if (temp.equals("filterByLists")) {
+				FilterByLists.fromParameters(filename, log);
 			} else if (temp.equals("plink")) {
 				CreateDatabaseFromPlink.createDatabase(filename, log);
 			} else if (temp.equals("simpleM")) {
@@ -46,6 +55,10 @@ public class Launch {
 				UCSCtrack.describeFromParameters(filename, log);
 			} else if (temp.equals("split")) {
 				Files.splitFileFromParamters(filename, log);
+			} else if (temp.equals("dir")) {
+				Files.summarizeDirectoryFromParameters(filename, log);
+			} else if (temp.equals("copy")) {
+				Files.copySpecificFiles(filename, log);
 			} else if (temp.equals("cat")) {
 				Files.catFilesFromParamters(filename, log);
 			} else if (temp.equals("db")) {
@@ -62,10 +75,26 @@ public class Launch {
 				Metal.generateUniformsFromParamters(filename, log);
 			} else if (temp.equalsIgnoreCase("metal")) {
 				Metal.generateInputFile(filename, log);
-			} else if (temp.equalsIgnoreCase("transpose")) {
+			} else if (temp.equalsIgnoreCase("transform")) {
 				Transformations.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("forest")) {
 				ForestPlot.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("unique")) {
+				Unique.fromParamters(filename, log);
+			} else if (temp.equalsIgnoreCase("match")) {
+				MatchSamples.matchFromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("meta")) {
+				Conditional.metaAllRegions(filename, log);
+			} else if (temp.equalsIgnoreCase("gwaf")) {
+				CreateDatabaseFromPlink.gwafFromParamters(filename, log);
+			} else if (temp.equalsIgnoreCase("sas")) {
+				DumpSAS.mergeFromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("results")) {
+				ResultsPackager.createFromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("vcf")) {
+				Vcf.createFromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("heritability")) {
+				Heritability.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
@@ -79,7 +108,11 @@ public class Launch {
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 //		String filename = "trim_withScores.crf";
-		String filename = "singleton.crf";
+//		String filename = "match.crf";
+//		String filename = "filterSNPs2k.crf";
+		String filename = "transform.crf";
+		
+		
 		boolean suppress = false;
 
 		String usage = "\n"+

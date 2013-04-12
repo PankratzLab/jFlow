@@ -4,7 +4,7 @@ package common;
  * Signals that an exception of some sort has occurred.
  */
 public class Elision extends Exception {
-	static final long serialVersionUID = -1;
+	public static final long serialVersionUID = -1;
 
 	/**
 	 * Constructs an <code>Elisiono</code> with <code>null</code> as its

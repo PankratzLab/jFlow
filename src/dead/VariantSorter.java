@@ -15,7 +15,8 @@ public class VariantSorter {
 	public static final double MAF_LOWER_BOUND = 0.01;
 	public static final String[] SEATTLE_SEQ_REQS = {"geneList", "functionGVS", "# inDBSNPOrNot", "chromosome", "position", "referenceBase", "sampleGenotype", "AfricanHapMapFreq", "EuropeanHapMapFreq", "AsianHapMapFreq"};
 	public static final String[] SIFT_REQS = {"Coordinates", "Prediction"};
-	public static final String[] CATS = {"Total", "dbSNP>"+(MAF_LOWER_BOUND*100)+"%", "dbSNP<"+(MAF_LOWER_BOUND*100)+"%", "dbSNP_noFreq", "not_in_dbSNP", "deleterious", "deleteriousRare", "deleteriousNotInDBSNP"};
+	public static final String[] CATS = {
+		"Total", "dbSNP>"+(MAF_LOWER_BOUND*100)+"%", "dbSNP<"+(MAF_LOWER_BOUND*100)+"%", "dbSNP_noFreq", "not_in_dbSNP", "deleterious", "deleteriousRare", "deleteriousNotInDBSNP"};
 	public static final String[] FUNCS = {"missense", "nonsense", "coding-synonymous", "coding-notMod3", "splice-5", "splice-3", "utr-5", "utr-3", "near-gene-5", "near-gene-3", "intron", "intergenic"};
 	public static final boolean[] FUNC_DISPS = {true, true, true, true, true, true, true, true, false, false, false, false};
 	public static final String[] SENSE = {"A", "C", "G", "T", "I", "D"};

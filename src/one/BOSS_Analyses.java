@@ -18,7 +18,7 @@ public class BOSS_Analyses {
 
 		new File(dir+"gwaf/").mkdirs();
 		for (int chr = 1; chr <= 23; chr++) {
-			CreateDatabaseFromPlink.toGWAF(dir+"split/chr"+chr+".ped", dir+"split/chr"+chr+".map", dir+"split/chr"+chr+".frq", dir+"gwaf/chr"+chr+".fhsR");
+			CreateDatabaseFromPlink.toGWAF(dir+"split/chr"+chr+".ped", dir+"split/chr"+chr+".map", dir+"split/chr"+chr+".frq", null, dir+"gwaf/chr"+chr+".fhsR");
 		}
 	}
 
@@ -112,8 +112,10 @@ public class BOSS_Analyses {
 
 		dir = "D:\\BOSS\\GWAF\\";
 		
+		CreateDatabaseFromPlink.toGWAF(dir+"ICAM1/plink.ped", dir+"ICAM1/plink.map", dir+"ICAM1/plink.frq", null, dir+"ICAM1/gwaf.fhsR");
+		
 		try {
-			generate(dir);
+//			generate(dir);
 //			standardize(dir);
 		} catch (Exception e) {
 			e.printStackTrace();

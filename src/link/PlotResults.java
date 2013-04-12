@@ -686,7 +686,7 @@ public class PlotResults extends JFrame implements ActionListener {
 		prog.close();
 
 		if (Files.exists(dir+"title.txt", jar)) {
-			title = HashVec.loadFileToStringArray(dir+"title.txt", jar, false, new int[] {0}, false, "\t")[0];
+			title = HashVec.loadFileToStringArray(dir+"title.txt", jar, false, new int[] {0}, true, false, "\t")[0];
 		} else {
 			title = null;
 		}

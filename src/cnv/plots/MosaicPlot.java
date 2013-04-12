@@ -11,6 +11,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import cnv.filesys.Project;
+import cnv.var.SampleData;
 
 public class MosaicPlot extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 1L;
@@ -56,7 +57,21 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		String[] line;
 		Vector<String[]> samples;
 		Vector<double[]> datapoints;
+		SampleData sampleData;
+		String[] classes;
+//		Hashtable
 
+		if (!Files.exists(proj.getFilename(Project.MOSAIC_RESULTS_FILENAME), proj.getJarStatus())) {
+			JOptionPane.showMessageDialog(null, "Could not find file: "+proj.getFilename(Project.MOSAIC_RESULTS_FILENAME), "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
+		sampleData = proj.getSampleData(false);
+		classes = sampleData.getClasses();
+		if (ext.indexOfStr("mask", classes) >= 0) {
+			
+		}
+			
 		samples = new Vector<String[]>();
 		datapoints = new Vector<double[]>();
 		try {

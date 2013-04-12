@@ -10,13 +10,10 @@ public class CheckIDsAgainstDNAs {
 //	public static final String DNA_YEAR_BUG_SOURCE = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Global PD files\\year_bug_dnas.txt";
 	public static final String DNA_YEAR_BUG_SOURCE = "C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\Global PD files\\year_bug_dnas.txt";
 
-	private Hashtable<String,Vector<Vector<String>>> hashMatches = new Hashtable<String,Vector<Vector<String>>>();
-
-	private Hashtable<String,String> hashDNAs = new Hashtable<String,String>();
-
-	private boolean yearIssue = false;
-
-	private Hashtable<String,String> yearBugs = new Hashtable<String,String>();
+	private Hashtable<String,Vector<Vector<String>>> hashMatches;
+	private Hashtable<String,String> hashDNAs;
+	private Hashtable<String,String> yearBugs;
+	private boolean yearIssue;
 
 	public CheckIDsAgainstDNAs() {
 		BufferedReader reader;
@@ -24,6 +21,11 @@ public class CheckIDsAgainstDNAs {
 		String trav;
 		Vector<Vector<String>> idMatches;
 
+		hashMatches = new Hashtable<String,Vector<Vector<String>>>();
+		hashDNAs = new Hashtable<String,String>();
+		yearBugs = new Hashtable<String,String>();
+		yearIssue = false;
+		
 		loadNinfoType1(1);
 		loadNinfoType1(5);
 

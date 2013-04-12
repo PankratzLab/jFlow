@@ -219,7 +219,7 @@ public class AnalysisFormats implements Runnable {
 		if (regions.equals("")) {
 			segs = new Segment[0];
 		} else {
-			segs = Segment.loadUCSCregions(proj.getProjectDir()+regions);
+			segs = Segment.loadUCSCregions(proj.getProjectDir()+regions, false);
 		}
 
 		if (list.equals("")) {

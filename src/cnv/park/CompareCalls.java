@@ -60,7 +60,7 @@ public class CompareCalls {
 				writer = new PrintWriter(new FileWriter(rootDir+"Compare "+ext.rootOf(files[allPossibleCombinations[i][0]])+" and "+ext.rootOf(files[allPossibleCombinations[i][1]])+".xln"));
 				writer.println("FID\tIID\tTotal"+ext.rootOf(files[allPossibleCombinations[i][0]])+"\tTotal"+ext.rootOf(files[allPossibleCombinations[i][1]])+"\tUnique"+ext.rootOf(files[allPossibleCombinations[i][0]])+"\tUnique"+ext.rootOf(files[allPossibleCombinations[i][1]])+"\tOverlaps\tExactMatches");
 				for (int j = 0; j<inds.length; j++) {
-					cnvs = new CNVariant[][] {CNVariant.toArray(hash.get(inds[j]).get(allPossibleCombinations[i][0]+"")), CNVariant.toArray(hash.get(inds[j]).get(allPossibleCombinations[i][1]+""))};
+					cnvs = new CNVariant[][] {CNVariant.toCNVariantArray(hash.get(inds[j]).get(allPossibleCombinations[i][0]+"")), CNVariant.toCNVariantArray(hash.get(inds[j]).get(allPossibleCombinations[i][1]+""))};
 					counts = new int[4];
 					if (cnvs[0].length==0) {
 						System.err.println("Error - "+inds[j]+" not found in "+files[allPossibleCombinations[i][0]]);

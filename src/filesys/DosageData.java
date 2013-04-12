@@ -258,7 +258,7 @@ public class DosageData implements Serializable {
 //			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
 		} else {
 			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, false);
-			keeps = HashVec.loadFileToHashNull(markersToKeep);
+			keeps = HashVec.loadToHashNull(markersToKeep);
 			root = ext.rootOf(filename, false);
 			if (mapOut == null) {
 				mapOut = root+".map";
@@ -610,7 +610,7 @@ public class DosageData implements Serializable {
 			keeps = null;
 		} else {
 			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, false);
-			keeps = HashVec.loadFileToHashNull(markersToKeep);
+			keeps = HashVec.loadToHashNull(markersToKeep);
 			root = ext.rootOf(outfile, false);
 			markerSet = markerSet.trim(markersToKeep, true, false, log);		// allows missing markers, but will list how many
 			if (mapOut == null) {

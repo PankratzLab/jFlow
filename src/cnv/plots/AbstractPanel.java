@@ -48,10 +48,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int DEFAULT_PLOTPOINTSET_SIZE = 1000000;
 	
 	protected Color[] colorScheme;
-	protected int canvasSectionMinimumX = 0;
-	protected int canvasSectionMaximumX = getWidth();
-	protected int canvasSectionMinimumY = 0;
-	protected int canvasSectionMaximumY = getWidth();
+	protected int canvasSectionMinimumX;
+	protected int canvasSectionMaximumX;
+	protected int canvasSectionMinimumY;
+	protected int canvasSectionMaximumY;
 	protected double plotXmax, plotYmax;
 	protected double plotXmin, plotYmin;
 	protected BufferedImage image;
@@ -87,6 +87,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private String tempDirectory;
 	
 	public AbstractPanel() {
+		canvasSectionMinimumX = 0;
+		canvasSectionMaximumX = getWidth();
+		canvasSectionMinimumY = 0;
+		canvasSectionMaximumY = getWidth();
 		displayXaxis = true;
 		displayYaxis = true;
 		displayGrid = false;
@@ -134,20 +138,20 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		return currentPlotPointSet<totalNumPlotPointSets && currentIndexInPlotPointSet<=lastIndexInPlotPointSet;
 	}
 
-	public PlotPoint nextPlotPoint() {
-		PlotPoint point;
-		
-		currentIndexInPlotPointSet++;
-		if (currentIndexInPlotPointSet == plotPointSetSize) {
-			
-		}
-		
-//		currentPlotPointSet<totalNumPlotPointSets && currentIndexInPlotPointSet<=lastIndexInPlotPointSet
-		boolean hi = true;
-		point = null;
-		
-		return point;
-	}
+//	public PlotPoint nextPlotPoint() {
+//		PlotPoint point;
+//		
+//		currentIndexInPlotPointSet++;
+//		if (currentIndexInPlotPointSet == plotPointSetSize) {
+//			
+//		}
+//		
+////		currentPlotPointSet<totalNumPlotPointSets && currentIndexInPlotPointSet<=lastIndexInPlotPointSet
+//		boolean hi = true;
+//		point = null;
+//		
+//		return point;
+//	}
 
 	public void setTempDirectory(String dir) {
 		tempDirectory = dir;
@@ -199,9 +203,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		this.forcePlotYmax = forcePlotYmax;
 	}
 
-	abstract void generatePoints();
+	public abstract void generatePoints();
 
-	abstract void assignAxisLabels();
+	public abstract void assignAxisLabels();
 
 	public void setXinversion(boolean b) {
 		invertX = b;
@@ -630,6 +634,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		while (min - plotMin < -1*DOUBLE_INACCURACY_HEDGE) { // double check this, untested
 			plotMin -= plotStep;
 		}
+//		if (min >= 0 && plotMin < 0) {
+//			plotMin = 0;
+//		}
 		
 //		System.out.println(Float.parseFloat(ext.formDeci(plotMin, sf))+"\t"+Float.parseFloat(ext.formDeci(plotMax, sf))+"\t"+Float.parseFloat(ext.formDeci(plotStep, sf)));
 		

@@ -112,7 +112,7 @@ public class MarkerQC {
             }
 			markerNames = HashVec.loadFileToStringArray(params[1][1], params[1].length>3&&params[1][3].equals("header"), new int[] {Integer.parseInt(params[1][2])}, false);
 			log.report("Found "+markerNames.length+" markers to parse in "+params[1][1]);
-			Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers), "Marker", params[0][1], log, true, true, false, false);
+			Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers), "Marker", ".", params[0][1], log, true, true, false);
 			log.report("Finished in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportException(e);
@@ -269,7 +269,7 @@ public class MarkerQC {
 	            }
 	        	if (key.equals("file")) {
 	        		file = record;
-	        	} else if (key.equals("markers")) {
+ 	        	} else if (key.equals("markers")) {
 	        		if (record.length < 3) {
 	        			markers = new String[] {key, line[0], "0"};
 	        		} else {
@@ -321,7 +321,7 @@ public class MarkerQC {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		filename = "miss.crf";
+//		filename = "d:/plink/miss.crf";
 		
 		log = new Logger(ext.rootOf(filename, false)+".log");
 		try {

@@ -23,7 +23,8 @@ public class Mach {
 	public static final String[] MLINFO_HEADER = {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"};
 	public static final String[] MINFO_HEADER = {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR", "EmpRsq", "Dose1", "Dose2"};
 	public static final String[] MACH2DAT_HEADER = {"TRAIT", "MARKER", "ALLELES", "FREQ1", "RSQR", "EFFECT1", "OR", "STDERR", "WALDCHISQ", "PVALUE", "LRCHISQ", "LRPVAL", "NCASES", "NCONTROLS"};
-	public static final char[] DELIMITERS = {' ', (char)9};
+	public static final char[] DELIMITERS = {
+		' ', (char)9};
 	
 	public static void batchFileCreation(String root, String keeps, String excludes, String prefixSubset, String prefixAll) {
 		PrintWriter writer;
@@ -105,32 +106,7 @@ public class Mach {
 		Files.writeList(Array.toStringArray(v), "master.mach");
 		Files.chmod("master.mach");
 	}
-
-	public static void listDosage(String filename, String outfile) {
-		BufferedReader reader;
-		PrintWriter writer;
-		String[] line;
-		
-		try {
-			reader = new BufferedReader(new FileReader(filename));
-			writer = new PrintWriter(new FileWriter(outfile));
-			System.out.println(ext.getTime()+" Parsing dosage file");
-			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
-				writer.println(line[0].substring(0, line[0].indexOf("-"))+"\t"+line[0].substring(line[0].indexOf(">")+1));
-			}
-			System.out.println(ext.getTime()+" ..done");
-			reader.close();
-			writer.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error - could not find either \""+filename+"\" or \""+outfile+"\"");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error parsing \""+filename+"\" to \""+outfile+"\"");
-			System.exit(2);
-		}
-	}
-
+	
 	public static void trimReference(String prefixAll, int chr) {
 		BufferedReader reader;
         PrintWriter writer;
@@ -282,7 +258,7 @@ public class Mach {
         }
 	}
 	
-	public static void listIndividualsInMldose(String filename, String outfile) {
+	public static void listIndividualsInMldoseSlowly(String filename, String outfile) {
 		PrintWriter writer;
 		FileReader in;
 		String trav;
@@ -316,7 +292,37 @@ public class Mach {
         }
 	}
 	
-	public static void extractDosageForPlink(String dir, String pedfile, String machRoot, String markersToTest) {
+	public static void listIndividualsInMldose(String filename, String outfile) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		long time;
+
+		try {
+        	time = new Date().getTime();
+//			reader = new BufferedReader(new FileReader(filename));
+			reader = Files.getAppropriateReader(filename);
+			System.out.println(ext.getTime()+" Reading dosage file");
+			writer = new PrintWriter(new FileWriter(outfile));
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				writer.println(line[0].substring(0, line[0].indexOf("->"))+"\t"+line[0].substring(line[0].indexOf("->")+2));
+				writer.flush();
+			}
+            writer.close();
+			reader.close();
+			System.out.println(ext.getTime()+" Done in "+ext.getTimeElapsed(time));
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename
+					+ "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
+		}
+	}
+	
+	public static void extractDosageForPlink(String dir, String pedfile, String machDosage, String machMarkers, String markersToTest) {
 		BufferedReader reader;
 		PrintWriter writer, mapWriter;
 		String[] line;
@@ -328,11 +334,6 @@ public class Mach {
 		boolean allMarkers;
 		String[] subset = null;
 		
-		String machDosage, machMarkers;
-		
-		machDosage = machRoot+".mldose";
-		machMarkers = machRoot+".mlinfo";
-
 		if (!dir.equals("")&&!new File(dir).exists()) {
 			System.err.println("Could not find directory: "+dir);
 			System.err.println("  using current directory instead");
@@ -532,7 +533,7 @@ public class Mach {
 	}
 	
 	// returns true if nothing went wrong
-	public static boolean extractSpecificMarkers(String dir, String markerList, String mldoseFormat, String mlinfoFormat, boolean verbose, Logger log) {
+	public static boolean extractSpecificMarkers(String dir, String markerList, String dosageFormat, String markerInfoFormat, boolean verbose, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -556,31 +557,26 @@ public class Mach {
 		String[][] data;
 		String trav;
 		
-		String machDosage, machMarkers;
+		String dosageFile, markerInfoFile;
 		String pedfile;
+		boolean machFormat;
+		String filename, descriptor, delimiter;
 		
         time = new Date().getTime();
         
-		pedfile = dir+"list.txt";
-		if (!new File(pedfile).exists()) {
-			log.reportError("Could not find 'list.txt' generating...");
-			int chrom = 22;
-			while (!(new File(ext.insertNumbers(mldoseFormat, chrom)).exists()) && chrom >= 1) {
-				chrom--;
-			}
-			if (chrom == 0) {
-				log.reportError("Error - no valid "+mldoseFormat+".mldose file found anywhere; aborting");
-				return false;
-			}
-			listIndividualsInMldose(ext.insertNumbers(mldoseFormat, chrom), dir+"list.txt");
-		}
-		indIDs = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0,1}, false, "[\\s]+");
-        
+        trav = dosageFormat.endsWith(".gz")?dosageFormat.substring(0, dosageFormat.lastIndexOf(".")):dosageFormat;
+        machFormat = trav.endsWith(".mldose");
+        trav = markerInfoFormat.endsWith(".gz")?markerInfoFormat.substring(0, markerInfoFormat.lastIndexOf(".")):markerInfoFormat;
+        if (machFormat && !trav.endsWith(".mlinfo")) {
+        	System.err.println("Error - mismatched format patterns, assuming these are output from minimac");
+        }
+
 		indexHash = new Hashtable<String,Integer>();
 		chrHash = new Hashtable<String,Vector<String>>();
 		v = new Vector<String>();
 		try {
-	        reader = new BufferedReader(new FileReader(markerList));
+//	        reader = new BufferedReader(new FileReader(markerList));
+			reader = Files.getAppropriateReader(markerList);
 	        count = 0;
 	        while (reader.ready()) {
 	        	line = reader.readLine().trim().split("[\\s]+");
@@ -606,6 +602,22 @@ public class Mach {
 	        return false;
         }
         markerNames = Array.toStringArray(v);
+
+        pedfile = dir+"list.txt";
+		if (!new File(pedfile).exists()) {
+			log.reportError("Could not find 'list.txt' generating...");
+			int chrom = 22;
+			while (!(new File(ext.insertNumbers(dosageFormat, chrom)).exists()) && chrom >= 1) {
+				chrom--;
+			}
+			if (chrom == 0) {
+				log.reportError("Error - no valid "+dosageFormat+" file found anywhere; aborting");
+				return false;
+			}
+			listIndividualsInMldose(ext.insertNumbers(dosageFormat, chrom), dir+"list.txt");
+		}
+		indIDs = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0,1}, true, false, "[\\s]+");
+        
         
         chrKeys = HashVec.getKeys(chrHash);
         indicesHash = new Hashtable<String,int[]>();
@@ -621,24 +633,24 @@ public class Mach {
         	if (chr < 1 || chr > 22) {
         		log.reportError("Error - invalid chromosome number ('"+chr+"') listed in column 2 for marker '"+chrHash.get(chrKeys[i]).elementAt(0)+"'");
         	}
-    		machDosage = ext.insertNumbers(mldoseFormat, chr);
-    		machMarkers = ext.insertNumbers(mlinfoFormat, chr);
+    		dosageFile = ext.insertNumbers(dosageFormat, chr);
+    		markerInfoFile = ext.insertNumbers(markerInfoFormat, chr);
     		
-    		if (!Files.exists(machDosage, false)) {
-    			log.reportError("Error - missing file '"+machDosage+"'");
+    		if (!Files.exists(dosageFile, false)) {
+    			log.reportError("Error - missing file '"+dosageFile+"'");
     		}
-    		if (!Files.exists(machMarkers, false)) {
-    			log.reportError("Error - missing file '"+machMarkers+"'");
+    		if (!Files.exists(markerInfoFile, false)) {
+    			log.reportError("Error - missing file '"+markerInfoFile+"'");
     		}
     		
-        	indices = new int[Files.countLines(machMarkers, true)];
+        	indices = new int[Files.countLines(markerInfoFile, true)];
     		try {
-	            reader = new BufferedReader(new FileReader(machMarkers));
+//	            reader = new BufferedReader(new FileReader(machMarkers));
+	            reader = Files.getAppropriateReader(markerInfoFile);
 	            line = reader.readLine().trim().split("[\\s]+");
-	            if (line.length == 7) {
+	            if (machFormat) {
 	            	ext.checkHeader(line, MLINFO_HEADER, true);
-	            }
-	            if (line.length == 13) {
+	            } else {
 	            	ext.checkHeader(line, MINFO_HEADER, true);
 	            }
 	            count = 0;
@@ -655,7 +667,7 @@ public class Mach {
 	            }
 	            reader.close();
             } catch (IOException ioe) {
-            	log.reportError("Error reading file \""+machMarkers+"\"");
+            	log.reportError("Error reading file \""+markerInfoFile+"\"");
 	            return false;
             }    		
         	indicesHash.put(chrKeys[i], indices);
@@ -664,7 +676,7 @@ public class Mach {
         prob = false;
         for (int i = 0; i<markerNames.length; i++) {
         	if (!infoHash.containsKey(markerNames[i])) {
-        		log.reportError("Error - marker '"+markerNames[i]+"' was not found in any .mlinfo file", true, verbose);
+        		log.reportError("Error - marker '"+markerNames[i]+"' was not found in any "+markerInfoFormat+" file", true, verbose);
         		prob = true;
         	}
         }
@@ -678,11 +690,11 @@ public class Mach {
 		for (int i = 0; i<chrKeys.length; i++) {
 			log.report(".", false, verbose);
     		chr = Integer.parseInt(chrKeys[i]);
-    		machDosage = ext.insertNumbers(mldoseFormat, chr);
+    		dosageFile = ext.insertNumbers(dosageFormat, chr);
     		indices = indicesHash.get(chrKeys[i]);
 			
 			try {
-				in = new FileReader(machDosage);
+				in = new FileReader(dosageFile);
 				count = -2;
 				c = 0;
 				for (int ind = 0; ind<indIDs.length; ind++) {
@@ -692,7 +704,7 @@ public class Mach {
 					}
 					line = indIDs[ind].split("[\\s]+");
 					if (!trav.equals(line[0]+"->"+line[1])) {
-						log.reportError("Error - mldose ("+machDosage+") does not match pedfile ("+pedfile+"); expecting '"+line[0]+"->"+line[1]+"', found '"+trav+"'");
+						log.reportError("Error - dosagee file ("+dosageFile+") does not match pedfile ("+pedfile+"); expecting '"+line[0]+"->"+line[1]+"', found '"+trav+"'");
 						return false;
 					}
 					
@@ -713,51 +725,65 @@ public class Mach {
 						}
 					}
 					if ((char)c!='\n') {
-						log.reportError("Error reading '"+machDosage+"': did not find "+(indices.length+2)+" columns for row "+(ind+1));
+						log.reportError("Error reading '"+dosageFile+"': did not find "+(indices.length+2)+" columns for row "+(ind+1));
 						log.reportError("   Make sure that the delimiter is set correctly");
 					}
 					if (c<0 && ind != indIDs.length-1) {
-						log.reportError("Error - premature truncation of file '"+machDosage+"' at line "+(ind+1));
+						log.reportError("Error - premature truncation of file '"+dosageFile+"' at line "+(ind+1));
 						return false;
 					}
 				}
 				if (in.read() != -1) {
-					log.reportError("Error - stopped reading before the end of file for '"+machDosage+"' (found character '"+c+"')");
+					log.reportError("Error - stopped reading before the end of file for '"+dosageFile+"' (found character '"+c+"')");
 					return false;
 				}
 				in.close();
 			} catch (IOException ioe) {
-				log.reportError("Error reading file \""+machDosage+"\"");
+				log.reportError("Error reading file \""+dosageFile+"\"");
 				return false;
 			}
         }
 		log.report("", true, verbose);
 		
+		if (machFormat) {
+			filename = ext.rootOf(markerList, false)+".mldose";
+			descriptor = "MLDOSE";
+			delimiter = " ";
+		} else {
+			filename = ext.rootOf(markerList, false)+".dose";
+			descriptor = "DOSE";
+			delimiter = "\t";
+		}
 		try {
-            writer = new PrintWriter(new FileWriter(ext.rootOf(markerList, false)+".mldose"));
+            writer = new PrintWriter(new FileWriter(filename));
             for (int i = 0; i<indIDs.length; i++) {
             	line = indIDs[i].split("[\\s]+");
-            	writer.print(line[0]+"->"+line[1]+" MLDOSE");
+            	writer.print(line[0]+"->"+line[1]+delimiter+descriptor);
             	for (int j = 0; j<markerNames.length; j++) {
-            		writer.print(" "+data[i][j]);
+            		writer.print(delimiter+data[i][j]);
                 }
             	writer.println();
             }
             writer.close();
         } catch (Exception e) {
-        	log.reportError("Error writing to "+ext.rootOf(markerList, false)+".mldose");
+        	log.reportError("Error writing to "+filename);
         	log.reportException(e);
         }
 
+		filename = ext.rootOf(markerList, false)+(machFormat?".mlinfo":".info");
 		try {
-            writer = new PrintWriter(new FileWriter(ext.rootOf(markerList, false)+".mlinfo"));
-        	writer.println(Array.toStr(MLINFO_HEADER));
+            writer = new PrintWriter(new FileWriter(filename));
+            if (machFormat) {
+            	writer.println(Array.toStr(MLINFO_HEADER));
+            } else {
+            	writer.println(Array.toStr(MINFO_HEADER));
+            }
             for (int i = 0; i<markerNames.length; i++) {
             	writer.println(Array.toStr(infoHash.get(markerNames[i])));
             }
             writer.close();
         } catch (Exception e) {
-        	log.reportError("Error writing to "+ext.rootOf(markerList, false)+".mlinfo");
+        	log.reportError("Error writing to "+filename);
         	log.reportException(e);
         }
         log.report("Finished in "+ext.getTimeElapsed(time), true, verbose);
@@ -765,42 +791,62 @@ public class Mach {
         return true;
 	}
 	
-	public static void extractIntermediate(String markerList, String mldoseFormat, String mlinfoFormat) {
+	public static void extractIntermediate(String markerList, int regionNameIndex, String dosageFormat, String infoFormat) {
 		BufferedReader reader;
 		PrintWriter writer, w2;
 		String[] line;
-		Hashtable<String,Integer> indexHash;
+		Hashtable<String,Integer> chrHash;
+		Hashtable<String,String> markerHash;
 		Vector<String> v;
 		int count;
-		Hashtable<String,Vector<String>> chrHash;
-		String[] chrKeys;
+		Hashtable<String,Hashtable<String,String>> regionMarkerHashes;
+		Hashtable<String,String> regionHash;
+		String[] regionKeys;
 		int chr;
 		long time;
+		String dosageFile, markersFile;
+		String batchFilename, dir;
+		boolean regions;
 		
-		String machDosage, machMarkers;
+		if (regionNameIndex == -1) {
+			regions = false;
+			regionNameIndex = 1;
+		} else {
+			regions = true;
+		}
 		
         time = new Date().getTime();
         
-		indexHash = new Hashtable<String,Integer>();
-		chrHash = new Hashtable<String,Vector<String>>();
+        markerHash = new Hashtable<String,String>();
+		chrHash = new Hashtable<String, Integer>();
+		regionMarkerHashes = new Hashtable<String,Hashtable<String,String>>();
 		v = new Vector<String>();
 		try {
 	        reader = new BufferedReader(new FileReader(markerList));
-	        count = 0;
+			System.out.println("Reading data from "+markerList);
 	        while (reader.ready()) {
 	        	line = reader.readLine().trim().split("[\\s]+");
-	        	if (line.length < 2) {
+	        	if (line.length < 3) {
 	        		System.err.println("Error - the second column of the marker list must contain the chromosome number");
 	        		System.exit(1);	        	
+	        	} else if (line.length < regionNameIndex+1) {
+	        		System.err.println("Error - each row must contain the region name in the specified index ('"+regionNameIndex+"')");
+	        		System.exit(1);	        	
 	        	}
-	        	if (indexHash.containsKey(line[0])) {
+	        	if (!regions && markerHash.containsKey(line[0])) {
 	        		System.err.println("Error - cannot have the same marker ("+line[0]+") in the file twice");
 	        		System.exit(1);
 	        	}
-	        	indexHash.put(line[0], Integer.valueOf(count));
-	        	HashVec.addToHashVec(chrHash, line[1], line[0], false);
-	        	v.add(line[0]);
-	        	count++;
+	        	markerHash.put(line[0], "");
+	        	try {
+		        	chrHash.put(line[0], Integer.valueOf(line[1]));
+	        	} catch (NumberFormatException nfe) {
+	        		System.err.println("Error - invalid chromosome number listed in column 2 for marker '"+line[0]+"'");
+	        		System.exit(1);
+	        	}
+	        	line[regionNameIndex] = ext.replaceAllWith(line[regionNameIndex], ":", "_");
+	        	HashVec.addToHashHash(regionMarkerHashes, line[regionNameIndex], line[0], "");
+	        	HashVec.addIfAbsent(line[regionNameIndex], v);
 	        }
 	        reader.close();
         } catch (FileNotFoundException fnfe) {
@@ -810,40 +856,65 @@ public class Mach {
 	        System.err.println("Error reading file \""+markerList+"\"");
 	        System.exit(2);
         }
+		
+		if (regions) {
+			batchFilename = "splitByRegion";
+//	        regionKeys = HashVec.getKeys(regionMarkerHashes, true, false);
+	        regionKeys = Array.toStringArray(v);
+	        Files.writeList(regionKeys, "regionList.dat");
+	        System.out.println("Found "+regionKeys.length+" regions to parse");
+		} else {
+			batchFilename = "intExtract";
+	        regionKeys = HashVec.getKeys(regionMarkerHashes, true, true);
+	        System.out.println("Markers are distributed across "+regionKeys.length+" chromosomes");
+		}
         
         try {
-			writer = new PrintWriter(new FileWriter("intExtract"));
-			new File("intermediateExtraction").mkdir();
-	        chrKeys = HashVec.getKeys(chrHash, true, true);
-	        for (int i = 0; i<chrKeys.length; i++) {
-	        	try {
-	        		chr = Integer.parseInt(chrKeys[i]);
-	        	} catch (NumberFormatException nfe) {
-	        		System.err.println("Error - invalid chromosome number listed in column 2 for marker '"+chrHash.get(chrKeys[i]).elementAt(0)+"'");
-	        		chr = -1;
-	        		System.exit(1);
+			writer = new PrintWriter(new FileWriter(batchFilename));
+	        for (int i = 0; i<regionKeys.length; i++) {
+				regionHash = regionMarkerHashes.get(regionKeys[i]);
+        		chr = chrHash.get(regionHash.keys().nextElement()).intValue();
+	        	if (regions) {
+	        		dir = regionKeys[i]+"/";
+		        	System.out.println(regionKeys[i]+" on chr"+chr+" (region "+(i+1)+" of "+regionKeys.length+")");
+	        	} else {
+	        		dir = "intermediateExtraction/";
+		        	System.out.println("chr"+chr+" (batch "+(i+1)+" of "+regionKeys.length+")");
 	        	}
-	        	System.out.println("chr"+chr+" ("+(i+1)+" of "+chrKeys.length+")");
-
+				new File(dir).mkdir();
 	        	if (chr < 1 || chr > 22) {
-	        		System.err.println("Error - invalid chromosome number ('"+chr+"') listed in column 2 for marker '"+chrHash.get(chrKeys[i]).elementAt(0)+"'");
+	        		System.err.println("Error - invalid chromosome number ('"+chr+"') listed in column 2 for marker '"+regionHash.keys().nextElement()+"'");
 	        	}
-	    		machDosage = ext.insertNumbers(mldoseFormat, chr);
-	    		machMarkers = ext.insertNumbers(mlinfoFormat, chr);
-	    		
-	    		if (!Files.exists(machDosage, false)) {
-	    			System.err.println("Error - missing file '"+machDosage+"'");
+	        	
+	    		dosageFile = ext.insertNumbers(dosageFormat, chr);
+	    		markersFile = ext.insertNumbers(infoFormat, chr);
+	        	
+	    		if (!Files.exists(dosageFile, false)) {
+	    			System.err.println("Error - missing file '"+dosageFile+"'");
+	    			System.exit(1);
 	    		}
-	    		if (!Files.exists(machMarkers, false)) {
-	    			System.err.println("Error - missing file '"+machMarkers+"'");
+	    		if (!Files.exists(markersFile, false)) {
+	    			System.err.println("Error - missing file '"+markersFile+"'");
+	    			System.exit(1);
 	    		}
 	    		
 	    		try {
-		            reader = new BufferedReader(new FileReader(machMarkers));
-		            w2 = new PrintWriter(new FileWriter("intermediateExtraction/chr"+chr+".mlinfo"));
+		            reader = Files.getAppropriateReader(markersFile);
+		            w2 = new PrintWriter(new FileWriter(dir+(regions?"data.info":"chr"+chr+".info")));
 		            line = reader.readLine().trim().split("[\\s]+");
 		            w2.println(Array.toStr(line));
-		            ext.checkHeader(line, MLINFO_HEADER, true);
+		            if (markersFile.endsWith(".gz") || markersFile.endsWith(".zip")) {
+		            	markersFile = markersFile.substring(0, markersFile.lastIndexOf("."));
+		            }
+		            if (markersFile.endsWith(".mlinfo")) {
+		            	System.out.println("Checking against MLINFO header");
+		            	ext.checkHeader(line, MLINFO_HEADER, true);
+		            } else if (markersFile.endsWith(".info") || markersFile.endsWith(".minfo") || markersFile.endsWith(".pinfo")) {
+		            	System.out.println("Checking against INFO header");
+		            	ext.checkHeader(line, MINFO_HEADER, true);
+		            } else {
+		            	System.err.println("Warning - unknown marker info format extension ("+markersFile+"); skipping header verification");
+		            }
 		            v = new Vector<String>();
 		            v.add("1");
 		            v.add("2");
@@ -851,31 +922,54 @@ public class Mach {
 		            while (reader.ready()) {
 		            	count++;
 		            	line = reader.readLine().trim().split("[\\s]+");
-		            	if (indexHash.containsKey(line[0])) {
+		            	if (regionHash.containsKey(line[0])) {
+		            		regionHash.remove(line[0]);
 		            		v.add(count+"");
 				            w2.println(Array.toStr(line));
 		            	}
 		            }
 		            reader.close();
 		            w2.close();
+		            
+		            if (regionHash.size()>0) {
+		            	System.err.println("Error - missed "+regionHash.size()+" markers that were supposed to be "+(regions?"part of region ":"on chromosome ")+regionKeys[i]+":");
+		            	System.err.println(Array.toStr(HashVec.getKeys(regionHash), ","));
+		            }
 	            } catch (IOException ioe) {
-		            System.err.println("Error reading file \""+machMarkers+"\"");
+		            System.err.println("Error reading file \""+markersFile+"\"");
 		            System.exit(2);
 	            }
-	            writer.println("echo \"parsing chr"+chr+" ("+(i+1)+" of "+chrKeys.length+")...\"");
-	            writer.println("awk '{print $"+Array.toStr(Array.toStringArray(v), "\"\\t\"$")+"}' "+machDosage+" > intermediateExtraction/chr"+chr+".mldose");
+	    		if (regions) {
+	    			writer.println("echo \""+regionKeys[i]+" on chr"+chr+" (region "+(i+1)+" of "+regionKeys.length+")...\"");
+	    		} else {
+		            writer.println("echo \"parsing chr"+chr+" (batch "+(i+1)+" of "+regionKeys.length+")...\"");
+	    		}
+	            Files.write("{print $"+Array.toStr(Array.toStringArray(v), "\"\\t\"$")+"}", dir+"split"+(i+1)+".awk");
+	            if (dosageFile.endsWith(".gz")) {
+		            writer.println("gunzip -c "+dosageFile+" | awk -f "+dir+"split"+(i+1)+".awk > "+dir+(regions?"data.dose":"chr"+chr+".dose"));
+	            } else {
+	            	writer.println("awk -f "+dir+"split"+(i+1)+".awk "+dosageFile+" > "+dir+(regions?"data.dose":"chr"+chr+".dose"));
+	            }	            
+	        }
+	        if (regions) {
+		        writer.println("tar -zcvf intermediateExtraction/region_awks.tar.gz intermediateExtraction/*.awk");
+		        writer.println("rm intermediateExtraction/*.awk");
+	        } else {
+		        writer.println("tar -zcvf intermediateExtraction/intEx_awks.tar.gz intermediateExtraction/*.awk");
+		        writer.println("rm intermediateExtraction/*.awk");
 	        }
 			writer.close();
-			Files.chmod("intExtract");
+			Files.chmod(batchFilename);
 		} catch (Exception e) {
-			System.err.println("Error writing to " + "intExtract");
+			System.err.println("Error writing to " + batchFilename);
 			e.printStackTrace();
 		}
 
-        System.out.println("Finished in "+ext.getTimeElapsed(time));
+        System.out.println("Finished setting up "+(regions?"split-by-region":"intermediate")+" extraction in "+ext.getTimeElapsed(time)+"; use the following command to have awk do the actual parsing:");
+        System.out.println("./"+batchFilename);
 	}
 	
-	public static void extractGenotypesForPlink(String dir, String pedfile, String machRoot, String markersToTest, double rsqThreshold, double probRequirement) {
+	public static void extractGenotypesForPlink(String dir, String pedfile, String machProb, String machMarkers, String markersToTest, double rsqThreshold, double probRequirement) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -884,14 +978,10 @@ public class Mach {
 		String[] markerNames;
 		boolean allMarkers;
 		
-		String machProb, machMarkers;
 		SnpMarkerSet map;
 		boolean[] use;
 		String[] rsqs;
 		char[][] alleles;
-		
-		machProb = machRoot+".mlprob";
-		machMarkers = machRoot+".mlinfo";
 		
 		if (!dir.equals("")&&!new File(dir).exists()) {
 			System.err.println("Could not find directory: "+dir);
@@ -1040,15 +1130,13 @@ public class Mach {
         PrintWriter writer;
         
 		for (int chr = 1; chr<=22; chr++) {
-//			System.out.println("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam");
-//			CmdLine.run("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam", "chr"+chr+"/");
+			System.out.println("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam");
+			CmdLine.run("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam", "chr"+chr+"/");
         }
 		try {
 	        writer = new PrintWriter(new FileWriter("merge.dat"));
 			for (int chr = 2; chr<=22; chr++) {
 				writer.println("chr"+chr+"/"+machRoot+"_chr"+chr+".mlprob.ped chr"+chr+"/"+machRoot+"_chr"+chr+".mlprob.map");
-//				System.out.println("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam");
-//				CmdLine.run("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam", "chr"+chr+"/");
 	        }
 			System.out.println("plink --noweb --file chr1/"+machRoot+"_chr1.mlprob --merge-list merge.dat --make-bed --out imputedGenotypes");
 
@@ -1199,7 +1287,6 @@ public class Mach {
 //		String pedfile = "plink.fam";
 		String pedfile = "confidence.ped";
 		String machRoot = "MACH_step2";
-		boolean listdosage = false;
 		String markerSubset = "testThese.txt";
 		int trim = -1;
 		String list = null;
@@ -1214,10 +1301,12 @@ public class Mach {
 		boolean checkResults = false;
 		String extract = "";
 		String database = "";
-		String mldoseFormat = "chr#/MACH_step2_chr#";
-		String mlinfoFormat = "chr#/MACH_step2_chr#";
+		String doseFormat = "chr#/MACH_step2_chr#.mldose";
+		String infoFormat = "chr#/MACH_step2_chr#.mlinfo";
+		String probFormat = "MACH_step2_chr21.mlprob";
 		boolean intEx = false;
 		String[] nodesToUse = null;
+		int splitByRegion = -1;
 		
 //		dir = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Expression\\LD_versus_GWAS\\MAPT_again\\";
 //		decode = 17;
@@ -1255,19 +1344,21 @@ public class Mach {
 		" OR\n"+
 		"   (1) extract PLINK dosage files from MACH .mldose file (i.e. -extractDosage (not the default))\n"+
 		"   (2) pedigree file (i.e. ped="+pedfile+" (default))\n"+
-		"   (3) MACH file name root (i.e. mach="+machRoot+" (default))\n"+
-		"   (4) (optional) list of subset of markers to test (i.e. subset="+markerSubset+" (default))\n"+
+		"   (3) format of dosage filenames (i.e. doseFormat="+doseFormat+" (default))\n"+
+		"   (4) format of marker info filenames (i.e. infoFormat="+infoFormat+" (default))\n"+
+		"   (5) (optional) list of subset of markers to test (i.e. subset="+markerSubset+" (default))\n"+
 		" OR\n"+
 		"   (1) recreate .mldose/.mlinfo with a subset of markers (i.e. extract=markerList.txt (not the default; list requires chr in second column))\n"+
-		"   (2) .mldose prefix format (i.e. mldoseFormat="+mldoseFormat+" (default))\n"+
-		"   (3) .mlinfo prefix format (i.e. mlinfoFormat="+mlinfoFormat+" (default))\n"+
+		"   (2) format of dosage filenames (i.e. doseFormat="+doseFormat+" (default))\n"+
+		"   (3) format of marker info filenames (i.e. infoFormat="+infoFormat+" (default))\n"+
 		"   (4) (optional) create batch to quickly parse .mldose files (i.e. -intEx (not the default))\n"+
+		"   (5) (optional) split files up by region name into separate directories (i.e. splitByRegion=[index of region name in markerList file] (not the default))\n"+
 		" OR\n"+
 		"   (1) create database .xln file from a .mldose/.mlinfo pair (i.e. database=fileRoot (not the default))\n"+
 		" OR\n"+
 		"   (1) extract PLINK genotype files from MACH .mlprob file (i.e. -extractGenotypes (not the default))\n"+
 		"   (2) pedigree file (i.e. ped="+pedfile+" (default))\n"+
-		"   (3) MACH file name root (i.e. mach="+machRoot+" (default))\n"+
+		"   (3) MACH file name root (i.e. probFormat="+probFormat+" (default))\n"+
 		"   (4) rsq threshold for marker inclusion (i.e. rsq="+rsqThreshold+" (default))\n"+
 		"   (5) prob threshold for genotype calling (i.e. prob="+probRequirement+" (default))\n"+
 		"   (6) (optional) list of subset of markers to test (i.e. subset="+markerSubset+" (default))\n"+
@@ -1324,9 +1415,6 @@ public class Mach {
 			} else if (args[i].startsWith("subset=")) {
 				markerSubset = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("-listdosage")) {
-				listdosage = true;
-				numArgs--;
 			} else if (args[i].startsWith("-extractDosage")) {
 				extractDosage = true;
 				numArgs--;
@@ -1336,11 +1424,17 @@ public class Mach {
 			} else if (args[i].startsWith("-intEx")) {
 				intEx = true;
 				numArgs--;
-			} else if (args[i].startsWith("mldoseFormat=")) {
-				mldoseFormat = args[i].split("=")[1];
+			} else if (args[i].startsWith("splitByRegion=")) {
+				splitByRegion = ext.parseIntArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("mlinfoFormat=")) {
-				mlinfoFormat = args[i].split("=")[1];
+			} else if (args[i].startsWith("doseFormat=")) {
+				doseFormat = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("infoFormat=")) {
+				infoFormat = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("probFormat=")) {
+				probFormat = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("database=")) {
 				database = args[i].split("=")[1];
@@ -1385,6 +1479,19 @@ public class Mach {
 				convertMapToDat(convert);
 			} else if (list != null) {
 				listIndividualsInMldose(list, "list.txt");
+//				long time;
+//				time = new Date().getTime();
+//				listIndividualsInMldoseSlowly(list, "listS1.txt");
+//				System.out.println("S1 in " + ext.getTimeElapsed(time));
+//				time = new Date().getTime();
+//				listIndividualsInMldose(list, "listF1.txt");
+//				System.out.println("F1 in " + ext.getTimeElapsed(time));
+//				time = new Date().getTime();
+//				listIndividualsInMldose(list, "listF2.txt");
+//				System.out.println("F2 in " + ext.getTimeElapsed(time));
+//				time = new Date().getTime();
+//				listIndividualsInMldoseSlowly(list, "listS2.txt");
+//				System.out.println("S2 in " + ext.getTimeElapsed(time));
 			} else if (createfiles) {
 //				batchFileCreation(root, keeps, excludes, DEFAULT_SUBSET, DEFAULT_ALL);
 				batchFileCreation(root, keeps, excludes, ext.rootOf(keeps), DEFAULT_ALL);
@@ -1402,20 +1509,18 @@ public class Mach {
 				decodePhasedHapMap(dir, decode);
 			} else if (pickBest) {
 				pickBest(pickSize);
-			} else if (listdosage) {
-				listDosage(dir, machRoot);
 			} else if (extractDosage) {
-				extractDosageForPlink(dir, pedfile, machRoot, markerSubset);
+				extractDosageForPlink(dir, pedfile, doseFormat, infoFormat, markerSubset);
 			} else if (!extract.equals("")) {
-				if (intEx) {
-					extractIntermediate(extract, mldoseFormat, mlinfoFormat);
+				if (intEx || splitByRegion >= 0) {
+					extractIntermediate(extract, splitByRegion, doseFormat, infoFormat);
 				} else {
-					extractSpecificMarkers("", extract, mldoseFormat, mlinfoFormat, true, new Logger(null));
+					extractSpecificMarkers("", extract, doseFormat, infoFormat, true, new Logger(null));
 				}
 			} else if (!database.equals("")) {
 				createDatabase(database);
 			} else if (extractGenotypes) {
-				extractGenotypesForPlink(dir, pedfile, machRoot, markerSubset, rsqThreshold, probRequirement);
+				extractGenotypesForPlink(dir, pedfile, probFormat, infoFormat, markerSubset, rsqThreshold, probRequirement);
 			} else if (extractAllGenotypes) {
 				parseGenotypesTogether(machRoot);
 			} else if (checkResults) {

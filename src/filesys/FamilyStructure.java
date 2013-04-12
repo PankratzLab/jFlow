@@ -5,6 +5,8 @@ import java.io.*;
 import common.*;
 
 public class FamilyStructure {
+	public static final String[][] TYPICAL_HEADERS = {{"FID", "famid"}, {"IID", "id"}, {"fa"}, {"mo"}, {"sex"}}; 
+	
 	private String[][] ids;
 	private byte[] genders;
 	private byte[] affections;
@@ -100,5 +102,9 @@ public class FamilyStructure {
 	        System.err.println("Error writing to "+filename);
 	        e.printStackTrace();
         }
+	}
+	
+	public static boolean likelyPedHeader(String[] line) {
+		return Array.countIf(ext.indexFactors(TYPICAL_HEADERS, line, false, true, false, false), -1) < 3;
 	}
 }

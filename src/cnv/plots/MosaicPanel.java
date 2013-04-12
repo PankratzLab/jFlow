@@ -31,18 +31,33 @@ public class MosaicPanel extends JPanel implements MouseListener, MouseMotionLis
 	public static final double X_STEP = 0.05;
 	public static final double Y_STEP = 0.05;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final double HIGHLIGHT_DISTANCE = Math.sqrt(SIZE*SIZE/2);
+	public static final double HIGHLIGHT_DISTANCE = SIZE*0.8; // used to be Math.sqrt(SIZE*SIZE/2);
 	public static final int DOUBLE_CLICK_INTERVAL = 500;
+
+//	private Color[] colorScheme = {Color.BLACK,
+//			new Color(55, 129, 252), // dark/light blue
+//			new Color(140, 20, 180), // deep purple
+//			new Color(189, 243, 61), // light green
+//			new Color(201, 30, 10), new Color(217, 109, 194), // deep red/pink
+//			new Color(33, 31, 53), new Color(255, 255, 255), // dark dark / light light
+//			new Color(94, 88, 214), // light purple
+//			new Color(33, 87, 0)}; // dark green
 
 	private Color[] colorScheme = {Color.BLACK,
 			new Color(55, 129, 252), // dark/light blue
 			new Color(140, 20, 180), // deep purple
-			new Color(189, 243, 61), // light green
-			new Color(201, 30, 10), new Color(217, 109, 194), // deep red/pink
-			new Color(33, 31, 53), new Color(255, 255, 255), // dark dark / light light
+			new Color(0, 100, 0), // green
+			new Color(200, 30, 10), // red
+			new Color(100, 50, 0), // brown
+			new Color(255, 100, 0), // orange
+			new Color(217, 109, 194), // pink
 			new Color(94, 88, 214), // light purple
-			new Color(33, 87, 0)}; // dark green
-
+			new Color(189, 243, 61), // neon green
+			new Color(33, 31, 53), // nearly black
+			new Color(255, 255, 255), // white
+	};
+	
+	
 	private Project proj;
 	private String[][] samples;
 	private double[][] data;
@@ -51,10 +66,10 @@ public class MosaicPanel extends JPanel implements MouseListener, MouseMotionLis
 	private double minY;
 	private double maxY;
 	// private boolean linkSamples;
-	private int xMin = 0;
-	private int xMax = getWidth();
-	private int yMin = 0;
-	private int yMax = getWidth();
+	private int xMin;
+	private int xMax;
+	private int yMin;
+	private int yMax;
 	private double plotXmax, plotYmax;
 	private String prevPos = "";
 	private BufferedImage image;
@@ -328,6 +343,7 @@ public class MosaicPanel extends JPanel implements MouseListener, MouseMotionLis
 			g.setColor(Color.RED);
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(data[iv.elementAt(i)][0]), getY(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
+					
 					g.setColor(Color.RED);
 					prox.add(iv.elementAt(i));
 					if (failedHash.containsKey(samples[iv.elementAt(i)][0])&&failedHash.get(samples[iv.elementAt(i)][0]).equals("0")) {

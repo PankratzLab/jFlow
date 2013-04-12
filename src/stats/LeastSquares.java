@@ -14,12 +14,12 @@ public class LeastSquares extends RegressionModel {
 	private double[][] invP;
 	private int sigDig = 3;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	public LeastSquares(Vector vDeps, Vector vIndeps) { // deps = Vector of int/double as String, indeps = Vector of double[]
 		this(vDeps, vIndeps, false, true);
 	}
 	
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings("unchecked")
 	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck, boolean verbose) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose);
 	}
@@ -37,6 +37,10 @@ public class LeastSquares extends RegressionModel {
 	}
 
 	public LeastSquares(double[] new_deps, double[][] new_indeps, boolean bypassDataCheck, boolean verbose) {
+		this(new_deps, new_indeps, null, bypassDataCheck, verbose);
+	}
+	
+	public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames, boolean bypassDataCheck, boolean verbose) {
 		this.deps = new_deps;
 		this.indeps = new_indeps;
 		this.verbose = verbose;
@@ -48,6 +52,21 @@ public class LeastSquares extends RegressionModel {
 			fail();
 			return;
 		}
+		
+		if (new_indeps.length > 0) {
+			M = new_indeps[0].length;
+			varNames = new String[M+1];
+			varNames[0] = "Constant";
+			for (int i = 1; i<M+1; i++) {
+				varNames[i] = "Indep "+i;
+			}
+			maxNameSize = (M+1)<10?8:7+((M+1)+"").length();
+			
+			if (indepVariableNames != null) {
+				setVarNames(indepVariableNames);
+			}
+		}
+
 
 		if (!bypassDataCheck) {
 			checkForMissingData();
@@ -211,7 +230,9 @@ public class LeastSquares extends RegressionModel {
 		logistic = false;
 		N = deps.length;
 		if (N==0) {
-			System.err.println("Error - cannot perform a least squares regression with zero indivudals!!");
+			if (verbose) {
+				System.err.println("Error - cannot perform a least squares regression with zero indivudals!!");
+			}
 			fail();
 			return;
 		}
@@ -239,10 +260,6 @@ public class LeastSquares extends RegressionModel {
 		meanY /= N;
 
 		if (!analysisFailed) {
-			varNames = new String[M+1];
-			for (int i = 0; i<M+1; i++) {
-				varNames[i] = (i==0?"Constant":"Indep "+i);
-			}
 			maxNameSize = (M+1)<10?8:7+((M+1)+"").length();
 
 			linregr();
@@ -295,22 +312,6 @@ public class LeastSquares extends RegressionModel {
 		maxNameSize = maxOverride;
 	}
 
-	public void setVarNames(String[] names) {
-		if (names.length!=M) {
-			System.err.println("Error naming independent variables: "+M+" variables, and "+names.length+" names");
-			return;
-		}
-		varNames = new String[M+1];
-		varNames[0] = "Constant";
-		maxNameSize = 8;
-		for (int i = 0; i<M; i++) {
-			varNames[i+1] = names[i];
-			if (names[i].length()>maxNameSize) {
-				maxNameSize = names[i].length();
-			}
-		}
-	}
-
 	public double getF() {
 		return overall;
 	}
@@ -334,24 +335,26 @@ public class LeastSquares extends RegressionModel {
 
 	public String getSummary() {
 		String str = "";
+		String delimiter;
 
 		if (analysisFailed) {
 			return "Did not run";
 		}
-
+		
+		delimiter = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
 		if (onePer) {
-			str += "One per family was permuted "+numPermutations+" times\n";
-			str += "Statistics were bootstrapped "+numBootReps+" times\n";
-			str += "\n";
-			str += "Number of independent observations: "+Array.unique(famIDs).length+"\n";
-			str += "\n";
+			str += "One per family was permuted "+numPermutations+" times"+delimiter;
+			str += "Statistics were bootstrapped "+numBootReps+" times"+delimiter;
+			str += ""+delimiter;
+			str += "Number of independent observations: "+Array.unique(famIDs).length+""+delimiter;
+			str += ""+delimiter;
 		} else {
-			str += "Fstat = "+ext.formDeci(overall, 3)+", Sig. "+ext.formDeci(overallSig, 3, true)+" and R2= "+ext.formDeci(Rsquare, 3)+"\n";
-			str += "\n";
+			str += "Fstat = "+ext.formDeci(overall, 3)+", Sig. "+ext.formDeci(overallSig, 3, true)+" and R2= "+ext.formDeci(Rsquare, 4)+""+delimiter;
+			str += ""+delimiter;
 		}
-		str += "Coefficients:\n";
-		str += ext.formStr("Model", maxNameSize, true)+"\t   Beta\t StdErr\t      t\t   Sig.\n";
-		str += modelSummary()+"\n";
+		str += "Coefficients:"+delimiter;
+		str += ext.formStr("Model", maxNameSize, true)+"\t   Beta\t StdErr\t      t\t   Sig."+delimiter;
+		str += modelSummary()+""+delimiter;
 
 		return str;
 	}

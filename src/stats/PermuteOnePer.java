@@ -249,6 +249,7 @@ public class PermuteOnePer {
 
 	public double[][][] getResults() {
 		double[][][] results = new double[numTraits][][];
+		double[] allCounts = new double[numTraits];
 
 		for (int trt = 0; trt<means.length; trt++) {
 			results[trt] = new double[counts[trt]+2][3];
@@ -257,8 +258,9 @@ public class PermuteOnePer {
 				results[trt][i][0] = means[trt][i];
 				results[trt][i][1] = stdevs[trt][i];
 				results[trt][i][2] = aggregateCounts[trt][i];
+				allCounts[trt] += aggregateCounts[trt][i];
 			}
-			results[trt][counts[trt]] = new double[] {pVals[trt], stats[trt]};
+			results[trt][counts[trt]] = new double[] {pVals[trt], stats[trt], allCounts[trt]};
 		}
 
 		return results;

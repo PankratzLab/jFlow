@@ -168,7 +168,7 @@ public class FindVNTRs {
 	        	corrs = new DoubleVector();
 	        	for (int i = 0; i<data.length-1; i++) {
 	        		for (int j = i+1; j<data.length; j++) {
-	        			corrs.add(Correlation.Pearson(Matrix.removeNaN(new double[][] {Array.toDoubleArray(data[i]), Array.toDoubleArray(data[j])}))[0]);
+	        			corrs.add(Correlation.Pearson(Matrix.removeRowsWithNaN(new double[][] {Array.toDoubleArray(data[i]), Array.toDoubleArray(data[j])}))[0]);
                     }
                 }
 	        	writer.print("\t"+Array.mean(corrs.toArray()));

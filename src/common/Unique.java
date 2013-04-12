@@ -4,78 +4,83 @@ import java.io.*;
 import java.util.*;
 
 public class Unique {
-	public static void proc(String[] filenames, String uniquesFile, String countsFile, boolean noInput) { // , boolean trashTheRestOfTheLine
-		BufferedReader reader = null;
+	public static void proc(String[] filenames, int[] skips, String[] delimiters, String uniquesFile, String countsFile, boolean noInput) {
+		BufferedReader reader;
 		PrintWriter writer = null;
 		Hashtable<String,String> hash = new Hashtable<String,String>();
 		String[] line, keys;
 		String temp;
 		int count;
-		String filename;
-		int col;
+		int[] cols;
 
+		if (skips == null) {
+			skips = Array.intArray(filenames.length, 0);
+		}
+		if (delimiters == null) {
+			delimiters = Array.stringArray(filenames.length, "[\\s]+");
+		}
+		if (uniquesFile != null && uniquesFile.equalsIgnoreCase("null")) {
+			uniquesFile = null;
+		}
+		if (countsFile != null && countsFile.equalsIgnoreCase("null")) {
+			countsFile = null;
+		}
+
+		// loop through to check that all parameters are valid before wasting time processing data
+		cols = new int[filenames.length];
 		for (int i = 0; i < filenames.length; i++) {
 			if (ext.removeDirectoryInfo(filenames[i]).contains(":")) {
-				filename = filenames[i].substring(0, filenames[i].lastIndexOf(":"));
-				if (!new File(filename).exists()) {
-					System.err.println("Error - file '"+filename+"' does not exist");
-					return;
-				}
 				try {
-					col = Integer.parseInt(filenames[i].substring(filenames[i].lastIndexOf(":")+1));
+					cols[i] = Integer.parseInt(filenames[i].substring(filenames[i].lastIndexOf(":")+1));
 				} catch (NumberFormatException nfe) {
 					System.err.println("Error - cannot parse column from '"+filenames[i]+"'");
 					return;
 				}
+				filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(":"));
 			} else {
-				filename = filenames[i];
-				col = 0;							
+				cols[i] = 0;							
+				filenames[i] = filenames[i];
+			}
+			if (!new File(filenames[i]).exists()) {
+				System.err.println("Error - file '"+filenames[i]+"' does not exist");
+				return;
 			}
 		}
 		
 		try {
-			writer = new PrintWriter(new FileWriter(uniquesFile));
+			if (uniquesFile != null) {
+				writer = new PrintWriter(new FileWriter(uniquesFile));
+			}
 			count = 0;
 
 			for (int i = 0; i < filenames.length; i++) {
-				if (ext.removeDirectoryInfo(filenames[i]).contains(":")) {
-					filename = filenames[i].substring(0, filenames[i].lastIndexOf(":"));
-					try {
-						col = Integer.parseInt(filenames[i].substring(filenames[i].lastIndexOf(":")+1));
-					} catch (NumberFormatException nfe) {
-						System.err.println("Error - cannot parse column from '"+filenames[i]+"'");
-						return;
-					}
-				} else {
-					filename = filenames[i];
-					col = 0;							
-				}
-				System.out.println("Parsing column index "+col+" of "+ext.removeDirectoryInfo(filename));
+				System.out.println("Parsing column index "+cols[i]+" of "+ext.removeDirectoryInfo(filenames[i]));
 				
-				reader = new BufferedReader(new FileReader(filename));
+				reader = new BufferedReader(new FileReader(filenames[i]));
+				if (skips != null) {
+					for (int j = 0; j < skips[i]; j++) {
+						reader.readLine();
+					}
+				}
 				while (reader.ready()) {
 					temp = reader.readLine();
-					if (count == 0 && (double)(new File(filename).length())/(double)temp.length() > 1000) {
-						hash = new Hashtable<String, String>((int)((double)(new File(filename).length())/(double)temp.length()*1.2));
+					if (count == 0 && (double)(new File(filenames[i]).length())/(double)temp.length() > 1000) {
+						hash = new Hashtable<String, String>((int)((double)(new File(filenames[i]).length())/(double)temp.length()*1.2));
 					}						
-					line = temp.trim().split("[\\s]+");
+					line = temp.trim().split(delimiters[i]);
 
-					if (line.length<=col) {
+					if (line.length<=cols[i]) {
 						System.err.println("Error - Not enough columns for line:\n"+temp);
 						return;
 					}
 
-					if (!hash.containsKey(line[col])) {
-//						if (trashTheRestOfTheLine) {
-							writer.println(line[col]);
-////							writer.flush();
-//						} else {
-//							writer.println(temp);
-////							writer.flush();
-//						}
-						hash.put(line[col], "1");
+					if (!hash.containsKey(line[cols[i]])) {
+						if (uniquesFile != null) {
+							writer.println(line[cols[i]]);
+						}
+						hash.put(line[cols[i]], "1");
 					} else {
-						hash.put(line[col], (Integer.parseInt(hash.get(line[col]))+1)+"");
+						hash.put(line[cols[i]], (Integer.parseInt(hash.get(line[cols[i]]))+1)+"");
 					}
 					count++;
 				};
@@ -83,7 +88,9 @@ public class Unique {
 				reader.close();
 
 			}
-			writer.close();
+			if (uniquesFile != null) {
+				writer.close();
+			}
 			System.out.println("Found "+hash.size()+" unique records among "+count+" total records");			
 		} catch (Exception e) {
 			System.err.println("Error writing to \""+uniquesFile+"\"");
@@ -91,24 +98,21 @@ public class Unique {
 			return;
 		}
 		
-		if (filenames.length == 1) {
-			filename = filenames[0]+"-uniqueCount.out";
-		} else {
-			filename = "unique.out";
-		}
-		try {
-			writer = new PrintWriter(new FileWriter(filename));
-			keys = HashVec.getKeys(hash, false, false);
-			writer.println(keys.length);
-			writer.println();
-			for (int i = 0; i<keys.length; i++) {
-				writer.println(hash.get(keys[i])+"\t"+keys[i]+"\t"+hash.get(keys[i]));
+		if (countsFile != null) {
+			try {
+				writer = new PrintWriter(new FileWriter(countsFile));
+				keys = HashVec.getKeys(hash, false, false);
+				writer.println(keys.length);
+				writer.println();
+				for (int i = 0; i<keys.length; i++) {
+					writer.println(hash.get(keys[i])+"\t"+keys[i]+"\t"+hash.get(keys[i]));
+				}
+				writer.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + countsFile);
+				e.printStackTrace();
 			}
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing to " + filename);
-			e.printStackTrace();
-		}
+		}		
 
 		System.out.println("...done");
 
@@ -117,10 +121,44 @@ public class Unique {
 		}
 	}
 
+	public static void fromParamters(String filename, Logger log) {
+		Vector<String> params;
+		String[] line, files;
+		int[] skips;
+		String[] delimiters;
+		String out, outCounts;
+		
+		params = Files.parseControlFile(filename, "unique", new String[] {"unique.out", "uniqueCounts.out", "file1.txt", "file2.txt:3 TAB", "file3.txt:1 skip=9 ,"}, log);
+		if (params != null) {
+    		out = params.remove(0);
+    		outCounts = params.remove(0);
+    		files = new String[params.size()];
+    		skips = Array.intArray(params.size(), 0);
+    		delimiters = Array.stringArray(params.size(), "[\\s]+");
+    		for (int i = 0; i < files.length; i++) {
+    			line = params.elementAt(i).trim().split("[\\s]+");
+    			files[i] = line[0];
+    			for (int j = 1; j < line.length; j++) {
+        			if (line[j].startsWith("skip=") || line[j].startsWith("skips=")) {
+            			skips[i] = Integer.parseInt(line[j].split("=")[1]);
+        			} else if (line[j].equals(",")) {
+            			delimiters[i] = ",";
+        			} else if (line[j].equalsIgnoreCase("tab")) {
+            			delimiters[i] = "\t";
+        			} else {
+        				System.err.println("Error - invalid argument (\""+line[j]+"\") ");
+        			}
+				}
+			}
+			proc(files, skips, delimiters, out, outCounts, true);
+		}
+	}
+	
 	public static String proc(String[] array) {
 		Hashtable<String,String> hash = new Hashtable<String,String>();
+	    StringBuilder stringBuilder;
 		String[] keys;
-		String temp;
+	    String ls, temp;
 		int count;
 
 		temp = null;
@@ -137,30 +175,73 @@ public class Unique {
 		System.out.println("Found "+hash.size()+" unique records among "+count+" total records");
 		
 		keys = HashVec.getKeys(hash, false, false);
-		temp = keys.length +"\n\n";
+		
+	    stringBuilder = new StringBuilder();
+	    ls = System.getProperty("line.separator");
+        stringBuilder.append(keys.length);
+        stringBuilder.append(ls);
+        stringBuilder.append(ls);
 		for (int i = 0; i<keys.length; i++) {
-			temp += keys[i]+"\t"+hash.get(keys[i])+"\n";
+	        stringBuilder.append(keys[i]+"\t"+hash.get(keys[i]));
+	        stringBuilder.append(ls);
 		}
-		System.out.println("...done");
+		temp = stringBuilder.toString();
 
+		System.out.println("...done");
 		return temp;
 	}
 
+	public static String[][] proc(String[][] arrays, boolean verbose) {
+		Hashtable<String,int[]> hash = new Hashtable<String,int[]>();
+		String[] keys;
+		int[] counts;
+		String[][] allCounts;
+		int count;
+
+		count = 0;
+		for (int i = 0; i<arrays.length; i++) {
+			for (int j = 0; j < arrays[i].length; j++) {
+				if (hash.containsKey(arrays[i][j])) {
+					counts = hash.get(arrays[i][j]);
+				} else {
+					counts = new int[arrays.length+1];
+				}
+				count++;
+				counts[0]++;
+				counts[i+1]++;
+				hash.put(arrays[i][j], counts);
+			}
+		};
+
+		if (verbose) {
+			System.out.println("Found "+hash.size()+" unique records among "+count+" total records found within "+arrays.length+" array"+(arrays.length==1?"":"s"));
+		}
+
+		keys = HashVec.getKeys(hash, false, false);
+		allCounts = new String[keys.length][arrays.length+2];
+		for (int i = 0; i<keys.length; i++) {
+			counts = hash.get(keys[i]);
+			allCounts[i][0] = keys[i];
+			for (int j = 0; j < arrays.length+1; j++) {
+				allCounts[i][j+1] = counts[j]+"";
+			}
+		}
+
+		return allCounts;
+	}
+
 	public static void main(String[] args) throws IOException {
-//		int numArgs = args.length;
 		String uniquesFile = null;
 		String countsFile = null;
 		Vector<String> filenames;
-//		boolean trash = false;
-		boolean noInput = false;
 
 		String usage = "\n"+
-		"park.findUnique requires 0-1 arguments\n"+
+		"park.findUnique requires 0-3 arguments\n"+
 		"   (1) filenames delimited by a space and including a :# suffix if the column index is not 0 (i.e. file1.txt:4 file2.txt file2.txt:1 (not the default)\n"+
 		"   (2) output filename for uniques (i.e. outUniques=unique.out (default for multiple files; default for single files is [filename]-unique.out)\n"+
 		"   (3) output filename for counts (i.e. outCounts=uniqueCounts.out (default for multiple files; default for single files is [filename]-uniqueCounts.out)\n"+
-//		"   (optional) trash the rest of the line (i.e. -trash (not the default)\n"+
-		"   (optional) don't wait for a keyboard response before closing (i.e. -noInput (not the default)\n"+
+		"\n"+
+		"   Unique is also available in the Launch.crf variety and includes options for comma/tab-delimited and skipping headers\n"+
 		"";
 
 		filenames = new Vector<String>();
@@ -170,16 +251,8 @@ public class Unique {
 				System.exit(1);
 			} else if (args[i].startsWith("outUniques=")) {
 				uniquesFile = args[i].split("=")[1];
-//				numArgs--;
 			} else if (args[i].startsWith("outCounts=")) {
 				countsFile = args[i].split("=")[1];
-//				numArgs--;
-//			} else if (args[i].equalsIgnoreCase("-trash")) {
-//				trash = true;
-//				numArgs--;
-			} else if (args[i].equalsIgnoreCase("-noInput")) {
-				noInput = true;
-//				numArgs--;
 			} else {
 				filenames.add(args[i]);
 			}
@@ -203,7 +276,7 @@ public class Unique {
 			}
 		}
 		try {
-			proc(Array.toStringArray(filenames), uniquesFile, countsFile, noInput);
+			proc(Array.toStringArray(filenames), null, null, uniquesFile, countsFile, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

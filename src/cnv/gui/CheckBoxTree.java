@@ -134,7 +134,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 class CheckBoxNodeRenderer implements TreeCellRenderer {
 //	private JCheckBox leafRenderer = new JCheckBox();
 	private JCheckBox latestLeaf;
-	private DefaultTreeCellRenderer branchRenderer = new DefaultTreeCellRenderer();
+	private DefaultTreeCellRenderer branchRenderer;
 
 	private Color selectionForeground, selectionBackground, textForeground, textBackground;
 
@@ -143,6 +143,7 @@ class CheckBoxNodeRenderer implements TreeCellRenderer {
 	}
 
 	public CheckBoxNodeRenderer() {
+		branchRenderer = new DefaultTreeCellRenderer();
 		selectionForeground = UIManager.getColor("Tree.selectionForeground");
 		selectionBackground = UIManager.getColor("Tree.selectionBackground");
 		textForeground = UIManager.getColor("Tree.textForeground");
@@ -190,13 +191,15 @@ class CheckBoxNodeRenderer implements TreeCellRenderer {
 class CheckBoxCellEditor extends AbstractCellEditor implements TreeCellEditor {
 	public static final long serialVersionUID = 1L;
 
-	CheckBoxNodeRenderer renderer = new CheckBoxNodeRenderer();
-	ChangeEvent changeEvent = null;
-	CheckBoxTree checkBoxTree;
-	int count;
+	private CheckBoxNodeRenderer renderer;
+//	private ChangeEvent changeEvent;
+	private CheckBoxTree checkBoxTree;
+//	private int count;
 
-	public CheckBoxCellEditor(CheckBoxTree checkBoxTree) {
-		this.checkBoxTree = checkBoxTree;
+	public CheckBoxCellEditor(CheckBoxTree newCheckBoxTree) {
+		renderer = new CheckBoxNodeRenderer();
+		changeEvent = null;
+		checkBoxTree = newCheckBoxTree;
 	}
 
 	public Object getCellEditorValue() {
@@ -243,7 +246,7 @@ class CheckBoxCellEditor extends AbstractCellEditor implements TreeCellEditor {
 
 class Branch extends Vector<Object> {
 	public static final long serialVersionUID = 1L;
-	String name;
+	private String name;
 
 	public Branch(String name) {
 		this.name = name;

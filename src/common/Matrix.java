@@ -327,7 +327,7 @@ public class Matrix {
      *            a vector of int arrays
      * @return a matrix of ints copied from a vector of int arrays
      */
-	public static final int[][] toMatrix(Vector<int[]> vs) {
+	public static int[][] toMatrix(Vector<int[]> vs) {
     	int[][] matrix = new int[vs.size()][];
     
     	for (int i = 0; i<vs.size(); i++) {
@@ -337,8 +337,32 @@ public class Matrix {
     	return matrix;
     }
 	
-	public static final double[][] toMatrix(double[] ds) {
+	/**
+     * Creates a matrix of double and copies the contents of an array of double into the first column
+     * 
+     * @param ds
+     *            an array of double
+     * @return a matrix of double copied from an array of double
+     */
+	public static double[][] toMatrix(double[] ds) {
     	double[][] matrix = new double[ds.length][1];
+    
+    	for (int i = 0; i<ds.length; i++) {
+    		matrix[i][0] = ds[i];
+    	}
+    
+    	return matrix;
+    }
+	
+	/**
+     * Creates a matrix of String and copies the contents of an array of String into the first column
+     * 
+     * @param ds
+     *            an array of double
+     * @return a matrix of double copied from an array of double
+     */
+	public static String[][] toMatrix(String[] ds) {
+    	String[][] matrix = new String[ds.length][1];
     
     	for (int i = 0; i<ds.length; i++) {
     		matrix[i][0] = ds[i];
@@ -358,6 +382,25 @@ public class Matrix {
 	 */
 	public static double[] extractColumn(double[][] data, int col) {
 		double[] array = new double[data.length];
+
+		for (int i = 0; i<array.length; i++) {
+			array[i] = data[i][col];
+		}
+
+		return array;
+	}
+
+	/**
+	 * Extracts a column from a matrix
+	 * 
+	 * @param data
+	 *            two-dimensional matrix
+	 * @param col
+	 *            number of column to be extracted
+	 * @return array of the elements in specified column
+	 */
+	public static float[] extractColumn(float[][] data, int col) {
+		float[] array = new float[data.length];
 
 		for (int i = 0; i<array.length; i++) {
 			array[i] = data[i][col];
@@ -407,6 +450,55 @@ public class Matrix {
 		return array;
 	}
 
+	/**
+	 * Extracts certain columns from a matrix
+	 * 
+	 * @param data
+	 *            two-dimensional matrix
+	 * @param cols
+	 *            the indices of the columns to be included in the resulting array in their final order
+	 * @return array containing the elements of the matrix collapsed into a single String and in the specified order
+	 */
+	public static String[] extractColumns(String[][] data, int[] cols, String delimiter) {
+		String[] array = new String[data.length];
+
+		for (int i = 0; i<array.length; i++) {
+			array[i] = "";
+			for (int j = 0; j < cols.length; j++) {
+				if (data[i].length - 1 < cols[j]) {
+					System.err.println("Error - trying to extract column index "+(cols[j])+" from a row that doesn't have "+(cols[i]+1)+" columns (row index "+i+" only has "+(data[i].length-1)+" columns)");
+				}
+				array[i] += (j==0?"":delimiter)+data[i][cols[j]];
+			}
+		}
+
+		return array;
+	}
+	
+	/**
+	 * Creates a new matrix from an old matrix using the specified columns in the specified order
+	 * 
+	 * @param data
+	 *            two-dimensional matrix
+	 * @param cols
+	 *            the indices of the columns to be included in the final matrix in their final order
+	 * @return the rearranged matrix in specified order
+	 */
+	public static String[][] extractColumns(String[][] data, int[] cols) {
+		String[][] matrix = new String[data.length][cols.length];
+
+		for (int i = 0; i<matrix.length; i++) {
+			for (int j = 0; j < cols.length; j++) {
+				if (data[i].length - 1 < cols[j]) {
+					System.err.println("Error - trying to extract column index "+(cols[j])+" from a row that doesn't have "+(cols[i]+1)+" columns (row index "+i+" only has "+(data[i].length-1)+" columns)");
+				}
+				matrix[i][j] = data[i][cols[j]];
+			}
+		}
+
+		return matrix;
+	}
+	
 	public static int getSize(String[][] matrix) {
     	int count = 0;
     
@@ -517,10 +609,10 @@ public class Matrix {
 	 * Removes NaN values from a set of arrays
 	 * 
 	 * @param matrix
-	 *            a matric of doubles
+	 *            a matrix of doubles
 	 * @return scrubbed matrix
 	 */
-	public static double[][] removeNaN(double[][] matrix) {
+	public static double[][] removeRowsWithNaN(double[][] matrix) {
 		double[][] newMatrix;
 		boolean[] use;
 		int count;
@@ -562,10 +654,69 @@ public class Matrix {
 	}
 	
 	/**
+	 * Only keeps specified columns from a matrix
+	 * 
+	 * @param matrix
+	 *            a matrix of String
+	 * @return pruned matrix
+	 */
+	public static String[][] prune(String[][] matrix, int[] rowsToKeep, int[] columnsToKeep, Logger log) {
+		if (matrix == null || matrix.length == 0) {
+			log.reportError("Error - null/empty matrix; can't be pruned");
+			return null;
+		}
+
+		return prune(matrix, rowsToKeep==null?null:Array.indicesToBooleanArray(rowsToKeep, matrix.length), columnsToKeep==null?null:Array.indicesToBooleanArray(columnsToKeep, matrix[0].length), log);
+	}
+	
+	/**
+	 * Only keeps specified columns from a matrix
+	 * 
+	 * @param matrix
+	 *            a matrix of String
+	 * @return pruned matrix
+	 */
+	public static String[][] prune(String[][] matrix, boolean[] rowsToKeep, boolean[] columnsToKeep, Logger log) {
+		String[][] newMatrix;
+		int row, col;
+		
+		if (matrix == null) {
+			log.reportError("Error - null matrix; can't be pruned");
+			return null;
+		}
+
+		if (matrix.length == 0) {
+			log.reportError("Error - empty matrix; can't be pruned");
+			return new String[0][0];
+		}
+		
+		row = 0;
+		newMatrix = new String[rowsToKeep == null?matrix.length:Array.booleanArraySum(rowsToKeep)][columnsToKeep == null?matrix[0].length:Array.booleanArraySum(columnsToKeep)];
+		for (int i = 0; i < matrix.length; i++) {
+			if (rowsToKeep == null || rowsToKeep[i]) {
+				if (columnsToKeep == null) {
+					newMatrix[row] = matrix[i];
+				} else {
+					col = 0;
+					for (int j = 0; j < matrix[i].length; j++) {
+						if (columnsToKeep[j]) {
+							newMatrix[row][col] = matrix[i][j];
+							col++;
+						}
+					}
+				}
+				row++;
+			}
+		}
+		
+		return newMatrix;
+	}
+	
+	/**
 	 * Removes rows/columns with maginal counts of zero
 	 * 
 	 * @param matrix
-	 *            a matric of ints
+	 *            a matrix of ints
 	 * @return pruned matrix
 	 */
 	public static int[][] prune(int[][] matrix) {
@@ -678,6 +829,26 @@ public class Matrix {
 		
 		return newMatrix;		
 	}
+	
+	/**
+	 * Return the minimum in a matrix of integers
+	 * 
+	 * @param matrix
+	 *            matrix of integers
+	 * @return the minimum
+	 */
+	public static int min(int[][] matrix) {
+		int min;
+
+		min = matrix[0][0];
+		for (int i = 0; i<matrix.length; i++) {
+			for (int j = 0; j < matrix[i].length; j++) {
+				min = Math.min(matrix[i][j], min);
+			}
+		}
+		return min;
+	}
+	
 
 	public static void main(String[] args) {
 		int[][] matrix = {{1, 2, 4}, {1, 4, 0}, {0, 1, 0}};

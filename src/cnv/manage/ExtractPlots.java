@@ -319,6 +319,9 @@ public class ExtractPlots {
 				if (sampleList==null) {
 					System.out.println("No SampleList file found; generating one using all the samples in: "+proj.getDir(Project.SAMPLE_DIRECTORY));
 					sampleList = SampleList.generateSampleList(proj);
+					if (sampleList==null) {
+						return;
+					}
 				}
 				fingerprint = sampleList.getFingerprint();
 

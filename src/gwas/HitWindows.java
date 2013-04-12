@@ -4,6 +4,7 @@ import java.io.*;
 //import java.util.*;
 import common.*;
 
+// currently crashes if first or last marker passes significance threshold or is in window of a SNP that does
 public class HitWindows {
 	public static void determine(String filename, String outfile, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold) {
 		BufferedReader reader;
@@ -13,9 +14,9 @@ public class HitWindows {
 		String[] markerNames;
 		byte[] chrs;
 		int[] positions;
-		float[] pvals;
+		double[] pvals;
 		int startIndex, stopIndex, offset, minIndex;
-		float minPval;
+		double minPval;
 		int region;
 		
 		count = Files.countLines(filename, true);
@@ -23,7 +24,7 @@ public class HitWindows {
 		markerNames = new String[count];
 		chrs = new byte[count];
 		positions = new int[count];
-		pvals = new float[count];
+		pvals = new double[count];
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			header = reader.readLine().trim().split("[\\s]+");
@@ -35,7 +36,7 @@ public class HitWindows {
 				markerNames[count] = line[0];
 				chrs[count] = Byte.parseByte(line[1]);
 				positions[count] = Integer.parseInt(line[2]);
-				pvals[count] = line[3].equals(".")?999:Float.parseFloat(line[3]);
+				pvals[count] = line[3].equals(".")?999:Double.parseDouble(line[3]);
 				count++;
 			}
 			reader.close();
@@ -49,6 +50,7 @@ public class HitWindows {
 		
 		try {
 			writer = new PrintWriter(new FileWriter(outfile));
+			writer.println("Region\tMarkerName\tChr\tPosition\tRegion\tRegionStart\tRegionStop");
 			startIndex = -1;
 			stopIndex = -1;
 			region = 1;
@@ -59,7 +61,7 @@ public class HitWindows {
 					minIndex = i;
 					minPval = pvals[i];					
 					offset = 0;
-					while (chrs[startIndex] == chrs[startIndex-offset-1] && positions[startIndex] - windowMinSizePerSide <= positions[startIndex-offset-1]) {
+					while (chrs[startIndex] == chrs[startIndex-offset-1] && positions[startIndex] - windowMinSizePerSide*2 <= positions[startIndex-offset-1]) { // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged 
 						offset++;
 						if (pvals[startIndex-offset] < windowExtensionThreshold) {
 							startIndex -= offset;
@@ -70,7 +72,7 @@ public class HitWindows {
 					
 					stopIndex = i;
 					offset = 0;
-					while (chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide >= positions[stopIndex+offset+1]) {
+					while (chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide*2 >= positions[stopIndex+offset+1]) {
 						offset++;
 						if (pvals[stopIndex+offset] < indexThreshold) {
 							System.out.println(markerNames[stopIndex+offset]+"\t"+region);
@@ -85,7 +87,7 @@ public class HitWindows {
 						}
 					}
 //					System.out.println(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
-					writer.println(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
+					writer.println(region+"\t"+markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+Math.max(positions[startIndex]-windowMinSizePerSide, 1)+"-"+(positions[stopIndex]+windowMinSizePerSide)+"\t"+Math.max(positions[startIndex]-windowMinSizePerSide, 1)+"\t"+(positions[stopIndex]+windowMinSizePerSide));
 					i = stopIndex+offset;
 					region++;
 				}
@@ -99,11 +101,11 @@ public class HitWindows {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = "HitWindows.dat";
+		String filename = "input.dat";
 		String outfile = "hits.out";
 		float indexThreshold = (float)0.00000005;
-		int windowMinSizePerSide = 500000;
-		float windowExtensionThreshold = (float)0.00001;
+		int windowMinSizePerSide = 500000; // 500kb each side is technically a 1M window until the next hit region, but we now take this into consideration in the main algorithm
+		float windowExtensionThreshold = (float)0.00000005; // (float)0.00001;
 
 		String usage = "\n" + 
 		"gwas.HitWindows requires 0-1 arguments\n" + 
@@ -149,7 +151,11 @@ public class HitWindows {
 //			determine("D:/mega/FromMike.11032011/fixed_together.txt", "D:/mega/FromMike.11032011/fixed_together.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/all_together.txt", "D:/mega/FromMike.11032011/all_together.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("C:/CARe_data/conditionalMeta/uni_input.txt", "C:/CARe_data/conditionalMeta/uniqueRegions.out", (float)0.00001, windowMinSizePerSide, (float)0.0001);
-			determine("D:/tWork/Consortium/Megas/input.txt", "D:/tWork/Consortium/Megas/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+//			determine("D:/tWork/Consortium/Megas/input.txt", "D:/tWork/Consortium/Megas/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+			determine("D:/mega/filtered/OnlyThoseInRef/input.dat", "D:/mega/filtered/OnlyThoseInRef/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+//			determine("D:/mega/filtered/OnlyThoseInRef/originalWrongRE2_input.dat", "D:/mega/filtered/OnlyThoseInRef/originalWrongRE2_uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+			
+//			determine("/home/input.dat", "/home/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

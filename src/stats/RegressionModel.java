@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import common.Array;
+import common.Files;
 import common.HashVec;
 import common.IntVector;
 import common.Logger;
@@ -11,6 +12,7 @@ import common.ext;
 
 public abstract class RegressionModel {
 	protected boolean verbose;
+	protected Logger log;
 	protected int M;
 	protected int N;
 	protected double[] deps;
@@ -37,6 +39,7 @@ public abstract class RegressionModel {
 	
 	public RegressionModel() {
 		verbose = true;
+		log = new Logger();
 	}
 
 	public abstract String modelSummary();
@@ -136,7 +139,7 @@ public abstract class RegressionModel {
 
 	public void setVarNames(String[] names) {
 		if (names.length!=M) {
-			System.err.println("Error naming independent variables: "+M+" variables, and only "+names.length+" names");
+			System.err.println("Error naming independent variables: "+M+" variables, and "+names.length+" names");
 			return;
 		}
 		varNames = new String[M+1];
@@ -167,7 +170,7 @@ public abstract class RegressionModel {
 			}
 			writer.close();
 		} catch (IOException ioe) {
-			System.err.println("Error writing dump file: "+filename);
+			log.reportError("Error writing dump file: "+filename);
 		}
 	}
 
@@ -206,16 +209,16 @@ public abstract class RegressionModel {
 		}
 
 		if (verbose) {
-			System.out.print("Rep 0");
+			log.reportError("Rep 0", false, true);
 		}
 		failures = 0;
 		for (int i = 0; i<numPermutations; i++) {
 			if (verbose&&(i+1)%(numReps/10)==0) {
 				for (int j = 0; j<progress.length(); j++) {
-					System.out.print("\b");
+					log.reportError("\b", false, true);
 				}
 				progress = (i+1)+(failures>0?", "+failures+" failures":"");
-				System.out.print(progress);
+				log.report(progress);
 			}
 
 			do {
@@ -243,7 +246,7 @@ public abstract class RegressionModel {
 			} while (model.analysisFailed());
 		}
 		if (verbose) {
-			System.out.println("");
+			log.report("");
 		}
 
 		for (int i = 1; i<=M; i++) {
@@ -274,7 +277,7 @@ public abstract class RegressionModel {
 				use[i] = false;
 			}
 			for (int j = 0; j<indeps[i].length; j++) {
-				if (use[i]&&(indeps[i]+"").equals("NaN")) {
+				if (use[i]&&(indeps[i][j]+"").equals("NaN")) {
 					countNoIndeps++;
 					use[i] = false;
 				}
@@ -295,10 +298,10 @@ public abstract class RegressionModel {
 
 		if (verbose) {
 			if (countNoDeps>0) {
-				System.err.println(countNoDeps+" individuals were dropped because they lacked the dependent variable");
+				log.reportError(countNoDeps+" individuals were dropped because they lacked the dependent variable");
 			}
 			if (countNoIndeps>0) {
-				System.err.println(countNoIndeps+" individuals were dropped because they lacked at least one independent variable");
+				log.reportError(countNoIndeps+" individuals were dropped because they lacked at least one independent variable");
 			}
 		}
 
@@ -311,14 +314,15 @@ public abstract class RegressionModel {
 		double[][] oldIndeps;
 		double diff, offset;
 		String[] keys;
+		Vector<String> newVariableNames;
 		
 		if (deps==null) {
-			System.err.println("Array with dependent variables is null");
+			log.reportError("Array with dependent variables is null");
 			return false;
 		}
 
 		if (indeps==null) {
-			System.err.println("Array with independent variables is null");
+			log.reportError("Array with independent variables is null");
 			return false;
 		}
 
@@ -328,18 +332,20 @@ public abstract class RegressionModel {
 			}
 		}
 		if (hash.size()<2) {
-			System.err.println("No variance in the dependent variable");
+			if (verbose) {
+				log.reportError("No variance in the dependent variable");
+			}
 			return false;
 		}
 		if (logistic) {
 			if (hash.size()>2) {
-				System.err.println("Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
+				log.reportError("Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
 				return false;
 			}
 			keys = HashVec.getKeys(hash);
 			diff = Double.parseDouble(keys[0])-Double.parseDouble(keys[1]);
 			if (Math.abs(diff) != 1) {
-				System.err.println("Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
+				log.reportError("Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
 				return false;
 			}
 
@@ -351,6 +357,8 @@ public abstract class RegressionModel {
 			}
 		}
 		
+		newVariableNames = new Vector<String>();
+		newVariableNames.add(varNames[0]);
 		for (int j = 0; j<indeps[0].length; j++) {
 			hash.clear();
 			for (int i = 0; i<indeps.length && hash.size()<2; i++) {
@@ -360,7 +368,7 @@ public abstract class RegressionModel {
 			}
 			if (hash.size()<2) {
 				if (verbose) {
-					System.err.println("No variance in independent variable number "+(j+1)+"; collapsing and ignoring");
+					log.reportError("No variance in independent variable number "+(j+1)+"; collapsing and ignoring");
 				}
 				oldIndeps = indeps.clone();
 				indeps = new double[oldIndeps.length][oldIndeps[0].length-1];
@@ -374,9 +382,13 @@ public abstract class RegressionModel {
 						indeps[i][k-1] = oldIndeps[i][k];
                     }
                 }
+				varNames = Array.removeFromArray(varNames, j+1);
 				j--;
+			} else {
+//				newVariableNames.add(varNames[j+1]);
 			}
 		}
+//		varNames = Array.toStringArray(newVariableNames);
 
 		return indeps[0].length>0?true:false;
 	}
@@ -459,11 +471,108 @@ public abstract class RegressionModel {
 			keys = HashVec.getKeys(hash);
 			diff = Double.parseDouble(keys[0])-Double.parseDouble(keys[1]);
 			if (Math.abs(diff) != 1) {
-				System.err.println("Error - only two values, but they are not consecutive integers; not flagged for logistic");
+				log.reportError("Error - only two values, but they are not consecutive integers; not flagged for logistic");
 				return false;
 			}
 		}
 		
 		return hash.size() == 2;		
+	}
+	
+	public static String[] getIDsWithCompleteData(String filename, boolean alsoUseFamID, Logger log) {
+		BufferedReader reader;
+		String[] line;
+		Vector<String> v;
+		String delimiter;
+		int numElements;
+		boolean use;
+		
+		v = new Vector<String>();
+		try {
+			reader = Files.getAppropriateReader(filename);
+			delimiter = Files.determineDelimiter(filename, log);
+			line = reader.readLine().trim().split(delimiter);
+			numElements = line.length;
+			if (ext.indexOfStr(line[0], ext.COMMON_IDS) == -1) {
+				log.report("Warning - unexpected id for phenotype file "+filename+": "+line[0]);
+			}
+			while (reader.ready()) {
+				line = reader.readLine().split(delimiter);
+				if (line.length != numElements) {
+					System.err.println("Error - mismatched number of elements for ID '"+line[0]+"' (expecting "+numElements+", found "+line.length+"); check delimiter or for trailing whitespace");
+				}
+				use = true;
+				for (int i = 1; i < line.length; i++) {
+					if (ext.isMissingValue(line[i]) || !ext.isValidDouble(line[i])) {
+						use = false;
+					}
+				}
+				if (use) {
+					v.add(line[0]);
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
+		}
+
+		return Array.toStringArray(v);
+	}
+	
+	public static boolean[] getRowsWithCompleteData(double[] deps, double[][] indeps, Logger log) {
+		boolean[] use;
+		
+		if (deps != null && indeps != null && deps.length != indeps.length) {
+			log.reportError("Error - cannot determine rows with compelte data since the deps length and the indeps length are not equal");
+			return null;
+		}
+		
+		use = Array.booleanArray(deps.length, true);
+		for (int i = 0; i < deps.length; i++) {
+			if (deps != null && (deps[i]+"").equals("NaN")) {
+				use[i] = false;
+			}
+			for (int j = 0; j < indeps[i].length; j++) {
+				if (indeps != null && (indeps[i][j]+"").equals("NaN")) {
+					use[i] = false;
+				}
+			}
+		}
+		
+		return use;
+	}	
+
+	public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
+		boolean[] use;
+		
+		if (deps != null && indeps != null && deps.length != indeps.length) {
+			log.reportError("Error - cannot determine rows with compelte data since the deps length and the indeps length are not equal");
+			return null;
+		}
+		
+		if (deps != null) {
+			use = Array.booleanArray(deps.length, true);
+		} else if (indeps != null) {
+			use = Array.booleanArray(indeps.length, true);
+		} else {
+			log.reportError("Error - cannot determine rows with complete data from two null arrays");
+			return null;
+		}
+		for (int i = 0; i < use.length; i++) {
+			if (deps != null && ext.isMissingValue(deps[i])) {
+				use[i] = false;
+			}
+			for (int j = 0; j < indeps[i].length; j++) {
+				if (indeps != null && ext.isMissingValue(indeps[i][j])) {
+					use[i] = false;
+				}
+			}
+		}
+		
+		return use;
 	}	
 }

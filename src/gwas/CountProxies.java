@@ -13,14 +13,12 @@ public class CountProxies {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		String temp, trav;
+		String temp;
 		Hashtable<String, Vector<String>> hash;
 		Vector<String> v;
-		int count, index, best;
-		int[] chr, position;
-		long time;
+		int index, best;
 		int[] indices, order;
-		String[] markers, keys;
+		String[] keys;
 		String region;
 		String[] markerNames;
 		double[] rsqs, pvalues, replications;

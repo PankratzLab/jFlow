@@ -4,48 +4,113 @@ import java.io.*;
 import java.util.*;
 
 public class FilterByLists {
-	public static void process(String filename, String keeps, String deletes, int col, String outfile, boolean keepFirstLine, Logger log) {
+	public static void fromParameters(String controlFile, Logger log) {
+        String[] line;
+        String filename, outputFilename;
+        int col;
+        Vector<String> paramV;
+        boolean header;
+        String keeps, deletes;
+        boolean commaDelimited;
+        
+		paramV = Files.parseControlFile(controlFile, "filterByLists", new String[] {"fileToFilter.txt header 0 out=file.out", "keeps.txt", "deletes.txt"}, log);
+		if (paramV == null) {
+			return;
+		}
+
+    	line = paramV.remove(0).trim().split("[\\s]+");
+    	filename = line[0];
+    	header = false;
+    	commaDelimited = false;
+    	col = -1;
+    	outputFilename = ext.rootOf(filename)+"_filtered.out";
+    	for (int j = 1; j<line.length; j++) {
+    		if (line[j].equals("header")) {
+    			header = true;
+    		} else if (line[j].equals(",")) {
+    			commaDelimited = true;
+    		} else if (line[j].startsWith("out=")) {
+    			outputFilename = line[j].split("=")[1];
+    		} else if (col == -1) {
+    			col = Integer.parseInt(line[j]);
+    		} else {
+    			System.err.println("Error - what am I supposed to do with '"+line[j]+"'?");
+    		}
+        }
+    	if (col == -1) {
+    		System.err.println("Warning - assuming unique id can be found in column 0");
+    		col = 0;
+    	}
+    	log.report("Loading data from '"+filename+"'");
+    	keeps = paramV.remove(0);
+    	if (keeps.equalsIgnoreCase("null")) {
+    		keeps = null;
+    	}
+    	deletes = paramV.remove(0);
+    	if (deletes.equalsIgnoreCase("null")) {
+    		deletes = null;
+    	}
+    	
+    	process(filename, keeps, deletes, new int[] {col}, outputFilename, header, true, commaDelimited, log);
+	}
+
+	private static Hashtable<String,String> loadFileToHash(String filename, String type) {
+		Hashtable<String,String> hash;
+		String listFile;
+		int[] listCols;
+		
+		if (filename == null) {
+			hash = null;
+		} else {
+			if (filename.contains(";")) {
+				listFile = filename.substring(0, filename.indexOf(";"));
+				listCols = Array.toIntArray(filename.substring(filename.indexOf(";")+1).split(","));
+			} else {
+				listFile = filename;
+				listCols = new int[] {0};
+			}
+			if (!new File(listFile).exists()) {
+				System.err.println("Since '"+filename+"' is not a filename, assuming this is the key to "+type);
+				hash = new Hashtable<String,String>();
+				hash.put(filename, "1");
+			} else {
+				hash = HashVec.loadFileToHashString(listFile, listCols, new int[] {-7}, false, null, false, false, false);
+			}	
+		}
+		
+		return hash;		
+	}
+	
+	public static void process(String filename, String keeps, String deletes, int[] cols, String outfile, boolean keepFirstLine, boolean reportMissingElements, boolean commaDelimited, Logger log) {
+		process(filename, cols, outfile, loadFileToHash(keeps, "keep"), loadFileToHash(deletes, "delete"), keepFirstLine, true, reportMissingElements, commaDelimited, log);
+	}
+	
+	public static void process(String filename, int[] cols, String outfile, Hashtable<String,String> keepsHash, Hashtable<String,String> deletesHash, boolean keepFirstLine, boolean checkForOverlap, boolean reportMissingElements, boolean commaDelimited, Logger log) {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		String[] line;
-		String temp;
-		Hashtable<String,String> keepsHash, deletesHash;
-		Vector<String> vKeeps, vDeletes;
-		boolean isFirstLine, problem;
+		String temp, key;
+		boolean isFirstLine;
+		String[] keepKeys, delKeys;
+		Vector<String> v;
+		IntVector iv;
+		int[] order;
 
-		keepsHash = new Hashtable<String,String>();
-		vKeeps = new Vector<String>();
-		if (keeps != null) {
-			if (!new File(keeps).exists()) {
-				System.err.println("Since '"+keeps+"' is not a filename, assuming this is the key to keep");
-				vKeeps.add(keeps);
-			} else {
-				vKeeps = HashVec.loadFileToVec(keeps, false, true, true);
-			}	
-			keepsHash = HashVec.loadFileToHashNull(Array.toStringArray(vKeeps));
-		}
-
-		deletesHash = new Hashtable<String,String>();
-		vDeletes = new Vector<String>();
-		if (deletes != null) {
-			if (!new File(deletes).exists()) {
-				System.err.println("Since '"+deletes+"' is not a filename, assuming this is the key to delete");
-				vDeletes.add(deletes);
-			} else {
-				vDeletes = HashVec.loadFileToVec(deletes, false, true, true);
-			}
-			deletesHash = HashVec.loadFileToHashNull(Array.toStringArray(vDeletes));
+		if (keepsHash != null && deletesHash != null) {
+			System.err.println("Error - you have specified both what to keep and what to delete. This is redudant if they are mirror opposites, and if there is overlap between the two, there is no way to decide which takes precendence. Use only one or the other.");
+			return;
 		}
 		
-		problem = false;
-		for (int i = 0; i < vDeletes.size(); i++) {
-			if (keepsHash.containsKey(vDeletes.elementAt(i))) {
-				System.err.println("Error - token '"+vDeletes.elementAt(i)+"' was found in both the keeps file and the deletes file");
-				problem = true;
-			}
+		if (reportMissingElements && keepsHash != null) {
+			keepKeys = HashVec.getKeys(keepsHash, true, false);
+		} else {
+			keepKeys = null;
 		}
-		if (problem) {
-			return;
+
+		if (reportMissingElements && deletesHash != null) {
+			delKeys = HashVec.getKeys(deletesHash, true, false);
+		} else {
+			delKeys = null;
 		}
 
 		isFirstLine = true;
@@ -60,18 +125,17 @@ public class FilterByLists {
 			writer = new PrintWriter(new FileWriter(outfile));
 			while (reader.ready()) {
 				temp = reader.readLine();
-				line = temp.trim().split("[\\s]+");
+				line = temp.trim().split(commaDelimited?",":"[\\s]+");
+				key = Array.toStr(Array.subArray(line, cols));
 				if (isFirstLine&&keepFirstLine) {
 					writer.println(temp);
 					isFirstLine = false;
-				} else if (deletes != null && !deletesHash.containsKey(line[col])) {
-					if (vDeletes.contains(line[col])) {
-						vDeletes.remove(line[col]);
-					}
-				} else if (keeps == null || keepsHash.containsKey(line[col])) {
+				} else if (deletesHash != null && deletesHash.containsKey(key)) {
+					deletesHash.put(key, "");
+				} else if (keepsHash == null || keepsHash.containsKey(key)) {
 					writer.println(temp);
-					if (vKeeps.contains(line[col])) {
-						vKeeps.remove(line[col]);
+					if (keepsHash != null) {
+						keepsHash.put(key, "");
 					}
 				}
 			}
@@ -85,22 +149,46 @@ public class FilterByLists {
 			System.exit(2);
 		}
 		
-		if (log.getLevel() > 0) {
-			if (vKeeps.size()>0) {
-				System.err.println("Warning - the following were found in the keeps list but not in the data file:");
-				for (int i = 0; i<vKeeps.size(); i++) {
-					System.err.println(vKeeps.elementAt(i));
+		if (reportMissingElements) {
+			if (keepsHash != null) {
+				v = new Vector<String>();
+				iv = new IntVector();
+				for (int i = 0; i<keepKeys.length; i++) {
+					if (!keepsHash.get(keepKeys[i]).equals("")) {
+						v.add(keepKeys[i]);
+						iv.add(Integer.parseInt(keepsHash.get(keepKeys[i])));
+					}
+				}
+				if (v.size() > 0) {
+					System.err.println("Warning - the following were found in the keeps list but not in the data file:");
+					order = Sort.quicksort(iv.toArray());
+					for (int i = 0; i < v.size(); i++) {
+						System.err.println(v.elementAt(order[i]));
+					}
 				}
 			}
-	
-			if (vDeletes.size()>0) {
-				System.err.println("Warning - the following were found in the deletes list but not in the data file:");
-				for (int i = 0; i<vDeletes.size(); i++) {
-					System.err.println(vDeletes.elementAt(i));
+
+			if (deletesHash != null) {
+				v = new Vector<String>();
+				iv = new IntVector();
+				for (int i = 0; i<delKeys.length; i++) {
+					if (!deletesHash.get(delKeys[i]).equals("")) {
+						v.add(delKeys[i]);
+						iv.add(Integer.parseInt(deletesHash.get(delKeys[i])));
+					}
+				}
+				if (v.size() > 0) {
+					System.err.println("Warning - the following were found in the deletes list but not in the data file:");
+					order = Sort.quicksort(iv.toArray());
+					for (int i = 0; i < v.size(); i++) {
+						System.err.println(v.elementAt(order[i]));
+					}
 				}
 			}
 		}
 	}
+	
+	
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -109,7 +197,9 @@ public class FilterByLists {
 		String deletesFile = null;
 		String outfile = null;
 		boolean keepFirstLine = false;
+		boolean reportMissingElements = true;
 		int col = 0;
+		boolean commaDelimited = false;
 		
 		String usage = "\n" + 
 		"common.FilterByLists requires 0-1 arguments\n" + 
@@ -118,7 +208,8 @@ public class FilterByLists {
 		"   (3) filename containing list of tokens to remove (i.e. deletes=deltetes.txt (not the default; if token is not a filename, assuming it is the key to delete))\n" + 
 		"   (4) index of the column of the token to match on (i.e. col="+col+" (default))\n" + 
 		"   (5) output filename (i.e. out=output.out (not the default; default is to backup and replace the input file))\n" + 
-		"   (6) always keep first line (i.e. -keepFirst (not the default))\n" + 
+		"   (6) always keep first line (i.e. -keepFirst (not the default))\n" +
+		"   (7) comma delimited file (i.e. -commaDelimited (not the default))\n" +
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -143,6 +234,9 @@ public class FilterByLists {
 			} else if (args[i].startsWith("-keepFirst")) {
 				keepFirstLine = true;
 				numArgs--;
+			} else if (args[i].startsWith("-commaDelimited")) {
+				commaDelimited = true;
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -152,7 +246,7 @@ public class FilterByLists {
 			System.exit(1);
 		}
 		try {
-			process(filename, keepsFile, deletesFile, col, outfile, keepFirstLine, new Logger());
+			process(filename, keepsFile, deletesFile, new int[] {col}, outfile, keepFirstLine, reportMissingElements, commaDelimited, new Logger());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

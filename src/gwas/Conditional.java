@@ -6,10 +6,30 @@
 
 package gwas;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.Hashtable;
+import java.util.Vector;
 
-import common.*;
+import stats.ProbDist;
+
+import common.Array;
+import common.CmdLine;
+import common.CountHash;
+import common.Files;
+import common.HashVec;
+import common.Logger;
+import common.Matrix;
+import common.Sort;
+import common.Zip;
+import common.ext;
+
 import filesys.DosageData;
 import filesys.SerialHash;
 import filesys.SnpMarkerSet;
@@ -115,7 +135,7 @@ public class Conditional {
     	}
 	}
 
-	public static void addDosageAsCovariate(String dir, String mlinfo, String mldose, String originalPhenotypeFile, String newPhenotypeFile, String[] snps, boolean allowMissingConditional, boolean makeResiduals, Logger log) {
+	public static void addDosageAsCovariate(String dir, String infoFile, String doseFile, String originalPhenotypeFile, boolean justIID, String newPhenotypeFile, String[] snps, boolean allowMissingConditional, boolean makeResiduals, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -126,10 +146,14 @@ public class Conditional {
 		String[] markerNames;
 		SnpMarkerSet markerSet;
 		boolean error;
+		boolean machFormat;
+		String fid, iid;
 		
-		markerSet = new SnpMarkerSet(dir+mlinfo, false, new Logger());		
+		machFormat = infoFile.endsWith(".mlinfo");
+		
+		markerSet = new SnpMarkerSet(dir+infoFile, false, new Logger());		
 		markerNames = markerSet.getMarkerNames();
-		log.report("Analyzing "+dir+mldose+","+mlinfo+", which contain "+markerNames.length+" markers");
+		log.report("Analyzing "+dir+doseFile+","+infoFile+", which contain "+markerNames.length+" markers");
 		
 		v = new Vector<String>();
 		for (int i = 0; i < snps.length; i++) {
@@ -140,25 +164,31 @@ public class Conditional {
 		Files.writeList(Array.toStringArray(v), dir+"condis.txt");
 		hashes = new Hashtable<String, Hashtable<String,String>>();
 		if (v.size() > 0) {
-			if (Mach.extractSpecificMarkers(dir, dir+"condis.txt", dir+mldose, dir+mlinfo, false, log)) { // Array.toStringArray(v)
-				markerNames = new SnpMarkerSet(dir+"condis.mlinfo", false, new Logger()).getMarkerNames();
+			if (Mach.extractSpecificMarkers(dir, dir+"condis.txt", dir+doseFile, dir+infoFile, false, log)) { // Array.toStringArray(v)
+				markerNames = new SnpMarkerSet(dir+"condis"+(machFormat?".mlinfo":".info"), false, new Logger()).getMarkerNames();
 				for (int i = 0; i < markerNames.length; i++) {
 					hashes.put(markerNames[i], new Hashtable<String, String>());
 				}
 				try {
-					reader = new BufferedReader(new FileReader(dir+"condis.mldose"));
+					reader = new BufferedReader(new FileReader(dir+"condis"+(machFormat?".mldose":".dose")));
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
 						for (int i = 0; i < markerNames.length; i++) {
-							hashes.get(markerNames[i]).put(line[0].substring(0, line[0].indexOf("->"))+"\t"+line[0].substring(line[0].indexOf("->")+2), line[i+2]);
+							fid = line[0].substring(0, line[0].indexOf("->"));
+							iid = line[0].substring(line[0].indexOf("->")+2);
+							if (justIID) {
+								hashes.get(markerNames[i]).put(iid, line[i+2]);
+							} else {
+								hashes.get(markerNames[i]).put(fid+"\t"+iid, line[i+2]);
+							}
 						}
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \"" + dir+"condis.mldose" + "\" not found in current directory");
+					System.err.println("Error: file \"" + dir+"condis."+(machFormat?".mldose":".dose") + "\" not found in current directory");
 					return;
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \"" + dir+"condis.mldose" + "\"");
+					System.err.println("Error reading file \"" + dir+"condis."+(machFormat?".mldose":".dose") + "\"");
 					return;
 				}
 				for (int i = 0; i < markerNames.length; i++) {
@@ -179,7 +209,7 @@ public class Conditional {
 					if (allowMissingConditional) {
 						log.reportError("Warning - '"+snps[i]+"' not available for '"+dir+"'; this marker will not be included as a covariate for this dataset");
 					} else {
-						log.reportError("Error - indicated SNP is not present in pre-serialized form (i.e. '"+dir+snps[i]+".ser') and is also not present in the mlinfo file ('"+mlinfo+"')");
+						log.reportError("Error - indicated SNP is not present in pre-serialized form (i.e. '"+dir+snps[i]+".ser') and is also not present in the info file ('"+infoFile+"')");
 						error = true;
 					}
 				}
@@ -209,7 +239,9 @@ public class Conditional {
 				for (int i = 0; i < snps.length; i++) {
 					hash = hashes.get(snps[i]);
 					if (hash != null) {
-						if (hash.containsKey(line[0]+"\t"+line[1])) {
+						if (justIID && hash.containsKey(line[0])) {
+							writer.print("\t"+hash.get(line[0]));
+						} else if (hash.containsKey(line[0]+"\t"+line[1])) {
 							writer.print("\t"+hash.get(line[0]+"\t"+line[1]));
 						} else {
 							writer.print("\t.");
@@ -237,7 +269,8 @@ public class Conditional {
 		}
 	}
 	
-	public static void run(String[] dirs, String filenames, String[] snps, String annotationFile, boolean useResiduals, boolean run, boolean iterate, boolean genomiccontrol, String pheno, String phenoMissingValue, String outfile, String covariates, boolean sexAsCovariate, boolean allowMissingConditional, String doseFile, String infoFile) {
+	// probabel flag is not current implemented, neither is family data
+	public static void run(String[] dirs, String filenames, String[] snps, String annotationFile, boolean useResiduals, boolean run, boolean probabel, boolean iterate, boolean genomiccontrol, String pheno, String phenoMissingValue, String outfile, String covariates, boolean sexAsCovariate, boolean allowMissingConditional, String doseFile, String infoFile) {
 		Hashtable<String,String> allMarkers, freqs, annotation;
 		Hashtable<String,Hashtable<String,String>> allResults;
 		Vector<String> results, v, covars, metaInputs;
@@ -257,6 +290,10 @@ public class Conditional {
 		String filename;
 		SnpMarkerSet markerSet;
 		boolean[] dosageSets, familySets;
+		String[] keys;
+		int[] order;
+		String[] line;
+		boolean justIID;
 
 		log = new Logger("Conditionals.log");
 		annotation = new Hashtable<String, String>();
@@ -284,7 +321,7 @@ public class Conditional {
 				dosageSets[k] = false;
 			} else if (pheno != null && new File(dirs[k]+pheno).exists()) {
 				dosageSets[k] = true;
-			} if (new File(dirs[k]+"plink.bed").exists() && new File(dirs[k]+"plink.bim").exists() && new File(dirs[k]+"plink.fam").exists()) {
+			} else if (new File(dirs[k]+"plink.bed").exists() && new File(dirs[k]+"plink.bim").exists() && new File(dirs[k]+"plink.fam").exists()) {
 				dosageSets[k] = false;
 			} else {
 				System.err.println("Error - not enough info for directory '"+dirs[k]+"'");
@@ -338,13 +375,22 @@ public class Conditional {
 							System.err.println("Error - useResiduals is not yet coded for dosage analyses");
 							return;
 						}
-						if (outfile == null || dirs != null || i>0 || files[i] != null) {
+						if (outfile == null || (dirs != null && dirs.length > 1) || i>0 || files[i] != null) {
 							outfile = ext.rootOf(pheno, false)+(files[i]==null?"":"_"+ext.rootOf(files[i], false))+"_iteration"+count+".dat";
 //						} else if (count > 1) {
 //							outfile = ext.rootOf(outfile, false)+count+outfile.substring(outfile.lastIndexOf(".")+1);
 						}
 						if (new File(dirs[k]+pheno).exists()) {
-							addDosageAsCovariate(dirs[k], infoFile, doseFile, pheno, outfile, Array.toStringArray(v), allowMissingConditional, useResiduals, log);
+							line = Files.getHeaderOfFile(dirs[k]+pheno, "[\\s]+", log);
+							if (line[0].equals("FID")) {
+								justIID = false;
+							} else if (line[0].equals("ID") || line[0].equals("IID")) {
+								justIID = true;
+							} else {
+								log.reportError("Could not determine if phenotype file links up with a single ID variable or a FID/ID pair; assuming pair");
+								justIID = false;
+							}
+							addDosageAsCovariate(dirs[k], infoFile, doseFile, pheno, justIID, outfile, Array.toStringArray(v), allowMissingConditional, useResiduals, log);
 						} else {
 							log.reportError("Error: file "+dirs[k]+pheno+" not found");
 							done = true;
@@ -403,7 +449,7 @@ public class Conditional {
 							
 							// need to edit this to run quantitative and custom traits
 							CmdLine.run("plink --bfile plink --logistic"+(sexAsCovariate?" --sex":"")+" --ci 0.95 --out iteration"+count+(covars.size()==0?"":" --covar conCovars"+(files[i]==null?"":"_"+ext.rootOf(files[i], false))+".dat --covar-name "+Array.toStr(Array.toStringArray(covars), ",")), dirs[k]+ext.rootOf(files[i]));
-							Metal.convert(dirs[k]+ext.rootOf(files[i], false)+"/", "iteration"+count+".assoc.logistic", "ADD", "logistic", "plink.frq", true, true, dirs[k]+ext.rootOf(outfile)+".se.metal", true);
+							Metal.convertPlinkResults(dirs[k]+ext.rootOf(files[i], false)+"/", "iteration"+count+".assoc.logistic", "ADD", "logistic", "plink.frq", true, true, dirs[k]+ext.rootOf(outfile)+".se.metal", true);
 							metaInputs.add(dirs[k]+ext.rootOf(outfile)+".se.metal");
 
 							markerSet = new SnpMarkerSet(dirs[k]+"plink.bim", false, new Logger());
@@ -542,8 +588,6 @@ public class Conditional {
 				}
 				try {
 					writer = new PrintWriter(new FileWriter(filename+"_fullTable.xln"));
-					String[] keys, line;
-					int[] order;
 					keys = HashVec.getKeys(allMarkers, false, false);
 					chrs = new byte[keys.length];
 					positions = new int[keys.length];
@@ -651,7 +695,8 @@ public class Conditional {
 				target = models[i][2];
 				snps = models[i][3].trim().split(",");
 
-				run(dirs, snpFile, snps, annotationFile, useResiduals, true, false, genomiccontrol, pheno, phenoMissingValue, outfile, covariates, sexAsCovariate, allowMissingConditional, dose, info);
+				// not using probabel
+				run(dirs, snpFile, snps, annotationFile, useResiduals, true, false, false, genomiccontrol, pheno, phenoMissingValue, outfile, covariates, sexAsCovariate, allowMissingConditional, dose, info);
 				
 				filename = (pheno==null?"":ext.rootOf(pheno, false)+"_")+(snpFile.equals("null")?"":ext.rootOf(snpFile, false)+"_")+"iteration"+1;
 				if (dirs.length > 1) {
@@ -737,6 +782,398 @@ public class Conditional {
 		}
 	}
 	
+	public static void runAllRegions(String indexSNPs, String pheno, int columnIndexContainingAllMarkersForTheModel) {
+		PrintWriter writer;
+		String[] markerNames, addlMarkers;
+		String markers;
+		
+		if (!Files.exists(pheno, false)) {
+			System.err.println("Error - pheno file '"+pheno+"' does not exist");
+			return;
+		}
+		
+		markerNames = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {0}, false);
+		if (columnIndexContainingAllMarkersForTheModel >= 0) {
+			addlMarkers = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {columnIndexContainingAllMarkersForTheModel}, false);
+		} else {
+			addlMarkers = null;
+		}
+		try {
+			writer = new PrintWriter(new FileWriter("runAllRegions"));
+			for (int i = 0; i < markerNames.length; i++) {
+				if (Files.exists(markerNames[i], false)) {
+					writer.println("echo \""+(i+1)+" of "+markerNames.length+": "+markerNames[i]+"\"");
+					writer.println("cp list.txt "+markerNames[i]+"/");
+					writer.println("cd "+markerNames[i]);
+					markers = addlMarkers == null ? markerNames[i] : addlMarkers[i];
+					writer.println("jcp gwas.Conditional snps="+ext.replaceAllWith(markers, "_", ":")+" dose=data.dose info=data.info pheno=../"+pheno+" out=conPheno.dat");
+					writer.println("awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' data.info > data.pinfo");
+					Files.qsub(markerNames[i]+"/"+markerNames[i]+".qsub", Probabel.EXECS[0]+" -p conPheno.dat -d data.dose -i data.pinfo -c 1 -o "+markers);
+					writer.println("qsub "+markerNames[i]+".qsub");
+					writer.println("cd ..");
+					writer.println();
+				} else {
+					System.err.println("Error - no directory for '"+markerNames[i]+"'; need to run splitByRegion first?");
+				}
+			}
+			writer.close();
+			Files.chmod("runAllRegions");
+			System.out.println("run ./runAllRegions to proceed with analyses");
+		} catch (Exception e) {
+			System.err.println("Error writing to " + "runAllRegions");
+			e.printStackTrace();
+		}
+	}
+		
+	public static void checkAllRegions(String indexSNPs, int columnIndexContainingAllMarkersForTheModel, String markerList, int markerNameIndex) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] markerNames, markers;
+		CountHash ch;
+		int exp, obs;
+		String filename;
+		
+		ch = new CountHash();
+		try {
+			reader = new BufferedReader(new FileReader(markerList));
+			while (reader.ready()) {
+				ch.add(ext.replaceAllWith(reader.readLine().trim().split("[\\s]+")[markerNameIndex], ":", "_"));
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + markerList + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + markerList + "\"");
+			System.exit(2);
+		}
+		
+		markerNames = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {0}, false);
+		if (columnIndexContainingAllMarkersForTheModel == -1) {
+			markers = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {0}, false);
+		} else {
+			markers = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {columnIndexContainingAllMarkersForTheModel}, false);
+		}
+		try {
+			writer = new PrintWriter(new FileWriter("checkAllRegions.out"));
+			writer.println("MarkerName\texpected\tobserved");
+			for (int i = 0; i < markerNames.length; i++) {
+				exp = ch.getCount(markerNames[i]);
+				writer.print(markerNames[i]+"\t"+exp+"\t");
+				filename = markerNames[i]+"/"+markers[i]+"_add.out.txt";
+				if (Files.exists(filename, false)) {
+					obs = Files.countLines(filename, true);
+					writer.println(obs);
+					if (exp != obs) {
+						System.err.println("Error - mismatch for "+markerNames[i]+" expecting "+exp+", found "+obs);
+					}					
+				} else {
+					System.err.println("Error - no results for '"+markerNames[i]+"'; could not find file "+filename);
+					writer.println(".");
+				}
+			}
+			writer.close();
+			Files.chmod("runAllRegions");
+		} catch (Exception e) {
+			System.err.println("Error writing to " + "checkAllRegions.out");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void parseResults(String indexSNPs, int columnIndexContainingAllMarkersForTheModel, String name) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String[] regionNames, markers;
+		
+		regionNames = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {0}, false);
+		if (columnIndexContainingAllMarkersForTheModel == -1) {
+			markers = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {0}, false);
+		} else {
+			markers = HashVec.loadFileToStringArray(indexSNPs, false, new int[] {columnIndexContainingAllMarkersForTheModel}, false);
+		}
+		new File("results/").mkdirs();
+		for (int i = 0; i < regionNames.length; i++) {
+			try {
+				reader = new BufferedReader(new FileReader(regionNames[i]+"/"+markers[i]+"_add.out.txt"));
+				writer = new PrintWriter(new FileWriter("results/"+name+"_"+regionNames[i]+".txt"));
+				line = reader.readLine().trim().split("[\\s]+");
+				ext.checkHeader(line, Probabel.LOGIST_OUTPUT_HEADER, true);
+				writer.println("MarkerName\tEffect_allele\tReference_allele\tBETA\tSE\tP");
+				while (reader.ready()) {
+					line = reader.readLine().trim().split("[\\s]+");
+    		        writer.println(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[10]+"\t"+line[11]+"\t"+(line[12].equals("nan")||line[12].equals("-inf")?".":ProbDist.ChiDist(Math.max(Double.parseDouble(line[12]), 0), 1)));
+				}
+				writer.close();
+				reader.close();
+				Zip.gzip("results/"+name+"_"+regionNames[i]+".txt");
+			} catch (FileNotFoundException fnfe) {
+				System.err.println("Error: file \"" + regionNames[i]+"/"+markers[i]+"_add.out.txt" + "\" not found in current directory");
+				System.exit(1);
+			} catch (IOException ioe) {
+				System.err.println("Error reading file \"" + regionNames[i]+"/"+markers[i]+"_add.out.txt" + "\"");
+				System.exit(2);
+			}
+		}
+	}
+	
+	public static void metaAllRegions(String controlFile, Logger log) {
+		PrintWriter writer, w2, w3;
+		PrintStream ps;
+		String[] line;
+		String trav;
+        Vector<String> paramV;
+        String regionListFilename;
+        String[][] dirsAndPatterns;
+        String[][] markersAndChrs;
+        int minNumValids;
+        int[] indices;
+        String[][] results;
+		double minValue;
+		String minMarker, minInfo;
+		int index;
+		String study, filename;
+		String markerName, effectAllele, refAllele, beta, se, pval, weight, freq, gc, snps;
+		boolean minmaxfreq, averagefreq, verbose, schemeIsStdErr;
+
+		paramV = Files.parseControlFile(controlFile, "meta", new String[] {
+				"# Can set regionList file to null in order to just do a standard meta-analysis, just set first column (the directories) to .",
+				"regionListWithAnyExtraInfoForFilenamePatterns.dat minNum=7",
+				"progeni_genepd	progeni_genepd_[%1].txt", 
+				"hihg	hihg_[%1].txt", 
+				"ngrc	ngrc_[%1].txt",
+				"Germany	GER_chr[%2]_[%1]",
+				"Netherlands	NL_chr[%2]_[%1]",
+				"NIA	NIA_chr#_[%1]_[%3]",
+				"23andMe	TTAM_[%1]_[%3].txt",
+				"",
+				"# Variable names will be set as follows (alternate scheme is SAMPLESIZE):",
+				"MARKER MarkerName",
+				"ALLELE Effect_allele Reference_allele",
+				"EFFECT BETA",
+				"STDERR SE",
+				"PVAL P-value",
+				"WEIGHT N",
+				"SCHEME STDERR",
+				"GENOMICCONTROL OFF",
+				"",
+				"# Additional advanced options available",
+				"FREQ EFFECT_ALLELE_FREQ",
+				"MINMAXFREQ ON",
+				"AVERAGEFREQ ON",
+				"ADDFILTER SNP IN (rs10830963,rs563694)",
+				"VERBOSE ON",
+				}, log);
+		
+		if (paramV != null) {
+			line = paramV.elementAt(0).split("[\\s]+");
+			regionListFilename = line[0];
+			minNumValids = -9;
+			for (int i = 1; i < line.length; i++) {
+				if (line[i].toLowerCase().startsWith("minnum=")) {
+					minNumValids = ext.parseIntArg(line[i]);
+				} else {
+					System.err.println("Error - do not know what to do with parameter '"+line[i]+"'");
+				}
+			}
+			
+			schemeIsStdErr = true;
+			minmaxfreq = false;
+			averagefreq = false;
+			verbose = false;
+			markerName = effectAllele = refAllele = beta = se = pval = weight = freq = snps = null;
+			gc = "OFF";
+
+
+			for (int i = paramV.size()-1; i > 0; i--) {
+				trav = paramV.elementAt(i).trim();
+				if (trav.startsWith("MARKER ")) {
+					markerName = paramV.remove(i).split("[\\s]+")[1];
+				} else if (trav.startsWith("ALLELE ")) {
+					line = paramV.remove(i).trim().split("[\\s]+");
+					effectAllele = line[1];
+					refAllele = line[2];
+				} else if (trav.startsWith("EFFECT ")) {
+					beta = paramV.remove(i).split("[\\s]+")[1];
+				} else if (trav.startsWith("STDERR ")) {
+					se = paramV.remove(i).split("[\\s]+")[1];
+				} else if (trav.startsWith("PVAL ")) {
+					pval = paramV.remove(i).split("[\\s]+")[1];
+				} else if (trav.startsWith("WEIGHT ")) {
+					weight = paramV.remove(i).split("[\\s]+")[1];
+				} else if (trav.startsWith("SCHEME ")) {
+					schemeIsStdErr = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("STDERR");
+				} else if (trav.startsWith("GENOMICCONTROL ")) {
+					gc = paramV.remove(i).split("[\\s]+")[1];
+				} else if (trav.startsWith("FREQ ")) {
+					freq = paramV.remove(i).split("[\\s]+")[1];
+				} else if (trav.startsWith("ADDFILTER ")) {
+					snps = trav;
+				} else if (trav.startsWith("MINMAXFREQ ")) {
+					minmaxfreq = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+				} else if (trav.startsWith("AVERAGEFREQ ")) {
+					averagefreq = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+				} else if (trav.startsWith("VERBOSE ")) {
+					verbose = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+				} else if (trav.split("[\\s]+").length != 2) {
+					System.err.println("Error - processing '"+paramV.elementAt(i)+"'");
+				}
+			}			
+			
+			dirsAndPatterns = new String[paramV.size()-1][2];
+			for (int i = 0; i < dirsAndPatterns.length; i++) {
+				line = paramV.elementAt(1+i).trim().split("[\\s]+");
+				if (line.length != 2) {
+					System.err.println("Error - processing '"+paramV.elementAt(1+i)+"'");
+					return;
+				}
+				line[0] = ext.verifyDirFormat(line[0]);
+				dirsAndPatterns[i] = line;
+			}
+		
+			if (regionListFilename.equalsIgnoreCase("null")) {
+				markersAndChrs = new String[][] {{"Metal_SE"}};
+			} else {
+				markersAndChrs = HashVec.loadFileToStringMatrix(regionListFilename, false, Array.intArray(Files.getHeaderOfFile(regionListFilename, log).length), "\t", false, 100, false);
+			}
+			System.out.println("minNumValid="+minNumValids);
+
+			new File("metas/").mkdir();
+			try {
+				ps = new PrintStream(new File(ext.rootOf(controlFile)+".log"));
+				w2 = new PrintWriter(new FileWriter("minPvals.out"));
+				w2.print("IndexSnp\tMinConditionalSNP\tMinConditionalPval\tAllele1\tAllele2\tConditionalBeta\tConditionalStdErr"); 
+				for (int i = 0; i < dirsAndPatterns.length; i++) {
+					study = dirsAndPatterns[i][0].substring(0, dirsAndPatterns[i][0].length()-1);
+					w2.print("\t"+study+"_beta\t"+study+"_SE\t"+study+"_pval");
+				}
+				w2.println();
+				w3 = new PrintWriter(new FileWriter("allPvals.out"));
+				w3.println("IndexSnp(s)\tMinConditionalSNP\tAllele1\tAllele2\tConditionalBeta\tConditionalStdErr\tMinConditionalPval\tDirection"); 
+				for (int i = 0; i < markersAndChrs.length; i++) {
+					System.out.println("Processing "+(i+1)+" of "+markersAndChrs.length+" "+markersAndChrs[i][0]);
+					if (!Files.exists("metas/"+markersAndChrs[i][0]+"_SE1.tbl", false)) {
+						try {
+							writer = new PrintWriter(new FileWriter("metas/"+markersAndChrs[i][0]+".metal"));
+							writer.println("MARKER "+markerName);
+							writer.println("ALLELE "+effectAllele+" "+refAllele);
+							if (schemeIsStdErr) {
+								writer.println("EFFECT "+beta);
+								writer.println("STDERR "+se);
+								writer.println("SCHEME STDERR");
+							} else {
+								writer.println("PVAL "+pval);
+								writer.println("WEIGHT "+weight);
+								writer.println("SCHEME SAMPLESIZE");
+							}
+							writer.println("GENOMICCONTROL "+gc);
+							if (freq != null) {
+								writer.println("FREQ "+freq);
+							}
+							if (minmaxfreq) {
+								writer.println("MINMAXFREQ ON");
+							}
+							if (averagefreq) {
+								writer.println("AVERAGEFREQ ON");
+							}
+							if (snps != null) {
+								writer.println(snps);
+							}
+							if (verbose) {
+								writer.println("VERBOSE ON");
+							}
+							writer.println();
+							for (int j = 0; j < dirsAndPatterns.length; j++) {
+								filename = dirsAndPatterns[j][1];
+								for (int k = 0; k < markersAndChrs[i].length; k++) {
+									filename = ext.replaceAllWith(filename, "[%"+(k+1)+"]", markersAndChrs[i][k]);
+								}								
+								writer.println("PROCESS "+dirsAndPatterns[j][0]+filename);
+							}
+							writer.println();
+							writer.println("OUTFILE metas/"+markersAndChrs[i][0]+"_SE .tbl");
+							writer.println("ANALYZE HETEROGENEITY");
+							writer.close();
+						} catch (Exception e) {
+							System.err.println("Error writing to " + "metas/"+markersAndChrs[i][0]+".metal");
+							e.printStackTrace();
+						}
+		
+						CmdLine.run("metal < "+"metas/"+markersAndChrs[i][0]+".metal", "./", ps);
+					}
+					if (!Files.exists("metas/"+markersAndChrs[i][0]+"_SE1.tbl", false)) {
+						log.reportError("Error - failed to run meta-analysis for "+markersAndChrs[i][0]);
+					} else {
+						indices = ext.indexFactors(new String[] {"MarkerName", "Direction", "P-value", "Allele1", "Allele2", "Effect", "StdErr"}, Files.getHeaderOfFile("metas/"+markersAndChrs[i][0]+"_SE1.tbl", "\t", log), false, true);
+						results = HashVec.loadFileToStringMatrix("metas/"+markersAndChrs[i][0]+"_SE1.tbl", true, indices, false);
+						
+						minValue = 1;
+						minMarker = null;
+						minInfo = null;
+						String indexSNPs = markersAndChrs[i][0];
+						for (int j = 2; j < markersAndChrs[i].length; j++) {
+							indexSNPs += ";"+markersAndChrs[i][j];
+						}
+						for (int j = 0; j < results.length; j++) {
+							if (minNumValids < 0 || ext.replaceAllWith(results[j][1], "?", "").length() >= minNumValids) {
+								if (Double.parseDouble(results[j][2]) < minValue) {
+									minValue = Double.parseDouble(results[j][2]);
+									minMarker = results[j][0];
+									minInfo = results[j][3]+"\t"+results[j][4]+"\t"+results[j][5]+"\t"+results[j][6];
+								} else if (Double.parseDouble(results[j][2]) == minValue) {
+									minMarker += ";"+results[j][0];
+								}
+								w3.println(indexSNPs+"\t"+results[j][0]+"\t"+results[j][3]+"\t"+results[j][4]+"\t"+results[j][5]+"\t"+results[j][6]+"\t"+results[j][2]+"\t"+results[j][1]);
+							}
+						}
+						if (minMarker == null) {
+							log.reportError("Error - no result for "+markersAndChrs[i][0]+" had valid data for "+minNumValids+" or more studies");
+						} else {
+							if (minMarker.indexOf(";") > 0) {
+								minMarker = minMarker.substring(0, minMarker.indexOf(";"));
+								log.report("There was a tie for the minimum marker for the "+markersAndChrs[i][0]+" meta-analysis ("+ext.listWithCommas(minMarker.split(";"))+")");
+							}
+							minMarker = ext.replaceAllWith(minMarker, "_", ":");
+						}
+						w2.print(ext.replaceAllWith(markersAndChrs[i][0], "_", ":"));
+						if (minMarker == null) {
+							w2.print("\t.\t.\t.\t.");
+						} else {
+							w2.print("\t"+minMarker+"\t"+minValue+"\t"+minInfo);
+							for (int j = 0; j < dirsAndPatterns.length; j++) {
+								filename = dirsAndPatterns[j][0]+dirsAndPatterns[j][1];
+								for (int k = 0; k < markersAndChrs[i].length; k++) {
+									filename = ext.replaceAllWith(filename, "[%"+(k+1)+"]", markersAndChrs[i][k]);
+								}								
+								if (Files.exists(filename, false)) {
+									indices = ext.indexFactors(new String[] {"MarkerName", "BETA", "SE", "P"}, Files.getHeaderOfFile(filename, "\t", log), false, true);
+									results = HashVec.loadFileToStringMatrix(filename, true, indices, false);
+									index = ext.indexOfStr(minMarker, Matrix.extractColumn(results, 0));
+									if (index == -1) {
+										System.err.println("Error - couldn't find '"+minMarker+"' in "+dirsAndPatterns[j][0]+ext.replaceAllWith(dirsAndPatterns[j][1], new String[][] {{"[name]", markersAndChrs[i][0]}, {"#", markersAndChrs[i][1]}}));
+										w2.print("\t.\t.\t.");
+									} else {
+										w2.print("\t"+Array.toStr(Array.subArray(results[index], 1)));
+									}
+								} else {
+									System.err.println("Error - file not found for analysis "+markersAndChrs[i][0]+" for "+dirsAndPatterns[j][0]);
+									w2.print("\tmissing\tmissing\tmissing");
+								}
+							}
+						}
+						w2.println();
+					}
+				}			
+				w2.close();
+				w3.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + "minPvals.out");
+				e.printStackTrace();
+			}
+		}
+
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filenames = "null";
@@ -756,6 +1193,13 @@ public class Conditional {
 		String annotation = "annotation.xln";
 		String models = null;
 		boolean allowMissingConditional = false;
+		boolean probabel = false;
+		String indexMarkers = null;
+		String markerList = null;
+		int markerNameIndex = -1;
+		String parse = null;
+		String metaAll = null;
+		int columnIndexContainingAllMarkersForTheModel = -1;
 
 //		filenames = "GBA.txt,GAK.txt,BST1.txt,SNCA.txt,chr5.txt,HLA.txt,chr12.txt,chr16.txt,MAPT.txt,RIT2.txt";
 ////		filenames = "SNCA.txt";
@@ -873,11 +1317,31 @@ public class Conditional {
 		"   (b) name of new covariates file (i.e. out=conCovars.dat (default))\n" +
 		"   (c) include sex as a covariate (i.e. sex=" + sexAsCovariate + " (default))\n" +
 		"  Or for dosage data:\n" +
-		"   (a) mldose file of consolidated imputed data (i.e. dose=MACH_step2_chr4.mldose (not the default))\n" +
-		"   (b) mlinfo file of consolidated imputed data (i.e. info=MACH_step2_chr4.mlinfo (not the default))\n" +
+		"   (a) dosage file of consolidated imputed data (i.e. dose=chr4.mldose (not the default))\n" +
+		"   (b) info file of consolidated imputed data (i.e. info=chr4.mlinfo (not the default))\n" +
 		"   (c) phenotype file with any covariates (i.e. pheno=pheno.dat (not the default; FID IID PHENO COVAR1 COVAR2 ...))\n" +
 		"   (d) name of new phenotype file (i.e. out=conPheno.dat (default))\n" +
 		"   (e) if ProbABEL is installed, use that instead (i.e. -probabel (not the default))\n" +
+		" OR\n" + 
+		"   (1) run conditionals for all index markers in file (i.e. indexMarkers=" + indexMarkers + " (not the default; should be output file from splitByRegion))\n" + 
+		"   (2) name of phenotype file (i.e. pheno="+pheno+" (default))\n" +
+		"   (3) (optional) index of column containing all SNPs that should be included in the model (i.e. addlMarkers=1 (not the default))\n" +
+		"       if this index is provided, then the original index SNP in the first column needs to be included\n" +
+		"       the first column may then become the name of the directory (which is probably still just the name of the original SNP)\n" +
+		" OR\n" + 
+		"   (1) check to make sure that all conditionals completed with the expected number of markers (i.e. indexMarkers=" + indexMarkers + " (not the default; should be output file from splitByRegion))\n" + 
+		"   (2) marker list that was originally extracted (i.e. markerList=extractInfo.dat (not the default))\n"+
+		"   (3) index of the region name within the marker list file (i.e. markerNameIndex=[index of region name in markerList file] (not the default))\n"+
+		"   (4) (optional) index of column containing all SNPs that should have been included in the model (i.e. addlMarkers=1 (not the default))\n" +
+		" OR\n" + 
+		"   (1) parse results converting chi square to p-value (i.e. indexMarkers=" + indexMarkers + " (not the default; should be output file from splitByRegion))\n" + 
+		"   (2) name of study (i.e. parse=progeni_genepd (not the default))\n" + 
+		"   (3) (optional) index of column containing all SNPs that should have been included in the model (i.e. addlMarkers=1 (not the default))\n" +
+		" OR\n" + 
+		"   (1) meta-analyze all regions using control file (i.e. metaAll=C:/mega/iteration1/control.dat (not the default))\n" + 
+		"       contains keyword meta," +
+		"		then splitByRegion filename," +
+		"		then all subdirectories in first column and then a filename template where [name]=markerName and #=chr#\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -941,6 +1405,27 @@ public class Conditional {
 			} else if (args[i].startsWith("models=")) {
 				models = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("indexMarkers=")) {
+				indexMarkers = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("markerList=")) {
+				markerList = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("addlMarkers=")) {
+				columnIndexContainingAllMarkersForTheModel = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("markerNameIndex=")) {
+				markerNameIndex = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("parse=")) {
+				parse = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("-probabel")) {
+				probabel = true;
+				numArgs--;
+			} else if (args[i].startsWith("metaAll=")) {
+				metaAll = ext.parseStringArg(args[i], null);
+				numArgs--;
 			} else {
 				System.err.println("Error - don't know what to do with argument: "+args[i]);
 			}
@@ -950,10 +1435,25 @@ public class Conditional {
 			return;
 		}
 		try {
-			if (models != null) {	// not convinced this works with the output from run(with iterate)
+//			dirs = new String[] {"rs17621489/"};
+//			dose = "data.dose";
+//			info = "data.pinfo";
+//			pheno = "pheno.dat";
+//			snps = new String[] {"rs17621489"};
+//			outfile = "conPheno.dat";
+//			metaAll = "meta.crf";
+			if (markerNameIndex > 0) {
+				checkAllRegions(indexMarkers, columnIndexContainingAllMarkersForTheModel, markerList, markerNameIndex);
+			} else if (parse != null) {
+				parseResults(indexMarkers, columnIndexContainingAllMarkersForTheModel, parse);
+			} else if (indexMarkers != null) {
+				runAllRegions(indexMarkers, pheno, columnIndexContainingAllMarkersForTheModel);
+			} else if (metaAll != null) {
+				metaAllRegions(metaAll, new Logger("metaAll.log"));
+			} else if (models != null) {	// not convinced this works with the output from run(with iterate)
 				runModels(dirs, models, annotation, useResiduals, genomiccontrol, pheno, phenoMissingValue, outfile, covariates, sexAsCovariate, allowMissingConditional, dose, info);
 			} else {
-				run(dirs, filenames, snps, annotation, useResiduals, run, iterate, genomiccontrol, pheno, phenoMissingValue, outfile, covariates, sexAsCovariate, allowMissingConditional, dose, info);
+				run(dirs, filenames, snps, annotation, useResiduals, run, probabel, iterate, genomiccontrol, pheno, phenoMissingValue, outfile, covariates, sexAsCovariate, allowMissingConditional, dose, info);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

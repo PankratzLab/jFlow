@@ -7,11 +7,12 @@ public class batchBRI {
 	// String[] SNP_POS = {"(-12.9)", "(+0)", "(+2.6)", "(+9.3)"};
 	// String[] SNPS = {"rs10200894"};
 	// String[] SNP_POS = {""};
-	String[] SNPS = {"haplotype-111X", "haplotype-222X", "haplotype-X1X2", "haplotype-X2X1"};
+	
+	public static final String[] SNPS = {"haplotype-111X", "haplotype-222X", "haplotype-X1X2", "haplotype-X2X1"};
 
-	String[] SNP_POS = {"", "", "", ""};
+	public static final String[] SNP_POS = {"", "", "", ""};
 
-	String[] CUT3 = {"everyone", "no_parkin", "no_parkin_or_LRRK2"};
+	public static final String[] CUT3 = {"everyone", "no_parkin", "no_parkin_or_LRRK2"};
 
 	public batchBRI(String jarPath, String genoPath) throws IOException {
 		PrintWriter writer = null;

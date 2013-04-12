@@ -141,7 +141,8 @@ public class GeneData extends Segment implements Serializable {
 		return multiLoc;
 	}
 	
-	public static GeneData[] toArray(Vector<GeneData> setVec) {
+	// used to be just toArray, which overrode Segment.toArray, but Ant thinks this is a compile error for some reason
+	public static GeneData[] toGeneDataArray(Vector<GeneData> setVec) {
 		GeneData[] list = new GeneData[setVec.size()];
 		
 		for (int i = 0; i<setVec.size(); i++) {

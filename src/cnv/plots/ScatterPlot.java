@@ -62,6 +62,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 	private SampleData sampleData;
 	private JCheckBox symmetryBox;
 	private boolean maskMissing;
+	private Color[] colorScheme;
 
 	public ScatterPlot(Project project) {
 		super("ScatterPlot");
@@ -84,6 +85,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 		loadCentroids();
 
 		scatPanel = new ScatterPanel(this);
+		colorScheme = scatPanel.getColorScheme();
 		getContentPane().add(scatPanel, BorderLayout.CENTER);
 
 		JPanel descrPanel = new JPanel();
@@ -264,7 +266,7 @@ public class ScatterPlot extends JFrame implements ActionListener {
 			centBoxes[i].setFont(new Font("Arial", 0, 14));
 			centBoxes[i].setSelected(displayCents[i]);
 			centBoxes[i].addItemListener(centListener);
-			centBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5+i], 5));
+			centBoxes[i].setBorder(BorderFactory.createLineBorder(colorScheme[5+i], 5));
 			centBoxes[i].setBorderPainted(true);
 			centBoxes[i].setBackground(BACKGROUND_COLOR);
 			typePanel.add(centBoxes[i], gbc);

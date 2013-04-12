@@ -15,6 +15,7 @@ public class Probabel {
 	public static final int PACOXPH = 2;
 //	public static final String[] EXECS = {"palogist", "palinear", "pacoxph"};
 	public static final String[] EXECS = {"/home/npankrat/bin/palogist", "/home/npankrat/bin/palinear", "/home/npankrat/bin/pacoxph"};
+	public static final String[] LOGIST_OUTPUT_HEADER = {"name", "A1", "A2", "Freq1", "MAF", "Quality", "Rsq", "n", "Mean_predictor_allele", "chrom", "beta_SNP_add", "sebeta_SNP_add", "chi2_SNP"};
 
 	public static void createQsubs(String pheno, int type, boolean minimac, int maxGb) {
 		String commands;

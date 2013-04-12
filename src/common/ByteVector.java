@@ -15,7 +15,7 @@ public class ByteVector {
 
 	public ByteVector(byte[] initialArray) {
 		v = new Vector<String>();
-		for (byte i = 0; i<initialArray.length; i++) {
+		for (int i = 0; i<initialArray.length; i++) {
 			add(initialArray[i]);
 		}
 	}
@@ -26,7 +26,7 @@ public class ByteVector {
 
 	public int add(byte value, boolean inAlphabeticalOrder) {
 		if (inAlphabeticalOrder) {
-			for (byte i = 0; i<=v.size(); i++) {
+			for (int i = 0; i<=v.size(); i++) {
 				if (i==v.size()||Byte.parseByte(v.elementAt(i))>value) {
 					v.insertElementAt(value+"", i);
 					return i;
@@ -50,7 +50,7 @@ public class ByteVector {
 		return v.contains(s+"");
 	}
 
-	public byte elementAt(byte i) {
+	public byte elementAt(int i) {
 		return Byte.parseByte(v.elementAt(i));
 	}
 
@@ -58,11 +58,11 @@ public class ByteVector {
 		return v.indexOf(elem+"");
 	}
 
-	public int indexOf(byte elem, byte index) {
+	public int indexOf(byte elem, int index) {
 		return v.indexOf(elem+"", index);
 	}
 
-	public void insertElementAt(byte value, byte at) {
+	public void insertElementAt(byte value, int at) {
 		v.insertElementAt(value+"", at);
 	}
 
@@ -82,15 +82,15 @@ public class ByteVector {
 		return v.removeElement(s+"");
 	}
 
-	public void removeElementAt(byte i) {
+	public void removeElementAt(int i) {
 		v.removeElementAt(i);
 	}
 
-	public void setElementAt(byte value, byte index) {
+	public void setElementAt(byte value, int index) {
 		v.setElementAt(value+"", index);
 	}
 
-	public void incrementAt(byte index) {
+	public void incrementAt(int index) {
 		byte val = elementAt(index);
 		val++;
 		v.setElementAt(val+"", index);
@@ -108,7 +108,7 @@ public class ByteVector {
 		return i;
 	}
 
-	public byte popAt(byte at) {
+	public byte popAt(int at) {
 		byte i = Byte.parseByte(v.elementAt(at));
 		v.removeElementAt(at);
 		return i;
@@ -120,7 +120,7 @@ public class ByteVector {
 
 	public ByteVector clone() {
 		ByteVector newIV = new ByteVector();
-		for (byte i = 0; i<v.size(); i++) {
+		for (int i = 0; i<v.size(); i++) {
 			newIV.add(Byte.parseByte(v.elementAt(i)));
 		}
 		return newIV;
@@ -128,7 +128,7 @@ public class ByteVector {
 
 	public byte[] toArray() {
 		byte[] array = new byte[v.size()];
-		for (byte i = 0; i<v.size(); i++) {
+		for (int i = 0; i<v.size(); i++) {
 			array[i] = Byte.parseByte(v.elementAt(i));
 		}
 		return array;

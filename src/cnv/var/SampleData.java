@@ -59,12 +59,20 @@ public class SampleData {
 				dnaIndex = 0;
 			}
 			if (cnvFilesnames.length > 0 && famIndex == -1) {
-				System.err.println("Error - 'FID' was not a header in the SampleData file; cannot lookup cnv data");
-				cnvFilesnames = new String[0];
+				System.err.println("Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
+//				cnvFilesnames = new String[0];
 			}
 			if (cnvFilesnames.length > 0 && indIndex == -1) {
-				System.err.println("Error - 'IID' was not a header in the SampleData file; cannot lookup cnv data");
-				cnvFilesnames = new String[0];
+				System.err.println("Error - 'IID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
+//				cnvFilesnames = new String[0];
+			}
+			if (famIndex == -1) {
+				System.err.println("Error - 'FID' was not a header in the SampleData file; assuming family ID is in the second column");
+				famIndex = 1;
+			}
+			if (indIndex == -1) {
+				System.err.println("Error - 'IID' was not a header in the SampleData file; assuming individual ID is in the third column");
+				indIndex = 2;
 			}
 			for (int i = 1; i<header.length; i++) {
 				if (header[i].toUpperCase().startsWith("FILTER=")) {
@@ -122,7 +130,7 @@ public class SampleData {
 
 				iv = new IntVector();
 				for (int i = 0; i<classIs.size(); i++) {
-					iv.add(line[classIs.elementAt(i)].equals(".")||Integer.parseInt(line[classIs.elementAt(i)])<0?Integer.MIN_VALUE:Integer.parseInt(line[classIs.elementAt(i)]));
+					iv.add(ext.isMissingValue(line[classIs.elementAt(i)])||Integer.parseInt(line[classIs.elementAt(i)])<0?Integer.MIN_VALUE:Integer.parseInt(line[classIs.elementAt(i)]));
 				}
 				indi.setClasses(iv.toArray());
 

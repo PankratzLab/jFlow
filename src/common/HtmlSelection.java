@@ -5,9 +5,11 @@ import java.util.*;
 import java.awt.datatransfer.*;
 
 public class HtmlSelection implements Transferable {
-	private static ArrayList<DataFlavor> htmlFlavors = new ArrayList<DataFlavor>();
+	private static ArrayList<DataFlavor> htmlFlavors;
+	private String html;
 
-	static {
+	public HtmlSelection(String html) {
+		htmlFlavors = new ArrayList<DataFlavor>();
 		try {
 			htmlFlavors.add(new DataFlavor("text/html;class=java.lang.String"));
 			htmlFlavors.add(new DataFlavor("text/html;class=java.io.Reader"));
@@ -15,11 +17,7 @@ public class HtmlSelection implements Transferable {
 		} catch (ClassNotFoundException ex) {
 			ex.printStackTrace();
 		}
-	}
-
-	private String html;
-
-	public HtmlSelection(String html) {
+		
 		this.html = html;
 	}
 

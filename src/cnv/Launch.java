@@ -7,7 +7,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import common.*;
-//import cnv.analysis.Mosaicism;
+import cnv.analysis.Mosaicism;
 import cnv.filesys.*;
 import cnv.manage.*;
 import cnv.plots.*;
@@ -21,21 +21,24 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String PARSE_FILES = "Parse .csv files";
 	public static final String EXTRACT_PLOTS = "Extract plots";
 	public static final String SLIM_PLOTS = "Slim plots";
-	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
+	public static final String CHECK_SEX = "Check sex";
 	public static final String LRR_SD = "Check LRR stdevs";
+	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
+	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
 	public static final String SCATTER = "Scatter module";
 	public static final String QQ = "QQ module";
 	public static final String STRAT = "Stratify module";
-	public static final String MOSAIC = "Mosaic module";
+	public static final String MOSAICISM = "Determine mosaic arms";
+	public static final String MOSAIC_PLOT = "Mosaic plot module";
 	public static final String TRAILER = "Trailer module";
 	public static final String EDIT = "Edit";
 	public static final String REFRESH = "Refresh";
 	public static final String TEST = "Test";
 
-	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, LRR_SD, SCATTER, QQ, STRAT, MOSAIC, TRAILER, TEST}; 
+	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, TRAILER, TEST}; 
 
 	private boolean jar;
-	private JComboBox projectsBox;
+	private JComboBox<String> projectsBox;
 	private String[] projects;
     private LaunchProperties props;
     private String launchPropertiesFile;
@@ -54,7 +57,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		for (int i = 0; i<projectNames.length; i++) {
 			projectNames[i] = ext.rootOf(projects[i], true);
         }
-		projectsBox.setModel(new DefaultComboBoxModel(projectNames));
+		projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
 	}
 	
     public void addComponentsToPane(final Container pane) {
@@ -64,7 +67,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		String lastProjectOpened;
         
         props = new LaunchProperties(launchPropertiesFile);
-        projectsBox = new JComboBox();
+        projectsBox = new JComboBox<String>();
         loadProjects();
         // In JDK1.4 this prevents action events from being fired when the  up/down arrow keys are used on the dropdown menu
         projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
@@ -125,11 +128,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		try {
 			if (command.equals(MAP_FILES)) {
 	//			vis cnv.manage.ParseIllumina -mapFiles
+				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				cnv.manage.Markers.generateMarkerPositions(proj, "SNP_Map.csv");
 			} else if (command.equals(PARSE_FILES)) {
 				cnv.manage.ParseIllumina.createFiles(proj, 2);
-	//			nohup vis -Xmx1g cnv.manage.ParseIllumina threads=6 proj=current.proj
+//				nohup vis -Xmx1g cnv.manage.ParseIllumina threads=6 proj=current.proj
+			} else if (command.equals(CHECK_SEX)) {
+				cnv.qc.GenderChecks.sexCheck(proj);
 			} else if (command.equals(EXTRACT_PLOTS)) {
 //				ExtractPlots.extractAll(proj, 0, false);
 				ExtractPlots.extractAll(proj, 0, true); // compact if no LRR was provided
@@ -143,15 +149,19 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
 	//			vis cnv.manage.PlinkFormat root=../plink genome=6 
+			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
+				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
 			} else if (command.equals(LRR_SD)) {
-				cnv.qc.LrrSd.init(proj, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 			} else if (command.equals(SCATTER)) {
 				new ScatterPlot(proj);
 			} else if (command.equals(QQ)) {
-				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)));
+				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false);
 			} else if (command.equals(STRAT)) {
 				StratPlot.loadStratificationResults(proj);
-			} else if (command.equals(MOSAIC)) {
+			} else if (command.equals(MOSAICISM)) {
+				Mosaicism.findOutliers(proj);
+			} else if (command.equals(MOSAIC_PLOT)) {
 				MosaicPlot.loadMosaicismResults(proj);
 			} else if (command.equals(TRAILER)) {
 				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);

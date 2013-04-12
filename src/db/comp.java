@@ -36,7 +36,7 @@ public class comp {
 	public static int NUM_THREADS_DEFAULT = 1;
 	public static int FAM_REPS_DEFAULT = 10000;
 	public static int BOOT_REPS_DEFAULT = 10000;
-	public static final String[] OPTIONS = {"dump", "dumpAll", "sw", "allsw", "predicteds", "residuals", "normalized", "inverseNormalized", "exactRegressionValues", "table", "trend", "oneperfamily", "verbose", "force", "noserialperm", "chis", "audit", "hwe"};
+	public static final String[] OPTIONS = {"dump", "dumpAll", "sw", "allsw", "predicteds", "residuals", "normalized", "inverseNormalized", "exactRegressionValues", "table", "sdtable", "trend", "oneperfamily", "verbose", "force", "noserialperm", "chis", "audit", "hwe"};
 	public static final int MAX_CLASSES = 15;
 	public static final int DEFAULT_SIG_FIGS = 1;
 	public static final int SIG_FIGS_PERCENTAGES = 1;
@@ -94,6 +94,7 @@ public class comp {
 		int[] order;
 		String suffix = "";
 		Logger log;
+		String delimiter;
 		
 		log = new Logger(ext.rootOf(filename, false)+".log");
 		if (!new File(filename).exists()) {
@@ -111,12 +112,14 @@ public class comp {
 		} catch (FileNotFoundException ex) {
 			throw new RuntimeException(ex.getMessage());
 		}
-
+		
 		temp = reader.readLine();
 		line = temp.split("[\\s]+");
 		db_file = line[0];
+		delimiter = db_file.endsWith(".csv")?",":"\t";
+		
 		if (db_file.startsWith("\"")) {
-			db_file = temp.substring(1, temp.substring(1).indexOf("\"")+1);
+			db_file = temp.substring(1, temp.substring(1).indexOf("\"")+1); // why is this +1 at the end? seems like it should be +0
 			line = temp.substring(temp.substring(1).indexOf("\"")+1).split("[\\s]+");
 		}
 		order = null;
@@ -198,7 +201,7 @@ public class comp {
 			} catch (FileNotFoundException ex) {
 				throw new RuntimeException(ex.getMessage());
 			}
-			factorNames = reader.readLine().split("\t");
+			factorNames = reader.readLine().split(delimiter);
 
 			indices = ext.indexFactors(Array.addStrToArray(traits[trt], Array.toStringArray(included), 0), factorNames, true, log, true, true);
 			limits = ext.indexFactors(Array.addStrToArray(traits[trt], Array.toStringArray(limitKeys), 0), factorNames, true, log, true, true);
@@ -221,7 +224,7 @@ public class comp {
 			vDoubleArray = new Vector<double[]>();
 			idV = new Vector<String[]>();
 			while (reader.ready()) {
-				line = reader.readLine().split("\t");
+				line = reader.readLine().split(delimiter);
 				if (factorNames.length!=line.length) {
 					throw new RuntimeException("Error - different number of values ("+line.length+" versus "+factorNames.length+" factors) for "+line[0]);
 				}
@@ -613,7 +616,14 @@ public class comp {
 							results = new PermuteOnePer(optionFlagged("oneperfamily")?Matrix.extractColumn(Matrix.toStringArrays(idV), 1):Array.stringArraySequence(idV.size(), "IND"), dv1.toArray(), dummyIntMatrix(dv2.toArray()), new String[][] { {factorNames[indices[0]]}, {factorNames[indices[factor]]}}).getResults()[0];
 							for (int i = 0; i<k; i++) {
 								percentMe = vString.size()==2;
-								writer.print((i==0?(factor==0?"N":factorNames[indices[factor]]):"")+"\t=CONCATENATE(\""+(percentMe?ext.formDeci(results[i][0]*100, SIG_FIGS_PERCENTAGES, true)+"%":ext.formDeci(results[i][0], sigfigs, true))+"\")\t"+ext.formDeci(results[i][2], sigfigs, true)+(i==k-1&&factor!=0?"\t"+ext.prettyP(results[k][0])+(percentMe?"\t=CHIDIST("+Math.abs(results[k][1])+",1)":"\t=TDIST("+Math.abs(results[k][1])+","+(Math.round(results[i][2])-2)+",2)"):""));
+								writer.print(
+										(i==0?(factor==0?"N":factorNames[indices[factor]]):"")+
+										"\t=CONCATENATE(\""+(percentMe?
+												ext.formDeci(results[i][0]*100, SIG_FIGS_PERCENTAGES, true)+"%"
+												:ext.formDeci(results[i][0], sigfigs, true)+(optionFlagged("sdtable")?" ("+ext.formDeci(results[i][1], sigfigs, true)+")":"")
+												)+"\")"+
+										"\t"+ext.formDeci(results[i][2], sigfigs, true)+
+										(i==k-1&&factor!=0?"\t"+ext.prettyP(results[k][0])+(percentMe?"\t=CHIDIST("+Math.abs(results[k][1])+",1)":"\t=TDIST("+Math.abs(results[k][1])+","+(Math.round(results[k][2])-2)+",2)"):""));
 							}
 							writer.println();
 						}
@@ -760,7 +770,7 @@ public class comp {
 				int meanFigs = 5-(int)Math.floor(Math.log10(Math.max(Math.max(Math.abs(min), Math.abs(max)), 1)));
 				
 				line = new String[9];
-				line[0] = ext.formStr(ext.formDeci(sigs[i][1]*100, SIG_FIGS_PERCENTAGES, true)+"%", 5);
+				line[0] = ext.formStr(ext.formDeci(sigs[i][1]*100, SIG_FIGS_PERCENTAGES*2, true)+"%", 5);
 				line[1] = ext.formDeci(sigs[i][0], 5, true);
 				line[2] = factorNs[i]+"";
 				line[3] = (logistic?ext.formStr(ext.formDeci(means[i][1], meanFigs, true), maxFigs, true)+ext.formStr(ext.formDeci(means[i][0], meanFigs, true), maxFigs, true):"")+(factorDirections[i]?"+":"-");

@@ -237,12 +237,12 @@ public class Collapsed {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	public static String[] getKeys(Hashtable hash) {
 		return getKeys(hash, true, false);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	public static String[] getKeys(Hashtable hash, boolean sort, boolean treatAsNumbers) {
 		String[] array = new String[hash.size()];
 		Enumeration<String> enumer = hash.keys();

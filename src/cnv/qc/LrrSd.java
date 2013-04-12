@@ -24,12 +24,16 @@ public class LrrSd extends Parallelizable {
 	public void run() {
 		PrintWriter writer;
 		FullSample fsamp;
+		Sample samp;
 		float[][][] cents;
-		byte[] chrs;
-		float[] lrrs;
+		byte[] chrs, abGenotypes, forwardGenotypes;
+		float[] lrrs, bafs;
+		double abCallRate, forwardCallRate;
+		
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
+			writer.println("Sample\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate");
 
 			if (centroidsFile==null) {
 				cents = null;
@@ -44,15 +48,47 @@ public class LrrSd extends Parallelizable {
 				lrrs = null;
 				if (fsamp == null) {
 					System.err.println("Error - "+samples[i]+".fsamp not found in samples directory");
-					lrrs =  proj.getSample(samples[i]).getLRRs();
+					samp = proj.getSample(samples[i]);
+					lrrs = samp.getLRRs();
+					bafs = samp.getBAFs();
+					abGenotypes = samp.getGenotypes();
+					forwardGenotypes = null;
 				} else {
 					lrrs = cents==null?fsamp.getLRRs():fsamp.getLRRs(cents);
 					lrrs = Array.subArray(lrrs, 0, Array.indexOfByte(chrs, (byte)23));
+					bafs = fsamp.getBAFs();
+					bafs = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
+					abGenotypes = fsamp.getAB_Genotypes();
+					forwardGenotypes = fsamp.getForwardGenotypes();
 				}
 				if (lrrs == null) {
 					System.err.println("Error - could not find "+samples[i]+".fsamp or "+samples[i]+".samp");
 				} else {
-					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true));
+					for (int j = 0; j < bafs.length; j++) {
+						if (bafs[j] < 0.15 || bafs[j] > 0.85) {
+							bafs[j] = Float.NaN;
+						}
+					}
+					abCallRate = 0;
+					if (abGenotypes != null) {
+						for (int j = 0; j < abGenotypes.length; j++) {
+							if (abGenotypes[j] >= 0) {
+								abCallRate++;
+							}
+						}
+						abCallRate /= abGenotypes.length;
+						
+					}
+					forwardCallRate = 0;
+					if (forwardGenotypes != null) {
+						for (int j = 0; j < forwardGenotypes.length; j++) {
+							if (forwardGenotypes[j] > 0) {
+								forwardCallRate++;
+							}
+						}
+						forwardCallRate /= forwardGenotypes.length;
+					}
+					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true)+"\t"+Array.stdev(bafs, true)+"\t"+abCallRate+"\t"+forwardCallRate);
 					writer.flush();
 				}
 			}
@@ -72,10 +108,29 @@ public class LrrSd extends Parallelizable {
         }
 	}
 	
-	public static void init(Project proj, String centroidsFile, int numThreads) {
-		String[] samples = proj.getSamples();
+	public static void init(Project proj, String customSampleFileList, String centroidsFile, int numThreads) {
+		String[] samples, subsamples;
 		String[][] threadSeeds;
 		LrrSd[] runables;
+		boolean error;
+		
+		error = false;
+		samples = proj.getSamples();
+		if (customSampleFileList != null) {
+			subsamples = HashVec.loadFileToStringArray(customSampleFileList, false, new int[] {0}, false);
+			for (int i = 0; i < subsamples.length; i++) {
+				if (ext.indexOfStr(subsamples[i], samples) == -1) {
+					System.err.println("Error - subsample '"+subsamples[i]+"' was not found in the list of samples of "+proj.getProperty(Project.PROJECT_NAME));
+					error = true;
+				}
+			}
+			if (error) {
+				System.err.println("Error - missing some samples, QC will not be performed");
+				return;
+			} else {
+				samples = subsamples;
+			}
+		}
 		
 		threadSeeds = Parallelizable.splitList(samples, numThreads, false);
 		runables = new LrrSd[numThreads];
@@ -90,6 +145,7 @@ public class LrrSd extends Parallelizable {
 		int numArgs = args.length;
 		String filename = Project.DEFAULT_PROJECT;
 		String centroids = null;
+		String filenameOfListOfSamples = null;
 		int numThreads = 1;
 		Project proj;
 
@@ -98,6 +154,7 @@ public class LrrSd extends Parallelizable {
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"+
 		"   (3) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
+		"   (4) optional: fi you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -106,6 +163,9 @@ public class LrrSd extends Parallelizable {
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("subsample=")) {
+				filenameOfListOfSamples = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("cents=")) {
 				centroids = args[i].split("=")[1];
@@ -120,9 +180,12 @@ public class LrrSd extends Parallelizable {
 			System.exit(1);
 		}
 		try {
+//			filename = "/home/npankrat/projects/GEDI.properties";
+//			filenameOfListOfSamples = "D:/data/GEDI/plate51.txt";			
+//			
 			proj = new Project(filename, false);
 
-			init(proj, centroids, numThreads);
+			init(proj, filenameOfListOfSamples, centroids, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

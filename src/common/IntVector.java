@@ -1,8 +1,11 @@
 package common;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class IntVector {
+public class IntVector implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	private Vector<String> v;
 
 	public IntVector() {

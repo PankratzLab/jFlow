@@ -28,7 +28,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 	public static final double X_STEP = 0.05;
 	public static final double Y_STEP = 0.05;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final double HIGHLIGHT_DISTANCE = Math.sqrt(SIZE*SIZE/2);
+	public static final double HIGHLIGHT_DISTANCE = SIZE*2;// used to be Math.sqrt(SIZE*SIZE/2);
 	public static final int DOUBLE_CLICK_INTERVAL = 500;
 
 //	public static final Color[] DEFAULT_COLORS = {Color.BLACK,
@@ -59,25 +59,27 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 //												  new Color(62, 46, 133),	// blue purple
 //												  new Color(126, 37, 131)};	// red purple
 	
-	public static final Color[] DEFAULT_COLORS = {Color.BLACK,
-												  new Color(201, 30, 10), // red
-												  new Color(55, 129, 252), // light blue
-												  new Color(140, 20, 180), // deep purple
-												  new Color(33, 87, 0), // dark green
-												  new Color(247, 150, 70),	    // orange
-												  new Color(94, 88, 214), // light purple
-												  new Color(217, 109, 194), // deep red/pink
-												  new Color(189, 243, 61), // light green
-												  new Color(230, 73, 39),	// orange red
-												  new Color(255, 241, 0),	// yellow
-												  new Color(0, 157, 126),	// blue green
-												  new Color(62, 46, 133),	// blue purple
-												  new Color(0, 0, 128),	    // blue
-												  new Color(102, 51, 0),	// brown
-												  new Color(153, 102, 51),	// light brown
+	public static final Color[] DEFAULT_COLORS = {
+		Color.BLACK,
+		new Color(201, 30, 10), // red
+		new Color(55, 129, 252), // light blue
+		new Color(140, 20, 180), // deep purple
+		new Color(33, 87, 0), // dark green
+		new Color(247, 150, 70),	    // orange
+		new Color(94, 88, 214), // light purple
+		new Color(217, 109, 194), // deep red/pink
+		new Color(189, 243, 61), // light green
+		new Color(230, 73, 39),	// orange red
+		new Color(255, 241, 0),	// yellow
+		new Color(0, 157, 126),	// blue green
+		new Color(62, 46, 133),	// blue purple
+		new Color(0, 0, 128),	    // blue
+		new Color(102, 51, 0),	// brown
+		new Color(153, 102, 51),	// light brown
 	};
 
-	public static final Color[] BLUES = {new Color(25, 25, 112),
+	public static final Color[] BLUES = {
+		new Color(25, 25, 112),
 		new Color(0, 0, 128),
 		new Color(100, 149, 237),
 		new Color(72, 61, 139),
@@ -101,10 +103,11 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		new Color(64, 224, 208),
 		new Color(0, 255, 255),
 		new Color(224, 255, 255),
-		new Color(95, 158, 160)};
+		new Color(95, 158, 160)
+	};
 
 	private String[][] names;
-	Hashtable<String,float[][]> hash;
+	private Hashtable<String,float[][]> hash;
 	private String[] sampleList;
 	private Hashtable<String,IntVector> locLookup;
 	private IntVector prox;

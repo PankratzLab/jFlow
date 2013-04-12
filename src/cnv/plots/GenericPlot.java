@@ -17,7 +17,7 @@ public class GenericPlot extends JFrame implements ActionListener {
 	public static final int N0_TRANSFORM = 0;
 	public static final int NEG_LOG10_TRANSFORM = 1;
 	public static final int NAT_LOG_TRANSFORM = 2;
-	public static final String DEFAULT_PARAMETERS = "xLabel=hg18_Pval,yLabel=hg19_Pval";
+//	public static final String DEFAULT_PARAMETERS = "xLabel=hg18_Pval,yLabel=hg19_Pval";
 	
 //	public static final String[] DEFAULT_FILES = {
 //		"D:\\tWork\\Consortium\\Megas\\impRareComparisons.xln=CIDR,4:-log10,7:-log10",
@@ -25,10 +25,17 @@ public class GenericPlot extends JFrame implements ActionListener {
 //		"D:\\tWork\\Consortium\\Megas\\impRareComparisons.xln=NGRC,16:-log10,19:-log10"
 //	};
 
+//	public static final String[] DEFAULT_FILES = {
+//		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=CIDR,4:-log10,7:-log10",
+//		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=Miami,10:-log10,13:-log10",
+//		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=NGRC,16:-log10,19:-log10"
+//	};
+
+	public static final String DEFAULT_PARAMETERS = "xLabel=rawX,yLabel=rawY";
 	public static final String[] DEFAULT_FILES = {
-		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=CIDR,4:-log10,7:-log10",
-		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=Miami,10:-log10,13:-log10",
-		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=NGRC,16:-log10,19:-log10"
+		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=CIDR,4,7",
+//		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=Miami,10:-log10,13:-log10",
+//		"D:\\tWork\\Consortium\\Megas\\impCommonComparisons.xln=NGRC,16:-log10,19:-log10"
 	};
 	
 	public static final boolean JAR = false;

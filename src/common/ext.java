@@ -7,9 +7,11 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 
 public class ext {
-	public static final String[][] VALID_CHARS = { {"?", "_"}, {"'", "_"}, {"/", "_"}, {"\\", "_"}, {"<", "_"}, {">", "_"}, {"|", "_"}, {":", "_"}, {"*", "_"}, {"\"", "_"} };
+	public static final String[][] VALID_CHARS = { {" ", "_"}, {"?", "_"}, {"'", "_"}, {"/", "_"}, {"\\", "_"}, {"<", "_"}, {">", "_"}, {"|", "_"}, {":", "_"}, {"*", "_"}, {"\"", "_"} };
 	public static final String[][] TO_BE_EXTRA_SAFE_CHARS = { {"(", "_"}, {")", "_"}, {"&", "_"} };
 	public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN"};
+	public static final String[][] META_REPLACEMENTS = { {"{Tab}", "\t"}, {"{Space}", " "}, {"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
+	public static final String[] COMMON_IDS = {"id", "IID", "IndID", "gwas_id"};
 	
 	// safer, reports spurious errors when called a lot 
 	public static String replaceAllWithSafer(String str, String from, String to) {
@@ -37,7 +39,7 @@ public class ext {
 	public static String replaceAllWith(String str, String from, String to) {
 		boolean done;
 		int index;
-		
+
 		done = false;
 		while (!done) {
 			index = str.indexOf(from);
@@ -48,6 +50,17 @@ public class ext {
 			}
 		}
 		return str;
+	}
+	
+	public static String[][] processMetaCharacters(String[][] replaces) {
+		String[][] metaReplaces;
+		
+		metaReplaces = new String[replaces.length][];
+		for (int i = 0; i < replaces.length; i++) {
+			metaReplaces[i] = new String[] {replaces[i][0], replaceAllWith(replaces[i][1], META_REPLACEMENTS)};
+		}
+		
+		return metaReplaces;		
 	}
 
 	public static String replaceAllWith(String str, String[][] replaces) {
@@ -122,7 +135,7 @@ public class ext {
 	}
 
 	public static int indexOfStr(String target, String[] array, boolean caseSensitive, boolean exactMatch) {
-		return indexOfStr(target, array, true, true, new Logger(), false);
+		return indexOfStr(target, array, caseSensitive, exactMatch, new Logger(), false);
 	}
 
 	public static int indexOfStr(String target, String[] array, boolean caseSensitive, boolean exactMatch, Logger log, boolean verbose) {
@@ -152,6 +165,25 @@ public class ext {
 		}
 		
 		return index;
+	}
+
+	public static int[] indicesWithinString(String target, String str) {
+		IntVector iv;
+		int index, runningIndex;
+		
+		iv = new IntVector();
+		index = -9;
+		runningIndex = 0;
+		while (index != -1) {
+			index = str.indexOf(target);
+			if (index != -1) {
+				iv.add(runningIndex+index);
+				runningIndex += index+target.length();
+				str = str.substring(index+target.length());
+			}
+		}
+
+		return iv.toArray();
 	}
 
 	public static int indexOfChar(char target, char[] array) {
@@ -418,14 +450,14 @@ public class ext {
 		}
 	}
 
-	public static String getDate(Date date) {
+	public static String getDate(Date date, String delimiter) {
 		GregorianCalendar gc = new GregorianCalendar();
 		gc.setTime(date);
 		return gc.get(Calendar.YEAR)+"."+chrome((gc.get(Calendar.MONTH)+1))+"."+chrome(gc.get(Calendar.DAY_OF_MONTH));
 	}
 
 	public static String getDate() {
-		return getDate(new Date());
+		return getDate(new Date(), ".");
 	}
 
 	public static String getTime() {
@@ -473,6 +505,39 @@ public class ext {
 		timeElapsed /= 60;
 		
 		return timeElapsed/24 +" days "+(timeElapsed - (timeElapsed/24)*24)+" hrs";
+	}
+
+	public static double getTimeSince(long startTime, char returnType) {
+		double timeElapsed;
+		
+		timeElapsed = new Date().getTime()-startTime;
+		timeElapsed /= 1000;
+
+		if (returnType == 'S' || returnType == 's') {
+			return timeElapsed;
+		}
+		
+		timeElapsed /= 60;
+		
+		if (returnType == 'M' || returnType == 'm') {
+			return timeElapsed;
+		}
+
+		timeElapsed /= 60;
+		
+		if (returnType == 'H' || returnType == 'h') {
+			return timeElapsed;
+		}
+		
+		timeElapsed /= 24;
+		
+		if (returnType == 'D' || returnType == 'd') {
+			return timeElapsed;
+		}
+		
+		System.err.println("Error - '"+returnType+"' is an invalid return type: only S(econds), M(inutes), and H(ours) are allowed");
+		
+		return -1;
 	}
 
 	public static double divide(int num1, int num2) {
@@ -679,6 +744,8 @@ public class ext {
 
         if (observed.length!=expected.length) {
 			log.reportError("Error - file has an unexpected header; expecting "+expected.length+" columns, found "+observed.length);
+			log.reportError("Expected: "+Array.toStr(expected));
+			log.reportError("Observed: "+Array.toStr(observed));
 			kosher = false;
 			if (kill) {
 				System.exit(1);
@@ -859,6 +926,33 @@ public class ext {
 		} else {
 			return str;
 		}
+	}
+
+	
+	public static String removeQuotesFromExcelToken(String ori) {
+		return removeQuotesFromExcelToken(ori, new String[][] {{"\t", "[TAB]"}, {",", "[COMMA]"}});
+	}
+	
+	public static String removeQuotesFromExcelToken(String ori, String[][] theReplacements) {
+		String str;
+		int start, stop;
+		
+		str = replaceAllWith(ori, "\"\"", "'");
+		while (str.contains("\"")) {
+			start = str.indexOf("\"");
+			stop = str.substring(start+1).indexOf("\"")+start+1;
+			try {
+				str = str.substring(0, start)+replaceAllWith(str.substring(start+1, stop), theReplacements)+str.substring(stop+1);
+			} catch (Exception e) {
+				System.err.println("Error - failed to parse: '"+ori+"'");
+				e.printStackTrace();
+				try {
+					new BufferedReader(new InputStreamReader(System.in)).readLine();
+				} catch (IOException ioe) {
+				}
+			}
+		}
+		return str;
 	}
 
 	public static boolean containsAny(String str, String[] array) {
@@ -1094,14 +1188,6 @@ public class ext {
 		}
 	}
 	
-	public static void main(String[] args) {
-		// System.out.println(getTime());
-		// System.out.println(dateToString(parseDate("8/11/2008")));
-		for (int i = 0; i<100; i++) {
-			System.out.println(i+"\t"+getColumn(i)+"\t"+getIndexFromColumn(getColumn(i)));
-		}
-	}
-	
 	public static String insertNumbers(String pattern, int num) {
 		return ext.replaceAllWith(ext.replaceAllWith(pattern, "##", chrome(num)), "#", num+"");
 	}
@@ -1131,5 +1217,101 @@ public class ext {
 		}
 		
 		return linkRoot.substring(0, linkRoot.lastIndexOf("/")+1)+dir;
+	}
+
+	public static int countInstancesOf(String str, String pattern) {
+		int count;
+		String trav;
+		
+		trav = str;
+		count = 0;
+		while (trav.contains(pattern)) {
+			trav = trav.substring(trav.indexOf(pattern)+pattern.length());
+			count++;
+		}
+		
+		return count;		
+	}
+	
+	public static String determineDelimiter(String str) {
+		if (str.contains("\t")) {
+			return "\t";
+		} else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")) {
+			return ",";
+		} else {
+			return "[\\s]+";
+		}
+	}
+
+	public static String removeAndSimplifyQuotes(String str, Logger log) {
+		if (str.startsWith("\"")) {
+			if (!str.endsWith("\"")) {
+				log.reportError("Error - improperly formed quotes in comma delimited token:");
+				log.reportError(str);
+			}
+			str = str.substring(1, str.length()-1);
+		}
+		return ext.replaceAllWith(str, "\"\"", "\"");
+	}
+	
+	public static String[] splitCommasIntelligently(String str, boolean removeAndSimplifyQuotes, Logger log) {
+		int numCommas;
+		int startIndex;
+		Vector<String> v;
+		boolean insideQuotes;
+
+		insideQuotes = false;
+		v = new Vector<String>();
+		startIndex = numCommas = 0;
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == ',') {
+				if (numCommas % 2 == 0) {
+					v.add(removeAndSimplifyQuotes?removeAndSimplifyQuotes(str.substring(startIndex, i), log):str.substring(startIndex, i));
+//					System.out.println(v.elementAt(v.size()-1));
+					startIndex = i+1;
+					if (insideQuotes && str.charAt(i-1) != '\"') {
+						log.reportError("Error - improperly formed quotes in comma delimited string:");
+						log.reportError(str);
+					}
+					insideQuotes = false;
+				}
+			}
+			if (str.charAt(i) == '\"') {
+				numCommas++;
+				insideQuotes = true;
+			}
+		}
+		v.add(removeAndSimplifyQuotes?removeAndSimplifyQuotes(str.substring(startIndex), log):str.substring(startIndex));
+		
+		return Array.toStringArray(v);
+	}
+	
+	public static void main(String[] args) {
+		String temp;
+		Logger log;
+		
+		log = new Logger();
+		try {
+			System.out.println("1\t2\t3\t4\t5\t6\t7");
+			temp = "try,this,out";
+			System.out.println(temp);
+			System.out.println(Array.toStr(splitCommasIntelligently(temp, false, log)));
+			System.out.println();
+			temp = "\"is this, harder\",o,r,\"not so ,much\"";
+			System.out.println(temp);
+			System.out.println("1\t2\t3\t4\t5\t6\t7");
+			System.out.println(Array.toStr(splitCommasIntelligently(temp, false, log)));
+			System.out.println(Array.toStr(splitCommasIntelligently(temp, true, log)));
+			System.out.println();
+			temp = "\"perhaps this is \"hard,est\" of all\",or,\"\"\"maybe not\"\"\"";
+			temp = "\"perhaps this is \"\"hard,est\"\" of all\",or,\"\"\"maybe not\"\"\"";			
+			System.out.println(temp);
+			System.out.println("1\t2\t3\t4\t5\t6\t7");
+			System.out.println(Array.toStr(splitCommasIntelligently(temp, false, log)));
+			System.out.println(Array.toStr(splitCommasIntelligently(temp, true, log)));
+			System.out.println();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

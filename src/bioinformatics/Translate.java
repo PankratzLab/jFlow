@@ -75,8 +75,8 @@ public class Translate {
 										{"GGG", "Gly", "G"}};
 
 	public static class Translation {
-		String str;
-		int start;
+		public String str;
+		public int start;
 		
 		public Translation() {}
 	}

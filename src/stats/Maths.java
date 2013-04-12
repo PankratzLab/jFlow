@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import common.Array;
 
 public class Maths {
+	// these are the valid operators that will be searched for in the following order
 	public static final String[] OPERATORS = {"<=", "<", ">=", ">", "=", "!"};
 	
 	public static double limit(double d, double min, double max) {

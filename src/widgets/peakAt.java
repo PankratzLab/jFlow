@@ -2,6 +2,8 @@ package widgets;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipInputStream;
 
 import common.Files;
 import common.ext;
@@ -20,10 +22,14 @@ public class peakAt {
 		boolean tail, counting;
 		int count;
 		long time;
+		String outputFilename;
+		InputStreamReader isReader;
+		
+		outputFilename = "PeakAt_"+ext.rootOf(filename, true);
 
 		temp = filename.substring(0, filename.length()-(".peakAt").length());
 		tail = filename.indexOf(".tail.") > 0;
-		counting = filename.indexOf(".count.") > 0;
+		counting = filename.indexOf(".count.") > 0 || filename.indexOf(".wc.") > 0;
 		
 		if (temp.indexOf(".")>0) {
 			try {
@@ -39,8 +45,10 @@ public class peakAt {
 
 			try {
 				numLines = Integer.parseInt(temp.substring(temp.lastIndexOf(".")+1));
+				outputFilename = "PeakAt_"+(tail?"last":"first")+numLines+"_"+ext.rootOf(ext.rootOf(filename, true), true);
 			} catch (NumberFormatException nfe) {
 				numLines = DEFAULT_NUM_LINES;
+				outputFilename = "PeakAt_"+(tail?"last":"first")+numLines+"_"+ext.rootOf(filename, true);
 			}
 
 		} else {
@@ -48,7 +56,7 @@ public class peakAt {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)+"PeakAt_"+ext.rootOf(filename, true)));
+			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)+outputFilename));
 			if (counting) {
 				System.out.println("Counting the number of rows.");
 	            time = new Date().getTime();
@@ -56,7 +64,17 @@ public class peakAt {
 				writer.println(count);
 				writer.println("Counted "+count+" rows in "+ext.getTimeElapsed(time));
 			} else {
-				reader = new BufferedReader(new FileReader(filename));
+				isReader = null;
+				if (outputFilename.endsWith(".gz")) {
+					isReader = new InputStreamReader(new GZIPInputStream(new FileInputStream(filename)));
+				} else if (outputFilename.endsWith(".zip")) {
+					isReader = new InputStreamReader(new ZipInputStream(new FileInputStream(filename)));
+				} else {
+					isReader = new FileReader(filename);
+				}
+
+//				reader = new BufferedReader(new FileReader(filename));
+				reader = new BufferedReader(isReader);
 				if (transpose) {
 					System.out.println("Taking the first "+numLines+" columns of all rows.");
 					while (reader.ready()) {

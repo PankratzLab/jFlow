@@ -7,50 +7,46 @@ import common.*;
 
 public class BoxCox {
 	public static final int LOG_LIKELIHOOD = 1;
-
 	public static final int KURTOSIS = 2;
-
 	public static final double INIT_LOW = -10;
-
 	public static final double INIT_HIGH = 10;
-
 	public static final int NUM_STEPS = 10;
-
 	public static final int SIGFIGS = 5;
-
 	public static final double KURT_CI = 0.02;
 
 	private double[] data;
-
 	private double maxLL_Lambda;
-
 	private double minKurt_Lambda;
-
 	private double N;
-
 	private double sumLN;
-
 	private double shift;
+	private Logger log;
 
-	public BoxCox(double[] datas) {
+	public BoxCox(double[] datas, Logger log) {
 		double low, high, convergence_limit;
+		double min;
 
 		this.data = datas.clone();
+		this.log = log;
 		N = data.length;
 
-		if (Array.min(data)<0) {
-			System.err.println("Error - it appears this data is not suitable for transformation -- the minimum (not to be < 0) was "+Array.min(data));
-			System.exit(1);
+		shift = 0;
+		min = Array.min(data); 
+		if (min<0) {
+			log.reportError("Warning - the original data was not suitable for transformation -- the minimum ("+min+") cannot be less than 1.0; therefore added "+(Math.abs(min)+1)+" to every element");
+			shift = Math.abs(min)+1;
+			for (int i = 0; i<N; i++) {
+				data[i] += shift;
+			}
 		}
 
-		shift = 0;
-		if (Array.min(data)<1) {
-			System.err.println("Minimum is less than 1, adding 1.0 to all values");
-			for (int i = 0; i<N; i++) {
-				data[i]++;
-			}
-			shift = 1;
-		}
+//		if (Array.min(data)<1) {
+//			log.reportError("Minimum is less than 1, adding 1.0 to all values");
+//			for (int i = 0; i<N; i++) {
+//				data[i]++;
+//			}
+//			shift = 1;
+//		}
 
 		sumLN = 0;
 		for (int i = 0; i<N; i++) {
@@ -83,7 +79,7 @@ public class BoxCox {
 				break;
 			default:
 				maxVal = 0;
-				System.err.println("Error - '"+method+"' is an invalid evaluation method");
+				log.reportError("Error - '"+method+"' is an invalid evaluation method");
 				System.exit(1);
 			}
 			step = (high-low)/NUM_STEPS;
@@ -106,7 +102,7 @@ public class BoxCox {
 
 			}
 			if (maxPos==-1) {
-				System.err.println("Error - yo, you got serious problems of non-convergence");
+				log.reportError("Error - yo, you got serious problems of non-convergence");
 			} else if (maxPos==0) {
 				high = low+step;
 				low = low-NUM_STEPS*step*2;
@@ -169,21 +165,21 @@ public class BoxCox {
 		return tr;
 	}
 
-	public double lookUpValue_MaxLL(double value) {
-		if (maxLL_Lambda==0) {
-			return Math.log(value+shift);
-		} else {
-			return (Math.pow(value+shift, maxLL_Lambda)-1)/maxLL_Lambda;
-		}
-	}
-
-	public double lookUpValue_MinKurt(double value) {
-		if (minKurt_Lambda==0) {
-			return Math.log(value+shift);
-		} else {
-			return (Math.pow(value+shift, minKurt_Lambda)-1)/minKurt_Lambda;
-		}
-	}
+//	public double lookUpValue_MaxLL(double value) {
+//		if (maxLL_Lambda==0) {
+//			return Math.log(value+shift);
+//		} else {
+//			return (Math.pow(value+shift, maxLL_Lambda)-1)/maxLL_Lambda;
+//		}
+//	}
+//
+//	public double lookUpValue_MinKurt(double value) {
+//		if (minKurt_Lambda==0) {
+//			return Math.log(value+shift);
+//		} else {
+//			return (Math.pow(value+shift, minKurt_Lambda)-1)/minKurt_Lambda;
+//		}
+//	}
 
 	public static void procFile(String filename) throws IOException {
 		BufferedReader reader;
@@ -212,7 +208,7 @@ public class BoxCox {
 		}
 
 		data = dv.toArray();
-		bc = new BoxCox(data);
+		bc = new BoxCox(data, new Logger());
 		System.out.println("Maximizing Log-Likelihood...");
 		System.out.println("Optimal lambda: "+bc.getLambda_MaxLL());
 		System.out.println("Kurtosis: "+Stats.kurtosis(bc.getTransform_MaxLL()));
