@@ -9,11 +9,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.TreeMap;
-
 
 import common.Array;
 import common.DoubleVector;
+import common.Elision;
 import common.Files;
 import common.ext;
 
@@ -374,33 +373,33 @@ public class Sample implements Serializable {
 					writeBuffer = new byte[ Math.min(Integer.MAX_VALUE, bytesRemained) ];
 				}
 				if (gcs != null) {
-					Compression.reducedPrecisionGcBafGetBytes2(gcs[j], writeBuffer, writeBufferIndex);
+					Compression.gcBafCompress(gcs[j], writeBuffer, writeBufferIndex);
 					writeBufferIndex += 2;
 				}
 				if (xs != null) {
-					if (Compression.reducedPrecisionXYGetBytes2(xs[j], writeBuffer, writeBufferIndex) == -1) {
+					if (! Compression.xyCompress(xs[j], writeBuffer, writeBufferIndex)) {
 						outOfRangeValuesEachSample.put(j + "\tx", xs[j]);
 					}
 					writeBufferIndex += 2;
 				}
 				if (ys != null) {
-					if (Compression.reducedPrecisionXYGetBytes2(ys[j], writeBuffer, writeBufferIndex) == -1) {
+					if (! Compression.xyCompress(ys[j], writeBuffer, writeBufferIndex)) {
 						outOfRangeValuesEachSample.put(j + "\ty", ys[j]);
 					}
 					writeBufferIndex += 2;
 				}
 				if (bafs != null) {
-					Compression.reducedPrecisionGcBafGetBytes2(bafs[j], writeBuffer, writeBufferIndex);
+					Compression.gcBafCompress(bafs[j], writeBuffer, writeBufferIndex);
 					writeBufferIndex += 2;
 				}
 				if (lrrs != null) {
-					if (Compression.reducedPrecisionLrrGetBytes2(lrrs[j], writeBuffer, writeBufferIndex) == -1) {
+					if (Compression.lrrCompress(lrrs[j], writeBuffer, writeBufferIndex) == -1) {
 						outOfRangeValuesEachSample.put(j + "\tlrr", lrrs[j]);
 					}
 					writeBufferIndex += 3;
 				}
 				if (abGenotypes != null || forwardGenotypes != null) {
-					writeBuffer[writeBufferIndex] = Compression.reducedPrecisionGenotypeGetBytes(abGenotypes == null?-1:abGenotypes[j], forwardGenotypes == null?0:forwardGenotypes[j]);
+					writeBuffer[writeBufferIndex] = Compression.genotypeCompress(abGenotypes == null?-1:abGenotypes[j], forwardGenotypes == null?0:forwardGenotypes[j]);
 					writeBufferIndex += 1;
 				}
 				bytesRemained -= bytesPerSampMark;
@@ -418,6 +417,9 @@ public class Sample implements Serializable {
 			}
 			rafFile.close();
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Elision e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		time = new Date().getTime() - time;
@@ -474,7 +476,7 @@ public class Sample implements Serializable {
 				if (loadGC) {
 					gcs = new float[numMarkers];
 					for (int j=0; j<numMarkers; j++) {
-						gcs[j] = Compression.reducedPrecisionGcBafGetFloat2(new byte[] {readBuffer[index], readBuffer[index + 1]});
+						gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
 						index += bytesPerSampMark;
 					}
 				}
@@ -485,7 +487,7 @@ public class Sample implements Serializable {
 				if (loadXY) {
 					xs = new float[numMarkers];
 					for (int j=0; j<numMarkers; j++) {
-						xs[j] = Compression.reducedPrecisionXYGetFloat2(new byte[] {readBuffer[index], readBuffer[index + 1]});
+						xs[j] = Compression.xyDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
 						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 							xs[j] = outOfRangeValues.get(j + "\tx");
 						}
@@ -499,7 +501,7 @@ public class Sample implements Serializable {
 				if (loadXY) {
 					ys = new float[numMarkers];
 					for (int j=0; j<numMarkers; j++) {
-						ys[j] = Compression.reducedPrecisionXYGetFloat2(new byte[] {readBuffer[index], readBuffer[index + 1]});
+						ys[j] = Compression.xyDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
 						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 							ys[j] = outOfRangeValues.get(j + "\ty");
 						}
@@ -514,7 +516,7 @@ public class Sample implements Serializable {
 				if (loadBAF) {
 					bafs = new float[numMarkers];
 					for (int j=0; j<numMarkers; j++) {
-						bafs[j] = Compression.reducedPrecisionGcBafGetFloat2(new byte[] {readBuffer[index], readBuffer[index + 1]});
+						bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
 						index += bytesPerSampMark;
 					}
 				}
@@ -525,7 +527,7 @@ public class Sample implements Serializable {
 				if (loadLRR) {
 					lrrs = new float[numMarkers];
 					for (int j=0; j<numMarkers; j++) {
-						lrrs[j] = Compression.reducedPrecisionLrrGetFloat2(new byte[] {readBuffer[index], readBuffer[index + 1], readBuffer[index + 2]});
+						lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[index], readBuffer[index + 1], readBuffer[index + 2]});
 						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT) {
 							lrrs[j] = outOfRangeValues.get(j + "\tlrr");
 						}
@@ -539,7 +541,7 @@ public class Sample implements Serializable {
 				abGenotypes = new byte[numMarkers];
 				fwdGenotypes = new byte[numMarkers];
 				for (int j=0; j<numMarkers; j++) {
-					genoTypeTmp = Compression.reducedPrecisionGenotypeGetTypes(readBuffer[index]);
+					genoTypeTmp = Compression.genotypeDecompress(readBuffer[index]);
 					abGenotypes[j] = genoTypeTmp[0];
 					fwdGenotypes[j] = genoTypeTmp[1];
 					index += bytesPerSampMark;

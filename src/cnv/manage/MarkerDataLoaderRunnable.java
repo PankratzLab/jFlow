@@ -152,7 +152,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 		byte[] chrsInProj;
 		int[] positionsInProj;
 		String[] samplesNamesProj;
-		long time, start;
+		long time;
 		
 		fingerprint = proj.getSampleList().getFingerprint();
 
@@ -162,7 +162,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 		chrsInProj = markerSet.getChrs();
 		positionsInProj = markerSet.getPositions();
 		samplesNamesProj = proj.getSamples();
-		start = time = new Date().getTime();
+		time = new Date().getTime();
 		count = 0;
 		while (filenames.size() > 0) {
 			while (loaded[currentIndexBeingLoaded]) {
@@ -336,7 +336,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				if (loadGC) {
 					gcs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
-						gcs[j] = Compression.reducedPrecisionGcBafGetFloat2(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						indexReadBuffer += bytesPerSampMark;
 					}
 				}
@@ -347,7 +347,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				if (loadXY) {
 					xs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
-						xs[j] = Compression.reducedPrecisionXYGetFloat2(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						xs[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 //							xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
 							xs[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + j + "\tx");
@@ -362,7 +362,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				if (loadXY) {
 					ys = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
-						ys[j] = Compression.reducedPrecisionXYGetFloat2(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						ys[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 //							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
 							ys[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + j + "\ty");
@@ -378,7 +378,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				if (loadBAF) {
 					bafs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
-						bafs[j] = Compression.reducedPrecisionGcBafGetFloat2(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						indexReadBuffer += bytesPerSampMark;
 					}
 				}
@@ -389,7 +389,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				if (loadLRR) {
 					lrrs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
-						lrrs[j] = Compression.reducedPrecisionLrrGetFloat2(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
+						lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
 						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT) {
 //							lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
 							lrrs[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + j + "\tlrr");
@@ -403,7 +403,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 			if ((((nullStatus>>Sample.NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) != 1 || ((nullStatus>>Sample.NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) != 1) && loadAbGenotype) {
 				abGenotypes = new byte[numSamplesProj];
 				for (int j=0; j<numSamplesProj; j++) {
-					genotypeTmp = Compression.reducedPrecisionGenotypeGetTypes(readBuffer[i][indexReadBuffer]);
+					genotypeTmp = Compression.genotypeDecompress(readBuffer[i][indexReadBuffer]);
 					abGenotypes[j] = genotypeTmp[0];
 					alleleMappings[j] = Sample.ALLELE_PAIRS[genotypeTmp[1]];
 					indexReadBuffer += bytesPerSampMark;

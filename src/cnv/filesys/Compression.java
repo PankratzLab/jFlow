@@ -2,7 +2,7 @@
 package cnv.filesys;
 
 import java.io.*;
-import java.util.*;
+import common.Elision;
 
 public class Compression {
 
@@ -15,7 +15,7 @@ public class Compression {
 	public static final float REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT = (float) -13.1071; //{2, 0, 1}
 //	public static final int BYTES_PER_SAMPLE_MARKER = 22;
 	public static final int BYTES_PER_SAMPLE_MARKER = 12;
-//	public static final int BYTES_PER_SAMPLE_MARKER_10 = 10;
+//	public static final int BYTES_PER_SAMPLE_MARKER = 10;
 
 
 	public static byte[] objToBytes(Object obj) throws IOException{
@@ -54,10 +54,6 @@ public class Compression {
 
 
 	public static byte[] floatToBytes(float data) {
-		int intBits;
-		
-		intBits = Float.floatToRawIntBits(data);
-				
 //	    return new byte[] {
 //		        (byte)((data >> 24) & 0xff),
 //		        (byte)((data >> 16) & 0xff),
@@ -65,6 +61,8 @@ public class Compression {
 //		        (byte)((data >> 0) & 0xff)
 //		    };
 		
+		int intBits;
+		intBits = Float.floatToRawIntBits(data);
 		return intToBytes(intBits);
 	}
 
@@ -97,20 +95,25 @@ public class Compression {
 	}
 
 	public static int bytesToInt(byte[] data) {
-	    if (data == null || data.length != 4) return 0x0;
-	    // ----------
-	    return bytesToInt(data, 0);
+	    if (data == null || data.length != 4) {
+	    	return 0x0;
+	    } else {
+	    	return bytesToInt(data, 0);
+	    }
 	}
 
 	public static int bytesToInt(byte[] data, int startPos) {
-	    if (data == null || data.length < 4 || startPos > (data.length-4)) return 0x0;
-	    // ----------
-	    return (int)( // NOTE: type cast not necessary for int
-	            (0xff & data[startPos]) << 24  |
-	            (0xff & data[startPos + 1]) << 16  |
-	            (0xff & data[startPos + 2]) << 8   |
-	            (0xff & data[startPos + 3])
-	            );
+	    if (data == null || data.length < 4 || startPos > (data.length-4)) {
+	    	return 0x0;
+	    } else {
+//	    	NOTE: type cast not necessary for int
+		    return (int)(
+		            (0xff & data[startPos]) << 24  |
+		            (0xff & data[startPos + 1]) << 16  |
+		            (0xff & data[startPos + 2]) << 8   |
+		            (0xff & data[startPos + 3])
+		            );
+	    }
 	}
 
     public static byte[] longToBytes(long v) {
@@ -128,188 +131,103 @@ public class Compression {
 
 
 	public static long bytesToLong(byte[] data) {
-	    if (data == null || data.length != 8) return 0x0;
-	    // ----------
-	    return bytesToLong(data, 0);
+	    if (data == null || data.length != 8) {
+	    	return 0x0;
+	    } else {
+	    	return bytesToLong(data, 0);
+	    }
 	}
 
 	public static long bytesToLong(byte[] data, int startPos) {
-	    if (data==null || data.length<8 || startPos>(data.length-8)) return 0x0;
-
-	    // This block is the wrong code
-//	    return (long)(
-//	            (0xff & data[startPos]) << 56  |
-//	            (0xff & data[startPos+1]) << 48  |
-//	            (0xff & data[startPos+2]) << 40	|
-//	            (0xff & data[startPos+3]) << 32	|
-//	            (0xff & data[startPos+4]) << 24  |
-//	            (0xff & data[startPos+5]) << 16  |
-//	            (0xff & data[startPos+6]) << 8   |
-//	            (0xff & data[startPos+7])
-//	            );
-
-	    // This block is the working code
-//	    return (
-//	    		(long)(0xff & data[startPos]) << 56 |
-//	    		(long)(0xff & data[startPos+1]) << 48 |
-//	    		(long)(0xff & data[startPos+2]) << 40 |
-//	    		(long)(0xff & data[startPos+3]) << 32 |
-//	    		(long)(0xff & data[startPos+4]) << 24 |
-//	    		(long)(0xff & data[startPos+5]) << 16 |
-//	    		(long)(0xff & data[startPos+6]) << 8 |
-//	    		(long)(0xff & data[startPos+7])
-//	    		);
-
-	    return ((long)(bytesToInt(data, startPos)) << 32) + (bytesToInt(data, startPos + 4) & 0xFFFFFFFFL);
-	}
-
-
-
-
-
-	public static byte[] reducedPrecisionXYGetBytes(float xy) {
-		int data;
-		if (xy>32.767 || xy<0) {
-			System.err.println("Error - the value of X or Y is over the specified range of [0, 32.767].");
-			return null;
-		} else {
-			data = (int) Math.round(xy * 1000);
-			return new byte[] {(byte)((data >> 8) & 0x7f), (byte)(data & 0xff)};
-		}
-
-//		short data;
-//		data = (short) Math.round(value * 1000);
-//	    return new byte[] {
-//		        (byte)((data >> 8) & 0xff),
-//		        (byte)(data & 0xff)
-//		    };
-
-//	    int data;
-//		data = Float.floatToRawIntBits(value);// & 0x007fffff;
-//		
-//		System.out.println(Float.floatToRawIntBits(value)+"\t"+data);
-//		return new byte[] {(byte)((data >> 24) & 0xff), (byte)((data >> 16) & 0xff)};
-	}
-
-	public static void reducedPrecisionXYGetBytes(float xy, byte[] array, int startPosition) {
-		int data;
-		if (xy>32.767 || xy<0) {
-			System.err.println("Error - the value of X or Y is over the specified range of [0, 32.767].");
-		} else {
-			data = (int) Math.round(xy * 1000);
-			array[startPosition] = (byte)((data >> 8) & 0x7f);
-			array[startPosition+1] = (byte)(data & 0xff);
-		}
-	}
-	
-	public static byte reducedPrecisionXYGetBytes1(float xy, byte[] array, int startPosition) {
-		int data;
-		if (xy>32.767 || xy<0) {
-			array[startPosition] = (byte)((1 << 7) & 0x80);
-			array[startPosition+1] = (byte) 0;
-			return (byte)-1;
-		} else {
-			data = (int) Math.round(xy * 1000);
-			array[startPosition] = (byte)((data >> 8) & 0x7f);
-			array[startPosition+1] = (byte)(data & 0xff);
-			return (byte)0;
-		}
-	}
-	
-	public static void reducedPrecisionXYGetBytes(float xy, byte[] array, int startPosition, Vector<Byte> outOfRangeValues) {
-		int data;
-		byte[] dataArray;
-		int location;
-
-		if (xy>=0 && xy<=32.767) {
-			data = (int) Math.round(xy * 1000);
-			array[startPosition] = (byte)((data >> 8) & 0x7f);
-			array[startPosition+1] = (byte)(data & 0xff);
-		} else {
-			location = outOfRangeValues.size()/4;
-			if (location>32767 || xy<0) {
-				System.err.println("Error - too many out-of-range X or Y values. Can only accept 32,767 per sample file.");
-			} else {
-				array[startPosition] = (byte)(((1 << 7) & 0x80) | ((location >> 8) & 0x7f));
-				array[startPosition+1] = (byte)(location & 0xff);
-				dataArray = floatToBytes(xy);
-				outOfRangeValues.add(dataArray[0]);
-				outOfRangeValues.add(dataArray[1]);
-				outOfRangeValues.add(dataArray[2]);
-				outOfRangeValues.add(dataArray[3]);
-			}
-		}
-	}
-	
-	public static float reducedPrecisionXYGetFloat(byte[] data) {
-	    if (data == null || data.length != 2) {
-	    	return (Float) null;
+	    if (data==null || data.length<8 || startPos>(data.length-8)) {
+	    	return 0x0;
 	    } else {
-	    	return (int)((data[0] << 8 & 0x7f00) | (0xff & data[1])) / (float)1000;
-	    }
 
+//		    Note: This block is the wrong code
+//		    return (long)(
+//		            (0xff & data[startPos]) << 56  |
+//		            (0xff & data[startPos+1]) << 48  |
+//		            (0xff & data[startPos+2]) << 40	|
+//		            (0xff & data[startPos+3]) << 32	|
+//		            (0xff & data[startPos+4]) << 24  |
+//		            (0xff & data[startPos+5]) << 16  |
+//		            (0xff & data[startPos+6]) << 8   |
+//		            (0xff & data[startPos+7])
+//		            );
 
-//	    if (data == null || data.length != 2) {
-//	    	return (Float) null;
-//	    } else {
-////		    return (float)((0xff & data[0]) << 8 | (0xff & data[1])) / (float)1000;
-//	    	return (float)(data[0] << 8 | (0xff & data[1])) / (float)1000;
-////	    	return (float)(data[0] << 8 | (0xff & data[1]));
-//	    }
-	}
+//	    	Note: This block is the working code
+//		    return (
+//		    		(long)(0xff & data[startPos]) << 56 |
+//		    		(long)(0xff & data[startPos+1]) << 48 |
+//		    		(long)(0xff & data[startPos+2]) << 40 |
+//		    		(long)(0xff & data[startPos+3]) << 32 |
+//		    		(long)(0xff & data[startPos+4]) << 24 |
+//		    		(long)(0xff & data[startPos+5]) << 16 |
+//		    		(long)(0xff & data[startPos+6]) << 8 |
+//		    		(long)(0xff & data[startPos+7])
+//		    		);
 
-	public static float reducedPrecisionXYGetFloat1(byte[] data) {
-	    if (data == null || data.length != 2) {
-	    	return (Float) null;
-	    } else if (((data[0] & 0x80) >> 7)!=1) {
-	    	return (int)((data[0] << 8 & 0x7f00) | (0xff & data[1])) / (float)1000;
-	    } else {
-	    	return -1;
+	    	return ((long)(bytesToInt(data, startPos)) << 32) + (bytesToInt(data, startPos + 4) & 0xFFFFFFFFL);
 	    }
 	}
 
-	public static float reducedPrecisionXYGetFloat(byte[] data, float[] outOfRangeValues) {
-	    if (data == null || data.length != 2) {
-	    	return (Float) null;
-	    } else if (((data[0] & 0x80) >> 7)!=1) {
-	    	return (int)((data[0] << 8 & 0x7f00) | (0xff & data[1])) / (float)1000;
-	    } else {
-	    	return outOfRangeValues[(int)((data[0] << 8 & 0x7f00) | (0xff & data[1]))];
-	    }
-	}
-	
-	public static byte[] reducedPrecisionXYGetBytes2(float xy) {
+
+
+
+
+	/**
+	 * Converts the float xyValue into byte[]. This is a simple version that does not process the out of range values.
+	 * @param xyValue the float to be converted.
+	 * @return
+	 */
+	public static byte[] xyCompress(float xyValue) throws Elision {
 		int data;
-		if (Float.isNaN(xy)) {
+		if (Float.isNaN(xyValue)) {
 			return REDUCED_PRECISION_XY_NAN_BYTES;
-		} else if (xy>65.533 || xy<0) {
-			System.err.println("Note: the value of X or Y, " + xy + ", is over the specified range of [0, 65.533]. Thus the byte[] for Out_Of_Range value is returned.");
-			return REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES;
+		} else if (xyValue>65.533 || xyValue<0) {
+			throw new Elision("The value of X or Y (" + xyValue + ") is out of the specified range of [0, 32.767] for compression.");
+//			return REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES;
 		} else {
-			data = (int) Math.round(xy * 1000);
+//			Note: Currently, the conversion from float to int is through the operation of *1000. Need to change it to bit conversion to pursue higher accuracy.
+			data = (int) Math.round(xyValue * 1000);
 			return new byte[] {(byte)((data >> 8) & 0xff), (byte)(data & 0xff)};
 		}
 	}
 
-	public static byte reducedPrecisionXYGetBytes2(float xy, byte[] array, int startPosition) {
+	/**
+	 * Converts the float xyValue into byte[], which later becomes part of byte[] array.
+	 * Out of range values are converted into REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES, and the program will return false.
+	 * Within range values are converted regularly, and the program will return true.
+	 * @param xOrY the float to be converted.
+	 * @param array the byte[] to hold the output.
+	 * @param startPosition the position of byte[] array to hold the output.
+	 * @return false means the xOrY is out of the range for compression, while true means the compression is successful. 
+	 */
+	public static boolean xyCompress(float xyValue, byte[] array, int startPosition) {
 		int data;
-		if (Float.isNaN(xy)) {
+		if (Float.isNaN(xyValue)) {
 			array[startPosition] = REDUCED_PRECISION_XY_NAN_BYTES[0];
 			array[startPosition+1] = REDUCED_PRECISION_XY_NAN_BYTES[1];
-			return 0;
-		} else if (xy>65.533 || xy<0) {
+			return true;
+		} else if (xyValue>65.533 || xyValue<0) {
 			array[startPosition] = REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[0];
 			array[startPosition+1] = REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[1];
-			return (byte)-1;
+			return false;
 		} else {
-			data = (int) Math.round(xy * 1000);
+//			Note: Currently, the conversion from float to int is through the operation of *1000. Need to change it to bit conversion to pursue higher accuracy.
+			data = (int) Math.round(xyValue * 1000);
 			array[startPosition] = (byte)((data >> 8) & 0xff);
 			array[startPosition+1] = (byte)(data & 0xff);
-			return (byte)0;
+			return true;
 		}
 	}
 
-	public static float reducedPrecisionXYGetFloat2(byte[] data) {
+	/**
+	 * Converts a byte[] into a float X or Y value.
+	 * @param data the byte[] to hold the output.
+	 * @return the float. 
+	 */
+	public static float xyDecompress(byte[] data) {
 	    if (data == null || data.length != 2) {
 	    	return (Float) null;
 	    } else if ( data[0]==REDUCED_PRECISION_XY_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_XY_NAN_BYTES[1] ) {
@@ -317,6 +235,7 @@ public class Compression {
 	    } else if ( data[0]==REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[0] && data[1]==REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[1] ) {
 	    	return -1;
 	    } else {
+//			Note: Currently, the conversion from float to int is through the operation of /1000. Need to change it to bit conversion to pursue higher accuracy.
 	    	return (int)(((byte) 0 << 16 & 0xff0000) | (data[0] << 8 & 0xff00) | (0xff & data[1])) / (float)1000;
 	    }
 	}
@@ -325,73 +244,60 @@ public class Compression {
 
 
 
-	public static byte[] reducedPrecisionGcBafGetBytes(float gcOrBaf) {
-		short data;
-		
-		data = (short) Math.round(gcOrBaf * 10000);
-				
-	    return new byte[] {
-		        (byte)((data >> 8) & 0xff),
-		        (byte)(data & 0xff)
-		    };
-	}
-
-	public static void reducedPrecisionGcBafGetBytes(float gcOrBaf, byte[] array, int startPosition) {
-		short data;
-		
-		data = (short)  Math.round(gcOrBaf * 10000);
-		
-		array[startPosition] = (byte)((data >> 8) & 0xff);
-		array[startPosition+1] = (byte)(data & 0xff);
-	}
-	
-	public static float reducedPrecisionGcBafGetFloat(byte[] data) {
-	    if (data == null || data.length != 2) {
-	    	return (Float) null;
-	    } else {
-//		    return (float)((0xff & data[0]) << 8 | (0xff & data[1])) / (float)1000;
-	    	return (float)(data[0] << 8 | (0xff & data[1])) / (float)10000;
-	    }
-	}
-
 	/**
-	 * 
-	 * @param gcOrBaf is the float value to be converted into byte[]. It must be in the range of 0.0000 through 1.0000.
+	 * Converts the float GC or BAF value into byte[].
+	 * @param gcOrBaf the float to be converted.
 	 * @return
+	 * @throws Elision 
 	 */
-	public static byte[] reducedPrecisionGcBafGetBytes2(float gcOrBaf) {
+	public static byte[] gcBafCompress(float gcOrBaf) throws Elision {
 		if (Float.isNaN(gcOrBaf)) {
 			return REDUCED_PRECISION_GCBAF_NAN_BYTES;
 		} else if (gcOrBaf>1.000 || gcOrBaf<0) {
-			System.out.println("Error: the value of GC or BAF should be in the range of 0.0000 through 1.0000. Please correct your data and re-run the program.");
-			return null;
+			throw new Elision("The value of GC or BAF (" + gcOrBaf + ") should be in the range of 0.0000 through 1.0000.");
 		} else {
 			short data;
+//			Note: Currently, the conversion from float to int is through the operation of *10000. Need to change it to bit conversion to pursue higher accuracy.
 			data = (short) Math.round(gcOrBaf * 10000);
 		    return new byte[] { (byte)( ((byte)0 & 0xc0) | ((data >> 8) & 0x3f) ), (byte)(data & 0xff)};
 		}
 	}
 
-	public static void reducedPrecisionGcBafGetBytes2(float gcOrBaf, byte[] array, int startPosition) {
+	/**
+	 * Converts the float GC or BAF value into byte[], which later becomes part of byte[] array.
+	 * @param gcOrBaf the float to be converted.
+	 * @param array the byte[] to hold the output.
+	 * @param startPosition the position of byte[] array to hold the output.
+	 * @return
+	 * @throws Elision 
+	 */
+	public static void gcBafCompress(float gcOrBaf, byte[] array, int startPosition) throws Elision {
 		if (Float.isNaN(gcOrBaf)) {
 			array[startPosition] = REDUCED_PRECISION_GCBAF_NAN_BYTES[0];
 			array[startPosition+1] = REDUCED_PRECISION_GCBAF_NAN_BYTES[1];
 		} else if (gcOrBaf>1.000 || gcOrBaf<0) {
-			System.out.println("Error: the value of GC or BAF should be in the range of 0.0000 through 1.0000. Please correct your data and re-run the program.");
+			throw new Elision("The value of GC or BAF (" + gcOrBaf + ") should be in the range of 0.0000 through 1.0000.");
 		} else {
 			short data;
+//			Note: Currently, the conversion from float to int is through the operation of *10000. Need to change it to bit conversion to pursue higher accuracy.
 			data = (short) Math.round(gcOrBaf * 10000);
 			array[startPosition] = (byte)( ((byte)0 & 0xc0) | ((data >> 8) & 0x3f) );
 			array[startPosition+1] = (byte)(data & 0xff);
 		}
 	}
 	
-	public static float reducedPrecisionGcBafGetFloat2(byte[] data) {
+	/**
+	 * Converts a byte[] into a float GC or BAF value.
+	 * @param data the byte[] to hold the output.
+	 * @return the float. 
+	 */
+	public static float gcBafDecompress(byte[] data) {
 	    if (data == null || data.length != 2) {
 	    	return (Float) null;
 	    } else if (data[0]==REDUCED_PRECISION_GCBAF_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_GCBAF_NAN_BYTES[1]) {
 	    	return Float.NaN;
 	    } else {
+//			Note: Currently, the conversion from float to int is through the operation of /10000. Need to change it to bit conversion to pursue higher accuracy.
 	    	return (float)(data[0] << 8 | (0xff & data[1])) / (float)10000;
 	    }
 	}
@@ -399,69 +305,36 @@ public class Compression {
 
 
 
-	public static byte[] reducedPrecisionLrrGetBytes(float lrr) {
-//		int data;
-//		if (value>=1677.7215 || value<=-2204.8384) {
-//			System.out.println("Error - the Log R Ratio value is out of the range of [-204.8384, 204.8383]");
-//			return null;
-//		} else {
-//			data = (int) (value * 10000);
-//			return new byte[] {(byte)((data >> 16) & 0xff), (byte)((data >> 8) & 0xff), (byte)(data & 0xff)};
-//		}
-
-		int data;
-		if (lrr<(float)-838.8608 || lrr>(float)838.8607) {
-			System.out.println("Error - the LRR (Log R Ratio value) is out of the range of [-838.8608, 838.8607]");
-			return null;
-		} else {
-			data = (int) Math.round(lrr * 10000);
-			return new byte[] {(byte)((data >> 24 & 0x80) | ((data >> 16) & 0x7f)), (byte)((data >> 8) & 0xff), (byte)(data & 0xff)};
-		}
-	}
-
-	public static void reducedPrecisionLrrGetBytes(float lrr, byte[] array, int startPosition) {
-
-		int data;
-		if (lrr<=(float)-838.8608 || lrr>=(float)838.8607) {
-			System.out.println("Error - the LRR (Log R Ratio) value is out of the range of [-838.8608, 838.8607]");
-		} else {
-			data = (int) Math.round(lrr * 10000);
-			array[startPosition] = (byte)((data >> 24 & 0x80) | ((data >> 16) & 0x7f));
-			array[startPosition+1] = (byte)((data >> 8) & 0xff);
-			array[startPosition+2] = (byte)(data & 0xff);
-		}
-	}
-	
-	public static float reducedPrecisionLrrGetFloat(byte[] data) {
-	    if (data == null || data.length != 3) {
-	    	return (Float) null;
-	    } else if (data[0]>=0) {
-	    	return (int)(((0x7f & data[0]) << 16) | ((0xff & data[1]) << 8) | (0xff & data[2])) / (float)10000;
-	    } else {
-	    	return (int)((0xff000000) | ((0xff & data[0]) << 16) | ((0xff & data[1]) << 8) | (0xff & data[2])) / (float)10000;
-	    }
-//	    if (data == null || data.length != 3) {
-//	    	return (Float) null;
-//	    } else {
-//	    	return (int)(((0xff & data[0]) << 16) | ((0xff & data[1]) << 8) | (0xff & data[2])) / (float)10000;
-//	    }
-	}
-
-	public static byte[] reducedPrecisionLrrGetBytes2(float lrr) {
+	/**
+	 * Converts the float LRR value into byte[].
+	 * @param lrr the float to be converted.
+	 * @return
+	 * @throws Elision 
+	 */
+	public static byte[] lrrCompress(float lrr) throws Elision {
 		int data;
 		if (Float.isNaN(lrr)) {
 			return REDUCED_PRECISION_LRR_NAN_BYTES;
 		} else if (lrr<(float)-13.1071 || lrr>(float)13.1071) {
-			System.out.println("Error - the LRR (Log R Ratio value) is out of the range of -13.1072 through 13.1069");
-			return REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES;
+//			return REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES;
+			throw new Elision("The value of LRR (" + lrr + ") is out of the range of -13.1072 through 13.1069.");
 		} else {
+//			Note: Currently, the conversion from float to int is through the operation of *10000. Need to change it to bit conversion to pursue higher accuracy.
 			data = (int) Math.round(lrr * 10000);
 //			return new byte[] {(byte)((data >> 24 & 0x80) | ((data >> 16) & 0x7f)), (byte)((data >> 8) & 0xff), (byte)(data & 0xff)};
 			return new byte[] {(byte)((data >> 30 & 0x02) | ((data >> 16) & 0x1)), (byte)((data >> 8) & 0xff), (byte)(data & 0xff)};
 		}
 	}
 
-	public static byte reducedPrecisionLrrGetBytes2(float lrr, byte[] array, int startPosition) {
+	/**
+	 * Converts the float LRR value into byte[], which later becomes part of byte[] array.
+	 * @param lrr the float to be converted.
+	 * @param array the byte[] to hold the output.
+	 * @param startPosition the position of byte[] array to hold the output.
+	 * @return
+	 * @throws Elision 
+	 */
+	public static byte lrrCompress(float lrr, byte[] array, int startPosition) {
 		int data;
 		if (Float.isNaN(lrr)) {
 			array[startPosition] = REDUCED_PRECISION_LRR_NAN_BYTES[0];
@@ -474,6 +347,7 @@ public class Compression {
 			array[startPosition+2] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES[2];
 			return -1;
 		} else {
+//			Note: Currently, the conversion from float to int is through the operation of *10000. Need to change it to bit conversion to pursue higher accuracy.
 			data = (int) Math.round(lrr * 10000);
 			array[startPosition] = (byte)((data >> 30 & 0x2) | ((data >> 16) & 0x1));
 			array[startPosition+1] = (byte)((data >> 8) & 0xff);
@@ -482,7 +356,13 @@ public class Compression {
 		}
 	}
 	
-	public static float reducedPrecisionLrrGetFloat2(byte[] data) {
+	/**
+	 * Converts a byte[] into a float LRR value.
+	 * If the byte[] represents an out of range value, the program returns REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT.
+	 * @param array the byte[] to hold the output.
+	 * @return the float. 
+	 */
+	public static float lrrDecompress(byte[] data) {
 	    if (data == null || data.length != 3) {
 	    	return (Float) null;
 	    } else if (data[0]==REDUCED_PRECISION_LRR_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_LRR_NAN_BYTES[1] && data[2]==REDUCED_PRECISION_LRR_NAN_BYTES[2]) {
@@ -503,7 +383,14 @@ public class Compression {
 
 
 
-	public static byte reducedPrecisionGenotypeGetBytes(byte abGenotype, byte forwardGenotype) {
+	/**
+	 * Converts the AB genotype and forward genotype value into byte.
+	 * @param abGenotype
+	 * @param forwardGenotype
+	 * @return
+	 * @throws Elision 
+	 */
+	public static byte genotypeCompress(byte abGenotype, byte forwardGenotype) {
 //	    return (byte) ((byte)((forwardGenotype << 3) & 0xfc) | (abGenotype & 0x03));
 		if (abGenotype>=0) {
 			return (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
@@ -512,7 +399,16 @@ public class Compression {
 		}
 	}
 
-	public static void reducedPrecisionGenotypeGetBytes(byte abGenotype, byte forwardGenotype, byte[] array, int startPosition) {
+	/**
+	 * Converts the AB genotype and forward genotype value into byte.
+	 * @param abGenotype
+	 * @param forwardGenotype
+	 * @param array the byte[] to hold the output.
+	 * @param startPosition the position of byte[] array to hold the output.
+	 * @return
+	 * @throws Elision 
+	 */
+	public static void genotypeCompress(byte abGenotype, byte forwardGenotype, byte[] array, int startPosition) {
 //		array[startPosition] = (byte) ((byte)((forwardGenotype << 3) & 0xfc) | (abGenotype & 0x03));
 		if (abGenotype>=0) {
 			array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
@@ -521,7 +417,12 @@ public class Compression {
 		}
 	}
 	
-	public static byte[] reducedPrecisionGenotypeGetTypes(byte data) {
+	/**
+	 * Converts a byte into a set of AB genotype and forward genotype values.
+	 * @param data the byte for decompression.
+	 * @return the float. 
+	 */
+	public static byte[] genotypeDecompress(byte data) {
 		if ((data & 0x04) >= 1) {
 			return new byte[] {(byte) (~(data & 0x03) +1), (byte) ((data & 0xf8) >> 3)};
 		} else {
@@ -586,5 +487,4 @@ public class Compression {
 						   + "" + ((a & 0x00000002)>>1)
 						   + "" + ((a & 0x00000001)));
 	}
-
 }
