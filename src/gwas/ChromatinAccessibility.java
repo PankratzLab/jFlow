@@ -278,11 +278,12 @@ public class ChromatinAccessibility {
 					for (int i = 0; i < files.length+1; i++) {
 						for (int j = 0; j < CLASSES.length; j++) {
 							if (i < files.length) {
-								in = Segment.binarySearch(seg, segs[i][j][chr]) != -1;
+//								in = Segment.binarySearch(seg, segs[i][j][chr]) != -1;
+								in = Segment.binarySearchForOverlap(seg, segs[i][j][chr]) != -1; // this code was altered when merging with other code
 							} else {
 								in = false;
 								for (int i2 = 0; i2 < files.length; i2++) {
-									if (Segment.binarySearch(seg, segs[i2][j][chr]) != -1) {
+									if (Segment.binarySearchForOverlap(seg, segs[i2][j][chr]) != -1) { // this code was altered when merging with other code
 										in = true;
 									}
 								}

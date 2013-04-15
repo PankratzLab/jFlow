@@ -1,11 +1,12 @@
 package cnv.filesys;
 
 import java.io.*;
-import java.util.*;
 import common.*;
 
 public class MarkerSet implements Serializable {
 	public static final long serialVersionUID = 1L;
+	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
+	// TODO these alleles were recently added, should they not be from some place else??
 
 	private long fingerprint;
 	private String[] markerNames;
@@ -199,55 +200,40 @@ public class MarkerSet implements Serializable {
 	}
 
 	public static MarkerData[] loadFromList(Project proj, String[] markerNames) {
-		Hashtable<String,Vector<String>> hash = new Hashtable<String,Vector<String>>();
-		String[] keys, line;
-		Vector<String> v;
-		long fingerprint, time;
-		boolean jar;
-		MarkerData[] collection, markerData;
-		int index;
-		MarkerLookup markerLookup;
+		// TODO remove completely
+		return null;
+	}
 
-		jar = proj.getJarStatus();
-		markerLookup = proj.getMarkerLookup();
-		fingerprint = proj.getSampleList().getFingerprint();
-
-		time = new Date().getTime();
-		for (int i = 0; i<markerNames.length; i++) {
-			if (markerLookup.contains(markerNames[i])) {
-				line = markerLookup.get(markerNames[i]).split("[\\s]+");
-				if (hash.containsKey(line[0])) {
-					v = hash.get(line[0]);
-				} else {
-					hash.put(line[0], v = new Vector<String>());
-				}
-				v.add(markerNames[i]+"\t"+line[1]);
-			} else {
-				System.err.println("Error - could not find "+markerNames[0]+" in the lookup table");
+	public byte[] translateABtoForwardGenotypes(byte[] abGenotypes, char[][] abLookup) {
+		byte[] result = new byte[abGenotypes.length];
+		String geno;
+		
+		for (int i=0; i<abGenotypes.length; i++) {
+			switch (abGenotypes[i]) {
+			case 0:
+				geno = abLookup[i][0]+""+abLookup[i][0];
+				break;
+			case 1:
+				geno = abLookup[i][0]+""+abLookup[i][1];
+				break;
+			case 2:
+				geno = abLookup[i][1]+""+abLookup[i][1];
+				break;
+			case -1:
+				geno = Sample.ALLELE_PAIRS[0];
+				break;
+			default:
+				System.err.println("Error - invalid AB genotype: "+abGenotypes[i]);
+				geno = null;
 			}
-		}
-		keys = HashVec.getKeys(hash);
-		markerData = new MarkerData[markerNames.length];
-		for (int i = 0; i<keys.length; i++) {
-			v = hash.get(keys[i]);
-			collection = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+keys[i], jar).getCollection();
-			for (int j = 0; j<v.size(); j++) {
-				line = v.elementAt(j).split("[\\s]+");
-				index = ext.indexOfStr(line[0], markerNames);
-				if (index==-1) {
-					System.err.println("Error - How can this be?");
-				} else {
-					markerData[index] = collection[Integer.parseInt(line[1])];
-					if (markerData[index].getFingerprint()!=fingerprint) {
-						System.err.println("Error - ");
-
-					}
+//			System.out.println(geno);
+			for (byte j=0; j<Sample.ALLELE_PAIRS.length; j++) {
+				if (geno.equals(Sample.ALLELE_PAIRS[j])) {
+					result[i]=j;
 				}
 			}
 		}
-
-		System.out.println("Finished loading MarkerData in "+ext.getTimeElapsed(time));
-
-		return markerData;
+		
+		return result;
 	}
 }

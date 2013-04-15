@@ -95,6 +95,23 @@ public class ext {
 		return str;
 	}
 
+	public static String prettyUpSize(long size, int numSigFigs) {
+		String str = size+"";
+		if (str.length()>12) {
+			return formDeci((double)size/1048576000000l, numSigFigs)+" TB";
+		}
+		if (str.length()>9) {
+			return formDeci((double)size/1048576000, numSigFigs)+" GB";
+		}
+		if (str.length()>6) {
+			return formDeci((double)size/1048576, numSigFigs)+" MB";
+		}
+		if (str.length()>3) {
+			return formDeci((double)size/1024, numSigFigs)+" KB";
+		}
+		return str;
+	}
+
 	public static int indexOfInt(int target, int[] array) {
 		int index = -1;
 
@@ -139,32 +156,41 @@ public class ext {
 	}
 
 	public static int indexOfStr(String target, String[] array, boolean caseSensitive, boolean exactMatch, Logger log, boolean verbose) {
-		int index;
+		int[] indices;
 		
-		index = -1;
+		indices = indicesOfStr(target, array, caseSensitive, exactMatch);
+
+		if (indices.length == 0) {
+			if (verbose) {
+				log.reportError("Error - '"+target+"' was not found in array");
+			}
+			return -1;
+		}
+		
+		if (indices.length > 1 && verbose) {
+			log.reportError("Warning - '"+target+"' was found more than once in the array");
+		}
+		
+		return indices[0];
+	}
+	
+	public static int[] indicesOfStr(String target, String[] array, boolean caseSensitive, boolean exactMatch) {
+		IntVector indices;
+		
+		indices = new IntVector();
 		for (int i = 0; i<array.length; i++) {
 			if (exactMatch) {
 				if (caseSensitive?array[i].equals(target):array[i].toLowerCase().equals(target.toLowerCase())) {
-					if (index != -1 && verbose) {
-						log.reportError("Warning - '"+target+"' was found more than once in the array");
-					}
-					index = i;
+					indices.add(i);
 				}
 			} else {
 				if (caseSensitive?array[i].contains(target)||target.contains(array[i]):array[i].toLowerCase().contains(target.toLowerCase())||target.toLowerCase().contains(array[i].toLowerCase())) {
-					if (index != -1 && verbose) {
-						log.reportError("Warning - '"+target+"' was found more than once in the array");
-					}
-					index = i;
+					indices.add(i);
 				}
 			}
 		}
 		
-		if (index == -1 && verbose) {
-			log.reportError("Error - '"+target+"' was not found in array");
-		}
-		
-		return index;
+		return indices.toArray();
 	}
 
 	public static int[] indicesWithinString(String target, String str) {

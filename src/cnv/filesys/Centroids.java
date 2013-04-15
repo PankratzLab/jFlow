@@ -356,8 +356,7 @@ public class Centroids implements Serializable {
 	public static void recompute(Project proj, String centroidsFile) {
 		MarkerSet markerSet;
 		Centroids centroids;
-        FullSample fsamp;
-        Sample samp;
+        Sample original, sample;
         String[] samples;
         float[][][] cents;
         
@@ -370,11 +369,57 @@ public class Centroids implements Serializable {
         cents = centroids.getCentroids(); 
         samples = proj.getSamples();
         for (int i = 0; i<samples.length; i++) {
-        	fsamp = proj.getFullSample(samples[i]);
-        	samp = new Sample(fsamp.getFingerprint(), fsamp.getLRRs(cents), fsamp.getBAFs(cents), fsamp.getAB_Genotypes());
-        	samp.serialize(proj.getDir(Project.IND_DIRECTORY)+samples[i]+".samp");
+        	original = proj.getFullSampleFromRandomAccessFile(samples[i]);
+        	sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes());
+        	sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION);
         }
-        
+	}
+
+	public static float[][] computeClusterCenters(MarkerData markerData, boolean[] samplesToBeUsed, double missingnessThreshold) {
+		float[][] centers;
+		float[] xs, ys;
+		double[] meanXs, meanYs;
+		byte[] genotypes;
+		int[] counts;
+		
+		centers = new float[3][2];
+		genotypes = markerData.getAB_Genotypes();
+		xs = markerData.getXs();
+		ys = markerData.getYs();
+		meanXs = new double[5];
+		meanYs = new double[5];
+		counts = new int[5];
+
+		for (int k = 0; k<xs.length; k++) {
+			if ((samplesToBeUsed == null || samplesToBeUsed[k]) && !Float.isNaN(xs[k]) && !Float.isNaN(ys[k])) {
+				meanXs[0] += xs[k];
+				meanYs[0] += ys[k];
+				counts[0]++;
+				meanXs[genotypes[k]+2] += xs[k];
+				meanYs[genotypes[k]+2] += ys[k];
+				counts[genotypes[k]+2]++;
+			}
+        }
+		for (int k = 0; k<5; k++) {
+			meanXs[k] /= counts[k];
+			meanYs[k] /= counts[k];
+        }
+		if (counts[1] >= counts[0]*missingnessThreshold) {
+			for (int k = 0; k<3; k++) {
+//				centers[k] = new float[] { (float)meanXs[0], (float)meanYs[0] };  
+				centers[k] = null;  
+            }
+		} else {
+			for (int k = 0; k<3; k++) {
+				if (counts[k+2] > 0) {
+					centers[k] = new float[] { (float)meanXs[k+2], (float)meanYs[k+2] };
+				} else {
+					centers[k] = null;
+				}
+            }
+		}
+		
+		return centers;
 	}
 	
 	public static void main(String[] args) {

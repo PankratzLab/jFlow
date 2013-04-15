@@ -25,10 +25,10 @@ public class ABLookup {
 	
 	public ABLookup(String[] markerNames, String filename, boolean verbose, boolean allOrNothing) {
 		Hashtable<String,char[]> lookupHash;
-		boolean problem;
+		int count;
 		
+		count = 0;
 		this.markerNames = markerNames;
-        problem = false;
         lookup = new char[markerNames.length][];
         if (filename.toLowerCase().endsWith(".csv")) {
         	lookupHash = generateABLookupHashFromCSV(filename);
@@ -36,16 +36,22 @@ public class ABLookup {
         	lookupHash = generateABLookupHash(filename);
         }
         for (int i = 0; i<markerNames.length; i++) {
+//        	System.out.println(markerNames[i]);
+//        	System.out.println(lookupHash.containsKey(markerNames[i]));
+//        	System.out.println(lookupHash.get(markerNames[i]));
     		lookup[i] = lookupHash.get(markerNames[i]);
     		if (lookup[i] == null) {
     			if (verbose) {
         			System.err.println("Error - no AB value for marker '"+markerNames[i]+"'");
     			}
-    			problem = true;
+    			count++;
     		}
         }
-        if (allOrNothing && problem) {
-        	lookup = null;
+        if (count > 0) {
+        	System.err.println("Warning - there "+(count>1?"were ":"was only ")+count+" marker"+(count>1?"s":"")+" without an AB value");
+        }
+        if (allOrNothing && count > 0) {
+			lookup = null;
         }
 	}
 
@@ -56,7 +62,7 @@ public class ABLookup {
         String[][] genotypesSeen;
         double[][] meanThetasForGenotypes;
         int[][] countsForGenotypes;
-        FullSample fsamp;
+        Sample fsamp;
         byte[] genotypes;
         float[] thetas;
         char[] alleles;
@@ -73,13 +79,13 @@ public class ABLookup {
         countsForGenotypes = new int[markerNames.length][3];
         for (int i = 0; i<samples.length; i++) {
         	System.out.println((i+1)+" of "+samples.length);
-        	fsamp = proj.getFullSample(samples[i]);
+        	fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
         	thetas = fsamp.getThetas();
         	genotypes = fsamp.getForwardGenotypes();
         	
         	for (int j = 0; j<markerNames.length; j++) {
         		if (genotypes[j] > 0) {
-        			trav = FullSample.ALLELE_PAIRS[genotypes[j]];
+        			trav = Sample.ALLELE_PAIRS[genotypes[j]];
         			if (trav.charAt(0) != trav.charAt(1)) {
         				if (genotypesSeen[j][1] == null || genotypesSeen[j][1].equals(trav)) {
         					genotypesSeen[j][1] = trav;
@@ -189,7 +195,7 @@ public class ABLookup {
         String[] samples;
         String[][] genotypesSeen;
         int[][] countsForGenotypes;
-        FullSample fsamp;
+        Sample fsamp;
         byte[] abGenotypes, fullGenotypes;
         MarkerSet markerSet;
         
@@ -201,13 +207,13 @@ public class ABLookup {
         countsForGenotypes = new int[markerNames.length][3];
         for (int i = 0; i<samples.length; i++) {
         	System.out.println((i+1)+" of "+samples.length);
-        	fsamp = proj.getFullSample(samples[i]);
+        	fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
         	abGenotypes = fsamp.getAB_Genotypes();
         	fullGenotypes = fsamp.getForwardGenotypes();
         	
         	for (int j = 0; j<markerNames.length; j++) {
         		if (abGenotypes[j] >= 0) {
-        			fullGenotype = FullSample.ALLELE_PAIRS[fullGenotypes[j]];
+        			fullGenotype = Sample.ALLELE_PAIRS[fullGenotypes[j]];
         			if (genotypesSeen[j][abGenotypes[j]] == null) {
         				genotypesSeen[j][abGenotypes[j]] = fullGenotype;
         			} else if (!fullGenotype.equals(genotypesSeen[j][abGenotypes[j]])) {
@@ -327,6 +333,44 @@ public class ABLookup {
         }
 	}
 	
+
+	public static void applyABLookupToFullSampleFiles(Project proj) {
+		ABLookup abLookup;
+        Sample fsamp;
+        String[] samples;
+        String genotype;
+        byte[] forwardGenotypes, abGenotypes;
+        
+		abLookup = new ABLookup(proj.getMarkerNames(), proj.getFilename(Project.AB_LOOKUP_FILENAME), false, false);
+        samples = proj.getSamples();
+        for (int i=0; i<samples.length; i++) {
+        	System.out.println((i+1)+" of "+samples.length);
+        	fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
+        	forwardGenotypes = fsamp.getForwardGenotypes();
+        	if (forwardGenotypes.length != abLookup.markerNames.length) {
+        		System.err.println("Error - mismatched array lengths for forwardGenotypes and abLookup markerNames");
+        	}
+        	abGenotypes = new byte[forwardGenotypes.length];
+        	for (int j=0; j<abLookup.markerNames.length; j++) {
+        		if (forwardGenotypes[j] == 0) {
+        			abGenotypes[j] = -1;
+        		} else {
+//	        		genotype = FullSample.ALLELE_PAIRS[forwardGenotypes[j]];
+	        		genotype = Sample.ALLELE_PAIRS[forwardGenotypes[j]];
+	        		for (int k = 0; k < 2; k++) {
+	        			if (genotype.charAt(k) == abLookup.lookup[j][1]) {
+	        				abGenotypes[j]++;
+	        			} else if (genotype.charAt(k) != abLookup.lookup[j][0]) {
+	        				System.err.println("Error - mismatched alleles found "+genotype.charAt(k)+" for marker "+abLookup.markerNames[j]+" for sample "+samples[i]+" (expecting "+abLookup.lookup[j][0]+"/"+abLookup.lookup[j][1]+")");
+	        			}
+					}
+        		}
+        	}
+        	fsamp.setAB_Genotypes(abGenotypes);
+        	fsamp.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY)+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION);
+        }
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
@@ -336,6 +380,7 @@ public class ABLookup {
 		String outfile = DEFAULT_AB_FILE;
 		ABLookup abLookup;
 		String mapFile = null;
+		boolean applyAB = false;
 
 		String usage = "\n" +
 				"cnv.filesys.ABLookup requires 0-1 arguments\n" +
@@ -347,6 +392,8 @@ public class ABLookup {
 				"   (3) parse ABLookup from existing original genotypes (i.e. -parseFromOriginalGenotypes (not the default))\n" + 
 				"  OR\n" + 
 				"   (3) parse ABLookup from [Illumina] SNP Table (i.e. mapFile=SNP_Map.csv (not the default))\n" + 
+				"  OR\n" + 
+				"   (3) apply the project's AB lookup to all Sample files in project (i.e. -applyAB (not the default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -368,6 +415,8 @@ public class ABLookup {
 			} else if (args[i].startsWith("mapFile=")) {
 				mapFile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].equalsIgnoreCase("-applyAB")) {
+				applyAB = true;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -378,16 +427,22 @@ public class ABLookup {
 		}
 		
 		try {
-			abLookup = new ABLookup();
 			proj = new Project(filename, false);
 			if (mapFile != null) {
 				abLookup = new ABLookup(proj.getMarkerNames(), mapFile, true, true);
+				abLookup.writeToFile(proj.getProjectDir()+outfile);
 			} else if (parseFromOriginalGenotypes) {
+				abLookup = new ABLookup();
 				abLookup.parseFromOriginalGenotypes(proj);
+				abLookup.writeToFile(proj.getProjectDir()+outfile);
 			} else if (parseFromGenotypeClusterCenters) {
+				abLookup = new ABLookup();
 				abLookup.parseFromGenotypeClusterCenters(proj);
+				abLookup.writeToFile(proj.getProjectDir()+outfile);
+			} else if (applyAB) {
+				applyABLookupToFullSampleFiles(proj);
 			}
-			abLookup.writeToFile(proj.getProjectDir()+outfile);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

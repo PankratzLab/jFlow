@@ -66,10 +66,10 @@ public class MosaicPlot extends JFrame implements ActionListener {
 			return;
 		}
 		
-		sampleData = proj.getSampleData(false);
+		sampleData = proj.getSampleData(2, false);
 		classes = sampleData.getClasses();
 		if (ext.indexOfStr("mask", classes) >= 0) {
-			
+			// TODO left incomplete, what was the goal of this added code??
 		}
 			
 		samples = new Vector<String[]>();

@@ -9,27 +9,31 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-
 import common.Array;
 import common.Files;
 import common.HashVec;
+import common.Logger;
 import common.ext;
 import cnv.var.SampleData;
 
 public class Project extends Properties {
-	public static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
+
 //	public static final String DEFAULT_PROJECT = "these.properties";
 //	public static final String DEFAULT_PROJECT = "D:/home/npankrat/projects/pd_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
-	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI_exome_slim.properties";
+//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI_exome_slim.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/TsaiPilot.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/HumanHap550_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortium.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplication.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
+//	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
+//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/practice.properties";
+	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/GEDI_exome.properties";
+//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/twodplot.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
@@ -45,9 +49,10 @@ public class Project extends Properties {
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/boss.proj";
 	
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/demo.properties";
-	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_win.properties";
+//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_win.properties";
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/sing550_win.proj";
+	public static final String DEFAULT_SCATTER_PROJECT = "C:/workspace/Genvisis/projects/GEDI_exome.properties";
 
 
 	public static final String DEFAULT_PROPERTIES = "cnv/filesys/default.properties";
@@ -61,7 +66,6 @@ public class Project extends Properties {
 	public static final String PARSE_AT_AT_SYMBOL = "PARSE_AT_AT_SYMBOL";
 	public static final String JAR_STATUS = "JAR_STATUS";
 	public static final String SAMPLE_DIRECTORY = "SAMPLE_DIRECTORY";
-	public static final String IND_DIRECTORY = "IND_DIRECTORY";
 	public static final String DATA_DIRECTORY = "DATA_DIRECTORY";
 	public static final String PLOT_DIRECTORY = "PLOT_DIRECTORY";
 	public static final String RESULTS_DIRECTORY = "RESULTS_DIRECTORY";
@@ -70,6 +74,7 @@ public class Project extends Properties {
 	public static final String MARKERSET_FILENAME = "MARKERSET_FILENAME";
 	public static final String MARKERLOOKUP_FILENAME = "MARKERLOOKUP_FILENAME";
 	public static final String SAMPLELIST_FILENAME = "SAMPLELIST_FILENAME";
+	public static final String SAMPLE_SUBSET_FILENAME = "SAMPLE_SUBSET_FILENAME";
 	public static final String SAMPLE_DATA_FILENAME = "SAMPLE_DATA_FILENAME";
 	public static final String ORIGINAL_CENTROIDS_FILENAME = "ORIGINAL_CENTROIDS_FILENAME";
 	public static final String GENOTYPE_CENTROIDS_FILENAME = "GENOTYPE_CENTROIDS_FILENAME";
@@ -97,11 +102,25 @@ public class Project extends Properties {
 	public static final String MOSAIC_ARMS_FILENAME = "MOSAIC_ARMS_FILENAME";
 	public static final String NUM_THREADS = "NUM_THREADS";
 	public static final String LONG_FORMAT = "LONG_FORMAT";
+	public static final String CLUSTER_FILTER_COLLECTION_FILENAME = "CLUSTER_FILTER_COLLECTION_FILENAME";
+	public static final String SEXCHECK_RESULTS_FILENAME = "SEXCHECK_RESULTS_FILENAME";
+	public static final String TWOD_LOADED_FILENAMES = "TWOD_LOADED_FILENAMES";
+	public static final String GENETRACK_FILENAME = "GENETRACK_FILENAME";
+	public static final String AB_LOOKUP_FILENAME = "AB_LOOKUP_FILENAME";
+	public static final String WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER";
 
 	private boolean jar;
+	private SampleList sampleList;
+	private SampleData sampleData;
+	private Hashtable<String,String> cnvFilesLoadedInSampleData;
+	private MarkerLookup markerLookup;
 
 	public Project() {
 		Files.loadProperties(this, DEFAULT_PROPERTIES, true, true, false);
+		sampleList = null;
+		sampleData = null;
+		cnvFilesLoadedInSampleData = new Hashtable<String, String>();
+		markerLookup = null;
 	}
 	
 	public Project(String filename, boolean jar) {
@@ -122,6 +141,10 @@ public class Project extends Properties {
 	}
 	
 	public String getDir(String directory, boolean mkdirs) {
+		return getDir(directory, mkdirs, new Logger(), true);
+	}
+	
+	public String getDir(String directory, boolean mkdirs, Logger log, boolean verbose) {
 		String dir = null;
 		
 		if (containsKey(directory)) {
@@ -132,12 +155,12 @@ public class Project extends Properties {
 			if (!Files.exists(dir, jar)) {
 				if (mkdirs && !jar) {
 					new File(dir).mkdirs();
-				} else {
-					System.err.println("Error - file '"+dir+"' does not exist");
+				} else if (verbose) {
+					log.reportError("Error - directory '"+dir+"' does not exist");
 				}
 			}
 		} else {
-			System.err.println("Error - directory '"+directory+"' is undefined in cnv.filesys.Project");
+			log.reportError("Error - directory '"+directory+"' is undefined in cnv.filesys.Project");
 		}
 		
 		return dir;
@@ -152,12 +175,16 @@ public class Project extends Properties {
 	}
 	
 	public String getFilename(String fileType, boolean make, boolean verbose) {
+		return getFilename(fileType, null, make, verbose);
+	}
+	
+	public String getFilename(String fileType, String subdirectory, boolean make, boolean verbose) {
 		String file = null;
 		
 		if (containsKey(fileType)) {
 			file = getProperty(fileType);
 			if (!file.startsWith("/") && file.indexOf(":") == -1) {
-				file = getProperty(PROJECT_DIRECTORY)+file;
+				file = getProperty(PROJECT_DIRECTORY)+(subdirectory==null?"":getProperty(subdirectory))+file;
 			}
 			if (!Files.exists(file, getJarStatus())) {
 				if (make) {
@@ -168,7 +195,7 @@ public class Project extends Properties {
 			}
 		} else {
 			System.err.println("Error - file '"+fileType+"' is undefined in cnv.filesys.Project");
-		} 
+		}
 
 		return file;
 	}
@@ -217,6 +244,17 @@ public class Project extends Properties {
 		}		
 	}
 	
+	public float getFloat(String variable) {
+		String trav;
+		
+		trav = getProperty(variable);
+		try {
+			return Float.parseFloat(trav);
+		} catch (NumberFormatException nfe) {
+			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
+			return Float.NaN;
+		}		
+	}
 
 	public MarkerSet getMarkerSet() {
 		if (Files.exists(getFilename(MARKERSET_FILENAME), getJarStatus())) {
@@ -231,21 +269,32 @@ public class Project extends Properties {
 	}
 
 	public MarkerLookup getMarkerLookup() {
-		if (Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
-			return MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
+		if (markerLookup == null && Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
+			markerLookup = MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
+		}
+		return markerLookup;
+	}
+
+	public SampleList getSampleList_ori() {
+		if (Files.exists(getFilename(SAMPLELIST_FILENAME), getJarStatus())) {
+			return sampleList = SampleList.load(getFilename(SAMPLELIST_FILENAME), getJarStatus());
 		} else {
-			JOptionPane.showMessageDialog(null, "The marker lookup table is being requested but has not yet been created", "Error", JOptionPane.ERROR_MESSAGE);
-			return null;
+			System.out.println("Failed to find SampleList; generating one...");
+			return sampleList = SampleList.generateSampleList(this);
 		}
 	}
 
 	public SampleList getSampleList() {
-		if (Files.exists(getFilename(SAMPLELIST_FILENAME), getJarStatus())) {
-			return SampleList.load(getFilename(SAMPLELIST_FILENAME), getJarStatus());
-		} else {
-			System.out.println("Failed to find SampleList; generating one...");
-			return SampleList.generateSampleList(this);
+		if (sampleList == null) {
+			if (Files.exists(getFilename(SAMPLELIST_FILENAME), getJarStatus())) {
+				sampleList = SampleList.load(getFilename(SAMPLELIST_FILENAME), getJarStatus());
+			} else {
+				System.out.println("Failed to find SampleList; generating one...");
+				sampleList = SampleList.generateSampleList(this);
+			}
 		}
+		
+		return sampleList;
 	}
 
 	public String[] getSamples() {
@@ -259,26 +308,55 @@ public class Project extends Properties {
 		}
 	}
 
-	public FullSample getFullSample(String sample) {
+	public Sample getFullSampleFromRandomAccessFile(String sample) {
+		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
+			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus());
+		} else {
+			return null;
+		}
+	}
+
+	public Sample getFullSampleFromSerialized(String sample) {
 		if (Files.exists(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus())) {
-			return FullSample.load(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus());
+			return Sample.loadFromSerialized(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus());
 		} else {
 			return null;
 		}
 	}
 
-	public Sample getSample(String sample) {
-		if (Files.exists(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus())) {
-			return Sample.load(getDir(IND_DIRECTORY)+sample+".samp", getJarStatus());
+	public Sample getPartialSampleFromRandomAccessFile(String sample) {
+		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
+			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, getJarStatus());
 		} else {
 			return null;
 		}
 	}
 
-	public SampleData getSampleData(boolean loadCNVs) {
-		return new SampleData(this, loadCNVs);
+	public void resetSampleData() {
+		sampleData = null;
 	}
 
+	public SampleData getSampleData(int numberOfBasicClassesToLoad, boolean loadCNVs) {
+		return getSampleData(numberOfBasicClassesToLoad, loadCNVs?getFilenames(Project.CNV_FILENAMES):null);
+	}
+
+	public SampleData getSampleData(int numberOfBasicClassesToLoad, String[] cnvFilenames) {
+		if (cnvFilenames != null) {
+			for (int i = 0; i < cnvFilenames.length; i++) {
+				if (!cnvFilesLoadedInSampleData.containsKey(cnvFilenames[i])) {
+					resetSampleData();
+				}
+			}
+		}
+		
+		if (sampleData == null) {
+			sampleData = new SampleData(this, numberOfBasicClassesToLoad, cnvFilenames);
+//			System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv files":Array.toStr(cnvFilenames, "/")));
+			cnvFilesLoadedInSampleData = HashVec.loadFileToHashNull(cnvFilenames);
+		}
+		return sampleData;
+	}
+			
 	public Hashtable<String,String> getFilteredHash() {
 		if (getProperty(FILTERED_MARKERS_FILENAME).equals("")) {
 			return new Hashtable<String,String>();

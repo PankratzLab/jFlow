@@ -96,7 +96,7 @@ public class FindVNTRs {
         int count, numSamples;
         MarkerDataCollection collection;
         MarkerLookup markerLookup;
-        String[] ids, affStats;
+        String[] famIndPairs, affStats;
         SampleData sampleData;
         String[] samples;
         boolean[] use;
@@ -114,12 +114,12 @@ public class FindVNTRs {
 			return;
 		}
 
-		sampleData = proj.getSampleData(false);
-		ids = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0, 1}, false);
+		sampleData = proj.getSampleData(2, false);
+		famIndPairs = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0, 1}, false);
 		affStats = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {5}, false);
 		hash = new Hashtable<String,String>();
-		for (int i = 0; i<ids.length; i++) {
-			hash.put(sampleData.lookup(ids[i]), affStats[i]);
+		for (int i = 0; i<famIndPairs.length; i++) {
+			hash.put(sampleData.lookup(famIndPairs[i])[0], affStats[i]);
         }
 		samples = proj.getSamples();
 		use = new boolean[samples.length];

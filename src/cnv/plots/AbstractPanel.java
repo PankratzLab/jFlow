@@ -5,6 +5,10 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -14,23 +18,27 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-//import java.util.Date;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import mining.Distance;
 
 import common.Array;
 import common.Grafik;
 import common.HashVec;
 import common.IntVector;
+import common.ProgressBarDialog;
 import common.Sort;
 import common.ext;
 import stats.Maths;
 
-public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
+public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
 	public static final int HEAD_BUFFER = 25;
@@ -40,12 +48,15 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int AXIS_THICKNESS = 4;
 	public static final int TICK_THICKNESS = 3;
 	public static final int TICK_LENGTH = 15;
-	public static final int LOOKUP_RESOLUTION = 20;
+	public static final int DEFAULT_LOOKUP_RESOLUTION = 20;
 	public static final int AXIS_FONT_SIZE = 28;
 	public static final double DOUBLE_INACCURACY_HEDGE = 0.00001;
 	public static final double MINIMUM_ZOOM_PROPORTION_WINDOW = 0.0001;
 	public static final float DEFAULT_MOUSE_WHEEL_MULTIPLIER = 0.5f;
 	public static final int DEFAULT_PLOTPOINTSET_SIZE = 1000000;
+	public static final int SIZE = 12;
+	public static final double HIGHLIGHT_DISTANCE = 20;//= Math.sqrt(SIZE*SIZE/2);
+	public final int DELAY = 0;	//A control variable to reduce the repaint() operations during component resizing;
 	
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX;
@@ -58,7 +69,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected String prevPos = "";
 	protected Hashtable<String,IntVector> locLookup;
 	protected PlotPoint[] points;						// make private when worked out
-	protected AbstractLine[] lines;
+	protected GenericLine[] lines;
+	protected GenericRectangle[] rectangles;
+	protected GenericRectangle highlightRectangle;
 	protected String xAxisLabel;
 	protected String yAxisLabel;
 	protected boolean displayXaxis;
@@ -75,8 +88,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected String errorMessage;
 	protected float mouseWheelMultiplier;
 	protected boolean zoomable;
+	protected boolean swapable;		//4/27/2012
+	protected boolean invertable;	//4/27/2012
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
+	protected IntVector indicesOfNaNSamples;	//zx
+	protected IntVector prox;
+
 	private boolean inDrag;
 	private int startX, startY;
 	private int plotPointSetSize;
@@ -85,6 +103,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int lastIndexInPlotPointSet;
 	private int currentIndexInPlotPointSet;
 	private String tempDirectory;
+	private int lookupResolution;
+	private boolean flow;			//A control variable. If resizing is not yet done, don't start generatePoints() or drawAll();
+	private boolean finalImage;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
+	private byte[] layersInBase;
+	private byte[] extraLayersVisible;
+	private boolean pointsGeneratable;
+	private Timer waitingTimer;		//A control variable to reduce the repaint() operations during component resizing;
+	private String nullMessage;
+	private boolean randomTest;
+
 	
 	public AbstractPanel() {
 		canvasSectionMinimumX = 0;
@@ -94,12 +122,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		displayXaxis = true;
 		displayYaxis = true;
 		displayGrid = false;
-		createLookup = false;
+		createLookup = true;
 		missingWidth = -1;
 		nanWidth = -1;
 		forcePlotXmax = forcePlotYmax = forcePlotXmin = forcePlotYmin = Float.NaN;
 		mouseWheelMultiplier = DEFAULT_MOUSE_WHEEL_MULTIPLIER;
 		zoomable = false;
+		swapable = true;
 		resetZoomProportions();
 		plotPointSetSize = DEFAULT_PLOTPOINTSET_SIZE;
 		points = new PlotPoint[plotPointSetSize];
@@ -108,9 +137,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		lastIndexInPlotPointSet = -1;
 		currentIndexInPlotPointSet = -1;
 		tempDirectory = "";
+		randomTest = false;
+		
+		layersInBase = null;
+		extraLayersVisible = null;
 
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
+		finalImage=true;
+		flow=true;
+		pointsGeneratable = true;
 		
 		colorScheme = new Color[] {Color.BLACK, Color.GRAY};
 		addMouseListener(this);
@@ -138,20 +174,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		return currentPlotPointSet<totalNumPlotPointSets && currentIndexInPlotPointSet<=lastIndexInPlotPointSet;
 	}
 
-//	public PlotPoint nextPlotPoint() {
-//		PlotPoint point;
-//		
-//		currentIndexInPlotPointSet++;
-//		if (currentIndexInPlotPointSet == plotPointSetSize) {
-//			
-//		}
-//		
-////		currentPlotPointSet<totalNumPlotPointSets && currentIndexInPlotPointSet<=lastIndexInPlotPointSet
-//		boolean hi = true;
-//		point = null;
-//		
-//		return point;
-//	}
+	public void setNullMessage(String str) {
+		nullMessage = str;
+	}
 
 	public void setTempDirectory(String dir) {
 		tempDirectory = dir;
@@ -170,13 +195,30 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		image = null;
 		repaint();
 	}
+	
+	public void setLayersInBase(byte[] layers) {
+		layersInBase = layers;
+	}
+
+	public void setExtraLayersVisible(byte[] layers) {
+		extraLayersVisible = layers;
+	}
 
 	public void paintComponent(Graphics g) {
-		if (image==null) {
+		if (getFinalImage()&&image==null) {
 			createImage();
 			repaint();
 		}
 		g.drawImage(image, 0, 0, this);
+		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
+			drawAll(g, false);
+		}
+//		g.setColor(Color.WHITE);
+//		g.fillRect(0, 0, getWidth(), getHeight());
+//		if (finalImage&&image!=null) {
+//			g.drawImage(image, 0, 0, this);
+//		}
+
 	}
 
 	public void screenCapture(String filename) {
@@ -205,6 +247,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public abstract void generatePoints();
 
+	public abstract void highlightPoints();
+
 	public abstract void assignAxisLabels();
 
 	public void setXinversion(boolean b) {
@@ -227,7 +271,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		makeSymmetric = b;
 	}
 
-	public void drawAll(Graphics g) {
+	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
 		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off the last tick mark 
 		int sigFigs;
@@ -241,18 +285,57 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		String trav;
 		String[] keys;
 		int[] order;
-//		long time;
+		int step;
+		long time;
+		ProgressBarDialog prog;//zx
+    	int recX, recY, recWidth, recHeight;
+    	
+		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
+		setFinalImage(false);
+		if (randomTest) {
+			points = new PlotPoint[1000000];
+			for (int i = 0; i < points.length; i++) {
+				points[i] = new PlotPoint("", (byte)1, (float)Math.random(), (float)Math.random(), (byte)5, (byte)0, (byte)0);
+			}
+		} else if (pointsGeneratable) {
+			generatePoints();
+//			pointsGeneratable = false;
+		}
+		highlightPoints();
 		
-		generatePoints();
+//		System.out.println("#points= "+points.length+" flow="+flow+"; base="+base);
+		
+		if (points.length==0) {
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, getWidth(), getHeight());
+			if (nullMessage != null) {
+				g.setColor(Color.BLACK);
+				g.drawString(nullMessage, getWidth()/2-g.getFontMetrics(g.getFont()).stringWidth(nullMessage)/2, getHeight()/2);
+			}
+//			System.err.println("Error: no data. The cnv.plots.AbstractPanel.points is null.");
+			setFinalImage(true);
+			return;
+		}
+
+		setLookupResolution(DEFAULT_LOOKUP_RESOLUTION);
 		assignAxisLabels();
-		
-//        time = new Date().getTime();
-		
+
+		//zx 4/30/2012 swap X Y
+		if (invertable) {
+			for (int i=0; i<points.length; i++) {
+//				float temp = points[i].getRawX();
+//				points[i].setRawX() = points[i].getRawY();
+//				points[i].getRawY() = temp;
+			}
+		}
+
+		// Scan for rawX, rawY range of the data points
 		minimumObservedRawX = Float.MAX_VALUE;
 		maximumObservedRawX = Float.MIN_VALUE;
 		minimumObservedRawY = Float.MAX_VALUE;
 		maximumObservedRawY = Float.MIN_VALUE;
-		for (int i = 0; i<points.length; i++) {
+		for (int i = 0; i<points.length&&flow; i++) {
+//		for (int i = 0; i<points.length; i++) {
 			if (points[i] != null) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, points[i].getRawX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, points[i].getRawX());
@@ -260,7 +343,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				maximumObservedRawY = Maths.max(maximumObservedRawY, points[i].getRawY());
 			}
         }
-		for (int i = 0; lines != null && i<lines.length; i++) {
+
+		for (int i = 0; lines != null && i<lines.length&&flow; i++) {
+//		for (int i = 0; lines != null && i<lines.length; i++) {
 			if (lines[i] != null) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, lines[i].getStartX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, lines[i].getStartX());
@@ -278,15 +363,20 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		maximumObservedRawX = maximumObservedRawX==Float.MIN_VALUE?1:maximumObservedRawX;
 		minimumObservedRawY = minimumObservedRawY==Float.MAX_VALUE?0:minimumObservedRawY;
 		maximumObservedRawY = maximumObservedRawY==Float.MIN_VALUE?1:maximumObservedRawY;
+		//System.out.println(minimumObservedRawX+"\t"+maximumObservedRawX+"\t"+minimumObservedRawY+"\t"+maximumObservedRawY);//zx
 
 //		otherwise step is off
 		minimumObservedRawX = minimumObservedRawX>0?0:minimumObservedRawX;
 		minimumObservedRawY = minimumObservedRawY>0?0:minimumObservedRawY;
 		
 		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX:forcePlotXmin;
-		maximumObservedRawX = Float.isNaN(forcePlotXmax)?maximumObservedRawX:forcePlotXmax;
+//		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX-(maximumObservedRawX-minimumObservedRawX)*(float)0.01:forcePlotXmin;
+//		maximumObservedRawX = Float.isNaN(forcePlotXmax)?maximumObservedRawX:forcePlotXmax;
+		maximumObservedRawX = Float.isNaN(forcePlotXmax)?(maximumObservedRawX+(maximumObservedRawX-minimumObservedRawX)*(float)0.01):forcePlotXmax;
 		minimumObservedRawY = Float.isNaN(forcePlotYmin)?minimumObservedRawY:forcePlotYmin;
-		maximumObservedRawY = Float.isNaN(forcePlotYmax)?maximumObservedRawY:forcePlotYmax;
+//		minimumObservedRawY = Float.isNaN(forcePlotYmin)?(minimumObservedRawY-(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmin;
+//		maximumObservedRawY = Float.isNaN(forcePlotYmax)?maximumObservedRawY:forcePlotYmax;
+		maximumObservedRawY =  Float.isNaN(forcePlotYmax)?(maximumObservedRawY+(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmax;
 		
 		if (makeSymmetric) {
 			maximumObservedRawX = Math.max(maximumObservedRawX, maximumObservedRawY);
@@ -295,104 +385,219 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			minimumObservedRawY = minimumObservedRawX;
 		}
 		
-		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, getWidth(), getHeight());
-		g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
+		if (base) {
+			indicesOfNaNSamples = new IntVector();
 		
-		fontMetrics = g.getFontMetrics(g.getFont());
-		missingWidth = fontMetrics.stringWidth("X");
-		missingWidth = fontMetrics.stringWidth("X");
+			//g.setColor(Color.WHITE);
+			g.fillRect(0, 0, getWidth(), getHeight());
+			g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
+	//		System.out.println("getWidth: "+getWidth()+"\t getHeight: "+getHeight());
+			
+			fontMetrics = g.getFontMetrics(g.getFont());
+			missingWidth = fontMetrics.stringWidth("X");
+			missingWidth = fontMetrics.stringWidth("X");
 
-		plotMinMaxStep = null;
-		if (displayXaxis) {
-			canvasSectionMinimumX = WIDTH_Y_AXIS;
-			canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-			canvasSectionMinimumY = 0;
-			canvasSectionMaximumY = HEIGHT_X_AXIS;
-			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
-			plotXmin = plotMinMaxStep[0];
-			plotXmax = plotMinMaxStep[1];
-			sigFigs = getNumSigFig(plotMinMaxStep[2]);
-			for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
-				if (x >= plotXmin || !truncate) {
-					Grafik.drawThickLine(g, getX(x), getHeight()-canvasSectionMaximumY, getX(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
-					str = ext.formDeci(Math.abs(x)<DOUBLE_INACCURACY_HEDGE?0:x, sigFigs, true);
-					g.drawString(str, getX(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
+			// Calculate the plot area's range (X-axis, Y-axis)
+			plotMinMaxStep = null;
+			if (displayXaxis) {
+				canvasSectionMinimumX = WIDTH_Y_AXIS;
+				canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
+				canvasSectionMinimumY = 0;
+				canvasSectionMaximumY = HEIGHT_X_AXIS;
+				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
+				plotXmin = plotMinMaxStep[0];
+				plotXmax = plotMinMaxStep[1];
+
+				sigFigs = getNumSigFig(plotMinMaxStep[2]);
+				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
+					if (x >= plotXmin || !truncate) {
+						Grafik.drawThickLine(g, getX(x), getHeight()-canvasSectionMaximumY, getX(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+						str = ext.formDeci(Math.abs(x)<DOUBLE_INACCURACY_HEDGE?0:x, sigFigs, true);
+						g.drawString(str, getX(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
+					}
+				}
+				Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
+				g.drawString(xAxisLabel, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(xAxisLabel)/2+WIDTH_Y_AXIS, getHeight()-20);
+			}
+			
+			if (displayYaxis) {
+				canvasSectionMinimumX = 0;
+				canvasSectionMaximumX = WIDTH_Y_AXIS;
+				canvasSectionMinimumY = HEIGHT_X_AXIS;
+				canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
+				if (!makeSymmetric || plotMinMaxStep == null) {
+					plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
+				}
+				plotYmin = plotMinMaxStep[0];
+				plotYmax = plotMinMaxStep[1];
+				sigFigs = getNumSigFig(plotMinMaxStep[2]);
+				for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
+					if (y >= plotYmin || !truncate) {
+						Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getY(y), canvasSectionMaximumX, getY(y), TICK_THICKNESS, Color.BLACK);
+						str = ext.formDeci(Math.abs(y)<DOUBLE_INACCURACY_HEDGE?0:y, sigFigs, true);
+						g.drawString(str, canvasSectionMaximumX-TICK_LENGTH-str.length()*15-5, getY(y)+9);
+					}
+				}
+				Grafik.drawThickLine(g, canvasSectionMaximumX, getY(plotYmin), canvasSectionMaximumX, getY(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
+	
+				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
+				gfx = yLabel.createGraphics();
+				gfx.setFont(new Font("Arial", 0, 28));
+				gfx.setColor(Color.WHITE);
+				gfx.fillRect(0, 0, getWidth(), getHeight());
+				gfx.setColor(Color.BLACK);
+				gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
+	
+				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+			}
+
+			/*
+			if (swapable) {
+				// these images are here to mask the flicker that occurs due to the slight delay in when the plot is painted and when the buttons are painted
+				BufferedImage img;
+				File file = new File("/workspace/Genvisis/images/flip_and_invert/flip_10p.jpg");
+				new javax.swing.JLabel();
+				try {
+					img = ImageIO.read(file);
+					g.drawImage(img, 70, getHeight()-75, null);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				file = new File("/workspace/Genvisis/images/flip_and_invert/right_10.gif");
+				try {
+					img = ImageIO.read(file);
+					g.drawImage(img, 70, getHeight()-35, null);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				file = new File("/workspace/Genvisis/images/flip_and_invert/up_10.gif");
+				try {
+					img = ImageIO.read(file);
+					g.drawImage(img, 55, getHeight()-75, null);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
-			Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
-			g.drawString(xAxisLabel, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(xAxisLabel)/2+WIDTH_Y_AXIS, getHeight()-20);
-		}
-		
-		if (displayYaxis) {
-			canvasSectionMinimumX = 0;
-			canvasSectionMaximumX = WIDTH_Y_AXIS;
-			canvasSectionMinimumY = HEIGHT_X_AXIS;
-			canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-			if (!makeSymmetric || plotMinMaxStep == null) {
-				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
-			}
-			plotYmin = plotMinMaxStep[0];
-			plotYmax = plotMinMaxStep[1];
-			sigFigs = getNumSigFig(plotMinMaxStep[2]);
-			for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
-				if (y >= plotYmin || !truncate) {
-					Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getY(y), canvasSectionMaximumX, getY(y), TICK_THICKNESS, Color.BLACK);
-					str = ext.formDeci(Math.abs(y)<DOUBLE_INACCURACY_HEDGE?0:y, sigFigs, true);
-					g.drawString(str, canvasSectionMaximumX-TICK_LENGTH-str.length()*15-5, getY(y)+9);
-				}
-			}
-			Grafik.drawThickLine(g, canvasSectionMaximumX, getY(plotYmin), canvasSectionMaximumX, getY(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
+			*/
 
-			yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
-			gfx = yLabel.createGraphics();
-			gfx.setFont(new Font("Arial", 0, 28));
-			gfx.setColor(Color.WHITE);
-			gfx.fillRect(0, 0, getWidth(), getHeight());
-			gfx.setColor(Color.BLACK);
-			gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
 
-			g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+			if (errorMessage != null) {
+				g.drawString(errorMessage, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(errorMessage)/2+WIDTH_Y_AXIS, (getHeight()-HEAD_BUFFER-HEIGHT_X_AXIS)/2-20+HEAD_BUFFER);
+			}
+		
 		}
-		
-		
+
 		canvasSectionMinimumX = WIDTH_Y_AXIS;
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-		locLookup.clear();
-		
-		if (errorMessage != null) {
-			g.drawString(errorMessage, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(errorMessage)/2+WIDTH_Y_AXIS, (getHeight()-HEAD_BUFFER-HEIGHT_X_AXIS)/2-20+HEAD_BUFFER);
-		}
-		
-		for (int i = 0; lines!=null&&i<lines.length; i++) {
-			Grafik.drawThickLine(g, getX(lines[i].getStartX()), getY(lines[i].getStartY()), getX(lines[i].getStopX()), getY(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
+//		System.err.println("("+canvasSectionMinimumX+"-"+canvasSectionMaximumX+","+canvasSectionMinimumY+"-"+canvasSectionMaximumY+")");
+
+		// Draw the lines
+		for (int i = 0; lines!=null && i<lines.length && flow; i++) {
+//		for (int i = 0; lines!=null&&i<lines.length; i++) {
+			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
+				Grafik.drawThickLine(g, getX(lines[i].getStartX()), getY(lines[i].getStartY()), getX(lines[i].getStopX()), getY(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
+			}
         }
-		
+
+		// Draw the rectangles for clusterFilters
+		for (int i = 0; rectangles!=null && i<rectangles.length && flow; i++) {
+//		for (int i = 0; rectangles!=null&&i<rectangles.length; i++) {
+			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
+//				recX = getX(Math.min((int)rectangles[i].getStartX(), (int)rectangles[i].getStopX()));
+//				recY = getY(Math.min((int)rectangles[i].getStartY(), (int)rectangles[i].getStopY()));
+//		    	recWidth = getX(Math.abs((int)rectangles[i].getStartX() - (int)rectangles[i].getStopX()));
+//		    	recHeight = getY((Math.abs((int)rectangles[i].getStartY() - (int)rectangles[i].getStopY())));
+				recX = Math.min(getX(rectangles[i].getStartX()), getX(rectangles[i].getStopX()));
+				recY = Math.min(getY(rectangles[i].getStartY()), getY(rectangles[i].getStopY()));
+		    	recWidth = Math.abs(getX(rectangles[i].getStartX()) - getX(rectangles[i].getStopX()));
+		    	recHeight = (Math.abs(getY(rectangles[i].getStartY()) - getY(rectangles[i].getStopY())));
+//		    	g.setColor(Color.GRAY);
+		    	g.setColor(colorScheme[rectangles[i].getColor()]);
+				
+				if (rectangles[i].getFill()) {
+					if (rectangles[i].getRoundedCorners()) {
+						g.fillRoundRect(recX, recY, recWidth, recHeight, 2, 2);
+					} else {
+						g.fillRect(recX, recY, recWidth, recHeight);
+					}
+				} else {
+					if (rectangles[i].getRoundedCorners()) {
+						g.drawRoundRect(recX, recY, recWidth, recHeight, 2, 2);
+					} else {
+//						g.drawRect(recX, recY, recWidth, recHeight);
+				    	drawRectThick(g, recX, recY, recWidth, recHeight, rectangles[i].getThickness());
+					}
+				}
+			}
+        }
+
+		// Draw the rectangle outlined by dragging the mouse
+		if (highlightRectangle != null) {
+			recX = Math.min(getX(highlightRectangle.getStartX()), getX(highlightRectangle.getStopX()));
+			recY = Math.min(getY(highlightRectangle.getStartY()), getY(highlightRectangle.getStopY()));
+	    	recWidth = Math.abs(getX(highlightRectangle.getStartX()) - getX(highlightRectangle.getStopX()));
+	    	recHeight = (Math.abs(getY(highlightRectangle.getStartY()) - getY(highlightRectangle.getStopY())));
+//	    	g.setColor(Color.BLACK);
+	    	g.setColor(colorScheme[0]);
+//	    	g.drawRect(recX, recY, recWidth, recHeight);
+	    	drawRectThick(g, recX, recY, recWidth, recHeight, (byte) 1);
+		}
+
+//		// Draw progress bar
+//		if (base) {
+//			time = new Date().getTime();
+//			prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
+////			System.out.println("points.length: "+(points.length)+"\3*points.length: "+3*(points.length));
+//		} else {
+//			prog = null;
+//		}
+
+		// Draw data points, also build the lookup matrix for nearby points.
+		locLookup.clear();	// -- This was here in Nathan's original code.
+		prog = null;
+		time = new Date().getTime();
+		step = Math.max((points.length)/100, 1);
 		layers = new Hashtable<String,Vector<PlotPoint>>();
-		for (int i = 0; i<points.length; i++) {
+		
+		for (int i = 0; i<points.length && flow; i++) {
+//			System.out.println("loop");
+//		for (int i = 0; i<points.length; i++) {
+			if (base && i%step==0){
+				if (new Date().getTime() - time > 1000) {
+					if (prog == null) {
+						prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
+					}
+					prog.setProgress(i);//zx
+				}
+			}
 			if (points[i] == null || points[i].getColor() == -1) {
 //			if (points[i] == null || points[i].getColor() == -1 || (points[i].getRawX() < 1 && points[i].getRawY() < 1)) {
 				
-			} else if (truncate && (points[i].getRawX() <= plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() <= plotYmin || points[i].getRawY() > plotYmax)) {
-				
+			} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
+//				System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
 			} else {
 				trav = points[i].getLayer()+"";
-				if (trav.equals("0")) {
-					drawPoint(g, points[i]);
-				} else {
-					if (layers.containsKey(trav)) {
-						layer = layers.get(trav);
+				if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
+					if (trav.equals("0")) {
+						if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+							drawPoint(g, points[i]);
+						} else if (base) {
+							indicesOfNaNSamples.add(i);
+						}
 					} else {
-						layers.put(trav, layer = new Vector<PlotPoint>());
+						if (layers.containsKey(trav)) {
+							layer = layers.get(trav);
+						} else {
+							layers.put(trav, layer = new Vector<PlotPoint>());
+						}
+						layer.add(points[i]);
 					}
-					layer.add(points[i]);
 				}
-			
 				if (createLookup) {
-					xLook = (int)Math.floor(getX(points[i].getRawX())/LOOKUP_RESOLUTION);
-					yLook = (int)Math.floor(getY(points[i].getRawY())/LOOKUP_RESOLUTION);
+					xLook = (int)Math.floor(getX(points[i].getRawX())/lookupResolution);
+					yLook = (int)Math.floor(getY(points[i].getRawY())/lookupResolution);
 					for (int j = xLook-1; j<=xLook+1; j++) {
 						for (int k = yLook-1; k<=yLook+1; k++) {
 							pos = j+"x"+k;
@@ -407,16 +612,32 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		}
 		
+		//buildLookupTableOfNearbyPoints();//zx Looks like it gets duplicated with the above
+		//for (int i=0; i<locLookup.size(); i++) {
+		//	System.out.println(locLookup.get(i));
+		//}
+
+		// Draw those points with layer>0.
 		keys = HashVec.getKeys(layers);
 		order = Sort.quicksort(Array.toIntArray(keys));
-		for (int i = 0; i<keys.length; i++) {
+		for (int i = 0; i<keys.length&&flow; i++) {
+//		for (int i = 0; i<keys.length; i++) {
 			layer = layers.get(keys[order[i]]);
 			for (int j = 0; j<layer.size(); j++) {
-				drawPoint(g, layer.elementAt(j));
+				if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+					drawPoint(g, layer.elementAt(j));
+				} else {
+					indicesOfNaNSamples.add(j);
+					//TODO This is a problem
+				}
             }
-        }		
+        }
 
-		if (displayGrid) {
+		if (indicesOfNaNSamples!=null && indicesOfNaNSamples.size()>0) {
+			g.drawString(PlotPoint.NAN_STR+" (n="+indicesOfNaNSamples.size()+")", getX(0)-nanWidth/2, getY(0)+60+points[0].getSize()/2);
+		}
+		
+		if (base && displayGrid) {
 			for (double d = 0; d < 1.0; d+=0.1) {
 				g.drawLine(getX(d), getY(0), getX(d), getY(canvasSectionMaximumY));
 			}
@@ -424,17 +645,100 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				g.drawLine(getX(0), getY(d), getX(canvasSectionMaximumX), getY(d));
 			}
 		}
-//		 System.out.println("Took "+ext.getTimeElapsed(time)+" to paint");
+		setFinalImage(true);
+		
+		if (base && prog != null) {
+			prog.close();//zxu
+		}
+		//System.out.println("Paint time: "+ext.getTimeElapsed(time));
+		
+		//test out
+		/*
+		BufferedImage temp = new BufferedImage(250, 250, BufferedImage.TYPE_INT_RGB);
+		Graphics temp1 = temp.createGraphics();
+//		temp1.setFont(new Font("Arial", 0, 28));
+		temp1.setColor(Color.WHITE);
+		temp1.fillRect(0, 0, getWidth(), getHeight());
+		temp1.drawArc(0, 0, 135, 235, 25, 15);
+		temp1.drawLine(40, 40, 160, 160);
+		temp1.drawRect(100, 100, 50, 50);
+//		temp1.setColor(Color.BLACK);
+		temp1.drawString("This is temp", 0, temp.getHeight()-6);
+//		g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+		temp1.dispose();
+		g.drawImage(temp, 150, 100, null);
+		*/
+		
+		refreshOtherComponents();
 	}
 	
-	public void mouseClicked(MouseEvent e) {}
+	public void refreshOtherComponents() {
+	}
+	
+	public void mouseClicked(MouseEvent e) {
+//		JPopupMenu menu;
+//
+//		if (e.getButton()==MouseEvent.BUTTON1) { // left click
+//			// linkSamples = !linkSamples;
+//		} else if (e.getButton()==MouseEvent.BUTTON3) { // right click
+//		}
+//
+//		//System.out.println("Click with "+prox.size()+" in proximity");
+//		if (prox != null && prox.size() > 0) {
+//			menu = new JPopupMenu();
+//			for (int i = 0; i<prox.size(); i++) {
+//				menu.add(new LaunchAction("Scatter Plot"));
+//			}
+//			menu.show(this, e.getX(), e.getY());
+//		}
+	}
 
 	public void mouseEntered(MouseEvent e) {}
 
 	public void mouseExited(MouseEvent e) {}
 
-	public void mouseMoved(MouseEvent e) {}
+//	public void mouseMoved(MouseEvent e) {}
 	
+	public void mouseMoved(MouseEvent event) {
+		Graphics g = getGraphics();
+		IntVector indicesOfNearbyPoints;
+		String pos;
+		int x, y, dataPointIndex;
+		byte size;
+
+		if (getFinalImage()) {
+			x = event.getX();
+			y = event.getY();
+
+			canvasSectionMinimumX = WIDTH_Y_AXIS;
+			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+			canvasSectionMinimumY = HEIGHT_X_AXIS;
+			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
+			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
+			if (!pos.equals(prevPos)) {
+				repaint();
+			}
+
+			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
+			prox = new IntVector();
+
+			size = SIZE * 2;
+			g.setColor(Color.GRAY);
+			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
+				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
+				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[dataPointIndex].getRawX()), getY(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
+					prox.add(dataPointIndex);
+//					g.setColor(Color.YELLOW);
+//					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+					g.drawOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+
+				}
+			}
+
+			prevPos = pos;
+		}
+	}
+
 	public void mousePressed(MouseEvent e) {
 		startX = e.getPoint().x;
 		startY = e.getPoint().y;
@@ -448,6 +752,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void mouseDragged(MouseEvent e) {
 		int curX, curY;
 		double distance;
+		
+		System.err.println("AbstractPanel mouseDragged has been called");
 
 		curX = e.getPoint().x;
 		curY = e.getPoint().y;
@@ -487,6 +793,60 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}			
 			zoomProportionally(e.getWheelRotation()>0, e.getPoint(), false);
 		}
+	}
+
+	public void componentHidden(ComponentEvent e) {}
+
+	public void componentMoved(ComponentEvent e) {}
+
+	public void componentResized(ComponentEvent e) {
+//		setFlow(false);//zx
+		if (this.waitingTimer==null) {
+			/* Start waiting for DELAY to elapse. */
+			this.waitingTimer = new Timer(DELAY,this);
+			this.waitingTimer.start();
+		}
+		else {
+			/* Event came too soon, swallow it by resetting the timer.. */
+			this.waitingTimer.restart();
+		}
+
+//		createImage();
+
+//		if (patience!=null) {
+//			patience.cancel();
+//			patience = null;
+//		}
+//		if (prevWidth==-1) {
+//			prevWidth = getWidth();
+//			prevHeight = getHeight();
+//		} else if (prevWidth!=getWidth()||prevHeight!=getHeight()) {
+////			image = null;
+////			repaint();
+////			new Thread(patience = new Repress(this, 100)).start();
+//
+//			prevWidth = getWidth();
+//			prevHeight = getHeight();
+//		}
+//		setFlow(true);//zx
+	}
+
+	public void componentShown(ComponentEvent e) {}
+
+	public void actionPerformed(ActionEvent ae)
+	{
+	  /* Timer finished? */
+	  if (ae.getSource()==this.waitingTimer)
+	  {
+	    /* Stop timer */
+	    this.waitingTimer.stop();
+	    this.waitingTimer = null;
+	    /* Resize */
+		setFlow(true);//zx
+	    createImage();
+	    repaint();
+//	    setFlow(false);//zx
+	  }
 	}
 
 	public void zoomProportionally(boolean outNotIn, Point p, boolean center) {
@@ -546,6 +906,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		} while (changed);
 		
+//		getGraphics().fillRect(mouseStartX, mouseStartY, mouseEndX-mouseStartX, mouseEndY-mouseStartY);
+		
 		paintAgain();
 	}
 
@@ -556,7 +918,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				zoomSubsets[j][i] = i;
 			}
 		}
-	}	
+	}
 	
 	public void drawPoint(Graphics g, PlotPoint point) {
 		g.setColor(colorScheme[point.getColor()]);
@@ -569,10 +931,18 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			g.drawOval(getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
 			break;
 		case PlotPoint.MISSING:
-			g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
+			//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
+			if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")){
+				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())-point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())+point.getSize()/4);//zx
+				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())+point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())-point.getSize()/4);//zx
+			} else {
+				g.setFont(new Font("Arial", 0, point.getSize()));//zx
+				g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())+point.getSize()/2);//zx
+				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));//zx
+			}
 			break;
 		case PlotPoint.NOT_A_NUMBER:
-			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
+//			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
 			break;
 		default:
 			System.err.println("Error - invalid PlotPoint type");
@@ -686,9 +1056,175 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 
-	public void createImage() {
-		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-		drawAll(image.createGraphics());
+	/**
+	 * Converts mouse location int X,Y into data points' value double rawX,rawY.
+	 * The control variable invertX is assigned elsewhere in the class.
+	 * @param mouseX the mouse location X
+	 * @return the rawX value of the corresponding data point.
+	 */
+	public double getRawX(int mouseX) {
+		if (invertX) {
+			return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
+		} else {
+			return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
+		}
+	}
+
+	/**
+	 * Converts mouse location int X,Y into data points' value double rawX,rawY
+	 * The control variable invertY is assigned elsewhere in the class.
+	 * @param mouseY the mouse location Y
+	 * @return the rawY value of the corresponding data point.
+	 */
+	public double getRawY(int mouseY) {
+		if (invertY) {
+			return plotYmax + ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
+		} else {
+			return plotYmin - ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
+		}
 	}
 	
+//	/**
+//	 * Screens the data points to find out those that fall into the range of (double rawXmin, double rawXmax, double rawYmin, double rawYmax)
+//	 * @param rawXmin
+//	 * @param rawXmax
+//	 * @param rawYmin
+//	 * @param rawYmax
+//	 */
+//	public void highlightPoints(double rawXmin, double rawYmin, double rawXmax, double rawYmax) {
+//		if (points.length==100){
+//		for (int i=0; i<points.length; i++) {
+//			if (points[i].getRawX()>=rawXmin
+//					&& points[i].getRawY()>=rawYmin
+//					&& points[i].getRawX()<=rawXmax
+//					&& points[i].getRawY()<=rawYmax) {
+//				points[i].setHighlighted(true);
+//				System.out.println("Highlighting: "+points[i].getRawX()+","+points[i].getRawY());
+//			} else {
+//				points[i].setHighlighted(false);
+//			}
+//			
+//		}
+//		}
+//	}
+//	
+	/**
+	 * Highlights those points that need to be highlighted
+	 * @param array
+	 */
+	public void highlightPoints(boolean[] array) {
+		if (points.length != array.length) {
+			System.err.println("Error - mismatched array size when highlighting");
+		} else {
+			for (int i=0; i<points.length; i++) {
+				if (points[i]!=null && array[i]) {
+					points[i].setHighlighted(true);
+				} else if (points[i]!=null) {
+					points[i].setHighlighted(false);
+				}
+				
+			}
+		}
+	}
+	
+	public void createImage() {
+		if (getWidth() > 350 && getHeight() > 0 ) {
+			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+			flow = true;
+			drawAll(image.createGraphics(), true);
+//			repaint();
+//			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+		}
+	}
+	
+	//zx
+	public void setLookupResolution(int lookupResolution) {
+		this.lookupResolution = lookupResolution;
+	}
+	
+	//zx
+	/*
+	public void buildLookupTableOfNearbyPoints() {
+		int x, y;
+		String pos;
+		locLookup.clear();
+		//System.out.println("---Beginning of locLookup---\npos\tLocation\tSample Index");//test point
+		for (int i = 0; i<points.length; i++) {
+			//x = (int)Math.floor(getX(data[i][0])/LOOKUP_RESOLUTION);
+			//y = (int)Math.floor(getY(data[i][1])/LOOKUP_RESOLUTION);
+			x = (int)Math.floor(getX(points[i].getRawX())/lookupResolution);
+			y = (int)Math.floor(getY(points[i].getRawY())/lookupResolution);
+			for (int j = x-1; j<=x+1; j++) {
+				for (int k = y-1; k<=y+1; k++) {
+					pos = j+"x"+k;
+					if (locLookup.containsKey(pos)) {
+						locLookup.get(pos).add(i);
+					} else {
+						locLookup.put(pos, new IntVector(new int[] {i}));
+					}
+					//System.out.println(pos+"\t("+getX(points[i].getRawX())+", "+getY(points[i].getRawY())+")\t"+i);//test point
+				}
+			}
+		}
+		//System.out.println("---End of locLookup---\n\n\n");//test point
+	}
+	*/
+
+	//zx
+	public IntVector lookupNearbyPoints(int x, int y, String pos) {
+		IntVector iv = locLookup.get(pos);
+		//System.out.print("\t iv size: "+iv.size());
+		IntVector indeciesOfDataPoints = new IntVector();
+		//System.out.println("---Log of lookup process---\nMouse pos\tMouse location\tNumber of nearby samples\tNearby sample index\tNearby sample location\tDistance");//test point
+		for (int i = 0; iv!=null && i<iv.size(); i++) {
+			//System.out.println(pos+"\t("+x+", "+y+")\t"+(iv==null?"null":iv.size())+"\t"+iv.elementAt(i)+"\t("+getX(points[iv.elementAt(i)].getRawX())+", "+getY(points[iv.elementAt(i)].getRawY())+")\t"+Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())}));//test point
+			if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
+				indeciesOfDataPoints.add(iv.elementAt(i));
+			}
+		}
+		//System.out.println("\t indeciesOfDataPoints: "+indeciesOfDataPoints.size());
+		return indeciesOfDataPoints;
+	}
+
+	public void setFinalImage(boolean finalImage) {
+		this.finalImage = finalImage;
+	}
+
+	public boolean getFinalImage() {
+		return finalImage;
+	}
+
+	public void setFlow(boolean flow) {
+		this.flow = flow;
+	}
+
+	public boolean getFlow() {
+		return flow;
+	}
+	
+//	public void interruptFlow1() {
+//		flow = false;
+//	}
+//	
+	public void setPointsGeneratable(boolean pointsGeneratable) {
+		this.pointsGeneratable = pointsGeneratable;
+	}
+
+	public boolean isPointsGeneratable() {
+		return pointsGeneratable;
+	}
+	
+	public void setSwapable(boolean swapable) {
+		this.swapable = swapable;
+	}
+
+	public boolean isSwapable() {
+		return swapable;
+	}
+
+	public void drawRectThick (Graphics g, int x, int y, int width, int height, byte thickness) {
+    	for (byte i=0; i<thickness; i++) {
+    		g.drawRect(x+i, y+i, width-2*i, height-2*i);
+    	}
+	}
 }

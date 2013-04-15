@@ -34,7 +34,7 @@ public class Parallelize implements Runnable {
 			for (int i = 0; i<samples.length; i++) {
 				if (i % numThreads == threadNumber) {
 					System.out.println((++count)+" of "+total);
-					proj.getFullSample(samples[i]).compLRRs(proj);
+					proj.getFullSampleFromRandomAccessFile(samples[i]).compLRRs(proj);
 				}
 	        }
 			break;

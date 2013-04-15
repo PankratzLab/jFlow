@@ -52,6 +52,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	public static final int SIZE = 4;
 	public static final int MIN_BUFFER = 10000;
 	// public static final String DEFAULT_SAMPLE_DATA = "data/SampleData.dat";
+	public static final int DEFAULT_STARTX = 20;
+	public static final int DEFAULT_STARTY = 20;
+	public static final int DEFAULT_WIDTH = 1000;
+	public static final int DEFAULT_HEIGHT = 720;
 
 	// private static final String ALT_UP = "ALT UP";
 	// private static final String ALT_DOWN = "ALT DOWN";
@@ -126,9 +130,14 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	};
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
+		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	}
+
+	public Trailer(Project proj, String selectedSample, String[] filenames, String location, int startX, int startY, int width, int height) {
 		super("CNVis - Trailer");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
+		System.out.println("startX: "+startX+"\t startY: "+startY+"\t width: "+width+"\t height: "+height);
 		System.out.println(Array.toStr(filenames, "; "));
 
 		long time;
@@ -146,7 +155,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		generateComponents();
 		
 		sample = selectedSample==null?samplesPresent[0]:selectedSample;
-		sampleData = new SampleData(proj, cnvFilenames);
+		sampleData = proj.getSampleData(2, cnvFilenames);
 		if (sampleData.failedToLoad()) {
 			return;
 		}
@@ -186,7 +195,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		System.out.println("All in "+ext.getTimeElapsed(time));
 
 		parseLocation(location);
-		setBounds(20, 20, 1000, 720);
+//		setBounds(20, 20, 1000, 720);
+		setBounds(startX, startY, width, height);
 		setVisible(true);
 	}
 	
@@ -264,7 +274,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						}
 						if (!Float.isNaN(lrrValues[i])) {
 							if (dropped[i]) {
-								g.drawString("X", getX(positions[i]), getHeight()-(int)((double)(lrrValues[i]-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
+//								g.drawString("X", getX(positions[i]), getHeight()-(int)((double)(lrrValues[i]-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
 							} else if (lrrValues[i] < min){
 								g.drawString("v", getX(positions[i]), getHeight()-(int)((double)(min-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
 							} else if (lrrValues[i] > max){
@@ -374,7 +384,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				if (lrrs != null) {
 					for (int i = startMarker; i<=stopMarker; i++) {
 						if (!Float.isNaN(lrrs[i])) {
-							if (genotypes != null && genotypes[i]==-1) {
+							if (dropped[i]) {
+								g.drawString("X", getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER+5);
+							} else if (genotypes != null && genotypes[i]==-1) {
 								g.drawString("+", getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-4*HEIGHT_BUFFER))-HEIGHT_BUFFER/2);
 							} else {
 								g.fillOval(getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-4*HEIGHT_BUFFER))-HEIGHT_BUFFER, SIZE, SIZE);
@@ -784,7 +796,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	public void createSampleList() {
 		long time = new Date().getTime();
-		String[] filesPresent = Files.list(proj.getDir(Project.IND_DIRECTORY), ".samp", jar);
+		String[] filesPresent = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
 		FontMetrics fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
 		String refresh = "refresh list";
 		int maxWidth = fontMetrics.stringWidth(refresh);
@@ -828,7 +840,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		dropped = new boolean[numMarkers];
 		chrBoundaries = new int[27][2];
 		for (int i = 0; i<chrBoundaries.length; i++) {
-			chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
+//			chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
+			chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
 		}
 		chr = 0;
 		for (int i = 0; i<numMarkers; i++) {
@@ -849,15 +862,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 
 	public void loadValues() {
-//		long time;
 		Sample samp;
 
-//		time = new Date().getTime();
-		samp = proj.getSample(sample);
+		samp = proj.getPartialSampleFromRandomAccessFile(sample);
 		if (samp == null) {
-			System.err.println("Error - sample '"+sample+"' not found in "+proj.getDir(Project.IND_DIRECTORY));
+			System.err.println("Error - sample '"+sample+"' not found in "+proj.getDir(Project.SAMPLE_DIRECTORY));
 		} else if ( samp.getFingerprint()!=fingerprint) {
-			System.err.println("Error - Sample "+proj.getDir(Project.IND_DIRECTORY)+sample+".samp has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
+			System.err.println("Error - Sample "+proj.getDir(Project.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
 		} else {
 			lrrs = samp.getLRRs();
 			
@@ -868,9 +879,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			}
 			
 			bafs = samp.getBAFs();
-			genotypes = samp.getGenotypes();
-
-//			System.out.println("Reading in data for "+sample+".samp took "+ext.getTimeElapsed(time));
+			genotypes = samp.getAB_Genotypes();
 		}
 		// lrrMin = Math.floor(lrrMin);
 		// lrrMax = Math.ceil(lrrMax);
@@ -940,7 +949,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			sample = newSample;
 			time = new Date().getTime();
 			System.out.print("Found "+sample+"...");
-			indiPheno = sampleData.getIndiPheno(sample);
+			indiPheno = sampleData.getIndiPheno(sample.toLowerCase());
 			if (indiPheno == null) {
 				JOptionPane.showMessageDialog(this, "Sample '"+sample+"' was not present in the SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
@@ -960,7 +969,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 	        }
 			if (!found) {
-				if (Files.exists(proj.getDir(Project.IND_DIRECTORY)+newSample+".samp", jar)) {
+				if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY)+newSample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
 					createSampleList();
 					updateSample(newSample);
 				} else {

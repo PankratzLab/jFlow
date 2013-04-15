@@ -218,7 +218,7 @@ public class Segment implements Serializable {
 		return putInOrder(array, quicksort(array));
 	}
 	
-	public static int binarySearch(Segment seg, Segment[] orderedList) {
+	public static int binarySearchForOverlap(Segment seg, Segment[] orderedList) {
 		int low, high, mid;
 		
 		low = 0;
@@ -237,8 +237,27 @@ public class Segment implements Serializable {
 		return -1;
 	}
 
+	public static int binarySearchForStartPositions(Segment seg, Segment[] orderedList) {
+		int low, high, mid;
+		
+		low = 0;
+		high = orderedList.length-1;
+		while (low<=high) {
+			mid = low+(high-low)/2;
+			if (orderedList[mid].getChr() == seg.getChr() && orderedList[mid].getStart() == seg.getStart()) {
+				return mid;
+			} else if (seg.chr < orderedList[mid].chr || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+				high = mid-1;
+			} else {
+				low = mid+1;
+			}
+		}
+
+		return -1;
+	}
+
 	public static boolean overlapsAny(Segment seg, Segment[] orderedList) {
-		return binarySearch(seg, orderedList) >= 0;
+		return binarySearchForOverlap(seg, orderedList) >= 0;
 	}
 	
 	public static boolean contains(Segment seg, Segment[] unorderedList) {

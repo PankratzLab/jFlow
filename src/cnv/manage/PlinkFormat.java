@@ -4,13 +4,15 @@ package cnv.manage;
 import java.io.*;
 import java.util.*;
 
-import cnv.filesys.FullSample;
+import cnv.filesys.ABLookup;
+import cnv.filesys.ClusterFilterCollection;
+import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import common.*;
 
 public class PlinkFormat {
-	public static void createPlink(Project proj) {
+	public static void createPlink(Project proj, String clusterFilterFilename) {
 		BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,String> hash;
@@ -21,14 +23,15 @@ public class PlinkFormat {
 		int[] positions;
 		boolean prob;
 		MarkerSet markerSet;
-		FullSample fsamp;
+		Sample fsamp;
 		byte[] genotypes;
 		byte genIndex;
 		String genotype;
 		int count;
-		double gcThreshold;
-		float[] gcs;
+		float gcThreshold;
 		String targetMarkers;
+		ClusterFilterCollection clusterFilterCollection;
+		char[][] abLookup;
 		String temp;
 
 		System.out.println(ext.getTime());
@@ -88,7 +91,7 @@ public class PlinkFormat {
 			System.exit(2);
 		}
 
-		gcThreshold = proj.getDouble(Project.GC_THRESHOLD);
+		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
 		if (gcThreshold < 0) {
 			System.err.println("Error - GC_THRESHOLD must be greater than zero (not "+gcThreshold+")");
 		}
@@ -96,12 +99,32 @@ public class PlinkFormat {
 			System.err.println("Error - GC_THRESHOLD must be less than one (not "+gcThreshold+")");
 		}
 		System.out.println("Using a GC threshold of "+gcThreshold+" (less than or equal to will be set to missing, greater than is kept)");
+		
+		clusterFilterCollection = null;
+		if (clusterFilterFilename != null) {
+			clusterFilterFilename = proj.getProperty(Project.PROJECT_DIRECTORY)+proj.getProperty(Project.DATA_DIRECTORY)+clusterFilterFilename;
+			if (Files.exists(clusterFilterFilename, proj.getJarStatus())) {
+//				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
+				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
+			} else {
+				System.err.println("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
+				return;
+			}
+			abLookup = new ABLookup(markerNames, proj.getProjectDir()+"AB_lookup.dat", true, true).getLookup();
+		} else {
+			abLookup = null;
+		}
+		
 		try {
 			reader = new BufferedReader(new FileReader(proj.getFilename(Project.PEDIGREE_FILENAME)));
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"gwas.ped"));
 			count = 1;
 			while (reader.ready()) {
-				System.out.println(count++);
+				count++;
+				if (count % 100 == 0) {
+					System.out.println(count);
+				}
+				
 				temp = reader.readLine();
 				line = temp.split(ext.determineDelimiter(temp));
 				writer.print(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
@@ -110,21 +133,24 @@ public class PlinkFormat {
 						writer.print("\t0\t0");
 					}
 				} else {
-					fsamp = proj.getFullSample(line[6]);
+					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
 					if (fsamp==null) {
 						System.err.println("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+".fsamp was not found in directory: "+proj.getDir(Project.SAMPLE_DIRECTORY));
 						for (int i = 0; i<indices.length; i++) {
 							writer.print("\t0\t0");
 						}
 					} else {
-						genotypes = fsamp.getForwardGenotypes();
-						gcs = fsamp.getGCs();
+						if (clusterFilterFilename == null) {
+							genotypes = fsamp.getForwardGenotypes(gcThreshold);
+						} else {
+							genotypes = markerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(markerNames, clusterFilterCollection, gcThreshold), abLookup);
+						}
 						for (int i = 0; i<indices.length; i++) {
 							genIndex = genotypes[indices[i]];
-							if (genIndex==0 || gcs[indices[i]] <= gcThreshold) {
+							if (genIndex==0) {
 								writer.print("\t0\t0");
 							} else {
-								genotype = FullSample.ALLELE_PAIRS[genIndex];
+								genotype = Sample.ALLELE_PAIRS[genIndex];
 								writer.print("\t"+genotype.charAt(0)+"\t"+genotype.charAt(1));
 							}
 						}
@@ -176,13 +202,15 @@ public class PlinkFormat {
 		int numArgs = args.length;
 		String filename = Project.DEFAULT_PROJECT;
 		String pick = "";
+		String filters = null;
 
 		String usage = "\\n"+
 		"cnv.manage.PlinkFormat requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"     requires pedigree file and targets file to be delineated in the Project properties file\n"+
+		"   (2) filename of cluster filters to use during processing (i.e. filters=data/clusterFilters.ser (not the default))\n"+
 		"  OR\n"+
-		"   (1) pick targets to include in the PLINK file from an Illumina map file (i.e. pick=filename.csv (not the default))\n"+
+		"   (2) pick targets to include in the PLINK file from an Illumina map file (i.e. pick=filename.csv (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -191,6 +219,9 @@ public class PlinkFormat {
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("filters=")) {
+				filters = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("pick=")) {
 				pick = args[i].split("=")[1];
@@ -206,7 +237,7 @@ public class PlinkFormat {
 			if (!pick.equals("")) {
 				pickTargets(pick);
 			} else {
-				createPlink(new Project(filename, false));
+				createPlink(new Project(filename, false), filters);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

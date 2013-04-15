@@ -22,12 +22,11 @@ public class DeNovoCNV {
 
 	private static Project proj;
 	
+	// TODO 2-pass cleanup
 	public static void generatePedigreeOfTrios(String pedigreeFileName) {
 		BufferedReader reader;
 		String[] line;
 		PrintWriter writer;
-//		HashVec trav;
-//		String[] newID;
 		StringVector fId, iId, faId, moId, dna;
 		
 //		trav = new HashVec();
@@ -120,13 +119,14 @@ public class DeNovoCNV {
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+pedigreeOfTrio+"\"");
 		}
-		PennCNV.parseResults(proj, "penn_output/resultAll.jointcnv", false, true);
+		PennCNV.parseResults(proj, "penn_output/resultAll.jointcnv", false);
 	}
 	
 	public static void batch(String pedigreeOfTrio) {
 		String command;
 		String[][] iterations;
 		
+//		command = "perl C:/penncnv/detect_cnv.pl -joint -hmm C:/penncnv/lib/hh550.hmm -pfb C:/penncnv/lib/hh550.hg18.pfb -gcmodel C:/penncnv/lib/hh550.hg18.gcmodel [%1] [%2] [%3] -out [%1].jointcnv";
 		command = "perl ../bin/penncnv/detect_cnv.pl -joint -hmm ../bin/penncnv/lib/hhall.hmm -pfb ../bin/custom.pfb -gcmodel ../bin/custom.gcmodel [%1] [%2] [%0] -out ../results/[%0].jointcnv -log ../results/[%0].log";
 		
 		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
@@ -239,7 +239,7 @@ public class DeNovoCNV {
 
 //		generatePedigreeOfTrios("D:/GEDI/GEDI_CNV_Pedigree.txt");
 //		runPennCnv("D:/GEDI/PedigreeOfTrios.txt", "D:/GEDI/cnv_output/", "D:/GEDI/samples_all/", "gedi_all.rawcnv");
-		batch("PedigreeOfTrios.txt");
+		batch("D:/GEDI/PedigreeOfTrios.txt");
 
 //		selectFilesToTestInPennCNV("D:/BOSS_outputFiles/TriosForDenovoCnv.txt");
 

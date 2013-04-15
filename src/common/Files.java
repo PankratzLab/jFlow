@@ -542,6 +542,7 @@ public class Files {
 		return reader;
 	}
 	
+	@SuppressWarnings("resource")
 	public static BufferedReader getAppropriateReader(String filename) throws FileNotFoundException {
 		InputStreamReader isReader = null;
 
@@ -1497,10 +1498,11 @@ public class Files {
 	}
 
 	public static String[] list(String directory, final String suffix, boolean jar) {
-		return list(directory, null, suffix, jar);
+		return list(directory, null, suffix, false, jar);
 	}
 	
-	public static String[] list(String directory, final String prefix, final String suffix, boolean jar) {
+	// TODO does this stuff really need to be final?
+	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
 		if (jar) {
 			try {
 //				System.err.println("I haven't been able to get listFiles() to work inside a jar file yet");
@@ -1525,6 +1527,8 @@ public class Files {
 						}
 					}
 				}
+				
+				jarFile.close();
 
 				return Array.toStringArray(v);
 			} catch (Exception e) {
@@ -1537,11 +1541,20 @@ public class Files {
 			
 			files = new File(directory).list(new FilenameFilter() {
 				public boolean accept(File file, String filename) {
-					if (prefix != null && !prefix.equals("") && !filename.toLowerCase().startsWith(prefix.toLowerCase())) {
-						return false;
-					}
-					if (suffix != null && !suffix.equals("") && !filename.toLowerCase().endsWith(suffix.toLowerCase())) {
-						return false;
+					if (caseSensitive) {
+						if (prefix != null && !prefix.equals("") && !filename.startsWith(prefix)) {
+							return false;
+						}
+						if (suffix != null && !suffix.equals("") && !filename.endsWith(suffix)) {
+							return false;
+						}
+					} else {
+						if (prefix != null && !prefix.equals("") && !filename.toLowerCase().startsWith(prefix.toLowerCase())) {
+							return false;
+						}
+						if (suffix != null && !suffix.equals("") && !filename.toLowerCase().endsWith(suffix.toLowerCase())) {
+							return false;
+						}
 					}
 					if (new File(file, filename).isDirectory()) {
 						return false;
@@ -1549,6 +1562,7 @@ public class Files {
 					return true;
 				}
 			});
+			
 			
 			if (files == null) {
 				return new String[0];
@@ -1582,6 +1596,8 @@ public class Files {
 					}
 				}
 
+				jarFile.close();
+
 				return Array.toStringArray(v);
 			} catch (Exception e) {
 				System.err.println("Error reading files in jar file");
@@ -1597,6 +1613,7 @@ public class Files {
 		}
 	}
 	
+	// TODO is this used by anything? It was commented out in Zack's version...
 	public static void summarizeAllFilesInDirectory(String dir) {
 		PrintWriter writer;
 		String[] data;
@@ -1671,8 +1688,6 @@ public class Files {
 			}
 		}		
 	}
-	
-
 
 	public static void more(String filename) {
 		BufferedReader reader;
@@ -1743,10 +1758,8 @@ public class Files {
 	                reader.close();
                 } catch (FileNotFoundException fnfe) {
                 	log.reportError("Error: file \""+originalFiles[i]+"\" not found in current directory");
-	                return;
                 } catch (IOException ioe) {
                 	log.reportError("Error reading file \""+originalFiles[i]+"\"");
-	                return;
                 }
             }
 	        writer.close();
@@ -1992,7 +2005,7 @@ public class Files {
 					if (new File(trav+".taken").exists()) {
 						done = false;
 					} else {
-						files = list("./", trav+".", ".reserved", false);
+						files = list("./", trav+".", ".reserved", false, false);
 						if (files.length > 1) {
 							rands = new int[files.length];
 							for (int i = 0; i < rands.length; i++) {
@@ -2054,15 +2067,15 @@ public class Files {
 			return null;
 		}
 
-    	if (delimiter == null) {
-    		delimiter = ext.determineDelimiter(lines[0]);
-    	}
+		if (delimiter == null) {
+			delimiter = ext.determineDelimiter(lines[0]);
+		}
 
-    	if (delimiter.startsWith(",")) {
-    		return ext.splitCommasIntelligently(lines[0], delimiter.endsWith("!"), log);
-    	}
-    	
-    	return lines[0].trim().split(delimiter);
+		if (delimiter.startsWith(",")) {
+			return ext.splitCommasIntelligently(lines[0], delimiter.endsWith("!"), log);
+		}
+
+		return lines[0].trim().split(delimiter);
 	}
 	
 	public static String[] getFirstNLinesOfFile(String filename, int nLines, Logger log) {
@@ -2095,8 +2108,7 @@ public class Files {
 		
 		return lines;
 	}
-	
-	
+
 	public static String[][] parseControlFile(String filename, boolean tab, String command, String[] sampleCode, Logger log) {
 		Vector<String> v;
 		
@@ -2119,6 +2131,7 @@ public class Files {
 	        line = reader.readLine().trim().split("[\\s]+");
 	        if (!line[0].equals(command)) {
 	        	log.reportError("Error - file must start with the line '"+command+"'");
+	        	reader.close();
 	        	return null;
 	        }
 	        if (!reader.ready()) {

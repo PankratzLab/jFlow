@@ -2,6 +2,7 @@ package cnv.var;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 import filesys.Segment;
 
@@ -91,8 +92,7 @@ public class CNVariant extends Segment {
 		return familyID+"_"+individualID+"_"+chr+"_"+start+"_"+stop+"_"+cn+"_"+numMarkers;
 	}
 	
-	// used to be just toArray, which overrode Segment.toArray, but Ant thinks this is a compile error for some reason
-	public static CNVariant[] toCNVariantArray(Vector<CNVariant> v) {
+	public static CNVariant[] toArray(Vector<CNVariant> v) {
 		CNVariant[] cnvs;
 
 		cnvs = new CNVariant[v==null?0:v.size()];
@@ -116,6 +116,10 @@ public class CNVariant extends Segment {
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean jar) {
+		return loadPlinkFile(filename, null, jar);
+	}
+	
+	public static CNVariant[] loadPlinkFile(String filename, Hashtable<String,String> sampleHash, boolean jar) {
 		BufferedReader reader;
 		Vector<CNVariant> v = null;
 		String[] line;
@@ -130,11 +134,14 @@ public class CNVariant extends Segment {
 				reader.reset();
 			}
 			while (reader.ready()) {
-				v.add(new CNVariant(reader.readLine().trim().split("[\\s]+")));
+				line = reader.readLine().trim().split("[\\s]+");
+				if (sampleHash == null || sampleHash.containsKey(line[0]+"\t"+line[1])) {
+					v.add(new CNVariant(line));
+				}
 			}
 			reader.close();
 
-			return CNVariant.sortCNVs(CNVariant.toCNVariantArray(v));
+			return CNVariant.sortCNVs(CNVariant.toArray(v));
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" not found in current directory");
 			fnfe.printStackTrace();
@@ -145,7 +152,53 @@ public class CNVariant extends Segment {
 
 		return null;
 	}
-	
+
+	// TODO what was this created for? Incomplete
+	public static void mergeCNVs(String filename) {
+		BufferedReader reader;
+		String[] line;
+		PrintWriter writer;
+		Hashtable<String, Vector<CNVariant>> hash;
+		hash = new Hashtable<String, Vector<CNVariant>>();
+		StringVector markerNames;
+		ByteVector chrs;
+		IntVector positions;
+		
+//		hash.add(fID+"\t"+iId, Vector<CNVariant>);
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+
+			markerNames = new StringVector();
+			chrs = new ByteVector();
+			positions = new IntVector();
+
+			reader.readLine();
+			while(reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				markerNames.add(line[0]);
+				chrs.add((byte)Positions.chromosomeNumber(line[1]));
+				positions.add(Integer.parseInt(line[2]));
+			}
+			reader.close();
+			/*
+			new MarkerSet(markerNames, chrs, positions).serialize(filename+".ser");
+
+			writer = new PrintWriter(new FileWriter("????"));
+			for (int i = 0; i<temp.length; i++) {
+				writer.println(temp[i].toPlinkFormat());
+			}
+			writer.close();
+			*/
+
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \""+filename+"\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \""+filename+"\"");
+			System.exit(2);
+		}
+	}
+
 	public static void findConsensus(String file1, String file2) {
 		PrintWriter writer;
 		CNVariant[] list1, list2, consensus;
@@ -161,7 +214,7 @@ public class CNVariant extends Segment {
 				}
 			}
 		}
-		consensus = sortCNVs(CNVariant.toCNVariantArray(v));
+		consensus = sortCNVs(CNVariant.toArray(v));
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(file1)+"_"+ext.rootOf(file2)+"_consensus.cnv"));
@@ -175,6 +228,21 @@ public class CNVariant extends Segment {
 		}
 	}
 
+	public static CNVariant[] putInOrder(CNVariant[] array, int[] order) {
+		CNVariant[] newArray;
+
+		newArray = new CNVariant[array.length];
+		for (int i = 0; i<order.length; i++) {
+			newArray[i] = array[order[i]];
+		}
+
+		return newArray;
+	}
+	
+	public static CNVariant[] sort(CNVariant[] array) {
+		return putInOrder(array, quicksort(array));
+	}
+	
 	public static void main(String[] args) {
 		String file1 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\penncnv\\again_noGenderProblems\\conf_0kb_5SNP_10.0.cnv";
 		String file2 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\quantisnp\\noGenderProblems\\conf_0kb_5SNP_10.0.cnv";

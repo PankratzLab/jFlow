@@ -33,7 +33,7 @@ public class ParseAffymetrix implements Runnable {
 		int[] dataIndices, genotypeIndices;
 		boolean parseAtAt;
 
-		FullSample samp;
+		Sample samp;
 		String sampleName;
 		float[][] data;
 		byte[][] genotypes;
@@ -63,22 +63,22 @@ public class ParseAffymetrix implements Runnable {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
 
-					dataIndices = ext.indexFactors(FullSample.DATA_FIELDS, line, false, true, false, false);
-					genotypeIndices = ext.indexFactors(FullSample.GENOTYPE_FIELDS, line, false, true, false, false);
+					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
+					genotypeIndices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
 					snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 					
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
-						System.err.println("Error - File format not consistent! At the very least the files need to contain "+Array.toStr(FullSample.DATA_FIELDS[3], "/")+" and "+Array.toStr(FullSample.DATA_FIELDS[4], "/"));
+						System.err.println("Error - File format not consistent! At the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
 						return;
 					}
 					if (genotypeIndices[0] == -1 || genotypeIndices[1] == -1) {
-						System.err.println("Error - File format not consistent! The files need to contain "+Array.toStr(FullSample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(FullSample.GENOTYPE_FIELDS[1], "/"));
+						System.err.println("Error - File format not consistent! The files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
 						return;
 					}
 
 					sampleName = "";
-					data = new float[FullSample.DATA_FIELDS.length][];
+					data = new float[Sample.DATA_FIELDS.length][];
 					for (int j = 0; j<data.length; j++) {
 						if (dataIndices[j] != -1) {
 							data[j] = new float[markerNames.length];
@@ -113,26 +113,26 @@ public class ParseAffymetrix implements Runnable {
 
 						key = keysKeys[count];
 						// System.out.println(count+"\t"+markerNames[count]+"\t"+key);
-						for (int j = 0; j<FullSample.DATA_FIELDS.length; j++) {
+						for (int j = 0; j<Sample.DATA_FIELDS.length; j++) {
 							try {
 								if (dataIndices[j] != -1) {
 									data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 								}
 							} catch (NumberFormatException nfe) {
-								System.err.println("Error - failed to parse"+line[dataIndices[j]]+" into a valid "+FullSample.DATA_FIELDS[j]);
+								System.err.println("Error - failed to parse"+line[dataIndices[j]]+" into a valid "+Sample.DATA_FIELDS[j]);
 								return;
 							}
 						}
 
-						genotypes[0][key] = (byte)ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], FullSample.ALLELE_PAIRS);
+						genotypes[0][key] = (byte)ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALLELE_PAIRS);
 						if (genotypes[0][key] == -1) {
-							if (ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], FullSample.ALT_NULLS) == -1) {
+							if (ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALT_NULLS) == -1) {
 								System.err.println("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+markerNames[count]+" of sample "+files[i]);
 							} else {
 								genotypes[0][key] = 0;
 							}								
 						}
-						genotypes[1][key] = (byte)ext.indexOfStr(line[genotypeIndices[2]]+line[genotypeIndices[3]], FullSample.AB_PAIRS);
+						genotypes[1][key] = (byte)ext.indexOfStr(line[genotypeIndices[2]]+line[genotypeIndices[3]], Sample.AB_PAIRS);
 
 						count++;
 					}
@@ -146,11 +146,10 @@ public class ParseAffymetrix implements Runnable {
 					do {
 						trav = sampleName+(version==0?"":"."+version);
 						version++;
-					} while (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+trav+".fsamp").exists());
+					} while (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists());
 
-					samp = new FullSample(sampleName, fingerprint, data, genotypes);
-					samp.serialize(proj.getDir(Project.SAMPLE_DIRECTORY, true)+trav+".fsamp");
-					samp.convertToSample().serialize(proj.getDir(Project.IND_DIRECTORY, true)+trav+".samp");
+					samp = new Sample(sampleName, fingerprint, data, genotypes);
+					samp.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \""+files[i]+"\" not found in current directory");
 					return;
@@ -218,17 +217,17 @@ public class ParseAffymetrix implements Runnable {
 			} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
 
 			// check immediately to make sure these fields are valid
-			indices = ext.indexFactors(FullSample.DATA_FIELDS, line, false, true, true, false); // dataIndices
+			indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, true, false); // dataIndices
 			if (indices[3] == -1 || indices[4] == -1) {
-				System.err.println("Error - at the very least the files need to contain "+Array.toStr(FullSample.DATA_FIELDS[3], "/")+" and "+Array.toStr(FullSample.DATA_FIELDS[4], "/"));
+				System.err.println("Error - at the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
 				System.err.println("      - failed to see that in "+files[0]);
 				System.err.println(Array.toStr(line));
 				
 				return;
 			}
-			indices = ext.indexFactors(FullSample.GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
+			indices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
 			if (indices[0] == -1 || indices[1] == -1) {
-				System.err.println("Error - the files need to contain "+Array.toStr(FullSample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(FullSample.GENOTYPE_FIELDS[1], "/"));
+				System.err.println("Error - the files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
 				return;
 			}
 			

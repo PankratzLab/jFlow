@@ -10,7 +10,7 @@ import common.*;
 public class CompareDuplicates {
 
 	public static String doIt(Project proj, String[] pair) {
-		FullSample[] fsamps;
+		Sample[] fsamps;
 		byte[] chrs;
 		float[][] xs, ys;
 //		float[][] lrrs, bafs;
@@ -29,12 +29,12 @@ public class CompareDuplicates {
 //			writer.println("X_1\tX2\tY1\tY2");
 			
 			
-			fsamps = new FullSample[pair.length];
+			fsamps = new Sample[pair.length];
 			xs = new float[pair.length][];
 			ys = new float[pair.length][];
 			genos = new byte[pair.length][];
 			for (int i = 0; i < pair.length; i++) {
-				fsamps[i] = proj.getFullSample(pair[i]);
+				fsamps[i] = proj.getFullSampleFromRandomAccessFile(pair[i]);
 //				xs[i]= fsamps[i].getX_Raws();
 //				ys[i] = fsamps[i].getY_Raws();
 				xs[i]= fsamps[i].getXs();

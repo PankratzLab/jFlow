@@ -23,8 +23,7 @@ public class LrrSd extends Parallelizable {
 	
 	public void run() {
 		PrintWriter writer;
-		FullSample fsamp;
-		Sample samp;
+		Sample fsamp;
 		float[][][] cents;
 		byte[] chrs, abGenotypes, forwardGenotypes;
 		float[] lrrs, bafs;
@@ -43,16 +42,10 @@ public class LrrSd extends Parallelizable {
 			
 			for (int i = 0; i<samples.length; i++) {
 	        	System.out.println((i+1)+" of "+samples.length);
-				fsamp = proj.getFullSample(samples[i]);
+				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
 				chrs = proj.getMarkerSet().getChrs();
-				lrrs = null;
 				if (fsamp == null) {
-					System.err.println("Error - "+samples[i]+".fsamp not found in samples directory");
-					samp = proj.getSample(samples[i]);
-					lrrs = samp.getLRRs();
-					bafs = samp.getBAFs();
-					abGenotypes = samp.getGenotypes();
-					forwardGenotypes = null;
+					System.err.println("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
 					lrrs = cents==null?fsamp.getLRRs():fsamp.getLRRs(cents);
 					lrrs = Array.subArray(lrrs, 0, Array.indexOfByte(chrs, (byte)23));
@@ -60,10 +53,6 @@ public class LrrSd extends Parallelizable {
 					bafs = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
 					abGenotypes = fsamp.getAB_Genotypes();
 					forwardGenotypes = fsamp.getForwardGenotypes();
-				}
-				if (lrrs == null) {
-					System.err.println("Error - could not find "+samples[i]+".fsamp or "+samples[i]+".samp");
-				} else {
 					for (int j = 0; j < bafs.length; j++) {
 						if (bafs[j] < 0.15 || bafs[j] > 0.85) {
 							bafs[j] = Float.NaN;

@@ -4,23 +4,40 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
+//import javax.swing.JTree.DynamicUtilTreeNode;
 import javax.swing.event.*;
 import javax.swing.tree.*;
+
+import common.IntVector;
 
 public class CheckBoxTree extends JTree implements ItemListener {
 	public static final long serialVersionUID = 1L;
 	
 	private JCheckBox[] selections;
+//	private Branch root;
+//	private int count = 0;
+	private boolean dynamic;
 	
 	public CheckBoxTree(String[][] names, int maxSelectable) {
 		super(createTreeStructure(names));
 		
 		selections = new JCheckBox[maxSelectable];
+		dynamic = false;
 
 		setCellRenderer(new CheckBoxNodeRenderer());
 		setCellEditor(new CheckBoxCellEditor(this));
 		setEditable(true);
+	}
+	
+	public CheckBoxTree(String[] namesOfBranches, String[] branchHandles, String[][] namesOfNodes, boolean[] active, int maxSelectable) {
+		super(createTreeStructure(namesOfBranches, branchHandles, namesOfNodes, active));
 		
+		selections = new JCheckBox[maxSelectable];
+		dynamic = false;
+
+		setCellRenderer(new CheckBoxNodeRenderer());
+		setCellEditor(new CheckBoxCellEditor(this));
+		setEditable(true);
 	}
 	
 	public void itemStateChanged(ItemEvent itemEvent) {
@@ -31,6 +48,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		deselect = null;
 		checkbox = (JCheckBox)itemEvent.getSource();
 //		System.out.println("State change ("+(++count)+"): "+checkbox.getName()+" is "+checkbox.isSelected());
+//		System.out.println("There are "+selections.length+" elements in selections");
 		if (checkbox.isSelected()) {
 			found = false;
 			for (index = 0; index<selections.length && !found; index++) {
@@ -60,6 +78,252 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		fireValueChanged(new TreeSelectionEvent(this, getPathForRow(0), true, getPathForRow(0), getPathForRow(0)));
 	}
 	
+	public void addNode(String nameOfBranch, String branchHandle, String[] namesOfNodes, boolean[] active) {
+		TreeModel model;
+		Font font;
+		Boolean booleanValue;
+		boolean focusPainted;
+		JCheckBox[] travSelections;
+		IntVector expansions;
+		
+		travSelections = new JCheckBox[selections.length];
+		for (int i = 0; i < selections.length; i++) {
+			travSelections[i] = selections[i];
+		}
+
+		expansions = new IntVector();
+		for (int i=0; i<getRowCount(); i++) {
+			if (isExpanded(i)) {
+				expansions.add(i);
+				collapseRow(i);
+			}
+		}
+
+		setSelectionPath(null);
+
+		font = UIManager.getFont("Tree.font");
+		booleanValue = (Boolean)UIManager.get("Tree.drawsFocusBorderAroundIcon");
+		focusPainted = (booleanValue!=null)&&(booleanValue.booleanValue());
+		
+		model = getModel();
+		
+		Object root = model.getRoot();
+//		DynamicUtilTreeNode root = (DynamicUtilTreeNode)model.getRoot();
+//		root.setAllowsChildren(true);
+		
+		JCheckBox[] boxes = new JCheckBox[namesOfNodes.length];
+		for (int j = 0; j<boxes.length; j++) {
+			boxes[j] = new JCheckBox(namesOfNodes[j], false);
+			boxes[j].setFont(font);
+			boxes[j].setName(branchHandle+" "+j);
+			boxes[j].setFocusPainted(focusPainted);
+			boxes[j].setEnabled(active[j]);
+        }
+//        DynamicUtilTreeNode.createChildren(root, new Branch(nameOfBranch, boxes));
+//		Object ob = new Branch(nameOfBranch, boxes);
+		((DefaultMutableTreeNode)root).setAllowsChildren(true);
+        DynamicUtilTreeNode.createChildren((DefaultMutableTreeNode) root, new Branch[] {new Branch(nameOfBranch, boxes)});
+
+        dynamic = true;
+        ((DefaultTreeModel)model).reload();
+        
+        for (int i = expansions.size()-1; i >= 0 ; i--) {
+    		expandRow(expansions.elementAt(i));
+		}
+
+		for (int i = 0; i < selections.length; i++) {
+			if (travSelections[i] != null) {
+				travSelections[i].setSelected(true);
+			}
+		}
+	}
+	
+//	public void deleteNode(String nameOfBranch, String branchHandle) {
+//		int index=-1;
+//		DefaultMutableTreeNode root, branch;
+//		DefaultTreeModel model;
+//		
+//		model = (DefaultTreeModel)getModel();		
+//		root = (DefaultMutableTreeNode)model.getRoot();
+//		for (int i=0; i<root.getChildCount(); i++ ) {
+//			branch = (DefaultMutableTreeNode)getModel().getChild(getModel().getRoot(), i);
+//			if (branch.toString().equals(nameOfBranch)) {
+//				Branch br = (Branch)branch.getUserObject();
+//				Object ob = br.firstElement();
+//				if (((JCheckBox)ob).getName().split("[\\s]+")[0].startsWith(branchHandle)) {
+//					System.out.println("Branch '"+branch+"' index="+i);
+//					index = i;
+//					break;
+//				}
+//			}
+//		}
+//		if (index != -1) {
+//			root.remove(index);
+//		} else {
+//			System.err.println("Branch "+nameOfBranch+" not found.");
+//		}
+//		
+//        model.reload();
+//	}
+	
+//	public void deleteSelectedNode() {
+//		DefaultMutableTreeNode selectedNode;
+//		int[][] selectionTmp;
+//		String[] selects;
+//		int row1, row2, index;
+//		DefaultMutableTreeNode root;	//, branch;
+//		DefaultTreeModel model;
+//		
+//		selectedNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+//		if (selectedNode == null) {
+//			System.err.println("Error - No root of a branch is selected.");
+//			return;
+//		}
+//		index = getSelectedPathComponent();
+//		model = (DefaultTreeModel)getModel();		
+//		root = (DefaultMutableTreeNode)model.getRoot();
+//
+//		selectionTmp = new int[selections.length][2];
+//		selects = new String[2];
+//		for (int i=0; i<selectionTmp.length; i++) {
+//			selects[i] = selections[i].getName();
+//			
+//			selectionTmp[i][0] = selections[i].getX();
+//			selectionTmp[i][1] = selections[i].getY();
+//			//TODO What's the relationship between selections[] and getSelectedPathComponent()???
+//			if ( getSelectionValues()[i][0].equals(getSelectedPathComponent()) ) {
+//				selectionTmp[i] = null;
+//			}
+//		}
+//		setSelectionPath(null);
+//		selections[0]=null;
+//		selections[1]=null;
+//		row1=-1;
+//		row2=-1;
+//		for (int i=0; i<getRowCount(); i++) {
+//			if (isExpanded(i)) {
+//				if (row1==-1) {
+//					row1=i;
+//				} else {
+//					row2=i;
+//				}
+//			}
+//		}
+//
+////		for (int i=0; i<root.getChildCount(); i++ ) {
+//////			branch = (DefaultMutableTreeNode)getModel().getChild(getModel().getRoot(), i);
+////			branch = (DefaultMutableTreeNode)model.getChild(root, i);
+////			if (branch == selectedNode) {
+////				index = i;
+////			}
+////			
+////			if (selectedNode.getUserObject() instanceof JCheckBox) {
+////				Branch br = (Branch)branch.getUserObject();selections
+////				for (int j=0; j<branch.getChildCount(); j++ ) {
+////					JCheckBox box = (JCheckBox)br.elementAt(j);
+////					if (box == (JCheckBox)(selectedNode.getUserObject())){
+////						index = i;
+////					}
+////		index = -1;
+////				}
+////			}
+////		}
+//		if (index != -1) {
+//			root.remove(index);
+//		} else {
+//			System.err.println("Branch "+selectedNode+" not foungetSelectionIndicesd.");
+//		}
+//		
+//        model.reload();
+//        
+//        if (row1>=-1) {
+//        	if (row1<index) {
+//        		expandRow(row1);
+//        	} else if (row1>index) {
+//        		expandRow(row1-1);
+//        	}
+//        }
+//        
+//        if (row2>=-1) {
+//        	if (row2<index) {
+//        		expandRow(row2);
+//        	} else if (row2>index) {
+//        		expandRow(row2-1);
+//        	}
+//        }
+//        
+//		for (int i=0; i<selectionTmp.length; i++) {
+//	        if (selectionTmp[i] != null) {
+//	        	setSelectionPath(getPathForLocation(selectionTmp[i][0],selectionTmp[i][1]));
+//				selections[i].setSelected(true);//TODO
+//			}
+//	        if (selects[i] != null) {
+//	        	
+//	        	setSelectionPath(getPathForLocation(selectionTmp[i][0],selectionTmp[i][1]));
+//				selections[i].setSelected(true);//TODO
+//			}
+//		}
+//	}
+//	
+
+	// TODO if node to be deleted has selected values, then it may fail down stream in the parent appication (e.g., TwoDPlot), tried to make a work around below (currently commented out), but it does not work 
+	public void deleteSelectedNode() {
+		DefaultMutableTreeNode selectedNode;
+		int index;
+		DefaultMutableTreeNode root;	//, branch;
+		DefaultTreeModel model;
+		IntVector expansions;
+//		JCheckBox[] travSelections;
+		
+		selectedNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+		if (selectedNode == null) {
+			System.err.println("Error - No root of a branch is selected.");
+			return;
+		}
+		index = getSelectedPathComponent();
+		model = (DefaultTreeModel)getModel();		
+		root = (DefaultMutableTreeNode)model.getRoot();
+		
+//		travSelections = new JCheckBox[selections.length];
+//		for (int i = selections.length-1; i >= 0 ; i--) {
+//			travSelections[i] = selections[i];
+//			if (selections[i] != null) {
+//				selections[i].setSelected(false);
+////				selections[i] = null;
+//			}
+//		}
+
+		setSelectionPath(null);
+
+		// Reserve the Tree Expansion/Collapse status
+		expansions = new IntVector();
+		for (int i=0; i<getRowCount(); i++) {
+			if (isExpanded(i)) {
+				if (i != index) {
+					expansions.add(i);
+				}
+				collapseRow(i);
+			}
+		}
+
+		root.remove(index);
+        model.reload();
+        
+//		for (int i = 0; i < selections.length; i++) {
+//			if (travSelections[i] != null) {
+//				selections[i] = travSelections[i];
+//				selections[i].setSelected(true);
+//			} else {
+//				System.out.println("nothing to select for index "+i);
+//			}
+//		}
+        
+        // Restore the tree expansion/collapse status
+        for (int i = expansions.size()-1; i >= 0 ; i--) {
+    		expandRow(expansions.elementAt(i)-(expansions.elementAt(i)<index?0:1));
+		}
+	}
+	
 	public static void collapseSelections(JCheckBox[] selections) {
 		JCheckBox trav;
 		int index;
@@ -78,6 +342,11 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		int[][] indices;
 		String[] line;
 		
+		if (dynamic) {
+			System.err.println("Error - addNode was used; cannot getSelectionIndices");
+			return null;
+		}
+		
 		indices = new int[selections.length][2];
 		for (int i = 0; i<selections.length; i++) {
 			if (selections[i] == null) {
@@ -92,18 +361,79 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		return indices;
 	}
 
-	public static void main(String[] args) {
-		JFrame frame = new JFrame("CheckBox Tree");
-
-		String[][] options = {{"Accessibility", "Move system caret with focus/selection changes", "Always expand alt text for images"},
-		{"Browsing", "Notify when downloads complete", "Disable script debugging", "Use AutoComplete", "Browse in a new process"}};
-
-		JScrollPane scrollPane = new JScrollPane(new CheckBoxTree(options, 2));
-		frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
-		frame.setSize(300, 150);
-		frame.setVisible(true);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	public String[][] getSelectionValues() {
+		String[][] selectedValues;
+		String[] line;
+		
+		selectedValues = new String[selections.length][2];
+		for (int i = 0; i<selections.length; i++) {
+			if (selections[i] == null) {
+				selectedValues[i][0] = selectedValues[i][1] = null;
+			} else {
+				line = selections[i].getName().split("[\\s]+");
+				selectedValues[i][0] = line[0];
+				selectedValues[i][1] = line[1];
+			}
+        }
+		
+		return selectedValues;
 	}
+
+	public int getSelectedPathComponent() {
+		DefaultMutableTreeNode selectedNode;
+		int index;
+		DefaultMutableTreeNode root, branch;
+		DefaultTreeModel model;
+		
+		selectedNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+		if (selectedNode == null) {
+			System.err.println("Error - No root of a branch is selected");
+			return -1;
+		}
+
+		index=-1;
+		model = (DefaultTreeModel)getModel();		
+		root = (DefaultMutableTreeNode)model.getRoot();
+		for (int i=0; i<root.getChildCount(); i++ ) {
+			branch = (DefaultMutableTreeNode)model.getChild(root, i);
+			if (branch == selectedNode) {
+				index = i;
+			}
+			
+			if (selectedNode.getUserObject() instanceof JCheckBox) {
+				Branch br = (Branch)branch.getUserObject();
+				for (int j=0; j<branch.getChildCount(); j++ ) {
+					JCheckBox box = (JCheckBox)br.elementAt(j);
+					if (box == (JCheckBox)(selectedNode.getUserObject())){
+						index = i;
+					}
+				}
+			}
+		}
+		return index;
+	}
+	
+	public String getSelectedPathComponentName() {
+		int index = getSelectedPathComponent();
+		if (index>=0) {
+			return selections[index].getName().split("[\\s]+")[0];
+		} else {
+			return null;
+		}
+	}
+	
+//	public static void main(String[] args) {
+//		JFrame frame = new JFrame("CheckBox Tree");
+//
+//		String[][] options = {{"Accessibility", "Move system caret with focus/selection changes", "Always expand alt text for images"},
+//		{"Browsing", "Notify when downloads complete", "Disable script debugging", "Use AutoComplete", "Browse in a new process"}};
+//
+//		JScrollPane scrollPane = new JScrollPane(new CheckBoxTree(options, 2));
+//		frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+//		frame.setSize(300, 150);
+//		frame.setVisible(true);
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//	}
 	
 	public static Branch createTreeStructure(String[][] names) {
 		Branch[] branches = new Branch[names.length];
@@ -124,6 +454,34 @@ public class CheckBoxTree extends JTree implements ItemListener {
 				boxes[j].setFocusPainted(focusPainted);
             }
 			branches[i] = new Branch(names[i][0], boxes);
+        }
+
+		return new Branch("Root", branches);
+	}
+	
+	public static Branch createTreeStructure(String[] namesOfBranches, String[] branchHandles, String[][] namesOfNodes, boolean[] active) {
+		if (namesOfBranches==null || namesOfBranches.length==0) {
+			return null;
+		}
+		Branch[] branches = new Branch[namesOfNodes.length];
+		JCheckBox[] boxes;
+		Font font;
+		Boolean booleanValue;
+		boolean focusPainted;
+
+		font = UIManager.getFont("Tree.font");
+		booleanValue = (Boolean)UIManager.get("Tree.drawsFocusBorderAroundIcon");
+		focusPainted = (booleanValue!=null)&&(booleanValue.booleanValue());
+		for (int i = 0; i<namesOfBranches.length; i++) {
+			boxes = new JCheckBox[namesOfNodes[i].length];
+			for (int j = 0; j<boxes.length; j++) {
+				boxes[j] = new JCheckBox(namesOfNodes[i][j], false);
+				boxes[j].setFont(font);
+				boxes[j].setName(branchHandles[i]+" "+j);
+				boxes[j].setFocusPainted(focusPainted);
+				boxes[j].setEnabled(active[j]);
+            }
+			branches[i] = new Branch(namesOfBranches[i], boxes);
         }
 
 		return new Branch("Root", branches);

@@ -22,11 +22,13 @@ public class Markers {
 
 		snpPositions = HashVec.loadFileToHashString(markerDatabase, 0, new int[] {1, 2}, "\t", false);
 		if (markerNames == null) {
-			if (snpPositions.containsKey("Marker")) {
-				snpPositions.remove("Marker");
-			}
-			if (snpPositions.containsKey("Name")) {
-				snpPositions.remove("Name");
+			// TODO
+			// replace with Metal.MARKER_NAMES after merge
+			String[] MARKER_NAMES = new String[] {"MarkerName", "Marker", "Name", "SNP"};
+			for (int i = 0; i < MARKER_NAMES.length; i++) {
+				if (snpPositions.containsKey(MARKER_NAMES[i])) {
+					snpPositions.remove(MARKER_NAMES[i]);
+				}
 			}
 			markerNames = HashVec.getKeys(snpPositions);
 		}

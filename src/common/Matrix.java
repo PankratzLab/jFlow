@@ -849,7 +849,30 @@ public class Matrix {
 		return min;
 	}
 	
-
+	// TODO needs documentation
+	public static double[][] computeRowProportions(int[][] counts) {
+		double[][] rowProportions;
+		
+		rowProportions = new double[counts.length][];
+		for (int i = 0; i<counts.length; i++) {
+			rowProportions[i] = Array.getProportions(counts[i]);
+		}
+		
+		return rowProportions;
+	}
+	
+	public static String[][] addRow(String[][] matrix, String[] row) {
+		String[][] newMatrix;
+		
+		newMatrix = new String[matrix.length+1][];
+		for (int i = 0; i<matrix.length; i++) {
+			newMatrix[i] = matrix[i];
+		}
+		newMatrix[matrix.length] = row;
+		
+		return newMatrix;
+	}
+	
 	public static void main(String[] args) {
 		int[][] matrix = {{1, 2, 4}, {1, 4, 0}, {0, 1, 0}};
 		

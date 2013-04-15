@@ -73,6 +73,27 @@ public class Array {
 	}
 
 	/**
+	 * Return the minimum in an array of bytes
+	 * 
+	 * @param array
+	 *            array of integers
+	 * @return the minimum
+	 */
+	public static byte min(byte[] array) {
+		byte min;
+
+		if (array.length==0) {
+			System.err.println("Error - impossible to find the min of an empty array");
+			return (Byte) null;
+		}
+		min = array[0];
+		for (int i = 1; i<array.length; i++) {
+			min = (byte) Math.min(array[i], min);
+		}
+		return min;
+	}
+
+	/**
 	 * Return the index of the minimum in an array of floats
 	 * 
 	 * @param array
@@ -212,6 +233,27 @@ public class Array {
 		max = array[0];
 		for (int i = 1; i<array.length; i++) {
 			max = Math.max(array[i], max);
+		}
+		return max;
+	}
+	
+	/**
+	 * Return the maximum in an array of bytes
+	 * 
+	 * @param array
+	 *            array of numbers
+	 * @return the maximum
+	 */
+	public static byte max(byte[] array) {
+		byte max;
+
+		if (array.length==0) {
+			System.err.println("Error - impossible to find the max of an empty array");
+			return (Byte) null;
+		}
+		max = array[0];
+		for (int i = 1; i<array.length; i++) {
+			max = (byte) Math.max(array[i], max);
 		}
 		return max;
 	}
@@ -467,6 +509,21 @@ public class Array {
 		}
 		return arr;
 	}
+	
+	/**
+	 * Creates an array of byte and copies the contents of a vector of byte into it
+	 * 
+	 * @param v
+	 * @return an array of bytes copied from a vector of byte
+	 */
+	public static byte[] toByteArray(Vector<Byte> v) {
+		byte[] result = new byte[v.size()];
+		for (int i=0; i<v.size(); i++) {
+			result[i] = v.get(i);
+		}
+		return result;
+	}
+	
 
 	/**
 	 * Creates a String array of given size and initializes each element with
@@ -1546,6 +1603,28 @@ public class Array {
 		
 		return new_array;
 	}
+	
+	/**
+	 * Creates an array of Strings and copies the contents of a Hashtbable into it (in the correct order)
+	 * 
+	 * @param hash
+	 *            Hashtable of Strings as keys, and their index position as the value
+	 * @return an array of Strings from the Hashtable
+	 */
+	public static String[] toStringArray(Hashtable<String, Integer> hash) {
+		Enumeration<String> enumer;
+		String[] array;
+		String trav;
+
+		enumer = hash.keys();
+		array = new String[hash.size()];
+		while (enumer.hasMoreElements()) {
+			trav = enumer.nextElement();
+			array[hash.get(trav).intValue()] = trav;
+		}
+		
+		return array;
+	}	
 	
 	/**
 	 * Prints an array of Strings (culled from a Vector) separated by a tab
@@ -2779,11 +2858,15 @@ public class Array {
 		return false;
 	}
 
-	public static boolean isMultimodal(double[] array, double percentDropFromPeakRequired, double percentRegainInPeakRequired, double binSize) {
-		return getLocalModes(array, percentDropFromPeakRequired, percentRegainInPeakRequired, binSize).length > 1;
+	public static boolean isMultimodal(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima, double binSize) {
+		return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima, binSize, true).length > 1;
 	}
 	
-	public static double[] getLocalModes(double[] array, double percentDropFromPeakRequired, double percentOfGlobalMaxRequiredForPeak, double binSize) {
+	public static double[] getLocalModes(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima) {
+		return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima, (max(array)-min(array))/40, true);
+	}
+	
+	public static double[] getLocalModes(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima, double binSize, boolean sensitiveToSmallNumbers) {
 		int numBins;
 		int[] freqBinCounts;
 		double[] freqBinCountsSmooth;
@@ -2803,10 +2886,19 @@ public class Array {
 		for (int i=1; i<numBins-1; i++) {
 			freqBinCountsSmooth[i]=(freqBinCounts[i-1]+freqBinCounts[i]+freqBinCounts[i+1])/3;
 		}
-		freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
-		freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
+		if (freqBinCounts.length >= 2) {
+			freqBinCountsSmooth[0]=(freqBinCounts[0]+freqBinCounts[1])/2;
+			freqBinCountsSmooth[numBins-1]=(freqBinCounts[numBins-2]+freqBinCounts[numBins-1])/2;
+		}
 
-		indicesOfLocalMaxima = getIndicesOfLocalMaxima(freqBinCountsSmooth, percentDropFromPeakRequired, percentOfGlobalMaxRequiredForPeak);
+		if (sensitiveToSmallNumbers) {
+			proportionOfGlobalMaxRequiredForLocalMaxima = Math.max(proportionOfGlobalMaxRequiredForLocalMaxima, Math.min(0.50, proportionOfGlobalMaxRequiredForLocalMaxima*proportionOfGlobalMaxRequiredForLocalMaxima*300/array.length));
+			if (array.length < 50) {
+//				System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
+			}
+		}
+		
+		indicesOfLocalMaxima = getIndicesOfLocalMaxima(freqBinCountsSmooth, proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima);
 		modes = new double[indicesOfLocalMaxima.length];
 		for (int i = 0; i < modes.length; i++) {
 			modes[i] = minValue+indicesOfLocalMaxima[i]*binSize+binSize/2;
@@ -2822,7 +2914,7 @@ public class Array {
 		return smoothed;
 	}
 	
-	public static int[] getIndicesOfLocalMaxima(double[] array, double percentDropFromPeakRequired, double percentOfGlobalMaxRequiredForPeak) {
+	public static int[] getIndicesOfLocalMaxima(double[] array, double proportionOfLastPeakRequiredForNewLocalMinima, double proportionOfGlobalMaxRequiredForLocalMaxima) {
 		double globalMax, localMax, localMin;
 		int indexOfLocalMax;
 		IntVector indicesOfMaxima;
@@ -2830,7 +2922,10 @@ public class Array {
 		indicesOfMaxima = new IntVector();
 		
 		globalMax = max(array);
-
+		if (globalMax == min(array)) {
+			globalMax++;
+		}
+		
 		localMax = Double.NEGATIVE_INFINITY;
 		localMin = Double.POSITIVE_INFINITY;
 		indexOfLocalMax = -1;
@@ -2839,21 +2934,21 @@ public class Array {
 				localMax = array[i];
 				indexOfLocalMax = i;
 			}
-			if (localMax >= globalMax*percentOfGlobalMaxRequiredForPeak && array[i]<(localMax*percentDropFromPeakRequired)) {
-				System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
+			if (localMax >= globalMax*proportionOfGlobalMaxRequiredForLocalMaxima && array[i]<=(localMax*proportionOfLastPeakRequiredForNewLocalMinima)) {
+//				System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
 				localMin = array[i];
 				indicesOfMaxima.add(indexOfLocalMax);
 				localMax = Double.NEGATIVE_INFINITY;
 			}
-			if (array[i]>=(globalMax*percentOfGlobalMaxRequiredForPeak)) {
+			if (array[i]>=(globalMax*proportionOfGlobalMaxRequiredForLocalMaxima)) {
 				if (localMin != Double.POSITIVE_INFINITY) {
-					System.out.println("localMin="+localMin);
+//					System.out.println("localMin="+localMin);
 				}
 				localMin = Double.POSITIVE_INFINITY;
 			}
 		}
-		if (localMin != Double.POSITIVE_INFINITY && localMax >= globalMax*percentOfGlobalMaxRequiredForPeak && indexOfLocalMax != -1) {
-			System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
+		if (localMin != Double.POSITIVE_INFINITY && localMax >= globalMax*proportionOfGlobalMaxRequiredForLocalMaxima && indexOfLocalMax != -1) {
+//			System.out.println("localMax="+localMax+" at index "+indexOfLocalMax);
 			indicesOfMaxima.add(indexOfLocalMax);
 		}
 		
@@ -2871,6 +2966,34 @@ public class Array {
 		return array;
 	}
 
+	/**
+	 * Converts frequency counts into proportions. So, the input looks similar to this:
+	 * 				FrequencyCount
+	 * 			   ---------------
+	 * 		Female		152
+	 * 		Male		148
+	 * 
+	 * The output looks like this:
+	 * 				FrequencyCount
+	 * 			   ---------------
+	 * 		Female		50.67%
+	 * 		Male		49.33%
+	 * 
+	 * @param counts the frequency counts in array format
+	 * @return the corresponding proportion in array format
+	 */
+	public static double[] getProportions(int[] counts) {
+		int total=0;
+		double result[] = new double[counts.length];
+		for (int i=0; i<counts.length; i++) {
+			total += counts[i];
+		}
+		for (int i=0; i<counts.length; i++) {
+			result[i] = (double) counts[i]/(double) total;
+		}
+		return result;
+	}
+
 	public static void main(String[] args) {
 	    double alleleFreq = 0.2;
 	    double stdev = 0.12;
@@ -2882,7 +3005,7 @@ public class Array {
 			}
 	    	array[i] += (Math.random()<0.5?-1:1)*ProbDist.NormDistReverse(Math.random())*stdev;
         }
-	    System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01)));
+	    System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01, false)));
 	    
 	    Files.writeList(Array.toStringArray(array), "oi.xln");
 

@@ -3,6 +3,7 @@ package cnv.filesys;
 import java.io.Serializable;
 import common.Files;
 
+// TODO phase out or retain for demos?
 public class MarkerDataCollection implements Serializable {
 	public static final long serialVersionUID = 1L;
 

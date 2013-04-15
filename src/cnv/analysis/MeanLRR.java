@@ -89,7 +89,7 @@ public class MeanLRR {
 				System.out.println((i+1)+" of "+samples.length+" ("+ext.getTimeElapsed(time)+")");
 		        time = new Date().getTime();
 			}
-			samp = proj.getSample(samples[i]);
+			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			for (int trans = 0; trans < Transforms.TRANSFORMATION_TYPES.length; trans++) {
 				lrrs = samp.getLRRs();
 				if (trans > 0) {

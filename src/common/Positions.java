@@ -46,7 +46,7 @@ public class Positions {
     		str = ext.replaceAllWith(str, ",", "");
     		if (str.contains(":-") || str.contains("--")) {
     			System.err.println("Warning - UCSC position '"+str+"' contains a negative position; returning whole chromosome");
-    			chr = Integer.parseInt(str.substring(3, str.indexOf(":")));
+    			chr = Positions.chromosomeNumber(str.substring(3, str.indexOf(":")));
     			start = -1;
     			stop = -1;
     		} else if (str.contains(":")) {
@@ -58,15 +58,15 @@ public class Positions {
     				start = stop = Integer.parseInt(str.substring(str.indexOf(":")+1));
     			}
     		} else if (str.endsWith("p")) {
-    			chr = Integer.parseInt(str.substring(3, str.length()-1));
+    			chr = Positions.chromosomeNumber(str.substring(3, str.length()-1));
     			start = 0;
     			stop = CENTROMERE_MIDPOINTS[chr];
     		} else if (str.endsWith("q")) {
-    			chr = Integer.parseInt(str.substring(3, str.length()-1));
+    			chr = Positions.chromosomeNumber(str.substring(3, str.length()-1));
     			start = CENTROMERE_MIDPOINTS[chr];
     			stop = CHROMOSOME_LENGTHS[chr];
     		} else {
-    			chr = Integer.parseInt(str.substring(3));
+    			chr = Positions.chromosomeNumber(str.substring(3));
     			start = -1;
     			stop = -1;
     		}
@@ -90,11 +90,11 @@ public class Positions {
 	}
 	
 	public static String getUCSCformat(int[] pos) {
-    	if (pos.length!=2&&pos.length!=3) {
-    		System.err.println("Error - not a valid UCSC position");
+    	if (pos.length < 1 && pos.length > 3) {
+    		System.err.println("Error - could not make a valid UCSC position from '"+Array.toStr(pos, "/")+"' (need 1-3 integers)");
     		return null;
     	}
-    	return "chr"+pos[0]+":"+pos[1]+(pos.length==3?"-"+pos[2]:"");
+    	return "chr"+pos[0]+(pos.length > 1?":"+pos[1]+(pos.length==3?"-"+pos[2]:""):"");
     }
 
 	public static String getUCSClink(int[] pos) {
@@ -114,12 +114,19 @@ public class Positions {
     }
 
 	public static byte chromosomeNumber(String chromosome) {
+		return chromosomeNumber(chromosome, new Logger());
+	}
+	
+	public static byte chromosomeNumber(String chromosome, Logger log) {
     	byte chr = -1;
     	
     	if (chromosome.startsWith("chr")) {
     		chromosome = chromosome.substring(3);
     	}
-    
+    	if (chromosome.endsWith("p") || chromosome.endsWith("q")) {
+    		chromosome = chromosome.substring(0, chromosome.length()-1);
+    	}
+
     	if (chromosome.equals("XY") || chromosome.equals("PAR")) {
     		chr = 25;
     	} else if (chromosome.equalsIgnoreCase("X")) {
@@ -128,16 +135,18 @@ public class Positions {
     		chr = 24;
     	} else if (chromosome.equalsIgnoreCase("MT")||chromosome.equalsIgnoreCase("M")||chromosome.equalsIgnoreCase("Mito")) {
     		chr = 26;
-    	} else if (chromosome.equalsIgnoreCase("un")||chromosome.equalsIgnoreCase("multi")||chromosome.equalsIgnoreCase("altonly")||chromosome.equalsIgnoreCase("noton")) {
+    	} else if (chromosome.equalsIgnoreCase("un")||chromosome.equalsIgnoreCase("multi")||chromosome.equalsIgnoreCase("altonly")||chromosome.equalsIgnoreCase("noton")||chromosome.contains("random")) {
     		chr = 0;
     	} else {
     		try {
     			chr = Byte.parseByte(chromosome);
-    			if (chr<0||chr>27) {
-    				System.err.println("Error - chromosome number '"+chromosome+"' is unassseptable");
+    			if (chr<0||chr>27 && log.getLevel() == 10) {
+    				log.reportError("Error - chromosome number '"+chromosome+"' out of range for homo sapiens");
     			}
     		} catch (NumberFormatException nfe) {
-    			System.err.println("Error - '"+chromosome+"' is an invalid chromosome");
+    			if (log.getLevel() == 10) {
+    				log.reportError("Error - '"+chromosome+"' is an invalid chromosome");
+    			}
     		}
     	}
     

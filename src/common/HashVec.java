@@ -181,6 +181,29 @@ public class HashVec {
 
 		return hash;
 	}
+	
+	// TODO merge with the previous
+	public static Hashtable<String,String> loadFileToHashNull(String[] list) {
+		Hashtable<String,String> hash = new Hashtable<String,String>((list == null?10:list.length));
+		
+		for (int i = 0; list != null && i<list.length; i++) {
+			hash.put(list[i], "");
+		}
+
+		return hash;
+	}
+
+	// TODO merge with the next?
+	public static Hashtable<String,Integer> loadFileToHashIndex(String[] list) {
+		Hashtable<String,Integer> hash = new Hashtable<String,Integer>((list == null?10:list.length));
+		
+		for (int i = 0; list != null && i<list.length; i++) {
+			hash.put(list[i], i);
+		}
+
+		return hash;
+	}
+	
 
 	public static Hashtable<String,String> loadToHashIndices(String[] list) {
 		Hashtable<String,String> hash = new Hashtable<String,String>();

@@ -17,7 +17,8 @@ public class Repress implements Runnable {
 
 	public void run() {
 		try {
-			panel.interruptFlow();
+			System.out.println("Repressed");
+			panel.setFlow(false);
 			Thread.sleep(millis);
 			if (alive) {
 				panel.createImage();

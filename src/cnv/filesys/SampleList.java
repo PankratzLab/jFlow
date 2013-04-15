@@ -60,17 +60,11 @@ public class SampleList implements Serializable {
 		if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY), false)) {
 			files = new File(proj.getDir(Project.SAMPLE_DIRECTORY)).list(new FilenameFilter() {
 				public boolean accept(File file, String filename) {
-					return filename.endsWith(".fsamp");
-				}
-			});
-		} else if (Files.exists(proj.getDir(Project.IND_DIRECTORY), false)) {
-			files = new File(proj.getDir(Project.IND_DIRECTORY)).list(new FilenameFilter() {
-				public boolean accept(File file, String filename) {
-					return filename.endsWith(".samp");
+					return filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
 				}
 			});
 		} else {
-			System.err.println("Error - failed to find the SAMPLE_DIRECTORY and the IND_DIRECTORY; no SampleList could be generated");
+			System.err.println("Error - failed to find the SAMPLE_DIRECTORY ("+proj.getDir(Project.SAMPLE_DIRECTORY)+"); no SampleList could be generated");
 			return null;
 		}
 			

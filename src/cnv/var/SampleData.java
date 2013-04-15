@@ -7,25 +7,30 @@ import javax.swing.JOptionPane;
 
 import common.*;
 import cnv.filesys.*;
+import filesys.Segment;
 
 public class SampleData {
 	public static final String[] BASIC_CLASSES = {"All", "Genotype"};
+	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
+	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 
+	public String[] basicClasses;
 	private String[] filters;
 	private String[] covars;
 	private String[] classes;
 	private String[][][] classColorKeys;
 	private String[] cnvClasses;
-	private Hashtable<String,String> lookup;
+//	private Hashtable<String,String> sampleLookup;
+//	private Hashtable<String,String> famIndLookup;
+//	private Hashtable<String,String> indLookup;
+	private Hashtable<String,String[]> lookup;
 	private Hashtable<String,IndiPheno> sampleHash;
 	private boolean failedToLoad;
-
-	public SampleData(Project proj, boolean loadCNVs) {
-		this(proj, loadCNVs?proj.getFilenames(Project.CNV_FILENAMES):null);
-	}
+	private int sexClassIndex;
+	private int excludeClassIndex;
 	
-	public SampleData(Project proj, String[] cnvFilesnames) {
+	public SampleData(Project proj, int numberOfBasicClassesToUse, String[] cnvFilesnames) {
 		BufferedReader reader;
 		String[] line, header;
 		IntVector filterIs = new IntVector();
@@ -37,10 +42,22 @@ public class SampleData {
 		int dnaIndex, famIndex, indIndex;
 //		Hashtable<String,IndiPheno> sampleHash; 
 		String filename;
+		CountVector sexCountHash;
+		String[] sexValues;
+		String[] ids;
 
 		failedToLoad = true;
 		if (cnvFilesnames == null) {
 			cnvFilesnames = new String[0];
+		}
+		
+		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
+			System.err.println("Error - selected number of basic classes to use exceeds the number defined");
+			numberOfBasicClassesToUse = BASIC_CLASSES.length;
+		}
+		basicClasses = new String[numberOfBasicClassesToUse];
+		for (int i = 0; i < basicClasses.length; i++) {
+			basicClasses[i] = BASIC_CLASSES[i];
 		}
 		
 		try {
@@ -105,16 +122,21 @@ public class SampleData {
 					}
                 }
 			}
+			sexClassIndex = ext.indexFactors(new String[][] {{"Sex", "CLASS=Sex", "Gender", "CLASS=Gender"}}, classes, false, true, true, false)[0];
+			excludeClassIndex = ext.indexFactors(new String[][] {{"Exclude", "CLASS=Exclude"}}, classes, false, true, true, false)[0];
+			System.out.println(Array.toStr(classes));
 
+			sexCountHash = new CountVector();
 			sampleHash = new Hashtable<String,IndiPheno>();
-			lookup = new Hashtable<String,String>();
+			lookup = new Hashtable<String, String[]>();
 			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
+				line = reader.readLine().split("\t", -1);
 				indi = new IndiPheno();
-//				if (loadCNVs && files.length > 0) {
-					lookup.put(line[dnaIndex], line[famIndex]+"\t"+line[indIndex]);
-					lookup.put(line[famIndex]+"\t"+line[indIndex], line[dnaIndex]);
-//				}
+				
+				ids = new String[] {line[dnaIndex], line[famIndex]+"\t"+line[indIndex], line[indIndex]};
+				lookup.put(line[dnaIndex].toLowerCase(), ids);
+				lookup.put(line[famIndex].toLowerCase()+"\t"+line[indIndex].toLowerCase(), ids);
+				lookup.put(line[indIndex].toLowerCase(), ids);
 				
 				dv = new DoubleVector();
 				for (int i = 0; i<filterIs.size(); i++) {
@@ -124,7 +146,7 @@ public class SampleData {
 
 				dv = new DoubleVector();
 				for (int i = 0; i<covarIs.size(); i++) {
-					dv.add(line[covarIs.elementAt(i)].equals(".")?Double.NaN:Double.parseDouble(line[covarIs.elementAt(i)]));
+					dv.add(ext.isMissingValue(line[covarIs.elementAt(i)])?Double.NaN:Double.parseDouble(line[covarIs.elementAt(i)]));
 				}
 				indi.setCovars(dv.toArray());
 
@@ -133,10 +155,33 @@ public class SampleData {
 					iv.add(ext.isMissingValue(line[classIs.elementAt(i)])||Integer.parseInt(line[classIs.elementAt(i)])<0?Integer.MIN_VALUE:Integer.parseInt(line[classIs.elementAt(i)]));
 				}
 				indi.setClasses(iv.toArray());
+				if (sexClassIndex != -1) {
+					sexCountHash.add(indi.getClasses()[sexClassIndex]+"");					
+				}
 
-				sampleHash.put(line[dnaIndex], indi);
+				sampleHash.put(line[dnaIndex].toLowerCase(), indi);
 			}
 			reader.close();
+			
+			if (sexClassIndex != -1) {
+				sexValues = sexCountHash.getValues();
+				sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
+				if (!sexValues[0].equals("2")) {
+					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+					JOptionPane.showMessageDialog(null, "descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+//
+//				sexCountHash.sort(true);
+//				sexValues = sexCountHash.getValues();
+//				sexCounts = sexCountHash.getCounts();
+//				if (!sexValues[0].equals("2")) {
+//					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+//					JOptionPane.showMessageDialog(null, "ascending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+//				}
+//			
+			} else {
+				JOptionPane.showMessageDialog(null, "Error - variable names 'Sex' was found in the SampleData file; also make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
 			System.exit(1);
@@ -144,6 +189,8 @@ public class SampleData {
 			System.err.println("Error reading file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\"");
 			System.exit(2);
 		}
+		
+		
 		
 		if (cnvFilesnames.length > 0) {
 			loadCNVs(cnvFilesnames, proj.getJarStatus());
@@ -156,6 +203,69 @@ public class SampleData {
 	
 	public boolean failedToLoad() {
 		return failedToLoad;
+	}
+	
+	public int getSexClassIndex() {
+		return sexClassIndex;
+	}
+	
+	public int getSexForIndividual(String id) {
+		IndiPheno indi;
+		String[] ids;
+		
+		indi = sampleHash.get(id.toLowerCase());
+//		indi = sampleHash.get("S_"+id);
+//		sampleLookup.put("FI_"+line[famIndex]+"\t"+line[indIndex], "S_"+line[dnaIndex]);
+//		sampleLookup.put("I_"+line[indIndex], "S_"+line[dnaIndex]);
+//		famIndLookup.put("I_"+line[indIndex], "FI_"+line[famIndex]+"\t"+line[indIndex]);
+//		famIndLookup.put("S_"+line[dnaIndex], "FI_"+line[famIndex]+"\t"+line[indIndex]);
+//		indLookup.put("FI_"+line[famIndex]+"\t"+line[dnaIndex], "I_"+line[indIndex]);
+//		indLookup.put("S_"+line[dnaIndex], "I_"+line[indIndex]);
+		if (indi == null) {
+			ids = lookup.get(id.toLowerCase());
+			if (ids != null) {
+				indi = sampleHash.get(ids[0]);
+			}
+		}
+		
+		if (indi == null) {
+			System.err.println("Error - id '"+id+"' was not present in the SampleData");
+			return -1;
+		}
+		
+		if (indi.getClasses()[sexClassIndex] == Integer.MIN_VALUE) {
+			return -1;
+		} else {
+			return indi.getClasses()[sexClassIndex];
+		}
+	}
+	
+	public boolean excludeIndividual(String id) {
+		IndiPheno indi;
+		String[] ids;
+		
+		if (excludeClassIndex == -1) {
+			return false;
+		}
+		
+		indi = sampleHash.get(id.toLowerCase());
+		if (indi == null) {
+			ids = lookup.get(id.toLowerCase());
+			if (ids != null) {
+				indi = sampleHash.get(ids[0]);
+			}
+		}
+		
+		if (indi == null) {
+			System.err.println("Error - id '"+id+"' was not present in the SampleData");
+			return false;
+		}
+		
+		if (indi.getClasses()[excludeClassIndex] == Integer.MIN_VALUE) {
+			return false;
+		} else {
+			return indi.getClasses()[excludeClassIndex] == 1;
+		}
 	}
 	
 	public void loadCNVs(String[] files, boolean jar) {
@@ -179,7 +289,9 @@ public class SampleData {
 		inds = HashVec.getKeys(sampleHash);
 		for (int i = 0; i<inds.length; i++) {
 			indi = sampleHash.get(inds[i]);
-			trav = lookup.get(inds[i]);
+//			trav = lookup.get(inds[i]);
+//			trav = famIndLookup.get("S_"+inds[i]);
+			trav = lookup.get(inds[i].toLowerCase())[1];
 
 			finalHashes = new Vector<Hashtable<String,CNVariant[]>>();
 			for (int j = 0; j<files.length; j++) {
@@ -207,11 +319,29 @@ public class SampleData {
 	}
 
 	public String[] getClasses() {
-		if (classes == null) {
-			return new String[0];
+		return getClasses(false);
+	}
+
+	public String[] getClasses(boolean includeBasicClasses) {
+		String[] result;
+
+		if (!includeBasicClasses && classes == null) {
+			result = new String[0];
+		} else if (!includeBasicClasses && classes != null) {
+			result = classes;
+		} else if (includeBasicClasses && classes == null) {
+			result = basicClasses;
 		} else {
-			return classes;
+			result = new String[basicClasses.length + classes.length];
+			for (int i = 0; i < basicClasses.length; i ++) {
+				result[i] = basicClasses[i];
+			}
+			for (int i = 0; i < classes.length; i ++) {
+				result[i + basicClasses.length] = classes[i];
+			}
 		}
+
+		return result;
 	}
 
 	public String[] getCnvClasses() {
@@ -219,12 +349,12 @@ public class SampleData {
 	}
 
 	
-	public String lookup(String str) {
-		return lookup.get(str);
+	public String[] lookup(String str) {
+		return lookup.get(str.toLowerCase());
 	}
 	
-	public Hashtable<String,IndiPheno> getSampleHash() {
-		return sampleHash;
+	public IndiPheno getIndiFromSampleHash(String sampleID) {
+		return sampleHash.get(sampleID.toLowerCase());
 	}
 	
 	public String[] getListOfSamples() {
@@ -232,14 +362,14 @@ public class SampleData {
 	}
 
 	public IndiPheno getIndiPheno(String sample) {
-		return sampleHash.get(sample);
+		return sampleHash.get(sample.toLowerCase());
 	}
 	
 	public byte getClassForInd(String sample, int currentClass) {
 		int[] classes;
 		IndiPheno indi;
 		
-		indi = sampleHash.get(sample);
+		indi = sampleHash.get(sample.toLowerCase());
 		if (indi == null) {
 			return 0;
 		}
@@ -252,7 +382,7 @@ public class SampleData {
 	}
 	
 	public int getNumClasses() {
-		return BASIC_CLASSES.length+classes.length+cnvClasses.length;
+		return basicClasses.length+classes.length+cnvClasses.length;
 	}
 
 	public int getNumActualClasses() {
@@ -265,15 +395,15 @@ public class SampleData {
 	public int[] getClassCategoryAndIndex(int index) {
 		int[] indices = new int[2];
 
-		if (index<BASIC_CLASSES.length) {
+		if (index<basicClasses.length) {
 			indices[0] = 0;
 			indices[1] = index;
-		} else if (index<BASIC_CLASSES.length+classes.length) {
+		} else if (index<basicClasses.length+classes.length) {
 			indices[0] = 1;
-			indices[1] = index-BASIC_CLASSES.length;
-		} else if (index<BASIC_CLASSES.length+classes.length+cnvClasses.length) {
+			indices[1] = index-basicClasses.length;
+		} else if (index<basicClasses.length+classes.length+cnvClasses.length) {
 			indices[0] = 2;
-			indices[1] = index-BASIC_CLASSES.length-classes.length;
+			indices[1] = index-basicClasses.length-classes.length;
 		} else {
 			System.err.println("Error - invalid class index");
 		}
@@ -286,7 +416,7 @@ public class SampleData {
 		
 		switch (indices[0]) {
 		case 0:
-			return BASIC_CLASSES[indices[1]];
+			return basicClasses[indices[1]];
 		case 1:
 			return classes[indices[1]];
 		case 2:
@@ -302,5 +432,46 @@ public class SampleData {
 
 	public String[][] getActualClassColorKey(int index) {
 		return classColorKeys[index];
+	}
+	
+	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
+		int[] classes, indices;
+		CNVariant[] segs;
+		int index;
+		
+		indices = getClassCategoryAndIndex(currentClass);
+		switch (indices[0]) {
+        case 0:
+			if (basicClasses[indices[1]].equals("All")) {
+				return 0;
+			} else if (basicClasses[indices[1]].equals("Genotype")) {
+				return (byte)(alleleCount+1);
+			} else {
+				return 0;
+			}
+        case 1:
+    		classes = indi.getClasses();
+			if (classes[indices[1]] == Integer.MIN_VALUE) {
+				return -1;
+			} else {
+				return (byte)classes[indices[1]];
+			}
+        case 2:
+			segs = indi.getCNVs(indices[1], chr);
+			if (segs == null) {
+				return 0;
+			} else {
+				index = Segment.binarySearchForOverlap(new Segment((byte)-1, position, position), segs); 
+				if (index == -1) {
+					return 0;
+				} else {
+					return (byte)(segs[index].getChr()+1);
+				}
+			}
+        default:
+        	System.err.println("Error - invalid class index");
+        	return 0;
+        }
 	}	
+	
 }
