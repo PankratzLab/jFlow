@@ -81,6 +81,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	Vector<String> colorKeyVariables;
 //	String[][] colorKeyUniqueValues;
 	Logger log;
+//	Vector<Integer> rowsSelected;
+	Vector<String[]> linkKeyValues;
 	
 	public TwoDPlot() {
 		this(null, new Logger());
@@ -107,6 +109,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		numericHash = new Hashtable<String, boolean[]>();
 //		colorKeyVariables = new Vector<String>();
 		keyIndices = new Hashtable<String, int[]>();
+//		rowsSelected = new Vector<Integer>();
+		linkKeyValues = new Vector<String[]>();
 		for (int i = 0; i < previouslyLoadedFiles.length; i++) {
 			loadFile(previouslyLoadedFiles[i]);
 		}
@@ -471,28 +475,56 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return keyIndices.get(selectedValues[0][0]);
 	}
 
-	public String[][] getCurrentLinkKeyValues() {
-		String[][] linkKeyValues;
-		int[] linkKeyColumnLabels;
-		Vector<String[]> dataOfSelectedFile;
-		String[][] selectedValues;
-		
-		selectedValues = tree.getSelectionValues();
-		if (selectedValues[0][0] == null ||  selectedValues[0][1] == null) {
-			return null;
-		}
-		linkKeyColumnLabels = keyIndices.get(selectedValues[0][0]);
-		dataOfSelectedFile = dataHash.get(tree.getSelectionValues()[0][0]);
-		linkKeyValues = new String[dataOfSelectedFile.size()][linkKeyColumnLabels.length];
-		for (int i=0; i<linkKeyValues.length; i++) {
-			for (int j=0; j<linkKeyColumnLabels.length; j++) {
-				if (linkKeyColumnLabels[j] >= 0) {
-					linkKeyValues[i][j] = dataOfSelectedFile.elementAt(i)[linkKeyColumnLabels[j]];
-				}
-			}
-		}
+	public Vector<String[]> getCurrentLinkKeyValues() {
 		return linkKeyValues;
 	}
+
+//	public String[][] getCurrentLinkKeyValues() {
+//		String[][] linkKeyValues;
+//		int[] linkKeyColumnLabels;
+//		String[][] selectedValues;
+//		Vector<String[]> currentData;
+//		
+//		selectedValues = tree.getSelectionValues();
+//		if (selectedValues[0][0] == null ||  selectedValues[0][1] == null) {
+//			return null;
+//		}
+//		currentData = dataHash.get(selectedValues[0][0]);
+//		linkKeyColumnLabels = keyIndices.get(selectedValues[0][0]);
+//		linkKeyValues = new String[rowsSelected.size()][linkKeyColumnLabels.length];	//TODO Problem is here.
+//		for (int i=0; i<linkKeyValues.length; i++) {
+//			for (int j=0; j<linkKeyColumnLabels.length; j++) {
+//				if (linkKeyColumnLabels[j] >= 0) {
+//					linkKeyValues[i][j] = currentData.elementAt(rowsSelected.elementAt(i))[linkKeyColumnLabels[j]];
+//				}
+//			}
+//		}
+//		return linkKeyValues;
+//	}
+
+
+//	public String[][] getCurrentLinkKeyValues() {
+//		String[][] linkKeyValues;
+//		int[] linkKeyColumnLabels;
+//		Vector<String[]> dataOfSelectedFile;
+//		String[][] selectedValues;
+//		
+//		selectedValues = tree.getSelectionValues();
+//		if (selectedValues[0][0] == null ||  selectedValues[0][1] == null) {
+//			return null;
+//		}
+//		linkKeyColumnLabels = keyIndices.get(selectedValues[0][0]);
+//		dataOfSelectedFile = dataHash.get(tree.getSelectionValues()[0][0]);
+//		linkKeyValues = new String[dataOfSelectedFile.size()][linkKeyColumnLabels.length];	//TODO Problem is here.
+//		for (int i=0; i<linkKeyValues.length; i++) {
+//			for (int j=0; j<linkKeyColumnLabels.length; j++) {
+//				if (linkKeyColumnLabels[j] >= 0) {
+//					linkKeyValues[i][j] = dataOfSelectedFile.elementAt(i)[linkKeyColumnLabels[j]];
+//				}
+//			}
+//		}
+//		return linkKeyValues;
+//	}
 
 	public Project getProject() {
 		return proj;
@@ -584,12 +616,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		return result;
 //	}
 
-	public float[][] getDataSelected() {
+
+
+	public Vector<String[]> getDataSelected() {
 		return getDataSelected(false);
 	}
 
-	public float[][] getDataSelected(boolean includeColorKeyValue) {
-		float[][] result;
+	public Vector<String[]> getDataSelected(boolean includeColorKeyValue) {
+//		String[][] result;
 		String[][] selectedNodes;
 		Vector<String[]> dataOfSelectedFile;
 		Hashtable<String, String> xHash, yHash;
@@ -600,19 +634,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		int currentClass;
 		String[] ids;
 		byte colorCode;
+		int[] linkKeyColumnLabels;
+		String[] line2;
 
 		selectedNodes = tree.getSelectionValues();
-		if (selectedNodes[0][0] == null || selectedNodes[1][0] == null) {
-			result = new float[0][0];
-//			result = null;
-		} else {
+		v = new Vector<String[]>();
+		if (selectedNodes[0][0] != null && selectedNodes[1][0] != null && keyIndices.get(selectedNodes[0][0]) != null && keyIndices.get(selectedNodes[1][0]) != null) {
+//			rowsSelected = new Vector<Integer>();
+			linkKeyValues = new Vector<String[]>();
 			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
 			dataOfSelectedFile = dataHash.get(selectedNodes[0][0]);
 			currentClass = colorKeyPanel.getCurrentClass();
-			if (keyIndices.get(selectedNodes[0][0]) == null) {
-				System.out.println("Please set link key for the file '" + selectedNodes[0][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
-				return new float[0][0];
-			}
 			xHash = new Hashtable<String, String>();
 			for (int i=0; i<dataOfSelectedFile.size(); i++) {
 				line = dataOfSelectedFile.elementAt(i);
@@ -621,52 +653,153 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			selectedColumn = Integer.parseInt(selectedNodes[1][1]);
 			dataOfSelectedFile = dataHash.get(selectedNodes[1][0]);
-			if (keyIndices.get(selectedNodes[1][0]) == null) {
-				System.out.println("Please set link key for the file '" + selectedNodes[1][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
-				return new float[0][0];
-			}
 			yHash = new Hashtable<String, String>();
 			for (int i=0; i<dataOfSelectedFile.size(); i++) {
 				line = dataOfSelectedFile.elementAt(i);
 				yHash.put(line[keyIndices.get(selectedNodes[1][0])[0]], line[selectedColumn]);
 			}
 
+			linkKeyColumnLabels = keyIndices.get(selectedNodes[0][0]);
 			keys = HashVec.getKeys(xHash, false, false);
 			v = new Vector<String[]>();
 			if (includeColorKeyValue) {
 				for (int i=0; i<keys.length; i++) {
 					if (yHash.containsKey(keys[i])) {
-							ids = sampleData.lookup(keys[i]);
-							if (ids == null) {
-								colorCode = 0;
-							} else {
-								colorCode = sampleData.determineCodeFromClass(currentClass, (byte)0, sampleData.getIndiFromSampleHash(ids[0]), (byte)0, 0);
+						ids = sampleData.lookup(keys[i]);
+						if (ids == null) {
+							colorCode = 0;
+						} else {
+							colorCode = sampleData.determineCodeFromClass(currentClass, (byte)0, sampleData.getIndiFromSampleHash(ids[0]), (byte)0, 0);
+						}
+						v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i]), colorCode + ""});
+//						rowsSelected.add(i);
+						line = dataOfSelectedFile.elementAt(i);
+						line2 = new String[linkKeyColumnLabels.length];
+						for (int j=0; j<linkKeyColumnLabels.length; j++) {
+							if (linkKeyColumnLabels[j] >= 0) {
+								line2[j] = line[j];
 							}
-							v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i]), colorCode + ""});
+						}
+						linkKeyValues.add(line2);
 					}
 				}
-				result = new float[v.size()][3];
-				for (int i=0; i<result.length; i++) {
-					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
-					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
-					result[i][2] = Integer.parseInt(v.elementAt(i)[3]);
-				}
+//				result = new float[v.size()][3];
+//				for (int i=0; i<result.length; i++) {
+//					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+//					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+//					result[i][2] = Integer.parseInt(v.elementAt(i)[3]);
+//				}
 
 			} else {
 				for (int i=0; i<keys.length; i++) {
 					if (yHash.containsKey(keys[i])) {
-						v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i])});
+						v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i]), "all other keys"});
+						line = dataOfSelectedFile.elementAt(i);
+						line2 = new String[linkKeyColumnLabels.length];
+						for (int j=0; j<linkKeyColumnLabels.length; j++) {
+							if (linkKeyColumnLabels[j] >= 0) {
+								line2[j] = line[j];
+							}
+						}
+						linkKeyValues.add(line2);
+//						rowsSelected.add(i);
 					}
 				}
-				result = new float[v.size()][2];
-				for (int i=0; i<result.length; i++) {
-					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
-					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
-				}
+//				result = new float[v.size()][2];
+//				for (int i=0; i<result.length; i++) {
+//					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+//					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+//				}
 			}
 		}
-		return result;
+//		return result;
+		return v;
 	}
+
+
+//	public float[][] getDataSelected() {
+//		return getDataSelected(false);
+//	}
+
+//	public float[][] getDataSelected(boolean includeColorKeyValue) {
+//		float[][] result;
+//		String[][] selectedNodes;
+//		Vector<String[]> dataOfSelectedFile;
+//		Hashtable<String, String> xHash, yHash;
+//		String[] line;
+//		int selectedColumn;
+//		String[] keys;
+//		Vector<String[]> v;
+//		int currentClass;
+//		String[] ids;
+//		byte colorCode;
+//
+//		selectedNodes = tree.getSelectionValues();
+//		if (selectedNodes[0][0] == null || selectedNodes[1][0] == null) {
+//			result = new float[0][0];
+////			result = null;
+//		} else {
+//			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
+//			dataOfSelectedFile = dataHash.get(selectedNodes[0][0]);
+//			currentClass = colorKeyPanel.getCurrentClass();
+//			if (keyIndices.get(selectedNodes[0][0]) == null) {
+//				System.out.println("Please set link key for the file '" + selectedNodes[0][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
+//				return new float[0][0];
+//			}
+//			xHash = new Hashtable<String, String>();
+//			for (int i=0; i<dataOfSelectedFile.size(); i++) {
+//				line = dataOfSelectedFile.elementAt(i);
+//				xHash.put(line[keyIndices.get(selectedNodes[0][0])[0]], line[selectedColumn]);
+//			}
+//
+//			selectedColumn = Integer.parseInt(selectedNodes[1][1]);
+//			dataOfSelectedFile = dataHash.get(selectedNodes[1][0]);
+//			if (keyIndices.get(selectedNodes[1][0]) == null) {
+//				System.out.println("Please set link key for the file '" + selectedNodes[1][0] + "'. Alternatively, you could change the corresponding column lable to IID or ID and restart the program.");
+//				return new float[0][0];
+//			}
+//			yHash = new Hashtable<String, String>();
+//			for (int i=0; i<dataOfSelectedFile.size(); i++) {
+//				line = dataOfSelectedFile.elementAt(i);
+//				yHash.put(line[keyIndices.get(selectedNodes[1][0])[0]], line[selectedColumn]);
+//			}
+//
+//			keys = HashVec.getKeys(xHash, false, false);
+//			v = new Vector<String[]>();
+//			if (includeColorKeyValue) {
+//				for (int i=0; i<keys.length; i++) {
+//					if (yHash.containsKey(keys[i])) {
+//							ids = sampleData.lookup(keys[i]);
+//							if (ids == null) {
+//								colorCode = 0;
+//							} else {
+//								colorCode = sampleData.determineCodeFromClass(currentClass, (byte)0, sampleData.getIndiFromSampleHash(ids[0]), (byte)0, 0);
+//							}
+//							v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i]), colorCode + ""});
+//					}
+//				}
+//				result = new float[v.size()][3];
+//				for (int i=0; i<result.length; i++) {
+//					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+//					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+//					result[i][2] = Integer.parseInt(v.elementAt(i)[3]);
+//				}
+//
+//			} else {
+//				for (int i=0; i<keys.length; i++) {
+//					if (yHash.containsKey(keys[i])) {
+//						v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i])});
+//					}
+//				}
+//				result = new float[v.size()][2];
+//				for (int i=0; i<result.length; i++) {
+//					result[i][0] = Float.parseFloat(v.elementAt(i)[1]);
+//					result[i][1] = Float.parseFloat(v.elementAt(i)[2]);
+//				}
+//			}
+//		}
+//		return result;
+//	}
 
 
 	//	public int[][] getCurrentPair() {

@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -182,19 +183,57 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		}
 	}
 
+//	public void generatePoints() {
+//		float[][] currentData;
+//		CountVector uniqueValueCounts;
+//		byte type;
+////		String[] twoDPlot.get
+//
+//		currentData= tdp.getDataSelected(true);
+//		uniqueValueCounts = new CountVector();
+////		sampleData.getClass();
+//
+//		points = new PlotPoint[currentData.length];
+//		for (int i = 0; i < points.length; i++) {
+//			if (Float.isNaN(currentData[i][0]) || Float.isNaN(currentData[i][1])) {
+//				type = PlotPoint.NOT_A_NUMBER;
+//				uniqueValueCounts.add("0");
+////			} else if (alleleCounts[i]==-1) {
+////				type = PlotPoint.MISSING;
+////				uniqueValueCounts.add("0");
+//			} else {
+//				type = PlotPoint.FILLED_CIRCLE;
+//				uniqueValueCounts.add((byte)currentData[i][2] + "");
+//			}
+//
+//			if (swapAxes) {
+//				points[i] = new PlotPoint(i+"", type, currentData[i][1], currentData[i][0], (byte)5, (byte)currentData[i][2], (byte)0);
+//			} else {
+//				points[i] = new PlotPoint(i+"", type, currentData[i][0], currentData[i][1], (byte)5, (byte)currentData[i][2], (byte)0);
+//			}
+//
+//		}
+//		
+//		tdp.updateColorKey(uniqueValueCounts.convertToHash());
+//	}
+
 	public void generatePoints() {
-		float[][] currentData;
+		Vector<String[]> currentData;
 		CountVector uniqueValueCounts;
 		byte type;
-//		String[] twoDPlot.get
+		String[] line;
+		float xAxisValue, yAxisValue;
 
 		currentData= tdp.getDataSelected(true);
 		uniqueValueCounts = new CountVector();
 //		sampleData.getClass();
 
-		points = new PlotPoint[currentData.length];
+		points = new PlotPoint[currentData.size()];
 		for (int i = 0; i < points.length; i++) {
-			if (Float.isNaN(currentData[i][0]) || Float.isNaN(currentData[i][1])) {
+			line = currentData.elementAt(i);
+			xAxisValue = Float.parseFloat(line[1]);
+			yAxisValue = Float.parseFloat(line[2]);
+			if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
 				type = PlotPoint.NOT_A_NUMBER;
 				uniqueValueCounts.add("0");
 //			} else if (alleleCounts[i]==-1) {
@@ -202,19 +241,23 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 //				uniqueValueCounts.add("0");
 			} else {
 				type = PlotPoint.FILLED_CIRCLE;
-				uniqueValueCounts.add((byte)currentData[i][2] + "");
+				uniqueValueCounts.add(line[3]);
 			}
 
 			if (swapAxes) {
-				points[i] = new PlotPoint(i+"", type, currentData[i][1], currentData[i][0], (byte)5, (byte)currentData[i][2], (byte)0);
+				points[i] = new PlotPoint(line[0], type, yAxisValue, xAxisValue, (byte)5, Byte.parseByte(line[3]), (byte)0);
 			} else {
-				points[i] = new PlotPoint(i+"", type, currentData[i][0], currentData[i][1], (byte)5, (byte)currentData[i][2], (byte)0);
+				points[i] = new PlotPoint(line[0], type, xAxisValue, yAxisValue, (byte)5, Byte.parseByte(line[3]), (byte)0);
 			}
 
 		}
 		
 		tdp.updateColorKey(uniqueValueCounts.convertToHash());
 	}
+
+
+
+
 
 //	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr, int position) {
 //		int[] classes, indices;
@@ -394,12 +437,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	public void mouseClicked(MouseEvent e) {
 		JPopupMenu menu;
 		int[] linkKeyIndicies;
-		String[][] linkKeyValues;
+		Vector<String[]> linkKeyValues;
 //		boolean scatter, trailer;
 		String[] ids;
 		String markerName;
 		String sample, region;
 		int[] positions;
+		byte maxNumPoints;
 
 //		if (e.getButton()==MouseEvent.BUTTON1) { // left click
 //		} else if (e.getButton()==MouseEvent.BUTTON3) { // right click
@@ -413,11 +457,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		
 		if (prox != null && prox.size() > 0) {
 			menu = new JPopupMenu();
-			for (int i = 0; i < prox.size(); i++) {
-				menu.add(new LaunchAction(linkKeyValues[prox.elementAt(i)][0] + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
+			maxNumPoints = (byte) Math.min(20, prox.size());
+			for (int i = 0; i < maxNumPoints; i++) {
+//				menu.add(new LaunchAction(linkKeyValues[prox.elementAt(i)][0] + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
+				menu.add(new LaunchAction(points[prox.elementAt(i)].getId() + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
 
 				if (linkKeyIndicies[3] >= 0) {
-					markerName = linkKeyValues[prox.elementAt(i)][3];
+					markerName = linkKeyValues.elementAt(prox.elementAt(i))[3];
 					if (markerLookup.get(markerName) != null) {
 						menu.add(new LaunchAction(proj, markerName, Color.CYAN));
 					}
@@ -425,15 +471,15 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				
 				sample = null;
 				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, log, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
-					sample = linkKeyValues[prox.elementAt(i)][2];
+					sample = linkKeyValues.elementAt(prox.elementAt(i))[2];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
 					ids = null;
 					if (linkKeyIndicies[1] >= 0) { // if FID present
-						ids = sampleData.lookup(linkKeyValues[prox.elementAt(i)][1]+"\t"+linkKeyValues[prox.elementAt(i)][0]);
+						ids = sampleData.lookup(linkKeyValues.elementAt(prox.elementAt(i))[1] + "\t" + linkKeyValues.elementAt(prox.elementAt(i))[0]);
 					}
 					if (ids == null) {
-						ids = sampleData.lookup(linkKeyValues[prox.elementAt(i)][0]);
+						ids = sampleData.lookup(linkKeyValues.elementAt(prox.elementAt(i))[0]);
 					}
 					if (ids != null && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, log, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
 						sample = ids[0];
@@ -443,19 +489,19 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				positions = new int[] {-1,-1,-1};
 				region = null;
 				if (linkKeyIndicies[4] >= 0) {
-					region = linkKeyValues[prox.elementAt(i)][4];
+					region = linkKeyValues.elementAt(prox.elementAt(i))[4];
 				} else if (linkKeyIndicies[5] >= 0) {
-					positions[0] = Positions.chromosomeNumber(linkKeyValues[prox.elementAt(i)][5]);
+					positions[0] = Positions.chromosomeNumber(linkKeyValues.elementAt(prox.elementAt(i))[5]);
 					if (positions[0] != -1) {
 						if (linkKeyIndicies[6] >= 0) {
 							try {
-								positions[1] = Integer.parseInt(linkKeyValues[prox.elementAt(i)][6]);
+								positions[1] = Integer.parseInt(linkKeyValues.elementAt(prox.elementAt(i))[6]);
 							} catch (NumberFormatException nfe) {
 							}
 						}
 						if (linkKeyIndicies[7] >= 0) {
 							try {
-								positions[2] = Integer.parseInt(linkKeyValues[prox.elementAt(i)][7]);
+								positions[2] = Integer.parseInt(linkKeyValues.elementAt(prox.elementAt(i))[7]);
 							} catch (NumberFormatException nfe) {
 							}
 						}
