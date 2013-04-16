@@ -35,7 +35,21 @@ import filesys.SerialHash;
 import filesys.SnpMarkerSet;
 
 public class Conditional {
+//	public static void addCountsAsCovariate(String baseDir, String originalCovariatesFile, String newCovariatesFile, String allPossibleSNPs, Logger log) {
+//		addCountsAsCovariate(baseDir, "../plink", originalCovariatesFile, newCovariatesFile, allPossibleSNPs, log);
+//	}
+	
 	public static void addCountsAsCovariate(String baseDir, String originalCovariatesFile, String newCovariatesFile, String allPossibleSNPs, Logger log) {
+		String subDir;
+		if (allPossibleSNPs == null) {
+			subDir = "allMarkers/";
+		} else {
+			subDir = ext.rootOf(allPossibleSNPs, false)+"/";
+		}
+		addCountsAsCovariate(baseDir, subDir, "../plink", originalCovariatesFile, newCovariatesFile, allPossibleSNPs, log);
+	}
+
+	public static void addCountsAsCovariate(String baseDir, String subDir, String plinkFileDirPlusRoot, String originalCovariatesFile, String newCovariatesFile, String allPossibleSNPs, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -46,29 +60,32 @@ public class Conditional {
 		int[] indices;
 		int numFixedCovariates;
 		String dir;
+		int countMissingCovariate;
 		
-		if (allPossibleSNPs == null) {
-			dir = baseDir+"allMarkers/";
-		} else {
-			dir = baseDir+ext.rootOf(allPossibleSNPs, false)+"/";
+		dir = baseDir + subDir;
+		if (!new File(dir).exists()) {
+			new File(dir).mkdirs();
 		}
-		new File(dir).mkdirs();
-		
-		if (!new File(baseDir+"plink.bed").exists() || !new File(baseDir+"plink.bim").exists() || !new File(baseDir+"plink.fam").exists()) {
+
+		if (!new File(plinkFileDirPlusRoot+".bed").exists() || !new File(plinkFileDirPlusRoot+".bim").exists() || !new File(plinkFileDirPlusRoot+".fam").exists()) {
 			log.reportError("Error - a full complement of binary PLINK files are required to perform this algorithm");
 			return;
 		}
 		if (allPossibleSNPs == null) {
 			log.report("All markers in the dataset will be added to the covars file, since no subset was pre-defined");
-			CmdLine.run("plink --bfile ../plink --make-bed", dir);
+			CmdLine.run("plink --bfile "+plinkFileDirPlusRoot+" --make-bed", dir);
 		} else {
-			markerNames = HashVec.loadFileToStringArray(allPossibleSNPs, false, new int[] {0}, true);
-			log.report("Curently using file '"+allPossibleSNPs+"', which has "+markerNames.length+" independent elements in it");
-			CmdLine.run("plink --bfile ../plink --extract ../"+(baseDir.equals("")?"":"../")+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
+			markerNames = HashVec.loadFileToStringArray(baseDir + allPossibleSNPs, false, new int[] {0}, true);
+			log.report("Curently using file '" + allPossibleSNPs + "', which has "+markerNames.length+" independent elements in it");
+//			CmdLine.run("plink --bfile "+plinkFiles+" --extract ../"+(baseDir.equals("")?"":"../")+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
+//			CmdLine.run("C:/plink/plink --bfile "+plinkFiles+" --extract ../"+(baseDir.equals("")?"":"../")+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
+			CmdLine.run("C:/plink/plink --bfile " + plinkFileDirPlusRoot + " --extract ../" + ext.removeDirectoryInfo(allPossibleSNPs) + " --make-bed", dir);
 		}
 		
-		CmdLine.run("plink --bfile plink --recode", dir);
-		CmdLine.run("plink --bfile plink --freq", dir);
+//		CmdLine.run("plink --bfile plink --recode", dir);
+//		CmdLine.run("plink --bfile plink --freq", dir);
+		CmdLine.run("C:/plink/plink --bfile plink --recode", dir);
+		CmdLine.run("C:/plink/plink --bfile plink --freq", dir);
 		markerSet = new SnpMarkerSet(dir+"plink.map");
 		markerNames = markerSet.getMarkerNames();
 		log.report("Found "+markerNames.length+" of these markers in the PLINK dataset");
@@ -80,7 +97,7 @@ public class Conditional {
 			writer.println("plink.ped");
 			writer.println("plink.map");
 			writer.println("plink.frq");
-			writer.println("counts.xln maskModel=true");
+			writer.println("counts.xln maskModel=true maskSex=true maskAffectionStatus=true");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				writer.println(line[1]+"\tADD");
@@ -102,7 +119,7 @@ public class Conditional {
     	
 		v = new Vector<String>();
     	if (originalCovariatesFile == null) {
-    		Files.copyFile(dir+"counts.xln", dir+newCovariatesFile);
+    		Files.copyFile(dir + "counts.xln", dir + newCovariatesFile);
     	} else {
     		line = Files.getHeaderOfFile(baseDir+originalCovariatesFile, "[\\s]+", log);
     		numFixedCovariates = line.length-2;
@@ -111,16 +128,22 @@ public class Conditional {
     			indices[i-2] = i;
     			v.add(line[i]);
 			}
-    		hash = HashVec.loadFileToHashString(baseDir+originalCovariatesFile, new int[] {0,1}, indices, false, "\t", false, false, false);
+    		hash = HashVec.loadFileToHashString(baseDir + originalCovariatesFile, new int[] {0,1}, indices, false, "\t", false, false, false);
     		try {
 				reader = new BufferedReader(new FileReader(dir+"counts.xln"));
-				writer = new PrintWriter(new FileWriter(dir+newCovariatesFile));
+				writer = new PrintWriter(new FileWriter(dir + newCovariatesFile));
+				countMissingCovariate = 0;
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (hash.containsKey(line[0]+"\t"+line[1])) {
 						writer.println(Array.toStr(line)+"\t"+hash.get(line[0]+"\t"+line[1]));
 					} else {
-						System.err.println("Error - no covariate information for individual "+line[0]+"-"+line[1]);
+						if (countMissingCovariate < 5) {
+							log.reportError("Error - no covariate information for individual "+line[0]+"-"+line[1], true, true, 8);
+						} else if (countMissingCovariate == 5) {
+							log.reportError("...");
+						}
+						countMissingCovariate++;
 					}
 				}
 				reader.close();
@@ -132,8 +155,116 @@ public class Conditional {
 				System.err.println("Error reading file \"" + "counts.xln" + "\"");
 				return;
 			}
+    		if (countMissingCovariate > 5) {
+    			log.reportError("There were "+countMissingCovariate+" indiviudals that were in the genotype file that were not in the covariate file");
+    		}
     	}
 	}
+
+
+//	public static void addCountsAsCovariate(String baseDir, String plinkFiles, String originalCovariatesFile, String newCovariatesFile, String allPossibleSNPs, Logger log) {
+//		BufferedReader reader;
+//		PrintWriter writer;
+//		String[] line;
+//		Hashtable<String,String> hash;
+//		Vector<String> v;
+//		String[] markerNames;
+//		SnpMarkerSet markerSet;
+//		int[] indices;
+//		int numFixedCovariates;
+//		String dir;
+//		
+//		if (allPossibleSNPs == null) {
+//			dir = baseDir+"allMarkers/";
+//		} else {
+//			dir = baseDir+ext.rootOf(allPossibleSNPs, false)+"/";
+//		}
+//		new File(dir).mkdirs();
+//		
+//		if (!new File(plinkFiles+".bed").exists() || !new File(plinkFiles+".bim").exists() || !new File(plinkFiles+".fam").exists()) {
+//			log.reportError("Error - a full complement of binary PLINK files are required to perform this algorithm");
+//			return;
+//		}
+//		if (allPossibleSNPs == null) {
+//			log.report("All markers in the dataset will be added to the covars file, since no subset was pre-defined");
+//			CmdLine.run("plink --bfile "+plinkFiles+" --make-bed", dir);
+//		} else {
+//			markerNames = HashVec.loadFileToStringArray(baseDir+allPossibleSNPs, false, new int[] {0}, true);
+//			log.report("Curently using file '"+allPossibleSNPs+"', which has "+markerNames.length+" independent elements in it");
+////			CmdLine.run("plink --bfile "+plinkFiles+" --extract ../"+(baseDir.equals("")?"":"../")+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
+////			CmdLine.run("C:/plink/plink --bfile "+plinkFiles+" --extract ../"+(baseDir.equals("")?"":"../")+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
+//			CmdLine.run("C:/plink/plink --bfile "+plinkFiles+" --extract ../"+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
+//		}
+//		
+////		CmdLine.run("plink --bfile plink --recode", dir);
+////		CmdLine.run("plink --bfile plink --freq", dir);
+//		CmdLine.run("C:/plink/plink --bfile plink --recode", dir);
+//		CmdLine.run("C:/plink/plink --bfile plink --freq", dir);
+//		markerSet = new SnpMarkerSet(dir+"plink.map");
+//		markerNames = markerSet.getMarkerNames();
+//		log.report("Found "+markerNames.length+" of these markers in the PLINK dataset");
+//		
+//		try {
+//			reader = new BufferedReader(new FileReader(dir+"plink.bim"));
+//			writer = new PrintWriter(new FileWriter(dir+"plink.crf"));
+//			writer.println("plink");
+//			writer.println("plink.ped");
+//			writer.println("plink.map");
+//			writer.println("plink.frq");
+//			writer.println("counts.xln maskModel=true");
+//			while (reader.ready()) {
+//				line = reader.readLine().trim().split("[\\s]+");
+//				writer.println(line[1]+"\tADD");
+//			}
+//			reader.close();
+//			writer.close();
+//		} catch (FileNotFoundException fnfe) {
+//			log.reportError("Error: file \"" + dir+"plink.bim" + "\" not found in current directory");
+//			return;
+//		} catch (IOException ioe) {
+//			log.reportError("Error reading file \"" + dir+"plink.bim" + "\"");
+//			return;
+//		}
+//		CreateDatabaseFromPlink.createDatabase(dir, dir+"plink.crf", log);
+//    	if (!Array.equals(markerNames, HashVec.loadFileToStringArray(dir+"plink.frq", true, new int[] {1}, false), true)) {
+//    		log.reportError("Error - the freq file does not match the map file");
+//    		return;
+//    	}
+//    	
+//		v = new Vector<String>();
+//    	if (originalCovariatesFile == null) {
+//    		Files.copyFile(dir+"counts.xln", dir+newCovariatesFile);
+//    	} else {
+//    		line = Files.getHeaderOfFile(baseDir+originalCovariatesFile, "[\\s]+", log);
+//    		numFixedCovariates = line.length-2;
+//    		indices = new int[numFixedCovariates];
+//    		for (int i = 2; i < line.length; i++) {
+//    			indices[i-2] = i;
+//    			v.add(line[i]);
+//			}
+//    		hash = HashVec.loadFileToHashString(baseDir+originalCovariatesFile, new int[] {0,1}, indices, false, "\t", false, false, false);
+//    		try {
+//				reader = new BufferedReader(new FileReader(dir+"counts.xln"));
+//				writer = new PrintWriter(new FileWriter(dir+newCovariatesFile));
+//				while (reader.ready()) {
+//					line = reader.readLine().trim().split("[\\s]+");
+//					if (hash.containsKey(line[0]+"\t"+line[1])) {
+//						writer.println(Array.toStr(line)+"\t"+hash.get(line[0]+"\t"+line[1]));
+//					} else {
+//						log.reportError("Error - no covariate information for individual "+line[0]+"-"+line[1], true, true, 8);
+//					}
+//				}
+//				reader.close();
+//				writer.close();
+//			} catch (FileNotFoundException fnfe) {
+//				System.err.println("Error: file \"" + "counts.xln" + "\" not found in current directory");
+//				return;
+//			} catch (IOException ioe) {
+//				System.err.println("Error reading file \"" + "counts.xln" + "\"");
+//				return;
+//			}
+//    	}
+//	}
 
 	public static void addDosageAsCovariate(String dir, String infoFile, String doseFile, String originalPhenotypeFile, boolean justIID, String newPhenotypeFile, String[] snps, boolean allowMissingConditional, boolean makeResiduals, Logger log) {
 		BufferedReader reader;

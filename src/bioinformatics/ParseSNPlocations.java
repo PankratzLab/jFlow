@@ -11,25 +11,26 @@ import filesys.SerialHash;
 import filesys.SnpMarkerSet;
 
 public class ParseSNPlocations {
+//	public static final String DEFAULT_NCBI_DIRECTORY = "/home/npankrat/NCBI/NCBI/";
+	public static final String DEFAULT_NCBI_DIRECTORY = "C:/projects/NCBI/";
+	
 //	public static final String DEFAULT_SOURCE = "/home/npankrat/NCBI/b129_SNPChrPosOnRef_36_3.bcp";
 //	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b129_36_3.ser";
-//	public static final String DEFAULT_MERGE_SOURCE = "/home/npankrat/NCBI/RsMergeArch.bcp";
-//	public static final String DEFAULT_MERGE = "/home/npankrat/NCBI/RsMerge_b129.ser";
 
-	public static final String DEFAULT_SOURCE = "/home/npankrat/NCBI/NCBI/b130_SNPChrPosOnRef_36_3.bcp";
-	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b130_36_3.ser";
-	public static final String DEFAULT_MERGE_SOURCE = "/home/npankrat/NCBI/NCBI/RsMergeArch.bcp";
-	public static final String DEFAULT_MERGE = "/home/npankrat/NCBI/RsMerge_b130.ser";
+	public static final String DEFAULT_B36_SOURCE = DEFAULT_NCBI_DIRECTORY+"b130_SNPChrPosOnRef_36_3.bcp.gz";
+	public static final String DEFAULT_B36_DB = DEFAULT_NCBI_DIRECTORY+"b130_36_3.ser";
 
 //	public static final String DEFAULT_SOURCE = "/home/npankrat/NCBI/NCBI/b132_SNPChrPosOnRef_37_1.bcp";
 //	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b132_37_1.ser";
-//	public static final String DEFAULT_MERGE_SOURCE = "/home/npankrat/NCBI/NCBI/RsMergeArch.bcp";
-//	public static final String DEFAULT_MERGE = "/home/npankrat/NCBI/RsMerge_b132.ser";
 
 //	public static final String DEFAULT_SOURCE = "/home/npankrat/NCBI/NCBI/b135_SNPChrPosOnRef_37_3.bcp";
 //	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b135_37_3.ser";
-//	public static final String DEFAULT_MERGE_SOURCE = "/home/npankrat/NCBI/NCBI/RsMergeArch.bcp";
-//	public static final String DEFAULT_MERGE = "/home/npankrat/NCBI/RsMerge_b135.ser";
+
+	public static final String DEFAULT_B37_SOURCE = DEFAULT_NCBI_DIRECTORY+"b137_SNPChrPosOnRef.bcp.gz";
+	public static final String DEFAULT_B37_DB = DEFAULT_NCBI_DIRECTORY+"b137_37_3.ser";
+
+	public static final String DEFAULT_MERGE_SOURCE = DEFAULT_NCBI_DIRECTORY+"RsMergeArch.bcp.gz";
+	public static final String DEFAULT_MERGE = DEFAULT_NCBI_DIRECTORY+"RsMerge.ser";
 	
 	
 	public static final int OFFSET = 1;
@@ -72,7 +73,7 @@ public class ParseSNPlocations {
 //	}
 	
 	public static void lowMemParse(String snpListFile, boolean useExistingPositions, Logger log) {
-		lowMemParse(snpListFile, ParseSNPlocations.DEFAULT_DB, ParseSNPlocations.DEFAULT_MERGE, useExistingPositions, log);
+		lowMemParse(snpListFile, ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, useExistingPositions, log);
 	}
 	
 	public static void lowMemParse(String snpListFile, String db, String mergeDB, boolean useExistingPositions, Logger log) {
@@ -326,10 +327,12 @@ public class ParseSNPlocations {
 		String[] rsNumbers;
 		int[] positions;
 		byte[] chrs;
+		String temp;
 
 		try {
 			System.out.println("Reading in "+source);
-			reader = new BufferedReader(new FileReader(source));
+//			reader = new BufferedReader(new FileReader(source));
+			reader = Files.getAppropriateReader(source);
 			count = 0;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -341,35 +344,46 @@ public class ParseSNPlocations {
 			reader.close();
 			System.out.println("Found "+count+" markers");
 
-			reader = new BufferedReader(new FileReader(source));
+//			reader = new BufferedReader(new FileReader(source));
+			reader = Files.getAppropriateReader(source);
 			rsNumbers = new String[count];
 			positions = new int[count];
 			chrs = new byte[count];
 			count = 0;
 			countPARys = 0;
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
-//				if (line.length>2) {
-				if (line.length>1) {
-					rsNumbers[count] = "rs"+line[0];
-					chrs[count] = Positions.chromosomeNumber(line[1]);
-					if (line[1].equals("PAR") && line[2].equals("y")) {
-						countPARys++;
-					} else if (line.length > 2) { // new
-						try {
-							positions[count] = Integer.parseInt(line[2]);
-						} catch (NumberFormatException nfe) {
-							System.err.println("Error - parsing line #"+(count+1)+": "+Array.toStr(line));
+				temp = reader.readLine();
+				try {
+					line = temp.trim().split("[\\s]+");
+//					if (line.length>2) {
+					if (line.length>1) {
+						rsNumbers[count] = "rs"+line[0];
+						chrs[count] = Positions.chromosomeNumber(line[1]);
+						if (line[1].equals("PAR") && line[2].equals("y")) {
+							countPARys++;
+						} else if (line.length > 2) { // new
+							try {
+								positions[count] = Integer.parseInt(line[2]);
+							} catch (NumberFormatException nfe) {
+								System.err.println("Error - parsing line #"+(count+1)+": "+Array.toStr(line));
+							}
+						} else {
+							positions[count] = MULTIPLE_POSITIONS;
 						}
-					} else {
-						positions[count] = MULTIPLE_POSITIONS;
+						count++;
+					} else { // new
+						chrs[count] = 0;
+						positions[count] = Integer.parseInt(line[2]);
+						count++;
 					}
-					count++;
-				} else { // new
-					chrs[count] = 0;
-					positions[count] = Integer.parseInt(line[2]);
-					count++;
+				} catch (Exception e) {
+					System.err.println("Error parsing "+source+" at the following line:");
+					System.err.println(temp);
+					e.printStackTrace();
+					reader.close();
+					return;
 				}
+				
 			}
 			reader.close();
 			if (countPARys > 0) {
@@ -436,11 +450,16 @@ public class ParseSNPlocations {
 		int numArgs = args.length;
 		String source = "";
 		String mergeSource = "";
-		String db = DEFAULT_DB;
+		String db = DEFAULT_B37_DB;
 		String merge = DEFAULT_MERGE;
 
 		// uncomment one of these to compile
-		source = DEFAULT_SOURCE;
+		source = DEFAULT_B37_SOURCE;
+		db = DEFAULT_B37_DB;
+
+//		source = DEFAULT_B36_SOURCE;
+//		db = DEFAULT_B36_DB;
+		
 //		mergeSource = DEFAULT_MERGE_SOURCE;
 
 		// String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\PD-singleton\\";
@@ -461,7 +480,7 @@ public class ParseSNPlocations {
 
 		String usage = "\n"+
 		"bioinformatics.ParseSNPlocations requires 0-1 arguments\n"+
-		"   (0) file from which to create db (i.e. source="+DEFAULT_SOURCE+" (not the default))\n"+
+		"   (0) file from which to create db (i.e. source="+DEFAULT_B37_SOURCE+" (not the default))\n"+
 		"   (1) snpDB (i.e. db="+db+" (default))\n"+
 		"   (2) merge DB (i.e. merge="+merge+" (default))\n"+
 		"   (3) dir (i.e. dir="+dir+" (default))\n"+

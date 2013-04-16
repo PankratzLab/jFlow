@@ -406,7 +406,7 @@ public class HashVec {
 					} else if (allowMissingData) {
 						temp += ((i==0)?"":delimiterWithinHash)+".";
 					} else {
-						System.err.println("Error - not enough columns for key '"+key+"'; and allowMissingData was not flagged");
+						System.err.println("Error - not enough columns for key '"+key+"' in file '"+filename+"'; and allowMissingData was not flagged");
 					}
 				}
 				hash.put(key, temp);

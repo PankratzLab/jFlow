@@ -515,8 +515,9 @@ public class SnpMarkerSet implements Serializable {
 		parseSNPlocations(new Logger());
 	}
 	
+	// TODO this needs to be dynamic, need a SnpMarkerSet variable for version
 	public void parseSNPlocations(Logger log) {
-		parseSNPlocations(ParseSNPlocations.DEFAULT_DB, ParseSNPlocations.DEFAULT_MERGE, log);
+		parseSNPlocations(ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, log);
 	}
 	
 	public void setPositions(SnpMarkerSet refSet) {

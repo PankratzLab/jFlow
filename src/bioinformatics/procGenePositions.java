@@ -10,12 +10,16 @@ public class procGenePositions {
 	// public static final boolean[] IMPORTANT = {true, true};
 //	public static final String[] SOURCES = {"reference", "Celera", "c22_H2", "c5_H2", "c6_COX", "c6_QBL", "DR53", "CRA_TCAGchr7v2"};
 	public static final String[] SOURCES = {"GRCh37.p5-Primary Assembly", "HuRef-Primary Assembly"};
+	public static final boolean[] IMPORTANT = {true, true};
 
-	public static final boolean[] IMPORTANT = {true, true, false, false, false, false, false, false};
+//	public static final boolean[] IMPORTANT = {true, true, false, false, false, false, false, false};
 
 	// public static final boolean[] IMPORTANT = {true, true, false, false,
 	// false, false, false, false};
 	public static final int DOMINANT = 0;
+	
+	public static final String GROUP_LABEL_TARGET = "GRCh37.p5-Primary Assembly";
+	
 
 	public static class GenePosition implements Cloneable {
 		public String name;
@@ -63,6 +67,7 @@ public class procGenePositions {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		String[] line, geneIDs;
+		String geneId;
 		String temp;
 		Hashtable<String,GenePosition[]> hash = new Hashtable<String,GenePosition[]>();
 
@@ -84,10 +89,11 @@ public class procGenePositions {
 				temp = reader.readLine();
 				line = temp.split("\t");
 				if (line[11].equalsIgnoreCase("GENE")) {
-					if (hash.containsKey(line[10].substring(7))) {
-						gps = hash.get(line[10].substring(7));
+					geneId = line[10].substring(7);
+					if (hash.containsKey(geneId)) {
+						gps = hash.get(geneId);
 					} else {
-						hash.put(line[10].substring(7), gps = GenePosition.newArray(SOURCES.length));
+						hash.put(geneId, gps = GenePosition.newArray(SOURCES.length));
 					}
 
 					count = 0;
@@ -379,6 +385,8 @@ public class procGenePositions {
 				System.exit(1);
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
+				dir = ext.parseDirectoryOfFile(filename);
+				filename = ext.removeDirectoryInfo(filename);
 				numArgs--;
 			}
 		}
