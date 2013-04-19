@@ -8,8 +8,157 @@ import cnv.filesys.*;
 import cnv.manage.MarkerDataLoaderRunnable;
 import cnv.var.SampleData;
 import common.*;
+import db.FilterDB;
 
 public class MarkerMetrics {
+	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx"};
+	
+	public static void fullQC(Project proj, String fileWithListOfSamplesToUse, String subsetOfMarkers, Logger log) {
+		Hashtable<String, String> hash;
+        String[] samples;
+        boolean[] samplesToUse;
+
+        if (fileWithListOfSamplesToUse != null) {
+        	hash = HashVec.loadFileToHashString(fileWithListOfSamplesToUse, false);
+	        samples = proj.getSamples();
+	        samplesToUse = new boolean[samples.length];
+	        for (int i = 0; i < samples.length; i++) {
+	        	samplesToUse[i] = hash.containsKey(samples[i]);
+			}
+        } else {
+        	samplesToUse = null;
+        }
+		
+        fullQC(proj, samplesToUse, subsetOfMarkers, log);
+	}
+	
+	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude, Logger log) {
+		PrintWriter writer;
+		String[] samples;
+		float[] thetas, rs;
+		MarkerData markerData;
+        byte[] abGenotypes;
+        String markerName;
+        ClusterFilterCollection clusterFilterCollection;
+        float gcThreshold;
+        long time;
+        MarkerDataLoaderRunnable markerDataLoader;
+        String[] markerList;
+        String line, eol;
+//        int countAA, countAB, countBB, countNull;
+        int[] count;
+        double[] sumTheta, sumR, meanTheta, sdTheta;
+        double temp;
+        
+        if (System.getProperty("os.name").startsWith("Windows")) {
+        	eol = "\r\n";
+		} else {
+			eol = "\n";
+		}
+        
+        samples = proj.getSamples();
+ 		
+        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
+        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
+        } else {
+        	clusterFilterCollection = null;
+        }
+		
+        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
+
+		try {
+			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY)+"markerGenderChecks.xln"));
+			writer.println(Array.toStr(FULL_QC_HEADER));
+			
+			if (markersToInclude != null) {
+				markerList = HashVec.loadFileToStringArray(proj.getDir(Project.PROJECT_DIRECTORY)+markersToInclude, false, new int[] {0}, false);
+			} else {
+				markerList = proj.getMarkerNames();
+			}
+			markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerList);
+			line = "";
+			time = new Date().getTime();
+			for (int i = 0; i < markerList.length; i++) {
+				markerData = markerDataLoader.requestMarkerData(i);
+
+				markerName = markerData.getMarkerName();
+				thetas = markerData.getThetas();
+				rs = markerData.getRs();
+				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				
+				
+				// this is where all code will go
+				count = new int[4];
+				sumTheta = new double[count.length];
+				sumR = new double[count.length];
+				for (int j = 0; j < samples.length; j++) {
+					if (samplesToExclude==null || samplesToExclude[j]) {
+						count[abGenotypes[j] + 1] ++;
+						sumTheta[abGenotypes[j] + 1] += thetas[j];
+						sumR[abGenotypes[j] + 1] += rs[j];
+					}
+				}
+
+				meanTheta = new double[count.length];
+				for (int j = 1; j < meanTheta.length; j++) {
+					meanTheta[j] = sumTheta[j] / count[j];
+				}
+				sdTheta = new double[count.length];
+				for (int j = 0; j < samples.length; j++) {
+					if (samplesToExclude==null || samplesToExclude[j]) {
+						temp = (thetas[j] - meanTheta[ abGenotypes[j] + 1 ]);
+						sdTheta[ abGenotypes[j] + 1 ] +=  temp * temp;
+					}
+				}
+				for (int j = 1; j < sdTheta.length; j++) {
+					if (count[j] == 0) {
+						sdTheta[j] = Double.NaN;	
+					} else {
+						sdTheta[j] = Math.sqrt(sdTheta[j] / (count[j]-1));
+					}
+				}
+
+				line += (markerName
+						+ "\t" + markerData.getChr()
+						+ "\t" + (1- ((float)count[0] / (count[0] + count[1] + count[2] + count[3])))
+						+ "\t" + meanTheta[1]
+						+ "\t" + meanTheta[2]
+						+ "\t" + meanTheta[3]
+						+ "\t" + (meanTheta[2] - meanTheta[1])
+						+ "\t" + (meanTheta[3] - meanTheta[2])
+						+ "\t" + sdTheta[1]
+						+ "\t" + sdTheta[2]
+						+ "\t" + sdTheta[3]
+						+ "\t" + (sumR[1] / count[1])
+						+ "\t" + (sumR[2] / count[2])
+						+ "\t" + (sumR[3] / count[3])
+						+ "\t" + count[1]
+						+ "\t" + count[2]
+						+ "\t" + count[3]
+						+ "\t" + ((float) count[1] / (count[0] + count[1] + count[2] + count[3]))
+						+ "\t" + ((float) count[2] / (count[0] + count[1] + count[2] + count[3]))
+						+ "\t" + ((float) count[3] / (count[0] + count[1] + count[2] + count[3]))
+						+ "\t" + (float) (count[1]<count[3]? (count[1] + count[2]) : (count[2] + count[3])) / (count[0] + count[1] + 2 * count[2] + count[3])
+						+ "\t" + AlleleFreq.HetExcess(count[1], count[2], count[3])[0]
+						+ eol
+						);
+				
+				if (line.length() > 25000) {
+					writer.print(line);
+					writer.flush();
+					line = "";
+				}
+			}
+			writer.print(line);
+			writer.close();
+			log.report("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
+
+		} catch (Exception e) {
+			log.reportError("Error writing results");
+			e.printStackTrace();
+		}
+	}
+	
 	private static void separationOfSexes(Project proj, String subset, Logger log) {
 		PrintWriter writer;
 		String[] samples;
@@ -184,21 +333,25 @@ public class MarkerMetrics {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String subset = "MarkerMetrics.dat";
+		String markersSubset = null;
+		String samplesExclude = null;
 		String logfile = null;
 		Logger log;
 		Project proj;
 		String filename = Project.DEFAULT_PROJECT;
-		filename = "/home/npankrat/projects/SDRG.properties";
+
+//		subset = "data/test.txt";
+		filename = "C:/workspace/Genvisis/projects/gedi_exome.properties";
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
 				"   (1) project file (i.e. proj="+filename+" (default))\n"+
-				"   (2) filename of subset of markers / otherwise all markers (i.e. subset=" + subset + " (default))\n" + 
-				"   (3) look for separation between males and females (i.e. file=" + subset + " (default))\n" + 
+				"   (2) filename of subset of markers to include / otherwise all markers (i.e. markersubset=" + markersSubset + " (default))\n" + 
+				"   (3) filename of subset of samples to exclude / otherwise all markers (i.e. samplesexclude=" + samplesExclude + " (default))\n" + 
+//				"   (4) look for separation between males and females (i.e. file=" + markersSubset + " (default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -209,7 +362,10 @@ public class MarkerMetrics {
 				filename = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("subset=")) {
-				subset = args[i].split("=")[1];
+				markersSubset = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("sampleexclude=")) {
+				samplesExclude = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -227,9 +383,9 @@ public class MarkerMetrics {
 			proj = new Project(filename, false);
 			log = new Logger(logfile);
 			
-			subset = "data/test.txt";
-
-			separationOfSexes(proj, subset, log);
+//			separationOfSexes(proj, subset, log);
+			
+			fullQC(proj, samplesExclude, markersSubset, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

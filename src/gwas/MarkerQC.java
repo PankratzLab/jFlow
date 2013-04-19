@@ -321,7 +321,7 @@ public class MarkerQC {
 			System.err.println(usage);
 			System.exit(1);
 		}
-//		filename = "d:/plink/miss.crf";
+		filename = "miss.crf";
 		
 		log = new Logger(ext.rootOf(filename, false)+".log");
 		try {

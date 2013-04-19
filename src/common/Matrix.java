@@ -272,6 +272,22 @@ public class Matrix {
     }
 
 	/**
+     * Creates a matrix of doubles and copies the contents of a matrix of String into it
+     * 
+     * @param v a matrix of String
+     * @return a matrix of doubles copied from a matrix of String
+     */
+    public static double[][] toDoubleArrays(String[][] sMatrix) {
+    	double[][] matrix = new double[sMatrix.length][];
+    
+    	for (int i = 0; i<sMatrix.length; i++) {
+    		matrix[i] = Array.toDoubleArray(sMatrix[i]);
+    	}
+    	
+    	return matrix;
+    }
+
+	/**
      * Creates a matrix of ints and copies the contents of a matrix of Strings into it
      * 
      * @param v a matrix of integers

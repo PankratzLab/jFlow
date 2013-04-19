@@ -401,7 +401,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 					indexReadBuffer += bytesPerSampMark;
 				}
 			}
-	        result[i] = new MarkerData(markerNamesProj[markerIndeciesInProj[i]], chrsProj[markerIndeciesInProj[i]], positionsProj[markerIndeciesInProj[i]], fingerprint, gcs, new float[] {0}, new float[] {0}, xs, ys, new float[] {0}, new float[] {0}, bafs, lrrs, abGenotypes, alleleMappings);
+	        result[i] = new MarkerData(markerNamesProj[markerIndeciesInProj[i]], chrsProj[markerIndeciesInProj[i]], positionsProj[markerIndeciesInProj[i]], fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs, abGenotypes, alleleMappings);
         }
 		return result;
 	}
