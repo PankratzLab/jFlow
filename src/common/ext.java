@@ -709,14 +709,37 @@ public class ext {
 	}
 	
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset, boolean caseSensitive, boolean exactMatch, boolean verbose, Logger log, boolean kill) {
+		return indexFactors(targetsWithAlts, superset, false, caseSensitive, exactMatch, verbose, log, kill);
+	}
+	
+	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset, boolean preferFirstInTargetsOverFirstInSubset, boolean caseSensitive, boolean exactMatch, boolean verbose, Logger log, boolean kill) {
 		int[] finalIndices;
-		IntVector[] possibleIndices = IntVector.newIntVectors(targetsWithAlts.length);
+		IntVector[] possibleIndices;
 		boolean err = false;
+		int index, minIndex;
 
-		for (int i = 0; i<superset.length; i++) {
-			for (int j = 0; j<targetsWithAlts.length; j++) {
-				if (indexOfStr(superset[i], targetsWithAlts[j], caseSensitive, exactMatch)!=-1) {
-					possibleIndices[j].add(i);
+		possibleIndices = IntVector.newIntVectors(targetsWithAlts.length);
+		if (preferFirstInTargetsOverFirstInSubset) {
+	 		for (int j = 0; j<targetsWithAlts.length; j++) {
+	 			minIndex = Integer.MAX_VALUE;
+	 			for (int i = 0; i<superset.length; i++) {
+	 				index = indexOfStr(superset[i], targetsWithAlts[j], caseSensitive, exactMatch);
+	 				if (index!=-1) {
+	 					if (index < minIndex) {
+	 						possibleIndices[j].insertElementAt(i, 0);
+	 						minIndex = index;
+	 					} else {
+	 						possibleIndices[j].add(i);
+	 					}
+	 				}
+	 			}
+	 		}
+		} else {
+			for (int i = 0; i<superset.length; i++) {
+				for (int j = 0; j<targetsWithAlts.length; j++) {
+					if (indexOfStr(superset[i], targetsWithAlts[j], caseSensitive, exactMatch)!=-1) {
+						possibleIndices[j].add(i);
+					}
 				}
 			}
 		}

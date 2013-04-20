@@ -24,7 +24,7 @@ import common.IntVector;
 import common.Sort;
 import common.Array;
 
-//public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
+// TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static Color[] generateDefaultColors() { // new after merging with npBranch, feel free to delete if better solution is found
@@ -237,7 +237,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
 			
-			if (indi!=null && sampleData.excludeIndividual(samples[i])) {
+			if (indi!=null && sampleData.individualShouldBeExcluded(samples[i])) {
 				// if sample should be excluded then do nothing
 				genotype[i]=-3;
 				sex[i] = "e";
@@ -342,218 +342,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 	}
 
-//	public void generatePoints() {
-//			int position, markerIndex, plotType, currentClass;
-//			byte chr, genotypeCode, sexCode, classCode, type;
-//			float[][] datapoints;
-//	//		byte[] alleleCounts;
-//	//		float gcThreshold;
-//			byte layer;
-//			float[] gcScores;
-//			IndiPheno indi;
-//	//		long time;
-//			byte size, xFontSize;
-//			boolean[] displayCents;
-//			float[][][][] cents;
-//			int numCents, count;
-//			byte centSize;
-//			float x, y;
-//			//int[][] dataForQc;//zx
-//			int[] genotype;
-//			String[] sex;
-//			String[] otherClass;
-//			CountVector classCounts;//zx
-//	//		ClusterFilterCollection clusterFilterCollection;//zx
-//	
-//	//		time = new Date().getTime();
-//			
-//			if (markerData == null) {
-//				return;
-//			}
-//	
-//			plotType = sp.getPlotType();
-//			currentClass = sp.getCurrentClass();
-//			markerIndex = sp.getMarkerIndex();
-//	//		gcThreshold = sp.getGCthreshold();
-//			datapoints = markerData[markerIndex].getDatapoints(plotType);
-//			gcScores = markerData[markerIndex].getGCs();
-//	//		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
-//	//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
-//			alleleCounts = markerData[markerIndex].getAB_GenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
-//	//		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
-//			sp.displayClusterFilterIndex();
-//			chr = markerData[markerIndex].getChr();
-//			position = markerData[markerIndex].getPosition();
-//			size = sp.getPointSize();
-//			xFontSize = (byte)(size*2);
-//			displayCents = sp.getDisplayCents();
-//			cents = sp.getCents();
-//			centSize = 20;
-//			
-//			if (datapoints[0] == null || datapoints[1] == null) {
-//				errorMessage = "Data not available:";
-//				points = new PlotPoint[0]; 
-//				return;
-//			} else {
-//				errorMessage = null;
-//			}
-//			
-//			if (plotType == 1 || plotType == 2) {
-//				numCents = Array.booleanArraySum(displayCents);
-//				points = new PlotPoint[samples.length+numCents*3];
-//	
-//				count = 0;
-//				for (int i = 0; i<displayCents.length; i++) {
-//					if (displayCents[i]) {
-//						for (int j = 0; j<3; j++) {
-//							if (cents[i][markerIndex][j] == null) {
-//								x = 0;
-//								y = 0;
-//							} else if (plotType == 1) {
-//								x = (float)(cents[i][markerIndex][j][1] /(1+ Math.sin(cents[i][markerIndex][j][0]*Math.PI/2)/Math.cos(cents[i][markerIndex][j][0]*Math.PI/2)));
-//								y = (float)(cents[i][markerIndex][j][1] /(1+ Math.cos(cents[i][markerIndex][j][0]*Math.PI/2)/Math.sin(cents[i][markerIndex][j][0]*Math.PI/2)));
-//							} else {
-//								x = cents[i][markerIndex][j][0];
-//								y = cents[i][markerIndex][j][1];
-//							}
-//							points[count*3+j] = new PlotPoint("Centoids", PlotPoint.FILLED_CIRCLE, x, y, centSize, (byte)(5+i), (byte)10);
-//	
-//		                }
-//						count++;
-//					}
-//		        }
-//			} else {
-//				points = new PlotPoint[samples.length];
-//				numCents = 0;
-//			}
-//			
-//			if (plotType < 2) {
-//				forcePlotXmax = Float.NaN;
-//			} else {
-//				forcePlotXmax = 1;
-//			}
-//	
-//			//dataForQc = new int[3][samples.length];//zx
-//			//genotype = markerData[markerIndex].getAB_GenotypesAfterFilters(null, sp.getGCthreshold());
-//			genotype = new int[samples.length];
-//			sex = new String[samples.length];
-//			otherClass = new String[samples.length];
-//			classCounts = new CountVector();
-//			for (int i = 0; i<samples.length; i++) {
-//				indi = sampleData.getIndiFromSampleHash(samples[i]);
-//				
-//				if (indi!=null && sampleData.excludeIndividual(samples[i])) {
-//					// if sample should be excluded then do nothing
-//					genotype[i]=-3;
-//					sex[i] = "e";
-//					
-//				} else if (indi!=null) {
-//					genotypeCode = (byte)(alleleCounts[i]+1);
-//	//				genotypeCode = determineCodeFromClass(1, alleleCounts[i], indi, chr, position);
-//	//				if (gcScores[i]<gcThreshold) {
-//	//					genotypeCode = 0;
-//	//				}
-//	//				clusterFilterCollection = sp.getClusterFilterCollection();
-//	//				clusterFilterCollection.filterMarker(markerData[markerIndex]);
-//					
-//					
-//					// additional genotypeFilters
-//					if (currentClass == 1) {
-//						classCode = genotypeCode;
-//					} else {
-//						classCode = determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position);
-//					}
-//					if (sampleData.getSexClassIndex() == -1) {
-//						sexCode = 0;
-//					} else {
-//						sexCode = determineCodeFromClass(sampleData.getSexClassIndex()+SampleData.BASIC_CLASSES.length, alleleCounts[i], indi, chr, position);
-//					}
-//					
-//					//System.out.println("Current loop:\t"+i+"\t code:\t"+code+"\t alleleCounts: "+alleleCounts[i]+"\t gcScores: "+gcScores[i]);//zx
-//					if (classCode == -1 && !sp.maskMissing()) {
-//						classCode = 0;
-//					}
-//					if (Float.isNaN(datapoints[0][i]) || Float.isNaN(datapoints[1][i])) {
-//						type = PlotPoint.NOT_A_NUMBER;
-//	//				} else if (currentClass==1 && alleleCounts[i]==-1) {
-//					} else if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
-//						type = PlotPoint.MISSING;
-//					} else {
-//						type = PlotPoint.FILLED_CIRCLE;
-//					}
-//					layer = (byte)((sampleData.getClassCategoryAndIndex(currentClass)[0]==2 && classCode > 0)?1:0);
-//					if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
-//						classCounts.add(0+"");
-//						genotype[i]=0;//zx
-//					} else {
-//						classCounts.add(classCode+"");
-//					}
-//					if (classCode < 0) {
-//						System.err.println("Error - classCOde is less than 0 ("+classCode+")");
-//					}
-//					points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:xFontSize, classCode, layer);
-//					genotype[i]=genotypeCode;
-//					//sex[i]=(sexCode==1?"Female":(sexCode==2?"Male":"Missing"));
-//					//for (int j=0; j<sampleData.getActualClassColorKey(0).length; j++) {
-//					//	if (sampleData.getActualClassColorKey(0)[j][0].equals(determineCodeFromClass(2, alleleCounts[i], indi, chr, position)+"")){
-//					//		sex[i]=sampleData.getActualClassColorKey(0)[j][1];
-//					//		break;
-//					//	}
-//					//	sex[i]="Missing";
-//					//}
-//					sex[i] = determineCodeFromClass(2, alleleCounts[i], indi, chr, position)+"";
-//					
-//					//for (int j=0; j<sampleData.getActualClassColorKey(1).length; j++) {
-//					//	if (sampleData.getActualClassColorKey(1)[j][0].equals(classCode+"")){
-//					//		otherClass[i]=sampleData.getActualClassColorKey(1)[j][1];
-//					//		break;
-//					//	}
-//					//	otherClass[i]="Missing";
-//					//}
-//					//classCounts.add(code+"");//np
-//					//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;//zx
-//					otherClass[i] = determineCodeFromClass(3, alleleCounts[i], indi, chr, position)+"";
-//				} else {
-//					System.err.println("Error - no data pts for "+samples[i]);
-//					sex[i] = "missing";
-//					points[numCents*3+i] = new PlotPoint(samples[i], PlotPoint.MISSING, datapoints[0][i], datapoints[1][i], (byte)(xFontSize*2), (byte)0, (byte)99);
-//				}
-//				
-//				// create grid
-//			}
-//			//callRate=(samples.length-callRate)*100/samples.length;//zx
-//			
-//			if (getUpdateQcPanel()) {
-//				sp.updateQcPanel(chr, genotype, sex, otherClass);//zx
-//				setQcPanelUpdatable(false);
-//			}
-//			sp.updateColorKey(classCounts.convertToHash());
-//			
-//			Hashtable<String, String> hash = new Hashtable<String, String>();
-//			for (int i = 0; i < points.length; i++) {
-//				if (points[i] != null) {
-//					hash.put(points[i].getLayer()+"", "");
-//				}
-//			}
-//			setLayersInBase(Array.toByteArray(Sort.putInOrder(Array.toIntArray(HashVec.getKeys(hash)))));
-//	//    	rectangles = sp.getClusterFilterCollection().getRectangles(sp.getMarkerName(), sp.getCurrentClusterFilter(), (byte) plotType, (byte)1, false, false, (byte)0, (byte)99);
-//	    	generateRectangles();
-//	//    	System.out.println("Rectangles length: "+rectangles.length+" size: "+sp.getClusterFilterCollection().getSize(sp.getMarkerName())+" currentClusterFilter: "+sp.getCurrentClusterFilter());
-//	//		if (sp.getClusterFilterCollection().getSize(sp.getMarkerName())>0) {
-//	//			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
-//	//		}
-//	    	setSwapable(false);
-//			if (sp.getCurrentClusterFilter()>=0) {
-//				rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
-//			}
-//	//		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
-//		}
-
-//	public void updateMarkerData (MarkerData[] markerData) {
-//		this.markerData = markerData;
-//		repaint();
-//	}
-//
 	public void mouseMoved(MouseEvent event) {
 		Graphics g = getGraphics();
 		String pos;
@@ -561,9 +349,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 		float[][] datapoints;
 		IndiPheno indi;
-		float[] gcScores;
+//		float[] gcScores;
 //		byte[] alleleCounts;
-		float gcThreshold;
+//		float gcThreshold;
 		int xWidth;
 		int plotType, currentClass;
 		int i;
@@ -604,11 +392,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 		mData = sp.getCurrentMarkerData();
 		datapoints = mData.getDatapoints(plotType);
-		gcScores = mData.getGCs();
+//		gcScores = mData.getGCs();
 //		alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		chr = mData.getChr();
 		position = mData.getPosition();
-		gcThreshold = sp.getGCthreshold();
+//		gcThreshold = sp.getGCthreshold();
 
 		size = sp.getPointSize();
 		xFontSize = (byte)(size*2);
@@ -632,80 +420,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 		prevPos = pos;
 	}
-
-	// Begin of original section
-	/*
-	public void mouseMoved(MouseEvent event) {
-		Graphics g = getGraphics();
-		IntVector iv;
-		String pos;
-		int x, y;
-
-		float[][] datapoints;
-		IndiPheno indi;
-//		Hashtable<String,IndiPheno> sampleHash = sampleData.getSampleHash();
-		float[] gcScores;
-		byte[] alleleCounts;
-		float gcThreshold;
-		int xWidth;
-		int plotType, currentClass;
-		int i;
-		byte chr;
-		int position;
-		int markerIndex;
-		byte size, xFontSize;
-
-		x = event.getX();
-		y = event.getY();
-
-		canvasSectionMinimumX = WIDTH_Y_AXIS;
-		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-		canvasSectionMinimumY = HEIGHT_X_AXIS;
-		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-		pos = (int)Math.floor(x/DEFAULT_LOOKUP_RESOLUTION)+"x"+(int)Math.floor(y/DEFAULT_LOOKUP_RESOLUTION);
-		if (!pos.equals(prevPos)) {
-			repaint();
-		}
-		iv = locLookup.get(pos);
-		prox = new IntVector();
-
-		plotType = sp.getPlotType();
-		currentClass = sp.getCurrentClass();
-		markerIndex = sp.getMarkerIndex();
-		datapoints = markerData[markerIndex].getDatapoints(plotType);
-		gcScores = markerData[markerIndex].getGCs();
-		alleleCounts = markerData[markerIndex].getAB_Genotypes();
-		chr = markerData[markerIndex].getChr();
-		position = markerData[markerIndex].getPosition();
-		gcThreshold = sp.getGCthreshold();
-
-		size = sp.getPointSize();
-		xFontSize = (byte)(size*2);
-
-		g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5)));
-		xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
-
-		for (int l = 0; iv!=null&&l<iv.size(); l++) {
-			i = iv.elementAt(l);
-			if (Distance.euclidean(new int[] {x, y}, new int[] {getX(datapoints[0][i]), getY(datapoints[1][i])})<Math.sqrt(size*size/2)) {
-				indi = sampleData.getIndiFromSampleHash(samples[i]);
-				if (indi!=null) {
-					g.setColor(colorScheme[determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
-					if (gcScores[i]<gcThreshold) {
-						g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize*1.5/2.0)-1);
-					} else {
-						g.fillOval(getX(datapoints[0][i])-(int)(size*1.5)/2, getY(datapoints[1][i])-(int)(size*1.5)/2, (int)(size*1.5), (int)(size*1.5));
-					}
-				}
-
-				prox.add(i);
-			}
-		}
-
-		prevPos = pos;
-	}
-	// End of original section
-	*/
 
     public void mousePressed(MouseEvent e) {
     	mouseStartX = e.getX();
@@ -817,24 +531,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			menu.show(this, event.getX(), event.getY());
 		}
 	}
-
-//	public void mouseEntered(MouseEvent e) {}
-//
-//	public void mouseExited(MouseEvent e) {}
-//
-//	public void mousePressed(MouseEvent e) {}
-//
-//	public void mouseReleased(MouseEvent e) {}
-
-//	public void componentHidden(ComponentEvent e) {}
-//
-//	public void componentMoved(ComponentEvent e) {}
-//
-//	public void componentResized(ComponentEvent e) {
-//		paintAgain();
-//	}
-//
-//	public void componentShown(ComponentEvent e) {}
 
 //	public static void main(String[] args) {
 //		ScatterPlot.main(new String[] {"-notJar"});

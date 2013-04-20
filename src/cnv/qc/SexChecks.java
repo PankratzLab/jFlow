@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 
 import cnv.filesys.*;
+import cnv.manage.MarkerDataLoaderRunnable;
 import cnv.var.SampleData;
 import common.*;
 import stats.*;
@@ -52,10 +53,12 @@ public class SexChecks {
 		Vector<String> intensityDeps;
 		LogisticRegression lr;
 		String output;
-		MarkerData[] markerData;
-        String[] files;
         SampleData sampleData;
         int[] sexes;
+    	MarkerDataLoaderRunnable markerDataLoader;
+		MarkerData markerData;
+		String[] markerNames;
+		long time;
         
         sampleData = proj.getSampleData(2, false);
         samples = proj.getSamples();
@@ -64,61 +67,68 @@ public class SexChecks {
         	sexes[i] = sampleData.getSexForIndividual(samples[i]);
 		}
  		
-		files = Files.list(proj.getDir(Project.PLOT_DIRECTORY), ".scat", false);
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY)+"markerGenderChecks.xln"));
 			writer.println("SNP\tX abs(T)\tY abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tBAF p\tLRR p\tBAF/LRR r2");
-			for (int i=0; i<files.length; i++) {
-				markerData = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+files[i], proj.getJarStatus()).getCollection();
-				for (int j = 0; j < markerData.length; j++) {
-					output = markerData[j].getMarkerName();
-					
-					xs = markerData[j].getXs();
-					ys = markerData[j].getYs();
-					bafs = markerData[j].getBAFs();
-					lrrs = markerData[j].getLRRs();
-					
-					intensityDeps = new Vector<String>();
-					xys = new Vector<double[]>();
-					baflrrs = new Vector<double[]>();
-					for (int s = 0; s < samples.length; s++) {
-						if (ext.isValidDouble(lrrs[s]+"")) {
-							intensityDeps.add(sexes[s]+"");
-							xys.add(new double[] {xs[s], ys[s]});
-							baflrrs.add(new double[] {bafs[s], lrrs[s]});
-						}
+			
+	        time = new Date().getTime();
+	        markerNames = proj.getMarkerNames();
+			markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
+	        for (int i = 0; i < markerNames.length; i++) {
+	        	markerData = markerDataLoader.requestMarkerData(i);
+	        	if (i % 100 == 0) {
+	        		System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+	        	}
+
+				output = markerData.getMarkerName();
+				
+				xs = markerData.getXs();
+				ys = markerData.getYs();
+				bafs = markerData.getBAFs();
+				lrrs = markerData.getLRRs();
+				
+				intensityDeps = new Vector<String>();
+				xys = new Vector<double[]>();
+				baflrrs = new Vector<double[]>();
+				for (int s = 0; s < samples.length; s++) {
+					if (ext.isValidDouble(lrrs[s]+"")) {
+						intensityDeps.add(sexes[s]+"");
+						xys.add(new double[] {xs[s], ys[s]});
+						baflrrs.add(new double[] {bafs[s], lrrs[s]});
 					}
-					
-					
-					if (intensityDeps.size()==0) {
-						System.err.println("Warning - no data for marker "+markerData[j].getMarkerName());
-						output += "\t.\t.\t.\t.\t.\t.\t.\t.";
-					} else {
-						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 0)).getPvalue());
-						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 1)).getPvalue());
-						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 0)).getPvalue());
-						output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 1)).getPvalue());
-					}
-	
-					lr = null;
-					try {
-						lr = new LogisticRegression(intensityDeps, xys);
-						output += "\t"+lr.getSigs()[1]+"\t"+lr.getSigs()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
-					} catch (Exception e) {
-						output += "\t.\t.\t.";
-					}
-					try {
-						lr = new LogisticRegression(intensityDeps, baflrrs);
-						output += "\t"+lr.getSigs()[1]+"\t"+lr.getSigs()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
-					} catch (Exception e) {
-						output += "\t.\t.\t.";
-					}
-	
-					writer.println(output);
-					writer.flush();
 				}
+				
+				
+				if (intensityDeps.size()==0) {
+					System.err.println("Warning - no data for marker "+markerData.getMarkerName());
+					output += "\t.\t.\t.\t.\t.\t.\t.\t.";
+				} else {
+					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 0)).getPvalue());
+					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 1)).getPvalue());
+					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 0)).getPvalue());
+					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 1)).getPvalue());
+				}
+
+				lr = null;
+				try {
+					lr = new LogisticRegression(intensityDeps, xys);
+					output += "\t"+lr.getSigs()[1]+"\t"+lr.getSigs()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
+				} catch (Exception e) {
+					output += "\t.\t.\t.";
+				}
+				try {
+					lr = new LogisticRegression(intensityDeps, baflrrs);
+					output += "\t"+lr.getSigs()[1]+"\t"+lr.getSigs()[2]+"\t"+(lr.getRsquare()<0?".":lr.getRsquare());
+				} catch (Exception e) {
+					output += "\t.\t.\t.";
+				}
+
+				writer.println(output);
+				writer.flush();
+				markerDataLoader.releaseIndex(i);
 			}
+			System.out.println("Finished in " + ext.getTimeElapsed(time));
 			writer.close();
 		} catch (Exception e) {
 			System.err.println("Error writing results");

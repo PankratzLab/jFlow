@@ -3,6 +3,8 @@ package cnv.filesys;
 import java.io.*;
 import java.util.*;
 
+import cnv.manage.MarkerDataLoaderRunnable;
+
 import stats.Maths;
 import common.*;
 
@@ -172,28 +174,23 @@ public class Centroids implements Serializable {
 	}
 
 	public static void parseCentroidsFromGenotypes(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold) {
-		Hashtable<String, String> hash;
-		String[] samples, markerNames, files;
+		String[] samples, markerNames;
 		float[][][] centroids;
 		float[][] centroid;
-		int count, index;
+		int count;
 		float[] thetas, rs;
 		double[] meanThetas, meanRs;
 		byte[] genotypes;
 		int[] counts;
 		SampleList sampleList;
-		MarkerDataCollection collection;
-		MarkerData[] markerData = null;
-		long time, sampleFingerprint;
+		MarkerDataLoaderRunnable markerDataLoader;
+		MarkerData markerData;
+		long time;
 		MarkerSet markerSet;
-		boolean jar;
-		String[] line;
 		
-		jar = false;
 		time = new Date().getTime();
 		System.out.println("Computing centroids from genotype means");
 		sampleList = proj.getSampleList();
-		sampleFingerprint = sampleList.getFingerprint(); 
 		samples = sampleList.getSamples();
 		if (samples.length != samplesToBeUsed.length) {
 			System.err.println("Error - mismatched number of samples in project versus sample mask");
@@ -203,76 +200,51 @@ public class Centroids implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
 		
-		hash = new Hashtable<String, String>();
+		markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
+		time = new Date().getTime();
 		for (int i = 0; i < markerNames.length; i++) {
-			if (hash.containsKey(markerNames[i])) {
-				hash.put(markerNames[i], hash.get(markerNames[i])+" "+i);
-			} else {
-				hash.put(markerNames[i], i+"");
-			}
-		}
-		
-		files = Files.list(proj.getDir(Project.PLOT_DIRECTORY), ".scat", proj.getJarStatus()); 
-
-		for (int i = 0; i<files.length; i++) {
-			collection = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+files[i], jar);
-			markerData = collection.getCollection();
-			markerNames = collection.getMarkerNames();
-			if (collection.getFingerprint() != sampleFingerprint) {
-				System.err.println("Error - mismatched sample fingerprints between sample list and collection '"+files[i]+"'");
-				return;
-			}
-
-			for (int j = 0; j<markerData.length; j++) {
-				genotypes = markerData[j].getAB_Genotypes();
-				thetas = markerData[j].getThetas();
-				rs = markerData[j].getRs();
-				meanThetas = new double[5];
-				meanRs = new double[5];
-				counts = new int[5];
-				if (markerData[j].getMarkerName().endsWith("rs12432539")) {
-//					System.out.println("hola");
-				}
+			markerData = markerDataLoader.requestMarkerData(i);
 			
-				for (int k = 0; k<samples.length; k++) {
-					if (samplesToBeUsed[k] && !Float.isNaN(thetas[k]) && !Float.isNaN(rs[k])) {
-						meanThetas[0] += thetas[k];
-						meanRs[0] += rs[k];
-						counts[0]++;
-						meanThetas[genotypes[k]+2] += thetas[k];
-						meanRs[genotypes[k]+2] += rs[k];
-						counts[genotypes[k]+2]++;
+			genotypes = markerData.getAB_Genotypes();
+			thetas = markerData.getThetas();
+			rs = markerData.getRs();
+			meanThetas = new double[5];
+			meanRs = new double[5];
+			counts = new int[5];
+		
+			for (int k = 0; k<samples.length; k++) {
+				if (samplesToBeUsed[k] && !Float.isNaN(thetas[k]) && !Float.isNaN(rs[k])) {
+					meanThetas[0] += thetas[k];
+					meanRs[0] += rs[k];
+					counts[0]++;
+					meanThetas[genotypes[k]+2] += thetas[k];
+					meanRs[genotypes[k]+2] += rs[k];
+					counts[genotypes[k]+2]++;
+				}
+            }
+			for (int k = 0; k<5; k++) {
+				meanThetas[k] /= counts[k];
+				meanRs[k] /= counts[k];
+            }
+			centroid = new float[3][];
+			if (counts[1] >= counts[0]*missingnessThreshold) {
+				for (int k = 0; k<3; k++) {
+					centroid[k] = new float[] { (float)meanThetas[0], (float)meanRs[0] };  
+                }
+			} else {
+				for (int k = 0; k<3; k++) {
+					if (counts[k+2] > 0) {
+						centroid[k] = new float[] { (float)meanThetas[k+2], (float)meanRs[k+2] };
+					} else {
+						centroid[k] = null;
 					}
                 }
-				for (int k = 0; k<5; k++) {
-					meanThetas[k] /= counts[k];
-					meanRs[k] /= counts[k];
-                }
-				centroid = new float[3][];
-				if (counts[1] >= counts[0]*missingnessThreshold) {
-					for (int k = 0; k<3; k++) {
-						centroid[k] = new float[] { (float)meanThetas[0], (float)meanRs[0] };  
-                    }
-				} else {
-					for (int k = 0; k<3; k++) {
-						if (counts[k+2] > 0) {
-							centroid[k] = new float[] { (float)meanThetas[k+2], (float)meanRs[k+2] };
-						} else {
-							centroid[k] = null;
-						}
-                    }
-				}
-				
-				line = hash.get(markerData[j].getMarkerName()).trim().split("[\\s]+");
-				index = Integer.parseInt(line[0]);
-				if (line.length > 1) {
-					hash.put(markerData[j].getMarkerName(), hash.get(markerData[j].getMarkerName()).trim().substring(line[0].length()));
-				}
-				centroids[index] = centroid;
-            }
+			}
+			
+			centroids[i] = centroid;
+			markerDataLoader.releaseIndex(i);
 		}
 
-		markerNames = markerSet.getMarkerNames();
 		count = 0;
 		for (int i = 0; i<centroids.length; i++) {
 			if (centroids[i] == null) {

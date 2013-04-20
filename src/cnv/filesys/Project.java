@@ -67,7 +67,7 @@ public class Project extends Properties {
 	public static final String JAR_STATUS = "JAR_STATUS";
 	public static final String SAMPLE_DIRECTORY = "SAMPLE_DIRECTORY";
 	public static final String DATA_DIRECTORY = "DATA_DIRECTORY";
-	public static final String PLOT_DIRECTORY = "PLOT_DIRECTORY";
+	public static final String MARKER_DATA_DIRECTORY = "MARKER_DATA_DIRECTORY";
 	public static final String RESULTS_DIRECTORY = "RESULTS_DIRECTORY";
 	public static final String DEMO_DIRECTORY = "DEMO_DIRECTORY";
 	public static final String MARKER_POSITION_FILENAME = "MARKER_POSITION_FILENAME";
@@ -108,12 +108,15 @@ public class Project extends Properties {
 	public static final String GENETRACK_FILENAME = "GENETRACK_FILENAME";
 	public static final String AB_LOOKUP_FILENAME = "AB_LOOKUP_FILENAME";
 	public static final String WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER";
+	public static final String MAX_MARKERS_LOADED_PER_CYCLE = "MAX_MARKERS_LOADED_PER_CYCLE";
+	public static final String MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA";
 
 	private boolean jar;
 	private SampleList sampleList;
 	private SampleData sampleData;
 	private Hashtable<String,String> cnvFilesLoadedInSampleData;
 	private MarkerLookup markerLookup;
+	private Logger log;
 
 	public Project() {
 		Files.loadProperties(this, DEFAULT_PROPERTIES, true, true, false);
@@ -121,6 +124,7 @@ public class Project extends Properties {
 		sampleData = null;
 		cnvFilesLoadedInSampleData = new Hashtable<String, String>();
 		markerLookup = null;
+		log = new Logger();
 	}
 	
 	public Project(String filename, boolean jar) {
@@ -136,6 +140,14 @@ public class Project extends Properties {
         this.jar = jar;
 	}
 
+	public Logger getLog() {
+		return log;
+	}
+	
+	public void setLog(Logger log) {
+		this.log = log;
+	}
+	
 	public String getDir(String directory) {
 		return getDir(directory, false);
 	}
@@ -256,6 +268,18 @@ public class Project extends Properties {
 		}		
 	}
 
+	public int getInt(String variable) {
+		String trav;
+		
+		trav = getProperty(variable);
+		try {
+			return Integer.parseInt(trav);
+		} catch (NumberFormatException nfe) {
+			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
+			return Integer.MIN_VALUE;
+		}		
+	}
+
 	public MarkerSet getMarkerSet() {
 		if (Files.exists(getFilename(MARKERSET_FILENAME), getJarStatus())) {
 			return MarkerSet.load(getFilename(MARKERSET_FILENAME), getJarStatus());
@@ -273,15 +297,6 @@ public class Project extends Properties {
 			markerLookup = MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
 		}
 		return markerLookup;
-	}
-
-	public SampleList getSampleList_ori() {
-		if (Files.exists(getFilename(SAMPLELIST_FILENAME), getJarStatus())) {
-			return sampleList = SampleList.load(getFilename(SAMPLELIST_FILENAME), getJarStatus());
-		} else {
-			System.out.println("Failed to find SampleList; generating one...");
-			return sampleList = SampleList.generateSampleList(this);
-		}
 	}
 
 	public SampleList getSampleList() {

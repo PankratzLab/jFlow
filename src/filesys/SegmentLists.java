@@ -25,14 +25,14 @@ public class SegmentLists implements Serializable {
 		Files.writeSerial(this, filename);
 	}
 	
-	public static SegmentLists parseSegmentList(String filename) {
+	public static SegmentLists parseSegmentList(String filename, boolean ignoreFirstLine) {
 		Hashtable<String, Vector<Segment>> hash = new Hashtable<String,Vector<Segment>>();
 		Vector<Segment> vSegs;
 		Segment[][] lists;
 		int[] chrs;
 		Segment[] segs = null;
 		
-		segs = Segment.loadUCSCregions(filename, false);		
+		segs = Segment.loadUCSCregions(filename, 0, ignoreFirstLine);		
 
 		for (int i = 0; i<segs.length; i++) {
 			if (hash.containsKey(segs[i].getChr()+"")) {

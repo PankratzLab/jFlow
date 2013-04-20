@@ -15,12 +15,12 @@ import java.awt.event.*;
 
 import cnv.filesys.*;
 import cnv.gui.AutoSaveClusterFilterCollection;
-import cnv.gui.ColorIcon;
 import cnv.gui.CycleRadio;
 import cnv.manage.MarkerDataLoaderRunnable;
 import common.*;
 import cnv.var.*;
 
+// TODO needs major cleanup
 public class ScatterPlot extends JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
@@ -44,7 +44,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
 	private JPanel classPanel;
-	private JPanel legendPanel;
+//	private JPanel legendPanel;
 //	private JPanel bottomPanel;
 	private ScatterPanel scatPanel;
 	private JLabel sizeLabel;
@@ -56,7 +56,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	//private JLabel qcCallRateLabel;//zxu
 	//private JLabel qcHwePvalueLabel;//zxu
 	//private JPael typePanelRadioButton;//
-	private JComboBox newGenotype;
+	private JComboBox<String> newGenotype;
 
 	private Project proj;
 //	private MarkerData[] markerData;
@@ -91,10 +91,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private AutoSaveClusterFilterCollection autoSaveCFC;
 	private JRadioButton[] typeRadioButtons;
 	private JRadioButton[] classRadioButtons;
-	private boolean[] loaded1;
 	private MarkerDataLoaderRunnable markerDataLoader;
 	private Thread thread2;
-    private Vector<Thread> threadsRunning;
     private ColorKeyPanel colorKeyPanel;
 	private Color[] colorScheme;
 	
@@ -106,7 +104,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		
 		proj = project;
 		jar = proj.getJarStatus();
-		threadsRunning = new Vector<Thread>();
 		size = DEFAULT_SIZE;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 //		clusterFilterCollectionUpdated = false;
@@ -680,7 +677,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		clusterFilterPanel.add(last1);
 		clusterFilterPanel.add(delete);
 
-    	newGenotype = new JComboBox(new String[] {"-","A/A","A/B","B/B"});
+    	newGenotype = new JComboBox<String>(new String[] {"-","A/A","A/B","B/B"});
 		ActionListener newGenotypeListener = new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				byte newGenotypeSelected;
@@ -709,9 +706,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				scatPanel.setQcPanelUpdatable(true);//zx???
 				//updateGUI();
 				scatPanel.paintAgain();
-			}
-			public void comboBoxChanged(ActionEvent e) {
-				System.out.println("Why cannot I see this comboBox changed?");
 			}
 		};
     	newGenotype.addActionListener(newGenotypeListener);
@@ -1141,9 +1135,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 	
 	public void loadMarkerDataFromList() {
-		markerDataLoader = new MarkerDataLoaderRunnable(proj, markerList);
+		markerDataLoader = new MarkerDataLoaderRunnable(proj, markerList, -1);
 		thread2 = new Thread(markerDataLoader);
-		threadsRunning.add(thread2);
 		thread2.start();
 
 		markerIndex = 0;
@@ -1586,12 +1579,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		} else {
 		}
 
-		//TODO notify all threads (e.g., MarkerDataLoaders) that they need to close
-    	for (int i = 0; i < threadsRunning.size(); i++) {
-    		threadsRunning.elementAt(i).stop();
-		}
+		//TODO notify all threads (e.g., MarkerDataLoader) that they need to close
 		markerDataLoader.kill();
-
 		
 	}
 

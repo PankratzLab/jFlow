@@ -50,7 +50,7 @@ public class GeneSet implements Serializable {
 		return (GeneSet)Files.readSerial(filename, jar, true);
 	}
 	
-	public SegmentList determineGeneSegments(int window) {
+	public SegmentLists determineGeneSegments(int window) {
 		Hashtable<String, Vector<Segment>> hash = new Hashtable<String,Vector<Segment>>();
 		Vector<Segment> segs;
 		Segment[][] lists;
@@ -72,10 +72,10 @@ public class GeneSet implements Serializable {
         	lists[chrs[i]] = Segment.toArray(segs);
         }
 		
-		return new SegmentList(lists);
+		return new SegmentLists(lists);
 	}
 	
-	public SegmentList determineExonSegments(int upDownWindow) {
+	public SegmentLists determineExonSegments(int upDownWindow) {
 		Hashtable<String, Vector<Segment>> hash = new Hashtable<String,Vector<Segment>>();
 		Vector<Segment> segs;
 		Segment[][] lists;
@@ -105,7 +105,7 @@ public class GeneSet implements Serializable {
         	lists[chrs[i]] = Segment.toArray(segs);
         }
 		
-		return new SegmentList(lists);
+		return new SegmentLists(lists);
 	}
 	
 	public static void parseRefSeqGenes() {

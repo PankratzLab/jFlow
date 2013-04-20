@@ -7,7 +7,7 @@ import stats.ProbDist;
 
 import common.*;
 import filesys.Segment;
-import filesys.SegmentList;
+import filesys.SegmentLists;
 
 public class ChromatinAccessibility {
 //	public static final String SRC_DIR = "D:/grants/2012.06 Hepatoblastoma/Chromatin accessibility/rawData/";
@@ -123,7 +123,7 @@ public class ChromatinAccessibility {
 				if (Files.exists(dir+files[i]+"_"+CLASSES[0]+".ser", false)) {
 					time = new Date().getTime();
 					for (int j = 0; j < CLASSES.length; j++) {
-						segs[i][j] = SegmentList.load(dir+files[i]+"_"+CLASSES[j]+".ser", false).getLists();
+						segs[i][j] = SegmentLists.load(dir+files[i]+"_"+CLASSES[j]+".ser", false).getLists();
 					}
 //					System.out.println("Re-loaded serialized version of '"+ext.rootOf(files[i])+"' in " + ext.getTimeElapsed(time));
 					System.out.print("\t1\t"+ext.getTimeElapsed(time));
@@ -164,7 +164,7 @@ public class ChromatinAccessibility {
 						for (int k = 0; k <= 25; k++) {
 							segs[i][j][k] = Segment.sortSegments(Segment.toArray(allSeg.elementAt(j).elementAt(k)));
 						}
-						new SegmentList(segs[i][j]).serialize(dir+files[i]+"_"+CLASSES[j]+".ser");
+						new SegmentLists(segs[i][j]).serialize(dir+files[i]+"_"+CLASSES[j]+".ser");
 					}
 //					System.out.println("Parsed and serialized '"+ext.rootOf(files[i])+"' in " + ext.getTimeElapsed(time));
 					System.out.print("\t0\t"+ext.getTimeElapsed(time));					
@@ -185,7 +185,7 @@ public class ChromatinAccessibility {
 		System.out.print("AllMerged");
 		if (Files.exists(dir+"allFilesMerged_"+CLASSES[0]+".ser", false)) {
 			for (int j = 0; j < CLASSES.length; j++) {
-				segs[files.length][j] = SegmentList.load(dir+"allFilesMerged_"+CLASSES[j]+".ser", false).getLists();
+				segs[files.length][j] = SegmentLists.load(dir+"allFilesMerged_"+CLASSES[j]+".ser", false).getLists();
 			}
 //			System.out.println("Re-loaded serialized version of the merged summaries in " + ext.getTimeElapsed(time));
 			System.out.print("\t1\t"+ext.getTimeElapsed(time));
@@ -208,7 +208,7 @@ public class ChromatinAccessibility {
 					segs[files.length][j][k] = Segment.sortSegments(Segment.toArray(vSeg));
 				}
 				System.out.println();
-				new SegmentList(segs[files.length][j]).serialize(dir+"allFilesMerged_"+CLASSES[j]+".ser");
+				new SegmentLists(segs[files.length][j]).serialize(dir+"allFilesMerged_"+CLASSES[j]+".ser");
 			}
 //			System.out.println("Merged all files serialized the summaries in " + ext.getTimeElapsed(time));
 			System.out.print("\t0\t"+ext.getTimeElapsed(time));

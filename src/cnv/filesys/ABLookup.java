@@ -293,22 +293,48 @@ public class ABLookup {
 		String[] line;
 		Hashtable<String,char[]> hash;
 		int[] indices;
+		String temp, prev;
+		int count = 0;
 		
         hash = new Hashtable<String,char[]>();
 		try {
             reader = new BufferedReader(new FileReader(filename));
-            line = reader.readLine().trim().split(",");
+            do {
+            	temp = reader.readLine();
+            	line = temp.trim().split(",");
+            } while (reader.ready() && (!temp.contains("Name") || !temp.contains("SNP")));
             indices = ext.indexFactors(new String[][] {{"Name", "MarkerName"}, {"SNP"}}, line, false, true, true, new Logger(), true);
+            prev = temp;
             while (reader.ready()) {
-            	line = reader.readLine().trim().split(",");
-            	hash.put(line[indices[0]], new char[] {line[indices[1]].charAt(1), line[indices[1]].charAt(3)});
+            	temp = reader.readLine();
+            	if (temp.startsWith("[")) {
+            		count = 0;
+            		while (reader.ready()) {
+            			reader.readLine();
+            			count++;
+            		}
+            		System.out.println("Ended with an ignored tail of "+count+" line(s)");
+            	} else {
+	            	try {
+		            	line = temp.trim().split(",");
+		            	hash.put(line[indices[0]], new char[] {line[indices[1]].charAt(1), line[indices[1]].charAt(3)});
+	            	} catch (ArrayIndexOutOfBoundsException aioobe) {
+	            		System.err.println("Error - could not parse line:");
+	            		System.err.println(temp);
+	            		System.err.println("Where the previous line was:");
+	            		System.err.println(prev);
+	            		aioobe.printStackTrace();
+	            	}
+	                prev = temp;
+            	}
             }
             reader.close();
             return hash;
         } catch (FileNotFoundException fnfe) {
+            System.err.println("File not found: \""+filename+"\"");
         	return null;
         } catch (IOException ioe) {
-            System.err.println("Error reading file \""+DEFAULT_AB_FILE+"\"");
+            System.err.println("Error reading file \""+filename+"\"");
             return null;
         }
 	}
@@ -425,6 +451,9 @@ public class ABLookup {
 			System.err.println(usage);
 			System.exit(1);
 		}
+		
+//		filename = "/home/npankrat/projects/SDRG.properties";
+//		mapFile = "00src/HumanOmni2.5-8v1_C.csv";
 		
 		try {
 			proj = new Project(filename, false);

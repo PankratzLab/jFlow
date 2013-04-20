@@ -11,6 +11,7 @@ import common.DoubleVector;
 
 public class MarkerData implements Serializable {
 	public static final long serialVersionUID = 1L;
+	public static final String MARKER_DATA_FILE_EXTENSION = ".mdRAF";
 	public static final String[][] TYPES = { {"X Raw", "Y Raw"}, {"X", "Y"}, {"Theta", "R"}, {"B Allele Freq", "Log R Ratio"}};
 	// TODO remove X Raw / Y Raw from the entire project
 	

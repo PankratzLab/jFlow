@@ -8,9 +8,8 @@ import javax.swing.JOptionPane;
 import mining.Distance;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerDataCollection;
-import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.manage.MarkerDataLoaderRunnable;
 import common.*;
 
 public class ThetaOutliers {
@@ -24,13 +23,16 @@ public class ThetaOutliers {
 	 * @param proj The project where the data is.
 	 * 
 	 */
-	public static void loadData(Project proj, String markerListfilename, byte stdDev) {
+	public static void loadData(Project proj, boolean useClusterFilters, byte stdDev) {
 		PrintWriter writer;
-		String[] sampleList, markerList = null, line;
+		String[] sampleList;
 		String filename, output;
 		ClusterFilterCollection clusterFilterCollection;
-		MarkerData[] markerData = null;
 		int[] result;
+		MarkerDataLoaderRunnable markerDataLoader;
+		MarkerData markerData;
+		String[] markerNames;
+		long time;
 		
 		output = proj.getProjectDir()+"resultOfReclusterByTheta_sd"+stdDev+".txt";
 
@@ -46,68 +48,41 @@ public class ThetaOutliers {
 			return;
 		}
 
-		// load data: marker list and makerData
-		if (markerListfilename == null) {
-			//TODO !!! some users might move the .scat files, and thus markerList will not match the genotypes derived from markerData 
-			markerList = proj.getMarkerSet().getMarkerNames();
-	        String[] files = Files.list(proj.getDir(Project.PLOT_DIRECTORY), ".scat", false);
+		try {
+			writer = new PrintWriter(new FileWriter(output));
+			writer.println("Name\tChr\tPosition\tindividualID");
+
+	        time = new Date().getTime();
+	        markerNames = proj.getMarkerNames();
+			markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
 	        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
 	        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
 	        } else {
 	        	clusterFilterCollection = null;
 	        }
-			try {
-				writer = new PrintWriter(new FileWriter(output));
-				writer.println("Name\tChr\tPosition\tindividualID");
-				for (int i=0; i<files.length; i++) {
-					markerData = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+files[i], proj.getJarStatus()).getCollection();
-					for (int j=0; j<markerData.length; j++) {
-						//TODO how to get
-//						System.out.print("\n"+markerData[j].getMarkerName());
-//						System.out.print("\t"+markerData[j].getChr());
-//						System.out.print("\t"+markerData[j].getPosition());
-//						result = reclusterNullGenotypeByTheta(markerData[j], clusterFilterCollection, 20);
-						result = reclusterNullGenotypeByTheta(markerData[j], null, stdDev);
-						for (int k=0; result!=null && k<result.length; k++) {
-//							System.out.println(markerData[j].getMarkerName());
-//							System.out.println(markerData[j].getChr());
-//							System.out.println(markerData[j].getPosition());
-//							System.out.println(result.length);
-//							System.out.println(k);
-//							System.out.println(sampleList.length);
-							writer.println(markerData[j].getMarkerName()+"\t"+markerData[j].getChr()+"\t"+markerData[j].getPosition()+"\t"+sampleList[k]);
-						}
-					}
+
+	        for (int i = 0; i < markerNames.length; i++) {
+	        	markerData = markerDataLoader.requestMarkerData(i);
+	        	if (i % 100 == 0) {
+	        		System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+	        	}
+
+	        	if (useClusterFilters) {
+	        		result = reclusterNullGenotypeByTheta(markerData, clusterFilterCollection, 20);
+	        	} else {
+	        		result = reclusterNullGenotypeByTheta(markerData, null, stdDev);
+	        	}
+				for (int k=0; result!=null && k<result.length; k++) {
+					writer.println(markerData.getMarkerName()+"\t"+markerData.getChr()+"\t"+markerData.getPosition()+"\t"+sampleList[k]);
 				}
-				writer.close();
-				System.out.println("Reclusterable Null genotypes file is now ready at: "+output);
-			} catch (Exception e) {
-				System.err.println("Error writing to '" + output + "'");
-				e.printStackTrace();
+				markerDataLoader.releaseIndex(i);
 			}
-		} else if (Files.exists(markerListfilename, proj.getJarStatus())) {
-			Vector<String> markerNames = new Vector<String>();
-			try {
-				BufferedReader reader = new BufferedReader(new FileReader(markerListfilename));
-				while (reader.ready()) {
-					line = reader.readLine().trim().split("\t", -1);
-					if (!markerNames.contains(line[0])) {
-						markerNames.add(line[0]);
-					}
-				}
-				reader.close();
-			} catch (FileNotFoundException fnfe) {
-				JOptionPane.showMessageDialog(null, "Error - could not find \""+filename+"\"", "Error", JOptionPane.ERROR_MESSAGE);
-			} catch (Exception e) {
-				System.err.println("Error reading file \""+filename+"\"");
-				System.exit(2);
-			}
-			System.out.println("sampleList.length="+sampleList.length+"\t"+"markerList.length="+markerList.length);
-			markerList = Array.toStringArray(markerNames);
-			markerData = MarkerSet.loadFromList(proj, markerList);
-		} else {
-			JOptionPane.showMessageDialog(null, "Failed to load \""+markerListfilename+"\"", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
+			writer.close();
+			System.out.println("Reclusterable Null genotypes file is now ready at: "+output);
+			System.out.println("Finished searching for ThetaOutliers in " + ext.getTimeElapsed(time));
+		} catch (Exception e) {
+			System.err.println("Error writing to '" + output + "'");
+			e.printStackTrace();
 		}
 	}
 
@@ -204,7 +179,7 @@ public class ThetaOutliers {
 	
 	public static void main(String[] args) {
 		Project proj = new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false);
-		loadData(proj, null, (byte) 12);
+		loadData(proj, false, (byte) 12);
 
 //		MarkerData[] markers = MarkerSet.loadFromList(proj, new String[] {"rs17080321", "rs7898873", "rs17080321", "rs7898873"});
 //		MarkerData[] markers = MarkerSet.loadFromList(proj, new String[] {"rs17246013", "rs34771052", "rs17080321", "rs7898873", "rs17231443", "rs2227433", "rs9907972", "rs34148246", "rs11572080", "rs34942735", "rs4646168"});

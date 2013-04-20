@@ -15,8 +15,6 @@ import java.io.RandomAccessFile;
 import java.util.*;
 
 public class MarkerDataLoaderRunnable implements Runnable {
-	public static final int MAX_PER_CYCLE = 100;
-	
 	private Project proj;
 	private String[] markerNames;
 	private byte[] chrs;
@@ -30,14 +28,19 @@ public class MarkerDataLoaderRunnable implements Runnable {
 	private int currentIndexBeingLoaded;
 	private int currentDirection;
 	private boolean killed;
-	
-	public MarkerDataLoaderRunnable(Project proj, String[] markerNames) {
+	private long sampleFingerprint;
+	private int readAheadLimit;
+	private int numberCurrentlyLoaded;
+
+	public MarkerDataLoaderRunnable(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
 		this.proj = proj;
 		this.markerNames = markerNames;
 		this.chrs = new byte[markerNames.length];
 		this.positions = new int[markerNames.length];
 		markerData = new MarkerData[markerNames.length];
 		loaded = new boolean[markerNames.length];
+		sampleFingerprint = proj.getSampleList().getFingerprint();
+		numberCurrentlyLoaded = 0;
 
 		Hashtable<String, Integer> markerHash;
 		Vector<String> missingMarkers, v;
@@ -46,7 +49,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 		byte[] chrsProj;
 		String[] line;
 		int index;
-		
+
 		markerNamesProj = proj.getMarkerNames();
 		chrsProj = proj.getMarkerSet().getChrs();
 		positionsProj = proj.getMarkerSet().getPositions();
@@ -59,8 +62,15 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				break;
 			}
 		}
-		
+
 		markerLookup = proj.getMarkerLookup();
+
+		if (amountToLoadAtOnceInMB <= 0) {
+			amountToLoadAtOnceInMB = (int)((double)Runtime.getRuntime().maxMemory()/1024/1024*0.80);
+			System.out.println("80% of max memory available ("+ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)+") will be used by MarkerDataLoader: ");
+		}
+		readAheadLimit = -1;
+
 		missingMarkers = new Vector<String>();
 		filenames = new Hashtable<String, String>();
 		hash = new Hashtable<String, Vector<String>>();
@@ -74,6 +84,11 @@ public class MarkerDataLoaderRunnable implements Runnable {
 					filenames.put(line[0], "");
 				}
 				v.add(markerNames[i]+"\t"+line[1]);
+
+				if (readAheadLimit == -1) {
+					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineBytesPerMarkerData(line[0]));
+					System.out.println("Read ahead limit was computed to be "+readAheadLimit+" markers at a time");
+				}
 			} else {
 				missingMarkers.add(markerNames[0]);
 			}
@@ -85,17 +100,42 @@ public class MarkerDataLoaderRunnable implements Runnable {
 		currentDirection = +1;
 		killed = false;
 	}
-	
-	public MarkerDataLoaderRunnable(Project proj, String[] markerNames, byte[] chrs, int[] positions) {
-		this(proj, markerNames);
-		this.chrs = chrs;
-		this.positions = positions;
+
+//	public void setChrsPositions(byte[] chrs, int[] positions) {
+//		this.chrs = chrs;
+//		this.positions = positions;
+//	}
+
+	public static int determineBytesPerMarkerData(String filename) {
+		RandomAccessFile file;
+		byte[] parameterReadBuffer;
+		byte nullStatus;
+		int numSamplesObserved, bytesPerSampMark;
+
+		parameterReadBuffer = new byte[TransposeData.MARKDATA_PARAMETER_TOTAL_LEN];
+        try {
+			file = new RandomAccessFile(filename, "r");
+			file.read(parameterReadBuffer);
+			nullStatus = parameterReadBuffer[TransposeData.MARKDATA_NULLSTATUS_START];
+			bytesPerSampMark = Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01);
+			numSamplesObserved = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMSAMPS_START);
+			file.close();
+			return numSamplesObserved*bytesPerSampMark;
+		} catch (FileNotFoundException e) {
+			System.err.println("Error - could not find RAF marker file '"+filename+"'");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("Error reading RAF marker file '"+filename+"'");
+			e.printStackTrace();
+		}
+
+        return -1;
 	}
-	
+
 //	public boolean hasIndexBeenLoaded(int index) {
 //		return markerData[index] != null;
 //	}
-	
+
 	public void requestIndexBeTheNextFileToLoad(int indexRequested) {
 		if (indexRequested < currentIndexBeingLoaded) {
 			currentDirection = -1;
@@ -103,6 +143,15 @@ public class MarkerDataLoaderRunnable implements Runnable {
 			currentDirection = +1;
 		}
 		currentIndexBeingLoaded = indexRequested;
+	}
+
+	public void releaseIndex(int index) {
+		if (markerData[index] == null) {
+			System.out.println("Index "+index+" is not currently active; already null");
+		} else {
+			markerData[index] = null;
+			numberCurrentlyLoaded--;
+		}
 	}
 
 	public void kill() {
@@ -116,11 +165,11 @@ public class MarkerDataLoaderRunnable implements Runnable {
 			return null;
 		}
 	}
-	
+
 	public MarkerData requestMarkerData(int markerIndex) {
 		MarkerData markerData;
 		int count;
-		
+
 		count = 0;
 		while((markerData = getMarkerData(markerIndex)) == null) {
 			requestIndexBeTheNextFileToLoad(markerIndex);
@@ -133,11 +182,12 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				System.err.println("Error - have been waiting on markerDataLoader to load "+markerNames[markerIndex]+" for "+(count/4)+" seconds");
 			}
 		}
-		
+
 		return markerData;
 	}
 
-	public void loadData() {
+	@Override
+	public void run() {
 		MarkerData[] collection;
 		String[] line;
 		Vector<String> v, allRemaining;
@@ -153,7 +203,10 @@ public class MarkerDataLoaderRunnable implements Runnable {
 		int[] positionsInProj;
 		String[] samplesNamesProj;
 		long time;
-		
+		int maxPerCycle;
+
+		maxPerCycle = proj.getInt(Project.MAX_MARKERS_LOADED_PER_CYCLE);
+
 		fingerprint = proj.getSampleList().getFingerprint();
 
 		System.out.println("Marker data is loading in an independent thread.");
@@ -176,15 +229,15 @@ public class MarkerDataLoaderRunnable implements Runnable {
 			}
 			filename = markerLookup.get(markerNames[currentIndexBeingLoaded]).split("\t")[0];
 //			System.err.print(".");
-			if (!Files.exists(proj.getDir(Project.PLOT_DIRECTORY)+filename, proj.getJarStatus())) {
-				JOptionPane.showMessageDialog(null, "Error - could not load data from '"+proj.getDir(Project.PLOT_DIRECTORY)+filename+"'; because the file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
+			if (!Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename, proj.getJarStatus())) {
+				JOptionPane.showMessageDialog(null, "Error - could not load data from '"+proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename+"'; because the file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
+
 			allRemaining = hash.get(filename);
-			
+
 			v = new Vector<String>();
-			for (int i = 0; allRemaining.size() >0 && i < MAX_PER_CYCLE; i++) {
+			for (int i = 0; allRemaining.size() >0 && i < maxPerCycle; i++) {
 				v.addElement(allRemaining.remove(0));
 			}
 			System.out.println("Loaded up "+v.size()+" from marker Data file:"+filename+"; "+allRemaining.size()+" remaining for that file; "+ext.getTimeElapsed(time));
@@ -202,17 +255,24 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				markerIndicesInSelection[j] = ext.indexOfStr(line[0], markerNames, true, true);
 			}
 
-			collection = loadFromRAF9(markerNamesInProj, chrsInProj, positionsInProj, samplesNamesProj, proj.getDir(Project.PLOT_DIRECTORY)+filename, markerIndicesInProj, markerIndicesInFile);
+			collection = loadFromRAF9(markerNamesInProj, chrsInProj, positionsInProj, samplesNamesProj, proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename, markerIndicesInProj, markerIndicesInFile, sampleFingerprint);
 
 			for (int k = 0; k<markerIndicesInFile.length && !killed; k++) {
 				markerData[markerIndicesInSelection[k]] = collection[k];
 				loaded[markerIndicesInSelection[k]] = true;
 				count++;
+				numberCurrentlyLoaded++;
 				if (markerData[markerIndicesInSelection[k]].getFingerprint()!=fingerprint) {
 					System.err.println("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: " + markerData[markerIndicesInSelection[k]].getFingerprint() + ", while expecting: " + fingerprint);
-				}					
+				}
 			}
 
+			while (!killed && numberCurrentlyLoaded > readAheadLimit) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException ie) {}
+				System.out.println("Currently loading index "+currentIndexBeingLoaded+" but readAheadLimit has been reached ("+numberCurrentlyLoaded+" over "+readAheadLimit+"); so waiting");
+			}
 			if (killed) {
 				filenames = new Hashtable<String, String>();
 			}
@@ -227,11 +287,11 @@ public class MarkerDataLoaderRunnable implements Runnable {
 		} else {
 			System.out.println("Independent thread has finished loading "+count+" markers to MarkerData[] in "+ ext.getTimeElapsed(time));
 		}
-		
+
 	}
 
-	public static MarkerData[] loadFromRAF9(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndeciesInFile) {
-		return loadFromRAF9(markerNamesProj, chrsProj, positionsProj, samplesProj, markerFilename, markerIndeciesInProj, markerIndeciesInFile, true, true, true, true, true);
+	public static MarkerData[] loadFromRAF9(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndeciesInFile, long sampleFingerprint) {
+		return loadFromRAF9(markerNamesProj, chrsProj, positionsProj, samplesProj, markerFilename, markerIndeciesInProj, markerIndeciesInFile, true, true, true, true, true, sampleFingerprint);
 	}
 
 
@@ -242,7 +302,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static MarkerData[] loadFromRAF9(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndicesInFile, boolean loadGC, boolean loadXY, boolean loadBAF, boolean loadLRR, boolean loadAbGenotype) {
+	public static MarkerData[] loadFromRAF9(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndicesInFile, boolean loadGC, boolean loadXY, boolean loadBAF, boolean loadLRR, boolean loadAbGenotype, long sampleFingerprint) {
 		MarkerData[] result;
 		RandomAccessFile file;
         int numBytesPerMarker;
@@ -259,7 +319,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
         int indexReadBuffer;
         byte[] parameterReadBuffer;
         int numMarkersInThisFile;
-        long fingerprint = 0;
+        long fingerprint;
         int numBytesMarkernamesSection;
         int lengthOfOutOfRangeHashtable;
         byte[] outOfRangeValuesReadBuffer;
@@ -268,7 +328,9 @@ public class MarkerDataLoaderRunnable implements Runnable {
         byte nullStatus = 0;
         byte bytesPerSampMark = 0;
         int indexStart;
+        int numSamplesObserved;
 
+        fingerprint = -1;
         numSamplesProj = samplesProj.length;
 		result = new MarkerData[markerIndicesInFile.length];
 		parameterReadBuffer = new byte[TransposeData.MARKDATA_PARAMETER_TOTAL_LEN];
@@ -280,7 +342,15 @@ public class MarkerDataLoaderRunnable implements Runnable {
 			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
 			numBytesPerMarker = bytesPerSampMark * numSamplesProj;
 			readBuffer = new byte[markerIndeciesInProj.length][numBytesPerMarker];
+			numSamplesObserved = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMSAMPS_START);
+			if (numSamplesObserved != numSamplesProj) {
+				System.err.println("Error - mismatched number of samples between sample list (n="+numSamplesProj+") and file '"+markerFilename+"' (n="+numSamplesObserved+")");
+			}
 			fingerprint = Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKDATA_FINGERPRINT_START);
+			if (fingerprint != sampleFingerprint) {
+				System.err.println("Error - mismatched sample fingerprints between sample list and file '"+markerFilename+"'");
+			}
+
 			numBytesMarkernamesSection = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_MARKNAMELEN_START);
 			//TODO to optimize here. Adjacent markers can be read in at once.
 	        for (int i=0; i<markerIndicesInFile.length; i++) {
@@ -289,7 +359,8 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				file.seek(seekLocation);
 				file.read(readBuffer[i]);
 			}
-	        
+
+	        // TODO this is read every time, wouldn't it be faster to use the serialized version?
 	        // Read in the Out of Range Value array
 	        file.seek((long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)numBytesMarkernamesSection + (long) numMarkersInThisFile * (long)numBytesPerMarker);
 //	        System.out.println("number of markers in this file: "+numMarkersInThisFile);
@@ -361,7 +432,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 						}
 						indexReadBuffer += bytesPerSampMark;
 					}
-					
+
 				}
 				indexStart += 2;
 			}
@@ -409,25 +480,13 @@ public class MarkerDataLoaderRunnable implements Runnable {
 	public static MarkerDataLoaderRunnable loadMarkerDataFromList(Project proj, String[] markerList) {
 		MarkerDataLoaderRunnable markerDataLoader;
 		Thread thread2;
+		int amountToLoadAtOnceInMB;
 		
-		markerDataLoader= new MarkerDataLoaderRunnable(proj, markerList);
+		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
+		markerDataLoader= new MarkerDataLoaderRunnable(proj, markerList, amountToLoadAtOnceInMB);
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
-		
+
 		return markerDataLoader;
 	}
-	
-	
-	@Override
-	public void run() {
-//		launch third thread
-		loadData();
-//		while (true) {
-//			loadData();
-//			synchronized(this) {
-//				while (true) wait();
-//			}
-//		}
-	}
-	
 }

@@ -107,14 +107,14 @@ public class FilterCalls {
         PrintWriter writer;
         Segment[][] genesByChr;
         CNVariant cnv;
-        SegmentList segList;
+        SegmentLists segList;
 
         if (segmentFile.endsWith(".segs")) {
-            segList = SegmentList.load(segmentFile, false);
+            segList = SegmentLists.load(segmentFile, false);
         } else if (new File(segmentFile+".segs").exists()) {
-        	segList = SegmentList.load(segmentFile+".segs", false);
+        	segList = SegmentLists.load(segmentFile+".segs", false);
         } else {
-        	segList = SegmentList.parseSegmentList(segmentFile, false);
+        	segList = SegmentLists.parseSegmentList(segmentFile, false);
         	segList.serialize(segmentFile+".segs");
         }
 

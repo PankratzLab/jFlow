@@ -45,6 +45,9 @@ public class SampleData {
 		CountVector sexCountHash;
 		String[] sexValues;
 		String[] ids;
+		Logger log;
+		
+		log = proj.getLog();
 
 		failedToLoad = true;
 		if (cnvFilesnames == null) {
@@ -122,8 +125,8 @@ public class SampleData {
 					}
                 }
 			}
-			sexClassIndex = ext.indexFactors(new String[][] {{"Sex", "CLASS=Sex", "Gender", "CLASS=Gender"}}, classes, false, true, true, false)[0];
-			excludeClassIndex = ext.indexFactors(new String[][] {{"Exclude", "CLASS=Exclude"}}, classes, false, true, true, false)[0];
+			sexClassIndex = ext.indexFactors(new String[][] {{"CleanedSex", "Sex", "CLASS=Sex", "Gender", "CLASS=Gender"}}, classes, true, false, true, true, log, false)[0];
+			excludeClassIndex = ext.indexFactors(new String[][] {{"Exclude", "CLASS=Exclude"}}, classes, false, false, true, true, log, false)[0];
 			System.out.println(Array.toStr(classes));
 
 			sexCountHash = new CountVector();
@@ -240,7 +243,7 @@ public class SampleData {
 		}
 	}
 	
-	public boolean excludeIndividual(String id) {
+	public boolean individualShouldBeExcluded(String id) {
 		IndiPheno indi;
 		String[] ids;
 		

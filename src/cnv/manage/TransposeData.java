@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 
 import cnv.filesys.Compression;
+import cnv.filesys.MarkerData;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.MarkerSet;
@@ -14,7 +15,6 @@ import common.*;
 // TODO whole file needs clean up
 public class TransposeData {
 	public static final int DEFAULT_MARKERS_PER_FILE = 210000;
-	public static final String MARKDATA_FILE_EXTENSION = ".scatRaf";
 	public static final byte MARKDATA_PARAMETER_TOTAL_LEN = 21;
 	public static final byte MARKDATA_NUMSAMPS_START = 0;
 	public static final byte MARKDATA_NUMSAMPS_LEN = 4;
@@ -28,6 +28,7 @@ public class TransposeData {
 	public static final byte MARKDATA_MARKNAMELEN_LEN = 4;
 	public static final byte MARKDATA_MARKNAME_START = 21;
 
+	@SuppressWarnings("unchecked")
 	public static void transposeData(Project proj, long maxMarkerFileSize, boolean keepAllSampleFilesOpen) {
 		String[] allSamplesInProj;
 		String[] allMarkersInProj;
@@ -128,15 +129,15 @@ public class TransposeData {
 		markerFilenames = new String[numMarkerFiles];
 		markersInEachFile = new byte[numMarkerFiles][];
 //		numMarkersInEachFile = new int[numMarkerFiles];
-		backupOlderRafs(proj.getDir(Project.PLOT_DIRECTORY), MARKDATA_FILE_EXTENSION);
+		backupOlderRafs(proj.getDir(Project.MARKER_DATA_DIRECTORY), MarkerData.MARKER_DATA_FILE_EXTENSION);
 		markerIndex = 0;
 		for (int i=0; i<numMarkerFiles; i++) {
-			markerFilenames[i]=proj.getDir(Project.PLOT_DIRECTORY)+"markers." + i + MARKDATA_FILE_EXTENSION;
+			markerFilenames[i]=proj.getDir(Project.MARKER_DATA_DIRECTORY)+"markers." + i + MarkerData.MARKER_DATA_FILE_EXTENSION;
 			numMarkersCurrentLoop = Math.min(maxNumMarkersPerFile, allMarkersInProj.length - markerIndex);
 			markersInEachFile1 = new String[numMarkersCurrentLoop];
 //			numMarkersInEachFile[i] =; 
 			for (int j=0; j<numMarkersCurrentLoop; j++) {
-				markerLookupHash.put(allMarkersInProj[markerIndex], "markers." + i + MARKDATA_FILE_EXTENSION + "\t" + j);
+				markerLookupHash.put(allMarkersInProj[markerIndex], "markers." + i + MarkerData.MARKER_DATA_FILE_EXTENSION + "\t" + j);
 				markersInEachFile1[j] = allMarkersInProj[markerIndex];
 				markerIndex ++;
 			}
@@ -353,7 +354,7 @@ public class TransposeData {
 				markerFile.close();
 			}
 			if (allOutliers != null && allOutliers.size() != 0) {
-				Files.writeSerial(allOutliers, proj.getDir(Project.PLOT_DIRECTORY) + "_outliers." + MARKDATA_FILE_EXTENSION);
+				Files.writeSerial(allOutliers, proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers" + MarkerData.MARKER_DATA_FILE_EXTENSION);
 			}
 			System.out.println("Write marker file " + markerFileIndex + ":\t" + timer3/1000 + " sec."); // \toutlier #: " + (markFileOUtliersWriteBufferArray.length/4));
 			
@@ -444,19 +445,19 @@ public class TransposeData {
 
 		time = new Date().getTime();
 		System.out.println("Creating MarkerLookup file");
-		files = new File(proj.getDir(Project.PLOT_DIRECTORY)).list(new FilenameFilter() {
+		files = new File(proj.getDir(Project.MARKER_DATA_DIRECTORY)).list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
-				return filename.endsWith(".scat");
+				return filename.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION);
 			}
 		});
 		if (files==null) {
-			System.err.println("Error - failed to create MarkerLookup -- directory does not exist: "+proj.getDir(Project.PLOT_DIRECTORY));
+			System.err.println("Error - failed to create MarkerLookup -- directory does not exist: "+proj.getDir(Project.MARKER_DATA_DIRECTORY));
 		} else if (files.length==0) {
-			System.err.println("Error - failed to create MarkerLookup -- no .scat files available");
+			System.err.println("Error - failed to create MarkerLookup -- no "+MarkerData.MARKER_DATA_FILE_EXTENSION+" files available");
 		} else {
 			for (int i = 0; i<files.length; i++) {
 				try {
-					currentFile = new RandomAccessFile(proj.getDir(Project.PLOT_DIRECTORY)+files[i], "r");
+					currentFile = new RandomAccessFile(proj.getDir(Project.MARKER_DATA_DIRECTORY)+files[i], "r");
 					readBuffer = new byte[currentFile.readInt()];
 					currentFile.read(readBuffer);
 					markerNames = new String(readBuffer).split("\t");

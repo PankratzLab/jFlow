@@ -5,6 +5,7 @@ import java.util.*;
 
 import common.*;
 import cnv.filesys.*;
+import cnv.manage.MarkerDataLoaderRunnable;
 import stats.Histogram;
 
 public class PeakZero {
@@ -17,18 +18,18 @@ public class PeakZero {
 		
 	public static void checkDists(Project proj, String phenoOfSamplesToInclude) {
         PrintWriter writer;
-//      PrintWriter w2;
         String trav;
         Hashtable<String,String> hash, drops;
         int count;
-        MarkerDataCollection collection;
-        MarkerData[] markerData;
-		String[] files, samples;
+		String[] samples;
 		boolean[] use;
 		float[] lrrs, bafs, lrrArray, bafArray;
 		float[] xs, ys, xArray, yArray;
-		int step;
 		Histogram lrrHist, bafHist, xHist, yHist;
+		MarkerDataLoaderRunnable markerDataLoader;
+		MarkerData markerData;
+		String[] markerNames;
+		long time;
 		
 		samples = proj.getSamples();
 		if (!phenoOfSamplesToInclude.equals("")) {
@@ -57,60 +58,50 @@ public class PeakZero {
 	        writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY)+PEAK_ZERO_FILE));
 	        writer.println("Marker\tPeakOffset\t#LRR_Maxima\t#BAF_Maxima\t#X_Maxima\t#Y_Maxima\tDropped");
 
-			files = new File(proj.getDir(Project.PLOT_DIRECTORY)).list(new FilenameFilter() {
-				public boolean accept(File file, String filename) {
-					return filename.endsWith(".scat");
-				}
-			});
-
 	        lrrArray = new float[count];
 	        bafArray = new float[count];
 	        xArray = new float[count];
 	        yArray = new float[count];
-	        step = -1;
-			for (int i = 0; i<files.length; i++) {
-				collection = MarkerDataCollection.load(proj.getDir(Project.PLOT_DIRECTORY)+files[i], false);
-				if (proj.getSampleList().getFingerprint() != collection.getFingerprint()) {
-					System.err.println("Error - SampleList fingerprint and MarkerSet fingerprint do not match; terminating.");
-					System.exit(1);
-				}
-				markerData = collection.getCollection();
-				if (i==0) {
-					step = markerData.length;
+
+	        time = new Date().getTime();
+			markerNames = proj.getMarkerNames();
+			markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
+			for (int i = 0; i < markerNames.length; i++) {
+				markerData = markerDataLoader.requestMarkerData(i);
+				if (i % 100 == 0) {
+					System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
 				}
 
-				for (int j = 0; j<markerData.length; j++) {
-					if ((i*step+j)%5000 == 0) {
-						System.out.println(ext.getTime()+"\tMarker: "+(i*step+j));
-					}
-		        	count = 0;
-		        	lrrs = markerData[j].getLRRs();
-		        	bafs = markerData[j].getBAFs();
-		        	xs = markerData[j].getXs();
-		        	ys = markerData[j].getYs();
-		        	for (int k = 0; k<samples.length; k++) {
-		        		if (use[k]) {
-		        			lrrArray[count] = lrrs[k];
-		        			bafArray[count] = bafs[k];
-		        			xArray[count] = xs[k];
-		        			yArray[count] = ys[k];
-		        			count++;
-		        		}
-                    }
-		        	lrrHist = new Histogram(lrrArray, count, -10, 10, 1);
-		        	bafHist = new Histogram(bafArray, count, 0, 1, 2);
-		        	xHist = new Histogram(lrrArray, count, 0, 5, 1);
-		        	yHist = new Histogram(bafArray, count, 0, 5, 1);
+	        	count = 0;
+	        	lrrs = markerData.getLRRs();
+	        	bafs = markerData.getBAFs();
+	        	xs = markerData.getXs();
+	        	ys = markerData.getYs();
+	        	for (int k = 0; k<samples.length; k++) {
+	        		if (use[k]) {
+	        			lrrArray[count] = lrrs[k];
+	        			bafArray[count] = bafs[k];
+	        			xArray[count] = xs[k];
+	        			yArray[count] = ys[k];
+	        			count++;
+	        		}
+                }
+	        	lrrHist = new Histogram(lrrArray, count, -10, 10, 1);
+	        	bafHist = new Histogram(bafArray, count, 0, 1, 2);
+	        	xHist = new Histogram(lrrArray, count, 0, 5, 1);
+	        	yHist = new Histogram(bafArray, count, 0, 5, 1);
 
-		        	if (DUMP_THESE != null && ext.indexOfStr(markerData[j].getMarkerName(), DUMP_THESE) >= 0) {
-		        		lrrHist.dump(proj.getProjectDir()+markerData[j].getMarkerName()+"_lrr_hist.xln");
-		        		bafHist.dump(proj.getProjectDir()+markerData[j].getMarkerName()+"_baf_hist.xln");
-		        	}
-		        	
-		        	writer.println(markerData[j].getMarkerName()+"\t"+lrrHist.getMaxBin()+"\t"+lrrHist.getLocalMaxima().length+"\t"+bafHist.getLocalMaxima().length+"\t"+xHist.getLocalMaxima().length+"\t"+yHist.getLocalMaxima().length+"\t"+(drops.containsKey(markerData[j].getMarkerName())?1:0));
-		        	writer.flush();
-	            }
-			}
+	        	if (DUMP_THESE != null && ext.indexOfStr(markerData.getMarkerName(), DUMP_THESE) >= 0) {
+	        		lrrHist.dump(proj.getProjectDir()+markerData.getMarkerName()+"_lrr_hist.xln");
+	        		bafHist.dump(proj.getProjectDir()+markerData.getMarkerName()+"_baf_hist.xln");
+	        	}
+	        	
+	        	writer.println(markerData.getMarkerName()+"\t"+lrrHist.getMaxBin()+"\t"+lrrHist.getLocalMaxima().length+"\t"+bafHist.getLocalMaxima().length+"\t"+xHist.getLocalMaxima().length+"\t"+yHist.getLocalMaxima().length+"\t"+(drops.containsKey(markerData.getMarkerName())?1:0));
+	        	writer.flush();
+				markerDataLoader.releaseIndex(i);
+            }
+				
+			System.out.println("Finished "+markerNames.length+" in "+ext.getTimeElapsed(time));
 
 	        writer.close();
         } catch (Exception e) {
