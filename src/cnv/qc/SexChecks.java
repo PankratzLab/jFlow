@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.*;
 
 import cnv.filesys.*;
-import cnv.manage.MarkerDataLoaderRunnable;
+import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import common.*;
 import stats.*;
@@ -34,6 +34,10 @@ public class SexChecks {
 
 		markerSet = proj.getMarkerSet();
 		sampleData = proj.getSampleData(2, false);
+		if (sampleData.failedToLoad()) {
+			System.err.println("Error - without a SampleData file, sexChecks will fail");
+			return;
+		}
 
 		System.out.println("Took "+ext.getTimeElapsed(time)+" to hash samples");
 		time = new Date().getTime();
@@ -55,7 +59,7 @@ public class SexChecks {
 		String output;
         SampleData sampleData;
         int[] sexes;
-    	MarkerDataLoaderRunnable markerDataLoader;
+    	MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
 		String[] markerNames;
 		long time;
@@ -74,7 +78,7 @@ public class SexChecks {
 			
 	        time = new Date().getTime();
 	        markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
 	        for (int i = 0; i < markerNames.length; i++) {
 	        	markerData = markerDataLoader.requestMarkerData(i);
 	        	if (i % 100 == 0) {

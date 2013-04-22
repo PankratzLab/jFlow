@@ -129,7 +129,7 @@ public class TransposeData {
 		markerFilenames = new String[numMarkerFiles];
 		markersInEachFile = new byte[numMarkerFiles][];
 //		numMarkersInEachFile = new int[numMarkerFiles];
-		backupOlderRafs(proj.getDir(Project.MARKER_DATA_DIRECTORY), MarkerData.MARKER_DATA_FILE_EXTENSION);
+		backupOlderRafs(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false), MarkerData.MARKER_DATA_FILE_EXTENSION);
 		markerIndex = 0;
 		for (int i=0; i<numMarkerFiles; i++) {
 			markerFilenames[i]=proj.getDir(Project.MARKER_DATA_DIRECTORY)+"markers." + i + MarkerData.MARKER_DATA_FILE_EXTENSION;
@@ -148,7 +148,7 @@ public class TransposeData {
 				e.printStackTrace();
 			}
 		}
-		new MarkerLookup(markerLookupHash).serialize(proj.getFilename(Project.MARKERLOOKUP_FILENAME));
+		new MarkerLookup(markerLookupHash).serialize(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false));
 		System.out.println("Total markers in the project:\t"+allMarkersInProj.length
 						  +"\nTotal samples in the project:\t"+allSamplesInProj.length
 						  +"\nMaximum memory size available:\t"+Runtime.getRuntime().maxMemory()/1024/1024/1024+"."+(Runtime.getRuntime().maxMemory()/1024/1024/10 - Runtime.getRuntime().maxMemory()/1024/1024/1024*102)+" gb"

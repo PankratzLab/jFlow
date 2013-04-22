@@ -5,7 +5,7 @@ import java.util.*;
 
 import common.*;
 import cnv.filesys.*;
-import cnv.manage.MarkerDataLoaderRunnable;
+import cnv.manage.MarkerDataLoader;
 import stats.Histogram;
 
 public class PeakZero {
@@ -26,7 +26,7 @@ public class PeakZero {
 		float[] lrrs, bafs, lrrArray, bafArray;
 		float[] xs, ys, xArray, yArray;
 		Histogram lrrHist, bafHist, xHist, yHist;
-		MarkerDataLoaderRunnable markerDataLoader;
+		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
 		String[] markerNames;
 		long time;
@@ -65,7 +65,7 @@ public class PeakZero {
 
 	        time = new Date().getTime();
 			markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				if (i % 100 == 0) {

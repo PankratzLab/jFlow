@@ -331,7 +331,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 			cnv.manage.Markers.generateMarkerPositions(proj, "SNP_Map.csv");
 		} else if (command.equals(PARSE_FILES_CSV)) {
-			cnv.manage.ParseIllumina.createFiles(proj, 2);
+			cnv.manage.ParseIllumina.createFiles(proj, 2, false);
 //			nohup vis -Xmx1g cnv.manage.ParseIllumina threads=6 proj=current.proj
 		} else if (command.equals(CHECK_SEX)) {
 			cnv.qc.SexChecks.sexCheck(proj);
@@ -408,11 +408,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(GCMODEL)) {
 			cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
 		} else if (command.equals(KITANDKABOODLE)) {
-			cnv.manage.ParseIllumina.createFiles(proj, 2);
+			cnv.manage.ParseIllumina.createFiles(proj, 2, true);
 
 			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
 
-			cnv.manage.PlinkFormat.createPlink(proj, filename);
+			cnv.manage.PlinkFormat.createPlink(proj, null);
 			CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
 			new File(proj.getProjectDir()+"genome/").mkdirs();
 			CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");

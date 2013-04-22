@@ -46,7 +46,7 @@ public class PlinkFormat {
 			hash.put(markerNames[i], i+"");
 		}
 		
-		targetMarkers = proj.getFilename(Project.TARGET_MARKERS_FILENAME);
+		targetMarkers = proj.getFilename(Project.TARGET_MARKERS_FILENAME, false, false);
 		if (new File(targetMarkers).exists()) {
 			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
 			indices = new int[targets.length];
@@ -64,7 +64,7 @@ public class PlinkFormat {
 			}
 		} else {
 			if (!targetMarkers.equals("")) {
-				System.err.println("Error - target markers in file '"+targetMarkers+"' not found, using all markers");
+				System.out.println("FYI, since target markers file '"+targetMarkers+"' was not found, all markers will be exported to PLINK");
 			}
 
 //			targets = HashVec.getKeys(hash);

@@ -9,7 +9,7 @@ import mining.Distance;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoaderRunnable;
+import cnv.manage.MarkerDataLoader;
 import common.*;
 
 public class ThetaOutliers {
@@ -29,7 +29,7 @@ public class ThetaOutliers {
 		String filename, output;
 		ClusterFilterCollection clusterFilterCollection;
 		int[] result;
-		MarkerDataLoaderRunnable markerDataLoader;
+		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
 		String[] markerNames;
 		long time;
@@ -54,7 +54,7 @@ public class ThetaOutliers {
 
 	        time = new Date().getTime();
 	        markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
 	        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
 	        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
 	        } else {

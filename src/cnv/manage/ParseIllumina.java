@@ -291,7 +291,7 @@ public class ParseIllumina implements Runnable {
 		return dir+trav+Sample.SAMPLE_DATA_FILE_EXTENSION;
 	}
 
-	public static void createFiles(Project proj, int numThreads) {
+	public static void createFiles(Project proj, int numThreads, boolean waitUntilComplete) {
 		BufferedReader reader;
 		String[] line, markerNames, files;
 		ArrayList<String> alNames;
@@ -317,6 +317,7 @@ public class ParseIllumina implements Runnable {
 		String[] overwriteOptions;
 		int response;
 		String[] filesToDelete;
+		boolean complete;
         
         timeBegan = new Date().getTime();
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+OVERWRITE_OPTION_FILE).delete();
@@ -537,6 +538,24 @@ public class ParseIllumina implements Runnable {
 				Thread.sleep(100L);
 			} catch (InterruptedException ex) {}
 		}
+		
+		if (waitUntilComplete) {
+			complete = false;
+			while (!complete) {
+				complete = true;
+				for (int i = 0; i<numThreads; i++) {
+					if (threads[i].isAlive()) {
+						complete = false;
+					}
+				}
+				if (!complete) {
+					try {
+						Thread.sleep(1000L);
+					} catch (InterruptedException ex) {}
+				}
+			}
+		}
+		
 	}
 
 	public static char[][] getABLookup(boolean abLookupRequired, String[] markerNames, Project proj) {
@@ -1060,7 +1079,7 @@ public class ParseIllumina implements Runnable {
 			} else if (parseAlleleLookup) {
 				parseAlleleLookup(proj);
 			} else {
-				createFiles(proj, numThreads);
+				createFiles(proj, numThreads, true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

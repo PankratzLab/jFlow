@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
 
-public class MarkerDataLoaderRunnable implements Runnable {
+public class MarkerDataLoader implements Runnable {
 	private Project proj;
 	private String[] markerNames;
 	private byte[] chrs;
@@ -32,7 +32,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 	private int readAheadLimit;
 	private int numberCurrentlyLoaded;
 
-	public MarkerDataLoaderRunnable(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
+	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
 		this.proj = proj;
 		this.markerNames = markerNames;
 		this.chrs = new byte[markerNames.length];
@@ -86,7 +86,7 @@ public class MarkerDataLoaderRunnable implements Runnable {
 				v.add(markerNames[i]+"\t"+line[1]);
 
 				if (readAheadLimit == -1) {
-					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineBytesPerMarkerData(line[0]));
+					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineBytesPerMarkerData(proj.getDir(Project.MARKER_DATA_DIRECTORY)+line[0]));
 					System.out.println("Read ahead limit was computed to be "+readAheadLimit+" markers at a time");
 				}
 			} else {
@@ -477,13 +477,13 @@ public class MarkerDataLoaderRunnable implements Runnable {
 		return result;
 	}
 
-	public static MarkerDataLoaderRunnable loadMarkerDataFromList(Project proj, String[] markerList) {
-		MarkerDataLoaderRunnable markerDataLoader;
+	public static MarkerDataLoader loadMarkerDataFromList(Project proj, String[] markerList) {
+		MarkerDataLoader markerDataLoader;
 		Thread thread2;
 		int amountToLoadAtOnceInMB;
 		
 		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
-		markerDataLoader= new MarkerDataLoaderRunnable(proj, markerList, amountToLoadAtOnceInMB);
+		markerDataLoader= new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
 

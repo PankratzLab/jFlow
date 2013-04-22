@@ -16,7 +16,7 @@ import java.awt.event.*;
 import cnv.filesys.*;
 import cnv.gui.AutoSaveClusterFilterCollection;
 import cnv.gui.CycleRadio;
-import cnv.manage.MarkerDataLoaderRunnable;
+import cnv.manage.MarkerDataLoader;
 import common.*;
 import cnv.var.*;
 
@@ -91,7 +91,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private AutoSaveClusterFilterCollection autoSaveCFC;
 	private JRadioButton[] typeRadioButtons;
 	private JRadioButton[] classRadioButtons;
-	private MarkerDataLoaderRunnable markerDataLoader;
+	private MarkerDataLoader markerDataLoader;
 	private Thread thread2;
     private ColorKeyPanel colorKeyPanel;
 	private Color[] colorScheme;
@@ -1135,7 +1135,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 	
 	public void loadMarkerDataFromList() {
-		markerDataLoader = new MarkerDataLoaderRunnable(proj, markerList, -1);
+		markerDataLoader = new MarkerDataLoader(proj, markerList, -1);
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
 

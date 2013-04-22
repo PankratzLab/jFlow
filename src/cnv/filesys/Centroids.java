@@ -3,7 +3,7 @@ package cnv.filesys;
 import java.io.*;
 import java.util.*;
 
-import cnv.manage.MarkerDataLoaderRunnable;
+import cnv.manage.MarkerDataLoader;
 
 import stats.Maths;
 import common.*;
@@ -183,7 +183,7 @@ public class Centroids implements Serializable {
 		byte[] genotypes;
 		int[] counts;
 		SampleList sampleList;
-		MarkerDataLoaderRunnable markerDataLoader;
+		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
 		long time;
 		MarkerSet markerSet;
@@ -200,7 +200,7 @@ public class Centroids implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
 		
-		markerDataLoader = MarkerDataLoaderRunnable.loadMarkerDataFromList(proj, markerNames);
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
 		time = new Date().getTime();
 		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);

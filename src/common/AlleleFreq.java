@@ -151,7 +151,7 @@ public class AlleleFreq {
 			results[0] += Math.abs(calculations[0][i]-calculations[1][i]);
 		}
 		results[0] /= 100;
-		results[1] = ProbDist.ChiDist(ContingencyTable.ChiSquare(calculations), 1);
+		results[1] = ProbDist.ChiDist(ContingencyTable.ChiSquare(calculations, false, false), 1);
 
 		return results;
 	}
