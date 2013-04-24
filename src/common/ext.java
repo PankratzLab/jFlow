@@ -1,6 +1,8 @@
 package common;
 
 import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 import java.text.*;
 import java.util.*;
 import java.awt.Toolkit;
@@ -1333,6 +1335,32 @@ public class ext {
 		v.add(removeAndSimplifyQuotes?removeAndSimplifyQuotes(str.substring(startIndex), log):str.substring(startIndex));
 		
 		return Array.toStringArray(v);
+	}
+	
+	public static String reportMemoryUsage() {
+		MemoryUsage muHeap, muNonHeap;
+		
+		muHeap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+		muNonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+//		return "Total: " + ext.prettyUpSize(Runtime.getRuntime().totalMemory(), 1) + 
+//				" Free: " + ext.prettyUpSize(Runtime.getRuntime().freeMemory(),1) + 
+//				" Max: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(),1) +
+//				" HeapComit: " + ext.prettyUpSize(muHeap.getCommitted(),1) +
+//				" HeapInit: " + ext.prettyUpSize(muHeap.getInit(),1) +
+//				" HeapMax: " + ext.prettyUpSize(muHeap.getMax(),1) +
+//				" HeapUsed: " + ext.prettyUpSize(muHeap.getUsed(),1) +
+//				" NonHeapComit: " + ext.prettyUpSize(muNonHeap.getCommitted(),1) +
+//				" NonHeapInit: " + ext.prettyUpSize(muNonHeap.getInit(),1) +
+//				" NonHeapMax: " + ext.prettyUpSize(muNonHeap.getMax(),1) +
+//				" NonHeapUsed: " + ext.prettyUpSize(muNonHeap.getUsed(),1)
+//				;
+
+		return "Used: " + ext.prettyUpSize(muHeap.getUsed(),1) +
+				"\tInit: " + ext.prettyUpSize(muHeap.getInit(),1) +
+				"\tCommit: " + ext.prettyUpSize(muHeap.getCommitted(),1) +
+				"\tMax: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(),1) +
+				"\tFree: " + ext.prettyUpSize(Runtime.getRuntime().freeMemory(),1) 
+				;
 	}
 	
 	public static void main(String[] args) {

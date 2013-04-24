@@ -103,8 +103,8 @@ public class FilterDB {
 		int numArgs = args.length;
 //		String dbFilename = "db.txt";
 //		String filterFilename = "filters.txt";
-		String dbFilename = "C:/projects/practice/results/markerGenderChecks.xln";
-		String filterFilename = "C:/projects/practice/qc/default_exclusion.criteria";
+		String dbFilename = "D:/GEDI_exome/results/markerGenderChecks.xln";
+		String filterFilename = "D:/GEDI_exome/qc/default_exclusion.criteria";
 		String outputFilename = null;
 		String logFilename = null;
 

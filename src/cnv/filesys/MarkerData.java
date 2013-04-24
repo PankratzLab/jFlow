@@ -56,7 +56,8 @@ public class MarkerData implements Serializable {
 		case 1:
 			return new float[][] {xs, ys};
 		case 2:
-			return new float[][] {thetas, rs};
+//			return new float[][] {thetas, rs};
+			return new float[][] {getThetas(), getRs()};
 		case 3:
 			return new float[][] {bafs, lrrs};
 		default:
