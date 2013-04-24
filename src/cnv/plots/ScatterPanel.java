@@ -305,7 +305,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				//}
 				//classCounts.add(code+"");//np
 				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;//zx
-				otherClass[i] = sampleData.determineCodeFromClass(3, alleleCounts[i], indi, chr, position)+"";
+				otherClass[i] = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)+"";
 			} else {
 				System.err.println("Error - no data pts for "+samples[i]);
 				sex[i] = "missing";

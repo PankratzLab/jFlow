@@ -46,7 +46,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String REFRESH = "Refresh";
 	public static final String COMP = "Comp module";
 	public static final String KITANDKABOODLE = "Kit and Kaboodle";
-	
+	public static final String MARKER_METRICS = "Full QC marker metrics";
 
 //	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD, COMP}; 
 
@@ -170,7 +170,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", EXTRACT_PLOTS, SLIM_PLOTS},
 								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", TRANSPOSE_DATA, KITANDKABOODLE},
 								{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, COMP},
-								{"Tools", CHECK_SEX, LRR_SD, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, MOSAICISM, POPULATIONBAF, GCMODEL, DENOVO_CNV, SUMCNVBYSAM, TEST},
+								{"Tools", CHECK_SEX, LRR_SD, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, MOSAICISM, POPULATIONBAF, GCMODEL, DENOVO_CNV, SUMCNVBYSAM, MARKER_METRICS, TEST},
 								{"Help", "Contents", "Search", "About"}};
 
 			//TODO to find a new location for this line
@@ -339,8 +339,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //			ExtractPlots.extractAll(proj, 0, false);
 //			TransposeData.transposeData(proj, 0); // compact if no LRR was provided
 //			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
-			System.out.println("Before calling\t"+ext.reportMemoryUsage());
-			TransposeData.transposeData(proj, 2000000000, false, null); // compact if no LRR was provided
+			TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
 //		} else if (command.equals(SLIM_PLOTS)) {
 //			ExtractPlots.breakUpMarkerCollections(proj, 250);
 //			nohup vis -Xmx15g -d64 cnv.manage.ExtractPlots per=250 proj=current.proj
@@ -409,10 +408,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			output.append("No new program to test\n");
 		} else if (command.equals(GCMODEL)) {
 			cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
+		} else if (command.equals(MARKER_METRICS)) {
+			cnv.qc.MarkerMetrics.fullQC(proj, (boolean[])null, null, proj.getLog()); // need the declaration, otherwise the call is ambiguous
 		} else if (command.equals(KITANDKABOODLE)) {
 			cnv.manage.ParseIllumina.createFiles(proj, 2);
 
-			TransposeData.transposeData(proj, 2000000000, true, null); // compact if no LRR was provided
+			TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
 
 			cnv.manage.PlinkFormat.createPlink(proj, null);
 			CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());

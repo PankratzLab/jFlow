@@ -195,7 +195,7 @@ public class MarkerDataLoader implements Runnable {
 		String filename;
 		int[] markerIndicesInProj = null;
 		int[] markerIndicesInFile;
-		int[] markerIndicesInSelection;
+		int[][] markerIndicesInSelection;
 		long fingerprint;
 		int count;
 		MarkerSet markerSet;
@@ -247,30 +247,35 @@ public class MarkerDataLoader implements Runnable {
 			for (int i = 0; allRemaining.size() >0 && i < maxPerCycle; i++) {
 				v.addElement(allRemaining.remove(0));
 			}
-			System.out.println("Loaded up "+v.size()+" from marker Data file:"+filename+"; "+allRemaining.size()+" remaining for that file; "+ext.getTimeElapsed(time));
+			System.out.println("Loaded up "+v.size()+" from MarkerData file:"+filename+"; "+allRemaining.size()+" remaining for that file; "+ext.getTimeElapsed(time));
 			time = new Date().getTime();
 			if (allRemaining.size() == 0) {
 				filenames.remove(filename);
 			}
 			markerIndicesInFile = new int[v.size()];
 			markerIndicesInProj = new int[v.size()];
-			markerIndicesInSelection = new int[v.size()];
+			markerIndicesInSelection = new int[v.size()][];
 			for (int j = 0; j<v.size() && !killed; j++) {
 				line = v.elementAt(j).split("[\\s]+");
 				markerIndicesInProj[j] = ext.indexOfStr(line[0], markerNamesInProj, true, true);	//modified here to fix the bug
 				markerIndicesInFile[j] = Integer.parseInt(line[1]);
-				markerIndicesInSelection[j] = ext.indexOfStr(line[0], markerNames, true, true);
+				markerIndicesInSelection[j] = ext.indicesOfStr(line[0], markerNames, true, true);
+				if (markerIndicesInSelection[j].length > 1) {
+					System.out.println("FYI, marker "+line[0]+" was requested "+markerIndicesInSelection[j].length+" times");
+				}
 			}
 
 			collection = loadFromRAF(markerNamesInProj, chrsInProj, positionsInProj, samplesNamesProj, proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename, markerIndicesInProj, markerIndicesInFile, sampleFingerprint, outlierHash);
 
 			for (int k = 0; k<markerIndicesInFile.length && !killed; k++) {
-				markerData[markerIndicesInSelection[k]] = collection[k];
-				loaded[markerIndicesInSelection[k]] = true;
-				count++;
-				numberCurrentlyLoaded++;
-				if (markerData[markerIndicesInSelection[k]].getFingerprint()!=fingerprint) {
-					System.err.println("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: " + markerData[markerIndicesInSelection[k]].getFingerprint() + ", while expecting: " + fingerprint);
+				for (int i = 0; i < markerIndicesInSelection[k].length; i++) {
+					markerData[markerIndicesInSelection[k][i]] = collection[k];
+					loaded[markerIndicesInSelection[k][i]] = true;
+					count++;
+					numberCurrentlyLoaded++;
+					if (markerData[markerIndicesInSelection[k][i]].getFingerprint()!=fingerprint) {
+						System.err.println("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: " + markerData[markerIndicesInSelection[k][i]].getFingerprint() + ", while expecting: " + fingerprint);
+					}
 				}
 			}
 
