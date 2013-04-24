@@ -14,6 +14,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+import cnv.manage.TransposeData;
 import cnv.var.SampleData;
 
 public class Project extends Properties {
@@ -293,8 +294,18 @@ public class Project extends Properties {
 	}
 
 	public MarkerLookup getMarkerLookup() {
-		if (markerLookup == null && Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
-			markerLookup = MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
+		if (markerLookup == null) {
+			if (Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
+				markerLookup = MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
+			} else {
+				System.out.println("Failed to find MarkerLookup; generating one...");
+				TransposeData.recreateMarkerLookup(this);
+				if (Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
+					markerLookup = MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
+				} else {
+					log.reportError("Also failed to create MarkerLookup; failing");
+				}
+			}
 		}
 		return markerLookup;
 	}

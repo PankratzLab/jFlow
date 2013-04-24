@@ -42,12 +42,12 @@ public class MarkerMetrics {
         float gcThreshold;
         long time;
         MarkerDataLoader markerDataLoader;
-        String[] markerList;
+        String[] markerNames;
         String line, eol;
         int[] counts;
         double[] sumTheta, sumR, meanTheta, sdTheta;
         double temp;
-        
+
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
 		} else {
@@ -69,15 +69,19 @@ public class MarkerMetrics {
 			writer.println(Array.toStr(FULL_QC_HEADER));
 			
 			if (markersToInclude != null) {
-				markerList = HashVec.loadFileToStringArray(proj.getDir(Project.PROJECT_DIRECTORY)+markersToInclude, false, new int[] {0}, false);
+				markerNames = HashVec.loadFileToStringArray(proj.getDir(Project.PROJECT_DIRECTORY)+markersToInclude, false, new int[] {0}, false);
 			} else {
-				markerList = proj.getMarkerNames();
+				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerList);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
 			line = "";
 			time = new Date().getTime();
-			for (int i = 0; i < markerList.length; i++) {
+			System.out.println("hi!");
+			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
+				if (i % 1000 == 0) {
+					System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+				}
 
 				markerName = markerData.getMarkerName();
 				thetas = markerData.getThetas();
@@ -148,7 +152,7 @@ public class MarkerMetrics {
 			}
 			writer.print(line);
 			writer.close();
-			log.report("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
+			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportError("Error writing results");
 			e.printStackTrace();
@@ -341,9 +345,6 @@ public class MarkerMetrics {
 		boolean sexSeparation = false;
 		boolean fullQC = false;
 
-//		subset = "data/test.txt";
-//		filename = "C:/workspace/Genvisis/projects/gedi_exome.properties";
-
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
 				"   (1) project file (i.e. proj="+filename+" (default))\n"+
@@ -387,7 +388,9 @@ public class MarkerMetrics {
 		}
 		
 		try {
-			filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
+//			subset = "data/test.txt";
+			filename = "C:/workspace/Genvisis/projects/gedi_exome.properties";
+//			filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
 			fullQC = true;
 			
 			proj = new Project(filename, false);
