@@ -9,6 +9,7 @@ import common.ext;
 
 import cnv.filesys.*;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -204,6 +205,7 @@ public class MarkerDataLoader implements Runnable {
 		String[] samplesNamesProj;
 		long time;
 		int maxPerCycle;
+		Hashtable<String, Float> outlierHash;
 
 		maxPerCycle = proj.getInt(Project.MAX_MARKERS_LOADED_PER_CYCLE);
 
@@ -215,6 +217,11 @@ public class MarkerDataLoader implements Runnable {
 		chrsInProj = markerSet.getChrs();
 		positionsInProj = markerSet.getPositions();
 		samplesNamesProj = proj.getSamples();
+		if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser").exists()) {
+			outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser");
+		} else {
+			outlierHash = new Hashtable<String, Float>();
+		}
 		time = new Date().getTime();
 		count = 0;
 		while (filenames.size() > 0) {
@@ -255,7 +262,7 @@ public class MarkerDataLoader implements Runnable {
 				markerIndicesInSelection[j] = ext.indexOfStr(line[0], markerNames, true, true);
 			}
 
-			collection = loadFromRAF9(markerNamesInProj, chrsInProj, positionsInProj, samplesNamesProj, proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename, markerIndicesInProj, markerIndicesInFile, sampleFingerprint);
+			collection = loadFromRAF(markerNamesInProj, chrsInProj, positionsInProj, samplesNamesProj, proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename, markerIndicesInProj, markerIndicesInFile, sampleFingerprint, outlierHash);
 
 			for (int k = 0; k<markerIndicesInFile.length && !killed; k++) {
 				markerData[markerIndicesInSelection[k]] = collection[k];
@@ -290,8 +297,8 @@ public class MarkerDataLoader implements Runnable {
 
 	}
 
-	public static MarkerData[] loadFromRAF9(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndeciesInFile, long sampleFingerprint) {
-		return loadFromRAF9(markerNamesProj, chrsProj, positionsProj, samplesProj, markerFilename, markerIndeciesInProj, markerIndeciesInFile, true, true, true, true, true, sampleFingerprint);
+	public static MarkerData[] loadFromRAF(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndeciesInFile, long sampleFingerprint, Hashtable<String, Float> outOfRangeValues) {
+		return loadFromRAF(markerNamesProj, chrsProj, positionsProj, samplesProj, markerFilename, markerIndeciesInProj, markerIndeciesInFile, true, true, true, true, true, sampleFingerprint, outOfRangeValues);
 	}
 
 
@@ -302,7 +309,7 @@ public class MarkerDataLoader implements Runnable {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static MarkerData[] loadFromRAF9(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndicesInFile, boolean loadGC, boolean loadXY, boolean loadBAF, boolean loadLRR, boolean loadAbGenotype, long sampleFingerprint) {
+	public static MarkerData[] loadFromRAF(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndicesInFile, boolean loadGC, boolean loadXY, boolean loadBAF, boolean loadLRR, boolean loadAbGenotype, long sampleFingerprint, Hashtable<String, Float> outOfRangeValues) {
 		MarkerData[] result;
 		RandomAccessFile file;
         int numBytesPerMarker;
@@ -318,12 +325,9 @@ public class MarkerDataLoader implements Runnable {
         byte[][] readBuffer = null;
         int indexReadBuffer;
         byte[] parameterReadBuffer;
-        int numMarkersInThisFile;
         long fingerprint;
         int numBytesMarkernamesSection;
-        int lengthOfOutOfRangeHashtable;
-        byte[] outOfRangeValuesReadBuffer;
-        Hashtable<String, Float> outOfRangeValues = null;
+//        Hashtable<String, Float> outOfRangeValues = null;
         int numSamplesProj;
         byte nullStatus = 0;
         byte bytesPerSampMark = 0;
@@ -337,7 +341,7 @@ public class MarkerDataLoader implements Runnable {
         try {
 			file = new RandomAccessFile(markerFilename, "r");
 			file.read(parameterReadBuffer);
-			numMarkersInThisFile = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMMARKS_START);
+//			numMarkers = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMMARKS_START);
 			nullStatus = parameterReadBuffer[TransposeData.MARKDATA_NULLSTATUS_START];
 			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
 			numBytesPerMarker = bytesPerSampMark * numSamplesProj;
@@ -362,23 +366,21 @@ public class MarkerDataLoader implements Runnable {
 
 	        // TODO this is read every time, wouldn't it be faster to use the serialized version?
 	        // Read in the Out of Range Value array
-	        file.seek((long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)numBytesMarkernamesSection + (long) numMarkersInThisFile * (long)numBytesPerMarker);
-//	        System.out.println("number of markers in this file: "+numMarkersInThisFile);
-			lengthOfOutOfRangeHashtable = file.readInt();
-			if (lengthOfOutOfRangeHashtable>0) {
-				outOfRangeValuesReadBuffer = new byte[lengthOfOutOfRangeHashtable];
-				file.read(outOfRangeValuesReadBuffer);
-				outOfRangeValues = (Hashtable<String, Float>)Compression.bytesToObj(outOfRangeValuesReadBuffer);
-			}
+//	        file.seek((long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)numBytesMarkernamesSection + (long) numMarkersInThisFile * (long)numBytesPerMarker);
+////	        System.out.println("number of markers in this file: "+numMarkersInThisFile);
+//			lengthOfOutOfRangeHashtable = file.readInt();
+//			if (lengthOfOutOfRangeHashtable>0) {
+//				outOfRangeValuesReadBuffer = new byte[lengthOfOutOfRangeHashtable];
+//				file.read(outOfRangeValuesReadBuffer);
+//				outOfRangeValues = (Hashtable<String, Float>)Compression.bytesToObj(outOfRangeValuesReadBuffer);
+//			}
+
 			file.close();
 		} catch (FileNotFoundException e) {
 			System.err.println("Error - could not find RAF marker file '"+markerFilename+"'");
 			e.printStackTrace();
 		} catch (IOException e) {
 			System.err.println("Error reading RAF marker file '"+markerFilename+"'");
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			System.err.println("Error - could not convert the last section of the RAF marker file '"+markerFilename+"' into an hashtable of outliers");
 			e.printStackTrace();
 		}
 
@@ -413,7 +415,7 @@ public class MarkerDataLoader implements Runnable {
 						xs[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 //							xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
-							xs[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + j + "\tx");
+							xs[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + samplesProj[j] + "\tx");
 						}
 						indexReadBuffer += bytesPerSampMark;
 					}
@@ -428,7 +430,7 @@ public class MarkerDataLoader implements Runnable {
 						ys[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 //							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
-							ys[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + j + "\ty");
+							ys[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + samplesProj[j] + "\ty");
 						}
 						indexReadBuffer += bytesPerSampMark;
 					}
@@ -455,7 +457,7 @@ public class MarkerDataLoader implements Runnable {
 						lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
 						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT) {
 //							lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
-							lrrs[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + j + "\tlrr");
+							lrrs[j] = outOfRangeValues.get(markerIndeciesInProj[i] + "\t" + samplesProj[j] + "\tlrr");
 						}
 						indexReadBuffer += bytesPerSampMark;
 					}

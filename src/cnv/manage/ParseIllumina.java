@@ -8,6 +8,7 @@ import java.util.*;
 import javax.swing.JOptionPane;
 
 import cnv.filesys.ABLookup;
+import cnv.filesys.MarkerData;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -32,8 +33,13 @@ public class ParseIllumina implements Runnable {
 	private char[][] abLookup;
 	private Hashtable<String,String> fixes;
 	private long timeBegan;
+	private int threadId;
 
 	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, long fingerprint, Hashtable<String,String> fixes, long timeBegan) {
+		this(proj, files, markerNames, keysKeys, abLookup, fingerprint, fixes, timeBegan, -1);
+	}
+
+	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, long fingerprint, Hashtable<String,String> fixes, long timeBegan, int threadId) {
 		this.proj = proj;
 		this.files = files;
 		this.markerNames = markerNames;
@@ -42,6 +48,17 @@ public class ParseIllumina implements Runnable {
 		this.fingerprint = fingerprint;
 		this.fixes = fixes;
 		this.timeBegan = timeBegan;
+		this.threadId = threadId;
+
+		//TODO This seems not to be necessarily, because there is a check of "samples/.sampRAF".
+//		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY, true), MarkerData.MARKER_DATA_FILE_EXTENSION, proj.getJarStatus()).length>0) {
+//			System.err.println("Error - Refusing to create new SampleList until the plots directory is either deleted or emptied; altering the SampleList will invalidate those files");
+//			System.exit(1);
+//		}
+
+		//TODO There is a more complex scenario: what happens if you just want to add some new samples?
+//		TransposeData.backupOlderFiles(proj.getDir(Project.SAMPLE_DIRECTORY, true), new String [] {"outliers.ser", ".sampRAF"}, true);
+//		TransposeData.deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true), new String[] {"outliers"}, new String[] {".ser"}, true);
 	}
 
 	public void run() {
@@ -60,6 +77,7 @@ public class ParseIllumina implements Runnable {
 		String idHeader;
 		String delimiter;
 		String filename;
+		Hashtable<String, Float> allOutliers;
 		
 //		try {
 //			PrintWriter writer = new PrintWriter(new FileWriter(files[0]+"_list.xln"));
@@ -75,6 +93,7 @@ public class ParseIllumina implements Runnable {
 
 		idHeader = proj.getProperty(Project.ID_HEADER);
 		delimiter = proj.getSourceFileDelimiter();
+		allOutliers = new Hashtable<String, Float>();
         try {
 			for (int i = 0; i<files.length; i++) {
 				if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+CANCEL_OPTION_FILE).exists()) {
@@ -205,13 +224,32 @@ public class ParseIllumina implements Runnable {
 
 					samp = new Sample(sampleName, fingerprint, data, genotypes);
 //					samp.serialize(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
-					samp.saveToRandomAccessFile(filename);
+//					samp.saveToRandomAccessFile(filename);
+					samp.saveToRandomAccessFile(filename, allOutliers, sampleName); //TODO sampleIndex
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \""+files[i]+"\" not found in current directory");
 					return;
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \""+files[i]+"\"");
 					return;
+				}
+			}
+
+			if (allOutliers.size()>0) {
+				if (threadId >= 0) {
+					if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser").exists()) {
+						System.err.println("Error - the following file already exists: " + proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser");
+						System.exit(1);
+					} else {
+						Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser");
+					}
+				} else {
+					if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers0.ser").exists()) {
+						System.err.println("Error - the following file already exists: " + proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers0.ser");
+						System.exit(1);
+					} else {
+						Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers0.ser");
+					}
 				}
 			}
 
@@ -291,7 +329,7 @@ public class ParseIllumina implements Runnable {
 		return dir+trav+Sample.SAMPLE_DATA_FILE_EXTENSION;
 	}
 
-	public static void createFiles(Project proj, int numThreads, boolean waitUntilComplete) {
+	public static void createFiles(Project proj, int numThreads) {
 		BufferedReader reader;
 		String[] line, markerNames, files;
 		ArrayList<String> alNames;
@@ -318,7 +356,8 @@ public class ParseIllumina implements Runnable {
 		int response;
 		String[] filesToDelete;
 		boolean complete;
-        
+		Hashtable<String, Float> allOutliers;
+
         timeBegan = new Date().getTime();
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+OVERWRITE_OPTION_FILE).delete();
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+HOLD_OPTION_FILE).delete();
@@ -457,24 +496,28 @@ public class ParseIllumina implements Runnable {
 					, "What to do?", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[2]);
 
 				switch (response) {
+				case -1:
+					break;
 				case 0:
 					filesToDelete = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 					for (int i = 0; i < filesToDelete.length; i++) {
-						new File(proj.getDir(Project.SAMPLE_DIRECTORY)+filesToDelete[i]).delete();
+						new File(proj.getDir(Project.SAMPLE_DIRECTORY) + filesToDelete[i]).delete();
 					}
+					new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser").delete();
 					break;
-				case -1:
+				case 1:
+					// keep "outlier.ser"
+					break;
 				case 2:
 					return;
-				case 1:
-					break;
 				default:
 					JOptionPane.showMessageDialog(null, "Should be impossible to obtain this message ("+response+")", "Error", JOptionPane.ERROR_MESSAGE);
 					break;
 				}
 			}
-			reader.reset();			
+			TransposeData.deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true), new String[] {"outliers"}, new String[] {".ser"}, true, new String[] {"outliers.ser"});
 
+			reader.reset();			
 			if (Boolean.parseBoolean(proj.getProperty(Project.LONG_FORMAT))) {
 				reader.close();
 				createFilesFromLongFormat(proj, files, idHeader, fixes, delimiter, abLookupRequired, timeBegan);
@@ -531,7 +574,7 @@ public class ParseIllumina implements Runnable {
 		}
 		threads = new Thread[numThreads];
 		for (int i = 0; i<numThreads; i++) {
-			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), markerNames, keysKeys, lookup, fingerprint, fixes, timeBegan));
+			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), markerNames, keysKeys, lookup, fingerprint, fixes, timeBegan, i));
 //			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), null, null, null, 0));
 			threads[i].start();
 			try {
@@ -539,21 +582,28 @@ public class ParseIllumina implements Runnable {
 			} catch (InterruptedException ex) {}
 		}
 		
-		if (waitUntilComplete) {
-			complete = false;
-			while (!complete) {
-				complete = true;
-				for (int i = 0; i<numThreads; i++) {
-					if (threads[i].isAlive()) {
-						complete = false;
-					}
-				}
-				if (!complete) {
-					try {
-						Thread.sleep(1000L);
-					} catch (InterruptedException ex) {}
+		complete = false;
+		while (!complete) {
+			complete = true;
+			for (int i = 0; i<numThreads; i++) {
+				if (threads[i].isAlive()) {
+					complete = false;
 				}
 			}
+			if (!complete) {
+				try {
+					Thread.sleep(1000L);
+				} catch (InterruptedException ex) {}
+			}
+		}
+		
+		allOutliers = new Hashtable<String, Float>();
+		for (int i = 0; i<numThreads; i++) {
+			allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser"));
+			new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").delete();
+		}
+		if (allOutliers.size()>0) {
+			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
 		
 	}
@@ -587,6 +637,7 @@ public class ParseIllumina implements Runnable {
 		int count;
 		char[][] abLookup;
 		String filename;
+		Hashtable<String, Float> allOutliers;
 
         System.out.println("Parsing files using the Long Format algorithm");
         
@@ -620,6 +671,7 @@ public class ParseIllumina implements Runnable {
 		count = 0;
 		countHash = new CountHash();
 		dupHash = new CountHash();
+		allOutliers = new Hashtable<String, Float>();
         try {
 			for (int i = 0; i<files.length; i++) {
 				try {
@@ -680,7 +732,7 @@ public class ParseIllumina implements Runnable {
 								}
 								
 								samp = new Sample(sampleName, fingerprint, data, genotypes);
-								samp.saveToRandomAccessFile(filename);
+								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
 							}
 							if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 								samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
@@ -763,6 +815,15 @@ public class ParseIllumina implements Runnable {
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \""+files[i]+"\"");
 					return;
+				}
+			}
+
+			if (allOutliers.size()>0) {
+				if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser").exists()) {
+					System.err.println("Error - the following file already exists: " + proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
+					System.exit(1);
+				} else {
+					Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 				}
 			}
 
@@ -1079,7 +1140,7 @@ public class ParseIllumina implements Runnable {
 			} else if (parseAlleleLookup) {
 				parseAlleleLookup(proj);
 			} else {
-				createFiles(proj, numThreads, true);
+				createFiles(proj, numThreads);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

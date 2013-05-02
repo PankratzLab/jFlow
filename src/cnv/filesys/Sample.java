@@ -1,6 +1,7 @@
 package cnv.filesys;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -8,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import common.Array;
@@ -26,12 +28,16 @@ public class Sample implements Serializable {
 	public static final String[] ALT_NULLS = {"--", "00"};
 	public static final String[] AB_PAIRS = {"AA", "AB", "BB"};
 	public static final String SAMPLE_DATA_FILE_EXTENSION = ".sampRAF";
-	public static final byte PARAMETER_SECTION_BYTES = 13;
+//	public static final byte PARAMETER_SECTION_BYTES = 13;
+	public static final byte PARAMETER_SECTION_BYTES = 17;
 	public static final byte PARAMETER_SECTION_NUMMARK_LOC = 0;
 	public static final byte PARAMETER_SECTION_NUMMARK_LEN = 4;
 	public static final byte PARAMETER_SECTION_NULLSTAT_LOC = 4;
 	public static final byte PARAMETER_SECTION_NULLSTAT_LEN = 1;
-	public static final byte PARAMETER_SECTION_FINGPRNT_LOC = 5;
+	public static final byte PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC = 5;
+	public static final byte PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LEN = 4;
+//	public static final byte PARAMETER_SECTION_FINGPRNT_LOC = 5;
+	public static final byte PARAMETER_SECTION_FINGPRNT_LOC = 9;
 	public static final byte PARAMETER_SECTION_FINGPRNT_LEN = 8;
 	public static final int MAX_ROWS_PER_WRITE_OPERATION = 500;
 	public static final byte NULLSTATUS_GC_LOCATION = 0;
@@ -340,12 +346,18 @@ public class Sample implements Serializable {
 	 * @param filename
 	 */
 	public void saveToRandomAccessFile(String filename) {
+		saveToRandomAccessFile(filename, null, null);
+	}
+		
+	public void saveToRandomAccessFile(String filename, Hashtable<String, Float> allOutliers, String sampleName) {
 		File fileTmp;
 		RandomAccessFile rafFile;
 		Hashtable<String, Float> outOfRangeValuesEachSample;
 		byte[] outOfRangeValuesWriteBuffer;
 		int bytesRemained;
 		byte[] writeBuffer = null;
+		byte[] parameters;
+		byte[] temp;
 		int writeBufferIndex;
 		byte bytesPerSampMark;
 		
@@ -364,9 +376,24 @@ public class Sample implements Serializable {
 		outOfRangeValuesEachSample = new Hashtable<String, Float>();
 		try {
 			rafFile = new RandomAccessFile(filename, "rw");
-			rafFile.writeInt(xs.length);
-			rafFile.writeByte(nullStatus);
-			rafFile.writeLong(fingerprint);
+
+//			rafFile.writeInt(xs.length);
+//			rafFile.writeByte(nullStatus);
+//			rafFile.writeLong(fingerprint);
+			parameters = new byte[PARAMETER_SECTION_BYTES];
+			temp = Compression.intToBytes(xs.length);
+			for (int i=0; i<temp.length; i++) {
+				parameters[PARAMETER_SECTION_NUMMARK_LOC + i] = temp[i];
+			}
+
+			parameters[PARAMETER_SECTION_NULLSTAT_LOC] = nullStatus;
+
+			temp = Compression.longToBytes(fingerprint);
+			for (int i=0; i<temp.length; i++) {
+				parameters[PARAMETER_SECTION_FINGPRNT_LOC + i] = temp[i];
+			}
+			rafFile.write(parameters);
+
 			writeBufferIndex = 0;
 			for (int j = 0; j<xs.length; j++) {
 				if (writeBufferIndex == 0) {
@@ -379,12 +406,18 @@ public class Sample implements Serializable {
 				if (xs != null) {
 					if (! Compression.xyCompress(xs[j], writeBuffer, writeBufferIndex)) {
 						outOfRangeValuesEachSample.put(j + "\tx", xs[j]);
+						if (allOutliers != null) {
+							allOutliers.put(j + "\t" + sampleName + "\tx", xs[j]);
+						}
 					}
 					writeBufferIndex += 2;
 				}
 				if (ys != null) {
 					if (! Compression.xyCompress(ys[j], writeBuffer, writeBufferIndex)) {
 						outOfRangeValuesEachSample.put(j + "\ty", ys[j]);
+						if (allOutliers != null) {
+							allOutliers.put(j + "\t" + sampleName + "\ty", ys[j]);
+						}
 					}
 					writeBufferIndex += 2;
 				}
@@ -395,6 +428,9 @@ public class Sample implements Serializable {
 				if (lrrs != null) {
 					if (Compression.lrrCompress(lrrs[j], writeBuffer, writeBufferIndex) == -1) {
 						outOfRangeValuesEachSample.put(j + "\tlrr", lrrs[j]);
+						if (allOutliers != null) {
+							allOutliers.put(j + "\t" + sampleName + "\tlrr", lrrs[j]);
+						}
 					}
 					writeBufferIndex += 3;
 				}
@@ -408,13 +444,14 @@ public class Sample implements Serializable {
 					writeBufferIndex = 0;
 				}
 			}
-			if (outOfRangeValuesEachSample==null || outOfRangeValuesEachSample.size()==0) {
-				rafFile.writeInt(0);
-			} else {
+
+			if (outOfRangeValuesEachSample!=null && outOfRangeValuesEachSample.size()>0) {
 				outOfRangeValuesWriteBuffer = Compression.objToBytes(outOfRangeValuesEachSample);
-				rafFile.writeInt(outOfRangeValuesWriteBuffer.length);
 				rafFile.write(outOfRangeValuesWriteBuffer);
+				rafFile.seek(PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+				rafFile.writeInt(outOfRangeValuesWriteBuffer.length);
 			}
+
 			rafFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -447,6 +484,7 @@ public class Sample implements Serializable {
         float[] gcs = null, xs = null, ys = null, lrrs = null, bafs = null;
         byte[] abGenotypes = null, fwdGenotypes = null, readBuffer;
         byte[] genoTypeTmp;
+        byte[] temp;
         int index, indexStart;
         int numBytesOfOutOfRangeValues;
         Hashtable<String, Float> outOfRangeValues = null;
@@ -460,14 +498,40 @@ public class Sample implements Serializable {
 			readBuffer = new byte[(int) file.length()];	//numMarkers * BYTES_PER_SAMPLE_MARKER
 			file.read(readBuffer);
 			file.close();
-			numMarkers = Compression.bytesToInt(new byte[]{readBuffer[0], readBuffer[1], readBuffer[2], readBuffer[3]});
-			nullStatus = readBuffer[4];
-			fingerPrint = Compression.bytesToLong(new byte[]{readBuffer[5], readBuffer[6], readBuffer[7], readBuffer[8], readBuffer[9], readBuffer[10], readBuffer[11], readBuffer[12]});
+
+//			numMarkers = Compression.bytesToInt(new byte[]{readBuffer[0], readBuffer[1], readBuffer[2], readBuffer[3]});
+			temp = new byte[PARAMETER_SECTION_NUMMARK_LEN];
+			for (int i=0; i<temp.length; i++) {
+				temp[i] = readBuffer[PARAMETER_SECTION_NUMMARK_LOC + i];
+			}
+			numMarkers = Compression.bytesToInt(temp);
+
+//			nullStatus = readBuffer[4];
+//			temp = new byte[PARAMETER_SECTION_NULLSTAT_LEN];
+//			for (int i=0; i<temp.length; i++) {
+//				temp[i] = readBuffer[PARAMETER_SECTION_NULLSTAT_LOC + i];
+//			}
+			nullStatus = readBuffer[PARAMETER_SECTION_NULLSTAT_LOC];
+
+			temp = new byte[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LEN];
+			for (int i=0; i<temp.length; i++) {
+				temp[i] = readBuffer[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC + i];
+			}
+			numBytesOfOutOfRangeValues = Compression.bytesToInt(temp);
+
+//			fingerPrint = Compression.bytesToLong(new byte[]{readBuffer[5], readBuffer[6], readBuffer[7], readBuffer[8], readBuffer[9], readBuffer[10], readBuffer[11], readBuffer[12]});
+			temp = new byte[PARAMETER_SECTION_FINGPRNT_LEN];
+			for (int i=0; i<temp.length; i++) {
+				temp[i] = readBuffer[PARAMETER_SECTION_FINGPRNT_LOC + i];
+			}
+			fingerPrint = Compression.bytesToLong(temp);
+
 			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
-			outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampMark;
-			numBytesOfOutOfRangeValues = Compression.bytesToInt(new byte[]{readBuffer[outlierSectionLocation], readBuffer[outlierSectionLocation+1], readBuffer[outlierSectionLocation+2], readBuffer[outlierSectionLocation+3]});
+
+//			numBytesOfOutOfRangeValues = Compression.bytesToInt(new byte[]{readBuffer[outlierSectionLocation], readBuffer[outlierSectionLocation+1], readBuffer[outlierSectionLocation+2], readBuffer[outlierSectionLocation+3]});
 			if (numBytesOfOutOfRangeValues>0) {
-				outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(readBuffer, outlierSectionLocation+4, numBytesOfOutOfRangeValues);
+				outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampMark;
+				outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(readBuffer, outlierSectionLocation, numBytesOfOutOfRangeValues);
 			}
 
 			indexStart = PARAMETER_SECTION_BYTES;
@@ -556,6 +620,62 @@ public class Sample implements Serializable {
 		return result;
 	}
 
+	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
+		byte[] outliersBuffer;
+		Hashtable<String, Float> sampleOutlierHash;
+		Enumeration<String> keys;
+		String currentKey;
+		int outlierSectionSize = 0;
+
+		try {
+	    	if (allOutliers != null) {
+	    			sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+	    			outlierSectionSize = sampleFile.readInt();
+	    	}
+
+	    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark);
+	    	sampleFile.read(readBuffer);
+
+    		if (outlierSectionSize > 0) {
+		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
+	    		outliersBuffer = new byte[outlierSectionSize];
+	    		sampleFile.read(outliersBuffer);
+	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);
+	    		keys = sampleOutlierHash.keys();
+	    		while (keys.hasMoreElements()) {
+	    			currentKey = keys.nextElement();
+	    			allOutliers.put(indexOfCurrentSample + "\t" + currentKey, sampleOutlierHash.get(currentKey));
+	    		}
+    		}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+
+
+	@SuppressWarnings("resource")
+	public static byte getNullstatusFromRandomAccessFile(String filename, boolean jar) {
+		byte nullStatusOfTheFile = Byte.MIN_VALUE;
+		RandomAccessFile sampleFile;
+
+		try {
+			sampleFile = new RandomAccessFile(filename, "r");
+			sampleFile.readInt();
+			nullStatusOfTheFile = sampleFile.readByte();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return nullStatusOfTheFile;
+	}
+
 	@SuppressWarnings("unchecked")
 	public static Hashtable<String, Float> loadOutOfRangeValues(RandomAccessFile file, long outlierSectionLocation) throws Exception {
         Hashtable<String, Float> outOfRangeValues = null;
@@ -611,11 +731,11 @@ public class Sample implements Serializable {
 	public static void main(String[] args) {
 		Project proj = new Project(Project.DEFAULT_CURRENT, false);
 		String[] samples = proj.getSamples();
-		Sample fsamp;
+		Sample samp;
 		
 		for (int i = 0; i<samples.length; i++) {
-			fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-			fsamp.compareCalculationsFile(proj, proj.getMarkerNames(), proj.getProjectDir()+samples[i]+"_comp.xln");
+			samp = proj.getFullSampleFromRandomAccessFile(samples[i]);
+			samp.compareCalculationsFile(proj, proj.getMarkerNames(), proj.getProjectDir()+samples[i]+"_comp.xln");
         }
 
 		//tests

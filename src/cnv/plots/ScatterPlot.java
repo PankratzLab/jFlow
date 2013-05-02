@@ -913,7 +913,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				count++;
 			} while (new File(proj.getProjectDir()+filename+".xln").exists());
 //			markerData[markerIndex].writeToFile(samples, proj.getProjectDir()+filename+".xln");
-			getCurrentMarkerData().writeToFile(samples, proj.getProjectDir()+filename+".xln");
+			getCurrentMarkerData().dump(proj.getProjectDir()+filename+".xln", samples);
 		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
 			maskMissing = !maskMissing;
 			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);

@@ -1,6 +1,11 @@
 package cnv.filesys;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import cnv.manage.MarkerDataLoader;
+import cnv.manage.TransposeData;
 
 public class Dump {
 	public static void dump(String filename) {
@@ -8,43 +13,40 @@ public class Dump {
         
     	try {
 	        if (filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION)) {
-	        	Sample fsamp = Sample.loadFromRandomAccessFile(filename, false);
-	        	float[] gcs = fsamp.getGCs();
-	        	float[] xs = fsamp.getXs();
-	        	float[] ys = fsamp.getYs();
-	        	float[] thetas = fsamp.getThetas();
-	        	float[] rs = fsamp.getRs();
-	        	float[] lrrs = fsamp.getLRRs();
-	        	float[] bafs = fsamp.getBAFs();
-	        	byte[] forwardGenotypes = fsamp.getForwardGenotypes();
-	        	byte[] abGenotypes = fsamp.getAB_Genotypes();
+	        	Sample samp = Sample.loadFromRandomAccessFile(filename, false);
+	        	float[] gcs = samp.getGCs();
+	        	float[] xs = samp.getXs();
+	        	float[] ys = samp.getYs();
+	        	float[] thetas = samp.getThetas();
+	        	float[] rs = samp.getRs();
+	        	float[] lrrs = samp.getLRRs();
+	        	float[] bafs = samp.getBAFs();
+	        	byte[] forwardGenotypes = samp.getForwardGenotypes();
+	        	byte[] abGenotypes = samp.getAB_Genotypes();
 
-	            writer = new PrintWriter(new FileWriter(filename+"_"+fsamp.getSampleName()+"_"+fsamp.getFingerprint()+".xln"));
-	        	writer.println(
-	        			(xs==null?"":"X\t")+
-	        			(ys==null?"":"Y\t")+
-	        			(thetas==null?"":"Theta\t")+
-	        			(rs==null?"":"R\t")+
-	        			(bafs==null?"":"BAF\t")+
-	        			(lrrs==null?"":"LRR\t")+
-	        			(gcs==null?"":"GC_score\t")+
-	        			(forwardGenotypes==null?"":"Forward_Genotypes\t")+
-	        			(abGenotypes==null?"":"AB_Genotypes\t")
-	        			);
+	        	writer = new PrintWriter(new FileWriter(filename + "_" + samp.getSampleName() + "_" + samp.getFingerprint() + ".xln"));
+	        	writer.println( (xs==null? "" : "X")
+	        				  + (ys==null? "" : "\tY")
+			        		  + (thetas==null? "" : "\tTheta")
+			        		  + (rs==null? "" : "\tR")
+			        		  + (bafs==null? "" : "\tBAF")
+			        		  + (lrrs==null? "" : "\tLRR")
+			        		  + (gcs==null? "" : "\tGC_score")
+			        		  + (abGenotypes==null? "" : "\tAB_Genotypes")
+			        		  + (forwardGenotypes==null? "" : "\tForward_Genotypes"));
 	        	for (int i = 0; i<xs.length; i++) {
-	        		writer.println(
-	        				(xs==null?"":xs[i]+"\t")+
-	        				(ys==null?"":ys[i]+"\t")+
-	        				(thetas==null?"":thetas[i]+"\t")+
-	        				(rs==null?"":rs[i]+"\t")+
-	        				(bafs==null?"":bafs[i]+"\t")+
-	        				(lrrs==null?"":lrrs[i]+"\t")+
-	        				(gcs==null?"":gcs[i]+"\t")+
-	        				(forwardGenotypes==null?"":Sample.ALLELE_PAIRS[forwardGenotypes[i]]+"\t")+
-	        				(abGenotypes==null?"":(abGenotypes[i]==-1?"--":Sample.AB_PAIRS[abGenotypes[i]]))
-	        				);
+	        		writer.println( (xs==null? "" : xs[i])
+	        					  + (ys==null? "" : "\t" + ys[i])
+	        					  + (thetas==null? "" : "\t" + thetas[i])
+	        					  + (rs==null? "" : "\t" + rs[i])
+	        					  + (bafs==null? "" : "\t" + bafs[i])
+	        					  + (lrrs==null? "" : "\t" + lrrs[i])
+	        					  + (gcs==null? "" : "\t" + gcs[i])
+	        					  + (abGenotypes==null? "" : "\t" + (abGenotypes[i]==-1? "--" : Sample.AB_PAIRS[abGenotypes[i]]))
+	        					  + (forwardGenotypes==null?"" : "\t" + Sample.ALLELE_PAIRS[forwardGenotypes[i]]));
                 }
 		        writer.close();
+
 	        } else if (filename.endsWith(".bim")) {
 	        	MarkerSet set = MarkerSet.load(filename, false);
 	        	String[] markerNames = set.getMarkerNames();
@@ -57,6 +59,17 @@ public class Dump {
 	        		writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]);
                 }
 		        writer.close();
+
+	        } else if (filename.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION)) {
+	        	MarkerData[] mkData;
+	        	int indexStartMarker, indexEndMarker;
+	        	
+	        	indexStartMarker = 0;
+	        	indexEndMarker = 0;
+	        	mkData = TransposeData.loadFromRAF(filename, indexStartMarker, indexEndMarker);
+	        	for (int i=0; i<mkData.length; i++) {
+	        		mkData[i].dump(filename + "_dump_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln", null);
+	        	}
 	        }
         } catch (Exception e) {
             System.err.println("Error dumping data from "+filename+" to a textfile");
