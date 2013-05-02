@@ -52,10 +52,10 @@ public class SampleList implements Serializable {
 		SampleList list;
 		int[] keys;
 
-		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY, true), MarkerData.MARKER_DATA_FILE_EXTENSION, proj.getJarStatus()).length>0) {
-			System.err.println("Error - Refusing to create new SampleList until the plots directory is either deleted or emptied; altering the SampleList will invalidate those files");
-			System.exit(1);
-		}
+//		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY, true), MarkerData.MARKER_DATA_FILE_EXTENSION, proj.getJarStatus()).length>0) {
+//			System.err.println("Error - Refusing to create new SampleList until the plots directory is either deleted or emptied; altering the SampleList will invalidate those files");
+//			System.exit(1);
+//		}
 
 		if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY), false)) {
 			files = new File(proj.getDir(Project.SAMPLE_DIRECTORY)).list(new FilenameFilter() {

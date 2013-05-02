@@ -331,14 +331,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 			cnv.manage.Markers.generateMarkerPositions(proj, "SNP_Map.csv");
 		} else if (command.equals(PARSE_FILES_CSV)) {
-			cnv.manage.ParseIllumina.createFiles(proj, 2, false);
+			cnv.manage.ParseIllumina.createFiles(proj, 2);
 //			nohup vis -Xmx1g cnv.manage.ParseIllumina threads=6 proj=current.proj
 		} else if (command.equals(CHECK_SEX)) {
 			cnv.qc.SexChecks.sexCheck(proj);
 		} else if (command.equals(TRANSPOSE_DATA)) {
 //			ExtractPlots.extractAll(proj, 0, false);
 //			TransposeData.transposeData(proj, 0); // compact if no LRR was provided
-			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
+//			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
+			System.out.println("Before calling\t"+ext.reportMemoryUsage());
+			TransposeData.transposeData(proj, 2000000000, false, null); // compact if no LRR was provided
 //		} else if (command.equals(SLIM_PLOTS)) {
 //			ExtractPlots.breakUpMarkerCollections(proj, 250);
 //			nohup vis -Xmx15g -d64 cnv.manage.ExtractPlots per=250 proj=current.proj
@@ -408,9 +410,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(GCMODEL)) {
 			cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
 		} else if (command.equals(KITANDKABOODLE)) {
-			cnv.manage.ParseIllumina.createFiles(proj, 2, true);
+			cnv.manage.ParseIllumina.createFiles(proj, 2);
 
-			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
+			TransposeData.transposeData(proj, 2000000000, true, null); // compact if no LRR was provided
 
 			cnv.manage.PlinkFormat.createPlink(proj, null);
 			CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
@@ -488,6 +490,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			System.exit(1);
 		}
 
+		System.out.println("Before GUI\t"+ext.reportMemoryUsage());
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	createAndShowGUI(filename);

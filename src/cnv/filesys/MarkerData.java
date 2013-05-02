@@ -303,36 +303,59 @@ public class MarkerData implements Serializable {
 		return new double[] {Correlation.Pearson(Array.subArray(originalLRRs, 0, count), Array.subArray(compLRRs, 0, count))[0], error/count};
 	}
 	
-	public void writeToFile(String[] samples, String filename) {
+
+	public void dump(String filename, String[] samples) {
+		dump(filename, samples, false);
+	}
+
+	public void dump(String filename, String[] samples, boolean includeMarkerName) {
 		PrintWriter writer;
 
-		if ((lrrs != null && samples.length!=lrrs.length) || (xs != null && samples.length!=xs.length)) {
+		if ((xs != null && samples != null && samples.length!=xs.length) || (lrrs != null && samples != null && samples.length!=lrrs.length)) {
 			System.err.println("Error - Number of samples (n="+samples.length+") does not match up with the number of LRRs/BAFs/etc (n="+lrrs.length+")");
 			return;
         }
 
-        try {
+		try {
         	writer = new PrintWriter(new FileWriter(filename));
-        	writer.println("Sample\tGC Score\tRaw X\tRaw Y\tX\tY\tTheta\tR\tLRR\tBAF\tGenotypes");
-        	for (int i = 0; i<samples.length; i++) {
-        		writer.println(samples[i]
-        				+ "\t" + (gcs != null? gcs[i] : ".")
-        				+ "\t" + (xRaws != null? xRaws[i] : ".")
-        				+ "\t" + (yRaws != null? yRaws[i] : ".")
-        				+ "\t" + (xs != null? xs[i] : ".")
-        				+ "\t" + (ys != null? ys[i]:".")
-        				+ "\t" + (thetas != null? thetas[i] : ".")
-        				+ "\t" + (rs != null? rs[i] : ".")
-        				+ "\t" + (lrrs != null? lrrs[i] : ".")
-        				+ "\t" + (bafs != null? bafs[i] : ".")
-        				+ "\t" + (abGenotypes != null? alleleMappings[abGenotypes[i]+1]:".")
-        				);
-        	}
+        	writer.println( (includeMarkerName? "Marker\t" : "")
+        					+ (samples==null? "SampleIndex" : "SampleId")
+							+ (gcs==null? "" : "\tGC")
+							+ (xRaws==null? "" : "\tRaw X")
+							+ (yRaws==null? "" : "\tRaw Y")
+							+ (xs==null? "" : "\tX")
+							+ (ys==null? "" : "\tY")
+							+ (thetas==null? "" : "\tTheta")
+							+ (rs==null? "" : "\tR")
+							+ (bafs==null? "" : "\tBAF")
+							+ (lrrs==null? "" : "\tLRR")
+							+ (bafs==null? "" : "\tBAF")
+							+ (abGenotypes==null? "" : "A\tB_Genotypes")
+							+ (alleleMappings==null? "" : "\tForward_Genotypes"));
+        	dump(writer, samples, includeMarkerName);
         	writer.close();
         } catch (Exception e) {
         	System.err.println("Error writing "+filename);
         	e.printStackTrace();
         }
+	}
+
+	public void dump(PrintWriter writer, String[] samples, boolean includeMarkerName) {
+    	for (int i = 0; i<xs.length; i++) {
+    		writer.println(   (includeMarkerName? markerName + "\t" : "") 
+    						+ (samples !=null? samples[i] : i) 
+	        				+ (gcs != null? "\t" + gcs[i] : "")
+	        				+ (xRaws != null? "\t" + xRaws[i] : "")
+	        				+ (yRaws != null? "\t" + yRaws[i] : "")
+	        				+ (xs != null? "\t" + xs[i] : "")
+	        				+ (ys != null? "\t" + ys[i]: "")
+	        				+ (thetas != null? "\t" + thetas[i] : "")
+	        				+ (rs != null? "\t" + rs[i] : "")
+	        				+ (lrrs != null? "\t" + lrrs[i] : "")
+	        				+ (bafs != null? "\t" + bafs[i] : "")
+	        				+ (abGenotypes != null? "\t" + abGenotypes[i] : "")
+	        				+ (alleleMappings != null? "\t" + alleleMappings[i] : ""));
+    	}
 	}
 
 	public int detectCNP() {
