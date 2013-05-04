@@ -15,7 +15,7 @@ import common.*;
 
 public class PennCNV {
 	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean", "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
-	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values", "waviness factor values", "Small-sized CNV calls"};
+	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values", "waviness factor values", "Small-sized CNV calls", "NoCall rate"};
 	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
 
 	public static void batch(Project proj, int numBatches, boolean createLists, boolean qsub, String pfbFile, String gcmodelFile) {
@@ -58,7 +58,7 @@ public class PennCNV {
 		}
 
 		init = "cd "+dataDir;
-		commands = execDir+"detect_cnv.pl -test -conf -hmm "+execDir+"lib/hhall.hmm -pfb "+(pfbFile==null?execDir+"lib/hhall.hg18.pfb":pfbFile)+" -gcmodel "+(gcmodelFile==null?execDir+"lib/hhall.hg18.gcmodel":gcmodelFile)+" -list ../penncnv/list[%0].txt -log ../penncnv/[%0].log -out ../penncnv/[%0].rawcnv > ../penncnv/[%0].out";
+		commands = execDir+"detect_cnv.pl -test -conf -hmm "+execDir+"lib/hhall.hmm -pfb "+(pfbFile==null?execDir+"lib/hhall.hg18.pfb":pfbFile)+" -gcmodel "+(gcmodelFile==null?execDir+"lib/hhall.hg18.gcmodel":gcmodelFile)+" -list "+resultsDir+"list[%0].txt -log "+resultsDir+"[%0].log -out "+resultsDir+"[%0].rawcnv > "+resultsDir+"[%0].out";
 
 		if (qsub) {
 			Files.qsub("runPenn", init+"\n"+commands, Matrix.toMatrix(Array.stringArraySequence(numBatches, "")));
@@ -67,7 +67,7 @@ public class PennCNV {
 		}
 	}
 
-	public static void parseWarnings(Project proj, String filename) {
+	public static void parseWarnings(Project proj, String filename, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, data;
@@ -77,6 +77,11 @@ public class PennCNV {
 		SampleData sampleData;
 		int err;
 		double lrrSD_cutoff;
+		String[] ids;
+		long time;
+		
+		System.out.println("Parsing PennCNV warning...");
+		time = new Date().getTime();
 		
 		sampleData = proj.getSampleData(2, false);
 		lrrSD_cutoff = proj.getDouble(Project.LRRSD_CUTOFF);
@@ -96,8 +101,8 @@ public class PennCNV {
 							data[i] = ".";
 						}
 						if (line.length<QC_HEADS.length+5) {
-							System.err.println("Error - line doesn't have all the expected pieces:");
-							System.err.println(temp);
+							log.reportError("Error - line doesn't have all the expected pieces:");
+							log.reportError(temp);
 						}
 						for (int i = 0; i<QC_HEADS.length; i++) {
 							data[ERRORS.length+i] = line[5+i].split("=")[1];
@@ -117,15 +122,14 @@ public class PennCNV {
 							}
 						}
 						if (err==-1) {
-							System.err.println("Unknown WARNING: "+temp);
+							log.reportError("Unknown WARNING: "+temp);
 						} else {
 							data[err] = "1";
 						}
 					}
 				} catch (Exception e) {
-					System.err.println(temp);
-					e.printStackTrace();
-
+					log.reportError("Error with: "+temp);
+					log.reportException(e);
 				}
 			}
 			reader.close();
@@ -143,18 +147,20 @@ public class PennCNV {
 			for (int i = 0; i<v.size(); i++) {
 				sampleID = v.elementAt(keys[i]);
 				data = hash.get(sampleID);
-				writer.print(sampleID+"\t"+sampleData.lookup(sampleID));
+				ids = sampleData.lookup(sampleID);
+				writer.print(sampleID+"\t"+(ids==null?"NotInSampleData\t"+sampleID:ids[1]));
 				writer.print("\t"+(data[1].equals("1")||data[2].equals("1")||Double.parseDouble(data[6])>lrrSD_cutoff?"0":"1"));
 				writer.println("\t"+Array.toStr(data));
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+proj.getProjectDir()+filename+"\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \""+proj.getProjectDir()+filename+"\" not found in current directory");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getProjectDir()+filename+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+proj.getProjectDir()+filename+"\"");
+			return;
 		}
+		System.out.println("Parsed PennCNV warnings in " + ext.getTimeElapsed(time));
 	}
 	
 	public static String translateDerivedSamples(String str) {
@@ -180,7 +186,7 @@ public class PennCNV {
 		return str.substring(0, start)+trav+str.substring(stop+1);		
 	}
 
-	public static void parseResults(Project proj, String filename, boolean denovoOnly) {
+	public static void parseResults(Project proj, String filename, boolean denovoOnly, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -192,6 +198,11 @@ public class PennCNV {
 		SampleData sampleData;
 		String famIndPair;
 		Hashtable<String,String> hash;
+		String[] ids;
+		long time;
+		
+		System.out.println("Parsing PennCNV rawcnvs...");
+		time = new Date().getTime();
 
 		sampleData = proj.getSampleData(2, false);
 		try {
@@ -207,19 +218,21 @@ public class PennCNV {
 					position = Positions.parseUCSClocation(line[0]);
 					trav = line[4];
 					trav = trav.substring(trav.lastIndexOf("/")+1);
-					famIndPair = sampleData.lookup(trav)[1];
-					if (famIndPair == null) {
+					ids = sampleData.lookup(trav);
+					if (ids == null) {
 						if (!hash.containsKey(trav)) {
-							System.err.println("Error - '"+trav+"' was not found in "+proj.getFilename(Project.SAMPLE_DATA_FILENAME));
+							log.reportError("Error - '"+trav+"' was not found in "+proj.getFilename(Project.SAMPLE_DATA_FILENAME));
 							hash.put(trav, "");
 						}
 						famIndPair = trav+"\t"+trav;
+					} else {
+						famIndPair = ids[1];
 					}
 	
 					if (line.length<8||!line[7].startsWith("conf=")) {
 						score = "-1";
 						if (!warnings.contains(trav) && warnings.size() < 10) {
-							System.err.println("Warning - no conf estimates for "+trav);
+							log.reportError("Warning - no conf estimates for "+trav);
 							warnings.add(trav);
 						}
 					} else {
@@ -241,24 +254,27 @@ public class PennCNV {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+proj.getProjectDir()+ext.rootOf(filename)+"\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \""+proj.getProjectDir()+ext.rootOf(filename)+"\" not found in current directory");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getProjectDir()+ext.rootOf(filename)+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+proj.getProjectDir()+ext.rootOf(filename)+"\"");
+			return;
 		}
-	}
-	
-	public static void createFromParameters(String filename, Logger log) {
-		Vector<String> params;
 
-		params = Files.parseControlFile(filename, "penncnv", new String[] { "file=snps.txt", "option1=", "out=finalProduct.out" }, log);
-
-		if (params != null) {
-			params.add("log=" + log.getFilename());
-			main(Array.toStringArray(params));
-		}
+		System.out.println("...finished in " + ext.getTimeElapsed(time));
 	}
+
+	// Available in cnv.Launch
+//	public static void fromParameters(String filename, Logger log) {
+//		Vector<String> params;
+//
+//		params = Files.parseControlFile(filename, "penncnv", new String[] {"proj=/home/npankrat/projects/GEDI.properties", "rawcnv=all.rawcnv", "rawlog=all.log"}, log);
+//
+//		if (params != null) {
+//			params.add("log=" + log.getFilename());
+//			main(Array.toStringArray(params));
+//		}
+//	}
 	
 	/**
 	 * Calculate the population BAF (B Allele Frequency based on all the samples available in the) data. Output is going to be saved on disk. In PennCnv, this file is also called snpFile.
@@ -513,6 +529,8 @@ public class PennCNV {
 		boolean denovoOnly = false;
 		boolean parsePFB = false;
 		String gc5base = null;
+		String loggerFilename = null;
+		Logger log;
 
 		String usage = "\n"+
 		"cnv.park.PennCNV requires 0-1 arguments\n"+
@@ -527,9 +545,9 @@ public class PennCNV {
 		" OR\n"+
 		"   (1) compute a custom gcmodel file for the markers in this project using this file (i.e. gc5base=gc5base.txt (not the default))\n"+
 		" OR\n"+
-		"   (1) parse warnings from log file (i.e. log=final.log (not the default))\n"+
+		"   (1) parse warnings from log file (i.e. rawlog=final.log (not the default))\n"+
 		" OR\n"+
-		"   (1) raw cnvs to parse (i.e. raw=final.rawcnv (not the default))\n"+
+		"   (1) raw cnvs to parse (i.e. rawcnv=final.rawcnv (not the default))\n"+
 		"   (2) (optional) parse only de novo variants (i.e. -denovoOnly (not the default))\n"+
 //		"   (3) use all individuals (i.e. -all (not the default))\n"+ // ?? does not currently do anything
 		"";
@@ -550,10 +568,10 @@ public class PennCNV {
 			} else if (args[i].startsWith("-qsub")) {
 				qsub = true;
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
+			} else if (args[i].startsWith("rawlog=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("raw=")) {
+			} else if (args[i].startsWith("rawcnv=")) {
 				rawcnvs = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("-pfb")) {
@@ -574,6 +592,9 @@ public class PennCNV {
 			} else if (args[i].startsWith("gcmodel=")) {
 				gcmodelFile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				loggerFilename = args[i].split("=")[1];
+				numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -589,7 +610,14 @@ public class PennCNV {
 //			logfile = "penncnv/penncnv.log";
 //			rawcnvs = "penncnv/penncnv.rawcnv";
 			
+//			filename = "/home/npankrat/projects/GEDI.properties";
+//			batch = 60;
+//			qsub = true;
+//			pfbFile = "gedi.pfb";
+//			gcmodelFile = "gedi.gcmodel";
+			
 			proj = new Project(filename, false);
+			log = new Logger(loggerFilename);
 			if (parsePFB) {
 				populationBAF(proj);
 			}
@@ -600,10 +628,10 @@ public class PennCNV {
 				batch(proj, batch, lists, qsub, pfbFile, gcmodelFile);
 			}
 			if (logfile != null) {
-				parseWarnings(proj, logfile);
+				parseWarnings(proj, logfile, log);
 			}
 			if (rawcnvs != null) {
-				parseResults(proj, rawcnvs, denovoOnly);
+				parseResults(proj, rawcnvs, denovoOnly, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

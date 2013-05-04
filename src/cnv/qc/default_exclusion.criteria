@@ -1,0 +1,15 @@
+CallRate<0.95	Call freq < 0.95 (except Y chrom)
+diffTheta_AB-AA<0.25	Cluster separation < 0.25
+diffTheta_BB-AB<0.25	Cluster separation < 0.25
+pct_AB>0.6	AB freq > 0.6
+meanR_AB<0.2	AB R mean < 0.2
+HetEx>0.4	Het excess > 0.1
+HetEx<-0.9	Het excess < -0.9
+meanTheta_AA>0.3	AA theta mean > 0.3
+meanTheta_BB<0.7	BB theta mean < 0.7
+meanTheta_AB<0.2	AB theta mean < 0.2
+meanTheta_AB>0.8	AB theta mean > 0.8
+sdTheta_AA>0.06	AA theta deviation > 0.06
+sdTheta_AB>=0.07	AB theta deviation = 0.07
+sdTheta_BB>0.06	BB theta deviation > 0.06
+#	Obvious batch effects

@@ -2,11 +2,12 @@ package cnv.analysis;
 
 import java.io.*;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import filesys.*;
 import common.*;
 import cnv.filesys.*;
-import cnv.park.MakeUCSCtrack;
+import cnv.manage.UCSCtrack;
 import cnv.var.CNVariant;
 
 public class FilterCalls {
@@ -25,7 +26,7 @@ public class FilterCalls {
 	public static final int DEFAULT_COMMON_IN_OUT_OR_IGNORED = COMMON_IGNORED;
 	public static final boolean DEFAULT_BREAK_CENTROMERE = false;
 	
-	public static void filter(String dir, String in, String out, int delSize, int dupSize, int number, double score, boolean filterRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres) {
+	public static void filter(String dir, String in, String out, int delSize, int dupSize, int number, double score, boolean filterRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres, boolean makeUCSCtrack, Logger log) {
 		String[] individualsToKeepList;
 		if (individualsToKeepFile != null && !new File(individualsToKeepFile).exists()) {
 			System.err.println("Error - could not find \""+individualsToKeepFile+"\" in directory; will not be able to filter by indiviudals");
@@ -33,10 +34,10 @@ public class FilterCalls {
 		}
 		individualsToKeepList = individualsToKeepFile==null?null:HashVec.loadFileToStringArray(individualsToKeepFile, false, false, new int[] {0,1}, true, false, "\t"); 
 
-		filter(dir, in, out, delSize, dupSize, number, score, filterRegions, commonInOutOrIgnore, individualsToKeepList, breakupCentromeres);
+		filter(dir, in, out, delSize, dupSize, number, score, filterRegions, commonInOutOrIgnore, individualsToKeepList, breakupCentromeres, makeUCSCtrack, log);
 	}
 	
-	public static void filter(String dir, String in, String out, int delSize, int dupSize, int number, double score, boolean filterRegions, int commonInOutOrIgnore, String[] individualsToKeepList, boolean breakupCentromeres) {
+	public static void filter(String dir, String in, String out, int delSize, int dupSize, int number, double score, boolean filterRegions, int commonInOutOrIgnore, String[] individualsToKeepList, boolean breakupCentromeres, boolean makeUCSCtrack, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -93,12 +94,15 @@ public class FilterCalls {
 			System.err.println("Identified "+countCentromeric+" CNVs that spanned centromeres; these were "+(breakupCentromeres?"broken up into two CNVs, one on each side of the centromere":"ignored"));
 			reader.close();
 			writer.close();
+			if (makeUCSCtrack) {
+				UCSCtrack.makeTrack(dir+out, dir+ext.rootOf(out)+".bed.gz", log);
+			}
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+dir+in+"\" not found in current directory");
-			System.exit(1);
+			return;
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+dir+in+"\"");
-			System.exit(2);
+			return;
 		}
 	}
 	
@@ -134,10 +138,10 @@ public class FilterCalls {
             writer.close();
         } catch (FileNotFoundException fnfe) {
 	        System.err.println("Error: file \""+dir+filein+"\" not found in current directory");
-	        System.exit(1);
+			return;
         } catch (IOException ioe) {
 	        System.err.println("Error reading file \""+dir+filein+"\"");
-	        System.exit(2);
+			return;
         }	
 	}	
 
@@ -277,15 +281,14 @@ public class FilterCalls {
 	
 	public static void stdFilters(String dir, String filename, boolean makeUCSCtracks, String pedfile) {
 		String root;
+		Logger log;
 
+		log = new Logger();
 		root = ext.rootOf(filename);
-		FilterCalls.filter(dir, filename, root+"_allAbove10.0_unfiltered.cnv", 1, 1, 1, 10, false, COMMON_IGNORED, pedfile, true);
-		FilterCalls.filter(dir, filename, root+"_allAbove10.0_filtered.cnv", 1, 1, 1, 10, true, COMMON_IGNORED, pedfile, true);
-		FilterCalls.filter(dir, filename, root+"_ConservativeCalls.cnv", 100, 100, 20, 10, true, COMMON_IGNORED, pedfile, true);
-		if (makeUCSCtracks) {
-			MakeUCSCtrack.makeTrack(dir+root+"_allAbove10.0_unfiltered.cnv.cnv");
-			MakeUCSCtrack.makeTrack(dir+root+"_ConservativeCalls.cnv");
-		}
+		FilterCalls.filter(dir, filename, root+"_allAbove10.0_unfiltered.cnv", 1, 1, 1, 10, false, COMMON_IGNORED, pedfile, true, makeUCSCtracks, log);
+		FilterCalls.filter(dir, filename, root+"_allAbove10.0_filtered.cnv", 1, 1, 1, 10, true, COMMON_IGNORED, pedfile, true, makeUCSCtracks, log);
+		FilterCalls.filter(dir, filename, root+"_ConservativeCalls.cnv", 100, 100, 20, 10, true, COMMON_IGNORED, pedfile, true, makeUCSCtracks, log);
+
 		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inGenes.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, false);
 		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inExons.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_EXONS, false);
 
@@ -298,6 +301,40 @@ public class FilterCalls {
 		
 //		FilterCalls.union(dir+root+"_0kb_5SNP_10.0_3anythings.cnv", dir+root+"_100kb_20SNP_10.0_CNPstatusIgnored.cnv", dir+"unionOfConservativeAndCommon.cnv");
 //		FilterCalls.filterOnSegments(dir+"unionOfConservativeAndCommon.cnv", dir+"unionOfConservativeAndCommonInGenes.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, true);
+	}
+	
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params;
+
+		params = Files.parseControlFile(filename, "filterCNVs", new String[] {
+				"dir=",
+				"in=penncnv.cnv",
+				"out=conf15used.cnv",
+				"# minimum size of a deletions / duplications (in kb):",
+				"delSize=0",
+				"dupSize=0",
+				"# minimum number of SNPs:",
+				"number=15",
+				"minScore=10.0",
+				"filterRegions=/home/npankrat/NCBI/problematicRegions_hg19.dat",
+				"# pedfile to be used as a filter:" +
+				"ped=plink.fam",
+				"# if CNV spans centromere, break into two spanning actual markers",
+				"breakCentromere=true",
+				"# make a UCSC track (.bed file) as well",
+				"ucsc=true",
+				"",
+				"# ALTERNATIVELY, in addition to the dir/in/out and ignoreing all other filters you can",
+				"# keep only CNVs overlapping these segments (simply uncomment the following argument):",
+				"#segs=gene_region.dat",
+				"# exlcude instead of include:",
+				"#excludeSegsInstead=true"
+		}, log);
+
+		if (params != null) {
+			params.add("log=" + log.getFilename());
+			main(Array.toStringArray(params));
+		}
 	}
 
 	public static void main(String[] args) {
@@ -324,6 +361,7 @@ public class FilterCalls {
 		boolean excludeSegs = false;
 //		boolean sigOverlap = false;
 		boolean breakCent = DEFAULT_BREAK_CENTROMERE;
+		String logfile = null;
 
 		String usage = 
 		"vis.cnv.FilterCalls requires 0-1 arguments\n"+
@@ -333,17 +371,18 @@ public class FilterCalls {
 		"   (4) minimum size of a deletion (in kb) (i.e. delSize="+delSize+" (default))\n"+
 		"   (5) minimum size of a duplication (in kb) (i.e. dupSize="+dupSize+" (default))\n"+
 		"   (6) minimum number of SNPs (i.e. number="+number+" (default))\n"+
-		"   (7) minimum score (i.e. score="+score+" (default))\n"+
+		"   (7) minimum score (i.e. minScore="+score+" (default))\n"+
 		"   (8) filter out cnvs in known problematicRegions (i.e. filterRegions="+filterRegions+" (default))\n"+
 		"   (9) pedfile to use as a filter (i.e. ped="+pedfile+" (default))\n"+
 		"   (10) if CNV spans centromere, break into two spanning actual markers (i.e. breakCentromere="+breakCent+" (default))\n"+
-		"\n OR\n\n"+
-		"   (1) perform all standard filters (i.e. -std (not the default))\n"+
-		"   (2) make UCSC tracks as well (i.e. -tracks (not the default))\n"+
-		"\n OR\n\n"+
+		"   (11) make UCSC track as well (i.e. ucsc=true (default))\n"+
+		"  OR\n"+
 		"   (1) keep only CNVs overlapping these segments (i.e. segs=gene_region.dat (not the default))\n"+
-		"   (2) exlcude instead of include (i.e. -excludeSegs (not the default))\n"+
-//		"   (3) requre a significant overlap to filter (i.e. -sigOverlap (not the default))\n"+
+		"   (2) exlcude instead of include (i.e. excludeSegsInstead=false (default))\n"+
+//		"   (3) require a significant overlap to filter (i.e. -sigOverlap (not the default))\n"+
+		"  OR\n"+
+		"   (1) perform all standard filters (i.e. -std (not the default))\n"+
+		"   (2) make UCSC tracks as well (i.e. ucsc=false (default))\n"+
 		"";
 
 		System.out.println();
@@ -361,19 +400,19 @@ public class FilterCalls {
 				out = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("delSize=")) {
-				delSize = Integer.parseInt(args[i].split("=")[1]);
+				delSize = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("dupSize=")) {
-				dupSize = Integer.parseInt(args[i].split("=")[1]);
+				dupSize = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("number=")) {
 				number = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
-			} else if (args[i].startsWith("score=")) {
-				score = Integer.parseInt(args[i].split("=")[1]);
+			} else if (args[i].startsWith("minScore=")) {
+				score = ext.parseDoubleArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("cnps=")) {
-				inOutIgnore = Integer.parseInt(args[i].split("=")[1]);
+				inOutIgnore = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("filterRegions=")) {
 				filterRegions = args[i].split("=")[1].toLowerCase().equals("true");
@@ -381,8 +420,8 @@ public class FilterCalls {
 			} else if (args[i].startsWith("-std")) {
 				standards = true;
 				numArgs--;
-			} else if (args[i].startsWith("-tracks")) {
-				tracks = true;
+			} else if (args[i].startsWith("ucsc=")) {
+				tracks = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("segs=")) {
 				segs = args[i].split("=")[1];
@@ -390,8 +429,14 @@ public class FilterCalls {
 			} else if (args[i].startsWith("breakCentromere=")) {
 				breakCent = ext.parseBooleanArg(args[i]);
 				numArgs--;				
-			} else if (args[i].startsWith("-excludeSegs")) {
-				excludeSegs = true;
+			} else if (args[i].startsWith("excludeSegsInstead=")) {
+				excludeSegs = ext.parseBooleanArg(args[i]);
+				numArgs--;				
+			} else if (args[i].startsWith("ped=")) {
+				pedfile = ext.parseStringArg(args[i], null);
+				numArgs--;				
+			} else if (args[i].startsWith("log=")) {
+				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;				
 			} else {
 				System.err.println("Error - don't know what to do with argument: "+args[i]);
@@ -402,8 +447,8 @@ public class FilterCalls {
 			System.exit(1);
 		}
 
-		FilterCalls.filterOnSegments("D:/data/GEDI/global/homoDelsOverlappingGenesOnly/", "conf.cnv", "conf_overlappingGenes.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, false);
-		System.exit(1);
+//		FilterCalls.filterOnSegments("D:/data/GEDI/global/homoDelsOverlappingGenesOnly/", "conf.cnv", "conf_overlappingGenes.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, false);
+//		System.exit(1);
 		
 //		breakCent = true;
 //		out = "noCentromeric.cnv";
@@ -416,7 +461,7 @@ public class FilterCalls {
 			} else if (!segs.equals("")) {
 				filterOnSegments(dir, in, out, segs, excludeSegs);
 			} else {
-				filter(dir, in, out, delSize, dupSize, number, score, filterRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent);
+				filter(dir, in, out, delSize, dupSize, number, score, filterRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, tracks, new Logger(logfile));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

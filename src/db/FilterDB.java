@@ -2,6 +2,7 @@ package db;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 
 public class FilterDB {
@@ -14,16 +15,13 @@ public class FilterDB {
 		new Vector<String>();
 		int count;
 		String result;
-//		Filter[] filters;
 		Vector<Filter> filters;
 		long time;
 
 		time = new Date().getTime();
-//		filters = new Filter[Files.countLines(filtersFilename, false)];
-		filters = new Vector<Filter>(Files.countLines(filtersFilename, false));
+		filters = new Vector<Filter>();
 		try {
 			reader = new BufferedReader(new FileReader(filtersFilename));
-//			for (int i = 0; i < filters.length; i++) {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
 				if (!line[0].startsWith("#") && !line[0].startsWith("//")) {
@@ -34,7 +32,6 @@ public class FilterDB {
 						return;
 					} else {
 						try {
-//							filters[i] = new Filter(line[0], line[1]);
 							filters.add(new Filter(line[0], line[1]));
 						} catch (Elision e) {
 							log.reportException(e);
@@ -52,34 +49,37 @@ public class FilterDB {
 			System.err.println("Error reading file \"" + filtersFilename + "\"");
 			System.exit(2);
 		}
+
+		try {
+			new File(ext.parseDirectoryOfFile(outputFile)).mkdirs();
+			writer = new PrintWriter(new FileWriter(outputFile));
+		} catch (Exception e) {
+			System.err.println("Error - could not write to file "+outputFile+"; is it locked?");
+			return;
+		}
 		
 		try {
 			reader = new BufferedReader(new FileReader(dbFilename));
 			header = reader.readLine().trim().split("[\\s]+");
-//			for (int i = 0; i < filters.length; i++) {
 			for (int i = 0; i < filters.size(); i++) {
 				try {
-//					filters[i].determineIndices(header);
 					filters.elementAt(i).determineIndices(header);
 				} catch (Elision e) {
 					log.reportException(e);
 					reader.close();
+					writer.close();
 					return;
 				}
 			}
 
-			writer = new PrintWriter(new FileWriter(outputFile));
 			writer.println("Unit\tReason flagged\tnumFlags");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				result = line[0] + "\t";
 				count = 0;
-//				for (int i = 0; i < filters.length; i++) {
 				for (int i = 0; i < filters.size(); i++) {
-//					if (filters[i].meetsCriteria(line, log)) {
-					if (! filters.elementAt(i).meetsCriteria(line, log)) {
-//						result += (count>0? ";" : "") + filters[i].getLabel();
-						result += (count>0? ";" : "") + filters.elementAt(i).getLabel();
+					if (filters.elementAt(i).meetsCriteria(line, log)) {
+						result += (count>0? ";" : "") + filters.elementAt(i).getLabel(line);
 						count++;
 					}
 				}
@@ -91,20 +91,68 @@ public class FilterDB {
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + dbFilename + "\" not found in current directory");
-			System.exit(1);
+			return;
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dbFilename + "\"");
-			System.exit(2);
+			return;
 		}
 		log.report("Program finished in " + (new Date().getTime() - time)/1000 + " sec. Marker filter results are now available at " + outputFile);
 	}
 
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params;
+		String dbFilename, filtersFilename, output;
+		String temp;
+		
+		params = Files.parseControlFile(filename, "FilterDB", new String[] {
+				"db=database.txt",
+				"filters=filters.txt",
+				"out=output.txt",
+				"# the filters file will have two columns: allFilters  errorMessage. For example:",
+				"# CallRate>=0.95&CallRate<=0.99	Call freq 0.95 - 0.99",
+				"# pct_AA=1&CallRate<1	AA freq = 1 & call rate < 1",
+				}, log);
+		
+		if (params != null) {
+			dbFilename = null;
+			filtersFilename = null;
+			output = null;
+    		for (int i = 0; i < params.size(); i++) {
+    			temp = params.elementAt(i);
+
+    			if (temp.startsWith("db=")) {
+    				dbFilename = ext.parseStringArg(temp, null);
+    			} else if (temp.startsWith("filters=")) {
+    				filtersFilename = ext.parseStringArg(temp, null);
+    			} else if (temp.startsWith("out=")) {
+    				output = ext.parseStringArg(temp, null);
+    			}
+			}
+    		
+    		if (!Files.exists(dbFilename)) {
+    			log.report("Error - could not find database file '"+dbFilename+"'; aborting");
+    			return;
+    		}
+    		
+    		if (!Files.exists(filtersFilename)) {
+    			log.report("Error - could not find filters file '"+filtersFilename+"'; aborting");
+    			return;
+    		}
+
+    		if (output == null) {
+    			output = ext.rootOf(dbFilename, false)+"_"+ext.rootOf(filtersFilename)+".out";
+    		}
+    		
+    		filter(dbFilename, filtersFilename, output, log);
+		}
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-//		String dbFilename = "db.txt";
-//		String filterFilename = "filters.txt";
-		String dbFilename = "D:/GEDI_exome/results/markerGenderChecks.xln";
-		String filterFilename = "D:/GEDI_exome/qc/default_exclusion.criteria";
+		String dbFilename = "db.txt";
+		String filterFilename = "filters.txt";
+//		String dbFilename = "D:/GEDI_exome/results/markerGenderChecks.xln";
+//		String filterFilename = "D:/GEDI_exome/qc/default_exclusion.criteria";
 		String outputFilename = null;
 		String logFilename = null;
 

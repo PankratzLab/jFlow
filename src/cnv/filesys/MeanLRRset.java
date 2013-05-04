@@ -8,14 +8,14 @@ public class MeanLRRset implements Serializable {
 	public static final long serialVersionUID = 1L;
 
 	private long sampleFingerprint;
-	private Segment[] cnps;
+	private Segment[] regions;
 	private int[] numberOfMarkers;
 	private float[][][] data;
 	
-	public MeanLRRset(long sampleFingerprint, Segment[] cnps, int[] numberOfMarkers, float[][][] data) {
+	public MeanLRRset(long sampleFingerprint, Segment[] regions, int[] numberOfMarkers, float[][][] data) {
 		this.sampleFingerprint = sampleFingerprint;
 		this.numberOfMarkers = numberOfMarkers;
-		this.cnps = cnps;
+		this.regions = regions;
 		this.data = data;
 	}
 
@@ -23,11 +23,11 @@ public class MeanLRRset implements Serializable {
 		return sampleFingerprint;
 	}
 
-	public Segment[] getCnps() {
-		return cnps;
+	public Segment[] getRegions() {
+		return regions;
 	}
 
-	public int[] getNumerOfMarkersPerCNV() {
+	public int[] getNumerOfMarkersPerRegion() {
 		return numberOfMarkers;
 	}
 
