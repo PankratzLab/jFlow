@@ -156,6 +156,10 @@ public class QQPlot extends JFrame implements ActionListener {
 				} catch (Exception e) {}
 			}
 			System.out.println("Loading "+labels[i]);
+			if (!Files.exists(filenames[i])) {
+				JOptionPane.showMessageDialog(null, "Error - file "+filenames[i]+" does not exist", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 			delimiter = Files.determineDelimiter(filenames[i], new Logger());
 			try {
 				reader = Files.getReader(filenames[i], JAR, true, true);

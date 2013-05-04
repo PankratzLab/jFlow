@@ -378,6 +378,14 @@ public class ParseIllumina implements Runnable {
 		System.out.println(ext.getTime()+"\tSearching for "+proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.getDir(Project.SOURCE_DIRECTORY));
 		files = Files.list(proj.getDir(Project.SOURCE_DIRECTORY), proj.getProperty(Project.SOURCE_FILENAME_EXTENSION), false);
 		
+		System.out.println("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" with a "+proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)+" extension");
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].equals("Sample_Map.csv") || files[i].equals("SNP_Map.csv")) {
+				files = Array.removeFromArray(files, i);
+				i--;
+			}
+		}
+		
 		if (files.length == 0) {
 			System.err.println("Error - no files to parse");
 			return;

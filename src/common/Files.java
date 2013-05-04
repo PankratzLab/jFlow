@@ -406,6 +406,28 @@ public class Files {
 			return false;
 		}
 	}
+	
+	public static boolean copyFileFromJar(String from, String to) {
+		InputStream is;
+		OutputStream os;
+
+		try {
+			is = ClassLoader.getSystemResourceAsStream(from);
+			os = new FileOutputStream(to);
+
+			byte[] buffer = new byte[4096];
+			int length;
+			while ((length = is.read(buffer)) > 0) {
+			    os.write(buffer, 0, length);
+			}
+			os.close();
+			is.close();
+
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
 
 	// super slow, but copies exactly
 	public static boolean copyFileExactlyByteByByte(String from, String to) {

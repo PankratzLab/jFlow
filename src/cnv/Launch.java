@@ -19,36 +19,41 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final long serialVersionUID = 1L;
 	public static String filename = LaunchProperties.DEFAULT_PROPERTIES_FILE;
 
-	public static final String MAP_FILES = "Map .csv files to IDs";
-	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
-	public static final String PARSE_FILES_CSV = "Parse .csv files";
-	public static final String TRANSPOSE_DATA = "Transpose data";
-	public static final String CHECK_SEX = "Check sex";
-	public static final String LRR_SD = "Check LRR Stdevs";
-	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
-	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
-	public static final String CNP_SCAN = "Scan SNP for CNP";
-	public static final String DENOVO_CNV = "De Novo CNV";
-	public static final String SCATTER = "Scatter module";
-	public static final String QQ = "QQ module";
-	public static final String STRAT = "Stratify module";
-	public static final String MOSAICISM = "Determine mosaic arms";
-	public static final String MOSAIC_PLOT = "Mosaic plot module";
-	public static final String SEX_PLOT = "Sex module";
-	public static final String TRAILER = "Trailer module";
-	public static final String POPULATIONBAF = "Population BAF";
-	public static final String SUMCNVBYSAM = "Summerize CNV by Sample";
-	public static final String TEST = "Test new program";
-	public static final String GCMODEL = "Generate GC model file";
 	public static final String TWOD = "2D Plot";
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties";
 	public static final String REFRESH = "Refresh";
-	public static final String COMP = "Comp module";
-	public static final String KITANDKABOODLE = "Kit and Kaboodle";
-	public static final String MARKER_METRICS = "Full QC marker metrics";
 
-//	public static final String[] BUTTONS = {MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, CHECK_SEX, LRR_SD, EXTRACT_PLOTS, SLIM_PLOTS, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, SCATTER, QQ, STRAT, MOSAICISM, MOSAIC_PLOT, SEX_PLOT, TRAILER, POPULATIONBAF, TEST, GCMODEL, TWOD, COMP}; 
+	public static final String MAP_FILES = "Map .csv files to IDs";
+	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
+	public static final String PARSE_FILES_CSV = "Parse .csv files";
+	public static final String TRANSPOSE_DATA = "Transpose data";
+	public static final String KITANDKABOODLE = "Kit and Kaboodle";
+
+	public static final String CHECK_SEX = "Check sex";
+	public static final String LRR_SD = "LRR Stdevs";
+	public static final String CNP_SCAN = "Scan for CNPs";
+	public static final String MOSAICISM = "Determine mosaic arms";
+	public static final String MARKER_METRICS = "Full QC marker metrics";
+	public static final String FILTER_MARKER_METRICS = "Filter marker metrics";
+	
+	public static final String SCATTER = "Scatter module";
+	public static final String QQ = "QQ module";
+	public static final String STRAT = "Stratify module";
+	public static final String MOSAIC_PLOT = "Mosaic plot module";
+	public static final String SEX_PLOT = "Sex module";
+	public static final String TRAILER = "Trailer module";
+	public static final String COMP = "Comp module";
+
+	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
+	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
+	public static final String PARSE_RAW_PENNCNV_RESULTS = "Parse raw PennCNV results files";
+	public static final String POPULATIONBAF = "Compute Population BAF file";
+	public static final String GCMODEL = "Compute GC model file";
+	public static final String DENOVO_CNV = "De Novo CNV";
+	public static final String EXPORT_CNVS = "Export CNVs to Pedfile format";
+	public static final String TEST = "Test new program";
+	
 
 	private Project proj;
 	private boolean jar;
@@ -101,7 +106,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         frame.setContentPane(frame.createContentPane());
         frame.createPopupMenu();
 
-//		twoDPlot.setOpaque(true); //content panes must be opaque
 		frame.setSize(650, 550);
 //		frame.pack();
 //		frame.setBounds(20, 20, 1000, 600);
@@ -113,34 +117,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		frame.proj = new Project(frame.launchProperties.getDirectory()+frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED), frame.jar);
 		frame.output.append("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
     }
-
-	
-
-//    private static void createAndShowGUI(String launchPropertiesFile) {
-//    	Launch frame;
-//    	String path;
-//    	
-//    	if (!new File(launchPropertiesFile).exists()) {
-//    		JOptionPane.showMessageDialog(null, "Could not find file '"+launchPropertiesFile+"'; generating a blank one that you can populate with your own project links", "FYI", JOptionPane.ERROR_MESSAGE);
-//    		try {
-//    			path = ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath());
-//    		} catch (IOException ioe) {
-//    			path = "";
-//    		}
-//    		new File(path+"projects/").mkdirs();
-//    		Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR="+path+"projects/"}, launchPropertiesFile);
-//        	if (!new File(path+"projects/example.properties").exists()) {
-//        		Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=example/source/"}, path+"projects/example.properties");
-//        	}
-//    	}
-//    	frame = new Launch(launchPropertiesFile, false);
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        frame.addComponentsToPane(frame.getContentPane());
-//        frame.addWindowListener(frame);
-//        frame.pack();
-//        frame.setVisible(true);
-//    }
-
 
     public Container createContentPane() {
 	    //Create the content-pane-to-be.
@@ -165,12 +141,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			JMenuBar menuBar;
 			JMenu menu, submenu;
 			JMenuItem menuItem;
+			Hashtable<Character,String> hash;
 						
 			String[][] menus = {{"File", "Select Project", EDIT, "Preferences", EXIT},
-//								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", EXTRACT_PLOTS, SLIM_PLOTS},
-								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, "Parse Illumina", TRANSPOSE_DATA, KITANDKABOODLE},
+								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
+								{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS},
 								{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, COMP},
-								{"Tools", CHECK_SEX, LRR_SD, GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, CNP_SCAN, MOSAICISM, POPULATIONBAF, GCMODEL, DENOVO_CNV, SUMCNVBYSAM, MARKER_METRICS, TEST},
+								{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, TEST},
 								{"Help", "Contents", "Search", "About"}};
 
 			//TODO to find a new location for this line
@@ -178,8 +155,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			menuBar = new JMenuBar();
 			for (int i=0; i<menus.length; i++) {
 				menu = new JMenu(menus[i][0]);
-		        menu.setMnemonic(KeyEvent.VK_F);
+		        menu.setMnemonic((int)menus[i][0].charAt(0));
 				menuBar.add(menu);
+				hash = new Hashtable<Character, String>();
 				for (int j=1; j<menus[i].length; j++) {
 					if (menus[i][j]=="") {
 						break;
@@ -196,7 +174,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				        submenu.add(menuItem);
 						projects = Files.list(launchProperties.getDirectory(), ".properties", false);
 						for (int k = 0; k<projects.length; k++) {
-					        menuItem = new JMenuItem(ext.rootOf(projects[k], true));
+					        menuItem = new JMenuItem(ext.rootOf(projects[k], true)+" ");
 	//				        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
 					        menuItem.addActionListener(this);
 					        submenu.add(menuItem);
@@ -205,7 +183,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 						menu.add(submenu);
 					} else {
 						menuItem = new JMenuItem(menus[i][j]);
-						menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1, ActionEvent.ALT_MASK));
+						for (int k = 0; k < menus[i][j].length(); k++) {
+							if (!hash.containsKey(menus[i][j].toLowerCase().charAt(k))) {
+								menuItem.setMnemonic((int)menus[i][j].toLowerCase().charAt(k));
+								hash.put(menus[i][j].toLowerCase().charAt(k), "");
+								k = menus[i][j].length();
+							}
+						}
+//						menuItem.setAccelerator(KeyStroke.getKeyStroke((int)(j+"").charAt(0), ActionEvent.ALT_MASK));
 						menuItem.addActionListener(this);
 						//TODO What is this?
 						menuItem.getAccessibleContext().setAccessibleDescription("Under development");
@@ -221,7 +206,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			JPanel iconBar;
 			JButton button;
 			String[] icons = {"images/save.png", "images/edit.gif", "images/refresh.gif", "images/scatter.png", "images/trailer.png", "images/qqplot.gif", "images/recluster.png", "images/otherPlot.png"};
-			String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, "images/recluster.png", "images/otherPlot.png"};
+			String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, "images/recluster.png", TWOD};
 			
 			iconBar = new JPanel();
 			iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -242,9 +227,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		}
 
 	public void addComponentsToPane(final Container pane) {
-//        JPanel projectPanel, buttonPanel;
-//		GridLayout layout;
-//		JButton button;
 		String lastProjectOpened;
         
         launchProperties = new LaunchProperties(launchPropertiesFile);
@@ -253,24 +235,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         // In JDK1.4 this prevents action events from being fired when the  up/down arrow keys are used on the dropdown menu
         projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
 		
-//        projectPanel = new JPanel();
-//        projectPanel.add(projectsBox);
-        
-//        button = new JButton(Grafik.getImageIcon("images/edit.gif", true));
-//        button.setPreferredSize(new Dimension(button.getIcon().getIconWidth(), button.getIcon().getIconHeight()));
-//        button.setBorder(null);
-//        button.setActionCommand(EDIT);
-//    	button.addActionListener(this);
-//        projectPanel.add(button);
-//        button = new JButton(Grafik.getImageIcon("images/refresh.gif", true));
-//        button.setPreferredSize(new Dimension(button.getIcon().getIconWidth(), button.getIcon().getIconHeight()));
-//        button.setBorder(null);
-//        button.setActionCommand(REFRESH);
-//    	button.addActionListener(this);
-//        projectPanel.add(button);
-        
-//        projectPanel.setBackground(Color.WHITE);
-        
 		lastProjectOpened = launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED);
 		for (int i = 0; i<projects.length; i++) {
 			if (projects[i].equals(lastProjectOpened)) {
@@ -278,23 +242,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			}
         }
 		projectsBox.addItemListener(this);
-
-//        buttonPanel = new JPanel();
-//        layout = new GridLayout(0, 1);
-//        buttonPanel.setLayout(layout);
-////        buttonPanel.setPreferredSize(new Dimension(400, 160));
-//        layout.setHgap(10);
-//        layout.setVgap(10);
-        
-//        for (int i = 0; i<BUTTONS.length; i++) {
-//        	button = new JButton(BUTTONS[i]);
-//        	button.addActionListener(this);
-//        	buttonPanel.add(button);
-//        }
-        
-//        pane.add(projectPanel, BorderLayout.NORTH);
-//        pane.add(new JSeparator(), BorderLayout.CENTER);
-//        pane.add(buttonPanel, BorderLayout.SOUTH);
         pane.add(projectsBox);
     }
 
@@ -315,77 +262,115 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	//        output.addMouseListener(popupListener);
 	    }
 
-	public void actionPerformed(ActionEvent ae) {
+	public class IndependentThread implements Runnable {
+		private Project proj;
+		private String command;
+		
+		public IndependentThread(Project proj, String command) {
+			this.proj = proj;
+			this.command = command;
+		}
 
-//		JComboBox cb = (JComboBox)ae.getSource();
-//		String petName = (String)cb.getSelectedItem();
-//		System.out.println(petName);
+		@Override
+		public void run() {
+			if (command.equals(MAP_FILES)) {
+				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
+			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
+				cnv.manage.Markers.generateMarkerPositions(proj, "SNP_Map.csv");
+			} else if (command.equals(PARSE_FILES_CSV)) {
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
+			} else if (command.equals(CHECK_SEX)) {
+				cnv.qc.SexChecks.sexCheck(proj);
+			} else if (command.equals(TRANSPOSE_DATA)) {
+				TransposeData.transposeData(proj, 2000000000, true, proj.getLog());
+			} else if (command.equals(GENERATE_PLINK_FILES)) {
+				String filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
+				System.out.println("using "+filename);
+				if ( filename==null || (!filename.equals("cancel")) ) {
+//						String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
+//						if () {
+//							
+//						}
+					cnv.manage.PlinkFormat.createPlink(proj, filename);
+					CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+					new File(proj.getProjectDir()+"genome/").mkdirs();
+					CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
+					CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+		//			vis cnv.manage.PlinkFormat root=../plink genome=6
+				}
+			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
+				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
+			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
+				// TODO make dialog to ask for filenames with a JCheckBox for denovo parsing
+				cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log", proj.getLog());
+				cnv.analysis.PennCNV.parseResults(proj, "penncnv.rawcnv", false, proj.getLog());
+			} else if (command.equals(LRR_SD)) {
+				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+			} else if (command.equals(CNP_SCAN)) {
+//					TODO Genotyping
+//					new ScanForCnp(proj, "CNPScanResult.txt");
+			} else if (command.equals(DENOVO_CNV)) {
+				DeNovoCNV.main(null);
+			} else if (command.equals(SCATTER)) {
+				new ScatterPlot(proj, null, null);
+			} else if (command.equals(QQ)) {
+				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false);
+			} else if (command.equals(STRAT)) {
+				StratPlot.loadStratificationResults(proj);
+			} else if (command.equals(MOSAICISM)) {
+				Mosaicism.findOutliers(proj);
+			} else if (command.equals(MOSAIC_PLOT)) {
+				MosaicPlot.loadMosaicismResults(proj);
+			} else if (command.equals(SEX_PLOT)) {
+				SexPlot.loadGenderResults(proj);
+			} else if (command.equals(TRAILER)) {
+				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
+			} else if (command.equals(TWOD)) {
+//				TwoDPlot.main(null);
+				TwoDPlot.createAndShowGUI(proj, proj.getLog());
+			} else if (command.equals(COMP)) {
+				new CompPlot(proj);
+			} else if (command.equals(POPULATIONBAF)) {
+				cnv.analysis.PennCNV.populationBAF(proj);
+			} else if (command.equals(EXPORT_CNVS)) {
+				cnv.manage.ExportCNVsToPedFormat.main(null);
+			} else if (command.equals(TEST)) {
+				System.out.println("No new program to test");
+			} else if (command.equals(GCMODEL)) {
+				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
+			} else if (command.equals(MARKER_METRICS)) {
+				cnv.qc.MarkerMetrics.fullQC(proj, (boolean[])null, null, proj.getLog()); // need the declaration, otherwise the call is ambiguous
+			} else if (command.equals(FILTER_MARKER_METRICS)) {
+				cnv.qc.MarkerMetrics.filterMetrics(proj, proj.getLog());
+			} else if (command.equals(KITANDKABOODLE)) {
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
 
-		String command = ae.getActionCommand();
-		output.append("Action performed: " + command + "\n");
-		output.setCaretPosition(output.getDocument().getLength());
+				TransposeData.transposeData(proj, 2000000000, true, proj.getLog()); // compact if no LRR was provided
 
-		if (command.equals(MAP_FILES)) {
-//			vis cnv.manage.ParseIllumina -mapFiles
-			cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
-		} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
-			cnv.manage.Markers.generateMarkerPositions(proj, "SNP_Map.csv");
-		} else if (command.equals(PARSE_FILES_CSV)) {
-			cnv.manage.ParseIllumina.createFiles(proj, 2);
-//			nohup vis -Xmx1g cnv.manage.ParseIllumina threads=6 proj=current.proj
-		} else if (command.equals(CHECK_SEX)) {
-			cnv.qc.SexChecks.sexCheck(proj);
-		} else if (command.equals(TRANSPOSE_DATA)) {
-//			ExtractPlots.extractAll(proj, 0, false);
-//			TransposeData.transposeData(proj, 0); // compact if no LRR was provided
-//			TransposeData.transposeData(proj, 2000000000, true); // compact if no LRR was provided
-			TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
-//		} else if (command.equals(SLIM_PLOTS)) {
-//			ExtractPlots.breakUpMarkerCollections(proj, 250);
-//			nohup vis -Xmx15g -d64 cnv.manage.ExtractPlots per=250 proj=current.proj
-		} else if (command.equals(GENERATE_PLINK_FILES)) {
-			String filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
-			System.out.println("using "+filename);
-			if ( filename==null || (!filename.equals("cancel")) ) {
-//					String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
-//					if () {
-//						
-//					}
-				cnv.manage.PlinkFormat.createPlink(proj, filename);
+				cnv.manage.PlinkFormat.createPlink(proj, null);
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
 				new File(proj.getProjectDir()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
-	//			vis cnv.manage.PlinkFormat root=../plink genome=6
+
+				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+				
+				cnv.qc.SexChecks.sexCheck(proj);
+				
+			} else {
+				System.err.println("Error - unknown command: "+command);
 			}
-		} else if (command.equals(GENERATE_PENNCNV_FILES)) {
-			cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
-		} else if (command.equals(LRR_SD)) {
-			cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
-		} else if (command.equals(CNP_SCAN)) {
-//				TODO Genotyping
-//				new ScanForCnp(proj, "CNPScanResult.txt");
-		} else if (command.equals(DENOVO_CNV)) {
-			DeNovoCNV.main(null);
-		} else if (command.equals(SCATTER)) {
-			new ScatterPlot(proj, null, null);
-		} else if (command.equals(QQ)) {
-			QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false);
-		} else if (command.equals(STRAT)) {
-			StratPlot.loadStratificationResults(proj);
-		} else if (command.equals(MOSAICISM)) {
-			Mosaicism.findOutliers(proj);
-		} else if (command.equals(MOSAIC_PLOT)) {
-			MosaicPlot.loadMosaicismResults(proj);
-		} else if (command.equals(SEX_PLOT)) {
-			SexPlot.loadGenderResults(proj);
-		} else if (command.equals(TRAILER)) {
-			new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
-		} else if (command.equals(TWOD)) {
-//			new TwoDPlot(proj);
-			TwoDPlot.main(null);
-		} else if (command.equals(COMP)) {
-			new CompPlot(proj);
+		}
+
+	}
+	
+	public void actionPerformed(ActionEvent ae) {
+		String command = ae.getActionCommand();
+		output.append("Action performed: " + command + "\n");
+		output.setCaretPosition(output.getDocument().getLength());
+
+		if (command.equals(EXIT)) {
+			System.exit(0);
 		} else if (command.equals(EDIT)) {
 //			new PropertyEditor(proj);
 			
@@ -400,40 +385,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
 			System.out.println("Refreshed list of projects");
-		} else if (command.equals(POPULATIONBAF)) {
-			cnv.analysis.PennCNV.populationBAF(proj);
-		} else if (command.equals(SUMCNVBYSAM)) {
-			cnv.manage.ExportCNVsToPedFormat.main(null);
-		} else if (command.equals(TEST)) {
-			output.append("No new program to test\n");
-		} else if (command.equals(GCMODEL)) {
-			cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
-		} else if (command.equals(MARKER_METRICS)) {
-			cnv.qc.MarkerMetrics.fullQC(proj, (boolean[])null, null, proj.getLog()); // need the declaration, otherwise the call is ambiguous
-		} else if (command.equals(KITANDKABOODLE)) {
-			cnv.manage.ParseIllumina.createFiles(proj, 2);
-
-			TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
-
-			cnv.manage.PlinkFormat.createPlink(proj, null);
-			CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-			new File(proj.getProjectDir()+"genome/").mkdirs();
-			CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-			CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
-
-			cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
-			
-			cnv.qc.SexChecks.sexCheck(proj);
-			
-		} else if (command.equals(EXIT)) {
-			System.exit(0);
-		} else {
+		} else if (command.endsWith(" ")) {
 			for (int i=0; i<projects.length; i++) {
-				if (command.equals(ext.rootOf(projects[i]))) {
+				if (command.equals(ext.rootOf(projects[i])+" ")) {
 					projectsBox.setSelectedIndex(i);
+					System.out.println("Selecting: "+projects[i]);
 				}
 			}
-//				System.err.println("Error - unknown command '"+command+"'");
+		} else {
+			new Thread(new IndependentThread(proj, command)).start();
 		}
 	}
     
@@ -491,7 +451,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			System.exit(1);
 		}
 
-		System.out.println("Before GUI\t"+ext.reportMemoryUsage());
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	createAndShowGUI(filename);

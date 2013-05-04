@@ -22,7 +22,7 @@ public class Project extends Properties {
 
 //	public static final String DEFAULT_PROJECT = "these.properties";
 //	public static final String DEFAULT_PROJECT = "D:/home/npankrat/projects/pd_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
+	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI_exome_slim.properties";
@@ -33,7 +33,7 @@ public class Project extends Properties {
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
 //	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
 //	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/practice.properties";
-	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/GEDI_exome.properties";
+//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/GEDI_exome.properties";
 //	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/twodplot.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
@@ -111,6 +111,9 @@ public class Project extends Properties {
 	public static final String WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER";
 	public static final String MAX_MARKERS_LOADED_PER_CYCLE = "MAX_MARKERS_LOADED_PER_CYCLE";
 	public static final String MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA";
+	public static final String MARKER_METRICS_FILENAME = "MARKER_METRICS_FILENAME";
+	public static final String MARKER_REVIEW_CRITERIA_FILENAME = "MARKER_REVIEW_CRITERIA_FILENAME";
+	public static final String MARKER_EXCLUSION_CRITERIA_FILENAME = "MARKER_EXCLUSION_CRITERIA_FILENAME";
 
 	private boolean jar;
 	private SampleList sampleList;
@@ -378,7 +381,7 @@ public class Project extends Properties {
 		if (sampleData == null) {
 			sampleData = new SampleData(this, numberOfBasicClassesToLoad, cnvFilenames);
 //			System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv files":Array.toStr(cnvFilenames, "/")));
-			cnvFilesLoadedInSampleData = HashVec.loadFileToHashNull(cnvFilenames);
+			cnvFilesLoadedInSampleData = HashVec.loadToHashNull(cnvFilenames);
 		}
 		return sampleData;
 	}

@@ -125,16 +125,21 @@ public class ColorKeyPanel extends JPanel {
 		JLabel label, block;
 		String[][] colorKeys;
 		String[] keys;
+		int numBasicClasses;
+		
+		
+		numBasicClasses = sampleData.getBasicClasses().length;
+		
 		classValuesPanel.removeAll();
 		classValuesPanel.repaint();
 		
 		label = new JLabel("Color key:");
 		label.setFont(new Font("Arial", 0, 14));
 		classValuesPanel.add(label);
-		if (currentClass < sampleData.basicClasses.length) { // needs to be fixed so that this is not a public variable
+		if (currentClass < numBasicClasses) { // needs to be fixed so that this is not a public variable
 			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
 		} else {		
-			colorKeys = sampleData.getActualClassColorKey(currentClass - sampleData.basicClasses.length); // same here
+			colorKeys = sampleData.getActualClassColorKey(currentClass - numBasicClasses); // same here
 		}
 		for (int i = 0; i<colorKeys.length; i++) {
 			block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(colorKeys[i][0])]));

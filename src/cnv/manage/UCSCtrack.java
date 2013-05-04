@@ -1,4 +1,4 @@
-package cnv.park;
+package cnv.manage;
 
 import java.io.*;
 import java.util.*;
@@ -6,16 +6,12 @@ import java.util.*;
 import common.*;
 import cnv.var.CNVariant;
 
-public class MakeUCSCtrack {
+public class UCSCtrack {
 	public static final String SAMPLE_DEMOGRAPHICS = "SampleData.txt";
 	public static final String DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY = "data/";
 	public static final String[][] NEEDS = new String[][] {{"CLASS=Original Phenotype", "CLASS=Final Phenotype", "CLASS=Phenotype", "CLASS=Affection", "CLASS=Affected"}, {"COVAR=Age"}};
 
-	public static void makeTrack(String filename) {
-		makeTrack(filename, new Logger(null));
-	}
-	
-	public static void makeTrack(String filename, Logger log) {
+	public static void makeTrack(String filename, String outfile, Logger log) {
 		BufferedReader reader;
 		PrintWriter track;
 		String[] line, header;
@@ -23,10 +19,11 @@ public class MakeUCSCtrack {
 		Hashtable<String,String[]> hash;
 		int[] indices;
 		int idIndex;
+		long time;
 
 		hash = new Hashtable<String,String[]>();
 		try {
-			reader = Files.getReader(SAMPLE_DEMOGRAPHICS, new String[] {"", DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY});
+			reader = Files.getReader(SAMPLE_DEMOGRAPHICS, new String[] {"", DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY, "../"+DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY});
 			header = reader.readLine().trim().split("\t", -1);
 			indices = ext.indexFactors(NEEDS, header, false, true, true, log, false);
 			idIndex = ext.indexOfStr("IID", header);
@@ -45,10 +42,15 @@ public class MakeUCSCtrack {
 			log.reportException(ioe);
 		}
 
+		time = new Date().getTime();
+		System.out.println("Generating "+outfile);
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER, true);
-			track = new PrintWriter(new FileWriter(filename.substring(0, filename.lastIndexOf("."))+".bed"));
+			if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER, false)) {
+				reader.close();
+				return;
+			}
+			track = Files.getAppropriateWriter(filename.substring(0, filename.lastIndexOf("."))+".bed.gz");
 			track.println("track name=\""+ext.rootOf(filename)+"\" description=\"CNV data\" visibility=2 itemRgb=\"On\"");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -88,15 +90,19 @@ public class MakeUCSCtrack {
 			log.reportError("Error creating UCSC bed track from "+filename);
 			log.reportException(ioe);
 		}
+		System.out.println("Finished in " + ext.getTimeElapsed(time));
+		
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = "MakeUCSCtrack.dat";
+		String filename = "penncnv.cnv";
+		String outfile = null;
 
 		String usage = "\\n"+
-		"park.cnv.MakeUCSCtrack requires 0-1 arguments\n"+
-		"   (1) filename (i.e. file="+filename+" (default))\n"+
+		"cnv.manage.UCSCtrack requires 0-1 arguments\n"+
+		"   (1) CNV filename to convert (i.e. file="+filename+" (default))\n"+
+		"   (2) name of output file (i.e. out=[file].bed.gz (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -106,9 +112,11 @@ public class MakeUCSCtrack {
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("-generic")) {
-//				generic = true;
+			} else if (args[i].startsWith("out=")) {
+				outfile = args[i].split("=")[1];
 				numArgs--;
+			} else {
+				System.err.println("Error - don't know what to do with argument: "+args[i]);
 			}
 		}
 		if (numArgs!=0) {
@@ -116,9 +124,19 @@ public class MakeUCSCtrack {
 			System.exit(1);
 		}
 		try {
-			makeTrack(filename, new Logger(ext.rootOf(filename, false)+".log"));
+			if (outfile == null) {
+				outfile = ext.rootOf(filename, false)+".bed.gz";
+			}
+			makeTrack(filename, outfile, new Logger(ext.rootOf(filename, false)+".log"));
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+
+		if (System.getProperty("os.name").startsWith("Windows")) {
+			try {
+				new BufferedReader(new InputStreamReader(System.in)).readLine();
+			} catch (IOException ioe) {
+			}	
 		}
 	}
 

@@ -15,7 +15,7 @@ public class SampleData {
 	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 
-	public String[] basicClasses;
+	private String[] basicClasses;
 	private String[] filters;
 	private String[] covars;
 	private String[] classes;
@@ -30,7 +30,7 @@ public class SampleData {
 	private int sexClassIndex;
 	private int excludeClassIndex;
 	
-	public SampleData(Project proj, int numberOfBasicClassesToUse, String[] cnvFilesnames) {
+	public SampleData(Project proj, int numberOfBasicClassesToUse, String[] cnvFilenames) {
 		BufferedReader reader;
 		String[] line, header;
 		IntVector filterIs = new IntVector();
@@ -43,15 +43,15 @@ public class SampleData {
 //		Hashtable<String,IndiPheno> sampleHash; 
 		String filename;
 		CountVector sexCountHash;
-		String[] sexValues;
+		int[] sexValues;
 		String[] ids;
 		Logger log;
 		
 		log = proj.getLog();
 
 		failedToLoad = true;
-		if (cnvFilesnames == null) {
-			cnvFilesnames = new String[0];
+		if (cnvFilenames == null) {
+			cnvFilenames = new String[0];
 		}
 		
 		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
@@ -78,11 +78,11 @@ public class SampleData {
 				System.err.println("Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
 				dnaIndex = 0;
 			}
-			if (cnvFilesnames.length > 0 && famIndex == -1) {
+			if (cnvFilenames.length > 0 && famIndex == -1) {
 				System.err.println("Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
 //				cnvFilesnames = new String[0];
 			}
-			if (cnvFilesnames.length > 0 && indIndex == -1) {
+			if (cnvFilenames.length > 0 && indIndex == -1) {
 				System.err.println("Error - 'IID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
 //				cnvFilesnames = new String[0];
 			}
@@ -167,9 +167,9 @@ public class SampleData {
 			reader.close();
 			
 			if (sexClassIndex != -1) {
-				sexValues = sexCountHash.getValues();
+				sexValues = Array.toIntArray(sexCountHash.getValues());
 				sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
-				if (!sexValues[0].equals("2")) {
+				if (sexValues[0] != 2) {
 					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 					JOptionPane.showMessageDialog(null, "descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
 				}
@@ -195,8 +195,8 @@ public class SampleData {
 		
 		
 		
-		if (cnvFilesnames.length > 0) {
-			loadCNVs(cnvFilesnames, proj.getJarStatus());
+		if (cnvFilenames.length > 0) {
+			loadCNVs(cnvFilenames, proj.getJarStatus());
 		} else {
 			cnvClasses =  new String[0];
 		}
@@ -323,6 +323,10 @@ public class SampleData {
 
 	public String[] getClasses() {
 		return getClasses(false);
+	}
+
+	public String[] getBasicClasses() {
+		return basicClasses;
 	}
 
 	public String[] getClasses(boolean includeBasicClasses) {

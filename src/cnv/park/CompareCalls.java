@@ -29,7 +29,9 @@ public class CompareCalls {
 		for (int i = 0; i<files.length; i++) {
 			try {
 				reader = new BufferedReader(new FileReader(rootDir+files[i]));
-				ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER, true);
+				if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER, false)) {
+					return;
+				}
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
 					if (hash.containsKey(line[0]+"\t"+line[1])) {

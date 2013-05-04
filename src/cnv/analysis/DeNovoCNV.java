@@ -14,6 +14,7 @@ import java.util.Vector;
 import cnv.filesys.Project;
 
 import common.HashVec;
+import common.Logger;
 import common.StringVector;
 import common.CmdLine;
 import common.ext;
@@ -119,7 +120,7 @@ public class DeNovoCNV {
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+pedigreeOfTrio+"\"");
 		}
-		PennCNV.parseResults(proj, "penn_output/resultAll.jointcnv", false);
+		PennCNV.parseResults(proj, "penn_output/resultAll.jointcnv", false, new Logger());
 	}
 	
 	public static void batch(String pedigreeOfTrio) {
@@ -228,8 +229,6 @@ public class DeNovoCNV {
 	        System.out.println("Directory " + listOfFiles[i].getName());
 	      }
 	    }
-
-
 	}
 	
 	public static void main(String[] args) {

@@ -5,18 +5,14 @@ import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 import java.awt.*;
 import java.awt.event.*;
 
 import cnv.filesys.*;
 import cnv.gui.CheckBoxTree;
-import cnv.gui.ColorIcon;
-import cnv.gui.CycleRadio;
 import common.*;
 import cnv.var.*;
-import filesys.Segment;
 
 public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener, TreeExpansionListener {
 	public static final long serialVersionUID = 1L;
@@ -62,7 +58,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	private int currentClass;
 //	private int plot_type;
 	private byte size;
-	private boolean jar;
 	private SampleData sampleData;
 //	private boolean maskMissing;
 //	private JRadioButton[] typeRadioButtons;
@@ -94,11 +89,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		log = new Logger();
 		this.log = log;
 		proj = project;
-		jar = proj.getJarStatus();
 		size = DEFAULT_SIZE;
 //		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 
-		sampleData = proj.getSampleData(1, true);
+//		sampleData = proj.getSampleData(1, true);
+		sampleData = proj.getSampleData(1, false);
 		
 		treeFilenameLookup = new Vector<String>();
 		//TODO Need to save the previously loaded files in other location.
@@ -187,7 +182,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		add(twoDPanel, BorderLayout.CENTER);
 //		add(layeredPane, BorderLayout.CENTER);
 		
-		colorKeyPanel = new ColorKeyPanel(proj.getSampleData(1, true), twoDPanel);
+		colorKeyPanel = new ColorKeyPanel(sampleData, twoDPanel);
 		add(colorKeyPanel, BorderLayout.SOUTH);
 
 		inputMapAndActionMap();
@@ -995,7 +990,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	     * this method should be invoked from the
 	     * event-dispatching thread.
 	     */
-	private static void createAndShowGUI(Project proj, Logger log) {
+	public static void createAndShowGUI(Project proj, Logger log) {
 
 		//Create and set up the window.
 		JFrame frame = new JFrame("2D Plot");
@@ -1022,7 +1017,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
 //                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/twodplot.properties", false), new Logger());
-                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false), new Logger());
+//                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false), new Logger());
+                createAndShowGUI(new Project(Project.DEFAULT_PROJECT, false), new Logger());
             }
         });
 		

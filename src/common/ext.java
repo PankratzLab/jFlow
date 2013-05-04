@@ -1338,10 +1338,11 @@ public class ext {
 	}
 	
 	public static String reportMemoryUsage() {
-		MemoryUsage muHeap, muNonHeap;
+		MemoryUsage muHeap; // , muNonHeap;
 		
 		muHeap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-		muNonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+//		muNonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+		
 //		return "Total: " + ext.prettyUpSize(Runtime.getRuntime().totalMemory(), 1) + 
 //				" Free: " + ext.prettyUpSize(Runtime.getRuntime().freeMemory(),1) + 
 //				" Max: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(),1) +

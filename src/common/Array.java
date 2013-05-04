@@ -2001,6 +2001,36 @@ public class Array {
 	}
 
 	/**
+	 * Creates a new array using only the double values at indices with a true in the boolean array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static double[] subArray(double[] array, boolean[] use) {
+		double[] subarray;
+		int count;
+
+		if (array.length != use.length) {
+			System.err.println("Error - mismatched array lengths for boolean subset");
+			return null;
+		}
+		
+		count = 0;
+		subarray = new double[booleanArraySum(use)];
+		for (int i = 0; i<array.length; i++) {
+			if (use[i]) {
+				subarray[count] = array[i];
+				count++;
+			}
+		}
+
+		return subarray;
+	}
+
+	/**
 	 * Creates a new array using only the indices between start and stop
 	 * 
 	 * @param array
@@ -2023,6 +2053,36 @@ public class Array {
 		}
 
 		return arr;
+	}
+	
+	/**
+	 * Creates a new array using only the float values at indices with a true in the boolean array
+	 * 
+	 * @param array
+	 *            an array of float
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static float[] subArray(float[] array, boolean[] use) {
+		float[] subarray;
+		int count;
+
+		if (array.length != use.length) {
+			System.err.println("Error - mismatched array lengths for boolean subset");
+			return null;
+		}
+		
+		count = 0;
+		subarray = new float[booleanArraySum(use)];
+		for (int i = 0; i<array.length; i++) {
+			if (use[i]) {
+				subarray[count] = array[i];
+				count++;
+			}
+		}
+
+		return subarray;
 	}
 
 	/**
@@ -2401,25 +2461,32 @@ public class Array {
 	 * @return scrubbed array
 	 */
 	public static double[] removeNaN(double[] array) {
-		double[] newArray;
 		boolean[] use;
-		int count;
 		
 		use = new boolean[array.length];
 		for (int i = 0; i<use.length; i++) {
 			use[i] = !(array[i]+"").equals("NaN");
         }
 
-		newArray = new double[booleanArraySum(use)];
-		count = 0;
-		for (int i = 0; i<use.length; i++) {
-			if (use[i]) {
-				newArray[count] = array[i]; 
-				count++;
-			}
-        }
+		return subArray(array, use);
+	}
+	
+	/**
+	 * Removes NaN values from the array
+	 * 
+	 * @param array
+	 *            an array of doubles
+	 * @return scrubbed array
+	 */
+	public static float[] removeNaN(float[] array) {
+		boolean[] use;
 		
-		return newArray;
+		use = new boolean[array.length];
+		for (int i = 0; i<use.length; i++) {
+			use[i] = !(array[i]+"").equals("NaN");
+        }
+
+		return subArray(array, use);
 	}
 	
 	/**
@@ -2759,6 +2826,78 @@ public class Array {
 		String[] newArray;
 
 		newArray = new String[array.length];
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = array[i];
+		}
+		
+		return newArray;
+	}	
+
+	/**
+	 * Clones an array of int
+	 * 
+	 * @param array
+	 *            the array of int to clone
+	 * @return cloned array of int
+	 */
+	public static int[] clone(int[] array) {
+		int[] newArray;
+
+		newArray = new int[array.length];
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = array[i];
+		}
+		
+		return newArray;
+	}	
+
+	/**
+	 * Clones an array of double
+	 * 
+	 * @param array
+	 *            the array of double to clone
+	 * @return cloned array of double
+	 */
+	public static double[] clone(double[] array) {
+		double[] newArray;
+
+		newArray = new double[array.length];
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = array[i];
+		}
+		
+		return newArray;
+	}	
+
+	/**
+	 * Clones an array of float
+	 * 
+	 * @param array
+	 *            the array of float to clone
+	 * @return cloned array of float
+	 */
+	public static float[] clone(float[] array) {
+		float[] newArray;
+
+		newArray = new float[array.length];
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = array[i];
+		}
+		
+		return newArray;
+	}	
+
+	/**
+	 * Clones an array of boolean
+	 * 
+	 * @param array
+	 *            the array of boolean to clone
+	 * @return cloned array of boolean
+	 */
+	public static boolean[] clone(boolean[] array) {
+		boolean[] newArray;
+
+		newArray = new boolean[array.length];
 		for (int i = 0; i < array.length; i++) {
 			newArray[i] = array[i];
 		}

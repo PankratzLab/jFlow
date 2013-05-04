@@ -133,6 +133,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 	}
 
+	// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location, int startX, int startY, int width, int height) {
 		super("CNVis - Trailer");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -179,12 +180,14 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
         time = new Date().getTime();
 //		track = GeneTrack.load(proj.getDir(Project.DATA_DIRECTORY)+GeneSet.REFSEQ_TRACK, jar);
-        if (new File(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK).exists()) {
-        	track = GeneTrack.load(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK, jar);
+        if (new File(proj.getFilename(Project.GENETRACK_FILENAME, false, false)).exists()) {
+        	track = GeneTrack.load(proj.getFilename(Project.GENETRACK_FILENAME), jar);
+        } else if (new File(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK).exists()) {
+            track = GeneTrack.load(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK, jar);
         } else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
         	track = GeneTrack.load(GeneSet.REFSEQ_TRACK, jar);
         } else {
-			JOptionPane.showMessageDialog(this, "Gene track is not installed. Gene boundaries will not be displayed.", "FYI", JOptionPane.INFORMATION_MESSAGE);
+//			JOptionPane.showMessageDialog(this, "Gene track is not installed. Gene boundaries will not be displayed.", "FYI", JOptionPane.INFORMATION_MESSAGE);
         	track = null;
         }
 		System.out.println("Loaded track in "+ext.getTimeElapsed(time));
@@ -306,46 +309,58 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				Segment[] segs;
 				int width, begin, end, source;
 				Segment currentView;
+				String text;
 				
-				if (track != null && stop-start < 10000000) {
-					genes = track.getBetween(chr, start, stop, 30);
-//					System.out.println(ext.getUCSCformat(new int[] {chr, start, stop}));
-					g.setColor(Color.BLACK);
-					for (int i = 0; i<genes.length; i++) {
-						begin = getX(genes[i].getStart());
-						end = getX(genes[i].getStop());
-						g.drawRoundRect(begin, 0*15, end-begin, 10, 2, 2);
-						v.add(new Segment(begin, end));
-						exons = genes[i].getExonBoundaries();
-						for (int j = 0; j<exons.length; j++) {
-							begin = getX(exons[j][0]);
-							end = getX(exons[j][1]);
-							if (j==0 || j==exons.length-1) {
-								g.fillRoundRect(begin, 0*15, end-begin+1, 10, 2, 2);
-							} else {
-								g.fillRect(begin, 0*15, end-begin+1, 10);
+				g.drawRect(0, 0, this.getWidth()-1, this.getHeight()-1);
+				
+				
+				if (track == null) {
+					text = "Gene track is not installed";
+					width = g.getFontMetrics(g.getFont()).stringWidth(text);
+					g.drawString(text, this.getWidth()/2-width/2, 10);
+					System.out.println("total width = "+this.getWidth()+" text width = "+width+" position = "+(this.getWidth()/2-width/2));
+				} else {
+					if (stop-start > 10000000) {
+						g.drawString("Zoom in to see genes", 10, 10);
+					} else {
+						genes = track.getBetween(chr, start, stop, 30);
+//						System.out.println(ext.getUCSCformat(new int[] {chr, start, stop}));
+						g.setColor(Color.BLACK);
+						for (int i = 0; i<genes.length; i++) {
+							begin = getX(genes[i].getStart());
+							end = getX(genes[i].getStop());
+							g.drawRoundRect(begin, 0*15, end-begin, 10, 2, 2);
+							v.add(new Segment(begin, end));
+							exons = genes[i].getExonBoundaries();
+							for (int j = 0; j<exons.length; j++) {
+								begin = getX(exons[j][0]);
+								end = getX(exons[j][1]);
+								if (j==0 || j==exons.length-1) {
+									g.fillRoundRect(begin, 0*15, end-begin+1, 10, 2, 2);
+								} else {
+									g.fillRect(begin, 0*15, end-begin+1, 10);
+								}
+								
 							}
-							
-						}
-//						System.out.println(genes[i].getGeneName()+"\t"+genes[i].getStart()+"\t"+genes[i].getStop());
-                    }
-//					System.out.println();
-					Segment.mergeOverlapsAndSort(v);
-					segs = Segment.toArray(v);
-					g.setFont(new Font("Arial", 0, 14));
-					
-					for (int i = 0; i<genes.length; i++) {
-						begin = getX(genes[i].getStart());
-						width = g.getFontMetrics(g.getFont()).stringWidth(genes[i].getGeneName());
-						if (!Segment.overlapsAny(new Segment(begin-width-5, begin-1), segs)) {
-							g.drawString(genes[i].getGeneName(), begin-width-3, 0*15+10);
+//							System.out.println(genes[i].getGeneName()+"\t"+genes[i].getStart()+"\t"+genes[i].getStop());
+	                    }
+//						System.out.println();
+						Segment.mergeOverlapsAndSort(v);
+						segs = Segment.toArray(v);
+						g.setFont(new Font("Arial", 0, 14));
+						
+						for (int i = 0; i<genes.length; i++) {
+							begin = getX(genes[i].getStart());
+							width = g.getFontMetrics(g.getFont()).stringWidth(genes[i].getGeneName());
+							if (!Segment.overlapsAny(new Segment(begin-width-5, begin-1), segs)) {
+								g.drawString(genes[i].getGeneName(), begin-width-3, 0*15+10);
+							}
 						}
 					}
-
 				}
 				currentView = new Segment(chr, start, stop);
 				int firstBegin;
-				for (int i = 0; i<cnvs.length; i++) {
+				for (int i = 0; cnvs != null && i<cnvs.length; i++) {
 					source = i;
 					firstBegin = Integer.MAX_VALUE;
 					for (int j = 0; j<cnvs[i].length; j++) {
@@ -804,7 +819,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		System.out.println("Determined sample list in "+ext.getTimeElapsed(time));
 
 		if (filesPresent == null || filesPresent.length == 0) {
-			samplesPresent = new String[] {"inds/ directory is empty", refresh};
+			samplesPresent = new String[] {proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty", refresh};
 			maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(samplesPresent[0]));
 		} else {
 			samplesPresent = new String[filesPresent.length+1];
@@ -951,7 +966,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			System.out.print("Found "+sample+"...");
 			indiPheno = sampleData.getIndiPheno(sample.toLowerCase());
 			if (indiPheno == null) {
-				JOptionPane.showMessageDialog(this, "Sample '"+sample+"' was not present in the SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
+				if (!sample.equals(proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty")) {
+					JOptionPane.showMessageDialog(this, "Sample '"+sample+"' was not present in the SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
+				}
 				return;
 			}
 			loadValues();
