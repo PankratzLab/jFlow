@@ -378,10 +378,10 @@ public class MeanLRR {
 //		regions = "PAR2.txt";
 //		dump = "chr23:154879620-155227607"; // Marker 6
 
-		filename = "/home/npankrat/projects/GEDI.properties";
-		phenotypes = new String[] {"Class=UsedInCNVAnlayses", "Final_LRR_SD", "Final_conf15usedCount"};
-		regions = "firstCNP.txt";
-		dumpAll = true;
+//		filename = "/home/npankrat/projects/GEDI.properties";
+//		phenotypes = new String[] {"Class=UsedInCNVAnlayses", "Final_LRR_SD", "Final_conf15usedCount"};
+//		regions = "firstCNP.txt";
+//		dumpAll = true;
 
 		
 		Project proj;
