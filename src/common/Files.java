@@ -2151,7 +2151,7 @@ public class Files {
 	    try {
 	        reader = new BufferedReader(new FileReader(filename));
 	        line = reader.readLine().trim().split("[\\s]+");
-	        if (!line[0].equals(command)) {
+	        if (!line[0].equalsIgnoreCase(command)) {
 	        	log.reportError("Error - file must start with the line '"+command+"'");
 	        	reader.close();
 	        	return null;
