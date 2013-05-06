@@ -299,10 +299,10 @@ public class Segment implements Serializable {
 	        reader.close();
         } catch (FileNotFoundException fnfe) {
 	        System.err.println("Error: file \""+filename+"\" not found in current directory");
-	        System.exit(1);
+	        return null;
         } catch (IOException ioe) {
 	        System.err.println("Error reading file \""+filename+"\"");
-	        System.exit(2);
+	        return null;
         }
 
 		return Segment.toArray(v);
