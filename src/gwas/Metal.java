@@ -5,6 +5,8 @@ import java.io.*;
 import java.util.*;
 
 import common.*;
+import filesys.Hits;
+import bioinformatics.MapSNPsAndGenes;
 import bioinformatics.Sequence;
 
 public class Metal {
@@ -12,26 +14,33 @@ public class Metal {
 
 	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP"};
 	public static final String[] GENE_UNITS = {"Gene"};
-//	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value"};
-	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "mbpval"};
 
 	public static final String[][] ALLELES = {
-		{"coded_all", "A1", "Allele1", "ALT"},
-		{"noncoded_all", "A2", "Allele2", "REF", "OTHER"},		
+		{"coded_all", "A1", "Allele1", "ALT", "Effect_allele"},
+		{"noncoded_all", "A2", "Allele2", "REF", "OTHER", "Reference_allele"},		
 	};
+	
+	public static final String[] EFFECTS = {"beta", "beta_SNP_add", "Effect"};
+	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add"};
+	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "mbpval"};
+	public static final String[] NS = {"N", "NMISS", "sampleN"};
+	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency"};
+
+	public static final String[] CHRS = {"Chr", "Chromosome"};
+	public static final String[] POSITIONS = {"Position", "pos", "BP"};
 
 	public static final int SE_ANALYSIS = 0;
 	public static final int WEIGHTED_SE_ANALYSIS = 1;
 	public static final int PVAL_ANALYSIS = 2;
 	
 	public static final String[][][] REQS = {
-		{ {"beta", "beta_SNP_add", "Effect"}, {"se", "StdErr", "sebeta_SNP_add"} },
+		{ EFFECTS, STD_ERRS },
 		{ {"wbeta"}, {"wse"} },
-		{ {"beta", "Direction", "Effect", "DIR"}, PVALUES, {"N", "NMISS", "sampleN"} },
+		{ {"beta", "Direction", "Effect", "DIR"}, PVALUES, NS },
 	};
 
 	public static final String[][] FREQS = {
-		{"AlleleFreq", "AAF", "sampleMAF"},
+		ALLELE_FREQS,
 		{"sampleAA", "fAllele11"},
 		{"sampleAR", "fAllele12"},		
 		{"sampleRR", "fAllele22"},		
@@ -160,6 +169,8 @@ public class Metal {
 			markerIndices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, false, log, false);
 			if (markerIndices[0] == -1) {
 				log.reportError("Error - no unit of analysis in file "+filename+" ("+Array.toStr(unitOfAnlaysis, "/")+")");
+				reader.close();
+				writer.close();
 				return;
 			}
 
@@ -300,6 +311,7 @@ public class Metal {
 		int[] indices;
 		String filename;
 		boolean travCommaDelimited, prevCommaDelimited;
+		String batchFile;
 		
 //		filename = ext.rootOf(outputFile, false)+"_metal"+(anlaysisType == SE_ANALYSIS?"_se":(anlaysisType == WEIGHTED_SE_ANALYSIS?"_wse":""))+"_input.txt";
 		filename = ext.rootOf(outputFile, false)+"_input.txt";
@@ -322,10 +334,12 @@ public class Metal {
 				writer.println("SCHEME SAMPLESIZE");
 				if (defaultWeights != null && defaultWeights.length != filenames.length) {
 					log.reportError("Error - the number of weights included ("+defaultWeights.length+") did not match the number of filenames included ("+filenames.length+")");
+					writer.close();
 					return;
 				}
 			} else {
 				log.reportError("Error - unknown analysis type selected");
+				writer.close();
 				return;
 			}
 
@@ -334,6 +348,7 @@ public class Metal {
 
 				if (!new File(dir+filenames[i]).exists()) {
 					log.reportError("Error - file '"+filenames[i]+"' does not exist in directory '"+dir+"'");
+					writer.close();
 					return;
 				}
 				travCommaDelimited = filenames[i].endsWith(".csv");
@@ -342,6 +357,7 @@ public class Metal {
 				indices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, true, log, false);
 				if (indices[0] == -1) {
 					log.reportError("Error parsing '"+dir+filenames[i]+"'");
+					writer.close();
 					return;
 				}
 				travMarker = header[indices[0]];
@@ -352,6 +368,7 @@ public class Metal {
 				indices = ext.indexFactors(ALLELES, header, false, true, true, log, false);
 				if (Array.min(indices) == -1) {
 					log.reportError("Error parsing '"+dir+filenames[i]+"'");
+					writer.close();
 					return;
 				}
 				travAlleles = Array.subArray(header, indices);
@@ -365,6 +382,7 @@ public class Metal {
 				}
 				if (Array.min(indices) == -1) {
 					log.reportError("Error parsing '"+dir+filenames[i]+"'");
+					writer.close();
 					return;
 				}
 				travReqs = Array.subArray(header, indices);
@@ -434,7 +452,9 @@ public class Metal {
 			e.printStackTrace();
 		}
 		
-		if (!CmdLine.run("metal < "+filename, dir, System.out, true)) {
+		batchFile = "run_"+ext.rootOf(filename, false)+".bat";
+		Files.write("C:/bin/metal < "+filename+" > "+ext.rootOf(filename, false)+".log", batchFile);
+		if (!CmdLine.run(batchFile, dir, System.out, false)) {
 			log.report("metal < "+filename);
 		}
 
@@ -610,6 +630,163 @@ public class Metal {
 			}
 		}
 	}
+	
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params;
+		String[] inputFiles;
+		String outputFile;
+		Hits hits;
+		String[] fileParameters;
+		String[] header;
+		int[] indices;
+		BufferedReader reader;
+		String[] line;
+		Hashtable<String, int[]> markerPositionHash;
+//		Vector<String> markers;
+//		Vector<String> chrs;
+//		Vector<String> positions;
+//		Vector<String> geneNames;
+		int[][] markerPositions;
+		String[][] genes;
+		PrintWriter writer;
+		byte build;
+		int[] chrPosition, trav;
+		String[] hitList;
+		int countMissing;
+		
+		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
+
+		build = -1;
+		if (params != null) {
+			outputFile = params.remove(0);
+			for (int i = 0; i < params.size(); i++) {
+				if (params.elementAt(i).startsWith("build=")) {
+					build = ext.parseByteArg(params.elementAt(i));
+					params.remove(i);
+				}
+			}
+			if (build == -1) {
+				log.reportError("Warning - build was not specified, assuming build 37 (aka hg19)");
+				build = 37;
+			}
+			inputFiles = Array.toStringArray(params);
+//			backupDir = "./backup";
+//			Files.backup(outputFile+"_InvVar", null, backupDir);
+//			Files.backup(outputFile+"_InvVar", null, backupDir);
+			log.report("Running inverse variance weighted meta-analysis...");
+//			metaAnalyze("./", inputFiles, MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, log);
+			log.report("Running sample size weighted meta-analysis...");
+//			metaAnalyze("./", inputFiles, MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, log);
+			
+//			check to see if file exists, report error otherwise
+//			Files.backup(filename, sourceDir, backupDir);
+//			if (!Files.isFileReady(outputFile+"_InvVar.out", 5000, 2000) ||	!Files.isFileReady(outputFile+"_NWeighted.out", 5000, 2000)) {
+//				System.err.println("Error - metaAnalysis gets hang or does not start.");
+//			}
+			
+//			sort results for both, determine minimum-pvalue, report only those minP<0.001
+			hits = new Hits();
+			hits.incorporateFromFile(outputFile+"_InvVar1.out", 0.001, log);
+			hits.incorporateFromFile(outputFile+"_NWeighted1.out", 0.001, log);
+			hits.writeHits("hits.txt");
+			
+//			summarize data, Results/packager
+//			markername, chr, postition, geneName
+//			From InvVar results: Allele1, Allele2, Effect=Beta,StdErr,P-value,Direction,
+//			From NWeighted results: Weight, P-value
+//			From each individual input file: Allele1, Allele2, AlleleFreq, N, Beta, SE, P-value
+
+//			markers = new Vector<String>();
+//			chrs = new Vector<String>();
+//			positions = new Vector<String>();
+//			geneNames = new Vector<String>();
+			markerPositionHash = new Hashtable<String, int[]>();
+
+			fileParameters = new String[4 + inputFiles.length];
+			fileParameters[1] = "hits.txt 0 1=minPval skip=0";
+			fileParameters[2] = outputFile + "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
+			fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
+			for (int i=0; i<inputFiles.length; i++) {
+				header = Files.getHeaderOfFile(inputFiles[i], log);
+				indices = ext.indexFactors(new String[][] {ALLELES[0], ALLELES[1], ALLELE_FREQS, NS, EFFECTS, STD_ERRS, PVALUES}, header, true, false, true, true, log, false);
+				fileParameters[i + 4] = inputFiles[i]+" 0";
+				for (int j = 0; j < indices.length; j++) {
+					if (indices[j] != -1) {
+						fileParameters[i + 4] += " '"+header[indices[j]]+"'";
+					}
+				}
+
+				indices = ext.indexFactors(new String[][] {CHRS, POSITIONS}, header, true, false, true, true, log, false);
+				if (indices[0] != -1 && indices[0] != -1) {
+					try {
+						reader = new BufferedReader(new FileReader(inputFiles[i]));
+						reader.readLine(); // header
+						while (reader.ready()) {
+							line = reader.readLine().split("\t");
+							if (!ext.isMissingValue(line[indices[0]])) {
+								trav = new int[] {Integer.parseInt(line[indices[0]]), Integer.parseInt(line[indices[1]])};
+								if (markerPositionHash.containsKey(line[0])) {
+									chrPosition = markerPositionHash.get(line[0]);
+									if (trav[0] != chrPosition[0] || trav[1] != chrPosition[1]) {
+										log.reportError("Error - mismatched positions for marker "+line[0]+" ("+Array.toStr(trav, ":")+" versus "+Array.toStr(chrPosition, ":")+")");
+									}
+								}
+								markerPositionHash.put(line[0], trav);
+							}
+						}
+						reader.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+			hitList = HashVec.loadFileToStringArray("hits.txt", true, new int[] {0}, false);
+			try {
+				writer = new PrintWriter(new FileWriter("genes.txt"));
+				writer.println("MarkerName\tChr\tPosition\tGene(s)");
+				
+				if (markerPositionHash.size()>0) {
+					countMissing = 0;
+					markerPositions = new int[hitList.length][];
+					for (int i=0; i<hitList.length; i++) {
+						if (markerPositionHash.containsKey(hitList[i])) {
+							markerPositions[i] = markerPositionHash.get(hitList[i]);
+						} else {
+							markerPositions[i] = new int[] {0,i};
+							countMissing++;
+							if (countMissing < 10) {
+								log.reportError("Warning - no map position available for "+hitList[i]);
+							}
+						}
+					}
+					if (countMissing >= 10) {
+						log.reportError("No map positions for a total of "+countMissing+" markers");
+					}
+					System.out.println(ext.getTime()+"\tstarting genes");
+					genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, build, 50000, log);				
+					System.out.println(ext.getTime()+"\tfinished genes");
+					
+					for (int i=0; i<genes.length; i++) {
+						writer.println(hitList[i]+"\t"+Array.toStr(markerPositionHash.get(hitList[i]), "\t")+"\t"+genes[i][1]);
+					}
+				}
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			fileParameters[0] = "genes.txt" + " 0=MarkerName 1=Chr 2=Position 3=Gene(s)";
+			Files.combine(hitList, fileParameters, null, "MarkerName", ".", "topHits.xln", log, true, true, false);
+		}
+	}
+	
+	public static void createUnionOfMap(String[] filenames, String mapOut) {
+
+		
+//		order = Sort.orderTwoLayers(chrs, positions);
+	}
+	
 	
 	public static void generateInputFile(String filename, Logger log) {
 		Vector<String> params;

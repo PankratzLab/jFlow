@@ -75,6 +75,60 @@ public class MapSNPsAndGenes {
 		return genes;
 	}
 
+	public static String getGeneDB(byte build, Logger log) {
+		String geneDB;
+		
+		geneDB = GENES37;
+		switch (build) {
+		case 36:
+			geneDB = GENES36;
+			break;
+		case 37:
+			geneDB = GENES37;
+			break;
+		default:
+			log.reportError("Error - unknown build '"+build+"'; using the default instead (b37/hg19)");
+			break;
+		}
+
+		return geneDB;
+	}
+	
+	public static String getSNPDB(byte build, Logger log) {
+		String snpDB;
+		
+		snpDB = ParseSNPlocations.DEFAULT_B37_DB;
+		switch (build) {
+		case 36:
+			snpDB = ParseSNPlocations.DEFAULT_B36_DB;
+			break;
+		case 37:
+			snpDB = ParseSNPlocations.DEFAULT_B37_DB;
+			break;
+		default:
+			log.reportError("Error - unknown build '"+build+"'; using the default instead (b37/hg19)");
+			break;
+		}
+
+		return snpDB;
+	}
+	
+	public static String[][] mapSNPsToGenes(int[][] markerPositions, byte build, int wiggleRoom, Logger log) {
+		return mapSNPsToGenes(markerPositions, getGeneDB(build, log), wiggleRoom, log);
+	}
+	
+	/**
+	 * Map chromosome positions to genes.
+	 * @param markerPositions a two dimensional array of marker positions. An example of the format is
+	 * 			0	1
+	 * 		0	chr	pos
+	 * 		1	chr	pos
+	 * 		...
+	 * @param geneDB
+	 * @param wiggleRoom
+	 * @param log
+	 * @return
+	 */
 	public static String[][] mapSNPsToGenes(int[][] markerPositions, String geneDB, int wiggleRoom, Logger log) {
 		BufferedReader reader;
 		String[] line, genes, distances;
@@ -170,21 +224,8 @@ public class MapSNPsAndGenes {
 		int[][] markerPositions;
 		String snpDB, geneDB;
 
-		snpDB = ParseSNPlocations.DEFAULT_B37_DB;
-		geneDB = GENES37;
-		switch (build) {
-		case 36:
-			snpDB = ParseSNPlocations.DEFAULT_B36_DB;
-			geneDB = GENES36;
-			break;
-		case 37:
-			snpDB = ParseSNPlocations.DEFAULT_B37_DB;
-			geneDB = GENES37;
-			break;
-		default:
-			log.reportError("Error - unknown build '"+build+"'; using the default instead (b37/hg19)");
-			break;
-		}
+		snpDB = getSNPDB(build, log);
+		geneDB = getGeneDB(build, log);
 		ParseSNPlocations.lowMemParse(dir+snps, snpDB, ParseSNPlocations.DEFAULT_MERGE, true, log);
 //		ParseSNPlocations.lowMemParse(dir+snps, true, log);
 		

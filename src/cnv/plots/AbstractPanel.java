@@ -735,6 +735,17 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
 
+//			HashVec.addToHashVec(hash, key, value, onlyifabsent)
+//			for (int i=0; i<rectangles.length; i++) {
+//				if (Math.abs(x - rectangles[i].getStartX()) <= HIGHLIGHT_DISTANCE && (y >= rectangles[i].getStartY() - HIGHLIGHT_DISTANCE) && (y <= rectangles[i].getStopY() + HIGHLIGHT_DISTANCE)
+//						|| Math.abs(x - rectangles[i].getStopX()) <= HIGHLIGHT_DISTANCE && (y >= rectangles[i].getStartY() - HIGHLIGHT_DISTANCE) && (y <= rectangles[i].getStopY() + HIGHLIGHT_DISTANCE)
+//						|| Math.abs(y - rectangles[i].getStartY()) <= HIGHLIGHT_DISTANCE && (x >= rectangles[i].getStartX() - HIGHLIGHT_DISTANCE) && (x <= rectangles[i].getStopX() + HIGHLIGHT_DISTANCE)
+//						|| Math.abs(y - rectangles[i].getStopY()) <= HIGHLIGHT_DISTANCE && (x >= rectangles[i].getStartX() - HIGHLIGHT_DISTANCE) && (x <= rectangles[i].getStopX() + HIGHLIGHT_DISTANCE)
+//						) {
+//					rectangles[i].setColor((byte) 2);
+//				}
+//			}
+
 			prevPos = pos;
 		}
 	}

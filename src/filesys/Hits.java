@@ -85,4 +85,9 @@ public class Hits {
 			e.printStackTrace();
 		}
 	}
+
+	public String[] getKeys() {
+		return HashVec.getKeys(hash);
+	}
+
 }

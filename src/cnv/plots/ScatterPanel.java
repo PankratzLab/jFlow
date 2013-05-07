@@ -10,7 +10,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
+
+import javax.swing.JCheckBox;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 
 import cnv.filesys.ClusterFilter;
 import cnv.filesys.MarkerData;
@@ -62,6 +65,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			   	new Color(224, 255, 255),
 			};
 	}
+	public static String[] comments = new String[] {"Ugly", "Monomorphic", "Off Y-axis"};
 	
 	protected MarkerData[] markerData1;
 	byte[] alleleCounts;				//zx
@@ -321,6 +325,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			setQcPanelUpdatable(false);
 		}
 		sp.updateColorKey(uniqueValueCounts.convertToHash());
+		sp.updateAnnotationPanel();
 		
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		for (int i = 0; i < points.length; i++) {
@@ -342,84 +347,84 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 	}
 
-	public void mouseMoved(MouseEvent event) {
-		Graphics g = getGraphics();
-		String pos;
-		int x, y;
-
-		float[][] datapoints;
-		IndiPheno indi;
-//		float[] gcScores;
-//		byte[] alleleCounts;
-//		float gcThreshold;
-		int xWidth;
-		int plotType, currentClass;
-		int i;
-		byte chr;
-		int position;
-//		int markerIndex;
-		byte size, xFontSize;
-		MarkerData mData;
-		
-		//IntVector indeciesOfDataPoint;//zx
-		
-		
-		plotType = sp.getPlotType();
-		currentClass = sp.getCurrentClass();
-//		markerIndex = sp.getMarkerIndex();
-
-//		if (markerData == null || markerData[markerIndex] == null) {
-		if (!sp.markerDataIsActive()) {
-			return;
-		}
-
-		x = event.getX();
-		y = event.getY();
-
-		canvasSectionMinimumX = WIDTH_Y_AXIS;
-		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-		canvasSectionMinimumY = HEIGHT_X_AXIS;
-		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-		pos = (int)Math.floor(x/DEFAULT_LOOKUP_RESOLUTION)+"x"+(int)Math.floor(y/DEFAULT_LOOKUP_RESOLUTION);
-		if (!pos.equals(prevPos)) {
-			repaint();
-		}
-		//iv = locLookup.get(pos);
-		//indeciesOfDataPoint = lookupNearbyPoints(x, y, pos);
-		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
-		//System.out.println("Number of nearby samples: "+(indeciesOfNearbySamples==null?0:indeciesOfNearbySamples.size()));//zx test point
-		//prox = new IntVector();
-
-		mData = sp.getCurrentMarkerData();
-		datapoints = mData.getDatapoints(plotType);
-//		gcScores = mData.getGCs();
-//		alleleCounts = markerData[markerIndex].getAB_Genotypes();
-		chr = mData.getChr();
-		position = mData.getPosition();
-//		gcThreshold = sp.getGCthreshold();
-
-		size = sp.getPointSize();
-		xFontSize = (byte)(size*2);
-
-		g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5)));
-		xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
-
-		//System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));//zx test point
-		for (int l = 0; indicesOfNearbySamples!=null && l<indicesOfNearbySamples.size(); l++) {
-			i = indicesOfNearbySamples.elementAt(l);
-			indi = sampleData.getIndiFromSampleHash(samples[i]);
-			g.setColor(colorScheme[sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
-			//g.setColor(Color.YELLOW);
-//			if (gcScores[i]<gcThreshold) {
-//			if (currentClass==1 && alleleCounts[i]==-1) {
-			if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
-				g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize/2.0));
-			} else {
-				g.fillOval(getX(datapoints[0][i])-(int)(size*2)/2, getY(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
-			}
-		}
-		prevPos = pos;
-	}
+//	public void mouseMoved(MouseEvent event) {
+//		Graphics g = getGraphics();
+//		String pos;
+//		int x, y;
+//
+//		float[][] datapoints;
+//		IndiPheno indi;
+////		float[] gcScores;
+////		byte[] alleleCounts;
+////		float gcThreshold;
+//		int xWidth;
+//		int plotType, currentClass;
+//		int i;
+//		byte chr;
+//		int position;
+////		int markerIndex;
+//		byte size, xFontSize;
+//		MarkerData mData;
+//		
+//		//IntVector indeciesOfDataPoint;//zx
+//		
+//		
+//		plotType = sp.getPlotType();
+//		currentClass = sp.getCurrentClass();
+////		markerIndex = sp.getMarkerIndex();
+//
+////		if (markerData == null || markerData[markerIndex] == null) {
+//		if (!sp.markerDataIsActive()) {
+//			return;
+//		}
+//
+//		x = event.getX();
+//		y = event.getY();
+//
+//		canvasSectionMinimumX = WIDTH_Y_AXIS;
+//		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
+//		canvasSectionMinimumY = HEIGHT_X_AXIS;
+//		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
+//		pos = (int)Math.floor(x/DEFAULT_LOOKUP_RESOLUTION)+"x"+(int)Math.floor(y/DEFAULT_LOOKUP_RESOLUTION);
+//		if (!pos.equals(prevPos)) {
+//			repaint();
+//		}
+//		//iv = locLookup.get(pos);
+//		//indeciesOfDataPoint = lookupNearbyPoints(x, y, pos);
+//		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
+//		//System.out.println("Number of nearby samples: "+(indeciesOfNearbySamples==null?0:indeciesOfNearbySamples.size()));//zx test point
+//		//prox = new IntVector();
+//
+//		mData = sp.getCurrentMarkerData();
+//		datapoints = mData.getDatapoints(plotType);
+////		gcScores = mData.getGCs();
+////		alleleCounts = markerData[markerIndex].getAB_Genotypes();
+//		chr = mData.getChr();
+//		position = mData.getPosition();
+////		gcThreshold = sp.getGCthreshold();
+//
+//		size = sp.getPointSize();
+//		xFontSize = (byte)(size*2);
+//
+//		g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5)));
+//		xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
+//
+//		//System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));//zx test point
+//		for (int l = 0; indicesOfNearbySamples!=null && l<indicesOfNearbySamples.size(); l++) {
+//			i = indicesOfNearbySamples.elementAt(l);
+//			indi = sampleData.getIndiFromSampleHash(samples[i]);
+//			g.setColor(colorScheme[sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
+//			//g.setColor(Color.YELLOW);
+////			if (gcScores[i]<gcThreshold) {
+////			if (currentClass==1 && alleleCounts[i]==-1) {
+//			if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
+//				g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize/2.0));
+//			} else {
+//				g.fillOval(getX(datapoints[0][i])-(int)(size*2)/2, getY(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
+//			}
+//		}
+//		prevPos = pos;
+//	}
 
     public void mousePressed(MouseEvent e) {
     	mouseStartX = e.getX();
@@ -530,6 +535,19 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			}
 			menu.show(this, event.getX(), event.getY());
 		}
+		
+		JPopupMenu choiceMenu;
+		JCheckBox comment;
+		String commentResult;
+		choiceMenu = new JPopupMenu();
+		for (int i=0; i<comments.length; i++) {
+			comment = new JCheckBox(comments[i]);
+			choiceMenu.add(comment);
+		}
+		choiceMenu.show(this, 10, 10);
+//		commentResult = choiceMenu.getChosen();
+//		sp.saveClusterFilterCollection();
+
 	}
 
 //	public static void main(String[] args) {
