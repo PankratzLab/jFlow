@@ -71,6 +71,7 @@ public class CmdLine {
 						Thread.sleep(10);
 					} catch (InterruptedException e2) {}
 					if (ignoreIllegalStateExceptions) {
+//						System.err.println("Ignoring illegal state exception");
 						finish = true;
 						noError = false;
 					}

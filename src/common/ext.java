@@ -1182,6 +1182,16 @@ public class ext {
 		}
 	}
 
+	public static byte parseByteArg(String arg) {
+		try {
+			return Byte.parseByte(arg.split("=")[1]);
+		} catch (NumberFormatException nfe) {
+			System.err.println("Error - invalid "+arg.split("=")[0]+"= argument: "+arg.split("=")[1]);
+			System.exit(1);
+			return Byte.MIN_VALUE;
+		}
+	}
+
 	public static double parseDoubleArg(String arg) {
 		try {
 			return Double.parseDouble(arg.split("=")[1]);

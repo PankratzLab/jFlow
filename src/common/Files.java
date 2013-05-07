@@ -1853,6 +1853,29 @@ public class Files {
         }
 	}
 	
+	public static boolean isFileReady(String filename, long timeOfFirstCheck, long timeIntervalBetweenChecking) {
+        File file;
+        long fileSize;
+        
+		file = new File(filename);
+		try {
+			Thread.sleep(timeOfFirstCheck);
+			if (! file.exists()) {
+				System.out.println("Cannot find the file:" + timeOfFirstCheck + "_InvVar");
+				return false;
+			}
+	
+			fileSize = -1;
+			while (fileSize != file.length()) {
+				fileSize = file.length();
+				Thread.sleep(timeIntervalBetweenChecking);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 	public static void splitFile(String[] line) {
 		String filename = line[0];
 		int numSplits = 2;

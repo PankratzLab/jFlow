@@ -21,7 +21,7 @@ import common.*;
 import cnv.var.*;
 
 // TODO needs major cleanup
-public class ScatterPlot extends JFrame implements ActionListener, WindowListener {
+public class ScatterPlot extends JFrame implements ActionListener, WindowListener, KeyListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 	public static final int DEFAULT_GC_THRESHOLD = 15;
@@ -50,12 +50,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 //	private JPanel typePanel;
-	private JTabbedPane tabbedPane;
-	private JPanel qcPanel;//zx
-	//private JLabel qcPanelLabel;//zx
-	//private JLabel qcCallRateLabel;//zxu
-	//private JLabel qcHwePvalueLabel;//zxu
-	//private JPael typePanelRadioButton;//
+//	private JTabbedPane tabbedPane;
+	private JPanel qcPanel;
+	private JPanel annotationPanel;
 	private JComboBox<String> newGenotype;
 
 	private Project proj;
@@ -67,6 +64,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private boolean[] displayCents;
 	private JLabel[] centLabels;
 	private String[] commentList;
+	private String[] comments;
+	private String[] commentShortcuts;
 	private int markerIndex;
 	private int previousMarkerIndex;
 	//private JLabel markerName, commentLabel;
@@ -84,8 +83,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JCheckBox symmetryBox;
 	private boolean maskMissing;
 	private ClusterFilterCollection clusterFilterCollection;
-	private byte currentClusterFilter;//zx
-	private JTextField clusterFilterNavigation;//zx
+	private Hashtable<String, String> annotationHash;
+	private byte currentClusterFilter;
+	private JTextField clusterFilterNavigation;
 	private boolean clusterFilterCollectionUpdated;
 	private String sessionID;
 	private AutoSaveClusterFilterCollection autoSaveCFC;
@@ -95,6 +95,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private Thread thread2;
     private ColorKeyPanel colorKeyPanel;
 	private Color[] colorScheme;
+	
 	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
 		super("ScatterPlot");
@@ -127,6 +128,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		if (commentList == null) {
 			commentList = Array.stringArray(markerList.length, "");
 		}
+		comments = new String[] {"Ugly", "Monomorphic", "Off Y-axis"};
+		commentShortcuts = new String[] {"u", "m", "o"};
 		
 		System.err.println("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
@@ -136,11 +139,12 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		autoSaveCFC = null;
 		System.err.println("4\t"+ext.getTimeElapsed(time));
 		
+		annotationHash = new Hashtable<String, String>();
 		scatPanel = new ScatterPanel(this);
 		colorScheme = scatPanel.getColorScheme();
 		getContentPane().add(scatPanel, BorderLayout.CENTER);
 		getContentPane().add(markerPanel(), BorderLayout.NORTH);
-		getContentPane().add(controlPanel(), BorderLayout.EAST);
+		getContentPane().add(tabbedPanel(), BorderLayout.EAST);
 //		getContentPane().add(colorPanel(), BorderLayout.SOUTH);
 		colorKeyPanel = new ColorKeyPanel(sampleData, scatPanel);
 		getContentPane().add(colorKeyPanel, BorderLayout.SOUTH);
@@ -165,6 +169,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 		displayClusterFilterIndex();
 		clusterFilterCollectionUpdated = false;
+
 //    	newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)+1);
 		symmetryBox.setSelected(true);
 		if (centList.length > 0) {
@@ -267,160 +272,36 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return descrPanel;
     }
 
-	private JComponent controlPanel() {
-		JPanel controlPanel = new JPanel();
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
-		//typePanel.setLayout(new GridLayout(20, 1));
-//		typePanel.setLayout(new GridBagLayout());
-		controlPanel.setBackground(BACKGROUND_COLOR);
-//		typePanel.setBorder();
-//		typePanel.setSize(50, 100);
-		
-        GridBagConstraints gbc = new GridBagConstraints();   
-        gbc.insets = new Insets(1,3,0,30);   
-        gbc.weightx = 1.0;   
-        gbc.fill = GridBagConstraints.HORIZONTAL;   
-        gbc.gridwidth = GridBagConstraints.REMAINDER;   
+	private JPanel tabbedPanel() {
+		JPanel tabbedPanel;
+		JTabbedPane tabbedPane;
 
-		JPanel tabPanel;
 		tabbedPane = new JTabbedPane();
 		tabbedPane.setBackground(BACKGROUND_COLOR);
-		tabPanel = new JPanel();
-//		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
-		tabPanel.setLayout(new GridBagLayout());
-		tabPanel.setSize(50, 100);
-		tabPanel.setBackground(BACKGROUND_COLOR);
 
-		tabPanel.add(sizeSliderPanel(), gbc);
-		tabPanel.add(gcSliderPanel(), gbc);
-
-		ItemListener symmetryListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-//				scatPanel.setPointsGenerated(true);//zx ??? Why not true?
-//				scatPanel.setUpdateQcPanel(false);//zx ??? Why cannot set to false?
-				updateGUI();
-			}
-		};
-		
-		symmetryBox = new JCheckBox("Symmetric axes");
-		symmetryBox.setFont(new Font("Arial", 0, 14));
-		symmetryBox.addItemListener(symmetryListener);
-		symmetryBox.setBackground(BACKGROUND_COLOR);
-
-		tabPanel.add(symmetryBox, gbc);
-//		tabPanel.add(symmetryBox);
-		
-		JButton button = new JButton(CAPTURE);
-		button.addActionListener(this);
-		button.setActionCommand(CAPTURE);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
-
-		button = new JButton(DUMP);
-		button.addActionListener(this);
-		button.setActionCommand(DUMP);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
-		
-		button = new JButton(MASK_MISSING);
-		button.addActionListener(this);
-		button.setActionCommand(MASK_MISSING);
-		tabPanel.add(button, gbc);
-//		tabPanel.add(button);
-
-//		typePanel.addTab("Control", null, tabPanel, "Manipulate the chart");
-//		typePanel.setMnemonicAt(0, KeyEvent.VK_1);
-//
-//		tabPanel = new JPanel();
-
-		tabPanel.add(clusterFilterPanel(), gbc);
-//		tabPanel.add(clusterFilterPanel());
-
-		tabbedPane.addTab("Control", null, tabPanel, "Manipulate the chart");
+		tabbedPane.addTab("Control", null, controlPanel(), "Manipulate the chart");
 		tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-		tabPanel = new JPanel();
-		
-		ItemListener centListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
-				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
-				centLabels[index].setVisible(displayCents[index]);
-				scatPanel.setPointsGeneratable(true);//zx
-				scatPanel.setQcPanelUpdatable(false);//zx
-				updateGUI();
-			}
-		};
-		JLabel label = new JLabel("  ");
-		label.setFont(new Font("Arial", 0, 20));
-		tabPanel.add(label, gbc);
-//		tabPanel.add(label);
-		label = new JLabel("Centroids:");
-		label.setFont(new Font("Arial", 0, 20));
-		label.setHorizontalAlignment(JLabel.CENTER);
-		tabPanel.add(label, gbc);
-//		tabPanel.add(label);
-		centBoxes = new JCheckBox[centList.length];
-		displayCents = new boolean[centList.length];
-		centLabels = new JLabel[centList.length];
-		//System.out.println(centList.length+"\n");//zx
-		for (int i = 0; i<centList.length; i++) {
-			centBoxes[i] = new JCheckBox(centList[i]);
-			centBoxes[i].setFont(new Font("Arial", 0, 14));
-			centBoxes[i].setSelected(displayCents[i]);
-			centBoxes[i].addItemListener(centListener);
-//			centBoxes[i].setBorder(BorderFactory.createLineBorder(ColorKeyPanel.DEFAULT_COLORS[5+i], 5));
-			centBoxes[i].setBorder(BorderFactory.createLineBorder(colorScheme[5+i], 5));
-			centBoxes[i].setBorderPainted(true);
-			centBoxes[i].setBackground(BACKGROUND_COLOR);
-			tabPanel.add(centBoxes[i], gbc);
-//			tabPanel.add(centBoxes[i]);
-			
-			centLabels[i] = new JLabel("LRR correlation not performed");
-			centLabels[i].setVisible(displayCents[i]);
-			tabPanel.add(centLabels[i], gbc);
-//			tabPanel.add(centLabels[i]);
-		}
-		
-        //JLabel padding = new JLabel();//np
-        //gbc.weighty = 1.0;
-        //typePanel.add(padding, gbc);
-		//private JLabel qcPanelLabel;//zx
-		//private JLabel qcCallRateLabel;//zxu
-		//private JLabel qcHwePvalueLabel;//zxu
-
-		tabbedPane.addTab("Centroid", null, tabPanel, "Displays the centroid");
+		tabbedPane.addTab("Centroid", null, centroidPanel(), "Displays the centroid");
 		tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 
-//		tabPanel = new JPanel();
+		annotationPanel = new JPanel();
+		tabbedPane.addTab("Annotation", null, annotationPanel, "Annotation to this marker");
+		tabbedPane.setMnemonicAt(1, KeyEvent.VK_3);
 
 		qcPanel = new JPanel();//zx
 		qcPanel.setLayout(new GridLayout(8, 1));//zx
 		qcPanel.setBackground(BACKGROUND_COLOR);//zx
-		/*
-        qcPanelLabel = new JLabel("                      ", JLabel.CENTER);//zx
-        qcPanel.add(qcPanelLabel);//zx
-        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
-        qcPanel.add(qcPanelLabel);//zx
-		
-        qcCallRateLabel = new JLabel("Call Rate: "+ScatterPanel.getCallRate()+"%", JLabel.LEFT);//zx
-        qcCallRateLabel.setFont(new Font("Arial", 0, 14));//zx
-        qcPanel.add(qcCallRateLabel);//zx
 
-        qcHwePvalueLabel = new JLabel("HWE p-value: ", JLabel.LEFT);//zx
-        qcHwePvalueLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcHwePvalueLabel);//zx
-		*/
+		tabbedPanel = new JPanel();
+		tabbedPanel.setLayout(new BoxLayout(tabbedPanel, BoxLayout.PAGE_AXIS));
+		tabbedPanel.setBackground(BACKGROUND_COLOR);
+		tabbedPanel.add(tabbedPane);
+		tabbedPanel.add(clusterFilterPanel());
+		tabbedPanel.add(plotTypePanel());
+		tabbedPanel.add(qcPanel);//zx
 
-//		tabbedPane.addTab("QC", null, tabPanel, "Displays the QC result");
-//		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
-
-		controlPanel.add(tabbedPane);
-
-		controlPanel.add(plotTypePanel());
-		controlPanel.add(qcPanel);//zx
-        return controlPanel;
+		return tabbedPanel;
     }
 
 	private JComponent plotTypePanel() {
@@ -463,33 +344,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		typeRadioButtons[1].setSelected(true);
 
 		return plotTypePanel;
-		// --- End of the original block ---
-		
-		/*
-		// --- Beginning of the new block ---
-		typePanelRadioButton = new JPanel();//
-		typePanelRadioButton.setLayout(new GridLayout(MarkerData.TYPES.length,2));//
-		ButtonGroup typeRadio = new ButtonGroup();
-		JRadioButton[] typeRadioButtons = new JRadioButton[MarkerData.TYPES.length];
-		JTextField[] typeRadioTexts = new JTextField[MarkerData.TYPES.length];//
-		for (int i = 0; i<MarkerData.TYPES.length; i++) {
-			//typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);
-			typeRadioButtons[i] = new JRadioButton(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1], false);//
-			//typeRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			typeRadio.add(typeRadioButtons[i]);
-			typeRadioButtons[i].addItemListener(typeListener);
-			typeRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			//typePanel.add(typeRadioButtons[i], gbc);
-			typePanelRadioButton.add(typeRadioButtons[i]);//
-			typeRadioTexts[i]=new JTextField(MarkerData.TYPES[i][0]+"/"+MarkerData.TYPES[i][1]);//
-			typeRadioTexts[i].setBackground(BACKGROUND_COLOR);//
-			typeRadioTexts[i].setFont(new Font("Arial",0,14));//
-			typeRadioTexts[i].setBorder(null);//
-			typePanelRadioButton.add(typeRadioTexts[i]);//
-		}
-		typePanel.add(typePanelRadioButton, gbc);//
-		// --- End of the new block ---
-		 */
 	}
 
 	private JComponent sizeSliderPanel() {
@@ -552,66 +406,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		return gcSliderPanel;
 	}
-
-//	private JComponent colorPanel() {
-//		JPanel bottomPanel = new JPanel();
-//		bottomPanel.setLayout(new GridLayout(2, 1));
-//        //bottomPanel.setBackground(BACKGROUND_COLOR);
-//		classPanel = new JPanel();
-//		JLabel label = new JLabel("Color code by:");
-//		label.setFont(new Font("Arial", 0, 14));
-//		classPanel.add(label);
-//
-//		ItemListener classListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-//				JRadioButton jrb = (JRadioButton)ie.getItem();
-//				if (jrb.isSelected()) {
-//					for (int i = 0; i<sampleData.getNumClasses(); i++) {
-//						if (jrb.getText().equals(sampleData.getClassName(i))) {
-//							currentClass = i;
-////							scatPanel.setPointsGenerated(true);//zx Why should be false?
-//							scatPanel.setPointsGeneratable(true);//zx
-//							scatPanel.setQcPanelUpdatable(true);//zx
-//							updateGUI();
-//						}
-//					}
-//				}
-//			}
-//		};
-//		ButtonGroup classRadio = new ButtonGroup();
-//		classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
-//		for (int i = 0; i<sampleData.getNumClasses(); i++) {
-//			classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
-//			classRadioButtons[i].setFont(new Font("Arial", 0, 14));
-//			classRadio.add(classRadioButtons[i]);
-//			classRadioButtons[i].addItemListener(classListener);
-//			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
-//			classPanel.add(classRadioButtons[i]);
-//		}
-//		classPanel.setBackground(BACKGROUND_COLOR);
-//		bottomPanel.add(classPanel);
-//		
-//		legendPanel = new JPanel();
-//        legendPanel.setBackground(BACKGROUND_COLOR);
-//
-//        //JLabel legend1 = new JLabel("Color Key: ");
-//		//legend1.setFont(new Font("Arial", 0, 14));
-//		//legendPanel.add(legend1);
-//		
-////		for (int i=0; i<sampleData.getActualClassColorKey(currentClass).length; i++){
-////			legendPanel.add(new JLabel(new ColorIcon(12,12,ScatterPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[i][0])])));
-////			legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[i][1]));
-////		}
-////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[0][0])])));
-////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[0][1]));
-////		legendPanel.add(new JLabel(new ColorIcon(12,12,scatPanel.DEFAULT_COLORS[Integer.parseInt(sampleData.getActualClassColorKey(currentClass)[1][0])])));
-////		legendPanel.add(new JLabel(sampleData.getActualClassColorKey(currentClass)[1][1]));
-//		
-//		bottomPanel.add(legendPanel);
-//		classRadioButtons[1].setSelected(true);
-//
-//		return bottomPanel;
-//	}
 
 	private JComponent clusterFilterPanel() {
 		JPanel clusterFilterPanel = new JPanel();
@@ -717,6 +511,138 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		return clusterFilterPanel;
 	}
+
+	private JPanel controlPanel() {
+		JPanel controlPanel;
+
+		controlPanel = new JPanel();
+//		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
+		controlPanel.setLayout(new GridBagLayout());
+		controlPanel.setSize(50, 100);
+		controlPanel.setBackground(BACKGROUND_COLOR);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(1,3,0,30);
+		gbc.weightx = 1.0;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+
+		controlPanel.add(sizeSliderPanel(), gbc);
+		controlPanel.add(gcSliderPanel(), gbc);
+
+		ItemListener symmetryListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+//				scatPanel.setPointsGenerated(true);//zx ??? Why not true?
+//				scatPanel.setUpdateQcPanel(false);//zx ??? Why cannot set to false?
+				updateGUI();
+			}
+		};
+		
+		symmetryBox = new JCheckBox("Symmetric axes");
+		symmetryBox.setFont(new Font("Arial", 0, 14));
+		symmetryBox.addItemListener(symmetryListener);
+		symmetryBox.setBackground(BACKGROUND_COLOR);
+
+		controlPanel.add(symmetryBox, gbc);
+//		tabPanel.add(symmetryBox);
+		
+		JButton button = new JButton(CAPTURE);
+		button.addActionListener(this);
+		button.setActionCommand(CAPTURE);
+		controlPanel.add(button, gbc);
+//		tabPanel.add(button);
+
+		button = new JButton(DUMP);
+		button.addActionListener(this);
+		button.setActionCommand(DUMP);
+		controlPanel.add(button, gbc);
+//		tabPanel.add(button);
+		
+		button = new JButton(MASK_MISSING);
+		button.addActionListener(this);
+		button.setActionCommand(MASK_MISSING);
+		controlPanel.add(button, gbc);
+
+		return controlPanel;
+	}
+
+	private JPanel centroidPanel() {
+		JPanel centroidPanel;
+
+		centroidPanel = new JPanel();
+//		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
+		centroidPanel.setLayout(new GridBagLayout());
+		centroidPanel.setSize(50, 100);
+		centroidPanel.setBackground(BACKGROUND_COLOR);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(1,3,0,30);
+		gbc.weightx = 1.0;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+
+		ItemListener centListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
+				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
+				centLabels[index].setVisible(displayCents[index]);
+				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setQcPanelUpdatable(false);//zx
+				updateGUI();
+			}
+		};
+		JLabel label = new JLabel("  ");
+		label.setFont(new Font("Arial", 0, 20));
+		centroidPanel.add(label, gbc);
+//		tabPanel.add(label);
+		label = new JLabel("Centroids:");
+		label.setFont(new Font("Arial", 0, 20));
+		label.setHorizontalAlignment(JLabel.CENTER);
+		centroidPanel.add(label, gbc);
+//		tabPanel.add(label);
+		centBoxes = new JCheckBox[centList.length];
+		displayCents = new boolean[centList.length];
+		centLabels = new JLabel[centList.length];
+		//System.out.println(centList.length+"\n");//zx
+		for (int i = 0; i<centList.length; i++) {
+			centBoxes[i] = new JCheckBox(centList[i]);
+			centBoxes[i].setFont(new Font("Arial", 0, 14));
+			centBoxes[i].setSelected(displayCents[i]);
+			centBoxes[i].addItemListener(centListener);
+//			centBoxes[i].setBorder(BorderFactory.createLineBorder(ColorKeyPanel.DEFAULT_COLORS[5+i], 5));
+			centBoxes[i].setBorder(BorderFactory.createLineBorder(colorScheme[5+i], 5));
+			centBoxes[i].setBorderPainted(true);
+			centBoxes[i].setBackground(BACKGROUND_COLOR);
+			centroidPanel.add(centBoxes[i], gbc);
+//			tabPanel.add(centBoxes[i]);
+			
+			centLabels[i] = new JLabel("LRR correlation not performed");
+			centLabels[i].setVisible(displayCents[i]);
+			centroidPanel.add(centLabels[i], gbc);
+//			tabPanel.add(centLabels[i]);
+		}
+
+		return centroidPanel;
+	}
+
+//	private JPanel annotationPanel(String[] annotationList) {
+//		JPanel annotationPanel;
+//		JCheckBox comment;
+//
+//		annotationPanel = new JPanel();
+//		annotationPanel.setLayout(new BoxLayout(annotationPanel, BoxLayout.Y_AXIS));
+//		annotationPanel.setBackground(BACKGROUND_COLOR);
+//		for (int i=0; i<annotationList.length; i++) {
+//			comment = new JCheckBox(annotationList[i]);
+//			comment.setBackground(Color.WHITE);
+//			if (annotationHash.size()>0 && annotationHash.get(getMarkerName()).contains(annotationList[i])) {
+//				comment.setSelected(true);
+//			}
+//			comment.addKeyListener(this);
+//			annotationPanel.add(comment);
+//		}
+//		return annotationPanel;
+//	}
 
 	private void inputMapAndActionMap() {
 		InputMap inputMap = scatPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -1526,6 +1452,30 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 
+	public void updateAnnotationPanel() {
+		String annotation;
+		annotationPanel.removeAll();
+		annotationPanel.repaint();
+		
+		JCheckBox comment;
+
+//		annotationPanel = new JPanel();
+		annotationPanel.setLayout(new BoxLayout(annotationPanel, BoxLayout.Y_AXIS));
+		annotationPanel.setBackground(BACKGROUND_COLOR);
+		for (int i=0; i<comments.length; i++) {
+			comment = new JCheckBox(comments[i]);
+			comment.setBackground(Color.WHITE);
+			annotation = annotationHash.get(getMarkerName());
+			if (annotation != null && annotation.contains(comments[i])) {
+				comment.setSelected(true);
+			}
+			comment.addKeyListener(this);
+			annotationPanel.add(comment);
+		}
+
+		annotationPanel.validate();
+	}
+
 	public void displayIndex(JTextField field) {
 		field.setText((markerIndex+1)+" of "+markerList.length);
 	}
@@ -1591,6 +1541,31 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	public void windowIconified(WindowEvent e) {}
 
 	public void windowOpened(WindowEvent e) {}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		String shortcut;
+		String temp;
+
+		shortcut = e.getKeyChar() + "";
+		for (int i=0; i<commentShortcuts.length; i++) {
+			if (commentShortcuts[i].equals(shortcut)) {
+				temp = annotationHash.get(getMarkerName());
+				if (temp == null || ! temp.contains((comments[i]))) {
+					annotationHash.put(getMarkerName(), (temp == null? "" : temp + "\t") + comments[i]);
+					System.out.println(annotationHash.get(getMarkerName()));
+				}
+			}
+		}
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+	}
 
 //	private void generateTypePanel () {
 //		typePanel = new JPanel();
