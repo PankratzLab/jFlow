@@ -77,7 +77,7 @@ public class Launch {
 			} else if (temp.equalsIgnoreCase("uniform")) {
 				Metal.generateUniformsFromParamters(filename, log);
 			} else if (temp.equalsIgnoreCase("metal")) {
-				Metal.generateInputFile(filename, log);
+				Metal.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("transform")) {
 				Transformations.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("forest")) {
