@@ -166,4 +166,8 @@ public class ColorKeyPanel extends JPanel {
 	public int getCurrentClass() {
 		return currentClass;
 	}
+	
+	public JRadioButton[] getClassRadioButtons() {
+		return classRadioButtons;
+	}
 }

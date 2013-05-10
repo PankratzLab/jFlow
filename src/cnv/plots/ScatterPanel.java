@@ -325,7 +325,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			setQcPanelUpdatable(false);
 		}
 		sp.updateColorKey(uniqueValueCounts.convertToHash());
-		sp.updateAnnotationPanel();
 		
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		for (int i = 0; i < points.length; i++) {

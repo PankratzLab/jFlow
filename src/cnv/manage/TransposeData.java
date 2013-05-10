@@ -473,9 +473,13 @@ public class TransposeData {
 
 		indexInReadBuffer = 0;
 		step = numSamplesInProj * bytesPerSampMark;
-		indexInChunk = indexOfCurrentSample * bytesPerSampMark;
+//		indexInChunk = indexOfCurrentSample * bytesPerSampMark;
 		for (int i=0; i < writeBuffer.length; i++) {
 			numMarkersInChunk = writeBuffer[i].length / bytesPerSampMark / numSamplesInProj;
+			indexInChunk = indexOfCurrentSample * bytesPerSampMark;
+//			if (i>0) {
+//				indexInChunk -= writeBuffer[i-1].length;
+//			}
 
 			for (int j=0; j < numMarkersInChunk; j++) {
 				for (int k=0; k < bytesPerSampMark; k++) {
@@ -483,7 +487,10 @@ public class TransposeData {
 						writeBuffer[i][indexInChunk + k] = readBuffer[indexInReadBuffer];
 					} catch (ArrayIndexOutOfBoundsException e) {
 						System.out.println("j:" + j + "\tnumMarkersInChunk:" + numMarkersInChunk);
+						System.out.println("i:" + i + "\tj:"+j+"\tk:"+k+"\tindexInChunk: "+indexInChunk);
+						System.out.println("writebuffer size: " + writeBuffer.length + " , "+writeBuffer[i].length+"\treadBuffer size: "+readBuffer.length);
 						e.printStackTrace();
+						System.exit(1);
 					}
 	    			indexInReadBuffer ++;
 	    		}

@@ -607,8 +607,10 @@ public class ParseIllumina implements Runnable {
 		
 		allOutliers = new Hashtable<String, Float>();
 		for (int i = 0; i<numThreads; i++) {
-			allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser"));
-			new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").delete();
+			if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").exists()) {
+				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser"));
+				new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").delete();
+			}
 		}
 		if (allOutliers.size()>0) {
 			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
