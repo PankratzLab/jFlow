@@ -3133,6 +3133,27 @@ public class Array {
 		return result;
 	}
 
+	/**
+	 * Creates an array of char and copies the contents of an array of String
+	 * 
+	 * @param array
+	 *            array of String
+	 * @return an array of the converted String
+	 */
+	public static char[] toCharArray(String[] array) {
+		char[] newArray;
+		
+		newArray = new char[array.length];
+		for (int i = 0; i < newArray.length; i++) {
+			if (array[i].length() != 1) {
+				System.err.println("Error - cannot convert string to char since it is longer than 1 byte: "+array[i]);
+			}
+			newArray[i] = array[i].charAt(0);
+		}
+
+		return newArray;
+	}
+
 	public static void main(String[] args) {
 	    double alleleFreq = 0.2;
 	    double stdev = 0.12;
