@@ -60,7 +60,7 @@ public class Collapsed {
 						}
 					}
 				}
-
+				jarFile.close();
 				return toStringArray(v);
 			} catch (Exception e) {
 				System.err.println("Error reading files in jar file");

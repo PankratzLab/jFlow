@@ -4,7 +4,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import cnv.manage.MarkerDataLoader;
 import cnv.manage.TransposeData;
 
 public class Dump {

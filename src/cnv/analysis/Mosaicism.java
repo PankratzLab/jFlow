@@ -84,6 +84,7 @@ public class Mosaicism {
 				samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 				if (samp.getFingerprint()!=markerSet.getFingerprint()) {
 					System.err.println("Error - cannot estimate mosaics if MarkerSet and Sample ("+samples[i]+") don't use the same markers");
+					writer.close();
 					return;
 				}
 				lrrs = samp.getLRRs();

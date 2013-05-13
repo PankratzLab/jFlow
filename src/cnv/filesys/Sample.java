@@ -620,6 +620,7 @@ public class Sample implements Serializable {
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
 		byte[] outliersBuffer;
 		Hashtable<String, Float> sampleOutlierHash;
