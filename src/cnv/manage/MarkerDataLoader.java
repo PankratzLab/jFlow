@@ -187,7 +187,7 @@ public class MarkerDataLoader implements Runnable {
 		return markerData;
 	}
 
-	@Override
+	@SuppressWarnings("unchecked")
 	public void run() {
 		MarkerData[] collection;
 		String[] line;
@@ -313,7 +313,6 @@ public class MarkerDataLoader implements Runnable {
 	 * @param markerNamesOfInterest
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public static MarkerData[] loadFromRAF(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndicesInFile, boolean loadGC, boolean loadXY, boolean loadBAF, boolean loadLRR, boolean loadAbGenotype, long sampleFingerprint, Hashtable<String, Float> outOfRangeValues) {
 		MarkerData[] result;
 		RandomAccessFile file;

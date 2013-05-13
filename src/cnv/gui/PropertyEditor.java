@@ -1,18 +1,18 @@
 package cnv.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Scrollbar;
+//import java.awt.Scrollbar;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.AbstractButton;
+//import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+//import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SpringLayout;
@@ -49,7 +49,7 @@ public class PropertyEditor implements ActionListener {
     	editer.add(rightPanel(proj), BorderLayout.EAST);
     	saveButton = new JButton("Save");
     	saveButton.addActionListener(this);
-    	editer.add(saveButton, mainFrameLayout.SOUTH);
+    	editer.add(saveButton, BorderLayout.SOUTH);
     }
 
 	private JPanel leftPanel() {

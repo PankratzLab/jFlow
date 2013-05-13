@@ -157,9 +157,9 @@ public class CNVariant extends Segment {
 	public static void mergeCNVs(String filename) {
 		BufferedReader reader;
 		String[] line;
-		PrintWriter writer;
-		Hashtable<String, Vector<CNVariant>> hash;
-		hash = new Hashtable<String, Vector<CNVariant>>();
+//		PrintWriter writer;
+//		Hashtable<String, Vector<CNVariant>> hash;
+//		hash = new Hashtable<String, Vector<CNVariant>>();
 		StringVector markerNames;
 		ByteVector chrs;
 		IntVector positions;

@@ -4,8 +4,6 @@
 package cnv.plots;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -13,7 +11,6 @@ import java.util.Hashtable;
 
 import javax.swing.JCheckBox;
 import javax.swing.JPopupMenu;
-import javax.swing.JRadioButton;
 
 import cnv.filesys.ClusterFilter;
 import cnv.filesys.MarkerData;
@@ -537,7 +534,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		JPopupMenu choiceMenu;
 		JCheckBox comment;
-		String commentResult;
 		choiceMenu = new JPopupMenu();
 		for (int i=0; i<comments.length; i++) {
 			comment = new JCheckBox(comments[i]);

@@ -8,7 +8,6 @@ import java.util.*;
 import javax.swing.JOptionPane;
 
 import cnv.filesys.ABLookup;
-import cnv.filesys.MarkerData;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -329,6 +328,7 @@ public class ParseIllumina implements Runnable {
 		return dir+trav+Sample.SAMPLE_DATA_FILE_EXTENSION;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void createFiles(Project proj, int numThreads) {
 		BufferedReader reader;
 		String[] line, markerNames, files;
@@ -622,7 +622,7 @@ public class ParseIllumina implements Runnable {
 		ABLookup abLookup; 
 		char[][] lookup;
 		
-		if (abLookupRequired) {
+		if (abLookupRequired && Files.exists(proj.getProjectDir()+ABLookup.DEFAULT_AB_FILE)) {
 			abLookup = new ABLookup(markerNames, proj.getProjectDir()+ABLookup.DEFAULT_AB_FILE, true, false);
 			lookup = abLookup.getLookup();
             if (lookup == null) {

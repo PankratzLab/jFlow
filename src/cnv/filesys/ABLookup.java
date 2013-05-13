@@ -454,7 +454,10 @@ public class ABLookup {
 		
 //		filename = "/home/npankrat/projects/SDRG.properties";
 //		mapFile = "00src/HumanOmni2.5-8v1_C.csv";
-		
+
+		filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
+		mapFile = "C:/GEDI_exomeRAF/HumanExome-12v1_A.csv";
+
 		try {
 			proj = new Project(filename, false);
 			if (mapFile != null) {

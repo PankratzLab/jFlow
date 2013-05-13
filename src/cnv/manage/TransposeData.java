@@ -70,14 +70,14 @@ public class TransposeData {
 		Hashtable<String,String> markerLookupHash = new Hashtable<String,String>();
 		byte[][] markersInEachFile;
 		String[] markersInEachFile1;
-		Hashtable<String, Float>[] markFileWriteBufferOutliers;
+		Vector<Hashtable<String, Float>> markFileWriteBufferOutliers;
 		byte[] markFileWriteBufferOutliersBytes;
 		Hashtable<String, Float> allOutliers;
 		byte nullStatus = Byte.MIN_VALUE;
         byte bytesPerSampMark;
         int numMarkersCurrentLoop;
         byte backupCount;
-		long timer1, timer2, timer3, timer4, timer5, timer6;
+		long timer1, timer2, timer3, timer5, timer6;
 		boolean done, safe;
 		long memoryReserve;
 		int oomeLoops;
@@ -243,10 +243,10 @@ public class TransposeData {
 					while ((indexWrBufferChunk + numBufferChunksNeeded) <= writeBuffer.length) {
 						if (numBufferChunksNeeded == numBufferChunksForCurrentFile) {
 							markerDataWriteBufferParameter = getWriteBufferParameterSection(allSampleNamesInProj.length, allMarkerNamesInProj.length, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
-							if (markFileWriteBufferOutliers == null || markFileWriteBufferOutliers[markerFileIndex].size() == 0) {
+							if (markFileWriteBufferOutliers == null || markFileWriteBufferOutliers.elementAt(markerFileIndex).size() == 0) {
 								markFileWriteBufferOutliersBytes = new byte[0];
 							} else {
-								markFileWriteBufferOutliersBytes = Compression.objToBytes(markFileWriteBufferOutliers[markerFileIndex]);
+								markFileWriteBufferOutliersBytes = Compression.objToBytes(markFileWriteBufferOutliers.elementAt(markerFileIndex));
 							}
 							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");
 //							writeBufferToRAF(markersInEachFile, indexWrBufferChunk, indexWrBufferChunk + numBufferChunksNeeded - 1, markerFile, markerDataWriteBufferParameter, markFileWriteBufferOutliersBytes);
@@ -254,10 +254,10 @@ public class TransposeData {
 							markerFile.close();
 							indexWrBufferChunk += numBufferChunksNeeded;
 						} else {
-							if (markFileWriteBufferOutliers == null || markFileWriteBufferOutliers[markerFileIndex].size() == 0) {
+							if (markFileWriteBufferOutliers == null || markFileWriteBufferOutliers.elementAt(markerFileIndex).size() == 0) {
 								markFileWriteBufferOutliersBytes = new byte[0];
 							} else {
-								markFileWriteBufferOutliersBytes = Compression.objToBytes(markFileWriteBufferOutliers[markerFileIndex]);
+								markFileWriteBufferOutliersBytes = Compression.objToBytes(markFileWriteBufferOutliers.elementAt(markerFileIndex));
 							}
 							writeBufferToRAF(writeBuffer, indexWrBufferChunk, indexWrBufferChunk + numBufferChunksNeeded - 1, markerFile, null, markFileWriteBufferOutliersBytes);
 							markerFile.close();
@@ -581,17 +581,16 @@ public class TransposeData {
 		}
 	}
 
-//	@SuppressWarnings("unchecked")
-	private static Hashtable<String, Float>[] getOutlierHashForEachFile(Hashtable<String, Float> allOutliers, int numMarkerFiles, int numMarkersInEachFile, String[] sampleNames) {
-		Hashtable<String, Float>[] result;
+	private static Vector<Hashtable<String, Float>> getOutlierHashForEachFile(Hashtable<String, Float> allOutliers, int numMarkerFiles, int numMarkersInEachFile, String[] sampleNames) {
+		Vector<Hashtable<String, Float>> result;
 		Enumeration<String> keys;
 		String key;
 		String[] line;
 		int sampleIndex = -1;
 		
-		result = new Hashtable[numMarkerFiles];
-		for (int j=0; j<result.length; j++) {
-			result[j] = new Hashtable<String, Float>(allOutliers.size());
+		result = new Vector<Hashtable<String,Float>>(numMarkerFiles);
+		for (int j=0; j<numMarkerFiles; j++) {
+			result.add(new Hashtable<String, Float>(allOutliers.size()));
 		}
 
 		keys = allOutliers.keys();
@@ -607,25 +606,25 @@ public class TransposeData {
 			if (sampleIndex == -1) {
 				System.err.println("Error - Cannot find the sample " + line[1] + "in the project's sample list.");
 			}
-			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex, allOutliers.get(key));
+			result.elementAt(Integer.parseInt(line[0]) / numMarkersInEachFile).put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex, allOutliers.get(key));
 		}
 
 		return result;
 	}
 
-	private static byte[] getWriteBufferParameterSection(int numSampsInProj, int numMarkersInCurrentFile, byte nullStatus, long fingerPrint, String[] currentFileMarkerNames) {
-		byte[] markerNamesBytes;
-
-		try {
-			markerNamesBytes = Compression.objToBytes(currentFileMarkerNames);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-
-		return getWriteBufferParameterSection(numSampsInProj, numMarkersInCurrentFile, nullStatus, fingerPrint, markerNamesBytes);
-	}
-
+//	private static byte[] getWriteBufferParameterSection(int numSampsInProj, int numMarkersInCurrentFile, byte nullStatus, long fingerPrint, String[] currentFileMarkerNames) {
+//		byte[] markerNamesBytes;
+//
+//		try {
+//			markerNamesBytes = Compression.objToBytes(currentFileMarkerNames);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			return null;
+//		}
+//
+//		return getWriteBufferParameterSection(numSampsInProj, numMarkersInCurrentFile, nullStatus, fingerPrint, markerNamesBytes);
+//	}
+//
 	private static byte[] getWriteBufferParameterSection(int numSampsInProj, int numMarkersInCurrentFile, byte nullStatus, long fingerPrint, byte[] currentFileMarkerNamesInBytes) {
 		byte[] markerFileHead;
 
@@ -784,6 +783,7 @@ public class TransposeData {
 		new File(fileFullPath).renameTo(new File(ext.parseDirectoryOfFile(fileFullPath) + ext.rootOf(fileFullPath) + "_Backup" + i + "." + fileFullPath.substring(fileFullPath.lastIndexOf(".") + 1, fileFullPath.length())));
 	}
 
+	@SuppressWarnings("unchecked")
 	public static MarkerData[] loadFromRAF(String markerFilename, int indexStartMarker, int indexEndMarker) {
 		MarkerData[] result = null;
 		RandomAccessFile file;
@@ -838,10 +838,12 @@ public class TransposeData {
 			//TODO to optimize here. Adjacent markers can be read in at once.
 			if (indexEndMarker>=numMarkers) {
 				System.err.println("The index of last marker to load (" + indexEndMarker + ") should be less than the number of markers (" + numMarkers +") stored in this file");
+				file.close();
 				return null;
 			}
 			if (indexStartMarker<0 || indexStartMarker>indexEndMarker) {
 				System.err.println("Error with the index of first marker to load (" + indexStartMarker + ")");
+				file.close();
 				return null;
 			}
 	        for (int i=indexStartMarker; i<indexEndMarker; i++) {

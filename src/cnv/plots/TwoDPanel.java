@@ -1,47 +1,25 @@
-/*
- * Revised in Feb, 2012. Add mouse dragged feature.
- */
 package cnv.plots;
 
-//import java.util.Date;
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
-import mining.Distance;
-
-import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.gui.LaunchAction;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
-import cnv.var.IndiPheno;
-import filesys.Segment;
-//import common.CountVector;
 import common.CountVector;
 import common.Files;
-import common.HashVec;
 import common.IntVector;
 import common.Logger;
 import common.Positions;
-import common.Sort;
-import common.ext;
-//import common.ext;
-//import mining.Distance;
-import common.Array;
-//import mining.Distance;
 
-//public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
@@ -80,18 +58,9 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	};
 	
-//	protected MarkerData[] markerData;
-//	byte[] alleleCounts;				//zx
 	protected TwoDPlot tdp;
-//	protected String[] samples;
-//	protected IntVector prox;
-//	protected SampleData sampleData;
-	IntVector indeciesOfNearbySamples;	//zx
-	private boolean updateQcPanel;		//zx: A control variable. Do not update QcPanel when resizing, or etc.
-	private int mouseStartX ;
-	private int mouseStartY ;
-	private int mouseEndX ;
-	private int mouseEndY ;
+	IntVector indeciesOfNearbySamples;
+	private boolean updateQcPanel;
 	private boolean swapAxes;
 	private Logger log;
 	private MarkerLookup markerLookup;
@@ -430,22 +399,12 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	// End of original section
 	*/
 
-    public void mousePressed(MouseEvent e) {
-    	mouseStartX = e.getX();
-    	mouseStartY = e.getY();
-    }
+    public void mousePressed(MouseEvent e) {}
 
     public void mouseReleased(MouseEvent e) { }
 
     public void mouseDragged(MouseEvent e) { }
 
-//	public void paintComponent(Graphics g) {
-//		System.out.println("inner");
-//		this.paintComponent(g);
-////		super(g);
-//	}
-
-    
 	public void mouseClicked(MouseEvent e) {
 		JPopupMenu menu;
 		int[] linkKeyIndicies;

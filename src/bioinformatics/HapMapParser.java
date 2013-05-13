@@ -97,6 +97,8 @@ public class HapMapParser {
 					line = line[6].split(":");
 					if (line.length!=6) {
 						log.reportError("Error - different format than expected for pedinfo2sample_***.txt file (do not alter from what's posted)");
+						reader.close();
+						writer.close();
 						return;
 					}
 					trav = line[4];

@@ -30,6 +30,7 @@ public class CompareCalls {
 			try {
 				reader = new BufferedReader(new FileReader(rootDir+files[i]));
 				if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER, false)) {
+					reader.close();
 					return;
 				}
 				while (reader.ready()) {
