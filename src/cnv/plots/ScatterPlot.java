@@ -39,9 +39,15 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private static final String CLUSTER_FILTER_DELETE = "Delete";
 	private static final String CAPTURE = "Screen capture";
 	private static final String DUMP = "Dump raw data";
+	private static final String SHOW_ALL = "Show all";
+	private static final String SHOW_ANNOTATED_ONLY = "Show annotated only";
+	private static final String SHOW_UNANNOTATED_ONLY = "Show unannotated only";
+	private static final String[] RADIOBUTTON_TEXTS = new String[] {SHOW_ALL, SHOW_ANNOTATED_ONLY, SHOW_UNANNOTATED_ONLY};
 	public static final String MASK_MISSING = "Mask missing values";
 	public static final String UNMASK_MISSING = "Unmask missing values";
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
+	public static final String DEFAULT_MESSAGE = "enter new annotation here";
+
 
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
@@ -56,16 +62,19 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private JPanel qcPanel;
 	private JScrollPane annotationScrollPane;
 	private JPanel annotationPanel;
-	private JPanel annotationPanelComment;
+	private JPanel annotationPanelLowerPart;
 	private JCheckBox[] annotationCheckBoxes;
+	private JRadioButton[] fileterRadioButtons;
 	private JTextField addAnnotationField;
 	private boolean showAnnotationShortcuts;
 	private boolean annotationAutoAdv;
-	private boolean allMarkersOrOnlyThoseAnnotatedOrUnannotated;
-	private boolean annotatedOrUnannotated;
+	private boolean showAllMarkersOrNot;
+	private boolean showAnnotatedOrUnannotated;
 	private boolean[] isAnnotated;
+	private int annotated;
 	private char[] annotationKeys;
 	private JComboBox<String> newGenotype;
+	private boolean isInitilizing;
 
 	private Project proj;
 //	private MarkerData[] markerData;
@@ -141,9 +150,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		markerList = masterMarkerList;
 		commentList = masterCommentList;
 		isAnnotated = new boolean[markerList.length];
-		allMarkersOrOnlyThoseAnnotatedOrUnannotated = true;
-		annotatedOrUnannotated = true;
+		annotated = 0;
+		showAllMarkersOrNot = true;
+		showAnnotatedOrUnannotated = true;
 		showAnnotationShortcuts = true;
+		isInitilizing = true;
 		
 		loadMarkerDataFromList();
 		
@@ -163,7 +174,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		colorScheme = scatPanel.getColorScheme();
 		getContentPane().add(scatPanel, BorderLayout.CENTER);
 		getContentPane().add(markerPanel(), BorderLayout.NORTH);
-		getContentPane().add(tabbedPanel(), BorderLayout.EAST);
+		getContentPane().add(eastPanel(), BorderLayout.EAST);
 //		getContentPane().add(colorPanel(), BorderLayout.SOUTH);
 		colorKeyPanel = new ColorKeyPanel(sampleData, scatPanel);
 		getContentPane().add(colorKeyPanel, BorderLayout.SOUTH);
@@ -208,7 +219,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		setVisible(true);
 	}
 	
-	private JComponent markerPanel() {
+	private JPanel markerPanel() {
 		JPanel descrPanel = new JPanel();
 		descrPanel.setLayout(new GridLayout(3, 1));
 		//markerName = new JLabel("", JLabel.CENTER);
@@ -259,6 +270,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				setCurrentClusterFilter();
 				updateGUI();
 				displayClusterFilterIndex();
+//				annotationPanelLowerPart();
 				updateAnnotationPanel();
 	        }
 		});
@@ -286,7 +298,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return descrPanel;
     }
 
-	private JPanel tabbedPanel() {
+	private JPanel eastPanel() {
 		JPanel tabbedPanel;
 		JTabbedPane tabbedPane;
 
@@ -320,13 +332,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		tabbedPanel.setBackground(BACKGROUND_COLOR);
 		tabbedPanel.add(tabbedPane);
 		tabbedPanel.add(clusterFilterPanel());
-		tabbedPanel.add(plotTypePanel());
+//		tabbedPanel.add(plotTypePanel());
 		tabbedPanel.add(qcPanel);//zx
 
 		return tabbedPanel;
     }
 
-	private JComponent plotTypePanel() {
+	private JPanel plotTypePanel() {
 		JPanel plotTypePanel = new JPanel();
 //		plotTypePanel.setLayout(new BoxLayout(plotTypePanel, BoxLayout.Y_AXIS));
 		plotTypePanel.setLayout(new GridLayout(4, 1));
@@ -364,7 +376,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return plotTypePanel;
 	}
 
-	private JComponent sizeSliderPanel() {
+	private JPanel sizeSliderPanel() {
 		JPanel sizeSliderPanel = new JPanel();
 		sizeSliderPanel.setLayout(new BoxLayout(sizeSliderPanel, BoxLayout.Y_AXIS));
 		sizeSliderPanel.setBackground(BACKGROUND_COLOR);
@@ -393,7 +405,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return sizeSliderPanel;
 	}
 
-	private JComponent gcSliderPanel() {
+	private JPanel gcSliderPanel() {
 		JPanel gcSliderPanel = new JPanel();
 		gcSliderPanel.setLayout(new BoxLayout(gcSliderPanel, BoxLayout.Y_AXIS));
 		gcSliderPanel.setBackground(BACKGROUND_COLOR);
@@ -425,7 +437,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return gcSliderPanel;
 	}
 
-	private JComponent clusterFilterPanel() {
+	private JPanel clusterFilterPanel() {
 		JPanel clusterFilterPanel = new JPanel();
 		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
 //		clusterFilterPanel.setLayout(new BoxLayout(clusterFilterPanel, BoxLayout.PAGE_AXIS));
@@ -464,7 +476,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //				scatPanel.generateRectangles();
 				updateGUI();
 				displayClusterFilterIndex();
-				updateAnnotationPanel();
+//				updateAnnotationPanel();
 			}
 		});
 
@@ -515,7 +527,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //				if (e.getWhen()>1000) {					//??????
 //					saveClusterFilterCollection();
 //				}
-				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setPointsGeneratable(true);
 				scatPanel.setQcPanelUpdatable(true);//zx???
 				//updateGUI();
 				scatPanel.paintAgain();
@@ -581,6 +593,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		button.addActionListener(this);
 		button.setActionCommand(MASK_MISSING);
 		controlPanel.add(button, gbc);
+		
+		controlPanel.add(plotTypePanel(), gbc);
 
 		return controlPanel;
 	}
@@ -648,129 +662,246 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		annotationPanel = new JPanel();
 		annotationPanel.setBackground(Color.WHITE);
 		annotationPanel.setLayout(new BoxLayout(annotationPanel, BoxLayout.Y_AXIS));
-		annotationPanel.add(annotationPanelControlPart());
-		annotationPanelComment = new JPanel();
-		annotationPanelComment.setLayout(new BoxLayout(annotationPanelComment, BoxLayout.Y_AXIS));
-		annotationPanelComment.setBackground(BACKGROUND_COLOR);
-		annotationPanel.add(annotationPanelComment);
+		annotationPanel.add(annotationPanelUpperPart());
+		annotationPanelLowerPart = new JPanel();
+		annotationPanelLowerPart.setLayout(new BoxLayout(annotationPanelLowerPart, BoxLayout.Y_AXIS));
+		annotationPanelLowerPart.setBackground(BACKGROUND_COLOR);
+		annotationPanel.add(annotationPanelLowerPart);
+		annotationPanelLowerPart();
 		annotationScrollPane = new JScrollPane(annotationPanel);
 	}
 
-	private JPanel annotationPanelControlPart() {
+	private JPanel annotationPanelUpperPart() {
 		JPanel annotationPanelControl;
 		JPanel subPanel;
-		JLabel label;
-		JRadioButton[] radioButtons;
-		String[] radioButtonTexts;
-		ButtonGroup radioButtonGroup;
+		JCheckBox checkBox;
 
 		annotationPanelControl = new JPanel();
 		annotationPanelControl.setLayout(new BoxLayout(annotationPanelControl, BoxLayout.Y_AXIS));
 		annotationPanelControl.setBackground(BACKGROUND_COLOR);
 
-		label = new JLabel("Keyboard shortcut");
 		subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
+		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.X_AXIS));
 		subPanel.setBackground(Color.WHITE);
-		subPanel.add(label);
-		radioButtonTexts = new String[] {"On", "Off"};
-		radioButtonGroup = new ButtonGroup();
-		radioButtons = new JRadioButton[radioButtonTexts.length];
-		for (int i = 0; i < radioButtonTexts.length; i++) {
-			radioButtons[i] = new JRadioButton(radioButtonTexts[i]);
-			radioButtons[i].setBackground(Color.WHITE);
-//			if (i==0) {
-//				radioButtons[i].setSelected(annotationShortcuts);
-//			} else {
-//				radioButtons[i].setSelected(!annotationShortcuts);
-//			}
-			radioButtons[i].addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (e.getActionCommand().equals("On")) {
-//						annotationShortcuts = true;
-						showAnnotationShortcuts = true;
-						activateAllAnnotationMaps();
-						updateAnnotationPanel();
-					} else {
-//						annotationShortcuts = false;
-						showAnnotationShortcuts = false;
-						deactivateAllAnnotationMaps();
-						updateAnnotationPanel();
-					}
-				}});
-			radioButtonGroup.add(radioButtons[i]);
-			subPanel.add(radioButtons[i]);
-		}
-//		annotationPanel.add(radioButtonGroup);
+
+		checkBox = new JCheckBox("Shortcut");
+		checkBox.setBackground(Color.WHITE);
+		checkBox.setHorizontalTextPosition(SwingConstants.LEFT);
+		checkBox.setSelected(true);
+		checkBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox checkBox = (JCheckBox) e.getSource();
+				if (checkBox.isSelected()) {
+					showAnnotationShortcuts = true;
+					activateAllAnnotationMaps();
+//					annotationPanelLowerPart();
+					updateAnnotationPanelAnnotationCheckBoxes();
+				} else {
+					showAnnotationShortcuts = false;
+					deactivateAllAnnotationMaps();
+//					annotationPanelLowerPart();
+					updateAnnotationPanelAnnotationCheckBoxes();
+				}
+			}});
+//		annotationPanelControl.add(checkBox);
+		subPanel.add(checkBox);
+
+		checkBox = new JCheckBox("Auto Advance");
+		checkBox.setBackground(Color.WHITE);
+		checkBox.setHorizontalTextPosition(SwingConstants.LEFT);
+		checkBox.setSelected(true);
+		checkBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				JCheckBox checkBox = (JCheckBox) e.getSource();
+				if (checkBox.isSelected()) {
+					annotationAutoAdv = true;
+				} else {
+					annotationAutoAdv = false;
+				}
+			}});
+//		annotationPanelControl.add(checkBox);
+		subPanel.add(checkBox);
 		annotationPanelControl.add(subPanel);
 
-		label = new JLabel("Auto Advance");
-		subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
-		subPanel.setBackground(Color.WHITE);
-		subPanel.add(label);
-		radioButtonTexts = new String[] {"On", "Off"};
-		radioButtonGroup = new ButtonGroup();
-		radioButtons = new JRadioButton[radioButtonTexts.length];
-		for (int i = 0; i < radioButtonTexts.length; i++) {
-			radioButtons[i] = new JRadioButton(radioButtonTexts[i]);
-			radioButtons[i].setBackground(Color.WHITE);
-			if (i==0) {
-				radioButtons[i].setSelected(annotationAutoAdv);
-			} else {
-				radioButtons[i].setSelected(!annotationAutoAdv);
-			}
-			radioButtons[i].addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (e.getActionCommand().equals("On")) {
-						annotationAutoAdv = true;
-					} else {
-						annotationAutoAdv = false;
-					}
-				}});
-			radioButtonGroup.add(radioButtons[i]);
-			subPanel.add(radioButtons[i]);
-		}
-//			annotationPanel.add(radioButtonGroup);
-		annotationPanelControl.add(subPanel);
-
-		label = new JLabel("Filtering");
-		subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
-		subPanel.setBackground(Color.WHITE);
-		subPanel.add(label);
-		radioButtonTexts = new String[] {"All", "Annotated", "Unannotated"};
-		radioButtonGroup = new ButtonGroup();
-		radioButtons = new JRadioButton[radioButtonTexts.length];
-		for (int i = 0; i < radioButtonTexts.length; i++) {
-			radioButtons[i] = new JRadioButton(radioButtonTexts[i]);
-			radioButtons[i].setBackground(Color.WHITE);
-			radioButtons[i].addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (e.getActionCommand().equals("All")) {
-						allMarkersOrOnlyThoseAnnotatedOrUnannotated = true;
-					} else if (e.getActionCommand().equals("Annotated")) {
-						allMarkersOrOnlyThoseAnnotatedOrUnannotated = false;
-						annotatedOrUnannotated = true;
-					} else {
-						allMarkersOrOnlyThoseAnnotatedOrUnannotated = false;
-						annotatedOrUnannotated = false;
-					}
-				}});
-			radioButtonGroup.add(radioButtons[i]);
-			subPanel.add(radioButtons[i]);
-		}
-		radioButtons[0].setSelected(true);
-//		annotationPanel.add(radioButtonGroup);
-		annotationPanelControl.add(subPanel);
 
 //		annotationPanelControl.setVisible(true);
 		return annotationPanelControl;
 	}
 
+	public void annotationPanelLowerPart() {
+		JPanel panel;
+		JButton removeButton;
+		JLabel label;
+		ButtonGroup radioButtonGroup;
+		
+		annotationPanelLowerPart.removeAll();
+		annotationPanelLowerPart.repaint();
+
+		label = new JLabel("Filtering");
+		panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+//		BoxLayout tmp = new BoxLayout(panel, BoxLayout.Y_AXIS);
+//		tmp.setAlignmentX();
+//		panel.setAlignmentX(panel.LEFT_ALIGNMENT);
+		panel.setBackground(Color.WHITE);
+		panel.add(label);
+		radioButtonGroup = new ButtonGroup();
+		fileterRadioButtons = new JRadioButton[RADIOBUTTON_TEXTS.length];
+		for (int i = 0; i < RADIOBUTTON_TEXTS.length; i++) {
+			fileterRadioButtons[i] = new JRadioButton(RADIOBUTTON_TEXTS[i] + " (n=" + (i==0? isAnnotated.length : (i==1? annotated : (isAnnotated.length - annotated))) + ")");
+			fileterRadioButtons[i].setBackground(Color.WHITE);
+			fileterRadioButtons[i].addActionListener(new ActionListener(){
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					String commandText;
+					commandText = e.getActionCommand();
+					if (commandText.startsWith(SHOW_ALL + " (n=")) {
+						showAllMarkersOrNot = true;
+					} else if (commandText.startsWith(SHOW_ANNOTATED_ONLY + " (n=")) {
+						showAllMarkersOrNot = false;
+						showAnnotatedOrUnannotated = true;
+					} else {
+						showAllMarkersOrNot = false;
+						showAnnotatedOrUnannotated = false;
+					}
+				}
+			});
+			radioButtonGroup.add(fileterRadioButtons[i]);
+			panel.add(fileterRadioButtons[i]);
+		}
+		fileterRadioButtons[0].setSelected(true);
+//		annotationPanel.add(radioButtonGroup);
+		annotationPanelLowerPart.add(panel);
+
+		annotationCheckBoxes = new JCheckBox[annotationKeys.length];
+		for (int i=0; annotationKeys != null && i < annotationKeys.length; i++) {
+			annotationCheckBoxes[i] = new JCheckBox(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts));
+//			annotationCheckBoxes[i] = new JCheckBox();
+			annotationCheckBoxes[i].setBackground(Color.WHITE);
+			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
+				annotationCheckBoxes[i].setSelected(true);
+			}
+			annotationCheckBoxes[i].addItemListener(new ItemListener() {
+				public void itemStateChanged(ItemEvent itemEvent) {
+					if (! isInitilizing) {
+						JCheckBox checkBox;
+						char currentKey;
+						boolean prev;
+						
+						checkBox = (JCheckBox)itemEvent.getSource();
+						currentKey = checkBox.getText().charAt(1);
+						
+				        if (checkBox.getModel().isSelected()) {
+				        	annotationCollection.addAnnotationForMarker(markerList[markerIndex], currentKey);
+				        	if (! isAnnotated[markerIndex]) {
+				        		annotated ++;
+				        	}
+				        	isAnnotated[markerIndex] = true;
+				        } else {
+				        	annotationCollection.removeAnnotationForMarker(markerList[markerIndex], currentKey);
+				        	prev = isAnnotated[markerIndex];
+				        	isAnnotated[markerIndex] = (annotationCollection.annotationsForMarker(markerList[markerIndex]).length != 0);
+				        	if (isAnnotated[markerIndex] != prev) {
+				        		annotated --;
+				        	}
+				        }
+				        checkBox.setText(annotationCollection.getDescriptionForComment(currentKey, showAnnotationShortcuts));
+				        updateAnnotationPanelFilterRadioButtons();
+				        annotationUpdated = true;
+					}
+				}
+			});
+			panel = new JPanel();
+			panel.setBackground(Color.WHITE);
+//			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+			panel.add(annotationCheckBoxes[i]);
+			removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png", true));
+			removeButton.setActionCommand("removeButton" + i);
+			removeButton.setBorder(null);
+			removeButton.setSize(6, 6);
+			removeButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					String commandText;
+					int index;
+
+					commandText = e.getActionCommand();
+					index = Integer.parseInt(commandText.substring("removeButton".length(), commandText.length()));
+					annotationCollection.removeAnnotation(annotationKeys[index]);
+					removeAnnotationFromMaps(annotationKeys[index]);
+					annotationKeys = annotationCollection.getKeys();
+					annotationUpdated = true;
+					annotationPanelLowerPart();
+				}
+			});
+			panel.add(removeButton);
+			panel.setAlignmentY(Component.LEFT_ALIGNMENT); // TODO not working yet
+			annotationPanelLowerPart.add(panel);
+		}
+		
+		addAnnotationField = new JTextField(DEFAULT_MESSAGE);
+		
+		addAnnotationField.addFocusListener(new FocusListener() {
+			public void focusLost(FocusEvent e) {
+				if (showAnnotationShortcuts) {
+					activateAllAnnotationMaps();
+				}
+				if (addAnnotationField.getText().equals("")) {
+					addAnnotationField.setText(DEFAULT_MESSAGE);
+					Font font = addAnnotationField.getFont();
+					addAnnotationField.setFont(new Font(font.getFontName(), Font.ITALIC, font.getSize()));
+				}
+				
+			}
+			public void focusGained(FocusEvent e) {
+				if (addAnnotationField.getText().equals(DEFAULT_MESSAGE)) {
+					addAnnotationField.setText("");
+					Font font = addAnnotationField.getFont();
+					addAnnotationField.setFont(new Font(font.getFontName(), Font.PLAIN, font.getSize()));
+				}
+				deactivateAllAnnotationMaps();
+			}
+		});
+		
+		addAnnotationField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String str;
+				char c;
+				
+				str = ((JTextField)e.getSource()).getText();
+				c = str.toLowerCase().charAt(0);
+				str = str.substring(1);
+				annotationCollection.addAnnotation(c, str);
+				addAnnotationToMaps(c);
+				annotationKeys = annotationCollection.getKeys();
+				annotationPanelLowerPart();
+				annotationUpdated = true;
+			}
+		});
+
+//		addAnnotationKey = new JCheckBox("Add annotation key");
+//		addAnnotationKey.setBackground(Color.WHITE);
+//		addAnnotationKey.addItemListener(new ItemListener() {
+//			public void itemStateChanged(ItemEvent itemEvent) {
+//				JCheckBox checkBox;
+//				
+//				checkBox = (JCheckBox)itemEvent.getSource();
+//				
+//		        if (checkBox.getModel().isSelected()) {
+//		        	String[][] text = Editor.getInput();
+//		        	for (int i=0; i<text.length; i++) {
+//			        	annotationCollection.addAnnotation(text[i][0].charAt(0), text[i][1]);
+//		        	}
+//		        	annotationKeys = annotationCollection.getKeys();
+//		        }
+//			}
+//		});
+//		annotationPanelComment.add(addAnnotationKey);
+		annotationPanelLowerPart.add(addAnnotationField);
+
+		annotationPanelLowerPart.validate();
+	}
 
 	private void addAnnotationToMaps(char c) {
 		scatPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke((int)(c+"").toUpperCase().charAt(0), 0), "annotation\t"+c);
@@ -869,7 +1000,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		if (command.equals(FIRST)) {
 //			markerIndex = 0;
-			markerIndex = getAvailableMarker(false, false, allMarkersOrOnlyThoseAnnotatedOrUnannotated, annotatedOrUnannotated);
+			markerIndex = getAvailableMarker(false, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
 			displayIndex(navigationField);
 			scatPanel.setPointsGeneratable(true);//zx
 			scatPanel.setQcPanelUpdatable(true);
@@ -881,10 +1012,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //			}
 			updateGUI();
 			displayClusterFilterIndex();
-			updateAnnotationPanel();
+			isInitilizing = true;
+			updateAnnotationPanelAnnotationCheckBoxes();
 		} else if (command.equals(PREVIOUS)) {
 //			markerIndex = Math.max(markerIndex-1, 0);
-			markerIndex = getAvailableMarker(false, true, allMarkersOrOnlyThoseAnnotatedOrUnannotated, annotatedOrUnannotated);
+			markerIndex = getAvailableMarker(false, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
 //			if (markerData[markerIndex] == null) {
 //			if (!loaded[markerIndex]) {
 //				loadMarkerData(markerIndex);
@@ -902,10 +1034,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //			}
 			updateGUI();
 			displayClusterFilterIndex();
-			updateAnnotationPanel();
+			isInitilizing = true;
+			updateAnnotationPanelAnnotationCheckBoxes();
 		} else if (command.equals(NEXT)) {
 //			markerIndex = Math.min(markerIndex+1, markerList.length-1);
-			markerIndex = getAvailableMarker(true, true, allMarkersOrOnlyThoseAnnotatedOrUnannotated, annotatedOrUnannotated);
+			markerIndex = getAvailableMarker(true, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
 //			if (markerData[markerIndex] == null) {
 //			if (!loaded[markerIndex]) {
 //				loadMarkerData(markerIndex);
@@ -923,10 +1056,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //			}
 			updateGUI();
 			displayClusterFilterIndex();
-			updateAnnotationPanel();
+			isInitilizing = true;
+			updateAnnotationPanelAnnotationCheckBoxes();
 		} else if (command.equals(LAST)) {
 //			markerIndex = markerList.length-1;
-			markerIndex = getAvailableMarker(true, false, allMarkersOrOnlyThoseAnnotatedOrUnannotated, annotatedOrUnannotated);
+			markerIndex = getAvailableMarker(true, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
 //			if (markerData[markerIndex] == null) {
 //			if (!loaded[markerIndex]) {
 //				loadMarkerData(markerIndex);
@@ -944,7 +1078,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //			}
 			updateGUI();
 			displayClusterFilterIndex();
-			updateAnnotationPanel();
+			isInitilizing = true;
+			updateAnnotationPanelAnnotationCheckBoxes();
 		} else if (command.equals(CLUSTER_FILTER_BACKWARD)) {
 			if (clusterFilterCollection.getSize(getMarkerName())>0) {
 				scatPanel.rectangles[currentClusterFilter].setColor((byte)7);
@@ -953,7 +1088,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				updateAnnotationPanel();
+//				annotationPanelLowerPart();
 				scatPanel.setPointsGeneratable(true);	// why not scatPanel.setPointsGeneratable(false);
 				//scatPanel.setUpdateQcPanel(true);
 				updateGUI();
@@ -966,7 +1101,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				updateAnnotationPanel();
+//				annotationPanelLowerPart();
 				scatPanel.setPointsGeneratable(true);	// why not scatPanel.setPointsGeneratable(false);
 				//scatPanel.setUpdateQcPanel(true);
 				updateGUI();
@@ -979,7 +1114,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				saveClusterFilterCollection();
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
-				updateAnnotationPanel();
+//				annotationPanelLowerPart();
 				scatPanel.setPointsGeneratable(true);//zx
 				scatPanel.setQcPanelUpdatable(true);
 				//scatPanel.repaint();
@@ -1072,14 +1207,14 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			} else {
 				if (forwardOrBackward) {
 					if (annotatedOrUnannotated) {
-						for (int i = isAnnotated.length - 1; i > markerIndex; i--) {
+						for (int i = isAnnotated.length - 1; i >= 0; i--) {
 							if (isAnnotated[i]) {
 								result = i;
 								break;
 							}
 						}
 					} else {
-						for (int i = isAnnotated.length - 1; i > markerIndex; i--) {
+						for (int i = isAnnotated.length - 1; i >= 0; i--) {
 							if (! isAnnotated[i]) {
 								result = i;
 								break;
@@ -1088,14 +1223,14 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					}
 				} else {
 					if (annotatedOrUnannotated) {
-						for (int i = 0; i < markerIndex; i++) {
+						for (int i = 0; i < isAnnotated.length; i++) {
 							if (isAnnotated[i]) {
 								result = i;
 								break;
 							}
 						}
 					} else {
-						for (int i = 0; i < markerIndex; i++) {
+						for (int i = 0; i < isAnnotated.length; i++) {
 							if (! isAnnotated[i]) {
 								result = i;
 								break;
@@ -1165,6 +1300,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			for (int j = 0; j < annotatedMarkers.length; j++) {
 				if (markerList[i].equals(annotatedMarkers[j])) {
 					isAnnotated[i] = true;
+					annotated ++;
 					break;
 				}
 			}
@@ -1736,117 +1872,27 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 
 	public void updateAnnotationPanel() {
-		JPanel panel;
-		JButton removeButton;
-		
-		annotationPanelComment.removeAll();
-		annotationPanelComment.repaint();
-
-		annotationCheckBoxes = new JCheckBox[annotationKeys.length];
-		for (int i=0; annotationKeys != null && i < annotationKeys.length; i++) {
-			annotationCheckBoxes[i] = new JCheckBox(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts));
-			annotationCheckBoxes[i].setBackground(Color.WHITE);
-			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
-				annotationCheckBoxes[i].setSelected(true);
-			}
-			annotationCheckBoxes[i].addItemListener(new ItemListener() {
-				public void itemStateChanged(ItemEvent itemEvent) {
-					JCheckBox checkBox;
-					char currentKey;
-					
-					checkBox = (JCheckBox)itemEvent.getSource();
-					currentKey = checkBox.getText().charAt(1);
-					
-			        if (checkBox.getModel().isSelected()) {
-			        	annotationCollection.addAnnotationForMarker(markerList[markerIndex], currentKey);
-			        	isAnnotated[markerIndex] = true;
-			        } else {
-			        	annotationCollection.removeAnnotationForMarker(markerList[markerIndex], currentKey);
-			        	isAnnotated[markerIndex] = (annotationCollection.annotationsForMarker(markerList[markerIndex]).length != 0);
-			        }
-			        checkBox.setText(annotationCollection.getDescriptionForComment(currentKey, showAnnotationShortcuts));
-			        annotationUpdated = true;
-				}
-			});
-			panel = new JPanel();
-			panel.setBackground(Color.WHITE);
-//			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-			panel.add(annotationCheckBoxes[i]);
-			removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png", true));
-			removeButton.setActionCommand("removeButton" + i);
-			removeButton.setBorder(null);
-			removeButton.setSize(6, 6);
-			removeButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					String commandText;
-					int index;
-
-					commandText = e.getActionCommand();
-					index = Integer.parseInt(commandText.substring("removeButton".length(), commandText.length()));
-					annotationCollection.removeAnnotation(annotationKeys[index]);
-					removeAnnotationFromMaps(annotationKeys[index]);
-					annotationKeys = annotationCollection.getKeys();
-					annotationUpdated = true;
-					updateAnnotationPanel();
-				}
-			});
-			panel.add(removeButton);
-			panel.setAlignmentY(Component.LEFT_ALIGNMENT); // TODO not working yet
-			annotationPanelComment.add(panel);
-		}
-		
-		addAnnotationField = new JTextField("default");
-		
-		addAnnotationField.addFocusListener(new FocusListener() {
-			public void focusLost(FocusEvent e) {
-				if (showAnnotationShortcuts) {
-					activateAllAnnotationMaps();
-				}
-			}
-			public void focusGained(FocusEvent e) {
-				deactivateAllAnnotationMaps();
-			}
-		});
-		
-		addAnnotationField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String str;
-				char c;
-				
-				str = ((JTextField)e.getSource()).getText();
-				c = str.toLowerCase().charAt(0);
-				str = str.substring(1);
-				annotationCollection.addAnnotation(c, str);
-				addAnnotationToMaps(c);
-				annotationKeys = annotationCollection.getKeys();
-				updateAnnotationPanel();
-				annotationUpdated = true;
-			}
-		});
-
-//		addAnnotationKey = new JCheckBox("Add annotation key");
-//		addAnnotationKey.setBackground(Color.WHITE);
-//		addAnnotationKey.addItemListener(new ItemListener() {
-//			public void itemStateChanged(ItemEvent itemEvent) {
-//				JCheckBox checkBox;
-//				
-//				checkBox = (JCheckBox)itemEvent.getSource();
-//				
-//		        if (checkBox.getModel().isSelected()) {
-//		        	String[][] text = Editor.getInput();
-//		        	for (int i=0; i<text.length; i++) {
-//			        	annotationCollection.addAnnotation(text[i][0].charAt(0), text[i][1]);
-//		        	}
-//		        	annotationKeys = annotationCollection.getKeys();
-//		        }
-//			}
-//		});
-//		annotationPanelComment.add(addAnnotationKey);
-		annotationPanelComment.add(addAnnotationField);
-
-		annotationPanelComment.validate();
+		updateAnnotationPanelFilterRadioButtons();
+		updateAnnotationPanelAnnotationCheckBoxes();
 	}
 
+	public void updateAnnotationPanelFilterRadioButtons() {
+        for (int i=0; i<fileterRadioButtons.length; i++) {
+        	fileterRadioButtons[i].setText(RADIOBUTTON_TEXTS[i] + " (n=" + (i==0? isAnnotated.length : (i==1? annotated : (isAnnotated.length - annotated))) + ")");
+        }
+	}
+
+	public void updateAnnotationPanelAnnotationCheckBoxes() {
+		for (int i=0; i<annotationCheckBoxes.length; i++) {
+        	annotationCheckBoxes[i].setText(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts));
+			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
+				annotationCheckBoxes[i].setSelected(true);
+			} else {
+				annotationCheckBoxes[i].setSelected(false);
+			}
+        }
+		isInitilizing = false;
+	}
 
 	public void toggleAnnotationBox(char c) {
 		int index;
