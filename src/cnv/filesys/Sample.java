@@ -620,28 +620,71 @@ public class Sample implements Serializable {
 		return result;
 	}
 
+//	@SuppressWarnings("unchecked")
+//	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
+//		byte[] outliersBuffer;
+//		Hashtable<String, Float> sampleOutlierHash;
+//		Enumeration<String> keys;
+//		String currentKey;
+//		int outlierSectionSize = 0;
+//
+//		try {
+//	    	if (allOutliers != null) {
+//	    			sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+//	    			outlierSectionSize = sampleFile.readInt();
+//	    	}
+//
+//	    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark);
+//	    	sampleFile.read(readBuffer);
+//
+//    		if (outlierSectionSize > 0) {
+//		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
+//	    		outliersBuffer = new byte[outlierSectionSize];
+//	    		sampleFile.read(outliersBuffer);
+//	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);
+//	    		keys = sampleOutlierHash.keys();
+//	    		while (keys.hasMoreElements()) {
+//	    			currentKey = keys.nextElement();
+//	    			allOutliers.put(indexOfCurrentSample + "\t" + currentKey, sampleOutlierHash.get(currentKey));
+//	    		}
+//    		}
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (ClassNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
+
+
+
 	@SuppressWarnings("unchecked")
 	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
-		byte[] outliersBuffer;
 		Hashtable<String, Float> sampleOutlierHash;
 		Enumeration<String> keys;
 		String currentKey;
 		int outlierSectionSize = 0;
+		byte[] readBufferLocal;
+		int pointer;
 
 		try {
+			readBufferLocal = new byte[(int) sampleFile.length()];
+			sampleFile.read(readBufferLocal);
 	    	if (allOutliers != null) {
-	    			sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
-	    			outlierSectionSize = sampleFile.readInt();
+	    		pointer = Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC;
+    			outlierSectionSize = Compression.bytesToInt(readBufferLocal, pointer);
 	    	}
 
-	    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark);
-	    	sampleFile.read(readBuffer);
+	    	pointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
+	    	for (int i=0; i<readBuffer.length; i++) {
+	    		readBuffer[i] = readBufferLocal[pointer];
+	    		pointer ++;
+	    	}
 
     		if (outlierSectionSize > 0) {
-		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
-	    		outliersBuffer = new byte[outlierSectionSize];
-	    		sampleFile.read(outliersBuffer);
-	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);
+    			pointer = Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark;
+	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(readBufferLocal, pointer, outlierSectionSize);
 	    		keys = sampleOutlierHash.keys();
 	    		while (keys.hasMoreElements()) {
 	    			currentKey = keys.nextElement();
@@ -649,10 +692,10 @@ public class Sample implements Serializable {
 	    		}
     		}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ArrayIndexOutOfBoundsException e) {
 			e.printStackTrace();
 		}
 	}

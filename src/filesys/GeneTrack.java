@@ -106,7 +106,7 @@ public class GeneTrack implements Serializable {
 	}
 
 	public static GeneTrack load(String filename, boolean jar) {
-		return (GeneTrack)Files.readSerial(filename, jar, true);
+		return (GeneTrack)Files.readSerial(filename, jar, false);
 	}
 	
 //	public static void main(String[] args) {

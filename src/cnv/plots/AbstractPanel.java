@@ -747,6 +747,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //			}
 
 			prevPos = pos;
+			
+			//TODO 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
 		}
 	}
 
