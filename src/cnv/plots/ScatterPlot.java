@@ -71,10 +71,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private boolean showAllMarkersOrNot;
 	private boolean showAnnotatedOrUnannotated;
 	private boolean[] isAnnotated;
+	private boolean isInitilizing;
 	private int annotated;
 	private char[] annotationKeys;
 	private JComboBox<String> newGenotype;
-	private boolean isInitilizing;
+//	private SpringLayout annotationPanelLayout;
+	private SpringLayout annotationPanelLowerPartLayout;
+
 
 	private Project proj;
 //	private MarkerData[] markerData;
@@ -315,7 +318,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		annotationPanel.add(createAnnotationPanel());
 //		annotationPanelComment = new JPanel();
 //		annotationPanel.add(annotationPanelComment);
-		createAnnotationPanel();
+		annotationPanel();
 		annotationScrollPane = new JScrollPane(annotationPanel);
 //		annotationPanel.addKeyListener(this);
 //		annotationPanel.setFocusable(true);
@@ -543,12 +546,68 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return clusterFilterPanel;
 	}
 
+//	private JPanel controlPanel() {
+//		JPanel controlPanel;
+//
+//		controlPanel = new JPanel();
+//		controlPanel.setLayout(new GridBagLayout());
+////		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+//		controlPanel.setSize(50, 100);
+//		controlPanel.setBackground(BACKGROUND_COLOR);
+//
+//		GridBagConstraints gbc = new GridBagConstraints();
+//		gbc.insets = new Insets(1,3,0,30);
+//		gbc.weightx = 1.0;
+//		gbc.fill = GridBagConstraints.HORIZONTAL;
+//		gbc.gridwidth = GridBagConstraints.REMAINDER;
+//
+//		controlPanel.add(sizeSliderPanel(), gbc);
+//		controlPanel.add(gcSliderPanel(), gbc);
+//
+//		ItemListener symmetryListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+////				scatPanel.setPointsGenerated(true);//zx ??? Why not true?
+////				scatPanel.setUpdateQcPanel(false);//zx ??? Why cannot set to false?
+//				updateGUI();
+//			}
+//		};
+//		
+//		symmetryBox = new JCheckBox("Symmetric axes");
+//		symmetryBox.setFont(new Font("Arial", 0, 14));
+//		symmetryBox.addItemListener(symmetryListener);
+//		symmetryBox.setBackground(BACKGROUND_COLOR);
+//
+//		controlPanel.add(symmetryBox, gbc);
+////		tabPanel.add(symmetryBox);
+//		
+//		JButton button = new JButton(CAPTURE);
+//		button.addActionListener(this);
+//		button.setActionCommand(CAPTURE);
+//		controlPanel.add(button, gbc);
+////		tabPanel.add(button);
+//
+//		button = new JButton(DUMP);
+//		button.addActionListener(this);
+//		button.setActionCommand(DUMP);
+//		controlPanel.add(button, gbc);
+////		tabPanel.add(button);
+//		
+//		button = new JButton(MASK_MISSING);
+//		button.addActionListener(this);
+//		button.setActionCommand(MASK_MISSING);
+//		controlPanel.add(button, gbc);
+//		
+//		controlPanel.add(plotTypePanel(), gbc);
+//
+//		return controlPanel;
+//	}
+
 	private JPanel controlPanel() {
 		JPanel controlPanel;
 
 		controlPanel = new JPanel();
-//		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
-		controlPanel.setLayout(new GridBagLayout());
+		controlPanel.setLayout(new SpringLayout());
+//		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
 		controlPanel.setSize(50, 100);
 		controlPanel.setBackground(BACKGROUND_COLOR);
 
@@ -598,6 +657,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		return controlPanel;
 	}
+
 
 	private JPanel centroidPanel() {
 		JPanel centroidPanel;
@@ -658,15 +718,23 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return centroidPanel;
 	}
 
-	private void createAnnotationPanel() {
+	private void annotationPanel() {
 		annotationPanel = new JPanel();
 		annotationPanel.setBackground(Color.WHITE);
 		annotationPanel.setLayout(new BoxLayout(annotationPanel, BoxLayout.Y_AXIS));
-		annotationPanel.add(annotationPanelUpperPart());
+//		annotationPanelLayout = new SpringLayout();
+//		annotationPanel.setLayout(annotationPanelLayout);
+		JPanel temp1 = annotationPanelUpperPart();
+		annotationPanel.add(temp1);
+//		annotationPanelLayout.putConstraint(SpringLayout.WEST, temp1, 5, SpringLayout.WEST, annotationPanel);
+//		annotationPanelLayout.putConstraint(SpringLayout.NORTH, temp1, 5, SpringLayout.NORTH, annotationPanel);
 		annotationPanelLowerPart = new JPanel();
-		annotationPanelLowerPart.setLayout(new BoxLayout(annotationPanelLowerPart, BoxLayout.Y_AXIS));
+		annotationPanelLowerPartLayout = new SpringLayout();
+		annotationPanelLowerPart.setLayout(annotationPanelLowerPartLayout);
 		annotationPanelLowerPart.setBackground(BACKGROUND_COLOR);
 		annotationPanel.add(annotationPanelLowerPart);
+//		annotationPanelLayout.putConstraint(SpringLayout.WEST, annotationPanelLowerPart, 5, SpringLayout.WEST, annotationPanel);
+//		annotationPanelLayout.putConstraint(SpringLayout.NORTH, annotationPanelLowerPart, 25, SpringLayout.NORTH, annotationPanel);
 		annotationPanelLowerPart();
 		annotationScrollPane = new JScrollPane(annotationPanel);
 	}
@@ -687,6 +755,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		checkBox = new JCheckBox("Shortcut");
 		checkBox.setBackground(Color.WHITE);
 		checkBox.setHorizontalTextPosition(SwingConstants.LEFT);
+		checkBox.setMnemonic(KeyEvent.VK_S);
 		checkBox.setSelected(true);
 		checkBox.addItemListener(new ItemListener() {
 			@Override
@@ -710,6 +779,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		checkBox = new JCheckBox("Auto Advance");
 		checkBox.setBackground(Color.WHITE);
 		checkBox.setHorizontalTextPosition(SwingConstants.LEFT);
+		checkBox.setMnemonic(KeyEvent.VK_A);
 		checkBox.setSelected(true);
 		checkBox.addItemListener(new ItemListener() {
 			@Override
@@ -731,22 +801,18 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void annotationPanelLowerPart() {
-		JPanel panel;
 		JButton removeButton;
-		JLabel label;
 		ButtonGroup radioButtonGroup;
+		int horizontalMargin;
+		int componentHeight;
+		int currentHorizontalPos;
 		
 		annotationPanelLowerPart.removeAll();
 		annotationPanelLowerPart.repaint();
 
-		label = new JLabel("Filtering");
-		panel = new JPanel();
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-//		BoxLayout tmp = new BoxLayout(panel, BoxLayout.Y_AXIS);
-//		tmp.setAlignmentX();
-//		panel.setAlignmentX(panel.LEFT_ALIGNMENT);
-		panel.setBackground(Color.WHITE);
-		panel.add(label);
+		horizontalMargin = 2;
+		componentHeight = 20;
+		currentHorizontalPos = 0;
 		radioButtonGroup = new ButtonGroup();
 		fileterRadioButtons = new JRadioButton[RADIOBUTTON_TEXTS.length];
 		for (int i = 0; i < RADIOBUTTON_TEXTS.length; i++) {
@@ -769,11 +835,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				}
 			});
 			radioButtonGroup.add(fileterRadioButtons[i]);
-			panel.add(fileterRadioButtons[i]);
+			annotationPanelLowerPart.add(fileterRadioButtons[i]);
+			annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, fileterRadioButtons[i], 5, SpringLayout.WEST, annotationPanelLowerPart);
+			annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, fileterRadioButtons[i], currentHorizontalPos, SpringLayout.NORTH, annotationPanelLowerPart);
+//			horizontalPos += (horizontalMargin + fileterRadioButtons[i].getSize().height);
+			currentHorizontalPos += (horizontalMargin + componentHeight);
 		}
 		fileterRadioButtons[0].setSelected(true);
-//		annotationPanel.add(radioButtonGroup);
-		annotationPanelLowerPart.add(panel);
 
 		annotationCheckBoxes = new JCheckBox[annotationKeys.length];
 		for (int i=0; annotationKeys != null && i < annotationKeys.length; i++) {
@@ -813,10 +881,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					}
 				}
 			});
-			panel = new JPanel();
-			panel.setBackground(Color.WHITE);
-//			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-			panel.add(annotationCheckBoxes[i]);
+			annotationPanelLowerPart.add(annotationCheckBoxes[i]);
+			annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, annotationCheckBoxes[i], 5, SpringLayout.WEST, annotationPanelLowerPart);
+			annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, annotationCheckBoxes[i], currentHorizontalPos, SpringLayout.NORTH, annotationPanelLowerPart);
+//			horizontalPos += (horizontalMargin + annotationCheckBoxes[i].getSize().height);
+			currentHorizontalPos += (horizontalMargin + componentHeight);
 			removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png", true));
 			removeButton.setActionCommand("removeButton" + i);
 			removeButton.setBorder(null);
@@ -835,9 +904,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					annotationPanelLowerPart();
 				}
 			});
-			panel.add(removeButton);
-			panel.setAlignmentY(Component.LEFT_ALIGNMENT); // TODO not working yet
-			annotationPanelLowerPart.add(panel);
+			annotationPanelLowerPart.add(removeButton);
+			annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, removeButton, 5, SpringLayout.EAST, annotationCheckBoxes[i]);
+			annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, removeButton, 7, SpringLayout.NORTH, annotationCheckBoxes[i]);
 		}
 		
 		addAnnotationField = new JTextField(DEFAULT_MESSAGE);
@@ -880,32 +949,21 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			}
 		});
 
-//		addAnnotationKey = new JCheckBox("Add annotation key");
-//		addAnnotationKey.setBackground(Color.WHITE);
-//		addAnnotationKey.addItemListener(new ItemListener() {
-//			public void itemStateChanged(ItemEvent itemEvent) {
-//				JCheckBox checkBox;
-//				
-//				checkBox = (JCheckBox)itemEvent.getSource();
-//				
-//		        if (checkBox.getModel().isSelected()) {
-//		        	String[][] text = Editor.getInput();
-//		        	for (int i=0; i<text.length; i++) {
-//			        	annotationCollection.addAnnotation(text[i][0].charAt(0), text[i][1]);
-//		        	}
-//		        	annotationKeys = annotationCollection.getKeys();
-//		        }
-//			}
-//		});
-//		annotationPanelComment.add(addAnnotationKey);
 		annotationPanelLowerPart.add(addAnnotationField);
+		annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, addAnnotationField, 5, SpringLayout.WEST, annotationPanelLowerPart);
+		annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, addAnnotationField, currentHorizontalPos + 3, SpringLayout.NORTH, annotationPanelLowerPart);
+//		horizontalPos += (horizontalMargin + addAnnotationField.getSize().height);
+//		horizontalPos += (horizontalMargin + componentHeight);
 
 		annotationPanelLowerPart.validate();
 	}
 
 	private void addAnnotationToMaps(char c) {
 		scatPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke((int)(c+"").toUpperCase().charAt(0), 0), "annotation\t"+c);
-		scatPanel.getActionMap().put("annotation\t"+c, new AnnotationAction(this, c));
+		scatPanel.getActionMap().put("annotation\t"+c, new AnnotationAction(this, c, true));
+
+		scatPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke((int)(c+"").toUpperCase().charAt(0), InputEvent.SHIFT_MASK), "annotation\tShift_"+c);
+		scatPanel.getActionMap().put("annotation\tShift_"+c, new AnnotationAction(this, c, false));
 	}
 	
 	private void activateAllAnnotationMaps() {
@@ -1894,15 +1952,31 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		isInitilizing = false;
 	}
 
-	public void toggleAnnotationBox(char c) {
+//	public void toggleAnnotationBox(char c) {
+//		int index;
+//		
+//		index = ext.indexOfChar(c, annotationKeys);
+//		annotationCheckBoxes[index].setSelected(! annotationCheckBoxes[index].isSelected());
+//	}
+	
+	public void checkAnnotationBox(char c) {
 		int index;
 		
 		index = ext.indexOfChar(c, annotationKeys);
-		annotationCheckBoxes[index].setSelected(!annotationCheckBoxes[index].isSelected());
-//		isAnnotated[markerIndex] = true;
-//		annotationUpdated = true;
-		if (annotationAutoAdv) {
-			actionPerformed(new ActionEvent(next, 0, NEXT));
+		if (! annotationCheckBoxes[index].isSelected()) {
+			annotationCheckBoxes[index].setSelected(true);
+			if (annotationAutoAdv) {
+				actionPerformed(new ActionEvent(next, 0, NEXT));
+			}
+		}
+	}
+
+	public void uncheckAnnotationBox(char c) {
+		int index;
+		
+		index = ext.indexOfChar(c, annotationKeys);
+		if (annotationCheckBoxes[index].isSelected()) {
+			annotationCheckBoxes[index].setSelected(false);
 		}
 	}
 
