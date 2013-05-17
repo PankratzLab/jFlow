@@ -9,21 +9,23 @@ import cnv.var.CNVariant;
 import common.*;
 
 public class ExportCNVsToPedFormat {
-
 	/*
-	 * Convert a cnv data file into a ped file
+	 * Convert a cnv data file into
 	 */
-	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
+	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
 		PrintWriter writer;
 		CNVariant[] cnvs;
 		Hashtable<String,String> allChrPosHash;
 		Hashtable<String,String> sampleListHashFromCnvOrPedData;
+		String[][] dnaMapping;
+		Hashtable<String,Vector<String>> mzTwins;
+		Vector<String> mzPairs;
 		String[] allChrPosKeys;
 		byte[][] currentCNs;
+		byte[] previousCNs;
 		Segment[] allChrPosSegs, currentChrPosSegs;
 		String[] line;
 		byte currentCN;
-//		CNVariantHash cnvHash;
 		long time;
 		String[] tempSampleList;
 		String[] finalSampleList;
@@ -34,17 +36,56 @@ public class ExportCNVsToPedFormat {
 		int currentSampleIndex;
 		int indexOfCurrentSeg;
 		int countValidLoci;
+		int fileNumber;
+		Logger log;
+		Vector<CNVariant> cnVector;
+		CNVariant cnv;
+		int numBaseCNVs;
 
 		System.out.println("Generating files for "+outputRoot);
+		if (!Files.exists(ext.parseDirectoryOfFile(outputRoot), false)) {
+			System.out.println("Created directory: '"+ext.parseDirectoryOfFile(outputRoot)+"'");
+			new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
+		}
 
+		log = new Logger();
 		time = new Date().getTime();
+		mzTwins = new Hashtable<String, Vector<String>>();
 		if (pedFilename != null) {
-			sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0,1}, new int[] {-7}, pedFilename.endsWith(".csv"), "\t", false, false, false);
+			line = Files.getHeaderOfFile(pedFilename, log);
+			ext.checkHeader(line, new String[] {"FAMID", "ID", "DNA"}, true);
+			sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0,1}, new int[] {-7}, pedFilename.endsWith(".csv"), "\t", true, false, false);
+			dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0,1,2}, "[\\s]+", false, 10000, false);
+			for (int i = 0; i < dnaMapping.length; i++) {
+				if (!dnaMapping[i][1].equals(dnaMapping[i][2])) {
+					HashVec.addToHashVec(mzTwins, dnaMapping[i][0]+"\t"+dnaMapping[i][2], dnaMapping[i][0]+"\t"+dnaMapping[i][1], false);
+				}
+			}
 		} else {
 			sampleListHashFromCnvOrPedData = null;
 		}
 		
-		cnvs = CNVariant.loadPlinkFile(cnvFilename, sampleListHashFromCnvOrPedData, false);
+		System.out.println("Matched "+mzTwins.size()+" twins");
+		
+		cnVector = CNVariant.loadPlinkFile(cnvFilename, sampleListHashFromCnvOrPedData, false);
+		if (mzTwins.size() > 0) {
+			numBaseCNVs = cnVector.size();
+			for (int i = 0; i < numBaseCNVs; i++) {
+				cnv = cnVector.elementAt(i);
+				if (mzTwins.containsKey(cnv.getFamilyID()+"\t"+cnv.getIndividualID())) {
+					mzPairs = mzTwins.get(cnv.getFamilyID()+"\t"+cnv.getIndividualID());
+					for (int j = 0; j < mzPairs.size(); j++) {
+						cnv = cnVector.elementAt(i).clone();
+						line = mzPairs.elementAt(j).split("[\\s]+");
+						cnv.setFamilyID(line[0]);
+						cnv.setIndividualID(line[1]);
+						cnVector.add(cnv);
+					}					
+				}
+			}
+			
+		}
+		cnvs = CNVariant.toArray(cnVector);
 		System.out.println("Loaded file in " + ext.getTimeElapsed(time));
 		
 		//Generate chrPosition and sampleHash, to be used for the rows and columns of the final result.
@@ -73,14 +114,13 @@ public class ExportCNVsToPedFormat {
 		allChrPosSegs = Segment.sortSegments(allChrPosSegs);
 		System.out.println("Sorted positions in " + ext.getTimeElapsed(time));
 
-//		cnvHash = new CNVariantHash(filename, structureType, jar)
-		
 		time = new Date().getTime();
 		cnvs = CNVariant.sort(cnvs);
 		System.out.println("Sorted CNVariants in " + ext.getTimeElapsed(time));
 
 		
 		cnvIndex = 0;
+		fileNumber = 0;
 		countValidLoci = 0;
 		writer = null;
 		outputFilename = "very first file";
@@ -93,13 +133,12 @@ public class ExportCNVsToPedFormat {
 				currentChrPosSegs[i] = allChrPosSegs[startPosition+i];
 			}
 			
-//			System.out.println("positions.length: "+positions.length+"\tsampleHash.size(): "+sampleHash.size()+"\tmatrix size: "+positions.length*sampleHash.size()+"\theap Size: "+Runtime.getRuntime().totalMemory());
 			currentCNs = new byte[currentChrPosSegs.length][sampleListHashFromCnvOrPedData.size()];
+			previousCNs = Array.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
 
 			while (cnvs[cnvIndex].getChr() < currentChrPosSegs[0].getChr() || (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr() && cnvs[cnvIndex].getStop() < currentChrPosSegs[0].getStart())) {
 				cnvIndex++;
 			}
-//			System.out.println("Starting at "+cnvs[startCNV].getUCSClocation());
 
 			done = false;				
 			for (int i = cnvIndex; !done && i < cnvs.length; i++) {
@@ -122,15 +161,6 @@ public class ExportCNVsToPedFormat {
 			for (int i = 0; i < tempSampleList.length; i++) {
 				finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
 			}
-
-
-//			if (saveIntermediateFiles) {
-//				time = new Date().getTime();
-//				new SerialByteMatrix(result).serialize(cnvFilename+"."+startPosition+"_bmatrix.ser");
-//				new SerialStringArray(ids).serialize(cnvFilename+".ids.ser");
-//				new SerialStringArray(positionNames).serialize(cnvFilename+".positions.ser");
-//				System.out.println("Serialized intermediate files in " + ext.getTimeElapsed(time));
-//			}
 
 			for (int i = 0; i < currentCNs.length; i++) {
 				for (int j = 0; j < currentCNs[i].length; j++) {
@@ -157,13 +187,16 @@ public class ExportCNVsToPedFormat {
 			time = new Date().getTime();
 			try {
 				for (int i = 0; i<currentChrPosSegs.length; i++) {
-					if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0) {
+					if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
 						if (countValidLoci % markersPerFile == 0) {
 							if (writer != null) {
 								writer.close();
+								if (rfglsOutput) {
+									convertToRfglsFormat(outputRoot, fileNumber, endOfLine);
+								}
+								fileNumber++;
 							}
-							outputFilename = outputRoot+(allChrPosSegs.length<markersPerFile?"":"_"+countValidLoci)+".dat";
-//							System.out.println("Beginning export to "+outputFilename);
+							outputFilename = outputRoot+"_"+fileNumber;
 							writer = new PrintWriter(new FileWriter(outputFilename));
 							writer.print("markerName\t"+Array.toStr(finalSampleList));
 							writer.print(endOfLine);
@@ -175,7 +208,8 @@ public class ExportCNVsToPedFormat {
 						}
 						writer.print(endOfLine);
 						countValidLoci++;
-					}
+						previousCNs = currentCNs[i];
+					}					
 				}
 			} catch (Exception e) {
 				System.err.println("Error writing to '" + outputFilename + "'");
@@ -185,6 +219,70 @@ public class ExportCNVsToPedFormat {
 		}
 		if (writer != null) {
 			writer.close();
+			if (rfglsOutput) {
+				convertToRfglsFormat(outputRoot, fileNumber, endOfLine);
+			}
+		}
+	}
+	
+	private static void convertToRfglsFormat(String root, int fileNumber, String endOfLine) {
+		BufferedReader reader;
+		PrintWriter writer, mapWriter;
+		String[] line, ids;
+		String dir;
+		long time;
+		
+		dir = ext.parseDirectoryOfFile(root);
+		
+		try {
+			reader = new BufferedReader(new FileReader(root+"_"+fileNumber));
+			ids = reader.readLine().trim().split("[\\s]+");
+			try {
+				new File(dir+"rfgls/").mkdirs();
+				writer = new PrintWriter(new FileWriter(dir+"rfgls/ids"));
+				for (int i = 1; i < ids.length; i++) {
+					line = ids[i].split("-");
+					if (line.length != 2) {
+						System.err.println("Error recreating pedfile since there are hyphens in the FID/IID: "+ids[i]);
+						reader.close();
+						writer.close();
+						return;
+					}
+					writer.print(line[0]+"\t"+line[1]+endOfLine);
+				}
+				writer.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + dir+"rfgls/ids");
+				e.printStackTrace();
+			}
+				
+			writer = new PrintWriter(new FileWriter(dir+"rfgls/"+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber)));
+			mapWriter = new PrintWriter(new FileWriter(dir+"rfgls/"+ext.removeDirectoryInfo(root+"_map_"+fileNumber)));
+
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				mapWriter.print(line[0]+endOfLine);
+				for (int i = 1; i < line.length; i++) {
+					writer.print((i==1?"":"\t")+line[i]);
+				}
+				writer.print(endOfLine);
+			}			
+			writer.close();
+			mapWriter.close();
+			reader.close();
+			
+			time = new Date().getTime();
+			System.out.print("Transposing "+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber));
+			Files.transpose(dir+"rfgls/"+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber), "\t", dir+"rfgls/"+ext.removeDirectoryInfo(root+"_bySample_"+fileNumber), "\t");
+			System.out.println("\t...finished in "+ext.getTimeElapsed(time));
+			new File(dir+"rfgls/"+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber)).delete();
+			
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + root+"_"+fileNumber + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + root+"_"+fileNumber + "\"");
+			System.exit(2);
 		}
 	}
 	
@@ -205,6 +303,7 @@ public class ExportCNVsToPedFormat {
 		int markersPerFile = 5000;
 		int window = 0;
 		String endOfLine = "\r\n";
+		boolean rfglsOutput = false;
 
 		String usage = "\n" +
 				"cnv.analysis.CnvBySample requires the following arguments\n" +
@@ -220,6 +319,7 @@ public class ExportCNVsToPedFormat {
 				"   (10) number of markers per file in the output file (i.e. markersPerFile=" + markersPerFile + " (default))\n" +
 				"   (11) width of the window (i.e. win=" + window + " (default))\n" +
 				"   (12) use linux line endings (i.e. -linux (not the default))\n" +
+				"   (13) create sample dominant matrix w/ separate map and ped file (i.e. -rfgls (not the default))\n" +
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -262,6 +362,9 @@ public class ExportCNVsToPedFormat {
 			} else if (args[i].startsWith("-linux")) {
 				endOfLine = "\n";
 				numArgs--;
+			} else if (args[i].startsWith("-rfgls")) {
+				rfglsOutput = true;
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -273,8 +376,8 @@ public class ExportCNVsToPedFormat {
 		}
 
 		//TODO To remove this block of code, which is for testing only.
-		cnvFilename = "C:/projects/Gedi/data/filtered.cnv";
-		pedFilename = null;
+//		cnvFilename = "C:/projects/Gedi/data/filtered.cnv";
+//		pedFilename = null;
 //		pedFilename = "C:/projects/Geti/filtered.fam";
 //		cnvBySample(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "ordered", true, true, true, false, markersPerFile, window);
 //		cnvBySample(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "ordered_collapsed", true, true, true, true, markersPerFile, window);
@@ -282,10 +385,15 @@ public class ExportCNVsToPedFormat {
 //		cnvBySample(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "dup_only", false, true, true, false, markersPerFile, window);
 //		cnvBySample(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "unordered", true, true, false, true, markersPerFile, window);
 
+//		cnvFilename = "C:/projects/Gedi/data/filtered.cnv";
+		cnvFilename = "D:/data/GEDI/penn_results/rfgls/data/conf15_usedFilteredRare.cnv";
+		markersPerFile = 1000;
+		pedFilename = ext.parseDirectoryOfFile(cnvFilename)+"IQ_IDs4Nathan121114.txt";
 		endOfLine = "\n";
-//		cnvBySample(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsAndDuplications", endOfLine, true, true, false, true, false, true, markersPerFile, window);
-		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsOnly", endOfLine, true, false, false, true, false, true, markersPerFile, window);
-		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/homozygousDeletionsOnly", endOfLine, true, false, false, true, true, true, markersPerFile, window);
+		rfglsOutput = true;
+		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsAndDuplications", endOfLine, rfglsOutput, true, true, false, true, false, true, markersPerFile, window);
+		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsOnly", endOfLine, rfglsOutput, true, false, false, true, false, true, markersPerFile, window);
+		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/homozygousDeletionsOnly", endOfLine, rfglsOutput, true, false, false, true, true, true, markersPerFile, window);
 		System.exit(1);
 
 		try {
@@ -294,10 +402,10 @@ public class ExportCNVsToPedFormat {
 				input = fileChooser.getSelectedFile();
 				output = input.getPath() + "cnvBySample.txt";
 				//TODO this line should be further elaborated.
-				export(input.toString(), null, output, endOfLine, true, true, true, false, false, false, markersPerFile, window);
+				export(input.toString(), null, output, endOfLine, rfglsOutput, true, true, true, false, false, false, markersPerFile, window);
 			} else {
-				export(cnvFilename, pedFilename, outputFilename, endOfLine,includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, markersPerFile, window);
-//				cnvBySample("C:/projects/Geti/filtered.cnv", null, "C:/projects/Geti/cnvBySample.txt", endOfLine, true, false, true, false, saveIntermediateFiles, markersPerFile);
+				export(cnvFilename, pedFilename, outputFilename, endOfLine, rfglsOutput, includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, markersPerFile, window);
+//				cnvBySample("C:/projects/Geti/filtered.cnv", null, "C:/projects/Geti/cnvBySample.txt", endOfLine, rfglsOutput, true, false, true, false, saveIntermediateFiles, markersPerFile);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

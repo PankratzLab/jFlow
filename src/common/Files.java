@@ -1239,7 +1239,7 @@ public class Files {
 		return Matrix.toStringArrays(v);
 	}
 	
-	public static void transpose(String filename, String delimiterIn, String delimiterOut) {
+	public static void transpose(String filein, String delimiterIn, String fileout, String delimiterOut) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -1247,7 +1247,7 @@ public class Files {
 		int size = -1;
 
 		try {
-			reader = new BufferedReader(new FileReader(filename));
+			reader = new BufferedReader(new FileReader(filein));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiterIn);
 				if (size==-1) {
@@ -1260,7 +1260,11 @@ public class Files {
 			}
 			reader.close();
 
-			writer = new PrintWriter(new FileWriter(filename+"-transposed.xln"));
+			if (fileout == null) {
+				fileout = filein+"-transposed.xln";
+			}
+			
+			writer = new PrintWriter(new FileWriter(fileout));
 			for (int i = 0; i<size; i++) {
 				for (int j = 0; j<v.size(); j++) {
 					line = v.elementAt(j);
@@ -1272,10 +1276,10 @@ public class Files {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+filename+"\" not found in current directory");
+			System.err.println("Error: file \""+filein+"\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+filename+"\"");
+			System.err.println("Error reading file \""+filein+"\"");
 			System.exit(2);
 		}
 	}
@@ -2310,6 +2314,7 @@ public class Files {
 		boolean commaDelimitedIn = false;
 		boolean commaDelimitedOut = false;
 		String dir = null;
+		String outfile = null;
 
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
@@ -2326,6 +2331,7 @@ public class Files {
 		"  OR\n" +
 		"   (1) transpose file (i.e. transpose=file.txt (not the default))\n" +
 		"   (2) input file is comma-delimited (i.e. commaDelimitedIn="+commaDelimitedIn+" (default))\n" +
+		"   (3) name of output file (i.e. out=[input]-transposed.xln (default))\n" +
 		"   (3) output file is comma-delimited (i.e. commaDelimitedOut="+commaDelimitedOut+" (default))\n" +
 		"  OR\n" +
 		"   (1) move files already successfully (i.e. currently hard coded (not the default))\n" +
@@ -2370,6 +2376,9 @@ public class Files {
 			} else if (args[i].startsWith("commaDelimitedOut=")) {
 				commaDelimitedOut = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				outfile = ext.parseStringArg(args[i], null);
+				numArgs--;
 			} else if (args[i].startsWith("dir=")) {
 				dir = args[i].split("=")[1];
 				numArgs--;
@@ -2409,7 +2418,7 @@ public class Files {
 			} else if (filename != null) {
 				makeQsub(filename, start, stop, separate, patterns);
 			} else if (transpose != null) {
-				transpose(transpose, commaDelimitedIn?",":"\t", commaDelimitedOut?",":"\t");
+				transpose(transpose, commaDelimitedIn?",":"\t", outfile, commaDelimitedOut?",":"\t");
 			} else if (dir != null) {
 				summarizeAllFilesInDirectory(dir);
 			} else {

@@ -32,7 +32,7 @@ public class SegmentLists implements Serializable {
 		int[] chrs;
 		Segment[] segs = null;
 		
-		segs = Segment.loadUCSCregions(filename, 0, ignoreFirstLine);		
+		segs = Segment.loadUCSCregions(filename, ignoreFirstLine);		
 
 		for (int i = 0; i<segs.length; i++) {
 			if (hash.containsKey(segs[i].getChr()+"")) {

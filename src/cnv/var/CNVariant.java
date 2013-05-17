@@ -12,10 +12,10 @@ public class CNVariant extends Segment {
 
 	private String familyID;
 	private String individualID;
-	private int source;
 	private int cn;
 	private double score;
 	private int numMarkers;
+	private int source;
 
 	public CNVariant(String[] plinkLine) {
 		this(plinkLine, 0);
@@ -27,10 +27,22 @@ public class CNVariant extends Segment {
 		chr = Positions.chromosomeNumber(plinkLine[2]);
 		start = Integer.parseInt(plinkLine[3]);
 		stop = Integer.parseInt(plinkLine[4]);
-		source = sourceIndex;
 		cn = Integer.parseInt(plinkLine[5]);
 		score = Double.parseDouble(plinkLine[6]);
 		numMarkers = Integer.parseInt(plinkLine[7]);
+		source = sourceIndex;
+	}
+
+	public CNVariant(String familyID, String individualID, byte chr, int start, int stop, int cn, double score, int numMarkers, int source) {
+		this.familyID = familyID;
+		this.individualID = individualID;
+		this.chr = chr;
+		this.start = start;
+		this.stop = stop;
+		this.cn = cn;
+		this.score = score;
+		this.numMarkers = numMarkers;
+		this.source = source;
 	}
 
 	public CNVariant(String ucscLocation) {
@@ -116,10 +128,10 @@ public class CNVariant extends Segment {
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean jar) {
-		return loadPlinkFile(filename, null, jar);
+		return CNVariant.sortCNVs(CNVariant.toArray(loadPlinkFile(filename, null, jar)));
 	}
 	
-	public static CNVariant[] loadPlinkFile(String filename, Hashtable<String,String> sampleHash, boolean jar) {
+	public static Vector<CNVariant> loadPlinkFile(String filename, Hashtable<String,String> sampleHash, boolean jar) {
 		BufferedReader reader;
 		Vector<CNVariant> v = null;
 		String[] line;
@@ -141,7 +153,7 @@ public class CNVariant extends Segment {
 			}
 			reader.close();
 
-			return CNVariant.sortCNVs(CNVariant.toArray(v));
+			return v;
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" not found in current directory");
 			fnfe.printStackTrace();
@@ -241,6 +253,10 @@ public class CNVariant extends Segment {
 	
 	public static CNVariant[] sort(CNVariant[] array) {
 		return putInOrder(array, quicksort(array));
+	}
+	
+	public CNVariant clone() {
+		return new CNVariant(familyID, individualID, chr, start, stop, cn, score, numMarkers, source);
 	}
 	
 	public static void main(String[] args) {
