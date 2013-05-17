@@ -2454,6 +2454,31 @@ public class Array {
 	}
 	
 	/**
+	 * Returns true if the byte arrays are equal at all positions
+	 * 
+	 * @param array1
+	 *            an array of byte
+	 * @param array2
+	 *            an array of byte
+	 * @param caseSensitive
+	 *            boolean flag
+	 * @return true if arrays are equal
+	 */
+	public static boolean equals(byte[] array1, byte[] array2) {
+		if (array1.length != array2.length) {
+			return false;
+		}
+
+		for (int i = 0; i<array1.length; i++) {
+			if (array1[i] != array2[i]) {
+				return false;
+			}
+        }
+		
+		return true;
+	}
+	
+	/**
 	 * Removes NaN values from the array
 	 * 
 	 * @param array

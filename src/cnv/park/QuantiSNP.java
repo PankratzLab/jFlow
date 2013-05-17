@@ -291,7 +291,7 @@ public class QuantiSNP {
 	}
 
 	public static void filters(String rootDirectory) {
-		FilterCalls.stdFilters(rootDirectory, "plink.cnv", true, null);
+		FilterCalls.stdFilters(rootDirectory, "plink.cnv", true, null, 36);
 	}
 	
 	public static void main(String[] args) {

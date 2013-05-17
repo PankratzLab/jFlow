@@ -491,6 +491,7 @@ public class Beagle {
 	        	log.report("Successfully processed all "+count+" lines");
 	        } else {
 	        	log.report("Error - only processed "+count+" of "+markerNames.length+" markers");
+	        	reader.close();
 	        	return;
 	        }
 	        reader.close();
@@ -1007,7 +1008,7 @@ public class Beagle {
 				System.err.println("Error writing to " + dir+"SegAlignment_"+ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@")+".xln");
 				e.printStackTrace();
 			}
-			Files.transpose(dir+"SegAlignment_"+ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@")+".xln", "\t", "\t");
+			Files.transpose(dir+"SegAlignment_"+ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@")+".xln", "\t", null, "\t");
 		}
 		
 		

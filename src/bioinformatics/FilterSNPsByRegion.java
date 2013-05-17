@@ -73,7 +73,7 @@ public class FilterSNPsByRegion {
     	}
     	log.report("Loading regions from '"+regionsFile+"'");
     	if (ucsc) {
-    		regions = Segment.loadUCSCregions(regionsFile, chrCol, header);
+    		regions = Segment.loadUCSCregions(regionsFile, chrCol, header, log);
     	} else {
     		regions = Segment.loadRegions(regionsFile, chrCol, startCol, stopCol, header);
     	}

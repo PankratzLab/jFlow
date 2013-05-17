@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Vector;
 
+import common.Logger;
 import common.Positions;
 import common.Sort;
 
@@ -281,10 +282,10 @@ public class Segment implements Serializable {
 	}
 	
 	public static Segment[] loadUCSCregions(String filename, boolean ignoreFirstLine) {
-		return loadUCSCregions(filename, 0, ignoreFirstLine);
+		return loadUCSCregions(filename, 0, ignoreFirstLine, new Logger());
 	}
 	
-	public static Segment[] loadUCSCregions(String filename, int column, boolean ignoreFirstLine) {
+	public static Segment[] loadUCSCregions(String filename, int column, boolean ignoreFirstLine, Logger log) {
 		BufferedReader reader;
 		Vector<Segment> v = new Vector<Segment>();
 
@@ -298,10 +299,10 @@ public class Segment implements Serializable {
 	        }
 	        reader.close();
         } catch (FileNotFoundException fnfe) {
-	        System.err.println("Error: file \""+filename+"\" not found in current directory");
+        	log.reportError("Error: file \""+filename+"\" not found");
 	        return null;
         } catch (IOException ioe) {
-	        System.err.println("Error reading file \""+filename+"\"");
+        	log.reportError("Error reading file \""+filename+"\"");
 	        return null;
         }
 
