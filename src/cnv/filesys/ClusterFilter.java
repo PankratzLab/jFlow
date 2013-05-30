@@ -48,11 +48,11 @@ public class ClusterFilter implements Serializable {
 		return this.plotType;
 	}
 	
-	public void setNewGenotype (byte newGenotype) {
+	public void setClusterGenotype (byte newGenotype) {
 		this.newGenotype=newGenotype;
 	}
 	
-	public byte getNewGenotype () {
+	public byte getCluterGenotype () {
 		return this.newGenotype;
 	}
 	

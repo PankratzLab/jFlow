@@ -1,10 +1,10 @@
 package cnv.plots;
 
 public class GenericRectangle {
-	private float startX;
-	private float startY;
-	private float stopX;
-	private float stopY;
+	private float startXValue;
+	private float startYValue;
+	private float stopXValue;
+	private float stopYValue;
 	private byte thickness;
 	private boolean fill;
 	private boolean roundedCorners;
@@ -12,10 +12,10 @@ public class GenericRectangle {
 	private byte layer;
 
 	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
-		this.startX = startX;
-		this.startY = startY;
-		this.stopX = stopX;
-		this.stopY = stopY;
+		this.startXValue = startX;
+		this.startYValue = startY;
+		this.stopXValue = stopX;
+		this.stopYValue = stopY;
 		this.thickness = thickness;
 		this.fill = fill;
 		this.roundedCorners = roundedCorners;
@@ -27,20 +27,20 @@ public class GenericRectangle {
 		this.color=color;
 	}
 
-	public float getStartX() {
-		return startX;
+	public float getStartXValue() {
+		return startXValue;
 	}
 
-	public float getStartY() {
-		return startY;
+	public float getStartYValue() {
+		return startYValue;
 	}
 
-	public float getStopX() {
-		return stopX;
+	public float getStopXValue() {
+		return stopXValue;
 	}
 
-	public float getStopY() {
-		return stopY;
+	public float getStopYValue() {
+		return stopYValue;
 	}
 
 	public byte getThickness() {

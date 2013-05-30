@@ -181,13 +181,13 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 			//System.out.println("pos: "+pos+"\t iv.size():"+(iv==null?"null":iv.size()));//zx test point
 			g.setColor(Color.RED);
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
-				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(data[iv.elementAt(i)][0]), getY(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
+				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[iv.elementAt(i)][0]), getYPixel(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
 					g.setColor(Color.RED);
 					prox.add(iv.elementAt(i));
 					if (failedHash.containsKey(samples[iv.elementAt(i)][0])&&failedHash.get(samples[iv.elementAt(i)][0]).equals("0")) {
-						g.fillOval(getX(data[iv.elementAt(i)][0])-SIZE_FAILED/2, getY(data[iv.elementAt(i)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
+						g.fillOval(getXPixel(data[iv.elementAt(i)][0])-SIZE_FAILED/2, getYPixel(data[iv.elementAt(i)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
 					} else {
-						g.fillOval(getX(data[iv.elementAt(i)][0])-SIZE/2, getY(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
+						g.fillOval(getXPixel(data[iv.elementAt(i)][0])-SIZE/2, getYPixel(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
 					}
 
 					// } else {
@@ -203,9 +203,9 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 					g.setColor(Color.YELLOW);
 					for (int j = 0; j<Math.min(iv.size(), 10); j++) {
 						if (failedHash.containsKey(samples[iv.elementAt(j)][0])&&failedHash.get(samples[iv.elementAt(j)][0]).equals("0")) {
-							g.fillOval(getX(data[iv.elementAt(j)][0])-SIZE_FAILED/2, getY(data[iv.elementAt(j)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
+							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE_FAILED/2, getYPixel(data[iv.elementAt(j)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
 						} else {
-							g.fillOval(getX(data[iv.elementAt(j)][0])-SIZE/2, getY(data[iv.elementAt(j)][1])-SIZE/2, SIZE, SIZE);
+							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE/2, getYPixel(data[iv.elementAt(j)][1])-SIZE/2, SIZE, SIZE);
 						}
 					}
 				}

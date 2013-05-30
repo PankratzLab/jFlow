@@ -6,15 +6,20 @@ package cnv.plots;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JPopupMenu;
+import javax.swing.Popup;
 
 import cnv.filesys.ClusterFilter;
+import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.gui.LaunchAction;
@@ -80,7 +85,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	private int mouseStartY;
 	private int mouseEndX;
 	private int mouseEndY;
-
+	
 	public ScatterPanel(ScatterPlot sp) {
 		super();
 		
@@ -317,10 +322,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			
 			// create grid
 		}
-		//callRate=(samples.length-callRate)*100/samples.length;//zx
+		//callRate=(samples.length-callRate)*100/samples.length;
 		
 		if (getUpdateQcPanel()) {
-			sp.updateQcPanel(chr, genotype, sex, otherClass);//zx
+			sp.updateQcPanel(chr, genotype, sex, otherClass);
 			setQcPanelUpdatable(false);
 		}
 		sp.updateColorKey(uniqueValueCounts.convertToHash());
@@ -332,12 +337,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			}
 		}
 		setLayersInBase(Array.toByteArray(Sort.putInOrder(Array.toIntArray(HashVec.getKeys(hash)))));
-//    	rectangles = sp.getClusterFilterCollection().getRectangles(sp.getMarkerName(), sp.getCurrentClusterFilter(), (byte) plotType, (byte)1, false, false, (byte)0, (byte)99);
     	generateRectangles();
-//    	System.out.println("Rectangles length: "+rectangles.length+" size: "+sp.getClusterFilterCollection().getSize(sp.getMarkerName())+" currentClusterFilter: "+sp.getCurrentClusterFilter());
-//		if (sp.getClusterFilterCollection().getSize(sp.getMarkerName())>0) {
-//			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
-//		}
     	setSwapable(false);
 		if (sp.getCurrentClusterFilter()>=0) {
 			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
@@ -379,11 +379,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		x = event.getX();
 		y = event.getY();
 
-		canvasSectionMinimumX = WIDTH_Y_AXIS;
-		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-		canvasSectionMinimumY = HEIGHT_X_AXIS;
-		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-		pos = (int)Math.floor(x/DEFAULT_LOOKUP_RESOLUTION)+"x"+(int)Math.floor(y/DEFAULT_LOOKUP_RESOLUTION);
+//		canvasSectionMinimumX = WIDTH_Y_AXIS;
+//		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
+//		canvasSectionMinimumY = HEIGHT_X_AXIS;
+//		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
+		pos = (int) Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int) Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
 		if (!pos.equals(prevPos)) {
 			repaint();
 		}
@@ -416,9 +416,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //			if (gcScores[i]<gcThreshold) {
 //			if (currentClass==1 && alleleCounts[i]==-1) {
 			if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
-				g.drawString("X", getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize/2.0));
+				g.drawString("X", getXPixel(datapoints[0][i])-xWidth/2, getYPixel(datapoints[1][i])+(int)(xFontSize/2.0));
 			} else {
-				g.fillOval(getX(datapoints[0][i])-(int)(size*2)/2, getY(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
+				g.fillOval(getXPixel(datapoints[0][i])-(int)(size*2)/2, getYPixel(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
 			}
 		}
 		prevPos = pos;
@@ -434,14 +434,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	mouseEndY = e.getY();
     	highlightRectangle = null;
     	
-    	if (Math.abs(mouseEndX-mouseStartX)>(sp.getPointSize()/2) || Math.abs(mouseEndX-mouseStartX)>(sp.getPointSize()/2)) {
+    	if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2) || Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2)) {
 	    	// Automatically predict the new genotype and assigns to the last filter.
 	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
 	    											  new ClusterFilter((byte)sp.getPlotType(),
-																		(float)Math.min(getRawX(mouseStartX), getRawX(mouseEndX)),
-																		(float)Math.min(getRawY(mouseStartY), getRawY(mouseEndY)),
-																		(float)Math.max(getRawX(mouseStartX), getRawX(mouseEndX)),
-																		(float)Math.max(getRawY(mouseStartY), getRawY(mouseEndY)),
+																		(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+																		(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
+																		(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+																		(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
 																		sp.getCurrentMarkerData()));
 	    	sp.saveClusterFilterCollection();
 	    	sp.clusterFilterCollectionUpdated(true);
@@ -451,6 +451,55 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
 			sp.displayClusterFilterIndex();
 			paintAgain();
+
+
+
+
+/*
+ * Approach 1
+ */
+//			JPopupMenu popup;
+//			popup = new JPopupMenu();
+//			for (int i = 0; i < ScatterPlot.GENOTYPE_OPTIONS.length; i++) {
+//				popup.add(new LaunchAction(ScatterPlot.GENOTYPE_OPTIONS[i]));
+//			}
+//			popup.show(this, mouseEndX, mouseEndX);
+
+
+/*
+ * Approach 2
+ */
+//			JComboBox<String> newGenotype;
+//			JPopupMenu popup;
+//			newGenotype = new JComboBox<String>(new String[] {"-","A/A","A/B","B/B"});
+//	    	newGenotype.setSelectedIndex(sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(sp.getCurrentClusterFilter()).getCluterGenotype());
+//			ActionListener newGenotypeListener = new ActionListener() {
+//				public void actionPerformed(ActionEvent e) {
+//					byte newGenotypeSelected;
+//					String selectedGenotype;
+//
+//					selectedGenotype =  (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
+//					if (selectedGenotype == "-") {
+//						newGenotypeSelected=(byte)-1;
+//					} else if (selectedGenotype == "A/A") {
+//						newGenotypeSelected=(byte)0;
+//					} else if (selectedGenotype == "A/B") {
+//						newGenotypeSelected=(byte)1;
+//					} else if (selectedGenotype == "B/B") {
+//						newGenotypeSelected=(byte)2;
+//					} else {
+//						newGenotypeSelected=(byte)-9;
+//					}
+//					if (sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(sp.getCurrentClusterFilter()).getCluterGenotype() != newGenotypeSelected) {
+//						sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(sp.getCurrentClusterFilter()).setClusterGenotype(newGenotypeSelected);
+//					}
+//				}
+//			};
+//	    	newGenotype.addActionListener(newGenotypeListener);
+////			popup = new Popup(null, newGenotype, mouseEndX, mouseEndX);
+//	    	popup = new JPopupMenu();
+//	    	popup.add(newGenotype);
+//			popup.show(this, mouseEndX, mouseEndX);
 	    }
 
     	// Save the filters into files on hard drives;
@@ -461,13 +510,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	ClusterFilter clusterFilter;
     	mouseEndX = e.getX();
     	mouseEndY = e.getY();
-    	highlightRectangle = new GenericRectangle((float)getRawX(mouseStartX), (float)getRawY(mouseStartY), (float)getRawX(mouseEndX), (float)getRawY(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
+    	highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(mouseStartX), (float)getYValueFromYPixel(mouseStartY), (float)getXValueFromXPixel(mouseEndX), (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
 
     	clusterFilter = new ClusterFilter((byte)sp.getPlotType(),
-    			(float)Math.min(getRawX(mouseStartX), getRawX(mouseEndX)),
-    			(float)Math.min(getRawY(mouseStartY), getRawY(mouseEndY)),
-    			(float)Math.max(getRawX(mouseStartX), getRawX(mouseEndX)),
-    			(float)Math.max(getRawY(mouseStartY), getRawY(mouseEndY)),
+    			(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+    			(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
+    			(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+    			(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
     			(byte)0);
     	highlightPoints(sp.getCurrentMarkerData().getHighlightStatus(clusterFilter));
     	setExtraLayersVisible(new byte[] {99});
@@ -486,65 +535,66 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		String markerPosition;
 		int window;
 		int numberToInclude;
-		// float[][] datapoints = markerData[sp.getMarkerIndex()].getDatapoints(sp.getPlotType());
+		byte newClusterFilter;
+		byte currentGenotype;
+		ClusterFilter currentClusterFilter;
 
-		/*
-		if (event.getButton()==MouseEvent.BUTTON1) { // left click
-		} else if (event.getButton()==MouseEvent.BUTTON3) { // right click
-		}
-		*/
-
-		
-		window = Integer.parseInt(sp.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
-		mData = sp.getCurrentMarkerData();
-		markerPosition = "chr"+mData.getChr()+":"+(mData.getPosition()-window)+"-"+(mData.getPosition()+window);
-		if (indicesOfNearbySamples!=null && indicesOfNearbySamples.size()>0) {
-			menu = new JPopupMenu();
-			numberToInclude = Math.min(50, indicesOfNearbySamples.size());
-			for (int i = 0; i<numberToInclude; i++) {
-				// menu.add(samples[prox.elementAt(i)] +"
-				// ("+datapoints[0][prox.elementAt(i)]+",
-				// "+datapoints[1][prox.elementAt(i)]+")");
-
-				menu.add(new LaunchAction(sp.getProject(), samples[indicesOfNearbySamples.elementAt(i)], markerPosition, Color.BLACK));
+		if (event.getButton() == MouseEvent.BUTTON1) {
+			window = Integer.parseInt(sp.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
+			mData = sp.getCurrentMarkerData();
+			markerPosition = "chr"+mData.getChr()+":"+(mData.getPosition()-window)+"-"+(mData.getPosition()+window);
+			if (indicesOfNearbySamples!=null && indicesOfNearbySamples.size()>0) {
+				menu = new JPopupMenu();
+				numberToInclude = Math.min(50, indicesOfNearbySamples.size());
+				for (int i = 0; i<numberToInclude; i++) {
+					// menu.add(samples[prox.elementAt(i)] +"
+					// ("+datapoints[0][prox.elementAt(i)]+",
+					// "+datapoints[1][prox.elementAt(i)]+")");
+	
+					menu.add(new LaunchAction(sp.getProject(), samples[indicesOfNearbySamples.elementAt(i)], markerPosition, Color.BLACK));
+				}
+				if (indicesOfNearbySamples.size() > 50) {
+					menu.add(new LaunchAction("Plus "+(indicesOfNearbySamples.size() - 50)+" additional samples"));
+				}
+	
+				menu.show(this, event.getX(), event.getY());
 			}
-			if (indicesOfNearbySamples.size() > 50) {
-				menu.add(new LaunchAction("Plus "+(indicesOfNearbySamples.size() - 50)+" additional samples"));
+
+			newClusterFilter = lookupNearbyRectangles(event.getX(), event.getY());
+			if (newClusterFilter >= 0) {
+				sp.setCurrentClusterFilter(newClusterFilter);
 			}
 
-			menu.show(this, event.getX(), event.getY());
-		}
-		
-////		System.out.println(event.getX()+">="+(getX(0)-nanWidth/2-5)
-////						   +"\t"+event.getX()+"<"+(getX(0)-nanWidth/2+140)
-////						   +"\t"+event.getY()+">="+(getY(0)+30+points[0].getSize()/2)
-////						   +"\t"+event.getY()+"<"+(getY(0)+70+points[0].getSize()/2)
-////						   +"\t"+indicesOfNaNSamples.size());
-//		if (event.getX()>=(getX(0)-nanWidth/2-5)
-//				&& event.getX()<(getX(0)-nanWidth/2+140)
-//				&& event.getY()>=(getY(0)+30+points[0].getSize()/2)
-//				&& event.getY()<(getY(0)+70+points[0].getSize()/2)) {
-//			menu = new JPopupMenu();
-//			for (int i = 0; indicesOfNaNSamples!=null && i<indicesOfNaNSamples.size(); i++) {
-//				// menu.add(samples[prox.elementAt(i)] +"
-//				// ("+datapoints[0][prox.elementAt(i)]+",
-//				// "+datapoints[1][prox.elementAt(i)]+")");
-//				menu.add(new LaunchAction(sp.getProject(), samples[indicesOfNaNSamples.elementAt(i)], markerPosition, Color.BLACK));
-//			}
-//			menu.show(this, event.getX(), event.getY());
-//		}
-//		
-//		JPopupMenu choiceMenu;
-//		JCheckBox comment;
-//		choiceMenu = new JPopupMenu();
-//		for (int i=0; i<comments.length; i++) {
-//			comment = new JCheckBox(comments[i]);
-//			choiceMenu.add(comment);
-//		}
-//		choiceMenu.show(this, 10, 10);
-////		commentResult = choiceMenu.getChosen();
-////		sp.saveClusterFilterCollection();
+		} else if (event.getButton() == MouseEvent.BUTTON2) {
+			newClusterFilter = lookupNearbyRectangles(event.getX(), event.getY());
+			if (newClusterFilter >= 0) {
+				ClusterFilterCollection clusterFilterCollection;
+				clusterFilterCollection = sp.getClusterFilterCollection();
+				clusterFilterCollection.deleteClusterFilter(sp.getMarkerName(), newClusterFilter);
+				sp.setCurrentClusterFilter((byte) Math.min(newClusterFilter, clusterFilterCollection.getSize(sp.getMarkerName())-1));
+				sp.saveClusterFilterCollection();
+				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
+				sp.displayClusterFilterIndex();
+//					annotationPanelLowerPart();
+				setPointsGeneratable(true);
+				setQcPanelUpdatable(true);
+				//repaint();
+				//paintAgain();
+				generateRectangles();
+				sp.updateGUI();
+			}
 
+		} else if (event.getButton() == MouseEvent.BUTTON3) {
+			newClusterFilter = lookupResidingRectangles(event.getX(), event.getY());
+			if (newClusterFilter >= 0) {
+				currentClusterFilter = sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(newClusterFilter);
+				currentGenotype = currentClusterFilter.getCluterGenotype();
+				currentClusterFilter.setClusterGenotype((byte) (currentGenotype == (ScatterPlot.GENOTYPE_OPTIONS.length - 2)? -1 : currentGenotype + 1));
+//				paintAgain();
+				setQcPanelUpdatable(true);
+				sp.updateGUI();
+			}
+		}
 	}
 
 //	public static void main(String[] args) {

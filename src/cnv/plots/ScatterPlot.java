@@ -1,6 +1,7 @@
 package cnv.plots;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.swing.*;
@@ -47,6 +48,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	public static final String UNMASK_MISSING = "Unmask missing values";
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String DEFAULT_MESSAGE = "enter new annotation here";
+	public static final String[] GENOTYPE_OPTIONS = new String[] {"-","A/A","A/B","B/B"};
 
 
 	private JButton first, previous, next, last;
@@ -184,8 +186,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		inputMapAndActionMap();
 
-		scatPanel.setPointsGeneratable(true);//zx
-		scatPanel.setQcPanelUpdatable(true);//zx???
+		scatPanel.setPointsGeneratable(true);
+		scatPanel.setQcPanelUpdatable(true);
 //		scatPanel.generateRectangles();
 		scatPanel.setExtraLayersVisible(new byte[] {99});
 		updateGUI();
@@ -226,20 +228,20 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		JPanel descrPanel = new JPanel();
 		descrPanel.setLayout(new GridLayout(3, 1));
 		//markerName = new JLabel("", JLabel.CENTER);
-		markerName = new JTextField("");//zx
-		markerName.setBorder(null);//zx
-		markerName.setEditable(false);//zx
-		markerName.setBackground(BACKGROUND_COLOR);//zx
+		markerName = new JTextField("");
+		markerName.setBorder(null);
+		markerName.setEditable(false);
+		markerName.setBackground(BACKGROUND_COLOR);
 		markerName.setHorizontalAlignment(JTextField.CENTER);
 		markerName.setFont(new Font("Arial", 0, 20));
 		descrPanel.add(markerName);
 
 		//commentLabel = new JLabel("", JLabel.CENTER);
-		commentLabel = new JTextField("");//zx
-		commentLabel.setBorder(null);//zx
-		commentLabel.setEditable(false);//zx
-		commentLabel.setBackground(BACKGROUND_COLOR);//zx
-		commentLabel.setHorizontalAlignment(JTextField.CENTER);//zx
+		commentLabel = new JTextField("");
+		commentLabel.setBorder(null);
+		commentLabel.setEditable(false);
+		commentLabel.setBackground(BACKGROUND_COLOR);
+		commentLabel.setHorizontalAlignment(JTextField.CENTER);
 		commentLabel.setFont(new Font("Arial", 0, 14));
 		descrPanel.add(commentLabel);
 
@@ -257,8 +259,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		navigationField = new JTextField("", 8);
 		navigationField.setHorizontalAlignment(JTextField.CENTER);
 		navigationField.setFont(new Font("Arial", 0, 14));
-		//navigationField.setEditable(false);//zx
-		navigationField.setBackground(BACKGROUND_COLOR);//zx
+		//navigationField.setEditable(false);
+		navigationField.setBackground(BACKGROUND_COLOR);
 		navigationField.addActionListener(new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
 				try {
@@ -268,8 +270,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					}
 				} catch (NumberFormatException nfe) {}
 				displayIndex((JTextField)e.getSource());
-				scatPanel.setPointsGeneratable(true);//zx
-				scatPanel.setQcPanelUpdatable(true);//zx???
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
 				setCurrentClusterFilter();
 				updateGUI();
 				displayClusterFilterIndex();
@@ -302,7 +304,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
     }
 
 	private JPanel eastPanel() {
-		JPanel tabbedPanel;
+		JPanel eastPanel;
 		JTabbedPane tabbedPane;
 
 		tabbedPane = new JTabbedPane();
@@ -319,26 +321,26 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		annotationPanelComment = new JPanel();
 //		annotationPanel.add(annotationPanelComment);
 		annotationPanel();
-		annotationScrollPane = new JScrollPane(annotationPanel);
+//		annotationScrollPane = new JScrollPane(annotationPanel);
 //		annotationPanel.addKeyListener(this);
 //		annotationPanel.setFocusable(true);
 //		annotationPanel.requestFocus();
 		tabbedPane.addTab("Annotation", null, annotationScrollPane, "Annotation to this marker");
 		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
 
-		qcPanel = new JPanel();//zx
-		qcPanel.setLayout(new GridLayout(8, 1));//zx
-		qcPanel.setBackground(BACKGROUND_COLOR);//zx
+		qcPanel = new JPanel();
+		qcPanel.setLayout(new GridLayout(8, 1));
+		qcPanel.setBackground(BACKGROUND_COLOR);
 
-		tabbedPanel = new JPanel();
-		tabbedPanel.setLayout(new BoxLayout(tabbedPanel, BoxLayout.PAGE_AXIS));
-		tabbedPanel.setBackground(BACKGROUND_COLOR);
-		tabbedPanel.add(tabbedPane);
-		tabbedPanel.add(clusterFilterPanel());
+		eastPanel = new JPanel();
+		eastPanel.setLayout(new BoxLayout(eastPanel, BoxLayout.PAGE_AXIS));
+		eastPanel.setBackground(BACKGROUND_COLOR);
+		eastPanel.add(tabbedPane);
+		eastPanel.add(clusterFilterPanel());
 //		tabbedPanel.add(plotTypePanel());
-		tabbedPanel.add(qcPanel);//zx
+		eastPanel.add(qcPanel);
 
-		return tabbedPanel;
+		return eastPanel;
     }
 
 	private JPanel plotTypePanel() {
@@ -397,8 +399,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				JSlider slider = (JSlider)ce.getSource();
 				sizeLabel.setText("Size = "+slider.getValue());
 				size = (byte)slider.getValue();
-				scatPanel.setPointsGeneratable(true);//zx
-				scatPanel.setQcPanelUpdatable(false);//zx???
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(false);
 				scatPanel.paintAgain();
 			}
 		});
@@ -428,10 +430,10 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				JSlider slider = (JSlider)ce.getSource();
 				gcThreshold = (float)slider.getValue()/100f;
 				gcLabel.setText("GC > "+ext.formDeci(gcThreshold, 2, true));
-				scatPanel.setPointsGeneratable(true);//zx
-				scatPanel.setQcPanelUpdatable(true);//zx
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
 				scatPanel.paintAgain();
-				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");//zx
+				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
 			}
 		});
 //		tabPanel.add(slider, gbc);
@@ -459,15 +461,15 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		clusterFilterNavigation = new JTextField("", 5);
 		clusterFilterNavigation.setHorizontalAlignment(JTextField.CENTER);
 		clusterFilterNavigation.setFont(new Font("Arial", 0, 14));
-		//navigationField.setEditable(false);//zx
-		clusterFilterNavigation.setBackground(BACKGROUND_COLOR);//zx
+		//navigationField.setEditable(false);
+		clusterFilterNavigation.setBackground(BACKGROUND_COLOR);
 		clusterFilterNavigation.addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent focusevent) {}
 
 			public void focusLost(FocusEvent fe) {
 				try {
 					int trav = Integer.valueOf(((JTextField)fe.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
-					if (trav>=0&&trav<clusterFilterCollection.getSize(getMarkerName())) {
+					if (trav >= 0 && trav < clusterFilterCollection.getSize(getMarkerName())) {
 //						currentClusterFilter = (byte) trav;
 						setCurrentClusterFilter((byte) trav);
 					}
@@ -505,23 +507,35 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		clusterFilterPanel.add(last1);
 		clusterFilterPanel.add(delete);
 
-    	newGenotype = new JComboBox<String>(new String[] {"-","A/A","A/B","B/B"});
+    	newGenotype = new JComboBox<String>(GENOTYPE_OPTIONS);
 		ActionListener newGenotypeListener = new ActionListener() {
+			@SuppressWarnings("unchecked")
 			public void actionPerformed(ActionEvent e) {
 				byte newGenotypeSelected;
-				if ((String)newGenotype.getSelectedItem()=="-") {
-					newGenotypeSelected=(byte)-1;
-				} else if ((String)newGenotype.getSelectedItem()=="A/A") {
-					newGenotypeSelected=(byte)0;
-				} else if ((String)newGenotype.getSelectedItem()=="A/B") {
-					newGenotypeSelected=(byte)1;
-				} else if ((String)newGenotype.getSelectedItem()=="B/B") {
-					newGenotypeSelected=(byte)2;
-				} else {
-					newGenotypeSelected=(byte)-9;
+				String newGenoSelected;
+				
+//				if ((String)newGenotype.getSelectedItem()=="-") {
+//					newGenotypeSelected=(byte)-1;
+//				} else if ((String)newGenotype.getSelectedItem()=="A/A") {
+//					newGenotypeSelected=(byte)0;
+//				} else if ((String)newGenotype.getSelectedItem()=="A/B") {
+//					newGenotypeSelected=(byte)1;
+//				} else if ((String)newGenotype.getSelectedItem()=="B/B") {
+//					newGenotypeSelected=(byte)2;
+//				} else {
+//					newGenotypeSelected=(byte)-9;
+//				}
+
+				newGenoSelected = (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
+				newGenotypeSelected = -2;
+				for (int i = 0; i < GENOTYPE_OPTIONS.length; i++) {
+					if (newGenoSelected.equals(GENOTYPE_OPTIONS[i])) {
+						newGenotypeSelected=(byte) (i - 1);
+						break;
+					}
 				}
 //				byte index = (byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-				if ((clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)!=newGenotypeSelected)) {					//??????
+				if ((clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter) != newGenotypeSelected)) {					//??????
 					saveClusterFilterCollection();
 				}
 				clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
@@ -531,7 +545,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //					saveClusterFilterCollection();
 //				}
 				scatPanel.setPointsGeneratable(true);
-				scatPanel.setQcPanelUpdatable(true);//zx???
+				scatPanel.setQcPanelUpdatable(true);
 				//updateGUI();
 				scatPanel.paintAgain();
 			}
@@ -546,68 +560,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		return clusterFilterPanel;
 	}
 
-//	private JPanel controlPanel() {
-//		JPanel controlPanel;
-//
-//		controlPanel = new JPanel();
-//		controlPanel.setLayout(new GridBagLayout());
-////		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-//		controlPanel.setSize(50, 100);
-//		controlPanel.setBackground(BACKGROUND_COLOR);
-//
-//		GridBagConstraints gbc = new GridBagConstraints();
-//		gbc.insets = new Insets(1,3,0,30);
-//		gbc.weightx = 1.0;
-//		gbc.fill = GridBagConstraints.HORIZONTAL;
-//		gbc.gridwidth = GridBagConstraints.REMAINDER;
-//
-//		controlPanel.add(sizeSliderPanel(), gbc);
-//		controlPanel.add(gcSliderPanel(), gbc);
-//
-//		ItemListener symmetryListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-////				scatPanel.setPointsGenerated(true);//zx ??? Why not true?
-////				scatPanel.setUpdateQcPanel(false);//zx ??? Why cannot set to false?
-//				updateGUI();
-//			}
-//		};
-//		
-//		symmetryBox = new JCheckBox("Symmetric axes");
-//		symmetryBox.setFont(new Font("Arial", 0, 14));
-//		symmetryBox.addItemListener(symmetryListener);
-//		symmetryBox.setBackground(BACKGROUND_COLOR);
-//
-//		controlPanel.add(symmetryBox, gbc);
-////		tabPanel.add(symmetryBox);
-//		
-//		JButton button = new JButton(CAPTURE);
-//		button.addActionListener(this);
-//		button.setActionCommand(CAPTURE);
-//		controlPanel.add(button, gbc);
-////		tabPanel.add(button);
-//
-//		button = new JButton(DUMP);
-//		button.addActionListener(this);
-//		button.setActionCommand(DUMP);
-//		controlPanel.add(button, gbc);
-////		tabPanel.add(button);
-//		
-//		button = new JButton(MASK_MISSING);
-//		button.addActionListener(this);
-//		button.setActionCommand(MASK_MISSING);
-//		controlPanel.add(button, gbc);
-//		
-//		controlPanel.add(plotTypePanel(), gbc);
-//
-//		return controlPanel;
-//	}
-
 	private JPanel controlPanel() {
 		JPanel controlPanel;
 
 		controlPanel = new JPanel();
-		controlPanel.setLayout(new SpringLayout());
-//		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+		controlPanel.setLayout(new GridBagLayout());
 		controlPanel.setSize(50, 100);
 		controlPanel.setBackground(BACKGROUND_COLOR);
 
@@ -622,8 +579,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		ItemListener symmetryListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
-//				scatPanel.setPointsGenerated(true);//zx ??? Why not true?
-//				scatPanel.setUpdateQcPanel(false);//zx ??? Why cannot set to false?
+//				scatPanel.setPointsGenerated(true); ??? Why not true?
+//				scatPanel.setUpdateQcPanel(false); ??? Why cannot set to false?
 				updateGUI();
 			}
 		};
@@ -634,19 +591,16 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		symmetryBox.setBackground(BACKGROUND_COLOR);
 
 		controlPanel.add(symmetryBox, gbc);
-//		tabPanel.add(symmetryBox);
 		
 		JButton button = new JButton(CAPTURE);
 		button.addActionListener(this);
 		button.setActionCommand(CAPTURE);
 		controlPanel.add(button, gbc);
-//		tabPanel.add(button);
 
 		button = new JButton(DUMP);
 		button.addActionListener(this);
 		button.setActionCommand(DUMP);
 		controlPanel.add(button, gbc);
-//		tabPanel.add(button);
 		
 		button = new JButton(MASK_MISSING);
 		button.addActionListener(this);
@@ -657,6 +611,156 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		return controlPanel;
 	}
+
+//	private JPanel controlPanel() {
+//		JPanel controlPanel;
+//		JPanel panel;
+//		JButton button;
+//
+//		controlPanel = new JPanel();
+//		controlPanel.setSize(100, 500);
+//		controlPanel.setBackground(BACKGROUND_COLOR);
+//
+////		GridBagConstraints gbc = new GridBagConstraints();
+////		gbc.insets = new Insets(1,3,0,30);
+////		gbc.weightx = 1.0;
+////		gbc.fill = GridBagConstraints.HORIZONTAL;
+////		gbc.gridwidth = GridBagConstraints.REMAINDER;
+////		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+//		SpringLayout springLayout = new SpringLayout();
+//		controlPanel.setLayout(springLayout);
+//
+//		panel = sizeSliderPanel();
+//		controlPanel.add(panel);
+//		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
+//		springLayout.putConstraint(SpringLayout.NORTH, panel, 5, SpringLayout.NORTH, controlPanel);
+//		panel = gcSliderPanel();
+//		controlPanel.add(panel);
+//		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
+//		springLayout.putConstraint(SpringLayout.NORTH, panel, 45, SpringLayout.NORTH, controlPanel);
+//
+//		ItemListener symmetryListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+////				scatPanel.setPointsGenerated(true); ??? Why not true?
+////				scatPanel.setUpdateQcPanel(false); ??? Why cannot set to false?
+//				updateGUI();
+//			}
+//		};
+//		
+//		symmetryBox = new JCheckBox("Symmetric axes");
+//		symmetryBox.setFont(new Font("Arial", 0, 14));
+//		symmetryBox.addItemListener(symmetryListener);
+//		symmetryBox.setBackground(BACKGROUND_COLOR);
+//
+//		controlPanel.add(symmetryBox);
+//		springLayout.putConstraint(SpringLayout.WEST, symmetryBox, 5, SpringLayout.WEST, controlPanel);
+//		springLayout.putConstraint(SpringLayout.NORTH, symmetryBox, 85, SpringLayout.NORTH, controlPanel);
+////		tabPanel.add(symmetryBox);
+//		
+//		button = new JButton(CAPTURE);
+//		button.addActionListener(this);
+//		button.setActionCommand(CAPTURE);
+//		controlPanel.add(button);
+//		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
+//		springLayout.putConstraint(SpringLayout.NORTH, button, 115, SpringLayout.NORTH, controlPanel);
+////		tabPanel.add(button);
+//
+//		button = new JButton(DUMP);
+//		button.addActionListener(this);
+//		button.setActionCommand(DUMP);
+//		controlPanel.add(button);
+//		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
+//		springLayout.putConstraint(SpringLayout.NORTH, button, 145, SpringLayout.NORTH, controlPanel);
+////		tabPanel.add(button);
+//		
+//		button = new JButton(MASK_MISSING);
+//		button.addActionListener(this);
+//		button.setActionCommand(MASK_MISSING);
+//		controlPanel.add(button);
+//		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
+//		springLayout.putConstraint(SpringLayout.NORTH, button, 175, SpringLayout.NORTH, controlPanel);
+//		
+//		panel = plotTypePanel();
+//		controlPanel.add(panel);
+//		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
+//		springLayout.putConstraint(SpringLayout.NORTH, panel, 205, SpringLayout.NORTH, controlPanel);
+//		
+//
+//		return controlPanel;
+//	}
+
+
+//	private JPanel controlPanel() {
+//		JPanel controlPanel;
+//		JPanel panel;
+//		JButton button;
+//
+//		controlPanel = new JPanel();
+//		controlPanel.setSize(100, 500);
+//		controlPanel.setBackground(BACKGROUND_COLOR);
+//
+//		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+////		SpringLayout springLayout = new SpringLayout();
+////		controlPanel.setLayout(springLayout);
+//
+//		panel = sizeSliderPanel();
+//		controlPanel.add(panel);
+////		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
+////		springLayout.putConstraint(SpringLayout.NORTH, panel, 5, SpringLayout.NORTH, controlPanel);
+//		panel = gcSliderPanel();
+//		controlPanel.add(panel);
+////		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
+////		springLayout.putConstraint(SpringLayout.NORTH, panel, 45, SpringLayout.NORTH, controlPanel);
+//
+//		ItemListener symmetryListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+////				scatPanel.setPointsGenerated(true); ??? Why not true?
+////				scatPanel.setUpdateQcPanel(false); ??? Why cannot set to false?
+//				updateGUI();
+//			}
+//		};
+//		
+//		symmetryBox = new JCheckBox("Symmetric axes");
+//		symmetryBox.setFont(new Font("Arial", 0, 14));
+//		symmetryBox.addItemListener(symmetryListener);
+//		symmetryBox.setBackground(BACKGROUND_COLOR);
+//
+//		controlPanel.add(symmetryBox);
+////		springLayout.putConstraint(SpringLayout.WEST, symmetryBox, 5, SpringLayout.WEST, controlPanel);
+////		springLayout.putConstraint(SpringLayout.NORTH, symmetryBox, 85, SpringLayout.NORTH, controlPanel);
+////		tabPanel.add(symmetryBox);
+//		
+//		button = new JButton(CAPTURE);
+//		button.addActionListener(this);
+//		button.setActionCommand(CAPTURE);
+//		controlPanel.add(button);
+////		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
+////		springLayout.putConstraint(SpringLayout.NORTH, button, 115, SpringLayout.NORTH, controlPanel);
+////		tabPanel.add(button);
+//
+//		button = new JButton(DUMP);
+//		button.addActionListener(this);
+//		button.setActionCommand(DUMP);
+//		controlPanel.add(button);
+////		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
+////		springLayout.putConstraint(SpringLayout.NORTH, button, 145, SpringLayout.NORTH, controlPanel);
+////		tabPanel.add(button);
+//		
+//		button = new JButton(MASK_MISSING);
+//		button.addActionListener(this);
+//		button.setActionCommand(MASK_MISSING);
+//		controlPanel.add(button);
+////		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
+////		springLayout.putConstraint(SpringLayout.NORTH, button, 175, SpringLayout.NORTH, controlPanel);
+//		
+//		panel = plotTypePanel();
+//		controlPanel.add(panel);
+////		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
+////		springLayout.putConstraint(SpringLayout.NORTH, panel, 205, SpringLayout.NORTH, controlPanel);
+//		
+//
+//		return controlPanel;
+//	}
 
 
 	private JPanel centroidPanel() {
@@ -679,8 +783,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
 				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
 				centLabels[index].setVisible(displayCents[index]);
-				scatPanel.setPointsGeneratable(true);//zx
-				scatPanel.setQcPanelUpdatable(false);//zx
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(false);
 				updateGUI();
 			}
 		};
@@ -696,7 +800,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		centBoxes = new JCheckBox[centList.length];
 		displayCents = new boolean[centList.length];
 		centLabels = new JLabel[centList.length];
-		//System.out.println(centList.length+"\n");//zx
+		//System.out.println(centList.length+"\n");
 		for (int i = 0; i<centList.length; i++) {
 			centBoxes[i] = new JCheckBox(centList[i]);
 			centBoxes[i].setFont(new Font("Arial", 0, 14));
@@ -720,11 +824,15 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	private void annotationPanel() {
 		annotationPanel = new JPanel();
+		annotationScrollPane = new JScrollPane(annotationPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+//		annotationScrollPane.setVisible(true);
+//		annotationScrollPane.createVerticalScrollBar();
+
 		annotationPanel.setBackground(Color.WHITE);
 		annotationPanel.setLayout(new BoxLayout(annotationPanel, BoxLayout.Y_AXIS));
 //		annotationPanelLayout = new SpringLayout();
 //		annotationPanel.setLayout(annotationPanelLayout);
-		JPanel temp1 = annotationPanelUpperPart();
+		JPanel temp1 = annotationPanelUpper();
 		annotationPanel.add(temp1);
 //		annotationPanelLayout.putConstraint(SpringLayout.WEST, temp1, 5, SpringLayout.WEST, annotationPanel);
 //		annotationPanelLayout.putConstraint(SpringLayout.NORTH, temp1, 5, SpringLayout.NORTH, annotationPanel);
@@ -735,18 +843,20 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		annotationPanel.add(annotationPanelLowerPart);
 //		annotationPanelLayout.putConstraint(SpringLayout.WEST, annotationPanelLowerPart, 5, SpringLayout.WEST, annotationPanel);
 //		annotationPanelLayout.putConstraint(SpringLayout.NORTH, annotationPanelLowerPart, 25, SpringLayout.NORTH, annotationPanel);
-		annotationPanelLowerPart();
-		annotationScrollPane = new JScrollPane(annotationPanel);
+		annotationPanelLower();
+//		annotationScrollPane = new JScrollPane(annotationPanel);
+//		annotationScrollPane.createVerticalScrollBar();
 	}
 
-	private JPanel annotationPanelUpperPart() {
-		JPanel annotationPanelControl;
+	private JPanel annotationPanelUpper() {
+		JPanel annotationPanelUpper;
 		JPanel subPanel;
 		JCheckBox checkBox;
+		JButton button;
 
-		annotationPanelControl = new JPanel();
-		annotationPanelControl.setLayout(new BoxLayout(annotationPanelControl, BoxLayout.Y_AXIS));
-		annotationPanelControl.setBackground(BACKGROUND_COLOR);
+		annotationPanelUpper = new JPanel();
+		annotationPanelUpper.setLayout(new BoxLayout(annotationPanelUpper, BoxLayout.Y_AXIS));
+		annotationPanelUpper.setBackground(BACKGROUND_COLOR);
 
 		subPanel = new JPanel();
 		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.X_AXIS));
@@ -793,14 +903,79 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			}});
 //		annotationPanelControl.add(checkBox);
 		subPanel.add(checkBox);
-		annotationPanelControl.add(subPanel);
+		annotationPanelUpper.add(subPanel);
+		
+		button = new JButton("Export");
+//		export.setBackground(Color.WHITE);
+		button.setSize(10, 11);
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (e.getActionCommand() != null) {
+					annotationCollection.dumpLists(proj);
+				}
+			}
+		});
+		annotationPanelUpper.add(button);
+
+		button = new JButton("Import");
+//		export.setBackground(Color.WHITE);
+		button.setSize(10, 11);
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (e.getActionCommand() != null) {
+					String filename, filenameBak;
+					JFileChooser fileChooser;
+					int returnVal;
+					String[] annotatedMarkers;
+					String[] options;
+					int choice;
+					
+					fileChooser = new JFileChooser(new File(proj.getProjectDir()));
+					returnVal = fileChooser.showOpenDialog(null);
+
+			        if (returnVal == JFileChooser.APPROVE_OPTION) {
+			        	filename = fileChooser.getSelectedFile().getAbsolutePath();
+			    		if (annotationUpdated) {
+			    			options = new String[] {"Yes, overwrite", "No"};
+			    			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			    			if (choice == 0) {
+//			    				filename = proj.getFilename(Project.ANNOTATION_DIRECTORY, false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
+			    				filenameBak = proj.getFilename(proj.getProjectDir(), false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
+			    				System.out.println("Writing to " + filenameBak);
+			    				Files.writeSerial(annotationCollection, filenameBak);
+			    			}
+			    		}
+			    		deactivateAllAnnotationMaps();
+//						annotationCollection = AnnotationCollection.loadFromLists(filename, null);
+						AnnotationCollection.appendFromLists(filename, annotationCollection, proj.getMarkerNames(), null);
+						annotatedMarkers = annotationCollection.getMarkerLists();
+						for (int i = 0; i < isAnnotated.length; i++) {
+							for (int j = 0; j < annotatedMarkers.length; j++) {
+								if (markerList[i].equals(annotatedMarkers[j])) {
+									isAnnotated[i] = true;
+									annotated ++;
+									break;
+								}
+							}
+						}
+						annotationKeys = annotationCollection.getKeys();
+			    		activateAllAnnotationMaps();
+						annotationPanelLower();
+		    			annotationUpdated = true;
+			        }
+				}
+			}
+		});
+		annotationPanelUpper.add(button);
 
 
 //		annotationPanelControl.setVisible(true);
-		return annotationPanelControl;
+		return annotationPanelUpper;
 	}
 
-	public void annotationPanelLowerPart() {
+	public void annotationPanelLower() {
 		JButton removeButton;
 		ButtonGroup radioButtonGroup;
 		int horizontalMargin;
@@ -845,7 +1020,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 		annotationCheckBoxes = new JCheckBox[annotationKeys.length];
 		for (int i=0; annotationKeys != null && i < annotationKeys.length; i++) {
-			annotationCheckBoxes[i] = new JCheckBox(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts));
+			annotationCheckBoxes[i] = new JCheckBox(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true));
 //			annotationCheckBoxes[i] = new JCheckBox();
 			annotationCheckBoxes[i].setBackground(Color.WHITE);
 			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
@@ -875,7 +1050,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				        		annotated --;
 				        	}
 				        }
-				        checkBox.setText(annotationCollection.getDescriptionForComment(currentKey, showAnnotationShortcuts));
+				        checkBox.setText(annotationCollection.getDescriptionForComment(currentKey, showAnnotationShortcuts, true));
 				        updateAnnotationPanelFilterRadioButtons();
 				        annotationUpdated = true;
 					}
@@ -901,7 +1076,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					removeAnnotationFromMaps(annotationKeys[index]);
 					annotationKeys = annotationCollection.getKeys();
 					annotationUpdated = true;
-					annotationPanelLowerPart();
+					annotationPanelLower();
 				}
 			});
 			annotationPanelLowerPart.add(removeButton);
@@ -939,13 +1114,18 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				char c;
 				
 				str = ((JTextField)e.getSource()).getText();
-				c = str.toLowerCase().charAt(0);
-				str = str.substring(1);
-				annotationCollection.addAnnotation(c, str);
-				addAnnotationToMaps(c);
-				annotationKeys = annotationCollection.getKeys();
-				annotationPanelLowerPart();
-				annotationUpdated = true;
+//				c = str.toLowerCase().charAt(0);
+//				str = str.substring(1);
+				c = AnnotationCollection.assignKey(str, annotationCollection);
+				if (c == 0) {
+					System.out.println("Failed to add the new annotation key '" + str + "', because cannot automatically assign a shortcut for it.");
+				} else {
+					annotationCollection.addAnnotation(c, str);
+					addAnnotationToMaps(c);
+					annotationKeys = annotationCollection.getKeys();
+					annotationPanelLower();
+					annotationUpdated = true;
+				}
 			}
 		});
 
@@ -1032,8 +1212,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = Math.min(markerIndex+1, markerList.length-1);
 				displayIndex(navigationField);
-				scatPanel.setPointsGeneratable(true);//zx
-				scatPanel.setQcPanelUpdatable(true);//zx???
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
 				updateGUI();
 			}
 		});
@@ -1043,8 +1223,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = markerList.length-1;
 				displayIndex(navigationField);
-				scatPanel.setPointsGeneratable(true);//zx
-				scatPanel.setQcPanelUpdatable(true);//zx???
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
 				updateGUI();
 			}
 		});
@@ -1060,7 +1240,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //			markerIndex = 0;
 			markerIndex = getAvailableMarker(false, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
 			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setPointsGeneratable(true);
 			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -1082,7 +1262,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 ////				scatPanel.updateMarkerData(markerData);
 //			}
 			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setPointsGeneratable(true);
 			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -1104,7 +1284,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 ////				scatPanel.updateMarkerData(markerData);
 //			}
 			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setPointsGeneratable(true);
 			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -1126,7 +1306,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 ////				scatPanel.updateMarkerData(markerData);
 //			}
 			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);//zx
+			scatPanel.setPointsGeneratable(true);
 			scatPanel.setQcPanelUpdatable(true);
 //			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
 			setCurrentClusterFilter();
@@ -1173,7 +1353,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
 //				annotationPanelLowerPart();
-				scatPanel.setPointsGeneratable(true);//zx
+				scatPanel.setPointsGeneratable(true);
 				scatPanel.setQcPanelUpdatable(true);
 				//scatPanel.repaint();
 				//scatPanel.paintAgain();
@@ -1201,8 +1381,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
 			maskMissing = !maskMissing;
 			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
-			scatPanel.setPointsGeneratable(true);//zx
-			scatPanel.setQcPanelUpdatable(true);//zx
+			scatPanel.setPointsGeneratable(true);
+			scatPanel.setQcPanelUpdatable(true);
 			updateGUI();
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
@@ -1498,7 +1678,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		
 		missingMarkers = new Vector<String>();
 		filename = proj.getFilename(Project.DISPLAY_MARKERS_FILENAME);
-		//System.out.println("filename: "+filename);//zx
+		//System.out.println("filename: "+filename);
 		try {
 			try {
 				reader = Files.getReader(filename, jar, true, false);
@@ -1680,10 +1860,10 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass) {
-		float callRate=0;//zx
-		JLabel qcPanelLabel;//zx
-		//JLabel qcCallRateLabel;//zxu
-		//JLabel qcHwePvalueLabel;//zxu
+		float callRate=0;
+		JLabel qcPanelLabel;
+		//JLabel qcCallRateLabel;u
+		//JLabel qcHwePvalueLabel;u
 		int[] alleleCounts;
 		double hweP;
 		//int[][] sexContingecyTable = new int[2][2];
@@ -1697,7 +1877,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			for (int i=0; i<genotype.length; i++) {
 				if (genotype[i]<=0) {
 					called[i] = "-1";
-					callRate++;//zx
+					callRate++;
 				} else {
 					called[i] = "1";
 					if (sex[i].equals("2")) {
@@ -1709,7 +1889,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			for (int i=0; i<genotype.length; i++) {
 				if (genotype[i]<=0) {
 					called[i] = "-1";
-					callRate++;//zx
+					callRate++;
 				} else {
 					called[i] = "1";
 				}
@@ -1718,93 +1898,93 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			for (int i=0; i<genotype.length; i++) {
 				if (genotype[i]<=0) {
 					called[i] = "-1";
-					callRate++;//zx
+					callRate++;
 				} else {
 					called[i] = "1";
-					alleleCounts[genotype[i]-1]++;
+					alleleCounts[genotype[i]-1] ++;
 				}
 				
 			}
 		}
 		hweP = AlleleFreq.HWEsig(alleleCounts);
-		callRate=(genotype.length-callRate)*100/genotype.length;//zx
+		callRate=(genotype.length-callRate)*100/genotype.length;
 		
 		qcPanel.removeAll();
 		qcPanel.repaint();
 		
-        qcPanelLabel = new JLabel("", JLabel.CENTER);//zx
-        qcPanel.add(qcPanelLabel);//zx
-        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 20));//zx
-        qcPanel.add(qcPanelLabel);//zx
+        qcPanelLabel = new JLabel("", JLabel.CENTER);
+        qcPanel.add(qcPanelLabel);
+        qcPanelLabel = new JLabel("QC Metrics", JLabel.CENTER);
+        qcPanelLabel.setFont(new Font("Arial", 0, 20));
+        qcPanel.add(qcPanelLabel);
 		
-        qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-        qcPanel.add(qcPanelLabel);//zx
+        qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+        qcPanel.add(qcPanelLabel);
 
-        qcPanelLabel = new JLabel("HWE p-value: "+ext.prettyP(hweP), JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
+        qcPanelLabel = new JLabel("HWE p-value: "+ext.prettyP(hweP), JLabel.LEFT);
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel);
 
 		ToolTipManager.sharedInstance().setDismissDelay(100000);
 
 		classCount = new CTable(called, sex);//This is the problem.
 		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
 		classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(0));
-		qcPanelLabel = new JLabel("Callrate by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);//zx
+		qcPanelLabel = new JLabel("Callrate by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);
 		//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}));
 		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel);
 
 		classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
 		classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
 		classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
-		qcPanelLabel = new JLabel("Allele Freq by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);//zx
+		qcPanelLabel = new JLabel("Allele Freq by sex: "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);
 		//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}, {".","Missing"}});
 		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel);
 
 		currentClass = getCurrentClass();
 		if (currentClass>=(SampleData.BASIC_CLASSES.length+1)) {
 			classCount = new CTable(called, otherClass);//This is the problem.
 			classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
-			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);//zx
+			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);
 			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
 			//classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}));
 			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-			qcPanel.add(qcPanelLabel);//zx
+	        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+			qcPanel.add(qcPanelLabel);
 	
 			classCount = new CTable(CTable.extrapolateCounts(otherClass, genotype));
 			classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
 			//classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
-			qcPanelLabel = new JLabel("Allele Freq by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);//zx
+			qcPanelLabel = new JLabel("Allele Freq by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)), JLabel.LEFT);
 			classCount.setCustomNullValues(Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
 			//classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length), new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
 			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-	        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-			qcPanel.add(qcPanelLabel);//zx
+	        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+			qcPanel.add(qcPanelLabel);
 		}
 
-//		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);//zx
-//      qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-//		qcPanel.add(qcPanelLabel);//zx
+//		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);
+//      qcPanelLabel.setFont(new Font("Arial", 0, 14));
+//		qcPanel.add(qcPanelLabel);
 
 //		AlleleFreq.calcFrequency(genotypes);
 		
 		
 		/*
-		qcPanelLabel = new JLabel(""+sexContingecyTable[0][1], JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-		qcPanelLabel = new JLabel(""+sexContingecyTable[1][0], JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
-		qcPanelLabel = new JLabel(""+sexContingecyTable[1][1], JLabel.LEFT);//zx
-        qcPanelLabel.setFont(new Font("Arial", 0, 14));//zx
-		qcPanel.add(qcPanelLabel);//zx
+		qcPanelLabel = new JLabel(""+sexContingecyTable[0][1], JLabel.LEFT);
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel);
+		qcPanelLabel = new JLabel(""+sexContingecyTable[1][0], JLabel.LEFT);
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel);
+		qcPanelLabel = new JLabel(""+sexContingecyTable[1][1], JLabel.LEFT);
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel);
 		*/
 
 		qcPanel.validate();
@@ -1942,7 +2122,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	public void updateAnnotationPanelAnnotationCheckBoxes() {
 		for (int i=0; i<annotationCheckBoxes.length; i++) {
-        	annotationCheckBoxes[i].setText(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts));
+        	annotationCheckBoxes[i].setText(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true));
 			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
 				annotationCheckBoxes[i].setSelected(true);
 			} else {
@@ -2003,18 +2183,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		clusterFilterCollectionUpdated = status;
 	}
 
-	public static void main(String[] args) {
-		String filename = Project.DEFAULT_SCATTER_PROJECT;
-//		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
-		boolean jar = false;
-
-		try {
-			new ScatterPlot(new Project(filename, jar), null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public void windowActivated(WindowEvent e) {}
 
 	public void windowClosed(WindowEvent e) {}
@@ -2054,6 +2222,19 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	public void windowIconified(WindowEvent e) {}
 
 	public void windowOpened(WindowEvent e) {}
+
+	public static void main(String[] args) {
+		String filename = Project.DEFAULT_SCATTER_PROJECT;
+//		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
+		boolean jar = false;
+
+		try {
+			new ScatterPlot(new Project(filename, jar), null, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
 
 //	@Override
 //	public void keyTyped(KeyEvent e) {

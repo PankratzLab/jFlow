@@ -115,6 +115,7 @@ public class Project extends Properties {
 	public static final String MARKER_REVIEW_CRITERIA_FILENAME = "MARKER_REVIEW_CRITERIA_FILENAME";
 	public static final String MARKER_EXCLUSION_CRITERIA_FILENAME = "MARKER_EXCLUSION_CRITERIA_FILENAME";
 	public static final String ANNOTATION_FILENAME = "ANNOTATION_FILENAME";
+//	public static final String ANNOTATION_DIRECTORY = "ANNOTATION_DIRECTORY";
 
 	private boolean jar;
 	private SampleList sampleList;
