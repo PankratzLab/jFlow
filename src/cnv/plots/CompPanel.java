@@ -53,9 +53,9 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		super.paintComponent(g);
 		// We'll need to scale the relative base to the window size
 		for (int i = 0; i < rectangles.length; i++) {
-			int width = Math.round(((int) rectangles[i].getStopX() - (int) rectangles[i].getStartX()) * scalingFactor);
+			int width = Math.round(((int) rectangles[i].getStopXValue() - (int) rectangles[i].getStartXValue()) * scalingFactor);
 			int height = rectangleHeight;
-			int x = Math.round((int) rectangles[i].getStartX() * scalingFactor);
+			int x = Math.round((int) rectangles[i].getStartXValue() * scalingFactor);
 			int y = (i * height);
 
 			// Store the rectangle for later bounds checking

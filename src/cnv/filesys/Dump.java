@@ -4,10 +4,12 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import common.ext;
+
 import cnv.manage.TransposeData;
 
 public class Dump {
-	public static void dump(String filename) {
+	public static void dump(String filename, int[] indeciesOfMarkersToDump) {
         PrintWriter writer;
         
     	try {
@@ -23,7 +25,8 @@ public class Dump {
 	        	byte[] forwardGenotypes = samp.getForwardGenotypes();
 	        	byte[] abGenotypes = samp.getAB_Genotypes();
 
-	        	writer = new PrintWriter(new FileWriter(filename + "_" + samp.getSampleName() + "_" + samp.getFingerprint() + ".xln"));
+//	        	writer = new PrintWriter(new FileWriter(filename + "_" + samp.getSampleName() + "_" + samp.getFingerprint() + ".xln"));
+	        	writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_" + samp.getFingerprint() + ".xln"));
 	        	writer.println( (xs==null? "" : "X")
 	        				  + (ys==null? "" : "\tY")
 			        		  + (thetas==null? "" : "\tTheta")
@@ -52,7 +55,7 @@ public class Dump {
 	        	byte[] chrs = set.getChrs();
 	        	int[] positions = set.getPositions();
 
-	            writer = new PrintWriter(new FileWriter(filename+"_"+set.getFingerprint()+".xln"));
+	            writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_" + "_" + set.getFingerprint() + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln"));
 	            writer.println("MarkerName\tChr\tPosition");
 	        	for (int i = 0; i<markerNames.length; i++) {
 	        		writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]);
@@ -61,13 +64,13 @@ public class Dump {
 
 	        } else if (filename.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION)) {
 	        	MarkerData[] mkData;
-	        	int indexStartMarker, indexEndMarker;
-	        	
-	        	indexStartMarker = 0;
-	        	indexEndMarker = 0;
-	        	mkData = TransposeData.loadFromRAF(filename, indexStartMarker, indexEndMarker);
+
+	        	if (indeciesOfMarkersToDump == null) {
+	        		indeciesOfMarkersToDump = new int[] {0};
+	        	}
+	        	mkData = TransposeData.loadFromRAF(filename, indeciesOfMarkersToDump);
 	        	for (int i=0; i<mkData.length; i++) {
-	        		mkData[i].dump(filename + "_dump_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln", null);
+	        		mkData[i].dump(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln", null);
 	        	}
 	        }
         } catch (Exception e) {
@@ -78,7 +81,12 @@ public class Dump {
 	
 	public static void main(String[] args) {
 	    int numArgs = args.length;
-	    String filename = "sample.fsamp";
+//	    String filename = "sample.fsamp";
+	    String filename = "D:/GEDI_exome/transposed/markers.1.mdRAF";
+//	    String filename = "D:/GEDI_exome/samples/1002900362.sampRAF";
+	    int[] indeciesOfMarkersToDump = null;
+//	    int[] indeciesOfMarkersToDump = new int[] {10000};
+	    String[] commandTemp;
 
 	    String usage = "\n"+
 	    "cnv.filesys.Dump requires 0-1 arguments\n"+
@@ -92,6 +100,13 @@ public class Dump {
 		    } else if (args[i].startsWith("file=")) {
 			    filename = args[i].split("=")[1];
 			    numArgs--;
+		    } else if (args[i].startsWith("markerIndecies=")) {
+		    	commandTemp = args[i].split("=")[1].split(",");
+		    	indeciesOfMarkersToDump = new int[commandTemp.length];
+		    	for (int j = 0; j < indeciesOfMarkersToDump.length; j++) {
+		    		indeciesOfMarkersToDump[j] = Integer.parseInt(commandTemp[j]);
+		    	}
+			    numArgs--;
 		    }
 	    }
 	    if (numArgs!=0) {
@@ -99,7 +114,7 @@ public class Dump {
 		    System.exit(1);
 	    }
 	    try {
-		    dump(filename);
+		    dump(filename, indeciesOfMarkersToDump);
 	    } catch (Exception e) {
 		    e.printStackTrace();
 	    }

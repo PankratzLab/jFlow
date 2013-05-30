@@ -250,10 +250,10 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
 				data = hash.get(sampleList[iv.elementAt(i)]);
 				
-				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(data[currentPair[0][0]][currentPair[0][1]]), getY(data[currentPair[1][0]][currentPair[1][1]])})<HIGHLIGHT_DISTANCE) {
+				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[currentPair[0][0]][currentPair[0][1]]), getYPixel(data[currentPair[1][0]][currentPair[1][1]])})<HIGHLIGHT_DISTANCE) {
 					g.setColor(Color.RED);
 					prox.add(iv.elementAt(i));
-					Grafik.drawCircle(g, getX(data[currentPair[0][0]][currentPair[0][1]]), getY(data[currentPair[1][0]][currentPair[1][1]]), SIZE, true);
+					Grafik.drawCircle(g, getXPixel(data[currentPair[0][0]][currentPair[0][1]]), getYPixel(data[currentPair[1][0]][currentPair[1][1]]), SIZE, true);
 				}
 			}
 

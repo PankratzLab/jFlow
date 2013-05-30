@@ -252,7 +252,7 @@ public class Sample implements Serializable {
 						realY = -9;
 					}
 					if (realX>=clusterFilter.getXMin() && realY>=clusterFilter.getYMin() && realX<=clusterFilter.getXMax() && realY<=clusterFilter.getYMax()) {
-						result[i]=clusterFilter.getNewGenotype();
+						result[i]=clusterFilter.getCluterGenotype();
 					}
 				}
 			}
@@ -660,37 +660,65 @@ public class Sample implements Serializable {
 
 
 	@SuppressWarnings("unchecked")
-	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
+	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, boolean seekOrLoadWholeFile, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
+		byte[] outliersBuffer;
 		Hashtable<String, Float> sampleOutlierHash;
 		Enumeration<String> keys;
 		String currentKey;
 		int outlierSectionSize = 0;
 		byte[] readBufferLocal;
 		int pointer;
+		long seekPointer;
 
 		try {
-			readBufferLocal = new byte[(int) sampleFile.length()];
-			sampleFile.read(readBufferLocal);
-	    	if (allOutliers != null) {
-	    		pointer = Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC;
-    			outlierSectionSize = Compression.bytesToInt(readBufferLocal, pointer);
-	    	}
+			if (seekOrLoadWholeFile) {
+		    	if (allOutliers != null) {
+		    		sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+		    		outlierSectionSize = sampleFile.readInt();
+		    	}
+	
+		    	seekPointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
+		    	if (seekPointer != sampleFile.getFilePointer()) {
+		    		sampleFile.seek(seekPointer);
+		    	}
+				sampleFile.read(readBuffer);
 
-	    	pointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
-	    	for (int i=0; i<readBuffer.length; i++) {
-	    		readBuffer[i] = readBufferLocal[pointer];
-	    		pointer ++;
-	    	}
-
-    		if (outlierSectionSize > 0) {
-    			pointer = Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark;
-	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(readBufferLocal, pointer, outlierSectionSize);
-	    		keys = sampleOutlierHash.keys();
-	    		while (keys.hasMoreElements()) {
-	    			currentKey = keys.nextElement();
-	    			allOutliers.put(indexOfCurrentSample + "\t" + currentKey, sampleOutlierHash.get(currentKey));
+				if (outlierSectionSize > 0) {
+			    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
+		    		outliersBuffer = new byte[outlierSectionSize];
+		    		sampleFile.read(outliersBuffer);
+		    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);
+		    		keys = sampleOutlierHash.keys();
+		    		while (keys.hasMoreElements()) {
+		    			currentKey = keys.nextElement();
+		    			allOutliers.put(indexOfCurrentSample + "\t" + currentKey, sampleOutlierHash.get(currentKey));
+		    		}
 	    		}
-    		}
+
+			} else {
+				readBufferLocal = new byte[(int) sampleFile.length()];
+				sampleFile.seek(0);
+				sampleFile.read(readBufferLocal);
+		    	pointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
+		    	for (int i=0; i<readBuffer.length; i++) {
+		    		readBuffer[i] = readBufferLocal[pointer];
+		    		pointer ++;
+		    	}
+	
+				if (allOutliers != null) {
+		    		pointer = Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC;
+	    			outlierSectionSize = Compression.bytesToInt(readBufferLocal, pointer);
+		    		if (outlierSectionSize > 0) {
+		    			pointer = Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark;
+			    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(readBufferLocal, pointer, outlierSectionSize);
+			    		keys = sampleOutlierHash.keys();
+			    		while (keys.hasMoreElements()) {
+			    			currentKey = keys.nextElement();
+			    			allOutliers.put(indexOfCurrentSample + "\t" + currentKey, sampleOutlierHash.get(currentKey));
+			    		}
+		    		}
+		    	}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {

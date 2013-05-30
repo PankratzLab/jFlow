@@ -61,7 +61,7 @@ public class ClusterFilterCollection implements Serializable {
 	//??? How to select the last filter???
 	public byte getGenotype(String markerName, byte index) {
 		if (hash.containsKey(markerName) && hash.get(markerName).size() > index) {
-			return hash.get(markerName).get(index).getNewGenotype();
+			return hash.get(markerName).get(index).getCluterGenotype();
 		} else {
 			System.err.println("Error - Trying to get a ClusterFilter that does not exist.");
 			return (byte)-1;
@@ -86,7 +86,7 @@ public class ClusterFilterCollection implements Serializable {
 	}
 
 	public void updateGenotype(String markerName, byte index, byte newGenotype) {
-		hash.get(markerName).get(index).setNewGenotype(newGenotype);
+		hash.get(markerName).get(index).setClusterGenotype(newGenotype);
 	}
 		
 	public byte[] filterMarker(MarkerData markerData, float gcThreshold) {
@@ -135,7 +135,7 @@ public class ClusterFilterCollection implements Serializable {
 						&& realY[j]>=clusterFilters.get(i).getYMin()
 						&& realX[j]<=clusterFilters.get(i).getXMax()
 						&& realY[j]<=clusterFilters.get(i).getYMax()) {
-					result[j]=clusterFilters.get(i).getNewGenotype();
+					result[j]=clusterFilters.get(i).getCluterGenotype();
 					if (result[j] < -1) {
 						System.err.println("Error - result["+j+"]="+result[j]);
 					}

@@ -288,7 +288,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int step;
 		long time;
 		ProgressBarDialog prog;//zx
-    	int recX, recY, recWidth, recHeight;
+    	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
@@ -411,9 +411,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				sigFigs = getNumSigFig(plotMinMaxStep[2]);
 				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
-						Grafik.drawThickLine(g, getX(x), getHeight()-canvasSectionMaximumY, getX(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+						Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(x)<DOUBLE_INACCURACY_HEDGE?0:x, sigFigs, true);
-						g.drawString(str, getX(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
+						g.drawString(str, getXPixel(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
 					}
 				}
 				Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
@@ -433,12 +433,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				sigFigs = getNumSigFig(plotMinMaxStep[2]);
 				for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
 					if (y >= plotYmin || !truncate) {
-						Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getY(y), canvasSectionMaximumX, getY(y), TICK_THICKNESS, Color.BLACK);
+						Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(y)<DOUBLE_INACCURACY_HEDGE?0:y, sigFigs, true);
-						g.drawString(str, canvasSectionMaximumX-TICK_LENGTH-str.length()*15-5, getY(y)+9);
+						g.drawString(str, canvasSectionMaximumX-TICK_LENGTH-str.length()*15-5, getYPixel(y)+9);
 					}
 				}
-				Grafik.drawThickLine(g, canvasSectionMaximumX, getY(plotYmin), canvasSectionMaximumX, getY(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
+				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
 	
 				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
 				gfx = yLabel.createGraphics();
@@ -497,37 +497,32 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		for (int i = 0; lines!=null && i<lines.length && flow; i++) {
 //		for (int i = 0; lines!=null&&i<lines.length; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
-				Grafik.drawThickLine(g, getX(lines[i].getStartX()), getY(lines[i].getStartY()), getX(lines[i].getStopX()), getY(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
+				Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()), getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
 			}
         }
 
 		// Draw the rectangles for clusterFilters
 		for (int i = 0; rectangles!=null && i<rectangles.length && flow; i++) {
-//		for (int i = 0; rectangles!=null&&i<rectangles.length; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
-//				recX = getX(Math.min((int)rectangles[i].getStartX(), (int)rectangles[i].getStopX()));
-//				recY = getY(Math.min((int)rectangles[i].getStartY(), (int)rectangles[i].getStopY()));
-//		    	recWidth = getX(Math.abs((int)rectangles[i].getStartX() - (int)rectangles[i].getStopX()));
-//		    	recHeight = getY((Math.abs((int)rectangles[i].getStartY() - (int)rectangles[i].getStopY())));
-				recX = Math.min(getX(rectangles[i].getStartX()), getX(rectangles[i].getStopX()));
-				recY = Math.min(getY(rectangles[i].getStartY()), getY(rectangles[i].getStopY()));
-		    	recWidth = Math.abs(getX(rectangles[i].getStartX()) - getX(rectangles[i].getStopX()));
-		    	recHeight = (Math.abs(getY(rectangles[i].getStartY()) - getY(rectangles[i].getStopY())));
+				rectangleXPixel = Math.min(getXPixel(rectangles[i].getStartXValue()), getXPixel(rectangles[i].getStopXValue()));
+				rectangleYPixel = Math.min(getYPixel(rectangles[i].getStartYValue()), getYPixel(rectangles[i].getStopYValue()));
+		    	rectangleWidthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue()) - getXPixel(rectangles[i].getStopXValue()));
+		    	rectangleHeightPixel = (Math.abs(getYPixel(rectangles[i].getStartYValue()) - getYPixel(rectangles[i].getStopYValue())));
 //		    	g.setColor(Color.GRAY);
 		    	g.setColor(colorScheme[rectangles[i].getColor()]);
 				
 				if (rectangles[i].getFill()) {
 					if (rectangles[i].getRoundedCorners()) {
-						g.fillRoundRect(recX, recY, recWidth, recHeight, 2, 2);
+						g.fillRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
 					} else {
-						g.fillRect(recX, recY, recWidth, recHeight);
+						g.fillRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
 					}
 				} else {
 					if (rectangles[i].getRoundedCorners()) {
-						g.drawRoundRect(recX, recY, recWidth, recHeight, 2, 2);
+						g.drawRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
 					} else {
-//						g.drawRect(recX, recY, recWidth, recHeight);
-				    	drawRectThick(g, recX, recY, recWidth, recHeight, rectangles[i].getThickness());
+//						g.drawRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
+				    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, rectangles[i].getThickness());
 					}
 				}
 			}
@@ -535,14 +530,14 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		// Draw the rectangle outlined by dragging the mouse
 		if (highlightRectangle != null) {
-			recX = Math.min(getX(highlightRectangle.getStartX()), getX(highlightRectangle.getStopX()));
-			recY = Math.min(getY(highlightRectangle.getStartY()), getY(highlightRectangle.getStopY()));
-	    	recWidth = Math.abs(getX(highlightRectangle.getStartX()) - getX(highlightRectangle.getStopX()));
-	    	recHeight = (Math.abs(getY(highlightRectangle.getStartY()) - getY(highlightRectangle.getStopY())));
+			rectangleXPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
+			rectangleYPixel = Math.min(getYPixel(highlightRectangle.getStartYValue()), getYPixel(highlightRectangle.getStopYValue()));
+	    	rectangleWidthPixel = Math.abs(getXPixel(highlightRectangle.getStartXValue()) - getXPixel(highlightRectangle.getStopXValue()));
+	    	rectangleHeightPixel = (Math.abs(getYPixel(highlightRectangle.getStartYValue()) - getYPixel(highlightRectangle.getStopYValue())));
 //	    	g.setColor(Color.BLACK);
 	    	g.setColor(colorScheme[0]);
-//	    	g.drawRect(recX, recY, recWidth, recHeight);
-	    	drawRectThick(g, recX, recY, recWidth, recHeight, (byte) 1);
+//	    	g.drawRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
+	    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, (byte) 1);
 		}
 
 //		// Draw progress bar
@@ -596,8 +591,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 				}
 				if (createLookup) {
-					xLook = (int)Math.floor(getX(points[i].getRawX())/lookupResolution);
-					yLook = (int)Math.floor(getY(points[i].getRawY())/lookupResolution);
+					xLook = (int)Math.floor(getXPixel(points[i].getRawX())/lookupResolution);
+					yLook = (int)Math.floor(getYPixel(points[i].getRawY())/lookupResolution);
 					for (int j = xLook-1; j<=xLook+1; j++) {
 						for (int k = yLook-1; k<=yLook+1; k++) {
 							pos = j+"x"+k;
@@ -634,15 +629,15 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         }
 
 		if (indicesOfNaNSamples!=null && indicesOfNaNSamples.size()>0) {
-			g.drawString(PlotPoint.NAN_STR+" (n="+indicesOfNaNSamples.size()+")", getX(0)-nanWidth/2, getY(0)+60+points[0].getSize()/2);
+			g.drawString(PlotPoint.NAN_STR+" (n="+indicesOfNaNSamples.size()+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
 		}
 		
 		if (base && displayGrid) {
 			for (double d = 0; d < 1.0; d+=0.1) {
-				g.drawLine(getX(d), getY(0), getX(d), getY(canvasSectionMaximumY));
+				g.drawLine(getXPixel(d), getYPixel(0), getXPixel(d), getYPixel(canvasSectionMaximumY));
 			}
 			for (double d = -0.5; d < 0.5; d+=0.1) {
-				g.drawLine(getX(0), getY(d), getX(canvasSectionMaximumX), getY(d));
+				g.drawLine(getXPixel(0), getYPixel(d), getXPixel(canvasSectionMaximumX), getYPixel(d));
 			}
 		}
 		setFinalImage(true);
@@ -726,25 +721,14 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			g.setColor(Color.GRAY);
 			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
 				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
-				if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[dataPointIndex].getRawX()), getY(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
+				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[dataPointIndex].getRawX()), getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
 					prox.add(dataPointIndex);
 //					g.setColor(Color.YELLOW);
 //					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
-					g.drawOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+					g.drawOval(getXPixel(points[dataPointIndex].getRawX()) - size/2, getYPixel(points[dataPointIndex].getRawY()) - size/2, size, size);
 
 				}
 			}
-
-//			HashVec.addToHashVec(hash, key, value, onlyifabsent)
-//			for (int i=0; i<rectangles.length; i++) {
-//				if (Math.abs(x - rectangles[i].getStartX()) <= HIGHLIGHT_DISTANCE && (y >= rectangles[i].getStartY() - HIGHLIGHT_DISTANCE) && (y <= rectangles[i].getStopY() + HIGHLIGHT_DISTANCE)
-//						|| Math.abs(x - rectangles[i].getStopX()) <= HIGHLIGHT_DISTANCE && (y >= rectangles[i].getStartY() - HIGHLIGHT_DISTANCE) && (y <= rectangles[i].getStopY() + HIGHLIGHT_DISTANCE)
-//						|| Math.abs(y - rectangles[i].getStartY()) <= HIGHLIGHT_DISTANCE && (x >= rectangles[i].getStartX() - HIGHLIGHT_DISTANCE) && (x <= rectangles[i].getStopX() + HIGHLIGHT_DISTANCE)
-//						|| Math.abs(y - rectangles[i].getStopY()) <= HIGHLIGHT_DISTANCE && (x >= rectangles[i].getStartX() - HIGHLIGHT_DISTANCE) && (x <= rectangles[i].getStopX() + HIGHLIGHT_DISTANCE)
-//						) {
-//					rectangles[i].setColor((byte) 2);
-//				}
-//			}
 
 			prevPos = pos;
 			
@@ -938,19 +922,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 		switch (point.getType()) {
 		case PlotPoint.FILLED_CIRCLE:
-			g.fillOval(getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
+			g.fillOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
 			break;
 		case PlotPoint.OPEN_CIRCLE:
-			g.drawOval(getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
+			g.drawOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
 			break;
 		case PlotPoint.MISSING:
 			//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
 			if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")){
-				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())-point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())+point.getSize()/4);//zx
-				g.drawLine(getX(point.getRawX())-point.getSize()/4, getY(point.getRawY())+point.getSize()/4, getX(point.getRawX())+point.getSize()/4, getY(point.getRawY())-point.getSize()/4);//zx
+				g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4);//zx
+				g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4);//zx
 			} else {
 				g.setFont(new Font("Arial", 0, point.getSize()));//zx
-				g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-point.getSize()/2, getY(point.getRawY())+point.getSize()/2);//zx
+				g.drawString(PlotPoint.MISSING_STR, getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2);//zx
 				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));//zx
 			}
 			break;
@@ -1053,7 +1037,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 
-	public int getX(double x) {
+	public int getXPixel(double x) {
 		if (invertX) {
 			return (int)((plotXmax-x)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
 		} else {
@@ -1061,7 +1045,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 
-	public int getY(double y) {
+	public int getYPixel(double y) {
 		if (invertY) {
 			return getHeight()-(int)((plotYmax-y)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
 		} else {
@@ -1075,7 +1059,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	 * @param mouseX the mouse location X
 	 * @return the rawX value of the corresponding data point.
 	 */
-	public double getRawX(int mouseX) {
+	public double getXValueFromXPixel(int mouseX) {
 		if (invertX) {
 			return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
 		} else {
@@ -1089,7 +1073,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	 * @param mouseY the mouse location Y
 	 * @return the rawY value of the corresponding data point.
 	 */
-	public double getRawY(int mouseY) {
+	public double getYValueFromYPixel(int mouseY) {
 		if (invertY) {
 			return plotYmax + ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
 		} else {
@@ -1150,53 +1134,89 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 	
-	//zx
 	public void setLookupResolution(int lookupResolution) {
 		this.lookupResolution = lookupResolution;
 	}
 	
-	//zx
-	/*
-	public void buildLookupTableOfNearbyPoints() {
-		int x, y;
-		String pos;
-		locLookup.clear();
-		//System.out.println("---Beginning of locLookup---\npos\tLocation\tSample Index");//test point
-		for (int i = 0; i<points.length; i++) {
-			//x = (int)Math.floor(getX(data[i][0])/LOOKUP_RESOLUTION);
-			//y = (int)Math.floor(getY(data[i][1])/LOOKUP_RESOLUTION);
-			x = (int)Math.floor(getX(points[i].getRawX())/lookupResolution);
-			y = (int)Math.floor(getY(points[i].getRawY())/lookupResolution);
-			for (int j = x-1; j<=x+1; j++) {
-				for (int k = y-1; k<=y+1; k++) {
-					pos = j+"x"+k;
-					if (locLookup.containsKey(pos)) {
-						locLookup.get(pos).add(i);
-					} else {
-						locLookup.put(pos, new IntVector(new int[] {i}));
-					}
-					//System.out.println(pos+"\t("+getX(points[i].getRawX())+", "+getY(points[i].getRawY())+")\t"+i);//test point
-				}
-			}
-		}
-		//System.out.println("---End of locLookup---\n\n\n");//test point
-	}
-	*/
-
-	//zx
 	public IntVector lookupNearbyPoints(int x, int y, String pos) {
 		IntVector iv = locLookup.get(pos);
-		//System.out.print("\t iv size: "+iv.size());
 		IntVector indeciesOfDataPoints = new IntVector();
-		//System.out.println("---Log of lookup process---\nMouse pos\tMouse location\tNumber of nearby samples\tNearby sample index\tNearby sample location\tDistance");//test point
+
 		for (int i = 0; iv!=null && i<iv.size(); i++) {
-			//System.out.println(pos+"\t("+x+", "+y+")\t"+(iv==null?"null":iv.size())+"\t"+iv.elementAt(i)+"\t("+getX(points[iv.elementAt(i)].getRawX())+", "+getY(points[iv.elementAt(i)].getRawY())+")\t"+Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())}));//test point
-			if (Distance.euclidean(new int[] {x, y}, new int[] {getX(points[iv.elementAt(i)].getRawX()), getY(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
+			if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[iv.elementAt(i)].getRawX()), getYPixel(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
 				indeciesOfDataPoints.add(iv.elementAt(i));
 			}
 		}
-		//System.out.println("\t indeciesOfDataPoints: "+indeciesOfDataPoints.size());
+
 		return indeciesOfDataPoints;
+	}
+
+	public byte lookupNearbyRectangles(int xPixel, int yPixel) {
+		int rectangleStartXPixel, rectangleStartYPixel, rectangleStopXPixel, rectangleStopYPixel;
+		byte indeciesRectangle;
+		int distance;
+		int minDistance;
+		int[] rectangleEdges;
+
+		indeciesRectangle = -1;
+		minDistance = Integer.MAX_VALUE;
+		for (byte i=0; rectangles != null && i < rectangles.length; i++) {
+			rectangleStartXPixel = getXPixel(rectangles[i].getStartXValue());
+			rectangleStartYPixel = getYPixel(rectangles[i].getStartYValue());
+			rectangleStopXPixel = getXPixel(rectangles[i].getStopXValue());
+			rectangleStopYPixel = getYPixel(rectangles[i].getStopYValue());
+
+	    	rectangleEdges = new int[] {Math.min(rectangleStartXPixel, rectangleStopXPixel), Math.max(rectangleStartXPixel, rectangleStopXPixel), Math.min(rectangleStartYPixel, rectangleStopYPixel), Math.max(rectangleStartYPixel, rectangleStopYPixel)};
+	    	for (int j = 0; j < 2; j ++) {
+	    		distance = Math.abs(xPixel - rectangleEdges[j]);
+	    		if (distance < HIGHLIGHT_DISTANCE && distance < minDistance && yPixel > rectangleEdges[2] - HIGHLIGHT_DISTANCE && yPixel < rectangleEdges[3] + HIGHLIGHT_DISTANCE) {
+		    		minDistance = distance;
+		    		indeciesRectangle = i;
+	    		}
+			}
+	    	for (int j = 2; j < 4; j ++) {
+	    		distance = Math.abs(yPixel - rectangleEdges[j]);
+	    		if (distance < HIGHLIGHT_DISTANCE && distance < minDistance && xPixel > rectangleEdges[0] - HIGHLIGHT_DISTANCE && xPixel < rectangleEdges[1] + HIGHLIGHT_DISTANCE) {
+		    		minDistance = distance;
+		    		indeciesRectangle = i;
+	    		}
+	    	}
+		}
+
+		return indeciesRectangle;
+	}
+
+	public byte lookupResidingRectangles(int xPixel, int yPixel) {
+		int rectangleStartXPixel, rectangleStartYPixel, rectangleStopXPixel, rectangleStopYPixel;
+		byte indeciesRectangle;
+		int distance;
+		int minDistance;
+		int[] rectangleEdges;
+
+		indeciesRectangle = -1;
+		minDistance = Integer.MAX_VALUE;
+		for (byte i=0; rectangles != null && i < rectangles.length; i++) {
+			rectangleStartXPixel = getXPixel(rectangles[i].getStartXValue());
+			rectangleStartYPixel = getYPixel(rectangles[i].getStartYValue());
+			rectangleStopXPixel = getXPixel(rectangles[i].getStopXValue());
+			rectangleStopYPixel = getYPixel(rectangles[i].getStopYValue());
+
+	    	rectangleEdges = new int[] {(int) (Math.min(rectangleStartXPixel, rectangleStopXPixel) - HIGHLIGHT_DISTANCE),
+						    			(int) (Math.max(rectangleStartXPixel, rectangleStopXPixel) + HIGHLIGHT_DISTANCE),
+						    			(int) (Math.min(rectangleStartYPixel, rectangleStopYPixel) - HIGHLIGHT_DISTANCE),
+						    			(int) (Math.max(rectangleStartYPixel, rectangleStopYPixel) + HIGHLIGHT_DISTANCE)};
+	    	if (xPixel >= rectangleEdges[0] && xPixel <= rectangleEdges[1] && yPixel >= rectangleEdges[2] && yPixel <= rectangleEdges[3]) {
+		    	for (int j = 0; j < 4; j ++) {
+		    		distance = Math.abs(xPixel - rectangleEdges[j]);
+		    		if (minDistance > distance) {
+			    		minDistance = distance;
+			    		indeciesRectangle = i;
+		    		}
+				}
+	    	}
+		}
+
+		return indeciesRectangle;
 	}
 
 	public void setFinalImage(boolean finalImage) {

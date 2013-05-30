@@ -257,7 +257,7 @@ public class MarkerData implements Serializable {
 			counter = 0;
 			for (int j=0; j<result.length; j++) {
 				if (realX[j]>=clusterFilter.getXMin() && realY[j]>=clusterFilter.getYMin() && realX[j]<=clusterFilter.getXMax() && realY[j]<=clusterFilter.getYMax()) {
-					result[j]=clusterFilter.getNewGenotype();
+					result[j]=clusterFilter.getCluterGenotype();
 					counter ++;
 				}
 			}
@@ -327,10 +327,9 @@ public class MarkerData implements Serializable {
 							+ (ys==null? "" : "\tY")
 							+ (thetas==null? "" : "\tTheta")
 							+ (rs==null? "" : "\tR")
-							+ (bafs==null? "" : "\tBAF")
 							+ (lrrs==null? "" : "\tLRR")
 							+ (bafs==null? "" : "\tBAF")
-							+ (abGenotypes==null? "" : "A\tB_Genotypes")
+							+ (abGenotypes==null? "" : "\tAB_Genotypes")
 							+ (alleleMappings==null? "" : "\tForward_Genotypes"));
         	dump(writer, samples, includeMarkerName);
         	writer.close();
