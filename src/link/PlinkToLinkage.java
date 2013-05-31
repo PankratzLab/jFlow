@@ -141,9 +141,10 @@ public class PlinkToLinkage {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\";
+//		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\";
 //		String root = "slim";
 //		int slim = 2000;
+		String dir = "";
 		String root = "slimmedDown";
 		int slim = 0;
 		boolean create = true;
@@ -153,16 +154,20 @@ public class PlinkToLinkage {
 
 		String usage = "\n"+
 		"link.PlinkToLinkage requires 0-1 arguments\n"+
-		"   (1) plink root name (i.e. root="+root+" (default))\n"+
-		"   (2) number of markers to slim down to (i.e. slim="+slim+" (default))\n"+
-		"   (3) make LinkageFormat files (i.e. -create ("+(create?"":"not the ")+" default))\n"+
-		"   (4) pedigree file to update to (i.e. ped="+pedigree+" (default))\n"+
+		"   (1) directory (i.e. dir="+dir+" (default))\n"+
+		"   (2) plink root name (i.e. root="+root+" (default))\n"+
+		"   (3) number of markers to slim down to (i.e. slim="+slim+" (default))\n"+
+		"   (4) make LinkageFormat files (i.e. -create ("+(create?"":"not the ")+" default))\n"+
+		"   (5) pedigree file to update to (i.e. ped="+pedigree+" (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
+			} else if (args[i].startsWith("dir=")) {
+				dir = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("root=")) {
 				root = args[i].split("=")[1];
 				numArgs--;

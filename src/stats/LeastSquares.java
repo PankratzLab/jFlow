@@ -335,35 +335,37 @@ public class LeastSquares extends RegressionModel {
 
 	public String getSummary() {
 		String str = "";
-		String delimiter;
+		String eol;
 
 		if (analysisFailed) {
 			return "Did not run";
 		}
 		
-		delimiter = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
+		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
 		if (onePer) {
-			str += "One per family was permuted "+numPermutations+" times"+delimiter;
-			str += "Statistics were bootstrapped "+numBootReps+" times"+delimiter;
-			str += ""+delimiter;
-			str += "Number of independent observations: "+Array.unique(famIDs).length+""+delimiter;
-			str += ""+delimiter;
+			str += "One per family was permuted "+numPermutations+" times"+eol;
+			str += "Statistics were bootstrapped "+numBootReps+" times"+eol;
+			str += ""+eol;
+			str += "Number of independent observations: "+Array.unique(famIDs).length+""+eol;
+			str += ""+eol;
 		} else {
-			str += "Fstat = "+ext.formDeci(overall, 3)+", Sig. "+ext.formDeci(overallSig, 3, true)+" and R2= "+ext.formDeci(Rsquare, 4)+""+delimiter;
-			str += ""+delimiter;
+			str += "Fstat = "+ext.formDeci(overall, 3)+", Sig. "+ext.formDeci(overallSig, 3, true)+" and R2= "+ext.formDeci(Rsquare, 4)+""+eol;
+			str += ""+eol;
 		}
-		str += "Coefficients:"+delimiter;
-		str += ext.formStr("Model", maxNameSize, true)+"\t   Beta\t StdErr\t      t\t   Sig."+delimiter;
-		str += modelSummary()+""+delimiter;
+		str += "Coefficients:"+eol;
+		str += ext.formStr("Model", maxNameSize, true)+"\t   Beta\t StdErr\t      t\t   Sig."+eol;
+		str += modelSummary()+""+eol;
 
 		return str;
 	}
 
 	public String modelSummary() {
 		String str = "";
+		String eol;
 
+		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
 		for (int i = 0; i<betas.length; i++) {
-			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], 3, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], 3, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], 3, true), 7)+"\n";
+			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], 3, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], 3, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], 3, true), 7)+eol;
 		}
 
 		return str;

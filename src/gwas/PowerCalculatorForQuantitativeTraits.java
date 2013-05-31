@@ -296,8 +296,11 @@ public class PowerCalculatorForQuantitativeTraits {
 			long time;
 			time = new Date().getTime();
 //			rangeOfValues(10000, 100, 220000);
-//			rangeOfSigmaShiftsAndMAFsViaSimulation(10000, 1000, 1000000);
-			rangeOfSigmaShiftsAndMAFsViaSimulation(5000, 1000, 100);
+//			rangeOfSigmaShiftsAndMAFsViaSimulation(10000, 1000, 1000000);	// inflammation discovery
+//			rangeOfSigmaShiftsAndMAFsViaSimulation(5000, 1000, 100);		// inflammation replication
+//			rangeOfSigmaShiftsAndMAFsViaSimulation(200, 1000, 75);			// hearing inflammation sequence discovery
+			rangeOfSigmaShiftsAndMAFsViaSimulation(2500, 1000, 40);			// hearing inflammation sequence discovery
+
 //			simulatedBetting(10000, 1000, 1, 0.00);
 			System.out.println("Finished in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {

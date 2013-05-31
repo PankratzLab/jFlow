@@ -402,7 +402,37 @@ public abstract class RegressionModel {
 
 		return deps;
 	}
-	
+
+	// TODO These may eventually replace the others, but only after getting rid of the ambiguous erasures
+//	public static double[] processStringDeps(Vector<String> vDeps) {
+//		double[] deps = new double[vDeps.size()];
+//
+//		for (int i = 0; i<deps.length; i++) {
+//			deps[i] = Double.parseDouble(vDeps.elementAt(i));
+//		}
+//
+//		return deps;
+//	}
+//	
+//	public static double[][] processIntIndeps(Vector<int[]> vIndeps) {
+//		double[][] indeps = new double[vIndeps.size()][];
+//		
+//		for (int i = 0; i<indeps.length; i++) {
+//			indeps[i] = Array.toDoubleArray(vIndeps.elementAt(i));
+//		}
+//		
+//		return indeps;
+//	}
+//	
+//	public static double[][] processDoubleIndeps(Vector<double[]> vIndeps) {
+//		double[][] indeps = new double[vIndeps.size()][];
+//
+//		for (int i = 0; i<indeps.length; i++) {
+//			indeps[i] = vIndeps.elementAt(i);
+//		}
+//		
+//		return indeps;
+
 	@SuppressWarnings({ "rawtypes" })
 	public static double[][] processIndeps(Vector vIndeps) {
 		double[][] indeps = new double[vIndeps.size()][];
