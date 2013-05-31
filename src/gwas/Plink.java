@@ -662,9 +662,9 @@ public class Plink {
 		boolean filterPairs = false;
 		String mperm = null;
 		
-		parseDiffMode6("C:/GEDI_Exome2/mergeCompare/comp.diff");
-		parseDiffMode6("C:/GEDI_exome/mergeCompareOriginal/comp.diff");
-		System.exit(1);
+//		parseDiffMode6("C:/GEDI_Exome2/mergeCompare/comp.diff");
+//		parseDiffMode6("C:/GEDI_exome/mergeCompareOriginal/comp.diff");
+//		System.exit(1);
 
 		String usage = "\n"+
 		"gwas.Plink requires 0-1 arguments\n"+

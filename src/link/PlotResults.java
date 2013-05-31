@@ -705,6 +705,7 @@ public class PlotResults extends JFrame implements ActionListener {
 //		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Pankow\\Linkage\\results\\";
 //		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\BOSS\\Linkage\\results\\";
 		String dir = "D:/BOSS/Linkage/results/";
+//		String dir = "D:/BOSS/Linkage/PCA_all_files/results/";
 		String jar_dir = "results/";
 		boolean jar = false;
 

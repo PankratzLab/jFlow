@@ -311,7 +311,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				Segment currentView;
 				String text;
 				
-				g.drawRect(0, 0, this.getWidth()-1, this.getHeight()-1);
+//				g.drawRect(0, 0, this.getWidth()-1, this.getHeight()-1);
 				
 				
 				if (track == null) {

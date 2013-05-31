@@ -252,7 +252,7 @@ public class HashVec {
 					trav = "";
 					for (int i = 0; i<cols.length; i++) {
 						if (line.length <= cols[i]) {
-							System.err.println("Error - not enough columns at line "+count+": "+Array.toStr(line));
+							System.err.println("Error - not enough columns at line "+count+" of file "+filename+": "+Array.toStr(line));
 						}
 						trav += (i==0?"":"\t")+line[cols[i]];
 					}

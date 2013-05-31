@@ -19,7 +19,8 @@ public class Merlin {
         }
 	}
 
-	public static void batchAllBinary(String qsub) {
+	public static void batchAllBinary(String qsub, boolean blade) {
+		String commands;
 //		PrintWriter writer;
 //		String chrome;
 //		
@@ -37,14 +38,23 @@ public class Merlin {
 //	        System.err.println("Error writing to "+"MerlinAll.bat");
 //	        e.printStackTrace();
 //        }
-		
-		String commands = "echo \"Starting chr# at...\"\n"
-			+"date\n"
-			+"jcp link.Merlin chr=#\n"
-			+"merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##\n"
-			+"echo \"Finished chr# at...\"\n"
-			+"date\n";
-		Files.batchIt("batch", 0, CHR_START, CHR_STOP, 4, commands);
+		if (qsub != null) {
+			if (blade) {
+				commands = "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
+				Files.qsubBlade(qsub, "java", CHR_START, CHR_STOP, commands, 1, 10);
+			} else {
+				commands = "/share/apps/bin/merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
+				Files.qsub(qsub, CHR_START, CHR_STOP, commands);
+			}
+		} else {
+			commands = "echo \"Starting chr# at...\"\n"
+					+"date\n"
+					+"jcp link.Merlin chr=#\n"
+					+"merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##\n"
+					+"echo \"Finished chr# at...\"\n"
+					+"date\n";
+				Files.batchIt("batch", 0, CHR_START, CHR_STOP, 4, commands);
+		}
 	}
 
 	public static void batchAllVC(String qsub, boolean blade) {
@@ -211,10 +221,19 @@ public class Merlin {
 	    int trait = UNKNOWN_TRAIT;
 	    double[] quant = null;
 	    boolean blade = false;
+
+//		batchAllBinary("HL");
+//	    System.exit(1);
+	    
+//		batchAllVC("pta", blade);
+//		batchAllVC("Prin1", blade);
+//		batchAllVC("Prin2", blade);
+//		batchAllVC("Prin3", blade);
+//System.exit(1);	    
 	    
 //	    vc = true;
 //	    qsub = "PCA1";
-	    chr=1;
+//	    chr=1;
 	    
 	    // PCA1
 //	    qsub = "PCA1";
@@ -296,7 +315,7 @@ public class Merlin {
 	    	if (prep) {
 	    		prepAll();
 	    	} else if (batch) {
-	    		batchAllBinary(qsub);
+	    		batchAllBinary(qsub, blade);
 	    	} else if (vc) {
 	    		batchAllVC(qsub, blade);
 	    	} else if (quant != null) {

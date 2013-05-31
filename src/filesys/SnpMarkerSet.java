@@ -370,10 +370,12 @@ public class SnpMarkerSet implements Serializable {
 			} else if (index == starts[chrs[i]]) {
 				counts[1]++;
 //				System.out.println(0+"\t"+srcPositions[index]);
-				centiMorgans[i] = Math.max(srcCentiMorgans[index]-(srcPositions[index]-positions[i])/1000000, 0);
+				centiMorgans[i] = -1;
+//				centiMorgans[i] = Math.max(srcCentiMorgans[index]-(srcPositions[index]-positions[i])/1000000, 0);
 			} else if (index == stops[chrs[i]]+1) {
 				counts[2]++;
-				centiMorgans[i] = srcCentiMorgans[index]+(positions[i]-srcPositions[index])/1000000;
+//				centiMorgans[i] = srcCentiMorgans[index]+(positions[i]-srcPositions[index])/1000000;
+				centiMorgans[i] = -2;
 			} else if (chrs[i] == srcChrs[index] && positions[i] > srcPositions[index-1] && positions[i] < srcPositions[index]) {
 				counts[3]++;
 //				System.out.println(srcPositions[index-1]+"\t"+srcPositions[index]);
@@ -403,6 +405,10 @@ public class SnpMarkerSet implements Serializable {
 			if (chrs[i]!=chr) {
 				System.err.println("Error - rs"+rsNumbers[i]+" is on a different chromosome ("+chrs[i]+") than the others ("+chr+")");
 			}
+		}
+		
+		if (Array.max(centiMorgans) > 0) {
+			cM_data = centiMorgans;
 		}
 
 		return new LinkageMap(chr, markerNames, 2, cM_data, true, true);
@@ -1033,6 +1039,10 @@ public class SnpMarkerSet implements Serializable {
 	    
 //	    filename = "C:\\Documents and Settings\\npankrat\\My Documents\\Downloads\\GERMLINE\\maps\\plink.map";
 //	    source = "C:\\Documents and Settings\\npankrat\\My Documents\\Downloads\\GERMLINE\\maps\\master.map";
+
+	    filename = "D:/BOSS/LinkageMergedIBC/conversion/plink.bim";
+	    filename = "D:/BOSS/LinkageJustIBC/plink.bim";
+	    source = "D:/BOSS/LinkageMergedIBC/conversion/European.map";
 	    
 	    try {
 	    	if (!hapmap.equals("")) {

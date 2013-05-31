@@ -141,6 +141,7 @@ public class Heritability {
 			covarsHeader = null;
 		}
 		Files.combine(ids, params, null, null, "", dir+"/"+prefix+"_ptypes.csv", log, true, true, true);
+		Solar.cleanPhenotypeFile(dir+"/"+prefix+"_ptypes.csv");
 
 //		Files.write("echo -e \"load ped "+prefix+"_fam.csv\\nautomodel "+prefix+"_ptypes.csv "+trait+"\\npolygenic -screen\\nquit\\n\" | "+solarExec+" > "+prefix+"_solar.log", dir+"/batch");
 		Files.write("echo -e \"load ped "+prefix+"_fam.csv\\nload phenotype "+prefix+"_ptypes.csv\\ntrait "+trait+"\\n"+(covarsHeader != null?"covariates "+Array.toStr(Array.subArray(covarsHeader, 2), " ")+"\\n":"")+"polygenic -screen\\nquit\\n\" | "+solarExec+" > "+prefix+"_solar.log", dir+"/batch");

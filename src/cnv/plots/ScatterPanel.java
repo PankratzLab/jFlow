@@ -6,17 +6,12 @@ package cnv.plots;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
 
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JPopupMenu;
-import javax.swing.Popup;
 
 import cnv.filesys.ClusterFilter;
 import cnv.filesys.ClusterFilterCollection;
@@ -283,6 +278,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					type = PlotPoint.FILLED_CIRCLE;
 				}
 				layer = (byte)((sampleData.getClassCategoryAndIndex(currentClass)[0]==2 && classCode > 0)?1:0);
+				layer = classCode; // TODO temporary fix, since was always zero otherwise
+				
 				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
 					uniqueValueCounts.add(0+"");
 					genotype[i]=0;//zx

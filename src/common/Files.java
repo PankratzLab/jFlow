@@ -1527,7 +1527,7 @@ public class Files {
 		return list(directory, null, suffix, false, jar);
 	}
 	
-	// TODO does this stuff really need to be final?
+	// These variables need to be final in order to work in the FilenameFilter
 	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
 		if (jar) {
 			try {
@@ -1639,7 +1639,6 @@ public class Files {
 		}
 	}
 	
-	// TODO is this used by anything? It was commented out in Zack's version...
 	public static void summarizeAllFilesInDirectory(String dir) {
 		PrintWriter writer;
 		String[] data;

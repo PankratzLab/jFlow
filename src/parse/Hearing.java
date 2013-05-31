@@ -186,10 +186,12 @@ public class Hearing {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\hearing\\";
+//		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\hearing\\";
+//		String dir = "D:/BOSS/LinkageMergedIBC/";
+		String dir = "D:/BOSS/LinkageJustIBC/";
 		String source = "00src\\raw_genotypes\\";
 		boolean parse = false;
-		boolean test = false;
+		boolean test = true;
 		boolean update = false;
 		int markerIndex = 2;
 		int chrIndex = 1;
