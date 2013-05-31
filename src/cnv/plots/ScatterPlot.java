@@ -7,6 +7,8 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import com.sun.org.apache.bcel.internal.generic.DMUL;
+
 import stats.CTable;
 import stats.ContingencyTable;
 import stats.ProbDist;
@@ -824,7 +826,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	private void annotationPanel() {
 		annotationPanel = new JPanel();
-		annotationScrollPane = new JScrollPane(annotationPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+//		annotationScrollPane = new JScrollPane(annotationPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 //		annotationScrollPane.setVisible(true);
 //		annotationScrollPane.createVerticalScrollBar();
 
@@ -844,23 +846,18 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 //		annotationPanelLayout.putConstraint(SpringLayout.WEST, annotationPanelLowerPart, 5, SpringLayout.WEST, annotationPanel);
 //		annotationPanelLayout.putConstraint(SpringLayout.NORTH, annotationPanelLowerPart, 25, SpringLayout.NORTH, annotationPanel);
 		annotationPanelLower();
-//		annotationScrollPane = new JScrollPane(annotationPanel);
+		annotationScrollPane = new JScrollPane(annotationPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 //		annotationScrollPane.createVerticalScrollBar();
 	}
 
 	private JPanel annotationPanelUpper() {
 		JPanel annotationPanelUpper;
-		JPanel subPanel;
 		JCheckBox checkBox;
 		JButton button;
 
 		annotationPanelUpper = new JPanel();
-		annotationPanelUpper.setLayout(new BoxLayout(annotationPanelUpper, BoxLayout.Y_AXIS));
+		annotationPanelUpper.setLayout(new BoxLayout(annotationPanelUpper, BoxLayout.X_AXIS));
 		annotationPanelUpper.setBackground(BACKGROUND_COLOR);
-
-		subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.X_AXIS));
-		subPanel.setBackground(Color.WHITE);
 
 		checkBox = new JCheckBox("Shortcut");
 		checkBox.setBackground(Color.WHITE);
@@ -883,8 +880,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					updateAnnotationPanelAnnotationCheckBoxes();
 				}
 			}});
-//		annotationPanelControl.add(checkBox);
-		subPanel.add(checkBox);
+		annotationPanelUpper.add(checkBox);
 
 		checkBox = new JCheckBox("Auto Advance");
 		checkBox.setBackground(Color.WHITE);
@@ -901,12 +897,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					annotationAutoAdv = false;
 				}
 			}});
-//		annotationPanelControl.add(checkBox);
-		subPanel.add(checkBox);
-		annotationPanelUpper.add(subPanel);
-		
-		button = new JButton("Export");
-//		export.setBackground(Color.WHITE);
+		annotationPanelUpper.add(checkBox);
+
+//		button = new JButton("Export");
+		button = new JButton(Grafik.getImageIcon("images/export-icon.png", false));
+		button.setToolTipText("Export");
+		button.setBackground(Color.WHITE);
+		button.setBorder(null);
 		button.setSize(10, 11);
 		button.addActionListener(new ActionListener() {
 			@Override
@@ -918,8 +915,11 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		});
 		annotationPanelUpper.add(button);
 
-		button = new JButton("Import");
-//		export.setBackground(Color.WHITE);
+//		button = new JButton("Import");
+		button = new JButton(Grafik.getImageIcon("images/import-icon.png", false));
+		button.setToolTipText("Import");
+		button.setBackground(Color.WHITE);
+		button.setBorder(null);
 		button.setSize(10, 11);
 		button.addActionListener(new ActionListener() {
 			@Override
@@ -969,7 +969,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			}
 		});
 		annotationPanelUpper.add(button);
-
 
 //		annotationPanelControl.setVisible(true);
 		return annotationPanelUpper;
@@ -1134,6 +1133,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, addAnnotationField, currentHorizontalPos + 3, SpringLayout.NORTH, annotationPanelLowerPart);
 //		horizontalPos += (horizontalMargin + addAnnotationField.getSize().height);
 //		horizontalPos += (horizontalMargin + componentHeight);
+
+		annotationPanelLowerPart.setPreferredSize(new Dimension(200,((annotationKeys == null?0:annotationKeys.length)+4)*22));
 
 		annotationPanelLowerPart.validate();
 	}

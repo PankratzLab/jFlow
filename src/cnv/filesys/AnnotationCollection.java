@@ -109,8 +109,8 @@ public class AnnotationCollection implements Serializable {
 			}
 			list[i] = keys[i] + "\t" + annotationsOfTheMarker;
 		}
-		Files.writeList(list, proj.getProjectDir() + "markerAnnoations.xln");
-//		Files.writeList(list, proj.getDir(Project.ANNOTATION_DIRECTORY) + "markerAnnoations.xln");
+		Files.writeList(list, proj.getProjectDir() + "annoations.xln");
+//		Files.writeList(list, proj.getDir(Project.ANNOTATION_DIRECTORY) + "annoations.xln");
 
 		keys = HashVec.getKeys(annotationMarkerLists);
 		for (int i = 0; i < keys.length; i++) {
@@ -129,7 +129,6 @@ public class AnnotationCollection implements Serializable {
 		BufferedReader reader;
 		String[] line;
 		char key;
-		char[] letters;
 		char[] keys;
 		Hashtable<String, Character> annotationKeys;
 		boolean found;
@@ -177,9 +176,9 @@ public class AnnotationCollection implements Serializable {
 							key = assignKey(line[i], currentAnnotationCollection);
 							if (key == 0) {
 								if (log == null) {
-									System.out.println("cannot automatically assign a shortcut to the annotation key " + line[0] + ". Skipped importing this annotation.");
+									System.out.println("cannot automatically assign a shortcut to the annotation key '" + line[i] + "'. Skipped importing this annotation for marker " + line[0] + ".");
 								} else {
-									log.reportError("cannot automatically assign a shortcut to the annotation key " + line[0] + ". Skipped importing this annotation.");
+									log.reportError("cannot automatically assign a shortcut to the annotation key '" + line[i] + "'. Skipped importing this annotation for marker " + line[0] + ".");
 								}
 							} else {
 								annotationKeys.put(line[i], key);

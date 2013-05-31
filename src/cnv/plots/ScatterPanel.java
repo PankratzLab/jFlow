@@ -239,11 +239,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		uniqueValueCounts = new CountVector();
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
-			
-			if (indi!=null && sampleData.individualShouldBeExcluded(samples[i])) {
+
+			if (indi != null && sampleData.individualShouldBeExcluded(samples[i])) {
 				// if sample should be excluded then do nothing
 				genotype[i]=-3;
 				sex[i] = "e";
+				otherClass[i] = "e";
 				
 			} else if (indi!=null) {
 				genotypeCode = (byte)(alleleCounts[i]+1);
@@ -308,9 +309,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				//	}
 				//	otherClass[i]="Missing";
 				//}
-				//classCounts.add(code+"");//np
-				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;//zx
-				otherClass[i] = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)+"";
+				//classCounts.add(code+"");
+				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;
+				otherClass[i] = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position) + "";
 			} else {
 				System.err.println("Error - no data pts for "+samples[i]);
 				sex[i] = "missing";

@@ -205,7 +205,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	private JPanel topIconBar() {
 			JPanel iconBar;
 			JButton button;
-			String[] icons = {"images/save.png", "images/edit.gif", "images/refresh.gif", "images/scatter.png", "images/trailer.png", "images/qqplot.gif", "images/recluster.png", "images/otherPlot.png"};
+			String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg"};
 			String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, "images/recluster.png", TWOD};
 			
 			iconBar = new JPanel();
