@@ -526,13 +526,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				}
 				if ((clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter) != newGenotypeSelected)) {
 					updateCurrentClusterFilterGenotype(newGenotypeSelected, false);
-//					saveClusterFilterCollection();
 				}
-//				clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
-//				scatPanel.setPointsGeneratable(true);
-//				scatPanel.setQcPanelUpdatable(true);
-//				//updateGUI();
-//				scatPanel.paintAgain();
 			}
 		};
     	newGenotype.addActionListener(newGenotypeListener);
