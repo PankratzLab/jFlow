@@ -537,12 +537,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			if (newClusterFilter >= 0) {
 				sp.setCurrentClusterFilter(newClusterFilter);
 				sp.updateCurrentClusterFiltersGenotype();
-//				currentClusterFilter = sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(newClusterFilter);
-//				currentGenotype = currentClusterFilter.getCluterGenotype();
-//				currentClusterFilter.setClusterGenotype((byte) (currentGenotype == (ScatterPlot.GENOTYPE_OPTIONS.length - 2)? -1 : currentGenotype + 1));
-////				paintAgain();
-//				setQcPanelUpdatable(true);
-//				sp.updateGUI();
 			}
 		}
 	}
