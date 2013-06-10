@@ -14,13 +14,15 @@ public class ChargeS {
 //	public static final String[][] MAP_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"}, {"Position", "POS"}, {"ALT"}, {"REF"}};
 //	public static final String[][] ANNOTATION_REQUIREMENTS = {{"MAF"}, {"gene"}};
 
-	public static final String[][] BURDEN_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"}, {"Position", "POS"}, {"ALT"}, {"REF"}, {"gene"}, {"AAF"}, {"use"}}; // , {"Function", "RFG"} // , {"MAF"} doesn't flip alleles
+//	public static final String[][] BURDEN_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"}, {"Position", "POS"}, {"ALT"}, {"REF"}, {"gene"}, {"AAF"}, {"use"}}; // , {"Function", "RFG"} // , {"MAF"} doesn't flip alleles
+	public static final String[][] BURDEN_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"}, {"Position", "POS"}, {"ALT"}, {"REF"}, {"gene"}, {"AAF"}, {"sc_nonsynSplice"}}; // , {"Function", "RFG"} // , {"MAF"} doesn't flip alleles
 
 //	public static final String[] STUDIES = {"ARIC", "CHS", "FHS"}; // +ESP
-	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP"};
+//	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP"};
+	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP6800"};
 	public static final String[] STUDY_GROUPS = {"CHARGE", "CHARGE", "CHARGE", "ESP"}; // +ESP
 	
-	public static final String[][] PHENOTYPES = {{"Fibrinogen"}, {"F7", ".FVII."}, {"F8", ".FVIII."}, {"vWF"}};
+	public static final String[][] PHENOTYPES = {{"Fibrinogen", "fibrinogen", ".lnFB."}, {"F7", ".FVII.", "_FVII_"}, {"F8", ".FVIII.", "_FVIII_"}, {"vWF", "VWF"}};
 	public static final int[][] DEFAULT_SAMPLE_SIZES = {
 		{985, 628, 255, 2011}, // Fibr
 		{965, 630, 248, 1221}, // F7
@@ -37,6 +39,11 @@ public class ChargeS {
 		{"../SNPInfo_ExomeFreeze2_120810_aafSlim.csv 'SNP' 'gene' 'AAF'=CHARGE_AF"},
 	};
 
+	public static final String SNP_INFO_FILE = "snpinfo_ChargeSFreeze3_ESP_05212013.RData";
+	public static final String SNP_NAMES = "SNP";
+	
+//	wts =1, mafRange = c(0,0.01),
+			
 	public static void metaAll(String dir) {
 		String[] files, finalSet;
 		boolean[] picks, used;
@@ -198,6 +205,11 @@ public class ChargeS {
 		Hashtable<String,String> annotationHash;
 		int[] cols;
 		String[] markerNames, keys;
+		boolean chrPosCombo;
+		
+		if (true) { // two classes
+			chrPosCombo = true;
+		}		
 		
 		log = new Logger(ext.rootOf(phenoFile, false)+".log");
 		if (!Files.exists(genoFile+".burdenInfo")) {
@@ -213,7 +225,14 @@ public class ChargeS {
 				}
 			}
 			log.report("Reading marker names required");
-			markerNames = HashVec.loadFileToStringArray(genoFile, false, true, new int[] {0}, false, false, Files.determineDelimiter(genoFile, log));
+			if (chrPosCombo) {
+				markerNames = HashVec.loadFileToStringArray(genoFile, false, true, new int[] {0,1}, false, false, Files.determineDelimiter(genoFile, log));
+				for (int i = 0; i < markerNames.length; i++) {
+					markerNames[i] = "chr"+ext.replaceAllWith(markerNames[i], "\t", ":");
+				}
+			} else {
+				markerNames = HashVec.loadFileToStringArray(genoFile, false, true, new int[] {0}, false, false, Files.determineDelimiter(genoFile, log));
+			}
 			log.report("Writing map to file");
 			try {
 				writer = new PrintWriter(new FileWriter(genoFile+".burdenInfo"));
@@ -248,7 +267,7 @@ public class ChargeS {
 		}
 		System.out.println("Analyzing single variants with "+phenoFile);
 		gens.analyze(phenoFile, "NA", null, true, log);
-		System.out.println("Generating T1 burden dataset");
+		System.out.println("Generating T5 burden dataset");
 		BurdenMatrix burdenMatrix = new BurdenMatrix(gens, 0.05, BurdenMatrix.DEFAULT_ANNOTATIONS_TO_INCLUDE, BurdenMatrix.ALL_KNOWN_ANNOTATIONS, false, 0.01, new String[] {}, null, log);
 		System.out.println("Running T1 burden test with "+phenoFile);
 		burdenMatrix.analyze(phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile)+"ARIC."+ext.rootOf(phenoFile)+".T5.EA."+ext.getDate(new Date(),"")+".csv", true, log);
@@ -396,13 +415,31 @@ public class ChargeS {
 //			convertESP(dir+"results/ESP/HeartGO_WHISP_factor8_ea.assoc.linear", dir+"results/ESP/HWE_ea_factor8.hwe", dir+"results/ESP/ESP_F8_SingleSNP.csv");
 //			convertESP(dir+"results/ESP/HeartGO_WHISP_vwf_ea.assoc.linear", dir+"results/ESP/HWE_ea_vwf.hwe", dir+"results/ESP/ESP_vWF_SingleSNP.csv");
 //			System.exit(1);
-			
 
-			if (phenoFile != null) {
-				runAll(phenoFile, genoFile, annotationFile);
-			}
+//			dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/test/";
+//			genoFile = dir+"ARIC_EA_Freeze3_Chrom17_Genotypes.txt.gz";
+//			annotationFile = dir+"test_SNPInfo.csv";
+//			phenoFile = dir+"F7_all.csv";
+//			phenoFile = dir+"F7_all_frz2.csv";
+//			phenoFile = dir+"F7_all_replIn3.csv";
+//			
+//			dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/test/";
+//			genoFile = dir+"ARIC_EA_Freeze3_Chrom19_Genotypes.txt.gz";
+//			annotationFile = dir+"chr19_SNPInfo.csv";
+//			phenoFile = dir+"F7_all_replIn3.csv";
+//			phenoFile = dir+"F8_all_replIn3.csv";
+//			phenoFile = dir+"vWF_all_replIn3.csv";
+//			phenoFile = dir+"F8_all.csv";
+//			phenoFile = dir+"vWF_all.csv";
+//						
+//			
+//			
+//
+//			if (phenoFile != null) {
+//				runAll(phenoFile, genoFile, annotationFile);
+//			}
 			
-			metaAll(dir+"results/");
+//			metaAll(dir+"results/");
 			
 			
 //			runAll(dir+"lnFibrinogen.csv", dir+genoFile, dir+annotationFile);

@@ -59,11 +59,24 @@ public class GeneTrack implements Serializable {
 		int first, last;
 		Segment region;
 
+		System.out.println("Trying to get genes between chr"+chr+":"+start+"-"+stop);
+		
 		v = new Vector<GeneData>();
 		region = new Segment((byte)chr, start, stop);
 		if (starts[chr].length > 0) {
 			first = Array.binarySearch(starts[chr], start, false);
-			last = Array.binarySearch(starts[chr], stop, first, starts[chr].length, false);
+			if (first == starts[chr].length) {
+				return new GeneData[0];
+			}
+			try {
+				last = Array.binarySearch(starts[chr], stop, first, starts[chr].length, false);
+			} catch (Exception e) {
+				System.out.println("uh oh");
+				last = Array.binarySearch(starts[chr], stop, first, starts[chr].length, false);
+			}
+			if (last == starts[chr].length) {
+				last--;
+			}
 
 			if (starts[chr][first] < start) {
 				first++;

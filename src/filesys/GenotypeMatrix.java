@@ -11,21 +11,24 @@ import gwas.*;
 public class GenotypeMatrix implements Serializable {
 	public static final long serialVersionUID = 1L;
 	public static final int CHARGE_S_HOUSTON_FORMAT = 0;
+	public static final int CHARGE_S_BOSTON_FORMAT = 1;
 
 	public static final int IID_TYPE = 0;
 	
 	public static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
 	public static final int MARKER_DOMINANT_FORMAT = 1;
 	
-	public static final String[][] HEADS = {{}, {"id"}};
+//	public static final String[][] HEADS = {{}, {"id"}};
+	public static final String[][] HEADS = {{}, {"CHROM", "POS"}};
 	public static final String[] DELIMITERS = {"\t", ",", " "};
 	public static final String[] MISSING_VALUES = {".", "NA"};
 
-	/** 0,                1,         2,          3,                          4,                5,                                       */
-	/** dominance format, delimiter, header row, index of which header head, marker/IID index, column index where genotype counts begin */
+	/** 0,                1,         2,          3,                          4,                5,                                        6 */
+	/** dominance format, delimiter, header row, index of which header head, marker/IID index, column index where genotype counts begin, split chrPos instead of markerName */
 
-	/** 									   0                       1  2  3  4  5 */
-	public static final int[][] PARAMETERS = {{MARKER_DOMINANT_FORMAT, 1, 1, 0, 0, 1}, // .csv (ChargeS Houston format)
+	/** 									   0                       1  2  3  4  5  6 */
+	public static final int[][] PARAMETERS = {{MARKER_DOMINANT_FORMAT, 1, 1, 0, 0, 1, 0}, // .csv (ChargeS Houston format)
+											  {MARKER_DOMINANT_FORMAT, 0, 1, 1, 0, 2, 1}, // .txt (ChargeS Boston format)
 		
 	};
 
@@ -51,6 +54,7 @@ public class GenotypeMatrix implements Serializable {
 		int markerOrIdIndex, firstGenotypeCol;
 		String[] headerHead;
 		int markerFileType;
+		boolean chrPosCombo, problem;
 		
 		if (!Files.exists(markerFile)) {
 			log.reportError("Error - file \""+markerFile+"\" not found");
@@ -68,7 +72,8 @@ public class GenotypeMatrix implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 
 		try {
-			reader = new BufferedReader(new FileReader(genotypeFile));
+//			reader = new BufferedReader(new FileReader(genotypeFile));
+			reader = Files.getAppropriateReader(genotypeFile);
 
 			// can be much more complex if you want, just see DosageData
 			if (idFile != null) {
@@ -81,8 +86,14 @@ public class GenotypeMatrix implements Serializable {
 			headerHead = HEADS[parameters[3]];
 			markerOrIdIndex = parameters[4];
 			firstGenotypeCol = parameters[5];
+			chrPosCombo = parameters[6] == 1;
 			if (headerRow) {
-				line = ext.replaceAllWith(reader.readLine(), "\"", "") .trim().split(delimiter);
+//				line = ext.replaceAllWith(reader.readLine(), "\"", "") .trim().split(delimiter);
+				if (delimiter.equals(",")) {
+					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+				} else {
+					line = ext.replaceAllWith(reader.readLine(), "\"", "") .trim().split(delimiter);
+				}
 				if (dominance == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
 						if (!markerNames[i].equals(line[headerHead.length+i]))	{
@@ -91,6 +102,15 @@ public class GenotypeMatrix implements Serializable {
 						}
 					}
 				} else if (dominance == MARKER_DOMINANT_FORMAT) {
+					problem = false;
+					for (int i = 0; i < headerHead.length; i++) {
+						if (!line[i].equals(headerHead[i])) {
+							problem = true;
+						}
+					}
+					if (problem) {
+						log.reportError("Error - mismatched head of header row: expecting '"+Array.toStr(headerHead, "/")+"' but found '"+Array.toStr(Array.subArray(line, 0, headerHead.length), "/")+"'");
+					}
 					if (ids == null) {
 						ids = new String[line.length-headerHead.length];
 						for (int i = 0; i < ids.length; i++) {
@@ -107,6 +127,7 @@ public class GenotypeMatrix implements Serializable {
 				}
 			} else if (ids == null) {
 				System.err.println("Error - not fully developed yet; need a header row in order to get the ids/markers");
+				reader.close();
 				return;
 			}
 
@@ -115,6 +136,9 @@ public class GenotypeMatrix implements Serializable {
 			if (dominance == MARKER_DOMINANT_FORMAT) {
 				for (int i = 0; i < markerNames.length; i++) {
 					line = ext.replaceAllWith(reader.readLine(), "\"", "") .trim().split(delimiter);
+					if (chrPosCombo) {
+						line[0] = "chr"+line[0]+":"+line[1];
+					}
 					if (!markerNames[i].equals(line[markerOrIdIndex])) {
 						log.reportError("Error - mismatched name at marker "+(i+1)+" of "+genotypeFile+"; expecting "+markerNames[i]+" given map file "+markerFile+", found "+line[markerOrIdIndex]);
 						System.exit(1);
@@ -279,8 +303,10 @@ public class GenotypeMatrix implements Serializable {
 					} else {
 						writer.println(chrs[i]+"\t"+markerNames[i]+"\t"+positions[i]+"\t"+alleles[i][0]+"\tADD\t"+countUsed+"\t"+ext.formDeci(betas[1], sigfig, true)+"\t"+ext.formDeci(stderrs[1], sigfig, true)+"\t.\t.\t"+(stats[1]+"    ").substring(0,6).trim()+"\t"+ext.prettyP(pvals[1], sigfig, 4, 3, true));
 						w2.println(markerNames[i]+"\t"+alleles[i][0]+"\t"+alleles[i][1]+"\t"+countUsed+"\t"+(betas[1]==0?0:(betas[1]>0?"+":"-"))+"\t"+ext.prettyP(pvals[1], sigfig, 4, 3, true)+"\t"+ext.formDeci(betas[1], 6, true)+"\t"+ext.formDeci(stderrs[1], 6, true));
-						for (int j = 1; j < namesUsed.length; j++) {
-							writer.println(chrs[i]+"\t"+markerNames[i]+"\t"+positions[i]+"\t"+alleles[i][0]+"\t"+namesUsed[j]+"\t"+deps.length+"\t"+ext.formDeci(betas[1+j], sigfig, true)+"\t"+ext.formDeci(stderrs[1+j], sigfig, true)+"\t.\t.\t"+(stats[1+j]+"     ").substring(0,6).trim()+"\t"+ext.prettyP(pvals[1+j], sigfig, 4, 3, true));
+//						for (int j = 1; j < namesUsed.length; j++) {
+						for (int j = 2; j < namesUsed.length; j++) {
+//							writer.println(chrs[i]+"\t"+markerNames[i]+"\t"+positions[i]+"\t"+alleles[i][0]+"\t"+namesUsed[j]+"\t"+deps.length+"\t"+ext.formDeci(betas[1+j], sigfig, true)+"\t"+ext.formDeci(stderrs[1+j], sigfig, true)+"\t.\t.\t"+(stats[1+j]+"     ").substring(0,6).trim()+"\t"+ext.prettyP(pvals[1+j], sigfig, 4, 3, true));
+							writer.println(chrs[i]+"\t"+markerNames[i]+"\t"+positions[i]+"\t"+alleles[i][0]+"\t"+namesUsed[j]+"\t"+deps.length+"\t"+ext.formDeci(betas[j], sigfig, true)+"\t"+ext.formDeci(stderrs[j], sigfig, true)+"\t.\t.\t"+(stats[j]+"     ").substring(0,6).trim()+"\t"+ext.prettyP(pvals[j], sigfig, 4, 3, true));
 						}
 					}
 					writer.flush();
@@ -395,6 +421,8 @@ public class GenotypeMatrix implements Serializable {
 	public static int determineType(String dosageFile) {
 		if (dosageFile.endsWith(".csv")) {
 			return CHARGE_S_HOUSTON_FORMAT;
+		} else if (dosageFile.endsWith(".txt.gz")) {
+			return CHARGE_S_BOSTON_FORMAT;
 		} else {
 			System.err.println("Error - format could not be deduced solely by the filename extension");
 			return -1;

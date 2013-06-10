@@ -132,7 +132,7 @@ public class DeNovoCNV {
 		
 		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
 		
-		common.Files.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command, iterations);
+		common.Files.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command, iterations, -1);
 	}
 
 	/**

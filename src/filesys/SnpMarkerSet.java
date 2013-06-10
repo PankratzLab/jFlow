@@ -215,7 +215,7 @@ public class SnpMarkerSet implements Serializable {
 				countNon++;
 			}
 		}
-		if (countNon >= 20) {
+		if (verbose && countNon >= 20) {
 			System.err.println("FYI, total of "+countNon+" markers without an rs number");
 		}
 	}
