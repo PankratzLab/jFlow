@@ -254,27 +254,49 @@ public class Files {
 		}
 	}
 
-	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations) {
-		PrintWriter[] writers = new PrintWriter[numBatches];
+	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations, int memoryRequestedInMb) {
+		PrintWriter[] writers;
 		PrintWriter writer;
 		String trav;
 		String[] lines;
 		int index;
+		String dir;
 
+		if (iterations.length == 0) {
+			System.out.println("No iterations specified for root "+root_batch_name);
+			return;			
+		}
+		
+		if (numBatches <= 0) {
+			numBatches = iterations.length;
+		}
+		
+		dir = ext.parseDirectoryOfFile(root_batch_name, true);
+		writers = new PrintWriter[numBatches];
 		try {
-			if (numBatches>1) {
-				writer = new PrintWriter(new FileWriter("master." + root_batch_name));
+			if (numBatches > 1) {
+				writer = new PrintWriter(new FileWriter("master." + ext.removeDirectoryInfo(root_batch_name)));
+				if (!dir.equals("./")) {
+					writer.println("cd "+dir);
+				}
 				for (int i = 0; i<numBatches; i++) {
 					writers[i] = new PrintWriter(new FileWriter(root_batch_name + "_" + (i+1) + ".qsub"));
 			        writers[i].println("#!/bin/bash");
 			        writers[i].println("#$ -cwd");
 			        writers[i].println("#$ -S /bin/bash");
+			        if (memoryRequestedInMb > 0) {
+			        	writers[i].println("#PBS -l pmem="+memoryRequestedInMb+"mb");
+				        if (memoryRequestedInMb >= 4000) {
+				        	writers[i].println("#$ -q *@compute-0-0.local");
+				        }
+			        }
 					writers[i].println();
 					writers[i].println("echo \"start at: \" `date`");
+					writers[i].println("/bin/hostname");
 					if (dirToSwitchToBeforeRunning != null) {
 						writers[i].println("cd "+dirToSwitchToBeforeRunning);
 					}
-					writer.println("qsub " + root_batch_name + "_" + (i+1) + ".qsub");
+					writer.println("qsub " + ext.removeDirectoryInfo(root_batch_name) + "_" + (i+1) + ".qsub");
 				}
 			} else {
 				writer = null;
@@ -297,12 +319,15 @@ public class Files {
 			for (int i = 0; i<numBatches; i++) {
 				writers[i].println("echo \"end at: \" `date`");
 				writers[i].close();
-				chmod("master."+(i==0&&numBatches==1?root_batch_name:root_batch_name+"_"+(i+1)));
+			}
+			if (numBatches > 1) {
+				chmod("master."+ext.removeDirectoryInfo(root_batch_name));
 			}
 			if (numBatches>1) {
 				writer.close();
 			}
 		} catch (IOException ioe) {
+			ioe.printStackTrace();
 			throw new RuntimeException("Problem creating batch files named "+root_batch_name);
 		}
 	}
@@ -320,7 +345,7 @@ public class Files {
 				for (int j = 0; j<iterations[i].length; j++) {
 					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
 				}
-				qsub(filename, trav);
+				qsub(filename, trav, -1);
 				writer.println("qsub "+filename);
 			}
 			writer.close();
@@ -330,7 +355,7 @@ public class Files {
 		}
 	}
 	
-	public static void qsub(String filename, String command) {
+	public static void qsub(String filename, String command, int memoryRequestedInMb) {
 		PrintWriter writer;
 		String[] lines;
 
@@ -340,6 +365,15 @@ public class Files {
 	        writer.println("#!/bin/bash");
 	        writer.println("#$ -cwd");
 	        writer.println("#$ -S /bin/bash");
+	        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
+	        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+	        if (memoryRequestedInMb > 0) {
+		        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
+	        	writer.println("#PBS -l pmem="+memoryRequestedInMb+"mb");
+//		        if (memoryRequestedInMb >= 4000) {
+//		        	writer.println("#$ -q *@compute-0-0.local");
+//		        }
+	        }
 			writer.println();
 			writer.println("echo \"start at: \" `date`");
 			for (int j = 0; j<lines.length; j++) {

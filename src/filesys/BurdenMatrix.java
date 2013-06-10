@@ -11,7 +11,7 @@ public class BurdenMatrix implements Serializable {
 	public static final long serialVersionUID = 1L;
 
 	public static final String[] ALL_KNOWN_ANNOTATIONS = {"ncRNA", "stoploss_SNV", "synonymous_SNV", "intronic", "UTR3", "upstream", "nonsynonymous_SNV", "splicing", "stopgain_SNV", "intergenic", "stoploss_SNV", "downstream", "stopgain_SNV", "synonymous_SNV", "unknown", "nonsynonymous_SNV", "UTR5", "exonic_splicing"};
-	public static final String[] DEFAULT_ANNOTATIONS_TO_INCLUDE = {"1", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV", "splicing", "exonic_splicing"};
+	public static final String[] DEFAULT_ANNOTATIONS_TO_INCLUDE = {"TRUE", "1", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV", "splicing", "exonic_splicing"};
 	public static final String[] ANNOTATION_DELIMITERS = {"/"};
 
 	private SnpMarkerSet markerSet;
@@ -48,6 +48,7 @@ public class BurdenMatrix implements Serializable {
 		String[][] importedWeights;
 		Hashtable<String, Double> weightsHash;
 		double[] weights;
+		int failedForMAF, failedForFunction, included;
 		
 		ids = gens.getIds();
 		markerSet = gens.getMarkerSet();
@@ -115,6 +116,7 @@ public class BurdenMatrix implements Serializable {
 			return;
 		}
 		
+		included = failedForMAF = failedForFunction = 0;
 		geneMappingHash = new Hashtable<String, IntVector>();
 		unknownFunctions = new CountVector();
 		alleleFreqs = new double[markerNames.length];
@@ -128,7 +130,11 @@ public class BurdenMatrix implements Serializable {
 					return;
 				}
 				try {
-					alleleFreqs[i] = Double.parseDouble(annotation[i][mafAnnotation]);
+					if (annotation[i][mafAnnotation].equals("NA")) {
+						alleleFreqs[i] = 0;
+					} else {
+						alleleFreqs[i] = Double.parseDouble(annotation[i][mafAnnotation]);
+					}
 				} catch (NumberFormatException nfe) {
 					log.reportError("Error - invalid minor allele frequency '"+annotation[i][mafAnnotation]+"' for marker "+markerNames[i]+"; aborting");
 					return;
@@ -139,6 +145,7 @@ public class BurdenMatrix implements Serializable {
 				// less than or equal to threshold (e.g., maf<=0.05), not less than threshold
 //				if (alleleFreqs[i] > mafThreshold && alleleFreqs[i] < 1-mafThreshold) {
 					include = false;
+					failedForMAF++;
 				}
 			}
 
@@ -151,6 +158,7 @@ public class BurdenMatrix implements Serializable {
 				line = function.split("\t");
 				for (int j = 0; j < line.length; j++) {
 					if (ext.indexOfStr(line[j], annotationsToInclude) == -1) {
+						failedForFunction++;
 						include = false;
 						// if not a known function, then save counts and report later
 						if (ext.indexOfStr(line[j], allKnownAnnotations) == -1) {
@@ -177,11 +185,13 @@ public class BurdenMatrix implements Serializable {
 						geneMappingHash.put(line[j], indicesOfVariantsInGene = new IntVector());
 					}
 					indicesOfVariantsInGene.add(i);
+					included++;
 				}
 			}
 		}
-
+		
 		geneNames = HashVec.getKeys(geneMappingHash, true, false);
+		System.out.println("Included "+included+" variant to gene mappings in "+geneNames.length+" genes ("+markerNames.length+" markers attempted; "+failedForMAF+" failed for maf; "+failedForFunction+" failed for function)");
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		numberOfVariants = new int[geneNames.length];

@@ -86,6 +86,10 @@ public class Compress {
 			
 			dirin = "I:/GEDI/02_After_reclustering/00src/";
 			dirout = "C:/GEDI_compressed/";
+			
+			dirin = "D:/data/PD_CIDR/00src/";
+			dirout = "C:/PD_CIDR_compressed/";
+			
 			log = new Logger(logfile);
 			compressAllTextFilesInDirectory(dirin, dirout, log);
 		} catch (Exception e) {

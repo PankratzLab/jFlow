@@ -2272,6 +2272,13 @@ public class Array {
 		while (low<=high) {
 //			System.out.println(array[low]+"\t"+array[high]);
 			mid = low+(high-low)/2;
+			if (mid >= array.length) {
+				if (exact) {
+					return -9;
+				} else {
+					return array.length;
+				}
+			}
 			if (array[mid]>value) {
 				high = mid-1;
 			} else if (array[mid]<value) {
