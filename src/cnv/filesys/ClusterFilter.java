@@ -2,6 +2,8 @@ package cnv.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
+import java.util.Vector;
+
 import common.IntVector;
 
 /**
@@ -41,7 +43,8 @@ public class ClusterFilter implements Serializable {
 		this.rawYMin = rawYMin;
 		this.rawXmax = rawXmax;
 		this.rawYmax = rawYmax;
-		this.newGenotype = suggestedNewGenoType(markerData);
+//		this.newGenotype = suggestedNewGenoTypeByNearbyCentroid(markerData);
+		this.newGenotype = suggestedNewGenoTypeByNearbyPoint(markerData);
 	}
 	
 	public byte getPlotType () {
@@ -72,7 +75,7 @@ public class ClusterFilter implements Serializable {
 		return rawYmax;
 	}
 
-	public byte suggestedNewGenoType (MarkerData markerData) {
+	public byte suggestedNewGenoTypeByNearbyCentroid (MarkerData markerData) {
 		float[] realX;
 		float[] realY;
 		byte result=-1;
@@ -115,13 +118,13 @@ public class ClusterFilter implements Serializable {
 		genotypes = markerData.getAB_Genotypes();
 		// iterate through all samples
 		for (int i=0; i<genotypes.length; i++) {
-			if (realX[i]>=getXMin()
-					&& realY[i]>=getYMin()
-					&& realX[i]<=getXMax()
-					&& realY[i]<=getYMax()) {
+			if (       realX[i] >= rawXMin
+					&& realY[i] >= rawYMin
+					&& realX[i] <= rawXmax
+					&& realY[i] <= rawYmax) {
 				cluster = "3";	//"3" identifies the data points within the cluster filter
 			} else {
-				cluster = genotypes[i]+"";
+				cluster = genotypes[i] + "";
 			}
 			if (hash.containsKey(cluster)) {
 				iv = hash.get(cluster);
@@ -191,11 +194,100 @@ public class ClusterFilter implements Serializable {
 				}
 			}
 
-			if (oldGenotype==result) {
+			if (oldGenotype == result) {
 				result=-1;
 			}
 		}
 		
 		return result;
+	}
+
+	public byte suggestedNewGenoTypeByNearbyPoint (MarkerData markerData) {
+		float[] realX;
+		float[] realY;
+		float xSum, ySum;
+		Vector<Integer> indexOfPointsOutsideTheCluster;
+		float distancetemp = 0;
+		byte[] genotypes;
+		int[] genotypeCount;
+		float minDist;
+		int indexOfNearbyPoint;
+		int maxCount;
+		byte oldGenotype;
+		byte newGenotype;
+		
+		switch(getPlotType()) {
+		case 0:
+			realX = markerData.getX_Raws();
+			realY = markerData.getY_Raws();
+			break;
+		case 1:
+			realX = markerData.getXs();
+			realY = markerData.getYs();
+			break;
+		case 2:
+			realX = markerData.getThetas();
+			realY = markerData.getRs();
+			break;
+		case 3:
+			realX = markerData.getBAFs();
+			realY = markerData.getLRRs();
+			break;
+		default:
+			realX = markerData.getXs();
+			realY = markerData.getYs();
+		}
+
+		indexOfPointsOutsideTheCluster = new Vector<Integer>();
+		genotypes = markerData.getAB_Genotypes();
+		xSum = 0;
+		ySum = 0;
+		genotypeCount = new int[] {0,0,0};
+		oldGenotype = -2;
+		for (int i=0; i<genotypes.length; i++) {
+			if (realX[i] >= rawXMin && realY[i] >= rawYMin && realX[i] <= rawXmax && realY[i] <= rawYmax) {
+				xSum += realX[i];
+				ySum += realY[i];
+				if (genotypes[i] < 0) {
+					oldGenotype = -1;
+				} else {
+					genotypeCount[genotypes[i]] ++;
+				}
+			} else {
+				indexOfPointsOutsideTheCluster.add(i);
+			}
+		}
+		xSum = xSum / (genotypes.length - indexOfPointsOutsideTheCluster.size());
+		ySum = ySum / (genotypes.length - indexOfPointsOutsideTheCluster.size());
+		maxCount = 0;
+		if (oldGenotype == -2) {
+			for (byte i = 0; i < 3; i++){
+				if (genotypeCount[i] > maxCount) {
+					maxCount = genotypeCount[i];
+					oldGenotype = i;
+				}
+			}
+		}
+
+		minDist = Float.MAX_VALUE;
+		indexOfNearbyPoint = -1;
+		for (int i = 0; i < indexOfPointsOutsideTheCluster.size(); i++) {
+			distancetemp = (float) Math.sqrt(Math.pow(realX[indexOfPointsOutsideTheCluster.elementAt(i)] - xSum, 2) + Math.pow(realY[indexOfPointsOutsideTheCluster.elementAt(i)] - ySum, 2));
+			if (distancetemp < minDist && genotypes[indexOfPointsOutsideTheCluster.elementAt(i)] != -1) {
+				minDist = distancetemp;
+				indexOfNearbyPoint = indexOfPointsOutsideTheCluster.elementAt(i);
+			}
+		}
+
+		if (indexOfNearbyPoint == -1) {
+			newGenotype = -1;
+		} else {
+			newGenotype = genotypes[indexOfNearbyPoint];
+			if (newGenotype == oldGenotype) {
+				newGenotype = -1;
+			}
+		}
+
+		return newGenotype;
 	}
 }

@@ -1192,6 +1192,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int distance;
 		int minDistance;
 		int[] rectangleEdges;
+		int[] rectangleSearchRange;
 
 		indeciesRectangle = -1;
 		minDistance = Integer.MAX_VALUE;
@@ -1201,13 +1202,24 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			rectangleStopXPixel = getXPixel(rectangles[i].getStopXValue());
 			rectangleStopYPixel = getYPixel(rectangles[i].getStopYValue());
 
-	    	rectangleEdges = new int[] {(int) (Math.min(rectangleStartXPixel, rectangleStopXPixel) - HIGHLIGHT_DISTANCE),
-						    			(int) (Math.max(rectangleStartXPixel, rectangleStopXPixel) + HIGHLIGHT_DISTANCE),
-						    			(int) (Math.min(rectangleStartYPixel, rectangleStopYPixel) - HIGHLIGHT_DISTANCE),
-						    			(int) (Math.max(rectangleStartYPixel, rectangleStopYPixel) + HIGHLIGHT_DISTANCE)};
-	    	if (xPixel >= rectangleEdges[0] && xPixel <= rectangleEdges[1] && yPixel >= rectangleEdges[2] && yPixel <= rectangleEdges[3]) {
-		    	for (int j = 0; j < 4; j ++) {
+	    	rectangleEdges = new int[] {(int) Math.min(rectangleStartXPixel, rectangleStopXPixel),
+						    			(int) Math.max(rectangleStartXPixel, rectangleStopXPixel),
+						    			(int) Math.min(rectangleStartYPixel, rectangleStopYPixel),
+						    			(int) Math.max(rectangleStartYPixel, rectangleStopYPixel)};
+	    	rectangleSearchRange = new int[] {(int) (rectangleEdges[0] - HIGHLIGHT_DISTANCE),
+	    									  (int) (rectangleEdges[1] + HIGHLIGHT_DISTANCE),
+	    									  (int) (rectangleEdges[2] - HIGHLIGHT_DISTANCE),
+	    									  (int) (rectangleEdges[3] + HIGHLIGHT_DISTANCE)};
+	    	if (xPixel >= rectangleSearchRange[0] && xPixel <= rectangleSearchRange[1] && yPixel >= rectangleSearchRange[2] && yPixel <= rectangleSearchRange[3]) {
+		    	for (int j = 0; j < 2; j ++) {
 		    		distance = Math.abs(xPixel - rectangleEdges[j]);
+		    		if (minDistance > distance) {
+			    		minDistance = distance;
+			    		indeciesRectangle = i;
+		    		}
+				}
+		    	for (int j = 2; j < 4; j ++) {
+		    		distance = Math.abs(yPixel - rectangleEdges[j]);
 		    		if (minDistance > distance) {
 			    		minDistance = distance;
 			    		indeciesRectangle = i;
