@@ -515,41 +515,24 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public void actionPerformed(ActionEvent e) {
 				byte newGenotypeSelected;
 				String newGenoSelected;
-				
-//				if ((String)newGenotype.getSelectedItem()=="-") {
-//					newGenotypeSelected=(byte)-1;
-//				} else if ((String)newGenotype.getSelectedItem()=="A/A") {
-//					newGenotypeSelected=(byte)0;
-//				} else if ((String)newGenotype.getSelectedItem()=="A/B") {
-//					newGenotypeSelected=(byte)1;
-//				} else if ((String)newGenotype.getSelectedItem()=="B/B") {
-//					newGenotypeSelected=(byte)2;
-//				} else {
-//					newGenotypeSelected=(byte)-9;
-//				}
 
 				newGenoSelected = (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
 				newGenotypeSelected = -2;
 				for (int i = 0; i < GENOTYPE_OPTIONS.length; i++) {
 					if (newGenoSelected.equals(GENOTYPE_OPTIONS[i])) {
-						newGenotypeSelected=(byte) (i - 1);
+						newGenotypeSelected = (byte) (i - 1);
 						break;
 					}
 				}
-//				byte index = (byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-				if ((clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter) != newGenotypeSelected)) {					//??????
-					saveClusterFilterCollection();
-				}
-				clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
-//				System.out.println("e.getActionCommand: "+e.getActionCommand()+"\te.getWhen: "+e.getWhen()+"\te.getSource: "+e.getSource());
-//				if (e.getActionCommand().equals("comboBoxChanged")) {					//??????
-//				if (e.getWhen()>1000) {					//??????
+				if ((clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter) != newGenotypeSelected)) {
+					updateCurrentClusterFilterGenotype(newGenotypeSelected, false);
 //					saveClusterFilterCollection();
-//				}
-				scatPanel.setPointsGeneratable(true);
-				scatPanel.setQcPanelUpdatable(true);
-				//updateGUI();
-				scatPanel.paintAgain();
+				}
+//				clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
+//				scatPanel.setPointsGeneratable(true);
+//				scatPanel.setQcPanelUpdatable(true);
+//				//updateGUI();
+//				scatPanel.paintAgain();
 			}
 		};
     	newGenotype.addActionListener(newGenotypeListener);
@@ -1514,10 +1497,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				System.exit(1);
 			}
 		} else if (Files.exists(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar) ) {
-			// load
 			clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar);
 		} else {
-			// create new
 			clusterFilterCollection = new ClusterFilterCollection();
 		}
 	}
@@ -1991,6 +1972,31 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		qcPanel.validate();
 	}
 
+	public void updateCurrentClusterFiltersGenotype() {
+		byte currentGenotype, newGenotype;
+
+		currentGenotype = clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter);
+		if (currentGenotype == (ScatterPlot.GENOTYPE_OPTIONS.length - 2)) {
+			newGenotype = -1;
+		} else {
+			newGenotype = (byte) (currentGenotype + 1);
+		}
+		updateCurrentClusterFilterGenotype(newGenotype, true);
+	}
+
+	public void updateCurrentClusterFilterGenotype(byte newGenotypeSelected, boolean updateGenotypeComboBox) {
+		clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
+		saveClusterFilterCollection();
+		clusterFilterCollectionUpdated = true;
+		scatPanel.setPointsGeneratable(true);
+		scatPanel.setQcPanelUpdatable(true);
+		//updateGUI();
+		scatPanel.paintAgain();
+		updateGUI();
+		if (updateGenotypeComboBox) {
+			newGenotype.setSelectedIndex(newGenotypeSelected + 1);
+		}
+	}
 
 //	public void updateAnnotationPanel() {
 //		JPanel panel;

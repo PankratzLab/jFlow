@@ -449,59 +449,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
 			sp.displayClusterFilterIndex();
 			paintAgain();
-
-
-
-
-/*
- * Approach 1
- */
-//			JPopupMenu popup;
-//			popup = new JPopupMenu();
-//			for (int i = 0; i < ScatterPlot.GENOTYPE_OPTIONS.length; i++) {
-//				popup.add(new LaunchAction(ScatterPlot.GENOTYPE_OPTIONS[i]));
-//			}
-//			popup.show(this, mouseEndX, mouseEndX);
-
-
-/*
- * Approach 2
- */
-//			JComboBox<String> newGenotype;
-//			JPopupMenu popup;
-//			newGenotype = new JComboBox<String>(new String[] {"-","A/A","A/B","B/B"});
-//	    	newGenotype.setSelectedIndex(sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(sp.getCurrentClusterFilter()).getCluterGenotype());
-//			ActionListener newGenotypeListener = new ActionListener() {
-//				public void actionPerformed(ActionEvent e) {
-//					byte newGenotypeSelected;
-//					String selectedGenotype;
-//
-//					selectedGenotype =  (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
-//					if (selectedGenotype == "-") {
-//						newGenotypeSelected=(byte)-1;
-//					} else if (selectedGenotype == "A/A") {
-//						newGenotypeSelected=(byte)0;
-//					} else if (selectedGenotype == "A/B") {
-//						newGenotypeSelected=(byte)1;
-//					} else if (selectedGenotype == "B/B") {
-//						newGenotypeSelected=(byte)2;
-//					} else {
-//						newGenotypeSelected=(byte)-9;
-//					}
-//					if (sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(sp.getCurrentClusterFilter()).getCluterGenotype() != newGenotypeSelected) {
-//						sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(sp.getCurrentClusterFilter()).setClusterGenotype(newGenotypeSelected);
-//					}
-//				}
-//			};
-//	    	newGenotype.addActionListener(newGenotypeListener);
-////			popup = new Popup(null, newGenotype, mouseEndX, mouseEndX);
-//	    	popup = new JPopupMenu();
-//	    	popup.add(newGenotype);
-//			popup.show(this, mouseEndX, mouseEndX);
 	    }
 
-    	// Save the filters into files on hard drives;
-
+    	//TODO Save the filters into files on hard drives;
     }
 
     public void mouseDragged(MouseEvent e) {
@@ -585,12 +535,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		} else if (event.getButton() == MouseEvent.BUTTON3) {
 			newClusterFilter = lookupResidingRectangles(event.getX(), event.getY());
 			if (newClusterFilter >= 0) {
-				currentClusterFilter = sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(newClusterFilter);
-				currentGenotype = currentClusterFilter.getCluterGenotype();
-				currentClusterFilter.setClusterGenotype((byte) (currentGenotype == (ScatterPlot.GENOTYPE_OPTIONS.length - 2)? -1 : currentGenotype + 1));
-//				paintAgain();
-				setQcPanelUpdatable(true);
-				sp.updateGUI();
+				sp.setCurrentClusterFilter(newClusterFilter);
+				sp.updateCurrentClusterFiltersGenotype();
+//				currentClusterFilter = sp.getClusterFilterCollection().getClusterFilters(sp.getMarkerName()).get(newClusterFilter);
+//				currentGenotype = currentClusterFilter.getCluterGenotype();
+//				currentClusterFilter.setClusterGenotype((byte) (currentGenotype == (ScatterPlot.GENOTYPE_OPTIONS.length - 2)? -1 : currentGenotype + 1));
+////				paintAgain();
+//				setQcPanelUpdatable(true);
+//				sp.updateGUI();
 			}
 		}
 	}

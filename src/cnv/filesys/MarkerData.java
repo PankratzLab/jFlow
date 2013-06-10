@@ -210,6 +210,10 @@ public class MarkerData implements Serializable {
 		byte[] result, original;
 		float[] realX;
 		float[] realY;
+		float clusterFilterXMin;
+		float clusterFilterYMin;
+		float clusterFilterXMax;
+		float clusterFilterYMax;
 		ArrayList<ClusterFilter> clusterFilters;
 		ClusterFilter clusterFilter;
 		int counter;
@@ -254,10 +258,16 @@ public class MarkerData implements Serializable {
 				realX = getXs();
 				realY = getYs();
 			}
+
+			clusterFilterXMin = clusterFilter.getXMin();
+			clusterFilterYMin = clusterFilter.getYMin();
+			clusterFilterXMax = clusterFilter.getXMax();
+			clusterFilterYMax = clusterFilter.getYMax();
+
 			counter = 0;
 			for (int j=0; j<result.length; j++) {
-				if (realX[j]>=clusterFilter.getXMin() && realY[j]>=clusterFilter.getYMin() && realX[j]<=clusterFilter.getXMax() && realY[j]<=clusterFilter.getYMax()) {
-					result[j]=clusterFilter.getCluterGenotype();
+				if (realX[j] >= clusterFilterXMin && realY[j] >= clusterFilterYMin && realX[j] <= clusterFilterXMax && realY[j] <= clusterFilterYMax) {
+					result[j] = clusterFilter.getCluterGenotype();
 					counter ++;
 				}
 			}

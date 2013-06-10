@@ -150,7 +150,7 @@ public class ClusterFilterCollection implements Serializable {
 		ArrayList<ClusterFilter> clusterFilters;
 		GenericRectangle[] result = new GenericRectangle[getSize(markerName)];
 //		ArrayList<GenericRectangle> rectangles = new ArrayList<GenericRectangle>();
-		
+
 		clusterFilters = hash.get(markerName);
 		for (int i = 0; clusterFilters != null && i < clusterFilters.size(); i++) {
 			if (clusterFilters.get(i).getPlotType()==plotType) {
