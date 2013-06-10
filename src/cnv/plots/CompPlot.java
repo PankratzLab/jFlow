@@ -117,11 +117,12 @@ public class CompPlot extends JFrame {
 	private void setupGUI() {
 		// Set the default window size
 		setSize(1000, 720);
+		// setSize(1920, 1200);
 
 		// Close this window but not the entire application on close
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		// setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		// Close the whole thing for debugging purposes
-		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		cpcl = new CompPropertyChangeListener(this);
 
@@ -136,7 +137,7 @@ public class CompPlot extends JFrame {
 		regionNavigator.addPropertyChangeListener(cpcl);
 		topPanel.add(regionNavigator);
 
-		fileNavigator = new FileNavigator(files);
+		fileNavigator = new FileNavigator(files, colorScheme);
 		topPanel.add(fileNavigator);
 
 		compView.add(topPanel, BorderLayout.PAGE_START);
@@ -150,6 +151,8 @@ public class CompPlot extends JFrame {
 
 		compPanel = new CompPanel(this);
 		compPanel.addPropertyChangeListener(cpcl);
+		compPanel.setRectangles(rectangles.toArray(new CNVRectangle[0]));
+
 		JScrollPane jsp = new JScrollPane(compPanel);
 		viewers.add(jsp, BorderLayout.CENTER);
 
@@ -197,6 +200,7 @@ public class CompPlot extends JFrame {
 
 				CNVRectangle cnvRect = new CNVRectangle(startX, (j * rectangleHeight) + 50, stopX, (j * rectangleHeight) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
 				cnvRect.setCNV(x);
+
 				// Modulus the scheme we choose so it will wrap around in the event of too many files instead of throwing an exception
 				cnvRect.setCNVColor(colorScheme[i % colorScheme.length]);
 				rectangles.add(cnvRect);
@@ -276,9 +280,9 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 
 	public void propertyChange(PropertyChangeEvent pve) {
 		String propertyName;
-		
+
 		propertyName = pve.getPropertyName();
-		
+
 		if (propertyName.equals("probes")) {
 			compPlot.setProbes(Integer.parseInt(pve.getNewValue().toString()));
 		} else if (propertyName.equals("minSize")) {
@@ -289,10 +293,10 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 			compPlot.setRectangleHeight(Integer.parseInt(pve.getNewValue().toString()));
 		} else if (propertyName.equals("displayMode")) {
 			compPlot.setDisplayMode((String) pve.getNewValue());
-//		} else if (propertyName.equals("firstRegion")) {
-//		} else if (propertyName.equals("previousRegion")) {
-//		} else if (propertyName.equals("nextRegion")) {
-//		} else if (propertyName.equals("lastRegion")) {
+			// } else if (propertyName.equals("firstRegion")) {
+			// } else if (propertyName.equals("previousRegion")) {
+			// } else if (propertyName.equals("nextRegion")) {
+			// } else if (propertyName.equals("lastRegion")) {
 		} else if (propertyName.equals("location")) {
 			// System.out.println("Changing from " + pve.getOldValue() + " to " + pve.getNewValue());
 			compPlot.setLocation((Region) pve.getNewValue());
@@ -349,7 +353,6 @@ class CNVRectangle extends GenericRectangle {
 		if (copies > 2) {
 			// It's a duplication, make it brighter
 			newBrightness *= (copies - 2);
-
 		} else if (copies == 1) {
 			// It's a deletion, make it darker
 			newBrightness *= 0.5f;

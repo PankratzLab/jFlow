@@ -119,7 +119,8 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		configPanel.add(lblRectangleHeight);
 
 		rectangleHeightSlider = new JSlider(1, 25, rectangleHeight);
-		rectangleHeightSlider.setMajorTickSpacing(5);
+		rectangleHeightSlider.setMajorTickSpacing(24);
+		rectangleHeightSlider.setMinorTickSpacing(1);
 		rectangleHeightSlider.setPaintTicks(true);
 		rectangleHeightSlider.setPaintLabels(true);
 		rectangleHeightSlider.addChangeListener(this);
