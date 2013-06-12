@@ -10,11 +10,13 @@ import one.ChargeS;
 import common.*;
 
 public class SkatMeta {
-	public static final String[][] MODELS = {
-		{"SingleSNP", "singlesnpMeta", ", cohortBetas = TRUE"},
-		{"SKAT_T5", "skatMeta", ", wts = 1, mafRange = c(0,0.05)"},
-		{"T5Count", "burdenMeta", ", wts = 1, mafRange = c(0,0.05)"},
-		{"T5MB", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.05)"}
+	public static final String[][] MODELS = { // name, subroutine, filter on nonSynonSplic
+		{"SingleSNP", "singlesnpMeta", ", cohortBetas = TRUE", "0"},
+		{"SKAT_T5", "skatMeta", ", wts = 1, mafRange = c(0,0.05)", "1"},
+		{"T5Count", "burdenMeta", ", wts = 1, mafRange = c(0,0.05)", "1"},
+		{"T5MB", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.05)", "1"},
+		{"T1Count", "burdenMeta", ", wts = 1, mafRange = c(0,0.01)", "1"},
+		{"T1MB", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.01)", "1"}
 	};
 
 	private static void determineObjectNames(Logger log) {
@@ -57,8 +59,308 @@ public class SkatMeta {
 			Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 4000);
 		}
 	}
+	
+	public static void splitAll(String dir, String[][] PHENOTYPES, String[] STUDIES, String snpInfoFile, String snpName, String chromName, String geneName) {
+		String[] files, finalSet;
+		boolean[] picks, used;
+		int numMatches;
+		Logger log;
+		String localDir;
+		String filename;
+		Vector<String> toBeSplit, commands;
+		String objectName, snpInfoName, chrom, subsetObject;
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		
+		log = new Logger(dir+"splitAll.log");
+		new File(dir+"batchSplits/").mkdir();
+		files = Files.list(dir, null, ".Rdata", false, false);
+		used = Array.booleanArray(files.length, false);
+		
+		if (ext.indexOfStr(snpInfoFile, files) == -1) {
+			log.reportError("Error - could not find SNP Info file '"+snpInfoFile+"'; aborting");
+			return;
+		} else {
+			used[ext.indexOfStr(snpInfoFile, files)] = true;
+		}
+		
+		if (Files.exists(dir+"batchChecks/"+ext.rootOf(snpInfoFile)+".object")) {
+			snpInfoName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(snpInfoFile)+".object", false, new int[] {0}, false)[0];
+		} else {
+			log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(snpInfoFile)+".object"+"'");
+			log.reportError("   need to first run using the -determineObjectNames option");
+			return;
+		}
+		
+		
+		commands = new Vector<String>();
+		commands.add("load(\""+dir+snpInfoFile+"\")");
+		commands.add("ls()");
+		
+		commands.add("chroms <- unique("+snpInfoName+"$"+chromName+")");
+		commands.add("write.table( chroms, \"chroms.csv\", sep=\",\")");
 
-	public static void runAll(String dir, String[][] PHENOTYPES, String[] STUDIES, String snpInfoFile, String snpName) {
+		commands.add("for (chr in chroms) {");
+		commands.add("  snps_on_chr <- snpinfo.ChargeSFreeze3.ESP[snpinfo.ChargeSFreeze3.ESP$CHROM == chr,]");
+		commands.add("  filename <- paste(\"snpInfos/snpInfo_chr\", chr, \".RData\", sep='')");
+		commands.add("  save(snps_on_chr, file=filename, compress=\"bzip2\")");
+		commands.add("}");
+		
+		filename = dir+"batchSplits/splitChrs.R";
+		Files.writeList(Array.toStringArray(commands), filename);
+
+		Files.qsub(dir+"batchSplits/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"mkdir snpInfos/\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 30000);
+		
+		toBeSplit = new Vector<String>();
+		toBeSplit.add("# make sure to run \"qsub "+ext.rootOf(filename)+".qsub\" first!!!");
+
+		dir = ext.verifyDirFormat(dir);
+		for (int i = 0; i < PHENOTYPES.length; i++) {
+			finalSet = Array.stringArray(STUDIES.length, "<missing>");
+			for (int j = 0; j < STUDIES.length; j++) {
+				picks = Array.booleanArray(files.length, false);
+				for (int k = 0; k < files.length; k++) {
+					if (files[k].contains(STUDIES[j]) && ext.containsAny(files[k], PHENOTYPES[i])) {
+						picks[k] = true;
+						finalSet[j] = files[k];
+						if (used[k]) {
+							log.reportError("Error - file '"+files[k]+"' matches to "+STUDIES[j]+"/"+PHENOTYPES[i][0]+" but was already picked for another purpose");
+						}
+						used[k] = true;
+					}
+				}
+				numMatches = Array.booleanArraySum(picks);
+				if (numMatches == 0) {
+					log.reportError("Warning - could not find a match for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
+				} else if (numMatches > 1) {
+					log.reportError("Error - found multiple matched for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
+					log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
+				}
+			}
+			
+			log.report("For "+PHENOTYPES[i][0]+" identified:", true, false);
+			for (int j = 0; j < STUDIES.length; j++) {
+				log.report("   "+finalSet[j], true, false);
+				if (!finalSet[j].equals("<missing>")) {
+					localDir = dir+PHENOTYPES[i][0]+"/"+STUDIES[j]+"/";
+					new File(localDir).mkdirs();
+
+					commands = new Vector<String>();
+					commands.add("load(\""+dir+snpInfoFile+"\")");
+					commands.add("load(\""+dir+finalSet[j]+"\")");
+					if (Files.exists(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object")) {
+						objectName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object", false, new int[] {0}, false)[0];
+					} else {
+						log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object"+"'");
+						log.reportError("   need to first run using the -determineObjectNames option");
+						return;
+					}
+					commands.add("ls()");
+					
+					for (int chr = 1; chr <= 23; chr++) {
+						chrom = chr==23?"X":chr+"";
+						subsetObject = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom;
+						
+						// filter for the gene names present on the chromosome
+						commands.add("genes <- unique("+snpInfoName+"["+snpInfoName+"$"+chromName+" == \""+chrom+"\", \""+geneName+"\"])");
+
+						// take the intersect of those actually present in the skatCohort object
+						commands.add("idx <- intersect(genes, names("+objectName+"))");
+
+						// create the skatCohort subset
+						commands.add(subsetObject+" <- "+objectName+"[idx]");
+
+						// make sure the dataset has the skatCohort class
+						commands.add("class("+subsetObject+") <- \"skatCohort\"");
+
+						// save the new file
+						commands.add("save("+subsetObject+", file=\""+localDir+subsetObject+".RData\", compress=\"bzip2\")");
+						commands.add("");
+					}
+					
+					filename = dir+"batchSplits/"+STUDIES[j]+"_"+PHENOTYPES[i][0]+".R";
+					Files.writeList(Array.toStringArray(commands), filename);
+
+					Files.qsub(dir+"batchSplits/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 30000);
+					toBeSplit.add("qsub "+ext.rootOf(filename)+".qsub");
+				}
+			}
+			log.report("", true, false);			
+		}
+		Files.writeList(Array.toStringArray(toBeSplit), dir+"master.toBeSplit");
+		Files.chmod(dir+"master.toBeSplit");
+		
+		numMatches = Array.booleanArraySum(used);
+		if (numMatches != files.length) {
+			log.reportError("Warning - did not find a match for the following file(s):");
+			for (int i = 0; i < files.length; i++) {
+				if (!used[i]) {
+					log.reportError("  "+files[i]);
+				}
+			}
+		}
+		
+		log.report("");
+		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
+	}
+
+	public static void runAll(String dir, String[][] PHENOTYPES, String[] STUDIES, String snpName) {
+		String[] files, finalSet;
+		boolean[] picks, used;
+		int numMatches;
+		Logger log;
+		String localDir;
+		String root, filename;
+		Vector<String> toBeRunIndividually, toBeRunMetad, commands, objects;
+		int count;
+		String objectName, snpInfoFile, chrom;
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		
+		log = new Logger(dir+"runAll.log");
+		files = Files.list(dir, null, ".Rdata", false, false);
+		used = Array.booleanArray(files.length, false);
+		
+		for (int chr = 1; chr <= 23; chr++) {
+			chrom = chr==23?"X":chr+"";
+			filename = "snpInfos/snpInfo_chr"+chrom+".RData";
+			if (!Files.exists(filename)) {
+				log.reportError("Error - could not find SNP Info file '"+filename+"'; aborting");
+				return;
+			}
+		}
+		
+		toBeRunIndividually = new Vector<String>();
+		toBeRunMetad = new Vector<String>();
+		new File(dir+"batchRuns/").mkdir();
+		dir = ext.verifyDirFormat(dir);
+		for (int i = 0; i < PHENOTYPES.length; i++) {
+			for (int j = 0; j < MODELS.length; j++) {
+				localDir = dir+PHENOTYPES[i][0]+"/"+MODELS[j][0]+"/";
+				new File(localDir).mkdirs();
+			}
+			
+			finalSet = Array.stringArray(STUDIES.length, "<missing>");
+			for (int j = 0; j < STUDIES.length; j++) {
+				picks = Array.booleanArray(files.length, false);
+				for (int k = 0; k < files.length; k++) {
+					if (files[k].contains(STUDIES[j]) && ext.containsAny(files[k], PHENOTYPES[i])) {
+						picks[k] = true;
+						finalSet[j] = files[k];
+						if (used[k]) {
+							log.reportError("Error - file '"+files[k]+"' matches to "+STUDIES[j]+"/"+PHENOTYPES[i][0]+" but was already picked for another purpose");
+						}
+						used[k] = true;
+					}
+				}
+				numMatches = Array.booleanArraySum(picks);
+				if (numMatches == 0) {
+					log.reportError("Warning - could not find a match for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
+				} else if (numMatches > 1) {
+					log.reportError("Error - found multiple matched for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
+					log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
+				}
+			}
+			
+			log.report("For "+PHENOTYPES[i][0]+" identified:", true, false);
+			for (int j = 0; j < STUDIES.length; j++) {
+				log.report("   "+finalSet[j], true, false);
+				if (!finalSet[j].equals("<missing>")) {
+					localDir = dir+PHENOTYPES[i][0]+"/"+STUDIES[j]+"/";
+					
+					for (int chr = 1; chr <= 23; chr++) {
+						chrom = chr==23?"X":chr+"";
+
+						objectName = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom;
+						snpInfoFile = "snpInfos/snpInfo_chr"+chrom+".RData";
+
+						commands = new Vector<String>();
+						commands.add("library(skatMeta)");
+						commands.add("load(\""+dir+snpInfoFile+"\")");
+						commands.add("load(\""+localDir+objectName+".RData"+"\")");
+						commands.add("ls()");
+						for (int k = 0; k < MODELS.length; k++) {
+							root = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_"+MODELS[k][0];
+							if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv")) {
+								commands.add("results <- "+MODELS[k][1]+"("+objectName+", "+(MODELS[k][2].equals("1")?"SNPInfo=subset(snps_on_chr, sc_nonsynSplice==TRUE)":"SNPInfo=subsetsnps_on_chr")+", aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
+								commands.add("write.table( results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv\", sep=\",\", row.names = F)");
+							}
+						}
+						count = 0;
+						do {
+							filename = dir+"batchRuns/"+STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom+(count==0?"":"_"+count)+".R";
+							count++;
+						} while (Files.exists(filename));
+						Files.writeList(Array.toStringArray(commands), filename);
+	
+						Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 5000);
+						toBeRunIndividually.add("qsub "+ext.rootOf(filename)+".qsub");
+					}
+				}
+			}
+			log.report("", true, false);
+			
+			
+			for (int chr = 1; chr <= 23; chr++) {
+				chrom = chr==23?"X":chr+"";
+				commands = new Vector<String>();
+				commands.add("library(skatMeta)");
+				snpInfoFile = "snpInfos/snpInfo_chr"+chrom+".RData";
+				commands.add("load(\""+dir+snpInfoFile+"\")");
+				
+				objects = new Vector<String>();
+				for (int j = 0; j < STUDIES.length; j++) {
+					if (!finalSet[j].equals("<missing>")) {
+						localDir = dir+PHENOTYPES[i][0]+"/"+STUDIES[j]+"/";
+						objectName = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom;
+						commands.add("load(\""+localDir+objectName+".RData"+"\")");
+						objects.add(objectName);
+					}
+				}
+				commands.add("ls()");
+				commands.add("");
+				for (int k = 0; k < MODELS.length; k++) {
+					root = PHENOTYPES[i][0]+"_"+MODELS[k][0];
+					if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv")) {
+						commands.add("results <- "+MODELS[k][1]+"("+Array.toStr(Array.toStringArray(objects), ", ")+", SNPInfo=subset(snps_on_chr, sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
+						commands.add("write.table( results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv\", sep=\",\", row.names = F)");
+						commands.add("");
+					}
+				}
+				count = 0;
+				do {
+					filename = dir+"batchRuns/"+PHENOTYPES[i][0]+(count==0?"":"_"+count)+"_chr"+chrom+".R";
+					count++;
+				} while (Files.exists(filename));
+				Files.writeList(Array.toStringArray(commands), filename);
+	
+				Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 10000);
+				toBeRunMetad.add("qsub "+ext.rootOf(filename)+".qsub");
+			}
+			log.report("", true, false);			
+		}
+		Files.writeList(Array.toStringArray(toBeRunIndividually), dir+"master.toBeRunIndividually");
+		Files.chmod(dir+"master.toBeRunIndividually");
+		Files.writeList(Array.toStringArray(toBeRunMetad), dir+"master.toBeMetaAnalyzed");
+		Files.chmod(dir+"master.toBeMetaAnalyzed");
+		
+		numMatches = Array.booleanArraySum(used);
+		if (numMatches != files.length) {
+			log.reportError("Warning - did not find a match for the following file(s):");
+			for (int i = 0; i < files.length; i++) {
+				if (!used[i]) {
+					log.reportError("  "+files[i]);
+				}
+			}
+		}
+	}
+
+	// no longer being updated, as it requires too much memory for whole exome sequencing
+	public static void runAllTogether(String dir, String[][] PHENOTYPES, String[] STUDIES, String snpInfoFile, String snpName) {
 		String[] files, finalSet;
 		boolean[] picks, used;
 		int numMatches;
@@ -73,7 +375,7 @@ public class SkatMeta {
 			dir = new File("").getAbsolutePath()+"/";
 		}
 		
-		log = new Logger(dir+"runAll.log");
+		log = new Logger(dir+"runAllTogether.log");
 		files = Files.list(dir, null, ".Rdata", false, false);
 		used = Array.booleanArray(files.length, false);
 		
@@ -94,7 +396,7 @@ public class SkatMeta {
 		
 		
 		toBeRun = new Vector<String>();
-		new File(dir+"batchRuns/").mkdir();
+		new File(dir+"batchRunsSingles/").mkdir();
 		dir = ext.verifyDirFormat(dir);
 		for (int i = 0; i < PHENOTYPES.length; i++) {
 			for (int j = 0; j < MODELS.length; j++) {
@@ -145,8 +447,8 @@ public class SkatMeta {
 					for (int k = 0; k < MODELS.length; k++) {
 						root = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_"+MODELS[k][0];
 						if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv")) {
-							commands.add(root+"_results <- "+MODELS[k][1]+"("+objectName+", SNPInfo="+snpInfoName+", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
-							commands.add("write.table( "+root+"_results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\", sep=\",\")");
+							commands.add(root+"_results <- "+MODELS[k][1]+"("+objectName+", SNPInfo=subset("+snpInfoName+", sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
+							commands.add("write.table( "+root+"_results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\", sep=\",\", row.names = F)");
 
 //							commands.add("fileConn_"+MODELS[k][0]+"<-file(\""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\")");
 //							commands.add("writeLines(c("+root+"_results), fileConn_"+MODELS[k][0]+")");
@@ -155,12 +457,12 @@ public class SkatMeta {
 					}
 					count = 0;
 					do {
-						filename = dir+"batchRuns/"+STUDIES[j]+"_"+PHENOTYPES[i][0]+(count==0?"":"_"+count)+".R";
+						filename = dir+"batchRunsSingles/"+STUDIES[j]+"_"+PHENOTYPES[i][0]+(count==0?"":"_"+count)+".R";
 						count++;
 					} while (Files.exists(filename));
 					Files.writeList(Array.toStringArray(commands), filename);
 
-					Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 30000);
+					Files.qsub(dir+"batchRunsSingles/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 30000);
 					toBeRun.add("qsub "+ext.rootOf(filename)+".qsub");
 				}
 			}
@@ -192,8 +494,8 @@ public class SkatMeta {
 				root = PHENOTYPES[i][0]+"_"+MODELS[k][0];
 				if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv")) {
 					
-					commands.add(root+"_results <- "+MODELS[k][1]+"("+Array.toStr(Array.toStringArray(objects), ", ")+", SNPInfo="+snpInfoName+", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
-					commands.add("write.table( "+root+"_results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\", sep=\",\")");
+					commands.add(root+"_results <- "+MODELS[k][1]+"("+Array.toStr(Array.toStringArray(objects), ", ")+", SNPInfo=subset("+snpInfoName+", sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
+					commands.add("write.table( "+root+"_results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\", sep=\",\", row.names = F)");
 
 //					commands.add("fileConn_"+MODELS[k][0]+"<-file(\""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\")");
 //					commands.add("writeLines(c("+root+"_results), fileConn_"+MODELS[k][0]+")");
@@ -202,12 +504,12 @@ public class SkatMeta {
 			}
 			count = 0;
 			do {
-				filename = dir+"batchRuns/"+PHENOTYPES[i][0]+(count==0?"":"_"+count)+".R";
+				filename = dir+"batchRunsSingles/"+PHENOTYPES[i][0]+(count==0?"":"_"+count)+".R";
 				count++;
 			} while (Files.exists(filename));
 			Files.writeList(Array.toStringArray(commands), filename);
 
-			Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 60000);
+			Files.qsub(dir+"batchRunsSingles/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 60000);
 			toBeRun.add("qsub "+ext.rootOf(filename)+".qsub");
 			log.report("", true, false);			
 		}
@@ -377,6 +679,45 @@ public class SkatMeta {
 		}
 	}
 
+	public static void stitch(String dir, String pattern) {
+		String[] list;
+		int[] skips;
+		
+		list = new String[23];
+		skips = new int[23];
+		for (int chr = 1; chr <= 23; chr++) {
+			list[chr-1] = dir+ext.replaceAllWith(pattern, "#", chr==23?"X":chr+"");
+			skips[chr-1] = chr>1?1:0;
+		}
+		Files.cat(list, dir+ext.replaceAllWith(pattern, "#", "All"), skips, new Logger());
+		removeIndicesFromRdata(dir+ext.replaceAllWith(pattern, "#", "All"), dir+ext.addToRoot(ext.replaceAllWith(pattern, "#", "All"), "_slim"));
+	}
+	
+	public static void removeIndicesFromRdata(String filein, String fileout) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String temp;
+		
+		try {
+			reader = new BufferedReader(new FileReader(filein));
+			writer = new PrintWriter(new FileWriter(fileout));
+			writer.println(reader.readLine());
+			while (reader.ready()) {
+				temp = reader.readLine();
+				writer.println(temp.substring(temp.indexOf(",")+1));
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filein + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filein + "\"");
+			System.exit(2);
+		}
+		
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "SkatMeta.dat";
@@ -384,12 +725,16 @@ public class SkatMeta {
 		Logger log;
 		String dir = "";
 		boolean determineObjectNames = false;
+		boolean splitAll = false;
 		boolean runAll = false;
 		boolean metaAll = false;
 
 		String usage = "\n" + 
 		"gwas.SkatMeta requires 0-1 arguments\n" + 
 		"   (1) determine object names (i.e. -determineObjectNames (not the default))\n" + 
+		" OR\n" + 
+		"   (1) split all (i.e. -splitAll  (not the default))\n" + 
+		"   (2) directory (i.e. dir=" + dir + " (default))\n" + 
 		" OR\n" + 
 		"   (1) run all (i.e. -runAll  (not the default))\n" + 
 		"   (2) directory (i.e. dir=" + dir + " (default))\n" + 
@@ -408,6 +753,9 @@ public class SkatMeta {
 			} else if (args[i].startsWith("-determineObjectNames")) {
 				determineObjectNames = true;
 				numArgs--;
+			} else if (args[i].startsWith("-splitAll")) {
+				splitAll = true;
+				numArgs--;
 			} else if (args[i].startsWith("-runAll")) {
 				runAll = true;
 				numArgs--;
@@ -425,16 +773,28 @@ public class SkatMeta {
 			System.err.println(usage);
 			System.exit(1);
 		}
+
+//		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/metaAnalysis/";
+//		stitch(dir, "CHS_Fibrinogen_SingleSNP_chr#.csv");
+//		removeIndicesFromRdata(dir+"CHS_Fibrinogen_SingleSNP.csv", dir+"CHS_Fibrinogen_SingleSNP_slim.csv");
+
+//		stitch(dir, "CHS_Fibrinogen_SKAT_T5_chr#.csv");
+//		removeIndicesFromRdata(dir+"CHS_Fibrinogen_SKAT_T5.csv", dir+"CHS_Fibrinogen_SKAT_T5_slim.csv");
+		
+//		System.exit(1);
 		
 //		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/metaAnalysis/";
+//		splitAll = true;
 //		runAll = true;
 		
 		try {
 			log = new Logger(logfile);
 			if (determineObjectNames) {
 				determineObjectNames(log);
+			} else if (splitAll) {
+				splitAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE, ChargeS.SNP_NAMES, ChargeS.CHROM_NAME, ChargeS.GENE_NAME);
 			} else if (runAll) {
-				runAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE, ChargeS.SNP_NAMES);
+				runAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_NAMES);
 //				runAll(dir, PHENOTYPES, STUDIES);
 			} else if (metaAll) {
 				metaAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.GROUPS, ChargeS.METHODS, ChargeS.UNIT_OF_ANALYSIS, ChargeS.DEFAULT_SAMPLE_SIZES, ChargeS.WEIGHTED, ChargeS.SINGLE_VARIANTS, ChargeS.GROUP_ANNOTATION_PARAMS);

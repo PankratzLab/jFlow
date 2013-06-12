@@ -41,6 +41,9 @@ public class ChargeS {
 
 	public static final String SNP_INFO_FILE = "snpinfo_ChargeSFreeze3_ESP_05212013.RData";
 	public static final String SNP_NAMES = "SNP";
+	public static final String CHROM_NAME = "CHROM";
+	public static final String GENE_NAME = "SKATgene";
+	
 	
 //	wts =1, mafRange = c(0,0.01),
 			
