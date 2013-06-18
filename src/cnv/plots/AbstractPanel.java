@@ -92,7 +92,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean invertable;	//4/27/2012
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
-	protected IntVector indicesOfNaNSamples;	//zx
 	protected IntVector prox;
 
 	private boolean inDrag;
@@ -112,6 +111,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private Timer waitingTimer;		//A control variable to reduce the repaint() operations during component resizing;
 	private String nullMessage;
 	private boolean randomTest;
+	private int numberOfNaNSamples;
 
 	
 	public AbstractPanel() {
@@ -289,6 +289,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		long time;
 		ProgressBarDialog prog;//zx
     	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
+    	int index;
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
@@ -385,9 +386,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			minimumObservedRawY = minimumObservedRawX;
 		}
 		
+		numberOfNaNSamples = 0;
 		if (base) {
-			indicesOfNaNSamples = new IntVector();
-		
 			//g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
@@ -567,7 +567,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					prog.setProgress(i);//zx
 				}
 			}
-			if (points[i] == null || points[i].getColor() == -1) {
+			if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
 //			if (points[i] == null || points[i].getColor() == -1 || (points[i].getRawX() < 1 && points[i].getRawY() < 1)) {
 				
 			} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
@@ -579,7 +579,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 						if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
 							drawPoint(g, points[i]);
 						} else if (base) {
-							indicesOfNaNSamples.add(i);
+							numberOfNaNSamples++;
 						}
 					} else {
 						if (layers.containsKey(trav)) {
@@ -619,17 +619,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		for (int i = 0; i<keys.length; i++) {
 			layer = layers.get(keys[order[i]]);
 			for (int j = 0; j<layer.size(); j++) {
-				if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+				if (layer.elementAt(j).getType()!=PlotPoint.NOT_A_NUMBER) {
 					drawPoint(g, layer.elementAt(j));
 				} else {
-					indicesOfNaNSamples.add(j);
-					//TODO This is a problem
+					numberOfNaNSamples++;
 				}
             }
         }
 
-		if (indicesOfNaNSamples!=null && indicesOfNaNSamples.size()>0) {
-			g.drawString(PlotPoint.NAN_STR+" (n="+indicesOfNaNSamples.size()+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
+		if (numberOfNaNSamples > 0) {
+			g.drawString(PlotPoint.NAN_STR+" (n="+numberOfNaNSamples+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
 		}
 		
 		if (base && displayGrid) {

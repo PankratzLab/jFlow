@@ -8,9 +8,14 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Date;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -72,6 +77,7 @@ public class ColorKeyPanel extends JPanel {
 	private JRadioButton[] classRadioButtons;
 	private SampleData sampleData;
 	private AbstractPanel sisterPanel;
+	private Hashtable<String, String> disabledClassValues;
 
 	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel) {
 		this(newSampleData, newSisterPanel, DEFAULT_COLORS);
@@ -119,6 +125,7 @@ public class ColorKeyPanel extends JPanel {
 
 		add(classValuesPanel);
 		classRadioButtons[1].setSelected(true);
+		disabledClassValues = new Hashtable<String, String>();
 	}
 
 	public void updateColorKey(Hashtable<String,String> currentClassUniqueValues) {
@@ -126,7 +133,30 @@ public class ColorKeyPanel extends JPanel {
 		String[][] colorKeys;
 		String[] keys;
 		int numBasicClasses;
+		MouseListener mouseListenerForColorKey;
 		
+		mouseListenerForColorKey = new MouseListener() {
+			public void mouseReleased(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+
+			public void mouseClicked(MouseEvent e) {
+				String classValue;
+
+				if (e.getButton()==MouseEvent.BUTTON1) {
+					classValue = ((JLabel)e.getSource()).getName();
+					if (disabledClassValues.containsKey(classValue)) {
+						disabledClassValues.remove(classValue);
+					} else {
+						disabledClassValues.put(classValue, "");
+					}
+					sisterPanel.paintAgain();
+				}
+			}
+		};
+
+
 		
 		numBasicClasses = sampleData.getBasicClasses().length;
 		
@@ -136,25 +166,41 @@ public class ColorKeyPanel extends JPanel {
 		label = new JLabel("Color key:");
 		label.setFont(new Font("Arial", 0, 14));
 		classValuesPanel.add(label);
-		if (currentClass < numBasicClasses) { // needs to be fixed so that this is not a public variable
+		if (currentClass < numBasicClasses) {
 			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
 		} else {		
-			colorKeys = sampleData.getActualClassColorKey(currentClass - numBasicClasses); // same here
+			colorKeys = sampleData.getActualClassColorKey(currentClass - numBasicClasses);
 		}
 		for (int i = 0; i<colorKeys.length; i++) {
 			block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(colorKeys[i][0])]));
+			block.setName(currentClass+"\t"+colorKeys[i][0]);
+			block.addMouseListener(mouseListenerForColorKey);
 			label = new JLabel(colorKeys[i][1]+" (n="+(currentClassUniqueValues.containsKey(colorKeys[i][0])?currentClassUniqueValues.get(colorKeys[i][0]):"0")+")");
+			label.setName(currentClass+"\t"+colorKeys[i][0]);
+			label.addMouseListener(mouseListenerForColorKey);
 			currentClassUniqueValues.remove(colorKeys[i][0]);
-			label.setFont(new Font("Arial", 0, 14));
+			if (disabledClassValues.containsKey(currentClass+"\t"+colorKeys[i][0])) {
+				label.setForeground(Color.RED);
+				label.setFont(new Font("Arial", Font.ITALIC, 14));
+			} else {
+				label.setForeground(Color.BLACK);
+				label.setFont(new Font("Arial", 0, 14));
+			}
 			classValuesPanel.add(block);
 			classValuesPanel.add(label);
 		}
+
 		keys = HashVec.getKeys(currentClassUniqueValues);
+
 		for (int i = 0; i<keys.length; i++) {
 			if (!keys[i].equals("-1")) {
 				block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(keys[i])]));
+				block.setName(currentClass+"\t"+keys[i]);
+				block.addMouseListener(mouseListenerForColorKey);
 				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+currentClassUniqueValues.get(keys[i])+")");
+				label.setName(currentClass+"\t"+keys[i]);
 				label.setFont(new Font("Arial", 0, 14));
+				label.addMouseListener(mouseListenerForColorKey);
 				classValuesPanel.add(block);
 				classValuesPanel.add(label);
 			}
@@ -165,6 +211,10 @@ public class ColorKeyPanel extends JPanel {
 
 	public int getCurrentClass() {
 		return currentClass;
+	}
+
+	public Hashtable<String, String> getDisabledClassValues() {
+		return disabledClassValues;
 	}
 	
 	public JRadioButton[] getClassRadioButtons() {
