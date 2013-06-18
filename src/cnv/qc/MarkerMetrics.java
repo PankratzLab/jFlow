@@ -433,13 +433,17 @@ public class MarkerMetrics {
 		}
 		
 		reviewCriteriaFilename = proj.getFilename(Project.MARKER_REVIEW_CRITERIA_FILENAME, false, false);
-		if (!Files.exists(reviewCriteriaFilename)) {
+		if (Files.exists(reviewCriteriaFilename)) {
+			log.report("Using "+reviewCriteriaFilename+" for the review criteria");
+		} else {
 			log.report("Could not find "+reviewCriteriaFilename+", so generating from default parameters");
 			Files.copyFileFromJar(DEFAULT_REVIEW_CRITERIA, reviewCriteriaFilename);
 		}
 
 		exclusionCriteriaFilename = proj.getFilename(Project.MARKER_EXCLUSION_CRITERIA_FILENAME, false, false);
-		if (!Files.exists(exclusionCriteriaFilename)) {
+		if (Files.exists(exclusionCriteriaFilename)) {
+			log.report("Using "+exclusionCriteriaFilename+" for the review criteria");
+		} else {
 			log.report("Could not find "+reviewCriteriaFilename+", so generating from default parameters");
 			Files.copyFileFromJar(DEFAULT_EXCLUSION_CRITERIA, exclusionCriteriaFilename);
 		}

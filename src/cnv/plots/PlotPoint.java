@@ -20,6 +20,7 @@ public class PlotPoint implements Serializable {
 	private byte color;
 	private byte layer;
 	private boolean highlight;
+	private boolean visible;
 
 	public PlotPoint(String id, byte type, float rawX, float rawY, byte size, byte color, byte layer) {
 		this.id = id;
@@ -30,6 +31,7 @@ public class PlotPoint implements Serializable {
 		this.color = color;
 		this.layer = layer;
 		this.highlight = false;
+		this.visible = true;
 	}
 
 	public String getId() {
@@ -72,8 +74,15 @@ public class PlotPoint implements Serializable {
 		highlight = status;
 	}
 
+	public void setVisible(boolean status) {
+		visible = status;
+	}
+
 	public boolean isHighlighted() {
 		return highlight;
 	}
 
+	public boolean isVisble() {
+		return visible;
+	}
 }

@@ -162,6 +162,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		ClusterFilterCollection clusterFilterCollection;//zx
 		MarkerData markerData;
 		int currentClass;
+		Hashtable<String, String> disabledClassValues;
+		
+		disabledClassValues = sp.getDisabledClassValues();
 
 //		time = new Date().getTime();
 		
@@ -288,7 +291,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					uniqueValueCounts.add(classCode+"");
 				}
 				if (classCode < 0) {
-					System.err.println("Error - classCOde is less than 0 ("+classCode+")");
+					System.err.println("Error - classCode is less than 0 ("+classCode+")");
 				}
 				points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:xFontSize, classCode, layer);
 				genotype[i]=genotypeCode;
@@ -330,6 +333,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		for (int i = 0; i < points.length; i++) {
+			if (points[i] != null && disabledClassValues.containsKey(currentClass+"\t"+points[i].getColor())) {
+				points[i].setVisible(false);
+			}
 			if (points[i] != null) {
 				hash.put(points[i].getLayer()+"", "");
 			}

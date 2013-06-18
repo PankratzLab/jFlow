@@ -16,6 +16,8 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.Sort;
+import common.ext;
 
 public class AnnotationCollection implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -42,11 +44,14 @@ public class AnnotationCollection implements Serializable {
 		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annoation database", "Warning", JOptionPane.ERROR_MESSAGE);
 		if (response != 1) {
 			commentsHash.remove(c);
-			markers = annotationMarkerLists.get(c);
+			markers = annotationMarkerLists.get(c+"");
 			for (int i=0; markers != null && i < markers.size(); i++) {
 				markerAnnotations.remove(markers.elementAt(i));
 			}
-			annotationMarkerLists.remove(c);
+			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists, true, false)));
+			annotationMarkerLists.remove(c+"");
+			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists, true, false)));
+			System.out.println();
 		}
 		
 	}
@@ -71,6 +76,9 @@ public class AnnotationCollection implements Serializable {
 				annotationMarkerLists.get(c+"").remove(markerName);
 			} else {
 				System.err.println("Error - cannot remove "+c+" from "+markerName+" if it's not already checked");
+			}
+			if (markerAnnotations.get(markerName).size() == 0) {
+				markerAnnotations.remove(markerName);
 			}
 		} else {
 			System.err.println("Error - cannot remove "+c+" from "+markerName+" if the marker does not have any annotation");
@@ -103,9 +111,9 @@ public class AnnotationCollection implements Serializable {
 		for (int i = 0; i < list.length; i++) {
 //			list[i] = keys[i]+"\t"+Array.toStr(markerAnnotations.get(keys[i]));
 			annotationsVector = markerAnnotations.get(keys[i]);
-			annotationsOfTheMarker = commentsHash.get(annotationsVector.elementAt(0).toCharArray()[0]);
-			for (int j=1; j<annotationsVector.size(); j++) {
-				annotationsOfTheMarker += ";" + commentsHash.get(annotationsVector.elementAt(j).toCharArray()[0]);
+			annotationsOfTheMarker = "";
+			for (int j=0; j<annotationsVector.size(); j++) {
+				annotationsOfTheMarker += (j==0?"":";") + commentsHash.get(annotationsVector.elementAt(j).toCharArray()[0]);
 			}
 			list[i] = keys[i] + "\t" + annotationsOfTheMarker;
 		}
@@ -224,14 +232,14 @@ public class AnnotationCollection implements Serializable {
 	public char[] getKeys() {
 //		return Array.toCharArray(HashVec.getKeys(commentsHash));
 
-		char[] result;
+		String[] result;
 		Enumeration<Character> keys;
-		result = new char[commentsHash.size()];
+		result = new String[commentsHash.size()];
 		keys = commentsHash.keys();
 		for (int i=0; i<result.length; i++) {
-			result[i] = keys.nextElement();
+			result[i] = keys.nextElement()+"";
 		}
-		return result;
+		return Array.toCharArray(Sort.putInOrder(result));
 	}
 	
 	public boolean containsKey(char c) {
@@ -248,6 +256,16 @@ public class AnnotationCollection implements Serializable {
 			result[i] = keys.nextElement();
 		}
 		return result;
+	}
+
+	public String[] getMarkerLists(char key) {
+//		String[] result;
+//		Vector<String> vector;
+//		vector = annotationMarkerLists.get(key + "");
+//		result = new String[vector.size()];
+//		vector.toArray(result);
+//		return result;
+		return annotationMarkerLists.get(key + "").toArray(new String[0]);
 	}
 
 	public String getDescriptionForComment(char c, boolean includeShortcuts, boolean includeNumbers) {

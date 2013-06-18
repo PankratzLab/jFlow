@@ -15,11 +15,13 @@ import stats.ProbDist;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeListener;
 
 import cnv.filesys.*;
 import cnv.gui.AnnotationAction;
 import cnv.gui.AutoSaveClusterFilterCollection;
 import cnv.gui.CycleRadio;
+import cnv.gui.LaunchAction;
 import cnv.manage.MarkerDataLoader;
 import common.*;
 import cnv.var.*;
@@ -51,6 +53,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String DEFAULT_MESSAGE = "enter new annotation here";
 	public static final String[] GENOTYPE_OPTIONS = new String[] {"-","A/A","A/B","B/B"};
+	public static final int NUM_MARKERS_TO_SAVE_IN_HISTORY = 10;
 
 
 	private JButton first, previous, next, last;
@@ -95,6 +98,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private boolean[] displayCents;
 	private JLabel[] centLabels;
 	private int markerIndex;
+	private int markerIndexBak;
+	private int[] markerIndexHistory;
 	private int previousMarkerIndex;
 	//private JLabel markerName, commentLabel;
 	private JTextField markerName, commentLabel;
@@ -121,6 +126,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private Thread thread2;
     private ColorKeyPanel colorKeyPanel;
 	private Color[] colorScheme;
+	private int indexOfAnnotationUsedAsMarkerList; 
 	
 	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
@@ -134,6 +140,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		size = DEFAULT_SIZE;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 //		clusterFilterCollectionUpdated = false;
+		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
 		SampleList list = proj.getSampleList();
 //		SampleList list2 = proj.getSampleList2();
@@ -141,7 +148,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		sampleListFingerprint = list.getFingerprint();
 		sampleData = proj.getSampleData(2, true);
 		markerLookup = proj.getMarkerLookup();
-		
+
 		masterMarkerList = initMarkerList;
 		masterCommentList = initCommentList;
 		if (masterMarkerList == null) {
@@ -156,14 +163,15 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		
 		markerList = masterMarkerList;
 		commentList = masterCommentList;
-		isAnnotated = new boolean[markerList.length];
+//		isAnnotated = new boolean[markerList.length];
 		annotated = 0;
 		showAllMarkersOrNot = true;
 		showAnnotatedOrUnannotated = true;
 		showAnnotationShortcuts = true;
 		isInitilizing = true;
+		indexOfAnnotationUsedAsMarkerList = -1;
 		
-		loadMarkerDataFromList();
+		loadMarkerDataFromList(0);
 		
 		System.err.println("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
@@ -267,8 +275,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	        public void actionPerformed(ActionEvent e) {
 				try {
 					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
-					if (trav>=0&&trav<markerList.length) {
+					if (trav >=0 && trav < markerList.length) {
 						markerIndex = trav;
+						updateMarkerIndexHistory();
 					}
 				} catch (NumberFormatException nfe) {}
 				displayIndex((JTextField)e.getSource());
@@ -993,6 +1002,167 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			currentHorizontalPos += (horizontalMargin + componentHeight);
 		}
 		fileterRadioButtons[0].setSelected(true);
+		
+		MouseListener mouseListenerForAnnotationCheckBoxes = new MouseListener() {
+			public void mouseReleased(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+
+//			public void mouseClicked(MouseEvent e) {
+//				JCheckBox source;
+//				String annotation;
+//				int annotationIndex;
+//
+//				if (e.getButton()==MouseEvent.BUTTON3) {
+//					annotationIndex = -1;
+//					source = (JCheckBox)e.getSource();
+//					annotation = source.getText();
+//					for (int i = 0; i < annotationKeys.length; i ++) {
+//						if (annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true).equals(annotation)) {
+//							annotationIndex = i;
+//							break;
+//						}
+//					}
+//					
+//					if (indexOfAnnotationUsedAsMarkerList == -1) {
+//						for (int i = 0; i < annotationIndex; i ++) {
+//							annotationCheckBoxes[i].setEnabled(false);
+//						}
+//						for (int i = annotationIndex + 1; i < annotationCheckBoxes.length; i ++) {
+//							annotationCheckBoxes[i].setEnabled(false);
+//						}
+//						indexOfAnnotationUsedAsMarkerList = annotationIndex;
+//					} else if (indexOfAnnotationUsedAsMarkerList == annotationIndex) {
+//						for (int i = 0; i < annotationCheckBoxes.length; i ++) {
+//							annotationCheckBoxes[i].setEnabled(true);
+//						}
+//						indexOfAnnotationUsedAsMarkerList = -1;
+//					}
+//				}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JCheckBox source;
+				JPopupMenu menu;
+				String annotation;
+				int annotationIndex;
+
+				source = (JCheckBox)e.getSource();
+				annotation = source.getText();
+				
+				annotationIndex = -1;
+				for (int i = 0; i < annotationKeys.length; i ++) {
+					if (annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true).equals(annotation)) {
+						annotationIndex = i;
+						break;
+					}
+				}
+
+				if (annotation.charAt(0) == '\'' && annotation.charAt(2) == '\'') {
+					annotation = annotation.substring(4);
+				}
+				annotation = annotation.substring(0, annotation.lastIndexOf(" (n="));
+
+				if (e.getButton()==MouseEvent.BUTTON3) {
+					
+					menu = new JPopupMenu();
+					menu.setName(annotationIndex + "");
+
+					menu.add(new AbstractAction("Display all markers annotated with " + annotation) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void actionPerformed(ActionEvent e1) {
+							String annotation;
+							int annotationIndex;
+							
+							annotationIndex = -1;
+							annotation = e1.getActionCommand();
+							annotation = annotation.substring("Display all markers annotated with ".length());
+							for (int i = 0; i < annotationKeys.length; i ++) {
+								if (annotationCollection.getDescriptionForComment(annotationKeys[i], false, false).equals(annotation)) {
+									annotationIndex = i;
+									break;
+								}
+							}
+
+							saveClusterFilterAndAnnotationCollection();
+
+							indexOfAnnotationUsedAsMarkerList = -2;
+							markerIndexBak = markerIndex;
+							markerList = annotationCollection.getMarkerLists(annotationKeys[annotationIndex]);
+							commentList = new String[markerList.length];
+							loadMarkerDataFromList(0);
+							displayIndex(navigationField);
+							updateGUI();
+						}
+
+						public boolean isEnabled() {
+							return indexOfAnnotationUsedAsMarkerList != -2;
+						}
+					});
+
+					menu.add(new AbstractAction("Revert marker list to original list") {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void actionPerformed(ActionEvent e2) {
+							saveClusterFilterAndAnnotationCollection();
+
+							indexOfAnnotationUsedAsMarkerList = -1;
+							markerList = masterMarkerList;
+							commentList = masterCommentList;
+							loadMarkerDataFromList(markerIndexBak);
+							displayIndex(navigationField);
+							updateGUI();
+						}
+						
+						@Override
+						public boolean isEnabled() {
+							return indexOfAnnotationUsedAsMarkerList != -1;
+						}
+					});
+
+					menu.add(new AbstractAction("Limit Current List to Those with Annotation " + annotation) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void actionPerformed(ActionEvent e3) {
+							String annotation;
+							int annotationIndex;
+							
+							annotationIndex = -1;
+							annotation = e3.getActionCommand();
+							annotation = annotation.substring("Limit Current List to Those with Annotation ".length());
+							for (int i = 0; i < annotationKeys.length; i ++) {
+								if (annotationCollection.getDescriptionForComment(annotationKeys[i], false, false).toLowerCase().equals(annotation)) {
+									annotationIndex = i;
+									break;
+								}
+							}
+
+							if (indexOfAnnotationUsedAsMarkerList == -1) {
+								for (int i = 0; i < annotationIndex; i ++) {
+									annotationCheckBoxes[i].setEnabled(false);
+								}
+								for (int i = annotationIndex + 1; i < annotationCheckBoxes.length; i ++) {
+									annotationCheckBoxes[i].setEnabled(false);
+								}
+								indexOfAnnotationUsedAsMarkerList = annotationIndex;
+							} else if (indexOfAnnotationUsedAsMarkerList == annotationIndex) {
+								for (int i = 0; i < annotationCheckBoxes.length; i ++) {
+									annotationCheckBoxes[i].setEnabled(true);
+								}
+								indexOfAnnotationUsedAsMarkerList = -1;
+							}
+						}
+					});
+					
+					menu.show(source, e.getX(), e.getY());
+				}
+			}
+		};
 
 		annotationCheckBoxes = new JCheckBox[annotationKeys.length];
 		for (int i=0; annotationKeys != null && i < annotationKeys.length; i++) {
@@ -1032,6 +1202,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 					}
 				}
 			});
+			annotationCheckBoxes[i].addMouseListener(mouseListenerForAnnotationCheckBoxes);
+			
 			annotationPanelLowerPart.add(annotationCheckBoxes[i]);
 			annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, annotationCheckBoxes[i], 5, SpringLayout.WEST, annotationPanelLowerPart);
 			annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, annotationCheckBoxes[i], currentHorizontalPos, SpringLayout.NORTH, annotationPanelLowerPart);
@@ -1167,6 +1339,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = 0;
+				updateMarkerIndexHistory();
 				displayIndex(navigationField);
 				scatPanel.setPointsGeneratable(true);
 				scatPanel.setQcPanelUpdatable(true);
@@ -1178,6 +1351,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = Math.max(markerIndex-1, 0);
+				updateMarkerIndexHistory();
 				displayIndex(navigationField);
 				scatPanel.setPointsGeneratable(true);
 				scatPanel.setQcPanelUpdatable(true);
@@ -1188,11 +1362,14 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			public static final long serialVersionUID = 6L;
 
 			public void actionPerformed(ActionEvent e) {
-				markerIndex = Math.min(markerIndex+1, markerList.length-1);
-				displayIndex(navigationField);
-				scatPanel.setPointsGeneratable(true);
-				scatPanel.setQcPanelUpdatable(true);
-				updateGUI();
+				
+				next();
+//				
+//				markerIndex = Math.min(markerIndex+1, markerList.length-1);
+//				displayIndex(navigationField);
+//				scatPanel.setPointsGeneratable(true);
+//				scatPanel.setQcPanelUpdatable(true);
+//				updateGUI();
 			}
 		});
 		actionMap.put(LAST, new AbstractAction() {
@@ -1200,6 +1377,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 			public void actionPerformed(ActionEvent e) {
 				markerIndex = markerList.length-1;
+				updateMarkerIndexHistory();
 				displayIndex(navigationField);
 				scatPanel.setPointsGeneratable(true);
 				scatPanel.setQcPanelUpdatable(true);
@@ -1207,6 +1385,19 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			}
 		});
 		scatPanel.setActionMap(actionMap);
+	}
+	
+	public void next() {
+		markerIndex = getAvailableMarker(true, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+		updateMarkerIndexHistory();
+		displayIndex(navigationField);
+		scatPanel.setPointsGeneratable(true);
+		scatPanel.setQcPanelUpdatable(true);
+		setCurrentClusterFilter();
+		updateGUI();
+		displayClusterFilterIndex();
+		isInitilizing = true;
+		updateAnnotationPanelAnnotationCheckBoxes();
 	}
 
 	public void actionPerformed(ActionEvent ae) {
@@ -1217,6 +1408,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		if (command.equals(FIRST)) {
 //			markerIndex = 0;
 			markerIndex = getAvailableMarker(false, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+			updateMarkerIndexHistory();
 			displayIndex(navigationField);
 			scatPanel.setPointsGeneratable(true);
 			scatPanel.setQcPanelUpdatable(true);
@@ -1233,6 +1425,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		} else if (command.equals(PREVIOUS)) {
 //			markerIndex = Math.max(markerIndex-1, 0);
 			markerIndex = getAvailableMarker(false, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+			updateMarkerIndexHistory();
 //			if (markerData[markerIndex] == null) {
 //			if (!loaded[markerIndex]) {
 //				loadMarkerData(markerIndex);
@@ -1253,30 +1446,32 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			isInitilizing = true;
 			updateAnnotationPanelAnnotationCheckBoxes();
 		} else if (command.equals(NEXT)) {
-//			markerIndex = Math.min(markerIndex+1, markerList.length-1);
-			markerIndex = getAvailableMarker(true, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
-//			if (markerData[markerIndex] == null) {
-//			if (!loaded[markerIndex]) {
-//				loadMarkerData(markerIndex);
-//				loaded[markerIndex] = true;
-////				scatPanel.updateMarkerData(markerData);
-//			}
-			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);
-			scatPanel.setQcPanelUpdatable(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-			isInitilizing = true;
-			updateAnnotationPanelAnnotationCheckBoxes();
+			next();
+////			markerIndex = Math.min(markerIndex+1, markerList.length-1);
+//			markerIndex = getAvailableMarker(true, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+////			if (markerData[markerIndex] == null) {
+////			if (!loaded[markerIndex]) {
+////				loadMarkerData(markerIndex);
+////				loaded[markerIndex] = true;
+//////				scatPanel.updateMarkerData(markerData);
+////			}
+//			displayIndex(navigationField);
+//			scatPanel.setPointsGeneratable(true);
+//			scatPanel.setQcPanelUpdatable(true);
+////			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
+//			setCurrentClusterFilter();
+////			scatPanel.generateRectangles();
+////			if (clusterFilterCollection.getSize(getMarkerName())>0) {
+////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
+////			}
+//			updateGUI();
+//			displayClusterFilterIndex();
+//			isInitilizing = true;
+//			updateAnnotationPanelAnnotationCheckBoxes();
 		} else if (command.equals(LAST)) {
 //			markerIndex = markerList.length-1;
 			markerIndex = getAvailableMarker(true, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+			updateMarkerIndexHistory();
 //			if (markerData[markerIndex] == null) {
 //			if (!loaded[markerIndex]) {
 //				loadMarkerData(markerIndex);
@@ -1369,96 +1564,177 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	private int getAvailableMarker(boolean forwardOrBackward, boolean firstOrLastInThatDirection, boolean allMarkersOrOnlyThoseAnnotatedOrUnannotated, boolean annotatedOrUnannotated) {
 		int result;
+		int begin;
+		int end;
+		int step;
+
 
 		result = markerIndex;
-		if (allMarkersOrOnlyThoseAnnotatedOrUnannotated) {
+		if (forwardOrBackward) {
 			if (firstOrLastInThatDirection) {
-				if (forwardOrBackward) {
-					result = Math.min(markerIndex + 1, markerList.length - 1);
-				} else {
-					result = Math.max(markerIndex - 1, 0);
-				}
+				begin = markerIndex + 1;
+				end = isAnnotated.length;
+				step = 1;
 			} else {
-				if (forwardOrBackward) {
-					result = markerList.length - 1;
-				} else {
-					result = 0;
-				}
+				begin = isAnnotated.length - 1;
+				end = markerIndex;
+				step = -1;
 			}
 		} else {
 			if (firstOrLastInThatDirection) {
-				if (forwardOrBackward) {
-					if (annotatedOrUnannotated) {
-						for (int i = markerIndex + 1; i < isAnnotated.length; i++) {
-							if (isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					} else {
-						for (int i = markerIndex + 1; i < isAnnotated.length; i++) {
-							if (! isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					}
-				} else {
-					if (annotatedOrUnannotated) {
-						for (int i = markerIndex - 1; i >= 0; i--) {
-							if (isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					} else {
-						for (int i = markerIndex - 1; i >= 0; i--) {
-							if (! isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					}
-				}
+				begin = markerIndex - 1;
+				end = -1;
+				step = -1;
 			} else {
-				if (forwardOrBackward) {
-					if (annotatedOrUnannotated) {
-						for (int i = isAnnotated.length - 1; i >= 0; i--) {
-							if (isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					} else {
-						for (int i = isAnnotated.length - 1; i >= 0; i--) {
-							if (! isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					}
-				} else {
-					if (annotatedOrUnannotated) {
-						for (int i = 0; i < isAnnotated.length; i++) {
-							if (isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					} else {
-						for (int i = 0; i < isAnnotated.length; i++) {
-							if (! isAnnotated[i]) {
-								result = i;
-								break;
-							}
-						}
-					}
+				begin = 0;
+				end = markerIndex;
+				step = 1;
+			}
+		}
+		for (int i = begin; i != end; i = i + step) {
+			if (indexOfAnnotationUsedAsMarkerList < 0) {
+				if (allMarkersOrOnlyThoseAnnotatedOrUnannotated || !(annotatedOrUnannotated ^ isAnnotated[i])) {
+					result = i;
+					break;
 				}
+			} else if (annotationCollection.markerHasAnnotation(markerList[i], annotationKeys[indexOfAnnotationUsedAsMarkerList])) {
+				result = i;
+				break;
 			}
 		}
 
 		return result;
 	}
+
+
+//	private int getAvailableMarker(boolean forwardOrBackward, boolean firstOrLastInThatDirection, boolean allMarkersOrOnlyThoseAnnotatedOrUnannotated, boolean annotatedOrUnannotated) {
+//		int result;
+//
+//		result = markerIndex;
+//		if (allMarkersOrOnlyThoseAnnotatedOrUnannotated && indexOfAnnotationControllingMarkerList == -1) {
+//			if (firstOrLastInThatDirection) {
+//				if (forwardOrBackward) {
+//					result = Math.min(markerIndex + 1, markerList.length - 1);
+//				} else {
+//					result = Math.max(markerIndex - 1, 0);
+//				}
+//			} else {
+//				if (forwardOrBackward) {
+//					result = markerList.length - 1;
+//				} else {
+//					result = 0;
+//				}
+//			}
+//		} else {
+//			if (firstOrLastInThatDirection) {
+//				if (forwardOrBackward) {
+//					if (indexOfAnnotationControllingMarkerList == -1) {
+//						if (annotatedOrUnannotated) {
+//							for (int i = markerIndex + 1; i < isAnnotated.length; i++) {
+//								if (isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						} else {
+//							for (int i = markerIndex + 1; i < isAnnotated.length; i++) {
+//								if (! isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						}
+//					} else {
+//						for (int i = markerIndex + 1; i < isAnnotated.length; i++) {
+//							if (annotationCollection.markerHasAnnotation(markerList[i], annotationKeys[indexOfAnnotationControllingMarkerList])) {
+//								result = i;
+//								break;
+//							}
+//						}
+//					}
+//				} else {
+//					if (indexOfAnnotationControllingMarkerList == -1) {
+//						if (annotatedOrUnannotated) {
+//							for (int i = markerIndex - 1; i >= 0; i--) {
+//								if (isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						} else {
+//							for (int i = markerIndex - 1; i >= 0; i--) {
+//								if (! isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						}
+//					} else {
+//						for (int i = markerIndex - 1; i >= 0; i--) {
+//							if (annotationCollection.markerHasAnnotation(markerList[i], annotationKeys[indexOfAnnotationControllingMarkerList])) {
+//								result = i;
+//								break;
+//							}
+//						}
+//					}
+//				}
+//			} else {
+//				if (forwardOrBackward) {
+//					if (indexOfAnnotationControllingMarkerList == -1) {
+//						if (annotatedOrUnannotated) {
+//							for (int i = isAnnotated.length - 1; i >= 0; i--) {
+//								if (isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						} else {
+//							for (int i = isAnnotated.length - 1; i >= 0; i--) {
+//								if (! isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						}
+//					} else {
+//						for (int i = isAnnotated.length - 1; i >= 0; i--) {
+//							if (annotationCollection.markerHasAnnotation(markerList[i], annotationKeys[indexOfAnnotationControllingMarkerList])) {
+//								result = i;
+//								break;
+//							}
+//						}
+//					}
+//				} else {
+//					if (indexOfAnnotationControllingMarkerList == -1) {
+//						if (annotatedOrUnannotated) {
+//							for (int i = 0; i < isAnnotated.length; i++) {
+//								if (isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						} else {
+//							for (int i = 0; i < isAnnotated.length; i++) {
+//								if (! isAnnotated[i]) {
+//									result = i;
+//									break;
+//								}
+//							}
+//						}
+//					} else {
+//						for (int i = 0; i < isAnnotated.length; i++) {
+//							if (annotationCollection.markerHasAnnotation(markerList[i], annotationKeys[indexOfAnnotationControllingMarkerList])) {
+//								result = i;
+//								break;
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		return result;
+//	}
 
 	private void loadClusterFilterFiles() {
 		String[] otherClusterFilTerFiles;
@@ -1498,9 +1774,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void loadAnnotationCollection() {
-		String[] annotatedMarkers;
-
 		if (new File(proj.getFilename(Project.ANNOTATION_FILENAME, false, false)).exists()) {
+			System.out.println("Loading annotation from: "+proj.getFilename(Project.ANNOTATION_FILENAME, false, false));
 			annotationCollection = (AnnotationCollection) Files.readSerial(proj.getFilename(Project.ANNOTATION_FILENAME, false, false));
 
 		} else {
@@ -1509,7 +1784,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			annotationCollection.addAnnotation('m', "Monomorphic");
 		}
 
-		annotatedMarkers = annotationCollection.getMarkerLists();
+		initializeIsAnnotated(annotationCollection.getMarkerLists());
+
+		annotationKeys = annotationCollection.getKeys();
+	}
+
+	public void initializeIsAnnotated (String[] annotatedMarkers) {
+		isAnnotated = new boolean[markerList.length];
 		for (int i = 0; i < isAnnotated.length; i++) {
 			for (int j = 0; j < annotatedMarkers.length; j++) {
 				if (markerList[i].equals(annotatedMarkers[j])) {
@@ -1519,10 +1800,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				}
 			}
 		}
-
-		annotationKeys = annotationCollection.getKeys();
 	}
-
+	
 	public long getSampleFingerprint() {
 		return sampleListFingerprint;
 	}
@@ -1687,19 +1966,25 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 			masterMarkerList = Array.toStringArray(markerNames);
 			masterCommentList = Array.toStringArray(markerComments);
+			
+			markerIndex = 0;
+			markerIndexHistory = new int[NUM_MARKERS_TO_SAVE_IN_HISTORY];
 		} catch (Exception e) {
 			System.err.println("Error loading: "+filename);
 			e.printStackTrace();
 		}
 	}
 	
-	public void loadMarkerDataFromList() {
+	public void loadMarkerDataFromList(int newMarkerIndex) {
 		markerDataLoader = new MarkerDataLoader(proj, markerList, -1);
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
 
-		markerIndex = 0;
+		markerIndex = newMarkerIndex;
+		initializeIsAnnotated(markerList);
+		updateMarkerIndexHistory();
 		previousMarkerIndex = -1;
+//		navigationField.getActionListeners()[0].actionPerformed(e);
 	}
 	
 	public boolean markerDataIsActive() {
@@ -1719,7 +2004,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			} catch (InterruptedException ie) {
 			}
 			if (count > 8 && count % 8 == 0) {
-				System.err.println("Error - have been waiting on markerDataLoader to load "+markerList[markerIndex]+" for "+(count/4)+" secounds");
+				System.err.println("Error - have been waiting on markerDataLoader to load " + markerList[markerIndex] + " for " + (count/4) + " secounds");
 			}
 		}
 		
@@ -1835,8 +2120,12 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		colorKeyPanel.updateColorKey(hash);
 	}
 
+	public Hashtable<String, String> getDisabledClassValues() {
+		return colorKeyPanel.getDisabledClassValues();
+	}
+
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass) {
-		float callRate=0;
+		float callRate = 0;
 		JLabel qcPanelLabel;
 		//JLabel qcCallRateLabel;u
 		//JLabel qcHwePvalueLabel;u
@@ -1894,6 +2183,10 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
         qcPanelLabel.setFont(new Font("Arial", 0, 20));
         qcPanel.add(qcPanelLabel);
 		
+        qcPanelLabel = new JLabel("Chromosome: " + chr, JLabel.LEFT);
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+        qcPanel.add(qcPanelLabel);
+
         qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);
         qcPanelLabel.setFont(new Font("Arial", 0, 14));
         qcPanel.add(qcPanelLabel);
@@ -2162,7 +2455,7 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	}
 
 	public void displayIndex(JTextField field) {
-		field.setText((markerIndex+1)+" of "+markerList.length);
+		field.setText((markerIndex + 1) + " of " + markerList.length);
 	}
 	
 	public void displayClusterFilterIndex() {
@@ -2184,22 +2477,37 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		clusterFilterCollectionUpdated = status;
 	}
 
-	public void windowActivated(WindowEvent e) {}
+	public void updateMarkerIndexHistory() {
+		// Oldest history is stored in the end of the array
+		for (int i = 0; i < markerIndexHistory.length - 1 ; i++) {
+			markerIndexHistory[i+1] = markerIndexHistory[i];
+		}
+		markerIndexHistory[0] = markerIndex;
+	}
 
-	public void windowClosed(WindowEvent e) {}
+	public void goBackToIndexHistory(int indexInHistory) {
+		if (markerIndexHistory[indexInHistory] == -1 ) {
+			System.out.println("Cannot roll back to more than the history has recorded.");
+		} else {
+			markerIndex = markerIndexHistory[indexInHistory];
+			updateMarkerIndexHistory();
+		}
+	}
 
-	public void windowClosing(WindowEvent e) {
+	public void saveClusterFilterAndAnnotationCollection () {
 		String[] options;
 		int choice;
 		String filename;
-		
+
 		options = new String[] {"Yes, overwrite", "No"};
 		if (clusterFilterCollectionUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false));
 			}
-			autoSaveCFC.kill();
+			clusterFilterCollectionUpdated = false;
+			autoSaveCFC = null;
+			
 		}
 
 		if (annotationUpdated) {
@@ -2209,11 +2517,23 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				System.out.println("Writing to "+filename);
 				Files.writeSerial(annotationCollection, filename);
 			}
+			annotationUpdated = false;
 		}
+	}
+
+	public void windowActivated(WindowEvent e) {}
+
+	public void windowClosed(WindowEvent e) {}
+
+	public void windowClosing(WindowEvent e) {
+		saveClusterFilterAndAnnotationCollection();
 
 		//TODO notify all threads (e.g., MarkerDataLoader) that they need to close
+
+		if (autoSaveCFC != null) {
+			autoSaveCFC.kill();
+		}
 		markerDataLoader.kill();
-		
 	}
 
 	public void windowDeactivated(WindowEvent e) {}
