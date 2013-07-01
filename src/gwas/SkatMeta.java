@@ -1,6 +1,7 @@
 package gwas;
 
 import filesys.Hits;
+import filesys.SerialHash;
 
 import java.io.*;
 import java.util.*;
@@ -10,26 +11,33 @@ import one.ChargeS;
 import common.*;
 
 public class SkatMeta {
-	public static final String[][] MODELS = { // name, subroutine, filter on nonSynonSplic
-		{"SingleSNP", "singlesnpMeta", ", cohortBetas = TRUE", "0"},
-		{"SKAT_T5", "skatMeta", ", wts = 1, mafRange = c(0,0.05)", "1"},
-		{"T5Count", "burdenMeta", ", wts = 1, mafRange = c(0,0.05)", "1"},
-		{"T5MB", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.05)", "1"},
-		{"T1Count", "burdenMeta", ", wts = 1, mafRange = c(0,0.01)", "1"},
-		{"T1MB", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.01)", "1"}
+	public static final String[][] MODELS = { // name, subroutine, arguments, filter on nonSynonSplic, header type, parameters for parsing 
+		{"SingleSNP", "SingleVariant", "singlesnpMeta", ", cohortBetas = TRUE", "0"},
+		{"SKAT_T5", "BurdenTests", "skatMeta", ", wts = 1, mafRange = c(0,0.05)", "2"},
+		{"T5Count", "BurdenTests", "burdenMeta", ", wts = 1, mafRange = c(0,0.05)", "1"},
+		{"T5MB", "BurdenTests", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.05)", "1"},
+		{"T1Count", "BurdenTests", "burdenMeta", ", wts = 1, mafRange = c(0,0.01)", "1"},
+		{"T1MB", "BurdenTests", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.01)", "1"}
 	};
+	
+	public static final String[][] HEADER_TYPES = {
+		{"gene", "Name", "p", "maf", "nmiss", "ntotal", "beta", "se"}, // Single SNP
+		{"gene", "p", "beta", "se", "cmafTotal", "cmafUsed", "nsnpsTotal", "nsnpsUsed", "nmiss"}, // Burden Test
+		{"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT test
+	};
+	
+	public static final String[] FUNCTIONAL = {"sc_nonsynSplice", "sc_nonsyn"};
 
-	private static void determineObjectNames(Logger log) {
+	private static void determineObjectNames(String dir, Logger log) {
 		String[] lines, files;
 		String[][] iterations;
-		String dir, root, commands, filename;
+		String root, commands, filename;
 		Vector<String> v, remaining;
 		
 		files = Files.list("./", null, ".rdata", false, false);
 		log.report("There are "+files.length+" total .Rdata files");
 		
-		
-		dir = new File("").getAbsolutePath()+"/";
+		dir = new File(dir).getAbsolutePath()+"/";
 
 		v = new Vector<String>();
 		remaining = new Vector<String>();
@@ -60,10 +68,63 @@ public class SkatMeta {
 		}
 	}
 	
-	public static void splitAll(String dir, String[][] PHENOTYPES, String[] STUDIES, String snpInfoFile, String snpName, String chromName, String geneName) {
-		String[] files, finalSet;
+	public static String[][] identifySet(String[][] phenotypes, String[] studies, String[] files, String[] filesToIgnore, Logger log) {
+		String[][] finalSets;
 		boolean[] picks, used;
-		int numMatches;
+		int numMatches, index;
+		
+		used = Array.booleanArray(files.length, false);
+		
+		for (int i = 0; i < filesToIgnore.length; i++) {
+			index = ext.indexOfStr(filesToIgnore[i], files);
+			if (index >= 0) {
+				used[index] = true;
+			}
+		}
+
+		finalSets = Matrix.stringMatrix(phenotypes.length, studies.length, "<missing>");
+		for (int i = 0; i < phenotypes.length; i++) {
+			log.report("For "+phenotypes[i][0]+" identified:", true, false);
+			for (int j = 0; j < studies.length; j++) {
+				picks = Array.booleanArray(files.length, false);
+				for (int k = 0; k < files.length; k++) {
+					if (files[k].contains(studies[j]) && ext.containsAny(files[k], phenotypes[i])) {
+						picks[k] = true;
+						finalSets[i][j] = files[k];
+						if (used[k]) {
+							log.reportError("Error - file '"+files[k]+"' matches to "+studies[j]+"/"+phenotypes[i][0]+" but was already picked for another purpose");
+						}
+						used[k] = true;
+					}
+				}
+				numMatches = Array.booleanArraySum(picks);
+				if (numMatches == 0) {
+					log.reportError("Warning - could not find a match for "+studies[j]+"/"+phenotypes[i][0]);
+				} else if (numMatches > 1) {
+					log.reportError("Error - found multiple matched for "+studies[j]+"/"+phenotypes[i][0]);
+					log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
+				}
+				log.report("   "+finalSets[i][j], true, false);
+			}
+			log.report("", true, false);
+		}
+
+		numMatches = Array.booleanArraySum(used);
+		if (numMatches != files.length) {
+			log.reportError("Warning - did not find a match for the following file(s):");
+			for (int i = 0; i < files.length; i++) {
+				if (!used[i]) {
+					log.reportError("  "+files[i]);
+				}
+			}
+		}
+		
+		return finalSets;
+	}
+
+	public static void splitAll(String dir, String[][] phenotypes, String[] studies, String snpInfoFile, String snpName, String chromName, String geneName) {
+		String[] files;
+		String[][] finalSets;
 		Logger log;
 		String localDir;
 		String filename;
@@ -77,13 +138,10 @@ public class SkatMeta {
 		log = new Logger(dir+"splitAll.log");
 		new File(dir+"batchSplits/").mkdir();
 		files = Files.list(dir, null, ".Rdata", false, false);
-		used = Array.booleanArray(files.length, false);
 		
 		if (ext.indexOfStr(snpInfoFile, files) == -1) {
 			log.reportError("Error - could not find SNP Info file '"+snpInfoFile+"'; aborting");
 			return;
-		} else {
-			used[ext.indexOfStr(snpInfoFile, files)] = true;
 		}
 		
 		if (Files.exists(dir+"batchChecks/"+ext.rootOf(snpInfoFile)+".object")) {
@@ -117,43 +175,20 @@ public class SkatMeta {
 		toBeSplit.add("# make sure to run \"qsub "+ext.rootOf(filename)+".qsub\" first!!!");
 
 		dir = ext.verifyDirFormat(dir);
-		for (int i = 0; i < PHENOTYPES.length; i++) {
-			finalSet = Array.stringArray(STUDIES.length, "<missing>");
-			for (int j = 0; j < STUDIES.length; j++) {
-				picks = Array.booleanArray(files.length, false);
-				for (int k = 0; k < files.length; k++) {
-					if (files[k].contains(STUDIES[j]) && ext.containsAny(files[k], PHENOTYPES[i])) {
-						picks[k] = true;
-						finalSet[j] = files[k];
-						if (used[k]) {
-							log.reportError("Error - file '"+files[k]+"' matches to "+STUDIES[j]+"/"+PHENOTYPES[i][0]+" but was already picked for another purpose");
-						}
-						used[k] = true;
-					}
-				}
-				numMatches = Array.booleanArraySum(picks);
-				if (numMatches == 0) {
-					log.reportError("Warning - could not find a match for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
-				} else if (numMatches > 1) {
-					log.reportError("Error - found multiple matched for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
-					log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
-				}
-			}
-			
-			log.report("For "+PHENOTYPES[i][0]+" identified:", true, false);
-			for (int j = 0; j < STUDIES.length; j++) {
-				log.report("   "+finalSet[j], true, false);
-				if (!finalSet[j].equals("<missing>")) {
-					localDir = dir+PHENOTYPES[i][0]+"/"+STUDIES[j]+"/";
+		finalSets = identifySet(phenotypes, studies, files, new String[] {snpInfoFile}, log);
+		for (int i = 0; i < phenotypes.length; i++) {
+			for (int j = 0; j < studies.length; j++) {
+				if (!finalSets[i][j].equals("<missing>")) {
+					localDir = dir+phenotypes[i][0]+"/"+studies[j]+"/";
 					new File(localDir).mkdirs();
 
 					commands = new Vector<String>();
 					commands.add("load(\""+dir+snpInfoFile+"\")");
-					commands.add("load(\""+dir+finalSet[j]+"\")");
-					if (Files.exists(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object")) {
-						objectName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object", false, new int[] {0}, false)[0];
+					commands.add("load(\""+dir+finalSets[i][j]+"\")");
+					if (Files.exists(dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object")) {
+						objectName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object", false, new int[] {0}, false)[0];
 					} else {
-						log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object"+"'");
+						log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object"+"'");
 						log.reportError("   need to first run using the -determineObjectNames option");
 						return;
 					}
@@ -161,7 +196,7 @@ public class SkatMeta {
 					
 					for (int chr = 1; chr <= 23; chr++) {
 						chrom = chr==23?"X":chr+"";
-						subsetObject = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom;
+						subsetObject = studies[j]+"_"+phenotypes[i][0]+"_chr"+chrom;
 						
 						// filter for the gene names present on the chromosome
 						commands.add("genes <- unique("+snpInfoName+"["+snpInfoName+"$"+chromName+" == \""+chrom+"\", \""+geneName+"\"])");
@@ -180,36 +215,24 @@ public class SkatMeta {
 						commands.add("");
 					}
 					
-					filename = dir+"batchSplits/"+STUDIES[j]+"_"+PHENOTYPES[i][0]+".R";
+					filename = dir+"batchSplits/"+studies[j]+"_"+phenotypes[i][0]+".R";
 					Files.writeList(Array.toStringArray(commands), filename);
 
 					Files.qsub(dir+"batchSplits/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 30000);
 					toBeSplit.add("qsub "+ext.rootOf(filename)+".qsub");
 				}
 			}
-			log.report("", true, false);			
 		}
 		Files.writeList(Array.toStringArray(toBeSplit), dir+"master.toBeSplit");
 		Files.chmod(dir+"master.toBeSplit");
-		
-		numMatches = Array.booleanArraySum(used);
-		if (numMatches != files.length) {
-			log.reportError("Warning - did not find a match for the following file(s):");
-			for (int i = 0; i < files.length; i++) {
-				if (!used[i]) {
-					log.reportError("  "+files[i]);
-				}
-			}
-		}
 		
 		log.report("");
 		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
 	}
 
-	public static void runAll(String dir, String[][] PHENOTYPES, String[] STUDIES, String snpName) {
-		String[] files, finalSet;
-		boolean[] picks, used;
-		int numMatches;
+	public static void runAll(String dir, String[][] phenotypes, String[] studies, String snpName) {
+		String[] files;
+		String[][] finalSets;
 		Logger log;
 		String localDir;
 		String root, filename;
@@ -223,7 +246,7 @@ public class SkatMeta {
 		
 		log = new Logger(dir+"runAll.log");
 		files = Files.list(dir, null, ".Rdata", false, false);
-		used = Array.booleanArray(files.length, false);
+		finalSets = identifySet(phenotypes, studies, files, new String[0], log);
 		
 		for (int chr = 1; chr <= 23; chr++) {
 			chrom = chr==23?"X":chr+"";
@@ -238,44 +261,20 @@ public class SkatMeta {
 		toBeRunMetad = new Vector<String>();
 		new File(dir+"batchRuns/").mkdir();
 		dir = ext.verifyDirFormat(dir);
-		for (int i = 0; i < PHENOTYPES.length; i++) {
+		for (int i = 0; i < phenotypes.length; i++) {
 			for (int j = 0; j < MODELS.length; j++) {
-				localDir = dir+PHENOTYPES[i][0]+"/"+MODELS[j][0]+"/";
+				localDir = dir+phenotypes[i][0]+"/"+MODELS[j][0]+"/";
 				new File(localDir).mkdirs();
 			}
-			
-			finalSet = Array.stringArray(STUDIES.length, "<missing>");
-			for (int j = 0; j < STUDIES.length; j++) {
-				picks = Array.booleanArray(files.length, false);
-				for (int k = 0; k < files.length; k++) {
-					if (files[k].contains(STUDIES[j]) && ext.containsAny(files[k], PHENOTYPES[i])) {
-						picks[k] = true;
-						finalSet[j] = files[k];
-						if (used[k]) {
-							log.reportError("Error - file '"+files[k]+"' matches to "+STUDIES[j]+"/"+PHENOTYPES[i][0]+" but was already picked for another purpose");
-						}
-						used[k] = true;
-					}
-				}
-				numMatches = Array.booleanArraySum(picks);
-				if (numMatches == 0) {
-					log.reportError("Warning - could not find a match for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
-				} else if (numMatches > 1) {
-					log.reportError("Error - found multiple matched for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
-					log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
-				}
-			}
-			
-			log.report("For "+PHENOTYPES[i][0]+" identified:", true, false);
-			for (int j = 0; j < STUDIES.length; j++) {
-				log.report("   "+finalSet[j], true, false);
-				if (!finalSet[j].equals("<missing>")) {
-					localDir = dir+PHENOTYPES[i][0]+"/"+STUDIES[j]+"/";
+
+			for (int j = 0; j < studies.length; j++) {
+				if (!finalSets[i][j].equals("<missing>")) {
+					localDir = dir+phenotypes[i][0]+"/"+studies[j]+"/";
 					
 					for (int chr = 1; chr <= 23; chr++) {
 						chrom = chr==23?"X":chr+"";
 
-						objectName = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom;
+						objectName = studies[j]+"_"+phenotypes[i][0]+"_chr"+chrom;
 						snpInfoFile = "snpInfos/snpInfo_chr"+chrom+".RData";
 
 						commands = new Vector<String>();
@@ -283,27 +282,29 @@ public class SkatMeta {
 						commands.add("load(\""+dir+snpInfoFile+"\")");
 						commands.add("load(\""+localDir+objectName+".RData"+"\")");
 						commands.add("ls()");
+						count = 0;
 						for (int k = 0; k < MODELS.length; k++) {
-							root = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_"+MODELS[k][0];
-							if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv")) {
-								commands.add("results <- "+MODELS[k][1]+"("+objectName+", "+(MODELS[k][2].equals("1")?"SNPInfo=subset(snps_on_chr, sc_nonsynSplice==TRUE)":"SNPInfo=subsetsnps_on_chr")+", aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
-								commands.add("write.table( results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv\", sep=\",\", row.names = F)");
+							root = studies[j]+"_"+phenotypes[i][0]+"_"+MODELS[k][0];
+							if (!Files.exists(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv")) {
+								commands.add("results <- "+MODELS[k][2]+"("+objectName+", "+(MODELS[k][4].equals("1")?"SNPInfo=subset(snps_on_chr, sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\"":"SNPInfo=snps_on_chr")+", snpNames = \""+snpName+"\""+MODELS[k][3]+")");
+								commands.add("write.table( results, \""+dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv\", sep=\",\", row.names = F)");
+								count++;
 							}
 						}
-						count = 0;
-						do {
-							filename = dir+"batchRuns/"+STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom+(count==0?"":"_"+count)+".R";
-							count++;
-						} while (Files.exists(filename));
-						Files.writeList(Array.toStringArray(commands), filename);
-	
-						Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 5000);
-						toBeRunIndividually.add("qsub "+ext.rootOf(filename)+".qsub");
+						if (count > 0) {
+							count = 0;
+							do {
+								filename = dir+"batchRuns/"+studies[j]+"_"+phenotypes[i][0]+"_chr"+chrom+(count==0?"":"_"+count)+".R";
+								count++;
+							} while (Files.exists(filename));
+							Files.writeList(Array.toStringArray(commands), filename);
+		
+							Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 5000);
+							toBeRunIndividually.add("qsub "+ext.rootOf(filename)+".qsub");
+						}
 					}
 				}
 			}
-			log.report("", true, false);
-			
 			
 			for (int chr = 1; chr <= 23; chr++) {
 				chrom = chr==23?"X":chr+"";
@@ -313,57 +314,127 @@ public class SkatMeta {
 				commands.add("load(\""+dir+snpInfoFile+"\")");
 				
 				objects = new Vector<String>();
-				for (int j = 0; j < STUDIES.length; j++) {
-					if (!finalSet[j].equals("<missing>")) {
-						localDir = dir+PHENOTYPES[i][0]+"/"+STUDIES[j]+"/";
-						objectName = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_chr"+chrom;
+				for (int j = 0; j < studies.length; j++) {
+					if (!finalSets[i][j].equals("<missing>")) {
+						localDir = dir+phenotypes[i][0]+"/"+studies[j]+"/";
+						objectName = studies[j]+"_"+phenotypes[i][0]+"_chr"+chrom;
 						commands.add("load(\""+localDir+objectName+".RData"+"\")");
 						objects.add(objectName);
 					}
 				}
 				commands.add("ls()");
 				commands.add("");
+				count = 0;
 				for (int k = 0; k < MODELS.length; k++) {
-					root = PHENOTYPES[i][0]+"_"+MODELS[k][0];
-					if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv")) {
-						commands.add("results <- "+MODELS[k][1]+"("+Array.toStr(Array.toStringArray(objects), ", ")+", SNPInfo=subset(snps_on_chr, sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
-						commands.add("write.table( results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv\", sep=\",\", row.names = F)");
+					root = phenotypes[i][0]+"_"+MODELS[k][0];
+					if (!Files.exists(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv")) {
+						commands.add("results <- "+MODELS[k][2]+"("+Array.toStr(Array.toStringArray(objects), ", ")+", "+(MODELS[k][4].equals("1")?"SNPInfo=subset(snps_on_chr, sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\"":"SNPInfo=snps_on_chr")+", snpNames = \""+snpName+"\""+MODELS[k][3]+")");
+						commands.add("write.table( results, \""+dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+"_chr"+chrom+".csv\", sep=\",\", row.names = F)");
 						commands.add("");
+						count++;
 					}
 				}
-				count = 0;
-				do {
-					filename = dir+"batchRuns/"+PHENOTYPES[i][0]+(count==0?"":"_"+count)+"_chr"+chrom+".R";
-					count++;
-				} while (Files.exists(filename));
-				Files.writeList(Array.toStringArray(commands), filename);
-	
-				Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 10000);
-				toBeRunMetad.add("qsub "+ext.rootOf(filename)+".qsub");
+				if (count > 0) {
+					count = 0;
+					do {
+						filename = dir+"batchRuns/"+phenotypes[i][0]+(count==0?"":"_"+count)+"_chr"+chrom+".R";
+						count++;
+					} while (Files.exists(filename));
+					Files.writeList(Array.toStringArray(commands), filename);
+		
+					Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 10000);
+					toBeRunMetad.add("qsub "+ext.rootOf(filename)+".qsub");
+				}
 			}
-			log.report("", true, false);			
 		}
 		Files.writeList(Array.toStringArray(toBeRunIndividually), dir+"master.toBeRunIndividually");
 		Files.chmod(dir+"master.toBeRunIndividually");
 		Files.writeList(Array.toStringArray(toBeRunMetad), dir+"master.toBeMetaAnalyzed");
 		Files.chmod(dir+"master.toBeMetaAnalyzed");
+	}
+
+	public static void parseAll(String dir, String[][] phenotypes, String[] studies) {
+		String[] files;
+		String[][] finalSets;
+		Logger log;
+		String root;
 		
-		numMatches = Array.booleanArraySum(used);
-		if (numMatches != files.length) {
-			log.reportError("Warning - did not find a match for the following file(s):");
-			for (int i = 0; i < files.length; i++) {
-				if (!used[i]) {
-					log.reportError("  "+files[i]);
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		
+		log = new Logger(dir+"parseAll.log");
+		files = Files.list(dir, null, ".Rdata", false, false);
+		finalSets = identifySet(phenotypes, studies, files, new String[0], log);
+		
+		dir = ext.verifyDirFormat(dir);
+		for (int i = 0; i < phenotypes.length; i++) {
+			for (int j = 0; j < studies.length; j++) {
+				if (!finalSets[i][j].equals("<missing>")) {
+					for (int k = 0; k < MODELS.length; k++) {
+						root = studies[j]+"_"+phenotypes[i][0]+"_"+MODELS[k][0];
+						if (!Files.exists(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+".csv").length() == 0) {
+							stitch(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/", root+"_chr#.csv", root+".csv");
+						}
+					}
+				}
+			}
+			
+			for (int k = 0; k < MODELS.length; k++) {
+				root = phenotypes[i][0]+"_"+MODELS[k][0];
+				if (!Files.exists(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/"+root+".csv").length() == 0) {
+					stitch(dir+phenotypes[i][0]+"/"+MODELS[k][0]+"/", root+"_chr#.csv", root+".csv");
 				}
 			}
 		}
 	}
 
+	public static void checkNs(String dir, String[][] phenotypes, String[] studies) {
+		String[] files;
+		String[][] finalSets;
+		Logger log;
+		String localDir;
+		Vector<String> commands;
+		String objectName;
+
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		
+		log = new Logger(dir+"checkNs.log");
+		files = Files.list(dir, null, ".Rdata", false, false);
+		finalSets = identifySet(phenotypes, studies, files, new String[0], log);
+		
+		
+		commands = new Vector<String>();
+		dir = ext.verifyDirFormat(dir);
+		for (int i = 0; i < phenotypes.length; i++) {
+			for (int j = 0; j < studies.length; j++) {
+				if (!finalSets[i][j].equals("<missing>")) {
+					localDir = dir+phenotypes[i][0]+"/"+studies[j]+"/";
+					objectName = studies[j]+"_"+phenotypes[i][0]+"_chr18";
+					commands.add("load(\""+localDir+objectName+".RData"+"\")");
+					commands.add("ls()");
+					commands.add("head("+objectName+"$RBFA$n)");
+					commands.add("head("+objectName+"$PTPRM$n)");
+					commands.add("head("+objectName+"$SOGA2$n)");
+					commands.add("head("+objectName+"$RGL3$n)");
+					commands.add("head("+objectName+"$MAN2B1$n)");
+					commands.add("remove("+objectName+")");
+					commands.add("ls()");
+				}
+			}
+		}
+		
+		Files.writeList(Array.toStringArray(commands), dir+"checkNs.R");
+		Files.qsub(dir+"checkNs.qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save checkNs.R", 10000);
+	}
+
 	// no longer being updated, as it requires too much memory for whole exome sequencing
 	public static void runAllTogether(String dir, String[][] PHENOTYPES, String[] STUDIES, String snpInfoFile, String snpName) {
-		String[] files, finalSet;
-		boolean[] picks, used;
-		int numMatches;
+		String[] files;
+		String[][] finalSets;
 		Logger log;
 		String localDir;
 		String root, filename;
@@ -377,13 +448,11 @@ public class SkatMeta {
 		
 		log = new Logger(dir+"runAllTogether.log");
 		files = Files.list(dir, null, ".Rdata", false, false);
-		used = Array.booleanArray(files.length, false);
+		finalSets = identifySet(PHENOTYPES, STUDIES, files, new String[] {snpInfoFile}, log);
 		
 		if (ext.indexOfStr(snpInfoFile, files) == -1) {
 			log.reportError("Error - could not find SNP Info file '"+snpInfoFile+"'; aborting");
 			return;
-		} else {
-			used[ext.indexOfStr(snpInfoFile, files)] = true;
 		}
 		
 		if (Files.exists(dir+"batchChecks/"+ext.rootOf(snpInfoFile)+".object")) {
@@ -404,41 +473,17 @@ public class SkatMeta {
 				new File(localDir).mkdirs();
 			}
 			
-			finalSet = Array.stringArray(STUDIES.length, "<missing>");
 			for (int j = 0; j < STUDIES.length; j++) {
-				picks = Array.booleanArray(files.length, false);
-				for (int k = 0; k < files.length; k++) {
-					if (files[k].contains(STUDIES[j]) && ext.containsAny(files[k], PHENOTYPES[i])) {
-						picks[k] = true;
-						finalSet[j] = files[k];
-						if (used[k]) {
-							log.reportError("Error - file '"+files[k]+"' matches to "+STUDIES[j]+"/"+PHENOTYPES[i][0]+" but was already picked for another purpose");
-						}
-						used[k] = true;
-					}
-				}
-				numMatches = Array.booleanArraySum(picks);
-				if (numMatches == 0) {
-					log.reportError("Warning - could not find a match for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
-				} else if (numMatches > 1) {
-					log.reportError("Error - found multiple matched for "+STUDIES[j]+"/"+PHENOTYPES[i][0]);
-					log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
-				}
-			}
-			
-			log.report("For "+PHENOTYPES[i][0]+" identified:", true, false);
-			for (int j = 0; j < STUDIES.length; j++) {
-				log.report("   "+finalSet[j], true, false);
-				if (!finalSet[j].equals("<missing>")) {
+				if (!finalSets[i][j].equals("<missing>")) {
 					commands = new Vector<String>();
 					
 					commands.add("library(skatMeta)");
 					commands.add("load(\""+dir+snpInfoFile+"\")");
-					commands.add("load(\""+dir+finalSet[j]+"\")");
-					if (Files.exists(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object")) {
-						objectName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object", false, new int[] {0}, false)[0];
+					commands.add("load(\""+dir+finalSets[i][j]+"\")");
+					if (Files.exists(dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object")) {
+						objectName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object", false, new int[] {0}, false)[0];
 					} else {
-						log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object"+"'");
+						log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object"+"'");
 						log.reportError("   need to first run using the -determineObjectNames option");
 						return;
 					}
@@ -447,7 +492,7 @@ public class SkatMeta {
 					for (int k = 0; k < MODELS.length; k++) {
 						root = STUDIES[j]+"_"+PHENOTYPES[i][0]+"_"+MODELS[k][0];
 						if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv")) {
-							commands.add(root+"_results <- "+MODELS[k][1]+"("+objectName+", SNPInfo=subset("+snpInfoName+", sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
+							commands.add(root+"_results <- "+MODELS[k][2]+"("+objectName+", SNPInfo=subset("+snpInfoName+", sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][3]+")");
 							commands.add("write.table( "+root+"_results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\", sep=\",\", row.names = F)");
 
 //							commands.add("fileConn_"+MODELS[k][0]+"<-file(\""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\")");
@@ -466,22 +511,20 @@ public class SkatMeta {
 					toBeRun.add("qsub "+ext.rootOf(filename)+".qsub");
 				}
 			}
-			log.report("", true, false);
-			
-			
+
 			commands = new Vector<String>();
 			commands.add("library(skatMeta)");
 			commands.add("load(\""+dir+snpInfoFile+"\")");
 			
 			objects = new Vector<String>();
 			for (int j = 0; j < STUDIES.length; j++) {
-				if (!finalSet[j].equals("<missing>")) {
-					commands.add("load(\""+dir+finalSet[j]+"\")");
+				if (!finalSets[i][j].equals("<missing>")) {
+					commands.add("load(\""+dir+finalSets[i][j]+"\")");
 					objectName = null;
-					if (Files.exists(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object")) {
-						objectName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object", false, new int[] {0}, false)[0];
+					if (Files.exists(dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object")) {
+						objectName = HashVec.loadFileToStringArray(dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object", false, new int[] {0}, false)[0];
 					} else {
-						log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(finalSet[j])+".object"+"'");
+						log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(finalSets[i][j])+".object"+"'");
 						log.reportError("   need to first run using the -determineObjectNames option");
 						return;
 					}
@@ -494,7 +537,7 @@ public class SkatMeta {
 				root = PHENOTYPES[i][0]+"_"+MODELS[k][0];
 				if (!Files.exists(dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv")) {
 					
-					commands.add(root+"_results <- "+MODELS[k][1]+"("+Array.toStr(Array.toStringArray(objects), ", ")+", SNPInfo=subset("+snpInfoName+", sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][2]+")");
+					commands.add(root+"_results <- "+MODELS[k][2]+"("+Array.toStr(Array.toStringArray(objects), ", ")+", SNPInfo=subset("+snpInfoName+", sc_nonsynSplice==TRUE), aggregateBy=\"SKATgene\", snpNames = \""+snpName+"\""+MODELS[k][3]+")");
 					commands.add("write.table( "+root+"_results, \""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\", sep=\",\", row.names = F)");
 
 //					commands.add("fileConn_"+MODELS[k][0]+"<-file(\""+dir+PHENOTYPES[i][0]+"/"+MODELS[k][0]+"/"+root+".csv\")");
@@ -511,175 +554,332 @@ public class SkatMeta {
 
 			Files.qsub(dir+"batchRunsSingles/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+"/share/apps/R-2.15.1/bin/Rscript --no-save "+filename, 60000);
 			toBeRun.add("qsub "+ext.rootOf(filename)+".qsub");
-			log.report("", true, false);			
 		}
 		Files.writeList(Array.toStringArray(toBeRun), dir+"master.toBeRun");
 		Files.chmod(dir+"master.toBeRun");
-		
-		numMatches = Array.booleanArraySum(used);
-		if (numMatches != files.length) {
-			log.reportError("Warning - did not find a match for the following file(s):");
-			for (int i = 0; i < files.length; i++) {
-				if (!used[i]) {
-					log.reportError("  "+files[i]);
-				}
-			}
-		}
 	}
 
-	public static void metaAll(String dir, String[][] PHENOTYPES, String[] STUDIES, String[] GROUPS, String[][] METHODS, String[][] UNIT_OF_ANALYSIS, int[][] DEFAULT_SAMPLE_SIZES, boolean[] WEIGHTED, boolean[] SINGLE_VARIANTS, String[][] GROUP_ANNOTATION_PARAMS) {
-		String[] files, finalSet;
-		boolean[] picks, used;
-		int numMatches;
-		Logger log;
+	public static void computeMAC(String dir, String[][] phenotypes, String[] studies, String snpInfoFile) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp, trav;
+		Vector<String> v = new Vector<String>();
+		int count;
+		long time;
+		
+		
+		String[] files;
+		String[][] finalSets;
 		String localDir;
-		Vector<String> locals;
+//		Vector<String> locals;
 		Hashtable<String,Hits> groupHits;
 		Hashtable<String,Vector<String>> groupParams;
 		String[] groups, hits;
 		String filename;
-		String[] header;
+		String[] header, expected;
 		String filenames;
-		boolean running;
+//		String trav; not yet used
+		int[] indices;
+		Logger log;
 		
-		log = new Logger(dir+"metaAll.log");
-		files = Files.list(dir, ".csv", false);
-		used = Array.booleanArray(files.length, false);
+		Hashtable<String, String> snpGeneHash;
+		Hashtable<String, String> snpGeneFunctionalHash;
+		Hashtable<String, Hashtable<String, IntVector>> geneLoci;
+		IntVector loci;
+		String[] keys;
+		Hashtable<String, Integer> largeGenes;
+		int diff;
+		Hashtable<String, int[]> macs;
+		String gene;
+		int[] counts;
+		
 		dir = ext.verifyDirFormat(dir);
-		for (int i = 0; i < PHENOTYPES.length; i++) {
-			running = false;
-			groupHits = new Hashtable<String, Hits>();
-			groupParams = new Hashtable<String, Vector<String>>();
-			for (int j = 0; j < GROUPS.length; j++) {
-				groupHits.put(GROUPS[j], new Hits());
-				groupParams.put(GROUPS[j], new Vector<String>());
-			}
-			for (int j = 0; j < METHODS.length; j++) {
-				localDir = dir+PHENOTYPES[i][0]+"/"+METHODS[j][0]+"/";
-				new File(localDir).mkdirs();
-				finalSet = Array.stringArray(STUDIES.length, "<missing>");
-				for (int k = 0; k < STUDIES.length; k++) {
-					picks = Array.booleanArray(files.length, false);
-					for (int l = 0; l < files.length; l++) {
-						if (files[l].contains(STUDIES[k]) && ext.containsAny(files[l], PHENOTYPES[i]) && ext.containsAny(files[l], METHODS[j])) {
-							picks[l] = true;
-							finalSet[k] = files[l];
-							if (used[l]) {
-								log.reportError("Error - file '"+files[l]+"' matches to "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]+" but was already picked for another purpose");
-							}
-							used[l] = true;
-						}
+		log = new Logger(dir+"computeMACs.log");
+		
+		log.report(ext.getTime()+"\tBegan");
+		time = new Date().getTime();
+		filename = dir+ext.rootOf(snpInfoFile)+".csv";
+		if (Files.exists(filename+".mappings.ser") && Files.exists(filename+".functionalMappings.ser")) {
+			snpGeneHash = SerialHash.loadSerializedStringHash(filename+".mappings.ser");
+			snpGeneFunctionalHash = SerialHash.loadSerializedStringHash(filename+".functionalMappings.ser");
+			log.report(ext.getTime()+"\tReloaded marker mappings in " + ext.getTimeElapsed(time));
+		} else {
+			snpGeneHash = new Hashtable<String, String>();
+			snpGeneFunctionalHash = new Hashtable<String, String>();
+			geneLoci = new Hashtable<String, Hashtable<String, IntVector>>();
+
+			try {
+				reader = new BufferedReader(new FileReader(filename));
+				header = ext.splitCommasIntelligently(reader.readLine(), true, log);
+				indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.GENE_UNITS, FUNCTIONAL, Metal.CHRS, Metal.POSITIONS}, header, false, true, true, log, true);
+				while (reader.ready()) {
+					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+					snpGeneHash.put(line[indices[0]], line[indices[1]]);
+					if (line[indices[2]].equals("TRUE")) {
+						snpGeneFunctionalHash.put(line[indices[0]], line[indices[1]]);
 					}
-					numMatches = Array.booleanArraySum(picks);
-					if (numMatches == 0) {
-						log.reportError("Warning - could not find a match for "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]);
-					} else if (numMatches > 1) {
-						log.reportError("Error - found multiple matched for "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]+":");
-						log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
+					if (!geneLoci.containsKey(line[indices[1]])) {
+						geneLoci.put(line[indices[1]], new Hashtable<String, IntVector>());
 					}
-				}
-				log.report("For "+PHENOTYPES[i][0]+"/"+METHODS[j][0]+" identified:", true, false);
-				locals = new Vector<String>();
-				filenames = "";
-				for (int k = 0; k < STUDIES.length; k++) {
-					log.report("   "+finalSet[k], true, false);
-					if (!finalSet[k].equals("<missing>")) {
-						filename = STUDIES[k]+"_"+PHENOTYPES[i][0]+"_"+METHODS[j][0]+".dat";
-						locals.add(filename);
-						if (!Files.exists(localDir+filename)) {
-							Metal.reformatResults(dir+finalSet[k], UNIT_OF_ANALYSIS[j], DEFAULT_SAMPLE_SIZES[i][k], localDir+filename, log);
-						}
-//						if (groupParams.get(GROUPS[j]).size() == 0) {
-//							groupParams.get(GROUPS[j]).add(localDir+filename+" '"+Array.toStr(Matrix.extractColumn(Metal.MARKER_NAMES_AND_ALLELES, 0), "' '")+"' ");
-//						}
-						header = Files.getHeaderOfFile(localDir+filename, log);
-						header[0] = "'"+header[0]+"'";
-						for (int h = 1; h < header.length; h++) {
-							if (header[h].contains("pval")) {
-								filenames += localDir+filename+","+h+"="+STUDIES[k]+"_"+header[h]+";";
-							}
-							header[h] = "'"+header[h]+"'="+header[h]+"_"+STUDIES[k]+"_"+METHODS[j][0];
-						}
-						groupParams.get(GROUPS[j]).add(localDir+filename+" tab "+Array.toStr(header, " "));
+					if (!geneLoci.get(line[indices[1]]).containsKey(line[indices[3]])) {
+						geneLoci.get(line[indices[1]]).put(line[indices[3]], new IntVector());
 					}
+					geneLoci.get(line[indices[1]]).get(line[indices[3]]).add(Integer.parseInt(line[indices[4]]));
 				}
-				log.report("", true, false);
-				
-				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".se.metal";
-				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
-					Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.SE_ANALYSIS, null, log);
-					running = true;
-				} else {
-					groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
-					groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_A1_"+METHODS[j][0]+" 'Allele2'=Meta_A2_"+METHODS[j][0]+" 'Effect'=Meta_beta_"+METHODS[j][0]+" 'StdErr'=Meta_se_"+METHODS[j][0]+" 'P-value'=Meta_pval_"+METHODS[j][0]+" 'Direction'=Direction_"+METHODS[j][0]);
-					filenames += localDir+filename+"1.out,5=seMeta;";
-				}
-				if (WEIGHTED[j]) {
-					filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".wse.metal";
-					if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
-						Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.WEIGHTED_SE_ANALYSIS, null, log);
-						running = true;
-					} else {
-						groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
-						groupParams.get(GROUPS[j]).add(1, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_wA1_"+METHODS[j][0]+" 'Allele2'=Meta_wA2_"+METHODS[j][0]+" 'Effect'=Meta_wbeta_"+METHODS[j][0]+" 'StdErr'=Meta_wse_"+METHODS[j][0]+" 'P-value'=Meta_pval_"+METHODS[j][0]+" 'Direction'=Direction_"+METHODS[j][0]);
-						filenames += localDir+filename+"1.out,5=wseMeta;";
-					}
-				}
-				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
-				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
-					Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.PVAL_ANALYSIS, null, log);
-					running = true;
-				} else {
-					groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
-					groupParams.get(GROUPS[j]).add(2, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_pA1_"+METHODS[j][0]+" 'Allele2'=Meta_pA2_"+METHODS[j][0]+" 'P-value'=Meta_Nweighted_pval_"+METHODS[j][0]);
-					if (SINGLE_VARIANTS[j]) {
-						groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName' 'Freq1'=Meta_AF");
-						filenames += localDir+filename+"1.out,7=pMeta;";
-					} else {
-						filenames += localDir+filename+"1.out,5=pMeta;";
-					}
-				}
-				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0, filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs.bat");
+				reader.close();
+			} catch (FileNotFoundException fnfe) {
+				System.err.println("Error: file \"" + filename + "\" not found in current directory");
+				System.exit(1);
+			} catch (IOException ioe) {
+				System.err.println("Error reading file \"" + filename + "\"");
+				System.exit(2);
 			}
 			
-			if (!running) {
-				groups = HashVec.getKeys(groupHits);
-				for (int g = 0; g < groups.length; g++) {
-					filename = dir+PHENOTYPES[i][0]+"/"+PHENOTYPES[i][0]+"_"+groups[g]+"_hits.dat";
-					groupHits.get(groups[g]).writeHits(filename);
-					hits = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
-					groupParams.get(groups[g]).add(0, filename+" 0 1=minPval skip=0");
-					if (groups[g].equals("SingleVariant")) {
-						filename = dir+"CHARGE_wGC/"+PHENOTYPES[i][0]+"/SingleSNP/"+PHENOTYPES[i][0]+"_SingleSNP.se.metal1.out";
-						groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
-						filename = dir+"ESP_"+PHENOTYPES[i][0]+"_SingleSNP.csv";
-						groupParams.get(groups[g]).add(2, filename+" 0 10=ESP_pval");
-					} else {
-						filename = dir+"CHARGE_wGC/"+PHENOTYPES[i][0]+"/T5Count/"+PHENOTYPES[i][0]+"_T5Count.se.metal1.out";
-						groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
-						filename = dir+"ESP."+PHENOTYPES[i][0]+".T5.csv";
-						groupParams.get(groups[g]).add(2, filename+" 0 'pval'=ESP_pval");
+			log.report(ext.getTime()+"\tLoaded data in " + ext.getTimeElapsed(time));
+			
+			largeGenes = new Hashtable<String, Integer>();
+			keys = HashVec.getKeys(geneLoci);
+			for (int i = 0; i < keys.length; i++) {
+				if (geneLoci.get(keys[i]).size() > 1) {
+					log.reportError("Gene '"+keys[i]+"' can be found on chromosomes "+ext.listWithCommas(HashVec.getKeys(geneLoci.get(keys[i])), true));
+				} else {
+					loci = geneLoci.get(keys[i]).get(HashVec.getKeys(geneLoci.get(keys[i]))[0]);
+					for (int j = 0; j < loci.size(); j++) {
+						for (int k = 0; k < loci.size(); k++) {
+							diff = Math.abs(loci.elementAt(j)-loci.elementAt(k));
+							if (diff > 2000000) {
+								if (!largeGenes.contains(keys[i]+"' (n="+loci.size()+")") || diff > largeGenes.get(keys[i]+"' (n="+loci.size()+")")) {
+									largeGenes.put(keys[i]+"' (n="+loci.size()+")", diff);
+								}
+							}
+						}
 					}
-					for (int l = 0; l < GROUP_ANNOTATION_PARAMS[g].length; l++) {
-						groupParams.get(groups[g]).add(l, dir+GROUP_ANNOTATION_PARAMS[g][l]);
-					}				
-					Files.combine(hits, Array.toStringArray(groupParams.get(groups[g])), null, groups[g], ".", dir+PHENOTYPES[i][0]+"/"+PHENOTYPES[i][0]+"_"+groups[g]+".csv", log, true, true, false);
 				}
 			}
-//			System.exit(1);
-		}
-		numMatches = Array.booleanArraySum(used);
-		if (numMatches != files.length) {
-			log.reportError("Warning - did not find a match for the following file(s):");
-			for (int i = 0; i < files.length; i++) {
-				if (!used[i]) {
-					log.reportError("  "+files[i]);
+			keys = HashVec.getKeys(largeGenes);
+			for (int i = 0; i < keys.length; i++) {
+				if (i==0) {
+					log.reportError("Genes containing variants mapped more than 2Mb apart:");
 				}
+				log.reportError(keys[i]+" Max: "+largeGenes.get(keys[i]));
+			}
+			
+			SerialHash.createSerializedStringHash(filename+".mappings.ser", snpGeneHash);
+			SerialHash.createSerializedStringHash(filename+".functionalMappings.ser", snpGeneFunctionalHash);
+
+			log.report(ext.getTime()+"\tFinished mapping markers to genes in " + ext.getTimeElapsed(time));
+		}
+		
+		
+		if (!MODELS[0][0].equals("SingleSNP")) {
+			System.err.println("Error - the program erroneously assumed that the first model was SingleSNP and got confused (it's actually "+MODELS[0][0]+"); aborting");
+			return;
+		}
+
+		files = Files.list(dir, ".Rdata", false);
+		finalSets = identifySet(phenotypes, studies, files, new String[] {snpInfoFile}, log);
+
+		for (int i = 0; i < phenotypes.length; i++) {
+			macs = new Hashtable<String, int[]>();
+			localDir = dir+phenotypes[i][0]+"/"+MODELS[0][0]+"/";
+			for (int k = 0; k < studies.length; k++) {
+				if (!finalSets[i][k].equals("<missing>")) {
+					filename = studies[k]+"_"+phenotypes[i][0]+"_"+MODELS[0][0]+".csv";
+					log.report(ext.getTime()+"\tReading "+filename);
+					
+					try {
+						reader = new BufferedReader(new FileReader(localDir+filename));
+						header = ext.splitCommasIntelligently(reader.readLine(), true, log);
+//						ext.checkHeader(header, HEADER_TYPES[Integer.parseInt(MODELS[0][4])], Array.intArray(expected.length), false, log, true);
+						indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false, true);
+						
+						while (reader.ready()) {
+							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+							if (!snpGeneHash.containsKey(line[indices[0]])) {
+								log.reportError("Warning - variant '"+line[indices[0]]+"' was not found in the snpInfo file");
+							}
+							if (snpGeneFunctionalHash.containsKey(line[indices[0]])) {
+								gene = snpGeneFunctionalHash.get(line[indices[0]]);
+								if (macs.containsKey(gene)) {
+									counts = macs.get(gene);
+								} else {
+									macs.put(gene, counts = new int[studies.length]);
+								}
+								if (!line[indices[1]].equals("NA")) {
+									counts[k] += Math.round(Double.parseDouble(line[indices[1]]) * Double.parseDouble(line[indices[2]]) * 2);
+								}
+							}
+						}
+						reader.close();
+					} catch (FileNotFoundException fnfe) {
+						System.err.println("Error - could not find '"+localDir+filename+"'; aborting");
+						return;
+					} catch (IOException ioe) {
+						System.err.println("Error reading file \"" + filename + "\"");
+						return;
+					}
+				}
+			}
+			log.report("", true, false);
+
+			try {
+				writer = new PrintWriter(new FileWriter(dir+phenotypes[i][0]+"/"+"minorAlleleCounts.xln"));
+				keys = HashVec.getKeys(macs);
+				writer.println("Gene\t"+Array.toStr(studies)+"\tTotal");
+				for (int j = 0; j < keys.length; j++) {
+					counts = macs.get(keys[j]);
+					writer.println(keys[j]+"\t"+Array.toStr(counts)+"\t"+Array.sum(counts));
+				}
+				writer.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + dir+phenotypes[i][0]+"/"+"minorAlleleCounts.xln");
+				e.printStackTrace();
 			}
 		}
 	}
 
-	public static void stitch(String dir, String pattern) {
+	public static void assembleHits(String dir, String[][] phenotypes, String[] studies, int[][] defaultSampleSizes, String[][] groupAnnotationParams, String snpInfoFile) {
+		String[] files;
+		String[][] finalSets;
+		Logger log;
+		String localDir;
+//		Vector<String> locals;
+		Hashtable<String,Hits> groupHits;
+		Hashtable<String,Vector<String>> groupParams;
+		String[] groups, hits;
+		String filename;
+		String[] header, expected;
+		String filenames;
+//		String trav; not yet used
+		int[] indices;
+		
+		dir = ext.verifyDirFormat(dir);
+		log = new Logger(dir+"metaAll.log");
+
+		files = Files.list(dir, ".Rdata", false);
+		finalSets = identifySet(phenotypes, studies, files, new String[] {snpInfoFile}, log);
+
+		for (int i = 0; i < phenotypes.length; i++) {
+
+			groupHits = new Hashtable<String, Hits>();
+			groupParams = new Hashtable<String, Vector<String>>();
+			for (int j = 0; j < MODELS.length; j++) {
+				if (!groupHits.containsKey(MODELS[j][1])) {
+					groupHits.put(MODELS[j][1], new Hits());
+					groupParams.put(MODELS[j][1], new Vector<String>());
+				}
+			}
+			for (int j = 0; j < MODELS.length; j++) {
+				localDir = dir+phenotypes[i][0]+"/"+MODELS[j][0]+"/";
+
+//				locals = new Vector<String>();
+				filenames = "";
+				for (int k = 0; k < studies.length; k++) {
+					if (!finalSets[i][k].equals("<missing>")) {
+						filename = studies[k]+"_"+phenotypes[i][0]+"_"+MODELS[j][0]+".csv";
+//						locals.add(filename);	// used originally for Metal analyses, may want to resurrect for checks or p-value weighted
+						if (!Files.exists(localDir+filename)) {
+							System.err.println("Error - could not find '"+localDir+filename+"'; aborting");
+							return;
+						}
+						
+						// not currently used, just includes all values 
+//						trav = methods[j][5];
+//						trav = ext.replaceAllWith(trav, "[%0]", studies[k]);
+
+						header = Files.getHeaderOfFile(localDir+filename, ",!", log);
+						expected = HEADER_TYPES[Integer.parseInt(MODELS[j][4])];
+						ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, true);
+						
+						header[0] = "'"+header[0]+"'";
+						for (int h = 1; h < header.length; h++) {
+							if (ext.indexOfStr(header[h], Metal.PVALUES) >= 0) {
+								filenames += localDir+filename+","+h+"="+studies[k]+"_"+header[h]+";";
+							}
+							header[h] = "'"+header[h]+"'="+header[h]+"_"+studies[k]+"_"+MODELS[j][0];
+						}
+						groupParams.get(MODELS[j][1]).add(localDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+					}
+				}
+				log.report("", true, false);
+
+				filename = phenotypes[i][0]+"_"+MODELS[j][0]+".csv";
+				if (!Files.exists(localDir+filename)) {
+					System.err.println("Error - could not find '"+localDir+filename+"'; aborting");
+					return;
+				}
+
+				
+				header = Files.getHeaderOfFile(localDir+filename, ",!", log);
+				expected = HEADER_TYPES[Integer.parseInt(MODELS[j][4])];
+				ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, true);
+				
+				try {
+					if (MODELS[j][1].equals("SingleVariant")) {
+						indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.PVALUES}, header, false, true, true, log, true);
+					} else {
+						indices = ext.indexFactors(new String[][] {Metal.GENE_UNITS, Metal.PVALUES}, header, false, true, true, log, true);
+					}
+				} catch (Exception e) {
+					log.reportError("Error - unexpected header for "+localDir+filename);
+					return;
+				}
+				groupHits.get(MODELS[j][1]).incorporateFromFile(localDir+filename, indices, 0.001, log);
+				
+				
+				header[0] = "'"+header[0]+"'";
+				for (int h = 1; h < header.length; h++) {
+					if (ext.indexOfStr(header[h], Metal.PVALUES) >= 0) {
+						filenames += localDir+filename+","+h+"="+"Meta_"+header[h]+";";
+					}
+					header[h] = "'"+header[h]+"'=Meta_"+header[h]+"_"+MODELS[j][0];
+				}
+				groupParams.get(MODELS[j][1]).add(0, localDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+
+//				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
+//				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
+//					Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.PVAL_ANALYSIS, null, log);
+//					running = true;
+//				} else {
+//					groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
+//					groupParams.get(GROUPS[j]).add(2, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_pA1_"+METHODS[j][0]+" 'Allele2'=Meta_pA2_"+METHODS[j][0]+" 'P-value'=Meta_Nweighted_pval_"+METHODS[j][0]);
+//					if (SINGLE_VARIANTS[j]) {
+//						groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName' 'Freq1'=Meta_AF");
+//						filenames += localDir+filename+"1.out,7=pMeta;";
+//					} else {
+//						filenames += localDir+filename+"1.out,5=pMeta;";
+//					}
+//				}
+				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0, filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs.bat");
+			}
+			
+			groups = HashVec.getKeys(groupHits);
+			for (int g = 0; g < groups.length; g++) {
+				filename = dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[g]+"_hits.dat";
+				groupHits.get(groups[g]).writeHits(filename);
+				hits = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
+				groupParams.get(groups[g]).add(0, filename+" 0 1=minPval skip=0");
+//				if (groups[g].equals("SingleVariant")) {
+//					filename = dir+"CHARGE_wGC/"+phenotypes[i][0]+"/SingleSNP/"+phenotypes[i][0]+"_SingleSNP.se.metal1.out";
+//					groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
+//					filename = dir+"ESP_"+phenotypes[i][0]+"_SingleSNP.csv";
+//					groupParams.get(groups[g]).add(2, filename+" 0 10=ESP_pval");
+//				} else {
+//					filename = dir+"CHARGE_wGC/"+phenotypes[i][0]+"/T5Count/"+phenotypes[i][0]+"_T5Count.se.metal1.out";
+//					groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
+//					filename = dir+"ESP."+phenotypes[i][0]+".T5.csv";
+//					groupParams.get(groups[g]).add(2, filename+" 0 'pval'=ESP_pval");
+//				}
+				for (int l = 0; l < groupAnnotationParams[g].length; l++) {
+					groupParams.get(groups[g]).add(l, dir+groupAnnotationParams[g][l]);
+				}				
+				Files.combine(hits, Array.toStringArray(groupParams.get(groups[g])), null, groups[g], ".", dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[g]+".csv", log, true, true, false);
+			}
+		}
+	}
+
+	public static void stitch(String dir, String pattern, String fileout) {
 		String[] list;
 		int[] skips;
 		
@@ -689,8 +889,7 @@ public class SkatMeta {
 			list[chr-1] = dir+ext.replaceAllWith(pattern, "#", chr==23?"X":chr+"");
 			skips[chr-1] = chr>1?1:0;
 		}
-		Files.cat(list, dir+ext.replaceAllWith(pattern, "#", "All"), skips, new Logger());
-		removeIndicesFromRdata(dir+ext.replaceAllWith(pattern, "#", "All"), dir+ext.addToRoot(ext.replaceAllWith(pattern, "#", "All"), "_slim"));
+		Files.cat(list, dir+fileout, skips, new Logger());
 	}
 	
 	public static void removeIndicesFromRdata(String filein, String fileout) {
@@ -720,27 +919,34 @@ public class SkatMeta {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = "SkatMeta.dat";
 		String logfile = null;
 		Logger log;
 		String dir = "";
 		boolean determineObjectNames = false;
 		boolean splitAll = false;
 		boolean runAll = false;
-		boolean metaAll = false;
+		boolean parseAll = false;
+		boolean checkNs = false;
+		boolean hits = false;
+		boolean computeMACs = false;
 
 		String usage = "\n" + 
 		"gwas.SkatMeta requires 0-1 arguments\n" + 
+		"   (0) directory (i.e. dir=" + dir + " (default))\n" + 
+		" AND\n" + 
 		"   (1) determine object names (i.e. -determineObjectNames (not the default))\n" + 
 		" OR\n" + 
-		"   (1) split all (i.e. -splitAll  (not the default))\n" + 
-		"   (2) directory (i.e. dir=" + dir + " (default))\n" + 
+		"   (1) split all (i.e. -splitAll (not the default))\n" + 
 		" OR\n" + 
-		"   (1) run all (i.e. -runAll  (not the default))\n" + 
-		"   (2) directory (i.e. dir=" + dir + " (default))\n" + 
+		"   (1) run all (i.e. -runAll (not the default))\n" + 
 		" OR\n" + 
-		"   (1) meta all (i.e. -metaAll  (not the default))\n" + 
-		"   (2) directory (i.e. dir=" + dir + " (default))\n" + 
+		"   (1) parse all runs (i.e. -parseAll (not the default))\n" + 
+		" OR\n" + 
+		"   (1) check sample sizes for each chr18 data file (i.e. -checkNs (not the default))\n" + 
+		" OR\n" + 
+		"   (1) compute minor allele counts (i.e. -computeMACs (not the default))\n" + 
+		" OR\n" + 
+		"   (1) parse top hits (i.e. -hits (not the default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -756,11 +962,20 @@ public class SkatMeta {
 			} else if (args[i].startsWith("-splitAll")) {
 				splitAll = true;
 				numArgs--;
+			} else if (args[i].startsWith("-parseAll")) {
+				parseAll = true;
+				numArgs--;
+			} else if (args[i].startsWith("-checkNs")) {
+				checkNs = true;
+				numArgs--;
 			} else if (args[i].startsWith("-runAll")) {
 				runAll = true;
 				numArgs--;
-			} else if (args[i].startsWith("-metaAll")) {
-				metaAll = true;
+			} else if (args[i].startsWith("-computeMACs")) {
+				computeMACs = true;
+				numArgs--;
+			} else if (args[i].startsWith("-hits")) {
+				hits = true;
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -783,21 +998,29 @@ public class SkatMeta {
 		
 //		System.exit(1);
 		
-//		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/metaAnalysis/";
+		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/metaAnalysis/";
 //		splitAll = true;
 //		runAll = true;
+//		hits = true;
+		computeMACs = true;
 		
 		try {
 			log = new Logger(logfile);
 			if (determineObjectNames) {
-				determineObjectNames(log);
+				determineObjectNames(dir, log);
 			} else if (splitAll) {
 				splitAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE, ChargeS.SNP_NAMES, ChargeS.CHROM_NAME, ChargeS.GENE_NAME);
+			} else if (parseAll) {
+				parseAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES);
+			} else if (checkNs) {
+				checkNs(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES);
 			} else if (runAll) {
 				runAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_NAMES);
 //				runAll(dir, PHENOTYPES, STUDIES);
-			} else if (metaAll) {
-				metaAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.GROUPS, ChargeS.METHODS, ChargeS.UNIT_OF_ANALYSIS, ChargeS.DEFAULT_SAMPLE_SIZES, ChargeS.WEIGHTED, ChargeS.SINGLE_VARIANTS, ChargeS.GROUP_ANNOTATION_PARAMS);
+			} else if (computeMACs) {
+				computeMAC(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE);
+			} else if (hits) {
+				assembleHits(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.FREEZE3_SAMPLE_SIZES, ChargeS.GROUP_ANNOTATION_PARAMS, ChargeS.SNP_INFO_FILE);
 //				metaAll(dir, PHENOTYPES, STUDIES, GROUPS, METHODS, UNIT_OF_ANALYSIS, DEFAULT_SAMPLE_SIZES, WEIGHTED, SINGLE_VARIANTS, GROUP_ANNOTATION_PARAMS);
 			}
 		} catch (Exception e) {
