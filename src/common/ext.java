@@ -1139,7 +1139,7 @@ public class ext {
 //			str = str.substring(2);
 //		}
 		replaceAllWith(str, "\\", "/");
-		if (!str.endsWith("/")) {
+		if (str.length() > 0 && !str.endsWith("/")) {
 			str += "/";
 		}
 		

@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class ParsePrimers {
-	private static void forIllumina(String dir, String variants, String sequence, String output) {
+	private static void forIlluminaInfiniumDesignScores(String dir, String variants, String sequence, String output) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, seqs;
@@ -113,7 +113,7 @@ public class ParsePrimers {
 		}
 		try {
 			dir = "D:/Myron/Indian_Diabetes/SequencingPilot/SingaporeSelections_Designed/";
-			forIllumina(dir, variants, sequence, output);
+			forIlluminaInfiniumDesignScores(dir, variants, sequence, output);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

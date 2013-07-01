@@ -12,7 +12,7 @@ import cnv.filesys.Project;
 import common.*;
 
 public class PlinkFormat {
-	public static void createPlink(Project proj, String clusterFilterFilename) {
+	public static boolean createPlink(Project proj, String clusterFilterFilename, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,String> hash;
@@ -108,7 +108,7 @@ public class PlinkFormat {
 				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
 			} else {
 				System.err.println("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
-				return;
+				return false;
 			}
 			abLookup = new ABLookup(markerNames, proj.getProjectDir()+"AB_lookup.dat", true, true).getLookup();
 		} else {
@@ -127,6 +127,14 @@ public class PlinkFormat {
 				
 				temp = reader.readLine();
 				line = temp.split(ext.determineDelimiter(temp));
+				if (line.length < 7) {
+					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(Project.PEDIGREE_FILENAME)+"'.");
+					log.reportError("  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA");
+					log.reportError("  where DNA is the sample name associated with the genotypic data (see the "+proj.getDir(Project.SAMPLE_DIRECTORY)+" directory for examples)");
+					reader.close();
+					writer.close();
+					return false;
+				}
 				writer.print(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
 				if (line[6].equals(".")) {
 					for (int i = 0; i<indices.length; i++) {
@@ -170,6 +178,7 @@ public class PlinkFormat {
 		}
 
 		System.out.println(ext.getTime());
+		return true;
 	}
 
 	public static void pickTargets(String filename) {
@@ -237,7 +246,7 @@ public class PlinkFormat {
 			if (!pick.equals("")) {
 				pickTargets(pick);
 			} else {
-				createPlink(new Project(filename, false), filters);
+				createPlink(new Project(filename, false), filters, new Logger());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

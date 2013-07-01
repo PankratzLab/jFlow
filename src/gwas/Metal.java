@@ -26,7 +26,7 @@ public class Metal {
 	public static final String[] NS = {"N", "NMISS", "sampleN"};
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency"};
 
-	public static final String[] CHRS = {"Chr", "Chromosome"};
+	public static final String[] CHRS = {"Chr", "Chromosome", "CHROM"};
 	public static final String[] POSITIONS = {"Position", "pos", "BP"};
 
 	public static final int SE_ANALYSIS = 0;

@@ -919,7 +919,7 @@ public class ParseIllumina implements Runnable {
 	}
 
 	
-	public static void parseAlleleLookup(Project proj) {
+	public static void parseAlleleLookupFromFinalReports(Project proj) {
 		BufferedReader reader;
 		String[] line;
 		Hashtable<String, String[]> hash;
@@ -1084,7 +1084,7 @@ public class ParseIllumina implements Runnable {
 		boolean map = false;
 		int numThreads = 1;
 //		boolean parseABlookup = false;
-		boolean parseAlleleLookup = false;
+		boolean parseAlleleLookupFromFinalReports = false;
 		String mapOutput = "filenamesMappedToSamples.txt";
 
 		String usage = "\n"+
@@ -1117,7 +1117,7 @@ public class ParseIllumina implements Runnable {
 //				parseABlookup = true;
 //				numArgs--;
 			} else if (args[i].startsWith("-parseAlleleLookup")) {
-				parseAlleleLookup = true;
+				parseAlleleLookupFromFinalReports = true;
 				numArgs--;
 			}
 		}
@@ -1147,8 +1147,8 @@ public class ParseIllumina implements Runnable {
 //			} else 
 			if (map) {
 				mapFilenamesToSamples(proj, mapOutput);
-			} else if (parseAlleleLookup) {
-				parseAlleleLookup(proj);
+			} else if (parseAlleleLookupFromFinalReports) {
+				parseAlleleLookupFromFinalReports(proj);
 			} else {
 				createFiles(proj, numThreads);
 			}

@@ -318,7 +318,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					text = "Gene track is not installed";
 					width = g.getFontMetrics(g.getFont()).stringWidth(text);
 					g.drawString(text, this.getWidth()/2-width/2, 10);
-					System.out.println("total width = "+this.getWidth()+" text width = "+width+" position = "+(this.getWidth()/2-width/2));
 				} else {
 					if (stop-start > 10000000) {
 						g.drawString("Zoom in to see genes", 10, 10);
@@ -1197,7 +1196,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //	}
 	
 	public void procCNVs(byte chr) {
-		System.out.println("processing CNVs");
 		cnvs = new CNVariant[cnvLabels.length][];
 		for (int i = 0; i<cnvLabels.length; i++) {
 			cnvs[i] = indiPheno.getCNVs(i, chr);

@@ -81,7 +81,15 @@ public class CmdLine {
 //				writer.close();
 //			}
 		} catch (IOException ioe) {
-			ioe.printStackTrace();
+			String message;
+			
+			message = ioe.getMessage();
+			if (message.startsWith("Cannot run program ")) {
+				message = message.substring(20);
+				System.err.println("Error - The program \""+message.substring(0, message.indexOf("\""))+"\" is not installed or is not accessible "+message.substring(message.indexOf("("), message.indexOf(")")+1));
+			} else {
+				ioe.printStackTrace();
+			}
 		}
 		
 		return noError;
