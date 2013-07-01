@@ -1004,7 +1004,11 @@ public class Files {
             		writer.print(unit);
             	}
 	        	for (int i = 0; i<data.length; i++) {
-	        		writer.print((hideIndex&&i==0?"":delimiter)+Array.toStr(data[i][keys.length], delimiter));
+	        		try {
+	        			writer.print((hideIndex&&i==0?"":delimiter)+Array.toStr(data[i][keys.length], delimiter));
+	        		} catch (Exception e) {
+	        			e.printStackTrace();
+	        		}
 	            }
 	        	writer.println();
             }
@@ -1563,6 +1567,10 @@ public class Files {
 	
 	// These variables need to be final in order to work in the FilenameFilter
 	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
+		if (directory.length() == 0) {
+			directory = "./";
+		}
+		
 		if (jar) {
 			try {
 //				System.err.println("I haven't been able to get listFiles() to work inside a jar file yet");

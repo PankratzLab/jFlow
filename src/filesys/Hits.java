@@ -14,25 +14,27 @@ public class Hits {
 	}
 	
 	public void incorporateFromFile(String filename, double threshold, Logger log) {
+		int[] indices;
+
+		indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.PVALUES}, Files.getHeaderOfFile(filename, log), false, true, true, log, true);
+		incorporateFromFile(filename, indices, threshold, log);		
+	}
+	
+	public void incorporateFromFile(String filename, int[] indices, double threshold, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		String delimiter;
-		String[] header;
-		int[] indices;
 		double value;
 		
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			delimiter = Files.determineDelimiter(filename, log);
-			if (delimiter.equals("\t")) {
-				header = reader.readLine().split(delimiter, -1);
-			} else {
-				header = reader.readLine().trim().split(delimiter);
-			}
-			indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.PVALUES}, header, false, true, true, log, true);
+			reader.readLine();
 			while (reader.ready()) {
 				if (delimiter.equals("\t")) {
 					line = reader.readLine().split(delimiter, -1);
+				} else if (delimiter.equals(",")) {
+					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 				} else {
 					line = reader.readLine().trim().split(delimiter);
 				}

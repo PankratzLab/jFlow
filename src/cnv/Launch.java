@@ -284,18 +284,25 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(TRANSPOSE_DATA)) {
 				TransposeData.transposeData(proj, 2000000000, false, proj.getLog());
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
-				String filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
+				String filename;
+				boolean success;
+				
+				filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
 				System.out.println("using "+filename);
 				if ( filename==null || (!filename.equals("cancel")) ) {
 //						String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
 //						if () {
 //							
 //						}
-					cnv.manage.PlinkFormat.createPlink(proj, filename);
-					CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-					new File(proj.getProjectDir()+"genome/").mkdirs();
-					CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-					CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+					success = cnv.manage.PlinkFormat.createPlink(proj, filename, proj.getLog());
+					if (success) {
+						try {
+							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+							new File(proj.getProjectDir()+"genome/").mkdirs();
+							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
+							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+						} catch (Exception e) {}
+					}
 		//			vis cnv.manage.PlinkFormat root=../plink genome=6
 				}
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
@@ -345,9 +352,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(KITANDKABOODLE)) {
 				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
 
-				TransposeData.transposeData(proj, 2000000000, true, proj.getLog()); // compact if no LRR was provided
+				TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
 
-				cnv.manage.PlinkFormat.createPlink(proj, null);
+				cnv.manage.PlinkFormat.createPlink(proj, null, proj.getLog());
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
 				new File(proj.getProjectDir()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");

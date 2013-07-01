@@ -208,7 +208,11 @@ public class Project extends Properties {
 				if (make) {
 					new File(ext.parseDirectoryOfFile(file)).mkdirs();
 				} else if (verbose) {
-					System.err.println("Error - file '"+file+"' does not exist");
+					if (!Files.exists(ext.parseDirectoryOfFile(file), getJarStatus())) {
+						System.err.println("Error - the directory ('"+ext.parseDirectoryOfFile(file)+"') of the file you're trying to access/create ('"+ext.removeDirectoryInfo(file)+"') does not exist");
+					} else {
+						System.err.println("Error - file '"+file+"' does not exist");
+					}
 				}
 			}
 		} else {

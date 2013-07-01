@@ -98,15 +98,37 @@ public class Matrix {
      * Creates a matrix of booleans of given size and initializes each element with the given value
      * 
      * @param numRows
-     *            number of rows for the of array
+     *            number of rows for the matrix
      * @param numColumns
-     *            number of columns for the of array
+     *            number of columns for the matrix
      * @param initValue
      *            initial value of each element
      * @return array of arrays of booleans initialized to the given value
      */
     public static boolean[][] booleanMatrix(int numRows, int numColumns, boolean initValue) {
     	boolean[][] arrs = new boolean[numRows][numColumns];
+    	
+    	for (int i = 0; i<arrs.length; i++) {
+    		for (int j = 0; j<arrs[i].length; j++) {
+    			arrs[i][j] = initValue;
+    		}
+    	}
+    	return arrs;
+    }
+
+	/**
+     * Creates a matrix of String of given size and initializes each element with the given value
+     * 
+     * @param numRows
+     *            number of rows for the matrix
+     * @param numColumns
+     *            number of columns for the matrix
+     * @param initValue
+     *            initial value of each element
+     * @return array of arrays of String initialized to the given value
+     */
+    public static String[][] stringMatrix(int numRows, int numColumns, String initValue) {
+    	String[][] arrs = new String[numRows][numColumns];
     	
     	for (int i = 0; i<arrs.length; i++) {
     		for (int j = 0; j<arrs[i].length; j++) {

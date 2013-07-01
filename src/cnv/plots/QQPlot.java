@@ -131,6 +131,9 @@ public class QQPlot extends JFrame implements ActionListener {
 		double minPval;
 		String delimiter;
 		String temp;
+		Logger log;
+		
+		log = new Logger();
 		
 		if (maxToPlot < 0) {
 			minPval = -1;
@@ -166,7 +169,11 @@ public class QQPlot extends JFrame implements ActionListener {
 				count = 0;
 				temp = reader.readLine();
 				try {
-					trav = temp.trim().split(delimiter, -1)[cols[i]];
+					if (delimiter.equals(",")) {
+						trav = ext.splitCommasIntelligently(temp, true, log)[cols[i]];
+					} else {
+						trav = temp.trim().split(delimiter, -1)[cols[i]];
+					}
 				} catch (Exception e) {
 					System.err.println("Error - could not parse "+filenames[i]+" completely:");
 					System.err.println(temp);
@@ -185,7 +192,11 @@ public class QQPlot extends JFrame implements ActionListener {
 					header = true;
 				}
 				while (reader.ready()) {
-					trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
+					if (delimiter.equals(",")) {
+						trav = ext.splitCommasIntelligently(reader.readLine(), true, log)[cols[i]];
+					} else {
+						trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
+					}
 					if (!ext.isMissingValue(trav)) {
 						count++;
 					}
@@ -199,7 +210,11 @@ public class QQPlot extends JFrame implements ActionListener {
 					reader.readLine();					
 				}
 				while (reader.ready()) {
-					trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
+					if (delimiter.equals(",")) {
+						trav = ext.splitCommasIntelligently(reader.readLine(), true, log)[cols[i]];
+					} else {
+						trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
+					}
 					if (!ext.isMissingValue(trav)) {
 						pvals[i][count] = Double.parseDouble(trav);
 						if (pvals[i][count] < minPval) {

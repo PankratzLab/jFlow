@@ -71,7 +71,7 @@ public class MarkerMetrics {
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_METRICS_FILENAME)));
+			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false)));
 			writer.println(Array.toStr(FULL_QC_HEADER));
 			
 			if (markersToInclude != null) {
@@ -159,7 +159,7 @@ public class MarkerMetrics {
 			writer.close();
 			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
-			log.reportError("Error writing results");
+			log.reportError("Error writing marker metrics to "+proj.getFilename(Project.MARKER_METRICS_FILENAME, false, false));
 			e.printStackTrace();
 		}
 	}

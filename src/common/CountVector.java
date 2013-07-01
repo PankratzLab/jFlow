@@ -97,4 +97,15 @@ public class CountVector {
 
 		return array;
 	}
+
+	public int getCount(String value) {
+		for (int i = 0; i < v.size(); i++) {
+			if (value.equals(v.elementAt(i))) {
+				return iv.elementAt(i);
+			}
+		}
+		
+		return 0;
+	}
+	
 }
