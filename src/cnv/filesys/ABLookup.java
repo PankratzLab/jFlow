@@ -459,6 +459,10 @@ public class ABLookup {
 //		mapFile = "C:/GEDI_exomeRAF/HumanExome-12v1_A.csv";
 //		parseFromGenotypeClusterCenters = true;
 
+		filename = "C:/workspace/Genvisis/projects/gedi_exome_top.properties";
+//		mapFile = "C:/GEDI_exomeRAF/HumanExome-12v1_A.csv";
+		parseFromGenotypeClusterCenters = true;
+		
 		try {
 			proj = new Project(filename, false);
 			if (mapFile != null) {

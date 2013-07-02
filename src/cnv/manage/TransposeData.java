@@ -34,7 +34,7 @@ public class TransposeData {
 	 * The input is a set of files based on the sample oriented structure, and
 	 * the output is a set of data files based on the marker oriented structure.
 	 * @param proj The Genivis project containing the data to be transposed
-	 * @param maxMarkerFileSize The maximum size in mb of a single output
+	 * @param markerFileSizeSuggested The maximum size in mb of a single output
 	 * file. If set to 0, the default value 2000 is taken on.
 	 * @param keepAllSampleFilesOpen To keep all the files or just a single one
 	 * open at a time.
@@ -42,51 +42,58 @@ public class TransposeData {
 	 * Genvisis_TransposeData_yyyyMMdd_HHmmss.log will be used.
 	 */
 	@SuppressWarnings("unchecked")
-	public static void transposeData(Project proj, long maxMarkerFileSize, boolean keepAllSampleFilesOpen, Logger log) {
-		String[] allSampleNamesInProj;
-		String[] allMarkerNamesInProj;
-		int numBytesPerMarker;
-		int numMarkersWrtBuffer;
-		int numMarkersLastReadRoundLastBuffer = 0;
-        int numMarksPerBufferChunk;
-		int maxNumMarkersPerFile;
-		int numWrBufferChunks;
-		int numBufferChunksEachMarkerFile;
-		int numMarkerFiles;
-		int numMarkersLastReadRound;
-		int timesEachSampleFileBeRead;
-		String[] markerFilenames;
-		int markerFileIndex;
-		int indexWrBufferChunk;
-		int numBufferChunksNeededCurrentMarkFile;
-		int counterMarkerFileBufferChunks;
-		int indexFirstMarkerCurrentIteration;
-		int markerIndex;
+	public static void transposeData(Project proj, long markerFileSizeSuggested, boolean keepAllSampleFilesOpen, Logger log) {
 		boolean isFileClosed;
-		RandomAccessFile[] sampleFiles = null;
-		RandomAccessFile sampleFile;
-        RandomAccessFile markerFile = null;
-        byte[][] writeBuffer = null;
-        byte[] markerDataWriteBufferParameter;
-        byte[] readBuffer;
-		Hashtable<String,String> markerLookupHash = new Hashtable<String,String>();
-		byte[][] markersInEachFile;
-		String[] markersInEachFile1;
-		Vector<Hashtable<String, Float>> markFileWriteBufferOutliers;
-		byte[] markFileWriteBufferOutliersBytes;
-		Hashtable<String, Float> allOutliers;
+		boolean done, safe;
 		byte nullStatus = Byte.MIN_VALUE;
         byte bytesPerSampMark;
-        int numMarkersCurrentLoop;
         byte backupCount;
-		boolean done, safe;
-		long memoryReserve;
-		int oomeLoops;
+		int nBytes_Mark;
+		int nMarks_WrtBuffer;
+		int nMarks_Chunk;
+		int nMarks_File;
+		int nChunks_WrtBuffer;
+		int nChunks_File;
+		int nFiles;
+		int nMarks_LastRound;
+		int nRounds_LoadSampFile;
+		int markerFileIndex;
+//		int indexWrBufferChunk;
+		int numBufferChunksNeededCurrentMarkFile;
+		int countTotalChunks_MarkerFile;
+		int countTotalChunks_wrtBuffer;
+		int indexFirstMarkerCurrentIteration;
+		int markerIndex;
+        int numMarkersCurrentLoop;
+		int end;
+		int nIterations;
 		long fingerPrint;
 		long timerOverAll, timerLoadFiles, timerTransposeMemory, timerWriteFiles, timerTmp;
-		SimpleDateFormat timeFormat;
 
-		if (log == null) {
+        byte[] markFileParameterSection;
+        byte[] readBuffer;
+		byte[] markFileOutliersBytes = null;
+        byte[][] writeBuffer = null;
+		byte[][] markersInEachFile;
+		int[] wrtBufferSizes;
+		int[] parameters;
+
+		String[] allSampleNamesInProj;
+		String[] allMarkerNamesInProj;
+		String[] markersInEachFile1;
+		String[] markerFilenames;
+
+//		Vector<Hashtable<String, Float>> markFileOutliers;
+		Hashtable<String,String> markerLookup = new Hashtable<String,String>();
+		Hashtable<String, Float>[] markFileOutliers;
+		Hashtable<String, Float> allOutliers;
+
+		SimpleDateFormat timeFormat;
+		RandomAccessFile sampleFile;
+        RandomAccessFile markerFile = null;
+		RandomAccessFile[] sampleFiles = null;
+
+        if (log == null) {
 			log = new Logger(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 		}
 		log.report("Transposing data of the project " + proj.getProjectDir());
@@ -101,63 +108,69 @@ public class TransposeData {
 		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 
 		bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
-		numBytesPerMarker = allSampleNamesInProj.length * bytesPerSampMark;
+		nBytes_Mark = allSampleNamesInProj.length * bytesPerSampMark;
 		if (new File(proj.getProjectDir()).getFreeSpace() <= (allSampleNamesInProj.length * (long)allMarkerNamesInProj.length * bytesPerSampMark)) {
 			log.reportError("Not enough disk space for all the new data to be created. Available: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + "; Required: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + ").");
 			return;
 		}
-		if (maxMarkerFileSize == 0) {
-			maxMarkerFileSize = Integer.MAX_VALUE;
+		if (markerFileSizeSuggested <= 0) {
+			markerFileSizeSuggested = Integer.MAX_VALUE;
 		}
 
 		done = false;
 		safe = false;
-		oomeLoops = 0;
 		timerOverAll = new Date().getTime();
-		memoryReserve = (long)((double)Runtime.getRuntime().maxMemory() * 0.25);
+//		memoryReserve = (long)((double)Runtime.getRuntime().maxMemory() * 0.25);
+		nMarks_WrtBuffer = Math.min((int)(((double)Runtime.getRuntime().maxMemory() * 0.75 ) / nBytes_Mark), allMarkerNamesInProj.length);
 		while (!done) {
 			try {
-				numMarkersWrtBuffer = Math.min((int)(((double)Runtime.getRuntime().maxMemory() - memoryReserve) / numBytesPerMarker), allMarkerNamesInProj.length);
-				if (maxMarkerFileSize > Integer.MAX_VALUE) {
-					numMarksPerBufferChunk = (int) Math.min((double) Integer.MAX_VALUE / numBytesPerMarker, (double) numMarkersWrtBuffer);
-				} else {
-					numMarksPerBufferChunk = (int) Math.min((double) maxMarkerFileSize / numBytesPerMarker, (double) numMarkersWrtBuffer);
-				}
-				numWrBufferChunks = numMarkersWrtBuffer/numMarksPerBufferChunk;
-				numMarkersWrtBuffer = numWrBufferChunks * numMarksPerBufferChunk;
-				timesEachSampleFileBeRead = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)numMarkersWrtBuffer);
-				numMarkersLastReadRound = allMarkerNamesInProj.length % numMarkersWrtBuffer;
+				//TODO determine max file size before numMarkersWrtBuffer
+//				nMarks_WrtBuffer = Math.min((int)(((double)Runtime.getRuntime().maxMemory() - memoryReserve) / nBytes_Mark), allMarkerNamesInProj.length);
+//				numMarksPerBufferChunk = (int) Math.min((double) Math.min(maxMarkerFileSize, Integer.MAX_VALUE) / numBytes_Marker, (double) numMrks_WrtBuffer);
+				nMarks_File = (int) Math.min((double)markerFileSizeSuggested / (double)nBytes_Mark, allMarkerNamesInProj.length);
+
+				parameters = optimizeFileAndBufferSize(nMarks_WrtBuffer, allMarkerNamesInProj.length, nBytes_Mark, nMarks_File);
+				nMarks_File = parameters[0];
+				nMarks_WrtBuffer = parameters[1];
+				nChunks_WrtBuffer = parameters[2];
+				nMarks_Chunk = parameters[3];
+				nChunks_File = parameters[4];
+				markerFileSizeSuggested = nMarks_File * nBytes_Mark;
+
+//				nMarks_File = nMarks_Chunk * nChunks_File;
+//				nMarks_Chunk = (int) Math.min((double) Math.min(maxMarkerFileSize, Integer.MAX_VALUE) / nBytes_Mark, (double) nMarks_WrtBuffer);
+//				nChunks_File = (int) Math.ceil((double)nMarks_File / (double)nMarks_Chunk);
+//				nChunks_WrtBuffer = nMarks_WrtBuffer / nMarks_Chunk;
+//				nMarks_WrtBuffer = nChunks_WrtBuffer * nMarks_Chunk;
+
+				nRounds_LoadSampFile = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)nMarks_WrtBuffer);
+				nMarks_LastRound = allMarkerNamesInProj.length % nMarks_WrtBuffer;
 		
-				maxNumMarkersPerFile = (int) Math.min((double)maxMarkerFileSize / (double)numBytesPerMarker, allMarkerNamesInProj.length);
-		//		numBufferChunksPerFile = maxNumMarkersPerFile / numMarkersPerBufferChunk;
-				numBufferChunksEachMarkerFile = (int) Math.ceil((double)maxNumMarkersPerFile / (double)numMarksPerBufferChunk);
-				maxNumMarkersPerFile = numMarksPerBufferChunk * numBufferChunksEachMarkerFile;
-				numMarkerFiles = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)maxNumMarkersPerFile);
-				counterMarkerFileBufferChunks = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)numMarksPerBufferChunk);
-				markerFilenames = new String[numMarkerFiles];
-				markersInEachFile = new byte[numMarkerFiles][];
+//				maxNumMarkersPerFile = (int) Math.min((double)maxMarkerFileSize / (double)numBytesPerMarker, allMarkerNamesInProj.length);
+//				numBufferChunksPerFile = maxNumMarkersPerFile / numMarkersPerBufferChunk;
+//				numBufferChunksEachMarkerFile = (int) Math.ceil((double)maxNumMarkersPerFile / (double)numMarksPerBufferChunk);
+
+				nFiles = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)nMarks_File);
+				countTotalChunks_MarkerFile = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)nMarks_Chunk);
+				countTotalChunks_wrtBuffer = countTotalChunks_MarkerFile;
+				markerFilenames = new String[nFiles];
+				markersInEachFile = new byte[nFiles][];
 //				numMarkersInEachFile = new int[numMarkerFiles];
 				backupCount = backupOlderFiles(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false), new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, true);
 				backupOlderFile(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false), backupCount);
-				log.report( "--\nTotal Markers =\t" + allMarkerNamesInProj.length
-						  + "\nTotal Samples =\t" + allSampleNamesInProj.length
-						  + "\nMemory available =\t" + Runtime.getRuntime().maxMemory()/1024/1024/1024 + "." + (Runtime.getRuntime().maxMemory()/1024/1024/10 - Runtime.getRuntime().maxMemory()/1024/1024/1024*102) + " gb"
-						  + "\nMarkers / writeBuffer =\t" + numMarkersWrtBuffer
-						  + "\nMarkers / writeBufferChunk =\t" + numMarksPerBufferChunk
-						  + "\nWriteBuffer chunks =\t" + numWrBufferChunks
-						  + "\nMarkerFile size <=\t" + maxMarkerFileSize/1024/1024/1024 + "." + ((int)(maxMarkerFileSize/1024/1024/10.24) - (int)(maxMarkerFileSize/1024/1024/1024*102.4)) + " gb"
-						  + "\nMarkers / markerFile =\t" + maxNumMarkersPerFile
-						  + "\nMarkerFiles =\t" + numMarkerFiles
-						  + "\nWriteBufferChunks / markerFile =\t" + numBufferChunksEachMarkerFile);
+				log.report( "--\nProject:\t" + allMarkerNamesInProj.length + " markers\t" + allSampleNamesInProj.length +" samples"
+						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
+						  + "\nwriteBuffer:\t" + nMarks_WrtBuffer + " markers\t" + nChunks_WrtBuffer+ " chunks\t"+nMarks_Chunk+" Markers/chunk\t" +  ((long) nMarks_WrtBuffer * nBytes_Mark / (long)Runtime.getRuntime().maxMemory() * 100) + "% maxHeap" 
+						  + "\nMarkerFile:\t" + nMarks_File + " markers\t" + nChunks_File + " chunks\t" + markerFileSizeSuggested/1024/1024/1024 + "." + ((int)(markerFileSizeSuggested/1024/1024/10.24) - (int)(markerFileSizeSuggested/1024/1024/1024*102.4)) + " gb\t" + nFiles + " files");
 
 
 				markerIndex = 0;
-				for (int i=0; i<numMarkerFiles; i++) {
+				for (int i=0; i<nFiles; i++) {
 					markerFilenames[i] = proj.getDir(Project.MARKER_DATA_DIRECTORY) + "markers." + i + MarkerData.MARKER_DATA_FILE_EXTENSION;
-					numMarkersCurrentLoop = Math.min(maxNumMarkersPerFile, allMarkerNamesInProj.length - markerIndex);
+					numMarkersCurrentLoop = Math.min(nMarks_File, allMarkerNamesInProj.length - markerIndex);
 					markersInEachFile1 = new String[numMarkersCurrentLoop];
 					for (int j=0; j<numMarkersCurrentLoop; j++) {
-						markerLookupHash.put(allMarkerNamesInProj[markerIndex], "markers." + i + MarkerData.MARKER_DATA_FILE_EXTENSION + "\t" + j);
+						markerLookup.put(allMarkerNamesInProj[markerIndex], "markers." + i + MarkerData.MARKER_DATA_FILE_EXTENSION + "\t" + j);
 						markersInEachFile1[j] = allMarkerNamesInProj[markerIndex];
 						markerIndex ++;
 					}
@@ -165,19 +178,20 @@ public class TransposeData {
 				}
 		
 				indexFirstMarkerCurrentIteration = 0;
-				readBuffer = new byte[numMarkersWrtBuffer * bytesPerSampMark];
+				readBuffer = new byte[nMarks_WrtBuffer * bytesPerSampMark];
 				
-				writeBuffer = new byte[numWrBufferChunks][numMarksPerBufferChunk * numBytesPerMarker];
-//				markFileOutliersWriteBufferVec = new Vector[numChunksInWriteBuffer];
-//				log.report("After WriteBuffer\t"+ext.reportMemoryUsage());
+				writeBuffer = new byte[nChunks_WrtBuffer][nMarks_Chunk * nBytes_Mark];
+				wrtBufferSizes = new int[nChunks_WrtBuffer];
+				for (int i = 0; i < wrtBufferSizes.length; i++) {
+					wrtBufferSizes[i] = writeBuffer[i].length;
+				}
 				
 				if (!safe) {
 					safe = true;
 					throw new OutOfMemoryError(); // one more round to be on the safe side
 				}
-				log.report("Memory optimization took "+oomeLoops+" round(s) ("+ext.prettyUpSize(memoryReserve, 1)+" was kept in reserve)");
 				
-				new MarkerLookup(markerLookupHash).serialize(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false));
+				new MarkerLookup(markerLookup).serialize(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false));
 
 //				timerLoadFiles = 0;
 				timerTmp = new Date().getTime();
@@ -189,44 +203,33 @@ public class TransposeData {
 				}
 //				timerLoadFiles += (new Date().getTime() - timerTmp);
 	
-				markerFileIndex = 0;
-				indexWrBufferChunk = 0;
-				numBufferChunksNeededCurrentMarkFile = numBufferChunksEachMarkerFile;
-				isFileClosed = true;
-	
-//				allOutliers = new Hashtable<String, Float>();
-//				markFileWriteBufferOutliersAdj = new Hashtable<String, Float>();
 				if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser").exists()) {
 					allOutliers = (Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 				} else {
 					allOutliers = new Hashtable<String, Float>();
 				}
-				markFileWriteBufferOutliers = getOutlierHashForEachFile(allOutliers, numMarkerFiles, maxNumMarkersPerFile, allSampleNamesInProj);
+				markFileOutliers = getOutlierHashForEachFile(allOutliers, nFiles, nMarks_File, allSampleNamesInProj);
 
+				markerFileIndex = 0;
+				numBufferChunksNeededCurrentMarkFile = 0;
+				isFileClosed = true;
+	
 				timerWriteFiles = 0;
-				log.report("--\ni\tLoad\tTranpose\tWrite");
-				for(int i=0; i<timesEachSampleFileBeRead; i++) {
-//					log.report(i + " - " + ext.reportMemoryUsage());
-					if ((i+1)==timesEachSampleFileBeRead && numMarkersLastReadRound != 0) {
-						readBuffer = new byte[numMarkersLastReadRound * bytesPerSampMark];
-						numWrBufferChunks = (int) Math.ceil((double)numMarkersLastReadRound / (double)numMarksPerBufferChunk);
-//						markFileWriteBufferOutliers = new Hashtable[numWrBufferChunks];
-						if ( numWrBufferChunks>1 ) {
-							writeBuffer = null;
-							writeBuffer = new byte[numWrBufferChunks][numMarksPerBufferChunk * numBytesPerMarker];
-							numMarkersLastReadRoundLastBuffer = numMarkersLastReadRound % numMarksPerBufferChunk;
-							if ( numMarkersLastReadRoundLastBuffer!=0 ) {
-								writeBuffer[numWrBufferChunks-1] = new byte[numMarkersLastReadRoundLastBuffer * numBytesPerMarker];
-							}
-						} else {
-							writeBuffer = null;
-							writeBuffer = new byte[numWrBufferChunks][numMarkersLastReadRound * numBytesPerMarker];
+				log.report("--\ni (<" + nRounds_LoadSampFile + ")\tLoad\tTranpose\tWrite");
+				for(int i=0; i<nRounds_LoadSampFile; i++) {
+					if ((i+1)==nRounds_LoadSampFile && nMarks_LastRound != 0) {
+//						readBuffer = new byte[nMarks_LastRound * bytesPerSampMark];
+						nChunks_WrtBuffer = (int) Math.ceil((double)nMarks_LastRound / (double)nMarks_Chunk);
+						for (int j = nChunks_WrtBuffer; j< writeBuffer.length; j++) {
+							wrtBufferSizes[j] = 0;
 						}
+						wrtBufferSizes[nChunks_WrtBuffer - 1] = (nMarks_LastRound % nMarks_Chunk) * nBytes_Mark; 
 					}
 //					for (int j=0; j<markFileWriteBufferOutliers.length; j++) {
 //						markFileWriteBufferOutliers[j] = new Hashtable<String, Float>();
 //					}
 
+					// --- Step 1 --- Load sample files into buffer
 					timerLoadFiles = 0;
 					timerTransposeMemory = 0;
 					for (int j=0; j<allSampleNamesInProj.length; j++) {
@@ -248,7 +251,7 @@ public class TransposeData {
 						timerLoadFiles += (new Date().getTime() - timerTmp);
 						timerTmp = new Date().getTime();
 
-						transposeBuffer(writeBuffer, readBuffer, bytesPerSampMark, indexFirstMarkerCurrentIteration, j, allSampleNamesInProj.length);
+						transposeBuffer(writeBuffer, wrtBufferSizes, readBuffer, bytesPerSampMark, indexFirstMarkerCurrentIteration, j, allSampleNamesInProj.length);
 
 						timerTransposeMemory += (new Date().getTime() - timerTmp);
 
@@ -258,76 +261,50 @@ public class TransposeData {
 					}
 					log.report(i + "\t" + timeFormat.format(timerLoadFiles) + "\t" + timeFormat.format(timerTransposeMemory), false, true);
 
-					while (numBufferChunksNeededCurrentMarkFile > 0 && (indexWrBufferChunk + numBufferChunksNeededCurrentMarkFile) <= writeBuffer.length) {
-//						if (numBufferChunksNeededCurrentMarkFile == numBufferChunksEachMarkerFile) {
-						if (markFileWriteBufferOutliers == null || markFileWriteBufferOutliers.elementAt(markerFileIndex).size() == 0) {
-							markFileWriteBufferOutliersBytes = new byte[0];
+
+					// --- Step 2 --- Dump write buffer to marker files
+					nIterations = Math.min(countTotalChunks_wrtBuffer, nChunks_WrtBuffer);
+					countTotalChunks_wrtBuffer -= nIterations;
+					for (int j = 0; j < nIterations; j ++) {
+						if (isFileClosed) {
+							numBufferChunksNeededCurrentMarkFile = Math.min(nChunks_File, countTotalChunks_MarkerFile);
+							countTotalChunks_MarkerFile -= numBufferChunksNeededCurrentMarkFile;
+							markFileParameterSection = getWriteBufferParameterSection(allSampleNamesInProj.length, markerFileIndex == (nFiles - 1)? allMarkerNamesInProj.length % nMarks_File : nMarks_File, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
+							timerWriteFiles = 0;
+							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");
 						} else {
-							markFileWriteBufferOutliersBytes = Compression.objToBytes(markFileWriteBufferOutliers.elementAt(markerFileIndex));
+							markFileParameterSection = null;
+						}
+
+						if ((j + numBufferChunksNeededCurrentMarkFile) > nIterations) {
+							end = nIterations - 1;
+							markFileOutliersBytes = null;
+							isFileClosed = false;
+							numBufferChunksNeededCurrentMarkFile -= (nIterations - j);
+							j = nIterations;
+						} else {
+							end = j + numBufferChunksNeededCurrentMarkFile - 1;
+							if (markFileOutliers == null || markFileOutliers[markerFileIndex].size() == 0) {
+								markFileOutliersBytes = new byte[0];
+							} else {
+								markFileOutliersBytes = Compression.objToBytes(markFileOutliers[markerFileIndex]);
+							}
+							isFileClosed = true;
+							j += (numBufferChunksNeededCurrentMarkFile - 1);
+							markerFileIndex ++;
 						}
 
 						timerTmp = new Date().getTime();
-
+						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, end, markerFile, markFileParameterSection, markFileOutliersBytes);
 						if (isFileClosed) {
-							markerDataWriteBufferParameter = getWriteBufferParameterSection(allSampleNamesInProj.length, markerFileIndex == (numMarkerFiles - 1)? allMarkerNamesInProj.length % maxNumMarkersPerFile : maxNumMarkersPerFile, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
-							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");
-//							writeBufferToRAF(markersInEachFile, indexWrBufferChunk, indexWrBufferChunk + numBufferChunksNeeded - 1, markerFile, markerDataWriteBufferParameter, markFileWriteBufferOutliersBytes);
-							writeBufferToRAF(writeBuffer, indexWrBufferChunk, indexWrBufferChunk + numBufferChunksNeededCurrentMarkFile - 1, markerFile, markerDataWriteBufferParameter, markFileWriteBufferOutliersBytes);
 							markerFile.close();
-							counterMarkerFileBufferChunks -= numBufferChunksNeededCurrentMarkFile;
-							indexWrBufferChunk += numBufferChunksNeededCurrentMarkFile;
-							numBufferChunksNeededCurrentMarkFile = Math.min(numBufferChunksEachMarkerFile, counterMarkerFileBufferChunks);
-
-							timerWriteFiles += (new Date().getTime() - timerTmp);
-							log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
-							timerWriteFiles = 0;
-						} else {
-							writeBufferToRAF(writeBuffer, indexWrBufferChunk, indexWrBufferChunk + numBufferChunksNeededCurrentMarkFile - 1, markerFile, null, markFileWriteBufferOutliersBytes);
-							markerFile.close();
-							counterMarkerFileBufferChunks -= numBufferChunksNeededCurrentMarkFile;
-							indexWrBufferChunk += numBufferChunksNeededCurrentMarkFile;
-							numBufferChunksNeededCurrentMarkFile = Math.min(numBufferChunksEachMarkerFile, counterMarkerFileBufferChunks);
-							isFileClosed = true;
-
 						}
-						markerFileIndex ++;
 						timerWriteFiles += (new Date().getTime() - timerTmp);
 						log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
-						timerWriteFiles = 0;
+
 					}
-					if (numBufferChunksNeededCurrentMarkFile > 0 && indexWrBufferChunk < writeBuffer.length) {
-						timerTmp = new Date().getTime();
 
-						counterMarkerFileBufferChunks -= (writeBuffer.length - indexWrBufferChunk);
-						if (isFileClosed) {
-							markerDataWriteBufferParameter = getWriteBufferParameterSection(allSampleNamesInProj.length, markerFileIndex == (numMarkerFiles - 1)? allMarkerNamesInProj.length % maxNumMarkersPerFile : maxNumMarkersPerFile, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
-							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");
-							writeBufferToRAF(writeBuffer, indexWrBufferChunk, writeBuffer.length - 1, markerFile, markerDataWriteBufferParameter, null);
-							isFileClosed = false;
-							numBufferChunksNeededCurrentMarkFile -= (writeBuffer.length - indexWrBufferChunk);
-						} else if ((indexWrBufferChunk + numBufferChunksNeededCurrentMarkFile) > writeBuffer.length) {
-							writeBufferToRAF(writeBuffer, indexWrBufferChunk, writeBuffer.length - 1, markerFile, null, null);
-							numBufferChunksNeededCurrentMarkFile -= (writeBuffer.length - indexWrBufferChunk);
-						} else {
-							if (markFileWriteBufferOutliers == null || markFileWriteBufferOutliers.elementAt(markerFileIndex).size() == 0) {
-								markFileWriteBufferOutliersBytes = new byte[0];
-							} else {
-								markFileWriteBufferOutliersBytes = Compression.objToBytes(markFileWriteBufferOutliers.elementAt(markerFileIndex));
-							}
-							writeBufferToRAF(writeBuffer, indexWrBufferChunk, indexWrBufferChunk + numBufferChunksNeededCurrentMarkFile - 1, markerFile, null, markFileWriteBufferOutliersBytes);
-							markerFile.close();
-							isFileClosed = true;
-							markerFileIndex ++;
-							numBufferChunksNeededCurrentMarkFile = Math.min(numBufferChunksEachMarkerFile, counterMarkerFileBufferChunks);
-						}
-
-//						numBufferChunksNeededCurrentMarkFile = numBufferChunksEachMarkerFile + indexWrBufferChunk - writeBuffer.length;
-
-						timerWriteFiles += (new Date().getTime() - timerTmp);
-					}
-					indexWrBufferChunk = 0;
-
-					indexFirstMarkerCurrentIteration += numMarkersWrtBuffer;
+					indexFirstMarkerCurrentIteration += nMarks_WrtBuffer;
 					log.report("");
 				}
 
@@ -338,17 +315,85 @@ public class TransposeData {
 				done = true;
 
 			} catch (FileNotFoundException e) {
+				System.err.println(ext.getTime()+"\tFileNotFoundException");
 				e.printStackTrace();
 			} catch (IOException e) {
+				System.err.println(ext.getTime()+"\tIOException");
 				e.printStackTrace();
 			} catch (OutOfMemoryError oome) {
-				memoryReserve *= 1.1;
-				oomeLoops++;
+//				System.err.println(ext.getTime()+"\tOut of memory error");
+//				oome.printStackTrace();
+//				memoryReserve *= 1.1;
+				nMarks_WrtBuffer *= 0.9;
+				deleteOlderRafs(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false), null, new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
 			}
 
 		} 
 		timerOverAll = (new Date().getTime() - timerOverAll);
 		log.report("--\nFinished transposing data. Total Time used: "+ timeFormat.format(timerOverAll));
+	}
+
+
+	private static int[] optimizeFileAndBufferSize(int nMarks_WrtBuffer, int nMarks_Proj, int nBytes_Mark, int nMarks_File) {
+		int nMarks1_File;
+		int nMarks1_WrtBuffer;
+		int nMarks1_Chunk;
+		int nChunks1_WrtBuffer;
+		int nChunks1_File;
+
+		int nRounds_SampFile;
+		int nRounds_MarkFile;
+		int nMarks_WrtBuffer_Min;
+		int nChunks_WrtBuffer_Max;
+		int nChunks_WrtBuffer_Min;
+		int nMarks_Chunk_Max;
+		int nMarks_Chunk_Min;
+
+//		if ((nMarks_WrtBuffer * nBytes_Mark) > Integer.MAX_VALUE) {
+		if ((Integer.MAX_VALUE / nBytes_Mark) < nMarks_WrtBuffer) {
+			nRounds_SampFile = (int) Math.ceil((double) nMarks_Proj / nMarks_WrtBuffer);
+			nMarks_WrtBuffer_Min = (int) Math.ceil((double)nMarks_Proj / nRounds_SampFile);
+
+			nMarks_Chunk_Max = Integer.MAX_VALUE / nBytes_Mark;
+			nRounds_MarkFile = (int) Math.ceil((double) nMarks_Proj / nMarks_Chunk_Max);
+			nMarks_Chunk_Min = nMarks_Proj / nRounds_MarkFile;
+
+			nChunks_WrtBuffer_Max = nMarks_WrtBuffer / nMarks_Chunk_Min;
+			nChunks_WrtBuffer_Min =  nMarks_WrtBuffer_Min / nMarks_Chunk_Max;
+
+			while (nChunks_WrtBuffer_Max == nChunks_WrtBuffer_Min && nMarks_WrtBuffer % nMarks_Chunk_Min != nMarks_WrtBuffer_Min % nMarks_Chunk_Max) {
+				nRounds_MarkFile ++;
+				nMarks_Chunk_Min = nMarks_Proj / nRounds_MarkFile;
+				nChunks_WrtBuffer_Max = nMarks_WrtBuffer / nMarks_Chunk_Min;
+			}
+
+//			if (nChunks_WrtBuffer_Max == nChunks_WrtBuffer_Min) {
+//				nChunks1_WrtBuffer = nChunks_WrtBuffer_Min;
+////				nRounds_WrtMarkFile = nMarks_WrtBuffer / nChunks1_WrtBuffer;
+//				nMarks1_Chunk = (int) Math.ceil((double)nMarks_Proj / nRounds_MarkFile);
+//				nChunks1_WrtBuffer = (int) Math.ceil((double) nMarks_WrtBuffer / Integer.MAX_VALUE);
+////				nMarks1_WrtBuffer = 0;
+////				nMarks1_Chunk = nMarks_WrtBuffer / nChunks1_WrtBuffer;
+////				nChunks1_WrtBuffer = nMarks1_WrtBuffer / nMarks1_Chunk;
+//			} else {
+				nChunks1_WrtBuffer = nChunks_WrtBuffer_Max;
+				if ((nChunks1_WrtBuffer * nMarks_Chunk_Min) >= nMarks_WrtBuffer_Min) {
+					nMarks1_Chunk = nMarks_Chunk_Min;
+				} else {
+					nMarks1_Chunk = nMarks_WrtBuffer_Min / nChunks1_WrtBuffer;
+				}
+//			}
+
+		} else {
+			nChunks1_WrtBuffer = 1;
+			nMarks1_Chunk = nMarks_WrtBuffer;
+		}
+
+		nMarks1_WrtBuffer = nChunks1_WrtBuffer * nMarks1_Chunk;
+		nChunks1_File = (int) Math.round((double) nMarks_File / nMarks1_Chunk);
+		nMarks1_File = nChunks1_File * nMarks1_Chunk;
+
+		return new int[] {nMarks1_File, nMarks1_WrtBuffer, nChunks1_WrtBuffer, nMarks1_Chunk, nChunks1_File};
 	}
 
 
@@ -400,7 +445,7 @@ public class TransposeData {
 	}
 
 
-	private static void transposeBuffer(byte[][] writeBuffer, byte[] readBuffer, byte bytesPerSampMark, int indexOfFirstMarkerInBuffer, int indexOfCurrentSample, int numSamplesInProj) {
+	private static void transposeBuffer(byte[][] writeBuffer, int[] wrtBufferSizes, byte[] readBuffer, byte bytesPerSampMark, int indexOfFirstMarkerInBuffer, int indexOfCurrentSample, int numSamplesInProj) {
 		int numMarkersInChunk;
 		int indexInReadBuffer;
 		int indexInChunk;
@@ -410,7 +455,8 @@ public class TransposeData {
 		step = numSamplesInProj * bytesPerSampMark;
 //		indexInChunk = indexOfCurrentSample * bytesPerSampMark;
 		for (int i=0; i < writeBuffer.length; i++) {
-			numMarkersInChunk = writeBuffer[i].length / bytesPerSampMark / numSamplesInProj;
+//			numMarkersInChunk = writeBuffer[i].length / bytesPerSampMark / numSamplesInProj;
+			numMarkersInChunk = wrtBufferSizes[i] / bytesPerSampMark / numSamplesInProj;
 			indexInChunk = indexOfCurrentSample * bytesPerSampMark;
 //			if (i>0) {
 //				indexInChunk -= writeBuffer[i-1].length;
@@ -550,15 +596,15 @@ public class TransposeData {
 //		log.report("");
 	}
 
-	public static void writeBufferToRAF(byte[][] buffer, String fileName, byte[] head, byte[] tail) {
-		writeBufferToRAF(buffer, 0, buffer.length, fileName, head, tail);
+	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, String fileName, byte[] head, byte[] tail) {
+		writeBufferToRAF(buffer, bufferLength, 0, buffer.length, fileName, head, tail);
 	}
 
-	public static void writeBufferToRAF(byte[][] buffer, int start, int end, String fileName, byte[] head, byte[] tail) {
+	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int start, int end, String fileName, byte[] head, byte[] tail) {
 		RandomAccessFile markerFile;
 		try {
 			markerFile = new RandomAccessFile(fileName, "rw");
-			writeBufferToRAF(buffer, start, end, markerFile, head, tail);
+			writeBufferToRAF(buffer, bufferLength, start, end, markerFile, head, tail);
 			markerFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -570,7 +616,7 @@ public class TransposeData {
 	 * tail == null means this file is not yet ended;
 	 * teil.length = 0 means this file is ended, but there is no content in the tail.
 	 */
-	public static void writeBufferToRAF(byte[][] buffer, int indexOfStart, int indexOfEnd, RandomAccessFile markerFile, byte[] head, byte[] tail) {
+	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart, int indexOfEnd, RandomAccessFile markerFile, byte[] head, byte[] tail) {
 		
 		if (buffer==null || indexOfStart<0 || indexOfEnd>=buffer.length || indexOfEnd<indexOfStart) {
 			System.err.println("Transpose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
@@ -581,11 +627,10 @@ public class TransposeData {
 			if (head != null && head.length != 0) {
 					markerFile.write(head);
 			}
-			for (int i=indexOfStart; i<=indexOfEnd; i++) {
-	//	    	timer4 = new Date().getTime();
-				markerFile.write(buffer[i]);
+			for (int i = indexOfStart; i <= indexOfEnd && bufferLength[i] != 0; i++) {
+				markerFile.write(buffer[i], 0, bufferLength[i]);
 			}
-			if (tail!=null) {
+			if (tail != null) {
 				markerFile.writeInt(tail.length);
 				if (tail.length!=0) {
 					markerFile.write(tail);
@@ -596,16 +641,16 @@ public class TransposeData {
 		}
 	}
 
-	private static Vector<Hashtable<String, Float>> getOutlierHashForEachFile(Hashtable<String, Float> allOutliers, int numMarkerFiles, int numMarkersInEachFile, String[] sampleNames) {
-		Vector<Hashtable<String, Float>> result;
+	private static Hashtable<String, Float>[] getOutlierHashForEachFile(Hashtable<String, Float> allOutliers, int numMarkerFiles, int numMarkersInEachFile, String[] sampleNames) {
+		Hashtable<String, Float>[] result;
 		Enumeration<String> keys;
 		String key;
 		String[] line;
 		int sampleIndex = -1;
 		
-		result = new Vector<Hashtable<String,Float>>(numMarkerFiles);
-		for (int j=0; j<numMarkerFiles; j++) {
-			result.add(new Hashtable<String, Float>(allOutliers.size()));
+		result = new Hashtable[numMarkerFiles];
+		for (int i=0; i<numMarkerFiles; i++) {
+			result[i] = new Hashtable<String, Float>();
 		}
 
 		keys = allOutliers.keys();
@@ -621,11 +666,42 @@ public class TransposeData {
 			if (sampleIndex == -1) {
 				System.err.println("Error - Cannot find the sample " + line[1] + "in the project's sample list.");
 			}
-			result.elementAt(Integer.parseInt(line[0]) / numMarkersInEachFile).put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex, allOutliers.get(key));
+			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex, allOutliers.get(key));
 		}
 
 		return result;
 	}
+
+//	private static Vector<Hashtable<String, Float>> getOutlierHashForEachFile(Hashtable<String, Float> allOutliers, int numMarkerFiles, int numMarkersInEachFile, String[] sampleNames) {
+//		Vector<Hashtable<String, Float>> result;
+//		Enumeration<String> keys;
+//		String key;
+//		String[] line;
+//		int sampleIndex = -1;
+//		
+//		result = new Vector<Hashtable<String,Float>>(numMarkerFiles);
+//		for (int j=0; j<numMarkerFiles; j++) {
+//			result.add(new Hashtable<String, Float>(allOutliers.size()));
+//		}
+//
+//		keys = allOutliers.keys();
+//		while (keys.hasMoreElements()) {
+//			key = keys.nextElement();
+//			line = key.split("\t");
+//			for (int i=0; i<sampleNames.length; i++) {
+//				if (sampleNames[i].equals(line[1])) {
+//					sampleIndex = i;
+//					break;
+//				}
+//			}
+//			if (sampleIndex == -1) {
+//				System.err.println("Error - Cannot find the sample " + line[1] + "in the project's sample list.");
+//			}
+//			result.elementAt(Integer.parseInt(line[0]) / numMarkersInEachFile).put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex, allOutliers.get(key));
+//		}
+//
+//		return result;
+//	}
 
 //	private static byte[] getWriteBufferParameterSection(int numSampsInProj, int numMarkersInCurrentFile, byte nullStatus, long fingerPrint, String[] currentFileMarkerNames) {
 //		byte[] markerNamesBytes;
@@ -705,7 +781,7 @@ public class TransposeData {
 						}
 					}
 				}
-				if (result) {
+				if (result && excludes != null) {
 					for (int i=0; i<excludes.length; i++) {
 						if (ext.removeDirectoryInfo(filename).equals(excludes[i])) {
 							result = false;
@@ -962,12 +1038,17 @@ public class TransposeData {
 
 
 
+	public static void showHeap(String caller) {
+		System.out.println(caller + "\tmaxMem: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
+				+ "\tfreeMem: " + ext.prettyUpSize(Runtime.getRuntime().freeMemory(), 1)
+				+ "\ttotalMem: " + ext.prettyUpSize(Runtime.getRuntime().totalMemory(), 1));
+	}
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
 //		String filename = Project.DEFAULT_PROJECT;
-		String filename = "C:/workspace/Genvisis/projects/gedi_exome.properties";
+		String filename = "C:/workspace/Genvisis/projects/gedi_exome_top.properties";
 //		String filename = "C:/workspace/Genvisis/projects/practice.properties";
 //		String demo = "flagged_results.txt";
 //		boolean transpose = false;
@@ -1019,7 +1100,7 @@ public class TransposeData {
 //		lookup = true;
 		try {
 			if (transpose) {
-				transposeData(proj, maxFileSize, true, null);
+				transposeData(proj, maxFileSize, false, null);
 			} else if (lookup) {
 				recreateMarkerLookup(proj);
 			} else {
@@ -1027,6 +1108,7 @@ public class TransposeData {
 				System.out.println(usage);
 			}
 		} catch (Exception e) {
+			System.err.println(ext.getTime()+"\tExcepted");
 			e.printStackTrace();
 		}
 	}

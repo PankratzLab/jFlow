@@ -282,7 +282,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);
 			} else if (command.equals(TRANSPOSE_DATA)) {
-				TransposeData.transposeData(proj, 2000000000, true, proj.getLog());
+				TransposeData.transposeData(proj, 2000000000, false, proj.getLog());
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				String filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
 				System.out.println("using "+filename);

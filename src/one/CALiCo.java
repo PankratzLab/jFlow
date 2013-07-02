@@ -158,7 +158,7 @@ public class CALiCo {
 					new File(resultDir  + models[i] + "/" + root + "_covars.dat").delete();
 	
 					runAndParseResults(condGenoPlinkDirPlusRoot, resultDir + models[i] + "/" + root, resultDir + models[i] + "/" + models[i] + "_covars.dat", sexAsCovariate, scratchDir, resultDir + models[i] + "/", models[i], logs[i]);
-					new File(resultDir + models[i] + "/" + models[i] + ".out").renameTo(new File(resultDir + models[i] + ".out"));
+//					new File(resultDir + models[i] + "/" + models[i] + ".out").renameTo(new File(resultDir + models[i] + ".out"));
 	
 					GenParser.parse(args, logs[i]);
 
@@ -282,7 +282,7 @@ public class CALiCo {
 		}
 		fileParameters[models.length+2] = resultDir+"minimumPvalues.txt 0 1=minPval tab";
 		
-		Files.combine(uniqueMarkers, fileParameters, null, "MarkerName", ".", resultDir+"topHits.xln", log, true, true, false);
+		Files.combine(uniqueMarkers, fileParameters, null, "MarkerName", ".", resultDir + "topHits.xln", log, true, true, false);
 	}
 
 
@@ -806,6 +806,7 @@ public class CALiCo {
 
 	public static void runAndParseResults(String genoFileDirPlusRoot, String phenoFileDirPlusRoot, String covarFileDirPlusName, boolean sexAsCovariate, String scratchDir, String resultDir, String outFileRoot, Logger log) {
 		String[] commands;
+		String plinkResultFile;
 
 		if(scratchDir==null) {
 			scratchDir = resultDir;
@@ -821,11 +822,22 @@ public class CALiCo {
 		CmdLine.run(resultDir + "run_" + outFileRoot + ".bat", "");
 		
 		//parse results
-		if (new File(scratchDir + outFileRoot + ".assoc.logistic").exists()) {
-			ResultsPackager.parseStdFormatFromPlink("", scratchDir + outFileRoot + ".assoc.logistic", "ADD", genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + ".out", log);
-		} else {
-			ResultsPackager.parseStdFormatFromPlink("", scratchDir + outFileRoot + ".assoc.linear", "ADD", genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + ".out", log);
+//		if (new File(scratchDir + outFileRoot + ".assoc.logistic").exists()) {
+//			ResultsPackager.parseStdFormatFromPlink("", scratchDir + outFileRoot + ".assoc.logistic", "ADD", genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + ".out", log);
+//			ResultsPackager.parseStdFormatFromPlink("", scratchDir + outFileRoot + ".assoc.logistic", outFileRoot.replace("_", ":"), genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + "_cov.out", log);
+//		} else {
+//			ResultsPackager.parseStdFormatFromPlink("", scratchDir + outFileRoot + ".assoc.linear", "ADD", genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + ".out", log);
+//			ResultsPackager.parseStdFormatFromPlink("", scratchDir + outFileRoot + ".assoc.linear", outFileRoot.replace("_", ":"), genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + "_cov.out", log);
+//		}
+
+		plinkResultFile = scratchDir + outFileRoot + ".assoc.linear";
+		if (! new File(plinkResultFile).exists()) {
+			plinkResultFile = scratchDir + outFileRoot + ".assoc.logistic";
 		}
+
+		resultDir = resultDir.substring(0, resultDir.lastIndexOf("/", resultDir.length()-2)+1); 
+		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile, "ADD", genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + ".out", log);
+		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile, outFileRoot.substring(outFileRoot.indexOf("_") + 1).replace("_", ":"), genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + "_cov.out", log);
 	}
 
 
@@ -835,11 +847,11 @@ public class CALiCo {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-//		String genos = "N:/statgen/CALiCo/filteredGenotypes/plink";
-		String genos = "N:/statgen/CALiCo_ARIC/filteredGenotypes/plink";
+		String genos = "N:/statgen/CALiCo/filteredGenotypes/plink";
+//		String genos = "N:/statgen/CALiCo_ARIC/filteredGenotypes/plink";
 		String phenoCovarFilename = "N:/statgen/CALiCo/LungFunction/CARDIA_Squared/xln/MODEL1.xln";
-//		String phenoCovarDir = "N:/statgen/CALiCo/LungFunction/CARDIA_test/xln/";
-		String phenoCovarDir = "N:/statgen/CALiCo_ARIC/LungFunction/xln/";
+		String phenoCovarDir = "N:/statgen/CALiCo/FPG_INSULIN/CARDIA_conditional_add/xln_test/";
+//		String phenoCovarDir = "N:/statgen/CALiCo_ARIC/LungFunction/xln/";
 //		String scratchDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/scratches/";
 		String scratchDir = "D:/scratch/";
 //		String resultDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/results/";
