@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -55,6 +56,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
 		cnvPanel = new CNVPanel();
+		cnvPanel.setDisplayMode(displayMode);
 		add(cnvPanel);
 
 		add(Box.createGlue());
@@ -69,7 +71,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		dmPanel.add(lblDisplayMode);
 
 		JComboBox<String> comboBox = new JComboBox<String>();
-		comboBox.setModel(new DefaultComboBoxModel<String>(new String[] { "Full", "Abbreviated", "Compressed" }));
+		comboBox.setModel(new DefaultComboBoxModel<String>(new String[] { "Full", "Pack", "Collapsed" }));
 		comboBox.addActionListener(this);
 		dmPanel.add(comboBox);
 		configPanel.add(dmPanel);
@@ -162,6 +164,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		String mode = (String) cb.getSelectedItem();
 		firePropertyChange("displayMode", displayMode, mode);
 		displayMode = mode;
+		cnvPanel.setDisplayMode(displayMode);
 	}
 
 	public String getDisplayMode() {
@@ -184,15 +187,15 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		return rectangleHeight;
 	}
 
-	public void setSelectedCNV(CNVariant cnv) {
-		cnvPanel.setCNV(cnv);
+	public void setSelectedCNVs(Vector<CNVariant> cnvs) {
+		cnvPanel.setCNVs(cnvs);
 	}
 
 }
 
 class CNVPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
-	CNVariant selectedCNV;
+	Vector<CNVariant> selectedCNVs;
 	JPanel cnvPanel;
 	JLabel iid; // Individual ID
 	JLabel fid; // Family ID
@@ -200,6 +203,7 @@ class CNVPanel extends JPanel {
 	JLabel copies; // CNV copy number
 	JLabel probes; // Number of probes
 	JLabel score; // Quality score
+	String displayMode;
 
 	public CNVPanel() {
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
@@ -245,14 +249,121 @@ class CNVPanel extends JPanel {
 	}
 
 	// Update the fields
-	public void setCNV(CNVariant cnv) {
-		selectedCNV = cnv;
-		iid.setText(selectedCNV.getIndividualID());
-		fid.setText(selectedCNV.getFamilyID());
-		length.setText("" + selectedCNV.getSize());
-		copies.setText("" + selectedCNV.getCN());
-		probes.setText("" + selectedCNV.getNumMarkers());
-		score.setText("" + selectedCNV.getScore());
+	public void setCNVs(Vector<CNVariant> cnvs) {
+		selectedCNVs = cnvs;
+
+		if (displayMode.equals("Collapsed")) {
+			int maxLength = 0;
+			int minLength = Integer.MAX_VALUE;
+			int maxCopies = 0;
+			int minCopies = Integer.MAX_VALUE;
+			int maxProbes = 0;
+			int minProbes = Integer.MAX_VALUE;
+			double maxScore = 0;
+			double minScore = Double.MAX_VALUE;
+			Vector<String> iids = new Vector<String>();
+			Vector<String> fids = new Vector<String>();
+
+			for (CNVariant cnv : selectedCNVs) {
+				String iid = cnv.getIndividualID();
+				String fid = cnv.getFamilyID();
+				int cnvLength = cnv.getSize();
+				int cnvCopies = cnv.getCN();
+				int cnvProbes = cnv.getNumMarkers();
+				double cnvScore = cnv.getScore();
+
+				// Count iids
+				if (!iids.contains(iid)) {
+					iids.add(iid);
+				}
+
+				// Count fids
+				if (!fids.contains(fid)) {
+					fids.add(fid);
+				}
+
+				// Set min/max length
+				if (cnvLength < minLength) {
+					minLength = cnvLength;
+				}
+				if (cnvLength > maxLength) {
+					maxLength = cnvLength;
+				}
+
+				// Set min/max copies
+				if (cnvCopies < minCopies) {
+					minCopies = cnvCopies;
+				}
+				if (cnvCopies > maxCopies) {
+					maxCopies = cnvCopies;
+				}
+
+				// Set min/max probes
+				if (cnvProbes < minProbes) {
+					minProbes = cnvProbes;
+				}
+				if (cnvProbes > maxProbes) {
+					maxProbes = cnvProbes;
+				}
+
+				// Set min/max score
+				if (cnvScore < minScore) {
+					minScore = cnvScore;
+				}
+				if (cnvScore > maxScore) {
+					maxScore = cnvScore;
+				}
+			}
+
+			if (iids.size() > 1) {
+				iid.setText("Multiple (" + iids.size() + ")");
+			} else {
+				iid.setText("" + iids.get(0));
+			}
+
+			if (fids.size() > 1) {
+				fid.setText("Multiple (" + fids.size() + ")");
+			} else {
+				fid.setText("" + fids.get(0));
+			}
+
+			if (minLength != maxLength) {
+				length.setText(minLength + "-" + maxLength);
+			} else {
+				length.setText("" + minLength);
+			}
+
+			if (minCopies != maxCopies) {
+				length.setText(minCopies + "-" + maxCopies);
+			} else {
+				length.setText("" + minCopies);
+			}
+
+			if (minProbes != maxProbes) {
+				probes.setText(minProbes + "-" + maxProbes);
+			} else {
+				probes.setText("" + minProbes);
+			}
+
+			if (minScore != maxScore) {
+				score.setText(minScore + "-" + maxScore);
+			} else {
+				score.setText("" + minScore);
+			}
+		} else {
+			CNVariant selectedCNV = selectedCNVs.get(0);
+			iid.setText(selectedCNV.getIndividualID());
+			fid.setText(selectedCNV.getFamilyID());
+			length.setText("" + selectedCNV.getSize());
+			copies.setText("" + selectedCNV.getCN());
+			probes.setText("" + selectedCNV.getNumMarkers());
+			score.setText("" + selectedCNV.getScore());
+		}
 		cnvPanel.repaint();
+
+	}
+
+	public void setDisplayMode(String mode) {
+		displayMode = mode;
 	}
 }

@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Vector;
 
 import javax.swing.BoxLayout;
@@ -110,8 +111,9 @@ public class CompPlot extends JFrame {
 		minSize = compConfig.getMinSize();
 		qualityScore = compConfig.getQualityScore();
 		rectangleHeight = compConfig.getRectangleHeight();
+		displayMode = compConfig.getDisplayMode();
 
-		setLocation(regionNavigator.getRegion());
+		setRegion(regionNavigator.getRegion());
 	}
 
 	private void setupGUI() {
@@ -189,25 +191,45 @@ public class CompPlot extends JFrame {
 			variants[i] = cnvhs[i].getAllInRegion((byte) location[0], location[1], location[2], probes, minSize, qualityScore);
 		}
 
+		// Create a hashmap of the CNVs with a Rectangle as the key and quantity as value?
+		HashMap<String, CNVRectangle> cnvMap = new HashMap<String, CNVRectangle>();
+		// Outer loop represents the list of files
 		for (int i = 0; i < cnvhs.length; i++) {
-			// System.out.println("=== variant[" + i + "]");
+			// Inner loop represents the CNVs within each file
 			for (int j = 0; j < variants[i].length; j++) {
-				CNVariant x = variants[i][j];
-				// System.out.println("    Variant" + j + " at " + x.getUCSClocation() + " has " + x.getCN() + " copies");
+				CNVariant variant = variants[i][j];
 
-				int startX = (int) x.getStart() - location[1];
-				int stopX = (int) x.getStop() - location[1];
-
-				CNVRectangle cnvRect = new CNVRectangle(startX, (j * rectangleHeight) + 50, stopX, (j * rectangleHeight) + 70, (byte) 2, true, true, (byte) 2, (byte) 1);
-				cnvRect.setCNV(x);
-
+				int startX = (int) variant.getStart() - location[1];
+				int stopX = (int) variant.getStop() - location[1];
+				CNVRectangle cnvRect = new CNVRectangle(startX, stopX, (byte) 2, true, true, (byte) 2, (byte) 1);
+				cnvRect.addCNV(variant);
 				// Modulus the scheme we choose so it will wrap around in the event of too many files instead of throwing an exception
-				cnvRect.setCNVColor(colorScheme[i % colorScheme.length]);
+				cnvRect.setCNVColor(colorScheme[i % colorScheme.length], displayMode);
+
+				if (displayMode.equals("Collapsed")) {
+					// Collapsed display (CNVs with the same start and length are shown as one rectangle)
+					String ucscLocation = variant.getUCSClocation();
+					if (!cnvMap.containsKey(ucscLocation)) {
+						cnvMap.put(ucscLocation, cnvRect);
+					} else {
+						CNVRectangle rect = cnvMap.get(ucscLocation);
+						rect.addCNV(variant);
+					}
+				} else {
+					// Full or Packed display mode (one CNV per rectangle)
+					rectangles.add(cnvRect);
+				}
+			}
+		}
+
+		// Fill in the collapsed rectangles
+		if (displayMode.equals("Collapsed")) {
+			for (CNVRectangle cnvRect : cnvMap.values()) {
 				rectangles.add(cnvRect);
 			}
 		}
 
-		if (rectangles != null) {
+		if (rectangles.size() > 0) {
 			// Set the preferred size of the window to be large enough to encompass all of the rectangles
 			compPanel.setPreferredSize(new Dimension(800, (rectangles.size() * rectangleHeight) + rectangleHeight));
 			compPanel.setRectangleHeight(rectangleHeight);
@@ -223,10 +245,6 @@ public class CompPlot extends JFrame {
 	public void setFiles(String[] files) {
 		this.files = files;
 	}
-
-	// public String getGeneLocation() {
-	// return geneLocation;
-	// }
 
 	/*
 	 * Methods to set values pulled from CompConfig
@@ -252,22 +270,26 @@ public class CompPlot extends JFrame {
 	}
 
 	public void setDisplayMode(String dm) {
-		System.out.println("Changing display mode");
 		displayMode = dm;
+		loadCNVs(location);
 	}
 
-	public void setSelectedCNV(CNVariant cnv) {
-		compConfig.setSelectedCNV(cnv);
+	public void setSelectedCNVs(Vector<CNVariant> cnvs) {
+		compConfig.setSelectedCNVs(cnvs);
 	}
 
 	/*
 	 * Method to set values pulled from RegionNavigator
 	 */
-	public void setLocation(Region region) {
+	public void setRegion(Region region) {
 		location = Positions.parseUCSClocation(region.getRegion());
 		chromosomeViewer.updateView(location[0], location[1], location[2]);
 		loadCNVs(location);
 		chromosomeViewer.repaint();
+	}
+
+	public Region getRegion() {
+		return regionNavigator.getRegion();
 	}
 }
 
@@ -299,10 +321,12 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 			// } else if (propertyName.equals("lastRegion")) {
 		} else if (propertyName.equals("location")) {
 			// System.out.println("Changing from " + pve.getOldValue() + " to " + pve.getNewValue());
-			compPlot.setLocation((Region) pve.getNewValue());
+			compPlot.setRegion((Region) pve.getNewValue());
 		} else if (propertyName.equals("selectedCNV")) {
 			System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
-			compPlot.setSelectedCNV((CNVariant) pve.getNewValue());
+			@SuppressWarnings("unchecked")
+			Vector<CNVariant> cnvs = (Vector<CNVariant>) pve.getNewValue();
+			compPlot.setSelectedCNVs(cnvs);
 		} else {
 			// System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
 		}
@@ -317,26 +341,54 @@ class CompPropertyChangeListener implements PropertyChangeListener {
  *         Contains the CNVariant and a color based on the file from which it came
  */
 class CNVRectangle extends GenericRectangle {
-	private CNVariant cnv;
+	private Vector<CNVariant> cnvs;
 	private Color CNVColor;
 	private Rectangle rect;
 	private boolean selected;
+	private int quantity; // How many CNVs are represented by this rectangle
 
-	public CNVRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
-		super(startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer);
+	public CNVRectangle(float startX, float stopX, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
+		// Y coord doesn't matter, that'll get set at render time
+		super(startX, 0, stopX, 0, thickness, fill, roundedCorners, color, layer);
+		quantity = 1;
 		selected = false;
+		cnvs = new Vector<CNVariant>();
+	}
+
+	// public CNVariant getCNV() {
+	// return cnv;
+	// }
+	//
+	// public void setCNV(CNVariant cnv) {
+	// this.cnv = cnv;
+	// }
+
+	public Vector<CNVariant> getCNVs() {
+		return cnvs;
 	}
 
 	public CNVariant getCNV() {
-		return cnv;
+		return cnvs.get(0);
 	}
 
-	public void setCNV(CNVariant cnv) {
-		this.cnv = cnv;
+	public void setCNVs(Vector<CNVariant> variants) {
+		cnvs = variants;
+	}
+
+	public void addCNV(CNVariant variant) {
+		cnvs.add(variant);
 	}
 
 	public Color getCNVColor() {
 		return CNVColor;
+	}
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(int newQuantity) {
+		quantity = newQuantity;
 	}
 
 	/**
@@ -344,8 +396,18 @@ class CNVRectangle extends GenericRectangle {
 	 * 
 	 * @param CNVColor
 	 */
-	public void setCNVColor(Color CNVColor) {
-		int copies = cnv.getCN();
+	public void setCNVColor(Color CNVColor, String displayMode) {
+		// Default to 2 copies
+		int copies = 2;
+
+		// Only change the brightness if we're in Full or Compressed mode.
+		// There's only one CNV in this CNVRectangle for Full and Pack, could be multiple if it's Compressed
+		if (cnvs.size() > 0) {
+			if (displayMode.equals("Full") || displayMode.equals("Pack")) {
+				copies = cnvs.get(0).getCN();
+			}
+		}
+
 		// Need to adjust the brightness
 		float[] hsbVals = Color.RGBtoHSB(CNVColor.getRed(), CNVColor.getGreen(), CNVColor.getBlue(), null);
 		float newBrightness = hsbVals[2];
@@ -362,7 +424,6 @@ class CNVRectangle extends GenericRectangle {
 		} else {
 			// Normal number of copies, no change in brightness
 		}
-
 		this.CNVColor = Color.getHSBColor(hsbVals[0], hsbVals[1], newBrightness);
 	}
 
