@@ -101,10 +101,9 @@ class ComboBoxRenderer extends JPanel implements ListCellRenderer<Object> {
 
 		text.setBackground(getBackground());
 
-		// Wrap around if we have more files than colors
 		text.setText(value.toString());
 		if (index > -1) {
-			text.setForeground(colors[colors.hashCode() % (index + 1)]);
+			text.setForeground(colors[index]);
 		}
 		return text;
 	}

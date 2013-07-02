@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Vector;
 
 import javax.swing.JPanel;
 
@@ -22,7 +23,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	public static final long serialVersionUID = 1L;
 	CNVRectangle[] rectangles;
 	float scalingFactor;
-	CNVariant selectedCNV;
+	Vector<CNVariant> selectedCNVs;
 	int rectangleHeight = 10;
 
 	public CompPanel(CompPlot cp) {
@@ -79,9 +80,9 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		for (int i = 0; i < rectangles.length; i++) {
 			Rectangle rect = rectangles[i].getRect();
 			if (rect.contains(e.getPoint())) {
-				CNVariant currentCNV = rectangles[i].getCNV();
-				firePropertyChange("selectedCNV", selectedCNV, currentCNV);
-				selectedCNV = currentCNV;
+				Vector<CNVariant> currentCNVs = rectangles[i].getCNVs();
+				firePropertyChange("selectedCNV", selectedCNVs, currentCNVs);
+				selectedCNVs = currentCNVs;
 				rectangles[i].setSelected(true);
 				// TODO link off to Trailer
 			} else {
@@ -127,6 +128,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		for (int i = 0; i < rectangles.length; i++) {
 			Rectangle rect = rectangles[i].getRect();
 			if (rect.contains(e.getPoint())) {
+				// TODO: When more than one CNV is associated, display an indication
 				CNVariant cnv = rectangles[i].getCNV();
 				String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: " + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: " + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: " + cnv.getScore() + "</html>";
 				setToolTipText(toolTipText);
