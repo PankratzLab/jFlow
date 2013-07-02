@@ -221,6 +221,9 @@ public class Sample implements Serializable {
 		ClusterFilter clusterFilter;
 		ArrayList<ClusterFilter> clusterFilterArray;
 
+		getThetas();
+		getRs();
+
 		result = new byte[abGenotypes.length];
 		for (int i=0; i<markerNames.length; i++) {
 			if (getGCs()[i]<gcThreshold) {
