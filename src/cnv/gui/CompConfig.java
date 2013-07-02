@@ -334,9 +334,9 @@ class CNVPanel extends JPanel {
 			}
 
 			if (minCopies != maxCopies) {
-				length.setText(minCopies + "-" + maxCopies);
+				copies.setText(minCopies + "-" + maxCopies);
 			} else {
-				length.setText("" + minCopies);
+				copies.setText("" + minCopies);
 			}
 
 			if (minProbes != maxProbes) {
