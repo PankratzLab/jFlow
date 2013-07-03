@@ -178,6 +178,7 @@ public class CompPlot extends JFrame {
 
 		// Clear the rectangles list
 		rectangles.clear();
+		compPanel.setRectangles(rectangles.toArray(new CNVRectangle[0]));
 
 		for (int i = 0; i < cnvhs.length; i++) {
 			// Load the CNVs out of the files
