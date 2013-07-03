@@ -128,7 +128,7 @@ public class LaunchAction extends AbstractAction {
 	        break;
         case LAUNCH_SCATTER:
     		ext.setClipboard(sample+"\t"+loc);
-    		new ScatterPlot(proj, new String[] {marker}, null);
+    		ScatterPlot.createAndShowGUI(proj, new String[] {marker}, null);
 	        break;
         case COPY_ID:
     		ext.setClipboard(sample);

@@ -319,7 +319,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(DENOVO_CNV)) {
 				DeNovoCNV.main(null);
 			} else if (command.equals(SCATTER)) {
-				new ScatterPlot(proj, null, null);
+//				new ScatterPlot(proj, null, null);
+				ScatterPlot.createAndShowGUI(proj, null, null);
 			} else if (command.equals(QQ)) {
 				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false);
 			} else if (command.equals(STRAT)) {

@@ -7,27 +7,23 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
-import com.sun.org.apache.bcel.internal.generic.DMUL;
-
 import stats.CTable;
 import stats.ContingencyTable;
 import stats.ProbDist;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeListener;
 
 import cnv.filesys.*;
 import cnv.gui.AnnotationAction;
 import cnv.gui.AutoSaveClusterFilterCollection;
 import cnv.gui.CycleRadio;
-import cnv.gui.LaunchAction;
 import cnv.manage.MarkerDataLoader;
 import common.*;
 import cnv.var.*;
 
 //public class ScatterPlot extends JFrame implements ActionListener, WindowListener, KeyListener {
-public class ScatterPlot extends JFrame implements ActionListener, WindowListener {
+public class ScatterPlot extends JPanel implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 	public static final int DEFAULT_GC_THRESHOLD = 15;
@@ -44,10 +40,10 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	private static final String CLUSTER_FILTER_DELETE = "Delete";
 	private static final String CAPTURE = "Screen capture";
 	private static final String DUMP = "Dump raw data";
-	private static final String SHOW_ALL = "Show all";
-	private static final String SHOW_ANNOTATED_ONLY = "Show annotated only";
-	private static final String SHOW_UNANNOTATED_ONLY = "Show unannotated only";
-	private static final String[] RADIOBUTTON_TEXTS = new String[] {SHOW_ALL, SHOW_ANNOTATED_ONLY, SHOW_UNANNOTATED_ONLY};
+	private static final String TRAVERSE_ALL = "Traverse all";
+	private static final String TRAVERSE_ANNOTATED_ONLY = "Traverse annotated only";
+	private static final String TRAVERSE_UNANNOTATED_ONLY = "Traverse unannotated only";
+	private static final String[] RADIOBUTTON_TEXTS = new String[] {TRAVERSE_ALL, TRAVERSE_ANNOTATED_ONLY, TRAVERSE_UNANNOTATED_ONLY};
 	public static final String MASK_MISSING = "Mask missing values";
 	public static final String UNMASK_MISSING = "Unmask missing values";
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
@@ -130,9 +126,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 	
 	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
-		super("ScatterPlot");
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
 		long time = new Date().getTime();
 		
 		proj = project;
@@ -175,7 +168,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		
 		System.err.println("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
-		addWindowListener(this);
 		sessionID = (new Date().getTime()+"").substring(5);
 		loadClusterFilterFiles();
 		autoSaveCFC = null;
@@ -187,14 +179,14 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		scatPanel = new ScatterPanel(this);
 		loadAnnotationCollection();
 		colorScheme = scatPanel.getColorScheme();
-		getContentPane().add(scatPanel, BorderLayout.CENTER);
-		getContentPane().add(markerPanel(), BorderLayout.NORTH);
-		getContentPane().add(eastPanel(), BorderLayout.EAST);
-//		getContentPane().add(colorPanel(), BorderLayout.SOUTH);
+		
+		setLayout(new BorderLayout());
+		add(scatPanel, BorderLayout.CENTER);
+		add(markerPanel(), BorderLayout.NORTH);
+		add(eastPanel(), BorderLayout.EAST);
+//		add(colorPanel(), BorderLayout.SOUTH);
 		colorKeyPanel = new ColorKeyPanel(sampleData, scatPanel);
-		getContentPane().add(colorKeyPanel, BorderLayout.SOUTH);
-
-		inputMapAndActionMap();
+		add(colorKeyPanel, BorderLayout.SOUTH);
 
 		scatPanel.setPointsGeneratable(true);
 		scatPanel.setQcPanelUpdatable(true);
@@ -224,12 +216,16 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 			centBoxes[0].setSelected(true);
 		}
 		
+		inputMapAndActionMap(this);
+//		inputMapAndActionMap(annotationPanel);
+//		inputMapAndActionMap(annotationScrollPane);
 
-		next.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT);
+//		next.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT);
 //		next.setActionMap(actionMap);
 //		previous.setActionMap(actionMap);
 		scatPanel.grabFocus();
 
+		
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
 	}
@@ -983,9 +979,9 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				public void actionPerformed(ActionEvent e) {
 					String commandText;
 					commandText = e.getActionCommand();
-					if (commandText.startsWith(SHOW_ALL + " (n=")) {
+					if (commandText.startsWith(TRAVERSE_ALL + " (n=")) {
 						showAllMarkersOrNot = true;
-					} else if (commandText.startsWith(SHOW_ANNOTATED_ONLY + " (n=")) {
+					} else if (commandText.startsWith(TRAVERSE_ANNOTATED_ONLY + " (n=")) {
 						showAllMarkersOrNot = false;
 						showAnnotatedOrUnannotated = true;
 					} else {
@@ -1313,11 +1309,13 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		scatPanel.getActionMap().remove("annotation\t"+c);
 	}	
 	
-	private void inputMapAndActionMap() {
+	private void inputMapAndActionMap(JComponent comp) {
 		InputMap inputMap;
 		ActionMap actionMap;
 		
-		inputMap = scatPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		actionMap = comp.getActionMap();
+		
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
@@ -1329,7 +1327,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), NEXT);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.CTRL_MASK), LAST);
 
-		actionMap = scatPanel.getActionMap();
 		actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
 		actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
 		actionMap.put(ALT_LEFT, new CycleRadio(colorKeyPanel.getClassRadioButtons(), -1));
@@ -1384,7 +1381,8 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 				updateGUI();
 			}
 		});
-		scatPanel.setActionMap(actionMap);
+
+//		panel.setActionMap(actionMap);
 	}
 	
 	public void next() {
@@ -2285,124 +2283,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		}
 	}
 
-//	public void updateAnnotationPanel() {
-//		JPanel panel;
-//		JButton removeButton;
-//		BoxLayout boxLayout;
-//		
-//		annotationPanelComment.removeAll();
-//		annotationPanelComment.repaint();
-//
-////		annotationPanel = new JPanel();
-//		boxLayout = new BoxLayout(annotationPanelComment, BoxLayout.Y_AXIS);
-//		annotationPanelComment.setLayout(boxLayout);
-//		annotationPanelComment.setBackground(BACKGROUND_COLOR);
-//
-//		annotationCheckBoxes = new JCheckBox[annotationKeys.length];
-//		for (int i=0; annotationKeys != null && i < annotationKeys.length; i++) {
-//			annotationCheckBoxes[i] = new JCheckBox(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts));
-//			annotationCheckBoxes[i].setBackground(Color.WHITE);
-//			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
-//				annotationCheckBoxes[i].setSelected(true);
-//			}
-//			annotationCheckBoxes[i].addItemListener(new ItemListener() {
-//				public void itemStateChanged(ItemEvent itemEvent) {
-//					JCheckBox checkBox;
-//					char currentKey;
-//					
-//					checkBox = (JCheckBox)itemEvent.getSource();
-//					currentKey = checkBox.getText().charAt(1);
-//					
-//			        if (checkBox.getModel().isSelected()) {
-//			        	annotationCollection.addAnnotationForMarker(markerList[markerIndex], currentKey);
-//			        	isAnnotated[markerIndex] = true;
-//			        } else {
-//			        	annotationCollection.removeAnnotationForMarker(markerList[markerIndex], currentKey);
-//			        	isAnnotated[markerIndex] = (annotationCollection.annotationsForMarker(markerList[markerIndex]).length != 0);
-//			        }
-//			        checkBox.setText(annotationCollection.getDescriptionForComment(currentKey, showAnnotationShortcuts));
-//			        annotationUpdated = true;
-//				}
-//			});
-//			panel = new JPanel();
-//			panel.setBackground(Color.WHITE);
-////			panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-//			panel.add(annotationCheckBoxes[i]);
-//			removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png", true));
-//			removeButton.setActionCommand("removeButton" + i);
-//			removeButton.setBorder(null);
-//			removeButton.setSize(6, 6);
-//			removeButton.addActionListener(new ActionListener() {
-//				public void actionPerformed(ActionEvent e) {
-//					String commandText;
-//					int index;
-//
-//					commandText = e.getActionCommand();
-//					index = Integer.parseInt(commandText.substring("removeButton".length(), commandText.length()));
-//					annotationCollection.removeAnnotation(annotationKeys[index]);
-//					removeAnnotationFromMaps(annotationKeys[index]);
-//					annotationKeys = annotationCollection.getKeys();
-//					annotationUpdated = true;
-//				}
-//			});
-//			panel.add(removeButton);
-//			panel.setAlignmentY(Component.LEFT_ALIGNMENT); // TODO not working yet
-//			annotationPanelComment.add(panel);
-//		}
-//		
-//		addAnnotationField = new JTextField("default");
-//		
-//		addAnnotationField.addFocusListener(new FocusListener() {
-//			public void focusLost(FocusEvent e) {
-//				if (showAnnotationShortcuts) {
-//					activateAllAnnotationMaps();
-//				}
-//			}
-//			public void focusGained(FocusEvent e) {
-//				deactivateAllAnnotationMaps();
-//			}
-//		});
-//		
-//		addAnnotationField.addActionListener(new ActionListener() {
-//			public void actionPerformed(ActionEvent e) {
-//				String str;
-//				char c;
-//				
-//				str = ((JTextField)e.getSource()).getText();
-//				c = str.toLowerCase().charAt(0);
-//				str = str.substring(1);
-//				annotationCollection.addAnnotation(c, str);
-//				addAnnotationToMaps(c);
-//				annotationKeys = annotationCollection.getKeys();
-//				updateAnnotationPanel();
-//				annotationUpdated = true;
-//			}
-//		});
-//
-////		addAnnotationKey = new JCheckBox("Add annotation key");
-////		addAnnotationKey.setBackground(Color.WHITE);
-////		addAnnotationKey.addItemListener(new ItemListener() {
-////			public void itemStateChanged(ItemEvent itemEvent) {
-////				JCheckBox checkBox;
-////				
-////				checkBox = (JCheckBox)itemEvent.getSource();
-////				
-////		        if (checkBox.getModel().isSelected()) {
-////		        	String[][] text = Editor.getInput();
-////		        	for (int i=0; i<text.length; i++) {
-////			        	annotationCollection.addAnnotation(text[i][0].charAt(0), text[i][1]);
-////		        	}
-////		        	annotationKeys = annotationCollection.getKeys();
-////		        }
-////			}
-////		});
-////		annotationPanelComment.add(addAnnotationKey);
-//		annotationPanelComment.add(addAnnotationField);
-//
-//		annotationPanelComment.validate();
-//	}
-
-
 	public void updateAnnotationPanel() {
 		updateAnnotationPanelFilterRadioButtons();
 		updateAnnotationPanelAnnotationCheckBoxes();
@@ -2426,13 +2306,6 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 		isInitilizing = false;
 	}
 
-//	public void toggleAnnotationBox(char c) {
-//		int index;
-//		
-//		index = ext.indexOfChar(c, annotationKeys);
-//		annotationCheckBoxes[index].setSelected(! annotationCheckBoxes[index].isSelected());
-//	}
-	
 	public void checkAnnotationBox(char c) {
 		int index;
 		
@@ -2544,46 +2417,29 @@ public class ScatterPlot extends JFrame implements ActionListener, WindowListene
 
 	public void windowOpened(WindowEvent e) {}
 
-	public static void main(String[] args) {
-		String filename = Project.DEFAULT_SCATTER_PROJECT;
+    public static void createAndShowGUI(Project proj, String[] markerList, String[] commentList) {
+        JFrame frame;
+    	ScatterPlot scatterPlot;
+
+    	frame = new JFrame("ScatterPlot");
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setContentPane(scatterPlot = new ScatterPlot(proj, markerList, commentList));
+		frame.addWindowListener(scatterPlot);
+
+        frame.pack();
+		frame.setSize(1000, 720);
+		frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+		final String filename = Project.DEFAULT_SCATTER_PROJECT;
 //		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
-		boolean jar = false;
+		final boolean jar = false;
 
-		try {
-			new ScatterPlot(new Project(filename, jar), null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	createAndShowGUI(new Project(filename, jar), null, null);
+            }
+        });
 	}
-
-//	@Override
-//	public void keyTyped(KeyEvent e) {
-//		String shortcut;
-//		String temp;
-//
-//		System.err.println("key typed");
-//		
-//		shortcut = e.getKeyChar() + "";
-//		for (int i=0; i<commentShortcuts.length; i++) {
-//			if (commentShortcuts[i].equals(shortcut)) {
-//				temp = annotationHash.get(getMarkerName());
-//				if (temp == null || ! temp.contains((comments[i]))) {
-//					annotationHash.put(getMarkerName(), (temp == null? "" : temp + "\t") + comments[i]);
-////					updateAnnotationPanel();
-//					actionPerformed(new ActionEvent(next, 0, NEXT));
-//					System.out.println(annotationHash.get(getMarkerName()));
-//				}
-//			}
-//		}
-//	}
-
-//	@Override
-//	public void keyPressed(KeyEvent e) {
-//	}
-
-//	@Override
-//	public void keyReleased(KeyEvent e) {
-//	}
-
 }
