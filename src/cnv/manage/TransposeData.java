@@ -94,9 +94,9 @@ public class TransposeData {
 		RandomAccessFile[] sampleFiles = null;
 
         if (log == null) {
-			log = new Logger(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+			log = new Logger(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false) + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 		}
-		log.report("Transposing data of the project " + proj.getProjectDir());
+		log.report("Transposing data for the project in " + proj.getProjectDir());
 
 		timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -198,7 +198,14 @@ public class TransposeData {
 				if (keepAllSampleFilesOpen) {
 					sampleFiles = new RandomAccessFile[allSampleNamesInProj.length];
 					for (int i=0; i<allSampleNamesInProj.length; i++) {
-						sampleFiles[i] = new RandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, "r");
+						try {
+							sampleFiles[i] = new RandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, "r");
+						} catch (FileNotFoundException fnfe) {
+							log.reportError("Error - file not found: "+proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION);
+							log.reportError("        if you get this error and the file does exist, then likely your operating system (especially common on a linux platform) is not allowing this many files to be open at once; rerun without using that option at the command line");
+							log.reportError("        Transpose aborted");
+							return;
+						}
 					}
 				}
 //				timerLoadFiles += (new Date().getTime() - timerTmp);
@@ -215,7 +222,7 @@ public class TransposeData {
 				isFileClosed = true;
 	
 				timerWriteFiles = 0;
-				log.report("--\ni (<" + nRounds_LoadSampFile + ")\tLoad\tTranpose\tWrite");
+				log.report("--\ni (<" + nRounds_LoadSampFile + ")\tLoad\tTranspose\tWrite");
 				for(int i=0; i<nRounds_LoadSampFile; i++) {
 					if ((i+1)==nRounds_LoadSampFile && nMarks_LastRound != 0) {
 //						readBuffer = new byte[nMarks_LastRound * bytesPerSampMark];
@@ -438,7 +445,7 @@ public class TransposeData {
 				}
 			}
 
-			new MarkerLookup(hash).serialize(proj.getFilename(Project.MARKERLOOKUP_FILENAME));
+			new MarkerLookup(hash).serialize(proj.getFilename(Project.MARKERLOOKUP_FILENAME, true, false));
 
 			System.out.println("Created MarkerLookup in "+ext.getTimeElapsed(time));
 		}
@@ -641,6 +648,7 @@ public class TransposeData {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Hashtable<String, Float>[] getOutlierHashForEachFile(Hashtable<String, Float> allOutliers, int numMarkerFiles, int numMarkersInEachFile, String[] sampleNames) {
 		Hashtable<String, Float>[] result;
 		Enumeration<String> keys;
@@ -1047,21 +1055,18 @@ public class TransposeData {
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
-//		String filename = Project.DEFAULT_PROJECT;
-		String filename = "C:/workspace/Genvisis/projects/gedi_exome_top.properties";
-//		String filename = "C:/workspace/Genvisis/projects/practice.properties";
-//		String demo = "flagged_results.txt";
-//		boolean transpose = false;
-		boolean transpose = true;
+		String filename = Project.DEFAULT_PROJECT;
+		boolean transpose = false;
+		boolean keepFilesOpen = false;
 		int maxFileSize = 0;
 		boolean lookup = false;
-//		boolean lookup = true;
 
 		String usage = "\n"+
 		"filesys.ExtractPlots requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"   (2) transpose data (i.e. -transpose ("+(transpose?"":"not the ")+"default))\n"+
-		"   (3) maximum size of each file in bytes (i.e. max="+maxFileSize+" (default))\n"+
+		"   (3) keep all files open at once (i.e. -keepFilesOpen ("+(keepFilesOpen?"":"not the ")+"default; not recommended usually allowed on linux servers))\n"+
+		"   (4) maximum size of each file in bytes (i.e. max="+maxFileSize+" (default))\n"+
 		"  OR:\n"+
 		"   (7) create marker lookup table (i.e. -lookup ("+(lookup?"":"not the ")+"default))\n"+
 		"";
@@ -1074,6 +1079,9 @@ public class TransposeData {
 				filename = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("-transpose")) {
+				transpose = true;
+				numArgs--;
+			} else if (args[i].startsWith("-keepFilesOpen")) {
 				transpose = true;
 				numArgs--;
 			} else if (args[i].startsWith("max=")) {
@@ -1100,7 +1108,7 @@ public class TransposeData {
 //		lookup = true;
 		try {
 			if (transpose) {
-				transposeData(proj, maxFileSize, false, null);
+				transposeData(proj, maxFileSize, keepFilesOpen, null);
 			} else if (lookup) {
 				recreateMarkerLookup(proj);
 			} else {
