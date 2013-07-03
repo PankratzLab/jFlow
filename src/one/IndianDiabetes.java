@@ -1,14 +1,7 @@
 package one;
 
-import gwas.Metal;
-
 import java.io.*;
-import java.util.*;
-
-import javax.swing.plaf.metal.MetalScrollBarUI;
-
 import bioinformatics.Sequence;
-
 import common.*;
 
 public class IndianDiabetes {
@@ -16,11 +9,6 @@ public class IndianDiabetes {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		String temp, trav;
-		Hashtable<String, String> hash = new Hashtable<String, String>();
-		Vector<String> v = new Vector<String>();
-		int count;
-		long time;
 		Logger log;
 		int numMarkers;
 		String[] markerNames;
@@ -63,7 +51,12 @@ public class IndianDiabetes {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+".map"));
 			for (int i = 0; i < markerNames.length; i++) {
 				if (markerNames[i].toLowerCase().startsWith("chr")) {
+					markerNames[i] = ext.replaceAllWithSafer(markerNames[i], ":", "_");
+					markerNames[i] = ext.replaceAllWithSafer(markerNames[i], " [1]", "b");
 					line = markerNames[i].substring(3).split("_");
+					if (markerNames[i].endsWith("b")) {
+						line[1] = line[1].substring(0, line[1].length()-1);
+					}
 					writer.println(line[0]+"\t"+markerNames[i]+"\t0\t"+line[1]);
 				} else {
 					System.err.println("Error - don't know how to parse the position for marker: "+markerNames[i]);
@@ -81,7 +74,8 @@ public class IndianDiabetes {
 	}
 
 	public static void main(String[] args) {
-		String dir = "D:/Myron/Indian_Diabetes/SequencingPilot/Replication_Sequenome_Indian/";
+//		String dir = "D:/Myron/Indian_Diabetes/SequencingPilot/Replication_Sequenome_Indian/";
+		String dir = "D:/Myron/Indian_Diabetes/SequencingPilot/Replication_Sequenome_Indian_v2/";
 		String genotypes = "IndianReplication_genotypes.csv";
 		
 		parseGenotypes(dir+genotypes);

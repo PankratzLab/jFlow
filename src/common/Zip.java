@@ -128,13 +128,17 @@ public class Zip {
 	}
 
 	public static void gzip(String filename) {
+		gzip(filename, filename+".gz");
+	}
+	
+	public static void gzip(String filename, String outputFilename) {
 		GZIPOutputStream out;
 		FileInputStream in;
 		byte[] buf = new byte[1024];
 		int len;
 
 		try {
-			out = new GZIPOutputStream(new FileOutputStream(filename+".gz"));
+			out = new GZIPOutputStream(new FileOutputStream(outputFilename));
 			in = new FileInputStream(filename);
 
 			while ((len = in.read(buf))>0) {
@@ -143,7 +147,7 @@ public class Zip {
 			in.close();
 			out.close();
 		} catch (IOException e) {
-			System.err.println("Error creating zipfile '"+filename+".gz"+"'");
+			System.err.println("Error creating zipfile '"+outputFilename+"'");
 			e.printStackTrace();
 		}
 	}
@@ -174,13 +178,14 @@ public class Zip {
 
 	}
 	
-	public static void gzipEverythingInDirectory(String dir, Logger log) {
+	public static void gzipEverythingInDirectory(String dir, String outputDirectory, Logger log) {
 		String[] files;
 		
+		new File(outputDirectory).mkdirs();
 		files = Files.list(dir, null, false);
 		for (int i = 0; i < files.length; i++) {
 			log.report("compressing file #"+(i+1)+" of "+files.length+" ("+files[i]+")");
-			gzip(dir+files[i]);
+			gzip(dir+files[i], outputDirectory+files[i]+".gz");
 		}
 	}
 	
@@ -263,7 +268,8 @@ public class Zip {
 		try {
 //			String dir = new File(".").getCanonicalPath();
 //			zipDirectory(".", "../"+dir.substring(Math.max(dir.lastIndexOf("/"), dir.lastIndexOf("\\"))+1)+".zip");
-			gzipEverythingInDirectory("D:/data/GEDI/penn_data/", new Logger());
+//			gzipEverythingInDirectory("D:/data/GEDI/penn_data/", new Logger());
+			gzipEverythingInDirectory("D:/data/PD_CIDR/00src/", "C:/PD_CIDR/00src/", new Logger());
 //			
 		} catch (Exception e) {
 			e.printStackTrace();

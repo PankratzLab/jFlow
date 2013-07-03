@@ -7,17 +7,18 @@ import java.io.*;
 import java.util.*;
 
 import one.ChargeS;
+import parse.GenParser;
 
 import common.*;
 
 public class SkatMeta {
-	public static final String[][] MODELS = { // name, subroutine, arguments, filter on nonSynonSplic, header type, parameters for parsing 
-		{"SingleSNP", "SingleVariant", "singlesnpMeta", ", cohortBetas = TRUE", "0"},
-		{"SKAT_T5", "BurdenTests", "skatMeta", ", wts = 1, mafRange = c(0,0.05)", "2"},
-		{"T5Count", "BurdenTests", "burdenMeta", ", wts = 1, mafRange = c(0,0.05)", "1"},
-		{"T5MB", "BurdenTests", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.05)", "1"},
-		{"T1Count", "BurdenTests", "burdenMeta", ", wts = 1, mafRange = c(0,0.01)", "1"},
-		{"T1MB", "BurdenTests", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.01)", "1"}
+	public static final String[][] MODELS = { // name, grouping, subroutine, arguments, header type, mafThreshold //, parameters for parsing 
+		{"SingleSNP", "SingleVariant", "singlesnpMeta", ", cohortBetas = TRUE", "0", "0.01"},
+		{"SKAT_T5", "BurdenTests", "skatMeta", ", wts = 1, mafRange = c(0,0.05)", "2", "0.05"},
+		{"T5Count", "BurdenTests", "burdenMeta", ", wts = 1, mafRange = c(0,0.05)", "1", "0.05"},
+//		{"T5MB", "BurdenTests", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.05)", "1", "0.05"},
+		{"T1Count", "BurdenTests", "burdenMeta", ", wts = 1, mafRange = c(0,0.01)", "1", "0.01"},
+//		{"T1MB", "BurdenTests", "burdenMeta", ", wts = function(maf){1/(maf*(1-maf))}, mafRange = c(0,0.01)", "1", "0.01"}
 	};
 	
 	public static final String[][] HEADER_TYPES = {
@@ -559,30 +560,18 @@ public class SkatMeta {
 		Files.chmod(dir+"master.toBeRun");
 	}
 
-	public static void computeMAC(String dir, String[][] phenotypes, String[] studies, String snpInfoFile) {
+	public static void computeMAC(String dir, String[][] phenotypes, String[] studies, String snpInfoFile, String mafThreshold) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		String temp, trav;
-		Vector<String> v = new Vector<String>();
-		int count;
 		long time;
-		
-		
 		String[] files;
 		String[][] finalSets;
 		String localDir;
-//		Vector<String> locals;
-		Hashtable<String,Hits> groupHits;
-		Hashtable<String,Vector<String>> groupParams;
-		String[] groups, hits;
 		String filename;
-		String[] header, expected;
-		String filenames;
-//		String trav; not yet used
+		String[] header;
 		int[] indices;
 		Logger log;
-		
 		Hashtable<String, String> snpGeneHash;
 		Hashtable<String, String> snpGeneFunctionalHash;
 		Hashtable<String, Hashtable<String, IntVector>> geneLoci;
@@ -593,16 +582,18 @@ public class SkatMeta {
 		Hashtable<String, int[]> macs;
 		String gene;
 		int[] counts;
+		double mafThresholdDouble;
 		
 		dir = ext.verifyDirFormat(dir);
 		log = new Logger(dir+"computeMACs.log");
+		mafThresholdDouble = Double.parseDouble(mafThreshold);
 		
 		log.report(ext.getTime()+"\tBegan");
 		time = new Date().getTime();
-		filename = dir+ext.rootOf(snpInfoFile)+".csv";
-		if (Files.exists(filename+".mappings.ser") && Files.exists(filename+".functionalMappings.ser")) {
+		filename = dir+ext.rootOf(snpInfoFile)+".csv";	
+		if (Files.exists(filename+".mappings.ser") && Files.exists(filename+".maf"+mafThreshold+".functionalMappings.ser")) {
 			snpGeneHash = SerialHash.loadSerializedStringHash(filename+".mappings.ser");
-			snpGeneFunctionalHash = SerialHash.loadSerializedStringHash(filename+".functionalMappings.ser");
+			snpGeneFunctionalHash = SerialHash.loadSerializedStringHash(filename+".maf"+mafThreshold+".functionalMappings.ser");
 			log.report(ext.getTime()+"\tReloaded marker mappings in " + ext.getTimeElapsed(time));
 		} else {
 			snpGeneHash = new Hashtable<String, String>();
@@ -612,11 +603,11 @@ public class SkatMeta {
 			try {
 				reader = new BufferedReader(new FileReader(filename));
 				header = ext.splitCommasIntelligently(reader.readLine(), true, log);
-				indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.GENE_UNITS, FUNCTIONAL, Metal.CHRS, Metal.POSITIONS}, header, false, true, true, log, true);
+				indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.GENE_UNITS, FUNCTIONAL, Metal.CHRS, Metal.POSITIONS, {"MAF"}}, header, false, true, true, log, true);
 				while (reader.ready()) {
 					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 					snpGeneHash.put(line[indices[0]], line[indices[1]]);
-					if (line[indices[2]].equals("TRUE")) {
+					if (line[indices[2]].equals("TRUE") && !line[indices[5]].equals("NA") && Double.parseDouble(line[indices[5]]) <= mafThresholdDouble ) {
 						snpGeneFunctionalHash.put(line[indices[0]], line[indices[1]]);
 					}
 					if (!geneLoci.containsKey(line[indices[1]])) {
@@ -665,8 +656,8 @@ public class SkatMeta {
 				log.reportError(keys[i]+" Max: "+largeGenes.get(keys[i]));
 			}
 			
-			SerialHash.createSerializedStringHash(filename+".mappings.ser", snpGeneHash);
-			SerialHash.createSerializedStringHash(filename+".functionalMappings.ser", snpGeneFunctionalHash);
+			SerialHash.createSerializedStringHash(filename+".maf"+mafThreshold+".mappings.ser", snpGeneHash);
+			SerialHash.createSerializedStringHash(filename+".maf"+mafThreshold+".functionalMappings.ser", snpGeneFunctionalHash);
 
 			log.report(ext.getTime()+"\tFinished mapping markers to genes in " + ext.getTimeElapsed(time));
 		}
@@ -692,6 +683,7 @@ public class SkatMeta {
 						reader = new BufferedReader(new FileReader(localDir+filename));
 						header = ext.splitCommasIntelligently(reader.readLine(), true, log);
 //						ext.checkHeader(header, HEADER_TYPES[Integer.parseInt(MODELS[0][4])], Array.intArray(expected.length), false, log, true);
+						
 						indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false, true);
 						
 						while (reader.ready()) {
@@ -724,7 +716,7 @@ public class SkatMeta {
 			log.report("", true, false);
 
 			try {
-				writer = new PrintWriter(new FileWriter(dir+phenotypes[i][0]+"/"+"minorAlleleCounts.xln"));
+				writer = new PrintWriter(new FileWriter(dir+phenotypes[i][0]+"/"+"minorAlleleCounts.maf"+mafThreshold+".xln"));
 				keys = HashVec.getKeys(macs);
 				writer.println("Gene\t"+Array.toStr(studies)+"\tTotal");
 				for (int j = 0; j < keys.length; j++) {
@@ -733,13 +725,15 @@ public class SkatMeta {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to " + dir+phenotypes[i][0]+"/"+"minorAlleleCounts.xln");
+				System.err.println("Error writing to " + dir+phenotypes[i][0]+"/"+"minorAlleleCounts.maf"+mafThreshold+".xln");
 				e.printStackTrace();
 			}
 		}
 	}
 
-	public static void assembleHits(String dir, String[][] phenotypes, String[] studies, int[][] defaultSampleSizes, String[][] groupAnnotationParams, String snpInfoFile) {
+	public static void assembleHits(String dir, String[][] phenotypes, String[] studies, int[][] defaultSampleSizes, String[][] groupAnnotationParams, String snpInfoFile, int macThresholdStudy, int macThresholdTotal) {
+		BufferedReader reader;
+		PrintWriter writer;
 		String[] files;
 		String[][] finalSets;
 		Logger log;
@@ -752,7 +746,13 @@ public class SkatMeta {
 		String[] header, expected;
 		String filenames;
 //		String trav; not yet used
-		int[] indices;
+//		int[] indices;
+		int index, mafIndex, macIndex;
+		Hashtable<String,Hashtable<String,String>> macHashes;
+		Hashtable<String,String> macHash;
+		String[] line;
+		double threshold;
+		String temp;
 		
 		dir = ext.verifyDirFormat(dir);
 		log = new Logger(dir+"metaAll.log");
@@ -761,7 +761,6 @@ public class SkatMeta {
 		finalSets = identifySet(phenotypes, studies, files, new String[] {snpInfoFile}, log);
 
 		for (int i = 0; i < phenotypes.length; i++) {
-
 			groupHits = new Hashtable<String, Hits>();
 			groupParams = new Hashtable<String, Vector<String>>();
 			for (int j = 0; j < MODELS.length; j++) {
@@ -770,8 +769,18 @@ public class SkatMeta {
 					groupParams.put(MODELS[j][1], new Vector<String>());
 				}
 			}
+			macHashes = new Hashtable<String, Hashtable<String,String>>();
 			for (int j = 0; j < MODELS.length; j++) {
 				localDir = dir+phenotypes[i][0]+"/"+MODELS[j][0]+"/";
+				
+				if (MODELS[j][1].equals("BurdenTests")) {
+					if (!macHashes.containsKey(MODELS[j][5])) {
+						line = Array.addStrToArray("Total", studies);
+						macHash = HashVec.loadFileToHashString(dir+phenotypes[i][0]+"/"+"minorAlleleCounts.maf"+MODELS[j][5]+".xln", "Gene", line, "\t");
+						macHash.put("studies", Array.toStr(line));
+						macHashes.put(MODELS[j][5], macHash);
+					}
+				}
 
 //				locals = new Vector<String>();
 				filenames = "";
@@ -792,14 +801,75 @@ public class SkatMeta {
 						expected = HEADER_TYPES[Integer.parseInt(MODELS[j][4])];
 						ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, true);
 						
+						index = -1;
+						for (int h = 1; h < header.length; h++) {
+							if (ext.indexOfStr(header[h], Metal.PVALUES, false, true) >= 0) {
+								if (index == -1) {
+									index = h;
+								} else {
+									System.err.println("Error - both "+header[index]+" and "+header[h]+" are considered column headers for the p-value; using the former");
+								}
+							}
+						}
+						if (index >= 0) {
+							try {
+								reader = new BufferedReader(new FileReader(localDir+filename));
+								reader.readLine();
+								writer = new PrintWriter(new FileWriter(localDir+studies[k]+"_pvals.dat"));
+								if (MODELS[j][1].equals("SingleVariant")) {
+									mafIndex = ext.indexOfStr("maf", header, false, true);
+									if (mafIndex == -1) {
+										log.reportError("Error - no maf listed in single gene test result: "+filename);
+									} else {
+										writer.println("Variant\tpval");
+										threshold = Double.parseDouble(MODELS[j][5]);
+										while (reader.ready()) {
+											line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+											if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex]) >= threshold) {
+												writer.println(line[0]+"\t"+line[index]);
+											}
+										}
+									}
+								} else if (MODELS[j][1].equals("BurdenTests")) {
+									macHash = macHashes.get(MODELS[j][5]);
+									line = macHash.get("studies").split("\t");
+									macIndex = ext.indexOfStr(studies[k], line);
+									if (macIndex == -1) {
+										log.reportError("Error - no minor allele counts for "+studies[k]+" "+MODELS[j][0]);
+									} else {
+										writer.println("Gene\tpval");
+										while (reader.ready()) {
+											line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+											if (macHash.containsKey(line[0])) {
+												if (Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) >= macThresholdStudy) {
+													writer.println(line[0]+"\t"+line[index]);
+												}
+											}
+										}
+									}									
+								} else {
+									log.reportError("Error - unknown grouping variable: "+MODELS[j][1]);
+								}
+								reader.close();
+								writer.close();
+							} catch (FileNotFoundException fnfe) {
+								System.err.println("Error: file \"" + localDir+filename + "\" not found in current directory");
+								System.exit(1);
+							} catch (IOException ioe) {
+								System.err.println("Error reading file \"" + localDir+filename + "\"");
+								System.exit(2);
+							}
+							filenames += localDir+studies[k]+"_pvals.dat,1="+studies[k]+";";
+						} else {
+							log.reportError("Error - could not find p-value column header for file "+filename);
+						}
 						header[0] = "'"+header[0]+"'";
 						for (int h = 1; h < header.length; h++) {
-							if (ext.indexOfStr(header[h], Metal.PVALUES) >= 0) {
-								filenames += localDir+filename+","+h+"="+studies[k]+"_"+header[h]+";";
-							}
 							header[h] = "'"+header[h]+"'="+header[h]+"_"+studies[k]+"_"+MODELS[j][0];
 						}
-						groupParams.get(MODELS[j][1]).add(localDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+						if (MODELS[j][1].equals("BurdenTests")) {
+							groupParams.get(MODELS[j][1]).add(localDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+						}
 					}
 				}
 				log.report("", true, false);
@@ -815,27 +885,89 @@ public class SkatMeta {
 				expected = HEADER_TYPES[Integer.parseInt(MODELS[j][4])];
 				ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, true);
 				
-				try {
-					if (MODELS[j][1].equals("SingleVariant")) {
-						indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.PVALUES}, header, false, true, true, log, true);
-					} else {
-						indices = ext.indexFactors(new String[][] {Metal.GENE_UNITS, Metal.PVALUES}, header, false, true, true, log, true);
+				index = -1;
+				for (int h = 1; h < header.length; h++) {
+					if (ext.indexOfStr(header[h], Metal.PVALUES, false, true) >= 0) {
+						if (index == -1) {
+							index = h;
+						} else {
+							System.err.println("Error - both "+header[index]+" and "+header[h]+" are considered column headers for the p-value; using the former");
+						}
 					}
-				} catch (Exception e) {
-					log.reportError("Error - unexpected header for "+localDir+filename);
-					return;
 				}
-				groupHits.get(MODELS[j][1]).incorporateFromFile(localDir+filename, indices, 0.001, log);
-				
-				
+				if (index >= 0) {
+					try {
+						reader = new BufferedReader(new FileReader(localDir+filename));
+						reader.readLine();
+						writer = new PrintWriter(new FileWriter(localDir+"meta_pvals.dat"));
+						if (MODELS[j][1].equals("SingleVariant")) {
+							mafIndex = ext.indexOfStr("maf", header, false, true);
+							if (mafIndex == -1) {
+								log.reportError("Error - no maf listed in single gene test result: "+filename);
+							} else {
+								writer.println("Variant\tpval");
+								threshold = Double.parseDouble(MODELS[j][5]);
+								while (reader.ready()) {
+									line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+									if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex]) >= threshold) {
+										writer.println(line[1]+"\t"+line[index]);
+									}
+								}
+							}
+						} else if (MODELS[j][1].equals("BurdenTests")) {
+							macHash = macHashes.get(MODELS[j][5]);
+							line = macHash.get("studies").split("\t");
+							macIndex = ext.indexOfStr("Total", line);
+							if (macIndex == -1) {
+								log.reportError("Error - no minor allele counts at all");
+							} else {
+								writer.println("Gene\tpval");
+								while (reader.ready()) {
+									line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+									if (macHash.containsKey(line[0])) {
+										if (Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) >= macThresholdTotal) {
+											if (line[0].equals("CLEC9A")) {
+												System.out.println("hola");
+												String temp2 = macHash.get(line[0]);
+												System.out.println(temp2);
+												String temp3 = temp2.split("\t")[macIndex];
+												System.out.println(temp3);
+												writer.println(line[0]+"\t"+line[index]);
+											}
+											writer.println(line[0]+"\t"+line[index]);
+										}
+									}
+								}
+							}									
+						} else {
+							log.reportError("Error - unknown grouping variable: "+MODELS[j][1]);
+						}
+						reader.close();
+						writer.close();
+					} catch (FileNotFoundException fnfe) {
+						System.err.println("Error: file \"" + localDir+filename + "\" not found in current directory");
+						System.exit(1);
+					} catch (IOException ioe) {
+						System.err.println("Error reading file \"" + localDir+filename + "\"");
+						System.exit(2);
+					}
+					filenames += localDir+"meta_pvals.dat,1=Meta;";
+				} else {
+					log.reportError("Error - could not find p-value column header for file "+filename);
+				}
+
 				header[0] = "'"+header[0]+"'";
 				for (int h = 1; h < header.length; h++) {
-					if (ext.indexOfStr(header[h], Metal.PVALUES) >= 0) {
-						filenames += localDir+filename+","+h+"="+"Meta_"+header[h]+";";
-					}
 					header[h] = "'"+header[h]+"'=Meta_"+header[h]+"_"+MODELS[j][0];
 				}
+				if (MODELS[j][1].equals("SingleVariant")) {
+					temp = header[0];
+					header[0] = header[1];
+					header[1] = temp;
+				}
 				groupParams.get(MODELS[j][1]).add(0, localDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+				groupHits.get(MODELS[j][1]).incorporateFromFile(localDir+"meta_pvals.dat", new int[] {0,1}, 0.001, log);
+				
 
 //				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
 //				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
@@ -851,6 +983,9 @@ public class SkatMeta {
 //						filenames += localDir+filename+"1.out,5=pMeta;";
 //					}
 //				}
+				if (filenames.length() == 0) {
+					System.err.println("Error - why are there no files for "+phenotypes[i][0]+" "+MODELS[j][0]);
+				}
 				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0, filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs.bat");
 			}
 			
@@ -860,6 +995,13 @@ public class SkatMeta {
 				groupHits.get(groups[g]).writeHits(filename);
 				hits = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 				groupParams.get(groups[g]).add(0, filename+" 0 1=minPval skip=0");
+				if (groups[g].equals("BurdenTests")) {
+					line = HashVec.getKeys(macHashes);
+					for (int k = 0; k < line.length; k++) {
+						groupParams.get(groups[g]).add(1, dir+phenotypes[i][0]+"/"+"minorAlleleCounts.maf"+line[k]+".xln 0 'Total'=MAC>"+line[k]+"%");
+					}
+				}
+				
 //				if (groups[g].equals("SingleVariant")) {
 //					filename = dir+"CHARGE_wGC/"+phenotypes[i][0]+"/SingleSNP/"+phenotypes[i][0]+"_SingleSNP.se.metal1.out";
 //					groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
@@ -929,6 +1071,9 @@ public class SkatMeta {
 		boolean checkNs = false;
 		boolean hits = false;
 		boolean computeMACs = false;
+		String mafThreshold = "0.05";
+		int macThresholdStudy = 5;
+		int macThresholdTotal = 40;
 
 		String usage = "\n" + 
 		"gwas.SkatMeta requires 0-1 arguments\n" + 
@@ -945,8 +1090,11 @@ public class SkatMeta {
 		"   (1) check sample sizes for each chr18 data file (i.e. -checkNs (not the default))\n" + 
 		" OR\n" + 
 		"   (1) compute minor allele counts (i.e. -computeMACs (not the default))\n" + 
+		"   (2) minor allele frequency threshold (i.e. mafThreshold="+mafThreshold+" (default))\n" + 
 		" OR\n" + 
 		"   (1) parse top hits (i.e. -hits (not the default))\n" + 
+		"   (2) minor allele count threshold for a study (i.e. macThresholdStudy="+macThresholdStudy+" (default))\n" + 
+		"   (3) minor allele count threshold for meta-analysis (i.e. macThresholdTotal="+macThresholdTotal+" (default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -973,6 +1121,15 @@ public class SkatMeta {
 				numArgs--;
 			} else if (args[i].startsWith("-computeMACs")) {
 				computeMACs = true;
+				numArgs--;
+			} else if (args[i].startsWith("mafThreshold=")) {
+				mafThreshold = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("macThresholdStudy=")) {
+				macThresholdStudy = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("macThresholdTotal=")) {
+				macThresholdTotal = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("-hits")) {
 				hits = true;
@@ -1001,8 +1158,10 @@ public class SkatMeta {
 		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/metaAnalysis/";
 //		splitAll = true;
 //		runAll = true;
-//		hits = true;
-		computeMACs = true;
+//		computeMAC(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE, "0.01");
+//		computeMAC(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE, "0.05");
+//		System.exit(1);
+		hits = true;
 		
 		try {
 			log = new Logger(logfile);
@@ -1018,9 +1177,9 @@ public class SkatMeta {
 				runAll(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_NAMES);
 //				runAll(dir, PHENOTYPES, STUDIES);
 			} else if (computeMACs) {
-				computeMAC(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE);
+				computeMAC(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.SNP_INFO_FILE, mafThreshold);
 			} else if (hits) {
-				assembleHits(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.FREEZE3_SAMPLE_SIZES, ChargeS.GROUP_ANNOTATION_PARAMS, ChargeS.SNP_INFO_FILE);
+				assembleHits(dir, ChargeS.PHENOTYPES, ChargeS.STUDIES, ChargeS.FREEZE3_SAMPLE_SIZES, ChargeS.GROUP_ANNOTATION_PARAMS, ChargeS.SNP_INFO_FILE, macThresholdStudy, macThresholdTotal);
 //				metaAll(dir, PHENOTYPES, STUDIES, GROUPS, METHODS, UNIT_OF_ANALYSIS, DEFAULT_SAMPLE_SIZES, WEIGHTED, SINGLE_VARIANTS, GROUP_ANNOTATION_PARAMS);
 			}
 		} catch (Exception e) {
