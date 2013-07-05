@@ -178,14 +178,30 @@ public class Zip {
 
 	}
 	
-	public static void gzipEverythingInDirectory(String dir, String outputDirectory, Logger log) {
+	public static void gzipAllTextFilesInDirectory(String dirin, String dirout, Logger log) {
 		String[] files;
 		
-		new File(outputDirectory).mkdirs();
-		files = Files.list(dir, null, false);
+		
+		if (dirin == null) {
+			log.reportError("Error - dir cannot be null");
+			return;
+		}
+
+		if (!Files.exists(dirin)) {
+			log.reportError("Error - invalid directory: "+dirin);
+			return;
+		}
+		
+		dirin = ext.verifyDirFormat(dirin);
+		if (dirout == null) {
+			dirout = dirin+"compressed/";
+		}
+		
+		new File(dirout).mkdirs();
+		files = Files.list(dirin, null, false);
 		for (int i = 0; i < files.length; i++) {
 			log.report("compressing file #"+(i+1)+" of "+files.length+" ("+files[i]+")");
-			gzip(dir+files[i], outputDirectory+files[i]+".gz");
+			gzip(dirin+files[i], dirout+files[i]+".gz");
 		}
 	}
 	
@@ -250,10 +266,10 @@ public class Zip {
 
 		try {
 			ZipFile zf = new ZipFile(filename);
-
 			for (Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>)zf.entries(); entries.hasMoreElements();) {
 				v.add((entries.nextElement()).getName());
 			}
+			zf.close();
 		} catch (IOException e) {
 			System.err.println("Error listing contents of zipfile '"+filename+"'");
 			e.printStackTrace();
@@ -263,21 +279,63 @@ public class Zip {
 	}
 
 	public static void main(String[] args) {
-		// unzipParticularFile("plots\\rs3881953_plots.xls", "dir.zip",
-		// "destination");
+		int numArgs = args.length;
+		String filename = null;
+		String dirin = "./";
+		String dirout = null;
+		String logfile = null;
+		Logger log;
+
+		String usage = "\n" + 
+		"common.Zip requires 0-1 arguments\n" + 
+		"   (1) name of file to be gzipped (i.e. file=in.csv (not the default))\n" + 
+		" OR:\n" + 
+		"   (1) directory containing files to be gzipped (i.e. dirin=" + dirin + " (default))\n" + 
+		"   (2) directory where the compressed files should be written to (i.e. dirout=[dirin]/compressed/ (default))\n" + 
+		"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("dirin=")) {
+				dirin = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("dirout=")) {
+				dirin = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
 		try {
-//			String dir = new File(".").getCanonicalPath();
-//			zipDirectory(".", "../"+dir.substring(Math.max(dir.lastIndexOf("/"), dir.lastIndexOf("\\"))+1)+".zip");
-//			gzipEverythingInDirectory("D:/data/GEDI/penn_data/", new Logger());
-			gzipEverythingInDirectory("D:/data/PD_CIDR/00src/", "C:/PD_CIDR/00src/", new Logger());
-//			
+			
+//			dirin = "I:/GEDI/02_After_reclustering/00src/";
+//			dirout = "C:/GEDI_compressed/";
+			
+//			dirin = "D:/data/GEDI/penn_data/";
+			
+			dirin = "D:/data/PD_CIDR/00src/";
+			dirout = "C:/PD_CIDR_compressed/";
+			
+			log = new Logger(logfile);
+			if (filename != null) {
+				gzip(filename);
+			} else if (dirin != null) {
+				gzipAllTextFilesInDirectory(dirin, dirout, log);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// String[] files = list("dir.zip");
-		// for (int i = 0; i < files.length; i++) {
-		// System.out.println(files[i]);
-		// }
-		// zipDirectory("src", "src.zip");
 	}
 }
