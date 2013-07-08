@@ -875,6 +875,7 @@ public class TrimFam {
 				tfam = new TrimFam(preHash.get(fams.elementAt(i)), deleteSinglets, unrelatedsOnly, renameUngenotypedFounders, namingScheme, favorGeneration, listGeneration, allowMissingIndividuals, log);
 				if (tfam.hadError()) {
 					log.reportError("Aborting trimFam due to error");
+					writer.close();
 					return;
 				}
 				v = tfam.getExtendedFamilyInformation();

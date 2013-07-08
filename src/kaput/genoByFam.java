@@ -23,6 +23,7 @@ public class genoByFam {
 				fams.add(temp);
 			}
 		}
+		reader.close();
 
 		writer.println("#/bin/sh");
 		writer.println();

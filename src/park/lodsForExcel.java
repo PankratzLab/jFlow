@@ -84,6 +84,7 @@ public class lodsForExcel {
 
 				}
 			}
+			reader.close();
 
 			poslar = HashVec.getKeys(hash, true, true);
 			for (int j = Integer.parseInt(poslar[0]); j<=Integer.parseInt(poslar[poslar.length-1]); j++) {

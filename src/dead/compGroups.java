@@ -66,6 +66,7 @@ public class compGroups {
 				}
 			}
 		}
+		reader.close();
 		v = hash.get("groups");
 		groups = new String[v.size()];
 		for (int i = 0; i<v.size(); i++) {

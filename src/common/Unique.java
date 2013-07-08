@@ -71,6 +71,7 @@ public class Unique {
 
 					if (line.length<=cols[i]) {
 						System.err.println("Error - Not enough columns for line:\n"+temp);
+						reader.close();
 						return;
 					}
 

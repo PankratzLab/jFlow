@@ -91,6 +91,7 @@ public class procAOO {
 
 			prev = trav;
 		}
+		reader.close();
 		writer.close();
 		means.close();
 		ghMeans.close();

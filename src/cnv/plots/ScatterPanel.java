@@ -490,8 +490,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int window;
 		int numberToInclude;
 		byte newClusterFilter;
-		byte currentGenotype;
-		ClusterFilter currentClusterFilter;
+//		byte currentGenotype;
+//		ClusterFilter currentClusterFilter;
 
 		if (event.getButton() == MouseEvent.BUTTON1) {
 			window = Integer.parseInt(sp.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));

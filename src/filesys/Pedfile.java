@@ -199,6 +199,7 @@ public class Pedfile {
 					}
 				}
 	            
+				in.close();
                 writer.close();
 	            ivs[0].add(chr);
             } catch (FileNotFoundException fnfe) {

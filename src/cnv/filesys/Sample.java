@@ -732,8 +732,6 @@ public class Sample implements Serializable {
 	}
 
 
-
-	@SuppressWarnings("resource")
 	public static byte getNullstatusFromRandomAccessFile(String filename, boolean jar) {
 		byte nullStatusOfTheFile = Byte.MIN_VALUE;
 		RandomAccessFile sampleFile;
@@ -742,6 +740,7 @@ public class Sample implements Serializable {
 			sampleFile = new RandomAccessFile(filename, "r");
 			sampleFile.readInt();
 			nullStatusOfTheFile = sampleFile.readByte();
+			sampleFile.close();
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e) {

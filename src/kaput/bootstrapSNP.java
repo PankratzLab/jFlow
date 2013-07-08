@@ -20,6 +20,7 @@ public class bootstrapSNP {
 			st = new StringTokenizer(reader.readLine());
 			hash.put(hash.size()+"", st.nextToken());
 		}
+		reader.close();
 
 		bootstrapped = Bootstrap(hash);
 
@@ -69,6 +70,7 @@ public class bootstrapSNP {
 			sums[8] += Double.valueOf(temp).doubleValue();
 			hash11.put(hash11.size()+"", temp);
 		}
+		reader.close();
 
 		writer.println("Number of original replicates: "+count);
 		writer.println("Number of bootstrapping iterations: "+NUM_BOOTSTRAP_REPS);

@@ -98,6 +98,7 @@ public class crfDB {
 							missingThreshold = Double.parseDouble(line[i].split("=")[1]);
 						} else {
 							log.reportError("Error - unknown additional argument: "+line[i]);
+							reader.close();
                         	throw new Elision();
 						}
 					}
@@ -224,12 +225,14 @@ public class crfDB {
 							temp += "\t"+expecteds[fn][j];
 						}
 						log.reportError(temp);
+						reader.close();
                     	throw new Elision();
 					}
 
 					if (!expecteds[fn][i].equals(ext.replaceAllWith(subline[i], "-", "_"))) {
 						log.reportError("Error - column headers do not match up with expected values for file "+filenameKey[fn][0]);
 						log.reportError("      - expecting "+expecteds[fn][i]+" in column "+(i+1)+", instead found, "+subline[i]);
+						reader.close();
                     	throw new Elision();
 					}
 				}
@@ -241,6 +244,7 @@ public class crfDB {
 						temp += "\t"+subline[j];
 					}
 					log.reportError(temp);
+					reader.close();
                 	throw new Elision();
 				}
 
@@ -264,6 +268,7 @@ public class crfDB {
 						} else {
 							log.reportError("Error - expecting "+expecteds[fn].length+" columns of data in file '"+filenameKey[fn][0]+"', got "+line.length+" some of the time.");
 							log.reportError(temp);
+							reader.close();
                         	throw new Elision();
 						}
 					}

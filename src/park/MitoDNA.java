@@ -42,6 +42,7 @@ public class MitoDNA {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line.length!=refSNPs.length+1) {
 					System.err.println("Error - mismatched number of SNPs in reference haplotypes");
+					reader.close();
 					return;
 				}
 				names.add(line[0]);

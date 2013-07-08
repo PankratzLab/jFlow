@@ -86,6 +86,7 @@ public class sepByFam {
 			writer = new PrintWriter(new FileWriter("lods"+chrome+"_"+position+".dat.xls"));
 
 			if (!(new File("allegro/chromf"+chrome+".lin.out")).exists()||!(new File("parametric dominant/chromf"+chrome+".d.out")).exists()||!(new File("parametric recessive/chromf"+chrome+".r.out")).exists()) {
+				writer.close();
 				return false;
 			}
 

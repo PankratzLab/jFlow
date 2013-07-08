@@ -455,13 +455,10 @@ public class ABLookup {
 //		filename = "/home/npankrat/projects/SDRG.properties";
 //		mapFile = "00src/HumanOmni2.5-8v1_C.csv";
 
-//		filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
+		filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
 //		mapFile = "C:/GEDI_exomeRAF/HumanExome-12v1_A.csv";
 //		parseFromGenotypeClusterCenters = true;
-
-		filename = "C:/workspace/Genvisis/projects/gedi_exome_top.properties";
-//		mapFile = "C:/GEDI_exomeRAF/HumanExome-12v1_A.csv";
-		parseFromGenotypeClusterCenters = true;
+		applyAB = true;
 		
 		try {
 			proj = new Project(filename, false);

@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class batchMLINK {
+	@SuppressWarnings("resource")
 	public batchMLINK(String models) throws IOException {
 		BufferedReader reader = null;
 		PrintWriter writer = null, writer1 = null, writer2 = null, writer3 = null, writer4 = null;
@@ -23,6 +24,7 @@ public class batchMLINK {
 			handle[3] = Double.valueOf(st.nextToken()).doubleValue();
 			modelParams.add(handle);
 		}
+		reader.close();
 
 		writer1 = new PrintWriter(new FileWriter("batch.5"));
 		writer2 = new PrintWriter(new FileWriter("batch.6"));

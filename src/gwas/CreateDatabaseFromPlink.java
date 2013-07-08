@@ -373,6 +373,8 @@ public class CreateDatabaseFromPlink {
             	line = reader.readLine().trim().split("[\\s]+");
             	if (!line[1].equals(markerNames[i])) {
             		log.reportError("Error - the freq file does not match the map file at line "+(i+1)+"; expecting "+markerNames[i]+", found "+line[1]);
+            		reader.close();
+            		writer.close();
             		return;
             	}
             	if (i==0) {

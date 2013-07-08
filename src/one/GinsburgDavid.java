@@ -613,6 +613,7 @@ public class GinsburgDavid {
 			if (!reader.ready()) {
 				logIt("No errors found in the dataset!", true);
 				Files.copyFile(dir+"pedfile.pre", dir+"mended_pedfile.pre");
+				reader.close();
 				return;
 			}
 

@@ -56,7 +56,7 @@ public class comp {
 	}
 
 	public comp(String filename) throws IOException {
-		BufferedReader reader = null;
+		BufferedReader reader, r2;
 		PrintWriter writer = null;
 		String[] line, traits, split;
 		String temp;
@@ -178,6 +178,8 @@ public class comp {
 			try {
 				writer.println(new BufferedReader(new FileReader(db_file)).readLine());
 			} catch (FileNotFoundException ex) {
+				reader.close();
+				writer.close();
 				throw new RuntimeException(ex.getMessage());
 			}
 			writer.println();
@@ -199,6 +201,7 @@ public class comp {
 			try {
 				reader = new BufferedReader(new FileReader(db_file));
 			} catch (FileNotFoundException ex) {
+				reader.close();
 				throw new RuntimeException(ex.getMessage());
 			}
 			factorNames = reader.readLine().split(delimiter);
@@ -226,6 +229,7 @@ public class comp {
 			while (reader.ready()) {
 				line = reader.readLine().split(delimiter);
 				if (factorNames.length!=line.length) {
+					reader.close();
 					throw new RuntimeException("Error - different number of values ("+line.length+" versus "+factorNames.length+" factors) for "+line[0]);
 				}
 				idline = new String[] {idIndices[0]==-1?null:line[idIndices[0]], idIndices[1]==-1?null:line[idIndices[1]], idIndices[2]==-1?null:line[idIndices[2]]};
@@ -265,6 +269,7 @@ public class comp {
 				data[i] = vDoubleArray.elementAt(i);
 			}
 			if (N==1) {
+				reader.close();
 				throw new RuntimeException("Error - with only one subject, dependent variable has zero variation");
 			}
 			vDoubleArray = null;
@@ -455,20 +460,17 @@ public class comp {
 						trendyKey = new Hashtable<String,String>();
 						try {
 							try {
-								if (new File("trendy_key.xln").exists()) {
-									reader = new BufferedReader(new FileReader("trendy_key.xln"));
-								} else if (new File("C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\runtime\\trendy_key.xln").exists()) {
-									reader = new BufferedReader(new FileReader("C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\runtime\\trendy_key.xln"));
-								} else {
+								if (!new File("trendy_key.xln").exists()) {
 									throw new IOException();
 								}
-								while (reader.ready()) {
+								r2 = new BufferedReader(new FileReader("trendy_key.xln"));
+								while (r2.ready()) {
 									line = reader.readLine().split("\t");
 									trendyKey.put(line[0], line[1]);
 								}
-								reader.close();
+								r2.close();
 							} catch (IOException ioe) {
-								System.err.println("Error reading file \""+"trendy_key.xln"+"\"; no translations available");
+								System.err.println("Error reading file \""+"trendy_key.xln"+"\"");
 							}
 
 							reader = new BufferedReader(new FileReader(traits[trt]+"-trend.lst"));

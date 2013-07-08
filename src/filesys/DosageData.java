@@ -93,6 +93,7 @@ public class DosageData implements Serializable {
 					for (int i = 0; i < markerNames.length; i++) {
 						if (!markerNames[i].equals(line[parameters[1]+parameters[3]*i]))	{
 							log.reportError("Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[parameters[1]+parameters[3]*i]);
+							reader.close();
 							return;
 						}
 					}
@@ -103,6 +104,7 @@ public class DosageData implements Serializable {
 						for (int i = 0; i < ids.length; i++) {
 							if (!ids[i][0].equals(line[parameters[1]+parameters[3]*i+0]) || !ids[i][1].equals(line[parameters[1]+parameters[3]*i+1]))	{
 								log.reportError("Error - mismatched IDs at individual "+(i+1)+" of "+dosageFile+"; expecting "+ids[i][0]+","+ids[i][1]+" given id file "+idFile+", found "+line[parameters[1]+parameters[3]*i+0]+","+line[parameters[1]+parameters[3]*i+1]);
+								reader.close();
 								return;
 							}
 						}
@@ -115,6 +117,7 @@ public class DosageData implements Serializable {
 					line = reader.readLine().trim().split(parameters[10]==1?",":"[\\s]+");
 					if (!markerNames[i].equals(line[parameters[5]])) {
 						log.reportError("Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[parameters[5]]);
+						reader.close();
 						return;
 					}
 
@@ -709,6 +712,7 @@ public class DosageData implements Serializable {
 						for (int i = 0; i < markerNames.length; i++) {
 							if (!markerNames[i].equals(line[fromParameters[1]+fromParameters[3]*i]))	{
 								log.reportError("Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[fromParameters[1]+fromParameters[3]*i]);
+								reader.close();
 								return;
 							}
 						}
@@ -719,6 +723,7 @@ public class DosageData implements Serializable {
 							for (int i = 0; i < ids.length; i++) {
 								if (!ids[i][0].equals(line[fromParameters[1]+fromParameters[3]*i+0]) || !ids[i][1].equals(line[fromParameters[1]+fromParameters[3]*i+1]))	{
 									log.reportError("Error - mismatched IDs at individual "+(i+1)+" of "+dosageFile+"; expecting "+ids[i][0]+","+ids[i][1]+" given id file "+idFile+", found "+line[fromParameters[1]+fromParameters[3]*i+0]+","+line[fromParameters[1]+fromParameters[3]*i+1]);
+									reader.close();
 									return;
 								}
 							}
@@ -759,6 +764,7 @@ public class DosageData implements Serializable {
 						line = reader.readLine().trim().split(fromParameters[10]==1?",":"[\\s]+");
 						if (!markerNames[i].equals(line[fromParameters[5]])) {
 							log.reportError("Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[fromParameters[5]]);
+							reader.close();
 							return;
 						}
 	
