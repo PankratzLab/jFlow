@@ -1,6 +1,7 @@
 package cnv;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -17,7 +18,7 @@ import cnv.plots.*;
 
 public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
 	public static final long serialVersionUID = 1L;
-	public static String filename = LaunchProperties.DEFAULT_PROPERTIES_FILE;
+	public static String defaultLaunchPropertiesFilename = LaunchProperties.DEFAULT_PROPERTIES_FILE;
 
 	public static final String TWOD = "2D Plot";
 	public static final String EXIT = "Exit";
@@ -64,11 +65,19 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     private JTextArea output;
     private JScrollPane scrollPane;
 //    private Vector<Thread> threadsRunning;
+    private int indexOfCurrentProj;
+    private long timestampOfPropertiesFile;
+    private long timestampOfSampleDataFile;
+    private Logger log;
 
 	public Launch(String launchPropertiesFile, boolean jar) {
 		super("Genvisis");
 		this.jar = jar;
 		this.launchPropertiesFile = launchPropertiesFile;
+		this.timestampOfPropertiesFile = -1;
+		this.timestampOfSampleDataFile = -1;
+		//Do not know proj yet at this stage.	//proj.getDir(Project.MARKER_DATA_DIRECTORY) + 
+		this.log = new Logger("Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 	}
 
 	public void loadProjects() {
@@ -80,9 +89,26 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			projectNames[i] = ext.rootOf(projects[i], true);
         }
 		projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
+//		indexOfCurrentProj = 0;
 	}
 	
-    private static void createAndShowGUI(String launchPropertiesFile) {
+
+	public void loadProject() {
+		proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProj], jar);
+		timestampOfPropertiesFile = new Date().getTime();
+		timestampOfSampleDataFile = new Date().getTime();
+	}
+
+	public void setIndexOfCurrentProject(String projPropertiesFileName) {
+		indexOfCurrentProj = 0;
+		for (int i = 0; i < projects.length; i++) {
+			if (projects[i].equals(projPropertiesFileName)) {
+				indexOfCurrentProj = i;
+			}
+		}
+	}
+
+	private static void createAndShowGUI(String launchPropertiesFile) {
         Launch frame;
     	String path;
 
@@ -114,8 +140,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		frame.setVisible(true);
 
 		// TODO only instantiate when used
-		frame.proj = new Project(frame.launchProperties.getDirectory()+frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED), frame.jar);
-		frame.output.append("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
+//		frame.proj = new Project(frame.launchProperties.getDirectory()+frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED), frame.jar);
+		frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
+		frame.loadProject();
+		frame.log.report("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
+//		frame.output.append("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
     }
 
     public Container createContentPane() {
@@ -128,8 +157,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	    //Create a scrolled text area.
 	    output = new JTextArea(5, 30);
 	    output.setEditable(false);
-	    output.append("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 	    scrollPane = new JScrollPane(output);
+	    log.linkTextArea(output);
+	    log.report("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
+//	    output.append("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 	
 	    //Add the text area to the content pane.
 	    contentPane.add(scrollPane, BorderLayout.CENTER);
@@ -227,7 +258,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		}
 
 	public void addComponentsToPane(final Container pane) {
-		String lastProjectOpened;
+//		String lastProjectOpened;
         
         launchProperties = new LaunchProperties(launchPropertiesFile);
         projectsBox = new JComboBox<String>();
@@ -235,32 +266,34 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         // In JDK1.4 this prevents action events from being fired when the  up/down arrow keys are used on the dropdown menu
         projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
 		
-		lastProjectOpened = launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED);
-		for (int i = 0; i<projects.length; i++) {
-			if (projects[i].equals(lastProjectOpened)) {
-				projectsBox.setSelectedIndex(i);
-			}
-        }
+//		lastProjectOpened = launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED);
+//		for (int i = 0; i<projects.length; i++) {
+//			if (projects[i].equals(lastProjectOpened)) {
+//				projectsBox.setSelectedIndex(i);
+//			}
+//        }
+		setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
+		projectsBox.setSelectedIndex(indexOfCurrentProj);
 		projectsBox.addItemListener(this);
         pane.add(projectsBox);
     }
 
 	public void createPopupMenu() {
-	        JMenuItem menuItem;
-	 
-	        //Create the popup menu.
-	        JPopupMenu popup = new JPopupMenu();
-	        menuItem = new JMenuItem("A popup menu item");
-	        menuItem.addActionListener(this);
-	        popup.add(menuItem);
-	        menuItem = new JMenuItem("Another popup menu item");
-	        menuItem.addActionListener(this);
-	        popup.add(menuItem);
-	 
-	        //Add listener to the text area so the popup menu can come up.
-	//        MouseListener popupListener = new PopupListener(popup);
-	//        output.addMouseListener(popupListener);
-	    }
+        JMenuItem menuItem;
+ 
+        //Create the popup menu.
+        JPopupMenu popup = new JPopupMenu();
+        menuItem = new JMenuItem("A popup menu item");
+        menuItem.addActionListener(this);
+        popup.add(menuItem);
+        menuItem = new JMenuItem("Another popup menu item");
+        menuItem.addActionListener(this);
+        popup.add(menuItem);
+ 
+        //Add listener to the text area so the popup menu can come up.
+//        MouseListener popupListener = new PopupListener(popup);
+//        output.addMouseListener(popupListener);
+    }
 
 	public class IndependentThread implements Runnable {
 		private Project proj;
@@ -273,6 +306,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 		@Override
 		public void run() {
+			// check if proj needs to be reloaded
+			if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified() || timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
+				proj = null;
+				loadProject();
+			}
+
 			if (command.equals(MAP_FILES)) {
 				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
@@ -286,9 +325,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				String filename;
 				boolean success;
-				
+
 				filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
-				System.out.println("using "+filename);
+//				System.out.println("using "+filename);
+				log.report("using "+filename);
 				if ( filename==null || (!filename.equals("cancel")) ) {
 //						String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
 //						if () {
@@ -319,7 +359,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(DENOVO_CNV)) {
 				DeNovoCNV.main(null);
 			} else if (command.equals(SCATTER)) {
-//				new ScatterPlot(proj, null, null);
 				ScatterPlot.createAndShowGUI(proj, null, null);
 			} else if (command.equals(QQ)) {
 				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false);
@@ -343,7 +382,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(EXPORT_CNVS)) {
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(TEST)) {
-				System.out.println("No new program to test");
+//				System.out.println("No new program to test");
+				log.report("No new program to test");
 			} else if (command.equals(GCMODEL)) {
 				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
@@ -374,8 +414,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 	public void actionPerformed(ActionEvent ae) {
 		String command = ae.getActionCommand();
-		output.append("Action performed: " + command + "\n");
-		output.setCaretPosition(output.getDocument().getLength());
+//		output.append("Action performed: " + command + "\n");
+//		output.setCaretPosition(output.getDocument().getLength());
+		log.report("Action performed: " + command + "\n");
+		
+		
+//		// check if proj needs to be reloaded
+//		proj = null;
+//		proj = new Project(filename, jar);
 
 		if (command.equals(EXIT)) {
 			System.exit(0);
@@ -386,18 +432,21 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			String dir = launchProperties.getDirectory();
 			try {
 				Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
-				System.out.println("tried to open "+projects[index]+" which "+(new File(dir+projects[index]).exists()?"does":"does not")+" exist");
+//				System.out.println("tried to open "+projects[index]+" which "+(new File(dir+projects[index]).exists()?"does":"does not")+" exist");
+				log.report("tried to open "+projects[index]+" which "+(new File(dir+projects[index]).exists()?"does":"does not")+" exist");
 			} catch (IOException ioe) {
 				System.err.println("Error - failed to open Notepad");
 			}
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
-			System.out.println("Refreshed list of projects");
+//			System.out.println("Refreshed list of projects");
+			log.report("Refreshed list of projects");
 		} else if (command.endsWith(" ")) {
 			for (int i=0; i<projects.length; i++) {
 				if (command.equals(ext.rootOf(projects[i])+" ")) {
 					projectsBox.setSelectedIndex(i);
 					System.out.println("Selecting: "+projects[i]);
+					log.report("Selecting: "+projects[i]);
 				}
 			}
 		} else {
@@ -425,12 +474,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     public void windowDeactivated(WindowEvent we) {}
 
     public void itemStateChanged(ItemEvent e) {
-    	byte i;
+//    	byte i;
     	if (e.getStateChange()==ItemEvent.SELECTED) {
-    		i = (byte) projectsBox.getSelectedIndex();
-			proj = new Project(launchProperties.getDirectory()+projects[i], jar);
-			output.append("\nCurrent project: " + ext.rootOf(projects[i]) + "\n");
-			output.setCaretPosition(output.getDocument().getLength());
+    		indexOfCurrentProj = projectsBox.getSelectedIndex();
+//			proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProject], jar);
+			loadProject();
+//			output.append("\nCurrent project: " + ext.rootOf(projects[indexOfCurrentProj]) + "\n");
+//			output.setCaretPosition(output.getDocument().getLength());
+			log.report("\nCurrent project: " + ext.rootOf(projects[indexOfCurrentProj]) + "\n");
 
 			launchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED, projects[projectsBox.getSelectedIndex()]);
 			launchProperties.save();
@@ -442,7 +493,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		
 		String usage = "\n"+
 		"cnv.Launch requires 1 argument\n"+
-		"   (1) name of file with project locations (i.e. file="+filename+" (default))\n"+
+		"   (1) name of file with project locations (i.e. file=" + defaultLaunchPropertiesFilename + " (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -450,7 +501,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				System.err.println(usage);
 				System.exit(1);
 			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
+				defaultLaunchPropertiesFilename = args[i].split("=")[1];
 				numArgs--;
 			}
 		}
@@ -461,7 +512,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-            	createAndShowGUI(filename);
+            	createAndShowGUI(defaultLaunchPropertiesFilename);
             }
         });
 	}
