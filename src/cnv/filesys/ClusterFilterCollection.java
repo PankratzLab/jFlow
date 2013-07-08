@@ -271,29 +271,82 @@ public class ClusterFilterCollection implements Serializable {
 		System.out.println("There were a total of "+count+" clusterFilters across "+trav.getSize()+" markers");
 	}
 
+	public static void dump(String filename) {
+		PrintWriter writer;
+		String[] markerNames;
+		ClusterFilterCollection collection;
+		ArrayList<ClusterFilter> list;
+		ClusterFilter filter;
+		
+		if (!Files.exists(filename)) {
+			System.err.println("Error - collection '"+filename+"' does not exist");
+			return;
+		}
+		
+		try {
+			writer = new PrintWriter(new FileWriter(ext.rootOf(filename)+"_dump.xln"));
+			writer.println("MarkerIndex\tMarkerName\tFilterIndex\tPlotType\tGenotype\tminX\tminY\tmaxX\tmaxY");
+			collection = load(filename, false);
+			markerNames = collection.getMarkerNames();
+			for (int i = 0; i < markerNames.length; i++) {
+				list = collection.getClusterFilters(markerNames[i]);
+				for (int j = 0; j < list.size(); j++) {
+					filter = list.get(j);
+					writer.println(i+"\t"+markerNames[i]+"\t"+j+"\t"+filter.getPlotType()+"\t"+filter.getCluterGenotype()+"\t"+filter.getXMin()+"\t"+filter.getYMin()+"\t"+filter.getXMax()+"\t"+filter.getYMax());
+				}
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + ext.rootOf(filename)+"_dump.xln");
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String[] filenames = null;
 		String out = "merged.ser";
-		String filename = "clusterFilters.ser";
+		String filename = "data/clusterFilters.ser";
+		boolean describeFile = false;
+		boolean exportFile = false;
+		boolean importFile = false;		
 
 		String usage = "\n" + 
 				"cnv.filesys.ClusterFilterCollection requires 0-1 arguments\n" +
 				"   (1) names of clusterFilter files to merge (i.e. files=file1.ser,file2.ser,file3.ser (not the default))\n" + 
 				"   (2) output filename (i.e. out="+out+" (default))\n" +
 				" OR:\n" +
-				"   (1) names of clusterFilter file to describe (i.e. files="+filename+" (default))\n" + 
+				"   (1) describe clusterFilter file (i.e. -describe (not the default))\n" + 
+				"   (2) name of clusterFilter file to describe (i.e. file="+filename+" (default))\n" + 
+				" OR:\n" +
+				"   (1) export clusterFilter file (i.e. -export (not the default))\n" + 
+				"   (2) name of clusterFilter file to import (i.e. file="+filename+" (default))\n" + 
+				" OR:\n" +
+				"   (1) import text file into a clusterFilter collection (i.e. -import (not the default; and still needs to be implemented))\n" + 
+				"   (2) name of text file to import (i.e. file="+filename+" (default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				filename = ext.parseStringArg(args[i], null);
+				numArgs--;
 			} else if (args[i].startsWith("files=")) {
 				filenames = args[i].split("=")[1].split(",");
 				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				out = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-describe")) {
+				describeFile = true;
+				numArgs--;
+			} else if (args[i].startsWith("-export")) {
+				exportFile = true;
+				numArgs--;
+			} else if (args[i].startsWith("-import")) {
+				importFile = true;
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -307,8 +360,13 @@ public class ClusterFilterCollection implements Serializable {
 		try {
 			if (filenames != null) {
 				merge(filenames, out);
-			} else {
+			} else if (describeFile) {
 				describe(filename);
+			} else if (exportFile) {
+				dump(filename);
+			} else if (importFile) {
+				// TODO still needs to be implemented
+				System.err.println("import still needs to be implemented");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

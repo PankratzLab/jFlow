@@ -160,7 +160,7 @@ public class TransposeData {
 				backupOlderFile(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false), backupCount);
 				log.report( "--\nProject:\t" + allMarkerNamesInProj.length + " markers\t" + allSampleNamesInProj.length +" samples"
 						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
-						  + "\nwriteBuffer:\t" + nMarks_WrtBuffer + " markers\t" + nChunks_WrtBuffer+ " chunks\t"+nMarks_Chunk+" Markers/chunk\t" +  ((long) nMarks_WrtBuffer * nBytes_Mark / (long)Runtime.getRuntime().maxMemory() * 100) + "% maxHeap" 
+						  + "\nwriteBuffer:\t" + nMarks_WrtBuffer + " markers\t" + nChunks_WrtBuffer+ " chunks\t"+nMarks_Chunk+" Markers/chunk\t" +  ext.formDeci((double) nMarks_WrtBuffer * nBytes_Mark / (double)Runtime.getRuntime().maxMemory() * 100, 1) + "% heap efficiency" 
 						  + "\nMarkerFile:\t" + nMarks_File + " markers\t" + nChunks_File + " chunks\t" + markerFileSizeSuggested/1024/1024/1024 + "." + ((int)(markerFileSizeSuggested/1024/1024/10.24) - (int)(markerFileSizeSuggested/1024/1024/1024*102.4)) + " gb\t" + nFiles + " files");
 
 

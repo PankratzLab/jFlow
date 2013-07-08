@@ -10,6 +10,7 @@ public class batchByFam {
 	// 132, 146, 127, 137, 108, 108, 85, 111, 109, 114, 114, 105, 105, 68, 79};
 	public static int[] dist = {0, 274, 261, 225, 213, 195, 187, 182, 164, 161, 178, 147, 166, 111, 125, 123, 131, 125, 120, 102, 99, 57, 46, 1};
 
+	@SuppressWarnings("resource")
 	public batchByFam() throws IOException {
 		PrintWriter writer = null, writer1 = null, writer2 = null, writer3 = null, writer4 = null, writer5 = null, writer6 = null;
 		int chromosome = 0;

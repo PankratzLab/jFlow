@@ -164,6 +164,8 @@ public class shiftAlleles {
 		if (index==-1) {
 			System.err.println("Error - could not find '"+markerName+"' in "+"chromosome"+chr+".dat");
 			System.err.println("        skipping marker and continuing with file");
+			reader.close();
+			writer.close();
 			return;
 		}
 

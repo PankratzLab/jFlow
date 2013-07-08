@@ -153,6 +153,8 @@ public class Minimac {
 					} else {
 						System.err.println("Error - mismatched number of alleles at line "+count+" (expecting "+markerNames.length+"; found "+line[2].length()+")");
 					}
+					reader.close();
+					writer.close();
 					return;
 				}
 				writer.print(line[0]+" "+line[1]+" ");
@@ -507,6 +509,7 @@ public class Minimac {
 				alleles = (makeUpperCase?trav.toUpperCase():trav).toCharArray();
 				if (alleles.length != markerNames.length) {
 					System.err.println("Error - number of markers in line "+count+" of "+ext.removeDirectoryInfo(hapFile)+" ("+alleles.length+") does not match the number of markers in "+ext.rootOf(hapFile, true)+".snps ("+markerNames.length+")");
+					reader.close();
 					return;
 				}
 				for (int i = 0; i < markerNames.length; i++) {

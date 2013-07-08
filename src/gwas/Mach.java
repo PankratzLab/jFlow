@@ -735,6 +735,7 @@ public class Mach {
 				}
 				if (in.read() != -1) {
 					log.reportError("Error - stopped reading before the end of file for '"+dosageFile+"' (found character '"+c+"')");
+					in.close();
 					return false;
 				}
 				in.close();

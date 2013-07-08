@@ -14,12 +14,12 @@ public class LeastSquares extends RegressionModel {
 	private double[][] invP;
 	private int sigDig = 3;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public LeastSquares(Vector vDeps, Vector vIndeps) { // deps = Vector of int/double as String, indeps = Vector of double[]
 		this(vDeps, vIndeps, false, true);
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck, boolean verbose) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose);
 	}

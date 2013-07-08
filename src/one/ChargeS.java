@@ -450,10 +450,10 @@ public class ChargeS {
 //						
 //			
 //			
-//
-//			if (phenoFile != null) {
-//				runAll(phenoFile, genoFile, annotationFile);
-//			}
+
+			if (phenoFile != null) {
+				runAll(phenoFile, genoFile, annotationFile);
+			}
 			
 //			metaAll(dir+"results/");
 			

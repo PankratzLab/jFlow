@@ -10,8 +10,6 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import sun.rmi.runtime.Log;
-
 import common.Array;
 import common.Files;
 import common.HashVec;

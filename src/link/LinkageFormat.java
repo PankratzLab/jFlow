@@ -26,64 +26,74 @@ public class LinkageFormat {
 		}
 	}
 
-	public static void create(String filein, String fileout, boolean makePheno) throws IOException {
+	public static void create(String filein, String fileout, boolean makePheno) {
 		BufferedReader reader;
 		PrintWriter writer, phenophile = null;
 		String[] line = null, data;
 		Hashtable<String,String[]> hash = new Hashtable<String,String[]>();
 
-		reader = new BufferedReader(new FileReader(filein));
-		if (!reader.ready()) {
-			System.err.println("Error - no data in "+filein);
-			System.exit(4);
-		}
-		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
-			hash.put(line[0]+"\t"+line[1], line);
-		}
-		line = new String[line.length];
-		line[0] = line[1] = "blank";
-		for (int i = 2; i<line.length; i++) {
-			line[i] = "0";
-		}
-		hash.put(line[0], line);
-
-		writer = new PrintWriter(new FileWriter(fileout));
-		if (makePheno) {
-			phenophile = new PrintWriter(new FileWriter("pheno.sibs"));
-		}
-
-		reader = new BufferedReader(new FileReader("struct.dat"));
-		while (reader.ready()) {
-			line = reader.readLine().split("[\\s]+");
-			for (int i = 0; i<6; i++) {
-				writer.print((i==0?"":"\t")+line[i]);
+		try {
+			reader = new BufferedReader(new FileReader(filein));
+			if (!reader.ready()) {
+				System.err.println("Error - no data in "+filein);
+				System.exit(4);
 			}
-			data = hash.get(line[0]+"\t"+line[1]);
-			if (data==null&&line[0].contains("_")) {
-				data = hash.get(line[0].substring(0, line[0].indexOf("_"))+"\t"+line[1]);
+			while (reader.ready()) {
+				line = reader.readLine().split("[\\s]+");
+				hash.put(line[0]+"\t"+line[1], line);
 			}
-			if (data==null) {
-				if (!line[6].equals("NoDNAprsnt")&&!line[6].equals("0")) {
-					System.err.println("Error - expecting genotypes for "+line[0]+"\t"+line[1]+" (i.e. contains DNA# '"+line[6]+"'), but was not found in genotype file");
-					System.exit(6);
+			line = new String[line.length];
+			line[0] = line[1] = "blank";
+			for (int i = 2; i<line.length; i++) {
+				line[i] = "0";
+			}
+			hash.put(line[0], line);
+	
+			writer = new PrintWriter(new FileWriter(fileout));
+			if (makePheno) {
+				phenophile = new PrintWriter(new FileWriter("pheno.sibs"));
+			}
+			reader.close();
+	
+			reader = new BufferedReader(new FileReader("struct.dat"));
+			while (reader.ready()) {
+				line = reader.readLine().split("[\\s]+");
+				for (int i = 0; i<6; i++) {
+					writer.print((i==0?"":"\t")+line[i]);
 				}
-				data = hash.get("blank");
+				data = hash.get(line[0]+"\t"+line[1]);
+				if (data==null&&line[0].contains("_")) {
+					data = hash.get(line[0].substring(0, line[0].indexOf("_"))+"\t"+line[1]);
+				}
+				if (data==null) {
+					if (!line[6].equals("NoDNAprsnt")&&!line[6].equals("0")) {
+						System.err.println("Error - expecting genotypes for "+line[0]+"\t"+line[1]+" (i.e. contains DNA# '"+line[6]+"'), but was not found in genotype file");
+						System.exit(6);
+					}
+					data = hash.get("blank");
+				}
+				if (makePheno&&line.length>7) {
+					phenophile.println(line[0]+"\t"+line[1]+"\t"+line[7]);
+				}
+				for (int i = 2; i<data.length; i++) {
+					writer.print("\t"+data[i]);
+				}
+				writer.println();
 			}
-			if (makePheno&&line.length>7) {
-				phenophile.println(line[0]+"\t"+line[1]+"\t"+line[7]);
+	
+			reader.close();
+			writer.close();
+			if (makePheno) {
+				phenophile.close();
 			}
-			for (int i = 2; i<data.length; i++) {
-				writer.print("\t"+data[i]);
-			}
-			writer.println();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filein + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filein + "\"");
+			System.exit(2);
 		}
 
-		reader.close();
-		writer.close();
-		if (makePheno) {
-			phenophile.close();
-		}
 	}
 
 	public static int filterMarkers(String pedin, String pedout, String mapin, String mapout, String markersToKeepFile, String markersToDropFile) {

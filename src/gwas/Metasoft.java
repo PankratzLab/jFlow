@@ -23,6 +23,7 @@ public class Metasoft {
 			numStudies = (line.length-1)/4;
 			if (line.length != numStudies*4+1) {
 				System.err.println("Error determining number of studies, are you now parsing more than 4 parameters?");
+				reader.close();
 				return;
 			}
 			reader.reset();

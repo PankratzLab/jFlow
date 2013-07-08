@@ -3,8 +3,6 @@ package link;
 import java.io.*;
 import java.util.*;
 
-import cnv.manage.temp;
-
 import parse.GenParser;
 import stats.RegressionModel;
 import common.*;

@@ -7,7 +7,6 @@ import java.io.*;
 import java.util.*;
 
 import one.ChargeS;
-import parse.GenParser;
 
 import common.*;
 

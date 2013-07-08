@@ -176,10 +176,13 @@ public class FisherTemp {
 	        while (reader.ready()) {
 	        	if (!reader.readLine().equals(reader2.readLine())) {
 	        		System.err.println("FAILED!!!");
+	        		reader.close();
+	        		reader2.close();
 	        		return;
 	        	}
 	        }
 	        reader.close();
+    		reader2.close();
 	        if (reader2.ready()) {
 	        	System.out.println("incomplete");
 	        } else {

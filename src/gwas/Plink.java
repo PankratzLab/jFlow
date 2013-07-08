@@ -170,10 +170,10 @@ public class Plink {
 	            reader.close();
             } catch (FileNotFoundException fnfe) {
 	            System.err.println("Error: file \""+"tmp.list"+ext.formNum(listCount, 3)+"\" not found in current directory");
-	            System.exit(1);
+	            return;
             } catch (IOException ioe) {
 	            System.err.println("Error reading file \""+"tmp.list"+ext.formNum(listCount, 3)+"\"");
-	            System.exit(2);
+	            return;
             }
             listCount++;
 		}

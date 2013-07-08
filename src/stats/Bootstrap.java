@@ -21,6 +21,7 @@ public class Bootstrap {
 			line = reader.readLine().split("[\\s]+");
 			try {
 				if (line.length!=2) {
+	        		reader.close();
 					throw new Exception();
 				}
 				column = Integer.parseInt(line[0]);

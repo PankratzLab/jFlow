@@ -375,6 +375,7 @@ public class PathwayAnalysis {
 	        	if (indices[1] == -1 || line[indices[1]].equals("ADD")) {
 		        	if (!line[indices[0]].equals(markerNames[count])) {
 		        		System.err.println("Error - marker mismatch at marker "+(count+1)+" (expecting "+markerNames[count]+", found "+line[indices[0]]+")");
+		    			reader.close();
 		        		return;
 		        	}
 		        	results[count] = line[indices[2]].equals("NA")?Float.NaN:Float.parseFloat(line[indices[2]]); 

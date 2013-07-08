@@ -114,6 +114,7 @@ public class ForestPlot {
 	        		}
 				}
 	        	if (problem) {
+	    			reader.close();
 	        		return;
 	        	}
 	        }
@@ -138,6 +139,7 @@ public class ForestPlot {
                 }
             }		
 	        if (problem) {
+				reader.close();
 	        	return;
 	        }
 	        new File(dir+"forests/").mkdirs();

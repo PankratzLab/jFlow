@@ -289,7 +289,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		long time;
 		ProgressBarDialog prog;//zx
     	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
-    	int index;
+//    	int index;
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
