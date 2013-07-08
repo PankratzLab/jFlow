@@ -230,16 +230,36 @@ public class AnnotationCollection implements Serializable {
 
 
 	public char[] getKeys() {
-//		return Array.toCharArray(HashVec.getKeys(commentsHash));
+//		String[] result;
+//		Enumeration<Character> keys;
+//		result = new String[commentsHash.size()];
+//		keys = commentsHash.keys();
+//		for (int i=0; i<result.length; i++) {
+//			result[i] = keys.nextElement()+"";
+//		}
+//		return Array.toCharArray(Sort.putInOrder(result));
 
-		String[] result;
+		String[] commentDescriptions;
+		char[] result;
 		Enumeration<Character> keys;
-		result = new String[commentsHash.size()];
+		char key;
+		Hashtable<String, Character> temp;
+
+		temp = new Hashtable<String, Character>(commentsHash.size() + 1, (float) 1.00);
 		keys = commentsHash.keys();
-		for (int i=0; i<result.length; i++) {
-			result[i] = keys.nextElement()+"";
+		commentDescriptions = new String[commentsHash.size()];
+		for (int i=0; i<commentDescriptions.length; i++) {
+			key = keys.nextElement();
+			commentDescriptions[i] = commentsHash.get(key);
+			temp.put(commentDescriptions[i], key);
 		}
-		return Array.toCharArray(Sort.putInOrder(result));
+		commentDescriptions = Sort.putInOrder(commentDescriptions);
+
+		result = new char[commentsHash.size()];
+		for (int i=0; i<commentDescriptions.length; i++) {
+			result[i] = temp.get(commentDescriptions[i]);
+		}
+		return result;
 	}
 	
 	public boolean containsKey(char c) {
