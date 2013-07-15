@@ -111,6 +111,7 @@ public class PlinkFormat {
 				return false;
 			}
 			abLookup = new ABLookup(markerNames, proj.getProjectDir()+"AB_lookup.dat", true, true).getLookup();
+			log.report("Using "+clusterFilterFilename+" and AB_lookup.dat to call genotypes");
 		} else {
 			abLookup = null;
 		}

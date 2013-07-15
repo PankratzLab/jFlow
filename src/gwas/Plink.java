@@ -14,8 +14,10 @@ public class Plink {
 	public static final String[] MPERM_HEADER = {"CHR", "SNP", "EMP1", "EMP2"};
 	public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "OR", "SE", "L95", "U95", "STAT", "P"};
 	public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "BETA", "SE", "L95", "U95", "STAT", "P"};
+	public static final int[][] BUILD_36_PARS = {{}};
+	public static final int[][] BUILD_37_PARS = {{}};
 
-	public static void batchGenome(String root, int threads) {
+	public static void batchGenome(String root, int threads, double minPiHatToKeep) {
 		PrintWriter writer;
 		Hashtable<String,String> imiss;
 		String[] inds, line;
@@ -79,7 +81,7 @@ public class Plink {
 			}
 		}
 
-		commands = "/home/npankrat/bin/plink --noweb --bfile "+root+" --read-freq plink.frq --genome --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
+		commands = "/home/npankrat/bin/plink --noweb --bfile "+root+" --read-freq plink.frq --genome"+(minPiHatToKeep>0?" --min "+minPiHatToKeep:"")+" --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
 		Files.qsub("genom", commands, Matrix.toStringArrays(v));
 		try {
 	        writer = new PrintWriter(new FileWriter("master.compile"));
@@ -639,6 +641,49 @@ public class Plink {
 		}
 	}
 	
+	public static void shiftPAR(String filename, int build) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp, trav;
+		Hashtable<String, String> hash = new Hashtable<String, String>();
+		Vector<String> v = new Vector<String>();
+		int count;
+		long time;
+		int[][] pars;
+		
+		
+		if (build == 36 || build == 18) {
+			pars = BUILD_36_PARS;
+		} else {
+			if (build != 37 && build != 19) {
+				System.err.println("Warning - '"+build+"' is an unknown build of the genome; using default build 37 (hg19)");
+			}
+			pars = BUILD_37_PARS;
+		}
+
+		
+		
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_shifterPAR")));
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				if (line[0].equals("23")) {
+					
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
+		}
+	}
+	
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		int genom = 0;
@@ -661,11 +706,11 @@ public class Plink {
 		int removeOutTo = 4;
 		boolean filterPairs = false;
 		String mperm = null;
+		String diff = null;
+		String shift = null;
+		int build = 37;
+		double minPiHatToKeep = -1;
 		
-//		parseDiffMode6("C:/GEDI_Exome2/mergeCompare/comp.diff");
-//		parseDiffMode6("C:/GEDI_exome/mergeCompareOriginal/comp.diff");
-//		System.exit(1);
-
 		String usage = "\n"+
 		"gwas.Plink requires 0-1 arguments\n"+
 		"   (1) collapse parallelized .mperm files with the given pattern and the specified number of reps per file (i.e. mperm=perm#.assoc.mperm,100000 (not the default))\n"+
@@ -673,6 +718,7 @@ public class Plink {
 		"   (1) number of parts to break into --genome on (i.e. genome=8 (not the default))\n"+
 		"          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"+
 		"   (2) name of PLINK root for --genome runs (i.e. root="+root+" (default))\n"+
+		"   (3) minimum pi_hat to retain in --genome runs (i.e. minPiHatToKeep=0.1 (not the default))\n"+
 		"  OR\n"+
 		"   (1) add more indiviudals to a .genome using N threads (i.e. addGenome=4 (not the default))\n"+
 		"          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"+
@@ -686,6 +732,11 @@ public class Plink {
 		"   (3) (optional) select sample to keep based on call rate (i.e. imiss="+iMissFile+" (default))\n"+
 		"   (4) (optional) select on LRR_SD if call rates are within 0.2% (i.e. lrr_sd="+lrrFile+" (default))\n"+
 		"   (5) (optional) only purge out to certain level (i.e. level="+removeOutTo+" (default)), where:\n"+
+		"  OR\n"+
+		"   (1) summarize diff mode 6 results into markers and inds (i.e. diff=comp.diff (not the default))\n"+
+		"  OR\n"+
+		"   (1) shift markers in the PAR regions to chr25 (i.e. shift=plink.bim (not the default))\n"+
+		"   (2) genome build (i.e. build="+build+" (default))\n"+
 		"";
 		for (int i = 0; i < flags.length; i++) {
 			usage += "           level "+(i+1)+": "+flags[i]+"\tP(IBD=0)>="+thresholds[i][0]+"\tP(IBD=1)>="+thresholds[i][1]+"\tP(IBD=2)>="+thresholds[i][2]+"\tPI_HAT>="+thresholds[i][3]+"\n";
@@ -697,6 +748,9 @@ public class Plink {
 				System.exit(1);
 			} else if (args[i].startsWith("genome=")) {
 				genom = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("minPiHatToKeep=")) {
+				minPiHatToKeep = ext.parseDoubleArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("addGenome=")) {
 				addGenom = Integer.parseInt(args[i].split("=")[1]);
@@ -739,6 +793,15 @@ public class Plink {
 			} else if (args[i].startsWith("mperm=")) {
 				mperm = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("diff=")) {
+				diff = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("shift=")) {
+				shift = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("build=")) {
+				build = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: "+args[i]);
 			}
@@ -757,13 +820,17 @@ public class Plink {
 			if (addGenom>0) {
 				addToGenome(root, genom);
 			} else if (genom>0) {
-				batchGenome(root, genom);
+				batchGenome(root, genom, minPiHatToKeep);
 			} else if (genomeID_files != null) {
 				filterGenome(genomeID_files[0], genomeID_files[1], filterPairs);
 			} else if (genomeFile != null) {
 				flagRelateds(genomeFile, famFile, iMissFile, lrrFile, flags, thresholds, removeOutTo);
 			} else if (mperm != null) {
 				collapseMperms(mperm);
+			} else if (diff != null) {
+				parseDiffMode6(diff);
+			} else if (shift != null) {
+				shiftPAR(shift, build);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

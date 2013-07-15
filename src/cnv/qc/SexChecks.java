@@ -8,6 +8,7 @@ import cnv.filesys.*;
 import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import common.*;
+import db.FilterDB;
 import stats.*;
 
 public class SexChecks {
@@ -424,6 +425,127 @@ public class SexChecks {
 		}
 	}
 	
+	public static void identifyPseudoautosomalBreakpoints(Project proj, Logger log) {
+		PrintWriter writer;
+		String[] samples;
+		float[] lrrs;
+		MarkerData markerData;
+        SampleData sampleData;
+        int[] sexes;
+        byte[] abGenotypes;
+        String markerName;
+        ClusterFilterCollection clusterFilterCollection;
+        float gcThreshold;
+        long time;
+        DoubleVector[] values; // sex
+        MarkerDataLoader markerDataLoader;
+        String[] markerList;
+        String line, eol;
+		MarkerSet markerSet;
+        String[] markerNames;
+        boolean[] sexChrs;
+        byte[] chrs;
+        int[][] genotypeCounts;
+        
+        if (System.getProperty("os.name").startsWith("Windows")) {
+        	eol = "\r\n";
+		} else {
+			eol = "\n";
+		}
+        
+        sampleData = proj.getSampleData(2, false);
+        samples = proj.getSamples();
+        sexes = new int[samples.length];
+        for (int i = 0; i < samples.length; i++) {
+        	sexes[i] = Math.max(0, sampleData.getSexForIndividual(samples[i]));
+		}
+        
+        markerSet = proj.getMarkerSet();
+        markerNames = markerSet.getMarkerNames();
+        chrs = markerSet.getChrs();
+        sexChrs = new boolean[chrs.length];
+        for (int i = 0; i < chrs.length; i++) {
+        	sexChrs[i] = chrs[i]>=23;
+		}
+        markerList = Array.subArray(markerNames, sexChrs);
+ 		
+        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
+        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
+        } else {
+        	clusterFilterCollection = null;
+        }
+		
+        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
+
+        try {
+			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY, true, log, false)+"pseudoautosomalSearch.xln"));
+			writer.println("SNP\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
+			
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerList);
+			time = new Date().getTime();
+			line = "";
+			for (int i = 0; i < markerList.length; i++) {
+				markerData = markerDataLoader.requestMarkerData(i);
+
+				markerName = markerData.getMarkerName();
+				lrrs = markerData.getLRRs();
+				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				
+				genotypeCounts = new int[2][4]; // sex, genotype
+				values = new DoubleVector[2]; // sex
+				values[0] = new DoubleVector();
+				values[1] = new DoubleVector();
+				for (int s = 0; s < samples.length; s++) {
+					if (ext.isValidDouble(lrrs[s]+"")) {
+						if (sexes[s] == 1 || sexes[s] == 2) {
+							values[sexes[s]-1].add(lrrs[s]);
+							genotypeCounts[sexes[s]-1][abGenotypes[s]+1]++;
+						}
+					}
+				}
+
+				line += markerName;
+				if (values[0].size() > 0) {
+					line += "\t"+Array.mean(values[0].toArray());
+				} else {
+					line += "\t.";
+				}
+				if (values[1].size() > 0) {
+					line += "\t"+Array.mean(values[1].toArray());
+				} else {
+					line += "\t.";
+				}
+				if (genotypeCounts[0][1]+genotypeCounts[0][2]+genotypeCounts[0][3] > 0) {
+					line += "\t"+(double)genotypeCounts[0][2]/(double)(genotypeCounts[0][1]+genotypeCounts[0][2]+genotypeCounts[0][3]);
+				} else {
+					line += "\t.";
+				}
+				if (genotypeCounts[1][1]+genotypeCounts[1][2]+genotypeCounts[1][3] > 0) {
+					line += "\t"+(double)genotypeCounts[1][2]/(double)(genotypeCounts[1][1]+genotypeCounts[1][2]+genotypeCounts[1][3]);
+				} else {
+					line += "\t.";
+				}
+				line += "\t"+genotypeCounts[0][0];
+				line += "\t"+genotypeCounts[1][0];
+				line += eol;
+				
+				if (line.length() > 25000) {
+					writer.print(line);
+					writer.flush();
+					line = "";
+				}
+			}
+			writer.print(line);
+			System.out.println("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
+
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing results");
+			e.printStackTrace();
+		}
+		
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		boolean check = false;
@@ -433,6 +555,8 @@ public class SexChecks {
 		boolean drop = false;
 		Project proj;
 		String filename = Project.DEFAULT_PROJECT;
+		boolean par = false;
+		Logger log;
 
 		String usage = "\\n"+
 		"qc.GenderChecks requires 0-1 arguments\n"+
@@ -443,6 +567,8 @@ public class SexChecks {
 		"   (3) drop markers (i.e. -drop (not the default))\n"+
 		"   (4) file with all markers (i.e. all="+allMarkers+" (default file))\n"+
 		"   (5) list of bad markers (i.e. drop="+markersToDrop+" (default file))\n"+
+		" OR\n"+
+		"   (2) check sex chromosomes for pseudoautosomal regions (i.e. -PARcheck (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -458,6 +584,18 @@ public class SexChecks {
 			} else if (args[i].startsWith("-parse")) {
 				parse = true ;
 				numArgs--;
+			} else if (args[i].startsWith("-drop")) {
+				drop = true ;
+				numArgs--;
+			} else if (args[i].startsWith("all=")) {
+				allMarkers = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("drop=")) {
+				markersToDrop = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("-PARcheck")) {
+				par = true ;
+				numArgs--;
 			}
 		}
 
@@ -467,13 +605,18 @@ public class SexChecks {
 		}
 
 //		check = true;
+		par = true;
+		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 		try {
 			proj = new Project(filename, false);
-
+			log = new Logger();
+			
 			if (check) {
 				sexCheck(proj);
 			} else if (parse) {
 				parse(proj);
+			} else if (par) {
+				identifyPseudoautosomalBreakpoints(proj, log);
 			} else if (drop) {
 				dropMarkers(allMarkers, markersToDrop);
 			} else {

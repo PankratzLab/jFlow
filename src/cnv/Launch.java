@@ -341,6 +341,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 							new File(proj.getProjectDir()+"genome/").mkdirs();
 							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+							CmdLine.run("plink --bfile plink --mind 0.1 --geno 0.9 --make-bed --out plinkSlim", proj.getProjectDir());
 						} catch (Exception e) {}
 					}
 		//			vis cnv.manage.PlinkFormat root=../plink genome=6

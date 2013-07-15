@@ -231,21 +231,26 @@ public class Sample implements Serializable {
 			} else {
 				result[i]=abGenotypes[i];
 			}
-			
+
 			clusterFilterArray = clusterFilterCollection.getClusterFilters(markerNames[i]);
 			if (clusterFilterArray != null) {
 				for (int j=0; j<clusterFilterArray.size(); j++) {
 					clusterFilter = clusterFilterArray.get(j);
 					switch(clusterFilter.getPlotType()) {
 					case 0:
+						realX = -9;
+						realY = -9;
+						System.err.println("Error - PlotType cannot be 0 for ClusterFilter #"+(j+1)+" for marker '"+markerNames[i]+"' as we've done away with raw Xs and Ys");
+						break;
+					case 1:
 						realX = xs[i];
 						realY = ys[i];
 						break;
-					case 1:
+					case 2:
 						realX = thetas[i];
 						realY = rs[i];
 						break;
-					case 2:
+					case 3:
 						realX = bafs[i];
 						realY = lrrs[i];
 						break;
