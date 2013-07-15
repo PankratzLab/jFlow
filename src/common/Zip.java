@@ -325,8 +325,8 @@ public class Zip {
 			
 //			dirin = "D:/data/GEDI/penn_data/";
 			
-			dirin = "D:/data/PD_CIDR/00src/";
-			dirout = "C:/PD_CIDR_compressed/";
+			dirin = "D:/data/genomestudio/GEDI_Exome/FinalReportsChargeTop/";
+			dirout = "C:/GEDI_exomeChargeTop_compressed/";
 			
 			log = new Logger(logfile);
 			if (filename != null) {

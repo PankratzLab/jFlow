@@ -302,12 +302,12 @@ public class MapSNPsAndGenes {
 			if (filename.endsWith(".snps")) {
 				log = new Logger(filename+".log");
 				temp = filename.substring(0, filename.length()-(".snps").length());
-				if (temp.indexOf(".b36.")>0) {
+				if (filename.indexOf(".b36.")>0) {
 					build = 36;
-				} else if (temp.indexOf(".b37.")>0) {
+				} else if (filename.indexOf(".b37.")>0) {
 					build = 37;
 				} else {
-					log.reportError("Warning - using the default build (b37/hg19) since the file does not explicitly specify one using the convention \"filename.b37.20000.snps\"");
+					log.reportError("Warning - using the default build (b37/hg19) since the file '"+filename+"' does not explicitly specify one using the convention \"filename.b37.20000.snps\"");
 					build = 37;
 				}
 				if (temp.indexOf(".")>0) {

@@ -178,8 +178,13 @@ public class ThetaOutliers {
 	}
 	
 	public static void main(String[] args) {
-		Project proj = new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false);
-		loadData(proj, false, (byte) 12);
+		String filename;
+		Project proj;
+
+		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
+//		Project proj = new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false);
+		proj = new Project(filename, false);
+		loadData(proj, true, (byte) 12);
 
 //		MarkerData[] markers = MarkerSet.loadFromList(proj, new String[] {"rs17080321", "rs7898873", "rs17080321", "rs7898873"});
 //		MarkerData[] markers = MarkerSet.loadFromList(proj, new String[] {"rs17246013", "rs34771052", "rs17080321", "rs7898873", "rs17231443", "rs2227433", "rs9907972", "rs34148246", "rs11572080", "rs34942735", "rs4646168"});
