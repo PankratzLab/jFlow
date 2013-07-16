@@ -120,13 +120,9 @@ public class TransposeData {
 		done = false;
 		safe = false;
 		timerOverAll = new Date().getTime();
-//		memoryReserve = (long)((double)Runtime.getRuntime().maxMemory() * 0.25);
 		nMarks_WrtBuffer = Math.min((int)(((double)Runtime.getRuntime().maxMemory() * 0.75 ) / nBytes_Mark), allMarkerNamesInProj.length);
 		while (!done) {
 			try {
-				//TODO determine max file size before numMarkersWrtBuffer
-//				nMarks_WrtBuffer = Math.min((int)(((double)Runtime.getRuntime().maxMemory() - memoryReserve) / nBytes_Mark), allMarkerNamesInProj.length);
-//				numMarksPerBufferChunk = (int) Math.min((double) Math.min(maxMarkerFileSize, Integer.MAX_VALUE) / numBytes_Marker, (double) numMrks_WrtBuffer);
 				nMarks_File = (int) Math.min((double)markerFileSizeSuggested / (double)nBytes_Mark, allMarkerNamesInProj.length);
 
 				parameters = optimizeFileAndBufferSize(nMarks_WrtBuffer, allMarkerNamesInProj.length, nBytes_Mark, nMarks_File);
@@ -137,19 +133,9 @@ public class TransposeData {
 				nChunks_File = parameters[4];
 				markerFileSizeSuggested = nMarks_File * nBytes_Mark;
 
-//				nMarks_File = nMarks_Chunk * nChunks_File;
-//				nMarks_Chunk = (int) Math.min((double) Math.min(maxMarkerFileSize, Integer.MAX_VALUE) / nBytes_Mark, (double) nMarks_WrtBuffer);
-//				nChunks_File = (int) Math.ceil((double)nMarks_File / (double)nMarks_Chunk);
-//				nChunks_WrtBuffer = nMarks_WrtBuffer / nMarks_Chunk;
-//				nMarks_WrtBuffer = nChunks_WrtBuffer * nMarks_Chunk;
-
 				nRounds_LoadSampFile = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)nMarks_WrtBuffer);
 				nMarks_LastRound = allMarkerNamesInProj.length % nMarks_WrtBuffer;
 		
-//				maxNumMarkersPerFile = (int) Math.min((double)maxMarkerFileSize / (double)numBytesPerMarker, allMarkerNamesInProj.length);
-//				numBufferChunksPerFile = maxNumMarkersPerFile / numMarkersPerBufferChunk;
-//				numBufferChunksEachMarkerFile = (int) Math.ceil((double)maxNumMarkersPerFile / (double)numMarksPerBufferChunk);
-
 				nFiles = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)nMarks_File);
 				countTotalChunks_MarkerFile = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)nMarks_Chunk);
 				countTotalChunks_wrtBuffer = countTotalChunks_MarkerFile;
@@ -328,9 +314,6 @@ public class TransposeData {
 				System.err.println(ext.getTime()+"\tIOException");
 				e.printStackTrace();
 			} catch (OutOfMemoryError oome) {
-//				System.err.println(ext.getTime()+"\tOut of memory error");
-//				oome.printStackTrace();
-//				memoryReserve *= 1.1;
 				nMarks_WrtBuffer *= 0.9;
 				deleteOlderRafs(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false), null, new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
 			}
@@ -374,22 +357,12 @@ public class TransposeData {
 				nChunks_WrtBuffer_Max = nMarks_WrtBuffer / nMarks_Chunk_Min;
 			}
 
-//			if (nChunks_WrtBuffer_Max == nChunks_WrtBuffer_Min) {
-//				nChunks1_WrtBuffer = nChunks_WrtBuffer_Min;
-////				nRounds_WrtMarkFile = nMarks_WrtBuffer / nChunks1_WrtBuffer;
-//				nMarks1_Chunk = (int) Math.ceil((double)nMarks_Proj / nRounds_MarkFile);
-//				nChunks1_WrtBuffer = (int) Math.ceil((double) nMarks_WrtBuffer / Integer.MAX_VALUE);
-////				nMarks1_WrtBuffer = 0;
-////				nMarks1_Chunk = nMarks_WrtBuffer / nChunks1_WrtBuffer;
-////				nChunks1_WrtBuffer = nMarks1_WrtBuffer / nMarks1_Chunk;
-//			} else {
-				nChunks1_WrtBuffer = nChunks_WrtBuffer_Max;
-				if ((nChunks1_WrtBuffer * nMarks_Chunk_Min) >= nMarks_WrtBuffer_Min) {
-					nMarks1_Chunk = nMarks_Chunk_Min;
-				} else {
-					nMarks1_Chunk = nMarks_WrtBuffer_Min / nChunks1_WrtBuffer;
-				}
-//			}
+			nChunks1_WrtBuffer = nChunks_WrtBuffer_Max;
+			if ((nChunks1_WrtBuffer * nMarks_Chunk_Min) >= nMarks_WrtBuffer_Min) {
+				nMarks1_Chunk = nMarks_Chunk_Min;
+			} else {
+				nMarks1_Chunk = nMarks_WrtBuffer_Min / nChunks1_WrtBuffer;
+			}
 
 		} else {
 			nChunks1_WrtBuffer = 1;

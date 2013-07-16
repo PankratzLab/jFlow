@@ -1144,7 +1144,7 @@ public class Files {
         double[] array, means;
         int[] counts;
         boolean stdev, blank, percent;
-        int sf;
+        int sf, percentile;
         
 //        delimiters = new String[files.length];
 //        headers = new String[files.length][];
@@ -1159,17 +1159,23 @@ public class Files {
 			writer.println("\t"+Array.toStr(fileDescriptions)+"\tAll");
 			for (int i = 0; i < parameters.length; i++) {
 				writer.print(parameters[i][0]);
-				if (parameters[i][1].equals("mean")) {
-					stdev = false;
-					blank = false;
-					percent = false;
-					sf = 4;
-					values = new String[] {parameters[i][2]};
-					filters = new Vector<String>();
+				stdev = false;
+				blank = false;
+				percent = false;
+				sf = 4;
+				values = new String[] {parameters[i][2]};
+				filters = new Vector<String>();
+				if (parameters[i][1].equals("mean") || parameters[i][1].equals("stdev")) {
+//					stdev = false;
+//					blank = false;
+//					percent = false;
+//					sf = 4;
+//					values = new String[] {parameters[i][2]};
+//					filters = new Vector<String>();
 					for (int j = 3; j < parameters[i].length; j++) {
 						if (parameters[i][j].equals("-stdev")) {
 							stdev = true;
-						} else if (parameters[i][j].startsWith("sf=")) {
+						} else if (parameters[i][j].startsWith("-sf=")) {
 							sf = ext.parseIntArg(parameters[i][j]);
 						} else if (parameters[i][j].equals("-blank")) {
 							blank = true;
@@ -1189,14 +1195,22 @@ public class Files {
 						if (counts[j] > 0) {
 							means[files.length] += means[j]*counts[j];
 						}
-						writer.print("\t"+(counts[j]>0?(percent?ext.formDeci(means[j]*100, sf)+"%":ext.formDeci(means[j], sf)+(stdev?" (+/- "+ext.formDeci(Array.stdev(array), sf)+")":"")):(blank?"":".")));
+						if (parameters[i][1].equals("mean")) {
+							writer.print("\t"+(counts[j]>0?(percent?ext.formDeci(means[j]*100, sf)+"%":ext.formDeci(means[j], sf)+(stdev?" (+/- "+ext.formDeci(Array.stdev(array), sf)+")":"")):(blank?"":".")));
+						} else {
+							writer.print("\t"+(counts[j]>0? ext.formDeci(Array.stdev(array), sf) : (blank? "" : ".")));
+						}
 					}
-					writer.print("\t"+(Array.sum(counts)>0?(percent?ext.formDeci(means[files.length]/(double)Array.sum(counts)*100, sf)+"%":ext.formDeci(means[files.length]/(double)Array.sum(counts), sf)):(blank?"":".")));
-				}
-				if (parameters[i][1].equals("count")) {
-					blank = false;
-					values = new String[] {parameters[i][2]};
-					filters = new Vector<String>();
+					if (parameters[i][1].equals("mean")) {
+						writer.print("\t"+(Array.sum(counts)>0?(percent?ext.formDeci(means[files.length]/(double)Array.sum(counts)*100, sf)+"%":ext.formDeci(means[files.length]/(double)Array.sum(counts), sf)):(blank?"":".")));
+					} else {
+						//TODO calculate the overall stdev of crossing files.
+					}
+
+				} else if (parameters[i][1].equals("count")) {
+//					blank = false;
+//					values = new String[] {parameters[i][2]};
+//					filters = new Vector<String>();
 					for (int j = 3; j < parameters[i].length; j++) {
 						if (parameters[i][j].equals("-blank")) {
 							blank = true;
@@ -1211,6 +1225,34 @@ public class Files {
 						writer.print("\t"+(counts[j]==0?(blank?"":"0"):counts[j]));
 					}
 					writer.print("\t"+(Array.sum(counts)==0?(blank?"":"0"):Array.sum(counts)));
+
+				} else if (parameters[i][1].contains("percentile")) {
+					percentile = Integer.parseInt(parameters[i][1].split(" ")[0].trim());
+					for (int j = 3; j < parameters[i].length; j++) {
+						if (parameters[i][j].equals("-blank")) {
+							blank = true;
+						} else if (parameters[i][j].startsWith("-sf=")) {
+							sf = ext.parseIntArg(parameters[i][j]);
+						} else if (parameters[i][j].equals("-percent")) {
+							percent = true;
+						} else {
+							filters.add(parameters[i][j]);
+						}
+					}
+					counts = new int[files.length];
+					for (int j = 0; j < files.length; j++) {
+						data = generateDataset(files[j], determineDelimiter(files[j], log), values, Array.toStringArray(filters), log);
+						array = Array.toDoubleArray(Matrix.extractColumn(data, 0));
+						counts[j] = data.length;
+						if (counts[j] > 0) {
+							Arrays.sort(array);
+						}
+						if (percentile == 100) {
+							writer.print("\t" + (counts[j]==0? (blank? "" : "0" ) : array[array.length - 1]));
+						} else {
+							writer.print("\t" + (counts[j]==0? (blank? "" : "0" ) : array[(int) (((double)percentile / 100) * array.length + .5)]));
+						}
+					}
 				}
 				writer.println();
 			}
