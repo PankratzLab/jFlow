@@ -157,7 +157,7 @@ public class CALiCo {
 					new File(resultDir + models[i] + ".txt").delete();
 					new File(resultDir  + models[i] + "/" + root + "_covars.dat").delete();
 	
-					runAndParseResults(condGenoPlinkDirPlusRoot, resultDir + models[i] + "/" + root, resultDir + models[i] + "/" + models[i] + "_covars.dat", sexAsCovariate, scratchDir, resultDir + models[i] + "/", models[i], logs[i]);
+					runAndParseResults(condGenoPlinkDirPlusRoot, resultDir + models[i] + "/" + root, resultDir + models[i] + "/" + models[i] + "_covars.dat", sexAsCovariate, scratchDir, resultDir + models[i] + "/", models[i], true, logs[i]);
 //					new File(resultDir + models[i] + "/" + models[i] + ".out").renameTo(new File(resultDir + models[i] + ".out"));
 	
 					GenParser.parse(args, logs[i]);
@@ -198,7 +198,7 @@ public class CALiCo {
 					parsePhenotypes(genoPlinkDirPlusRoot, phenoCovarDir + models[i], SAMPLE_ID_SYNONYMS[idVariable[i]], scratchDir, log);
 					sexAsCovariate = parsePhenotypes(genoPlinkDirPlusRoot, phenoCovarDir + models[i], SAMPLE_ID_SYNONYMS[idVariable[i]], resultDir, log);
 //					runAndParseResults(genoFileDirPlusRoot, resultDir, ext.rootOf(files[i]), sexAsCovariate, scratchDir, log);
-					runAndParseResults(genoPlinkDirPlusRoot, resultDir + root, resultDir + root + "_covars.dat", sexAsCovariate, scratchDir, resultDir, root, log);
+					runAndParseResults(genoPlinkDirPlusRoot, resultDir + root, resultDir + root + "_covars.dat", sexAsCovariate, scratchDir, resultDir, root, false, log);
 				} else {
 					log.reportError("\nWarning --- Found '" + resultDir + models[i] + ".out' already exists. Unless you rename or delete the file or directory,"
 							+ "the program does not regenerate this file and the '" + resultDir + models[i] + "_hits.txt' file, "
@@ -804,7 +804,7 @@ public class CALiCo {
 //		}
 //	}
 
-	public static void runAndParseResults(String genoFileDirPlusRoot, String phenoFileDirPlusRoot, String covarFileDirPlusName, boolean sexAsCovariate, String scratchDir, String resultDir, String outFileRoot, Logger log) {
+	public static void runAndParseResults(String genoFileDirPlusRoot, String phenoFileDirPlusRoot, String covarFileDirPlusName, boolean sexAsCovariate, String scratchDir, String resultDir, String outFileRoot, boolean isConditional, Logger log) {
 		String[] commands;
 		String plinkResultFile;
 
@@ -835,7 +835,9 @@ public class CALiCo {
 			plinkResultFile = scratchDir + outFileRoot + ".assoc.logistic";
 		}
 
-		resultDir = resultDir.substring(0, resultDir.lastIndexOf("/", resultDir.length()-2)+1); 
+		if (isConditional) {
+			resultDir = resultDir.substring(0, resultDir.lastIndexOf("/", resultDir.length()-2)+1); 
+		}
 		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile, "ADD", genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + ".out", log);
 		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile, outFileRoot.substring(outFileRoot.indexOf("_") + 1).replace("_", ":"), genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + "_cov.out", log);
 	}
@@ -847,13 +849,13 @@ public class CALiCo {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String genos = "N:/statgen/CALiCo/filteredGenotypes/plink";
+		String genos = "N:/statgen/CALiCo_SOL/filteredGenotypes/plink";
 //		String genos = "N:/statgen/CALiCo_ARIC/filteredGenotypes/plink";
-		String phenoCovarFilename = "N:/statgen/CALiCo/LungFunction/CARDIA_Squared/xln/MODEL1.xln";
-		String phenoCovarDir = "N:/statgen/CALiCo/FPG_INSULIN/CARDIA_conditional_add/xln_test/";
+		String phenoCovarFilename = "N:/statgen/CALiCo_SOL/LungFunction/XLN_tmp/CARDIA_Squared/XLN/MODEL1.xln";
+		String phenoCovarDir = "N:/statgen/CALiCo_SOL/LungFunction/XLN_tmp/";
 //		String phenoCovarDir = "N:/statgen/CALiCo_ARIC/LungFunction/xln/";
 //		String scratchDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/scratches/";
-		String scratchDir = "D:/scratch/";
+		String scratchDir = "D:/scratch_LungFunction_XLN_tmp/";
 //		String resultDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/results/";
 		String resultDir = phenoCovarDir + (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)?"conditionals/":"results/");
 		Logger log;
