@@ -65,8 +65,8 @@ public class TransposeData {
 		int indexFirstMarkerCurrentIteration;
 		int markerIndex;
         int numMarkersCurrentLoop;
-		int end;
-		int nIterations;
+		int index_WrtBufferEnd;
+		int nChunks_RemainedInWrtBuffer;
 		long fingerPrint;
 		long timerOverAll, timerLoadFiles, timerTransposeMemory, timerWriteFiles, timerTmp;
 
@@ -256,9 +256,9 @@ public class TransposeData {
 
 
 					// --- Step 2 --- Dump write buffer to marker files
-					nIterations = Math.min(countTotalChunks_wrtBuffer, nChunks_WrtBuffer);
-					countTotalChunks_wrtBuffer -= nIterations;
-					for (int j = 0; j < nIterations; j ++) {
+					nChunks_RemainedInWrtBuffer = Math.min(countTotalChunks_wrtBuffer, nChunks_WrtBuffer);
+					countTotalChunks_wrtBuffer -= nChunks_RemainedInWrtBuffer;
+					for (int j = 0; j < nChunks_RemainedInWrtBuffer; j ++) {
 						if (isFileClosed) {
 							numBufferChunksNeededCurrentMarkFile = Math.min(nChunks_File, countTotalChunks_MarkerFile);
 							countTotalChunks_MarkerFile -= numBufferChunksNeededCurrentMarkFile;
@@ -269,26 +269,27 @@ public class TransposeData {
 							markFileParameterSection = null;
 						}
 
-						if ((j + numBufferChunksNeededCurrentMarkFile) > nIterations) {
-							end = nIterations - 1;
+						if ((j + numBufferChunksNeededCurrentMarkFile) > nChunks_RemainedInWrtBuffer) {
+							index_WrtBufferEnd = nChunks_RemainedInWrtBuffer - 1;
 							markFileOutliersBytes = null;
 							isFileClosed = false;
-							numBufferChunksNeededCurrentMarkFile -= (nIterations - j);
-							j = nIterations;
+							numBufferChunksNeededCurrentMarkFile -= (nChunks_RemainedInWrtBuffer - j);
+//							j = nChunks_RemainedInWrtBuffer;
 						} else {
-							end = j + numBufferChunksNeededCurrentMarkFile - 1;
+							index_WrtBufferEnd = j + numBufferChunksNeededCurrentMarkFile - 1;
 							if (markFileOutliers == null || markFileOutliers[markerFileIndex].size() == 0) {
 								markFileOutliersBytes = new byte[0];
 							} else {
 								markFileOutliersBytes = Compression.objToBytes(markFileOutliers[markerFileIndex]);
 							}
 							isFileClosed = true;
-							j += (numBufferChunksNeededCurrentMarkFile - 1);
+//							j += (numBufferChunksNeededCurrentMarkFile - 1);
 							markerFileIndex ++;
 						}
 
 						timerTmp = new Date().getTime();
-						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, end, markerFile, markFileParameterSection, markFileOutliersBytes);
+						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, index_WrtBufferEnd, markerFile, markFileParameterSection, markFileOutliersBytes);
+						j = index_WrtBufferEnd;
 						if (isFileClosed) {
 							markerFile.close();
 						}

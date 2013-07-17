@@ -77,7 +77,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		this.timestampOfPropertiesFile = -1;
 		this.timestampOfSampleDataFile = -1;
 		//Do not know proj yet at this stage.	//proj.getDir(Project.MARKER_DATA_DIRECTORY) + 
-		this.log = new Logger("Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+//		this.log = new Logger("Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 	}
 
 	public void loadProjects() {
@@ -97,6 +97,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProj], jar);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
+		log = new Logger(proj.getProjectDir() + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+	    log.linkTextArea(output);
+	    log.report("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
+		log.report("\nCurrent project: " + ext.rootOf(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
 	}
 
 	public void setIndexOfCurrentProject(String projPropertiesFileName) {
@@ -143,7 +147,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //		frame.proj = new Project(frame.launchProperties.getDirectory()+frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED), frame.jar);
 		frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
 		frame.loadProject();
-		frame.log.report("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
+//		frame.log.report("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
 //		frame.output.append("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
     }
 
@@ -158,8 +162,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	    output = new JTextArea(5, 30);
 	    output.setEditable(false);
 	    scrollPane = new JScrollPane(output);
-	    log.linkTextArea(output);
-	    log.report("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
+//	    log.linkTextArea(output);
+//	    log.report("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 //	    output.append("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 	
 	    //Add the text area to the content pane.
