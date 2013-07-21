@@ -169,7 +169,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				// Read each file line by line, format is:
 				// chromosome:start-end/tlabel
 				for (int i = 0; i < regionsList.length; i++) {
-					System.out.println("Parsing file " + regionsList[i]);
+					// System.out.println("Parsing file " + regionsList[i]);
 					// TODO Regex to ensure the line is formatted correctly
 					reader = new BufferedReader(new FileReader(regionsList[i]));
 					String line = null;
@@ -187,7 +187,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 
 		if (regions.size() == 0) {
 			// The file was invalid or didn't contain regions, create a default region
-			System.out.println("Setting default location");
+			// System.out.println("Setting default location");
 			regions.add(new Region(DEFAULT_LOCATION));
 		}
 	}

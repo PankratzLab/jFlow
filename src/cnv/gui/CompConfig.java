@@ -81,6 +81,8 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		lblProbes.setAlignmentX(Component.CENTER_ALIGNMENT);
 		configPanel.add(lblProbes);
 
+		add(Box.createGlue());
+
 		probesSlider = new JSlider(JSlider.HORIZONTAL, 0, 50, probes);
 		probesSlider.setMajorTickSpacing(10);
 		probesSlider.setMinorTickSpacing(5);
@@ -89,10 +91,14 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		probesSlider.addChangeListener(this);
 		configPanel.add(probesSlider);
 
+		add(Box.createGlue());
+
 		// Filter by the minimum size in kilobases
 		lblMinimumSizekb = new JLabel("Minimum Size in kb (" + minSize + ")");
 		lblMinimumSizekb.setAlignmentX(Component.CENTER_ALIGNMENT);
 		configPanel.add(lblMinimumSizekb);
+
+		add(Box.createGlue());
 
 		minSizeSlider = new JSlider(JSlider.HORIZONTAL, 0, 1000, minSize);
 		minSizeSlider.setMajorTickSpacing(200);
@@ -102,10 +108,14 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		minSizeSlider.addChangeListener(this);
 		configPanel.add(minSizeSlider);
 
+		add(Box.createGlue());
+
 		// Filter by the minimum quality score
 		lblQualityScore = new JLabel("Quality Score (" + qualityScore + ")");
 		lblQualityScore.setAlignmentX(Component.CENTER_ALIGNMENT);
 		configPanel.add(lblQualityScore);
+
+		add(Box.createGlue());
 
 		qualityScoreSlider = new JSlider(0, 100, qualityScore);
 		qualityScoreSlider.setMajorTickSpacing(20);
@@ -115,10 +125,14 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		qualityScoreSlider.addChangeListener(this);
 		configPanel.add(qualityScoreSlider);
 
+		add(Box.createGlue());
+
 		// Scale the height of the rectangles
 		lblRectangleHeight = new JLabel("Rectangle Height (" + rectangleHeight + ")");
 		lblRectangleHeight.setAlignmentX(Component.CENTER_ALIGNMENT);
 		configPanel.add(lblRectangleHeight);
+
+		add(Box.createGlue());
 
 		rectangleHeightSlider = new JSlider(1, 25, rectangleHeight);
 		rectangleHeightSlider.setMajorTickSpacing(24);
@@ -127,6 +141,8 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		rectangleHeightSlider.setPaintLabels(true);
 		rectangleHeightSlider.addChangeListener(this);
 		configPanel.add(rectangleHeightSlider);
+
+		add(Box.createGlue());
 
 		add(configPanel);
 	}
@@ -193,9 +209,10 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 
 }
 
-class CNVPanel extends JPanel {
+class CNVPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
 	Vector<CNVariant> selectedCNVs;
+	CNVariant selectedCNV;
 	JPanel cnvPanel;
 	JLabel iid; // Individual ID
 	JLabel fid; // Family ID
@@ -204,6 +221,8 @@ class CNVPanel extends JPanel {
 	JLabel probes; // Number of probes
 	JLabel score; // Quality score
 	String displayMode;
+	JComboBox<CNVariant> cnvList;
+	JLabel cnvListLabel;
 
 	public CNVPanel() {
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
@@ -217,7 +236,8 @@ class CNVPanel extends JPanel {
 
 		// Panel for CNV information
 		cnvPanel = new JPanel();
-		cnvPanel.setLayout(new GridLayout(6, 2));
+		cnvPanel.setLayout(new GridLayout(7, 2));
+		cnvPanel.setPreferredSize(new Dimension(250, 120));
 		cnvPanel.setMinimumSize(new Dimension(250, 120));
 		cnvPanel.setMaximumSize(new Dimension(250, 120));
 
@@ -245,6 +265,9 @@ class CNVPanel extends JPanel {
 		cnvPanel.add(new JLabel("Score:"));
 		cnvPanel.add(score);
 
+		cnvListLabel = new JLabel("");
+		cnvPanel.add(cnvListLabel);
+
 		add(cnvPanel);
 	}
 
@@ -252,118 +275,56 @@ class CNVPanel extends JPanel {
 	public void setCNVs(Vector<CNVariant> cnvs) {
 		selectedCNVs = cnvs;
 
+		// In collapsed mode, if there are multiple CNVs associated, add a combo box that lets you select which CNV to look at
 		if (displayMode.equals("Collapsed")) {
-			int maxLength = 0;
-			int minLength = Integer.MAX_VALUE;
-			int maxCopies = 0;
-			int minCopies = Integer.MAX_VALUE;
-			int maxProbes = 0;
-			int minProbes = Integer.MAX_VALUE;
-			double maxScore = 0;
-			double minScore = Double.MAX_VALUE;
-			Vector<String> iids = new Vector<String>();
-			Vector<String> fids = new Vector<String>();
-
-			for (CNVariant cnv : selectedCNVs) {
-				String iid = cnv.getIndividualID();
-				String fid = cnv.getFamilyID();
-				int cnvLength = cnv.getSize();
-				int cnvCopies = cnv.getCN();
-				int cnvProbes = cnv.getNumMarkers();
-				double cnvScore = cnv.getScore();
-
-				// Count iids
-				if (!iids.contains(iid)) {
-					iids.add(iid);
-				}
-
-				// Count fids
-				if (!fids.contains(fid)) {
-					fids.add(fid);
-				}
-
-				// Set min/max length
-				if (cnvLength < minLength) {
-					minLength = cnvLength;
-				}
-				if (cnvLength > maxLength) {
-					maxLength = cnvLength;
-				}
-
-				// Set min/max copies
-				if (cnvCopies < minCopies) {
-					minCopies = cnvCopies;
-				}
-				if (cnvCopies > maxCopies) {
-					maxCopies = cnvCopies;
-				}
-
-				// Set min/max probes
-				if (cnvProbes < minProbes) {
-					minProbes = cnvProbes;
-				}
-				if (cnvProbes > maxProbes) {
-					maxProbes = cnvProbes;
-				}
-
-				// Set min/max score
-				if (cnvScore < minScore) {
-					minScore = cnvScore;
-				}
-				if (cnvScore > maxScore) {
-					maxScore = cnvScore;
-				}
+			// Clear the combo box
+			if (cnvList != null) {
+				cnvPanel.remove(cnvList);
+				cnvListLabel.setText("");
+				cnvPanel.validate();
 			}
 
-			if (iids.size() > 1) {
-				iid.setText("Multiple (" + iids.size() + ")");
+			// Repopulate and add back the combo box if needed
+			if (selectedCNVs.size() > 1) {
+				cnvList = new JComboBox<CNVariant>();
+				cnvList.addActionListener(this);
+				CNVariant[] cnvArray = selectedCNVs.toArray(new CNVariant[selectedCNVs.size()]);
+				cnvList.setModel(new DefaultComboBoxModel<CNVariant>(cnvArray));
+				cnvListLabel.setText("CNVs:");
+				cnvPanel.add(cnvListLabel);
+				cnvPanel.add(cnvList);
+				selectedCNV = (CNVariant) cnvList.getSelectedItem();
 			} else {
-				iid.setText("" + iids.get(0));
+				selectedCNV = selectedCNVs.get(0);
 			}
 
-			if (fids.size() > 1) {
-				fid.setText("Multiple (" + fids.size() + ")");
-			} else {
-				fid.setText("" + fids.get(0));
-			}
-
-			if (minLength != maxLength) {
-				length.setText(minLength + "-" + maxLength);
-			} else {
-				length.setText("" + minLength);
-			}
-
-			if (minCopies != maxCopies) {
-				copies.setText(minCopies + "-" + maxCopies);
-			} else {
-				copies.setText("" + minCopies);
-			}
-
-			if (minProbes != maxProbes) {
-				probes.setText(minProbes + "-" + maxProbes);
-			} else {
-				probes.setText("" + minProbes);
-			}
-
-			if (minScore != maxScore) {
-				score.setText(minScore + "-" + maxScore);
-			} else {
-				score.setText("" + minScore);
-			}
+			setCNVText();
 		} else {
-			CNVariant selectedCNV = selectedCNVs.get(0);
-			iid.setText(selectedCNV.getIndividualID());
-			fid.setText(selectedCNV.getFamilyID());
-			length.setText("" + selectedCNV.getSize());
-			copies.setText("" + selectedCNV.getCN());
-			probes.setText("" + selectedCNV.getNumMarkers());
-			score.setText("" + selectedCNV.getScore());
+			// There's only one CNV, so select it
+			selectedCNV = selectedCNVs.get(0);
+			setCNVText();
 		}
 		cnvPanel.repaint();
 
 	}
 
+	// Update the text with the currently selected CNV
+	public void setCNVText() {
+		iid.setText(selectedCNV.getIndividualID());
+		fid.setText(selectedCNV.getFamilyID());
+		length.setText("" + selectedCNV.getSize());
+		copies.setText("" + selectedCNV.getCN());
+		probes.setText("" + selectedCNV.getNumMarkers());
+		score.setText("" + selectedCNV.getScore());
+	}
+
 	public void setDisplayMode(String mode) {
 		displayMode = mode;
+	}
+
+	// Monitor the combobox for changes
+	public void actionPerformed(ActionEvent arg0) {
+		selectedCNV = (CNVariant) cnvList.getSelectedItem();
+		setCNVText();
 	}
 }
