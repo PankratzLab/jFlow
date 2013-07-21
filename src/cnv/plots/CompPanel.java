@@ -253,7 +253,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 				String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: " + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: " + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: " + cnv.getScore();
 				// Add an indication of how many other CNVs are in this collapsed view
 				if (currentCNVs.size() > 1) {
-					toolTipText += "<br/>Plus " + currentCNVs.size() + " others</html>";
+					toolTipText += "<br/>Plus " + (currentCNVs.size() - 1) + " others</html>";
 				} else {
 					toolTipText += "</html>";
 				}

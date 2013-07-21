@@ -85,10 +85,9 @@ public class CompPlot extends JFrame {
 
 		// Get a list of the .cnv files
 		files = proj.getFilenames(Project.CNV_FILENAMES);
-		System.out.println("There are " + files.length + " files");
-		for (int i = 0; i < files.length; i++) {
-			System.out.println("  " + files[i]);
-		}
+		// for (int i = 0; i < files.length; i++) {
+		// System.out.println("  " + files[i]);
+		// }
 
 		// Get the GeneTrack
 		String geneTrackFile = proj.getFilename(Project.GENETRACK_FILENAME, false, false);
@@ -322,10 +321,8 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 			// } else if (propertyName.equals("nextRegion")) {
 			// } else if (propertyName.equals("lastRegion")) {
 		} else if (propertyName.equals("location")) {
-			// System.out.println("Changing from " + pve.getOldValue() + " to " + pve.getNewValue());
 			compPlot.setRegion((Region) pve.getNewValue());
 		} else if (propertyName.equals("selectedCNV")) {
-			System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
 			@SuppressWarnings("unchecked")
 			Vector<CNVariant> cnvs = (Vector<CNVariant>) pve.getNewValue();
 			compPlot.setSelectedCNVs(cnvs);
