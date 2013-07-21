@@ -7,14 +7,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
-
-import common.Grafik;
 
 public class FileNavigator extends JPanel implements ActionListener {
 
@@ -28,8 +25,8 @@ public class FileNavigator extends JPanel implements ActionListener {
 	 */
 	public FileNavigator(String[] files, Color[] colors) {
 
-		JButton leftButton = new JButton(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
-		add(leftButton);
+		// JButton leftButton = new JButton(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		// add(leftButton);
 
 		JComboBox<String> comboBox = new JComboBox<String>();
 		comboBox.setModel(new DefaultComboBoxModel<String>(files));
@@ -43,8 +40,8 @@ public class FileNavigator extends JPanel implements ActionListener {
 
 		comboBox.setRenderer(renderer);
 
-		JButton rightButton = new JButton(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
-		add(rightButton);
+		// JButton rightButton = new JButton(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		// add(rightButton);
 
 	}
 
