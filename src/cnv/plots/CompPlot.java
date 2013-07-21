@@ -111,7 +111,7 @@ public class CompPlot extends JFrame {
 		minSize = compConfig.getMinSize();
 		qualityScore = compConfig.getQualityScore();
 		rectangleHeight = compConfig.getRectangleHeight();
-		displayMode = compConfig.getDisplayMode();
+		setDisplayMode(compConfig.getDisplayMode());
 
 		setRegion(regionNavigator.getRegion());
 	}
@@ -235,7 +235,7 @@ public class CompPlot extends JFrame {
 			compPanel.setPreferredSize(new Dimension(800, (rectangles.size() * rectangleHeight) + rectangleHeight));
 			compPanel.setRectangleHeight(rectangleHeight);
 			compPanel.setRectangles(rectangles.toArray(new CNVRectangle[0]));
-			compPanel.setWindow(location[2] - location[1]);
+			compPanel.setWindow(location[1], location[2]);
 		}
 	}
 
@@ -272,6 +272,7 @@ public class CompPlot extends JFrame {
 
 	public void setDisplayMode(String dm) {
 		displayMode = dm;
+		compPanel.setDisplayMode(displayMode);
 		loadCNVs(location);
 	}
 
@@ -347,12 +348,14 @@ class CNVRectangle extends GenericRectangle {
 	private Rectangle rect;
 	private boolean selected;
 	private int quantity; // How many CNVs are represented by this rectangle
+	private boolean inUse;
 
 	public CNVRectangle(float startX, float stopX, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
 		// Y coord doesn't matter, that'll get set at render time
 		super(startX, 0, stopX, 0, thickness, fill, roundedCorners, color, layer);
 		quantity = 1;
 		selected = false;
+		inUse = false;
 		cnvs = new Vector<CNVariant>();
 	}
 
@@ -442,5 +445,13 @@ class CNVRectangle extends GenericRectangle {
 
 	public boolean isSelected() {
 		return selected;
+	}
+
+	public void setUsed(boolean used) {
+		inUse = used;
+	}
+
+	public boolean isInUse() {
+		return inUse;
 	}
 }
