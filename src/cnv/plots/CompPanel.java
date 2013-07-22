@@ -5,6 +5,7 @@ package cnv.plots;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
@@ -99,6 +100,14 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 					g.drawRect(x, y - 1, width, rectangleHeight);
 				} else {
 					g.fillRect(x, y, width, rectangleHeight);
+				}
+				if (displayMode.equals("Collapsed")) {
+					String numCNVs = "x" + rectangles[i].getCNVs().size();
+					g.setColor(Color.BLACK);
+					g.setPaintMode();
+					Font font = getFont().deriveFont((float) rectangleHeight);
+					g.setFont(font);
+					g.drawString(numCNVs, x, y + rectangleHeight);
 				}
 			}
 		}
