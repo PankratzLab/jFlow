@@ -55,7 +55,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EXPORT_CNVS = "Export CNVs to Pedfile format";
 	public static final String TEST = "Test new program";
 	
+	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
+			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
+			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS},
+			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, COMP},
+			{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, TEST},
+			{"Help", "Contents", "Search", "About"}};
 
+	
 	private Project proj;
 	private boolean jar;
 	private JComboBox<String> projectsBox;
@@ -178,29 +185,24 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			JMenuItem menuItem;
 			Hashtable<Character,String> hash;
 						
-			String[][] menus = {{"File", "Select Project", EDIT, "Preferences", EXIT},
-								{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
-								{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS},
-								{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, COMP},
-								{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, TEST},
-								{"Help", "Contents", "Search", "About"}};
+//			String[][] menus = MENUS;
 
 			//TODO to find a new location for this line
 	        launchProperties = new LaunchProperties(launchPropertiesFile);
 			menuBar = new JMenuBar();
-			for (int i=0; i<menus.length; i++) {
-				menu = new JMenu(menus[i][0]);
-		        menu.setMnemonic((int)menus[i][0].charAt(0));
+			for (int i=0; i<MENUS.length; i++) {
+				menu = new JMenu(MENUS[i][0]);
+		        menu.setMnemonic((int)MENUS[i][0].charAt(0));
 				menuBar.add(menu);
 				hash = new Hashtable<Character, String>();
-				for (int j=1; j<menus[i].length; j++) {
-					if (menus[i][j]=="") {
+				for (int j=1; j<MENUS[i].length; j++) {
+					if (MENUS[i][j]=="") {
 						break;
 					}
-					if (menus[i][j]=="1") {
+					if (MENUS[i][j]=="1") {
 						menu.addSeparator();
-					} else if (menus[i][j].equals("Select Project")) {
-						submenu = new JMenu(menus[i][j]);
+					} else if (MENUS[i][j].equals("Select Project")) {
+						submenu = new JMenu(MENUS[i][j]);
 	//			        submenu.setMnemonic(KeyEvent.VK_S);
 	
 				        menuItem = new JMenuItem("New");
@@ -217,12 +219,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	//					projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
 						menu.add(submenu);
 					} else {
-						menuItem = new JMenuItem(menus[i][j]);
-						for (int k = 0; k < menus[i][j].length(); k++) {
-							if (!hash.containsKey(menus[i][j].toLowerCase().charAt(k))) {
-								menuItem.setMnemonic((int)menus[i][j].toLowerCase().charAt(k));
-								hash.put(menus[i][j].toLowerCase().charAt(k), "");
-								k = menus[i][j].length();
+						menuItem = new JMenuItem(MENUS[i][j]);
+						for (int k = 0; k < MENUS[i][j].length(); k++) {
+							if (!hash.containsKey(MENUS[i][j].toLowerCase().charAt(k))) {
+								menuItem.setMnemonic((int)MENUS[i][j].toLowerCase().charAt(k));
+								hash.put(MENUS[i][j].toLowerCase().charAt(k), "");
+								k = MENUS[i][j].length();
 							}
 						}
 //						menuItem.setAccelerator(KeyStroke.getKeyStroke((int)(j+"").charAt(0), ActionEvent.ALT_MASK));
@@ -311,10 +313,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		@Override
 		public void run() {
 			// check if proj needs to be reloaded
-			if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified() || timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
-				proj = null;
-				loadProject();
-			}
+//			if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified() || timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
+//				proj = null;
+//				loadProject();
+//			}
 
 			if (command.equals(MAP_FILES)) {
 				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
@@ -325,7 +327,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);
 			} else if (command.equals(TRANSPOSE_DATA)) {
-				TransposeData.transposeData(proj, 2000000000, false, proj.getLog());
+				TransposeData.transposeData(proj, 2000000000, false, log);	//proj.getLog()
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				String filename;
 				boolean success;
@@ -422,6 +424,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //		output.append("Action performed: " + command + "\n");
 //		output.setCaretPosition(output.getDocument().getLength());
 		log.report("Action performed: " + command + "\n");
+		
+		if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified() || timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
+			proj = null;
+			loadProject();
+		}	
 		
 		
 //		// check if proj needs to be reloaded

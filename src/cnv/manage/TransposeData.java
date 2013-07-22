@@ -2,6 +2,11 @@
 package cnv.manage;
 
 import java.io.*;
+import java.nio.ByteOrder;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -44,7 +49,7 @@ public class TransposeData {
 	@SuppressWarnings("unchecked")
 	public static void transposeData(Project proj, long markerFileSizeSuggested, boolean keepAllSampleFilesOpen, Logger log) {
 		boolean isFileClosed;
-		boolean done, safe;
+		boolean done; // safe;
 		byte nullStatus = Byte.MIN_VALUE;
         byte bytesPerSampMark;
         byte backupCount;
@@ -90,7 +95,7 @@ public class TransposeData {
 
 		SimpleDateFormat timeFormat;
 		RandomAccessFile sampleFile;
-        RandomAccessFile markerFile = null;
+//        RandomAccessFile markerFile = null;
 		RandomAccessFile[] sampleFiles = null;
 
         if (log == null) {
@@ -118,7 +123,8 @@ public class TransposeData {
 		}
 
 		done = false;
-		safe = false;
+//		safe = false;
+//		safe = true;
 		timerOverAll = new Date().getTime();
 		nMarks_WrtBuffer = Math.min((int)(((double)Runtime.getRuntime().maxMemory() * 0.75 ) / nBytes_Mark), allMarkerNamesInProj.length);
 		while (!done) {
@@ -127,11 +133,14 @@ public class TransposeData {
 
 				parameters = optimizeFileAndBufferSize(nMarks_WrtBuffer, allMarkerNamesInProj.length, nBytes_Mark, nMarks_File);
 				nMarks_File = parameters[0];
+				if (nMarks_File<0) {
+					System.out.println();
+				}
 				nMarks_WrtBuffer = parameters[1];
 				nChunks_WrtBuffer = parameters[2];
 				nMarks_Chunk = parameters[3];
 				nChunks_File = parameters[4];
-				markerFileSizeSuggested = nMarks_File * nBytes_Mark;
+				markerFileSizeSuggested = (long) nMarks_File * (long) nBytes_Mark;
 
 				nRounds_LoadSampFile = (int) Math.ceil((double)allMarkerNamesInProj.length / (double)nMarks_WrtBuffer);
 				nMarks_LastRound = allMarkerNamesInProj.length % nMarks_WrtBuffer;
@@ -171,11 +180,11 @@ public class TransposeData {
 				for (int i = 0; i < wrtBufferSizes.length; i++) {
 					wrtBufferSizes[i] = writeBuffer[i].length;
 				}
-				
-				if (!safe) {
-					safe = true;
-					throw new OutOfMemoryError(); // one more round to be on the safe side
-				}
+
+//				if (!safe) {
+//					safe = true;
+//					throw new OutOfMemoryError(); // one more round to be on the safe side
+//				}
 				
 				new MarkerLookup(markerLookup).serialize(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false));
 
@@ -264,7 +273,7 @@ public class TransposeData {
 							countTotalChunks_MarkerFile -= numBufferChunksNeededCurrentMarkFile;
 							markFileParameterSection = getWriteBufferParameterSection(allSampleNamesInProj.length, markerFileIndex == (nFiles - 1)? allMarkerNamesInProj.length % nMarks_File : nMarks_File, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
 							timerWriteFiles = 0;
-							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");
+//							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");
 						} else {
 							markFileParameterSection = null;
 						}
@@ -274,7 +283,6 @@ public class TransposeData {
 							markFileOutliersBytes = null;
 							isFileClosed = false;
 							numBufferChunksNeededCurrentMarkFile -= (nChunks_RemainedInWrtBuffer - j);
-//							j = nChunks_RemainedInWrtBuffer;
 						} else {
 							index_WrtBufferEnd = j + numBufferChunksNeededCurrentMarkFile - 1;
 							if (markFileOutliers == null || markFileOutliers[markerFileIndex].size() == 0) {
@@ -283,16 +291,19 @@ public class TransposeData {
 								markFileOutliersBytes = Compression.objToBytes(markFileOutliers[markerFileIndex]);
 							}
 							isFileClosed = true;
-//							j += (numBufferChunksNeededCurrentMarkFile - 1);
-							markerFileIndex ++;
+//							markerFileIndex ++;
 						}
 
 						timerTmp = new Date().getTime();
-						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, index_WrtBufferEnd, markerFile, markFileParameterSection, markFileOutliersBytes);
+//						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, index_WrtBufferEnd, markerFile, markFileParameterSection, markFileOutliersBytes);
+						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, index_WrtBufferEnd, markerFilenames[markerFileIndex], markFileParameterSection, markFileOutliersBytes);
 						j = index_WrtBufferEnd;
 						if (isFileClosed) {
-							markerFile.close();
+							markerFileIndex ++;
 						}
+//						if (isFileClosed) {
+//							markerFile.close();
+//						}
 						timerWriteFiles += (new Date().getTime() - timerTmp);
 						log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
 
@@ -582,31 +593,103 @@ public class TransposeData {
 	}
 
 	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int start, int end, String fileName, byte[] head, byte[] tail) {
-		RandomAccessFile markerFile;
+		BufferedOutputStream markerFile;
 		try {
-			markerFile = new RandomAccessFile(fileName, "rw");
+			markerFile = new BufferedOutputStream(new FileOutputStream(fileName, head==null? true : false));
 			writeBufferToRAF(buffer, bufferLength, start, end, markerFile, head, tail);
 			markerFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+//		ObjectOutputStream markerFile;
+//		try {
+//			markerFile = new ObjectOutputStream(new FileOutputStream(fileName, head==null? true : false));
+//			writeBufferToRAF(buffer, bufferLength, start, end, markerFile, head, tail);
+//			markerFile.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+
+
+//		RandomAccessFile markerFile;
+//		try {
+//			markerFile = new RandomAccessFile(fileName, "rw");
+//			if (head != null && head.length != 0) {
+//				markerFile.seek(markerFile.length());
+//			}
+//			writeBufferToRAF(buffer, bufferLength, start, end, markerFile, head, tail);
+//			markerFile.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
-		
+
+
+	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart, int indexOfEnd, BufferedOutputStream markerFile, byte[] head, byte[] tail) {
+		if (buffer==null || indexOfStart<0 || indexOfEnd>=buffer.length || indexOfEnd<indexOfStart) {
+			System.err.println("\nTranspose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
+			System.exit(1);
+		}
+
+		try {
+			if (head != null && head.length != 0) {
+				markerFile.write(head);
+			}
+			for (int i = indexOfStart; i <= indexOfEnd && bufferLength[i] != 0; i++) {
+				markerFile.write(buffer[i], 0, bufferLength[i]);
+			}
+			if (tail != null) {
+				markerFile.write(Compression.intToBytes(tail.length));
+				if (tail.length!=0) {
+					markerFile.write(tail);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart, int indexOfEnd, ObjectOutputStream markerFile, byte[] head, byte[] tail) {
+		if (buffer==null || indexOfStart<0 || indexOfEnd>=buffer.length || indexOfEnd<indexOfStart) {
+			System.err.println("\nTranspose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
+			System.exit(1);
+		}
+
+		try {
+			if (head != null && head.length != 0) {
+				markerFile.write(head);
+			}
+			for (int i = indexOfStart; i <= indexOfEnd && bufferLength[i] != 0; i++) {
+				markerFile.write(buffer[i], 0, bufferLength[i]);
+			}
+			if (tail != null) {
+				markerFile.writeInt(tail.length);
+				if (tail.length!=0) {
+					markerFile.write(tail);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
 	/*
 	 * Write buffer to Random Access File
 	 * tail == null means this file is not yet ended;
 	 * teil.length = 0 means this file is ended, but there is no content in the tail.
 	 */
 	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart, int indexOfEnd, RandomAccessFile markerFile, byte[] head, byte[] tail) {
-		
 		if (buffer==null || indexOfStart<0 || indexOfEnd>=buffer.length || indexOfEnd<indexOfStart) {
-			System.err.println("Transpose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
+			System.err.println("\nTranspose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
 			System.exit(1);
 		}
-		
+
 		try {
 			if (head != null && head.length != 0) {
-					markerFile.write(head);
+				markerFile.write(head);
 			}
 			for (int i = indexOfStart; i <= indexOfEnd && bufferLength[i] != 0; i++) {
 				markerFile.write(buffer[i], 0, bufferLength[i]);
@@ -1026,7 +1109,221 @@ public class TransposeData {
 				+ "\ttotalMem: " + ext.prettyUpSize(Runtime.getRuntime().totalMemory(), 1));
 	}
 
+	public static void testByteBuffer() {
+			try {
+				String fileName = "D:/gedi_exomechip_topstrand/test.dat";
+				byte[] a = new byte[] {(byte) 11, (byte) 12, (byte) 13};
+				byte[] b = new byte[] {(byte) 21, (byte) 22, (byte) 23};
+				boolean append = false;
+//				ObjectOutputStream outStream1;
+//				outStream1 = new ObjectOutputStream(new FileOutputStream(fileName+"1", append));
+				BufferedOutputStream outStream1;
+				outStream1 = new BufferedOutputStream(new FileOutputStream(fileName+"1", append));
+				outStream1.write(a);
+				outStream1.write(b);
+				outStream1.close();
+
+				RandomAccessFile inStream1;
+				inStream1 = new RandomAccessFile(fileName+"1", "r");
+				byte[] c = new byte[a.length + b.length];
+				inStream1.read(c);
+				inStream1.close();
+				for (int i = 0; i < c.length; i++) {
+					System.out.print(c[i] + "\t");
+				}
+				
+//				ObjectInputStream inStream2;
+//				inStream2 = new ObjectInputStream(new FileInputStream(fileName+"1"));
+//				inStream2.read(c);
+//				inStream2.close();
+//				System.out.println();
+//				for (int i = 0; i < c.length; i++) {
+//					System.out.print(c[i] + "\t");
+//				}
+//				
+//				RandomAccessFile outStream2;
+//				outStream2 = new RandomAccessFile(fileName+"2", "rw");
+//				outStream2.write(a);
+//				outStream2.write(b);
+//				outStream2.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+
+	public static void testByteBuffer_old() {
+		try {
+
+			// RAF read in to byte array
+//		File file = new File("D:/gedi_exomechip_topstrand/in.mdRAF");
+//		System.out.println("Creating file");
+//		RandomAccessFile raf = new RandomAccessFile(file, "r");
+//		Thread.sleep(5000);
+//		System.out.println("Creating buffer");
+//		byte[] buffer = new byte[(int) file.length()];
+//		Thread.sleep(5000);
+//		System.out.println("Reading buffer");
+//		raf.read(buffer);
+//			Thread.sleep(5000);
+
+			// indirect bytebuffer method
+			
+			MappedByteBuffer bbuf = null;
+			
+			byte[] buffer = null;
+			
+			 File f = new File("D:/gedi_exomechip_topstrand/in.mdRAF");
+			    FileInputStream fin = null;
+			    FileChannel ch = null;
+			    try {
+			        fin = new FileInputStream(f);
+			        ch = fin.getChannel();
+			        int size = (int) ch.size();
+				    System.out.println("Channeling");
+			        bbuf = ch.map(MapMode.READ_ONLY, 0, size);
+//					Thread.sleep(5000);
+				    System.out.println("making array");
+			        buffer = new byte[size];
+//					Thread.sleep(5000);
+			        bbuf.get(buffer);
+
+			    } catch (IOException e) {
+			        // TODO Auto-generated catch block
+			        e.printStackTrace();
+			    } finally {
+			        try {
+			            if (fin != null) {
+			                fin.close();
+			            }
+			            if (ch != null) {
+			                ch.close();
+			            }
+			        } catch (IOException e) {
+			            e.printStackTrace();
+			        }
+			    }			
+//
+//			    System.out.println("All read in");
+//			    Thread.sleep(5000);
+
+//			byte[] buffer = null;
+//			
+//			 File f = new File("D:/gedi_exomechip_topstrand/in.mdRAF");
+//			    FileInputStream fin = null;
+//		        fin = new FileInputStream(f);
+//
+//			    ByteBuffer bbuf = ByteBuffer.allocateDirect((int)f.length());
+//		        
+//		        int b;
+//		        while ((b=fin.read())!=-1) {
+//		        	bbuf.put((byte)b);
+//		        }
+//		        
+//		        byte[] temp = new byte[4096000];
+//				int length;
+//				while ((length = fin.read(temp)) > 0) {
+////				    os.write(buffer, 0, length);
+//			        bbuf.put(temp);
+//				}
+//		        
+//		        fin.close();
+
+			    System.out.println("All read in");
+			    Thread.sleep(5000);
+			
+			
+
+
+		
+//		Thread.sleep(5000);
+		
+//		byte[] bytes;
+
+//		System.out.println("Wrapping buffer");
+//		ByteBuffer bbuf = ByteBuffer.wrap(buffer);
+//		
+////		bbuf.
+//		Thread.sleep(5000);
+
+				File fileout = new File("D:/gedi_exomechip_topstrand/out.mdRAF");
+				boolean append = false;
+				System.out.println("writing channel");
+				ObjectOutputStream wChannel = new ObjectOutputStream(new FileOutputStream(fileout, append));
+				Thread.sleep(5000);
+				System.out.println("writing out");
+				wChannel.write(buffer);
+				Thread.sleep(5000);
+				wChannel.close();
+
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		 
+		// transfer bytes from this buffer into the given destination array
+//		File fileout = new File("D:/gedi_exomechip_topstrand/out.mdRAF");
+//		boolean append = false;
+//		System.out.println("writing channel");
+//		FileChannel wChannel = new FileOutputStream(fileout, append).getChannel();
+//		Thread.sleep(5000);
+//		System.out.println("writing out");
+//		wChannel.write(bbuf);
+//		Thread.sleep(5000);
+//		wChannel.close();
+//
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+//		Thread.sleep(10000);
+
+
+//		File file = new File("D:/gedi_exomechip_topstrand/samples/7507736053_R01C01.sampRAF");
+//		RandomAccessFile raf = new RandomAccessFile(file, "r");
+//		byte[] buffer = new byte[(int) file.length()];
+//		raf.read(buffer);
+//		ByteBuffer bbuf = ByteBuffer.wrap(buffer);
+//		bbuf.order(ByteOrder.LITTLE_ENDIAN);
+//
+//		file = new File("D:/gedi_exomechip_topstrand/transpose/test.sampRAF");
+//		raf = new RandomAccessFile(file, "rw");
+//		bbuf = raf.map(MapMode.READ_ONLY, 0L, file.length());
+//		raf.write(bbuf);
+
+
+
+//		read in data from file (i.e. FullSample.fsampRAF to test code, then markers.10.mdRAF to test size)
+//		File file = new File("D:/gedi_exomechip_topstrand/samples/7507736053_R01C01.sampRAF");
+//		FileChannel channel = new FileInputStream(file).getChannel();
+//		MappedByteBuffer bbuf = channel.map(MapMode.READ_ONLY, 0L, file.length());
+//		bbuf.order(ByteOrder.LITTLE_ENDIAN);
+
+		
+
+//		save it using RandomAccessFile
+//
+//		compare to see if identical, byte by byte
+//
+//		save using bytebuffer as above
+//
+//		compare to see if identical, byte by byte
+//
+//		when saving using a byte buffer, see if memory increases when saving
+//
+//
+//
+//
+//
+//		replace writeBuffer with ByteBuffer
+	}
+
 	public static void main(String[] args) throws IOException {
+//		testByteBuffer();
+//		System.exit(0);
+
 		int numArgs = args.length;
 		Project proj;
 		String filename = Project.DEFAULT_PROJECT;
@@ -1034,15 +1331,15 @@ public class TransposeData {
 		boolean keepFilesOpen = false;
 		int maxFileSize = 0;
 		boolean lookup = false;
-
+		
 		String usage = "\n"+
-		"filesys.ExtractPlots requires 0-1 arguments\n"+
+		"TransposeData requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"   (2) transpose data (i.e. -transpose ("+(transpose?"":"not the ")+"default))\n"+
 		"   (3) keep all files open at once (i.e. -keepFilesOpen ("+(keepFilesOpen?"":"not the ")+"default; not recommended usually allowed on linux servers))\n"+
 		"   (4) maximum size of each file in bytes (i.e. max="+maxFileSize+" (default))\n"+
 		"  OR:\n"+
-		"   (7) create marker lookup table (i.e. -lookup ("+(lookup?"":"not the ")+"default))\n"+
+		"   (5) create marker lookup table (i.e. -lookup ("+(lookup?"":"not the ")+"default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -1056,7 +1353,7 @@ public class TransposeData {
 				transpose = true;
 				numArgs--;
 			} else if (args[i].startsWith("-keepFilesOpen")) {
-				transpose = true;
+				keepFilesOpen = true;
 				numArgs--;
 			} else if (args[i].startsWith("max=")) {
 				maxFileSize = Integer.parseInt(args[i].split("=")[1]);
@@ -1086,7 +1383,7 @@ public class TransposeData {
 			} else if (lookup) {
 				recreateMarkerLookup(proj);
 			} else {
-				System.err.println("Error - no selection was made");
+				System.err.println("Error - must spefify one of the following: -transpose, or -lookup. Refer to the following usage for details.");
 				System.out.println(usage);
 			}
 		} catch (Exception e) {
