@@ -737,6 +737,55 @@ public class Sample implements Serializable {
 	}
 
 
+	/*
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	public static void loadSampleFileWithoutDecompress(String sampleFileName, byte[] outputBuffer, Hashtable<String, Float> allOutliers, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj) {
+		RandomAccessFile sampleFile;
+		byte[] outliersBuffer;
+		Hashtable<String, Float> sampleOutlierHash;
+		Enumeration<String> keys;
+		String currentKey;
+		int outlierSectionSize = 0;
+		byte[] readBufferLocal;
+		int pointer;
+		long seekPointer;
+
+		try {
+			sampleFile = new RandomAccessFile(sampleFileName, "r");
+	    	if (allOutliers != null) {
+	    		sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+	    		outlierSectionSize = sampleFile.readInt();
+	    	}
+
+	    	seekPointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
+	    	if (seekPointer != sampleFile.getFilePointer()) {
+	    		sampleFile.seek(seekPointer);
+	    	}
+			sampleFile.read(outputBuffer);
+
+			if (outlierSectionSize > 0) {
+		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
+	    		outliersBuffer = new byte[outlierSectionSize];
+	    		sampleFile.read(outliersBuffer);
+	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);
+	    		keys = sampleOutlierHash.keys();
+	    		while (keys.hasMoreElements()) {
+	    			currentKey = keys.nextElement();
+	    			allOutliers.put(indexOfCurrentSample + "\t" + currentKey, sampleOutlierHash.get(currentKey));
+	    		}
+    		}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			e.printStackTrace();
+		}
+	}
+
+
 	public static byte getNullstatusFromRandomAccessFile(String filename, boolean jar) {
 		byte nullStatusOfTheFile = Byte.MIN_VALUE;
 		RandomAccessFile sampleFile;

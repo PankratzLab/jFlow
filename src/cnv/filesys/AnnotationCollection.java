@@ -40,7 +40,8 @@ public class AnnotationCollection implements Serializable {
 		Vector<String> markers;
 		
 		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annoation database", "Warning", JOptionPane.ERROR_MESSAGE);
-		if (response != 1) {
+//		if (response != 1) {
+		if (response == 0) {
 			commentsHash.remove(c);
 			markers = annotationMarkerLists.get(c+"");
 			for (int i=0; markers != null && i < markers.size(); i++) {

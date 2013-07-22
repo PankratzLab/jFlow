@@ -487,6 +487,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 		}
 
+		
+		//TODO outercoordinates
 		canvasSectionMinimumX = WIDTH_Y_AXIS;
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = HEIGHT_X_AXIS;
@@ -555,77 +557,111 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		time = new Date().getTime();
 		step = Math.max((points.length)/100, 1);
 		layers = new Hashtable<String,Vector<PlotPoint>>();
-		
-		for (int i = 0; i<points.length && flow; i++) {
-//			System.out.println("loop");
-//		for (int i = 0; i<points.length; i++) {
-			if (base && i%step==0){
-				if (new Date().getTime() - time > 1000) {
-					if (prog == null) {
-						prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
-					}
-					prog.setProgress(i);//zx
-				}
-			}
-			if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
-//			if (points[i] == null || points[i].getColor() == -1 || (points[i].getRawX() < 1 && points[i].getRawY() < 1)) {
-				
-			} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
-//				System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
-			} else {
-				trav = points[i].getLayer()+"";
-				if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
-					if (trav.equals("0")) {
-						if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
-							drawPoint(g, points[i]);
-						} else if (base) {
-							numberOfNaNSamples++;
+
+//		if (heatmap) {
+		if (false) {
+			
+//			initialize matrix
+			
+			// fill matrix using transofrmation:
+			// x = getXPixel(point.getRawX())
+			// y = getYPixel(point.getRawY();
+	
+			// loop to cover the 3x3 grid
+//			matrix[x][y] += 2;
+//			matrix[x-1][y-1] += 1;
+//			matrix[x-1][y] += 1;
+//			matrix[x-1][y+1] += 1;
+//			matrix[x][y-1] += 1;
+//			matrix[x][y+1] += 1;
+			
+//			matrix[x][y]++;
+			
+			// transform:
+			// intensity = matrix[x][y] / points.length
+			
+			// convert to color
+			
+			// if intensity > 0 then drawpoint
+//			g.drawOval(x, y, 1, 1);
+			
+			
+			
+			
+			
+		} else {
+			for (int i = 0; i<points.length && flow; i++) {
+//				System.out.println("loop");
+//			for (int i = 0; i<points.length; i++) {
+				if (base && i%step==0){
+					if (new Date().getTime() - time > 1000) {
+						if (prog == null) {
+							prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
 						}
-					} else {
-						if (layers.containsKey(trav)) {
-							layer = layers.get(trav);
+						prog.setProgress(i);//zx
+					}
+				}
+				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
+//				if (points[i] == null || points[i].getColor() == -1 || (points[i].getRawX() < 1 && points[i].getRawY() < 1)) {
+					
+				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
+//					System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
+				} else {
+					trav = points[i].getLayer()+"";
+					if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
+						if (trav.equals("0")) {
+							if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+								drawPoint(g, points[i]);
+							} else if (base) {
+								numberOfNaNSamples++;
+							}
 						} else {
-							layers.put(trav, layer = new Vector<PlotPoint>());
-						}
-						layer.add(points[i]);
-					}
-				}
-				if (createLookup) {
-					xLook = (int)Math.floor(getXPixel(points[i].getRawX())/lookupResolution);
-					yLook = (int)Math.floor(getYPixel(points[i].getRawY())/lookupResolution);
-					for (int j = xLook-1; j<=xLook+1; j++) {
-						for (int k = yLook-1; k<=yLook+1; k++) {
-							pos = j+"x"+k;
-							if (locLookup.containsKey(pos)) {
-								locLookup.get(pos).add(i);
+							if (layers.containsKey(trav)) {
+								layer = layers.get(trav);
 							} else {
-								locLookup.put(pos, new IntVector(new int[] {i}));
+								layers.put(trav, layer = new Vector<PlotPoint>());
+							}
+							layer.add(points[i]);
+						}
+					}
+					if (createLookup) {
+						xLook = (int)Math.floor(getXPixel(points[i].getRawX())/lookupResolution);
+						yLook = (int)Math.floor(getYPixel(points[i].getRawY())/lookupResolution);
+						for (int j = xLook-1; j<=xLook+1; j++) {
+							for (int k = yLook-1; k<=yLook+1; k++) {
+								pos = j+"x"+k;
+								if (locLookup.containsKey(pos)) {
+									locLookup.get(pos).add(i);
+								} else {
+									locLookup.put(pos, new IntVector(new int[] {i}));
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		
-		//buildLookupTableOfNearbyPoints();//zx Looks like it gets duplicated with the above
-		//for (int i=0; i<locLookup.size(); i++) {
-		//	System.out.println(locLookup.get(i));
-		//}
+			
+			//buildLookupTableOfNearbyPoints();//zx Looks like it gets duplicated with the above
+			//for (int i=0; i<locLookup.size(); i++) {
+			//	System.out.println(locLookup.get(i));
+			//}
 
-		// Draw those points with layer>0.
-		keys = HashVec.getKeys(layers);
-		order = Sort.quicksort(Array.toIntArray(keys));
-		for (int i = 0; i<keys.length&&flow; i++) {
-//		for (int i = 0; i<keys.length; i++) {
-			layer = layers.get(keys[order[i]]);
-			for (int j = 0; j<layer.size(); j++) {
-				if (layer.elementAt(j).getType()!=PlotPoint.NOT_A_NUMBER) {
-					drawPoint(g, layer.elementAt(j));
-				} else {
-					numberOfNaNSamples++;
-				}
-            }
-        }
+			// Draw those points with layer>0.
+			keys = HashVec.getKeys(layers);
+			order = Sort.quicksort(Array.toIntArray(keys));
+			for (int i = 0; i<keys.length&&flow; i++) {
+//			for (int i = 0; i<keys.length; i++) {
+				layer = layers.get(keys[order[i]]);
+				for (int j = 0; j<layer.size(); j++) {
+					if (layer.elementAt(j).getType()!=PlotPoint.NOT_A_NUMBER) {
+						drawPoint(g, layer.elementAt(j));
+					} else {
+						numberOfNaNSamples++;
+					}
+	            }
+	        }
+		}
+
 
 		if (numberOfNaNSamples > 0) {
 			g.drawString(PlotPoint.NAN_STR+" (n="+numberOfNaNSamples+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
