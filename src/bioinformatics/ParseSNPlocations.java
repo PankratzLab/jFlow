@@ -27,7 +27,8 @@ public class ParseSNPlocations {
 //	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b135_37_3.ser";
 
 	public static final String DEFAULT_B37_SOURCE = DEFAULT_NCBI_DIRECTORY+"b137_SNPChrPosOnRef.bcp.gz";
-	public static final String DEFAULT_B37_DB = DEFAULT_NCBI_DIRECTORY+"b137_37_3.ser";
+//	public static final String DEFAULT_B37_DB = DEFAULT_NCBI_DIRECTORY+"b137_37_3.ser";
+	public static final String DEFAULT_B37_DB = "/home/npankrat/NCBI/b135_37_3.ser";
 
 	public static final String DEFAULT_MERGE_SOURCE = DEFAULT_NCBI_DIRECTORY+"RsMergeArch.bcp.gz";
 	public static final String DEFAULT_MERGE = DEFAULT_NCBI_DIRECTORY+"RsMerge.ser";

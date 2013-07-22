@@ -123,7 +123,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
     private ColorKeyPanel colorKeyPanel;
 	private Color[] colorScheme;
 	private int indexOfAnnotationUsedAsMarkerList; 
-	
+	private boolean fail;
 	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
 		long time = new Date().getTime();
@@ -140,6 +140,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		samples = list.getSamples();
 		sampleListFingerprint = list.getFingerprint();
 		sampleData = proj.getSampleData(2, true);
+		
+		fail = sampleData.failedToLoad();
+		if (fail) {
+			proj.getLog().reportError("Without a SampleData file, ScatterPlot will not start");
+			return;
+		}
+		
 		markerLookup = proj.getMarkerLookup();
 
 		masterMarkerList = initMarkerList;
@@ -169,7 +176,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		System.err.println("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
 		sessionID = (new Date().getTime()+"").substring(5);
-		loadClusterFilterFiles();
+		fail = !loadClusterFilterFiles();
+		if (fail) {
+			proj.getLog().reportError("Chose to ignore prompt for autosaved cluster filters; ScatterPlot will not start");
+			return;
+		}
 		autoSaveCFC = null;
 		System.err.println("4\t"+ext.getTimeElapsed(time));
 		
@@ -228,6 +239,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
+	}
+	
+	public boolean failed() {
+		return fail;
 	}
 	
 	private JPanel markerPanel() {
@@ -1734,7 +1749,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //		return result;
 //	}
 
-	private void loadClusterFilterFiles() {
+	private boolean loadClusterFilterFiles() {
 		String[] otherClusterFilTerFiles;
 		int choice;
 		String[] options = new String[] {"Yes, load and delete old file", "No, delete old file", "Cancel and close ScatterPlot"};
@@ -1762,13 +1777,15 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[i])).delete();
 				}
 			} else {
-				System.exit(1);
+				return false;
 			}
 		} else if (Files.exists(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar) ) {
 			clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar);
 		} else {
 			clusterFilterCollection = new ClusterFilterCollection();
 		}
+
+		return true;
 	}
 
 	public void loadAnnotationCollection() {
@@ -2421,14 +2438,18 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
         JFrame frame;
     	ScatterPlot scatterPlot;
 
-    	frame = new JFrame("ScatterPlot");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setContentPane(scatterPlot = new ScatterPlot(proj, markerList, commentList));
-		frame.addWindowListener(scatterPlot);
-
-        frame.pack();
-		frame.setSize(1000, 720);
-		frame.setVisible(true);
+    	scatterPlot = new ScatterPlot(proj, markerList, commentList);
+    	
+    	if (!scatterPlot.failed()) {
+	    	frame = new JFrame("ScatterPlot");
+			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	        frame.setContentPane(scatterPlot);
+			frame.addWindowListener(scatterPlot);
+	
+	        frame.pack();
+			frame.setSize(1000, 720);
+			frame.setVisible(true);
+    	}
     }
 
     public static void main(String[] args) {

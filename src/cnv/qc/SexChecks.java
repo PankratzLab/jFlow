@@ -8,7 +8,6 @@ import cnv.filesys.*;
 import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import common.*;
-import db.FilterDB;
 import stats.*;
 
 public class SexChecks {
