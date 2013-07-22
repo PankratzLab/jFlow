@@ -11,7 +11,9 @@ public class GWAF {
 	public static final String[] HEADER_SUMMARY = {"MarkerName", "beta", "StdErr", "Pvalue", "N", "freqA1", "MAF"};
 //	public static final String DELIMITER = "\t";
 	public static final String DELIMITER = ",";
-	
+
+	public static final int DEFAULT_VERSION_USED = 1;
+
 	public static void parse(String outfileTemplate, int startAt, boolean imputedNotGenotype, String outfile) {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -294,7 +296,7 @@ public class GWAF {
 	
 	
 	// use numBatches=1 if you want to run in another directory on Windows 
-	public static void batch(String dir, String phenoFile, String pheno, String[] covars, String model, String geneticDataTemplate, int startAt, boolean imputedNotGenotype, String pedfile, String outfileTemplate, String rootTemplate, String[] nodesToUse, int numBatches) {
+	public static void batch(String dir, String phenoFile, String pheno, String[] covars, String model, String geneticDataTemplate, int startAt, boolean imputedNotGenotype, String pedfile, String outfileTemplate, String rootTemplate, String[] nodesToUse, int numBatches, int versionOfGWAF) {
 		PrintWriter writer;
 		String[] list;
 		int count; //, step;
@@ -315,7 +317,11 @@ public class GWAF {
 		try {
 			if (!Files.exists(dir+"kmat.Rfile", false)) {
 				writer = new PrintWriter(new FileWriter(dir+"createKmat.R"));
-				writer.println("library(kinship)");
+				if (versionOfGWAF == 2) {
+					writer.println("library(kinship2)");
+				} else {
+					writer.println("library(kinship)");
+				}
 				writer.println("library(GWAF)");
 				writer.println("cdata <- read.csv(\""+pedfile+"\", header=T)");
 				writer.println("kmat <- makekinship(cdata$famid, cdata$id, cdata$fa, cdata$mo)");
@@ -326,13 +332,17 @@ public class GWAF {
 
 			while (new File(ext.replaceAllWith(dir+geneticDataTemplate, "#", count+"")).exists() && (geneticDataTemplate.contains("#") || count == startAt)) {
 				writer = new PrintWriter(new FileWriter(dir+ext.insertNumbers(rootTemplate, count)+".R"));
-				writer.println("library(kinship)");
+				if (versionOfGWAF == 2) {
+					writer.println("library(kinship2)");
+				} else {
+					writer.println("library(kinship)");
+				}
 				writer.println("library(GWAF)");
 				
 				if (imputedNotGenotype) {
-					writer.println("lme.batch.imputed(\""+phenoFile+"\", \""+ext.replaceAllWith(geneticDataTemplate, "#", count+"")+"\", \""+pedfile+"\", \""+pheno+"\", \"kmat.Rfile\", covars="+(covars==null?"NULL":"c(\""+Array.toStr(covars, "\",\"")+"\")")+", \""+ext.replaceAllWith(outfileTemplate, "#", count+"")+"\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
+					writer.println("lme"+(versionOfGWAF==2?"pack":"")+".batch.imputed(\""+phenoFile+"\", \""+ext.replaceAllWith(geneticDataTemplate, "#", count+"")+"\", \""+pedfile+"\", \""+pheno+"\", \"kmat.Rfile\", covars="+(covars==null?"NULL":"c(\""+Array.toStr(covars, "\",\"")+"\")")+", \""+ext.replaceAllWith(outfileTemplate, "#", count+"")+"\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
 				} else {
-					writer.println("lme.batch(\""+phenoFile+"\", \""+ext.replaceAllWith(geneticDataTemplate, "#", count+"")+"\", \""+pedfile+"\", \""+pheno+"\", \"kmat.Rfile\", model=\""+model+"\", covars="+(covars==null?"NULL":"c(\""+Array.toStr(covars, "\",\"")+"\")")+", \""+ext.replaceAllWith(outfileTemplate, "#", count+"")+"\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
+					writer.println("lme"+(versionOfGWAF==2?"pack":"")+".batch(\""+phenoFile+"\", \""+ext.replaceAllWith(geneticDataTemplate, "#", count+"")+"\", \""+pedfile+"\", \""+pheno+"\", \"kmat.Rfile\", model=\""+model+"\", covars="+(covars==null?"NULL":"c(\""+Array.toStr(covars, "\",\"")+"\")")+", \""+ext.replaceAllWith(outfileTemplate, "#", count+"")+"\", col.names=T, sep.ped=\",\", sep.phe=\",\", sep.gen=\",\")");
 				}
 
 				writer.close();
@@ -442,13 +452,14 @@ public class GWAF {
 		String split = null;
 		int blockSize=5000;
 		String model = "a";
+		int versionOfGWAF = DEFAULT_VERSION_USED;
 
 		String usage = "\n" + 
 		"gwas.GWAF requires 0-1 arguments\n" + 
 		"   (1) name of file with phenotypes (i.e. phenoFile=" + phenoFile + " (default; currently needs to be comma-delimited))\n" + 
 		"   (2) name of phenotype to run (i.e. pheno=" + pheno + " (default))\n" + 
 		"   (3) name of covariates to include (i.e. covars=" + covars + " (default; null leads to none; comma-delimited))\n" + 
-		"   (4) genetic model to use (i.e. model=" + model + " (default))\n" + 
+		"   (4) genetic model to use: lowercase a/d/r/g (i.e. model=" + model + " (default))\n" + 
 		"   (5) format of genotype filenames (i.e. genoPrimer=" + geneticDataTemplate + " (default; can be zipped))\n" + 
 		"   (6) number to start looking for file pattern (i.e. startAt=" + startAt + " (default))\n" +
 		"   (7) data is imputed not genotyped (i.e. imputed=" + imputedNotGenotype + " (default))\n" +
@@ -457,6 +468,7 @@ public class GWAF {
 		"   (10) template for qsub files (i.e. qsubRoot=[trait]_file#.qsub (default))\n" +
 		"   (11) nodes to use (i.e. nodesToUse=" + nodesToUse + " (default; qsubs only; full names, comma-delimited))\n" + 
 		"   (12) number of batches to create (i.e. numBatches=" + numBatches + " (default; anything less than 1 leads to qsubs being made))\n" +
+		"   (13) version of gwafToUse: 1 or 2 (i.e. gwafVersion=" + versionOfGWAF + " (default))\n" +
 		" OR\n" +
 		"   (1) parse results (i.e. -parseResults (not the default))\n" +
 		"   (2) template for output files (i.e. outfileTemplate=" + outfileTemplate + " (default))\n" + 
@@ -521,6 +533,9 @@ public class GWAF {
 			} else if (args[i].startsWith("size=")) {
 				blockSize = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("gwafVersion=")) {
+				versionOfGWAF = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -542,7 +557,7 @@ public class GWAF {
 			} else if (split != null) {
 				splitFiles(split, blockSize, geneticDataTemplate);
 			} else {
-				batch("", phenoFile, pheno, covars, model, geneticDataTemplate, startAt, imputedNotGenotype, pedfile, outfileTemplate, qsubRoot, nodesToUse, numBatches);
+				batch("", phenoFile, pheno, covars, model, geneticDataTemplate, startAt, imputedNotGenotype, pedfile, outfileTemplate, qsubRoot, nodesToUse, numBatches, versionOfGWAF);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

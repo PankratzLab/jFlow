@@ -1307,7 +1307,7 @@ public class CARe_Analyses {
 							}
 						}
 
-						GWAF.batch(dir+"analysis_of_"+pheno+"/", "../"+phenofile, pheno, covars, "a", "../rids_"+root+".fhsR", -1, true, "../leslie_lange."+STUDIES[i]+".IBC."+RACES[j][1]+".pedfile", root+(numExtraCovars>0?"_withCondi"+numExtraCovars:"")+"_out.csv", root, null, 1);
+						GWAF.batch(dir+"analysis_of_"+pheno+"/", "../"+phenofile, pheno, covars, "a", "../rids_"+root+".fhsR", -1, true, "../leslie_lange."+STUDIES[i]+".IBC."+RACES[j][1]+".pedfile", root+(numExtraCovars>0?"_withCondi"+numExtraCovars:"")+"_out.csv", root, null, 1, 1);
 						new File(dir+"analysis_of_"+pheno+"/"+root+".R").renameTo(new File(dir+"analysis_of_"+pheno+"/"+root+numExtraCovars+".R"));
 						new File(dir+"analysis_of_"+pheno+"/run"+numExtraCovars+"."+pheno+".bat").delete();
 						new File(dir+"analysis_of_"+pheno+"/run."+pheno).renameTo(new File(dir+"analysis_of_"+pheno+"/run"+numExtraCovars+"."+pheno+".bat"));
@@ -1605,7 +1605,7 @@ public class CARe_Analyses {
 //		cd ../CFS_blacks/
 //		tar -zcvf ../cfs_blacks_results.tar.gz resul*.csv
 		
-//		analyzeSubset(null, "abo_icam", "ln_icam_InverseNormalized", "inverseNormalizedPheno", null);
+		analyzeSubset(null, "abo_icam", "ln_icam_InverseNormalized", "inverseNormalizedPheno", null);
 //		analyzeSubset(null, "abo_icam", "ln_icam_InverseNormalized", "inverseNormalizedPheno", new String[] {"rs5498"});
 //		analyzeSubset(null, "abo_icam", "ln_icam_InverseNormalized", "inverseNormalizedPheno", new String[] {"rs5498", "rs1799969"});
 //		analyzeSubset(null, "abo_icam", "ln_icam_InverseNormalized", "inverseNormalizedPheno", new String[] {"rs5498", "rs1799969", "rs651007"});
