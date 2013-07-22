@@ -113,7 +113,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private AnnotationCollection annotationCollection;
 	private byte currentClusterFilter;
 	private JTextField clusterFilterNavigation;
-	private boolean clusterFilterCollectionUpdated;
+	private boolean isClusterFilterCollectionUpdated;
 	private boolean annotationUpdated;
 	private String sessionID;
 	private AutoSaveClusterFilterCollection autoSaveCFC;
@@ -176,12 +176,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		System.err.println("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
 		sessionID = (new Date().getTime()+"").substring(5);
+		isClusterFilterCollectionUpdated = false;
+		autoSaveCFC = null;
 		fail = !loadClusterFilterFiles();
 		if (fail) {
 			proj.getLog().reportError("Chose to ignore prompt for autosaved cluster filters; ScatterPlot will not start");
 			return;
 		}
-		autoSaveCFC = null;
 		System.err.println("4\t"+ext.getTimeElapsed(time));
 		
 //		annotationShortcuts = true;
@@ -218,7 +219,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		displayClusterFilterIndex();
 		updateAnnotationPanel();
 		activateAllAnnotationMaps();
-		clusterFilterCollectionUpdated = false;
 		annotationUpdated = false;
 
 //    	newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)+1);
@@ -1766,6 +1766,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				for (int i=0; i<otherClusterFilTerFiles.length; i++) {
 					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[i])).delete();
 				}
+				saveClusterFilterCollection();
 			} else if (choice == 1) {
 				// load permanent
 				if (Files.exists(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar) ) {
@@ -2289,7 +2290,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	public void updateCurrentClusterFilterGenotype(byte newGenotypeSelected, boolean updateGenotypeComboBox) {
 		clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
 		saveClusterFilterCollection();
-		clusterFilterCollectionUpdated = true;
+		isClusterFilterCollectionUpdated = true;
 		scatPanel.setPointsGeneratable(true);
 		scatPanel.setQcPanelUpdatable(true);
 		//updateGUI();
@@ -2364,7 +2365,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			autoSaveCFC = new AutoSaveClusterFilterCollection(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY)+sessionID+".tempClusterFilters.ser", 30);
 			new Thread(autoSaveCFC).start();
 		}
-		clusterFilterCollectionUpdated = status;
+		isClusterFilterCollectionUpdated = status;
 	}
 
 	public void updateMarkerIndexHistory() {
@@ -2390,12 +2391,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		String filename;
 
 		options = new String[] {"Yes, overwrite", "No"};
-		if (clusterFilterCollectionUpdated) {
+		if (isClusterFilterCollectionUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false));
 			}
-			clusterFilterCollectionUpdated = false;
+			isClusterFilterCollectionUpdated = false;
+			autoSaveCFC.kill();
 			autoSaveCFC = null;
 			
 		}
