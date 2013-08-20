@@ -10,8 +10,9 @@ import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Vector;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -67,10 +68,10 @@ public class CompPlot extends JFrame {
 	int qualityScore;
 	int rectangleHeight;
 	String displayMode;
-	Vector<CNVRectangle> rectangles;
+	ArrayList<CNVRectangle> rectangles;
 
 	// From RegionNavigator
-	private int[] location = new int[3];
+	int[] location = new int[3];
 
 	public CompPlot(Project proj) {
 		this.proj = proj;
@@ -101,7 +102,7 @@ public class CompPlot extends JFrame {
 		}
 
 		// Parse out the location chromosome/start base/end base
-		rectangles = new Vector<CNVRectangle>();
+		rectangles = new ArrayList<CNVRectangle>();
 
 		setupGUI();
 
@@ -121,9 +122,9 @@ public class CompPlot extends JFrame {
 		// setSize(1920, 1200);
 
 		// Close this window but not the entire application on close
-		// setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		// Close the whole thing for debugging purposes
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		cpcl = new CompPropertyChangeListener(this);
 
@@ -159,7 +160,7 @@ public class CompPlot extends JFrame {
 
 		compView.add(viewers);
 
-		compConfig = new CompConfig();
+		compConfig = new CompConfig(this);
 		compConfig.addPropertyChangeListener(cpcl);
 
 		compView.add(compConfig, BorderLayout.LINE_END);
@@ -230,6 +231,8 @@ public class CompPlot extends JFrame {
 		}
 
 		if (rectangles.size() > 0) {
+
+			Collections.sort(rectangles);
 			// Set the preferred size of the window to be large enough to encompass all of the rectangles
 			compPanel.setPreferredSize(new Dimension(800, (rectangles.size() * rectangleHeight) + rectangleHeight));
 			compPanel.setRectangleHeight(rectangleHeight);
@@ -275,7 +278,7 @@ public class CompPlot extends JFrame {
 		loadCNVs(location);
 	}
 
-	public void setSelectedCNVs(Vector<CNVariant> cnvs) {
+	public void setSelectedCNVs(ArrayList<CNVariant> cnvs) {
 		compConfig.setSelectedCNVs(cnvs);
 	}
 
@@ -291,6 +294,14 @@ public class CompPlot extends JFrame {
 
 	public Region getRegion() {
 		return regionNavigator.getRegion();
+	}
+
+	public int[] getCPLocation() {
+		return location;
+	}
+
+	public Project getProject() {
+		return proj;
 	}
 }
 
@@ -324,7 +335,7 @@ class CompPropertyChangeListener implements PropertyChangeListener {
 			compPlot.setRegion((Region) pve.getNewValue());
 		} else if (propertyName.equals("selectedCNV")) {
 			@SuppressWarnings("unchecked")
-			Vector<CNVariant> cnvs = (Vector<CNVariant>) pve.getNewValue();
+			ArrayList<CNVariant> cnvs = (ArrayList<CNVariant>) pve.getNewValue();
 			compPlot.setSelectedCNVs(cnvs);
 		} else {
 			// System.out.println(pve.getPropertyName() + " changed from " + pve.getOldValue() + " to " + pve.getNewValue());
@@ -339,8 +350,8 @@ class CompPropertyChangeListener implements PropertyChangeListener {
  * 
  *         Contains the CNVariant and a color based on the file from which it came
  */
-class CNVRectangle extends GenericRectangle {
-	private Vector<CNVariant> cnvs;
+class CNVRectangle extends GenericRectangle implements Comparable<CNVRectangle> {
+	private ArrayList<CNVariant> cnvs;
 	private Color CNVColor;
 	private Rectangle rect;
 	private boolean selected;
@@ -353,18 +364,10 @@ class CNVRectangle extends GenericRectangle {
 		quantity = 1;
 		selected = false;
 		inUse = false;
-		cnvs = new Vector<CNVariant>();
+		cnvs = new ArrayList<CNVariant>();
 	}
 
-	// public CNVariant getCNV() {
-	// return cnv;
-	// }
-	//
-	// public void setCNV(CNVariant cnv) {
-	// this.cnv = cnv;
-	// }
-
-	public Vector<CNVariant> getCNVs() {
+	public ArrayList<CNVariant> getCNVs() {
 		return cnvs;
 	}
 
@@ -372,7 +375,7 @@ class CNVRectangle extends GenericRectangle {
 		return cnvs.get(0);
 	}
 
-	public void setCNVs(Vector<CNVariant> variants) {
+	public void setCNVs(ArrayList<CNVariant> variants) {
 		cnvs = variants;
 	}
 
@@ -450,5 +453,32 @@ class CNVRectangle extends GenericRectangle {
 
 	public boolean isInUse() {
 		return inUse;
+	}
+
+	@Override
+	// Allow sorting the entire list based first on start position, then on length
+	public int compareTo(CNVRectangle o) {
+		int retValue = 0;
+		float start1 = getStartXValue();
+		float start2 = o.getStartXValue();
+		float length1 = getStopXValue() - start1;
+		float length2 = o.getStopXValue() - start2;
+
+		if (start1 > start2) {
+			retValue = 1;
+		} else if (start1 < start2) {
+			retValue = -1;
+		} else {
+			// They start at the same spot, but their lengths may not be the same
+			if (length1 > length2) {
+				retValue = 1;
+			} else if (length1 < length2) {
+				retValue = -1;
+			} else {
+				retValue = 0;
+			}
+		}
+
+		return retValue;
 	}
 }
