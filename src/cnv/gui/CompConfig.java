@@ -1,16 +1,18 @@
 package cnv.gui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,6 +20,8 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import cnv.filesys.Project;
+import cnv.plots.CompPlot;
 import cnv.var.CNVariant;
 
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
@@ -32,6 +36,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	private int minSize = 0; // Default to no minimum size
 	private int qualityScore = 10; // Default to a score of 10
 	private int rectangleHeight = 10; // Default rectangle height
+	CompPlot compPlot;
 
 	JSlider probesSlider;
 	JLabel lblProbes;
@@ -52,10 +57,11 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	/**
 	 * Create the panel.
 	 */
-	public CompConfig() {
+	public CompConfig(CompPlot cp) {
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		compPlot = cp;
 
-		cnvPanel = new CNVPanel();
+		cnvPanel = new CNVPanel(cp);
 		cnvPanel.setDisplayMode(displayMode);
 		add(cnvPanel);
 
@@ -203,16 +209,21 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		return rectangleHeight;
 	}
 
-	public void setSelectedCNVs(Vector<CNVariant> cnvs) {
+	public void setSelectedCNVs(ArrayList<CNVariant> cnvs) {
 		cnvPanel.setCNVs(cnvs);
+	}
+
+	public CompPlot getPlot() {
+		return compPlot;
 	}
 
 }
 
 class CNVPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
-	Vector<CNVariant> selectedCNVs;
+	ArrayList<CNVariant> selectedCNVs;
 	CNVariant selectedCNV;
+	CNVariant oldCNV;
 	JPanel cnvPanel;
 	JLabel iid; // Individual ID
 	JLabel fid; // Family ID
@@ -223,8 +234,12 @@ class CNVPanel extends JPanel implements ActionListener {
 	String displayMode;
 	JComboBox<CNVariant> cnvList;
 	JLabel cnvListLabel;
+	JButton trailerButton;
+	LaunchAction launchTrailer;
+	CompPlot compPlot;
 
-	public CNVPanel() {
+	public CNVPanel(CompPlot cp) {
+		compPlot = cp;
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 		add(new JLabel("Selected CNV:"));
 		iid = new JLabel();
@@ -233,6 +248,7 @@ class CNVPanel extends JPanel implements ActionListener {
 		copies = new JLabel();
 		probes = new JLabel();
 		score = new JLabel();
+		trailerButton = new JButton("To Trailer");
 
 		// Panel for CNV information
 		cnvPanel = new JPanel();
@@ -269,10 +285,14 @@ class CNVPanel extends JPanel implements ActionListener {
 		cnvPanel.add(cnvListLabel);
 
 		add(cnvPanel);
+
+		// Link off to Trailer
+		add(trailerButton);
+		trailerButton.setEnabled(false);
 	}
 
 	// Update the fields
-	public void setCNVs(Vector<CNVariant> cnvs) {
+	public void setCNVs(ArrayList<CNVariant> cnvs) {
 		selectedCNVs = cnvs;
 
 		// In collapsed mode, if there are multiple CNVs associated, add a combo box that lets you select which CNV to look at
@@ -304,8 +324,23 @@ class CNVPanel extends JPanel implements ActionListener {
 			selectedCNV = selectedCNVs.get(0);
 			setCNVText();
 		}
-		cnvPanel.repaint();
 
+		// Don't enable the button if there aren't any CNVs selected
+		if (selectedCNVs.size() > 0) {
+			int[] location = compPlot.getCPLocation();
+			int window = Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
+			String markerPosition = "chr" + location[0] + ":" + (selectedCNV.getStart() - window) + "-" + (selectedCNV.getStop() + window);
+			System.out.println("Window is " + window + " markerPosition is " + markerPosition);
+			launchTrailer = new LaunchAction(compPlot.getProject(), selectedCNV.getIndividualID(), markerPosition, Color.BLACK);
+			trailerButton.setAction(launchTrailer);
+			trailerButton.setText("To Trailer");
+			trailerButton.setIcon(null);
+			trailerButton.setEnabled(true);
+		} else {
+			trailerButton.setEnabled(false);
+		}
+
+		cnvPanel.repaint();
 	}
 
 	// Update the text with the currently selected CNV
@@ -324,7 +359,10 @@ class CNVPanel extends JPanel implements ActionListener {
 
 	// Monitor the combobox for changes
 	public void actionPerformed(ActionEvent arg0) {
-		selectedCNV = (CNVariant) cnvList.getSelectedItem();
-		setCNVText();
+		if (arg0.getSource().equals(cnvList)) {
+			oldCNV = selectedCNV;
+			selectedCNV = (CNVariant) cnvList.getSelectedItem();
+			setCNVText();
+		}
 	}
 }
