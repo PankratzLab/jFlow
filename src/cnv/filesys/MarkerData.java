@@ -463,7 +463,7 @@ public class MarkerData implements Serializable {
 //	public byte[] detectClusters() {
 //		return detectClusters(0.01, 3);
 //	}
-//
+
 //	public byte[] detectClusters(double epsilon, int minPoints) {
 //		byte currentClusterLabel;
 //		byte[] clusterLabels;

@@ -651,29 +651,29 @@ public class TransposeData {
 	}
 
 
-	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart, int indexOfEnd, ObjectOutputStream markerFile, byte[] head, byte[] tail) {
-		if (buffer==null || indexOfStart<0 || indexOfEnd>=buffer.length || indexOfEnd<indexOfStart) {
-			System.err.println("\nTranspose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
-			System.exit(1);
-		}
-
-		try {
-			if (head != null && head.length != 0) {
-				markerFile.write(head);
-			}
-			for (int i = indexOfStart; i <= indexOfEnd && bufferLength[i] != 0; i++) {
-				markerFile.write(buffer[i], 0, bufferLength[i]);
-			}
-			if (tail != null) {
-				markerFile.writeInt(tail.length);
-				if (tail.length!=0) {
-					markerFile.write(tail);
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart, int indexOfEnd, ObjectOutputStream markerFile, byte[] head, byte[] tail) {
+//		if (buffer==null || indexOfStart<0 || indexOfEnd>=buffer.length || indexOfEnd<indexOfStart) {
+//			System.err.println("\nTranspose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
+//			System.exit(1);
+//		}
+//
+//		try {
+//			if (head != null && head.length != 0) {
+//				markerFile.write(head);
+//			}
+//			for (int i = indexOfStart; i <= indexOfEnd && bufferLength[i] != 0; i++) {
+//				markerFile.write(buffer[i], 0, bufferLength[i]);
+//			}
+//			if (tail != null) {
+//				markerFile.writeInt(tail.length);
+//				if (tail.length!=0) {
+//					markerFile.write(tail);
+//				}
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 
 	/*
@@ -1109,48 +1109,137 @@ public class TransposeData {
 				+ "\ttotalMem: " + ext.prettyUpSize(Runtime.getRuntime().totalMemory(), 1));
 	}
 
-	public static void testByteBuffer() {
-			try {
-				String fileName = "D:/gedi_exomechip_topstrand/test.dat";
-				byte[] a = new byte[] {(byte) 11, (byte) 12, (byte) 13};
-				byte[] b = new byte[] {(byte) 21, (byte) 22, (byte) 23};
-				boolean append = false;
-//				ObjectOutputStream outStream1;
-//				outStream1 = new ObjectOutputStream(new FileOutputStream(fileName+"1", append));
-				BufferedOutputStream outStream1;
-				outStream1 = new BufferedOutputStream(new FileOutputStream(fileName+"1", append));
-				outStream1.write(a);
-				outStream1.write(b);
-				outStream1.close();
+//	public static void test_ByteArrayBufferedOutputStream() {
+//		try {
+//			String fileName = "D:/test.dat";
+//			byte[] a = new byte[] {(byte) 11, (byte) 12, (byte) 13};
+//			byte[] b = new byte[] {(byte) 21, (byte) 22, (byte) 23};
+//			boolean append = false;
+//			OutputStream outputStream = new FileOutputStream(fileName+"1", append); 
+//			ByteArrayOutputStream baos;
+//			byte[] array = new byte[5];
+//			baos = new ByteArrayOutputStream();
+//			outStream1.write(a);
+//			outStream1.write(b);
+//			outStream1.close();
+//			baos.writeTo(outputStream);
+//			baos.write(array);
+//
+//			RandomAccessFile inStream1;
+//			inStream1 = new RandomAccessFile(fileName+"1", "r");
+//			byte[] c = new byte[(int) inStream1.length()];
+//			inStream1.read(c);
+//			inStream1.close();
+//			for (int i = 0; i < c.length; i++) {
+//				System.out.print(c[i] + "\t");
+//			}
+//			
+//			RandomAccessFile outStream2;
+//			outStream2 = new RandomAccessFile(fileName+"2", "rw");
+//			outStream2.write(a);
+//			outStream2.write(b);
+//			outStream2.close();
+//			
+//			ObjectInputStream inStream2;
+//			inStream2 = new ObjectInputStream(new FileInputStream(fileName+"1"));
+//			inStream2.read(c);
+//			inStream2.close();
+//			System.out.println();
+//			for (int i = 0; i < c.length; i++) {
+//				System.out.print(c[i] + "\t");
+//			}
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
-				RandomAccessFile inStream1;
-				inStream1 = new RandomAccessFile(fileName+"1", "r");
-				byte[] c = new byte[a.length + b.length];
-				inStream1.read(c);
-				inStream1.close();
-				for (int i = 0; i < c.length; i++) {
-					System.out.print(c[i] + "\t");
-				}
-				
-//				ObjectInputStream inStream2;
-//				inStream2 = new ObjectInputStream(new FileInputStream(fileName+"1"));
-//				inStream2.read(c);
-//				inStream2.close();
-//				System.out.println();
-//				for (int i = 0; i < c.length; i++) {
-//					System.out.print(c[i] + "\t");
-//				}
-//				
-//				RandomAccessFile outStream2;
-//				outStream2 = new RandomAccessFile(fileName+"2", "rw");
-//				outStream2.write(a);
-//				outStream2.write(b);
-//				outStream2.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+	public static void test_FileWriter() {
+		RandomAccessFile in;
+		String testString;
+		String[] line;
+
+		testString = "987987";
+		try {
+			FileWriter out1;
+			out1 = new FileWriter(new File("D:/test_FileWriter.txt"));
+			out1.write(testString);
+			out1.close();
+			
+			in = new RandomAccessFile("D:/test_FileWriter.txt", "r");
+			byte[] b;
+			b = new byte[(int) in.length()];
+			in.read(b);
+			in.close();
+			
+			System.out.print("\nFileWriter:");
+			for (int i = 0; i < b.length; i++) {
+				System.out.print("\t" + (char) b[i]);
 			}
+			System.out.println("");
+
+			PrintWriter out2;
+			out2 = new PrintWriter(new File("D:/test_PrintWriter.txt"));
+			out2.write(testString);
+			out2.close();
+			
+			in = new RandomAccessFile("D:/test_PrintWriter.txt", "r");
+			b = new byte[(int) in.length()];
+			in.read(b);
+			in.close();
+
+			System.out.print("PrintWriter:");
+			for (int i = 0; i < b.length; i++) {
+				System.out.print("\t" + (char) b[i]);
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void test_BufferedOutputStream() {
+		try {
+			String fileName = "D:/test.dat";
+			byte[] a = new byte[] {(byte) 11, (byte) 12, (byte) 13};
+			byte[] b = new byte[] {(byte) 21, (byte) 22, (byte) 23};
+			boolean append = false;
+			BufferedOutputStream outStream1;
+			outStream1 = new BufferedOutputStream(new FileOutputStream(fileName+"1", append));
+			outStream1.write(a);
+			outStream1.write(b);
+			outStream1.close();
+
+			RandomAccessFile inStream1;
+			inStream1 = new RandomAccessFile(fileName+"1", "r");
+			byte[] c = new byte[(int) inStream1.length()];
+			inStream1.read(c);
+			inStream1.close();
+			for (int i = 0; i < c.length; i++) {
+				System.out.print(c[i] + "\t");
+			}
+			System.out.println();
+			
+			RandomAccessFile outStream2;
+			outStream2 = new RandomAccessFile(fileName+"2", "rw");
+			outStream2.write(a);
+			outStream2.write(b);
+			outStream2.close();
+			
+			inStream1 = new RandomAccessFile(fileName+"2", "r");
+			c = new byte[(int) inStream1.length()];
+			inStream1.read(c);
+			inStream1.close();
+			for (int i = 0; i < c.length; i++) {
+				System.out.print(c[i] + "\t");
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void testByteBuffer_old() {
@@ -1322,6 +1411,8 @@ public class TransposeData {
 
 	public static void main(String[] args) throws IOException {
 //		testByteBuffer();
+//		test_BufferedOutputStream();
+//		test_FileWriter();
 //		System.exit(0);
 
 		int numArgs = args.length;
@@ -1334,12 +1425,12 @@ public class TransposeData {
 		
 		String usage = "\n"+
 		"TransposeData requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
-		"   (2) transpose data (i.e. -transpose ("+(transpose?"":"not the ")+"default))\n"+
-		"   (3) keep all files open at once (i.e. -keepFilesOpen ("+(keepFilesOpen?"":"not the ")+"default; not recommended usually allowed on linux servers))\n"+
-		"   (4) maximum size of each file in bytes (i.e. max="+maxFileSize+" (default))\n"+
-		"  OR:\n"+
-		"   (5) create marker lookup table (i.e. -lookup ("+(lookup?"":"not the ")+"default))\n"+
+		"   (1) project file (i.e. proj=" + filename + " (default))\n" +
+		"   (2) transpose data (i.e. -transpose (" + (transpose? "" : "not the ") + "default))\n" +
+		"   (3) keep all files open at once (i.e. -keepFilesOpen (" + (keepFilesOpen? "" : "not the ") + "default; not recommended usually allowed on linux servers))\n" +
+		"   (4) maximum size of each file in bytes (i.e. max=" + maxFileSize + " (default))\n" +
+		"  OR:\n" +
+		"   (5) create marker lookup table (i.e. -lookup ("+(lookup?"":"not the ")+"default))\n" +
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -1363,15 +1454,15 @@ public class TransposeData {
 				numArgs--;
 			}
 		}
-		if (numArgs!=0) {
+		if (numArgs != 0) {
 			System.err.println(usage);
 			System.exit(1);
 		}
 
 		proj = new Project(filename, false);
 
-		if (!proj.getDir(Project.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
-			System.err.println("Error - the project source location is invalid: "+proj.getDir(Project.SOURCE_DIRECTORY));
+		if (! proj.getDir(Project.SOURCE_DIRECTORY).equals("") && ! new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
+			System.err.println("Error - the project source location is invalid: " + proj.getDir(Project.SOURCE_DIRECTORY));
 			return;
 		}
 

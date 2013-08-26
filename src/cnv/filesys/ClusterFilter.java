@@ -209,12 +209,15 @@ public class ClusterFilter implements Serializable {
 		Vector<Integer> indexOfPointsOutsideTheCluster;
 		float distancetemp = 0;
 		byte[] genotypes;
-		int[] genotypeCount;
+		int[] counterGenotypeInsideTheCluster;
+		int[] counterGenotypesOutsideTheCluster;
 		float minDist;
 		int indexOfNearbyPoint;
 		int maxCount;
-		byte oldGenotype;
-		byte newGenotype;
+		byte genotypeOld;
+		byte genotypeNew;
+		byte nGenotypesTotal;
+		byte nGenotypesOutsideTheCluster;
 		
 		switch(getPlotType()) {
 		case 0:
@@ -238,33 +241,44 @@ public class ClusterFilter implements Serializable {
 			realY = markerData.getYs();
 		}
 
-		indexOfPointsOutsideTheCluster = new Vector<Integer>();
 		genotypes = markerData.getAB_Genotypes();
+//		genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+		indexOfPointsOutsideTheCluster = new Vector<Integer>(genotypes.length);
 		xSum = 0;
 		ySum = 0;
-		genotypeCount = new int[] {0,0,0};
-		oldGenotype = -2;
+		counterGenotypeInsideTheCluster = new int[] {0, 0, 0, 0};
+		counterGenotypesOutsideTheCluster = new int[] {0, 0, 0, 0};
+		genotypeOld = -2;
 		for (int i=0; i<genotypes.length; i++) {
 			if (realX[i] >= rawXMin && realY[i] >= rawYMin && realX[i] <= rawXmax && realY[i] <= rawYmax) {
 				xSum += realX[i];
 				ySum += realY[i];
 				if (genotypes[i] < 0) {
-					oldGenotype = -1;
+					genotypeOld = -1;
 				} else {
-					genotypeCount[genotypes[i]] ++;
+					counterGenotypeInsideTheCluster[genotypes[i] + 1] ++;
 				}
 			} else {
 				indexOfPointsOutsideTheCluster.add(i);
+				counterGenotypesOutsideTheCluster[genotypes[i] + 1] ++;
 			}
 		}
 		xSum = xSum / (genotypes.length - indexOfPointsOutsideTheCluster.size());
 		ySum = ySum / (genotypes.length - indexOfPointsOutsideTheCluster.size());
+		nGenotypesOutsideTheCluster = 0;
+		nGenotypesTotal = 0;
 		maxCount = 0;
-		if (oldGenotype == -2) {
-			for (byte i = 0; i < 3; i++){
-				if (genotypeCount[i] > maxCount) {
-					maxCount = genotypeCount[i];
-					oldGenotype = i;
+		if (genotypeOld == -2) {
+			for (byte i = 1; i < counterGenotypeInsideTheCluster.length; i++){
+				if (counterGenotypeInsideTheCluster[i] > maxCount) {
+					maxCount = counterGenotypeInsideTheCluster[i];
+					genotypeOld = i;
+				}
+				if (counterGenotypesOutsideTheCluster[i] > 0) {
+					nGenotypesTotal ++;
+					nGenotypesOutsideTheCluster ++;
+				} else if (counterGenotypeInsideTheCluster[i] > 0) {
+					nGenotypesTotal ++;
 				}
 			}
 		}
@@ -280,14 +294,16 @@ public class ClusterFilter implements Serializable {
 		}
 
 		if (indexOfNearbyPoint == -1) {
-			newGenotype = -1;
-		} else {
-			newGenotype = genotypes[indexOfNearbyPoint];
-			if (newGenotype == oldGenotype) {
-				newGenotype = -1;
+			genotypeNew = -1;
+		} else if (nGenotypesOutsideTheCluster == 3) {
+			genotypeNew = genotypes[indexOfNearbyPoint];
+			if (genotypeNew == genotypeOld) {
+				genotypeNew = -1;
 			}
+		} else {
+			genotypeNew = 1;
 		}
 
-		return newGenotype;
+		return genotypeNew;
 	}
 }

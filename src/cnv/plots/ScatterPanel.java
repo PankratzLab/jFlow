@@ -447,8 +447,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 																		(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
 																		(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
 																		sp.getCurrentMarkerData()));
-	    	sp.saveClusterFilterCollection();
-	    	sp.clusterFilterCollectionUpdated(true);
+//	    	sp.startAutoSaveToTempFile();
+	    	sp.updateClusterFilterStatus(true);
 			setPointsGeneratable(true);
 			setQcPanelUpdatable(true);
 	    	generateRectangles();
@@ -526,7 +526,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				clusterFilterCollection = sp.getClusterFilterCollection();
 				clusterFilterCollection.deleteClusterFilter(sp.getMarkerName(), newClusterFilter);
 				sp.setCurrentClusterFilter((byte) Math.min(newClusterFilter, clusterFilterCollection.getSize(sp.getMarkerName())-1));
-				sp.saveClusterFilterCollection();
+//				sp.startAutoSaveToTempFile();
+				sp.updateClusterFilterStatus(true);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				sp.displayClusterFilterIndex();
 //					annotationPanelLowerPart();
