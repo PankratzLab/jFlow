@@ -849,13 +849,14 @@ public class CALiCo {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String genos = "N:/statgen/CALiCo_SOL/filteredGenotypes/plink";
+		String genos = "N:/statgen/CALiCo/filteredGenotypes/plink";
 //		String genos = "N:/statgen/CALiCo_ARIC/filteredGenotypes/plink";
-		String phenoCovarFilename = "N:/statgen/CALiCo_SOL/LungFunction/XLN_tmp/CARDIA_Squared/XLN/MODEL1.xln";
-		String phenoCovarDir = "N:/statgen/CALiCo_SOL/LungFunction/XLN_tmp/";
+//		String phenoCovarFilename = "N:/statgen/CALiCo/BMI/Males.xln";
+		String phenoCovarFilename = null;
+		String phenoCovarDir = "N:/statgen/CALiCo/BMI/xln/";
 //		String phenoCovarDir = "N:/statgen/CALiCo_ARIC/LungFunction/xln/";
 //		String scratchDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/scratches/";
-		String scratchDir = "D:/scratch_LungFunction_XLN_tmp/";
+		String scratchDir = "D:/scratch/";
 //		String resultDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/results/";
 		String resultDir = phenoCovarDir + (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)?"conditionals/":"results/");
 		Logger log;

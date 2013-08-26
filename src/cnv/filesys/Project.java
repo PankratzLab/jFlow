@@ -118,6 +118,7 @@ public class Project extends Properties {
 //	public static final String ANNOTATION_DIRECTORY = "ANNOTATION_DIRECTORY";
 
 	private boolean jar;
+	private String projectPropertiesFilename;
 	private SampleList sampleList;
 	private SampleData sampleData;
 	private Hashtable<String,String> cnvFilesLoadedInSampleData;
@@ -136,6 +137,7 @@ public class Project extends Properties {
 	public Project(String filename, boolean jar) {
 		this();
 		
+		this.projectPropertiesFilename = filename;
 		screenProperties(filename);
 		Files.loadProperties(this, filename, jar, true, false);
 
@@ -184,6 +186,10 @@ public class Project extends Properties {
 		return dir;
 	}
 	
+	public String getPropertyFilename() {
+		return projectPropertiesFilename;
+	}
+
 	public String getProjectDir() {
 		return getProperty(PROJECT_DIRECTORY);
 	}

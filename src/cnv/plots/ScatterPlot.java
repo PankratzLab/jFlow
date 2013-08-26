@@ -16,7 +16,7 @@ import java.awt.event.*;
 
 import cnv.filesys.*;
 import cnv.gui.AnnotationAction;
-import cnv.gui.AutoSaveClusterFilterCollection;
+import cnv.gui.AutoSaveForScatterPlot;
 import cnv.gui.CycleRadio;
 import cnv.manage.MarkerDataLoader;
 import common.*;
@@ -113,10 +113,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private AnnotationCollection annotationCollection;
 	private byte currentClusterFilter;
 	private JTextField clusterFilterNavigation;
-	private boolean isClusterFilterCollectionUpdated;
-	private boolean annotationUpdated;
+	private boolean isClusterFilterUpdated;
+	private boolean isAnnotationUpdated;
 	private String sessionID;
-	private AutoSaveClusterFilterCollection autoSaveCFC;
+	private AutoSaveForScatterPlot autoSave;
 	private JRadioButton[] typeRadioButtons;
 	private MarkerDataLoader markerDataLoader;
 	private Thread thread2;
@@ -176,8 +176,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		System.err.println("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
 		sessionID = (new Date().getTime()+"").substring(5);
-		isClusterFilterCollectionUpdated = false;
-		autoSaveCFC = null;
+		isClusterFilterUpdated = false;
+		isAnnotationUpdated = false;
+		autoSave = null;
 		fail = !loadClusterFilterFiles();
 		if (fail) {
 			proj.getLog().reportError("Chose to ignore prompt for autosaved cluster filters; ScatterPlot will not start");
@@ -219,7 +220,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		displayClusterFilterIndex();
 		updateAnnotationPanel();
 		activateAllAnnotationMaps();
-		annotationUpdated = false;
 
 //    	newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)+1);
 		symmetryBox.setSelected(true);
@@ -934,7 +934,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 			        if (returnVal == JFileChooser.APPROVE_OPTION) {
 			        	filename = fileChooser.getSelectedFile().getAbsolutePath();
-			    		if (annotationUpdated) {
+			    		if (isAnnotationUpdated) {
 			    			options = new String[] {"Yes, overwrite", "No"};
 			    			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			    			if (choice == 0) {
@@ -945,8 +945,14 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			    			}
 			    		}
 			    		deactivateAllAnnotationMaps();
-//						annotationCollection = AnnotationCollection.loadFromLists(filename, null);
-						AnnotationCollection.appendFromLists(filename, annotationCollection, proj.getMarkerNames(), null);
+			    		if (annotationCollection == null) {
+			    			annotationCollection = AnnotationCollection.loadFromLists(filename, null);
+							startAutoSaveToTempFile();
+			    		} else {
+			    			AnnotationCollection.appendFromLists(filename, annotationCollection, proj.getMarkerNames(), null);
+			    		}
+//		    			isAnnotationUpdated = true;
+			    		setAnnotationUpdated(true);
 						annotatedMarkers = annotationCollection.getMarkerLists();
 						for (int i = 0; i < isAnnotated.length; i++) {
 							for (int j = 0; j < annotatedMarkers.length; j++) {
@@ -960,7 +966,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 						annotationKeys = annotationCollection.getKeys();
 			    		activateAllAnnotationMaps();
 						annotationPanelLower();
-		    			annotationUpdated = true;
 			        }
 				}
 			}
@@ -1209,7 +1214,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				        }
 				        checkBox.setText(annotationCollection.getDescriptionForComment(currentKey, showAnnotationShortcuts, true));
 				        updateAnnotationPanelFilterRadioButtons();
-				        annotationUpdated = true;
+//				        isAnnotationUpdated = true;
+				        setAnnotationUpdated(true);
 					}
 				}
 			});
@@ -1234,7 +1240,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 					annotationCollection.removeAnnotation(annotationKeys[index]);
 					removeAnnotationFromMaps(annotationKeys[index]);
 					annotationKeys = annotationCollection.getKeys();
-					annotationUpdated = true;
+//					isAnnotationUpdated = true;
+					setAnnotationUpdated(true);
 					annotationPanelLower();
 				}
 			});
@@ -1279,11 +1286,16 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				if (c == 0) {
 					System.out.println("Failed to add the new annotation key '" + str + "', because cannot automatically assign a shortcut for it.");
 				} else {
+					if (annotationCollection == null) {
+						annotationCollection = new AnnotationCollection();
+						startAutoSaveToTempFile();
+					}
 					annotationCollection.addAnnotation(c, str);
 					addAnnotationToMaps(c);
 					annotationKeys = annotationCollection.getKeys();
 					annotationPanelLower();
-					annotationUpdated = true;
+//					isAnnotationUpdated = true;
+					setAnnotationUpdated(true);
 				}
 			}
 		});
@@ -1535,7 +1547,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				//scatPanel.clearRectangles(currentClusterFilter);
 				clusterFilterCollection.deleteClusterFilter(getMarkerName(), currentClusterFilter);
 				setCurrentClusterFilter((byte) Math.min(currentClusterFilter, clusterFilterCollection.getSize(getMarkerName())-1));
-				saveClusterFilterCollection();
+//				startAutoSave();
+//				isClusterFilterUpdated = true;
+				setClusterFilterUpdated(true);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
 //				annotationPanelLowerPart();
@@ -1762,11 +1776,12 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 												  "Error", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				// load the last one in otherClusterFilerFiles[]
-				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[otherClusterFilTerFiles.length-1], jar);
+				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY) + otherClusterFilTerFiles[otherClusterFilTerFiles.length-1], jar);
 				for (int i=0; i<otherClusterFilTerFiles.length; i++) {
 					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[i])).delete();
 				}
-				saveClusterFilterCollection();
+//				isClusterFilterUpdated = true;
+				setClusterFilterUpdated(true);
 			} else if (choice == 1) {
 				// load permanent
 				if (Files.exists(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar) ) {
@@ -1786,6 +1801,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			clusterFilterCollection = new ClusterFilterCollection();
 		}
 
+		startAutoSaveToTempFile();
+
 		return true;
 	}
 
@@ -1799,6 +1816,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			annotationCollection.addAnnotation('u', "Ugly");
 			annotationCollection.addAnnotation('m', "Monomorphic");
 		}
+		startAutoSaveToTempFile();
 
 		initializeIsAnnotated(annotationCollection.getMarkerLists());
 
@@ -2289,8 +2307,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 	public void updateCurrentClusterFilterGenotype(byte newGenotypeSelected, boolean updateGenotypeComboBox) {
 		clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
-		saveClusterFilterCollection();
-		isClusterFilterCollectionUpdated = true;
+//		startAutoSave();
+//		isClusterFilterUpdated = true;
+		setClusterFilterUpdated(true);
 		scatPanel.setPointsGeneratable(true);
 		scatPanel.setQcPanelUpdatable(true);
 		//updateGUI();
@@ -2355,17 +2374,26 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 										+clusterFilterCollection.getSize(getMarkerName()));
 	}
 
-	public void saveClusterFilterCollection() {
-		clusterFilterCollectionUpdated(true);
-		autoSaveCFC.saveNow();
+	public void startAutoSaveToTempFile() {
+//		clusterFilterCollectionUpdated(true);
+		if (autoSave == null) {
+			autoSave = new AutoSaveForScatterPlot(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser", annotationCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser", 30);
+			new Thread(autoSave).start();
+		} else if (clusterFilterCollection != null && autoSave.isClusterFilterNull()) {
+			autoSave.addToAutoSave(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser");
+		} else if (annotationCollection != null && autoSave.isAnnotationNull()) {
+			autoSave.addToAutoSave(annotationCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser");
+		}
+		autoSave.saveNow();
 	}
 	
-	public void clusterFilterCollectionUpdated(boolean status) {
-		if (status && autoSaveCFC == null) {
-			autoSaveCFC = new AutoSaveClusterFilterCollection(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY)+sessionID+".tempClusterFilters.ser", 30);
-			new Thread(autoSaveCFC).start();
-		}
-		isClusterFilterCollectionUpdated = status;
+	public void updateClusterFilterStatus(boolean status) {
+//		if (status && autoSave == null) {
+//			autoSave = new AutoSaveForScatterPlot(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser", annotationCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser", 30);
+//			new Thread(autoSave).start();
+//		}
+//		isClusterFilterUpdated = status;
+		setClusterFilterUpdated(status);
 	}
 
 	public void updateMarkerIndexHistory() {
@@ -2385,31 +2413,42 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		}
 	}
 
+	public void setClusterFilterUpdated (boolean status) {
+		isClusterFilterUpdated = status;
+		autoSave.setClusterFilterUpdated(status);
+	}
+	
+	public void setAnnotationUpdated (boolean status) {
+		isAnnotationUpdated = status;
+		autoSave.setAnnotationUpdated(status);
+	}
+	
 	public void saveClusterFilterAndAnnotationCollection () {
 		String[] options;
 		int choice;
 		String filename;
 
 		options = new String[] {"Yes, overwrite", "No"};
-		if (isClusterFilterCollectionUpdated) {
+		if (isClusterFilterUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false));
 			}
-			isClusterFilterCollectionUpdated = false;
-			autoSaveCFC.kill();
-			autoSaveCFC = null;
-			
+//			isClusterFilterUpdated = false;
+			setClusterFilterUpdated(false);
+//			autoSave.kill();
+//			autoSave = null;
 		}
 
-		if (annotationUpdated) {
+		if (isAnnotationUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				filename = proj.getFilename(Project.ANNOTATION_FILENAME, false, false);
 				System.out.println("Writing to "+filename);
 				Files.writeSerial(annotationCollection, filename);
 			}
-			annotationUpdated = false;
+//			isAnnotationUpdated = false;
+			setAnnotationUpdated(false);
 		}
 	}
 
@@ -2422,8 +2461,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 		//TODO notify all threads (e.g., MarkerDataLoader) that they need to close
 
-		if (autoSaveCFC != null) {
-			autoSaveCFC.kill();
+		if (autoSave != null) {
+			autoSave.kill();
 		}
 		markerDataLoader.kill();
 	}

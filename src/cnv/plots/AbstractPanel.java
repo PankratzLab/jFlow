@@ -704,7 +704,34 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 	public void refreshOtherComponents() {
 	}
-	
+
+	public void drawHeatMap(Graphics g, double[][] data, byte[] clusters) {
+		int nColumns, nRows;
+		BufferedImage heatMapImage;
+		
+		heatMapImage = new BufferedImage(AbstractPanel.WIDTH, AbstractPanel.HEIGHT, BufferedImage.TYPE_INT_ARGB);
+		Graphics heatMapGraphics = heatMapImage.createGraphics();
+		
+//		for (int x=0; x<nRows; x++) {
+//			for (int y=0; y<nColumns; y++) {
+				// Set colour depending on zValues.
+//				heatMapGraphics.setColor(getCellColour(data[y][x], lowValue, highValue));
+//				
+//				int cellX = x*cellSize.width;
+//				int cellY = y*cellSize.height;
+				
+//				heatMapGraphics.fillRect(cellX, cellY, cellSize.width, cellSize.height);
+//			}
+//		}
+		
+		// Draw the heat map onto the chart.
+//		g.drawImage(heatMapImage, heatMapTL.x, heatMapTL.y, heatMapSize.width, heatMapSize.height, null);
+	}
+
+	public static int[][] getIntensityByHeapMapGrid(double[][] data, double[] canvasusBoaders, int[] heatMapCells) {
+		return null;
+	}
+
 	public void mouseClicked(MouseEvent e) {
 //		JPopupMenu menu;
 //
