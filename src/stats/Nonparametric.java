@@ -11,7 +11,7 @@ public class Nonparametric {
 	}
 
 	// nonparametric form of the independent T-Test, does not assume the traits are normally distributed
-	public static double runWilcoxonRankSumTest(double[] group1, double[] group2, Logger log) { // aka Mann–Whitney U test, Mann–Whitney–Wilcoxon test, Wilcoxon–Mann–Whitney test
+	public static double runWilcoxonRankSumTest(double[] group1, double[] group2, Logger log) { // aka Mann-Whitney U test, Mann-Whitney-Wilcoxon test, Wilcoxon-MannWhitney test
 		double[] merged;
 		double[] ranks, ranks1, ranks2;
 		int n1, n2, n;

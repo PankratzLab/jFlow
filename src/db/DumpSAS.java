@@ -375,7 +375,7 @@ public class DumpSAS {
 		String[] keys, header;
 		int[] indices;
 		String crffile, outfile, idfile;
-		String rootDir;
+		String rootDir, idName;
 		
 		params = Files.parseControlFile(filename, "sas", new String[] {"ID CARDIA_ID otherPossibleNamesForTheSameID ids=id_superset.dat crf=parse.crf out=output.xln rootDir=N:/cardia/phenotypes/", "#SUBDIRECTORY (blank tab if all in root directory)\tFILENAME\tVARIABLE\tVARIABLE DESCRIPTION(optional)\tForce_which_ID_to_use(optional)", "Y15\tF1F05\tF05CTB1B\t10ML LAVENDER TB, 2ML PLASMA-ISOPROS\tCARDIA_ID", "Y15\tF1ISOP\tFLFISOP\tISOPROSTANE PG/ML", "Y20_CORE\tG3F05\tG05YTB1A\tRED STRIPE LABEL, 10ML LAVENDER TB, 1.6ML PLASMA-ISOPROSTANE"}, log);
 		if (params != null) {
@@ -384,7 +384,7 @@ public class DumpSAS {
 			outfile = ext.rootOf(filename)+"_out.xln";
 			idfile = ext.rootOf(filename)+"_ids.dat";
 			ids = new Vector<String>();
-			rootDir = "./";
+			rootDir = ext.parseDirectoryOfFile(filename);
     		for (int i = 0; i < line.length; i++) {
     			if (line[i].startsWith("crf=")) {
     				crffile = ext.parseStringArg(line[i], ext.rootOf(filename)+"_parse.crf");
@@ -404,28 +404,26 @@ public class DumpSAS {
     		files = new Vector<String>();
     		for (int i = 0; i < params.size(); i++) {
     			line = params.elementAt(i).trim().split("\t");
-    			for (int j = 0; j < line.length; j++) {
-    				if (line[0].equals("")) {
-    					line[0] = ".";
-    				}
-    				line[0] = ext.verifyDirFormat(line[0]);
-    				if (!new File(rootDir+line[0]).exists() || !new File(rootDir+line[0]).isDirectory()) {
-    					log.reportError("Error - could not find subdirectory '"+line[0]+"' within '"+rootDir+"'");
+				if (line[0].equals("")) {
+					line[0] = ".";
+				}
+				line[0] = ext.verifyDirFormat(line[0]);
+				if (!new File(rootDir+line[0]).exists() || !new File(rootDir+line[0]).isDirectory()) {
+					log.reportError("Error - could not find subdirectory '"+line[0]+"' within '"+rootDir+"'");
+					error = true;
+				}
+				file = line[0]+line[1]+".xln";
+				if (!new File(rootDir+file).exists()) {
+    				file = line[0]+"dump/"+line[1]+".xln";
+    				if (!new File(rootDir+file).exists()) {
+    					log.reportError("Error - could not find file '"+line[1]+".xln"+"' in '"+rootDir+line[0]+"' or '"+rootDir+line[0]+"dump/'");
     					error = true;
     				}
-    				file = line[0]+line[1]+".xln";
-    				if (!new File(rootDir+file).exists()) {
-        				file = line[0]+"dump/"+line[1]+".xln";
-        				if (!new File(rootDir+file).exists()) {
-        					log.reportError("Error - could not find file '"+line[1]+".xln"+"' in '"+rootDir+line[0]+"' or '"+rootDir+line[0]+"dump/'");
-        					error = true;
-        				}
-    				}
-    				HashVec.addIfAbsent(file, files);
-    				HashVec.addToHashHash(hashes, file, line[2], line.length>3?line[3]:"");
-    				if (line.length > 4) {
-    					forcedIDs.put(file, line[4]);
-    				}
+				}
+				HashVec.addIfAbsent(file, files);
+				HashVec.addToHashHash(hashes, file, line[2], line.length>3?line[3]:"");
+				if (line.length > 4) {
+					forcedIDs.put(file, line[4]);
 				}
 			}
     		try {
@@ -438,7 +436,16 @@ public class DumpSAS {
 	    			header = Files.getHeaderOfFile(rootDir+file, log);
 	    			writer.print(rootDir+file);
 	    			if (forcedIDs.containsKey(file)) {
-	    				writer.print(" '"+forcedIDs.get(file)+"'");
+	    				idName = forcedIDs.get(file);
+	    				writer.print(" '"+idName+"'");
+	    				if (idName.equals("")) {
+		    				log.reportError("Error - ID was set to an empty TAB, there must be an extra or a trailing tab for file '"+file+"'");
+		    				error = true;
+	    				} else if (ext.indexOfStr(idName, header) == -1) {
+							log.reportError("\nError - Since there were more than 4 columns for file '"+file+"', the algorithm assumes that you are specifying a specific ID to use (in this case '"+idName+"'). However, there was no such column header in the file.");
+		    				error = true;
+	    				}
+		    			indices = ext.indexFactors(Array.toStringArray(ids), header, false, log, false, false);
 	    			} else {
 	    				foundAnID = false;
 		    			indices = ext.indexFactors(Array.toStringArray(ids), header, false, log, false, false);
@@ -458,6 +465,7 @@ public class DumpSAS {
 						}
 		    			if (!foundAnID) {
 		    				log.reportError("Error - could not find a valid ID to match on within '"+file+"'");
+		    				error = true;
 		    			}
 	    			}
 	    			writer.print(" tab");
@@ -473,6 +481,7 @@ public class DumpSAS {
 				writer.close();
 				Files.writeList(HashVec.getKeys(masterIDs, true, false), idfile);
 				if (error) {
+					log.reportError("\nFailed to generate all bits of "+crffile+"; the hits algorithm was not attempted");
 					return;
 				}
 				LookupTable.fromParameters(crffile, new Logger(ext.rootOf(crffile)+".log"));

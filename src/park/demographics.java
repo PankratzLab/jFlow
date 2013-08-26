@@ -143,7 +143,7 @@ public class demographics {
 			writer.println("Age of onset information was not present in this stuct file");
 		} else {
 			writer.println("Age of onset information estimated from "+aoos.size()+" individuals:");
-			writer.println(ext.formDeci(meanAOO, 1, true)+" ± "+ext.formDeci(stdev, 1, true)+" ("+aoos.elementAt(keys[0])+"-"+aoos.elementAt(keys[keys.length>1?keys.length-1:0])+")");
+			writer.println(ext.formDeci(meanAOO, 1, true)+" \u00B1 "+ext.formDeci(stdev, 1, true)+" ("+aoos.elementAt(keys[0])+"-"+aoos.elementAt(keys[keys.length>1?keys.length-1:0])+")");
 		}
 
 		total = bb_bs_ss[0]+bb_bs_ss[1]+bb_bs_ss[2];

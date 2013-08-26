@@ -116,7 +116,7 @@ public class CNVariant extends Segment {
 		return familyID + "_" + individualID + "_" + chr + "_" + start + "_" + stop + "_" + cn + "_" + numMarkers;
 	}
 
-	public static CNVariant[] toArray(Vector<CNVariant> v) {
+	public static CNVariant[] toCNVariantArray(Vector<CNVariant> v) {
 		CNVariant[] cnvs;
 
 		cnvs = new CNVariant[v == null ? 0 : v.size()];
@@ -140,7 +140,7 @@ public class CNVariant extends Segment {
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean jar) {
-		return CNVariant.sortCNVs(CNVariant.toArray(loadPlinkFile(filename, null, jar)));
+		return CNVariant.sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, jar)));
 	}
 
 	public static Vector<CNVariant> loadPlinkFile(String filename, Hashtable<String, String> sampleHash, boolean jar) {
@@ -234,7 +234,7 @@ public class CNVariant extends Segment {
 				}
 			}
 		}
-		consensus = sortCNVs(CNVariant.toArray(v));
+		consensus = sortCNVs(CNVariant.toCNVariantArray(v));
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_consensus.cnv"));
