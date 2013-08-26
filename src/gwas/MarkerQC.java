@@ -76,7 +76,7 @@ public class MarkerQC {
 	                    		hash.put(prev, new String[] {mishaps.size()>0?min:"."});
 	                    		mishaps.clear();
 	                    	}
-	                    	if (!line[7].equals("NA")) {
+	                    	if (line.length >= 7 && !line[7].equals("NA")) {
 	                    		mishaps.add(line[7]);
 	                    	}
 	                    	prev = line[0];

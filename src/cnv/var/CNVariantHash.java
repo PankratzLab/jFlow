@@ -96,7 +96,7 @@ public class CNVariantHash implements Serializable {
 			finalHash = new Hashtable<String, CNVariant[]>();
 			chrs = HashVec.getKeys(vHash);
 			for (int j = 0; j < chrs.length; j++) {
-				finalHash.put(chrs[j], CNVariant.toArray(vHash.get(chrs[j])));
+				finalHash.put(chrs[j], CNVariant.toCNVariantArray(vHash.get(chrs[j])));
 			}
 			hashes.put(inds[i], finalHash);
 		}
@@ -184,7 +184,7 @@ public class CNVariantHash implements Serializable {
 				}
 			}
 		}
-		return CNVariant.sortCNVs(CNVariant.toArray(inRegion));
+		return CNVariant.sortCNVs(CNVariant.toCNVariantArray(inRegion));
 	}
 
 	public static void main(String[] args) {

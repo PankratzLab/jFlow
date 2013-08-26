@@ -85,7 +85,7 @@ public class ExportCNVsToPedFormat {
 			}
 			
 		}
-		cnvs = CNVariant.toArray(cnVector);
+		cnvs = CNVariant.toCNVariantArray(cnVector);
 		System.out.println("Loaded file in " + ext.getTimeElapsed(time));
 		
 		//Generate chrPosition and sampleHash, to be used for the rows and columns of the final result.

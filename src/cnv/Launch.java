@@ -401,6 +401,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
 
 				TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
+				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+				cnv.qc.SexChecks.sexCheck(proj);
 
 				cnv.manage.PlinkFormat.createPlink(proj, null, proj.getLog());
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
@@ -408,9 +410,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
 
-				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 				
-				cnv.qc.SexChecks.sexCheck(proj);
 				
 			} else {
 				System.err.println("Error - unknown command: "+command);

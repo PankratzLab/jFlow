@@ -23,7 +23,11 @@ public class Launch {
 
 		try {
 			reader = Files.getReader(filename, false, true, log, true);
-			temp = reader.readLine();
+			if (new File(filename).length() == 0) {
+				temp = ext.rootOf(filename);
+			} else {
+				temp = reader.readLine();
+			}
 			
 			log.report("Launching option '"+temp+"'");
 

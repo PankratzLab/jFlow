@@ -230,7 +230,7 @@ public class Mlink {
 				for (int j = 0; j<numMarkers; j++) {
 					writers[(int)Math.floor(j/MAX_MARKERS)].print("\t"+line[6+j*2+0]+"\t"+line[6+j*2+1]);
 				}
-				ext.writeToAll(pedformat?"‘  Ped: "+line[0]+"  Per: "+line[1]:"", writers);
+				ext.writeToAll(pedformat?"'  Ped: "+line[0]+"  Per: "+line[1]:"", writers);
 			}
 			for (int i = 0; i<numFiles; i++) {
 				writers[i].close();

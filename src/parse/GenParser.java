@@ -59,6 +59,7 @@ public class GenParser {
     			indices = ext.indicesWithinString("'", line[i]);
     			if (indices.length % 2 != 0) {
     				System.err.println("Error - open quote never closed in token: "+line[i]);
+    				failed = true;
     				return;
     			}
     			for (int j = indices.length/2-1; j >= 0; j--) {
@@ -66,6 +67,7 @@ public class GenParser {
     				index = ext.indexOfStr(trav, columnHeaders);
     				if (index == -1) {
     					System.err.println("Error - could not find a column labeled \""+trav+"\" in file "+file);
+        				failed = true;
     					return;
     				} else {
     					line[i] = line[i].substring(0, indices[j*2+0])+index+line[i].substring(indices[j*2+1]+1);
@@ -118,6 +120,7 @@ public class GenParser {
     		line = Maths.parseOp(filters.elementAt(i));
     		if (line == null) {
     			log.reportError("Error - invalid token in filter('"+filters.elementAt(i)+"')");
+				failed = true;
     			return;
     		}
     		filterOps[i] = line[1];
@@ -191,9 +194,11 @@ public class GenParser {
             }
         } catch (FileNotFoundException fnfe) {
             log.reportError("Error: file \""+file+"\" not found in current directory");
+			failed = true;
             return;
         } catch (IOException ioe) {
             log.reportError("Error reading file \""+file+"\"");
+			failed = true;
             return;
         }
 	}

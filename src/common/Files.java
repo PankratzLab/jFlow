@@ -2257,6 +2257,11 @@ public class Files {
 		Vector<String> v;
 		String[] line;
 		String temp;
+
+        if (new File(filename).length() == 0) {
+	        Files.writeList(Array.addStrToArray(command, sampleCode, 0), filename);
+	        return null;
+        }
 		
 	    try {
 	        reader = new BufferedReader(new FileReader(filename));
@@ -2381,6 +2386,20 @@ public class Files {
 			System.exit(2);
 		}
 	}
+
+	// doesn't work, better to just search to see if the file you want exists, or check the home directory for clarification
+//	public static String getHostname() {
+//		System.out.println("Tring to get hostname");
+//		CmdLine.run("/bin/hostname > hostname.out", "./");
+//		System.out.println("...done");
+//		if (Files.exists("hostname.out")) {
+//			System.out.println("Success!");
+//			return Files.getFirstNLinesOfFile("hostname.out", 1, new Logger())[0];
+//		}
+//		System.out.println("Failed");
+//
+//		return "failed to get hostname";
+//	}
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;

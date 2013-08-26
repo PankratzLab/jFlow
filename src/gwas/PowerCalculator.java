@@ -220,10 +220,13 @@ public class PowerCalculator {
 		try {
 //			rangeOfMaf(0.15, 0.01, 200, 200, 6, false);	// diabetes
 //			rangeOfMaf(0.03, 0.01, 250, 250, 100, false); // HB
+//			rangeOfMaf(0.001, 0.01, 252, 871, 500000, false); // OS
+//			rangeOfMaf(0.001, 0.01, 21, 120, 1000, false); // OS
+			rangeOfMaf(0.001, 0.01, 273, 991, 500000, false); // OS
 //			rangeOfRelativeRisk(0.15, 200, false);
 //			getSampleSize();
 //			getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/power.input");
-			getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/population.input");
+//			getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/population.input");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

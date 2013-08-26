@@ -76,7 +76,10 @@ public class SexPlot extends JFrame{
 		sexes = new Vector<Byte>();
 		estimatedSexes = new Vector<Byte>();
 		try {
-			reader = Files.getReader(proj.getProjectDir()+"sexCheck.xln", proj.getJarStatus(), true, true);
+			reader = Files.getReader(proj.getProjectDir()+"sexCheck.xln", proj.getJarStatus(), true, false);
+			if (reader == null) {
+				return;
+			}
 			ext.checkHeader(reader.readLine().trim().split("\t"), SexChecks.SEX_HEADER, true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
@@ -92,10 +95,10 @@ public class SexPlot extends JFrame{
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+proj.getProjectDir()+"sexCheck.xln"+"\" not found in current directory");
-			System.exit(1);
+			return;
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+proj.getProjectDir()+"sexCheck.xln"+"\"");
-			System.exit(2);
+			return;
 		}
 	
 		new SexPlot(proj, Matrix.toStringArrays(samples), Matrix.toDoubleArrays(datapoints), Array.toByteArray(sexes), Array.toByteArray(estimatedSexes));

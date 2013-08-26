@@ -158,8 +158,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		sample = selectedSample==null?samplesPresent[0]:selectedSample;
 		sampleData = proj.getSampleData(2, cnvFilenames);
 		if (sampleData.failedToLoad()) {
+			proj.getLog().reportError("Without a SampleData file, Trailer will not start");
 			return;
 		}
+		
 		cnvLabels = sampleData.getCnvClasses();
 		System.err.println("Error - ");
 		System.err.println("Error - there are "+cnvLabels.length+" cnvLabels: "+Array.toStr(cnvFilenames));

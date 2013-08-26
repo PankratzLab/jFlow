@@ -33,7 +33,7 @@ public class CmdLine {
         }
         
 		try {
-			if (command.contains(">") || command.contains("|")) {
+			if (System.getProperty("os.name").startsWith("Windows") && (command.contains(">") || command.contains("|"))) {
 				System.err.println("FYI - the Runtime.exec command will likely not work, since it contains a pipe, write command to a .bat file and exec that instead");
 			}
 			proc = Runtime.getRuntime().exec(command, null, new File(dir));
