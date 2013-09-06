@@ -332,8 +332,21 @@ public class MarkerDataLoader implements Runnable {
 
 	}
 
-	public static MarkerData[] loadFromRAF(String[] markerNamesProj, byte[] chrsProj, int[] positionsProj, String[] samplesProj, String markerFilename, int[] markerIndeciesInProj, int[] markerIndeciesInFile, long sampleFingerprint, Hashtable<String, Float> outOfRangeValues) {
-		return loadFromRAF(markerNamesProj, chrsProj, positionsProj, samplesProj, markerFilename, markerIndeciesInProj, markerIndeciesInFile, true, true, true, true, true, sampleFingerprint, outOfRangeValues);
+	public Hashtable<String, Vector<String>> getBatches() {
+		return hash;
+	}
+
+
+	public static Hashtable<String, Float> loadOutliers(Project proj) {
+		if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser").exists()) {
+			return (Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser");
+		} else {
+			return new Hashtable<String, Float>();
+		}
+	}
+
+	public static MarkerData[] loadFromRAF(String[] allMarksInProj, byte[] allChrsProj, int[] allPositionsInProj, String[] allSampsInProj, String currentMarkFilename, int[] markerIndicesInProj, int[] markerIndcesInFile, long sampleFingerprint, Hashtable<String, Float> outOfRangeValues) {
+		return loadFromRAF(allMarksInProj, allChrsProj, allPositionsInProj, allSampsInProj, currentMarkFilename, markerIndicesInProj, markerIndcesInFile, true, true, true, true, true, sampleFingerprint, outOfRangeValues);
 	}
 
 
@@ -343,7 +356,7 @@ public class MarkerDataLoader implements Runnable {
 	 * @param markerNamesOfInterest
 	 * @return
 	 */
-	public static MarkerData[] loadFromRAF(String[] allMarksInProj, byte[] allChrsInProj, int[] allPosInProj, String[] allSampsInProj, String markerFilename, int[] markersIndeciesInProj, int[] markersIndicesInFile, boolean loadGC, boolean loadXY, boolean loadBAF, boolean loadLRR, boolean loadAbGenotype, long sampleFingerprint, Hashtable<String, Float> outOfRangeValues) {
+	public static MarkerData[] loadFromRAF(String[] allMarksInProj, byte[] allChrsInProj, int[] allPosInProj, String[] allSampsInProj, String currentMarkFilename, int[] markersIndicesInProj, int[] markersIndicesInFile, boolean loadGC, boolean loadXY, boolean loadBAF, boolean loadLRR, boolean loadAbGenotype, long sampleFingerprint, Hashtable<String, Float> outOfRangeValues) {
 		MarkerData[] result;
 		RandomAccessFile file;
         int numBytesPerMarker;
@@ -352,8 +365,8 @@ public class MarkerDataLoader implements Runnable {
         float[] ys = null;
         float[] bafs = null;
         float[] lrrs = null;
-        byte[] abGenotypes;
-        String[] alleleMappings;
+        byte[] abGenotypes = null;
+        String[] alleleMappings = null;
         byte[] genotypeTmp;
         long seekLocation;
         byte[][] readBuffer = null;
@@ -373,20 +386,22 @@ public class MarkerDataLoader implements Runnable {
 		result = new MarkerData[markersIndicesInFile.length];
 		parameterReadBuffer = new byte[TransposeData.MARKDATA_PARAMETER_TOTAL_LEN];
         try {
-			file = new RandomAccessFile(markerFilename, "r");
+			file = new RandomAccessFile(currentMarkFilename, "r");
 			file.read(parameterReadBuffer);
 //			numMarkers = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMMARKS_START);
 			nullStatus = parameterReadBuffer[TransposeData.MARKDATA_NULLSTATUS_START];
 			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
 			numBytesPerMarker = bytesPerSampMark * numSamplesProj;
-			readBuffer = new byte[markersIndeciesInProj.length][numBytesPerMarker];
+			readBuffer = new byte[markersIndicesInFile.length][numBytesPerMarker];
 			numSamplesObserved = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMSAMPS_START);
 			if (numSamplesObserved != numSamplesProj) {
-				System.err.println("Error - mismatched number of samples between sample list (n="+numSamplesProj+") and file '"+markerFilename+"' (n="+numSamplesObserved+")");
+				System.err.println("Error - mismatched number of samples between sample list (n="+numSamplesProj+") and file '"+currentMarkFilename+"' (n="+numSamplesObserved+")");
+				System.exit(1);
 			}
 			fingerprint = Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKDATA_FINGERPRINT_START);
 			if (fingerprint != sampleFingerprint) {
-				System.err.println("Error - mismatched sample fingerprints between sample list and file '"+markerFilename+"'");
+				System.err.println("Error - mismatched sample fingerprints between sample list and file '"+currentMarkFilename+"'");
+				System.exit(1);
 			}
 
 			numBytesMarkernamesSection = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_MARKNAMELEN_START);
@@ -411,21 +426,14 @@ public class MarkerDataLoader implements Runnable {
 
 			file.close();
 		} catch (FileNotFoundException e) {
-			System.err.println("Error - could not find RAF marker file '"+markerFilename+"'");
+			System.err.println("Error - could not find RAF marker file '"+currentMarkFilename+"'");
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println("Error reading RAF marker file '"+markerFilename+"'");
+			System.err.println("Error reading RAF marker file '"+currentMarkFilename+"'");
 			e.printStackTrace();
 		}
 
         for (int i=0; i<markersIndicesInFile.length; i++) {
-	        gcs = new float[numSamplesProj];
-	        xs = new float[numSamplesProj];
-	        ys = new float[numSamplesProj];
-	        bafs = new float[numSamplesProj];
-	        lrrs = new float[numSamplesProj];
-	        abGenotypes = new byte[numSamplesProj] ;
-	        alleleMappings = new String[numSamplesProj];
 			indexReadBuffer = 0;
 
 			indexStart = 0;
@@ -449,7 +457,7 @@ public class MarkerDataLoader implements Runnable {
 						xs[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 //							xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
-							xs[j] = outOfRangeValues.get(markersIndeciesInProj[i] + "\t" + allSampsInProj[j] + "\tx");
+							xs[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tx");
 						}
 						indexReadBuffer += bytesPerSampMark;
 					}
@@ -464,7 +472,7 @@ public class MarkerDataLoader implements Runnable {
 						ys[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
 //							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
-							ys[j] = outOfRangeValues.get(markersIndeciesInProj[i] + "\t" + allSampsInProj[j] + "\ty");
+							ys[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\ty");
 						}
 						indexReadBuffer += bytesPerSampMark;
 					}
@@ -491,7 +499,7 @@ public class MarkerDataLoader implements Runnable {
 						lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
 						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT) {
 //							lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
-							lrrs[j] = outOfRangeValues.get(markersIndeciesInProj[i] + "\t" + allSampsInProj[j] + "\tlrr");
+							lrrs[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tlrr");
 						}
 						indexReadBuffer += bytesPerSampMark;
 					}
@@ -501,6 +509,7 @@ public class MarkerDataLoader implements Runnable {
 			indexReadBuffer = indexStart;
 			if ((((nullStatus>>Sample.NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) != 1 || ((nullStatus>>Sample.NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) != 1) && loadAbGenotype) {
 				abGenotypes = new byte[numSamplesProj];
+		        alleleMappings = new String[numSamplesProj];
 				for (int j=0; j<numSamplesProj; j++) {
 					genotypeTmp = Compression.genotypeDecompress(readBuffer[i][indexReadBuffer]);
 					abGenotypes[j] = genotypeTmp[0];
@@ -513,7 +522,21 @@ public class MarkerDataLoader implements Runnable {
 					indexReadBuffer += bytesPerSampMark;
 				}
 			}
-	        result[i] = new MarkerData(allMarksInProj[markersIndeciesInProj[i]], allChrsInProj[markersIndeciesInProj[i]], allPosInProj[markersIndeciesInProj[i]], fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs, abGenotypes, alleleMappings);
+	        result[i] = new MarkerData(allMarksInProj==null? null : allMarksInProj[markersIndicesInProj[i]]
+	        						  , allChrsInProj==null? (byte) -1 : allChrsInProj[markersIndicesInProj[i]]
+	        						  , allPosInProj==null? -1 : allPosInProj[markersIndicesInProj[i]]
+	        						  , fingerprint
+	        						  , gcs
+	        						  , null
+	        						  , null
+	        						  , xs
+	        						  , ys
+	        						  , null
+	        						  , null
+	        						  , bafs
+	        						  , lrrs
+	        						  , abGenotypes
+	        						  , alleleMappings);
         }
 		return result;
 	}
