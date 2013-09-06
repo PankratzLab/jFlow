@@ -558,37 +558,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		step = Math.max((points.length)/100, 1);
 		layers = new Hashtable<String,Vector<PlotPoint>>();
 
-//		if (heatmap) {
+//		if (chartType = 1) {
 		if (false) {
-			
-//			initialize matrix
-			
-			// fill matrix using transofrmation:
-			// x = getXPixel(point.getRawX())
-			// y = getYPixel(point.getRawY();
-	
-			// loop to cover the 3x3 grid
-//			matrix[x][y] += 2;
-//			matrix[x-1][y-1] += 1;
-//			matrix[x-1][y] += 1;
-//			matrix[x-1][y+1] += 1;
-//			matrix[x][y-1] += 1;
-//			matrix[x][y+1] += 1;
-			
-//			matrix[x][y]++;
-			
-			// transform:
-			// intensity = matrix[x][y] / points.length
-			
-			// convert to color
-			
-			// if intensity > 0 then drawpoint
-//			g.drawOval(x, y, 1, 1);
-			
-			
-			
-			
-			
+			drawHeatMap(g, null, 100, 100);
+//		} else if (chartType = 2) {
+		} else if (false) {
+			drawLineChart(g);
 		} else {
 			for (int i = 0; i<points.length && flow; i++) {
 //				System.out.println("loop");
@@ -705,31 +680,96 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void refreshOtherComponents() {
 	}
 
-	public void drawHeatMap(Graphics g, double[][] data, byte[] clusters) {
-		int nColumns, nRows;
-		BufferedImage heatMapImage;
+//	public void drawHeatMap(Graphics g, double[][] data, byte[] clusters) {
+	public void drawHeatMap(Graphics g, byte[] clusters, int nColumns, int nRows) {
+		int cellWidth, cellHeight;
+		int[][] gridIntensities;
+
+		cellWidth = getWidth() / nColumns;
+		cellHeight = getHeight() / nRows;
+
+		gridIntensities = getGridIntensityForHeapMapGrid(nColumns, nRows, cellWidth, cellHeight);
+
+		for (int i = 0; i < nRows; i++) {
+			for (int j = 0; j < nColumns; j++) {
+				g.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+				g.setColor(new Color(gridIntensities[i][j]));
+			}
+		}
+
+//		initialize matrix
 		
-		heatMapImage = new BufferedImage(AbstractPanel.WIDTH, AbstractPanel.HEIGHT, BufferedImage.TYPE_INT_ARGB);
-		Graphics heatMapGraphics = heatMapImage.createGraphics();
+		// fill matrix using transofrmation:
+		// x = getXPixel(point.getRawX())
+		// y = getYPixel(point.getRawY();
+
 		
-//		for (int x=0; x<nRows; x++) {
-//			for (int y=0; y<nColumns; y++) {
-				// Set colour depending on zValues.
-//				heatMapGraphics.setColor(getCellColour(data[y][x], lowValue, highValue));
-//				
-//				int cellX = x*cellSize.width;
-//				int cellY = y*cellSize.height;
-				
-//				heatMapGraphics.fillRect(cellX, cellY, cellSize.width, cellSize.height);
-//			}
-//		}
+		// transform:
+		// intensity = matrix[x][y] / points.length
 		
-		// Draw the heat map onto the chart.
-//		g.drawImage(heatMapImage, heatMapTL.x, heatMapTL.y, heatMapSize.width, heatMapSize.height, null);
+		// convert to color
+		
+		// if intensity > 0 then drawpoint
+//		g.drawOval(x, y, 1, 1);
+
 	}
 
-	public static int[][] getIntensityByHeapMapGrid(double[][] data, double[] canvasusBoaders, int[] heatMapCells) {
-		return null;
+	public int[][] getGridIntensityForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight) {
+		int x, y, xPixel, yPixel;
+		int[][] intensities;
+
+		intensities = new int[nRows][nColumns];
+		for (int i = 0; i < points.length; i++) {
+			xPixel = getXPixel(points[i].getRawX());
+			yPixel = getYPixel(points[i].getRawY());
+
+			if (xPixel < cellWidth && yPixel < cellHeight) {
+				x = xPixel / cellWidth;
+				y = yPixel / cellHeight;
+
+				intensities[x][y] += 2;
+				
+				if (x < nColumns - 1) {
+					intensities[x+1][y] += 1;
+				}
+
+				if (x > 1) {
+					intensities[x-1][y] += 1;
+				}
+
+				if (y < nRows - 1) {
+					intensities[x][y+1] += 1;
+				}
+
+				if (y > 1) {
+					intensities[x][y-1] += 1;
+				}
+
+				if (x < nColumns - 1 && y < nRows - 1) {
+					intensities[x+1][y+1] += 1;
+				}
+				
+				if (x > 1 && y > 1) {
+					intensities[x-1][y-1] += 1;
+				}
+
+				if (x > 1 && y < nRows - 1) {
+					intensities[x-1][y+1] += 1;
+				}
+
+				if (x < nColumns - 1 && y > 1) {
+					intensities[x+1][y-1] += 1;
+				}
+			}
+
+		}
+
+		return intensities;
+	}
+
+	public void drawLineChart(Graphics g) {
+		// Sort the points by category, and x-axis value.
+		// loop over each category to draw lines connecting the points
 	}
 
 	public void mouseClicked(MouseEvent e) {

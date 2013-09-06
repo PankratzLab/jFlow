@@ -823,6 +823,8 @@ public class Sample implements Serializable {
 		Enumeration<String> keys;
 		String currentKey;
 		int outlierSectionSize = 0;
+		byte[] readBufferLocal;
+		int pointer;
 		long seekPointer;
 
 		try {

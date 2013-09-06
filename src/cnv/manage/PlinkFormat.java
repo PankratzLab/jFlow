@@ -152,7 +152,7 @@ public class PlinkFormat {
 						if (clusterFilterFilename == null) {
 							genotypes = fsamp.getForwardGenotypes(gcThreshold);
 						} else {
-							genotypes = markerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(markerNames, clusterFilterCollection, gcThreshold), abLookup);
+							genotypes = MarkerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(markerNames, clusterFilterCollection, gcThreshold), abLookup);
 						}
 						for (int i = 0; i<indices.length; i++) {
 							genIndex = genotypes[indices[i]];
