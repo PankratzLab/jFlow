@@ -20,12 +20,12 @@ import common.ext;
 
 public class Sample implements Serializable {
 	public static final long serialVersionUID = 1L;
-	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue"}, {"Y", "Yvalue"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
-	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1"}, {"Allele2 - Forward", "Allele2"}, {"Allele1 - AB"}, {"Allele2 - AB"}};
+	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "Confidence"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue", "Log Ratio"}, {"Y", "Yvalue", "Strength"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
+	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1"}, {"Allele2 - Forward", "Allele2"}, {"Allele1 - AB"}, {"Allele2 - AB"}, {"Forward Strand Base Calls"}, {"Call Codes"}};
 	public static final String[] ALL_STANDARD_GENOTYPE_FIELDS = {"Allele1 - AB", "Allele2 - AB", "Allele1 - Forward", "Allele2 - Forward", "Allele1 - Top", "Allele2 - Top", "Allele1 - Design", "Allele2 - Design"};
 	public static final String[] ALLELE_PAIRS = {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT", "DD", "DI", "II", "ID"};
 	public static final String[] ALT_NULL = {"-", "0"};
-	public static final String[] ALT_NULLS = {"--", "00"};
+	public static final String[] ALT_NULLS = {"--", "00", "---", "NoCall"};
 	public static final String[] AB_PAIRS = {"AA", "AB", "BB"};
 	public static final String SAMPLE_DATA_FILE_EXTENSION = ".sampRAF";
 //	public static final byte PARAMETER_SECTION_BYTES = 13;
@@ -748,8 +748,6 @@ public class Sample implements Serializable {
 		Enumeration<String> keys;
 		String currentKey;
 		int outlierSectionSize = 0;
-		byte[] readBufferLocal;
-		int pointer;
 		long seekPointer;
 
 		try {

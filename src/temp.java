@@ -241,6 +241,12 @@ public class temp {
 			System.exit(1);
 		}
 		try {
+			String dir = "D:/data/COGA_exome/00src/";
+			String ext = ".AxiomGT1.txt";
+			int start = 8, stop = 1008;
+			Files.splitFilesByLine(dir, ext, start, stop);
+			System.exit(1);
+			
 //			Internat.downloadFile("http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2708794/pdf/JPATH175000054.pdf", "D:/SH3GL2.pdf");
 			
 //			parseAll(filename);

@@ -89,10 +89,10 @@ public class ext {
 	public static String prettyUpDistance(int dist, int numSigFigs) {
 		String str = dist+"";
 		if (str.length()>6) {
-			return formDeci((double)Integer.parseInt(str)/1000000, numSigFigs)+" Mb";
+			return formDeci((double)Integer.parseInt(str)/1000000, numSigFigs, true)+" Mb";
 		}
 		if (str.length()>3) {
-			return formDeci((double)Integer.parseInt(str)/1000, numSigFigs)+" kb";
+			return formDeci((double)Integer.parseInt(str)/1000, numSigFigs, true)+" kb";
 		}
 		return str;
 	}
@@ -100,16 +100,16 @@ public class ext {
 	public static String prettyUpSize(long size, int numSigFigs) {
 		String str = size+"";
 		if (str.length()>12) {
-			return formDeci((double)size/1048576000000l, numSigFigs)+" TB";
+			return formDeci((double)size/1048576000000l, numSigFigs, true)+" TB";
 		}
 		if (str.length()>9) {
-			return formDeci((double)size/1048576000, numSigFigs)+" GB";
+			return formDeci((double)size/1048576000, numSigFigs, true)+" GB";
 		}
 		if (str.length()>6) {
-			return formDeci((double)size/1048576, numSigFigs)+" MB";
+			return formDeci((double)size/1048576, numSigFigs, true)+" MB";
 		}
 		if (str.length()>3) {
-			return formDeci((double)size/1024, numSigFigs)+" KB";
+			return formDeci((double)size/1024, numSigFigs, true)+" KB";
 		}
 		return str;
 	}

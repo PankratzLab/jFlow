@@ -148,6 +148,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		}
 		
 		markerLookup = proj.getMarkerLookup();
+		if (markerLookup == null) {
+			fail = true;
+			return;
+		}
 
 		masterMarkerList = initMarkerList;
 		masterCommentList = initCommentList;

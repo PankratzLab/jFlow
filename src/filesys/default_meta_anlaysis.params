@@ -1,0 +1,50 @@
+STUDIES
+ARIC	CHARGE
+CHS	CHARGE
+FHS	CHARGE
+ESP	ESP
+RS	Rotterdam
+Rergo3	Rotterdam
+
+PHENOTYPES
+# Preferred name followed by all the aliases used in the file names, each separated by a tab
+Fibrinogen	fibrinogen	.lnFB.	.ln_fib.
+F7	.FVII.	_FVII_
+F8	.FVIII.	_FVIII_
+vWF	VWF
+
+RACES
+Whites	.EA.	_EA_	.EU.	_EU_
+Blacks	.AA.	_AA_
+
+#SAMPLE_SIZES
+# To be determined by an external source, similar to the .object
+
+SNP_INFO_FILE=snpinfo_ChargeSFreeze3_ESP_05212013_slimmest.RData
+VARIANT_NAME=Name
+CHROM_NAME=CHROM
+GENE_NAME=SKATgene
+# Set function flag equal to blank ("FUNCTIONAL=") if all variants should be included
+#FUNCTIONAL=sc_nonsyn
+FUNCTIONAL=sc_nonsynSplice
+
+# For R_EXEC, provide the entire path to the Rscript command, leave blank to test the usual locations
+R_EXEC=
+
+METHODS
+# In column 1, the name to be used in the summary file followed by all the aliases used in the file names, separated by a forward slash
+# in tabbed column 2, the group to which to associate the analysis (typically SingleVariant or BurdenTests)
+# in tabbed column 3, list the algorithm to use (singlesnpMeta, burdenMeta, skatMeta, skatOMeta)
+# in tabbed column 4, the minor allele frequency (MAF) cutoff to use
+# in tabbed column 5, any additional arguments that might be added, such as a weighting scheme
+SingleSNP	SingleVariant	singlesnpMeta	0.01	cohortBetas = TRUE
+T1Count	BurdenTests	burdenMeta	0.01	wts = 1
+T1MB	BurdenTests	burdenMeta	0.01	wts = function(maf){1/(maf*(1-maf))}
+T5Count	BurdenTests	burdenMeta	0.05	wts = 1
+T5MB	BurdenTests	burdenMeta	0.05	wts = function(maf){1/(maf*(1-maf))}
+SKAT_T1	BurdenTests	skatMeta	0.01	wts = 1
+SKAT_T5	BurdenTests	skatMeta	0.05	wts = 1
+
+GROUP_ANNOTATION_PARAMS
+# Any additional parameters to include in the summary file, use GenParser format
+#SingleVariant	../SNPInfo_ExomeFreeze2_120810_aafSlim.csv 'SNP' 'gene' 'AAF'=CHARGE_AF
