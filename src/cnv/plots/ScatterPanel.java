@@ -270,7 +270,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 				
 				//System.out.println("Current loop:\t"+i+"\t code:\t"+code+"\t alleleCounts: "+alleleCounts[i]+"\t gcScores: "+gcScores[i]);//zx
-				if (classCode == -1 && !sp.maskMissing()) {
+				if (classCode <= -1 && !sp.maskMissing()) {
 					classCode = 0;
 				}
 				if (Float.isNaN(datapoints[0][i]) || Float.isNaN(datapoints[1][i])) {
@@ -326,7 +326,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//callRate=(samples.length-callRate)*100/samples.length;
 		
 		if (getUpdateQcPanel()) {
-			sp.updateQcPanel(chr, genotype, sex, otherClass);
+//			sp.updateQcPanel(chr, genotype, sex, otherClass);
 			setQcPanelUpdatable(false);
 		}
 		sp.updateColorKey(uniqueValueCounts.convertToHash());

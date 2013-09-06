@@ -19,14 +19,25 @@ public class ChargeS {
 
 //	public static final String[] STUDIES = {"ARIC", "CHS", "FHS"}; // +ESP
 //	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP"};
-	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP6800"};
-	public static final String[] STUDY_GROUPS = {"CHARGE", "CHARGE", "CHARGE", "ESP"}; // +ESP
+	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP6800", "RS", "Rergo3"};
+	public static final String[] STUDY_GROUPS = {"CHARGE", "CHARGE", "CHARGE", "ESP", "RS"}; // +ESP
 	
-	public static final String[][] PHENOTYPES = {
-		{"Fibrinogen", "fibrinogen", ".lnFB."}, 
-		{"F7", ".FVII.", "_FVII_"}, 
-		{"F8", ".FVIII.", "_FVIII_"}, 
-		{"vWF", "VWF"}
+	public static final String[][][] ALL_PHENOTYPES = {
+		{
+			{"Fibrinogen", "fibrinogen", ".lnFB.", ".ln_fib."}, 
+			{"F7", ".FVII.", "_FVII_"}, 
+			{"F8", ".FVIII.", "_FVIII_"}, 
+			{"vWF", "VWF"}
+		},
+		{
+			{"CRP"}, 
+		},
+		
+	};
+
+	public static final String[][] RACES = {
+		{"Whites", ".EA.", "_EA_", ".EU.", "_EU_"}, 
+		{"Blacks", ".AA.", "_AA_"}, 
 	};
 
 	public static final int[][] DEFAULT_SAMPLE_SIZES = {
@@ -52,7 +63,8 @@ public class ChargeS {
 		{},
 	};
 
-	public static final String SNP_INFO_FILE = "snpinfo_ChargeSFreeze3_ESP_05212013.RData";
+//	public static final String SNP_INFO_FILE = "snpinfo_ChargeSFreeze3_ESP_05212013.RData";
+	public static final String SNP_INFO_FILE = "snpinfo_ChargeSFreeze3_ESP_05212013_slimmest.RData";
 	public static final String SNP_NAMES = "SNP";
 	public static final String CHROM_NAME = "CHROM";
 	public static final String GENE_NAME = "SKATgene";
@@ -60,157 +72,157 @@ public class ChargeS {
 	
 //	wts =1, mafRange = c(0,0.01),
 			
-	public static void metaAll(String dir) {
-		String[] files, finalSet;
-		boolean[] picks, used;
-		int numMatches;
-		Logger log;
-		String localDir;
-		Vector<String> locals;
-		Hashtable<String,Hits> groupHits;
-		Hashtable<String,Vector<String>> groupParams;
-		String[] groups, hits;
-		String filename;
-		String[] header;
-		String filenames;
-		boolean running;
-		
-		log = new Logger(dir+"metaAll.log");
-		files = Files.list(dir, ".csv", false);
-		used = Array.booleanArray(files.length, false);
-		dir = ext.verifyDirFormat(dir);
-		for (int i = 0; i < PHENOTYPES.length; i++) {
-			running = false;
-			groupHits = new Hashtable<String, Hits>();
-			groupParams = new Hashtable<String, Vector<String>>();
-			for (int j = 0; j < GROUPS.length; j++) {
-				groupHits.put(GROUPS[j], new Hits());
-				groupParams.put(GROUPS[j], new Vector<String>());
-			}
-			for (int j = 0; j < METHODS.length; j++) {
-				localDir = dir+PHENOTYPES[i][0]+"/"+METHODS[j][0]+"/";
-				new File(localDir).mkdirs();
-				finalSet = Array.stringArray(STUDIES.length, "<missing>");
-				for (int k = 0; k < STUDIES.length; k++) {
-					picks = Array.booleanArray(files.length, false);
-					for (int l = 0; l < files.length; l++) {
-						if (files[l].contains(STUDIES[k]) && ext.containsAny(files[l], PHENOTYPES[i]) && ext.containsAny(files[l], METHODS[j])) {
-							picks[l] = true;
-							finalSet[k] = files[l];
-							if (used[l]) {
-								log.reportError("Error - file '"+files[l]+"' matches to "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]+" but was already picked for another purpose");
-							}
-							used[l] = true;
-						}
-					}
-					numMatches = Array.booleanArraySum(picks);
-					if (numMatches == 0) {
-						log.reportError("Warning - could not find a match for "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]);
-					} else if (numMatches > 1) {
-						log.reportError("Error - found multiple matched for "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]+":");
-						log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
-					}
-				}
-				log.report("For "+PHENOTYPES[i][0]+"/"+METHODS[j][0]+" identified:", true, false);
-				locals = new Vector<String>();
-				filenames = "";
-				for (int k = 0; k < STUDIES.length; k++) {
-					log.report("   "+finalSet[k], true, false);
-					if (!finalSet[k].equals("<missing>")) {
-						filename = STUDIES[k]+"_"+PHENOTYPES[i][0]+"_"+METHODS[j][0]+".dat";
-						locals.add(filename);
-						if (!Files.exists(localDir+filename)) {
-							Metal.reformatResults(dir+finalSet[k], UNIT_OF_ANALYSIS[j], DEFAULT_SAMPLE_SIZES[i][k], localDir+filename, log);
-						}
-//						if (groupParams.get(GROUPS[j]).size() == 0) {
-//							groupParams.get(GROUPS[j]).add(localDir+filename+" '"+Array.toStr(Matrix.extractColumn(Metal.MARKER_NAMES_AND_ALLELES, 0), "' '")+"' ");
+//	public static void metaAll(String dir) {
+//		String[] files, finalSet;
+//		boolean[] picks, used;
+//		int numMatches;
+//		Logger log;
+//		String localDir;
+//		Vector<String> locals;
+//		Hashtable<String,Hits> groupHits;
+//		Hashtable<String,Vector<String>> groupParams;
+//		String[] groups, hits;
+//		String filename;
+//		String[] header;
+//		String filenames;
+//		boolean running;
+//		
+//		log = new Logger(dir+"metaAll.log");
+//		files = Files.list(dir, ".csv", false);
+//		used = Array.booleanArray(files.length, false);
+//		dir = ext.verifyDirFormat(dir);
+//		for (int i = 0; i < PHENOTYPES.length; i++) {
+//			running = false;
+//			groupHits = new Hashtable<String, Hits>();
+//			groupParams = new Hashtable<String, Vector<String>>();
+//			for (int j = 0; j < GROUPS.length; j++) {
+//				groupHits.put(GROUPS[j], new Hits());
+//				groupParams.put(GROUPS[j], new Vector<String>());
+//			}
+//			for (int j = 0; j < METHODS.length; j++) {
+//				localDir = dir+PHENOTYPES[i][0]+"/"+METHODS[j][0]+"/";
+//				new File(localDir).mkdirs();
+//				finalSet = Array.stringArray(STUDIES.length, "<missing>");
+//				for (int k = 0; k < STUDIES.length; k++) {
+//					picks = Array.booleanArray(files.length, false);
+//					for (int l = 0; l < files.length; l++) {
+//						if (files[l].contains(STUDIES[k]) && ext.containsAny(files[l], PHENOTYPES[i]) && ext.containsAny(files[l], METHODS[j])) {
+//							picks[l] = true;
+//							finalSet[k] = files[l];
+//							if (used[l]) {
+//								log.reportError("Error - file '"+files[l]+"' matches to "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]+" but was already picked for another purpose");
+//							}
+//							used[l] = true;
 //						}
-						header = Files.getHeaderOfFile(localDir+filename, log);
-						header[0] = "'"+header[0]+"'";
-						for (int h = 1; h < header.length; h++) {
-							if (header[h].contains("pval")) {
-								filenames += localDir+filename+","+h+"="+STUDIES[k]+"_"+header[h]+";";
-							}
-							header[h] = "'"+header[h]+"'="+header[h]+"_"+STUDIES[k]+"_"+METHODS[j][0];
-						}
-						groupParams.get(GROUPS[j]).add(localDir+filename+" tab "+Array.toStr(header, " "));
-					}
-				}
-				log.report("", true, false);
-				
-				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".se.metal";
-				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
-					Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.SE_ANALYSIS, null, log);
-					running = true;
-				} else {
-					groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
-					groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_A1_"+METHODS[j][0]+" 'Allele2'=Meta_A2_"+METHODS[j][0]+" 'Effect'=Meta_beta_"+METHODS[j][0]+" 'StdErr'=Meta_se_"+METHODS[j][0]+" 'P-value'=Meta_pval_"+METHODS[j][0]+" 'Direction'=Direction_"+METHODS[j][0]);
-					filenames += localDir+filename+"1.out,5=seMeta;";
-				}
-				if (WEIGHTED[j]) {
-					filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".wse.metal";
-					if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
-						Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.WEIGHTED_SE_ANALYSIS, null, log);
-						running = true;
-					} else {
-						groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
-						groupParams.get(GROUPS[j]).add(1, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_wA1_"+METHODS[j][0]+" 'Allele2'=Meta_wA2_"+METHODS[j][0]+" 'Effect'=Meta_wbeta_"+METHODS[j][0]+" 'StdErr'=Meta_wse_"+METHODS[j][0]+" 'P-value'=Meta_pval_"+METHODS[j][0]+" 'Direction'=Direction_"+METHODS[j][0]);
-						filenames += localDir+filename+"1.out,5=wseMeta;";
-					}
-				}
-				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
-				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
-					Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.PVAL_ANALYSIS, null, log);
-					running = true;
-				} else {
-					groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
-					groupParams.get(GROUPS[j]).add(2, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_pA1_"+METHODS[j][0]+" 'Allele2'=Meta_pA2_"+METHODS[j][0]+" 'P-value'=Meta_Nweighted_pval_"+METHODS[j][0]);
-					if (SINGLE_VARIANTS[j]) {
-						groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName' 'Freq1'=Meta_AF");
-						filenames += localDir+filename+"1.out,7=pMeta;";
-					} else {
-						filenames += localDir+filename+"1.out,5=pMeta;";
-					}
-				}
-				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0, filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs.bat");
-			}
-			
-			if (!running) {
-				groups = HashVec.getKeys(groupHits);
-				for (int g = 0; g < groups.length; g++) {
-					filename = dir+PHENOTYPES[i][0]+"/"+PHENOTYPES[i][0]+"_"+groups[g]+"_hits.dat";
-					groupHits.get(groups[g]).writeHits(filename);
-					hits = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
-					groupParams.get(groups[g]).add(0, filename+" 0 1=minPval skip=0");
-					if (groups[g].equals("SingleVariant")) {
-						filename = dir+"CHARGE_wGC/"+PHENOTYPES[i][0]+"/SingleSNP/"+PHENOTYPES[i][0]+"_SingleSNP.se.metal1.out";
-						groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
-						filename = dir+"ESP_"+PHENOTYPES[i][0]+"_SingleSNP.csv";
-						groupParams.get(groups[g]).add(2, filename+" 0 10=ESP_pval");
-					} else {
-						filename = dir+"CHARGE_wGC/"+PHENOTYPES[i][0]+"/T5Count/"+PHENOTYPES[i][0]+"_T5Count.se.metal1.out";
-						groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
-						filename = dir+"ESP."+PHENOTYPES[i][0]+".T5.csv";
-						groupParams.get(groups[g]).add(2, filename+" 0 'pval'=ESP_pval");
-					}
-					for (int l = 0; l < GROUP_ANNOTATION_PARAMS[g].length; l++) {
-						groupParams.get(groups[g]).add(l, dir+GROUP_ANNOTATION_PARAMS[g][l]);
-					}				
-					Files.combine(hits, Array.toStringArray(groupParams.get(groups[g])), null, groups[g], ".", dir+PHENOTYPES[i][0]+"/"+PHENOTYPES[i][0]+"_"+groups[g]+".csv", log, true, true, false);
-				}
-			}
-//			System.exit(1);
-		}
-		numMatches = Array.booleanArraySum(used);
-		if (numMatches != files.length) {
-			log.reportError("Warning - did not find a match for the following file(s):");
-			for (int i = 0; i < files.length; i++) {
-				if (!used[i]) {
-					log.reportError("  "+files[i]);
-				}
-			}
-		}
-	}
+//					}
+//					numMatches = Array.booleanArraySum(picks);
+//					if (numMatches == 0) {
+//						log.reportError("Warning - could not find a match for "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]);
+//					} else if (numMatches > 1) {
+//						log.reportError("Error - found multiple matched for "+STUDIES[k]+"/"+PHENOTYPES[i][0]+"/"+METHODS[j][0]+":");
+//						log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
+//					}
+//				}
+//				log.report("For "+PHENOTYPES[i][0]+"/"+METHODS[j][0]+" identified:", true, false);
+//				locals = new Vector<String>();
+//				filenames = "";
+//				for (int k = 0; k < STUDIES.length; k++) {
+//					log.report("   "+finalSet[k], true, false);
+//					if (!finalSet[k].equals("<missing>")) {
+//						filename = STUDIES[k]+"_"+PHENOTYPES[i][0]+"_"+METHODS[j][0]+".dat";
+//						locals.add(filename);
+//						if (!Files.exists(localDir+filename)) {
+//							Metal.reformatResults(dir+finalSet[k], UNIT_OF_ANALYSIS[j], DEFAULT_SAMPLE_SIZES[i][k], localDir+filename, log);
+//						}
+////						if (groupParams.get(GROUPS[j]).size() == 0) {
+////							groupParams.get(GROUPS[j]).add(localDir+filename+" '"+Array.toStr(Matrix.extractColumn(Metal.MARKER_NAMES_AND_ALLELES, 0), "' '")+"' ");
+////						}
+//						header = Files.getHeaderOfFile(localDir+filename, log);
+//						header[0] = "'"+header[0]+"'";
+//						for (int h = 1; h < header.length; h++) {
+//							if (header[h].contains("pval")) {
+//								filenames += localDir+filename+","+h+"="+STUDIES[k]+"_"+header[h]+";";
+//							}
+//							header[h] = "'"+header[h]+"'="+header[h]+"_"+STUDIES[k]+"_"+METHODS[j][0];
+//						}
+//						groupParams.get(GROUPS[j]).add(localDir+filename+" tab "+Array.toStr(header, " "));
+//					}
+//				}
+//				log.report("", true, false);
+//				
+//				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".se.metal";
+//				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
+//					Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.SE_ANALYSIS, null, log);
+//					running = true;
+//				} else {
+//					groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
+//					groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_A1_"+METHODS[j][0]+" 'Allele2'=Meta_A2_"+METHODS[j][0]+" 'Effect'=Meta_beta_"+METHODS[j][0]+" 'StdErr'=Meta_se_"+METHODS[j][0]+" 'P-value'=Meta_pval_"+METHODS[j][0]+" 'Direction'=Direction_"+METHODS[j][0]);
+//					filenames += localDir+filename+"1.out,5=seMeta;";
+//				}
+//				if (WEIGHTED[j]) {
+//					filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".wse.metal";
+//					if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
+//						Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.WEIGHTED_SE_ANALYSIS, null, log);
+//						running = true;
+//					} else {
+//						groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
+//						groupParams.get(GROUPS[j]).add(1, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_wA1_"+METHODS[j][0]+" 'Allele2'=Meta_wA2_"+METHODS[j][0]+" 'Effect'=Meta_wbeta_"+METHODS[j][0]+" 'StdErr'=Meta_wse_"+METHODS[j][0]+" 'P-value'=Meta_pval_"+METHODS[j][0]+" 'Direction'=Direction_"+METHODS[j][0]);
+//						filenames += localDir+filename+"1.out,5=wseMeta;";
+//					}
+//				}
+//				filename = PHENOTYPES[i][0]+"_"+METHODS[j][0]+".pval.metal";
+//				if (!Files.exists(localDir+filename+"1.out") || new File(localDir+filename+"1.out").length() < 500) {
+//					Metal.metaAnalyze(localDir, Array.toStringArray(locals), UNIT_OF_ANALYSIS[j], filename, Metal.PVAL_ANALYSIS, null, log);
+//					running = true;
+//				} else {
+//					groupHits.get(GROUPS[j]).incorporateFromFile(localDir+filename+"1.out", 0.001, log);
+//					groupParams.get(GROUPS[j]).add(2, localDir+filename+"1.out 'MarkerName' 'Allele1'=Meta_pA1_"+METHODS[j][0]+" 'Allele2'=Meta_pA2_"+METHODS[j][0]+" 'P-value'=Meta_Nweighted_pval_"+METHODS[j][0]);
+//					if (SINGLE_VARIANTS[j]) {
+//						groupParams.get(GROUPS[j]).add(0, localDir+filename+"1.out 'MarkerName' 'Freq1'=Meta_AF");
+//						filenames += localDir+filename+"1.out,7=pMeta;";
+//					} else {
+//						filenames += localDir+filename+"1.out,5=pMeta;";
+//					}
+//				}
+//				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0, filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs.bat");
+//			}
+//			
+//			if (!running) {
+//				groups = HashVec.getKeys(groupHits);
+//				for (int g = 0; g < groups.length; g++) {
+//					filename = dir+PHENOTYPES[i][0]+"/"+PHENOTYPES[i][0]+"_"+groups[g]+"_hits.dat";
+//					groupHits.get(groups[g]).writeHits(filename);
+//					hits = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
+//					groupParams.get(groups[g]).add(0, filename+" 0 1=minPval skip=0");
+//					if (groups[g].equals("SingleVariant")) {
+//						filename = dir+"CHARGE_wGC/"+PHENOTYPES[i][0]+"/SingleSNP/"+PHENOTYPES[i][0]+"_SingleSNP.se.metal1.out";
+//						groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
+//						filename = dir+"ESP_"+PHENOTYPES[i][0]+"_SingleSNP.csv";
+//						groupParams.get(groups[g]).add(2, filename+" 0 10=ESP_pval");
+//					} else {
+//						filename = dir+"CHARGE_wGC/"+PHENOTYPES[i][0]+"/T5Count/"+PHENOTYPES[i][0]+"_T5Count.se.metal1.out";
+//						groupParams.get(groups[g]).add(1, filename+" 0 5=CHARGE_pval");
+//						filename = dir+"ESP."+PHENOTYPES[i][0]+".T5.csv";
+//						groupParams.get(groups[g]).add(2, filename+" 0 'pval'=ESP_pval");
+//					}
+//					for (int l = 0; l < GROUP_ANNOTATION_PARAMS[g].length; l++) {
+//						groupParams.get(groups[g]).add(l, dir+GROUP_ANNOTATION_PARAMS[g][l]);
+//					}				
+//					Files.combine(hits, Array.toStringArray(groupParams.get(groups[g])), null, groups[g], ".", dir+PHENOTYPES[i][0]+"/"+PHENOTYPES[i][0]+"_"+groups[g]+".csv", log, true, true, false);
+//				}
+//			}
+////			System.exit(1);
+//		}
+//		numMatches = Array.booleanArraySum(used);
+//		if (numMatches != files.length) {
+//			log.reportError("Warning - did not find a match for the following file(s):");
+//			for (int i = 0; i < files.length; i++) {
+//				if (!used[i]) {
+//					log.reportError("  "+files[i]);
+//				}
+//			}
+//		}
+//	}
 	
 	public static void runAll(String phenoFile, String genoFile, String annotationFile) {
 		PrintWriter writer;

@@ -1,57 +1,239 @@
 package filesys;
 
-import gwas.Metal;
+import java.io.*;
+import java.util.*;
+import common.*;
 
 public class MetaAnalysisParams {
-	public static final String[] STUDIES = {"ARIC", "CHS", "FHS", "ESP6800", "RS", "Rergo3"};
-	public static final String[] STUDY_GROUPS = {"CHARGE", "CHARGE", "CHARGE", "ESP", "RS"}; // +ESP
+	public static final String DEFAULT_PARAMETERS = "filesys/default_meta_anlaysis.params";
+	public static final String[] KEY_PARAMETERS = {"STUDIES", "PHENOTYPES", "RACES", "METHODS", "GROUP_ANNOTATION_PARAMS"};
+	public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=", "GENE_NAME=", "FUNCTIONAL=", "R_EXEC="};
+
+	private String[] studies;
+	private String[] studyGroupings;
+	private String[][] phenotypesWithFilenameAliases;
+	private String[][] racesWithFilenameAliases;
+	private int[][] sampleSizes;
+	private String snpInfoFilename;
+	private String variantName;
+	private String chromName;
+	private String geneName;
+	private String functionFlagName;
+	private String rExec;
+	private String[][] methods;
+	private String[][] groupAnnotationParams;
+
+	private BufferedReader reader;
+	private String trav;
 	
-	public static final String[][][] ALL_PHENOTYPES = {
-		{
-			{"Fibrinogen", "fibrinogen", ".lnFB.", ".ln_fib."}, 
-			{"F7", ".FVII.", "_FVII_"}, 
-			{"F8", ".FVIII.", "_FVIII_"}, 
-			{"vWF", "VWF"}
-		},
-		{
-			{"CRP"}, 
-		},
+	public MetaAnalysisParams(String filename, Logger log) {
+		String[] line;
+		Vector<String> v = new Vector<String>();
+		boolean problem;
 		
-	};
+		problem = false;
+		
+		if (!Files.exists(filename)) {
+			log.report("File '"+filename+"' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
+			System.exit(1);
+		}
+		
+		if (new File(filename).length() == 0) {
+			log.report("File '"+filename+"' is being populated with example parameters and instructions; tailor to your datasets and then re-run");
+			Files.copyFileFromJar(DEFAULT_PARAMETERS, filename);
+			System.exit(1);
+		}
+		
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			nextIsParam();
+			while (reader.ready()) {
+				if (ext.indexOfStr(trav, KEY_PARAMETERS) >= 0) {
+					if (trav.equals("STUDIES")) {
+						v = populateParam();
+						studies = new String[v.size()];
+						studyGroupings = new String[v.size()];
+						for (int i = 0; i < studies.length; i++) {
+							line = v.elementAt(i).split("\t");
+							if (line.length > 2) {
+								log.reportError("Error - more than one tab for study "+line[0]+", please fix");
+								log.reportError("Found: "+v.elementAt(i));
+								problem = true;
+							}
+							studies[i] = line[0];
+							if (line.length > 1) {
+								studyGroupings[i] = line[1];
+							} else {
+								studyGroupings[i] = "Final";
+							}
+						}
+					} else if (trav.equals("PHENOTYPES")) {
+						phenotypesWithFilenameAliases = populateParams();
+					} else if (trav.equals("RACES")) {
+						racesWithFilenameAliases = populateParams();
+					} else if (trav.equals("METHODS")) {
+						methods = populateParams();
+						for (int i = 0; i < methods.length; i++) {
+							if (methods[i].length < 3) {
+								log.reportError("Error - a method must have at least 3 parameters: name, grouping, algorithm, (optional) MAF threshold, (optional) additional arguments such as weighting");
+								log.reportError("Found: "+v.elementAt(i));
+								problem = true;
+							} else if (methods[i].length == 3) {
+								log.reportError("Warning - no 4th token for method "+methods[i][0]+"; all markers will be included in the analysis");
+							} else if (!ext.isValidDouble(methods[i][3]) && !methods[i][2].equals("singlesnpMeta")) {
+								log.reportError("Warning - no discernable MAF threshold token for method "+methods[i][0]+" since '"+methods[i][3]+"' is referring to something else; all markers will be included in the analysis");
+							} else if (ext.isValidDouble(methods[i][3]) && methods[i][2].equals("singlesnpMeta")) {
+								log.reportError("Error - MAF threshold token cannot be used for singlesnpMeta (as was done for '"+methods[i][0]+"')");
+								problem = true;
+							}
+						}
+					} else if (trav.equals("GROUP_ANNOTATION_PARAMS")) {
+						groupAnnotationParams = populateParams();
+						for (int i = 0; i < groupAnnotationParams.length; i++) {
+							if (groupAnnotationParams[i].length != 2) {
+								log.reportError("Error - additional group annotation params must have exactly 2 tokens: a method grouping and a space separated GenParser parameter set");
+								log.reportError("Found: "+Array.toStr(groupAnnotationParams[i]));
+								problem = true;
+							}
+						}
+					}
+				} else if (ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) >= 0) {
+					if (trav.startsWith("SNP_INFO_FILE=")) {
+						snpInfoFilename = ext.parseStringArg(trav, "default_snp_info_file_that_probably_does_not_exist.RData");
+					} else if (trav.startsWith("VARIANT_NAME=")) {
+						variantName = ext.parseStringArg(trav, "Name");
+					} else if (trav.startsWith("CHROM_NAME=")) {
+						chromName = ext.parseStringArg(trav, "CHROM");
+					} else if (trav.startsWith("GENE_NAME=")) {
+						geneName = ext.parseStringArg(trav, "SKATgene");
+					} else if (trav.startsWith("FUNCTIONAL=")) {
+						functionFlagName = ext.parseStringArg(trav, null);
+					} else if (trav.startsWith("R_EXEC=")) {
+						rExec = ext.parseStringArg(trav, null);
+					} else {
+						log.reportError("Error - property '"+trav+"' was defined in MetaAnalysisParams.KEY_PROPERTIES but is not yet mapped to a variable name");
+						problem = true;
+					}
+					nextIsParam();
+				} else {
+					log.reportError("Error - '"+trav+"' is an unknown parameter or property");
+					problem = true;
+				}
+				
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
+		}
+		
+		sampleSizes = null;
 
-	public static final String[][] RACES = {
-		{"Whites", ".EA.", "_EA_", ".EU.", "_EU_"}, 
-		{"Blacks", ".AA.", "_AA_"}, 
-	};
-
-	public static final int[][] DEFAULT_SAMPLE_SIZES = {
-		{985, 628, 255, 2011}, // Fibr
-		{965, 630, 248, 1221}, // F7
-		{984, 626, 0, 1296}, // F8
-		{985, 0, 249, 1184}, // vWF
-	};
-	public static final int[][] FREEZE3_SAMPLE_SIZES = {
-		{3168, 741, 499, 2013}, // Fibr
-		{3092, 744, 416, 1222}, // F7
-		{3166, 736, 0, 1296}, // F8
-		{3168, 0, 416, 1185}, // vWF
-	};
-
-	public static final String SNP_INFO_FILE = "snpinfo_ChargeSFreeze3_ESP_05212013_slimmest.RData";
-	public static final String SNP_NAMES = "SNP";
-	public static final String CHROM_NAME = "CHROM";
-	public static final String GENE_NAME = "SKATgene";
-
-	public static final String[][] METHODS = {{"SingleSNP", "singleSnpRes", ".LR."}, {"T5Count", ".T5."}, {"T5MB", "MBT5"}};
-	public static final String[][] UNIT_OF_ANALYSIS = {Metal.MARKER_NAMES, Metal.GENE_UNITS, Metal.GENE_UNITS};
-	public static final boolean[] SINGLE_VARIANTS = {true, false, false};
-	public static final boolean[] WEIGHTED = {true, false, false};
-	public static final String[] GROUPS = {"SingleVariant", "BurdenTests", "BurdenTests"};	
-
-	public static final String[][] GROUP_ANNOTATION_PARAMS = {
-		{},
-//		{"../SNPInfo_ExomeFreeze2_120810_aafSlim.csv 'SNP' 'gene' 'AAF'=CHARGE_AF"},
-		{},
-	};
+		if (problem) {
+			System.exit(1);
+		}
+	}
 	
+	public Vector<String> populateParam() {
+		Vector<String> v;
+		
+		v = new Vector<String>();
+		while (nextIsParam()) {
+			v.add(trav);
+		}
+		
+		return v;
+	}
+	
+	public String[][] populateParams() {
+		Vector<String> v;
+		String[][] params;
+		
+		v = populateParam();
+		params = new String[v.size()][];
+		for (int i = 0; i < params.length; i++) {
+			params[i] = v.elementAt(i).split("\t");
+		}
+		
+		return params;
+	}
+	
+	public boolean nextIsParam() {
+		try {
+			if (reader.ready()) {
+				do {
+					if (!reader.ready()) {
+						trav = null;
+						return false;
+					}
+					trav = reader.readLine().trim();
+				} while (trav.equals("") || trav.startsWith("#"));
+
+				return ext.indexOfStr(trav, KEY_PARAMETERS) == -1 && ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) == -1;
+			} else {
+				return false;
+			}
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			return false;
+		}
+		 
+		
+	}
+
+	public String[] getStudies() {
+		return studies;
+	}
+
+	public String[] getStudyGroupings() {
+		return studyGroupings;
+	}
+
+	public String[][] getPhenotypesWithFilenameAliases() {
+		return phenotypesWithFilenameAliases;
+	}
+
+	public String[][] getRacesWithFilenameAliases() {
+		return racesWithFilenameAliases;
+	}
+
+	public int[][] getSampleSizes() {
+		System.err.println("Error - sample sizes are not being imported as of yet");
+		return sampleSizes;
+	}
+
+	public String getSnpInfoFilename() {
+		return snpInfoFilename;
+	}
+
+	public String getVariantName() {
+		return variantName;
+	}
+
+	public String getChromName() {
+		return chromName;
+	}
+
+	public String getGeneName() {
+		return geneName;
+	}
+
+	public String getFunctionFlagName() {
+		return functionFlagName;
+	}
+	
+	public String getRExec() {
+		return rExec;
+	}
+
+	public String[][] getMethods() {
+		return methods;
+	}
+
+	public String[][] getGroupAnnotationParams() {
+		return groupAnnotationParams;
+	}
 }

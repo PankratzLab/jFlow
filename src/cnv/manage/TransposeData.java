@@ -2,8 +2,6 @@
 package cnv.manage;
 
 import java.io.*;
-import java.nio.ByteOrder;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -408,7 +406,8 @@ public class TransposeData {
 			}
 		});
 		if (files==null) {
-			System.err.println("Error - failed to create MarkerLookup -- directory does not exist: "+proj.getDir(Project.MARKER_DATA_DIRECTORY));
+			System.err.println("Error - failed to create MarkerLookup -- marker data directory does not exist: "+proj.getDir(Project.MARKER_DATA_DIRECTORY));
+			System.err.println("      - Did you forget to transpose the data?");
 		} else if (files.length==0) {
 			System.err.println("Error - failed to create MarkerLookup -- no "+MarkerData.MARKER_DATA_FILE_EXTENSION+" files available");
 		} else {
@@ -1158,7 +1157,6 @@ public class TransposeData {
 	public static void test_FileWriter() {
 		RandomAccessFile in;
 		String testString;
-		String[] line;
 
 		testString = "987987";
 		try {

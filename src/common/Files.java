@@ -345,7 +345,7 @@ public class Files {
 				for (int j = 0; j<iterations[i].length; j++) {
 					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
 				}
-				qsub(filename, trav, -1);
+				qsub(filename, trav, -1, -1);
 				writer.println("qsub "+filename);
 			}
 			writer.close();
@@ -354,10 +354,11 @@ public class Files {
 			throw new RuntimeException("Problem creating master batch file");
 		}
 	}
-	
-	public static void qsub(String filename, String command, int memoryRequestedInMb) {
+	public static void qsub(String filename, String command, int memoryRequestedInMb, double walltimeRequestedInHours) {
 		PrintWriter writer;
 		String[] lines;
+		Vector<String> params;
+		int hours, minutes;
 
 		lines = command.split("\\n");
 		try {
@@ -367,9 +368,19 @@ public class Files {
 	        writer.println("#$ -S /bin/bash");
 	        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
 	        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+	        params = new Vector<String>();
 	        if (memoryRequestedInMb > 0) {
+	        	params.add("pmem="+memoryRequestedInMb+"mb");
+	        }
+	        if (walltimeRequestedInHours > 0) {
+	        	hours = (int)Math.floor(walltimeRequestedInHours);
+	        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
+	        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
+	        }
+	        	
+	        if (params.size() > 0) {
 		        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
-	        	writer.println("#PBS -l pmem="+memoryRequestedInMb+"mb");
+	        	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
 //		        if (memoryRequestedInMb >= 4000) {
 //		        	writer.println("#$ -q *@compute-0-0.local");
 //		        }
@@ -1844,18 +1855,27 @@ public class Files {
 		BufferedReader reader;
         PrintWriter writer;
     	String trav;
+    	boolean problem;
         
+    	problem = false;
+        for (int i = 0; i<originalFiles.length; i++) {
+    		if (originalFiles[i] == null) {
+    			log.reportError("Error - can't cat if the filename is null");
+    			problem = true;
+    		} else if (!new File(originalFiles[i]).exists()) {
+    			log.reportError("Error - missing file '"+originalFiles[i]+"'");
+    			problem = true;
+    		}
+    	}
+        if (problem) {
+        	return;
+        }
+
         try {
 	        writer = new PrintWriter(new FileWriter(finalFile));
 	        for (int i = 0; i<originalFiles.length; i++) {
 	        	try {
-	        		if (originalFiles[i] == null) {
-	        			log.reportError("Error - can't cat if the filename is null");
-	        			return;
-	        		} else if (!new File(originalFiles[i]).exists()) {
-	        			log.reportError("Error - missing file '"+originalFiles[i]+"'");
-	        			return;
-	        		}
+
 	                reader = new BufferedReader(new FileReader(originalFiles[i]));
 	                for (int j = 0; skips != null && j < skips[i]; j++) {
 	                	reader.readLine();
@@ -2061,6 +2081,48 @@ public class Files {
 	        System.err.println("Error reading file \""+filename+"\"");
 	        System.exit(2);
         }
+	}
+	
+	public static void splitFilesByLine(String dir, String suffix, int start, int stop) {
+		BufferedReader[] readers;
+		PrintWriter writer;
+		String[] line;
+		String temp, trav;
+		Hashtable<String, String> hash = new Hashtable<String, String>();
+		Vector<String> v = new Vector<String>();
+		int count;
+		long time;
+		String[] files;
+		
+		
+		files = list(dir, suffix, false);
+		readers = new BufferedReader[files.length];
+		try {
+			for (int i = 0; i < files.length; i++) {
+				readers[i] = new BufferedReader(new FileReader(dir+files[i]));
+			}
+			
+			for (int i = 0; i < stop; i++) {
+				writer = new PrintWriter(new FileWriter(dir+(i+1)+".xln"));
+				for (int j = 0; j < files.length; j++) {
+					writer.println(readers[j].readLine());
+				}
+				writer.close();
+			}
+
+			for (int i = 0; i < files.length; i++) {
+				readers[i].close();
+			}
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" +  "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + "\"");
+			System.exit(2);
+		}
+		
+		
+		
 	}
 
 	// className keeps track of which method is altering the file
@@ -2417,7 +2479,7 @@ public class Files {
 		boolean commaDelimitedOut = false;
 		String dir = null;
 		String outfile = null;
-
+		
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
 		"   (1) filename to convert to a .qsub (i.e. file=batchFile (not the default))\n" + 

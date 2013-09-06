@@ -306,6 +306,7 @@ public class SexChecks {
 		for (int i = 0; i < values.length; i++) {
 			values[i] = lrrsY[i]/numYs[i];
 		}
+		// TODO not sure where we left off with this...
 		if (Array.isBimodal(values, 0.01, 100)) {
 			
 		}

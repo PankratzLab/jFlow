@@ -504,7 +504,12 @@ public class MarkerDataLoader implements Runnable {
 				for (int j=0; j<numSamplesProj; j++) {
 					genotypeTmp = Compression.genotypeDecompress(readBuffer[i][indexReadBuffer]);
 					abGenotypes[j] = genotypeTmp[0];
-					alleleMappings[j] = Sample.ALLELE_PAIRS[genotypeTmp[1]];
+					if (genotypeTmp[1] >= Sample.ALLELE_PAIRS.length) {
+						System.err.println("Error - invalid allelePair designation ("+genotypeTmp[1]+") as there are only "+Sample.ALLELE_PAIRS.length+" that are defined");
+						alleleMappings[j] = "UU";
+					} else {
+						alleleMappings[j] = Sample.ALLELE_PAIRS[genotypeTmp[1]];
+					}
 					indexReadBuffer += bytesPerSampMark;
 				}
 			}
