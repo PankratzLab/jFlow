@@ -225,11 +225,20 @@ public class MarkerData implements Serializable {
 		
 		original = getAB_Genotypes();
 		result = new byte[original.length];
-		for (int i=0; i<original.length; i++) {
-			if (getGCs()[i]<gcThreshold) {
-				result[i]=(byte)-1;
-			} else {
+		if (gcThreshold > 1 || gcThreshold < 0) {
+			System.err.println("Error - Invalid GC threshold: " + gcThreshold + ", expecting a decimal number between 0 and 1. Use 0 to include everything.");
+			return null;
+		} else if (gcThreshold == 0 || gcs == null) {
+			for (int i=0; i<original.length; i++) {
 				result[i] = original[i];
+			}
+		} else {
+			for (int i=0; i<original.length; i++) {
+				if (gcs[i] < gcThreshold) {
+					result[i]=(byte)-1;
+				} else {
+					result[i] = original[i];
+				}
 			}
 		}
 		

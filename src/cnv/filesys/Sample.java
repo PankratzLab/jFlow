@@ -224,9 +224,14 @@ public class Sample implements Serializable {
 		getThetas();
 		getRs();
 
+		if (markerNames.length != abGenotypes.length) {
+			System.err.println("Error - need to pass the full set of markerNames to getAB_GenotypesAfterFilters");
+			return null;
+		}
+	
 		result = new byte[abGenotypes.length];
-		for (int i=0; i<markerNames.length; i++) {
-			if (getGCs()[i]<gcThreshold) {
+		for (int i = 0; i < abGenotypes.length; i ++) {
+			if (gcs[i]<gcThreshold) {
 				result[i]=(byte)-1;
 			} else {
 				result[i]=abGenotypes[i];
@@ -255,7 +260,7 @@ public class Sample implements Serializable {
 						realY = lrrs[i];
 						break;
 					default:
-						System.err.println("Error - invalid PlotType in ClusterFilter #"+(j+1)+" for marker '"+markerNames[i]+"'");
+						System.err.println("Error - invalid PlotType in ClusterFilter #"+(j+1)+" for marker '" + i + "'");
 						realX = -9;
 						realY = -9;
 					}
@@ -268,8 +273,78 @@ public class Sample implements Serializable {
 		return result;
 	}
 	
+	public byte[] getAB_GenotypesAfterFilters(String[] targetMarks, int[] indicesOfTargetMarksInProj, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+		byte[] result;
+		float realX;
+		float realY;
+		ClusterFilter clusterFilter;
+		ArrayList<ClusterFilter> clusterFilterArray;
+
+		if (indicesOfTargetMarksInProj == null) {
+			return getAB_GenotypesAfterFilters(targetMarks, clusterFilterCollection, gcThreshold);
+		} else {
+			result = new byte[targetMarks.length];
+			for (int i=0; i < targetMarks.length; i++) {
+				if (gcs[indicesOfTargetMarksInProj[i]] < gcThreshold) {
+					result[i] = (byte) -1;
+				} else {
+					result[i] = abGenotypes[indicesOfTargetMarksInProj[i]];
+				}
+	
+				clusterFilterArray = clusterFilterCollection.getClusterFilters(targetMarks[i]);
+				if (clusterFilterArray != null) {
+					for (int j=0; j < clusterFilterArray.size(); j++) {
+						clusterFilter = clusterFilterArray.get(j);
+						switch(clusterFilter.getPlotType()) {
+						case 0:
+							realX = -9;
+							realY = -9;
+							System.err.println("Error - PlotType cannot be 0 for ClusterFilter #" + (j + 1) + " for marker '" + targetMarks[i] + "' as we've done away with raw Xs and Ys");
+							break;
+						case 1:
+							realX = xs[indicesOfTargetMarksInProj[i]];
+							realY = ys[indicesOfTargetMarksInProj[i]];
+							break;
+						case 2:
+							realX = thetas[indicesOfTargetMarksInProj[i]];
+							realY = rs[indicesOfTargetMarksInProj[i]];
+							break;
+						case 3:
+							realX = bafs[indicesOfTargetMarksInProj[i]];
+							realY = lrrs[indicesOfTargetMarksInProj[i]];
+							break;
+						default:
+							System.err.println("Error - invalid PlotType in ClusterFilter #" + (j + 1) + " for marker '" + targetMarks[i] + "'");
+							realX = -9;
+							realY = -9;
+						}
+						if (realX>=clusterFilter.getXMin() && realY>=clusterFilter.getYMin() && realX<=clusterFilter.getXMax() && realY<=clusterFilter.getYMax()) {
+							result[i] = clusterFilter.getCluterGenotype();
+						}
+					}
+				}
+			}
+			return result;
+		}
+	}
+	
 	public byte[] getAB_Genotypes() {
 		return abGenotypes;
+	}
+
+	public byte[] getAB_Genotypes(int[] indicesOfTargetMarksInProj) {
+		byte[] result;
+		
+		if (indicesOfTargetMarksInProj == null) {
+			return abGenotypes;
+
+		} else {
+			result = new byte[indicesOfTargetMarksInProj.length];
+			for (int i = 0; i < result.length; i++) {
+				result[i] = abGenotypes[indicesOfTargetMarksInProj[i]];
+			}
+			return result;
+		}
 	}
 
 	public void setAB_Genotypes(byte[] abGenotypes) {
