@@ -2,12 +2,16 @@ package cnv.manage;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 
+import cnv.filesys.ABLookup;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerLookup;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
 import cnv.var.SampleData;
 
@@ -338,103 +342,629 @@ public class PlinkData {
 //			e.printStackTrace();
 //		}
 //	}
-//
-//	public static void generateBedFile(Project proj, String[] markerList, String clusterFilterFileName, int gcThreshold) {
-//		RandomAccessFile out;
-//		byte[] outStream, genotypes;
-//		ClusterFilterCollection clusterFilterCollection;
-//		MarkerDataLoader markDataLoader;
-//		
-//		if (markerList == null) {
-//			proj.getSamples().length;
-//			markerList = proj.getMarkerNames();
-//		} else {
-//		}
-//
-//		clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), proj.getJarStatus()); 
-//		
-//		try {
-//			out = new RandomAccessFile("plink.bed", "rw");
-//			outStream = new byte[1];
-//			outStream[0] = (byte) 108;	// 0b01101100
-//			outStream[1] = (byte) 27;	// 0b00011011
-//			outStream[2] = (byte) 1;	// 0b00000001
-//			out.write(outStream);
-//	
-//			markDataLoader = new MarkerDataLoader(proj, markerList, 0);
-//			for (int i = 0; i < markerList.length; i++) {
-//				genotypes = markDataLoader.getMarkerData(i).getAbGenotypesAfterFilters(clusterFilterCollection, markerList[i], 0);
-//				out.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypes));
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-
 
 	/**
-	 * Transpose individual-major byte stream to SNP-major one
+	 * Unfinished
+	 * @param proj
+	 * @param markerList
+	 * @param clusterFilterFileName
+	 * @param gcThreshold
 	 */
-	public static void transposeBedByte(byte[] inputSampBytes, int iStartSamp, int iEndSamp, byte[] outputMarkBytes, int nAllMarksInProj, int nAllSampsInProj) {
-//		for (int i = 0; i < originalBytes.length; i++) {
-//			for (int j = 0; j < transposedBytes.length; j++) {
-//				transposedBytes[j] = originalBytes[i];
-//			}
-//		}
-
-		int iSampStream1;
-		int iBytes2;
-		int iSampStream3;
-		int iBytes4;
-		int iMarkStream;
-		int bytesPerMark;
-
-		bytesPerMark = (int) Math.ceil((double) nAllSampsInProj / 4);
-
-		iSampStream1 = (int) Math.ceil((double) iStartSamp / 4);
-		iBytes2 = iStartSamp % 4;
-		iSampStream3 = (int) Math.ceil((double) iEndSamp / 4);
-		iBytes4 = iEndSamp % 4;
+	public static void saveToPedFile(Project proj, String[] markerList, String clusterFilterFileName, int gcThreshold, String pedFilenameRoot) {
+		PrintWriter out;
+		ClusterFilterCollection clusterFilterCollection;
+		MarkerDataLoader markDataLoader;
+		String[] sampleList;
 		
-		for (int i = iSampStream1; i < iSampStream3; i++) {
-			for (int j = iBytes2; j <= 4; j++) {
-				iMarkStream = i * bytesPerMark + j / 4;
-				outputMarkBytes[iMarkStream] = (byte) ((outputMarkBytes[iMarkStream] & 0x03) | (inputSampBytes[i] & 0x3));
+		if (markerList == null) {
+			markerList = proj.getMarkerNames();
+		}
+
+		try {
+			markDataLoader = new MarkerDataLoader(proj, markerList, 0);
+			clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), proj.getJarStatus());
+			sampleList = proj.getSamples();
+			out = new PrintWriter(new FileOutputStream(pedFilenameRoot + ".map"));
+			for (int i = 0; i < sampleList.length; i++) {
+				markDataLoader.getMarkerData(i).getAbGenotypesAfterFilters(clusterFilterCollection, markerList[i], 0);
+			}
+			out.close();
+
+			out = new PrintWriter(new FileOutputStream(pedFilenameRoot + ".ped"));
+			for (int i = 0; i < markerList.length; i++) {
+				markDataLoader.getMarkerData(i).getAbGenotypesAfterFilters(clusterFilterCollection, markerList[i], 0);
+			}
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Unfinished
+	 * @param proj
+	 * @param markerList
+	 * @param clusterFilterFileName
+	 * @param gcThreshold
+	 */
+	public static void createBinaryFileSetFromGenvisisData(Project proj, String clusterFilterFileName, float gcThreshold, String bedFilenameRoot, boolean isSnpMajor, Logger log) {
+		String[] targetMarks;
+		int[] indicesOfTargetSampsInProj;
+		int[] indicesOfTargetMarksInProj;
+		byte[] chrsOfTargetMarks;
+		int[] posOfTargetMarks;
+		String[] allSampsInProj;
+		char[][] abLookup;
+		String[] targetSamps;
+		
+		targetSamps = createFamFile(proj, bedFilenameRoot, log);
+
+		bedFilenameRoot = proj.getProjectDir() + bedFilenameRoot;
+		if (new File(bedFilenameRoot + ".bed").exists() || new File(bedFilenameRoot + ".bim").exists() || new File(bedFilenameRoot + ".fam").exists()) {
+			log.reportError("System abort. Plink binary file set \"" + bedFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file or use another file name to try again.");
+			System.exit(1);
+		}
+
+		allSampsInProj = proj.getSamples();
+		
+		if (targetSamps != null) {
+			indicesOfTargetSampsInProj = getSortedIndicesOfTargetSampsInProj(allSampsInProj, targetSamps, log);
+			targetSamps = new String[indicesOfTargetSampsInProj.length];
+			for (int i = 0; i < indicesOfTargetSampsInProj.length; i++) {
+				targetSamps[i] = allSampsInProj[ indicesOfTargetSampsInProj[i] ];
+			}
+		} else {
+			indicesOfTargetSampsInProj = null;
+			targetSamps = allSampsInProj;
+		}
+
+//		allMarksInProj = proj.getMarkerNames();
+		targetMarks = getTargetMarks(proj, log);
+		if (targetMarks != null) {
+			indicesOfTargetMarksInProj = new int[targetMarks.length];
+			chrsOfTargetMarks = new byte[targetMarks.length];
+			posOfTargetMarks = new int[targetMarks.length];
+			getIndicesOfTargetMarks(proj, targetMarks, indicesOfTargetMarksInProj, chrsOfTargetMarks, posOfTargetMarks, log);
+
+		} else {
+			indicesOfTargetMarksInProj = null;
+			chrsOfTargetMarks = proj.getMarkerSet().getChrs();
+			posOfTargetMarks = proj.getMarkerSet().getPositions();
+		}
+
+		if (isSnpMajor) {
+			abLookup = createBedFileSnpMajor(proj, targetMarks, indicesOfTargetMarksInProj, targetSamps, indicesOfTargetSampsInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot, log);
+		} else {
+			abLookup = createBedFileIndividualMajor(proj, targetSamps, targetMarks, indicesOfTargetMarksInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot, log);
+		}
+
+		createBimFile(targetMarks, chrsOfTargetMarks, posOfTargetMarks, abLookup, bedFilenameRoot, log);
+
+	}
+
+	public static int[] getSortedIndicesOfTargetSampsInProj(String[] allSampInProj, String[] targetSamps, Logger log) {
+//		String[] sampleNames;
+		int[] indicesOfTargetSampInProj;
+		Hashtable<String, Integer> hash;
+		Enumeration<String> keys;
+		hash = new Hashtable<String, Integer>();
+		boolean found;
+//		sampleNames = proj.getSamples();
+
+//		indices = new int[sampList.length];
+		for (int i = 0; i < targetSamps.length; i++) {
+			if (hash.containsKey(targetSamps[i])) {
+				log.reportError("Warning - duplicate sample id in the list of samples to include: " + targetSamps[i]);
+			} else {
+				found = false;
+				for (int j = 0; j < allSampInProj.length; j++) {
+					if (targetSamps[i].equals(allSampInProj[j])) {
+						hash.put(allSampInProj[i], j);
+						found = true;
+						break;
+					}
+				}
+				if (! found) {
+					log.reportError("Warning - The following from the target sample list was not found in the list of all samples in the project: " + targetSamps[i]);
+				}
 			}
 		}
-	}
 
-	public static void transposeOneBedByte(byte originalBytes, int nSampOrMarkInThisByte, byte[] transposedBytes, int iMarksOrSampsInProj, int nAllMarksInProj, int nAllSampsInProj) {
-		if(nSampOrMarkInThisByte >= 4) {
-			nSampOrMarkInThisByte = 4;
+		indicesOfTargetSampInProj = new int[hash.size()];
+		keys = hash.keys();
+		for (int i = 0; i < indicesOfTargetSampInProj.length; i++) {
+			indicesOfTargetSampInProj[i] = hash.get(keys.nextElement());
 		}
 
-		for (int i = 0; i < nSampOrMarkInThisByte; i++) {
-			transposedBytes[iMarksOrSampsInProj / 4 + i] = (byte) (((transposedBytes[i]) & 0x00) | ((originalBytes >> (2 * i)) & 0x00));
+		Arrays.sort(indicesOfTargetSampInProj);
+		return indicesOfTargetSampInProj;
+	}
+
+	public static String[] getTargetMarks(Project proj, Logger log) {
+		String targetMarkers;
+		String[] targets;
+
+		targetMarkers = proj.getFilename(Project.TARGET_MARKERS_FILENAME, false, false);
+		if (new File(targetMarkers).exists()) {
+			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, true);
+		} else {
+			if (! targetMarkers.equals("")) {
+				log.report("FYI, since target markers file '" + targetMarkers + "' was not found, all markers will be exported to PLINK");
+			}
+			targets = null;
+		}
+
+		return targets;
+	}
+
+//	public static int[] getIndicesOfMarksToInclude(Project proj, log) {
+	public static void getIndicesOfTargetMarks(Project proj, String[] inputTargetMarkers, int[] outputIndicesOfTargetMarks, byte[] outputChrOfTagetMarks, int[] outputPosOfTargetMarks, Logger log) {
+		String[] allMarksInProj;
+//		Hashtable<String,String> hash;
+		MarkerSet markerSet;
+		byte[] chrs;
+		int[] positions;
+		boolean[] found;
+	
+//		hash = new Hashtable<String,String>();
+		if (inputTargetMarkers == null) {
+			log.reportError("inputTargetMarkers is null");
+
+		} else {
+			markerSet = proj.getMarkerSet();
+			allMarksInProj = markerSet.getMarkerNames();
+			chrs = markerSet.getChrs();
+			positions = markerSet.getPositions();
+			found = new boolean[inputTargetMarkers.length];
+			for (int i = 0; i < inputTargetMarkers.length; i++) {
+//				if (hash.containsKey(inputTargetMarkers[i])) {
+//					System.err.println("Warning - duplicate marker name: " + inputTargetMarkers[i] + " in targetMarks.txt");
+//				}
+				for (int j = 0; j < allMarksInProj.length; j++) {
+					if (inputTargetMarkers[i].equals(allMarksInProj[j])) {
+						outputIndicesOfTargetMarks[i] = j;
+						found[i] = true;
+						break;
+					}
+				}
+//				hash.put(allMarksInProj[i], i+"");
+			}
+			Arrays.sort(outputIndicesOfTargetMarks);
+			for (int i = 0; i < found.length; i++) {
+				if (! found[i]) {
+					log.reportError("Warning - the following marker from target marker list is not found in whole project's marker list: " + inputTargetMarkers[i]);
+					break;
+				} else {
+					inputTargetMarkers[i] = allMarksInProj[outputIndicesOfTargetMarks[i]];
+					outputChrOfTagetMarks[i] = chrs[outputIndicesOfTargetMarks[i]];
+					outputPosOfTargetMarks[i] = positions[outputIndicesOfTargetMarks[i]];
+				}
+			}
+		}
+
+//		chrs = markerSet.getChrs();
+//		positions = markerSet.getPositions();
+////		targetMarkers = proj.getFilename(Project.TARGET_MARKERS_FILENAME, false, false);
+////		if (new File(targetMarkers).exists()) {
+////			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
+//		if (inputTargetMarkers != null) {
+//			indicesOfMarksSelected = new int[inputTargetMarkers.length];
+//			prob = false;
+//			for (int i = 0; i < inputTargetMarkers.length; i++) {
+//				if (hash.containsKey(inputTargetMarkers[i])) {
+//					indicesOfMarksSelected[i] = Integer.parseInt(hash.get(inputTargetMarkers[i]));
+//				} else {
+//					System.err.println("Error - target marker '" + inputTargetMarkers[i] + "' was not found in the MarkerSet");
+//					prob = true;
+//				}
+//			}
+//			if (prob) {
+//				System.exit(1);
+//			}
+//
+////			chrOfMarksSelected = new byte[indicesOfMarksSelected.length];
+////			posOfMarksSelected = new int[indicesOfMarksSelected.length];
+////			for (int i = 0; i < indicesOfMarksSelected.length; i++) {
+////				chrOfMarksSelected[i] = chrs[indicesOfMarksSelected[i]];
+////				posOfMarksSelected[i] = positions[indicesOfMarksSelected[i]];
+////			}
+//
+//		} else {
+//			if (! inputTargetMarkers.equals("")) {
+//				System.out.println("FYI, since target markers file '" + inputTargetMarkers + "' was not found, all markers will be exported to PLINK");
+//			}
+//
+////			targets = HashVec.getKeys(hash);
+////			indices = new int[targets.length];
+////			for (int i = 0; i<targets.length; i++) {
+////				indices[i] = Integer.parseInt(hash.get(targets[i]));
+////			}
+//			indicesOfMarksSelected = Array.intArray(allMarksInProj.length);
+////			chrOfMarksSelected = chrs;
+////			posOfMarksSelected = positions;
+//		}
+//
+//		return indicesOfMarksSelected;
+	}
+
+	public static char[][] createBedFileIndividualMajor(Project proj, String[] targetSamps, String[] targetMarks, int[] indicesOfTargetMarks, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot, Logger log) {
+//		String[] markList;
+		RandomAccessFile out1;
+		byte[] outStream;
+		byte[] genotypes;
+//		byte[] genotypesOfTargetMarks;
+		ClusterFilterCollection clusterFilterCollection;
+		Sample fsamp;
+		char[][] abLookup = null;
+//		MarkerSet markerSet = proj.getMarkerSet();
+//		String[] markerNames;
+
+//		allMarksInProj = proj.getMarkerNames();
+//		markList = new String[indicesOfSelectedMarks.length];
+//		for (int i = 0; i < indicesOfSelectedMarks.length; i++) {
+//			markList[i] = allMarksInProj[indicesOfSelectedMarks[i]];
+//		}
+		try {
+			clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), proj.getJarStatus()); 
+			if (clusterFilterCollection == null) {
+				abLookup = null;
+			} else {
+				abLookup = new ABLookup(targetMarks, proj.getProjectDir() + "AB_lookup.dat", true, true).getLookup();
+			}
+			
+			out1 = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
+			outStream = new byte[3];
+			outStream[0] = (byte) 108;	// 0b01101100
+			outStream[1] = (byte) 27;	// 0b00011011
+			outStream[2] = (byte) 0;	// 0b00000000 <-- Be careful here
+			out1.write(outStream);
+
+			for (int i = 0; i < targetSamps.length; i++) {
+				fsamp = proj.getFullSampleFromRandomAccessFile(targetSamps[i]);
+
+				if (fsamp == null) {
+					System.err.println("Error - the DNA# " + targetSamps[i] + " was listed in the pedigree file but " + targetSamps[i] + ".fsamp was not found in directory: " + proj.getDir(Project.SAMPLE_DIRECTORY));
+					genotypes = new byte[1];
+
+				} else {
+					if (clusterFilterCollection == null) {
+						genotypes = fsamp.getAB_Genotypes(indicesOfTargetMarks);
+					} else {
+						genotypes = fsamp.getAB_GenotypesAfterFilters(targetMarks, indicesOfTargetMarks, clusterFilterCollection, gcThreshold);
+//						genotypes = proj.getMarkerSet().translateABtoForwardGenotypes(genotypes, abLookup);
+					}
+					out1.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypes));
+
+//					genotypesOfTargetMarks = new byte[indicesOfTargetMarks.length];
+//					for (int j = 0; j < indicesOfTargetMarks.length; j++) {
+//						genotypesOfTargetMarks[j] = genotypes[indicesOfTargetMarks[i]];
+//					}
+//					out1.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypesOfTargetMarks));
+
+//					if (clusterFilterCollection == null) {
+//						genotypes = fsamp.getForwardGenotypes(gcThreshold);
+//					} else {
+//						genotypes = markerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(targetMarks, clusterFilterCollection, gcThreshold), abLookup);
+//					}
+
+//					alleles = new String[genotypesSelected.length][2];
+//					for (int j = 0; j<indicesOfTargetMarks.length; j++) {
+//						genotypesSelected[j] = genotypes[indicesOfTargetMarks[i]];
+//
+//						//TODO Something does not make sense here. alleles[j] seems to be wrong here.
+//						if (genotypesSelected[j] == 0) {
+//							alleles[j] = new String[] {"0", "0"};
+//						} else {
+//							tmp = Sample.ALLELE_PAIRS[genotypesSelected[j]];
+//							alleles[j][0] = tmp.charAt(0) + "";
+//							alleles[j][1] = tmp.charAt(1) + "";
+//						}
+//					}
+				}
+			}
+
+			out1.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return abLookup;
+	}
+
+	public static char[][] createBedFileSnpMajor(Project proj, String[] targetMarks, int[] indicesOfTargetMarksInProj, String[] targetSamps, int[] indicesOfTargetSampsInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot, Logger log) {
+		RandomAccessFile out1;
+		byte[] outStream;
+		byte[] genotypes;
+		byte[] genotypesOfTargetSamps;
+		ClusterFilterCollection clusterFilterCollection;
+		MarkerDataLoader markDataLoader;
+		char[][] abLookup = null;
+		Hashtable<String, Vector<String>> batches;
+		MarkerData[] markerData;
+		String[] filenames;
+		Vector<String> v;
+		int[] indicesOfMarksInFileForCurrentFile;
+		String[] marksOfThisFile;
+		String[] temp;
+		Hashtable<String, Float> outliersHash;
+		long sampleFingerPrint;
+		String[] allSampsInProj;
+		int[] indicesOfMarksInProjForCurrentFile;
+		String dir;
+
+		try {
+			clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), proj.getJarStatus()); 
+			if (clusterFilterCollection == null) {
+				abLookup = null;
+			} else {
+				abLookup = new ABLookup(targetMarks, proj.getProjectDir() + "AB_lookup.dat", true, true).getLookup();
+			}
+			
+			sampleFingerPrint = proj.getSampleList().getFingerprint();
+			allSampsInProj = proj.getSamples();
+			dir = proj.getDir(Project.MARKER_DATA_DIRECTORY);
+			markDataLoader = new MarkerDataLoader(proj, targetMarks, 0);
+			outliersHash = MarkerDataLoader.loadOutliers(proj);
+			batches = markDataLoader.getBatches();
+			filenames = HashVec.getKeys(batches);
+			genotypesOfTargetSamps = new byte[indicesOfTargetSampsInProj.length];
+
+			out1 = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
+			outStream = new byte[3];
+			outStream[0] = (byte) 108;	// 0b01101100
+			outStream[1] = (byte) 27;	// 0b00011011
+			outStream[2] = (byte) 1;	// 0b00000001 <-- be careful here
+			out1.write(outStream);
+
+//			for (int i = 0; i < targetMarks.length; i++) {
+			for (int i = 0; i < filenames.length; i++) {
+				v = batches.get(filenames[i]);
+				marksOfThisFile = new String[v.size()];
+				indicesOfMarksInFileForCurrentFile = new int[marksOfThisFile.length];
+				indicesOfMarksInProjForCurrentFile = new int[marksOfThisFile.length];
+				for (int j = 0; j < v.size(); j++) {
+					temp = v.elementAt(j).split("\t");
+					marksOfThisFile[j] = temp[0];
+					indicesOfMarksInFileForCurrentFile[j] = Integer.parseInt(temp[1]);
+					if(indicesOfTargetMarksInProj != null) {
+						for (int k = 0; k < indicesOfTargetMarksInProj.length; k++) {
+							if (marksOfThisFile[j].equals(targetMarks[k])) {
+								indicesOfMarksInProjForCurrentFile[j] = indicesOfTargetMarksInProj[k];
+								break;
+							}
+						}
+					} else {
+						for (int k = 0; k < targetMarks.length; k++) {
+							if (marksOfThisFile[j].equals(targetMarks[k])) {
+								indicesOfMarksInProjForCurrentFile[j] = k;
+								break;
+							}
+						}
+					}
+				}
+				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSampsInProj, dir + filenames[i], indicesOfMarksInProjForCurrentFile, indicesOfMarksInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash);
+
+				for (int j = 0; j < markerData.length; j++) {
+					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, marksOfThisFile[j], 0);
+					for (int k = 0; k < indicesOfTargetSampsInProj.length; k++) {
+						genotypesOfTargetSamps[k] = genotypes[indicesOfTargetSampsInProj[k]];
+					}
+					out1.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypesOfTargetSamps));
+				}
+
+				//TODO Something does not make sense here. alleles[j] seems to be wrong here.
+//				genotypesSelected = new byte[indicesOfSelectedSamps.length];
+//				for (int j = 0; j < indicesOfSelectedSamps.length; j++) {
+//					genotypesSelected[j] = genotypes[indicesOfSelectedSamps[i]];
+
+//					//TODO Something does not make sense here. alleles[j] seems to be wrong here.
+//					if (genotypesSelected[j] == 0) {
+//						abLookup[j] = new char[] {0, 0};
+//
+//					} else {
+//						tmp = Sample.ALLELE_PAIRS[genotypesSelected[j]];
+//						abLookup[j][0] = tmp.charAt(0);
+//						abLookup[j][0] = tmp.charAt(1);
+//					}
+
+//				}
+
+//				out1.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypes));
+			}
+			out1.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return abLookup;
+	}
+
+	public static boolean createBimFile(String[] targetMarks, byte[] chrsOfTargetMarks, int[] posOfTargetMarks, char[][] abLookup, String bimDirAndFilenameRoot, Logger log) {
+		PrintWriter writer;
+
+		try {
+			writer = new PrintWriter(new FileWriter(bimDirAndFilenameRoot + ".bim"));
+			for (int i = 0; i < targetMarks.length; i++) {
+				writer.println(chrsOfTargetMarks[i] + "\t" + targetMarks[i] + "\t0\t" + posOfTargetMarks[i] + "\t" + abLookup[i][0] + "\t" + abLookup[i][1]); //TODO alleles[][] matching chrs[]
+			}
+			writer.close();
+
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: failed to write to gwas.map (in use?)");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error writing to gwas.map");
+			System.exit(2);
+		}
+
+		return true;
+	}
+
+	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		int count;
+		String temp;
+		String[] line;
+		Vector<String> dna;
+		String[] allSamples;
+		
+		allSamples = proj.getSamples();
+		dna = new Vector<String>();
+
+		try {
+			reader = new BufferedReader(new FileReader(proj.getFilename(Project.PEDIGREE_FILENAME)));
+			writer = new PrintWriter(new FileWriter(famDirAndFilenameRoot+".fam"));
+			count = 1;
+			while (reader.ready()) {
+				count++;
+				if (count % 100 == 0) {
+					System.out.println(count);
+				}
+				temp = reader.readLine().trim();
+				line = temp.split(ext.determineDelimiter(temp));
+				writer.print(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
+				line = temp.split("[\\s]+");
+				if (temp.equals("")) {
+					// then do nothing
+				} else if (line.length < 7) {
+					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(Project.PEDIGREE_FILENAME)+"'.");
+					log.reportError("  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA");
+					log.reportError("  where DNA is the sample name associated with the genotypic data (see the "+proj.getDir(Project.SAMPLE_DIRECTORY)+" directory for examples)");
+					reader.close();
+					writer.close();
+					return null;
+				} else if (ext.isMissingValue(line[6])) {
+					dna.add(null);
+				} else if (ext.indexOfStr(line[6], allSamples) == -1) {
+					log.reportError("Error - sample '"+line[6]+"' was not found in the list of the projects samples; all marker data will be set to missing for individual "+line[0]+"-"+line[1]);
+					dna.add(null);
+				} else {
+					dna.add(line[6]);
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + famDirAndFilenameRoot+".fam" + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + famDirAndFilenameRoot+".fam" + "\"");
+			System.exit(2);
+		}
+
+		return Array.toStringArray(dna);
+	}
+
+	/**
+	 * Note: This method does not address the memory management issue. The caller of this method is supposed to implement the optimization of memory usage.
+	 * 
+	 * Transpose individual-major data (Sample lead data) to SNP-major one (Marker lead data), or vice versa. If you want to apply this to the latter, just
+	 * treat all the variables labeled with Mark as if they were labeled with Samp, and also Samp with Mark.
+	 *  
+	 * The index parameters are all inclusive, meaning iStartSamp and iEndSamp are all going to be included in the output.
+	 * 
+	 */
+	public static void transposeBedBytes(byte[] inputSampBytes, int iStartSamp, int iEndSamp, int iStartMark, int iEndMark, byte[] outputMarkBytes, int nTotalMarksInProj, int nTotalSampsInProj) {
+//		int iSamp;
+//		int iStartByteSamp;
+//		byte iStartBitSamp;
+//		int iEndByteSamp;
+//		byte iEndBitSamp;
+
+		int nBytesPerMark;
+		int nBytesPerSamp;
+		int offsetMark;
+		int offsetSamp;
+		int iByteSamp;
+		byte iBitSamp;
+		int iByteMark;
+		byte iBitMark;
+
+//		iStartByteSamp = (int) Math.ceil((double) iStartMark / 4);
+//		iStartBitSamp = (byte) (iStartMark % 4);
+//		iEndByteSamp = (int) Math.ceil((double) iEndMark / 4);
+//		iEndBitSamp = (byte) (iEndMark % 4);
+
+		nBytesPerMark = (int) Math.ceil((double) nTotalSampsInProj / 4);
+		nBytesPerSamp = (int) Math.ceil((double) nTotalMarksInProj / 4);
+//		iByteMark = iStartMark * bytesPerMark + iStartSamp / 4;
+		offsetMark = iStartMark * nBytesPerMark;
+		offsetSamp = iStartSamp * nBytesPerSamp;
+
+		for (int i = iStartSamp; i < iEndSamp; i++) {
+			iByteMark = offsetMark + i / 4;
+			iBitMark = (byte) (i % 4);
+			
+			for (int j = iStartMark; j < iEndMark; j++) {
+				iByteSamp = offsetSamp + j / 4;
+				iBitSamp = (byte) (j % 4);
+
+				outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark] & (0xff - (0x03 << (iBitMark * 2)))) | (inputSampBytes[iByteSamp] & (0x03 << (iBitSamp * 2))));
+			}
+		}
+
+//		for (int i = iStartByteSamp; i < iEndByteSamp - 1; i++) {
+//			iBitMark = (byte) (iStartSamp % 4);
+//			for (int j = iStartBitSamp; j < 4; j++) {
+//				outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark] & (0xff - (0x03 << (iBitMark * 2)))) | (inputASingleSampsBytes[i] & (0x03 << (j * 2))));
+//				iByteMark += bytesPerMark;
+//			}
+//			iStartBitSamp = 0;
+//			iBitMark = 0;
+//		}
+
+//		for (int j = iStartBitSamp; j <= 4; j++) {
+//			iByteMark = i * bytesPerMark + j / 4;
+//			outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark] & 0x03) | (inputASingleSampsBytes[i] & 0x3));
+//		}
+	}
+
+	public static void transposeOneBedByte(byte inputSampByte, int iCurrentSampInProj, int iEndSamp, int iStartMark, int iEndMark, byte[] outputMarkBytes, int nBytesPerSamp, int nBytesPerMark) {
+		int offsetMark;
+		int iByteMark;
+		byte iBitMark;
+		byte iBitSamp;
+
+		offsetMark = iStartMark * nBytesPerMark;
+		iByteMark = offsetMark + iCurrentSampInProj / 4;
+		iBitMark = (byte) (iCurrentSampInProj % 4);
+
+		for (int j = iStartMark; j < iEndMark; j++) {
+			iBitSamp = (byte) (j % 4);
+
+			outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark] & (0xff - (0x03 << (iBitMark * 2)))) | (inputSampByte & (0x03 << (iBitSamp * 2))));
 		}
 	}
+
 
 	public static byte[] encodePlinkBedBytesForASingleMarkOrSamp (byte[] genotype) {
 		int iBytes;
 		byte[] result;
 		int nBytes;
+		byte shift;
 
 		nBytes = (int) Math.ceil((double) genotype.length / 4);
 		iBytes = -1;
 		result = new byte[nBytes];
 
-		for (int i = 0; i < result.length; i++) {
-			result[i] = (byte) 0xAA;	//initilize the array to be 0b10101010, the null genotype defined by plink bed data.
-		}
+//		for (int i = 0; i < result.length; i++) {
+//			result[i] = (byte) 0xAA;	//initilize the array to be 0b10101010, the null genotype defined by plink bed data.
+//		}
 
 		try {
 			for (int i = 0; i < genotype.length; i++) {
-				if (i % 4 == 0) {
+				shift = (byte) ((i % 4) * 2);
+				if (shift == 0) {
 					iBytes ++;
 				}
-				result[iBytes] = (byte) (result[iBytes] << 2 | encodeLastTwoBitsOfABedByte(genotype[i]));
+				result[iBytes] = (byte) ((result[iBytes] & (~(0x03 << shift))) | (encodeLastTwoBitsOfABedByte(genotype[i]) << shift));
+//				displayBits(result[iBytes]);
 			}
 		} catch (Elision e) {
 			e.printStackTrace();
@@ -450,13 +980,13 @@ public class PlinkData {
 			bedByte = (byte) 0x00;
 
 		} else if (genotype == (byte) 1) {
-			bedByte = (byte) 0x01;
+			bedByte = (byte) 0x02;
 
 		} else if (genotype == (byte) 2) {
 			bedByte = (byte) 0x03;
 
 		} else if (genotype == (byte) -1) {
-			bedByte = (byte) 0x02;
+			bedByte = (byte) 0x01;
 
 		} else {
 			throw new Elision("Unrecognized genotype: " + genotype + ". Please use 0 for A/A, 1 for A/B, 2 for B/B, and -1 for null.");
@@ -465,16 +995,16 @@ public class PlinkData {
 		return bedByte;
 	}
 
-	public static byte[] decodeBedBytesOfASingleMarkOrSamp (byte[] bedBytes, int startIndex, int[] indeciesOfSampsOrMarks) {
+	public static byte[] decodeBedBytesOfASingleMarkOrSamp (byte[] bedBytes, int startIndex, int[] indicesOfSampsOrMarks) {
 		byte[] genotypes;
 		int indexBedBytes;
 		int indexBedByte;
 
-		genotypes = new byte[indeciesOfSampsOrMarks.length];
+		genotypes = new byte[indicesOfSampsOrMarks.length];
 		try {
 			for (int i = 0; i <= genotypes.length; i++) {
-				indexBedBytes = indeciesOfSampsOrMarks[i] / 4;
-				indexBedByte = indeciesOfSampsOrMarks[i] % 4;
+				indexBedBytes = indicesOfSampsOrMarks[i] / 4;
+				indexBedByte = indicesOfSampsOrMarks[i] % 4;
 				genotypes[i] = decodeLastTwoBitsOfABedByte((byte) (bedBytes[indexBedBytes] >> (indexBedByte * 2)));
 			}
 		} catch (Elision e) {
@@ -530,13 +1060,13 @@ public class PlinkData {
 		if (bedByte == (byte) 0) {
 			genotype = (byte) 0;
 
-		} else if (bedByte == (byte) 1) {
+		} else if (bedByte == (byte) 2) {
 			genotype = (byte) 1;
 
 		} else if (bedByte == (byte) 3) {
 			genotype = (byte) 2;
 
-		} else if (bedByte == (byte) 2) {
+		} else if (bedByte == (byte) 1) {
 			genotype = (byte) -1;
 
 		} else {
@@ -544,6 +1074,14 @@ public class PlinkData {
 		}
 
 		return genotype;
+	}
+
+	public static void displayBits(byte data) {
+		for (int j = 0; j < 8; j++) {
+			System.out.print((j==4? " " : "") + ((data & 0x80) >> 7));
+			data = (byte) (data << 1);
+		}
+		System.out.println("");
 	}
 
 	public static MarkerLookup parseMarkerLookup(String plinkFileRoot) {
@@ -618,7 +1156,7 @@ public class PlinkData {
 	}
 
 	@SuppressWarnings("resource")
-	public static MarkerData[] loadBedUsingRAF(String[] allMarkersInProj, byte[] allChrsInProj, int[] allPositionsInProj, String[] allSamplesInProj, String bedFileName, int[] markersIndicesInProj, int[] markersIndicesInFile, long sampleFingerprint, int[] sampsIndecies) {
+	public static MarkerData[] loadBedUsingRAF(String[] allMarkersInProj, byte[] allChrsInProj, int[] allPositionsInProj, String[] allSamplesInProj, String bedFileName, int[] markersIndicesInProj, int[] markersIndicesInFile, long sampleFingerprint, int[] sampIndices) {
 		MarkerData[] result;
 		RandomAccessFile in;
 		int nSampTotallyInBed;
@@ -641,14 +1179,14 @@ public class PlinkData {
 
 			// Load the data
 			bytesOfOneMarkerInBed = new byte[nBytesPerMarkInBed];
-			genotypes = new byte[sampsIndecies.length];
+			genotypes = new byte[sampIndices.length];
 			for (int i = 0; i < markersIndicesInProj.length; i++) {
 				// Should we do sequential reading?
 				in.seek(3 + i * nBytesPerMarkInBed);
 				in.read(bytesOfOneMarkerInBed);
-				for (int j = 0; j < sampsIndecies.length; j++) {
-					indexBedBytes = sampsIndecies[j] / 4;
-					indexBedBits = sampsIndecies[i] % 4;
+				for (int j = 0; j < sampIndices.length; j++) {
+					indexBedBytes = sampIndices[j] / 4;
+					indexBedBits = sampIndices[i] % 4;
 					genotypes[j] = decodeLastTwoBitsOfABedByte((byte) (bytesOfOneMarkerInBed[indexBedBytes] >> (indexBedBits * 2)));
 				}
 
@@ -666,10 +1204,32 @@ public class PlinkData {
 		return result;
 	}
 
-	public static void main (String[] args) {
-		String fileDir = "N:/statgen/Genvisis/plinkTesting/";
-		String fileNameRoot = "plink";
 
-		convertPedToBed(fileDir, fileNameRoot, true);
+	public static void displayBitMapOfBedFile(String bedFileName, int nBytes) {
+		RandomAccessFile in;
+		byte[] readBuffer;
+		
+		try {
+			in = new RandomAccessFile(bedFileName, "r");
+			readBuffer = new byte[(int) Math.min(nBytes, in.length())];
+			in.read(readBuffer);
+			for (int i = 0; i < readBuffer.length; i++) {
+				displayBits(readBuffer[i]);
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main (String[] args) {
+		displayBitMapOfBedFile("D:/GEDI_exome/gwas_plink.bed", 30);
+
+//		String fileDir = "N:/statgen/Genvisis/plinkTesting/";
+//		String fileNameRoot = "plink";
+//
+//		convertPedToBed(fileDir, fileNameRoot, true);
 	}
 }
