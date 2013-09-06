@@ -389,8 +389,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(EXPORT_CNVS)) {
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(TEST)) {
-//				System.out.println("No new program to test");
-				log.report("No new program to test");
+//				log.report("No new program to test");
+				PlinkData.createBinaryFileSetFromGenvisisData(proj, ClusterFilterCollection.getClusterFilterFilenameSelection(proj), (float) 0.15, "gwas_plink", true, log);
+				CmdLine.run("plink --bfile gwas_plink --recode --out gwas_plink_reverse", "D:/GEDI_exome/");
 			} else if (command.equals(GCMODEL)) {
 				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
