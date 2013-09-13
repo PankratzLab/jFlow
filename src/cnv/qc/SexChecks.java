@@ -78,7 +78,7 @@ public class SexChecks {
 			
 	        time = new Date().getTime();
 	        markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 	        for (int i = 0; i < markerNames.length; i++) {
 	        	markerData = markerDataLoader.requestMarkerData(i);
 	        	if (i % 100 == 0) {
@@ -481,7 +481,7 @@ public class SexChecks {
 			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY, true, log, false)+"pseudoautosomalSearch.xln"));
 			writer.println("SNP\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 			
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerList);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 			time = new Date().getTime();
 			line = "";
 			for (int i = 0; i < markerList.length; i++) {

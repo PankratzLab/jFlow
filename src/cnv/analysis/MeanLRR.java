@@ -166,7 +166,7 @@ public class MeanLRR {
 				numberOfMarkers[i] = markerNames.length;
 				writer.println(regions[i].getUCSClocation()+"\t"+markerNames.length+"\t"+regions[i].getChr()+"\t"+regions[i].getStart()+"\t"+regions[i].getStop()+"\t"+Array.toStr(markerNames));
 				log.report("Computing mean Log R ratios for: "+regions[i].getUCSClocation());
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 				counts = new int[samples.length];
 				for (int j = 0; j < markerNames.length; j++) {
 					markerData = markerDataLoader.requestMarkerData(j);

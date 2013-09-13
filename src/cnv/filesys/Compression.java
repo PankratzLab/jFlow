@@ -5,13 +5,20 @@ import common.Elision;
 
 public class Compression {
 
+	public static final byte REDUCED_PRECISION_XY_NUM_BYTES = 2;
+	public static final float[] REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY = new float[] {(float) 0.000, (float) 65.533};
+	public static final float[] REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE = new float[] {(float) -32.765, (float) 32.767};
+	public static final float[] REDUCED_PRECISION_XY_DEFAULT_RANGE = REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE;
+	public static final byte[] REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES = new byte[] {(byte) 255, (byte) 254};
+	public static final float REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT = (float) -32.677;
 	public static final byte[] REDUCED_PRECISION_XY_NAN_BYTES = new byte[] {(byte) 255, (byte) 255};
-	public static final byte[] REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES = new byte[] {(byte) 255, (byte) 254};
-	public static final float REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT = (float) -1;
+	public static final byte REDUCED_PRECISION_GCBAF_NUM_BYTES = 2;
 	public static final byte[] REDUCED_PRECISION_GCBAF_NAN_BYTES = new byte[] {(byte) 39, (byte) 18};
+	public static final byte REDUCED_PRECISION_LRR_NUM_BYTES = 3;
 	public static final byte[] REDUCED_PRECISION_LRR_NAN_BYTES = new byte[] {(byte) 2, (byte) 0, (byte) 0};	//-13.1072
-	public static final byte[] REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES = new byte[] {(byte) 2, (byte) 0, (byte) 1}; //-13.1071
-	public static final float REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT = (float) -13.1071; //{2, 0, 1}
+	public static final byte[] REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES = new byte[] {(byte) 2, (byte) 0, (byte) 1}; //-13.1071
+	public static final float REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT = (float) -13.1071; //{2, 0, 1}
+	public static final byte REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES = 1;
 //	public static final int BYTES_PER_SAMPLE_MARKER = 22;
 	public static final int BYTES_PER_SAMPLE_MARKER = 12;
 //	public static final int BYTES_PER_SAMPLE_MARKER = 10;
@@ -174,7 +181,7 @@ public class Compression {
 		int data;
 		if (Float.isNaN(xyValue)) {
 			return REDUCED_PRECISION_XY_NAN_BYTES;
-		} else if (xyValue>65.533 || xyValue<0) {
+		} else if (xyValue < REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[0] || xyValue > REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[1]) {
 			throw new Elision("The value of X or Y (" + xyValue + ") is out of the specified range of [0, 32.767] for compression.");
 //			return REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES;
 		} else {
@@ -193,15 +200,15 @@ public class Compression {
 	 * @param startPosition the position of byte[] array to hold the output.
 	 * @return false means the xOrY is out of the range for compression, while true means the compression is successful. 
 	 */
-	public static boolean xyCompress(float xyValue, byte[] array, int startPosition) {
+	public static boolean xyCompressPositiveOnly(float xyValue, byte[] array, int startPosition) {
 		int data;
 		if (Float.isNaN(xyValue)) {
 			array[startPosition] = REDUCED_PRECISION_XY_NAN_BYTES[0];
 			array[startPosition+1] = REDUCED_PRECISION_XY_NAN_BYTES[1];
 			return true;
-		} else if (xyValue>65.533 || xyValue<0) {
-			array[startPosition] = REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[0];
-			array[startPosition+1] = REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[1];
+		} else if (xyValue < REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[0] || xyValue > REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[1]) {
+			array[startPosition] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0];
+			array[startPosition+1] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1];
 			return false;
 		} else {
 //			Note: Currently, the conversion from float to int is through the operation of *1000. Need to change it to bit conversion to pursue higher accuracy.
@@ -212,21 +219,68 @@ public class Compression {
 		}
 	}
 
+	public static boolean xyCompressAllowNegative(float xyValue, byte[] array, int startPosition) {
+		int data;
+		byte sign;
+		if (Float.isNaN(xyValue)) {
+			array[startPosition] = REDUCED_PRECISION_XY_NAN_BYTES[0];
+			array[startPosition+1] = REDUCED_PRECISION_XY_NAN_BYTES[1];
+			return true;
+		} else if (xyValue < REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE[0] || xyValue > REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE[1]) {
+			array[startPosition] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0];
+			array[startPosition+1] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1];
+			return false;
+		} else {
+//			Note: Currently, the conversion from float to int is through the operation of *1000. Need to change it to bit conversion to pursue higher accuracy.
+			data = (int) Math.round(xyValue * 1000);
+			if (data > 0) {
+				sign = 0x00;
+			} else {
+				data = -data;
+				sign = (byte) 0x80;
+			}
+			array[startPosition] = (byte)((data >> 8) & 0x7f | sign);
+			array[startPosition+1] = (byte)(data & 0xff);
+			return true;
+		}
+	}
+
 	/**
 	 * Converts a byte[] into a float X or Y value.
 	 * @param data the byte[] to hold the output.
 	 * @return the float. 
 	 */
-	public static float xyDecompress(byte[] data) {
+	public static float xyDecompressPositiveOnly(byte[] data) {
 	    if (data == null || data.length != 2) {
 	    	return (Float) null;
 	    } else if ( data[0]==REDUCED_PRECISION_XY_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_XY_NAN_BYTES[1] ) {
 	    	return Float.NaN;
-	    } else if ( data[0]==REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[0] && data[1]==REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES[1] ) {
-	    	return -1;
+	    } else if ( data[0]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0] && data[1]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1] ) {
+	    	return REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT;
 	    } else {
 //			Note: Currently, the conversion from float to int is through the operation of /1000. Need to change it to bit conversion to pursue higher accuracy.
 	    	return (int)(((byte) 0 << 16 & 0xff0000) | (data[0] << 8 & 0xff00) | (0xff & data[1])) / (float)1000;
+	    }
+	}
+
+	public static float xyDecompressAllowNegative(byte[] data) {
+		boolean sign;
+		int temp;
+	    if (data == null || data.length != 2) {
+	    	return (Float) null;
+	    } else if ( data[0]==REDUCED_PRECISION_XY_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_XY_NAN_BYTES[1] ) {
+	    	return Float.NaN;
+	    } else if ( data[0]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0] && data[1]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1] ) {
+	    	return REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT;
+	    } else {
+//			Note: Currently, the conversion from float to int is through the operation of /1000. Need to change it to bit conversion to pursue higher accuracy.
+	    	sign = ((data[0] & 0x80) == 0x00);
+	    	temp = (int)((data[0] << 8 & 0x7f00) | (0xff & data[1]));
+	    	if (sign) {
+	    		return temp / (float)1000;
+	    	} else {
+	    		return (-temp) / (float)1000;
+	    	}
 	    }
 	}
 
@@ -325,9 +379,9 @@ public class Compression {
 			array[startPosition+2] = REDUCED_PRECISION_LRR_NAN_BYTES[2];
 			return 0;
 		} else if (lrr<(float)-13.1071 || lrr>(float)13.1071) {
-			array[startPosition] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES[0];
-			array[startPosition+1] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES[1];
-			array[startPosition+2] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES[2];
+			array[startPosition] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0];
+			array[startPosition+1] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1];
+			array[startPosition+2] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2];
 			return -1;
 		} else {
 //			Note: Currently, the conversion from float to int is through the operation of *10000. Need to change it to bit conversion to pursue higher accuracy.
@@ -350,8 +404,8 @@ public class Compression {
 	    	return (Float) null;
 	    } else if (data[0]==REDUCED_PRECISION_LRR_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_LRR_NAN_BYTES[1] && data[2]==REDUCED_PRECISION_LRR_NAN_BYTES[2]) {
 	    	return Float.NaN;
-	    } else if (data[0]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES[0] && data[1]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES[1] && data[2]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES[2]) {
-	    	return (float) REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT;
+	    } else if (data[0]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0] && data[1]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1] && data[2]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2]) {
+	    	return (float) REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT;
 	    } else if (data[0]<2) {
 	    	return (int)( 0x0001ffff & (((0x1 & data[0]) << 16) | ((0xff & data[1]) << 8) | (0xff & data[2]))) / (float)10000;
 	    } else {

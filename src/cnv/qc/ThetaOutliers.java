@@ -54,7 +54,7 @@ public class ThetaOutliers {
 
 	        time = new Date().getTime();
 	        markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 	        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
 	        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
 	        } else {

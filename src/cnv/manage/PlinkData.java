@@ -387,7 +387,7 @@ public class PlinkData {
 	 * @param clusterFilterFileName
 	 * @param gcThreshold
 	 */
-	public static void createBinaryFileSetFromGenvisisData(Project proj, String clusterFilterFileName, float gcThreshold, String bedFilenameRoot, boolean isSnpMajor, Logger log) {
+	public static boolean createBinaryFileSetFromGenvisisData(Project proj, String clusterFilterFileName, float gcThreshold, String bedFilenameRoot, boolean isSnpMajor, Logger log) {
 		String[] targetMarks;
 		int[] indicesOfTargetSampsInProj;
 		int[] indicesOfTargetMarksInProj;
@@ -397,16 +397,15 @@ public class PlinkData {
 		char[][] abLookup;
 		String[] targetSamps;
 		
-		targetSamps = createFamFile(proj, bedFilenameRoot, log);
 
 		bedFilenameRoot = proj.getProjectDir() + bedFilenameRoot;
 		if (new File(bedFilenameRoot + ".bed").exists() || new File(bedFilenameRoot + ".bim").exists() || new File(bedFilenameRoot + ".fam").exists()) {
 			log.reportError("System abort. Plink binary file set \"" + bedFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file or use another file name to try again.");
-			System.exit(1);
+			return false;
 		}
 
+		targetSamps = createFamFile(proj, bedFilenameRoot, log);
 		allSampsInProj = proj.getSamples();
-		
 		if (targetSamps != null) {
 			indicesOfTargetSampsInProj = getSortedIndicesOfTargetSampsInProj(allSampsInProj, targetSamps, log);
 			targetSamps = new String[indicesOfTargetSampsInProj.length];
@@ -440,6 +439,7 @@ public class PlinkData {
 
 		createBimFile(targetMarks, chrsOfTargetMarks, posOfTargetMarks, abLookup, bedFilenameRoot, log);
 
+		return true;
 	}
 
 	public static int[] getSortedIndicesOfTargetSampsInProj(String[] allSampInProj, String[] targetSamps, Logger log) {
@@ -818,6 +818,10 @@ public class PlinkData {
 		dna = new Vector<String>();
 
 		try {
+			if (new File(proj.getFilename(Project.PEDIGREE_FILENAME)).exists()) {
+				log.reportError("Error - pedigree file is not found. Program aborted.");
+				return null;
+			}
 			reader = new BufferedReader(new FileReader(proj.getFilename(Project.PEDIGREE_FILENAME)));
 			writer = new PrintWriter(new FileWriter(famDirAndFilenameRoot+".fam"));
 			count = 1;

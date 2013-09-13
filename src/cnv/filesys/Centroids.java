@@ -200,7 +200,7 @@ public class Centroids implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
 		
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 		time = new Date().getTime();
 		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);
@@ -342,7 +342,7 @@ public class Centroids implements Serializable {
         samples = proj.getSamples();
         for (int i = 0; i<samples.length; i++) {
         	original = proj.getFullSampleFromRandomAccessFile(samples[i]);
-        	sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes());
+        	sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
         	sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION);
         }
 	}
