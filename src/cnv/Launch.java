@@ -340,10 +340,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //						if () {
 //							
 //						}
-					success = cnv.manage.PlinkFormat.createPlink(proj, filename, proj.getLog());
+//					success = cnv.manage.PlinkFormat.createPlink(proj, filename, proj.getLog());
+					success = PlinkData.createBinaryFileSetFromGenvisisData(proj, filename, (float) 0.15, "plink", true, log);
 					if (success) {
 						try {
-							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+//							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+//							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
 							new File(proj.getProjectDir()+"genome/").mkdirs();
 							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
@@ -352,6 +354,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					}
 		//			vis cnv.manage.PlinkFormat root=../plink genome=6
 				}
+
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
 			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
@@ -390,8 +393,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(TEST)) {
 //				log.report("No new program to test");
-				PlinkData.createBinaryFileSetFromGenvisisData(proj, ClusterFilterCollection.getClusterFilterFilenameSelection(proj), (float) 0.15, "gwas_plink", true, log);
-				CmdLine.run("plink --bfile gwas_plink --recode --out gwas_plink_reverse", "D:/GEDI_exome/");
+				ScatterPlot.createAndShowGUI(proj, null, null);
 			} else if (command.equals(GCMODEL)) {
 				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {

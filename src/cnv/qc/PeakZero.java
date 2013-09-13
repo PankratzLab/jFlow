@@ -65,7 +65,7 @@ public class PeakZero {
 
 	        time = new Date().getTime();
 			markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				if (i % 100 == 0) {

@@ -165,7 +165,7 @@ public class ParseIllumina implements Runnable {
 						for (int j = 0; j<Sample.DATA_FIELDS.length; j++) {
 							try {
 								if (dataIndices[j] != -1) {
-									if (line[dataIndices[j]].equals("")) {
+									if (ext.isMissingValue(line[dataIndices[j]])) {
 										data[j][key] = Float.NaN;
 									} else {
 										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
@@ -221,7 +221,7 @@ public class ParseIllumina implements Runnable {
 						return;
 					}
 
-					samp = new Sample(sampleName, fingerprint, data, genotypes);
+					samp = new Sample(sampleName, fingerprint, data, genotypes, false);
 //					samp.serialize(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
 //					samp.saveToRandomAccessFile(filename);
 					samp.saveToRandomAccessFile(filename, allOutliers, sampleName); //TODO sampleIndex
@@ -741,7 +741,7 @@ public class ParseIllumina implements Runnable {
 									return;
 								}
 								
-								samp = new Sample(sampleName, fingerprint, data, genotypes);
+								samp = new Sample(sampleName, fingerprint, data, genotypes, false);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
 							}
 							if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
@@ -776,10 +776,14 @@ public class ParseIllumina implements Runnable {
 												dupHash.add(line[snpIndex]);
 												System.err.println("Sample "+trav+" already has data for marker "+line[snpIndex]+" (Was the parsing restarted? Delete the old directories first)");
 											}
-											data[j][key] = Float.parseFloat(line[dataIndices[j]]);
+											if (ext.isMissingValue(line[dataIndices[j]])) {
+												data[j][key] = Float.NaN;
+											} else {
+												data[j][key] = Float.parseFloat(line[dataIndices[j]]);
+											}
 										}
 									} catch (NumberFormatException nfe) {
-										System.err.println("Error - failed to parse"+line[dataIndices[j]]+" into a valid "+Sample.DATA_FIELDS[j]);
+										System.err.println("Error - failed to parse '"+line[dataIndices[j]]+"' into a valid "+Array.toStr(Sample.DATA_FIELDS[j], "/"));
 										return;
 									}
 								}

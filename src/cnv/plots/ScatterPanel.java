@@ -178,7 +178,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
 		datapoints = markerData.getDatapoints(plotType);
-		//		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
+//		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
 //		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop

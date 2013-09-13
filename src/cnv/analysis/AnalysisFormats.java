@@ -263,7 +263,8 @@ public class AnalysisFormats implements Runnable {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+//		String filename = Project.DEFAULT_PROJECT;
+		String filename = "C:/workspace/Genvisis/projects/gedi_gwas.properties";
 		int numThreads = 6;
 		int program = PENN_CNV;
 		String filterRegions = "";

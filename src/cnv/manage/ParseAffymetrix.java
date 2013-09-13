@@ -211,7 +211,7 @@ public class ParseAffymetrix implements Runnable {
 						return;
 					}
 
-					samp = new Sample(sampleName, fingerprint, data, genotypes);
+					samp = new Sample(sampleName, fingerprint, data, genotypes, true);
 //					samp.serialize(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
 //					samp.saveToRandomAccessFile(filename);
 					samp.saveToRandomAccessFile(filename, allOutliers, sampleName); //TODO sampleIndex
@@ -789,7 +789,7 @@ public class ParseAffymetrix implements Runnable {
 									return;
 								}
 								
-								samp = new Sample(sampleName, fingerprint, data, genotypes);
+								samp = new Sample(sampleName, fingerprint, data, genotypes, true);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
 							}
 							if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
@@ -1149,7 +1149,7 @@ public class ParseAffymetrix implements Runnable {
 			return;
 		}
 
-		filename = "/home/npankrat/projects/COGA_exome.properties";
+		filename = "C:/workspace/Genvisis/projects/COGA_exome.properties";
 //		proj = null;
 		proj = new Project(filename, false);
 //

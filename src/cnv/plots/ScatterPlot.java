@@ -2014,9 +2014,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 	
 	public void loadMarkerDataFromList(int newMarkerIndex) {
-		markerDataLoader = new MarkerDataLoader(proj, markerList, -1);
-		thread2 = new Thread(markerDataLoader);
-		thread2.start();
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
+//		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerList);
 
 		markerIndex = newMarkerIndex;
 		initializeIsAnnotated(markerList);

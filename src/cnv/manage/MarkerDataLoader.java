@@ -11,7 +11,9 @@ import cnv.filesys.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.*;
 
@@ -107,7 +109,7 @@ public class MarkerDataLoader implements Runnable {
 				}
 
 				if (readAheadLimit == -1) {
-					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineBytesPerMarkerData(proj.getDir(Project.MARKER_DATA_DIRECTORY)+line[0]));
+					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineNBytesPerMarker(proj.getDir(Project.MARKER_DATA_DIRECTORY)+line[0]));
 					System.out.println("Read ahead limit was computed to be "+readAheadLimit+" markers at a time");
 				}
 			} else {
@@ -127,22 +129,24 @@ public class MarkerDataLoader implements Runnable {
 //		this.positions = positions;
 //	}
 
-	public static int determineBytesPerMarkerData(String filename) {
+	public static int determineNBytesPerMarker(String filename) {
 		RandomAccessFile file;
 		byte[] parameterReadBuffer;
 		byte nullStatus;
-		int numSamplesObserved, bytesPerSampMark;
+		int nSampObserved, nBytesPerSampMark;
 
 		parameterReadBuffer = new byte[TransposeData.MARKDATA_PARAMETER_TOTAL_LEN];
         try {
 			file = new RandomAccessFile(filename, "r");
 			file.read(parameterReadBuffer);
 			nullStatus = parameterReadBuffer[TransposeData.MARKDATA_NULLSTATUS_START];
-			bytesPerSampMark = Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01);
-			numSamplesObserved = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMSAMPS_START);
+//			bytesPerSampMark = Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01);
+			nBytesPerSampMark = Sample.getNBytesPerSampMark(nullStatus);
+			nSampObserved = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMSAMPS_START);
 			file.close();
-			return numSamplesObserved*bytesPerSampMark;
-		} catch (FileNotFoundException e) {
+			return nSampObserved * nBytesPerSampMark;
+
+        } catch (FileNotFoundException e) {
 			System.err.println("Error - could not find RAF marker file '"+filename+"'");
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -232,7 +236,6 @@ public class MarkerDataLoader implements Runnable {
 
 		fingerprint = proj.getSampleList().getFingerprint();
 
-		System.out.println("Marker data is loading in an independent thread.");
 		markerSet = proj.getMarkerSet();
 		allMarkersInProj = markerSet.getMarkerNames();
 		allChrsInProj = markerSet.getChrs();
@@ -245,6 +248,7 @@ public class MarkerDataLoader implements Runnable {
 		}
 		time = new Date().getTime();
 		count = 0;
+		System.out.println("filenames.size(): " + filenames.size());
 		while (filenames.size() > 0) {
 			while (loaded[currentIndexBeingLoaded]) {
 				if (currentIndexBeingLoaded+1 == markerNames.length) {
@@ -380,6 +384,7 @@ public class MarkerDataLoader implements Runnable {
         byte bytesPerSampMark = 0;
         int indexStart;
         int numSamplesObserved;
+        boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXYAllowed;
 
         fingerprint = -1;
         numSamplesProj = allSampsInProj.length;
@@ -390,7 +395,8 @@ public class MarkerDataLoader implements Runnable {
 			file.read(parameterReadBuffer);
 //			numMarkers = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMMARKS_START);
 			nullStatus = parameterReadBuffer[TransposeData.MARKDATA_NULLSTATUS_START];
-			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
+//			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
+			bytesPerSampMark = Sample.getNBytesPerSampMark(nullStatus);
 			numBytesPerMarker = bytesPerSampMark * numSamplesProj;
 			readBuffer = new byte[markersIndicesInFile.length][numBytesPerMarker];
 			numSamplesObserved = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_NUMSAMPS_START);
@@ -433,13 +439,21 @@ public class MarkerDataLoader implements Runnable {
 			e.printStackTrace();
 		}
 
+		isGcNull = Sample.isGcNull(nullStatus);
+		isXNull = Sample.isXNull(nullStatus);
+		isYNull = Sample.isYNull(nullStatus);
+		isBafNull = Sample.isBafNull(nullStatus);
+		isLrrNull = Sample.isLrrNull(nullStatus);
+		isGenotypeNull = Sample.isAbOrForwardGenotypeNull(nullStatus);
+		isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
+
         for (int i=0; i<markersIndicesInFile.length; i++) {
 			indexReadBuffer = 0;
 
 			indexStart = 0;
 			indexReadBuffer = indexStart;
 //			time = new Date().getTime();
-			if (((nullStatus>>Sample.NULLSTATUS_GC_LOCATION) & 0x01) != 1) {
+			if (! isGcNull) {
 				if (loadGC) {
 					gcs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
@@ -450,12 +464,16 @@ public class MarkerDataLoader implements Runnable {
 				indexStart += 2;
 			}
 			indexReadBuffer = indexStart;
-			if (((nullStatus>>Sample.NULLSTATUS_X_LOCATION) & 0x01) != 1) {
+			if (! isXNull) {
 				if (loadXY) {
 					xs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
-						xs[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
-						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
+						if (isNegativeXYAllowed) {
+							xs[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						} else {
+							xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						}
+						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 //							xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
 							xs[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tx");
 						}
@@ -465,12 +483,16 @@ public class MarkerDataLoader implements Runnable {
 				indexStart += 2;
 			}
 			indexReadBuffer = indexStart;
-			if (((nullStatus>>Sample.NULLSTATUS_Y_LOCATION) & 0x01) != 1) {
+			if (! isYNull) {
 				if (loadXY) {
 					ys = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
-						ys[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
-						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
+						if (isNegativeXYAllowed) {
+							ys[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						} else {
+							ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+						}
+						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 //							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
 							ys[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\ty");
 						}
@@ -481,7 +503,7 @@ public class MarkerDataLoader implements Runnable {
 				indexStart += 2;
 			}
 			indexReadBuffer = indexStart;
-			if (((nullStatus>>Sample.NULLSTATUS_BAF_LOCATION) & 0x01) != 1) {
+			if (! isBafNull) {
 				if (loadBAF) {
 					bafs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
@@ -492,12 +514,12 @@ public class MarkerDataLoader implements Runnable {
 				indexStart += 2;
 			}
 			indexReadBuffer = indexStart;
-			if (((nullStatus>>Sample.NULLSTATUS_LRR_LOCATION) & 0x01) != 1) {
+			if (! isLrrNull) {
 				if (loadLRR) {
 					lrrs = new float[numSamplesProj];
 					for (int j=0; j<numSamplesProj; j++) {
 						lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
-						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT) {
+						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
 //							lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
 							lrrs[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tlrr");
 						}
@@ -507,7 +529,7 @@ public class MarkerDataLoader implements Runnable {
 				indexStart += 3;
 			}
 			indexReadBuffer = indexStart;
-			if ((((nullStatus>>Sample.NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) != 1 || ((nullStatus>>Sample.NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) != 1) && loadAbGenotype) {
+			if (! isGenotypeNull && loadAbGenotype) {
 				abGenotypes = new byte[numSamplesProj];
 		        alleleMappings = new String[numSamplesProj];
 				for (int j=0; j<numSamplesProj; j++) {
@@ -541,15 +563,28 @@ public class MarkerDataLoader implements Runnable {
 		return result;
 	}
 
-	public static MarkerDataLoader loadMarkerDataFromList(Project proj, String[] markerList) {
+	public static MarkerDataLoader loadMarkerDataFromListInSeparateThread(Project proj, String[] markerList) {
 		MarkerDataLoader markerDataLoader;
 		Thread thread2;
 		int amountToLoadAtOnceInMB;
 		
+		System.out.println("Marker data is loading in an independent thread.");
 		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
 		markerDataLoader= new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
+
+		return markerDataLoader;
+	}
+	
+	public static MarkerDataLoader loadMarkerDataFromListInSameThread(Project proj, String[] markerList) {
+		MarkerDataLoader markerDataLoader;
+		int amountToLoadAtOnceInMB;
+		
+		System.out.println("Marker data is loading in the same thread.");
+		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
+		markerDataLoader= new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
+		markerDataLoader.run();
 
 		return markerDataLoader;
 	}

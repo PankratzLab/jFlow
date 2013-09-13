@@ -48,8 +48,9 @@ public class TransposeData {
 	public static void transposeData(Project proj, long markerFileSizeSuggested, boolean keepAllSampleFilesOpen, Logger log) {
 		boolean isFileClosed;
 		boolean done; // safe;
-		byte nullStatus = Byte.MIN_VALUE;
-        byte bytesPerSampMark;
+//		byte nullStatus = Byte.MIN_VALUE;
+		byte nullStatus = 0;
+        byte nBytesPerSampMark;
         byte backupCount;
 		int nBytes_Mark;
 		int nMarks_WrtBuffer;
@@ -76,7 +77,7 @@ public class TransposeData {
         byte[] markFileParameterSection;
         byte[] readBuffer;
 		byte[] markFileOutliersBytes = null;
-        byte[][] writeBuffer = null;
+        byte[][] wrtBuffer = null;
 		byte[][] markersInEachFile;
 		int[] wrtBufferSizes;
 		int[] parameters;
@@ -110,9 +111,10 @@ public class TransposeData {
 		fingerPrint = MarkerSet.fingerprint(allSampleNamesInProj);
 		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 
-		bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
-		nBytes_Mark = allSampleNamesInProj.length * bytesPerSampMark;
-		if (new File(proj.getProjectDir()).getFreeSpace() <= (allSampleNamesInProj.length * (long)allMarkerNamesInProj.length * bytesPerSampMark)) {
+//		nBytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
+		nBytesPerSampMark = Sample.getNBytesPerSampMark(nullStatus);
+		nBytes_Mark = allSampleNamesInProj.length * nBytesPerSampMark;
+		if (new File(proj.getProjectDir()).getFreeSpace() <= (allSampleNamesInProj.length * (long)allMarkerNamesInProj.length * nBytesPerSampMark)) {
 			log.reportError("Not enough disk space for all the new data to be created. Available: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + "; Required: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + ").");
 			return;
 		}
@@ -130,10 +132,10 @@ public class TransposeData {
 				nMarks_File = (int) Math.min((double)markerFileSizeSuggested / (double)nBytes_Mark, allMarkerNamesInProj.length);
 
 				parameters = optimizeFileAndBufferSize(nMarks_WrtBuffer, allMarkerNamesInProj.length, nBytes_Mark, nMarks_File);
-				nMarks_File = parameters[0];
-				if (nMarks_File<0) {
-					System.out.println();
-				}
+//				nMarks_File = parameters[0];
+//				if (nMarks_File<0) {
+//					System.out.println();
+//				}
 				nMarks_WrtBuffer = parameters[1];
 				nChunks_WrtBuffer = parameters[2];
 				nMarks_Chunk = parameters[3];
@@ -171,12 +173,12 @@ public class TransposeData {
 				}
 		
 				indexFirstMarkerCurrentIteration = 0;
-				readBuffer = new byte[nMarks_WrtBuffer * bytesPerSampMark];
+				readBuffer = new byte[nMarks_WrtBuffer * nBytesPerSampMark];
 				
-				writeBuffer = new byte[nChunks_WrtBuffer][nMarks_Chunk * nBytes_Mark];
+				wrtBuffer = new byte[nChunks_WrtBuffer][nMarks_Chunk * nBytes_Mark];
 				wrtBufferSizes = new int[nChunks_WrtBuffer];
 				for (int i = 0; i < wrtBufferSizes.length; i++) {
-					wrtBufferSizes[i] = writeBuffer[i].length;
+					wrtBufferSizes[i] = wrtBuffer[i].length;
 				}
 
 //				if (!safe) {
@@ -220,7 +222,7 @@ public class TransposeData {
 					if ((i+1)==nRounds_LoadSampFile && nMarks_LastRound != 0) {
 //						readBuffer = new byte[nMarks_LastRound * bytesPerSampMark];
 						nChunks_WrtBuffer = (int) Math.ceil((double)nMarks_LastRound / (double)nMarks_Chunk);
-						for (int j = nChunks_WrtBuffer; j< writeBuffer.length; j++) {
+						for (int j = nChunks_WrtBuffer; j< wrtBuffer.length; j++) {
 							wrtBufferSizes[j] = 0;
 						}
 						wrtBufferSizes[nChunks_WrtBuffer - 1] = (nMarks_LastRound % nMarks_Chunk) * nBytes_Mark; 
@@ -245,13 +247,13 @@ public class TransposeData {
 //						} else {
 //							loadSampleFileToWriteBuffer1(sampleFile, readBuffer, j, indexFirstMarkerCurrentIteration, bytesPerSampMark, allMarkersInProj.length, null);
 //						}
-						Sample.loadFromRandomAccessFileWithoutDecompress(sampleFile, readBuffer, true, j, indexFirstMarkerCurrentIteration, bytesPerSampMark, allMarkerNamesInProj.length, null);
+						Sample.loadFromRandomAccessFileWithoutDecompress(sampleFile, readBuffer, true, j, indexFirstMarkerCurrentIteration, nBytesPerSampMark, allMarkerNamesInProj.length, null);
 //						Sample.loadFromRandomAccessFileWithoutDecompress(sampleFile, readBuffer, ! keepAllSampleFilesOpen, j, indexFirstMarkerCurrentIteration, bytesPerSampMark, allMarkerNamesInProj.length, null);
 
 						timerLoadFiles += (new Date().getTime() - timerTmp);
 						timerTmp = new Date().getTime();
 
-						transposeBuffer(writeBuffer, wrtBufferSizes, readBuffer, bytesPerSampMark, indexFirstMarkerCurrentIteration, j, allSampleNamesInProj.length);
+						transposeBuffer(wrtBuffer, wrtBufferSizes, readBuffer, nBytesPerSampMark, indexFirstMarkerCurrentIteration, j, allSampleNamesInProj.length);
 
 						timerTransposeMemory += (new Date().getTime() - timerTmp);
 
@@ -269,7 +271,11 @@ public class TransposeData {
 						if (isFileClosed) {
 							numBufferChunksNeededCurrentMarkFile = Math.min(nChunks_File, countTotalChunks_MarkerFile);
 							countTotalChunks_MarkerFile -= numBufferChunksNeededCurrentMarkFile;
-							markFileParameterSection = getWriteBufferParameterSection(allSampleNamesInProj.length, markerFileIndex == (nFiles - 1)? allMarkerNamesInProj.length % nMarks_File : nMarks_File, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
+							if (markerFileIndex == (nFiles - 1) && allMarkerNamesInProj.length % nMarks_File > 0) {
+								nMarks_File = allMarkerNamesInProj.length % nMarks_File;
+							}
+//							markFileParameterSection = getWriteBufferParameterSection(allSampleNamesInProj.length, markerFileIndex == (nFiles - 1)? allMarkerNamesInProj.length % nMarks_File : nMarks_File, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
+							markFileParameterSection = getWriteBufferParameterSection(allSampleNamesInProj.length, nMarks_File, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
 							timerWriteFiles = 0;
 //							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");
 						} else {
@@ -294,7 +300,7 @@ public class TransposeData {
 
 						timerTmp = new Date().getTime();
 //						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, index_WrtBufferEnd, markerFile, markFileParameterSection, markFileOutliersBytes);
-						writeBufferToRAF(writeBuffer, wrtBufferSizes, j, index_WrtBufferEnd, markerFilenames[markerFileIndex], markFileParameterSection, markFileOutliersBytes);
+						writeBufferToRAF(wrtBuffer, wrtBufferSizes, j, index_WrtBufferEnd, markerFilenames[markerFileIndex], markFileParameterSection, markFileOutliersBytes);
 						j = index_WrtBufferEnd;
 						if (isFileClosed) {
 							markerFileIndex ++;
@@ -730,7 +736,7 @@ public class TransposeData {
 			if (sampleIndex == -1) {
 				System.err.println("Error - Cannot find the sample " + line[1] + "in the project's sample list.");
 			}
-			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex, allOutliers.get(key));
+			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex + "\t" + line[2], allOutliers.get(key));
 		}
 
 		return result;
@@ -939,10 +945,10 @@ public class TransposeData {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static MarkerData[] loadFromRAF(String markerFilename, int[] indeciesOfMarkersToLoad) {
+	public static MarkerData[] loadFromRAF(String markerFilename, int[] targertMarkIndicesInFile) {
 		MarkerData[] result = null;
 		RandomAccessFile file;
-        int numBytesPerMarker;
+        int nBytesPerMarker;
         float[] gcs = null;
         float[] xs = null;
         float[] ys = null;
@@ -958,28 +964,32 @@ public class TransposeData {
         int markernamesSectionLength;
         Hashtable<String, Float> outOfRangeValues = null;
         byte nullStatus = 0;
-        byte bytesPerSampMark = 0;
+        byte nBytesPerSampMark = 0;
         int indexStart;
-        int numSamples;
+        int nSamples;
         int numMarkersInThisFile;
         long fingerPrint;
         String[] markerNames;
         int lengthOfOutOfRangeHashtable;
-//        boolean loadGC, loadXY, loadBAF, loadLRR;
+        boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXOrYAllowed;
 
         try {
 			file = new RandomAccessFile(markerFilename, "r");
         	parameters = new byte[TransposeData.MARKDATA_PARAMETER_TOTAL_LEN];
 			file.read(parameters);
-			numSamples = Compression.bytesToInt(parameters, TransposeData.MARKDATA_NUMSAMPS_START);
+			nSamples = Compression.bytesToInt(parameters, TransposeData.MARKDATA_NUMSAMPS_START);
 			numMarkersInThisFile = Compression.bytesToInt(parameters, TransposeData.MARKDATA_NUMMARKS_START);
 			nullStatus = parameters[TransposeData.MARKDATA_NULLSTATUS_START];
-//			loadGC = ((nullStatus >>6 & 0x01) == 1);
-//			loadXY = ((nullStatus >>5 & 0x01) == 1 || (nullStatus >>4 & 0x01) == 1);
-//			loadBAF = ((nullStatus >>3 & 0x01) == 1);
-//			loadLRR = ((nullStatus >>2 & 0x01) == 1);
-			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
-			numBytesPerMarker = bytesPerSampMark * numSamples;
+			isGcNull = Sample.isGcNull(nullStatus);
+			isXNull = Sample.isXNull(nullStatus);
+			isYNull = Sample.isYNull(nullStatus);
+			isBafNull = Sample.isBafNull(nullStatus);
+			isLrrNull = Sample.isLrrNull(nullStatus);
+			isGenotypeNull = Sample.isAbOrForwardGenotypeNull(nullStatus);
+			isNegativeXOrYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
+//			nBytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
+			nBytesPerSampMark = Sample.getNBytesPerSampMark(nullStatus);
+			nBytesPerMarker = nBytesPerSampMark * nSamples;
 			fingerPrint = Compression.bytesToLong(parameters, MARKDATA_FINGERPRINT_START);
 			markernamesSectionLength = Compression.bytesToInt(parameters, MARKDATA_MARKNAMELEN_START);
 
@@ -987,103 +997,117 @@ public class TransposeData {
 			file.read(parameters);
 			markerNames = (String[]) Compression.bytesToObj(parameters);
 
-			result = new MarkerData[indeciesOfMarkersToLoad.length];
-			readBuffer = new byte[indeciesOfMarkersToLoad.length][numBytesPerMarker];
+			result = new MarkerData[targertMarkIndicesInFile.length];
+			readBuffer = new byte[targertMarkIndicesInFile.length][nBytesPerMarker];
 
 //	        for (int i=indexStartMarker; i<indexEndMarker; i++) {
-	        for (int i=0; i<indeciesOfMarkersToLoad.length; i++) {
+	        for (int i=0; i<targertMarkIndicesInFile.length; i++) {
 		        //if(indeciesInFile[i-1]+1==indeciesInFile[i]) {No need to seek}
-	        	if (indeciesOfMarkersToLoad[i] < 0 || indeciesOfMarkersToLoad[i] >= numMarkersInThisFile) {
-					System.err.println("Skipped the marker index " + indeciesOfMarkersToLoad[i] + ", because it is out of range.");
+	        	if (targertMarkIndicesInFile[i] < 0 || targertMarkIndicesInFile[i] >= numMarkersInThisFile) {
+					System.err.println("Skipped the marker index " + targertMarkIndicesInFile[i] + ", because it is out of range.");
 	        	} else {
-	        		seekLocation = (long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)markernamesSectionLength + indeciesOfMarkersToLoad[i] * (long)numBytesPerMarker;
+	        		seekLocation = (long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)markernamesSectionLength + targertMarkIndicesInFile[i] * (long)nBytesPerMarker;
 					file.seek(seekLocation);
 					file.read(readBuffer[i]);
 	        	}
 			}
 
 	        // TODO this is read every time, wouldn't it be faster to use the serialized version?
-	        file.seek((long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)markernamesSectionLength + (long) numMarkersInThisFile * (long)numBytesPerMarker);
+	        file.seek((long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)markernamesSectionLength + (long) numMarkersInThisFile * (long)nBytesPerMarker);
 			lengthOfOutOfRangeHashtable = file.readInt();
-			if (lengthOfOutOfRangeHashtable>0) {
+			if (lengthOfOutOfRangeHashtable > 0) {
 				parameters = new byte[lengthOfOutOfRangeHashtable];
 				file.read(parameters);
 				outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(parameters);
 			}
-
 			file.close();
+//			Sample.dumpOutOfRangeValues(outOfRangeValues, "D:/COGA_exome/outlier.xln", false);
 
-	        for (int i=0; i<indeciesOfMarkersToLoad.length; i++) {
+	        for (int i=0; i<targertMarkIndicesInFile.length; i++) {
 				indexReadBuffer = 0;
 	
 				indexStart = 0;
 				indexReadBuffer = indexStart;
-				if (((nullStatus>>Sample.NULLSTATUS_GC_LOCATION) & 0x01) != 1) {
-						gcs = new float[numSamples];
-						for (int j=0; j<numSamples; j++) {
+//				if (((nullStatus>>Sample.NULLSTATUS_GC_LOCATION) & 0x01) != 1) {
+				if (! isGcNull) {
+						gcs = new float[nSamples];
+						for (int j=0; j<nSamples; j++) {
 							gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
-							indexReadBuffer += bytesPerSampMark;
+							indexReadBuffer += nBytesPerSampMark;
 						}
 					indexStart += 2;
 				}
 				indexReadBuffer = indexStart;
-				if (((nullStatus>>Sample.NULLSTATUS_X_LOCATION) & 0x01) != 1) {
-						xs = new float[numSamples];
-						for (int j=0; j<numSamples; j++) {
-							xs[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
-							if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
+//				if (((nullStatus>>Sample.NULLSTATUS_X_LOCATION) & 0x01) != 1) {
+				if (! isXNull) {
+						xs = new float[nSamples];
+						for (int j=0; j<nSamples; j++) {
+							if (isNegativeXOrYAllowed) {
+								xs[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+							} else {
+								xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+							}
+							if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 	//							xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
-								xs[j] = outOfRangeValues.get(i + "\t" + j + "\tx");
+								xs[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\tx");
 							}
-							indexReadBuffer += bytesPerSampMark;
+							indexReadBuffer += nBytesPerSampMark;
 						}
 					indexStart += 2;
 				}
 				indexReadBuffer = indexStart;
-				if (((nullStatus>>Sample.NULLSTATUS_Y_LOCATION) & 0x01) != 1) {
-						ys = new float[numSamples];
-						for (int j=0; j<numSamples; j++) {
-							ys[j] = Compression.xyDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
-							if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLOAT) {
-	//							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
-								ys[j] = outOfRangeValues.get(i + "\t" + j + "\ty");
+//				if (((nullStatus>>Sample.NULLSTATUS_Y_LOCATION) & 0x01) != 1) {
+				if (! isYNull) {
+						ys = new float[nSamples];
+						for (int j=0; j<nSamples; j++) {
+							if (isNegativeXOrYAllowed) {
+								ys[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
+							} else {
+								ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
 							}
-							indexReadBuffer += bytesPerSampMark;
+							if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
+	//							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
+								ys[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\ty");
+							}
+							indexReadBuffer += nBytesPerSampMark;
 						}
 	
 					indexStart += 2;
 				}
 				indexReadBuffer = indexStart;
-				if (((nullStatus>>Sample.NULLSTATUS_BAF_LOCATION) & 0x01) != 1) {
-						bafs = new float[numSamples];
-						for (int j=0; j<numSamples; j++) {
+//				if (((nullStatus>>Sample.NULLSTATUS_BAF_LOCATION) & 0x01) != 1) {
+				if (! isBafNull) {
+						bafs = new float[nSamples];
+						for (int j=0; j<nSamples; j++) {
 							bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
-							indexReadBuffer += bytesPerSampMark;
+							indexReadBuffer += nBytesPerSampMark;
 						}
 					indexStart += 2;
 				}
 				indexReadBuffer = indexStart;
-				if (((nullStatus>>Sample.NULLSTATUS_LRR_LOCATION) & 0x01) != 1) {
-						lrrs = new float[numSamples];
-						for (int j=0; j<numSamples; j++) {
+//				if (((nullStatus>>Sample.NULLSTATUS_LRR_LOCATION) & 0x01) != 1) {
+				if (! isLrrNull) {
+						lrrs = new float[nSamples];
+						for (int j=0; j<nSamples; j++) {
 							lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
-							if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT) {
+							if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
 	//							lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
-								lrrs[j] = outOfRangeValues.get(i + "\t" + j + "\tlrr");
+								lrrs[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\tlrr");
 							}
-							indexReadBuffer += bytesPerSampMark;
+							indexReadBuffer += nBytesPerSampMark;
 						}
 					indexStart += 3;
 				}
 				indexReadBuffer = indexStart;
-				if (((nullStatus>>Sample.NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) != 1 || ((nullStatus>>Sample.NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) != 1) {
-					abGenotypes = new byte[numSamples];
-					alleleMappings = new String[numSamples];
-					for (int j=0; j<numSamples; j++) {
+//				if (((nullStatus>>Sample.NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) != 1 || ((nullStatus>>Sample.NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) != 1) {
+				if (! isGenotypeNull) {
+					abGenotypes = new byte[nSamples];
+					alleleMappings = new String[nSamples];
+					for (int j=0; j<nSamples; j++) {
 						genotypeTmp = Compression.genotypeDecompress(readBuffer[i][indexReadBuffer]);
 						abGenotypes[j] = genotypeTmp[0];
 						alleleMappings[j] = Sample.ALLELE_PAIRS[genotypeTmp[1]];
-						indexReadBuffer += bytesPerSampMark;
+						indexReadBuffer += nBytesPerSampMark;
 					}
 				}
 		        result[i] = new MarkerData(markerNames[i], (byte)0, 0, fingerPrint, gcs, null, null, xs, ys, null, null, bafs, lrrs, abGenotypes, alleleMappings);

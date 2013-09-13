@@ -79,7 +79,7 @@ public class MarkerMetrics {
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			line = "";
 			time = new Date().getTime();
 			System.out.println("hi!");
@@ -190,7 +190,7 @@ public class MarkerMetrics {
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			line = "";
 			time = new Date().getTime();
 			System.out.println("hi!");
@@ -299,7 +299,7 @@ public class MarkerMetrics {
 			} else {
 				markerList = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromList(proj, markerList);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 			time = new Date().getTime();
 			line = "";
 			for (int i = 0; i < markerList.length; i++) {

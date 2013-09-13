@@ -56,7 +56,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int DEFAULT_PLOTPOINTSET_SIZE = 1000000;
 	public static final int SIZE = 12;
 	public static final double HIGHLIGHT_DISTANCE = 20;//= Math.sqrt(SIZE*SIZE/2);
-	public final int DELAY = 0;	//A control variable to reduce the repaint() operations during component resizing;
+	public static final int DELAY = 0;	//A control variable to reduce the repaint() operations during component resizing;
+	public static final int SCATTER_PLOT_TYPE = 1; 
+	public static final int HEAT_MAP_TYPE = 2;
+	public static final int CONNECT_THE_DOTS_TYPE = 3;
+	public static final int DEFAULT_TYPE = SCATTER_PLOT_TYPE;
 	
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX;
@@ -112,7 +116,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private String nullMessage;
 	private boolean randomTest;
 	private int numberOfNaNSamples;
-
+	private int chartType;
 	
 	public AbstractPanel() {
 		canvasSectionMinimumX = 0;
@@ -290,6 +294,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		ProgressBarDialog prog;//zx
     	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
 //    	int index;
+    	
+    	chartType = DEFAULT_TYPE;
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
@@ -558,13 +564,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		step = Math.max((points.length)/100, 1);
 		layers = new Hashtable<String,Vector<PlotPoint>>();
 
-//		if (chartType = 1) {
-		if (false) {
-			drawHeatMap(g, null, 100, 100);
-//		} else if (chartType = 2) {
-		} else if (false) {
+		if (chartType == CONNECT_THE_DOTS_TYPE) {
+//		if (false) {
 			drawLineChart(g);
-		} else {
+		} else if (chartType == HEAT_MAP_TYPE) {
+//		} else if (false) {
+			drawHeatMap(g, null, 100, 100);
+		} else if (chartType == SCATTER_PLOT_TYPE) {
 			for (int i = 0; i<points.length && flow; i++) {
 //				System.out.println("loop");
 //			for (int i = 0; i<points.length; i++) {
@@ -635,6 +641,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 	            }
 	        }
+		} else {
+			System.err.println("Error - invalid chart type: "+chartType);
 		}
 
 
@@ -684,16 +692,18 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void drawHeatMap(Graphics g, byte[] clusters, int nColumns, int nRows) {
 		int cellWidth, cellHeight;
 		int[][] gridIntensities;
+		int[][] gridColors;
 
 		cellWidth = getWidth() / nColumns;
 		cellHeight = getHeight() / nRows;
 
 		gridIntensities = getGridIntensityForHeapMapGrid(nColumns, nRows, cellWidth, cellHeight);
+		gridColors = getColorFromIntensityForHeapMapGrid(gridIntensities);
 
 		for (int i = 0; i < nRows; i++) {
 			for (int j = 0; j < nColumns; j++) {
 				g.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
-				g.setColor(new Color(gridIntensities[i][j]));
+				g.setColor(new Color(gridColors[i][j] * 255, gridColors[i][j] * 255, gridColors[i][j] * 255));
 			}
 		}
 
@@ -715,56 +725,85 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 
 	public int[][] getGridIntensityForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight) {
-		int x, y, xPixel, yPixel;
+		int gridIndexX, gridIndexY, xPixel, yPixel;
 		int[][] intensities;
 
 		intensities = new int[nRows][nColumns];
 		for (int i = 0; i < points.length; i++) {
+			try {
 			xPixel = getXPixel(points[i].getRawX());
 			yPixel = getYPixel(points[i].getRawY());
 
-			if (xPixel < cellWidth && yPixel < cellHeight) {
-				x = xPixel / cellWidth;
-				y = yPixel / cellHeight;
+			if (xPixel >= canvasSectionMinimumX && xPixel <= canvasSectionMaximumX && yPixel >= canvasSectionMinimumY && yPixel <= canvasSectionMaximumY) {
+				gridIndexX = xPixel / cellWidth;
+				gridIndexY = yPixel / cellHeight;
 
-				intensities[x][y] += 2;
+				intensities[gridIndexX][gridIndexY] += 2;
 				
-				if (x < nColumns - 1) {
-					intensities[x+1][y] += 1;
+				if (gridIndexX < nColumns - 1) {
+					intensities[gridIndexX+1][gridIndexY] += 1;
 				}
 
-				if (x > 1) {
-					intensities[x-1][y] += 1;
+				if (gridIndexX > 1) {
+					intensities[gridIndexX-1][gridIndexY] += 1;
 				}
 
-				if (y < nRows - 1) {
-					intensities[x][y+1] += 1;
+				if (gridIndexY < nRows - 1) {
+					intensities[gridIndexX][gridIndexY+1] += 1;
 				}
 
-				if (y > 1) {
-					intensities[x][y-1] += 1;
+				if (gridIndexY > 1) {
+					intensities[gridIndexX][gridIndexY-1] += 1;
 				}
 
-				if (x < nColumns - 1 && y < nRows - 1) {
-					intensities[x+1][y+1] += 1;
+				if (gridIndexX < nColumns - 1 && gridIndexY < nRows - 1) {
+					intensities[gridIndexX+1][gridIndexY+1] += 1;
 				}
 				
-				if (x > 1 && y > 1) {
-					intensities[x-1][y-1] += 1;
+				if (gridIndexX > 1 && gridIndexY > 1) {
+					intensities[gridIndexX-1][gridIndexY-1] += 1;
 				}
 
-				if (x > 1 && y < nRows - 1) {
-					intensities[x-1][y+1] += 1;
+				if (gridIndexX > 1 && gridIndexY < nRows - 1) {
+					intensities[gridIndexX-1][gridIndexY+1] += 1;
 				}
 
-				if (x < nColumns - 1 && y > 1) {
-					intensities[x+1][y-1] += 1;
+				if (gridIndexX < nColumns - 1 && gridIndexY > 1) {
+					intensities[gridIndexX+1][gridIndexY-1] += 1;
 				}
 			}
 
+			} catch (Exception e) {
+				System.out.println("error at " + i);
+			}
 		}
 
 		return intensities;
+	}
+
+	public int[][] getColorFromIntensityForHeapMapGrid(int[][] intensities) {
+		int[][] color;
+		int max;
+		double scale;
+
+		max = 0;
+		for (int i = 0; i < intensities.length; i++) {
+			for (int j = 0; j < intensities[i].length; j++) {
+				if (max < intensities[i][j]) {
+					max = intensities[i][j];
+				}
+			}
+		}
+		scale = (double) 255 / max;
+
+		color = new int[intensities.length][intensities[0].length];
+		for (int i = 0; i < intensities.length; i++) {
+			for (int j = 0; j < intensities[i].length; j++) {
+				color[i][j] = (int) (intensities[i][j] * scale);
+			}
+		}
+
+		return color;
 	}
 
 	public void drawLineChart(Graphics g) {
