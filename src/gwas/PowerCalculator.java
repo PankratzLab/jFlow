@@ -100,6 +100,7 @@ public class PowerCalculator {
 				if (array[index] == -9) {
 					array[index] = getSampleSize(prevalence, rr, maf, numCases, numControls, alpha, unselected, true);
 				}
+//				System.err.println("array["+index+"]: "+array[index]);
 			} else if (array[index] == -9) {
 				return -9;
 			} else if (array[index] <= numCases && array[index-1] >= numCases) {
@@ -114,7 +115,8 @@ public class PowerCalculator {
 				prev = index;
 				do {
 					prev--;
-				} while (array[prev] == -1);
+//					System.err.println("Error - how did this happen at "+prev+": "+array[prev] +"<"+ numCases);
+				} while (array[prev] == -1 && prev > 0);
 				index = (int)Math.floor((double)(index - prev)/2.0) + prev;
 			}
 		}
@@ -222,7 +224,9 @@ public class PowerCalculator {
 //			rangeOfMaf(0.03, 0.01, 250, 250, 100, false); // HB
 //			rangeOfMaf(0.001, 0.01, 252, 871, 500000, false); // OS
 //			rangeOfMaf(0.001, 0.01, 21, 120, 1000, false); // OS
-			rangeOfMaf(0.001, 0.01, 273, 991, 500000, false); // OS
+//			rangeOfMaf(0.001, 0.01, 273, 991, 500000, false); // OS
+			rangeOfMaf(0.01, 0.01, 400, 400, 100000, false); // Diabetes
+			
 //			rangeOfRelativeRisk(0.15, 200, false);
 //			getSampleSize();
 //			getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/power.input");

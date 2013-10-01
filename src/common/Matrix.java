@@ -537,6 +537,30 @@ public class Matrix {
 		return matrix;
 	}
 	
+	/**
+	 * Creates a new matrix from an old matrix using the specified columns in the specified order
+	 * 
+	 * @param data
+	 *            two-dimensional matrix
+	 * @param cols
+	 *            the indices of the columns to be included in the final matrix in their final order
+	 * @return the rearranged matrix in specified order
+	 */
+	public static double[][] extractColumns(double[][] data, int[] cols) {
+		double[][] matrix = new double[data.length][cols.length];
+
+		for (int i = 0; i<matrix.length; i++) {
+			for (int j = 0; j < cols.length; j++) {
+				if (data[i].length - 1 < cols[j]) {
+					System.err.println("Error - trying to extract column index "+(cols[j])+" from a row that doesn't have "+(cols[i]+1)+" columns (row index "+i+" only has "+(data[i].length-1)+" columns)");
+				}
+				matrix[i][j] = data[i][cols[j]];
+			}
+		}
+
+		return matrix;
+	}
+	
 	public static int getSize(String[][] matrix) {
     	int count = 0;
     
@@ -854,6 +878,20 @@ public class Matrix {
 		return clone;		
 	}
 
+	public static String[][] clone(String[][] matrix) {
+		String[][] clone;
+		
+		clone = new String[matrix.length][];
+		for (int i = 0; i < matrix.length; i++) {
+			clone[i] = new String[matrix[i].length];
+			for (int j = 0; j < matrix[i].length; j++) {
+				clone[i][j] = matrix[i][j];
+			}
+		}
+
+		return clone;
+	}
+
 	public static int[][] putInOrder(int[][] matrix, int[] order) {
 		int[][] newMatrix;
 		
@@ -926,4 +964,18 @@ public class Matrix {
 		System.out.println();
 		
     }
+
+	public static double[][] subset(double[][] matrix, boolean[] rowsToKeep) {
+		double[][] subset;
+		int count;
+		
+		count = 0;
+		subset = new double[Array.booleanArraySum(rowsToKeep)][];
+		for (int i = 0; i < matrix.length; i++) {
+			if (rowsToKeep[i]) {
+				subset[count++] = matrix[i];
+			}
+		}
+		return null;
+	}
 }

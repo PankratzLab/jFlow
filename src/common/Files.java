@@ -11,6 +11,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import filesys.*;
+import gwas.Metal;
 import parse.*;
 
 //class DeleteLater implements Runnable {
@@ -100,17 +101,17 @@ public class Files {
 	}
 
 	public static void qsub(String root, int start, int stop, String commands) {
-		qsub(root, start, stop, commands, -1);
+		qsub(root, start, stop, commands, -1, -1);
 	}
 	
-	public static void qsub(String root, int start, int stop, String commands, int memRequiredInGb) {
-		qsub("", root, start, stop, commands, memRequiredInGb);
+	public static void qsub(String root, int start, int stop, String commands, int memRequiredInGb, double walltimeRequestedInHours) {
+		qsub("", root, start, stop, commands, memRequiredInGb, walltimeRequestedInHours);
 	}
 	
-	public static void qsub(String dir, String root, int start, int stop, String commands, int memRequiredInGb) {
+	public static void qsub(String dir, String root, int start, int stop, String commands, int memRequiredInGb, double walltimeRequestedInHours) {
 		String[] lines;
 		
-		lines = qsub(dir, "chr#_"+root, start, stop, commands, null, memRequiredInGb, null);
+		lines = qsub(dir, "chr#_"+root, start, stop, commands, null, memRequiredInGb, walltimeRequestedInHours, null);
 		
 		if (lines.length > 1) {
 			writeList(lines, dir+"master."+(root==null?"qsub":root));
@@ -119,11 +120,13 @@ public class Files {
 	}
 	
 	
-	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int memRequiredInGb, String nodeToUse) {
+	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int memoryRequestedInMb, double walltimeRequestedInHours, String nodeToUse) {
 		PrintWriter writer;
 		String filename;
 		String[] lines;
 		Vector<String> v;
+		Vector<String> params;
+		int hours, minutes;
 
 		if (dir == null) {
 			dir = "";
@@ -140,14 +143,28 @@ public class Files {
 		        writer.println("#!/bin/bash");
 		        writer.println("#$ -cwd");
 		        writer.println("#$ -S /bin/bash");
-		        if (memRequiredInGb > 0) {
-			        writer.println("#$ -l mem_free="+memRequiredInGb+"G,h_vmem="+(memRequiredInGb+1)+"G");
+		        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
+		        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+		        params = new Vector<String>();
+		        if (memoryRequestedInMb > 0) {
+		        	params.add("pmem="+memoryRequestedInMb+"mb");
 		        }
+		        if (walltimeRequestedInHours > 0) {
+		        	hours = (int)Math.floor(walltimeRequestedInHours);
+		        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
+		        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
+		        }
+		        if (params.size() > 0) {
+			        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
+		        	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
+		        }
+
+		        
 		        if (nodeToUse != null) {
 			        writer.println("#$ -q *@"+nodeToUse);
 		        }
 				writer.println();
-				writer.println("echo \"start at: \" `date`");
+				writer.println("echo \"start "+ext.rootOf(filename)+" at: \" `date`");
 				writer.println("/bin/hostname");
 				if (patterns == null) {
 					writer.println(ext.insertNumbers(commands, i));
@@ -168,7 +185,7 @@ public class Files {
 					writer.println("done");
 					writer.println("echo \"Performed $total_reps replicate(s) within this thread\"");
 				}
-				writer.println("echo \"end at: \" `date`");
+				writer.println("echo \"end "+ext.rootOf(filename)+" at: \" `date`");
 				writer.close();
 				chmod(dir+filename, false);
 				v.add("qsub "+filename);
@@ -179,33 +196,76 @@ public class Files {
 		return Array.toStringArray(v);
 	}
 
-	public static void qsubBlade(String root, String module, int start, int stop, String commands, int mem, int hours) {
-		PrintWriter writer, writer2;
+	public static void qsubMultiple(String chunkFilename, String[] jobs, int memRequiredForEachProcessInMb, double walltimeRequestedInHours) {
+		PrintWriter writer;
+		Vector<String> params;
+		int hours, minutes;
 
-		try {
-			writer2 = new PrintWriter(new FileWriter("master."+(root==null?"qsub":root)));
-			for (int i = start; i<=stop; i++) {
-				writer = new PrintWriter(new FileWriter(root+".chr"+i+".qsub"));
-				writer.println("#!/bin/bash -l");
-				writer.println("#PBS -l nodes=1:ppn=1,mem="+mem+"gb,walltime="+hours+":00:00");
-				writer.println("#PBS -m abe"); // the -m abe option, send email if aborted (a), begins running (b), terminates (e)
-				if (module != null && !module.equals("")) {
-					writer.println("module load "+module);
-				}
-				writer.println();
-				writer.println("echo \"start at: \" `date`");
-				writer.println(ext.insertNumbers(commands, i));
-				writer.println("echo \"end at: \" `date`");
-				writer.close();
-				chmod(root+".chr"+i+".qsub", false);
-				writer2.println("qsub "+root+".chr"+i+".qsub");
-			}
-			writer2.close();
-			Files.chmod("master."+(root==null?"qsub":root));
-		} catch (IOException ioe) {
-			throw new RuntimeException("Problem creating "+root+" qsub files");
+        if (jobs.length > 16) {
+        	System.err.println("Error - not optimized past 16 processes; due some testing and implement");
+        	return;
+        }
+
+        try {
+    		writer = new PrintWriter(new FileWriter(chunkFilename));
+            writer.println("#!/bin/bash -l");
+            writer.println("#$ -cwd");
+            writer.println("#$ -S /bin/bash");
+	        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
+	        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+	        params = new Vector<String>();
+            if (memRequiredForEachProcessInMb > 0) {
+            	params.add("pmem="+memRequiredForEachProcessInMb+"mb");
+            }
+            if (walltimeRequestedInHours > 0) {
+            	hours = (int)Math.floor(walltimeRequestedInHours);
+            	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
+            	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
+            }
+            if (jobs.length > 16) {
+            	System.err.println("Error - not optimized past 16 processes; due some testing and implement");
+            } else {
+            	params.add("nodes=1:ppn="+jobs.length);
+            }
+            if (params.size() > 0) {
+    	        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
+            	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
+            }
+            
+            for (int j = 0; j < jobs.length; j++) {
+            	writer.println("pbsdsh -n "+j+" "+jobs[j]+" &");
+            	
+    		}
+    		writer.println("wait");
+    		writer.println("echo \"end at: \" `date`");
+    		writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + chunkFilename);
+			e.printStackTrace();
 		}
+	}
 
+	public static void qsubMultiple(Vector<String> jobNamesWithAbsolutePaths, IntVector jobSizes, String batchDir, String batchRoot, int maxJobsPerBatch, int memRequiredForEachProcessInMb, double walltimeRequestedInHours) {
+		String[] files;
+		int count;
+		Vector<String> v;
+		
+		if (jobSizes == null) {
+			files = Array.toStringArray(jobNamesWithAbsolutePaths);
+		} else {
+			files = Sort.putInOrder(Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING), Array.toStringArray(jobNamesWithAbsolutePaths));
+		}
+		count = 0;
+		v = new Vector<String>();
+		new File(batchDir).mkdirs();
+		v.add("cd "+batchDir);
+		while (count*maxJobsPerBatch < files.length) {
+			Files.qsubMultiple(batchDir+batchRoot+"."+count, Array.subArray(files, count*maxJobsPerBatch, Math.min((count+1)*maxJobsPerBatch,files.length)), memRequiredForEachProcessInMb, walltimeRequestedInHours);
+			v.add("qsub "+batchRoot+"."+count);
+			count++;
+		}
+		Files.writeList(Array.toStringArray(v), "master."+batchRoot);
+		Files.chmod("master."+batchRoot);
 	}
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[][] iterations) {
@@ -254,13 +314,15 @@ public class Files {
 		}
 	}
 
-	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations, int memoryRequestedInMb) {
+	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations, int memoryRequestedInMb, double walltimeRequestedInHours) {
 		PrintWriter[] writers;
 		PrintWriter writer;
 		String trav;
 		String[] lines;
 		int index;
 		String dir;
+		Vector<String> params;
+		int hours, minutes;
 
 		if (iterations.length == 0) {
 			System.out.println("No iterations specified for root "+root_batch_name);
@@ -284,14 +346,23 @@ public class Files {
 			        writers[i].println("#!/bin/bash");
 			        writers[i].println("#$ -cwd");
 			        writers[i].println("#$ -S /bin/bash");
+			        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
+			        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+			        params = new Vector<String>();
 			        if (memoryRequestedInMb > 0) {
-			        	writers[i].println("#PBS -l pmem="+memoryRequestedInMb+"mb");
-				        if (memoryRequestedInMb >= 4000) {
-				        	writers[i].println("#$ -q *@compute-0-0.local");
-				        }
+			        	params.add("pmem="+memoryRequestedInMb+"mb");
+			        }
+			        if (walltimeRequestedInHours > 0) {
+			        	hours = (int)Math.floor(walltimeRequestedInHours);
+			        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
+			        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
+			        }
+			        if (params.size() > 0) {
+				        writers[i].println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
+			        	writers[i].println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
 			        }
 					writers[i].println();
-					writers[i].println("echo \"start at: \" `date`");
+					writers[i].println("echo \"start "+root_batch_name+"_"+(i+1)+" at: \" `date`");
 					writers[i].println("/bin/hostname");
 					if (dirToSwitchToBeforeRunning != null) {
 						writers[i].println("cd "+dirToSwitchToBeforeRunning);
@@ -317,8 +388,9 @@ public class Files {
 			}
 
 			for (int i = 0; i<numBatches; i++) {
-				writers[i].println("echo \"end at: \" `date`");
+				writers[i].println("echo \"end "+root_batch_name+"_"+(i+1)+" at: \" `date`");
 				writers[i].close();
+				chmod(root_batch_name + "_" + (i+1) + ".qsub");
 			}
 			if (numBatches > 1) {
 				chmod("master."+ext.removeDirectoryInfo(root_batch_name));
@@ -381,16 +453,13 @@ public class Files {
 	        if (params.size() > 0) {
 		        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
 	        	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
-//		        if (memoryRequestedInMb >= 4000) {
-//		        	writer.println("#$ -q *@compute-0-0.local");
-//		        }
 	        }
 			writer.println();
-			writer.println("echo \"start at: \" `date`");
+			writer.println("echo \"start "+ext.rootOf(filename)+" at: \" `date`");
 			for (int j = 0; j<lines.length; j++) {
 				writer.println(lines[j]);
 			}
-			writer.println("echo \"end at: \" `date`");
+			writer.println("echo \"end "+ext.rootOf(filename)+" at: \" `date`");
 			writer.close();
 			chmod(filename, false);
 		} catch (IOException ioe) {
@@ -2086,12 +2155,6 @@ public class Files {
 	public static void splitFilesByLine(String dir, String suffix, int start, int stop) {
 		BufferedReader[] readers;
 		PrintWriter writer;
-		String[] line;
-		String temp, trav;
-		Hashtable<String, String> hash = new Hashtable<String, String>();
-		Vector<String> v = new Vector<String>();
-		int count;
-		long time;
 		String[] files;
 		
 		
@@ -2368,13 +2431,13 @@ public class Files {
 		if (separate) {
 			v = new Vector<String>();
 			for (int i = 0; i < lines.length; i++) {
-				qsubs = qsub("", ext.rootOf(filename)+(i+1)+".#", start, stop, lines[i], patterns, -1, null);
+				qsubs = qsub("", ext.rootOf(filename)+(i+1)+".#", start, stop, lines[i], patterns, 5000, 24, null);
 				v.add(qsubs[0]);
 			}
 			writeList(Array.toStringArray(v), "master."+ext.rootOf(filename));
 			Files.chmod("master."+ext.rootOf(filename));
 		} else {
-			qsubs = qsub("", ext.rootOf(filename)+"#", start, stop, Array.toStr(lines, "\n"), patterns, -1, null);
+			qsubs = qsub("", ext.rootOf(filename)+"#", start, stop, Array.toStr(lines, "\n"), patterns, 5000, 24, null);
 			if (qsubs.length > 1) {
 				writeList(qsubs, "master."+ext.rootOf(filename));
 				Files.chmod("master."+ext.rootOf(filename));
@@ -2591,5 +2654,97 @@ public class Files {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static int parsePvals(String filename, String pvalFile, String study, String[] method, Hashtable<String,Hashtable<String,String>> macHashes, int macThreshold, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] header, expected;
+		int index, mafIndex, macIndex;
+		Hashtable<String,String> macHash;
+		String[] line;
+		double threshold;
+		int count;
+		
+		count = -1;
+		
+		if (!Files.exists(filename)) {
+			System.err.println("Error - could not find '"+filename+"'; aborting");
+			return count;
+		}
+		
+		header = Files.getHeaderOfFile(filename, ",!", log);
+		expected = gwas.SkatMeta.getHeaderForMethod(method);
+		ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, true);
+		
+		index = -1;
+		for (int h = 1; h < header.length; h++) {
+			if (ext.indexOfStr(header[h], Metal.PVALUES, false, true) >= 0) {
+				if (index == -1) {
+					index = h;
+				} else {
+					System.err.println("Error - both "+header[index]+" and "+header[h]+" are considered column headers for the p-value; using the former");
+				}
+			}
+		}
+		// generate a file with p-values for Q-Q plots and for lambdas
+		if (index >= 0) {
+			try {
+				reader = new BufferedReader(new FileReader(filename));
+				reader.readLine();
+				writer = new PrintWriter(new FileWriter(pvalFile));
+				count = 0;
+				if (method[1].equals("SingleVariant")) {
+					mafIndex = ext.indexOfStr("maf", header, false, true);
+					if (mafIndex == -1) {
+						log.reportError("Error - no maf listed in single gene test result: "+filename);
+					} else {
+						writer.println("Variant\tpval");
+//						threshold = Double.parseDouble(methods[m][3]); // no longer allowed for singleSNP
+						threshold = Double.parseDouble("0.01");
+						while (reader.ready()) {
+							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+							if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex]) >= threshold) {
+								writer.println(line[1]+"\t"+line[index]);
+							}
+							count++;
+						}
+					}
+				} else if (method[1].equals("BurdenTests")) {
+					macHash = macHashes.get(method[3]);
+					line = macHash.get("studies").split("\t");
+					macIndex = ext.indexOfStr(study, line);
+					if (macIndex == -1) {
+						log.reportError("Error - no minor allele counts for "+ext.rootOf(filename));
+					} else {
+						writer.println("Gene\tpval");
+						while (reader.ready()) {
+							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+							if (macHash.containsKey(line[0])) {
+								if (Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) >= macThreshold) {
+									writer.println(line[0]+"\t"+line[index]);
+								}
+							}
+							count++;
+						}
+					}
+				} else {
+					log.reportError("Error - unknown grouping variable: "+method[1]);
+				}
+				reader.close();
+				writer.close();
+			} catch (FileNotFoundException fnfe) {
+				System.err.println("Error: file \"" + filename + "\" not found in current directory");
+				System.exit(1);
+			} catch (IOException ioe) {
+				System.err.println("Error reading file \"" + filename + "\"");
+				System.exit(2);
+			}
+			
+		} else {
+			log.reportError("Error - could not find p-value column header for file "+filename);
+		}
+		
+		return count;
 	}
 }
