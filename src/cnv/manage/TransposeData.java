@@ -132,7 +132,7 @@ public class TransposeData {
 				nMarks_File = (int) Math.min((double)markerFileSizeSuggested / (double)nBytes_Mark, allMarkerNamesInProj.length);
 
 				parameters = optimizeFileAndBufferSize(nMarks_WrtBuffer, allMarkerNamesInProj.length, nBytes_Mark, nMarks_File);
-//				nMarks_File = parameters[0];
+				nMarks_File = parameters[0];
 //				if (nMarks_File<0) {
 //					System.out.println();
 //				}
@@ -275,6 +275,9 @@ public class TransposeData {
 								nMarks_File = allMarkerNamesInProj.length % nMarks_File;
 							}
 //							markFileParameterSection = getWriteBufferParameterSection(allSampleNamesInProj.length, markerFileIndex == (nFiles - 1)? allMarkerNamesInProj.length % nMarks_File : nMarks_File, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
+							if (i==1) {
+								System.out.println("");
+							}
 							markFileParameterSection = getWriteBufferParameterSection(allSampleNamesInProj.length, nMarks_File, nullStatus, fingerPrint, markersInEachFile[markerFileIndex]);
 							timerWriteFiles = 0;
 //							markerFile = new RandomAccessFile(markerFilenames[markerFileIndex], "rw");

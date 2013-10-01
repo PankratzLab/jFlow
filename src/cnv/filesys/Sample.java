@@ -797,7 +797,7 @@ public class Sample implements Serializable {
 				indexStart += 3;
 			}
 			index = indexStart;
-			if ((isAbOrForwardGenotypeNull(nullStatus)) && loadAbOrForwardGenotypes) {
+			if ((!isAbOrForwardGenotypeNull(nullStatus)) && loadAbOrForwardGenotypes) {
 				abGenotypes = new byte[numMarkers];
 				fwdGenotypes = new byte[numMarkers];
 				for (int j=0; j<numMarkers; j++) {

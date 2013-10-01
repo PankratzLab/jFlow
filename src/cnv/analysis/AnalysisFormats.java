@@ -54,11 +54,20 @@ public class AnalysisFormats implements Runnable {
 		Sample samp;
 		float[] lrrs, bafs;
 		byte[] genotypes;
+		boolean jar;
 
 		new File(proj.getProjectDir()+"penn_data/").mkdirs();
+		jar = proj.getJarStatus();
 		for (int i = 0; i<samples.length; i++) {
 			System.out.println(ext.getTime()+"\tTransforming "+(i+1)+" of "+samples.length);
-			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
+			if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+//				samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, jar);
+				samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
+			} else {
+				System.err.println("Error - the " + Sample.SAMPLE_DATA_FILE_EXTENSION + " file is not found for the following item in sampleList " + samples[i]);
+				return;
+			}
+//			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
 			genotypes = samp.getAB_Genotypes();
@@ -264,7 +273,7 @@ public class AnalysisFormats implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 //		String filename = Project.DEFAULT_PROJECT;
-		String filename = "C:/workspace/Genvisis/projects/gedi_gwas.properties";
+		String filename = "C:/workspace/Genvisis/projects/OSv2.properties";
 		int numThreads = 6;
 		int program = PENN_CNV;
 		String filterRegions = "";

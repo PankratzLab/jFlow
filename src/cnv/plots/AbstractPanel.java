@@ -296,6 +296,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //    	int index;
     	
     	chartType = DEFAULT_TYPE;
+//    	chartType = HEAT_MAP_TYPE;
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
@@ -565,10 +566,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		layers = new Hashtable<String,Vector<PlotPoint>>();
 
 		if (chartType == CONNECT_THE_DOTS_TYPE) {
-//		if (false) {
 			drawLineChart(g);
 		} else if (chartType == HEAT_MAP_TYPE) {
-//		} else if (false) {
 			drawHeatMap(g, null, 100, 100);
 		} else if (chartType == SCATTER_PLOT_TYPE) {
 			for (int i = 0; i<points.length && flow; i++) {
@@ -735,8 +734,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			yPixel = getYPixel(points[i].getRawY());
 
 			if (xPixel >= canvasSectionMinimumX && xPixel <= canvasSectionMaximumX && yPixel >= canvasSectionMinimumY && yPixel <= canvasSectionMaximumY) {
-				gridIndexX = xPixel / cellWidth;
-				gridIndexY = yPixel / cellHeight;
+				gridIndexX = (xPixel - canvasSectionMinimumX) / cellWidth;
+				gridIndexY = (yPixel - canvasSectionMinimumY) / cellHeight;
 
 				intensities[gridIndexX][gridIndexY] += 2;
 				
