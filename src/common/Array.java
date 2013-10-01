@@ -344,6 +344,7 @@ public class Array {
 				arr[i] = Double.parseDouble(array[i]);
 			} catch (NumberFormatException nfe) {
 				System.err.println("Error - failed to convert '"+array[i]+"' into a number");
+				return null;
 			}
 		}
 		return arr;

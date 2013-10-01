@@ -7,7 +7,7 @@ import common.*;
 public class MetaAnalysisParams {
 	public static final String DEFAULT_PARAMETERS = "filesys/default_meta_anlaysis.params";
 	public static final String[] KEY_PARAMETERS = {"STUDIES", "PHENOTYPES", "RACES", "METHODS", "GROUP_ANNOTATION_PARAMS"};
-	public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=", "GENE_NAME=", "FUNCTIONAL=", "R_EXEC="};
+	public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=", "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=", "RUN_BY_CHR="};
 
 	private String[] studies;
 	private String[] studyGroupings;
@@ -22,6 +22,7 @@ public class MetaAnalysisParams {
 	private String rExec;
 	private String[][] methods;
 	private String[][] groupAnnotationParams;
+	private boolean runByChr;
 
 	private BufferedReader reader;
 	private String trav;
@@ -32,6 +33,7 @@ public class MetaAnalysisParams {
 		boolean problem;
 		
 		problem = false;
+		runByChr = true;
 		
 		if (!Files.exists(filename)) {
 			log.report("File '"+filename+"' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
@@ -110,6 +112,8 @@ public class MetaAnalysisParams {
 						functionFlagName = ext.parseStringArg(trav, null);
 					} else if (trav.startsWith("R_EXEC=")) {
 						rExec = ext.parseStringArg(trav, null);
+					} else if (trav.startsWith("RUN_BY_CHR=")) {
+						runByChr = ext.parseBooleanArg(trav);
 					} else {
 						log.reportError("Error - property '"+trav+"' was defined in MetaAnalysisParams.KEY_PROPERTIES but is not yet mapped to a variable name");
 						problem = true;
@@ -188,12 +192,29 @@ public class MetaAnalysisParams {
 		return studies;
 	}
 
+	public boolean runningByChr() {
+		return runByChr;
+	}
+
 	public String[] getStudyGroupings() {
 		return studyGroupings;
 	}
 
 	public String[][] getPhenotypesWithFilenameAliases() {
-		return phenotypesWithFilenameAliases;
+		return getPhenotypesWithFilenameAliases(true);
+	}
+	
+	public String[][] getPhenotypesWithFilenameAliases(boolean pruneExclamations) {
+		String[][] phenotypes;
+		
+		phenotypes = Matrix.clone(phenotypesWithFilenameAliases);
+		for (int i = 0; i < phenotypes.length; i++) {
+			if (pruneExclamations && phenotypes[i][0].startsWith("!")) {
+				phenotypes[i][0] = phenotypes[i][0].substring(1);
+			}
+		}
+
+		return phenotypes;
 	}
 
 	public String[][] getRacesWithFilenameAliases() {

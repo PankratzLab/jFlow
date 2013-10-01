@@ -352,14 +352,14 @@ public class GWAF {
 			System.out.println("last file seen was '"+ext.replaceAllWith(dir+geneticDataTemplate, "#", count+""));
 			if (numBatches < 1) {
 				if (nodesToUse == null) {
-					v = Array.toStringVector(Files.qsub(dir, rootTemplate, startAt, count, "R --no-save < "+rootTemplate+".R > "+rootTemplate+".log", null, -1, null));
+					v = Array.toStringVector(Files.qsub(dir, rootTemplate, startAt, count, "R --no-save < "+rootTemplate+".R > "+rootTemplate+".log", null, 5000, 12, null));
 				} else {
 					v = new Vector<String>();
 //					step = (int)Math.ceil((double)((count-startAt)+1)/(double)nodesToUse.length);
 //					for (int i = 0; i < nodesToUse.length; i++) {
 //						list = Files.qsub("", null, i*step+startAt, i==nodesToUse.length-1?count:((i+1)*step+startAt-1), "R --no-save < batches/"+pheno+"_gwaf#.R > batches/"+pheno+"_file#.log", "batches/"+pheno+"_file", null, -1, nodesToUse[i]);
 					for (int i = startAt; i <= count; i++) {
-						list = Files.qsub(dir, rootTemplate, i, i, "R --no-save < "+rootTemplate+".R > "+rootTemplate+".log", null, -1, nodesToUse[i%nodesToUse.length]);
+						list = Files.qsub(dir, rootTemplate, i, i, "R --no-save < "+rootTemplate+".R > "+rootTemplate+".log", null, 5000, 12, nodesToUse[i%nodesToUse.length]);
 						for (int j = 0; j < list.length; j++) {
 							v.add(list[j]);
 						}

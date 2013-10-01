@@ -118,10 +118,43 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			}
 		}
 	}
-
+	
+	@SuppressWarnings("rawtypes")
+	public static void setUIFont (Font newFont){
+		Enumeration keys = UIManager.getDefaults().keys();
+		while (keys.hasMoreElements()) {
+			Object key = keys.nextElement();
+			Object value = UIManager.get (key);
+			if (value != null && value instanceof javax.swing.plaf.FontUIResource) {
+				Font oldFont = UIManager.getFont(key);
+				UIManager.put(key, newFont.deriveFont(oldFont.getStyle(), oldFont.getSize2D()));
+			}
+		}
+	}
+	
 	private static void createAndShowGUI(String launchPropertiesFile) {
         Launch frame;
     	String path;
+    	
+//		try {
+//			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+//		} catch (Exception e) {
+//			System.err.println("Failed loading LookandFeel: com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+//			System.err.println(e);
+//			try {
+//				UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+//			} catch (Exception e2) {
+//				System.err.println("Failed loading CrossPlatformLookAndFeel");
+//				System.err.println(e2);
+//			}
+//		}
+//		
+//    	try {
+//    		setUIFont(Font.createFont(Font.TRUETYPE_FONT, ClassLoader.getSystemResourceAsStream("cnv/gui/LiberationSansRegular.ttf")));
+//		} catch (Exception e) {
+//			System.err.println("Error - failed to load custom font 'LiberationSans'");
+//			e.printStackTrace();
+//		}
 
 		//Create and set up the content pane.
     	if (!new File(launchPropertiesFile).exists()) {
@@ -144,6 +177,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         frame.createPopupMenu();
 
 		frame.setSize(650, 550);
+		frame.setLocation(300,200);
+
 //		frame.pack();
 //		frame.setBounds(20, 20, 1000, 600);
 		frame.addWindowListener(frame);

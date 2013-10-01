@@ -30,6 +30,7 @@ public class GenParser {
 	private boolean forceFailCodes;
 	private String replaceBlanks;
 	private boolean simplifyQuotes;
+	private int maxCol;
 
 	public GenParser(String[] line, Logger logger) {
 		String file;
@@ -174,6 +175,7 @@ public class GenParser {
     		}
         }
     	
+    	maxCol = -9;
     	try {
             reader = new BufferedReader(new FileReader(file));
             if (skip == -2) {
@@ -185,6 +187,9 @@ public class GenParser {
             	for (int j = 0; j<cols.length; j++) {
             		if (colNames[j] == null) {
             			colNames[j] = originalColumnNames[cols[j]];
+            		}
+            		if (cols[j] > maxCol) {
+            			maxCol = cols[j];
             		}
                 }
             } else {
@@ -293,6 +298,12 @@ public class GenParser {
 			log.reportException(ioe);
 			return Array.stringArray(cols.length, "NaN");
 		}
+		
+		if (line.length < maxCol) {
+			log.reportError("Error - about to fail since the number of tokens in the following string is less than the max column index of "+maxCol);
+			log.reportError(temp);
+		}
+		
 		try {
 
 	    	passedFilter = true;

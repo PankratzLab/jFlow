@@ -286,6 +286,10 @@ public class MeanLRR {
 			return;
 		}
 		
+		if (regionToDumpOrNullForAll != null) {
+			regionToDumpOrNullForAll = ext.replaceAllWith(regionToDumpOrNullForAll, new String[][] {{",", ""}});
+		}
+
 		try {
 			index = -1;
 			if (regionToDumpOrNullForAll == null) {
@@ -378,12 +382,20 @@ public class MeanLRR {
 //		regions = "PAR2.txt";
 //		dump = "chr23:154879620-155227607"; // Marker 6
 
-//		filename = "/home/npankrat/projects/GEDI.properties";
+		filename = "/home/npankrat/projects/GEDI.properties";
 //		phenotypes = new String[] {"Class=UsedInCNVAnlayses", "Final_LRR_SD", "Final_conf15usedCount"};
 //		regions = "firstCNP.txt";
 //		dumpAll = true;
-
 		
+		// warning cannot currently accommodate commas
+//		dump = "chr1:104187899-104303967"; // AMY1A (processes starch)
+//		AMY1A	chr1:104095896-104122149
+//		AMY2A	chr1:104159999-104168400
+//		AMY2B	chr1:104095896-104122149
+
+		phenotypes = new String[] {"CLASS=Suitable for CNV", "Final_LRR_SD", "Final_conf15usedCount"};
+		dumpAll = true;
+
 		Project proj;
 
 		String usage = "\n"+

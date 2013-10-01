@@ -13,7 +13,7 @@ public class Metal {
 	public static final String[][] CONVERSION_REQS = { {"SNP", "Marker", "Name", "name"}, {"A1", "Allele"}, {"N", "NMISS"}, {"BETA", "ODDS", "OR"}, {"P", "pval", "p-val", "p-value"}};
 
 	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP"};
-	public static final String[] GENE_UNITS = {"Gene"};
+	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 
 	public static final String[][] ALLELES = {
 		{"coded_all", "A1", "Allele1", "ALT", "Effect_allele"},

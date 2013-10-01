@@ -6,7 +6,7 @@ import common.*;
 
 public class SkatMetaPrimary {
 
-	public static void runSkatMete(String cohort, String genos, String phenoFilename, String snpInfo) {
+	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo) {
 		String dir;
 		String root;
 		File resultDir;
@@ -90,11 +90,11 @@ public class SkatMetaPrimary {
 			
 			iterations = Matrix.toMatrix(Array.toStringArray(v));
 			if (System.getProperty("os.name").startsWith("Windows")) {
-				commands = "C:/Progra~1/R/R-3.0.1/bin/Rscript --no-save [%0]";
+				commands = "Rscript --no-save [%0]";
 				Files.batchIt("batchChecks/checkObject", "", 5, commands, iterations);
 			} else {
 				commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
-				Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 30000);
+				Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 30000, 24);
 			}
 
 		} catch (IOException e) {
@@ -109,8 +109,8 @@ public class SkatMetaPrimary {
 		String snpInfo;
 
 		cohort="aric";
-		genos="D:/SkatMeta/genotypes_whites_EA/EA_ARIC_noJHS_chr#t.csv";
-		pheno="D:/SkatMeta/results_hemostasis/pheno_F7_studyIDs.csv";
+		genos="D:/LITE/ExomeChip/00src/ARIC_recode_all_exome_chip/EA_ARIC_noJHS_chr#t.csv";
+		pheno="D:/ExomeChip/ARIC_primary/ARIC_EA_WBC_TOTAL.csv";
 		snpInfo="N:/statgen/skatMeta/fullExample/SNPInfo_HumanExome-12v1_rev5_justGeneSpliced.csv";
 
 		String usage = "\n"+
@@ -138,7 +138,7 @@ public class SkatMetaPrimary {
 			}
 		}
 		
-		runSkatMete(cohort, genos, pheno, snpInfo);
+		batch(cohort, genos, pheno, snpInfo);
 	}
 
 }

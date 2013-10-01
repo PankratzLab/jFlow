@@ -41,7 +41,7 @@ public class Merlin {
 		if (qsub != null) {
 			if (blade) {
 				commands = "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
-				Files.qsubBlade(qsub, "java", CHR_START, CHR_STOP, commands, 1, 10);
+				Files.qsub(qsub, "java", CHR_START, CHR_STOP, commands, 1, 10);
 			} else {
 				commands = "/share/apps/bin/merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
 				Files.qsub(qsub, CHR_START, CHR_STOP, commands);
@@ -67,7 +67,7 @@ public class Merlin {
 				"cd "+qsub+"\n"+
 				"java -cp /home/bc2/pankratz/park.jar link.Merlin chr=#\n"+
 				"merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
-				Files.qsubBlade(qsub+"_vc", "java", CHR_START, CHR_STOP, commands, 1, 10);
+				Files.qsub(qsub+"_vc", "java", CHR_START, CHR_STOP, commands, 1, 10);
 			} else {
 				commands = ""+
 				"cd "+qsub+"\n"+
@@ -95,7 +95,7 @@ public class Merlin {
 				commands = "cd "+qsub+"\n"+
 				"java -cp /home/bc2/pankratz/park.jar link.Merlin chr=#\n"+
 				"merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "+quant[0]+" --var "+quant[1]+" --her "+quant[2]+" --tabulate --step 5 --prefix regress-chr##";
-				Files.qsubBlade(qsub+"_regress", null, CHR_START, CHR_STOP, commands, 1, 48);
+				Files.qsub(qsub+"_regress", null, CHR_START, CHR_STOP, commands, 1, 48);
 			} else {
 				commands = "cd "+qsub+"\n"+
 				Files.JCP+"link.Merlin chr=#\n"+

@@ -865,7 +865,7 @@ public class CARe_Analyses {
 								"--covar "+phenofile+" --covar-name Age,Male,BMI"+(conditionals?",rs5498,rs651007"+(STUDIES[i].equals("MESA")&&(RACES[j][0].equals("asians")||RACES[j][0].equals("hispanics"))?"":",rs1799969"):"")+",EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10 "+
 //								"--covar "+phenofile+" --covar-name Age,Male,BMI"+(conditionals?",rs5498c,rs651007c,rs1799969c":"")+",EV1,EV2,EV3,EV4,EV5,EV6,EV7,EV8,EV9,EV10 "+
 								"--out "+ext.rootOf(phenofile)+(conditionals?"_withCondi":"")+"_chr#";
-						Files.writeList(Files.qsub(dir, "chr#_"+STUDIES[i], 1, 22, commands, null, -1, null), dir+"master."+pheno);
+						Files.writeList(Files.qsub(dir, "chr#_"+STUDIES[i], 1, 22, commands, null, 10000, 12, null), dir+"master."+pheno);
 						Files.chmod(dir+"master."+pheno);
 						writer.println("cd "+dir);
 						writer.println("./master."+pheno);

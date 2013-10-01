@@ -353,7 +353,7 @@ public class Minimac {
 		Files.writeList(new String[] {"java -jar /home/npankrat/Haploview.jar -pedfile "+rootForOutput+".ped -info "+rootForOutput+".info"}, rootForOutput+".bat");
 	}
 	
-	public static void batch(boolean beagle, boolean update, int memRequiredInGb) {
+	public static void batch(boolean beagle, boolean update, int memRequiredInGb, double walltimeRequestedInHours) {
 		String commands;
 		
 		// might consider using a local temp directory, especially for the BGL_TO_PED conversion, to free up packets back and forth, and then moving the final .dose file over to wherever it needs to be
@@ -384,7 +384,7 @@ public class Minimac {
 		       		MINIMAC+" --refHaps "+REF_HAP_ROOT+" --refSnps "+REF_SNPS_ROOT+" --haps final.haps.gz --snps final.snps --rounds 5 --states 200 --prefix chr# > final_mini.log \n"+ // final run
 		       		"\n";	// post process?
 
-		Files.qsub("mini", 1, 22, commands, memRequiredInGb);
+		Files.qsub("mini", 1, 22, commands, memRequiredInGb*1000, walltimeRequestedInHours);
 	}
 	
 	public static void compareHaps(String filenames, String map, int numToCompare) {
@@ -737,7 +737,7 @@ public class Minimac {
 		commands += MACH2DAT+" -d ../"+ext.addToRoot(pheno, "_desc")+" -p ../"+pheno+" -i chr#.info -g chr#.dose > "+ext.rootOf(pheno)+"_chr#.out\n";
 		commands += "cd ..\n";
 		commands += "echo \"end at: \" `date`\n";
-		Files.qsub("chr#_"+ext.rootOf(pheno), 1, 22, commands, -1);
+		Files.qsub("chr#_"+ext.rootOf(pheno), 1, 22, commands, 5000, 12);
 	}
 	
 	public static void main(String[] args) {
@@ -952,7 +952,7 @@ public class Minimac {
 			} else if (filter) {
 				filterHaplotypes(hapFile, mapFile, flips, drops, newHapFile==null?ext.addToRoot(hapFile, "_filtered"):newHapFile, newMapFile==null?ext.addToRoot(mapFile, "_filtered"):newMapFile);
 			} else if (batch) {
-				batch(beagle, update, memRequiredInGb);
+				batch(beagle, update, memRequiredInGb, 24);
 			} else if (comp != null) {
 				compareHaps(comp, map, numToCompare);
 			} else if (compStrand != null) {

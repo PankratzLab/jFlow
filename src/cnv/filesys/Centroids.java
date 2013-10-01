@@ -394,6 +394,56 @@ public class Centroids implements Serializable {
 		return centers;
 	}
 	
+	public static void exportToText(Project proj, String centFilename, String exportFilename) {
+		PrintWriter writer;
+		Centroids centObject;
+		float[][][] centroids;
+		MarkerSet markerSet;
+		String[] markerNames;
+		String dir;
+		
+		dir = proj.getProjectDir();
+		markerSet = proj.getMarkerSet();
+		markerNames = markerSet.getMarkerNames();
+		centObject = Centroids.load(dir+centFilename, false);
+		centroids = centObject.getCentroids();
+		
+		if (markerNames.length != centroids.length) {
+			System.err.println("Error - mismatched number of markers in the project's marker set and the imported centroids file ("+centFilename+"); aborting");
+			return;
+		}
+
+		if (markerSet.getFingerprint() != centObject.getFingerprint()) {
+			System.err.println("Error - mismatched marker fingerprints in the project's marker set and the imported centroids file ("+centFilename+"); aborting");
+			return;
+		}
+		
+		try {
+			writer = new PrintWriter(new FileWriter(dir+exportFilename));
+			writer.println("marker_fingerprint="+centObject.getFingerprint());
+			writer.println("MarkerName\tAA_Theta_Mean\tAA_R_Mean\tAB_Theta_Mean\tAB_R_Mean\tBB_Theta_Mean\tBB_R_Mean");
+			for (int i = 0; i < markerNames.length; i++) {
+				writer.print(markerNames[i]);
+				for (int j = 0; j < 3; j++) {
+					if (centroids[i][j] == null) {
+						writer.print("\t.\t.");
+					} else {
+						writer.print("\t"+centroids[i][j][0]+"\t"+centroids[i][j][1]);
+					}
+				}
+				writer.println();
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + exportFilename);
+			e.printStackTrace();
+		}
+	}
+
+	public static void importFromText(Project proj, String importFilename, String centFilename) {
+
+	}
+		
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = Project.DEFAULT_PROJECT;
@@ -409,6 +459,8 @@ public class Centroids implements Serializable {
 		boolean fromGenotypes = false;
 		Project proj;
 		String compute = "";
+		String importFile = null;
+		String exportFile = null;
 
 		String usage = "\n"+
 			"cnv.filesys.Centroids requires 0-1 arguments\n"+
@@ -435,6 +487,12 @@ public class Centroids implements Serializable {
 			} else if (args[i].startsWith("file=")) {
 				centFile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("import=")) {
+				importFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("export=")) {
+				exportFile = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("-fromGenotypes")) {
 				fromGenotypes = true;
 				numArgs--;
@@ -453,9 +511,16 @@ public class Centroids implements Serializable {
 		
 		proj = new Project(filename, false);
 //		fromGenotypes = true;
-//		compute = "genotype.cent";
+////		compute = "genotype.cent";
+//		
+//		centFile = "data/genotype.cent";
+//		exportFile = "data/genotype.cent.xln";
 		try {
-			if (fromGenotypes) {
+			if (exportFile != null) {
+				exportToText(proj, centFile, exportFile);
+			} else if (importFile != null) {
+				importFromText(proj, importFile, centFile);
+			} else if (fromGenotypes) {
 				parseCentroidsFromGenotypes(proj, Array.booleanArray(proj.getSamples().length, true), 1);
 			} else if (!compute.equals("")) {
 				recompute(proj, compute);

@@ -414,15 +414,17 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));//zx test point
 		for (int l = 0; indicesOfNearbySamples!=null && l<indicesOfNearbySamples.size(); l++) {
 			i = indicesOfNearbySamples.elementAt(l);
-			indi = sampleData.getIndiFromSampleHash(samples[i]);
-			g.setColor(colorScheme[sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
-			//g.setColor(Color.YELLOW);
-//			if (gcScores[i]<gcThreshold) {
-//			if (currentClass==1 && alleleCounts[i]==-1) {
-			if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
-				g.drawString("X", getXPixel(datapoints[0][i])-xWidth/2, getYPixel(datapoints[1][i])+(int)(xFontSize/2.0));
-			} else {
-				g.fillOval(getXPixel(datapoints[0][i])-(int)(size*2)/2, getYPixel(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
+			if (i < samples.length) { // can also be centroids or other points
+				indi = sampleData.getIndiFromSampleHash(samples[i]);
+				g.setColor(colorScheme[sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
+				//g.setColor(Color.YELLOW);
+	//			if (gcScores[i]<gcThreshold) {
+	//			if (currentClass==1 && alleleCounts[i]==-1) {
+				if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
+					g.drawString("X", getXPixel(datapoints[0][i])-xWidth/2, getYPixel(datapoints[1][i])+(int)(xFontSize/2.0));
+				} else {
+					g.fillOval(getXPixel(datapoints[0][i])-(int)(size*2)/2, getYPixel(datapoints[1][i])-(int)(size*2)/2, (int)(size*2), (int)(size*2));
+				}
 			}
 		}
 		prevPos = pos;

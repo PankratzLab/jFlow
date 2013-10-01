@@ -90,14 +90,14 @@ public class Mach {
 
 		v = new Vector<String>();
 		if (nodesToUse == null) {
-			v = Array.toStringVector(Files.qsub("", "chr#", 1, 22, commands, null, -1, null));
+			v = Array.toStringVector(Files.qsub("", "chr#", 1, 22, commands, null, 10000, 48, null));
 		} else {
 			v = new Vector<String>();
 //			step = (int)Math.ceil((double)(22)/(double)nodesToUse.length);
 //			for (int i = 0; i < nodesToUse.length; i++) {
 //				list = Files.qsub("", null, i*step+0, i==nodesToUse.length-1?22:((i+1)*step-1), commands, "chr", null, -1, nodesToUse[i]);
 			for (int chr = 1; chr <= 22; chr++) {
-				list = Files.qsub("", "chr#", chr, chr, commands, null, -1, nodesToUse[chr%nodesToUse.length]);
+				list = Files.qsub("", "chr#", chr, chr, commands, null, 10000, 48, nodesToUse[chr%nodesToUse.length]);
 				for (int j = 0; j < list.length; j++) {
 					v.add(list[j]);
 				}

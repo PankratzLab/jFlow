@@ -143,7 +143,7 @@ public class Solar {
 			iterations[chr-1] = new String[] {chr+"", ext.chrome(chr), MAX_CM[chr-1]+""};
 		}
 		
-		Files.qsub("solar", null, 22, commands, iterations, -1);
+		Files.qsub("solar", null, 22, commands, iterations, 10000, 24);
 	}
 
 	public static void main(String[] args) throws IOException {

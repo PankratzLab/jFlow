@@ -59,7 +59,7 @@ public class Probabel {
 					commands += "/home/npankrat/bin/palogist -p ../"+pheno+" -d chr#_quan"+(i+1)+".dose -i chr#_quan"+(i+1)+".pinfo -c 1 -o "+ext.rootOf(pheno)+"_chr#_quan"+(i+1)+"\n";
 					commands += "cd ..\n";
 
-					v.add(Files.qsub("", "q"+(i+1)+"_chr#_"+ext.rootOf(pheno), chr, chr, commands, null, -1, "compute-0-"+node+".local")[0]);
+					v.add(Files.qsub("", "q"+(i+1)+"_chr#_"+ext.rootOf(pheno), chr, chr, commands, null, 10000, 12, "compute-0-"+node+".local")[0]);
 //					node++;
 					if (node > 4) {
 						node = 0;
@@ -72,7 +72,7 @@ public class Probabel {
 				}
 				commands += EXECS[type]+" -p ../"+pheno+" -d "+(minimac?"chr#.dose":"MACH_step2_chr#.mldose")+" -i "+(minimac?"chr#.pinfo":"MACH_step2_chr#.mlinfo")+" -c # -o "+ext.rootOf(pheno)+"_chr#\n";
 				commands += "cd ..\n";
-				v.add(Files.qsub("", "chr#_"+ext.rootOf(pheno), chr, chr, commands, null, -1, "compute-0-"+antinode+".local")[0]);
+				v.add(Files.qsub("", "chr#_"+ext.rootOf(pheno), chr, chr, commands, null, 10000, 12, "compute-0-"+antinode+".local")[0]);
 				antinode++;
 				if (antinode > 12) {
 					antinode = 6;

@@ -119,7 +119,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private AutoSaveForScatterPlot autoSave;
 	private JRadioButton[] typeRadioButtons;
 	private MarkerDataLoader markerDataLoader;
-	private Thread thread2;
     private ColorKeyPanel colorKeyPanel;
 	private Color[] colorScheme;
 	private int indexOfAnnotationUsedAsMarkerList; 
@@ -1951,7 +1950,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 							str = str.substring(0, Math.min(j+2, str.length()));
 						}
 			        }
-					centLabels[i].setText("LRR corr="+str+", err="+ext.formDeci(comp[1], 3));
+					if (centLabels != null) {
+						centLabels[i].setText("LRR corr="+str+", err="+ext.formDeci(comp[1], 3));
+					}
 		        }
 			}
 		}

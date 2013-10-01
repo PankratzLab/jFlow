@@ -50,7 +50,8 @@ public class Project extends Properties {
 //	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/boss.proj";
 	
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/demo.properties";
-	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_fia_broad.properties";
+//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_fia_broad.properties";
+	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/GEDI.properties";
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/sing550_win.proj";
 //	public static final String DEFAULT_SCATTER_PROJECT = "C:/workspace/Genvisis/projects/GEDI_exome.properties";
