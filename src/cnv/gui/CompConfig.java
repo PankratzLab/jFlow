@@ -23,6 +23,7 @@ import javax.swing.event.ChangeListener;
 import cnv.filesys.Project;
 import cnv.plots.CompPlot;
 import cnv.var.CNVariant;
+import cnv.var.SampleData;
 
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
 
@@ -330,8 +331,11 @@ class CNVPanel extends JPanel implements ActionListener {
 			int[] location = compPlot.getCPLocation();
 			int window = Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
 			String markerPosition = "chr" + location[0] + ":" + (selectedCNV.getStart() - window) + "-" + (selectedCNV.getStop() + window);
-			System.out.println("Window is " + window + " markerPosition is " + markerPosition);
-			launchTrailer = new LaunchAction(compPlot.getProject(), selectedCNV.getIndividualID(), markerPosition, Color.BLACK);
+			// System.out.println("Window is " + window + " markerPosition is " + markerPosition);
+			String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
+			SampleData sampleData = compPlot.getProject().getSampleData(2, true);
+
+			launchTrailer = new LaunchAction(compPlot.getProject(), sampleData.lookup(trailerID)[0], markerPosition, Color.BLACK);
 			trailerButton.setAction(launchTrailer);
 			trailerButton.setText("To Trailer");
 			trailerButton.setIcon(null);
