@@ -87,6 +87,7 @@ public class Project extends Properties {
 	public static final String PEDIGREE_FILENAME = "PEDIGREE_FILENAME";
 	public static final String MOSAIC_COLOR_CODES_FILENAME = "MOSAIC_COLOR_CODES_FILENAME";
 	public static final String MOSAIC_RESULTS_FILENAME = "MOSAIC_RESULTS_FILENAME";
+	public static final String INDIVIDUAL_CNV_LIST_FILENAMES = "INDIVIDUAL_CNV_LIST_FILENAMES";
 	public static final String REGION_LIST_FILENAMES = "REGION_LIST_FILENAMES";
 	public static final String CNV_FILENAMES = "CNV_FILENAMES";
 	public static final String STRATIFICATION_RESULTS_FILENAMES = "STRATIFICATION_RESULTS_FILENAMES";
@@ -451,8 +452,12 @@ public class Project extends Properties {
 		return jar;
 	}
 	
+	public String[] getIndividualRegionLists() {
+		return getFilenames(INDIVIDUAL_CNV_LIST_FILENAMES, false);
+	}
+	
 	public String[] getRegionLists() {
-		return getProperty(REGION_LIST_FILENAMES).trim().split(";");
+		return getFilenames(REGION_LIST_FILENAMES, false);
 	}
 	
 	public void screenProperties(String filename) {
