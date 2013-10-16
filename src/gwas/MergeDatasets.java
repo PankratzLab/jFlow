@@ -7,6 +7,7 @@ import java.util.*;
 
 import stats.ContingencyTable;
 import stats.ProbDist;
+import stats.Rscript;
 import common.*;
 import filesys.SerialHash;
 
@@ -153,64 +154,75 @@ public class MergeDatasets {
 	        writer3 = new PrintWriter(new FileWriter(dir+"split.crf"));
 	        writer3.println("split\nhomo.R numFiles=12 sizeOfHeader=0 blockSize=4 root=homo ext=.R");
             writer3.close();
-	        writer3 = new PrintWriter(new FileWriter(dir+"master"));
-	        for (int i = 1; i<=12; i++) {
-		        writer3.println("R CMD BATCH homo"+i+".R &");
-            }
-            writer3.close();
+//	        writer3 = new PrintWriter(new FileWriter(dir+"master"));
+//	        for (int i = 1; i<=12; i++) {
+//		        writer3.println("R CMD BATCH homo"+i+".R &");
+//            }
+//            writer3.close();
         } catch (Exception e) {
 	        System.err.println("Error writing to "+dir+"lackOfHomogeneity.dat");
 	        e.printStackTrace();
         }
+        System.out.println("Splitting up file");
+    	Files.splitFile(dir+"homo.R", 12, 0, 4, dir+"homo", ".R", false);
+    	Files.qsub(dir+"runHomo", null, -1, Rscript.getRExecutable(new Logger())+" CMD BATCH homo[%0].R", Matrix.toMatrix(Array.stringArraySequence(12, "")), 1000, 12);
+        System.out.println("Now run Fisher's exact with permutations in R using either ./master or ./master.runHomo");
         System.out.println(ext.getTime()+"\tDone!");
 	}
 	
-	public static void batchMerge(String[] dirs) {
+	public static void batchMerge(String dir, String[] subdirs, String commonPlinkRoot) {
         PrintWriter writer;
         String trav, next;
 
-        for (int i = 0; i<dirs.length; i++) {
-        	dirs[i] = ext.verifyDirFormat(dirs[i]);
-        	if (!new File(dirs[i]).exists() || !new File(dirs[i]).isDirectory()) {
-        		System.err.println("Error - '"+dirs[i]+"' is not a valid directory");
+        for (int i = 0; i<subdirs.length; i++) {
+        	subdirs[i] = ext.verifyDirFormat(subdirs[i]);
+        	if (!new File(dir+subdirs[i]).exists() || !new File(dir+subdirs[i]).isDirectory()) {
+        		System.err.println("Error - '"+subdirs[i]+"' is not a valid directory");
         		return;
         	}
-        	if (!new File(dirs[i]+"plink.bed").exists() || !new File(dirs[i]+"plink.bim").exists() || !new File(dirs[i]+"plink.fam").exists()) {
-        		System.err.println("Error - '"+dirs[i]+"' does not contain a full set of plink.bed/bim/fam files");
+        	if (!new File(dir+subdirs[i]+commonPlinkRoot+".bed").exists() || !new File(dir+subdirs[i]+commonPlinkRoot+".bim").exists() || !new File(dir+subdirs[i]+commonPlinkRoot+".fam").exists()) {
+        		System.err.println("Error - '"+subdirs[i]+"' does not contain a full set of "+commonPlinkRoot+".bed/bim/fam files");
         		return;
         	}
-        	System.out.println(dirs[i]+" checks out...");
+        	System.out.println(subdirs[i]+" checks out...");
         }
         
         try {
-	        writer = new PrintWriter(new FileWriter("batchMerge"));
-	        for (int i = 0; i<dirs.length; i++) {
-	        	writer.println("java -cp /home/npankrat/park.jar filesys.SnpMarkerSet file="+dirs[i]+"plink.bim");
+	        writer = new PrintWriter(new FileWriter(dir+"batchMerge"+(System.getProperty("os.name").startsWith("Windows")?".bat":"")));
+	        for (int i = 0; i<subdirs.length; i++) {
+	        	writer.println("java -cp /home/npankrat/park.jar filesys.SnpMarkerSet file="+subdirs[i]+commonPlinkRoot+".bim");
 	        }
 	        writer.println();
-	        writer.println("./batchMerge.unambiguous &");
-	        writer.println("./batchMerge.ambiguous &");
+	        if (System.getProperty("os.name").startsWith("Windows")) {
+		        writer.println("start /B batchMerge.unambiguous.bat");
+		        writer.println("start /B batchMerge.ambiguous.bat");
+	        } else {
+		        writer.println("./batchMerge.unambiguous &");
+		        writer.println("./batchMerge.ambiguous &");
+	        }
 	        writer.close();
 	        
-	        Files.chmod("batchMerge");
+	        if (!System.getProperty("os.name").startsWith("Windows")) {
+		        Files.chmod("batchMerge");
+			}
         } catch (Exception e) {
 	        System.err.println("Error writing to "+"batchMerge");
 	        e.printStackTrace();
         }
         
         try {
-	        writer = new PrintWriter(new FileWriter("batchMerge.unambiguous"));
+	        writer = new PrintWriter(new FileWriter(dir+"batchMerge.unambiguous"+(System.getProperty("os.name").startsWith("Windows")?".bat":"")));
 	        
-        	writer.println("plink --bfile "+dirs[0]+"plink --extract "+dirs[0]+"plink.bim_unambiguous.txt --make-bed --out "+dirs[0]+"unambiguous");
+        	writer.println("plink --bfile "+subdirs[0]+"plink --extract "+subdirs[0]+commonPlinkRoot+".bim_unambiguous.txt --make-bed --out "+subdirs[0]+"unambiguous");
         	writer.println();
-	        trav = dirs[0]+"unambiguous";
-	        for (int i = 1; i<dirs.length; i++) {
+	        trav = subdirs[0]+"unambiguous";
+	        for (int i = 1; i<subdirs.length; i++) {
 	        	next = "merged_1-"+(i+1);
 
-	        	writer.println("plink --bfile "+dirs[i]+"plink --extract "+dirs[i]+"plink.bim_unambiguous.txt --make-bed --out "+dirs[i]+"unambiguous");
-	        	writer.println("plink --bfile "+trav+" --bmerge "+dirs[i]+"unambiguous.bed "+dirs[i]+"unambiguous.bim "+dirs[i]+"unambiguous.fam --make-bed --out "+next);
-	        	writer.println("plink --bfile "+dirs[i]+"unambiguous --flip "+next+".missnp --make-bed --out "+dirs[i]+"unambiguousFlipped");
-	        	writer.println("plink --bfile "+trav+" --bmerge "+dirs[i]+"unambiguousFlipped.bed "+dirs[i]+"unambiguousFlipped.bim "+dirs[i]+"unambiguousFlipped.fam --make-bed --out "+next);
+	        	writer.println("plink --bfile "+subdirs[i]+commonPlinkRoot+" --extract "+subdirs[i]+commonPlinkRoot+".bim_unambiguous.txt --make-bed --out "+subdirs[i]+"unambiguous");
+	        	writer.println("plink --bfile "+trav+" --bmerge "+subdirs[i]+"unambiguous.bed "+subdirs[i]+"unambiguous.bim "+subdirs[i]+"unambiguous.fam --make-bed --out "+next);
+	        	writer.println("plink --bfile "+subdirs[i]+"unambiguous --flip "+next+".missnp --make-bed --out "+subdirs[i]+"unambiguousFlipped");
+	        	writer.println("plink --bfile "+trav+" --bmerge "+subdirs[i]+"unambiguousFlipped.bed "+subdirs[i]+"unambiguousFlipped.bim "+subdirs[i]+"unambiguousFlipped.fam --make-bed --out "+next);
 	        	writer.println();
 
 	        	trav = next;
@@ -224,30 +236,34 @@ public class MergeDatasets {
 
 	        writer.close();
 	        
-	        Files.chmod("batchMerge.unambiguous");
+	        if (System.getProperty("os.name").startsWith("Windows")) {
+				new File(dir+"unambiguous/");
+			} else {
+				Files.chmod("batchMerge.unambiguous");
+			}
         } catch (Exception e) {
 	        System.err.println("Error writing to "+"batchMerge.unambiguous");
 	        e.printStackTrace();
         }
 
         try {
-	        writer = new PrintWriter(new FileWriter("batchMerge.ambiguous"));
+	        writer = new PrintWriter(new FileWriter(dir+"batchMerge.ambiguous"+(System.getProperty("os.name").startsWith("Windows")?".bat":"")));
 	        
-        	writer.println("plink --bfile "+dirs[0]+"plink --exclude "+dirs[0]+"plink.bim_unambiguous.txt --make-bed --out "+dirs[0]+"ambiguous");
+        	writer.println("plink --bfile "+subdirs[0]+commonPlinkRoot+" --exclude "+subdirs[0]+commonPlinkRoot+".bim_unambiguous.txt --make-bed --out "+subdirs[0]+"ambiguous");
         	writer.println();
-	        trav = dirs[0]+"ambiguous";
-	        for (int i = 1; i<dirs.length; i++) {
+	        trav = subdirs[0]+"ambiguous";
+	        for (int i = 1; i<subdirs.length; i++) {
 	        	next = "mergedAmbiguous_1-"+(i+1);
 
-	        	writer.println("plink --bfile "+dirs[i]+"plink --exclude "+dirs[i]+"plink.bim_unambiguous.txt --make-bed --out "+dirs[i]+"ambiguous");
-	        	writer.println("plink --bfile "+trav+" --bmerge "+dirs[i]+"ambiguous.bed "+dirs[i]+"ambiguous.bim "+dirs[i]+"ambiguous.fam --make-bed --out "+next);
-	        	writer.println("plink --bfile "+dirs[i]+"ambiguous --flip "+next+".missnp --make-bed --out "+dirs[i]+"ambiguousFlipped");
-	        	writer.println("plink --bfile "+trav+" --bmerge "+dirs[i]+"ambiguousFlipped.bed "+dirs[i]+"ambiguousFlipped.bim "+dirs[i]+"ambiguousFlipped.fam --make-bed --out "+next);
+	        	writer.println("plink --bfile "+subdirs[i]+commonPlinkRoot+" --exclude "+subdirs[i]+commonPlinkRoot+".bim_unambiguous.txt --make-bed --out "+subdirs[i]+"ambiguous");
+	        	writer.println("plink --bfile "+trav+" --bmerge "+subdirs[i]+"ambiguous.bed "+subdirs[i]+"ambiguous.bim "+subdirs[i]+"ambiguous.fam --make-bed --out "+next);
+	        	writer.println("plink --bfile "+subdirs[i]+"ambiguous --flip "+next+".missnp --make-bed --out "+subdirs[i]+"ambiguousFlipped");
+	        	writer.println("plink --bfile "+trav+" --bmerge "+subdirs[i]+"ambiguousFlipped.bed "+subdirs[i]+"ambiguousFlipped.bim "+subdirs[i]+"ambiguousFlipped.fam --make-bed --out "+next);
 	        	writer.println();
 
 	        	trav = next;
             }
-	        
+
 	        writer.println("mkdir ambiguous/");
 	        writer.println("cp "+trav+".bed ambiguous/plink.bed");
 	        writer.println("cp "+trav+".bim ambiguous/plink.bim");
@@ -256,7 +272,11 @@ public class MergeDatasets {
 
 	        writer.close();
 	        
-	        Files.chmod("batchMerge.ambiguous");
+	        if (System.getProperty("os.name").startsWith("Windows")) {
+				new File(dir+"ambiguous/");
+			} else {
+				Files.chmod("batchMerge.ambiguous");
+			}
         } catch (Exception e) {
 	        System.err.println("Error writing to "+"batchMerge.unambiguous");
 	        e.printStackTrace();
@@ -349,7 +369,7 @@ public class MergeDatasets {
 	
 	public static void parseHomo(String dir) {
 		BufferedReader reader;
-        PrintWriter writer;
+        PrintWriter writer, writer2;
         String[] files;
         String temp;
         int count, trav;
@@ -366,7 +386,8 @@ public class MergeDatasets {
         
         try {
 	        writer = new PrintWriter(new FileWriter(dir+"FisherResults.xln"));
-	        writer.println("Marker\tPearson\tFisher10K");
+	        writer2 = new PrintWriter(new FileWriter(dir+"FisherOrChiSquareDrops.dat"));
+	        writer.println("Marker\tPearson\tFisher10K\tminPvalue");
             time = new Date().getTime();
 	        count = 0;
 	        trav = -2;
@@ -387,7 +408,13 @@ public class MergeDatasets {
 	                		try {
 		                		record[trav] = temp.substring(temp.indexOf("p-value ")+10);
 		                		if (trav == 2) {
+			                		if (Double.parseDouble(record[0]) < Double.parseDouble(record[1])) {
+			                			record[2] = record[0];
+			                		} else {
+			                			record[2] = record[1];
+			                		}
 		                			writer.println(Array.toStr(record));
+		                			writer2.println(record[2]);
 		                			trav = -1;
 		                			count++;
 		                		}
@@ -478,9 +505,9 @@ public class MergeDatasets {
 	    String dir = "";
 //	    String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\00src\\Miami\\";
 //	    String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\00src\\Miami\\cnvis\\";
-//	    String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\R\\R-2.8.1\\bin\\";
-	    String filename = "BatchPlink.dat";
+//	    String dir = "D:/tWork/Consortium/00src/";
 	    String batch = "";
+//	    String batch = "cidr/,miami/,ngrc/";
 	    boolean checkHomo = false;
 	    boolean consens = false;
 	    boolean parseHomo = false;
@@ -490,9 +517,9 @@ public class MergeDatasets {
 	    String usage = "\n"+
 	    "gwas.BatchPlink requires 0-1 arguments\n"+
 	    "   (1) directory (i.e. dir="+dir+" (default))\n"+
-	    "   (2) filename (i.e. file="+filename+" (default))\n"+
-	    "   (3) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"+
-	    "   (4) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"+
+	    "   (2) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"+
+	    "   (3) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"+
+	    "   (4) parse R test of homogeneity results (i.e. -parseHomo (not the default))\n"+
 	    "   (5) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"+
 	    "   (6) mergedMap filename (i.e. map=allSNPs.xln (not the default))\n"+
 	    "";
@@ -501,9 +528,6 @@ public class MergeDatasets {
 		    if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
 			    System.err.println(usage);
 			    System.exit(1);
-		    } else if (args[i].startsWith("file=")) {
-			    filename = args[i].split("=")[1];
-			    numArgs--;
 		    } else if (args[i].startsWith("dir=")) {
 			    dir = args[i].split("=")[1];
 			    numArgs--;
@@ -550,7 +574,7 @@ public class MergeDatasets {
 	    		updateMap(update, map);
 	    	}
 	    	if (!batch.equals("")) {
-	    		batchMerge(batch.split(","));
+	    		batchMerge(dir, batch.split(","), "final");
 	    	}
 	    	if (consens) {
 	    		mergeMaps(dir);
