@@ -337,7 +337,7 @@ public class Files {
 		writers = new PrintWriter[numBatches];
 		try {
 			if (numBatches > 1) {
-				writer = new PrintWriter(new FileWriter("master." + ext.removeDirectoryInfo(root_batch_name)));
+				writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name)+"master." + ext.removeDirectoryInfo(root_batch_name)));
 				if (!dir.equals("./")) {
 					writer.println("cd "+dir);
 				}
@@ -346,8 +346,8 @@ public class Files {
 			        writers[i].println("#!/bin/bash");
 			        writers[i].println("#$ -cwd");
 			        writers[i].println("#$ -S /bin/bash");
-			        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
-			        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+			        writers[i].println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
+			        writers[i].println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
 			        params = new Vector<String>();
 			        if (memoryRequestedInMb > 0) {
 			        	params.add("pmem="+memoryRequestedInMb+"mb");
@@ -362,7 +362,7 @@ public class Files {
 			        	writers[i].println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
 			        }
 					writers[i].println();
-					writers[i].println("echo \"start "+root_batch_name+"_"+(i+1)+" at: \" `date`");
+					writers[i].println("echo \"start "+ext.removeDirectoryInfo(root_batch_name)+"_"+(i+1)+" at: \" `date`");
 					writers[i].println("/bin/hostname");
 					if (dirToSwitchToBeforeRunning != null) {
 						writers[i].println("cd "+dirToSwitchToBeforeRunning);
@@ -388,7 +388,7 @@ public class Files {
 			}
 
 			for (int i = 0; i<numBatches; i++) {
-				writers[i].println("echo \"end "+root_batch_name+"_"+(i+1)+" at: \" `date`");
+				writers[i].println("echo \"end "+ext.removeDirectoryInfo(root_batch_name)+"_"+(i+1)+" at: \" `date`");
 				writers[i].close();
 				chmod(root_batch_name + "_" + (i+1) + ".qsub");
 			}

@@ -22,20 +22,29 @@ public class Plink {
 		Hashtable<String,String> imiss;
 		String[] inds, line;
 		int step;
+		Vector<String> extraCommands;
 		Vector<String[]> v;
 		String commands;
 		Vector<String> filter;
         int count;
 
+        extraCommands = new Vector<String>();
 		if (!new File("plink.frq").exists()) {
 			System.err.println("Error - 'plink.frq' required for batched genome");
-			return;
+			extraCommands.add("plink --bfile "+root+" --freq --noweb");
 		}
 
 		if (!new File("plink.imiss").exists()) {
 			System.err.println("Sorry, I can't trust you any more, I need to see a 'plink.imiss' file to proceed");
+			extraCommands.add("plink --bfile "+root+" --missing --noweb");
+		}
+		
+		if (extraCommands.size() > 0) {
+			System.out.println("Run the following first:");
+			System.out.println(Array.toStr(Array.toStringArray(extraCommands), "\n"));
 			return;
 		}
+		
 		imiss = loadImissFile("plink.imiss");
 		
 		inds = HashVec.loadFileToStringArray(root+".fam", false, false, new int[] {0, 1, 5}, false);
@@ -719,6 +728,8 @@ public class Plink {
 		"          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"+
 		"   (2) name of PLINK root for --genome runs (i.e. root="+root+" (default))\n"+
 		"   (3) minimum pi_hat to retain in --genome runs (i.e. minPiHatToKeep=0.1 (not the default))\n"+
+		"   Note: requires both plink.frq and plink.imiss\n"+
+
 		"  OR\n"+
 		"   (1) add more indiviudals to a .genome using N threads (i.e. addGenome=4 (not the default))\n"+
 		"          type \"-remind\" for a reminder of how many jobs the number of parts leads to\n"+
