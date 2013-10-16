@@ -1689,7 +1689,7 @@ public class Files {
 	
 	// These variables need to be final in order to work in the FilenameFilter
 	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
-		if (directory.length() == 0) {
+		if (directory == null || directory.length() == 0) {
 			directory = "./";
 		}
 		
