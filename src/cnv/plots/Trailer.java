@@ -169,7 +169,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //		System.exit(1);
 //		loadCNVfiles(proj, cnvFilenames);
 
-		regionsList = proj.getFilenames(Project.REGION_LIST_FILENAMES);
+		regionsList = proj.getIndividualRegionLists();
+		if (regionsList.length > 1) {
+			JOptionPane.showMessageDialog(null, "Warning - only one list file is currently supported within Trailer", "Warning", JOptionPane.ERROR_MESSAGE);
+		}
 		regionsListIndex = 0;
 		if (regionsList.length > 0) {
 			if (Files.exists(regionsList[regionsListIndex], jar)) {
@@ -177,6 +180,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			} else {
 				System.err.println("Error - couldn't find '"+regionsList[regionsListIndex]+"' in data directory; populating with CNVs of current subject");
 			}
+		} else {
+			System.err.println("Warning - no region list was provided; populating regions with CNVs of current subject, if any exist");
 		}
 		regionIndex = -1;
 
@@ -674,13 +679,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		nextChr.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT_REGION);
 		nextChr.setActionMap(actionMap);
 		previousChr.setActionMap(actionMap);
-		
-		
-		
 	}
 	
 	public void actionPerformed(ActionEvent ae) {
 		String command = ae.getActionCommand();
+		String[] filenames;
 
 		if (command.equals(FIRST_CHR)) {
 			parseLocation("chr1");
@@ -699,7 +702,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		} else if (command.equals(NEXT_REGION)) {
 			System.out.println("next");
 			if (regions.length == 0) {
-				JOptionPane.showMessageDialog(null, "Error - No regions have been loaded; files include: "+Array.toStr(proj.getFilenames(Project.REGION_LIST_FILENAMES), ", "), "Error", JOptionPane.ERROR_MESSAGE);
+				filenames = proj.getIndividualRegionLists();
+				if (filenames.length == 0) {
+					JOptionPane.showMessageDialog(null, "Error - No regions have been loaded, since there no indiviudal CNV region list files are defined in the properties file", "Error", JOptionPane.ERROR_MESSAGE);
+				} else {
+					JOptionPane.showMessageDialog(null, "Error - No regions have been loaded; files include: "+Array.toStr(filenames, ", "), "Error", JOptionPane.ERROR_MESSAGE);
+				}
 				return;
 			}
 			regionIndex = Math.min(regionIndex+1, regions.length-1);
