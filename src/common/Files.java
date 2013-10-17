@@ -334,6 +334,7 @@ public class Files {
 		}
 		
 		dir = ext.parseDirectoryOfFile(root_batch_name, true);
+		new File(dir).mkdirs();
 		writers = new PrintWriter[numBatches];
 		try {
 			if (numBatches > 1) {
@@ -426,6 +427,7 @@ public class Files {
 			throw new RuntimeException("Problem creating master batch file");
 		}
 	}
+	
 	public static void qsub(String filename, String command, int memoryRequestedInMb, double walltimeRequestedInHours) {
 		PrintWriter writer;
 		String[] lines;

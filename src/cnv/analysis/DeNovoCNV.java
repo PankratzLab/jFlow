@@ -631,7 +631,7 @@ public class DeNovoCNV {
 		pennBinDir = "C:/penncnv/";
 
 		String usage = "\n"+
-				"cnv.analysis.DeNovoCNV requires 4 arguments\n"+
+				"cnv.analysis.DeNovoCNV requires 3 arguments\n"+
 				"   (1) The project's property file's name (i.e. proj=" + projPropertyFileFullPath + " (not the default))\n"+
 				"   (2) Direction of PennCNV software (i.e. pennBinDir=" + pennBinDir + " (not the default))\n"+
 //				"   (2) The output gcBase file name  (i.e. gcbase=" + gcBaseFileFullPath + " (not the default))\n"+
