@@ -2,11 +2,13 @@ package gwas;
 
 import java.io.*;
 import java.util.*;
+
+import stats.Rscript;
 import common.*;
 
 public class SkatMetaPrimary {
 
-	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo) {
+	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo, String outfileRoot) {
 		String dir;
 		String root;
 		File resultDir;
@@ -45,16 +47,31 @@ public class SkatMetaPrimary {
 					rCode = "library(\"skatMeta\")\n"
 							+ "setwd(\"" + dir + "\")\n"
 							+ "\n"
-							+ "SNPInfo <- read.csv(\"" + snpInfo + "\", header=T, as.is=T)\n"
+							+(snpInfo.toLowerCase().endsWith(".rdata")
+									?"obj_name <- load(\"" + snpInfo + "\")\n"
+									+"SNPInfo <- get(obj_name)\n"
+											+"rm(list=obj_name)\n"
+											+"rm(obj_name)\n"
+									:"SNPInfo <- read.csv(\"" + snpInfo + "\", header=T, as.is=T)\n"
+									)
 							+ "\n"
-							+ "Z <- t(read.csv(\"" + currentGeno + "\", header=T, as.is=T, row.names=1))\n"
-							+ "names <- colnames(Z)\n"
-							+ "for (i in 1:ncol(Z)) {\n"
-							+ "    tmp <- names[i]\n"
-							+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-							+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
-							+ "    }\n"
-							+ "}\n"
+							
+							+(genos.toLowerCase().endsWith(".rdata")
+									?"genoName <- load(\"" + currentGeno + "\")\n"
+									+"Z <- get(genoName)\n"
+									+ "names <- colnames(Z)\n"
+									+ "for (i in 1:ncol(Z)) {\n"
+									+ "    names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
+									+ "}\n"
+									:"Z <- t(read.csv(\"" + currentGeno + "\", header=T, as.is=T, row.names=1))\n"
+									+ "names <- colnames(Z)\n"
+									+ "for (i in 1:ncol(Z)) {\n"
+									+ "    tmp <- names[i]\n"
+									+ "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+									+ "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
+									+ "    }\n"
+									+ "}\n"
+									)
 							+ "colnames(Z) <- names\n"
 							+ "\n"
 							+ "pheno <- read.csv(\"" + phenoFilename + "\", header=T, as.is=T, row.names=1)\n"
@@ -72,12 +89,13 @@ public class SkatMetaPrimary {
 							+ "offset <- 1+ncol(pheno)\n"
 							+ "mGeno <- merged[,1:ncol(Z)+offset]\n"
 							+ "\n"
-							+ cohort + "_chr" + i + " <- skatCohort(Z=mGeno, formula(formu), SNPInfo=SNPInfo, data=mPheno)\n"
-							+ "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo, snpNames = \"Name\", cohortBetas = TRUE)\n"
-							+ "write.table(results, \"chr" + i + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n"
+							+ cohort + "_chr" + i + " <- skatCohort(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
+//							+ "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo, snpNames = \"Name\", cohortBetas = TRUE)\n"
+							+ "results <- burdenMeta(" + cohort + "_chr" + i + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=subset(SNPInfo, sc_nonsynSplice==TRUE), snpNames=\"SNP\", wts = 1)\n"
+							+ "write.table(results, \""+outfileRoot+"_chr" + i + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n"
 							+ "save(" + cohort + "_chr" + i + ", file=\"" + root + "/" + cohort + "_chr" + i + ".RData\")";
 
-					filename = batchDir + "chr" + i + ".R";
+					filename = batchDir + cohort+ "_chr" + i + ".R";
 					out = new PrintWriter(new FileOutputStream(filename));
 					out.println(rCode);
 					out.close();
@@ -85,16 +103,19 @@ public class SkatMetaPrimary {
 					// then run the R code, if it only takes a few minutes then on your machine
 //					Runtime.getRuntime().exec("C:/Progra~1/R/R-3.0.1/bin/Rscript " + batchDir + "chr" + i + ".R");
 					v.add(filename);
+					
 				}
 			}
 			
 			iterations = Matrix.toMatrix(Array.toStringArray(v));
 			if (System.getProperty("os.name").startsWith("Windows")) {
 				commands = "Rscript --no-save [%0]";
-				Files.batchIt("batchChecks/checkObject", "", 5, commands, iterations);
+				Files.batchIt(batchDir+"run", "", 5, commands, iterations);
 			} else {
-				commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
-				Files.qsub("batchChecks/checkObject", dir, -1, commands, iterations, 30000, 24);
+//				commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
+				commands = Rscript.getRscriptExecutable(new Logger())+" --no-save [%0]";
+//				Files.qsub("checkObject", dir, -1, commands, iterations, 30000, 24);
+				Files.qsub(batchDir+"run_"+cohort, dir, -1, commands, iterations, 30000, 24);
 			}
 
 		} catch (IOException e) {
@@ -109,8 +130,8 @@ public class SkatMetaPrimary {
 		String snpInfo;
 
 		cohort="aric";
-		genos="D:/LITE/ExomeChip/00src/ARIC_recode_all_exome_chip/EA_ARIC_noJHS_chr#t.csv";
-		pheno="D:/ExomeChip/ARIC_primary/ARIC_EA_WBC_TOTAL.csv";
+		genos="D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
+		pheno="D:/SkatMeta/results_hemostasis/pheno_F7_studyIDs.csv";
 		snpInfo="N:/statgen/skatMeta/fullExample/SNPInfo_HumanExome-12v1_rev5_justGeneSpliced.csv";
 
 		String usage = "\n"+
@@ -138,7 +159,7 @@ public class SkatMetaPrimary {
 			}
 		}
 		
-		batch(cohort, genos, pheno, snpInfo);
+		batch(cohort, genos, pheno, snpInfo, ext.rootOf(pheno));
 	}
 
 }
