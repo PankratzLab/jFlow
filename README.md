@@ -1,5 +1,5 @@
 Genvisis
-========
+====================
 Visualization of CNV data
 
 Genvisis Techmanual
