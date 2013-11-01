@@ -370,8 +370,10 @@ public class Files {
 					}
 					writer.println("qsub " + ext.removeDirectoryInfo(root_batch_name) + "_" + (i+1) + ".qsub");
 				}
+				writer.close();
+				chmod(ext.parseDirectoryOfFile(root_batch_name) + "master." + ext.removeDirectoryInfo(root_batch_name));
 			} else {
-				writer = null;
+//				writer = null;
 				writers[0] = new PrintWriter(new FileWriter(root_batch_name + ".qsub"));
 			}
 
@@ -393,12 +395,11 @@ public class Files {
 				writers[i].close();
 				chmod(root_batch_name + "_" + (i+1) + ".qsub");
 			}
-			if (numBatches > 1) {
-				chmod("master."+ext.removeDirectoryInfo(root_batch_name));
-			}
-			if (numBatches>1) {
-				writer.close();
-			}
+
+//			if (numBatches > 1) {
+//				writer.close();
+//				chmod(ext.parseDirectoryOfFile(root_batch_name)+"master." + ext.removeDirectoryInfo(root_batch_name));
+//			}
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			throw new RuntimeException("Problem creating batch files named "+root_batch_name);
@@ -2448,6 +2449,26 @@ public class Files {
 		}
 	}
 	
+//	public static String determineDelimiterFromFileExt(String filename, Logger log) {
+//		if (filename.endsWith(".csv") || filename.endsWith(".csv.gz")) {
+//			return ",";
+//		}
+//		
+//		if (filename.endsWith(".xln") || filename.endsWith(".xln.gz")) {
+//			return "\t";
+//		}
+//
+//		if (filename.endsWith(".dat") || filename.endsWith(".dat.gz")) {
+//			return "\t";
+//		}
+//
+//		if (filename.endsWith(".txt") || filename.endsWith(".txt.gz")) {
+//			return "\t";
+//		}
+//
+//		return "\t";
+//	}
+//
 	public static String determineDelimiter(String filename, Logger log) {
 		if (filename.endsWith(".csv") || filename.endsWith(".csv.gz")) {
 			return ",";
