@@ -1,5 +1,3 @@
-git config --global core.autocrlf true
-
 # Set everything to use Windows line endings
 *.java text eol=crlf
 *.properties text eol=crlf
