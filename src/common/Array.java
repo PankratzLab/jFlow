@@ -1080,6 +1080,55 @@ public class Array {
 
 		return quantiles;
 	}
+
+	/**
+	 * Returns the kurtosis of an array
+	 * @param array
+	 * @return
+	 */
+	public static double skewness(double[] array) {
+		double skew = -1;
+		double mean = Array.mean(array);
+		double sd = Array.stdev(array);
+		double m3;
+		double n = array.length;
+
+		m3 = 0;
+		for (int i = 0; i<n; i++) {
+			m3 += Math.pow((array[i]-mean)/sd, 3);
+		}
+		skew = m3 * n / (n-1) / (n-2);
+
+		return skew;
+	}
+
+	/**
+	 * Returns the kurtosis of an array
+	 * @param array
+	 * @return
+	 */
+	public static double kurtosis(double[] array) {
+		double kurt = -1;
+		double mean = Array.mean(array);
+		double m2, s, m4s;
+		double n = array.length;
+
+		m2 = 0;
+		for (int i = 0; i<n; i++) {
+			m2 += Math.pow(array[i]-mean, 2);
+		}
+		m2 /= (n-1);
+		s = Math.sqrt(m2);
+
+		m4s = 0;
+		for (int i = 0; i<array.length; i++) {
+			m4s += Math.pow((array[i]-mean)/s, 4);
+		}
+
+		kurt = n*(n+1)/((n-1)*(n-2)*(n-3))*m4s-3*Math.pow(n-1, 2)/((n-2)*(n-3));
+
+		return kurt;
+	}
 	
 	/**
 	 * Inverse-normalizes an array of numbers
