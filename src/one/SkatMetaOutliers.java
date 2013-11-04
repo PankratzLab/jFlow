@@ -10,7 +10,10 @@ import java.util.Vector;
 
 import stats.ProbDist;
 import common.Array;
+import common.Files;
+import common.HashVec;
 import common.Logger;
+import common.Matrix;
 import common.ext;
 
 import gwas.PhenoPrep;
@@ -40,7 +43,10 @@ public class SkatMetaOutliers {
 				return result;
 			}
 		});
-		
+		if (fileNames == null) {
+			return null;
+		}
+
 		pvals = new Vector<Double>();
 		for (int i = 0; i < fileNames.length; i++) {
 			try {
@@ -78,10 +84,12 @@ public class SkatMetaOutliers {
 		int numArgs = args.length;
 		Logger log;
 		String dir;
-		String phenoFilename = "";
+		String phenoFilename = "D:/SkatMeta/results_hemostasis/pheno_F7_del_3sd.csv";
 		String[] processing = new String[] {"", "del", "winsorized"};
 		String[] transform = new String[] {"", "ln", "sqrt"};
 		String[] regression = new String[] {"", "AGE,SEX"};
+		double[][] phenoTmp;
+		double[] pheno;
 
 		log = new Logger();
 
@@ -119,8 +127,20 @@ public class SkatMetaOutliers {
 			System.exit(1);
 		}
 
-		dir = ext.parseDirectoryOfFile(phenoFilename);
-		log.report(calculateLambda(dir, ".csv", log));
+//		double[] test = new double[] {0.1, 0.2, 0.3, 0.4, 0.5, .6, .7, .8, 1.9, 11};
+//		log.report("Testing, testing ... \tskewness: " + Array.skewness(test) + "\tkurtosis: " + Array.kurtosis(test));
+
+
+		dir = ext.parseDirectoryOfFile(phenoFilename) + ext.rootOf(phenoFilename) + "/results";
+		String[] header = Files.getHeaderOfFile(phenoFilename, log);
+		// just pheno: new int[] {1}
+		phenoTmp = Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true, Array.subArray(Array.intArray(header.length), 1), false));
+		pheno = new double[phenoTmp.length];
+		for (int i = 0; i < pheno.length; i++) {
+			pheno[i] = phenoTmp[i][0];
+		}
+		log.report("lambda: " + calculateLambda(dir, ".csv", log) + "\tskewness: " + Array.skewness(pheno) + "\tkurtosis: " + Array.kurtosis(pheno));
+
 //		for (int i = 0; i < processing.length; i ++) {
 //			for (int j = 0; j < transform.length; j++) {
 //				for (int k = 0; k < regression.length; k++) {
