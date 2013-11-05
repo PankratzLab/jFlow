@@ -11,9 +11,7 @@ import cnv.filesys.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.*;
 
@@ -99,7 +97,7 @@ public class MarkerDataLoader implements Runnable {
 				if (hash.containsKey(line[0])) {
 					v = hash.get(line[0]);
 				} else {
-					hash.put(line[0], v = new Vector<String>());
+					hash.put(line[0], v = new Vector<String>(100000));
 					filenames.put(line[0], "");
 				}
 				if (plinkFormat) {
@@ -341,6 +339,7 @@ public class MarkerDataLoader implements Runnable {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	public static Hashtable<String, Float> loadOutliers(Project proj) {
 		if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser").exists()) {
 			return (Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser");
@@ -370,7 +369,7 @@ public class MarkerDataLoader implements Runnable {
         float[] bafs = null;
         float[] lrrs = null;
         byte[] abGenotypes = null;
-        String[] alleleMappings = null;
+        byte[] forwardGenotypes = null;
         byte[] genotypeTmp;
         long seekLocation;
         byte[][] readBuffer = null;
@@ -418,17 +417,6 @@ public class MarkerDataLoader implements Runnable {
 				file.seek(seekLocation);
 				file.read(readBuffer[i]);
 			}
-
-	        // TODO this is read every time, wouldn't it be faster to use the serialized version?
-	        // Read in the Out of Range Value array
-//	        file.seek((long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)numBytesMarkernamesSection + (long) numMarkersInThisFile * (long)numBytesPerMarker);
-////	        System.out.println("number of markers in this file: "+numMarkersInThisFile);
-//			lengthOfOutOfRangeHashtable = file.readInt();
-//			if (lengthOfOutOfRangeHashtable>0) {
-//				outOfRangeValuesReadBuffer = new byte[lengthOfOutOfRangeHashtable];
-//				file.read(outOfRangeValuesReadBuffer);
-//				outOfRangeValues = (Hashtable<String, Float>)Compression.bytesToObj(outOfRangeValuesReadBuffer);
-//			}
 
 			file.close();
 		} catch (FileNotFoundException e) {
@@ -531,16 +519,11 @@ public class MarkerDataLoader implements Runnable {
 			indexReadBuffer = indexStart;
 			if (! isGenotypeNull && loadAbGenotype) {
 				abGenotypes = new byte[numSamplesProj];
-		        alleleMappings = new String[numSamplesProj];
+				forwardGenotypes = new byte[numSamplesProj];
 				for (int j=0; j<numSamplesProj; j++) {
 					genotypeTmp = Compression.genotypeDecompress(readBuffer[i][indexReadBuffer]);
 					abGenotypes[j] = genotypeTmp[0];
-					if (genotypeTmp[1] >= Sample.ALLELE_PAIRS.length) {
-						System.err.println("Error - invalid allelePair designation ("+genotypeTmp[1]+") as there are only "+Sample.ALLELE_PAIRS.length+" that are defined");
-						alleleMappings[j] = "UU";
-					} else {
-						alleleMappings[j] = Sample.ALLELE_PAIRS[genotypeTmp[1]];
-					}
+					forwardGenotypes[j] = genotypeTmp[1];
 					indexReadBuffer += bytesPerSampMark;
 				}
 			}
@@ -558,7 +541,7 @@ public class MarkerDataLoader implements Runnable {
 	        						  , bafs
 	        						  , lrrs
 	        						  , abGenotypes
-	        						  , alleleMappings);
+	        						  , forwardGenotypes);
         }
 		return result;
 	}

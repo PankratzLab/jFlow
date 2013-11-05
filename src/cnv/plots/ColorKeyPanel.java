@@ -126,7 +126,7 @@ public class ColorKeyPanel extends JPanel {
 		JLabel label, block;
 		String[][] colorKeys;
 		String[] keys;
-		int numBasicClasses;
+		int numBasicClasses, numRegularClasses;
 		MouseListener mouseListenerForColorKey;
 		
 		mouseListenerForColorKey = new MouseListener() {
@@ -153,6 +153,7 @@ public class ColorKeyPanel extends JPanel {
 
 		
 		numBasicClasses = sampleData.getBasicClasses().length;
+		numRegularClasses = sampleData.getNumActualClasses();
 		
 		classValuesPanel.removeAll();
 		classValuesPanel.repaint();
@@ -162,8 +163,15 @@ public class ColorKeyPanel extends JPanel {
 		classValuesPanel.add(label);
 		if (currentClass < numBasicClasses) {
 			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
-		} else {		
+		} else if (currentClass < numBasicClasses+numRegularClasses) {		
 			colorKeys = sampleData.getActualClassColorKey(currentClass - numBasicClasses);
+		} else {
+			colorKeys = new String[][] {{"0", "Not in a CNV"},
+										{"1", "Homozygous deletion"},
+										{"2", "Heterozygous deletion"},
+										{"4", "Duplication"},
+										{"5", "Triplication"},
+										};
 		}
 		for (int i = 0; i<colorKeys.length; i++) {
 			block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(colorKeys[i][0])]));
@@ -188,7 +196,7 @@ public class ColorKeyPanel extends JPanel {
 
 		for (int i = 0; i<keys.length; i++) {
 			if (!keys[i].equals("-1")) {
-				block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(keys[i])]));
+				block = new JLabel(new ColorIcon(12, 12, colorScheme[Math.min(Integer.parseInt(keys[i]), colorScheme.length-1)]));
 				block.setName(currentClass+"\t"+keys[i]);
 				block.addMouseListener(mouseListenerForColorKey);
 				label = new JLabel((keys[i].equals("0")?"missing":keys[i])+" (n="+currentClassUniqueValues.get(keys[i])+")");

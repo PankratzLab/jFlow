@@ -35,7 +35,11 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	private int currentVariable;
 	private boolean swapAxes;
 	private boolean maskMissing;
+	private Logger log;
+	private boolean fail;
 	
+	
+	// TODO need to move frame, etc out of constructor to fail as the others do
 	public StratPlot(Project project, String[][] names, Hashtable<String,float[][]> hash) {
 		super("CNVis - Stratify");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -43,6 +47,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		JPanel treePanel, classPanel, classPanelTop;
 		
 		proj = project;
+		log = proj.getLog();
 
 		treePanel = new JPanel();
 		treePanel.setBackground(BACKGROUND_COLOR);
@@ -72,13 +77,20 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 		
 		sampleData = proj.getSampleData(2, false);
+		if (!sampleData.containsDNA()) {
+			log.reportError("Without a DNA column in the SampleData file, ScatterPlot will not start");
+			JOptionPane.showMessageDialog(null, "Error - Without a DNA column in the SampleData file, ScatterPlot will not start", "Error",
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
 		if (sampleData.getNumActualClasses() == -1) {
-			System.err.println("Error - Failed to load SampleData... closing");
+			log.reportError("Error - Failed to load SampleData... closing");
 			return;
 		}
 		if (sampleData.getNumActualClasses() == 0) {
-			System.err.println("Error - this isn't going to work; you don't have any classes defined in SampleData.txt");
-			System.exit(1);
+			log.reportError("Error - this isn't going to work; you don't have any classes defined in SampleData.txt");
+			return;
 		}
 		
 		stratPanel = new StratPanel(this, names, hash);
@@ -155,6 +167,10 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		stratPanel.repaint();
 	}
 	
+	public Project getProject() {
+		return proj;
+	}
+	
 	public void updateGUI() {
 		stratPanel.paintAgain();
 	}
@@ -222,7 +238,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 			stratPanel.pushSampleData();
 			updateGUI();
 		} else {
-			System.err.println("Error - unknown command '"+command+"'");
+			log.reportError("Error - unknown command '"+command+"'");
 		}
 	}
 	
@@ -242,7 +258,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 	public int[][] getCurrentPair() {
 		int[][] currentPair = tree.getSelectionIndices();
-		System.out.println(Array.toStr(currentPair[1]) +"\t"+ Array.toStr(currentPair[0]));
+//		System.out.println(Array.toStr(currentPair[1]) +"\t"+ Array.toStr(currentPair[0])); // TODO this being called twice each time 
 		return swapAxes?new int[][] {currentPair[1], currentPair[0]}:currentPair;
 	}
 	
@@ -260,7 +276,9 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		boolean sol;
 		String trav;
 		int n;
+		Logger log;
 
+		log = proj.getLog();
 		stratFiles = proj.getStratResults();
 		names = new String[stratFiles.size()][];
 		hash = new Hashtable<String,float[][]>();
@@ -269,7 +287,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	            reader = Files.getReader(stratFiles.elementAt(i), proj.getJarStatus(), true, false);
 	            line = reader.readLine().trim().split("[\\s]+");
 	            if (!line[0].equals("FID") || !line[1].equals("IID")) {
-	            	System.err.println("Error - different format than expected; first two columns should be FID and IID");
+	            	log.reportError("Error - different format than expected; first two columns should be FID and IID");
 	            	throw new IOException();
 	            }
 	            sol = line[2].equals("SOL");
@@ -293,10 +311,10 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	            }
 	            reader.close();
             } catch (FileNotFoundException fnfe) {
-            	System.err.println("Error: file \""+stratFiles.elementAt(i)+"\" not found in current directory");
+            	log.reportError("Error: file \""+stratFiles.elementAt(i)+"\" not found in current directory");
 	            names[i] = new String[1];
             } catch (IOException ioe) {
-	            System.err.println("Error reading file \""+stratFiles.elementAt(i)+"\"");
+            	log.reportError("Error reading file \""+stratFiles.elementAt(i)+"\"");
 	            names[i] = new String[1];
             }
             names[i][0] = ext.rootOf(stratFiles.elementAt(i), true);

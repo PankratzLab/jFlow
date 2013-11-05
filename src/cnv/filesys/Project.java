@@ -448,6 +448,10 @@ public class Project extends Properties {
 		} 
 	}	
 	
+	public String getNameOfProject() {
+		return getProperty(Project.PROJECT_NAME);
+	}
+
 	public boolean getJarStatus() {
 		return jar;
 	}
@@ -522,6 +526,23 @@ public class Project extends Properties {
         	Files.backup(ext.removeDirectoryInfo(filename+".bak"), ext.parseDirectoryOfFile(filename), ext.parseDirectoryOfFile(filename), true);
         	Files.writeList(Array.toStringArray(corrections), filename);
         }
+	}
+
+	public String[] getTargetMarkers(Logger log) {
+		String targetMarkers;
+		String[] targets;
+
+		targetMarkers = getFilename(Project.TARGET_MARKERS_FILENAME, false, false);
+		if (new File(targetMarkers).exists()) {
+			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, true);
+		} else {
+			if (! targetMarkers.equals("")) {
+				log.report("FYI, since target markers file '" + targetMarkers + "' was not found, all markers will be exported/analyzed");
+			}
+			targets = null;
+		}
+
+		return targets;
 	}
 
 	public static void main(String[] args) {

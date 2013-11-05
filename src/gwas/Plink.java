@@ -31,12 +31,12 @@ public class Plink {
         extraCommands = new Vector<String>();
 		if (!new File("plink.frq").exists()) {
 			System.err.println("Error - 'plink.frq' required for batched genome");
-			extraCommands.add("plink --bfile "+root+" --freq --noweb");
+			extraCommands.add("plink --bfile "+root+" --freq --noweb &");
 		}
 
 		if (!new File("plink.imiss").exists()) {
 			System.err.println("Sorry, I can't trust you any more, I need to see a 'plink.imiss' file to proceed");
-			extraCommands.add("plink --bfile "+root+" --missing --noweb");
+			extraCommands.add("plink --bfile "+root+" --missing --noweb &");
 		}
 		
 		if (extraCommands.size() > 0) {
@@ -98,6 +98,8 @@ public class Plink {
 	        writer.println("cat data.sub*genome | fgrep -v FID1 | cat header - > cluster.genome");
 	        writer.println("rm tmp.list*");
 	        writer.println("rm data.sub.*");
+	        writer.println("mkdir batches/");
+	        writer.println("mv *.qsub* batches/");
 	        writer.close();
         } catch (Exception e) {
 	        System.err.println("Error writing to "+"master");

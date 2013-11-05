@@ -110,8 +110,8 @@ public class PlinkFormat {
 				System.err.println("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
 				return false;
 			}
-			abLookup = new ABLookup(markerNames, proj.getProjectDir()+"AB_lookup.dat", true, true).getLookup();
-			log.report("Using "+clusterFilterFilename+" and AB_lookup.dat to call genotypes");
+			abLookup = new ABLookup(markerNames, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true).getLookup();
+			log.report("Using "+clusterFilterFilename+" and "+proj.getProperty(Project.AB_LOOKUP_FILENAME)+" to call genotypes");
 		} else {
 			abLookup = null;
 		}

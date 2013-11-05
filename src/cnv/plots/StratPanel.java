@@ -185,7 +185,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 
 		currentClass = sp.getCurrentVariable();
 		currentPair = sp.getCurrentPair();
-		System.out.println(Array.toStr(currentPair[1]) +"\t"+ Array.toStr(currentPair[0]));
+//		System.out.println(Array.toStr(currentPair[1]) +"\t"+ Array.toStr(currentPair[0])); // TODO this being called twice, once before and after changes
 		if (prevPair == null || !Matrix.equals(currentPair, prevPair)) {
 			resetZoomProportions();
 		}
@@ -208,7 +208,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 				if (data[currentPair[0][0]] != null && data[currentPair[1][0]] != null && !Float.isNaN(data[currentPair[0][0]][currentPair[0][1]])  && !Float.isNaN(data[currentPair[1][0]][currentPair[1][1]])) {
 					sampleID = sampleData.lookup(sampleList[i])[0];
 					if (sampleID == null) {
-						System.err.println("Error - could not look up "+sampleList[i]); // looks up any individual present in any .mds file that was loaded, even those not in the current file
+						sp.getProject().getLog().reportError("Error - could not look up "+sampleList[i]); // looks up any individual present in any .mds file that was loaded, even those not in the current file
 						tagalong = true;
 						colorCode = 0;
 					} else {

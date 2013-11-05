@@ -669,14 +669,14 @@ public class ParseAffymetrix implements Runnable {
 		ABLookup abLookup; 
 		char[][] lookup;
 		
-		if (abLookupRequired && Files.exists(proj.getProjectDir()+ABLookup.DEFAULT_AB_FILE)) {
-			abLookup = new ABLookup(markerNames, proj.getProjectDir()+ABLookup.DEFAULT_AB_FILE, true, false);
+		if (abLookupRequired && Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
+			abLookup = new ABLookup(markerNames, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, false);
 			lookup = abLookup.getLookup();
-         if (lookup == null) {
- 			System.err.println("Warning - filed to provide columns \""+Sample.GENOTYPE_FIELDS[2][0]+"\" / \""+Sample.GENOTYPE_FIELDS[3][0]+"\" and there is no file \""+ABLookup.DEFAULT_AB_FILE+"\" to compensate; you'll need reconstruct the B allele for analysis");
-         } else {
-         	abLookup.writeToFile(proj.getProjectDir()+"checkAB.xln");
-         }
+            if (lookup == null) {
+    			System.err.println("Warning - filed to provide columns \""+Sample.GENOTYPE_FIELDS[2][0]+"\" / \""+Sample.GENOTYPE_FIELDS[3][0]+"\" and the specificed AB_lookup file '"+proj.getProperty(Project.AB_LOOKUP_FILENAME)+"' does not exist; you'll need reconstruct the B allele for analysis");
+            } else {
+            	abLookup.writeToFile(proj.getProjectDir()+"checkAB.xln");
+            }
 		} else {
 			lookup = null;
 		}

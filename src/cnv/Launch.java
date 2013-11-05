@@ -101,10 +101,26 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 
 	public void loadProject() {
+		String logfile;
+		
 		proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProj], jar);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
-		log = new Logger(proj.getProjectDir() + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+		if (!Files.exists(proj.getProjectDir(), proj.getJarStatus())) {
+			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.getProjectDir()+"') for project '"+proj.getNameOfProject()+"' does not exist; please edit propertiy file", "Error", JOptionPane.ERROR_MESSAGE);
+			proj = null;
+			return;
+		}
+		
+		logfile = "Genvisis_"+new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log";
+		if (!proj.getJarStatus()) {
+			logfile = proj.getProjectDir()+"logs/"+logfile;
+			if (!Files.exists(proj.getProjectDir()+"logs/", proj.getJarStatus())) {
+				new File(proj.getProjectDir()+"logs/").mkdirs();
+			}
+		}
+		
+		log = new Logger(logfile);
 	    log.linkTextArea(output);
 	    log.report("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 		log.report("\nCurrent project: " + ext.rootOf(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
@@ -369,7 +385,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 				filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
 //				System.out.println("using "+filename);
-				log.report("using "+filename);
+				if (filename == null) {
+					log.report("No ClusterFilterCollection will be used");
+				} else {
+					log.report("The ClusterFilterCollection in '"+filename+"' will be used");
+				}
 				if ( filename==null || (!filename.equals("cancel")) ) {
 //						String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
 //						if () {
@@ -463,16 +483,22 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //		output.setCaretPosition(output.getDocument().getLength());
 		log.report("Action performed: " + command + "\n");
 		
-		if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified() || timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
+		if (proj == null) {
+			log.report("Trying again to load project");
+			loadProject();
+		}
+		
+		if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified()) {
+			log.report("Detected a change in the project properties file; reloading from '"+defaultLaunchPropertiesFilename+"'");
 			proj = null;
 			loadProject();
 		}	
-		
-		
-//		// check if proj needs to be reloaded
-//		proj = null;
-//		proj = new Project(filename, jar);
 
+		if (timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
+			log.report("Detected a change in the sampleData file; reloading sample data");
+			proj.resetSampleData();
+		}	
+		
 		if (command.equals(EXIT)) {
 			System.exit(0);
 		} else if (command.equals(EDIT)) {

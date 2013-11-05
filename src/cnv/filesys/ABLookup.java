@@ -114,7 +114,7 @@ public class ABLookup {
         try {
 	        writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"AB_breakdown.xln"));
 	        writer.println("Marker\tG11\tG12\tG22\tG11 counts\tG12 counts\tG22 counts\tMean Theta G11\tMean Theta G12\tMean Theta G22\torder\tA allele\tB allele");
-	        writer2 = new PrintWriter(new FileWriter(proj.getProjectDir()+"poss_"+DEFAULT_AB_FILE));
+	        writer2 = new PrintWriter(new FileWriter(proj.getProjectDir()+"posssible_"+DEFAULT_AB_FILE));
 	        writer2.println("Marker\tAlleleA\tAlleleB");
 //	        int countMissing;
 	        lookup = new char[markerNames.length][];
@@ -184,7 +184,7 @@ public class ABLookup {
 	        writer.close();
 	        writer2.close();
         } catch (Exception e) {
-	        System.err.println("Error writing to either "+"AB_breakdown.xln"+" or "+"poss_"+DEFAULT_AB_FILE);
+	        System.err.println("Error writing to either "+"AB_breakdown.xln"+" or "+"possible_"+DEFAULT_AB_FILE);
 	        e.printStackTrace();
         }
 		
@@ -283,7 +283,7 @@ public class ABLookup {
         } catch (FileNotFoundException fnfe) {
         	return null;
         } catch (IOException ioe) {
-            System.err.println("Error reading file \""+DEFAULT_AB_FILE+"\"");
+            System.err.println("Error reading file \""+filename+"\"");
             return null;
         }
 	}
