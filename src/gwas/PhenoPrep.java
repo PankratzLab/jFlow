@@ -42,7 +42,7 @@ public class PhenoPrep {
 		}
 		
 		
-		prep = new PhenoPrep(dir+filename, dir+idFile, pheno, covars, log);
+		prep = new PhenoPrep(dir+filename, idFile==null? null : dir+idFile, pheno, covars, log);
 		
 		if (transform != null) {
 			prep.transform(transform);
@@ -230,7 +230,7 @@ public class PhenoPrep {
 		
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			delimiter = Files.determineDelimiter(filename, log);
+			delimiter = Files.suggestDelimiter(filename, log);
 			writer.println("id"+delimiter+Array.toStr(finalHeader, delimiter));
 			for (int i = 0; i < finalIDs.length; i++) {
 				writer.println(finalIDs[i]+delimiter+Array.toStr(database[i], -1, -1, delimiter));
@@ -245,16 +245,16 @@ public class PhenoPrep {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = "pheno.csv";
+		String dir;
+		String filename;
 		String logfile = null;
 		Logger log;
 		double sdThreshold = 3.0;
-		String dir = "";
-		String pheno = "phen";
+		String pheno;
 		String transform = null;
 		String[] covars = null;
-		String idFile = "keeps.txt";
-		String outFile = "outfile.dat";
+		String idFile = null;
+		String outFile;
 		boolean winsorize = false;
 		boolean remove = false;
 		boolean makeResids = false;
@@ -263,10 +263,21 @@ public class PhenoPrep {
 //		filename = "ARIC_Whites_WBC.csv";
 //		pheno = "WBC";
 //		outFile = "ARIC_EA_WBC.csv";
+//		idFile = "keeps.txt";
 //		transform = "ln";
 //		covars = new String[] {"Age", "Male", "CenterF", "CenterJ", "CenterM"};
 //		idFile = "EA_keeps.dat";
 //		winsorize = true;
+
+		dir = "D:/SkatMeta/results_hemostasis/";
+		filename = "pheno_F7.csv";
+		pheno = "F7";
+		outFile = "pheno_F7_winsorize_3sd.csv";
+//		covars = new String[] {"V1AGE01", "Sex"};
+//		winsorize = false;
+//		remove = false;
+//		makeResids = false;
+//		afterResids = false;
 
 		String usage = "\n" +
 				"gwas.PhenoPrep requires 0-1 arguments\n" +

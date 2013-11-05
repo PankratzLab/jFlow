@@ -12,6 +12,21 @@ public class ExportCNVsToPedFormat {
 	/*
 	 * Convert a cnv data file into
 	 */
+	// Step 1a
+	public static void convertFromRawCNV(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
+		
+	}
+
+	// Step 1b
+	public static void convertFromTrioOrJointCNVs(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
+		
+	}
+
+	// Step 2
+	public static void export(CNVariant[] cnvs, String[][] pedstructure, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
+		
+	}
+	
 	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
 		PrintWriter writer;
 		CNVariant[] cnvs;

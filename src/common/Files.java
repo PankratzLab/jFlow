@@ -334,10 +334,11 @@ public class Files {
 		}
 		
 		dir = ext.parseDirectoryOfFile(root_batch_name, true);
+		new File(dir).mkdirs();
 		writers = new PrintWriter[numBatches];
 		try {
 			if (numBatches > 1) {
-				writer = new PrintWriter(new FileWriter("master." + ext.removeDirectoryInfo(root_batch_name)));
+				writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name)+"master." + ext.removeDirectoryInfo(root_batch_name)));
 				if (!dir.equals("./")) {
 					writer.println("cd "+dir);
 				}
@@ -346,8 +347,8 @@ public class Files {
 			        writers[i].println("#!/bin/bash");
 			        writers[i].println("#$ -cwd");
 			        writers[i].println("#$ -S /bin/bash");
-			        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
-			        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+			        writers[i].println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
+			        writers[i].println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
 			        params = new Vector<String>();
 			        if (memoryRequestedInMb > 0) {
 			        	params.add("pmem="+memoryRequestedInMb+"mb");
@@ -362,15 +363,17 @@ public class Files {
 			        	writers[i].println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
 			        }
 					writers[i].println();
-					writers[i].println("echo \"start "+root_batch_name+"_"+(i+1)+" at: \" `date`");
+					writers[i].println("echo \"start "+ext.removeDirectoryInfo(root_batch_name)+"_"+(i+1)+" at: \" `date`");
 					writers[i].println("/bin/hostname");
 					if (dirToSwitchToBeforeRunning != null) {
 						writers[i].println("cd "+dirToSwitchToBeforeRunning);
 					}
 					writer.println("qsub " + ext.removeDirectoryInfo(root_batch_name) + "_" + (i+1) + ".qsub");
 				}
+				writer.close();
+				chmod(ext.parseDirectoryOfFile(root_batch_name) + "master." + ext.removeDirectoryInfo(root_batch_name));
 			} else {
-				writer = null;
+//				writer = null;
 				writers[0] = new PrintWriter(new FileWriter(root_batch_name + ".qsub"));
 			}
 
@@ -388,16 +391,15 @@ public class Files {
 			}
 
 			for (int i = 0; i<numBatches; i++) {
-				writers[i].println("echo \"end "+root_batch_name+"_"+(i+1)+" at: \" `date`");
+				writers[i].println("echo \"end "+ext.removeDirectoryInfo(root_batch_name)+"_"+(i+1)+" at: \" `date`");
 				writers[i].close();
 				chmod(root_batch_name + "_" + (i+1) + ".qsub");
 			}
-			if (numBatches > 1) {
-				chmod("master."+ext.removeDirectoryInfo(root_batch_name));
-			}
-			if (numBatches>1) {
-				writer.close();
-			}
+
+//			if (numBatches > 1) {
+//				writer.close();
+//				chmod(ext.parseDirectoryOfFile(root_batch_name)+"master." + ext.removeDirectoryInfo(root_batch_name));
+//			}
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			throw new RuntimeException("Problem creating batch files named "+root_batch_name);
@@ -426,6 +428,7 @@ public class Files {
 			throw new RuntimeException("Problem creating master batch file");
 		}
 	}
+	
 	public static void qsub(String filename, String command, int memoryRequestedInMb, double walltimeRequestedInHours) {
 		PrintWriter writer;
 		String[] lines;
@@ -1689,7 +1692,7 @@ public class Files {
 	
 	// These variables need to be final in order to work in the FilenameFilter
 	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
-		if (directory.length() == 0) {
+		if (directory == null || directory.length() == 0) {
 			directory = "./";
 		}
 		
@@ -2446,6 +2449,26 @@ public class Files {
 		}
 	}
 	
+//	public static String determineDelimiterFromFileExt(String filename, Logger log) {
+//		if (filename.endsWith(".csv") || filename.endsWith(".csv.gz")) {
+//			return ",";
+//		}
+//		
+//		if (filename.endsWith(".xln") || filename.endsWith(".xln.gz")) {
+//			return "\t";
+//		}
+//
+//		if (filename.endsWith(".dat") || filename.endsWith(".dat.gz")) {
+//			return "\t";
+//		}
+//
+//		if (filename.endsWith(".txt") || filename.endsWith(".txt.gz")) {
+//			return "\t";
+//		}
+//
+//		return "\t";
+//	}
+//
 	public static String determineDelimiter(String filename, Logger log) {
 		if (filename.endsWith(".csv") || filename.endsWith(".csv.gz")) {
 			return ",";

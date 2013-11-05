@@ -976,6 +976,7 @@ public class Matrix {
 				subset[count++] = matrix[i];
 			}
 		}
-		return null;
+		
+		return subset;
 	}
 }
