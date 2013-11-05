@@ -16,11 +16,8 @@ import common.Logger;
 import common.Matrix;
 import common.ext;
 
-import gwas.PhenoPrep;
-
 public class SkatMetaOutliers {
 
-	@SuppressWarnings("resource")
 	public static String calculateLambda(String dir, final String filenameExt, Logger log) {
 		File[] fileNames;
 		Vector<Double> pvals;
@@ -61,6 +58,7 @@ public class SkatMetaOutliers {
 						pvals.add(Double.parseDouble(line[1]));
 					}
 				}
+				reader.close();
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
