@@ -78,7 +78,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 			reader = Files.getReader(proj.getFilename(Project.MOSAIC_RESULTS_FILENAME), proj.getJarStatus(), true, true);
 			ext.checkHeader(reader.readLine().trim().split("\t"), MOSAICISM_HEADER, true);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
+				line = reader.readLine().trim().split("\t", -1);
 				if (!line[5].equals(".")&&!line[6].equals(".")&&Integer.parseInt(line[1].substring(3, line[1].length()-1))<23) {
 					samples.add(new String[] {line[0], line[1]});
 					datapoints.add(new double[] {Double.parseDouble(line[5]), Double.parseDouble(line[6])});

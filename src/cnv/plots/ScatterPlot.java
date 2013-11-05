@@ -2254,7 +2254,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		qcPanel.add(qcPanelLabel);
 
 		currentClass = getCurrentClass();
-		if (currentClass>=(SampleData.BASIC_CLASSES.length+1)) {
+		if (currentClass>=(SampleData.BASIC_CLASSES.length+1) && currentClass<sampleData.getBasicClasses().length+sampleData.getNumActualClasses()) {
 			classCount = new CTable(called, otherClass);//This is the problem.
 			classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
 			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);

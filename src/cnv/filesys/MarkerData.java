@@ -29,9 +29,9 @@ public class MarkerData implements Serializable {
 	private float[] lrrs;
 	private float[] bafs;
 	private byte[] abGenotypes;
-	private String[] alleleMappings;
+	private byte[] forwardGenotypes;
 
-	public MarkerData(String markerName, byte chr, int position, long fingerprint, float[] gcs, float[] xRaws, float[] yRaws, float[] xs, float[] ys, float[] thetas, float[] rs, float[] bafs, float[] lrrs, byte[] abGenotypes, String[] alleleMappings) {
+	public MarkerData(String markerName, byte chr, int position, long fingerprint, float[] gcs, float[] xRaws, float[] yRaws, float[] xs, float[] ys, float[] thetas, float[] rs, float[] bafs, float[] lrrs, byte[] abGenotypes, byte[] forwardGenotypes) {
 		this.markerName = markerName;
 		this.chr = chr;
 		this.position = position;
@@ -46,7 +46,7 @@ public class MarkerData implements Serializable {
 		this.bafs = bafs;
 		this.lrrs = lrrs;
 		this.abGenotypes = abGenotypes;
-		this.alleleMappings = alleleMappings;
+		this.forwardGenotypes = forwardGenotypes;
 	}
 
 	public float[][] getDatapoints(int type) {
@@ -145,6 +145,7 @@ public class MarkerData implements Serializable {
 	}
 
 	public byte[] getAB_Genotypes() {
+		// TODO if null then compute from cluster centers
 		return abGenotypes;
 	}
 
@@ -288,8 +289,8 @@ public class MarkerData implements Serializable {
 		return result;		
 	}
 
-	public String[] getAlleleMappings() {
-		return alleleMappings;
+	public byte[] getForwardGenotypes() {
+		return forwardGenotypes;
 	}
 	
 	public double[] compareLRRs(float[][] centroids) {
@@ -349,7 +350,7 @@ public class MarkerData implements Serializable {
 							+ (lrrs==null? "" : "\tLRR")
 							+ (bafs==null? "" : "\tBAF")
 							+ (abGenotypes==null? "" : "\tAB_Genotypes")
-							+ (alleleMappings==null? "" : "\tForward_Genotypes"));
+							+ (forwardGenotypes==null? "" : "\tForward_Genotypes"));
         	dump(writer, samples, includeMarkerName);
         	writer.close();
         } catch (Exception e) {
@@ -372,7 +373,7 @@ public class MarkerData implements Serializable {
 	        				+ (lrrs != null? "\t" + lrrs[i] : "")
 	        				+ (bafs != null? "\t" + bafs[i] : "")
 	        				+ (abGenotypes != null? "\t" + abGenotypes[i] : "")
-	        				+ (alleleMappings != null? "\t" + alleleMappings[i] : ""));
+	        				+ (forwardGenotypes != null? "\t" + Sample.ALLELE_PAIRS[forwardGenotypes[i]] : ""));
     	}
 	}
 
@@ -461,12 +462,25 @@ public class MarkerData implements Serializable {
 		lrrs[i] = lrr;
 	}
 
-	public void setAbGenotype(byte abGenotype, int i) {
-		abGenotypes[i] = abGenotype;
-	}
+	public char[] getAB_AlleleMappings() {
+		byte[] abGenotypes, forwardGenotypes;
+		char[] mapping;
+		
+		mapping = new char[] {'0','0'};
+		abGenotypes = getAB_Genotypes();
+		forwardGenotypes = getForwardGenotypes();
 
-	public void setAlleleMapping(String alleleMapping, int i) {
-		alleleMappings[i] = alleleMapping;
+		for (int i = 0; i < abGenotypes.length; i++) {
+			if (mapping[0] == '0' && (abGenotypes[i] == 0 || abGenotypes[i] == 1)) {
+				mapping[0] = Sample.ALLELE_PAIRS[forwardGenotypes[i]].charAt(0);
+			} else if (mapping[1] == '0' && (abGenotypes[i] == 1 || abGenotypes[i] == 2)) {
+				mapping[1] = Sample.ALLELE_PAIRS[forwardGenotypes[i]].charAt(1);
+			} else if (mapping[0] != '0' && mapping[1] != '0'){
+				return mapping;
+			}
+		}
+		
+		return mapping;
 	}
 
 //	public byte[] detectClusters() {

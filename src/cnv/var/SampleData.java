@@ -29,6 +29,9 @@ public class SampleData {
 	private boolean failedToLoad;
 	private int sexClassIndex;
 	private int excludeClassIndex;
+	private boolean containsDNA;
+	private boolean containsFID;
+	private boolean containsIID;
 	
 	public SampleData(Project proj, int numberOfBasicClassesToUse, String[] cnvFilenames) {
 		BufferedReader reader;
@@ -54,6 +57,8 @@ public class SampleData {
 			cnvFilenames = new String[0];
 		}
 		
+		containsDNA = containsFID = containsIID = true;
+		
 		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
 			System.err.println("Error - selected number of basic classes to use exceeds the number defined");
 			numberOfBasicClassesToUse = BASIC_CLASSES.length;
@@ -77,6 +82,7 @@ public class SampleData {
 			if (dnaIndex == -1) {
 				System.err.println("Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
 				dnaIndex = 0;
+				containsDNA = false;
 			}
 			if (cnvFilenames.length > 0 && famIndex == -1) {
 				System.err.println("Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
@@ -89,10 +95,12 @@ public class SampleData {
 			if (famIndex == -1) {
 				System.err.println("Error - 'FID' was not a header in the SampleData file; assuming family ID is in the second column");
 				famIndex = 1;
+				containsFID = false;
 			}
 			if (indIndex == -1) {
 				System.err.println("Error - 'IID' was not a header in the SampleData file; assuming individual ID is in the third column");
 				indIndex = 2;
+				containsIID = false;
 			}
 			for (int i = 1; i<header.length; i++) {
 				if (header[i].toUpperCase().startsWith("FILTER=")) {
@@ -206,6 +214,18 @@ public class SampleData {
 	
 	public boolean failedToLoad() {
 		return failedToLoad;
+	}
+	
+	public boolean containsDNA() {
+		return containsDNA;
+	}
+	
+	public boolean containsFID() {
+		return containsFID;
+	}
+	
+	public boolean containsIID() {
+		return containsIID;
 	}
 	
 	public int getSexClassIndex() {
@@ -472,7 +492,7 @@ public class SampleData {
 				if (index == -1) {
 					return 0;
 				} else {
-					return (byte)(segs[index].getChr()+1);
+					return (byte)(segs[index].getCN()+1);
 				}
 			}
         default:

@@ -53,6 +53,21 @@ public class Grafik {
 		}
 	}
 
+	public static void drawTriangle(Graphics g, int x, int y, int size, boolean filled) {
+		g.drawPolygon(new int[] {x-size/2, x, x+size/2},
+					  new int[] {y+size/2, y-size/2, y+size/2},
+					  3);
+
+		if (filled) {
+			for (int i = 0; i < size; i++) {
+				g.drawPolygon(new int[] {x-(size/2-i), x, x+(size/2-i)},
+						  new int[] {y+(size/2), y-size/2, y+(size/2)},
+						  3);
+			}
+
+		}
+	}
+
 	public static ImageIcon getImageIcon(String filename, boolean jar) {
 		ImageIcon iicon;
 

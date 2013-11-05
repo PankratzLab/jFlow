@@ -62,6 +62,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			   	new Color(64, 224, 208),
 			   	new Color(0, 255, 255),
 			   	new Color(224, 255, 255),
+			   	new Color(255, 192, 0),	// yellowy orange
+			   	new Color(227, 108, 9), // halloween orange
 			};
 	}
 	public static String[] comments = new String[] {"Ugly", "Monomorphic", "Off Y-axis"};
@@ -281,6 +283,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				} else {
 					type = PlotPoint.FILLED_CIRCLE;
 				}
+				if (classCode == 100) {
+					classCode = genotypeCode;
+					if (classCode == 0) {
+						type = PlotPoint.FILLED_TRIANGLE;
+						classCode = (byte)(colorScheme.length-1);
+					}
+				}
+				
 				layer = (byte)((sampleData.getClassCategoryAndIndex(currentClass)[0]==2 && classCode > 0)?1:0);
 				layer = classCode; // TODO temporary fix, since was always zero otherwise
 				
@@ -293,7 +303,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				if (classCode < 0) {
 					System.err.println("Error - classCode is less than 0 ("+classCode+")");
 				}
-				points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:xFontSize, classCode, layer);
+				points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:(type==PlotPoint.FILLED_TRIANGLE?(byte)(size+5):xFontSize), classCode, layer);
 				genotype[i]=genotypeCode;
 				//sex[i]=(sexCode==1?"Female":(sexCode==2?"Male":"Missing"));
 				//for (int j=0; j<sampleData.getActualClassColorKey(0).length; j++) {
@@ -326,7 +336,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//callRate=(samples.length-callRate)*100/samples.length;
 		
 		if (getUpdateQcPanel()) {
-//			sp.updateQcPanel(chr, genotype, sex, otherClass);
+			sp.updateQcPanel(chr, genotype, sex, otherClass);
 			setQcPanelUpdatable(false);
 		}
 		sp.updateColorKey(uniqueValueCounts.convertToHash());
@@ -416,7 +426,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			i = indicesOfNearbySamples.elementAt(l);
 			if (i < samples.length) { // can also be centroids or other points
 				indi = sampleData.getIndiFromSampleHash(samples[i]);
-				g.setColor(colorScheme[sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position)]);
+				g.setColor(colorScheme[Math.min(sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position), colorScheme.length-1)]);
 				//g.setColor(Color.YELLOW);
 	//			if (gcScores[i]<gcThreshold) {
 	//			if (currentClass==1 && alleleCounts[i]==-1) {

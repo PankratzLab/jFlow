@@ -958,7 +958,7 @@ public class TransposeData {
         float[] bafs = null;
         float[] lrrs = null;
         byte[] abGenotypes = null;
-        String[] alleleMappings = null;
+        byte[] forwardGenotypes = null;
         byte[] genotypeTmp;
         long seekLocation;
         byte[][] readBuffer;
@@ -1105,15 +1105,15 @@ public class TransposeData {
 //				if (((nullStatus>>Sample.NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) != 1 || ((nullStatus>>Sample.NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) != 1) {
 				if (! isGenotypeNull) {
 					abGenotypes = new byte[nSamples];
-					alleleMappings = new String[nSamples];
+					forwardGenotypes = new byte[nSamples];
 					for (int j=0; j<nSamples; j++) {
 						genotypeTmp = Compression.genotypeDecompress(readBuffer[i][indexReadBuffer]);
 						abGenotypes[j] = genotypeTmp[0];
-						alleleMappings[j] = Sample.ALLELE_PAIRS[genotypeTmp[1]];
+						forwardGenotypes[j] = genotypeTmp[1];
 						indexReadBuffer += nBytesPerSampMark;
 					}
 				}
-		        result[i] = new MarkerData(markerNames[i], (byte)0, 0, fingerPrint, gcs, null, null, xs, ys, null, null, bafs, lrrs, abGenotypes, alleleMappings);
+		        result[i] = new MarkerData(markerNames[i], (byte)0, 0, fingerPrint, gcs, null, null, xs, ys, null, null, bafs, lrrs, abGenotypes, forwardGenotypes);
 	        }
 		} catch (FileNotFoundException e) {
 			System.err.println("Error - could not find RAF marker file '"+markerFilename+"'");

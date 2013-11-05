@@ -1138,9 +1138,13 @@ public class ext {
 //		if (str.startsWith("C:")) {
 //			str = str.substring(2);
 //		}
-		replaceAllWith(str, "\\", "/");
+		str = replaceAllWith(str, "\\", "/");
 		if (str.length() > 0 && !str.endsWith("/")) {
 			str += "/";
+		}
+		
+		if (str.endsWith("/./")) {
+			str = str.substring(0, str.length()-2);
 		}
 		
 		return str;

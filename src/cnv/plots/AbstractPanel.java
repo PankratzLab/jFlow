@@ -158,17 +158,18 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		addMouseWheelListener(this);
 	}
 	
-	public void addPlotPoint(PlotPoint point) {
-		lastIndexInPlotPointSet++;
-		points[lastIndexInPlotPointSet] = point;
-		if (lastIndexInPlotPointSet == plotPointSetSize) {
-			new PlotPointSet(points).serialize(tempDirectory+"PlotPointSet."+currentPlotPointSet+".ser");
-		}
-		points = new PlotPoint[plotPointSetSize];
-		totalNumPlotPointSets++;
-		currentPlotPointSet++;
-		lastIndexInPlotPointSet = 0;
-	}
+	// TODO where did this come from and what was it intended to do?
+//	public void addPlotPoint(PlotPoint point) {
+//		lastIndexInPlotPointSet++;
+//		points[lastIndexInPlotPointSet] = point;
+//		if (lastIndexInPlotPointSet == plotPointSetSize) {
+//			new PlotPointSet(points).serialize(tempDirectory+"PlotPointSet."+currentPlotPointSet+".ser");
+//		}
+//		points = new PlotPoint[plotPointSetSize];
+//		totalNumPlotPointSets++;
+//		currentPlotPointSet++;
+//		lastIndexInPlotPointSet = 0;
+//	}
 	
 	public void resetCurrentIndexInPlotPointSet() {
 		currentIndexInPlotPointSet = -1;
@@ -1066,6 +1067,17 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			break;
 		case PlotPoint.OPEN_CIRCLE:
 			g.drawOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
+			break;
+		case PlotPoint.FILLED_SQUARE:
+			g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
+						  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
+						  4);
+			break;
+		case PlotPoint.FILLED_TRIANGLE:
+			Grafik.drawTriangle(g, getXPixel(point.getRawX()), getYPixel(point.getRawY()), point.getSize(), true);
+//			g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX()), getXPixel(point.getRawX())+point.getSize()/2},
+//						  new int[] {getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2},
+//						  3);
 			break;
 		case PlotPoint.MISSING:
 			//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);

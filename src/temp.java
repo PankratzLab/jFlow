@@ -1,4 +1,6 @@
 import java.io.*;
+import java.sql.Date;
+
 import common.*;
 import parse.GenParser;
 import stats.LogisticRegression;
@@ -222,6 +224,11 @@ public class temp {
 		int numArgs = args.length;
 		String filename = "source.txt";
 
+		ls();
+		
+		System.exit(1);
+		
+		
 		String usage = "\n"+
 		".temp requires 0-1 arguments\n"+
 		"   (1) filename (i.e. file=" + filename + " (default))\n"+
@@ -290,6 +297,30 @@ public class temp {
 		}
 	}
 
+	private static void ls() {
+		String[] files;
+		String dir;
+		long[] times;
+		
+		dir = new File(".").getAbsolutePath();
+		dir = ext.verifyDirFormat(dir);
+		
+		files = Files.list(dir, null, false);
+		times = new long[files.length];
+		for (int i = 0; i < files.length; i++) {
+			times[i] = new File(dir+files[i]).lastModified();
+		}
+		files = Sort.putInOrder(files, Sort.quicksort(times));
+		for (int i = 0; i < files.length; i++) {
+			try {
+				System.out.println(ext.getDate(new Date(new File(dir+files[i]).lastModified()), " ")+"\t"+ext.getTime(new File(dir+files[i]).lastModified())+"\t"+files[i]);
+			} catch (Exception e) {
+				System.err.println("Error - with '"+files[i]+"'");
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	private static void testEffectOfLNontype1error(int sizePerRep, double multiplier) {
 		int[] counts, tCounts, nCounts;
 		double[][] betas;
