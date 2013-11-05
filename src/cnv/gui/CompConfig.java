@@ -323,6 +323,13 @@ class CNVPanel extends JPanel implements ActionListener {
 		} else {
 			// There's only one CNV, so select it
 			selectedCNV = selectedCNVs.get(0);
+			// Clear the combo box
+			if (cnvList != null) {
+				cnvPanel.remove(cnvList);
+				cnvListLabel.setText("");
+				cnvPanel.validate();
+			}
+
 			setCNVText();
 		}
 
@@ -357,8 +364,25 @@ class CNVPanel extends JPanel implements ActionListener {
 		score.setText("" + selectedCNV.getScore());
 	}
 
+	// Clear the CNV panel
+	public void clearCNVText() {
+		iid.setText("");
+		fid.setText("");
+		length.setText("");
+		copies.setText("");
+		probes.setText("");
+		score.setText("");
+		trailerButton.setEnabled(false);
+		if (cnvList != null) {
+			cnvPanel.remove(cnvList);
+			cnvListLabel.setText("");
+			cnvPanel.validate();
+		}
+	}
+
 	public void setDisplayMode(String mode) {
 		displayMode = mode;
+		clearCNVText();
 	}
 
 	// Monitor the combobox for changes
