@@ -1,7 +1,6 @@
 package gwas;
 
 import java.io.*;
-//import java.util.*;
 import common.*;
 
 // currently crashes if first or last marker passes significance threshold or is in window of a SNP that does
@@ -18,6 +17,7 @@ public class HitWindows {
 		int startIndex, stopIndex, offset, minIndex;
 		double minPval;
 		int region;
+		int numSig, numSuggestive;
 		
 		count = Files.countLines(filename, true);
 		System.out.println("Parsing "+count+" lines");
@@ -36,7 +36,7 @@ public class HitWindows {
 				markerNames[count] = line[0];
 				chrs[count] = Byte.parseByte(line[1]);
 				positions[count] = Integer.parseInt(line[2]);
-				pvals[count] = line[3].equals(".")?999:Double.parseDouble(line[3]);
+				pvals[count] = ext.isMissingValue(line[3])?999:Double.parseDouble(line[3]);
 				count++;
 			}
 			reader.close();
@@ -50,7 +50,7 @@ public class HitWindows {
 		
 		try {
 			writer = new PrintWriter(new FileWriter(outfile));
-			writer.println("Region\tMarkerName\tChr\tPosition\tRegion\tRegionStart\tRegionStop");
+			writer.println("Region\tMarkerName\tChr\tPosition\tp-value\tRegion+Window\tRegionStart\tRegionStop\tNumSigMarkers\tNumSuggestiveMarkers\tNumTotalMarkers\tSizeOfRegion");
 			startIndex = -1;
 			stopIndex = -1;
 			region = 1;
@@ -61,33 +61,39 @@ public class HitWindows {
 					minIndex = i;
 					minPval = pvals[i];					
 					offset = 0;
-					while (chrs[startIndex] == chrs[startIndex-offset-1] && positions[startIndex] - windowMinSizePerSide*2 <= positions[startIndex-offset-1]) { // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged 
+					numSig = numSuggestive = 1;
+					while (startIndex-offset-1 >= 0 && chrs[startIndex] == chrs[startIndex-offset-1] && positions[startIndex] - windowMinSizePerSide*2 <= positions[startIndex-offset-1]) { // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged 
 						offset++;
 						if (pvals[startIndex-offset] < windowExtensionThreshold) {
 							startIndex -= offset;
 							offset = 0;
+							numSuggestive++;
 						}
 					}
-					System.out.println(markerNames[i]+"\t"+region);
-					
+					System.out.println(markerNames[i]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
+									
 					stopIndex = i;
 					offset = 0;
-					while (chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide*2 >= positions[stopIndex+offset+1]) {
+					while (stopIndex+offset+1 < markerNames.length && chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide*2 >= positions[stopIndex+offset+1]) {
 						offset++;
 						if (pvals[stopIndex+offset] < indexThreshold) {
-							System.out.println(markerNames[stopIndex+offset]+"\t"+region);
+//							System.out.println(markerNames[stopIndex+offset]+"\t"+region);
+							numSig++;
 						}
 						if (pvals[stopIndex+offset] < windowExtensionThreshold) {
 							stopIndex += offset;
 							offset = 0;
+							numSuggestive++;
 						}
 						if (pvals[stopIndex] < minPval) {
 							minIndex = stopIndex;
 							minPval = pvals[stopIndex];
 						}
 					}
+					System.out.println(markerNames[minIndex]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
 //					System.out.println(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
-					writer.println(region+"\t"+markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+Math.max(positions[startIndex]-windowMinSizePerSide, 1)+"-"+(positions[stopIndex]+windowMinSizePerSide)+"\t"+Math.max(positions[startIndex]-windowMinSizePerSide, 1)+"\t"+(positions[stopIndex]+windowMinSizePerSide));
+					writer.println(region+"\t"+markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\t"+pvals[minIndex]+"\tchr"+chrs[startIndex]+":"+Math.max(positions[startIndex]-windowMinSizePerSide, 1)+"-"+(positions[stopIndex]+windowMinSizePerSide)+"\t"+positions[startIndex]+"\t"+positions[stopIndex]+"\t"+numSig+"\t"+numSuggestive+"\t"+(stopIndex-startIndex+1)+"\t"+(positions[stopIndex]-positions[startIndex]+1));
+					
 					i = stopIndex+offset;
 					region++;
 				}
@@ -145,15 +151,17 @@ public class HitWindows {
 		}
 		
 		try {
-//			determine(filename, outfile, indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+			determine(filename, outfile, indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/pvals1.txt", "D:/mega/FromMike.11032011/pvals1.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/pvals2.txt", "D:/mega/FromMike.11032011/pvals2.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/fixed_together.txt", "D:/mega/FromMike.11032011/fixed_together.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/all_together.txt", "D:/mega/FromMike.11032011/all_together.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("C:/CARe_data/conditionalMeta/uni_input.txt", "C:/CARe_data/conditionalMeta/uniqueRegions.out", (float)0.00001, windowMinSizePerSide, (float)0.0001);
 //			determine("D:/tWork/Consortium/Megas/input.txt", "D:/tWork/Consortium/Megas/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
-			determine("D:/mega/filtered/OnlyThoseInRef/input.dat", "D:/mega/filtered/OnlyThoseInRef/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+//			determine("D:/mega/filtered/OnlyThoseInRef/input.dat", "D:/mega/filtered/OnlyThoseInRef/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/filtered/OnlyThoseInRef/originalWrongRE2_input.dat", "D:/mega/filtered/OnlyThoseInRef/originalWrongRE2_uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+//			determine("D:/home/npankrat/jProjects/Ruhi/bioinf/input2.txt", "D:/home/npankrat/jProjects/Ruhi/bioinf/my.out.xln", 0.00001f, 500000, 0.0001f);
+			
 			
 //			determine("/home/input.dat", "/home/uniqueRegions.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 		} catch (Exception e) {

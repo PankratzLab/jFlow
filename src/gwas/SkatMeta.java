@@ -4,18 +4,12 @@ import java.io.*;
 import java.util.*;
 
 import stats.ProbDist;
+import stats.Rscript;
 
 import common.*;
 import filesys.*;
 
 public class SkatMeta {
-	public static final String[] R_EXECS = {
-//		"/soft/R/3.0.1/bin/Rscript", // MSI
-		"/soft/R/2.15.1/bin/Rscript", // Itasca nodes can only see this
-		"/share/apps/R-3.0.1/bin/Rscript", // psych
-		"/share/apps/src/R-3.0.1/bin/Rscript", // alcatraz
-	};
-	
 	public static final String[] ALGORITHMS = {
 		"singlesnpMeta", 
 		"burdenMeta", 
@@ -47,20 +41,9 @@ public class SkatMeta {
 	public static String getRscriptExecutable(MetaAnalysisParams maps, Logger log) {
 		if (maps != null && maps.getRExec() != null) {
 			return maps.getRExec();
-		}
-		if (System.getProperty("os.name").startsWith("Windows")) {
-			return "Rscript";
 		} else {
-			for (int i = 0; i < R_EXECS.length; i++) {
-				if (Files.exists(R_EXECS[i])) {
-					return R_EXECS[i];
-				}
-			}
+			return Rscript.getRscriptExecutable(log);
 		}
-
-		log.report("Warning - could not determine hostname, assuming R executbale is simply 'Rscript'");
-		
-		return "Rscript";
 	}
 	
 	private static void determineObjectNames(String dir, MetaAnalysisParams maps, Logger log) {

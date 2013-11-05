@@ -1040,9 +1040,9 @@ public class SnpMarkerSet implements Serializable {
 //	    filename = "C:\\Documents and Settings\\npankrat\\My Documents\\Downloads\\GERMLINE\\maps\\plink.map";
 //	    source = "C:\\Documents and Settings\\npankrat\\My Documents\\Downloads\\GERMLINE\\maps\\master.map";
 
-	    filename = "D:/BOSS/LinkageMergedIBC/conversion/plink.bim";
-	    filename = "D:/BOSS/LinkageJustIBC/plink.bim";
-	    source = "D:/BOSS/LinkageMergedIBC/conversion/European.map";
+//	    filename = "D:/BOSS/LinkageMergedIBC/conversion/plink.bim";
+//	    filename = "D:/BOSS/LinkageJustIBC/plink.bim";
+//	    source = "D:/BOSS/LinkageMergedIBC/conversion/European.map";
 	    
 	    try {
 	    	if (!hapmap.equals("")) {
