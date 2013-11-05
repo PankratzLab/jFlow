@@ -279,7 +279,7 @@ public class HashVec {
 	}
 
 	public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine, int[] cols, boolean jar) {
-		return loadFileToStringMatrix(filename, ignoreFirstLine, cols, "[\\s]+", jar, 1000, false);
+		return loadFileToStringMatrix(filename, ignoreFirstLine, cols, Files.determineDelimiter(filename, new Logger()), jar, 1000, false);
 	}
 	
 	public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine, int[] cols, String delimiter, boolean jar, int initialCapacity, boolean allowMissingData) {

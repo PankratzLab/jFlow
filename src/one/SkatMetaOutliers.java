@@ -82,7 +82,8 @@ public class SkatMetaOutliers {
 		int numArgs = args.length;
 		Logger log;
 		String dir;
-		String phenoFilename = "D:/SkatMeta/results_hemostasis/pheno_F7_del_3sd.csv";
+//		String phenoFilename = "D:/SkatMeta/results_hemostasis/pheno_F7_del_3sd.csv";
+		String phenoFilename = "D:/SkatMeta/test/pheno_F8_win_ln_chr1_beforeSave_results.csv";
 		String[] processing = new String[] {"", "del", "winsorized"};
 		String[] transform = new String[] {"", "ln", "sqrt"};
 		String[] regression = new String[] {"", "AGE,SEX"};
@@ -132,6 +133,7 @@ public class SkatMetaOutliers {
 		dir = ext.parseDirectoryOfFile(phenoFilename) + ext.rootOf(phenoFilename) + "/results";
 		String[] header = Files.getHeaderOfFile(phenoFilename, log);
 		// just pheno: new int[] {1}
+//		phenoTmp = Array.removeNaN(Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true, Array.subArray(Array.intArray(header.length), 1), false)));
 		phenoTmp = Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true, Array.subArray(Array.intArray(header.length), 1), false));
 		pheno = new double[phenoTmp.length];
 		for (int i = 0; i < pheno.length; i++) {

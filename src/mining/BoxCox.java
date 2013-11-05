@@ -124,7 +124,7 @@ public class BoxCox {
 		case LOG_LIKELIHOOD:
 			return -1*(N-1)/2*Math.log(Array.variance(transform(data, lambda)))+(lambda-1)*(N-1)/N*sumLN;
 		case KURTOSIS:
-			return Stats.kurtosis(transform(data, lambda));
+			return Array.kurtosis(transform(data, lambda));
 		}
 		return -1;
 	}
@@ -211,11 +211,11 @@ public class BoxCox {
 		bc = new BoxCox(data, new Logger());
 		System.out.println("Maximizing Log-Likelihood...");
 		System.out.println("Optimal lambda: "+bc.getLambda_MaxLL());
-		System.out.println("Kurtosis: "+Stats.kurtosis(bc.getTransform_MaxLL()));
+		System.out.println("Kurtosis: "+Array.kurtosis(bc.getTransform_MaxLL()));
 		System.out.println("");
 		System.out.println("Minimizing kurtosis...");
 		System.out.println("Optimal lambda: "+bc.getLambda_MinKurt());
-		System.out.println("Kurtosis: "+Stats.kurtosis(bc.getTransform_MinKurt()));
+		System.out.println("Kurtosis: "+Array.kurtosis(bc.getTransform_MinKurt()));
 		System.out.println("");
 
 	}

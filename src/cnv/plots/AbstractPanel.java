@@ -61,6 +61,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int HEAT_MAP_TYPE = 2;
 	public static final int CONNECT_THE_DOTS_TYPE = 3;
 	public static final int DEFAULT_TYPE = SCATTER_PLOT_TYPE;
+	public static final int[] HEAT_MAP_COLOR_SCHEME_BACKGROUND = new int[] {255, 255, 255};
+	public static final int[] HEAT_MAP_COLOR_SCHEME_YELLOW_DARK = new int[] {255, 140, 0};
+	public static final int[] HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT = new int[] {238, 232, 170};
 	
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX;
@@ -97,6 +100,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
 	protected IntVector prox;
+	protected int chartType;
 
 	private boolean inDrag;
 	private int startX, startY;
@@ -116,7 +120,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private String nullMessage;
 	private boolean randomTest;
 	private int numberOfNaNSamples;
-	private int chartType;
 	
 	public AbstractPanel() {
 		canvasSectionMinimumX = 0;
@@ -142,6 +145,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		currentIndexInPlotPointSet = -1;
 		tempDirectory = "";
 		randomTest = false;
+		chartType = DEFAULT_TYPE;
 		
 		layersInBase = null;
 		extraLayersVisible = null;
@@ -295,9 +299,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		ProgressBarDialog prog;//zx
     	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
 //    	int index;
-    	
-    	chartType = DEFAULT_TYPE;
-//    	chartType = HEAT_MAP_TYPE;
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);
@@ -692,7 +693,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void drawHeatMap(Graphics g, byte[] clusters, int nColumns, int nRows) {
 		int cellWidth, cellHeight;
 		int[][] gridIntensities;
-		int[][] gridColors;
+		int[][][] gridColors;
 
 		cellWidth = getWidth() / nColumns;
 		cellHeight = getHeight() / nRows;
@@ -703,26 +704,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		for (int i = 0; i < nRows; i++) {
 			for (int j = 0; j < nColumns; j++) {
 				g.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
-				g.setColor(new Color(gridColors[i][j] * 255, gridColors[i][j] * 255, gridColors[i][j] * 255));
+//				g.setColor(new Color(gridColors[i][j] * 255, gridColors[i][j] * 255, gridColors[i][j] * 255));
+				g.setColor(new Color(gridColors[i][j][0], gridColors[i][j][1], gridColors[i][j][2]));
 			}
 		}
-
-//		initialize matrix
-		
-		// fill matrix using transofrmation:
-		// x = getXPixel(point.getRawX())
-		// y = getYPixel(point.getRawY();
-
-		
-		// transform:
-		// intensity = matrix[x][y] / points.length
-		
-		// convert to color
-		
-		// if intensity > 0 then drawpoint
-//		g.drawOval(x, y, 1, 1);
-
 	}
+
 
 	public int[][] getGridIntensityForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight) {
 		int gridIndexX, gridIndexY, xPixel, yPixel;
@@ -730,61 +717,123 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		intensities = new int[nRows][nColumns];
 		for (int i = 0; i < points.length; i++) {
-			try {
-			xPixel = getXPixel(points[i].getRawX());
-			yPixel = getYPixel(points[i].getRawY());
-
-			if (xPixel >= canvasSectionMinimumX && xPixel <= canvasSectionMaximumX && yPixel >= canvasSectionMinimumY && yPixel <= canvasSectionMaximumY) {
-				gridIndexX = (xPixel - canvasSectionMinimumX) / cellWidth;
-				gridIndexY = (yPixel - canvasSectionMinimumY) / cellHeight;
-
-				intensities[gridIndexX][gridIndexY] += 2;
-				
-				if (gridIndexX < nColumns - 1) {
-					intensities[gridIndexX+1][gridIndexY] += 1;
+			if (points[i] != null) {
+				xPixel = getXPixel(points[i].getRawX());
+				yPixel = getYPixel(points[i].getRawY());
+	
+				if (xPixel >= canvasSectionMinimumX && xPixel <= canvasSectionMaximumX && yPixel >= canvasSectionMinimumY && yPixel <= canvasSectionMaximumY) {
+					gridIndexX = (xPixel - canvasSectionMinimumX) / cellWidth;
+					gridIndexY = (yPixel - canvasSectionMinimumY) / cellHeight;
+	
+					intensities[gridIndexX][gridIndexY] += 2;
+					
+					if (gridIndexX < nColumns - 1) {
+						intensities[gridIndexX+1][gridIndexY] += 1;
+					}
+	
+					if (gridIndexX > 1) {
+						intensities[gridIndexX-1][gridIndexY] += 1;
+					}
+	
+					if (gridIndexY < nRows - 1) {
+						intensities[gridIndexX][gridIndexY+1] += 1;
+					}
+	
+					if (gridIndexY > 1) {
+						intensities[gridIndexX][gridIndexY-1] += 1;
+					}
+	
+					if (gridIndexX < nColumns - 1 && gridIndexY < nRows - 1) {
+						intensities[gridIndexX+1][gridIndexY+1] += 1;
+					}
+					
+					if (gridIndexX > 1 && gridIndexY > 1) {
+						intensities[gridIndexX-1][gridIndexY-1] += 1;
+					}
+	
+					if (gridIndexX > 1 && gridIndexY < nRows - 1) {
+						intensities[gridIndexX-1][gridIndexY+1] += 1;
+					}
+	
+					if (gridIndexX < nColumns - 1 && gridIndexY > 1) {
+						intensities[gridIndexX+1][gridIndexY-1] += 1;
+					}
 				}
-
-				if (gridIndexX > 1) {
-					intensities[gridIndexX-1][gridIndexY] += 1;
-				}
-
-				if (gridIndexY < nRows - 1) {
-					intensities[gridIndexX][gridIndexY+1] += 1;
-				}
-
-				if (gridIndexY > 1) {
-					intensities[gridIndexX][gridIndexY-1] += 1;
-				}
-
-				if (gridIndexX < nColumns - 1 && gridIndexY < nRows - 1) {
-					intensities[gridIndexX+1][gridIndexY+1] += 1;
-				}
-				
-				if (gridIndexX > 1 && gridIndexY > 1) {
-					intensities[gridIndexX-1][gridIndexY-1] += 1;
-				}
-
-				if (gridIndexX > 1 && gridIndexY < nRows - 1) {
-					intensities[gridIndexX-1][gridIndexY+1] += 1;
-				}
-
-				if (gridIndexX < nColumns - 1 && gridIndexY > 1) {
-					intensities[gridIndexX+1][gridIndexY-1] += 1;
-				}
-			}
-
-			} catch (Exception e) {
-				System.out.println("error at " + i);
 			}
 		}
 
 		return intensities;
 	}
 
-	public int[][] getColorFromIntensityForHeapMapGrid(int[][] intensities) {
-		int[][] color;
+//	public int[][][] getGridIntensityClassBasedForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight, byte[] classLable) {
+//		int gridIndexX, gridIndexY, xPixel, yPixel;
+//		int[][][] intensities;
+//		int numClasses;
+//
+//		numClasses = unique();
+//		intensities = new int[nRows][nColumns][numClasses];
+//		for (int i = 0; i < points.length; i++) {
+//			if (points[i] != null) {
+//				xPixel = getXPixel(points[i].getRawX());
+//				yPixel = getYPixel(points[i].getRawY());
+//	
+//				if (xPixel >= canvasSectionMinimumX && xPixel <= canvasSectionMaximumX && yPixel >= canvasSectionMinimumY && yPixel <= canvasSectionMaximumY) {
+//					gridIndexX = (xPixel - canvasSectionMinimumX) / cellWidth;
+//					gridIndexY = (yPixel - canvasSectionMinimumY) / cellHeight;
+//	
+//					intensities[gridIndexX][gridIndexY][] += 2;
+//					
+//					if (gridIndexX < nColumns - 1) {
+//						intensities[gridIndexX+1][gridIndexY][] += 1;
+//					}
+//	
+//					if (gridIndexX > 1) {
+//						intensities[gridIndexX-1][gridIndexY][] += 1;
+//					}
+//	
+//					if (gridIndexY < nRows - 1) {
+//						intensities[gridIndexX][gridIndexY+1][] += 1;
+//					}
+//	
+//					if (gridIndexY > 1) {
+//						intensities[gridIndexX][gridIndexY-1][] += 1;
+//					}
+//	
+//					if (gridIndexX < nColumns - 1 && gridIndexY < nRows - 1) {
+//						intensities[gridIndexX+1][gridIndexY+1][] += 1;
+//					}
+//					
+//					if (gridIndexX > 1 && gridIndexY > 1) {
+//						intensities[gridIndexX-1][gridIndexY-1] += 1;
+//					}
+//	
+//					if (gridIndexX > 1 && gridIndexY < nRows - 1) {
+//						intensities[gridIndexX-1][gridIndexY+1] += 1;
+//					}
+//	
+//					if (gridIndexX < nColumns - 1 && gridIndexY > 1) {
+//						intensities[gridIndexX+1][gridIndexY-1] += 1;
+//					}
+//				}
+//			}
+//		}
+//
+//		return intensities;
+//	}
+
+	public int[][][] getColorFromIntensityForHeapMapGrid(int[][] intensities) {
+		int[][][] color;
 		int max;
-		double scale;
+		int rangeRed;
+		int rangeGreen;
+		int rangeBlue;
+		double scaleRed;
+		double scaleGreen;
+		double scaleBlue;
+
+		rangeRed = HEAT_MAP_COLOR_SCHEME_YELLOW_DARK[0] - HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[0];
+		rangeGreen = HEAT_MAP_COLOR_SCHEME_YELLOW_DARK[1] - HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[1];
+		rangeBlue = HEAT_MAP_COLOR_SCHEME_YELLOW_DARK[2] - HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[2];
 
 		max = 0;
 		for (int i = 0; i < intensities.length; i++) {
@@ -794,17 +843,28 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
 		}
-		scale = (double) 255 / max;
+		scaleRed = (double) rangeRed / max;
+		scaleGreen = (double) rangeGreen / max;
+		scaleBlue = (double) rangeBlue / max;
 
-		color = new int[intensities.length][intensities[0].length];
+		color = new int[intensities.length][intensities[0].length][3];
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
-				color[i][j] = (int) (intensities[i][j] * scale);
+				if (intensities[i][j] == 0) {
+					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[0];
+					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[1];
+					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[2];
+				} else {
+					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[0] + (int) (intensities[i][j] * scaleRed);
+					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[1] + (int) (intensities[i][j] * scaleGreen);
+					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[2] + (int) (intensities[i][j] * scaleBlue);
+				}
 			}
 		}
 
 		return color;
 	}
+
 
 	public void drawLineChart(Graphics g) {
 		// Sort the points by category, and x-axis value.

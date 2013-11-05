@@ -449,7 +449,6 @@ public class SummarizePhenotype {
 		return result;
 	}
 
-	@SuppressWarnings("null")
 	public static void summarizeFromParameters(String filename, Logger log) {
 		Vector<String> params;
 //		String wkDir;
@@ -457,7 +456,7 @@ public class SummarizePhenotype {
 		String[] defaults;
 		String[][] parameters = null;
 		String[] columnLabels;
-		String phenoDataFileName = null, resultFileName = null, logFileName;
+		String phenoDataFileName = null, resultFileName = null;
 		int index;
 
 		
@@ -474,8 +473,8 @@ public class SummarizePhenotype {
 			if (! Files.exists(PARAMETERS_FILE_NAME)) {
 				Files.writeMatrix(DEFAULT_PARAMS, PARAMETERS_FILE_NAME, "\t");
 			}
-//		} else {
-//			params.add("log=" + log.getFilename());
+			log.report("Populated with default/example parameters");
+			return;
 		}
 			
 			
@@ -491,8 +490,8 @@ public class SummarizePhenotype {
 					phenoDataFileName = line.split("=")[1];
 				} else if (line.startsWith("out=")) {
 					resultFileName = line.split("=")[1];
-				} else if (line.startsWith("log=")) {
-					logFileName = line.split("=")[1];
+//				} else if (line.startsWith("log=")) {
+//					logFileName = line.split("=")[1];
 
 				//TODO How to detect unrecognized lines?
 				} else {
