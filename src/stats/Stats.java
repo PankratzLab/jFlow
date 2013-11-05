@@ -123,28 +123,31 @@ public class Stats {
 		return Math.exp(p);
 	}
 
-	public static double kurtosis(double[] array) {
-		double kurt = -1;
-		double mean = Array.mean(array);
-		double m2, s, m4s;
-		double n = array.length;
-
-		m2 = 0;
-		for (int i = 0; i<n; i++) {
-			m2 += Math.pow(array[i]-mean, 2);
-		}
-		m2 /= (n-1);
-		s = Math.sqrt(m2);
-
-		m4s = 0;
-		for (int i = 0; i<array.length; i++) {
-			m4s += Math.pow((array[i]-mean)/s, 4);
-		}
-
-		kurt = n*(n+1)/((n-1)*(n-2)*(n-3))*m4s-3*Math.pow(n-1, 2)/((n-2)*(n-3));
-
-		return kurt;
-	}
+/**
+ * The code has been moved to common.Array
+ */
+//	public static double kurtosis(double[] array) {
+//		double kurt = -1;
+//		double mean = Array.mean(array);
+//		double m2, s, m4s;
+//		double n = array.length;
+//
+//		m2 = 0;
+//		for (int i = 0; i<n; i++) {
+//			m2 += Math.pow(array[i]-mean, 2);
+//		}
+//		m2 /= (n-1);
+//		s = Math.sqrt(m2);
+//
+//		m4s = 0;
+//		for (int i = 0; i<array.length; i++) {
+//			m4s += Math.pow((array[i]-mean)/s, 4);
+//		}
+//
+//		kurt = n*(n+1)/((n-1)*(n-2)*(n-3))*m4s-3*Math.pow(n-1, 2)/((n-2)*(n-3));
+//
+//		return kurt;
+//	}
 
 	// alternate method
 	// private static double kurtosisCloseButNoCigar(double[] array) {

@@ -30,7 +30,7 @@ public class temp {
 
 		dist = dv.toArray();
 		for (int k = 0; k<Transformations.NUM_TRANSFORMATIONS; k++) {
-			System.err.println(Transformations.getLabel(k)+": "+ext.formDeci(Stats.kurtosis(Transformations.transform(dist, k)), 4));
+			System.err.println(Transformations.getLabel(k)+": "+ext.formDeci(Array.kurtosis(Transformations.transform(dist, k)), 4));
 		}
 
 		System.exit(1);

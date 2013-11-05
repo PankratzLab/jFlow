@@ -114,8 +114,8 @@ public class dbExport {
 		writer.println(Array.toStr(dist, 5, 5, "\n"));
 		writer.close();
 
-		if (Math.abs(Stats.kurtosis(dist))>1) {
-			System.err.println("Warning!  Kurtosis is "+ext.formDeci(Stats.kurtosis(dist), 3)+" which is too high.");
+		if (Math.abs(Array.kurtosis(dist))>1) {
+			System.err.println("Warning!  Kurtosis is "+ext.formDeci(Array.kurtosis(dist), 3)+" which is too high.");
 			System.err.println("See if the kurtosis looks any better for the following transformations...");
 			// for (int k = 0; k<Transformations.NUM_TRANSFORMATIONS; k++) {
 			// System.err.println(Transformations.getLabel(k)+":

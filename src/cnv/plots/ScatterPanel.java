@@ -176,6 +176,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 
 		plotType = sp.getPlotType();
 		currentClass = sp.getCurrentClass();
+		if (currentClass < SampleData.BASIC_CLASSES.length && SampleData.BASIC_CLASSES[currentClass].equals(SampleData.HEATMAP)) {
+	    	chartType = HEAT_MAP_TYPE;
+		} else {
+	    	chartType = SCATTER_PLOT_TYPE;
+		}
 		markerIndex = sp.getMarkerIndex();
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
