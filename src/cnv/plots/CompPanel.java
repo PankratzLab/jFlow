@@ -15,6 +15,8 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
+import cnv.var.CNVRectangle;
+import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
 
 /**
@@ -22,277 +24,214 @@ import cnv.var.CNVariant;
  * 
  */
 public class CompPanel extends JPanel implements MouseListener, MouseMotionListener {
-	public static final long serialVersionUID = 1L;
-	CNVRectangle[] rectangles;
-	float scalingFactor;
-	int startBase, endBase;
-	ArrayList<CNVariant> selectedCNVs;
-	int rectangleHeight = 10;
-	int lowestStart = 0; // Represents the lowest startX of all rectangles in the window
-	String displayMode;
-	ArrayList<ArrayList<CNVRectangle>> lines = null;
+    public static final long        serialVersionUID = 1L;
 
-	public CompPanel(CompPlot cp) {
-		lines = new ArrayList<ArrayList<CNVRectangle>>();
-		addMouseListener(this);
-		addMouseMotionListener(this);
-	}
+    float                           scalingFactor;
+    int                             startBase, endBase;
+    ArrayList<CNVariant>            selectedCNVs;
+    int                             rectangleHeight  = 10;
+    String                          displayMode;
 
-	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		if (displayMode.equals("Pack")) {
-			// Pack the CNVs so they fill a row
-			packRectangles();
+    private CNVRectangles           cnvRectangles;
+    ArrayList<cnv.var.CNVRectangle> rectangles;
 
-			setPreferredSize(new Dimension(800, (lines.size() * rectangleHeight) + lines.size()));
+    public CompPanel(CompPlot cp) {
+        cnvRectangles = new CNVRectangles();
+        addMouseListener(this);
+        addMouseMotionListener(this);
+    }
 
-			for (int i = 0; i < lines.size(); i++) {
-				ArrayList<CNVRectangle> cnvRects = lines.get(i);
-				int y = (i * rectangleHeight) + i;
-				for (int j = 0; j < cnvRects.size(); j++) {
-					CNVRectangle cnvRect = cnvRects.get(j);
-					int width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
-					int x = Math.round((int) cnvRect.getStartXValue() * scalingFactor);
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
 
-					// Store the rectangle for later bounds checking
-					cnvRect.setRect(x, y, width, rectangleHeight);
+        // Find the maximum Y so we can properly set the dimensions
+        int maxY = 0;
+        for (CNVRectangle cnvRect : rectangles) {
+            Rectangle rect = cnvRect.getRect();
+            int y = (int) rect.getY();
+            if (y > maxY) {
+                maxY = y;
+            }
 
-					// CNV color is based on number of copies; set during CompPlot.loadCNVs
-					g.setColor(cnvRect.getCNVColor());
+        }
 
-					if (cnvRect.isSelected()) {
-						g.fillRect(x, y, width, rectangleHeight);
-						// Draw a 1-pixel wide black rectangle around the selected CNV
-						g.setColor(Color.BLACK);
-						g.setPaintMode();
-						// Subtract 1 from y to ensure we're drawing the bottom line of the highlight rectangle
-						g.drawRect(x, y - 1, width, rectangleHeight);
-					} else {
-						g.fillRect(x, y, width, rectangleHeight);
-					}
-				}
-			}
-		} else {
-			// We'll need to scale the relative base to the window size
-			setPreferredSize(new Dimension(800, (rectangles.length * rectangleHeight) + rectangles.length));
+        // Set the maximum Y so we see all of the rectangles
+        setPreferredSize(new Dimension(800, maxY));
 
-			for (int i = 0; i < rectangles.length; i++) {
-				int width = Math.round(((int) rectangles[i].getStopXValue() - (int) rectangles[i].getStartXValue()) * scalingFactor);
-				int x = Math.round((int) rectangles[i].getStartXValue() * scalingFactor);
+        // Render all of the rectangles
+        for (CNVRectangle cnvRect : rectangles) {
+            Rectangle rect = cnvRect.getRect();
+            int x = (int) rect.getX();
+            int y = (int) rect.getY();
+            int width = (int) rect.getWidth();
+            int height = (int) rect.getHeight();
 
-				// Ensure a 1 pixel gap between CNVs
-				int y = (i * rectangleHeight) + i;
+            g.setColor(cnvRect.getCNVColor());
 
-				// Store the rectangle for later bounds checking
-				rectangles[i].setRect(x, y, width, rectangleHeight);
+            if (cnvRect.isSelected()) {
+                g.fillRect(x, y, width, height);
+                // Draw a black border around the selected CNV
+                g.setColor(Color.BLACK);
+                g.setPaintMode();
+                g.drawRect(x, y, width, height);
+            } else {
+                g.fillRect(x, y, width, height);
+            }
 
-				// CNV color is based on number of copies; set during CompPlot.loadCNVs
-				g.setColor(rectangles[i].getCNVColor());
+            // In Collapsed mode, draw a 'xN' to indicate that there are N CNVs associated with this rectangle
+            if (displayMode.equals("Collapsed")) {
+                String numCNVs = "x" + cnvRect.getCNVs().size();
+                g.setColor(Color.BLACK);
+                g.setPaintMode();
+                Font font = getFont().deriveFont((float) rectangleHeight);
+                g.setFont(font);
+                g.drawString(numCNVs, x, y + rectangleHeight);
+            }
+        }
+    }
 
-				if (rectangles[i].isSelected()) {
-					g.fillRect(x, y, width, rectangleHeight);
-					// Draw a 1-pixel wide black rectangle around the selected CNV
-					g.setColor(Color.BLACK);
-					g.setPaintMode();
-					// Subtract 1 from y to ensure we're drawing the bottom line of the highlight rectangle
-					g.drawRect(x, y - 1, width, rectangleHeight);
-				} else {
-					g.fillRect(x, y, width, rectangleHeight);
-				}
-				if (displayMode.equals("Collapsed")) {
-					String numCNVs = "x" + rectangles[i].getCNVs().size();
-					g.setColor(Color.BLACK);
-					g.setPaintMode();
-					Font font = getFont().deriveFont((float) rectangleHeight);
-					g.setFont(font);
-					g.drawString(numCNVs, x, y + rectangleHeight);
-				}
-			}
-		}
-	}
+    /**
+     * Use the appropriately arranged array of rectangles for our current display mode
+     * 
+     * @param cnvRects
+     */
+    void setCNVRectangles(CNVRectangles cnvRects) {
+        cnvRectangles = cnvRects;
+        if (displayMode.equals("Pack")) {
+            setRectangles(cnvRectangles.getPackedRectangles());
+        } else if (displayMode.equals("Collapsed")) {
+            setRectangles(cnvRectangles.getCollapsedRectangles());
+        } else {
+            setRectangles(cnvRectangles.getFullRectangles());
+        }
+    }
 
-	private void packRectangles() {
-		while (hasUnused()) {
-			CNVRectangle cnvRect = getLeftMost(lowestStart);
-			if (cnvRect != null) {
-				ArrayList<CNVRectangle> newLine = new ArrayList<CNVRectangle>();
-				newLine.add(cnvRect);
-				cnvRect.setUsed(true);
-				do {
-					cnvRect = getLeftMost((int) cnvRect.getStopXValue());
-					if (cnvRect == null) {
-						break;
-					} else {
-						newLine.add(cnvRect);
-						cnvRect.setUsed(true);
-					}
-				} while (cnvRect != null);
-				lines.add(newLine);
-			} else {
-				break;
-			}
-		}
-	}
+    /**
+     * Set the current rectangles and repaint the window
+     * 
+     * @param rects
+     */
+    void setRectangles(ArrayList<CNVRectangle> rects) {
+        rectangles = rects;
+        repaint();
+    }
 
-	private int getLowestRect() {
-		int lowest = 0;
-		for (int i = 0; i < rectangles.length; i++) {
-			int startX = (int) rectangles[i].getStartXValue();
-			if (startX < lowest) {
-				lowest = startX;
-			}
-		}
-		return lowest;
-	}
+    /**
+     * Need to know how big the visible window is in bases so we can scale it down to the panel width
+     * 
+     * @param window
+     */
+    void setWindow(int start, int end) {
+        startBase = start;
+        endBase = end;
+        int window = endBase - startBase;
+        scalingFactor = (float) getWidth() / window;
+        cnvRectangles.setScalingFactor(scalingFactor);
+    }
 
-	private boolean hasUnused() {
-		boolean unused = false;
-		for (int i = 0; i < rectangles.length; i++) {
-			if (!rectangles[i].isInUse()) {
-				unused = true;
-				break;
-			}
-		}
-		return unused;
-	}
+    /**
+     * Return the current scaling factor
+     * 
+     * @return
+     */
+    public float getScalingFactor() {
+        return scalingFactor;
+    }
 
-	private void clearUsed() {
-		for (int i = 0; i < rectangles.length; i++) {
-			rectangles[i].setUsed(false);
-		}
-	}
+    /**
+     * Set the height of the rectangles (Configured in CompConfig)
+     * 
+     * @param height
+     */
+    void setRectangleHeight(int height) {
+        rectangleHeight = height;
+        cnvRectangles.setRectangleHeight(rectangleHeight);
+    }
 
-	private CNVRectangle getLeftMost(int startX) {
-		int lastPosition = startX + 2; // Want a 2-pixel buffer between CNVs
-		if (startX == lowestStart) {
-			// The first time through we'll be starting at lowestStart so we don't want the offset
-			lastPosition = lowestStart;
-		}
+    /**
+     * Set the display mode (Configured in CompConfig)
+     * 
+     * Also retrieves the correct arrangement of rectangles
+     * 
+     * @param dm
+     */
+    public void setDisplayMode(String dm) {
+        displayMode = dm;
+        if (displayMode.equals("Pack")) {
+            setRectangles(cnvRectangles.getPackedRectangles());
+        } else if (displayMode.equals("Collapsed")) {
+            setRectangles(cnvRectangles.getCollapsedRectangles());
+        } else {
+            setRectangles(cnvRectangles.getFullRectangles());
+        }
+    }
 
-		CNVRectangle leftMostCNV = null;
-		for (int i = 0; i < rectangles.length; i++) {
-			if (((int) rectangles[i].getStartXValue() >= lastPosition) && (!rectangles[i].isInUse())) {
-				if (leftMostCNV == null) {
-					leftMostCNV = rectangles[i];
-				} else {
-					int oldDifference = (int) leftMostCNV.getStartXValue() - lastPosition;
-					int newDifference = (int) rectangles[i].getStartXValue() - lastPosition;
-					if (newDifference < oldDifference) {
-						leftMostCNV = rectangles[i];
-					}
-				}
-			}
-		}
-		return leftMostCNV;
-	}
+    /**
+     * When clicking on the panel, mark any rectangles under the mouse as selected
+     */
+    public void mouseClicked(MouseEvent e) {
+        for (CNVRectangle cnvRect : rectangles) {
+            Rectangle rect = cnvRect.getRect();
+            if (rect.contains(e.getPoint())) {
+                ArrayList<CNVariant> currentCNVs = cnvRect.getCNVs();
+                firePropertyChange("selectedCNV", selectedCNVs, currentCNVs);
+                selectedCNVs = currentCNVs;
+                cnvRect.setSelected(true);
+            } else {
+                cnvRect.setSelected(false);
+            }
 
-	/**
-	 * Provide the list of rectangles to render
-	 * 
-	 * @param rects
-	 */
-	void setRectangles(CNVRectangle[] rects) {
-		rectangles = rects;
-		lowestStart = getLowestRect();
-		lines.clear();
-		clearUsed();
-		repaint();
-	}
+        }
+        repaint();
+    }
 
-	/**
-	 * Need to know how big the visible window is in bases so we can scale it down to the panel width
-	 * 
-	 * @param window
-	 */
-	void setWindow(int start, int end) {
-		startBase = start;
-		endBase = end;
-		int window = endBase - startBase;
-		scalingFactor = (float) getWidth() / window;
-	}
+    /**
+     * Check to see if the mouse cursor is over a rectangle and display an informational popup
+     */
+    public void mouseMoved(MouseEvent e) {
+        setToolTipText(null);
 
-	/**
-	 * Set the height of the rectangles (Configured in CompConfig)
-	 * 
-	 * @param height
-	 */
-	void setRectangleHeight(int height) {
-		rectangleHeight = height;
-	}
+        for (CNVRectangle cnvRect : rectangles) {
+            Rectangle rect = cnvRect.getRect();
+            if (rect.contains(e.getPoint())) {
+                ArrayList<CNVariant> currentCNVs = cnvRect.getCNVs();
+                CNVariant cnv = cnvRect.getCNV();
+                String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: " + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: " + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: " + cnv.getScore();
+                // Add an indication of how many other CNVs are in this collapsed view
+                if (currentCNVs.size() > 1) {
+                    toolTipText += "<br/>Plus " + (currentCNVs.size() - 1) + " others</html>";
+                } else {
+                    toolTipText += "</html>";
+                }
+                setToolTipText(toolTipText);
+                break;
+            }
+        }
+    }
 
-	/**
-	 * Set the display mode (Configured in CompConfig)
-	 * 
-	 * @param dm
-	 */
-	public void setDisplayMode(String dm) {
-		displayMode = dm;
-	}
+    @Override
+    public void mousePressed(MouseEvent e) {
+        // Not doing anything on mouse press
+    }
 
-	/*
-	 * Implemented interfaces
-	 */
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		for (int i = 0; i < rectangles.length; i++) {
-			Rectangle rect = rectangles[i].getRect();
-			if (rect.contains(e.getPoint())) {
-				ArrayList<CNVariant> currentCNVs = rectangles[i].getCNVs();
-				firePropertyChange("selectedCNV", selectedCNVs, currentCNVs);
-				selectedCNVs = currentCNVs;
-				rectangles[i].setSelected(true);
-				// TODO link off to Trailer
-			} else {
-				rectangles[i].setSelected(false);
-			}
-		}
-		repaint();
-	}
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        // Not doing anything on mouse release
+    }
 
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		setToolTipText(null);
-		for (int i = 0; i < rectangles.length; i++) {
-			Rectangle rect = rectangles[i].getRect();
-			if (rect.contains(e.getPoint())) {
-				ArrayList<CNVariant> currentCNVs = rectangles[i].getCNVs();
-				CNVariant cnv = rectangles[i].getCNV();
-				String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: " + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: " + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: " + cnv.getScore();
-				// Add an indication of how many other CNVs are in this collapsed view
-				if (currentCNVs.size() > 1) {
-					toolTipText += "<br/>Plus " + (currentCNVs.size() - 1) + " others</html>";
-				} else {
-					toolTipText += "</html>";
-				}
-				setToolTipText(toolTipText);
-				break;
-			}
-		}
-	}
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        // Not doing anything on mouse enter
+    }
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// Not doing anything on mouse press
-	}
+    @Override
+    public void mouseExited(MouseEvent e) {
+        // Not doing anything on mouse exit
+    }
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// Not doing anything on mouse release
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// Not doing anything on mouse enter
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// Not doing anything on mouse exit
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		// Not doing anything on mouse drag
-	}
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        // Not doing anything on mouse drag
+    }
 }
