@@ -26,6 +26,7 @@ import cnv.var.CNVariant;
 import cnv.var.CNVariantHash;
 import cnv.var.Region;
 
+import common.Files;
 import common.Positions;
 
 import filesys.GeneSet;
@@ -85,6 +86,11 @@ public class CompPlot extends JFrame {
 
         // Get a list of the .cnv files
         files = proj.getFilenames(Project.CNV_FILENAMES);
+        if (files.equals("")) {
+            // CNV_FILENAMES is empty, throw an error and exit
+            JOptionPane.showMessageDialog(null, "Error - CNV_FILENAMES property is empty");
+            return;
+        }
 
         // Get the GeneTrack
         String geneTrackFile = proj.getFilename(Project.GENETRACK_FILENAME, false, false);
@@ -100,9 +106,14 @@ public class CompPlot extends JFrame {
         // Load the variants into memory
         hashes = new ArrayList<CNVariantHash>();
         for (String file : files) {
-            // Load the CNVs out of the files
-            CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false);
-            hashes.add(cnvHash);
+            if (Files.exists(file, false)) {
+                // Load the CNVs out of the files
+                CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false);
+                hashes.add(cnvHash);
+            } else {
+                JOptionPane.showMessageDialog(null, "Error - File " + file + " does not exist");
+                return;
+            }
         }
 
         setupGUI();
