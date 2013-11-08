@@ -15,7 +15,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 import cnv.filesys.Project;
 import cnv.gui.ChromosomeViewer;
@@ -24,6 +23,7 @@ import cnv.gui.FileNavigator;
 import cnv.gui.RegionNavigator;
 import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
+import cnv.var.CNVariantHash;
 import cnv.var.Region;
 
 import common.Positions;
@@ -72,6 +72,8 @@ public class CompPlot extends JFrame {
     // From RegionNavigator
     int[]                             location         = new int[3];
 
+    ArrayList<CNVariantHash>          hashes;
+
     public CompPlot(Project proj) {
         this.proj = proj;
 
@@ -95,6 +97,14 @@ public class CompPlot extends JFrame {
             track = null;
         }
 
+        // Load the variants into memory
+        hashes = new ArrayList<CNVariantHash>();
+        for (String file : files) {
+            // Load the CNVs out of the files
+            CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false);
+            hashes.add(cnvHash);
+        }
+
         setupGUI();
 
         // Initialize the filter attributes
@@ -113,9 +123,9 @@ public class CompPlot extends JFrame {
         setSize(1000, 720);
 
         // Close this window but not the entire application on close
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        // setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         // Close the whole thing for debugging purposes
-        // setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         cpcl = new CompPropertyChangeListener(this);
 
@@ -140,14 +150,15 @@ public class CompPlot extends JFrame {
 
         chromosomeViewer = new ChromosomeViewer(location[0], location[1], location[2], track);
         viewers.add(chromosomeViewer, BorderLayout.NORTH);
-        chromosomeViewer.setPreferredSize(new Dimension(800, 15));
+        chromosomeViewer.setPreferredSize(new Dimension(800, 25));
 
         compPanel = new CompPanel(this);
         compPanel.addPropertyChangeListener(cpcl);
         // compPanel.setCNVRectangles(cnvRects);
 
-        JScrollPane jsp = new JScrollPane(compPanel);
-        viewers.add(jsp, BorderLayout.CENTER);
+        viewers.add(compPanel, BorderLayout.CENTER);
+        // JScrollPane jsp = new JScrollPane(compPanel);
+        // viewers.add(jsp, BorderLayout.CENTER);
 
         compView.add(viewers);
 
@@ -165,7 +176,7 @@ public class CompPlot extends JFrame {
     public void loadCNVs(int[] location) {
         // long startTime = Calendar.getInstance().getTimeInMillis();
 
-        cnvRects = new CNVRectangles(files, location, probes, minSize, qualityScore);
+        cnvRects = new CNVRectangles(hashes, location, probes, minSize, qualityScore);
         cnvRects.setRectangleHeight(rectangleHeight);
         compPanel.setWindow(location[1], location[2]);
         cnvRects.setScalingFactor(compPanel.getScalingFactor());
@@ -229,6 +240,14 @@ public class CompPlot extends JFrame {
 
     public Region getRegion() {
         return regionNavigator.getRegion();
+    }
+
+    public void setCPLocation(int[] location) {
+        this.location = location;
+        regionNavigator.setLocation(location);
+        chromosomeViewer.updateView(location[0], location[1], location[2]);
+        loadCNVs(location);
+        chromosomeViewer.repaint();
     }
 
     public int[] getCPLocation() {

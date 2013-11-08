@@ -11,6 +11,8 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 
 import javax.swing.JPanel;
@@ -19,13 +21,16 @@ import cnv.var.CNVRectangle;
 import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
 
+import common.Positions;
+
 /**
  * @author Michael Vieths
  * 
  */
-public class CompPanel extends JPanel implements MouseListener, MouseMotionListener {
+public class CompPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
     public static final long        serialVersionUID = 1L;
 
+    CompPlot                        plot;
     float                           scalingFactor;
     int                             startBase, endBase;
     ArrayList<CNVariant>            selectedCNVs;
@@ -36,9 +41,11 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
     ArrayList<cnv.var.CNVRectangle> rectangles;
 
     public CompPanel(CompPlot cp) {
+        plot = cp;
         cnvRectangles = new CNVRectangles();
         addMouseListener(this);
         addMouseMotionListener(this);
+        addMouseWheelListener(this);
     }
 
     @Override
@@ -53,7 +60,6 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
             if (y > maxY) {
                 maxY = y;
             }
-
         }
 
         // Set the maximum Y so we see all of the rectangles
@@ -127,6 +133,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
         endBase = end;
         int window = endBase - startBase;
         scalingFactor = (float) getWidth() / window;
+        // scalingFactor = 1;
         cnvRectangles.setScalingFactor(scalingFactor);
     }
 
@@ -210,9 +217,12 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
+    double clickStart;
+
     @Override
     public void mousePressed(MouseEvent e) {
         // Not doing anything on mouse press
+        clickStart = e.getPoint().getX();
     }
 
     @Override
@@ -232,6 +242,71 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        // Not doing anything on mouse drag
+        int[] newLocation = plot.getCPLocation();
+        int chromosomeLength = Positions.CHROMOSOME_LENGTHS[newLocation[0]];
+        int x = e.getPoint().x;
+        double diff = (int) (clickStart - x);
+
+        double moveRatio = (diff / getWidth());
+        double window = (endBase - startBase);
+        double offset = window * moveRatio;
+
+        clickStart = x;
+
+        int loc1 = (int) (newLocation[1] + offset);
+        int loc2 = (int) (newLocation[2] + offset);
+
+        // Only change the window if we're still in a valid range
+        if (offset < 0) {
+            if (loc1 >= 0) {
+                newLocation[1] = loc1;
+                newLocation[2] = loc2;
+            }
+        } else {
+            if (loc2 <= chromosomeLength) {
+                newLocation[1] = loc1;
+                newLocation[2] = loc2;
+            }
+        }
+        plot.setCPLocation(newLocation);
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        int[] newLocation = plot.getCPLocation();
+        int chromosomeLength = Positions.CHROMOSOME_LENGTHS[newLocation[0]];
+
+        int rotation = e.getWheelRotation();
+        int width = endBase - startBase;
+        int zoomIn = width / 8;
+        int zoomOut = width / 2;
+
+        if (rotation > 0) {
+            int loc1 = newLocation[1] - zoomOut;
+            int loc2 = newLocation[2] + zoomOut;
+            // Zoom out
+            if (loc1 < 0) {
+                newLocation[1] = 0;
+            } else {
+                newLocation[1] = loc1;
+            }
+
+            if (loc2 > chromosomeLength) {
+                newLocation[2] = chromosomeLength;
+            } else {
+                newLocation[2] = loc2;
+            }
+        } else if (rotation < 0) {
+            int loc1 = newLocation[1] + zoomIn;
+            int loc2 = newLocation[2] - zoomIn;
+            // Zoom in
+            if (loc1 > loc2) {
+                // We've wrapped, don't zoom any further
+            } else {
+                newLocation[1] = loc1;
+                newLocation[2] = loc2;
+            }
+        }
+        plot.setCPLocation(newLocation);
     }
 }

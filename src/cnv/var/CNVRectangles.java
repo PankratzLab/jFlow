@@ -27,26 +27,23 @@ public class CNVRectangles {
     int                                           minSize;
     int                                           qualityScore;
 
-    public CNVRectangles(String[] files, int[] location, int probes, int minSize, int qualityScore) {
+    public CNVRectangles(ArrayList<CNVariantHash> hashes, int[] location, int probes, int minSize, int qualityScore) {
         // Set the color scheme
         colorScheme = CompPlot.colorScheme;
         // Read the data from the CNV files
 
         fileMap = new HashMap<String, ArrayList<CNVariant>>();
 
-        for (String file : files) {
-            // Load the CNVs out of the files
-            CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false);
-
+        for (CNVariantHash hash : hashes) {
             // All CNVs are loaded into an array, which is then stored in an array by file
             // Format is:
             // file1: CNV1..CNVN
             // fileN: CNV1..CNVN
             // All CNVs in each file, when they are rendered, will be a single color
             // Any CNVs where CNVariant.getCN() != 2 will be a different shade of that color
-            CNVariant[] cnvs = cnvHash.getAllInRegion((byte) location[0], location[1], location[2], probes, minSize, qualityScore);
+            CNVariant[] cnvs = hash.getAllInRegion((byte) location[0], location[1], location[2], probes, minSize, qualityScore);
             ArrayList<CNVariant> cnvList = new ArrayList<CNVariant>(Arrays.asList(cnvs));
-            fileMap.put(file, cnvList);
+            fileMap.put(hash.getFilename(), cnvList);
         }
 
         // Populate the hashmap and rectangles
