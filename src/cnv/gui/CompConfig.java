@@ -1,6 +1,5 @@
 package cnv.gui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -13,385 +12,495 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import cnv.filesys.Project;
 import cnv.plots.CompPlot;
+import cnv.plots.Trailer;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
 
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
 
-    /**
+	/**
 	 * 
 	 */
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private String            displayMode      = "Full";
-    private int               probes           = 5;     // Default to 5 probes
-    private int               minSize          = 0;     // Default to no minimum size
-    private int               qualityScore     = 10;    // Default to a score of 10
-    private int               rectangleHeight  = 10;    // Default rectangle height
-    CompPlot                  compPlot;
+	private String displayMode = "Full";
+	private int probes = 5; // Default to 5 probes
+	private int minSize = 0; // Default to no minimum size
+	private int qualityScore = 10; // Default to a score of 10
+	private int rectangleHeight = 10; // Default rectangle height
+	CompPlot compPlot;
 
-    JSlider                   probesSlider;
-    JLabel                    lblProbes;
+	JSlider probesSlider;
+	JLabel lblProbes;
 
-    JSlider                   minSizeSlider;
-    JLabel                    lblMinimumSizekb;
+	JSlider minSizeSlider;
+	JLabel lblMinimumSizekb;
 
-    JSlider                   qualityScoreSlider;
-    JLabel                    lblQualityScore;
+	JSlider qualityScoreSlider;
+	JLabel lblQualityScore;
 
-    JSlider                   rectangleHeightSlider;
-    JLabel                    lblRectangleHeight;
+	JSlider rectangleHeightSlider;
+	JLabel lblRectangleHeight;
 
-    CNVPanel                  cnvPanel;
+	CNVPanel cnvPanel;
 
-    //
+	//
 
-    /**
-     * Create the panel.
-     */
-    public CompConfig(CompPlot cp) {
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        compPlot = cp;
+	/**
+	 * Create the panel.
+	 */
+	public CompConfig(CompPlot cp) {
+		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		compPlot = cp;
 
-        cnvPanel = new CNVPanel(cp);
-        cnvPanel.setDisplayMode(displayMode);
-        add(cnvPanel);
+		cnvPanel = new CNVPanel(cp);
+		cnvPanel.setDisplayMode(displayMode);
+		add(cnvPanel);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        JPanel configPanel = new JPanel();
-        configPanel.setLayout(new BoxLayout(configPanel, BoxLayout.PAGE_AXIS));
+		JPanel configPanel = new JPanel();
+		configPanel.setLayout(new BoxLayout(configPanel, BoxLayout.PAGE_AXIS));
 
-        // Configure whether the display mode is Full (variants displayed are separated and color-coded by file)
-        // or abbreviated (CNVs with multiple copies appear as only one block)
-        JPanel dmPanel = new JPanel(new FlowLayout());
-        JLabel lblDisplayMode = new JLabel("Display Mode");
-        dmPanel.add(lblDisplayMode);
+		// Configure whether the display mode is Full (variants displayed are separated and color-coded by file)
+		// or abbreviated (CNVs with multiple copies appear as only one block)
+		JPanel dmPanel = new JPanel(new FlowLayout());
+		JLabel lblDisplayMode = new JLabel("Display Mode");
+		dmPanel.add(lblDisplayMode);
 
-        JComboBox<String> comboBox = new JComboBox<String>();
-        comboBox.setModel(new DefaultComboBoxModel<String>(new String[]
-            { "Full", "Pack", "Collapsed" }));
-        comboBox.addActionListener(this);
-        dmPanel.add(comboBox);
-        configPanel.add(dmPanel);
+		JComboBox<String> comboBox = new JComboBox<String>();
+		comboBox.setModel(new DefaultComboBoxModel<String>(new String[] { "Full", "Pack", "Collapsed" }));
+		comboBox.addActionListener(this);
+		dmPanel.add(comboBox);
+		configPanel.add(dmPanel);
 
-        // Filter by the number of probes
-        lblProbes = new JLabel("Probes (" + probes + ")");
-        lblProbes.setAlignmentX(Component.CENTER_ALIGNMENT);
-        configPanel.add(lblProbes);
+		// Filter by the number of probes
+		lblProbes = new JLabel("Probes (" + probes + ")");
+		lblProbes.setAlignmentX(Component.CENTER_ALIGNMENT);
+		configPanel.add(lblProbes);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        probesSlider = new JSlider(JSlider.HORIZONTAL, 0, 50, probes);
-        probesSlider.setMajorTickSpacing(10);
-        probesSlider.setMinorTickSpacing(5);
-        probesSlider.setPaintTicks(true);
-        probesSlider.setPaintLabels(true);
-        probesSlider.addChangeListener(this);
-        configPanel.add(probesSlider);
+		probesSlider = new JSlider(JSlider.HORIZONTAL, 0, 50, probes);
+		probesSlider.setMajorTickSpacing(10);
+		probesSlider.setMinorTickSpacing(5);
+		probesSlider.setPaintTicks(true);
+		probesSlider.setPaintLabels(true);
+		probesSlider.addChangeListener(this);
+		configPanel.add(probesSlider);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        // Filter by the minimum size in kilobases
-        lblMinimumSizekb = new JLabel("Minimum Size in kb (" + minSize + ")");
-        lblMinimumSizekb.setAlignmentX(Component.CENTER_ALIGNMENT);
-        configPanel.add(lblMinimumSizekb);
+		// Filter by the minimum size in kilobases
+		lblMinimumSizekb = new JLabel("Minimum Size in kb (" + minSize + ")");
+		lblMinimumSizekb.setAlignmentX(Component.CENTER_ALIGNMENT);
+		configPanel.add(lblMinimumSizekb);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        minSizeSlider = new JSlider(JSlider.HORIZONTAL, 0, 1000, minSize);
-        minSizeSlider.setMajorTickSpacing(200);
-        minSizeSlider.setMinorTickSpacing(100);
-        minSizeSlider.setPaintTicks(true);
-        minSizeSlider.setPaintLabels(true);
-        minSizeSlider.addChangeListener(this);
-        configPanel.add(minSizeSlider);
+		minSizeSlider = new JSlider(JSlider.HORIZONTAL, 0, 1000, minSize);
+		minSizeSlider.setMajorTickSpacing(200);
+		minSizeSlider.setMinorTickSpacing(100);
+		minSizeSlider.setPaintTicks(true);
+		minSizeSlider.setPaintLabels(true);
+		minSizeSlider.addChangeListener(this);
+		configPanel.add(minSizeSlider);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        // Filter by the minimum quality score
-        lblQualityScore = new JLabel("Quality Score (" + qualityScore + ")");
-        lblQualityScore.setAlignmentX(Component.CENTER_ALIGNMENT);
-        configPanel.add(lblQualityScore);
+		// Filter by the minimum quality score
+		lblQualityScore = new JLabel("Quality Score (" + qualityScore + ")");
+		lblQualityScore.setAlignmentX(Component.CENTER_ALIGNMENT);
+		configPanel.add(lblQualityScore);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        qualityScoreSlider = new JSlider(0, 100, qualityScore);
-        qualityScoreSlider.setMajorTickSpacing(20);
-        qualityScoreSlider.setMinorTickSpacing(10);
-        qualityScoreSlider.setPaintTicks(true);
-        qualityScoreSlider.setPaintLabels(true);
-        qualityScoreSlider.addChangeListener(this);
-        configPanel.add(qualityScoreSlider);
+		qualityScoreSlider = new JSlider(0, 100, qualityScore);
+		qualityScoreSlider.setMajorTickSpacing(20);
+		qualityScoreSlider.setMinorTickSpacing(10);
+		qualityScoreSlider.setPaintTicks(true);
+		qualityScoreSlider.setPaintLabels(true);
+		qualityScoreSlider.addChangeListener(this);
+		configPanel.add(qualityScoreSlider);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        // Scale the height of the rectangles
-        lblRectangleHeight = new JLabel("Rectangle Height (" + rectangleHeight + ")");
-        lblRectangleHeight.setAlignmentX(Component.CENTER_ALIGNMENT);
-        configPanel.add(lblRectangleHeight);
+		// Scale the height of the rectangles
+		lblRectangleHeight = new JLabel("Rectangle Height (" + rectangleHeight + ")");
+		lblRectangleHeight.setAlignmentX(Component.CENTER_ALIGNMENT);
+		configPanel.add(lblRectangleHeight);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        rectangleHeightSlider = new JSlider(1, 25, rectangleHeight);
-        rectangleHeightSlider.setMajorTickSpacing(24);
-        rectangleHeightSlider.setMinorTickSpacing(1);
-        rectangleHeightSlider.setPaintTicks(true);
-        rectangleHeightSlider.setPaintLabels(true);
-        rectangleHeightSlider.addChangeListener(this);
-        configPanel.add(rectangleHeightSlider);
+		rectangleHeightSlider = new JSlider(1, 25, rectangleHeight);
+		rectangleHeightSlider.setMajorTickSpacing(24);
+		rectangleHeightSlider.setMinorTickSpacing(1);
+		rectangleHeightSlider.setPaintTicks(true);
+		rectangleHeightSlider.setPaintLabels(true);
+		rectangleHeightSlider.addChangeListener(this);
+		configPanel.add(rectangleHeightSlider);
 
-        add(Box.createGlue());
+		add(Box.createGlue());
 
-        add(configPanel);
-    }
+		add(configPanel);
+	}
 
-    // Monitor the sliders for changes
-    public void stateChanged(ChangeEvent arg0) {
-        JSlider source = (JSlider) arg0.getSource();
-        if (source.equals(probesSlider)) {
-            int p = source.getValue();
-            this.firePropertyChange("probes", probes, p);
-            probes = p;
-            lblProbes.setText("Probes (" + probes + ")");
-        } else if (source.equals(minSizeSlider)) {
-            int ms = source.getValue();
-            this.firePropertyChange("minSize", minSize, ms);
-            minSize = ms;
-            lblMinimumSizekb.setText("Minimum Size in kb (" + minSize + ")");
-        } else if (source.equals(qualityScoreSlider)) {
-            int qs = source.getValue();
-            this.firePropertyChange("qualityScore", qualityScore, qs);
-            qualityScore = qs;
-            lblQualityScore.setText("Quality Score (" + qualityScore + ")");
-        } else if (source.equals(rectangleHeightSlider)) {
-            int height = source.getValue();
-            this.firePropertyChange("rectangleHeight", rectangleHeight, height);
-            rectangleHeight = height;
-            lblRectangleHeight.setText("Rectangle Height (" + rectangleHeight + ")");
-        }
-    }
+	// Monitor the sliders for changes
+	public void stateChanged(ChangeEvent arg0) {
+		JSlider source = (JSlider) arg0.getSource();
+		if (source.equals(probesSlider)) {
+			int p = source.getValue();
+			this.firePropertyChange("probes", probes, p);
+			probes = p;
+			lblProbes.setText("Probes (" + probes + ")");
+		} else if (source.equals(minSizeSlider)) {
+			int ms = source.getValue();
+			this.firePropertyChange("minSize", minSize, ms);
+			minSize = ms;
+			lblMinimumSizekb.setText("Minimum Size in kb (" + minSize + ")");
+		} else if (source.equals(qualityScoreSlider)) {
+			int qs = source.getValue();
+			this.firePropertyChange("qualityScore", qualityScore, qs);
+			qualityScore = qs;
+			lblQualityScore.setText("Quality Score (" + qualityScore + ")");
+		} else if (source.equals(rectangleHeightSlider)) {
+			int height = source.getValue();
+			this.firePropertyChange("rectangleHeight", rectangleHeight, height);
+			rectangleHeight = height;
+			lblRectangleHeight.setText("Rectangle Height (" + rectangleHeight + ")");
+		}
+	}
 
-    // Monitor the combobox for changes
-    public void actionPerformed(ActionEvent arg0) {
-        @SuppressWarnings("unchecked")
-        JComboBox<String> cb = (JComboBox<String>) arg0.getSource();
-        String mode = (String) cb.getSelectedItem();
-        firePropertyChange("displayMode", displayMode, mode);
-        displayMode = mode;
-        cnvPanel.setDisplayMode(displayMode);
-    }
+	// Monitor the combobox for changes
+	public void actionPerformed(ActionEvent arg0) {
+		@SuppressWarnings("unchecked")
+		JComboBox<String> cb = (JComboBox<String>) arg0.getSource();
+		String mode = (String) cb.getSelectedItem();
+		firePropertyChange("displayMode", displayMode, mode);
+		displayMode = mode;
+		cnvPanel.setDisplayMode(displayMode);
+	}
 
-    public String getDisplayMode() {
-        return displayMode;
-    }
+	public String getDisplayMode() {
+		return displayMode;
+	}
 
-    public int getProbes() {
-        return probes;
-    }
+	public int getProbes() {
+		return probes;
+	}
 
-    public int getMinSize() {
-        return minSize;
-    }
+	public int getMinSize() {
+		return minSize;
+	}
 
-    public int getQualityScore() {
-        return qualityScore;
-    }
+	public int getQualityScore() {
+		return qualityScore;
+	}
 
-    public int getRectangleHeight() {
-        return rectangleHeight;
-    }
+	public int getRectangleHeight() {
+		return rectangleHeight;
+	}
 
-    public void setSelectedCNVs(ArrayList<CNVariant> cnvs) {
-        cnvPanel.setCNVs(cnvs);
-    }
+	public void setSelectedCNVs(ArrayList<CNVariant> cnvs) {
+		cnvPanel.setCNVs(cnvs);
+	}
 
-    public CompPlot getPlot() {
-        return compPlot;
-    }
+	public CompPlot getPlot() {
+		return compPlot;
+	}
 
 }
 
 class CNVPanel extends JPanel implements ActionListener {
-    private static final long serialVersionUID = 1L;
-    ArrayList<CNVariant>      selectedCNVs;
-    CNVariant                 selectedCNV;
-    CNVariant                 oldCNV;
-    JPanel                    cnvPanel;
-    JLabel                    iid;                  // Individual ID
-    JLabel                    fid;                  // Family ID
-    JLabel                    length;               // CNV length
-    JLabel                    copies;               // CNV copy number
-    JLabel                    probes;               // Number of probes
-    JLabel                    score;                // Quality score
-    String                    displayMode;
-    JComboBox<CNVariant>      cnvList;
-    JLabel                    cnvListLabel;
-    JButton                   trailerButton;
-    LaunchAction              launchTrailer;
-    CompPlot                  compPlot;
+	private static final long serialVersionUID = 1L;
+	ArrayList<CNVariant> selectedCNVs;
+	CNVariant selectedCNV;
+	CNVariant oldCNV;
+	JPanel cnvPanel;
+	JLabel iid; // Individual ID
+	JLabel fid; // Family ID
+	JLabel length; // CNV length
+	JLabel copies; // CNV copy number
+	JLabel probes; // Number of probes
+	JLabel score; // Quality score
+	String displayMode;
+	JScrollPane cnvPane;
+	JComboBox<CNVariant> cnvList;
+	JScrollPane cnvScroll;
 
-    public CNVPanel(CompPlot cp) {
-        compPlot = cp;
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        add(new JLabel("Selected CNV:"));
-        iid = new JLabel();
-        fid = new JLabel();
-        length = new JLabel();
-        copies = new JLabel();
-        probes = new JLabel();
-        score = new JLabel();
-        trailerButton = new JButton("To Trailer");
+	JLabel cnvListLabel;
+	CNVCheckList checkList;
+	JButton selectAll;
+	JButton selectNone;
+	JButton trailerButton;
+	LaunchAction launchTrailer;
+	CompPlot compPlot;
 
-        // Panel for CNV information
-        cnvPanel = new JPanel();
-        cnvPanel.setLayout(new GridLayout(7, 2));
-        cnvPanel.setPreferredSize(new Dimension(250, 120));
-        cnvPanel.setMinimumSize(new Dimension(250, 120));
-        cnvPanel.setMaximumSize(new Dimension(250, 120));
+	public CNVPanel(CompPlot cp) {
+		compPlot = cp;
+		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		add(new JLabel("Selected CNV:"));
+		iid = new JLabel();
+		fid = new JLabel();
+		length = new JLabel();
+		copies = new JLabel();
+		probes = new JLabel();
+		score = new JLabel();
+		selectAll = new JButton("Select All");
+		selectNone = new JButton("Select None");
+		trailerButton = new JButton("To Trailer");
 
-        // Individual ID
-        cnvPanel.add(new JLabel("IID:"));
-        cnvPanel.add(iid);
+		// Panel for CNV information
+		cnvPanel = new JPanel();
+		cnvPanel.setLayout(new GridLayout(7, 2));
+		cnvPanel.setPreferredSize(new Dimension(250, 120));
+		cnvPanel.setMinimumSize(new Dimension(250, 120));
+		cnvPanel.setMaximumSize(new Dimension(250, 120));
 
-        // Family ID
-        cnvPanel.add(new JLabel("FID:"));
-        cnvPanel.add(fid);
+		// Individual ID
+		cnvPanel.add(new JLabel("IID:"));
+		cnvPanel.add(iid);
 
-        // Length
-        cnvPanel.add(new JLabel("Length:"));
-        cnvPanel.add(length);
+		// Family ID
+		cnvPanel.add(new JLabel("FID:"));
+		cnvPanel.add(fid);
 
-        // Copies
-        cnvPanel.add(new JLabel("Copies"));
-        cnvPanel.add(copies);
+		// Length
+		cnvPanel.add(new JLabel("Length:"));
+		cnvPanel.add(length);
 
-        // Probes
-        cnvPanel.add(new JLabel("Probes:"));
-        cnvPanel.add(probes);
+		// Copies
+		cnvPanel.add(new JLabel("Copies"));
+		cnvPanel.add(copies);
 
-        // Score
-        cnvPanel.add(new JLabel("Score:"));
-        cnvPanel.add(score);
+		// Probes
+		cnvPanel.add(new JLabel("Probes:"));
+		cnvPanel.add(probes);
 
-        cnvListLabel = new JLabel("");
-        cnvPanel.add(cnvListLabel);
+		// Score
+		cnvPanel.add(new JLabel("Score:"));
+		cnvPanel.add(score);
 
-        add(cnvPanel);
+		cnvListLabel = new JLabel("Select CNVs:");
+		cnvPanel.add(cnvListLabel);
 
-        // Link off to Trailer
-        add(trailerButton);
-        trailerButton.setEnabled(false);
-    }
+		add(cnvPanel);
 
-    // Update the fields
-    public void setCNVs(ArrayList<CNVariant> cnvs) {
-        selectedCNVs = cnvs;
+		cnvScroll = new JScrollPane();
+		add(cnvScroll);
+		cnvScroll.setVisible(false);
 
-        // In collapsed mode, if there are multiple CNVs associated, add a combo box that lets you select which CNV to look at
-        if (displayMode.equals("Collapsed")) {
-            // Clear the combo box
-            if (cnvList != null) {
-                cnvPanel.remove(cnvList);
-                cnvListLabel.setText("");
-                cnvPanel.validate();
-            }
+		add(selectAll);
+		selectAll.setVisible(false);
+		selectAll.addActionListener(this);
 
-            // Repopulate and add back the combo box if needed
-            if (selectedCNVs.size() > 1) {
-                cnvList = new JComboBox<CNVariant>();
-                cnvList.addActionListener(this);
-                CNVariant[] cnvArray = selectedCNVs.toArray(new CNVariant[selectedCNVs.size()]);
-                cnvList.setModel(new DefaultComboBoxModel<CNVariant>(cnvArray));
-                cnvListLabel.setText("CNVs:");
-                cnvPanel.add(cnvListLabel);
-                cnvPanel.add(cnvList);
-                selectedCNV = (CNVariant) cnvList.getSelectedItem();
-            } else {
-                selectedCNV = selectedCNVs.get(0);
-            }
+		add(selectNone);
+		selectNone.setVisible(false);
+		selectNone.addActionListener(this);
 
-            setCNVText();
-        } else {
-            // There's only one CNV, so select it
-            selectedCNV = selectedCNVs.get(0);
-            // Clear the combo box
-            if (cnvList != null) {
-                cnvPanel.remove(cnvList);
-                cnvListLabel.setText("");
-                cnvPanel.validate();
-            }
+		// Link off to Trailer
+		add(trailerButton);
+		trailerButton.setEnabled(false);
+		trailerButton.addActionListener(this);
+	}
 
-            setCNVText();
-        }
+	// Update the fields
+	public void setCNVs(ArrayList<CNVariant> cnvs) {
+		selectedCNVs = new ArrayList<CNVariant>(cnvs);
 
-        // Don't enable the button if there aren't any CNVs selected
-        if (selectedCNVs.size() > 0) {
-            int[] location = compPlot.getCPLocation();
-            int window = Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
-            String markerPosition = "chr" + location[0] + ":" + (selectedCNV.getStart() - window) + "-" + (selectedCNV.getStop() + window);
-            // System.out.println("Window is " + window + " markerPosition is " + markerPosition);
-            String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
-            SampleData sampleData = compPlot.getProject().getSampleData(2, false);
+		// In collapsed mode, if there are multiple CNVs associated, add a combo box that lets you select which CNV to look at
+		if (displayMode.equals("Collapsed")) {
+			if (selectedCNVs.size() > 1) {
+				cnvScroll.setPreferredSize(new Dimension(100, 100));
+				JPanel checkPanel = new JPanel(new GridLayout(selectedCNVs.size(), 1));
+				checkList = new CNVCheckList(selectedCNVs);
+				for (JCheckBox checkBox : checkList.checkList) {
+					checkPanel.add(checkBox);
+				}
+				cnvScroll.add(checkPanel);
+				cnvScroll.setViewportView(checkPanel);
+				cnvScroll.setVisible(true);
+				selectAll.setVisible(true);
+				selectNone.setVisible(true);
+			} else {
+				selectAll.setVisible(false);
+				selectNone.setVisible(false);
+				cnvScroll.setVisible(false);
+			}
 
-            launchTrailer = new LaunchAction(compPlot.getProject(), sampleData.lookup(trailerID)[0], markerPosition, Color.BLACK);
-            trailerButton.setAction(launchTrailer);
-            trailerButton.setText("To Trailer");
-            trailerButton.setIcon(null);
-            trailerButton.setEnabled(true);
-        } else {
-            trailerButton.setEnabled(false);
-        }
+			selectedCNV = selectedCNVs.get(0);
 
-        cnvPanel.repaint();
-    }
+			setCNVText();
+		} else {
+			// There's only one CNV, so select it
+			selectedCNV = selectedCNVs.get(0);
 
-    // Update the text with the currently selected CNV
-    public void setCNVText() {
-        iid.setText(selectedCNV.getIndividualID());
-        fid.setText(selectedCNV.getFamilyID());
-        length.setText("" + selectedCNV.getSize());
-        copies.setText("" + selectedCNV.getCN());
-        probes.setText("" + selectedCNV.getNumMarkers());
-        score.setText("" + selectedCNV.getScore());
-    }
+			// Clear the combo box
+			if (cnvList != null) {
+				cnvPanel.remove(cnvList);
+				cnvListLabel.setText("");
+				cnvPanel.validate();
+			}
 
-    // Clear the CNV panel
-    public void clearCNVText() {
-        iid.setText("");
-        fid.setText("");
-        length.setText("");
-        copies.setText("");
-        probes.setText("");
-        score.setText("");
-        trailerButton.setEnabled(false);
-        if (cnvList != null) {
-            cnvPanel.remove(cnvList);
-            cnvListLabel.setText("");
-            cnvPanel.validate();
-        }
-    }
+			setCNVText();
+		}
 
-    public void setDisplayMode(String mode) {
-        displayMode = mode;
-        clearCNVText();
-    }
+		// Don't enable the button if there aren't any CNVs selected
+		if (selectedCNVs.size() > 0) {
+			trailerButton.setText("To Trailer");
+			trailerButton.setIcon(null);
+			trailerButton.setEnabled(true);
+		} else {
+			trailerButton.setEnabled(false);
+		}
 
-    // Monitor the combobox for changes
-    public void actionPerformed(ActionEvent arg0) {
-        if (arg0.getSource().equals(cnvList)) {
-            oldCNV = selectedCNV;
-            selectedCNV = (CNVariant) cnvList.getSelectedItem();
-            setCNVText();
-        }
-    }
+		cnvPanel.repaint();
+	}
+
+	// Update the text with the currently selected CNV
+	public void setCNVText() {
+		iid.setText(selectedCNV.getIndividualID());
+		fid.setText(selectedCNV.getFamilyID());
+		length.setText("" + selectedCNV.getSize());
+		copies.setText("" + selectedCNV.getCN());
+		probes.setText("" + selectedCNV.getNumMarkers());
+		score.setText("" + selectedCNV.getScore());
+	}
+
+	// Clear the CNV panel
+	public void clearCNVText() {
+		iid.setText("");
+		fid.setText("");
+		length.setText("");
+		copies.setText("");
+		probes.setText("");
+		score.setText("");
+		trailerButton.setEnabled(false);
+		if (cnvList != null) {
+			cnvPanel.remove(cnvList);
+			cnvListLabel.setText("");
+			cnvPanel.validate();
+		}
+	}
+
+	public void setDisplayMode(String mode) {
+		displayMode = mode;
+		clearCNVText();
+	}
+
+	public void actionPerformed(ActionEvent arg0) {
+		if (arg0.getSource().equals(cnvList)) {
+			oldCNV = selectedCNV;
+			setCNVText();
+		} else if (arg0.getSource().equals(selectAll)) {
+			checkList.selectAll();
+		} else if (arg0.getSource().equals(selectNone)) {
+			checkList.selectNone();
+		} else if (arg0.getSource().equals(trailerButton)) {
+			// Launch 1 or more instances of Trailer
+			Project proj = compPlot.getProject();
+			SampleData sampleData = compPlot.getProject().getSampleData(2, false);
+			int[] location = compPlot.getCPLocation();
+			int window = Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
+
+			if (selectedCNVs.size() > 1) {
+				// More than 4 seems to run out of heap space
+				if (checkList.getSelected().size() > 4) {
+					String[] options = { "Yes", "No" };
+					int answer = JOptionPane.showOptionDialog(null, "Warning - this will launch " + checkList.getSelected().size() + " instances of Trailer\nProceed?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+					if (answer == JOptionPane.YES_OPTION) {
+						for (CNVariant cnv : checkList.getSelected()) {
+							String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-" + (cnv.getStop() + window);
+
+							// Strip p or q from the end
+							if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
+								markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
+							}
+
+							String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
+
+							new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(Project.CNV_FILENAMES), markerPosition);
+						}
+					}
+				} else if (checkList.getSelected().size() == 0) {
+					JOptionPane.showMessageDialog(null, "No CNVs selected");
+				} else {
+					for (CNVariant cnv : checkList.getSelected()) {
+						String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-" + (cnv.getStop() + window);
+						// Strip p or q from the end
+						if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
+							markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
+						}
+
+						String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
+
+						new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(Project.CNV_FILENAMES), markerPosition);
+					}
+				}
+			} else {
+				String markerPosition = "chr" + location[0] + ":" + (selectedCNV.getStart() - window) + "-" + (selectedCNV.getStop() + window);
+
+				// Strip p or q from the end
+				if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
+					markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
+				}
+
+				String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
+				new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(Project.CNV_FILENAMES), markerPosition);
+			}
+		}
+	}
+}
+
+/**
+ * Create a checklist of variants
+ * 
+ * @author Michael Vieths
+ * 
+ */
+class CNVCheckList {
+	ArrayList<JCheckBox> checkList;
+	ArrayList<CNVariant> variants;
+
+	public CNVCheckList(ArrayList<CNVariant> variants) {
+		this.variants = variants;
+		checkList = new ArrayList<JCheckBox>();
+		for (CNVariant cnv : variants) {
+			checkList.add(new JCheckBox(cnv.getIndividualID()));
+		}
+	}
+
+	public void selectAll() {
+		for (JCheckBox box : checkList) {
+			box.setSelected(true);
+		}
+	}
+
+	public void selectNone() {
+		for (JCheckBox box : checkList) {
+			box.setSelected(false);
+		}
+	}
+
+	ArrayList<CNVariant> getSelected() {
+		ArrayList<CNVariant> selected = new ArrayList<CNVariant>();
+		for (int i = 0; i < checkList.size(); i++) {
+			if (checkList.get(i).isSelected()) {
+				selected.add(variants.get(i));
+			}
+		}
+		return selected;
+	}
 }
