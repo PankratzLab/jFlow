@@ -36,6 +36,7 @@ public class Files {
 //	public static final String ROOT_DIRECTORY = "/state/partition1/npankrat/";  // indiviudal nodes
 	public static final String JAVA = "/usr/java/latest/bin/java";
 	public static final String JCP = JAVA+" -cp /home/npankrat/park.jar ";
+	private static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[] iterations) {
 		String[][] iters = new String[iterations.length][1];
@@ -2448,7 +2449,16 @@ public class Files {
 
 		}
 	}
-	
+
+	/**
+	 * Function to get path of serialized file from a filepath
+	 * @param filepath the fileopath
+	 * @return the filepath of serialized file obtained by adding ".ser" at end
+	 */
+	public static String getSerializedFilepath(String filepath) {
+		return (filepath + SERIALIZED_FILE_EXTENSION);
+	}
+
 //	public static String determineDelimiterFromFileExt(String filename, Logger log) {
 //		if (filename.endsWith(".csv") || filename.endsWith(".csv.gz")) {
 //			return ",";
