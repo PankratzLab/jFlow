@@ -109,6 +109,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JLabel commentLabel;
 	private int transformation_type;
 	private boolean transformSeparatelyByChromosome;
+	private Logger log;
+	private boolean fail;
 	
 	// private Color[] colorScheme = {new Color(33, 31, 53), // dark dark
 	// new Color(23, 58, 172), // dark blue
@@ -146,13 +148,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		this.proj = proj;
 		jar = proj.getJarStatus();
 		cnvFilenames = filenames;
+		fail = false;
 		
 		time = new Date().getTime();
 
 		chr = (byte)Positions.parseUCSClocation(location)[0]; 
 //		parseLocation(location, false);
 
-		loadMarkers();
+		fail = !loadMarkers();
+		if (fail) {
+			return;
+		}
 		generateComponents();
 		
 		sample = selectedSample==null?samplesPresent[0]:selectedSample;
@@ -844,7 +850,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	}
 
-	public void loadMarkers() {
+	public boolean loadMarkers() {
 		Hashtable<String,String> hash;
 		String[] markerNames;
 		byte[] chrs;
@@ -855,6 +861,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		hash = proj.getFilteredHash();
 		markerSet = proj.getMarkerSet();
+		if (markerSet == null) {
+			JOptionPane.showMessageDialog(null, "Error - Failed to load the MarkerSet file; make sure the raw data is parsed", "Error", JOptionPane.ERROR_MESSAGE);
+			log.reportError("Error - failed to load MarkerSet for project "+proj.getNameOfProject()+"; make sure the raw data is parsed");
+			return false;
+		}
 		fingerprint = markerSet.getFingerprint();
 		markerNames = markerSet.getMarkerNames();
 		numMarkers = markerNames.length;
@@ -883,6 +894,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		chrBoundaries[0][1] = numMarkers-1;
 
 		System.out.println("Read in data for "+numMarkers+" markers in "+ext.getTimeElapsed(time));
+		return true;
 	}
 
 	public void loadValues() {

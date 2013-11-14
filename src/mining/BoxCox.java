@@ -2,7 +2,6 @@ package mining;
 
 import java.io.*;
 
-import stats.Stats;
 import common.*;
 
 public class BoxCox {

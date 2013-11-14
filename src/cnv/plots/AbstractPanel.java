@@ -109,7 +109,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int currentPlotPointSet;
 	private int lastIndexInPlotPointSet;
 	private int currentIndexInPlotPointSet;
-	private String tempDirectory;
+//	private String tempDirectory;	// TODO is this necessary?
 	private int lookupResolution;
 	private boolean flow;			//A control variable. If resizing is not yet done, don't start generatePoints() or drawAll();
 	private boolean finalImage;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
@@ -143,7 +143,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		currentPlotPointSet = 0;
 		lastIndexInPlotPointSet = -1;
 		currentIndexInPlotPointSet = -1;
-		tempDirectory = "";
+//		tempDirectory = "";
 		randomTest = false;
 		chartType = DEFAULT_TYPE;
 		
@@ -187,10 +187,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		nullMessage = str;
 	}
 
-	public void setTempDirectory(String dir) {
-		tempDirectory = dir;
-	}
-	
+//	public void setTempDirectory(String dir) {
+//		tempDirectory = dir;
+//	}
+//	
 	public void setColorScheme(Color[] scheme) {
 		colorScheme = scheme;
 	}

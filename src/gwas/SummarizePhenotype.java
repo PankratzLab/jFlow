@@ -229,7 +229,6 @@ public class SummarizePhenotype {
 		return currentData;
 	}
 
-	@SuppressWarnings("null")
 	public static Hashtable<String, String[]> loadData(String dataFileName, Logger log) {
 		Hashtable<String, String[]> data;
 		String delimiter;

@@ -1,9 +1,13 @@
 package bot;
 
 import java.io.*;
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.*;
 import java.awt.datatransfer.*;
+
+import common.*;
 
 public class Ahk {
     public static String intToHex(int y) {
@@ -43,6 +47,21 @@ public class Ahk {
 		}
 		
 		return matrix;
+	}
+
+	public static int[] getMatrixInt(Robot bot, int StartX, int StartY, int dimension) {
+		int[] pixels;
+		int count;
+
+		count = 0;
+		pixels = new int[dimension*dimension];
+		for (int j = 0; j < dimension; j++) {
+			for (int i = 0; i < dimension; i++) {
+				pixels[count++] = bot.getPixelColor(StartX+i, StartY+j).getRGB();
+			}
+		}
+		
+		return pixels;
 	}
 
 	public static void outline(Robot bot, int ScanStartX, int ScanEndX, int ScanStartY, int ScanEndY) {
@@ -144,6 +163,106 @@ public class Ahk {
 		}
 		return null;
 	}
+	
+	public static int[] convertToIntPixels(BufferedImage image) {
+		return ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+	}
+	
+	public static int[][] convertToIntPixelMatrix(BufferedImage image) {
+		int[][] pixelMatrix;
+		int[] pixels;
+		int width, height, x, y;
+
+
+		width = image.getWidth();
+		height = image.getHeight();
+		pixelMatrix = new int[width][height];
+		pixels = convertToIntPixels(image);
+		for (int i = 0; i < pixelMatrix.length; i++) {
+			x = i % width;
+			y = (int)Math.floor(i/width);
+			pixelMatrix[x][y] = pixels[i];
+		}
+		
+		return pixelMatrix;
+	}
+	
+	public static int[][] findAllMatricesFast(Robot bot, int[] matrix, Logger log) {
+		return findAllMatricesFast(bot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize())), matrix, log);
+	}
+	
+	public static int[][] findAllMatricesFast(BufferedImage screencapture, int[] matrix, Logger log) {
+		int width, dimension; // , height
+		int[] pixels;
+		Vector<int[]> matches;
+		int pX, pY, sX, sY, index, count;
+
+		width = screencapture.getWidth();
+//		height = screencapture.getHeight();
+		dimension = (int)Math.sqrt(matrix.length);
+		pixels = convertToIntPixels(screencapture);
+		
+		matches = new Vector<int[]>();
+		for (int i = 0; i < pixels.length; i++) {
+			sX = i % width;
+			sY = (int)Math.floor(i/width);
+			count = 0;
+			for (int j = 0; j < matrix.length; j++) {
+				pX = j % dimension;
+				pY = (int)Math.floor(j/dimension);
+				index = (sY+pY)*width+(sX+pX);
+				if (index >= pixels.length || pixels[index] != matrix[j]) {
+					break;
+				}
+				count++;
+			}
+			if (count > 0) {
+//				log.report("Almost at "+sX+","+sY+" but only "+count);
+//				bot.mouseMove(sX, sY);
+//				bot.delay(1000);
+			}
+			if (count == matrix.length) {
+				matches.add(new int[] {sX, sY});
+			}
+		}
+		
+		return Matrix.toMatrix(matches);
+	}	
+
+//	public static int[][] findAllMatricesFast(Robot bot, int[] matrix) {
+//		BufferedImage screencapture;
+//		int width, dimension; // , height
+//		int[][] pixelMatrix;
+//		Vector<int[]> matches;
+//		int pX, pY, sX, sY, index, count;
+//		
+//		screencapture = bot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+//		width = screencapture.getWidth();
+////		height = screencapture.getHeight();
+//		dimension = (int)Math.sqrt(matrix.length);
+//		pixels = convertToIntPixels(screencapture);
+//		
+//		matches = new Vector<int[]>();
+//		for (int i = 0; i < pixelMatrix.length-dimension+1; i++) {
+//			for (int j = 0; j < pixelMatrix[i].length-dimension+1; j++) {
+//				for (int k = 0; k < matrix.length; k++) {
+//					pX = k % dimension;
+//					pY = (int)Math.floor(k/dimension);
+//					index = (sY+pY)*width+(sX+pX);
+//					if (index >= pixels.length || pixels[index] != matrix[k]) {
+//						break;
+//					}
+//					count++;
+//				}
+//				if (count == matrix.length) {
+//					matches.add(new int[] {i % width, });
+//				}
+//				
+//			}
+//		}
+//		
+//		return Matrix.toMatrix(matches);
+//	}	
 
 	public static void mouseScrollUp(Robot bot) {
 		bot.mouseWheel(-100);
@@ -341,9 +460,8 @@ public class Ahk {
 
 		return null;
 	}
-	
+
 	public static void setClipboard(String text) {
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
 	}
-    
 }

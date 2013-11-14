@@ -415,6 +415,8 @@ public class Eigenstrat {
 		    } else if (args[i].startsWith("-suppress")) {
 		    	suppress = true;
 			    numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
 		    }
 	    }
 	    if (numArgs!=0) {

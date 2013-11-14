@@ -3,8 +3,6 @@ package kaput;
 import java.io.*;
 import java.util.*;
 
-import stats.Stats;
-
 import common.*;
 
 public class dbExport {

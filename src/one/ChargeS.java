@@ -6,7 +6,6 @@ import java.util.*;
 import common.*;
 import filesys.BurdenMatrix;
 import filesys.GenotypeMatrix;
-import filesys.Hits;
 import filesys.SerialHash;
 import gwas.Metal;
 

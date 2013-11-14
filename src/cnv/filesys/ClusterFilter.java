@@ -216,7 +216,7 @@ public class ClusterFilter implements Serializable {
 		int maxCount;
 		byte genotypeOld;
 		byte genotypeNew;
-		byte nGenotypesTotal;
+//		byte nGenotypesTotal;
 		byte nGenotypesOutsideTheCluster;
 		
 		switch(getPlotType()) {
@@ -266,7 +266,7 @@ public class ClusterFilter implements Serializable {
 		xSum = xSum / (genotypes.length - indexOfPointsOutsideTheCluster.size());
 		ySum = ySum / (genotypes.length - indexOfPointsOutsideTheCluster.size());
 		nGenotypesOutsideTheCluster = 0;
-		nGenotypesTotal = 0;
+//		nGenotypesTotal = 0;
 		maxCount = 0;
 		if (genotypeOld == -2) {
 			for (byte i = 1; i < counterGenotypeInsideTheCluster.length; i++){
@@ -275,10 +275,10 @@ public class ClusterFilter implements Serializable {
 					genotypeOld = i;
 				}
 				if (counterGenotypesOutsideTheCluster[i] > 0) {
-					nGenotypesTotal ++;
+//					nGenotypesTotal ++;
 					nGenotypesOutsideTheCluster ++;
 				} else if (counterGenotypeInsideTheCluster[i] > 0) {
-					nGenotypesTotal ++;
+//					nGenotypesTotal ++;
 				}
 			}
 		}

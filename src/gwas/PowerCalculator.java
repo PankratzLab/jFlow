@@ -230,7 +230,7 @@ public class PowerCalculator {
 //			rangeOfRelativeRisk(0.15, 200, false);
 //			getSampleSize();
 //			getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/power.input");
-//			getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/population.input");
+			getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/population.input");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

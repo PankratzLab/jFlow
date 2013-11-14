@@ -2,8 +2,6 @@ package cnv.gui;
 
 import java.io.File;
 
-import javax.swing.JOptionPane;
-
 import common.Files;
 
 import cnv.filesys.AnnotationCollection;
