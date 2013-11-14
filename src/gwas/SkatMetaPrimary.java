@@ -8,7 +8,7 @@ import common.*;
 
 public class SkatMetaPrimary {
 
-	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo) {
+	public static void batch(String cohort, String genos, String phenoFilename, String snpInfo, int qsubMem, double qsubWalltime) {
 		String phenoDir;
 		String phenoRoot;
 		String resultDir;
@@ -22,6 +22,7 @@ public class SkatMetaPrimary {
 		String[][] iterations;
 		boolean foundGenos;
 		boolean foundSnpInfo;
+		String consolidate;
 
 		if (! new File(phenoFilename).exists()) {
 			System.err.println("Error - File not found " + phenoFilename);
@@ -92,15 +93,22 @@ public class SkatMetaPrimary {
 							+ "colnames(Z) <- names\n"
 							+ "\n"
 							+ "pheno <- read.csv(\"" + phenoFilename + "\", header=T, as.is=T, row.names=1)\n"
-							+ "xphen<-na.omit(pheno)\n"
+							+ "xphen <- na.omit(pheno)\n"
 							+ "merged <- merge(xphen, Z, by=\"row.names\")\n"
 							+ "mPheno <- merged[,1:ncol(pheno)+1]\n"
-							+ "names <- colnames(mPheno)\n"
-							+ "formu <- paste(names[1], \"~\", names[2])\n"
-							+ "if (length(names)>2) {\n"
+							+ "names <- colnames(pheno)\n"
+							+ "if (length(names)>1) {\n"
+							+ "    formu <- paste(names[1], \"~\", names[2])\n"
 							+ "    for (i in 3:length(names)) {\n"
 							+ "        formu <- paste(formu, \"+\", names[i])\n"
 							+ "    }\n"
+							+ "} else {\n"
+							+ "    len <- length(mPheno)\n"
+							+ "    mPheno <- c(mPheno, rep(1, len))\n"
+							+ "    dim(mPheno) <- c(len, 2)\n"
+							+ "    mPheno <- as.data.frame(mPheno)\n"
+							+ "    colnames(mPheno) <- c(names[1], \"dummy\")\n"
+							+ "    formu <- paste(names[1], \"~ 1\")\n"
 							+ "}\n"
 							+ "\n"
 							+ "offset <- 1+ncol(pheno)\n"
@@ -130,6 +138,12 @@ public class SkatMetaPrimary {
 				System.err.println("Error - Files not found " + snpInfo);
 			}
 			
+			consolidate = cohort + "_" + phenoRoot + "<- c(";
+			for (int i = 1; i <= 26; i++) {
+				rCode = "load(\"" + cohort + "_chr" + i + ".RData\")";
+//				consolidate += 
+			}
+			
 			iterations = Matrix.toMatrix(Array.toStringArray(v));
 			if (System.getProperty("os.name").startsWith("Windows")) {
 				commands = "Rscript --no-save [%0]";
@@ -137,8 +151,8 @@ public class SkatMetaPrimary {
 			} else {
 //				commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
 				commands = Rscript.getRscriptExecutable(new Logger())+" --no-save [%0]";
-//				Files.qsub("checkObject", dir, -1, commands, iterations, 30000, 24);
-				Files.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, 60000, 24);
+//				Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
+				Files.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem, qsubWalltime);
 			}
 
 		} catch (IOException e) {
@@ -151,11 +165,15 @@ public class SkatMetaPrimary {
 		String genos;
 		String pheno;
 		String snpInfo;
+		int qsubMem;
+		double qsubWalltime;
 
 		cohort="aric";
 		genos="D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
 		pheno="D:/SkatMeta/results_hemostasis/pheno_F7_studyIDs.csv";
 		snpInfo="N:/statgen/skatMeta/fullExample/SNPInfo_HumanExome-12v1_rev5_justGeneSpliced.csv";
+		qsubMem = 15000;
+		qsubWalltime = 2;
 
 		String usage = "\n"+
 				"gwas.SkatMetaPrimary requires 4 arguments\n"+
@@ -163,6 +181,8 @@ public class SkatMetaPrimary {
 				"   (2) genotype file name (i.e. geno=" + genos + " (not the default))\n"+
 				"   (3) phenotype file name (i.e. pheno=" + pheno + " (not the default))\n"+
 				"   (4) snpInfo file name (i.e. snpInfo=" + snpInfo + " (not the default))\n"+
+				"   (5) qsub memory in megabytes (i.e. qsubmem=" + qsubMem + " (default))\n"+
+				"   (6) qsub walltime in hours (i.e. qsubwalltime=" + qsubWalltime + " (default))\n"+
 				"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -177,12 +197,16 @@ public class SkatMetaPrimary {
 				pheno = args[i].split("=")[1];
 			} else if (args[i].startsWith("snpInfo=")) {
 				snpInfo = args[i].split("=")[1];
+			} else if (args[i].startsWith("qsubmem=")) {
+				qsubMem = Integer.parseInt(args[i].split("=")[1]);
+			} else if (args[i].startsWith("qsubwalltime=")) {
+				qsubWalltime = Double.parseDouble(args[i].split("=")[1]);
 			} else {
 				System.err.println("Error - invalid argument: "+args[i]);
 			}
 		}
 		
-		batch(cohort, genos, pheno, snpInfo);
+		batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime);
 	}
 
 }
