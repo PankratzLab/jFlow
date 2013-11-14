@@ -95,7 +95,7 @@ public class DnaseEnrichment {
 	private static void writeOutputFile(ArrayList<OutputFileFormat> overlapStats) {
 		FileWriter fstream;
 		BufferedWriter out;
-		
+
 		try {
 			fstream = new FileWriter("DnaseEnrichment.temp", false);
 			out = new BufferedWriter(fstream);
@@ -159,7 +159,7 @@ public class DnaseEnrichment {
 			LOGGER.info("Processing: " + filesList[i]);
 			Segment[][] segs = getSegments(dir + filesList[i]);
 			Map<Integer, Map<String, Integer>> overlapStats = countOverlaps(segs, pValueRecords);
-			double[][] ratioList = new double[15][2]; // array for holding numerator and denominator
+			double[][] ratioList = new double[maxBinSize + 1][2]; // array for holding numerator and denominator
 			for (Map.Entry<Integer, Map<String, Integer>> entry : overlapStats.entrySet()) {
 				int key = entry.getKey();
 				Map<String, Integer> value = entry.getValue();
@@ -170,9 +170,6 @@ public class DnaseEnrichment {
 				ratioList[key][1] = denominator;
 			}
 			thisFileOutput.add(new OutputFileFormat(filesList[i], ratioList));
-			// keep a count of maximum bin size encountered so far
-			if (maxBinSize < ratioList.length)
-				maxBinSize = ratioList.length;
 		}
 		return thisFileOutput;
 	}
@@ -195,6 +192,9 @@ public class DnaseEnrichment {
 		for (PValueFileFormat curRecord : pValueRecords) {
 			// the p-value bin (-LOG10(pvalue) rounded down to nearest integer
 			pValueBin = (-(int) Math.floor(Math.log10(curRecord.pValue)));
+			// keep a count of maximum bin size encountered so far
+			if (maxBinSize < pValueBin)
+				maxBinSize = pValueBin;
 			// if we already have values for this bin
 			if (overlapStats.containsKey(pValueBin)) {
 				// get the existing value
