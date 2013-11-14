@@ -94,12 +94,14 @@ public class DnaseEnrichment {
 	 */
 	private static void writeOutputFile(ArrayList<OutputFileFormat> overlapStats) {
 		FileWriter fstream;
+		BufferedWriter out;
+		
 		try {
 			fstream = new FileWriter("DnaseEnrichment.temp", false);
-			BufferedWriter out = new BufferedWriter(fstream);
+			out = new BufferedWriter(fstream);
 
 			// write the output file header
-			out = writeOutputFileHeaders(out);
+			writeOutputFileHeaders(out);
 
 			for (OutputFileFormat curRecord : overlapStats) {
 				out.write(curRecord.file); // write the file name
@@ -125,7 +127,7 @@ public class DnaseEnrichment {
 	 *            : {@link BufferedWriter} to the output file.
 	 * @throws IOException
 	 */
-	private static BufferedWriter writeOutputFileHeaders(BufferedWriter out) throws IOException {
+	private static void writeOutputFileHeaders(BufferedWriter out) throws IOException {
 		out.write(OUTPUT_HEADER_CELLTYPE);
 
 		for (int i = 0; i <= maxBinSize; i++) {
@@ -133,7 +135,6 @@ public class DnaseEnrichment {
 			out.write(String.valueOf(i));
 		}
 		out.newLine();
-		return out;
 	}
 
 	/**
@@ -187,9 +188,9 @@ public class DnaseEnrichment {
 	 */
 	private static Map<Integer, Map<String, Integer>> countOverlaps(Segment[][] segs, ArrayList<PValueFileFormat> pValueRecords) {
 		boolean insideRegion;
-		int key, pValueBin;
+		int pValueBin;
 		Map<String, Integer> value;
-		Map<Integer, Map<String, Integer>> overlapStats = new HashMap<>();
+		Map<Integer, Map<String, Integer>> overlapStats = new HashMap<Integer, Map<String, Integer>>();
 
 		for (PValueFileFormat curRecord : pValueRecords) {
 			// the p-value bin (-LOG10(pvalue) rounded down to nearest integer
@@ -200,7 +201,7 @@ public class DnaseEnrichment {
 				value = overlapStats.get(pValueBin);
 			} else {
 				// else create new
-				overlapStats.put(pValueBin, value = new HashMap<>());
+				overlapStats.put(pValueBin, value = new HashMap<String, Integer>());
 			}
 			// if there are segments for this chr
 			if (segs[curRecord.chr] != null) {
@@ -241,7 +242,7 @@ public class DnaseEnrichment {
 		Segment curSeg;
 		double curPValue;
 
-		ArrayList<PValueFileFormat> result = new ArrayList<>();
+		ArrayList<PValueFileFormat> result = new ArrayList<PValueFileFormat>();
 
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(pValueFilepath));
@@ -261,6 +262,7 @@ public class DnaseEnrichment {
 					result.add(new PValueFileFormat(curChr, curSeg, curPValue));
 				}
 			}
+			reader.close();
 		} catch (IOException e) {
 			LOGGER.info("Unable to read p-value file" + e.getMessage());
 			System.exit(FAILURE);
@@ -311,6 +313,8 @@ public class DnaseEnrichment {
 	}
 
 	private static class OutputFileFormat implements Serializable {
+		private static final long serialVersionUID = 1L;
+
 		String file;
 		double[][] ratio;
 
@@ -329,6 +333,8 @@ public class DnaseEnrichment {
 	}
 
 	private static class PValueFileFormat implements Serializable {
+		private static final long serialVersionUID = 1L;
+
 		byte chr;
 		Segment seg;
 		double pValue;

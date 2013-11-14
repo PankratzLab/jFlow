@@ -948,6 +948,34 @@ public class Matrix {
 		
 		return newMatrix;
 	}
+
+	public static double[][] subset(double[][] matrix, boolean[] rowsToKeep) {
+		double[][] subset;
+		int count;
+		
+		count = 0;
+		subset = new double[Array.booleanArraySum(rowsToKeep)][];
+		for (int i = 0; i < matrix.length; i++) {
+			if (rowsToKeep[i]) {
+				subset[count++] = matrix[i];
+			}
+		}
+		
+		return subset;
+	}
+
+	public static boolean overwriteColumn(double[][] matrix, int index, double[] newData, Logger log) {
+		if (matrix.length != newData.length) {
+			log.reportError("Error - mismatched number of elements in the new array of data compared to column "+index+" of the original matrix");
+			return false;
+		}
+		
+		for (int i = 0; i < newData.length; i++) {
+			matrix[i][index] = newData[i];
+		}
+		
+		return true;
+	}
 	
 	public static void main(String[] args) {
 		int[][] matrix = {{1, 2, 4}, {1, 4, 0}, {0, 1, 0}};
@@ -964,19 +992,4 @@ public class Matrix {
 		System.out.println();
 		
     }
-
-	public static double[][] subset(double[][] matrix, boolean[] rowsToKeep) {
-		double[][] subset;
-		int count;
-		
-		count = 0;
-		subset = new double[Array.booleanArraySum(rowsToKeep)][];
-		for (int i = 0; i < matrix.length; i++) {
-			if (rowsToKeep[i]) {
-				subset[count++] = matrix[i];
-			}
-		}
-		
-		return subset;
-	}
 }

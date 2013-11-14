@@ -656,11 +656,6 @@ public class Plink {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		String temp, trav;
-		Hashtable<String, String> hash = new Hashtable<String, String>();
-		Vector<String> v = new Vector<String>();
-		int count;
-		long time;
 		int[][] pars;
 		
 		
@@ -681,7 +676,7 @@ public class Plink {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line[0].equals("23")) {
-					
+					System.out.println(pars); // TODO unfinished business
 				}
 			}
 			reader.close();

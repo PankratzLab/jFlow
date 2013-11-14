@@ -125,8 +125,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private boolean fail;
 	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
-		long time = new Date().getTime();
+		SampleList sampleList;
+		long time;
 		
+		time = new Date().getTime();
+
 		proj = project;
 		jar = proj.getJarStatus();
 		size = DEFAULT_SIZE;
@@ -134,29 +137,42 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //		clusterFilterCollectionUpdated = false;
 		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
-		SampleList list = proj.getSampleList();
-//		SampleList list2 = proj.getSampleList2();
-		samples = list.getSamples();
-		sampleListFingerprint = list.getFingerprint();
-		sampleData = proj.getSampleData(2, true);
-		
-		fail = sampleData.failedToLoad();
-		if (fail) {
-			proj.getLog().reportError("Without a SampleData file, ScatterPlot will not start");
+		if (!Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY), proj.getJarStatus())) {
+			JOptionPane.showMessageDialog(null, "Directory "+proj.getProperty(Project.MARKER_DATA_DIRECTORY)+" does not exist; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
+			fail = true;
 			return;
 		}
-		
+
+		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY), "marker", MarkerData.MARKER_DATA_FILE_EXTENSION, false, proj.getJarStatus()).length==0) {
+			JOptionPane.showMessageDialog(null, "There is no data in directory "+proj.getProperty(Project.MARKER_DATA_DIRECTORY)+"; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
+			fail = true;
+			return;
+		}
+
 		markerLookup = proj.getMarkerLookup();
 		if (markerLookup == null) {
 			fail = true;
 			return;
 		}
 
+		sampleList = proj.getSampleList();
+		samples = sampleList.getSamples();
+		sampleListFingerprint = sampleList.getFingerprint();
+		sampleData = proj.getSampleData(3, true);
+		
+		fail = sampleData.failedToLoad();
+		if (fail) {
+			proj.getLog().reportError("Without a SampleData file, ScatterPlot will not start");
+			JOptionPane.showMessageDialog(null, "Without a SampleData file, ScatterPlot will not start", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
 		masterMarkerList = initMarkerList;
 		masterCommentList = initCommentList;
 		if (masterMarkerList == null) {
 			loadMarkerListFromFile();
 			if (masterMarkerList == null) {
+				fail = true;
 				return;
 			}
 		}
@@ -1977,7 +1993,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			try {
 				reader = Files.getReader(filename, jar, true, false);
 				if (reader == null) {
-					JOptionPane.showMessageDialog(null, "Failed to load '"+filename+"'", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, "Failed to load '"+filename+"'; this is the designated filename in the project properties file. You will need to create a list of the markers that you want to review and place them in this file.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 				while (reader.ready()) {
@@ -2468,7 +2484,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (autoSave != null) {
 			autoSave.kill();
 		}
-		markerDataLoader.kill();
+		if (markerDataLoader != null) {
+			markerDataLoader.kill();
+		}
 	}
 
 	public void windowDeactivated(WindowEvent e) {}

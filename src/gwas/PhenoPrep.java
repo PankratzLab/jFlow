@@ -14,7 +14,7 @@ public class PhenoPrep {
 	private double[][] database;
 	private Logger log;
 
-	public static void parse(String dir, String filename, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, String[] covars, String idFile, String outFile, Logger log) {
+	public static void parse(String dir, String filename, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String[] covars, String idFile, String outFile, Logger log) {
 		PhenoPrep prep;
 		
 		if (winsorize && remove) {
@@ -58,6 +58,10 @@ public class PhenoPrep {
 		
 		if (afterResids) {
 			prep.dealWithOutliers(winsorize, remove, sdThreshold);
+		}
+		
+		if (inverseNormalize) {
+			prep.inverseNormalize();
 		}
 		
 		prep.writeFinalFile(dir+outFile);
@@ -198,6 +202,10 @@ public class PhenoPrep {
 		}
 	}
 
+	public void inverseNormalize() {
+		Matrix.overwriteColumn(database, 0, Array.inverseNormalize(Matrix.extractColumn(database, 0)), log);
+	}
+
 	private void computeResiduals() {
 		LeastSquares reg;
 		double[] deps, resids;
@@ -259,6 +267,7 @@ public class PhenoPrep {
 		boolean remove = false;
 		boolean makeResids = false;
 		boolean afterResids = false;
+		boolean inverseNormalize = false;
 		
 //		filename = "ARIC_Whites_WBC.csv";
 //		pheno = "WBC";
@@ -293,7 +302,8 @@ public class PhenoPrep {
 				"   (9) threshold in standard deviation units at which to winsorize or remove outliers (i.e. sdThrehsold=" + sdThreshold + " (default))\n" + 
 				"  (10) generate residuals instead of including covariates (i.e. makeResids=" + makeResids + " (default))\n" + 
 				"  (11) winsorize/remove outliers after generating residuals (i.e. afterResids=" + afterResids + " (default))\n" + 
-				"  (12) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" + 
+				"  (12) inverse quantile normalize the final phenotype (i.e. inverseNormalize=" + inverseNormalize + " (default))\n" + 
+				"  (13) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -339,6 +349,9 @@ public class PhenoPrep {
 			} else if (args[i].startsWith("afterResids=")) {
 				afterResids = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("inverseNormalize=")) {
+				inverseNormalize = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -358,7 +371,7 @@ public class PhenoPrep {
 		}
 		
 		try {
-			parse(dir, filename, pheno, transform, sdThreshold, winsorize, remove, makeResids, afterResids, covars, idFile, outFile, log);
+			parse(dir, filename, pheno, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, outFile, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

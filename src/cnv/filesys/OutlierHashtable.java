@@ -3,7 +3,6 @@ package cnv.filesys;
 import java.io.*;
 import java.util.Hashtable;
 
-import common.Elision;
 import common.Files;
 
 public class OutlierHashtable implements Serializable {

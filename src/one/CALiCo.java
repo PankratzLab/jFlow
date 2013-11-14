@@ -8,20 +8,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import bioinformatics.MapSNPsAndGenes;
 
-import park.phenoStruct;
 import parse.GenParser;
 import stats.RegressionModel;
 
@@ -30,7 +26,6 @@ import common.CmdLine;
 import common.Files;
 import common.HashVec;
 import common.Logger;
-import common.Positions;
 import common.Sort;
 import common.ext;
 

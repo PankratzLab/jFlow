@@ -936,8 +936,6 @@ public class Sample implements Serializable {
 		Enumeration<String> keys;
 		String currentKey;
 		int outlierSectionSize = 0;
-		byte[] readBufferLocal;
-		int pointer;
 		long seekPointer;
 
 		try {
@@ -1014,6 +1012,7 @@ public class Sample implements Serializable {
 		return loadOutOfRangeValuesFromSerializable(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 	}
 
+	@SuppressWarnings("unchecked")
 	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(String filenameOfSerializableOutOfRangeFile) throws Exception {
 		return (Hashtable<String, Float>) Files.readSerial(filenameOfSerializableOutOfRangeFile);
 	}

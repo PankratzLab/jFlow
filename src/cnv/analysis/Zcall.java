@@ -82,7 +82,7 @@ public class Zcall {
 					writer.print("\t" + samples[i] + ".gtype\t" + samples[i] + ".X\t" + samples[i] + ".Y");
 				}
 			}
-			writer.println();
+			writer.print(eol);
 			
 			if (markersToInclude != null) {
 				markerNames = HashVec.loadFileToStringArray(markersToInclude, false, new int[] {0}, false);
@@ -111,7 +111,7 @@ public class Zcall {
 						writer.print("\t" + AB_GENOTYPES[1 + abGenotypes[j]] + "\t" + xs[j] + "\t" + ys[j]);
 					}
 				}
-				writer.println();
+				writer.print(eol);
 				
 				markerDataLoader.releaseIndex(i);
 			}

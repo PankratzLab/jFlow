@@ -36,8 +36,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	private boolean swapAxes;
 	private boolean maskMissing;
 	private Logger log;
-	private boolean fail;
-	
+//	private boolean fail; // TODO Use this
 	
 	// TODO need to move frame, etc out of constructor to fail as the others do
 	public StratPlot(Project project, String[][] names, Hashtable<String,float[][]> hash) {

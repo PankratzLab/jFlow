@@ -148,7 +148,7 @@ public class DeNovoCNV {
 	 * @param pennOutFileNameRoot
 	 * @param pennBinDir
 	 */
-	public static void runPennCnv(Project proj, String pedigreeForTrioAnalysis, String pennDataDir, String pennOutDir, String pennOutFileNameRoot, String pennBinDir) {
+	public static void runPennCnv(Project proj, String pedigreeForTrioAnalysis, String pennDataDir, String gcBaseFileFullPath, String pennOutDir, String pennOutFileNameRoot, String pennBinDir) {
 		BufferedReader reader;
 		String[] line;
 		String commands;
@@ -188,9 +188,9 @@ public class DeNovoCNV {
 
 		if (System.getProperty("os.name").startsWith("Windows")) {
 			for (int i = 0; i < iterations.length; i++) {
-				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".rawcnv", pennOutDir);
-				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel -cnv " + pennOutDir + iterations[i][0] + ".rawcnv " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".triocnv", pennOutDir);
-				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".jointcnv", pennOutDir);
+				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".rawcnv", pennOutDir);
+				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " -cnv " + pennOutDir + iterations[i][0] + ".rawcnv " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".triocnv", pennOutDir);
+				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".jointcnv", pennOutDir);
 			}
 
 //			(new File(cnvOutputDir+"resultAll.jointcnv")).renameTo(new File(cnvOutputDir + "resultAll_tmp.jointcnv"));
@@ -201,18 +201,18 @@ public class DeNovoCNV {
 //			}
 
 		} else {
-//			Runtime.getRuntime().exec("/home/pankrat2/shared/penncnv/detect_cnv.pl -joint -hmm /home/pankrat2/shared/penncnv/lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel " + pennDataDir + line[4] + " " + pennDataDir + line[5] + " " + pennDataDir + line[6] + " -out " + line[4] + ".jointcnv");
+//			Runtime.getRuntime().exec("/home/pankrat2/shared/penncnv/detect_cnv.pl -joint -hmm /home/pankrat2/shared/penncnv/lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + line[4] + " " + pennDataDir + line[5] + " " + pennDataDir + line[6] + " -out " + line[4] + ".jointcnv");
 //			Runtime.getRuntime().exec("/home/pankrat2/shared/penncnv/detect_cnv.pl -trio -hmm /home/pankrat2/shared/penncnv/lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -cnv " + pennOutDir + pennOutFileNameRoot + " " + pennDataDir + line[4] + " " + pennDataDir + line[5] + " " + pennDataDir + line[6] + " -out " + line[4] + ".triocnv");
 
 //			commands = "";
 //			for (int i = 0; i < iterations.length; i++) {
-//				commands += pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".rawcnv\n"
-//							+ pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel -cnv " + pennOutDir + iterations[i][0] + ".rawcnv " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".triocnv\n"
-//							+ pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".jointcnv\n";
+//				commands += pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".rawcnv\n"
+//							+ pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " -cnv " + pennOutDir + iterations[i][0] + ".rawcnv " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".triocnv\n"
+//							+ pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".jointcnv\n";
 //			}
-			commands = pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir +"[%2] -out " + pennOutDir + "[%2].rawcnv\n"
-					 + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel -cnv " + pennDataDir +"[%2].rawcnv " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir + "[%2] -out " + pennOutDir + "[%2].triocnv\n"
-					 + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + proj.getProjectDir() + "custom.gcmodel " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir + "[%2] -out " + pennOutDir + "[%2].jointcnv\n";
+			commands = pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir +"[%2] -out " + pennOutDir + "[%2].rawcnv\n"
+					 + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " -cnv " + pennDataDir +"[%2].rawcnv " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir + "[%2] -out " + pennOutDir + "[%2].triocnv\n"
+					 + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir + "[%2] -out " + pennOutDir + "[%2].jointcnv\n";
 //			Files.qsub("runPennCNV", pennOutDir, 8, commands, iterations, 1000, 24);
 			Files.qsub("runPennCNV", proj.getProjectDir() + "penn_scripts/", 8, commands, iterations, 2000, 24);
 //			Files.qsub("runPennCNV", commands, -1, -1);
@@ -598,6 +598,7 @@ public class DeNovoCNV {
 	    }
 	}
 	
+	// TODO this whole method needs to be formed correctly before release
 	public static void main(String[] args) {
 //		proj = new Project("C:/workspace/Genvisis/projects/OSv2.properties", false);
 //		PennCNV.populationBAF(proj);
@@ -613,7 +614,7 @@ public class DeNovoCNV {
 
 		String projPropertyFileFullPath;
 		Project proj;
-		String gcBaseFileFullPath;
+//		String gcBaseFileFullPath;
 		String gcModelFileFullPath;
 		int numWindowUnits;
 		String pedigreeFullPath;
@@ -625,7 +626,6 @@ public class DeNovoCNV {
 		Logger log;
 
 		projPropertyFileFullPath = "C:/workspace/Genvisis/projects/OSv2.properties";
-		gcBaseFileFullPath = "D:/PennCNV_Related/GcModel/gc5Base_hg19.txt";
 		numWindowUnits = 0;
 		pennOutputFilenameRoot = "gedi_all.rawcnv";
 		pennBinDir = "C:/penncnv/";
@@ -651,8 +651,6 @@ public class DeNovoCNV {
 				projPropertyFileFullPath = args[i].split("=")[1];
 			} else if (args[i].startsWith("pennBinDir=")) {
 				pennBinDir = args[i].split("=")[1];
-			} else if (args[i].startsWith("gcbase=")) {
-				gcBaseFileFullPath = args[i].split("=")[1];
 			} else if (args[i].startsWith("nwin=")) {
 				numWindowUnits = Integer.parseInt(args[i].split("=")[1]);
 			} else if (args[i].startsWith("gcmodel=")) {
@@ -679,10 +677,10 @@ public class DeNovoCNV {
 		pennOutputDir = proj.getProjectDir() + "penn_output/";
 
 //		PennCNV.populationBAF(proj);
-//		PennCNV.gcModel(proj, gcBaseFileFullPath, gcModelOutputFullPath, numWindowUnits);
+//		PennCNV.gcModel(proj, "D:/PennCNV_Related/GcModel/gc5Base_hg19.txt", gcModelOutputFullPath, numWindowUnits);
 
 //		generatePedigreeOfTrios(pedigreeFullPath, trioPedigreeFullPath);
-//		runPennCnv(proj, trioPedigreeFullPath, pennDataDir, pennOutputDir, pennOutputFilenameRoot, pennBinDir);
+		runPennCnv(proj, trioPedigreeFullPath, pennDataDir, gcModelFileFullPath, pennOutputDir, pennOutputFilenameRoot, pennBinDir);
 //		batch(pedigreeFullPath);
 //		parsePennCnvResult(proj, pennOutputDir, trioPedigreeFullPath, "jointcnv", log);
 		parsePennCnvResult(proj, pennOutputDir, trioPedigreeFullPath, "triocnv", log);

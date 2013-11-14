@@ -1,5 +1,6 @@
 package cnv.manage;
 
+// TODO this is an experimental concept that should not be released
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -62,19 +63,19 @@ public class Genotyping {
 		int MAX_N_CLUSTERS = new String[] {"-/-", "A/-", "B/-", "A/A", "A/B", "B/B", "AAA", "AAB", "ABB", "BBB"}.length;
 		int N_FOR_DISPERSE_TEST = 20;
 
-		byte[] clusterLabels;
-		byte nClusters;
-		double[][] clusterCentroids;
-		double[][] clusterMargins;
-		double[][] clusterSizes;
-		String annotations;
+//		byte[] clusterLabels;
+//		byte nClusters;
+//		double[][] clusterCentroids;
+//		double[][] clusterMargins;
+//		double[][] clusterSizes;
+//		String annotations;
 		double[] distOfMins;
 		int[] indexOfMins;
 		int[] sortedIndex;
 		double distCurrent;
 		int nLowerMeans;
 		double lowerMean;
-		double midMean;
+//		double midMean;
 
 		try {
 			if (x.length != y.length) {
@@ -108,9 +109,8 @@ public class Genotyping {
 		}
 		lowerMean = lowerMean / nLowerMeans;
 		
-		clusterLabels = new byte[x.length];
+//		clusterLabels = new byte[x.length];
 		
-		// TODO
 //		return new Genotyping(clusterLabels, nClusters, clusterCentroids, clusterMargins, clusterSizes, annotations);
 		return null;
 	}

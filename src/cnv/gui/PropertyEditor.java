@@ -24,7 +24,6 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SpringLayout;
 
-import cnv.LaunchProperties;
 import cnv.filesys.Project;
 
 import common.Array;
@@ -63,7 +62,7 @@ public class PropertyEditor implements ActionListener, WindowListener {
 
     	initializePropertyList(proj);
 
-//    	this.editor.add(leftPanel(), BorderLayout.WEST);
+    	this.editor.add(leftPanel(), BorderLayout.WEST);
     	this.editor.add(rightPanel(), BorderLayout.EAST);
     	saveButton = new JButton(SAVE);
     	saveButton.addActionListener(this);
