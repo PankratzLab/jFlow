@@ -19,6 +19,26 @@ public class GenericLine {
 		this.layer = layer;
 	}
 
+	/**
+	 * Constructor for GenericLine from two {@link PlotPoint}
+	 * 
+	 * @param startPoint
+	 * @param endPoint
+	 * @param thickness
+	 * @param color
+	 * @param layer
+	 * @param swapAxes
+	 */
+	public GenericLine(PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color, byte layer, boolean swapAxes) {
+		this.startX = swapAxes ? startPoint.getRawY() : startPoint.getRawX();
+		this.startY = swapAxes ? startPoint.getRawX() : startPoint.getRawY();
+		this.stopX = swapAxes ? startPoint.getRawY() : endPoint.getRawX();
+		this.stopY = swapAxes ? startPoint.getRawX() : endPoint.getRawY();
+		this.thickness = thickness;
+		this.color = color;
+		this.layer = layer;
+	}
+
 	public float getStartX() {
 		return startX;
 	}
