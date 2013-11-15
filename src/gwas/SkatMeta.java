@@ -341,7 +341,7 @@ public class SkatMeta {
 		log.report("");
 		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
 		
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, 10000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, false, 10000, 2);
 	}
 	
 	public static void consolidate(String dir, MetaAnalysisParams maps) {
@@ -443,7 +443,7 @@ public class SkatMeta {
 		}
 	}
 
-	public static void runAll(String dir, MetaAnalysisParams maps) {
+	public static void runAll(String dir, MetaAnalysisParams maps, boolean forceMeta) {
 		String[] files;
 		String[][][] finalSets;
 		Logger log;
@@ -484,7 +484,7 @@ public class SkatMeta {
 		maxChr = getMaxChr();
 		jobSizes = new IntVector();
 		jobNames = new Vector<String>();
-		infoSizes = new int[maxChr+1];
+		infoSizes = new int[maxChr+2];
 
 		if (runningByChr) {
 			for (int chr = 1; chr <= maxChr; chr++) {
@@ -614,7 +614,7 @@ public class SkatMeta {
 		Files.writeList(Array.toStringArray(toBeRunIndividually), dir+"master.toBeRunIndividually");
 		Files.chmod(dir+"master.toBeRunIndividually");
 		System.err.println("qsubing multiple individual runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 8, 5000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, false, 5000, 2);
 		System.err.println("multiple individual runs done");
 
 		
@@ -661,7 +661,7 @@ public class SkatMeta {
 					for (int m = 0; m < methods.length; m++) {
 						root = races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0];
 						outputFilename = dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+(runningByChr?"_chr"+chrom:"")+".csv";
-						if (!Files.exists(outputFilename) || new File(outputFilename).length() == 0) {
+						if (forceMeta || !Files.exists(outputFilename) || new File(outputFilename).length() == 0) {
 							if (objects.size() > 0) {
 								commands.add("results <- "+methods[m][2]+"("+Array.toStr(
 										Array.toStringArray(objects), ", ")+
@@ -739,7 +739,7 @@ public class SkatMeta {
 				for (int m = 0; m < methods.length; m++) {
 					root = phenotypes[i][0]+"_"+methods[m][0];
 					outputFilename = dir+phenotypes[i][0]+"/"+methods[m][0]+"/"+root+(runningByChr?"_chr"+chrom:"")+".csv";
-					if (!Files.exists(outputFilename) || new File(outputFilename).length() == 0) {
+					if (forceMeta || !Files.exists(outputFilename) || new File(outputFilename).length() == 0) {
 						if (objects.size() > 0) {
 							commands.add("results <- "+methods[m][2]+"("+Array.toStr(
 									Array.toStringArray(objects), ", ")+
@@ -777,7 +777,7 @@ public class SkatMeta {
 		Files.writeList(Array.toStringArray(toBeRunMetad), dir+"master.toBeMetaAnalyzed");
 		Files.chmod(dir+"master.toBeMetaAnalyzed");
 		System.err.println("qsubing multiple meta runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 8, 30000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, false, 30000, 2);
 		System.err.println("multiple meta runs done");
 	}
 
@@ -785,7 +785,7 @@ public class SkatMeta {
 		return HEADER_TYPES[ext.indexOfStr(method[2], ALGORITHMS)];
 	}
 
-	public static void parseAll(String dir, MetaAnalysisParams maps) {
+	public static void parseAll(String dir, MetaAnalysisParams maps, boolean forceMeta) {
 		String[] files;
 		String[][][] finalSets;
 		Logger log;
@@ -824,7 +824,7 @@ public class SkatMeta {
 			for (int k = 0; k < races.length; k++) {
 				for (int m = 0; m < methods.length; m++) {
 					root = races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0];
-					if (!Files.exists(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv").length() == 0) {
+					if (forceMeta || !Files.exists(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv").length() == 0) {
 						stitch(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/", root+"_chr#.csv", root+".csv", log);
 					}
 				}
@@ -832,7 +832,7 @@ public class SkatMeta {
 			
 			for (int m = 0; m < methods.length; m++) {
 				root = phenotypes[i][0]+"_"+methods[m][0];
-				if (!Files.exists(dir+phenotypes[i][0]+"/"+methods[m][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+methods[m][0]+"/"+root+".csv").length() == 0) {
+				if (forceMeta || !Files.exists(dir+phenotypes[i][0]+"/"+methods[m][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+methods[m][0]+"/"+root+".csv").length() == 0) {
 					stitch(dir+phenotypes[i][0]+"/"+methods[m][0]+"/", root+"_chr#.csv", root+".csv", log);
 				}
 			}
@@ -1569,6 +1569,7 @@ public class SkatMeta {
 		MetaAnalysisParams maps;
 		boolean consolidate = false;
 		boolean metrics = false;
+		boolean forceMeta = false;
 
 		String usage = "\n" + 
 		"gwas.SkatMeta requires 0-1 arguments\n" + 
@@ -1581,9 +1582,11 @@ public class SkatMeta {
 		" OR\n" + 
 		"   (3) consolidate split files (i.e. -consolidate (not the default))\n" + 
 		" OR\n" + 
-		"   (3) run all (i.e. -runAll (not the default))\n" + 
+		"   (3) run all (i.e. -runAll (not the default))\n" +
+		"   (4) force the meta-analysis to be redone even if meta-analysis output files exist (i.e. -forceMeta (not the default))\n" +
 		" OR\n" + 
 		"   (3) parse all runs (i.e. -parseAll (not the default))\n" + 
+		"   (4) if the meta-analysis was forced, then this will restitch the files (i.e. -forceMeta (not the default))\n" +
 		" OR\n" + 
 		"   (3) get summary metrics for single SNP results (i.e. -metrics (not the default))\n" + 
 		" OR\n" + 
@@ -1615,6 +1618,9 @@ public class SkatMeta {
 				numArgs--;
 			} else if (args[i].startsWith("-runAll")) {
 				runAll = true;
+				numArgs--;
+			} else if (args[i].startsWith("-forceMeta")) {
+				forceMeta = true;
 				numArgs--;
 			} else if (args[i].startsWith("-parseAll")) {
 				parseAll = true;
@@ -1679,9 +1685,9 @@ public class SkatMeta {
 			} else if (consolidate) {
 				consolidate(dir, maps);
 			} else if (runAll) {
-				runAll(dir, maps);
+				runAll(dir, maps, forceMeta);
 			} else if (parseAll) {
-				parseAll(dir, maps);
+				parseAll(dir, maps, forceMeta);
 			} else if (checkNs) {
 				doubleCheckNs(dir, maps);
 			} else if (metrics) {

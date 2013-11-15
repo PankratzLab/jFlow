@@ -23,6 +23,8 @@ public class SkatMetaPrimary {
 		boolean foundGenos;
 		boolean foundSnpInfo;
 		String consolidate;
+		Vector<String> jobNamesWithAbsolutePaths;
+		IntVector jobSizes;
 
 		if (! new File(phenoFilename).exists()) {
 			System.err.println("Error - File not found " + phenoFilename);
@@ -47,7 +49,6 @@ public class SkatMetaPrimary {
 		}
 
 		try {
-
 			v = new Vector<String>();
 			// generate batch files in dir+root+"/batchFiles/"; example: "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
 			foundGenos = false;
@@ -117,8 +118,8 @@ public class SkatMetaPrimary {
 							+ cohort + "_chr" + i + " <- skatCohort(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
 //							+ "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo, snpNames = \"Name\", cohortBetas = TRUE)\n"
 							+ "results <- burdenMeta(" + cohort + "_chr" + i + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=subset(SNPInfo, sc_nonsynSplice==TRUE), snpNames=\"SNP\", wts = 1)\n"
-							+ "write.table(results, \"" + phenoRoot + "_chr" + i + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n"
-							+ "save(" + cohort + "_chr" + i + ", file=\"" + cohort + "_chr" + i + ".RData\")";
+							+ "write.table(results, \"" + cohort + "_chr" + i + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n"
+							+ "save(" + cohort + "_chr" + i + ", file=\"" + cohort + "_chr" + i + ".RData\", compress=\"bzip2\")";
 
 					filename = batchDir + cohort+ "_chr" + i + ".R";
 					out = new PrintWriter(new FileOutputStream(filename));
@@ -138,12 +139,6 @@ public class SkatMetaPrimary {
 				System.err.println("Error - Files not found " + snpInfo);
 			}
 			
-			consolidate = cohort + "_" + phenoRoot + "<- c(";
-			for (int i = 1; i <= 26; i++) {
-				rCode = "load(\"" + cohort + "_chr" + i + ".RData\")";
-//				consolidate += 
-			}
-			
 			iterations = Matrix.toMatrix(Array.toStringArray(v));
 			if (System.getProperty("os.name").startsWith("Windows")) {
 				commands = "Rscript --no-save [%0]";
@@ -155,9 +150,65 @@ public class SkatMetaPrimary {
 				Files.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem, qsubWalltime);
 			}
 
+			v = new Vector<String>();
+			jobNamesWithAbsolutePaths = new Vector<String>();
+			jobSizes = new IntVector();
+			v.add("setwd(\"" + resultDir + "\")");
+			consolidate = cohort + "<- c(";
+			for (int i = 0; i < iterations.length; i++) {
+				v.add("load(\"" + ext.rootOf(iterations[i][0])+ ".RData\")");
+				consolidate += (i==0?"":", ")+ext.rootOf(iterations[i][0]);
+				jobNamesWithAbsolutePaths.add(batchDir + "run_" + cohort+"_"+(i+1)+".qsub");
+				jobSizes.add((int)new File(ext.replaceAllWith(genos, "#", (i+1)+"")).length());
+			}
+			consolidate += ")";
+			v.add(consolidate);
+			v.add("class("+cohort + ") <- \"skatCohort\"");
+			v.add("save(" + cohort + ", file=\"" + cohort + ".RData\", compress=\"bzip2\")");
+			Files.writeList(Array.toStringArray(v), batchDir + "mergeRdataFiles.R");
+			commands = Rscript.getRscriptExecutable(new Logger())+" --no-save "+batchDir + "mergeRdataFiles.R";
+			Files.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem*4, qsubWalltime);
+			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, "chunks", 8, true, 2000, 1);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void batchMany(String cohort, String genos, String phenosCommaDelimited, String racesCommaDelimited, String snpInfo, int qsubMem, double qsubWalltime) {
+		String[] phenos, races;
+		Vector<String> v;
+		
+		phenos = phenosCommaDelimited.split(",");
+		races = racesCommaDelimited.split(",");
+		
+		v = new Vector<String>();
+		for (int i = 0; i < phenos.length; i++) {
+			for (int j = 0; j < races.length; j++) {
+				try {
+					batch(cohort+"_"+races[j]+"_"+phenos[i], ext.replaceAllWith(genos, "[%race]", races[j]), ext.pwd()+cohort+"_"+races[j]+"_"+phenos[i]+".csv", snpInfo, qsubMem, qsubWalltime);
+				} catch (Exception e) {
+					System.err.println("Error - failed to script up "+phenos[i]+"/"+races[j]);
+				}
+				v.add("cd "+cohort+"_"+races[j]+"_"+phenos[i]+"/batchFiles/");
+				v.add("./master.run_"+cohort+"_"+races[j]+"_"+phenos[i]);
+				v.add("cd ../../");
+				v.add("");
+			}
+		}
+		Files.writeList(Array.toStringArray(v), "scriptAll");
+
+		v = new Vector<String>();
+		for (int i = 0; i < phenos.length; i++) {
+			for (int j = 0; j < races.length; j++) {
+				v.add("cd "+cohort+"_"+races[j]+"_"+phenos[i]+"/batchFiles/");
+				v.add(Rscript.getRscriptExecutable(new Logger())+" --no-save mergeRdataFiles.R");
+				v.add("mv ../results/"+cohort+"_"+races[j]+"_"+phenos[i]+".RData ../../");
+				v.add("cd ../../");
+				v.add("");
+			}
+		}
+		Files.writeList(Array.toStringArray(v), "mergeAll");
 	}
 
 	public static void main(String[] args) {
@@ -165,6 +216,8 @@ public class SkatMetaPrimary {
 		String genos;
 		String pheno;
 		String snpInfo;
+		String phenos = null;
+		String races = "EA,AA";
 		int qsubMem;
 		double qsubWalltime;
 
@@ -183,6 +236,10 @@ public class SkatMetaPrimary {
 				"   (4) snpInfo file name (i.e. snpInfo=" + snpInfo + " (not the default))\n"+
 				"   (5) qsub memory in megabytes (i.e. qsubmem=" + qsubMem + " (default))\n"+
 				"   (6) qsub walltime in hours (i.e. qsubwalltime=" + qsubWalltime + " (default))\n"+
+				"   (7) (optional) phenotypes to run (i.e. phenos=CRP,ICAM1,TNFA (not the default))\n"+
+				"   (8) (optional) races to run (i.e. races="+races+" (default))\n"+
+				" ( the final optional parameters require a fixed phenotype format of [cohort name]_[race]_[phenotype]_.csv )\n"+
+				" ( as well as a genotype file with the format of regular_filename_[%race]_chr#.csv )\n"+
 				"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -201,12 +258,20 @@ public class SkatMetaPrimary {
 				qsubMem = Integer.parseInt(args[i].split("=")[1]);
 			} else if (args[i].startsWith("qsubwalltime=")) {
 				qsubWalltime = Double.parseDouble(args[i].split("=")[1]);
+			} else if (args[i].startsWith("phenos=")) {
+				phenos = args[i].split("=")[1];
+			} else if (args[i].startsWith("races=")) {
+				races = args[i].split("=")[1];
 			} else {
 				System.err.println("Error - invalid argument: "+args[i]);
 			}
 		}
 		
-		batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime);
+		if (phenos != null) {
+			batchMany(cohort, genos, phenos, races, snpInfo, qsubMem, qsubWalltime);
+		} else {
+			batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime);
+		}
 	}
 
 }
