@@ -32,8 +32,7 @@ public class DnaseEnrichment {
 	private final static int FAILURE = 1;
 	private final static String DNAseHS_FILE_EXTENSION = ".bed";
 	private final static String OUTPUT_DELIMITER = "\t";
-	private final static String VALUE_COMMENT_SEPARATOR = ":";
-	private final static String COMMENT_SEPARATOR = "::";
+	private final static String DATA_SEPARATOR = ":";
 	private final static Logger LOGGER = Logger.getLogger(DnaseEnrichment.class.getName()); // logger for this class
 	private final static String OUTPUT_HEADER_CELLTYPE = "Celltype";
 	private static int maxBinSize = 0;
@@ -107,7 +106,7 @@ public class DnaseEnrichment {
 					// to avoid divide by 0 error
 					double ratio = curRecord.ratio[i][0] / (curRecord.ratio[i][1] != 0 ? curRecord.ratio[i][1] : 1);
 					// write all the ratio
-					out.write(String.valueOf(ratio) + VALUE_COMMENT_SEPARATOR + String.valueOf(curRecord.ratio[i][0]) + COMMENT_SEPARATOR + String.valueOf(curRecord.ratio[i][1]));
+					out.write(String.valueOf(ratio) + DATA_SEPARATOR + String.valueOf(curRecord.ratio[i][0]) + "/" + String.valueOf(curRecord.ratio[i][1]));
 				}
 				out.newLine();
 			}
