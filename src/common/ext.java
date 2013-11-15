@@ -1378,6 +1378,10 @@ public class ext {
 				;
 	}
 	
+	public static String pwd() {
+		return ext.verifyDirFormat(new File("./").getAbsolutePath());
+	}
+
 	public static void main(String[] args) {
 		String temp;
 		Logger log;

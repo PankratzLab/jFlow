@@ -246,7 +246,7 @@ public class Files {
 		}
 	}
 
-	public static void qsubMultiple(Vector<String> jobNamesWithAbsolutePaths, IntVector jobSizes, String batchDir, String batchRoot, int maxJobsPerBatch, int memRequiredForEachProcessInMb, double walltimeRequestedInHours) {
+	public static void qsubMultiple(Vector<String> jobNamesWithAbsolutePaths, IntVector jobSizes, String batchDir, String batchRoot, int maxJobsPerBatch, boolean forceMaxJobs, int memRequiredForEachProcessInMb, double walltimeRequestedInHours) {
 		String[] files;
 		int count;
 		Vector<String> v;
