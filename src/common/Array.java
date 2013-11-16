@@ -3243,6 +3243,8 @@ public class Array {
 	 *            : the 2D list to be transposed
 	 * @param <T>
 	 *            : generic template
+	 * @param table : the 2D list to be transposed
+	 * @param <T> : generic template
 	 * @return a {@link List<List>>} which is transposed
 	 */
 	public static <T> List<List<T>> transpose(List<List<T>> table) {
