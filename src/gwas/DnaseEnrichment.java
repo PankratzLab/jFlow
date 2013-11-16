@@ -9,9 +9,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import common.Array;
 import common.Files;
 import common.Positions;
 import common.ext;
@@ -34,7 +36,7 @@ public class DnaseEnrichment {
 	private final static String OUTPUT_DELIMITER = "\t";
 	private final static String DATA_SEPARATOR = ":";
 	private final static Logger LOGGER = Logger.getLogger(DnaseEnrichment.class.getName()); // logger for this class
-	private final static String OUTPUT_HEADER_CELLTYPE = "Celltype";
+	private final static String OUTPUT_HEADER_CELLTYPE = "Pbin";
 	private static int maxBinSize = 0;
 
 	/**
@@ -95,18 +97,29 @@ public class DnaseEnrichment {
 		FileWriter fstream;
 		BufferedWriter out;
 
+		List<List<Object>> resultArrayList = new ArrayList<>();
+
+		resultArrayList.add(writeOutputFileHeaders());
+
+		for (OutputFileFormat curRecord : overlapStats) {
+			ArrayList<Object> resultArray = new ArrayList<>();
+			resultArray.add(curRecord.file);
+			for (int i = 0; i < curRecord.ratio.length; i++) {
+				// to avoid divide by 0 error
+				double ratio = curRecord.ratio[i][0] / (curRecord.ratio[i][1] != 0 ? curRecord.ratio[i][1] : 1);
+				// write all the ratio
+				resultArray.add(String.valueOf(ratio) + DATA_SEPARATOR + String.valueOf(curRecord.ratio[i][0]) + "/" + String.valueOf(curRecord.ratio[i][1]));
+			}
+			resultArrayList.add(resultArray);
+		}
+		resultArrayList = Array.transpose(resultArrayList);
 		try {
 			fstream = new FileWriter("DnaseEnrichment.temp", false);
 			out = new BufferedWriter(fstream);
-
-			for (OutputFileFormat curRecord : overlapStats) {
-				out.write(curRecord.file); // write the file name
-				for (int i = 0; i < curRecord.ratio.length; i++) {
+			for (List<Object> curRecord : resultArrayList){
+				for(Object curString : curRecord){
+					out.write(curString.toString());
 					out.write(OUTPUT_DELIMITER);
-					// to avoid divide by 0 error
-					double ratio = curRecord.ratio[i][0] / (curRecord.ratio[i][1] != 0 ? curRecord.ratio[i][1] : 1);
-					// write all the ratio
-					out.write(String.valueOf(ratio) + DATA_SEPARATOR + String.valueOf(curRecord.ratio[i][0]) + "/" + String.valueOf(curRecord.ratio[i][1]));
 				}
 				out.newLine();
 			}
