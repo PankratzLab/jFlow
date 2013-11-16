@@ -1,107 +1,54 @@
 package cnv.gui;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.ArrayList;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JList;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class FileNavigator extends JPanel implements ActionListener {
+public class FileNavigator extends JPanel implements ChangeListener {
 
 	/**
-	 * 
-	 */
+     * 
+     */
 	private static final long serialVersionUID = 1L;
+	private static ArrayList<String> fileList;
 
 	/**
 	 * Create the panel.
 	 */
 	public FileNavigator(String[] files, Color[] colors) {
-
-		// JButton leftButton = new JButton(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
-		// add(leftButton);
-
-		JComboBox<String> comboBox = new JComboBox<String>();
-		comboBox.setModel(new DefaultComboBoxModel<String>(files));
-		comboBox.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		add(comboBox);
-
-		ComboBoxRenderer renderer = new ComboBoxRenderer(comboBox);
-
-		renderer.setColors(colors);
-		renderer.setStrings(files);
-
-		comboBox.setRenderer(renderer);
-
-		// JButton rightButton = new JButton(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
-		// add(rightButton);
-
+		fileList = new ArrayList<String>();
+		for (int i = 0; i < files.length; i++) {
+			File file = new File(files[i]);
+			String filename = file.getName();
+			fileList.add(filename);
+			JCheckBox fileBox = new JCheckBox(filename, true);
+			fileBox.setForeground(colors[i % colors.length]);
+			fileBox.addChangeListener(this);
+			add(fileBox);
+		}
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-}
-
-class ComboBoxRenderer extends JPanel implements ListCellRenderer<Object> {
-
-	private static final long serialVersionUID = -1L;
-	private Color[] colors;
-	private String[] strings;
-
-	JPanel textPanel;
-	JLabel text;
-
-	public ComboBoxRenderer(JComboBox<String> combo) {
-
-		textPanel = new JPanel();
-		textPanel.add(this);
-		text = new JLabel();
-		text.setOpaque(true);
-		text.setFont(combo.getFont());
-		textPanel.add(text);
-	}
-
-	public void setColors(Color[] col) {
-		colors = col;
-	}
-
-	public void setStrings(String[] str) {
-		strings = str;
-	}
-
-	public Color[] getColors() {
-		return colors;
-	}
-
-	public String[] getStrings() {
-		return strings;
-	}
-
-	@Override
-	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-
-		if (isSelected) {
-			setBackground(list.getSelectionBackground());
+	public void stateChanged(ChangeEvent arg0) {
+		ArrayList<String> oldFiles = new ArrayList<String>();
+		oldFiles.addAll(fileList);
+		JCheckBox box = (JCheckBox) arg0.getSource();
+		String text = box.getText();
+		if (box.isSelected()) {
+			if (!fileList.contains(text)) {
+				fileList.add(text);
+			}
 		} else {
-			setBackground(Color.WHITE);
+			int index = fileList.indexOf(text);
+			if (index >= 0) {
+				fileList.remove(index);
+			}
 		}
-
-		text.setBackground(getBackground());
-
-		text.setText(value.toString());
-		if (index > -1) {
-			text.setForeground(colors[index]);
-		}
-		return text;
+		this.firePropertyChange("files", oldFiles, fileList);
 	}
 }

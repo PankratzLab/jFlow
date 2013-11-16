@@ -4,6 +4,7 @@
 package cnv.var;
 
 import java.awt.Color;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,37 +27,45 @@ public class CNVRectangles {
 	int probes;
 	int minSize;
 	int qualityScore;
+	int[] location;
 
-	public CNVRectangles(ArrayList<CNVariantHash> hashes, int[] location, int probes, int minSize, int qualityScore) {
+	public CNVRectangles(ArrayList<CNVariantHash> hashes, ArrayList<String> filterFiles, int[] location, int probes, int minSize, int qualityScore) {
 		// Set the color scheme
 		colorScheme = CompPlot.colorScheme;
 		// Read the data from the CNV files
-
+		this.location = location;
 		fileMap = new HashMap<String, ArrayList<CNVariant>>();
 
 		for (CNVariantHash hash : hashes) {
+
 			// All CNVs are loaded into an array, which is then stored in an array by file
 			// Format is:
 			// file1: CNV1..CNVN
 			// fileN: CNV1..CNVN
 			// All CNVs in each file, when they are rendered, will be a single color
 			// Any CNVs where CNVariant.getCN() != 2 will be a different shade of that color
+			File file = new File(hash.getFilename());
 			CNVariant[] cnvs = hash.getAllInRegion((byte) location[0], location[1], location[2], probes, minSize, qualityScore);
 			ArrayList<CNVariant> cnvList = new ArrayList<CNVariant>(Arrays.asList(cnvs));
-			fileMap.put(hash.getFilename(), cnvList);
+			System.out.println("CNVRectangles: " + file.getName() + " has " + cnvList.size() + " variants");
+
+			fileMap.put(file.getName(), cnvList);
 		}
 
 		// Populate the hashmap and rectangles
 		cnvRectangles = new ArrayList<CNVRectangle>();
 		int i = 0;
 		for (String key : fileMap.keySet()) {
-			for (CNVariant variant : fileMap.get(key)) {
-				// Set the color
-				CNVRectangle cnvRect = new CNVRectangle(variant, location[1]);
-				cnvRect.setCNVColor(colorScheme[i % colorScheme.length]);
-				cnvRect.addCNV(variant);
-				cnvRectangles.add(cnvRect);
+			if (filterFiles.contains(key)) {
+				for (CNVariant variant : fileMap.get(key)) {
+					// Set the color
+					CNVRectangle cnvRect = new CNVRectangle(variant, location[1]);
+					cnvRect.setCNVColor(colorScheme[i % colorScheme.length]);
+					cnvRect.addCNV(variant);
+					cnvRectangles.add(cnvRect);
+				}
 			}
+			i++;
 		}
 	}
 
@@ -65,6 +74,25 @@ public class CNVRectangles {
 	 */
 	public CNVRectangles() {
 		cnvRectangles = new ArrayList<CNVRectangle>();
+	}
+
+	/**
+	 * Regenerate the list of cnvRectangles based on the provided file list
+	 */
+	public void filterRectangles(ArrayList<String> files) {
+		System.out.println("Keymap is:");
+		cnvRectangles.clear();
+		int i = 0;
+		for (String key : files) {
+			for (CNVariant variant : fileMap.get(key)) {
+				// Set the color
+				CNVRectangle cnvRect = new CNVRectangle(variant, location[1]);
+				cnvRect.setCNVColor(colorScheme[i % colorScheme.length]);
+				cnvRect.addCNV(variant);
+				cnvRectangles.add(cnvRect);
+			}
+			i++;
+		}
 	}
 
 	/**
