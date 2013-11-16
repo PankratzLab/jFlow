@@ -137,9 +137,9 @@ public class CompPlot extends JFrame {
 		setSize(1000, 720);
 
 		// Close this window but not the entire application on close
-		// setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		// Close the whole thing for debugging purposes
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		cpcl = new CompPropertyChangeListener(this);
 
