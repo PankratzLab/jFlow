@@ -18,7 +18,7 @@ import cnv.plots.CompPlot;
  */
 public class CNVRectangles {
 	private HashMap<String, ArrayList<CNVariant>> fileMap;
-	private ArrayList<CNVRectangle> cnvRectangles;
+	private final ArrayList<CNVRectangle> cnvRectangles;
 	public Color[] colorScheme;
 	private int rectangleHeight;
 	private float scalingFactor;
@@ -95,6 +95,11 @@ public class CNVRectangles {
 		for (String key : cnvMap.keySet()) {
 			CNVRectangle cnvRect = cnvMap.get(key);
 			int width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
+			if (width < 1) {
+				// Don't let them get smaller than 1 pixel wide
+				width = 1;
+			}
+
 			int x = Math.round((int) cnvRect.getStartXValue() * scalingFactor);
 			// Ensure a 1 pixel gap between CNVs
 			int y = (i * rectangleHeight) + i;
@@ -139,6 +144,11 @@ public class CNVRectangles {
 			ArrayList<CNVRectangle> cnvRects = cnvMap.get(key);
 			for (CNVRectangle cnvRect : cnvRects) {
 				int width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
+				if (width < 1) {
+					// Don't let them get smaller than 1 pixel wide
+					width = 1;
+				}
+
 				int x = Math.round((int) cnvRect.getStartXValue() * scalingFactor);
 				// Ensure a 1 pixel gap between CNVs
 				int y = (i * rectangleHeight) + i;
@@ -185,6 +195,11 @@ public class CNVRectangles {
 				int x = Math.round((int) cnvRect.getStartXValue() * scalingFactor);
 				int y = (i * rectangleHeight) + i;
 				int width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
+				if (width < 1) {
+					// Don't let them get smaller than 1 pixel wide
+					width = 1;
+				}
+
 				cnvRect.setRect(x, y, width, rectangleHeight);
 
 				// Figure out what shade we should be
@@ -203,6 +218,11 @@ public class CNVRectangles {
 						x = Math.round((int) cnvRect.getStartXValue() * scalingFactor);
 						y = (i * rectangleHeight) + i;
 						width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
+						if (width < 1) {
+							// Don't let them get smaller than 1 pixel wide
+							width = 1;
+						}
+
 						cnvRect.setRect(x, y, width, rectangleHeight);
 
 						// Figure out what shade we should be
