@@ -140,7 +140,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		plotPointSetSize = DEFAULT_PLOTPOINTSET_SIZE;
 		points = new PlotPoint[plotPointSetSize];
 		// Number of line will be 1 less than no of points
-		lines = new GenericLine[plotPointSetSize-1];
+		//lines = new GenericLine[plotPointSetSize-1];
 		totalNumPlotPointSets = 1;
 		currentPlotPointSet = 0;
 		lastIndexInPlotPointSet = -1;

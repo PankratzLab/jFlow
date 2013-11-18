@@ -24,6 +24,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties";
 	public static final String REFRESH = "Refresh";
+	public static final String LPlot = "Line PLot";
 
 	public static final String MAP_FILES = "Map .csv files to IDs";
 	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
@@ -58,7 +59,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS},
-			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, COMP},
+			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LPlot, COMP},
 			{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
@@ -440,6 +441,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(TWOD)) {
 //				TwoDPlot.main(null);
 				TwoDPlot.createAndShowGUI(proj, proj.getLog());
+			} else if (command.equals(LPlot)) {
+				LinePlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(COMP)) {
 				new CompPlot(proj);
 			} else if (command.equals(POPULATIONBAF)) {
