@@ -442,7 +442,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //				TwoDPlot.main(null);
 				TwoDPlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(LPlot)) {
-				LinePlot.createAndShowGUI(proj, proj.getLog());
+			//	LinePlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(COMP)) {
 				new CompPlot(proj);
 			} else if (command.equals(POPULATIONBAF)) {
@@ -471,8 +471,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
 
-				
-				
+
+
 			} else {
 				System.err.println("Error - unknown command: "+command);
 			}
