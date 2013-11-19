@@ -3237,6 +3237,28 @@ public class Array {
 	}
 
 	/**
+	 * Transposes a List<List<>> i.e. a 2 dimensional list
+	 *
+	 * @param table
+	 *            : the 2D list to be transposed
+	 * @param <T>
+	 *            : generic template
+	 * @return a {@link List<List>>} which is transposed
+	 */
+	public static <T> List<List<T>> transpose(List<List<T>> table) {
+		List<List<T>> ret = new ArrayList<List<T>>();
+		final int N = table.get(0).size();
+		for (int i = 0; i < N; i++) {
+			List<T> col = new ArrayList<T>();
+			for (List<T> row : table) {
+				col.add(row.get(i));
+			}
+			ret.add(col);
+		}
+		return ret;
+	}
+
+	/**
 	 * Function to concat n number of Arrays.
 	 *
 	 * @param first
