@@ -100,9 +100,6 @@ public class DnaseEnrichment {
 			fstream = new FileWriter("DnaseEnrichment.temp", false);
 			out = new BufferedWriter(fstream);
 
-			// write the output file header
-			writeOutputFileHeaders(out);
-
 			for (OutputFileFormat curRecord : overlapStats) {
 				out.write(curRecord.file); // write the file name
 				for (int i = 0; i < curRecord.ratio.length; i++) {
@@ -118,23 +115,6 @@ public class DnaseEnrichment {
 		} catch (IOException e) {
 			LOGGER.info("Unable to write to temp output file");
 		}
-	}
-
-	/**
-	 * Function to write headers to output file.
-	 * 
-	 * @param out
-	 *            : {@link BufferedWriter} to the output file.
-	 * @throws IOException
-	 */
-	private static void writeOutputFileHeaders(BufferedWriter out) throws IOException {
-		out.write(OUTPUT_HEADER_CELLTYPE);
-
-		for (int i = 0; i <= maxBinSize; i++) {
-			out.write(OUTPUT_DELIMITER);
-			out.write(String.valueOf(i));
-		}
-		out.newLine();
 	}
 
 	/**
