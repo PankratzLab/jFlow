@@ -3236,6 +3236,31 @@ public class Array {
 		return newArray;
 	}
 
+	/**
+	 * Function to concat n number of Arrays.
+	 *
+	 * @param first
+	 *            the first array
+	 * @param rest
+	 *            rest all arrays
+	 * @param <T>
+	 *            generic: can take any type of object
+	 * @return an array which is obtained by concatenating all the arrays.
+	 */
+	public static <T> T[] concatAll(T[] first, T[]... rest) {
+		int totalLength = first.length;
+		for (T[] array : rest) {
+			totalLength += array.length;
+		}
+		T[] result = Arrays.copyOf(first, totalLength);
+		int offset = first.length;
+		for (T[] array : rest) {
+			System.arraycopy(array, 0, result, offset, array.length);
+			offset += array.length;
+		}
+		return result;
+	}
+
 	public static void main(String[] args) {
 	    double alleleFreq = 0.2;
 	    double stdev = 0.12;
