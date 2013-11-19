@@ -99,8 +99,6 @@ public class DnaseEnrichment {
 
 		List<List<Object>> resultArrayList = new ArrayList<>();
 
-		resultArrayList.add(writeOutputFileHeaders());
-
 		for (OutputFileFormat curRecord : overlapStats) {
 			ArrayList<Object> resultArray = new ArrayList<>();
 			resultArray.add(curRecord.file);
