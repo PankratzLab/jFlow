@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 
+import common.Array;
 import common.IntVector;
 
 public class CheckBoxTree extends JTree implements ItemListener {
@@ -39,7 +40,18 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		setCellEditor(new CheckBoxCellEditor(this));
 		setEditable(true);
 	}
-	
+
+	/**
+	 * Function to update the maximum number of checkbox which can be selected after creating the tree
+	 * 
+	 * @param maxSelectable
+	 *            the new maximum number of selectable checkboxes
+	 */
+	public void updateSelections(int maxSelectable) {
+		// get new selection with specified size
+		selections = Arrays.copyOf(selections, maxSelectable);
+	}
+
 	public void itemStateChanged(ItemEvent itemEvent) {
 		JCheckBox checkbox, deselect;
 		boolean found;
