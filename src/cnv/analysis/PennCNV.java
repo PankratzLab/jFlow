@@ -356,7 +356,7 @@ public class PennCNV {
 				writer.println(markerNames[i] + "\t" + (chrs[i]<23?chrs[i]:(chrs[i]==23?"X":(chrs[i]==24?"Y":(chrs[i]==25?"XY":(chrs[i]==26?"M":"Un"))))) + "\t" + positions[i] + "\t" + bafAverage[i]);
 			}
 			writer.close();
-			System.out.println("Population BAF file is now ready at: "+output);
+			System.out.println("Population BAF file is now ready at: " + output);
 		} catch (Exception e) {
 			System.err.println("Error writing to '" + output + "'");
 			e.printStackTrace();
@@ -367,13 +367,13 @@ public class PennCNV {
 	/**
 	 * Generate the GCModel file needed by PennCNV software (http://www.openbioinformatics.org/penncnv/).
 	 * @param proj The project you are going to run PennCNV on.
-	 * @param gcFile The user-supplied genome builds. Positions within each chromosome must be sorted by increasing order. For example, http://hgdownload.cse.ucsc.edu/goldenPath/hg18/database/gc5Base.txt.gz
-	 * @param outputFile The name of the GCModel file.
+	 * @param inputGcBaseFullPath The user-supplied genome builds. Positions within each chromosome must be sorted by increasing order. For example, http://hgdownload.cse.ucsc.edu/goldenPath/hg18/database/gc5Base.txt.gz
+	 * @param outputGcModelFullPath The name of the GCModel file.
 	 * @param numwindow For each SNP, GC Content is calculated for the range of numwindow*5120 before its location through numwindow*5120 after. To use the default setting of 100, please enter 0.
 	 * 
 	 * In order to be able to cross-reference with the same feature in PennCNV, this code intends to base on cal_gc_snp.pl in PennCNV package. But since the difference between Java and Perl, significant structural changes have been made.
 	 * 
-	 * A sample gcfile looks like below (There is no header line):
+	 * A sample gcBase file looks like below (There is no header line):
 	 *	585     chr1    0       5120    chr1.0  5       1024    0       /gbdb/hg18/wib/gc5Base.wib      0       100     1024    59840   3942400
 	 *	585     chr1    5120    10240   chr1.1  5       1024    1024    /gbdb/hg18/wib/gc5Base.wib      0       100     1024    59900   3904400
 	 *	585     chr1    10240   15360   chr1.2  5       1024    2048    /gbdb/hg18/wib/gc5Base.wib      0       100     1024    55120   3411200
@@ -398,7 +398,7 @@ public class PennCNV {
 	 * 	rs10002743  4       6327482		0.567557695424774
 	 * 
 	 */
-	public static void gcModel(Project proj, String gcFile, String outputFile, int numwindow) {
+	public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath, int numwindow) {
 		MarkerSet markerSet;
 		String[] markerNames;
 		byte[] chrs;
@@ -437,7 +437,7 @@ public class PennCNV {
 
 		// load gcFile
 		try {
-			reader = new BufferedReader(new FileReader(gcFile));
+			reader = new BufferedReader(new FileReader(inputGcBaseFullPath));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				curchr = Positions.chromosomeNumber(line[1]);
@@ -454,7 +454,7 @@ public class PennCNV {
 							System.exit(1);
 						}
 					} else if (seen_chr.containsKey(curchr)) {
-						System.err.println("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+gcFile+": at "+curchr+":"+curstart);
+						System.err.println("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+inputGcBaseFullPath+": at "+curchr+":"+curstart);
 						System.exit(1);
 					} else {
 						seen_chr.put(curchr,(byte)1);
@@ -491,7 +491,7 @@ public class PennCNV {
 			}
 			reader.close();
 		} catch (Exception e) {
-			System.err.println("Error reading from '" + gcFile + "'");
+			System.err.println("Error reading from '" + inputGcBaseFullPath + "'");
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -500,16 +500,16 @@ public class PennCNV {
 		
 		// output the result
 		try {
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = new PrintWriter(new FileWriter(outputGcModelFullPath));
 			writer.println("Name\tChr\tPosition\tGC");
 			for (int i = 0; i<markerNames.length; i++) {
 //				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+(snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
 				writer.println(markerNames[i] + "\t" + (chrs[i]<23?chrs[i]:(chrs[i]==23?"X":(chrs[i]==24?"Y":(chrs[i]==25?"XY":(chrs[i]==26?"M":"Un"))))) + "\t"+positions[i] + "\t" + (snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
 			}
 			writer.close();
-			System.out.println("Population gcmodel file is now ready at: "+outputFile);
+			System.out.println("Population gcmodel file is now ready at: "+outputGcModelFullPath);
 		} catch (Exception e) {
-			System.err.println("Error writing to '" + outputFile + "'");
+			System.err.println("Error writing to '" + outputGcModelFullPath + "'");
 			e.printStackTrace();
 		}
 	}

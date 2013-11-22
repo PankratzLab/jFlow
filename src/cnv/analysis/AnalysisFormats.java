@@ -54,10 +54,13 @@ public class AnalysisFormats implements Runnable {
 		Sample samp;
 		float[] lrrs, bafs;
 		byte[] genotypes;
-		boolean jar;
+		boolean jar, gzip;
+		String dir;
 
-		new File(proj.getProjectDir()+"penn_data/").mkdirs();
+		dir = proj.getDir(Project.PENNCNV_DATA_DIRECTORY);
+		new File(dir).mkdirs();
 		jar = proj.getJarStatus();
+		gzip = proj.getBoolean(Project.PENNCNV_GZIP_YESNO);
 		for (int i = 0; i<samples.length; i++) {
 			System.out.println(ext.getTime()+"\tTransforming "+(i+1)+" of "+samples.length);
 			if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
@@ -73,7 +76,7 @@ public class AnalysisFormats implements Runnable {
 			genotypes = samp.getAB_Genotypes();
 
 			try {
-				writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"penn_data/"+samples[i]));
+				writer = Files.getAppropriateWriter(dir+samples[i]+(gzip?".gz":""));
 				writer.println("Name\t"+samples[i]+".GType\t"+samples[i]+".Log R Ratio\t"+samples[i]+".B Allele Freq");
 				for (int j = 0; j<markerNames.length; j++) {
 					if (hash == null || hash.containsKey(markerNames[j])) {
