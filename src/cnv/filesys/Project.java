@@ -100,6 +100,7 @@ public class Project extends Properties {
 	public static final String SOURCE_FILE_DELIMITER = "SOURCE_FILE_DELIMITER";
 	public static final String PENNCNV_EXECUTABLE_DIRECTORY = "PENNCNV_EXECUTABLE_DIRECTORY";
 	public static final String PENNCNV_DATA_DIRECTORY = "PENNCNV_DATA_DIRECTORY";
+	public static final String PENNCNV_GZIP_YESNO = "PENNCNV_GZIP_YESNO";
 	public static final String PENNCNV_RESULTS_DIRECTORY = "PENNCNV_RESULTS_DIRECTORY";
 	public static final String LRRSD_CUTOFF = "LRRSD_CUTOFF";
 	public static final String MOSAIC_ARMS_FILENAME = "MOSAIC_ARMS_FILENAME";
@@ -296,6 +297,24 @@ public class Project extends Properties {
 			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
 			return Integer.MIN_VALUE;
 		}		
+	}
+
+	public boolean getBoolean(String variable) {
+		String trav;
+		
+		trav = getProperty(variable);
+		
+		if (trav.toLowerCase().equals("true") || trav.toLowerCase().equals("t") || trav.toLowerCase().equals("yes") || trav.toLowerCase().equals("y") || trav.equals("1")) {
+			return true;
+		}
+
+		if (trav.toLowerCase().equals("false") || trav.toLowerCase().equals("f") || trav.toLowerCase().equals("no") || trav.toLowerCase().equals("n") || trav.equals("0")) {
+			return false;
+		}
+
+		System.err.println("Error - '"+trav+"' is not a valid boolean value for "+variable);
+
+		return false;
 	}
 
 	public MarkerSet getMarkerSet() {
