@@ -89,6 +89,32 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		
 		fireValueChanged(new TreeSelectionEvent(this, getPathForRow(0), true, getPathForRow(0), getPathForRow(0)));
 	}
+
+		public DefaultMutableTreeNode searchNode(String nodeStr)
+	{
+		DefaultMutableTreeNode node = null;
+		DefaultTreeModel model = (DefaultTreeModel)getModel();
+
+		Enumeration enumeration= ((DefaultMutableTreeNode)model.getRoot()).breadthFirstEnumeration();
+		while(enumeration.hasMoreElements()) {
+
+			node = (DefaultMutableTreeNode)enumeration.nextElement();
+			if(node.getUserObject() instanceof JCheckBox){
+				JCheckBox thisNode= (JCheckBox) node.getUserObject();
+				//System.out.println("this:" + thisNode.getText());
+				if(nodeStr.equals(thisNode.getText())) {
+
+					return node;
+				}
+			}
+
+
+
+		}
+
+		//tree node with string node found return null
+		return null;
+	}
 	
 	public void addNode(String nameOfBranch, String branchHandle, String[] namesOfNodes, boolean[] active) {
 		TreeModel model;
