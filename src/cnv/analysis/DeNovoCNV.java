@@ -160,13 +160,18 @@ public class DeNovoCNV {
 		String commands;
 		Vector <String[]> iterationsVec;
 		String[][] iterations;
+		boolean gzip;
 		
 		if (!(new File(pennOutDir)).exists()) {
 			new File(pennOutDir).mkdir();
 		}
+		if (!(new File(pennOutDir + "lists/")).exists()) {
+			new File(pennOutDir + "lists/").mkdir();
+		}		
 //		PennCNV.populationBAF(proj);
 //		PennCNV.gcModel(proj, "D:/PennCNV_Related/GcModel/gc5Base_hg18.txt", "penn_output/gcmodel", 0);
 
+		gzip = proj.getBoolean(Project.PENNCNV_GZIP_YESNO);
 		iterationsVec = new Vector<String[]>();
 		try {
 			reader = new BufferedReader(new FileReader(pedigreeForTrioAnalysis));
@@ -180,10 +185,14 @@ public class DeNovoCNV {
 					}
 				}
 				iterationsVec.add(new String[] {line[5], line[6], line[4]});
-				writer = new PrintWriter(new FileOutputStream(pennDataDir + "lists/listSolo_" + line[4]));
-				writer.println(line[5] + "\n" + line[6] + "\n" + line[4]);
+				writer = new PrintWriter(new FileOutputStream(pennOutDir + "lists/" + line[4] + "_solo.lst"));
+				if (gzip) {
+					writer.println("'gunzip -c " + pennDataDir + line[5] + ".gz'\n'gunzip -c " + pennDataDir + line[6] + ".gz'\ngunzip -c " + pennDataDir + line[4] + ".gz'");
+				} else {
+					writer.println(line[5] + "\n" + line[6] + "\n" + line[4]);
+				}
 				writer.close();
-				writer = new PrintWriter(new FileOutputStream(pennDataDir + "lists/listTrio_" + line[4]));
+				writer = new PrintWriter(new FileOutputStream(pennOutDir + "lists/" + line[4] + "_trio.lst"));
 				writer.println(line[5] + "\t" + line[6] + "\t" + line[4]);
 				writer.close();
 			}
@@ -233,10 +242,10 @@ public class DeNovoCNV {
 //							+ pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " -cnv " + pennOutDir + iterations[i][0] + ".rawcnv " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".triocnv\n"
 //							+ pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".jointcnv\n";
 //			}
-			if (proj.getBoolean(Project.PENNCNV_GZIP_YESNO)) {
-				commands = pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -list " + pennDataDir + "lists/listSolo_[%2].txt -out " + pennOutDir + "[%2].rawcnv\n"
-						 + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -cnv " + pennDataDir +"[%2].rawcnv -list " + pennDataDir + "/lists/listTrio_[%2].txt -out " + pennOutDir + "[%2].triocnv\n"
-						 + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -list " + pennDataDir + "/lists/listTrio_[%2].txt -out " + pennOutDir + "[%2].jointcnv\n";
+			if (gzip) {
+				commands = pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -list " + pennOutDir + "lists/[%2]_solo.lst -out " + pennOutDir + "[%2].rawcnv\n"
+						 + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -cnv " + pennDataDir +"[%2].rawcnv -list " + pennOutDir + "/lists/[%2]_trio.lst -out " + pennOutDir + "[%2].triocnv\n"
+						 + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -list " + pennOutDir + "lists/[%2]_trio.lst -out " + pennOutDir + "[%2].jointcnv\n";
 				Files.qsub("runPennCNV", proj.getProjectDir() + "penn_scripts/", numQsubFiles, commands, iterations, 2000, 24);
 				Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, proj.getProjectDir() + "penn_scripts/runPennCNV_", ".qsub"), 2000, 24);
 
@@ -709,13 +718,17 @@ public class DeNovoCNV {
 		gcModelFullPath = proj.getProjectDir() + "custom.gcmodel";
 //		pedigreeFullPath = "N:/statgen/GEDI_GWAS/pedigree.dat";
 //		trioPedigreeFullPath = "N:/statgen/GEDI_GWAS/pedigreeTrios.dat";
-		pennDataDir = proj.getProjectDir() + "penn_data/";
-		pennOutputDir = proj.getProjectDir() + "penn_output/";
+//		System.out.println("test point 1");
+		pennDataDir = proj.getProjectDir() + proj.getDir(Project.PENNCNV_DATA_DIRECTORY);
+//		System.out.println("test point 2");
+		pennOutputDir = proj.getProjectDir() + proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY);
+//		System.out.println("test point 3");
 
 
 //		generateTriosPedigree(pedigreeFullPath, trioPedigreeFullPath);
 //		PennCNV.populationBAF(proj);
 //		PennCNV.gcModel(proj, gcBaseFileFullPath, gcModelFullPath, numWindowUnits);
+//		System.out.println("trioPedigreeFullPath: " + trioPedigreeFullPath + "\npennDataDir: " + pennDataDir + "\npennOutputDir: " + pennOutputDir);
 		runPennCnv(proj, trioPedigreeFullPath, pennDataDir, gcModelFullPath, pennOutputDir, pennOutputFilenameRoot, pennBinDir, -1, 10);
 //		batch(pedigreeFullPath);
 //		parsePennCnvResult(proj, pennOutputDir, trioPedigreeFullPath, "jointcnv", log);
