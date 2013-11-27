@@ -2,6 +2,7 @@ package gwas;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class DnaseEnrichment {
 	private final static String OUTPUT_DELIMITER = "\t";
 	private final static String DATA_SEPARATOR = ":";
 	private final static Logger LOGGER = Logger.getLogger(DnaseEnrichment.class.getName()); // logger for this class
-	private final static String OUTPUT_HEADER_CELLTYPE = "Pbin";
+	private final static String OUTPUT_FILENAME = "DnaseEnrichment.xln";
 	private static int maxBinSize = 0;
 
 	/**
@@ -112,7 +113,8 @@ public class DnaseEnrichment {
 		}
 		resultArrayList = Array.transpose(resultArrayList);
 		try {
-			fstream = new FileWriter("DnaseEnrichment.temp", false);
+			String outputFilePath = System.getProperty("user.dir") + File.separator + OUTPUT_FILENAME;
+			fstream = new FileWriter(outputFilePath, false);
 			out = new BufferedWriter(fstream);
 			for (List<Object> curRecord : resultArrayList){
 				for(Object curString : curRecord){
@@ -122,6 +124,7 @@ public class DnaseEnrichment {
 				out.newLine();
 			}
 			out.close();
+			LOGGER.info("Output File: " + outputFilePath);
 		} catch (IOException e) {
 			LOGGER.info("Unable to write to temp output file");
 		}
