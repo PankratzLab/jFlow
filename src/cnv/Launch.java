@@ -24,7 +24,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties";
 	public static final String REFRESH = "Refresh";
-	public static final String LPlot = "Line PLot";
+	public static final String LPlot = "Line Plot";
 
 	public static final String MAP_FILES = "Map .csv files to IDs";
 	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
@@ -442,7 +442,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //				TwoDPlot.main(null);
 				TwoDPlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(LPlot)) {
-			//	LinePlot.createAndShowGUI(proj, proj.getLog());
+				LinePlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(COMP)) {
 				new CompPlot(proj);
 			} else if (command.equals(POPULATIONBAF)) {
