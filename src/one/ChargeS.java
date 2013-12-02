@@ -7,7 +7,6 @@ import common.*;
 import filesys.BurdenMatrix;
 import filesys.GenotypeMatrix;
 import filesys.SerialHash;
-import gwas.Metal;
 
 public class ChargeS {
 //	public static final String[][] MAP_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"}, {"Position", "POS"}, {"ALT"}, {"REF"}};
@@ -52,7 +51,7 @@ public class ChargeS {
 		{3168, 0, 416, 1185}, // vWF
 	};
 	public static final String[][] METHODS = {{"SingleSNP", "singleSnpRes", ".LR."}, {"T5Count", ".T5."}, {"T5MB", "MBT5"}};
-	public static final String[][] UNIT_OF_ANALYSIS = {Metal.MARKER_NAMES, Metal.GENE_UNITS, Metal.GENE_UNITS};
+	public static final String[][] UNIT_OF_ANALYSIS = {Aliases.MARKER_NAMES, Aliases.GENE_UNITS, Aliases.GENE_UNITS};
 	public static final boolean[] SINGLE_VARIANTS = {true, false, false};
 	public static final boolean[] WEIGHTED = {true, false, false};
 	public static final String[] GROUPS = {"SingleVariant", "BurdenTests", "BurdenTests"};	
@@ -390,26 +389,231 @@ public class ChargeS {
 		System.out.println(ext.getTime());
 	}
 
+	public static void convertToPlinkTransposed(String dir, String genoFile, String annotationFile, double mafThreshold) {
+		PrintWriter writer, famWriter;
+		String[] line, info;
+		String temp, trav;
+		Logger log;
+		GenotypeMatrix gens;
+		Hashtable<String,String> annotationHash;
+		int[] cols;
+		String[] markerNames, keys;
+		String[] header;
+		int[] indices;
+		int chr;
+		String filename;
+		BufferedReader reader;
+		long time;
+		String[] ids;
+		String ref, alt;
+		int mac, nnmiss;
+
+		time = new Date().getTime();
+		log = new Logger(dir+"plinkConversion.log");
+		header = Files.getHeaderOfFile(dir+annotationFile, log);
+		
+		indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.ALLELES[0], Aliases.ALLELES[1]}, header, true, false, true, true, log, true);
+		annotationHash = HashVec.loadFileToHashString(dir+annotationFile, new int[] {indices[0]}, Array.subArray(indices, 1), Files.determineDelimiter(dir+annotationFile, log).equals(","), "\t", true, false, false);
+
+		ids = null;
+		chr = 1;
+		try {
+			writer = new PrintWriter(new FileWriter(dir+"plink.tped"));
+			do {
+				filename = dir+ext.insertNumbers(genoFile, chr);
+				try {
+					log.report("Processing "+filename);
+					reader = Files.getAppropriateReader(filename);
+					header = reader.readLine().trim().split("[\\s]+");
+					if (ext.indexOfStr(header[0], Aliases.CHRS, false, true) == -1) {
+						log.reportError("Error - expecting CHROM at index 0, but found "+header[0]);
+						reader.close();
+						return;
+					}
+					if (ext.indexOfStr(header[1], Aliases.POSITIONS, false, true) == -1) {
+						log.reportError("Error - expecting POS at index 1, but found "+header[1]);
+						reader.close();
+						return;
+					}
+					if (chr == 1) {
+						ids = Array.subArray(header, 2);
+						try {
+							famWriter = new PrintWriter(new FileWriter(dir+"plink.tfam"));
+							for (int i = 0; i < ids.length; i++) {
+								famWriter.println(ids[i]+"\t"+ids[i]+"\t0\t0\t2\t1");
+							}
+							famWriter.close();
+						} catch (Exception e) {
+							System.err.println("Error writing to " + "plink.tfam");
+							e.printStackTrace();
+						}
+						
+					} else if (!Array.equals(ids, Array.subArray(header, 2), true)) {
+						log.reportError("The ids in "+filename+" are not the same as for chr1");
+						reader.close();
+						return;
+					}
+					while (reader.ready()) {
+						line = reader.readLine().trim().split("[\\s]+");
+						trav = "chr"+line[0]+":"+line[1];
+						
+						if (annotationHash.containsKey(trav)) {
+							info = annotationHash.get(trav).split("[\\s]+");
+						} else {
+							System.err.println("Error - could not get annotation for "+trav);
+							reader.close();
+							return;
+						}
+						
+						alt = info[2];
+						ref = info[3];
+
+						mac = 0;
+						nnmiss = 0;
+						for (int i = 0; i < ids.length; i++) {
+							if (!ext.isMissingValue(line[2+i])) {
+								mac += Integer.parseInt(line[2+i]);
+								nnmiss++;
+							}
+						}
+
+						if ((double)mac/(double)nnmiss/2.0 > mafThreshold) {
+							writer.print(info[0]+"\t"+trav+"\t0\t"+info[1]);
+							for (int i = 0; i < ids.length; i++) {
+								if (ext.isMissingValue(line[2+i])) {
+									writer.print("\t0\t0");
+								} else if (line[2+i].equals("0")) {
+									writer.print("\t"+ref+"\t"+ref);
+								} else if (line[2+i].equals("1")) {
+									writer.print("\t"+alt+"\t"+ref);
+								} else if (line[2+i].equals("2")) {
+									writer.print("\t"+alt+"\t"+alt);
+								} else {
+									System.err.println("Error - unexpected allele code ("+line[2+i]+") for "+ids[i]+" in file "+filename);
+									writer.print("\t0\t0");
+								}
+							}
+							writer.println();
+						}
+					}
+					reader.close();
+				} catch (FileNotFoundException fnfe) {
+					System.err.println("Error: file \"" + filename + "\" not found in current directory");
+					System.exit(1);
+				} catch (IOException ioe) {
+					System.err.println("Error reading file \"" + filename + "\"");
+					System.exit(2);
+				}
+				
+				chr++;
+			} while (genoFile.contains("#") && Files.exists(dir+ext.insertNumbers(genoFile, chr)));
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + "plink.fam");
+			e.printStackTrace();
+		}
+		
+		System.out.println("Finished writing in " + ext.getTimeElapsed(time));
+		
+		time = new Date().getTime();
+
+		CmdLine.run("plink --tfile plink --make-bed", dir);
+
+		System.out.println("Finished making binary files after an additional " + ext.getTimeElapsed(time));
+		
+		System.exit(1);
+		
+		
+		
+		
+		if (!Files.exists(genoFile+".burdenInfo")) {
+			cols = ext.indexFactors(BURDEN_REQUIREMENTS, ext.replaceAllWith(Files.getFirstNLinesOfFile(annotationFile, 1, log)[0], "\"", "").split(Files.determineDelimiter(annotationFile, log)), false, true, true, log, true);
+			log.report("Loading map positions");
+			annotationHash = HashVec.loadFileToHashString(annotationFile, new int[] {cols[0]}, cols, annotationFile.endsWith(".csv"), "\t", true, false, false);
+			log.report("Getting keys");
+			keys = HashVec.getKeys(annotationHash, false, false);
+			log.report("Removing quotes");
+			for (int i = 0; i < keys.length; i++) {
+				if (keys[i].contains("\"")) {
+					annotationHash.put(ext.removeQuotes(keys[i]), annotationHash.remove(keys[i]));
+				}
+			}
+			log.report("Reading marker names required");
+
+			markerNames = HashVec.loadFileToStringArray(genoFile, false, true, new int[] {0,1}, false, false, Files.determineDelimiter(genoFile, log));
+			for (int i = 0; i < markerNames.length; i++) {
+				markerNames[i] = "chr"+ext.replaceAllWith(markerNames[i], "\t", ":");
+			}
+
+			log.report("Writing map to file");
+			try {
+				writer = new PrintWriter(new FileWriter(genoFile+".burdenInfo"));
+				writer.println("Marker\tChr\tPosition\tREF\tALT\tgene\tAAF\tFunction");
+				for (int i = 0; i < markerNames.length; i++) {
+					trav = ext.removeQuotes(markerNames[i]);
+					temp = annotationHash.get(trav);
+					if (temp == null) {
+						log.reportError("Error - no information available for marker\t"+trav);
+//						writer.println("0\t"+trav+"\t0\t0\t?\t?");
+						writer.println(trav+"\t0\t0\t?\t?\t.\t.\t.");
+					} else {
+						line = ext.replaceAllWith(temp, "\"", "").split("\t", -1);
+//						writer.println(line[1]+"\t"+trav+"\t0\t"+line[2]+"\t"+line[3]+"\t"+line[4]);
+						writer.println(Array.toStr(line));
+					}
+				}
+				writer.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + genoFile+".burdenInfo");
+				e.printStackTrace();
+			}
+		}
+		if (Files.exists(genoFile+".ser")) {
+			System.out.println("Loading serialized version: "+genoFile+".ser");
+			gens = GenotypeMatrix.load(genoFile+".ser", false);
+		} else {
+			System.out.println("Loading: "+genoFile);
+			gens = new GenotypeMatrix(genoFile, null, genoFile+".burdenInfo", log);
+			System.out.println("Saving: "+genoFile+".ser");
+			gens.serialize(genoFile+".ser");
+		}
+//		System.out.println("Analyzing single variants with "+phenoFile);
+//		gens.analyze(phenoFile, "NA", null, true, log);
+//		System.out.println("Generating T5 burden dataset");
+//		BurdenMatrix burdenMatrix = new BurdenMatrix(gens, 0.05, BurdenMatrix.DEFAULT_ANNOTATIONS_TO_INCLUDE, BurdenMatrix.ALL_KNOWN_ANNOTATIONS, false, 0.01, new String[] {}, null, log);
+//		System.out.println("Running T1 burden test with "+phenoFile);
+//		burdenMatrix.analyze(phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile)+"ARIC."+ext.rootOf(phenoFile)+".T5.EA."+ext.getDate(new Date(),"")+".csv", true, log);
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = "ChargeS.dat";
 		String phenoFile = null;
 		String genoFile = "C:/LITE/CHARGE-S/ARIC_CHAGE_S_Freeze2/";
 		String annotationFile = "C:/LITE/CHARGE-S/ARIC_CHAGE_S_Freeze2/SNPInfo_ExomeFreeze2_120810.csv";
+		boolean makePlink = false;
 
 		String usage = "\n" + "one.ChargeS requires 0-1 arguments\n"
-				+ "   (1) filename (i.e. file=" + filename + " (default))\n"
+				+ "   (1) phenotype filename (i.e. file=" + phenoFile + " (default))\n"
+				+ "   (2) genotype filename (i.e. file=" + genoFile + " (default))\n"
+				+ "   (3) annotation filename (i.e. snpInfo=" + annotationFile + " (default))\n"
+				+ "   (4) turn into PLINK transposed format files (i.e. -makePlink (not the default))\n"
 				+ "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
-				numArgs--;
 			} else if (args[i].startsWith("pheno=")) {
 				phenoFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("geno=")) {
+				genoFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("snpInfo=")) {
+				annotationFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-makePlink")) {
+				makePlink = true;
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -420,8 +624,8 @@ public class ChargeS {
 			System.exit(1);
 		}
 		try {
-			String dir = "D:/LITE/CHARGE-S/ARIC_CHAGE_S_Freeze2/";
-			genoFile = dir+"aric_genotypes_frz2_final.csv";
+//			String dir = "D:/LITE/CHARGE-S/ARIC_CHAGE_S_Freeze2/";
+//			genoFile = dir+"aric_genotypes_frz2_final.csv";
 //			annotationFile = "SNPInfo_ExomeFreeze2_120810.csv";
 
 //			genoFile = "slim.csv";
@@ -432,7 +636,7 @@ public class ChargeS {
 //			annotationFile = "chr1pter_SNPInfo.csv";
 //			annotationFile = "SNPInfo_ExomeFreeze2_120810_min.csv";
 
-			annotationFile = dir+"SNPInfo_ExomeFreeze2_120810_aafSlim.csv";
+//			annotationFile = dir+"SNPInfo_ExomeFreeze2_120810_aafSlim.csv";
 			
 //			phenoFile = dir+"lnFibrinogen.csv";
 			
@@ -458,12 +662,21 @@ public class ChargeS {
 //			phenoFile = dir+"vWF_all_replIn3.csv";
 //			phenoFile = dir+"F8_all.csv";
 //			phenoFile = dir+"vWF_all.csv";
-//						
-//			
-//			
+						
+			
+			
+			String dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/";
+//			genoFile = "ARIC_AA_Freeze3_Chrom#_Genotypes.txt.gz";
+			genoFile = "ARIC_EA_Freeze3_Chrom#_Genotypes.txt.gz";
+			annotationFile = "ESFreeze3_snpinfo_042913_min.csv.gz";
+			makePlink = true;
 
 			if (phenoFile != null) {
 				runAll(phenoFile, genoFile, annotationFile);
+			}
+			
+			if (makePlink) {
+				convertToPlinkTransposed(dir, genoFile, annotationFile, 0.05);
 			}
 			
 //			metaAll(dir+"results/");

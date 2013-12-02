@@ -690,6 +690,10 @@ public class Plink {
 		}
 	}
 	
+	public static void batchLD(String root, double minR2ToKeep) {
+		Files.qsub("runLD", 1, 22, "cd "+ext.pwd()+"\n~/bin/plink --noweb --bfile "+root+" --r2 --chr # --ld-window 99999 --ld-window-r2 "+minR2ToKeep+" --out chr#", 2000, 2);
+	}
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		int genom = 0;
@@ -716,6 +720,8 @@ public class Plink {
 		String shift = null;
 		int build = 37;
 		double minPiHatToKeep = -1;
+		double minR2ToKeep = 0.20;
+		boolean batchLD = false;
 		
 		String usage = "\n"+
 		"gwas.Plink requires 0-1 arguments\n"+
@@ -745,6 +751,10 @@ public class Plink {
 		"  OR\n"+
 		"   (1) shift markers in the PAR regions to chr25 (i.e. shift=plink.bim (not the default))\n"+
 		"   (2) genome build (i.e. build="+build+" (default))\n"+
+		"  OR\n"+
+		"   (1) batch pairwise LD computation of r^2 (i.e. -batchLD (not the default))\n"+
+		"   (2) name of PLINK root for --genome runs (i.e. root="+root+" (default))\n"+
+		"   (3) minimum r^2 value to retain in the output to save on space (i.e. minR2="+minR2ToKeep+" (default; set to zero to keep all))\n"+
 		"";
 		for (int i = 0; i < flags.length; i++) {
 			usage += "           level "+(i+1)+": "+flags[i]+"\tP(IBD=0)>="+thresholds[i][0]+"\tP(IBD=1)>="+thresholds[i][1]+"\tP(IBD=2)>="+thresholds[i][2]+"\tPI_HAT>="+thresholds[i][3]+"\n";
@@ -810,6 +820,12 @@ public class Plink {
 			} else if (args[i].startsWith("build=")) {
 				build = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("-batchLD")) {
+				batchLD = true;
+				numArgs--;
+			} else if (args[i].startsWith("minR2=")) {
+				minR2ToKeep = ext.parseDoubleArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: "+args[i]);
 			}
@@ -839,6 +855,8 @@ public class Plink {
 				parseDiffMode6(diff);
 			} else if (shift != null) {
 				shiftPAR(shift, build);
+			} else if (batchLD) {
+				batchLD(root, minR2ToKeep);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

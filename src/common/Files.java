@@ -11,7 +11,6 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import filesys.*;
-import gwas.Metal;
 import parse.*;
 
 //class DeleteLater implements Runnable {
@@ -105,14 +104,14 @@ public class Files {
 		qsub(root, start, stop, commands, -1, -1);
 	}
 	
-	public static void qsub(String root, int start, int stop, String commands, int memRequiredInGb, double walltimeRequestedInHours) {
-		qsub("", root, start, stop, commands, memRequiredInGb, walltimeRequestedInHours);
+	public static void qsub(String root, int start, int stop, String commands, int memRequiredInMb, double walltimeRequestedInHours) {
+		qsub("", root, start, stop, commands, memRequiredInMb, walltimeRequestedInHours);
 	}
 	
-	public static void qsub(String dir, String root, int start, int stop, String commands, int memRequiredInGb, double walltimeRequestedInHours) {
+	public static void qsub(String dir, String root, int start, int stop, String commands, int memRequiredInMb, double walltimeRequestedInHours) {
 		String[] lines;
 		
-		lines = qsub(dir, "chr#_"+root, start, stop, commands, null, memRequiredInGb, walltimeRequestedInHours, null);
+		lines = qsub(dir, "chr#_"+root, start, stop, commands, null, memRequiredInMb, walltimeRequestedInHours, null);
 		
 		if (lines.length > 1) {
 			writeList(lines, dir+"master."+(root==null?"qsub":root));
@@ -121,7 +120,7 @@ public class Files {
 	}
 	
 	
-	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int memoryRequestedInMb, double walltimeRequestedInHours, String nodeToUse) {
+	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int totalMemoryRequestedInMb, double walltimeRequestedInHours, String nodeToUse) {
 		PrintWriter writer;
 		String filename;
 		String[] lines;
@@ -147,8 +146,8 @@ public class Files {
 		        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
 		        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
 		        params = new Vector<String>();
-		        if (memoryRequestedInMb > 0) {
-		        	params.add("pmem="+memoryRequestedInMb+"mb");
+		        if (totalMemoryRequestedInMb > 0) {
+		        	params.add("mem="+totalMemoryRequestedInMb+"mb");
 		        }
 		        if (walltimeRequestedInHours > 0) {
 		        	hours = (int)Math.floor(walltimeRequestedInHours);
@@ -197,7 +196,7 @@ public class Files {
 		return Array.toStringArray(v);
 	}
 
-	public static void qsubMultiple(String chunkFilename, String[] jobs, int memRequiredForEachProcessInMb, double walltimeRequestedInHours) {
+	public static void qsubMultiple(String chunkFilename, String[] jobs, int numJobsToForce, int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
 		PrintWriter writer;
 		Vector<String> params;
 		int hours, minutes;
@@ -215,9 +214,12 @@ public class Files {
 	        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
 	        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
 	        params = new Vector<String>();
-            if (memRequiredForEachProcessInMb > 0) {
-            	params.add("pmem="+memRequiredForEachProcessInMb+"mb");
-            }
+	        if (memoryPerProcRequestedInMb > 0) {
+	        	params.add("pmem="+memoryPerProcRequestedInMb+"mb");
+	        }
+	        if (totalMemoryRequestedInMb > 0) {
+	        	params.add("mem="+totalMemoryRequestedInMb+"mb");
+	        }
             if (walltimeRequestedInHours > 0) {
             	hours = (int)Math.floor(walltimeRequestedInHours);
             	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
@@ -226,7 +228,16 @@ public class Files {
             if (jobs.length > 16) {
             	System.err.println("Error - not optimized past 16 processes; due some testing and implement");
             } else {
-            	params.add("nodes=1:ppn="+jobs.length);
+            	if (numJobsToForce<=0) {
+            		params.add("nodes=1:ppn="+jobs.length);
+            	} else if (numJobsToForce < jobs.length) {
+            		System.err.println("Error - cannot force fewer jobs than are provided ("+numJobsToForce+"<"+jobs.length+")");
+            		writer.close();
+            		return;
+            	} else {
+            		params.add("nodes=1:ppn="+numJobsToForce);
+            	}
+            		
             }
             if (params.size() > 0) {
     	        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
@@ -246,7 +257,7 @@ public class Files {
 		}
 	}
 
-	public static void qsubMultiple(Vector<String> jobNamesWithAbsolutePaths, IntVector jobSizes, String batchDir, String batchRoot, int maxJobsPerBatch, boolean forceMaxJobs, int memRequiredForEachProcessInMb, double walltimeRequestedInHours) {
+	public static void qsubMultiple(Vector<String> jobNamesWithAbsolutePaths, IntVector jobSizes, String batchDir, String batchRoot, int maxJobsPerBatch, boolean forceMaxJobs, String queueName, int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
 		String[] files;
 		int count;
 		Vector<String> v;
@@ -261,12 +272,12 @@ public class Files {
 		new File(batchDir).mkdirs();
 		v.add("cd "+batchDir);
 		while (count*maxJobsPerBatch < files.length) {
-			Files.qsubMultiple(batchDir+batchRoot+"."+count, Array.subArray(files, count*maxJobsPerBatch, Math.min((count+1)*maxJobsPerBatch,files.length)), memRequiredForEachProcessInMb, walltimeRequestedInHours);
-			v.add("qsub "+batchRoot+"."+count);
+			Files.qsubMultiple(batchDir+ext.removeDirectoryInfo(batchRoot)+"."+count, Array.subArray(files, count*maxJobsPerBatch, Math.min((count+1)*maxJobsPerBatch,files.length)), forceMaxJobs?maxJobsPerBatch:-1, memoryPerProcRequestedInMb, totalMemoryRequestedInMb, walltimeRequestedInHours);
+			v.add("qsub "+(queueName==null?"":"-q "+queueName+" ")+ext.removeDirectoryInfo(batchRoot)+"."+count);
 			count++;
 		}
-		Files.writeList(Array.toStringArray(v), "master."+batchRoot);
-		Files.chmod("master."+batchRoot);
+		Files.writeList(Array.toStringArray(v), ext.parseDirectoryOfFile(batchRoot)+"master."+ext.removeDirectoryInfo(batchRoot));
+		Files.chmod(ext.parseDirectoryOfFile(batchRoot)+"master."+ext.removeDirectoryInfo(batchRoot));
 	}
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[][] iterations) {
@@ -352,7 +363,7 @@ public class Files {
 			        writers[i].println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
 			        params = new Vector<String>();
 			        if (memoryRequestedInMb > 0) {
-			        	params.add("pmem="+memoryRequestedInMb+"mb");
+			        	params.add("mem="+memoryRequestedInMb+"mb");
 			        }
 			        if (walltimeRequestedInHours > 0) {
 			        	hours = (int)Math.floor(walltimeRequestedInHours);
@@ -396,6 +407,9 @@ public class Files {
 				writers[i].close();
 				chmod(root_batch_name + "_" + (i+1) + ".qsub");
 			}
+			if (numBatches == 1) {
+				chmod(root_batch_name + ".qsub");
+			}
 
 //			if (numBatches > 1) {
 //				writer.close();
@@ -420,7 +434,7 @@ public class Files {
 				for (int j = 0; j<iterations[i].length; j++) {
 					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
 				}
-				qsub(filename, trav, -1, -1);
+				qsub(filename, trav, -1, -1, -1);
 				writer.println("qsub "+filename);
 			}
 			writer.close();
@@ -430,7 +444,7 @@ public class Files {
 		}
 	}
 	
-	public static void qsub(String filename, String command, int memoryRequestedInMb, double walltimeRequestedInHours) {
+	public static void qsub(String filename, String command, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numNodes) {
 		PrintWriter writer;
 		String[] lines;
 		Vector<String> params;
@@ -445,13 +459,16 @@ public class Files {
 	        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
 	        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
 	        params = new Vector<String>();
-	        if (memoryRequestedInMb > 0) {
-	        	params.add("pmem="+memoryRequestedInMb+"mb");
+	        if (totalMemoryRequestedInMb > 0) {
+	        	params.add("mem="+totalMemoryRequestedInMb+"mb");
 	        }
 	        if (walltimeRequestedInHours > 0) {
 	        	hours = (int)Math.floor(walltimeRequestedInHours);
 	        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
 	        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
+	        }
+	        if (numNodes > 0) {
+	        	params.add("nodes=1:ppn="+numNodes);
 	        }
 	        	
 	        if (params.size() > 0) {
@@ -2712,7 +2729,7 @@ public class Files {
 		
 		index = -1;
 		for (int h = 1; h < header.length; h++) {
-			if (ext.indexOfStr(header[h], Metal.PVALUES, false, true) >= 0) {
+			if (ext.indexOfStr(header[h], Aliases.PVALUES, false, true) >= 0) {
 				if (index == -1) {
 					index = h;
 				} else {

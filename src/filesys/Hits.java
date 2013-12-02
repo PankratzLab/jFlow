@@ -3,7 +3,6 @@ package filesys;
 import java.io.*;
 import java.util.*;
 import common.*;
-import gwas.Metal;
 
 public class Hits {
 
@@ -16,7 +15,7 @@ public class Hits {
 	public void incorporateFromFile(String filename, double threshold, Logger log) {
 		int[] indices;
 
-		indices = ext.indexFactors(new String[][] {Metal.MARKER_NAMES, Metal.PVALUES}, Files.getHeaderOfFile(filename, log), false, true, true, log, true);
+		indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES}, Files.getHeaderOfFile(filename, log), false, true, true, log, true);
 		incorporateFromFile(filename, indices, threshold, log);		
 	}
 	

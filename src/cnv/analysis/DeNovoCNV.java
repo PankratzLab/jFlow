@@ -247,14 +247,14 @@ public class DeNovoCNV {
 						 + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -cnv " + pennDataDir +"[%2].rawcnv -list " + pennOutDir + "/lists/[%2]_trio.lst -out " + pennOutDir + "[%2].triocnv\n"
 						 + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -list " + pennOutDir + "lists/[%2]_trio.lst -out " + pennOutDir + "[%2].jointcnv\n";
 				Files.qsub("runPennCNV", proj.getProjectDir() + "penn_scripts/", numQsubFiles, commands, iterations, 2000, 24);
-				Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, proj.getProjectDir() + "penn_scripts/runPennCNV_", ".qsub"), 2000, 24);
+				Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, proj.getProjectDir() + "penn_scripts/runPennCNV_", ".qsub"), 8, -1, 22000, 24);
 
 			} else {
 				commands = pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir +"[%2] -out " + pennOutDir + "[%2].rawcnv\n"
 						 + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -cnv " + pennDataDir +"[%2].rawcnv " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir + "[%2] -out " + pennOutDir + "[%2].triocnv\n"
 						 + pennBinDir + "detect_cnv.pl -joint -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " " + pennDataDir + "[%0] " + pennDataDir + "[%1] " + pennDataDir + "[%2] -out " + pennOutDir + "[%2].jointcnv\n";
 				Files.qsub("runPennCNV", proj.getProjectDir() + "penn_scripts/", numQsubFiles, commands, iterations, 2000, 24);
-				Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, proj.getProjectDir() + "penn_scripts/runPennCNV_", ".qsub"), 2000, 24);
+				Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, proj.getProjectDir() + "penn_scripts/runPennCNV_", ".qsub"), 8, -1, 22000, 24);
 	
 //				this method will create master.[root_batch_name]
 //				qsub batch1.qsub
