@@ -939,7 +939,7 @@ public class Conditional {
 					markers = addlMarkers == null ? markerNames[i] : addlMarkers[i];
 					writer.println("jcp gwas.Conditional snps="+ext.replaceAllWith(markers, "_", ":")+" dose=data.dose info=data.info pheno=../"+pheno+" out=conPheno.dat");
 					writer.println("awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' data.info > data.pinfo");
-					Files.qsub(markerNames[i]+"/"+markerNames[i]+".qsub", Probabel.EXECS[0]+" -p conPheno.dat -d data.dose -i data.pinfo -c 1 -o "+markers, -1, -1);
+					Files.qsub(markerNames[i]+"/"+markerNames[i]+".qsub", Probabel.EXECS[0]+" -p conPheno.dat -d data.dose -i data.pinfo -c 1 -o "+markers, -1, -1, -1);
 					writer.println("qsub "+markerNames[i]+".qsub");
 					writer.println("cd ..");
 					writer.println();

@@ -14,9 +14,14 @@ public class PhenoPrep {
 	private double[][] database;
 	private Logger log;
 
-	public static void parse(String dir, String filename, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String[] covars, String idFile, String outFile, Logger log) {
+	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String[] covars, String idFile, String extras, String outFile, Logger log) {
 		PhenoPrep prep;
 		
+		if (outFile == null) {
+			outFile = pheno+"_out.csv";
+			log.reportError("Warning - no output filename specified using [pheno]_out.csv ("+outFile+")");
+		}
+
 		if (winsorize && remove) {
 			log.reportError("Error - you have selected to both Winsorize and remove outliers for phenotype '"+pheno+"'; pick one or the other");
 			return;
@@ -42,7 +47,12 @@ public class PhenoPrep {
 		}
 		
 		
-		prep = new PhenoPrep(dir+filename, idFile==null? null : dir+idFile, pheno, covars, log);
+		prep = new PhenoPrep(dir+filename, idFile==null? null : dir+idFile, idColName, pheno, covars, log);
+		
+		if (prep.failed()) {
+			log.report("Error - PhenoPrep failed for "+pheno);
+			return;
+		}
 		
 		if (transform != null) {
 			prep.transform(transform);
@@ -64,14 +74,19 @@ public class PhenoPrep {
 			prep.inverseNormalize();
 		}
 		
+		if (extras != null) {
+			prep.addExtraColumns(idColName, extras);
+		}
+		
 		prep.writeFinalFile(dir+outFile);
 	}
 	
-	public PhenoPrep(String filename, String idFile, String pheno, String[] covars, Logger log) {
+	public PhenoPrep(String filename, String idFile, String idColName, String pheno, String[] covars, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		String temp;
 		int[] indices;
+		int idIndex;
 		String[] idsWithDNA;
 		String id;
 		String delimiter;
@@ -83,32 +98,33 @@ public class PhenoPrep {
 
 		this.log = log;
 		
-		temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];
-		delimiter = ext.determineDelimiter(temp);
-		
-		indices = ext.indexFactors(
-				Array.insertStringAt(pheno, covars, 0),
-				temp.split(delimiter, -1),
-				false, log, true, true);
-		
 		if (idFile == null) {
 			idsWithDNA = null;
 		} else {
 			idsWithDNA = HashVec.loadFileToStringArray(idFile, false, new int[] {0}, false);
 		}
 
-		header = null;
 		vIDs = new Vector<String>();
 		vData = new Vector<double[]>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			temp = reader.readLine();
+			delimiter = ext.determineDelimiter(temp);
 			header = temp.split(delimiter, -1);
+			idIndex = ext.indexOfStr(idColName, header, false, true, log, true);
+			if (idIndex < 0) {
+				log.reportError("Error - could not find specified id: "+idColName);
+				reader.close();
+				return;
+			}
+			indices = ext.indexFactors(
+					Array.insertStringAt(pheno, covars, 0),
+					header, false, log, true, true);
 			finalHeader = Array.subArray(header, indices);
 			while (reader.ready()) {
 				temp = reader.readLine();
 				line = temp.split(delimiter, -1);
-				id = line[0];
+				id = line[idIndex];
 				if (idsWithDNA == null || ext.indexOfStr(id, idsWithDNA) >= 0) {
 					line = Array.subArray(line, indices);
 					use = true;
@@ -138,6 +154,14 @@ public class PhenoPrep {
 		
 		finalIDs = Array.toStringArray(vIDs);
 		database = Matrix.toDoubleArrays(vData);
+
+		if (finalIDs.length == 0) {
+			log.reportError("Error - there are no indiviudals present in the final dataset"+(idFile != null?"; check the ids file to make sure the same set of IDs were used in both input files":""));
+		}
+	}
+	
+	public boolean failed() {
+		return finalIDs == null;
 	}
 	
 	public void transform(String transform) {
@@ -232,6 +256,70 @@ public class PhenoPrep {
 		finalHeader = new String[] {finalHeader[0]};		
 	}
 
+	public void addExtraColumns(String idColName, String extras) {
+		String[] line;
+		String temp;
+		int[] indices;
+		int idIndex;
+		String delimiter;
+		Vector<String> vIDs;
+		Vector<double[]> vData;
+		double[] data;
+		boolean use;
+		String[] header, newFinalHeader;
+		boolean commaDelimitedFile;
+		Hashtable<String, String> hash;
+
+		temp = Files.getFirstNLinesOfFile(extras, 1, log)[0];
+		delimiter = ext.determineDelimiter(temp);
+		commaDelimitedFile = delimiter.equals(",");
+		header = Files.getHeaderOfFile(extras, log);
+		idIndex = ext.indexOfStr(idColName, header);
+		if (idIndex == -1) {
+			log.reportError("Error - extras file '"+extras+"' does not contain the same id linker ("+idColName+") as the main file; aborting all");
+			System.exit(1);
+		}
+		indices = ext.indexFactors(Array.removeFromArray(header, idIndex), header, true, log, true, true);
+		hash = HashVec.loadFileToHashString(extras, new int[] {idIndex}, indices, commaDelimitedFile, "\t", true, false, false);
+		
+		newFinalHeader = new String[finalHeader.length+indices.length] ;
+		for (int i = 0; i < finalHeader.length; i++) {
+			newFinalHeader[i] = finalHeader[i];
+		}
+		for (int i = 0; i < indices.length; i++) {
+			newFinalHeader[finalHeader.length+i] = header[indices[i]];
+		}
+
+		vIDs = new Vector<String>();
+		vData = new Vector<double[]>();
+		for (int i = 0; i < finalIDs.length; i++) {
+			if (hash.containsKey(finalIDs[i])) {
+				line = hash.get(finalIDs[i]).split("[\\s]+");
+				use = true;
+				for (int j = 0; j < line.length; j++) {
+					if (ext.isMissingValue(line[j])) {
+						use = false;
+					}
+				}
+				if (use) {
+					vIDs.add(finalIDs[i]);
+					data = new double[finalHeader.length+line.length];
+					for (int j = 0; j < finalHeader.length; j++) {
+						data[j] = database[i][j];
+					}
+					for (int j = 0; j < line.length; j++) {
+						data[finalHeader.length+j] = Double.parseDouble(line[j]);
+					}
+					vData.add(data);
+				}
+			}
+		}
+		
+		finalHeader = newFinalHeader;
+		finalIDs = Array.toStringArray(vIDs);
+		database = Matrix.toDoubleArrays(vData);
+	}
+	
 	public void writeFinalFile(String filename) {
 		PrintWriter writer;
 		String delimiter;
@@ -253,21 +341,23 @@ public class PhenoPrep {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String dir;
-		String filename;
+		String dir = "";
+		String filename = "pheno.csv";
 		String logfile = null;
 		Logger log;
 		double sdThreshold = 3.0;
-		String pheno;
+		String id = "id";
+		String pheno = null;
 		String transform = null;
 		String[] covars = null;
 		String idFile = null;
-		String outFile;
+		String outFile = null;
 		boolean winsorize = false;
 		boolean remove = false;
 		boolean makeResids = false;
 		boolean afterResids = false;
 		boolean inverseNormalize = false;
+		String extras = null;
 		
 //		filename = "ARIC_Whites_WBC.csv";
 //		pheno = "WBC";
@@ -278,10 +368,11 @@ public class PhenoPrep {
 //		idFile = "EA_keeps.dat";
 //		winsorize = true;
 
-		dir = "D:/SkatMeta/results_hemostasis/";
-		filename = "pheno_F7.csv";
-		pheno = "F7";
-		outFile = "pheno_F7_winsorize_3sd.csv";
+//		dir = "D:/SkatMeta/results_hemostasis/";
+//		filename = "pheno_F7.csv";
+//		pheno = "F7";
+//		outFile = "pheno_F7_winsorize_3sd.csv";
+		
 //		covars = new String[] {"V1AGE01", "Sex"};
 //		winsorize = false;
 //		remove = false;
@@ -292,18 +383,21 @@ public class PhenoPrep {
 				"gwas.PhenoPrep requires 0-1 arguments\n" +
 				"   (0) name of directory (i.e. dir=" + dir + " (default))\n" + 
 				"   (1) name of input file (i.e. file=" + filename + " (default))\n" + 
-				"   (2) phenotype (i.e. pheno=" + pheno + " (default))\n" + 
-				"   (3) covariates (i.e. covar=Age,Sex,Site1,Site2 (not the default))\n" + 
-				"   (4) name of output file (i.e. out=" + outFile + " (default))\n" + 
-				"   (5) transformation to apply to phenotype (i.e. transform=" + transform + " (default; current options are ln, sqrt, or null for none))\n" + 
-				"   (6) name of file with IDs in genotype file (i.e. ids=" + idFile + " (default; set to null to include all rows with complete data))\n" + 
-				"   (7) winsorize phenotype (i.e. winsorize=" + winsorize + " (default))\n" + 
-				"   (8) remove outliers (i.e. remove=" + remove + " (default))\n" + 
-				"   (9) threshold in standard deviation units at which to winsorize or remove outliers (i.e. sdThrehsold=" + sdThreshold + " (default))\n" + 
-				"  (10) generate residuals instead of including covariates (i.e. makeResids=" + makeResids + " (default))\n" + 
-				"  (11) winsorize/remove outliers after generating residuals (i.e. afterResids=" + afterResids + " (default))\n" + 
-				"  (12) inverse quantile normalize the final phenotype (i.e. inverseNormalize=" + inverseNormalize + " (default))\n" + 
-				"  (13) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" + 
+				"   (2) id column name in input file (i.e. id=" + id + " (default))\n" + 
+				"   (3) phenotype column name (i.e. pheno=" + pheno + " (default))\n" + 
+				"   (4) covariate column names (i.e. covar=Age,Sex,Site1,Site2 (not the default))\n" + 
+				"   (5) name of output file (i.e. out=" + outFile + " (default))\n" + 
+				"   (6) transformation to apply to phenotype (i.e. transform=" + transform + " (default; current options are ln, sqrt, or null for none))\n" + 
+				"   (7) name of file with IDs to use (e.g., that are in a genotype file) (i.e. ids=" + idFile + " (default; set to null to include all rows with complete data))\n" + 
+				"   (8) winsorize phenotype (i.e. winsorize=" + winsorize + " (default))\n" + 
+				"   (9) remove outliers (i.e. remove=" + remove + " (default))\n" + 
+				"  (10) threshold in standard deviation units at which to winsorize or remove outliers (i.e. sdThrehsold=" + sdThreshold + " (default))\n" + 
+				"  (11) generate residuals instead of including covariates (i.e. makeResids=" + makeResids + " (default))\n" + 
+				"  (12) winsorize/remove outliers after generating residuals (i.e. afterResids=" + afterResids + " (default))\n" + 
+				"  (13) inverse quantile normalize the final phenotype (i.e. inverseNormalize=" + inverseNormalize + " (default))\n" + 
+				"  (14) name of file containing extra variables to include in final file but not in outlier calculations (i.e. extras="+extras+" (default))\n" + 
+				"       (use this to add things like PCs, when you want to include all data in the SD/outlier calculation but only retain those you'll analyze)\n" + 
+				"  (15) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -315,6 +409,9 @@ public class PhenoPrep {
 				numArgs--;
 			} else if (args[i].startsWith("file=")) {
 				filename = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("id=")) {
+				id = ext.parseStringArg(args[i], "[firstColumn]");
 				numArgs--;
 			} else if (args[i].startsWith("pheno=")) {
 				pheno = ext.parseStringArg(args[i], "missingPhenotype");
@@ -352,6 +449,9 @@ public class PhenoPrep {
 			} else if (args[i].startsWith("inverseNormalize=")) {
 				inverseNormalize = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("extras=")) {
+				extras = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -371,7 +471,7 @@ public class PhenoPrep {
 		}
 		
 		try {
-			parse(dir, filename, pheno, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, outFile, log);
+			parse(dir, filename, id, pheno, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, extras, outFile, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

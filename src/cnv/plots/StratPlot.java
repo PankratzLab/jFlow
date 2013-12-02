@@ -324,7 +324,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 	public static void main(String[] args) {
 //		String filename = Project.DEFAULT_PROJECT;
-		String filename = "/workspace/Genvisis/projects/practice.properties";
+		String filename = "stratify.properties";
 //		String filename = "projects/demo_indian_diabetes.properties";
 //		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
 		

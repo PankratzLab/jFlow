@@ -9,7 +9,7 @@ import stats.Rscript;
 import common.*;
 import filesys.*;
 
-public class SkatMeta {
+public class SeqMeta {
 	public static final String[] ALGORITHMS = {
 		"singlesnpMeta", 
 		"burdenMeta", 
@@ -271,10 +271,12 @@ public class SkatMeta {
 								objectName = getObjectName(dir, files[f]);
 							} else {
 								log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(files[f])+".object"+"'");
-								objectName = "UNKNOWN_SKAT_COHORT_OBJECT_NAME";
+								objectName = "UNKNOWN_PREP_SCORES_OBJECT_NAME";
 								problem = true;
 							}
 							commands.add("ls()");
+							commands.add("objectType <- class("+objectName+")");
+							commands.add("objectType");
 
 							chrsToDo = new IntVector();
 							maxChr = getMaxChr();
@@ -297,14 +299,14 @@ public class SkatMeta {
 								// filter for the gene names present on the chromosome
 								commands.add("genes <- unique("+snpInfoName+"["+snpInfoName+"$"+chromName+" == \""+chrom+"\", \""+geneName+"\"])");
 
-								// take the intersect of those actually present in the skatCohort object
+								// take the intersect of those actually present in the prepScores object
 								commands.add("idx <- intersect(genes, names("+objectName+"))");
 
-								// create the skatCohort subset
+								// create the prepScores subset
 								commands.add(subsetObject+" <- "+objectName+"[idx]");
 
-								// make sure the dataset has the skatCohort class
-								commands.add("class("+subsetObject+") <- \"skatCohort\"");
+								// make sure the dataset has the appropriate parent skatCohort or seqMeta class
+								commands.add("class("+subsetObject+") <- objectType");
 
 								// save the new file
 								commands.add("save("+subsetObject+", file=\""+localDir+subsetObject+"_f"+f+".RData\", compress=\"bzip2\")");
@@ -321,7 +323,8 @@ public class SkatMeta {
 								Files.qsub(dir+"batchSplits/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+getRscriptExecutable(maps, log)+" --no-save "+filename, 10000, 0.5, 1);
 								toBeSplit.add("qsub "+ext.rootOf(filename)+".qsub");
 								jobNames.add(dir+"batchSplits/"+ext.rootOf(filename)+".qsub");
-								jobSizes.add((int)(new File(dir+files[f]).length()+chrsToDo.size()*2/maxChr*new File(dir+files[f]).length()));
+								jobSizes.add((int)(new File(dir+files[f]).length()));
+//								jobSizes.add((int)(new File(dir+files[f]).length()+chrsToDo.size()*2/maxChr*new File(dir+files[f]).length()));
 							}
 						}
 					}
@@ -334,14 +337,14 @@ public class SkatMeta {
 			return;
 		}
 		
-		toBeSplit.add("# make sure to run \"SkatMeta -consolidate\" after everything else is run!!!");
+		toBeSplit.add("# make sure to run \"SeqMeta -consolidate\" after everything else is run!!!");
 		Files.writeList(Array.toStringArray(toBeSplit), dir+"master.toBeSplit");
 		Files.chmod(dir+"master.toBeSplit");
 		
 		log.report("");
 		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
 		
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, false, null, -1, 22000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, true, null, -1, 22000, 2);
 	}
 	
 	public static void consolidate(String dir, MetaAnalysisParams maps) {
@@ -552,7 +555,7 @@ public class SkatMeta {
 									objectName = getObjectName(dir, objectFilename);
 								} else {
 									log.reportError("Error - could not find file '"+dir+"batchChecks/"+ext.rootOf(objectFilename)+".object"+"'");
-									objectName = "UNKNOWN_SKAT_COHORT_OBJECT_NAME";
+									return;
 								}
 							}
 							
@@ -565,10 +568,19 @@ public class SkatMeta {
 							}
 
 							commands = new Vector<String>();
-							commands.add("library(skatMeta)");
+							commands.add("library(bdsmatrix)");
+							commands.add("library(seqMeta)");
 							commands.add("load(\""+dir+snpInfoFile+"\")");
 							commands.add("load(\""+objectFilename+"\")");
 							commands.add("ls()");
+							if (!runningByChr) {
+								originalObjectName = objectName;
+								objectName = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0];
+								commands.add(objectName+" <- "+originalObjectName);
+								commands.add("rm(\""+originalObjectName+"\")");
+								commands.add("ls()");
+							}
+							
 							count = 0;
 							for (int m = 0; m < methods.length; m++) {
 								root = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0];
@@ -626,7 +638,8 @@ public class SkatMeta {
 				for (int chr = 1; chr <= (runningByChr?maxChr:1); chr++) {
 					chrom = chr==23?"X":(chr==24?"Y":chr+"");
 					commands = new Vector<String>();
-					commands.add("library(skatMeta)");
+					commands.add("library(bdsmatrix)");
+					commands.add("library(seqMeta)");
 					if (runningByChr) {
 						snpInfoFile = "snpInfos/snpInfo_chr"+chrom+".RData";
 					}
@@ -702,7 +715,8 @@ public class SkatMeta {
 			for (int chr = 1; chr <= (runningByChr?maxChr:1); chr++) {
 				chrom = chr==23?"X":(chr==24?"Y":chr+"");
 				commands = new Vector<String>();
-				commands.add("library(skatMeta)");
+				commands.add("library(bdsmatrix)");
+				commands.add("library(seqMeta)");
 				if (runningByChr) {
 					snpInfoFile = "snpInfos/snpInfo_chr"+chrom+".RData";
 				}
@@ -1552,6 +1566,151 @@ public class SkatMeta {
 		}
 	}
 	
+	public static void parseGenePositions(String dir, MetaAnalysisParams maps) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp;
+		Hashtable<String, Segment> hash;
+		Hashtable<String, String> errors;
+		long time;
+		
+		String filename;
+		String[] header;
+		int[] indices;
+		Logger log;
+		String delimiter;
+		Segment seg, trav;
+		String[] geneNames;
+		byte[] chrs;
+		int[] positions;
+		CountHash ch;
+		
+		time = new Date().getTime();
+		System.out.println(ext.getTime(time)+" started parsing gene positions");
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		dir = ext.verifyDirFormat(dir);
+		log = new Logger(dir+"parseGenePositions.log");
+		
+		filename = maps.getSnpInfoFilename();
+		filename = ext.rootOf(filename)+".csv";
+		System.out.println("Attempting to parse "+dir+filename);
+
+		ch = new CountHash();
+		hash = new Hashtable<String, Segment>();
+		errors = new Hashtable<String, String>();
+		try {
+			reader = Files.getAppropriateReader(filename);
+			temp = reader.readLine();
+			delimiter = ext.determineDelimiter(temp);
+			if (delimiter.equals(",")) {
+				header = ext.splitCommasIntelligently(temp, true, log);
+			} else {
+				header = temp.trim().split(delimiter);
+			}
+			indices = ext.indexFactors(new String[][] {Aliases.GENE_UNITS,  Aliases.CHRS,  Aliases.POSITIONS}, header, false, false, true, false, log, true);
+			while (reader.ready()) {
+				temp = reader.readLine();
+				if (delimiter.equals(",")) {
+					line = ext.splitCommasIntelligently(temp, true, log);
+				} else {
+					line = temp.trim().split(delimiter);
+				}
+				line = Array.subArray(line, indices);
+				trav = new Segment(Positions.chromosomeNumber(line[1], log), Integer.parseInt(line[2]), Integer.parseInt(line[2]));
+				if (hash.containsKey(line[0])) {
+					seg = hash.get(line[0]);
+					if (trav.getChr() != seg.getChr()) {
+						if (!errors.containsKey(line[0]+"\t"+seg.getChr()+" and "+trav.getChr())) {
+							System.err.println("Error - still have gene '"+line[0]+"' listed on two different chromosomes ("+seg.getChr()+" and "+trav.getChr()+")");
+							errors.put(line[0]+"\t"+seg.getChr()+" and "+trav.getChr(), "");
+						}
+					} else if (trav.getStart() < seg.getStart()) {
+						seg = new Segment(seg.getChr(), trav.getStart(), seg.getStop());
+					} else if (trav.getStop() > seg.getStop()) {
+						seg = new Segment(seg.getChr(), seg.getStart(), trav.getStop());
+					}
+				} else {
+					seg = trav;
+				}
+				hash.put(line[0], seg);
+				ch.add(line[0]);
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
+		}
+		
+		System.out.println("Read in all data in " + ext.getTimeElapsed(time));
+		
+		geneNames = HashVec.getKeys(hash, false, false);
+		chrs = new byte[geneNames.length];
+		positions = new int[geneNames.length];
+		for (int i = 0; i < geneNames.length; i++) {
+			seg = hash.get(geneNames[i]);
+			chrs[i] = seg.getChr();
+			positions[i] = seg.getStart();
+		}
+		
+		System.out.println("Coalated positions at " + ext.getTimeElapsed(time));
+
+		indices = Sort.orderTwoLayers(chrs, positions);
+		
+		System.out.println("Finished sorting at " + ext.getTimeElapsed(time));
+			
+		try {
+			writer = new PrintWriter(new FileWriter(dir+"gene_positions.xln"));
+			writer.println("Gene\tChr\tPositionOfFirstMarkerInGene\tPositionOfLastMarkerInGene\tNumMarkersInGene");
+			for (int i = 0; i < geneNames.length; i++) {
+				seg = hash.get(geneNames[indices[i]]);
+				writer.println(geneNames[indices[i]]+"\t"+seg.getChr()+"\t"+seg.getStart()+"\t"+seg.getStop()+"\t"+ch.getCount(geneNames[indices[i]]));
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + dir+"gene_positions.xln");
+			e.printStackTrace();
+		}
+
+		System.out.println("and done with a total time of " + ext.getTimeElapsed(time));
+	}
+	
+	public static void delineateRegions(String dir, MetaAnalysisParams maps, double singleSnpThreshold, double geneThreshold) {
+		String[] groups;
+		String filename;
+		String[][] phenotypes;
+		String[][] methods;
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		dir = ext.verifyDirFormat(dir);
+		
+		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
+		methods = maps.getMethods();
+
+		for (int i = 0; i < phenotypes.length; i++) {
+			groups = new String[] {};
+			
+			for (int m = 0; m < methods.length; m++) {
+				if (ext.indexOfStr(methods[m][1], groups) == -1) {
+					groups = Array.addStrToArray(methods[m][1], groups);
+				}
+			}
+			
+			for (int j = 0; j < groups.length; j++) {
+				filename = dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[j]+".csv";
+				System.out.println("cp "+phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[j]+".csv hitsAssembled/");
+				Files.copyFile(filename, dir+"hitsAssembled/"+ext.removeDirectoryInfo(filename));
+			}
+		}
+	}
+	
 	public static void makeQQplots(String dir, MetaAnalysisParams maps) {
 		String[] groups;
 		String filename;
@@ -1624,8 +1783,9 @@ public class SkatMeta {
 		boolean runAll = false;
 		boolean parseAll = false;
 		boolean checkNs = false;
-		boolean hits = false;
 		boolean computeMACs = false;
+		boolean hits = false;
+		boolean regions = false;
 		String mafThreshold = null;
 		int macThresholdStudy = 5;
 		int macThresholdTotal = 40;
@@ -1636,34 +1796,39 @@ public class SkatMeta {
 		boolean forceMeta = false;
 		boolean copy = false;
 		boolean qq = false;
+		boolean genePositions = false;
 
 		String usage = "\n" + 
-		"gwas.SkatMeta requires 0-1 arguments\n" + 
+		"gwas.SeqMeta requires 0-1 arguments\n" + 
 		"   (0) directory (i.e. dir=" + dir + " (default))\n" + 
 		"   (1) filename of MetaAnalysisParameters (i.e. maps=" + mapsFile + " (default; create an empty file of this name to populate with examples))\n" + 
 		" AND\n" + 
 		"   (2) determine object names (i.e. -determineObjectNames (not the default))\n" + 
 		" OR\n" + 
-		"   (3) split all (i.e. -splitAll (not the default))\n" + 
+		"   (2) split all (i.e. -splitAll (not the default))\n" + 
 		" OR\n" + 
-		"   (3) consolidate split files (i.e. -consolidate (not the default))\n" + 
+		"   (2) consolidate split files (i.e. -consolidate (not the default))\n" + 
 		" OR\n" + 
-		"   (3) run all (i.e. -runAll (not the default))\n" +
+		"   (2) run all (i.e. -runAll (not the default))\n" +
 		"   (4) force the meta-analysis to be redone even if meta-analysis output files exist (i.e. -forceMeta (not the default))\n" +
 		" OR\n" + 
-		"   (3) parse all runs (i.e. -parseAll (not the default))\n" + 
-		"   (4) if the meta-analysis was forced, then this will restitch the files (i.e. -forceMeta (not the default))\n" +
+		"   (2) parse all runs (i.e. -parseAll (not the default))\n" + 
+		"   (3) if the meta-analysis was forced, then this will restitch the files (i.e. -forceMeta (not the default))\n" +
 		" OR\n" + 
-		"   (3) get summary metrics for single SNP results (i.e. -metrics (not the default))\n" + 
+		"   (2) get summary metrics for single SNP results (i.e. -metrics (not the default))\n" + 
 		" OR\n" + 
-		"   (3) check sample sizes for each chr18 data file (i.e. -checkNs (not the default))\n" + 
+		"   (2) check sample sizes for each chr18 data file (i.e. -checkNs (not the default))\n" + 
 		" OR\n" + 
-		"   (3) compute minor allele counts (i.e. -computeMACs (not the default))\n" + 
-		"   (4) minor allele frequency threshold (i.e. mafThreshold=0.01 (not the default; if left out will compute for all relevant threhsolds))\n" + 
+		"   (2) compute minor allele counts (i.e. -computeMACs (not the default))\n" + 
+		"   (3) minor allele frequency threshold (i.e. mafThreshold=0.01 (not the default; if left out will compute for all relevant threhsolds))\n" + 
+		" OR\n" + 
+		"   (2) delineate start and stop positions for the genes (i.e. -genePositions (not the default))\n" + 
 		" OR\n" + 
 		"   (2) parse top hits (i.e. -hits (not the default))\n" + 
 		"   (3) minor allele count threshold for a study (i.e. macThresholdStudy="+macThresholdStudy+" (default))\n" + 
 		"   (4) minor allele count threshold for meta-analysis (i.e. macThresholdTotal="+macThresholdTotal+" (default))\n" + 
+		" OR\n" + 
+		"   (2) parse regions from top hits (i.e. -regions (not the default))\n" + 
 		" OR\n" + 
 		"   (2) copy top hit files (i.e. -copy (not the default))\n" + 
 		" OR\n" + 
@@ -1704,6 +1869,9 @@ public class SkatMeta {
 			} else if (args[i].startsWith("-computeMACs")) {
 				computeMACs = true;
 				numArgs--;
+			} else if (args[i].startsWith("-genePositions")) {
+				genePositions = true;
+				numArgs--;
 			} else if (args[i].startsWith("mafThreshold=")) {
 				mafThreshold = ext.parseStringArg(args[i], null);
 				numArgs--;
@@ -1715,6 +1883,9 @@ public class SkatMeta {
 				numArgs--;
 			} else if (args[i].startsWith("-hits")) {
 				hits = true;
+				numArgs--;
+			} else if (args[i].startsWith("-regions")) {
+				regions = true;
 				numArgs--;
 			} else if (args[i].startsWith("-copy")) {
 				copy = true;
@@ -1751,6 +1922,13 @@ public class SkatMeta {
 //		System.exit(1);
 //		hits = true;
 		
+//		parseGenePositions("", new MetaAnalysisParams("metaAnalysis.params", new Logger()));
+//		System.exit(1);
+
+//		dir = "D:/ExomeChip/Hematology/00src/CHARGE-RBC/06_everythingIncludingYFS/";
+//		delineateRegions(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), 1E-7, 2E-6);
+//		System.exit(1);
+		
 		try {
 			log = new Logger(logfile);
 			maps = new MetaAnalysisParams(mapsFile, log);
@@ -1777,6 +1955,10 @@ public class SkatMeta {
 			} else if (hits) {
 				assembleHits(dir, maps, macThresholdStudy, macThresholdTotal);
 //				metaAll(dir, PHENOTYPES, STUDIES, GROUPS, METHODS, UNIT_OF_ANALYSIS, DEFAULT_SAMPLE_SIZES, WEIGHTED, SINGLE_VARIANTS, GROUP_ANNOTATION_PARAMS);
+			} else if (genePositions) {
+				parseGenePositions(dir, maps);
+			} else if (regions) {
+				delineateRegions(dir, maps, 1E-7, 2E-6);
 			} else if (copy) {
 				copyHits(dir, maps);
 			} else if (qq) {

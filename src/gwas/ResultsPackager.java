@@ -12,6 +12,7 @@ public class ResultsPackager {
 	public static final String[] STANDARD_OUTPUT_FORMAT = {"MarkerName", "Chr", "Position", "Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"};
 
 	public static final String[] PLINK_REQS = {"SNP", "A1", "TEST", "NMISS", "OR", "BETA", "SE", "P"};
+	public static final String[] SOL_REQS = {"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0", "N1", "N2", "NMISS"};
 	
 	public static void parseIBCFormatFromGWAF(String dir, String resultsFile, String mapFile, String originalFrqFile, String customFrqFile, String markersToReport, double filter, String outfile, Logger log) {
 		BufferedReader reader;
@@ -130,7 +131,7 @@ public class ResultsPackager {
 			return;
 		}
 		if (!Files.exists(dir+resultsFile)) {
-			log.reportError("Error: could not find results file '"+dir+mapFile+"'");
+			log.reportError("Error: could not find results file '"+dir+resultsFile+"'");
 			return;
 		}
 		mapHash = HashVec.loadFileToHashString(dir+mapFile, new int[] {1}, new int[] {0,3}, false, "\t", false, false, false);
@@ -203,6 +204,140 @@ public class ResultsPackager {
 					}
 //					writer.println("\t"+line[indices[6]]+"\t"+line[indices[7]]); // se, pval
 					writer.println("\t"+(indices[6] == -1?"NA":line[indices[6]])+"\t"+line[indices[7]]); // se, pval
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + resultsFile + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + resultsFile + "\"");
+			return;
+		}
+	}
+	
+	public static void parseSOLformat(String dir, String resultsFile, String mapFile, String freqFile, String markersToReport, double filter, String outfile, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp, trav;
+		Hashtable<String, String> markerHash, mapHash;  // , freqHash; // , customFreqHash;
+		String delimiter;
+		int[] indices;
+		boolean logistic;
+		int nnmiss, mac;
+
+		dir = ext.verifyDirFormat(dir);
+				
+		if (outfile == null) {
+			outfile = ext.rootOf(resultsFile, false)+".out";
+		}
+		
+		if (markersToReport != null) {
+			markerHash = HashVec.loadFileToHashNull(dir+markersToReport, false);
+		} else {
+			markerHash = null;
+		}
+		
+		if (Files.exists(dir+mapFile)) {
+			mapFile = dir+mapFile;
+		} else if (!Files.exists(mapFile)) {
+			log.reportError("Error: could not find map file '"+mapFile+"' in its absolute path or in '"+dir+"'");
+			return;
+		}
+//		if (!Files.exists(dir+freqFile)) {
+//			log.reportError("Error: could not find freq file '"+dir+freqFile+"'");
+//			return;
+//		}
+		if (!Files.exists(dir+resultsFile)) {
+			log.reportError("Error: could not find results file '"+dir+resultsFile+"'");
+			return;
+		}
+		mapHash = HashVec.loadFileToHashString(mapFile, new int[] {1}, new int[] {0,2,3,4}, false, "\t", false, false, false);
+		
+		// TODO
+//		freqHash = HashVec.loadFileToHashString(dir+freqFile, new int[] {1}, new int[] {2,3,4}, false, "\t", false, false, false); // 4 gets global frequency
+		
+		try {
+			reader = Files.getAppropriateReader(dir+resultsFile);
+			new File(ext.parseDirectoryOfFile(dir+outfile)).mkdirs();
+			writer = Files.getAppropriateWriter(dir+outfile);
+			temp = reader.readLine().trim();
+			delimiter = ext.determineDelimiter(temp);
+			line = temp.split(delimiter);
+			indices = ext.indexFactors(SOL_REQS, line, false, log, false, false);
+			
+			// TODO: Need to revisit after logistic has been implemented
+			if (indices[4] == -1 && indices[5] == -1) {
+				log.reportError("Error - results file did not contain a column for 'OR' (logistic) or 'BETA' (linear); aborting");
+				return;
+//			} else if (indices[4] != -1 && indices[5] != -1) {
+//				log.reportError("Error - results file contain a column for both 'OR' (logistic) and 'BETA' (linear); aborting");
+//				return;
+//			} else if (indices[4] != -1) {
+//				logistic = true;
+			} else {
+				logistic = false;
+			}
+
+			if (logistic) {
+				log.reportError("Logistic parsing has not yet been implemented; check the column order etc, parse it properly and re-run");
+				return;
+			}
+			
+			if (indices[6] == -1) {
+				log.reportError("Warning - results file did not contain a column for 'StdErr/SE'; values will be set to NA");
+			}
+			
+			
+			writer.println(Array.toStr(STANDARD_OUTPUT_FORMAT));
+			while (reader.ready()) {
+				line = reader.readLine().trim().split(delimiter);
+				trav = line[indices[0]];
+				if ((markerHash == null || markerHash.containsKey(trav)) && (filter >= 1 || (!ext.isMissingValue(line[indices[3]]) && Double.parseDouble(line[indices[3]]) <= filter))) {
+					writer.print(trav); // MarkerName
+					if (mapHash.containsKey(trav)) {
+						writer.print("\t"+mapHash.get(trav)); // chr, pos, A1, A2
+					} else {
+						log.reportError("Error - no map position for "+trav);
+						writer.print("\t.\t.\t.\t."); // null, null
+					}
+//					if (line[indices[1]].equals("NA")) {
+//						writer.print("\t"+line[indices[1]]+"\t0\t0"); // missing data, null, null
+//					} else {
+//
+//						if (freqHash.containsKey(trav)) {
+//							writer.print("\t"+Array.toStr(Alleles.getAlleleFreqForA1(line[indices[1]], freqHash.get(trav).split("\t")))); // a1, a2, a1_freq
+//						} else if (freqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
+//							writer.print("\t"+Array.toStr(Alleles.getAlleleFreqForA1(line[indices[1]], freqHash.get(ext.replaceAllWith(trav, ".", "-")).split("\t")))); // a1, a2, a1_freq
+//						} else {
+//							log.reportError("Error - no frequency for "+trav);
+//							writer.print("\t"+line[indices[1]]+"\t.\t."); // a1, null, null
+//						}
+//
+//					}
+
+//					writer.print("\t"+line[indices[9]]); // NMISS here means number missing not, "non missing"
+					
+					nnmiss = Integer.parseInt(line[indices[6]]) + Integer.parseInt(line[indices[7]]) + Integer.parseInt(line[indices[8]]);
+					writer.print("\t"+nnmiss);
+					
+					mac = Integer.parseInt(line[indices[7]]) + Integer.parseInt(line[indices[8]])*2;
+					writer.print("\t"+ext.formDeci((double)mac/(double)nnmiss/2.0, 6));
+					
+					// TODO logistic has not been implemented yet, so this needs to be revisited when it is 
+					if (logistic) {
+						log.reportError("Logistic parsing has not yet been implemented; check the column order etc, parse it properly and re-run");
+						if (line[indices[1]].equals("NA")) {
+							writer.print("\t"+line[indices[1]]); // NA OR -> NA beta
+						} else {
+							writer.print("\t"+ext.formDeci(Math.log(Double.parseDouble(line[indices[1]])), 5, true)); // OR -> beta
+						}
+					} else {
+						writer.print("\t"+line[indices[1]]); // beta
+					}
+					writer.println("\t"+(indices[2] == -1?"NA":line[indices[2]])+"\t"+line[indices[3]]); // se, pval
 				}
 			}
 			reader.close();
@@ -321,12 +456,17 @@ public class ResultsPackager {
 //			parseStdFormatFromPlink("D:/Myron/CALICO/AgeMenarche/", "menarche1.assoc.linear", "ADD", "plink.bim", "menarche.frq", null, "cardia_page_menarche1_results.txt", new Logger());
 //			parseStdFormatFromPlink("D:/Myron/CALICO/AgeMenarche/", "menarche2.assoc.linear", "ADD", "plink.bim", "menarche.frq", null, "cardia_page_menarche2_results.txt", new Logger());
 //			System.exit(1);
+			
+			parseSOLformat("D:/data/SOL/", "MODEL3slim_b.out", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", null, null, 1.0, "MODEL3slim_b_test.out", new Logger());
+			System.exit(1);
 
 			log = new Logger(logfile);
 			if (type.equalsIgnoreCase("gwaf")) {
 				parseIBCFormatFromGWAF(dir, resultsFile, mapFile, freqFile, customFreqFile, markersToReport, filter, outfile, log);
 			} else if (type.equalsIgnoreCase("plink")) {
 				parseStdFormatFromPlink(dir, resultsFile, "Add", mapFile, freqFile, markersToReport, filter, outfile, log);
+			} else if (type.equalsIgnoreCase("sol")) {
+				parseSOLformat(dir, resultsFile, "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile, markersToReport, filter, outfile, log);
 			} else {
 				System.err.println("Error - unknown results type: '"+type+"'");
 			}

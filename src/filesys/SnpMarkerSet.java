@@ -32,7 +32,7 @@ public class SnpMarkerSet implements Serializable {
 	public static final String[] HAPMAP_CM_SRC_HEADER = {"position", "COMBINED_rate(cM/Mb)", "Genetic_Map(cM)"};
 	public static final String[][] HEADERS = {null, null, null, null, null, {"Marker", "Chr", "Position"}, null, {"Marker", "Chr", "Position", "Annotation"}, {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"}, null, {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR", "EmpRsq", "Dose1", "Dose2"}, null, {"Marker", "Chr", "Position", "REF", "ALT", "gene", "AAF", "Function"}};
 
-	public static final String[][] HEADER_ELEMEMTS = {{"MarkerName", "SNP", "Marker", "Variant", "AnalysisUnit"}, {"Chr", "Chromosome", "CHROM"}, {"Pos", "Position", "POS"}, {"centiMorgans", "cM"}, {"Allele1", "A1", "Al1", "ALT", "alt"}, {"Allele2", "A2", "Al2", "REF", "ref"}};
+	public static final String[][] HEADER_ELEMEMTS = {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.CENTIMORGANS, Aliases.ALLELES[0], Aliases.ALLELES[1]};
 	
 	/** 0            1    2         3             4   5   6+         */
 	/** Marker name, Chr, Position, centiMorgans, A1, A2, annotation */
@@ -102,10 +102,11 @@ public class SnpMarkerSet implements Serializable {
 	}
 	
 	public SnpMarkerSet(String filename, int type, boolean verbose, Logger log) {
-		this(filename, type==-1?determineIndices(filename, log):INDICES[type], HEADERS[type]!=null, verbose, log);
+		this(filename, type==-1?determineIndices(filename, log):INDICES[type], type==-1?true:HEADERS[type]!=null, verbose, log);
 	}
 	
 	public static int[] determineIndices(String filename, Logger log) {
+		log.report("Assuming there is a header");
 		return ext.indexFactors(HEADER_ELEMEMTS, Files.getHeaderOfFile(filename, null, log), true, true, true, log, false);
 	}
 
@@ -836,13 +837,13 @@ public class SnpMarkerSet implements Serializable {
 			return MACH_MLINFO_FORMAT;
 		} else if (filename.endsWith(".minfo")) {
 			return MINIMAC_INFO_FORMAT;
-		} else if (filename.endsWith(".xln") || filename.endsWith(".txt") || filename.endsWith(".dat")) {
-			System.err.println("Warning - assuming three columns with headers: MarkerName, Chr, Position");
+		} else if (filename.endsWith(".xln") || filename.endsWith(".txt") || filename.endsWith(".dat") || filename.endsWith(".csv")) {
+			System.err.println("Warning - assuming the map file has three columns with headers: MarkerName, Chr, Position");
 			return GENERIC_FORMAT_IGNORE_FIRST_LINE;
 		} else if (filename.endsWith(".burdenInfo")) {
 			return INFO_FOR_BURDEN_TESTING;
 		} else {
-			System.err.println("Error - format of file ('"+filename+"') could not be deduced solely by the filename extension");
+			System.err.println("Warning - format of file ('"+filename+"') could not be deduced solely by the filename extension");
 			return -1;
 		}
 	} 

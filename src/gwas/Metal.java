@@ -12,35 +12,18 @@ import bioinformatics.Sequence;
 public class Metal {
 	public static final String[][] CONVERSION_REQS = { {"SNP", "Marker", "Name", "name"}, {"A1", "Allele"}, {"N", "NMISS"}, {"BETA", "ODDS", "OR"}, {"P", "pval", "p-val", "p-value"}};
 
-	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP"};
-	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
-
-	public static final String[][] ALLELES = {
-		{"coded_all", "A1", "Allele1", "ALT", "Effect_allele"},
-		{"noncoded_all", "A2", "Allele2", "REF", "OTHER", "Reference_allele"},		
-	};
-	
-	public static final String[] EFFECTS = {"beta", "beta_SNP_add", "Effect"};
-	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add"};
-	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "mbpval"};
-	public static final String[] NS = {"N", "NMISS", "sampleN"};
-	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency"};
-
-	public static final String[] CHRS = {"Chr", "Chromosome", "CHROM"};
-	public static final String[] POSITIONS = {"Position", "pos", "BP"};
-
 	public static final int SE_ANALYSIS = 0;
 	public static final int WEIGHTED_SE_ANALYSIS = 1;
 	public static final int PVAL_ANALYSIS = 2;
 	
 	public static final String[][][] REQS = {
-		{ EFFECTS, STD_ERRS },
+		{ Aliases.EFFECTS, Aliases.STD_ERRS },
 		{ {"wbeta"}, {"wse"} },
-		{ {"beta", "Direction", "Effect", "DIR"}, PVALUES, NS },
+		{ {"beta", "Direction", "Effect", "DIR"}, Aliases.PVALUES, Aliases.NS },
 	};
 
 	public static final String[][] FREQS = {
-		ALLELE_FREQS,
+		Aliases.ALLELE_FREQS,
 		{"sampleAA", "fAllele11"},
 		{"sampleAR", "fAllele12"},		
 		{"sampleRR", "fAllele22"},		
@@ -174,15 +157,15 @@ public class Metal {
 				return;
 			}
 
-			alleleIndices = ext.indexFactors(ALLELES, header, false, true, false, log, false);
+			alleleIndices = ext.indexFactors(Aliases.ALLELES, header, false, true, false, log, false);
 			if (Array.min(alleleIndices) == -1 && Array.sum(alleleIndices) != -2) {
-				log.reportError("Error - found only one allele in file "+filename+" (need "+Array.toStr(ALLELES[0], "/")+" AND "+Array.toStr(ALLELES[1], "/")+"); zeroing out and assuming uniform across studies...");
+				log.reportError("Error - found only one allele in file "+filename+" (need "+Array.toStr(Aliases.ALLELES[0], "/")+" AND "+Array.toStr(Aliases.ALLELES[1], "/")+"); zeroing out and assuming uniform across studies...");
 				alleleIndices[0] = -1;
 				alleleIndices[1] = -1;
 			}
 			nSNPsIndex = ext.indexFactors(new String[][] {{"NALLELES", "num_variants"}}, header, false, true, false, log, false)[0];
 			
-			writer.print(unitOfAnlaysis[0]+delimiterOut+ALLELES[0][0]+delimiterOut+ALLELES[1][0]);
+			writer.print(unitOfAnlaysis[0]+delimiterOut+Aliases.ALLELES[0][0]+delimiterOut+Aliases.ALLELES[1][0]);
 			reqIndices = new int[REQS.length][];
 			for (int i = 0; i < REQS.length; i++) {
 				reqIndices[i] = ext.indexFactors(REQS[i], header, false, true, false, log, false);
@@ -300,7 +283,7 @@ public class Metal {
 	}
 	
 	public static void metaAnalyze(String dir, String[] filenames, String outputFile, boolean se, Logger log) {
-		metaAnalyze(dir, filenames, MARKER_NAMES, outputFile, SE_ANALYSIS, null, log);
+		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, log);
 	}
 	
 	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnlaysis, String outputFile, int anlaysisType, double[] defaultWeights, Logger log) {
@@ -365,7 +348,7 @@ public class Metal {
 					mappings.add("MARKER "+travMarker);
 				}
 
-				indices = ext.indexFactors(ALLELES, header, false, true, true, log, false);
+				indices = ext.indexFactors(Aliases.ALLELES, header, false, true, true, log, false);
 				if (Array.min(indices) == -1) {
 					log.reportError("Error parsing '"+dir+filenames[i]+"'");
 					writer.close();
@@ -708,7 +691,7 @@ public class Metal {
 			fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
 			for (int i=0; i<inputFiles.length; i++) {
 				header = Files.getHeaderOfFile(inputFiles[i], log);
-				indices = ext.indexFactors(new String[][] {ALLELES[0], ALLELES[1], ALLELE_FREQS, NS, EFFECTS, STD_ERRS, PVALUES}, header, true, false, true, true, log, false);
+				indices = ext.indexFactors(new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1], Aliases.ALLELE_FREQS, Aliases.NS, Aliases.EFFECTS, Aliases.STD_ERRS, Aliases.PVALUES}, header, true, false, true, true, log, false);
 				fileParameters[i + 4] = inputFiles[i]+" 0";
 				for (int j = 0; j < indices.length; j++) {
 					if (indices[j] != -1) {
@@ -716,7 +699,7 @@ public class Metal {
 					}
 				}
 
-				indices = ext.indexFactors(new String[][] {CHRS, POSITIONS}, header, true, false, true, true, log, false);
+				indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true, false, true, true, log, false);
 				if (indices[0] != -1 && indices[0] != -1) {
 					try {
 						reader = new BufferedReader(new FileReader(inputFiles[i]));
@@ -1388,7 +1371,7 @@ public class Metal {
 		String output = "META_SE";
 		boolean se = true;
 		String compResults = null;
-		String[] unitOfAnalyses = MARKER_NAMES;
+		String[] unitOfAnalyses = Aliases.MARKER_NAMES;
 		
 //		strandFile = "C:/Documents and Settings/npankrat/My Documents/UMN/Folson/VTE_meta_analysis/finalAnalysis/16 assessing strand/snplist1_described3.xln";
 //		fileToSort = "C:/Documents and Settings/npankrat/My Documents/UMN/Folson/VTE_meta_analysis/finalAnalysis/16 assessing strand/all_consensus.xln";
@@ -1516,7 +1499,7 @@ public class Metal {
 				analyze = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("unit=")) {
-				unitOfAnalyses = ext.parseStringArg(args[i], null).equalsIgnoreCase("gene")?GENE_UNITS:MARKER_NAMES;
+				unitOfAnalyses = ext.parseStringArg(args[i], null).equalsIgnoreCase("gene")?Aliases.GENE_UNITS:Aliases.MARKER_NAMES;
 				numArgs--;
 			} else if (args[i].startsWith("se=")) {
 				se = ext.parseBooleanArg(args[i]);

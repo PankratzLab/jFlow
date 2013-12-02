@@ -50,7 +50,7 @@ public class GenParser {
 		replaceBlanks = null;
 		
     	file = line[0];
-		commaDelimited = file.endsWith("csv")||ext.indexOfStr(",", line) >= 0;
+		commaDelimited = Files.suggestDelimiter(file, log).equals(",")||ext.indexOfStr(",", line) >= 0;
 		tabDelimited = ext.indexOfStr("tab", line) >= 0;
 		simplifyQuotes = ext.indexOfStr("simplifyQuotes", line) >= 0;
 		
@@ -177,7 +177,7 @@ public class GenParser {
     	
     	maxCol = -9;
     	try {
-            reader = new BufferedReader(new FileReader(file));
+            reader = Files.getAppropriateReader(file);
             if (skip == -2) {
     			if (commaDelimited) {
     				originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
@@ -418,13 +418,7 @@ public class GenParser {
     	
     	try {
     		filename = parser.getOutfile();
-    		if (filename.endsWith(".csv")) {
-        		delimiter = ",";
-    		} else if (filename.endsWith(".prn")) {
-        		delimiter = " ";
-    		} else {
-    			delimiter = "\t";
-    		}
+    		delimiter = Files.suggestDelimiter(filename, log);
             writer = new PrintWriter(new FileWriter(filename));
             if (log.getLevel() > 8) {
             	log.report("Parsing '"+line[0]+"'", true, true, 1);
@@ -524,6 +518,8 @@ public class GenParser {
 	    "";
 
 //	    args = new String [] {"subset.genome_parsed.xln out=admixedUnrelatedsCheck.txt 0 1 2 3 6 7 8 9 !9>0.2"};
+	    args = new String [] {"ESFreeze3_snpinfo_042913.csv.gz	out=ESFreeze3_snpinfo_042913_min.csv'SNP' 'CHROM' 'POS' 'REF' 'ALT' 'MAF' 'SKATgene' 'sc_nonsynSplice'"};
+	    
 	    if (args.length == 1) {
 	    	args = ext.removeQuotes(args[0]).trim().split("[\\s]+");
 	    }

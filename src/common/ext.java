@@ -481,7 +481,7 @@ public class ext {
 	public static String getDate(Date date, String delimiter) {
 		GregorianCalendar gc = new GregorianCalendar();
 		gc.setTime(date);
-		return gc.get(Calendar.YEAR)+"."+chrome((gc.get(Calendar.MONTH)+1))+"."+chrome(gc.get(Calendar.DAY_OF_MONTH));
+		return gc.get(Calendar.YEAR)+delimiter+chrome((gc.get(Calendar.MONTH)+1))+delimiter+chrome(gc.get(Calendar.DAY_OF_MONTH));
 	}
 
 	public static String getDate() {

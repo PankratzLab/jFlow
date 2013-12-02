@@ -1,7 +1,12 @@
 package gwas;
 
 import java.io.*;
+import java.util.Hashtable;
+import java.util.Vector;
+
 import common.*;
+import filesys.Segment;
+import filesys.SnpMarkerSet;
 
 // currently crashes if first or last marker passes significance threshold or is in window of a SNP that does
 public class HitWindows {
@@ -105,6 +110,78 @@ public class HitWindows {
 		}
 	}
 	
+	public static void generateHitsLookup(String inputHits, int window, String outputFile, String mapfile) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp, trav;
+		Hashtable<String, Vector<String>> hash;
+		Vector<String> v;
+		int count;
+		long time;
+		Segment[][] segs;
+		SnpMarkerSet markerSet;
+		Logger log;
+		int[] indices;
+		String[] header, traits, markerNames, chrPositions;
+		Segment variant;
+		
+		log = new Logger();
+
+		v = new Vector<String>();
+		hash = new Hashtable<String, Vector<String>>();
+		try {
+			reader = new BufferedReader(new FileReader(inputHits));
+			header = reader.readLine().trim().split("[\\s]+");
+			indices = ext.indexFactors(new String[][] {{"Trait"}, Aliases.CHRS, Aliases.POSITIONS}, header, false, true, true, true);
+			if (!Array.equals(indices, new int[] {0,1,2})) {
+				log.reportError("Error - currently expecting format: Trait\tChr\tPosition");
+			}
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				HashVec.addIfAbsent(line[0], v);
+				HashVec.addToHashVec(hash, line[0], line[1]+"\t"+line[1], false);
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + inputHits + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + inputHits + "\"");
+			System.exit(2);
+		}
+		
+		traits = Array.toStringArray(v);
+		segs = new Segment[traits.length][];
+		for (int i = 0; i < traits.length; i++) {
+			v = hash.get(traits[i]);
+			segs[i] = new Segment[v.size()];
+			for (int j = 0; j < segs[i].length; j++) {
+				line = v.elementAt(j).split("[\\s]+");
+				segs[i][j] = new Segment(Positions.chromosomeNumber(line[0]), Integer.parseInt(line[1])-window, Integer.parseInt(line[1])+window);
+			}
+		}
+		
+		
+		markerSet = new SnpMarkerSet(mapfile, false, log);
+		markerNames = markerSet.getMarkerNames();
+		chrPositions = markerSet.getChrAndPositions();
+		for (int m = 0; m < 10; m++) {
+			line = chrPositions[m].split("[\\s]+");
+			variant = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1]), Integer.parseInt(line[1])+1);
+			v = new Vector<String>();
+			for (int i = 0; i < segs.length; i++) {
+				for (int j = 0; j < segs[i].length; j++) {
+					if (variant.overlaps(segs[i][j])) {
+						v.add(traits[i]);
+					}
+				}
+			}
+			System.out.println(markerSet.getMarkerNames()[m]+"\t"+(v.size()==0?".":Array.toStr(Array.toStringArray(v), "/")));
+		}
+		
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "input.dat";
@@ -112,14 +189,20 @@ public class HitWindows {
 		float indexThreshold = (float)0.00000005;
 		int windowMinSizePerSide = 500000; // 500kb each side is technically a 1M window until the next hit region, but we now take this into consideration in the main algorithm
 		float windowExtensionThreshold = (float)0.00000005; // (float)0.00001;
+		String knownHits = null;
+		String map = "markers.dat";
 
 		String usage = "\n" + 
 		"gwas.HitWindows requires 0-1 arguments\n" + 
 		"   (1) input filename (i.e. file=" + filename + " (default))\n" + 
-		"   (1) filename of output (i.e. out=" + outfile + " (default))\n" + 
-		"   (2) p-value threshold for index SNPs (i.e. indexThresh=" + indexThreshold + " (default))\n" + 
-		"   (3) minimum num pb per side of window (i.e. minWinSize=" + windowMinSizePerSide + " (default))\n" + 
-		"   (4) p-value threshold to extend the window (i.e. winThresh=" + windowExtensionThreshold + " (default))\n" + 
+		"   (2) filename of output (i.e. out=" + outfile + " (default))\n" + 
+		"   (3) p-value threshold for index SNPs (i.e. indexThresh=" + indexThreshold + " (default))\n" + 
+		"   (4) minimum num bp per side of window (i.e. minWinSize=" + windowMinSizePerSide + " (default))\n" + 
+		"   (5) p-value threshold to extend the window (i.e. winThresh=" + windowExtensionThreshold + " (default))\n" + 
+		" OR\n" + 
+		"   (1) list of known hits, 3 columns=trait+chr+position (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n" + 
+		"   (2) window around hit to extend (i.e. minWinSize=" + windowMinSizePerSide + " (default))\n" + 
+		"   (3) map file for lookup (i.e. map=" + map + " (default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -141,6 +224,12 @@ public class HitWindows {
 			} else if (args[i].startsWith("winThresh=")) {
 				windowExtensionThreshold = ext.parseFloatArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("knownHits=")) {
+				knownHits = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("map=")) {
+				map = ext.parseStringArg(args[i], null);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -149,9 +238,16 @@ public class HitWindows {
 			System.err.println(usage);
 			System.exit(1);
 		}
+
+		generateHitsLookup("D:/ExomeChip/Hematology/00src/CHARGE-RBC/knownHits.dat", 200000, "D:/ExomeChip/Hematology/00src/CHARGE-RBC/hitLookup.dat", "D:/ExomeChip/Hematology/00src/CHARGE-RBC/ExomeChipV5_wMAF.csv");
+		System.exit(1);
 		
 		try {
-			determine(filename, outfile, indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+			if (knownHits != null) {
+				generateHitsLookup(knownHits, windowMinSizePerSide, outfile, map);
+			} else {
+				determine(filename, outfile, indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+			}
 //			determine("D:/mega/FromMike.11032011/pvals1.txt", "D:/mega/FromMike.11032011/pvals1.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/pvals2.txt", "D:/mega/FromMike.11032011/pvals2.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/fixed_together.txt", "D:/mega/FromMike.11032011/fixed_together.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
