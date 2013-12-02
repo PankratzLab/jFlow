@@ -27,7 +27,6 @@ public class AffyPowerTools {
         //String intitialCelList = "/project/scratch/normDat/lists/bigListFinal.txt";
         String finalCelList = "/project/scratch/normDat/lists/bigListFinal.txt";
         String pbsOutDir = "/project/scratch/normDat/";
-        
         String affyChunk = "cel";
         String affyChunkProbe = "probes" ;
         String affyChunkProbeAll = "allProbes" ;
@@ -61,9 +60,6 @@ public class AffyPowerTools {
         String birdseedCalls =  "birdseed-v2.calls.txt"; 
         String birdseedConf =  "birdseed-v2.confidences.txt"; 
         String quantNorm =  "sort-all-quant-norm.pm-only.med-polish.expr.summary.txt";
-//        
-//        String affyPennCnv = pennCNV + "/gw6/bin/";
-//        String affyPennCnvLib = pennCNV + "gw6/lib/";
         String locFile = pennCNVlib + "affygw6.hg18.pfb";
         String genoCluster =  "gw6.genocluster"; 
         String genoLrrBaf =  "gw6.lrr_baf.txt"; 
