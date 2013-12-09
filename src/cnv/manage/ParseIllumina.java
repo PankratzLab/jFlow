@@ -105,7 +105,7 @@ public class ParseIllumina implements Runnable {
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
-
+					
 					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
@@ -132,8 +132,12 @@ public class ParseIllumina implements Runnable {
 							data[j] = new float[markerNames.length];
 						}
                     }
-					genotypes = new byte[2][];
+					genotypes = new byte[2][]; // two sets of genotypes, the "forward" alleles and the AB alleles
+					
+					// this is the for the forward alleles
 					genotypes[0] = Array.byteArray(markerNames.length, (byte)0);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
+					
+					// this is for the AB alleles
 					if (!ignoreAB) {
 						genotypes[1] = Array.byteArray(markerNames.length, (byte)-1);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
 					}
@@ -414,6 +418,9 @@ public class ParseIllumina implements Runnable {
 //				}
 			} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
 			
+			// If we reached the end of the file, it means that we didn't find the header we are looking for
+			// The most common cause of this is that the delimiter was misspecified
+			// The following code checks all of the common delimiters (tab, comma, space) and determines which one to use when it tries for a second time
 			if (!reader.ready()) {
 				System.err.println("Error - reached the end of the file without finding a line with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
 				System.err.println("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
@@ -447,6 +454,7 @@ public class ParseIllumina implements Runnable {
 				
 				System.err.println("      - determined delimiter to be '"+delimiter+"'");
 
+				// Tries again to determine the header fields and column names
 				reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[0]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
@@ -482,7 +490,7 @@ public class ParseIllumina implements Runnable {
 			reader.mark(1000);
 			line = reader.readLine().split(delimiter);
 			if (parseAtAt&&line[sampIndex].indexOf("@")==-1) {
-				System.err.println("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample");
+				System.err.println("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample; if your ID's do not naturally contain at symbols, then set "+Project.PARSE_AT_AT_SYMBOL+" in the project properties file to FALSE");
 				parseAtAt = false;
 			}
 			sampleName = parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex];
