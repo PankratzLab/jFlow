@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 /**
@@ -19,15 +20,12 @@ public class ChrPositionBooleanMap implements Serializable {
 
 	Hashtable<Byte, HashSet<Integer>> chrPositionMap = new Hashtable<Byte, HashSet<Integer>>();
 
-	public Hashtable<Byte, Hashtable<Integer, Boolean>> getChrPositionMap() {
+	public Hashtable<Byte, HashSet<Integer>> getChrPositionMap() {
 		return chrPositionMap;
 	}
 
-	public ChrPositionBooleanMap(ChrPositionBooleanMap chrPositionMapObject) {
-		this.chrPositionMap = chrPositionMapObject.chrPositionMap;
-	}
 
-	public void setChrPositionMap(Hashtable<Byte, Hashtable<Integer, Boolean>> chrPositionMap) {
+	public void setChrPositionMap(Hashtable<Byte, HashSet<Integer>> chrPositionMap) {
 		this.chrPositionMap = chrPositionMap;
 	}
 
