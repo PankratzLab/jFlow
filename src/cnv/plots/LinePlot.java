@@ -33,7 +33,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import cnv.filesys.Project;
 import cnv.gui.CheckBoxTree;
 import cnv.gui.ColorIcon;
-import cnv.var.SampleData;
 
 import common.Grafik;
 import common.HashVec;
@@ -102,10 +101,10 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		namesHash = new Hashtable<String, String[]>();
 		numericHash = new Hashtable<String, boolean[]>();
 		keyIndices = new Hashtable<String, int[]>();
-		enabledGroups = new Hashtable<>();
-		colorKeyHash = new Hashtable<>();
-		tempGroupToColorHash = new Hashtable<>();
-		groupToColorHash = new Hashtable<>();
+		enabledGroups = new Hashtable<String, Boolean>();
+		colorKeyHash = new Hashtable<String, Hashtable<String, String>>();
+		tempGroupToColorHash = new Hashtable<String, Byte>();
+		groupToColorHash = new Hashtable<String, Byte>();
 		groupToColorLabelHash = new Hashtable<String, JLabel[]>();
 		for (int i = 0; i < previouslyLoadedFiles.length; i++) {
 			loadFile(previouslyLoadedFiles[i]);
@@ -377,7 +376,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 				if (colorKeyHash.containsKey(curLineParams[2])) { // if this group is already there
 					colorKeyHashValue = colorKeyHash.get(curLineParams[2]);
 				} else {
-					colorKeyHash.put(curLineParams[2], colorKeyHashValue = new Hashtable<>());
+					colorKeyHash.put(curLineParams[2], colorKeyHashValue = new Hashtable<String, String>());
 				}
 
 				colorKeyHashValue.put(curLineParams[0], curLineParams[1]); // put filename as key and human readable
@@ -711,7 +710,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 				}
 			}
 		}
-		ArrayList<String[]> result = new ArrayList<>();
+		ArrayList<String[]> result = new ArrayList<String[]>();
 		result.add(line);
 		result.add(comment);
 		return result;
@@ -788,7 +787,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 		selectedNodes = tree.getSelectionValues();
 		v = new Vector<String[]>();
-		ArrayList<Vector<String[]>> result = new ArrayList<>();
+		ArrayList<Vector<String[]>> result = new ArrayList<Vector<String[]>>();
 		for (int a = 0; a < selectedNodes.length; a++) {
 			if (selectedNodes[a][0] != null && keyIndices.get(selectedNodes[a][0]) != null) {
 				xHash = new Hashtable<String, String[]>();
