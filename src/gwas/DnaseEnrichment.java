@@ -98,10 +98,10 @@ public class DnaseEnrichment {
 		FileWriter fstream;
 		BufferedWriter out;
 
-		List<List<Object>> resultArrayList = new ArrayList<>();
+		List<List<Object>> resultArrayList = new ArrayList<List<Object>>();
 
 		for (OutputFileFormat curRecord : overlapStats) {
-			ArrayList<Object> resultArray = new ArrayList<>();
+			ArrayList<Object> resultArray = new ArrayList<Object>();
 			resultArray.add(curRecord.file);
 			for (int i = 0; i < curRecord.ratio.length; i++) {
 				// to avoid divide by 0 error

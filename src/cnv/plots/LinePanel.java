@@ -18,7 +18,6 @@ import cnv.filesys.Sample;
 import cnv.gui.LaunchAction;
 import cnv.var.SampleData;
 
-import com.sun.deploy.util.ArrayUtil;
 import common.Array;
 import common.CountVector;
 import common.Files;

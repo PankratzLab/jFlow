@@ -15,7 +15,7 @@ import java.util.Hashtable;
  */
 public class ChrPositionBooleanMap implements Serializable {
 
-	Hashtable<Byte, Hashtable<Integer, Boolean>> chrPositionMap = new Hashtable<>();
+	Hashtable<Byte, Hashtable<Integer, Boolean>> chrPositionMap = new Hashtable<Byte, Hashtable<Integer, Boolean>>();
 
 	public Hashtable<Byte, Hashtable<Integer, Boolean>> getChrPositionMap() {
 		return chrPositionMap;
