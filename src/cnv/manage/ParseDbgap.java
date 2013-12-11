@@ -11,22 +11,24 @@ import cnv.filesys.Project;
 import cnv.filesys.SampleList;
 import common.*;
 
-
+//for parsing dbGap data, divides intensity by 2000, and takes one minus the quality score provided
+//code is taken from parseAffymetrix, with exception of the genotypes[][] population from ParseIllumina
 public class ParseDbgap implements Runnable {
-	//from source
+
 	public static final String[][] SNP_HEADER_OPTIONS =  {{"SNP", "rsID"}};
 	public static final int EXP_NUM_MARKERS = 909622;
 	public static final String[] FIELDS = {"Sample ID", "Sample Name"};
-	//from SNP table
-	//public static final String[][] SNP_TABLE_FIELDS = {{"Name","SNP Name"}, {"Chr", "Chromosome"}, {"Position"}};
-	//public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue", "Log Ratio","intensity_1"}, {"Y", "Yvalue", "Strength","intensity_2"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
-	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1","genotype1"}, {"Allele2 - Forward", "Allele2","genotype2"}, {"Allele1 - AB"}, {"Allele2 - AB"}, {"Forward Strand Base Calls"}, {"Call Codes"}};
 	public static final String[] DELIMITERS = {" "};
 	public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
 	public static final String CANCEL_OPTION_FILE = ".cancel_option";
 	public static final String HOLD_OPTION_FILE = ".hold_option";
 	public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";	
-	//line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
+	
+	//from SNP table
+		//public static final String[][] SNP_TABLE_FIELDS = {{"Name","SNP Name"}, {"Chr", "Chromosome"}, {"Position"}};
+		//public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue", "Log Ratio","intensity_1"}, {"Y", "Yvalue", "Strength","intensity_2"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
+		//public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1","genotype1"}, {"Allele2 - Forward", "Allele2","genotype2"}, {"Allele1 - AB"}, {"Allele2 - AB"}, {"Forward Strand Base Calls"}, {"Call Codes"}};
+		//line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
 	
 	private Project proj;
 	private String[] files;
@@ -110,6 +112,7 @@ public class ParseDbgap implements Runnable {
 //					reader = new BufferedReader(new FileReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]));
 					reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]);
 					do {
+						//the replace shifts the header to the proper indicies
 						line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
 					} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line)==-1)));
 
@@ -152,6 +155,7 @@ public class ParseDbgap implements Runnable {
 					count = 0;
 					parseAtAt = Boolean.parseBoolean(proj.getProperty(Project.PARSE_AT_AT_SYMBOL));
 					while (reader.ready()) {
+						//the replace shifts the header over to the proper indices
 						line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
 						if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
 							trav = files[i].substring(0, files[i].indexOf(sourceExtension));
@@ -177,12 +181,16 @@ public class ParseDbgap implements Runnable {
 						}
 						key = keysKeys[count];
 						// System.out.println(count+"\t"+markerNames[count]+"\t"+key);
+						//Process the dbGap data a bit by dividng intensity 1 and 2 by 2000
+						// and taking 1-affyQC score
 						for (int j = 0; j<Sample.DATA_FIELDS.length; j++) {
 							try {
 								if (dataIndices[j] != -1) {
 									if (line[dataIndices[j]].equals("")) {
 										data[j][key] = Float.NaN;
-									} else if (j ==3 ||j ==4) {
+									}else if (j == 0 ) {
+										data[j][key] = 1-Float.parseFloat(line[dataIndices[j]]);
+									}else if (j ==3 ||j ==4) {
 										data[j][key] = Float.parseFloat(line[dataIndices[j]])/2000;
 									}
 									else {
@@ -195,6 +203,7 @@ public class ParseDbgap implements Runnable {
 							}
 						}
 						
+						//the genotype section is taken from ParseIllumina, not ParseAffymetrix
 						genotypes[0][key] = (byte)ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALLELE_PAIRS);
 						if (genotypes[0][key] == -1) {
 							if (ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALT_NULLS) == -1) {
