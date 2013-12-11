@@ -21,6 +21,7 @@ import common.ext;
 
 import filesys.Segment;
 import filesys.SegmentLists;
+import filesys.SnpMarkerSet;
 
 /**
  * Program to summarize p-values from a Genome-Wide Association Study (GWAS) and bins marker depending on their p-values and depending upon whether they are inside or outside of a DNAse hypersensitive (DNAseHS) region. These segments are loaded from BED files and the name of the celltype is taken from the first part of the filename. The p-value column is not required to be in a consistent column number. As a result the program creates a file with the following tab-delimited columns: celltype, bin1(0.1<pvalue<1.0), bin2(0.01<pvalue<0.1), bin3(0.001<pvalue<0.01)... Then this output is plotted using LinePlot

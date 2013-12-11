@@ -15,7 +15,9 @@ import java.util.Hashtable;
  */
 public class ChrPositionBooleanMap implements Serializable {
 
-	Hashtable<Byte, Hashtable<Integer, Boolean>> chrPositionMap = new Hashtable<Byte, Hashtable<Integer, Boolean>>();
+	public static final long serialVersionUID = 1L;
+
+	Hashtable<Byte, HashSet<Integer>> chrPositionMap = new Hashtable<Byte, HashSet<Integer>>();
 
 	public Hashtable<Byte, Hashtable<Integer, Boolean>> getChrPositionMap() {
 		return chrPositionMap;
@@ -40,5 +42,6 @@ public class ChrPositionBooleanMap implements Serializable {
 		FileInputStream in = new FileInputStream(filepath);
 		ObjectInputStream reader = new ObjectInputStream(in);
 		this.setChrPositionMap(((ChrPositionBooleanMap) reader.readObject()).chrPositionMap);
+		reader.close();
 	}
 }

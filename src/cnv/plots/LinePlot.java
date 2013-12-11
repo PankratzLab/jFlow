@@ -64,7 +64,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	{ "Stop Position", "Stop", "End" } // secondary link to Trailer
 	};
 
-	private LinePanel LinePanel;
+	private LinePanel linePanel;
 	private JLayeredPane layeredPane;
 	private JPanel legendPanel;
 	private Project proj;
@@ -111,7 +111,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		}
 		setLayout(new BorderLayout());
 
-		LinePanel = new LinePanel(this, log);
+		linePanel = new LinePanel(this, log);
 
 		layeredPane = new JLayeredPane();
 		layeredPane.setLayout(new BorderLayout());
@@ -123,7 +123,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		generateInvYButton();
 		layeredPane.add(invYButton);
 
-		layeredPane.add(LinePanel);
+		layeredPane.add(linePanel);
 		layeredPane.setPreferredSize(new Dimension(1000, 600)); // ???zx
 
 		// ******* New code starts here ************
@@ -168,11 +168,11 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 		inputMapAndActionMap();
 
-		LinePanel.setPointsGeneratable(true);// zx
-		LinePanel.setExtraLayersVisible(new byte[] { 99 });
+		linePanel.setPointsGeneratable(true);// zx
+		linePanel.setExtraLayersVisible(new byte[] { 99 });
 		updateGUI();
 
-		LinePanel.grabFocus();
+		linePanel.grabFocus();
 
 		layeredPane.addComponentListener(new ComponentListener() {
 			public void componentShown(ComponentEvent e) {
@@ -211,9 +211,9 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		flipStatus = true;
 		flipButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				LinePanel.setPointsGeneratable(true);
-				LinePanel.setSwapAxes(flipStatus);
-				LinePanel.paintAgain();
+				linePanel.setPointsGeneratable(true);
+				linePanel.setSwapAxes(flipStatus);
+				linePanel.paintAgain();
 				if (flipStatus) {
 					flipStatus = false;
 				} else {
@@ -230,9 +230,9 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		xInvStatus = true;
 		invXButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				LinePanel.setPointsGeneratable(true);
-				LinePanel.setXinversion(xInvStatus);
-				LinePanel.paintAgain();
+				linePanel.setPointsGeneratable(true);
+				linePanel.setXinversion(xInvStatus);
+				linePanel.paintAgain();
 				if (xInvStatus) {
 					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true));
 				} else {
@@ -250,9 +250,9 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		yInvStatus = true;
 		invYButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				LinePanel.setPointsGeneratable(true);
-				LinePanel.setYinversion(yInvStatus);
-				LinePanel.paintAgain();
+				linePanel.setPointsGeneratable(true);
+				linePanel.setYinversion(yInvStatus);
+				linePanel.paintAgain();
 				if (yInvStatus) {
 					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true));
 				} else {
@@ -264,13 +264,13 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	private void inputMapAndActionMap() {
-		InputMap inputMap = LinePanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		InputMap inputMap = linePanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
-		ActionMap actionMap = LinePanel.getActionMap();
-		LinePanel.setActionMap(actionMap);
+		ActionMap actionMap = linePanel.getActionMap();
+		linePanel.setActionMap(actionMap);
 	}
 
 	private JMenuBar menuBar() {
@@ -303,7 +303,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					File fileToOpen = fileChooser.getSelectedFile();
-					LinePanel.screenCapture(fileToOpen.toString() + ".png"); // ??? zx: How to avoid LinePanel being static?
+					linePanel.screenCapture(fileToOpen.toString() + ".png"); // ??? zx: How to avoid LinePanel being static?
 				}
 			}
 		});
@@ -521,7 +521,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 						performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
 					}
 					log.report("Selected files for this group: " + enabledGroups.toString());
-					LinePanel.paintAgain();
+					linePanel.paintAgain();
 				}
 			}
 		};
@@ -600,9 +600,9 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
-		LinePanel.setPointsGeneratable(true);
-		LinePanel.createImage();
-		LinePanel.paintAgain();
+		linePanel.setPointsGeneratable(true);
+		linePanel.createImage();
+		linePanel.paintAgain();
 	}
 
 	/**
@@ -782,7 +782,6 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		int selectedColumn;
 		String[] keys;
 		Vector<String[]> v;
-		String[] ids;
 		byte colorCode;
 
 		selectedNodes = tree.getSelectionValues();
@@ -889,7 +888,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void updateGUI() {
-		LinePanel.paintAgain();
+		linePanel.paintAgain();
 	}
 
 	public int[] getCurrentLinkKeyColumnLabels() {
