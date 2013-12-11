@@ -201,7 +201,6 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 			if (currentData.size() > 0) {
 				setOfKeys = new String[currentData.size()][currentData.elementAt(0).length - index];
 			}
-			PlotPoint prevLinePoint = null;
 			for (int i = 0; i < tempPoints.length; i++) {
 
 				line = currentData.elementAt(i);
