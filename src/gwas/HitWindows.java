@@ -8,40 +8,71 @@ import common.*;
 import filesys.Segment;
 import filesys.SnpMarkerSet;
 
-// currently crashes if first or last marker passes significance threshold or is in window of a SNP that does
 public class HitWindows {
-	public static void determine(String filename, String outfile, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold) {
+	public static String[][] determine(String filename, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold, String[] additionalAnnotationVariableNames) {
 		BufferedReader reader;
-		PrintWriter writer;
 		String[] line, header;
 		int count;
 		String[] markerNames;
 		byte[] chrs;
 		int[] positions;
 		double[] pvals;
-		int startIndex, stopIndex, offset, minIndex;
-		double minPval;
-		int region;
-		int numSig, numSuggestive;
+		int[] indices;
+		String temp, delimiter;
+		String[][] factors;
+		String[][] annotation;
+		Logger log;
 		
+		if (additionalAnnotationVariableNames == null) {
+			additionalAnnotationVariableNames = new String[0];
+		}
+		factors = new String[4+additionalAnnotationVariableNames.length][];
+		factors[0] = Aliases.MARKER_NAMES;
+		factors[1] = Aliases.CHRS;
+		factors[2] = Aliases.POSITIONS;
+		factors[3] = Aliases.PVALUES;
+		for (int i = 0; i < additionalAnnotationVariableNames.length; i++) {
+			factors[4+i] = new String[] {additionalAnnotationVariableNames[i]};
+		}
+		
+		log = new Logger();
 		count = Files.countLines(filename, true);
-		System.out.println("Parsing "+count+" lines");
+//		System.out.println("Parsing "+count+" lines");
 		markerNames = new String[count];
 		chrs = new byte[count];
 		positions = new int[count];
 		pvals = new double[count];
+		annotation = new String[count][additionalAnnotationVariableNames.length];
 		try {
-			reader = new BufferedReader(new FileReader(filename));
-			header = reader.readLine().trim().split("[\\s]+");
-			ext.checkHeader(header, new String[] {"MarkerName", "Chr", "Position", "Pvalue"}, false);
+			reader = Files.getAppropriateReader(filename);
+			temp = reader.readLine();
+			delimiter = ext.determineDelimiter(temp);
+			header = temp.trim().split(delimiter);
+			indices = ext.indexFactors(factors, header, false, false, true, true, log, true);
 			count = 0;
-			System.out.println("Parsing...");
+//			System.out.println("Parsing... "+filename);
 			while (reader.ready()) {
-				line = reader.readLine().trim().split("[\\s]+");
-				markerNames[count] = line[0];
-				chrs[count] = Byte.parseByte(line[1]);
-				positions[count] = Integer.parseInt(line[2]);
-				pvals[count] = ext.isMissingValue(line[3])?999:Double.parseDouble(line[3]);
+				temp = reader.readLine();
+				if (delimiter.equals(",")) {
+					line = ext.splitCommasIntelligently(temp, true, log);
+				} else {
+					line = temp.trim().split(delimiter);
+				}
+				line = Array.subArray(line, indices);
+				try {
+					markerNames[count] = line[0];
+					chrs[count] = Positions.chromosomeNumber(line[1]);
+					positions[count] = Integer.parseInt(line[2]);
+					pvals[count] = ext.isMissingValue(line[3])?999:Double.parseDouble(line[3]);
+					for (int i = 0; i < additionalAnnotationVariableNames.length; i++) {
+						annotation[count][i] = line[4+i];
+					}
+				} catch (Exception e) {
+					System.err.println("Error - reading: "+temp);
+					System.err.println("  which was parsed as : "+Array.toStr(line));
+					e.printStackTrace();
+					System.exit(1);
+				}
 				count++;
 			}
 			reader.close();
@@ -53,72 +84,113 @@ public class HitWindows {
 			System.exit(2);
 		}
 		
-		try {
-			writer = new PrintWriter(new FileWriter(outfile));
-			writer.println("Region\tMarkerName\tChr\tPosition\tp-value\tRegion+Window\tRegionStart\tRegionStop\tNumSigMarkers\tNumSuggestiveMarkers\tNumTotalMarkers\tSizeOfRegion");
-			startIndex = -1;
-			stopIndex = -1;
-			region = 1;
-			System.out.println("Starting search...");
-			for (int i = 0; i < markerNames.length; i++) {
-				if (pvals[i] < indexThreshold) {
-					startIndex = i;
-					minIndex = i;
-					minPval = pvals[i];					
-					offset = 0;
-					numSig = numSuggestive = 1;
-					while (startIndex-offset-1 >= 0 && chrs[startIndex] == chrs[startIndex-offset-1] && positions[startIndex] - windowMinSizePerSide*2 <= positions[startIndex-offset-1]) { // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged 
-						offset++;
-						if (pvals[startIndex-offset] < windowExtensionThreshold) {
-							startIndex -= offset;
-							offset = 0;
-							numSuggestive++;
-						}
-					}
-					System.out.println(markerNames[i]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
-									
-					stopIndex = i;
-					offset = 0;
-					while (stopIndex+offset+1 < markerNames.length && chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide*2 >= positions[stopIndex+offset+1]) {
-						offset++;
-						if (pvals[stopIndex+offset] < indexThreshold) {
-//							System.out.println(markerNames[stopIndex+offset]+"\t"+region);
-							numSig++;
-						}
-						if (pvals[stopIndex+offset] < windowExtensionThreshold) {
-							stopIndex += offset;
-							offset = 0;
-							numSuggestive++;
-						}
-						if (pvals[stopIndex] < minPval) {
-							minIndex = stopIndex;
-							minPval = pvals[stopIndex];
-						}
-					}
-					System.out.println(markerNames[minIndex]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
-//					System.out.println(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
-					writer.println(region+"\t"+markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\t"+pvals[minIndex]+"\tchr"+chrs[startIndex]+":"+Math.max(positions[startIndex]-windowMinSizePerSide, 1)+"-"+(positions[stopIndex]+windowMinSizePerSide)+"\t"+positions[startIndex]+"\t"+positions[stopIndex]+"\t"+numSig+"\t"+numSuggestive+"\t"+(stopIndex-startIndex+1)+"\t"+(positions[stopIndex]-positions[startIndex]+1));
-					
-					i = stopIndex+offset;
-					region++;
-				}
-			}
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing to " + outfile);
-			e.printStackTrace();
+		return determineButOrderFirst(markerNames, chrs, positions, pvals, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, additionalAnnotationVariableNames, annotation);
+	}
+		
+	public static String[][] determineButOrderFirst(String[] markerNames, byte[] chrs, int[] positions, double[] pvals, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold, String[] additionalAnnotationVariableNames, String[][] annotation) {
+		int[] order;
+		
+		order = Sort.orderTwoLayers(chrs, positions);
+		
+		markerNames = Sort.putInOrder(markerNames, order);
+		chrs = Sort.putInOrder(chrs, order);
+		positions = Sort.putInOrder(positions, order);
+		pvals = Sort.putInOrder(pvals, order);
+		annotation = Sort.putInOrder(annotation, order);
+		
+		return determine(markerNames, chrs, positions, pvals, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, additionalAnnotationVariableNames, annotation);
+	}
+	
+	public static String[][] determine(String[] markerNames, byte[] chrs, int[] positions, double[] pvals, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold, String[] additionalAnnotationVariableNames, String[][] annotation) {
+		int startIndex, stopIndex, offset, minIndex;
+		double minPval;
+		int region;
+		int numSig, numSuggestive;
+		Vector<String[]> v;
+		String[] line;
+		
+		v = new Vector<String[]>();
+		line = new String[] {"Region", "MarkerName", "Chr", "Position", "p-value", "Region+Window", "RegionStart", "RegionStop", "NumSigMarkers", "NumSuggestiveMarkers", "NumTotalMarkers", "SizeOfRegion"};
+		for (int i = 0; i < additionalAnnotationVariableNames.length; i++) {
+			line = Array.addStrToArray(additionalAnnotationVariableNames[i], line);
 		}
+		v.add(line);
+		
+		startIndex = -1;
+		stopIndex = -1;
+		region = 1;
+//		System.out.println("Starting search...");
+		for (int i = 0; i < markerNames.length; i++) {
+			if (pvals[i] < indexThreshold) {
+				startIndex = i;
+				minIndex = i;
+				minPval = pvals[i];					
+				offset = 0;
+				numSig = numSuggestive = 1;
+				while (startIndex-offset-1 >= 0 && chrs[startIndex] == chrs[startIndex-offset-1] && positions[startIndex] - windowMinSizePerSide*2 <= positions[startIndex-offset-1]) { // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged 
+					offset++;
+					if (pvals[startIndex-offset] < windowExtensionThreshold) {
+						startIndex -= offset;
+						offset = 0;
+						numSuggestive++;
+					}
+				}
+//				System.out.println(markerNames[i]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
+								
+				stopIndex = i;
+				offset = 0;
+//				while (stopIndex+offset+1 < markerNames.length && chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide*2 >= positions[stopIndex+offset+1]) {
+				while (stopIndex+offset+1 < markerNames.length && chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide >= positions[stopIndex+offset+1]) {	// don't want the 2* here, though
+					offset++;
+					if (pvals[stopIndex+offset] < indexThreshold) {
+//						System.out.println(markerNames[stopIndex+offset]+"\t"+region);
+						numSig++;
+					}
+					if (pvals[stopIndex+offset] < windowExtensionThreshold) {
+						stopIndex += offset;
+						offset = 0;
+						numSuggestive++;
+					}
+					if (pvals[stopIndex] < minPval) {
+						minIndex = stopIndex;
+						minPval = pvals[stopIndex];
+					}
+				}
+//				System.out.println(markerNames[minIndex]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
+//				System.out.println(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
+				
+				line = new String[] {
+						region+"",
+						markerNames[minIndex],
+						chrs[minIndex]+"",
+						positions[minIndex]+"",
+						pvals[minIndex]+"",
+						"chr"+chrs[startIndex]+":"+Math.max(positions[startIndex]-windowMinSizePerSide, 1)+"-"+(positions[stopIndex]+windowMinSizePerSide),
+						positions[startIndex]+"",
+						positions[stopIndex]+"",
+						numSig+"",
+						numSuggestive+"",
+						(stopIndex-startIndex+1)+"",
+						(positions[stopIndex]-positions[startIndex]+1)+""
+					};
+				for (int j = 0; j < additionalAnnotationVariableNames.length; j++) {
+					line = Array.addStrToArray(annotation[minIndex][j], line);
+				}
+				v.add(line);
+				
+				i = stopIndex+offset;
+				region++;
+			}
+		}
+		
+		return Matrix.toStringArrays(v);
 	}
 	
 	public static void generateHitsLookup(String inputHits, int window, String outputFile, String mapfile) {
 		BufferedReader reader;
-		PrintWriter writer;
 		String[] line;
-		String temp, trav;
 		Hashtable<String, Vector<String>> hash;
 		Vector<String> v;
-		int count;
-		long time;
 		Segment[][] segs;
 		SnpMarkerSet markerSet;
 		Logger log;
@@ -177,7 +249,7 @@ public class HitWindows {
 					}
 				}
 			}
-			System.out.println(markerSet.getMarkerNames()[m]+"\t"+(v.size()==0?".":Array.toStr(Array.toStringArray(v), "/")));
+			System.out.println(markerNames[m]+"\t"+(v.size()==0?".":Array.toStr(Array.toStringArray(v), "/")));
 		}
 		
 	}
@@ -191,14 +263,18 @@ public class HitWindows {
 		float windowExtensionThreshold = (float)0.00000005; // (float)0.00001;
 		String knownHits = null;
 		String map = "markers.dat";
+		String[][] results;
+		String[] annotationCols = null;
 
 		String usage = "\n" + 
 		"gwas.HitWindows requires 0-1 arguments\n" + 
 		"   (1) input filename (i.e. file=" + filename + " (default))\n" + 
-		"   (2) filename of output (i.e. out=" + outfile + " (default))\n" + 
+		"   (2) filename of output (i.e. out=" + outfile + " (default; set to null to print to stdout))\n" + 
 		"   (3) p-value threshold for index SNPs (i.e. indexThresh=" + indexThreshold + " (default))\n" + 
 		"   (4) minimum num bp per side of window (i.e. minWinSize=" + windowMinSizePerSide + " (default))\n" + 
-		"   (5) p-value threshold to extend the window (i.e. winThresh=" + windowExtensionThreshold + " (default))\n" + 
+		"   (5) p-value threshold to extend the window (i.e. winThresh=" + windowExtensionThreshold + " (default))\n" +
+		"   (6) (optional) additional column headers to include (i.e. annotationCols=betaCol,sdCol,mafCol (not the default))\n" +
+		
 		" OR\n" + 
 		"   (1) list of known hits, 3 columns=trait+chr+position (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n" + 
 		"   (2) window around hit to extend (i.e. minWinSize=" + windowMinSizePerSide + " (default))\n" + 
@@ -230,6 +306,9 @@ public class HitWindows {
 			} else if (args[i].startsWith("map=")) {
 				map = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("annotationCols=")) {
+				annotationCols = ext.parseStringArg(args[i], null).split(",");
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -239,14 +318,25 @@ public class HitWindows {
 			System.exit(1);
 		}
 
-		generateHitsLookup("D:/ExomeChip/Hematology/00src/CHARGE-RBC/knownHits.dat", 200000, "D:/ExomeChip/Hematology/00src/CHARGE-RBC/hitLookup.dat", "D:/ExomeChip/Hematology/00src/CHARGE-RBC/ExomeChipV5_wMAF.csv");
-		System.exit(1);
+//		generateHitsLookup("D:/ExomeChip/Hematology/00src/CHARGE-RBC/knownHits.dat", 200000, "D:/ExomeChip/Hematology/00src/CHARGE-RBC/hitLookup.dat", "D:/ExomeChip/Hematology/00src/CHARGE-RBC/ExomeChipV5_wMAF.csv");
+//		System.exit(1);
+		
+//		filename = "input.txt";
+//		outfile = null;
+//		System.exit(1);
 		
 		try {
 			if (knownHits != null) {
 				generateHitsLookup(knownHits, windowMinSizePerSide, outfile, map);
 			} else {
-				determine(filename, outfile, indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
+				results = determine(filename, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, annotationCols);
+				if (outfile != null) {
+					Files.writeMatrix(results, outfile, "\t");
+				} else {
+					for (int i = 0; i < results.length; i++) {
+						System.out.println(Array.toStr(results[i], "\t"));
+					}
+				}
 			}
 //			determine("D:/mega/FromMike.11032011/pvals1.txt", "D:/mega/FromMike.11032011/pvals1.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);
 //			determine("D:/mega/FromMike.11032011/pvals2.txt", "D:/mega/FromMike.11032011/pvals2.out", indexThreshold, windowMinSizePerSide, windowExtensionThreshold);

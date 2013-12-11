@@ -2725,7 +2725,10 @@ public class Files {
 		
 		header = Files.getHeaderOfFile(filename, ",!", log);
 		expected = gwas.SkatMeta.getHeaderForMethod(method);
-		ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, true);
+		if (!ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, false)) {
+			log.reportError("Error - unexpected header for file "+filename);
+			System.exit(1);
+		}
 		
 		index = -1;
 		for (int h = 1; h < header.length; h++) {
@@ -2751,7 +2754,7 @@ public class Files {
 					} else {
 						writer.println("Variant\tpval");
 //						threshold = Double.parseDouble(methods[m][3]); // no longer allowed for singleSNP
-						threshold = Double.parseDouble("0.01");
+						threshold = Double.parseDouble("0.01"); // TODO make this dynamic
 						while (reader.ready()) {
 							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 							if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex]) >= threshold) {

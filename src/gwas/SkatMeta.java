@@ -341,7 +341,7 @@ public class SkatMeta {
 		log.report("");
 		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
 		
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, false, null, -1, 22000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, true, null, -1, 22000, 2);
 	}
 	
 	public static void consolidate(String dir, MetaAnalysisParams maps) {
@@ -614,7 +614,7 @@ public class SkatMeta {
 		Files.writeList(Array.toStringArray(toBeRunIndividually), dir+"master.toBeRunIndividually");
 		Files.chmod(dir+"master.toBeRunIndividually");
 		System.err.println("qsubing multiple individual runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, false, "sb", -1, 62000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
 		System.err.println("multiple individual runs done");
 
 		
@@ -777,7 +777,7 @@ public class SkatMeta {
 		Files.writeList(Array.toStringArray(toBeRunMetad), dir+"master.toBeMetaAnalyzed");
 		Files.chmod(dir+"master.toBeMetaAnalyzed");
 		System.err.println("qsubing multiple meta runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, false, "sb", -1, 62000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);
 		System.err.println("multiple meta runs done");
 	}
 
@@ -1552,29 +1552,6 @@ public class SkatMeta {
 		}
 	}
 	
-	public static void makeQQplots(String dir, MetaAnalysisParams maps) {
-		String[] groups;
-		String filename;
-		String[][] phenotypes;
-		String[][] methods;
-		if (dir == null || dir.equals("")) {
-			dir = new File("").getAbsolutePath()+"/";
-		}
-		dir = ext.verifyDirFormat(dir);
-		
-		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
-		methods = maps.getMethods();
-
-		new File(dir+"hitsAssembled/").mkdirs();
-		for (int i = 0; i < phenotypes.length; i++) {
-			groups = new String[] {};
-			
-			for (int m = 0; m < methods.length; m++) {
-//				cnv.plots.QQPlot
-			}
-		}
-	}
-	
 	public static void stitch(String dir, String pattern, String fileout, Logger log) {
 		String[] list;
 		int[] skips;
@@ -1635,7 +1612,6 @@ public class SkatMeta {
 		boolean metrics = false;
 		boolean forceMeta = false;
 		boolean copy = false;
-		boolean qq = false;
 
 		String usage = "\n" + 
 		"gwas.SkatMeta requires 0-1 arguments\n" + 
@@ -1666,8 +1642,6 @@ public class SkatMeta {
 		"   (4) minor allele count threshold for meta-analysis (i.e. macThresholdTotal="+macThresholdTotal+" (default))\n" + 
 		" OR\n" + 
 		"   (2) copy top hit files (i.e. -copy (not the default))\n" + 
-		" OR\n" + 
-		"   (2) makeQ plots (i.e. -qq (not the default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -1718,9 +1692,6 @@ public class SkatMeta {
 				numArgs--;
 			} else if (args[i].startsWith("-copy")) {
 				copy = true;
-				numArgs--;
-			} else if (args[i].startsWith("-qq")) {
-				qq = true;
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -1779,8 +1750,6 @@ public class SkatMeta {
 //				metaAll(dir, PHENOTYPES, STUDIES, GROUPS, METHODS, UNIT_OF_ANALYSIS, DEFAULT_SAMPLE_SIZES, WEIGHTED, SINGLE_VARIANTS, GROUP_ANNOTATION_PARAMS);
 			} else if (copy) {
 				copyHits(dir, maps);
-			} else if (qq) {
-				makeQQplots(dir, maps);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

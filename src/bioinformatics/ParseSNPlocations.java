@@ -11,24 +11,14 @@ import filesys.SerialHash;
 import filesys.SnpMarkerSet;
 
 public class ParseSNPlocations {
-//	public static final String DEFAULT_NCBI_DIRECTORY = "/home/npankrat/NCBI/NCBI/";
-	public static final String DEFAULT_NCBI_DIRECTORY = "C:/projects/NCBI/";
-	
-//	public static final String DEFAULT_SOURCE = "/home/npankrat/NCBI/b129_SNPChrPosOnRef_36_3.bcp";
-//	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b129_36_3.ser";
+//	public static final String DEFAULT_NCBI_DIRECTORY = "C:/projects/NCBI/";
+	public static final String DEFAULT_NCBI_DIRECTORY = "C:/NCBI/";
 
 	public static final String DEFAULT_B36_SOURCE = DEFAULT_NCBI_DIRECTORY+"b130_SNPChrPosOnRef_36_3.bcp.gz";
 	public static final String DEFAULT_B36_DB = DEFAULT_NCBI_DIRECTORY+"b130_36_3.ser";
 
-//	public static final String DEFAULT_SOURCE = "/home/npankrat/NCBI/NCBI/b132_SNPChrPosOnRef_37_1.bcp";
-//	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b132_37_1.ser";
-
-//	public static final String DEFAULT_SOURCE = "/home/npankrat/NCBI/NCBI/b135_SNPChrPosOnRef_37_3.bcp";
-//	public static final String DEFAULT_DB = "/home/npankrat/NCBI/b135_37_3.ser";
-
-	public static final String DEFAULT_B37_SOURCE = DEFAULT_NCBI_DIRECTORY+"b137_SNPChrPosOnRef.bcp.gz";
-//	public static final String DEFAULT_B37_DB = DEFAULT_NCBI_DIRECTORY+"b137_37_3.ser";
-	public static final String DEFAULT_B37_DB = "/home/npankrat/NCBI/b135_37_3.ser";
+	public static final String DEFAULT_B37_SOURCE = DEFAULT_NCBI_DIRECTORY+"b138_SNPChrPosOnRef.bcp.gz";
+	public static final String DEFAULT_B37_DB = DEFAULT_NCBI_DIRECTORY+"b138_37_3.ser";
 
 	public static final String DEFAULT_MERGE_SOURCE = DEFAULT_NCBI_DIRECTORY+"RsMergeArch.bcp.gz";
 	public static final String DEFAULT_MERGE = DEFAULT_NCBI_DIRECTORY+"RsMerge.ser";
@@ -38,41 +28,6 @@ public class ParseSNPlocations {
 	public static final int MULTIPLE_POSITIONS = -2;
 	public static final int UNMAPPED = -9;
 
-//	public static int[] parseSNPlocation(SnpMarkerSet dbMarkerSet, String markerName) {
-//		return parseSNPlocation(dbMarkerSet, markerName, null);
-//	}
-//	
-//	public static int[] parseSNPlocation(SnpMarkerSet dbMarkerSet, String markerName, Logger log) {
-//		int[] rsNumbers, positions;
-//		byte[] chrs;
-//		int index;
-//
-//		rsNumbers = dbMarkerSet.getRSnumbers();
-//		chrs = dbMarkerSet.getChrs();
-//		positions = dbMarkerSet.getPositions();
-//
-//		if (markerName.startsWith("rs")) {
-//			index = Array.binarySearch(rsNumbers, Integer.parseInt(markerName.substring(2)), true);
-//			if (index == -1) {
-//				if (log == null) {
-//					System.err.println("Error - could not find "+markerName+" in SnpMarkerSet database (generally dbSNP)");
-//				} else {
-//					log.reportError("Error - could not find "+markerName+" in SnpMarkerSet database (generally dbSNP)");
-//				}
-//				return new int[] {0,0};
-//			} else {
-//				return new int[] {chrs[index], positions[index]};
-//			}
-//		} else {
-//			if (log == null) {
-//				System.err.println("Error - can't look up a SNP without an rs number ("+markerName+")");
-//			} else {
-//				log.reportError("Error - can't look up a SNP without an rs number ("+markerName+")");
-//			}
-//			return new int[] {0,0};
-//		}
-//	}
-	
 	public static void lowMemParse(String snpListFile, boolean useExistingPositions, Logger log) {
 		lowMemParse(snpListFile, ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, useExistingPositions, log);
 	}
@@ -118,6 +73,7 @@ public class ParseSNPlocations {
 	        	} else {
 	        		if (dbMarkerSet == null) {
 	        			log.report("Loading database...");
+	        			log.report("(if file is not found and it's searching for the wrong file, then force a recompile of MapSNPsAndGenes so that it gets the new constant from ParseSNPlocations)");
 
 	        			dbMarkerSet = SnpMarkerSet.load(db, false, log);
 	        			dbRSnumbers = dbMarkerSet.getRSnumbers();
@@ -424,7 +380,7 @@ public class ParseSNPlocations {
 			hash = new Hashtable<Integer,Integer>(count);
 
 			count = 0;
-			reader = new BufferedReader(new FileReader(source));
+			reader = Files.getAppropriateReader(source);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\\t", -1);
 //				hash.put(line[0], line[6]); // not complete
@@ -455,8 +411,8 @@ public class ParseSNPlocations {
 		String merge = DEFAULT_MERGE;
 
 		// uncomment one of these to compile
-		source = DEFAULT_B37_SOURCE;
-		db = DEFAULT_B37_DB;
+//		source = DEFAULT_B37_SOURCE;
+//		db = DEFAULT_B37_DB;
 
 //		source = DEFAULT_B36_SOURCE;
 //		db = DEFAULT_B36_DB;

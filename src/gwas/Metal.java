@@ -436,7 +436,7 @@ public class Metal {
 		}
 		
 		batchFile = "run_"+ext.rootOf(filename, false)+".bat";
-		Files.write("C:/bin/metal < "+filename+" > "+ext.rootOf(filename, false)+".log", batchFile);
+		Files.write("metal < "+filename+" > "+ext.rootOf(filename, false)+".log", dir+batchFile);
 		if (!CmdLine.run(batchFile, dir, System.out, false)) {
 			log.report("metal < "+filename);
 		}
@@ -657,9 +657,9 @@ public class Metal {
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 			log.report("Running inverse variance weighted meta-analysis...");
-//			metaAnalyze("./", inputFiles, MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, log);
+			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, log);
 			log.report("Running sample size weighted meta-analysis...");
-//			metaAnalyze("./", inputFiles, MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, log);
+			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, log);
 			
 //			check to see if file exists, report error otherwise
 //			Files.backup(filename, sourceDir, backupDir);
