@@ -626,7 +626,7 @@ public class SeqMeta {
 		Files.writeList(Array.toStringArray(toBeRunIndividually), dir+"master.toBeRunIndividually");
 		Files.chmod(dir+"master.toBeRunIndividually");
 		System.err.println("qsubing multiple individual runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, false, "sb", -1, 62000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
 		System.err.println("multiple individual runs done");
 
 		
@@ -791,7 +791,7 @@ public class SeqMeta {
 		Files.writeList(Array.toStringArray(toBeRunMetad), dir+"master.toBeMetaAnalyzed");
 		Files.chmod(dir+"master.toBeMetaAnalyzed");
 		System.err.println("qsubing multiple meta runs");
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, false, "sb", -1, 62000, 2);
+		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);
 		System.err.println("multiple meta runs done");
 	}
 
@@ -984,7 +984,7 @@ public class SeqMeta {
 			temp = ext.replaceAllWith(reader.readLine(), "\"", "");
 			delimiter = ext.determineDelimiter(temp);
 
-			if (ext.checkHeader(temp.split(delimiter, -1), HEADER_TYPES[0], Array.intArray(HEADER_TYPES[0].length), false, log, true)) {
+			if (ext.checkHeader(temp.split(delimiter, -1), HEADER_TYPES[0], Array.intArray(HEADER_TYPES[0].length), false, log, false)) {
 				while (reader.ready()) {
 					if (delimiter.equals(",")) {
 						line = ext.splitCommasIntelligently(reader.readLine().trim(), true, log);
@@ -1030,6 +1030,7 @@ public class SeqMeta {
 				metrics[13] = ext.formDeci(Array.stdev(dvs[5].toArray()), 6);
 			} else {
 				log.reportError("Error - unexpected header for file '"+outputFilename+"' : "+temp);
+				System.exit(1);
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -1425,7 +1426,7 @@ public class SeqMeta {
 					header = Files.getHeaderOfFile(localRaceDir+filename, ",!", log);
 					header[0] = "'"+header[0]+"'";
 					for (int h = 1; h < header.length; h++) {
-						header[h] = "'"+header[h]+"'="+races[k][0]+"_Meta_"+header[h]+"_"+methods[m][0];
+						header[h] = "'"+header[h]+"'="+races[k][0]+"_"+header[h]+"_"+methods[m][0];
 					}
 					if (methods[m][1].equals("SingleVariant")) {
 						temp = header[0];
@@ -1451,7 +1452,7 @@ public class SeqMeta {
 				header = Files.getHeaderOfFile(localDir+filename, ",!", log);
 				header[0] = "'"+header[0]+"'";
 				for (int h = 1; h < header.length; h++) {
-					header[h] = "'"+header[h]+"'=PanEthnic_Meta_"+header[h]+"_"+methods[m][0];
+					header[h] = "'"+header[h]+"'=PanEthnic_"+header[h]+"_"+methods[m][0];
 				}
 				if (methods[m][1].equals("SingleVariant")) {
 					temp = header[0];
@@ -1531,8 +1532,12 @@ public class SeqMeta {
 			}
 		}
 		
+		copyHits(dir, maps);
+		delineateRegions(dir, maps);
+		
 		lineCounts.insertElementAt("Study\tRace\tPhenotype\tMethod\tCount", 0);
 		Files.writeList(Array.toStringArray(lineCounts), dir+"lineCounts.xln");
+		log.report("check lineCounts.xln for completeness");
 	}
 
 	public static void copyHits(String dir, MetaAnalysisParams maps) {
@@ -1681,39 +1686,109 @@ public class SeqMeta {
 		System.out.println("and done with a total time of " + ext.getTimeElapsed(time));
 	}
 	
-	public static void delineateRegions(String dir, MetaAnalysisParams maps, double singleSnpThreshold, double geneThreshold) {
-		String[] groups;
+	public static void delineateRegions(String dir, MetaAnalysisParams maps) {
+		Vector<Vector<String>> filesToCat;
+		int[] ns;
+		float indexThreshold;
+		Logger log, pvalThresholdsLog;
+		int index;
+		CountHash countHash;
+		
+		String[] groups, races;
 		String filename;
-		String[][] phenotypes;
-		String[][] methods;
+		String[][] phenotypes, methods, results;
+		Vector<String> additionalCols;
+		
 		if (dir == null || dir.equals("")) {
 			dir = new File("").getAbsolutePath()+"/";
 		}
 		dir = ext.verifyDirFormat(dir);
 		
+		log = new Logger(dir+"delineateRegions.log");
+		
+		if (!Files.exists(dir+"hitsAssembled/")) {
+			copyHits(dir, maps);
+		}
+		
 		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
 		methods = maps.getMethods();
+		races = Matrix.extractColumn(maps.getRacesWithFilenameAliases(), 0);
 
+		groups = new String[] {};
+		filesToCat = new Vector<Vector<String>>();
+		countHash = new CountHash();
+		for (int m = 0; m < methods.length; m++) {
+			if (ext.indexOfStr(methods[m][1], groups) == -1) {
+				groups = Array.addStrToArray(methods[m][1], groups);
+				filesToCat.add(new Vector<String>());
+			}
+			countHash.add(methods[m][1]);
+		}
+
+		pvalThresholdsLog = new Logger(dir+"pval_thresholds.xln");
+		pvalThresholdsLog.report("Trait\tN\tnTests\tBonferroni_pval");
 		for (int i = 0; i < phenotypes.length; i++) {
-			groups = new String[] {};
-			
+			ns = Array.intArray(groups.length, -1);
 			for (int m = 0; m < methods.length; m++) {
-				if (ext.indexOfStr(methods[m][1], groups) == -1) {
-					groups = Array.addStrToArray(methods[m][1], groups);
+				filename = phenotypes[i][0]+"/"+methods[m][0]+"/meta_panEthnic_pvals.dat";
+				index = ext.indexOfStr(methods[m][1], groups);
+				if (Files.exists(dir+filename)) {
+					ns[index] = Math.max(ns[index], Files.countLines(filename, true));
 				}
 			}
-			
-			for (int j = 0; j < groups.length; j++) {
-				filename = dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[j]+".csv";
-				System.out.println("cp "+phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[j]+".csv hitsAssembled/");
-				Files.copyFile(filename, dir+"hitsAssembled/"+ext.removeDirectoryInfo(filename));
+			for (int g = 0; g < groups.length; g++) {
+				if (groups[g].equals("SingleVariant") && ns[g] == -1) {
+					ns[g] = 1000000;
+				} else if (groups[g].equals("BurdenTests") && ns[g] == -1) {
+					ns[g] = 20000;
+				}
+				
+				indexThreshold = (float)(0.05 / (double)ns[g] / (double)countHash.getCount(groups[g]));
+//				indexThreshold = (float)(0.05 / (double)ns[g]);
+				filename = phenotypes[i][0]+"_"+groups[g]+".csv";
+				pvalThresholdsLog.report(ext.rootOf(filename)+"\t"+ns[g]+"\t"+countHash.getCount(groups[g])+"\t"+indexThreshold);
+				additionalCols = new Vector<String>();
+				if (groups[g].equals("SingleVariant")) {
+					additionalCols.add("SKATgene");
+					additionalCols.add("CHARGE_ALL_AF");
+//					additionalCols.add("function");
+					additionalCols.add("single_func_region");
+				}
+				if (groups[g].equals("BurdenTests")) {
+					additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
+//					additionalCols.add("PanEthnic_Meta_nsnpsTotal_T5Count");
+				}
+				for (int j = 0; j < methods.length; j++) {
+					if (methods[j][1].equals(groups[g])) {
+						additionalCols.add("PanEthnic_p_"+methods[j][0]);
+//						additionalCols.add("PanEthnic_Meta_p_"+methods[j][0]);
+						for (int k = 0; k < races.length; k++) {
+							additionalCols.add(races[k]+"_p_"+methods[j][0]);
+//							additionalCols.add(races[k]+"_Meta_p_"+methods[j][0]);
+						}
+					}
+				}
+				if (Files.exists(dir+"hitsAssembled/"+filename)) {
+					results = HitWindows.determine(dir+"hitsAssembled/"+filename, indexThreshold, 500000, indexThreshold*100, Array.toStringArray(additionalCols));
+					Files.writeMatrix(results, ext.rootOf(dir+"hitsAssembled/"+filename, false)+"_regions.xln", "\t");
+					String temp = phenotypes[i][0];
+					Files.write(temp, dir+"hitsAssembled/"+temp+".tmp");
+					filesToCat.elementAt(g).add(dir+"hitsAssembled/"+temp+".tmp");
+					filesToCat.elementAt(g).add(ext.rootOf(dir+"hitsAssembled/"+filename, false)+"_regions.xln");
+				} else {
+					log.reportError("Error - could not find expected file: "+dir+"hitsAssembled/"+filename);
+				}
 			}
+		}
+		
+		for (int g = 0; g < groups.length; g++) {
+			Files.cat(Array.toStringArray(filesToCat.elementAt(g)), dir+"hitsAssembled/"+groups[g]+"_regions.xln", null, log);
 		}
 	}
 	
 	public static void makeQQplots(String dir, MetaAnalysisParams maps) {
-		String[] groups;
-		String filename;
+//		String[] groups;
+//		String filename;
 		String[][] phenotypes;
 		String[][] methods;
 		if (dir == null || dir.equals("")) {
@@ -1726,7 +1801,7 @@ public class SeqMeta {
 
 		new File(dir+"hitsAssembled/").mkdirs();
 		for (int i = 0; i < phenotypes.length; i++) {
-			groups = new String[] {};
+//			groups = new String[] {};
 			
 			for (int m = 0; m < methods.length; m++) {
 //				cnv.plots.QQPlot
@@ -1929,6 +2004,18 @@ public class SeqMeta {
 //		delineateRegions(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), 1E-7, 2E-6);
 //		System.exit(1);
 		
+//		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/metaAnalysis2/";
+//		delineateRegions(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), 1E-7, 2E-6);
+//		System.exit(1);
+		
+//		dir = "D:/ExomeChip/Hematology/00src/CHARGE-RBC/06_everythingIncludingYFS/";
+//		delineateRegions(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), 1E-7, 2E-6);
+//		System.exit(1);
+
+//		dir = "D:/ExomeChip/Hematology/results/07_outliersRemoved/allBurdens/";
+//		delineateRegions(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()));
+//		System.exit(1);
+		
 		try {
 			log = new Logger(logfile);
 			maps = new MetaAnalysisParams(mapsFile, log);
@@ -1958,7 +2045,7 @@ public class SeqMeta {
 			} else if (genePositions) {
 				parseGenePositions(dir, maps);
 			} else if (regions) {
-				delineateRegions(dir, maps, 1E-7, 2E-6);
+				delineateRegions(dir, maps);
 			} else if (copy) {
 				copyHits(dir, maps);
 			} else if (qq) {

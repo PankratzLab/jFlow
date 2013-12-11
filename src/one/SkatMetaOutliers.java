@@ -67,15 +67,8 @@ public class SkatMetaOutliers {
 	}
 
 	private static void summarizeAll(String dir, String idColName, String phenosCommaDelimited, String covarsCommaDelimited) {
-		BufferedReader reader;
 		PrintWriter writer;
-		String[] line;
-		String temp, trav;
-		Hashtable<String, String> hash = new Hashtable<String, String>();
-		Vector<String> v = new Vector<String>();
-		int count;
-		long time;
-		String[] phenos, covars, transforms, outliers;
+		String[] phenos, covars, transforms;
 		Logger log;
 		boolean winsorize, remove, makeResids, afterResids, inverseNormalize;
 		String outFile, idFile;

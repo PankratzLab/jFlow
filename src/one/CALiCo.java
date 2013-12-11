@@ -1,6 +1,7 @@
 package one;
 
 import gwas.Conditional;
+import gwas.Metal;
 import gwas.ResultsPackager;
 
 import java.io.BufferedReader;
@@ -21,6 +22,7 @@ import bioinformatics.MapSNPsAndGenes;
 import parse.GenParser;
 import stats.RegressionModel;
 
+import common.Aliases;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -837,10 +839,34 @@ public class CALiCo {
 		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile, outFileRoot.substring(outFileRoot.indexOf("_") + 1).replace("_", ":"), genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + "_cov.out", log);
 	}
 
-
-
-
-
+	public static void metaAnalyzeSOL(String dir, String root, String mapFile) {
+		String filename, freqFile, outfile;
+		Logger log;
+		String[] inputFiles;
+		
+		log = new Logger();
+		freqFile = null;
+		
+		String[] sites = new String[] {"b", "c", "m", "s"};
+		
+		inputFiles = new String[0];
+		for (int i = 0; i < sites.length; i++) {
+			filename = root+"_"+sites[i]+".out";
+			outfile = root+"_"+sites[i]+"_parsed.out";
+			if (!Files.exists(dir+outfile)) {
+				System.out.println("Parsing "+filename);
+				ResultsPackager.parseSOLformat(dir, filename, mapFile, freqFile, null, 1.0, outfile, log);
+			}
+			inputFiles = Array.addStrToArray(outfile, inputFiles);
+		}
+		log.report("Running inverse variance weighted meta-analysis...");
+		Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_InvVar", Metal.SE_ANALYSIS, null, log);
+		log.report("Running sample size weighted meta-analysis...");
+		Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_NWeighted", Metal.PVAL_ANALYSIS, null, log);
+		
+		
+		
+	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -856,6 +882,10 @@ public class CALiCo {
 		String resultDir = phenoCovarDir + (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)?"conditionals/":"results/");
 		Logger log;
 		boolean exists = true;
+		
+		metaAnalyzeSOL("D:/data/SOL/", "MODEL3wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+		metaAnalyzeSOL("D:/data/SOL/", "MODEL4wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+		System.exit(1);
 
 		String usage = "\n" +
 		"one.CALiCo requires 0-1 arguments\n" + 

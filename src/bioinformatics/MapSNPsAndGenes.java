@@ -28,9 +28,6 @@ public class MapSNPsAndGenes {
 	// public static final String DEFAULT_FILENAME = "bone snps.txt";
 	// public static final String DEFAULT_FILENAME = "top_snps_for_nathan_2009_04_16.txt";
 	// public static final String DEFAULT_FILENAME = "top_aa_snps_positions.txt";
-//	public static final String DEFAULT_FILENAME = "ea_final_list.txt";
-//	public static final String DEFAULT_FILENAME = "supp_t1_snps.txt";
-//	public static final String DEFAULT_FILENAME = "table1_snps.txt";
 //	public static final String DEFAULT_FILENAME = "cpru.txt";
 //	public static final String DEFAULT_FILENAME = "aff.txt";
 //	public static final String DEFAULT_FILENAME = "onset.txt";

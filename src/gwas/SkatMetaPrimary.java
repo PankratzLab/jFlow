@@ -17,7 +17,7 @@ public class SkatMetaPrimary {
 		String rCode;
 		String batchDir;
 		PrintWriter out;
-		Vector<String> v;
+		Vector<String> v, consolidateVector;
 		String filename, commands;
 		String[][] iterations;
 		boolean foundGenos;
@@ -50,6 +50,7 @@ public class SkatMetaPrimary {
 
 		try {
 			v = new Vector<String>();
+			consolidateVector = new Vector<String>();
 			// generate batch files in dir+root+"/batchFiles/"; example: "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
 			foundGenos = false;
 			foundSnpInfo = false;
@@ -122,8 +123,9 @@ public class SkatMetaPrimary {
 							+ "save(" + cohort + "_chr" + i + ", file=\"" + cohort + "_chr" + i + ".RData\", compress=\"bzip2\")";
 
 					
+					// consolidate won't run if it's not added
+					filename = batchDir + cohort+ "_chr" + i + ".R";
 					if (!Files.exists(resultDir+cohort + "_chr" + i + ".RData")) {
-						filename = batchDir + cohort+ "_chr" + i + ".R";
 						out = new PrintWriter(new FileOutputStream(filename));
 						out.println(rCode);
 						out.close();
@@ -132,6 +134,7 @@ public class SkatMetaPrimary {
 	//					Runtime.getRuntime().exec("C:/Progra~1/R/R-3.0.1/bin/Rscript " + batchDir + "chr" + i + ".R");
 						v.add(filename);
 					}
+					consolidateVector.add(filename);
 					
 				}
 			}
@@ -171,6 +174,7 @@ public class SkatMetaPrimary {
 				new File(batchDir + "finishUpOnSB_" + cohort).delete();
 			}
 
+			iterations = Matrix.toMatrix(Array.toStringArray(consolidateVector));
 			v = new Vector<String>();
 			jobNamesWithAbsolutePaths = new Vector<String>();
 			jobSizes = new IntVector();
@@ -190,7 +194,8 @@ public class SkatMetaPrimary {
 			commands = Rscript.getRscriptExecutable(new Logger())+" --no-save "+batchDir + "mergeRdataFiles.R";
 			Files.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem*4, qsubWalltime, 1);
 			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, batchDir+"chunk_"+cohort, 8, true, null, -1, qsubMem, qsubWalltime);
-			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, batchDir+"chunkSB_"+cohort, 16, true, "sb256", -1, qsubMem, qsubWalltime);
+			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, batchDir+"chunkSB256_"+cohort, 16, true, "sb256", -1, qsubMem, qsubWalltime);
+			Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, batchDir+"chunkSB_"+cohort, 16, true, "sb", -1, qsubMem, qsubWalltime);
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -225,7 +230,7 @@ public class SkatMetaPrimary {
 		for (int i = 0; i < phenos.length; i++) {
 			for (int j = 0; j < races.length; j++) {
 				v.add("cd "+cohort+"_"+races[j]+"_"+phenos[i]+"/batchFiles/");
-				v.add("./master.chunk_"+cohort+"_"+races[j]+"_"+phenos[i]);
+				v.add("./master.chunkSB_"+cohort+"_"+races[j]+"_"+phenos[i]);
 				v.add("cd ../../");
 				v.add("");
 			}
@@ -297,9 +302,9 @@ public class SkatMetaPrimary {
 
 	private static void batchAdditionals(String phenoDirectory, String cohort, String snpInfo, int qsubMem, double qsubWalltime) {
 		String phenoDir;
-		String phenoRoot;
+//		String phenoRoot;
 		String resultDir;
-		String currentGeno;
+//		String currentGeno;
 		String currentSnpInfo;
 		String rCode;
 		String batchDir;
@@ -307,11 +312,11 @@ public class SkatMetaPrimary {
 		Vector<String> v;
 		String filename, commands;
 		String[][] iterations;
-		boolean foundGenos;
-		boolean foundSnpInfo;
-		String consolidate;
-		Vector<String> jobNamesWithAbsolutePaths;
-		IntVector jobSizes;
+//		boolean foundGenos;
+//		boolean foundSnpInfo;
+//		String consolidate;
+//		Vector<String> jobNamesWithAbsolutePaths;
+//		IntVector jobSizes;
 
 		if (! new File(phenoDirectory).exists()) {
 			System.err.println("Error - directory not found: " + phenoDirectory);
@@ -326,8 +331,8 @@ public class SkatMetaPrimary {
 		try {
 			v = new Vector<String>();
 			// generate batch files in dir+root+"/batchFiles/"; example: "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
-			foundGenos = false;
-			foundSnpInfo = false;
+//			foundGenos = false;
+//			foundSnpInfo = false;
 			for (int i = 1; i <= 26; i++) {
 				if (snpInfo.contains("#")) {
 					currentSnpInfo = ext.replaceAllWith(snpInfo, "#", i+"");
@@ -335,8 +340,8 @@ public class SkatMetaPrimary {
 					currentSnpInfo = snpInfo;
 				}
 				if (new File(resultDir+cohort+"_chr"+i+".RData").exists()) {
-					foundGenos = true;
-					foundSnpInfo = true;
+//					foundGenos = true;
+//					foundSnpInfo = true;
 					rCode = "library(\"skatMeta\")\n"
 							+ "setwd(\"" + resultDir + "\")\n"
 							+ "\n"

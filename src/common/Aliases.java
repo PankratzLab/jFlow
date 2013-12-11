@@ -1,11 +1,11 @@
 package common;
 
 public class Aliases {
-	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "Variant", "AnalysisUnit", "Variant_ID"};
+	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests"};
 	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 	
 	public static final String[] CHRS = {"Chr", "Chromosome", "CHROM"};
-	public static final String[] POSITIONS = {"Position", "pos", "BP", "MapInfo"};
+	public static final String[] POSITIONS = {"Position", "pos", "BP", "MapInfo", "PositionOfFirstMarkerInGene"};
 	public static final String[] CENTIMORGANS = {"centiMorgans", "cM"};
 
 	public static final String[][] ALLELES = {
@@ -15,7 +15,7 @@ public class Aliases {
 	public static final String[] EFFECTS = {"beta", "beta_SNP_add", "Effect"};
 	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add"};
 	
-	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "mbpval"};
+	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "Pvalue", "mbpval", "minPval"};
 	public static final String[] NS = {"N", "NMISS", "sampleN"};
 	
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency"};

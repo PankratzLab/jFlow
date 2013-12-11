@@ -714,14 +714,14 @@ public class ext {
 		return indexFactors(targetsWithAlts, superset, false, caseSensitive, exactMatch, verbose, log, kill);
 	}
 	
-	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset, boolean preferFirstInTargetsOverFirstInSubset, boolean caseSensitive, boolean exactMatch, boolean verbose, Logger log, boolean kill) {
+	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset, boolean preferFirstInTargetsOverFirstInSuperset, boolean caseSensitive, boolean exactMatch, boolean verbose, Logger log, boolean kill) {
 		int[] finalIndices;
 		IntVector[] possibleIndices;
 		boolean err = false;
 		int index, minIndex;
 
 		possibleIndices = IntVector.newIntVectors(targetsWithAlts.length);
-		if (preferFirstInTargetsOverFirstInSubset) {
+		if (preferFirstInTargetsOverFirstInSuperset) {
 	 		for (int j = 0; j<targetsWithAlts.length; j++) {
 	 			minIndex = Integer.MAX_VALUE;
 	 			for (int i = 0; i<superset.length; i++) {
