@@ -14,7 +14,7 @@ import java.util.Hashtable;
  * Class to maintain a Boolean Map of Chr Positions.
  * The outer Hashtable houses the data for each of the chromosomes (Byte) separately. The inner Hashtable flags each position (Integer) as being inside of a DHS region (Boolean, true/false)
  */
-public class ChrPositionBooleanMap implements Serializable {
+public class ChrPositionMap implements Serializable {
 
 	public static final long serialVersionUID = 1L;
 
@@ -31,7 +31,7 @@ public class ChrPositionBooleanMap implements Serializable {
 
 	public void writeToFile(String filepath) throws IOException {
 
-		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filepath));
+		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filepath, false));
 		out.writeObject(this);
 		out.close();
 	}
@@ -39,7 +39,11 @@ public class ChrPositionBooleanMap implements Serializable {
 	public void readFromFile(String filepath) throws IOException, ClassNotFoundException {
 		FileInputStream in = new FileInputStream(filepath);
 		ObjectInputStream reader = new ObjectInputStream(in);
-		this.setChrPositionMap(((ChrPositionBooleanMap) reader.readObject()).chrPositionMap);
+		this.setChrPositionMap(((ChrPositionMap) reader.readObject()).chrPositionMap);
 		reader.close();
+	}
+
+	public String toString() {
+		return chrPositionMap.toString();
 	}
 }

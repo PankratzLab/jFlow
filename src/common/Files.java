@@ -35,7 +35,7 @@ public class Files {
 //	public static final String ROOT_DIRECTORY = "/state/partition1/npankrat/";  // indiviudal nodes
 	public static final String JAVA = "/usr/java/latest/bin/java";
 	public static final String JCP = JAVA+" -cp /home/npankrat/park.jar ";
-	private static final String SERIALIZED_FILE_EXTENSION = ".ser";
+	public static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[] iterations) {
 		String[][] iters = new String[iterations.length][1];
@@ -2567,6 +2567,31 @@ public class Files {
 			System.err.println("Error reading file \"" + in + "\"");
 			System.exit(2);
 		}
+	}
+
+	/**
+	 * Function to remove exntention from  a the filenaem of a give file path
+	 * @param filePath the path of the file
+	 * @return the name of the file without exntention
+	 */
+	public static String removeExtention(String filePath) {
+		File f = new File(filePath);
+		// if it's a directory, don't remove the extention
+		if (f.isDirectory()) return f.getName();
+		String name = f.getName();
+		String path = f.getParent();
+		// if it is a hidden file
+		if (name.startsWith(".")) {
+			// if there is no extn, do not rmove one...
+			if (name.lastIndexOf('.') == name.indexOf('.')) return name;
+		}
+		// if there is no extention, don't do anything
+		if (!name.contains(".")) return name;
+		// Otherwise, remove the last 'extension type thing'
+		if(path != null)
+			return path + File.separator + name.substring(0, name.lastIndexOf('.'));
+		else
+			return name.substring(0, name.lastIndexOf('.'));
 	}
 
 	// doesn't work, better to just search to see if the file you want exists, or check the home directory for clarification
