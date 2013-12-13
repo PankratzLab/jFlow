@@ -1199,7 +1199,7 @@ public class ParseDbgap implements Runnable {
 			return;
 		}
 
-		filename = "C:/workspace/Genvisis/projects/dbGap_test.properties";
+		filename = "C:/workspace/Genvisis/projects/dbGap_compare_IND.properties";
 //		proj = null;
 		proj = new Project(filename, false);
 //
