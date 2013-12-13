@@ -20,29 +20,29 @@ public class AffyPowerTools {
     
     public static void main(String[] args) {
         System.out.println("affy");
-        String affyLib = "/lustre/pankrat2/normDat/affy/lib/";
-        String outDir = "/lustre/pankrat2/normDat/output/";
-        String pennCNVbin = "/lustre/pankrat2/normDat/pennCNV/bin/";
-        String pennCNVlib = "/lustre/pankrat2/normDat/pennCNV/lib/";
-        //String intitialCelList = "/lustre/pankrat2/normDat/lists/bigListFinal.txt";
-        String finalCelList = "/lustre/pankrat2/normDat/lists/bigListFinal.txt";
+        String affyLib = "/project/scratch/normDat/affy/lib/";
+        String outDir = "/project/scratch/normDat/output/";
+        String pennCNVbin = "/project/scratch/normDat/pennCNV/bin/";
+        String pennCNVlib = "/project/scratch/normDat/pennCNV/lib/";
+        //String intitialCelList = "/project/scratch/normDat/lists/bigListFinal.txt";
+        String finalCelList = "/project/scratch/normDat/lists/bigListFinal.txt";
         String pbsOutDir = "/home/pankrat2/lanej/PBS/";
         String affyChunk = "cel";
-        String affyChunkProbe = "probes2_" ;
-        String affyChunkProbeAll = "allProbes" ;
+        String affyChunkProbe = "probesCN" ;
         int numJobs = 16;
-        String celLists = "/lustre/pankrat2/normDat/lists/";
-        int memory = 16000;
-        double wallTime = 2.00;
+        String celLists = "/project/scratch/normDat/lists/";
+        int memory = 4;
+        double wallTime = 1.00;
         String affyGenofolderOut = "genoTypeOut2_";
+        String affySumfolderOut = "summarOutCN";
         
         int totalMemory = memory*numJobs;
         String affyDetectPBS= pbsOutDir + "Detect.pbs";
         String affyQCPBS= pbsOutDir + "QC.pbs";
         String affyKColPBS= pbsOutDir + "KCol.pbs";
         String affyINDKColPBS= pbsOutDir + "KColIND.pbs";
-        String affyGenoPBS= pbsOutDir + "GT_sb64.pbs";
-        String affySumPBS= pbsOutDir + "Sum.pbs";
+        String affyGenoPBS= pbsOutDir + "GT.pbs";
+        String affySumPBS= pbsOutDir + "SumCNsOneHr.pbs";
         String affyPennGenoClustPBS= pbsOutDir + "PenGClust.pbs";
         String affyPennGenoLRRBAFPBS= pbsOutDir + "PennLRR_BAF.pbs";
         String affyCDF = affyLib + "GenomeWideSNP_6.cdf";
@@ -107,11 +107,11 @@ public class AffyPowerTools {
             
             
             
-            String summarizeCommand =  affySummarize +" --cdf-file " + affyCDF +
+            String summarizeCommand =  affySummarize +"--cc-chp-output --cdf-file " + affyCDF +
                     " --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch "+
-                    affyHapMapQuant + " --out-dir " + outDir + "summarOut" + batchNum +
+                    affyHapMapQuant + " --out-dir " + outDir + affySumfolderOut + batchNum +
                     "/ --cel-files " + finalCelList
-                    + " --probeset-ids " + celLists + affyChunkProbeAll +batchNum;
+                    + " --probeset-ids " + celLists + affyChunkProbe +batchNum;
             
             affySumJobs[i] = summarizeCommand;
             
@@ -158,14 +158,14 @@ public class AffyPowerTools {
         }
         
         
-        Files.qsubMultiple(affyQCPBS , affyQCJobs, numJobs, memory ,totalMemory, wallTime);
-        Files.qsubMultiple(affyGenoPBS , affyGenoJobs, numJobs, memory ,totalMemory, wallTime);
+        //Files.qsubMultiple(affyQCPBS , affyQCJobs, numJobs, memory ,totalMemory, wallTime);
+       // Files.qsubMultiple(affyGenoPBS , affyGenoJobs, numJobs, memory ,totalMemory, wallTime);
         Files.qsubMultiple(affySumPBS , affySumJobs, numJobs, memory ,totalMemory, wallTime);
-        Files.qsubMultiple(affyPennGenoClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
-        Files.qsubMultiple(affyPennGenoLRRBAFPBS , LRRBAFJobs, numJobs, memory ,totalMemory, wallTime);
-        Files.qsubMultiple(affyKColPBS , kColumn, numJobs, memory ,totalMemory, wallTime);;
-        Files.qsubMultiple(affyINDKColPBS , indkColumn, numJobs, memory ,totalMemory, wallTime);
-        Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
+       // Files.qsubMultiple(affyPennGenoClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
+       // Files.qsubMultiple(affyPennGenoLRRBAFPBS , LRRBAFJobs, numJobs, memory ,totalMemory, wallTime);
+       // Files.qsubMultiple(affyKColPBS , kColumn, numJobs, memory ,totalMemory, wallTime);;
+       // Files.qsubMultiple(affyINDKColPBS , indkColumn, numJobs, memory ,totalMemory, wallTime);
+      //  Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
     }
     
     private static void genFinalCelList (String aQCReport , String finalCelList , double callRate){
