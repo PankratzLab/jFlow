@@ -11,7 +11,7 @@ import common.*;
 import stats.*;
 
 public class SexChecks {
-	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", "Estimated Sex", "Mean X LRR", "Num X markers", "Num X 10-90", "% 10-90", "Mean Y LRR", "Num Y markers"};
+	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner", "Mean X LRR", "Num X markers", "Num X 10-90", "% 10-90", "Mean Y LRR", "Num Y markers"};
 	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
 	public static final String[] SNP_FIELDS = {"Sample", "X", "Y", "X Raw", "Y Raw", "Theta", "R", "B Allele Freq", "Log R Ratio", "AlleleCount"};
 	public static final String RESULTS_DIR = "results/genderChecks/";

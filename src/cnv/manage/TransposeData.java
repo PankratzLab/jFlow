@@ -871,7 +871,7 @@ public class TransposeData {
 			files[i].delete();
 		}
 		
-		if (files.length >= 0) {
+		if (files.length > 0) {
 			System.out.println("Older version of the data in " + directory + " has been deleted from the hard drive.");
 		}
 	}
