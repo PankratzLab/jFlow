@@ -1,7 +1,7 @@
 /**
  * 
  */
-package cnv.plots;
+package cnv.gui;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -16,7 +16,7 @@ import javax.swing.*;
 
 import common.HashVec;
 
-import cnv.gui.ColorIcon;
+import cnv.plots.AbstractPanel;
 import cnv.var.SampleData;
 
 /**

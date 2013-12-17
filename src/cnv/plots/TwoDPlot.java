@@ -11,6 +11,7 @@ import java.awt.event.*;
 
 import cnv.filesys.*;
 import cnv.gui.CheckBoxTree;
+import cnv.gui.ColorKeyPanel;
 import common.*;
 import cnv.var.*;
 

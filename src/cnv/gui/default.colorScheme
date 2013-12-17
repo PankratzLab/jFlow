@@ -1,0 +1,46 @@
+# color scheme for the first CNV segment file
+homDel1	55,129,252	# light blue
+hetDel1	55,129,252	# light blue
+hetDup1	23,58,172	# dark blue
+homDup1	23,58,172	# dark blue
+
+# color scheme for the second CNV segment file, etc.
+homDel2	94,88,214	# light purple
+hetDel2	94,88,214	# light purple
+hetDup2	140,20,180	# deep purple
+homDup2	140,20,180	# deep purple
+
+homDel3	189,243,61	# light green
+hetDel3	189,243,61	# light green
+hetDup3	33,87,10	# dark green
+homDup3	33,87,10	# dark green
+
+homDel4	217,109,194	# pink
+hetDel4	217,109,194	# pink
+hetDup4	201,30,10	# deep red
+homDup4	201,30,10	# deep red
+
+homDel5	255,255,255	# light light
+hetDel5	255,255,255	# light light
+hetDup5	33,31,53	# dark dark
+homDup5	33,31,53	# dark dark
+
+# comment lines ignored
+
+# integer data from SampleData.txt will be mapped to these values 
+0	33,31,53	# dark dark
+1	23,58,172	# dark blue
+2	201,30,10	# deep red
+3	140,20,180	# deep purple
+4	33,87,0	# dark green
+5	55,129,252	# light blue
+6	94,88,214	# light purple
+7	189,243,61	# light green
+8	217,109,194	# pink
+9	0,0,128	# ALL KINDS OF BLUES
+10	100,149,237
+11	72,61,139	# comments not necessary
+12	106,90,205
+13	123,104,238
+14	132,112,255	# blank lines ignored
+15	0,0,205
