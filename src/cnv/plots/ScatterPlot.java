@@ -17,6 +17,7 @@ import java.awt.event.*;
 import cnv.filesys.*;
 import cnv.gui.AnnotationAction;
 import cnv.gui.AutoSaveForScatterPlot;
+import cnv.gui.ColorKeyPanel;
 import cnv.gui.CycleRadio;
 import cnv.manage.MarkerDataLoader;
 import common.*;
