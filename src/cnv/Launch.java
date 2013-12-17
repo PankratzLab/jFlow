@@ -375,7 +375,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				cnv.manage.Markers.generateMarkerPositions(proj, "SNP_Map.csv");
 			} else if (command.equals(PARSE_FILES_CSV)) {
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS), proj.getLog());
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);
 			} else if (command.equals(TRANSPOSE_DATA)) {
@@ -459,7 +459,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
 				cnv.qc.MarkerMetrics.filterMetrics(proj, proj.getLog());
 			} else if (command.equals(KITANDKABOODLE)) {
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS), proj.getLog());
 
 				TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
 				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
@@ -497,7 +497,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			loadProject();
 		}	
 
-		if (timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
+		if (timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false)).lastModified()) {
 			log.report("Detected a change in the sampleData file; reloading sample data");
 			proj.resetSampleData();
 		}	

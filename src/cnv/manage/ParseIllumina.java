@@ -8,6 +8,7 @@ import java.util.*;
 import javax.swing.JOptionPane;
 
 import cnv.filesys.ABLookup;
+import cnv.filesys.MarkerData;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -332,8 +333,9 @@ public class ParseIllumina implements Runnable {
 		return dir+trav+Sample.SAMPLE_DATA_FILE_EXTENSION;
 	}
 
+	// TODO need to convert system out/err to log 
 	@SuppressWarnings("unchecked")
-	public static void createFiles(Project proj, int numThreads) {
+	public static void createFiles(Project proj, int numThreads, Logger log) {
 		BufferedReader reader;
 		String[] line, markerNames, files;
 		ArrayList<String> alNames;
@@ -402,7 +404,7 @@ public class ParseIllumina implements Runnable {
 			System.out.println("Also found a 'fixes.dat' file in the project directory, which will be used to rename samples");
 			fixes = HashVec.loadFileToHashString(proj.getProjectDir()+"fixes.dat", false);
 		} else {
-			System.out.println("Did not find a 'fixes.dat' file; assuming you don't want to rename any IDs");
+			System.out.println("Did not find a 'fixes.dat' file; assuming there are no swapped samples to rename");
 		}
 
 		try {
@@ -471,6 +473,7 @@ public class ParseIllumina implements Runnable {
 				
 				return;
 			}
+			// TODO check different fields depending upon Affy/Illumina flag
 			indices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
 			if (indices[0] == -1 || indices[1] == -1) {
 				System.err.println("Error - the files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
@@ -495,6 +498,39 @@ public class ParseIllumina implements Runnable {
 			}
 			sampleName = parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex];
 			
+			if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false)+"markers.0.mdRAF").exists()) {
+
+				overwriteOptions = new String[] {
+						"Delete All", 
+						"Cancel parser"
+				};
+				
+				response = JOptionPane.showOptionDialog(null, 
+						"Marker data (at least the first file 'markers.0.mdRAF') have already been parsed.\n"+
+						"This happens if you had previously transposed the data or if the parser was interrupted and manually restarted.\n"+
+						"If you would like to start from scratch, select \"Delete All\" earlier files.\n"+
+						"Otherwise, press cancel.\n"+
+						"What would you like to do?"
+					, "Marker data exists", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[2]);
+
+				switch (response) {
+				case -1:
+					return;
+				case 0:
+					filesToDelete = Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY), MarkerData.MARKER_DATA_FILE_EXTENSION, false);
+					for (int i = 0; i < filesToDelete.length; i++) {
+						new File(proj.getDir(Project.MARKER_DATA_DIRECTORY) + filesToDelete[i]).delete();
+					}
+					new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + "outliers.ser").delete();
+					break;
+				case 1:
+					return;
+				default:
+					JOptionPane.showMessageDialog(null, "Should be impossible to obtain this message ("+response+")", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			}
+
 			if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+sampleName+Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 
 				overwriteOptions = new String[] {
@@ -509,11 +545,11 @@ public class ParseIllumina implements Runnable {
 						"If you would like to start from scratch, select \"Delete All\" earlier files.\n"+
 						"Otherwise, cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis.\n"+
 						"What would you like to do?"
-					, "What to do?", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[2]);
+					, "Samples already exist", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[2]);
 
 				switch (response) {
 				case -1:
-					break;
+					return;
 				case 0:
 					filesToDelete = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 					for (int i = 0; i < filesToDelete.length; i++) {
@@ -528,9 +564,10 @@ public class ParseIllumina implements Runnable {
 					return;
 				default:
 					JOptionPane.showMessageDialog(null, "Should be impossible to obtain this message ("+response+")", "Error", JOptionPane.ERROR_MESSAGE);
-					break;
+					return;
 				}
 			}
+			
 			TransposeData.deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true), new String[] {"outliers"}, new String[] {".ser"}, true, new String[] {"outliers.ser"});
 
 			reader.reset();			
@@ -751,6 +788,7 @@ public class ParseIllumina implements Runnable {
 								
 								samp = new Sample(sampleName, fingerprint, data, genotypes, false);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
+								count++;
 							}
 							if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 								samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
@@ -828,7 +866,6 @@ public class ParseIllumina implements Runnable {
 								}
 							}
 						}
-						count++;
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
@@ -1140,6 +1177,7 @@ public class ParseIllumina implements Runnable {
 
 //		proj = null;
 		proj = new Project(filename, false);
+		System.exit(1);
 //
 //		if (!proj.getDir(Project.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
 //			System.err.println("Error - the project source location is invalid: "+proj.getDir(Project.SOURCE_DIRECTORY));
@@ -1162,7 +1200,7 @@ public class ParseIllumina implements Runnable {
 			} else if (parseAlleleLookupFromFinalReports) {
 				parseAlleleLookupFromFinalReports(proj);
 			} else {
-				createFiles(proj, numThreads);
+				createFiles(proj, numThreads, new Logger());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

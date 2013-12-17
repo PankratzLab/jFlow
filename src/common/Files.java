@@ -477,6 +477,7 @@ public class Files {
 	        }
 			writer.println();
 			writer.println("echo \"start "+ext.rootOf(filename)+" at: \" `date`");
+			writer.println("/bin/hostname");
 			for (int j = 0; j<lines.length; j++) {
 				writer.println(lines[j]);
 			}

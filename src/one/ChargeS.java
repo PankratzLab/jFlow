@@ -666,8 +666,8 @@ public class ChargeS {
 			
 			
 			String dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/";
-//			genoFile = "ARIC_AA_Freeze3_Chrom#_Genotypes.txt.gz";
-			genoFile = "ARIC_EA_Freeze3_Chrom#_Genotypes.txt.gz";
+			genoFile = "ARIC_AA_Freeze3_Chrom#_Genotypes.txt.gz";
+//			genoFile = "ARIC_EA_Freeze3_Chrom#_Genotypes.txt.gz";
 			annotationFile = "ESFreeze3_snpinfo_042913_min.csv.gz";
 			makePlink = true;
 
@@ -676,7 +676,7 @@ public class ChargeS {
 			}
 			
 			if (makePlink) {
-				convertToPlinkTransposed(dir, genoFile, annotationFile, 0.05);
+				convertToPlinkTransposed(dir, genoFile, annotationFile, 0.01);
 			}
 			
 //			metaAll(dir+"results/");
