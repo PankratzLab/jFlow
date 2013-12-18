@@ -343,7 +343,7 @@ public class Centroids implements Serializable {
         for (int i = 0; i<samples.length; i++) {
         	original = proj.getFullSampleFromRandomAccessFile(samples[i]);
         	sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-        	sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION);
+        	sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION);
         }
 	}
 
