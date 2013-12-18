@@ -20,31 +20,35 @@ public class AffyPowerTools {
     
     public static void main(String[] args) {
         System.out.println("affy");
-        String affyLib = "/project/scratch/normDat/affy/lib/";
-        String outDir = "/project/scratch/normDat/output/";
-        String pennCNVbin = "/project/scratch/normDat/pennCNV/bin/";
-        String pennCNVlib = "/project/scratch/normDat/pennCNV/lib/";
-        //String intitialCelList = "/project/scratch/normDat/lists/bigListFinal.txt";
-        String finalCelList = "/project/scratch/normDat/lists/bigListFinal.txt";
+        String base = "/lustre/pankrat2/normDat/";      
+        //String intitialCelList = base+"lists/bigListFinal.txt";
         String pbsOutDir = "/home/pankrat2/lanej/PBS/";
-        String affyChunk = "cel";
-        String affyChunkProbe = "probesCN" ;
+        String affyChunk = "cels";
+        String batchChunk = "SNP_";
+   
+        int numBatches = 3;
         int numJobs = 16;
-        String celLists = "/project/scratch/normDat/lists/";
-        int memory = 4;
-        double wallTime = 1.00;
-        String affyGenofolderOut = "genoTypeOut2_";
-        String affySumfolderOut = "summarOutCN";
         
+        String affyQCfolderOut = "QCOut";
+        String affyGenofolderOut = "genoTypeOut";
+        String affySumfolderOut = "summarOut";
+        String affyGenoClusterFolderOut = "clusterOut";
+        String affyChunkProbe = "probes";
+        String quantNorm =  "quant-norm.pm-only.med-polish.expr.summary.txt";
+        
+        String finalCelList = base+"lists/bigListFinal.txt";
+        String lists = base+"lists/";
+        int memory = 14999;
+        double wallTime = 92.00;
+        String snpProbesetList = "AllGenoTypingSnps.txt";
+        String cnProbesetList = "AllCopyNumberProbes.txt";
+        
+        String sexFile =lists+"file_sex.txt";
+        String affyLib = base+"affy/lib/";
+        String outDir = base+"output/";
+        String pennCNVbin = base+"pennCNV/bin/";
+        String pennCNVlib = base+"pennCNV/lib/";
         int totalMemory = memory*numJobs;
-        String affyDetectPBS= pbsOutDir + "Detect.pbs";
-        String affyQCPBS= pbsOutDir + "QC.pbs";
-        String affyKColPBS= pbsOutDir + "KCol.pbs";
-        String affyINDKColPBS= pbsOutDir + "KColIND.pbs";
-        String affyGenoPBS= pbsOutDir + "GT.pbs";
-        String affySumPBS= pbsOutDir + "SumCNsOneHr.pbs";
-        String affyPennGenoClustPBS= pbsOutDir + "PenGClust.pbs";
-        String affyPennGenoLRRBAFPBS= pbsOutDir + "PennLRR_BAF.pbs";
         String affyCDF = affyLib + "GenomeWideSNP_6.cdf";
         String affyBirdseedModel = affyLib + "GenomeWideSNP_6.birdseed-v2.models";
         String affySpecialSnps = affyLib + "GenomeWideSNP_6.specialSNPs";
@@ -58,12 +62,11 @@ public class AffyPowerTools {
         String affyGenoQC = affyLib + "apt-geno-qc";
         String affyGenotype = affyLib + "apt-probeset-genotype";
         String affySummarize = affyLib + "apt-probeset-summarize";
+        String affyChpToText =affyLib + "apt-chp-to-txt";
         String qcOut =  outDir + "qcOut.txt";
-        String sexFile = outDir + "file_sex.txt"; 
         String birdseedReport =  "birdseed-v2.report.txt"; 
         String birdseedCalls =  "birdseed-v2.calls.txt"; 
         String birdseedConf =  "birdseed-v2.confidences.txt"; 
-        String quantNorm =  "sort-all-quant-norm.pm-only.med-polish.expr.summary.txt";
         String locFile = pennCNVlib + "affygw6.hg18.pfb";
         String genoCluster =  "gw6.genocluster"; 
         String genoLrrBaf =  "gw6.lrr_baf.txt"; 
@@ -81,6 +84,7 @@ public class AffyPowerTools {
         String[] affyGenoJobs = new String[numJobs];
         String[] affySumJobs = new String[numJobs];
         String[] affyGenoClusterJobs = new String[numJobs];
+        String[] affyCNClusterJobs = new String[numJobs];
         String[] LRRBAFJobs = new String[numJobs];
         String[] kColumn = new String[numJobs];
         String[] indkColumn = new String[numJobs];
@@ -88,85 +92,130 @@ public class AffyPowerTools {
         String[] chpToTxt = new String[numJobs];
         
         
-        for (int i = 0; i<numJobs; i++) {
-            String batchNum = "" + i;
-            if(i<10){
-                batchNum = "0" + i;
+        for (int j = 0; j<numBatches; j++) {
+        	String batchID ="";
+            if(j<10){
+                batchID = batchChunk + "B0" + j +"_";
             }
-            
-            String qc = affyGenoQC + " -c " + affyCDF + " --qca-file " + affyQCA + " -qcc-file " + 
-                affyQCC + " --chrX-probes " + affyChrX +" --chrY-probes " + affyChrY  + " --out-file "+outDir + "qcOut_" + batchNum 
-                + ".qc --cel-files " + celLists + affyChunk +batchNum;
-            affyQCJobs[i] = qc;
-            
-            String genotypeCommand = affyGenotype + " -c " + affyCDF + " --cc-chp-output --no-table-output -a birdseed-v2 --set-gender-method cn-probe-chrXY-ratio --read-models-birdseed " +
-                    affyBirdseedModel + " --special-snps " + affySpecialSnps + " -out-dir " +
-                    outDir + affyGenofolderOut + batchNum + "/ --cel-files " + finalCelList + " --chrX-probes " + affyChrX +" --chrY-probes " + 
-                    affyChrY + " --probeset-ids " + celLists + affyChunkProbe +batchNum ;
-            affyGenoJobs[i] = genotypeCommand;
-            
-            
-            
-            String summarizeCommand =  affySummarize +"--cc-chp-output --cdf-file " + affyCDF +
-                    " --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch "+
-                    affyHapMapQuant + " --out-dir " + outDir + affySumfolderOut + batchNum +
-                    "/ --cel-files " + finalCelList
-                    + " --probeset-ids " + celLists + affyChunkProbe +batchNum;
-            
-            affySumJobs[i] = summarizeCommand;
-            
-            // Include sex file later
-            String generate_affy_geno_cluster  = "perl " + pennCNVbin+"generate_affy_geno_cluster.pl "+
-                    outDir + "genoTypeOut" + batchNum +"/" +  birdseedCalls 
-                    + " " + outDir + "genoTypeOut" + batchNum +"/" + birdseedConf + " " 
-                    + outDir +quantNorm + " -locfile " +
-                    pennCNVlib + locFile +  " -out " + outDir + "genoTypeOut" + batchNum + "/" + genoCluster; 
-            
-            affyGenoClusterJobs[i] = generate_affy_geno_cluster;
-            
-            String lrrBafCalc = "perl " + pennCNVbin+"JL_normalize_affy_geno_cluster.pl "+
-                    outDir + "genoTypeOut" + batchNum + "/" + genoCluster + " " + outDir +quantNorm 
-                    + " -locfile " + locFile + 
-                    " -out " + outDir + "genoTypeOut" + batchNum + "/" +genoLrrBaf;
-            
-            LRRBAFJobs[i] = lrrBafCalc;
-            
-            String splitSignalFile = "perl " + pennCNVbin + "kcolumn.pl "+
-            		outDir + "genoTypeOut" + batchNum + "/" + genoLrrBaf + 
-            		" split 2 -tab -head 3 --name -out " + outDir + "Kcol/Kcol" + 
-            		batchNum +"/gw6_split --filenameout " +
-            		outDir + "Kcol/Kcol" + batchNum + "/" +pennSplitOut ;
-           
-            kColumn[i] = splitSignalFile;
-            
-            String splitSignalFileIND = "perl " + pennCNVbin + "kcolumn.pl "+
-            		outDir + "genoTypeOut" + batchNum + "/" + genoLrrBaf + 
-            		"JL split 20 -tab -head 1 --name -out " + outDir + "Kcol/Kcol" + 
-            		batchNum +"/gw6_split.IND --filenameout " +
-            		outDir + "Kcol/Kcol" + batchNum + "/" +pennSplitOut ;
-            indkColumn[i] = splitSignalFileIND;
-            
-            String detectCNV = "perl " + detect_cnv +"detect_cnv.pl --test -hmm " + pennHmm +
-                  " -pfb " + locFile + " -log " +outDir + "detectCNV" +
-                  batchNum + "/gw6.log -out " +outDir + "detectCNV" + batchNum + "/gw6.rawcnv" +
-                  " -list " + celLists + "indDetect" +batchNum;;
-             
-            detectCNVs[i] = detectCNV;
-            //System.out.println(qc);
-            //System.out.println(generate_affy_geno_cluster);
-            System.out.println(genotypeCommand);
-        }
-        
-        
-        //Files.qsubMultiple(affyQCPBS , affyQCJobs, numJobs, memory ,totalMemory, wallTime);
-       // Files.qsubMultiple(affyGenoPBS , affyGenoJobs, numJobs, memory ,totalMemory, wallTime);
-        Files.qsubMultiple(affySumPBS , affySumJobs, numJobs, memory ,totalMemory, wallTime);
-       // Files.qsubMultiple(affyPennGenoClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
-       // Files.qsubMultiple(affyPennGenoLRRBAFPBS , LRRBAFJobs, numJobs, memory ,totalMemory, wallTime);
-       // Files.qsubMultiple(affyKColPBS , kColumn, numJobs, memory ,totalMemory, wallTime);;
-       // Files.qsubMultiple(affyINDKColPBS , indkColumn, numJobs, memory ,totalMemory, wallTime);
-      //  Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
+            if(j>=10){
+            	batchID =batchChunk + "B" + j +"_";
+            }
+	        
+	        
+	        String affyGenoPBS= pbsOutDir + "GT"+batchID + ".pbs";
+	        String affySumPBS= pbsOutDir + "summarOut"+batchID + ".pbs";
+	        String affyPennGenoClustPBS= pbsOutDir + "PenGenoClust"+batchID + ".pbs";
+	        String affyChpToTxtPBS= pbsOutDir + "ChpToTxt"+batchID + ".pbs";
+	        String affyPennCNClustPBS= pbsOutDir + "PenCNClust"+batchID + ".pbs";
+	        String affyPennGenoLRRBAFPBS= pbsOutDir + "PennLRR_BAF.pbs";
+	       
+	        String affyQCPBS= pbsOutDir + "QC"+batchID + ".pbs";
+	        String affyKColPBS= pbsOutDir + "KCol"+batchID + ".pbs";
+	        String affyINDKColPBS= pbsOutDir + "KColIND"+batchID + ".pbs";
+	        String affyDetectPBS= pbsOutDir + "Detect"+batchID + ".pbs";
+	        for (int i = 0; i<numJobs; i++) {
+	        	String jobID = "";
+	            if(i<10){
+	            	jobID = batchID +"0"+i;
+	            }
+	            if(i >=10){
+	            jobID = batchID + i;
+	            }
+	            
+	            String qc = affyGenoQC + " -c " + affyCDF + " --qca-file " + affyQCA + " -qcc-file " + 
+	                affyQCC + " --chrX-probes " + affyChrX +" --chrY-probes " + affyChrY  + " --out-file "+outDir  +affyQCfolderOut+"/"+ jobID 
+	                + ".qc --cel-files " + lists + affyChunk +jobID;
+	            affyQCJobs[i] = qc;
+	            
+	            String genotypeCommand = affyGenotype + " -c " + affyCDF + " --cc-chp-output --table-output true -a birdseed-v2 --set-gender-method cn-probe-chrXY-ratio --read-models-birdseed " +
+	                    affyBirdseedModel + " --special-snps " + affySpecialSnps + " -out-dir " +
+	                    outDir + affyGenofolderOut + jobID + "/ --cel-files " + finalCelList + " --chrX-probes " + affyChrX +" --chrY-probes " + 
+	                    affyChrY + " --probeset-ids " + lists + affyChunkProbe +jobID ;
+	            affyGenoJobs[i] = genotypeCommand;
+	            
+	            String aptChptoTxt = affyChpToText + " " + outDir + affyGenofolderOut + jobID + "/cc-chp*/*.chp -o "+
+	            		outDir+"ARICGenvisis/00src/" + affyGenofolderOut + jobID + "/cc-chp";
+	            chpToTxt[i] = aptChptoTxt;
+	            
+	            String summarizeCommand =  affySummarize +" --cdf-file " + affyCDF +
+	                    " --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch "+
+	                    affyHapMapQuant + " --out-dir " + outDir + affySumfolderOut + jobID +
+	                    "/ --cel-files " + finalCelList
+	                    + " --probeset-ids " + lists + affyChunkProbe +jobID;
+	            
+	            affySumJobs[i] = summarizeCommand;
+	            
+	            // Include sex file later
+	            String generate_affy_geno_cluster  = "perl " + pennCNVbin+"generate_affy_geno_cluster.pl "+
+	                    outDir + affyGenofolderOut + jobID +"/" +  birdseedCalls 
+	                    + " " + outDir + affyGenofolderOut + jobID +"/" + birdseedConf + " " 
+	                    + outDir + affySumfolderOut + jobID +"/" +quantNorm + " " +batchChunk+" -locfile " +
+	                    locFile +  " -sexfile "+ sexFile + " -out " + outDir + affyGenoClusterFolderOut + jobID + "/" + genoCluster; 
+	            
+	            affyGenoClusterJobs[i] = generate_affy_geno_cluster;
+	            
+//	            String generate_affy_CN_cluster  = "perl " + pennCNVbin+"generate_affy_CN_cluster.pl "+
+//	                    outDir + affyGenofolderOut + jobID +"/" +  birdseedCalls 
+//	                    + " " + outDir + affyGenofolderOut + jobID +"/" + birdseedConf + " " 
+//	                    + outDir + affySumfolderOut + jobID +"/" +quantNorm + " -locfile " +
+//	                    locFile +  " -sexfile "+ sexFile + " -out " + outDir + affyGenoClusterFolderOut + jobID + "/" + genoCluster; 
+//	            
+//	            affyCNClusterJobs[i] = generate_affy_CN_cluster;
+	            
+	            String lrrBafCalc = "perl " + pennCNVbin+"normalize_affy_geno_cluster.pl "+
+	            		outDir + affyGenoClusterFolderOut + jobID + "/" + genoCluster + " " + outDir + affySumfolderOut + jobID +"/" +quantNorm 
+	                    + " -locfile " + locFile + 
+	                    " -out " + outDir + affyGenoClusterFolderOut + jobID + "/" +genoLrrBaf;
+	            
+	            LRRBAFJobs[i] = lrrBafCalc;
+	            
+	            String splitSignalFile = "perl " + pennCNVbin + "kcolumn.pl "+
+	            		outDir + "genoTypeOut" + jobID + "/" + genoLrrBaf + 
+	            		" split 2 -tab -head 3 --name -out " + outDir + "Kcol/Kcol" + 
+	            		jobID +"/gw6_split --filenameout " +
+	            		outDir + "Kcol/Kcol" + jobID + "/" +pennSplitOut ;
+	           
+	            kColumn[i] = splitSignalFile;
+	            
+	            String splitSignalFileIND = "perl " + pennCNVbin + "kcolumn.pl "+
+	            		outDir + "genoTypeOut" + jobID + "/" + genoLrrBaf + 
+	            		"JL split 20 -tab -head 1 --name -out " + outDir + "Kcol/Kcol" + 
+	            		jobID +"/gw6_split.IND --filenameout " +
+	            		outDir + "Kcol/Kcol" + jobID + "/" +pennSplitOut ;
+	            indkColumn[i] = splitSignalFileIND;
+	            
+	            String detectCNV = "perl " + detect_cnv +"detect_cnv.pl --test -hmm " + pennHmm +
+	                  " -pfb " + locFile + " -log " +outDir + "detectCNV" +
+	                  jobID + "/gw6.log -out " +outDir + "detectCNV" + jobID + "/gw6.rawcnv" +
+	                  " -list " + lists + "indDetect" +jobID;;
+	             
+	            detectCNVs[i] = detectCNV;
+	            //System.out.println(qc);
+	            //System.out.println(generate_affy_geno_cluster);
+	            System.out.println(aptChptoTxt);
+	        }
+	        
+	       
+	        //Files.qsubMultiple(affyQCPBS , affyQCJobs, numJobs, memory ,totalMemory, wallTime);
+	        //Files.qsubMultiple(affyGenoPBS , affyGenoJobs, numJobs, memory ,totalMemory, wallTime);
+	      Files.qsubMultiple(affyChpToTxtPBS , chpToTxt, numJobs, memory ,totalMemory, wallTime);
+	        
+	        
+	       // Files.qsubMultiple(affySumPBS , affySumJobs, numJobs, memory ,totalMemory, wallTime);
+	       // Files.qsubMultiple(affyPennGenoClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
+	      //   Files.qsubMultiple(affyPennCNClustPBS , affyCNClusterJobs, numJobs, memory ,totalMemory, wallTime);
+	       
+	        // Files.qsubMultiple(affyPennGenoLRRBAFPBS , LRRBAFJobs, numJobs, memory ,totalMemory, wallTime);
+	       // Files.qsubMultiple(affyKColPBS , kColumn, numJobs, memory ,totalMemory, wallTime);
+	        
+	       // Files.qsubMultiple(affyINDKColPBS , indkColumn, numJobs, memory ,totalMemory, wallTime);
+	      //  Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
+	    }
     }
+    
+    
+    
+    
     
     private static void genFinalCelList (String aQCReport , String finalCelList , double callRate){
         PrintWriter writer;
