@@ -396,8 +396,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //						if () {
 //							
 //						}
+					success = PlinkData.saveGenvisisToPlinkBedSet(proj, filename, -1, true, log);
 //					success = cnv.manage.PlinkFormat.createPlink(proj, filename, proj.getLog());
-					success = PlinkData.createBinaryFileSetFromGenvisisData(proj, filename, (float) 0.15, "plink", true, log);
 					if (success) {
 						try {
 //							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
@@ -446,14 +446,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(COMP)) {
 				new CompPlot(proj);
 			} else if (command.equals(POPULATIONBAF)) {
-				cnv.analysis.PennCNV.populationBAF(proj);
+				cnv.analysis.PennCNV.populationBAF(proj, log);
 			} else if (command.equals(EXPORT_CNVS)) {
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(TEST)) {
 //				log.report("No new program to test");
 				ScatterPlot.createAndShowGUI(proj, null, null);
 			} else if (command.equals(GCMODEL)) {
-				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
+				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100, log);
 			} else if (command.equals(MARKER_METRICS)) {
 				cnv.qc.MarkerMetrics.fullQC(proj, (boolean[])null, null, proj.getLog()); // need the declaration, otherwise the call is ambiguous
 			} else if (command.equals(FILTER_MARKER_METRICS)) {

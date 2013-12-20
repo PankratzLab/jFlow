@@ -67,7 +67,8 @@ public class AnalysisFormats implements Runnable {
 //				samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, jar);
 				samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
 			} else {
-				System.err.println("Error - the " + Sample.SAMPLE_DATA_FILE_EXTENSION + " file is not found for the following item in sampleList " + samples[i]);
+//				System.err.println("Error - the " + Sample.SAMPLE_DATA_FILE_EXTENSION + " file is not found for the following item in sampleList " + samples[i]);
+				System.err.println("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
 				return;
 			}
 //			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
