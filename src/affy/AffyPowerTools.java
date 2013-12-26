@@ -25,9 +25,15 @@ public class AffyPowerTools {
         String pbsOutDir = "/home/pankrat2/lanej/PBS/";
         String affyChunk = "cels";
         String batchChunk = "SNP_";
+        String genvisisSource = "/lustre/pankrat2/normDat/output/ARICGenvisis/00src/";
+        String javaClass = "affy.AffySNP6Tables";
+        String project  = "/home/pankrat2/lanej/projects/dbGaP_ARIC_11908.properties";
    
         int numBatches = 3;
         int numJobs = 16;
+        int lineBuffer =500;
+        int memory = 14999;
+        double wallTime = 94.00;
         
         String affyQCfolderOut = "QCOut";
         String affyGenofolderOut = "genoTypeOut";
@@ -36,13 +42,13 @@ public class AffyPowerTools {
         String affyChunkProbe = "probes";
         String quantNorm =  "quant-norm.pm-only.med-polish.expr.summary.txt";
         
+       
         String finalCelList = base+"lists/bigListFinal.txt";
         String lists = base+"lists/";
-        int memory = 14999;
-        double wallTime = 92.00;
+        
         String snpProbesetList = "AllGenoTypingSnps.txt";
         String cnProbesetList = "AllCopyNumberProbes.txt";
-        
+        String park  = "/home/pankrat2/lanej/park.jar -Xmx"+memory/1024+"G ";
         String sexFile =lists+"file_sex.txt";
         String affyLib = base+"affy/lib/";
         String outDir = base+"output/";
@@ -85,6 +91,7 @@ public class AffyPowerTools {
         String[] affySumJobs = new String[numJobs];
         String[] affyGenoClusterJobs = new String[numJobs];
         String[] affyCNClusterJobs = new String[numJobs];
+        String[] affySNP6Tables = new String[numJobs];
         String[] LRRBAFJobs = new String[numJobs];
         String[] kColumn = new String[numJobs];
         String[] indkColumn = new String[numJobs];
@@ -107,7 +114,8 @@ public class AffyPowerTools {
 	        String affyPennGenoClustPBS= pbsOutDir + "PenGenoClust"+batchID + ".pbs";
 	        String affyChpToTxtPBS= pbsOutDir + "ChpToTxt"+batchID + ".pbs";
 	        String affyPennCNClustPBS= pbsOutDir + "PenCNClust"+batchID + ".pbs";
-	        String affyPennGenoLRRBAFPBS= pbsOutDir + "PennLRR_BAF.pbs";
+	        String affyPennGenoLRRBAFPBS= pbsOutDir + "PennLRR_BAF"+batchID + ".pbs";
+	        String affySNP6TablesPBS = pbsOutDir + "AS6T" + batchID + ".pbs";
 	       
 	        String affyQCPBS= pbsOutDir + "QC"+batchID + ".pbs";
 	        String affyKColPBS= pbsOutDir + "KCol"+batchID + ".pbs";
@@ -144,7 +152,15 @@ public class AffyPowerTools {
 	                    + " --probeset-ids " + lists + affyChunkProbe +jobID;
 	            
 	            affySumJobs[i] = summarizeCommand;
+
 	            
+	            String affySNP6TablesCommand =  "/soft/java/jdk1.7.0_45/bin/java -cp "+park +" "+javaClass +" proj=" +project +" calls="+outDir + affyGenofolderOut + jobID +"/"
+	            		 +  birdseedCalls+ " conf="+outDir + affyGenofolderOut + jobID +"/" + birdseedConf  +
+	            		" sig="+outDir + affySumfolderOut + jobID +"/" +quantNorm + " out="+
+	            		genvisisSource + jobID +"/ -"+batchChunk + " numLinesBuffer="+lineBuffer ;
+	                    
+	            		
+	            affySNP6Tables[i] =affySNP6TablesCommand;
 	            // Include sex file later
 	            String generate_affy_geno_cluster  = "perl " + pennCNVbin+"generate_affy_geno_cluster.pl "+
 	                    outDir + affyGenofolderOut + jobID +"/" +  birdseedCalls 
@@ -192,18 +208,19 @@ public class AffyPowerTools {
 	            detectCNVs[i] = detectCNV;
 	            //System.out.println(qc);
 	            //System.out.println(generate_affy_geno_cluster);
-	            System.out.println(aptChptoTxt);
+	            System.out.println(lrrBafCalc);
 	        }
 	        
 	       
 	        //Files.qsubMultiple(affyQCPBS , affyQCJobs, numJobs, memory ,totalMemory, wallTime);
 	        //Files.qsubMultiple(affyGenoPBS , affyGenoJobs, numJobs, memory ,totalMemory, wallTime);
-	      Files.qsubMultiple(affyChpToTxtPBS , chpToTxt, numJobs, memory ,totalMemory, wallTime);
+	      //Files.qsubMultiple(affyChpToTxtPBS , chpToTxt, numJobs, memory ,totalMemory, wallTime);
 	        
 	        
 	       // Files.qsubMultiple(affySumPBS , affySumJobs, numJobs, memory ,totalMemory, wallTime);
+	       //Files.qsubMultiple(affySNP6TablesPBS , affySNP6Tables, numJobs, memory ,totalMemory, wallTime);
 	       // Files.qsubMultiple(affyPennGenoClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
-	      //   Files.qsubMultiple(affyPennCNClustPBS , affyCNClusterJobs, numJobs, memory ,totalMemory, wallTime);
+	      //   Files.qsubMultiple(affyPennCNClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
 	       
 	        // Files.qsubMultiple(affyPennGenoLRRBAFPBS , LRRBAFJobs, numJobs, memory ,totalMemory, wallTime);
 	       // Files.qsubMultiple(affyKColPBS , kColumn, numJobs, memory ,totalMemory, wallTime);
