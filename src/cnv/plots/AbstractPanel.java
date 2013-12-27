@@ -59,13 +59,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int DELAY = 0;	//A control variable to reduce the repaint() operations during component resizing;
 	public static final int SCATTER_PLOT_TYPE = 1; 
 	public static final int HEAT_MAP_TYPE = 2;
-	public static final int CONNECT_THE_DOTS_TYPE = 3;
 	public static final int DEFAULT_TYPE = SCATTER_PLOT_TYPE;
-	public static final int[] HEAT_MAP_COLOR_SCHEME_BACKGROUND = new int[] {255, 255, 255};
-//	public static final int[] HEAT_MAP_COLOR_SCHEME_HOT = new int[] {255, 140, 0};
-//	public static final int[] HEAT_MAP_COLOR_SCHEME_COLD = new int[] {238, 232, 170};
-	public static final int[] HEAT_MAP_COLOR_SCHEME_HOT = new int[] {0, 255, 255};
-	public static final int[] HEAT_MAP_COLOR_SCHEME_COLD = new int[] {255, 255, 0};
 	
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX;
@@ -111,7 +105,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int currentPlotPointSet;
 	private int lastIndexInPlotPointSet;
 	private int currentIndexInPlotPointSet;
-//	private String tempDirectory;	// TODO is this necessary?
 	private int lookupResolution;
 	private boolean flow;			//A control variable. If resizing is not yet done, don't start generatePoints() or drawAll();
 	private boolean finalImage;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
@@ -141,13 +134,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		resetZoomProportions();
 		plotPointSetSize = DEFAULT_PLOTPOINTSET_SIZE;
 		points = new PlotPoint[plotPointSetSize];
-		// Number of line will be 1 less than no of points
-		//lines = new GenericLine[plotPointSetSize-1];
 		totalNumPlotPointSets = 1;
 		currentPlotPointSet = 0;
 		lastIndexInPlotPointSet = -1;
 		currentIndexInPlotPointSet = -1;
-//		tempDirectory = "";
 		randomTest = false;
 		chartType = DEFAULT_TYPE;
 		
@@ -166,19 +156,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		addMouseWheelListener(this);
 	}
 	
-	// TODO where did this come from and what was it intended to do?
-//	public void addPlotPoint(PlotPoint point) {
-//		lastIndexInPlotPointSet++;
-//		points[lastIndexInPlotPointSet] = point;
-//		if (lastIndexInPlotPointSet == plotPointSetSize) {
-//			new PlotPointSet(points).serialize(tempDirectory+"PlotPointSet."+currentPlotPointSet+".ser");
-//		}
-//		points = new PlotPoint[plotPointSetSize];
-//		totalNumPlotPointSets++;
-//		currentPlotPointSet++;
-//		lastIndexInPlotPointSet = 0;
-//	}
-	
 	public void resetCurrentIndexInPlotPointSet() {
 		currentIndexInPlotPointSet = -1;
 	}
@@ -191,10 +168,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		nullMessage = str;
 	}
 
-//	public void setTempDirectory(String dir) {
-//		tempDirectory = dir;
-//	}
-//	
 	public void setColorScheme(Color[] scheme) {
 		colorScheme = scheme;
 	}
@@ -510,7 +483,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		// Draw the lines
 		for (int i = 0; lines!=null && i<lines.length && flow; i++) {
-//		for (int i = 0; lines!=null&&i<lines.length; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
 				Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()), getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
 			}
@@ -523,7 +495,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				rectangleYPixel = Math.min(getYPixel(rectangles[i].getStartYValue()), getYPixel(rectangles[i].getStopYValue()));
 		    	rectangleWidthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue()) - getXPixel(rectangles[i].getStopXValue()));
 		    	rectangleHeightPixel = (Math.abs(getYPixel(rectangles[i].getStartYValue()) - getYPixel(rectangles[i].getStopYValue())));
-//		    	g.setColor(Color.GRAY);
 		    	g.setColor(colorScheme[rectangles[i].getColor()]);
 				
 				if (rectangles[i].getFill()) {
@@ -549,7 +520,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			rectangleYPixel = Math.min(getYPixel(highlightRectangle.getStartYValue()), getYPixel(highlightRectangle.getStopYValue()));
 	    	rectangleWidthPixel = Math.abs(getXPixel(highlightRectangle.getStartXValue()) - getXPixel(highlightRectangle.getStopXValue()));
 	    	rectangleHeightPixel = (Math.abs(getYPixel(highlightRectangle.getStartYValue()) - getYPixel(highlightRectangle.getStopYValue())));
-//	    	g.setColor(Color.BLACK);
 	    	g.setColor(colorScheme[0]);
 //	    	g.drawRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
 	    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, (byte) 1);
@@ -571,15 +541,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		step = Math.max((points.length)/100, 1);
 		layers = new Hashtable<String,Vector<PlotPoint>>();
 
-		if (chartType == CONNECT_THE_DOTS_TYPE) {
-			drawLineChart(g);
-		} else if (chartType == HEAT_MAP_TYPE) {
-//			drawHeatMap(g, null, 100, 100);
+		if (chartType == HEAT_MAP_TYPE) {
 			drawHeatMap(g, null);
 		} else if (chartType == SCATTER_PLOT_TYPE) {
 			for (int i = 0; i<points.length && flow; i++) {
-//				System.out.println("loop");
-//			for (int i = 0; i<points.length; i++) {
 				if (base && i%step==0){
 					if (new Date().getTime() - time > 1000) {
 						if (prog == null) {
@@ -589,7 +554,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 				}
 				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
-//				if (points[i] == null || points[i].getColor() == -1 || (points[i].getRawX() < 1 && points[i].getRawY() < 1)) {
 					
 				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
 //					System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
@@ -628,16 +592,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
 			
-			//buildLookupTableOfNearbyPoints();//zx Looks like it gets duplicated with the above
-			//for (int i=0; i<locLookup.size(); i++) {
-			//	System.out.println(locLookup.get(i));
-			//}
-
 			// Draw those points with layer>0.
 			keys = HashVec.getKeys(layers);
 			order = Sort.quicksort(Array.toIntArray(keys));
 			for (int i = 0; i<keys.length&&flow; i++) {
-//			for (int i = 0; i<keys.length; i++) {
 				layer = layers.get(keys[order[i]]);
 				for (int j = 0; j<layer.size(); j++) {
 					if (layer.elementAt(j).getType()!=PlotPoint.NOT_A_NUMBER) {
@@ -694,7 +652,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void refreshOtherComponents() {
 	}
 
-//	public void drawHeatMap(Graphics g, double[][] data, byte[] clusters) {
 	public void drawHeatMap(Graphics g, byte[] clusters) {
 		int nRows, nColumns;
 		int[][] gridIntensities;
@@ -708,10 +665,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		for (int i = 0; i < nColumns; i++) {
 			for (int j = 0; j < nRows; j++) {
 				if (gridIntensities[i][j] != 0) {
-//					g.setColor(new Color(gridColors[i][j] * 255, gridColors[i][j] * 255, gridColors[i][j] * 255));
-//					g.setColor(new Color(0, 0, 0));
 					g.setColor(new Color(gridColors[i][j][0], gridColors[i][j][1], gridColors[i][j][2]));
-//					g.fillRect(i * cellWidth + canvasSectionMinimumX, j * cellHeight + canvasSectionMinimumY - 7, cellWidth, cellHeight);
+//					g.fillRect(i + canvasSectionMinimumX, j - canvasSectionMinimumY, 1, 1);
 					g.fillOval(i + canvasSectionMinimumX, j - canvasSectionMinimumY, 2, 2);
 				}
 			}
@@ -723,6 +678,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int xPixel, yPixel;
 		int[][] intensities;
 		boolean zoomedIn;
+//		int[] origin;
+
+//		origin = new int[] {0,0};
 
 		zoomedIn = (Math.abs(getXValueFromXPixel(5) - getXValueFromXPixel(0)) < 0.002) || (Math.abs(getYValueFromYPixel(5) - getYValueFromYPixel(0)) < 0.002);
 		
@@ -734,8 +692,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 				for (int j = -neighbor; j <= neighbor; j++) {
 					for (int k = -neighbor; k <= neighbor; k++) {
-//						if ((xPixel + j) >= canvasSectionMinimumX && (xPixel + j) <= canvasSectionMaximumX && (yPixel + k) >= canvasSectionMinimumY && (yPixel + k) <= canvasSectionMaximumY) {
-						if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0 && (yPixel + k) < nRows) {
+						if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0 && (yPixel + k) < nRows) { //  && Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin) < neighbor*(neighbor-1)
 							if (zoomedIn) {
 								intensities[xPixel + j][yPixel + k]++;
 							} else {
@@ -750,75 +707,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		return intensities;
 	}
 
-//	public int[][][] getGridIntensityClassBasedForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight, byte[] classLable) {
-//		int gridIndexX, gridIndexY, xPixel, yPixel;
-//		int[][][] intensities;
-//		int numClasses;
-//
-//		numClasses = unique();
-//		intensities = new int[nRows][nColumns][numClasses];
-//		for (int i = 0; i < points.length; i++) {
-//			if (points[i] != null) {
-//				xPixel = getXPixel(points[i].getRawX());
-//				yPixel = getYPixel(points[i].getRawY());
-//	
-//				if (xPixel >= canvasSectionMinimumX && xPixel <= canvasSectionMaximumX && yPixel >= canvasSectionMinimumY && yPixel <= canvasSectionMaximumY) {
-//					gridIndexX = (xPixel - canvasSectionMinimumX) / cellWidth;
-//					gridIndexY = (yPixel - canvasSectionMinimumY) / cellHeight;
-//	
-//					intensities[gridIndexX][gridIndexY][] += 2;
-//					
-//					if (gridIndexX < nColumns - 1) {
-//						intensities[gridIndexX+1][gridIndexY][] += 1;
-//					}
-//	
-//					if (gridIndexX > 1) {
-//						intensities[gridIndexX-1][gridIndexY][] += 1;
-//					}
-//	
-//					if (gridIndexY < nRows - 1) {
-//						intensities[gridIndexX][gridIndexY+1][] += 1;
-//					}
-//	
-//					if (gridIndexY > 1) {
-//						intensities[gridIndexX][gridIndexY-1][] += 1;
-//					}
-//	
-//					if (gridIndexX < nColumns - 1 && gridIndexY < nRows - 1) {
-//						intensities[gridIndexX+1][gridIndexY+1][] += 1;
-//					}
-//					
-//					if (gridIndexX > 1 && gridIndexY > 1) {
-//						intensities[gridIndexX-1][gridIndexY-1] += 1;
-//					}
-//	
-//					if (gridIndexX > 1 && gridIndexY < nRows - 1) {
-//						intensities[gridIndexX-1][gridIndexY+1] += 1;
-//					}
-//	
-//					if (gridIndexX < nColumns - 1 && gridIndexY > 1) {
-//						intensities[gridIndexX+1][gridIndexY-1] += 1;
-//					}
-//				}
-//			}
-//		}
-//
-//		return intensities;
-//	}
-
 	public int[][][] getColorFromIntensityForHeapMapGrid(int[][] intensities) {
 		int[][][] color;
 		int max;
-//		int rangeRed;
-//		int rangeGreen;
-//		int rangeBlue;
-//		double scaleRed;
-//		double scaleGreen;
-//		double scaleBlue;
-
-//		rangeRed = HEAT_MAP_COLOR_SCHEME_HOT[0] - HEAT_MAP_COLOR_SCHEME_COLD[0];
-//		rangeGreen = HEAT_MAP_COLOR_SCHEME_HOT[1] - HEAT_MAP_COLOR_SCHEME_COLD[1];
-//		rangeBlue = HEAT_MAP_COLOR_SCHEME_HOT[2] - HEAT_MAP_COLOR_SCHEME_COLD[2];
 
 		max = 0;
 		for (int i = 0; i < intensities.length; i++) {
@@ -828,24 +719,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
 		}
-//		scaleRed = (double) rangeRed / max;
-//		scaleGreen = (double) rangeGreen / max;
-//		scaleBlue = (double) rangeBlue / max;
 
 		color = new int[intensities.length][intensities[0].length][3];
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
-//				if (intensities[i][j] == 0) {
-//					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[0];
-//					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[1];
-//					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[2];
-//				} else {
-//					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_COLD[0] + (int) (intensities[i][j] * scaleRed);
-//					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_COLD[1] + (int) (intensities[i][j] * scaleGreen);
-//					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_COLD[2] + (int) (intensities[i][j] * scaleBlue);
-//					value = intensity[i][j] / max
-//				}
-
 				if (intensities[i][j] != 0) {
 					color[i][j] = Grafik.getHeatmapColor((double)intensities[i][j] / (double)max);
 				}
@@ -855,29 +732,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		return color;
 	}
 
-
-	public void drawLineChart(Graphics g) {
-		// Sort the points by category, and x-axis value.
-		// loop over each category to draw lines connecting the points
-	}
-
-	public void mouseClicked(MouseEvent e) {
-//		JPopupMenu menu;
-//
-//		if (e.getButton()==MouseEvent.BUTTON1) { // left click
-//			// linkSamples = !linkSamples;
-//		} else if (e.getButton()==MouseEvent.BUTTON3) { // right click
-//		}
-//
-//		//System.out.println("Click with "+prox.size()+" in proximity");
-//		if (prox != null && prox.size() > 0) {
-//			menu = new JPopupMenu();
-//			for (int i = 0; i<prox.size(); i++) {
-//				menu.add(new LaunchAction("Scatter Plot"));
-//			}
-//			menu.show(this, e.getX(), e.getY());
-//		}
-	}
+	public void mouseClicked(MouseEvent e) {}
 
 	public void mouseEntered(MouseEvent e) {}
 
@@ -988,7 +843,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void componentMoved(ComponentEvent e) {}
 
 	public void componentResized(ComponentEvent e) {
-//		setFlow(false);//zx
 		if (this.waitingTimer==null) {
 			/* Start waiting for DELAY to elapse. */
 			this.waitingTimer = new Timer(DELAY,this);
@@ -998,25 +852,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			/* Event came too soon, swallow it by resetting the timer.. */
 			this.waitingTimer.restart();
 		}
-
-//		createImage();
-
-//		if (patience!=null) {
-//			patience.cancel();
-//			patience = null;
-//		}
-//		if (prevWidth==-1) {
-//			prevWidth = getWidth();
-//			prevHeight = getHeight();
-//		} else if (prevWidth!=getWidth()||prevHeight!=getHeight()) {
-////			image = null;
-////			repaint();
-////			new Thread(patience = new Repress(this, 100)).start();
-//
-//			prevWidth = getWidth();
-//			prevHeight = getHeight();
-//		}
-//		setFlow(true);//zx
 	}
 
 	public void componentShown(ComponentEvent e) {}
@@ -1030,10 +865,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	    this.waitingTimer.stop();
 	    this.waitingTimer = null;
 	    /* Resize */
-		setFlow(true);//zx
+		setFlow(true);
 	    createImage();
 	    repaint();
-//	    setFlow(false);//zx
 	  }
 	}
 
@@ -1093,8 +927,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
 		} while (changed);
-		
-//		getGraphics().fillRect(mouseStartX, mouseStartY, mouseEndX-mouseStartX, mouseEndY-mouseStartY);
 		
 		paintAgain();
 	}
@@ -1449,10 +1281,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		return flow;
 	}
 	
-//	public void interruptFlow1() {
-//		flow = false;
-//	}
-//	
 	public void setPointsGeneratable(boolean pointsGeneratable) {
 		this.pointsGeneratable = pointsGeneratable;
 	}

@@ -289,7 +289,7 @@ public class PennCNV {
 	 * 	rs10002743  4       6327482		0.567557695424774
 	 * 
 	 */
-	public static void populationBAF(Project proj) {
+	public static void populationBAF(Project proj, Logger log) {
 		PrintWriter writer;
 		Sample samp;
 		String[] sampleList;
@@ -303,14 +303,18 @@ public class PennCNV {
 		byte[] chrs, genotypes;
 		int[] positions;
 		String filename, output;
-		
+
+		if (log == null) {
+			log = new Logger();
+		}
+
 		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
-		
+
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
 			sampleList = proj.getSampleList().getSamples();
 			output = proj.getProjectDir()+"custom.pfb";
 		} else if (Files.exists(filename, proj.getJarStatus())) {
-			System.out.print("filename: "+filename);
+			log.report("filename: "+filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 			output = proj.getProjectDir()+ext.rootOf(filename)+".pfb";
 		} else {
@@ -356,9 +360,9 @@ public class PennCNV {
 				writer.println(markerNames[i] + "\t" + (chrs[i]<23?chrs[i]:(chrs[i]==23?"X":(chrs[i]==24?"Y":(chrs[i]==25?"XY":(chrs[i]==26?"M":"Un"))))) + "\t" + positions[i] + "\t" + bafAverage[i]);
 			}
 			writer.close();
-			System.out.println("Population BAF file is now ready at: " + output);
+			log.report("Population BAF file is now ready at: " + output);
 		} catch (Exception e) {
-			System.err.println("Error writing to '" + output + "'");
+			log.reportError("Error writing to '" + output + "'");
 			e.printStackTrace();
 		}
 	}
@@ -398,7 +402,7 @@ public class PennCNV {
 	 * 	rs10002743  4       6327482		0.567557695424774
 	 * 
 	 */
-	public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath, int numwindow) {
+	public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath, int numwindow, Logger log) {
 		MarkerSet markerSet;
 		String[] markerNames;
 		byte[] chrs;
@@ -419,6 +423,10 @@ public class PennCNV {
 		int prestart = -1;
 
 		int chr_index;
+		
+		if (log == null) {
+			log = new Logger();
+		}
 		
 		// generate or load SnpFile (pbf file or Population B Allele Frequency)
 		markerSet = proj.getMarkerSet();
@@ -450,11 +458,11 @@ public class PennCNV {
 				if (curchr>0) {
 					if (curchr == prechr) {
 						if (curstart < prestart) {
-							System.err.println("Error in gcFile: a record in chr"+curchr+" has position "+curstart+", less then the previous position $prestart");
+							log.reportError("Error in gcFile: a record in chr"+curchr+" has position "+curstart+", less then the previous position $prestart");
 							System.exit(1);
 						}
 					} else if (seen_chr.containsKey(curchr)) {
-						System.err.println("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+inputGcBaseFullPath+": at "+curchr+":"+curstart);
+						log.reportError("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+inputGcBaseFullPath+": at "+curchr+":"+curstart);
 						System.exit(1);
 					} else {
 						seen_chr.put(curchr,(byte)1);
@@ -491,7 +499,7 @@ public class PennCNV {
 			}
 			reader.close();
 		} catch (Exception e) {
-			System.err.println("Error reading from '" + inputGcBaseFullPath + "'");
+			log.reportError("Error reading from '" + inputGcBaseFullPath + "'");
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -507,9 +515,9 @@ public class PennCNV {
 				writer.println(markerNames[i] + "\t" + (chrs[i]<23?chrs[i]:(chrs[i]==23?"X":(chrs[i]==24?"Y":(chrs[i]==25?"XY":(chrs[i]==26?"M":"Un"))))) + "\t"+positions[i] + "\t" + (snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
 			}
 			writer.close();
-			System.out.println("Population gcmodel file is now ready at: "+outputGcModelFullPath);
+			log.report("Generated population GC Model "+outputGcModelFullPath);
 		} catch (Exception e) {
-			System.err.println("Error writing to '" + outputGcModelFullPath + "'");
+			log.reportError("Error writing to '" + outputGcModelFullPath + "'");
 			e.printStackTrace();
 		}
 	}
@@ -619,10 +627,10 @@ public class PennCNV {
 			proj = new Project(filename, false);
 			log = new Logger(loggerFilename);
 			if (parsePFB) {
-				populationBAF(proj);
+				populationBAF(proj, null);
 			}
 			if (gc5base != null) {
-				gcModel(proj, gc5base, proj.getProjectDir()+"custom.gcmodel", 100);
+				gcModel(proj, gc5base, proj.getProjectDir()+"custom.gcmodel", 100, null);
 			}
 			if (batch>0) {
 				batch(proj, batch, lists, qsub, pfbFile, gcmodelFile);
