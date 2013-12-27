@@ -62,8 +62,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int CONNECT_THE_DOTS_TYPE = 3;
 	public static final int DEFAULT_TYPE = SCATTER_PLOT_TYPE;
 	public static final int[] HEAT_MAP_COLOR_SCHEME_BACKGROUND = new int[] {255, 255, 255};
-	public static final int[] HEAT_MAP_COLOR_SCHEME_YELLOW_DARK = new int[] {255, 140, 0};
-	public static final int[] HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT = new int[] {238, 232, 170};
+//	public static final int[] HEAT_MAP_COLOR_SCHEME_HOT = new int[] {255, 140, 0};
+//	public static final int[] HEAT_MAP_COLOR_SCHEME_COLD = new int[] {238, 232, 170};
+	public static final int[] HEAT_MAP_COLOR_SCHEME_HOT = new int[] {0, 255, 255};
+	public static final int[] HEAT_MAP_COLOR_SCHEME_COLD = new int[] {255, 255, 0};
 	
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX;
@@ -572,7 +574,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		if (chartType == CONNECT_THE_DOTS_TYPE) {
 			drawLineChart(g);
 		} else if (chartType == HEAT_MAP_TYPE) {
-			drawHeatMap(g, null, 100, 100);
+//			drawHeatMap(g, null, 100, 100);
+			drawHeatMap(g, null);
 		} else if (chartType == SCATTER_PLOT_TYPE) {
 			for (int i = 0; i<points.length && flow; i++) {
 //				System.out.println("loop");
@@ -692,73 +695,53 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 
 //	public void drawHeatMap(Graphics g, double[][] data, byte[] clusters) {
-	public void drawHeatMap(Graphics g, byte[] clusters, int nColumns, int nRows) {
-		int cellWidth, cellHeight;
+	public void drawHeatMap(Graphics g, byte[] clusters) {
+		int nRows, nColumns;
 		int[][] gridIntensities;
 		int[][][] gridColors;
 
-		cellWidth = getWidth() / nColumns;
-		cellHeight = getHeight() / nRows;
-
-		gridIntensities = getGridIntensityForHeapMapGrid(nColumns, nRows, cellWidth, cellHeight);
+		nRows = getHeight();
+		nColumns = getWidth();
+		gridIntensities = getGridIntensityForHeapMapGrid(nRows, nColumns, 1, 1, 3);
 		gridColors = getColorFromIntensityForHeapMapGrid(gridIntensities);
 
-		for (int i = 0; i < nRows; i++) {
-			for (int j = 0; j < nColumns; j++) {
-				g.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
-//				g.setColor(new Color(gridColors[i][j] * 255, gridColors[i][j] * 255, gridColors[i][j] * 255));
-				g.setColor(new Color(gridColors[i][j][0], gridColors[i][j][1], gridColors[i][j][2]));
+		for (int i = 0; i < nColumns; i++) {
+			for (int j = 0; j < nRows; j++) {
+				if (gridIntensities[i][j] != 0) {
+//					g.setColor(new Color(gridColors[i][j] * 255, gridColors[i][j] * 255, gridColors[i][j] * 255));
+//					g.setColor(new Color(0, 0, 0));
+					g.setColor(new Color(gridColors[i][j][0], gridColors[i][j][1], gridColors[i][j][2]));
+//					g.fillRect(i * cellWidth + canvasSectionMinimumX, j * cellHeight + canvasSectionMinimumY - 7, cellWidth, cellHeight);
+					g.fillOval(i + canvasSectionMinimumX, j - canvasSectionMinimumY, 2, 2);
+				}
 			}
 		}
 	}
 
 
-	public int[][] getGridIntensityForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight) {
-		int gridIndexX, gridIndexY, xPixel, yPixel;
+	public int[][] getGridIntensityForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight, int neighbor) {
+		int xPixel, yPixel;
 		int[][] intensities;
+		boolean zoomedIn;
 
-		intensities = new int[nRows][nColumns];
+		zoomedIn = (Math.abs(getXValueFromXPixel(5) - getXValueFromXPixel(0)) < 0.002) || (Math.abs(getYValueFromYPixel(5) - getYValueFromYPixel(0)) < 0.002);
+		
+		intensities = new int[nColumns][nRows];
 		for (int i = 0; i < points.length; i++) {
 			if (points[i] != null) {
-				xPixel = getXPixel(points[i].getRawX());
-				yPixel = getYPixel(points[i].getRawY());
-	
-				if (xPixel >= canvasSectionMinimumX && xPixel <= canvasSectionMaximumX && yPixel >= canvasSectionMinimumY && yPixel <= canvasSectionMaximumY) {
-					gridIndexX = (xPixel - canvasSectionMinimumX) / cellWidth;
-					gridIndexY = (yPixel - canvasSectionMinimumY) / cellHeight;
-	
-					intensities[gridIndexX][gridIndexY] += 2;
-					
-					if (gridIndexX < nColumns - 1) {
-						intensities[gridIndexX+1][gridIndexY] += 1;
-					}
-	
-					if (gridIndexX > 1) {
-						intensities[gridIndexX-1][gridIndexY] += 1;
-					}
-	
-					if (gridIndexY < nRows - 1) {
-						intensities[gridIndexX][gridIndexY+1] += 1;
-					}
-	
-					if (gridIndexY > 1) {
-						intensities[gridIndexX][gridIndexY-1] += 1;
-					}
-	
-					if (gridIndexX < nColumns - 1 && gridIndexY < nRows - 1) {
-						intensities[gridIndexX+1][gridIndexY+1] += 1;
-					}
-					
-					if (gridIndexX > 1 && gridIndexY > 1) {
-						intensities[gridIndexX-1][gridIndexY-1] += 1;
-					}
-	
-					if (gridIndexX > 1 && gridIndexY < nRows - 1) {
-						intensities[gridIndexX-1][gridIndexY+1] += 1;
-					}
-	
-					if (gridIndexX < nColumns - 1 && gridIndexY > 1) {
-						intensities[gridIndexX+1][gridIndexY-1] += 1;
+				xPixel = getXPixel(points[i].getRawX()) - canvasSectionMinimumX;
+				yPixel = getYPixel(points[i].getRawY()) + canvasSectionMinimumY;
+
+				for (int j = -neighbor; j <= neighbor; j++) {
+					for (int k = -neighbor; k <= neighbor; k++) {
+//						if ((xPixel + j) >= canvasSectionMinimumX && (xPixel + j) <= canvasSectionMaximumX && (yPixel + k) >= canvasSectionMinimumY && (yPixel + k) <= canvasSectionMaximumY) {
+						if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0 && (yPixel + k) < nRows) {
+							if (zoomedIn) {
+								intensities[xPixel + j][yPixel + k]++;
+							} else {
+								intensities[xPixel + j][yPixel + k] += neighbor*neighbor - Math.abs(j)*Math.abs(k);
+							}
+						}
 					}
 				}
 			}
@@ -826,16 +809,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public int[][][] getColorFromIntensityForHeapMapGrid(int[][] intensities) {
 		int[][][] color;
 		int max;
-		int rangeRed;
-		int rangeGreen;
-		int rangeBlue;
-		double scaleRed;
-		double scaleGreen;
-		double scaleBlue;
+//		int rangeRed;
+//		int rangeGreen;
+//		int rangeBlue;
+//		double scaleRed;
+//		double scaleGreen;
+//		double scaleBlue;
 
-		rangeRed = HEAT_MAP_COLOR_SCHEME_YELLOW_DARK[0] - HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[0];
-		rangeGreen = HEAT_MAP_COLOR_SCHEME_YELLOW_DARK[1] - HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[1];
-		rangeBlue = HEAT_MAP_COLOR_SCHEME_YELLOW_DARK[2] - HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[2];
+//		rangeRed = HEAT_MAP_COLOR_SCHEME_HOT[0] - HEAT_MAP_COLOR_SCHEME_COLD[0];
+//		rangeGreen = HEAT_MAP_COLOR_SCHEME_HOT[1] - HEAT_MAP_COLOR_SCHEME_COLD[1];
+//		rangeBlue = HEAT_MAP_COLOR_SCHEME_HOT[2] - HEAT_MAP_COLOR_SCHEME_COLD[2];
 
 		max = 0;
 		for (int i = 0; i < intensities.length; i++) {
@@ -845,21 +828,26 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
 		}
-		scaleRed = (double) rangeRed / max;
-		scaleGreen = (double) rangeGreen / max;
-		scaleBlue = (double) rangeBlue / max;
+//		scaleRed = (double) rangeRed / max;
+//		scaleGreen = (double) rangeGreen / max;
+//		scaleBlue = (double) rangeBlue / max;
 
 		color = new int[intensities.length][intensities[0].length][3];
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
-				if (intensities[i][j] == 0) {
-					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[0];
-					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[1];
-					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[2];
-				} else {
-					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[0] + (int) (intensities[i][j] * scaleRed);
-					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[1] + (int) (intensities[i][j] * scaleGreen);
-					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_YELLOW_LIGHT[2] + (int) (intensities[i][j] * scaleBlue);
+//				if (intensities[i][j] == 0) {
+//					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[0];
+//					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[1];
+//					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_BACKGROUND[2];
+//				} else {
+//					color[i][j][0] = HEAT_MAP_COLOR_SCHEME_COLD[0] + (int) (intensities[i][j] * scaleRed);
+//					color[i][j][1] = HEAT_MAP_COLOR_SCHEME_COLD[1] + (int) (intensities[i][j] * scaleGreen);
+//					color[i][j][2] = HEAT_MAP_COLOR_SCHEME_COLD[2] + (int) (intensities[i][j] * scaleBlue);
+//					value = intensity[i][j] / max
+//				}
+
+				if (intensities[i][j] != 0) {
+					color[i][j] = Grafik.getHeatmapColor((double)intensities[i][j] / (double)max);
 				}
 			}
 		}
