@@ -678,9 +678,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int xPixel, yPixel;
 		int[][] intensities;
 		boolean zoomedIn;
-//		int[] origin;
+		int[] origin;
 
-//		origin = new int[] {0,0};
+		origin = new int[] {0,0};
 
 		zoomedIn = (Math.abs(getXValueFromXPixel(5) - getXValueFromXPixel(0)) < 0.002) || (Math.abs(getYValueFromYPixel(5) - getYValueFromYPixel(0)) < 0.002);
 		
@@ -696,7 +696,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 							if (zoomedIn) {
 								intensities[xPixel + j][yPixel + k]++;
 							} else {
-								intensities[xPixel + j][yPixel + k] += neighbor*neighbor - Math.abs(j)*Math.abs(k);
+								intensities[xPixel + j][yPixel + k] += neighbor*neighbor - Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin);
 							}
 						}
 					}
