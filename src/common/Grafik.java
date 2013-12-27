@@ -109,4 +109,33 @@ public class Grafik {
 	public static int getTextWidth(String text, Graphics g) {
 		return g.getFontMetrics(g.getFont()).stringWidth(text);
 	}
+	
+	public static int[] getHeatmapColor(double value) {
+		int[] color;
+		
+		if (value < 0 || value > 1) {
+			System.err.println("Error - heatmap value needs to be between zero and one, inclusive");
+		}
+		
+		color = new int[] {0,0,0};
+		if (value < 0.25) {
+			color[0] = 0;
+			color[1] = (int) (255 * value / 0.25);
+			color[2] = 255;
+		} else if (value < 0.50) {
+			color[0] = 0;
+			color[1] = 255;
+			color[2] = (int) (255 - 255 * (value - .25) / .25);
+		} else if (value < 0.75) {
+			color[0] = (int) (255 * (value - .5 ) / .25);
+			color[1] = 255;
+			color[2] = 0;
+		} else {
+			color[0] = 255;
+			color[1] = (int) (255 - 255 * (value - .75) / .25);
+			color[2] = 0;
+		}
+		
+		return color;
+	}
 }
