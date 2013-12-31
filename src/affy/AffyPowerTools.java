@@ -29,16 +29,17 @@ public class AffyPowerTools {
         String javaClass = "affy.AffySNP6Tables";
         String project  = "/home/pankrat2/lanej/projects/dbGaP_ARIC_11908.properties";
    
-        int numBatches = 3;
+        int numBatches = 1;
         int numJobs = 16;
         int lineBuffer =500;
         int memory = 14999;
-        double wallTime = 94.00;
+        double wallTime = 46.00;
         
         String affyQCfolderOut = "QCOut";
         String affyGenofolderOut = "genoTypeOut";
         String affySumfolderOut = "summarOut";
         String affyGenoClusterFolderOut = "clusterOut";
+        String affyDetectFolder = "indDetect";
         String affyChunkProbe = "probes";
         String quantNorm =  "quant-norm.pm-only.med-polish.expr.summary.txt";
         
@@ -93,8 +94,8 @@ public class AffyPowerTools {
         String[] affyCNClusterJobs = new String[numJobs];
         String[] affySNP6Tables = new String[numJobs];
         String[] LRRBAFJobs = new String[numJobs];
-        String[] kColumn = new String[numJobs];
-        String[] indkColumn = new String[numJobs];
+        String[] startKColumn = new String[numJobs];
+        String[] stopKColumn = new String[numJobs];
         String[] detectCNVs = new String[numJobs];
         String[] chpToTxt = new String[numJobs];
         
@@ -118,16 +119,20 @@ public class AffyPowerTools {
 	        String affySNP6TablesPBS = pbsOutDir + "AS6T" + batchID + ".pbs";
 	       
 	        String affyQCPBS= pbsOutDir + "QC"+batchID + ".pbs";
-	        String affyKColPBS= pbsOutDir + "KCol"+batchID + ".pbs";
-	        String affyINDKColPBS= pbsOutDir + "KColIND"+batchID + ".pbs";
-	        String affyDetectPBS= pbsOutDir + "Detect"+batchID + ".pbs";
+	        String affyKColStartPBS= pbsOutDir + "KColStart"+batchID + ".pbs";
+	        String affyKColStopPBS= pbsOutDir + "KColStop"+batchID + ".pbs";
+	        String affyDetectPBS= pbsOutDir + "DetectB0"+j + ".pbs";
+	        
 	        for (int i = 0; i<numJobs; i++) {
 	        	String jobID = "";
+	        	String detectBatch ="";
 	            if(i<10){
 	            	jobID = batchID +"0"+i;
+	            	detectBatch = "0"+i;
 	            }
 	            if(i >=10){
 	            jobID = batchID + i;
+	            detectBatch =""+ i;
 	            }
 	            
 	            String qc = affyGenoQC + " -c " + affyCDF + " --qca-file " + affyQCA + " -qcc-file " + 
@@ -185,30 +190,30 @@ public class AffyPowerTools {
 	            
 	            LRRBAFJobs[i] = lrrBafCalc;
 	            
-	            String splitSignalFile = "perl " + pennCNVbin + "kcolumn.pl "+
-	            		outDir + "genoTypeOut" + jobID + "/" + genoLrrBaf + 
-	            		" split 2 -tab -head 3 --name -out " + outDir + "Kcol/Kcol" + 
+	            String splitSignalFileStart = "perl " + pennCNVbin + "kcolumn.pl "+
+	            		outDir + affyGenoClusterFolderOut + jobID + "/" + genoLrrBaf + 
+	            		" split 2 -tab -head 3 --name --start_split 5001 -out " + outDir + "Kcol/Kcol" + 
 	            		jobID +"/gw6_split --filenameout " +
 	            		outDir + "Kcol/Kcol" + jobID + "/" +pennSplitOut ;
 	           
-	            kColumn[i] = splitSignalFile;
+	            startKColumn[i] = splitSignalFileStart;
 	            
-	            String splitSignalFileIND = "perl " + pennCNVbin + "kcolumn.pl "+
-	            		outDir + "genoTypeOut" + jobID + "/" + genoLrrBaf + 
-	            		"JL split 20 -tab -head 1 --name -out " + outDir + "Kcol/Kcol" + 
-	            		jobID +"/gw6_split.IND --filenameout " +
+	            String splitSignalFileStop = "perl " + pennCNVbin + "kcolumn.pl "+
+	            		outDir + affyGenoClusterFolderOut + jobID + "/" + genoLrrBaf + 
+	            		" split 2 -tab -head 3 --name --end_split 5000 -out " + outDir + "Kcol/Kcol" + 
+	            		jobID +"/gw6_split --filenameout " +
 	            		outDir + "Kcol/Kcol" + jobID + "/" +pennSplitOut ;
-	            indkColumn[i] = splitSignalFileIND;
+	            stopKColumn[i] = splitSignalFileStop;
 	            
 	            String detectCNV = "perl " + detect_cnv +"detect_cnv.pl --test -hmm " + pennHmm +
-	                  " -pfb " + locFile + " -log " +outDir + "detectCNV" +
-	                  jobID + "/gw6.log -out " +outDir + "detectCNV" + jobID + "/gw6.rawcnv" +
-	                  " -list " + lists + "indDetect" +jobID;;
+	                  " -pfb " + locFile + " -conf -gcmodel "+pennCNVlib+ "affygw6.hg18.gcmodel -log " +outDir + affyDetectFolder +
+	                  detectBatch + "/gw6.log -out " +outDir + affyDetectFolder + detectBatch + "/gw6.rawcnv" +
+	                  " -list " + lists + "indDetect" +detectBatch;
 	             
 	            detectCNVs[i] = detectCNV;
 	            //System.out.println(qc);
 	            //System.out.println(generate_affy_geno_cluster);
-	            System.out.println(lrrBafCalc);
+	            System.out.println(detectCNV);
 	        }
 	        
 	       
@@ -222,11 +227,11 @@ public class AffyPowerTools {
 	       // Files.qsubMultiple(affyPennGenoClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
 	      //   Files.qsubMultiple(affyPennCNClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
 	       
-	        // Files.qsubMultiple(affyPennGenoLRRBAFPBS , LRRBAFJobs, numJobs, memory ,totalMemory, wallTime);
-	       // Files.qsubMultiple(affyKColPBS , kColumn, numJobs, memory ,totalMemory, wallTime);
+	       // Files.qsubMultiple(affyPennGenoLRRBAFPBS , LRRBAFJobs, numJobs, memory ,totalMemory, wallTime);
 	        
-	       // Files.qsubMultiple(affyINDKColPBS , indkColumn, numJobs, memory ,totalMemory, wallTime);
-	      //  Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
+	       //Files.qsubMultiple(affyKColStartPBS , startKColumn, numJobs, memory ,totalMemory, wallTime);
+	        //Files.qsubMultiple(affyKColStopPBS , stopKColumn, numJobs, memory ,totalMemory, wallTime);
+	        Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
 	    }
     }
     
@@ -335,7 +340,7 @@ public class AffyPowerTools {
 //      genoCluster + " " + quantNorm + " -locfile " + locFile +
 //      " -out " + genoLrrBaf;
 ////works
-//String splitSignalFile = "perl " + pennCNV+"kcolumn.pl "+
+//String splitSignalFileStart = "perl " + pennCNV+"kcolumn.pl "+
 //      genoLrrBaf + " split 2 -tab -head 3 --name_by_header -out gw6 --filenameout " +pennSplitOut ;
 ////works        
 //String detectCNV = "perl " + pennCNV+"detect_cnv.pl --test -hmm " + pennHmm +
@@ -362,8 +367,8 @@ public class AffyPowerTools {
 //CmdLine.run(lrrBafCalc , outDir);
 //run command from output directory
 
-//System.out.println(splitSignalFile);
-//CmdLine.run(splitSignalFile , outDir);
+//System.out.println(splitSignalFileStart);
+//CmdLine.run(splitSignalFileStart , outDir);
 
 //System.out.println(detectCNV);
 //CmdLine.run(detectCNV , outDir);
