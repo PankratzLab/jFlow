@@ -29,11 +29,11 @@ public class AffyPowerTools {
         String javaClass = "affy.AffySNP6Tables";
         String project  = "/home/pankrat2/lanej/projects/dbGaP_ARIC_11908.properties";
    
-        int numBatches = 1;
+        int numBatches = 3;
         int numJobs = 16;
-        int lineBuffer =500;
+        int lineBuffer =20;
         int memory = 14999;
-        double wallTime = 46.00;
+        double wallTime = 96.00;
         
         String affyQCfolderOut = "QCOut";
         String affyGenofolderOut = "genoTypeOut";
@@ -223,7 +223,7 @@ public class AffyPowerTools {
 	        
 	        
 	       // Files.qsubMultiple(affySumPBS , affySumJobs, numJobs, memory ,totalMemory, wallTime);
-	       //Files.qsubMultiple(affySNP6TablesPBS , affySNP6Tables, numJobs, memory ,totalMemory, wallTime);
+	       Files.qsubMultiple(affySNP6TablesPBS , affySNP6Tables, numJobs, memory ,totalMemory, wallTime);
 	       // Files.qsubMultiple(affyPennGenoClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
 	      //   Files.qsubMultiple(affyPennCNClustPBS , affyGenoClusterJobs, numJobs, memory ,totalMemory, wallTime);
 	       
@@ -231,7 +231,7 @@ public class AffyPowerTools {
 	        
 	       //Files.qsubMultiple(affyKColStartPBS , startKColumn, numJobs, memory ,totalMemory, wallTime);
 	        //Files.qsubMultiple(affyKColStopPBS , stopKColumn, numJobs, memory ,totalMemory, wallTime);
-	        Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
+	        //Files.qsubMultiple(affyDetectPBS , detectCNVs, numJobs, memory ,totalMemory, wallTime);    
 	    }
     }
     
