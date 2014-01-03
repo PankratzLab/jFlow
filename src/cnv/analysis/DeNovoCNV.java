@@ -9,13 +9,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import common.Files;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
-
-import sun.util.logging.resources.logging;
 
 import cnv.filesys.Project;
 import cnv.filesys.Sample;

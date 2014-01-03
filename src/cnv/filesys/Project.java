@@ -109,6 +109,7 @@ public class Project extends Properties {
 	public static final String CLUSTER_FILTER_COLLECTION_FILENAME = "CLUSTER_FILTER_COLLECTION_FILENAME";
 	public static final String SEXCHECK_RESULTS_FILENAME = "SEXCHECK_RESULTS_FILENAME";
 	public static final String TWOD_LOADED_FILENAMES = "TWOD_LOADED_FILENAMES";
+	public static final String TWOD_LOADED_VARIABLES = "TWOD_LOADED_VARIABLES";
 	public static final String GENETRACK_FILENAME = "GENETRACK_FILENAME";
 	public static final String AB_LOOKUP_FILENAME = "AB_LOOKUP_FILENAME";
 	public static final String WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER";
@@ -119,6 +120,7 @@ public class Project extends Properties {
 	public static final String MARKER_EXCLUSION_CRITERIA_FILENAME = "MARKER_EXCLUSION_CRITERIA_FILENAME";
 	public static final String ANNOTATION_FILENAME = "ANNOTATION_FILENAME";
 //	public static final String ANNOTATION_DIRECTORY = "ANNOTATION_DIRECTORY";
+	public static final String CUSTOM_COLOR_SCHEME_FILENAME = "ANNOTATION_FILENAME";
 
 	private boolean jar;
 	private String projectPropertiesFilename;
@@ -141,7 +143,7 @@ public class Project extends Properties {
 		this();
 		
 		this.projectPropertiesFilename = filename;
-		screenProperties(filename);
+		screenProperties();
 		Files.loadProperties(this, filename, jar, true, false);
 
         setProperty(PROJECT_DIRECTORY, ext.verifyDirFormat(getProperty(PROJECT_DIRECTORY)));
@@ -483,67 +485,145 @@ public class Project extends Properties {
 		return getFilenames(REGION_LIST_FILENAMES, false);
 	}
 	
-	public void screenProperties(String filename) {
+	public void screenProperties() {
 		BufferedReader reader;
-        String[] line;
-        String trav;
+        String trav, key;
         boolean changed;
         Vector<String> knowns, unknowns, corrections;
+        int index;
         
         changed = false;
         knowns = Array.toStringVector(HashVec.getKeys(this, false, false));
         unknowns = new Vector<String>();
         corrections = new Vector<String>();
         try {
-	        reader = new BufferedReader(new FileReader(filename));
+	        reader = new BufferedReader(new FileReader(projectPropertiesFilename));
 	        while (reader.ready()) {
 	        	trav = reader.readLine();
-	        	line = trav.trim().split("=");
-	        	if (line[0].startsWith("#") || line[0].startsWith("??_") || line[0].equals("")) {
+	        	index = trav.trim().indexOf("=");
+	        	if (trav.startsWith("#") || trav.startsWith("??_") || trav.equals("")) {
 	        		corrections.add(trav);
-	        		if (line[0].length() > 0 && getProperty(line[0].substring(1)) != null) {
-	        			knowns.remove(line[0].substring(1));
+	        		if (index > 0 && getProperty(trav.substring(1, index)) != null) {
+	        			knowns.remove(trav.substring(1, index));
 	        		}
-	        	} else {
-	        		if (getProperty(line[0]) == null) {
-	        			unknowns.add(line[0]);
+	        	} else if (index > 0) {
+	        		key = trav.trim().substring(0, index);
+
+	        		if (getProperty(key) == null) {
+	        			unknowns.add(key);
 	        			corrections.add("??_"+trav);
 	        		} else {
-	        			knowns.remove(line[0]);
+	        			knowns.remove(key);
 	        			corrections.add(trav);
 	        		}
+	        	} else {
+    				log.reportError("Error - invalid property in "+projectPropertiesFilename+": "+trav);
+    				log.reportError("        there is no equals sign, and comments need to be preceeded by a #");
+    				log.reportError("        creating a new file with this line commented out");
 	        	}
 	        }
 	        reader.close();
         } catch (FileNotFoundException fnfe) {
-	        System.err.println("Error: file \""+filename+"\" not found in current directory");
+	        System.err.println("Error: file \""+projectPropertiesFilename+"\" not found in current directory");
 	        System.exit(1);
         } catch (IOException ioe) {
-	        System.err.println("Error reading file \""+filename+"\"");
+	        System.err.println("Error reading file \""+projectPropertiesFilename+"\"");
 	        System.exit(2);
         }
         
         if (unknowns.size() > 0) {
-        	System.err.println("Error - check spelling for the following unexpected propert"+(unknowns.size()==1?"y":"ies")+" in "+filename+":");
+        	log.reportError("Error - check spelling for the following unexpected propert"+(unknowns.size()==1?"y":"ies")+" in "+projectPropertiesFilename+":");
         	changed = true;
         }
         for (int i = 0; i < unknowns.size(); i++) {
-        	System.err.println("        "+unknowns.elementAt(i));
+        	log.reportError("        "+unknowns.elementAt(i));
 		}
         
         if (knowns.size() > 0) {
         	changed = true;
         	corrections.add("");
         	corrections.add("# A few more paramters that were not originally defined:");
+            for (int i = 0; i < knowns.size(); i++) {
+            	corrections.add("#"+knowns.elementAt(i)+"="+getProperty(knowns.elementAt(i)));
+    		}        
         }
-        for (int i = 0; i < knowns.size(); i++) {
-        	corrections.add("#"+knowns.elementAt(i)+"="+getProperty(knowns.elementAt(i)));
-		}        
         
         if (changed) {
-        	new File(filename).renameTo(new File(filename+".bak"));
-        	Files.backup(ext.removeDirectoryInfo(filename+".bak"), ext.parseDirectoryOfFile(filename), ext.parseDirectoryOfFile(filename), true);
-        	Files.writeList(Array.toStringArray(corrections), filename);
+            Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename)+"backup/", true);
+        	Files.writeList(Array.toStringArray(corrections), projectPropertiesFilename);
+        }
+	}
+
+	public void saveProperties() {
+		BufferedReader reader;
+        String trav;
+        boolean changed;
+        Vector<String> loaded, props, changes;
+        Properties defaultProps;
+        String key;
+        int index;
+        
+        props = new Vector<String>();
+        changes = new Vector<String>();
+        loaded = Array.toStringVector(HashVec.getKeys(this, false, false));
+        loaded.remove(PROJECT_PROPERTIES_FILENAME);
+        try {
+	        reader = new BufferedReader(new FileReader(projectPropertiesFilename));
+	        while (reader.ready()) {
+	        	trav = reader.readLine();
+	        	index = trav.trim().indexOf("=");
+	        	if (trav.startsWith("#") || trav.startsWith("??_") || trav.equals("")) {
+	        		props.add(trav);
+	        	} else if (index > 0) {
+	        		key = trav.trim().substring(0, index);
+	        		if (getProperty(key) == null) {
+	        			log.reportError("Unknown property '"+trav+"' not caught at startup");
+        			} else {
+        				props.add(key+"="+getProperty(key));
+	        			loaded.remove(key);
+	        			if (!getProperty(key).equals(trav.trim().substring(index+1))) {
+	        				changes.add(key+"="+getProperty(key));
+	    					System.out.println("Was '"+trav.trim().substring(index+1)+"' now '"+getProperty(key)+"'");
+	        			}
+	        		}
+	        	}
+	        }
+	        reader.close();
+        } catch (FileNotFoundException fnfe) {
+	        System.err.println("Error: file \""+projectPropertiesFilename+"\" not found in current directory");
+	        System.exit(1);
+        } catch (IOException ioe) {
+	        System.err.println("Error reading file \""+projectPropertiesFilename+"\"");
+	        System.exit(2);
+        }
+        
+        changed = false;
+        if (loaded.size() > 0) {
+        	defaultProps = new Properties();
+    		Files.loadProperties(defaultProps, DEFAULT_PROPERTIES, true, true, false);
+    		for (int i = 0; i < loaded.size(); i++) {
+    			key = loaded.elementAt(i);
+    			if (!getProperty(key).equals(defaultProps.getProperty(key)) && defaultProps.getProperty(key) != null) {
+    				if (!changed) {
+    	            	props.add("");
+    	            	props.add("# Properties where the values now differ from the defaults:");
+    					changed = true;
+    				}
+    				props.add(key+"="+getProperty(key));
+       				changes.add(key+"="+getProperty(key));
+					System.out.println("Default is '"+defaultProps.getProperty(key)+"' now '"+getProperty(key)+"'");
+    			}
+			}
+        }
+
+        if (changes.size() > 0) {
+        	log.report("Changes were made to the following propert"+(changes.size()==1?"y":"ies")+" in "+projectPropertiesFilename+":");
+            for (int i = 0; i < changes.size(); i++) {
+            	log.report("        "+changes.elementAt(i));
+    		}
+
+            Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename)+"backup/", true);
+        	Files.writeList(Array.toStringArray(props), projectPropertiesFilename);
         }
 	}
 
@@ -562,9 +642,5 @@ public class Project extends Properties {
 		}
 
 		return targets;
-	}
-
-	public static void main(String[] args) {
-
 	}
 }

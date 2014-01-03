@@ -297,6 +297,7 @@ public class Plink {
 		int[] order, ranks, counts;
 		int sel;
 		String temp;
+		String genomeFileRoot;
 
 		log = new Logger("flaggingRelateds.out", true);
 		if (iMissFile == null) {
@@ -318,7 +319,7 @@ public class Plink {
 			log.reportError("Error - specified LRR_SD file ("+lrrFile+") is missing, indiviudals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
 		} else {
-	        ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log), new String[] {"FID", "IID", "LRR_SD"}, false);
+	        ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log), new String[] {"FID", "IID", "LRR_SD"}, new int[] {0,1,2}, false, log, true);
 			lrr_sds = HashVec.loadFileToHashString(lrrFile, new int[] {0,1}, new int[] {2}, false, "\t", false, false, false);
 			log.report("Successfully loaded '"+lrrFile+"'");
 		}
@@ -337,17 +338,26 @@ public class Plink {
 		
 		log.report("Started with "+in.size()+" known samples; will remove one of each pair of: "+Array.toStr(Array.subArray(flags, 0, removeOutTo), "/"));
 		
+		
+		if (genomeFile.endsWith(".gz")) {
+			genomeFileRoot = genomeFile.substring(0, genomeFile.length()-3);
+		} else {
+			genomeFileRoot = genomeFile;
+		}
+		
+		
 		counts = new int[removeOutTo];
 		numExtras = 0;
 		out = new Hashtable<String, String>();
 		try {
-			reader = new BufferedReader(new FileReader(genomeFile));
+			reader = Files.getAppropriateReader(genomeFile);
 			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CLUSTER_HEADER, true);
+			log.report(ext.getTime()+"\tProcessing "+ext.removeDirectoryInfo(genomeFile)+"...");
+			
 
-			writer = new PrintWriter(new FileWriter(genomeFile+"_relateds.xln"));
+			writer = new PrintWriter(new FileWriter(genomeFileRoot+"_relateds.xln"));
 			writer.println("FID1\tIID1\tCALLRATE1\tLRR_SD1\tFID2\tIID2\tCALLRATE2\tLRR_SD2\tP(IBD=0)\tP(IBD=1)\tP(IBD=2)\tPI_HAT\tType\tFID_KEEP\tIID_KEEP\tFID_DROP\tIID_DROP");
 
-			log.report(ext.getTime()+"\tProcessing "+ext.removeDirectoryInfo(genomeFile)+"...");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				for (int i = 0; i < 2; i++) {
@@ -422,10 +432,10 @@ public class Plink {
 			log.report("There were "+numExtras+" samples that were in the .genome file but not predefined in a .fam file");
 		}
 		
-		temp = Files.getBakFilename(genomeFile+"_relateds.xln", "", true);
+		temp = Files.getBakFilename(genomeFileRoot+"_relateds.xln", "", true);
 		try {
 			reader = new BufferedReader(new FileReader(temp));
-			writer = new PrintWriter(new FileWriter(genomeFile+"_relateds.xln"));
+			writer = new PrintWriter(new FileWriter(genomeFileRoot+"_relateds.xln"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (out.containsKey(line[13]+"\t"+line[14])) {
@@ -452,7 +462,7 @@ public class Plink {
 		log.report("");
 		for (int i = 0; i < 2; i++) {
 			try {
-				writer = new PrintWriter(new FileWriter(genomeFile+"_"+(i==0?"keep":"drop")+".dat"));
+				writer = new PrintWriter(new FileWriter(genomeFileRoot+"_"+(i==0?"keep":"drop")+".dat"));
 				trav = i==0?in:out;
 				ids = HashVec.getKeys(trav, false, false);
 				ranks = new int[ids.length]; 
@@ -465,7 +475,7 @@ public class Plink {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to " + genomeFile+"_"+(i==0?"keep":"drop")+".dat");
+				System.err.println("Error writing to " + genomeFileRoot+"_"+(i==0?"keep":"drop")+".dat");
 				e.printStackTrace();
 			}
 		}
@@ -704,11 +714,11 @@ public class Plink {
 		String genomeFile = null;
 		String famFile = "plink.fam";
 		String iMissFile = "plink.imiss";
-		String lrrFile = "lrr_sd_converted.xln";
-		String[] flags = new String[] {"duplicate", "parent-offspring", "sibling", "avuncular", "first cousins", "second cousins"};
+		String lrrFile = "lrr_sd_with_FID_IID.xln";
+		String[] flags = new String[] {"duplicate", "parent-offspring", "sibling", "avuncular,gg", "first cousins", "second cousins"};
 		double[][] thresholds = new double[][] {{0, 0, 0, 0.95}, // duplicate
-												{0, 0.95, 0, 0}, // parent-offspring
-												{0, 0.30, 0.10, 0.40}, // sibling
+												{0, 0.90, 0, 0.49}, // parent-offspring
+												{0, 0.30, 0.10, 0.35}, // sibling
 												{0, 0.40, 0, 0}, // second degree, avuncular, gg
 												{0, 0.20, 0, 0}, // third degree, cousins
 												{0, 0.10, 0, 0}, // fourth degree 
@@ -741,10 +751,10 @@ public class Plink {
 		"   (1) filter genome file by ids (i.e. filter=plink.genome,ids.txt (not the default))\n"+
 		"   (2) filter pairs of ids (i.e. -filterPairs (not the default))\n"+
 		"  OR\n"+
-		"   (1) delineate related indiviudals and select one to keep (i.e. relate=plink.genome (not the default))\n"+
+		"   (1) delineate related indiviudals and select one to keep (i.e. relate=plink.genome.gz (not the default))\n"+
 		"   (2) (optional) if genome is incomplete (e.g. truncated at PI_HAT>0.10) (i.e. fam="+famFile+" (default))\n"+
 		"   (3) (optional) select sample to keep based on call rate (i.e. imiss="+iMissFile+" (default))\n"+
-		"   (4) (optional) select on LRR_SD if call rates are within 0.2% (i.e. lrr_sd="+lrrFile+" (default))\n"+
+		"   (4) (optional) select on LRR_SD if call rates are within 0.2% (i.e. lrr_sd="+lrrFile+" (default; needs to have format FID\tIID\tLRR_SD))\n"+
 		"   (5) (optional) only purge out to certain level (i.e. level="+removeOutTo+" (default)), where:\n"+
 		"  OR\n"+
 		"   (1) summarize diff mode 6 results into markers and inds (i.e. diff=comp.diff (not the default))\n"+

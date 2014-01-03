@@ -200,8 +200,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		includeColorKeyValue = true;
 		currentData= tdp.getDataSelected(includeColorKeyValue);
 		uniqueValueCounts = new CountVector();
-//		sampleData.getClass();
-
+		
 		points = new PlotPoint[currentData.size()];
 		index = (byte) (includeColorKeyValue? 4 : 3);
 		if (currentData.size()>0) {

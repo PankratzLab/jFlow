@@ -11,7 +11,7 @@ import filesys.Segment;
 
 public class SampleData {
 	public static final String HEATMAP = "Heat map";
-	public static final String[] BASIC_CLASSES = {"All", "Genotype", HEATMAP};
+	public static final String[] BASIC_CLASSES = {"All", HEATMAP, "Genotype"};
 	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {}};
 	
 //	public static final String[] BASIC_FILTERS = {"GC"};
@@ -474,7 +474,11 @@ public class SampleData {
 				return 0;
 			} else if (basicClasses[indices[1]].equals("Genotype")) {
 				return (byte)(alleleCount+1);
+			} else if (basicClasses[indices[1]].equals(HEATMAP)) {
+				return 0;
 			} else {
+				System.err.println("Error - codeFromClass not defined for type: "+indices[1]);
+				System.err.println("        ("+basicClasses[indices[1]]+")");
 				return 0;
 			}
         case 1:

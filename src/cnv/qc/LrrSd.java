@@ -26,9 +26,10 @@ public class LrrSd extends Parallelizable {
 		Sample fsamp;
 		float[][][] cents;
 		byte[] chrs, abGenotypes, forwardGenotypes;
-		float[] lrrs, bafs;
+		float[] lrrs, bafs, bafsWide;
 		double abCallRate, forwardCallRate;
-		
+		int[] bafBinCounts;
+		boolean multimodal;
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
@@ -51,11 +52,19 @@ public class LrrSd extends Parallelizable {
 					lrrs = Array.subArray(lrrs, 0, Array.indexOfByte(chrs, (byte)23));
 					bafs = fsamp.getBAFs();
 					bafs = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
+					bafsWide = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
 					abGenotypes = fsamp.getAB_Genotypes();
 					forwardGenotypes = fsamp.getForwardGenotypes();
+					bafBinCounts = new int[101];
 					for (int j = 0; j < bafs.length; j++) {
+						if (!Float.isNaN(bafs[j])) {
+							bafBinCounts[(int)Math.floor(bafs[j]*100)]++;
+						}
 						if (bafs[j] < 0.15 || bafs[j] > 0.85) {
 							bafs[j] = Float.NaN;
+						}
+						if (bafsWide[j] < 0.03 || bafsWide[j] > 0.97) {
+							bafsWide[j] = Float.NaN;
 						}
 					}
 					abCallRate = 0;
@@ -77,7 +86,8 @@ public class LrrSd extends Parallelizable {
 						}
 						forwardCallRate /= forwardGenotypes.length;
 					}
-					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true)+"\t"+Array.stdev(bafs, true)+"\t"+abCallRate+"\t"+forwardCallRate);
+					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
+					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true)+"\t"+Array.stdev(bafs, true)+"\t"+abCallRate+"\t"+forwardCallRate+"\t"+multimodal+"\t"+Array.toStr(bafBinCounts));
 					writer.flush();
 				}
 			}

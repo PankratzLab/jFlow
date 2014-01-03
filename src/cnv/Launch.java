@@ -12,6 +12,7 @@ import common.*;
 import cnv.analysis.DeNovoCNV;
 import cnv.analysis.Mosaicism;
 import cnv.filesys.*;
+//import cnv.gui.GuiManager;
 //import cnv.gui.PropertyEditor;
 import cnv.manage.*;
 import cnv.plots.*;
@@ -72,7 +73,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     private String launchPropertiesFile;
     private JTextArea output;
     private JScrollPane scrollPane;
-//    private Vector<Thread> threadsRunning;
+    private Vector<Thread> threadsRunning;
     private int indexOfCurrentProj;
     private long timestampOfPropertiesFile;
     private long timestampOfSampleDataFile;
@@ -84,8 +85,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		this.launchPropertiesFile = launchPropertiesFile;
 		this.timestampOfPropertiesFile = -1;
 		this.timestampOfSampleDataFile = -1;
-		//Do not know proj yet at this stage.	//proj.getDir(Project.MARKER_DATA_DIRECTORY) + 
-//		this.log = new Logger("Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+		this.threadsRunning = new Vector<Thread>();
 	}
 
 	public void loadProjects() {
@@ -189,6 +189,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	}
     	frame = new Launch(launchPropertiesFile, false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.setJMenuBar(frame.topMenuBar());
         frame.setContentPane(frame.createContentPane());
         frame.createPopupMenu();
@@ -356,10 +357,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public class IndependentThread implements Runnable {
 		private Project proj;
 		private String command;
+//		private JFrame frame;
 		
 		public IndependentThread(Project proj, String command) {
 			this.proj = proj;
 			this.command = command;
+//			this.frame = null;
 		}
 
 		@Override
@@ -396,12 +399,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //						if () {
 //							
 //						}
-					success = PlinkData.saveGenvisisToPlinkBedSet(proj, filename, -1, true, log);
-//					success = cnv.manage.PlinkFormat.createPlink(proj, filename, proj.getLog());
+					success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
+					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.getLog());
 					if (success) {
 						try {
-//							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-//							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
+							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
 							new File(proj.getProjectDir()+"genome/").mkdirs();
 							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
 							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
@@ -465,7 +468,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 				cnv.qc.SexChecks.sexCheck(proj);
 
-				cnv.manage.PlinkFormat.createPlink(proj, null, proj.getLog());
+				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, proj.getLog());
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
 				new File(proj.getProjectDir()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
@@ -482,6 +485,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 	public void actionPerformed(ActionEvent ae) {
 		String command = ae.getActionCommand();
+		Thread thread;
+		
 //		output.append("Action performed: " + command + "\n");
 //		output.setCaretPosition(output.getDocument().getLength());
 		log.report("Action performed: " + command + "\n");
@@ -529,17 +534,35 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				}
 			}
 		} else {
-			new Thread(new IndependentThread(proj, command)).start();
+			thread = new Thread(new IndependentThread(proj, command));
+			thread.start();
+			threadsRunning.add(thread);
 		}
 	}
     
     public void windowOpened(WindowEvent we) {}
     
     public void windowClosing(WindowEvent we) {
-//    	notify all threads that they need to close
+//    	boolean alive;
+//    	
+////    	notify all threads that they need to close
+//    	alive = false;
 //    	for (int i = 0; i < threadsRunning.size(); i++) {
-//
+//    		if (threadsRunning.elementAt(i) != null) {
+//    			threadsRunning.elementAt(i).interrupt();
+//    		}
 //		}
+//
+//    	alive = false;
+//    	for (int i = 0; i < threadsRunning.size(); i++) {
+//    		if (threadsRunning.elementAt(i) != null && threadsRunning.elementAt(i).isAlive()) {
+//    			alive = true;
+//    		}
+//		}
+//    	
+//    	if (!alive) {
+//    		GuiManager.disposeOfParentFrame(this);
+//    	}
     }
     
     public void windowClosed(WindowEvent we) {}

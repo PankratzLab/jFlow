@@ -12,10 +12,11 @@ import java.awt.event.*;
 import cnv.filesys.*;
 import cnv.gui.CheckBoxTree;
 import cnv.gui.ColorKeyPanel;
+import cnv.gui.GuiManager;
 import common.*;
 import cnv.var.*;
 
-public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener, TreeExpansionListener {
+public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener { 
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 	public static final int DEFAULT_GC_THRESHOLD = 25;
@@ -87,32 +88,23 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public TwoDPlot(Project project, Logger log) {
 		String[] previouslyLoadedFiles;
 		
-//		log = new Logger();
 		this.log = log;
 		proj = project;
 		size = DEFAULT_SIZE;
-//		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 
-//		sampleData = proj.getSampleData(1, true);
-		sampleData = proj.getSampleData(1, false);
-		
+		sampleData = proj.getSampleData(2, false);
 		treeFilenameLookup = new Vector<String>();
-		//TODO Need to save the previously loaded files in other location.
-		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
-//		dataHash = new Hashtable<String,String[][]>();
 		dataHash = new Hashtable<String, Vector<String[]>>();
 		namesHash = new Hashtable<String, String[]>();
 		numericHash = new Hashtable<String, boolean[]>();
-//		colorKeyVariables = new Vector<String>();
 		keyIndices = new Hashtable<String, int[]>();
-//		rowsSelected = new Vector<Integer>();
-//		linkKeyValues = new Vector<String[]>();
+
+		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
 		for (int i = 0; i < previouslyLoadedFiles.length; i++) {
 			loadFile(previouslyLoadedFiles[i]);
 		}
 		
 		
-//		plot_type = 1;
 		setLayout(new BorderLayout());
 		
 //		SpringLayout layout = new SpringLayout();
@@ -120,7 +112,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		twoDPanel = new TwoDPanel(this, log);
 //		twoDPanel.setBounds(0,0,1000,600);
-//		twoDPanel.setPreferredSize(new Dimension(1000, 600));	//???zx
+//		twoDPanel.setPreferredSize(new Dimension(1000, 600));
 
 //		UIManager.put("PopupMenuUI", "CustomPopupMenuUI");
 
@@ -137,10 +129,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		layeredPane.add(invYButton);
 		
 		layeredPane.add(twoDPanel);
-//		layeredPane.setPreferredSize(new Dimension(500, 500));
-		layeredPane.setPreferredSize(new Dimension(1000, 600));	//???zx
+		layeredPane.setPreferredSize(new Dimension(1000, 600));
 
-		// ******* New code starts here ************
 		JPanel treePanel = new JPanel();
 		treePanel.setBackground(BACKGROUND_COLOR);
 		treePanel.setLayout(new BorderLayout());
@@ -165,19 +155,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		treePanel.add(new JScrollPane(tree), BorderLayout.CENTER);
 		tree.addTreeSelectionListener(this);
-//		tree.addTreeExpansionListener(this);
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treePanel, layeredPane);
 		splitPane.setBackground(Color.WHITE);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setDividerLocation(150);
 
-		//Provide minimum sizes for the two components in the split pane
 		Dimension minimumSize = new Dimension(100, 50);
-//		listScrollPane.setMinimumSize(minimumSize);
 		layeredPane.setMinimumSize(minimumSize);
 
 		add(splitPane, BorderLayout.CENTER);
-		// ******* New code ends here **********
 
 
 //		add(twoDPanel, BorderLayout.CENTER);
@@ -212,10 +198,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		setVisible(true);
 	}
 	
-//	public SampleData getSampleData() {
-//		return sampleData;
-//	}
-
 	public void refreshOtherButtons() {
 //		twoDPanel.repaint();
 		flipButton.repaint();
@@ -292,52 +274,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
 		ActionMap actionMap = twoDPanel.getActionMap();
-//		actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
-//		actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
-//		actionMap.put(ALT_LEFT, new CycleRadio(classRadioButtons, -1));
-//		actionMap.put(ALT_RIGHT, new CycleRadio(classRadioButtons, 1));
-//		actionMap.put(FIRST, new AbstractAction() {
-//			public static final long serialVersionUID = 4L;
-//
-//			public void actionPerformed(ActionEvent e) {
-//				markerIndex = 0;
-//				displayIndex(navigationField);
-//				twoDPanel.setPointsGenerated(false);//zx
-//				twoDPanel.setUpdateQcPanel(true);//zx???
-//				updateGUI();
-//			}
-//		});
-//		actionMap.put(PREVIOUS, new AbstractAction() {
-//			public static final long serialVersionUID = 5L;
-//
-//			public void actionPerformed(ActionEvent e) {
-//				markerIndex = Math.max(markerIndex-1, 0);
-//				displayIndex(navigationField);
-//				twoDPanel.setPointsGenerated(false);//zx
-//				twoDPanel.setUpdateQcPanel(true);//zx???
-//				updateGUI();
-//			}
-//		});
-//		actionMap.put(NEXT, new AbstractAction() {
-//			public static final long serialVersionUID = 6L;
-//
-//			public void actionPerformed(ActionEvent e) {
-//				markerIndex = Math.min(markerIndex+1, markerList.length-1);
-//				displayIndex(navigationField);
-//				twoDPanel.setPointsGenerated(false);//zx
-//				twoDPanel.setUpdateQcPanel(true);//zx???
-//				updateGUI();
-//			}
-//		});
-//		actionMap.put(LAST, new AbstractAction() {
-//			public static final long serialVersionUID = 7L;
-//
-//			public void actionPerformed(ActionEvent e) {
-//				markerIndex = markerList.length-1;
-//				displayIndex(navigationField);
-//				updateGUI();
-//			}
-//		});
 		twoDPanel.setActionMap(actionMap);
 	}
 
@@ -423,7 +359,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		} else if (command.equals(REMOVE_DATA_FILE)) {
 			numberOfSelectedNodes = (byte) tree.getSelectedPathComponent();
 			if (numberOfSelectedNodes != -1) {
-				keys = HashVec.getKeys(dataHash); // keys is better to be block variable than a class variable. Otherwise, keys need to be updated every time there is an adding or deleting.
+				keys = HashVec.getKeys(dataHash); // it is better for keys to be a local variable rather than a global variable, otherwise it needs to be updated every time something is added or deleted
 				tree.deleteSelectedNode();
 				dataHash.remove(keys[numberOfSelectedNodes]);//TODO tree.getSelectionValues()[0][0] is not the branch to delete.
 				namesHash.remove(keys[numberOfSelectedNodes]);
@@ -642,6 +578,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
 			dataOfSelectedFile = dataHash.get(selectedNodes[0][0]);
 			currentClass = colorKeyPanel.getCurrentClass();
+			if (currentClass < SampleData.BASIC_CLASSES.length && SampleData.BASIC_CLASSES[currentClass].equals(SampleData.HEATMAP)) {
+				twoDPanel.setChartType(AbstractPanel.HEAT_MAP_TYPE);
+			} else {
+				twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
+			}
+			
 			linkKeyColumnLabels = keyIndices.get(selectedNodes[0][0]);
 			index = (byte) (includeColorKeyValue? 4 : 3);
 			xHash = new Hashtable<String, String[]>();
@@ -855,7 +797,51 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void windowClosed(WindowEvent e) {}
 
-	public void windowClosing(WindowEvent e) {}
+	@Override
+	public void windowClosing(WindowEvent e) {
+		String[] options;
+		int choice;
+		String filenames, selections, message;
+
+		filenames = Array.toStr(Array.toStringArray(treeFilenameLookup), ";");
+		selections = "";
+		
+		options = new String[] {"Yes", "No", "Cancel"};
+		message = "";
+		
+		if (!proj.getProperty(Project.TWOD_LOADED_FILENAMES).equals(filenames)) {
+			if (filenames.equals("")) {
+				message = "All files have been unloaded from 2D Plot.";
+			} else {
+				message = "A different set of files have been loaded/unloaded from 2D Plot.";
+			}
+		}
+		
+		if (!proj.getProperty(Project.TWOD_LOADED_VARIABLES).equals(selections)) {
+			if (!message.equals("")) {
+				message = message.substring(0, message.length()-1)+", and new variables have been selected.";
+			} else {
+				message = "New variables have been selected.";
+			}
+		}
+		
+		if (message.equals("")) {
+			GuiManager.disposeOfParentFrame(this);
+		} else {
+			System.out.println("message: '"+message+"'");
+			choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time 2D Plot is loaded?", "Preserve 2D Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			if (choice == 0) {
+				proj.setProperty(Project.TWOD_LOADED_FILENAMES, filenames);
+				proj.setProperty(Project.TWOD_LOADED_VARIABLES, selections);
+				proj.saveProperties();
+				GuiManager.disposeOfParentFrame(this);
+			} else if (choice == 1) {
+				GuiManager.disposeOfParentFrame(this);
+			} else if (choice == -1 || choice == 2) {
+				// keep frame alive
+			}
+		}
+	}
 
 	public void windowDeactivated(WindowEvent e) {}
 
@@ -865,18 +851,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void windowOpened(WindowEvent e) {}
 
-	@Override
-	public void treeExpanded(TreeExpansionEvent event) {
-		System.out.println("Tree expansion listener");
-		
-	}
-
-	@Override
-	public void treeCollapsed(TreeExpansionEvent event) {
-		System.out.println("Tree collapose listener");
-	}
-
-	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 //		System.out.println("Tree value changed listener"+"\ttreeSelectionIndices: "+tree.getSelectionIndices()[0][0]+","+tree.getSelectionIndices()[0][1]+"\t"+tree.getSelectionIndices()[1][0]+","+tree.getSelectionIndices()[1][1]);
 		twoDPanel.setPointsGeneratable(true);
@@ -886,7 +860,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void loadFile(String filename) {
 		BufferedReader reader;
-		String[] line;
+		String[] header, line;
 		String readBuffer;
 		int[] linkKeyIndices;
 
@@ -901,14 +875,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			readBuffer = reader.readLine();
 			if (readBuffer.contains("\t")) {
-				line = readBuffer.trim().split("\t",-1);
+				header = readBuffer.trim().split("\t",-1);
 			} else {
-				line = readBuffer.trim().split("[\\s]+");
+				header = readBuffer.trim().split("[\\s]+");
 			}
-			namesHash.put(filename, line);
+			namesHash.put(filename, header);
 			
 			
-			linkKeyIndices = ext.indexFactors(LINKERS, line, false, true, false, log, false);
+			linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
 			
 			if (linkKeyIndices[0] == -1) {
 				log.report("ID linker not automatically identified for file '" + filename + "'; assuming the first column.");
@@ -930,7 +904,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					line = reader.readLine().trim().split("[\\s]+");
 				}
             	dataHash.get(filename).add(line);
-            	for (int i=0; i<line.length; i++) {
+            	for (int i=0; i<header.length; i++) {
             		if (!ext.isValidDouble(line[i])) {
             			numericHash.get(filename)[i] = false;
             		}
@@ -996,7 +970,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		//Create and set up the window.
 		JFrame frame = new JFrame("2D Plot");
 //        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         //Create and set up the content pane.
         TwoDPlot twoDPlot = new TwoDPlot(proj, log);

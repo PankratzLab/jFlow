@@ -65,17 +65,37 @@ public class Polymutt {
 		Files.chmod("master.allRuns");
 	}
 
+	public static void filterDenovo(String triosFile) {
+//		String[][] iterations;
+//		String commands, scratch;
+//		Vector<String> v;
+//		
+//		scratch = "/lustre/polymutt/";
+//		scratch = "/project/scratch/polymutt/";
+//		
+//		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0,1,2}, false);
+//		for (int i = 0; i < iterations.length; i++) {
+//			if (Files.exists(scratch+iterations[i][0]+".vcf")) {
+//				
+//			} else {
+//				System.err.println("Error - '"+scratch+iterations[i][0]+".vcf' does not exist");
+//			}
+//		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 //		String logfile = null;
 //		Logger log;
 		String sourceDir = null;
 		String triosFile = "trios_list.txt";
+		boolean filterDenovo = false;
 
 		String usage = "\n" + 
 			"seq.Polymutt requires 0-1 arguments\n" + 
 			"   (1) source directory containing the .bam files (i.e. sourceDir=" + sourceDir + " (default))\n" + 
-			"   (2) list of trio root names (i.e. trios=" + triosFile + " (default))\n" + 
+			"   (2) list of trio root names (i.e. trios=" + triosFile + " (default))\n" +
+			"   (3) filter the VCF results (i.e. -filterDenovo (not the default))\n" +
 			"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -87,6 +107,9 @@ public class Polymutt {
 				numArgs--;
 			} else if (args[i].startsWith("trios=")) {
 				triosFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-filterDenovo")) {
+				filterDenovo = true;
 				numArgs--;
 //			} else if (args[i].startsWith("log=")) {
 //				logfile = args[i].split("=")[1];
@@ -103,7 +126,11 @@ public class Polymutt {
 //			log = new Logger(logfile);
 			if (sourceDir != null) {
 				batchAllGlf(sourceDir);
+			} else if (filterDenovo) {
+				filterDenovo(triosFile);
 			} else {
+				System.err.println("Error - don't run until fixing the sex issue, default is currently to female");
+				System.exit(1);
 				batchPolymutt(triosFile);
 			}
 		} catch (Exception e) {
