@@ -12,6 +12,7 @@ import javax.imageio.*;
 import common.*;
 import cnv.filesys.Project;
 import cnv.gui.LaunchAction;
+import cnv.var.SampleData;
 import mining.Distance;
 
 //public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
@@ -72,6 +73,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	private IntVector prox;
 	private Hashtable<String,String> colorHash;
 	private Hashtable<String,String> failedHash;
+	private SampleData sampleData;
 
 	public SexPanel(Project proj, String[][] samples, double[][] data, byte[] sexes, byte[] estimatedSexes) {
 		this(proj, samples, data);
@@ -127,6 +129,9 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
 		sampLookup = new Hashtable<String,IntVector>();
+		
+		sampleData = proj.getSampleData(0, true);
+		
 		// linkSamples = true;
 
 		for (int i = 0; i<data.length; i++) {
@@ -297,16 +302,16 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				color = (byte) ((byte) ext.indexOfStr(samples[i][0]+".samp", files)>=0?0:1);	// What is the color code for Color.GRAY
 			}
 			*/
-			points[i] = new PlotPoint("",
-									  (byte) 1,
-									  (float) data[i][0],
-									  (float) data[i][1],
-									  (byte) SIZE,
-//									  (byte) color,
-									  estimatedSexes[i],	//sexes[i],
-//									  (byte) (sexNew[i]==sexes[i]?0:2)
-									  (byte) (estimatedSexes[i]==sexes[i]?0:2)
-									  );
+			if (!sampleData.individualShouldBeExcluded(samples[i][0])) {
+				points[i] = new PlotPoint("",
+										  (byte) 1,
+										  (float) data[i][0],
+										  (float) data[i][1],
+										  (byte) SIZE,
+										  estimatedSexes[i],	//sexes[i],
+										  (byte) (estimatedSexes[i]==sexes[i]?0:2)
+										  );
+			}
 		}
 		//Color color;
 		setSwapable(false);

@@ -181,7 +181,7 @@ public class Eigenstrat {
 	        if (eigenFormat) {
     	        reader = new BufferedReader(new FileReader(targetRoot+".eigenstratgeno"));
     	        if (new File(targetRoot+".fam").exists()) {
-    	        	System.out.println("Lately, we've had trouble with the eigen .ind file not having both FID and IID; using plink-style .fam instead");
+    	        	System.out.println("There has been trouble in the past with the eigen .ind file not having both FID and IID; since "+targetRoot+".fam"+" is present in the same directory, that will be used instead");
     	        	ids = HashVec.loadFileToVec(targetRoot+".fam", false, new int[] {0,1}, false, false);
         	        if (!Array.equals(Matrix.extractColumn(Array.splitStrings(Array.toStringArray(ids), true), 1), HashVec.loadFileToStringArray(targetRoot+".ind", false, new int[] {0}, false), false)) {
         	        	System.err.println("But unfortunately, "+targetRoot+".fam"+" doesn't match up with "+targetRoot+".ind; duplicating IID instead for now");
@@ -212,12 +212,16 @@ public class Eigenstrat {
 //	        		}	        		
 //		        	fancyweights[i] = Math.sqrt(mafs[i]*(1-mafs[i]));
     	        	
-    	        	for (int j = 0; j<ids.size(); j++) {
-	        			for (int k = 0; k<numEigens; k++) {
-	        				scoreMatrix[j][k] += weights[i][k]*(data[j]-mafs[i])/fancyweights[i];
+    	        	if (weights[i] == null) {
+//    	        		System.err.println("Error - no weights present for marker "+markerNames[i]);
+    	        	} else {
+	    	        	for (int j = 0; j<ids.size(); j++) {
+		        			for (int k = 0; k<numEigens; k++) {
+		        				scoreMatrix[j][k] += weights[i][k]*(data[j]-mafs[i])/fancyweights[i];
+		                    }
+		        			
 	                    }
-	        			
-                    }
+    	        	}
     	        }
     	        reader.close();
         	} else {
@@ -424,8 +428,9 @@ public class Eigenstrat {
 		    System.exit(1);
 	    }
 
-	    parse = true;
-	    
+//	    parse = true;
+//	    sourceRoot = "unrelateds/plink";
+//	    eigenFormat = true;
 	    
 	    try {
 	    	if (create) {

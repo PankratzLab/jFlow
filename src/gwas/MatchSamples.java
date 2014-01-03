@@ -3,7 +3,6 @@ package gwas;
 import java.io.*;
 import java.util.*;
 
-import kaput.MatchesVisualized;
 import common.*;
 import mining.Distance;
 import stats.Correlation;

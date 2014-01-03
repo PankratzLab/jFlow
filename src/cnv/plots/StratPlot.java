@@ -13,7 +13,7 @@ import cnv.filesys.Project;
 import cnv.var.*;
 import cnv.gui.*;
 
-public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener, TreeExpansionListener {
+public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener {
 	public static final long serialVersionUID = 1L;
 	public static final String DEFAULT_FILENAME = "samplesCliskedInStratify.xln";
 	public static final String[] MOSAICISM_HEADER = {"Sample", "Band", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo"};
@@ -71,11 +71,10 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		treePanel.add(new JScrollPane(tree), BorderLayout.CENTER);
 		getContentPane().add(treePanel, BorderLayout.WEST);
 		tree.addTreeSelectionListener(this);
-//		tree.addTreeExpansionListener(this);
 		treePanel.setPreferredSize(new Dimension(200,500));
 
 		
-		sampleData = proj.getSampleData(2, false);
+		sampleData = proj.getSampleData(3, false);
 		if (!sampleData.containsDNA()) {
 			log.reportError("Without a DNA column in the SampleData file, ScatterPlot will not start");
 			JOptionPane.showMessageDialog(null, "Error - Without a DNA column in the SampleData file, ScatterPlot will not start", "Error",
@@ -244,12 +243,6 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	public void valueChanged(TreeSelectionEvent tse) {
 		updateGUI();
 	}
-	
-    public void treeExpanded(TreeExpansionEvent event) {
-    }
-
-    public void treeCollapsed(TreeExpansionEvent event) {
-    }
 	
 	public int getCurrentVariable() {
 		return currentVariable;

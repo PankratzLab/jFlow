@@ -24,8 +24,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.*;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -39,7 +37,7 @@ import common.HashVec;
 import common.Logger;
 import common.ext;
 
-public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener, TreeExpansionListener {
+public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 
@@ -587,18 +585,6 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	public void windowOpened(WindowEvent e) {
 	}
 
-	@Override
-	public void treeExpanded(TreeExpansionEvent event) {
-		System.out.println("Tree expansion listener");
-
-	}
-
-	@Override
-	public void treeCollapsed(TreeExpansionEvent event) {
-		System.out.println("Tree collapose listener");
-	}
-
-	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		linePanel.setPointsGeneratable(true);
 		linePanel.createImage();

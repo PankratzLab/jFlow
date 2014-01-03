@@ -1,4 +1,4 @@
-package kaput;
+package gwas;
 
 //import java.io.*;
 import java.util.*;

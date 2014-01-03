@@ -139,7 +139,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		lastIndexInPlotPointSet = -1;
 		currentIndexInPlotPointSet = -1;
 		randomTest = false;
-		chartType = DEFAULT_TYPE;
+		setChartType(DEFAULT_TYPE);
 		
 		layersInBase = null;
 		extraLayersVisible = null;
@@ -237,6 +237,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public abstract void assignAxisLabels();
 
+	public void setChartType(int chartType) {
+		this.chartType = chartType;
+	}
+	
 	public void setXinversion(boolean b) {
 		invertX = b;
 	}
@@ -575,7 +579,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 							layer.add(points[i]);
 						}
 					}
-					if (createLookup) {
+					if (createLookup && points[i] != null) {
 						xLook = (int)Math.floor(getXPixel(points[i].getRawX())/lookupResolution);
 						yLook = (int)Math.floor(getYPixel(points[i].getRawY())/lookupResolution);
 						for (int j = xLook-1; j<=xLook+1; j++) {

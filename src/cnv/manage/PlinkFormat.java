@@ -12,7 +12,7 @@ import cnv.filesys.Project;
 import common.*;
 
 public class PlinkFormat {
-	public static boolean createPlink(Project proj, String clusterFilterFilename, Logger log) {
+	public static boolean createPlink(Project proj, String filenameRoot, String clusterFilterFilename, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,String> hash;
@@ -78,16 +78,16 @@ public class PlinkFormat {
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"gwas.map"));
+			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filenameRoot+".map"));
 			for (int i = 0; i<indices.length; i++) {
-				writer.println(chrs[indices[i]]+"\t"+markerNames[indices[i]]+"\t0\t"+positions[indices[i]]);
+				writer.println(chrs[indices[i]]+" "+markerNames[indices[i]]+" 0 "+positions[indices[i]]);
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: failed to write to gwas.map (in use?)");
+			System.err.println("Error: failed to write to "+filenameRoot+".map (in use?)");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error writing to gwas.map");
+			System.err.println("Error writing to "+filenameRoot+".map");
 			System.exit(2);
 		}
 
@@ -118,7 +118,7 @@ public class PlinkFormat {
 		
 		try {
 			reader = new BufferedReader(new FileReader(proj.getFilename(Project.PEDIGREE_FILENAME)));
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"gwas.ped"));
+			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filenameRoot+".ped"));
 			count = 1;
 			while (reader.ready()) {
 				count++;
@@ -136,17 +136,17 @@ public class PlinkFormat {
 					writer.close();
 					return false;
 				}
-				writer.print(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
+				writer.print(line[0]+" "+line[1]+" "+line[2]+" "+line[3]+" "+line[4]+" "+line[5]);
 				if (line[6].equals(".")) {
 					for (int i = 0; i<indices.length; i++) {
-						writer.print("\t0\t0");
+						writer.print(" 0 0");
 					}
 				} else {
 					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
 					if (fsamp==null) {
 						System.err.println("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+".fsamp was not found in directory: "+proj.getDir(Project.SAMPLE_DIRECTORY));
 						for (int i = 0; i<indices.length; i++) {
-							writer.print("\t0\t0");
+							writer.print(" 0 0");
 						}
 					} else {
 						if (clusterFilterFilename == null) {
@@ -157,10 +157,10 @@ public class PlinkFormat {
 						for (int i = 0; i<indices.length; i++) {
 							genIndex = genotypes[indices[i]];
 							if (genIndex==0) {
-								writer.print("\t0\t0");
+								writer.print(" 0 0");
 							} else {
 								genotype = Sample.ALLELE_PAIRS[genIndex];
-								writer.print("\t"+genotype.charAt(0)+"\t"+genotype.charAt(1));
+								writer.print(" "+genotype.charAt(0)+" "+genotype.charAt(1));
 							}
 						}
 					}
@@ -213,14 +213,16 @@ public class PlinkFormat {
 		String filename = Project.DEFAULT_PROJECT;
 		String pick = "";
 		String filters = null;
+		String plinkPrefix = "plinkPed";
 
 		String usage = "\\n"+
 		"cnv.manage.PlinkFormat requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"     requires pedigree file and targets file to be delineated in the Project properties file\n"+
-		"   (2) filename of cluster filters to use during processing (i.e. filters=data/clusterFilters.ser (not the default))\n"+
+		"   (2) prefix for plink ped files (i.e. prefix="+plinkPrefix+" (default))\n"+
+		"   (3) filename of cluster filters to use during processing (i.e. filters=data/clusterFilters.ser (not the default))\n"+
 		"  OR\n"+
-		"   (2) pick targets to include in the PLINK file from an Illumina map file (i.e. pick=filename.csv (not the default))\n"+
+		"   (3) pick targets to include in the PLINK file from an Illumina map file (i.e. pick=filename.csv (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -229,6 +231,9 @@ public class PlinkFormat {
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("prefix=")) {
+				plinkPrefix = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("filters=")) {
 				filters = args[i].split("=")[1];
@@ -247,7 +252,7 @@ public class PlinkFormat {
 			if (!pick.equals("")) {
 				pickTargets(pick);
 			} else {
-				createPlink(new Project(filename, false), filters, new Logger());
+				createPlink(new Project(filename, false), plinkPrefix, filters, new Logger());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

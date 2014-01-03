@@ -54,6 +54,23 @@ public class ext {
 		return str;
 	}
 	
+	public static String replaceQuotesWithSlashQuotes(String original) {
+		char[] array;
+		String str;
+		
+		array = original.toCharArray();
+		
+		str = "";
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == '"') {
+				str += "\\";
+			}
+			str += array[i];
+		}
+
+		return str;
+	}
+	
 	public static String[][] processMetaCharacters(String[][] replaces) {
 		String[][] metaReplaces;
 		
