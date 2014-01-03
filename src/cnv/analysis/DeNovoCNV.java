@@ -85,14 +85,14 @@ public class DeNovoCNV {
         } catch (IOException ioe) {
             log.reportError("Error reading file \""+input_pedigreeFullPath+"\"");
         }
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": cleaned list of trio sets " + output_listOfTrioSetsFullPath);
+		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": generated list of trio sets " + output_listOfTrioSetsFullPath);
 	}
 
-	public static void cleanListOfTrioSets(Project proj, String originalListOfTrioSetsFullPath, Logger log) {
+	public static void verifyDataAvailabilityForListOfTrioSets(Project proj, String originalListOfTrioSetsFullPath, Logger log) {
 		BufferedReader reader;
 		String line1;
 		String[] line;
-		String sampDataReady;
+//		String sampDataReady;
 		String noSampData;
 		PrintWriter writer;
 		String[] sampleList;
@@ -101,6 +101,7 @@ public class DeNovoCNV {
 		int counter;
 		String originalDirAndRoot;
 		String originalExt;
+		String filename;
 
 		originalDirAndRoot = ext.parseDirectoryOfFile(originalListOfTrioSetsFullPath) + ext.rootOf(originalListOfTrioSetsFullPath);
 		counter = originalListOfTrioSetsFullPath.lastIndexOf(".");
@@ -111,13 +112,14 @@ public class DeNovoCNV {
 		}
 		sampleList = proj.getSampleList().getSamples();
 		counter = 0;
-		sampDataReady = "";
+//		sampDataReady = "";
 		noSampData = "";
 		try {
 //	        reader = Files.getReader(new FileReader(filename), proj.getJarStatus(), true, false);
 			reader = new BufferedReader(new FileReader(originalListOfTrioSetsFullPath));
             reader.readLine();
-            writer = new PrintWriter(new FileWriter(originalDirAndRoot + "_Tmp" + originalExt));
+			filename = originalDirAndRoot + "_Tmp" + originalExt;
+            writer = new PrintWriter(new FileWriter(filename));
 			writer.println("fId\tiId\tfaId\tmoId\tiDna\tfaDna\tmoDna");
             while (reader.ready()) {
             	line1 = reader.readLine();
@@ -144,21 +146,24 @@ public class DeNovoCNV {
 			writer.close();
 
 			if (counter>0) {
-				writer = new PrintWriter(new FileWriter(originalDirAndRoot + "_NoDataOnly" + originalExt));
+				new File(originalListOfTrioSetsFullPath).renameTo(new File(originalListOfTrioSetsFullPath + "_wDataAndNoData" + originalExt));
+				new File(filename).renameTo(new File(originalListOfTrioSetsFullPath));
+				filename = originalDirAndRoot + "_NoDataOnly" + originalExt;
+				writer = new PrintWriter(new FileWriter(filename));
 				writer.println("fId\tiId\tfaId\tmoId\tiDna\tfaDna\tmoDna");
+				writer.print(noSampData);
 				writer.flush();
 				writer.close();
-				new File(originalListOfTrioSetsFullPath).renameTo(new File(originalListOfTrioSetsFullPath + "_DataAndNoData" + originalExt));
-				new File(originalDirAndRoot + "_Tmp" + originalExt).renameTo(new File(originalListOfTrioSetsFullPath));
+				log.report("There are " + counter + " set(s) of trio(s) are removed from the list due to no corresponding " + Sample.SAMPLE_DATA_FILE_EXTENSION + " file(s).\nCheck the following for detail: " + filename);
 			} else {
-				new File(originalDirAndRoot + "_Tmp" + originalExt).delete();
+				new File(filename).delete();
 			}
         } catch (FileNotFoundException fnfe) {
         	log.reportError("Error: file \"" + originalListOfTrioSetsFullPath + "\" not found in current directory");
         } catch (IOException ioe) {
             log.reportError("Error reading file \"" + originalListOfTrioSetsFullPath + "\"");
         }
-		log.report("Cleanning list of trio sets for availability of data.");
+		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": verified data availability for the list of trio sets " + originalListOfTrioSetsFullPath);
 	}
 
 	/**
@@ -762,7 +767,7 @@ public class DeNovoCNV {
 
 		if (! new File(trioPedigreeFullPath).exists()) {
 			generateListOfTrios(pedigreeFullPath, trioPedigreeFullPath, log);
-			cleanListOfTrioSets(proj, trioPedigreeFullPath, log);
+			verifyDataAvailabilityForListOfTrioSets(proj, trioPedigreeFullPath, log);
 			generateFamFileForTrios(proj, trioPedigreeFullPath, true, log);
 		} else {
 			log.report("Skipped generating list of trio sets, - found " + trioPedigreeFullPath);

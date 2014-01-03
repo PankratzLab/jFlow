@@ -1827,9 +1827,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void loadAnnotationCollection() {
-		if (new File(proj.getFilename(Project.ANNOTATION_FILENAME, false, false)).exists()) {
-			System.out.println("Loading annotation from: "+proj.getFilename(Project.ANNOTATION_FILENAME, false, false));
-			annotationCollection = (AnnotationCollection) Files.readSerial(proj.getFilename(Project.ANNOTATION_FILENAME, false, false));
+		if (new File(proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false)).exists()) {
+			System.out.println("Loading annotation from: "+proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false));
+			annotationCollection = (AnnotationCollection) Files.readSerial(proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false));
 
 		} else {
 			annotationCollection = new AnnotationCollection();
@@ -2120,6 +2120,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void updateGUI() {
+		System.out.println("Entering updateGUI()");
 		if (markerDataLoader == null) {
 			return;
 		}
@@ -2169,6 +2170,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			updateCentLabels();
 		}
 		previousMarkerIndex = markerIndex;
+		System.out.println("    exiting updateGUI()");
 	}
 
 	public void updateColorKey(Hashtable<String,String> hash) {
@@ -2335,7 +2337,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		scatPanel.setQcPanelUpdatable(true);
 		//updateGUI();
 		scatPanel.paintAgain();
-		updateGUI();
+//		updateGUI();
 		if (updateGenotypeComboBox) {
 			newGenotype.setSelectedIndex(newGenotypeSelected + 1);
 		}
@@ -2453,7 +2455,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (isClusterFilterUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false) + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false));
+				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			}
 //			isClusterFilterUpdated = false;
 			setClusterFilterUpdated(false);
@@ -2464,8 +2467,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (isAnnotationUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				filename = proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false) + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
-				System.out.println("Writing to "+filename);
+				filename = proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false);
+//				System.out.println("Writing to "+filename);
+				Files.writeSerial(annotationCollection, filename);
+				filename = filename + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
 				Files.writeSerial(annotationCollection, filename);
 			}
 //			isAnnotationUpdated = false;
