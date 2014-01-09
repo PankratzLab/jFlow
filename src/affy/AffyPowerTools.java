@@ -29,8 +29,8 @@ public class AffyPowerTools {
         String javaClass = "affy.AffySNP6Tables";
         String project  = "/home/pankrat2/lanej/projects/dbGaP_ARIC_11908.properties";
    
-        int numBatches = 3;
-        int numJobs = 16;
+        int numBatches = 1;
+        int numJobs = 8;
         int lineBuffer =20;
         int memory = 14999;
         double wallTime = 96.00;
