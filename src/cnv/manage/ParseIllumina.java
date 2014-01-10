@@ -338,7 +338,7 @@ public class ParseIllumina implements Runnable {
 	public static void createFiles(Project proj, int numThreads, Logger log) {
 		BufferedReader reader;
 		String[] line, markerNames, files;
-		ArrayList<String> alNames;
+		Hashtable<String,Integer> markerNameHash;
 		int snpIndex;
 		int[] keys, keysKeys, indices;
 		long fingerprint;
@@ -346,14 +346,12 @@ public class ParseIllumina implements Runnable {
 		Vector<Vector<String>> fileCabinet;
 		String trav;
 		int count;
-//		Hashtable<String, Integer> markerNameHash;
 		boolean abLookupRequired;
 		char[][] lookup;
         Hashtable<String,String> fixes;
         String idHeader, delimiter;
         String temp;
         int[][] delimiterCounts;
-        boolean done;
         long timeBegan;
         boolean parseAtAt;
         int sampIndex;
@@ -577,21 +575,26 @@ public class ParseIllumina implements Runnable {
 				return;
 			}
 
-			done = false;
-//			count = 1;
-			alNames = new ArrayList<String>(500000);
-			while (reader.ready() && !done) {
-				trav = reader.readLine().trim().split(delimiter)[snpIndex];
+			markerNameHash = new Hashtable<String, Integer>(500000);
+			while (reader.ready()) {
+				line = reader.readLine().trim().split(delimiter);
+				trav = line[snpIndex];
 				if (trav.equals("") || trav.equals("0")) {
 					trav = "Blank"+count;
 					count++;
 				}
-//				if (markerNameHash.containsKey(trav)) {
-//					done = true;
-//				} else {
-//					markerNameHash.put(trav, new Integer(markerNameHash.size()));
-//				}
-				alNames.add(trav);
+				if (markerNameHash.containsKey(trav)) {
+					log.reportError("The same marker ('"+trav+"') was seen twice...");
+					if (!(parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex]).equals(sampleName)) {
+						log.reportError("... and the sample name changed from "+sampleName+" to "+(parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex])+", so this must be a Long Format file. The property file will be updated to reflect this, and an attempt will be made to launch the Long Format file processor now.");
+						proj.setProperty(Project.LONG_FORMAT, "TRUE");
+						proj.saveProperties();
+						createFilesFromLongFormat(proj, files, idHeader, fixes, delimiter, abLookupRequired, timeBegan);
+						return;
+					}
+				} else {
+					markerNameHash.put(trav, markerNameHash.size());
+				}
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -606,8 +609,7 @@ public class ParseIllumina implements Runnable {
 //		new File(proj.getDir(Project.IND_DIRECTORY)).mkdirs();
 //		new File(proj.getDir(Project.DATA_DIRECTORY)).mkdirs();
 
-//		markerNames = Array.toStringArray(markerNameHash);
-		markerNames = Array.toStringArray(alNames);
+		markerNames = Array.toStringArray(markerNameHash);
 		keys = Markers.orderMarkers(markerNames, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true));
 		if (keys == null) {
 			return;

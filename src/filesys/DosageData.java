@@ -19,6 +19,8 @@ public class DosageData implements Serializable {
 	public static final int PLINK_FORMAT = 3;
 	public static final int MACH_MLPROB_FORMAT = 4;
 	public static final int MINIMAC_DOSE_FORMAT = 5;
+	public static final int IMPUTE2_DOSE_FORMAT = 6;
+	public static final int DATABASE_DOSE_FORMAT = 7;
 
 	public static final int MACH_ID_TYPE = 0;
 	public static final int SEPARATE_FILE_ID_TYPE = 1;
@@ -28,8 +30,8 @@ public class DosageData implements Serializable {
 	public static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
 	public static final int MARKER_DOMINANT_FORMAT = 1;
 	
-	public static final String[][] HEADS = {null, null, {"id"}, {"SNP", "A1", "A2"}, null, null};
-	public static final String[][] LEADS = {{null, "MLDOSE"}, null, null, null, {null, "MLPROB"}, {null, "DOSE"}};
+	public static final String[][] HEADS = {null,				null,	{"id"}, 	{"SNP", "A1", "A2"},	null, 				null,				{"FID", "IID"}};
+	public static final String[][] LEADS = {{null, "MLDOSE"},	null,	null, 		null, 					{null, "MLPROB"},	{null, "DOSE"},		null};
 	public static final String[] DELIMITERS = {"\t", ",", " "};
 
 	/** 0,       1,                                                  2,                3,                                      4,          5,                6,        7,        8,         9,         10,        11,                  12,                   13                   */
@@ -42,6 +44,8 @@ public class DosageData implements Serializable {
 											  {FID_IID_TYPE,          3, MARKER_DOMINANT_FORMAT,     2, 1, 0,  1,  2, -1, -1, 0, 3, 3, 3}, // .dosage (PLINK)
 											  {MACH_ID_TYPE,          2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob (MACH)
 											  {MACH_ID_TYPE,          2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
+											  {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT,     3, 0, 1,  3,  4, -1,  2, 0, 1, 3, 3}, // .impute2
+											  {FID_IID_TYPE,          3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,  3,  4, -1,  2, 0, 6, 3, 3}, // .db.xln
 	};
 
 	private SnpMarkerSet markerSet;
@@ -559,6 +563,10 @@ public class DosageData implements Serializable {
 			return MACH_MLPROB_FORMAT;
 		} else if (dosageFile.endsWith(".dose")) {
 			return MINIMAC_DOSE_FORMAT;
+		} else if (dosageFile.endsWith(".impute2")) {
+			return IMPUTE2_DOSE_FORMAT;
+		} else if (dosageFile.endsWith(".db.xln")) {
+			return DATABASE_DOSE_FORMAT;
 		} else {
 			System.err.println("Error - format could not be deduced solely by the filename extension");
 			return -1;
@@ -1001,6 +1009,8 @@ public class DosageData implements Serializable {
 		"        3   .dosage   input file for PLINK\n" + 
 		"        4   .mldose   MACH style .mlprob file\n" + 
 		"        5   .dosage   output from MINIMAC\n" + 
+		"        6   .impute2  output from IMPUTE2\n" + 
+		"        7   .db.xln   database format\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -1070,6 +1080,13 @@ public class DosageData implements Serializable {
 //		outfile = "hla_test.dose";
 //		extract = "test_list.txt";
 //		awk = true;
+		
+//		filename = "D:/LITE/1000Gimputation/blacks/chr9.all_parsed.xln";
+//		idFile = "D:/LITE/1000Gimputation/blacks/B_ARIC_gwas_frz3v2_clean.b37.fam";
+//		mapFile = "D:/LITE/1000Gimputation/blacks/ABO_blacks_fullRegion.bim";
+//		outfile = "D:/LITE/1000Gimputation/blacks/ABO_blacks_fullRegion.db.xln";
+//		from=6;
+//		to=7;
 
 		from = from==-1?determineType(filename):from;
 		to = to==-1?determineType(outfile):to;

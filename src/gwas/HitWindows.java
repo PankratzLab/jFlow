@@ -37,7 +37,7 @@ public class HitWindows {
 		
 		log = new Logger();
 		count = Files.countLines(filename, true);
-//		System.out.println("Parsing "+count+" lines");
+//		log.report("Parsing "+count+" lines");
 		markerNames = new String[count];
 		chrs = new byte[count];
 		positions = new int[count];
@@ -50,7 +50,7 @@ public class HitWindows {
 			header = temp.trim().split(delimiter);
 			indices = ext.indexFactors(factors, header, false, false, true, true, log, true);
 			count = 0;
-//			System.out.println("Parsing... "+filename);
+//			log.report("Parsing... "+filename);
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (delimiter.equals(",")) {
@@ -68,20 +68,20 @@ public class HitWindows {
 						annotation[count][i] = line[4+i];
 					}
 				} catch (Exception e) {
-					System.err.println("Error - reading: "+temp);
-					System.err.println("  which was parsed as : "+Array.toStr(line));
-					e.printStackTrace();
-					System.exit(1);
+					log.reportError("Error - reading: "+temp);
+					log.reportError("  which was parsed as : "+Array.toStr(line));
+					log.reportException(e);
+					return null;
 				}
 				count++;
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + filename + "\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			return null;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + filename + "\"");
-			System.exit(2);
+			log.reportError("Error reading file \"" + filename + "\"");
+			return null;
 		}
 		
 		return determineButOrderFirst(markerNames, chrs, positions, pvals, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, additionalAnnotationVariableNames, annotation);
@@ -119,7 +119,7 @@ public class HitWindows {
 		startIndex = -1;
 		stopIndex = -1;
 		region = 1;
-//		System.out.println("Starting search...");
+//		log.report("Starting search...");
 		for (int i = 0; i < markerNames.length; i++) {
 			if (pvals[i] < indexThreshold) {
 				startIndex = i;
@@ -135,7 +135,7 @@ public class HitWindows {
 						numSuggestive++;
 					}
 				}
-//				System.out.println(markerNames[i]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
+//				log.report(markerNames[i]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
 								
 				stopIndex = i;
 				offset = 0;
@@ -143,7 +143,7 @@ public class HitWindows {
 				while (stopIndex+offset+1 < markerNames.length && chrs[stopIndex] == chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide >= positions[stopIndex+offset+1]) {	// don't want the 2* here, though
 					offset++;
 					if (pvals[stopIndex+offset] < indexThreshold) {
-//						System.out.println(markerNames[stopIndex+offset]+"\t"+region);
+//						log.report(markerNames[stopIndex+offset]+"\t"+region);
 						numSig++;
 					}
 					if (pvals[stopIndex+offset] < windowExtensionThreshold) {
@@ -156,8 +156,8 @@ public class HitWindows {
 						minPval = pvals[stopIndex];
 					}
 				}
-//				System.out.println(markerNames[minIndex]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
-//				System.out.println(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
+//				log.report(markerNames[minIndex]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
+//				log.report(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
 				
 				line = new String[] {
 						region+"",
@@ -186,20 +186,17 @@ public class HitWindows {
 		return Matrix.toStringArrays(v);
 	}
 	
-	public static void generateHitsLookup(String inputHits, int window, String outputFile, String mapfile) {
+	public static void generateHitsLookup(String inputHits, int window, String outputFile, String mapfile, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		Hashtable<String, Vector<String>> hash;
 		Vector<String> v;
 		Segment[][] segs;
 		SnpMarkerSet markerSet;
-		Logger log;
 		int[] indices;
 		String[] header, traits, markerNames, chrPositions;
 		Segment variant;
 		
-		log = new Logger();
-
 		v = new Vector<String>();
 		hash = new Hashtable<String, Vector<String>>();
 		try {
@@ -216,11 +213,11 @@ public class HitWindows {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + inputHits + "\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \"" + inputHits + "\" not found in current directory");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + inputHits + "\"");
-			System.exit(2);
+			log.reportError("Error reading file \"" + inputHits + "\"");
+			return;
 		}
 		
 		traits = Array.toStringArray(v);
@@ -249,11 +246,34 @@ public class HitWindows {
 					}
 				}
 			}
-			System.out.println(markerNames[m]+"\t"+(v.size()==0?".":Array.toStr(Array.toStringArray(v), "/")));
+			log.report(markerNames[m]+"\t"+(v.size()==0?".":Array.toStr(Array.toStringArray(v), "/")));
 		}
-		
 	}
 	
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params;
+
+		params = Files.parseControlFile(filename, "hitWindows", new String[] {
+				"# filename containing the markers/chrs/positions/p-values:",
+				"file=plink.assoc.linear",
+				"# outfile for the table",
+				"out=table.out",
+				"# p-value threshold needed to be an index SNP",
+				"indexThresh=0.00000005",
+				"# minimum num bp to search per side of window",
+				"minWinSize=500000",
+				"# p-value threshold needed to extend a window",
+				"winThresh=0.000001",
+				"# optional additional column headers to include in the table",
+				"#annotationCols=betaCol,sdCol,mafCol",
+		}, log);
+
+		if (params != null) {
+			params.add("log=" + log.getFilename());
+			main(Array.toStringArray(params));
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "input.dat";
@@ -265,6 +285,8 @@ public class HitWindows {
 		String map = "markers.dat";
 		String[][] results;
 		String[] annotationCols = null;
+		Logger log;
+		String logfile = null;
 
 		String usage = "\n" + 
 		"gwas.HitWindows requires 0-1 arguments\n" + 
@@ -284,7 +306,7 @@ public class HitWindows {
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
-				System.exit(1);
+				return;
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
@@ -306,6 +328,9 @@ public class HitWindows {
 			} else if (args[i].startsWith("map=")) {
 				map = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = ext.parseStringArg(args[i], null);
+				numArgs--;
 			} else if (args[i].startsWith("annotationCols=")) {
 				annotationCols = ext.parseStringArg(args[i], null).split(",");
 				numArgs--;
@@ -315,19 +340,16 @@ public class HitWindows {
 		}
 		if (numArgs != 0) {
 			System.err.println(usage);
-			System.exit(1);
+			return;
 		}
 
 //		generateHitsLookup("D:/ExomeChip/Hematology/00src/CHARGE-RBC/knownHits.dat", 200000, "D:/ExomeChip/Hematology/00src/CHARGE-RBC/hitLookup.dat", "D:/ExomeChip/Hematology/00src/CHARGE-RBC/ExomeChipV5_wMAF.csv");
 //		System.exit(1);
 		
-//		filename = "input.txt";
-//		outfile = null;
-//		System.exit(1);
-		
 		try {
+			log = new Logger(logfile);
 			if (knownHits != null) {
-				generateHitsLookup(knownHits, windowMinSizePerSide, outfile, map);
+				generateHitsLookup(knownHits, windowMinSizePerSide, outfile, map, log);
 			} else {
 				results = determine(filename, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, annotationCols);
 				if (outfile != null) {

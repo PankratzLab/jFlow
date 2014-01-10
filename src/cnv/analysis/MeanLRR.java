@@ -406,7 +406,7 @@ public class MeanLRR {
 				"   (4) compute transforms as well (takes much much longer) (i.e. transform=false (default))\n"+
 				"   (5) run a regression model using the first phenotype (i.e. analyze=false (default))\n"+
 				"  ADD the following if you want to dump the data to a text file\n"+
-				"   (6) dump all regions for a particular transformation (i.e. -dumpAll (not the default))\n"+
+				"   (6) dump all regions for a particular transformation (i.e. dumpAll="+dumpAll+" (default))\n"+
 				"   (7) the index of the transformation to export or -1 for all (i.e. transIndex="+transIndex+" (default))\n"+
 				"  OR:\n"+
 				"   (6) dump all transformations for a particular region (i.e. dump=chr8:25129632-25130278 (not the default))\n"+
@@ -423,7 +423,7 @@ public class MeanLRR {
 				regions = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("pheno=")) {
-				phenotypes = args[i].split("=")[1].split(",");
+				phenotypes = ext.parseStringArg(args[i], null).split(",");
 				numArgs--;
 			} else if (args[i].startsWith("dump=")) {
 				dump = args[i].split("=")[1];
