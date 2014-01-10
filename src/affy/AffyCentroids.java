@@ -132,7 +132,6 @@ public class AffyCentroids implements Serializable {
 
 	public static float[] getAFFYLRR( String[] markerNames, float[][][] affyCents, float[] Xs , float[] Ys, int i){
 		float[] AFFYLRRs;
-
 		AFFYLRRs =new float[Xs.length];
 		for (int k = starter; k<stopper; k++) {
 			if(markerNames[k].startsWith("CN_")){
@@ -567,7 +566,7 @@ public class AffyCentroids implements Serializable {
 			//				parseIlluminaCentroidsFromCSV(proj, centFile);
 			//			}
 			//exportToText(proj, centFile, exportFile);
-			parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1);
+			//parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1);
 			recompute(proj ,centFile );
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -31,9 +31,10 @@ public class GenParser {
 	private String replaceBlanks;
 	private boolean simplifyQuotes;
 	private int maxCol;
+	private String filename;
+	private int numTruncatedLines;
 
 	public GenParser(String[] line, Logger logger) {
-		String file;
 		String[] tokens, columnHeaders;
 		Vector<String> filters, columns, comps;
 		Vector<String[]> replacesV;
@@ -48,13 +49,14 @@ public class GenParser {
 		header = true;
 		failed = false;
 		replaceBlanks = null;
+		numTruncatedLines = 0;
 		
-    	file = line[0];
-		commaDelimited = Files.suggestDelimiter(file, log).equals(",")||ext.indexOfStr(",", line) >= 0;
+    	filename = line[0];
+		commaDelimited = Files.suggestDelimiter(filename, log).equals(",")||ext.indexOfStr(",", line) >= 0;
 		tabDelimited = ext.indexOfStr("tab", line) >= 0;
 		simplifyQuotes = ext.indexOfStr("simplifyQuotes", line) >= 0;
 		
-		columnHeaders = Files.getHeaderOfFile(file, commaDelimited?","+(simplifyQuotes?"!":""):(tabDelimited?"\t":"[\\s]+"), log);
+		columnHeaders = Files.getHeaderOfFile(filename, commaDelimited?","+(simplifyQuotes?"!":""):(tabDelimited?"\t":"[\\s]+"), log);
     	if (Array.toStr(line).contains("'")) {
     		for (int i = 0; i < line.length; i++) {
     			indices = ext.indicesWithinString("'", line[i]);
@@ -67,7 +69,7 @@ public class GenParser {
     				trav = line[i].substring(indices[j*2+0]+1,indices[j*2+1]);
     				index = ext.indexOfStr(trav, columnHeaders);
     				if (index == -1) {
-    					System.err.println("Error - could not find a column labeled \""+trav+"\" in file "+file);
+    					System.err.println("Error - could not find a column labeled \""+trav+"\" in file "+filename);
         				failed = true;
     					return;
     				} else {
@@ -77,7 +79,7 @@ public class GenParser {
 			}    		
     	}
     	skip = -2;
-    	outfile = ext.rootOf(file)+"_parsed.xln";
+    	outfile = ext.rootOf(filename)+"_parsed.xln";
     	filters = new Vector<String>();
     	columns = new Vector<String>();
     	replacesV = new Vector<String[]>();
@@ -177,12 +179,13 @@ public class GenParser {
     	
     	maxCol = -9;
     	try {
-            reader = Files.getAppropriateReader(file);
+            reader = Files.getAppropriateReader(filename);
             if (skip == -2) {
     			if (commaDelimited) {
     				originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
     			} else {
-    				originalColumnNames = ext.replaceAllWith(reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
+//    				originalColumnNames = ext.replaceAllWith(reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
+    				originalColumnNames = ext.replaceAllWith(reader.readLine(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
     			}
             	for (int j = 0; j<cols.length; j++) {
             		if (colNames[j] == null) {
@@ -198,11 +201,11 @@ public class GenParser {
                 }
             }
         } catch (FileNotFoundException fnfe) {
-            log.reportError("Error: file \""+file+"\" not found in current directory");
+            log.reportError("Error: file \""+filename+"\" not found in current directory");
 			failed = true;
             return;
         } catch (IOException ioe) {
-            log.reportError("Error reading file \""+file+"\"");
+            log.reportError("Error reading file \""+filename+"\"");
 			failed = true;
             return;
         }
@@ -286,9 +289,11 @@ public class GenParser {
 		double num, d;
 		boolean match;
 		String temp;
+		boolean truncatedLine;
 		
 		try {
-			temp = commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim();
+//			temp = commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim();
+			temp = commaDelimited||tabDelimited?reader.readLine():reader.readLine();
 			if (commaDelimited) {
 				line = ext.splitCommasIntelligently(ext.replaceAllWith(temp, replaces), simplifyQuotes, log);
 			} else {
@@ -299,13 +304,19 @@ public class GenParser {
 			return Array.stringArray(cols.length, "NaN");
 		}
 		
+		truncatedLine = false;
 		if (line.length < maxCol) {
-			log.reportError("Error - about to fail since the number of tokens in the following string is less than the max column index of "+maxCol);
-			log.reportError(temp);
+			if (numTruncatedLines < 3) {
+				log.reportError("Error - the number of tokens in the following string is less than the max column index of "+maxCol);
+				log.reportError(temp);
+			} else if (numTruncatedLines == 10) {
+				log.reportError("...");
+			}
+			truncatedLine = true;
+    		numTruncatedLines++;
 		}
 		
 		try {
-
 	    	passedFilter = true;
 	    	for (int i = 0; i<filterOps.length && passedFilter; i++) {
 	    		if (filterOps[i].equals("=")) {
@@ -396,6 +407,12 @@ public class GenParser {
 					parsed[j] = failCodes[j];
 				}
 			}
+		} catch (ArrayIndexOutOfBoundsException aioobe) {
+			if (!truncatedLine) {
+				log.reportError("Error trying to parse: "+temp);
+				log.reportException(aioobe);
+			}
+			return Array.stringArray(cols.length, "NaN");
 		} catch (Exception e) {
 			log.reportError("Error trying to parse: "+temp);
 			log.reportException(e);
@@ -534,4 +551,10 @@ public class GenParser {
 		    e.printStackTrace();
 	    }
     }
+
+	public void reportTruncatedLines(Logger log2) {
+		if (numTruncatedLines > 0) {
+			log.report("There were "+numTruncatedLines+" lines truncated in "+filename);
+		}
+	}
 }
