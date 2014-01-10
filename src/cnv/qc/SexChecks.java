@@ -15,8 +15,8 @@ public class SexChecks {
 	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
 	public static final String[] SNP_FIELDS = {"Sample", "X", "Y", "X Raw", "Y Raw", "Theta", "R", "B Allele Freq", "Log R Ratio", "AlleleCount"};
 	public static final String RESULTS_DIR = "results/genderChecks/";
-	public static final float NUM_SD_FOR_MALE_OUTLIERS = 3.0f;
-	public static final float NUM_SD_FOR_FEMALE_OUTLIERS = 3.0f;
+	public static final float NUM_SD_FOR_MALE_OUTLIERS = 5.0f;
+	public static final float NUM_SD_FOR_FEMALE_OUTLIERS = 5.0f;
 
 	static MarkerSet markerSet;
 	static SampleData sampleData;

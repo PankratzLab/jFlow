@@ -112,6 +112,8 @@ public class Launch {
 				SummarizePhenotype.filesFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("descriptive")) {
 				SummarizePhenotype.summarizeFromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("hitWindows")) {
+				HitWindows.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));

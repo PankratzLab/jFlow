@@ -1189,7 +1189,7 @@ public class ext {
 		} else if (arg.split("=")[1].equalsIgnoreCase("null")){
 			return null;
 		} else {
-			return arg.split("=")[1];
+			return arg.substring(arg.indexOf("=")+1);
 		}
 	}
 
