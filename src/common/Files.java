@@ -1086,6 +1086,7 @@ public class Files {
                     		sHash.put(line[0], Array.subArray(line, 1));
                     	}
                     }
+                    parser.reportTruncatedLines(log);
                     parser.close();
                 	if (serializing) {
                 		SerialHash.createSerializedStringArrayHash(serializedFilename, sHash);
