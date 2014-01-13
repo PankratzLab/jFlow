@@ -874,7 +874,7 @@ public class CALiCo {
 //		String genos = "N:/statgen/CALiCo_ARIC/filteredGenotypes/plink";
 //		String phenoCovarFilename = "N:/statgen/CALiCo/BMI/Males.xln";
 		String phenoCovarFilename = null;
-		String phenoCovarDir = "N:/statgen/CALiCo/BMI/xln/";
+		String phenoCovarDir = "N:/statgen/CALiCo/Age_at_menopause/xln/";
 //		String phenoCovarDir = "N:/statgen/CALiCo_ARIC/LungFunction/xln/";
 //		String scratchDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/scratches/";
 		String scratchDir = "D:/scratch/";
@@ -883,9 +883,9 @@ public class CALiCo {
 		Logger log;
 		boolean exists = true;
 		
-		metaAnalyzeSOL("D:/data/SOL/", "MODEL3wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
-		metaAnalyzeSOL("D:/data/SOL/", "MODEL4wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
-		System.exit(1);
+//		metaAnalyzeSOL("D:/data/SOL/", "MODEL3wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		metaAnalyzeSOL("D:/data/SOL/", "MODEL4wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		System.exit(1);
 
 		String usage = "\n" +
 		"one.CALiCo requires 0-1 arguments\n" + 
