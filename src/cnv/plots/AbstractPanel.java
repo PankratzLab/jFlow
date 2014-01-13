@@ -760,26 +760,26 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMinimumY = HEIGHT_X_AXIS;
 			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
 			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
-
 			if (!pos.equals(prevPos)) {
-				indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
-				prox = new IntVector();
-	
-				size = SIZE * 2;
-				g.setColor(Color.GRAY);
-				for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
-					dataPointIndex = indicesOfNearbyPoints.elementAt(i);
-					if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[dataPointIndex].getRawX()), getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
-						prox.add(dataPointIndex);
-//						g.setColor(Color.YELLOW);
-//						g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
-						g.drawOval(getXPixel(points[dataPointIndex].getRawX()) - size/2, getYPixel(points[dataPointIndex].getRawY()) - size/2, size, size);
-	
-					}
-				}
-
 				repaint();
 			}
+
+			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
+			prox = new IntVector();
+
+			size = SIZE * 2;
+			g.setColor(Color.GRAY);
+			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
+				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
+				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[dataPointIndex].getRawX()), getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
+					prox.add(dataPointIndex);
+//					g.setColor(Color.YELLOW);
+//					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+					g.drawOval(getXPixel(points[dataPointIndex].getRawX()) - size/2, getYPixel(points[dataPointIndex].getRawY()) - size/2, size, size);
+
+				}
+			}
+
 			prevPos = pos;
 			
 			//TODO 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
