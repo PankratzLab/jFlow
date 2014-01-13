@@ -371,7 +371,49 @@ public class Project extends Properties {
 			return sampleList.getSamples();
 		}
 	}
+	
+	public boolean[] getSamplesToExclude(String fileWithListOfSamplesToUse, Logger log) {
+		boolean[] samplesToExclude;
+		String[] samples;
+		SampleData sampleData;
+		int counter = 0;
+		
+		sampleData = getSampleData(0, false);
+		samples = getSamples();
+		samplesToExclude = new boolean[samples.length];
+		for (int i = 0; i < samples.length; i++) {
+			samplesToExclude[i] = sampleData.individualShouldBeExcluded(samples[i]);
+			if (samplesToExclude[i]) {
+				counter++;
+			}
+		}
 
+		log.report("Number of samples excluded is " + counter + " (out of "+samplesToExclude.length+" total samples)");
+
+		return samplesToExclude;
+	}
+	
+	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, Logger log) {
+		boolean[] samplesToInclude;
+		String[] samples;
+		SampleData sampleData;
+		int counter = 0;
+		
+		sampleData = getSampleData(0, false);
+		samples = getSamples();
+		samplesToInclude = new boolean[samples.length];
+		for (int i = 0; i < samples.length; i++) {
+			samplesToInclude[i] = !sampleData.individualShouldBeExcluded(samples[i]);
+			if (samplesToInclude[i]) {
+				counter++;
+			}
+		}
+
+		log.report("Number of samples to be included is " + counter + " (out of "+samplesToInclude.length+" total samples)");
+
+		return samplesToInclude;
+	}
+	
 	public Sample getFullSampleFromRandomAccessFile(String sample) {
 		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
 			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus());

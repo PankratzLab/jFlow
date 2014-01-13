@@ -1382,58 +1382,58 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			public static final long serialVersionUID = 4L;
 
 			public void actionPerformed(ActionEvent e) {
-				markerIndex = 0;
-				updateMarkerIndexHistory();
-				displayIndex(navigationField);
-				scatPanel.setPointsGeneratable(true);
-				scatPanel.setQcPanelUpdatable(true);
-				updateGUI();
+				first();
 			}
 		});
 		actionMap.put(PREVIOUS, new AbstractAction() {
 			public static final long serialVersionUID = 5L;
 
 			public void actionPerformed(ActionEvent e) {
-				markerIndex = Math.max(markerIndex-1, 0);
-				updateMarkerIndexHistory();
-				displayIndex(navigationField);
-				scatPanel.setPointsGeneratable(true);
-				scatPanel.setQcPanelUpdatable(true);
-				updateGUI();
+				previous();
 			}
 		});
 		actionMap.put(NEXT, new AbstractAction() {
 			public static final long serialVersionUID = 6L;
 
 			public void actionPerformed(ActionEvent e) {
-				
 				next();
-//				
-//				markerIndex = Math.min(markerIndex+1, markerList.length-1);
-//				displayIndex(navigationField);
-//				scatPanel.setPointsGeneratable(true);
-//				scatPanel.setQcPanelUpdatable(true);
-//				updateGUI();
 			}
 		});
 		actionMap.put(LAST, new AbstractAction() {
 			public static final long serialVersionUID = 7L;
 
 			public void actionPerformed(ActionEvent e) {
-				markerIndex = markerList.length-1;
-				updateMarkerIndexHistory();
-				displayIndex(navigationField);
-				scatPanel.setPointsGeneratable(true);
-				scatPanel.setQcPanelUpdatable(true);
-				updateGUI();
+				last();
 			}
 		});
 
 //		panel.setActionMap(actionMap);
 	}
 	
+	public void first() {
+//		markerIndex = 0;
+		markerIndex = getAvailableMarker(false, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+		finishProcessing();
+	}
+	
+	public void previous() {
+		markerIndex = getAvailableMarker(false, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+		finishProcessing();
+	}
+	
+	
 	public void next() {
 		markerIndex = getAvailableMarker(true, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+		finishProcessing();
+	}
+
+	public void last() {
+//		markerIndex = markerList.length - 1;
+		markerIndex = getAvailableMarker(true, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
+		finishProcessing();
+	}
+	
+	public void finishProcessing() {
 		updateMarkerIndexHistory();
 		displayIndex(navigationField);
 		scatPanel.setPointsGeneratable(true);
@@ -1451,91 +1451,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		int count;
 
 		if (command.equals(FIRST)) {
-//			markerIndex = 0;
-			markerIndex = getAvailableMarker(false, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
-			updateMarkerIndexHistory();
-			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);
-			scatPanel.setQcPanelUpdatable(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-			isInitilizing = true;
-			updateAnnotationPanelAnnotationCheckBoxes();
+			first();
 		} else if (command.equals(PREVIOUS)) {
-//			markerIndex = Math.max(markerIndex-1, 0);
-			markerIndex = getAvailableMarker(false, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
-			updateMarkerIndexHistory();
-//			if (markerData[markerIndex] == null) {
-//			if (!loaded[markerIndex]) {
-//				loadMarkerData(markerIndex);
-//				loaded[markerIndex] = true;
-////				scatPanel.updateMarkerData(markerData);
-//			}
-			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);
-			scatPanel.setQcPanelUpdatable(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-			isInitilizing = true;
-			updateAnnotationPanelAnnotationCheckBoxes();
+			previous();
 		} else if (command.equals(NEXT)) {
 			next();
-////			markerIndex = Math.min(markerIndex+1, markerList.length-1);
-//			markerIndex = getAvailableMarker(true, true, showAllMarkersOrNot, showAnnotatedOrUnannotated);
-////			if (markerData[markerIndex] == null) {
-////			if (!loaded[markerIndex]) {
-////				loadMarkerData(markerIndex);
-////				loaded[markerIndex] = true;
-//////				scatPanel.updateMarkerData(markerData);
-////			}
-//			displayIndex(navigationField);
-//			scatPanel.setPointsGeneratable(true);
-//			scatPanel.setQcPanelUpdatable(true);
-////			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-//			setCurrentClusterFilter();
-////			scatPanel.generateRectangles();
-////			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-////				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-////			}
-//			updateGUI();
-//			displayClusterFilterIndex();
-//			isInitilizing = true;
-//			updateAnnotationPanelAnnotationCheckBoxes();
 		} else if (command.equals(LAST)) {
-//			markerIndex = markerList.length-1;
-			markerIndex = getAvailableMarker(true, false, showAllMarkersOrNot, showAnnotatedOrUnannotated);
-			updateMarkerIndexHistory();
-//			if (markerData[markerIndex] == null) {
-//			if (!loaded[markerIndex]) {
-//				loadMarkerData(markerIndex);
-//				loaded[markerIndex] = true;
-////				scatPanel.updateMarkerData(markerData);
-//			}
-			displayIndex(navigationField);
-			scatPanel.setPointsGeneratable(true);
-			scatPanel.setQcPanelUpdatable(true);
-//			currentClusterFilter=(byte) (clusterFilterCollection.getSize(getMarkerName())-1);
-			setCurrentClusterFilter();
-//			scatPanel.generateRectangles();
-//			if (clusterFilterCollection.getSize(getMarkerName())>0) {
-//				scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
-//			}
-			updateGUI();
-			displayClusterFilterIndex();
-			isInitilizing = true;
-			updateAnnotationPanelAnnotationCheckBoxes();
+			last();
 		} else if (command.equals(CLUSTER_FILTER_BACKWARD)) {
 			if (clusterFilterCollection.getSize(getMarkerName())>0) {
 				scatPanel.rectangles[currentClusterFilter].setColor((byte)7);
@@ -2120,7 +2042,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void updateGUI() {
-		System.out.println("Entering updateGUI()");
+//		System.out.println("Entering updateGUI()");
 		if (markerDataLoader == null) {
 			return;
 		}
@@ -2170,7 +2092,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			updateCentLabels();
 		}
 		previousMarkerIndex = markerIndex;
-		System.out.println("    exiting updateGUI()");
+//		System.out.println("    exiting updateGUI()");
 	}
 
 	public void updateColorKey(Hashtable<String,String> hash) {
@@ -2182,54 +2104,67 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass) {
-		float callRate = 0;
+		int numCalledGenotypes;
+		double callrate;
 		JLabel qcPanelLabel;
 		//JLabel qcCallRateLabel;u
 		//JLabel qcHwePvalueLabel;u
 		int[] alleleCounts;
 		double hweP;
+		double minorAlleleFrequency;
 		//int[][] sexContingecyTable = new int[2][2];
 		CTable classCount;
 		String[] called;
 		int currentClass;
+		int numIncludedSamples;
 		
+		numIncludedSamples = 0;
+		numCalledGenotypes = 0;
 		alleleCounts = new int[3];
 		called = new String[genotype.length];
+		for (int i=0; i<genotype.length; i++) {
+			numIncludedSamples += genotype[i]==-3?0:1;
+		}
 		if (chr==23) {
 			for (int i=0; i<genotype.length; i++) {
 				if (genotype[i]<=0) {
 					called[i] = "-1";
-					callRate++;
 				} else {
 					called[i] = "1";
 					if (sex[i].equals("2")) {
 						alleleCounts[genotype[i]-1]++;
 					}
+					numCalledGenotypes++;
 				}
 			}
 		} else if (chr==24) {
 			for (int i=0; i<genotype.length; i++) {
 				if (genotype[i]<=0) {
 					called[i] = "-1";
-					callRate++;
 				} else {
 					called[i] = "1";
+					numCalledGenotypes++;
 				}
 			}
 		} else {
 			for (int i=0; i<genotype.length; i++) {
 				if (genotype[i]<=0) {
 					called[i] = "-1";
-					callRate++;
 				} else {
 					called[i] = "1";
 					alleleCounts[genotype[i]-1] ++;
+					numCalledGenotypes++;
 				}
 				
 			}
 		}
 		hweP = AlleleFreq.HWEsig(alleleCounts);
-		callRate=(genotype.length-callRate)*100/genotype.length;
+		callrate=(double)numCalledGenotypes/(double)numIncludedSamples*100.0;
+		if (alleleCounts[0] > alleleCounts[2]) {
+			minorAlleleFrequency = (double)(alleleCounts[1] + alleleCounts[2]) / (alleleCounts[0] + 2 * alleleCounts[1] + alleleCounts[2]);
+		} else {
+			minorAlleleFrequency = (double)(alleleCounts[0] + alleleCounts[1]) / (alleleCounts[0] + 2 * alleleCounts[1] + alleleCounts[2]);
+		}
 		
 		qcPanel.removeAll();
 		qcPanel.repaint();
@@ -2244,9 +2179,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
         qcPanelLabel.setFont(new Font("Arial", 0, 14));
         qcPanel.add(qcPanelLabel);
 
-        qcPanelLabel = new JLabel("Callrate: "+callRate+"%"+"                           ", JLabel.LEFT);
+        qcPanelLabel = new JLabel("Callrate: "+ext.formDeci(callrate, 4)+"%"+"                           ", JLabel.LEFT);
         qcPanelLabel.setFont(new Font("Arial", 0, 14));
         qcPanel.add(qcPanelLabel);
+
+        qcPanelLabel = new JLabel("Minor Allele Frequency: " + ext.prettyP(minorAlleleFrequency), JLabel.LEFT);
+        qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel);
 
         qcPanelLabel = new JLabel("HWE p-value: "+ext.prettyP(hweP), JLabel.LEFT);
         qcPanelLabel.setFont(new Font("Arial", 0, 14));
@@ -2273,7 +2212,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		qcPanel.add(qcPanelLabel);
 
 		currentClass = getCurrentClass();
-		if (currentClass>=(SampleData.BASIC_CLASSES.length+1) && currentClass<sampleData.getBasicClasses().length+sampleData.getNumActualClasses()) {
+		if (currentClass>SampleData.BASIC_CLASSES.length && currentClass<sampleData.getBasicClasses().length+sampleData.getNumActualClasses()) {
 			classCount = new CTable(called, otherClass);//This is the problem.
 			classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype NOT missing"}}, sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length));
 			qcPanelLabel = new JLabel("Callrate by "+sampleData.getClassName(currentClass)+": "+ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1) ), JLabel.LEFT);
@@ -2468,7 +2407,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				filename = proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false);
-//				System.out.println("Writing to "+filename);
 				Files.writeSerial(annotationCollection, filename);
 				filename = filename + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
 				Files.writeSerial(annotationCollection, filename);

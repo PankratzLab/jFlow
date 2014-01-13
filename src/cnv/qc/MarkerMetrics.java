@@ -17,27 +17,7 @@ public class MarkerMetrics {
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
 	public static final String DEFAULT_EXCLUSION_CRITERIA = "cnv/qc/default_exclusion.criteria";
 	
-	public static boolean[] getSamplesToInclude(Project proj, String fileWithListOfSamplesToUse, Logger log) {
-		Hashtable<String, String> hash;
-        String[] samples;
-        boolean[] samplesToUse;
-
-        samples = proj.getSamples();
-
-        if (fileWithListOfSamplesToUse == null) {
-            return Array.booleanArray(samples.length, true);
-        }
-        
-    	hash = HashVec.loadFileToHashString(fileWithListOfSamplesToUse, false);
-        samplesToUse = new boolean[samples.length];
-        for (int i = 0; i < samples.length; i++) {
-        	samplesToUse[i] = hash.containsKey(samples[i]);
-		}
-        
-        return samplesToUse;
-	}
-	
-	public static void fullQC(Project proj, boolean[] samplesToInclude, String markersToInclude, Logger log) {
+	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude, Logger log) {
 		PrintWriter writer;
 		String[] samples;
 		float[] thetas, rs;
@@ -98,7 +78,7 @@ public class MarkerMetrics {
 				sumTheta = new double[counts.length];
 				sumR = new double[counts.length];
 				for (int j = 0; j < samples.length; j++) {
-					if (samplesToInclude==null || samplesToInclude[j]) {
+					if (samplesToExclude==null || !samplesToExclude[j]) {
 						counts[abGenotypes[j] + 1] ++;
 						sumTheta[abGenotypes[j] + 1] += thetas[j];
 						sumR[abGenotypes[j] + 1] += rs[j];
@@ -111,7 +91,7 @@ public class MarkerMetrics {
 				}
 				sdTheta = new double[counts.length];
 				for (int j = 0; j < samples.length; j++) {
-					if (samplesToInclude==null || samplesToInclude[j]) {
+					if (samplesToExclude==null || !samplesToExclude[j]) {
 						temp = (thetas[j] - meanTheta[ abGenotypes[j] + 1 ]);
 						sdTheta[ abGenotypes[j] + 1 ] +=  temp * temp;
 					}
@@ -525,8 +505,10 @@ public class MarkerMetrics {
 //			fullQC = true;
 //			filter = true;
 
-			filename = "/home/npankrat/projects/GEDI.properties";
-			lrrVariance = true;
+//			filename = "C:/workspace/Genvisis/projects/SingaporeReplication.properties";
+//			fullQC = true;
+//			filter = true;
+
 //			markersSubset = "";
 			
 			proj = new Project(filename, false);
@@ -536,10 +518,10 @@ public class MarkerMetrics {
 				separationOfSexes(proj, markersSubset, log);
 			} 
 			if (fullQC) {			
-				fullQC(proj, getSamplesToInclude(proj, samples, log), markersSubset, log);
+				fullQC(proj, proj.getSamplesToExclude(samples, log), markersSubset, log);
 			}
 			if (lrrVariance) {
-				lrrVariance(proj, getSamplesToInclude(proj, samples, log), markersSubset, log);
+				lrrVariance(proj, proj.getSamplesToInclude(samples, log), markersSubset, log);
 			}
 			if (filter) {			
 				filterMetrics(proj, log);
