@@ -45,7 +45,6 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 	};
 
 	protected LinePlot tdp;
-	IntVector indeciesOfNearbySamples;
 	private boolean updateQcPanel;
 	private boolean swapAxes;
 	private Logger log;

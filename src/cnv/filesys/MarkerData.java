@@ -5,6 +5,8 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import cnv.var.SampleData;
+
 import stats.Correlation;
 import common.Array;
 import common.DoubleVector;
@@ -322,19 +324,17 @@ public class MarkerData implements Serializable {
 //		System.out.println("error="+error+" count="+count);
 		return new double[] {Correlation.Pearson(Array.subArray(originalLRRs, 0, count), Array.subArray(compLRRs, 0, count))[0], error/count};
 	}
-	
 
-	public void dump(String filename, String[] samples) {
-		dump(filename, samples, false);
-	}
-
-	public void dump(String filename, String[] samples, boolean includeMarkerName) {
+	public void dump(SampleData sampleData, String filename, String[] samples, boolean includeMarkerName) {
 		PrintWriter writer;
-
+		boolean hasExcludedIndividuals;
+		
 		if ((xs != null && samples != null && samples.length!=xs.length) || (lrrs != null && samples != null && samples.length!=lrrs.length)) {
 			System.err.println("Error - Number of samples (n="+samples.length+") does not match up with the number of LRRs/BAFs/etc (n="+lrrs.length+")");
 			return;
         }
+		
+		hasExcludedIndividuals = sampleData != null && sampleData.hasExcludedIndividuals();
 
 		try {
         	writer = new PrintWriter(new FileWriter(filename));
@@ -350,31 +350,31 @@ public class MarkerData implements Serializable {
 							+ (lrrs==null? "" : "\tLRR")
 							+ (bafs==null? "" : "\tBAF")
 							+ (abGenotypes==null? "" : "\tAB_Genotypes")
-							+ (forwardGenotypes==null? "" : "\tForward_Genotypes"));
-        	dump(writer, samples, includeMarkerName);
+							+ (forwardGenotypes==null? "" : "\tForward_Genotypes")
+							+ (hasExcludedIndividuals? "\tExclude_Sample" : "")
+							);
+        	for (int i = 0; i<xs.length; i++) {
+        		writer.println(   (includeMarkerName? markerName + "\t" : "") 
+        						+ (samples !=null? samples[i] : i) 
+    	        				+ (gcs != null? "\t" + gcs[i] : "")
+    	        				+ (xRaws != null? "\t" + xRaws[i] : "")
+    	        				+ (yRaws != null? "\t" + yRaws[i] : "")
+    	        				+ (xs != null? "\t" + xs[i] : "")
+    	        				+ (ys != null? "\t" + ys[i]: "")
+    	        				+ (thetas != null? "\t" + thetas[i] : "")
+    	        				+ (rs != null? "\t" + rs[i] : "")
+    	        				+ (lrrs != null? "\t" + lrrs[i] : "")
+    	        				+ (bafs != null? "\t" + bafs[i] : "")
+    	        				+ (abGenotypes != null? "\t" + abGenotypes[i] : "")
+    	        				+ (forwardGenotypes != null? "\t" + Sample.ALLELE_PAIRS[forwardGenotypes[i]] : "")
+    	        				+ (hasExcludedIndividuals? "\t" + (sampleData.individualShouldBeExcluded(samples[i])?1:0) : "")
+    	        				);
+        	}
         	writer.close();
         } catch (Exception e) {
         	System.err.println("Error writing "+filename);
         	e.printStackTrace();
         }
-	}
-
-	public void dump(PrintWriter writer, String[] samples, boolean includeMarkerName) {
-    	for (int i = 0; i<xs.length; i++) {
-    		writer.println(   (includeMarkerName? markerName + "\t" : "") 
-    						+ (samples !=null? samples[i] : i) 
-	        				+ (gcs != null? "\t" + gcs[i] : "")
-	        				+ (xRaws != null? "\t" + xRaws[i] : "")
-	        				+ (yRaws != null? "\t" + yRaws[i] : "")
-	        				+ (xs != null? "\t" + xs[i] : "")
-	        				+ (ys != null? "\t" + ys[i]: "")
-	        				+ (thetas != null? "\t" + thetas[i] : "")
-	        				+ (rs != null? "\t" + rs[i] : "")
-	        				+ (lrrs != null? "\t" + lrrs[i] : "")
-	        				+ (bafs != null? "\t" + bafs[i] : "")
-	        				+ (abGenotypes != null? "\t" + abGenotypes[i] : "")
-	        				+ (forwardGenotypes != null? "\t" + Sample.ALLELE_PAIRS[forwardGenotypes[i]] : ""));
-    	}
 	}
 
 	public int detectCNP() {

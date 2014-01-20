@@ -74,9 +74,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private boolean annotationAutoAdv;
 	private boolean showAllMarkersOrNot;
 	private boolean showAnnotatedOrUnannotated;
-	private boolean[] isAnnotated;
 	private boolean isInitilizing;
-	private int annotated;
 	private char[] annotationKeys;
 	private JComboBox<String> newGenotype;
 //	private SpringLayout annotationPanelLayout;
@@ -98,7 +96,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private int markerIndexBak;
 	private int[] markerIndexHistory;
 	private int previousMarkerIndex;
-	//private JLabel markerName, commentLabel;
 	private JTextField markerName, commentLabel;
 	private String[] samples;
 	private int plot_type;
@@ -183,8 +180,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		
 		markerList = masterMarkerList;
 		commentList = masterCommentList;
-//		isAnnotated = new boolean[markerList.length];
-//		annotated = 0;
 		showAllMarkersOrNot = true;
 		showAnnotatedOrUnannotated = true;
 		showAnnotationShortcuts = true;
@@ -851,20 +846,19 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		annotationPanel.setLayout(new BoxLayout(annotationPanel, BoxLayout.Y_AXIS));
 //		annotationPanelLayout = new SpringLayout();
 //		annotationPanel.setLayout(annotationPanelLayout);
-		JPanel temp1 = annotationPanelUpper();
-		annotationPanel.add(temp1);
+		annotationPanel.add(annotationPanelUpper());
 //		annotationPanelLayout.putConstraint(SpringLayout.WEST, temp1, 5, SpringLayout.WEST, annotationPanel);
 //		annotationPanelLayout.putConstraint(SpringLayout.NORTH, temp1, 5, SpringLayout.NORTH, annotationPanel);
 		annotationPanelLowerPart = new JPanel();
 		annotationPanelLowerPartLayout = new SpringLayout();
 		annotationPanelLowerPart.setLayout(annotationPanelLowerPartLayout);
 		annotationPanelLowerPart.setBackground(BACKGROUND_COLOR);
-		annotationPanel.add(annotationPanelLowerPart);
+		annotationPanel.add(annotationPanelLower());
 //		annotationPanelLayout.putConstraint(SpringLayout.WEST, annotationPanelLowerPart, 5, SpringLayout.WEST, annotationPanel);
 //		annotationPanelLayout.putConstraint(SpringLayout.NORTH, annotationPanelLowerPart, 25, SpringLayout.NORTH, annotationPanel);
-		annotationPanelLower();
-		annotationScrollPane = new JScrollPane(annotationPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-//		annotationScrollPane.createVerticalScrollBar();
+		annotationScrollPane = new JScrollPane(annotationPanel);
+		annotationScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		annotationScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 	}
 
 	private JPanel annotationPanelUpper() {
@@ -945,7 +939,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 					String filename, filenameBak;
 					JFileChooser fileChooser;
 					int returnVal;
-					String[] annotatedMarkers;
 					String[] options;
 					int choice;
 					
@@ -971,18 +964,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			    		} else {
 			    			AnnotationCollection.appendFromLists(filename, annotationCollection, proj.getMarkerNames(), null);
 			    		}
-//		    			isAnnotationUpdated = true;
 			    		setAnnotationUpdated(true);
-						annotatedMarkers = annotationCollection.getMarkerLists();
-						for (int i = 0; i < isAnnotated.length; i++) {
-							for (int j = 0; j < annotatedMarkers.length; j++) {
-								if (markerList[i].equals(annotatedMarkers[j])) {
-									isAnnotated[i] = true;
-									annotated ++;
-									break;
-								}
-							}
-						}
 						annotationKeys = annotationCollection.getKeys();
 			    		activateAllAnnotationMaps();
 						annotationPanelLower();
@@ -996,12 +978,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		return annotationPanelUpper;
 	}
 
-	public void annotationPanelLower() {
+	public JPanel annotationPanelLower() {
 		JButton removeButton;
 		ButtonGroup radioButtonGroup;
 		int horizontalMargin;
 		int componentHeight;
 		int currentHorizontalPos;
+		int maxWidth;
 		
 		annotationPanelLowerPart.removeAll();
 		annotationPanelLowerPart.repaint();
@@ -1012,7 +995,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		radioButtonGroup = new ButtonGroup();
 		fileterRadioButtons = new JRadioButton[RADIOBUTTON_TEXTS.length];
 		for (int i = 0; i < RADIOBUTTON_TEXTS.length; i++) {
-			fileterRadioButtons[i] = new JRadioButton(RADIOBUTTON_TEXTS[i] + " (n=" + (i==0? isAnnotated.length : (i==1? annotated : (isAnnotated.length - annotated))) + ")");
+			fileterRadioButtons[i] = new JRadioButton(RADIOBUTTON_TEXTS[i] + " (n=placeholder)");
 			fileterRadioButtons[i].setBackground(Color.WHITE);
 			fileterRadioButtons[i].addActionListener(new ActionListener(){
 				@Override
@@ -1037,6 +1020,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //			horizontalPos += (horizontalMargin + fileterRadioButtons[i].getSize().height);
 			currentHorizontalPos += (horizontalMargin + componentHeight);
 		}
+		updateAnnotationPanelFilterRadioButtons();
 		fileterRadioButtons[0].setSelected(true);
 		
 		MouseListener mouseListenerForAnnotationCheckBoxes = new MouseListener() {
@@ -1129,8 +1113,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 							markerIndexBak = markerIndex;
 							markerList = annotationCollection.getMarkerLists(annotationKeys[annotationIndex]);
 							commentList = new String[markerList.length];
-//							annotated = 0;
-							initializeIsAnnotated(markerList);
 							loadMarkerDataFromList(0);
 							displayIndex(navigationField);
 							updateGUI();
@@ -1151,8 +1133,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 							indexOfAnnotationUsedAsMarkerList = -1;
 							markerList = masterMarkerList;
 							commentList = masterCommentList;
-//							annotated = 0;
-							initializeIsAnnotated(markerList);
 							loadMarkerDataFromList(markerIndexBak);
 							displayIndex(navigationField);
 							updateGUI();
@@ -1204,10 +1184,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			}
 		};
 
+		maxWidth = 200;
 		annotationCheckBoxes = new JCheckBox[annotationKeys.length];
 		for (int i=0; annotationKeys != null && i < annotationKeys.length; i++) {
 			annotationCheckBoxes[i] = new JCheckBox(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true));
-//			annotationCheckBoxes[i] = new JCheckBox();
+			maxWidth = Math.max(annotationCheckBoxes[i].getPreferredSize().width, maxWidth);
 			annotationCheckBoxes[i].setBackground(Color.WHITE);
 			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
 				annotationCheckBoxes[i].setSelected(true);
@@ -1217,24 +1198,14 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 					if (! isInitilizing) {
 						JCheckBox checkBox;
 						char currentKey;
-						boolean prev;
 						
 						checkBox = (JCheckBox)itemEvent.getSource();
 						currentKey = checkBox.getText().charAt(1);
 						
 				        if (checkBox.getModel().isSelected()) {
 				        	annotationCollection.addAnnotationForMarker(markerList[markerIndex], currentKey);
-				        	if (! isAnnotated[markerIndex]) {
-				        		annotated ++;
-				        	}
-				        	isAnnotated[markerIndex] = true;
 				        } else {
 				        	annotationCollection.removeAnnotationForMarker(markerList[markerIndex], currentKey);
-				        	prev = isAnnotated[markerIndex];
-				        	isAnnotated[markerIndex] = (annotationCollection.annotationsForMarker(markerList[markerIndex]).length != 0);
-				        	if (isAnnotated[markerIndex] != prev) {
-				        		annotated --;
-				        	}
 				        }
 				        checkBox.setText(annotationCollection.getDescriptionForComment(currentKey, showAnnotationShortcuts, true));
 				        updateAnnotationPanelFilterRadioButtons();
@@ -1330,9 +1301,14 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //		horizontalPos += (horizontalMargin + addAnnotationField.getSize().height);
 //		horizontalPos += (horizontalMargin + componentHeight);
 
-		annotationPanelLowerPart.setPreferredSize(new Dimension(200,((annotationKeys == null?0:annotationKeys.length)+4)*22));
+		// TODO This could be fixed such that annotationPanel is always a fixed width and we have an inner panel with horizontal scroll bar, but this has proved too complex for the moment
+//		annotationPanelLowerPartLayout.getConstraints(annotationPanelLowerPart).setConstraint(SpringLayout.EAST, Spring.constant(250, 250, 250));
+//		annotationPanel.setPreferredSize(new Dimension(200, 500));
+		annotationPanelLowerPart.setPreferredSize(new Dimension(maxWidth+42, ((annotationKeys == null?0:annotationKeys.length)+4)*22));
 
 		annotationPanelLowerPart.validate();
+		
+		return annotationPanelLowerPart;
 	}
 
 	private void addAnnotationToMaps(char c) {
@@ -1523,7 +1499,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				count++;
 			} while (new File(proj.getProjectDir()+filename+".xln").exists());
 //			markerData[markerIndex].writeToFile(samples, proj.getProjectDir()+filename+".xln");
-			getCurrentMarkerData().dump(proj.getProjectDir()+filename+".xln", samples);
+			getCurrentMarkerData().dump(sampleData, proj.getProjectDir()+filename+".xln", samples, false);
 		} else if (command.equals(MASK_MISSING) || command.equals(UNMASK_MISSING)) {
 			maskMissing = !maskMissing;
 			((JButton)ae.getSource()).setText(maskMissing?UNMASK_MISSING:MASK_MISSING);
@@ -1546,10 +1522,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (forwardOrBackward) {
 			if (firstOrLastInThatDirection) {
 				begin = markerIndex + 1;
-				end = isAnnotated.length;
+				end = markerList.length;
 				step = 1;
 			} else {
-				begin = isAnnotated.length - 1;
+				begin = markerList.length - 1;
 				end = markerIndex;
 				step = -1;
 			}
@@ -1566,7 +1542,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		}
 		for (int i = begin; i != end; i = i + step) {
 			if (indexOfAnnotationUsedAsMarkerList < 0) {
-				if (allMarkersOrOnlyThoseAnnotatedOrUnannotated || !(annotatedOrUnannotated ^ isAnnotated[i])) {
+				if (allMarkersOrOnlyThoseAnnotatedOrUnannotated || !(annotatedOrUnannotated ^ annotationCollection.markerHasAnyAnnotation(markerList[i]))) {
 					result = i;
 					break;
 				}
@@ -1713,7 +1689,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		String[] otherClusterFilTerFiles;
 		int choice;
 		String[] options = new String[] {"Yes, load and delete old file", "No, delete old file", "Cancel and close ScatterPlot"};
+		String clusterFilterFilename;
 		
+		clusterFilterFilename = proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, false, true);
 		otherClusterFilTerFiles = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".tempClusterFilters.ser", jar);
 		if (otherClusterFilTerFiles.length > 0) {
 			choice = JOptionPane.showOptionDialog(null, "Error - either multiple instances of ScatterPlot are running or ScatterPlot failed to close properly\n" +
@@ -1730,8 +1708,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				setClusterFilterUpdated(true);
 			} else if (choice == 1) {
 				// load permanent
-				if (Files.exists(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar) ) {
-					clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar);
+				if (Files.exists(clusterFilterFilename, jar) ) {
+					clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, jar);
 				} else {
 					clusterFilterCollection = new ClusterFilterCollection();
 				}
@@ -1741,8 +1719,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			} else {
 				return false;
 			}
-		} else if (Files.exists(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar) ) {
-			clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), jar);
+		} else if (Files.exists(clusterFilterFilename, jar) ) {
+			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, jar);
 		} else {
 			clusterFilterCollection = new ClusterFilterCollection();
 		}
@@ -1753,37 +1731,23 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void loadAnnotationCollection() {
-		if (new File(proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false)).exists()) {
-			System.out.println("Loading annotation from: "+proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false));
-			annotationCollection = (AnnotationCollection) Files.readSerial(proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false));
-
+		String filename;
+		
+		filename = proj.getFilename(Project.ANNOTATION_FILENAME, false, false);
+		if (new File(filename).exists()) {
+			System.out.println("Loading annotation from: "+filename);
+			annotationCollection = (AnnotationCollection) Files.readSerial(filename);
 		} else {
+			System.out.println("Could not find annotation file: "+filename);
 			annotationCollection = new AnnotationCollection();
-			annotationCollection.addAnnotation('u', "Ugly");
+			annotationCollection.addAnnotation('e', "Extra heterozygote clusters");
 			annotationCollection.addAnnotation('m', "Monomorphic");
 		}
 		startAutoSaveToTempFile();
 
-		initializeIsAnnotated(annotationCollection.getMarkerLists());
-
 		annotationKeys = annotationCollection.getKeys();
 	}
 
-	public void initializeIsAnnotated (String[] annotatedMarkers) {
-		annotated = 0;
-		isAnnotated = new boolean[markerList.length];
-		for (int i = 0; i < isAnnotated.length; i++) {
-			for (int j = 0; j < annotatedMarkers.length; j++) {
-				if (markerList[i].equals(annotatedMarkers[j])) {
-					isAnnotated[i] = true;
-					annotated ++;
-					break;
-				}
-			}
-		}
-		System.out.println("annotated: " + annotated);
-	}
-	
 	public long getSampleFingerprint() {
 		return sampleListFingerprint;
 	}
@@ -1964,7 +1928,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerList);
 
 		markerIndex = newMarkerIndex;
-//		initializeIsAnnotated(markerList);
 		updateMarkerIndexHistory();
 		previousMarkerIndex = -1;
 //		navigationField.getActionListeners()[0].actionPerformed(e);
@@ -2294,8 +2257,17 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void updateAnnotationPanelFilterRadioButtons() {
+		int numAnnotated;
+		
+		numAnnotated = 0;
+		for (int i = 0; i < markerList.length; i++) {
+			if (annotationCollection.markerHasAnyAnnotation(markerList[i])) {
+				numAnnotated++;
+			}
+		}
+		
         for (int i=0; i<fileterRadioButtons.length; i++) {
-        	fileterRadioButtons[i].setText(RADIOBUTTON_TEXTS[i] + " (n=" + (i==0? isAnnotated.length : (i==1? annotated : (isAnnotated.length - annotated))) + ")");
+        	fileterRadioButtons[i].setText(RADIOBUTTON_TEXTS[i] + " (n=" + (i==0? markerList.length : (i==1? numAnnotated : (markerList.length - numAnnotated))) + ")");
         }
 	}
 
@@ -2394,13 +2366,16 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	public void saveClusterFilterAndAnnotationCollection () {
 		String[] options;
 		int choice;
+		String filename;
+		String clusterFilterFilename;
 
+		clusterFilterFilename = proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, false, false);
 		options = new String[] {"Yes, overwrite", "No"};
 		if (isClusterFilterUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false));
-				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.BACKUP_DIRECTORY, false, false) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+				clusterFilterCollection.serialize(clusterFilterFilename);
+				clusterFilterCollection.serialize(proj.getDir(Project.BACKUP_DIRECTORY)+ext.removeDirectoryInfo(clusterFilterFilename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			} else {
 				//TODO As a double security, move sessionID + ".tempClusterFilters.ser" to BACKUP_DIRECTORY. But then need to delete it from BACKUP_DIRECTORY at some point of time.
 				// need a rule for that. also need the code for deletion.
@@ -2414,11 +2389,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (isAnnotationUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				Files.writeSerial(annotationCollection, proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false));
-				Files.writeSerial(annotationCollection, proj.getFilename(Project.ANNOTATION_FILENAME, Project.BACKUP_DIRECTORY, false, false) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
-			} else {
-				//TODO As a double security, move sessionID + ".tempAnnotation.ser" to BACKUP_DIRECTORY. But then need to delete it from BACKUP_DIRECTORY at some point of time.
-				// need a rule for that. also need the code for deletion.
+				filename = proj.getFilename(Project.ANNOTATION_FILENAME, false, false);
+				Files.writeSerial(annotationCollection, filename);
+				filename = proj.getDir(Project.BACKUP_DIRECTORY)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
+				Files.writeSerial(annotationCollection, filename);
 			}
 //			isAnnotationUpdated = false;
 			setAnnotationUpdated(false);
@@ -2450,7 +2424,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 	public void windowOpened(WindowEvent e) {}
 
-    public static void createAndShowGUI(Project proj, String[] markerList, String[] commentList) {
+    public static void createAndShowGUI(Project proj, String[] markerList, String[] commentList, boolean exitOnClose) {
         JFrame frame;
     	ScatterPlot scatterPlot;
 
@@ -2458,7 +2432,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
     	
     	if (!scatterPlot.failed()) {
 	    	frame = new JFrame("ScatterPlot");
-			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			frame.setDefaultCloseOperation(exitOnClose?JFrame.EXIT_ON_CLOSE:JFrame.DISPOSE_ON_CLOSE);
 	        frame.setContentPane(scatterPlot);
 			frame.addWindowListener(scatterPlot);
 	
@@ -2475,7 +2449,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-            	createAndShowGUI(new Project(filename, jar), null, null);
+            	createAndShowGUI(new Project(filename, jar), null, null, true);
             }
         });
 	}

@@ -1005,7 +1005,6 @@ public class TransposeData {
 
 //	        for (int i=indexStartMarker; i<indexEndMarker; i++) {
 	        for (int i=0; i<targertMarkIndicesInFile.length; i++) {
-		        //if(indeciesInFile[i-1]+1==indeciesInFile[i]) {No need to seek}
 	        	if (targertMarkIndicesInFile[i] < 0 || targertMarkIndicesInFile[i] >= numMarkersInThisFile) {
 					System.err.println("Skipped the marker index " + targertMarkIndicesInFile[i] + ", because it is out of range.");
 	        	} else {

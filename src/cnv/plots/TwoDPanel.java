@@ -59,7 +59,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	};
 	
 	protected TwoDPlot tdp;
-	IntVector indeciesOfNearbySamples;
+	IntVector indicesOfNearbySamples;
 	private boolean updateQcPanel;
 	private boolean swapAxes;
 	private Logger log;
