@@ -9,16 +9,16 @@ import common.ext;
 import cnv.manage.TransposeData;
 
 public class Dump {
-	public static void dumpMdRaf(String filename, int[] indeciesOfMarkersToDump) {
+	public static void dumpMdRaf(String filename, int[] indicesOfMarkersToDump) {
 		try {
 		    	MarkerData[] mkData;
 		
-		    	if (indeciesOfMarkersToDump == null) {
-		    		indeciesOfMarkersToDump = new int[] {0};
+		    	if (indicesOfMarkersToDump == null) {
+		    		indicesOfMarkersToDump = new int[] {0};
 		    	}
-		    	mkData = TransposeData.loadFromRAF(filename, indeciesOfMarkersToDump);
+		    	mkData = TransposeData.loadFromRAF(filename, indicesOfMarkersToDump);
 		    	for (int i=0; i<mkData.length; i++) {
-		    		mkData[i].dump(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln", null);
+		    		mkData[i].dump(null, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln", null, false);
 		    	}
 		} catch (Exception e) {
 		    System.err.println("Error dumping data from "+filename+" to a textfile");
@@ -99,8 +99,8 @@ public class Dump {
 	    String filename = "D:/COGA_exome/transposed/markers.0.mdRAF";
 //	    String filename = "D:/COGA_exome/transposed/outliers.ser";
 //	    String filename = "D:/GEDI_exome/samples/1002900362.sampRAF";
-//	    int[] indeciesOfMarkersToDump = null;
-	    int[] indeciesOfMarkersToDump = new int[] {195235};
+//	    int[] indicesOfMarkersToDump = null;
+	    int[] indicesOfMarkersToDump = new int[] {195235};
 	    String[] commandTemp;
 
 	    String usage = "\n"+
@@ -115,11 +115,11 @@ public class Dump {
 		    } else if (args[i].startsWith("file=")) {
 			    filename = args[i].split("=")[1];
 			    numArgs--;
-		    } else if (args[i].startsWith("markerIndecies=")) {
+		    } else if (args[i].startsWith("markerindices=")) {
 		    	commandTemp = args[i].split("=")[1].split(",");
-		    	indeciesOfMarkersToDump = new int[commandTemp.length];
-		    	for (int j = 0; j < indeciesOfMarkersToDump.length; j++) {
-		    		indeciesOfMarkersToDump[j] = Integer.parseInt(commandTemp[j]);
+		    	indicesOfMarkersToDump = new int[commandTemp.length];
+		    	for (int j = 0; j < indicesOfMarkersToDump.length; j++) {
+		    		indicesOfMarkersToDump[j] = Integer.parseInt(commandTemp[j]);
 		    	}
 			    numArgs--;
 		    }
@@ -135,7 +135,7 @@ public class Dump {
 	        } else if (filename.endsWith(".bim")) {
 	        	dumpPlinkBim(filename);
 	        } else if (filename.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION)) {
-	        	dumpMdRaf(filename, indeciesOfMarkersToDump);
+	        	dumpMdRaf(filename, indicesOfMarkersToDump);
 	        } else if (filename.endsWith("outliers.ser")) {
 	        	Sample.dumpOutOfRangeValues(filename, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln", false);
 	        } else {

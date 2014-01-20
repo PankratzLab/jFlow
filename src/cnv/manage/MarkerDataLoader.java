@@ -412,7 +412,6 @@ public class MarkerDataLoader implements Runnable {
 			numBytesMarkernamesSection = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKDATA_MARKNAMELEN_START);
 			//TODO to optimize here. Adjacent markers can be read in at once.
 	        for (int i=0; i<markersIndicesInFile.length; i++) {
-		        //if(indeciesInFile[i-1]+1==indeciesInFile[i]) {No need to seek}
 		        seekLocation = (long)TransposeData.MARKDATA_PARAMETER_TOTAL_LEN + (long)numBytesMarkernamesSection + markersIndicesInFile[i] * (long)numBytesPerMarker;
 				file.seek(seekLocation);
 				file.read(readBuffer[i]);

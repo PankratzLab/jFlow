@@ -68,17 +68,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			   	new Color(227, 108, 9), // halloween orange
 			};
 	}
-	public static String[] comments = new String[] {"Ugly", "Monomorphic", "Off Y-axis"};
 	
-	protected MarkerData[] markerData1;
-	byte[] alleleCounts;				//zx
+	byte[] alleleCounts;
 	protected ScatterPlot sp;
 	protected String[] samples;
 	protected IntVector prox;
 	protected SampleData sampleData;
-	protected Color[] colorScheme; // new after merging with npBranch, feel free to delete if better solution is found
-	protected IntVector indicesOfNearbySamples;	//zx
-//	protected IntVector indeciesOfNaNSamples;	//zx
+	protected Color[] colorScheme;
+	protected IntVector indicesOfNearbySamples;
 	private boolean updateQcPanel;		//zx: A control variable. Do not update QcPanel when resizing, or etc.
 	private int mouseStartX;
 	private int mouseStartY;
@@ -90,19 +87,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		this.sp = sp;
 		this.samples = sp.getSamples();
-//		this.markerData = sp.getMarkerData();
 		this.sampleData = sp.getSampleData();
-//		locLookup = new Hashtable<String,IntVector>();//zx
-		this.updateQcPanel = true;//zx
-//		this.indeciesOfNaNSamples = new IntVector();
+		this.updateQcPanel = true;
 		
-//		setColorScheme(ColorKeyPanel.DEFAULT_COLORS);
 		colorScheme = generateDefaultColors();   // new after merging with npBranch, feel free to delete if better solution is found
 		setColorScheme(colorScheme);
 		
 
-//		addMouseListener(this);
-//		addMouseMotionListener(this);
 		addComponentListener(this);
 		setZoomable(true, true);
 	}
@@ -167,8 +158,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		MarkerData markerData;
 		int currentClass;
 		Hashtable<String, String> disabledClassValues;
+		boolean shiftColorOfSexChromosomes;
 		
 		disabledClassValues = sp.getDisabledClassValues();
+		
+		shiftColorOfSexChromosomes = sp.getProject().getBoolean(Project.SHIFT_SEX_CHR_COLORS_YESNO);
 
 //		time = new Date().getTime();
 //		System.out.println("*** " + (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date())) + " Stack Trace Tracking *** ScatterPanel.generatePoints()");
@@ -315,7 +309,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				if (classCode < 0) {
 					System.err.println("Error - classCode is less than 0 ("+classCode+")");
 				}
-				if (chr > 21) {
+				if (currentClass < SampleData.BASIC_CLASSES.length && SampleData.BASIC_CLASSES[currentClass].equals(SampleData.GENOTYPE) && chr > 22 && shiftColorOfSexChromosomes) {
 					points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:(type==PlotPoint.FILLED_TRIANGLE?(byte)(size+5):xFontSize), classCode==0? 0 : (byte) (classCode +  3), layer);
 				} else {
 					points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:(type==PlotPoint.FILLED_TRIANGLE?(byte)(size+5):xFontSize), classCode, layer);
@@ -394,7 +388,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		byte size, xFontSize;
 		MarkerData mData;
 		
-		//IntVector indeciesOfDataPoint;//zx
+		//IntVector indicesOfDataPoint;//zx
 		
 		
 		plotType = sp.getPlotType();
@@ -418,9 +412,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			repaint();
 		}
 		//iv = locLookup.get(pos);
-		//indeciesOfDataPoint = lookupNearbyPoints(x, y, pos);
+		//indicesOfDataPoint = lookupNearbyPoints(x, y, pos);
 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
-		//System.out.println("Number of nearby samples: "+(indeciesOfNearbySamples==null?0:indeciesOfNearbySamples.size()));//zx test point
+		//System.out.println("Number of nearby samples: "+(indicesOfNearbySamples==null?0:indicesOfNearbySamples.size()));//zx test point
 		//prox = new IntVector();
 
 		mData = sp.getCurrentMarkerData();
@@ -437,7 +431,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5)));
 		xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
 
-		//System.out.println("pos: "+pos+"\t iv.size():"+(indeciesOfNearbySamples==null?"null":indeciesOfNearbySamples.size()));//zx test point
+		//System.out.println("pos: "+pos+"\t iv.size():"+(indicesOfNearbySamples==null?"null":indicesOfNearbySamples.size()));//zx test point
 		for (int l = 0; indicesOfNearbySamples!=null && l<indicesOfNearbySamples.size(); l++) {
 			i = indicesOfNearbySamples.elementAt(l);
 			if (i < samples.length) { // can also be centroids or other points

@@ -559,7 +559,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
 					
-				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() > plotXmax || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
+				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() - plotXmax > plotXmax/1000.0 || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
 //					System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
 				} else {
 					trav = points[i].getLayer()+"";
@@ -1178,25 +1178,25 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 	public IntVector lookupNearbyPoints(int x, int y, String pos) {
 		IntVector iv = locLookup.get(pos);
-		IntVector indeciesOfDataPoints = new IntVector();
+		IntVector indicesOfDataPoints = new IntVector();
 
 		for (int i = 0; iv!=null && i<iv.size(); i++) {
 			if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[iv.elementAt(i)].getRawX()), getYPixel(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
-				indeciesOfDataPoints.add(iv.elementAt(i));
+				indicesOfDataPoints.add(iv.elementAt(i));
 			}
 		}
 
-		return indeciesOfDataPoints;
+		return indicesOfDataPoints;
 	}
 
 	public byte lookupNearbyRectangles(int xPixel, int yPixel) {
 		int rectangleStartXPixel, rectangleStartYPixel, rectangleStopXPixel, rectangleStopYPixel;
-		byte indeciesRectangle;
+		byte indicesRectangle;
 		int distance;
 		int minDistance;
 		int[] rectangleEdges;
 
-		indeciesRectangle = -1;
+		indicesRectangle = -1;
 		minDistance = Integer.MAX_VALUE;
 		for (byte i=0; rectangles != null && i < rectangles.length; i++) {
 			rectangleStartXPixel = getXPixel(rectangles[i].getStartXValue());
@@ -1209,30 +1209,30 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	    		distance = Math.abs(xPixel - rectangleEdges[j]);
 	    		if (distance < HIGHLIGHT_DISTANCE && distance < minDistance && yPixel > rectangleEdges[2] - HIGHLIGHT_DISTANCE && yPixel < rectangleEdges[3] + HIGHLIGHT_DISTANCE) {
 		    		minDistance = distance;
-		    		indeciesRectangle = i;
+		    		indicesRectangle = i;
 	    		}
 			}
 	    	for (int j = 2; j < 4; j ++) {
 	    		distance = Math.abs(yPixel - rectangleEdges[j]);
 	    		if (distance < HIGHLIGHT_DISTANCE && distance < minDistance && xPixel > rectangleEdges[0] - HIGHLIGHT_DISTANCE && xPixel < rectangleEdges[1] + HIGHLIGHT_DISTANCE) {
 		    		minDistance = distance;
-		    		indeciesRectangle = i;
+		    		indicesRectangle = i;
 	    		}
 	    	}
 		}
 
-		return indeciesRectangle;
+		return indicesRectangle;
 	}
 
 	public byte lookupResidingRectangles(int xPixel, int yPixel) {
 		int rectangleStartXPixel, rectangleStartYPixel, rectangleStopXPixel, rectangleStopYPixel;
-		byte indeciesRectangle;
+		byte indicesRectangle;
 		int distance;
 		int minDistance;
 		int[] rectangleEdges;
 		int[] rectangleSearchRange;
 
-		indeciesRectangle = -1;
+		indicesRectangle = -1;
 		minDistance = Integer.MAX_VALUE;
 		for (byte i=0; rectangles != null && i < rectangles.length; i++) {
 			rectangleStartXPixel = getXPixel(rectangles[i].getStartXValue());
@@ -1253,20 +1253,20 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		    		distance = Math.abs(xPixel - rectangleEdges[j]);
 		    		if (minDistance > distance) {
 			    		minDistance = distance;
-			    		indeciesRectangle = i;
+			    		indicesRectangle = i;
 		    		}
 				}
 		    	for (int j = 2; j < 4; j ++) {
 		    		distance = Math.abs(yPixel - rectangleEdges[j]);
 		    		if (minDistance > distance) {
 			    		minDistance = distance;
-			    		indeciesRectangle = i;
+			    		indicesRectangle = i;
 		    		}
 				}
 	    	}
 		}
 
-		return indeciesRectangle;
+		return indicesRectangle;
 	}
 
 	public void setFinalImage(boolean finalImage) {

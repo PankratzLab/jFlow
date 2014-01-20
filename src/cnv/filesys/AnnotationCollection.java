@@ -100,6 +100,10 @@ public class AnnotationCollection implements Serializable {
 		}
 	}
 
+	public boolean markerHasAnyAnnotation(String markerName) {
+		return markerAnnotations.containsKey(markerName);
+	}
+	
 	public void dumpLists(Project proj) {
 		String[] list, keys;
 		Vector<String> annotationsVector;

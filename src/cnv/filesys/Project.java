@@ -122,6 +122,7 @@ public class Project extends Properties {
 //	public static final String ANNOTATION_DIRECTORY = "ANNOTATION_DIRECTORY";
 	public static final String CUSTOM_COLOR_SCHEME_FILENAME = "ANNOTATION_FILENAME";
 	public static final String BACKUP_DIRECTORY = "BACKUP_DIRECTORY";
+	public static final String SHIFT_SEX_CHR_COLORS_YESNO = "SHIFT_SEX_CHR_COLORS_YESNO";
 
 	private boolean jar;
 	private String projectPropertiesFilename;

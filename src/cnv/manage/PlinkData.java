@@ -426,7 +426,7 @@ public class PlinkData {
 		return out;
 	}
 
-//	public static void loadPedData(String plinkDataDir, String bedFileFilenameRoot, int[] indeciesOfMarkersToLoad, int[] indeciesOfSamplesToLoad) {
+//	public static void loadPedData(String plinkDataDir, String bedFileFilenameRoot, int[] indicesOfMarkersToLoad, int[] indicesOfSamplesToLoad) {
 //		Scanner inFamOrBim;
 //		String[] line;
 //		Vector<Byte> chr;
@@ -491,7 +491,7 @@ public class PlinkData {
 //		}
 //	}
 
-//	public static void loadBedData(String plinkDataDir, String bedFileFilenameRoot, int[] indeciesOfMarkersToLoad, int[] indeciesOfSamplesToLoad) {
+//	public static void loadBedData(String plinkDataDir, String bedFileFilenameRoot, int[] indicesOfMarkersToLoad, int[] indicesOfSamplesToLoad) {
 //		Scanner inFamOrBim;
 //		String[] line;
 //		Vector<String> sampId;

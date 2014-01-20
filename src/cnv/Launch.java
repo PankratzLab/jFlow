@@ -428,7 +428,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(DENOVO_CNV)) {
 				DeNovoCNV.main(null);
 			} else if (command.equals(SCATTER)) {
-				ScatterPlot.createAndShowGUI(proj, null, null);
+				ScatterPlot.createAndShowGUI(proj, null, null, false);
 			} else if (command.equals(QQ)) {
 				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false);
 			} else if (command.equals(STRAT)) {
@@ -454,7 +454,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(TEST)) {
 //				log.report("No new program to test");
-				ScatterPlot.createAndShowGUI(proj, null, null);
+				ScatterPlot.createAndShowGUI(proj, null, null, false);
 			} else if (command.equals(GCMODEL)) {
 				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100, log);
 			} else if (command.equals(MARKER_METRICS)) {
