@@ -315,7 +315,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				if (classCode < 0) {
 					System.err.println("Error - classCode is less than 0 ("+classCode+")");
 				}
-				points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:(type==PlotPoint.FILLED_TRIANGLE?(byte)(size+5):xFontSize), classCode, layer);
+				if (chr > 21) {
+					points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:(type==PlotPoint.FILLED_TRIANGLE?(byte)(size+5):xFontSize), classCode==0? 0 : (byte) (classCode +  3), layer);
+				} else {
+					points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:(type==PlotPoint.FILLED_TRIANGLE?(byte)(size+5):xFontSize), classCode, layer);
+				}
 				genotype[i]=genotypeCode;
 				//sex[i]=(sexCode==1?"Female":(sexCode==2?"Male":"Missing"));
 				//for (int j=0; j<sampleData.getActualClassColorKey(0).length; j++) {

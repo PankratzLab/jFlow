@@ -184,7 +184,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		markerList = masterMarkerList;
 		commentList = masterCommentList;
 //		isAnnotated = new boolean[markerList.length];
-		annotated = 0;
+//		annotated = 0;
 		showAllMarkersOrNot = true;
 		showAnnotatedOrUnannotated = true;
 		showAnnotationShortcuts = true;
@@ -1129,6 +1129,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 							markerIndexBak = markerIndex;
 							markerList = annotationCollection.getMarkerLists(annotationKeys[annotationIndex]);
 							commentList = new String[markerList.length];
+//							annotated = 0;
+							initializeIsAnnotated(markerList);
 							loadMarkerDataFromList(0);
 							displayIndex(navigationField);
 							updateGUI();
@@ -1149,6 +1151,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 							indexOfAnnotationUsedAsMarkerList = -1;
 							markerList = masterMarkerList;
 							commentList = masterCommentList;
+//							annotated = 0;
+							initializeIsAnnotated(markerList);
 							loadMarkerDataFromList(markerIndexBak);
 							displayIndex(navigationField);
 							updateGUI();
@@ -1766,6 +1770,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void initializeIsAnnotated (String[] annotatedMarkers) {
+		annotated = 0;
 		isAnnotated = new boolean[markerList.length];
 		for (int i = 0; i < isAnnotated.length; i++) {
 			for (int j = 0; j < annotatedMarkers.length; j++) {
@@ -1776,6 +1781,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				}
 			}
 		}
+		System.out.println("annotated: " + annotated);
 	}
 	
 	public long getSampleFingerprint() {
@@ -1958,7 +1964,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerList);
 
 		markerIndex = newMarkerIndex;
-		initializeIsAnnotated(markerList);
+//		initializeIsAnnotated(markerList);
 		updateMarkerIndexHistory();
 		previousMarkerIndex = -1;
 //		navigationField.getActionListeners()[0].actionPerformed(e);
@@ -2388,14 +2394,16 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	public void saveClusterFilterAndAnnotationCollection () {
 		String[] options;
 		int choice;
-		String filename;
 
 		options = new String[] {"Yes, overwrite", "No"};
 		if (isClusterFilterUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false));
-				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, false) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+				clusterFilterCollection.serialize(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.BACKUP_DIRECTORY, false, false) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+			} else {
+				//TODO As a double security, move sessionID + ".tempClusterFilters.ser" to BACKUP_DIRECTORY. But then need to delete it from BACKUP_DIRECTORY at some point of time.
+				// need a rule for that. also need the code for deletion.
 			}
 //			isClusterFilterUpdated = false;
 			setClusterFilterUpdated(false);
@@ -2406,10 +2414,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (isAnnotationUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				filename = proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false);
-				Files.writeSerial(annotationCollection, filename);
-				filename = filename + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
-				Files.writeSerial(annotationCollection, filename);
+				Files.writeSerial(annotationCollection, proj.getFilename(Project.ANNOTATION_FILENAME, Project.DATA_DIRECTORY, false, false));
+				Files.writeSerial(annotationCollection, proj.getFilename(Project.ANNOTATION_FILENAME, Project.BACKUP_DIRECTORY, false, false) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+			} else {
+				//TODO As a double security, move sessionID + ".tempAnnotation.ser" to BACKUP_DIRECTORY. But then need to delete it from BACKUP_DIRECTORY at some point of time.
+				// need a rule for that. also need the code for deletion.
 			}
 //			isAnnotationUpdated = false;
 			setAnnotationUpdated(false);
