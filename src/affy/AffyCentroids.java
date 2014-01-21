@@ -1,6 +1,5 @@
 package affy;
 
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -26,7 +25,9 @@ public class AffyCentroids implements Serializable {
 	private float[][][] AffyCentroids; // marker, genotype (0=AA, 1=AB, 2=BB), coordinates (0=Mean Theta, 1=Mean R) (a.k.a. follows the suffix order above)
 	private long fingerprint;
 	private static int starter = 0;
-	private static int stopper = 1855448;
+	private static int stopper = 448;
+
+	// private static int stopper = 1855448;
 
 	public AffyCentroids(float[][][] AffyCentroids, long fingerprint) {
 		this.AffyCentroids = AffyCentroids;
@@ -148,7 +149,6 @@ public class AffyCentroids implements Serializable {
 		float[] Ys;
 		float[] AFFYBAFs;
 		float[] AFFYLRRs;
-		float[] thetas;
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		affyCentroids = Centroids.load(centroidsFile, proj.getJarStatus());
@@ -345,18 +345,21 @@ public class AffyCentroids implements Serializable {
 		}
 
 		else {
-			for (int k = 0; k < 3; k++) {
-				if (counts[k + 2] > 0) {
-					// writer.println(markerName+ "\t"+(float)meanThetas[k+2] +"\t" +(float)meanRs[k+2] );
-					centroid[k] = new float[] { (float) meanThetas[k + 2], (float) meanRs[k + 2] };
-				} else {
-					System.out.println("this should not happen , but does it?");
-				}
-			}
+			assignRegularCentroid(centroid, meanThetas, meanRs, counts);
 		}
 		if (centroid[2] != null && (centroid[0][0] > centroid[1][0] || centroid[2][0] < centroid[1][0])) {
 			nullify(centroid);
-			// System.out.println(markerName);
+		}
+	}
+
+	private static void assignRegularCentroid(float[][] centroid, double[] meanThetas, double[] meanRs, int[] counts) {
+		for (int k = 0; k < 3; k++) {
+			if (counts[k + 2] > 0) {
+				// writer.println(markerName+ "\t"+(float)meanThetas[k+2] +"\t" +(float)meanRs[k+2] );
+				centroid[k] = new float[] { (float) meanThetas[k + 2], (float) meanRs[k + 2] };
+			} else {
+				System.out.println("this should not happen , but does it?");
+			}
 		}
 	}
 
@@ -427,51 +430,6 @@ public class AffyCentroids implements Serializable {
 			}
 		}
 		return log2Xs;
-	}
-
-	public static void exportToText(Project proj, String centFilename, String exportFilename) {
-		PrintWriter writer;
-		Centroids centObject;
-		float[][][] centroids;
-		MarkerSet markerSet;
-		String[] markerNames;
-		String dir;
-
-		dir = proj.getProjectDir();
-		markerSet = proj.getMarkerSet();
-		markerNames = markerSet.getMarkerNames();
-		centObject = Centroids.load(dir + centFilename, false);
-		centroids = centObject.getCentroids();
-
-		if (markerNames.length != centroids.length) {
-			System.err.println("Error - mismatched number of markers in the project's marker set and the imported centroids file (" + centFilename + "); aborting");
-			return;
-		}
-
-		if (markerSet.getFingerprint() != centObject.getFingerprint()) {
-			System.err.println("Error - mismatched marker fingerprints in the project's marker set and the imported centroids file (" + centFilename + "); aborting");
-			return;
-		}
-		try {
-			writer = new PrintWriter(new FileWriter(dir + exportFilename));
-			writer.println("marker_fingerprint=" + centObject.getFingerprint());
-			writer.println("MarkerName\tAA_Theta_Mean\tAA_R_Mean\tAB_Theta_Mean\tAB_R_Mean\tBB_Theta_Mean\tBB_R_Mean");
-			for (int i = 0; i < markerNames.length; i++) {
-				writer.print(markerNames[i]);
-				for (int j = 0; j < 3; j++) {
-					if (centroids[i][j] == null) {
-						writer.print("\t.\t.");
-					} else {
-						writer.print("\t" + centroids[i][j][0] + "\t" + centroids[i][j][1]);
-					}
-				}
-				writer.println();
-			}
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing to " + exportFilename);
-			e.printStackTrace();
-		}
 	}
 
 	public static void main(String[] args) {
