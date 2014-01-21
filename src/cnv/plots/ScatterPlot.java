@@ -2375,7 +2375,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				clusterFilterCollection.serialize(clusterFilterFilename);
-				clusterFilterCollection.serialize(proj.getDir(Project.BACKUP_DIRECTORY)+ext.removeDirectoryInfo(clusterFilterFilename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+				clusterFilterCollection.serialize(proj.getDir(Project.BACKUP_DIRECTORY, true)+ext.removeDirectoryInfo(clusterFilterFilename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			} else {
 				//TODO As a double security, move sessionID + ".tempClusterFilters.ser" to BACKUP_DIRECTORY. But then need to delete it from BACKUP_DIRECTORY at some point of time.
 				// need a rule for that. also need the code for deletion.
@@ -2391,7 +2391,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			if (choice == 0) {
 				filename = proj.getFilename(Project.ANNOTATION_FILENAME, false, false);
 				Files.writeSerial(annotationCollection, filename);
-				filename = proj.getDir(Project.BACKUP_DIRECTORY)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
+				filename = proj.getDir(Project.BACKUP_DIRECTORY, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
 				Files.writeSerial(annotationCollection, filename);
 			}
 //			isAnnotationUpdated = false;
