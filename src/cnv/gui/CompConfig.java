@@ -411,7 +411,7 @@ class CNVPanel extends JPanel implements ActionListener {
 		} else if (arg0.getSource().equals(trailerButton)) {
 			// Launch 1 or more instances of Trailer
 			Project proj = compPlot.getProject();
-			SampleData sampleData = compPlot.getProject().getSampleData(2, false);
+			SampleData sampleData = compPlot.getProject().getSampleData(2, true);
 			int[] location = compPlot.getCPLocation();
 			int window = Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
 

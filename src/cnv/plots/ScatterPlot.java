@@ -233,7 +233,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		}
 //		scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
 		displayClusterFilterIndex();
-		updateAnnotationPanel();
 		activateAllAnnotationMaps();
 
 //    	newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)+1);
@@ -312,8 +311,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				setCurrentClusterFilter();
 				updateGUI();
 				displayClusterFilterIndex();
-//				annotationPanelLowerPart();
-				updateAnnotationPanel();
 	        }
 		});
 		
@@ -518,7 +515,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //				scatPanel.generateRectangles();
 				updateGUI();
 				displayClusterFilterIndex();
-//				updateAnnotationPanel();
 			}
 		});
 
@@ -882,13 +878,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				if (checkBox.isSelected()) {
 					showAnnotationShortcuts = true;
 					activateAllAnnotationMaps();
-//					annotationPanelLowerPart();
-					updateAnnotationPanelAnnotationCheckBoxes();
 				} else {
 					showAnnotationShortcuts = false;
 					deactivateAllAnnotationMaps();
-//					annotationPanelLowerPart();
-					updateAnnotationPanelAnnotationCheckBoxes();
 				}
 			}});
 		annotationPanelUpper.add(checkBox);
@@ -1020,7 +1012,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //			horizontalPos += (horizontalMargin + fileterRadioButtons[i].getSize().height);
 			currentHorizontalPos += (horizontalMargin + componentHeight);
 		}
-		updateAnnotationPanelFilterRadioButtons();
 		fileterRadioButtons[0].setSelected(true);
 		
 		MouseListener mouseListenerForAnnotationCheckBoxes = new MouseListener() {
@@ -1130,6 +1121,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 						public void actionPerformed(ActionEvent e2) {
 							saveClusterFilterAndAnnotationCollection();
 
+							for (int i = 0; i < annotationCheckBoxes.length; i ++) {
+								annotationCheckBoxes[i].setEnabled(true);
+							}
 							indexOfAnnotationUsedAsMarkerList = -1;
 							markerList = masterMarkerList;
 							commentList = masterCommentList;
@@ -1144,7 +1138,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 						}
 					});
 
-					menu.add(new AbstractAction("Limit Current List to Those with Annotation " + annotation) {
+					menu.add(new AbstractAction((indexOfAnnotationUsedAsMarkerList == -1?"Limit":"Unlimit")+" Current List to Those with Annotation " + annotation) {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -1154,7 +1148,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 							
 							annotationIndex = -1;
 							annotation = e3.getActionCommand();
-							annotation = annotation.substring("Limit Current List to Those with Annotation ".length());
+							annotation = annotation.substring(((indexOfAnnotationUsedAsMarkerList == -1?"Limit":"Unlimit")+" Current List to Those with Annotation ").length());
 							for (int i = 0; i < annotationKeys.length; i ++) {
 								if (annotationCollection.getDescriptionForComment(annotationKeys[i], false, false).toLowerCase().equals(annotation)) {
 									annotationIndex = i;
@@ -1422,7 +1416,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		updateGUI();
 		displayClusterFilterIndex();
 		isInitilizing = true;
-		updateAnnotationPanelAnnotationCheckBoxes();
 	}
 
 	public void actionPerformed(ActionEvent ae) {
@@ -2056,6 +2049,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
             }
 		}
 		
+		if (fileterRadioButtons != null) {
+			updateAnnotationPanelFilterRadioButtons();
+			updateAnnotationPanelAnnotationCheckBoxes();
+		}
+
 		scatPanel.paintAgain();
 		if (markerIndex != previousMarkerIndex) {
 			updateCentLabels();
@@ -2249,11 +2247,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (updateGenotypeComboBox) {
 			newGenotype.setSelectedIndex(newGenotypeSelected + 1);
 		}
-	}
-
-	public void updateAnnotationPanel() {
-		updateAnnotationPanelFilterRadioButtons();
-		updateAnnotationPanelAnnotationCheckBoxes();
 	}
 
 	public void updateAnnotationPanelFilterRadioButtons() {
