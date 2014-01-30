@@ -2,6 +2,7 @@ package affy;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -55,7 +56,7 @@ public class AffyCentroids implements Serializable {
 	}
 
 	public static float calcTheta(float x, float y) {
-		return (float) (Math.atan2(Math.max(y, 0.0001), Math.max(x, 0.0001)) / (Math.PI / 2));
+		return (float) (Math.atan(Math.max(y, 0.0001) / Math.max(x, 0.0001)) * 2 / Math.PI);
 	}
 
 	public static float calcBAF(float theta, float[][] AffyCentroids) {
@@ -131,6 +132,7 @@ public class AffyCentroids implements Serializable {
 			if (markerNames[k].startsWith("CN_")) {
 				// if a copy number probeset, take the log2 intensity value - median log2 intensity
 				AFFYLRRs[k] = (float) (Maths.log2(Xs[k]) - affyCents[k][0][1]);
+				// System.out.println(markerNames[k] + "\t" + AFFYLRRs[k] + "\t" + affyCents[k][0][1] + "\t" + affyCents[k][2][1]);
 
 			} else if (markerNames[k].startsWith("SNP_")) {
 				AFFYLRRs[k] = calcLRR(calcTheta(Xs[k], Ys[k]), calcR(Xs[k], Ys[k]), affyCents[k]);
@@ -411,23 +413,15 @@ public class AffyCentroids implements Serializable {
 	public static float[] log2Array(Project proj, MarkerData markerData, boolean[] samplesToBeUsed, String[] samples) {
 		float[] xs = markerData.getXs();
 		float[] log2Xs;
-		int count = 0;
-		boolean use;
-		for (int k = 0; k < samplesToBeUsed.length; k++) {
-			if (samplesToBeUsed[k]) {
-				count++;
+		ArrayList<Float> log2XsAL = new ArrayList<Float>();
+		for (int k = 0; k < xs.length; k++) {
+			if (checkSexMarker(proj, samples[k], markerData) && samplesToBeUsed[k]) {
+				log2XsAL.add((float) Maths.log2(xs[k]));
 			}
 		}
-		// System.out.println(count);
-		log2Xs = new float[count];
-		for (int k = 0; k < xs.length; k++) {
-			if (samplesToBeUsed[k]) {
-				use = checkSexMarker(proj, samples[k], markerData);
-				if (!use) {
-					continue;
-				}
-				log2Xs[k] = (float) Maths.log2(xs[k]);
-			}
+		log2Xs = new float[log2XsAL.size()];
+		for (int i = 0; i < log2Xs.length; i++) {
+			log2Xs[i] = log2XsAL.get(i);
 		}
 		return log2Xs;
 	}
@@ -440,14 +434,14 @@ public class AffyCentroids implements Serializable {
 		// String centFile = "Myers_final_042208_ReclusteredCNV_SNP_Table2.csv";
 		// String centFile = "Theta_R_mean_dev_550.csv";
 		String centFile = "CentroidExample.csv";
-		String intensityFlags = "";
+		// String intensityFlags = "";
 		// String intensityFlags = "intesityFlag.txt";
 		// String clusteredCentroids = Project.DEFAULT_ORIGINAL_CENTROIDS_FILENAME;
 		// String unclusteredCentroids = Project.DEFAULT_GENOTYPE_CENTROIDS_FILENAME;
 		boolean fromGenotypes = false;
 		Project proj;
 		String compute = "";
-		String importFile = null;
+		// String importFile = null;
 		String exportFile = null;
 
 		String usage = "\n" + "affy.AffyCentroids requires 0-1 arguments\n" + "   (1) project (i.e. proj=" + filename + " (default))\n" + "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n" + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n" + " OR\n" + "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n" + "   (3) centroid file for clustered markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n" + "   (4) centroid file for intensity only markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n" + " OR\n" + "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n" + "";
@@ -462,19 +456,24 @@ public class AffyCentroids implements Serializable {
 			} else if (args[i].startsWith("file=")) {
 				centFile = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("import=")) {
-				importFile = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("export=")) {
+			}
+			// else if (args[i].startsWith("import=")) {
+			// importFile = args[i].split("=")[1];
+			// numArgs--;
+
+			// }
+			else if (args[i].startsWith("export=")) {
 				exportFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("-fromGenotypes")) {
 				fromGenotypes = true;
 				numArgs--;
-			} else if (args[i].startsWith("flags=")) {
-				intensityFlags = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("compute=")) {
+			}
+			// else if (args[i].startsWith("flags=")) {
+			// intensityFlags = args[i].split("=")[1];
+			// numArgs--;
+			// }
+			else if (args[i].startsWith("compute=")) {
 				compute = args[i].split("=")[1];
 				numArgs--;
 			}
@@ -488,6 +487,7 @@ public class AffyCentroids implements Serializable {
 		// fromGenotypes = true;
 		// // compute = "genotype.cent";
 		//
+		// centFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_11908/data/genotype.cent";
 		centFile = "C:/data/ARIC/ARICGenvisis_CEL_11908/data/genotype.cent";
 		// exportFile = "data/genotype.cent.xln";
 		try {
