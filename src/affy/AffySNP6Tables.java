@@ -382,6 +382,11 @@ public class AffySNP6Tables {
 			}
 
 		}
+		if (numArgs != 0) {
+			// TODO usage
+			System.err.println("TODO usuage");
+			System.exit(1);
+		}
 		proj = new Project(filename, false);
 		try {
 			if (SNP) {

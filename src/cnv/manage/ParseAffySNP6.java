@@ -2,8 +2,8 @@ package cnv.manage;
 
 import java.io.*;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipOutputStream;
+//import java.util.zip.GZIPOutputStream;
+//import java.util.zip.ZipOutputStream;
 
 import javax.swing.JOptionPane;
 
@@ -83,7 +83,7 @@ public class ParseAffySNP6 implements Runnable {
 		String filename;
 		Hashtable<String, Float> allOutliers;
 		String sourceExtension;
-		byte[] genos;
+		// byte[] genos;
 
 		idHeader = proj.getProperty(Project.ID_HEADER);
 		sourceExtension = proj.getProperty(Project.SOURCE_FILENAME_EXTENSION);
@@ -450,7 +450,7 @@ public class ParseAffySNP6 implements Runnable {
 		String temp;
 		String testline;
 		int[][] delimiterCounts;
-		boolean done;
+		// boolean done;
 		long timeBegan;
 		boolean parseAtAt;
 		int sampIndex;
@@ -627,7 +627,7 @@ public class ParseAffySNP6 implements Runnable {
 				return;
 			}
 
-			done = false;
+			// done = false;
 			// count = 1;
 			alNames = new ArrayList<String>(500000);
 			lineCount = 0;
