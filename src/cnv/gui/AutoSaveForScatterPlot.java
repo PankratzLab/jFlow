@@ -1,9 +1,6 @@
 package cnv.gui;
 
 import java.io.File;
-
-import common.Files;
-
 import cnv.filesys.AnnotationCollection;
 import cnv.filesys.ClusterFilterCollection;
 
@@ -14,7 +11,7 @@ public class AutoSaveForScatterPlot implements Runnable {
 	private AnnotationCollection annotations;
 	private String annotationFilename;
 	private int period;
-	private boolean isKilled;
+	private boolean killed;
 	private boolean isClusterFiltersUpdated;
 	private boolean isAnnotationsUpdated;
 	
@@ -24,19 +21,10 @@ public class AutoSaveForScatterPlot implements Runnable {
 		this.annotations = AnnotationCollection;
 		this.annotationFilename = annotaionFilename;
 		this.period = periodInSeconds;
-		this.isKilled = false;
+		this.killed = false;
 		this.isClusterFiltersUpdated = false;
 		this.isAnnotationsUpdated = false;
 	}
-
-//	public AutoSaveForScatterPlot(AnnotationCollection collection, String annotaionFilename, int periodInSeconds) {
-//		this.clusterFilters = null;
-//		this.clusterFilterFilename = null;
-//		this.annotations = collection;
-//		this.annotationFilename = annotaionFilename;
-//		this.period = periodInSeconds;
-//		this.isKilled = false;
-//	}
 
 	public void addToAutoSave(AnnotationCollection collection, String annotaionFilename) {
 		this.annotations = collection;
@@ -65,15 +53,13 @@ public class AutoSaveForScatterPlot implements Runnable {
 	}
 
 	public void saveNow() {
-//		if (clusterFilters != null) {
 		if (isClusterFiltersUpdated) {
 			clusterFilters.serialize(clusterFilterFilename);
 			isClusterFiltersUpdated = false;
 		}
 		
-//		if (annotations != null) {
 		if (isAnnotationsUpdated) {
-			Files.writeSerial(annotations, annotationFilename);
+			annotations.serialize(annotationFilename);
 			isAnnotationsUpdated = false;
 		}
 	}
@@ -86,23 +72,15 @@ public class AutoSaveForScatterPlot implements Runnable {
 			new File(annotationFilename).delete();
 		}
 		
-		isKilled = true;
+		killed = true;
 	}
 	
 	public void run() {
-		do {
+		while (!killed) {
+			saveNow();
 			try {
 				Thread.sleep(period * 1000);
 			} catch (InterruptedException ie) {}
-			
-			saveNow();
-
-//		} while (! isKilled && (Files.exists(clusterFilterFilename, false) || Files.exists(annotationFilename, false)));
-//		} while (! isKilled && ((isClusterFiltersUpdated && !Files.exists(clusterFilterFilename, false)) || (isAnnotationsUpdated)));
-		} while (! isKilled);
-		
-//		if (! isKilled ) {
-//			JOptionPane.showMessageDialog(null, "Temporary file(s) containing new ClusterFilters and/or Annotations have been deleted; Auto-save has been turned off", "Error", JOptionPane.ERROR_MESSAGE);
-//		}
+		}
 	}
 }

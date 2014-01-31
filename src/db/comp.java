@@ -550,6 +550,7 @@ public class comp {
 						} catch (Exception e) {
 							System.err.println("Sorry yo, error parsing results of trend analysis found in '"+traits[trt]+"-trend.lst"+"'");
 							writer.close();
+							reader.close();
 						}
 					}
 				}

@@ -282,16 +282,18 @@ public class AnnotationCollection implements Serializable {
 	}
 
 	public String[] getMarkerLists(char key) {
-//		String[] result;
-//		Vector<String> vector;
-//		vector = annotationMarkerLists.get(key + "");
-//		result = new String[vector.size()];
-//		vector.toArray(result);
-//		return result;
 		return annotationMarkerLists.get(key + "").toArray(new String[0]);
 	}
 
 	public String getDescriptionForComment(char c, boolean includeShortcuts, boolean includeNumbers) {
 		return (includeShortcuts? "'" + c + "' " : "") + commentsHash.get(c) + (includeNumbers? " (n=" + annotationMarkerLists.get(c+"").size() + ")" : "");
+	}
+	
+	public void serialize(String filename) {
+		Files.writeSerial(this, filename);
+	}
+
+	public static AnnotationCollection load(String filename, boolean jar) {
+		return (AnnotationCollection)Files.readSerial(filename, jar, true);
 	}
 }

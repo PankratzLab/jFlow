@@ -528,7 +528,7 @@ public class PlinkData {
 //			nMarks = markerList.length;
 //		}
 //		nSamps = proj.getSamples().length;
-//		clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), proj.getJarStatus()); 
+//		clusterFilterCollection = proj.getClusterFilterCollection();
 //		
 //		try {
 //			in = new RandomAccessFile(PlinkBinaryDataDir + "plink.bed", "rw");
@@ -639,10 +639,10 @@ public class PlinkData {
 		}
 		
 		if (isSnpMajor) {
-			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarksInProj, targetSamps, indicesOfTargetSampsInProj, outFileDirAndFilenameRoot, gcThreshold, outFileDirAndFilenameRoot, log);
+			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarksInProj, targetSamps, indicesOfTargetSampsInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
 //			abLookup = createBedFileSnpMajorAllInMemory(proj, targetMarkers, indicesOfTargetMarksInProj, targetSamps, indicesOfTargetSampsInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot, log);
 		} else {
-			abLookup = createBedFileIndividualMajor(proj, targetSamps, targetMarkers, indicesOfTargetMarksInProj, outFileDirAndFilenameRoot, gcThreshold, outFileDirAndFilenameRoot, log);
+			abLookup = createBedFileIndividualMajor(proj, targetSamps, targetMarkers, indicesOfTargetMarksInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
 		}
 		
 		if (abLookup == null) {
@@ -815,14 +815,9 @@ public class PlinkData {
 //			markList[i] = allMarksInProj[indicesOfSelectedMarks[i]];
 //		}
 
-		if (Files.exists(clusterFilterFileName, proj.getJarStatus())) {
-			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName, proj.getJarStatus());
-		} else {
-			clusterFilterCollection = null;
-		}
+        clusterFilterCollection = proj.getClusterFilterCollection();
 
 		try {
-			clusterFilterCollection = ClusterFilterCollection.load(proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, Project.DATA_DIRECTORY, false, true), proj.getJarStatus()); 
 			if (clusterFilterCollection == null) {
 				abLookup = null;
 			} else {
@@ -929,11 +924,7 @@ public class PlinkData {
 		startTime = new Date().getTime();
 
 		try {
-			if (Files.exists(clusterFilterFileName, proj.getJarStatus())) {
-				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName, proj.getJarStatus());
-			} else {
-				clusterFilterCollection = null;
-			}
+	        clusterFilterCollection = proj.getClusterFilterCollection();
 			if (clusterFilterCollection == null) {
 				abLookup = null;
 			} else {
@@ -1064,11 +1055,7 @@ public class PlinkData {
 
 		startTime = new Date().getTime();
 
-		if (Files.exists(clusterFilterFileName, proj.getJarStatus())) {
-			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName, proj.getJarStatus());
-		} else {
-			clusterFilterCollection = null;
-		}
+        clusterFilterCollection = proj.getClusterFilterCollection();
 		if (Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false))) {
 			abLookup = new ABLookup(targetMarkers, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true).getLookup();
 		} else if (clusterFilterCollection == null) {

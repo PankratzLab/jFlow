@@ -184,8 +184,7 @@ public class GenParser {
     			if (commaDelimited) {
     				originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
     			} else {
-//    				originalColumnNames = ext.replaceAllWith(reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
-    				originalColumnNames = ext.replaceAllWith(reader.readLine(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
+    				originalColumnNames = ext.replaceAllWith(commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
     			}
             	for (int j = 0; j<cols.length; j++) {
             		if (colNames[j] == null) {
@@ -292,8 +291,7 @@ public class GenParser {
 		boolean truncatedLine;
 		
 		try {
-//			temp = commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim();
-			temp = commaDelimited||tabDelimited?reader.readLine():reader.readLine();
+			temp = commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim();
 			if (commaDelimited) {
 				line = ext.splitCommasIntelligently(ext.replaceAllWith(temp, replaces), simplifyQuotes, log);
 			} else {
@@ -500,6 +498,12 @@ public class GenParser {
 		}
 	}
 	
+	public void reportTruncatedLines() {
+		if (numTruncatedLines > 0) {
+			log.report("There were "+numTruncatedLines+" lines truncated in "+filename);
+		}
+	}
+
 	public static void main(String[] args) {
 	    String usage = "\n"+
 	    "parse.GenParser requires 2+ arguments and will take the form of something like:\n"+
@@ -551,10 +555,4 @@ public class GenParser {
 		    e.printStackTrace();
 	    }
     }
-
-	public void reportTruncatedLines(Logger log2) {
-		if (numTruncatedLines > 0) {
-			log.report("There were "+numTruncatedLines+" lines truncated in "+filename);
-		}
-	}
 }

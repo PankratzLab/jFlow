@@ -29,12 +29,14 @@ public class MarkerDataLoader implements Runnable {
 	private int currentIndexBeingLoaded;
 	private int currentDirection;
 	private boolean killed;
+	private boolean killComplete;
 	private long sampleFingerprint;
 	private int readAheadLimit;
 	private int numberCurrentlyLoaded;
 	private boolean plinkFormat;
 	private String plinkFileRoot;
 	private int[] plinkSampleIndices;
+	private Thread thread;
 
 	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
 		this(proj, markerNames, amountToLoadAtOnceInMB, null);	
@@ -179,6 +181,17 @@ public class MarkerDataLoader implements Runnable {
 
 	public void kill() {
 		killed = true;
+		if (!thread.isAlive()) {
+			killComplete = true;
+		}
+	}
+
+	public boolean killComplete() {
+		return killComplete;
+	}
+
+	public Thread getThread() {
+		return thread;
 	}
 
 	public MarkerData getMarkerData(int markerIndex) {
@@ -328,6 +341,7 @@ public class MarkerDataLoader implements Runnable {
 			loaded = null;
 			markerData = null;
 			System.gc();
+			killComplete = true;
 		} else {
 			System.out.println("Independent thread has finished loading "+count+" markers to MarkerData[] in "+ ext.getTimeElapsed(time));
 		}
@@ -552,13 +566,18 @@ public class MarkerDataLoader implements Runnable {
 		
 		System.out.println("Marker data is loading in an independent thread.");
 		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
-		markerDataLoader= new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
+		markerDataLoader = new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
+		markerDataLoader.registerThread(thread2);
 
 		return markerDataLoader;
 	}
 	
+	private void registerThread(Thread thread) {
+		this.thread = thread;
+	}
+
 	public static MarkerDataLoader loadMarkerDataFromListInSameThread(Project proj, String[] markerList) {
 		MarkerDataLoader markerDataLoader;
 		int amountToLoadAtOnceInMB;

@@ -90,7 +90,7 @@ public class Plink {
 			}
 		}
 
-		commands = "/home/npankrat/bin/plink --noweb --bfile "+root+" --read-freq plink.frq --genome"+(minPiHatToKeep>0?" --min "+minPiHatToKeep:"")+" --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
+		commands = "cd "+ext.pwd()+"\n~/bin/plink --noweb --bfile "+root+" --read-freq plink.frq --genome"+(minPiHatToKeep>0?" --min "+minPiHatToKeep:"")+" --genome-lists tmp.list[%0] tmp.list[%1] --out data.sub.[%2]";
 		Files.qsub("genom", commands, Matrix.toStringArrays(v));
 		try {
 	        writer = new PrintWriter(new FileWriter("master.compile"));

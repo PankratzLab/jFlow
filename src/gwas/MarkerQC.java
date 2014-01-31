@@ -129,7 +129,7 @@ public class MarkerQC {
         int[][] counts;
         int[] indices;
         int count, fail, maxSize;
-        String reason;
+        String reason, simpleReason;
 
         try {
         	if (Files.exists(params[0][1], false)) {
@@ -164,10 +164,11 @@ public class MarkerQC {
 	        counts = null;
 	        try {
 	            reader = new BufferedReader(new FileReader(params[0][1]));
-	            writers = new PrintWriter[3];
+	            writers = new PrintWriter[4];
 	            writers[0] = new PrintWriter(new FileWriter(params[2][1]+"_drops.dat"));
 	            writers[1] = new PrintWriter(new FileWriter(params[2][1]+"_singles.out"));
 	            writers[2] = new PrintWriter(new FileWriter(params[2][1]+"_annotated.xln"));
+	            writers[3] = new PrintWriter(new FileWriter(params[2][1]+"_allAnnotations.out"));
 	            line = reader.readLine().trim().split("\\t");
 	            indices = ext.indexFactors(Array.subArray(Matrix.extractColumn(params, 0), 3), line, false, log, true, true);
 		        counts = new int[3][indices.length]; // all, primary, only
@@ -175,6 +176,7 @@ public class MarkerQC {
 	            	line = reader.readLine().trim().split("\\t");
 	            	fail = 0;
 	            	reason = "";
+	            	simpleReason = "";
             		for (int lap = 0; lap<2; lap++) {
 		            	for (int i = 0; i<indices.length; i++) {
 		            		if (!ext.isMissingValue(line[indices[i]]) && Maths.op(Double.parseDouble(line[indices[i]]), thresholds[i], ops[i])) {
@@ -184,6 +186,7 @@ public class MarkerQC {
             							counts[1][i]++;
             						}
     		            			reason += (reason.length()==0?"":"; ")+params[i+3][0]+"="+line[indices[i]];
+    		            			simpleReason += (simpleReason.length()==0?"":";")+params[i+3][0]+params[i+3][2];
         							fail++;
         						} else if (fail == 1) {
         							counts[2][i]++;
@@ -194,6 +197,7 @@ public class MarkerQC {
 	            	}
 	            	if (fail > 0) {
 	            		writers[0].println(line[0]);
+	            		writers[3].println(line[0]+"\t"+simpleReason);
 	            	}
             		writers[2].println(line[0]+"\t"+reason);
 	            	count++;

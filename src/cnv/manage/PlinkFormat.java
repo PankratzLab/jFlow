@@ -104,7 +104,6 @@ public class PlinkFormat {
 		if (clusterFilterFilename != null) {
 			clusterFilterFilename = proj.getProperty(Project.PROJECT_DIRECTORY)+proj.getProperty(Project.DATA_DIRECTORY)+clusterFilterFilename;
 			if (Files.exists(clusterFilterFilename, proj.getJarStatus())) {
-//				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
 				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
 			} else {
 				System.err.println("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");

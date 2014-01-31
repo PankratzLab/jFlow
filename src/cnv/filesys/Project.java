@@ -23,6 +23,7 @@ public class Project extends Properties {
 //	public static final String DEFAULT_PROJECT = "these.properties";
 //	public static final String DEFAULT_PROJECT = "D:/home/npankrat/projects/pd_win.properties";
 	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
+//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/SingaporeReplication.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI_exome_slim.properties";
@@ -511,7 +512,30 @@ public class Project extends Properties {
 			System.err.println("Error - invalid delimiter specified: '"+str+"'");
 			return ",";
 		} 
-	}	
+	}
+	
+	public ClusterFilterCollection getClusterFilterCollection() {
+		String filename;
+		
+		filename = getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME);
+        if (Files.exists(filename)) {
+        	return ClusterFilterCollection.load(filename, jar);
+        } else {
+        	return null;
+        }
+	}
+	
+	public AnnotationCollection getAnnotationCollection() {
+		String filename;
+		
+		filename = getFilename(Project.ANNOTATION_FILENAME);
+        if (Files.exists(filename)) {
+    		System.out.println("Loading annotation from: "+filename);
+        	return AnnotationCollection.load(filename, jar);
+        } else {
+        	return null;
+        }
+	}
 	
 	public String getNameOfProject() {
 		return getProperty(Project.PROJECT_NAME);

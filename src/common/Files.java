@@ -704,7 +704,7 @@ public class Files {
 	public static BufferedReader getAppropriateReader(String filename) throws FileNotFoundException {
 		InputStreamReader isReader = null;
 
-		if (!Files.exists(filename, false)) {
+		if (!exists(filename, false)) {
 			return null;
 		}
 
@@ -1086,7 +1086,7 @@ public class Files {
                     		sHash.put(line[0], Array.subArray(line, 1));
                     	}
                     }
-                    parser.reportTruncatedLines(log);
+                    parser.reportTruncatedLines();
                     parser.close();
                 	if (serializing) {
                 		SerialHash.createSerializedStringArrayHash(serializedFilename, sHash);
@@ -1632,6 +1632,11 @@ public class Files {
 			return new File(filename).exists();
 		}
 	}
+	
+	public static boolean isDirectory(String handle) {
+		return exists(handle) && new File(handle).isDirectory();
+	}
+	
 
 	public static void writeSerial(Object o, String filename) {
 		ObjectOutputStream oos;
