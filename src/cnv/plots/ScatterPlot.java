@@ -1421,7 +1421,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		setCurrentClusterFilter();
 		updateGUI();
 		displayClusterFilterIndex();
-		isInitilizing = true;
 	}
 
 	public void actionPerformed(ActionEvent ae) {
@@ -2269,6 +2268,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	public void updateAnnotationPanelAnnotationCheckBoxes() {
+		isInitilizing = true;
 		for (int i=0; i<annotationCheckBoxes.length; i++) {
         	annotationCheckBoxes[i].setText(annotationCollection.getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true));
 			if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
