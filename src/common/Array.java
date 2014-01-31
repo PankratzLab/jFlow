@@ -84,7 +84,7 @@ public class Array {
 
 		if (array.length==0) {
 			System.err.println("Error - impossible to find the min of an empty array");
-			return (Byte) null;
+			return Byte.MAX_VALUE;
 		}
 		min = array[0];
 		for (int i = 1; i<array.length; i++) {
@@ -249,7 +249,7 @@ public class Array {
 
 		if (array.length==0) {
 			System.err.println("Error - impossible to find the max of an empty array");
-			return (Byte) null;
+			return Byte.MAX_VALUE;
 		}
 		max = array[0];
 		for (int i = 1; i<array.length; i++) {
