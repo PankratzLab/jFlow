@@ -22,12 +22,7 @@ public class CompareDuplicates {
         ClusterFilterCollection clusterFilterCollection;
         float gcThreshold;
 		
-        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
-        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
-        } else {
-        	clusterFilterCollection = null;
-        }
-		
+        clusterFilterCollection = proj.getClusterFilterCollection();
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
 
 //		System.out.println("Comparing "+ext.listWithCommas(pair, true));

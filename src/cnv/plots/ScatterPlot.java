@@ -121,8 +121,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private Color[] colorScheme;
 	private int indexOfAnnotationUsedAsMarkerList; 
 	private boolean fail;
+	private boolean exitOnClose;
 	
-	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList) {
+	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
 		SampleList sampleList;
 		long time;
 		
@@ -131,6 +132,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		proj = project;
 		jar = proj.getJarStatus();
 		size = DEFAULT_SIZE;
+		this.exitOnClose = exitOnClose;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 //		clusterFilterCollectionUpdated = false;
 		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
@@ -946,7 +948,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //			    				filename = proj.getFilename(Project.ANNOTATION_DIRECTORY, false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
 			    				filenameBak = proj.getFilename(proj.getProjectDir(), false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
 			    				System.out.println("Writing to " + filenameBak);
-			    				Files.writeSerial(annotationCollection, filenameBak);
+			    				annotationCollection.serialize(filenameBak);
 			    			}
 			    		}
 			    		deactivateAllAnnotationMaps();
@@ -1098,7 +1100,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 								}
 							}
 
-							saveClusterFilterAndAnnotationCollection();
+							if (!saveClusterFilterAndAnnotationCollection()) {
+								return;
+							}
 
 							indexOfAnnotationUsedAsMarkerList = -2;
 							markerIndexBak = markerIndex;
@@ -1119,7 +1123,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 						@Override
 						public void actionPerformed(ActionEvent e2) {
-							saveClusterFilterAndAnnotationCollection();
+							if (!saveClusterFilterAndAnnotationCollection()) {
+								return;
+							}
 
 							for (int i = 0; i < annotationCheckBoxes.length; i ++) {
 								annotationCheckBoxes[i].setEnabled(true);
@@ -1463,7 +1469,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				clusterFilterCollection.deleteClusterFilter(getMarkerName(), currentClusterFilter);
 				setCurrentClusterFilter((byte) Math.min(currentClusterFilter, clusterFilterCollection.getSize(getMarkerName())-1));
 //				startAutoSave();
-//				isClusterFilterUpdated = true;
 				setClusterFilterUpdated(true);
 				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				displayClusterFilterIndex();
@@ -1679,25 +1684,25 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 //	}
 
 	private boolean loadClusterFilterFiles() {
-		String[] otherClusterFilTerFiles;
+		String[] otherClusterFilterFiles;
 		int choice;
-		String[] options = new String[] {"Yes, load and delete old file", "No, delete old file", "Cancel and close ScatterPlot"};
+		String[] options = new String[] {"Yes, load and delete old file", "No, just delete old file", "Cancel and close ScatterPlot"};
 		String clusterFilterFilename;
 		
-		clusterFilterFilename = proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, false, true);
-		otherClusterFilTerFiles = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".tempClusterFilters.ser", jar);
-		if (otherClusterFilTerFiles.length > 0) {
+		clusterFilterFilename = proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME);
+		otherClusterFilterFiles = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".tempClusterFilters.ser", jar);
+		if (otherClusterFilterFiles.length > 0) {
 			choice = JOptionPane.showOptionDialog(null, "Error - either multiple instances of ScatterPlot are running or ScatterPlot failed to close properly\n" +
 														"last time. The ability to generate new ClusterFilters will be disabled until this file has been\n" +
-														"removed. Do you want to delete it and load the contents of the temporary file into memory?",
+														"removed. Do you want to load the contents of the temporary file into memory before it is deleted?",
 												  "Error", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				// load the last one in otherClusterFilerFiles[]
-				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY) + otherClusterFilTerFiles[otherClusterFilTerFiles.length-1], jar);
-				for (int i=0; i<otherClusterFilTerFiles.length; i++) {
-					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[i])).delete();
+				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY) + otherClusterFilterFiles[otherClusterFilterFiles.length-1], jar);
+				for (int i=0; i<otherClusterFilterFiles.length; i++) {
+					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilterFiles[i])).delete();
 				}
-//				isClusterFilterUpdated = true;
+				startAutoSaveToTempFile();
 				setClusterFilterUpdated(true);
 			} else if (choice == 1) {
 				// load permanent
@@ -1706,8 +1711,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				} else {
 					clusterFilterCollection = new ClusterFilterCollection();
 				}
-				for (int i=0; i<otherClusterFilTerFiles.length; i++) {
-					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilTerFiles[i])).delete();
+				for (int i=0; i<otherClusterFilterFiles.length; i++) {
+					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilterFiles[i])).delete();
 				}
 			} else {
 				return false;
@@ -2237,7 +2242,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	public void updateCurrentClusterFilterGenotype(byte newGenotypeSelected, boolean updateGenotypeComboBox) {
 		clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter, newGenotypeSelected);
 //		startAutoSave();
-//		isClusterFilterUpdated = true;
 		setClusterFilterUpdated(true);
 		scatPanel.setPointsGeneratable(true);
 		scatPanel.setQcPanelUpdatable(true);
@@ -2320,14 +2324,14 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		autoSave.saveNow();
 	}
 	
-	public void updateClusterFilterStatus(boolean status) {
-//		if (status && autoSave == null) {
-//			autoSave = new AutoSaveForScatterPlot(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser", annotationCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser", 30);
-//			new Thread(autoSave).start();
-//		}
-//		isClusterFilterUpdated = status;
-		setClusterFilterUpdated(status);
-	}
+//	public void updateClusterFilterStatus(boolean status) {
+////		if (status && autoSave == null) {
+////			autoSave = new AutoSaveForScatterPlot(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser", annotationCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser", 30);
+////			new Thread(autoSave).start();
+////		}
+////		isClusterFilterUpdated = status;
+//		setClusterFilterUpdated(status);
+//	}
 
 	public void updateMarkerIndexHistory() {
 		// Oldest history is stored in the end of the array
@@ -2346,7 +2350,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		}
 	}
 
-	public void setClusterFilterUpdated (boolean status) {
+	public void setClusterFilterUpdated(boolean status) {
 		isClusterFilterUpdated = status;
 		autoSave.setClusterFilterUpdated(status);
 	}
@@ -2356,7 +2360,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		autoSave.setAnnotationUpdated(status);
 	}
 	
-	public void saveClusterFilterAndAnnotationCollection () {
+	public boolean saveClusterFilterAndAnnotationCollection() {
 		String[] options;
 		int choice;
 		String filename;
@@ -2369,11 +2373,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			if (choice == 0) {
 				clusterFilterCollection.serialize(clusterFilterFilename);
 				clusterFilterCollection.serialize(proj.getDir(Project.BACKUP_DIRECTORY, true)+ext.removeDirectoryInfo(clusterFilterFilename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+				System.out.println("clusterFilters should be backed up now");
+			} else if (choice == -1) {
+				return false;
 			} else {
 				//TODO As a double security, move sessionID + ".tempClusterFilters.ser" to BACKUP_DIRECTORY. But then need to delete it from BACKUP_DIRECTORY at some point of time.
 				// need a rule for that. also need the code for deletion.
 			}
-//			isClusterFilterUpdated = false;
 			setClusterFilterUpdated(false);
 //			autoSave.kill();
 //			autoSave = null;
@@ -2383,13 +2389,17 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				filename = proj.getFilename(Project.ANNOTATION_FILENAME, false, false);
-				Files.writeSerial(annotationCollection, filename);
+				annotationCollection.serialize(filename);
 				filename = proj.getDir(Project.BACKUP_DIRECTORY, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
-				Files.writeSerial(annotationCollection, filename);
+				annotationCollection.serialize(filename);
+			} else if (choice == -1) {
+				return false;
 			}
 //			isAnnotationUpdated = false;
 			setAnnotationUpdated(false);
 		}
+		
+		return true;
 	}
 
 	public void windowActivated(WindowEvent e) {}
@@ -2397,7 +2407,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	public void windowClosed(WindowEvent e) {}
 
 	public void windowClosing(WindowEvent e) {
-		saveClusterFilterAndAnnotationCollection();
+		int count;
+		
+		if (!saveClusterFilterAndAnnotationCollection()) {
+			return;
+		}
 
 		//TODO notify all threads (e.g., MarkerDataLoader) that they need to close
 
@@ -2406,6 +2420,22 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		}
 		if (markerDataLoader != null) {
 			markerDataLoader.kill();
+			count = 0;
+			while (!markerDataLoader.killComplete()) {
+				try {
+					Thread.sleep(250);
+				} catch (InterruptedException ie) {}
+				count++;
+				if (count > 0) {
+					System.err.println("Waiting for markerDataLoader to wind down...");
+				}
+			}
+		}
+		
+		if (exitOnClose) {
+			System.exit(1);
+		} else {
+			((JFrame)(this.getParent().getParent().getParent())).dispose();
 		}
 	}
 
@@ -2421,11 +2451,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
         JFrame frame;
     	ScatterPlot scatterPlot;
 
-    	scatterPlot = new ScatterPlot(proj, markerList, commentList);
+    	scatterPlot = new ScatterPlot(proj, markerList, commentList, exitOnClose);
     	
     	if (!scatterPlot.failed()) {
 	    	frame = new JFrame("ScatterPlot");
-			frame.setDefaultCloseOperation(exitOnClose?JFrame.EXIT_ON_CLOSE:JFrame.DISPOSE_ON_CLOSE);
+			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	        frame.setContentPane(scatterPlot);
 			frame.addWindowListener(scatterPlot);
 	

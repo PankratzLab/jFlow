@@ -519,6 +519,10 @@ public class ext {
 		System.out.println(getDate()+"\t"+getTime());
 	}
 
+	public static String getTimestampForFilename() {
+		return replaceAllWith((getDate()+"_"+getTime()), ":", "_");
+	}
+	
 	public static String getTimeElapsed(long startTime) {
 		long timeElapsed;
 		

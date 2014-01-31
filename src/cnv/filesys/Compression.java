@@ -252,7 +252,7 @@ public class Compression {
 	 */
 	public static float xyDecompressPositiveOnly(byte[] data) {
 	    if (data == null || data.length != 2) {
-	    	return (Float) null;
+	    	return Float.NaN;
 	    } else if ( data[0]==REDUCED_PRECISION_XY_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_XY_NAN_BYTES[1] ) {
 	    	return Float.NaN;
 	    } else if ( data[0]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0] && data[1]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1] ) {
@@ -267,7 +267,7 @@ public class Compression {
 		boolean sign;
 		int temp;
 	    if (data == null || data.length != 2) {
-	    	return (Float) null;
+	    	return Float.NaN;
 	    } else if ( data[0]==REDUCED_PRECISION_XY_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_XY_NAN_BYTES[1] ) {
 	    	return Float.NaN;
 	    } else if ( data[0]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0] && data[1]==REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1] ) {
@@ -333,7 +333,7 @@ public class Compression {
 	 */
 	public static float gcBafDecompress(byte[] data) {
 	    if (data == null || data.length != 2) {
-	    	return (Float) null;
+	    	return Float.NaN;
 	    } else if (data[0]==REDUCED_PRECISION_GCBAF_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_GCBAF_NAN_BYTES[1]) {
 	    	return Float.NaN;
 	    } else {
@@ -401,7 +401,7 @@ public class Compression {
 	 */
 	public static float lrrDecompress(byte[] data) {
 	    if (data == null || data.length != 3) {
-	    	return (Float) null;
+	    	return Float.NaN;
 	    } else if (data[0]==REDUCED_PRECISION_LRR_NAN_BYTES[0] && data[1]==REDUCED_PRECISION_LRR_NAN_BYTES[1] && data[2]==REDUCED_PRECISION_LRR_NAN_BYTES[2]) {
 	    	return Float.NaN;
 	    } else if (data[0]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0] && data[1]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1] && data[2]==REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2]) {

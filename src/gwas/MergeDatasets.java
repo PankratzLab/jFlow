@@ -27,20 +27,23 @@ public class MergeDatasets {
         double[] freqs;
         int index, temp;
         double p;
+        String filename;
         
         dirs = Files.listDirectories(dir, false);
         for (int i = 0; i<dirs.length; i++) {
-        	if (new File(dir+dirs[i]+"/hardy.hwe").exists()) {
-        		v.add(dirs[i]+"/");
+        	dirs[i] = ext.verifyDirFormat(dirs[i]);
+        	if (new File(dir+dirs[i]+"hardy.hwe").exists() || new File(dir+dirs[i]+"plink.hwe").exists()) {
+        		v.add(dirs[i]);
         	}
         }
         dirs = Array.toStringArray(v);
         
         hashes = new Hashtable<String,Hashtable<String,String>>();
         for (int i = 0; i<dirs.length; i++) {
+			filename = (Files.exists(dir+dirs[i]+"hardy.hwe")?"hardy.hwe":"plink.hwe");
     		try {
-    			reader = new BufferedReader(new FileReader(dir+dirs[i]+"/hardy.hwe"));
-    			System.out.println(ext.getTime()+"\tLoading hardy.hwe in "+dirs[i]);
+    			reader = new BufferedReader(new FileReader(dir+dirs[i]+filename));
+    			System.out.println(ext.getTime()+"\tLoading "+filename+" in "+dirs[i]);
     			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MarkerQC.HWE_HEADER, true);
     			while (reader.ready()) {
     				line = reader.readLine().trim().split("[\\s]+");
@@ -50,10 +53,10 @@ public class MergeDatasets {
     			}
     			reader.close();
     		} catch (FileNotFoundException fnfe) {
-    			System.err.println("Error: file \""+dirs[i]+"/hardy.hwe"+"\" not found in "+dir);
+    			System.err.println("Error: file \""+dirs[i]+filename+"\" not found in "+dir);
     			System.exit(1);
     		} catch (IOException ioe) {
-    			System.err.println("Error reading file \""+dirs[i]+"/hardy.hwe"+"\"");
+    			System.err.println("Error reading file \""+dirs[i]+filename+"\"");
     			System.exit(2);
     		}
         }
@@ -398,7 +401,7 @@ public class MergeDatasets {
 	                while (reader.ready()) {
 	                	temp = reader.readLine();
 	                	if (temp.startsWith("> #")) {
-	                		record = new String[] {temp.substring(3), "error", "error"};
+	                		record = new String[] {temp.substring(3), "error", "error", "error"};
 	                		trav = 0;
 	                	} else if (temp.indexOf("Pearson's Chi-squared test") > 0) {
 	                		trav = 1;
@@ -408,13 +411,15 @@ public class MergeDatasets {
 	                		try {
 		                		record[trav] = temp.substring(temp.indexOf("p-value ")+10);
 		                		if (trav == 2) {
-			                		if (Double.parseDouble(record[0]) < Double.parseDouble(record[1])) {
-			                			record[2] = record[0];
+			                		if (Double.parseDouble(record[1]) < Double.parseDouble(record[2])) {
+			                			record[3] = record[1];
 			                		} else {
-			                			record[2] = record[1];
+			                			record[3] = record[2];
 			                		}
 		                			writer.println(Array.toStr(record));
-		                			writer2.println(record[2]);
+		                			if (Double.parseDouble(record[3]) < HOMOGENEITY_THRESHOLD) {
+		                				writer2.println(record[0]);
+		                			}
 		                			trav = -1;
 		                			count++;
 		                		}
@@ -435,6 +440,7 @@ public class MergeDatasets {
 	        }
 	        writer.close();
 	        System.out.println("Found results for "+count+" markers in "+ext.getTimeElapsed(time));
+	        System.out.println("There were "+Files.countLines(dir+"FisherOrChiSquareDrops.dat", false)+" markers that had a minimum p-value less than "+HOMOGENEITY_THRESHOLD);
         } catch (Exception e) {
 	        System.err.println("Error writing to "+dir+"FisherResults.xln");
 	        e.printStackTrace();
@@ -513,15 +519,21 @@ public class MergeDatasets {
 	    boolean parseHomo = false;
 	    String update = "";
 	    String map = "";
+	    String plinkRoot = "final";
 	    
 	    String usage = "\n"+
 	    "gwas.BatchPlink requires 0-1 arguments\n"+
 	    "   (1) directory (i.e. dir="+dir+" (default))\n"+
+	    "   (2) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"+
+	    " OR:\n"+
+	    "   (2) parse R test of homogeneity results (i.e. -parseHomo (not the default))\n"+
+	    " OR:\n"+
 	    "   (2) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"+
-	    "   (3) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"+
-	    "   (4) parse R test of homogeneity results (i.e. -parseHomo (not the default))\n"+
-	    "   (5) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"+
-	    "   (6) mergedMap filename (i.e. map=allSNPs.xln (not the default))\n"+
+	    "   (3) root of plink files (i.e. root="+plinkRoot+" (default))\n"+
+	    " OR:\n"+
+	    "   (2) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"+
+	    " OR:\n"+
+	    "   (2) mergedMap filename (i.e. map=allSNPs.xln (not the default))\n"+
 	    "";
 
 	    for (int i = 0; i<args.length; i++) {
@@ -563,20 +575,19 @@ public class MergeDatasets {
 	    	dir = "./";
 	    }
 	    
+	    parseHomo = true;
+	    dir = "D:/data/aric_affy/ancestry26K/homogeneityWithPDs/";
+	    
 		try {
 	    	if (checkHomo) {
 	    		checkForHomogeneity(dir);
-	    	}
-	    	if (parseHomo) {
+	    	} else if (parseHomo) {
 	    		parseHomo(dir);
-	    	}
-	    	if (!update.equals("")) {
+	    	} else if (!update.equals("")) {
 	    		updateMap(update, map);
-	    	}
-	    	if (!batch.equals("")) {
-	    		batchMerge(dir, batch.split(","), "final");
-	    	}
-	    	if (consens) {
+	    	} else if (!batch.equals("")) {
+	    		batchMerge(dir, batch.split(","), plinkRoot);
+	    	} else if (consens) {
 	    		mergeMaps(dir);
 	    	}
 	    } catch (Exception e) {

@@ -851,8 +851,8 @@ public class CALiCo {
 		
 		inputFiles = new String[0];
 		for (int i = 0; i < sites.length; i++) {
-			filename = root+"_"+sites[i]+".out";
-			outfile = root+"_"+sites[i]+"_parsed.out";
+			filename = root+sites[i]+".out";
+			outfile = root+sites[i]+"_parsed.out";
 			if (!Files.exists(dir+outfile)) {
 				System.out.println("Parsing "+filename);
 				ResultsPackager.parseSOLformat(dir, filename, mapFile, freqFile, null, 1.0, outfile, log);
@@ -883,10 +883,14 @@ public class CALiCo {
 		Logger log;
 		boolean exists = true;
 		
-//		metaAnalyzeSOL("D:/data/SOL/", "MODEL3wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
-//		metaAnalyzeSOL("D:/data/SOL/", "MODEL4wPCs", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		metaAnalyzeSOL("D:/data/SOL/", "MODEL3wPCs_", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		metaAnalyzeSOL("D:/data/SOL/", "MODEL4wPCs_", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
 //		System.exit(1);
 
+//		metaAnalyzeSOL("D:/data/SOL/models12/", "MODEL1", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		metaAnalyzeSOL("D:/data/SOL/models12/", "MODEL2", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		System.exit(1);
+		
 		String usage = "\n" +
 		"one.CALiCo requires 0-1 arguments\n" + 
 		"   (1) location of genotype files (i.e. geno=" + genos + " (default))\n" + 

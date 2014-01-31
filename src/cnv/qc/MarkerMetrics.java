@@ -41,13 +41,7 @@ public class MarkerMetrics {
 		}
         
         samples = proj.getSamples();
- 		
-        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
-        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
-        } else {
-        	clusterFilterCollection = null;
-        }
-		
+        clusterFilterCollection = proj.getClusterFilterCollection();
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
 
 		try {
@@ -262,12 +256,7 @@ public class MarkerMetrics {
         	sexes[i] = Math.max(0, sampleData.getSexForIndividual(samples[i]));
 		}
  		
-        if ((new File(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser")).exists()) {
-        	clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY)+"clusterFilters.ser", proj.getJarStatus());
-        } else {
-        	clusterFilterCollection = null;
-        }
-		
+        clusterFilterCollection = proj.getClusterFilterCollection();
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
 
 		try {
@@ -432,6 +421,373 @@ public class MarkerMetrics {
 		FilterDB.filter(markerMetricsFilename, exclusionCriteriaFilename, proj.getDir(Project.RESULTS_DIRECTORY)+"markersToExclude.out", log);
 	}
 	
+	public static void tallyFlaggedReviewedChangedAndDropped(Project proj, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer, writerMissed;
+		String[] line;
+		Hashtable<String, Vector<String>> warningHash;
+		Hashtable<String, String> flaggedMarkers, droppedMarkers, annotatedMarkers, reclusteredMarkers, allOtherMarkers;
+		Vector<String> v;
+		String[] filenames;
+		String dir;
+		String[] header, expectedHeader, warnings, markerNames;
+		MarkerDataLoader markerDataLoader;
+		MarkerData markerData;
+		ClusterFilterCollection clusterFilterCollection;
+		AnnotationCollection annotationCollection;
+		byte[] genotypes;
+		boolean zeroedOut;
+		float gcThreshold;
+		String[] keys;
+		int numAnnotated, numReclustered, numDropped;
+		String warning;
+		boolean problem;
+		String missedOutputFile;
+		boolean annotated;
+		
+		dir = proj.getProjectDir();
+		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
+
+		filenames = new String[] {"results/markersToExclude.out", "results/markersToReview.out"};
+		filenames = new String[] {"results/markersToBoth.out"};
+		filenames = new String[] {"results/markersToReviewOrFlaggedByQC.out"};
+		filenames = new String[] {"results/markersToReview.out", "results/markersFlaggedByQC.out", "results/markersToReviewOrFlaggedByQC.out"};
+		expectedHeader = new String[] {"Unit", "Reason flagged", "numFlags"};
+		
+		problem = false;
+		for (int i = 0; i < filenames.length; i++) {
+			if (Files.exists(dir+filenames[i])) {
+				header = Files.getHeaderOfFile(dir+filenames[i], log);
+				if (!ext.checkHeader(header, expectedHeader, false)) {
+					problem = true; 
+				}
+			} else {
+				log.reportError("Error - could not find "+dir+filenames[i]);
+				problem = true;
+			}
+		}
+		if (problem) {
+			System.exit(1);
+		}
+		
+        clusterFilterCollection = proj.getClusterFilterCollection();
+        annotationCollection = proj.getAnnotationCollection();
+
+        flaggedMarkers = new Hashtable<String, String>();
+		for (int i = 0; i < filenames.length; i++) {
+			v = new Vector<String>();
+			warningHash = new Hashtable<String, Vector<String>>();
+			try {
+				reader = Files.getAppropriateReader(dir+filenames[i]);
+				if (reader == null) {
+					log.reportError("Error - could not find "+dir+filenames[i]);
+				}
+				header = reader.readLine().trim().split("\t");
+				ext.checkHeader(header, expectedHeader, true);
+				while (reader.ready()) {
+					line = reader.readLine().trim().split("\t");
+					if (!flaggedMarkers.containsKey(line[0])) {
+						flaggedMarkers.put(line[0], "flaggedButNotAnnotated");
+					}
+					flaggedMarkers.put(line[0], flaggedMarkers.get(line[0])+";"+line[1]);
+					warnings = line[1].split(";");
+					for (int j = 0; j < warnings.length; j++) {
+						warning = warnings[j].substring(0, warnings[j].indexOf(" (")>0?warnings[j].indexOf(" ("):warnings[j].length());
+						if (!warningHash.containsKey(warning)) {
+							warningHash.put(warning, new Vector<String>());
+						}
+						warningHash.get(warning).add(line[0]);
+						HashVec.addIfAbsent(line[0], v);
+					}
+					
+				}
+				reader.close();
+			} catch (FileNotFoundException fnfe) {
+				System.err.println("Error: file \"" + dir+filenames[i] + "\" not found in current directory");
+				System.exit(1);
+			} catch (IOException ioe) {
+				System.err.println("Error reading file \"" + dir+filenames[i] + "\"");
+				System.exit(2);
+			}
+			
+			markerNames = Array.toStringArray(v);
+			log.report(markerNames.length+" markers met at least one criterion in "+filenames[i]);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+			annotatedMarkers = new Hashtable<String, String>();
+			reclusteredMarkers = new Hashtable<String, String>();
+			droppedMarkers = new Hashtable<String, String>();
+			for (int j = 0; j < markerNames.length; j++) {
+				if (j % 1000 == 0) {
+					System.out.println((j+1)+" of "+markerNames.length);
+				}
+				do {
+					markerData = markerDataLoader.getMarkerData(j);
+					if (markerData == null) {
+						System.out.println("waiting...");
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException ie) {}
+					}
+				} while (markerData == null);
+				zeroedOut = true;
+				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+				for (int k = 0; k < genotypes.length; k++) {
+					if (genotypes[k] != -1) {
+						zeroedOut = false;
+					}
+				}
+				if (zeroedOut) {
+					droppedMarkers.put(markerNames[j], "");
+				}
+				if (annotationCollection != null && annotationCollection.markerHasAnyAnnotation(markerNames[j])) {
+					annotatedMarkers.put(markerNames[j], "");
+				}
+				if (clusterFilterCollection != null && clusterFilterCollection.getClusterFilters(markerNames[j]) != null) {
+					reclusteredMarkers.put(markerNames[j], "");
+				}
+				markerDataLoader.releaseIndex(j);
+			}
+			
+			keys = HashVec.getKeys(warningHash);
+			try {
+				writer = new PrintWriter(new FileWriter(dir+filenames[i]+".out"));
+				writer.println("WarningCriterion\tnumMarkers\tnumAnnotated\tnumReclustered\tnumDropped");
+				for (int j = 0; j < keys.length; j++) {
+					v = warningHash.get(keys[j]);
+					numReclustered = numAnnotated = numDropped = 0;
+					for (int k = 0; k < v.size(); k++) {
+						if (reclusteredMarkers.containsKey(v.elementAt(k))) {
+							numReclustered++;
+						}
+						if (annotatedMarkers.containsKey(v.elementAt(k))) {
+							numAnnotated++;
+						}
+						if (droppedMarkers.containsKey(v.elementAt(k))) {
+							numDropped++;
+						}
+					}
+					writer.println(keys[j]+"\t"+v.size()+"\t"+numAnnotated+"\t"+numReclustered+"\t"+numDropped);
+				}
+				numReclustered = numAnnotated = numDropped = 0;
+				for (int j = 0; j < markerNames.length; j++) {
+					if (reclusteredMarkers.containsKey(markerNames[j])) {
+						numReclustered++;
+					}
+					if (annotatedMarkers.containsKey(markerNames[j])) {
+						numAnnotated++;
+					}
+					if (droppedMarkers.containsKey(markerNames[j])) {
+						numDropped++;
+					}
+				}
+				writer.println("Any criteria\t"+markerNames.length+"\t"+numAnnotated+"\t"+numReclustered+"\t"+numDropped);
+
+				missedOutputFile = dir+filenames[i]+"_missed.out";
+				writerMissed = new PrintWriter(new FileWriter(missedOutputFile));
+				allOtherMarkers = HashVec.loadToHashNull(proj.getMarkerNames());
+				for (int j = 0; j < markerNames.length; j++) {
+					if (!annotatedMarkers.containsKey(markerNames[j])) {
+						writerMissed.println(markerNames[j]+"\t"+flaggedMarkers.get(markerNames[j]));
+					}
+					allOtherMarkers.remove(markerNames[j]);
+				}
+				numReclustered = numAnnotated = numDropped = 0;
+				markerNames = HashVec.getKeys(allOtherMarkers, false, false);
+				writer.print("Everything else\t"+markerNames.length);
+
+				for (int j = 0; j < markerNames.length; j++) {
+					if (annotationCollection != null && annotationCollection.markerHasAnyAnnotation(markerNames[j])) {
+						numAnnotated++;
+					}
+					if (clusterFilterCollection != null && clusterFilterCollection.getClusterFilters(markerNames[j]) != null) {
+						numReclustered++;
+					} else {
+						allOtherMarkers.remove(markerNames[j]);
+					}
+				}
+				markerNames = HashVec.getKeys(allOtherMarkers, false, false);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+				for (int j = 0; j < markerNames.length; j++) {
+					do {
+						markerData = markerDataLoader.getMarkerData(j);
+						if (markerData == null) {
+							System.out.println("waiting...");
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException ie) {}
+						}
+					} while (markerData == null);
+					zeroedOut = true;
+					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+					for (int k = 0; k < genotypes.length; k++) {
+						if (genotypes[k] != -1) {
+							zeroedOut = false;
+						}
+					}
+					if (annotationCollection != null && annotationCollection.markerHasAnyAnnotation(markerNames[j])) {
+						annotated = true;
+					} else {
+						annotated = false;
+					}
+					
+					if (zeroedOut) {
+						if (!annotated) {
+							writerMissed.println(markerNames[j]+"\tdroppedButUnannotated");
+						}
+						numDropped++;
+					} else {
+						if (!annotated) {
+							writerMissed.println(markerNames[j]+"\treclusteredButUnannotated");
+						}
+					}
+					markerDataLoader.releaseIndex(j);
+				}
+				writer.println("\t"+numAnnotated+"\t"+numReclustered+"\t"+numDropped);
+				writer.close();
+				writerMissed.close();
+				if (new File(missedOutputFile).length() == 0) {
+					new File(missedOutputFile).delete();
+				}
+			} catch (Exception e) {
+				System.err.println("Error writing to " + dir+filenames[i]+".out");
+				e.printStackTrace();
+			}
+		}
+		
+		annotationReport(proj, dir+"results/annotationReport.xln", log);
+	}
+	
+	public static void annotationReport(Project proj, String outputFile, Logger log) {
+		PrintWriter writer, writerMissed;
+		Hashtable<String, String> reclusteredMarkers, droppedMarkers, allOtherMarkers;
+		String[] markerNames, markersWithAnnotation;
+		MarkerDataLoader markerDataLoader;
+		MarkerData markerData;
+		ClusterFilterCollection clusterFilterCollection;
+		AnnotationCollection annotationCollection;
+		byte[] genotypes;
+		boolean zeroedOut;
+		float gcThreshold;
+		int numReclustered, numDropped;
+		char[] annotationKeys;
+		String annotation;
+		String missedOutputFile;
+		
+		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
+
+        clusterFilterCollection = proj.getClusterFilterCollection();
+        annotationCollection = proj.getAnnotationCollection();
+
+		markerNames = annotationCollection.getMarkerLists();
+		log.report(markerNames.length+" markers have an annotation");
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+		reclusteredMarkers = new Hashtable<String, String>();
+		droppedMarkers = new Hashtable<String, String>();
+		for (int j = 0; j < markerNames.length; j++) {
+			if (j % 1000 == 0) {
+				System.out.println((j+1)+" of "+markerNames.length+" annotated markers");
+			}
+			do {
+				markerData = markerDataLoader.getMarkerData(j);
+				if (markerData == null) {
+					System.out.println("waiting...");
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException ie) {}
+				}
+			} while (markerData == null);
+			zeroedOut = true;
+			genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+			for (int k = 0; k < genotypes.length; k++) {
+				if (genotypes[k] != -1) {
+					zeroedOut = false;
+				}
+			}
+			if (zeroedOut) {
+				droppedMarkers.put(markerNames[j], "");
+			}
+			if (clusterFilterCollection != null && clusterFilterCollection.getClusterFilters(markerNames[j]) != null) {
+				reclusteredMarkers.put(markerNames[j], "");
+			}
+			markerDataLoader.releaseIndex(j);
+		}
+		
+		annotationKeys = annotationCollection.getKeys();
+		try {
+			writer = new PrintWriter(new FileWriter(outputFile));
+			writer.println("Annotation\tnumMarkers\tnumReclustered\tnumDropped");
+			for (int j = 0; j < annotationKeys.length; j++) {
+				annotation = annotationCollection.getDescriptionForComment(annotationKeys[j], false, false);
+				markersWithAnnotation = annotationCollection.getMarkerLists(annotationKeys[j]);
+				numReclustered = numDropped = 0;
+				for (int k = 0; k < markersWithAnnotation.length; k++) {
+					if (reclusteredMarkers.containsKey(markersWithAnnotation[k])) {
+						numReclustered++;
+					}
+					if (droppedMarkers.containsKey(markersWithAnnotation[k])) {
+						numDropped++;
+					}
+				}
+				writer.println(annotation+"\t"+markersWithAnnotation.length+"\t"+numReclustered+"\t"+numDropped);
+			}
+			writer.println("Any annotation\t"+markerNames.length+"\t"+reclusteredMarkers.size()+"\t"+droppedMarkers.size());
+			
+			allOtherMarkers = HashVec.loadToHashNull(proj.getMarkerNames());
+			for (int j = 0; j < markerNames.length; j++) {
+				allOtherMarkers.remove(markerNames[j]);
+			}
+			numReclustered = numDropped = 0;
+			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
+			writer.print("Everything else\t"+markerNames.length);
+
+			for (int j = 0; j < markerNames.length; j++) {
+				if (clusterFilterCollection != null && clusterFilterCollection.getClusterFilters(markerNames[j]) != null) {
+					numReclustered++;
+				} else {
+					allOtherMarkers.remove(markerNames[j]);
+				}
+			}
+			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+			missedOutputFile = ext.addToRoot(outputFile, "_missed");
+			writerMissed = new PrintWriter(new FileWriter(missedOutputFile));
+			for (int j = 0; j < markerNames.length; j++) {
+				do {
+					markerData = markerDataLoader.getMarkerData(j);
+					if (markerData == null) {
+						System.out.println("waiting...");
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException ie) {}
+					}
+				} while (markerData == null);
+				zeroedOut = true;
+				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+				for (int k = 0; k < genotypes.length; k++) {
+					if (genotypes[k] != -1) {
+						zeroedOut = false;
+					}
+				}
+				if (zeroedOut) {
+					writerMissed.println(markerNames[j]+"\tdropped");
+					numDropped++;
+				} else {
+					writerMissed.println(markerNames[j]+"\treclustered");
+				}
+				markerDataLoader.releaseIndex(j);
+			}
+			writer.println("\t"+numReclustered+"\t"+numDropped);
+			writer.close();
+			writerMissed.close();
+			if (new File(missedOutputFile).length() == 0) {
+				new File(missedOutputFile).delete();
+			}
+		} catch (Exception e) {
+			System.err.println("Error writing to " + outputFile);
+			e.printStackTrace();
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String markersSubset = null;
@@ -444,6 +800,7 @@ public class MarkerMetrics {
 		boolean fullQC = false;
 		boolean filter = false;
 		boolean lrrVariance = false;
+		boolean tally = false;
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
@@ -458,6 +815,8 @@ public class MarkerMetrics {
 				"   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n" + 
 				"  OR\n" + 
 				"   (4) check variance of LRR to help determine regions of instability (i.e. -lrrVar (not the default))\n" + 
+				"  OR\n" + 
+				"   (4) tally the number of reviewed markers that were changed or dropped (i.e. -tally (not the default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -485,6 +844,9 @@ public class MarkerMetrics {
 			} else if (args[i].startsWith("-filter")) {
 				filter = true;
 				numArgs--;
+			} else if (args[i].startsWith("-tally")) {
+				tally = true;
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -511,6 +873,10 @@ public class MarkerMetrics {
 
 //			markersSubset = "";
 			
+//			filename = "/home/npankrat/projects/SingaporeReplication.properties";
+			filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
+			tally = true;
+			
 			proj = new Project(filename, false);
 			log = new Logger(logfile);
 			
@@ -525,6 +891,9 @@ public class MarkerMetrics {
 			}
 			if (filter) {			
 				filterMetrics(proj, log);
+			}
+			if (tally) {
+				tallyFlaggedReviewedChangedAndDropped(proj, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

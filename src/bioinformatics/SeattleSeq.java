@@ -2,6 +2,7 @@ package bioinformatics;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 
 public class SeattleSeq {
@@ -335,5 +336,42 @@ public class SeattleSeq {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static Hashtable<String, String[]> loadAllAnnotationInDir(String directory, Logger log) {
+		BufferedReader reader;
+		String[] files, line;
+		Hashtable<String, String[]> hash;
+
+		hash = new Hashtable<String, String[]>();
+		
+		if (directory == null) {
+			log.reportError("The SeattleSeq annotation directory was null; returning an empty hashtable");
+		} else if (!Files.exists(directory) || !Files.isDirectory(directory)) {
+			log.reportError("Error - SeattleSeq annotation directory directory not found: "+directory);
+			log.reportError("        returning an empty hashtable");
+		} else {
+			files = Files.list(directory, ".SeattleSeq", false);
+			log.report("Found "+files.length+" file(s) with a .SeattleSeq extension to include");
+			for (int i = 0; i < files.length; i++) {
+				try {
+					reader = new BufferedReader(new FileReader(directory+files[i]));
+					while (reader.ready()) {
+						line = reader.readLine().trim().split("[\\s]+");
+						// TODO
+					}
+					reader.close();
+				} catch (FileNotFoundException fnfe) {
+					System.err.println("Error: file \"" + directory+files[i]
+							+ "\" not found in current directory");
+					System.exit(1);
+				} catch (IOException ioe) {
+					System.err.println("Error reading file \"" + directory+files[i] + "\"");
+					System.exit(2);
+				}
+			}
+		}		
+
+		return hash;
 	}
 }
