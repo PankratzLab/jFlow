@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -63,6 +65,31 @@ public class DnaseEnrichment {
 	private static String bed_dir = null;
 	private static String[] bedFileList;
 	private static int ldLines;
+	private static int numThreads = 1; // number of threads to run. default is 1
+
+	private static ArrayList<HashSet<String>> dhsregionsHashSetList; // global static variable to hold DHS regions
+	private static Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<String, Integer>(); // global static variable for ChrPositionMap
+
+	/**
+	 * WorkerThreads which process different LD files and create ChrPositionMap concurrently
+	 */
+	public class WorkerThread implements Runnable {
+		private String ldFilePath; // path of the ld file
+		private int chrNum; // chr number
+
+		public WorkerThread(String s, int chrNum) {
+			this.ldFilePath = s;
+			this.chrNum = chrNum;
+		}
+
+		@Override
+		public void run() {
+			LOGGER.info(Thread.currentThread().getName() + ": Building ChrPositionMap for chr file: " + ldFilePath);
+			generateChrPositionMap(ldFilePath, chrNum); // generate the chrPositionMap for all the bed files using this chr file
+			LOGGER.info(Thread.currentThread().getName() + ": Completed building ChrPositionMap for file: " + ldFilePath);
+
+		}
+	}
 
 	/**
 	 * Function to print the command line usage.
@@ -71,7 +98,7 @@ public class DnaseEnrichment {
 	 */
 	private static String showCommandLineHelp() {
 
-		return ("\n" + "gwas.DnaseEnrichment requires five arguments\n" + "\t(1) directory with bed files (bedDir)\n" + "\t(2) filename with chr/pos/pvals (pValueFile)\n" + "\t(3) The bim file (pLinkFile)\n" + "\t(4) " + "ld files directory (ldDir)\n" + "\t(5)number of lines on which ld files will be split (ldLines)\n" + "");
+		return ("\n" + "gwas.DnaseEnrichment requires six arguments\n" + "\t(1) directory with bed files (bedDir)\n" + "\t(2) filename with chr/pos/pvals (pValueFile)\n" + "\t(3) The bim file (pLinkFile)\n" + "\t(4) " + "ld files directory (ldDir)\n" + "\t(5)number of lines on which ld files will be split (ldLines)\n" + "\t(6)number of threads (numThreads: defaults=1)\n" + "");
 
 	}
 
@@ -97,14 +124,17 @@ public class DnaseEnrichment {
 			} else if (args[i].toLowerCase().startsWith("lddir=")) {
 				ldDir = ext.verifyDirFormat(args[i].split("=")[1]);
 				numArgs--;
-			} else if (args[i].startsWith("ldLines=")) {
-				numArgs--;
+			} else if (args[i].toLowerCase().startsWith("ldlines=")) {
 				ldLines = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].toLowerCase().startsWith("numthreads=")) {
+				numThreads = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
-		if (numArgs != 0) {
+		if (numArgs != 0 && numArgs != 1) {
 			System.err.println(showCommandLineHelp());
 			System.exit(1);
 		}
@@ -119,6 +149,7 @@ public class DnaseEnrichment {
 		LOGGER.info("Bed Directory is: " + bed_dir);
 		LOGGER.info("Plink File location is: " + plinkFile);
 		LOGGER.info("LD Line Count is : " + ldLines);
+		LOGGER.info("Num of threads to use while making ChrPositionMap: " + numThreads);
 
 		// Filter ld files by storing only the new required columns
 		LOGGER.info("Filtering LD files. Please wait...");
@@ -127,7 +158,6 @@ public class DnaseEnrichment {
 		// build ChrPositionMap using the ld files for each bed file
 		LOGGER.info("Building ChrPositionMap. Please wait...");
 
-		Hashtable<String, Integer> bedFileChrMapPartCount = null;
 		if (Files.exists(bed_dir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME)) {
 			System.out.println("We found ChrPositionMap for bed files. Do you want to continue with these files (y/n)" + "" + "" + "?");
 			System.out.println("Note: If you feel like you ld files or bed files have changed from the last run then " + "" + "we strongly suggest you to stop here and delete the ChrMapPosition directory " + "and " + "run " + "the program" + " " + "again" + "" + "" + "" + "" + "");
@@ -146,7 +176,9 @@ public class DnaseEnrichment {
 				System.exit(FAILURE);
 			}
 		} else {
-			bedFileChrMapPartCount = generateChrPositionMap();
+			dhsregionsHashSetList = findDHSRegionMarkers();
+			DnaseEnrichment dnaseEnrichmentObject = new DnaseEnrichment();
+			dnaseEnrichmentObject.runWorkers();
 			writeBedFileChrMapPartCount(bedFileChrMapPartCount);
 		}
 
@@ -160,6 +192,22 @@ public class DnaseEnrichment {
 		// write to output file
 		writeOutputFile(overlapStats);
 
+	}
+
+	/**
+	 * Function to run worker threads concurrently to build chrPositionMap
+	 */
+	public void runWorkers() {
+		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION, false);
+		for (int i = 0; i < ldFilesList.length; i++) {
+			Runnable worker = new WorkerThread(ldFilesList[i], i);
+			executor.execute(worker);
+		}
+		executor.shutdown();
+		while (!executor.isTerminated())
+			;
+		LOGGER.info("All threads terminated successfully: Processed all chr files to build ChrPositionMap");
 	}
 
 	/**
@@ -333,59 +381,51 @@ public class DnaseEnrichment {
 	/**
 	 * Function to {@link ChrPositionMap} for all the bed files
 	 */
-	private static Hashtable<String, Integer> generateChrPositionMap() {
-		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION, false);
+	private static void generateChrPositionMap(String curLdFilePath, int chrNum) {
 		ChrPositionMap chrPositionMap;
 		HashSet<Integer> value;
-		Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<String, Integer>();
+		int partCount = 0;
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(ldDir + Files.removeExtention(curLdFilePath) + FILTERED_FILE_EXTENSION));
+			reader.readLine(); // skill the first header line
 
-		ArrayList<HashSet<String>> dhsregionsHashSetList = findDHSRegionMarkers();
-		for (int i = 0; i < ldFilesList.length; i++) {
-			int partCount = 0;
+			while (reader.ready()) {
+				Hashtable<String, ChrPositionMap> chrPositionMapList = new Hashtable<String, ChrPositionMap>();
+				LOGGER.info("Processing: " + curLdFilePath + Files.SERIALIZED_FILE_EXTENSION);
 
-			try {
-				BufferedReader reader = new BufferedReader(new FileReader(ldDir + Files.removeExtention(ldFilesList[i]) + FILTERED_FILE_EXTENSION));
-				reader.readLine(); // skill the first header line
+				for (int ldLineCounter = 0; ldLineCounter < ldLines && reader.ready(); ldLineCounter++) {
+					String curline = reader.readLine();
+					String[] curlineParams = WHILTE_SPACE_PATTERN.split(curline.trim());
+					for (int j = 0; j < dhsregionsHashSetList.size(); j++) {
 
-				while (reader.ready()) {
-					Hashtable<String, ChrPositionMap> chrPositionMapList = new Hashtable<String, ChrPositionMap>();
-					LOGGER.info("Processing: " + ldFilesList[i] + Files.SERIALIZED_FILE_EXTENSION);
+						if (chrPositionMapList.containsKey(bedFileList[j])) {
+							chrPositionMap = chrPositionMapList.get(bedFileList[j]);
+						} else {
+							chrPositionMapList.put(bedFileList[j], chrPositionMap = new ChrPositionMap());
 
-					for (int ldLineCounter = 0; ldLineCounter < ldLines && reader.ready(); ldLineCounter++) {
-						String curline = reader.readLine();
-						String[] curlineParams = WHILTE_SPACE_PATTERN.split(curline.trim());
-						for (int j = 0; j < dhsregionsHashSetList.size(); j++) {
-
-							if (chrPositionMapList.containsKey(bedFileList[j])) {
-								chrPositionMap = chrPositionMapList.get(bedFileList[j]);
+						}
+						// if any of the maker is present then store both the positions
+						if (dhsregionsHashSetList.get(j).contains(curlineParams[2]) || dhsregionsHashSetList.get(j).contains(curlineParams[4])) {
+							if (chrPositionMap.getChrPositionMap().containsKey(Byte.valueOf(curlineParams[0]))) {
+								value = chrPositionMap.getChrPositionMap().get(Byte.valueOf(curlineParams[0]));
 							} else {
-								chrPositionMapList.put(bedFileList[j], chrPositionMap = new ChrPositionMap());
-
+								chrPositionMap.getChrPositionMap().put(Byte.valueOf(curlineParams[0]), value = new HashSet<Integer>());
 							}
-							// if any of the maker is present then store both the positions
-							if (dhsregionsHashSetList.get(j).contains(curlineParams[2]) || dhsregionsHashSetList.get(j).contains(curlineParams[4])) {
-								if (chrPositionMap.getChrPositionMap().containsKey(Byte.valueOf(curlineParams[0]))) {
-									value = chrPositionMap.getChrPositionMap().get(Byte.valueOf(curlineParams[0]));
-								} else {
-									chrPositionMap.getChrPositionMap().put(Byte.valueOf(curlineParams[0]), value = new HashSet<Integer>());
-								}
-								value.add(Integer.parseInt(curlineParams[1]));
-								value.add(Integer.parseInt(curlineParams[3]));
-							}
+							value.add(Integer.parseInt(curlineParams[1]));
+							value.add(Integer.parseInt(curlineParams[3]));
 						}
 					}
-					LOGGER.info("Dumping ChrPositonMap with: " + ldFilesList[i] + Files.SERIALIZED_FILE_EXTENSION + "\t " + "Part Count is: " + partCount + "Please wait ...");
-					writeChrPositionMap(chrPositionMapList, i, partCount);
-					partCount++;
-
 				}
-				reader.close();
-				bedFileChrMapPartCount.put(ldFilesList[i], partCount);
-			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.info("Dumping ChrPositonMap with: " + curLdFilePath + Files.SERIALIZED_FILE_EXTENSION + "\t " + "Part Count is: " + partCount + "Please wait ...");
+				writeChrPositionMap(chrPositionMapList, chrNum, partCount);
+				partCount++;
+
 			}
+			reader.close();
+			bedFileChrMapPartCount.put(curLdFilePath, partCount);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return bedFileChrMapPartCount;
 	}
 
 	/**
