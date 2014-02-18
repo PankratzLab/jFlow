@@ -18,7 +18,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
-import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,9 +61,9 @@ public class DnaseEnrichment {
 	private static String FILTERED_FILE_EXTENSION = ".flt";
 	private static String plinkFile = null;
 	private static String ldDir = null;
-	private static String bed_dir = null;
+	private static String bedDir = null;
 	private static String[] bedFileList;
-	private static int ldLines;
+	private static int ldLines = 0;
 	private static int numThreads = 1; // number of threads to run. default is 1
 
 	private static ArrayList<HashSet<String>> dhsregionsHashSetList; // global static variable to hold DHS regions
@@ -107,13 +106,14 @@ public class DnaseEnrichment {
 		ArrayList<OutputFileFormat> overlapStats;
 		int numArgs = args.length;
 		String filename = null;
+		boolean overWrite = false;
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(showCommandLineHelp());
 				System.exit(1);
 			} else if (args[i].toLowerCase().startsWith("beddir=")) {
-				bed_dir = ext.verifyDirFormat(args[i].split("=")[1]);
+				bedDir = ext.verifyDirFormat(args[i].split("=")[1]);
 				numArgs--;
 			} else if (args[i].toLowerCase().startsWith("pvaluefile=")) {
 				filename = args[i].split("=")[1];
@@ -127,6 +127,9 @@ public class DnaseEnrichment {
 			} else if (args[i].toLowerCase().startsWith("ldlines=")) {
 				ldLines = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].toLowerCase().startsWith("overwrite=")) {
+				overWrite = args[i].split("=")[1].equals("true") ? true : false;
+				numArgs--;
 			} else if (args[i].toLowerCase().startsWith("numthreads=")) {
 				numThreads = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
@@ -134,57 +137,49 @@ public class DnaseEnrichment {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
-		if (numArgs != 0 && numArgs != 1) {
+		if (numArgs != 0 || bedDir == null || plinkFile == null || ldDir == null || ldLines == 0 || filename == null) {
 			System.err.println(showCommandLineHelp());
 			System.exit(1);
 		}
 
 		// get names of all the bed files
-		bedFileList = Files.list(bed_dir, BED_FILE_EXTENTION, false);
+		bedFileList = Files.list(bedDir, BED_FILE_EXTENTION, false);
 		Arrays.sort(bedFileList);
 
 		// Print out parameters to user
 		LOGGER.info("Starting DnaseEnrichment Processing");
 		LOGGER.info("LD Directory is: " + ldDir);
-		LOGGER.info("Bed Directory is: " + bed_dir);
+		LOGGER.info("Bed Directory is: " + bedDir);
 		LOGGER.info("Plink File location is: " + plinkFile);
 		LOGGER.info("LD Line Count is : " + ldLines);
 		LOGGER.info("Num of threads to use while making ChrPositionMap: " + numThreads);
+		LOGGER.info("Over write ChrPositionMap is set to: " + overWrite);
 
 		// Filter ld files by storing only the new required columns
 		LOGGER.info("Filtering LD files. Please wait...");
 		filterAllLDFiles();
 
-		// build ChrPositionMap using the ld files for each bed file
-		LOGGER.info("Building ChrPositionMap. Please wait...");
+		if (Files.exists(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME)) {
+			LOGGER.info("We found ChrPositionMap for bed files.");
+			LOGGER.info("Note: If you feel like your ld files or bed files have changed from the last run then " + "" + "we strongly suggest you to stop here and delete the ChrMapPosition directory and run the program again");
+			LOGGER.info("Chr Position Map File Directory: " + bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator);
+			LOGGER.info("overWrite parameter is set to: " + overWrite);
+		}
 
-		if (Files.exists(bed_dir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME)) {
-			System.out.println("We found ChrPositionMap for bed files. Do you want to continue with these files (y/n)" + "" + "" + "?");
-			System.out.println("Note: If you feel like you ld files or bed files have changed from the last run then " + "" + "we strongly suggest you to stop here and delete the ChrMapPosition directory " + "and " + "run " + "the program" + " " + "again" + "" + "" + "" + "" + "");
-			System.out.println("Chr Position Map File Directory: " + bed_dir + BED_FILE_CHR_MAP_FOLDER + File.separator);
-			System.out.print("DO you to continue Y/N: ");
-			Scanner scan = new Scanner(System.in); // scanner for input
-			String userChoice = scan.nextLine();
-			scan.close();
-			if (userChoice.toLowerCase().equals("y")) {
-				bedFileChrMapPartCount = readBedFileChrMapPartCount();
-			} else if (userChoice.toLowerCase().equals("n")) {
-				System.out.println("Exiting on user selection");
-				System.exit(0);
-			} else {
-				System.out.println("Invalid choice. Exiting.");
-				System.exit(FAILURE);
-			}
-		} else {
+		if (overWrite || (!Files.exists(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME))) {
+			LOGGER.info("Finding DHS Region markers...");
 			dhsregionsHashSetList = findDHSRegionMarkers();
+			LOGGER.info("Starting to build ChrPositionMap...");
 			DnaseEnrichment dnaseEnrichmentObject = new DnaseEnrichment();
 			dnaseEnrichmentObject.runWorkers();
 			writeBedFileChrMapPartCount(bedFileChrMapPartCount);
-		}
+			dhsregionsHashSetList.clear();
+		} else
+			bedFileChrMapPartCount = readBedFileChrMapPartCount();
 
 		// find the overlapping position counts
 		LOGGER.info("Building statistics. Please wait...");
-		overlapStats = findOverlapRegions(bed_dir, filename, bedFileChrMapPartCount);
+		overlapStats = findOverlapRegions(bedDir, filename, bedFileChrMapPartCount);
 
 		// Overlap statistics
 		LOGGER.info(overlapStats.toString());
@@ -236,12 +231,12 @@ public class DnaseEnrichment {
 		}
 		resultArrayList = Array.transpose(resultArrayList);
 		try {
-			String outputFilePath = bed_dir + OUTPUT_FOLDER + File.separator + OUTPUT_FILENAME;
+			String outputFilePath = bedDir + OUTPUT_FOLDER + File.separator + OUTPUT_FILENAME;
 
-			File theDir = new File(bed_dir + OUTPUT_FOLDER + File.separator);
+			File theDir = new File(bedDir + OUTPUT_FOLDER + File.separator);
 			// if the directory does not exist, create it
 			if (!theDir.exists()) {
-				System.out.println("creating directory: " + bed_dir + OUTPUT_FOLDER + File.separator);
+				System.out.println("creating directory: " + bedDir + OUTPUT_FOLDER + File.separator);
 				boolean result = theDir.mkdir();
 
 				if (result) {
@@ -335,7 +330,7 @@ public class DnaseEnrichment {
 		LOGGER.info("Starting to find DHS regions for bed files");
 		for (int i = 0; i < bedFileList.length; i++) {
 			LOGGER.info("Processing for DHS region: " + bedFileList[i]);
-			Segment[][] segs = getSegments(bed_dir + bedFileList[i]);
+			Segment[][] segs = getSegments(bedDir + bedFileList[i]);
 
 			HashSet<String> ldMarkerHashSet = new HashSet<String>();
 
@@ -438,17 +433,17 @@ public class DnaseEnrichment {
 	 * @return the file path to where this {@link ChrPositionMap} should be written
 	 */
 	private static String getChrPosMapSerFilePath(String bedFilename, int chrNum, int partCount) {
-		File theDir = new File(bed_dir + BED_FILE_CHR_MAP_FOLDER + File.separator);
+		File theDir = new File(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator);
 		// if the directory does not exist, create it
 		if (!theDir.exists()) {
-			System.out.println("creating directory: " + bed_dir + BED_FILE_CHR_MAP_FOLDER);
+			System.out.println("creating directory: " + bedDir + BED_FILE_CHR_MAP_FOLDER);
 			boolean result = theDir.mkdir();
 
 			if (result) {
 				System.out.println("DIR created");
 			}
 		}
-		String newFilepath = Files.removeExtention(bed_dir + BED_FILE_CHR_MAP_FOLDER + File.separator + bedFilename) + CHR_MAP_FILE_ID + chrNum + "_part" + partCount + BED_FILE_EXTENTION;
+		String newFilepath = Files.removeExtention(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + bedFilename) + CHR_MAP_FILE_ID + chrNum + "_part" + partCount + BED_FILE_EXTENTION;
 		return Files.getSerializedFilepath(newFilepath);
 	}
 
@@ -479,7 +474,7 @@ public class DnaseEnrichment {
 	private static void writeBedFileChrMapPartCount(Hashtable<String, Integer> bedFileChrMapPartCount) {
 		if (bedFileChrMapPartCount != null) {
 			try {
-				String bedFileChrMapPartCountFilePath = bed_dir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME;
+				String bedFileChrMapPartCountFilePath = bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME;
 				FileWriter fstream = new FileWriter(bedFileChrMapPartCountFilePath, false);
 				BufferedWriter out = new BufferedWriter(fstream);
 				for (String thisFile : bedFileChrMapPartCount.keySet()) {
@@ -507,7 +502,7 @@ public class DnaseEnrichment {
 		Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<String, Integer>();
 		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader(bed_dir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME));
+			reader = new BufferedReader(new FileReader(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME));
 			while (reader.ready()) {
 				curLine = reader.readLine();
 				curLineParams = curLine.split("\\t");
