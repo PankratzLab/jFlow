@@ -47,7 +47,7 @@ public class CNVRectangles {
 			File file = new File(hash.getFilename());
 			CNVariant[] cnvs = hash.getAllInRegion((byte) location[0], location[1], location[2], probes, minSize, qualityScore);
 			ArrayList<CNVariant> cnvList = new ArrayList<CNVariant>(Arrays.asList(cnvs));
-			System.out.println("CNVRectangles: " + file.getName() + " has " + cnvList.size() + " variants");
+			// System.out.println("CNVRectangles: " + file.getName() + " has " + cnvList.size() + " variants");
 
 			fileMap.put(file.getName(), cnvList);
 		}
