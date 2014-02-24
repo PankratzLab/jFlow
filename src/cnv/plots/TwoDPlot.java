@@ -33,7 +33,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final String SET_AS_LINKKEY = "Set as Link Key";
 	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY};
 	public static final String[][] LINKERS = {
-		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample"}, 
+			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
+		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
 		{"Family ID", "FamID", "FID"}, 
 		{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"}, 
 		{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
@@ -42,9 +43,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
 		{"Stop Position", "Stop", "End"} // secondary link to Trailer
 	};
-	public static int IID_INDEX_IN_LINKERS = 0;
-	public static int FID_INDEX_IN_LINKERS = 1;
-	public static int DNA_INDEX_IN_LINKERS = 2;
+	public static final int IID_INDEX_IN_LINKERS = 0;
+	public static final int FID_INDEX_IN_LINKERS = 1;
+	public static final int DNA_INDEX_IN_LINKERS = 2;
 	public static int MARKER_INDEX_IN_LINKERS = 3;
 	public static int REGION_INDEX_IN_LINKERS = 4;
 	public static int CHR_INDEX_IN_LINKERS = 5;
@@ -75,6 +76,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	Hashtable<String, boolean[]> numericHash;
 	String[][] treeFileVariableNameLookup;
 	Hashtable<String, int[]> keyIndices;
+	Hashtable<String, Integer> linkKeyIndex;
+	Hashtable<String, Hashtable<String, String[]>> linkKeyToDataHash;
+	Hashtable<String, ArrayList<Integer>> colorKeyIndex;
 //	Vector<String> colorKeyVariables;
 //	String[][] colorKeyUniqueValues;
 	Logger log;
@@ -98,6 +102,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		namesHash = new Hashtable<String, String[]>();
 		numericHash = new Hashtable<String, boolean[]>();
 		keyIndices = new Hashtable<String, int[]>();
+		linkKeyIndex = new Hashtable<String, Integer>();
+		linkKeyToDataHash = new Hashtable<String, Hashtable<String, String[]>>();
+		colorKeyIndex = new Hashtable<String, ArrayList<Integer>>();
 
 		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
 		for (int i = 0; i < previouslyLoadedFiles.length; i++) {
@@ -372,10 +379,121 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		} else if (command.equals(SET_AS_COLORKEY)) {
 //			colorKeyVariables.add(tree.getSelectedPathComponentName());
 //			colorKeyVariables.add(getNamesSelected()[0]);
+			System.out.println("getSelectedPathComponent: " + tree.getSelectedPathComponent() + "\t + getNamesSelected: " + Arrays.toString(getNamesSelected()));
+			int[] selectedLinkKey = tree.getSelectionRows();
+			setColorKey(selectedLinkKey);
 		} else if (command.equals(SET_AS_LINKKEY)) {
-			tree.getSelectionRows();
+			int[] selectedLinkKey = tree.getSelectionRows();
+			setLinkKey(selectedLinkKey);
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
+		}
+	}
+
+	public void setColorKey(int[] selectedColorKey) {
+		String[][] selectedNodes = tree.getSelectionValues();
+		ArrayList<Integer> colorKeys;
+		if (selectedColorKey.length == 1) {
+			if (colorKeyIndex.containsKey(selectedNodes[0][0])) {
+				colorKeys = colorKeyIndex.get(selectedNodes[0][0]);
+			} else {
+				colorKeyIndex.put(selectedNodes[0][0], colorKeys = new ArrayList<Integer>());
+			}
+			for (int i = 0; i < colorKeys.size(); i++) {
+				if (colorKeys.get(i) == selectedColorKey[0])
+					return;
+			}
+			colorKeys.add(selectedColorKey[0]);
+		}
+	}
+
+	public void setLinkKey(int[] selectedLinkKey) {
+		String[][] selectedNodes = tree.getSelectionValues();
+		int[] linkKeyColumnLabels;
+		if (selectedLinkKey.length == 1) {
+			if (keyIndices.containsKey(selectedNodes[0][0])) {
+				linkKeyColumnLabels = keyIndices.get(selectedNodes[0][0]);
+			} else {
+				JOptionPane.showMessageDialog(null, "There was a problem in your selection. Please select again", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			System.out.println("LinkColumn: " + Arrays.toString(linkKeyColumnLabels));
+			System.out.println("SelectedNode: " + Arrays.toString(selectedLinkKey));
+
+			for (int i = 0; i < linkKeyColumnLabels.length; i++) {
+				if ((linkKeyColumnLabels[i] + 1) == selectedLinkKey[0]) {
+					linkKeyIndex.put(selectedNodes[0][0], i);
+					System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
+					createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
+					JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
+					return;
+				}
+			}
+			JOptionPane.showMessageDialog(null, "Unable to set link key. Please make sure you are selecting valid key", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	public void createLinkKeyToDataHash(String filename, int[] linkKeyColumnLabels) {
+		String inLine;
+		String[] inLineArray;
+		Hashtable<String, String[]> curFileLinkKeyDataHash = new Hashtable<String, String[]>();
+		try {
+			BufferedReader fileReader = new BufferedReader(new FileReader(filename));
+			inLine = fileReader.readLine(); // headers: skip this line
+
+			System.out.println("link column labels:" + Arrays.toString(linkKeyColumnLabels));
+			System.out.println("link key index: " + linkKeyIndex.get(filename));
+			while (fileReader.ready()) {
+				if (inLine.contains("\t")) {
+					inLineArray = fileReader.readLine().trim().split("\t", -1);
+				} else {
+					inLineArray = fileReader.readLine().trim().split("[\\s]+");
+				}
+				if (linkKeyIndex.containsKey(filename)) {
+					switch (linkKeyIndex.get(filename)) {
+					case DNA_INDEX_IN_LINKERS:
+						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]], inLineArray);
+						break;
+					case FID_INDEX_IN_LINKERS:
+						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]] + "\t" + inLineArray[linkKeyColumnLabels[IID_INDEX_IN_LINKERS]], inLineArray);
+						break;
+					case IID_INDEX_IN_LINKERS:
+						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]], inLineArray);
+						break;
+					default:
+						System.out.println("Error: Invalid link key.");
+						break;
+					}
+				}
+			}
+			fileReader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+		}
+		if (!curFileLinkKeyDataHash.isEmpty())
+			linkKeyToDataHash.put(filename, curFileLinkKeyDataHash);
+		System.out.println("LinkKeyDataHash:" + linkKeyToDataHash.toString());
+	}
+
+	public void initLinkKey(int[] linkKeyColumnLabels, String filename) {
+		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
+			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
+			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
+			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
+		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
+			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
+			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
+		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
+			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
+			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
+		} else {
+			JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
+			System.out.println("Unable to initialize the link key.");
 		}
 	}
 
@@ -896,6 +1014,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         		numericHash.get(filename)[i] = true;
         	}
 
+			initLinkKey(linkKeyIndices, filename);	// initialize the link key
+			createLinkKeyToDataHash(filename, linkKeyIndices);
         	dataHash.put(filename, new Vector<String[]>());
             while (reader.ready()) {
 				if (readBuffer.contains("\t")) {
