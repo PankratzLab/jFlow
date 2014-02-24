@@ -14,6 +14,7 @@ import java.util.Vector;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -180,13 +181,18 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		}
 		if (lastRegionIndex != regionIndex) {
 			setRegion(regionIndex);
+		} else if (source.equals(textField)) {
+			// TODO: Provide facility to export the list of regions, and expand the list of regions any time someone enters one manually
+			int[] newLocation = Positions.parseUCSClocation(textField.getText());
+			if ((newLocation[0] < 0) || (newLocation[1] < 0) || (newLocation[2] < 0)) {
+				JOptionPane.showMessageDialog(this.getParent(), "Invalid UCSC location - " + textField.getText());
+			} else {
+				setLocation(newLocation);
+
+				// Pass along the property change
+				firePropertyChange("location", regions.get(lastRegionIndex), new Region(newLocation));
+			}
 		}
-		// else if (source.equals(textField)) {
-		// // TODO: Provide facility to export the list of regions, and expand the list of regions any time someone enters one manually
-		// System.out.println("Changed region to " + textField.getText());
-		// setRegion(new Region(textField.getText()));
-		// // regions.add(currentRegion);
-		// }
 	}
 
 	/**
