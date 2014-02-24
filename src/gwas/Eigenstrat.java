@@ -103,6 +103,14 @@ public class Eigenstrat {
         double[] data, array, means, stdevs;
         int count;
         double sampleSizeCorrection;
+        String command;
+        
+        if (!Files.exists(sourceRoot+".frq")) {
+            command = "plink --bfile "+sourceRoot+" --freq --out "+sourceRoot+" --noweb ";
+            System.out.println("Failed to find "+sourceRoot+".frq; generating now using the following command...");
+            System.out.println(command);
+        	CmdLine.run(command, ext.parseDirectoryOfFile(sourceRoot));
+        }
         
         System.out.println("Loading allele frequencies to use for missing genotypes...");
         mafHash = HashVec.loadFileToHashString(sourceRoot+".frq", 1, new int[] {2,3,4}, " ", false);

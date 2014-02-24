@@ -200,7 +200,7 @@ public class Centroids implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
 		
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, new Logger());
 		time = new Date().getTime();
 		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);

@@ -16,7 +16,7 @@ public class PeakZero {
 	public static final String[] DUMP_THESE = {"rs277452", "rs2968487"};
 //	public static final String[] DUMP_THESE = null;
 		
-	public static void checkDists(Project proj, String phenoOfSamplesToInclude) {
+	public static void checkDists(Project proj, String phenoOfSamplesToInclude, Logger log) {
         PrintWriter writer;
         String trav;
         Hashtable<String,String> hash, drops;
@@ -65,7 +65,7 @@ public class PeakZero {
 
 	        time = new Date().getTime();
 			markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				if (i % 100 == 0) {
@@ -142,7 +142,7 @@ public class PeakZero {
 
 		try {
 			if (check) {
-				checkDists(new Project(filename, false), "");
+				checkDists(new Project(filename, false), "", new Logger());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -48,7 +48,11 @@ public class HitWindows {
 			temp = reader.readLine();
 			delimiter = ext.determineDelimiter(temp);
 			header = temp.trim().split(delimiter);
-			indices = ext.indexFactors(factors, header, false, false, true, true, log, true);
+			indices = ext.indexFactors(factors, header, false, false, true, true, log, false);
+			if (Array.min(indices) == -1) {
+				System.err.println("Aborting after failing to find the appropriate column headers in file "+filename);
+				System.exit(1);
+			}
 			count = 0;
 //			log.report("Parsing... "+filename);
 			while (reader.ready()) {

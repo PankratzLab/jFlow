@@ -19,7 +19,6 @@ import cnv.plots.*;
 
 public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
 	public static final long serialVersionUID = 1L;
-	public static String defaultLaunchPropertiesFilename = LaunchProperties.DEFAULT_PROPERTIES_FILE;
 
 	public static final String TWOD = "2D Plot";
 	public static final String EXIT = "Exit";
@@ -97,7 +96,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			projectNames[i] = ext.rootOf(projects[i], true);
         }
 		projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
-//		indexOfCurrentProj = 0;
 	}
 	
 
@@ -149,7 +147,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		}
 	}
 	
-	private static void createAndShowGUI(String launchPropertiesFile) {
+	private static void createAndShowGUI() {
+    	String launchPropertiesFile;
         Launch frame;
     	String path;
     	
@@ -174,6 +173,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //		}
 
 		//Create and set up the content pane.
+    	launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
     	if (!new File(launchPropertiesFile).exists()) {
 //			frame.output.append("Could not find file '"+launchPropertiesFile+"'; generating a blank one that you can populate with your own project links");
 			try {
@@ -182,6 +182,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				path = "";
 			}
 			new File(path+"projects/").mkdirs();
+			new File(path+"example/").mkdirs();
 			Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR="+path+"projects/"}, launchPropertiesFile);
 	    	if (!new File(path+"projects/example.properties").exists()) {
 	    		Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=example/source/"}, path+"projects/example.properties");
@@ -204,11 +205,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		frame.setVisible(true);
 
 		// TODO only instantiate when used
-//		frame.proj = new Project(frame.launchProperties.getDirectory()+frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED), frame.jar);
 		frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
 		frame.loadProject();
-//		frame.log.report("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
-//		frame.output.append("\nCurrent project: " + ext.rootOf(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
     }
 
     public Container createContentPane() {
@@ -233,88 +231,85 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	}
 
 	private JMenuBar topMenuBar() {
-			JMenuBar menuBar;
-			JMenu menu, submenu;
-			JMenuItem menuItem;
-			Hashtable<Character,String> hash;
-						
-//			String[][] menus = MENUS;
+		JMenuBar menuBar;
+		JMenu menu, submenu;
+		JMenuItem menuItem;
+		Hashtable<Character,String> hash;
+					
+        launchProperties = new LaunchProperties(launchPropertiesFile);
+		menuBar = new JMenuBar();
+		for (int i=0; i<MENUS.length; i++) {
+			menu = new JMenu(MENUS[i][0]);
+	        menu.setMnemonic((int)MENUS[i][0].charAt(0));
+			menuBar.add(menu);
+			hash = new Hashtable<Character, String>();
+			for (int j=1; j<MENUS[i].length; j++) {
+				if (MENUS[i][j]=="") {
+					break;
+				}
+				if (MENUS[i][j]=="1") {
+					menu.addSeparator();
+				} else if (MENUS[i][j].equals("Select Project")) {
+					submenu = new JMenu(MENUS[i][j]);
+//			        submenu.setMnemonic(KeyEvent.VK_S);
 
-			//TODO to find a new location for this line
-	        launchProperties = new LaunchProperties(launchPropertiesFile);
-			menuBar = new JMenuBar();
-			for (int i=0; i<MENUS.length; i++) {
-				menu = new JMenu(MENUS[i][0]);
-		        menu.setMnemonic((int)MENUS[i][0].charAt(0));
-				menuBar.add(menu);
-				hash = new Hashtable<Character, String>();
-				for (int j=1; j<MENUS[i].length; j++) {
-					if (MENUS[i][j]=="") {
-						break;
-					}
-					if (MENUS[i][j]=="1") {
-						menu.addSeparator();
-					} else if (MENUS[i][j].equals("Select Project")) {
-						submenu = new JMenu(MENUS[i][j]);
-	//			        submenu.setMnemonic(KeyEvent.VK_S);
-	
-				        menuItem = new JMenuItem("New");
-	//			        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
+			        menuItem = new JMenuItem("New");
+//			        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
+			        menuItem.addActionListener(this);
+			        submenu.add(menuItem);
+					projects = Files.list(launchProperties.getDirectory(), ".properties", false);
+					for (int k = 0; k<projects.length; k++) {
+				        menuItem = new JMenuItem(ext.rootOf(projects[k], true)+" ");
+//				        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
 				        menuItem.addActionListener(this);
 				        submenu.add(menuItem);
-						projects = Files.list(launchProperties.getDirectory(), ".properties", false);
-						for (int k = 0; k<projects.length; k++) {
-					        menuItem = new JMenuItem(ext.rootOf(projects[k], true)+" ");
-	//				        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
-					        menuItem.addActionListener(this);
-					        submenu.add(menuItem);
-				        }
-	//					projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
-						menu.add(submenu);
-					} else {
-						menuItem = new JMenuItem(MENUS[i][j]);
-						for (int k = 0; k < MENUS[i][j].length(); k++) {
-							if (!hash.containsKey(MENUS[i][j].toLowerCase().charAt(k))) {
-								menuItem.setMnemonic((int)MENUS[i][j].toLowerCase().charAt(k));
-								hash.put(MENUS[i][j].toLowerCase().charAt(k), "");
-								k = MENUS[i][j].length();
-							}
+			        }
+//					projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
+					menu.add(submenu);
+				} else {
+					menuItem = new JMenuItem(MENUS[i][j]);
+					for (int k = 0; k < MENUS[i][j].length(); k++) {
+						if (!hash.containsKey(MENUS[i][j].toLowerCase().charAt(k))) {
+							menuItem.setMnemonic((int)MENUS[i][j].toLowerCase().charAt(k));
+							hash.put(MENUS[i][j].toLowerCase().charAt(k), "");
+							k = MENUS[i][j].length();
 						}
-//						menuItem.setAccelerator(KeyStroke.getKeyStroke((int)(j+"").charAt(0), ActionEvent.ALT_MASK));
-						menuItem.addActionListener(this);
-						//TODO What is this?
-						menuItem.getAccessibleContext().setAccessibleDescription("Under development");
-		//				menuItem = new JMenuItem(menus[i][j], KeyEvent.VK_O);
-						menu.add(menuItem);
 					}
+//					menuItem.setAccelerator(KeyStroke.getKeyStroke((int)(j+"").charAt(0), ActionEvent.ALT_MASK));
+					menuItem.addActionListener(this);
+					//TODO What is this?
+					menuItem.getAccessibleContext().setAccessibleDescription("Under development");
+	//				menuItem = new JMenuItem(menus[i][j], KeyEvent.VK_O);
+					menu.add(menuItem);
 				}
 			}
-			return menuBar;
 		}
+		return menuBar;
+	}
 
 	private JPanel topIconBar() {
-			JPanel iconBar;
-			JButton button;
-			String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg"};
-			String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, "images/recluster.png", TWOD};
-			
-			iconBar = new JPanel();
-			iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
-			for (int i=0; i<icons.length; i++) {
-				button = new JButton(Grafik.getImageIcon(icons[i], true));
-	//			button.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
-	//			button.addActionListener(this);
-				button.setActionCommand(commands[i]);
-		    	button.addActionListener(this);
-		    	button.setToolTipText(commands[i]);
-				button.setPreferredSize(new Dimension(25, 25));
-		        button.setBorder(null);
-				iconBar.add(button);
-			}
-	        addComponentsToPane(iconBar);
-	
-			return iconBar;
+		JPanel iconBar;
+		JButton button;
+		String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg"};
+		String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, "images/recluster.png", TWOD};
+		
+		iconBar = new JPanel();
+		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
+		for (int i=0; i<icons.length; i++) {
+			button = new JButton(Grafik.getImageIcon(icons[i], true));
+//			button.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+//			button.addActionListener(this);
+			button.setActionCommand(commands[i]);
+	    	button.addActionListener(this);
+	    	button.setToolTipText(commands[i]);
+			button.setPreferredSize(new Dimension(25, 25));
+	        button.setBorder(null);
+			iconBar.add(button);
 		}
+        addComponentsToPane(iconBar);
+
+		return iconBar;
+	}
 
 	public void addComponentsToPane(final Container pane) {
 //		String lastProjectOpened;
@@ -325,12 +320,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         // In JDK1.4 this prevents action events from being fired when the  up/down arrow keys are used on the dropdown menu
         projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
 		
-//		lastProjectOpened = launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED);
-//		for (int i = 0; i<projects.length; i++) {
-//			if (projects[i].equals(lastProjectOpened)) {
-//				projectsBox.setSelectedIndex(i);
-//			}
-//        }
 		setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
 		projectsBox.setSelectedIndex(indexOfCurrentProj);
 		projectsBox.addItemListener(this);
@@ -357,22 +346,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public class IndependentThread implements Runnable {
 		private Project proj;
 		private String command;
-//		private JFrame frame;
 		
 		public IndependentThread(Project proj, String command) {
 			this.proj = proj;
 			this.command = command;
-//			this.frame = null;
 		}
 
 		@Override
 		public void run() {
-			// check if proj needs to be reloaded
-//			if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified() || timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME)).lastModified()) {
-//				proj = null;
-//				loadProject();
-//			}
-
 			if (command.equals(MAP_FILES)) {
 				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
@@ -399,16 +380,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //						if () {
 //							
 //						}
-					success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
+//					success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
 					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.getLog());
 					if (success) {
 						try {
 							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
-							new File(proj.getProjectDir()+"genome/").mkdirs();
-							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
-							CmdLine.run("plink --bfile plink --mind 0.1 --geno 0.9 --make-bed --out plinkSlim", proj.getProjectDir());
+//							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
+//							new File(proj.getProjectDir()+"genome/").mkdirs();
+//							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
+//							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+//							CmdLine.run("plink --bfile plink --mind 0.1 --geno 0.9 --make-bed --out plinkSlim", proj.getProjectDir());
 						} catch (Exception e) {}
 					}
 		//			vis cnv.manage.PlinkFormat root=../plink genome=6
@@ -430,7 +411,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(SCATTER)) {
 				ScatterPlot.createAndShowGUI(proj, null, null, false);
 			} else if (command.equals(QQ)) {
-				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false);
+				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false, proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE));
 			} else if (command.equals(STRAT)) {
 				StratPlot.loadStratificationResults(proj);
 			} else if (command.equals(MOSAICISM)) {
@@ -496,11 +477,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			loadProject();
 		}
 		
-		if (timestampOfPropertiesFile < new File(defaultLaunchPropertiesFilename).lastModified()) {
-			log.report("Detected a change in the project properties file; reloading from '"+defaultLaunchPropertiesFilename+"'");
+		if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
+			log.report("Detected a change in the project properties file; reloading from '"+proj.getPropertyFilename()+"'");
 			proj = null;
 			loadProject();
-		}	
+		} else {
+			log.report("No change in properties file");
+		}
 
 		if (timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false)).lastModified()) {
 			log.report("Detected a change in the sampleData file; reloading sample data");
@@ -591,30 +574,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     }
 
 	public static void main(String[] args) {
-		int numArgs = args.length;
-		
-		String usage = "\n"+
-		"cnv.Launch requires 1 argument\n"+
-		"   (1) name of file with project locations (i.e. file=" + defaultLaunchPropertiesFilename + " (default))\n"+
-		"";
-
-		for (int i = 0; i<args.length; i++) {
-			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				defaultLaunchPropertiesFilename = args[i].split("=")[1];
-				numArgs--;
-			}
-		}
-		if (numArgs!=0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-            	createAndShowGUI(defaultLaunchPropertiesFilename);
+            	createAndShowGUI();
             }
         });
 	}

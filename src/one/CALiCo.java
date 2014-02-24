@@ -29,6 +29,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.Sort;
+import common.Unique;
 import common.ext;
 
 public class CALiCo {
@@ -839,33 +840,80 @@ public class CALiCo {
 		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile, outFileRoot.substring(outFileRoot.indexOf("_") + 1).replace("_", ":"), genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + "_cov.out", log);
 	}
 
+	public static void metaAnalyzeSOL(String dir, String filePattern, String root, String mapFile) {
+		String filename;
+		Vector<String> v;
+		int count;
+
+		String[] sites = new String[] {"b", "c", "m", "s"};
+		
+		for (int i = 0; i < sites.length; i++) {
+			if (Files.exists(dir+root+sites[i]+".out")) {
+				System.out.println(root+sites[i]+".out already exists");
+			} else {
+				System.out.println("Creating "+root+sites[i]+".out");
+				count = 1;
+				v = new Vector<String>();
+				filename = ext.replaceAllWith(filePattern, new String[][] {{"#", count+""}, {"%%", sites[i]}});
+				while (Files.exists(dir+filename)) {
+					v.add(dir+filename);
+					count++;
+					filename = ext.replaceAllWith(filePattern, new String[][] {{"#", count+""}, {"%%", sites[i]}});
+				}
+				Files.cat(Array.toStringArray(v), dir+root+sites[i]+".out", new int[0], new Logger());
+			}
+		}
+		
+		metaAnalyzeSOL(dir, root, mapFile);
+	}
+	
 	public static void metaAnalyzeSOL(String dir, String root, String mapFile) {
 		String filename, freqFile, outfile;
 		Logger log;
 		String[] inputFiles;
+		Vector<String> qqFiles, lowCallrateMarkerFiles;
 		
 		log = new Logger();
 		freqFile = null;
+		dir = ext.verifyDirFormat(dir);
 		
 		String[] sites = new String[] {"b", "c", "m", "s"};
 		
+		qqFiles = new Vector<String>();
+		lowCallrateMarkerFiles = new Vector<String>();
 		inputFiles = new String[0];
 		for (int i = 0; i < sites.length; i++) {
 			filename = root+sites[i]+".out";
 			outfile = root+sites[i]+"_parsed.out";
-			if (!Files.exists(dir+outfile)) {
-				System.out.println("Parsing "+filename);
-				ResultsPackager.parseSOLformat(dir, filename, mapFile, freqFile, null, 1.0, outfile, log);
+			if (Files.exists(dir+outfile)) {
+				log.report(outfile+" already exists in "+dir);
+			} else {
+				log.report("Parsing "+filename);
+				ResultsPackager.parseSOLformat(dir, filename, mapFile, freqFile, null, 1.0, 0.95, outfile, log);
 			}
+			qqFiles.add(outfile+",9="+ext.rootOf(outfile));
+			lowCallrateMarkerFiles.add(dir+outfile+"lowCallRateMarkers.out");
 			inputFiles = Array.addStrToArray(outfile, inputFiles);
 		}
-		log.report("Running inverse variance weighted meta-analysis...");
-		Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_InvVar", Metal.SE_ANALYSIS, null, log);
-		log.report("Running sample size weighted meta-analysis...");
-		Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_NWeighted", Metal.PVAL_ANALYSIS, null, log);
+		Unique.proc(Array.toStringArray(lowCallrateMarkerFiles), null, null, dir+"lowCallrateMarkers.dat", null, true);
+		if (Files.exists(dir+root+"_InvVar1.out")) {
+			log.report(root+"_InvVar1.out already exists in "+dir);
+		} else {
+			log.report("Running inverse variance weighted meta-analysis...");
+			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_InvVar", Metal.SE_ANALYSIS, null, log);
+		}
+		qqFiles.add(root+"_InvVar1.out"+",5="+ext.rootOf(root+"_InvVar"));
+		if (Files.exists(dir+root+"_NWeighted1.out")) {
+			log.report(root+"_NWeighted1.out already exists in "+dir);
+		} else {
+			log.report("Running sample size weighted meta-analysis...");
+			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_NWeighted", Metal.PVAL_ANALYSIS, null, log);
+		}
+		qqFiles.add(root+"_NWeighted1.out"+",7="+ext.rootOf(root+"_NWeighted"));
 		
-		
-		
+		Files.write("java -cp C:/home/npankrat/vis.jar cnv.plots.QQPlot files=\""+Array.toStr(Array.toStringArray(qqFiles), ";")+"\" maxToPlot=10", dir+"plotQQs.bat");
+		dir = dir.substring(dir.substring(0,dir.length()-1).lastIndexOf("/")+1, dir.length());
+		log.report("QQ_FILENAMES="+dir+Array.toStr(Array.toStringArray(qqFiles), ";"+dir));
 	}
 
 	public static void main(String[] args) {
@@ -889,6 +937,13 @@ public class CALiCo {
 
 //		metaAnalyzeSOL("D:/data/SOL/models12/", "MODEL1", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
 //		metaAnalyzeSOL("D:/data/SOL/models12/", "MODEL2", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+		
+//		metaAnalyzeSOL("D:/data/SOL/GlucoseInsulin/", "MODEL1", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		metaAnalyzeSOL("D:/data/SOL/GlucoseInsulin/", "MODEL2", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		metaAnalyzeSOL("D:/data/SOL/GlucoseInsulin/", "MODEL3", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+//		metaAnalyzeSOL("D:/data/SOL/GlucoseInsulin/", "MODEL4", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
+
+//		metaAnalyzeSOL("N:/statgen/CALICo_SOL/T2DM/results_ver6/", "T2DM_MODEL1_SolGeno#_%%_ver6.out", "T2DM", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
 //		System.exit(1);
 		
 		String usage = "\n" +

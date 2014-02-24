@@ -217,7 +217,7 @@ public class ResultsPackager {
 		}
 	}
 	
-	public static void parseSOLformat(String dir, String resultsFile, String mapFile, String freqFile, String markersToReport, double filter, String outfile, Logger log) {
+	public static void parseSOLformat(String dir, String resultsFile, String mapFile, String freqFile, String markersToReport, double filter, double callRateThreshold, String outfile, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -227,6 +227,8 @@ public class ResultsPackager {
 		int[] indices;
 		boolean logistic;
 		int nnmiss, mac;
+		double callrate;
+		Vector<String> lowCallrateMarkers;
 
 		dir = ext.verifyDirFormat(dir);
 				
@@ -290,12 +292,18 @@ public class ResultsPackager {
 				log.reportError("Warning - results file did not contain a column for 'StdErr/SE'; values will be set to NA");
 			}
 			
-			
+			lowCallrateMarkers = new Vector<String>();
 			writer.println(Array.toStr(STANDARD_OUTPUT_FORMAT));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[indices[0]];
-				if ((markerHash == null || markerHash.containsKey(trav)) && (filter >= 1 || (!ext.isMissingValue(line[indices[3]]) && Double.parseDouble(line[indices[3]]) <= filter))) {
+				nnmiss = Integer.parseInt(line[indices[6]]) + Integer.parseInt(line[indices[7]]) + Integer.parseInt(line[indices[8]]);
+				callrate = (double)nnmiss / (double) (nnmiss + Integer.parseInt(line[indices[9]]));
+				if (callrate <= callRateThreshold) {
+					lowCallrateMarkers.add(trav);
+				}
+				
+				if ((markerHash == null || markerHash.containsKey(trav)) && (callrate > callRateThreshold) && (filter >= 1 || (!ext.isMissingValue(line[indices[3]]) && Double.parseDouble(line[indices[3]]) <= filter))) {
 					writer.print(trav); // MarkerName
 					if (mapHash.containsKey(trav)) {
 						writer.print("\t"+mapHash.get(trav)); // chr, pos, A1, A2
@@ -321,10 +329,10 @@ public class ResultsPackager {
 //					writer.print("\t"+line[indices[9]]); // NMISS here means number missing not, "non missing"
 					
 					nnmiss = Integer.parseInt(line[indices[6]]) + Integer.parseInt(line[indices[7]]) + Integer.parseInt(line[indices[8]]);
-					writer.print("\t"+nnmiss);
-					
 					mac = Integer.parseInt(line[indices[7]]) + Integer.parseInt(line[indices[8]])*2;
+
 					writer.print("\t"+ext.formDeci((double)mac/(double)nnmiss/2.0, 6));
+					writer.print("\t"+nnmiss);
 					
 					// TODO logistic has not been implemented yet, so this needs to be revisited when it is 
 					if (logistic) {
@@ -349,6 +357,8 @@ public class ResultsPackager {
 			log.reportError("Error reading file \"" + resultsFile + "\"");
 			return;
 		}
+		
+		Files.writeList(Array.toStringArray(lowCallrateMarkers), dir+outfile+"lowCallRateMarkers.out");
 	}
 	
 	public static void parseBP() {
@@ -391,6 +401,7 @@ public class ResultsPackager {
 		Logger log;
 		String logfile = null;
 		double filter = 1;
+		double callRateThreshold = 0;
 
 		String usage = "\n" +
 		"gwas.ResultsPackager requires 0-1 arguments\n" + 
@@ -402,7 +413,9 @@ public class ResultsPackager {
 		"   (5) (optional) name of freq file limited to those indiviudals used in anlayses (i.e. customFreq=femalesOnly.frq (not the default; only used in gwaf))\n" + 
 		"   (6) (optional) list of markers to include (i.e. list=list.txt (not the default))\n" + 
 		"   (7) (optional) name of output file (i.e. out=[results file]_out.csv (default; when I get around to coding it, it will be comma instead of tab delimited if ending in .csv))\n" + 
-		"   (8) (optional) limit to those results with a p-value less than the specified filter (i.e. filter=0.001 (not the default))\n" + 
+		"   (8) (optional) limit to those results with a p-value less than the specified filter (i.e. filter=0.001 (not the default))\n" +
+		"   (9) (optional) minimum call rate threshold (currently for SOL parser only) (i.e. callRateThreshold="+callRateThreshold+" (default))\n" +
+		
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -433,6 +446,9 @@ public class ResultsPackager {
 			} else if (args[i].startsWith("filter=")) {
 				filter = ext.parseDoubleArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("callRateThreshold=")) {
+				callRateThreshold = ext.parseDoubleArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				outfile = args[i].split("=")[1];
 				numArgs--;
@@ -457,8 +473,8 @@ public class ResultsPackager {
 //			parseStdFormatFromPlink("D:/Myron/CALICO/AgeMenarche/", "menarche2.assoc.linear", "ADD", "plink.bim", "menarche.frq", null, "cardia_page_menarche2_results.txt", new Logger());
 //			System.exit(1);
 			
-			parseSOLformat("D:/data/SOL/", "MODEL3slim_b.out", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", null, null, 1.0, "MODEL3slim_b_test.out", new Logger());
-			System.exit(1);
+//			parseSOLformat("D:/data/SOL/", "MODEL3slim_b.out", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", null, null, 1.0, 0.95, "MODEL3slim_b_test.out", new Logger());
+//			System.exit(1);
 
 			log = new Logger(logfile);
 			if (type.equalsIgnoreCase("gwaf")) {
@@ -466,7 +482,7 @@ public class ResultsPackager {
 			} else if (type.equalsIgnoreCase("plink")) {
 				parseStdFormatFromPlink(dir, resultsFile, "Add", mapFile, freqFile, markersToReport, filter, outfile, log);
 			} else if (type.equalsIgnoreCase("sol")) {
-				parseSOLformat(dir, resultsFile, "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile, markersToReport, filter, outfile, log);
+				parseSOLformat(dir, resultsFile, "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile, markersToReport, filter, callRateThreshold, outfile, log);
 			} else {
 				System.err.println("Error - unknown results type: '"+type+"'");
 			}

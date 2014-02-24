@@ -39,7 +39,7 @@ public class AnnotationCollection implements Serializable {
 		int response;
 		Vector<String> markers;
 		
-		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annoation database", "Warning", JOptionPane.ERROR_MESSAGE);
+		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annotation database", "Warning", JOptionPane.ERROR_MESSAGE);
 //		if (response != 1) {
 		if (response == 0) {
 			commentsHash.remove(c);
@@ -120,12 +120,12 @@ public class AnnotationCollection implements Serializable {
 			}
 			list[i] = keys[i] + "\t" + annotationsOfTheMarker;
 		}
-		Files.writeList(list, proj.getProjectDir() + "annoations.xln");
-//		Files.writeList(list, proj.getDir(Project.ANNOTATION_DIRECTORY) + "annoations.xln");
+		Files.writeList(list, proj.getProjectDir() + "annotations.xln");
+//		Files.writeList(list, proj.getDir(Project.ANNOTATION_DIRECTORY) + "annotations.xln");
 
 		keys = HashVec.getKeys(annotationMarkerLists);
 		for (int i = 0; i < keys.length; i++) {
-			Files.writeList(Array.toStringArray(annotationMarkerLists.get(keys[i])), proj.getProjectDir() + "annoation_" + keys[i] + "_" + commentsHash.get(keys[i]) + ".xln");
+			Files.writeList(Array.toStringArray(annotationMarkerLists.get(keys[i])), proj.getProjectDir() + "annotation_" + keys[i] + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keys[i].charAt(0), false, false), true) + ".xln");
 		}
 	}
 	
@@ -282,7 +282,7 @@ public class AnnotationCollection implements Serializable {
 	}
 
 	public String[] getMarkerLists(char key) {
-		return annotationMarkerLists.get(key + "").toArray(new String[0]);
+		return Array.toStringArray(annotationMarkerLists.get(key + ""));
 	}
 
 	public String getDescriptionForComment(char c, boolean includeShortcuts, boolean includeNumbers) {

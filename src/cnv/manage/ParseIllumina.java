@@ -49,16 +49,6 @@ public class ParseIllumina implements Runnable {
 		this.fixes = fixes;
 		this.timeBegan = timeBegan;
 		this.threadId = threadId;
-
-		//TODO This seems not to be necessarily, because there is a check of "samples/.sampRAF".
-//		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY, true), MarkerData.MARKER_DATA_FILE_EXTENSION, proj.getJarStatus()).length>0) {
-//			System.err.println("Error - Refusing to create new SampleList until the plots directory is either deleted or emptied; altering the SampleList will invalidate those files");
-//			System.exit(1);
-//		}
-
-		//TODO There is a more complex scenario: what happens if you just want to add some new samples?
-//		TransposeData.backupOlderFiles(proj.getDir(Project.SAMPLE_DIRECTORY, true), new String [] {"outliers.ser", ".sampRAF"}, true);
-//		TransposeData.deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true), new String[] {"outliers"}, new String[] {".ser"}, true);
 	}
 
 	public void run() {
@@ -79,18 +69,6 @@ public class ParseIllumina implements Runnable {
 		String filename;
 		Hashtable<String, Float> allOutliers;
 		
-//		try {
-//			PrintWriter writer = new PrintWriter(new FileWriter(files[0]+"_list.xln"));
-//			for (int j = 0; j<files.length; j++) {
-//				writer.println(files[j]);
-//            }
-//	        writer.close();
-//	        return;
-//        } catch (Exception e) {
-//	        System.err.println("Error writing to "+files[0]+"_list.xln");
-//	        e.printStackTrace();
-//        }
-
 		idHeader = proj.getProperty(Project.ID_HEADER);
 		delimiter = proj.getSourceFileDelimiter();
 		allOutliers = new Hashtable<String, Float>();
@@ -101,7 +79,6 @@ public class ParseIllumina implements Runnable {
 				}
 				try {
 					System.out.println(ext.getTime()+"\t"+(i+1)+" of "+files.length);
-//					reader = new BufferedReader(new FileReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]));
 					reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
@@ -166,7 +143,6 @@ public class ParseIllumina implements Runnable {
 							return;
 						}
 						key = keysKeys[count];
-						// System.out.println(count+"\t"+markerNames[count]+"\t"+key);
 						for (int j = 0; j<Sample.DATA_FIELDS.length; j++) {
 							try {
 								if (dataIndices[j] != -1) {
@@ -406,7 +382,6 @@ public class ParseIllumina implements Runnable {
 		}
 
 		try {
-//			reader = new BufferedReader(new FileReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[0]));
 			reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[0]);
 			System.out.println("Found appropriate reader for: "+proj.getDir(Project.SOURCE_DIRECTORY)+files[0]);
 			count = 0;
@@ -605,10 +580,6 @@ public class ParseIllumina implements Runnable {
 			return;
 		}
 
-//		new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)).mkdirs();
-//		new File(proj.getDir(Project.IND_DIRECTORY)).mkdirs();
-//		new File(proj.getDir(Project.DATA_DIRECTORY)).mkdirs();
-
 		markerNames = Array.toStringArray(markerNameHash);
 		keys = Markers.orderMarkers(markerNames, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true));
 		if (keys == null) {
@@ -630,7 +601,6 @@ public class ParseIllumina implements Runnable {
 		threads = new Thread[numThreads];
 		for (int i = 0; i<numThreads; i++) {
 			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), markerNames, keysKeys, lookup, fingerprint, fixes, timeBegan, i));
-//			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), null, null, null, 0));
 			threads[i].start();
 			try {
 				Thread.sleep(100L);
@@ -733,7 +703,6 @@ public class ParseIllumina implements Runnable {
 			for (int i = 0; i<files.length; i++) {
 				try {
 					System.out.println(ext.getTime()+"\t"+(i+1)+" of "+files.length+" ("+files[i]+")");
-//					reader = new BufferedReader(new FileReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]));
 					reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
@@ -937,7 +906,6 @@ public class ParseIllumina implements Runnable {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filename));
 			for (int i = 0; i<files.length; i++) {
 				try {
-//					reader = new BufferedReader(new FileReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]));
 					reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter);
@@ -998,7 +966,6 @@ public class ParseIllumina implements Runnable {
 			}
 			try {
 				System.out.println(ext.getTime()+"\t"+(i+1)+" of "+files.length);
-//				reader = new BufferedReader(new FileReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]));
 				reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
@@ -1097,44 +1064,12 @@ public class ParseIllumina implements Runnable {
 		
 	}
 
-//	public static Hashtable filenamesUsedByExistingSampleFiless(Project proj) {
-//		Hashtable <String, String> result = null;
-//		String[] sampNames;
-//		File[] files;
-//		String[] fileNames;
-//
-//		files = new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)).listFiles(new FilenameFilter() {
-//			public boolean accept(File file, String filename) {
-//				return filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
-//			}
-//		});
-//
-//		if (files != null) {
-//			sampNames = proj.getSamples();
-//			fileNames = new String[files.length];
-//			result = new Hashtable<String, String>();
-//			for (int i = 0; i < files.length; i++) {
-//				fileNames[i] = files[i].getName();
-//			}
-//			for (int i = 0; i < sampNames.length; i++) {
-//				for (int j = 0; j < fileNames.length; j++) {
-//					if (sampNames[i].equals(fileNames[j])) {
-//						result.put(sampNames[i], files[j].getName());
-//					}
-//				}
-//			}
-//		}
-//
-//		return result;
-//	}
-//
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
 		String filename = Project.DEFAULT_PROJECT;
 		boolean map = false;
 		int numThreads = 1;
-//		boolean parseABlookup = false;
 		boolean parseAlleleLookupFromFinalReports = false;
 		String mapOutput = "filenamesMappedToSamples.txt";
 
@@ -1145,8 +1080,6 @@ public class ParseIllumina implements Runnable {
 		" OPTIONAL:\n"+
 		"   (3) map filenames to sample IDs (i.e. -mapFiles ("+(map?"":"not the ")+"default))\n"+
 		"   (4) output file for mappings (i.e. out="+mapOutput+" (default))\n"+
-//		" OR:\n"+
-//		"   (1) parse AB lookup (i.e. --parseAB (not the default))\n"+
 		" OR:\n"+
 		"   (1) parse Forward/TOP/AB/etc lookup (i.e. --parseAlleleLookup (not the default))\n"+
 		"";
@@ -1164,9 +1097,6 @@ public class ParseIllumina implements Runnable {
 			} else if (args[i].startsWith("-mapFiles")) {
 				map = true;
 				numArgs--;
-//			} else if (args[i].startsWith("-parseAB")) {
-//				parseABlookup = true;
-//				numArgs--;
 			} else if (args[i].startsWith("-parseAlleleLookup")) {
 				parseAlleleLookupFromFinalReports = true;
 				numArgs--;
@@ -1177,26 +1107,8 @@ public class ParseIllumina implements Runnable {
 			return;
 		}
 
-//		proj = null;
-		proj = new Project(filename, false);
-		System.exit(1);
-//
-//		if (!proj.getDir(Project.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
-//			System.err.println("Error - the project source location is invalid: "+proj.getDir(Project.SOURCE_DIRECTORY));
-//			return;
-//		}
-
-//		fileToConvert = "D:\\LOAD\\paper\\second submission\\genotype_counts\\top_hits.logistic.4pc_genotypes.txt";
-//		fileToConvert = "D:\\LOAD\\paper\\second submission\\genotype_counts\\top_hits.logistic.4pc_full_apoe_genotypes.txt";
-//		fileToConvert = "D:\\LOAD\\paper\\second submission\\genotype_counts\\top_hits.logistic.full_apoe_genotypes.txt";
-//		fileToConvert = "D:\\LOAD\\paper\\second submission\\genotype_counts\\top_hits.logistic.nocovars_genotypes.txt";
-		
-//		lookupFile = "D:\\LOAD\\alleleLookup.txt";
-		
 		try {
-//			if (parseABlookup) {
-//				ABLookup.parseABlookup(proj);
-//			} else 
+			proj = new Project(filename, false);
 			if (map) {
 				mapFilenamesToSamples(proj, mapOutput);
 			} else if (parseAlleleLookupFromFinalReports) {

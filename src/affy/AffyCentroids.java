@@ -16,6 +16,7 @@ import cnv.manage.MarkerDataLoader;
 import stats.Maths;
 import common.Array;
 import common.Files;
+import common.Logger;
 import common.Sort;
 import common.ext;
 
@@ -191,7 +192,7 @@ public class AffyCentroids implements Serializable {
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, Arrays.copyOfRange(markerNames, starter, stopper));
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, Arrays.copyOfRange(markerNames, starter, stopper), new Logger());
 
 		time = new Date().getTime();
 		for (int i = 0; i < stopper - starter; i++) {

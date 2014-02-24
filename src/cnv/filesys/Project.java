@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
@@ -22,8 +24,9 @@ public class Project extends Properties {
 
 //	public static final String DEFAULT_PROJECT = "these.properties";
 //	public static final String DEFAULT_PROJECT = "D:/home/npankrat/projects/pd_win.properties";
-	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
+//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/SingaporeReplication.properties";
+	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/SOL_metabochip.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
 //	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI_exome_slim.properties";
@@ -119,11 +122,13 @@ public class Project extends Properties {
 	public static final String MARKER_METRICS_FILENAME = "MARKER_METRICS_FILENAME";
 	public static final String MARKER_REVIEW_CRITERIA_FILENAME = "MARKER_REVIEW_CRITERIA_FILENAME";
 	public static final String MARKER_EXCLUSION_CRITERIA_FILENAME = "MARKER_EXCLUSION_CRITERIA_FILENAME";
+	public static final String MARKER_COMBINED_CRITERIA_FILENAME = "MARKER_COMBINED_CRITERIA_FILENAME";
 	public static final String ANNOTATION_FILENAME = "ANNOTATION_FILENAME";
 //	public static final String ANNOTATION_DIRECTORY = "ANNOTATION_DIRECTORY";
 	public static final String CUSTOM_COLOR_SCHEME_FILENAME = "ANNOTATION_FILENAME";
 	public static final String BACKUP_DIRECTORY = "BACKUP_DIRECTORY";
 	public static final String SHIFT_SEX_CHR_COLORS_YESNO = "SHIFT_SEX_CHR_COLORS_YESNO";
+	public static final String QQ_MAX_NEG_LOG10_PVALUE = "QQ_MAX_NEG_LOG10_PVALUE";
 
 	private boolean jar;
 	private String projectPropertiesFilename;
@@ -710,5 +715,19 @@ public class Project extends Properties {
 		}
 
 		return targets;
+	}
+
+	public boolean archiveFile(String filename) {
+		String backup;
+		
+		backup = getDir(Project.BACKUP_DIRECTORY, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
+		new File(filename).renameTo(new File(backup));
+		
+		if (Files.exists(backup)) {
+			return true;
+		}
+		
+		log.reportError("Error - failed to backup '"+filename+"' to "+backup);
+		return false;
 	}
 }

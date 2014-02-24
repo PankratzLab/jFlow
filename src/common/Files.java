@@ -351,7 +351,7 @@ public class Files {
 		try {
 			if (numBatches > 1) {
 				writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name)+"master." + ext.removeDirectoryInfo(root_batch_name)));
-				if (!dir.equals("./")) {
+				if (!dir.equals("./") && !dir.equals("")) {
 					writer.println("cd "+dir);
 				}
 				for (int i = 0; i<numBatches; i++) {
@@ -1948,11 +1948,23 @@ public class Files {
 		}
 	}
 	
+	// can pass skips as null if there are no skips to be made
+	// can pass skips as an empty array (new int[0]) if the first file should pass a header but the rest should be skipped
 	public static void cat(String[] originalFiles, String finalFile, int[] skips, Logger log) {
 		BufferedReader reader;
         PrintWriter writer;
     	String trav;
     	boolean problem;
+    	
+    	if (skips != null) {
+    		if (skips.length == 0) {
+    			skips = Array.addIntToArray(0, Array.intArray(originalFiles.length-1, 1), 0);
+    		}
+    		if (skips.length != originalFiles.length) {
+    			log.reportError("Error - mismatched length of arrays for the files and number of lines to skip for file "+finalFile+"; aborting...");
+    			return;
+    		}
+    	}
         
     	problem = false;
         for (int i = 0; i<originalFiles.length; i++) {
@@ -2001,7 +2013,7 @@ public class Files {
         int count;
         
         try {
-	        reader = new BufferedReader(new FileReader(filename));
+        	reader = getAppropriateReader(filename);
 	        for (count = 0; reader.ready() && reader.readLine() != null; count++);
 	        reader.close();
 	        return count - (dontCountFirstLine?1:0);
@@ -2450,13 +2462,15 @@ public class Files {
 	    }	
 	}
 	
-	public static void makeQsub(String filename, int start, int stop, boolean separate, String[] patterns) {
+	public static void makeQsub(String filename, boolean multiple, int start, int stop, boolean separate, String[] patterns) {
 		String[] lines, qsubs;
 		Vector<String> v;
 		
 		lines = HashVec.loadFileToStringArray(filename, false, false, null, false);
 		
-		if (separate) {
+		if (multiple) { // could be more elegant and incorporated with those below if desired
+			qsubMultiple(filename+"_multiple", lines, -1, -1, 5000, 12);
+		} else if (separate) {
 			v = new Vector<String>();
 			for (int i = 0; i < lines.length; i++) {
 				qsubs = qsub("", ext.rootOf(filename)+(i+1)+".#", start, stop, lines[i], patterns, 5000, 24, null);
@@ -2607,7 +2621,28 @@ public class Files {
 //
 //		return "failed to get hostname";
 //	}
+
+	public static String getNextAvailableFilename(String pattern) {
+		String filename;
+		int count;
+		
+		count = 0;
+		do {
+			count++;
+			filename = ext.replaceAllWith(pattern, "#", count+"");
+		} while (exists(filename));
+
+		return filename;
+	}
 	
+	public static void closeAll(PrintWriter[] writers) {
+		for (int i = 0; i < writers.length; i++) {
+			if (writers[i] != null) {
+				writers[i].close();
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
@@ -2624,14 +2659,16 @@ public class Files {
 		boolean commaDelimitedOut = false;
 		String dir = null;
 		String outfile = null;
+		boolean multiple = false;
 		
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
 		"   (1) filename to convert to a .qsub (i.e. file=batchFile (not the default))\n" + 
-		"   (2) (optional) chr/rep to start with (use # or ## within file to designate where to use) (i.e. start=" + start + " (default))\n" + 
-		"   (3) (optional) chr/rep to end with (i.e. stop=" + stop + " (default))\n" + 
-		"   (4) separate each line into a separate file (i.e. separate=" + separate + " (default))\n" +
-		"   (5) (optional) don't stop until plug is pulled, counting based on patterns (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n" +
+		"   (2) make it multithreaded (i.e. -multiple (not the default))\n" + 
+		"   (3) (optional) chr/rep to start with (use # or ## within file to designate where to use) (i.e. start=" + start + " (default))\n" + 
+		"   (4) (optional) chr/rep to end with (i.e. stop=" + stop + " (default))\n" + 
+		"   (5) separate each line into a separate file (i.e. separate=" + separate + " (default))\n" +
+		"   (6) (optional) don't stop until plug is pulled, counting based on patterns (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n" +
 		"  OR\n" +
 		"   (1) find next rep safely (i.e. -nextRep (not the default))\n" +
 		"   (2) (required) patterns to match when incrementing rep (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n" +
@@ -2654,6 +2691,9 @@ public class Files {
 				System.exit(1);
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-multiple")) {
+				multiple = true;
 				numArgs--;
 			} else if (args[i].startsWith("start=")) {
 				start = ext.parseIntArg(args[i]);
@@ -2721,11 +2761,11 @@ public class Files {
 //			String directory = "D:/data/GEDI/penn_data/";
 //			moveFilesMoved(filesMoved, directory);
 //			System.exit(1);
-
+			
 			if (findNextRep && patterns !=null) {
 				System.out.println(findNextRepSafely(patterns, numDigits, lastKnownRep, patienceInMilliseconds));
 			} else if (filename != null) {
-				makeQsub(filename, start, stop, separate, patterns);
+				makeQsub(filename, multiple, start, stop, separate, patterns);
 			} else if (transpose != null) {
 				transpose(transpose, commaDelimitedIn?",":"\t", outfile, commaDelimitedOut?",":"\t");
 			} else if (dir != null) {
@@ -2736,100 +2776,5 @@ public class Files {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static int parsePvals(String filename, String pvalFile, String study, String[] method, Hashtable<String,Hashtable<String,String>> macHashes, int macThreshold, Logger log) {
-		BufferedReader reader;
-		PrintWriter writer;
-		String[] header, expected;
-		int index, mafIndex, macIndex;
-		Hashtable<String,String> macHash;
-		String[] line;
-		double threshold;
-		int count;
-		
-		count = -1;
-		
-		if (!Files.exists(filename)) {
-			System.err.println("Error - could not find '"+filename+"'; aborting");
-			return count;
-		}
-		
-		header = Files.getHeaderOfFile(filename, ",!", log);
-		expected = gwas.SkatMeta.getHeaderForMethod(method);
-		if (!ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, false)) {
-			log.reportError("Error - unexpected header for file "+filename);
-			System.exit(1);
-		}
-		
-		index = -1;
-		for (int h = 1; h < header.length; h++) {
-			if (ext.indexOfStr(header[h], Aliases.PVALUES, false, true) >= 0) {
-				if (index == -1) {
-					index = h;
-				} else {
-					System.err.println("Error - both "+header[index]+" and "+header[h]+" are considered column headers for the p-value; using the former");
-				}
-			}
-		}
-		// generate a file with p-values for Q-Q plots and for lambdas
-		if (index >= 0) {
-			try {
-				reader = new BufferedReader(new FileReader(filename));
-				reader.readLine();
-				writer = new PrintWriter(new FileWriter(pvalFile));
-				count = 0;
-				if (method[1].equals("SingleVariant")) {
-					mafIndex = ext.indexOfStr("maf", header, false, true);
-					if (mafIndex == -1) {
-						log.reportError("Error - no maf listed in single gene test result: "+filename);
-					} else {
-						writer.println("Variant\tpval");
-//						threshold = Double.parseDouble(methods[m][3]); // no longer allowed for singleSNP
-						threshold = Double.parseDouble("0.01"); // TODO make this dynamic
-						while (reader.ready()) {
-							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-							if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex]) >= threshold) {
-								writer.println(line[1]+"\t"+line[index]);
-							}
-							count++;
-						}
-					}
-				} else if (method[1].equals("BurdenTests")) {
-					macHash = macHashes.get(method[3]);
-					line = macHash.get("studies").split("\t");
-					macIndex = ext.indexOfStr(study, line);
-					if (macIndex == -1) {
-						log.reportError("Error - no minor allele counts for "+ext.rootOf(filename));
-					} else {
-						writer.println("Gene\tpval");
-						while (reader.ready()) {
-							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-							if (macHash.containsKey(line[0])) {
-								if (Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) >= macThreshold) {
-									writer.println(line[0]+"\t"+line[index]);
-								}
-							}
-							count++;
-						}
-					}
-				} else {
-					log.reportError("Error - unknown grouping variable: "+method[1]);
-				}
-				reader.close();
-				writer.close();
-			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \"" + filename + "\" not found in current directory");
-				System.exit(1);
-			} catch (IOException ioe) {
-				System.err.println("Error reading file \"" + filename + "\"");
-				System.exit(2);
-			}
-			
-		} else {
-			log.reportError("Error - could not find p-value column header for file "+filename);
-		}
-		
-		return count;
 	}
 }

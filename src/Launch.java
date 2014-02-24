@@ -128,11 +128,13 @@ public class Launch {
 		int numArgs = args.length;
 		String filename = "transform.crf";
 		boolean suppress = false;
+		boolean create = false;
 
 		String usage = "\n"+
 		"park.crfDB requires 0-1 arguments\n"+
 		"   (1) filename (i.e. "+filename+" (default)\n"+
 		"   (2) suppress Windows stdin (i.e. -suppress (not the default)\n"+
+		"   (3) create a blank file before running if it does not exist (i.e. -create (not the default)\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -141,6 +143,9 @@ public class Launch {
 				System.exit(1);
 			} else if (args[i].startsWith("-suppress")) {
 				suppress = true;
+				numArgs--;
+			} else if (args[i].startsWith("-create")) {
+				create = true;
 				numArgs--;
 			} else {
 				filename = args[i];
@@ -151,6 +156,16 @@ public class Launch {
 			System.err.println(usage);
 			System.exit(1);
 		}
+		
+		if (!Files.exists(filename)) {
+			if (create) {
+				new File(filename).createNewFile();
+			} else {
+				System.err.println("Error - file '"+filename+"' does not exist; add -create to the commandline to autogenerate");
+				return;
+			}
+		}
+		
 		try {
 			run(filename, new Logger(ext.rootOf(filename)+".log"));
 		} catch (Exception e) {

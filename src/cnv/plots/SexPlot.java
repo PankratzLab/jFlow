@@ -109,7 +109,7 @@ public class SexPlot extends JFrame{
 		String filename = Project.DEFAULT_PROJECT;
 
 		String usage = "\n"+
-		"plot.MosaicPlot requires 0-1 arguments\n"+
+		"cnv.plot.SexPlot requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"";
 

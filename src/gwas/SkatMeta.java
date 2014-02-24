@@ -1374,7 +1374,7 @@ public class SkatMeta {
 							filename = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0]+".csv";
 							pvalFile = studies[j]+"_"+races[k][0]+"_pvals.dat";
 
-							count = Files.parsePvals(localRaceDir+filename, localDir+pvalFile, studies[j], methods[m], macHashesHashByRace.get(races[k][0]), macThresholdStudy, log);
+							count = SeqMeta.parsePvals(localRaceDir+filename, localDir+pvalFile, studies[j], methods[m], macHashesHashByRace.get(races[k][0]), macThresholdStudy, log);
 							if (count == -1) {
 								return;
 							}
@@ -1400,7 +1400,7 @@ public class SkatMeta {
 					filename = races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0]+".csv";
 					pvalFile = "meta_"+races[k][0]+"_pvals.dat";
 
-					count = Files.parsePvals(localRaceDir+filename, localDir+pvalFile, "Total", methods[m], macHashesHashByRace.get(races[k][0]), macThresholdTotal, log);
+					count = SeqMeta.parsePvals(localRaceDir+filename, localDir+pvalFile, "Total", methods[m], macHashesHashByRace.get(races[k][0]), macThresholdTotal, log);
 					if (count == -1) {
 						return;
 					}
@@ -1426,7 +1426,7 @@ public class SkatMeta {
 				filename = phenotypes[i][0]+"_"+methods[m][0]+".csv";
 				pvalFile = "meta_panEthnic_pvals.dat";
 				
-				count = Files.parsePvals(localDir+filename, localDir+pvalFile, "Total", methods[m], macHashesHashByRace.get("PanEthnic"), macThresholdTotal, log);
+				count = SeqMeta.parsePvals(localDir+filename, localDir+pvalFile, "Total", methods[m], macHashesHashByRace.get("PanEthnic"), macThresholdTotal, log);
 				if (count == -1) {
 					return;
 				}

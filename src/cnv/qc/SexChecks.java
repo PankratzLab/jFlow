@@ -49,7 +49,7 @@ public class SexChecks {
 		System.out.println("Took "+ext.getTimeElapsed(time)+" to parse "+samples.length+" samples");
 	}
 
-	public static void markerByMarker(Project proj) {
+	public static void markerByMarker(Project proj, Logger log) {
 		PrintWriter writer;
 		String[] samples;
 		Vector<double[]> xys, baflrrs; 
@@ -78,7 +78,7 @@ public class SexChecks {
 			
 	        time = new Date().getTime();
 	        markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
 	        for (int i = 0; i < markerNames.length; i++) {
 	        	markerData = markerDataLoader.requestMarkerData(i);
 	        	if (i % 100 == 0) {
@@ -476,7 +476,7 @@ public class SexChecks {
 			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY, true, log, false)+"pseudoautosomalSearch.xln"));
 			writer.println("SNP\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 			
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList, log);
 			time = new Date().getTime();
 			line = "";
 			for (int i = 0; i < markerList.length; i++) {
@@ -600,8 +600,8 @@ public class SexChecks {
 		}
 
 //		check = true;
-		par = true;
-		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
+//		par = true;
+//		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 		try {
 			proj = new Project(filename, false);
 			log = new Logger();
@@ -615,7 +615,7 @@ public class SexChecks {
 			} else if (drop) {
 				dropMarkers(allMarkers, markersToDrop);
 			} else {
-				markerByMarker(proj);
+				markerByMarker(proj, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

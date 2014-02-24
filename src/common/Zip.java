@@ -7,17 +7,37 @@ import java.util.zip.*;
 public class Zip {
 
 	public static void zip(String filename) {
-		zip(new String[] {filename}, filename+".zip");
+		zip(new String[] {filename}, filename+".zip", null, false);
 	}
 
-	public static void zip(String[] filenames, String zipfile) {
+	public static void zip(String[] filenames, String zipfile, Logger log, boolean verbose) {
 		byte[] buf = new byte[1024];
+		boolean problem;
+		
+		if (log == null) {
+			log = new Logger();
+		}
 
+		problem = false;
+		for (int i = 0; i<filenames.length; i++) {
+			if (!Files.exists(filenames[i])) {
+				log.reportError("  Failed to find file '"+filenames[i]+"' destined for "+zipfile);
+				problem = true;
+			}
+		}
+		if (problem) {
+			log.reportError("  aborting creation of "+zipfile);
+			return;
+		}
+		
 		try {
 			ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipfile));
 
 			for (int i = 0; i<filenames.length; i++) {
 				FileInputStream in = new FileInputStream(filenames[i]);
+				if (verbose) {
+					log.report(filenames[i]);
+				}
 
 				out.putNextEntry(new ZipEntry(filenames[i]));
 				int len;
@@ -31,7 +51,7 @@ public class Zip {
 
 			out.close();
 		} catch (IOException e) {
-			System.err.println("Error creating zipfile '"+zipfile+"'");
+			log.reportError("Error creating zipfile '"+zipfile+"'");
 			e.printStackTrace();
 		}
 

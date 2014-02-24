@@ -670,13 +670,14 @@ public class ChargeS {
 //			genoFile = "ARIC_EA_Freeze3_Chrom#_Genotypes.txt.gz";
 			annotationFile = "ESFreeze3_snpinfo_042913_min.csv.gz";
 			makePlink = true;
+			genoFile = "ABO_AA.txt";
 
 			if (phenoFile != null) {
 				runAll(phenoFile, genoFile, annotationFile);
 			}
 			
 			if (makePlink) {
-				convertToPlinkTransposed(dir, genoFile, annotationFile, 0.01);
+				convertToPlinkTransposed(dir, genoFile, annotationFile, 0);
 			}
 			
 //			metaAll(dir+"results/");

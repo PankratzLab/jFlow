@@ -2690,12 +2690,26 @@ public class Array {
 	 * @return new array
 	 */
 	public static int[] addIntToArray(int value, int[] array) {
+		return addIntToArray(value, array, array.length);
+	}
+
+	/**
+	 * Adds specified integer to a specified index of an array
+	 * 
+	 * @param array
+	 *            an array of integers
+	 * @param value
+	 *            integer to add to the array 
+	 * @param indexOfNewArray
+	 *            location of the integer in the new array 
+	 * @return new array
+	 */
+	public static int[] addIntToArray(int value, int[] array, int indexOfNewStr) {
     	int[] new_array = new int[array.length+1];
     
-    	for (int i = 0; i<array.length; i++) {
-    		new_array[i] = array[i];
+    	for (int i = 0; i<new_array.length; i++) {
+    		new_array[i] = i==indexOfNewStr?value:array[i>indexOfNewStr?i-1:i];
     	}
-    	new_array[array.length] = value;
     
     	return new_array;
     }
@@ -3284,6 +3298,52 @@ public class Array {
 		}
 		return result;
 	}
+	
+    public static int[][] nCr_indices(int n, int r) {
+    	Vector<int[]> v;
+        boolean done;
+        int[] res, indices;
+        
+        res = new int[r];
+        for (int i = 0; i < res.length; i++) {
+            res[i] = i+1;
+        }
+        
+        done = false;
+        v = new Vector<int[]>();
+    	indices = new int[r];
+        while (!done) {
+        	for (int i = 0; i < r; i++) {
+        		indices[i] = res[i]-1;
+			}
+        	v.add(indices.clone());
+            done = getNext(res, n, r);
+        }
+        
+        return Matrix.toMatrix(v);
+    }
+
+    public static boolean getNext(int[] num, int n, int r) {
+        int target = r - 1;
+        num[target]++;
+        if (num[target] > ((n - (r - target)) + 1)) {
+            // Carry the One
+            while (num[target] > ((n - (r - target)))) {
+                target--;
+                if (target < 0) {
+                    break;
+                }
+            }
+            if (target < 0) {
+                return true;
+            }
+            num[target]++;
+            for (int i = target + 1; i < num.length; i++) {
+                num[i] = num[i - 1] + 1;
+            }
+        }
+        return false;
+    }
 
 	public static void main(String[] args) {
 	    double alleleFreq = 0.2;

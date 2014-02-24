@@ -134,9 +134,10 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		
 		setNullMessage("Select two factors to plot");
 		
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addComponentListener(this);
+		// taken care of in AbstractPanel constructor
+//		addMouseListener(this);
+//		addMouseMotionListener(this);
+//		addComponentListener(this);
 		setZoomable(true, true);
 	}
 	

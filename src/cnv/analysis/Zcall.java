@@ -84,7 +84,7 @@ public class Zcall {
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
 
 			time = new Date().getTime();
 			for (int i = 0; i < markerNames.length; i++) {

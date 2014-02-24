@@ -100,6 +100,11 @@ public class Plink {
 	        writer.println("rm data.sub.*");
 	        writer.println("mkdir batches/");
 	        writer.println("mv *.qsub* batches/");
+	        writer.println();
+	        writer.println("jcp gwas.Plink relate=cluster.genome");
+	        writer.println("mkdir unrelateds");
+	        writer.println("cd unrelateds/");
+	        writer.println("plink --bfile ../../plink --keep ../cluster.genome_keep.dat --make-bed --noweb");
 	        writer.close();
         } catch (Exception e) {
 	        System.err.println("Error writing to "+"master");
@@ -850,6 +855,9 @@ public class Plink {
 //		removeOutTo = 5;
 		
 //		mperm = "perm#.assoc.mperm,100000";
+		
+//		genomeID_files = new String[] {"cluster.genome"};
+		
 		try {
 			if (addGenom>0) {
 				addToGenome(root, genom);

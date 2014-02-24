@@ -10,15 +10,18 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 	private double[][] pvals;
 	private boolean log10;
 	private boolean rotated;
+	private float maxValue;
 	
-	public QQPanel(double[][] pvals, boolean log10, boolean rotated) {
+	public QQPanel(double[][] pvals, boolean log10, boolean rotated, float maxValue) {
 		super();
 		
 		this.pvals = pvals;
 		this.log10 = log10;
 		this.rotated = rotated;
+		this.maxValue = maxValue;
 
-		addComponentListener(this);
+		// taken care of in AbstractPanel constructor
+//		addComponentListener(this);
 		setZoomable(true, true);
 	}
 
@@ -74,16 +77,16 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 			count += pvals[i].length;
         }
 		points = new PlotPoint[count];
-
+		
 		count = 0;
 		for (int i = 0; i<pvals.length; i++) {
 			keys = Sort.quicksort(pvals[i]);
 
 			for (int j = 0; j<pvals[i].length; j++) {
 				if (rotated) { 
-					points[count] = new PlotPoint(keys[j]+"", PlotPoint.FILLED_CIRCLE, (float)(-1*Math.log10(((double)keys[j]+1)/pvals[i].length)), (float)(-1*Math.log10(pvals[i][j]))-(float)(-1*Math.log10(((double)keys[j]+1)/pvals[i].length)), (byte)6, (byte)(pvals.length==1?0:i+2), (byte)0);
+					points[count] = new PlotPoint(keys[j]+"", PlotPoint.FILLED_CIRCLE, (float)(-1*Math.log10(((double)keys[j]+1)/pvals[i].length)), Math.min(maxValue, (float)(-1*Math.log10(pvals[i][j]))-(float)(-1*Math.log10(((double)keys[j]+1)/pvals[i].length))), (byte)6, (byte)(pvals.length==1?0:i+2), (byte)0);
 				} else if (log10) { 
-					points[count] = new PlotPoint(keys[j]+"", PlotPoint.FILLED_CIRCLE, (float)(-1*Math.log10(((double)keys[j]+1)/pvals[i].length)), (float)(-1*Math.log10(pvals[i][j])), (byte)6, (byte)(pvals.length==1?0:i+2), (byte)0);
+					points[count] = new PlotPoint(keys[j]+"", PlotPoint.FILLED_CIRCLE, (float)(-1*Math.log10(((double)keys[j]+1)/pvals[i].length)), Math.min(maxValue, (float)(-1*Math.log10(pvals[i][j]))), (byte)6, (byte)(pvals.length==1?0:i+2), (byte)0);
 				} else {
 					points[count] = new PlotPoint(keys[j]+"", PlotPoint.FILLED_CIRCLE, (float)(((double)keys[j]+1)/pvals[i].length), (float)pvals[i][j], (byte)6, (byte)(pvals.length==1?0:i+2), (byte)0);
 				}

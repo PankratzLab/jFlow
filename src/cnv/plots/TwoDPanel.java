@@ -83,9 +83,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		
 		setColorScheme(DEFAULT_COLORS);
 
+		// taken care of in AbstractPanel constructor
 //		addMouseListener(this);
 //		addMouseMotionListener(this);
-		addComponentListener(this);
+//		addComponentListener(this);
 		setZoomable(true, true);
 
 //		this.names = names;
@@ -98,11 +99,6 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 //		sampleList = HashVec.getKeys(hash);
 		
 		setNullMessage("Select two variables to plot");
-		
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addComponentListener(this);
-		setZoomable(true, true);
 		
 		sampleData = null;
 		if (proj == null) {
