@@ -23,7 +23,7 @@ import common.ext;
 public class Sample implements Serializable {
 	public static final long serialVersionUID = 1L;
 	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue", "Log Ratio", "intensity_1"}, {"Y", "Yvalue", "Strength", "intensity_2"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
-	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1", "genotype1"}, {"Allele2 - Forward", "Allele2", "genotype2"}, {"Allele1 - AB"}, {"Allele2 - AB"}, {"Forward Strand Base Calls"}, {"Call Codes"}};
+	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1", "genotype1", "Allele1 - Top"}, {"Allele2 - Forward", "Allele2", "genotype2", "Allele2 - Top"}, {"Allele1 - AB"}, {"Allele2 - AB"}, {"Forward Strand Base Calls"}, {"Call Codes"}};
 	public static final String[] ALL_STANDARD_GENOTYPE_FIELDS = {"Allele1 - AB", "Allele2 - AB", "Allele1 - Forward", "Allele2 - Forward", "Allele1 - Top", "Allele2 - Top", "Allele1 - Design", "Allele2 - Design"};
 	public static final String[] ALLELE_PAIRS = {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT", "DD", "DI", "II", "ID"};
 	public static final String[] ALT_NULL = {"-", "0"};
@@ -124,56 +124,56 @@ public class Sample implements Serializable {
 		}
 	}
 
-	public byte getNBytesPerSampMark() {
-		byte nBytesPerSampMark;
+	public byte getNBytesPerSampleMarker() {
+		byte nBytesPerSampleMarker;
 		
-		nBytesPerSampMark = (byte) Compression.BYTES_PER_SAMPLE_MARKER;
+		nBytesPerSampleMarker = (byte) Compression.BYTES_PER_SAMPLE_MARKER;
 		if (gcs==null) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 		}
 		if (xs==null) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 		}
 		if (ys==null) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 		}
 		if (bafs==null) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 		}
 		if (lrrs==null) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
 		}
 		if (abGenotypes==null || forwardGenotypes==null) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 		}
 
-		return nBytesPerSampMark;
+		return nBytesPerSampleMarker;
 	}
 
-	public static byte getNBytesPerSampMark(byte nullStatus) {
-		byte nBytesPerSampMark;
+	public static byte getNBytesPerSampleMarker(byte nullStatus) {
+		byte nBytesPerSampleMarker;
 		
-		nBytesPerSampMark = (byte) Compression.BYTES_PER_SAMPLE_MARKER;
+		nBytesPerSampleMarker = (byte) Compression.BYTES_PER_SAMPLE_MARKER;
 		if (isGcNull(nullStatus)) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 		}
 		if (isXOrYNull(nullStatus)) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 		}
 		if (((nullStatus >> NULLSTATUS_Y_LOCATION) & 0x01) == 1) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 		}
 		if (isBafOrLrrNull(nullStatus)) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 		}
 		if (((nullStatus >> NULLSTATUS_LRR_LOCATION) & 0x01) == 1) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
 		}
 		if (isAbOrForwardGenotypeNull(nullStatus)) {
-			nBytesPerSampMark -= Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
+			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 		}
 
-		return nBytesPerSampMark;
+		return nBytesPerSampleMarker;
 	}
 
 	public static boolean isNegativeXOrYAllowed (byte nullStatus) {
@@ -374,25 +374,25 @@ public class Sample implements Serializable {
 		return result;
 	}
 	
-	public byte[] getAB_GenotypesAfterFilters(String[] targetMarks, int[] indicesOfTargetMarksInProj, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+	public byte[] getAB_GenotypesAfterFilters(String[] targetMarkers, int[] indicesOfTargetMarkersInProj, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
 		byte[] result;
 		float realX;
 		float realY;
 		ClusterFilter clusterFilter;
 		ArrayList<ClusterFilter> clusterFilterArray;
 
-		if (indicesOfTargetMarksInProj == null) {
-			return getAB_GenotypesAfterFilters(targetMarks, clusterFilterCollection, gcThreshold);
+		if (indicesOfTargetMarkersInProj == null) {
+			return getAB_GenotypesAfterFilters(targetMarkers, clusterFilterCollection, gcThreshold);
 		} else {
-			result = new byte[targetMarks.length];
-			for (int i=0; i < targetMarks.length; i++) {
-				if (gcs[indicesOfTargetMarksInProj[i]] < gcThreshold) {
+			result = new byte[targetMarkers.length];
+			for (int i=0; i < targetMarkers.length; i++) {
+				if (gcs[indicesOfTargetMarkersInProj[i]] < gcThreshold) {
 					result[i] = (byte) -1;
 				} else {
-					result[i] = abGenotypes[indicesOfTargetMarksInProj[i]];
+					result[i] = abGenotypes[indicesOfTargetMarkersInProj[i]];
 				}
 	
-				clusterFilterArray = clusterFilterCollection.getClusterFilters(targetMarks[i]);
+				clusterFilterArray = clusterFilterCollection.getClusterFilters(targetMarkers[i]);
 				if (clusterFilterArray != null) {
 					for (int j=0; j < clusterFilterArray.size(); j++) {
 						clusterFilter = clusterFilterArray.get(j);
@@ -400,22 +400,22 @@ public class Sample implements Serializable {
 						case 0:
 							realX = -9;
 							realY = -9;
-							System.err.println("Error - PlotType cannot be 0 for ClusterFilter #" + (j + 1) + " for marker '" + targetMarks[i] + "' as we've done away with raw Xs and Ys");
+							System.err.println("Error - PlotType cannot be 0 for ClusterFilter #" + (j + 1) + " for marker '" + targetMarkers[i] + "' as we've done away with raw Xs and Ys");
 							break;
 						case 1:
-							realX = xs[indicesOfTargetMarksInProj[i]];
-							realY = ys[indicesOfTargetMarksInProj[i]];
+							realX = xs[indicesOfTargetMarkersInProj[i]];
+							realY = ys[indicesOfTargetMarkersInProj[i]];
 							break;
 						case 2:
-							realX = thetas[indicesOfTargetMarksInProj[i]];
-							realY = rs[indicesOfTargetMarksInProj[i]];
+							realX = thetas[indicesOfTargetMarkersInProj[i]];
+							realY = rs[indicesOfTargetMarkersInProj[i]];
 							break;
 						case 3:
-							realX = bafs[indicesOfTargetMarksInProj[i]];
-							realY = lrrs[indicesOfTargetMarksInProj[i]];
+							realX = bafs[indicesOfTargetMarkersInProj[i]];
+							realY = lrrs[indicesOfTargetMarkersInProj[i]];
 							break;
 						default:
-							System.err.println("Error - invalid PlotType in ClusterFilter #" + (j + 1) + " for marker '" + targetMarks[i] + "'");
+							System.err.println("Error - invalid PlotType in ClusterFilter #" + (j + 1) + " for marker '" + targetMarkers[i] + "'");
 							realX = -9;
 							realY = -9;
 						}
@@ -433,16 +433,16 @@ public class Sample implements Serializable {
 		return abGenotypes;
 	}
 
-	public byte[] getAB_Genotypes(int[] indicesOfTargetMarksInProj) {
+	public byte[] getAB_Genotypes(int[] indicesOfTargetMarkersInProj) {
 		byte[] result;
 		
-		if (indicesOfTargetMarksInProj == null) {
+		if (indicesOfTargetMarkersInProj == null) {
 			return abGenotypes;
 
 		} else {
-			result = new byte[indicesOfTargetMarksInProj.length];
+			result = new byte[indicesOfTargetMarkersInProj.length];
 			for (int i = 0; i < result.length; i++) {
-				result[i] = abGenotypes[indicesOfTargetMarksInProj[i]];
+				result[i] = abGenotypes[indicesOfTargetMarkersInProj[i]];
 			}
 			return result;
 		}
@@ -543,7 +543,7 @@ public class Sample implements Serializable {
 		byte[] parameters;
 		byte[] temp;
 		int writeBufferIndex;
-		byte bytesPerSampMark;
+		byte bytesPerSampleMarker;
 		boolean isOutlier;
 
 		fileTmp = new File(filename);
@@ -555,8 +555,8 @@ public class Sample implements Serializable {
 			fileTmp.delete();
 		}
 
-		bytesPerSampMark = getNBytesPerSampMark();
-		bytesRemained = xs.length *  bytesPerSampMark;
+		bytesPerSampleMarker = getNBytesPerSampleMarker();
+		bytesRemained = xs.length *  bytesPerSampleMarker;
 		long time = new Date().getTime();
 		outOfRangeValuesEachSample = new Hashtable<String, Float>();
 		try {
@@ -633,7 +633,7 @@ public class Sample implements Serializable {
 					writeBuffer[writeBufferIndex] = Compression.genotypeCompress(abGenotypes == null?-1:abGenotypes[j], forwardGenotypes == null?0:forwardGenotypes[j]);
 					writeBufferIndex += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 				}
-				bytesRemained -= bytesPerSampMark;
+				bytesRemained -= bytesPerSampleMarker;
 				if ( writeBufferIndex>=writeBuffer.length ) {
 					rafFile.write(writeBuffer);
 					writeBufferIndex = 0;
@@ -685,7 +685,7 @@ public class Sample implements Serializable {
         Hashtable<String, Float> outOfRangeValues = null;
         int outlierSectionLocation;
         byte nullStatus;
-        byte bytesPerSampMark;
+        byte bytesPerSampleMarker;
 
         sampleName = ext.rootOf(filename);
 		try {
@@ -721,12 +721,12 @@ public class Sample implements Serializable {
 			}
 			fingerPrint = Compression.bytesToLong(temp);
 
-//			bytesPerSampMark = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
-			bytesPerSampMark = getNBytesPerSampMark(nullStatus);
+//			bytesPerSampleMarker = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
+			bytesPerSampleMarker = getNBytesPerSampleMarker(nullStatus);
 
 //			numBytesOfOutOfRangeValues = Compression.bytesToInt(new byte[]{readBuffer[outlierSectionLocation], readBuffer[outlierSectionLocation+1], readBuffer[outlierSectionLocation+2], readBuffer[outlierSectionLocation+3]});
 			if (numBytesOfOutOfRangeValues>0) {
-				outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampMark;
+				outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampleMarker;
 				outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(readBuffer, outlierSectionLocation, numBytesOfOutOfRangeValues);
 			}
 
@@ -737,7 +737,7 @@ public class Sample implements Serializable {
 					gcs = new float[numMarkers];
 					for (int j=0; j<numMarkers; j++) {
 						gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
-						index += bytesPerSampMark;
+						index += bytesPerSampleMarker;
 					}
 				}
 				indexStart += 2;
@@ -751,7 +751,7 @@ public class Sample implements Serializable {
 						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							xs[j] = outOfRangeValues.get(j + "\tx");
 						}
-						index += bytesPerSampMark;
+						index += bytesPerSampleMarker;
 					}
 				}
 				indexStart += 2;
@@ -765,7 +765,7 @@ public class Sample implements Serializable {
 						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							ys[j] = outOfRangeValues.get(j + "\ty");
 						}
-						index += bytesPerSampMark;
+						index += bytesPerSampleMarker;
 					}
 					
 				}
@@ -777,7 +777,7 @@ public class Sample implements Serializable {
 					bafs = new float[numMarkers];
 					for (int j=0; j<numMarkers; j++) {
 						bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
-						index += bytesPerSampMark;
+						index += bytesPerSampleMarker;
 					}
 				}
 				indexStart += 2;
@@ -791,7 +791,7 @@ public class Sample implements Serializable {
 						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
 							lrrs[j] = outOfRangeValues.get(j + "\tlrr");
 						}
-						index += bytesPerSampMark;
+						index += bytesPerSampleMarker;
 					}
 				}
 				indexStart += 3;
@@ -804,7 +804,7 @@ public class Sample implements Serializable {
 					genoTypeTmp = Compression.genotypeDecompress(readBuffer[index]);
 					abGenotypes[j] = genoTypeTmp[0];
 					fwdGenotypes[j] = genoTypeTmp[1];
-					index += bytesPerSampMark;
+					index += bytesPerSampleMarker;
 				}
 			}
 			result = new Sample(sampleName, fingerPrint, gcs, xs, ys, bafs, lrrs, fwdGenotypes, abGenotypes, isNegativeXOrYAllowed(nullStatus));
@@ -817,7 +817,7 @@ public class Sample implements Serializable {
 	}
 
 //	@SuppressWarnings("unchecked")
-//	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
+//	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampleMarker, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
 //		byte[] outliersBuffer;
 //		Hashtable<String, Float> sampleOutlierHash;
 //		Enumeration<String> keys;
@@ -830,11 +830,11 @@ public class Sample implements Serializable {
 //	    			outlierSectionSize = sampleFile.readInt();
 //	    	}
 //
-//	    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark);
+//	    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker);
 //	    	sampleFile.read(readBuffer);
 //
 //    		if (outlierSectionSize > 0) {
-//		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
+//		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampleMarker);
 //	    		outliersBuffer = new byte[outlierSectionSize];
 //	    		sampleFile.read(outliersBuffer);
 //	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);
@@ -856,7 +856,7 @@ public class Sample implements Serializable {
 
 
 	@SuppressWarnings("unchecked")
-	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, boolean seekOrLoadWholeFile, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
+	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, boolean seekOrLoadWholeFile, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampleMarker, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
 		byte[] outliersBuffer;
 		Hashtable<String, Float> sampleOutlierHash;
 		Enumeration<String> keys;
@@ -873,14 +873,14 @@ public class Sample implements Serializable {
 		    		outlierSectionSize = sampleFile.readInt();
 		    	}
 	
-		    	seekPointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
+		    	seekPointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
 		    	if (seekPointer != sampleFile.getFilePointer()) {
 		    		sampleFile.seek(seekPointer);
 		    	}
 				sampleFile.read(readBuffer);
 
 				if (outlierSectionSize > 0) {
-			    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
+			    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampleMarker);
 		    		outliersBuffer = new byte[outlierSectionSize];
 		    		sampleFile.read(outliersBuffer);
 		    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);
@@ -895,7 +895,7 @@ public class Sample implements Serializable {
 				readBufferLocal = new byte[(int) sampleFile.length()];
 				sampleFile.seek(0);
 				sampleFile.read(readBufferLocal);
-		    	pointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
+		    	pointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
 		    	for (int i=0; i<readBuffer.length; i++) {
 		    		readBuffer[i] = readBufferLocal[pointer];
 		    		pointer ++;
@@ -905,7 +905,7 @@ public class Sample implements Serializable {
 		    		pointer = Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC;
 	    			outlierSectionSize = Compression.bytesToInt(readBufferLocal, pointer);
 		    		if (outlierSectionSize > 0) {
-		    			pointer = Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark;
+		    			pointer = Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampleMarker;
 			    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(readBufferLocal, pointer, outlierSectionSize);
 			    		keys = sampleOutlierHash.keys();
 			    		while (keys.hasMoreElements()) {
@@ -929,7 +929,7 @@ public class Sample implements Serializable {
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
-	public static void loadSampleFileWithoutDecompress(String sampleFileName, byte[] outputBuffer, Hashtable<String, Float> allOutliers, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampMark, int numMarkersInProj) {
+	public static void loadSampleFileWithoutDecompress(String sampleFileName, byte[] outputBuffer, Hashtable<String, Float> allOutliers, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampleMarker, int numMarkersInProj) {
 		RandomAccessFile sampleFile;
 		byte[] outliersBuffer;
 		Hashtable<String, Float> sampleOutlierHash;
@@ -945,14 +945,14 @@ public class Sample implements Serializable {
 	    		outlierSectionSize = sampleFile.readInt();
 	    	}
 
-	    	seekPointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampMark;
+	    	seekPointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
 	    	if (seekPointer != sampleFile.getFilePointer()) {
 	    		sampleFile.seek(seekPointer);
 	    	}
 			sampleFile.read(outputBuffer);
 
 			if (outlierSectionSize > 0) {
-		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampMark);
+		    	sampleFile.seek(Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampleMarker);
 	    		outliersBuffer = new byte[outlierSectionSize];
 	    		sampleFile.read(outliersBuffer);
 	    		sampleOutlierHash = (Hashtable<String, Float>) Compression.bytesToObj(outliersBuffer);

@@ -3,6 +3,7 @@ package gwas;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 import common.*;
 import filesys.FamilyStructure;
@@ -552,7 +553,8 @@ public class Mach {
 		boolean prob;
 		long time;
 		
-		FileReader in;
+//		FileReader in;
+		InputStreamReader in;
 		int c = -1;
 		String[][] data;
 		String trav;
@@ -563,6 +565,7 @@ public class Mach {
 		String filename, descriptor, delimiter;
 		
         time = new Date().getTime();
+        System.out.println("Beginning extraction at "+ext.getTime());
         
         trav = dosageFormat.endsWith(".gz")?dosageFormat.substring(0, dosageFormat.lastIndexOf(".")):dosageFormat;
         machFormat = trav.endsWith(".mldose");
@@ -602,6 +605,7 @@ public class Mach {
 	        return false;
         }
         markerNames = Array.toStringArray(v);
+        log.report("Will try to export data for "+markerNames.length+" markers");
 
         pedfile = dir+"list.txt";
 		if (!new File(pedfile).exists()) {
@@ -617,6 +621,7 @@ public class Mach {
 			listIndividualsInMldose(ext.insertNumbers(dosageFormat, chrom), dir+"list.txt");
 		}
 		indIDs = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0,1}, true, false, "[\\s]+");
+        log.report("Will be pulling information from "+chrHash.size()+" chromosomes");
         
         
         chrKeys = HashVec.getKeys(chrHash);
@@ -643,9 +648,9 @@ public class Mach {
     			log.reportError("Error - missing file '"+markerInfoFile+"'");
     		}
     		
+    		log.report("Parsing indices for chr"+chr);
         	indices = new int[Files.countLines(markerInfoFile, true)];
     		try {
-//	            reader = new BufferedReader(new FileReader(machMarkers));
 	            reader = Files.getAppropriateReader(markerInfoFile);
 	            line = reader.readLine().trim().split("[\\s]+");
 	            if (machFormat) {
@@ -666,8 +671,9 @@ public class Mach {
 	            	count++;
 	            }
 	            reader.close();
-            } catch (IOException ioe) {
+            } catch (Exception e) {
             	log.reportError("Error reading file \""+markerInfoFile+"\"");
+            	log.reportException(e);
 	            return false;
             }    		
         	indicesHash.put(chrKeys[i], indices);
@@ -685,16 +691,21 @@ public class Mach {
         }
 		
 		data = new String[indIDs.length][markerNames.length];
-		log.report("Parsing "+markerNames.length+" markers for "+indIDs.length+" individuals", false, verbose);
+		log.report("Parsing "+markerNames.length+" markers for "+indIDs.length+" individuals", true, verbose);
 		
 		for (int i = 0; i<chrKeys.length; i++) {
-			log.report(".", false, verbose);
+//			log.report(".", false, verbose);
     		chr = Integer.parseInt(chrKeys[i]);
     		dosageFile = ext.insertNumbers(dosageFormat, chr);
     		indices = indicesHash.get(chrKeys[i]);
+    		System.out.println("Parsing "+indices.length+" markers for chromosome "+chrKeys[i]+" from "+dosageFile);
 			
 			try {
-				in = new FileReader(dosageFile);
+				if (dosageFile.endsWith(".gz")) {
+					in = new InputStreamReader(new GZIPInputStream(new FileInputStream(dosageFile)));
+				} else {
+					in = new FileReader(dosageFile);
+				}
 				count = -2;
 				c = 0;
 				for (int ind = 0; ind<indIDs.length; ind++) {
@@ -792,6 +803,265 @@ public class Mach {
         return true;
 	}
 	
+//	// using reader.readline does not appear to be all that faster or slower
+//	public static boolean extractSpecificMarkers(String dir, String markerList, String dosageFormat, String markerInfoFormat, boolean verbose, Logger log) {
+//		BufferedReader reader;
+//		PrintWriter writer;
+//		String[] line, ids;
+//		Hashtable<String,Integer> indexHash;
+//		Vector<String> v;
+//		String[] indIDs;
+//		int count;
+//		String[] markerNames;
+//		int[] indices;
+//		Hashtable<String,Vector<String>> chrHash;
+//		Hashtable<String,int[]> indicesHash;
+//		Hashtable<String,String[]> infoHash;
+//		String[] chrKeys;
+//		Integer index;
+//		int chr;
+//		boolean prob;
+//		long time;
+//		
+////		FileReader in;
+//		InputStreamReader in;
+//		String[][] data;
+//		String trav;
+//		
+//		String dosageFile, markerInfoFile;
+//		String pedfile;
+//		boolean machFormat;
+//		String filename, descriptor, delimiter;
+//		
+//        time = new Date().getTime();
+//        System.out.println("Beginning at "+ext.getTime());
+//        
+//        trav = dosageFormat.endsWith(".gz")?dosageFormat.substring(0, dosageFormat.lastIndexOf(".")):dosageFormat;
+//        machFormat = trav.endsWith(".mldose");
+//        trav = markerInfoFormat.endsWith(".gz")?markerInfoFormat.substring(0, markerInfoFormat.lastIndexOf(".")):markerInfoFormat;
+//        if (machFormat && !trav.endsWith(".mlinfo")) {
+//        	System.err.println("Error - mismatched format patterns, assuming these are output from minimac");
+//        }
+//
+//		indexHash = new Hashtable<String,Integer>();
+//		chrHash = new Hashtable<String,Vector<String>>();
+//		v = new Vector<String>();
+//		try {
+////	        reader = new BufferedReader(new FileReader(markerList));
+//			reader = Files.getAppropriateReader(markerList);
+//	        count = 0;
+//	        while (reader.ready()) {
+//	        	line = reader.readLine().trim().split("[\\s]+");
+//	        	if (line.length < 2) {
+//	        		log.reportError("Error - the second column of the marker list must contain the chromosome number");
+//	        		return false;
+//	        	}
+//	        	if (indexHash.containsKey(line[0])) {
+//	        		log.reportError("Error - cannot have the same marker ("+line[0]+") in the file twice");
+//	        		return false;
+//	        	}
+//	        	indexHash.put(line[0], Integer.valueOf(count));
+//	        	HashVec.addToHashVec(chrHash, line[1], line[0], false);
+//	        	v.add(line[0]);
+//	        	count++;
+//	        }
+//	        reader.close();
+//        } catch (FileNotFoundException fnfe) {
+//        	log.reportError("Error: file \""+markerList+"\" not found in current directory");
+//        	return false;
+//        } catch (IOException ioe) {
+//        	log.reportError("Error reading file \""+markerList+"\"");
+//	        return false;
+//        }
+//        markerNames = Array.toStringArray(v);
+//        log.report("Will try to export data for "+markerNames.length+" markers");
+//
+//        pedfile = dir+"list.txt";
+//		if (!new File(pedfile).exists()) {
+//			log.reportError("Could not find 'list.txt' generating...");
+//			int chrom = 22;
+//			while (!(new File(ext.insertNumbers(dosageFormat, chrom)).exists()) && chrom >= 1) {
+//				chrom--;
+//			}
+//			if (chrom == 0) {
+//				log.reportError("Error - no valid "+dosageFormat+" file found anywhere; aborting");
+//				return false;
+//			}
+//			listIndividualsInMldose(ext.insertNumbers(dosageFormat, chrom), dir+"list.txt");
+//		}
+//		indIDs = HashVec.loadFileToStringArray(pedfile, false, false, new int[] {0,1}, true, false, "[\\s]+");
+//        log.report("Will be pulling information from "+chrHash.size()+" chromosomes");
+//        
+//        
+//        chrKeys = HashVec.getKeys(chrHash);
+//        indicesHash = new Hashtable<String,int[]>();
+//        infoHash = new Hashtable<String,String[]>();
+//        for (int i = 0; i<chrKeys.length; i++) {
+//        	try {
+//        		chr = Integer.parseInt(chrKeys[i]);
+//        	} catch (NumberFormatException nfe) {
+//        		log.reportError("Error - invalid chromosome number listed in column 2 for marker '"+chrHash.get(chrKeys[i]).elementAt(0)+"'");
+//        		chr = -1;
+//        		return false;
+//        	}
+//        	if (chr < 1 || chr > 22) {
+//        		log.reportError("Error - invalid chromosome number ('"+chr+"') listed in column 2 for marker '"+chrHash.get(chrKeys[i]).elementAt(0)+"'");
+//        	}
+//    		dosageFile = ext.insertNumbers(dosageFormat, chr);
+//    		markerInfoFile = ext.insertNumbers(markerInfoFormat, chr);
+//    		
+//    		if (!Files.exists(dosageFile, false)) {
+//    			log.reportError("Error - missing file '"+dosageFile+"'");
+//    		}
+//    		if (!Files.exists(markerInfoFile, false)) {
+//    			log.reportError("Error - missing file '"+markerInfoFile+"'");
+//    		}
+//    		
+//    		log.report("Parsing indices for chr"+chr);
+//        	indices = new int[Files.countLines(markerInfoFile, true)];
+//    		try {
+//	            reader = Files.getAppropriateReader(markerInfoFile);
+//	            line = reader.readLine().trim().split("[\\s]+");
+//	            if (machFormat) {
+//	            	ext.checkHeader(line, MLINFO_HEADER, true);
+//	            } else {
+//	            	ext.checkHeader(line, MINFO_HEADER, true);
+//	            }
+//	            count = 0;
+//	            while (reader.ready()) {
+//	            	line = reader.readLine().trim().split("[\\s]+");
+//	        		index = indexHash.get(line[0]);
+//	        		if (index == null) {
+//	        			indices[count] = -1;
+//	        		} else {
+//	        			indices[count] = index.intValue();
+//	        			infoHash.put(line[0], line);
+//	        		}
+//	            	count++;
+//	            }
+//	            reader.close();
+//            } catch (Exception e) {
+//            	log.reportError("Error reading file \""+markerInfoFile+"\"");
+//            	log.reportException(e);
+//	            return false;
+//            }    		
+//        	indicesHash.put(chrKeys[i], indices);
+//        }
+//        
+//        prob = false;
+//        for (int i = 0; i<markerNames.length; i++) {
+//        	if (!infoHash.containsKey(markerNames[i])) {
+//        		log.reportError("Error - marker '"+markerNames[i]+"' was not found in any "+markerInfoFormat+" file", true, verbose);
+//        		prob = true;
+//        	}
+//        }
+//        if (prob) {
+//        	return false;
+//        }
+//		
+//		data = new String[indIDs.length][markerNames.length];
+//		log.report("Parsing "+markerNames.length+" markers for "+indIDs.length+" individuals", true, verbose);
+//		
+//		for (int i = 0; i<chrKeys.length; i++) {
+////			log.report(".", false, verbose);
+//    		chr = Integer.parseInt(chrKeys[i]);
+//    		dosageFile = ext.insertNumbers(dosageFormat, chr);
+//    		indices = indicesHash.get(chrKeys[i]);
+//    		System.out.println("Parsing "+indices.length+" markers for chromosome "+chrKeys[i]+" from "+dosageFile);
+//			
+//			try {
+//				if (dosageFile.endsWith(".gz")) {
+//					in = new InputStreamReader(new GZIPInputStream(new FileInputStream(dosageFile)));
+//				} else {
+//					in = new FileReader(dosageFile);
+//				}
+//				count = -2;
+//				for (int ind = 0; ind<indIDs.length; ind++) {
+//					if (!reader.ready()) {
+//						log.reportError("Error - premature truncation of file '"+dosageFile+"' at line "+(ind+1));
+//						in.close();
+//						return false;
+//					}
+//					line = reader.readLine().trim().split("[\\s]+");
+//					ids = indIDs[ind].split("[\\s]+");
+//					if (!line[0].equals(ids[0]+"->"+ids[1])) {
+//						log.reportError("Error - dosagee file ("+dosageFile+") does not match pedfile ("+pedfile+"); expecting '"+line[0]+"->"+line[1]+"', found '"+trav+"'");
+//						in.close();
+//						return false;
+//					}
+//					
+//					if (line.length != indices.length+2) {
+//						log.reportError("Error reading '"+dosageFile+"': did not find "+(indices.length+2)+" columns for row "+(ind+1));
+//						log.reportError("   Make sure that the delimiter is set correctly");
+//					}
+//
+////					line[1] == 'MLDOSE' column
+//					
+//					for (int j = 0; j<indices.length; j++) {
+//						if (indices[j] != -1) {
+//							data[ind][indices[j]] = line[2+j];
+//						}
+//					}
+//				}
+//				in.close();
+//			} catch (IOException ioe) {
+//				log.reportError("Error when reading file \""+dosageFile+"\"");
+//				log.reportException(ioe);
+//				return false;
+//			} catch (Exception e) {
+//				log.reportError("Error processing file \""+dosageFile+"\"");
+//				log.reportException(e);
+//				return false;
+//			}
+//        }
+//		log.report("", true, verbose);
+//		
+//		if (machFormat) {
+//			filename = ext.rootOf(markerList, false)+".mldose";
+//			descriptor = "MLDOSE";
+//			delimiter = " ";
+//		} else {
+//			filename = ext.rootOf(markerList, false)+".dose";
+//			descriptor = "DOSE";
+//			delimiter = "\t";
+//		}
+//		try {
+//            writer = new PrintWriter(new FileWriter(filename));
+//            for (int i = 0; i<indIDs.length; i++) {
+//            	line = indIDs[i].split("[\\s]+");
+//            	writer.print(line[0]+"->"+line[1]+delimiter+descriptor);
+//            	for (int j = 0; j<markerNames.length; j++) {
+//            		writer.print(delimiter+data[i][j]);
+//                }
+//            	writer.println();
+//            }
+//            writer.close();
+//        } catch (Exception e) {
+//        	log.reportError("Error writing to "+filename);
+//        	log.reportException(e);
+//        }
+//
+//		filename = ext.rootOf(markerList, false)+(machFormat?".mlinfo":".info");
+//		try {
+//            writer = new PrintWriter(new FileWriter(filename));
+//            if (machFormat) {
+//            	writer.println(Array.toStr(MLINFO_HEADER));
+//            } else {
+//            	writer.println(Array.toStr(MINFO_HEADER));
+//            }
+//            for (int i = 0; i<markerNames.length; i++) {
+//            	writer.println(Array.toStr(infoHash.get(markerNames[i])));
+//            }
+//            writer.close();
+//        } catch (Exception e) {
+//        	log.reportError("Error writing to "+filename);
+//        	log.reportException(e);
+//        }
+//        log.report("Finished in "+ext.getTimeElapsed(time), true, verbose);
+//        
+//        return true;
+//	}
+
 	public static void extractIntermediate(String markerList, int regionNameIndex, String dosageFormat, String infoFormat) {
 		BufferedReader reader;
 		PrintWriter writer, w2;

@@ -153,7 +153,7 @@ public class LrrSd extends Parallelizable {
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"+
 		"   (3) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
-		"   (4) optional: fi you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+
+		"   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {

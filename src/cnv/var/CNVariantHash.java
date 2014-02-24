@@ -38,7 +38,7 @@ public class CNVariantHash implements Serializable {
 
         setFilename(filename);
 
-        prog = new ProgressBarDialog("Converting CNVs", 0, Files.getSize(filename, jar), 800, 200);
+        prog = new ProgressBarDialog("Converting CNVs", 0, Files.getSize(filename, jar), 800, 200, 0);
 
         // time = new Date().getTime();
         vHashes = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
@@ -92,7 +92,7 @@ public class CNVariantHash implements Serializable {
         // time = new Date().getTime();
 
         inds = HashVec.getKeys(vHashes);
-        prog = new ProgressBarDialog("Serializing CNVs", 0, inds.length, 800, 200);
+        prog = new ProgressBarDialog("Serializing CNVs", 0, inds.length, 800, 200, 0);
         for (int i = 0; i < inds.length; i++) {
             prog.setProgress(i);
             vHash = vHashes.get(inds[i]);

@@ -154,6 +154,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
+		addComponentListener(this);
 	}
 	
 	public void resetCurrentIndexInPlotPointSet() {
@@ -354,7 +355,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		maximumObservedRawX = maximumObservedRawX==Float.MIN_VALUE?1:maximumObservedRawX;
 		minimumObservedRawY = minimumObservedRawY==Float.MAX_VALUE?0:minimumObservedRawY;
 		maximumObservedRawY = maximumObservedRawY==Float.MIN_VALUE?1:maximumObservedRawY;
-		//System.out.println(minimumObservedRawX+"\t"+maximumObservedRawX+"\t"+minimumObservedRawY+"\t"+maximumObservedRawY);//zx
 
 //		otherwise step is off
 		minimumObservedRawX = minimumObservedRawX>0?0:minimumObservedRawX;

@@ -94,7 +94,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		setColorScheme(colorScheme);
 		
 
-		addComponentListener(this);
+		// taken care of in AbstractPanel constructor
+//		addComponentListener(this);
 		setZoomable(true, true);
 	}
 

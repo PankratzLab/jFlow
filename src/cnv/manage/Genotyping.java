@@ -8,6 +8,7 @@ import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 
 import common.Elision;
+import common.Logger;
 
 public class Genotyping {
 //	private String sampleId;
@@ -177,17 +178,17 @@ public class Genotyping {
 	
 	public static void test (String projFilename, String markerName, String outFileName) {
 		Project proj;
-		MarkerData markData;
+		MarkerData markerData;
 		byte[] genotypeNew;
 		float[] x, y;
 		byte[] genotypeOld;
 		PrintWriter out;
 
 		proj = new Project(projFilename, false);
-		markData = new MarkerDataLoader(proj, new String[] {markerName}, 1).getMarkerData(0);
-		x = markData.getXs();
-		y = markData.getYs();
-		genotypeOld = markData.getAB_Genotypes();
+		markerData = new MarkerDataLoader(proj, new String[] {markerName}, 1, new Logger()).getMarkerData(0);
+		x = markerData.getXs();
+		y = markerData.getYs();
+		genotypeOld = markerData.getAB_Genotypes();
 		genotypeNew = clusteringAMarker(x, y).getGenotypeNew();
 		
 		try {

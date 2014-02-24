@@ -3,6 +3,7 @@ package common;
 import java.awt.*;
 import javax.swing.*;
 
+//TODO change to a SwingWorker so that this updates in realtime (especially for QQPlot) http://www.javacreed.com/swing-worker-example/
 public class ProgressBarDialog extends JDialog {
 	public static final long serialVersionUID = 1L;
 

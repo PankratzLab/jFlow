@@ -548,7 +548,7 @@ public class PlotResults extends JFrame implements ActionListener {
 
 		dirs = Files.listDirectories(dir, jar);
 		screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		prog = new ProgressBarDialog("Loading results...", 0, dirs.length*23, screenSize.width, screenSize.height);
+		prog = new ProgressBarDialog("Loading results...", 0, dirs.length*23, screenSize.width, screenSize.height, 0);
 		
 		if (dirs.length > DEFAULT_COLOR_SCHEME.length) {
 			System.err.println("Error - there are currently more data sources than there are colors defined!");

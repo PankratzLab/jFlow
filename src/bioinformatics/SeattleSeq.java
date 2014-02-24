@@ -10,6 +10,8 @@ public class SeattleSeq {
 	public static final String[][] RELEVANTS = {{"chromosome"}, {"position"}, {"sampleAlleles"}, {"accession"}, {"functionGVS"}, {"aminoAcids"}, {"geneList"}, {"inDBSNPOrNot"}, {"microRNAs"}};
 //	"# inDBSNPOrNot", "", "position", "referenceBase", "sampleGenotype", "sampleAlleles", "allelesDBSNP", "accession", "functionGVS", "functionDBSNP", "rsID", "aminoAcids", "proteinPosition", "cDNAPosition", "polyPhen", "granthamScore", "scorePhastCons", "consScoreGERP", "chimpAllele", "CNV", "geneList", "AfricanHapMapFreq", "EuropeanHapMapFreq", "AsianHapMapFreq", "hasGenotypes", "dbSNPValidation", "repeatMasker", "tandemRepeat", "clinicalAssociation", "distanceToSplice", "microRNAs", "proteinSequence"
 	public static final String[] ORDER = {"nonsense", "missense", "splice-5", "splice-3", "coding-synonymous", "coding-notMod3", "utr-5", "utr-3", "intron", "near-gene-5", "near-gene-3", "intergenic"};
+	public static final String[] BAD = {"missense", "stop-gained", "stop-lost", "missense-near-splice", "splice-donor", "splice-acceptor"};
+	public static final String[] NEUTRAL = {"intron-near-splice", "5-prime-UTR", "downstream-gene", "upstream-gene", "synonymous", "coding-synonymous", "intergenic", "non-coding-exon", "3-prime-UTR", "intron", "coding-notMod3"};
 	
 	public static void proc(String filename) {
 		BufferedReader reader;
@@ -342,6 +344,8 @@ public class SeattleSeq {
 		BufferedReader reader;
 		String[] files, line;
 		Hashtable<String, String[]> hash;
+		String markerName;
+		String function;
 
 		hash = new Hashtable<String, String[]>();
 		
@@ -351,13 +355,29 @@ public class SeattleSeq {
 			log.reportError("Error - SeattleSeq annotation directory directory not found: "+directory);
 			log.reportError("        returning an empty hashtable");
 		} else {
-			files = Files.list(directory, ".SeattleSeq", false);
+			files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false, false);
 			log.report("Found "+files.length+" file(s) with a .SeattleSeq extension to include");
 			for (int i = 0; i < files.length; i++) {
 				try {
-					reader = new BufferedReader(new FileReader(directory+files[i]));
+					reader = Files.getAppropriateReader(directory+files[i]);
 					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
+						line = reader.readLine().trim().split("\t", -1);
+						if (line.length > 1) {
+							markerName = "chr"+line[1]+":"+line[2]+"_"+line[3]+"_"+line[4];
+							if (!hash.containsKey(markerName) || hash.get(markerName) == null) {
+								if (ext.indexOfStr(line[8], BAD) >= 0) {
+									function = line[8];
+									if (!line[11].equals("none")) {
+										function += " "+ext.replaceAllWith(line[11], ",", line[12].substring(0, line[12].indexOf("/")));
+									}
+									function += "\t"+line[0];
+									hash.put(markerName, new String[] {function});
+								} else {
+									hash.put(markerName, new String[0]);
+								}
+							}
+						}
+						
 						// TODO
 					}
 					reader.close();

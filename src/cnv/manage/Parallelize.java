@@ -112,6 +112,24 @@ public class Parallelize implements Runnable {
 		}
 	}
 	
+	public static void waitForThreads(Thread[] threads) {
+		boolean alive;
+		
+		alive = true;
+		while (alive) {
+			alive = false;
+			for (int i = 0; i < threads.length; i++) {
+				if (threads[i].isAlive()) {
+					alive = true;
+				}
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ie) {
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;

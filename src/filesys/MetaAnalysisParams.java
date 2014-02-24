@@ -253,7 +253,23 @@ public class MetaAnalysisParams {
 	public String[][] getMethods() {
 		return methods;
 	}
+	
+	public String[] getGroups() {
+		String[][] methods;
+		String[] groups;
+		
+		methods = getMethods();
 
+		groups = new String[] {};
+		for (int m = 0; m < methods.length; m++) {
+			if (ext.indexOfStr(methods[m][1], groups) == -1) {
+				groups = Array.addStrToArray(methods[m][1], groups);
+			}
+		}
+
+		return groups;
+	}
+	
 	public String[][] getGroupAnnotationParams() {
 		return groupAnnotationParams;
 	}

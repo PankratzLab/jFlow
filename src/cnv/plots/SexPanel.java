@@ -15,6 +15,7 @@ import cnv.gui.LaunchAction;
 import cnv.var.SampleData;
 import mining.Distance;
 
+
 //public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
 //public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener, ActionListener {
 public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -55,7 +56,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 												  "Mosaic Klinefelter's",
 												  "Triple X",
 												  "Full Turner's",
-												  "mosaic Turner's"
+												  "Mosaic Turner's"
 	};
 
 	private Project proj;
@@ -149,9 +150,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 			maxY = Math.max(data[j][1], maxY);
 		}
 
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addComponentListener(this);
+//		addMouseListener(this);
+//		addMouseMotionListener(this);
 		
 		//setFlow(true);
 	}
@@ -183,7 +183,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 			//iv = locLookup.get(pos);
 			iv = lookupNearbyPoints(x, y, pos);
 			prox = new IntVector();
-			//System.out.println("pos: "+pos+"\t iv.size():"+(iv==null?"null":iv.size()));//zx test point
+//			System.out.println("pos: "+pos+"\t iv.size():"+(iv==null?"null":iv.size()));//zx test point
 			g.setColor(Color.RED);
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[iv.elementAt(i)][0]), getYPixel(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
@@ -232,6 +232,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 		if (prox!=null&&prox.size()>0) {
 			menu = new JPopupMenu();
 			for (int i = 0; i<prox.size(); i++) {
+//				System.out.println(i+"\t"+samples[prox.elementAt(i)][0]);
 				menu.add(new LaunchAction(proj,
 										  samples[prox.elementAt(i)][0],
 										  new String[] {"chr23", "chr24"},
@@ -250,7 +251,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	public void mouseDragged(MouseEvent e) {}
 
 	public static void main(String[] args) {
-		MosaicPlot.main(args);
+		SexPlot.main(args);
 	}
 
 	/**

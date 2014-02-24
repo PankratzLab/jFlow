@@ -124,10 +124,11 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 			maxY = Math.max(data[j][1], maxY);
 		}
 
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addComponentListener(this);
-		
+		// taken care of in AbstractPanel constructor
+//		addMouseListener(this);
+//		addMouseMotionListener(this);
+//		addComponentListener(this);
+//		
 		setFlow(true);
 	}
 
