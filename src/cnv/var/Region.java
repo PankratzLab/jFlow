@@ -13,6 +13,11 @@ public class Region {
 	private String label = "";
 	private String region = "";
 
+	/**
+	 * Set the region based on a tab-delimited string
+	 * 
+	 * @param line
+	 */
 	public Region(String line) {
 		String[] tokens = line.split("\t");
 		if (tokens.length > 0) {
@@ -23,6 +28,15 @@ public class Region {
 		if (tokens.length > 1) {
 			label = tokens[1];
 		}
+	}
+
+	/**
+	 * Set the region based on a UCSC-compatible location array
+	 * 
+	 * @param location
+	 */
+	public Region(int[] location) {
+		region = "chr" + location[0] + ":" + location[1] + "-" + location[2];
 	}
 
 	/**
