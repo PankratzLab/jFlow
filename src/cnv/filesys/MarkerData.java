@@ -6,8 +6,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import cnv.var.SampleData;
-
 import stats.Correlation;
+import common.AlleleFreq;
 import common.Array;
 import common.DoubleVector;
 
@@ -483,6 +483,30 @@ public class MarkerData implements Serializable {
 		return mapping;
 	}
 
+	// samplesToBeUsed and sex can be null
+	public int[] getAlleleCounts(boolean[] samplesToBeUsed, String[] sex) {
+		int[] alleleCounts = new int[3];
+		String sexSpecific;
+		// 0=non-specific , 1= male , 2 =female
+		if (chr == 23) {
+			sexSpecific = "2";
+		} else if (chr == 24) {
+			sexSpecific = "1";
+		} else {
+			sexSpecific = "0";
+		}
+		for (int i = 0; i < abGenotypes.length; i++) {
+			if (abGenotypes[i] >= 0 && (samplesToBeUsed == null || samplesToBeUsed[i]) && (sex == null || sexSpecific.equals("0") || sex[i].equals(sexSpecific))) {
+				alleleCounts[abGenotypes[i]]++;
+			}
+		}
+		return alleleCounts;
+	}
+
+	public double getMAF(boolean[] samplesToBeUsed, String[] sex) {
+		int[] alleleCounts = getAlleleCounts(samplesToBeUsed, sex);
+		return AlleleFreq.calcMAF(alleleCounts[0], alleleCounts[1], alleleCounts[2]);
+	}
 //	public byte[] detectClusters() {
 //		return detectClusters(0.01, 3);
 //	}

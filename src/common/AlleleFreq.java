@@ -3,6 +3,7 @@ package common;
 import java.io.*;
 
 import stats.ContingencyTable;
+import stats.Maths;
 import stats.ProbDist;
 
 public class AlleleFreq {
@@ -27,6 +28,15 @@ public class AlleleFreq {
 		}
 	}
 
+	public static double calcMAF(int pp, int pq, int qq) {
+		double total = pp + pq + qq;
+		if (total == 0) {
+			return Double.NaN;
+		} else {
+			double minor = Maths.min(pp, qq);
+			return (double) (minor * 2 + pq) / (2 * total);
+		}
+	}
 	public static double computeHeterozygosity(int[] counts) {
 		double p = (double)(counts[0]*2+counts[1])/(double)(Array.sum(counts)*2);
 		return 1-p*p-(1-p)*(1-p);
