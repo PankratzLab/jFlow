@@ -3,7 +3,6 @@ package affy;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 import cnv.filesys.Centroids;
@@ -13,6 +12,7 @@ import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
 import cnv.manage.MarkerDataLoader;
+import cnv.var.SampleData;
 import stats.Maths;
 import common.Array;
 import common.Files;
@@ -26,8 +26,6 @@ public class AffyCentroids implements Serializable {
 
 	private float[][][] AffyCentroids; // marker, genotype (0=AA, 1=AB, 2=BB), coordinates (0=Mean Theta, 1=Mean R) (a.k.a. follows the suffix order above)
 	private long fingerprint;
-	private static int starter = 0;
-	private static int stopper = 1855448;
 
 	// private static int stopper = 1855448;
 
@@ -84,8 +82,9 @@ public class AffyCentroids implements Serializable {
 		}
 	}
 
-	public static float calcLRR(float theta, float r, float[][] AffyCentroids) {
+	public static float calcLRR(float theta, float r, float[][] AffyCentroids, Logger log) {
 		float estimatedR;
+		// centroid is either all null, or not.
 		if (AffyCentroids[0] == null) {
 			estimatedR = Float.NaN;
 		} else if (theta < AffyCentroids[1][0]) {
@@ -96,7 +95,7 @@ public class AffyCentroids implements Serializable {
 			}
 			if (estimatedR < 0) {
 				estimatedR = r;
-				System.out.println("Warning - estimatedR < 0 ");
+				log.report("Warning - estimatedR < 0 ");
 			}
 		} else {
 			if (AffyCentroids[2][0] - AffyCentroids[1][0] != 0) {
@@ -106,43 +105,41 @@ public class AffyCentroids implements Serializable {
 			}
 			if (estimatedR < 0) {
 				estimatedR = r;
-				System.out.println("Warning - estimatedR < 0 ");
+				log.report("Warning - estimatedR < 0 ");
 			}
 		}
 		return (float) Maths.log2(r / estimatedR);
 
 	}
 
-	public static float[] getAFFYBAF(String[] markerNames, float[][][] affyCents, float[] Xs, float[] Ys, int i) {
+	public static float[] getAFFYBAF(String[] markerNames, float[][][] affyCents, float[] Xs, float[] Ys, int i, Logger log) {
 		float[] AFFYBAFs;
 		AFFYBAFs = new float[markerNames.length];
-		for (int k = starter; k < stopper; k++) {
+		for (int k = 0; k < markerNames.length; k++) {
 			if (markerNames[k].startsWith("CN_")) {
 				AFFYBAFs[k] = 0;
-			} else if (markerNames[k].startsWith("SNP_")) {
+			} else if (!markerNames[k].startsWith("CN_")) {
 				AFFYBAFs[k] = calcBAF(calcTheta(Xs[k], Ys[k]), affyCents[k]);
 			}
 		}
 		return AFFYBAFs;
 	}
 
-	public static float[] getAFFYLRR(String[] markerNames, float[][][] affyCents, float[] Xs, float[] Ys, int i) {
+	public static float[] getAFFYLRR(String[] markerNames, float[][][] affyCents, float[] Xs, float[] Ys, int i, Logger log) {
 		float[] AFFYLRRs;
 		AFFYLRRs = new float[Xs.length];
-		for (int k = starter; k < stopper; k++) {
+		for (int k = 0; k < markerNames.length; k++) {
 			if (markerNames[k].startsWith("CN_")) {
 				// if a copy number probeset, take the log2 intensity value - median log2 intensity
 				AFFYLRRs[k] = (float) (Maths.log2(Xs[k]) - affyCents[k][0][1]);
-				// System.out.println(markerNames[k] + "\t" + AFFYLRRs[k] + "\t" + affyCents[k][0][1] + "\t" + affyCents[k][2][1]);
-
-			} else if (markerNames[k].startsWith("SNP_")) {
-				AFFYLRRs[k] = calcLRR(calcTheta(Xs[k], Ys[k]), calcR(Xs[k], Ys[k]), affyCents[k]);
+			} else if (!markerNames[k].startsWith("CN_")) {
+				AFFYLRRs[k] = calcLRR(calcTheta(Xs[k], Ys[k]), calcR(Xs[k], Ys[k]), affyCents[k], log);
 			}
 		}
 		return AFFYLRRs;
 	}
 
-	public static void recompute(Project proj, String centroidsFile) {
+	public static void recompute(Project proj, String centroidsFile, Logger log) {
 		MarkerSet markerSet;
 		Centroids affyCentroids;
 		Sample original, sample;
@@ -156,23 +153,45 @@ public class AffyCentroids implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 		affyCentroids = Centroids.load(centroidsFile, proj.getJarStatus());
 		if (affyCentroids.getFingerprint() != markerSet.getFingerprint()) {
-			System.err.println("Error - fingerprint for Centroids file '" + centroidsFile + "' does not match the fingerprint for the current MarkerSet");
+			log.reportError("Error - fingerprint for Centroids file '" + centroidsFile + "' does not match the fingerprint for the current MarkerSet");
+			System.exit(1);
 		}
 		affyCents = affyCentroids.getCentroids();
 		samples = proj.getSamples();
 		for (int i = 0; i < samples.length; i++) {
-			System.out.println(samples[i]);
+			log.report(samples[i]);
 			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
 			Xs = original.getXs();
 			Ys = original.getYs();
-			AFFYBAFs = getAFFYBAF(markerNames, affyCents, Xs, Ys, i);
-			AFFYLRRs = getAFFYLRR(markerNames, affyCents, Xs, Ys, i);
+			AFFYBAFs = getAFFYBAF(markerNames, affyCents, Xs, Ys, i, log);
+			AFFYLRRs = getAFFYLRR(markerNames, affyCents, Xs, Ys, i, log);
 			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), AFFYBAFs, AFFYLRRs, original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
 			sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION);
 		}
 	}
 
-	public static void parseCentroids(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold) {
+	public static void parseCentroidsFilteredSamples(Project proj, double missingnessThreshold, double confThreshold, Logger log) {
+		if (!proj.getSampleData(1, false).hasExcludedIndividuals()) {
+			log.reportError("Error - cannot exclude individuals for centroid computations , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
+			System.exit(1);
+		} else {
+			SampleData sampleData = proj.getSampleData(1, false);
+			SampleList sampleList = proj.getSampleList();
+			String[] samples = sampleList.getSamples();
+			boolean[] samplesToBeUsed = new boolean[samples.length];
+			int use =0;
+			for (int i = 0; i < samples.length; i++) {
+				samplesToBeUsed[i] = !sampleData.individualShouldBeExcluded(samples[i]);
+				if(samplesToBeUsed[i]){
+					use++;
+				}
+			}
+			log.report("Info - generating new cluster centers using " + use + " individuals");
+			parseCentroids(proj, samplesToBeUsed, missingnessThreshold, confThreshold, log);
+		}
+	}
+
+	public static void parseCentroids(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, double confThreshold, Logger log) {
 		String[] samples, markerNames;
 		float[][][] centroids;
 		int count;
@@ -182,43 +201,43 @@ public class AffyCentroids implements Serializable {
 		long time;
 		MarkerSet markerSet;
 		time = new Date().getTime();
-		System.out.println("Computing centroids from intensity means");
+		log.report("Computing centroids from intensity means");
 		sampleList = proj.getSampleList();
 		samples = sampleList.getSamples();
 		if (samples.length != samplesToBeUsed.length) {
-			System.err.println("Error - mismatched number of samples in project versus sample mask");
-			return;
+			log.reportError("Error - mismatched number of samples in project versus sample mask");
+			System.exit(1);
 		}
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, Arrays.copyOfRange(markerNames, starter, stopper), new Logger());
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
 
 		time = new Date().getTime();
-		for (int i = 0; i < stopper - starter; i++) {
+		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);
-			centroids[i] = computeCluster(proj, samplesToBeUsed, missingnessThreshold, samples, markerData, i, 0.99);
+			centroids[i] = computeCluster(proj, samplesToBeUsed, missingnessThreshold, samples, markerData, i, confThreshold, log);
 			markerDataLoader.releaseIndex(i);
 		}
 		count = 0;
 		for (int i = 0; i < centroids.length; i++) {
 			if (centroids[i] == null) {
 				if (count == 0) {
-					System.out.println("The following marker(s) could not be computed:");
+					log.report("The following marker(s) could not be computed:");
 				}
 				count++;
 			}
 		}
 		if (count > 0) {
-			System.out.println("Computed mean genotyped centroids for " + (centroids.length - count) + " of " + centroids.length + " markers, " + count + " missing");
+			log.report("Computed mean genotyped centroids for " + (centroids.length - count) + " of " + centroids.length + " markers, " + count + " missing");
 		} else {
-			System.out.println("Computed mean genotyped centroids for all " + centroids.length + " markers");
+			log.report("Computed mean genotyped centroids for all " + centroids.length + " markers");
 		}
 		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
-		System.out.println("Computation took " + ext.getTimeElapsed(time));
+		log.report("Computation took " + ext.getTimeElapsed(time));
 	}
 
-	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, MarkerData markerData, int i, double confThreshold) {
+	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, MarkerData markerData, int i, double confThreshold, Logger log) {
 		float[][] centroid;
 		float[] thetas;
 		float[] rs;
@@ -235,7 +254,7 @@ public class AffyCentroids implements Serializable {
 		counts = new int[5];
 		boolean use = true;
 
-		if (markerName.startsWith("SNP_")) {
+		if (!markerName.startsWith("CN_")) {
 			for (int k = 0; k < samples.length; k++) {
 				// use if X chromosome and sex is female, dont use if X chromsome and sex is male
 				// use if Ychromosome and sex is male, dont use if Ychromsome and sex is female
@@ -278,11 +297,11 @@ public class AffyCentroids implements Serializable {
 			counts[4]++;
 			counts[0]++;
 		}
-		centroid = getCentroid(missingnessThreshold, meanThetas, meanRs, counts, writer, markerName);
+		centroid = getCentroid(missingnessThreshold, meanThetas, meanRs, counts, writer, markerName, log);
 		return centroid;
 	}
 
-	private static float[][] getCentroid(double missingnessThreshold, double[] meanThetas, double[] meanRs, int[] counts, PrintWriter writer, String markerName) {
+	private static float[][] getCentroid(double missingnessThreshold, double[] meanThetas, double[] meanRs, int[] counts, PrintWriter writer, String markerName, Logger log) {
 		float[][] centroid;
 		centroid = new float[3][];
 		if (counts[1] >= counts[0] * missingnessThreshold) {
@@ -290,7 +309,7 @@ public class AffyCentroids implements Serializable {
 				centroid[k] = new float[] { (float) meanThetas[0], (float) meanRs[0] };
 			}
 		} else {
-			processCentroid(centroid, meanThetas, meanRs, counts, writer, markerName);
+			processCentroid(centroid, meanThetas, meanRs, counts, writer, markerName, log);
 		}
 		return centroid;
 	}
@@ -310,7 +329,7 @@ public class AffyCentroids implements Serializable {
 		return use;
 	}
 
-	private static void processCentroid(float[][] centroid, double[] meanThetas, double[] meanRs, int[] counts, PrintWriter writer, String markerName) {
+	private static void processCentroid(float[][] centroid, double[] meanThetas, double[] meanRs, int[] counts, PrintWriter writer, String markerName, Logger log) {
 		if (markerName.startsWith("CN_")) {
 			centroid[0] = new float[] { (float) meanThetas[2], (float) meanRs[2] };
 			centroid[1] = new float[] { (float) meanThetas[3], (float) meanRs[3] };
@@ -326,47 +345,47 @@ public class AffyCentroids implements Serializable {
 		} else if (counts[3] == 0 && counts[4] == 0) {
 			nullify(centroid);
 		} else if (counts[2] == 0) {
-			centroid[0] = new float[] { (float) (meanThetas[3] - 0.3), getAltRs(centroid, meanRs, counts, 2, 3, 4) };
+			// Estimating the AA cluster
+			centroid[0] = new float[] { (float) (meanThetas[3] - 0.3), getAltRs(centroid, meanRs, counts, 2, 3, 4, log) };
 			centroid[1] = new float[] { (float) meanThetas[3], (float) meanRs[3] };
 			centroid[2] = new float[] { (float) meanThetas[4], (float) meanRs[4] };
-			// System.out.println("Estimating the AA cluster for  " + markerName);
+
 		} else if (counts[3] == 0) {
+			// Estimating the AB cluster
 			centroid[0] = new float[] { (float) meanThetas[2], (float) meanRs[2] };
 			if (counts[2] > 0 && counts[4] > 0) {
-				centroid[1] = new float[] { (float) ((meanThetas[2] + meanThetas[4]) / 2), getAltRs(centroid, meanRs, counts, 3, 2, 4) };
-				// System.out.println("Estimating the AB cluster for  " + markerName);
+				centroid[1] = new float[] { (float) ((meanThetas[2] + meanThetas[4]) / 2), getAltRs(centroid, meanRs, counts, 3, 2, 4, log) };
 			} else {
-				centroid[1] = new float[] { (float) (0.5), getAltRs(centroid, meanRs, counts, 3, 2, 4) };
-				// System.out.println("Estimating the AB cluster for  " + markerName);
+				centroid[1] = new float[] { (float) (0.5), getAltRs(centroid, meanRs, counts, 3, 2, 4, log) };
 			}
 			centroid[2] = new float[] { (float) meanThetas[4], (float) meanRs[4] };
 		} else if (counts[4] == 0) {
+			// Estimating the BB cluster
 			centroid[0] = new float[] { (float) meanThetas[2], (float) meanRs[2] };
 			centroid[1] = new float[] { (float) meanThetas[3], (float) meanRs[3] };
-			centroid[2] = new float[] { (float) (meanThetas[3] + 0.3), getAltRs(centroid, meanRs, counts, 4, 3, 2) };
-			// System.out.println("Estimating the BB cluster for  " + markerName);
+			centroid[2] = new float[] { (float) (meanThetas[3] + 0.3), getAltRs(centroid, meanRs, counts, 4, 3, 2, log) };
 		}
-
 		else {
-			assignRegularCentroid(centroid, meanThetas, meanRs, counts);
+			assignRegularCentroid(centroid, meanThetas, meanRs, counts, log);
 		}
 		if (centroid[2] != null && (centroid[0][0] > centroid[1][0] || centroid[2][0] < centroid[1][0])) {
 			nullify(centroid);
 		}
 	}
 
-	private static void assignRegularCentroid(float[][] centroid, double[] meanThetas, double[] meanRs, int[] counts) {
+	private static void assignRegularCentroid(float[][] centroid, double[] meanThetas, double[] meanRs, int[] counts, Logger log) {
 		for (int k = 0; k < 3; k++) {
 			if (counts[k + 2] > 0) {
 				// writer.println(markerName+ "\t"+(float)meanThetas[k+2] +"\t" +(float)meanRs[k+2] );
 				centroid[k] = new float[] { (float) meanThetas[k + 2], (float) meanRs[k + 2] };
 			} else {
-				System.out.println("this should not happen , but does it?");
+				log.reportError("Error assiging regular centroids");
+				System.exit(1);
 			}
 		}
 	}
 
-	private static float getAltRs(float[][] centroid, double[] meanRs, int[] counts, int checkIndex, int primaryAlt, int secondaryAlt) {
+	private static float getAltRs(float[][] centroid, double[] meanRs, int[] counts, int checkIndex, int primaryAlt, int secondaryAlt, Logger log) {
 		// AssignAltRs(centroid ,meanRs , counts , 2 , 3 ,4 );
 		float altR;
 		if (counts[primaryAlt] > 0) {
@@ -375,7 +394,8 @@ public class AffyCentroids implements Serializable {
 			altR = (float) meanRs[secondaryAlt];
 		} else {
 			altR = 0;
-			System.err.println("This should not happen when assigning altRs");
+			log.reportError("Error retrieving alternate R");
+			System.exit(1);
 		}
 		return altR;
 	}
@@ -430,23 +450,14 @@ public class AffyCentroids implements Serializable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "C:/workspace/Genvisis/projects/ARICGenvisis_CEL_11908.properties";
-		// String centFile = "ForNathan_table.csv";
-		// String centFile = "SNP Table Myers raw dataset final 022908.csv";
-		// String centFile = "Myers_final_042208_ReclusteredCNV_SNP_Table2.csv";
-		// String centFile = "Theta_R_mean_dev_550.csv";
-		String centFile = "CentroidExample.csv";
-		// String intensityFlags = "";
-		// String intensityFlags = "intesityFlag.txt";
-		// String clusteredCentroids = Project.DEFAULT_ORIGINAL_CENTROIDS_FILENAME;
-		// String unclusteredCentroids = Project.DEFAULT_GENOTYPE_CENTROIDS_FILENAME;
 		boolean fromGenotypes = false;
+		boolean sampleFilter = false;
 		Project proj;
 		String compute = "";
-		// String importFile = null;
-		String exportFile = null;
-
+		double callConfidence = 0.99;
+		String centFile = "C:/data/ARIC/ARICGenvisis_CEL_11908/data/genotype.cent";
 		String usage = "\n" + "affy.AffyCentroids requires 0-1 arguments\n" + "   (1) project (i.e. proj=" + filename + " (default))\n" + "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n" + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n" + " OR\n" + "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n" + "   (3) centroid file for clustered markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n" + "   (4) centroid file for intensity only markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n" + " OR\n" + "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n" + "";
-
+		String logfile = null;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -457,23 +468,19 @@ public class AffyCentroids implements Serializable {
 			} else if (args[i].startsWith("file=")) {
 				centFile = args[i].split("=")[1];
 				numArgs--;
-			}
-			// else if (args[i].startsWith("import=")) {
-			// importFile = args[i].split("=")[1];
-			// numArgs--;
-
-			// }
-			else if (args[i].startsWith("export=")) {
-				exportFile = args[i].split("=")[1];
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("callConf=")) {
+				callConfidence = Double.parseDouble(args[i].split("=")[1]);
 				numArgs--;
 			} else if (args[i].startsWith("-fromGenotypes")) {
 				fromGenotypes = true;
 				numArgs--;
+			} else if (args[i].startsWith("-FilteredfromGenotypes")) {
+				sampleFilter = true;
+				numArgs--;
 			}
-			// else if (args[i].startsWith("flags=")) {
-			// intensityFlags = args[i].split("=")[1];
-			// numArgs--;
-			// }
 			else if (args[i].startsWith("compute=")) {
 				compute = args[i].split("=")[1];
 				numArgs--;
@@ -483,159 +490,21 @@ public class AffyCentroids implements Serializable {
 			System.err.println(usage);
 			System.exit(1);
 		}
-
 		proj = new Project(filename, false);
-		// fromGenotypes = true;
-		// // compute = "genotype.cent";
-		//
-		// centFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_11908/data/genotype.cent";
-		centFile = "C:/data/ARIC/ARICGenvisis_CEL_11908/data/genotype.cent";
-		// exportFile = "data/genotype.cent.xln";
+		if (logfile == null) {
+			logfile = "AffyCentroidlog.txt";
+		}
+		Logger log = new Logger(proj.getProjectDir() + logfile);
 		try {
-			if (exportFile != null) {
-			} else if (fromGenotypes) {
-				parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1);
+			if (fromGenotypes) {
+				parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1, 0.99, log);
+			} else if (sampleFilter) {
+				parseCentroidsFilteredSamples(proj, 1, callConfidence, log);
 			} else if (!compute.equals("")) {
-				recompute(proj, centFile);
+				recompute(proj, compute, log);
 			}
-			// } else if (!intensityFlags.equals("")) {
-			// generateChimeraCentroids(proj, intensityFlags);
-			// } else {
-			// parseIlluminaCentroidsFromCSV(proj, centFile);
-			// }
-			// exportToText(proj, centFile, exportFile);
-
-			// recompute(proj, centFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1);
-		// recompute(proj, centFile);
 	}
-
 }
-// private static float median(float[] array){
-// float[] findMedian=array.clone();
-//
-// Arrays.sort(findMedian);
-// float median;
-// int middle = ((findMedian.length) / 2);
-// if(array.length % 2 == 0){
-// float medianA = findMedian[middle];
-// float medianB = findMedian[middle-1];
-// median = (medianA + medianB) / 2;
-// } else{
-// median = findMedian[middle + 1];
-// }
-// return median;
-// }
-
-// print $psid, "\t", sprintf ("%.4f", median (\@sig)), "\t", sprintf ("%.4f", mean (\@sig)), "\t", sprintf ("%.4f", sd (\@sig)), "\n";
-// private static float[][] computeCN(MarkerData markerData , String Chr , String[] samples){
-// float medianCN;
-// float meanCN;
-// float[] xs;
-// float[][] cnCentroid;
-// xs = markerData.getXs();
-// medianCN = median(xs);
-// meanCN = Array.mean(xs);
-// Array.stdev(xs, false);
-// cnCentroid = new float[3][];
-// cnCentroid[0][1] =medianCN;
-// cnCentroid[1][1] = meanCN;
-//
-// for (int k = 0; k<samples.length; k++) {
-// //TODO check sex and get sex specific cluster
-// //if chr =X, if chr =Y etc
-// //else
-//
-// }
-// return cnCentroid;
-// }
-//
-// try {
-// writer = new PrintWriter(new FileWriter("C:/data/AFFYtable/JLtest.txt",true));
-// }catch (FileNotFoundException fnfe) {
-// //System.err.println("Error: file \""+Project.GENOTYPE_CENTROIDS_FILENAME +"JLtest"+"\" could not be written to (it's probably open)");
-// System.exit(1);
-// } catch (IOException ioe) {
-// //System.err.println("Error reading file \""+Project.GENOTYPE_CENTROIDS_FILENAME +"JLtest"+"\"");
-// System.exit(2);
-// }
-// for (int k = 0; k<log2Xs.length; k++) {
-// writer.println(samples[k]+"\t"+markerName +"\t" +(log2Xs[k] - meanRs[2]));
-// }
-
-// if (AffyCentroids[0] != null && theta < AffyCentroids[0][0] || (AffyCentroids[1] == null && AffyCentroids[2] == null)) {
-// estimatedR = AffyCentroids[0][1];
-// } else if (AffyCentroids[1] != null && theta < AffyCentroids[1][0]) {
-// if (AffyCentroids[0] == null) {
-// estimatedR = AffyCentroids[1][1];
-// } else {
-// estimatedR = AffyCentroids[0][1]+(theta-AffyCentroids[0][0])*(AffyCentroids[1][1]-AffyCentroids[0][1])/(AffyCentroids[1][0]-AffyCentroids[0][0]);
-// }
-// } else if (AffyCentroids[2] != null && theta < AffyCentroids[2][0]) {
-// if (AffyCentroids[1] == null) {
-// estimatedR = AffyCentroids[2][1];
-// } else {
-// estimatedR = AffyCentroids[1][1]+(theta-AffyCentroids[1][0])*(AffyCentroids[2][1]-AffyCentroids[1][1])/(AffyCentroids[2][0]-AffyCentroids[1][0]);
-// }
-// } else {
-// if (AffyCentroids[2] == null) {
-// estimatedR = AffyCentroids[1][1];
-// } else {
-// estimatedR = AffyCentroids[2][1];
-// }
-// }
-// if (AffyCentroids[1] != null && theta < AffyCentroids[1][0]|| (AffyCentroids[1] == null && AffyCentroids[2] == null)) {
-// if(AffyCentroids[0] != null && AffyCentroids[1][0] - AffyCentroids[0][0] !=0){
-// estimatedR = AffyCentroids[0][1]+(theta-AffyCentroids[0][0])*(AffyCentroids[1][1]-AffyCentroids[0][1])/(AffyCentroids[1][0]-AffyCentroids[0][0]);
-// }
-// else{
-// estimatedR = AffyCentroids[0][1];
-//
-// }
-// if(estimatedR <0 ){
-// estimatedR =r;
-// System.out.println("WARNING: estimatedR < 0");
-// }
-//
-// }
-// else{
-// if (AffyCentroids[2] != null && AffyCentroids[1] != null && AffyCentroids[2][0]-AffyCentroids[1][0] != 0){
-// estimatedR = AffyCentroids[1][1]+(theta-AffyCentroids[1][0])*(AffyCentroids[2][1]-AffyCentroids[1][1])/(AffyCentroids[2][0]-AffyCentroids[1][0]);
-// }
-// else{
-// estimatedR = AffyCentroids[1][1];
-//
-// }
-// if(estimatedR <0 ){
-// estimatedR =r;
-// System.out.println("WARNING: estimatedR < 0");
-// }
-// }
-
-// // if (AffyCentroids[2][1] < 0.0000001) {
-// // AffyCentroids[2][0] = 1;
-// // }
-// if (AffyCentroids[0] != null && theta < AffyCentroids[0][0] || (AffyCentroids[1] == null && AffyCentroids[2] == null)) {
-// estimatedR = AffyCentroids[0][1];
-// } else if (AffyCentroids[1] != null && theta < AffyCentroids[1][0]) {
-// if (AffyCentroids[0] == null) {
-// estimatedR = AffyCentroids[1][1];
-// } else {
-// estimatedR = AffyCentroids[0][1]+(theta-AffyCentroids[0][0])*(AffyCentroids[1][1]-AffyCentroids[0][1])/(AffyCentroids[1][0]-AffyCentroids[0][0]);
-// }
-// } else if (AffyCentroids[2] != null && theta < AffyCentroids[2][0]) {
-// if (AffyCentroids[1] == null) {
-// estimatedR = AffyCentroids[2][1];
-// } else {
-// estimatedR = AffyCentroids[1][1]+(theta-AffyCentroids[1][0])*(AffyCentroids[2][1]-AffyCentroids[1][1])/(AffyCentroids[2][0]-AffyCentroids[1][0]);
-// }
-// } else {
-// if (AffyCentroids[2] == null) {
-// estimatedR = AffyCentroids[1][1];
-// } else {
-// estimatedR = AffyCentroids[2][1];
-// }
-// }
