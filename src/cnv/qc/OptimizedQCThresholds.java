@@ -11,7 +11,7 @@ import common.ext;
 
 //class to store optimized thresholds
 public class OptimizedQCThresholds {
-	public static final String[] QC_Thresholds = { "ALPHA", "BEAST_CONF", "SAMPLE_LRR_SD", "CNV_NUM_MARKERS", "BAF_QC", "TWOPQ", "PERCENT_HET", "GCWF", "NUM_SAMPLE_CNVS", "CNV_LRR_SD", "SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT" };
+	public static final String[] QC_Thresholds = { "ALPHA", "BEAST_CONF", "SAMPLE_LRR_SD", "CNV_NUM_MARKERS", "BAF_QC", "TWOPQ", "PERCENT_HET", "GCWF", "NUM_SAMPLE_CNVS", "CNV_LRR_SD", "SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT", "SIZE_IN_KB", "PROBE_DENSITY_IN_KB" };
 	public static final String[] OPT_QC_HEADS = { "targetConcordance", "actualConcordance", Array.toStr(QC_Thresholds), "goodCalls", "callsPassingFilter", "totalCalls", "pairsOfDuplicates", "CN" };
 	private double targetConcordance;
 	private double actualConcordance;
@@ -33,6 +33,8 @@ public class OptimizedQCThresholds {
 	private double sampleCallRate;
 	private double pennConf;
 	private double bafDrift;
+	private double kbSize;
+	private double kbDensity;
 
 
 	public OptimizedQCThresholds(OptimizedQCThresholds comparedQCs, double targetConcordance, double actualConcordance, int callsPassingFilter, int goodCalls, int totalCalls, int pairsOfDuplicates, int CN) {
@@ -55,10 +57,13 @@ public class OptimizedQCThresholds {
 		this.cnvLRRSTDev = comparedQCs.getCnvLRRSTDev();
 		this.sampleCallRate = comparedQCs.getSampleCallRate();
 		this.pennConf = comparedQCs.getPennConf();
+		this.bafDrift = comparedQCs.getBafDrift();
+		this.kbSize = comparedQCs.getKbSize();
+		this.kbDensity = comparedQCs.getKbDensity();
 
 	}
 
-	public OptimizedQCThresholds(double alpha, double beastConfCutoff, double lrrCutoff, int numMarkers, double BAFQCcutoff, double twopqCutoff, double hetCutoff, double GCWF, int numSampleCNVs, double cnvLRRSTDev, double sampleCallRate, double pennConf, double bafDrift) {
+	public OptimizedQCThresholds(double alpha, double beastConfCutoff, double lrrCutoff, int numMarkers, double BAFQCcutoff, double twopqCutoff, double hetCutoff, double GCWF, int numSampleCNVs, double cnvLRRSTDev, double sampleCallRate, double pennConf, double bafDrift, double kbSize, double kbDensity) {
 		this.alpha = alpha;
 		this.beastConfCutoff = beastConfCutoff;
 		this.lrrCutoff = lrrCutoff;
@@ -72,6 +77,16 @@ public class OptimizedQCThresholds {
 		this.sampleCallRate = sampleCallRate;
 		this.pennConf = pennConf;
 		this.bafDrift = bafDrift;
+		this.kbSize = kbSize;
+		this.kbDensity = kbDensity;
+	}
+
+	public double getKbSize() {
+		return kbSize;
+	}
+
+	public double getKbDensity() {
+		return kbDensity;
 	}
 
 	public OptimizedQCThresholds(String[] line, int[] indices) {
@@ -95,6 +110,8 @@ public class OptimizedQCThresholds {
 		this.sampleCallRate = Double.parseDouble(line[indices[10]]);
 		this.pennConf = Double.parseDouble(line[indices[11]]);
 		this.bafDrift = Double.parseDouble(line[indices[12]]);
+		this.kbSize = Double.parseDouble(line[indices[13]]);
+		this.kbDensity = Double.parseDouble(line[indices[14]]);
 	}
 
 	public static OptimizedQCThresholds loadThresholdsFromTxt(String QCThresholdFileName, Logger log) {
@@ -141,6 +158,8 @@ public class OptimizedQCThresholds {
 			} else if (line[indices[i]].equals("NA")) {
 				line[indices[i]] = "NaN";
 				log.reportError("Warning - not filtering with " + QC_Thresholds[i]);
+			} else {
+				log.report("Info - filtering with threshold " + QC_Thresholds[i] + "=" + line[indices[i]]);
 			}
 		}
 		return new OptimizedQCThresholds(line, indices);
@@ -168,7 +187,7 @@ public class OptimizedQCThresholds {
 
 	public String getDisplayString() {
 		if (this.callsPassingFilter > 0) {
-			return this.targetConcordance + "\t" + this.actualConcordance + "\t" + this.alpha + "\t" + this.beastConfCutoff + "\t" + this.lrrCutoff + "\t" + this.numMarkers + "\t" + this.BAFQCcutoff + "\t" + this.twopqCutoff + "\t" + this.hetCutoff + "\t" + this.GCWF + "\t" + this.numSampleCNVs + "\t" + this.cnvLRRSTDev + "\t" + this.sampleCallRate + "\t" + this.pennConf + "\t" + this.bafDrift + "\t" + this.goodCalls + "\t" + this.callsPassingFilter + "\t" + this.totalCalls + "\t" + this.pairsOfDuplicates + "\t" + this.CN;
+			return this.targetConcordance + "\t" + this.actualConcordance + "\t" + this.alpha + "\t" + this.beastConfCutoff + "\t" + this.lrrCutoff + "\t" + this.numMarkers + "\t" + this.BAFQCcutoff + "\t" + this.twopqCutoff + "\t" + this.hetCutoff + "\t" + this.GCWF + "\t" + this.numSampleCNVs + "\t" + this.cnvLRRSTDev + "\t" + this.sampleCallRate + "\t" + this.pennConf + "\t" + this.bafDrift + "\t" + this.kbSize + "\t" + this.kbDensity + "\t" + this.goodCalls + "\t" + this.callsPassingFilter + "\t" + this.totalCalls + "\t" + this.pairsOfDuplicates + "\t" + this.CN;
 		} else if (this.CN == 5) {
 			return "";
 		} else {

@@ -21,8 +21,6 @@ public class AffySNP6Tables {
 	private String callFile;
 	private String confFile;
 	private String sigFile;
-	private double[] clusters;
-	private double callCutOff = 0.01;
 
 	public AffySNP6Tables(String outputDirectory, String sigFile) {
 		this.outputDirectory = outputDirectory;
@@ -34,15 +32,6 @@ public class AffySNP6Tables {
 		this.callFile = callFile;
 		this.confFile = confFile;
 		this.sigFile = sigFile;
-	}
-
-	public AffySNP6Tables(Project proj) {
-		this.outputDirectory = proj.getDir(Project.SOURCE_DIRECTORY);
-		this.callFile = proj.getDir(Project.SOURCE_DIRECTORY) + "birdseed-v2.calls.txt";
-		this.confFile = proj.getDir(Project.SOURCE_DIRECTORY) + "birdseed-v2.confidences.txt";
-		this.sigFile = proj.getDir(Project.SOURCE_DIRECTORY) + "quant-norm.pm-only.med-polish.expr.summary.txt";
-		;
-
 	}
 
 	public String parseCall(String callCode) {
@@ -62,57 +51,7 @@ public class AffySNP6Tables {
 		return call;
 	}
 
-	public double[] calcGenoClusters(String[] calls, String[] confs, String[] sigA, String[] sigB) {
-		int aaTMean, aaRMean, abTMean, abRMean, bbTMean, bbRMean;
-		aaTMean = aaRMean = abTMean = abRMean = bbTMean = bbRMean = 0;
-		clusters = new double[5];
-		Arrays.fill(indFiles, 0);
-		double goodSigA = 0;
-		double goodSigB = 0;
-		int numAA, numAB, numBB;
-		numAA = numAB = numBB = 0;
-		// Indexed as"AA T Mean", "AA R Mean", "AB T Mean", "AB R Mean", "BB T Mean", "BB R Mean"}
 
-		for (int j = 1; j < calls.length; j++) {
-			if (Double.parseDouble(confs[j]) < callCutOff) {
-				goodSigA = power2(sigA[j]);
-				goodSigB = power2(sigB[j]);
-				if (calls[j].equals("0")) {
-					aaRMean += goodSigA + goodSigB;
-					aaTMean += Math.atan2(goodSigB, goodSigA) / (3.1415926 / 2);
-					numAA++;
-				} else if (calls[j].equals("1")) {
-					// call = "AB";
-					abRMean += goodSigA + goodSigB;
-					abTMean += Math.atan2(goodSigB, goodSigA) / (3.1415926 / 2);
-					numAB++;
-				} else if (calls[j].equals("2")) {
-					// call = "BB";
-					bbRMean += goodSigA + goodSigB;
-					bbTMean += Math.atan2(goodSigB, goodSigA) / (3.1415926 / 2);
-					numBB++;
-				} else if (calls[j].equals("-1")) {
-					// call = "NC";
-				} else {
-					System.err.println("unknown call code: " + calls[j]);
-				}
-			}
-		}
-		if (numAA > 0) {
-			clusters[0] = aaTMean / numAA;
-			clusters[1] = aaRMean / numAA;
-		}
-		if (numAB > 0) {
-			clusters[2] = abTMean / numAB;
-			clusters[3] = abRMean / numAB;
-		}
-		if (numBB > 0) {
-			clusters[4] = bbTMean / numBB;
-			clusters[5] = bbRMean / numBB;
-		}
-		return clusters;
-
-	}
 
 	public double power2(String signal) {
 		return (Math.pow(2, Double.parseDouble(signal)));
@@ -125,9 +64,10 @@ public class AffySNP6Tables {
 		}
 	}
 
+	// setting CN probeset calls to NC (-1), confidence to 0, and sigB to 0;
 	public void parseCNLine(String[] sigA) {
 		for (int j = 1; j < sigA.length; j++) {
-			indFiles[j - 1] += sigA[0] + "\tAA\t0\t" + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigA[j])) + "\tAA\n";
+			indFiles[j - 1] += sigA[0] + "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t0\tNC\n";
 		}
 	}
 
@@ -163,7 +103,7 @@ public class AffySNP6Tables {
 		boolean append = true;
 		for (int j = 1; j < header.length; j++) {
 			if (chunkCount == 0) {
-				// mkdir(outputDirectory);
+				mkdir(outputDirectory);
 				append = false;
 				writer = getWriter(outputDirectory + header[j] + ".IND.txt", append);
 				writer.print("ProbeSetName\tCall\tConfidence\tSignal A\tSignal B\tForced Call\n");
@@ -236,7 +176,6 @@ public class AffySNP6Tables {
 		int totalLines = 0;
 
 		try {
-
 			callReader = Files.getAppropriateReader(callFile);
 			confReader = Files.getAppropriateReader(confFile);
 			sigReader = Files.getAppropriateReader(sigFile);
@@ -331,7 +270,8 @@ public class AffySNP6Tables {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = "C:/workspace/Genvisis/projects/tableTest.properties";
+		String filename = null;
+		;
 		boolean SNP = false;
 		boolean CN = false;
 		boolean merge = false;
@@ -343,11 +283,17 @@ public class AffySNP6Tables {
 		String sig = "C:/data/AFFYtable/00src/SNP_/quant-norm.pm-only.med-polish.expr.summary.txt";
 		String output = "C:/data/AFFYtable/00src/SNP_/";
 		String inputFileNameExt = ".txt";
+		String affyResultsDir = "";
+		String commonSubFolderPattern = "";
 
 		for (int i = 0; i < args.length; i++) {
 
 			if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			}
+			if (args[i].startsWith("affyResultsDir=")) {
+				affyResultsDir = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("threads=")) {
 				numThreads = Integer.parseInt(args[i].split("=")[1]);
@@ -387,7 +333,10 @@ public class AffySNP6Tables {
 			System.err.println("TODO usuage");
 			System.exit(1);
 		}
-		proj = new Project(filename, false);
+		proj = new Project();
+		if (filename != null) {
+			proj = new Project(filename, false);
+		}
 		try {
 			if (SNP) {
 				AffySNP6Tables AS6T = new AffySNP6Tables(output, calls, conf, sig);
@@ -398,7 +347,7 @@ public class AffySNP6Tables {
 				AS6T.parseCNTable(numLinesBuffer);
 			}
 			if (merge) {
-				MergeChp.combineChpFiles(proj, numThreads, "", inputFileNameExt, output);
+				MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, inputFileNameExt, output);
 
 			}
 			if (create) {
@@ -410,72 +359,3 @@ public class AffySNP6Tables {
 		}
 	}
 }
-
-// String callFile = proj.getDir(Project.SOURCE_DIRECTORY) +"birdseed-v2.calls.txt";
-// String confFile = proj.getDir(Project.SOURCE_DIRECTORY) +"birdseed-v2.confidences.txt";
-// String sigFile = proj.getDir(Project.SOURCE_DIRECTORY) +"quant-norm.pm-only.med-polish.expr.summary.txt";
-// String outputDirectory = proj.getDir(Project.SOURCE_DIRECTORY);
-
-// AS6T.parseSNPTables(numLinesBuffer);
-// AS6T.parseCNTable(numLinesBuffer);
-// AS6T.parseSNPTables(numLinesBuffer);
-// ParseAffySNP6.createFiles(proj, numThreads);
-
-// for (int i = 0; i<args.length; i++) {
-// if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
-// System.err.println(usage);
-// return;
-// } else if (args[i].startsWith("proj=")) {
-// filename = args[i].split("=")[1];
-// numArgs--;
-// } else if (args[i].startsWith("threads=")) {
-// numThreads = Integer.parseInt(args[i].split("=")[1]);
-// numArgs--;
-// } else if (args[i].startsWith("-SNP_")) {
-// SNP = true;
-// numArgs--;
-//
-// } else if (args[i].startsWith("-CN_")) {
-// CN = true;
-// numArgs--;
-// }else if (args[i].startsWith("numLinesBuffer=")) {
-// numLinesBuffer = Integer.parseInt(args[i].split("=")[1]);
-// numArgs--;
-// }else if (args[i].startsWith("-merge")) {
-// numLinesBuffer = Integer.parseInt(args[i].split("=")[1]);
-// numArgs--;
-// }
-//
-// }
-// if (numArgs!=0) {
-// System.err.println(usage);
-// return;
-// }
-//
-// proj = new Project(filename, false);
-// AffySNP6Tables AS6T = new AffySNP6Tables(proj);
-// try {
-// // if (parseABlookup) {
-// // ABLookup.parseABlookup(proj);
-// // } else
-// if (SNP) {
-// AS6T.parseSNPTables(numLinesBuffer);
-// } if (CN) {
-// AS6T.parseCNTable(numLinesBuffer);
-// }else if (merge) {
-// AS6T.parseCNTable(numLinesBuffer);
-// }else {
-// //ParseAffySNP6.createFiles(proj, numThreads);
-// }
-// } catch (Exception e) {
-// e.printStackTrace();
-// }
-// //String callFile = proj.getDir(Project.SOURCE_DIRECTORY) +"birdseed-v2.calls.txt";
-// //String confFile = proj.getDir(Project.SOURCE_DIRECTORY) +"birdseed-v2.confidences.txt";
-// //String sigFile = proj.getDir(Project.SOURCE_DIRECTORY) +"quant-norm.pm-only.med-polish.expr.summary.txt";
-// //String outputDirectory = proj.getDir(Project.SOURCE_DIRECTORY);
-// ;
-// //AS6T.parseSNPTables(numLinesBuffer);
-// //AS6T.parseCNTable(numLinesBuffer);
-// //AS6T.parseSNPTables(numLinesBuffer);
-// ParseAffySNP6.createFiles(proj, 8);
