@@ -41,7 +41,9 @@ public class CNVComparison {
 	public CNVComparison(CNVariantQC[][] unfilteredcnvsQCs1, Hashtable<String, CNVSampleQC> cnvSampleQCHash, OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
 		this.cnvSampleQCHash = cnvSampleQCHash;
 		this.qcThresholds = qcThresholds;
+		this.filterType = filterType;
 		this.filteredcnvQCs1 = getFilteredCnvsByType(unfilteredcnvsQCs1);
+
 	}
 
 	public CNVariantQC[][] getFilteredcnvQCs1() {
@@ -143,6 +145,7 @@ public class CNVComparison {
 	private CNVariantQC[][] getFilteredCnvsByType(CNVariantQC[][] unfilteredcnvQCs) {
 		CNVariantQC[][] filteredcnvs = new CNVariantQC[unfilteredcnvQCs.length][];
 		checkCompatability();
+
 		for (int i = 0; i < unfilteredcnvQCs.length; i++) {
 			if (unfilteredcnvQCs[i].length > 0) {
 				if (filterType == 0) {
@@ -154,6 +157,7 @@ public class CNVComparison {
 				} else if (filterType == 2) {
 					if (passesSampleQC(unfilteredcnvQCs[i][0], unfilteredcnvQCs[i].length)) {
 						filteredcnvs[i] = unfilteredcnvQCs[i];
+
 					}
 				} else {
 					log.reportError("Error - invaled filter Type , need to use " + Array.toStr(QC_PARAMETERs));
@@ -167,6 +171,7 @@ public class CNVComparison {
 	private void checkCompatability() {
 		if (cnvSampleQCHash == null && (filterType == 1 || filterType == 2)) {
 			log.reportError("Error - invaled filter Type with undefined sample QC file, need to use " + QC_PARAMETERs[0]);
+			System.exit(1);
 		}
 	}
 	private boolean passesSampleQC(CNVariantQC unfilteredcnvQC, int numCNVs) {
@@ -176,6 +181,7 @@ public class CNVComparison {
 			CNVSampleQC cnvSampleQC = cnvSampleQCHash.get(lookup);
 			if (lrr_SD(cnvSampleQC.getLrrSDev()) && gcwf(cnvSampleQC.getGCWF()) && numberCNVs(numCNVs) && callRate(unfilteredcnvQC.getSampleCallRate()) && bafDrift(cnvSampleQC.getBafDrift())) {
 				passSampleQC = true;
+
 			}
 		} else {
 			log.reportError("Error - Sample QC was defined, but Sample QC was not available for " + lookup);
@@ -186,36 +192,52 @@ public class CNVComparison {
 
 	private CNVariantQC[] filterCNVQC(CNVariantQC[] unfilteredcnvQCs) {
 		ArrayList<CNVariantQC> cnvQCs = new ArrayList<CNVariantQC>();
+
 		for (int i = 0; i < unfilteredcnvQCs.length; i++) {
-			double[] mafs = unfilteredcnvQCs[i].getMafs();
-			double[] bafs = unfilteredcnvQCs[i].getBafs();
+			// double[] mafs = unfilteredcnvQCs[i].getMafs();
+			// double[] bafs = unfilteredcnvQCs[i].getBafs();
 			// double[] lrrs = unfilteredcnvQCs[i].getLrrs();
-			byte[] abGenoytypes = unfilteredcnvQCs[i].getGenotypes();
-			double pennConf = unfilteredcnvQCs[i].getCnVariant().getScore();
+			// byte[] abGenoytypes = unfilteredcnvQCs[i].getGenotypes();
+			// double pennConf = unfilteredcnvQCs[i].getCnVariant().getScore();
 			int numMarkers = unfilteredcnvQCs[i].getCnVariant().getNumMarkers();
 			double height = unfilteredcnvQCs[i].getHeight();
-			double sumTwopq = 0;
-			double sumBaf = 0;
-			int numPoly = 0;
-			int numHets = 0;
-			for (int j = 0; j < mafs.length; j++) {
-				if (mafs[j] > 0) {
-					sumTwopq += ((2 * mafs[j]) * (1 - mafs[j]));
-					numPoly++;
-					sumBaf += bafDistance(bafs[j]);
-					if (abGenoytypes[j] == 1) {
-						numHets++;
-					}
-				}
-			}
-			// System.out.println(numHets + "\t" + numPoly + "\t" + qcThresholds.getHetCutoff());
-			if (aPoly(numPoly) && checkHets(numHets, numPoly) && checkPennConf(pennConf) && goodNumMarkers(numMarkers) && goodScore(numMarkers, height)) {
-				cnvQCs.add(unfilteredcnvQCs[i]);
-			} else if (numPoly == 0) {
+			double kbSize = (double) (unfilteredcnvQCs[i].getCnVariant().getSize()) / 1000;
+			double kbDensity = (double) (numMarkers) / kbSize;
+			System.out.println(kbSize + "\t" + qcThresholds.getKbSize());
+			// double sumTwopq = 0;
+			// double sumBaf = 0;
+			// int numPoly = 0;
+			// int numHets = 0;
+			// for (int j = 0; j < mafs.length; j++) {
+			// if (mafs[j] > 0) {
+			// sumTwopq += ((2 * mafs[j]) * (1 - mafs[j]));
+			// numPoly++;
+			// sumBaf += bafDistance(bafs[j]);
+			// if (abGenoytypes[j] == 1) {
+			// numHets++;
+			// }
+			// }
+			// }
+			if (goodScore(numMarkers, height) && checkKbSize(kbSize) && checkKbDensity(kbDensity) && goodNumMarkers(numMarkers)) {
 				cnvQCs.add(unfilteredcnvQCs[i]);
 			}
 		}
 		return CNVariantQC.toCNVQCArray(cnvQCs);
+	}
+
+	private boolean checkKbDensity(double kbDensity) {
+		if (Double.isNaN(qcThresholds.getKbDensity())) {
+			return true;
+		} else {
+			return kbDensity >= qcThresholds.getKbDensity();
+		}
+	}
+	private boolean checkKbSize(double kbSize) {
+		if (Double.isNaN(qcThresholds.getKbSize())) {
+			return true;
+		} else {
+			return kbSize >= qcThresholds.getKbSize();
+		}
 	}
 
 	private boolean bafDrift(double sampleBafDrift){

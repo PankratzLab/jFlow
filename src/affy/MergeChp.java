@@ -17,19 +17,19 @@ public class MergeChp implements Runnable {
 	public static final String[][] SNP_HEADER_OPTIONS = { { "SNP", "rsID", "ProbeSetName" } };
 	public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
 
-	private Project proj;
+	private String affyResultsDir;
 	private String[] files;
 	// private long timeBegan;
 	// private int threadId;
 	private String commonSubFolderPattern;
 	private String output;
 
-	public MergeChp(Project proj, String[] files, long timeBegan) {
-		this(proj, files, timeBegan, -1, "", "");
+	public MergeChp(String affyResultsDir, String[] files, long timeBegan) {
+		this(affyResultsDir, files, timeBegan, -1, "", "");
 	}
 
-	public MergeChp(Project proj, String[] files, long timeBegan, int threadId, String commonSubFolderPattern, String output) {
-		this.proj = proj;
+	public MergeChp(String affyResultsDir, String[] files, long timeBegan, int threadId, String commonSubFolderPattern, String output) {
+		this.affyResultsDir = affyResultsDir;
 		this.files = files;
 		// this.timeBegan = timeBegan;
 		// this.threadId = threadId;
@@ -44,15 +44,15 @@ public class MergeChp implements Runnable {
 		String delimiter;
 		// idHeader ,
 		// idHeader = proj.getProperty(Project.ID_HEADER);
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = "\t";
 		String[] line;
 		String aline;
 		// common folder output by apt-genotype, present in each subdirectory of Source
 		String commonSubFolder = commonSubFolderPattern;
 		// check source directory
-		String[] dirList = Files.listDirectories(proj.getDir(Project.SOURCE_DIRECTORY), false);
-		if (!proj.getDir(Project.SOURCE_DIRECTORY).equals("") && !new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
-			System.err.println("Error - the Project source location is invalid: " + proj.getDir(Project.SOURCE_DIRECTORY));
+		String[] dirList = Files.listDirectories(affyResultsDir, false);
+		if (!affyResultsDir.equals("") && !new File(affyResultsDir).exists()) {
+			System.err.println("Error - the Project source location is invalid: " + affyResultsDir);
 			return;
 		}
 
@@ -64,7 +64,7 @@ public class MergeChp implements Runnable {
 
 			for (int i = 0; i < dirList.length; i++) {
 				try {
-					reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY) + dirList[i] + commonSubFolder + "/" + files[j]);
+					reader = Files.getAppropriateReader(affyResultsDir + dirList[i] + commonSubFolder + "/" + files[j]);
 					// filter comments
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
@@ -83,10 +83,10 @@ public class MergeChp implements Runnable {
 					reader.close();
 
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \"" + files[j] + "\" not found in " + proj.getDir(Project.SOURCE_DIRECTORY) + dirList[i]);
+					System.err.println("Error: file \"" + files[j] + "\" not found in " + affyResultsDir + dirList[i]);
 					return;
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \"" + proj.getDir(Project.SOURCE_DIRECTORY) + dirList[i] + files[j] + "\"");
+					System.err.println("Error reading file \"" + affyResultsDir + dirList[i] + files[j] + "\"");
 					return;
 				}
 			}
@@ -96,7 +96,7 @@ public class MergeChp implements Runnable {
 		}
 	}
 
-	public static void combineChpFiles(Project proj, int numThreads, String commonSubFolderPattern, String commonFilename, String output) {
+	public static void combineChpFiles(String affyResultsDir, int numThreads, String commonSubFolderPattern, String commonFilename, String output) {
 		Vector<Vector<String>> fileCabinet;
 		Thread[] threads;
 		boolean complete;
@@ -105,13 +105,13 @@ public class MergeChp implements Runnable {
 		String commonSubFolder = commonSubFolderPattern;
 		// check source directory
 		timeBegan = new Date().getTime();
-		if (!proj.getDir(Project.SOURCE_DIRECTORY).equals("") && !new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
-			System.err.println("Error - the Project source location is invalid: " + proj.getDir(Project.SOURCE_DIRECTORY));
+		if (!affyResultsDir.equals("") && !new File(affyResultsDir).exists()) {
+			System.err.println("Error - the Project source location is invalid: " + affyResultsDir);
 			return;
 		}
 
-		String[] dirList = Files.listDirectories(proj.getDir(Project.SOURCE_DIRECTORY), false);
-		String[] files = Files.list(proj.getDir(Project.SOURCE_DIRECTORY) + dirList[0] + commonSubFolder, commonFilename, false);
+		String[] dirList = Files.listDirectories(affyResultsDir, false);
+		String[] files = Files.list(affyResultsDir + dirList[0] + commonSubFolder, commonFilename, false);
 		fileCabinet = new Vector<Vector<String>>();
 		for (int i = 0; i < numThreads; i++) {
 			fileCabinet.add(new Vector<String>());
@@ -123,7 +123,7 @@ public class MergeChp implements Runnable {
 		System.out.println("beginning to merge " + files.length + " files");
 		threads = new Thread[numThreads];
 		for (int i = 0; i < numThreads; i++) {
-			threads[i] = new Thread(new MergeChp(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), timeBegan, i, commonSubFolder, output));
+			threads[i] = new Thread(new MergeChp(affyResultsDir, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), timeBegan, i, commonSubFolder, output));
 			threads[i].start();
 			try {
 				Thread.sleep(100L);
@@ -158,6 +158,7 @@ public class MergeChp implements Runnable {
 		int numThreads = 8;
 		String commonSubFolderPattern = "";
 		String commonFilename = ".txt";
+		String affyResultsDir = "";
 		String usage = "\n" + "affy.MergeChprequires 0-1 arguments\n" + "   (1) project file (i.e. proj=" + filename + " (default))\n" + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n";
 
 		for (int i = 0; i < args.length; i++) {
@@ -173,6 +174,9 @@ public class MergeChp implements Runnable {
 			} else if (args[i].startsWith("out=")) {
 				output = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				affyResultsDir = args[i].split("=")[1];
+				numArgs--;
 			}
 		}
 		if (numArgs != 0) {
@@ -182,7 +186,7 @@ public class MergeChp implements Runnable {
 		// filename = "C:/workspace/Genvisis/projects/dbGaP_test_CEL.properties";
 		proj = new Project(filename, false);
 		try {
-			combineChpFiles(proj, numThreads, commonSubFolderPattern, commonFilename, output);
+			combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, commonFilename, output);
 		}
 
 		catch (Exception e) {

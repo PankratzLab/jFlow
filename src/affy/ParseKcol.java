@@ -2,8 +2,6 @@ package affy;
 
 import java.io.*;
 import java.util.*;
-//import java.util.zip.GZIPOutputStream;
-//import java.util.zip.ZipOutputStream;
 
 import javax.swing.JOptionPane;
 
@@ -159,10 +157,18 @@ public class ParseKcol implements Runnable {
 
 					count = 0;
 					parseAtAt = Boolean.parseBoolean(proj.getProperty(Project.PARSE_AT_AT_SYMBOL));
+					int linecount = 0;
 					while (reader.ready()) {
-						line = reader.readLine().split(delimiter);
+						String testline = reader.readLine();
+						linecount++;
+						if (testline == null) {
+							System.err.println("Warning - " + files[i] + " has a blank line on line " + linecount);
+							break;
+						}
+						line = testline.split(delimiter);
 						if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
-							trav = files[i];
+							trav = files[i].substring(0, files[i].indexOf(proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)));
+							;
 						} else {
 							if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
 								System.err.println("Error - " + idHeader + " '" + line[sampIndex] + "' did not contain an @ sample");
@@ -446,7 +452,7 @@ public class ParseKcol implements Runnable {
 		String idHeader, delimiter;
 		String temp;
 		int[][] delimiterCounts;
-		boolean done;
+
 		long timeBegan;
 		boolean parseAtAt;
 		int sampIndex;
@@ -623,11 +629,18 @@ public class ParseKcol implements Runnable {
 				return;
 			}
 
-			done = false;
 			// count = 1;
 			alNames = new ArrayList<String>(500000);
-			while (reader.ready() && !done) {
-				trav = reader.readLine().trim().split(delimiter)[snpIndex];
+			int linecount = 0;
+			while (reader.ready()) {
+				String testline = reader.readLine();
+				linecount++;
+				if (testline == null) {
+					System.err.println("Warning - " + files[0] + " has a blank line on line " + linecount);
+					break;
+				}
+				// line = testline.split(delimiter);
+				trav = testline.trim().split(delimiter)[snpIndex];
 				if (trav.equals("") || trav.equals("0")) {
 					trav = "Blank" + count;
 					count++;

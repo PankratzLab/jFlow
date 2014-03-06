@@ -497,12 +497,13 @@ public class AffyCentroids implements Serializable {
 		Logger log = new Logger(proj.getProjectDir() + logfile);
 		try {
 			if (fromGenotypes) {
-				parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1, 0.99, log);
+				parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1, callConfidence, log);
 			} else if (sampleFilter) {
 				parseCentroidsFilteredSamples(proj, 1, callConfidence, log);
 			} else if (!compute.equals("")) {
 				recompute(proj, compute, log);
 			}
+			Files.backup(logfile, proj.getProjectDir(), proj.getProjectDir());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

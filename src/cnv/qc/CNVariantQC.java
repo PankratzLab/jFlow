@@ -366,6 +366,10 @@ public class CNVariantQC implements Serializable {
 		}
 		return cnvQCsAssigned;
 	}
+
+	public String getSourceFile() {
+		return sourceFile;
+	}
 }
 
 // private static CNVariantQC[] loadCNVariantQCFile(String plinkCnvQCs, Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
