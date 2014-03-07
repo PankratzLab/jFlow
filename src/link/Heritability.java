@@ -12,14 +12,16 @@ public class Heritability {
 	public static final String DEFAULT_MERLIN_EXEC = "merlin";
 	public static final String DEFAULT_SOLAR_EXEC = "solar";
 
-	private static void computeWithMerlin(String dir, String pedfile, String pheno, String covars, String prefix, String merlinExec, Logger log) {
+	private static String computeWithMerlin(String dir, String pedfile, String pheno, String covars, String prefix, String merlinExec, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
 		Hashtable<String, String> phenoHash, covarHash, seen, referenced;
 		String[] keys, covarHeader;
 		String temp;
+		String estimate;
 		
+		estimate = ".";
 		dir = ext.verifyDirFormat(dir);
 		
 		line = Files.getHeaderOfFile(dir+pheno, log);
@@ -93,7 +95,8 @@ public class Heritability {
 				while (reader.ready()) {
 					temp = reader.readLine();
 					if (temp.contains("h2 = ")) {
-						log.report("Merlin estimate: "+temp.substring(temp.indexOf("h2 = ")+5, temp.length()-1));
+						estimate = temp.substring(temp.indexOf("h2 = ")+5, temp.length()-1);
+						log.report("Merlin estimate: "+estimate);
 					}
 				}
 				reader.close();
@@ -109,6 +112,7 @@ public class Heritability {
 			System.err.println("Error reading file \"" + pedfile + "\"");
 		}
 		
+		return estimate;
 	}
 
 	private static void computeWithSolar(String dir, String pedfile, String pheno, String covars, String prefix, String solarExec, Logger log) {
@@ -178,7 +182,7 @@ public class Heritability {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		PrintWriter writer;
+		PrintWriter writer, summary;
 		String[] line;
 		Hashtable<String,String> famIdHash;
 		Vector<String> params;
@@ -192,6 +196,16 @@ public class Heritability {
 		String[] dbHeader;
 		boolean[] use;
 		int numNotInPed;
+		int[] indices;
+		CountHash counter;
+		String dir;
+		String merlinEstimate;
+		String[] solarEstimate;
+		int numOfAllSamples;
+		int numOfFamiliesSizedTwoOrAbove;
+		int numOfFamiliesSizedOne;
+		
+		dir = ext.parseDirectoryOfFile(filename);
 		
 		params = Files.parseControlFile(filename, "heritability", new String[] {
 				"ped=plink.fam",
@@ -239,56 +253,52 @@ public class Heritability {
     		famIdHash = HashVec.loadFileToHashString(pedigreeFile, new int[] {1}, new int[] {0}, Files.determineDelimiter(pedigreeFile, log).equals(","), null, false, false, false);
     		
     		log.setLevel(8);
-    		for (int i = 0; i < models.size(); i++) {
-    			line = models.elementAt(i);
-    			if (line.length < 2) {
-    				log.reportError("Error - need at least two arguments (model->directory and the model, even if there are no more covariates), found:");
-    				log.reportError(Array.toStr(line));
-    			} else {
-    				root = line[0];
-    				new File(root).mkdirs();
 
-    				dbDelimiter = Files.determineDelimiter(dbFile, log);
-    				dbHeader = Files.getHeaderOfFile(dbFile, dbDelimiter, log);
-    				line[0] = dbHeader[0];
-    				data = HashVec.loadFileToStringMatrix(dbFile, true, ext.indexFactors(line, dbHeader, false, true), dbDelimiter, false, 1000, false);
-    				use = RegressionModel.getRowsWithCompleteData(null, Matrix.prune(data, null, Array.subArray(Array.intArray(line.length), 1), log), log);
-    				
-    				numNotInPed = 0;
-    				try {
-						writer = new PrintWriter(new FileWriter(root+"/pheno.dat"));
-						writer.println("FID\tIID\t"+line[1]);
-						for (int j = 0; j < use.length; j++) {
-							if (use[j]) {
-								if (famIdHash.containsKey(data[j][0])) {
-									writer.println(famIdHash.get(data[j][0])+"\t"+data[j][0]+"\t"+data[j][1]);
-								} else {
-									if (numNotInPed == 0) {
-										log.reportError("Warning - the following samples were not found in the pedigree file:");
-									}
-									if (numNotInPed == 10) {
-										log.reportError("...");
-									} else if (numNotInPed < 10) {
-										log.reportError(data[j][0]);
-									}
-									numNotInPed++;
-									use[j] = false;
-								}
-							}
-						}
-						writer.close();
-					} catch (Exception e) {
-						System.err.println("Error writing to " + root+"/pheno.dat");
-						e.printStackTrace();
-					}
+    		try {
+				summary = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_summary.xln"));
+				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1");
+	    		for (int i = 0; i < models.size(); i++) {
+	    			line = models.elementAt(i);
+	    			if (line.length < 2) {
+	    				log.reportError("Error - need at least two arguments (model->directory and the model, even if there are no more covariates), found:");
+	    				log.reportError(Array.toStr(line));
+	    			} else {
+	    				root = line[0];
+	    				new File(root).mkdirs();
 
-    				if (line.length > 2) {
+	    				dbDelimiter = Files.determineDelimiter(dbFile, log);
+	    				dbHeader = Files.getHeaderOfFile(dbFile, dbDelimiter, log);
+	    				line[0] = dbHeader[0];
+	    				indices = ext.indexFactors(line, dbHeader, false, log, true, false);
+	    				if (Array.min(indices) == -1) {
+	    					summary.close();
+	    					return;
+	    				}
+	    				data = HashVec.loadFileToStringMatrix(dbFile, true, indices, dbDelimiter, false, 1000, false);
+	    				use = RegressionModel.getRowsWithCompleteData(null, Matrix.prune(data, null, Array.subArray(Array.intArray(line.length), 1), log), log);
+	    				
+	    				numNotInPed = 0;
+						counter = new CountHash();
 	    				try {
-							writer = new PrintWriter(new FileWriter(root+"/covars.dat"));
-							writer.println("FID\tIID\t"+Array.toStr(Array.subArray(line, 2)));
+							writer = new PrintWriter(new FileWriter(root+"/pheno.dat"));
+							writer.println("FID\tIID\t"+line[1]);
 							for (int j = 0; j < use.length; j++) {
 								if (use[j]) {
-									writer.println(famIdHash.get(data[j][0])+"\t"+data[j][0]+"\t"+Array.toStr(Array.subArray(data[j], 2)));
+									if (famIdHash.containsKey(data[j][0])) {
+										writer.println(famIdHash.get(data[j][0])+"\t"+data[j][0]+"\t"+data[j][1]);
+										counter.add(famIdHash.get(data[j][0]));
+									} else {
+										if (numNotInPed == 0) {
+											log.reportError("Warning - the following samples were not found in the pedigree file:");
+										}
+										if (numNotInPed == 10) {
+											log.reportError("...");
+										} else if (numNotInPed < 10) {
+											log.reportError(data[j][0]);
+										}
+										numNotInPed++;
+										use[j] = false;
+									}
 								}
 							}
 							writer.close();
@@ -296,19 +306,48 @@ public class Heritability {
 							System.err.println("Error writing to " + root+"/pheno.dat");
 							e.printStackTrace();
 						}
-	    				
-						if (numNotInPed > 0) {
-							log.reportError("There were "+numNotInPed+" sample(s) with valid and complete phenotype data that were not in the pedigree file");
-						}
-    				}
-					
-					log.report("Heritability for "+root);
-					log.report(line[1]+" ~ "+Array.toStr(Array.subArray(line, 2), " "));
-					computeWithMerlin(root, "../"+pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, merlinExec, log);
-					computeWithSolar(root, "../"+pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, solarExec, log);
-					log.report("");
-    			}
+//	    				counter.getCounts();
+
+	    				if (line.length > 2) {
+		    				try {
+								writer = new PrintWriter(new FileWriter(root+"/covars.dat"));
+								writer.println("FID\tIID\t"+Array.toStr(Array.subArray(line, 2)));
+								for (int j = 0; j < use.length; j++) {
+									if (use[j]) {
+										writer.println(famIdHash.get(data[j][0])+"\t"+data[j][0]+"\t"+Array.toStr(Array.subArray(data[j], 2)));
+									}
+								}
+								writer.close();
+							} catch (Exception e) {
+								System.err.println("Error writing to " + root+"/pheno.dat");
+								e.printStackTrace();
+							}
+		    				
+							if (numNotInPed > 0) {
+								log.reportError("There were "+numNotInPed+" sample(s) with valid and complete phenotype data that were not in the pedigree file");
+							}
+	    				}
+						
+						log.report("Heritability for "+root);
+						log.report(line[1]+" ~ "+Array.toStr(Array.subArray(line, 2), " "));
+						merlinEstimate = computeWithMerlin(dir+root, "../"+pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, merlinExec, log);
+//						solarEstimate = computeWithSolar(dir+root, "../"+pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, solarExec, log);
+						numOfAllSamples = counter.getTotalCount();
+						numOfFamiliesSizedOne = counter.getSizeOfCountEquals(1);
+						numOfFamiliesSizedTwoOrAbove = counter.getSizeOfCountGreaterThan(2);
+						log.report("Number of samples: " + numOfAllSamples + "\nNumber of families: " + counter.getSize() + "\nNumber of families of size>=2: " + numOfFamiliesSizedTwoOrAbove + "\nAverage size of families of size>=2: " + String.format("%.3", (numOfAllSamples - numOfFamiliesSizedOne) / (float) numOfFamiliesSizedTwoOrAbove) + "\nNumber of families of size=1: " + numOfFamiliesSizedOne);
+//						summary.println(root + "\t" + merlinEstimate + "\t" + solarEstimate[0] + "\t" + solarEstimate[1] + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
+						summary.println(root + "\t" + merlinEstimate + "\t\t\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
+						log.report("");
+	    			}
+				}				
+				summary.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + ext.rootOf(filename, false)+"_summary.xln");
+				e.printStackTrace();
 			}
+    		
+    		
 		}
 	}
 	
@@ -373,7 +412,7 @@ public class Heritability {
 		
 		if (args.length == 0) {
 			controlFile = "heritabilityTest.crf";
-			controlFile = "testHeritability.crf";
+			controlFile = "N:/statgen/BOSS/phenotypes/PhenoPrep/word_recogition/testHeritability.crf";
 		}
 		try {
 			log = new Logger(logfile);

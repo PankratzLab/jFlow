@@ -53,6 +53,42 @@ public class CountHash {
 		values = Sort.putInOrder(values, Array.isAllNumbers(values));
 	}	
 
+	public int getSize() {
+		return hash.size();
+	}
+
+	public int getSizeOfCountGreaterThan(int minCount) {
+		int size;
+		Enumeration<String> keys;
+
+		size = 0;
+		keys = hash.keys();
+		while(keys.hasMoreElements()) {
+			if (Integer.parseInt(hash.get(keys.nextElement())) >= minCount) {
+				size ++;
+			}
+		}
+		return size;
+	}
+
+	public int getSizeOfCountEquals(int count) {
+		int size;
+		Enumeration<String> keys;
+
+		size = 0;
+		keys = hash.keys();
+		while(keys.hasMoreElements()) {
+			if (Integer.parseInt(hash.get(keys.nextElement())) == count) {
+				size ++;
+			}
+		}
+		return size;
+	}
+
+	public int getTotalCount() {
+		return hash.size();
+	}
+
 	public int[] getCounts() {
 		int[] counts;
 
