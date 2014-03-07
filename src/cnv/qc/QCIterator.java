@@ -137,15 +137,15 @@ public class QCIterator implements Runnable {
 		Hashtable<Integer, Hashtable<String, CNVariantQC[]>> fileIndcnVariantQCs = new Hashtable<Integer, Hashtable<String, CNVariantQC[]>>();
 		String[][] inds = new String[plinkCnvQCs.length][];
 		int[][] allPossibleCombinations = Maths.getIndicesForAllCombinations(plinkCnvQCs.length, 2);
-		CNVComparison cnvComparison;
+		//CNVComparison cnvComparison;
 		for (int i = 0; i < plinkCnvQCs.length; i++) {
 			CNVariantQC[] cnVariantQCs = CNVariantQC.getCNVariantQCFromPlinkFile(proj, plinkCnvQCs[i]);
 			inds[i] = CNVariantQC.getIDList(cnVariantQCs, null);
 			fileIndcnVariantQCs.put(i, CNVariantQC.getIndCNVQCs(inds[i], cnVariantQCs));
 		}
 		for (int i = 0; i < allPossibleCombinations.length; i++) {
-			ArrayList<CNVariantQC[]> cnvQCX = new ArrayList<CNVariantQC[]>();
-			ArrayList<CNVariantQC[]> cnvQCY = new ArrayList<CNVariantQC[]>();
+			//ArrayList<CNVariantQC[]> cnvQCX = new ArrayList<CNVariantQC[]>();
+			//ArrayList<CNVariantQC[]> cnvQCY = new ArrayList<CNVariantQC[]>();
 			int fileX = allPossibleCombinations[i][0];
 			int fileY = allPossibleCombinations[i][1];
 			String[] indsx = inds[fileX];

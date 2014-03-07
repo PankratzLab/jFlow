@@ -533,7 +533,7 @@ public class PhenoPrep {
 		}
 	}
 	
-	private static void summarizeAll(String dir, String idColName, String phenosCommaDelimited, String covarsCommaDelimited, String idFile) {
+	public static void summarizeAll(String dir, String idColName, String phenosCommaDelimited, String covarsCommaDelimited, String idFile) {
 		PrintWriter writer;
 		String[] phenos, transforms;
 		Logger log;
@@ -717,7 +717,7 @@ public class PhenoPrep {
 				"	(18) include a header with the final file(s) (i.e. finalHeader=" + finalHeader + " (default))\n" +
 				"	(19) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
 				"  OR:\n" +
-				"	 (6) run all possible combinations of transformations/outliers to assess normality (i.e. log=[pheno].log (default))\n" +
+                "   (20) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n" +
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -787,6 +787,9 @@ public class PhenoPrep {
 				numArgs--;
 			} else if (args[i].startsWith("finalHeader=")) {
 				finalHeader = ext.parseBooleanArg(args[i]);
+				numArgs--;
+			}else if (args[i].startsWith("-summarizeAll")) {
+				summarizeAll=true;
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
