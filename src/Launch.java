@@ -15,7 +15,7 @@ import db.*;
 
 
 public class Launch {
-	public static final String[] LAUNCH_TYPES = {"hits", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "descriptive - summarize a phenotype file"};
+	public static final String[] LAUNCH_TYPES = {"lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers"};
 
 	public static void run(String filename, Logger log) throws Elision {
 		BufferedReader reader;
@@ -34,7 +34,7 @@ public class Launch {
 			if (temp == null || temp.equals("")) {
 				log.reportError("Below is a list of valid launch types:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
-			} else if (temp.equals("hits")) {
+			} else if (temp.equals("lookup")) {
 				LookupTable.fromParameters(filename, log);
 			} else if (temp.equals("dummy")) {
 				DummyDataset.createFromParameters(filename, log);
@@ -114,6 +114,8 @@ public class Launch {
 				SummarizePhenotype.summarizeFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("hitWindows")) {
 				HitWindows.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("phenoPrep")) {
+				PhenoPrep.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
@@ -121,6 +123,11 @@ public class Launch {
 		} catch (Exception e) {
 			log.reportError(e.getMessage());
 			log.reportException(e);
+			if (System.getProperty("os.name").startsWith("Windows")) {
+				try {
+					new BufferedReader(new InputStreamReader(System.in)).readLine();
+				} catch (IOException ioe) {}
+			}
 		}
 	}
 

@@ -1,6 +1,7 @@
 package cnv.filesys;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -44,7 +45,6 @@ public class AnnotationCollection implements Serializable {
 		Vector<String> markers;
 		
 		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annotation database", "Warning", JOptionPane.ERROR_MESSAGE);
-//		if (response != 1) {
 		if (response == 0) {
 			serialize(proj.getDir(Project.BACKUP_DIRECTORY)+"annotationsBeforeRemoving_"+ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true)+".ser." +(new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			commentsHash.remove(c);
@@ -110,6 +110,10 @@ public class AnnotationCollection implements Serializable {
 	}
 	
 	public void dumpLists(Project proj) {
+		dumpLists(proj.getProjectDir());
+	}
+	
+	public void dumpLists(String outputDir) {
 		String[] list, keys;
 		Vector<String> annotationsVector;
 		String annotationsOfTheMarker;
@@ -117,7 +121,6 @@ public class AnnotationCollection implements Serializable {
 		list = new String[markerAnnotations.size()];
 		keys = HashVec.getKeys(markerAnnotations);
 		for (int i = 0; i < list.length; i++) {
-//			list[i] = keys[i]+"\t"+Array.toStr(markerAnnotations.get(keys[i]));
 			annotationsVector = markerAnnotations.get(keys[i]);
 			annotationsOfTheMarker = "";
 			for (int j=0; j<annotationsVector.size(); j++) {
@@ -125,12 +128,11 @@ public class AnnotationCollection implements Serializable {
 			}
 			list[i] = keys[i] + "\t" + annotationsOfTheMarker;
 		}
-		Files.writeList(list, proj.getProjectDir() + "annotations.xln");
-//		Files.writeList(list, proj.getDir(Project.ANNOTATION_DIRECTORY) + "annotations.xln");
+		Files.writeList(list, outputDir + "annotations.xln");
 
 		keys = HashVec.getKeys(annotationMarkerLists);
 		for (int i = 0; i < keys.length; i++) {
-			Files.writeList(Array.toStringArray(annotationMarkerLists.get(keys[i])), proj.getProjectDir() + "annotation_" + keys[i] + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keys[i].charAt(0), false, false), true) + ".xln");
+			Files.writeList(Array.toStringArray(annotationMarkerLists.get(keys[i])), outputDir + "annotation_" + keys[i] + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keys[i].charAt(0), false, false), true) + ".xln");
 		}
 	}
 	
@@ -174,21 +176,6 @@ public class AnnotationCollection implements Serializable {
 						if (annotationKeys.containsKey(line[i])) {
 							key = annotationKeys.get(line[i]);
 						} else {
-//							letters = line[i].toLowerCase().toCharArray();
-//							for (int j = 0; j < letters.length; j++) {
-//								if (letters[j] >= 97 && letters[j] <= 122 && ! currentAnnotationCollection.containsKey(letters[j])) {
-//									key = letters[j];
-//									break;
-//								}
-//							}
-//							if (key == 0) {
-//								for (int j = 97; j <= 122; j++) {
-//									if (! currentAnnotationCollection.containsKey((char) j)) {
-//										key = (char) j;
-//										break;
-//									}
-//								}
-//							}
 							key = assignKey(line[i], currentAnnotationCollection);
 							if (key == 0) {
 								if (log == null) {
@@ -238,15 +225,6 @@ public class AnnotationCollection implements Serializable {
 
 
 	public char[] getKeys() {
-//		String[] result;
-//		Enumeration<Character> keys;
-//		result = new String[commentsHash.size()];
-//		keys = commentsHash.keys();
-//		for (int i=0; i<result.length; i++) {
-//			result[i] = keys.nextElement()+"";
-//		}
-//		return Array.toCharArray(Sort.putInOrder(result));
-
 		String[] commentDescriptions;
 		char[] result;
 		Enumeration<Character> keys;
@@ -337,6 +315,20 @@ public class AnnotationCollection implements Serializable {
 		return (AnnotationCollection)Files.readSerial(filename, jar, true);
 	}
 	
+	public static void recover(String dir) {
+		AnnotationCollection annotationCollection;
+		String[] files;
+		String trav;
+		
+		files = Files.list(dir, ".tempAnnotation.ser", false);
+		for (int i = 0; i < files.length; i++) {
+			trav = files[i].substring(0, files[i].indexOf(".tempAnnotation.ser"));
+			new File(dir+trav+"/").mkdirs();
+			annotationCollection = load(dir+files[i], false);
+			annotationCollection.dumpLists(dir+trav+"/");
+		}
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String logfile = null;
@@ -346,13 +338,20 @@ public class AnnotationCollection implements Serializable {
 		String exportList = "listOfAnnotations.out";
 		String importList = null;
 		AnnotationCollection annotationCollection;
+		boolean dump = false;
+		String recoverDir = null;
 
 		String usage = "\n" + 
 		"cnv.filesys.AnnotationCollection requires 0-1 arguments\n" + 
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"  AND\n" +
 		"   (2) list annotations (i.e. exportList="+exportList+" (default))\n" +
 		"  OR\n" +
 		"   (2) rename annotations (i.e. importList=importNewList.txt (not the default))\n" + 
+		"  OR\n" +
+		"   (2) dump lists for the project's AnnotationCollection (i.e. -dump (not the default))\n" + 
+		"  OR\n" +
+		"   (1) recover temp annotations from a directory (i.e. recover=C:/data/recover/ (not the default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -368,6 +367,12 @@ public class AnnotationCollection implements Serializable {
 			} else if (args[i].startsWith("importList=")) {
 				importList = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("recover=")) {
+				recoverDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-dump")) {
+				dump = true;
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -380,16 +385,22 @@ public class AnnotationCollection implements Serializable {
 			System.exit(1);
 		}
 		try {
-			proj = new Project(filename, false);
-			log = new Logger(logfile);
-
-			annotationCollection = proj.getAnnotationCollection();
-			if (importList != null) {
-				proj.archiveFile(proj.getFilename(Project.ANNOTATION_FILENAME));
-				annotationCollection.importList(importList, log);
-				annotationCollection.serialize(proj.getFilename(Project.ANNOTATION_FILENAME, false, false));
+			if (recoverDir != null) {
+				recover(recoverDir);
 			} else {
-				annotationCollection.exportList(exportList, log);
+				proj = new Project(filename, false);
+				log = new Logger(logfile);
+
+				annotationCollection = proj.getAnnotationCollection();
+				if (dump) {
+					annotationCollection.dumpLists(proj);
+				} else if (importList != null) {
+					proj.archiveFile(proj.getFilename(Project.ANNOTATION_FILENAME));
+					annotationCollection.importList(importList, log);
+					annotationCollection.serialize(proj.getFilename(Project.ANNOTATION_FILENAME, false, false));
+				} else {
+					annotationCollection.exportList(exportList, log);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
