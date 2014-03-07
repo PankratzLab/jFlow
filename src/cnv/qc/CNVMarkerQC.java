@@ -44,7 +44,7 @@ public class CNVMarkerQC implements Runnable {
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, new Logger());
 		for (int i = 0; i < markerNames.length; i++) {
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
-			mafs[i] = markerData.getMAF(samplesToBeUsed, null);
+			mafs[i] = markerData.getMAF(samplesToBeUsed, null, null, 0);
 			markerDataLoader.releaseIndex(i);
 		}
 	}

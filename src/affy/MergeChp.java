@@ -152,7 +152,6 @@ public class MergeChp implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		System.out.println(numArgs);
-		Project proj;
 		String filename = Project.DEFAULT_PROJECT;
 		String output = "";
 		int numThreads = 8;
@@ -184,7 +183,6 @@ public class MergeChp implements Runnable {
 			return;
 		}
 		// filename = "C:/workspace/Genvisis/projects/dbGaP_test_CEL.properties";
-		proj = new Project(filename, false);
 		try {
 			combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, commonFilename, output);
 		}
