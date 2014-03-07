@@ -3,7 +3,6 @@ package cnv.qc;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import stats.Maths;
 import common.Array;
 import common.Logger;
 
@@ -301,30 +300,30 @@ public class CNVComparison {
 		return Math.abs(Math.pow(numMarkers, alpha) * cnvHeight);
 
 	}
-	private boolean checkPennConf(double cnvPennConf) {
-		if (Double.isNaN(qcThresholds.getPennConf())) {
-			return true;
-		} else {
-			return cnvPennConf >= qcThresholds.getPennConf();
-		}
-	}
-
-	private boolean checkHets(int numHets, int numPoly) {
-		if (Double.isNaN(qcThresholds.getHetCutoff())) {
-			return true;
-		} else {
-			return (double) (numHets / numPoly) <= qcThresholds.getHetCutoff();
-		}
-	}
-
-	private boolean aPoly(int numPoly) {
-		return numPoly > 0;
-	}
-	
-
-	private double bafDistance(double baf) {
-		return Maths.min(baf, 1 - baf);
-	}
+//	private boolean checkPennConf(double cnvPennConf) {
+//		if (Double.isNaN(qcThresholds.getPennConf())) {
+//			return true;
+//		} else {
+//			return cnvPennConf >= qcThresholds.getPennConf();
+//		}
+//	}
+//
+//	private boolean checkHets(int numHets, int numPoly) {
+//		if (Double.isNaN(qcThresholds.getHetCutoff())) {
+//			return true;
+//		} else {
+//			return (double) (numHets / numPoly) <= qcThresholds.getHetCutoff();
+//		}
+//	}
+//
+//	private boolean aPoly(int numPoly) {
+//		return numPoly > 0;
+//	}
+//	
+//
+//	private double bafDistance(double baf) {
+//		return Maths.min(baf, 1 - baf);
+//	}
 
 	private int[][] countMatches(CNVariantQC[] filteredcnvQCs1, CNVariantQC[] filteredcnvQCs2, int[][] counts) {
 		// CN states as defined here are ,0,1,2,3,4,5...where 2 is a total non-copy number aware count, and 5 is for non matching (overlap,exact,sigoverlap)
