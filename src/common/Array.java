@@ -1637,13 +1637,31 @@ public class Array {
 	}
 
 	/**
-	 * Creates an array of Strings and copies the contents of an array of doubles
+	 * Creates an array of Strings and copies the contents of an array of double
 	 * 
 	 * @param array
 	 *            array of double
 	 * @return an array of the converted Strings
 	 */
 	public static String[] toStringArray(double[] array) {
+		String[] new_array;
+		
+		new_array = new String[array.length];
+		for (int i = 0; i < array.length; i++) {
+			new_array[i] = array[i]+"";
+		}
+		
+		return new_array;
+	}
+	
+	/**
+	 * Creates an array of Strings and copies the contents of an array of float
+	 * 
+	 * @param array
+	 *            array of float
+	 * @return an array of the converted Strings
+	 */
+	public static String[] toStringArray(float[] array) {
 		String[] new_array;
 		
 		new_array = new String[array.length];
@@ -1668,6 +1686,28 @@ public class Array {
 
 		enumer = hash.keys();
 		array = new String[hash.size()];
+		while (enumer.hasMoreElements()) {
+			trav = enumer.nextElement();
+			array[hash.get(trav).intValue()] = trav;
+		}
+		
+		return array;
+	}	
+	
+	/**
+	 * Creates an array of Strings and copies the contents of a Hashtbable into it (in the correct order)
+	 * 
+	 * @param hash
+	 *            Hashtable of Strings as keys, and their index position as the value
+	 * @return an array of Strings from the Hashtable
+	 */
+	public static int[] toIntArray(Hashtable<Integer, Integer> hash) {
+		Enumeration<Integer> enumer;
+		int[] array;
+		int trav;
+
+		enumer = hash.keys();
+		array = new int[hash.size()];
 		while (enumer.hasMoreElements()) {
 			trav = enumer.nextElement();
 			array[hash.get(trav).intValue()] = trav;

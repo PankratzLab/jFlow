@@ -3,7 +3,7 @@ package bioinformatics;
 import common.ext;
 
 public class Sequence {
-//	public static final String[] SENSE = {"A", "C", "G", "T", "I", "D"};
+//	public static final String[] SENSE = {"A", "C", "G", "T", "I", "D"}; // keep, helps when searching for "A", "C", "G", "T"
 //	public static final String[] ANTISENSE = {"T", "G", "C", "A", "I", "D"};
 	public static final char[] ALLELES = {'A', 'C', 'G', 'T'};
 	public static final char[] SENSE = {'A', 'C', 'G', 'T', 'I', 'D', 'a', 'c', 'g', 't', 'i', 'd'};

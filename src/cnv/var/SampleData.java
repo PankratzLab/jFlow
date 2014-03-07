@@ -13,7 +13,7 @@ public class SampleData {
 	public static final String HEATMAP = "Heat map";
 	public static final String GENOTYPE = "Genotype";
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
-	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {}};
+	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
 	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 

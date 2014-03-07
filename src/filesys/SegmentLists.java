@@ -25,7 +25,7 @@ public class SegmentLists implements Serializable {
 		Files.writeSerial(this, filename);
 	}
 	
-	public static SegmentLists parseSegmentList(String filename, boolean ignoreFirstLine) {
+	public static SegmentLists parseUCSCSegmentList(String filename, boolean ignoreFirstLine) {
 		Hashtable<String, Vector<Segment>> hash = new Hashtable<String,Vector<Segment>>();
 		Vector<Segment> vSegs;
 		Segment[][] lists;

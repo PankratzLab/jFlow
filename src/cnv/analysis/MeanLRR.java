@@ -109,7 +109,7 @@ public class MeanLRR {
 			}
         }
 		
-		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
+		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, Transforms.TRANFORMATIONS).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
 	}
 	
 	public static void createFilesFromMarkerData(Project proj, String regionsFile, Logger log) {
@@ -192,7 +192,7 @@ public class MeanLRR {
 	        e.printStackTrace();
         }
 		
-		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
+		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, new String[] {Transforms.TRANFORMATIONS[0]}).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
 	}
 
 	public static void analyze(Project proj, String phenotype, String mlrrSetFile, Logger log) {
@@ -268,6 +268,7 @@ public class MeanLRR {
 		Segment[] regions;
 		Hashtable<String, String> hash;
 		int index;
+		String[] transformations;
 		
 		if (!Files.exists(mlrrSetFile)) {
 			log.report("Error - mlrr dataset file '"+mlrrSetFile+"' was never created");
@@ -312,8 +313,15 @@ public class MeanLRR {
 			for (int i = 0; i < phenotypes.length; i++) {
 				writer.print("\t"+phenotypes[i].substring(phenotypes[i].lastIndexOf("=")+1));
 			}
+			transformations = mlrrSet.getTransformations();
 			for (int i = 0; i < regions.length; i++) {
-				writer.print("\t"+regions[i].getUCSClocation());
+				if (transformationToUse == -1) {
+					for (int j = 0; j < transformations.length; j++) {
+						writer.print("\t"+regions[i].getUCSClocation()+"_"+ext.replaceWithLinuxSafeCharacters(transformations[j], false));
+					}
+				} else {
+					writer.print("\t"+regions[i].getUCSClocation()+"_"+ext.replaceWithLinuxSafeCharacters(transformations[transformationToUse], false));
+				}
 			}
 			writer.println();
 			for (int i = 0; i<samples.length; i++) {
@@ -382,7 +390,7 @@ public class MeanLRR {
 //		regions = "PAR2.txt";
 //		dump = "chr23:154879620-155227607"; // Marker 6
 
-		filename = "/home/npankrat/projects/GEDI.properties";
+//		filename = "/home/npankrat/projects/GEDI.properties";
 //		phenotypes = new String[] {"Class=UsedInCNVAnlayses", "Final_LRR_SD", "Final_conf15usedCount"};
 //		regions = "firstCNP.txt";
 //		dumpAll = true;
@@ -393,8 +401,14 @@ public class MeanLRR {
 //		AMY2A	chr1:104159999-104168400
 //		AMY2B	chr1:104095896-104122149
 
-		phenotypes = new String[] {"CLASS=Suitable for CNV", "Final_LRR_SD", "Final_conf15usedCount"};
-		dumpAll = true;
+//		filename = "/home/npankrat/projects/GEDI.properties";
+//		phenotypes = new String[] {"CLASS=Suitable for CNV", "Final_LRR_SD", "Final_conf15usedCount"};
+
+		
+//		filename = "/home/npankrat/projects/SingaporeReplication.properties";
+//		phenotypes = new String[] {"Class=LQ LRR_SD;2=Bad;3=KindaBad", "Class=BAF_outliers", "Class=Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner", "Class=Exclude"};
+//		dumpAll = true;
+//		transform = true;
 
 		Project proj;
 

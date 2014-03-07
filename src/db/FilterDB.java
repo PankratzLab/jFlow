@@ -72,7 +72,7 @@ public class FilterDB {
 				}
 			}
 
-			writer.println("Unit\tReason flagged\tnumFlags");
+			writer.println("Unit\tReasonFlagged\tnumFlags");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				result = line[0] + "\t";

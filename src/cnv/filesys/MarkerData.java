@@ -483,10 +483,17 @@ public class MarkerData implements Serializable {
 		return mapping;
 	}
 
-	// samplesToBeUsed and sex can be null
-	public int[] getAlleleCounts(boolean[] samplesToBeUsed, String[] sex) {
+	// samplesToBeUsed, sex, and clusterFilterCollection can be null
+	public int[] getAlleleCounts(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
 		int[] alleleCounts = new int[3];
 		String sexSpecific;
+		byte[] genoytpes;
+		
+		if (clusterFilterCollection == null) {
+			genoytpes = getAB_Genotypes();
+		} else {
+			genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+		}
 		// 0=non-specific , 1= male , 2 =female
 		if (chr == 23) {
 			sexSpecific = "2";
@@ -495,18 +502,31 @@ public class MarkerData implements Serializable {
 		} else {
 			sexSpecific = "0";
 		}
-		for (int i = 0; i < abGenotypes.length; i++) {
-			if (abGenotypes[i] >= 0 && (samplesToBeUsed == null || samplesToBeUsed[i]) && (sex == null || sexSpecific.equals("0") || sex[i].equals(sexSpecific))) {
-				alleleCounts[abGenotypes[i]]++;
+		for (int i = 0; i < genoytpes.length; i++) {
+			if (genoytpes[i] >= 0 && (samplesToBeUsed == null || samplesToBeUsed[i]) && (sex == null || sexSpecific.equals("0") || sex[i].equals(sexSpecific))) {
+				alleleCounts[genoytpes[i]]++;
 			}
 		}
 		return alleleCounts;
 	}
 
-	public double getMAF(boolean[] samplesToBeUsed, String[] sex) {
-		int[] alleleCounts = getAlleleCounts(samplesToBeUsed, sex);
-		return AlleleFreq.calcMAF(alleleCounts[0], alleleCounts[1], alleleCounts[2]);
+	// samplesToBeUsed, sex, and clusterFilters can be null
+	public double getMAF(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
+		double freqB;
+		
+		freqB = getFrequencyOfB(samplesToBeUsed, sex, clusterFilters, gcThreshold);
+		if (freqB > 0.5) {
+			return 1-freqB;
+		} else {
+			return freqB;
+		}
 	}
+
+	// samplesToBeUsed, sex, and clusterFilters can be null
+	public double getFrequencyOfB(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
+		return AlleleFreq.calcFrequency(getAlleleCounts(samplesToBeUsed, sex, clusterFilters, gcThreshold));
+	}
+	
 //	public byte[] detectClusters() {
 //		return detectClusters(0.01, 3);
 //	}

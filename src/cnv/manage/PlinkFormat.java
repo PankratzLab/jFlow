@@ -33,6 +33,7 @@ public class PlinkFormat {
 		ClusterFilterCollection clusterFilterCollection;
 		char[][] abLookup;
 		String temp;
+		Hashtable<Integer,Integer> invalidAbLookups;
 
 		System.out.println(ext.getTime());
 		hash = new Hashtable<String,String>();
@@ -119,6 +120,7 @@ public class PlinkFormat {
 			reader = new BufferedReader(new FileReader(proj.getFilename(Project.PEDIGREE_FILENAME)));
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filenameRoot+".ped"));
 			count = 1;
+			invalidAbLookups = new Hashtable<Integer, Integer>();
 			while (reader.ready()) {
 				count++;
 				if (count % 100 == 0) {
@@ -158,8 +160,16 @@ public class PlinkFormat {
 							if (genIndex==0) {
 								writer.print(" 0 0");
 							} else {
-								genotype = Sample.ALLELE_PAIRS[genIndex];
-								writer.print(" "+genotype.charAt(0)+" "+genotype.charAt(1));
+								if (genIndex < 0) {
+									if (!invalidAbLookups.containsKey(indices[i])) {
+										log.reportError("Error - marker '"+markerNames[indices[i]]+"' was manually reclustered and requires a previously undefined AB lookup code ("+abLookup[indices[i]][0]+"/"+abLookup[indices[i]][1]+"); alleles will be set to missing for anyone with an invalid allele");
+										invalidAbLookups.put(indices[i], invalidAbLookups.size());
+									}
+									writer.print(" 0 0");
+								} else {
+									genotype = Sample.ALLELE_PAIRS[genIndex];
+									writer.print(" "+genotype.charAt(0)+" "+genotype.charAt(1));
+								}
 							}
 						}
 					}
@@ -169,6 +179,21 @@ public class PlinkFormat {
 			}
 			reader.close();
 			writer.close();
+			if (invalidAbLookups.size() > 0) {
+				log.reportError("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(Project.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
+				try {
+					writer = new PrintWriter(new FileWriter(proj.getDir(Project.DATA_DIRECTORY)+"invalid_AB_codes.out"));
+					writer.println("MarkerNames\tAlleleA\tAlleleB");
+					indices = Array.toIntArray(invalidAbLookups);
+					for (int i = 0; i < indices.length; i++) {
+						writer.println(markerNames[indices[i]]+"\t"+abLookup[indices[i]][0]+"\t"+abLookup[indices[i]][1]);
+					}
+					writer.close();
+				} catch (Exception e) {
+					System.err.println("Error writing to " + proj.getDir(Project.DATA_DIRECTORY)+"invalid_AB_codes.out");
+					e.printStackTrace();
+				}
+			}
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+proj.getFilename(Project.PEDIGREE_FILENAME)+"\" not found");
 			System.exit(1);

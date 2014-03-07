@@ -7,8 +7,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.Vector;
+
+import bioinformatics.Sequence;
+import cnv.manage.MarkerDataLoader;
 
 import common.Array;
+import common.Files;
 import common.Logger;
 import common.ext;
 
@@ -397,6 +402,92 @@ public class ABLookup {
         }
 	}
 	
+	public static void fillInMissingAlleles(Project proj, String incompleteABlookupFilename, String mapFile, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		Hashtable<String,char[]> lookupHash;
+		char knownAllele;
+		int knownIndex;
+		Vector<String> markersWithNoLink;
+		MarkerDataLoader markerDataLoader;
+		String[] markerNames;
+		char[] refAlleles;
+		
+        if (!mapFile.toLowerCase().endsWith(".csv")) {
+        	log.reportError("Error - expecting an Illumina style format, but this map file '"+mapFile+"' does not end in .csv; aborting...");
+        	return;
+        }
+
+        if (!Files.exists(mapFile)) {
+        	log.reportError("Error - could not find Illumina map file '"+mapFile+"'; aborting...");
+        	return;
+        }
+        
+        lookupHash = generateABLookupHashFromCSV(mapFile);
+
+        markersWithNoLink = new Vector<String>();
+        try {
+			reader = Files.getAppropriateReader(incompleteABlookupFilename);
+			writer = new PrintWriter(new FileWriter(ext.addToRoot(incompleteABlookupFilename, "_filledIn")));
+			line = reader.readLine().trim().split("[\\s]+");
+			ext.checkHeader(line, new String[] {"Marker", "AlleleA", "AlleleB"}, new int[] {0,1,2}, false, log, true);
+			writer.println(Array.toStr(line));
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				if (line[1].equals("N") && line[2].equals("N")) {
+					markersWithNoLink.add(line[0]);
+				} else if (line[1].equals("N") || line[2].equals("N")) {
+					knownIndex = line[1].equals("N")?1:0;
+					knownAllele = line[1+knownIndex].charAt(0);
+					refAlleles = lookupHash.get(line[0]);
+					if (refAlleles == null) {
+						log.reportError("Error - allele lookup failed for marker "+line[0]);
+					} else {
+						if (line[0].equals("rs2307492")) {
+							System.out.println("hola");
+						}
+						for (int i = 0; knownIndex != -9 && i < refAlleles.length; i++) {
+							if (knownAllele == refAlleles[i]) {
+								line[1+(1-knownIndex)] = refAlleles[1-i]+"";
+								knownIndex = -9;
+							}
+						}
+						if (knownIndex != -9) {
+							for (int i = 0; knownIndex != -9 && i < refAlleles.length; i++) {
+								if (knownAllele == Sequence.flip(refAlleles[i])) {
+									line[1+(1-knownIndex)] = Sequence.flip(refAlleles[1-i])+"";
+									knownIndex = -9;
+								}
+							}
+						}
+						if (knownIndex != -9) {
+							System.err.println("Error - failed to reconcile "+Array.toStr(line, "/")+" with reference alleles: "+refAlleles[0]+"/"+refAlleles[1]);
+						}
+					}
+					
+				}
+				writer.println(Array.toStr(line));
+			}
+			reader.close();
+			writer.close();
+			
+			log.report("There were "+markersWithNoLink.size()+" markers that were zeroed out in the original export; for list check "+Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
+			markerNames = Array.toStringArray(markersWithNoLink);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerNames, log);
+			for (int i = 0; i < markerNames.length; i++) {
+				markerNames[i] = markerNames[i]+"\t"+markerDataLoader.getMarkerData(i).getFrequencyOfB(null, null, proj.getClusterFilterCollection(), proj.getFloat(Project.GC_THRESHOLD));
+			}
+			Files.writeList(markerNames, Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + incompleteABlookupFilename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + incompleteABlookupFilename + "\"");
+			System.exit(2);
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
@@ -405,8 +496,9 @@ public class ABLookup {
 		boolean parseFromGenotypeClusterCenters = false;
 		String outfile = DEFAULT_AB_FILE;
 		ABLookup abLookup;
-		String mapFile = null;
+		String mapFile = "SNP_Map.csv";
 		boolean applyAB = false;
+		String incompleteABlookupFilename = null;
 
 		String usage = "\n" +
 				"cnv.filesys.ABLookup requires 0-1 arguments\n" +
@@ -417,7 +509,8 @@ public class ABLookup {
 				"  OR\n" + 
 				"   (3) parse ABLookup from existing original genotypes (i.e. -parseFromOriginalGenotypes (not the default))\n" + 
 				"  OR\n" + 
-				"   (3) parse ABLookup from [Illumina] SNP Table (i.e. mapFile=SNP_Map.csv (not the default))\n" + 
+				"   (3) fill in a partial existing ABLookup file using an Illumina SNP Table (i.e. incompleteAB=posssible_AB_lookup.dat (not the default))\n" + 
+				"   (4) the filename of the Illumina SNP Table (i.e. mapFile="+mapFile+" (default))\n" + 
 				"  OR\n" + 
 				"   (3) apply the project's AB lookup to all Sample files in project (i.e. -applyAB (not the default))\n" + 
 				"";
@@ -438,6 +531,9 @@ public class ABLookup {
 			} else if (args[i].equalsIgnoreCase("-parseFromGenotypeClusterCenters")) {
 				parseFromGenotypeClusterCenters = true;
 				numArgs--;
+			} else if (args[i].startsWith("incompleteAB=")) {
+				incompleteABlookupFilename = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("mapFile=")) {
 				mapFile = args[i].split("=")[1];
 				numArgs--;
@@ -455,16 +551,19 @@ public class ABLookup {
 //		filename = "/home/npankrat/projects/SDRG.properties";
 //		mapFile = "00src/HumanOmni2.5-8v1_C.csv";
 
-		filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
+//		filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
 //		mapFile = "C:/GEDI_exomeRAF/HumanExome-12v1_A.csv";
 //		parseFromGenotypeClusterCenters = true;
-		applyAB = true;
+//		applyAB = true;
+
+//		filename = "/home/npankrat/projects/SingaporeReplication.properties";
+//		incompleteABlookupFilename = "D:/data/SingaporeReplication/fromclusters_posssible_AB_lookup.dat";
+//		mapFile = "D:/data/SingaporeReplication/SNP_Map.csv";
 		
 		try {
 			proj = new Project(filename, false);
-			if (mapFile != null) {
-				abLookup = new ABLookup(proj.getMarkerNames(), mapFile, true, true);
-				abLookup.writeToFile(proj.getProjectDir()+outfile);
+			if (incompleteABlookupFilename != null) {
+				fillInMissingAlleles(proj, incompleteABlookupFilename, mapFile, new Logger());
 			} else if (parseFromOriginalGenotypes) {
 				abLookup = new ABLookup();
 				abLookup.parseFromOriginalGenotypes(proj);
@@ -475,6 +574,8 @@ public class ABLookup {
 				abLookup.writeToFile(proj.getProjectDir()+outfile);
 			} else if (applyAB) {
 				applyABLookupToFullSampleFiles(proj);
+			} else {
+				System.err.println("No subroutine was selected");
 			}
 			
 		} catch (Exception e) {

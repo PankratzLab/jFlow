@@ -483,7 +483,7 @@ public abstract class RegressionModel {
 		}
 
 		for (int i = 0; i<pheno.length && hash.size()<4; i++) {
-			if (!hash.containsKey(pheno[i]+"") && !pheno[i].equalsIgnoreCase("NaN") && !pheno[i].equalsIgnoreCase("NA") && !pheno[i].equals(".")) {
+			if (!hash.containsKey(pheno[i]+"") && !ext.isMissingValue(pheno[i])) {
 				hash.put(pheno[i]+"", "");
 			}
 		}

@@ -105,7 +105,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		}
 
 		image = null;
-		locLookup = new Hashtable<String,IntVector>();
+//		locLookup = new Hashtable<String,IntVector>(); // takes place in AbstractPanel
 		sampLookup = new Hashtable<String,IntVector>();
 		// linkSamples = true;
 
@@ -203,7 +203,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		} else if (event.getButton()==MouseEvent.BUTTON3) { // right click
 		}
 
-		//System.out.println("Click with "+prox.size()+" in proximity");
+		System.out.println("Click with "+prox.size()+" in proximity");
 		if (prox!=null&&prox.size()>0) {
 			menu = new JPopupMenu();
 			for (int i = 0; i<prox.size(); i++) {

@@ -11,12 +11,12 @@ public class CmdLine {
 		}		
 	}
 	
-	public static void run(String command, String dir) {
-		run(command, dir, null);
+	public static boolean run(String command, String dir) {
+		return run(command, dir, null);
 	}
 	
-	public static void run(String command, String dir, PrintStream os) {
-		run(command, dir, os, false);
+	public static boolean run(String command, String dir, PrintStream os) {
+		return run(command, dir, os, false);
 	}
 	
 	public static boolean run(String command, String dir, PrintStream os, boolean ignoreIllegalStateExceptions) {
@@ -87,8 +87,10 @@ public class CmdLine {
 			if (message.startsWith("Cannot run program ")) {
 				message = message.substring(20);
 				System.err.println("Error - The program \""+message.substring(0, message.indexOf("\""))+"\" is not installed or is not accessible "+message.substring(message.indexOf("("), message.indexOf(")")+1));
+				noError = false;
 			} else {
 				ioe.printStackTrace();
+				noError = false;
 			}
 		}
 		

@@ -41,11 +41,13 @@ public class SexPlot extends JFrame{
 		JPanel legendPanel = colorLegendPanel();
 		getContentPane().add(legendPanel, BorderLayout.SOUTH);
 
-		repaint();
+		// TODO extra paint appears to be unnecessary
+//		repaint();
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
-		sexPanel.createImage();
+//		unnecessary leads to a double rendering
+//		sexPanel.createImage();
 	}
 
 	private JPanel colorLegendPanel() {

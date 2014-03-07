@@ -16,6 +16,7 @@ import cnv.filesys.*;
 //import cnv.gui.PropertyEditor;
 import cnv.manage.*;
 import cnv.plots.*;
+import cnv.qc.MarkerMetrics;
 
 public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
 	public static final long serialVersionUID = 1L;
@@ -38,6 +39,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String MOSAICISM = "Determine mosaic arms";
 	public static final String MARKER_METRICS = "Full QC marker metrics";
 	public static final String FILTER_MARKER_METRICS = "Filter marker metrics";
+	public static final String TALLY_MARKER_ANNOTATIONS = "Tally marker annotations";
+	public static final String TALLY_WITHOUT_DETERMINING_DROPS = "Tally without determining dropped markers (much faster)";
 	
 	public static final String SCATTER = "Scatter module";
 	public static final String QQ = "QQ module";
@@ -58,7 +61,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
-			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS},
+			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LPlot, COMP},
 			{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, TEST},
 			{"Help", "Contents", "Search", "About"}};
@@ -373,7 +376,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				if (filename == null) {
 					log.report("No ClusterFilterCollection will be used");
 				} else {
-					log.report("The ClusterFilterCollection in '"+filename+"' will be used");
+					log.report("The ClusterFilterCollection in '"+proj.getProperty(Project.DATA_DIRECTORY)+"/"+filename+"' will be used");
 				}
 				if ( filename==null || (!filename.equals("cancel")) ) {
 //						String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
@@ -384,7 +387,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.getLog());
 					if (success) {
 						try {
-							CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+							log.report("Converting ped/map files to binary PLINK files...", false, true);
+							if (CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir())) {
+								log.report("complete!");
+							} else {
+								log.report("PLINK conversion failed");
+							}
 //							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
 //							new File(proj.getProjectDir()+"genome/").mkdirs();
 //							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
@@ -442,6 +450,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.qc.MarkerMetrics.fullQC(proj, (boolean[])null, null, proj.getLog()); // need the declaration, otherwise the call is ambiguous
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
 				cnv.qc.MarkerMetrics.filterMetrics(proj, proj.getLog());
+			} else if (command.equals(TALLY_MARKER_ANNOTATIONS)) {
+				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, true, log);
+			} else if (command.equals(TALLY_WITHOUT_DETERMINING_DROPS)) {
+				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, false, log);
 			} else if (command.equals(KITANDKABOODLE)) {
 				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS), proj.getLog());
 

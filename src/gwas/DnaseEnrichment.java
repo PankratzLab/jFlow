@@ -21,6 +21,7 @@ import java.util.NavigableSet;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -200,8 +201,9 @@ public class DnaseEnrichment {
 			executor.execute(worker);
 		}
 		executor.shutdown();
-		while (!executor.isTerminated())
-			;
+		try {
+			executor.awaitTermination(7, TimeUnit.DAYS);
+		} catch (InterruptedException e) {}
 		LOGGER.info("All threads terminated successfully: Processed all chr files to build ChrPositionMap");
 	}
 

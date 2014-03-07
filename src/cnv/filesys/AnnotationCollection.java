@@ -2,8 +2,12 @@ package cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -35,17 +39,18 @@ public class AnnotationCollection implements Serializable {
 		annotationMarkerLists.put(c + "", new Vector<String>());
 	}
 
-	public void removeAnnotation(char c) {
+	public void removeAnnotation(Project proj, char c) {
 		int response;
 		Vector<String> markers;
 		
 		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annotation database", "Warning", JOptionPane.ERROR_MESSAGE);
 //		if (response != 1) {
 		if (response == 0) {
+			serialize(proj.getDir(Project.BACKUP_DIRECTORY)+"annotationsBeforeRemoving_"+ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true)+".ser." +(new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			commentsHash.remove(c);
 			markers = annotationMarkerLists.get(c+"");
 			for (int i=0; markers != null && i < markers.size(); i++) {
-				markerAnnotations.remove(markers.elementAt(i));
+				removeAnnotationForMarker(markers.elementAt(i), c);
 			}
 			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists, true, false)));
 			annotationMarkerLists.remove(c+"");
@@ -289,11 +294,105 @@ public class AnnotationCollection implements Serializable {
 		return (includeShortcuts? "'" + c + "' " : "") + commentsHash.get(c) + (includeNumbers? " (n=" + annotationMarkerLists.get(c+"").size() + ")" : "");
 	}
 	
+	public void exportList(String exportList, Logger log) {
+		PrintWriter writer;
+		char[] keys;
+		
+		keys = getKeys();
+		try {
+			writer = new PrintWriter(new FileWriter(exportList));
+			for (int i = 0; i < keys.length; i++) {
+				writer.println(keys[i]+"\t"+getDescriptionForComment(keys[i], false, false));
+			}
+			writer.close();
+			log.report("Finished exporting annotation list to "+exportList);
+		} catch (Exception e) {
+			System.err.println("Error writing to " + exportList);
+			e.printStackTrace();
+		}
+	}
+
+	public void importList(String importList, Logger log) {
+		String[][] newMappings;
+		char[] keys;
+		
+		keys = getKeys();
+		newMappings = HashVec.loadFileToStringMatrix(importList, false, new int[] {0,1}, Files.determineDelimiter(importList, log), false, keys.length, false);
+		
+		for (int i = 0; i < newMappings.length; i++) {
+			if (commentsHash.containsKey(newMappings[i][0].charAt(0))) {
+				renameAnnotation(newMappings[i][0].charAt(0), newMappings[i][1]);
+			} else {
+				log.reportError("Warning - could not find an annotation using the shortcut character '"+newMappings[i][0]+"'; ignoring");
+			}
+		}
+		log.report("Finished importing annotation list from "+importList);
+	}
+
 	public void serialize(String filename) {
 		Files.writeSerial(this, filename);
 	}
 
 	public static AnnotationCollection load(String filename, boolean jar) {
 		return (AnnotationCollection)Files.readSerial(filename, jar, true);
+	}
+	
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String logfile = null;
+		Logger log;
+		Project proj;
+		String filename = Project.DEFAULT_PROJECT;
+		String exportList = "listOfAnnotations.out";
+		String importList = null;
+		AnnotationCollection annotationCollection;
+
+		String usage = "\n" + 
+		"cnv.filesys.AnnotationCollection requires 0-1 arguments\n" + 
+		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (2) list annotations (i.e. exportList="+exportList+" (default))\n" +
+		"  OR\n" +
+		"   (2) rename annotations (i.e. importList=importNewList.txt (not the default))\n" + 
+		"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("proj=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("exportList=")) {
+				exportList = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("importList=")) {
+				importList = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			proj = new Project(filename, false);
+			log = new Logger(logfile);
+
+			annotationCollection = proj.getAnnotationCollection();
+			if (importList != null) {
+				proj.archiveFile(proj.getFilename(Project.ANNOTATION_FILENAME));
+				annotationCollection.importList(importList, log);
+				annotationCollection.serialize(proj.getFilename(Project.ANNOTATION_FILENAME, false, false));
+			} else {
+				annotationCollection.exportList(exportList, log);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

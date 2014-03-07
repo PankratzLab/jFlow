@@ -92,8 +92,9 @@ public class QQPlot extends JFrame implements ActionListener {
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
-		panelA.createImage();
-		panelA.updateUI();
+//		unnecessary leads to a double rendering
+//		panelA.createImage();
+//		panelA.updateUI();
 //		panelB.createImage();
 //		panelB.updateUI();
 	}

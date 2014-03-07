@@ -114,7 +114,7 @@ public class LaunchAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 		switch (type) {
         case LAUNCH_TRAILER:
-    		ext.setClipboard(sample+"\t"+loc);
+    		ext.setClipboard(sample+"\t"+ext.listWithCommas(loc));
     		for (int i = 0; i < loc.length; i++) {
         		new Trailer(proj,
         					sample,
