@@ -43,7 +43,9 @@ public class MosaicPlot extends JFrame implements ActionListener {
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
-		panel.createImage();
+
+//		unnecessary leads to a double rendering
+//		panel.createImage();
 	}
 
 	public void actionPerformed(ActionEvent ae) {

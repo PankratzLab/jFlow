@@ -5,6 +5,8 @@ import java.util.*;
 
 import bioinformatics.SeattleSeq;
 import common.*;
+import filesys.Segment;
+import filesys.SegmentLists;
 
 public class Polymutt {
 	public static final String[] POLYMUTT_VCF_HEADER = {"#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "2", "3", "1"};
@@ -402,12 +404,10 @@ public class Polymutt {
 					if (i == 2 && mostLikelyGenotypes.length > 1) {
 						if (mostLikelyGenotypes.length == GENOTYPE_ORDER.length) {
 							mostLikelyGenotypes = new String[] {line[9+i].split(":")[0]};
-//							writers[2].println(temp);
 						} else {
 //							log.reportError("Warning - there are more than one 'most likely genotype' for child in "+ext.rootOf(filename)+" for marker "+markerName+" so it will not be called denovo. Line: "+line[9+i].split(":")[3]);
 							writers[1].println(temp);
 						}
-						// TODO check if this is possible then dump and consider
 					}
 					for (int g = 0; g < mostLikelyGenotypes.length; g++) {
 						genotype = ext.replaceAllWith(mostLikelyGenotypes[g], "/","");
@@ -505,6 +505,384 @@ public class Polymutt {
 		}
 	}
 	
+	public static void assessCoverage(String filename, String bedfile, String coverages) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp;
+		int count;
+		SegmentLists segmentLists;
+		Segment[][] segments;
+		Logger log;
+		byte chr, prevChr;
+		int[] readCounts, thresholds;
+		int[][] runningCounts;
+		int onTargetReads;
+		boolean allQualify;
+
+		log = new Logger("assessingCoverageFor_"+ext.rootOf(filename)+".out");
+
+		if (bedfile == null) {
+			segments = null;
+		} else if (Files.exists(bedfile+".ser")) {
+			log.report("Reading in preserialized "+bedfile+".ser");
+			segments = SegmentLists.load(bedfile+".ser", false).getLists();
+		} else { 
+			log.report("Importing "+bedfile);
+			segmentLists = SegmentLists.parseSegmentList(bedfile, 0, 1, 2, true);
+			segmentLists.serialize(bedfile+".ser");
+			segments = segmentLists.getLists();
+		}
+		
+		try {
+			thresholds = Array.toIntArray(coverages.split(","));
+		} catch (Exception e) {
+			log.reportError("Error - failed to parse coverage thresholds: "+coverages);
+			log.reportException(e);
+			return;
+		}
+		onTargetReads = 0;
+		runningCounts = new int[thresholds.length][4];
+		
+		prevChr = -1;
+		temp = "not even started";
+		try {
+			if (Files.exists(ext.rootOf(filename, false)+"_onTargetCoverage.vcf.gz")) {
+				log.report("Reading directly from '"+ext.rootOf(filename, false)+"_onTargetCoverage.vcf.gz"+"'");
+				reader = Files.getAppropriateReader(ext.rootOf(filename, false)+"_onTargetCoverage.vcf.gz");
+				writer = null;
+			} else {
+				reader = Files.getAppropriateReader(filename);
+				writer = Files.getAppropriateWriter(ext.rootOf(filename, false)+"_onTargetCoverage.vcf.gz");
+				do {
+					temp = reader.readLine();
+				} while (!temp.startsWith("#CHROM"));
+				
+				if (!ext.checkHeader(temp.split("[\\s]+"), POLYMUTT_VCF_HEADER, false)) {
+					log.reportError("Problem with header for file: "+filename);
+					reader.close();
+					writer.close();
+					return;
+				}
+			}
+			count = 0;
+			while (reader.ready()) {
+				if (count % 10000000 == 0) {
+					log.report(ext.getTimestampForFilename()+"\t"+count);
+				}
+				try {
+					temp = reader.readLine();
+				} catch (EOFException eofe) {
+					log.report("Truncated at line: "+count);
+					reader.close();
+					continue;
+				}
+				line = temp.trim().split("[\\s]+");
+				if (line.length < 5) {
+					log.report("Truncated at line: "+count);
+					continue;
+				}
+				chr = Positions.chromosomeNumber(line[0], log);
+				if (chr != prevChr) {
+					log.report(ext.getTimestampForFilename()+"\tStarting chromosome "+Positions.CHR_CODES[chr]);
+					prevChr = chr;
+				}
+				if (writer == null) {
+					readCounts = new int[] {Integer.parseInt(line[2]), Integer.parseInt(line[3]), Integer.parseInt(line[4])};
+				} else {
+					if (segments == null || (segments[chr] != null && Segment.overlapsAny(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[1])), segments[chr]))) {
+						readCounts = new int[] {Integer.parseInt(line[9].split(":")[2]), Integer.parseInt(line[10].split(":")[2]), Integer.parseInt(line[11].split(":")[2])};
+						writer.println(line[0]+"\t"+line[1]+"\t"+Array.toStr(readCounts));
+					} else {
+						readCounts = null;
+					}
+				}
+				if (readCounts != null) {
+					for (int i = 0; i < thresholds.length; i++) {
+						allQualify = true;
+						for (int j = 0; j < 3; j++) {
+							if (readCounts[j] > thresholds[i]) {
+								runningCounts[i][j]++;
+							} else {
+								allQualify = false;
+							}
+						}
+						if (allQualify) {
+							runningCounts[i][3]++;
+						}
+					}
+					onTargetReads++;
+				}
+				count++;
+			}
+			reader.close();
+			if (writer != null) {
+				writer.close();
+			}
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (Exception e) {
+			System.err.println("Error reading file \"" + filename + "\" at line:");
+			System.err.println(temp);
+			e.printStackTrace();
+		}
+		
+		for (int i = 0; i < thresholds.length; i++) {
+			log.report("# reads >= "+thresholds[i], false, true);
+			for (int j = 0; j < 4; j++) {
+				log.report("\t"+ext.formPercent((double)runningCounts[i][j] / (double)onTargetReads, 1), false, true);
+			}
+			log.report("");
+		}
+	}
+	
+	// bedfile can be null
+	public static void assessAllPossibleCoverage(String controlFile, String coverages, String bedfile) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		int[] thresholds;
+		Logger log;
+		int[][] nCr;
+		
+		Vector<String> filenames;
+		Vector<int[]> iterations;
+		String pattern;
+		String[] reps;
+		String fill;
+		String dir;
+		String[][][] results;
+		boolean problem;
+		Segment[][] bedList;
+		
+		if (bedfile != null) {
+			bedList = SegmentLists.parseSegmentList(bedfile, 0, 1, 2, false).getLists();
+		} else {
+			bedList = null;
+		}
+		
+		try {
+			reader = Files.getAppropriateReader(controlFile);
+			dir = ext.verifyDirFormat(reader.readLine());
+			log = new Logger(dir+"assessingAllPossibleCoverageFor_"+ext.rootOf(controlFile)+".out");
+
+			try {
+				thresholds = Array.toIntArray(coverages.split(","));
+			} catch (Exception e) {
+				log.reportError("Error - failed to parse coverage thresholds: "+coverages);
+				log.reportException(e);
+				return;
+			}
+
+			writer = new PrintWriter(new FileWriter(dir+ext.rootOf(controlFile)+"_coverage.xln"));
+			writer.println("Trio\tCombination\t# lanes\tReadDepth threshold\tFather\tMother\tChild\tEntire Trio");
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				pattern = line[0];
+				reps = Array.subArray(line, 1);
+
+				problem = false;
+				filenames = new Vector<String>();
+				for (int i = 0; i < reps.length; i++) {
+					fill = ext.replaceAllWith(pattern, "[%%]", reps[i]);
+					if (Files.exists(dir+fill)) {
+						filenames.add(dir+fill);
+					} else {
+						System.err.println("Error - '"+fill+"' does not exist");
+						problem = true;
+					}
+				}
+				if (problem) {
+					reader.close();
+					writer.close();
+					return;
+				}
+				
+				iterations = new Vector<int[]>();
+				for (int r = 1; r <= reps.length; r++) {
+					nCr = Array.nCr_indices(reps.length, r);
+					for (int i = 0; i < nCr.length; i++) {
+						iterations.add(nCr[i]);
+					}
+				}
+				nCr = Matrix.toMatrix(iterations);
+				
+				results = parseAllPossibleCoverages(Array.toStringArray(filenames), nCr, thresholds, bedList, log);
+				
+				for (int i = 0; i < nCr.length; i++) {
+					fill = reps[nCr[i][0]];
+					for (int k = 1; k < nCr[i].length; k++) {
+						fill += "_"+reps[nCr[i][k]];
+					}
+					for (int j = 0; j < thresholds.length; j++) {
+						writer.println(pattern+"\t"+fill+"\t"+nCr[i].length+"\t>="+thresholds[j]+"\t"+Array.toStr(results[i][j]));
+					}
+				}
+				
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + controlFile + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + controlFile + "\"");
+			System.exit(2);
+		}
+	}
+	
+	private static String[][][] parseAllPossibleCoverages(String[] filenames, int[][] nCr, int[] thresholds, Segment[][] bedList, Logger log) {
+		BufferedReader[] readers;
+		String[][] currents;
+		String temp;
+		byte chr;
+		byte[] chrs;
+		int minPosition;
+		int[] positions;
+		
+		int[] proxyCounts;
+		int[][] readCounts;
+		int[][][] runningCounts;
+		int onTargetReads;
+		boolean allQualify, done;
+
+		String[][][] results;
+		
+		onTargetReads = 1;
+		runningCounts = new int[nCr.length][thresholds.length][4];
+		
+		chr = -1;
+		temp = "not even started";
+		readers = new BufferedReader[filenames.length];
+		currents = new String[filenames.length][];
+		chrs = new byte[filenames.length];
+		positions = new int[filenames.length];
+		readCounts = new int[filenames.length][];
+		proxyCounts = new int[4];
+		try {
+			for (int i = 0; i < filenames.length; i++) {
+				readers[i] = Files.getAppropriateReader(filenames[i]);
+				temp = readers[i].readLine();
+				currents[i] = temp.split("[\\s]+");
+				chrs[i] = Positions.chromosomeNumber(currents[i][0]);
+				positions[i] = Integer.parseInt(currents[i][1]);
+			}
+			done = false;
+			while (!done) {
+				if (onTargetReads % 10000000 == 0) {
+					log.report(ext.getTimestampForFilename()+"\t"+onTargetReads);
+				}
+				
+				if (chr != Array.min(chrs)) {
+					chr = Array.min(chrs);
+					log.report(ext.getTimestampForFilename()+"\tStarting chromosome "+Positions.CHR_CODES[chr]);
+				}
+				
+				minPosition = Integer.MAX_VALUE;
+				for (int i = 0; i < filenames.length; i++) {
+					if (chrs[i] == chr && positions[i] < minPosition) {
+						minPosition = positions[i];
+					}
+				}
+				
+				for (int i = 0; i < filenames.length; i++) {
+					if (chrs[i] == chr && positions[i]  == minPosition) {
+						readCounts[i] = new int[] {Integer.parseInt(currents[i][2]), Integer.parseInt(currents[i][3]), Integer.parseInt(currents[i][4])};
+						try {
+							temp = readers[i].readLine();
+							currents[i] = temp.split("[\\s]+");
+							if (currents[i].length < 5) {
+								log.report("Not enough columns for line: "+Array.toStr(currents[i]));
+								done = true;
+							}
+						} catch (Exception e) {
+							log.report("File '"+filenames[i]+"' is truncated. Last valid position was: "+chr+":"+minPosition);
+							log.reportException(e);
+							done = true;
+						}
+						chrs[i] = Positions.chromosomeNumber(currents[i][0]);
+						positions[i] = Integer.parseInt(currents[i][1]);
+						if (!readers[i].ready()) {
+							log.report("First file to end was '"+filenames[i]+"'. Last valid position was: "+chr+":"+minPosition);
+							done = true;
+						}
+					} else {
+						readCounts[i] = new int[] {0, 0, 0};
+					}
+				}
+
+				Segment seg = new Segment(chr, minPosition, minPosition);
+				if (bedList == null || bedList[seg.getChr()] != null && Segment.overlapsAny(seg, bedList[seg.getChr()])) {
+					for (int i = 0; i < nCr.length; i++) {
+						for (int k = 0; k < 3; k++) {
+							proxyCounts[k] = 0;
+							for (int j = 0; j < nCr[i].length; j++) {
+								proxyCounts[k] += readCounts[nCr[i][j]][k];
+							}
+						}
+						for (int j = 0; j < thresholds.length; j++) {
+							allQualify = true;
+							for (int k = 0; k < 3; k++) {
+								if (proxyCounts[k] > thresholds[j]) {
+									runningCounts[i][j][k]++;
+								} else {
+									allQualify = false;
+								}
+							}
+							if (allQualify) {
+								runningCounts[i][j][3]++;
+							}
+						}
+					}
+					onTargetReads++;
+				}
+			}
+			for (int i = 0; i < readers.length; i++) {
+				readers[i].close();
+			}
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file not found ");
+			log.reportException(fnfe);
+		} catch (Exception e) {
+			System.err.println("Error reading file at line:");
+			System.err.println(temp);
+			e.printStackTrace();
+		}
+		
+		results = new String[nCr.length][thresholds.length][4];
+		for (int i = 0; i < nCr.length; i++) {
+			for (int j = 0; j < thresholds.length; j++) {
+				for (int k = 0; k < 4; k++) {
+					results[i][j][k] = ext.formPercent((double)runningCounts[i][j][k] / (double)onTargetReads, 1);
+				}
+			}
+		}
+		return results;
+	}
+
+	public static void batchAssess() {
+		Vector<String> v = new Vector<String>();
+		int count;
+		String[] files;
+		String dir;
+		
+		dir = ext.pwd();
+		
+		count = 0;
+		files = Files.list(dir, ".out.vcf.gz", false);
+		new File(dir+"chunks/").mkdirs();
+		for (int i = 0; i < files.length; i++) {
+			if (!Files.exists(dir+ext.rootOf(files[i], false)+"_onTargetCoverage.vcf.gz")) {
+				System.out.println(files[i]);
+				count++;
+				Files.qsub(dir+"chunks/runAssess"+count+".qsub", "cd "+dir+"\nmodule load java\njava -cp ~/park.jar seq.Polymutt assess="+files[i], 3000, 6, 1);
+				v.add(dir+"chunks/runAssess"+count+".qsub");
+			}
+		}
+		Files.qsubMultiple(v, null, dir+"chunks/", "chunkAssess", 6, false, null, -1, 12000, 6);
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String triosFile = "trios_list.txt";
@@ -518,6 +896,17 @@ public class Polymutt {
 		boolean findAll = false;
 		String controlFile = null;
 		int minReadDepth = 5;
+		String assess = null;
+//		String bedfile = "~/bin/ref/slimS04380219_Regions.bed";
+		String bedfile = "/home/spectorl/pankrat0/bin/ref/slimS04380219_Regions.bed";
+		String coverages = "8,10,12,16,20";
+		boolean batchAssess = false;
+		String allAssess = null;
+
+		allAssess = "D:/Logan/Polymutt/coverage/list.txt";
+		bedfile = "D:/Logan/Cosmic/cosmic.bed";
+		assessAllPossibleCoverage(allAssess, coverages, bedfile);
+		System.exit(1);
 		
 		String usage = "\n" + 
 			"seq.Polymutt requires 0-1 arguments\n" + 
@@ -540,6 +929,16 @@ public class Polymutt {
 			" OR:\n" +
 			"   (1) merge all possible bam files with a given pattern (i.e. controlFile=example.dat (not the default))\n" +
 			"         Example line: pattern_N00[%%] 5 6 7 8\n" +
+			" OR:\n" +
+			"   (1) assess percent coverage for a particular vcf file (i.e. assess=somefile.vcf.gz (not the default))\n" +
+			"   (2) use a bedfile to filter out off target regions (i.e. bed="+bedfile+" (default))\n" +
+			"   (3) summarize percent coverage at various read depth coverages (i.e. coverage="+coverages+" (default))\n" +
+			" OR:\n" +
+			"   (1) batch assess coverage for all .vcf.gz files in folder (i.e. -batchAssess (not the default))\n" +
+			" OR:\n" +
+			"   (1) assess all possible combinations of coverage (i.e. allAssess=control_list.txt (not the default))\n" +
+			"   (2) various read depth coverages (i.e. coverage="+coverages+" (default))\n" +
+			"   (3) (optional) use monified bedfile to focus on specific areas of the genes/exone (i.e. bed="+bedfile+" (default))\n" +
 			"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -579,6 +978,21 @@ public class Polymutt {
 			} else if (args[i].startsWith("controlFile=")) {
 				controlFile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("assess=")) {
+				assess = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("coverage=")) {
+				coverages = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("bed=")) {
+				bedfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-batchAssess")) {
+				batchAssess = true;
+				numArgs--;
+			} else if (args[i].startsWith("allAssess=")) {
+				allAssess = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -595,11 +1009,21 @@ public class Polymutt {
 //		
 //		findDenovo = "D:/Logan/Polymutt/results/dedup_13_04236.vcf";
 
-		vcfDir = "D:/Logan/Polymutt/results/denovos/";
-		findAllLocalDenovo(vcfDir);
-		System.exit(1);
-		
+//		vcfDir = "D:/Logan/Polymutt/results/denovos/";
+//		findAllLocalDenovo(vcfDir);
+//		System.exit(1);
+
+//		bedfile = "D:/Logan/Polymutt/coverage/slimS04380219_Regions.bed";
+//		assessCoverage("D:/Logan/Polymutt/coverage/rrd_13_04236_L005.denovo.out.vcf.gz", bedfile, coverages);
+//		assessCoverage("D:/Logan/Polymutt/coverage/rrd_13_04236_L006.denovo.out.vcf.gz", bedfile, coverages);
+//		assessCoverage("D:/Logan/Polymutt/coverage/rrd_13_04236_L007.denovo.out.vcf.gz", bedfile, coverages);
+//		assessCoverage("D:/Logan/Polymutt/coverage/rrd_13_04236_L008.denovo.out.vcf.gz", bedfile, coverages);
+//		System.exit(1);
+
 //		mergeAllPossible("example.dat");
+//		System.exit(1);
+
+//		assessAllPossibleCoverage("D:/Logan/Polymutt/coverage/list.txt", coverages);
 //		System.exit(1);
 		
 		try {
@@ -607,16 +1031,26 @@ public class Polymutt {
 				batchAllGlf(bamDir);
 			} else if (batchPolymutt) {
 				System.err.println("Error - don't run until fixing the sex issue, default is currently to female");
-//				System.exit(1);
+				System.exit(1);
 				batchPolymutt(triosFile);
 			} else if (findAll) {
-				findAllDenovo(vcfDir);
+				if (System.getProperty("os.name").startsWith("Windows")) {
+					findAllLocalDenovo(vcfDir);
+				} else {
+					findAllDenovo(vcfDir);
+				}
 			} else if (findDenovo != null) {
 				findDenovo(findDenovo, minReadDepth);
 			} else if (filterDenovo) {
 				filterDenovo(triosFile, vcfDir, annotationDir);
 			} else if (controlFile != null) {
 				mergeAllPossible(controlFile);
+			} else if (assess != null) {
+				assessCoverage(assess, bedfile, coverages);
+			} else if (batchAssess) {
+				batchAssess();
+			} else if (allAssess != null) {
+				assessAllPossibleCoverage(allAssess, coverages, bedfile);
 			} else {
 				System.out.println("no subroutine selected");
 			}

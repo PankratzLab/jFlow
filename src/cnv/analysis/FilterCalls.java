@@ -130,7 +130,7 @@ public class FilterCalls {
         } else if (new File(segmentFile+".segs").exists()) {
         	segList = SegmentLists.load(segmentFile+".segs", false);
         } else {
-        	segList = SegmentLists.parseSegmentList(segmentFile, false);
+        	segList = SegmentLists.parseUCSCSegmentList(segmentFile, false);
         	segList.serialize(segmentFile+".segs");
         }
 

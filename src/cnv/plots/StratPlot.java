@@ -161,8 +161,10 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		setBounds(20, 20, 1000, 720);
 //		setBounds(-10, 170, 990, 788);
 		setVisible(true);
-		stratPanel.createImage();
-		stratPanel.repaint();
+
+//		unnecessary leads to a double rendering
+//		stratPanel.createImage();
+//		stratPanel.repaint();
 	}
 	
 	public Project getProject() {

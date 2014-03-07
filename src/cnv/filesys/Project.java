@@ -380,7 +380,7 @@ public class Project extends Properties {
 		}
 	}
 	
-	public boolean[] getSamplesToExclude(String fileWithListOfSamplesToUse, Logger log) {
+	public boolean[] getSamplesToExclude(Logger log) {
 		boolean[] samplesToExclude;
 		String[] samples;
 		SampleData sampleData;

@@ -3,13 +3,17 @@ package filesys;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Vector;
 
+import common.Files;
 import common.Logger;
 import common.Positions;
 import common.Sort;
+import common.ext;
 
 public class Segment implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -40,6 +44,12 @@ public class Segment implements Serializable {
 		this.stop = location[2];
 	}
 	
+	public Segment(String chr, String start, String stop) {
+		this.chr = Positions.chromosomeNumber(chr);
+		this.start = Integer.parseInt(start);
+		this.stop = Integer.parseInt(stop);
+	}
+
 	public byte getChr() {
 		return chr;
 	}
@@ -333,5 +343,90 @@ public class Segment implements Serializable {
         }
 
 		return Segment.toArray(v);
+	}
+
+	public static void parseFirstInSecond(String firstFile, String secondFile, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp;
+		Segment[][] secondList;
+		Segment seg;
+		
+		secondList = SegmentLists.parseSegmentList(secondFile, 0, 1, 2, false).getLists();
+		
+		try {
+			reader = Files.getAppropriateReader(firstFile);
+			writer = new PrintWriter(new FileWriter(firstFile+"_filteredOn_"+ext.removeDirectoryInfo(secondFile)+".out"));
+			while (reader.ready()) {
+				temp = reader.readLine();
+				line = temp.trim().split("[\\s]+");
+				seg = new Segment(line[0], line[1], line[2]);
+				if (secondList[seg.getChr()] != null && overlapsAny(seg, secondList[seg.getChr()])) {
+					writer.println(temp);
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + firstFile + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + firstFile + "\"");
+			System.exit(2);
+		}
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String logfile = null;
+		Logger log;
+		String firstFile = null;
+		String secondFile = null;
+		boolean firstInSecond = false;
+		
+		firstFile = "D:/Logan/Cosmic/S04380219_Regions_noHeader.bed";
+		secondFile = "D:/Logan/Cosmic/cosmic_gene_positions.txt";
+		firstInSecond = true;
+
+		String usage = "\n" +
+		"filesys.SegmentLists requires 0-1 arguments\n" +
+		"   (1) first .bed filename (i.e. firstFile=onTarget.bed (default))\n" + 
+		"   (2) second .bed filename (i.e. secondFile=genesOfInterest.bed (default))\n" + 
+		"   (3) find segments in first that overlap any segment in second (i.e. -firstInSecond (not the default))\n" + 
+		"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("firstFile=")) {
+				firstFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("secondFile=")) {
+				secondFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-firstInSecond")) {
+				firstInSecond = true;
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			log = new Logger(logfile);
+			if (firstInSecond) {
+				parseFirstInSecond(firstFile, secondFile, log);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

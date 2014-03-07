@@ -29,6 +29,7 @@ public class MarkerDataLoader implements Runnable {
 	private MarkerLookup markerLookup;
 	private int currentIndexBeingLoaded;
 	private int currentDirection;
+	private boolean initiated;
 	private boolean killed;
 	private boolean killComplete;
 	private long sampleFingerprint;
@@ -64,6 +65,7 @@ public class MarkerDataLoader implements Runnable {
 
 		if (markerNames.length == 0) {
 			log.reportError("The list of markers for MarkerDataLoader to load was empty (n=0)");
+			killed = true;
 			return;
 		}
 		
@@ -73,6 +75,7 @@ public class MarkerDataLoader implements Runnable {
 		loaded = new boolean[markerNames.length];
 		sampleFingerprint = proj.getSampleList().getFingerprint();
 		numberCurrentlyLoaded = 0;
+		initiated = false;
 
 		markerNamesProj = proj.getMarkerNames();
 		chrsProj = proj.getMarkerSet().getChrs();
@@ -209,6 +212,10 @@ public class MarkerDataLoader implements Runnable {
 	}
 
 	public MarkerData getMarkerData(int markerIndex) {
+		if (!initiated) {
+			log.reportError("Error - cannot getMarkerData before the loader has been launched. Check to see if the MarkerDataLoader constructor was used instead of one of the loadMarkerDataFromListIn* methods.");
+			return null;
+		}
 		if (loaded[markerIndex]) {
 			return markerData[markerIndex];
 		} else {
@@ -219,6 +226,11 @@ public class MarkerDataLoader implements Runnable {
 	public MarkerData requestMarkerData(int markerIndex) {
 		MarkerData markerData;
 		int count;
+
+		if (!initiated) {
+			log.reportError("Error - cannot requestMarkerData before the loader has been launched. Check to see if the MarkerDataLoader constructor was used instead of one of the loadMarkerDataFromListIn* methods.");
+			return null;
+		}
 
 		count = 0;
 		while((markerData = getMarkerData(markerIndex)) == null) {
@@ -257,6 +269,11 @@ public class MarkerDataLoader implements Runnable {
 		Hashtable<String, Float> outlierHash;
 		String[][] plinkMarkerAlleles;
 		
+		if (killed) {
+			return;
+		}
+		
+		initiated = true;
 		maxPerCycle = proj.getInt(Project.MAX_MARKERS_LOADED_PER_CYCLE);
 
 		fingerprint = proj.getSampleList().getFingerprint();
@@ -580,6 +597,7 @@ public class MarkerDataLoader implements Runnable {
 		log.report("Marker data is loading in an independent thread.");
 		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
 		markerDataLoader = new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB, log);
+		markerDataLoader.initiate();
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
 		markerDataLoader.registerThread(thread2);
@@ -587,6 +605,10 @@ public class MarkerDataLoader implements Runnable {
 		return markerDataLoader;
 	}
 	
+	private void initiate() {
+		initiated = true;		
+	}
+
 	private void registerThread(Thread thread) {
 		this.thread = thread;
 	}

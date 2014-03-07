@@ -315,7 +315,7 @@ public class ExportCNVsToPedFormat {
 		boolean collapsed = false; 
 		boolean homozygous = false;
 		boolean excludeMonomorphicLoci = false;
-		int markersPerFile = 5000;
+		int lociPerFile = 5000;
 		int window = 0;
 		String endOfLine = "\r\n";
 		boolean rfglsOutput = false;
@@ -330,8 +330,8 @@ public class ExportCNVsToPedFormat {
 				"   (6) to use ordered value or not (i.e. ord=" + ordered + " (default))\n" +
 				"   (7) to use collapsed value or not (i.e. coll=" + collapsed + " (default))\n" +
 				"   (8) to only use homozygous variants (i.e. homozygousOnly=" + homozygous + " (default))\n" +
-				"   (9) to only use homozygous variants (i.e. excludeMonomorphicLoci=" + excludeMonomorphicLoci + " (default))\n" +
-				"   (10) number of markers per file in the output file (i.e. markersPerFile=" + markersPerFile + " (default))\n" +
+				"   (9) exclude monomorphic loci (i.e. excludeMonomorphicLoci=" + excludeMonomorphicLoci + " (default))\n" +
+				"   (10) number of loci per file in the output file (i.e. lociPerFile=" + lociPerFile + " (default))\n" +
 				"   (11) width of the window (i.e. win=" + window + " (default))\n" +
 				"   (12) use linux line endings (i.e. -linux (not the default))\n" +
 				"   (13) create sample dominant matrix w/ separate map and ped file (i.e. -rfgls (not the default))\n" +
@@ -368,8 +368,8 @@ public class ExportCNVsToPedFormat {
 			} else if (args[i].startsWith("excludeMonomorphicLoci=")) {
 				homozygous = Boolean.parseBoolean(args[i].split("=")[1]);
 				numArgs--;
-			} else if (args[i].startsWith("markersPerFile=")) {
-				markersPerFile = Integer.parseInt(args[i].split("=")[1]);
+			} else if (args[i].startsWith("lociPerFile=")) {
+				lociPerFile = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
 			} else if (args[i].startsWith("win=")) {
 				window = Integer.parseInt(args[i].split("=")[1]);
@@ -401,15 +401,15 @@ public class ExportCNVsToPedFormat {
 //		cnvBySample(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "unordered", true, true, false, true, markersPerFile, window);
 
 //		cnvFilename = "C:/projects/Gedi/data/filtered.cnv";
-		cnvFilename = "D:/data/GEDI/penn_results/rfgls/data/conf15_usedFilteredRare.cnv";
-		markersPerFile = 1000;
-		pedFilename = ext.parseDirectoryOfFile(cnvFilename)+"IQ_IDs4Nathan121114.txt";
-		endOfLine = "\n";
-		rfglsOutput = true;
-		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsAndDuplications", endOfLine, rfglsOutput, true, true, false, true, false, true, markersPerFile, window);
-		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsOnly", endOfLine, rfglsOutput, true, false, false, true, false, true, markersPerFile, window);
-		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/homozygousDeletionsOnly", endOfLine, rfglsOutput, true, false, false, true, true, true, markersPerFile, window);
-		System.exit(1);
+//		cnvFilename = "D:/data/GEDI/penn_results/rfgls/data/conf15_usedFilteredRare.cnv";
+//		lociPerFile = 1000;
+//		pedFilename = ext.parseDirectoryOfFile(cnvFilename)+"IQ_IDs4Nathan121114.txt";
+//		endOfLine = "\n";
+//		rfglsOutput = true;
+//		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsAndDuplications", endOfLine, rfglsOutput, true, true, false, true, false, true, lociPerFile, window);
+//		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/deletionsOnly", endOfLine, rfglsOutput, true, false, false, true, false, true, lociPerFile, window);
+//		export(cnvFilename, pedFilename, ext.parseDirectoryOfFile(cnvFilename) + "../results/homozygousDeletionsOnly", endOfLine, rfglsOutput, true, false, false, true, true, true, lociPerFile, window);
+//		System.exit(1);
 
 		try {
 			int fileAction = fileChooser.showOpenDialog(null);
@@ -417,9 +417,9 @@ public class ExportCNVsToPedFormat {
 				input = fileChooser.getSelectedFile();
 				output = input.getPath() + "cnvBySample.txt";
 				//TODO this line should be further elaborated.
-				export(input.toString(), null, output, endOfLine, rfglsOutput, true, true, true, false, false, false, markersPerFile, window);
+				export(input.toString(), null, output, endOfLine, rfglsOutput, true, true, true, false, false, false, lociPerFile, window);
 			} else {
-				export(cnvFilename, pedFilename, outputFilename, endOfLine, rfglsOutput, includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, markersPerFile, window);
+				export(cnvFilename, pedFilename, outputFilename, endOfLine, rfglsOutput, includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, lociPerFile, window);
 //				cnvBySample("C:/projects/Geti/filtered.cnv", null, "C:/projects/Geti/cnvBySample.txt", endOfLine, rfglsOutput, true, false, true, false, saveIntermediateFiles, markersPerFile);
 			}
 		} catch (Exception e) {

@@ -205,9 +205,10 @@ public class MarkerSet implements Serializable {
 	}
 
 	public static byte[] translateABtoForwardGenotypes(byte[] abGenotypes, char[][] abLookup) {
-		byte[] result = new byte[abGenotypes.length];
+		byte[] result;
 		String geno;
 		
+		result = Array.byteArray(abGenotypes.length, (byte)-3);
 		for (int i=0; i<abGenotypes.length; i++) {
 			switch (abGenotypes[i]) {
 			case 0:

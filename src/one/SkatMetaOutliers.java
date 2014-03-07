@@ -1,7 +1,5 @@
 package one;
 
-import gwas.PhenoPrep;
-
 import java.io.*;
 import java.util.*;
 import common.*;
@@ -66,103 +64,6 @@ public class SkatMetaOutliers {
 		return ext.formDeci(ProbDist.ChiDistReverse(median, 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
 	}
 
-	private static void summarizeAll(String dir, String idColName, String phenosCommaDelimited, String covarsCommaDelimited) {
-		PrintWriter writer;
-		String[] phenos, covars, transforms;
-		Logger log;
-		boolean winsorize, remove, makeResids, afterResids, inverseNormalize;
-		String outFile, idFile;
-		String[] rawData;
-		double[] data;
-		double mean, stdev, skewness, kurtosis;
-		
-		try {
-			writer = new PrintWriter(new FileWriter(dir+"phenoSummary.xln"));
-			writer.println("Trait\ttransform\twinsorize\tremoveOutliers\tmakeResiduals\tafterMakingResidualsDealWithOutliers\tN\tmean\tstdev\tskewness\tkurtosis\t'=SUM(ABS(SKEW)+ABS(KURT))");
-		
-			phenos = phenosCommaDelimited.split(",");
-			covars = covarsCommaDelimited.split(",");
-			
-			transforms = new String[] {null, "ln", "sqrt"};
-			
-			log = new Logger(dir+"summarizeAll.log");
-			
-//			idFile = "EA_keeps.dat";
-			idFile = null;
-			inverseNormalize = false;
-			for (int i = 0; i < phenos.length; i++) {
-				for (int j = 0; j < transforms.length; j++) {
-					for (int outlierMethods = 0; outlierMethods < 3; outlierMethods++) {
-						if (outlierMethods == 0) {
-							winsorize = false;
-							remove = false;
-						} else if (outlierMethods == 1) {
-							winsorize = true;
-							remove = false;
-						} else {
-							winsorize = false;
-							remove = true;
-						}
-						for (int resids = 0; resids < (outlierMethods==0?1:3); resids++) {
-							if (resids == 0) {
-								makeResids = false;
-								afterResids = false;
-							} else if (resids == 1) {
-								makeResids = true;
-								afterResids = false;
-							} else {
-								makeResids = true;
-								afterResids = true;
-							}
-							outFile = phenos[i];
-							if (transforms[j] != null) {
-								outFile += "_"+transforms[j];
-							}
-							if (winsorize) {
-								outFile += "_win";
-							}
-							if (remove) {
-								outFile += "_del";
-							}
-							if (makeResids) {
-								if (afterResids) {
-									outFile += "_afterResid";
-								} else {
-									outFile += "_beforeResid";
-								}
-							}
-							System.out.println(outFile);
-							outFile += ".csv";
-							if (!Files.exists(dir+outFile)) {
-								PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, null, outFile, log);
-							}
-							rawData = HashVec.loadFileToStringArray(dir+outFile, false, true, new int[] {1}, false, false, Files.determineDelimiter(dir+outFile, log));
-							rawData = Array.removeFromArray(rawData, ext.MISSING_VALUES);
-							data = Array.toDoubleArray(rawData);
-							mean = Array.mean(data);
-							stdev = Array.stdev(data);
-							skewness = Array.skewness(data);
-							kurtosis = Array.kurtosis(data);
-							writer.println(phenos[i]+"\t"+transforms[j]+"\t"+winsorize+"\t"+remove+"\t"+makeResids+"\t"+afterResids+"\t"+data.length+"\t"+mean+"\t"+stdev+"\t"+skewness+"\t"+kurtosis+"\t"+(Math.abs(skewness)+Math.abs(kurtosis)));
-						}
-					}
-				}
-			}
-			
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing to " + dir+"phenoSummary.xln");
-			e.printStackTrace();
-		}
-		
-		
-		
-		
-	}
-
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Logger log;
@@ -174,26 +75,9 @@ public class SkatMetaOutliers {
 		String[] regression = new String[] {"", "AGE,SEX"};
 		double[][] phenoTmp;
 		double[] pheno;
-		String idColName, phenos, covars;
 
 		log = new Logger();
 		
-		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/testOutliers/";
-		phenos = "Fibrinogen,F7,F8,vWF";
-		covars = "V1AGE01,Sex,CenterF,CenterM";
-		
-		dir = "D:/ExomeChip/ARIC_primary/CompareTransformations/";
-		phenos = "Hct,Hb,MCHC,MCV,RBC,MCH,RDW,WBC_TOTAL,WBC_NEUTRO,WBC_MONO,WBC_LYMPH,WBC_EOS,WBC_BASO";
-		covars = "Age,Male";
-
-		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/testOutliers/AAs/";
-		idColName = "gwas_id";
-		phenos = "Fibrinogen,F7,F8,vWF";
-		covars = "V1AGE01,Sex";
-		
-		summarizeAll(dir, idColName, phenos, covars);
-		System.exit(1);
-
 		String usage = "\n" +
 				"gwas.PhenoPrep requires 0-1 arguments\n" +
 				"   (1) name of pheno file (i.e. pheno=" + phenoFilename + " (default))\n" + 

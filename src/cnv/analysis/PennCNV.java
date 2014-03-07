@@ -61,7 +61,7 @@ public class PennCNV {
 		commands = execDir+"detect_cnv.pl -test -conf -hmm "+execDir+"lib/hhall.hmm -pfb "+(pfbFile==null?execDir+"lib/hhall.hg18.pfb":pfbFile)+" -gcmodel "+(gcmodelFile==null?execDir+"lib/hhall.hg18.gcmodel":gcmodelFile)+" -list "+resultsDir+"list[%0].txt -log "+resultsDir+"[%0].log -out "+resultsDir+"[%0].rawcnv > "+resultsDir+"[%0].out";
 
 		if (qsub) {
-			Files.qsub("runPenn", init+"\n"+commands, Matrix.toMatrix(Array.stringArraySequence(numBatches, "")));
+			Files.qsub("runPenn", dataDir, numBatches, commands, Matrix.toMatrix(Array.stringArraySequence(numBatches, "")), 2200, 8);
 		} else {
 			Files.batchIt("penn", init, numBatches, commands, Array.stringArraySequence(numBatches, ""));
 		}

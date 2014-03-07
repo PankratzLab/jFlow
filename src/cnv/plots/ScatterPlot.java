@@ -1224,7 +1224,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 					commandText = e.getActionCommand();
 					index = Integer.parseInt(commandText.substring("removeButton".length(), commandText.length()));
-					annotationCollection.removeAnnotation(annotationKeys[index]);
+					annotationCollection.removeAnnotation(proj, annotationKeys[index]);
 					removeAnnotationFromMaps(annotationKeys[index]);
 					annotationKeys = annotationCollection.getKeys();
 //					isAnnotationUpdated = true;
@@ -1494,6 +1494,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			count = 1;
 			do {
 				filename = markerList[markerIndex]+"_dump"+(count==1?"":" v"+count);
+				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 				count++;
 			} while (new File(proj.getProjectDir()+filename+".xln").exists());
 //			markerData[markerIndex].writeToFile(samples, proj.getProjectDir()+filename+".xln");

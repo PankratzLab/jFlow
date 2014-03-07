@@ -146,7 +146,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
-		finalImage=true;
+		finalImage=false; // if true then double renders
 		flow=true;
 		pointsGeneratable = true;
 		
@@ -194,7 +194,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void paintComponent(Graphics g) {
 		if (getFinalImage()&&image==null) {
 			createImage();
-			repaint();
+			// TODO extra paint appears to be unnecessary
+//			repaint();
 		}
 		g.drawImage(image, 0, 0, this);
 		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
@@ -539,7 +540,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		}
 
 		// Draw data points, also build the lookup matrix for nearby points.
-		locLookup.clear();	// -- This was here in Nathan's original code.
+		locLookup.clear();
 		prog = null;
 		time = new Date().getTime();
 		step = Math.max((points.length)/100, 1);
@@ -860,19 +861,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public void componentShown(ComponentEvent e) {}
 
-	public void actionPerformed(ActionEvent ae)
-	{
-	  /* Timer finished? */
-	  if (ae.getSource()==this.waitingTimer)
-	  {
-	    /* Stop timer */
-	    this.waitingTimer.stop();
-	    this.waitingTimer = null;
-	    /* Resize */
-		setFlow(true);
-	    createImage();
-	    repaint();
-	  }
+	public void actionPerformed(ActionEvent ae) {
+		/* Timer finished? */
+		if (ae.getSource()==this.waitingTimer) {
+			/* Stop timer */
+			this.waitingTimer.stop();
+			this.waitingTimer = null;
+			/* Resize */
+			setFlow(true);
+//			System.err.println("Action performed");
+			createImage();
+			repaint();
+		}
+		
 	}
 
 	public void zoomProportionally(boolean outNotIn, Point p, boolean center) {
@@ -1163,6 +1164,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	public void createImage() {
+//		System.err.println("Creating Image");
 		if (getWidth() > 350 && getHeight() > 0 ) {
 			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 			flow = true;

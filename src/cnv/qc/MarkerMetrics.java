@@ -3,6 +3,9 @@ package cnv.qc;
 import java.io.*;
 import java.util.*;
 
+import stats.LeastSquares;
+import stats.LogisticRegression;
+import stats.RegressionModel;
 import stats.Ttest;
 import cnv.filesys.*;
 import cnv.manage.MarkerDataLoader;
@@ -458,9 +461,11 @@ public class MarkerMetrics {
 		Hashtable<String, Hashtable<String,String>> warningHashHash;
 		int[] warningCounts;
 		String[] markersWithAnnotation;
+		boolean[] shouldBeExcluded;
 		
 		dir = proj.getProjectDir();
 		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
+		shouldBeExcluded = proj.getSamplesToExclude(log);
 
 		filenames = new String[] {"results/markersToExclude.out", "results/markersToReview.out"};
 		filenames = new String[] {"results/markersToBoth.out"};
@@ -474,13 +479,13 @@ public class MarkerMetrics {
 		
 		
 		
-		expectedHeader = new String[] {"Unit", "Reason flagged", "numFlags"};
+		expectedHeader = new String[] {"Unit", "ReasonFlagged"};
 		
 		problem = false;
 		for (int i = 0; i < filenames.length; i++) {
 			if (Files.exists(dir+filenames[i])) {
 				header = Files.getHeaderOfFile(dir+filenames[i], log);
-				if (!ext.checkHeader(header, expectedHeader, false)) {
+				if (!ext.checkHeader(header, expectedHeader, new int[] {0,1}, false, log, false)) {
 					problem = true; 
 				}
 			} else {
@@ -505,7 +510,7 @@ public class MarkerMetrics {
 					log.reportError("Error - could not find "+dir+filenames[i]);
 				}
 				header = reader.readLine().trim().split("\t");
-				ext.checkHeader(header, expectedHeader, true);
+				ext.checkHeader(header, expectedHeader, new int[] {0,1}, false, log, false);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("\t");
 					if (!flaggedMarkers.containsKey(line[0])) {
@@ -559,7 +564,7 @@ public class MarkerMetrics {
 					zeroedOut = true;
 					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 					for (int k = 0; k < genotypes.length; k++) {
-						if (genotypes[k] != -1) {
+						if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 							zeroedOut = false;
 						}
 					}
@@ -655,7 +660,7 @@ public class MarkerMetrics {
 						zeroedOut = true;
 						genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 						for (int k = 0; k < genotypes.length; k++) {
-							if (genotypes[k] != -1) {
+							if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 								zeroedOut = false;
 							}
 						}
@@ -744,8 +749,10 @@ public class MarkerMetrics {
 		char[] annotationKeys;
 		String annotation;
 		String missedOutputFile;
+		boolean[] shouldBeExcluded;
 		
 		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
+		shouldBeExcluded = proj.getSamplesToExclude(log);
 
         clusterFilterCollection = proj.getClusterFilterCollection();
         annotationCollection = proj.getAnnotationCollection();
@@ -776,7 +783,7 @@ public class MarkerMetrics {
 				zeroedOut = true;
 				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 				for (int k = 0; k < genotypes.length; k++) {
-					if (genotypes[k] != -1) {
+					if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 						zeroedOut = false;
 					}
 				}
@@ -813,6 +820,7 @@ public class MarkerMetrics {
 				writer.println(annotation+"\t"+markersWithAnnotation.length+"\t"+numReclustered+"\t"+numDropped);
 			}
 			writer.println("Any annotation\t"+markerNames.length+"\t"+reclusteredMarkers.size()+"\t"+droppedMarkers.size());
+			Files.writeList(HashVec.getKeys(droppedMarkers), proj.getProjectDir()+"results/markers_that_were_dropped.out");
 			
 			allOtherMarkers = HashVec.loadToHashNull(proj.getMarkerNames());
 			for (int j = 0; j < markerNames.length; j++) {
@@ -821,6 +829,8 @@ public class MarkerMetrics {
 			numReclustered = numDropped = 0;
 			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
 			writer.print("Everything else\t"+markerNames.length);
+			Files.writeList(markerNames, proj.getProjectDir()+"results/markers_not_yet_annotated.out");
+
 
 			for (int j = 0; j < markerNames.length; j++) {
 				if (clusterFilterCollection != null && clusterFilterCollection.getClusterFilters(markerNames[j]) != null) {
@@ -851,7 +861,7 @@ public class MarkerMetrics {
 					zeroedOut = true;
 					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 					for (int k = 0; k < genotypes.length; k++) {
-						if (genotypes[k] != -1) {
+						if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 							zeroedOut = false;
 						}
 					}
@@ -879,6 +889,64 @@ public class MarkerMetrics {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void regress(Project proj, String phenotype, Logger log) {
+		PrintWriter writer;
+		String trav;
+		Hashtable<String, String> hash;
+		String[] samples, header;
+		double[] deps, indeps;
+		String filename;
+		int[] indices;
+		MarkerDataLoader markerDataLoader;
+		MarkerData markerData;
+		String[] markerNames;
+		RegressionModel model;
+		boolean binary;
+		
+		filename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		header = Files.getHeaderOfFile(filename, log);
+		indices = ext.indexFactors(new String[] {"DNA",  phenotype}, header, false, true);
+		hash = HashVec.loadFileToHashString(filename, new int[] {indices[0]}, new int[] {indices[1]}, filename.endsWith(".csv"), null, true, proj.getJarStatus(), false);
+		
+		samples = proj.getSamples();
+		deps = new double[samples.length];
+		for (int i = 0; i < samples.length; i++) {
+			trav = hash.get(samples[i]);
+			deps[i] = trav==null||ext.isMissingValue(trav)?Double.NaN:Double.parseDouble(trav);
+		}
+		binary = RegressionModel.isBinaryTrait(Array.toStringArray(deps), log);
+		
+		markerNames = proj.getMarkerNames();
+		try {
+			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln"));
+			writer.println("MarkerName\tBAF_p");
+//			markerDataLoader = new MarkerDataLoader(proj, markerNames, -1, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			for (int i = 0; i < markerNames.length; i++) {
+				markerData = markerDataLoader.requestMarkerData(i);
+				indeps = Array.toDoubleArray(markerData.getBAFs());
+				if (binary) {
+					model = new LogisticRegression(deps, indeps);
+				} else {
+					model = new LeastSquares(deps, indeps);
+				}
+				writer.println(markerNames[i]+"\t"+model.getSigs()[1]);
+				if (i < 5) {
+					System.out.println(model.getSummary());
+				}
+				markerDataLoader.releaseIndex(i);
+			}
+
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln");
+			e.printStackTrace();
+		}
+		
+		
+		
+	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -894,6 +962,7 @@ public class MarkerMetrics {
 		boolean lrrVariance = false;
 		boolean tally = false;
 		boolean checkForDeletedMarkers = true;
+		String pheno = null;
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
@@ -911,6 +980,8 @@ public class MarkerMetrics {
 				"  OR\n" + 
 				"   (4) tally the number of reviewed markers that were changed or dropped (i.e. -tally (not the default))\n" + 
 				"   (5) check for deleted markers (i.e. checkForDeleted="+checkForDeletedMarkers+" (default))\n" + 
+				"  OR\n" + 
+				"   (2) variable name in SampleData.txt to use as the outcome variable in the regression analyses (i.e. pheno=Class=ExamplePheno (not the default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -944,6 +1015,9 @@ public class MarkerMetrics {
 			} else if (args[i].startsWith("checkForDeleted=")) {
 				checkForDeletedMarkers = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("pheno=")) {
+				pheno = args[i].substring(6);
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -973,9 +1047,10 @@ public class MarkerMetrics {
 //			filename = "/home/npankrat/projects/SingaporeReplication.properties";
 //			filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
 //			filename = "/home/npankrat/projects/BOSS.properties";
-			filename = "/home/npankrat/projects/SOL_Metabochip.properties";
-			tally = true;
-			checkForDeletedMarkers = false;
+//			filename = "/home/npankrat/projects/SOL_Metabochip.properties";
+//			tally = true;
+//			checkForDeletedMarkers = true;
+//			pheno = "Class=BAF_Outliers";
 			
 			proj = new Project(filename, false);
 			log = new Logger(logfile);
@@ -984,7 +1059,7 @@ public class MarkerMetrics {
 				separationOfSexes(proj, markersSubset, log);
 			} 
 			if (fullQC) {			
-				fullQC(proj, proj.getSamplesToExclude(samples, log), markersSubset, log);
+				fullQC(proj, proj.getSamplesToExclude(log), markersSubset, log);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples, log), markersSubset, log);
@@ -994,6 +1069,9 @@ public class MarkerMetrics {
 			}
 			if (tally) {
 				tallyFlaggedReviewedChangedAndDropped(proj, checkForDeletedMarkers, log);
+			}
+			if (pheno != null) {
+				regress(proj, pheno, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
