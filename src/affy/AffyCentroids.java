@@ -190,7 +190,7 @@ public class AffyCentroids implements Serializable {
 			parseCentroids(proj, samplesToBeUsed, missingnessThreshold, confThreshold, log);
 		}
 	}
-
+ 
 	public static void parseCentroids(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, double confThreshold, Logger log) {
 		String[] samples, markerNames;
 		float[][][] centroids;
