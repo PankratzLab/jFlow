@@ -49,6 +49,10 @@ public class ChromosomeViewer extends JPanel {
 		this.track = track;
 	}
 
+	public GeneTrack getTrack() {
+		return track;
+	}
+
 	public void updateView(int chr, int start, int stop) {
 		chromosome = chr;
 		startPosition = start;
