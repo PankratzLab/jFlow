@@ -18,6 +18,7 @@ import java.util.Arrays;
 
 import javax.swing.JPanel;
 
+import cnv.gui.ChromosomeViewer;
 import cnv.var.CNVRectangle;
 import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
@@ -37,6 +38,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	ArrayList<CNVariant> selectedCNVs;
 	int rectangleHeight = 10;
 	String displayMode;
+	ChromosomeViewer chrViewer;
 
 	private CNVRectangles cnvRectangles;
 	ArrayList<cnv.var.CNVRectangle> rectangles;
@@ -63,8 +65,14 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 			}
 		}
 
+		Dimension d = getPreferredSize();
+		d.height = maxY;
+		d.width = chrViewer.getWidth();
+
 		// Set the maximum Y so we see all of the rectangles
-		setPreferredSize(new Dimension(800, maxY));
+		setPreferredSize(d);
+		// Revalidate so the scroll bar will be updated properly
+		revalidate();
 
 		// Render all of the rectangles
 		for (CNVRectangle cnvRect : rectangles) {
@@ -160,6 +168,10 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	void setRectangleHeight(int height) {
 		rectangleHeight = height;
 		cnvRectangles.setRectangleHeight(rectangleHeight);
+	}
+
+	public void setChromosomeViewer(ChromosomeViewer viewer) {
+		chrViewer = viewer;
 	}
 
 	/**

@@ -15,6 +15,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 import cnv.filesys.Project;
 import cnv.gui.ChromosomeViewer;
@@ -164,16 +166,17 @@ public class CompPlot extends JFrame {
 		viewers.setLayout(new BorderLayout());
 
 		chromosomeViewer = new ChromosomeViewer(location[0], location[1], location[2], track);
+
 		viewers.add(chromosomeViewer, BorderLayout.NORTH);
 		chromosomeViewer.setPreferredSize(new Dimension(800, 25));
 
 		compPanel = new CompPanel(this);
 		compPanel.addPropertyChangeListener(cpcl);
-		// compPanel.setCNVRectangles(cnvRects);
+		compPanel.setChromosomeViewer(chromosomeViewer);
 
-		viewers.add(compPanel, BorderLayout.CENTER);
-		// JScrollPane jsp = new JScrollPane(compPanel);
-		// viewers.add(jsp, BorderLayout.CENTER);
+		JScrollPane jsp = new JScrollPane(compPanel);
+		jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		viewers.add(jsp, BorderLayout.CENTER);
 
 		compView.add(viewers);
 
