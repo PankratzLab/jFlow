@@ -505,6 +505,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 //		ScatterPlot.main(new String[] {"-notJar"});
 //	}
 
+	public SampleData getSampleData(){
+		return sampleData;
+	}
+
 	public void setUpdateQcPanel(boolean updateQcPanel) {
 		this.updateQcPanel = updateQcPanel;
 	}
