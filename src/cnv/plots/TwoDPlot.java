@@ -31,6 +31,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final String REMOVE_DATA_FILE = "Remove Data File";
 	public static final String SET_AS_COLORKEY = "Set as Color Key";
 	public static final String SET_AS_LINKKEY = "Set as Link Key";
+	private static final String NO_VALUE_FOUND = ".";
 	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY};
 	public static final String[][] LINKERS = {
 			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
@@ -394,17 +395,124 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		String[][] selectedNodes = tree.getSelectionValues();
 		ArrayList<Integer> colorKeys;
 		if (selectedColorKey.length == 1) {
-			if (colorKeyIndex.containsKey(selectedNodes[0][0])) {
-				colorKeys = colorKeyIndex.get(selectedNodes[0][0]);
+			if (colorKeyIndex.containsKey(selectedNodes[1][0])) {
+				colorKeys = colorKeyIndex.get(selectedNodes[1][0]);
 			} else {
-				colorKeyIndex.put(selectedNodes[0][0], colorKeys = new ArrayList<Integer>());
+				colorKeyIndex.put(selectedNodes[1][0], colorKeys = new ArrayList<Integer>());
 			}
 			for (int i = 0; i < colorKeys.size(); i++) {
 				if (colorKeys.get(i) == selectedColorKey[0])
 					return;
 			}
-			colorKeys.add(selectedColorKey[0]);
+			colorKeys.add(selectedColorKey[0]);	// add to colorKeys
+			setColorKeyHandler(selectedNodes[1][0], selectedNodes[1][0], selectedColorKey[0]);
 		}
+	}
+
+	public void setColorKeyHandler(String filename, String recentSelectionFile, int selectedColorKey){
+		int[] linkKeyColumnLabels = keyIndices.get(recentSelectionFile);
+		Hashtable<String, String> colorKeyValue = new Hashtable<String, String>();
+
+		if (linkKeyIndex.containsKey(filename)) {
+			switch (linkKeyIndex.get(filename)) {
+			case DNA_INDEX_IN_LINKERS:
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey}, false, "",true, false, false);
+				break;
+			case FID_INDEX_IN_LINKERS:
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS]}, new int[]{selectedColorKey}, false, "",true, false, false);
+				colorKeyValue = createHashWithSamppleID(colorKeyValue);	// colorkey value hash with key as sampleID
+				break;
+			case IID_INDEX_IN_LINKERS:
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey}, false, "",true, false, false);
+				colorKeyValue = createHashWithSamppleID(colorKeyValue);	// colorkey value hash with key as sampleID
+				break;
+			default:
+				System.out.println("Error: Unable to read color key values. Invalid link key.");
+				JOptionPane.showMessageDialog(null, "Error: Unable to read color key values. Invalid link key.", "Error", JOptionPane.ERROR_MESSAGE);
+				break;
+			}
+		}
+		if(!colorKeyValue.isEmpty() || colorKeyValue != null)
+			System.out.println("The color value is: " + colorKeyValue.toString());
+		addToSampleData(colorKeyValue, recentSelectionFile, selectedColorKey);
+	}
+
+	/**
+	 * Function to indentify the headers in the sample data file
+	 * @param header: a string containing all the headers read as string
+	 */
+	public int[] getSampleDataHeaders(String header){
+
+		String[]  headersArry;
+		if (header.contains("\t")) {
+			headersArry = header.trim().split("\t",-1);
+		} else {
+			headersArry = header.trim().split("[\\s]+");
+		}
+		int[] sDataIndices = ext.indexFactors(LINKERS, headersArry, false, true, false, log, false);
+
+		if (sDataIndices[0] == -1) {
+			log.report("ID linker not automatically identified for Sample Data. Assuming the first column.");
+			sDataIndices[0] = 0;
+		}
+		System.out.println("The header indeces in Sample data are: " + Arrays.toString(headersArry));
+		return sDataIndices;
+	}
+
+	public void addToSampleData(Hashtable<String, String> colorKeyValue, String recentSelectionFile, int selectedColorKey){
+
+
+		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		BufferedReader reader = null;
+		BufferedWriter writer = null;
+
+		System.out.println("Sample data: " + sampleDatafilename);
+		String[] inLineArry;
+
+		String bakFile = proj.archiveFile(sampleDatafilename);	// create backup of sample data file
+		String inLine;
+		String colorKeyHeader = namesHash.get(recentSelectionFile)[selectedColorKey-1];
+		try {
+			reader = new BufferedReader(new FileReader(bakFile));
+			writer = new BufferedWriter(new FileWriter(sampleDatafilename));
+			inLine = reader.readLine();
+			int samDataIndex = getSampleDataHeaders(inLine)[DNA_INDEX_IN_LINKERS];
+			inLine = inLine + "\t" + colorKeyHeader;
+			writer.write(inLine);	// write the headers
+			while(reader.ready()){
+				writer.newLine();
+				inLine = reader.readLine();
+				if (inLine.contains("\t")) {
+					inLineArry = inLine.trim().split("\t",-1);
+				} else {
+					inLineArry = inLine.trim().split("[\\s]+");
+				}
+				if(colorKeyValue.containsKey(inLineArry[samDataIndex])){
+					inLine = inLine + "\t" + colorKeyValue.get(inLineArry[samDataIndex]);
+				} else {
+					inLine = inLine + "\t" + NO_VALUE_FOUND;
+				}
+				writer.write(inLine);
+			}
+		} catch (FileNotFoundException e) {
+			System.out.println("Error: Sample Data backup file not found");
+		} catch (IOException e) {
+			System.out.println("Error: unable to read sample data backup file");
+		} finally {
+			closeStream(reader);
+			closeStream(writer);
+			twoDPanel.paintAgain();
+		}
+		twoDPanel.paintAgain();
+	}
+
+	public Hashtable<String, String> createHashWithSamppleID(Hashtable<String, String> colorKeyValue){
+		Hashtable<String, String> colorKeyValueHash = new Hashtable<String, String>();
+
+			for(String key : colorKeyValue.keySet()){
+				 colorKeyValueHash.put(twoDPanel.getSampleData().lookup(key)[0], colorKeyValue.get(key));
+			}
+		return colorKeyValueHash;
 	}
 
 	public void setLinkKey(int[] selectedLinkKey) {
@@ -424,7 +532,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				if ((linkKeyColumnLabels[i] + 1) == selectedLinkKey[0]) {
 					linkKeyIndex.put(selectedNodes[0][0], i);
 					System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
-					createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
+					//createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
 					JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
@@ -433,49 +541,49 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 
-	public void createLinkKeyToDataHash(String filename, int[] linkKeyColumnLabels) {
-		String inLine;
-		String[] inLineArray;
-		Hashtable<String, String[]> curFileLinkKeyDataHash = new Hashtable<String, String[]>();
-		try {
-			BufferedReader fileReader = new BufferedReader(new FileReader(filename));
-			inLine = fileReader.readLine(); // headers: skip this line
-
-			System.out.println("link column labels:" + Arrays.toString(linkKeyColumnLabels));
-			System.out.println("link key index: " + linkKeyIndex.get(filename));
-			while (fileReader.ready()) {
-				if (inLine.contains("\t")) {
-					inLineArray = fileReader.readLine().trim().split("\t", -1);
-				} else {
-					inLineArray = fileReader.readLine().trim().split("[\\s]+");
-				}
-				if (linkKeyIndex.containsKey(filename)) {
-					switch (linkKeyIndex.get(filename)) {
-					case DNA_INDEX_IN_LINKERS:
-						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]], inLineArray);
-						break;
-					case FID_INDEX_IN_LINKERS:
-						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]] + "\t" + inLineArray[linkKeyColumnLabels[IID_INDEX_IN_LINKERS]], inLineArray);
-						break;
-					case IID_INDEX_IN_LINKERS:
-						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]], inLineArray);
-						break;
-					default:
-						System.out.println("Error: Invalid link key.");
-						break;
-					}
-				}
-			}
-			fileReader.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + filename + "\" not found in current directory");
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + filename + "\"");
-		}
-		if (!curFileLinkKeyDataHash.isEmpty())
-			linkKeyToDataHash.put(filename, curFileLinkKeyDataHash);
-		System.out.println("LinkKeyDataHash:" + linkKeyToDataHash.toString());
-	}
+//	public void createLinkKeyToDataHash(String filename, int[] linkKeyColumnLabels) {
+//		String inLine;
+//		String[] inLineArray;
+//		Hashtable<String, String[]> curFileLinkKeyDataHash = new Hashtable<String, String[]>();
+//		try {
+//			BufferedReader fileReader = new BufferedReader(new FileReader(filename));
+//			inLine = fileReader.readLine(); // headers: skip this line
+//
+//			System.out.println("link column labels:" + Arrays.toString(linkKeyColumnLabels));
+//			System.out.println("link key index: " + linkKeyIndex.get(filename));
+//			while (fileReader.ready()) {
+//				if (inLine.contains("\t")) {
+//					inLineArray = fileReader.readLine().trim().split("\t", -1);
+//				} else {
+//					inLineArray = fileReader.readLine().trim().split("[\\s]+");
+//				}
+//				if (linkKeyIndex.containsKey(filename)) {
+//					switch (linkKeyIndex.get(filename)) {
+//					case DNA_INDEX_IN_LINKERS:
+//						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]], inLineArray);
+//						break;
+//					case FID_INDEX_IN_LINKERS:
+//						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]] + "\t" + inLineArray[linkKeyColumnLabels[IID_INDEX_IN_LINKERS]], inLineArray);
+//						break;
+//					case IID_INDEX_IN_LINKERS:
+//						curFileLinkKeyDataHash.put(inLineArray[linkKeyColumnLabels[linkKeyIndex.get(filename)]], inLineArray);
+//						break;
+//					default:
+//						System.out.println("Error: Invalid link key.");
+//						break;
+//					}
+//				}
+//			}
+//			fileReader.close();
+//		} catch (FileNotFoundException fnfe) {
+//			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+//		} catch (IOException ioe) {
+//			System.err.println("Error reading file \"" + filename + "\"");
+//		}
+//		if (!curFileLinkKeyDataHash.isEmpty())
+//			linkKeyToDataHash.put(filename, curFileLinkKeyDataHash);
+//		System.out.println("LinkKeyDataHash:" + linkKeyToDataHash.toString());
+//	}
 
 	public void initLinkKey(int[] linkKeyColumnLabels, String filename) {
 		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
@@ -1015,7 +1123,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         	}
 
 			initLinkKey(linkKeyIndices, filename);	// initialize the link key
-			createLinkKeyToDataHash(filename, linkKeyIndices);
+			//createLinkKeyToDataHash(filename, linkKeyIndices);
         	dataHash.put(filename, new Vector<String[]>());
             while (reader.ready()) {
 				if (readBuffer.contains("\t")) {
@@ -1106,6 +1214,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         frame.pack();
         frame.setVisible(true);
     }
+
+	public void closeStream(Closeable s){
+		try{
+			if(s!=null)s.close();
+		}catch(IOException e){
+			//Log or rethrow as unchecked (like RuntimException) ;)
+		}
+	}
 
 	public static void main(String[] args) {
 		ext.verifyDirFormat("");
