@@ -717,17 +717,17 @@ public class Project extends Properties {
 		return targets;
 	}
 
-	public boolean archiveFile(String filename) {
+	public String archiveFile(String filename) {
 		String backup;
 		
 		backup = getDir(Project.BACKUP_DIRECTORY, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
 		new File(filename).renameTo(new File(backup));
 		
 		if (Files.exists(backup)) {
-			return true;
+			return backup;
 		}
 		
 		log.reportError("Error - failed to backup '"+filename+"' to "+backup);
-		return false;
+		return null;
 	}
 }
