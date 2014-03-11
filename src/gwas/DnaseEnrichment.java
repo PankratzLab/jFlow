@@ -66,6 +66,7 @@ public class DnaseEnrichment {
 	private static String[] bedFileList;
 	private static int ldLines = 0;
 	private static int numThreads = 1; // number of threads to run. default is 1
+	private static boolean performLD = true;
 
 	private static ArrayList<HashSet<String>> dhsregionsHashSetList; // global static variable to hold DHS regions
 	private static Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<String, Integer>(); // global static variable for ChrPositionMap
@@ -98,13 +99,13 @@ public class DnaseEnrichment {
 	 */
 	private static String showCommandLineHelp() {
 
-		return ("\n" + "gwas.DnaseEnrichment requires six arguments\n" + "\t(1) directory with bed files (bedDir)\n" + "\t(2) filename with chr/pos/pvals (pValueFile)\n" + "\t(3) The bim file (pLinkFile)\n" + "\t(4) " + "ld files directory (ldDir)\n" + "\t(5)number of lines on which ld files will be split (ldLines)\n" + "\t(6)number of threads (numThreads: defaults=1)\n" + "");
+		return ("\n" + "gwas.DnaseEnrichment requires six arguments\n" + "\t(1) directory with bed files (bedDir)\n" + "\t(2) filename with chr/pos/pvals (pValueFile)\n" + "\t(3) The bim file (pLinkFile)\n" + "\t(4) " + "ld files directory (ldDir)\n" + "\t(5)number of lines on which ld files will be split (ldLines)\n" + "\t(6)number of threads (numThreads: defaults=1)\n" + "\t(7)Perform LD calculation ? (ld= default: true)\n" + "");
 
 	}
 
 	public static void main(String[] args) {
 
-		ArrayList<OutputFileFormat> overlapStats;
+		ArrayList<OutputFileFormat> overlapStats = null;
 		int numArgs = args.length;
 		String filename = null;
 		boolean overWrite = false;
@@ -134,6 +135,9 @@ public class DnaseEnrichment {
 			} else if (args[i].toLowerCase().startsWith("numthreads=")) {
 				numThreads = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].toLowerCase().startsWith("ld=")) {
+				performLD = args[i].split("=")[1].equals("true") ? true : false;
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -155,32 +159,40 @@ public class DnaseEnrichment {
 		LOGGER.info("LD Line Count is : " + ldLines);
 		LOGGER.info("Num of threads to use while making ChrPositionMap: " + numThreads);
 		LOGGER.info("Over write ChrPositionMap is set to: " + overWrite);
+		LOGGER.info("Over write ChrPositionMap is set to: " + performLD);
 
-		// Filter ld files by storing only the new required columns
-		LOGGER.info("Filtering LD files. Please wait...");
-		filterAllLDFiles();
+		if (performLD) {
+			// Filter ld files by storing only the new required columns
+			LOGGER.info("Filtering LD files. Please wait...");
+			filterAllLDFiles();
+			if (Files.exists(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME)) {
+				LOGGER.info("We found ChrPositionMap for bed files.");
+				LOGGER.info("Note: If you feel like your ld files or bed files have changed from the last run then " + "" + "we strongly suggest you to stop here and delete the ChrMapPosition directory and run the program again");
+				LOGGER.info("Chr Position Map File Directory: " + bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator);
+				LOGGER.info("overWrite parameter is set to: " + overWrite);
 
-		if (Files.exists(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME)) {
-			LOGGER.info("We found ChrPositionMap for bed files.");
-			LOGGER.info("Note: If you feel like your ld files or bed files have changed from the last run then " + "" + "we strongly suggest you to stop here and delete the ChrMapPosition directory and run the program again");
-			LOGGER.info("Chr Position Map File Directory: " + bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator);
-			LOGGER.info("overWrite parameter is set to: " + overWrite);
+				if (overWrite || (!Files.exists(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME))) {
+					LOGGER.info("Finding DHS Region markers...");
+					dhsregionsHashSetList = findDHSRegionMarkers();
+					LOGGER.info("Starting to build ChrPositionMap...");
+					DnaseEnrichment dnaseEnrichmentObject = new DnaseEnrichment();
+					dnaseEnrichmentObject.runWorkers();
+					writeBedFileChrMapPartCount(bedFileChrMapPartCount);
+					dhsregionsHashSetList.clear();
+				} else
+					bedFileChrMapPartCount = readBedFileChrMapPartCount();
+
+				// find the overlapping position counts
+				LOGGER.info("Building statistics. Please wait...");
+				overlapStats = findOverlapRegions(bedDir, filename, bedFileChrMapPartCount);
+			}
+
+		} else {
+			System.out.println("Skipping filtering LD files as perform LD is specified as: " + performLD);
+			// find the overlapping position counts
+			LOGGER.info("Building statistics. Please wait...");
+			overlapStats = findOverlapRegions(bedDir, filename, null);
 		}
-
-		if (overWrite || (!Files.exists(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + BED_FILE_CHR_MAP_PART_COUNT_FILENAME))) {
-			LOGGER.info("Finding DHS Region markers...");
-			dhsregionsHashSetList = findDHSRegionMarkers();
-			LOGGER.info("Starting to build ChrPositionMap...");
-			DnaseEnrichment dnaseEnrichmentObject = new DnaseEnrichment();
-			dnaseEnrichmentObject.runWorkers();
-			writeBedFileChrMapPartCount(bedFileChrMapPartCount);
-			dhsregionsHashSetList.clear();
-		} else
-			bedFileChrMapPartCount = readBedFileChrMapPartCount();
-
-		// find the overlapping position counts
-		LOGGER.info("Building statistics. Please wait...");
-		overlapStats = findOverlapRegions(bedDir, filename, bedFileChrMapPartCount);
 
 		// Overlap statistics
 		LOGGER.info(overlapStats.toString());
@@ -594,23 +606,26 @@ public class DnaseEnrichment {
 		Map<String, Long> value;
 		TreeMap<Integer, Map<String, Long>> overlapStats = new TreeMap<Integer, Map<String, Long>>();
 		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION, false);
+		ChrPositionMap chrPositionMap = null;
 
-		// get this bed file chr position map
-		ChrPositionMap chrPositionMapTemp = new ChrPositionMap();
-		ChrPositionMap chrPositionMap = new ChrPositionMap();
-		try {
-			for (int i = 0; i < ldFilesList.length; i++) {
-				int partCount = bedFileChrMapPartCount.get(ldFilesList[i]);
-				for (int j = 0; j < partCount; j++) {
-					chrPositionMapTemp.readFromFile(getChrPosMapSerFilePath(bedFilename, i, j));
-					chrPositionMap.getChrPositionMap().putAll(chrPositionMapTemp.getChrPositionMap());
+		if (performLD) {
+			// get this bed file chr position map
+			ChrPositionMap chrPositionMapTemp = new ChrPositionMap();
+			chrPositionMap = new ChrPositionMap();
+			try {
+				for (int i = 0; i < ldFilesList.length; i++) {
+					int partCount = bedFileChrMapPartCount.get(ldFilesList[i]);
+					for (int j = 0; j < partCount; j++) {
+						chrPositionMapTemp.readFromFile(getChrPosMapSerFilePath(bedFilename, i, j));
+						chrPositionMap.getChrPositionMap().putAll(chrPositionMapTemp.getChrPositionMap());
+					}
 				}
-			}
 
-		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, "Unable to read the serialized chr position map file: " + e.getMessage(), e);
-		} catch (ClassNotFoundException e) {
-			LOGGER.log(Level.WARNING, "Unable to find chr position map class" + e.getMessage(), e);
+			} catch (IOException e) {
+				LOGGER.log(Level.WARNING, "Unable to read the serialized chr position map file: " + e.getMessage(), e);
+			} catch (ClassNotFoundException e) {
+				LOGGER.log(Level.WARNING, "Unable to find chr position map class" + e.getMessage(), e);
+			}
 		}
 
 		for (PValueFileFormat curRecord : pValueRecords) {
@@ -633,12 +648,14 @@ public class DnaseEnrichment {
 				// find the overlap using binary search
 				insideRegion = Segment.binarySearchForOverlap(curRecord.seg, segs[curRecord.chr]) != -1;
 
-				// if not inside region then check in chr position map
-				if (!insideRegion) {
-					if (chrPositionMap.getChrPositionMap().containsKey(curRecord.seg.getChr())) {
-						HashSet<Integer> thisBedChrPosHashSet = chrPositionMap.getChrPositionMap().get(curRecord.seg.getChr());
-						if (thisBedChrPosHashSet.contains(curRecord.seg.getStart())) {
-							insideRegion = true;
+				if (performLD) {
+					// if not inside region then check in chr position map
+					if (!insideRegion) {
+						if (chrPositionMap.getChrPositionMap().containsKey(curRecord.seg.getChr())) {
+							HashSet<Integer> thisBedChrPosHashSet = chrPositionMap.getChrPositionMap().get(curRecord.seg.getChr());
+							if (thisBedChrPosHashSet.contains(curRecord.seg.getStart())) {
+								insideRegion = true;
+							}
 						}
 					}
 				}
