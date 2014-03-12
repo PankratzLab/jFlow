@@ -412,7 +412,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 
-	public void setColorKeyHandler(String filename, String recentSelectionFile, int selectedColorKey){
+	public void setColorKeyHandler(String filename, String recentSelectionFile, int selectedColorKey) {
 		Hashtable<String, String> colorKeyValue;
 		int[] linkKeyColumnLabels;
 
@@ -447,7 +447,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	 * Function to indentify the headers in the sample data file
 	 * @param header: a string containing all the headers read as string
 	 */
-	public int[] getSampleDataHeaders(String header){
+	public int[] getSampleDataHeaders(String header) {
 		String[] headersArray;
 		int[] indices;
 		
@@ -467,7 +467,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return indices;
 	}
 
-	public void addToSampleData(Hashtable<String, String> colorKeyValue, String recentSelectionFile, int selectedColorKey){
+	public void addToSampleData(Hashtable<String, String> colorKeyValue, String recentSelectionFile, int selectedColorKey) {
 		String sampleDatafilename;
 		BufferedReader reader;
 		BufferedWriter writer;
@@ -521,7 +521,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			int samDataIndex = getSampleDataHeaders(inLine)[DNA_INDEX_IN_LINKERS];
 			inLine = inLine + "\t"+(covar?"Covar=":"Class=") + colorKeyHeader;
 			writer.write(inLine);	// write the headers
-			while(reader.ready()){
+			while(reader.ready()) {
 				writer.newLine();
 				inLine = reader.readLine();
 				if (inLine.contains("\t")) {
@@ -529,7 +529,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				} else {
 					inLineArry = inLine.trim().split("[\\s]+");
 				}
-				if (colorKeyValue.containsKey(inLineArry[samDataIndex])){
+				if (colorKeyValue.containsKey(inLineArry[samDataIndex])) {
 					inLine = inLine + "\t" + colorKeyValue.get(inLineArry[samDataIndex]);
 				} else {
 					inLine = inLine + "\t" + NO_VALUE_FOUND;
@@ -553,7 +553,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		twoDPanel.paintAgain();
 	}
 
-	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue){
+	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue) {
 		Hashtable<String, String> colorKeyValueHash;
 
 		colorKeyValueHash = new Hashtable<String, String>();
@@ -1266,12 +1266,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         frame.setVisible(true);
     }
 
-	public void closeStream(Closeable s){
+	public void closeStream(Closeable s) {
 		try {
 			if (s != null) {
 				s.close();
 			}
-		} catch (IOException e){
+		} catch (IOException e) {
 			//Log or rethrow as unchecked (like RuntimException) ;)
 		}
 	}
