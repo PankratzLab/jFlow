@@ -25,10 +25,31 @@ public class PennCNV {
 		int step;
 		String execDir, dataDir, resultsDir;
 		
-		
 		execDir = proj.getDir(Project.PENNCNV_EXECUTABLE_DIRECTORY);
 		dataDir = proj.getDir(Project.PENNCNV_DATA_DIRECTORY);
 		resultsDir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY);
+		
+		if (pfbFile != null) {
+			pfbFile = ext.replaceTilde(pfbFile);
+			if (!pfbFile.startsWith("/")) {
+				pfbFile = ext.pwd()+pfbFile;
+			}
+			if (!Files.exists(pfbFile)) {
+				System.err.println("Error - pfb file '"+pfbFile+"' does not exist; aborting");
+				return;
+			}
+		}
+
+		if (gcmodelFile != null) {
+			gcmodelFile = ext.replaceTilde(gcmodelFile);
+			if (!gcmodelFile.startsWith("/")) {
+				gcmodelFile = ext.pwd()+gcmodelFile;
+			}
+			if (!Files.exists(gcmodelFile)) {
+				System.err.println("Error - gcmodel file '"+gcmodelFile+"' does not exist; aborting");
+				return;
+			}
+		}
 
 		files = new File(dataDir).list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
@@ -65,6 +86,13 @@ public class PennCNV {
 		} else {
 			Files.batchIt("penn", init, numBatches, commands, Array.stringArraySequence(numBatches, ""));
 		}
+		Files.writeList(new String[] {
+				"cat penncnv/*.log > penncnv.rawlog",
+				"cat penncnv/*.rawcnv > penncnv.rawcnv",
+				"java -cp ~/park.jar cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawlog=penncnv.rawlog",
+				"java -cp ~/park.jar cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=penncnv.rawcnv",
+		}, "assemblePenncnv");
+		Files.chmod("assemblePenncnv");
 	}
 
 	public static void parseWarnings(Project proj, String filename, Logger log) {
@@ -191,20 +219,28 @@ public class PennCNV {
 		PrintWriter writer;
 		String[] line;
 		String temp, trav;
-		Vector<String> warnings = new Vector<String>();
-		Vector<String> pedinfo = new Vector<String>();
+		Vector<String> warnings;
+		Hashtable<String,Vector<String>> pedinfo;
 		int[] position;
 		String score;
 		SampleData sampleData;
 		String famIndPair;
 		Hashtable<String,String> hash;
-		String[] ids;
+		String[] ids, fams, inds;
 		long time;
+		int sex;
 		
 		System.out.println("Parsing PennCNV rawcnvs...");
 		time = new Date().getTime();
+		
+		if (!Files.exists(proj.getProjectDir()+filename)) {
+			log.reportError("Error - could not find file '"+proj.getProjectDir()+filename+"'");
+			return;
+		}
 
+		warnings = new Vector<String>();
 		sampleData = proj.getSampleData(2, false);
+		pedinfo = new Hashtable<String, Vector<String>>();
 		try {
 			reader = new BufferedReader(new FileReader(proj.getProjectDir()+filename));
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.rootOf(filename)+".cnv"));
@@ -228,6 +264,9 @@ public class PennCNV {
 					} else {
 						famIndPair = ids[1];
 					}
+					
+					ids = famIndPair.split("\t");
+					HashVec.addToHashVec(pedinfo, ids[0], ids[1], true);
 	
 					if (line.length<8||!line[7].startsWith("conf=")) {
 						score = "-1";
@@ -249,12 +288,22 @@ public class PennCNV {
 //			FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
 
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.rootOf(filename)+".fam"));
-			for (int i = 0; i<pedinfo.size(); i++) {
-				writer.println(pedinfo.elementAt(i));
+			fams = HashVec.getKeys(pedinfo, true, true);
+			for (int i = 0; i<fams.length; i++) {
+				inds = Sort.putInOrder(Array.toStringArray(pedinfo.get(fams[i])), true);
+				for (int j = 0; j < inds.length; j++) {
+					ids = sampleData.lookup(fams[i]+"\t"+inds[j]);
+					if (ids != null) {
+						sex = sampleData.getSexForIndividual(ids[0]);
+					} else {
+						sex = 0;
+					}
+					writer.println(fams[i]+"\t"+inds[j]+"\t0\t0\t"+Math.max(0, sex)+"\t-9");
+				}
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""+proj.getProjectDir()+ext.rootOf(filename)+"\" not found in current directory");
+			log.reportError("Error: file \""+proj.getProjectDir()+ext.rootOf(filename)+".cnv\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \""+proj.getProjectDir()+ext.rootOf(filename)+"\"");
@@ -525,7 +574,7 @@ public class PennCNV {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = Project.DEFAULT_PROJECT;
-		String logfile = null;
+		String rawlog = null;
 		String rawcnvs = null;
 		int batch = 0;
 //		boolean all = false;
@@ -537,7 +586,7 @@ public class PennCNV {
 		boolean denovoOnly = false;
 		boolean parsePFB = false;
 		String gc5base = null;
-		String loggerFilename = null;
+		String logfile = null;
 		Logger log;
 
 		String usage = "\n"+
@@ -577,7 +626,7 @@ public class PennCNV {
 				qsub = true;
 				numArgs--;
 			} else if (args[i].startsWith("rawlog=")) {
-				logfile = args[i].split("=")[1];
+				rawlog = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("rawcnv=")) {
 				rawcnvs = args[i].split("=")[1];
@@ -601,7 +650,7 @@ public class PennCNV {
 				gcmodelFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
-				loggerFilename = args[i].split("=")[1];
+				logfile = args[i].split("=")[1];
 				numArgs--;
 			}
 		}
@@ -625,7 +674,7 @@ public class PennCNV {
 //			gcmodelFile = "gedi.gcmodel";
 			
 			proj = new Project(filename, false);
-			log = new Logger(loggerFilename);
+			log = new Logger(logfile);
 			if (parsePFB) {
 				populationBAF(proj, null);
 			}
@@ -635,8 +684,8 @@ public class PennCNV {
 			if (batch>0) {
 				batch(proj, batch, lists, qsub, pfbFile, gcmodelFile);
 			}
-			if (logfile != null) {
-				parseWarnings(proj, logfile, log);
+			if (rawlog != null) {
+				parseWarnings(proj, rawlog, log);
 			}
 			if (rawcnvs != null) {
 				parseResults(proj, rawcnvs, denovoOnly, log);

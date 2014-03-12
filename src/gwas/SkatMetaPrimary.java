@@ -456,7 +456,7 @@ public class SkatMetaPrimary {
 		boolean additionals = false;
 		String rename = null;
 
-		cohort="aric";
+		cohort="ARIC";
 		genos="D:/SkatMeta/genotypes_blacks_AA/AA_ARIC_noJHS_chr#t.csv";
 		pheno="D:/SkatMeta/results_hemostasis/pheno_F7_studyIDs.csv";
 		snpInfo="N:/statgen/skatMeta/fullExample/SNPInfo_HumanExome-12v1_rev5_justGeneSpliced.csv";

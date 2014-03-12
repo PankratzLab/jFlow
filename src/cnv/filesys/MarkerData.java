@@ -484,8 +484,9 @@ public class MarkerData implements Serializable {
 	}
 
 	// samplesToBeUsed, sex, and clusterFilterCollection can be null
-	public int[] getAlleleCounts(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
-		int[] alleleCounts = new int[3];
+	// however if sex is null then chrX genotype counts will be inaccurate and show deviation from Hardy-Weinberg equilibrium
+	public int[] getGenotypeCounts(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+		int[] genotypeCounts = new int[3];
 		String sexSpecific;
 		byte[] genoytpes;
 		
@@ -494,9 +495,9 @@ public class MarkerData implements Serializable {
 		} else {
 			genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
 		}
-		// 0=non-specific , 1= male , 2 =female
+		// 0=non-specific, 1=male, 2=female
 		if (chr == 23) {
-			sexSpecific = "2";
+			sexSpecific = "2"; // this is not technically correct, but there is no place to add the A/null and B/null male genotypes in this class; will add a new getMAF for chrX
 		} else if (chr == 24) {
 			sexSpecific = "1";
 		} else {
@@ -504,13 +505,14 @@ public class MarkerData implements Serializable {
 		}
 		for (int i = 0; i < genoytpes.length; i++) {
 			if (genoytpes[i] >= 0 && (samplesToBeUsed == null || samplesToBeUsed[i]) && (sex == null || sexSpecific.equals("0") || sex[i].equals(sexSpecific))) {
-				alleleCounts[genoytpes[i]]++;
+				genotypeCounts[genoytpes[i]]++;
 			}
 		}
-		return alleleCounts;
+		return genotypeCounts;
 	}
 
 	// samplesToBeUsed, sex, and clusterFilters can be null
+	// however if sex is null then chrX frequencies will be slightly inaccurate
 	public double getMAF(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
 		double freqB;
 		
@@ -523,8 +525,53 @@ public class MarkerData implements Serializable {
 	}
 
 	// samplesToBeUsed, sex, and clusterFilters can be null
-	public double getFrequencyOfB(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
-		return AlleleFreq.calcFrequency(getAlleleCounts(samplesToBeUsed, sex, clusterFilters, gcThreshold));
+	// however if sex is null then chrX frequencies will be slightly inaccurate
+	public double getFrequencyOfB(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+		int[] alleleCounts = new int[2];
+		byte[] genoytpes;
+
+		if (chr == 23 && sex != null) {
+			if (clusterFilterCollection == null) {
+				genoytpes = getAB_Genotypes();
+			} else {
+				genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+			}
+
+			alleleCounts = new int[2];
+			for (int i = 0; i < genoytpes.length; i++) {
+				if (genoytpes[i] >= 0 && (samplesToBeUsed == null || samplesToBeUsed[i])) {
+					if (sex[i].equals("2")) {
+						switch (genoytpes[i]) {
+						case 0:
+							alleleCounts[0] += 2;
+							break;
+						case 1:
+							alleleCounts[0]++;
+							alleleCounts[1]++;
+							break;
+						case 2:
+							alleleCounts[1] += 2;
+							break;
+						default:
+						}
+					} else if (sex[i].equals("1")) {
+						switch (genoytpes[i]) {
+						case 0:
+							alleleCounts[0]++;
+							break;
+						case 2:
+							alleleCounts[1]++;
+							break;
+						default:
+						}
+					}
+				}
+			}
+			return (double)alleleCounts[1] / (double)(alleleCounts[0]+alleleCounts[1]);
+			
+		} else {
+			return AlleleFreq.calcFrequency(getGenotypeCounts(samplesToBeUsed, sex, clusterFilterCollection, gcThreshold));
+		}
 	}
 	
 //	public byte[] detectClusters() {

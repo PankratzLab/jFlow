@@ -130,13 +130,13 @@ public class DnaseEnrichment {
 				ldLines = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
 			} else if (args[i].toLowerCase().startsWith("overwrite=")) {
-				overWrite = args[i].split("=")[1].equals("true") ? true : false;
+				overWrite = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].toLowerCase().startsWith("numthreads=")) {
 				numThreads = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
 			} else if (args[i].toLowerCase().startsWith("ld=")) {
-				performLD = args[i].split("=")[1].equals("true") ? true : false;
+				performLD = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -820,78 +820,4 @@ public class DnaseEnrichment {
 			this.positions = positions;
 		}
 	}
-
-	// This part of code was developed earlier but due to change in requirements we are not using it anymore.
-	// /**
-	// * generateChrPositionMap function which uses HeapStats to see when the free memory is low and then dumps the
-	// * ChrPositionMap to disk to save memory.
-	// */
-	// private static void generateChrPositionMap() {
-	// String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION, false);
-	// ChrPositionMap chrPositionMap;
-	// HashSet<Integer> value;
-	// Hashtable<String, ChrPositionMap> chrPositionMapList = new Hashtable<String, ChrPositionMap>();
-	// ArrayList<HashSet<String>> dhsregionsHashSetList = findDHSRegionMarkers();
-	// int count = 0;
-	//
-	// for (int i = 0; i < ldFilesList.length; i++) {
-	// LOGGER.info("Processing: " + ldFilesList[i] + Files.SERIALIZED_FILE_EXTENSION);
-	// try {
-	// BufferedReader reader = new BufferedReader(new FileReader(ldDir + ldFilesList[i] + Files.SERIALIZED_FILE_EXTENSION));
-	// reader.readLine(); // skill the first header line
-	//
-	// while (reader.ready()) {
-	// count++;
-	// if (count > 100000) {
-	// LOGGER.info("Finding ChrPositonMap with: " + ldFilesList[i] + Files.SERIALIZED_FILE_EXTENSION + "\t Please wait ...");
-	// count = 0;
-	// }
-	// String curline = reader.readLine();
-	// String[] curlineParams = WHILTE_SPACE_PATTERN.split(curline.trim());
-	// if (heapStats.getFreeMemory() < 100) {
-	// LOGGER.info("Memory getting low. Dumping ChrPositionMap to disk." + "Free: " + heapStats.getFreeMemory());
-	//
-	// writeChrPositionMap(chrPositionMapList, CHR_POSITION_FILE_PART_COUNT++);
-	// for (String thisKey : chrPositionMapList.keySet()) {
-	// ChrPositionMap thisObject = chrPositionMapList.get(thisKey);
-	// thisObject.clearAll();
-	// }
-	// chrPositionMapList.clear();
-	// LOGGER.info("free before sleep. Dumping ChrPositionMap to disk." + "Free: " + heapStats.getFreeMemory());
-	// try {
-	// Thread.sleep(5000);
-	// } catch (InterruptedException e) {
-	// e.printStackTrace();
-	// }
-	// chrPositionMapList = new Hashtable<String, ChrPositionMap>();
-	// LOGGER.info("Freed mem. Dumping ChrPositionMap to disk." + "Free: " + heapStats.getFreeMemory());
-	// }
-	// for (int j = 0; j < dhsregionsHashSetList.size(); j++) {
-	//
-	// if (chrPositionMapList.containsKey(bedFileList[j])) {
-	// chrPositionMap = chrPositionMapList.get(bedFileList[j]);
-	// } else {
-	// chrPositionMapList.put(bedFileList[j], chrPositionMap = new ChrPositionMap());
-	//
-	// }
-	// if (dhsregionsHashSetList.get(j).contains(curlineParams[2]) || dhsregionsHashSetList.get(j).contains(curlineParams[4])) {
-	// if (chrPositionMap.getChrPositionMap().containsKey(Byte.valueOf(curlineParams[0]))) {
-	// value = chrPositionMap.getChrPositionMap().get(Byte.valueOf(curlineParams[0]));
-	// } else {
-	// chrPositionMap.getChrPositionMap().put(Byte.valueOf(curlineParams[0]), value = new HashSet<Integer>());
-	// }
-	// value.add(Integer.parseInt(curlineParams[1]));
-	// value.add(Integer.parseInt(curlineParams[3]));
-	// }
-	// }
-	// }
-	// reader.close();
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// }
-	// writeChrPositionMap(chrPositionMapList, CHR_POSITION_FILE_PART_COUNT++);
-	// LOGGER.info("Total Chr parts: " + CHR_POSITION_FILE_PART_COUNT);
-	// }
-
-} // end of DnaseEnrichment class
+}

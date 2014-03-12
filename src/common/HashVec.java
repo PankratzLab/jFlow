@@ -143,7 +143,7 @@ public class HashVec {
 		hash2.put(key2, value);
 	}
 
-	public static void addToHashHashVec(Hashtable<String,Hashtable<String,Vector<String>>> hash1, String key1, String key2, String value, boolean addIfAbsent) {
+	public static void addToHashHashVec(Hashtable<String,Hashtable<String,Vector<String>>> hash1, String key1, String key2, String value, boolean onlyifabsent) {
 		Hashtable<String,Vector<String>> hash2;
 		Vector<String> v;
 		
@@ -157,7 +157,7 @@ public class HashVec {
 		} else {
 			hash2.put(key2, v = new Vector<String>());
 		}
-		if (addIfAbsent) {
+		if (onlyifabsent) {
 			addIfAbsent(value, v);
 		} else {
 			v.add(value);
@@ -491,7 +491,7 @@ public class HashVec {
 		return hashes;
 	}
 
-	public static Hashtable<String,Hashtable<String,Vector<String>>> loadFileToHashHashVec(String filename, int key1Index, int key2Index, int[] targetIndices, String delimiter, boolean ignoreFirstLine, boolean addIfAbsent) {
+	public static Hashtable<String,Hashtable<String,Vector<String>>> loadFileToHashHashVec(String filename, int key1Index, int key2Index, int[] targetIndices, String delimiter, boolean ignoreFirstLine, boolean onlyifabsent) {
 		BufferedReader reader = null;
 		String[] line;
 		Hashtable<String,Hashtable<String,Vector<String>>> hashes = new Hashtable<String,Hashtable<String,Vector<String>>>();
@@ -513,7 +513,7 @@ public class HashVec {
 				for (int i = 0; i<targetIndices.length; i++) {
 					str += (i==0?"":"\t")+line[targetIndices[i]];
                 }
-				addToHashHashVec(hashes, line[key1Index], line[key2Index], str, addIfAbsent);
+				addToHashHashVec(hashes, line[key1Index], line[key2Index], str, onlyifabsent);
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {

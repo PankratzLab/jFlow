@@ -1403,6 +1403,10 @@ public class ext {
 		return ext.verifyDirFormat(new File("./").getAbsolutePath());
 	}
 
+	public static String replaceTilde(String path) {
+		return path.replace("~", System.getProperty("user.home"));
+	}
+
 	public static void main(String[] args) {
 		String temp;
 		Logger log;

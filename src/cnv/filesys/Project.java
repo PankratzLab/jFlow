@@ -182,7 +182,8 @@ public class Project extends Properties {
 		
 		if (containsKey(directory)) {
 			dir = getProperty(directory);
-			if (!dir.startsWith("/") && dir.indexOf(":") == -1) {
+			dir = ext.replaceTilde(dir);
+			if (!dir.startsWith("~") && !dir.startsWith("/") && dir.indexOf(":") == -1) {
 				dir = getProperty(PROJECT_DIRECTORY)+dir;
 			}
 			if (!Files.exists(dir, jar)) {
