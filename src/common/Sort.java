@@ -711,9 +711,24 @@ public class Sort {
 	 * @return the sorted array
 	 */
 	public static String[] putInOrder(String[] array, boolean treatAsNumbers) {
-		int[] order = treatAsNumbers?quicksort(Array.toDoubleArray(array)):quicksort(array);
-		String[] newArray = new String[array.length];
+		String[] newArray;
+		int[] order;
+		
+		if (treatAsNumbers) {
+			for (int i = 0; treatAsNumbers && i < array.length; i++) {
+				if (!ext.isValidDouble(array[i])) {
+					treatAsNumbers = false;
+				}
+			}
+		}
+		
+		if (treatAsNumbers) {
+			order = quicksort(Array.toDoubleArray(array));
+		} else {
+			order = quicksort(array);
+		}
 
+		newArray = new String[array.length];
 		for (int i = 0; i<array.length; i++) {
 			newArray[i] = array[order[i]];
 		}

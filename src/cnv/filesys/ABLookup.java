@@ -475,6 +475,7 @@ public class ABLookup {
 			log.report("There were "+markersWithNoLink.size()+" markers that were zeroed out in the original export; for list check "+Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
 			markerNames = Array.toStringArray(markersWithNoLink);
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerNames, log);
+			System.err.println("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
 			for (int i = 0; i < markerNames.length; i++) {
 				markerNames[i] = markerNames[i]+"\t"+markerDataLoader.getMarkerData(i).getFrequencyOfB(null, null, proj.getClusterFilterCollection(), proj.getFloat(Project.GC_THRESHOLD));
 			}

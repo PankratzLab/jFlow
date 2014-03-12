@@ -342,15 +342,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 	
 	public void actionPerformed(ActionEvent ae) {
-		boolean found = false;
-		String command = ae.getActionCommand();
 		byte numberOfSelectedNodes;
+		JFileChooser fileChooser;
+		String command;
+		boolean found;
 		String[] keys;
-
+		
+		found = false;
+		command = ae.getActionCommand();
 		if (command.equals(ADD_DATA_FILE)) {
-			JFileChooser fileChooser = new JFileChooser(proj.getProjectDir());
-			int fileOpenActionSelected = fileChooser.showOpenDialog(null);
-	        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+			fileChooser = new JFileChooser(proj.getProjectDir());
+	        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
         		for (int i=0; tree!=null && i<tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
         			if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/").equals(tree.getModel().getChild(tree.getModel().getRoot(),i).toString())) {
         				found = true;
@@ -381,19 +383,19 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //			colorKeyVariables.add(tree.getSelectedPathComponentName());
 //			colorKeyVariables.add(getNamesSelected()[0]);
 			System.out.println("getSelectedPathComponent: " + tree.getSelectedPathComponent() + "\t + getNamesSelected: " + Arrays.toString(getNamesSelected()));
-			int[] selectedLinkKey = tree.getSelectionRows();
-			setColorKey(selectedLinkKey);
+			setColorKey(tree.getSelectionRows());
 		} else if (command.equals(SET_AS_LINKKEY)) {
-			int[] selectedLinkKey = tree.getSelectionRows();
-			setLinkKey(selectedLinkKey);
+			setLinkKey(tree.getSelectionRows());
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
 	}
 
 	public void setColorKey(int[] selectedColorKey) {
-		String[][] selectedNodes = tree.getSelectionValues();
+		String[][] selectedNodes;
 		ArrayList<Integer> colorKeys;
+		
+		selectedNodes = tree.getSelectionValues();
 		if (selectedColorKey.length == 1) {
 			if (colorKeyIndex.containsKey(selectedNodes[1][0])) {
 				colorKeys = colorKeyIndex.get(selectedNodes[1][0]);
@@ -401,8 +403,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				colorKeyIndex.put(selectedNodes[1][0], colorKeys = new ArrayList<Integer>());
 			}
 			for (int i = 0; i < colorKeys.size(); i++) {
-				if (colorKeys.get(i) == selectedColorKey[0])
+				if (colorKeys.get(i) == selectedColorKey[0]) {
 					return;
+				}
 			}
 			colorKeys.add(selectedColorKey[0]);	// add to colorKeys
 			setColorKeyHandler(selectedNodes[1][0], selectedNodes[1][0], selectedColorKey[0]);
@@ -410,21 +413,23 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void setColorKeyHandler(String filename, String recentSelectionFile, int selectedColorKey){
-		int[] linkKeyColumnLabels = keyIndices.get(recentSelectionFile);
-		Hashtable<String, String> colorKeyValue = new Hashtable<String, String>();
+		Hashtable<String, String> colorKeyValue;
+		int[] linkKeyColumnLabels;
 
+		linkKeyColumnLabels = keyIndices.get(recentSelectionFile);
+		colorKeyValue = new Hashtable<String, String>();
 		if (linkKeyIndex.containsKey(filename)) {
 			switch (linkKeyIndex.get(filename)) {
 			case DNA_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey}, false, "",true, false, false);
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
 				break;
 			case FID_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS]}, new int[]{selectedColorKey}, false, "",true, false, false);
-				colorKeyValue = createHashWithSamppleID(colorKeyValue);	// colorkey value hash with key as sampleID
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
+				colorKeyValue = createHashWithSampleID(colorKeyValue);	// colorkey value hash with key as sampleID
 				break;
 			case IID_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey}, false, "",true, false, false);
-				colorKeyValue = createHashWithSamppleID(colorKeyValue);	// colorkey value hash with key as sampleID
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
+				colorKeyValue = createHashWithSampleID(colorKeyValue);	// colorkey value hash with key as sampleID
 				break;
 			default:
 				System.out.println("Error: Unable to read color key values. Invalid link key.");
@@ -432,8 +437,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				break;
 			}
 		}
-		if(!colorKeyValue.isEmpty() || colorKeyValue != null)
+		if (!colorKeyValue.isEmpty() || colorKeyValue != null) {
 			System.out.println("The color value is: " + colorKeyValue.toString());
+		}
 		addToSampleData(colorKeyValue, recentSelectionFile, selectedColorKey);
 	}
 
@@ -442,42 +448,78 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	 * @param header: a string containing all the headers read as string
 	 */
 	public int[] getSampleDataHeaders(String header){
-
-		String[]  headersArry;
+		String[] headersArray;
+		int[] indices;
+		
 		if (header.contains("\t")) {
-			headersArry = header.trim().split("\t",-1);
+			headersArray = header.trim().split("\t",-1);
 		} else {
-			headersArry = header.trim().split("[\\s]+");
+			headersArray = header.trim().split("[\\s]+");
 		}
-		int[] sDataIndices = ext.indexFactors(LINKERS, headersArry, false, true, false, log, false);
+		indices = ext.indexFactors(LINKERS, headersArray, false, true, false, log, false);
 
-		if (sDataIndices[0] == -1) {
+		if (indices[0] == -1) {
 			log.report("ID linker not automatically identified for Sample Data. Assuming the first column.");
-			sDataIndices[0] = 0;
+			indices[0] = 0;
 		}
-		System.out.println("The header indeces in Sample data are: " + Arrays.toString(headersArry));
-		return sDataIndices;
+		System.out.println("The header indices in Sample data are: " + Arrays.toString(headersArray));
+
+		return indices;
 	}
 
 	public void addToSampleData(Hashtable<String, String> colorKeyValue, String recentSelectionFile, int selectedColorKey){
-
-
-		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
-		BufferedReader reader = null;
-		BufferedWriter writer = null;
+		String sampleDatafilename;
+		BufferedReader reader;
+		BufferedWriter writer;
+		String[] inLineArry;
+		String bakFile;
+		String inLine;
+		String colorKeyHeader;
+		String[] keys;
+		boolean covar, negativeValues, largerThanByte;
+		String trav;
+		
+		sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		reader = null;
+		writer = null;
 
 		System.out.println("Sample data: " + sampleDatafilename);
-		String[] inLineArry;
-
-		String bakFile = proj.archiveFile(sampleDatafilename);	// create backup of sample data file
-		String inLine;
-		String colorKeyHeader = namesHash.get(recentSelectionFile)[selectedColorKey-1];
+		bakFile = proj.archiveFile(sampleDatafilename);	// create backup of sample data file
+		colorKeyHeader = namesHash.get(recentSelectionFile)[selectedColorKey-1];
+		
+		covar = false;
+		negativeValues = false;
+		largerThanByte = false;
+		keys = HashVec.getKeys(colorKeyValue, false, false);
+		for (int i = 0; i < keys.length; i++) {
+			trav = colorKeyValue.get(keys[i]);
+			if (!ext.isMissingValue(trav) && !ext.isValidInteger(trav)) {
+				covar = true;
+			}
+			if (ext.isValidDouble(trav) && Double.parseDouble(trav) < 0) {
+				negativeValues = true;
+			}
+			if (ext.isValidDouble(trav) && Double.parseDouble(trav) > Byte.MAX_VALUE) {
+				largerThanByte = true;
+			}
+		}
+		
+		if (covar) {
+			JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains a quantitative meaure and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
+		} else if (negativeValues) {
+			JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains negative values and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
+			covar = true;
+		} else if (largerThanByte) {
+			JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
+			covar = true;
+		}
+		
 		try {
 			reader = new BufferedReader(new FileReader(bakFile));
 			writer = new BufferedWriter(new FileWriter(sampleDatafilename));
 			inLine = reader.readLine();
 			int samDataIndex = getSampleDataHeaders(inLine)[DNA_INDEX_IN_LINKERS];
-			inLine = inLine + "\t" + colorKeyHeader;
+			inLine = inLine + "\t"+(covar?"Covar=":"Class=") + colorKeyHeader;
 			writer.write(inLine);	// write the headers
 			while(reader.ready()){
 				writer.newLine();
@@ -487,7 +529,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				} else {
 					inLineArry = inLine.trim().split("[\\s]+");
 				}
-				if(colorKeyValue.containsKey(inLineArry[samDataIndex])){
+				if (colorKeyValue.containsKey(inLineArry[samDataIndex])){
 					inLine = inLine + "\t" + colorKeyValue.get(inLineArry[samDataIndex]);
 				} else {
 					inLine = inLine + "\t" + NO_VALUE_FOUND;
@@ -503,21 +545,30 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			closeStream(writer);
 			twoDPanel.paintAgain();
 		}
+		proj.resetSampleData();
+		sampleData = proj.getSampleData(2, false);
+		colorKeyPanel.updateSampleData(sampleData);
+		colorKeyPanel.updateColorVariablePanel();
+
 		twoDPanel.paintAgain();
 	}
 
-	public Hashtable<String, String> createHashWithSamppleID(Hashtable<String, String> colorKeyValue){
-		Hashtable<String, String> colorKeyValueHash = new Hashtable<String, String>();
+	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue){
+		Hashtable<String, String> colorKeyValueHash;
 
-			for(String key : colorKeyValue.keySet()){
-				 colorKeyValueHash.put(twoDPanel.getSampleData().lookup(key)[0], colorKeyValue.get(key));
-			}
+		colorKeyValueHash = new Hashtable<String, String>();
+		for (String key : colorKeyValue.keySet()) {
+			 colorKeyValueHash.put(twoDPanel.getSampleData().lookup(key)[0], colorKeyValue.get(key));
+		}
+
 		return colorKeyValueHash;
 	}
 
 	public void setLinkKey(int[] selectedLinkKey) {
-		String[][] selectedNodes = tree.getSelectionValues();
+		String[][] selectedNodes;
 		int[] linkKeyColumnLabels;
+		
+		selectedNodes = tree.getSelectionValues();
 		if (selectedLinkKey.length == 1) {
 			if (keyIndices.containsKey(selectedNodes[0][0])) {
 				linkKeyColumnLabels = keyIndices.get(selectedNodes[0][0]);
@@ -537,7 +588,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					return;
 				}
 			}
-			JOptionPane.showMessageDialog(null, "Unable to set link key. Please make sure you are selecting valid key", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Unable to set link key. Please make sure you are selecting a valid key", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -823,7 +874,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 						outLine[j + index] = inLine[linkKeyColumnLabels[j]];
 					}
 				}
-				xHash.put(inLine[0], outLine);
+				xHash.put(inLine[keyIndices.get(selectedNodes[1][0])[0]], outLine);
 			}
 
 			selectedColumn = Integer.parseInt(selectedNodes[1][1]);
@@ -864,7 +915,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				}
 			}
 		}
-//		return result;
+
 		return v;
 	}
 
@@ -1177,7 +1228,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //        		}
         		boolean found = false;
         		for (int j=0; j<tree.getModel().getChildCount(tree.getModel().getRoot()); j++) {
-        			if(tree.getModel().getChild(tree.getModel().getRoot(), j).toString().equals(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)))) {
+        			if (tree.getModel().getChild(tree.getModel().getRoot(), j).toString().equals(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)))) {
         				found = true;
         			}
         		}
@@ -1216,9 +1267,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     }
 
 	public void closeStream(Closeable s){
-		try{
-			if(s!=null)s.close();
-		}catch(IOException e){
+		try {
+			if (s != null) {
+				s.close();
+			}
+		} catch (IOException e){
 			//Log or rethrow as unchecked (like RuntimException) ;)
 		}
 	}

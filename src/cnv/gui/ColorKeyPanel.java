@@ -84,6 +84,17 @@ public class ColorKeyPanel extends JPanel {
 
 		setLayout(new GridLayout(2, 1));
 		classVariablesPanel = new JPanel();
+		classVariablesPanel.setBackground(BACKGROUND_COLOR);
+		updateColorVariablePanel();
+		add(classVariablesPanel);
+		classValuesPanel = new JPanel();
+        classValuesPanel.setBackground(BACKGROUND_COLOR);
+		add(classValuesPanel);
+	}
+	
+	public void updateColorVariablePanel() {
+		classVariablesPanel.removeAll();
+		
 		JLabel label = new JLabel("Color code by:");
 		label.setFont(new Font("Arial", 0, 14));
 		classVariablesPanel.add(label);
@@ -111,15 +122,11 @@ public class ColorKeyPanel extends JPanel {
 			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
 			classVariablesPanel.add(classRadioButtons[i]);
 		}
-		classVariablesPanel.setBackground(BACKGROUND_COLOR);
-		add(classVariablesPanel);
 		
-		classValuesPanel = new JPanel();
-        classValuesPanel.setBackground(BACKGROUND_COLOR);
-
-		add(classValuesPanel);
 		classRadioButtons[Math.max(sampleData.getBasicClasses().length-1, 0)].setSelected(true);
 		disabledClassValues = new Hashtable<String, String>();
+
+		classVariablesPanel.validate();
 	}
 
 	public void updateColorKey(Hashtable<String,String> currentClassUniqueValues) {
@@ -221,5 +228,9 @@ public class ColorKeyPanel extends JPanel {
 	
 	public JRadioButton[] getClassRadioButtons() {
 		return classRadioButtons;
+	}
+
+	public void updateSampleData(SampleData sampleData) {
+		this.sampleData = sampleData;
 	}
 }
