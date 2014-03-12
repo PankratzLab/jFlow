@@ -56,14 +56,15 @@ public class PhenoPrep {
 			return;
 		}
 		
-		if (variablesAllInOneFile && (idFile == null || !idFile.toLowerCase().endsWith(".fam"))) {
+		if (variablesAllInOneFile && plinkFormat && (idFile == null || !idFile.toLowerCase().endsWith(".fam"))) {
 			log.reportError("Error - you have selected to make a plink FID/IID file with all variables in one file, but have not provided a .fam file");
 			return;
 		}
 
-		if (variablesAllInOneFile) {
-			plinkFormat = true;
-		}
+		// needed for Emmax, but not for anything else
+//		if (variablesAllInOneFile) {
+//			plinkFormat = true;
+//		}
 
 		if (covarList == null) {
 			covars = new String[0];
@@ -642,7 +643,7 @@ public class PhenoPrep {
 		String extras = null;
 		boolean matchIdOrder = false;
 		boolean plinkFormat = false;
-		boolean finalHeader = false;
+		boolean finalHeader = true;
 		boolean variablesAllInOneFile = false;
 		boolean summarizeAll = false;
 
@@ -684,12 +685,13 @@ public class PhenoPrep {
 //		phenos = "Hct,Hb,MCHC,MCV,RBC,MCH,RDW,WBC_TOTAL,WBC_NEUTRO,WBC_MONO,WBC_LYMPH,WBC_EOS,WBC_BASO";
 //		covarsCommaDelimited = "Age,Male";
 
-//		dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/testOutliers/AAs/";
-//		idColName = "gwas_id";
-//		phenos = "Fibrinogen,F7,F8,vWF";
-//		covarsCommaDelimited = "V1AGE01,Sex";
-		
-//		summarizeAll(dir, idColName, phenos, covarsCommaDelimited);
+//		dir = "D:/ExomeChip/APTT_and_ProteinC/";
+////		filename = "coag_gwas_recoded2.txt";	// not relevant, data needs to be in separate files named [pheno].csv
+//		idColName = "ID";
+//		phenos = "ARIC_AA_APTT,ARIC_AA_ProteinC,ARIC_EA_APTT,ARIC_EA_ProteinC";
+//		covarsCommaDelimited = "Age,Male";
+//		
+//		summarizeAll(dir, idColName, phenos, covarsCommaDelimited, null);
 //		System.exit(1);
 		
 
@@ -717,7 +719,7 @@ public class PhenoPrep {
 				"	(18) include a header with the final file(s) (i.e. finalHeader=" + finalHeader + " (default))\n" +
 				"	(19) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
 				"  OR:\n" +
-                "   (20) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n" +
+				"	 (6) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n" +
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -788,7 +790,7 @@ public class PhenoPrep {
 			} else if (args[i].startsWith("finalHeader=")) {
 				finalHeader = ext.parseBooleanArg(args[i]);
 				numArgs--;
-			}else if (args[i].startsWith("-summarizeAll")) {
+			} else if (args[i].startsWith("-summarizeAll")) {
 				summarizeAll=true;
 				numArgs--;
 			} else {
