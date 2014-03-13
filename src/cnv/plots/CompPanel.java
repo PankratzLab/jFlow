@@ -37,6 +37,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	int startBase, endBase;
 	ArrayList<CNVariant> selectedCNVs;
 	int rectangleHeight = 10;
+	int oldMaxY = 0;
 	String displayMode;
 	ChromosomeViewer chrViewer;
 
@@ -65,14 +66,18 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 			}
 		}
 
-		Dimension d = getPreferredSize();
-		d.height = maxY;
-		d.width = chrViewer.getWidth();
+		// Only revalidate/change dimensions if they've changed
+		if (maxY != oldMaxY) {
+			oldMaxY = maxY;
+			Dimension d = getPreferredSize();
+			d.height = maxY;
+			d.width = chrViewer.getWidth();
 
-		// Set the maximum Y so we see all of the rectangles
-		setPreferredSize(d);
-		// Revalidate so the scroll bar will be updated properly
-		revalidate();
+			// Set the maximum Y so we see all of the rectangles
+			setPreferredSize(d);
+			// Revalidate so the scroll bar will be updated properly
+			revalidate();
+		}
 
 		// Render all of the rectangles
 		for (CNVRectangle cnvRect : rectangles) {
