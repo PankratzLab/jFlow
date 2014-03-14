@@ -50,6 +50,7 @@ public class CompPlot extends JFrame {
 
 	Project proj;
 	private String[] files;
+	ArrayList<String> allFiles;
 	ArrayList<String> filterFiles;
 	GeneTrack track;
 
@@ -92,6 +93,12 @@ public class CompPlot extends JFrame {
 			// CNV_FILENAMES is empty, throw an error and exit
 			JOptionPane.showMessageDialog(null, "Error - CNV_FILENAMES property is empty");
 			return;
+		}
+		allFiles = new ArrayList<String>();
+		for (int i = 0; i < files.length; i++) {
+			File file = new File(files[i]);
+			String filename = file.getName();
+			allFiles.add(filename);
 		}
 
 		// Get the GeneTrack
@@ -194,7 +201,7 @@ public class CompPlot extends JFrame {
 	public void loadCNVs(int[] location) {
 		// long startTime = Calendar.getInstance().getTimeInMillis();
 
-		cnvRects = new CNVRectangles(hashes, filterFiles, location, probes, minSize, qualityScore);
+		cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize, qualityScore);
 		cnvRects.setRectangleHeight(rectangleHeight);
 		compPanel.setWindow(location[1], location[2]);
 		cnvRects.setScalingFactor(compPanel.getScalingFactor());
