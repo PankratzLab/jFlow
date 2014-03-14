@@ -96,7 +96,11 @@ public class CNVRectangles {
 	}
 
 	/**
-	 * Collapse the rectangles so that all CNVs with the same footprint (start and end) appear as a single rectangle
+	 * Collapse the rectangles so that all CNVs with the same footprint (filename, start, and end) appear as a single rectangle
+	 * 
+	 * Hash key is:
+	 * 
+	 * filename:startX-stopX
 	 * 
 	 * @return ArrayList of collapsed rectangles
 	 */
@@ -138,6 +142,8 @@ public class CNVRectangles {
 			i++;
 		}
 
+		// Initialize the lowest start before packing
+		lowestStart = getLowestRect(collapsedRectangles);
 		collapsedRectangles = packRectangles(collapsedRectangles);
 
 		return collapsedRectangles;

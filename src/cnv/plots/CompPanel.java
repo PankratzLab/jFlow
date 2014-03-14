@@ -103,7 +103,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 			if (displayMode.equals("Collapsed")) {
 				String numCNVs = "x" + cnvRect.getCNVs().size();
 				// If there are 0 copies it may end up black, so don't draw black-on-black
-				if (cnvRect.getCNVColor().equals(Color.BLACK)) {
+				if (cnvRect.getCNV().getCN() == 0) {
 					g.setColor(Color.WHITE);
 				} else {
 					g.setColor(Color.BLACK);
