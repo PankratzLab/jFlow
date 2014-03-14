@@ -71,7 +71,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 	}
 
 	/**
-	 * @return The number of copies of this CNV
+	 * @return The number of CNVs associated with this rectangle
 	 */
 	public int getQuantity() {
 		return quantity;
@@ -79,7 +79,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 
 	/**
 	 * @param newQuantity
-	 *            How many copies there are of this CNV
+	 *            The number of CNVs associated with this rectangle
 	 */
 	public void setQuantity(int newQuantity) {
 		quantity = newQuantity;
