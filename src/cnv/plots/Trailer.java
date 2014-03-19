@@ -823,14 +823,57 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		stop = stop+(int)(rightProportion*dist);
 		updateGUI();
 	}
+	
+	class MessageOfEncouragment implements Runnable {
+		private String message;
+		private long time;
+		private Project proj;
+		private boolean noLongerNecessary;
+
+		public MessageOfEncouragment(String message, Project proj) {
+			this.message = message;
+			this.proj = proj;
+			this.time = new Date().getTime();
+			this.noLongerNecessary = false;
+		}
+		
+		@Override
+		public void run() {
+			int count;
+			
+			count = 0;
+			while (!noLongerNecessary && count < 10) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException ie) {}
+				count++;
+			}
+			
+			
+		}
+		
+		public void disregard() {
+			noLongerNecessary = true;
+		}
+		
+	}
 
 	public void createSampleList() {
-		long time = new Date().getTime();
-		String[] filesPresent = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
-		FontMetrics fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
-		String refresh = "refresh list";
-		int maxWidth = fontMetrics.stringWidth(refresh);
+		long time;
+		String[] filesPresent;
+		FontMetrics fontMetrics;
+		String refresh;
+		int maxWidth;
 
+		time = new Date().getTime();
+		System.out.print("  Getting a list of all files with extension "+Sample.SAMPLE_DATA_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
+		filesPresent = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
+		System.out.println("  which took "+ext.getTimeElapsed(time));
+		time = new Date().getTime();
+		fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
+		refresh = "refresh list";
+		maxWidth = fontMetrics.stringWidth(refresh);
+		System.out.println("  computing font metrics took "+ext.getTimeElapsed(time));
 		System.out.println("Determined sample list in "+ext.getTimeElapsed(time));
 
 		if (filesPresent == null || filesPresent.length == 0) {

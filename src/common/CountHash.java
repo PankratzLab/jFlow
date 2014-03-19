@@ -7,10 +7,12 @@ public class CountHash {
 	private Hashtable<String,String> hash;
 	private Hashtable<String,String> orderOfEntry;
 	private String[] values;
+	private int totalCount;
 
 	public CountHash() {
 		hash = new Hashtable<String,String>();
 		orderOfEntry = new Hashtable<String,String>();
+		totalCount = 0;
 	}
 
 	public void add(String value) {
@@ -24,10 +26,12 @@ public class CountHash {
 		}
 		count++;
 		hash.put(value, count+"");
+		totalCount++;
 	}
 
 	public void remove(String value, boolean reportIfAbsent) {
 		if (hash.containsKey(value)) {
+			totalCount -= Integer.parseInt(hash.get(value)); 
 			hash.remove(value);
 		} else if (reportIfAbsent) {
 			System.err.println("Error - '"+value+"' was not seen in this instance of CountHash and therefore could not be removed");
@@ -36,6 +40,7 @@ public class CountHash {
 
 	public void clear() {
 		hash.clear();
+		totalCount = 0;
 	}
 
 	public String[] getValues() {
@@ -86,7 +91,7 @@ public class CountHash {
 	}
 
 	public int getTotalCount() {
-		return hash.size();
+		return totalCount;
 	}
 
 	public int[] getCounts() {

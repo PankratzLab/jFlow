@@ -587,6 +587,67 @@ public class MarkerDataLoader implements Runnable {
 		return result;
 	}
 
+	public static byte[][] loadFromMarkerDataRafWithoutDecompress(String markerDataRafFileName, int[] indicesOfMarkersInTheFileToLoad, int indexOfFirstSampleToLoad, int numOfSamplesToLoad, long fingerprintShouldBe, Logger log) {
+		byte[][] result = null;
+		RandomAccessFile file;
+        int numBytesPerMarker;
+        long seekLocation;
+        byte[] parameterReadBuffer;
+        long fingerprintActual;
+        int numBytesMarkernamesSection;
+        int numSamplesProj;
+        byte numBytesPerSampleMarker;
+        int numMarkersCurrentFile;
+
+        if (log == null) {
+        	log = new Logger();
+        }
+		parameterReadBuffer = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
+
+		try {
+			file = new RandomAccessFile(markerDataRafFileName, "r");
+			file.read(parameterReadBuffer);
+			numSamplesProj = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_NUMSAMPLES_START);
+			numMarkersCurrentFile = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_NUMMARKERS_START);
+			fingerprintActual = Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKERDATA_FINGERPRINT_START);
+			if (fingerprintActual != fingerprintShouldBe) {
+				log.reportError("Error - mismatched sample fingerprints between sample list and file '" + markerDataRafFileName + "'");
+				System.exit(1);
+			}
+			numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
+			numBytesPerMarker = numBytesPerSampleMarker * numSamplesProj;
+			if (numOfSamplesToLoad<=0 || numOfSamplesToLoad > numSamplesProj) {
+				numOfSamplesToLoad = numSamplesProj; 
+			}
+			numBytesMarkernamesSection = Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_MARKERNAMELEN_START);
+			if (indicesOfMarkersInTheFileToLoad != null) {
+				Arrays.sort(indicesOfMarkersInTheFileToLoad);
+				result = new byte[indicesOfMarkersInTheFileToLoad.length][numBytesPerSampleMarker * numOfSamplesToLoad];
+				for (int i=0; i<indicesOfMarkersInTheFileToLoad.length; i++) {
+			        seekLocation = (long)TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + (long)numBytesMarkernamesSection + indicesOfMarkersInTheFileToLoad[i] * (long)numBytesPerMarker + (long) indexOfFirstSampleToLoad * numBytesPerSampleMarker;
+					file.seek(seekLocation);
+					file.read(result[i]);
+				}
+			} else {
+				result = new byte[numMarkersCurrentFile][numBytesPerSampleMarker * numOfSamplesToLoad];
+				for (int i=0; i<numMarkersCurrentFile; i++) {
+			        seekLocation = (long)TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + (long)numBytesMarkernamesSection + i * (long)numBytesPerMarker + (long) indexOfFirstSampleToLoad * numBytesPerSampleMarker;
+					file.seek(seekLocation);
+					file.read(result[i]);
+				}
+			}
+			file.close();
+		} catch (FileNotFoundException e) {
+			log.reportError("Error - could not find RAF marker file '" + markerDataRafFileName + "'");
+			log.reportException(e);
+		} catch (IOException e) {
+			log.reportError("Error reading RAF marker file '" + markerDataRafFileName + "'");
+			log.reportException(e);
+		}
+        
+        return result;
+	}
+
 	public static MarkerDataLoader loadMarkerDataFromListInSeparateThread(Project proj, String[] markerList, Logger log) {
 		MarkerDataLoader markerDataLoader;
 		Thread thread2;
