@@ -43,7 +43,7 @@ public class Heritability {
 		seen = new Hashtable<String, String>();
 		referenced = new Hashtable<String, String>();
 		try {
-			reader = new BufferedReader(new FileReader(dir+pedfile));
+			reader = new BufferedReader(new FileReader(pedfile));
 			reader.mark(10000);
 			line = reader.readLine().trim().split("[\\s]+");
 			if (FamilyStructure.likelyPedHeader(line)) {
@@ -264,6 +264,7 @@ public class Heritability {
 	    				log.reportError(Array.toStr(line));
 	    			} else {
 	    				root = line[0];
+	    				root = ext.replaceWithLinuxSafeCharacters(root, false);
 	    				new File(root).mkdirs();
 
 	    				dbDelimiter = Files.determineDelimiter(dbFile, log);
@@ -330,14 +331,14 @@ public class Heritability {
 						
 						log.report("Heritability for "+root);
 						log.report(line[1]+" ~ "+Array.toStr(Array.subArray(line, 2), " "));
-						merlinEstimate = computeWithMerlin(dir+root, "../"+pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, merlinExec, log);
-//						solarEstimate = computeWithSolar(dir+root, "../"+pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, solarExec, log);
+						merlinEstimate = computeWithMerlin(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, merlinExec, log);
+//						solarEstimate = computeWithSolar(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, solarExec, log);
 						numOfAllSamples = counter.getTotalCount();
 						numOfFamiliesSizedOne = counter.getSizeOfCountEquals(1);
 						numOfFamiliesSizedTwoOrAbove = counter.getSizeOfCountGreaterThan(2);
-						log.report("Number of samples: " + numOfAllSamples + "\nNumber of families: " + counter.getSize() + "\nNumber of families of size>=2: " + numOfFamiliesSizedTwoOrAbove + "\nAverage size of families of size>=2: " + String.format("%.3", (numOfAllSamples - numOfFamiliesSizedOne) / (float) numOfFamiliesSizedTwoOrAbove) + "\nNumber of families of size=1: " + numOfFamiliesSizedOne);
+						log.report("Number of samples: " + numOfAllSamples + "\nNumber of families: " + counter.getSize() + "\nNumber of families of size>=2: " + numOfFamiliesSizedTwoOrAbove + "\nAverage size of families of size>=2: " + ext.formDeci((numOfAllSamples - numOfFamiliesSizedOne) / (float) numOfFamiliesSizedTwoOrAbove, 3) + "\nNumber of families of size=1: " + numOfFamiliesSizedOne);
 //						summary.println(root + "\t" + merlinEstimate + "\t" + solarEstimate[0] + "\t" + solarEstimate[1] + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
-						summary.println(root + "\t" + merlinEstimate + "\t\t\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
+						summary.println(root + "\t" + merlinEstimate + "\t\t\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + numOfFamiliesSizedOne);
 						log.report("");
 	    			}
 				}				
@@ -364,6 +365,9 @@ public class Heritability {
 		String logfile = null;
 		String controlFile = null;
 		String prefix = "vc-chr01";
+
+//		fromParameters("N:/statgen/BOSS/phenotypes/PhenoPrep/word_recogition/heritability_noCovars.crf", new Logger());
+//		System.exit(0);
 
 		String usage = "\n" + 
 		"link.Heritability requires 0-1 arguments\n" + 

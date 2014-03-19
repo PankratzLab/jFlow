@@ -1,13 +1,23 @@
 package gwas;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
+
+import stats.ProbDist;
 
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.Matrix;
 import common.ext;
 
 public class Emmax {
@@ -74,12 +84,125 @@ public class Emmax {
 		if (!Files.exists(batchDir)) {
 			new File(batchDir).mkdirs();
 		}
-		// TODO
-//		Files.qsub(batchDir+"runEmmax", batchDir, Array.toStringArray(scripts), qsubMemInMBs, qsubWalltimeInHours);
+		// TODO consolidate with new method
+		Files.qsub(batchDir+"runEmmax", batchDir, -1, "[%0]", Matrix.toMatrix(Array.toStringArray(scripts)), qsubMemInMBs, qsubWalltimeInHours);
+//		System.out.println("scripts.size(): " + scripts.size() + "\nbatchDir: " + batchDir);
 		Files.qsubMultiple(batchDir+"chunkSB_emmax", Array.stringArraySequence(scripts.size(), batchDir+"runEmmax_", ".qsub"), 16, -1, qsubMemInMBs, qsubWalltimeInHours);
 	}
+	
+	public static void parseResults(String resultDir, double pValThreshold) {
+		String[] fileNames;
+		String fileName;
+		String label;
+		String[] fileNameRootsTemp;
+		int index;
+		boolean found;
+		Hashtable<String, String[]> modelList;
+		BufferedReader reader;
+		String line;
+		int numSamples = 0;
+		int[] numMarkers;
+		Vector<Double> pVals;
+		double[] pvals;
+		double[] lambda;
+		int[] numMarkersSig;
+		Enumeration<String> keys;
+		String key;
+		String[] trav;
+		PrintWriter writer;
+		
+		fileNames = Files.list(resultDir, ".log", false);
+		modelList = new Hashtable<String, String[]>();
+		for (int i = 0; i < fileNames.length; i++) {
+			found = false;
+			fileName = ext.rootOf(fileNames[i]);
+			for (int j = 0; j < KINSHIP_LABELS.length; j++) {
+				if(fileNames[i].contains("_" + KINSHIP_LABELS[j])) {
+					found = true;
+					index = fileName.indexOf("_" + KINSHIP_LABELS[j]);
+					label = fileName.substring(0, index) + fileName.substring(index +  KINSHIP_LABELS[j].length() + 1);
+					if (! modelList.containsKey(label)) {
+						fileNameRootsTemp = new String[KINSHIP_LABELS.length];
+						fileNameRootsTemp[j] = fileName;
+						modelList.put(label, fileNameRootsTemp);
+					} else {
+						modelList.get(label)[j] = fileName;
+					}
+					break;
+				}
+			}
+			if (! found) {
+				modelList.put(fileName, new String[] {fileName});
+			}
+		}
 
-
+		keys = modelList.keys();
+		try {
+			writer = new PrintWriter(resultDir + "resultsSummary.xln");
+			line = "Pheno\t#Samples";
+			for (int i = 0; i < KINSHIP_LABELS.length; i++) {
+				line += "\t#Markers_" + KINSHIP_LABELS[i] + "\tLambda_" + KINSHIP_LABELS[i] + "\t#MarkersSig_" + KINSHIP_LABELS[i];
+			}
+			writer.println(line);
+			while (keys.hasMoreElements()) {
+				key = keys.nextElement();
+				fileNameRootsTemp = modelList.get(key);
+				numMarkersSig = new int[fileNameRootsTemp.length];
+				lambda = new double[fileNameRootsTemp.length];
+				numMarkers = new int[fileNameRootsTemp.length];
+				for (int i = 0; i < fileNameRootsTemp.length; i++) {
+					pVals = new Vector<Double>();
+					if (fileNameRootsTemp[i] != null) {
+							reader = new BufferedReader(new FileReader(resultDir + fileNameRootsTemp[i] + ".log"));
+							while(reader.ready()) {
+								line = reader.readLine();
+								if (line.contains("Reading the phenotype file")) {
+									while (reader.ready()) {
+										line = reader.readLine();
+										//TODO should consider and tolerate the scenario when there is no " rows and" here
+										if (line.contains(" rows and")) {
+											numSamples = Integer.parseInt(line.trim().split(" rows and")[0]);
+											break;
+										}
+									}
+								}
+							}
+							reader.close();
+							if (new File(resultDir + fileNameRootsTemp[i] + ".ps").exists()) {
+								reader = new BufferedReader(new FileReader(resultDir + fileNameRootsTemp[i] + ".ps"));
+								while (reader.ready()) {
+									trav = reader.readLine().split("\t");
+									if(ext.isValidDouble(trav[1])) {
+										numMarkers[i] ++;
+										pVals.add(Double.parseDouble(trav[2]));
+										if(Double.parseDouble(trav[2]) <= pValThreshold) {
+											numMarkersSig[i] ++;
+										}
+									}
+								}
+								reader.close();
+								pvals = new double[pVals.size()];
+								for (int j = 0; j < pvals.length; j++) {
+									pvals[j] = pVals.elementAt(j);
+								}
+								lambda[i] = ProbDist.ChiDistReverse(Array.median(pvals), 1)/ProbDist.ChiDistReverse(0.50, 1);
+							}
+					}
+				}
+				line = key + "\t" + numSamples;
+				for (int i = 0; i < fileNameRootsTemp.length; i++) {
+					line += "\t" + numMarkers[i] + "\t" + ext.formDeci(lambda[i],4) + "\t" + numMarkersSig[i];
+				}
+				writer.println(line);
+			}
+			writer.close();
+			System.out.println("Results summary is ready at: " + resultDir + "resultsSummary.xln");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -96,7 +219,14 @@ public class Emmax {
 		Logger log;
 		boolean isExisted;
 		boolean isSucceeded;
+		boolean isParseResults;
+		double psig;
 
+//		parseResults("C:/projects/BOSS/toDelete/dichotomic/", .000001);
+//		parseResults("C:/projects/BOSS/toDelete/ver4_1391samples_intercept/", .000001);
+//		System.exit(0);
+		
+		isParseResults = false;
 		commandFullPath = "/home/pankrat2/shared/bin/emmax-beta-07Mar2010/emmax -v -d 10";
 		phenoAndCovDir = "/home/pankrat2/shared/boss/emmax/phenoCovs4/";
 //		phenoAndCovDir = "D:/boss/test/";
@@ -113,6 +243,8 @@ public class Emmax {
 		qsubMemInMBs = 15000;
 		qsubWalltimeInHours = 12;
 
+		psig = 0.000001;
+
 		String usage = "\n" +
 		"gwas.Emmax requires 6 - 8 arguments\n" +
 		"   (1) full path of the command (i.e. command=" + commandFullPath + " (default))\n" +
@@ -125,6 +257,10 @@ public class Emmax {
 		"   (8) directory of batch files (i.e. batchdir=" + batchDir + " (default))\n" +
 		"   (9) (optional) qsub memory size (i.e. qsubmem=" + qsubMemInMBs + " (default; in megabytes))\n" +
 		"   (10) (optional) qsub walltime (i.e. qsubwalltime=" + qsubWalltimeInHours + " (default; in hours))\n" +
+		"Or\n" +
+		"   (1) to parse results (i.e. parsereslt=" + isParseResults + " (default))\n" +
+		"   (2) directory of the results to parse (i.e. outdir=" + outDir + " (default))\n" +
+		"   (3) threshold for significant p-value (i.e. psig=" + psig + " (default))\n" +
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -161,6 +297,12 @@ public class Emmax {
 			} else if (args[i].startsWith("qsubwalltime=")) {
 				qsubWalltimeInHours = Double.parseDouble(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith("parseresult=")) {
+				isParseResults = Boolean.parseBoolean(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("psig=")) {
+				psig = Double.parseDouble(args[i].split("=")[1]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -185,30 +327,33 @@ public class Emmax {
 				log = new Logger(outDir + "Emmax_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 			}
 
-			batchDir = ext.verifyDirFormat(batchDir);
-			log.report("Genvisis (R) 2014. \nEmmax analysis "
-						+ (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
-						+ "\n-Kinship genotype files directory and name root: " +  kinshipGenoDirAndNameRoot
-						+ "\n-Analysis genotype files directory and name root: " +  analysisGenoDirAndNameRoot
-//						+ "\n-Geno file name extension or full path: " + genoNameExtOrFullPath
-						+ "\n-Pheno and covariate files directory: " + phenoAndCovDir
-						+ "\n-Pheno file name extension or full path: " + phenoNameExtOrFullPath
-						+ "\n-Covariate file name extension or full path: " + covNameExtOrFullPath
-						+ "\n-Output files directory: " + outDir
-						+ "\n-Batch files directory: " + batchDir);
-
-			if (isExisted) {
-				log.reportError("Warning --- Directory " + outDir + " already exists. Existing files might be reused or overwritten.");
-			} else if (! isSucceeded) {
-				log.reportError("Warning --- Cannot create the directory " + outDir);
+			if (isParseResults) {
+				parseResults(outDir, psig);
 			} else {
-				log.report("Creating result directory " + outDir);
+				batchDir = ext.verifyDirFormat(batchDir);
+				log.report("Genvisis (R) 2014. \nEmmax analysis "
+							+ (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
+							+ "\n-Kinship genotype files directory and name root: " +  kinshipGenoDirAndNameRoot
+							+ "\n-Analysis genotype files directory and name root: " +  analysisGenoDirAndNameRoot
+//							+ "\n-Geno file name extension or full path: " + genoNameExtOrFullPath
+							+ "\n-Pheno and covariate files directory: " + phenoAndCovDir
+							+ "\n-Pheno file name extension or full path: " + phenoNameExtOrFullPath
+							+ "\n-Covariate file name extension or full path: " + covNameExtOrFullPath
+							+ "\n-Output files directory: " + outDir
+							+ "\n-Batch files directory: " + batchDir);
+	
+				if (isExisted) {
+					log.reportError("Warning --- Directory " + outDir + " already exists. Existing files might be reused or overwritten.");
+				} else if (! isSucceeded) {
+					log.reportError("Warning --- Cannot create the directory " + outDir);
+				} else {
+					log.report("Creating result directory " + outDir);
+				}
+	
+//				jobNamesWithAbsolutePaths = generateScripts(commandFullPath, genoDir, genoNameExtOrFullPath, phenoAndCovDir, phenoNameExtOrFullPath, covNameExtOrFullPath, outDir, batchDir, log);
+				generateScripts(commandFullPath, kinshipGenoDirAndNameRoot, analysisGenoDirAndNameRoot, phenoAndCovDir, phenoNameExtOrFullPath, covNameExtOrFullPath, outDir, batchDir, qsubMemInMBs, qsubWalltimeInHours, log);
+				log.report("\nEmmax scripts are finished.");
 			}
-
-//			jobNamesWithAbsolutePaths = generateScripts(commandFullPath, genoDir, genoNameExtOrFullPath, phenoAndCovDir, phenoNameExtOrFullPath, covNameExtOrFullPath, outDir, batchDir, log);
-			generateScripts(commandFullPath, kinshipGenoDirAndNameRoot, analysisGenoDirAndNameRoot, phenoAndCovDir, phenoNameExtOrFullPath, covNameExtOrFullPath, outDir, batchDir, qsubMemInMBs, qsubWalltimeInHours, log);
-			log.report("\nEmmax scripts are finished.");
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

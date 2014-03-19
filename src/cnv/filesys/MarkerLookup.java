@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Hashtable;
 
 import common.Files;
+import common.HashVec;
 
 public class MarkerLookup implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -33,4 +34,31 @@ public class MarkerLookup implements Serializable {
 	public static MarkerLookup load(String filename, boolean jar) {
 		return (MarkerLookup)Files.readSerial(filename, jar, true);
 	}
+	
+	public String[] getMarkerList() {
+		return HashVec.getKeys(hash, false, false);
+	}
+
+	public String getFirstMarkerDataRafFilename() {
+		return hash.elements().nextElement().split("\t")[0];
+	}
+	
+	public String[] getMarkerDataRafFilenames() {
+		Hashtable<String,String> filenames;
+		String[] line;
+		String[] listOfMarkersInMarkerLookup;
+		
+		filenames = new Hashtable<String, String>();
+
+		listOfMarkersInMarkerLookup = getMarkerList();
+		for (int i = 0; i < listOfMarkersInMarkerLookup.length; i++) {
+			line = get(listOfMarkersInMarkerLookup[i]).split("[\\s]+");
+			if (!filenames.containsKey(line[0])) {
+				filenames.put(line[0], "");
+			}
+		}
+
+		return HashVec.getKeys(filenames, false, false);
+	}
+	
 }

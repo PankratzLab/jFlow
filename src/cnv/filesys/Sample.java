@@ -18,6 +18,7 @@ import common.DoubleVector;
 import common.Elision;
 import common.Files;
 import common.HashVec;
+import common.Logger;
 import common.ext;
 
 public class Sample implements Serializable {
@@ -32,15 +33,15 @@ public class Sample implements Serializable {
 	public static final String SAMPLE_DATA_FILE_EXTENSION = ".sampRAF";
 //	public static final byte PARAMETER_SECTION_BYTES = 13;
 	public static final byte PARAMETER_SECTION_BYTES = 17;
-	public static final byte PARAMETER_SECTION_NUMMARK_LOC = 0;
-	public static final byte PARAMETER_SECTION_NUMMARK_LEN = 4;
-	public static final byte PARAMETER_SECTION_NULLSTAT_LOC = 4;
-	public static final byte PARAMETER_SECTION_NULLSTAT_LEN = 1;
-	public static final byte PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC = 5;
-	public static final byte PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LEN = 4;
+	public static final byte PARAMETER_SECTION_NUMMARKERS_LOCATION = 0;
+	public static final byte PARAMETER_SECTION_NUMMARKERS_LENGTH = 4;
+	public static final byte PARAMETER_SECTION_NULLSTAT_LOCATION = 4;
+	public static final byte PARAMETER_SECTION_NULLSTAT_LENGTH = 1;
+	public static final byte PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION = 5;
+	public static final byte PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LENGTH = 4;
 //	public static final byte PARAMETER_SECTION_FINGPRNT_LOC = 5;
-	public static final byte PARAMETER_SECTION_FINGPRNT_LOC = 9;
-	public static final byte PARAMETER_SECTION_FINGPRNT_LEN = 8;
+	public static final byte PARAMETER_SECTION_FINGPRNT_LOCATION = 9;
+	public static final byte PARAMETER_SECTION_FINGPRNT_LENGTH = 8;
 	public static final int MAX_ROWS_PER_WRITE_OPERATION = 500;
 	public static final byte NULLSTATUS_GC_LOCATION = 0;
 	public static final byte NULLSTATUS_X_LOCATION = 1;
@@ -568,14 +569,14 @@ public class Sample implements Serializable {
 			parameters = new byte[PARAMETER_SECTION_BYTES];
 			temp = Compression.intToBytes(xs.length);
 			for (int i=0; i<temp.length; i++) {
-				parameters[PARAMETER_SECTION_NUMMARK_LOC + i] = temp[i];
+				parameters[PARAMETER_SECTION_NUMMARKERS_LOCATION + i] = temp[i];
 			}
 
-			parameters[PARAMETER_SECTION_NULLSTAT_LOC] = nullStatus;
+			parameters[PARAMETER_SECTION_NULLSTAT_LOCATION] = nullStatus;
 
 			temp = Compression.longToBytes(fingerprint);
 			for (int i=0; i<temp.length; i++) {
-				parameters[PARAMETER_SECTION_FINGPRNT_LOC + i] = temp[i];
+				parameters[PARAMETER_SECTION_FINGPRNT_LOCATION + i] = temp[i];
 			}
 			rafFile.write(parameters);
 
@@ -643,7 +644,7 @@ public class Sample implements Serializable {
 			if (outOfRangeValuesEachSample!=null && outOfRangeValuesEachSample.size()>0) {
 				outOfRangeValuesWriteBuffer = Compression.objToBytes(outOfRangeValuesEachSample);
 				rafFile.write(outOfRangeValuesWriteBuffer);
-				rafFile.seek(PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+				rafFile.seek(PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION);
 				rafFile.writeInt(outOfRangeValuesWriteBuffer.length);
 			}
 
@@ -695,9 +696,9 @@ public class Sample implements Serializable {
 			file.close();
 
 //			numMarkers = Compression.bytesToInt(new byte[]{readBuffer[0], readBuffer[1], readBuffer[2], readBuffer[3]});
-			temp = new byte[PARAMETER_SECTION_NUMMARK_LEN];
+			temp = new byte[PARAMETER_SECTION_NUMMARKERS_LENGTH];
 			for (int i=0; i<temp.length; i++) {
-				temp[i] = readBuffer[PARAMETER_SECTION_NUMMARK_LOC + i];
+				temp[i] = readBuffer[PARAMETER_SECTION_NUMMARKERS_LOCATION + i];
 			}
 			numMarkers = Compression.bytesToInt(temp);
 
@@ -706,18 +707,18 @@ public class Sample implements Serializable {
 //			for (int i=0; i<temp.length; i++) {
 //				temp[i] = readBuffer[PARAMETER_SECTION_NULLSTAT_LOC + i];
 //			}
-			nullStatus = readBuffer[PARAMETER_SECTION_NULLSTAT_LOC];
+			nullStatus = readBuffer[PARAMETER_SECTION_NULLSTAT_LOCATION];
 
-			temp = new byte[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LEN];
+			temp = new byte[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LENGTH];
 			for (int i=0; i<temp.length; i++) {
-				temp[i] = readBuffer[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC + i];
+				temp[i] = readBuffer[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION + i];
 			}
 			numBytesOfOutOfRangeValues = Compression.bytesToInt(temp);
 
 //			fingerPrint = Compression.bytesToLong(new byte[]{readBuffer[5], readBuffer[6], readBuffer[7], readBuffer[8], readBuffer[9], readBuffer[10], readBuffer[11], readBuffer[12]});
-			temp = new byte[PARAMETER_SECTION_FINGPRNT_LEN];
+			temp = new byte[PARAMETER_SECTION_FINGPRNT_LENGTH];
 			for (int i=0; i<temp.length; i++) {
-				temp[i] = readBuffer[PARAMETER_SECTION_FINGPRNT_LOC + i];
+				temp[i] = readBuffer[PARAMETER_SECTION_FINGPRNT_LOCATION + i];
 			}
 			fingerPrint = Compression.bytesToLong(temp);
 
@@ -853,10 +854,8 @@ public class Sample implements Serializable {
 //		}
 //	}
 
-
-
 	@SuppressWarnings("unchecked")
-	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, boolean seekOrLoadWholeFile, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampleMarker, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
+	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, boolean seekOrLoadWholeFile, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampleMarker, int numMarkersInProj, Hashtable<String, Float> allOutliers, Logger log) {
 		byte[] outliersBuffer;
 		Hashtable<String, Float> sampleOutlierHash;
 		Enumeration<String> keys;
@@ -869,10 +868,10 @@ public class Sample implements Serializable {
 		try {
 			if (seekOrLoadWholeFile) {
 		    	if (allOutliers != null) {
-		    		sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+		    		sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION);
 		    		outlierSectionSize = sampleFile.readInt();
 		    	}
-	
+
 		    	seekPointer = Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
 		    	if (seekPointer != sampleFile.getFilePointer()) {
 		    		sampleFile.seek(seekPointer);
@@ -900,9 +899,9 @@ public class Sample implements Serializable {
 		    		readBuffer[i] = readBufferLocal[pointer];
 		    		pointer ++;
 		    	}
-	
+
 				if (allOutliers != null) {
-		    		pointer = Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC;
+		    		pointer = Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION;
 	    			outlierSectionSize = Compression.bytesToInt(readBufferLocal, pointer);
 		    		if (outlierSectionSize > 0) {
 		    			pointer = Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampleMarker;
@@ -915,12 +914,12 @@ public class Sample implements Serializable {
 		    		}
 		    	}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (ArrayIndexOutOfBoundsException e) {
-			e.printStackTrace();
+		} catch (IOException ioe) {
+			log.reportError("Error reading from a "+Sample.SAMPLE_DATA_FILE_EXTENSION+" file");
+			log.reportException(ioe);
+		} catch (ClassNotFoundException cnfe) {
+			log.reportError("Error reading from a "+Sample.SAMPLE_DATA_FILE_EXTENSION+" file");
+			log.reportException(cnfe);
 		}
 	}
 
@@ -941,7 +940,7 @@ public class Sample implements Serializable {
 		try {
 			sampleFile = new RandomAccessFile(sampleFileName, "r");
 	    	if (allOutliers != null) {
-	    		sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOC);
+	    		sampleFile.seek(Sample.PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION);
 	    		outlierSectionSize = sampleFile.readInt();
 	    	}
 

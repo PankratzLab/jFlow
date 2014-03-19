@@ -762,4 +762,8 @@ public class Project extends Properties {
 		}
 		log.reportError(str);
 	}
+	
+	public Logger generateLog() {
+		return new Logger(getProjectDir() + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+	}
 }
