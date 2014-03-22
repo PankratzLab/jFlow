@@ -404,6 +404,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 			for (int i = 0; i < colorKeys.size(); i++) {
 				if (colorKeys.get(i) == selectedColorKey[0]) {
+					System.out.println("Error: Already sey as color key");
+					JOptionPane.showMessageDialog(null, "Error: Already sey as color key", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 			}
@@ -551,6 +553,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		colorKeyPanel.updateColorVariablePanel();
 
 		twoDPanel.paintAgain();
+		System.out.println(colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data");
+		JOptionPane.showMessageDialog(null, colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data", "Information", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue) {
