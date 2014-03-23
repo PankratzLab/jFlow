@@ -69,6 +69,11 @@ public class ColorKeyPanel extends JPanel {
 	private JPanel classValuesPanel;
 	private int currentClass;
 	private JRadioButton[] classRadioButtons;
+
+	public JPanel getClassVariablesPanel() {
+		return classVariablesPanel;
+	}
+
 	private SampleData sampleData;
 	private AbstractPanel sisterPanel;
 	private Hashtable<String, String> disabledClassValues;

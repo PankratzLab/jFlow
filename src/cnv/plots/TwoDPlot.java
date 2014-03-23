@@ -445,6 +445,55 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		addToSampleData(colorKeyValue, recentSelectionFile, selectedColorKey);
 	}
 
+	public void removeColorKey (String colorKey){
+
+		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+
+		System.out.println("Sample data: " + sampleDatafilename);
+
+		String[] sampeleDataHeader = Files.getHeaderOfFile(sampleDatafilename, null);	// header of sample data
+		int i;
+		for(i = 0; i < sampeleDataHeader.length; i++){
+			String[] splitOnEquals = sampeleDataHeader[i].split("=", 2);
+			if(splitOnEquals.length > 0 && splitOnEquals[0].equalsIgnoreCase("CLASS")){
+				if(splitOnEquals[1].split(";", 2)[0].equalsIgnoreCase(colorKey)){
+					// color key found at position i in header columns
+					break;
+				}
+			}
+		}
+		if( i == sampeleDataHeader.length){
+			// column to be deleted was not foung in sample data
+			JOptionPane.showMessageDialog(null, "Error: Unable to find the specified column in Sample Data for deletion", "Error", JOptionPane.ERROR_MESSAGE);
+			System.out.println("Error: Unable to find the specified column in Sample Data for deletion");
+			return;
+		} else{
+			// the column at i is to be deleted
+			int[] colToLoad = new int[sampeleDataHeader.length - 1];
+			int index = 0, col = 0;
+			while (index < (sampeleDataHeader.length - 1)){
+				if(col != i){
+					colToLoad[index++] = col;
+				}
+				col++;
+			}
+
+			// load the sample data without the color key column which has to bed deleted
+			String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, colToLoad, false);
+
+			String sampleDataDelimiter = Files.determineDelimiter(sampleDatafilename, null);
+
+			String bakFile = proj.archiveFile(sampleDatafilename);	// create backup of sample data file
+			System.out.println("Deleting color key " + colorKey + " from sample data. Sample data backup: " + bakFile);
+
+			// write the new sample data which does not have the removed color key column
+
+			Files.writeMatrix(sampleDataMatrix, sampleDatafilename, sampleDataDelimiter);
+			JOptionPane.showMessageDialog(null, colorKey + "deleted in sample data", "Information", JOptionPane.INFORMATION_MESSAGE);
+			reloadSampleDataUI();
+		}
+	}
+
 	/**
 	 * Function to indentify the headers in the sample data file
 	 * @param header: a string containing all the headers read as string
@@ -545,18 +594,21 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		} finally {
 			closeStream(reader);
 			closeStream(writer);
-			twoDPanel.paintAgain();
+//			twoDPanel.paintAgain();
 		}
+		reloadSampleDataUI();
+		System.out.println(colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data");
+		JOptionPane.showMessageDialog(null, colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data", "Information", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	public void reloadSampleDataUI(){
 		proj.resetSampleData();
 		sampleData = proj.getSampleData(2, false);
 		colorKeyPanel.updateSampleData(sampleData);
 		colorKeyPanel.updateColorVariablePanel();
 
 		twoDPanel.paintAgain();
-		System.out.println(colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data");
-		JOptionPane.showMessageDialog(null, colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data", "Information", JOptionPane.INFORMATION_MESSAGE);
 	}
-
 	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue) {
 		Hashtable<String, String> colorKeyValueHash;
 
@@ -754,7 +806,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 
 //	public float[][] getDataSelected() {
-//		float[][] result;
+//		float[][] result;3
 //		String[][] selectedNodes = tree.getSelectionValues();
 //
 ////		System.out.println("tree.getSelectionValues():\t"+temp[0][0]+", "+temp[0][1]+", "+temp[1][0]+", "+temp[1][1]);
@@ -1066,8 +1118,62 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void updateColorKey(Hashtable<String,String> hash) {
 		colorKeyPanel.updateColorKey(hash);
+		generateShortcutMenus();
 	}
 
+
+	public void generateShortcutMenus() {
+		JPanel colorClass = colorKeyPanel.getClassVariablesPanel();
+		Component[] components = colorClass.getComponents();
+		MouseListener mouseListenerForRadios = new MouseListener() {
+			public void mouseReleased(MouseEvent e) {
+			}
+
+			public void mousePressed(MouseEvent e) {
+			}
+
+			public void mouseExited(MouseEvent e) {
+			}
+
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JRadioButton source;
+				JPopupMenu menu;
+				String annotation;
+				int annotationIndex;
+
+				source = (JRadioButton) e.getSource();
+				annotation = source.getText();
+
+				if (e.getButton() == MouseEvent.BUTTON3) {
+
+					menu = new JPopupMenu();
+					menu.setName("Color code menu");
+
+					menu.add(new AbstractAction("Delete: " + annotation) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void actionPerformed(ActionEvent e1) {
+							String annotation = e1.getActionCommand();
+							annotation = annotation.substring("Delete: ".length());
+							removeColorKey(annotation);
+						}
+
+					});
+					menu.show(source, e.getX(), e.getY());
+				}
+			}
+		};
+		for (Component comp : components) {
+			if (comp instanceof JRadioButton) {
+				comp.addMouseListener(mouseListenerForRadios);
+			}
+		}
+	}
 
 //	public void displayIndex(JTextField field) {
 //		field.setText((markerIndex+1)+" of "+markerList.length);
