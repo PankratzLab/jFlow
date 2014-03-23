@@ -296,20 +296,34 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		plot.setCPLocation(newLocation);
 	}
 
-	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		int[] newLocation = plot.getCPLocation();
 		int[] oldLocation = Arrays.copyOf(newLocation, newLocation.length);
 		int chromosomeLength = Positions.CHROMOSOME_LENGTHS[newLocation[0]];
 
 		int rotation = e.getWheelRotation();
-		int width = endBase - startBase;
-		int zoomIn = width / 8;
-		int zoomOut = width / 2;
+		double width = endBase - startBase;
+
+		// Get the X position of the mouse
+		int mouseX = e.getX();
+
+		// Figure out the relative position
+		double percentage = (double) mouseX / (double) getWidth();
+
+		// Figure out which base we're moused over
+		int mouseBase = startBase + (int) ((double) mouseX / scalingFactor);
 
 		if (rotation > 0) {
-			int loc1 = newLocation[1] - zoomOut;
-			int loc2 = newLocation[2] + zoomOut;
+			// Zoom out 10%
+			double newWidth = width / 0.9;
+			// Figure out how much of this width comes before mouseX
+			double leftBases = (newWidth - 1) * percentage;
+			// Figure out how much of this width comes after mouseX
+			double rightBases = newWidth - leftBases - 1;
+
+			int loc1 = (int) (mouseBase - leftBases);
+			int loc2 = (int) (mouseBase + rightBases);
+
 			// Zoom out
 			if (loc1 < 0) {
 				newLocation[1] = 0;
@@ -323,8 +337,16 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 				newLocation[2] = loc2;
 			}
 		} else if (rotation < 0) {
-			int loc1 = newLocation[1] + zoomIn;
-			int loc2 = newLocation[2] - zoomIn;
+			// Zoom in 10%
+			double newWidth = width * 0.9;
+			// Figure out how much of this width comes before mouseX
+			double leftBases = (newWidth - 1) * percentage;
+			// Figure out how much of this width comes after mouseX
+			double rightBases = newWidth - leftBases - 1;
+
+			int loc1 = (int) (mouseBase - leftBases);
+			int loc2 = (int) (mouseBase + rightBases);
+
 			// Zoom in
 			if (loc1 > loc2) {
 				// We've wrapped, don't zoom any further
@@ -338,6 +360,5 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		if (!Arrays.equals(oldLocation, newLocation)) {
 			plot.setCPLocation(newLocation);
 		}
-
 	}
 }
