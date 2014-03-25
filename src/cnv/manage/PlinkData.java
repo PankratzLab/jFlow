@@ -835,7 +835,7 @@ public class PlinkData {
 				fsamp = proj.getFullSampleFromRandomAccessFile(targetSamples[i]);
 
 				if (fsamp == null) {
-					System.err.println("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + ".fsamp was not found in directory: " + proj.getDir(Project.SAMPLE_DIRECTORY));
+					System.err.println("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION+ " was not found in directory: " + proj.getDir(Project.SAMPLE_DIRECTORY));
 					genotypes = new byte[1];
 
 				} else {

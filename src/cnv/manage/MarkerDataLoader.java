@@ -273,7 +273,7 @@ public class MarkerDataLoader implements Runnable {
 			return;
 		}
 		
-		initiated = true;
+		initiate();
 		maxPerCycle = proj.getInt(Project.MAX_MARKERS_LOADED_PER_CYCLE);
 
 		fingerprint = proj.getSampleList().getFingerprint();
@@ -597,6 +597,9 @@ public class MarkerDataLoader implements Runnable {
 		log.report("Marker data is loading in an independent thread.");
 		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
 		markerDataLoader = new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB, log);
+		if (markerDataLoader.isKilled()) {
+			return null;
+		}
 		markerDataLoader.initiate();
 		thread2 = new Thread(markerDataLoader);
 		thread2.start();
@@ -607,6 +610,10 @@ public class MarkerDataLoader implements Runnable {
 	
 	private void initiate() {
 		initiated = true;		
+	}
+
+	public boolean isKilled() {
+		return killed;		
 	}
 
 	private void registerThread(Thread thread) {

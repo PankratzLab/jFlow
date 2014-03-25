@@ -1651,6 +1651,9 @@ public class SkatMeta {
 			} else if (args[i].startsWith("dir=")) {
 				dir = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("maps=")) {
+				mapsFile = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("-determineObjectNames")) {
 				determineObjectNames = true;
 				numArgs--;

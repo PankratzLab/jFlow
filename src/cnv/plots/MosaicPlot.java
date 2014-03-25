@@ -18,7 +18,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 	public static final String[] MOSAICISM_HEADER = {"Sample", "Band", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo"};
 
 	public MosaicPlot(Project proj, String[][] samples, double[][] data) {
-		super("Mosaicism Plot");
+		super("Genvisis - Mosaicism Plot");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		MosaicPanel panel = new MosaicPanel(proj, samples, data);

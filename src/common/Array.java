@@ -331,6 +331,21 @@ public class Array {
 	}
 
 	/**
+	 * Creates an integer array from the contents of a double array
+	 * 
+	 * @param array
+	 *            array of double to be converted
+	 * @return array of the converted integers
+	 */
+	public static int[] toIntArray(double[] array) {
+		int[] arr = new int[array.length];
+		for (int i = 0; i<array.length; i++) {
+			arr[i] = (int)array[i];
+		}
+		return arr;
+	}
+
+	/**
 	 * Creates an array of numbers from the contents of a string array
 	 * 
 	 * @param array
@@ -2746,6 +2761,40 @@ public class Array {
 	 */
 	public static int[] addIntToArray(int value, int[] array, int indexOfNewStr) {
     	int[] new_array = new int[array.length+1];
+    
+    	for (int i = 0; i<new_array.length; i++) {
+    		new_array[i] = i==indexOfNewStr?value:array[i>indexOfNewStr?i-1:i];
+    	}
+    
+    	return new_array;
+    }
+	
+	/**
+	 * Adds specified double to the end of an array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param value
+	 *            double to add to the array 
+	 * @return new array
+	 */
+	public static double[] addDoubleToArray(double value, double[] array) {
+		return addDoubleToArray(value, array, array.length);
+	}
+
+	/**
+	 * Adds specified double to a specified index of an array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param value
+	 *            double to add to the array 
+	 * @param indexOfNewArray
+	 *            location of the double in the new array 
+	 * @return new array
+	 */
+	public static double[] addDoubleToArray(double value, double[] array, int indexOfNewStr) {
+		double[] new_array = new double[array.length+1];
     
     	for (int i = 0; i<new_array.length; i++) {
     		new_array[i] = i==indexOfNewStr?value:array[i>indexOfNewStr?i-1:i];

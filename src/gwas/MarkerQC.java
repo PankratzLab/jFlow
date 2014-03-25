@@ -20,7 +20,7 @@ public class MarkerQC {
 	public static final String[] FINAL_HEADER = {"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value", "miss.hap min p-value", "P_MISS"};
 //	public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero", "minmishap", "p_miss"};
 
-	public static void parse(String[][] params, Logger log) {
+	public static void parse(String dir, String[][] params, Logger log) {
 		BufferedReader reader;
         String[] line;
         Hashtable<String,String[]> hash;
@@ -39,20 +39,20 @@ public class MarkerQC {
 			headers = new Vector<String[]>();
 			for (int i = 3; i<params.length; i++) {
 				if (params[i][0].equals("maf")) {
-					v.add(params[i][1]+" 1 4="+params[i][0]);
+					v.add(dir+params[i][1]+" 1 4="+params[i][0]);
 					headers.add(FRQ_HEADER);
 				} else if (params[i][0].equals("callrate")) {
-					v.add(params[i][1]+" 1 $#1-4="+params[i][0]);
+					v.add(dir+params[i][1]+" 1 $#1-4="+params[i][0]);
 					headers.add(LMISS_HEADER);
 				} else if (params[i][0].equals("hwe")) {
-					v.add(params[i][1]+" !2!ALL !2!AFF 1 8="+params[i][0]); // allow for the possibility of a quantitative trait, which lists the test as ALL(QT); otherwise it should only accept the UNAFF test
+					v.add(dir+params[i][1]+" !2!ALL !2!AFF 1 8="+params[i][0]); // allow for the possibility of a quantitative trait, which lists the test as ALL(QT); otherwise it should only accept the UNAFF test
 					headers.add(HWE_HEADER);
 				} else if (params[i][0].equals("mishap_hetero")) {
-					v.add(params[i][1]+" !1=HETERO 0 7="+params[i][0]);
+					v.add(dir+params[i][1]+" !1=HETERO 0 7="+params[i][0]);
 					headers.add(MISSHAP_HEADER);
 				} else if (params[i][0].equals("mishap_min")) {
 					try {
-	                    reader = new BufferedReader(new FileReader(params[i][1]));
+	                    reader = new BufferedReader(new FileReader(dir+params[i][1]));
 	                	ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MISSHAP_HEADER, true);
 	                	prev = "";
 	                	mishaps = new Vector<String>();
@@ -83,7 +83,7 @@ public class MarkerQC {
 	                    }
 	                	hash.put("!colNames", new String[] {params[i][0]});
 	                    reader.close();
-	                    SerialHash.createSerializedStringArrayHash(GenParser.parseSerialFilename(new String[] {params[i][1], "0", "$MIN7"}), hash);
+	                    SerialHash.createSerializedStringArrayHash(dir+GenParser.parseSerialFilename(new String[] {params[i][1], "0", "$MIN7"}), hash);
                     } catch (FileNotFoundException fnfe) {
                     	log.reportError("Error: file \""+params[i][1]+"\" not found in current directory");
                     	log.reportException(fnfe);
@@ -93,26 +93,29 @@ public class MarkerQC {
                     	log.reportException(ioe);
 	                    System.exit(2);
                     }
-					v.add(params[i][1]+" 0 $MIN7");
+					v.add(dir+params[i][1]+" 0 $MIN7");
 					headers.add(MISSHAP_HEADER);
 				} else if (params[i][0].equals("p_miss")) {
-					v.add(params[i][1]+" 1 4="+params[i][0]);
-					headers.add(MISSTEST_HEADER);
+					if (Files.exists(dir+params[i][1]) && new File(dir+params[i][1]).length() > 0) {
+						v.add(dir+params[i][1]+" 1 4="+params[i][0]);
+						headers.add(MISSTEST_HEADER);
+					}
 				} else if (params[i][0].equals("p_gender")) {
-					v.add(params[i][1]+" !0<24 1 8="+params[i][0]);
+					v.add(dir+params[i][1]+" !0<24 1 8="+params[i][0]);
 					headers.add(GENDER_ASSOC_HEADER);
 				} else if (params[i][0].equals("p_gender_miss")) {
-					v.add(params[i][1]+" !0<24 1 4="+params[i][0]);
+					v.add(dir+params[i][1]+" !0<24 1 4="+params[i][0]);
 					headers.add(MISSTEST_HEADER);
 				} else {
 					log.report("Using user-defined file: "+params[i][1]);
-					v.add(params[i][1]+" "+(params[i].length>3?params[i][3]:"0 1")+"="+params[i][0]); // allows for additional user-defined files
+					v.add(dir+params[i][1]+" "+(params[i].length>3?params[i][3]:"0 1")+"="+params[i][0]); // allows for additional user-defined files
 					headers.add(null);
 				}
             }
-			markerNames = HashVec.loadFileToStringArray(params[1][1], params[1].length>3&&params[1][3].equals("header"), new int[] {Integer.parseInt(params[1][2])}, false);
+			markerNames = HashVec.loadFileToStringArray(dir+params[1][1], params[1].length>3&&params[1][3].equals("header"), new int[] {Integer.parseInt(params[1][2])}, false);
 			log.report("Found "+markerNames.length+" markers to parse in "+params[1][1]);
-			Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers), "Marker", ".", params[0][1], log, true, true, false);
+			Files.writeList(Array.toStringArray(v), dir+"whatGoesIn.out");
+			Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers), "Marker", ".", dir+params[0][1], log, true, true, false);
 			log.report("Finished in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportException(e);
@@ -120,7 +123,7 @@ public class MarkerQC {
 		}
 	}
 	
-	public static void testThresholds(String[][] params, Logger log) {
+	public static void testThresholds(String dir, String[][] params, Logger log) {
 		BufferedReader reader;
         PrintWriter[] writers;
         PrintWriter writer;
@@ -132,30 +135,36 @@ public class MarkerQC {
         String reason, simpleReason;
 
         try {
-        	if (Files.exists(params[0][1], false)) {
-        		log.report("Using existing file: "+params[0][1]);
+        	if (Files.exists(dir+params[0][1], false)) {
+        		log.report("Using existing file: "+dir+params[0][1]);
         	} else {
-        		log.report("Generating new source file: "+params[0][1]);
-        		parse(params, log);
+        		log.report("Generating new source file: "+dir+params[0][1]);
+        		parse(dir, params, log);
         	}
 	        
         	ops = new String[params.length-3];
 	        thresholds = new double[params.length-3];
 	        for (int i = 0; i<params.length-3; i++) {
-	        	for (int j = 0; j<Maths.OPERATORS.length; j++) {
-	        		if (params[i+3][2].startsWith(Maths.OPERATORS[j])) {
-	        			ops[i] = Maths.OPERATORS[j];
-	        		}
-                }
-	        	if (ops[i] == null) {
-	        		log.reportError("Error - invalid operator for "+params[i+3][0]+" ('"+params[i+3][2]+"')");
-	        		System.exit(1);
-	        	}
-	        	try {
-	        		thresholds[i] = Double.parseDouble(params[i+3][2].substring(ops[i].length()));
-	        	} catch (NumberFormatException nfe) {
-	        		log.reportError("Error - threshold for "+params[i+3][0]+" ('"+params[i+3][2].substring(1)+"') is not a valid number");
-	        		System.exit(1);
+	        	if (!params[i+3][0].equals("dir")) {
+		        	for (int j = 0; j<Maths.OPERATORS.length; j++) {
+//		        		try {
+		        		if (params[i+3][2].startsWith(Maths.OPERATORS[j])) {
+		        			ops[i] = Maths.OPERATORS[j];
+		        		}
+//		        		} catch (Exception e) {
+//		        			System.err.println("Error: "+Array.toStr(params[i+3]));
+//		        		}
+	                }
+		        	if (ops[i] == null) {
+		        		log.reportError("Error - invalid operator for "+params[i+3][0]+" ('"+params[i+3][2]+"')");
+		        		System.exit(1);
+		        	}
+		        	try {
+		        		thresholds[i] = Double.parseDouble(params[i+3][2].substring(ops[i].length()));
+		        	} catch (NumberFormatException nfe) {
+		        		log.reportError("Error - threshold for "+params[i+3][0]+" ('"+params[i+3][2].substring(1)+"') is not a valid number");
+		        		System.exit(1);
+		        	}
 	        	}
             }
 
@@ -163,14 +172,14 @@ public class MarkerQC {
 	        indices = null;
 	        counts = null;
 	        try {
-	            reader = new BufferedReader(new FileReader(params[0][1]));
+	            reader = new BufferedReader(new FileReader(dir+params[0][1]));
 	            writers = new PrintWriter[4];
-	            writers[0] = new PrintWriter(new FileWriter(params[2][1]+"_drops.dat"));
-	            writers[1] = new PrintWriter(new FileWriter(params[2][1]+"_singles.out"));
-	            writers[2] = new PrintWriter(new FileWriter(params[2][1]+"_annotated.xln"));
-	            writers[3] = new PrintWriter(new FileWriter(params[2][1]+"_allAnnotations.out"));
+	            writers[0] = new PrintWriter(new FileWriter(dir+params[2][1]+"_drops.dat"));
+	            writers[1] = new PrintWriter(new FileWriter(dir+params[2][1]+"_singles.out"));
+	            writers[2] = new PrintWriter(new FileWriter(dir+params[2][1]+"_annotated.xln"));
+	            writers[3] = new PrintWriter(new FileWriter(dir+params[2][1]+"_allAnnotations.out"));
 	            line = reader.readLine().trim().split("\\t");
-	            indices = ext.indexFactors(Array.subArray(Matrix.extractColumn(params, 0), 3), line, false, log, true, true);
+	            indices = ext.indexFactors(Array.subArray(Matrix.extractColumn(params, 0), 3), line, false, log, true, false);
 		        counts = new int[3][indices.length]; // all, primary, only
 	            while (reader.ready()) {
 	            	line = reader.readLine().trim().split("\\t");
@@ -179,7 +188,7 @@ public class MarkerQC {
 	            	simpleReason = "";
             		for (int lap = 0; lap<2; lap++) {
 		            	for (int i = 0; i<indices.length; i++) {
-		            		if (!ext.isMissingValue(line[indices[i]]) && Maths.op(Double.parseDouble(line[indices[i]]), thresholds[i], ops[i])) {
+		            		if (indices[i] >= 0 && !ext.isMissingValue(line[indices[i]]) && Maths.op(Double.parseDouble(line[indices[i]]), thresholds[i], ops[i])) {
         						if (lap==0) {
             						counts[0][i]++;
             						if (fail == 0) {
@@ -221,7 +230,7 @@ public class MarkerQC {
             	maxSize = Math.max(maxSize, (params[i+3][0]+params[i+3][2]+":").length());
             }
 
-	        writer = new PrintWriter(new FileWriter(params[2][1]+".out"));
+	        writer = new PrintWriter(new FileWriter(dir+params[2][1]+".out"));
             writer.println("Number of markers failed: "+Array.sum(counts[1])+" of "+count+" ("+ext.formDeci((double)Array.sum(counts[1])/(double)count*100, 2)+"%)");
             writer.println();
             
@@ -256,7 +265,9 @@ public class MarkerQC {
         String key;
         String[] file, markers;
         Vector<String> paramV;
+        String dir;
 
+        dir = "";
 		paramV = Files.parseControlFile(filename, "miss", new String[] {"file=markerQC.xln", "markers=freq.frq,1,header", "chr=freq.frq,<1,1:0", "maf=freq.frq,<0.01", "callrate=missing.lmiss,<0.98", "hwe=hardy.hwe,<0.00001", "mishap_hetero=mishap.missing.hap,<0.0001", "mishap_min=mishap.missing.hap,<0.0001", "p_miss=test.missing.missing,<0.0001", "p_gender=gender.assoc,<1E-7", "p_gender_miss=gender.missing,<0.0001"}, log);
 		if (paramV != null) {
 	        file = null;
@@ -269,10 +280,16 @@ public class MarkerQC {
 	        	record = new String[line.length+1];
 	        	record[0] = key;
 	        	for (int j = 0; j<line.length; j++) {
-	        		record[j+1] = ext.replaceAllWith(line[j], ":", " ");
+	        		record[j+1] = ext.replaceAllWith(line[j], ":", "QWERTY");
+	        		record[j+1] = ext.replaceAllWith(record[j+1], "QWERTY/", ":/");
+	        		record[j+1] = ext.replaceAllWith(record[j+1], "QWERTY", " ");
 	            }
 	        	if (key.equals("file")) {
 	        		file = record;
+	        		file[0] = dir+file[0];
+ 	        	} else if (key.equals("dir")) {
+ 	        		dir = line[0];
+ 	        		System.out.println("Running out of: "+dir);
  	        	} else if (key.equals("markers")) {
 	        		if (record.length < 3) {
 	        			markers = new String[] {key, line[0], "0"};
@@ -298,7 +315,7 @@ public class MarkerQC {
 	        }
 
 	    	v.insertElementAt(new String[] {"root", ext.rootOf(filename)}, 2);
-	        testThresholds(Matrix.toStringArrays(v), log);
+	        testThresholds(dir, Matrix.toStringArrays(v), log);
 		}
 	}
 	

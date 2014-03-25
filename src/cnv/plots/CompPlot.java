@@ -79,6 +79,7 @@ public class CompPlot extends JFrame {
 	ArrayList<CNVariantHash> hashes;
 
 	public CompPlot(Project proj) {
+		super("Genvisis - CompPlot");
 		this.proj = proj;
 
 		init();

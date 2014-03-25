@@ -137,7 +137,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location, int startX, int startY, int width, int height) {
-		super("CNVis - Trailer");
+		super("Genvisis - Trailer");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		System.out.println("startX: "+startX+"\t startY: "+startY+"\t width: "+width+"\t height: "+height);
@@ -483,7 +483,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 
 		descrPanel.add(Box.createHorizontalGlue());
-		commentLabel = new JLabel("", JLabel.CENTER);
+		commentLabel = new JLabel(" ", JLabel.CENTER);
 		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		commentLabel.setFont(new Font("Arial", 0, 14));
 		descrPanel.add(commentLabel);
@@ -1132,6 +1132,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		parseLocation(regions[regionIndex][1]);
 		if (regions[regionIndex].length > 2) {
 			commentLabel.setText("region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
+		} else {
+			commentLabel.setText(" ");
 		}
 		
 		if (!regions[regionIndex][0].equals(sample)) {

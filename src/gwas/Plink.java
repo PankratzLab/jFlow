@@ -16,6 +16,16 @@ public class Plink {
 	public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "BETA", "SE", "L95", "U95", "STAT", "P"};
 	public static final int[][] BUILD_36_PARS = {{}};
 	public static final int[][] BUILD_37_PARS = {{}};
+	
+	public static final String[] FLAGS = new String[] {"duplicate", "parent-offspring", "sibling", "avuncular,gg", "first cousins", "second cousins"};
+	public static final double[][] THRESHOLDS = new double[][] {{0, 0, 0, 0.95}, // duplicate
+											{0, 0.90, 0, 0.49}, // parent-offspring
+											{0, 0.30, 0.10, 0.35}, // sibling
+											{0, 0.40, 0, 0}, // second degree, avuncular, gg
+											{0, 0.20, 0, 0}, // third degree, cousins
+											{0, 0.10, 0, 0}, // fourth degree 
+	};
+
 
 	public static void batchGenome(String root, int threads, double minPiHatToKeep) {
 		PrintWriter writer;
@@ -720,14 +730,6 @@ public class Plink {
 		String famFile = "plink.fam";
 		String iMissFile = "plink.imiss";
 		String lrrFile = "lrr_sd_with_FID_IID.xln";
-		String[] flags = new String[] {"duplicate", "parent-offspring", "sibling", "avuncular,gg", "first cousins", "second cousins"};
-		double[][] thresholds = new double[][] {{0, 0, 0, 0.95}, // duplicate
-												{0, 0.90, 0, 0.49}, // parent-offspring
-												{0, 0.30, 0.10, 0.35}, // sibling
-												{0, 0.40, 0, 0}, // second degree, avuncular, gg
-												{0, 0.20, 0, 0}, // third degree, cousins
-												{0, 0.10, 0, 0}, // fourth degree 
-		};
 		int removeOutTo = 4;
 		boolean filterPairs = false;
 		String mperm = null;
@@ -771,8 +773,8 @@ public class Plink {
 		"   (2) name of PLINK root for --genome runs (i.e. root="+root+" (default))\n"+
 		"   (3) minimum r^2 value to retain in the output to save on space (i.e. minR2="+minR2ToKeep+" (default; set to zero to keep all))\n"+
 		"";
-		for (int i = 0; i < flags.length; i++) {
-			usage += "           level "+(i+1)+": "+flags[i]+"\tP(IBD=0)>="+thresholds[i][0]+"\tP(IBD=1)>="+thresholds[i][1]+"\tP(IBD=2)>="+thresholds[i][2]+"\tPI_HAT>="+thresholds[i][3]+"\n";
+		for (int i = 0; i < FLAGS.length; i++) {
+			usage += "           level "+(i+1)+": "+FLAGS[i]+"\tP(IBD=0)>="+THRESHOLDS[i][0]+"\tP(IBD=1)>="+THRESHOLDS[i][1]+"\tP(IBD=2)>="+THRESHOLDS[i][2]+"\tPI_HAT>="+THRESHOLDS[i][3]+"\n";
 		}
 
 		for (int i = 0; i<args.length; i++) {
@@ -866,7 +868,7 @@ public class Plink {
 			} else if (genomeID_files != null) {
 				filterGenome(genomeID_files[0], genomeID_files[1], filterPairs);
 			} else if (genomeFile != null) {
-				flagRelateds(genomeFile, famFile, iMissFile, lrrFile, flags, thresholds, removeOutTo);
+				flagRelateds(genomeFile, famFile, iMissFile, lrrFile, FLAGS, THRESHOLDS, removeOutTo);
 			} else if (mperm != null) {
 				collapseMperms(mperm);
 			} else if (diff != null) {

@@ -204,6 +204,10 @@ public class Project extends Properties {
 		return projectPropertiesFilename;
 	}
 
+	public void setPropertyFilename(String projectPropertiesFilename) {
+		this.projectPropertiesFilename = projectPropertiesFilename;
+	}
+
 	public String getProjectDir() {
 		return getProperty(PROJECT_DIRECTORY);
 	}
@@ -551,6 +555,10 @@ public class Project extends Properties {
 		return jar;
 	}
 	
+	public void setJarStatus(boolean jar) {
+		this.jar = jar;
+	}
+	
 	public String[] getIndividualRegionLists() {
 		return getFilenames(INDIVIDUAL_CNV_LIST_FILENAMES, false);
 	}
@@ -629,6 +637,10 @@ public class Project extends Properties {
 	}
 
 	public void saveProperties() {
+		saveProperties(getPropertyFilename());
+	}
+	
+	public void saveProperties(String outfile) {
 		BufferedReader reader;
         String trav;
         boolean changed;
@@ -696,8 +708,8 @@ public class Project extends Properties {
             	log.report("        "+changes.elementAt(i));
     		}
 
-            Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename)+"backup/", true);
-        	Files.writeList(Array.toStringArray(props), projectPropertiesFilename);
+            Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename)+"backup/", outfile.equals(projectPropertiesFilename));
+        	Files.writeList(Array.toStringArray(props), outfile);
         }
 	}
 

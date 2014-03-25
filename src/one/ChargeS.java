@@ -666,11 +666,12 @@ public class ChargeS {
 			
 			
 			String dir = "D:/LITE/CHARGE-S/aric_wex_freeze3/";
-			genoFile = "ARIC_AA_Freeze3_Chrom#_Genotypes.txt.gz";
+//			genoFile = "ARIC_AA_Freeze3_Chrom#_Genotypes.txt.gz";
 //			genoFile = "ARIC_EA_Freeze3_Chrom#_Genotypes.txt.gz";
+//			genoFile = "ABO_AA.txt";
+			genoFile = "ARIC_AA_Freeze3_Chrom13_Genotypes.txt";
 			annotationFile = "ESFreeze3_snpinfo_042913_min.csv.gz";
 			makePlink = true;
-			genoFile = "ABO_AA.txt";
 
 			if (phenoFile != null) {
 				runAll(phenoFile, genoFile, annotationFile);
