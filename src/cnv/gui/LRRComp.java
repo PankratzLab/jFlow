@@ -31,7 +31,6 @@ import common.ext;
 import cnv.analysis.MedianLRRWorker;
 import cnv.filesys.Project;
 import cnv.manage.Transforms;
-import cnv.plots.LinePlot;
 import cnv.plots.TwoDPlot;
 
 public class LRRComp extends JFrame implements Runnable {
@@ -129,7 +128,7 @@ public class LRRComp extends JFrame implements Runnable {
 			} else if (source.equals(twoDPlotButton)) {
 				javax.swing.SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						LinePlot linePlot = new LinePlot(proj, new Logger());
+						TwoDPlot.createAndShowGUI(proj, new Logger());
 					}
 				});
 			}
