@@ -31,18 +31,21 @@ import common.ext;
 import cnv.analysis.MedianLRRWorker;
 import cnv.filesys.Project;
 import cnv.manage.Transforms;
+import cnv.plots.LinePlot;
 import cnv.plots.TwoDPlot;
 
 public class LRRComp extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;
+	// once a job has been started, used to track completion
+	private volatile int computeComplete = 42;
 	public static final String BLANKREGION = "Paste new Region here...";
-	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC Regions of Interest (one per Line):", "Progress..." };
+	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC or probeset-based regions of Interest (one per Line):", "Progress..." };
 	public static final String[] CLASSES_TO_DUMP = { "IID" };
+
 	private int transformationType;
 	private int scope;
 	private String initRegion;
 	private MedianLRRWorker medianLRRWorker;
-	private int computeComplete;
 	private Project proj;
 	private String outputBase;
 
@@ -51,7 +54,6 @@ public class LRRComp extends JFrame implements Runnable {
 		this.initRegion = initRegion;
 		this.transformationType = 0;
 		this.scope = 0;
-		this.computeComplete = 42;
 	}
 
 	public void run() {
@@ -61,21 +63,19 @@ public class LRRComp extends JFrame implements Runnable {
 	public void createAndShowGUI() {
 		setSize(500, 360);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		setTitle("Log R Ratio Settings");
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setTitle("Median Log R Ratio Settings");
 		WindowListener exitListener = new WindowAdapter() {
 			// check for running job before exit
 			@Override
 			public void windowClosing(WindowEvent e) {
-				String ObjButtons[] = { "Exit and Kill Thread", "Cancel" };
-				int promptResult = 0;
-				if (computeComplete != 42) {
-					promptResult = JOptionPane.showOptionDialog(null, "A Thread is computing Median Log R Ratios", "Warning - Running thread", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
-				}
-				if (promptResult == 1) {
-					while (!medianLRRWorker.cancel(true)) {
-						medianLRRWorker.cancel(true);
+				String ObjButtons[] = { "Exit Anyway", "Cancel" };
+				if (computeComplete != 42 && !medianLRRWorker.isDone()) {
+					int promptResult = JOptionPane.showOptionDialog(null, "A Thread is computing Median Log R Ratios\nThread will continue if you exit", "Warning - Running thread", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+					System.out.println(promptResult);
+					if (promptResult == 0) {
+						dispose();
 					}
-					dispose();
 				} else {
 					dispose();
 				}
@@ -99,7 +99,7 @@ public class LRRComp extends JFrame implements Runnable {
 		private TransformationPanel() {
 			outputBase = Transforms.TRANFORMATIONS[transformationType];
 			this.setLayout(new BorderLayout());
-			this.regionTextField = new RegionTextField(initRegion);
+			this.regionTextField = new RegionTextField(initRegion, 10, 10);
 			progressBar = new JProgressBar(0, 100);
 			computeButton = new ComputeButton(this);
 			twoDPlotButton = new TwoDPlotButton(this);
@@ -113,6 +113,7 @@ public class LRRComp extends JFrame implements Runnable {
 			JScrollPane scroll = new JScrollPane(regionTextField);
 			add(scroll);
 			add(computeButton, BorderLayout.EAST);
+			// TODO add action to launch 2D plot with created file
 			add(twoDPlotButton, BorderLayout.WEST);
 		}
 
@@ -120,7 +121,7 @@ public class LRRComp extends JFrame implements Runnable {
 		public void actionPerformed(ActionEvent actionEvent) {
 			JComponent source = (JComponent) actionEvent.getSource();
 			if (source.equals(computeButton)) {
-				if (computeComplete != 42) {
+				if (computeComplete != 42 && !medianLRRWorker.isDone()) {
 					JOptionPane.showMessageDialog(this, "Thread is busy computing median Log R Ratios");
 				} else {
 					startJob();
@@ -128,7 +129,7 @@ public class LRRComp extends JFrame implements Runnable {
 			} else if (source.equals(twoDPlotButton)) {
 				javax.swing.SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						TwoDPlot.createAndShowGUI(proj, new Logger());
+						LinePlot linePlot = new LinePlot(proj, new Logger());
 					}
 				});
 			}
@@ -136,20 +137,20 @@ public class LRRComp extends JFrame implements Runnable {
 
 		private void startJob() {
 			String ObjButtons[] = { "OK", "Cancel" };
-			int promptResult = JOptionPane.showOptionDialog(null, "Compute median using " + Transforms.TRANFORMATIONS[transformationType] + "?", "Log R Ratio " + Transforms.TRANFORMATIONS[transformationType], JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+			int promptResult = JOptionPane.showOptionDialog(this, "Compute median using " + Transforms.TRANFORMATIONS[transformationType] + "?", "Log R Ratio " + Transforms.TRANFORMATIONS[transformationType], JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
 			if (promptResult == 0) {
-				outputBase = outputBase.replaceAll(" ", "");
-				String promptName = JOptionPane.showInputDialog("Add an Analysis Name to " + outputBase + "?");
-				outputBase = promptName + outputBase;
+				outputBase = outputBase.replaceAll(" ", "_");
+				outputBase = outputBase.replaceAll("-", "_");
+				String promptName = JOptionPane.showInputDialog(this, "Add an Analysis Name to " + outputBase + "?");
+				outputBase = promptName + "_" + outputBase;
 				System.out.println(outputBase + proj.getProjectDir());
-				if (transformationType == 0) {
-					this.add(progressBar);
-					progressBar.setVisible(true);
-					progressBar.setStringPainted(true);
-					medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar);
-					medianLRRWorker.execute();
-					this.revalidate();
-				}
+				this.add(progressBar);
+				progressBar.setVisible(true);
+				progressBar.setStringPainted(true);
+				computeComplete = 0;
+				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, null);
+				medianLRRWorker.execute();
+				this.revalidate();
 			}
 		}
 
@@ -171,7 +172,8 @@ public class LRRComp extends JFrame implements Runnable {
 				scopeRadioButtons[i].addActionListener(actionListener);
 				this.add(scopeRadioButtons[i]);
 			}
-			scopeRadioButtons[initTransformationType].setSelected(true);
+			// not initiating scope since not valid for raw values
+			// scopeRadioButtons[initTransformationType].setSelected(true);
 		}
 
 		// button for type of transformation
@@ -193,10 +195,10 @@ public class LRRComp extends JFrame implements Runnable {
 	private class RegionTextField extends JTextArea {
 		private static final long serialVersionUID = 1L;
 
-		private RegionTextField(String region) {
+		private RegionTextField(String region, int size1, int size2) {
 			this.setFont(new Font("Tahoma", Font.PLAIN, 14));
 			this.setText(region);
-			this.setSize(10, 10);
+			this.setSize(size1, size2);
 			Border border = BorderFactory.createLineBorder(Color.BLACK);
 			this.setBorder(border);
 			this.setMaximumSize(this.getPreferredSize());
