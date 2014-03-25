@@ -45,7 +45,8 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 	private static final int MARKER_REGION_START_OF_MARKERS = 2;
 	private static final double[] QUANTILES = { 0.5 };
 	private static final String[] MEDIAN_WORKER_JOBS = { "Parsing and intitializing Regions", "Computing Median Log R Ratios for " + MARKER_REGION_REGEX, "Waiting for data to Load for Region " + MARKER_REGION_REGEX, "Creating Output Files" };
-	public static final String[] CLASSES_TO_DUMP = { "IID" };
+	private static final String[] CLASSES_TO_DUMP = { "IID" };
+	private static final String[] MARKER_REGION_RESULTS_SUFFIX = { "MEDIAN", "MAD" };
 	private Project proj;
 	private String[] input;
 	private String outputBase;
@@ -115,16 +116,17 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 		} else {
 			String job;
 			process(0);
-			float[][] regionMedianValues;
+			RegionResults regionResults;
 			if (transformationType == 0) {
 				job = ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", Transforms.TRANFORMATIONS[transformationType]);
 				newJob(job);
 				computelog.report(job);
 				assignMarkerProgress();
-				regionMedianValues = getRawValueMedianForRegions(markerRegions);
+				regionResults = getRawValueMedianForRegions(markerRegions);
+
 				newJob(MEDIAN_WORKER_JOBS[3]);
 				process(processTracker[0] - 1);
-				printResults(regionMedianValues, markerRegions);
+				printResults(regionResults, markerRegions);
 			} else {
 				assignSampleProgress();
 				job = ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", Transforms.TRANFORMATIONS[transformationType] + " " + Transforms.SCOPES[scope]);
@@ -132,8 +134,8 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 				// String[] smallSamples = { samples[0] };
 				// samples = smallSamples;
 				newJob(job);
-				regionMedianValues = getNormalizedMedianForRegions(markerRegions);
-				printResults(regionMedianValues, markerRegions);
+				regionResults = getNormalizedMedianForRegions(markerRegions);
+				printResults(regionResults, markerRegions);
 			}
 			Thread.sleep(1000);
 		}
@@ -224,21 +226,83 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 
 	// For each region load lrrs from markerData and compute
 
-	private float[][] getRawValueMedianForRegions(MarkerRegion[] markerRegions) {
+	private RegionResults getRawValueMedianForRegions(MarkerRegion[] markerRegions) {
+		// RegionResults regionResults = new RegionResults(new float[markerRegions.length][samples.length], new float[markerRegions.length][samples.length] );
 		float[][] rawMediansRegions = new float[markerRegions.length][samples.length];
+		float[][] rawMADRegions = new float[markerRegions.length][samples.length];
+
 		for (int i = 0; i < markerRegions.length; i++) {
-			rawMediansRegions[i] = getRawValueMedianForRegion(markerRegions[i]);
+			// stores median ,MAD for each sample
+			float[][] results = getRawValueResultsForRegion(markerRegions[i]);
+			rawMediansRegions[i] = results[0];
+			rawMADRegions[i] = results[1];
 		}
-		return rawMediansRegions;
+		return new RegionResults(rawMediansRegions, rawMADRegions);
 	}
 
-	private void printResults(float[][] regionMedianValues, MarkerRegion[] markerRegions) {
+	private float[][] getRawValueResultsForRegion(MarkerRegion markerRegion) {
+		String[] regionMarkers = markerRegion.returnMarkers();
+		float[][] sampleLrrs = new float[regionMarkers.length][samples.length];
+		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[2], "[%" + 0 + "]", markerRegion.getRegionName()));
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers, computelog);
+		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName()));
+		for (int i = 0; i < regionMarkers.length; i++) {
+			MarkerData markerData = markerDataLoader.requestMarkerData(i);
+			processTracker[1]++;
+			if (markerData.getFingerprint() != sampleList.getFingerprint()) {
+				String Error = "Error - mismatched fingerprint for " + markerData.getMarkerName();
+				computelog.reportError(Error);
+				warnAndCancel(Error);
+			}
+			float[] lrrs = markerData.getLRRs();
+			markerDataLoader.releaseIndex(i);
+			for (int j = 0; j < samples.length; j++) {
+				try {
+					// marker;samples...
+					sampleLrrs[i][j] = lrrs[j];
+				} catch (ArrayIndexOutOfBoundsException aioobe) {
+					computelog.report("" + i + "\t" + j);
+					System.exit(1);
+				}
+			}
+		}
+		process(processTracker[1]);
+		return getSampleResults(sampleLrrs);
+	}
+
+	private float[][] getSampleResults(float[][] lrrs) {
+		// store median, MAD
+		float[][] results = new float[2][lrrs[0].length];
+		ArrayList<ArrayList<Float>> sampleLRRS = new ArrayList<ArrayList<Float>>();
+		for (int i = 0; i < lrrs[0].length; i++) {
+			sampleLRRS.add(new ArrayList<Float>());
+		}
+		for (int i = 0; i < lrrs.length; i++) {
+			for (int k = 0; k < lrrs[i].length; k++) {
+				// Not Including NaNs
+				// if marker i, sample k
+				if (Float.isNaN(lrrs[i][k])) {
+					continue;
+				} else {
+					// add to sample k array list, marker i , sample k value
+					sampleLRRS.get(k).add((lrrs[i][k]));
+				}
+			}
+		}
+		for (int i = 0; i < sampleLRRS.size(); i++) {
+			results[0][i] = Array.quants(toFloatArray(sampleLRRS.get(i)), QUANTILES)[0];
+			results[1][i] = getMAD(toFloatArray(sampleLRRS.get(i)), results[0][i]);
+		}
+		return results;
+	}
+
+	private void printResults(RegionResults regionResults, MarkerRegion[] markerRegions) {
 		printRegionMarkers(markerRegions);
-		printMedianLRRs(regionMedianValues, markerRegions);
+		printMedianLRRs(regionResults, markerRegions);
 	}
 
 	// print median values
-	private void printMedianLRRs(float[][] regionMedianValues, MarkerRegion[] markerRegions) {
+	private void printMedianLRRs(RegionResults regionResults, MarkerRegion[] markerRegions) {
 		String output = proj.getProjectDir() + "LRR_MEDIAN_" + ext.rootOf(outputBase) + ".xln";
 		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "DNA", CLASSES_TO_DUMP, "\t");
 		try {
@@ -248,13 +312,15 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 				writer.print("\t" + CLASSES_TO_DUMP[i].substring(CLASSES_TO_DUMP[i].lastIndexOf("=") + 1));
 			}
 			for (int i = 0; i < markerRegions.length; i++) {
-				writer.print("\t" + markerRegions[i].getRegionName() + "_" + ext.replaceWithLinuxSafeCharacters(outputBase, false));
+				for (int j = 0; j < MARKER_REGION_RESULTS_SUFFIX.length; j++) {
+					writer.print("\t" + MARKER_REGION_RESULTS_SUFFIX[j] + "_" + markerRegions[i].getRegionName() + "_" + ext.replaceWithLinuxSafeCharacters(outputBase, false));
+				}
 			}
 			writer.println();
 			for (int i = 0; i < samples.length; i++) {
 				writer.print(samples[i] + "\t" + (hashSamps.containsKey(samples[i]) ? hashSamps.get(samples[i]) : Array.stringArray(CLASSES_TO_DUMP.length, ".")));
 				for (int j = 0; j < markerRegions.length; j++) {
-					writer.print("\t" + regionMedianValues[j][i]);
+					writer.print("\t" + regionResults.getMedianAt(j, i) + "\t" + regionResults.getMADAt(j, i));
 				}
 				writer.println();
 			}
@@ -289,29 +355,6 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 	}
 
 	// use this to eliminate NANs
-	private static float[] getMedianLrrs(float[][] lrrs) {
-		float[] medians = new float[lrrs[0].length];
-		ArrayList<ArrayList<Float>> sampleLRRS = new ArrayList<ArrayList<Float>>();
-		for (int i = 0; i < lrrs[0].length; i++) {
-			sampleLRRS.add(new ArrayList<Float>());
-		}
-		for (int i = 0; i < lrrs.length; i++) {
-			for (int k = 0; k < lrrs[i].length; k++) {
-				// Not Including NaNs
-				// if marker i, sample k
-				if (Float.isNaN(lrrs[i][k])) {
-					continue;
-				} else {
-					// add to sample k array list, marker i , sample k value
-					sampleLRRS.get(k).add((lrrs[i][k]));
-				}
-			}
-		}
-		for (int i = 0; i < sampleLRRS.size(); i++) {
-			medians[i] = Array.quants(toFloatArray(sampleLRRS.get(i)), QUANTILES)[0];
-		}
-		return medians;
-	}
 
 	private static float[] toFloatArray(ArrayList<Float> al) {
 		float[] d = new float[al.size()];
@@ -414,23 +457,23 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 			return regionName;
 		}
 
-		public int getRegionType() {
+		private int getRegionType() {
 			return regionType;
 		}
 
-		public void addMarker(String marker) {
+		private void addMarker(String marker) {
 			markersInRegion.add(marker);
 		}
 
-		public void addMarkerIndex(int position) {
+		private void addMarkerIndex(int position) {
 			markerIndex.add(position);
 		}
 
-		public void markerInRegion(String marker) {
+		private void markerInRegion(String marker) {
 			inRegion.put(marker, true);
 		}
 
-		public void checkNumMarkers() {
+		private void checkNumMarkers() {
 			if (markersInRegion.size() < 1) {
 				String Error = "Error - All markers were filtered out of region " + regionName;
 				computelog.reportError(Error);
@@ -438,7 +481,7 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 			}
 		}
 
-		public void addMarkers(String[] input) {
+		private void addMarkers(String[] input) {
 			for (int i = MARKER_REGION_START_OF_MARKERS; i < input.length; i++) {
 				if (hash.containsKey(input[i])) {
 					computelog.report(input[i] + " was filtered out");
@@ -451,7 +494,7 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 			checkNumMarkers();
 		}
 
-		public void addUCSCMarkers(String UCSCLine) {
+		private void addUCSCMarkers(String UCSCLine) {
 			Segment seg = new Segment(UCSCLine);
 			for (int i = 0; i < positions.length; i++) {
 				if (chrs[i] == seg.getChr() && positions[i] >= seg.getStart() && positions[i] <= seg.getStop()) {
@@ -469,45 +512,36 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 			checkNumMarkers();
 		}
 
-		public String[] returnMarkers() {
+		private String[] returnMarkers() {
 			return markersInRegion.toArray(new String[markersInRegion.size()]);
 		}
 	}
 
-	private float[] getRawValueMedianForRegion(MarkerRegion markerRegion) {
-		String[] regionMarkers = markerRegion.returnMarkers();
-		float[][] sampleLrrs = new float[regionMarkers.length][samples.length];
-		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[2], "[%" + 0 + "]", markerRegion.getRegionName()));
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers, computelog);
-		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName()));
-		for (int i = 0; i < regionMarkers.length; i++) {
-			MarkerData markerData = markerDataLoader.requestMarkerData(i);
-			processTracker[1]++;
-			if (markerData.getFingerprint() != sampleList.getFingerprint()) {
-				String Error = "Error - mismatched fingerprint for " + markerData.getMarkerName();
-				computelog.reportError(Error);
-				warnAndCancel(Error);
-			}
-			float[] lrrs = markerData.getLRRs();
-			markerDataLoader.releaseIndex(i);
-			for (int j = 0; j < samples.length; j++) {
-				try {
-					// marker;samples...
-					sampleLrrs[i][j] = lrrs[j];
-				} catch (ArrayIndexOutOfBoundsException aioobe) {
-					computelog.report("" + i + "\t" + j);
-					System.exit(1);
-				}
-			}
+	private class RegionResults {
+		// stored as region, sample
+		private float[][] regionMedianValues;
+		private float[][] regionMADValues;
 
+		public RegionResults(float[][] regionMedianValues, float[][] regionMADValues) {
+			super();
+			this.regionMedianValues = regionMedianValues;
+			this.regionMADValues = regionMADValues;
 		}
-		process(processTracker[1]);
-		return getMedianLrrs(sampleLrrs);
+
+		public float getMedianAt(int region, int sample) {
+			return regionMedianValues[region][sample];
+		}
+
+		public float getMADAt(int region, int sample) {
+			return regionMADValues[region][sample];
+		}
+
 	}
 
-	private float[][] getNormalizedMedianForRegions(MarkerRegion[] markerRegions) {
+	private RegionResults getNormalizedMedianForRegions(MarkerRegion[] markerRegions) {
 		int[][] indices;
 		float[][] regionMedianValues = new float[markerRegions.length][samples.length];
+		float[][] regionMADValues = new float[markerRegions.length][samples.length];
 		assignMarkerIndices(markerRegions);
 		computelog.report("Computing mean Log R ratios for:");
 		// norm by genome
@@ -545,10 +579,20 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 						regionLrrs.add(lrrs[regionPositions.get(k)]);
 					}
 				}
+
 				regionMedianValues[j][i] = Array.quants(toFloatArray(regionLrrs), QUANTILES)[0];
+				regionMADValues[j][i] = getMAD(toFloatArray(regionLrrs), regionMedianValues[j][i]);
 			}
 		}
-		return regionMedianValues;
+		return new RegionResults(regionMedianValues, regionMADValues);
+	}
+
+	private float getMAD(float[] regionLrrs, float median) {
+		float[] diffs = new float[regionLrrs.length];
+		for (int i = 0; i < regionLrrs.length; i++) {
+			diffs[i] = Math.abs((regionLrrs[i] - median));
+		}
+		return Array.quants(diffs, QUANTILES)[0];
 	}
 
 	private static String[] readToArray(String filename, Logger log) {
