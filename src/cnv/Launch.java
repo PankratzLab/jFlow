@@ -21,11 +21,9 @@ import cnv.qc.MarkerMetrics;
 public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
 	public static final long serialVersionUID = 1L;
 
-	public static final String TWOD = "2D Plot";
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties";
 	public static final String REFRESH = "Refresh";
-	public static final String LPlot = "Line Plot";
 
 	public static final String MAP_FILES = "Map .csv files to IDs";
 	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
@@ -48,6 +46,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String MOSAIC_PLOT = "Mosaic plot module";
 	public static final String SEX_PLOT = "Sex module";
 	public static final String TRAILER = "Trailer module";
+	public static final String TWOD = "2D Plot";
+	public static final String LINE_PLOT = "Line Plot";
 	public static final String COMP = "Comp module";
 
 	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
@@ -62,7 +62,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS},
-			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LPlot, COMP},
+			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP},
 			{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
@@ -294,7 +294,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		JPanel iconBar;
 		JButton button;
 		String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg"};
-		String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, "images/recluster.png", TWOD};
+		String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD};
 		
 		iconBar = new JPanel();
 		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -433,7 +433,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(TWOD)) {
 //				TwoDPlot.main(null);
 				TwoDPlot.createAndShowGUI(proj, proj.getLog());
-			} else if (command.equals(LPlot)) {
+			} else if (command.equals(LINE_PLOT)) {
 				LinePlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(COMP)) {
 				new CompPlot(proj);

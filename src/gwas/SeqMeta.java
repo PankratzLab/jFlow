@@ -38,6 +38,8 @@ public class SeqMeta {
 		{"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT-O test (not verified)
 	};
 	
+	public static final String[] SUMMARY_INFO_HEADER = {"Study", "Ethnicity", "Units", "Trait", "meanTrait", "stdevTrait", "minTrait", "maxTrait", "numFemales", "numMales", "meanAge", "stdevAge", "minAge", "maxAge"};
+	
 	public static String getRscriptExecutable(MetaAnalysisParams maps, Logger log) {
 		if (maps != null && maps.getRExec() != null) {
 			return maps.getRExec();
@@ -93,17 +95,19 @@ public class SeqMeta {
 	
 	public static String[][][] identifySet(MetaAnalysisParams maps, String[] files, Logger log) {
 		String[][][] finalSets;
-		boolean[] picks, used;
+		boolean[] picks;
 		int numMatches, index;
 		String[][] phenotypes, maskedPhenos;
 		String[] studies;
 		String[][] races;
+		String[] usedFor;
+		boolean first;
 		
-		used = Array.booleanArray(files.length, false);
+		usedFor = Array.stringArray(files.length, null);
 		
 		index = ext.indexOfStr(maps.getSnpInfoFilename(), files);
 		if (index >= 0) {
-			used[index] = true;
+			usedFor[index] = "SnpInfo file";
 		}
 		
 		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
@@ -114,10 +118,12 @@ public class SeqMeta {
 		finalSets = new String[phenotypes.length][][]; // [pheno][study][race] <- all files meeting criteria
 		for (int i = 0; i < phenotypes.length; i++) {
 			finalSets[i] = Matrix.stringMatrix(studies.length, races.length, "<missing>");
-			log.report("For "+phenotypes[i][0]+" identified:", true, true);
-			log.report("\tStudy\t"+Array.toStr(Matrix.extractColumn(races, 0)));
+			if (log.getLevel() > 5) {
+				log.report("For "+phenotypes[i][0]+" identified:", true, true);
+				log.report("\tStudy\t"+Array.toStr(Matrix.extractColumn(races, 0)));
+			}
 			for (int j = 0; j < studies.length; j++) {
-				log.report("\t"+studies[j], false, true);
+				log.report("\t"+studies[j], false, true, 5);
 				for (int k = 0; k < races.length; k++) {
 					picks = Array.booleanArray(files.length, false);
 					for (int f = 0; f < files.length; f++) {
@@ -128,10 +134,10 @@ public class SeqMeta {
 							} else {
 								finalSets[i][j][k] += ";"+files[f];
 							}
-							if (used[f]) {
-								log.reportError("Error - file '"+files[f]+"' matches to "+studies[j]+"/"+phenotypes[i][0]+" but was already picked for another purpose");
+							if (usedFor[f] != null) {
+								log.reportError("Error - file '"+files[f]+"' matches to "+studies[j]+"/"+races[k][0]+"/"+phenotypes[i][0]+" but was already picked for "+usedFor[f]);
 							}
-							used[f] = true;
+							usedFor[f] = studies[j]+"/"+races[k][0]+"/"+phenotypes[i][0];
 						}
 					}
 					numMatches = Array.booleanArraySum(picks);
@@ -142,20 +148,21 @@ public class SeqMeta {
 //						log.reportError(Array.toStr(Array.subArray(files, picks), "\n"));
 					}
 //					log.report("   "+finalSets[i][j], true, false);
-					log.report("\t"+numMatches, false, true);
+					log.report("\t"+numMatches, false, true, 5);
 				}
-				log.report("");
+				log.report("", true, true, 5);
 			}
-			log.report("");
+			log.report("", true, true, 5);
 		}
 
-		numMatches = Array.booleanArraySum(used);
-		if (numMatches != files.length) {
-			log.reportError("Warning - did not find a match for the following file(s):");
-			for (int i = 0; i < files.length; i++) {
-				if (!used[i]) {
-					log.reportError("  "+files[i]);
+		first = true;
+		for (int i = 0; i < files.length; i++) {
+			if (usedFor[i] == null) {
+				if (first) {
+					log.reportError("Warning - did not find a match for the following file(s):");
+					first = false;
 				}
+				log.reportError("  "+files[i]);
 			}
 		}
 		
@@ -2061,6 +2068,158 @@ public class SeqMeta {
 		log.report(ext.getTimeElapsed(time));
 	}
 	
+	private static void makeSetOfMockRdataFiles(String dir, MetaAnalysisParams maps) {
+		String[] files;
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		dir = ext.verifyDirFormat(dir);
+		
+		files = Files.list(dir, ".Rdata", false);
+		identifySet(maps, files, new Logger());
+		new File(dir+"mockRdata/").mkdirs();
+		for (int i = 0; i < files.length; i++) {
+			Files.writeList(new String[0], dir+"mockRdata/"+files[i]);
+		}
+	}
+	
+	private static Hashtable<String,String[]> loadSummaryStats(String dir, String[] studies, String[][] races, String[][] phenotypes, Logger log) {
+		BufferedReader reader;
+		String[] header, line;
+		String trav;
+		Hashtable<String,String[]> statsForStudyRacePheno;
+		Vector<String> warnings;
+		int raceIndex, phenoIndex;
+		
+		statsForStudyRacePheno = new Hashtable<String, String[]>();
+		for (int i = 0; i < studies.length; i++) {
+			warnings = new Vector<String>();
+			if (Files.exists(dir+"summary_stats/"+studies[i]+"_summary_stats.txt")) {
+				try {
+					reader = Files.getAppropriateReader(dir+"summary_stats/"+studies[i]+"_summary_stats.txt");
+					header = reader.readLine().trim().split("[\\s]+");
+					if (!ext.checkHeader(header, SUMMARY_INFO_HEADER, false)) {
+						log.reportError("Warning - invalid header for the "+studies[i]+" summary stats file");
+					}
+					while (reader.ready()) {
+						line = reader.readLine().trim().split("\t");
+						if (line.length > 1) {
+							raceIndex = ext.indexOfAnyStr(line[1], races, false);
+							phenoIndex = ext.indexOfAnyStr(line[3], phenotypes, false);
+							if (!line[0].equalsIgnoreCase(studies[i])) {
+								HashVec.addIfAbsent("Error - file "+studies[i]+"_summary_stats.txt uses a different study name in column 1: "+line[0], warnings);
+							} else if (raceIndex == -1) {
+								HashVec.addIfAbsent("Error - file "+studies[i]+"_summary_stats.txt uses a different race/ethnicity listing ("+line[1]+") in column 2 than are defined in the metaAnalysis.parameters", warnings);
+							} else if (phenoIndex == -1) {
+								HashVec.addIfAbsent("Error - file "+studies[i]+"_summary_stats.txt uses a different name for a phenotype ("+line[3]+") in column 3 than are defined in the metaAnalysis.parameters", warnings);
+							} else {
+								trav = studies[i]+"\t"+races[raceIndex][0]+"\t"+phenotypes[phenoIndex][0];
+								if (statsForStudyRacePheno.containsKey(trav)) {
+									log.reportError("Error - duplicate summary stats entry for "+trav);
+									log.reportError("Previous: "+Array.toStr(statsForStudyRacePheno.get(trav)));
+									log.reportError("Current : "+Array.toStr(line));
+								} else {
+									statsForStudyRacePheno.put(trav, line);
+								}
+							}
+						}
+					}
+					reader.close();
+				} catch (IOException ioe) {
+					System.err.println("Error reading file \"" + dir+"summary_stats/"+studies[i]+"_summary_stats.txt" + "\"");
+					System.exit(2);
+				}
+			} else {
+				warnings.add("Warning - there is no summary stats file available for "+studies[i]);
+			}
+			if (warnings.size() > 0) {
+				log.reportError(Array.toStr(Array.toStringArray(warnings), "\n"));
+			}
+		}
+		log.report("Loaded info for "+statsForStudyRacePheno.size()+" Study/Race/Pheno sets");
+		
+		return statsForStudyRacePheno;
+	}
+	
+	private static void summarizePhenotypes(String dir, MetaAnalysisParams maps, boolean includeSD, boolean includeRange, Logger log) {
+		String[] line, mainLine, unitsLine, countsLine;
+		String[] files;
+		String[][][] finalSets;
+		String[][] phenotypes, races;
+		String[] studies;
+		boolean something;
+		Hashtable<String,String[]> statsForStudyRacePheno;
+		Vector<String> mainTable, unitsTable, countsTable;
+		double[] ages, proportionFemale;
+		int[] sampleSizes;
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+
+		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
+		studies = maps.getStudies();
+		races = maps.getRacesWithFilenameAliases();
+		
+		dir = ext.verifyDirFormat(dir);
+		
+		files = Files.list(dir, ".Rdata", false);
+		log.setLevel(4);
+		finalSets = identifySet(maps, files, log);
+
+		statsForStudyRacePheno = loadSummaryStats(dir, studies, races, phenotypes, log);
+
+		mainTable = new Vector<String>();
+		mainTable.add("Study\tRace\tAge\tminMean\tmaxMean\tN\t%Female\t"+Array.toStr(Matrix.extractColumn(phenotypes, 0)));
+		unitsTable = new Vector<String>();
+		unitsTable.add("Study\tRace\t"+Array.toStr(Matrix.extractColumn(phenotypes, 0)));
+		countsTable = new Vector<String>();
+		countsTable.add("Study\tRace\t"+Array.toStr(Matrix.extractColumn(phenotypes, 0)));
+		for (int k = 0; k < races.length; k++) {
+			for (int j = 0; j < studies.length; j++) {
+				mainLine = Array.stringArray(phenotypes.length, "");
+				unitsLine = Array.stringArray(phenotypes.length, "");
+				countsLine = Array.stringArray(phenotypes.length, "");
+				something = false;
+				ages = new double[0];
+				proportionFemale = new double[0];
+				sampleSizes = new int[0];
+				for (int i = 0; i < phenotypes.length; i++) {
+					if (!finalSets[i][j][k].equals("<missing>")) {
+						if (statsForStudyRacePheno.containsKey(studies[j]+"\t"+races[k][0]+"\t"+phenotypes[i][0])) {
+							line = statsForStudyRacePheno.get(studies[j]+"\t"+races[k][0]+"\t"+phenotypes[i][0]);
+							mainLine[i] = ext.formDeci(Double.parseDouble(line[4]), 3, true);
+							if (includeSD || includeRange) {
+								mainLine[i] += "("+(includeSD?ext.formDeci(Double.parseDouble(line[5]), 3, true):"")+(includeSD&&includeRange?"; ":"")+(includeRange?ext.formDeci(Double.parseDouble(line[6]), 3, true)+" - "+ext.formDeci(Double.parseDouble(line[7]), 3, true):"")+")";
+							}
+							unitsLine[i] = line[2];
+							sampleSizes = Array.addIntToArray(Integer.parseInt(line[8])+Integer.parseInt(line[9]), sampleSizes);
+							proportionFemale = Array.addDoubleToArray(Double.parseDouble(line[8])/(Double.parseDouble(line[8])+Double.parseDouble(line[9])), proportionFemale);
+							countsLine[i] = sampleSizes[sampleSizes.length-1]+"";
+							ages = Array.addDoubleToArray(Double.parseDouble(line[10]), ages);
+						} else {
+							mainLine[i] = "!!MISSING!!";
+							unitsLine[i] = "!!MISSING!!";
+							countsLine[i] = "!!MISSING!!";
+						}
+
+						something = true;
+					}
+				}
+				if (something) {
+					mainTable.add(studies[j]+"\t"+races[k][0]+"\t"+ext.formDeci(Array.mean(ages), 2)+"\t"+ext.formDeci(Array.min(ages),2)+"\t"+ext.formDeci(Array.max(ages),2)+"\t"+Array.max(sampleSizes)+"\t"+Array.mean(proportionFemale)+"\t"+Array.toStr(mainLine));
+					unitsTable.add(studies[j]+"\t"+races[k][0]+"\t"+Array.toStr(unitsLine));
+					countsTable.add(studies[j]+"\t"+races[k][0]+"\t"+Array.toStr(countsLine));
+				}
+			}
+		}
+
+		Files.writeList(Array.toStringArray(mainTable), dir+"pheno_summary_means.xln");
+		Files.writeList(Array.toStringArray(unitsTable), dir+"pheno_summary_units.xln");
+		Files.writeList(Array.toStringArray(countsTable), dir+"pheno_summary_counts.xln");
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String logfile = null;
@@ -2087,6 +2246,10 @@ public class SeqMeta {
 		boolean genePositions = false;
 		boolean stashMetaResults = false;
 		String betasFor = null;
+		boolean summarizePhenotypes = false;
+		boolean includeSD = true;
+		boolean includeRange = true;
+		boolean mockery = false;
 
 		String usage = "\n" + 
 		"gwas.SeqMeta requires 0-1 arguments\n" + 
@@ -2127,6 +2290,12 @@ public class SeqMeta {
 		"   (2) stash meta-analysis resluts (before adding/removing a cohort) (i.e. -stashMetaResults (not the default))\n" + 
 		" OR\n" + 
 		"   (2) parse all results for a list of markers (i.e. betasFor=markerList.txt (not the default))\n" + 
+		" OR\n" + 
+		"   (2) create a mock set of the same RData files for summarizing or testing purposes elsewhere (i.e. -mock (not the default))\n" + 
+		" OR\n" + 
+		"   (2) summarize phenotypes into a set of tables (i.e. -sumPhenos (not the default))\n" + 
+		"   (3) include standard deviation (i.e. includeSD="+includeSD+" (default))\n" + 
+		"   (4) include the range of values (i.e. includeSD="+includeRange+" (default))\n" + 
 		" \n" + 
 		"   CURRENTLY HAVING TROUBLE RUNNING SOME ANALYSES, HAVE BEEN USING gwas.SkatMeta TO RUN and gwas.SeqMeta TO SUMMARIZE\n" + 
 		"";
@@ -2137,6 +2306,9 @@ public class SeqMeta {
 				System.exit(1);
 			} else if (args[i].startsWith("dir=")) {
 				dir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("maps=")) {
+				mapsFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("-determineObjectNames")) {
 				determineObjectNames = true;
@@ -2195,6 +2367,12 @@ public class SeqMeta {
 			} else if (args[i].startsWith("betasFor=")) {
 				betasFor = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("-sumPhenos")) {
+				summarizePhenotypes = true;
+				numArgs--;
+			} else if (args[i].startsWith("-mock")) {
+				mockery = true;
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -2242,7 +2420,11 @@ public class SeqMeta {
 //		dir = "D:/ExomeChip/Hematology/results/07_outliersRemoved/allBurdens/";
 //		delineateRegions(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()));
 //		System.exit(1);
-		
+
+		dir = "D:/ExomeChip/Hematology/00src/CHARGE-RBC/";
+		summarizePhenotypes(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), true, true, new Logger());
+		System.exit(1);
+
 		try {
 			log = new Logger(logfile);
 			maps = new MetaAnalysisParams(mapsFile, log);
@@ -2281,6 +2463,10 @@ public class SeqMeta {
 				stashMetaResults(dir, maps);
 			} else if (betasFor != null) {
 				parseBetasFor(dir, maps, betasFor, log);
+			} else if (mockery) {
+				makeSetOfMockRdataFiles(dir, maps);
+			} else if (summarizePhenotypes) {
+				summarizePhenotypes(dir, maps, includeSD, includeRange, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

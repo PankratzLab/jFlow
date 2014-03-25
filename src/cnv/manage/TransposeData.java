@@ -109,6 +109,10 @@ public class TransposeData {
 		allSampleNamesInProj = proj.getSamples();
 		allMarkerNamesInProj = proj.getMarkerNames();
 		fingerPrint = MarkerSet.fingerprint(allSampleNamesInProj);
+		if (!Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, false)) {
+			log.reportError("Could not locate file: "+proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION+"; aborting transposeData");
+			return;
+		}
 		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 
 //		numBytesPerSampleMarker = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) - (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));

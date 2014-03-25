@@ -283,10 +283,10 @@ public class Metal {
 	}
 	
 	public static void metaAnalyze(String dir, String[] filenames, String outputFile, boolean se, Logger log) {
-		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, log);
+		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, true, log);
 	}
 	
-	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnlaysis, String outputFile, int anlaysisType, double[] defaultWeights, Logger log) {
+	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnlaysis, String outputFile, int anlaysisType, double[] defaultWeights, boolean gcControlOn, Logger log) {
 		PrintWriter writer;
 		Vector<String> mappings;
 		String[] header, travAlleles, prevAlleles, travReqs, prevReqs, travFreq, prevFreq;
@@ -307,7 +307,7 @@ public class Metal {
 			prevCommaDelimited = false;
 			travFreq = prevFreq = new String[] {"none"};
 
-			writer.println("GENOMICCONTROL ON");
+			writer.println("GENOMICCONTROL "+(gcControlOn?"ON":"OFF"));
 			if (anlaysisType == SE_ANALYSIS || anlaysisType == WEIGHTED_SE_ANALYSIS) {
 				writer.println("SCHEME STDERR");
 				if (defaultWeights != null) {
@@ -636,15 +636,27 @@ public class Metal {
 		int[] chrPosition, trav;
 		String[] hitList;
 		int countMissing;
+		boolean gcControlOn;
+		double thresholdForHits;
 		
-		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
+		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37", "genomic_control=TRUE", "hits_p<=0.001", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
 
+		thresholdForHits = 0.001;
+		gcControlOn = true;
 		build = -1;
 		if (params != null) {
 			outputFile = params.remove(0);
 			for (int i = 0; i < params.size(); i++) {
 				if (params.elementAt(i).startsWith("build=")) {
 					build = ext.parseByteArg(params.elementAt(i));
+					params.remove(i);
+				}
+				if (params.elementAt(i).startsWith("genomic_control=")) {
+					gcControlOn = ext.parseBooleanArg(params.elementAt(i));
+					params.remove(i);
+				}
+				if (params.elementAt(i).startsWith("hits_p<=")) {
+					thresholdForHits = ext.parseDoubleArg(params.elementAt(i));
 					params.remove(i);
 				}
 			}
@@ -657,9 +669,9 @@ public class Metal {
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 			log.report("Running inverse variance weighted meta-analysis...");
-			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, log);
+			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
 			log.report("Running sample size weighted meta-analysis...");
-			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, log);
+			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcControlOn, log);
 			
 //			check to see if file exists, report error otherwise
 //			Files.backup(filename, sourceDir, backupDir);
@@ -669,8 +681,8 @@ public class Metal {
 			
 //			sort results for both, determine minimum-pvalue, report only those minP<0.001
 			hits = new Hits();
-			hits.incorporateFromFile(outputFile+"_InvVar1.out", 0.001, log);
-			hits.incorporateFromFile(outputFile+"_NWeighted1.out", 0.001, log);
+			hits.incorporateFromFile(outputFile+"_InvVar1.out", thresholdForHits, log);
+			hits.incorporateFromFile(outputFile+"_NWeighted1.out", thresholdForHits, log);
 			hits.writeHits("hits.txt");
 			
 //			summarize data, Results/packager
@@ -1372,6 +1384,7 @@ public class Metal {
 		boolean se = true;
 		String compResults = null;
 		String[] unitOfAnalyses = Aliases.MARKER_NAMES;
+		boolean gcControlOn = true;
 		
 //		strandFile = "C:/Documents and Settings/npankrat/My Documents/UMN/Folson/VTE_meta_analysis/finalAnalysis/16 assessing strand/snplist1_described3.xln";
 //		fileToSort = "C:/Documents and Settings/npankrat/My Documents/UMN/Folson/VTE_meta_analysis/finalAnalysis/16 assessing strand/all_consensus.xln";
@@ -1421,6 +1434,7 @@ public class Metal {
 		"   (2) unit of anlaysis (i.e. unit=gene (default=snp))\n"+
 		"   (3) name of output root (i.e. out="+output+" (default))\n"+
 		"   (4) stderr scheme instead of sample-size weighting (i.e. se="+se+" (default))\n"+
+		"   (5) use genomic control (i.e. gcControlOn="+gcControlOn+" (default))\n"+
 		" OR\n"+
 		"   (1) compare two sets of meta-analysis results (i.e. compResults=fileA1.tbl,fileB1.tbl (not the default))\n"+
 		"";
@@ -1532,7 +1546,7 @@ public class Metal {
 			} else if (!compFreq.equals("")) {
 				compareAlleleFrequencies(compFreq, diffThreshold);
 			} else if (analyze != null) {
-				metaAnalyze("./", analyze.split(","), unitOfAnalyses, output, SE_ANALYSIS, null, new Logger());
+				metaAnalyze("./", analyze.split(","), unitOfAnalyses, output, SE_ANALYSIS, null, gcControlOn, new Logger());
 			} else if (compResults != null) {
 				compareResults(compResults.split(","), new Logger("compareMetalResults.log"));
 			} else {

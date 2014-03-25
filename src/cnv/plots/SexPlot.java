@@ -21,7 +21,7 @@ public class SexPlot extends JFrame{
 	}
 
 	public SexPlot(Project proj, String[][] samples, double[][] data, byte[] sexes, byte[] estimatedSexes) {
-		super("Sex Plot");
+		super("Genvisis - Sex Plot");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		SexPanel sexPanel = new SexPanel(proj, samples, data, sexes, estimatedSexes);

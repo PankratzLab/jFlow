@@ -9,6 +9,8 @@ import mining.Transformations;
 import common.*;
 
 public class PhenoPrep {
+	public static final String[] SUMMARY_INFO_HEADER = {"Race", "Trait", "meanTrait", "stdevTrait", "minTrait", "maxTrait", "numFemales", "numMales", "meanAge", "stdevAge", "minAge", "maxAge"};
+
 	private String[] finalHeader;
 	private String[] finalIDs;
 	private double[][] database;
@@ -118,8 +120,44 @@ public class PhenoPrep {
 		}
 
 		prep.writeFinalFile(dir+outFile, plinkFormat, variablesAllInOneFile, idFile, finalHeader);
+		prep.summarizeCentralMoments(idFile);
 	}
 	
+	private void summarizeCentralMoments(String idFile) {
+		PrintWriter writer;
+		boolean exists;
+		double[] trait, ages;
+		int[] males;
+		
+		exists = Files.exists("summary_stats.txt");
+		try {
+			writer = new PrintWriter(new FileWriter("summary_stats.txt", true));
+			if (!exists) {
+				writer.println(Array.toStr(SUMMARY_INFO_HEADER));
+			}
+			trait = Matrix.extractColumn(database, 0);
+			if (ext.indexOfStr("Male", finalHeader) >= 0) {
+				males = Array.toIntArray(Matrix.extractColumn(database, ext.indexOfStr("Male", finalHeader)));
+			} else {
+				males = null;
+			}
+			if (ext.indexOfStr("Age", finalHeader, false, false) >= 0) {
+				ages = Matrix.extractColumn(database, ext.indexOfStr("Age", finalHeader, false, false));
+			} else {
+				ages = null;
+			}
+			writer.println((idFile == null?"All":ext.replaceAllWith(ext.rootOf(idFile), "_keeps", ""))+"\t"+finalHeader[0]+"\t"+ext.formDeci(Array.mean(trait), 4, false)+"\t"+ext.formDeci(Array.stdev(trait), 4, false)+"\t"+ext.formDeci(Array.min(trait), 4, false)+"\t"+ext.formDeci(Array.max(trait), 4, false)
+					+(males==null?"\t.\t.":"\t"+(males.length-Array.sum(males))+"\t"+Array.sum(males))
+					+(ages==null?"\t.\t.\t.\t.":"\t"+ext.formDeci(Array.mean(ages), 4, false)+"\t"+ext.formDeci(Array.stdev(ages), 4, false)+"\t"+ext.formDeci(Array.min(ages), 4, false)+"\t"+ext.formDeci(Array.max(ages), 4, false)));
+						
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + "summary_stats.txt");
+			e.printStackTrace();
+		}
+		
+	}
+
 	public PhenoPrep(String filename, String idFile, String idColName, String pheno, String[] covars, Logger log) {
 		BufferedReader reader;
 		String[] line;

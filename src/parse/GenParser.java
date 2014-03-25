@@ -214,7 +214,7 @@ public class GenParser {
 		String str;
 
 		str = line[0];
-		for (int i = 0; i<line.length; i++) {
+		for (int i = 1; i<line.length; i++) {
 			str += "_"+ext.replaceAllWith(line[i], LINUX_SUBSTITUTIONS);
         }
 		str += ".ser";

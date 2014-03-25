@@ -145,7 +145,7 @@ public class PlinkFormat {
 				} else {
 					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
 					if (fsamp==null) {
-						System.err.println("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+".fsamp was not found in directory: "+proj.getDir(Project.SAMPLE_DIRECTORY));
+						System.err.println("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.getDir(Project.SAMPLE_DIRECTORY));
 						for (int i = 0; i<indices.length; i++) {
 							writer.print(" 0 0");
 						}

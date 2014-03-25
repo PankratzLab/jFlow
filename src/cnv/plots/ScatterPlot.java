@@ -170,6 +170,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				fail = true;
 				return;
 			}
+			if (masterMarkerList.length == 0) {
+				JOptionPane.showMessageDialog(null, "Error - file '"+proj.getFilename(Project.DISPLAY_MARKERS_FILENAME)+"' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
+				fail = true;
+				return;
+			}
 		}
 		if (masterCommentList == null) {
 			masterCommentList = Array.stringArray(masterMarkerList.length, "");

@@ -44,7 +44,7 @@ public class Hits {
 						System.err.println("Error - invalid p-value ("+line[indices[1]]+") for marker "+line[indices[0]]);
 						value = 1;
 					}
-					if (value < threshold) {
+					if (value <= threshold) {
 						if (hash.containsKey(line[indices[0]])) {
 							value = Math.min(value, hash.get(line[indices[0]]));
 						}
