@@ -24,6 +24,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.border.Border;
 
 import common.Logger;
@@ -37,8 +38,8 @@ public class LRRComp extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;
 	// once a job has been started, used to track completion
 	private volatile int computeComplete = 42;
-	public static final String BLANKREGION = "Paste new Region here...";
-	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC or probeset-based regions of Interest (one per Line):", "Progress..." };
+	public static final String FILENAME = "Enter Analysis Name";
+	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC or probeset-based regions of Interest (one per Line):", "Progress...", "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: " };
 	public static final String[] CLASSES_TO_DUMP = { "IID" };
 
 	private int transformationType;
@@ -94,69 +95,93 @@ public class LRRComp extends JFrame implements Runnable {
 		private ComputeButton computeButton;
 		private TwoDPlotButton twoDPlotButton;
 		private JProgressBar progressBar;
+		private FileInputArea fileInputArea;
 
 		private TransformationPanel() {
 			outputBase = Transforms.TRANFORMATIONS[transformationType];
-			this.setLayout(new BorderLayout());
-			this.regionTextField = new RegionTextField(initRegion, 10, 10);
+			setLayout(new BorderLayout());
+			regionTextField = new RegionTextField(initRegion, 10, 10);
 			progressBar = new JProgressBar(0, 100);
 			computeButton = new ComputeButton(this);
 			twoDPlotButton = new TwoDPlotButton(this);
-			addLabel("Select a Log R Ratio transformation: ");
+			addLabel(REGION_TEXT_FIELD_LABELS[4]);
 			ActionListener actionListener = getradioListener();
 			addTransformButtons(actionListener, transformationType);
-			addLabel("Transform by: ");
+			addLabel(REGION_TEXT_FIELD_LABELS[3]);
 			addScopeButtons(actionListener, scope);
+			addLabel(REGION_TEXT_FIELD_LABELS[2]);
+			fileInputArea = new FileInputArea(initRegion, 10, this);
+			add(fileInputArea);
 			addLabel(REGION_TEXT_FIELD_LABELS[0]);
 			add(regionTextField, BorderLayout.CENTER);
 			JScrollPane scroll = new JScrollPane(regionTextField);
 			add(scroll);
 			add(computeButton, BorderLayout.EAST);
 			// TODO add action to launch 2D plot with created file
-			add(twoDPlotButton, BorderLayout.WEST);
+			// add(twoDPlotButton, BorderLayout.WEST);
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent actionEvent) {
 			JComponent source = (JComponent) actionEvent.getSource();
-			if (source.equals(computeButton)) {
-				if (computeComplete != 42 && !medianLRRWorker.isDone()) {
-					JOptionPane.showMessageDialog(this, "Thread is busy computing median Log R Ratios");
-				} else {
-					startJob();
-				}
-			} else if (source.equals(twoDPlotButton)) {
-				javax.swing.SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						TwoDPlot.createAndShowGUI(proj, new Logger());
+			if (validateFileName()) {
+				System.out.println(outputBase);
+				if (source.equals(computeButton)) {
+					if (computeComplete != 42 && !medianLRRWorker.isDone()) {
+						JOptionPane.showMessageDialog(this, "Thread is busy computing median Log R Ratios");
+					} else {
+						startJob();
 					}
-				});
+				} else if (source.equals(twoDPlotButton)) {
+					javax.swing.SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							TwoDPlot.createAndShowGUI(proj, new Logger());
+						}
+					});
+				}
 			}
+		}
+
+		private boolean validateFileName() {
+			boolean valid = true;
+			String customName = fileInputArea.getText();
+			customName = ext.replaceWithLinuxSafeCharacters(customName, true);
+			outputBase = customName + "_" + outputBase;
+			outputBase = ext.replaceWithLinuxSafeCharacters(outputBase, true);
+			if (!MedianLRRWorker.checkExists(proj, outputBase)) {
+				valid = true;
+			} else {
+				valid = false;
+				String ObjButtons[] = { "Overwrite", "Cancel" };
+				int promptResult = JOptionPane.showOptionDialog(this, "The Files for Analysis " + outputBase + " Exist", "Warning - Analysis Files Exist", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+				if (promptResult == 0) {
+					valid = true;
+				} else {
+					outputBase = outputBase.replaceFirst(customName, "");
+				}
+			}
+			return valid;
 		}
 
 		private void startJob() {
 			String ObjButtons[] = { "OK", "Cancel" };
 			int promptResult = JOptionPane.showOptionDialog(this, "Compute median using " + Transforms.TRANFORMATIONS[transformationType] + "?", "Log R Ratio " + Transforms.TRANFORMATIONS[transformationType], JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
 			if (promptResult == 0) {
-				outputBase = outputBase.replaceAll(" ", "_");
-				outputBase = outputBase.replaceAll("-", "_");
-				String promptName = JOptionPane.showInputDialog(this, "Add an Analysis Name to " + outputBase + "?");
-				outputBase = promptName + "_" + outputBase;
-				System.out.println(outputBase + proj.getProjectDir());
-				this.add(progressBar);
+				add(progressBar);
 				progressBar.setVisible(true);
 				progressBar.setStringPainted(true);
 				computeComplete = 0;
 				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, null);
 				medianLRRWorker.execute();
-				this.revalidate();
+				revalidate();
 			}
+			outputBase = outputBase.replaceFirst(ext.replaceWithLinuxSafeCharacters(fileInputArea.getText() + "_", true), "");
 		}
 
 		private JLabel addLabel(String text) {
 			JLabel label = new JLabel(text);
 			label.setFont(new Font("Arial", 0, 14));
-			this.add(label);
+			add(label);
 			return label;
 		}
 
@@ -194,14 +219,29 @@ public class LRRComp extends JFrame implements Runnable {
 	private class RegionTextField extends JTextArea {
 		private static final long serialVersionUID = 1L;
 
-		private RegionTextField(String region, int size1, int size2) {
-			this.setFont(new Font("Tahoma", Font.PLAIN, 14));
-			this.setText(region);
-			this.setSize(size1, size2);
+		private RegionTextField(String region, int width, int height) {
+			setFont(new Font("Tahoma", Font.PLAIN, 14));
+			setText(region);
+			setSize(width, height);
 			Border border = BorderFactory.createLineBorder(Color.BLACK);
-			this.setBorder(border);
-			this.setMaximumSize(this.getPreferredSize());
-			// this.addActionListener(actionListener);
+			setBorder(border);
+			setMaximumSize(this.getPreferredSize());
+
+		}
+	}
+
+	private class FileInputArea extends JTextField {
+		private static final long serialVersionUID = 1L;
+
+		private FileInputArea(String init, int width, ActionListener actionListener) {
+			setFont(new Font("Tahoma", Font.PLAIN, 14));
+			setText(init);
+			Border border = BorderFactory.createLineBorder(Color.BLACK);
+			setBorder(border);
+			setMaximumSize(new Dimension(Integer.MAX_VALUE, this.getMinimumSize().height));
+			// setMaximumSize(this.getPreferredSize());
+			addActionListener(actionListener);
+			setVisible(true);
 		}
 	}
 
