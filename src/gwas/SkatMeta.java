@@ -1738,6 +1738,9 @@ public class SkatMeta {
 				runAll(dir, maps, forceMeta);
 			} else if (parseAll) {
 				parseAll(dir, maps, forceMeta);
+			} else if (!("this").equals("that")) {
+				System.err.println("SkatMeta has been disabled for all but running initial analyses; use SeqMeta instead");
+				return;
 			} else if (checkNs) {
 				doubleCheckNs(dir, maps);
 			} else if (metrics) {
