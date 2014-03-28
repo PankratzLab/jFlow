@@ -1348,6 +1348,7 @@ public class SeqMeta {
 		groupAnnotationParams = maps.getGroupAnnotationParams();
 
 		log = new Logger(dir+"assembleHits.log");
+		log.report("Using a threshold of "+macThresholdStudy+"/"+macThresholdTotal);
 
 		// match all rdata files to pheno/study/race
 		files = Files.list(dir, ".Rdata", false);
@@ -1423,6 +1424,7 @@ public class SeqMeta {
 					pvalFile = "meta_"+races[k][0]+"_pvals.dat";
 
 					count = parsePvals(localRaceDir+filename, localDir+pvalFile, "Total", methods[m], macHashesHashByRace.get(races[k][0]), macThresholdTotal, log);
+					log.report(count+" lines of pvalues for "+filename);
 					if (count == -1) {
 						return;
 					}
@@ -1540,6 +1542,7 @@ public class SeqMeta {
 		}
 		
 		copyHits(dir, maps);
+		log.report("Copied to assembledHits/ and regions are being delineated");
 		delineateRegions(dir, maps);
 		
 		lineCounts.insertElementAt("Study\tRace\tPhenotype\tMethod\tCount", 0);
@@ -1602,7 +1605,7 @@ public class SeqMeta {
 						while (reader.ready()) {
 							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 //							if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex]) >= mafThreshold) {
-							if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex])*Double.parseDouble(line[mafIndex]) >= macThreshold) {
+							if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex])*Double.parseDouble(line[ntotalIndex]) >= macThreshold) {
 								writer.println(line[1]+"\t"+line[index]);
 							}
 							count++;
@@ -1621,6 +1624,8 @@ public class SeqMeta {
 							if (macHash.containsKey(line[0])) {
 								if (Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) >= macThreshold) {
 									writer.println(line[0]+"\t"+line[index]);
+//								} else {
+//									log.report(Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) +" < "+ macThreshold);
 								}
 							}
 							count++;
@@ -2220,6 +2225,106 @@ public class SeqMeta {
 		Files.writeList(Array.toStringArray(countsTable), dir+"pheno_summary_counts.xln");
 	}
 
+	public static void compareToMetal(String dir, String compareToMetal, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line, header, metalBits;
+		String temp, trav;
+		Hashtable<String, String> hash = new Hashtable<String, String>();
+		Vector<String> v = new Vector<String>();
+		int count;
+		long time;
+		String root;
+		boolean gcControlOn;
+		String batchFile;
+		
+		gcControlOn = false;
+		root = ext.rootOf(compareToMetal);
+		new File(dir+root).mkdirs();
+
+		if (!Files.exists(dir+root+"/"+root+".xln")) {
+			try {
+				reader = Files.getAppropriateReader(dir+compareToMetal);
+				header = ext.splitCommasIntelligently(reader.readLine(), true, log);
+				ext.checkHeader(header, new String[] {"gene", "Name", "p", "maf", "nmiss", "ntotal", "beta", "se"}, new int[] {0,1,2,3,4,5,6,7}, false, log, true);
+				writer = new PrintWriter(new FileWriter(dir+root+"/"+root+".xln"));
+				header[4] = "A1";
+				header[5] = "A2";
+				writer.println(Array.toStr(header));
+				while (reader.ready()) {
+					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+					line[4] = "A";
+					line[5] = "C";
+					writer.println(Array.toStr(line));
+				}
+				reader.close();
+				writer.close();
+				
+				writer = new PrintWriter(new FileWriter(dir+root+"/"+root+".meta_script.in"));
+				writer.println("GENOMICCONTROL "+(gcControlOn?"ON":"OFF"));
+				writer.println("SCHEME STDERR");
+				writer.println("MARKER Name");
+				writer.println("ALLELE A1 A2");
+				writer.println();
+				for (int i = 8; i < header.length && i+1 < header.length; i+=2) {
+					writer.println("EFFECT "+header[i]);
+					writer.println("STDERR "+header[i+1]);
+					writer.println("PROCESS "+root+".xln");
+					writer.println();
+				}
+				writer.println("OUTFILE "+root+" .out");
+				writer.println("ANALYZE");
+				writer.println("");
+				writer.println("QUIT");
+				writer.close();
+			} catch (FileNotFoundException fnfe) {
+				System.err.println("Error: file \"" + dir+compareToMetal + "\" not found in current directory");
+				System.exit(1);
+			} catch (IOException ioe) {
+				System.err.println("Error reading file \"" + dir+compareToMetal + "\"");
+				System.exit(2);
+			}
+		}
+		
+		batchFile = "run_"+root+".bat";
+		if (!Files.exists(dir+root+"/"+batchFile)) {
+			Files.write("metal < "+root+".meta_script.in > "+root+".log", dir+root+"/"+batchFile);
+			log.report("metal < "+root+".meta_script.in");
+			CmdLine.run(batchFile, dir+root+"/", System.out, false);
+		}
+		if (Files.exists(dir+root+"/"+root+"1.out")) {
+			if (!Files.exists(dir+root+"_metal_comparison.xln")) {
+				hash = HashVec.loadFileToHashString(dir+root+"/"+root+"1.out", 0, new int[] {3,4,5}, "\t", false);
+				try {
+					reader = Files.getAppropriateReader(dir+root+"/"+root+".xln");
+					reader.readLine();
+					writer = new PrintWriter(new FileWriter(dir+root+"_metal_comparison.xln"));
+					writer.println("Gene\tMarkerName\tskatBeta\tskatStderr\tskatPval\tmetalBeta\tmetalStderr\tmetalPval\tlog10_skat\tlog10_metal");
+					while (reader.ready()) {
+						line = reader.readLine().trim().split("[\\s]+");
+						if (!ext.isMissingValue(line[2])) {
+							metalBits = hash.get(line[1]).split("\t");
+							writer.println(line[0]+"\t"+line[1]+"\t"+line[6]+"\t"+line[7]+"\t"+line[2]+"\t"+Array.toStr(metalBits)+"\t"+ext.formDeci(-1*Math.log10(Double.parseDouble(line[2])), 3)+"\t"+ext.formDeci(-1*Math.log10(Double.parseDouble(metalBits[2])), 3));	
+						}
+					}
+					reader.close();
+					writer.close();
+				} catch (FileNotFoundException fnfe) {
+					System.err.println("Error: file \"" + dir+compareToMetal + "\" not found in current directory");
+					System.exit(1);
+				} catch (IOException ioe) {
+					System.err.println("Error reading file \"" + dir+compareToMetal + "\"");
+					System.exit(2);
+				}
+			} else {
+				log.report(root+"_metal_comparison.xln already exists!");
+			}
+		} else {
+			log.report("Still need to run "+batchFile);
+		}
+		
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String logfile = null;
@@ -2250,6 +2355,12 @@ public class SeqMeta {
 		boolean includeSD = true;
 		boolean includeRange = true;
 		boolean mockery = false;
+		String compareToMetal = null;
+		
+//		compareToMetal("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
+//		compareToMetal("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withoutLRGP.csv", new Logger());
+//		
+//		System.exit(1);
 
 		String usage = "\n" + 
 		"gwas.SeqMeta requires 0-1 arguments\n" + 
@@ -2296,6 +2407,9 @@ public class SeqMeta {
 		"   (2) summarize phenotypes into a set of tables (i.e. -sumPhenos (not the default))\n" + 
 		"   (3) include standard deviation (i.e. includeSD="+includeSD+" (default))\n" + 
 		"   (4) include the range of values (i.e. includeSD="+includeRange+" (default))\n" + 
+		" \n" + 
+		" OR\n" + 
+		"   (2) filename of singleSNP results to be compared to METAL analysis (i.e. compareToMetal=Whites_Hct_SingleSNP.csv (not the default))\n" + 
 		" \n" + 
 		"   CURRENTLY HAVING TROUBLE RUNNING SOME ANALYSES, HAVE BEEN USING gwas.SkatMeta TO RUN and gwas.SeqMeta TO SUMMARIZE\n" + 
 		"";
@@ -2373,6 +2487,9 @@ public class SeqMeta {
 			} else if (args[i].startsWith("-mock")) {
 				mockery = true;
 				numArgs--;
+			} else if (args[i].startsWith("compareToMetal=")) {
+				compareToMetal = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -2421,9 +2538,9 @@ public class SeqMeta {
 //		delineateRegions(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()));
 //		System.exit(1);
 
-		dir = "D:/ExomeChip/Hematology/00src/CHARGE-RBC/";
-		summarizePhenotypes(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), true, true, new Logger());
-		System.exit(1);
+//		dir = "D:/ExomeChip/Hematology/00src/CHARGE-RBC/";
+//		summarizePhenotypes(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), true, true, new Logger());
+//		System.exit(1);
 
 		try {
 			log = new Logger(logfile);
@@ -2467,6 +2584,8 @@ public class SeqMeta {
 				makeSetOfMockRdataFiles(dir, maps);
 			} else if (summarizePhenotypes) {
 				summarizePhenotypes(dir, maps, includeSD, includeRange, log);
+			} else if (compareToMetal != null) {
+				compareToMetal(dir, compareToMetal, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
