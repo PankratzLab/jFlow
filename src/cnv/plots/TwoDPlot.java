@@ -1178,6 +1178,29 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	public void displayIndex(JTextField field) {
 //		field.setText((markerIndex+1)+" of "+markerList.length);
 //	}
+
+	public void showSpecificFile(Project proj, String filename, int colForX, int colForY, Logger log) {
+		String[] prevFiles = proj.getProperty(Project.TWOD_LOADED_FILENAMES).split(";");
+		if(Arrays.binarySearch(prevFiles, filename) < 0){
+			// the supplied file was not found so load it
+			loadFile(filename);	// load the file
+		}
+		if(colForX != Integer.MIN_VALUE){
+			// select the x axis
+			tree.performCheckBoxAction(namesHash.get(filename)[colForX], ItemEvent.SELECTED);
+		}
+
+		if(colForY != Integer.MIN_VALUE){
+			// select the x axis
+			tree.performCheckBoxAction(namesHash.get(filename)[colForY], ItemEvent.SELECTED);
+		}
+
+		updateTree();
+		updateGUI();
+		tree.expandRow(treeFilenameLookup.indexOf(filename));
+		twoDPanel.paintAgain();
+
+	}
 	public void windowActivated(WindowEvent e) {}
 
 	public void windowClosed(WindowEvent e) {}
