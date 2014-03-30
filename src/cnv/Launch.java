@@ -433,6 +433,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(TWOD)) {
 //				TwoDPlot.main(null);
 				TwoDPlot twoDP = TwoDPlot.createAndShowGUI(proj, proj.getLog());
+				//TODO: Sample call to test this functionality. Should be removed when seems to work fine.
+				// replace the filename according to the path on local machine
+				twoDP.showSpecificFile(proj, "/Users/rohitsinha/Documents/development/ra/practice/sexCheck.xln", 5, 9, proj.getLog());
 			} else if (command.equals(LINE_PLOT)) {
 				LinePlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(COMP)) {

@@ -107,6 +107,34 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		//tree node with string node found return null
 		return null;
 	}
+
+	/**
+	 * Function to perform a given action on a given checkbox
+	 *
+	 * @param checkboxName
+	 *            the name of the checkbox on which action has to be performed
+	 * @param action
+	 *            the action to be performed which is either SELECTED or DESELECTED from {@link ItemEvent}
+	 */
+	public void performCheckBoxAction(String checkboxName, int action) {
+		// try to get the checkbox from the CheckBoxTree
+		DefaultMutableTreeNode searchNode = searchNode(checkboxName);
+		if (searchNode != null) {
+			JCheckBox thisCheckBox = (JCheckBox) searchNode.getUserObject();
+			if (action == ItemEvent.SELECTED) {
+				if (thisCheckBox.isSelected()) { // if action is selected and the checkbox is already selected then
+					// deselect first
+					thisCheckBox.setSelected(false);
+					this.itemStateChanged(new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox, ItemEvent.DESELECTED));
+				}
+				thisCheckBox.setSelected(true); // then select the checkbox again
+			} else if (action == ItemEvent.DESELECTED) {
+				thisCheckBox.setSelected(false);
+			}
+			itemStateChanged(new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox, action));
+			repaint();
+		}
+	}
 	
 	public void addNode(String nameOfBranch, String branchHandle, String[] namesOfNodes, boolean[] active) {
 		TreeModel model;
