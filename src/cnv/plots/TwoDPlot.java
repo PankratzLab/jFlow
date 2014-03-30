@@ -1178,8 +1178,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	public void displayIndex(JTextField field) {
 //		field.setText((markerIndex+1)+" of "+markerList.length);
 //	}
-	
-
 	public void windowActivated(WindowEvent e) {}
 
 	public void windowClosed(WindowEvent e) {}
@@ -1188,11 +1186,16 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public void windowClosing(WindowEvent e) {
 		String[] options;
 		int choice;
-		String filenames, selections, message;
+		String filenames, selections = "", message;
 
 		filenames = Array.toStr(Array.toStringArray(treeFilenameLookup), ";");
-		selections = "";
-		
+
+		// find the selected nodes in the plot and create a string from them delimited by ;
+		String[][] selectedNodes = tree.getSelectionValues();
+		if(selectedNodes.length != 0 && selectedNodes[0][0] != null && selectedNodes[1][0] != null){
+			selections = Array.toStr(selectedNodes[0], ",") + ";" + Array.toStr(selectedNodes[1], ",");
+		}
+
 		options = new String[] {"Yes", "No", "Cancel"};
 		message = "";
 		
@@ -1206,9 +1209,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		
 		if (!proj.getProperty(Project.TWOD_LOADED_VARIABLES).equals(selections)) {
 			if (!message.equals("")) {
-				message = message.substring(0, message.length()-1)+", and new variables have been selected.";
+				if(!selections.equals(""))
+					message = message.substring(0, message.length()-1)+", and new variables have been selected.";
+				else
+					message = message.substring(0, message.length()-1)+", and all variables have been unselected.";
 			} else {
-				message = "New variables have been selected.";
+				if(!selections.equals(""))
+					message = "New variables have been selected.";
+				else
+					message = "All variables have been unselected from 2D Plot.";
 			}
 		}
 		
