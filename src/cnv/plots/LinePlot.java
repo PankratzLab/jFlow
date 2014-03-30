@@ -396,7 +396,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 			for (String thisProject : namesHash.keySet()) {
 				String[] thisProjectFiles = namesHash.get(thisProject);
 				for (int i = 0; i < thisProjectFiles.length; i++) {
-					performCheckBoxAction(thisProjectFiles[i], ItemEvent.SELECTED);
+					tree.performCheckBoxAction(thisProjectFiles[i], ItemEvent.SELECTED);
 				}
 			}
 			for (String thisGroup : colorKeyHash.keySet()) {
@@ -416,35 +416,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	public void performGroupCheckboxAction(String groupName, int action) {
 		Hashtable<String, String> groupValuesHash = colorKeyHash.get(groupName);
 		for (String thisFile : groupValuesHash.keySet()) {
-			performCheckBoxAction(thisFile, action);
-		}
-	}
-
-	/**
-	 * Function to perform a given action on a given checkbox
-	 * 
-	 * @param checkboxName
-	 *            the name of the checkbox on which action has to be performed
-	 * @param action
-	 *            the action to be performed which is either SELECTED or DESELECTED from {@link ItemEvent}
-	 */
-	public void performCheckBoxAction(String checkboxName, int action) {
-		// try to get the checkbox from the CheckBoxTree
-		DefaultMutableTreeNode searchNode = tree.searchNode(checkboxName);
-		if (searchNode != null) {
-			JCheckBox thisCheckBox = (JCheckBox) searchNode.getUserObject();
-			if (action == ItemEvent.SELECTED) {
-				if (thisCheckBox.isSelected()) { // if action is selected and the checkbox is already selected then
-													// deselect first
-					thisCheckBox.setSelected(false);
-					tree.itemStateChanged(new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox, ItemEvent.DESELECTED));
-				}
-				thisCheckBox.setSelected(true); // then select the checkbox again
-			} else if (action == ItemEvent.DESELECTED) {
-				thisCheckBox.setSelected(false);
-			}
-			tree.itemStateChanged(new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox, action));
-			tree.repaint();
+			tree.performCheckBoxAction(thisFile, action);
 		}
 	}
 
