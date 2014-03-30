@@ -1363,7 +1363,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	     * this method should be invoked from the
 	     * event-dispatching thread.
 	     */
-	public static void createAndShowGUI(Project proj, Logger log) {
+	public static TwoDPlot createAndShowGUI(Project proj, Logger log) {
 
 		//Create and set up the window.
 		JFrame frame = new JFrame("2D Plot");
@@ -1383,6 +1383,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         //Display the window.
         frame.pack();
         frame.setVisible(true);
+
+		return twoDPlot;
     }
 
 	public void closeStream(Closeable s) {

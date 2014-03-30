@@ -432,7 +432,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
 			} else if (command.equals(TWOD)) {
 //				TwoDPlot.main(null);
-				TwoDPlot.createAndShowGUI(proj, proj.getLog());
+				TwoDPlot twoDP = TwoDPlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(LINE_PLOT)) {
 				LinePlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(COMP)) {
