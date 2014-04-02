@@ -5,7 +5,7 @@ import common.*;
 
 public class Metasoft {
 	public static void generateRawFile(String[] markers, String[] filenamesAndColumnIDs, String outputFilename, Logger log) {
-		Files.combineWithLessMemory(markers, filenamesAndColumnIDs, null, "MarkerName", outputFilename, log, true, false, false, false);
+		Files.combineWithLessMemory(markers, filenamesAndColumnIDs, null, "MarkerName", ".", outputFilename, log, true, false, false, false);
 	}
 
 	public static void processRawToInputFile(String rawFilename, String outputFilename, Logger log) {

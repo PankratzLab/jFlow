@@ -27,6 +27,9 @@ public class MapGenesToSNPs {
         buffer = -1;
         
 		paramV = Files.parseControlFile(filename, "genes", new String[] {"candidates.txt header , 0 out=file.out", "plink.bim 1 0 3", "buffer="+DEFAULT_BUFFER}, log);
+		if (paramV == null) {
+			return;
+		}
 		track = GeneTrack.load(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK, false);
 
     	line = paramV.remove(0).trim().split("[\\s]+");

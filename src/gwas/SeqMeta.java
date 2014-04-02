@@ -3,6 +3,9 @@ package gwas;
 import java.io.*;
 import java.util.*;
 
+import mining.Transformations;
+
+import stats.Correlation;
 import stats.ProbDist;
 import stats.Rscript;
 
@@ -639,8 +642,8 @@ public class SeqMeta {
 		
 		jobNames = new Vector<String>();
 		jobSizes = new IntVector();
-		// Meta-analysis stratified by race
 		for (int i = 0; i < phenotypes.length; i++) {
+			// Meta-analysis stratified by race
 			for (int k = 0; k < races.length; k++) {
 				for (int chr = 1; chr <= (runningByChr?maxChr:1); chr++) {
 					chrom = chr==23?"X":(chr==24?"Y":chr+"");
@@ -873,6 +876,8 @@ public class SeqMeta {
 		String[][] methods;
 		String method;
 		String[][][] sampleSizes;
+		Vector<int[]> ranges;
+		int start, stop;
 		
 		if (dir == null || dir.equals("")) {
 			dir = new File("").getAbsolutePath()+"/";
@@ -926,10 +931,6 @@ public class SeqMeta {
 			e.printStackTrace();
 		}
 		
-		
-		Vector<int[]> ranges;
-		int start, stop;
-		
 		start = 1;
 		ranges = new Vector<int[]>();
 		try {
@@ -971,14 +972,13 @@ public class SeqMeta {
 	}
 
 	public static String[] procFile(String outputFilename, Logger log) {
-		String[] metrics;
-		
 		BufferedReader reader;
 		String[] line;
 		String temp;
 		int count;
 		String delimiter;
 		DoubleVector[] dvs;
+		String[] metrics;
 		int maxSamples;
 		
 		count = 0;
@@ -1045,7 +1045,6 @@ public class SeqMeta {
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + outputFilename + "\"");
 		}
-		
 		
 		return metrics;
 	}
@@ -2225,28 +2224,31 @@ public class SeqMeta {
 		Files.writeList(Array.toStringArray(countsTable), dir+"pheno_summary_counts.xln");
 	}
 
-	public static void compareToMetal(String dir, String compareToMetal, Logger log) {
+	public static void metalCohortSensitivity(String dir, String compareToMetal, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
-		String[] line, header, metalBits;
-		String temp, trav;
+		String[] line, header, originalBits;
 		Hashtable<String, String> hash = new Hashtable<String, String>();
-		Vector<String> v = new Vector<String>();
+		double[][][] data;
 		int count;
-		long time;
+		long time, total;
 		String root;
 		boolean gcControlOn;
-		String batchFile;
+		String study;
+		
+		
+		total = new Date().getTime();
 		
 		gcControlOn = false;
 		root = ext.rootOf(compareToMetal);
 		new File(dir+root).mkdirs();
 
-		if (!Files.exists(dir+root+"/"+root+".xln")) {
-			try {
-				reader = Files.getAppropriateReader(dir+compareToMetal);
-				header = ext.splitCommasIntelligently(reader.readLine(), true, log);
-				ext.checkHeader(header, new String[] {"gene", "Name", "p", "maf", "nmiss", "ntotal", "beta", "se"}, new int[] {0,1,2,3,4,5,6,7}, false, log, true);
+		header = null;
+		try {
+			reader = Files.getAppropriateReader(dir+compareToMetal);
+			header = ext.splitCommasIntelligently(reader.readLine(), true, log);
+			ext.checkHeader(header, new String[] {"gene", "Name", "p", "maf", "nmiss", "ntotal", "beta", "se"}, new int[] {0,1,2,3,4,5,6,7}, false, log, true);
+			if (!Files.exists(dir+root+"/"+root+".xln")) {
 				writer = new PrintWriter(new FileWriter(dir+root+"/"+root+".xln"));
 				header[4] = "A1";
 				header[5] = "A2";
@@ -2257,72 +2259,323 @@ public class SeqMeta {
 					line[5] = "C";
 					writer.println(Array.toStr(line));
 				}
-				reader.close();
 				writer.close();
-				
-				writer = new PrintWriter(new FileWriter(dir+root+"/"+root+".meta_script.in"));
-				writer.println("GENOMICCONTROL "+(gcControlOn?"ON":"OFF"));
-				writer.println("SCHEME STDERR");
-				writer.println("MARKER Name");
-				writer.println("ALLELE A1 A2");
-				writer.println();
-				for (int i = 8; i < header.length && i+1 < header.length; i+=2) {
-					writer.println("EFFECT "+header[i]);
-					writer.println("STDERR "+header[i+1]);
-					writer.println("PROCESS "+root+".xln");
-					writer.println();
-				}
-				writer.println("OUTFILE "+root+" .out");
-				writer.println("ANALYZE");
-				writer.println("");
-				writer.println("QUIT");
-				writer.close();
-			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \"" + dir+compareToMetal + "\" not found in current directory");
-				System.exit(1);
-			} catch (IOException ioe) {
-				System.err.println("Error reading file \"" + dir+compareToMetal + "\"");
-				System.exit(2);
 			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + dir+compareToMetal + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + dir+compareToMetal + "\"");
+			System.exit(2);
 		}
-		
-		batchFile = "run_"+root+".bat";
-		if (!Files.exists(dir+root+"/"+batchFile)) {
-			Files.write("metal < "+root+".meta_script.in > "+root+".log", dir+root+"/"+batchFile);
-			log.report("metal < "+root+".meta_script.in");
-			CmdLine.run(batchFile, dir+root+"/", System.out, false);
-		}
-		if (Files.exists(dir+root+"/"+root+"1.out")) {
-			if (!Files.exists(dir+root+"_metal_comparison.xln")) {
-				hash = HashVec.loadFileToHashString(dir+root+"/"+root+"1.out", 0, new int[] {3,4,5}, "\t", false);
-				try {
-					reader = Files.getAppropriateReader(dir+root+"/"+root+".xln");
-					reader.readLine();
-					writer = new PrintWriter(new FileWriter(dir+root+"_metal_comparison.xln"));
-					writer.println("Gene\tMarkerName\tskatBeta\tskatStderr\tskatPval\tmetalBeta\tmetalStderr\tmetalPval\tlog10_skat\tlog10_metal");
-					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
-						if (!ext.isMissingValue(line[2])) {
-							metalBits = hash.get(line[1]).split("\t");
-							writer.println(line[0]+"\t"+line[1]+"\t"+line[6]+"\t"+line[7]+"\t"+line[2]+"\t"+Array.toStr(metalBits)+"\t"+ext.formDeci(-1*Math.log10(Double.parseDouble(line[2])), 3)+"\t"+ext.formDeci(-1*Math.log10(Double.parseDouble(metalBits[2])), 3));	
+
+		try {
+			for (int i = 8; i < header.length; i+=2) {
+				study = header[i].substring(5);
+				if (!Files.exists(dir+root+"/"+root+"_wo_"+study+"1.out")) {
+					time = new Date().getTime();
+					writer = new PrintWriter(new FileWriter(dir+root+"/"+root+".metal_wo_"+study+"_script.in"));
+					writer.println("GENOMICCONTROL "+(gcControlOn?"ON":"OFF"));
+					writer.println("SCHEME STDERR");
+					writer.println("MARKER Name");
+					writer.println("ALLELE A1 A2");
+					writer.println();
+					for (int j = 8; j < header.length; j+=2) {
+						if (i != j) {
+							writer.println("EFFECT "+header[j]);
+							writer.println("STDERR "+header[j+1]);
+							writer.println("PROCESS "+root+".xln");
+							writer.println();
 						}
 					}
-					reader.close();
+					writer.println("OUTFILE "+root+"_wo_"+study+" .out");
+					writer.println("ANALYZE");
+					writer.println("");
+					writer.println("QUIT");
 					writer.close();
-				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \"" + dir+compareToMetal + "\" not found in current directory");
-					System.exit(1);
-				} catch (IOException ioe) {
-					System.err.println("Error reading file \"" + dir+compareToMetal + "\"");
-					System.exit(2);
+				
+					log.report("Running metal leaving out "+study+"...", false, true);
+					CmdLine.run("metal < "+root+".metal_wo_"+study+"_script.in", dir+root+"/", new PrintStream(new File(dir+root+"/"+root+".metal_wo_"+study+".log")), false);
+					log.report("done in " + ext.getTimeElapsed(time));
+				} else {
+					log.report("Using existing "+root+"_wo_"+study+"1.out");
 				}
+			}
+		} catch (Exception e) {
+			log.reportException(e);
+		}
+
+		try {
+			if (!Files.exists(dir+root+"_metal_comparison.xln") || new File(dir+root+"_metal_comparison.xln").length()==0) {
+				writer = new PrintWriter(new FileWriter(dir+root+"_metal_comparison.xln"));
+				writer.println("Study\tAnalysis\tCorrelationPvals\tBeta_ratio\tSE_ratio\tNet_lambda\tMedianBetaWith\tMedianBetaWithout\tMedianStderrWith\tMedianStderrWithout\tLambdaWith\tLambdaWithout");
+				hash = HashVec.loadFileToHashString(dir+root+"/"+root+".xln", 1, new int[] {6,7,2}, "\t", false);
+				for (int i = 8; i < header.length; i+=2) {
+					study = header[i].substring(5);
+					try {
+						reader = Files.getAppropriateReader(dir+root+"/"+root+"_wo_"+study+"1.out");
+						log.report("Processing "+root+"_wo_"+study+"1.out");
+						reader.readLine();
+						data = new double[2][3][Files.countLines(dir+root+"/"+root+"_wo_"+study+"1.out", true)];
+						count = 0;
+						while (reader.ready()) {
+							line = reader.readLine().trim().split("[\\s]+");
+							for (int j = 0; j < 3; j++) {
+								data[0][j][count] = Double.parseDouble(line[3+j]);
+							}
+							originalBits = hash.get(line[0]).split("\t");
+							for (int j = 0; j < 3; j++) {
+								if (ext.isMissingValue(originalBits[j])) {
+									log.reportError("Error - value for "+line[0]+" was "+Array.toStr(Array.subArray(line, 3, 6), "/")+" without "+study+" and was "+Array.toStr(originalBits, "/")+" with it");
+									data[1][j][count] = Double.NaN;
+								} else {
+									data[1][j][count] = Double.parseDouble(originalBits[j]);
+								}
+							}
+							count++;
+						}
+						reader.close();
+						
+						writer.println(
+								study+"\t"+
+								root+"\t"+
+								ext.formDeci(Correlation.Pearson(Transformations.negativeLog10Transform(data[0][2]), Transformations.negativeLog10Transform(data[1][2]))[0], 3)+"\t"+
+								ext.formDeci(Array.median(data[0][0])/Array.median(data[1][0]), 2)+"\t"+
+								ext.formDeci(Array.median(data[0][1])/Array.median(data[1][1]), 2)+"\t"+
+								ext.formDeci(Array.lambda(data[0][2])-Array.lambda(data[1][2]), 3)+"\t"+
+								Array.median(data[0][0])+"\t"+
+								Array.median(data[1][0])+"\t"+
+								Array.median(data[0][1])+"\t"+
+								Array.median(data[1][1])+"\t"+
+								Array.lambda(data[0][2])+"\t"+
+								Array.lambda(data[1][2])
+								);	
+
+					} catch (FileNotFoundException fnfe) {
+						log.reportError("Error: file \"" + dir+compareToMetal + "\" not found in current directory");
+					} catch (IOException ioe) {
+						log.reportError("Error reading file \"" + dir+compareToMetal + "\"");
+					}
+				}
+				writer.close();
 			} else {
 				log.report(root+"_metal_comparison.xln already exists!");
 			}
-		} else {
-			log.report("Still need to run "+batchFile);
+		} catch (Exception e) {
+			log.reportException(e);
 		}
 		
+		System.out.println("Finished everything in " + ext.getTimeElapsed(total));
+	}
+	
+	public static void batchAllMetalSensitivityAnalyses(String dir, MetaAnalysisParams maps) {
+		String[] files;
+		Logger log;
+		String root, outputFilename, processedFilename;
+		String[][] phenotypes, races;
+		String[][] methods;
+		String method;
+		boolean runningByChr;
+		Vector<String> needToBeProcessed, readyToBeConcatenated;
+		String localDir;
+		int maxChr;
+		String chrom;
+
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		
+		log = new Logger(dir+"allMetalSensitivityAnalyses.log");
+		phenotypes = maps.getPhenotypesWithFilenameAliases();
+		races = maps.getRacesWithFilenameAliases();
+		methods = maps.getMethods();
+		runningByChr = maps.runningByChr();
+		maxChr = getMaxChr();
+
+		method = null;
+		for (int j = 0; j < methods.length; j++) {
+			if (methods[j][2].equals("singlesnpMeta")) {
+				method = methods[j][0];
+			}
+		}
+		if (method == null) {
+			log.report("Error - cannot summarize if there is no method using singlesnpMeta");
+			return;
+		}
+
+		needToBeProcessed = new Vector<String>();
+		readyToBeConcatenated = new Vector<String>();
+		for (int i = 0; i < phenotypes.length; i++) {
+			// Meta-analysis stratified by race
+			for (int k = 0; k < races.length; k++) {
+				for (int chr = 1; chr <= (runningByChr?maxChr:1); chr++) {
+					chrom = chr==23?"X":(chr==24?"Y":chr+"");
+					root = races[k][0]+"_"+phenotypes[i][0]+"_"+method;
+					outputFilename = dir+phenotypes[i][0]+"/"+races[k][0]+"/"+method+"/"+root+(runningByChr?"_chr"+chrom:"")+".csv";
+					processedFilename = ext.rootOf(outputFilename, false)+"_metal_comparison.xln";
+					if (!Files.exists(processedFilename) || new File(processedFilename).length() == 0) {
+						needToBeProcessed.add(outputFilename);
+					} else {
+						readyToBeConcatenated.add(processedFilename);
+					}
+				}
+			}
+
+			// Meta-analysis of all races
+			for (int chr = 1; chr <= (runningByChr?maxChr:1); chr++) {
+				chrom = chr==23?"X":(chr==24?"Y":chr+"");
+				root = phenotypes[i][0]+"_"+method;
+				outputFilename = dir+phenotypes[i][0]+"/"+method+"/"+root+(runningByChr?"_chr"+chrom:"")+".csv";
+				processedFilename = ext.rootOf(outputFilename, false)+"_metal_comparison.xln";
+				if (!Files.exists(processedFilename) || new File(processedFilename).length() == 0) {
+					needToBeProcessed.add(outputFilename);
+				} else {
+					readyToBeConcatenated.add(processedFilename);
+				}
+			}
+		}
+		
+		files = Array.toStringArray(needToBeProcessed);
+		needToBeProcessed.clear();
+		if (files.length > 0) {
+			for (int i = 0; i < files.length; i++) {
+				localDir = ext.parseDirectoryOfFile(files[i]);
+				Files.qsub(dir+"batchRuns/"+ext.rootOf(files[i])+".qsub", "cd "+localDir+"\njava -cp ~/park.jar gwas.SeqMeta dir="+localDir+" metalSensitivity="+ext.removeDirectoryInfo(files[i]), 25000, 3, 1);
+				needToBeProcessed.add("qsub batchRuns/"+ext.rootOf(files[i])+".qsub");
+			}
+			Files.writeList(Array.toStringArray(needToBeProcessed), dir+"master.toBeProcessed");
+			Files.chmod(dir+"master.toBeProcessed");
+			log.report("Next run:\n./master.toBeProcessed");
+		} else {
+			log.report("All files have been processed; allMetalSensitivityAnalyses.xln should now be complete");
+			Files.cat(Array.toStringArray(readyToBeConcatenated), dir+"allMetalSensitivityAnalyses.xln", Array.intArrayStandarddSkips(readyToBeConcatenated.size()), log);
+		}
+	}
+
+	
+	public static void checkMAFs(String dir, MetaAnalysisParams maps) {
+		MAFstack stack;
+		PrintWriter writer;
+		String[] files;
+		String[][][] finalSets;
+		Logger log;
+		String root, outputFilename, hashFilename;
+		String[][] phenotypes, races;
+		String[] studies;
+		String[][] methods;
+		String method;
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		
+		log = new Logger(dir+"checkMAFs.log");
+		phenotypes = maps.getPhenotypesWithFilenameAliases();
+		studies = maps.getStudies();
+		races = maps.getRacesWithFilenameAliases();
+		methods = maps.getMethods();
+		files = Files.list(dir, null, ".Rdata", false, false);
+		finalSets = identifySet(maps, files, log);
+
+		method = null;
+		for (int j = 0; j < methods.length; j++) {
+			if (methods[j][2].equals("singlesnpMeta")) {
+				method = methods[j][0];
+			}
+		}
+		if (method == null) {
+			log.report("Error - cannot summarize if there is no method using singlesnpMeta");
+			return;
+		}
+
+		for (int i = 0; i < phenotypes.length; i++) {
+			hashFilename = dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_mafs.ser";
+			if (Files.exists(hashFilename)) {
+				log.report("Reloading from "+hashFilename);
+				stack = MAFstack.load(hashFilename, false);
+			} else {
+				stack = new MAFstack();
+				for (int j = 0; j < studies.length; j++) {
+					for (int k = 0; k < races.length; k++) {
+						if (!finalSets[i][j][k].equals("<missing>")) {
+							root = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0]+"_"+method;
+							outputFilename = dir+phenotypes[i][0]+"/"+races[k][0]+"/"+method+"/"+root+".csv";
+							
+							if (stack.hash == null) {
+								stack.hash = new Hashtable<String, Hashtable<String,String[]>>((int)(Files.countLines(outputFilename, false)*1.2));
+							}
+							
+							log.report("Loading maf info from "+outputFilename);
+							if (Files.exists(outputFilename)) {
+								fillMAFsIntoHash(outputFilename, j, k, stack.hash, log);
+							} else {
+								log.report("Error - missing expected file: "+outputFilename);
+							}
+						}
+					}
+				}
+				log.report("Saving to "+hashFilename);
+				stack.serialize(hashFilename);
+			}
+			
+			try {
+				writer = new PrintWriter(new FileWriter(dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_mafReport.xln"));
+
+//				writer.println();
+//				writer.println();
+				
+				writer.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_mafReport.xln");
+				e.printStackTrace();
+			}
+
+		}
+
+		
+	}
+
+	public static boolean fillMAFsIntoHash(String outputFilename, int studyIndex, int raceIndex, Hashtable<String, Hashtable<String,String[]>> hash, Logger log) {
+		BufferedReader reader;
+		String[] line;
+		String temp;
+		String delimiter;
+		
+		try {
+			reader = new BufferedReader(new FileReader(outputFilename));
+			temp = ext.replaceAllWith(reader.readLine(), "\"", "");
+			delimiter = ext.determineDelimiter(temp);
+
+			if (ext.checkHeader(temp.split(delimiter, -1), HEADER_TYPES[0], Array.intArray(HEADER_TYPES[0].length), false, log, false)) {
+				while (reader.ready()) {
+					if (delimiter.equals(",")) {
+						line = ext.splitCommasIntelligently(reader.readLine().trim(), true, log);
+					} else {
+						line = reader.readLine().trim().split(delimiter, -1);
+					}
+					if (!hash.containsKey(line[1])) {
+						hash.put(line[1], new Hashtable<String, String[]>());
+					}
+					
+					hash.get(line[1]).put(studyIndex+"\t"+raceIndex, new String[] {line[3], line[5]});
+				}
+			} else {
+				log.reportError("Error - unexpected header for file '"+outputFilename+"' : "+temp);
+				reader.close();
+				return false;
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + outputFilename + "\" not found in current directory");
+			return false;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + outputFilename + "\"");
+			return false;
+		}
+		
+		return true;
 	}
 
 	public static void main(String[] args) {
@@ -2355,11 +2608,13 @@ public class SeqMeta {
 		boolean includeSD = true;
 		boolean includeRange = true;
 		boolean mockery = false;
-		String compareToMetal = null;
+		String metalSensitivity = null;
+		boolean metalSensitivityAll = false;
+		boolean checkMAFs = false;
 		
-//		compareToMetal("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
-//		compareToMetal("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withoutLRGP.csv", new Logger());
-//		
+//		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
+//		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Hct_SingleSNP.csv", new Logger());
+//		metalCohortSensitivity("D:/ExomeChip/Hematology/results/08_withFHS_and_others/", "Whites_Hb_SingleSNP.csv", new Logger());
 //		System.exit(1);
 
 		String usage = "\n" + 
@@ -2409,7 +2664,12 @@ public class SeqMeta {
 		"   (4) include the range of values (i.e. includeSD="+includeRange+" (default))\n" + 
 		" \n" + 
 		" OR\n" + 
-		"   (2) filename of singleSNP results to be compared to METAL analysis (i.e. compareToMetal=Whites_Hct_SingleSNP.csv (not the default))\n" + 
+		"   (1) filename of singleSNP results to run through a series of leave one study out METAL analyses (i.e. metalSensitivity=Whites_Hct_SingleSNP.csv (not the default))\n" +
+		" OR\n" + 
+		"   (2) batch all singleSNP results to be run through the METAL sensitivity analyses (i.e. -allMetalSensitivity (not the default))\n" +
+		"       ( run again to concatenate all result files )\n" +
+		" OR\n" + 
+		"   (2) check minor allele frequencies for summed differences from other cohorts (i.e. -checkMAFs (not the default))\n" +
 		" \n" + 
 		"   CURRENTLY HAVING TROUBLE RUNNING SOME ANALYSES, HAVE BEEN USING gwas.SkatMeta TO RUN and gwas.SeqMeta TO SUMMARIZE\n" + 
 		"";
@@ -2487,8 +2747,14 @@ public class SeqMeta {
 			} else if (args[i].startsWith("-mock")) {
 				mockery = true;
 				numArgs--;
-			} else if (args[i].startsWith("compareToMetal=")) {
-				compareToMetal = args[i].split("=")[1];
+			} else if (args[i].startsWith("metalSensitivity=")) {
+				metalSensitivity = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-allMetalSensitivity")) {
+				metalSensitivityAll = true;
+				numArgs--;
+			} else if (args[i].startsWith("-checkMAFs")) {
+				checkMAFs = true;
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -2544,51 +2810,73 @@ public class SeqMeta {
 
 		try {
 			log = new Logger(logfile);
-			maps = new MetaAnalysisParams(mapsFile, log);
-			if (determineObjectNames) {
-				determineObjectNames(dir, maps, log);
-			} else if (splitAll) {
-				splitAll(dir, maps);
-			} else if (consolidate) {
-				consolidate(dir, maps);
-			} else if (runAll) {
-				runAll(dir, maps, forceMeta);
-			} else if (parseAll) {
-				parseAll(dir, maps, forceMeta);
-			} else if (checkNs) {
-				doubleCheckNs(dir, maps);
-			} else if (metrics) {
-				parseMetrics(dir, maps);
-			} else if (computeMACs) {
-				if (mafThreshold == null) {
-					computeAllRelevantMACs(dir, maps, log);
-				} else {
-					computeMAC(dir, maps, mafThreshold, new Logger(dir+"computeMACs_forMAF_LTE_"+mafThreshold+".log"));
+			if (metalSensitivity != null) {
+				metalCohortSensitivity(dir, metalSensitivity, log);
+			} else {
+				maps = new MetaAnalysisParams(mapsFile, log);
+				if (determineObjectNames) {
+					determineObjectNames(dir, maps, log);
+				} else if (splitAll) {
+					splitAll(dir, maps);
+				} else if (consolidate) {
+					consolidate(dir, maps);
+				} else if (runAll) {
+					runAll(dir, maps, forceMeta);
+				} else if (parseAll) {
+					parseAll(dir, maps, forceMeta);
+				} else if (checkNs) {
+					doubleCheckNs(dir, maps);
+				} else if (metrics) {
+					parseMetrics(dir, maps);
+				} else if (computeMACs) {
+					if (mafThreshold == null) {
+						computeAllRelevantMACs(dir, maps, log);
+					} else {
+						computeMAC(dir, maps, mafThreshold, new Logger(dir+"computeMACs_forMAF_LTE_"+mafThreshold+".log"));
+					}
+				} else if (hits) {
+					assembleHits(dir, maps, macThresholdStudy, macThresholdTotal);
+//					metaAll(dir, PHENOTYPES, STUDIES, GROUPS, METHODS, UNIT_OF_ANALYSIS, DEFAULT_SAMPLE_SIZES, WEIGHTED, SINGLE_VARIANTS, GROUP_ANNOTATION_PARAMS);
+				} else if (genePositions) {
+					parseGenePositions(dir, maps);
+				} else if (copy) {
+					copyHits(dir, maps);
+				} else if (regions) {
+					delineateRegions(dir, maps);
+				} else if (qq) {
+					makeQQplots(dir, maps);
+				} else if (stashMetaResults) {
+					stashMetaResults(dir, maps);
+				} else if (betasFor != null) {
+					parseBetasFor(dir, maps, betasFor, log);
+				} else if (mockery) {
+					makeSetOfMockRdataFiles(dir, maps);
+				} else if (summarizePhenotypes) {
+					summarizePhenotypes(dir, maps, includeSD, includeRange, log);
+				} else if (metalSensitivityAll) {
+					batchAllMetalSensitivityAnalyses(dir, maps);
+				} else if (checkMAFs) {
+					checkMAFs(dir, maps);
 				}
-			} else if (hits) {
-				assembleHits(dir, maps, macThresholdStudy, macThresholdTotal);
-//				metaAll(dir, PHENOTYPES, STUDIES, GROUPS, METHODS, UNIT_OF_ANALYSIS, DEFAULT_SAMPLE_SIZES, WEIGHTED, SINGLE_VARIANTS, GROUP_ANNOTATION_PARAMS);
-			} else if (genePositions) {
-				parseGenePositions(dir, maps);
-			} else if (copy) {
-				copyHits(dir, maps);
-			} else if (regions) {
-				delineateRegions(dir, maps);
-			} else if (qq) {
-				makeQQplots(dir, maps);
-			} else if (stashMetaResults) {
-				stashMetaResults(dir, maps);
-			} else if (betasFor != null) {
-				parseBetasFor(dir, maps, betasFor, log);
-			} else if (mockery) {
-				makeSetOfMockRdataFiles(dir, maps);
-			} else if (summarizePhenotypes) {
-				summarizePhenotypes(dir, maps, includeSD, includeRange, log);
-			} else if (compareToMetal != null) {
-				compareToMetal(dir, compareToMetal, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+}
+
+class MAFstack implements Serializable {
+	private static final long serialVersionUID = 1l;
+	
+	public Hashtable<String,Hashtable<String,String[]>> hash;
+	
+	public void serialize(String filename) {
+		Files.writeSerial(this, filename);
+	}
+
+	public static MAFstack load(String filename, boolean jar) {
+		return (MAFstack)Files.readSerial(filename, jar, true);
+	}
+
+
 }

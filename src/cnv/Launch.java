@@ -109,7 +109,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
 		if (!Files.exists(proj.getProjectDir(), proj.getJarStatus())) {
-			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.getProjectDir()+"') for project '"+proj.getNameOfProject()+"' does not exist; please edit propertiy file", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.getProjectDir()+"') for project '"+proj.getNameOfProject()+"' does not exist; please edit property file", "Error", JOptionPane.ERROR_MESSAGE);
 			proj = null;
 			return;
 		}
@@ -446,7 +446,19 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(TEST)) {
 //				log.report("No new program to test");
-				ScatterPlot.createAndShowGUI(proj, null, null, false);
+//				ScatterPlot.createAndShowGUI(proj, null, null, false);
+
+				cnv.qc.SexChecks.sexCheck(proj);
+				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+				Mosaicism.findOutliers(proj);
+
+				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, proj.getLog());
+				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
+				new File(proj.getProjectDir()+"genome/").mkdirs();
+				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
+				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+
+				
 			} else if (command.equals(GCMODEL)) {
 				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100, log);
 			} else if (command.equals(MARKER_METRICS)) {

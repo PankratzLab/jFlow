@@ -62,7 +62,7 @@ public class LookupTable {
         	log.report("Loading hits from '"+hitsFile+"'");
         	hits = HashVec.loadFileToStringArray(hitsFile, false, ignoreFirstLine, new int[] {col}, true, false, commaDelimited?",":(tabDelimited?"\t":"[\\s]+"));
         	if (lessMemoryButSlower) {
-        		Files.combineWithLessMemory(hits, Array.toStringArray(params), new String[params.size()][], head, outfile, log, ignoreCase, finalHeader, hideIndex, keepIntermediateFiles);
+        		Files.combineWithLessMemory(hits, Array.toStringArray(params), new String[params.size()][], head, missingValue, outfile, log, ignoreCase, finalHeader, hideIndex, keepIntermediateFiles);
         	} else {
         		Files.combine(hits, Array.toStringArray(params), new String[params.size()][], head, missingValue, outfile, log, ignoreCase, finalHeader, hideIndex);
         	}
