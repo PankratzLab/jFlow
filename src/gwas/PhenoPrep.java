@@ -241,6 +241,14 @@ public class PhenoPrep {
 		return finalIDs == null;
 	}
 	
+	public double[][] getDatabase() {
+		return database;
+	}
+
+	public String[] getFinalIDs() {
+		return finalIDs;
+	}
+
 	public void transform(String transform) {
 		double[] data;
 
@@ -307,7 +315,7 @@ public class PhenoPrep {
 		Matrix.overwriteColumn(database, 0, Array.inverseNormalize(Matrix.extractColumn(database, 0)), log);
 	}
 
-	private void computeResiduals() {
+	public void computeResiduals() {
 		LeastSquares reg;
 		double[] deps, resids;
 		double[][] indeps;
