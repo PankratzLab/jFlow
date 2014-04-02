@@ -10,8 +10,6 @@ import javax.swing.*;
 
 import filesys.SerialFloatArray;
 
-import stats.ProbDist;
-
 public class QQPlot extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 1L;
 	
@@ -79,7 +77,7 @@ public class QQPlot extends JFrame implements ActionListener {
 //		descrPanel.add(label);
 		
 		for (int i = 0; i<pvals.length; i++) {
-			label = new JLabel("lambda = "+ext.formDeci(ProbDist.ChiDistReverse(Array.median(pvals[i]), 1)/ProbDist.ChiDistReverse(0.50, 1), 4)+" ("+labels[i]+")", JLabel.CENTER);
+			label = new JLabel("lambda = "+ext.formDeci(Array.lambda(pvals[i]), 4)+" ("+labels[i]+")", JLabel.CENTER);
 			label.setForeground(pvals.length==1?COLOR_SCHEME[0]:COLOR_SCHEME[i+2]);
 			label.setFont(new Font("Arial", 0, 20));
 			descrPanel.add(label);

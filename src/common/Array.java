@@ -294,6 +294,22 @@ public class Array {
 	}
 
 	/**
+	 * Creates an integer array of given size and initializes each element 
+	 * to 1 except for the first, which is set to zero
+	 * 
+	 * @param size
+	 *            size of array
+	 * @return array of integers initialized to the correct values
+	 */
+	public static int[] intArrayStandarddSkips(int size) {
+		int[] arr = new int[size];
+		for (int i = 0; i<size; i++) {
+			arr[i] = i==0?0:1;
+		}
+		return arr;
+	}
+
+	/**
 	 * Creates a long array of given size and initializes each element with
 	 * the given value
 	 * 
@@ -3450,4 +3466,8 @@ public class Array {
 	    Files.writeList(Array.toStringArray(array), "oi.xln");
 
     }
+
+	public static double lambda(double[] pvals) {
+		return ProbDist.ChiDistReverse(Array.median(pvals), 1)/ProbDist.ChiDistReverse(0.50, 1);
+	}
 }

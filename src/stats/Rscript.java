@@ -1,7 +1,8 @@
 package stats;
 
-import common.Files;
-import common.Logger;
+//import java.io.*;
+import java.util.*;
+import common.*;
 
 public class Rscript {
 	public static final String[] RSCRIPT_EXECS = {
@@ -48,5 +49,72 @@ public class Rscript {
 		log.report("Warning - could not determine hostname, assuming R executbale is simply 'Rscript'");
 		
 		return "R";
+	}
+	
+	private static void batchUp(String dir, Logger log) {
+		Vector<String> v;
+		String[] files;
+		String root;
+		
+		dir = ext.verifyDirFormat(dir);
+		
+		if (dir.equals("") || dir.equals("./")) {
+			dir = ext.pwd();
+		}
+		
+		files = Files.list(dir, ".R", false);
+		
+		v = new Vector<String>();
+		for (int i = 0; i < files.length; i++) {
+			root = ext.rootOf(dir+files[i], false);
+			Files.qsub(root+".qsub", getRscriptExecutable(log)+" --no-save "+root+".R", 4000, 2, 1);
+			v.add("qsub "+root+".qsub");
+		}
+		
+		Files.writeList(Array.toStringArray(v), dir+"master");
+		Files.chmod(dir+"master");
+	}
+	
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		boolean batchUp = false;
+		String dir = "./";
+		String logfile = null;
+		Logger log;
+
+		String usage = "\n" + 
+				"stats.Rscript requires 0-1 arguments\n" + 
+				"   (1) create qsub files for all .R files in the directory (i.e. -batchUp (not the default))\n" + 
+				"   (2) directory to search for the .R files (i.e. dir="+dir+" (default))\n" + "";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("-batchUp")) {
+				batchUp = true;
+				numArgs--;
+			} else if (args[i].startsWith("dir=")) {
+				dir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			log = new Logger(logfile);
+			if (batchUp) {
+				batchUp(dir, log);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

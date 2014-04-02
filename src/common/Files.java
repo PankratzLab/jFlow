@@ -706,6 +706,10 @@ public class Files {
 	public static BufferedReader getAppropriateReader(String filename) throws FileNotFoundException {
 		InputStreamReader isReader = null;
 
+		if (!exists(filename, false) && !exists(filename, true)) {
+			throw new FileNotFoundException("File '"+filename+"' was no where to be found");
+		}
+		
 		if (!exists(filename, false)) {
 			return null;
 		}
@@ -1133,7 +1137,7 @@ public class Files {
         }
 	}
 
-	public static void combineWithLessMemory(String[] keys, String[] fileParameters, String[][] headers, String unit, String outputFilename, Logger log, boolean ignoreCase, boolean finalHeader, boolean hideIndex, boolean keepIntermediateFiles) {
+	public static void combineWithLessMemory(String[] keys, String[] fileParameters, String[][] headers, String unit, String missingValue, String outputFilename, Logger log, boolean ignoreCase, boolean finalHeader, boolean hideIndex, boolean keepIntermediateFiles) {
 		BufferedReader[] readers;	
         PrintWriter writer;
         String[] line, colNames;
@@ -1143,6 +1147,9 @@ public class Files {
         GenParser parser;
         String delimiter;
         int counter;
+        Hashtable<String,String[]> sHash;
+        boolean serializing;
+        String serializedFilename;
         
         delimiter = Files.suggestDelimiter(outputFilename, log);
         
@@ -1158,39 +1165,88 @@ public class Files {
                 data = new String[keys.length+1][];
 
                 line = fileParameters[i].trim().split("[\\s]+");
-                log.report("Parsing data from '"+line[0]+"'");
-            	parser = new GenParser(line, log);
-
-                if (headers != null && headers[i] != null && !ext.checkHeader(parser.getOriginalColumnNames(), headers[i], true, log, false)) {
-                	log.reportError("Error - unexpected header for file "+line[0]);
-                	System.exit(1);
-                }
-
-            	for (int j = 0; j<keys.length; j++) {
-            		if (parser.forcingFailCodes()) {
-                		data[j+1] = Array.subArray(parser.getFailCodes(), 1);
-            		} else {
-                		data[j+1] = Array.stringArray(parser.getNumColumns()-1, ".");
-            		}
-                }
-            	
-        		colNames = parser.getColumnNames();
-                data[0] = new String[colNames.length-1];
-                for (int j = 0; j<colNames.length-1; j++) {
-                	data[0][j] = colNames[j+1];
-                }
-                while (parser.ready()) {
-                	line = parser.nextLine();
-                	if (line != null && hash.containsKey(ignoreCase?line[0].toLowerCase():line[0])) {
-                		trav = Integer.parseInt(hash.get(ignoreCase?line[0].toLowerCase():line[0]));
-                		for (int j = 1; j<line.length; j++) {
-                			data[trav+1][j-1] = line[j];
-                        }
-                	}	
-                }
-                parser.close();
-                Files.writeMatrix(data, "file."+(i+1)+".temp", delimiter);
                 
+                
+            	serializedFilename = GenParser.parseSerialFilename(line);
+            	if (Files.exists(serializedFilename, false)) {
+                    if (log.getLevel() > 8) {
+                    	log.report("Loading pre-serialized data from '"+line[0]+"'");
+                    }
+                    sHash = SerialHash.loadSerializedStringArrayHash(serializedFilename);
+
+                    data[0] = sHash.get("!colNames");
+
+                    for (int j = 0; j<keys.length; j++) {
+                		data[j+1] = Array.stringArray(data[0].length, missingValue);
+                    }
+
+                    for (int k = 0; k<keys.length; k++) {
+                		if (sHash.containsKey(keys[k])) {
+                			data[k+1] = sHash.get(keys[k]);
+                		}
+                    }
+                	sHash = null;
+                	
+                    Files.writeMatrix(data, "file."+(i+1)+".temp", delimiter);
+            	} else {
+            		if (!Files.exists(line[0])) {
+            			log.reportError("File "+line[0]+" not found");
+            			return;
+            		}
+                    if (log.getLevel() > 8) {
+                    	log.report("Parsing data from '"+line[0]+"'");
+                    }
+
+                    parser = new GenParser(line, log);
+
+                	serializing = parser.toBeSerialized();
+                	if (serializing) {
+                		sHash = new Hashtable<String,String[]>();
+                	} else {
+                		sHash = null;
+                	}
+                    if (headers != null && headers[i] != null && !ext.checkHeader(parser.getOriginalColumnNames(), headers[i], true, log, false)) {
+                    	log.reportError("Error - unexpected header for file "+line[0]);
+                    	System.exit(1);
+                    }
+
+                	for (int j = 0; j<keys.length; j++) {
+                		if (parser.forcingFailCodes()) {
+                    		data[j+1] = Array.subArray(parser.getFailCodes(), 1);
+                		} else {
+                    		data[j+1] = Array.stringArray(parser.getNumColumns()-1, missingValue);
+                		}
+                    }
+            	
+            		colNames = parser.getColumnNames();
+                    data[0] = new String[colNames.length-1];
+                    for (int j = 0; j<colNames.length-1; j++) {
+                    	data[0][j] = colNames[j+1];
+                    }
+
+                    if (serializing) {
+                    	sHash.put("!colNames", data[keys.length]);
+                    }
+                    while (parser.ready()) {
+                    	line = parser.nextLine();
+                    	if (line != null && hash.containsKey(ignoreCase?line[0].toLowerCase():line[0])) {
+                    		trav = Integer.parseInt(hash.get(ignoreCase?line[0].toLowerCase():line[0]));
+                    		for (int j = 1; j<line.length; j++) {
+                    			data[trav+1][j-1] = line[j];
+                            }
+                    	}	
+                    	if (serializing && line != null) {
+                    		sHash.put(line[0], Array.subArray(line, 1));
+                    	}
+                    }
+                    parser.reportTruncatedLines();
+                    parser.close();
+                	if (serializing) {
+                		SerialHash.createSerializedStringArrayHash(serializedFilename, sHash);
+                		sHash = null;
+                	}
+                    Files.writeMatrix(data, "file."+(i+1)+".temp", delimiter);
+            	}                
             }
         } catch (OutOfMemoryError oome) {
         	log.reportError("Uh oh! Ran out of memory parsing file '"+line[0]+"'!");

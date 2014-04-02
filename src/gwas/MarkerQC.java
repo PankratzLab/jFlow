@@ -115,7 +115,8 @@ public class MarkerQC {
 			markerNames = HashVec.loadFileToStringArray(dir+params[1][1], params[1].length>3&&params[1][3].equals("header"), new int[] {Integer.parseInt(params[1][2])}, false);
 			log.report("Found "+markerNames.length+" markers to parse in "+params[1][1]);
 			Files.writeList(Array.toStringArray(v), dir+"whatGoesIn.out");
-			Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers), "Marker", ".", dir+params[0][1], log, true, true, false);
+//			Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers), "Marker", ".", dir+params[0][1], log, true, true, false);
+			Files.combineWithLessMemory(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers), "Marker", ".", dir+params[0][1], log, true, true, false, false);
 			log.report("Finished in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportException(e);
