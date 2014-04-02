@@ -267,6 +267,37 @@ public class Segment implements Serializable {
 		return -1;
 	}
 
+	public static int binarySearchForOverlapMinIndex(Segment seg, Segment[] orderedList) {
+		int low, high, mid;
+		boolean overlapping = false;
+		low = 0;
+		high = orderedList.length - 1;
+		while (low <= high) {
+			mid = low + (high - low) / 2;
+			if (orderedList[mid].getChr() == seg.getChr() && orderedList[mid].overlaps(seg)) {
+				overlapping = true;
+				// scan for minimum index
+				while (overlapping) {
+					if ((mid - 1) >= 0) {
+						if (orderedList[mid - 1].getChr() == seg.getChr() && orderedList[mid - 1].overlaps(seg)) {
+							mid = mid - 1;
+						} else {
+							overlapping = false;
+						}
+					} else {
+						overlapping = false;
+					}
+				}
+				return mid;
+			} else if (seg.chr < orderedList[mid].chr || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+				high = mid - 1;
+			} else {
+				low = mid + 1;
+			}
+		}
+		return -1;
+	}
+	
 	public static boolean overlapsAny(Segment seg, Segment[] orderedList) {
 		return binarySearchForOverlap(seg, orderedList) >= 0;
 	}
