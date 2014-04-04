@@ -29,10 +29,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String ADD_DATA_FILE = "Add Data File";
 	public static final String REMOVE_DATA_FILE = "Remove Data File";
-	public static final String SET_AS_COLORKEY = "Set as Color Key";
-	public static final String SET_AS_LINKKEY = "Set as Link Key";
+//	public static final String SET_AS_COLORKEY = "Set as Color Key";
+//	public static final String SET_AS_LINKKEY = "Set as Link Key";
 	private static final String NO_VALUE_FOUND = ".";
-	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY};
+	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE};
 	public static final String[][] LINKERS = {
 			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
 		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
@@ -379,13 +379,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 //			System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
 //			System.out.println("\n==== End =====\n");
-		} else if (command.equals(SET_AS_COLORKEY)) {
-//			colorKeyVariables.add(tree.getSelectedPathComponentName());
-//			colorKeyVariables.add(getNamesSelected()[0]);
-			System.out.println("getSelectedPathComponent: " + tree.getSelectedPathComponent() + "\t + getNamesSelected: " + Arrays.toString(getNamesSelected()));
-			setColorKey(tree.getSelectionRows());
-		} else if (command.equals(SET_AS_LINKKEY)) {
-			setLinkKey(tree.getSelectionRows());
+//		} else if (command.equals(SET_AS_COLORKEY)) {
+////			colorKeyVariables.add(tree.getSelectedPathComponentName());
+////			colorKeyVariables.add(getNamesSelected()[0]);
+//			System.out.println("getSelectedPathComponent: " + tree.getSelectedPathComponent() + "\t + getNamesSelected: " + Arrays.toString(getNamesSelected()));
+//			setColorKey(tree.getSelectionRows());
+//		} else if (command.equals(SET_AS_LINKKEY)) {
+//			setLinkKey(tree.getSelectionRows());
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
@@ -438,9 +438,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				JOptionPane.showMessageDialog(null, "Error: Unable to read color key values. Invalid link key.", "Error", JOptionPane.ERROR_MESSAGE);
 				break;
 			}
-		}
-		if (!colorKeyValue.isEmpty() || colorKeyValue != null) {
-			System.out.println("The color value is: " + colorKeyValue.toString());
 		}
 		addToSampleData(colorKeyValue, recentSelectionFile, selectedColorKey);
 	}
@@ -975,6 +972,51 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return v;
 	}
 
+	// Mouse listener for the checkbox tree
+	MouseListener checkBoxMouseListener = new MouseListener() {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			JCheckBox source;
+			JPopupMenu menu;
+			source = (JCheckBox) e.getSource();
+			if (e.getButton() == MouseEvent.BUTTON3) {
+
+				menu = new JPopupMenu();
+				menu.setName("Actions");
+				menu.add(new AbstractAction("Set As Color Key") {
+					@Override
+					public void actionPerformed(ActionEvent e1) {
+						setColorKey(tree.getSelectionRows());
+					}
+				});
+				menu.add(new AbstractAction("Set As Link Key") {
+					@Override
+					public void actionPerformed(ActionEvent e1) {
+						setLinkKey(tree.getSelectionRows());
+					}
+				});
+				menu.show(source, e.getX(), e.getY());
+			}
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+		}
+	};
 
 //	public float[][] getDataSelected() {
 //		return getDataSelected(false);
@@ -1143,7 +1185,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				JRadioButton source;
 				JPopupMenu menu;
 				String annotation;
-				int annotationIndex;
 
 				source = (JRadioButton) e.getSource();
 				annotation = source.getText();
@@ -1154,8 +1195,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					menu.setName("Color code menu");
 
 					menu.add(new AbstractAction("Delete: " + annotation) {
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						public void actionPerformed(ActionEvent e1) {
 							String annotation = e1.getActionCommand();
@@ -1375,7 +1414,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         			}
         		}
         		if (!found) {
-        			tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)), treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i], numericHash.get(treeFilenameLookup.elementAt(i)));
+        			tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)), treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i], numericHash.get(treeFilenameLookup.elementAt(i)), checkBoxMouseListener);
         		}
         	}
        }
