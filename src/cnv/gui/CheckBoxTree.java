@@ -135,8 +135,16 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			repaint();
 		}
 	}
-	
-	public void addNode(String nameOfBranch, String branchHandle, String[] namesOfNodes, boolean[] active) {
+
+	/**
+	 *
+ 	 * @param nameOfBranch
+	 * @param branchHandle
+	 * @param namesOfNodes
+	 * @param active
+	 * @param mouseListener: the mouse listener for the checkboxes. Should be null if we don't want any action to be performed on mouse click. itemStateChange will work irrespective of mouseListener
+	 */
+	public void addNode(String nameOfBranch, String branchHandle, String[] namesOfNodes, boolean[] active, MouseListener mouseListener) {
 		TreeModel model;
 		Font font;
 		Boolean booleanValue;
@@ -176,6 +184,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			boxes[j].setName(branchHandle+" "+j);
 			boxes[j].setFocusPainted(focusPainted);
 			boxes[j].setEnabled(active[j]);
+			boxes[j].addMouseListener(mouseListener);
         }
 //        DynamicUtilTreeNode.createChildren(root, new Branch(nameOfBranch, boxes));
 //		Object ob = new Branch(nameOfBranch, boxes);
@@ -492,7 +501,6 @@ public class CheckBoxTree extends JTree implements ItemListener {
 //		frame.setVisible(true);
 //		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //	}
-	
 	public static Branch createTreeStructure(String[][] names) {
 		Branch[] branches = new Branch[names.length];
 		JCheckBox[] boxes;
@@ -516,7 +524,6 @@ public class CheckBoxTree extends JTree implements ItemListener {
 
 		return new Branch("Root", branches);
 	}
-	
 	public static Branch createTreeStructure(String[] namesOfBranches, String[] branchHandles, String[][] namesOfNodes, boolean[] active) {
 		if (namesOfBranches==null || namesOfBranches.length==0) {
 			return null;

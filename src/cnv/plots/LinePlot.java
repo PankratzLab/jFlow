@@ -811,7 +811,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 					}
 				}
 				if (!found) {
-					tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)), treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i], numericHash.get(treeFilenameLookup.elementAt(i)));
+					tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)), treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i], numericHash.get(treeFilenameLookup.elementAt(i)), null);
 				}
 			}
 		}
