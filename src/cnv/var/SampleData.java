@@ -14,6 +14,22 @@ public class SampleData {
 	public static final String GENOTYPE = "Genotype";
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
 	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
+
+	public static final String[][] LINKERS = {
+			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
+			{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
+			{"Family ID", "FamID", "FID"},
+			{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
+			{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
+			{"Region", "UCSC", "Band", "Arm"},	// will link to Trailer
+			{"Chromosome", "Chr"},	// secondary link to Trailer
+			{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
+			{"Stop Position", "Stop", "End"} // secondary link to Trailer
+	};
+	Hashtable<String, Integer> linkKeyIndex;
+	public static final int IID_INDEX_IN_LINKERS = 0;
+	public static final int FID_INDEX_IN_LINKERS = 1;
+	public static final int DNA_INDEX_IN_LINKERS = 2;
 	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 
@@ -60,6 +76,7 @@ public class SampleData {
 		}
 		
 		containsDNA = containsFID = containsIID = true;
+		linkKeyIndex = new Hashtable<String, Integer>();
 		
 		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
 			System.err.println("Error - selected number of basic classes to use exceeds the number defined");
@@ -509,6 +526,57 @@ public class SampleData {
         	System.err.println("Error - invalid class index");
         	return 0;
         }
-	}	
+	}
+
+	public static int[] determineKeyIndices(String filename){
+		String[] header;
+		header = Files.getHeaderOfFile(filename, null);
+		int[] linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, null, false);
+
+		if (linkKeyIndices[0] == -1) {
+			System.out.println("ID linker not automatically identified for file '" + filename + "'; assuming the first column.");
+			linkKeyIndices[0] = 0;
+		}
+		return linkKeyIndices;
+	}
+
+
+	public void initLinkKey(String filename) {
+		int[] linkKeyColumnLabels = determineKeyIndices(filename);
+		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
+			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
+			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
+			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
+		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
+			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
+			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
+		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
+			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
+			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
+		} else {
+			JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
+			System.out.println("Unable to initialize the link key.");
+		}
+	}
+
+	public void setLinkKey(int selectedLinkKey, String filename) {
+		int[] linkKeyColumnLabels;
+
+		linkKeyColumnLabels = determineKeyIndices(filename);
+
+		for (int i = 0; i < linkKeyColumnLabels.length; i++) {
+			if ((linkKeyColumnLabels[i] + 1) == selectedLinkKey) {
+				linkKeyIndex.put(filename, i);
+				System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
+				// createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
+				JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
+				return;
+			}
+		}
+		JOptionPane.showMessageDialog(null, "Unable to set link key. Please make sure you are selecting a valid key", "Error", JOptionPane.ERROR_MESSAGE);
+	}
 	
 }
