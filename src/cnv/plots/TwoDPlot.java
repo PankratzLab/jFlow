@@ -385,7 +385,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //			System.out.println("getSelectedPathComponent: " + tree.getSelectedPathComponent() + "\t + getNamesSelected: " + Arrays.toString(getNamesSelected()));
 //			setColorKey(tree.getSelectionRows());
 //		} else if (command.equals(SET_AS_LINKKEY)) {
-//			setLinkKey(tree.getSelectionRows());
+//			setLinkKeyHandler(tree.getSelectionRows());
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
@@ -617,31 +617,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return colorKeyValueHash;
 	}
 
-	public void setLinkKey(int[] selectedLinkKey) {
-		String[][] selectedNodes;
-		int[] linkKeyColumnLabels;
-		
-		selectedNodes = tree.getSelectionValues();
+	public void setLinkKeyHandler(int[] selectedLinkKey) {
+		String selectedCol;
+
+		selectedCol = tree.getSelectionValues()[0][0];
+
 		if (selectedLinkKey.length == 1) {
-			if (keyIndices.containsKey(selectedNodes[0][0])) {
-				linkKeyColumnLabels = keyIndices.get(selectedNodes[0][0]);
-			} else {
+			if (!keyIndices.containsKey(selectedCol)) {
 				JOptionPane.showMessageDialog(null, "There was a problem in your selection. Please select again", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			System.out.println("LinkColumn: " + Arrays.toString(linkKeyColumnLabels));
-			System.out.println("SelectedNode: " + Arrays.toString(selectedLinkKey));
-
-			for (int i = 0; i < linkKeyColumnLabels.length; i++) {
-				if ((linkKeyColumnLabels[i] + 1) == selectedLinkKey[0]) {
-					linkKeyIndex.put(selectedNodes[0][0], i);
-					System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
-					//createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
-					JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
-					return;
-				}
-			}
-			JOptionPane.showMessageDialog(null, "Unable to set link key. Please make sure you are selecting a valid key", "Error", JOptionPane.ERROR_MESSAGE);
+			sampleData.setLinkKey(selectedLinkKey[0], selectedCol);
 		}
 	}
 
@@ -688,26 +674,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //			linkKeyToDataHash.put(filename, curFileLinkKeyDataHash);
 //		System.out.println("LinkKeyDataHash:" + linkKeyToDataHash.toString());
 //	}
-
-	public void initLinkKey(int[] linkKeyColumnLabels, String filename) {
-		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
-			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
-			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
-			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
-			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
-		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
-			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
-			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
-			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
-		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
-			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
-			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
-			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
-		} else {
-			JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
-			System.out.println("Unable to initialize the link key.");
-		}
-	}
 
 	public byte getPointSize() {
 		return size;
@@ -993,7 +959,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				menu.add(new AbstractAction("Set As Link Key") {
 					@Override
 					public void actionPerformed(ActionEvent e1) {
-						setLinkKey(tree.getSelectionRows());
+						setLinkKeyHandler(tree.getSelectionRows());
 					}
 				});
 				menu.show(source, e.getX(), e.getY());
@@ -1354,7 +1320,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         		numericHash.get(filename)[i] = true;
         	}
 
-			initLinkKey(linkKeyIndices, filename);	// initialize the link key
+			sampleData.initLinkKey(filename);	// initialize the link key
 			//createLinkKeyToDataHash(filename, linkKeyIndices);
         	dataHash.put(filename, new Vector<String[]>());
             while (reader.ready()) {
