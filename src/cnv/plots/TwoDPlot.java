@@ -410,27 +410,27 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				}
 			}
 			colorKeys.add(selectedColorKey[0]);	// add to colorKeys
-			setColorKeyHandler(selectedNodes[1][0], selectedNodes[1][0], selectedColorKey[0]);
+			setColorKeyHandler(selectedNodes[1][0], selectedColorKey[0]);
 		}
 	}
 
-	public void setColorKeyHandler(String filename, String recentSelectionFile, int selectedColorKey) {
+	public void setColorKeyHandler(String recentSelectionFile, int selectedColorKey) {
 		Hashtable<String, String> colorKeyValue;
 		int[] linkKeyColumnLabels;
 
 		linkKeyColumnLabels = keyIndices.get(recentSelectionFile);
 		colorKeyValue = new Hashtable<String, String>();
-		if (linkKeyIndex.containsKey(filename)) {
-			switch (linkKeyIndex.get(filename)) {
+		if (linkKeyIndex.containsKey(recentSelectionFile)) {
+			switch (linkKeyIndex.get(recentSelectionFile)) {
 			case DNA_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
+				colorKeyValue = HashVec.loadFileToHashString(recentSelectionFile, new int[]{linkKeyColumnLabels[linkKeyIndex.get(recentSelectionFile)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
 				break;
 			case FID_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
+				colorKeyValue = HashVec.loadFileToHashString(recentSelectionFile, new int[]{linkKeyColumnLabels[linkKeyIndex.get(recentSelectionFile)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
 				colorKeyValue = createHashWithSampleID(colorKeyValue);	// colorkey value hash with key as sampleID
 				break;
 			case IID_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
+				colorKeyValue = HashVec.loadFileToHashString(recentSelectionFile, new int[]{linkKeyColumnLabels[linkKeyIndex.get(recentSelectionFile)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
 				colorKeyValue = createHashWithSampleID(colorKeyValue);	// colorkey value hash with key as sampleID
 				break;
 			default:
