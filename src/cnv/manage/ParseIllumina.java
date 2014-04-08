@@ -415,7 +415,7 @@ public class ParseIllumina implements Runnable {
 						if (delimiter == null) {
 							delimiter = DELIMITERS[j];
 						} else {
-							JOptionPane.showMessageDialog(null, "Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+DELIMITERS[j]+"'", "Error", JOptionPane.ERROR_MESSAGE);
+							proj.message("Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+DELIMITERS[j]+"'");
 							return;
 						}
 					}
@@ -423,7 +423,7 @@ public class ParseIllumina implements Runnable {
 				reader.close();
 				
 				if (delimiter == null) {
-					JOptionPane.showMessageDialog(null, "Failed to auto-detect the delimiter used in the Final Reports file; exitting", "Error", JOptionPane.ERROR_MESSAGE);
+					proj.message("Failed to auto-detect the delimiter used in the Final Reports file; exitting");
 					return;
 				}
 				
@@ -499,7 +499,7 @@ public class ParseIllumina implements Runnable {
 				case 1:
 					return;
 				default:
-					JOptionPane.showMessageDialog(null, "Should be impossible to obtain this message ("+response+")", "Error", JOptionPane.ERROR_MESSAGE);
+					proj.message("Should be impossible to obtain this message ("+response+")");
 					return;
 				}
 			}
@@ -536,7 +536,7 @@ public class ParseIllumina implements Runnable {
 				case 2:
 					return;
 				default:
-					JOptionPane.showMessageDialog(null, "Should be impossible to obtain this message ("+response+")", "Error", JOptionPane.ERROR_MESSAGE);
+					proj.message("Should be impossible to obtain this message ("+response+")");
 					return;
 				}
 			}
@@ -895,7 +895,15 @@ public class ParseIllumina implements Runnable {
 		int sampIndex;
 		String[] files;
 		String idHeader, delimiter;
-
+		Logger log;
+		
+		log = proj.getLog();
+		
+		if (!Files.exists(proj.getDir(Project.SOURCE_DIRECTORY, false, log, false))) {
+			proj.message("Source directory does not exist; change SOURCE_DIRECTORY= to point to the proper files");
+			return;
+		}
+		
 		delimiter = proj.getSourceFileDelimiter();
 		idHeader = proj.getProperty(Project.ID_HEADER);
 		System.out.println(ext.getTime()+"\tSearching for "+proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.getDir(Project.SOURCE_DIRECTORY));

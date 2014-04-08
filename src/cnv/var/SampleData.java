@@ -3,8 +3,6 @@ package cnv.var;
 import java.io.*;
 import java.util.*;
 
-import javax.swing.JOptionPane;
-
 import common.*;
 import cnv.filesys.*;
 import filesys.Segment;
@@ -33,6 +31,7 @@ public class SampleData {
 	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 
+	private Project proj;
 	private String[] basicClasses;
 	private String[] filters;
 	private String[] covars;
@@ -68,6 +67,7 @@ public class SampleData {
 		String[] ids;
 		Logger log;
 		
+		this.proj = proj;
 		log = proj.getLog();
 
 		failedToLoad = true;
@@ -90,7 +90,7 @@ public class SampleData {
 		try {
 			filename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
 			if (!Files.exists(filename, proj.getJarStatus())) {
-    			JOptionPane.showMessageDialog(null, "SampleData file does not exist: "+filename, "Error", JOptionPane.ERROR_MESSAGE);
+				proj.message("SampleData file does not exist: "+filename);
 				return;
 			}			
 			reader = Files.getReader(filename, proj.getJarStatus(), true, true); // to do, don't kill?
@@ -198,7 +198,7 @@ public class SampleData {
 				sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
 				if (sexValues[0] != 2) {
 					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
-					JOptionPane.showMessageDialog(null, "descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+					proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 				}
 //
 //				sexCountHash.sort(true);
@@ -206,11 +206,11 @@ public class SampleData {
 //				sexCounts = sexCountHash.getCounts();
 //				if (!sexValues[0].equals("2")) {
 //					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
-//					JOptionPane.showMessageDialog(null, "ascending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+//					proj.message("ascending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 //				}
 //			
 			} else {
-				JOptionPane.showMessageDialog(null, "Error - variable names 'Sex' was found in the SampleData file; also make sure 1=male and 2=female in the coding", "Error", JOptionPane.ERROR_MESSAGE);
+				proj.message("Error - variable names 'Sex' was found in the SampleData file; also make sure 1=male and 2=female in the coding");
 			}
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
@@ -546,18 +546,18 @@ public class SampleData {
 		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
 			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
 			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
-			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
 			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
 		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
 			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
-			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
 			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
 		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
 			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
-			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
 			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
 		} else {
-			JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
+//			JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
 			System.out.println("Unable to initialize the link key.");
 		}
 	}
@@ -572,11 +572,11 @@ public class SampleData {
 				linkKeyIndex.put(filename, i);
 				System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
 				// createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
-				JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//				JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
 				return;
 			}
 		}
-		JOptionPane.showMessageDialog(null, "Unable to set link key. Please make sure you are selecting a valid key", "Error", JOptionPane.ERROR_MESSAGE);
+		proj.message("Unable to set link key. Please make sure you are selecting a valid key");
 	}
 	
 }

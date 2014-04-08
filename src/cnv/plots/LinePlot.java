@@ -26,7 +26,6 @@ import java.util.Vector;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 import cnv.filesys.Project;
 import cnv.gui.CheckBoxTree;
@@ -359,7 +358,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	 * @param filename
 	 *            the color key filename
 	 */
-	public void readColorKeyFile(String filename) {
+	public boolean readColorKeyFile(String filename) {
 		String curLine;
 		String[] curLineParams;
 		Hashtable<String, String> colorKeyHashValue;
@@ -384,8 +383,10 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 			reader.close();
 		} catch (IOException e) {
 			log.report("Unable to read color key file" + e.getMessage());
-			System.exit(1);
+			return false;
 		}
+		
+		return true;
 	}
 
 	/**
@@ -570,11 +571,11 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	 *            the filename
 	 */
 	public void loadFile(String filename) {
-
 		BufferedReader reader;
-		String[] line;
+		String[] header, line;
 		String readBuffer;
 		int[] linkKeyIndices;
+		int count;
 
 		// if this file is already added
 		if (treeFilenameLookup.contains(filename)) {
@@ -588,15 +589,15 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 			// Split the line on whitespaces and get all the headers in the file
 			if (readBuffer.contains("\t")) {
-				line = readBuffer.trim().split("\t", -1);
+				header = readBuffer.trim().split("\t", -1);
 			} else {
-				line = readBuffer.trim().split("[\\s]+");
+				header = readBuffer.trim().split("[\\s]+");
 			}
 
 			// Adding headers of the file
-			namesHash.put(filename, line);
+			namesHash.put(filename, header);
 
-			linkKeyIndices = ext.indexFactors(LINKERS, line, false, true, false, log, false);
+			linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
 
 			if (linkKeyIndices[0] == -1) {
 				log.report("ID linker not automatically identified for file '" + filename + "'; assuming the first column.");
@@ -613,11 +614,18 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 			dataHash.put(filename, new Vector<String[]>());
 			commentHash.put(filename, new Vector<String[]>());
 
+			count = 1;
 			while (reader.ready()) {
 				if (readBuffer.contains("\t")) {
 					line = reader.readLine().trim().split("\t", -1);
 				} else {
 					line = reader.readLine().trim().split("[\\s]+");
+				}
+				if (line.length != header.length) {
+					JOptionPane.showMessageDialog(null, "File '"+filename+"' does not have a uniform number of columns and was not properly loaded", "Error", JOptionPane.ERROR_MESSAGE);
+					log.report("Error - mismatched number of columns (n="+line.length+" versus the header, which had "+header.length+") at line "+count+" of file "+filename);
+					reader.close();
+					return;
 				}
 				ArrayList<String[]> sepRecords = getComments(line);
 				commentHash.get(filename).add(sepRecords.get(1));
@@ -627,6 +635,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 						numericHash.get(filename)[i] = false;
 					}
 				}
+				count++;
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {

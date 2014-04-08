@@ -11,6 +11,8 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -137,6 +139,7 @@ public class Project extends Properties {
 	private Hashtable<String,String> cnvFilesLoadedInSampleData;
 	private MarkerLookup markerLookup;
 	private Logger log;
+	private boolean gui;
 
 	public Project() {
 		Files.loadProperties(this, DEFAULT_PROPERTIES, true, true, false);
@@ -145,6 +148,7 @@ public class Project extends Properties {
 		cnvFilesLoadedInSampleData = new Hashtable<String, String>();
 		markerLookup = null;
 		log = new Logger();
+		gui = false;
 	}
 	
 	public Project(String filename, boolean jar) {
@@ -742,5 +746,20 @@ public class Project extends Properties {
 		
 		log.reportError("Error - failed to backup '"+filename+"' to "+backup);
 		return null;
+	}
+
+	public void message(String str) {
+		message(str, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+	
+	public void setGuiState(boolean state) {
+		gui = state;
+	}
+	
+	public void message(String str, String windowTitle, int messageIcon) {
+		if (gui) {
+			JOptionPane.showMessageDialog(null, str, windowTitle, messageIcon);
+		}
+		log.reportError(str);
 	}
 }

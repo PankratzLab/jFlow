@@ -3,8 +3,6 @@ package cnv.analysis;
 import java.io.*;
 import java.util.*;
 
-import javax.swing.JOptionPane;
-
 import cnv.filesys.MarkerSet;
 //import cnv.analysis.FilterCalls;
 import cnv.filesys.Project;
@@ -367,7 +365,7 @@ public class PennCNV {
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 			output = proj.getProjectDir()+ext.rootOf(filename)+".pfb";
 		} else {
-			JOptionPane.showMessageDialog(null, "Failed to load \""+filename+"\"", "Error", JOptionPane.ERROR_MESSAGE);
+			proj.message("Failed to load \""+filename+"\"");
 			return;
 		}
 

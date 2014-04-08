@@ -1,7 +1,5 @@
 package cnv.manage;
 
-import javax.swing.JOptionPane;
-
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -134,7 +132,7 @@ public class MarkerDataLoader implements Runnable {
 			}
 		}
 		if (missingMarkers.size() > 0) {
-			JOptionPane.showMessageDialog(null, "Error - the following markers were not found in the MarkerSet: "+Array.toStr(Array.toStringArray(missingMarkers), " "), "Error", JOptionPane.ERROR_MESSAGE);
+			proj.message("Error - the following markers were not found in the MarkerSet: "+Array.toStr(Array.toStringArray(missingMarkers), " "));
 		}
 		currentIndexBeingLoaded = 0;
 		currentDirection = +1;
@@ -303,7 +301,7 @@ public class MarkerDataLoader implements Runnable {
 			}
 			filename = markerLookup.get(markerNames[currentIndexBeingLoaded]).split("\t")[0];
 			if (!Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename, proj.getJarStatus())) {
-				JOptionPane.showMessageDialog(null, "Error - could not load data from '"+proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename+"'; because the file could not be found", "Error", JOptionPane.ERROR_MESSAGE);
+				proj.message("Error - could not load data from '"+proj.getDir(Project.MARKER_DATA_DIRECTORY)+filename+"'; because the file could not be found");
 				return;
 			}
 

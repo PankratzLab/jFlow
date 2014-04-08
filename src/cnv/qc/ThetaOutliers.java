@@ -3,8 +3,6 @@ package cnv.qc;
 import java.io.*;
 import java.util.*;
 
-import javax.swing.JOptionPane;
-
 import mining.Distance;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
@@ -44,7 +42,7 @@ public class ThetaOutliers {
 			System.out.print("filename: "+filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 		} else {
-			JOptionPane.showMessageDialog(null, "Failed to load \""+filename+"\"", "Error", JOptionPane.ERROR_MESSAGE);
+			proj.message("Failed to load \""+filename+"\"");
 			return;
 		}
 

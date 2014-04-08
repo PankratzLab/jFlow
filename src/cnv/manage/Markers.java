@@ -83,7 +83,7 @@ public class Markers {
 			writer.close();
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+snpTable+"\" not found in "+proj.getProjectDir());
+			proj.message("Error: file \""+snpTable+"\" not found in "+proj.getProjectDir());
 			return;
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+snpTable+"\"");
