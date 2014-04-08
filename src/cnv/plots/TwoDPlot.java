@@ -97,6 +97,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		proj = project;
 		size = DEFAULT_SIZE;
 
+		if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+			sampleData = proj.getSampleData(2, false);
+		} else {
+			sampleData = null;
+		}
+
 		sampleData = proj.getSampleData(2, false);
 		treeFilenameLookup = new Vector<String>();
 		dataHash = new Hashtable<String, Vector<String[]>>();
@@ -527,7 +533,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		boolean covar, negativeValues, largerThanByte;
 		String trav;
 		
-		sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
+		
+		if (!Files.exists(sampleDatafilename, proj.getJarStatus())) {
+			JOptionPane.showMessageDialog(null, "Cannot add as a color key without an existing SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
+			log.reportError("Cannot add as a color key without an existing SampleData file");
+			return;
+		}
+
 		reader = null;
 		writer = null;
 
@@ -600,6 +613,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void reloadSampleDataUI(){
 		proj.resetSampleData();
+		if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+			sampleData = proj.getSampleData(2, false);
+		}
 		sampleData = proj.getSampleData(2, false);
 		colorKeyPanel.updateSampleData(sampleData);
 		colorKeyPanel.updateColorVariablePanel();
@@ -909,11 +925,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			if (includeColorKeyValue) {
 				for (int i=0; i<keys.length; i++) {
 					if (yHash.containsKey(keys[i])) {
-						ids = sampleData.lookup(keys[i]);
-						if (ids == null) {
-							colorCode = 0;
+						if (sampleData != null) {
+							ids = sampleData.lookup(keys[i]);
+							if (ids == null) {
+								colorCode = 0;
+							} else {
+								colorCode = sampleData.determineCodeFromClass(currentClass, (byte)0, sampleData.getIndiFromSampleHash(ids[0]), (byte)0, 0);
+							}
 						} else {
-							colorCode = sampleData.determineCodeFromClass(currentClass, (byte)0, sampleData.getIndiFromSampleHash(ids[0]), (byte)0, 0);
+							colorCode = 0;
 						}
 						inLine = xHash.get(keys[i]);
 						inLine[2] = yHash.get(keys[i]);
@@ -951,12 +971,16 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				menu = new JPopupMenu();
 				menu.setName("Actions");
 				menu.add(new AbstractAction("Set As Color Key") {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void actionPerformed(ActionEvent e1) {
 						setColorKey(tree.getSelectionRows());
 					}
 				});
 				menu.add(new AbstractAction("Set As Link Key") {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void actionPerformed(ActionEvent e1) {
 						setLinkKeyHandler(tree.getSelectionRows());
@@ -1151,6 +1175,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				JRadioButton source;
 				JPopupMenu menu;
 				String annotation;
+//				int annotationIndex;
 
 				source = (JRadioButton) e.getSource();
 				annotation = source.getText();
@@ -1161,6 +1186,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					menu.setName("Color code menu");
 
 					menu.add(new AbstractAction("Delete: " + annotation) {
+						private static final long serialVersionUID = 1L;
+
 						@Override
 						public void actionPerformed(ActionEvent e1) {
 							String annotation = e1.getActionCommand();

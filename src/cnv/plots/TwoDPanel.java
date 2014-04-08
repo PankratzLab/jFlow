@@ -104,8 +104,12 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		if (proj == null) {
 			markerLookup = new MarkerLookup(new Hashtable<String, String>());
 		} else {
-			markerLookup = proj.getMarkerLookup();
-			System.out.println("Marker data is available for this project");
+			if (Files.exists(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false), proj.getJarStatus())) {
+				markerLookup = proj.getMarkerLookup();
+				System.out.println("Marker data is available for this project");
+			} else {
+				markerLookup = new MarkerLookup(new Hashtable<String, String>());
+			}
 			if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
 				sampleData = proj.getSampleData(1, false);
 				System.out.println("Sample lookup is available for this project");

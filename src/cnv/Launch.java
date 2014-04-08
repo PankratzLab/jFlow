@@ -106,12 +106,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		String logfile;
 		
 		proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProj], jar);
+		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
 		if (!Files.exists(proj.getProjectDir(), proj.getJarStatus())) {
-			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.getProjectDir()+"') for project '"+proj.getNameOfProject()+"' does not exist; please edit property file", "Error", JOptionPane.ERROR_MESSAGE);
-			proj = null;
-			return;
+			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.getProjectDir()+"') for project '"+proj.getNameOfProject()+"' did not exist; creating now. If this was in error, please edit the property file.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
 		logfile = "Genvisis_"+new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log";
@@ -188,7 +187,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			new File(path+"example/").mkdirs();
 			Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR="+path+"projects/"}, launchPropertiesFile);
 	    	if (!new File(path+"projects/example.properties").exists()) {
-	    		Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=example/source/"}, path+"projects/example.properties");
+	    		Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/"}, path+"projects/example.properties");
 	    	}
     	}
     	frame = new Launch(launchPropertiesFile, false);
@@ -431,11 +430,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(TRAILER)) {
 				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
 			} else if (command.equals(TWOD)) {
-//				TwoDPlot.main(null);
-				TwoDPlot twoDP = TwoDPlot.createAndShowGUI(proj, proj.getLog());
+//				TwoDPlot twoDP = 
+				TwoDPlot.createAndShowGUI(proj, proj.getLog());
 				//TODO: Sample call to test this functionality. Should be removed when seems to work fine.
 				// replace the filename according to the path on local machine
-				twoDP.showSpecificFile(proj, "/Users/rohitsinha/Documents/development/ra/practice/sexCheck.xln", 5, 9, proj.getLog());
+//				twoDP.showSpecificFile(proj, "/Users/rohitsinha/Documents/development/ra/practice/sexCheck.xln", 5, 9, proj.getLog());
 			} else if (command.equals(LINE_PLOT)) {
 				LinePlot.createAndShowGUI(proj, proj.getLog());
 			} else if (command.equals(COMP)) {
@@ -485,7 +484,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 
 			} else {
-				System.err.println("Error - unknown command: "+command);
+				log.reportError("Error - unknown command: "+command);
 			}
 		}
 
@@ -497,22 +496,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		
 //		output.append("Action performed: " + command + "\n");
 //		output.setCaretPosition(output.getDocument().getLength());
+		if (log == null) {
+			log = new Logger();
+		}
 		log.report("Action performed: " + command + "\n");
 		
 		if (proj == null) {
 			log.report("Trying again to load project");
 			loadProject();
-		}
-		
-		if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
+		} else if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
 			log.report("Detected a change in the project properties file; reloading from '"+proj.getPropertyFilename()+"'");
 			proj = null;
 			loadProject();
 		} else {
-			log.report("No change in properties file");
+//			log.report("No change in properties file");
 		}
 
-		if (timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false)).lastModified()) {
+		if (proj != null && timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false)).lastModified()) {
 			log.report("Detected a change in the sampleData file; reloading sample data");
 			proj.resetSampleData();
 		}	
@@ -525,21 +525,24 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			int index = projectsBox.getSelectedIndex();
 			String dir = launchProperties.getDirectory();
 			try {
-				Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
-//				System.out.println("tried to open "+projects[index]+" which "+(new File(dir+projects[index]).exists()?"does":"does not")+" exist");
-				log.report("tried to open "+projects[index]+" which "+(new File(dir+projects[index]).exists()?"does":"does not")+" exist");
+				if (System.getProperty("os.name").startsWith("Windows")) {
+					Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
+					if (!new File(dir+projects[index]).exists()) {
+						log.report("Tried to open "+projects[index]+" which does not exist");
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "This button currently only works for the Windows operating system; a full feature property editor will be arriving in due course", "Sorry", JOptionPane.ERROR_MESSAGE);
+				}
 			} catch (IOException ioe) {
-				System.err.println("Error - failed to open Notepad");
+				log.reportError("Error - failed to open Notepad");
 			}
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
-//			System.out.println("Refreshed list of projects");
 			log.report("Refreshed list of projects");
 		} else if (command.endsWith(" ")) {
 			for (int i=0; i<projects.length; i++) {
 				if (command.equals(ext.rootOf(projects[i])+" ")) {
 					projectsBox.setSelectedIndex(i);
-					System.out.println("Selecting: "+projects[i]);
 					log.report("Selecting: "+projects[i]);
 				}
 			}

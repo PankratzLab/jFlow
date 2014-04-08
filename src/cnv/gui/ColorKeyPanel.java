@@ -107,7 +107,7 @@ public class ColorKeyPanel extends JPanel {
 		ItemListener classListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
 				JRadioButton jrb = (JRadioButton)ie.getItem();
-				if (jrb.isSelected()) {
+				if (sampleData != null && jrb.isSelected()) {
 					for (byte i = 0; i<sampleData.getNumClasses(); i++) {
 						if (jrb.getText().equals(sampleData.getClassName(i))) {
 							currentClass = i;
@@ -118,17 +118,28 @@ public class ColorKeyPanel extends JPanel {
 			}
 		};
 		ButtonGroup classRadio = new ButtonGroup();
-		classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
-		for (int i = 0; i<sampleData.getNumClasses(); i++) {
-			classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
-			classRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			classRadio.add(classRadioButtons[i]);
-			classRadioButtons[i].addItemListener(classListener);
-			classRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			classVariablesPanel.add(classRadioButtons[i]);
+		if (sampleData == null) {
+			classRadioButtons = new JRadioButton[1];
+			classRadioButtons[0] = new JRadioButton("All points (link to a SampleData file for more options)", false);
+			classRadioButtons[0].setFont(new Font("Arial", 0, 14));
+			classRadio.add(classRadioButtons[0]);
+			classRadioButtons[0].addItemListener(classListener);
+			classRadioButtons[0].setBackground(BACKGROUND_COLOR);
+			classVariablesPanel.add(classRadioButtons[0]);
+			classRadioButtons[0].setSelected(true);
+		} else {
+			classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
+			for (int i = 0; i<sampleData.getNumClasses(); i++) {
+				classRadioButtons[i] = new JRadioButton(sampleData.getClassName(i), false);
+				classRadioButtons[i].setFont(new Font("Arial", 0, 14));
+				classRadio.add(classRadioButtons[i]);
+				classRadioButtons[i].addItemListener(classListener);
+				classRadioButtons[i].setBackground(BACKGROUND_COLOR);
+				classVariablesPanel.add(classRadioButtons[i]);
+			}
+			classRadioButtons[Math.max(sampleData.getBasicClasses().length-1, 0)].setSelected(true);
 		}
 		
-		classRadioButtons[Math.max(sampleData.getBasicClasses().length-1, 0)].setSelected(true);
 		disabledClassValues = new Hashtable<String, String>();
 
 		classVariablesPanel.validate();
@@ -162,10 +173,13 @@ public class ColorKeyPanel extends JPanel {
 			}
 		};
 
-
-		
-		numBasicClasses = sampleData.getBasicClasses().length;
-		numRegularClasses = sampleData.getNumActualClasses();
+		if (sampleData == null) {
+			numBasicClasses = 1;
+			numRegularClasses = 0;
+		} else {
+			numBasicClasses = sampleData.getBasicClasses().length;
+			numRegularClasses = sampleData.getNumActualClasses();
+		}
 		
 		classValuesPanel.removeAll();
 		classValuesPanel.repaint();

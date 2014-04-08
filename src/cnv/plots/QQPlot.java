@@ -135,6 +135,12 @@ public class QQPlot extends JFrame implements ActionListener {
 		
 		log = new Logger();
 		
+		if (filenames == null || filenames.length == 0) {
+			JOptionPane.showMessageDialog(null, "There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the has symbol (\"#\"))", "Error", JOptionPane.ERROR_MESSAGE);
+			log.reportError("There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the has symbol (\"#\"))");
+			return;
+		}
+		
 		if (maxToPlot < 0) {
 			minPval = -1;
 		} else {

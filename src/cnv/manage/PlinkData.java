@@ -4,17 +4,8 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import javax.swing.JOptionPane;
-
 import common.*;
-
-import cnv.filesys.ABLookup;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
+import cnv.filesys.*;
 import cnv.var.SampleData;
 
 public class PlinkData {
@@ -1061,7 +1052,7 @@ public class PlinkData {
 		} else if (clusterFilterCollection == null) {
 			abLookup = new char[targetMarkers.length][];
 		} else {
-			JOptionPane.showMessageDialog(null, "Error - could not find AB lookup file '"+proj.getFilename(Project.AB_LOOKUP_FILENAME)+"'; this file needs to be created, as it is not otherwise possible to export to Plink when there are cluster filters, ", "Error", JOptionPane.ERROR_MESSAGE);
+			proj.message("Error - could not find AB lookup file '"+proj.getFilename(Project.AB_LOOKUP_FILENAME)+"'; this file needs to be created, as it is not otherwise possible to export to Plink when there are cluster filters.");
 			return null;
 		}
 		

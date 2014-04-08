@@ -479,7 +479,7 @@ public class ParseAffymetrix implements Runnable {
 						if (delimiter == null) {
 							delimiter = DELIMITERS[j];
 						} else {
-							JOptionPane.showMessageDialog(null, "Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+DELIMITERS[j]+"'", "Error", JOptionPane.ERROR_MESSAGE);
+							proj.message("Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+DELIMITERS[j]+"'");
 							return;
 						}
 					}
@@ -487,7 +487,7 @@ public class ParseAffymetrix implements Runnable {
 				reader.close();
 				
 				if (delimiter == null) {
-					JOptionPane.showMessageDialog(null, "Failed to auto-detect the delimiter used in the Final Reports file; exitting", "Error", JOptionPane.ERROR_MESSAGE);
+					proj.message("Failed to auto-detect the delimiter used in the Final Reports file; exitting");
 					return;
 				}
 				
@@ -568,7 +568,7 @@ public class ParseAffymetrix implements Runnable {
 				case 2:
 					return;
 				default:
-					JOptionPane.showMessageDialog(null, "Should be impossible to obtain this message ("+response+")", "Error", JOptionPane.ERROR_MESSAGE);
+					proj.message("Should be impossible to obtain this message ("+response+")");
 					break;
 				}
 			}
