@@ -160,7 +160,7 @@ public class CompPlot extends JFrame {
 		JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 
-		regionNavigator = new RegionNavigator(proj);
+		regionNavigator = new RegionNavigator(this);
 		regionNavigator.addPropertyChangeListener(cpcl);
 		topPanel.add(regionNavigator);
 
@@ -287,6 +287,10 @@ public class CompPlot extends JFrame {
 	public void setFilter(ArrayList<String> files) {
 		filterFiles = files;
 		loadCNVs(location);
+	}
+
+	public ArrayList<String> getFilterFiles() {
+		return filterFiles;
 	}
 }
 
