@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -19,6 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import cnv.filesys.Project;
+import cnv.manage.UCSCtrack;
+import cnv.plots.CompPlot;
 import cnv.var.Region;
 
 import common.Grafik;
@@ -32,9 +35,11 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	private JTextField textField;
 	JButton firstButton, leftButton, rightButton, lastButton; // Navigation buttons
 	JButton UCSCButton; // Launches a browser instance
+	JButton BEDButton; // Generates, compresses, and uploads a BED file base on the selected CNV file
 	JLabel location;
 	String[] regionsList; // List of the region files
 	Project proj;
+	CompPlot plot;
 	Vector<Region> regions = new Vector<Region>();
 	int regionIndex = 0;
 	int lastRegionIndex = 0;
@@ -44,8 +49,9 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	/**
 	 * Create the panel.
 	 */
-	public RegionNavigator(Project proj) {
-		this.proj = proj;
+	public RegionNavigator(CompPlot cp) {
+		this.proj = cp.getProject();
+		plot = cp;
 		initButtons();
 
 		// Parse the files and set up the regions Vector
@@ -93,10 +99,22 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		if (Desktop.isDesktopSupported()) {
 			UCSCButton.setToolTipText("View this location on UCSC in a browser");
 			UCSCButton.addActionListener(this);
+			UCSCButton.setEnabled(true);
 		} else {
 			UCSCButton.setToolTipText("Browser operations are not supported");
+			UCSCButton.setEnabled(false);
 		}
 		add(UCSCButton);
+
+		if (Desktop.isDesktopSupported()) {
+			BEDButton = new JButton("Upload to UCSC");
+			BEDButton.addActionListener(this);
+			BEDButton.setEnabled(true);
+		} else {
+			BEDButton.setToolTipText("Browser operations are not supported");
+			BEDButton.setEnabled(false);
+		}
+		add(BEDButton);
 	}
 
 	/**
@@ -167,6 +185,8 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		} else if (source.equals(UCSCButton)) {
 			Desktop desktop = Desktop.getDesktop();
 			String URL = Positions.getUCSClink(Positions.parseUCSClocation(textField.getText()));
+
+			// UCSC uses chrX and chrY instead of 23 and 24
 			URL = URL.replaceAll("chr23", "chrX");
 			URL = URL.replaceAll("chr24", "chrY");
 			try {
@@ -177,6 +197,43 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
+			}
+		} else if (source.equals(BEDButton)) {
+			// Figure out which files are selected
+			// Only allow upload if one file is selected (JDialog warning if multiples)
+			ArrayList<String> files = plot.getFilterFiles();
+			if (files.size() != 1) {
+				JOptionPane.showMessageDialog(null, "One and only one file must be selected before a .BED File can be generated", "Error", JOptionPane.ERROR_MESSAGE);
+			} else {
+				// Find the full path to the selected file
+				String[] filePaths = proj.getFilenames(Project.CNV_FILENAMES);
+				String compressedFile = "";
+				for (String file : filePaths) {
+					if (file.endsWith(files.get(0))) {
+						System.out.println("File path is " + file);
+						compressedFile = file + ".bed..gz";
+						// Generate BED file with:
+						UCSCtrack.makeTrack(file, file, proj.getLog());
+						break;
+					}
+				}
+
+				// Direct the user to the BED upload page at UCSC Genome Browser
+				Desktop desktop = Desktop.getDesktop();
+				String URL = Positions.getUCSCUploadLink(Positions.parseUCSClocation(textField.getText()), compressedFile);
+
+				// UCSC uses chrX and chrY instead of 23 and 24
+				URL = URL.replaceAll("chr23", "chrX");
+				URL = URL.replaceAll("chr24", "chrY");
+				try {
+					URI uri = new URI(URL);
+					System.out.println("Browsing to " + URL);
+					desktop.browse(uri);
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		if (lastRegionIndex != regionIndex) {
