@@ -146,7 +146,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		long time;
 
 		this.proj = proj;
-		log = proj.getLog();
+		this.log = proj.getLog();
 		jar = proj.getJarStatus();
 		cnvFilenames = filenames;
 		fail = false;
@@ -827,14 +827,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	
 	class MessageOfEncouragment implements Runnable {
 		private String message;
-		private long time;
 		private Project proj;
 		private boolean noLongerNecessary;
 
 		public MessageOfEncouragment(String message, Project proj) {
 			this.message = message;
 			this.proj = proj;
-			this.time = new Date().getTime();
 			this.noLongerNecessary = false;
 		}
 		
@@ -843,14 +841,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			int count;
 			
 			count = 0;
-			while (!noLongerNecessary && count < 10) {
+			while (!noLongerNecessary && count < 6) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException ie) {}
 				count++;
 			}
 			
-			
+			if (!noLongerNecessary) {
+				proj.message(message, "Patience...", JOptionPane.INFORMATION_MESSAGE);
+			}
 		}
 		
 		public void disregard() {
@@ -867,9 +867,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		int maxWidth;
 
 		time = new Date().getTime();
-		System.out.print("  Getting a list of all files with extension "+Sample.SAMPLE_DATA_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
+		log.report("  Getting a list of all files with extension "+Sample.SAMPLE_DATA_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
+		new Thread(new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...", proj)).start();
 		filesPresent = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
-		System.out.println("  which took "+ext.getTimeElapsed(time));
+		log.report("Getting list of files took "+ext.getTimeElapsed(time));
 		time = new Date().getTime();
 		fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
 		refresh = "refresh list";
