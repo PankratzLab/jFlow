@@ -131,6 +131,7 @@ public class Project extends Properties {
 	public static final String BACKUP_DIRECTORY = "BACKUP_DIRECTORY";
 	public static final String SHIFT_SEX_CHR_COLORS_YESNO = "SHIFT_SEX_CHR_COLORS_YESNO";
 	public static final String QQ_MAX_NEG_LOG10_PVALUE = "QQ_MAX_NEG_LOG10_PVALUE";
+	public static final String GC_MODEL_FILENAME = "GC_MODEL_FILENAME";
 
 	private boolean jar;
 	private String projectPropertiesFilename;
