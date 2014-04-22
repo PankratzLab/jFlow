@@ -161,6 +161,7 @@ public class Project extends Properties {
         setProperty(PROJECT_DIRECTORY, ext.verifyDirFormat(getProperty(PROJECT_DIRECTORY)));
         setProperty(SOURCE_DIRECTORY, ext.verifyDirFormat(getProperty(SOURCE_DIRECTORY)));
         setProperty(PROJECT_PROPERTIES_FILENAME, filename);
+		setProperty(SAMPLE_DIRECTORY, ext.verifyDirFormat(getProperty(SAMPLE_DIRECTORY)));
         
         this.jar = jar;
 	}
