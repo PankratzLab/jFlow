@@ -429,6 +429,158 @@ public class TransposeData {
 		}
 	}
 
+	/**
+	 * Reversely transpose .mdRaf data to .sampRaf data.
+	 * @param proj The Genvisis project for the reverse transpose.
+	 * @param log The log file. If set as null, the default file
+	 * Genvisis_TransposeData_yyyyMMdd_HHmmss.log will be used.
+	 */
+	@SuppressWarnings("unchecked")
+	public static void reverseTranspose(Project proj, Logger log) {
+//		boolean isCurrentOutFileComplete;
+		boolean done; // safe;
+		byte nullStatus = 0;
+        byte numBytesPerSampleMarker;
+		int numBytes_PerSamp;
+		int numSamples_WriteBuffer;
+		int numMarkers_LastRound;
+		int numRoundsLoadingMarkerFiles;
+		int indexCurrentSampInProj;
+		int indexFirstSampleCurrentMdRafLoadingRound;
+		int indexFirstMarkerCurrentIteration;
+		long fingerprintForMarkers, fingerprintForSamples;
+		long timerOverAll, timerLoadFiles, timerTransposeMemory, timerTmp;
+        byte[] markFileParameterSection;
+        byte[][] readBuffer;
+		byte[] markFileOutliersBytes = null;
+        byte[][] writeBuffer = null;
+		String logTemp;
+		String[] listOfAllSamplesInProj;
+		String[] listOfAllMarkersInProj;
+		Hashtable<String, Float>[] sampRafFileOutliers;
+		Hashtable<String, Float> allOutliers;
+		String[] markerDataRafFilenames;
+		SimpleDateFormat timeFormat;
+		String markerFile;
+
+        if (log == null) {
+//        	log = Files.generateLogFileName(isSampToMarkConversion? proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false) : proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false));
+        	log = proj.generateLog();
+		}
+        log.report("Reverse transposing data for the project in " + proj.getProjectDir());
+
+        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		listOfAllSamplesInProj = proj.getSamples();
+		listOfAllMarkersInProj = proj.getMarkerNames();
+		fingerprintForSamples = MarkerSet.fingerprint(listOfAllSamplesInProj);
+		fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
+		nullStatus = getNullstatusFromRandomAccessFile(proj.getDir(Project.MARKER_DATA_DIRECTORY) + proj.getMarkerLookup().getFirstMarkerDataRafFilename(), false, false);
+		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+		if (new File(proj.getProjectDir()).getFreeSpace() <= (listOfAllSamplesInProj.length * (long)listOfAllMarkersInProj.length * numBytesPerSampleMarker)) {
+			log.reportError("Not enough disk space for all the new data to be created. Available: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + "; Required: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + ").");
+			return;
+		}
+		numBytes_PerSamp = listOfAllMarkersInProj.length * numBytesPerSampleMarker;
+
+		done = false;
+		timerOverAll = new Date().getTime();
+		numSamples_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_PerSamp), listOfAllSamplesInProj.length);
+
+		while (!done) {
+			try {
+				numRoundsLoadingMarkerFiles = (int) Math.ceil((double)listOfAllSamplesInProj.length / (double)numSamples_WriteBuffer);
+				numMarkers_LastRound = listOfAllSamplesInProj.length % numSamples_WriteBuffer;
+				backupOlderFiles(proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false), new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, true);
+				log.report( "--\nProject:\t" + listOfAllMarkersInProj.length + " markers\t" + listOfAllSamplesInProj.length +" samples"
+						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
+						  + "\nwriteBuffer:\t" + numSamples_WriteBuffer + " samples\t" + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp / (double)Runtime.getRuntime().maxMemory() * 100, 1) + "% heap efficiency");
+
+
+				writeBuffer = new byte[numSamples_WriteBuffer][numBytes_PerSamp];
+
+//				timerLoadFiles = 0;
+				timerTmp = new Date().getTime();
+				if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + "outliers.ser").exists()) {
+					allOutliers = (Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + "outliers.ser");
+				} else {
+					allOutliers = new Hashtable<String, Float>();
+				}
+				sampRafFileOutliers = getOutlierHashForEachSampleRafFile(allOutliers, listOfAllSamplesInProj);
+
+				indexCurrentSampInProj = 0;
+
+				markerDataRafFilenames = proj.getMarkerLookup().getMarkerDataRafFilenames();
+				indexFirstSampleCurrentMdRafLoadingRound = 0;
+				log.report("--\ni (<" + numRoundsLoadingMarkerFiles + ")\tLoad\tTranspose\tWrite");
+				for(int i=0; i<numRoundsLoadingMarkerFiles; i++) {
+					logTemp = "";
+					if ((i+1)==numRoundsLoadingMarkerFiles && numMarkers_LastRound != 0) {
+						numSamples_WriteBuffer = numMarkers_LastRound;
+					}
+
+					// --- Step 1 --- Load mdRaf files into buffer, and transpose the buffer
+					timerLoadFiles = 0;
+					timerTransposeMemory = 0;
+					indexFirstMarkerCurrentIteration = 0;
+					for (int j=0; j<markerDataRafFilenames.length; j++) {
+						timerTmp = new Date().getTime();
+						markerFile = proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + markerDataRafFilenames[j];
+						readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompress(markerFile, null, indexFirstSampleCurrentMdRafLoadingRound, numSamples_WriteBuffer, fingerprintForSamples, log);
+						timerLoadFiles += (new Date().getTime() - timerTmp);
+
+						timerTmp = new Date().getTime();
+						reverseTransposeBuffer(readBuffer, writeBuffer, numBytesPerSampleMarker, indexFirstMarkerCurrentIteration);
+						timerTransposeMemory += (new Date().getTime() - timerTmp);
+						indexFirstMarkerCurrentIteration += readBuffer.length;
+					}
+//					log.report(i + "\t" + timeFormat.format(timerLoadFiles) + "\t" + timeFormat.format(timerTransposeMemory), false, true);
+					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t" + timeFormat.format(timerTransposeMemory));
+
+
+					// --- Step 2 --- Dump write buffer to marker files
+					for (int j = 0; j < numSamples_WriteBuffer; j ++) {
+						if (sampRafFileOutliers == null || sampRafFileOutliers[indexCurrentSampInProj].size() == 0) {
+							markFileOutliersBytes = new byte[0];
+						} else {
+							markFileOutliersBytes = Compression.objToBytes(sampRafFileOutliers[indexCurrentSampInProj]);
+						}
+						markFileParameterSection = getParameterSectionForSampRaf(listOfAllMarkersInProj.length, nullStatus, markFileOutliersBytes.length, fingerprintForMarkers);
+
+						timerTmp = new Date().getTime();
+						writeBufferToRAF(writeBuffer, null, j, j, proj.getDir(Project.SAMPLE_DIRECTORY) + listOfAllSamplesInProj[indexCurrentSampInProj] + Sample.SAMPLE_DATA_FILE_EXTENSION, markFileParameterSection, markFileOutliersBytes);
+						indexCurrentSampInProj ++;
+//						log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
+					}
+
+					indexFirstSampleCurrentMdRafLoadingRound += numSamples_WriteBuffer;
+					log.report(logTemp);
+				}
+
+				if (allOutliers != null && allOutliers.size() != 0) {
+					Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY) + "outliers.ser");
+				}
+
+				done = true;
+
+			} catch (FileNotFoundException e) {
+				System.err.println(ext.getTime()+"\tFileNotFoundException");
+				e.printStackTrace();
+			} catch (IOException e) {
+				System.err.println(ext.getTime()+"\tIOException");
+				e.printStackTrace();
+			} catch (OutOfMemoryError oome) {
+				numSamples_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numSamples_WriteBuffer, -1);
+				deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false), null, new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		} 
+		timerOverAll = (new Date().getTime() - timerOverAll);
+		log.report("--\nFinished reversely transposing data. Total Time used: "+ timeFormat.format(timerOverAll));
+	}
+
 	private static void reverseTransposeBuffer(byte[][] input_markerLeadBuffer, byte[][] output_sampleLeadBuffer, byte bytesPerSampleMarker, int indexOfFirstMarkerInBuffer) {
 		int numSamples;
 //		int numMarkers;
@@ -526,7 +678,7 @@ public class TransposeData {
 					markerFile.write(buffer[i]);
 				}
 			}
-			if (tail != null) {
+			if (tail != null && tail.length != 0) {
 				markerFile.write(Compression.intToBytes(tail.length));
 				if (tail.length!=0) {
 					markerFile.write(tail);
@@ -651,6 +803,40 @@ public class TransposeData {
 	
 		return markerFileHead;
 	}
+
+	public static int getOptimaleNumSamplesBasingOnHeapSpace(int currentNumSamplesInHeapSpace, int numBytesPerSample) {
+		if (currentNumSamplesInHeapSpace <= 0) {
+			return (int) ((Runtime.getRuntime().maxMemory() * 0.75 ) / (double)numBytesPerSample);
+		} else {
+			return currentNumSamplesInHeapSpace *= 0.9;
+		}
+	}
+
+
+	public static byte getNullstatusFromRandomAccessFile(String filename, boolean isSampRafOrMdRaf, boolean jar) {
+		byte nullStatusOfTheFile = Byte.MIN_VALUE;
+		RandomAccessFile rafFile;
+	
+		try {
+			rafFile = new RandomAccessFile(filename, "r");
+			if (isSampRafOrMdRaf) {
+				rafFile.readInt();
+				nullStatusOfTheFile = rafFile.readByte();
+			} else {
+				rafFile.readInt();
+				rafFile.readInt();
+				nullStatusOfTheFile = rafFile.readByte();
+			}
+			rafFile.close();
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	
+		return nullStatusOfTheFile;
+	}
+
 
 	public static void deleteOlderRafs(String directory, final String[] fileNamePrefixes, final String[] fileNameExtesions, final boolean prefixAndSuffix, final String[] excludes) {
 		File[] files;
@@ -941,13 +1127,10 @@ public class TransposeData {
 		Project proj;
 		String filename = Project.DEFAULT_PROJECT;
 		boolean transpose = false;
+		boolean reversetranspose = false;
 		boolean keepFilesOpen = false;
 		int maxFileSize = 0;
 		boolean lookup = false;
-
-//		recreateMarkerLookup(new Project("C:/workspace/Genvisis/projects/practice.properties", false));
-		//reverseTranspose(new Project("C:/workspace/Genvisis/projects/practice.properties", false), new Logger());
-		//System.exit(0);
 
 		String usage = "\n"+
 		"TransposeData requires 0-1 arguments\n"+
@@ -956,7 +1139,11 @@ public class TransposeData {
 		"   (3) keep all files open at once (i.e. -keepFilesOpen (" + (keepFilesOpen? "" : "not the ") + "default; not recommended usually allowed on linux servers))\n" +
 		"   (4) maximum size of each file in bytes (i.e. max=" + maxFileSize + " (default))\n" +
 		"  OR:\n" +
-		"   (5) create marker lookup table (i.e. -lookup ("+(lookup?"":"not the ")+"default))\n" +
+		"   (1) project file (i.e. proj=" + filename + " (default))\n" +
+		"   (5) reversetranspose data (i.e. -reversetranspose (" + (reversetranspose? "" : "not the ") + "default))\n" +
+		"  OR:\n" +
+		"   (1) project file (i.e. proj=" + filename + " (default))\n" +
+		"   (6) create marker lookup table (i.e. -lookup ("+(lookup?"":"not the ")+"default))\n" +
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -997,6 +1184,8 @@ public class TransposeData {
 		try {
 			if (transpose) {
 				transposeData(proj, maxFileSize, keepFilesOpen, null);
+			} else if (reversetranspose) {
+				reverseTranspose(proj, null);
 			} else if (lookup) {
 				recreateMarkerLookup(proj);
 			} else {
@@ -1007,219 +1196,5 @@ public class TransposeData {
 			System.err.println(ext.getTime()+"\tExcepted");
 			e.printStackTrace();
 		}
-	}
-
-
-	/**
-	 * Transpose data from sample based structure into Marker based structure.
-	 * The input is a set of files based on the sample oriented structure, and
-	 * the output is a set of data files based on the marker oriented structure.
-	 * @param proj The Genvisis project containing the data to be transposed
-	 * file. If set to 0, the default value 2000 is taken on.
-	 * @param keepAllInFilesOpen To keep all the files or just a single one
-	 * open at a time.
-	 * @param log The log file. If set as null, the default file
-	 * Genvisis_TransposeData_yyyyMMdd_HHmmss.log will be used.
-	 */
-	@SuppressWarnings("unchecked")
-	public static void reverseTranspose(Project proj, Logger log) {
-//		boolean isCurrentOutFileComplete;
-		boolean done; // safe;
-		byte nullStatus = 0;
-        byte numBytesPerSampleMarker;
-		int numBytes_PerSamp;
-		int numSamples_WriteBuffer;
-		int numMarkers_LastRound;
-		int numRoundsLoadingMarkerFiles;
-		int indexCurrentSampInProj;
-		int indexFirstSampleCurrentMdRafLoadingRound;
-		int indexFirstMarkerCurrentIteration;
-		long fingerprintForMarkers, fingerprintForSamples;
-		long timerOverAll, timerLoadFiles, timerTransposeMemory, timerTmp;
-        byte[] markFileParameterSection;
-        byte[][] readBuffer;
-		byte[] markFileOutliersBytes = null;
-        byte[][] writeBuffer = null;
-		String logTemp;
-		String[] listOfAllSamplesInProj;
-		String[] listOfAllMarkersInProj;
-		Hashtable<String, Float>[] sampRafFileOutliers;
-		Hashtable<String, Float> allOutliers;
-		String[] markerDataRafFilenames;
-		SimpleDateFormat timeFormat;
-		String markerFile;
-
-        if (log == null) {
-//        	log = Files.generateLogFileName(isSampToMarkConversion? proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false) : proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false));
-        	log = proj.generateLog();
-		}
-        log.report("Reverse transposing data for the project in " + proj.getProjectDir());
-
-        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		listOfAllSamplesInProj = proj.getSamples();
-		listOfAllMarkersInProj = proj.getMarkerNames();
-		fingerprintForSamples = MarkerSet.fingerprint(listOfAllSamplesInProj);
-		fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
-		nullStatus = getNullstatusFromRandomAccessFile(proj.getDir(Project.MARKER_DATA_DIRECTORY) + proj.getMarkerLookup().getFirstMarkerDataRafFilename(), false, false);
-		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
-		if (new File(proj.getProjectDir()).getFreeSpace() <= (listOfAllSamplesInProj.length * (long)listOfAllMarkersInProj.length * numBytesPerSampleMarker)) {
-			log.reportError("Not enough disk space for all the new data to be created. Available: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + "; Required: " + ext.prettyUpSize(new File(proj.getProjectDir()).getFreeSpace(), 1) + ").");
-			return;
-		}
-		numBytes_PerSamp = listOfAllMarkersInProj.length * numBytesPerSampleMarker;
-
-		done = false;
-		timerOverAll = new Date().getTime();
-		numSamples_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_PerSamp), listOfAllSamplesInProj.length);
-
-		while (!done) {
-			try {
-//				parameters = getOptimizedBufferSizeForReverseTranspose(numSamples_WriteBuffer, listOfAllMarkersInProj.length, numBytes_PerSamp);
-//				numSamples_WriteBuffer = parameters[1];//TODO
-//				numSamples_PerMdRafLoadingRound = parameters[3];
-				numRoundsLoadingMarkerFiles = (int) Math.ceil((double)listOfAllSamplesInProj.length / (double)numSamples_WriteBuffer);
-				numMarkers_LastRound = listOfAllSamplesInProj.length % numSamples_WriteBuffer;
-//				outFileNames = new String[numOutFiles];
-				backupOlderFiles(proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false), new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, true);
-//				backupOlderFile(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false), backupCount);
-				log.report( "--\nProject:\t" + listOfAllMarkersInProj.length + " markers\t" + listOfAllSamplesInProj.length +" samples"
-						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
-						  + "\nwriteBuffer:\t" + numSamples_WriteBuffer + " samples\t" + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp / (double)Runtime.getRuntime().maxMemory() * 100, 1) + "% heap efficiency");
-
-
-//				readBuffer = new byte[numSamples_WriteBuffer * numBytesPerSampleMarker];
-				
-				writeBuffer = new byte[numSamples_WriteBuffer][numBytes_PerSamp];
-
-//				timerLoadFiles = 0;
-				timerTmp = new Date().getTime();
-//				if (keepAllInFilesOpen) {
-//					inFiles = new RandomAccessFile[listOfAllSamplesInProj.length];
-//					for (int i=0; i<listOfAllSamplesInProj.length; i++) {
-//						try {
-//							inFiles[i] = new RandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + listOfAllSamplesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, "r");
-//						} catch (FileNotFoundException fnfe) {
-//							log.reportError("Error - file not found: "+proj.getDir(Project.SAMPLE_DIRECTORY, true) + listOfAllSamplesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION);
-//							log.reportError("        if you get this error and the file does exist, then likely your operating system (especially common on a linux platform) is not allowing this many files to be open at once; rerun without using that option at the command line");
-//							log.reportError("        Transpose aborted");
-//							return;
-//						}
-//					}
-//				}
-//				timerLoadFiles += (new Date().getTime() - timerTmp);
-	
-				if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + "outliers.ser").exists()) {
-					allOutliers = (Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + "outliers.ser");
-				} else {
-					allOutliers = new Hashtable<String, Float>();
-				}
-				sampRafFileOutliers = getOutlierHashForEachSampleRafFile(allOutliers, listOfAllSamplesInProj);
-
-				indexCurrentSampInProj = 0;
-//				numBufferChunksNeededCurrentMarkFile = 0;
-//				isCurrentOutFileComplete = true;
-
-				markerDataRafFilenames = proj.getMarkerLookup().getMarkerDataRafFilenames();
-				indexFirstSampleCurrentMdRafLoadingRound = 0;
-				log.report("--\ni (<" + numRoundsLoadingMarkerFiles + ")\tLoad\tTranspose\tWrite");
-				for(int i=0; i<numRoundsLoadingMarkerFiles; i++) {
-					logTemp = "";
-					if ((i+1)==numRoundsLoadingMarkerFiles && numMarkers_LastRound != 0) {
-						numSamples_WriteBuffer = numMarkers_LastRound;
-					}
-
-					// --- Step 1 --- Load mdRaf files into buffer, and transpose the buffer
-					timerLoadFiles = 0;
-					timerTransposeMemory = 0;
-					indexFirstMarkerCurrentIteration = 0;
-					for (int j=0; j<markerDataRafFilenames.length; j++) {
-						timerTmp = new Date().getTime();
-						markerFile = proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + markerDataRafFilenames[j];
-						readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompress(markerFile, null, indexFirstSampleCurrentMdRafLoadingRound, numSamples_WriteBuffer, fingerprintForSamples, log);
-						timerLoadFiles += (new Date().getTime() - timerTmp);
-
-						timerTmp = new Date().getTime();
-						reverseTransposeBuffer(readBuffer, writeBuffer, numBytesPerSampleMarker, indexFirstMarkerCurrentIteration);
-						timerTransposeMemory += (new Date().getTime() - timerTmp);
-						indexFirstMarkerCurrentIteration += readBuffer.length;
-					}
-//					log.report(i + "\t" + timeFormat.format(timerLoadFiles) + "\t" + timeFormat.format(timerTransposeMemory), false, true);
-					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t" + timeFormat.format(timerTransposeMemory));
-
-
-					// --- Step 2 --- Dump write buffer to marker files
-					for (int j = 0; j < numSamples_WriteBuffer; j ++) {
-						if (sampRafFileOutliers == null || sampRafFileOutliers[indexCurrentSampInProj].size() == 0) {
-							markFileOutliersBytes = new byte[0];
-						} else {
-							markFileOutliersBytes = Compression.objToBytes(sampRafFileOutliers[indexCurrentSampInProj]);
-						}
-						markFileParameterSection = getParameterSectionForSampRaf(listOfAllMarkersInProj.length, nullStatus, markFileOutliersBytes.length, fingerprintForMarkers);
-
-						timerTmp = new Date().getTime();
-						writeBufferToRAF(writeBuffer, null, j, j, proj.getDir(Project.SAMPLE_DIRECTORY) + listOfAllSamplesInProj[indexCurrentSampInProj] + Sample.SAMPLE_DATA_FILE_EXTENSION, markFileParameterSection, markFileOutliersBytes);
-						indexCurrentSampInProj ++;
-//						log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
-					}
-
-					indexFirstSampleCurrentMdRafLoadingRound += numSamples_WriteBuffer;
-					log.report(logTemp);
-				}
-
-				if (allOutliers != null && allOutliers.size() != 0) {
-					Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY) + "outliers.ser");
-				}
-
-				done = true;
-
-			} catch (FileNotFoundException e) {
-				System.err.println(ext.getTime()+"\tFileNotFoundException");
-				e.printStackTrace();
-			} catch (IOException e) {
-				System.err.println(ext.getTime()+"\tIOException");
-				e.printStackTrace();
-			} catch (OutOfMemoryError oome) {
-				numSamples_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numSamples_WriteBuffer, -1);
-				deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false), null, new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-		} 
-		timerOverAll = (new Date().getTime() - timerOverAll);
-		log.report("--\nFinished reversely transposing data. Total Time used: "+ timeFormat.format(timerOverAll));
-	}
-
-	public static int getOptimaleNumSamplesBasingOnHeapSpace(int currentNumSamplesInHeapSpace, int numBytesPerSample) {
-		if (currentNumSamplesInHeapSpace <= 0) {
-			return (int) ((Runtime.getRuntime().maxMemory() * 0.75 ) / (double)numBytesPerSample);
-		} else {
-			return currentNumSamplesInHeapSpace *= 0.9;
-		}
-	}
-	
-	public static byte getNullstatusFromRandomAccessFile(String filename, boolean isSampRafOrMdRaf, boolean jar) {
-		byte nullStatusOfTheFile = Byte.MIN_VALUE;
-		RandomAccessFile rafFile;
-
-		try {
-			rafFile = new RandomAccessFile(filename, "r");
-			if (isSampRafOrMdRaf) {
-				rafFile.readInt();
-				nullStatusOfTheFile = rafFile.readByte();
-			} else {
-				rafFile.readInt();
-				rafFile.readInt();
-				nullStatusOfTheFile = rafFile.readByte();
-			}
-			rafFile.close();
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return nullStatusOfTheFile;
 	}
 }

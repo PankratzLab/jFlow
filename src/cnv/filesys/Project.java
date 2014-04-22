@@ -759,10 +759,10 @@ public class Project extends Properties {
 	}
 	
 	public void message(String str, String windowTitle, int messageIcon) {
+		log.reportError(str);
 		if (gui) {
 			JOptionPane.showMessageDialog(null, str, windowTitle, messageIcon);
 		}
-		log.reportError(str);
 	}
 	
 	public Logger generateLog() {
