@@ -504,6 +504,12 @@ public class GenParser {
 		}
 	}
 
+	public static void closeAllParsers(GenParser[] parsers) {
+		for (int i = 0; i < parsers.length; i++) {
+			parsers[i].close();
+		}
+	}
+
 	public static void main(String[] args) {
 	    String usage = "\n"+
 	    "parse.GenParser requires 2+ arguments and will take the form of something like:\n"+

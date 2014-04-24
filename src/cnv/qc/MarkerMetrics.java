@@ -14,7 +14,7 @@ import common.*;
 import db.FilterDB;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx"};
+	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -37,6 +37,7 @@ public class MarkerMetrics {
         int[] counts;
         double[] sumTheta, sumR, meanTheta, sdTheta;
         double temp;
+        int numNaNs;
 
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
@@ -72,6 +73,7 @@ public class MarkerMetrics {
 				rs = markerData.getRs();
 				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
 				
+				numNaNs = 0;
 				counts = new int[4];
 				sumTheta = new double[counts.length];
 				sumR = new double[counts.length];
@@ -80,6 +82,9 @@ public class MarkerMetrics {
 						counts[abGenotypes[j] + 1] ++;
 						sumTheta[abGenotypes[j] + 1] += thetas[j];
 						sumR[abGenotypes[j] + 1] += rs[j];
+						if (Float.isNaN(thetas[j])) {
+							numNaNs++;
+						}
 					}
 				}
 
@@ -124,6 +129,7 @@ public class MarkerMetrics {
 						+ "\t" + ((float) counts[3] / (counts[0] + counts[1] + counts[2] + counts[3]))
 						+ "\t" + (float) (counts[1]<counts[3]? (counts[1] + counts[2]) : (counts[2] + counts[3])) / (counts[0] + counts[1] + 2 * counts[2] + counts[3])
 						+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]
+						+ "\t" + numNaNs
 						+ eol;
 				
 				if (line.length() > 25000) {
@@ -1047,7 +1053,9 @@ public class MarkerMetrics {
 //			filename = "/home/npankrat/projects/SingaporeReplication.properties";
 //			filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
 //			filename = "/home/npankrat/projects/BOSS.properties";
-//			filename = "/home/npankrat/projects/SOL_Metabochip.properties";
+			filename = "/home/npankrat/projects/SOL_Metabochip.properties";
+			fullQC = true;
+			markersSubset = "nans.txt";
 //			tally = true;
 //			checkForDeletedMarkers = true;
 //			pheno = "Class=BAF_Outliers";
