@@ -76,7 +76,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	Hashtable<String, boolean[]> numericHash;
 	String[][] treeFileVariableNameLookup;
 	Hashtable<String, int[]> keyIndices;
-	Hashtable<String, Hashtable<String, String[]>> linkKeyToDataHash;
 //	Vector<String> colorKeyVariables;
 //	String[][] colorKeyUniqueValues;
 	Logger log;
@@ -106,7 +105,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		namesHash = new Hashtable<String, String[]>();
 		numericHash = new Hashtable<String, boolean[]>();
 		keyIndices = new Hashtable<String, int[]>();
-		linkKeyToDataHash = new Hashtable<String, Hashtable<String, String[]>>();
 
 
 		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
@@ -396,7 +394,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void setColorKeyHnadler(int[] selectedColorKey){
 		String[][] selectedNodes;
-		ArrayList<Integer> colorKeys;
 
 		selectedNodes = tree.getSelectionValues();
 		sampleData.setColorKey(selectedNodes[1][0], selectedColorKey[0]);
@@ -571,11 +568,16 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	}
 
 	public void reloadSampleDataUI(){
+		//Note: This line resets the sample data by setting it to null which will cause linkKeyIndex to be lost.
+		//Make sure to set it back after resetting sample data
+		Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String, Integer>(sampleData.getLinkKeyIndex());
 		proj.resetSampleData();
 		if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
 			sampleData = proj.getSampleData(2, false);
 		}
 		sampleData = proj.getSampleData(2, false);
+		sampleData.setLinkKeyIndex(linkKeyIndexCopy);
+
 		colorKeyPanel.updateSampleData(sampleData);
 		colorKeyPanel.updateColorVariablePanel();
 
