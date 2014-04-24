@@ -57,6 +57,10 @@ public class SampleData {
 		return linkKeyIndex;
 	}
 
+	public void setLinkKeyIndex(Hashtable<String, Integer> linkKeyIndex) {
+		this.linkKeyIndex = linkKeyIndex;
+	}
+
 	public SampleData(Project proj, int numberOfBasicClassesToUse, String[] cnvFilenames) {
 		BufferedReader reader;
 		String[] line, header;
@@ -536,7 +540,7 @@ public class SampleData {
         }
 	}
 
-	public static int[] determineKeyIndices(String filename){
+	public static int[] determineKeyIndices(String filename) {
 		String[] header;
 		header = Files.getHeaderOfFile(filename, null);
 		int[] linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, null, false);
@@ -548,24 +552,23 @@ public class SampleData {
 		return linkKeyIndices;
 	}
 
-
 	public void initLinkKey(String filename) {
 		int[] linkKeyColumnLabels = determineKeyIndices(filename);
 		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
 			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
 			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
-//			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
 			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
 		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
 			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
-//			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
 			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
 		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
 			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
-//			JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
 			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
 		} else {
-//			JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
+			// JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
 			System.out.println("Unable to initialize the link key.");
 		}
 	}
@@ -580,14 +583,13 @@ public class SampleData {
 				linkKeyIndex.put(filename, i);
 				System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
 				// createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
-//				JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
+				// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
 				System.err.println("Link is set to:" + Arrays.toString(LINKERS[i]));
 				return;
 			}
 		}
 		proj.message("Unable to set link key. Please make sure you are selecting a valid key");
 	}
-
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
@@ -622,24 +624,24 @@ public class SampleData {
 	public void setColorKey(String dataFile, int selectedColorKey) {
 		ArrayList<Integer> colorKeys;
 
-			if (colorKeyIndex.containsKey(dataFile)) {
-				colorKeys = colorKeyIndex.get(dataFile);
-			} else {
-				colorKeyIndex.put(dataFile, colorKeys = new ArrayList<Integer>());
-			}
-			for (Integer colorKey : colorKeys) {
-				if (colorKey == selectedColorKey) {
-					System.out.println("Error: Already sey as color key");
-					//TODO: Make these thing to display
-//					JOptionPane.showMessageDialog(null, "Error: Already sey as color key", "Error",
-//							JOptionPane.ERROR_MESSAGE);
-					System.err.println("Error: Already sey as color key");
-					return;
-				}
-			}
-			colorKeys.add(selectedColorKey);	// add to colorKeys
-			setColorKeyHandler(dataFile, selectedColorKey);
+		if (colorKeyIndex.containsKey(dataFile)) {
+			colorKeys = colorKeyIndex.get(dataFile);
+		} else {
+			colorKeyIndex.put(dataFile, colorKeys = new ArrayList<Integer>());
 		}
+		for (Integer colorKey : colorKeys) {
+			if (colorKey == selectedColorKey) {
+				System.out.println("Error: Already sey as color key");
+				// TODO: Make these thing to display
+				// JOptionPane.showMessageDialog(null, "Error: Already sey as color key", "Error",
+				// JOptionPane.ERROR_MESSAGE);
+				System.err.println("Error: Already sey as color key");
+				return;
+			}
+		}
+		colorKeys.add(selectedColorKey); // add to colorKeys
+		setColorKeyHandler(dataFile, selectedColorKey);
+	}
 
 	public void setColorKeyHandler(String filename, int selectedColorKey) {
 		Hashtable<String, String> colorKeyValue;
@@ -649,28 +651,29 @@ public class SampleData {
 		colorKeyValue = new Hashtable<String, String>();
 		if (linkKeyIndex.containsKey(filename)) {
 			switch (linkKeyIndex.get(filename)) {
-				case DNA_INDEX_IN_LINKERS:
-					colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
-					break;
-				case FID_INDEX_IN_LINKERS:
-					colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
-					colorKeyValue = createHashWithSampleID(colorKeyValue);	// colorkey value hash with key as sampleID
-					break;
-				case IID_INDEX_IN_LINKERS:
-					colorKeyValue = HashVec.loadFileToHashString(filename, new int[]{linkKeyColumnLabels[linkKeyIndex.get(filename)]}, new int[]{selectedColorKey-1}, false, "",true, false, false);
-					colorKeyValue = createHashWithSampleID(colorKeyValue);	// colorkey value hash with key as sampleID
-					break;
-				default:
-					System.out.println("Error: Unable to read color key values. Invalid link key.");
-					//TODO: display this
-//					JOptionPane.showMessageDialog(null, "Error: Unable to read color key values. Invalid link key.", "Error", JOptionPane.ERROR_MESSAGE);
-					System.err.println("Error: Unable to read color key values. Invalid link key.");
-					break;
+			case DNA_INDEX_IN_LINKERS:
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
+				break;
+			case FID_INDEX_IN_LINKERS:
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
+				colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as sampleID
+				break;
+			case IID_INDEX_IN_LINKERS:
+				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
+				colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as sampleID
+				break;
+			default:
+				System.out.println("Error: Unable to read color key values. Invalid link key.");
+				// TODO: display this
+				// JOptionPane.showMessageDialog(null, "Error: Unable to read color key values. Invalid link key.", "Error", JOptionPane.ERROR_MESSAGE);
+				System.err.println("Error: Unable to read color key values. Invalid link key.");
+				break;
 			}
+			addToSampleData(colorKeyValue, filename, selectedColorKey);
+		} else {
+			System.err.println("Error: Unable to find link key index for file: " + filename + "\n Failed to set the color key. Please make sure link key is set before setting color key");
 		}
-		addToSampleData(colorKeyValue, filename, selectedColorKey);
 	}
-
 
 	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue) {
 		Hashtable<String, String> colorKeyValueHash;
@@ -698,7 +701,7 @@ public class SampleData {
 		sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
 
 		if (!Files.exists(sampleDatafilename, proj.getJarStatus())) {
-//			JOptionPane.showMessageDialog(null, "Cannot add as a color key without an existing SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
+			// JOptionPane.showMessageDialog(null, "Cannot add as a color key without an existing SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
 			System.err.println("Cannot add as a color key without an existing SampleData file");
 			return;
 		}
@@ -707,8 +710,8 @@ public class SampleData {
 		writer = null;
 
 		System.out.println("Sample data: " + sampleDatafilename);
-		bakFile = proj.archiveFile(sampleDatafilename);	// create backup of sample data file
-		colorKeyHeader =Files.getHeaderOfFile(recentSelectionFile, null)[selectedColorKey-1];
+		bakFile = proj.archiveFile(sampleDatafilename); // create backup of sample data file
+		colorKeyHeader = Files.getHeaderOfFile(recentSelectionFile, null)[selectedColorKey - 1];
 
 		covar = false;
 		negativeValues = false;
@@ -728,16 +731,16 @@ public class SampleData {
 		}
 
 		if (covar) {
-			//TODO: make these thing show up
-//			JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains a quantitative meaure and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
-			System.out.println("Variable '"+colorKeyHeader+"' contains a quantitative measure and will be added as a COVAR in SampleData and not as a Class");
+			// TODO: make these thing show up
+			// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains a quantitative meaure and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
+			System.out.println("Variable '" + colorKeyHeader + "' contains a quantitative measure and will be added as a COVAR in SampleData and not as a Class");
 		} else if (negativeValues) {
-//			JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains negative values and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
-			System.out.println("Variable '"+colorKeyHeader+"' contains negative values and will be added as a COVAR in SampleData and not as a Class");
+			// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains negative values and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
+			System.out.println("Variable '" + colorKeyHeader + "' contains negative values and will be added as a COVAR in SampleData and not as a Class");
 			covar = true;
 		} else if (largerThanByte) {
-//			JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
-			System.out.println("Variable '"+colorKeyHeader+"' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class");
+			// JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class", "Warning", JOptionPane.ERROR_MESSAGE);
+			System.out.println("Variable '" + colorKeyHeader + "' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class");
 			covar = true;
 		}
 
@@ -746,13 +749,13 @@ public class SampleData {
 			writer = new BufferedWriter(new FileWriter(sampleDatafilename));
 			inLine = reader.readLine();
 			int samDataIndex = getSampleDataHeaders(inLine)[DNA_INDEX_IN_LINKERS];
-			inLine = inLine + "\t"+(covar?"Covar=":"Class=") + colorKeyHeader;
-			writer.write(inLine);	// write the headers
-			while(reader.ready()) {
+			inLine = inLine + "\t" + (covar ? "Covar=" : "Class=") + colorKeyHeader;
+			writer.write(inLine); // write the headers
+			while (reader.ready()) {
 				writer.newLine();
 				inLine = reader.readLine();
 				if (inLine.contains("\t")) {
-					inLineArry = inLine.trim().split("\t",-1);
+					inLineArry = inLine.trim().split("\t", -1);
 				} else {
 					inLineArry = inLine.trim().split("[\\s]+");
 				}
@@ -770,11 +773,11 @@ public class SampleData {
 		} finally {
 			closeStream(reader);
 			closeStream(writer);
-//			twoDPanel.paintAgain();
+			// twoDPanel.paintAgain();
 		}
-		//reloadSampleDataUI();
+		// reloadSampleDataUI();
 		System.out.println(colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data");
-//		JOptionPane.showMessageDialog(null, colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data", "Information", JOptionPane.INFORMATION_MESSAGE);
+		// JOptionPane.showMessageDialog(null, colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data", "Information", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	public void closeStream(Closeable s) {
@@ -783,20 +786,22 @@ public class SampleData {
 				s.close();
 			}
 		} catch (IOException e) {
-			//Log or rethrow as unchecked (like RuntimException) ;)
+			// Log or rethrow as unchecked (like RuntimException) ;)
 		}
 	}
 
 	/**
 	 * Function to indentify the headers in the sample data file
-	 * @param header: a string containing all the headers read as string
+	 *
+	 * @param header
+	 *            : a string containing all the headers read as string
 	 */
 	public int[] getSampleDataHeaders(String header) {
 		String[] headersArray;
 		int[] indices;
 
 		if (header.contains("\t")) {
-			headersArray = header.trim().split("\t",-1);
+			headersArray = header.trim().split("\t", -1);
 		} else {
 			headersArray = header.trim().split("[\\s]+");
 		}
@@ -811,33 +816,33 @@ public class SampleData {
 		return indices;
 	}
 
-	public void removeColorKey (String colorKey){
+	public void removeColorKey(String colorKey) {
 
 		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
 
 		System.out.println("Sample data: " + sampleDatafilename);
 
-		String[] sampeleDataHeader = Files.getHeaderOfFile(sampleDatafilename, null);	// header of sample data
+		String[] sampeleDataHeader = Files.getHeaderOfFile(sampleDatafilename, null); // header of sample data
 		int i;
-		for(i = 0; i < sampeleDataHeader.length; i++){
+		for (i = 0; i < sampeleDataHeader.length; i++) {
 			String[] splitOnEquals = sampeleDataHeader[i].split("=", 2);
-			if(splitOnEquals.length > 0 && splitOnEquals[0].equalsIgnoreCase("CLASS")){
-				if(splitOnEquals[1].split(";", 2)[0].equalsIgnoreCase(colorKey)){
+			if (splitOnEquals.length > 0 && splitOnEquals[0].equalsIgnoreCase("CLASS")) {
+				if (splitOnEquals[1].split(";", 2)[0].equalsIgnoreCase(colorKey)) {
 					// color key found at position i in header columns
 					break;
 				}
 			}
 		}
-		if( i == sampeleDataHeader.length){
+		if (i == sampeleDataHeader.length) {
 			// column to be deleted was not foung in sample data
-//			JOptionPane.showMessageDialog(null, "Error: Unable to find the specified column in Sample Data for deletion", "Error", JOptionPane.ERROR_MESSAGE);
+			// JOptionPane.showMessageDialog(null, "Error: Unable to find the specified column in Sample Data for deletion", "Error", JOptionPane.ERROR_MESSAGE);
 			System.out.println("Error: Unable to find the specified column in Sample Data for deletion");
-		} else{
+		} else {
 			// the column at i is to be deleted
 			int[] colToLoad = new int[sampeleDataHeader.length - 1];
 			int index = 0, col = 0;
-			while (index < (sampeleDataHeader.length - 1)){
-				if(col != i){
+			while (index < (sampeleDataHeader.length - 1)) {
+				if (col != i) {
 					colToLoad[index++] = col;
 				}
 				col++;
@@ -848,13 +853,13 @@ public class SampleData {
 
 			String sampleDataDelimiter = Files.determineDelimiter(sampleDatafilename, null);
 
-			String bakFile = proj.archiveFile(sampleDatafilename);	// create backup of sample data file
+			String bakFile = proj.archiveFile(sampleDatafilename); // create backup of sample data file
 			System.out.println("Deleting color key " + colorKey + " from sample data. Sample data backup: " + bakFile);
 
 			// write the new sample data which does not have the removed color key column
 
 			Files.writeMatrix(sampleDataMatrix, sampleDatafilename, sampleDataDelimiter);
-//			JOptionPane.showMessageDialog(null, colorKey + "deleted in sample data", "Information", JOptionPane.INFORMATION_MESSAGE);
+			// JOptionPane.showMessageDialog(null, colorKey + "deleted in sample data", "Information", JOptionPane.INFORMATION_MESSAGE);
 			System.err.println(colorKey + "deleted in sample data");
 		}
 	}
