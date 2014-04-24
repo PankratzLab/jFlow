@@ -78,7 +78,7 @@ public class MarkerDataLoader implements Runnable {
 		markerNamesProj = proj.getMarkerNames();
 		chrsProj = proj.getMarkerSet().getChrs();
 		positionsProj = proj.getMarkerSet().getPositions();
-		markerHash = HashVec.loadFileToHashIndex(markerNames);
+		markerHash = HashVec.loadToHashIndices(markerNames);
 		for (int i = 0; i<markerNamesProj.length; i++) {
 			if (markerHash.containsKey(markerNamesProj[i])) {
 				index = markerHash.get(markerNamesProj[i]);

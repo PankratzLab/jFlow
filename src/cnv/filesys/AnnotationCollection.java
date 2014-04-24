@@ -114,26 +114,37 @@ public class AnnotationCollection implements Serializable {
 	}
 	
 	public void dumpLists(String outputDir) {
-		String[] list, keys;
+		String[] list, keysAnnotations, keysMarkers;
+		String[][] matrix;
 		Vector<String> annotationsVector;
 		String annotationsOfTheMarker;
 
+		keysAnnotations = HashVec.getKeys(annotationMarkerLists);
+		for (int i = 0; i < keysAnnotations.length; i++) {
+			Files.writeList(Array.toStringArray(annotationMarkerLists.get(keysAnnotations[i])), outputDir + "annotation_" + keysAnnotations[i] + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keysAnnotations[i].charAt(0), false, false), true) + ".xln");
+		}
+
 		list = new String[markerAnnotations.size()];
-		keys = HashVec.getKeys(markerAnnotations);
+		matrix = new String[markerAnnotations.size()+2][];
+		matrix[0] = Array.addStrToArray("", keysAnnotations, 0);
+		matrix[1] = Array.addStrToArray("MarkerName", keysAnnotations, 0);
+		for (int i = 1; i < matrix[1].length; i++) {
+			matrix[1][i] = getDescriptionForComment(matrix[1][i].charAt(0), false, false);
+		}
+		keysMarkers = HashVec.getKeys(markerAnnotations);
 		for (int i = 0; i < list.length; i++) {
-			annotationsVector = markerAnnotations.get(keys[i]);
+			annotationsVector = markerAnnotations.get(keysMarkers[i]);
 			annotationsOfTheMarker = "";
+			matrix[i+2] = Array.stringArray(keysAnnotations.length+1, "0");
+			matrix[i+2][0] = keysMarkers[i];
 			for (int j=0; j<annotationsVector.size(); j++) {
 				annotationsOfTheMarker += (j==0?"":";") + commentsHash.get(annotationsVector.elementAt(j).toCharArray()[0]);
+				matrix[i+2][ext.indexOfStr(annotationsVector.elementAt(j), keysAnnotations)+1] = "1";
 			}
-			list[i] = keys[i] + "\t" + annotationsOfTheMarker;
+			list[i] = keysMarkers[i] + "\t" + annotationsOfTheMarker;
 		}
-		Files.writeList(list, outputDir + "annotations.xln");
-
-		keys = HashVec.getKeys(annotationMarkerLists);
-		for (int i = 0; i < keys.length; i++) {
-			Files.writeList(Array.toStringArray(annotationMarkerLists.get(keys[i])), outputDir + "annotation_" + keys[i] + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keys[i].charAt(0), false, false), true) + ".xln");
-		}
+		Files.writeList(list, outputDir + "annotations_list.xln");
+		Files.writeMatrix(matrix, outputDir + "annotations_matrix.xln", "\t");
 	}
 	
 	public static AnnotationCollection loadFromLists(String filename, Logger log) {

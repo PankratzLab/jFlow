@@ -182,8 +182,7 @@ public class HashVec {
 		return hash;
 	}
 
-	// TODO merge with the next?
-	public static Hashtable<String,Integer> loadFileToHashIndex(String[] list) {
+	public static Hashtable<String,Integer> loadToHashIndices(String[] list) {
 		Hashtable<String,Integer> hash = new Hashtable<String,Integer>((list == null?10:list.length));
 		
 		for (int i = 0; list != null && i<list.length; i++) {
@@ -193,17 +192,6 @@ public class HashVec {
 		return hash;
 	}
 	
-
-	public static Hashtable<String,String> loadToHashIndices(String[] list) {
-		Hashtable<String,String> hash = new Hashtable<String,String>();
-		
-		for (int i = 0; i<list.length; i++) {
-			hash.put(list[i], i+"");
-		}
-
-		return hash;
-	}
-
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, boolean onlyFirstColumn, boolean onlyIfAbsent) {
 		return loadFileToVec(filename, ignoreFirstLine, onlyFirstColumn?new int[] {0}:null, onlyIfAbsent, false);
 	}
@@ -225,7 +213,7 @@ public class HashVec {
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent, boolean jar) {
-		return loadFileToVec(filename, ignoreFirstLine, cols, true, onlyIfAbsent, jar, "[\\s]+");
+		return loadFileToVec(filename, ignoreFirstLine, cols, true, onlyIfAbsent, jar, Files.determineDelimiter(filename, new Logger()));
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols, boolean trimFirst, boolean onlyIfAbsent, boolean jar, String delimiter) {

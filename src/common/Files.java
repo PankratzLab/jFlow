@@ -2084,6 +2084,29 @@ public class Files {
         return -1;
 	}
 	
+	public static boolean countIfMoreThanNLines(String filename, int n) {
+		BufferedReader reader;
+        int count;
+        
+        try {
+        	reader = getAppropriateReader(filename);
+        	count = 0;
+        	while (reader.ready()) {
+        		reader.readLine();
+        		count++;
+        		if (count > n) {
+        			return true;
+        		}
+        	}
+        } catch (FileNotFoundException fnfe) {
+	        System.err.println("Error: file \""+filename+"\" not found in current directory");
+        } catch (IOException ioe) {
+	        System.err.println("Error reading file \""+filename+"\"");
+        }
+
+        return false;
+	}
+
 	public static void write(String str, String filename) {
         PrintWriter writer;
         
@@ -2414,6 +2437,7 @@ public class Files {
 		return getHeaderOfFile(filename, null, log);
 	}
 	
+	// if you want to force the removal of quotes in a comma-delimited file, then set delimiter to ",!"
 	public static String[] getHeaderOfFile(String filename, String delimiter, Logger log) {
 		String[] lines;
 
@@ -2693,6 +2717,18 @@ public class Files {
 		return filename;
 	}
 	
+	public static void closeAll(BufferedReader[] readers) {
+		for (int i = 0; i < readers.length; i++) {
+			if (readers[i] != null) {
+				try {
+					readers[i].close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	public static void closeAll(PrintWriter[] writers) {
 		for (int i = 0; i < writers.length; i++) {
 			if (writers[i] != null) {

@@ -898,7 +898,7 @@ public class SnpMarkerSet implements Serializable {
 	}
 	
 	public static SnpMarkerSet merge(SnpMarkerSet[] sets) {
-		Hashtable<String, String> indices;
+		Hashtable<String, Integer> indices;
 		String[][] arraysOfMarkerNames, annotation;
 		boolean[] hasPositions, hasAlleles;
 		String[] markerNames;
@@ -929,7 +929,7 @@ public class SnpMarkerSet implements Serializable {
 					travChrs = sets[i].getChrs();
 					travPositions = sets[i].getPositions();
 					for (int j = 0; j < arraysOfMarkerNames[i].length; j++) {
-						index = Integer.parseInt(indices.get(arraysOfMarkerNames[i][j]));
+						index = indices.get(arraysOfMarkerNames[i][j]);
 						if (chrs[index] == (byte)-9) {
 							chrs[index] = travChrs[j];
 							rawPositions[index] = travPositions[j];
@@ -951,7 +951,7 @@ public class SnpMarkerSet implements Serializable {
 				if (hasPositions[i]) {
 					travAlleles = sets[i].getAlleles();
 					for (int j = 0; j < arraysOfMarkerNames[i].length; j++) {
-						index = Integer.parseInt(indices.get(arraysOfMarkerNames[i][j]));
+						index = indices.get(arraysOfMarkerNames[i][j]);
 						if (alleles[index] == null) {
 							alleles[index] = travAlleles[j];
 						} else if ((travAlleles[j][0] != alleles[index][0] && travAlleles[j][0] != alleles[index][1]) || (travAlleles[j][1] != alleles[index][0] && travAlleles[j][1] != alleles[index][1])) {
