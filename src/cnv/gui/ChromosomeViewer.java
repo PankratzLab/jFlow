@@ -28,8 +28,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 	private int stopPosition = 0;
 	private GeneTrack track = null; // Represents where the genes are
 	float scalingFactor;
-	private int height = 10;
-	private ArrayList<GeneRect> geneRects;
+	private ArrayList<GeneRectangle> geneRects;
 	private GeneData[] oldGenes;
 
 	public ChromosomeViewer(int chr, int start, int stop, GeneTrack gt) {
@@ -37,12 +36,12 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 		startPosition = start;
 		stopPosition = stop;
 		track = gt;
-		geneRects = new ArrayList<GeneRect>();
+		geneRects = new ArrayList<GeneRectangle>();
 		oldGenes = new GeneData[0];
 		addMouseMotionListener(this);
 
-		setMaximumSize(new Dimension(getWidth(), 20));
-		setMinimumSize(new Dimension(getWidth(), 20));
+		setMaximumSize(new Dimension(getWidth(), 45));
+		setMinimumSize(new Dimension(getWidth(), 45));
 	}
 
 	/**
@@ -69,6 +68,10 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 		int[][] exons;
 		Vector<Segment> v = new Vector<Segment>();
 		int width, begin, end;
+		int height = 10;
+		int chromosomeRowStart = 0;
+		int geneNameRowStart = (height * 2) + 2;
+		int rulerRowStart = geneNameRowStart + 2;
 		int lastNameEnd = 0;
 
 		if (track == null) {
@@ -83,6 +86,8 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 					geneRects.clear();
 					oldGenes = genes;
 				}
+
+				// Draw the row containing the chromosome view
 				g.setColor(Color.BLACK);
 				for (int i = 0; i < genes.length; i++) {
 					begin = getX(genes[i].getStart());
@@ -93,10 +98,10 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 					}
 
 					// Maintain a list of the rectangles so we can check them on mouseover
-					GeneRect rectangle = new GeneRect(genes[i].getGeneName(), new Rectangle(begin, 0, width, height));
+					GeneRectangle rectangle = new GeneRectangle(genes[i].getGeneName(), new Rectangle(begin, 0, width, height));
 					geneRects.add(rectangle);
 
-					g.drawRoundRect(begin, 0, width, height, 2, 2);
+					g.drawRoundRect(begin, chromosomeRowStart, width, height, 2, 2);
 					v.add(new Segment(begin, end));
 					exons = genes[i].getExonBoundaries();
 					for (int j = 0; j < exons.length; j++) {
@@ -105,27 +110,61 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 						int exEnd = getX(exons[j][1]);
 						int exWidth = exEnd - exBegin;
 						if (j == 0 || j == exons.length - 1) {
-							g.fillRoundRect(exBegin, 0, exWidth, height, 2, 2);
+							g.fillRoundRect(exBegin, chromosomeRowStart, exWidth, height, 2, 2);
 						} else {
-							g.fillRect(exBegin, 0, exWidth, height);
+							g.fillRect(exBegin, chromosomeRowStart, exWidth, height);
 						}
 
 					}
 				}
 				Segment.mergeOverlapsAndSort(v);
-				g.setFont(new Font("Arial", 0, 14));
 
+				// Draw the row containing the gene names
+				g.setFont(new Font("Arial", 0, 14));
 				for (int i = 0; i < genes.length; i++) {
 					begin = getX(genes[i].getStart());
 					width = g.getFontMetrics(g.getFont()).stringWidth(genes[i].getGeneName());
 
 					// Keep track of the end of the name we rendered so we don't overwrite them
 					if (begin > lastNameEnd) {
-						g.drawString(genes[i].getGeneName(), begin, (height * 2) + 2);
+						g.drawString(genes[i].getGeneName(), begin, geneNameRowStart);
 						lastNameEnd = begin + width;
 					}
 				}
 
+				// Draw the row containing the ruler
+				g.setFont(new Font("Arial", 0, 12));
+				int numTicks = 10;
+				int tickBottom = rulerRowStart + height;
+				int tickScale = (stopPosition - startPosition) / numTicks;
+
+				for (int i = 0; i <= numTicks; i++) {
+					int tickPos = startPosition + (i * tickScale);
+
+					int posWidth = 0;
+					switch (i) {
+					case 0:
+						// The first one can be drawn with the position left-justified with full-height ticks
+						g.fillRect(getX(tickPos), rulerRowStart, 2, height);
+						g.drawString(Integer.toString(tickPos), getX(tickPos), tickBottom + height);
+						break;
+					case 5:
+						// The middle one should be drawn with the position centered with full-height ticks
+						g.fillRect(getX(tickPos), rulerRowStart, 2, height);
+						posWidth = g.getFontMetrics(g.getFont()).stringWidth(Integer.toString(tickPos));
+						g.drawString(Integer.toString(tickPos), getX(tickPos) - (posWidth / 2), tickBottom + height);
+						break;
+					case 10:
+						// The last one should be drawn with the position right-justified with full-height ticks
+						g.fillRect(getX(tickPos) - 2, rulerRowStart, 2, height);
+						posWidth = g.getFontMetrics(g.getFont()).stringWidth(Integer.toString(tickPos));
+						g.drawString(Integer.toString(tickPos), getX(stopPosition) - posWidth, tickBottom + height);
+						break;
+					default:
+						// Make the intermediate ticks half-height
+						g.fillRect(getX(tickPos), rulerRowStart, 2, (height / 2));
+					}
+				}
 			}
 		} catch (Exception ex) {
 			System.out.println("Missing data in gene track");
@@ -142,6 +181,16 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 		return (int) ((pos - startPosition) * scalingFactor);
 	}
 
+	/**
+	 * Calculate the position given the x coordinate
+	 * 
+	 * @param x
+	 * @return
+	 */
+	public int getPos(int x) {
+		return (int) (x / scalingFactor) + startPosition;
+	}
+
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// Nothing to do on mouse drag
@@ -155,7 +204,8 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 		setToolTipText(null);
 		ArrayList<String> genes = new ArrayList<String>();
 
-		for (GeneRect geneRect : geneRects) {
+		// Work through the list of genes in this view and see if we're inside their bounding boxes
+		for (GeneRectangle geneRect : geneRects) {
 			if (geneRect.contains(e.getPoint())) {
 				String name = geneRect.getName();
 				if (!genes.contains(name))
@@ -163,6 +213,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 			}
 		}
 
+		// Sometimes multiple genes are marked in the same location, show all of them
 		String toolTipText = "";
 		for (int i = 0; i < genes.size(); i++) {
 			if (i == genes.size() - 1) {
@@ -171,8 +222,15 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 				toolTipText += genes.get(i) + ", ";
 			}
 		}
-		setToolTipText(toolTipText);
 
+		// Set the tooltip based on what we're over
+		if (toolTipText.equals("")) {
+			// Set the tooltip to the current position
+			setToolTipText(Integer.toString(getPos(e.getX())));
+		} else {
+			// Set the tooltip to the current gene
+			setToolTipText(toolTipText);
+		}
 	}
 }
 
@@ -182,11 +240,11 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
  * @author Michael Vieths
  * 
  */
-class GeneRect {
+class GeneRectangle {
 	private String geneName;
 	private Rectangle geneRect;
 
-	public GeneRect(String gene, Rectangle rect) {
+	public GeneRectangle(String gene, Rectangle rect) {
 		geneName = gene;
 		geneRect = rect;
 	}
