@@ -176,7 +176,7 @@ public class CompPlot extends JFrame {
 		chromosomeViewer = new ChromosomeViewer(location[0], location[1], location[2], track);
 
 		viewers.add(chromosomeViewer, BorderLayout.NORTH);
-		chromosomeViewer.setPreferredSize(new Dimension(800, 25));
+		chromosomeViewer.setPreferredSize(new Dimension(800, 45));
 
 		compPanel = new CompPanel(this);
 		compPanel.addPropertyChangeListener(cpcl);
