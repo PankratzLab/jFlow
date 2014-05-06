@@ -14,7 +14,7 @@ import common.*;
 import db.FilterDB;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs"};
+	public static final String[] FULL_QC_HEADER = { "MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_p", "LRR_SEX_R2", "LRR_SEX_z" };
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -34,8 +34,8 @@ public class MarkerMetrics {
         MarkerDataLoader markerDataLoader;
         String[] markerNames;
         String line, eol;
-        int[] counts;
-        double[] sumTheta, sumR, meanTheta, sdTheta;
+		int[] counts, sexes;
+		double[] sumTheta, sumR, meanTheta, sdTheta, lrrSex;
         double temp;
         int numNaNs;
 
@@ -48,7 +48,7 @@ public class MarkerMetrics {
         samples = proj.getSamples();
         clusterFilterCollection = proj.getClusterFilterCollection();
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
-
+		sexes = getSexes(proj, samples, log);
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false)));
 			writer.println(Array.toStr(FULL_QC_HEADER));
@@ -106,7 +106,7 @@ public class MarkerMetrics {
 						sdTheta[j] = Math.sqrt(sdTheta[j] / (counts[j]-1));
 					}
 				}
-
+				lrrSex = getSexAssociation(sexes, markerData.getLRRs(), samplesToExclude, log);
 				line += markerName
 						+ "\t" + markerData.getChr()
 						+ "\t" + (1- ((float)counts[0] / (counts[0] + counts[1] + counts[2] + counts[3])))
@@ -130,6 +130,9 @@ public class MarkerMetrics {
 						+ "\t" + (float) (counts[1]<counts[3]? (counts[1] + counts[2]) : (counts[2] + counts[3])) / (counts[0] + counts[1] + 2 * counts[2] + counts[3])
 						+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]
 						+ "\t" + numNaNs
+						+ "\t" + lrrSex[0] 
+						+ "\t" + lrrSex[1]
+						+ "\t" + lrrSex[2]		
 						+ eol;
 				
 				if (line.length() > 25000) {
@@ -146,6 +149,72 @@ public class MarkerMetrics {
 			log.reportError("Error writing marker metrics to "+proj.getFilename(Project.MARKER_METRICS_FILENAME, false, false));
 			e.printStackTrace();
 		}
+	}
+	
+	private static int[] getSexes(Project proj, String[] samples, Logger log) {
+		int[] sexes = new int[samples.length];
+		SampleData sampleData = proj.getSampleData(2, false);
+		for (int i = 0; i < samples.length; i++) {
+			sexes[i] = sampleData.getSexForIndividual(samples[i]);
+		}
+		return sexes;
+	}
+
+	public static double[] getSexAssociation(int[] sexes, float[] independantData, boolean[] samplesToExclude, Logger log) {
+		// double[] stats stores 0->logistic P, 1-> logistic R2, 2->zscore
+		double[] stats = new double[3];
+		Arrays.fill(stats, Double.NaN);
+		Vector<String> intensityDeps = new Vector<String>();
+		Vector<double[]> intensityIndeps = new Vector<double[]>();
+		for (int s = 0; s < sexes.length; s++) {
+			if (ext.isValidDouble(independantData[s] + "") && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
+				intensityDeps.add(sexes[s] + "");
+				intensityIndeps.add(new double[] { independantData[s] });
+			}
+		}
+		if (intensityDeps.size() == 0) {
+			return stats;
+		} else {
+			int[] deps = Array.toIntArray(Array.toStringArray(intensityDeps));
+			double[] indeps = Matrix.extractColumn(Matrix.toDoubleArrays(intensityIndeps), 0);
+			double[] lrstats = getLogisticStats(deps, indeps, log);
+			double zscore = getZscore(deps, indeps, log);
+			stats[0] = lrstats[0];
+			stats[1] = lrstats[1];
+			stats[2] = zscore;
+		}
+		return stats;
+	}
+
+	// 1 = male ,2 = female
+	private static double getZscore(int[] sex, double[] indeps, Logger log) {
+		double zscore = Double.NaN;
+		DoubleVector[] values = new DoubleVector[3];
+		for (int s = 0; s < sex.length; s++) {
+			if (values[sex[s]] == null) {
+				values[sex[s]] = new DoubleVector();
+			}
+			if (ext.isValidDouble(indeps[s] + "")) {
+				values[sex[s]].add(indeps[s]);
+			}
+		}
+		if (values[1] != null && values[2] != null) {
+			double[] maleValues = values[1].toArray();
+			zscore = (Array.mean(maleValues) - Array.mean(values[2].toArray())) / Array.stdev(maleValues, false);
+		}
+		return zscore;
+	}
+
+	private static double[] getLogisticStats(int[] deps, double[] indeps, Logger log) {
+		double[] lrStats = new double[2];
+		LogisticRegression lr = new LogisticRegression(deps, indeps);
+		if (lr.analysisFailed()) {
+			Arrays.fill(lrStats, Double.NaN);
+		} else {
+			lrStats[0] = lr.getSigs()[1];
+			lrStats[1] = (lr.getRsquare() < 0 ? Double.NaN : lr.getRsquare());
+		}
+		return lrStats;
 	}
 	
 	public static void lrrVariance(Project proj, boolean[] samplesToInclude, String markersToInclude, Logger log) {
@@ -1053,9 +1122,9 @@ public class MarkerMetrics {
 //			filename = "/home/npankrat/projects/SingaporeReplication.properties";
 //			filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
 //			filename = "/home/npankrat/projects/BOSS.properties";
-			filename = "/home/npankrat/projects/SOL_Metabochip.properties";
-			fullQC = true;
-			markersSubset = "nans.txt";
+//			filename = "/home/npankrat/projects/SOL_Metabochip.properties";
+//			fullQC = true;
+//			markersSubset = "nans.txt";
 //			tally = true;
 //			checkForDeletedMarkers = true;
 //			pheno = "Class=BAF_Outliers";
