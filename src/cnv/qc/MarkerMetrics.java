@@ -14,7 +14,7 @@ import common.*;
 import db.FilterDB;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_p", "LRR_SEX_R2", "LRR_SEX_z", "LRR_SD"};
+	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -134,9 +134,7 @@ public class MarkerMetrics {
 						+ "\t" + (float) (counts[1]<counts[3]? (counts[1] + counts[2]) : (counts[2] + counts[3])) / (counts[0] + counts[1] + 2 * counts[2] + counts[3])
 						+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]
 						+ "\t" + numNaNs
-						+ "\t" + lrrSex[0] 
-						+ "\t" + lrrSex[1]
-						+ "\t" + lrrSex[2]
+						+ "\t" + lrrSex[0]
 						+ "\t" + lrrsd	
 						+ eol;
 				
@@ -166,8 +164,8 @@ public class MarkerMetrics {
 	}
 
 	public static double[] getSexAssociation(int[] sexes, float[] independantData, boolean[] samplesToExclude, Logger log) {
-		// double[] stats stores 0->logistic P, 1-> logistic R2, 2->zscore
-		double[] stats = new double[3];
+		// double[] stats stores 0->zscore
+		double[] stats = new double[1];
 		Arrays.fill(stats, Double.NaN);
 		Vector<String> intensityDeps = new Vector<String>();
 		Vector<double[]> intensityIndeps = new Vector<double[]>();
@@ -180,11 +178,8 @@ public class MarkerMetrics {
 		if (intensityDeps.size() == 0) {
 			return stats;
 		} else {
-			int[] deps = Array.toIntArray(Array.toStringArray(intensityDeps));
-			double[] indeps = Matrix.extractColumn(Matrix.toDoubleArrays(intensityIndeps), 0);
-			double[] lrstats = getLogisticStats(deps, indeps, log);
-			double zscore = getZscore(deps, indeps, log);
-			stats = new double[] { lrstats[0], lrstats[1], zscore };
+			double zscore = getZscore(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(intensityIndeps), 0), log);
+			stats = new double[] { zscore };
 		}
 		return stats;
 	}
@@ -204,18 +199,6 @@ public class MarkerMetrics {
 			zscore = (Array.mean(maleValues) - Array.mean(values[2].toArray())) / Array.stdev(maleValues, false);
 		}
 		return zscore;
-	}
-
-	private static double[] getLogisticStats(int[] deps, double[] indeps, Logger log) {
-		double[] lrStats = new double[2];
-		LogisticRegression lr = new LogisticRegression(deps, indeps);
-		if (lr.analysisFailed()) {
-			Arrays.fill(lrStats, Double.NaN);
-		} else {
-			lrStats[0] = lr.getSigs()[1];
-			lrStats[1] = (lr.getRsquare() < 0 ? Double.NaN : lr.getRsquare());
-		}
-		return lrStats;
 	}
 	
 	public static void lrrVariance(Project proj, boolean[] samplesToInclude, String markersToInclude, Logger log) {
