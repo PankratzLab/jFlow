@@ -14,7 +14,7 @@ import common.*;
 import db.FilterDB;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = { "MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_p", "LRR_SEX_R2", "LRR_SEX_z" };
+	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_p", "LRR_SEX_R2", "LRR_SEX_z", "LRR_SD"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -29,7 +29,7 @@ public class MarkerMetrics {
         byte[] abGenotypes;
         String markerName;
         ClusterFilterCollection clusterFilterCollection;
-        float gcThreshold;
+		float gcThreshold, lrrsd;
         long time;
         MarkerDataLoader markerDataLoader;
         String[] markerNames;
@@ -49,6 +49,7 @@ public class MarkerMetrics {
         clusterFilterCollection = proj.getClusterFilterCollection();
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
 		sexes = getSexes(proj, samples, log);
+		
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false)));
 			writer.println(Array.toStr(FULL_QC_HEADER));
@@ -106,7 +107,10 @@ public class MarkerMetrics {
 						sdTheta[j] = Math.sqrt(sdTheta[j] / (counts[j]-1));
 					}
 				}
+				
+				lrrsd = Array.stdev(markerData.getLRRs(), true);
 				lrrSex = getSexAssociation(sexes, markerData.getLRRs(), samplesToExclude, log);
+				
 				line += markerName
 						+ "\t" + markerData.getChr()
 						+ "\t" + (1- ((float)counts[0] / (counts[0] + counts[1] + counts[2] + counts[3])))
@@ -132,7 +136,8 @@ public class MarkerMetrics {
 						+ "\t" + numNaNs
 						+ "\t" + lrrSex[0] 
 						+ "\t" + lrrSex[1]
-						+ "\t" + lrrSex[2]		
+						+ "\t" + lrrSex[2]
+						+ "\t" + lrrsd	
 						+ eol;
 				
 				if (line.length() > 25000) {
@@ -167,7 +172,7 @@ public class MarkerMetrics {
 		Vector<String> intensityDeps = new Vector<String>();
 		Vector<double[]> intensityIndeps = new Vector<double[]>();
 		for (int s = 0; s < sexes.length; s++) {
-			if (ext.isValidDouble(independantData[s] + "") && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
+			if (!Double.isNaN(independantData[s]) && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
 				intensityDeps.add(sexes[s] + "");
 				intensityIndeps.add(new double[] { independantData[s] });
 			}
@@ -179,24 +184,20 @@ public class MarkerMetrics {
 			double[] indeps = Matrix.extractColumn(Matrix.toDoubleArrays(intensityIndeps), 0);
 			double[] lrstats = getLogisticStats(deps, indeps, log);
 			double zscore = getZscore(deps, indeps, log);
-			stats[0] = lrstats[0];
-			stats[1] = lrstats[1];
-			stats[2] = zscore;
+			stats = new double[] { lrstats[0], lrstats[1], zscore };
 		}
 		return stats;
 	}
 
 	// 1 = male ,2 = female
-	private static double getZscore(int[] sex, double[] indeps, Logger log) {
+	private static double getZscore(int[] sexes, double[] indeps, Logger log) {
 		double zscore = Double.NaN;
 		DoubleVector[] values = new DoubleVector[3];
-		for (int s = 0; s < sex.length; s++) {
-			if (values[sex[s]] == null) {
-				values[sex[s]] = new DoubleVector();
+		for (int s = 0; s < sexes.length; s++) {
+			if (values[sexes[s]] == null) {
+				values[sexes[s]] = new DoubleVector();
 			}
-			if (ext.isValidDouble(indeps[s] + "")) {
-				values[sex[s]].add(indeps[s]);
-			}
+			values[sexes[s]].add(indeps[s]);
 		}
 		if (values[1] != null && values[2] != null) {
 			double[] maleValues = values[1].toArray();
