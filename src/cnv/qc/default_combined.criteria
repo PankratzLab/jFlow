@@ -18,6 +18,8 @@ pct_AB=0&MAF>0	AB freq = 0 & MAF > 0
 pct_AA=1&CallRate<1	AA freq = 1 & call rate < 1
 pct_BB=1&CallRate<1	BB freq = 1 & call rate < 1
 MAF>0&MAF<0.00001&CallRate!=0	MAF < 0.0001 & call rate != 0
+LRR_SEX_z<-1;NaN->-1.1&Chr<23	Autosomal Sex z-score < -1
+LRR_SEX_z>1;NaN->1.1&Chr<23	Autosomal Sex z-score > 1
 #RepErr>2	Rep error > 2
 #PpcErr>1	PPC error > 1
 #PcErr>1	PC error > 1

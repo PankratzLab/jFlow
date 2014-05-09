@@ -35,8 +35,8 @@ public class MarkerMetrics {
         String[] markerNames;
         String line, eol;
 		int[] counts, sexes;
-		double[] sumTheta, sumR, meanTheta, sdTheta, lrrSex;
-        double temp;
+		double[] sumTheta, sumR, meanTheta, sdTheta;
+		double temp, lrrSexZ;
         int numNaNs;
 
         if (System.getProperty("os.name").startsWith("Windows")) {
@@ -109,7 +109,7 @@ public class MarkerMetrics {
 				}
 				
 				lrrsd = Array.stdev(markerData.getLRRs(), true);
-				lrrSex = getSexAssociation(sexes, markerData.getLRRs(), samplesToExclude, log);
+				lrrSexZ = getSexZscore(sexes, markerData.getLRRs(), samplesToExclude, log);
 				
 				line += markerName
 						+ "\t" + markerData.getChr()
@@ -134,7 +134,7 @@ public class MarkerMetrics {
 						+ "\t" + (float) (counts[1]<counts[3]? (counts[1] + counts[2]) : (counts[2] + counts[3])) / (counts[0] + counts[1] + 2 * counts[2] + counts[3])
 						+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]
 						+ "\t" + numNaNs
-						+ "\t" + lrrSex[0]
+						+ "\t" + lrrSexZ
 						+ "\t" + lrrsd	
 						+ eol;
 				
@@ -154,6 +154,10 @@ public class MarkerMetrics {
 		}
 	}
 	
+	/**
+	 * Retrieves Sex coding (1=male, 2=female) for all samples <p>
+	 * @author John Lane
+	 */
 	private static int[] getSexes(Project proj, String[] samples, Logger log) {
 		int[] sexes = new int[samples.length];
 		SampleData sampleData = proj.getSampleData(2, false);
@@ -163,36 +167,22 @@ public class MarkerMetrics {
 		return sexes;
 	}
 
-	public static double[] getSexAssociation(int[] sexes, float[] independantData, boolean[] samplesToExclude, Logger log) {
-		// double[] stats stores 0->zscore
-		double[] stats = new double[1];
-		Arrays.fill(stats, Double.NaN);
-		Vector<String> intensityDeps = new Vector<String>(sexes.length);
-		Vector<double[]> intensityIndeps = new Vector<double[]>(sexes.length);
-		for (int s = 0; s < sexes.length; s++) {
-			if (!Double.isNaN(independantData[s]) && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
-				intensityDeps.add(sexes[s] + "");
-				intensityIndeps.add(new double[] { independantData[s] });
-			}
-		}
-		if (intensityDeps.size() == 0) {
-			return stats;
-		} else {
-			double zscore = getZscore(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(intensityIndeps), 0), log);
-			stats = new double[] { zscore };
-		}
-		return stats;
-	}
-
-	// 1 = male ,2 = female
-	private static double getZscore(int[] sexes, double[] indeps, Logger log) {
+	/**
+	 * Computes z-score to compare female and male intensity data means <p>
+	 * Sex coding must be 1=male, 2=female <p>
+	 * boolean[] samplesToExclude can be null
+	 * @author John Lane
+	 */
+	public static double getSexZscore(int[] sexes, float[] independantData, boolean[] samplesToExclude, Logger log) {
 		double zscore = Double.NaN;
 		DoubleVector[] values = new DoubleVector[3];
 		for (int s = 0; s < sexes.length; s++) {
-			if (values[sexes[s]] == null) {
-				values[sexes[s]] = new DoubleVector();
+			if (!Double.isNaN(independantData[s]) && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
+				if (values[sexes[s]] == null) {
+					values[sexes[s]] = new DoubleVector();
+				}
+				values[sexes[s]].add(independantData[s]);
 			}
-			values[sexes[s]].add(indeps[s]);
 		}
 		if (values[1] != null && values[2] != null) {
 			double[] maleValues = values[1].toArray();
