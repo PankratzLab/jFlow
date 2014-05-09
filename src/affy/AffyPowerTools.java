@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import cnv.filesys.Project;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -29,6 +30,8 @@ public class AffyPowerTools {
 	public static final String[] AFFY_AUXILIARY_LISTS = { "celList.txt", "celList_small.txt", "gw6_probesets.txt" };
 	public static final String[] AFFY_ANALYSIS_TYPES = { "apt-geno-qc", "apt-probeset-genotype", "apt-probeset-summarize" };
 	public static final String AFFY_EXTENSION = ".CEL";
+	public static final String[] PENN_CNV_OUTPUTS = { "gw6.genocluster", "gw6.lrr_baf.txt" };
+	public static final String[] PENN_BATCH_NAMES = { "PennGenoClust", "PennLRRBAF" };
 	public static final String AFFY_TABLES_CLASS = "affy.AffySNP6Tables";
 	public static final String DEFAULT_CLASS_PATH = "park.jar";
 	public static final int DEFUALT_LINE_BUFFER = 500;
@@ -79,23 +82,38 @@ public class AffyPowerTools {
 			markerFile = affyResultsDir + AFFY_AUXILIARY_LISTS[2];
 			log.report("Warning - a marker file was not provided , generating one to use at " + markerFile + " using all available probesets");
 			markerFile = getFullProbesetList(dataDir, affyResultsDir, aptExeDir, affyCDF, markerFile, log);
-			log.report("Info - a marker file was not generated at " + markerFile);
+			log.report("Info - a marker file was generated at " + markerFile);
 
 		}
 
-		ArrayList<ArrayList<String>> allProbesets = collectProbesets( markerFile, log);
-		String genotypeCommand = aptExeDir + AFFY_ANALYSIS_TYPES[1] + " -c " + affyCDF + " --table-output true -a birdseed-v2 --set-gender-method cn-probe-chrXY-ratio --read-models-birdseed " + affyBirdseedModel + " --special-snps " + affySpecialSnps + " -out-dir " + affyResultsDir + " --cel-files " + celList + " --chrX-probes " + affyChrX + " --chrY-probes " + affyChrY + " --probeset-ids " + affyResultsDir + "[%0].txt --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]";
-		String summarizeCommand = aptExeDir + AFFY_ANALYSIS_TYPES[2] + " --cdf-file " + affyCDF + " --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch " + affyHapMapQuant + " --out-dir " + affyResultsDir + " --cel-files " + celList + " --probeset-ids " + affyResultsDir + "[%0].txt --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]";
+		ArrayList<ArrayList<String>> allProbesets = collectProbesets(markerFile, log);
+		String genotypeCommand = aptExeDir + AFFY_ANALYSIS_TYPES[1] + " -c " + affyCDF + " --table-output true -a birdseed-v2 --set-gender-method cn-probe-chrXY-ratio --read-models-birdseed " + affyBirdseedModel + " --special-snps " + affySpecialSnps + " -out-dir " + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]/ --cel-files " + celList + " --chrX-probes " + affyChrX + " --chrY-probes " + affyChrY + " --probeset-ids " + affyResultsDir + "[%0].txt --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]";
+		String summarizeCommand = aptExeDir + AFFY_ANALYSIS_TYPES[2] + " --cdf-file " + affyCDF + " --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch " + affyHapMapQuant + " --out-dir " + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]/ --cel-files " + celList + " --probeset-ids " + affyResultsDir + "[%0].txt --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]";
 		writeProbeBatches(affyResultsDir, allProbesets.get(0), numSNPJobs, numSNPBatches, true, AFFY_PROBELIST_HEADER[0], log, "SNP_");
 		writeProbeBatches(affyResultsDir, allProbesets.get(1), numCNJobs, numCNBatches, true, AFFY_PROBELIST_HEADER[0], log, "CN_");
 		writeCommandBatches(pbsDir + AFFY_BATCH_NAMES[1], genotypeCommand, numSNPJobs, numSNPBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[0], totalMemory, walltimeRequestedInHours, log);
 		writeCommandBatches(pbsDir + AFFY_BATCH_NAMES[2], summarizeCommand, numSNPJobs, numSNPBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[0], totalMemory, walltimeRequestedInHours, log);
 		writeCommandBatches(pbsDir + AFFY_BATCH_NAMES[2], summarizeCommand, numCNJobs, numCNBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[1], totalMemory, walltimeRequestedInHours, log);
+
 		String help = generateGenoSumLogHelp(pbsDir, dataDir, aptExeDir, affyLib, affyResultsDir, celList, markerFile, numSNPJobs, numCNJobs, numSNPBatches, numCNBatches, log);
 		log.report(help);
 	}
 
-	public static void parseAffyTables(String pbsDir, String affyResultsDir, int numSNPJobs, int numCNJobs, int numSNPBatches, int numCNBatches, int totalMemory, double walltimeRequestedInHours, String javaLocation, String javaCp, int numLinesBuffer, Logger log) {
+	public static void pennCNVAffyPipeline(String pbsDir, String dataDir, String pennCNVAffybin, String pennCNVAffyLib, String affyResultsDir, String pennCnvOutputDir, String sexFile, String locFile, int numSNPJobs, int numCNJobs, int numSNPBatches, int numCNBatches, int totalMemory, double walltimeRequestedInHours, Logger log) {
+		String clusterCommand = "perl " + pennCNVAffybin + "generate_affy_geno_cluster.pl " + affyResultsDir + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[2] + " " + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[3] + " " + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " -locfile " + locFile + " -sexfile " + sexFile + " -out " + pennCnvOutputDir + "[%0]" + PENN_CNV_OUTPUTS[0];
+		writeCommandBatches(pbsDir + PENN_BATCH_NAMES[0], clusterCommand, numCNJobs, numCNBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[1], totalMemory, walltimeRequestedInHours, log);
+		writeCommandBatches(pbsDir + PENN_BATCH_NAMES[0], clusterCommand, numSNPJobs, numSNPBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[0], totalMemory, walltimeRequestedInHours, log);
+
+		String lrrBafCalc = "perl " + pennCNVAffybin + "normalize_affy_geno_cluster.pl " + pennCnvOutputDir + "[%0]" + PENN_CNV_OUTPUTS[0] + " " + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " -locfile " + locFile + " -out " + pennCnvOutputDir + "[%0]LRRBAF" + PENN_CNV_OUTPUTS[1];
+		writeCommandBatches(pbsDir + PENN_BATCH_NAMES[1], lrrBafCalc, numCNJobs, numCNBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[1], totalMemory, walltimeRequestedInHours, log);
+		writeCommandBatches(pbsDir + PENN_BATCH_NAMES[1], lrrBafCalc, numSNPJobs, numSNPBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[0], totalMemory, walltimeRequestedInHours, log);
+		// String splitSignalFileStart = "perl " + pennCNVbin + "kcolumn.pl " + outDir + affyGenoClusterFolderOut + jobID + "/" + genoLrrBaf + " split 2 -tab -head 3 --name --start_split 5001 -out " + outDir + "Kcol/Kcol" + jobID + "/gw6_split --filenameout " + outDir + "Kcol/Kcol" + jobID + "/" + pennSplitOut;
+
+		// calls=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[2] + " conf=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[3] + " sig=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0]
+
+	}
+
+	public static void parseAffyTables(String pbsDir, String affyResultsDir, String projectSource, int numSNPJobs, int numCNJobs, int numSNPBatches, int numCNBatches, int totalMemory, double walltimeRequestedInHours, String javaLocation, String javaCp, int numLinesBuffer, Logger log) {
 		if (javaLocation == null) {
 			javaLocation = "java";
 		}
@@ -108,8 +126,8 @@ public class AffyPowerTools {
 			numLinesBuffer = DEFUALT_LINE_BUFFER;
 			log.report("Warning - a line buffer size was not provided , setting to default of " + DEFUALT_LINE_BUFFER);
 		}
-		String affySNP6TablesSNPCommand = javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS + " calls=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[2] + " conf=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[3] + " sig=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " out=" + affyResultsDir + "[%0]/" + " numLinesBuffer=" + numLinesBuffer + " -" + AFFY_GENVISIS_OUTPUTS_PREFIXES[0];
-		String affySNP6TablesCNCommand = javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS + " sig=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " out=" + affyResultsDir + "[%0]/" + " numLinesBuffer=" + numLinesBuffer + " -" + AFFY_GENVISIS_OUTPUTS_PREFIXES[1];
+		String affySNP6TablesSNPCommand = javaLocation + " -Xmx"+totalMemory+"m -cp " + javaCp + " " + AFFY_TABLES_CLASS + " calls=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]/" + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[2] + " conf=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]/" + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[3] + " sig=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]/" + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " out=" + projectSource + "[%0]/" + " numLinesBuffer=" + numLinesBuffer + " -" + AFFY_GENVISIS_OUTPUTS_PREFIXES[0];
+		String affySNP6TablesCNCommand = javaLocation + " -Xmx"+totalMemory+"m -cp " + javaCp + " " + AFFY_TABLES_CLASS + " sig=" + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]/" + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]" + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " out=" + projectSource + "[%0]/" + " numLinesBuffer=" + numLinesBuffer + " -" + AFFY_GENVISIS_OUTPUTS_PREFIXES[1];
 		writeCommandBatches(pbsDir + AFFY_BATCH_NAMES[3], affySNP6TablesSNPCommand, numSNPJobs, numSNPBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[0], totalMemory, walltimeRequestedInHours, log);
 		writeCommandBatches(pbsDir + AFFY_BATCH_NAMES[3], affySNP6TablesCNCommand, numCNJobs, numCNBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[1], totalMemory, walltimeRequestedInHours, log);
 		String help = generateAffyTableLogHelp(pbsDir, affyResultsDir, numSNPJobs, numCNJobs, numSNPBatches, numCNBatches, totalMemory, walltimeRequestedInHours, javaLocation, javaCp, numLinesBuffer, log);
@@ -117,13 +135,12 @@ public class AffyPowerTools {
 
 	}
 
-	public static void mergeFiles(String pbsDir, String affyResultsDir, String projectSource, int numJobs,  int totalMemory, double walltimeRequestedInHours, String javaLocation, String javaCp, Logger log) {
+	public static void mergeFiles(String pbsDir, String affyResultsDir, String projectSource, int numJobs, int totalMemory, double walltimeRequestedInHours, String javaLocation, String javaCp, Logger log) {
 		String mergeCommand = javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS + "-merge affyResultsDir=" + affyResultsDir + " out=" + projectSource + " threads=" + numJobs;
 		String[] mergeCommands = new String[1];
 		mergeCommands[0] = mergeCommand;
 
 	}
-
 
 	private static String generateAffyTableLogHelp(String pbsDir, String affyResultsDir, int numSNPJobs, int numCNJobs, int numSNPBatches, int numCNBatches, int totalMemory, double walltimeRequestedInHours, String javaLocation, String javaCp, int numLinesBuffer, Logger log) {
 		String help = "\n\n\n";
@@ -137,8 +154,7 @@ public class AffyPowerTools {
 		help += "Please note that the number of jobs and batches must equal the number of jobs and batches from -gtsum ";
 		help += "The final steps for importing into GENVISIS are to:\n";
 		help += "(1) create a project file\n";
-		help += "(2) run " + javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS + "-merge affyResultsDir=" + affyResultsDir + " out=YourProjectSourceDirectory\n";
-		help += "(3) run ";
+		help += "(2) run " + javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS + " -merge affyResultsDir=" + affyResultsDir + " proj=Your Project file \n";
 		return help;
 	}
 
@@ -152,14 +168,15 @@ public class AffyPowerTools {
 
 		String help = "\n\n\nA few tips to continue with genotyping and summarizing your .CEL files in " + dataDir + "\n";
 		help += "If you would not actually like to break up the analysis, you can run from the command line...\n ";
-		help += "(1) " + aptExeDir + AFFY_ANALYSIS_TYPES[1] + " -c " + affyCDF + " --table-output true -a birdseed-v2 --set-gender-method cn-probe-chrXY-ratio --read-models-birdseed " + affyBirdseedModel + " --special-snps " + affySpecialSnps + " -out-dir " + affyResultsDir + " --cel-files " + celList + " --chrX-probes " + affyChrX + " --chrY-probes " + affyChrY + " --probeset-ids " + markerFile + " --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "\n";
-		help += "(2) " + aptExeDir + AFFY_ANALYSIS_TYPES[2] + " --cdf-file " + affyCDF + " --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch " + affyHapMapQuant + " --out-dir " + affyResultsDir + " --cel-files " + celList + " --probeset-ids " + markerFile + " --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "\n";
-		help += "\nIf you would like to split up the analysis you can either:\n";
+		help += "\n(1) " + aptExeDir + AFFY_ANALYSIS_TYPES[1] + " -c " + affyCDF + " --table-output true -a birdseed-v2 --set-gender-method cn-probe-chrXY-ratio --read-models-birdseed " + affyBirdseedModel + " --special-snps " + affySpecialSnps + " -out-dir " + affyResultsDir + " --cel-files " + celList + " --chrX-probes " + affyChrX + " --chrY-probes " + affyChrY + " --probeset-ids " + markerFile + " --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "\n";
+		help += "\n(2) " + aptExeDir + AFFY_ANALYSIS_TYPES[2] + " --cdf-file " + affyCDF + " --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch " + affyHapMapQuant + " --out-dir " + affyResultsDir + " --cel-files " + celList + " --probeset-ids " + markerFile + " --set-analysis-name " + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "\n";
+		help += "\n\nIf you would like to split up the analysis you can either:\n";
 		help += "(1) Run each of the commands  found in this log \n";
 		help += "(2) Submit the .PBS files to a compute cluster\n";
 		help += "\nAfter genotyping and summarizing please run the following for more information:";
-		help += "java -cp \"park.jar\" affy.AffyPowerTools -parseTables  pbsDir=" + pbsDir + " affyResultsDir=" + affyResultsDir + " numSNPJobs=" + numSNPJobs + " numCNJobs=" + numCNJobs + " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches;
-		help += "***Please note that the number of jobs and batches must be the same***";
+		help += "java -cp \"park.jar\" affy.AffyPowerTools -parseTables  pbsDir=" + pbsDir + " affyResultsDir=" + affyResultsDir + " numSNPJobs=" + numSNPJobs + " numCNJobs=" + numCNJobs + " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches + "projectSource=YourDesiredSourceDirectory";
+		help += "\n projectSource=YourDesiredSourceDirectory will be the location Genvisis will look to load data ";
+		help += "\n*******Please note that the number of jobs and batches must be the same*******";
 		return help;
 
 	}
@@ -238,8 +255,6 @@ public class AffyPowerTools {
 		}
 	}
 
-
-	
 	private static String[] getMatchedFiles(String dir, Logger log, String Suffix) {
 		String[] files = getFiles(dir);
 		ArrayList<String> celFiles = new ArrayList<String>();
@@ -270,7 +285,7 @@ public class AffyPowerTools {
 
 		}
 	}
-		
+
 	private static String[][] writeCommandBatches(String batchName, String command, int numJobs, int numBatches, String probeType, int totalMemory, double walltimeRequestedInHours, Logger log) {
 		String[][] allCommands = new String[numBatches][];
 		for (int i = 0; i < numBatches; i++) {
@@ -316,10 +331,10 @@ public class AffyPowerTools {
 		if (count != probesets.size()) {
 			log.reportError("Error - not all " + probeType + "were added to the lists");
 			System.exit(1);
-		}else{
+		} else {
 			log.report("Created " + (numJobs * numBatches) + " " + probeType.replace("_", "") + " lists");
 		}
-		
+
 	}
 
 	private static int writeLists(String dataDir, String affyResultsDir, String[] list, int numJobs, Logger log, boolean header, String head, String listName) {
@@ -393,8 +408,6 @@ public class AffyPowerTools {
 		return allProbesets;
 	}
 
-
-
 	public static void main(String[] args) {
 		System.out.println("affy");
 		int numArgs = args.length;
@@ -405,6 +418,7 @@ public class AffyPowerTools {
 		String affyLib = "doubletestlib/";
 		String affyResultsDir = "C:/data/aptAutomate/testResults/";
 		String pbsDir = "C:/data/aptAutomate/testResults/";
+		String projectSource = "C:/data/aptAutomate/00src/";
 		String filename = "";
 		String celList = null;
 		String logfile = null;
@@ -421,7 +435,6 @@ public class AffyPowerTools {
 		boolean genotypeSummarize = false;
 		boolean parseTables = false;
 		boolean merge = false;
-
 
 		// TODO
 		String usage = "TODO";
@@ -440,6 +453,9 @@ public class AffyPowerTools {
 				numArgs--;
 			} else if (args[i].startsWith("markerFile=")) {
 				markerFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("projectSource=")) {
+				projectSource = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("aptExeDir=")) {
 				aptExeDir = args[i].split("=")[1];
@@ -506,17 +522,18 @@ public class AffyPowerTools {
 			if (logfile == null) {
 				logfile = "APTlog.txt";
 			}
-			
+
 			Logger log = new Logger(affyResultsDir + logfile);
 			if (genotypeSummarize) {
 				genotypeAndSummarize(pbsDir, dataDir, aptExeDir, affyLib, affyResultsDir, celList, markerFile, numSNPJobs, numCNJobs, numSNPBatches, numCNBatches, totalMemory, walltimeRequestedInHours, log);
 			} else if (parseTables) {
-				parseAffyTables(pbsDir, affyResultsDir, numSNPJobs, numCNJobs, numSNPBatches, numCNBatches, totalMemory, walltimeRequestedInHours, javaLocation, javaCP, numLinesBuffer, log);
+				parseAffyTables(pbsDir, affyResultsDir, projectSource, numSNPJobs, numCNJobs, numSNPBatches, numCNBatches, totalMemory, walltimeRequestedInHours, javaLocation, javaCP, numLinesBuffer, log);
 			} else if (merge) {
-				if(filename==null){
+				if (filename.equals("")) {
 					System.err.println("Error - must hava a valid project file to merge affy Results");
-				}else{
-					mergeFiles(pbsDir, affyResultsDir, "/scratch/normDat/testAPT/00src/", numJobs, totalMemory, walltimeRequestedInHours, javaLocation, javaCP, log);
+				} else {
+					Project proj = new Project(filename, false);
+					mergeFiles(pbsDir, affyResultsDir, proj.getProperty(Project.SOURCE_DIRECTORY), numJobs, totalMemory, walltimeRequestedInHours, javaLocation, javaCP, log);
 				}
 			} else {
 				affyQC(pbsDir, dataDir, aptExeDir, affyLib, affyResultsDir, numJobs, totalMemory, walltimeRequestedInHours, log);
@@ -525,7 +542,6 @@ public class AffyPowerTools {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 
 		String base = "/lustre/pankrat2/normDat/";
 		// String intitialCelList = base+"lists/bigListFinal.txt";

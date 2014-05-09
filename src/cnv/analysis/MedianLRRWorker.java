@@ -8,10 +8,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.Vector;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
@@ -21,23 +23,21 @@ import javax.swing.SwingWorker;
 
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerSet;
-import cnv.filesys.MeanLRRset;
 import cnv.filesys.Project;
-import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
 import cnv.manage.MarkerDataLoader;
 import cnv.manage.Transforms;
 import cnv.var.CNVariant;
+import cnv.var.SampleData;
 import common.Array;
 import common.Files;
 import common.HashVec;
-import common.IntVector;
 import common.Logger;
 import common.Positions;
 import common.ext;
 import filesys.Segment;
 
-public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
+public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private static final String[] FILE_PREFIXES = { "LRR_MEDIAN_", "MarkersIn_" };
 	private static final String[] FILE_EXT = { ".xln" };
 	private static final String MARKER_REGION_PREFIX = "probeset_id";
@@ -45,9 +45,13 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 	private static final String MARKER_REGION_REGEX = "[%0]";
 	private static final int MARKER_REGION_START_OF_MARKERS = 2;
 	private static final double[] QUANTILES = { 0.5 };
-	private static final String[] MEDIAN_WORKER_JOBS = { "Parsing and intitializing Regions", "Computing Median Log R Ratios for " + MARKER_REGION_REGEX, "Waiting for data to Load for Region " + MARKER_REGION_REGEX, "Creating Output Files" };
+	private static final String[] MEDIAN_WORKER_JOBS = { "Parsing and intitializing Regions", "Computing Median Log R Ratios for " + MARKER_REGION_REGEX, "Waiting for data to Load for Region " + MARKER_REGION_REGEX, "Creating Output Files", "Assigning cnv copyNumber for " };
 	private static final String[] CLASSES_TO_DUMP = { "IID" };
 	private static final String[] MARKER_REGION_RESULTS_SUFFIX = { "MEDIAN", "MAD" };
+	private static final String CNV_CLASSES = "COPYNUMBER" + MARKER_REGION_REGEX + ";5=CN0;1=CN1;2=CN2;3=CN3;4=CN4";
+
+	// private static final String CNV_CLASSES = "COPYNUMBER" + MARKER_REGION_REGEX;
+
 	private Project proj;
 	private String[] input;
 	private String outputBase;
@@ -112,9 +116,12 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 		this.processTracker = new int[2];
 		this.transChrs = Array.booleanArray(27, false);
 
+		// this.cnvFile =proj.getProperty(key)
+
 	}
 
-	protected Integer doInBackground() throws Exception {
+	protected String doInBackground() throws Exception {
+		String fileNameToVisualize = "";
 		System.out.println(proj.getProjectDir() + outputBase);
 		progressBar.setValue(0);
 		setProgress(0);
@@ -135,9 +142,9 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 				computelog.report(job);
 				assignMarkerProgress();
 				regionResults = getRawValueMedianForRegions(markerRegions);
-				newJob(MEDIAN_WORKER_JOBS[3]);
-				process(processTracker[0] - 1);
-				printResults(regionResults, markerRegions);
+
+				process(processTracker[0]);
+				fileNameToVisualize = printResults(regionResults, markerRegions);
 			} else {
 				assignSampleProgress();
 				job = ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", Transforms.TRANFORMATIONS[transformationType] + " " + Transforms.SCOPES[scope]);
@@ -146,11 +153,11 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 				// samples = smallSamples;
 				newJob(job);
 				regionResults = getNormalizedMedianForRegions(markerRegions);
-				printResults(regionResults, markerRegions);
+				fileNameToVisualize = printResults(regionResults, markerRegions);
 			}
 			Thread.sleep(1000);
 		}
-		return 42;
+		return fileNameToVisualize;
 	}
 
 	// total,processed,updateat,tracker,scale;
@@ -181,12 +188,13 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 
 	protected void done() {
 		try {
-			get();
-			JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
 			setProgress(100);
 			progressBar.setValue(100);
 			progressBar.setStringPainted(false);
 			progressBar.setVisible(false);
+			get();
+			JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
+
 		} catch (ExecutionException e) {
 			computelog.reportError("Error - Could not Compute Median Log R Ratio Values");
 			e.printStackTrace();
@@ -240,7 +248,7 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 	private RegionResults getRawValueMedianForRegions(MarkerRegion[] markerRegions) {
 		float[][] rawMediansRegions = new float[markerRegions.length][samples.length];
 		float[][] rawMADRegions = new float[markerRegions.length][samples.length];
-
+		assignMarkerIndices(markerRegions);
 		for (int i = 0; i < markerRegions.length; i++) {
 			// stores median ,MAD for each sample
 			float[][] results = getRawValueResultsForRegion(markerRegions[i]);
@@ -255,8 +263,10 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 		float[][] sampleLrrs = new float[regionMarkers.length][samples.length];
 		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[2], "[%" + 0 + "]", markerRegion.getRegionName()));
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers, computelog);
-		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName()));
 		for (int i = 0; i < regionMarkers.length; i++) {
+			if (i == 0) {
+				newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName()));
+			}
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			processTracker[1]++;
 			if (markerData.getFingerprint() != sampleList.getFingerprint()) {
@@ -307,15 +317,87 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 		return results;
 	}
 
-	private void printResults(RegionResults regionResults, MarkerRegion[] markerRegions) {
+	private String printResults(RegionResults regionResults, MarkerRegion[] markerRegions) {
+		String output = "";
 		printRegionMarkers(markerRegions);
-		printMedianLRRs(regionResults, markerRegions);
+		output = printMedianLRRs(regionResults, markerRegions);
+		return output;
+	}
+
+	private int[][][] getRegionCNs(MarkerRegion[] markerRegions) {
+		SampleData sampleData = proj.getSampleData(0, false);
+		int[][][] cnvFileCNs = null;
+		if (proj.getFilenames(Project.CNV_FILENAMES) == null || proj.getFilenames(Project.CNV_FILENAMES).length < 1) {
+			computelog.report("Warning - no cnv file was found, not matching regions to cnvs");
+		} else {
+			// region,sample,cnvFile
+			// CN are reported as 1=homzydel,2=hetrodel,3=none,4=hetrodup,5=homozydup;
+			process(0);
+			newJob("loading " + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv " + (proj.getFilenames(Project.CNV_FILENAMES).length > 1 ? "files" : "file"));
+			cnvFileCNs = new int[markerRegions.length][samples.length][Project.CNV_FILENAMES.length()];
+			computelog.report("Info - assigning cnvs for " + proj.getFilenames(Project.CNV_FILENAMES).length + "cnv files");
+			sampleData.loadCNVs(proj.getFilenames(Project.CNV_FILENAMES), false);
+			String[] cnvClasses = sampleData.getCnvClasses();
+			computelog.report("Info - assigning cnvs for " + proj.getFilenames(Project.CNV_FILENAMES).length);
+			newJob(MEDIAN_WORKER_JOBS[4] + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv files");
+
+			for (int i = 0; i < markerRegions.length; i++) {
+				process(0);
+				newJob(MEDIAN_WORKER_JOBS[4] + " region " + markerRegions[i].getRegionName());
+				assignSampleProgress();
+				// Assuming that all markers are from the same chromosome...,but checking anyway
+				byte chr = chrs[markerRegions[i].getMarkerIndex().get(0)];
+				boolean oneChromosome = markerRegions[i].isOneChromosome();
+				if (!oneChromosome) {
+					computelog.report("Warning - region " + markerRegions[i].getRegionName() + " spans more than one chromosome , setting all Copy number States to zero");
+				}
+				Segment region = markerRegions[i].getSegment(chr);
+				for (int j = 0; j < samples.length; j++) {
+					for (int k = 0; k < cnvClasses.length; k++) {
+						// region,sample,cnvFile
+						cnvFileCNs[i][j][k] = 2;
+						CNVariant[] cnvs = sampleData.getIndiFromSampleHash(samples[j]).getCNVs(k, chr);
+						if (cnvs != null && cnvs.length > 0 && oneChromosome) {
+							for (int l = 0; l < cnvs.length; l++) {
+								if (cnvs[l].overlaps(region)) {
+									if (cnvs[l].getCN() < 0) {
+										System.err.println("HAHAHA:");
+										System.exit(1);
+									}
+									cnvFileCNs[i][j][k] = cnvs[l].getCN();
+								}
+							}
+						}
+					}
+					process(j);
+				}
+			}
+		}
+		return cnvFileCNs;
+	}
+
+	public static String format(Number n) {
+		NumberFormat format = DecimalFormat.getInstance();
+		format.setRoundingMode(RoundingMode.FLOOR);
+		format.setMinimumFractionDigits(0);
+		format.setMaximumFractionDigits(2);
+		return format.format(n);
 	}
 
 	// print median values
-	private void printMedianLRRs(RegionResults regionResults, MarkerRegion[] markerRegions) {
+	private String printMedianLRRs(RegionResults regionResults, MarkerRegion[] markerRegions) {
+		boolean reportCNVCN = false;
 		String output = proj.getProjectDir() + FILE_PREFIXES[0] + outputBase + FILE_EXT[0];
 		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "DNA", CLASSES_TO_DUMP, "\t");
+		int[][][] cnvFileCNs = getRegionCNs(markerRegions);
+		String[] cnvFiles = proj.getFilenames(Project.CNV_FILENAMES);
+		if (cnvFileCNs != null) {
+			computelog.report("Reporting cnvs");
+			regionResults.setCnvFileCNs(cnvFileCNs);
+			regionResults.setCnvFileNames(cnvFiles);
+			reportCNVCN = true;
+		}
+		newJob(MEDIAN_WORKER_JOBS[3]);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.print("Sample");
@@ -326,12 +408,23 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 				for (int j = 0; j < MARKER_REGION_RESULTS_SUFFIX.length; j++) {
 					writer.print("\t" + MARKER_REGION_RESULTS_SUFFIX[j] + "_" + markerRegions[i].getRegionName());
 				}
+				if (reportCNVCN) {
+					for (int j = 0; j < cnvFiles.length; j++) {
+						writer.print("\t" + (ext.replaceAllWith(CNV_CLASSES, "[%" + 0 + "]", ext.rootOf(regionResults.getCnvFileNames()[j]) + "_" + markerRegions[i].getRegionName())));
+						// writer.print("\t" + ext.rootOf(regionResults.getCnvFileNames()[j]) + "_" + markerRegions[i].getRegionName());
+					}
+				}
 			}
 			writer.println();
 			for (int i = 0; i < samples.length; i++) {
 				writer.print(samples[i] + "\t" + (hashSamps.containsKey(samples[i]) ? hashSamps.get(samples[i]) : Array.stringArray(CLASSES_TO_DUMP.length, ".")));
 				for (int j = 0; j < markerRegions.length; j++) {
 					writer.print("\t" + regionResults.getMedianAt(j, i) + "\t" + regionResults.getMADAt(j, i));
+					if (reportCNVCN) {
+						for (int k = 0; k < cnvFiles.length; k++) {
+							writer.print("\t" + format(regionResults.getCNAt(j, i, k)));
+						}
+					}
 				}
 				writer.println();
 			}
@@ -340,6 +433,7 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 			computelog.reportError("Error writing to Medain Log R Ratios to " + output);
 			e.printStackTrace();
 		}
+		return output;
 	}
 
 	// print markers in region
@@ -447,6 +541,32 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 			return markerIndex;
 		}
 
+		public boolean isOneChromosome() {
+			boolean same = true;
+			byte chr = chrs[markerIndex.get(0)];
+			for (int i = 0; i < markerIndex.size(); i++) {
+				if (chrs[markerIndex.get(i)] != chr) {
+					same = false;
+				}
+			}
+			return same;
+		}
+
+		public Segment getSegment(byte chr) {
+			int start = positions[markerIndex.get(0)];
+			int stop = positions[markerIndex.get(0)];
+			for (int i = 0; i < markerIndex.size(); i++) {
+				if (positions[markerIndex.get(i)] < start) {
+					start = positions[markerIndex.get(i)];
+				}
+				if (positions[markerIndex.get(i)] > stop) {
+					stop = positions[markerIndex.get(i)];
+				}
+
+			}
+			return new Segment(chr, start, stop);
+		}
+
 		private void assignPositions() {
 			for (int i = 0; i < markersInRegion.size(); i++) {
 				if (index.containsKey(markersInRegion.get(i))) {
@@ -531,11 +651,24 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 		// stored as region, sample
 		private float[][] regionMedianValues;
 		private float[][] regionMADValues;
+		// stored as region,sample,cnvFile
+		private int[][][] cnvFileCNs;
+		private String[] cnvFileNames;
 
 		public RegionResults(float[][] regionMedianValues, float[][] regionMADValues) {
 			super();
 			this.regionMedianValues = regionMedianValues;
 			this.regionMADValues = regionMADValues;
+			this.cnvFileCNs = null;
+			this.cnvFileNames = null;
+		}
+
+		public String[] getCnvFileNames() {
+			return cnvFileNames;
+		}
+
+		public void setCnvFileNames(String[] cnvFileNames) {
+			this.cnvFileNames = cnvFileNames;
 		}
 
 		public float getMedianAt(int region, int sample) {
@@ -544,6 +677,14 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 
 		public float getMADAt(int region, int sample) {
 			return regionMADValues[region][sample];
+		}
+
+		public float getCNAt(int region, int sample, int cnvFile) {
+			return cnvFileCNs[region][sample][cnvFile];
+		}
+
+		public void setCnvFileCNs(int[][][] cnvFileCNs) {
+			this.cnvFileCNs = cnvFileCNs;
 		}
 
 	}
@@ -577,7 +718,7 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 			}
 			// default to norm by chromosome
 			else {
-				//markerSet.getIndicesByChr()
+				// markerSet.getIndicesByChr()
 				lrrs = Transforms.transform(lrrs, transformationType, indices, transChrs);
 			}
 			for (int j = 0; j < markerRegions.length; j++) {
@@ -703,275 +844,5 @@ public class MedianLRRWorker extends SwingWorker<Integer, Integer> {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static void createFilesFromFullSample(Project proj, String regionsFile, Logger log) {
-		PrintWriter writer;
-		MarkerSet markerSet;
-		SampleList sampleList;
-		Sample samp;
-		String[] samples, markerNames;
-		byte[] chrs;
-		int[] positions;
-		Segment[] regions;
-		IntVector[] components;
-		int[][] indices;
-		float[] lrrs;
-		float[][][] data;
-		double sum;
-		int count;
-		long time;
-		int[] numberOfMarkers;
-		Hashtable<String, String> hash;
-		int[][] markerChrIndices;
-		boolean[] transChrs;
-		transChrs = Array.booleanArray(27, false);
-		log.report("Computing LRR values from FullSample. While this is slower, it allows for additional columns containing normalized values.");
-
-		markerSet = proj.getMarkerSet();
-		markerNames = markerSet.getMarkerNames();
-		chrs = markerSet.getChrs();
-		positions = markerSet.getPositions();
-
-		hash = proj.getFilteredHash();
-
-		regions = CNVariant.loadUCSCregions(proj.getProjectDir() + regionsFile, false);
-		components = IntVector.newIntVectors(regions.length);
-		for (int i = 0; i < positions.length; i++) {
-			for (int j = 0; j < regions.length; j++) {
-				if (chrs[i] == regions[j].getChr() && positions[i] >= regions[j].getStart() && positions[i] <= regions[j].getStop()) {
-					if (hash.containsKey(markerNames[i])) {
-						log.report(markerNames[i] + " was filtered out");
-					} else {
-						components[j].add(i);
-					}
-				}
-			}
-		}
-		indices = IntVector.toIntMatrix(components);
-		numberOfMarkers = new int[regions.length];
-		for (int i = 0; i < regions.length; i++) {
-			numberOfMarkers[i] = indices[i].length;
-		}
-
-		transChrs = Array.booleanArray(27, false);
-		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir() + "MarkersIn_" + ext.rootOf(regionsFile) + ".xln"));
-			for (int i = 0; i < regions.length; i++) {
-				writer.print(regions[i].getUCSClocation() + "\t" + numberOfMarkers[i] + "\t" + regions[i].getChr() + "\t" + regions[i].getStart() + "\t" + regions[i].getStop());
-				transChrs[regions[i].getChr()] = true;
-				for (int j = 0; j < indices[i].length; j++) {
-					writer.print("\t" + markerNames[indices[i][j]]);
-				}
-				writer.println();
-			}
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing the list of marker names within the regions");
-			e.printStackTrace();
-		}
-
-		markerChrIndices = markerSet.getIndicesByChr();
-		sampleList = proj.getSampleList();
-		samples = sampleList.getSamples();
-		data = new float[regions.length][samples.length][Transforms.TRANSFORMATION_TYPES.length];
-		log.report("Computing mean Log R ratios for:");
-		time = new Date().getTime();
-		for (int i = 0; i < samples.length; i++) {
-			if (i % 100 == 0) {
-				log.report((i + 1) + " of " + samples.length + " (" + ext.getTimeElapsed(time) + ")");
-				time = new Date().getTime();
-			}
-			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
-			for (int trans = 0; trans < Transforms.TRANSFORMATION_TYPES.length; trans++) {
-				lrrs = samp.getLRRs();
-				if (trans > 0) {
-					lrrs = Transforms.transform(lrrs, trans, markerChrIndices, transChrs);
-				}
-				for (int j = 0; j < regions.length; j++) {
-					sum = 0;
-					count = 0;
-					for (int k = 0; k < indices[j].length; k++) {
-						if (!Double.isNaN(lrrs[indices[j][k]])) {
-							sum += lrrs[indices[j][k]];
-							count++;
-						}
-					}
-					data[j][i][trans] = (float) (sum / (double) count);
-				}
-			}
-		}
-
-		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, Transforms.TRANFORMATIONS).serialize(proj.getProjectDir() + ext.rootOf(regionsFile) + ".mlrr");
-	}
-
-	public static void dump(Project proj, String[] phenotypes, String mlrrSetFile, String regionToDumpOrNullForAll, int transformationToUse, Logger log) {
-		PrintWriter writer;
-		MeanLRRset mlrrSet;
-		float[][][] data;
-		SampleList sampleList;
-		String[] samples;
-		Segment[] regions;
-		Hashtable<String, String> hash;
-		int index;
-		String[] transformations;
-
-		if (!Files.exists(mlrrSetFile)) {
-			log.report("Error - mlrr dataset file '" + mlrrSetFile + "' was never created");
-			return;
-		}
-
-		hash = HashVec.loadFileToHashString(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "DNA", phenotypes, "\t");
-		sampleList = proj.getSampleList();
-		samples = sampleList.getSamples();
-
-		mlrrSet = MeanLRRset.load(mlrrSetFile, false);
-		data = mlrrSet.getData();
-		regions = mlrrSet.getRegions();
-		if (mlrrSet.getSampleFingerprint() != sampleList.getFingerprint()) {
-			log.reportError("Error - the SampleList fingerprint for the MeanLRRset (" + mlrrSet.getSampleFingerprint() + ") does not match the Project's SampleList fingerprint (" + sampleList.getFingerprint() + ")");
-			return;
-		}
-
-		if (regionToDumpOrNullForAll != null) {
-			regionToDumpOrNullForAll = ext.replaceAllWith(regionToDumpOrNullForAll, new String[][] { { ",", "" } });
-		}
-
-		try {
-			index = -1;
-			if (regionToDumpOrNullForAll == null) {
-				writer = new PrintWriter(new FileWriter(proj.getProjectDir() + ext.rootOf(mlrrSetFile) + "_dump.xln"));
-			} else {
-				writer = new PrintWriter(new FileWriter(proj.getProjectDir() + ext.replaceAllWith(regionToDumpOrNullForAll, ":", "_") + ".xln"));
-
-				for (int i = 0; i < regions.length; i++) {
-					if (regionToDumpOrNullForAll.equals(regions[i].getUCSClocation())) {
-						index = i;
-					}
-				}
-				if (index == -1) {
-					log.reportError("Error - Region flagged to be dumped (" + regionToDumpOrNullForAll + ") was not found in the MeanLRRset's regions list");
-					return;
-				}
-
-			}
-			writer.print("Sample");
-			for (int i = 0; i < phenotypes.length; i++) {
-				writer.print("\t" + phenotypes[i].substring(phenotypes[i].lastIndexOf("=") + 1));
-			}
-			transformations = mlrrSet.getTransformations();
-			for (int i = 0; i < regions.length; i++) {
-				if (transformationToUse == -1) {
-					for (int j = 0; j < transformations.length; j++) {
-						writer.print("\t" + regions[i].getUCSClocation() + "_" + ext.replaceWithLinuxSafeCharacters(transformations[j], false));
-					}
-				} else {
-					writer.print("\t" + regions[i].getUCSClocation() + "_" + ext.replaceWithLinuxSafeCharacters(transformations[transformationToUse], false));
-				}
-			}
-			writer.println();
-			for (int i = 0; i < samples.length; i++) {
-				writer.print(samples[i] + "\t" + (hash.containsKey(samples[i]) ? hash.get(samples[i]) : Array.stringArray(phenotypes.length, ".")));
-				if (regionToDumpOrNullForAll == null) {
-					for (int j = 0; j < regions.length; j++) {
-						if (transformationToUse == -1) {
-							writer.print("\t" + Array.toStr(data[j][i]));
-						} else {
-							writer.print("\t" + data[j][i][transformationToUse]);
-						}
-					}
-				} else {
-					writer.print("\t" + Array.toStr(data[index][i]));
-				}
-				writer.println();
-			}
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing to " + ext.rootOf(mlrrSetFile) + ".xln");
-			e.printStackTrace();
-		}
-	}
-
-	public static void createFilesFromMarkerData(Project proj, String regionsFile, Logger log) {
-		PrintWriter writer;
-		MarkerSet markerSet;
-		SampleList sampleList;
-		String[] samples, markerNames;
-		byte[] chrs;
-		int[] positions;
-		Segment[] regions;
-		Hashtable<String, Vector<String>> components;
-		float[] lrrs;
-		float[][][] data;
-		int[] counts;
-		int[] numberOfMarkers;
-		Hashtable<String, String> hash;
-		MarkerDataLoader markerDataLoader;
-		MarkerData markerData;
-
-		log.report("Computing LRR values from MarkerData. This is faster, but does not allow for additional columns containing normalized values.");
-
-		markerSet = proj.getMarkerSet();
-		markerNames = markerSet.getMarkerNames();
-		chrs = markerSet.getChrs();
-		positions = markerSet.getPositions();
-
-		hash = proj.getFilteredHash();
-
-		regions = CNVariant.loadUCSCregions(proj.getProjectDir() + regionsFile, false);
-		if (regions == null) {
-			return;
-		}
-		components = new Hashtable<String, Vector<String>>();
-		for (int i = 0; i < positions.length; i++) {
-			for (int j = 0; j < regions.length; j++) {
-				if (chrs[i] == regions[j].getChr() && positions[i] >= regions[j].getStart() && positions[i] <= regions[j].getStop()) {
-					if (hash.containsKey(markerNames[i])) {
-						log.report(markerNames[i] + " was filtered out");
-					} else {
-						HashVec.addToHashVec(components, j + "", markerNames[i], false);
-					}
-				}
-			}
-		}
-
-		sampleList = proj.getSampleList();
-		samples = sampleList.getSamples();
-		numberOfMarkers = new int[regions.length];
-		data = new float[regions.length][samples.length][1]; // only mean will be computed; no normalization
-		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir() + "MarkersIn_" + ext.rootOf(regionsFile) + ".xln"));
-			for (int i = 0; i < regions.length; i++) {
-				markerNames = Array.toStringArray(components.get(i + ""));
-				numberOfMarkers[i] = markerNames.length;
-				writer.println(regions[i].getUCSClocation() + "\t" + markerNames.length + "\t" + regions[i].getChr() + "\t" + regions[i].getStart() + "\t" + regions[i].getStop() + "\t" + Array.toStr(markerNames));
-				log.report("Computing mean Log R ratios for: " + regions[i].getUCSClocation());
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
-				counts = new int[samples.length];
-				for (int j = 0; j < markerNames.length; j++) {
-					markerData = markerDataLoader.requestMarkerData(j);
-					if (markerData.getFingerprint() != sampleList.getFingerprint()) {
-						log.reportError("Error - mismatched fingerprint for " + markerData.getMarkerName());
-					}
-
-					lrrs = markerData.getLRRs();
-					for (int k = 0; k < samples.length; k++) {
-						if (!ext.isMissingValue(lrrs[k] + "")) {
-							data[i][k][0] += lrrs[k];
-							counts[k]++;
-						}
-					}
-				}
-				for (int j = 0; j < samples.length; j++) {
-					data[i][j][0] /= (float) counts[j];
-				}
-			}
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing the list of marker names within the regions");
-			e.printStackTrace();
-		}
-
-		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, new String[] { Transforms.TRANFORMATIONS[0] }).serialize(proj.getProjectDir() + ext.rootOf(regionsFile) + ".mlrr");
 	}
 }

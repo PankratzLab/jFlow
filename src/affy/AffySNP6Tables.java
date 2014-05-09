@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Date;
 
 import common.Array;
 import common.Files;
@@ -51,15 +52,12 @@ public class AffySNP6Tables {
 		return call;
 	}
 
-
-
 	public double power2(String signal) {
 		return (Math.pow(2, Double.parseDouble(signal)));
 	}
 
 	public void parseSNPLine(String[] calls, String[] confs, String[] sigA, String[] sigB) {
 		for (int j = 1; j < calls.length; j++) {
-
 			indFiles[j - 1] += calls[0] + "\t" + parseCall(calls[j]) + "\t" + confs[j] + "\t" + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j]) + "\n";
 		}
 	}
@@ -67,7 +65,7 @@ public class AffySNP6Tables {
 	// setting CN probeset calls to NC (-1), confidence to 0, and sigB to 0;
 	public void parseCNLine(String[] sigA) {
 		for (int j = 1; j < sigA.length; j++) {
-			indFiles[j - 1] += sigA[0] + "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t0\tNC\n";
+			indFiles[j - 1] += sigA[0] + "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigA[j])) + "\tNC\n";
 		}
 	}
 
@@ -101,6 +99,7 @@ public class AffySNP6Tables {
 	public void printIt(String[] header, int chunkCount) {
 		PrintWriter writer = null;
 		boolean append = true;
+		long time = new Date().getTime();
 		for (int j = 1; j < header.length; j++) {
 			if (chunkCount == 0) {
 				mkdir(outputDirectory);
@@ -117,6 +116,7 @@ public class AffySNP6Tables {
 				indFiles[j - 1] = "";
 			}
 		}
+		System.out.println("Printing took " + ext.getTimeElapsed(time));
 	}
 
 	public void parseCNTable(int numLinesBuffer) {
@@ -134,7 +134,6 @@ public class AffySNP6Tables {
 			int numFiles = header.length - 1;
 			indFiles = new String[numFiles];
 			Arrays.fill(indFiles, "");
-
 			while (sigReader.ready()) {
 				do {
 					sigALine = sigReader.readLine().trim().split(delimiter, -1);
@@ -143,10 +142,11 @@ public class AffySNP6Tables {
 					parseCNLine(sigALine);
 					lineCount++;
 					if (lineCount >= numLinesBuffer) {
+						System.out.println("Parsed " + chunkCount * numLinesBuffer + " lines");
+						System.out.println(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
 						printIt(header, chunkCount);
 						lineCount = 0;
 						chunkCount++;
-						System.out.println("Parsed " + chunkCount * numLinesBuffer + " lines");
 					}
 				} else {
 					System.err.println("This Should Not Happen");
@@ -276,6 +276,7 @@ public class AffySNP6Tables {
 		boolean CN = false;
 		boolean merge = false;
 		boolean create = false;
+		boolean comboMergeCreate = false;
 		int numLinesBuffer = 100;
 		int numThreads = 2;
 		String calls = "C:/data/AFFYtable/00src/SNP_/birdseed-v2.calls.txt";
@@ -313,6 +314,9 @@ public class AffySNP6Tables {
 			} else if (args[i].startsWith("-create")) {
 				create = true;
 				numArgs--;
+			} else if (args[i].startsWith("-combo")) {
+				comboMergeCreate = true;
+				numArgs--;
 			} else if (args[i].startsWith("calls=")) {
 				calls = args[i].split("=")[1];
 				numArgs--;
@@ -346,11 +350,14 @@ public class AffySNP6Tables {
 				AffySNP6Tables AS6T = new AffySNP6Tables(output, sig);
 				AS6T.parseCNTable(numLinesBuffer);
 			}
-			if (merge) {
+			if (merge && !comboMergeCreate) {
 				MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, inputFileNameExt, output);
 
 			}
-			if (create) {
+			if (create && !comboMergeCreate) {
+				ParseAffySNP6.createFiles(proj, numThreads);
+			} else if (comboMergeCreate) {
+				MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, inputFileNameExt, output);
 				ParseAffySNP6.createFiles(proj, numThreads);
 			}
 

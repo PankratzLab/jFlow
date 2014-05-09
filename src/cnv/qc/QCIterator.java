@@ -48,7 +48,7 @@ public class QCIterator implements Runnable {
 	// preps CNV file for comparision, loads CNV heights, and sends jobs out for parameter iteration at each percent target
 	public static void optimizeQCThresholds(Project proj, String plinkCnvQCs, String duplicatesFile, String SampleQCFile, String output, Logger log, int optimizationType) {
 		int processors = Runtime.getRuntime().availableProcessors();
-		double[] allPercents = binIt(0, 1, 15);
+		double[] allPercents = binIt(.40, 1, 30);
 		getcabinet(allPercents, processors);
 		Thread[] threads = new Thread[processors];
 		log.report(ext.getTime() + " Prepping cnvQCs in " + plinkCnvQCs + " for comparisons");
@@ -133,7 +133,7 @@ public class QCIterator implements Runnable {
 	}
 
 	// TODO to compare two different plink format files;
-	public static void compareFiles(Project proj, String[] plinkCnvQCs, Logger log) {
+	public static void compareFiles(Project proj, String[] plinkCnvQCs, String[] SampleQCFiles, String compareThresholdFileName ,Logger log) {
 		Hashtable<Integer, Hashtable<String, CNVariantQC[]>> fileIndcnVariantQCs = new Hashtable<Integer, Hashtable<String, CNVariantQC[]>>();
 		String[][] inds = new String[plinkCnvQCs.length][];
 		int[][] allPossibleCombinations = Maths.getIndicesForAllCombinations(plinkCnvQCs.length, 2);
@@ -144,19 +144,59 @@ public class QCIterator implements Runnable {
 			fileIndcnVariantQCs.put(i, CNVariantQC.getIndCNVQCs(inds[i], cnVariantQCs));
 		}
 		for (int i = 0; i < allPossibleCombinations.length; i++) {
-			//ArrayList<CNVariantQC[]> cnvQCX = new ArrayList<CNVariantQC[]>();
-			//ArrayList<CNVariantQC[]> cnvQCY = new ArrayList<CNVariantQC[]>();
+			ArrayList<CNVariantQC[]> cnvQCX = new ArrayList<CNVariantQC[]>();
+			ArrayList<CNVariantQC[]> cnvQCY = new ArrayList<CNVariantQC[]>();
 			int fileX = allPossibleCombinations[i][0];
 			int fileY = allPossibleCombinations[i][1];
 			String[] indsx = inds[fileX];
 			String[] indsy = inds[fileY];
 			for (int j = 0; j < indsx.length; j++) {
 				for (int k = 0; k < indsy.length; k++) {
-					if (fileIndcnVariantQCs.get(fileX).containsKey(indsx[j]) && fileIndcnVariantQCs.get(fileY).containsKey(indsy[k])) {
-
+					if (fileIndcnVariantQCs.get(fileX).containsKey(indsx[j]) && fileIndcnVariantQCs.get(fileY).containsKey(indsy[k])&&indsx[j].equals(indsy[k])) {
+						cnvQCX.add(fileIndcnVariantQCs.get(fileX).get(indsx[j]));
+						cnvQCY.add(fileIndcnVariantQCs.get(fileY).get(indsy[k]));
+						//log.report(fileX +"\t"+indsx[j] +"\t"+fileY+"\t"+indsy[k]);
 					}
 				}
 			}
+			CNVariantQC[][] unfilteredcnvsQCs1 = cnvQCX.toArray(new CNVariantQC[cnvQCX.size()][] );
+			CNVariantQC[][] unfilteredcnvsQCs2 = cnvQCY.toArray(new CNVariantQC[cnvQCY.size()][] );
+			log.report("Comparing "+unfilteredcnvsQCs1.length+" individuals with "+unfilteredcnvsQCs2.length +" individuals");
+		//public CNVComparison(CNVariantQC[][] unfilteredcnvsQCs1, CNVariantQC[][] unfilteredcnvsQCs2, Hashtable<String, CNVSampleQC> cnvSampleQCHash, OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
+			CNVComparison cnvComparison;
+			if(SampleQCFiles==null||compareThresholdFileName==null){
+				cnvComparison = new CNVComparison(unfilteredcnvsQCs1,  unfilteredcnvsQCs2, null, null, 0,  log);
+			}else{
+				log.report("Filtering on sample QC before comparisons");
+				OptimizedQCThresholds qcThresholds = OptimizedQCThresholds.loadThresholdsFromTxt(proj.getProjectDir() + compareThresholdFileName, log);
+				Hashtable<String, CNVSampleQC> cnvSampleQCHash1 = CNVSampleQC.getSampleQCs(proj, SampleQCFiles[allPossibleCombinations[i][0]], log);
+				Hashtable<String, CNVSampleQC> cnvSampleQCHash2 = CNVSampleQC.getSampleQCs(proj, SampleQCFiles[allPossibleCombinations[i][1]], log);
+				CNVComparison filteredOnly1 = new CNVComparison(unfilteredcnvsQCs1, cnvSampleQCHash1, qcThresholds, 1, log);
+				CNVComparison filteredOnly2= new CNVComparison(unfilteredcnvsQCs2, cnvSampleQCHash2, qcThresholds, 1, log);
+				CNVariantQC[][] filteredcnvsQCs1 = filteredOnly1.getFilteredcnvQCs1();
+				CNVariantQC[][] filteredcnvsQCs2 = filteredOnly2.getFilteredcnvQCs1();
+				ArrayList<CNVariantQC[]> cnvQC1= new ArrayList<CNVariantQC[]>();
+				ArrayList<CNVariantQC[]> cnvQC2= new ArrayList<CNVariantQC[]>();
+				for (int j = 0; j < filteredcnvsQCs1.length; j++) {
+					if(filteredcnvsQCs1[j]!=null && filteredcnvsQCs2[j] != null ){
+						cnvQC1.add(filteredcnvsQCs1[j]);
+						cnvQC2.add(filteredcnvsQCs2[j]);
+					}					
+				}
+				if(cnvQC1.size()!=cnvQC2.size()){
+					log.reportError("Error - number of individuals for comparisions do not match");
+					System.exit(1);
+				}
+				log.report(cnvQC1.size() +"\t" +cnvQC2.size() );
+				filteredcnvsQCs1 = cnvQC1.toArray(new CNVariantQC[cnvQC1.size()][] );
+				filteredcnvsQCs2 = cnvQC2.toArray(new CNVariantQC[cnvQC2.size()][] );
+				cnvComparison = new CNVComparison(filteredcnvsQCs1,  filteredcnvsQCs2, null, null, 0,  log);
+			}
+			ArrayList<CNVariantQC> misses = cnvComparison.getMisses();
+			writeMisses( proj ,  misses , log);
+			log.report(Array.toStr(cnvComparison.getGoodCalls()));
+			log.report(Array.toStr(cnvComparison.getFilteredCallsAvailable()));
+			log.report(Array.toStr(cnvComparison.getAverageCNPercent()));
 		}
 	}
 
@@ -166,6 +206,22 @@ public class QCIterator implements Runnable {
 
 	public double[] getTargetPercentages() {
 		return targetPercentages;
+	}
+	
+	private static void writeMisses(Project proj , ArrayList<CNVariantQC> misses ,Logger log){
+		log.report("writing unmatched calls to " + proj.getProjectDir() +"misses.cnv" );
+		try{
+		PrintWriter missWriter = new PrintWriter(new FileWriter(proj.getProjectDir() +"misses.cnv"));
+		missWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+		for (int i = 0; i < misses.size(); i++) {
+			missWriter.println(misses.get(i).getCnVariant().toPlinkFormat());
+		}
+		missWriter.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " +proj.getProjectDir() +"misses.cnv");
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 
 	private static Hashtable<String, Double> hashMAFs(String[] markerNames, double[] mafs) {
@@ -228,8 +284,8 @@ public class QCIterator implements Runnable {
 		// CNV -specific
 		int numMarkerStart = 20;
 		int numMarkerStop = 20;
-		double[] confCutoffs = binIt(.75, .75, 300);
-		double[] alphas = binIt(0.4, .4, 50);
+		double[] confCutoffs = binIt(0, 100, 300);
+		double[] alphas = binIt(0, 100, 300);
 		// less than
 		double[] BAFQCcutoffs = binIt(200000, 200000, 1000);
 		// greater than
@@ -501,7 +557,7 @@ public class QCIterator implements Runnable {
 		String MarkerFreqs = "MarkerFreq.ser";
 		// String plinkCnvs = "all_gw6.cnv ";
 		// String beastHeights = plinkCnvs.replaceAll(".cnv", "heights");
-		String plinkCnvQCs = "qcThresholdsFull.txt.beast.ser";
+		String plinkCnvQCs = "qcThresholds.txt.GENQC_COMP.ser";
 		String logfile = null;
 		String QCsubset = null;
 		// String output;
@@ -511,7 +567,7 @@ public class QCIterator implements Runnable {
 		int optimizationType = 1;
 		boolean convert = false;
 		boolean filter = false;
-		int threads = 0;
+		int threads = 8;
 		// String plinkCnvs = null;
 		Logger log;
 		Project proj;
@@ -577,10 +633,17 @@ public class QCIterator implements Runnable {
 			} else if (filter) {
 				filterCNVsByQCThresholds(proj, plinkCnvQCs, SampleQCFile, qcThresholdFileName, output, QCsubset, optimizationType, log);
 			} else {
-				output += ".summary";
+				
+//				String compareThresholdFileName = "qcParms_Compare.txt";
+//				String[] plinkCnvsCompare = {"all_gw6.cnv" ,"all_JL_gw6.cnv"};
+//				String[] sampleQCs ={"Sample_QC.xln","Sample_QC_JL.xln"};
+//				log.report("Comparing "+ Array.toStr(plinkCnvsCompare));
+//				compareFiles( proj, plinkCnvsCompare,sampleQCs,compareThresholdFileName,  log);				
+//				output += ".summary";
+				
 				optimizeQCThresholds(proj, plinkCnvQCs, duplicatesFile, SampleQCFile, output, log, optimizationType);
 			}
-			Files.backup(logfile, proj.getProjectDir(), proj.getProjectDir());
+			Files.backup(logfile, proj.getProjectDir(), proj.getProjectDir()+"LOGBACKUP/");
 
 		} catch (Exception e) {
 			e.printStackTrace();
