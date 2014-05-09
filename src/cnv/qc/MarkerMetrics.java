@@ -167,8 +167,8 @@ public class MarkerMetrics {
 		// double[] stats stores 0->zscore
 		double[] stats = new double[1];
 		Arrays.fill(stats, Double.NaN);
-		Vector<String> intensityDeps = new Vector<String>();
-		Vector<double[]> intensityIndeps = new Vector<double[]>();
+		Vector<String> intensityDeps = new Vector<String>(sexes.length);
+		Vector<double[]> intensityIndeps = new Vector<double[]>(sexes.length);
 		for (int s = 0; s < sexes.length; s++) {
 			if (!Double.isNaN(independantData[s]) && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
 				intensityDeps.add(sexes[s] + "");
