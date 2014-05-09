@@ -12,6 +12,7 @@ public class CNVComparison {
 	static final String[] QC_PARAMETERs = { "0 - No Filtering ", " 1 - CNVQC and Sample QC", "2 -Sample QC only" };
 	private CNVariantQC[][] filteredcnvQCs1;
 	private CNVariantQC[][] filteredcnvQCs2;
+	private ArrayList<CNVariantQC> misses;;
 	private Hashtable<String, CNVSampleQC> cnvSampleQCHash;
 	private OptimizedQCThresholds qcThresholds;
 	private double[] averageCNPercent;
@@ -29,6 +30,7 @@ public class CNVComparison {
 		this.cnvSampleQCHash = cnvSampleQCHash;
 		this.qcThresholds = qcThresholds;
 		this.filterType = filterType;
+		this.misses = new  ArrayList<CNVariantQC>();
 		this.filteredcnvQCs1 = getFilteredCnvsByType(unfilteredcnvsQCs1);
 		this.filteredcnvQCs2 = getFilteredCnvsByType(unfilteredcnvsQCs2);
 		this.filteredCallsAvailable = getCallsAvailable(filteredcnvQCs1, filteredcnvQCs2);
@@ -37,6 +39,7 @@ public class CNVComparison {
 		this.numberIndsCompared = getNumberCompared(filteredcnvQCs1, filteredcnvQCs2);
 
 	}
+	
 	public CNVComparison(CNVariantQC[][] unfilteredcnvsQCs1, Hashtable<String, CNVSampleQC> cnvSampleQCHash, OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
 		this.cnvSampleQCHash = cnvSampleQCHash;
 		this.qcThresholds = qcThresholds;
@@ -44,7 +47,9 @@ public class CNVComparison {
 		this.filteredcnvQCs1 = getFilteredCnvsByType(unfilteredcnvsQCs1);
 
 	}
-
+	public ArrayList<CNVariantQC> getMisses() {
+		return misses;
+	}
 	public CNVariantQC[][] getFilteredcnvQCs1() {
 		return filteredcnvQCs1;
 	}
@@ -146,6 +151,9 @@ public class CNVComparison {
 		checkCompatability();
 
 		for (int i = 0; i < unfilteredcnvQCs.length; i++) {
+			if(unfilteredcnvQCs[i] ==null){
+				log.reportError("Warning - Some individuals do not have cnvs");
+			}
 			if (unfilteredcnvQCs[i].length > 0) {
 				if (filterType == 0) {
 					filteredcnvs[i] = unfilteredcnvQCs[i];
@@ -197,12 +205,12 @@ public class CNVComparison {
 			// double[] bafs = unfilteredcnvQCs[i].getBafs();
 			// double[] lrrs = unfilteredcnvQCs[i].getLrrs();
 			// byte[] abGenoytypes = unfilteredcnvQCs[i].getGenotypes();
-			// double pennConf = unfilteredcnvQCs[i].getCnVariant().getScore();
+			 double pennConf = unfilteredcnvQCs[i].getCnVariant().getScore();
 			int numMarkers = unfilteredcnvQCs[i].getCnVariant().getNumMarkers();
 			double height = unfilteredcnvQCs[i].getHeight();
 			double kbSize = (double) (unfilteredcnvQCs[i].getCnVariant().getSize()) / 1000;
 			double kbDensity = (double) (numMarkers) / kbSize;
-			System.out.println(kbSize + "\t" + qcThresholds.getKbSize());
+			//System.out.println(kbSize + "\t" + qcThresholds.getKbSize());
 			// double sumTwopq = 0;
 			// double sumBaf = 0;
 			// int numPoly = 0;
@@ -217,7 +225,7 @@ public class CNVComparison {
 			// }
 			// }
 			// }
-			if (goodScore(numMarkers, height) && checkKbSize(kbSize) && checkKbDensity(kbDensity) && goodNumMarkers(numMarkers)) {
+			if (goodScore(numMarkers, height) && checkKbSize(kbSize) && checkKbDensity(kbDensity) && goodNumMarkers(numMarkers) &&checkPennConf(pennConf)) {
 				cnvQCs.add(unfilteredcnvQCs[i]);
 			}
 		}
@@ -243,7 +251,7 @@ public class CNVComparison {
 		if (Double.isNaN(qcThresholds.getBafDrift())) {
 			return true;
 		} else {
-			return sampleBafDrift <= qcThresholds.getSampleCallRate();
+			return sampleBafDrift <= qcThresholds.getBafDrift();
 		}
 	}
 	
@@ -300,13 +308,13 @@ public class CNVComparison {
 		return Math.abs(Math.pow(numMarkers, alpha) * cnvHeight);
 
 	}
-//	private boolean checkPennConf(double cnvPennConf) {
-//		if (Double.isNaN(qcThresholds.getPennConf())) {
-//			return true;
-//		} else {
-//			return cnvPennConf >= qcThresholds.getPennConf();
-//		}
-//	}
+	private boolean checkPennConf(double cnvPennConf) {
+		if (Double.isNaN(qcThresholds.getPennConf())) {
+			return true;
+		} else {
+			return cnvPennConf >= qcThresholds.getPennConf();
+		}
+	}
 //
 //	private boolean checkHets(int numHets, int numPoly) {
 //		if (Double.isNaN(qcThresholds.getHetCutoff())) {
@@ -350,6 +358,9 @@ public class CNVComparison {
 					}
 				}
 			}
+			if(match ==0){
+				misses.add( filteredcnvQCs1[a]);
+			}
 			counts[CN][match]++;
 			counts[2][match]++;
 		}
@@ -370,7 +381,11 @@ public class CNVComparison {
 					}
 				}
 			}
+			
 			if (filteredcnvQCs2[b].getCnVariant().getSource() != 99) {
+				if(match ==1){
+					misses.add( filteredcnvQCs2[b]);
+				}
 				counts[CN][match]++;
 				counts[2][match]++;
 			}

@@ -173,7 +173,7 @@ public class MergeChp implements Runnable {
 			} else if (args[i].startsWith("out=")) {
 				output = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("out=")) {
+			} else if (args[i].startsWith("affyResultsDir=")) {
 				affyResultsDir = args[i].split("=")[1];
 				numArgs--;
 			}
