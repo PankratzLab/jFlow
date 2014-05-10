@@ -182,7 +182,39 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		image = null;
 		repaint();
 	}
-	
+
+	public boolean isRandomTest() {
+		return randomTest;
+	}
+
+	public String getNullMessage() {
+		return nullMessage;
+	}
+
+	public boolean isFlow() {
+		return flow;
+	}
+
+	public int getNumberOfNaNSamples() {
+		return numberOfNaNSamples;
+	}
+
+	public void setNumberOfNaNSamples(int numberOfNaNSamples) {
+		this.numberOfNaNSamples = numberOfNaNSamples;
+	}
+
+	public int getLookupResolution() {
+		return lookupResolution;
+	}
+
+	public byte[] getLayersInBase() {
+		return layersInBase;
+	}
+
+	public byte[] getExtraLayersVisible() {
+		return extraLayersVisible;
+	}
+
 	public void setLayersInBase(byte[] layers) {
 		layersInBase = layers;
 	}
@@ -430,7 +462,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 				}
 				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
-	
+
 				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
 				gfx = yLabel.createGraphics();
 				gfx.setFont(new Font("Arial", 0, 28));
@@ -438,7 +470,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				gfx.fillRect(0, 0, getWidth(), getHeight());
 				gfx.setColor(Color.BLACK);
 				gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
-	
+
 				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
 			}
 
