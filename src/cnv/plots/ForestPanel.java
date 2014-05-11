@@ -1,14 +1,15 @@
 package cnv.plots;
 
-import common.*;
-import stats.Maths;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import stats.Maths;
+
+import common.*;
 
 /**
  * Forest Panel
@@ -50,16 +51,34 @@ public class ForestPanel extends AbstractPanel {
 	public void generatePoints() {
 		ArrayList<ForestTree> currentData = forestPlot.trees;
 		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
+		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
+		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
 		float xAxisValue, yAxisValue;
+		lines = new GenericLine[0];
+		rectangles = new GenericRectangle[0];
 
 		for (int i = 0; i < currentData.size(); i++) {
-			xAxisValue = currentData.get(i).getBeta();
-
+			xAxisValue = currentData.get(i).getConfInterval()[0];
 			yAxisValue = (float) i + 1;
+			PlotPoint leftEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
-			tempPoints[i] = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+			xAxisValue = currentData.get(i).getConfInterval()[1];
+			yAxisValue = (float) i + 1;
+			PlotPoint rightEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+
+			linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
+
+			xAxisValue = currentData.get(i).getBeta();
+			yAxisValue = (float) i + 1;
+			tempPoints[i] = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
+			tempPoints[i].setVisible(false);
+
+			rectData.add(new GenericRectangle(xAxisValue - 0.02f, yAxisValue - 0.2f, xAxisValue + 0.02f, yAxisValue + 0.2f, (byte) 5, true, false, (byte) 0, (byte) 0));
+
 		}
 		points = tempPoints;
+		lines = Array.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
+		rectangles = Array.concatAll(rectangles, rectData.toArray(new GenericRectangle[rectData.size()]));
 	}
 
 	@Override
