@@ -18,10 +18,6 @@ import common.*;
  */
 public class ForestPanel extends AbstractPanel {
 
-	protected ForestPlot forestPlot;
-	private Logger log;
-	private boolean swapAxes;
-
 	public static final Color[] DEFAULT_COLORS = { new Color(33, 31, 53), // dark dark
 	new Color(23, 58, 172), // dark blue
 	new Color(201, 30, 10), // deep red
@@ -35,9 +31,14 @@ public class ForestPanel extends AbstractPanel {
 	new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205), new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205), new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255), new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250), new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230), new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209), new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255), new Color(224, 255, 255),
 
 	};
+	protected ForestPlot forestPlot;
+	private Logger log;
+	private boolean swapAxes;
+	private boolean rectangleGeneratable;
 
 	public ForestPanel(ForestPlot forestPlot, Logger log) {
 		super();
+		rectangleGeneratable = true;
 
 		this.forestPlot = forestPlot;
 		this.log = log;
@@ -47,15 +48,22 @@ public class ForestPanel extends AbstractPanel {
 		setColorScheme(DEFAULT_COLORS);
 	}
 
+	public boolean isRectangleGeneratable() {
+		return rectangleGeneratable;
+	}
+
+	public void setRectangleGeneratable(boolean rectangleGeneratable) {
+		this.rectangleGeneratable = rectangleGeneratable;
+	}
+
 	@Override
 	public void generatePoints() {
 		ArrayList<ForestTree> currentData = forestPlot.trees;
 		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
 		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
-		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
+
 		float xAxisValue, yAxisValue;
 		lines = new GenericLine[0];
-		rectangles = new GenericRectangle[0];
 
 		for (int i = 0; i < currentData.size(); i++) {
 			xAxisValue = currentData.get(i).getConfInterval()[0];
@@ -72,12 +80,27 @@ public class ForestPanel extends AbstractPanel {
 			yAxisValue = (float) i + 1;
 			tempPoints[i] = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
 			tempPoints[i].setVisible(false);
-
-			rectData.add(new GenericRectangle(xAxisValue - 0.02f, yAxisValue - 0.2f, xAxisValue + 0.02f, yAxisValue + 0.2f, (byte) 5, true, false, (byte) 0, (byte) 0));
-
 		}
 		points = tempPoints;
 		lines = Array.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
+	}
+
+	private void generateRectangles() {
+		ArrayList<ForestTree> currentData = forestPlot.trees;
+		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
+		rectangles = new GenericRectangle[0];
+
+		float xAxisValue, yAxisValue;
+
+		float xAxisStep = (float) calcStepStep(plotXmax - plotXmin);
+		float yAxisStep = (float) calcStepStep(plotYmax - plotYmin);
+
+		for (int i = 0; i < currentData.size(); i++) {
+			xAxisValue = currentData.get(i).getBeta();
+			yAxisValue = (float) i + 1;
+			float scale = currentData.get(i).getzScore() / forestPlot.getMaxZScore() / 3;
+			rectData.add(new GenericRectangle(xAxisValue - xAxisStep * scale, yAxisValue - yAxisStep * scale, xAxisValue + xAxisStep * scale, yAxisValue + yAxisStep * scale, (byte) 5, true, false, (byte) 0, (byte) 0));
+		}
 		rectangles = Array.concatAll(rectangles, rectData.toArray(new GenericRectangle[rectData.size()]));
 	}
 
@@ -282,6 +305,10 @@ public class ForestPanel extends AbstractPanel {
 			if ((base && (getLayersInBase() == null || Array.indexOfByte(getLayersInBase(), lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(getExtraLayersVisible(), lines[i].getLayer()) >= 0)) {
 				Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()), getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()), (int) lines[i].getThickness(), colorScheme[lines[i].getColor()]);
 			}
+		}
+
+		if (isRectangleGeneratable()) {
+			generateRectangles();
 		}
 
 		// Draw the rectangles for clusterFilters

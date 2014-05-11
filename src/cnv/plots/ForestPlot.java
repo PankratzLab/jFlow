@@ -16,28 +16,27 @@ import common.Logger;
  */
 public class ForestPlot extends JPanel {
 
+	public static final Color BACKGROUND_COLOR = Color.WHITE;
+	public static final String ADD_DATA_FILE = "Add Data File";
+	public static final String REMOVE_DATA_FILE = "Remove Data File";
 	private static final String ALT_UP = "ALT UP";
 	private static final String ALT_DOWN = "ALT DOWN";
 	private static final String ALT_LEFT = "ALT LEFT";
 	private static final String ALT_RIGHT = "ALT RIGHT";
-
-	public static final Color BACKGROUND_COLOR = Color.WHITE;
-	public static final String ADD_DATA_FILE = "Add Data File";
-	public static final String REMOVE_DATA_FILE = "Remove Data File";
-
-	private JButton flipButton, invXButton, invYButton;
-	private boolean flipStatus, xInvStatus, yInvStatus;
-
 	ArrayList<ForestTree> trees;
 	String plotLabel;
 	Logger log;
 	ForestPanel forestPanel;
+	float maxZScore;
+	private JButton flipButton, invXButton, invYButton;
+	private boolean flipStatus, xInvStatus, yInvStatus;
 	private JLayeredPane layeredPane;
 
 	public ForestPlot(ArrayList<ForestTree> trees, String plotLabel, Logger log) {
 		this.trees = trees;
 		this.plotLabel = plotLabel;
 		this.log = log;
+		this.maxZScore = findMaxZScore();
 
 		setLayout(new BorderLayout());
 
@@ -89,6 +88,7 @@ public class ForestPlot extends JPanel {
 		inputMapAndActionMap();
 
 		forestPanel.setPointsGeneratable(true);// zx
+		forestPanel.setRectangleGeneratable(true);// zx
 		forestPanel.setExtraLayersVisible(new byte[] { 99 });
 		updateGUI();
 
@@ -117,82 +117,6 @@ public class ForestPlot extends JPanel {
 
 		setVisible(true);
 		// generateShortcutMenus();
-	}
-
-	public void updateGUI() {
-		forestPanel.paintAgain();
-	}
-
-	private void inputMapAndActionMap() {
-		InputMap inputMap = forestPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
-		ActionMap actionMap = forestPanel.getActionMap();
-		forestPanel.setActionMap(actionMap);
-	}
-
-	private void generateFlipButton() {
-		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", false));
-		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg", false));
-		flipButton.setToolTipText("Inverts axes");
-		flipButton.setBorder(null);
-		flipButton.setVisible(true);
-		flipStatus = true;
-		flipButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				// twoDPanel.setSwapable(flipStatus);
-				forestPanel.setPointsGeneratable(true);
-				forestPanel.setSwapAxes(flipStatus);
-				forestPanel.paintAgain();
-				if (flipStatus) {
-					flipStatus = false;
-				} else {
-					flipStatus = true;
-				}
-			}
-		});
-	}
-
-	private void generateInvXButton() {
-		invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
-		invXButton.setBorder(null);
-		invXButton.setVisible(true);
-		xInvStatus = true;
-		invXButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				forestPanel.setPointsGeneratable(true);
-				forestPanel.setXinversion(xInvStatus);
-				forestPanel.paintAgain();
-				if (xInvStatus) {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true));
-				} else {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
-				}
-				xInvStatus = !xInvStatus;
-			}
-		});
-	}
-
-	private void generateInvYButton() {
-		invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
-		invYButton.setBorder(null);
-		invYButton.setVisible(true);
-		yInvStatus = true;
-		invYButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				forestPanel.setPointsGeneratable(true);
-				forestPanel.setYinversion(yInvStatus);
-				forestPanel.paintAgain();
-				if (yInvStatus) {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true));
-				} else {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
-				}
-				yInvStatus = !yInvStatus;
-			}
-		});
 	}
 
 	public static void main(String[] args) {
@@ -260,6 +184,97 @@ public class ForestPlot extends JPanel {
 		trees.add(new ForestTree("23andMe", 0.213202f, 0.027064f, 0, PlotPoint.FILLED_CIRCLE));
 		trees.add(new ForestTree("Summary", 0.156191625f, 0.022027313f, 0, PlotPoint.FILLED_CIRCLE));
 		return trees;
+	}
+
+	public float getMaxZScore() {
+		return maxZScore;
+	}
+
+	private float findMaxZScore() {
+		float max = Float.MIN_VALUE;
+		for (ForestTree tree : trees) {
+			max = Math.max(max, tree.getzScore());
+		}
+		return max;
+	}
+
+	public void updateGUI() {
+		forestPanel.paintAgain();
+	}
+
+	private void inputMapAndActionMap() {
+		InputMap inputMap = forestPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
+		ActionMap actionMap = forestPanel.getActionMap();
+		forestPanel.setActionMap(actionMap);
+	}
+
+	private void generateFlipButton() {
+		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", false));
+		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg", false));
+		flipButton.setToolTipText("Inverts axes");
+		flipButton.setBorder(null);
+		flipButton.setVisible(true);
+		flipStatus = true;
+		flipButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// twoDPanel.setSwapable(flipStatus);
+				forestPanel.setPointsGeneratable(true);
+				forestPanel.setRectangleGeneratable(true);// zx
+				forestPanel.setSwapAxes(flipStatus);
+				forestPanel.paintAgain();
+				if (flipStatus) {
+					flipStatus = false;
+				} else {
+					flipStatus = true;
+				}
+			}
+		});
+	}
+
+	private void generateInvXButton() {
+		invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
+		invXButton.setBorder(null);
+		invXButton.setVisible(true);
+		xInvStatus = true;
+		invXButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				forestPanel.setPointsGeneratable(true);
+				forestPanel.setRectangleGeneratable(true);// zx
+				forestPanel.setXinversion(xInvStatus);
+				forestPanel.paintAgain();
+				if (xInvStatus) {
+					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true));
+				} else {
+					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
+				}
+				xInvStatus = !xInvStatus;
+			}
+		});
+	}
+
+	private void generateInvYButton() {
+		invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
+		invYButton.setBorder(null);
+		invYButton.setVisible(true);
+		yInvStatus = true;
+		invYButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				forestPanel.setPointsGeneratable(true);
+				forestPanel.setRectangleGeneratable(true);// zx
+				forestPanel.setYinversion(yInvStatus);
+				forestPanel.paintAgain();
+				if (yInvStatus) {
+					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true));
+				} else {
+					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
+				}
+				yInvStatus = !yInvStatus;
+			}
+		});
 	}
 }
 
