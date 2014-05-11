@@ -1,12 +1,13 @@
 package cnv.plots;
 
-import common.Grafik;
-import common.Logger;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+
+import javax.swing.*;
+
+import common.Grafik;
+import common.Logger;
 
 /**
  * Forest Plot class
@@ -268,6 +269,8 @@ class ForestTree {
 	public float stderr;
 	public int color;
 	public byte shape;
+	public float[] confInterval;
+	public float zScore;
 
 	public ForestTree(String label, float beta, float stderr, int color, byte shape) {
 		this.label = label;
@@ -275,6 +278,10 @@ class ForestTree {
 		this.stderr = stderr;
 		this.color = color;
 		this.shape = shape;
+		this.confInterval = new float[2];
+		this.confInterval[0] = (float) (beta - 1.96 * stderr);
+		this.confInterval[1] = (float) (beta + 1.96 * stderr);
+		this.zScore = beta / stderr;
 	}
 
 	public String getLabel() {
@@ -295,5 +302,13 @@ class ForestTree {
 
 	public byte getShape() {
 		return shape;
+	}
+
+	public float[] getConfInterval() {
+		return confInterval;
+	}
+
+	public float getzScore() {
+		return zScore;
 	}
 }
