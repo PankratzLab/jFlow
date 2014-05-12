@@ -8,9 +8,9 @@ meanR_AB<0.2;NaN->1	AB R mean < 0.2
 HetEx>0.1;NaN->0&Chr<23	Het excess > 0.1
 HetEx<-0.9;NaN->0&Chr<23	Het excess < -0.9
 meanTheta_AA>=0.2;NaN->0	AA theta mean > 0.2
-meanTheta_BB<=0.8;NaN->0	BB theta mean < 0.8
-meanTheta_AB<=0.3;NaN->0	AB theta mean < 0.3
-meanTheta_AB>=0.7;NaN->0	AB theta mean > 0.7
+meanTheta_BB<=0.8;NaN->1	BB theta mean < 0.8
+meanTheta_AB<=0.3;NaN->0.5	AB theta mean < 0.3
+meanTheta_AB>=0.7;NaN->0.5	AB theta mean > 0.7
 sdTheta_AA>0.025;NaN->0	AA theta deviation > 0.025
 sdTheta_AB>0.07;NaN->0	AB theta deviation = 0.07
 sdTheta_BB>0.025;NaN->0	BB theta deviation > 0.025
