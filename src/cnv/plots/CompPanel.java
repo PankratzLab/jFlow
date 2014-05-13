@@ -348,8 +348,9 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 			int loc2 = (int) (mouseBase + rightBases);
 
 			// Zoom in
-			if (loc1 > loc2) {
-				// We've wrapped, don't zoom any further
+			if ((loc2 - loc1) < 100) {
+				// Don't zoom in further than a 100bp window.
+				// Otherwise we can get caught in a position where the width never changes and we can't zoom back out again.
 			} else {
 				newLocation[1] = loc1;
 				newLocation[2] = loc2;
