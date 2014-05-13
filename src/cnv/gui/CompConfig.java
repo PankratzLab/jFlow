@@ -388,6 +388,10 @@ class CNVPanel extends JPanel implements ActionListener {
 		probes.setText("");
 		score.setText("");
 		trailerButton.setEnabled(false);
+		selectAll.setVisible(false);
+		selectNone.setVisible(false);
+		cnvScroll.setVisible(false);
+
 		if (cnvList != null) {
 			cnvPanel.remove(cnvList);
 			cnvListLabel.setText("");
