@@ -484,7 +484,7 @@ public class ParseIllumina implements Runnable {
 						"If you would like to start from scratch, select \"Delete All\" earlier files.\n"+
 						"Otherwise, press cancel.\n"+
 						"What would you like to do?"
-					, "Marker data exists", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[2]);
+					, "Marker data exists", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[1]);
 
 				switch (response) {
 				case -1:
