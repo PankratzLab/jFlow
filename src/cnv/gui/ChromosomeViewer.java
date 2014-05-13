@@ -30,6 +30,10 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 	float scalingFactor;
 	private ArrayList<GeneRectangle> geneRects;
 	private GeneData[] oldGenes;
+	private int height = 10;
+	private int chromosomeRowStart = 0;
+	private int geneNameRowStart = (height * 2) + 2;
+	private int rulerRowStart = geneNameRowStart + 2;
 
 	public ChromosomeViewer(int chr, int start, int stop, GeneTrack gt) {
 		chromosome = chr;
@@ -68,10 +72,6 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 		int[][] exons;
 		Vector<Segment> v = new Vector<Segment>();
 		int width, begin, end;
-		int height = 10;
-		int chromosomeRowStart = 0;
-		int geneNameRowStart = (height * 2) + 2;
-		int rulerRowStart = geneNameRowStart + 2;
 		int lastNameEnd = 0;
 
 		if (track == null) {
@@ -137,6 +137,8 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 				int numTicks = 10;
 				int tickBottom = rulerRowStart + height;
 				int tickScale = (stopPosition - startPosition) / numTicks;
+
+				g.fillRect(getX(startPosition), rulerRowStart, getWidth(), 2);
 
 				for (int i = 0; i <= numTicks; i++) {
 					int tickPos = startPosition + (i * tickScale);
@@ -225,8 +227,10 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 
 		// Set the tooltip based on what we're over
 		if (toolTipText.equals("")) {
-			// Set the tooltip to the current position
-			setToolTipText(Integer.toString(getPos(e.getX())));
+			if (e.getY() > rulerRowStart) {
+				// Set the tooltip to the current position if we're inside the ruler
+				setToolTipText(Integer.toString(getPos(e.getX())));
+			}
 		} else {
 			// Set the tooltip to the current gene
 			setToolTipText(toolTipText);
