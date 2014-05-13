@@ -79,7 +79,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 		}
 
 		try {
-			if (track != null && stopPosition - startPosition < 10000000) {
+			if (track != null) {
 				genes = track.getBetween(chromosome, startPosition, stopPosition, 30);
 				if (!Arrays.equals(genes, oldGenes)) {
 					// We've changed the list of genes, so update the rectangles list as we create them
