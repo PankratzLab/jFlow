@@ -268,14 +268,14 @@ public class ForestPanel extends AbstractPanel {
 				sigFigs = getNumSigFig(plotMinMaxStep[2]);
 				for (double y = plotMinMaxStep[3]; y <= plotYmax; y += plotMinMaxStep[2]) {
 					if ((y >= plotYmin && y == (int) y && y <= points.length && y > 0) || !truncate) {
-						Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
+						//Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
 						str = str.split("\\.")[0];
 						str = points[Integer.parseInt(str) - 1].getId();
 						g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 - 5, getYPixel(y) + 9);
 					}
 				}
-				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS / 2.0), AXIS_THICKNESS, Color.BLACK);
+				//Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS / 2.0), AXIS_THICKNESS, Color.BLACK);
 
 				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
 				gfx = yLabel.createGraphics();
