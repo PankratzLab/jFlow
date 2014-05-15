@@ -258,7 +258,7 @@ public class Emmax {
 		"   (9) (optional) qsub memory size (i.e. qsubmem=" + qsubMemInMBs + " (default; in megabytes))\n" +
 		"   (10) (optional) qsub walltime (i.e. qsubwalltime=" + qsubWalltimeInHours + " (default; in hours))\n" +
 		"Or\n" +
-		"   (1) to parse results (i.e. parsereslt=" + isParseResults + " (default))\n" +
+		"   (1) to parse results (i.e. parseresult=" + isParseResults + " (default))\n" +
 		"   (2) directory of the results to parse (i.e. outdir=" + outDir + " (default))\n" +
 		"   (3) threshold for significant p-value (i.e. psig=" + psig + " (default))\n" +
 		"";

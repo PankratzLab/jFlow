@@ -119,14 +119,45 @@ public class Files {
 		}
 	}
 	
+	private static void writeQsubHeader(PrintWriter writer, String filename, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String nodeToUse) {
+		Vector<String> params;
+		int hours, minutes;
+
+		writer.println("#!/bin/bash");
+        writer.println("#$ -cwd");
+        writer.println("#$ -S /bin/bash");
+        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
+        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
+        params = new Vector<String>();
+        if (totalMemoryRequestedInMb > 0) {
+        	params.add("mem="+totalMemoryRequestedInMb+"mb");
+        }
+        if (walltimeRequestedInHours > 0) {
+        	hours = (int)Math.floor(walltimeRequestedInHours);
+        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
+        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
+        }
+        params.add("nodes=1:ppn="+numProcs);
+        if (params.size() > 0) {
+	        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
+        	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
+        }
+
+        
+        if (nodeToUse != null) {
+	        writer.println("#$ -q *@"+nodeToUse);
+        }
+		writer.println();
+		writer.println("echo \"start "+ext.rootOf(filename)+" at: \" `date`");
+		writer.println("/bin/hostname");
+		
+	}
 	
 	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int totalMemoryRequestedInMb, double walltimeRequestedInHours, String nodeToUse) {
 		PrintWriter writer;
 		String filename;
 		String[] lines;
 		Vector<String> v;
-		Vector<String> params;
-		int hours, minutes;
 
 		if (dir == null) {
 			dir = "";
@@ -140,33 +171,7 @@ public class Files {
 			filename = ext.insertNumbers(filenameFormat, i)+(filenameFormat.endsWith(".qsub")?"":".qsub");
 			try {
 				writer = new PrintWriter(new FileWriter(dir+filename));
-		        writer.println("#!/bin/bash");
-		        writer.println("#$ -cwd");
-		        writer.println("#$ -S /bin/bash");
-		        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
-		        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
-		        params = new Vector<String>();
-		        if (totalMemoryRequestedInMb > 0) {
-		        	params.add("mem="+totalMemoryRequestedInMb+"mb");
-		        }
-		        if (walltimeRequestedInHours > 0) {
-		        	hours = (int)Math.floor(walltimeRequestedInHours);
-		        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
-		        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
-		        }
-		        params.add("nodes=1:ppn=1");
-		        if (params.size() > 0) {
-			        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
-		        	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
-		        }
-
-		        
-		        if (nodeToUse != null) {
-			        writer.println("#$ -q *@"+nodeToUse);
-		        }
-				writer.println();
-				writer.println("echo \"start "+ext.rootOf(filename)+" at: \" `date`");
-				writer.println("/bin/hostname");
+				writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, 1, nodeToUse);
 				if (patterns == null) {
 					writer.println(ext.insertNumbers(commands, i));
 				} else {
@@ -197,10 +202,10 @@ public class Files {
 		return Array.toStringArray(v);
 	}
 
+	// TODO get rid of memoryPerProcRequestedInMb at some point
 	public static void qsubMultiple(String chunkFilename, String[] jobs, int numJobsToForce, int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
 		PrintWriter writer;
-		Vector<String> params;
-		int hours, minutes;
+		int numProcs;
 
         if (jobs.length > 16) {
         	System.err.println("Error - not optimized past 16 processes; due some testing and implement");
@@ -209,41 +214,18 @@ public class Files {
 
         try {
     		writer = new PrintWriter(new FileWriter(chunkFilename));
-            writer.println("#!/bin/bash -l");
-            writer.println("#$ -cwd");
-            writer.println("#$ -S /bin/bash");
-	        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
-	        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
-	        params = new Vector<String>();
-	        if (memoryPerProcRequestedInMb > 0) {
-	        	params.add("pmem="+memoryPerProcRequestedInMb+"mb");
-	        }
-	        if (totalMemoryRequestedInMb > 0) {
-	        	params.add("mem="+totalMemoryRequestedInMb+"mb");
-	        }
-            if (walltimeRequestedInHours > 0) {
-            	hours = (int)Math.floor(walltimeRequestedInHours);
-            	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
-            	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
-            }
-            if (jobs.length > 16) {
-            	System.err.println("Error - not optimized past 16 processes; due some testing and implement");
-            } else {
-            	if (numJobsToForce<=0) {
-            		params.add("nodes=1:ppn="+jobs.length);
-            	} else if (numJobsToForce < jobs.length) {
-            		System.err.println("Error - cannot force fewer jobs than are provided ("+numJobsToForce+"<"+jobs.length+")");
-            		writer.close();
-            		return;
-            	} else {
-            		params.add("nodes=1:ppn="+numJobsToForce);
-            	}
-            		
-            }
-            if (params.size() > 0) {
-    	        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
-            	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
-            }
+    		
+        	if (numJobsToForce<=0) {
+        		numProcs = jobs.length;
+        	} else if (numJobsToForce < jobs.length) {
+        		System.err.println("Error - cannot force fewer jobs than are provided ("+numJobsToForce+"<"+jobs.length+")");
+        		writer.close();
+        		return;
+        	} else {
+        		numProcs = numJobsToForce;
+        	}
+			writeQsubHeader(writer, chunkFilename, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs, null);
+
             
             for (int j = 0; j < jobs.length; j++) {
             	writer.println("pbsdsh -n "+j+" "+jobs[j]+" &");
@@ -327,15 +309,13 @@ public class Files {
 		}
 	}
 
-	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations, int memoryRequestedInMb, double walltimeRequestedInHours) {
+	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
 		PrintWriter[] writers;
 		PrintWriter writer;
 		String trav;
 		String[] lines;
 		int index;
 		String dir;
-		Vector<String> params;
-		int hours, minutes;
 
 		if (iterations.length == 0) {
 			System.out.println("No iterations specified for root "+root_batch_name);
@@ -357,28 +337,7 @@ public class Files {
 				}
 				for (int i = 0; i<numBatches; i++) {
 					writers[i] = new PrintWriter(new FileWriter(root_batch_name + "_" + (i+1) + ".qsub"));
-			        writers[i].println("#!/bin/bash");
-			        writers[i].println("#$ -cwd");
-			        writers[i].println("#$ -S /bin/bash");
-			        writers[i].println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
-			        writers[i].println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
-			        params = new Vector<String>();
-			        if (memoryRequestedInMb > 0) {
-			        	params.add("mem="+memoryRequestedInMb+"mb");
-			        }
-			        if (walltimeRequestedInHours > 0) {
-			        	hours = (int)Math.floor(walltimeRequestedInHours);
-			        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
-			        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
-			        }
-			        params.add("nodes=1:ppn=1");
-			        if (params.size() > 0) {
-				        writers[i].println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
-			        	writers[i].println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
-			        }
-					writers[i].println();
-					writers[i].println("echo \"start "+ext.removeDirectoryInfo(root_batch_name)+"_"+(i+1)+" at: \" `date`");
-					writers[i].println("/bin/hostname");
+					writeQsubHeader(writers[i], root_batch_name + "_" + (i+1) + ".qsub", totalMemoryRequestedInMb, walltimeRequestedInHours, 1, null);
 					if (dirToSwitchToBeforeRunning != null) {
 						writers[i].println("cd "+dirToSwitchToBeforeRunning);
 					}
@@ -389,6 +348,7 @@ public class Files {
 			} else {
 //				writer = null;
 				writers[0] = new PrintWriter(new FileWriter(root_batch_name + ".qsub"));
+				writeQsubHeader(writers[0], root_batch_name + ".qsub", totalMemoryRequestedInMb, walltimeRequestedInHours, 1, null);
 			}
 
 
@@ -446,40 +406,15 @@ public class Files {
 		}
 	}
 	
-	public static void qsub(String filename, String command, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numNodes) {
+	public static void qsub(String filename, String command, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs) {
 		PrintWriter writer;
 		String[] lines;
-		Vector<String> params;
-		int hours, minutes;
 
 		lines = command.split("\\n");
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-	        writer.println("#!/bin/bash");
-	        writer.println("#$ -cwd");
-	        writer.println("#$ -S /bin/bash");
-	        writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
-	        writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
-	        params = new Vector<String>();
-	        if (totalMemoryRequestedInMb > 0) {
-	        	params.add("mem="+totalMemoryRequestedInMb+"mb");
-	        }
-	        if (walltimeRequestedInHours > 0) {
-	        	hours = (int)Math.floor(walltimeRequestedInHours);
-	        	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
-	        	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
-	        }
-	        if (numNodes > 0) {
-	        	params.add("nodes=1:ppn="+numNodes);
-	        }
-	        	
-	        if (params.size() > 0) {
-		        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
-	        	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));
-	        }
-			writer.println();
-			writer.println("echo \"start "+ext.rootOf(filename)+" at: \" `date`");
-			writer.println("/bin/hostname");
+			writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs, null);
+
 			for (int j = 0; j<lines.length; j++) {
 				writer.println(lines[j]);
 			}

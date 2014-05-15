@@ -1399,7 +1399,6 @@ public class PlinkData {
 	 *  
 	 * @param genvisisGenotype
 	 * @param chromosome
-	 * @param sex
 	 * @return
 	 */
 	public static byte convertPlinkGenotypeToGenvisis (byte plinkGenotype, byte chromosome) {
@@ -1412,6 +1411,25 @@ public class PlinkData {
 			genvisisGenotype = plinkGenotype;
 		}
 		return genvisisGenotype;
+	}
+
+	/**
+	 * Translate Genvisis genotype genotype to Plink genotype. This is specifically for markers on chromosome X of males.
+	 *  
+	 * @param genvisisGenotype
+	 * @param chromosome
+	 * @return
+	 */
+	public static byte convertGenvisisGenotypeToPlink (byte genvisisGenotype, byte chromosome) {
+		byte plinkGenotype;
+		if (chromosome == 23 && genvisisGenotype == 2) {
+			plinkGenotype = 1;
+		} else if (chromosome == 24 && genvisisGenotype == 2) {
+			plinkGenotype = 1;
+		} else {
+			plinkGenotype = genvisisGenotype;
+		}
+		return plinkGenotype;
 	}
 
 	/**
@@ -1675,8 +1693,11 @@ public class PlinkData {
 
 	/**
 	 * A utility to show the bit maps of several bytes read in from a Plink .bed file.
+	 * 
 	 * @param bedFileName
+	 * @param startByte with 0 meaning the 1st byte, 1 the 2nd, and etc. 
 	 * @param nBytes
+	 * @param log
 	 */
 	public static void showBitMapOfBedFile(String bedFileName, int startByte, int nBytes, Logger log) {
 		RandomAccessFile in;
@@ -1688,7 +1709,7 @@ public class PlinkData {
 			if (nBytes < 3) {
 				nBytes = 10;
 			}
-			if (startByte > 3) {
+			if (startByte >= 3) {
 				readBuffer = new byte[3];
 				in.read(readBuffer);
 				showBitMapOfByteArray(readBuffer, 0, log);
@@ -1929,6 +1950,52 @@ public class PlinkData {
 		return result;
 	}
 
+//	public static String loadBedFile(String bedFileName, int[] markersIndicesInFile, int[] sampIndices) {
+//		String result;
+//		RandomAccessFile in;
+//		int nSampTotallyInBed;
+//		int nBytesPerMarkInBed;
+//		int indexBedBytes;
+//		int indexBedBits;
+//		byte[] bytesOfOneMarkerInBed;
+//		byte[] genotypes;
+//
+//		try {
+//			in = new RandomAccessFile(bedFileName, "r");
+//			//Test the plink file header && Marker Dominant or Sample Dominant?
+//
+//			// Sort the markerList for sequential loading
+//
+//			// Load from bim and fam
+//			nSampTotallyInBed = 0;
+//			nBytesPerMarkInBed = (int) Math.ceil((double) nSampTotallyInBed / 4);
+//
+//			// Load the data
+//			bytesOfOneMarkerInBed = new byte[nBytesPerMarkInBed];
+//			genotypes = new byte[sampIndices.length];
+//			for (int i = 0; i < markersIndicesInProj.length; i++) {
+//				// Should we do sequential reading?
+//				in.seek(3 + i * nBytesPerMarkInBed);
+//				in.read(bytesOfOneMarkerInBed);
+//				for (int j = 0; j < sampIndices.length; j++) {
+//					indexBedBytes = sampIndices[j] / 4;
+//					indexBedBits = sampIndices[i] % 4;
+//					genotypes[j] = decodeLastTwoBitsOfABedByte((byte) (bytesOfOneMarkerInBed[indexBedBytes] >> (indexBedBits * 2)));
+//				}
+//
+//		        result[i] = new MarkerData(allMarkersInProj[markersIndicesInProj[i]], allChrsInProj[markersIndicesInProj[i]], allPositionsInProj[markersIndicesInProj[i]], 0l, null, null, null, null, null, null, null, null, null, genotypes, null);
+//			}
+//
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (Elision e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//
+//		return result;
+//	}
 
 	public static void main (String[] args) {
 		String conversionToRun;

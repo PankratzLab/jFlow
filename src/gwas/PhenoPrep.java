@@ -17,17 +17,25 @@ public class PhenoPrep {
 	private Logger log;
 
 	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, Logger log) {
+		parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outputs, finalHeader, false, false, log);
+	}
+
+	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, Logger log) {
 		if (phenos.length != outputs.length) {
 			log.reportError("Error - number of phenos is not equal to number of outputs.");
 			System.exit(1);
 		} else {
 			for (int i = 0; i < phenos.length; i++) {
-				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outputs[i], finalHeader, log);
+				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, log);
 			}
 		}
 	}
-	  
+
 	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, Logger log) {
+		parse(dir, filename, idColName, pheno, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarList, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outFile, finalHeader, false, false, log);
+	}
+
+	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, boolean addintercept, boolean sort, Logger log) {
 		PhenoPrep prep;
 		String[] covars;
 		
@@ -60,6 +68,11 @@ public class PhenoPrep {
 		
 		if (variablesAllInOneFile && plinkFormat && (idFile == null || !idFile.toLowerCase().endsWith(".fam"))) {
 			log.reportError("Error - you have selected to make a plink FID/IID file with all variables in one file, but have not provided a .fam file");
+			return;
+		}
+
+		if (matchIdOrder && sort) {
+			log.reportError("Error - you have selected both to match IDs order with another source and to sort IDs by ascending order");
 			return;
 		}
 
@@ -117,6 +130,8 @@ public class PhenoPrep {
 			} else {
 				prep.matchIdOrder(idFile);
 			}
+		} else if (sort) {
+			prep.sort();
 		}
 
 		prep.writeFinalFile(dir+outFile, plinkFormat, variablesAllInOneFile, idFile, finalHeader);
@@ -208,6 +223,7 @@ public class PhenoPrep {
 					for (int i = 0; i < line.length; i++) {
 						if (ext.isMissingValue(line[i])) {
 							use = false;
+							break;
 						}
 					}
 					if (use) {
@@ -339,6 +355,10 @@ public class PhenoPrep {
 		
 		database = Matrix.toMatrix(resids);
 		finalHeader = new String[] {finalHeader[0]};		
+	}
+
+	public void sort() {
+		Arrays.sort(finalIDs);
 	}
 
 	public void addExtraColumns(String idColName, String extras) {
@@ -566,6 +586,8 @@ public class PhenoPrep {
 				"# extras=PrincipalComponentsFile.txt",
 				"# match the order of the IDs in the idFile and the final file, using NA for missing data",
 				"match=false",
+				"# sort the IDs in the final file",
+				"sort=false",
 				"# output using FID and IID; FID is obtained from the ID file, which must have a .fam extension",
 				"plinkFormat=false",
 				"# output using FID and IID, same as above, but have all variables in one file",
@@ -692,6 +714,8 @@ public class PhenoPrep {
 		boolean finalHeader = true;
 		boolean variablesAllInOneFile = false;
 		boolean summarizeAll = false;
+		boolean addintercept = false;
+		boolean sort = false;
 
 //		dir = "";
 //		filename = "N:/statgen/BOSS/phenotypes/PhenoPrep/taste/Taste_withOtherIDs.xln";
@@ -763,7 +787,9 @@ public class PhenoPrep {
 				"	(16) output using FID and IID; FID is obtained from the ID file, which must have a .fam extension (i.e. plinkFormat=" + plinkFormat + " (default))\n" +
 				"	(17) use PLINK FID and IID from .fam file, but have all variables in one file (i.e. variablesAllInOneFile=" + variablesAllInOneFile + " (default))\n" +
 				"	(18) include a header with the final file(s) (i.e. finalHeader=" + finalHeader + " (default))\n" +
-				"	(19) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
+				"	(19) add an intercept variable (value equals 1 constantly) as the 3rd column (i.e. addintercept=" + addintercept + " (default))\n" +
+				"	(20) sort the output by the 1st column (i.e. sort=" + sort + " (default))\n" +
+				"	(21) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
 				"  OR:\n" +
 				"	 (6) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n" +
 				"";
@@ -839,6 +865,12 @@ public class PhenoPrep {
 			} else if (args[i].startsWith("-summarizeAll")) {
 				summarizeAll=true;
 				numArgs--;
+			} else if (args[i].startsWith("addintercept=")) {
+				addintercept = ext.parseBooleanArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("sort=")) {
+				sort = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 				if (System.getProperty("os.name").startsWith("Windows")) {
@@ -864,9 +896,9 @@ public class PhenoPrep {
 			if (summarizeAll) {
 				summarizeAll(dir, idColName, phenos, covarsCommaDelimited, idFile);
 			} else if (phenos.contains(",")) {
-				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outputs, finalHeader, log);
+				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outputs, finalHeader, addintercept, sort, log);
 			} else {
-				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outFile, finalHeader, log);
+				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outFile, finalHeader, addintercept, sort, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
