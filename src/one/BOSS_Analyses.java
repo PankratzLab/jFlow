@@ -1,5 +1,6 @@
 package one;
 
+import filesys.Hits;
 import gwas.CreateDatabaseFromPlink;
 
 import java.io.*;
@@ -7,6 +8,10 @@ import java.io.*;
 //import common.*;
 
 import common.CmdLine;
+import common.Files;
+import common.HashVec;
+import common.Logger;
+import common.ext;
 
 public class BOSS_Analyses {
 	public static void generate(String dir) {
@@ -85,15 +90,107 @@ public class BOSS_Analyses {
 		}
 	}
 
+	public static void parseResults(String resultDir, String mafDir, String geneListFileFullPath, Logger log) {
+		String[] filenames = null, array_of_hits, params;
+		String root;
+		Hits hits;
+
+//		filenames = Files.list(dir, ".ps", false);
+		filenames = new File(resultDir).list(new FilenameFilter() {
+			public boolean accept(File file, String filename) {
+				if (! filename.toLowerCase().endsWith(".ps")) {
+					return false;
+				}
+				if (filename.toLowerCase().contains("_hibs")) {
+					return false;
+				}
+				if (new File(file, filename).isDirectory()) {
+					return false;
+				}
+				return true;
+			}
+		});
+
+		if(log==null) {
+			log = new Logger();
+		}
+		if (filenames == null) {
+			log.report("Did not find any .ps file in the directory " + resultDir);
+		} else {
+			hits = new Hits();
+			for (byte i=0; i<filenames.length; i++) {
+				hits.incorporateFromFile(resultDir + filenames[i], new int[] {0,2}, 0.001, log);
+			}
+	
+			hits.writeHits(resultDir + "top_snps.txt");
+			array_of_hits = HashVec.loadFileToStringArray(resultDir + "top_snps.txt", false, new int[] {0}, false);
+	
+			params = new String[filenames.length*2+2];
+//			params[0] = "gene_position.xln 0 1 2 3 4 5 6";
+			params[0] = geneListFileFullPath + " 0 1 2 3 4 5 6 tab";
+			params[1] = resultDir + "top_snps.txt 0 1=minPval skip=0";
+			
+			for (byte i=0; i<filenames.length; i++) {
+				root = ext.rootOf(filenames[i]);
+				params[2+i*2+0] = resultDir + filenames[i]+" 0 1=beta_"+root+" 2=pval_"+root+" skip=0";
+				params[2+i*2+1] = resultDir + root + ".mac 0 1=MAC_"+root;
+	
+				processMACs(mafDir + root + "/mafCheck.frq", resultDir + root + ".mac");
+//				processMACs(dir + "../phenocovars/" + root + "/mafCheck.frq", dir + root + ".mac");
+//				processMACs(dir + root + "/mafCheck.frq", dir + root + ".mac");
+			}
+
+			Files.combine(array_of_hits, params, null, "MarkerName", ".", resultDir+"top_hits.xln", log, true, true, false);
+		}
+	}
+	
+	private static void processMACs(String plinkFrqFile, String outputFile) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+
+		try {
+			writer = new PrintWriter(new FileOutputStream(outputFile));
+			writer.println("SNP\tMAC");
+			reader = new BufferedReader(new FileReader(plinkFrqFile));
+			reader.readLine();
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				writer.println(line[1] + "\t" + (line[4].equalsIgnoreCase("NA")? ".":(int)(Double.parseDouble(line[4]) * Integer.parseInt(line[5]))));
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String dir = "BOSS_Analyses.dat";
+		String dir, resultDir, mafDir, geneListFile;
+		Boolean createGwaf, isGenerate, isStandardize, isParse, isProcessMacs;
+		Logger log;
 	
+		dir = "D:/temp/BOSS/E1/";
+		resultDir = "/home/pankrat2/shared/boss/emmax/prpidsk/results/ver5_newPCs_residual/";
+		mafDir = "/home/pankrat2/shared/boss/emmax/prpidsk/phenocovars/ver5_newPCs_residual/";
+		geneListFile = "/home/pankrat2/shared/boss/emmax/analyzeThis.b36_genes.xln";
+		createGwaf = false;
+		isGenerate = false;
+		isStandardize = false;
+		isParse = true;
+		isProcessMacs = false;
 		String usage = "\n" + 
 		"one.BOSS_Analyses requires 0-1 arguments\n" + 
 		"   (1) directory (i.e. dir=" + dir + " (default))\n" + 
+		"   (2) to parse result (i.e. parseresult=" + isParse + " (default))\n" + 
+		"   (3) result directory (i.e. resultdir=" + resultDir + " (default))\n" + 
+		"   (4) minor allele frequency file directory (i.e. mafdir=" + mafDir + " (default))\n" + 
+		"   (5) gene list file full path (i.e. genelist=" + geneListFile + " (default))\n" + 
 		"";
-	
+
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -101,8 +198,17 @@ public class BOSS_Analyses {
 			} else if (args[i].startsWith("dir=")) {
 				dir = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("resultdir=")) {
+				resultDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("mafdir=")) {
+				mafDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("genelist=")) {
+				geneListFile = args[i].split("=")[1];
+				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
+				System.out.println("Error - invalid argument: " + args[i]);
 			}
 		}
 		if (numArgs != 0) {
@@ -110,15 +216,19 @@ public class BOSS_Analyses {
 			System.exit(1);
 		}
 
-		dir = "D:\\BOSS\\GWAF\\";
 		
-		CreateDatabaseFromPlink.toGWAF(dir+"ICAM1/plink.ped", dir+"ICAM1/plink.map", dir+"ICAM1/plink.frq", null, dir+"ICAM1/gwaf.fhsR");
-		
-		try {
-//			generate(dir);
-//			standardize(dir);
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (createGwaf) {
+			CreateDatabaseFromPlink.toGWAF(dir+"ICAM1/plink.ped", dir+"ICAM1/plink.map", dir+"ICAM1/plink.frq", null, dir+"ICAM1/gwaf.fhsR");
+		} else if (isGenerate) {
+			generate(dir);
+		} else if (isStandardize) {
+			standardize(dir);
+		} else if (isParse) {
+			parseResults(resultDir, mafDir, geneListFile, null);
+		} else if (isProcessMacs) {
+			processMACs(dir + "mafCheck.frq", dir + "minor_allele_counts.xln");
+		} else {
+			System.out.println("Please select a command to run.");
 		}
 	}
 	
