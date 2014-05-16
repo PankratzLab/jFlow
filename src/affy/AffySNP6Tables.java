@@ -207,11 +207,13 @@ public class AffySNP6Tables {
 						}
 					} else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A") || !sigBLine[0].equals(callLine[0] + "-B")) {
 						System.err.println("Error: probeset identifier mismatch between calls/confidence/signal files ");
+						System.exit(1);
 					} else if (!sigReader.ready()) {
 						System.err.println("Error: probeset identifier discordance between calls/confidence/signal files");
 						return;
 					} else {
 						System.err.println("This Should Not Happen");
+						System.exit(1);
 					}
 					callLine = callReader.readLine().trim().split(delimiter, -1);
 					confLine = confReader.readLine().trim().split(delimiter, -1);
