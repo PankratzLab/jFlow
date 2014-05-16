@@ -179,10 +179,10 @@ public class AffyCentroids implements Serializable {
 			SampleList sampleList = proj.getSampleList();
 			String[] samples = sampleList.getSamples();
 			boolean[] samplesToBeUsed = new boolean[samples.length];
-			int use =0;
+			int use = 0;
 			for (int i = 0; i < samples.length; i++) {
 				samplesToBeUsed[i] = !sampleData.individualShouldBeExcluded(samples[i]);
-				if(samplesToBeUsed[i]){
+				if (samplesToBeUsed[i]) {
 					use++;
 				}
 			}
@@ -190,7 +190,7 @@ public class AffyCentroids implements Serializable {
 			parseCentroids(proj, samplesToBeUsed, missingnessThreshold, confThreshold, log);
 		}
 	}
- 
+
 	public static void parseCentroids(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, double confThreshold, Logger log) {
 		String[] samples, markerNames;
 		float[][][] centroids;
@@ -198,12 +198,14 @@ public class AffyCentroids implements Serializable {
 		SampleList sampleList;
 		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
+		SampleData sampleData;
 		long time;
 		MarkerSet markerSet;
 		time = new Date().getTime();
 		log.report("Computing centroids from intensity means");
 		sampleList = proj.getSampleList();
 		samples = sampleList.getSamples();
+		sampleData = proj.getSampleData(0, false);
 		if (samples.length != samplesToBeUsed.length) {
 			log.reportError("Error - mismatched number of samples in project versus sample mask");
 			System.exit(1);
@@ -216,7 +218,7 @@ public class AffyCentroids implements Serializable {
 		time = new Date().getTime();
 		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);
-			centroids[i] = computeCluster(proj, samplesToBeUsed, missingnessThreshold, samples, markerData, i, confThreshold, log);
+			centroids[i] = computeCluster(proj, samplesToBeUsed, missingnessThreshold, samples, sampleData, markerData, i, confThreshold, log);
 			markerDataLoader.releaseIndex(i);
 		}
 		count = 0;
@@ -237,7 +239,7 @@ public class AffyCentroids implements Serializable {
 		log.report("Computation took " + ext.getTimeElapsed(time));
 	}
 
-	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, MarkerData markerData, int i, double confThreshold, Logger log) {
+	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, SampleData sampleData, MarkerData markerData, int i, double confThreshold, Logger log) {
 		float[][] centroid;
 		float[] thetas;
 		float[] rs;
@@ -253,19 +255,19 @@ public class AffyCentroids implements Serializable {
 		meanRs = new double[5];
 		counts = new int[5];
 		boolean use = true;
-
+		confs = markerData.getGCs();
+		genotypes = markerData.getAB_Genotypes();
+		thetas = markerData.getThetas();
+		rs = markerData.getRs();
 		if (!markerName.startsWith("CN_")) {
 			for (int k = 0; k < samples.length; k++) {
 				// use if X chromosome and sex is female, dont use if X chromsome and sex is male
 				// use if Ychromosome and sex is male, dont use if Ychromsome and sex is female
-				use = checkSexMarker(proj, samples[k], markerData);
+				use = checkSexMarker(proj, sampleData.getSexForIndividual(samples[k]), markerData);
 				if (!use || !samplesToBeUsed[k]) {
 					continue;
 				}
-				confs = markerData.getGCs();
-				genotypes = markerData.getAB_Genotypes();
-				thetas = markerData.getThetas();
-				rs = markerData.getRs();
+
 				// maybe alter the confidence checks
 				if (!Float.isNaN(thetas[k]) && !Float.isNaN(rs[k]) && !Float.isNaN(confs[k]) && confs[k] >= confThreshold) {
 					meanThetas[0] += thetas[k];
@@ -282,7 +284,7 @@ public class AffyCentroids implements Serializable {
 			}
 		} else if (markerName.startsWith("CN_")) {
 			// checking sex in log2Array...
-			float[] log2Xs = log2Array(proj, markerData, samplesToBeUsed, samples);
+			float[] log2Xs = log2Array(proj, markerData, samplesToBeUsed, samples, sampleData);
 			// for computing LRR
 			meanRs[2] = median(log2Xs);
 			meanRs[3] = Array.mean(log2Xs);
@@ -314,11 +316,9 @@ public class AffyCentroids implements Serializable {
 		return centroid;
 	}
 
-	private static boolean checkSexMarker(Project proj, String sample, MarkerData markerData) {
-		int sex = 0;
+	private static boolean checkSexMarker(Project proj, int sex, MarkerData markerData) {
 		byte chr;
 		boolean use = true;
-		sex = proj.getSampleData(0, false).getSexForIndividual(sample);
 		chr = markerData.getChr();
 		if ((int) chr == 23 && sex != 2) {
 			use = false;
@@ -364,8 +364,7 @@ public class AffyCentroids implements Serializable {
 			centroid[0] = new float[] { (float) meanThetas[2], (float) meanRs[2] };
 			centroid[1] = new float[] { (float) meanThetas[3], (float) meanRs[3] };
 			centroid[2] = new float[] { (float) (meanThetas[3] + 0.3), getAltRs(centroid, meanRs, counts, 4, 3, 2, log) };
-		}
-		else {
+		} else {
 			assignRegularCentroid(centroid, meanThetas, meanRs, counts, log);
 		}
 		if (centroid[2] != null && (centroid[0][0] > centroid[1][0] || centroid[2][0] < centroid[1][0])) {
@@ -431,12 +430,12 @@ public class AffyCentroids implements Serializable {
 	}
 
 	// only get samps to be used
-	public static float[] log2Array(Project proj, MarkerData markerData, boolean[] samplesToBeUsed, String[] samples) {
+	public static float[] log2Array(Project proj, MarkerData markerData, boolean[] samplesToBeUsed, String[] samples, SampleData sampleData) {
 		float[] xs = markerData.getXs();
 		float[] log2Xs;
 		ArrayList<Float> log2XsAL = new ArrayList<Float>();
 		for (int k = 0; k < xs.length; k++) {
-			if (checkSexMarker(proj, samples[k], markerData) && samplesToBeUsed[k]) {
+			if (checkSexMarker(proj, sampleData.getSexForIndividual(samples[k]), markerData) && samplesToBeUsed[k]) {
 				log2XsAL.add((float) Maths.log2(xs[k]));
 			}
 		}
@@ -480,8 +479,7 @@ public class AffyCentroids implements Serializable {
 			} else if (args[i].startsWith("-FilteredfromGenotypes")) {
 				sampleFilter = true;
 				numArgs--;
-			}
-			else if (args[i].startsWith("compute=")) {
+			} else if (args[i].startsWith("compute=")) {
 				compute = args[i].split("=")[1];
 				numArgs--;
 			}
