@@ -2,16 +2,23 @@ package cnv.plots;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.TreeSet;
 
 import javax.swing.*;
 
+import common.Files;
 import common.Grafik;
 import common.Logger;
+import common.ext;
 
 /**
  * Forest Plot class
- * 
+ *
  * @author Rohit Sinha
  */
 public class ForestPlot extends JPanel {
@@ -23,7 +30,13 @@ public class ForestPlot extends JPanel {
 	private static final String ALT_DOWN = "ALT DOWN";
 	private static final String ALT_LEFT = "ALT LEFT";
 	private static final String ALT_RIGHT = "ALT RIGHT";
-	ArrayList<ForestTree> trees;
+	private static final String BETA_PREFIX = "beta.";
+	private static final String SE_PREFIX = "se.";
+	private  String dataFile;
+	private TreeSet<String> markers;
+	private HashMap<String, Integer> markerToColMap;
+	HashMap<String, ArrayList<ForestTree>> markersToTreesMap;
+	ArrayList<ForestTree> curTrees;
 	String plotLabel;
 	Logger log;
 	ForestPanel forestPanel;
@@ -31,12 +44,28 @@ public class ForestPlot extends JPanel {
 	private JButton flipButton, invXButton, invYButton;
 	private boolean flipStatus, xInvStatus, yInvStatus;
 	private JLayeredPane layeredPane;
+	String[] dataFileHeaders;
 
-	public ForestPlot(ArrayList<ForestTree> trees, String plotLabel, Logger log) {
-		this.trees = trees;
-		this.plotLabel = plotLabel;
+	public ForestPlot(String dataFile, String markerFile, Logger log) {
 		this.log = log;
-		this.maxZScore = findMaxZScore();
+		this.dataFile = dataFile;
+		this.markers = readMarkerNames(markerFile);
+		System.out.println(markers.toString());
+		this.dataFileHeaders = Files.getHeaderOfFile(dataFile, this.log);
+		System.out.println(Arrays.toString(dataFileHeaders));
+		markerToColMap = new HashMap<String, Integer>();
+		markersToTreesMap = new HashMap<String, ArrayList<ForestTree>>();
+		try{
+			mapMarkersToCol();
+		} catch(RuntimeException rte){
+			log.reportException(rte);
+		}
+
+		System.out.println(markerToColMap.toString());
+
+		loadTrees();
+
+		setCurTree(markers.first());
 
 		setLayout(new BorderLayout());
 
@@ -119,20 +148,104 @@ public class ForestPlot extends JPanel {
 		// generateShortcutMenus();
 	}
 
+	private void setCurTree(String markerName) {
+		curTrees = markersToTreesMap.get(markerName);
+		maxZScore = findMaxZScore();
+		plotLabel = markerName;
+	}
+
+	private void loadTrees() {
+		BufferedReader dataReader = Files.getReader(dataFile, false,true, log, true);
+		String delimiter = Files.determineDelimiter(dataFile, log);
+		try {
+			dataReader.readLine();	// skip headers
+
+			while(dataReader.ready()){
+				String readLine = dataReader.readLine();
+				String readData[] = readLine.split(delimiter);
+				if(markers.contains(readData[1])){
+					getAllTrees(readData);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void getAllTrees(String[] readData) {
+		if(markersToTreesMap.containsKey(readData[1])){
+			throw new RuntimeException("Malformed Data File: Duplicate marker name found");
+		} else {
+			markersToTreesMap.put(readData[1], getTrees(readData));
+		}
+	}
+
+	private ArrayList<ForestTree> getTrees(String[] readData) {
+		ArrayList<ForestTree> trees = new ArrayList<ForestTree>();
+		for(String studyName : markerToColMap.keySet()){
+			float beta = ext.isValidDouble(readData[markerToColMap.get(studyName)]) ? Float.parseFloat(readData[markerToColMap.get(studyName)]) : 0.0f;
+			float stderr =  ext.isValidDouble(readData[markerToColMap.get(studyName) + 1]) ? Float.parseFloat(readData[markerToColMap.get(studyName) + 1]) : 0.0f;
+			trees.add(new ForestTree(studyName, beta, stderr,  0, PlotPoint.FILLED_CIRCLE));
+		}
+		return trees;
+	}
+
+	private void mapMarkersToCol() throws RuntimeException {
+
+		for (int i = 0; i < dataFileHeaders.length; i++) {
+			if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
+				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)) {
+					if (markerToColMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
+						throw new RuntimeException("Malformed data file: Duplicate study name found in file");
+					} else {
+						markerToColMap.put(dataFileHeaders[i].split("\\.")[1], i);
+					}
+				} else {
+					throw new RuntimeException("Malformed data file: SE is not present after Beta for: " + dataFileHeaders[i]);
+				}
+			}
+		}
+	}
+
+	private TreeSet<String> readMarkerNames(String markerFile) {
+		TreeSet<String> markerNames = new TreeSet<String>();
+		BufferedReader markerReader = Files.getReader(markerFile, false, true, true);
+
+		try {
+			while (markerReader.ready()) {
+				markerNames.add(markerReader.readLine().trim());
+			}
+		} catch (IOException e) {
+			log.reportException(e);
+		}
+		return markerNames;
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = "ForestPlot.dat";
+		String betaSource = "SeqMeta_results.csv";
+		String markerList = "markersToDisplay.txt";
+		String sourceType = "SeqMeta";
 		String logfile = null;
 		final Logger log;
 
-		String usage = "\n" + "cnv.plots.ForestPlot requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "cnv.plots.ForestPlot requires 3 arguments\n" +
+				"(1) Name of the file with betas and standard errors (i.e. betaSource=" + betaSource +"(default))\n" +
+				"(2) File type (i.e. type=" + sourceType +" (default))" +
+				"(3) Name of the file with the list of markers to display (i.e. markerList="+ markerList +" (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
+			} else if (args[i].startsWith("betaSource=")) {
+				betaSource = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("type=")) {
+				sourceType = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("markerList=")) {
+				markerList = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -147,9 +260,12 @@ public class ForestPlot extends JPanel {
 		}
 		try {
 			log = new Logger(logfile);
+
+			final String finalDataFile = betaSource;
+			final String finalMarkerFile = markerList;
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					createAndShowGUI(getTrees(), "rs12338", log);
+					createAndShowGUI(finalDataFile, finalMarkerFile, log);
 				}
 			});
 		} catch (Exception e) {
@@ -157,7 +273,7 @@ public class ForestPlot extends JPanel {
 		}
 	}
 
-	public static void createAndShowGUI(ArrayList<ForestTree> trees, String plotLabel, Logger log) {
+	public static void createAndShowGUI(String dataFile, String markerFile, Logger log) {
 
 		// Create and set up the window.
 		JFrame frame = new JFrame("Forest Plot");
@@ -165,7 +281,7 @@ public class ForestPlot extends JPanel {
 
 		// Create and set up the content pane.
 		log.report("Creating new Forest Plot object");
-		ForestPlot forestPlot = new ForestPlot(getTrees(), plotLabel, log);
+		ForestPlot forestPlot = new ForestPlot(dataFile, markerFile, log);
 		// frame.setJMenuBar(twoDPlot.menuBar());
 		forestPlot.setOpaque(true); // content panes must be opaque
 		frame.setContentPane(forestPlot);
@@ -177,14 +293,14 @@ public class ForestPlot extends JPanel {
 		frame.setVisible(true);
 	}
 
-	public static ArrayList<ForestTree> getTrees() {
-		ArrayList<ForestTree> trees = new ArrayList<ForestTree>();
-		trees.add(new ForestTree("PROGENI/GenePD", 0.296154f, 0.0834038f, 0, PlotPoint.FILLED_CIRCLE));
-		trees.add(new ForestTree("NGRC", 0.105856f, 0.0559677f, 0, PlotPoint.FILLED_CIRCLE));
-		trees.add(new ForestTree("23andMe", 0.213202f, 0.027064f, 0, PlotPoint.FILLED_CIRCLE));
-		trees.add(new ForestTree("Summary", 0.156191625f, 0.022027313f, 0, PlotPoint.FILLED_CIRCLE));
-		return trees;
-	}
+//	public static ArrayList<ForestTree> getTrees() {
+//		ArrayList<ForestTree> trees = new ArrayList<ForestTree>();
+//		trees.add(new ForestTree("PROGENI/GenePD", 0.296154f, 0.0834038f, 0, PlotPoint.FILLED_CIRCLE));
+//		trees.add(new ForestTree("NGRC", 0.105856f, 0.0559677f, 0, PlotPoint.FILLED_CIRCLE));
+//		trees.add(new ForestTree("23andMe", 0.213202f, 0.027064f, 0, PlotPoint.FILLED_CIRCLE));
+//		trees.add(new ForestTree("Summary", 0.156191625f, 0.022027313f, 0, PlotPoint.FILLED_CIRCLE));
+//		return trees;
+//	}
 
 	public float getMaxZScore() {
 		return maxZScore;
@@ -192,7 +308,7 @@ public class ForestPlot extends JPanel {
 
 	private float findMaxZScore() {
 		float max = Float.MIN_VALUE;
-		for (ForestTree tree : trees) {
+		for (ForestTree tree : curTrees) {
 			max = Math.max(max, tree.getzScore());
 		}
 		return max;
@@ -296,7 +412,7 @@ class ForestTree {
 		this.confInterval = new float[2];
 		this.confInterval[0] = (float) (beta - 1.96 * stderr);
 		this.confInterval[1] = (float) (beta + 1.96 * stderr);
-		this.zScore = beta / stderr;
+		this.zScore = stderr == 0.0f ? 0.0f : beta / stderr;
 	}
 
 	public String getLabel() {
