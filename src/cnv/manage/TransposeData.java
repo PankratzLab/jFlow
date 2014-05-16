@@ -299,7 +299,7 @@ public class TransposeData {
 	}
 
 
-	private static int[] getOptimizedFileAndBufferSize(int numMarkers_WriteBuffer, int numMarkers_Proj, int numBytes_Mark, int numMarkers_File) {
+	public static int[] getOptimizedFileAndBufferSize(int numMarkers_WriteBuffer, int numMarkers_Proj, int numBytes_Mark, int numMarkers_File) {
 		int numMarkers1_File;
 		int numMarkers1_WriteBuffer;
 		int numMarkers1_Chunk;
@@ -946,8 +946,8 @@ public class TransposeData {
 		boolean lookup = false;
 
 //		recreateMarkerLookup(new Project("C:/workspace/Genvisis/projects/practice.properties", false));
-		reverseTranspose(new Project("C:/workspace/Genvisis/projects/practice.properties", false), new Logger());
-		System.exit(0);
+		//reverseTranspose(new Project("C:/workspace/Genvisis/projects/practice.properties", false), new Logger());
+		//System.exit(0);
 
 		String usage = "\n"+
 		"TransposeData requires 0-1 arguments\n"+
