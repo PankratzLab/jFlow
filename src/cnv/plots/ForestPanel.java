@@ -13,22 +13,22 @@ import common.*;
 
 /**
  * Forest Panel
- * 
+ *
  * @author Rohit Sinha
  */
 public class ForestPanel extends AbstractPanel {
 
 	public static final Color[] DEFAULT_COLORS = { new Color(33, 31, 53), // dark dark
-	new Color(23, 58, 172), // dark blue
-	new Color(201, 30, 10), // deep red
-	new Color(140, 20, 180), // deep purple
-	new Color(33, 87, 0), // dark green
-	new Color(55, 129, 252), // light blue
-	new Color(94, 88, 214), // light purple
-	new Color(189, 243, 61), // light green
-	new Color(217, 109, 194), // pink
-	new Color(0, 0, 128), // ALL KINDS OF BLUES
-	new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205), new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205), new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255), new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250), new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230), new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209), new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255), new Color(224, 255, 255),
+			new Color(23, 58, 172), // dark blue
+			new Color(201, 30, 10), // deep red
+			new Color(140, 20, 180), // deep purple
+			new Color(33, 87, 0), // dark green
+			new Color(55, 129, 252), // light blue
+			new Color(94, 88, 214), // light purple
+			new Color(189, 243, 61), // light green
+			new Color(217, 109, 194), // pink
+			new Color(0, 0, 128), // ALL KINDS OF BLUES
+			new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205), new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205), new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255), new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250), new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230), new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209), new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255), new Color(224, 255, 255),
 
 	};
 	protected ForestPlot forestPlot;
@@ -58,7 +58,7 @@ public class ForestPanel extends AbstractPanel {
 
 	@Override
 	public void generatePoints() {
-		ArrayList<ForestTree> currentData = forestPlot.trees;
+		ArrayList<ForestTree> currentData = forestPlot.curTrees;
 		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
 		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
 
@@ -66,16 +66,17 @@ public class ForestPanel extends AbstractPanel {
 		lines = new GenericLine[0];
 
 		for (int i = 0; i < currentData.size(); i++) {
-			xAxisValue = currentData.get(i).getConfInterval()[0];
-			yAxisValue = (float) i + 1;
-			PlotPoint leftEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+			if(currentData.get(i).getBeta() != 0 && currentData.get(i).getStderr() != 0){
+				xAxisValue = currentData.get(i).getConfInterval()[0];
+				yAxisValue = (float) i + 1;
+				PlotPoint leftEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
-			xAxisValue = currentData.get(i).getConfInterval()[1];
-			yAxisValue = (float) i + 1;
-			PlotPoint rightEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+				xAxisValue = currentData.get(i).getConfInterval()[1];
+				yAxisValue = (float) i + 1;
+				PlotPoint rightEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
-			linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
-
+				linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
+			}
 			xAxisValue = currentData.get(i).getBeta();
 			yAxisValue = (float) i + 1;
 			tempPoints[i] = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
@@ -86,7 +87,7 @@ public class ForestPanel extends AbstractPanel {
 	}
 
 	private void generateRectangles() {
-		ArrayList<ForestTree> currentData = forestPlot.trees;
+		ArrayList<ForestTree> currentData = forestPlot.curTrees;
 		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
 		rectangles = new GenericRectangle[0];
 
@@ -96,10 +97,12 @@ public class ForestPanel extends AbstractPanel {
 		float yAxisStep = (float) calcStepStep(plotYmax - plotYmin);
 
 		for (int i = 0; i < currentData.size(); i++) {
-			xAxisValue = currentData.get(i).getBeta();
-			yAxisValue = (float) i + 1;
-			float scale = currentData.get(i).getzScore() / forestPlot.getMaxZScore() / 3;
-			rectData.add(new GenericRectangle(xAxisValue - xAxisStep * scale, yAxisValue - yAxisStep * scale, xAxisValue + xAxisStep * scale, yAxisValue + yAxisStep * scale, (byte) 5, true, false, (byte) 0, (byte) 0));
+			if(currentData.get(i).getBeta() != 0 && currentData.get(i).getStderr() != 0){
+				xAxisValue = currentData.get(i).getBeta();
+				yAxisValue = (float) i + 1;
+				float scale = currentData.get(i).getzScore() / forestPlot.getMaxZScore() / 4;
+				rectData.add(new GenericRectangle(xAxisValue - xAxisStep * scale, yAxisValue - yAxisStep * scale, xAxisValue + xAxisStep * scale, yAxisValue + yAxisStep * scale, (byte) 5, true, false, (byte) 0, (byte) 0));
+			}
 		}
 		rectangles = Array.concatAll(rectangles, rectData.toArray(new GenericRectangle[rectData.size()]));
 	}
