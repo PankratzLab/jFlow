@@ -12,8 +12,8 @@ public class MapSNPsAndGenes {
 	public static final String GENES36 = "N:/statgen/NCBI/genes36.xln";
 	public static final String GENES37 = "N:/statgen/NCBI/genes37.xln";
 //	public static final int DEFAULT_WIGGLE_ROOM = 0;
-//	public static final int DEFAULT_WIGGLE_ROOM = 15000;
-	public static final int DEFAULT_WIGGLE_ROOM = 100000;
+	public static final int DEFAULT_WIGGLE_ROOM = 15000;
+//	public static final int DEFAULT_WIGGLE_ROOM = 100000;
 	public static final int UCSC_WINDOW = DEFAULT_WIGGLE_ROOM;
 
 //	public static final String DEFAULT_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\udall\\";

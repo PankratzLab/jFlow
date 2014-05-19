@@ -1,4 +1,3 @@
-// might want to migrate the allele lookup/conversion to a new class since it would apply to Affy data too, same potentially for generateMarkerPositions if markerPositions is used in Affy algorithm
 // "AB_lookup.dat" is necessary if the files do not contain {"Allele1 - AB"}/{"Allele2 - AB}
 package cnv.manage;
 
@@ -53,6 +52,7 @@ public class ParseIllumina implements Runnable {
 
 	public void run() {
 		BufferedReader reader;
+		PrintWriter writer;
 		String[] line;
 		int count, snpIndex, sampIndex, key;
 		String trav;
@@ -196,7 +196,27 @@ public class ParseIllumina implements Runnable {
 					if (fixes.containsKey(sampleName)) {
 						sampleName = fixes.get(sampleName);
 					}
+					
+					writer = null;
+					trav = ext.replaceWithLinuxSafeCharacters(sampleName, true);
+					if (!trav.equals(sampleName)) {
+						if (writer == null) {
+							try {
+								writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+threadId+".txt", true));
+								if (new File(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt").length() == 0) {
+									writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
+								}
+							} catch (Exception e) {
+								System.err.println("Error writing to " + proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+threadId+".txt");
+								e.printStackTrace();
+							}
+						}
+						writer.println(sampleName+"\t"+trav);
+						writer.close();
+						sampleName = trav;
+					}
 
+					
 					filename = determineFilename(proj.getDir(Project.SAMPLE_DIRECTORY, true), sampleName, timeBegan);
 					if (filename == null) {
 						return;
@@ -232,8 +252,6 @@ public class ParseIllumina implements Runnable {
 					}
 				}
 			}
-
-			SampleList.generateSampleList(proj).writeToTextFile(proj.getProjectDir()+"ListOfSamples.txt");
 
 			System.out.println(ext.getTime()+"\tfinished");
 		} catch (Exception e) {
@@ -337,6 +355,7 @@ public class ParseIllumina implements Runnable {
 		String[] filesToDelete;
 		boolean complete;
 		Hashtable<String, Float> allOutliers;
+		Vector<String> v;
 
         timeBegan = new Date().getTime();
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+OVERWRITE_OPTION_FILE).delete();
@@ -622,17 +641,32 @@ public class ParseIllumina implements Runnable {
 			}
 		}
 		
+		SampleList.generateSampleList(proj).writeToTextFile(proj.getProjectDir()+"ListOfSamples.txt");
+
 		allOutliers = new Hashtable<String, Float>();
+
+
+		v = new Vector<String>();
+		
 		for (int i = 0; i<numThreads; i++) {
 			if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").exists()) {
 				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser"));
 				new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").delete();
 			}
+			if (new File(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+i+".txt").exists()) {
+				v.add(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+i+".txt");
+			}
 		}
+		if (v.size() > 0) {
+			Files.cat(Array.toStringArray(v), proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt", Array.intArray(v.size(), 1), log);
+			for (int i = 0; i < v.size(); i++) {
+				new File(v.elementAt(i)).delete();
+			}
+		}
+		
 		if (allOutliers.size()>0) {
 			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
-		
 	}
 
 	public static char[][] getABLookup(boolean abLookupRequired, String[] markerNames, Project proj) {
@@ -661,7 +695,7 @@ public class ParseIllumina implements Runnable {
 		long fingerprint;
 		MarkerSet markerSet;
 		Hashtable<String, Integer> markerIndices;
-		int count;
+		int count, markerCount;
 		char[][] abLookup;
 		String filename;
 		Hashtable<String, Float> allOutliers;
@@ -695,7 +729,11 @@ public class ParseIllumina implements Runnable {
 		CountHash countHash, dupHash;
 		boolean done;
 		
-		count = 0;
+		if (Files.exists(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt")) {
+			Files.backup("FYI_IDS_WERE_CHANGED.txt", proj.getProjectDir(), proj.getProjectDir(), true);
+		}
+		
+		count = markerCount = 0;
 		countHash = new CountHash();
 		dupHash = new CountHash();
 		allOutliers = new Hashtable<String, Float>();
@@ -708,7 +746,7 @@ public class ParseIllumina implements Runnable {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
 
-					System.err.println("Searching: "+Array.toStr(line));
+					System.out.println("Searching: "+Array.toStr(line));
 					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
@@ -752,16 +790,40 @@ public class ParseIllumina implements Runnable {
 									sampleName = fixes.get(sampleName);
 								}
 								
+								trav = ext.replaceWithLinuxSafeCharacters(sampleName, true);
+								if (!trav.equals(sampleName)) {
+									try {
+										writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt", true));
+										if (new File(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt").length() == 0) {
+											writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
+										}
+										writer.println(sampleName+"\t"+trav);
+										writer.close();
+									} catch (Exception e) {
+										System.err.println("Error writing to " + proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt");
+										e.printStackTrace();
+									}
+									sampleName = trav;
+								}
+								
 								filename = determineFilename(proj.getDir(Project.SAMPLE_DIRECTORY, true), sampleName, timeBegan);
 								if (filename == null) {
 									return;
 								}
 								
+								if (markerCount!=markerNames.length) {
+									System.err.println("Error - expecting "+markerNames.length+" markers and only found "+markerCount+" for sample "+sampleName+"; this usually happens when there is truncated input file");
+									System.exit(1);
+								}
+
 								samp = new Sample(sampleName, fingerprint, data, genotypes, false);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
+								
 								count++;
+								markerCount = 0;
 							}
 							if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+								System.err.println("Warning - marker data must be out of order, becaue we're seeing "+trav+" again at line "+count);
 								samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
@@ -836,6 +898,7 @@ public class ParseIllumina implements Runnable {
 									}
 								}
 							}
+							markerCount++;
 						}
 					}
 					reader.close();

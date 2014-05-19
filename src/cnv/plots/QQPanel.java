@@ -21,7 +21,7 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 		this.maxValue = maxValue;
 
 		// taken care of in AbstractPanel constructor
-//		addComponentListener(this);
+		addComponentListener(this);
 		setZoomable(true, true);
 	}
 

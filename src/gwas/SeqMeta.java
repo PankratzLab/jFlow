@@ -84,7 +84,7 @@ public class SeqMeta {
 				remaining.add(files[i]);
 			}
 		}
-		log.report("There are "+v.size()+" .Rdata files remaining to interrogate:\n"+Array.toStr(Array.toStringArray(v), "\n"));
+		log.report("There are "+v.size()+" .Rdata files remaining to interrogate:\n"+Array.toStr(Array.toStringArray(v), "\n")+"\n\n./master.checkObjectAll");
 
 		if (v.size() > 0) {
 			commands = getRscriptExecutable(maps, log)+" --no-save [%0]";
@@ -355,6 +355,8 @@ public class SeqMeta {
 		
 		log.report("");
 		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
+		log.report("Then run ./master.toBeSplit");
+		log.report("And finally SeqMeta -consolidate");
 		
 		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, true, null, -1, 22000, 2);
 	}
@@ -637,10 +639,14 @@ public class SeqMeta {
 
 		Files.writeList(Array.toStringArray(toBeRunIndividually), dir+"master.toBeRunIndividually");
 		Files.chmod(dir+"master.toBeRunIndividually");
-		System.err.println("qsubing multiple individual runs");
+		if (toBeRunIndividually.size() == 1) {
+			log.report("All cohorts have been run for all phenotypes");
+		} else if (toBeRunIndividually.size() == 2) {
+			log.report("There is one remaining individual cohort analysis yet to be run using:   ./master.toBeRunIndividually");
+		} else {
+			log.report("There are "+(toBeRunIndividually.size()-1)+" individual cohort analyses yet to be run using:   ./master.toBeRunIndividually");
+		}
 		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
-		System.err.println("multiple individual runs done");
-
 		
 		jobNames = new Vector<String>();
 		jobSizes = new IntVector();
@@ -802,9 +808,15 @@ public class SeqMeta {
 		}
 		Files.writeList(Array.toStringArray(toBeRunMetad), dir+"master.toBeMetaAnalyzed");
 		Files.chmod(dir+"master.toBeMetaAnalyzed");
-		System.err.println("qsubing multiple meta runs");
+		
+		if (toBeRunMetad.size() == 1) {
+			log.report("All meta-analyses have been run for all phenotypes");
+		} else if (toBeRunMetad.size() == 2) {
+			log.report("There is one meta-analysis yet to be run using:   ./master.toBeMetaAnalyzed");
+		} else {
+			log.report("There are "+(toBeRunMetad.size()-1)+" meta-analyses yet to be run using:   ./master.toBeMetaAnalyzed");
+		}
 		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);
-		System.err.println("multiple meta runs done");
 	}
 
 	public static String[] getHeaderForMethod(String[] method) {
@@ -911,7 +923,8 @@ public class SeqMeta {
 		hash = new Hashtable<String, String>();
 		try {
 			writer = new PrintWriter(new FileWriter(dir+"summary_metrics_list.xln"));
-			writer.println("Study\tRace\tPhenotype\tN_samples\tn_genotyped\tn_MAF1%\tLambda_MAF1%\tbetaMean_MAF1%\tbetaSD_MAF1%\tn_20count\tLambda_20count\tbetaMean_20count\tbetaSD_20count\tn_MAF5%\tLambda_MAF5%\tbetaMean_MAF5%\tbetaSD_MAF5%");
+//			writer.println("Study\tRace\tPhenotype\tN_samples\tn_genotyped\tn_MAF1%\tLambda_MAF1%\tbetaMean_MAF1%\tbetaSD_MAF1%\tn_20count\tLambda_20count\tbetaMean_20count\tbetaSD_20count\tn_MAF5%\tLambda_MAF5%\tbetaMean_MAF5%\tbetaSD_MAF5%");
+			writer.println("Study\tRace\tPhenotype\tN_samples\tn_genotyped\tn_MAF1%\tLambda_MAF1%\tbetaMedian_MAF1%\tbetaSD_MAF1%\tn_20count\tLambda_20count\tbetaMedian_20count\tbetaSD_20count\tn_MAF5%\tLambda_MAF5%\tbetaMedian_MAF5%\tbetaSD_MAF5%");
 			for (int j = 0; j < studies.length; j++) {
 				for (int k = 0; k < races.length; k++) {
 					for (int i = 0; i < phenotypes.length; i++) {
@@ -1070,15 +1083,15 @@ public class SeqMeta {
 				metrics[1] = count+"";
 				metrics[2] = dvs[0].size()+"";
 				metrics[3] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(dvs[0].toArray()), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[4] = ext.formDeci(Array.mean(dvs[1].toArray()), 6);
+				metrics[4] = ext.formDeci(Array.median(dvs[1].toArray()), 6);
 				metrics[5] = ext.formDeci(Array.stdev(dvs[1].toArray()), 6);
 				metrics[6] = dvs[2].size()+"";
 				metrics[7] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(dvs[2].toArray()), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[8] = ext.formDeci(Array.mean(dvs[3].toArray()), 6);
+				metrics[8] = ext.formDeci(Array.median(dvs[3].toArray()), 6);
 				metrics[9] = ext.formDeci(Array.stdev(dvs[3].toArray()), 6);
 				metrics[10] = dvs[4].size()+"";
 				metrics[11] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(dvs[4].toArray()), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[12] = ext.formDeci(Array.mean(dvs[5].toArray()), 6);
+				metrics[12] = ext.formDeci(Array.median(dvs[5].toArray()), 6);
 				metrics[13] = ext.formDeci(Array.stdev(dvs[5].toArray()), 6);
 			} else {
 				log.reportError("Error - unexpected header for file '"+outputFilename+"' : "+temp);
@@ -1576,7 +1589,7 @@ public class SeqMeta {
 				}
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[g]+"_parser.crf"));
-					writer.println("hits");
+					writer.println("lookup");
 					writer.println(phenotypes[i][0]+"_hitters.dat 0 out="+dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_"+groups[g]+".csv");
 					writer.println(Array.toStr(Array.toStringArray(groupParams.get(groups[g])), "\n"));
 					writer.close();

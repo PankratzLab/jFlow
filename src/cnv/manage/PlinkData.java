@@ -1227,6 +1227,9 @@ public class PlinkData {
 //					dna.add(null);
 				} else if (ext.indexOfStr(line[6], allSamples) == -1) {
 					log.reportError("Warning - sample '" + line[6] + "' from '" + proj.getFilename(Project.PEDIGREE_FILENAME) + "' is not found in the project's list of samples, and is ignored.");
+					if (line.length != 7) {
+						log.reportError("      check to make sure that there are no spaces in your IDs; as this will be parsed as a new column; for example there are "+line.length+" columns here, and we only want 7");
+					}
 					//dna.add(null);
 				} else {
 					dna.add(line[6]);

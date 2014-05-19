@@ -586,7 +586,11 @@ public class Sample implements Serializable {
 					writeBuffer = new byte[ Math.min(Integer.MAX_VALUE, bytesRemained) ];
 				}
 				if (gcs != null) {
-					Compression.gcBafCompress(gcs[j], writeBuffer, writeBufferIndex);
+					try {
+						Compression.gcBafCompress(gcs[j], writeBuffer, writeBufferIndex);
+					} catch (Elision e) {
+						System.err.println("Error - problem saving sampleRAF file '"+filename+"' for sample "+sampleName+" since the marker in index "+j+" has a GC value of "+gcs[j]+"; in the past this has happened if the final report file was truncated and did not contain all of the markers");
+					}
 					writeBufferIndex += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 				}
 				if (xs != null) {

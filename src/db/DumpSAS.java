@@ -428,7 +428,7 @@ public class DumpSAS {
 			}
     		try {
 				writer = new PrintWriter(new FileWriter(crffile));
-				writer.println("hits");
+				writer.println("lookup");
 				writer.println(idfile+" head=IID out="+outfile);
 				masterIDs = new Hashtable<String, String>();
 	    		for (int i = 0; i < files.size(); i++) {

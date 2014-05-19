@@ -90,9 +90,9 @@ public class QQPlot extends JFrame implements ActionListener {
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
-//		unnecessary leads to a double rendering
-//		panelA.createImage();
-//		panelA.updateUI();
+//		I thought this lead to an unnecessary double rendering, but then didn't get anything to view
+		panelA.createImage();
+		panelA.updateUI();
 //		panelB.createImage();
 //		panelB.updateUI();
 	}

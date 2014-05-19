@@ -2544,23 +2544,29 @@ public class Files {
 	    }	
 	}
 	
-	public static void makeQsub(String filename, boolean multiple, int start, int stop, boolean separate, String[] patterns) {
+	public static void makeQsub(String filename, boolean multiple, int start, int stop, boolean separate, String[] patterns, boolean changeToCurrentWorkingDirectoryFirst) {
 		String[] lines, qsubs;
 		Vector<String> v;
 		
 		lines = HashVec.loadFileToStringArray(filename, false, false, null, false);
 		
 		if (multiple) { // could be more elegant and incorporated with those below if desired
+			if (changeToCurrentWorkingDirectoryFirst) {
+				lines = Array.addStrToArray("cd "+ext.pwd(), lines);
+			}
 			qsubMultiple(filename+"_multiple", lines, -1, -1, 5000, 12);
 		} else if (separate) {
 			v = new Vector<String>();
 			for (int i = 0; i < lines.length; i++) {
-				qsubs = qsub("", ext.rootOf(filename)+(i+1)+".#", start, stop, lines[i], patterns, 5000, 24, null);
+				qsubs = qsub("", ext.rootOf(filename)+(i+1)+".#", start, stop, (changeToCurrentWorkingDirectoryFirst?"cd "+ext.pwd()+"\n":"")+lines[i], patterns, 5000, 24, null);
 				v.add(qsubs[0]);
 			}
 			writeList(Array.toStringArray(v), "master."+ext.rootOf(filename));
 			Files.chmod("master."+ext.rootOf(filename));
 		} else {
+			if (changeToCurrentWorkingDirectoryFirst) {
+				lines = Array.addStrToArray("cd "+ext.pwd(), lines);
+			}
 			qsubs = qsub("", ext.rootOf(filename)+"#", start, stop, Array.toStr(lines, "\n"), patterns, 5000, 24, null);
 			if (qsubs.length > 1) {
 				writeList(qsubs, "master."+ext.rootOf(filename));
@@ -2754,6 +2760,7 @@ public class Files {
 		String dir = null;
 		String outfile = null;
 		boolean multiple = false;
+		boolean cwd = false;
 		
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
@@ -2763,6 +2770,7 @@ public class Files {
 		"   (4) (optional) chr/rep to end with (i.e. stop=" + stop + " (default))\n" + 
 		"   (5) separate each line into a separate file (i.e. separate=" + separate + " (default))\n" +
 		"   (6) (optional) don't stop until plug is pulled, counting based on patterns (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n" +
+		"   (7) (optional) change to current working directory at the top of [each] script (i.e. -cwd (not the default))\n" +
 		"  OR\n" +
 		"   (1) find next rep safely (i.e. -nextRep (not the default))\n" +
 		"   (2) (required) patterns to match when incrementing rep (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n" +
@@ -2800,6 +2808,9 @@ public class Files {
 				numArgs--;
 			} else if (args[i].startsWith("patterns=")) {
 				patterns = args[i].substring(args[i].indexOf("=")+1).split(",");
+				numArgs--;
+			} else if (args[i].startsWith("-cwd")) {
+				cwd = true;
 				numArgs--;
 			} else if (args[i].startsWith("-nextRep")) {
 				findNextRep = true;
@@ -2859,7 +2870,7 @@ public class Files {
 			if (findNextRep && patterns !=null) {
 				System.out.println(findNextRepSafely(patterns, numDigits, lastKnownRep, patienceInMilliseconds));
 			} else if (filename != null) {
-				makeQsub(filename, multiple, start, stop, separate, patterns);
+				makeQsub(filename, multiple, start, stop, separate, patterns, cwd);
 			} else if (transpose != null) {
 				transpose(transpose, commaDelimitedIn?",":"\t", outfile, commaDelimitedOut?",":"\t");
 			} else if (dir != null) {
