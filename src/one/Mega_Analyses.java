@@ -238,7 +238,7 @@ public class Mega_Analyses {
 		filename = DIR+"parseAlleles.crf";
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			writer.println("hits");
+			writer.println("lookup");
 			writer.println("allAutosomalVariants.txt out=alleleFreqInput.xln lessMemoryButSlower keepIntermediateFiles");
 			for (int i = 0; i < STUDIES.length; i++) {
 				writer.println("files/"+STUDIES[i][1]+" 0 4="+STUDIES[i][0]+"_A1 5="+STUDIES[i][0]+"_A2 6="+STUDIES[i][0]+"_freq $#"+STUDIES[i][2]+"="+STUDIES[i][0]+"_N 8="+STUDIES[i][0]+"_Rsq");
@@ -543,7 +543,7 @@ public class Mega_Analyses {
 		filename = DIR+"parsePs.crf";
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			writer.println("hits");
+			writer.println("lookup");
 //			writer.println("hits.txt out=hitsLookSee.xln");
 			writer.println("allAutosomalVariants.txt out=allPvals.xln");
 			for (int i = 0; i < STUDIES.length; i++) {

@@ -146,6 +146,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		long time;
 
 		this.proj = proj;
+		log = proj.getLog();
 		jar = proj.getJarStatus();
 		cnvFilenames = filenames;
 		fail = false;
@@ -1094,16 +1095,22 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		BufferedReader reader;
         Vector<String[]> v;
         String[] line;
-        int ignoredLines;
+        int ignoredLines, countMissingRegions, invalidSamples;
 		
 		try {
 			reader = Files.getReader(regionsList[regionsListIndex], jar, false, false);
 			System.out.print("Loading regions from "+regionsList[regionsListIndex]+"...");
 	        v = new Vector<String[]>();
-	        ignoredLines = 0;
+	        ignoredLines = countMissingRegions = invalidSamples = 0;
             while (reader.ready()) {
             	line = reader.readLine().trim().split("\t");
-            	if (line.length > 1 && line[1].startsWith("chr")) {
+            	if (sampleData.lookup(line[0]) == null) {
+            		log.reportError("Error - '"+line[0]+"' is not a valid sample id");
+            		invalidSamples++;
+            	} else if (line.length == 1) {
+            		v.add(new String[] {line[0], "chr1"});
+            		countMissingRegions++;
+            	} else if (line.length > 1 && line[1].startsWith("chr")) {
             		v.add(line);
             	} else {
             		ignoredLines++;
@@ -1111,6 +1118,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             }
             System.out.println(" loaded "+v.size()+" regions");
             regions = Matrix.toStringArrays(v);
+            if (invalidSamples > 0) {
+            	JOptionPane.showMessageDialog(null, "Error - there were "+invalidSamples+" invalid samples in '"+regionsList[regionsListIndex]+"' that were ignored because they could not be found", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            if (countMissingRegions > 0) {
+            	JOptionPane.showMessageDialog(null, "Warning - there were "+countMissingRegions+" lines in '"+regionsList[regionsListIndex]+"' without a chromosomal region listed; using \"chr1\" for all missing values", "Warning", JOptionPane.ERROR_MESSAGE);
+            }
             if (ignoredLines > 1) {
             	JOptionPane.showMessageDialog(null, "Error - there were "+ignoredLines+" regions in '"+regionsList[regionsListIndex]+"' that were ignored due to improper formatting", "Error", JOptionPane.ERROR_MESSAGE);
             }

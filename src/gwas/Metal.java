@@ -594,7 +594,7 @@ public class Metal {
 			indices = params.elementAt(1).trim();
 			try {
 				writer = new PrintWriter(new FileWriter(newControlFile));
-				writer.println("hits");
+				writer.println("lookup");
 				writer.println("TBD");
 				for (int j = 2; j < params.size(); j++) {
 					line = params.elementAt(j).trim().split("[\\s]+");

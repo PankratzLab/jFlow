@@ -123,6 +123,8 @@ public class Qc {
 		dir = "D:/Logan/Osteosarcoma/cases_only/";
 //		dir = "D:/Logan/Osteosarcoma/fullGamut_high_quality_white_parents_only/";
 		dir = "D:/data/WinterHillsCombo/QC/";
+		dir = "D:/data/Poynter/QC/";
+		dir = "D:/BOSS/IBC_meta_analyses/Lipids_GxG/SecondRun/newlyCleanedGenotypeCalls/QC/";
 		keepGenomeInfoForRelatedsOnly = false;
 
 		String usage = "\n" +

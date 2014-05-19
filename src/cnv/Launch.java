@@ -382,7 +382,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //						if () {
 //							
 //						}
-//					success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
+					success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
 					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.getLog());
 					if (success) {
 						try {
