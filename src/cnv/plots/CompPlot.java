@@ -46,7 +46,7 @@ public class CompPlot extends JFrame {
 	// public static final String DEFAULT_LOCATION = "chr6:161,590,461-163,364,497"; // PARK2
 	public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
 
-	public static Color[] colorScheme = { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.ORANGE };
+	public static Color[] colorScheme = { Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.YELLOW };
 
 	Project proj;
 	private String[] files;
