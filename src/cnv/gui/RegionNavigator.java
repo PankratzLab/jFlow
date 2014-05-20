@@ -106,8 +106,9 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		}
 		add(UCSCButton);
 
+		BEDButton = new JButton("Upload to UCSC");
 		if (Desktop.isDesktopSupported()) {
-			BEDButton = new JButton("Upload to UCSC");
+			BEDButton.setToolTipText("Generate and upload a .BED file to UCSC");
 			BEDButton.addActionListener(this);
 			BEDButton.setEnabled(true);
 		} else {

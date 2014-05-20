@@ -158,6 +158,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	}
 
 	// Monitor the sliders for changes
+	@Override
 	public void stateChanged(ChangeEvent arg0) {
 		JSlider source = (JSlider) arg0.getSource();
 		if (source.equals(probesSlider)) {
@@ -184,6 +185,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	}
 
 	// Monitor the combobox for changes
+	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		@SuppressWarnings("unchecked")
 		JComboBox<String> cb = (JComboBox<String>) arg0.getSource();
@@ -261,6 +263,7 @@ class CNVPanel extends JPanel implements ActionListener {
 		selectAll = new JButton("Select All");
 		selectNone = new JButton("Select None");
 		trailerButton = new JButton("To Trailer");
+		trailerButton.setToolTipText("Launch Trailer to examine selected CNVs");
 
 		// Panel for CNV information
 		cnvPanel = new JPanel();
@@ -404,6 +407,7 @@ class CNVPanel extends JPanel implements ActionListener {
 		clearCNVText();
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getSource().equals(cnvList)) {
 			oldCNV = selectedCNV;

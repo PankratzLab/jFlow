@@ -27,6 +27,7 @@ public class FileNavigator extends JPanel implements ChangeListener {
 			String filename = file.getName();
 			fileList.add(filename);
 			JCheckBox fileBox = new JCheckBox(filename, true);
+			fileBox.setToolTipText(file.getAbsolutePath());
 			fileBox.setForeground(colors[i % colors.length]);
 			fileBox.addChangeListener(this);
 			add(fileBox);
