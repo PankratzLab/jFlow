@@ -125,6 +125,38 @@ public class Sample implements Serializable {
 		}
 	}
 
+	public static byte updateNullStatus(float[] gcs, float[] xs, float[] ys, float[] bafs, float[] lrrs, byte[] abGenotypes, byte[] forwardGenotypes, boolean canXYBeNegative) {
+		byte nullStatus;
+
+		nullStatus = 0;
+		if (gcs==null) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_GC_LOCATION));
+		}
+		if (xs==null) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_X_LOCATION));
+		}
+		if (ys==null) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_Y_LOCATION));
+		}
+		if (bafs==null) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_BAF_LOCATION));
+		}
+		if (lrrs==null) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_LRR_LOCATION));
+		}
+		if (abGenotypes==null) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_ABGENOTYPE_LOCATION));
+		}
+		if (forwardGenotypes==null) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_FOWARDGENOTYPE_LOCATION));
+		}
+		if (canXYBeNegative) {
+			nullStatus = (byte) (nullStatus | (1 << Sample.NULLSTATUS_CAN_XY_BE_NEGATIVE_LOCATION));
+		}
+
+		return nullStatus;
+	}
+
 	public byte getNBytesPerSampleMarker() {
 		byte nBytesPerSampleMarker;
 		
