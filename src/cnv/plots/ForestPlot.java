@@ -4,10 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.swing.*;
 
@@ -21,7 +18,7 @@ import common.ext;
  *
  * @author Rohit Sinha
  */
-public class ForestPlot extends JPanel {
+public class ForestPlot extends JPanel implements ActionListener{
 
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String ADD_DATA_FILE = "Add Data File";
@@ -32,8 +29,13 @@ public class ForestPlot extends JPanel {
 	private static final String ALT_RIGHT = "ALT RIGHT";
 	private static final String BETA_PREFIX = "beta.";
 	private static final String SE_PREFIX = "se.";
+	private static final String FIRST = "First";
+	private static final String PREVIOUS = "Previous";
+	private static final String NEXT = "Next";
+	private static final String LAST = "Last";
 	private  String dataFile;
-	private TreeSet<String> markers;
+	private LinkedHashSet<String> markers;
+	private ArrayList<String> markersIndexes;
 	private HashMap<String, Integer> markerToColMap;
 	HashMap<String, ArrayList<ForestTree>> markersToTreesMap;
 	ArrayList<ForestTree> curTrees;
@@ -45,10 +47,15 @@ public class ForestPlot extends JPanel {
 	private boolean flipStatus, xInvStatus, yInvStatus;
 	private JLayeredPane layeredPane;
 	String[] dataFileHeaders;
+	private JButton first, previous, next, last;
+	private JTextField navigationField;
+	int curMarkerIndex;
+
 
 	public ForestPlot(String dataFile, String markerFile, Logger log) {
 		this.log = log;
 		this.dataFile = dataFile;
+		markersIndexes = new ArrayList<String>();
 		this.markers = readMarkerNames(markerFile);
 		System.out.println(markers.toString());
 		this.dataFileHeaders = Files.getHeaderOfFile(dataFile, this.log);
@@ -64,8 +71,8 @@ public class ForestPlot extends JPanel {
 		System.out.println(markerToColMap.toString());
 
 		loadTrees();
-
-		setCurTree(markers.first());
+		curMarkerIndex = 0;
+		setCurTree(markersIndexes.get(0));
 
 		setLayout(new BorderLayout());
 
@@ -98,7 +105,9 @@ public class ForestPlot extends JPanel {
 		// button.addActionListener(this);
 		infoPanel.add(header);
 
+		forestPanel.add(markerPanel(), BorderLayout.SOUTH);
 		treePanel.add(infoPanel, BorderLayout.NORTH);
+
 
 		// initializeTree();
 		// updateTree();
@@ -120,6 +129,7 @@ public class ForestPlot extends JPanel {
 		forestPanel.setRectangleGeneratable(true);// zx
 		forestPanel.setExtraLayersVisible(new byte[] { 99 });
 		updateGUI();
+		displayIndex(navigationField);
 
 		forestPanel.grabFocus();
 
@@ -146,6 +156,77 @@ public class ForestPlot extends JPanel {
 
 		setVisible(true);
 		// generateShortcutMenus();
+	}
+
+
+	public void  updateForestPlot(){
+		forestPanel.setPointsGeneratable(true);// zx
+		forestPanel.setRectangleGeneratable(true);// zx
+		forestPanel.setExtraLayersVisible(new byte[] { 99 });
+		displayIndex(navigationField);
+		updateGUI();
+	}
+	private JPanel markerPanel() {
+		JPanel descrPanel = new JPanel();
+		JPanel navigationPanel = new JPanel();
+		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
+		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+		first.addActionListener(this);
+		first.setActionCommand(FIRST);
+		first.setPreferredSize(new Dimension(20, 20));
+		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
+		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		previous.addActionListener(this);
+		previous.setActionCommand(PREVIOUS);
+		previous.setPreferredSize(new Dimension(20, 20));
+		navigationField = new JTextField("", 8);
+		navigationField.setHorizontalAlignment(JTextField.CENTER);
+		navigationField.setFont(new Font("Arial", 0, 14));
+		//navigationField.setEditable(false);
+		navigationField.setBackground(BACKGROUND_COLOR);
+		navigationField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
+					if (trav >=0 && trav < markersIndexes.size()) {
+						curMarkerIndex = trav;
+						setCurTree(markersIndexes.get(curMarkerIndex));
+						updateForestPlot();
+					}
+				} catch (NumberFormatException nfe) {
+					System.out.println("Please enter a valid integer which is in range");
+				}
+				//displayIndex((JTextField) e.getSource());
+				forestPanel.setPointsGeneratable(true);
+				updateForestPlot();
+			}
+		});
+
+
+		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
+		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		next.addActionListener(this);
+		next.setActionCommand(NEXT);
+		next.setPreferredSize(new Dimension(20, 20));
+		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
+		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+		last.addActionListener(this);
+		last.setActionCommand(LAST);
+		last.setPreferredSize(new Dimension(20, 20));
+		navigationPanel.add(first);
+		navigationPanel.add(previous);
+		navigationPanel.add(navigationField);
+		navigationPanel.add(next);
+		navigationPanel.add(last);
+
+		navigationPanel.setBackground(BACKGROUND_COLOR);
+		descrPanel.add(navigationPanel);
+		descrPanel.setBackground(BACKGROUND_COLOR);
+		return descrPanel;
+	}
+
+	public void displayIndex(JTextField field) {
+		field.setText((curMarkerIndex + 1) + " of " + markersIndexes.size());
 	}
 
 	private void setCurTree(String markerName) {
@@ -207,17 +288,19 @@ public class ForestPlot extends JPanel {
 		}
 	}
 
-	private TreeSet<String> readMarkerNames(String markerFile) {
-		TreeSet<String> markerNames = new TreeSet<String>();
+	private LinkedHashSet<String> readMarkerNames(String markerFile) {
+		LinkedHashSet<String> markerNames = new LinkedHashSet<String>();
 		BufferedReader markerReader = Files.getReader(markerFile, false, true, true);
 
 		try {
 			while (markerReader.ready()) {
 				markerNames.add(markerReader.readLine().trim());
+
 			}
 		} catch (IOException e) {
 			log.reportException(e);
 		}
+		markersIndexes.addAll(markerNames);
 		return markerNames;
 	}
 
@@ -391,6 +474,59 @@ public class ForestPlot extends JPanel {
 				yInvStatus = !yInvStatus;
 			}
 		});
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent ae) {
+
+		String command = ae.getActionCommand();
+		String filename;
+		int count;
+
+		if (command.equals(FIRST)) {
+			first();
+		} else if (command.equals(PREVIOUS)) {
+			previous();
+		} else if (command.equals(NEXT)) {
+			next();
+		} else if (command.equals(LAST)) {
+			last();
+		}	else {
+				log.reportError("Error - unknown command '"+command+"'");
+		}
+
+	}
+
+	public void first() {
+		if(curMarkerIndex != 0){
+			curMarkerIndex = 0;
+			setCurTree(markersIndexes.get(curMarkerIndex));
+			updateForestPlot();
+		}
+	}
+
+	public void previous() {
+		if(curMarkerIndex != 0){
+			curMarkerIndex--;
+			setCurTree(markersIndexes.get(curMarkerIndex));
+			updateForestPlot();
+		}
+	}
+
+	public void next() {
+		if(curMarkerIndex != markersIndexes.size()-1){
+			curMarkerIndex++;
+			setCurTree(markersIndexes.get(curMarkerIndex));
+			updateForestPlot();
+		}
+	}
+
+	public void last() {
+		if(curMarkerIndex < markersIndexes.size()-1){
+			curMarkerIndex = markersIndexes.size()-1;
+			setCurTree(markersIndexes.get(curMarkerIndex));
+			updateForestPlot();
+		}
 	}
 }
 
