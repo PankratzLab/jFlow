@@ -690,4 +690,8 @@ public class MarkerDataLoader implements Runnable {
 
 		return markerDataLoader;
 	}
+
+	public static int getnumBytes_Mark(byte nullStatus, int numberOfSamples) {
+		return numberOfSamples * Sample.getNBytesPerSampleMarker(nullStatus);
+	}
 }
