@@ -2,6 +2,7 @@ package cnv.plots;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
@@ -35,6 +36,7 @@ public class ForestPanel extends AbstractPanel {
 	private Logger log;
 	private boolean swapAxes;
 	private boolean rectangleGeneratable;
+	DecimalFormat precision2Decimal;
 
 	public ForestPanel(ForestPlot forestPlot, Logger log) {
 		super();
@@ -43,6 +45,7 @@ public class ForestPanel extends AbstractPanel {
 		this.forestPlot = forestPlot;
 		this.log = log;
 		setColorScheme(DEFAULT_COLORS);
+		precision2Decimal = new DecimalFormat("##.00");
 
 		setZoomable(true, true);
 		setColorScheme(DEFAULT_COLORS);
@@ -79,11 +82,15 @@ public class ForestPanel extends AbstractPanel {
 			}
 			xAxisValue = currentData.get(i).getBeta();
 			yAxisValue = (float) i + 1;
-			tempPoints[i] = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
+			tempPoints[i] = new PlotPoint(currentData.get(i).getLabel() + "|" + prepareRightMarkers(currentData.get(i)), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
 			tempPoints[i].setVisible(false);
 		}
 		points = tempPoints;
 		lines = Array.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
+	}
+
+	private String prepareRightMarkers(ForestTree forestTree) {
+		return precision2Decimal.format(forestTree.getBeta()) + " (" + precision2Decimal.format(forestTree.confInterval[0]) + " , " + precision2Decimal.format(forestTree.confInterval[1]) + " )";
 	}
 
 	private void generateRectangles() {
@@ -274,8 +281,10 @@ public class ForestPanel extends AbstractPanel {
 						//Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
 						str = str.split("\\.")[0];
-						str = points[Integer.parseInt(str) - 1].getId();
-						g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 - 5, getYPixel(y) + 9);
+						String left = points[Integer.parseInt(str) - 1].getId().split("\\|")[0];
+						g.drawString(left, canvasSectionMaximumX - TICK_LENGTH - left.length() * 15 - 5, getYPixel(y) + 9);
+						String right = points[Integer.parseInt(str) - 1].getId().split("\\|")[1];
+						g.drawString(right, getWidth() - TICK_LENGTH - right.length() * 15 - 5, getYPixel(y) + 9);
 					}
 				}
 				//Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS / 2.0), AXIS_THICKNESS, Color.BLACK);
@@ -371,7 +380,6 @@ public class ForestPanel extends AbstractPanel {
 				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
 
 				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() - plotXmax > plotXmax / 1000.0 || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
-					// System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
 				} else {
 					trav = points[i].getLayer() + "";
 					if (points[i].isHighlighted() || (base && (getLayersInBase() == null || Array.indexOfByte(getLayersInBase(), points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(getExtraLayersVisible(), points[i].getLayer()) >= 0)) {
