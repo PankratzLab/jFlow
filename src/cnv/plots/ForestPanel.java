@@ -90,7 +90,7 @@ public class ForestPanel extends AbstractPanel {
 	}
 
 	private String prepareRightMarkers(ForestTree forestTree) {
-		return precision2Decimal.format(forestTree.getBeta()) + " (" + precision2Decimal.format(forestTree.confInterval[0]) + " , " + precision2Decimal.format(forestTree.confInterval[1]) + " )";
+		return precision2Decimal.format((forestTree.getzScore() / forestPlot.getSumZScore()) * 100) + "   " + precision2Decimal.format(forestTree.getBeta()) + " (" + precision2Decimal.format(forestTree.confInterval[0]) + " , " + precision2Decimal.format(forestTree.confInterval[1]) + " )";
 	}
 
 	private void generateRectangles() {

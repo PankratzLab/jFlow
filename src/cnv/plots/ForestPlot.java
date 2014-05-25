@@ -43,6 +43,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	Logger log;
 	ForestPanel forestPanel;
 	float maxZScore;
+	float sumZScore;
 	private JButton flipButton, invXButton, invYButton;
 	private boolean flipStatus, xInvStatus, yInvStatus;
 	private JLayeredPane layeredPane;
@@ -232,7 +233,16 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private void setCurTree(String markerName) {
 		curTrees = markersToTreesMap.get(markerName);
 		maxZScore = findMaxZScore();
+		sumZScore = calcSumZScore();
 		plotLabel = markerName;
+	}
+
+	private float calcSumZScore() {
+		float sum=0;
+		for	(ForestTree ft : curTrees){
+			sum += ft.getzScore();
+		}
+		return sum;
 	}
 
 	private void loadTrees() {
@@ -387,6 +397,10 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 	public float getMaxZScore() {
 		return maxZScore;
+	}
+
+	public float getSumZScore() {
+		return sumZScore;
 	}
 
 	private float findMaxZScore() {
