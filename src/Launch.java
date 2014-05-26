@@ -116,6 +116,8 @@ public class Launch {
 				HitWindows.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("phenoPrep")) {
 				PhenoPrep.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("gzip")) {
+				Zip.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));

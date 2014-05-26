@@ -852,6 +852,7 @@ public class SeqMeta {
 						for (int m = 0; m < methods.length; m++) {
 							root = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0];
 							if (!Files.exists(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv").length() == 0) {
+								log.report(ext.getTime()+"\tStiching up "+root+".csv");
 								stitch(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/", root+"_chr#.csv", root+".csv", log);
 							}
 						}
@@ -863,6 +864,7 @@ public class SeqMeta {
 				for (int m = 0; m < methods.length; m++) {
 					root = races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0];
 					if (forceMeta || !Files.exists(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/"+root+".csv").length() == 0) {
+						log.report(ext.getTime()+"\tStiching up "+root+".csv");
 						stitch(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[m][0]+"/", root+"_chr#.csv", root+".csv", log);
 					}
 				}
@@ -871,10 +873,10 @@ public class SeqMeta {
 			for (int m = 0; m < methods.length; m++) {
 				root = phenotypes[i][0]+"_"+methods[m][0];
 				if (forceMeta || !Files.exists(dir+phenotypes[i][0]+"/"+methods[m][0]+"/"+root+".csv") || new File(dir+phenotypes[i][0]+"/"+methods[m][0]+"/"+root+".csv").length() == 0) {
+					log.report(ext.getTime()+"\tStiching up "+root+".csv");
 					stitch(dir+phenotypes[i][0]+"/"+methods[m][0]+"/", root+"_chr#.csv", root+".csv", log);
 				}
 			}
-			
 		}
 	}
 

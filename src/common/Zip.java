@@ -22,8 +22,7 @@ public class Zip {
 		for (int i = 0; i<filenames.length; i++) {
 			if (!Files.exists(filenames[i])) {
 				log.reportError("  Failed to find file '"+filenames[i]+"' destined for "+zipfile);
-				problem = true;
-			}
+				problem = true;			}
 		}
 		if (problem) {
 			log.reportError("  aborting creation of "+zipfile);
@@ -296,6 +295,49 @@ public class Zip {
 		}
 
 		return Array.toStringArray(v);
+	}
+
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params;
+		String[] files;
+		int minutesToSleep;
+		long time;
+
+		files = Files.list("./", null, false);
+		files = Array.addStrToArray("delay_in_minutes=0", files, 0);
+		
+		params = Files.parseControlFile(filename, "gzip", files, log);
+
+		time = new Date().getTime();
+		if (params != null) {
+			try {
+				for (int i = 0; i < params.size(); i++) {
+					filename = params.elementAt(i);
+					if (filename.startsWith("delay_in_minutes=")) {
+						minutesToSleep = ext.parseIntArg(params.elementAt(i));
+						System.out.println("Going to sleep for "+ext.getTimeElapsed(new Date().getTime()-minutesToSleep*60*1000));
+						try {
+							Thread.sleep(minutesToSleep*60*1000);
+						} catch (InterruptedException ie) {
+						}
+					} else if (Files.exists(filename)) {
+						System.out.println(ext.getTime()+"\tCompressing "+filename);
+						gzip(filename, filename+".gz");
+					} else {
+						System.err.println("Error - could not find file "+filename);
+					}
+					
+				}
+				System.out.println(ext.getTime()+"\tfinished everything in "+ext.getTimeElapsed(time));
+			} catch (Exception e) {
+				System.err.println("Error at some point");
+				e.printStackTrace();
+			}
+			try {
+				new BufferedReader(new InputStreamReader(System.in)).readLine();
+			} catch (IOException ioe) {
+			}
+		}
 	}
 
 	public static void main(String[] args) {
