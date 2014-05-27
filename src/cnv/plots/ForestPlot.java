@@ -51,16 +51,16 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
 	int curMarkerIndex;
+	private boolean atleastOneTree;
 
 
 	public ForestPlot(String dataFile, String markerFile, Logger log) {
 		this.log = log;
+		atleastOneTree = false;
 		this.dataFile = dataFile;
 		markersIndexes = new ArrayList<String>();
 		this.markers = readMarkerNames(markerFile);
-		System.out.println(markers.toString());
 		this.dataFileHeaders = Files.getHeaderOfFile(dataFile, this.log);
-		System.out.println(Arrays.toString(dataFileHeaders));
 		markerToColMap = new HashMap<String, Integer>();
 		markersToTreesMap = new HashMap<String, ArrayList<ForestTree>>();
 		try{
@@ -71,7 +71,12 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 		System.out.println(markerToColMap.toString());
 
-		loadTrees();
+		try{
+			loadTrees();
+		} catch (RuntimeException re){
+			log.reportException(re);
+			System.exit(1);
+		}
 		curMarkerIndex = 0;
 		setCurTree(markersIndexes.get(0));
 
@@ -245,7 +250,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 		return sum;
 	}
 
-	private void loadTrees() {
+	private void loadTrees() throws RuntimeException{
 		BufferedReader dataReader = Files.getReader(dataFile, false,true, log, true);
 		String delimiter = Files.determineDelimiter(dataFile, log);
 		try {
@@ -256,11 +261,15 @@ public class ForestPlot extends JPanel implements ActionListener{
 				String readData[] = readLine.split(delimiter);
 				if(markers.contains(readData[1])){
 					getAllTrees(readData);
+					atleastOneTree = true;
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		if(!atleastOneTree)
+			throw new RuntimeException("Not able to find trees with the given markers. Please make sure that markers are right");
 	}
 
 	private void getAllTrees(String[] readData) {
