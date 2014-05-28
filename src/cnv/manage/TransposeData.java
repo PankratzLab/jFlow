@@ -778,7 +778,7 @@ public class TransposeData {
 		return result;
 	}
 
-	private static byte[] getParameterSectionForMdRaf(int numSamplesInProj, int numMarkersInCurrentFile, byte nullStatus, long fingerPrint, byte[] currentFileMarkerNamesInumBytes) {
+	public static byte[] getParameterSectionForMdRaf(int numSamplesInProj, int numMarkersInCurrentFile, byte nullStatus, long fingerPrint, byte[] currentFileMarkerNamesInumBytes) {
 		byte[] markerFileHead;
 
 		markerFileHead = new byte[MARKERDATA_PARAMETER_TOTAL_LEN + currentFileMarkerNamesInumBytes.length];
@@ -792,7 +792,7 @@ public class TransposeData {
 		return markerFileHead;
 	}
 
-	private static byte[] getParameterSectionForSampRaf(int numMarkersInProj, byte nullStatus, int numBytesOfOutlierHashtableInCurrentFile, long fingerprintForMarkers) {
+	public static byte[] getParameterSectionForSampRaf(int numMarkersInProj, byte nullStatus, int numBytesOfOutlierHashtableInCurrentFile, long fingerprintForMarkers) {
 		byte[] markerFileHead;
 
 		markerFileHead = new byte[Sample.PARAMETER_SECTION_BYTES];
