@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerData;
@@ -158,6 +159,7 @@ public class AffyCentroids implements Serializable {
 		}
 		affyCents = affyCentroids.getCentroids();
 		samples = proj.getSamples();
+		Hashtable<String, Float> allOutliers =new Hashtable<String, Float>();
 		for (int i = 0; i < samples.length; i++) {
 			log.report(samples[i]);
 			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
@@ -166,7 +168,10 @@ public class AffyCentroids implements Serializable {
 			AFFYBAFs = getAFFYBAF(markerNames, affyCents, Xs, Ys, i, log);
 			AFFYLRRs = getAFFYLRR(markerNames, affyCents, Xs, Ys, i, log);
 			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), AFFYBAFs, AFFYLRRs, original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION);
+			sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION,allOutliers,original.getSampleName());
+		}
+		if (allOutliers.size()>0) {
+			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
 	}
 
