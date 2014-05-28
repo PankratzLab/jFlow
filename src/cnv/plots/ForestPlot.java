@@ -100,19 +100,19 @@ public class ForestPlot extends JPanel implements ActionListener{
 		treePanel.setBackground(BACKGROUND_COLOR);
 		treePanel.setLayout(new BorderLayout());
 
-		JPanel infoPanel = new JPanel();
-		infoPanel.setBackground(BACKGROUND_COLOR);
-		infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+		//JPanel infoPanel = new JPanel();
+		//infoPanel.setBackground(BACKGROUND_COLOR);
+		//infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
 
-		JLabel header = new JLabel("Information");
-		header.setMinimumSize(new Dimension(200, 20));
-		header.setMaximumSize(new Dimension(200, 20));
-		header.setAlignmentX(Component.CENTER_ALIGNMENT);
+		//JLabel header = new JLabel("Information");
+		//header.setMinimumSize(new Dimension(200, 20));
+		//header.setMaximumSize(new Dimension(200, 20));
+		//header.setAlignmentX(Component.CENTER_ALIGNMENT);
 		// button.addActionListener(this);
-		infoPanel.add(header);
+		//infoPanel.add(header);
 
 		forestPanel.add(markerPanel(), BorderLayout.SOUTH);
-		treePanel.add(infoPanel, BorderLayout.NORTH);
+		//treePanel.add(infoPanel, BorderLayout.NORTH);
 
 
 		// initializeTree();
