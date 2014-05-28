@@ -20,15 +20,18 @@ public class DeNovoGear {
 	public static void generateScripts(String pedegreeFileFullPath, String bamFilesDir, String bcfFilesDir, String denovogearResultDir, String scriptFileDir, String qsubLogsDir, String bamFilePrefix, Logger log) {
 		Scanner reader;
 		PrintWriter writer;
-		String[] line, files;
-		Vector <String[]> iterationsVec;
-		String[][] iterations;
+		String[] line;
+//		String[] qsubFiles;
+		Vector<String> qsubFilesVec;
+//		Vector <String[]> iterationsVec;
+//		String[][] iterations;
 		String command;
-		Vector<String> jobNamesWithAbsolutePaths;
+//		Vector<String> jobNamesWithAbsolutePaths;
 
-		command = "samtools mpileup -gDf /home/pankrat2/shared/bin/ref/hg19_canonical.fa " + bamFilesDir + bamFilePrefix + "[%0].bam " + bamFilesDir + bamFilePrefix + "[%1].bam " + bamFilesDir + bamFilePrefix + "[%2].bam > " + bcfFilesDir + "[%0].bcf\n"
-				+ "~/bin/denovogear/build/src/denovogear dnm auto --ped " + bcfFilesDir + "[%0].ped --bcf " + bcfFilesDir + "[%0].bcf > " + denovogearResultDir + "[%0].txt";
-		iterationsVec = new Vector<String[]>();
+//		command = "samtools mpileup -gDf /home/pankrat2/shared/bin/ref/hg19_canonical.fa " + bamFilesDir + bamFilePrefix + "[%0].bam " + bamFilesDir + bamFilePrefix + "[%1].bam " + bamFilesDir + bamFilePrefix + "[%2].bam > " + bcfFilesDir + "[%0].bcf\n"
+//				+ "~/bin/denovogear/build/src/denovogear dnm auto --ped " + bcfFilesDir + "[%0].ped --bcf " + bcfFilesDir + "[%0].bcf > " + denovogearResultDir + "[%0].txt";
+//		iterationsVec = new Vector<String[]>();
+		qsubFilesVec = new Vector<String>();
 		try {
 			reader = new Scanner(new File(pedegreeFileFullPath));
 			while (reader.hasNext()) {
@@ -39,30 +42,44 @@ public class DeNovoGear {
 						)) {
 					log.reportError("Not all bam files are found for the trio " + line[1] + "; " + line[2] + "; " + line[3] + "\nSystem quit with error.");
 					System.exit(1);
-				} else {
-					iterationsVec.add(new String[] {line[1], line[2], line[3]});
+				} else if (! new File(denovogearResultDir + line[1] + ".txt").exists()) {
 					writer = new PrintWriter(new FileOutputStream(bcfFilesDir + line[1] + ".ped"));
 					writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t-1\t-1");
 					writer.close();
+					command = "cd " + qsubLogsDir;
+					if (! new File(bcfFilesDir + line[1] + ".bcf").exists()){
+						command += "\nsamtools mpileup -gDf /home/pankrat2/shared/bin/ref/hg19_canonical.fa " + bamFilesDir + bamFilePrefix + line[1] + ".bam " + bamFilesDir + bamFilePrefix + line[2] + ".bam " + bamFilesDir + bamFilePrefix + line[3] + ".bam > " + bcfFilesDir + line[1] + ".bcf";
+					}
+					command += "\n~/bin/denovogear/build/src/denovogear dnm auto --ped " + bcfFilesDir + line[1] + ".ped --bcf " + bcfFilesDir + line[1] + ".bcf > " + denovogearResultDir + line[1] + ".txt";
+					Files.qsub(scriptFileDir + line[1] + ".qsub", command, 2000, 24, 1);
+					qsubFilesVec.add(scriptFileDir +  line[1] + ".qsub");
 				}
 			}
 			reader.close();
+
+			writer = new PrintWriter(new FileOutputStream(scriptFileDir + "master_run"));
+			writer.println("cd " + qsubLogsDir);
+			for (int i = 0; i < qsubFilesVec.size(); i++) {
+				writer.println("qsub " + qsubFilesVec.elementAt(i));
+			}
+			writer.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 
-		iterations = new String[iterationsVec.size()][3];
-		for (int i = 0; i < iterations.length; i++) {
-			iterations[i] = iterationsVec.elementAt(i);
-		}
+//		iterations = new String[iterationsVec.size()][3];
+//		for (int i = 0; i < iterations.length; i++) {
+//			iterations[i] = iterationsVec.elementAt(i);
+//		}
 
-		Files.qsub(scriptFileDir + "trio_", qsubLogsDir, iterations.length, command, iterations, 2000, 24);
-		files = Files.list(scriptFileDir, "trio", ".qsub", false, false);
-		jobNamesWithAbsolutePaths = new Vector<String>(files.length);
-		for (int i = 0; i < files.length; i++) {
-			jobNamesWithAbsolutePaths.add(scriptFileDir+files[i]);
-		}
-		Files.qsubMultiple(jobNamesWithAbsolutePaths, null, scriptFileDir, "qsubmultiple_", iterations.length<16?iterations.length:16, true, null, -1, 22000, 24);
+//		Files.qsub(scriptFileDir + "trio_", qsubLogsDir, iterations.length, command, iterations, 2000, 24);
+//		qsubFiles = Files.list(scriptFileDir, "trio", ".qsub", false, false);
+//		jobNamesWithAbsolutePaths = new Vector<String>(qsubFiles.length);
+//		for (int i = 0; i < qsubFiles.length; i++) {
+//			jobNamesWithAbsolutePaths.add(scriptFileDir+qsubFiles[i]);
+//		}
+//		Files.qsubMultiple(jobNamesWithAbsolutePaths, null, scriptFileDir, "qsubmultiple_", qsubFiles.length<16?qsubFiles.length:16, true, null, -1, 22000, 24);
+		Files.qsubMultiple(qsubFilesVec, null, scriptFileDir, "qsubmultiple_", qsubFilesVec.size() < 16 ? qsubFilesVec.size() : 16, true, null, -1, 22000, 24);
 	}
 
 	public static void main(String[] args) {
@@ -70,10 +87,17 @@ public class DeNovoGear {
 		String[] commands, commandVariables;
 		Logger log;
 
-		pedegreeFileFullPath = "/home/pankrat2/shared/logan/denovogear/all.ped";
-		bamFilesDir = "/home/pankrat2/shared/logan/denovogear/data_source_bam/";
-		bcfFilesDir = "/home/pankrat2/shared/logan/denovogear/data_converted_bcf/";
-		denovogearResultDir = "/home/pankrat2/shared/logan/denovogear/data_converted_bcf/";
+//		pedegreeFileFullPath = "/home/pankrat2/shared/logan/denovogear/all.ped";
+//		bamFilesDir = "/home/pankrat2/shared/logan/denovogear/data_source_bam/";
+//		bcfFilesDir = "/home/pankrat2/shared/logan/denovogear/data_converted_bcf/";
+//		denovogearResultDir = "/home/pankrat2/shared/logan/denovogear/results/";
+//		scriptFileDir = "/home/pankrat2/shared/logan/denovogear/scripts/";
+//		qsubLogsDir = "/home/pankrat2/shared/logan/denovogear/logs/";
+//		bamFilePrefix = "dedup_";
+		pedegreeFileFullPath = "/home/pankrat2/shared/logan/denovogear/alltrios.ped";
+		bamFilesDir = "/scratch/trio_bams/";
+		bcfFilesDir = "/scratch/trio_bcfs/";
+		denovogearResultDir = "/home/pankrat2/shared/logan/denovogear/results/";
 		scriptFileDir = "/home/pankrat2/shared/logan/denovogear/scripts/";
 		qsubLogsDir = "/home/pankrat2/shared/logan/denovogear/logs/";
 		bamFilePrefix = "dedup_";
