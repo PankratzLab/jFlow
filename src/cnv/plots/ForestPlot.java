@@ -44,6 +44,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	ForestPanel forestPanel;
 	float maxZScore;
 	float sumZScore;
+	String longestStudyNameSize;
 	private JButton flipButton, invXButton, invYButton;
 	private boolean flipStatus, xInvStatus, yInvStatus;
 	private JLayeredPane layeredPane;
@@ -239,7 +240,20 @@ public class ForestPlot extends JPanel implements ActionListener{
 		curTrees = markersToTreesMap.get(markerName);
 		maxZScore = findMaxZScore();
 		sumZScore = calcSumZScore();
+		longestStudyNameSize = findLongestStudyNameSize();
 		plotLabel = markerName;
+	}
+
+	private String findLongestStudyNameSize() {
+		String longest = "";
+		for(ForestTree ft : curTrees){
+			longest = longest.length() < ft.getLabel().length() ? ft.getLabel() : longest;
+		}
+		return longest;
+	}
+
+	public String getLongestStudyNameSize() {
+		return longestStudyNameSize;
 	}
 
 	private float calcSumZScore() {
@@ -515,7 +529,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 		} else if (command.equals(LAST)) {
 			last();
 		}	else {
-				log.reportError("Error - unknown command '"+command+"'");
+			log.reportError("Error - unknown command '"+command+"'");
 		}
 
 	}
