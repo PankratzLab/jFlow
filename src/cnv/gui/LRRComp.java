@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -118,28 +119,43 @@ public class LRRComp extends JFrame implements Runnable {
 			add(scroll);
 			add(computeButton, BorderLayout.EAST);
 			// TODO add action to launch 2D plot with created file
-			// add(twoDPlotButton, BorderLayout.WEST);
+			add(twoDPlotButton, BorderLayout.WEST);
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent actionEvent) {
 			JComponent source = (JComponent) actionEvent.getSource();
-			if (validateFileName()) {
-				System.out.println(outputBase);
-				if (source.equals(computeButton)) {
-					if (computeComplete != 42 && !medianLRRWorker.isDone()) {
-						JOptionPane.showMessageDialog(this, "Thread is busy computing median Log R Ratios");
-					} else {
-						startJob();
+			if (computeComplete != 42 && !medianLRRWorker.isDone()) {
+				JOptionPane.showMessageDialog(this, "Thread is busy computing median Log R Ratios");
+			} else if (source.equals(computeButton)) {
+				if (validateFileName()) {
+					startJob();
+				}
+			} else if (source.equals(twoDPlotButton)) {
+				if (computeComplete == 42) {
+					JOptionPane.showMessageDialog(this, "Please compute Median values before visualizing");
+					resetOutputBase();
+				} else {
+					String fileNameToVisualize;
+					revalidate();
+					try {
+						fileNameToVisualize = medianLRRWorker.get();
+						TwoDPlot twoDplot = TwoDPlot.createAndShowGUI(proj, proj.getLog());
+						twoDplot.showSpecificFile(proj, fileNameToVisualize, 2, 3, proj.getLog());
+						twoDplot.updateGUI();
+						// twoDPlot;
+
+					} catch (InterruptedException e) {
+						JOptionPane.showMessageDialog(this, "Thread was interupted when computing Median Log R Ratios");
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						JOptionPane.showMessageDialog(this, "There was an error computing Median Log R Ratios");
+						e.printStackTrace();
 					}
-				} else if (source.equals(twoDPlotButton)) {
-					javax.swing.SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							TwoDPlot.createAndShowGUI(proj, new Logger());
-						}
-					});
+					resetOutputBase();
 				}
 			}
+
 		}
 
 		private boolean validateFileName() {
@@ -175,7 +191,12 @@ public class LRRComp extends JFrame implements Runnable {
 				medianLRRWorker.execute();
 				revalidate();
 			}
+			resetOutputBase();
+		}
+
+		private void resetOutputBase() {
 			outputBase = outputBase.replaceFirst(ext.replaceWithLinuxSafeCharacters(fileInputArea.getText() + "_", true), "");
+
 		}
 
 		private JLabel addLabel(String text) {
