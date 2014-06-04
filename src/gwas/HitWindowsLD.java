@@ -16,6 +16,7 @@ import common.Logger;
 import common.Positions;
 import common.ext;
 
+//TODO, this is a bit sprawling for a simple thing
 public class HitWindowsLD {
 	private static final String[] MARK_REPORT_HEADER = { "Target", "Target.chr", "Target.pos", "LD.Hits", "LD.refHits", "LD.minPos", "LD.minMarker", "LD.maxPos", "LD.maxMarker", "Target.inRef", "UCSC", "UCSC.ExcelHyperLink", "Window", "Source File" };
 	private static final String[] REGION_REPORT_HEADER = { "Region", "Target.chr", "LD.Hits", "Region.minPos", "Region.minMarker", "Region.maxPos", "Region.maxMarker", "Region.markersWithLDHits", "UCSC", "UCSC.ExcelHyperLink", "Window", "Source File" };
@@ -216,7 +217,7 @@ public class HitWindowsLD {
 	public static void analyzeLD(String dir, String[] targetFiles, ReferenceMap referenceMap, int window, boolean liberal, String fileExt, boolean filtered, boolean region, String output, double filter, int filterOnColumn, Logger log) {
 		int fileType = ext.indexOfStr(fileExt, FILE_TYPES);
 		if (fileType == -1) {
-			log.reportError("Warning - assuming haploview format" + fileExt);
+			log.reportError("Warning - assuming haploview format");
 			fileType = 2;
 		}
 		String[] files = Files.list(dir, fileExt, false);
@@ -510,6 +511,7 @@ public class HitWindowsLD {
 		}
 	}
 
+	//TODO this is a crappy summary format...
 	private static HitWindowsLD[] summarize(String targetFile, String ldFile, ReferenceMap referenceMap, boolean liberal, HitWindowsLD[] hitWindowsLD, boolean region, String output, Logger log) {
 		PrintWriter writer;
 		String source = ext.rootOf(ldFile);
