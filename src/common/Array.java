@@ -3,6 +3,7 @@ package common;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+
 import stats.ProbDist;
 
 public class Array {
@@ -3469,5 +3470,19 @@ public class Array {
 
 	public static double lambda(double[] pvals) {
 		return ProbDist.ChiDistReverse(Array.median(pvals), 1)/ProbDist.ChiDistReverse(0.50, 1);
+	}
+	
+	/**
+	 * Creates an array of float and copies the contents of an ArrayList of float into it
+	 * 
+	 * @param al
+	 * @return an array of floats copied from a ArrayList of floats
+	 */
+	public static float[] toFloatArray(ArrayList<Float> al) {
+		float[] result = new float[al.size()];
+		for (int i = 0; i < al.size(); i++) {
+			result[i] = al.get(i);
+		}
+		return result;
 	}
 }

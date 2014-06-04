@@ -14,7 +14,7 @@ import common.*;
 import db.FilterDB;
 
 public class MarkerMetrics {
-	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD"};
+	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD", "LRR_num_NaNs"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
 	
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -24,7 +24,7 @@ public class MarkerMetrics {
 	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude, Logger log) {
 		PrintWriter writer;
 		String[] samples;
-		float[] thetas, rs;
+		float[] thetas, rs, lrrs;
 		MarkerData markerData;
         byte[] abGenotypes;
         String markerName;
@@ -37,7 +37,8 @@ public class MarkerMetrics {
 		int[] counts, sexes;
 		double[] sumTheta, sumR, meanTheta, sdTheta;
 		double temp, lrrSexZ;
-        int numNaNs;
+		int numNaNs, numLRRNaNs;
+		ArrayList<Float> aLRR;
 
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
@@ -49,7 +50,6 @@ public class MarkerMetrics {
         clusterFilterCollection = proj.getClusterFilterCollection();
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
 		sexes = getSexes(proj, samples, log);
-		
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false)));
 			writer.println(Array.toStr(FULL_QC_HEADER));
@@ -73,7 +73,10 @@ public class MarkerMetrics {
 				thetas = markerData.getThetas();
 				rs = markerData.getRs();
 				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
-				
+				lrrs = markerData.getLRRs();
+				aLRR = new ArrayList<Float>(samples.length);
+
+				numLRRNaNs = 0;
 				numNaNs = 0;
 				counts = new int[4];
 				sumTheta = new double[counts.length];
@@ -85,6 +88,13 @@ public class MarkerMetrics {
 						sumR[abGenotypes[j] + 1] += rs[j];
 						if (Float.isNaN(thetas[j])) {
 							numNaNs++;
+						}
+						if (lrrs != null) {
+							if (Float.isNaN(lrrs[j])) {
+								numLRRNaNs++;
+							} else {
+								aLRR.add(lrrs[j]);
+							}
 						}
 					}
 				}
@@ -108,8 +118,13 @@ public class MarkerMetrics {
 					}
 				}
 				
-				lrrsd = Array.stdev(markerData.getLRRs(), true);
-				lrrSexZ = getSexZscore(sexes, markerData.getLRRs(), samplesToExclude, log);
+				if (lrrs != null && aLRR.size() > 0) {
+					lrrsd = Array.stdev(Array.toFloatArray(aLRR), true);
+					lrrSexZ = getSexZscore(sexes, lrrs, samplesToExclude, log);
+				} else {
+					lrrsd = Float.NaN;
+					lrrSexZ = Float.NaN;
+				}
 				
 				line += markerName
 						+ "\t" + markerData.getChr()
@@ -135,7 +150,8 @@ public class MarkerMetrics {
 						+ "\t" + AlleleFreq.HetExcess(counts[1], counts[2], counts[3])[0]
 						+ "\t" + numNaNs
 						+ "\t" + lrrSexZ
-						+ "\t" + lrrsd	
+						+ "\t" + lrrsd
+						+ "\t" + numLRRNaNs
 						+ eol;
 				
 				if (line.length() > 25000) {
@@ -177,7 +193,7 @@ public class MarkerMetrics {
 		double zscore = Double.NaN;
 		DoubleVector[] values = new DoubleVector[3];
 		for (int s = 0; s < sexes.length; s++) {
-			if (!Double.isNaN(independantData[s]) && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
+			if (!Double.isNaN(independantData[s]) && sexes != null && (sexes[s] == 1 || sexes[s] == 2) && (samplesToExclude == null || !samplesToExclude[s])) {
 				if (values[sexes[s]] == null) {
 					values[sexes[s]] = new DoubleVector();
 				}
