@@ -36,6 +36,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	JButton firstButton, leftButton, rightButton, lastButton; // Navigation buttons
 	JButton UCSCButton; // Launches a browser instance
 	JButton BEDButton; // Generates, compresses, and uploads a BED file base on the selected CNV file
+	JButton LRRButton; // Launches a widget to compute median LRR values across regions of interest
 	JLabel location;
 	String[] regionsList; // List of the region files
 	Project proj;
@@ -116,6 +117,11 @@ public class RegionNavigator extends JPanel implements ActionListener {
 			BEDButton.setEnabled(false);
 		}
 		add(BEDButton);
+		
+		LRRButton = new JButton("Median LRR");
+		LRRButton.setToolTipText("Compute median Log R Ratios for a region");
+		LRRButton.addActionListener(this);
+		add(LRRButton);
 	}
 
 	/**
@@ -250,6 +256,8 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				// Pass along the property change
 				firePropertyChange("location", regions.get(lastRegionIndex), new Region(newLocation));
 			}
+		} else if (source.equals(LRRButton)) {
+			new Thread(new LRRComp(proj, textField.getText())).start();
 		}
 	}
 
