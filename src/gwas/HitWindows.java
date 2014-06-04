@@ -278,14 +278,26 @@ public class HitWindows {
 		}
 	}
 
+	public static void determineLD(String targetFile, String mapFile, String ldFile, int window, int column, double filter, String output, Logger log) {
+		HitWindowsLD.determineLD(targetFile, mapFile, output, ldFile, window, filter, column, log);
+	}
+
+	public static void determineLD(String[] targets, String regionName, String mapFile, String output, String ldFile, int window, double filter, int column, boolean region, Logger log) {
+		HitWindowsLD.determineLD(targets, regionName, mapFile, output, ldFile, window, filter, column, region, log);
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "input.dat";
 		String outfile = "hits.out";
 		float indexThreshold = (float)0.00000005;
 		int windowMinSizePerSide = 500000; // 500kb each side is technically a 1M window until the next hit region, but we now take this into consideration in the main algorithm
+		int windowMaxSizePerSide = 100000;
 		float windowExtensionThreshold = (float)0.00000005; // (float)0.00001;
 		String knownHits = null;
+		String ldFile =null;
+		int column = 4;
+		double ldFilter =0.5;
 		String map = "markers.dat";
 		String[][] results;
 		String[] annotationCols = null;
@@ -305,6 +317,16 @@ public class HitWindows {
 		"   (1) list of known hits, 3 columns=trait+chr+position (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n" + 
 		"   (2) window around hit to extend (i.e. minWinSize=" + windowMinSizePerSide + " (default))\n" + 
 		"   (3) map file for lookup (i.e. map=" + map + " (default))\n" + 
+		
+		" OR\n" + 
+		"   (1) input filename for LD-based hits (plink .flt, plink .ld , or Haploview export (i.e. ldFile="+ldFile+" \n" +
+		"   (2) list of known hits, 1 column=SNP identifier (i.e. knownHits=filenameOfKnownHits.dat (not the default))\n"+
+		"   (3) map file for lookup (i.e. map=" + map + " (default))\n" + 
+		
+		"   OPTIONAL: \n"+
+		"   (4) maximum window around hit for LD search (i.e. maxWinSize=" + windowMaxSizePerSide + " (default))\n" + 
+		"   (5) R2/D'/LOD threshold (.flt files are prefiltered. For .ld files filter will apply to R2 values. For haploview format files filter will apply to column in (6))(i.e. ldFilter=" + ldFilter + " (default))\n" + 
+		"   (6) if input file is in haploview format, column on which to filter (i.e. column=" + column + " (default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -314,6 +336,9 @@ public class HitWindows {
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("ldFile=")) {
+				ldFile = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				outfile = args[i].split("=")[1];
 				numArgs--;
@@ -322,6 +347,9 @@ public class HitWindows {
 				numArgs--;
 			} else if (args[i].startsWith("minWinSize=")) {
 				windowMinSizePerSide = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("maxWinSize=")) {
+				windowMaxSizePerSide = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("winThresh=")) {
 				windowExtensionThreshold = ext.parseFloatArg(args[i]);
@@ -338,6 +366,12 @@ public class HitWindows {
 			} else if (args[i].startsWith("annotationCols=")) {
 				annotationCols = ext.parseStringArg(args[i], null).split(",");
 				numArgs--;
+			} else if (args[i].startsWith("ldFilter=")) {
+				ldFilter = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("column=")) {
+				column = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -352,7 +386,9 @@ public class HitWindows {
 		
 		try {
 			log = new Logger(logfile);
-			if (knownHits != null) {
+			if (ldFile != null) {
+				determineLD(knownHits, map, ldFile, windowMaxSizePerSide, column, ldFilter, outfile, log);
+			} else if (knownHits != null) {
 				generateHitsLookup(knownHits, windowMinSizePerSide, outfile, map, log);
 			} else {
 				results = determine(filename, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, annotationCols);
