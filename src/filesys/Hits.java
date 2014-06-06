@@ -24,20 +24,16 @@ public class Hits {
 		String[] line;
 		String delimiter;
 		double value;
+		int testColumn;
 		
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			delimiter = Files.determineDelimiter(filename, log);
-			reader.readLine();
+			line = ext.splitLine(reader.readLine(), delimiter, log);
+			testColumn = ext.indexOfStr("TEST", line);
 			while (reader.ready()) {
-				if (delimiter.equals("\t")) {
-					line = reader.readLine().split(delimiter, -1);
-				} else if (delimiter.equals(",")) {
-					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-				} else {
-					line = reader.readLine().trim().split(delimiter);
-				}
-				if (!ext.isMissingValue(line[indices[1]])) {
+				line = ext.splitLine(reader.readLine(), delimiter, log);
+				if (!ext.isMissingValue(line[indices[1]]) && (testColumn == -1 || line[testColumn].equals("ADD"))) {
 					try {
 						value = Double.parseDouble(line[indices[1]]);
 					} catch (NumberFormatException nfe) {

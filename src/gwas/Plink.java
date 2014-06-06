@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 
 import common.*;
+import filesys.Hits;
 
 public class Plink {
 //	public static final String[] CLUSTER_HEADER = {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1", "Z2", "PI_HAT", "PHE", "IBS0", "IBS1", "IBS2", "DST", "P", "HOMHOM", "HETHET", "RATIO"};
@@ -718,6 +719,31 @@ public class Plink {
 	public static void batchLD(String root, double minR2ToKeep) {
 		Files.qsub("runLD", 1, 22, "cd "+ext.pwd()+"\n~/bin/plink --noweb --bfile "+root+" --r2 --chr # --ld-window 99999 --ld-window-r2 "+minR2ToKeep+" --out chr#", 2000, 2);
 	}
+	
+	public static void parseHitsForAllFilesInDirectory(String dir, double pvalThreshold, Logger log) {
+		String[] models = null;
+		String root;
+		Hits hits;
+		String[] hitList, params;
+
+//		args = new String[] {null, null, "'MarkerName'", "'Chr'", "'Position'", "'P-value'", "!'P-value'<0.001", "tab", "replace=."};
+//		GenParser.parse(args, log);
+		new File(dir + "topHits.xln").delete();
+
+		models = Files.list(dir, ".assoc.linear", false);
+		
+		hits = new Hits();
+		params = new String[models.length];
+		for (int i=0; i<models.length; i++) {
+			root = models[i].substring(0, models[i].lastIndexOf(".assoc"));
+			params[i] = dir+models[i]+" 'SNP' 'P'="+root+"_pval !'TEST'=ADD";
+			log.report(ext.getTime()+"\t Incorporating data from "+root);
+			hits.incorporateFromFile(dir+models[i], pvalThreshold, log);
+		}
+		hits.writeHits(dir+"hitList.dat");
+		hitList = HashVec.loadFileToStringArray(dir+"hitList.dat", false, new int[] {0}, false);
+		Files.combine(hitList, params, null, "MarkerName", ".", dir+"topHits.xln", log, true, true, false);
+	}
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
@@ -859,6 +885,9 @@ public class Plink {
 //		mperm = "perm#.assoc.mperm,100000";
 		
 //		genomeID_files = new String[] {"cluster.genome"};
+		
+		parseHitsForAllFilesInDirectory("D:/Visualization/ARIC_primary/gwas/QT_interval/", 0.0001, new Logger());
+		System.exit(1);
 		
 		try {
 			if (addGenom>0) {

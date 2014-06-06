@@ -1200,6 +1200,7 @@ public class SeqMeta {
 		String[][] phenotypes, races, methods;
 		String[] studies;
 		String snpInfoFile, functionFlagName;
+		String[][] needs;
 		
 		if (dir == null || dir.equals("")) {
 			dir = new File("").getAbsolutePath()+"/";
@@ -1237,9 +1238,10 @@ public class SeqMeta {
 			try {
 				reader = new BufferedReader(new FileReader(filename));
 				header = ext.splitCommasIntelligently(reader.readLine(), true, log);
-				indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.GENE_UNITS, new String[] {functionFlagName}, Aliases.CHRS, {"MAF", "EC_ALL_MAF"}}, header, false, true, true, log, false);
+				needs = new String[][] {Aliases.MARKER_NAMES, Aliases.GENE_UNITS, new String[] {functionFlagName}, Aliases.CHRS, {"MAF", "EC_ALL_MAF"}};
+				indices = ext.indexFactors(needs, header, false, true, true, log, false);
 				if (Array.min(indices) == -1) {
-					log.reportError("Improper header for file '"+filename+"', found: "+Array.toStr(header, "/"));
+					log.reportError("Improper header for file '"+filename+"', found: "+Array.toStr(header, "/")+"\nMissing one of these: "+Array.toStr(needs[ext.indexOfInt(-1, indices)], "/"));
 					reader.close();
 					return;
 				}
@@ -1917,7 +1919,8 @@ public class SeqMeta {
 				if (groups[g].equals("SingleVariant")) {
 					additionalCols.add("SKATgene");
 					additionalCols.add("CHARGE_ALL_AF");
-					additionalCols.add("single_func_region");
+//					additionalCols.add("single_func_region");
+					additionalCols.add("Function");
 				}
 				if (groups[g].equals("BurdenTests")) {
 					additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
