@@ -529,6 +529,7 @@ public class SexChecks {
 					writer.flush();
 					line = "";
 				}
+				markerDataLoader.releaseIndex(i);
 			}
 			writer.print(line);
 			System.out.println("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
@@ -601,7 +602,7 @@ public class SexChecks {
 
 //		check = true;
 //		par = true;
-//		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
+		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 		try {
 			proj = new Project(filename, false);
 			log = new Logger();

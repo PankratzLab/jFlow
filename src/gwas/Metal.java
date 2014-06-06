@@ -271,7 +271,7 @@ public class Metal {
 			writer.println(weight2);
 			writer.println("PROCESS "+file2);
 			writer.println("OUTFILE "+ext.rootRootOf(file1)+"_"+ext.rootRootOf(file2)+".metal .out");
-			writer.println("ANALYZE");
+			writer.println("ANALYZE HETEROGENEITY");
 			writer.println("");
 			writer.println("QUIT");
 			writer.println("");
@@ -426,7 +426,7 @@ public class Metal {
 			}
 			writer.println();
 			writer.println("OUTFILE "+outputFile+" .out");
-			writer.println("ANALYZE");
+			writer.println("ANALYZE HETEROGENEITY");
 			writer.println("");
 			writer.println("QUIT");
 			writer.close();
@@ -801,8 +801,8 @@ public class Metal {
 			Files.writeList(new String[] {"metal < "+ext.rootOf(filename)+"_metal_Nweighted.txt", "metal < "+ext.rootOf(filename)+"_metal_InvVar.txt"}, ext.rootOf(filename, false)+".bat");
 //			Files.writeList(new String[] {"MARKER MARKER", "ALLELE REF OTHER", "WEIGHT N", "EFFECT DIR", "PVALUE PVALUE", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".Nweighted .out", "ANALYZE", "", "QUIT"}, ext.rootOf(filename)+"_metal_Nweighted.txt");
 //			Files.writeList(new String[] {"MARKER MARKER", "ALLELE REF OTHER", "EFFECT beta", "STDERR SE", "SCHEME STDERR", "GENOMICCONTROL OFF", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".InvVar .out", "ANALYZE", "", "QUIT"}, ext.rootOf(filename)+"_metal_InvVar.txt");
-			Files.writeList(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "WEIGHT Weight", "EFFECT Direction", "PVALUE P-value", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".Nweighted .out", "ANALYZE", "", "QUIT"}, ext.rootOf(filename)+"_metal_Nweighted.txt");
-			Files.writeList(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "EFFECT Effect", "STDERR StdErr", "SCHEME STDERR", "GENOMICCONTROL OFF", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".InvVar .out", "ANALYZE", "", "QUIT"}, ext.rootOf(filename)+"_metal_InvVar.txt");
+			Files.writeList(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "WEIGHT Weight", "EFFECT Direction", "PVALUE P-value", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".Nweighted .out", "ANALYZE HETEROGENEITY", "", "QUIT"}, ext.rootOf(filename)+"_metal_Nweighted.txt");
+			Files.writeList(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "EFFECT Effect", "STDERR StdErr", "SCHEME STDERR", "GENOMICCONTROL OFF", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".InvVar .out", "ANALYZE HETEROGENEITY", "", "QUIT"}, ext.rootOf(filename)+"_metal_InvVar.txt");
 		}
 	}
 	

@@ -51,7 +51,7 @@ public class DnaseEnrichment {
 	private final static String OUTPUT_DELIMITER = "\t";
 	private final static String DATA_SEPARATOR = ":";
 	private final static Logger LOGGER = Logger.getLogger(DnaseEnrichment.class.getName()); // logger for this class
-	private final static String OUTPUT_FILENAME = "DnaseEnrichment.xln";
+	private static String OUTPUT_FILENAME = "DnaseEnrichment.xln";
 	private final static String BED_FILE_CHR_MAP_PART_COUNT_FILENAME = "BedFileChrMapCount.xln";
 	private final static String BED_FILE_CHR_MAP_FOLDER = "BedChrPositionMap";
 	private final static String OUTPUT_FOLDER = "DnaseEnrichmentOutput";
@@ -288,6 +288,7 @@ public class DnaseEnrichment {
 
 		// read the pvalues records from the pvalue file in memory
 		ArrayList<PValueFileFormat> pValueRecords = readPValueFile(filename);
+		OUTPUT_FILENAME = ext.rootOf(filename) +"_"+ OUTPUT_FILENAME;
 
 		LOGGER.info("Starting to process segment files...");
 

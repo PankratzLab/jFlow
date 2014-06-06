@@ -116,7 +116,7 @@ public class RareVariants {
 
 		try {
 			writer = new PrintWriter(new FileWriter(analysis_dir+"mergeAll.crf"));
-			writer.println("hits");
+			writer.println("lookup");
 			writer.println("answerSets.dat 0 out=allRep1Results.xln");
 			for (int maf = 0; maf < MAFS.length; maf++) {
 				for (int j = 0; j < Traits.PHENOS.length; j++) {

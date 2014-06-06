@@ -28,7 +28,8 @@ import common.Positions;
 public class LinePanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final String X_AXIS_LABEL = "Position";
+	public static final String X_AXIS_LABEL = "Threshold; -log10(p-value)";
+	public static final String Y_AXIS_LABEL = "Fold enrichment";
 	public static final int DEFAULT_COLORS_BLACK_INDEX = 0;
 	public static final Color[] DEFAULT_COLORS = { new Color(33, 31, 53), // dark dark
 	new Color(23, 58, 172), // dark blue
@@ -113,8 +114,8 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	public void assignAxisLabels() {
 		displayXaxis = displayYaxis = true;
-		xAxisLabel = swapAxes ? tdp.getNamesSelected()[0] : X_AXIS_LABEL;
-		yAxisLabel = swapAxes ? X_AXIS_LABEL : tdp.getNamesSelected()[0];
+		xAxisLabel = X_AXIS_LABEL;
+		yAxisLabel = Y_AXIS_LABEL;
 	}
 
 	public boolean invertX() {

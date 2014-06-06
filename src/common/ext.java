@@ -1407,6 +1407,16 @@ public class ext {
 		return path.replace("~", System.getProperty("user.home"));
 	}
 
+	public static String[] splitLine(String str, String delimiter, Logger log) {
+		if (delimiter.equals("\t")) {
+			return str.split(delimiter, -1);
+		} else if (delimiter.equals(",")) {
+			return ext.splitCommasIntelligently(str, true, log);
+		} else {
+			return str.trim().split(delimiter);
+		}
+	}
+
 	public static void main(String[] args) {
 		String temp;
 		Logger log;

@@ -92,7 +92,8 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		proj = project;
 		treeFilenameLookup = new Vector<String>();
 		// TODO Need to save the previously loaded files in other location.
-		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
+//		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
+		previouslyLoadedFiles = new String[0];
 		dataHash = new Hashtable<String, Vector<String[]>>();
 		commentHash = new Hashtable<String, Vector<String[]>>();
 		namesHash = new Hashtable<String, String[]>();
@@ -837,7 +838,8 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	public static void createAndShowGUI(Project proj, Logger log) {
 
 		// Create and set up the window.
-		JFrame frame = new JFrame("Line Plot");
+//		JFrame frame = new JFrame("Line Plot");
+		JFrame frame = new JFrame("Genvisis - EnrichmentPlot");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		// Create and set up the content pane.
