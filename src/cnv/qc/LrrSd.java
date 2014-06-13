@@ -1,6 +1,7 @@
 package cnv.qc;
 
 import java.io.*;
+import java.util.Arrays;
 
 import cnv.filesys.*;
 //import java.util.*;
@@ -12,13 +13,15 @@ public class LrrSd extends Parallelizable {
 	private String centroidsFile;
 	private int threadNumber;
 	private int numThreads;
+	private boolean[] markersForCallrate;
 
-	public LrrSd(Project proj, String[] samples, String centroidsFile, int threadNumber, int numThreads) {
+	public LrrSd(Project proj, String[] samples, boolean[] markersForCallrate, String centroidsFile, int threadNumber, int numThreads) {
 		this.proj = proj;
 		this.samples = samples;
 		this.centroidsFile = centroidsFile;
 		this.threadNumber = threadNumber;
 		this.numThreads = numThreads;
+		this.markersForCallrate = markersForCallrate;
 	}
 	
 	public void run() {
@@ -30,6 +33,7 @@ public class LrrSd extends Parallelizable {
 		double abCallRate, forwardCallRate;
 		int[] bafBinCounts;
 		boolean multimodal;
+		int numCallMarkers;
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
@@ -68,23 +72,34 @@ public class LrrSd extends Parallelizable {
 						}
 					}
 					abCallRate = 0;
+					numCallMarkers = 0;
 					if (abGenotypes != null) {
 						for (int j = 0; j < abGenotypes.length; j++) {
-							if (abGenotypes[j] >= 0) {
-								abCallRate++;
+							if (markersForCallrate == null || markersForCallrate[j]) {
+								numCallMarkers++;
+								if (abGenotypes[j] >= 0) {
+									abCallRate++;
+								}
 							}
 						}
-						abCallRate /= abGenotypes.length;
-						
+						if (abCallRate > 0) {
+							abCallRate /= numCallMarkers;
+						}
 					}
 					forwardCallRate = 0;
+					numCallMarkers = 0;
 					if (forwardGenotypes != null) {
 						for (int j = 0; j < forwardGenotypes.length; j++) {
-							if (forwardGenotypes[j] > 0) {
-								forwardCallRate++;
+							if (markersForCallrate == null || markersForCallrate[j]) {
+								numCallMarkers++;
+								if (forwardGenotypes[j] > 0) {
+									forwardCallRate++;
+								}
 							}
 						}
-						forwardCallRate /= forwardGenotypes.length;
+						if (forwardCallRate > 0) {
+							forwardCallRate /= numCallMarkers;
+						}
 					}
 					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
 					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true)+"\t"+Array.stdev(bafs, true)+"\t"+abCallRate+"\t"+forwardCallRate+"\t"+multimodal+"\t"+Array.toStr(bafBinCounts));
@@ -107,12 +122,43 @@ public class LrrSd extends Parallelizable {
         }
 	}
 	
+	public static boolean[] getMarkerSubset(Project proj, String markersSubsetFile) {
+		String[] subMarkers = null;
+		if (markersSubsetFile != null) {
+			subMarkers = HashVec.loadFileToStringArray(markersSubsetFile, false, new int[] { 0 }, false);
+		}
+		return getMarkerSubset(proj, subMarkers);
+	}
+
+	private static boolean[] getMarkerSubset(Project proj, String[] subMarkers) {
+		String[] markers = proj.getMarkerNames();
+		boolean[] markersForCallrate = new boolean[markers.length];
+		if (subMarkers == null) {
+			Arrays.fill(markersForCallrate, true);
+		} else {
+			Arrays.fill(markersForCallrate, false);
+			int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, new Logger(null), true, false);
+			for (int i = 0; i < indicesToUse.length; i++) {
+				if (indicesToUse[i] < 0) {
+					return null;
+				} else {
+					markersForCallrate[indicesToUse[i]] = true;
+				}
+			}
+		}
+		return markersForCallrate;
+	}
+	
 	public static void init(Project proj, String customSampleFileList, String centroidsFile, int numThreads) {
+		init(proj, customSampleFileList, null, centroidsFile, numThreads);
+	}
+
+	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile, String centroidsFile, int numThreads) {
 		String[] samples, subsamples;
 		String[][] threadSeeds;
 		LrrSd[] runables;
 		boolean error;
-		
+		boolean[] markersForCallrate;
 		error = false;
 		samples = proj.getSamples();
 		if (customSampleFileList != null) {
@@ -131,10 +177,16 @@ public class LrrSd extends Parallelizable {
 			}
 		}
 		
+		markersForCallrate = getMarkerSubset(proj, markersForCallrateFile);
+		if (markersForCallrate == null) {
+			System.err.println("Error - missing markers from " + markersForCallrateFile + ", QC will not be performed");
+			return;
+		}
+		
 		threadSeeds = Parallelizable.splitList(samples, numThreads, false);
 		runables = new LrrSd[numThreads];
 		for (int i = 0; i<numThreads; i++) {
-			runables[i] = new LrrSd(proj, threadSeeds[i], centroidsFile, i+1, numThreads);
+			runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, centroidsFile, i + 1, numThreads);
         }
 		
 		Parallelizable.launch(runables);
@@ -145,6 +197,7 @@ public class LrrSd extends Parallelizable {
 		String filename = Project.DEFAULT_PROJECT;
 		String centroids = null;
 		String filenameOfListOfSamples = null;
+		String markersForCallrateFile = null;
 		int numThreads = 1;
 		Project proj;
 
@@ -154,6 +207,7 @@ public class LrrSd extends Parallelizable {
 		"   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"+
 		"   (3) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+
+		"   (5) optional: if you only want to compute call rates from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -165,6 +219,9 @@ public class LrrSd extends Parallelizable {
 				numArgs--;
 			} else if (args[i].startsWith("subsample=")) {
 				filenameOfListOfSamples = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("callRateMarkers=")) {
+				markersForCallrateFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("cents=")) {
 				centroids = args[i].split("=")[1];
@@ -184,7 +241,7 @@ public class LrrSd extends Parallelizable {
 //			
 			proj = new Project(filename, false);
 
-			init(proj, filenameOfListOfSamples, centroids, numThreads);
+			init(proj, filenameOfListOfSamples, markersForCallrateFile, centroids, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
