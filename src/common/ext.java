@@ -677,6 +677,57 @@ public class ext {
 //		return indices;
 //	}
 
+	/**
+	 * Method very similar to other index factors, but uses a hash based approach. When subset and superset are very large such as extracting marker subsets (i.e. 50K and 2500K), this might be a bit faster
+	 * 
+	 * @param subset
+	 *            : what to extract
+	 * @param superset
+	 *            : extract indices from
+	 * @param casesensitive
+	 *            : case sensitive match
+	 * @param log
+	 * @param verbose
+	 *            : report duplicate matches, and no matches
+	 * @param kill
+	 *            : system.exit(1) if duplicates are found, or subset member is not contained in superset
+	 * @return indices of subset in superset
+	 * 
+	 */
+	public static int[] indexLargeFactors(String[] subset, String[] superset, boolean casesensitive, Logger log, boolean verbose, boolean kill) {
+		Hashtable<String, Integer> track = new Hashtable<String, Integer>();
+		int[] indices = new int[subset.length];
+		Arrays.fill(indices, -1);
+		boolean err = false;
+		for (int i = 0; i < superset.length; i++) {
+			track.put(casesensitive ? superset[i] : superset[i].toLowerCase(), i);
+		}
+		for (int i = 0; i < subset.length; i++) {
+			String sub = casesensitive ? subset[i] : subset[i].toLowerCase();
+			if (track.containsKey(sub)) {
+				int index = track.get(sub);
+				if (index > 0) {
+					indices[i] = index;
+					track.put(sub, -1);
+				} else {
+					if (verbose) {
+						log.reportError("Error - more than one factor was named '" + subset[i] + "'");
+					}
+					err = true;
+				}
+			} else {
+				if (verbose) {
+					log.reportError("Error - no factor was named '" + subset[i] + "'");
+				}
+				err = true;
+			}
+		}
+		if (kill && err) {
+			System.exit(1);
+		}
+		return indices;
+	}
+
 	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive, boolean kill) {
 		return indexFactors(subset, superset, casesensitive, new Logger(null), true, kill);
 	}
