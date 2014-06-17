@@ -3,6 +3,7 @@
 package cnv.analysis;
 
 import java.io.*;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -16,7 +17,7 @@ import filesys.Segment;
 
 public class AnalysisFormats implements Runnable {
 	public static final String[] PROGRAM_OPTIONS = {"PennCNV", "QuantiSNP"};
-	public static final String[] OUTPUT_DIRECTORIES = {"results/PennCNV/", "results/QuantiSNP/"};
+	public static final String[] OUTPUT_DIRECTORIES = {"PennCNV/", "QuantiSNP/"};
 	public static final int PENN_CNV = 1;
 	public static final int QUANTISNP = 2;
 	// public static final int EM_ITERATIONS = 10;
@@ -24,9 +25,9 @@ public class AnalysisFormats implements Runnable {
 	private Project proj;
 	private String[] samples;
 	private int program;
-	private Hashtable<String,String> hash;
+	private HashSet<String> hash;
 
-	public AnalysisFormats(Project proj, String[] samples, int program, Hashtable<String,String> hash) {
+	public AnalysisFormats(Project proj, String[] samples, int program, HashSet<String> hash) {
 		this.proj = proj;
 		this.samples = samples;
 		this.program = program;
@@ -48,7 +49,7 @@ public class AnalysisFormats implements Runnable {
 
 	}
 
-	public static void penncnv(Project proj, String[] samples, Hashtable<String,String> hash) {
+	public static void penncnv(Project proj, String[] samples, HashSet<String> hash) {
 		PrintWriter writer;
 		String[] markerNames = proj.getMarkerNames();
 		Sample samp;
@@ -80,7 +81,7 @@ public class AnalysisFormats implements Runnable {
 				writer = Files.getAppropriateWriter(dir+samples[i]+(gzip?".gz":""));
 				writer.println("Name\t"+samples[i]+".GType\t"+samples[i]+".Log R Ratio\t"+samples[i]+".B Allele Freq");
 				for (int j = 0; j<markerNames.length; j++) {
-					if (hash == null || hash.containsKey(markerNames[j])) {
+					if (hash == null || hash.contains(markerNames[j])) {
 						writer.println(markerNames[j]+"\t"+(genotypes[j]==-1?"NC":Sample.AB_PAIRS[genotypes[j]])+"\t"+lrrs[j]+"\t"+bafs[j]);
 					}
 				}
@@ -92,7 +93,7 @@ public class AnalysisFormats implements Runnable {
 		}
 	}
 
-	public static void quantisnp(Project proj, String[] samples, Hashtable<String,String> hash) {
+	public static void quantisnp(Project proj, String[] samples, HashSet<String> hash) {
 		PrintWriter writer;
 		MarkerSet set;
 		String[] markerNames = proj.getMarkerNames();
@@ -117,7 +118,7 @@ public class AnalysisFormats implements Runnable {
 				writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"quanti_data/"+samples[i]));
 				writer.println("Name\tChr\tPosition\t"+samples[i]+".Log R Ratio\t"+samples[i]+".B Allele Freq");
 				for (int j = 0; j<markerNames.length; j++) {
-					if (hash == null || hash.containsKey(markerNames[j])) {
+					if (hash == null || hash.contains(markerNames[j])) {
 						writer.println(markerNames[j]+"\t"+chrs[j]+"\t"+positions[j]+"\t"+lrrs[j]+"\t"+bafs[j]);
 					}
 				}
@@ -147,14 +148,14 @@ public class AnalysisFormats implements Runnable {
 			System.err.println("Error - QuantiSNP inputs files have not yet been created");
 		}
 
-		outputs = new File(proj.getProjectDir()+"results/QuantiSNP/").list(new FilenameFilter() {
+		outputs = new File(proj.getDir(Project.RESULTS_DIRECTORY)+"QuantiSNP/").list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return filename.endsWith("_output.out");
 			}
 		});
 		
 		if (outputs == null) {
-			System.out.println("Found "+inputs.length+" samples; creating output directory for QuantiSNP in results/QuantiSNP/");
+			System.out.println("Found "+inputs.length+" samples; creating output directory for QuantiSNP in "+proj.getDir(Project.RESULTS_DIRECTORY)+"QuantiSNP/");
 			outputs = new String[0];
 		} else {
 			System.out.println("Found "+inputs.length+" samples, as well as results for "+outputs.length+" that have been done (not necessarily the same ones)");
@@ -183,7 +184,7 @@ public class AnalysisFormats implements Runnable {
 		System.out.println("Made "+numBatches+" batch files that will take care of the "+v.size()+" files yet to parse");
 
 //		commands = "quantisnp.exe --config ../windows/config.dat  --emiters "+EM_ITERATIONS+" --Lsetting 2000000 --maxcopy 3 --printRS --doGCcorrect --gcdir ../gc/b36/ --output "+OUTPUT_DIRECTORIES[1]+"[%0].out --gender [%1]--input-files ../source/[%0].qs 300\n\n";
-		commands = "quantisnp --output "+OUTPUT_DIRECTORIES[1]+"[%0].out --gender [%1] --input-files ../source/[%0].qs 300\n\n";
+		commands = "quantisnp --output "+proj.getDir(Project.RESULTS_DIRECTORY)+OUTPUT_DIRECTORIES[1]+"[%0].out --gender [%1] --input-files ../source/[%0].qs 300\n\n";
 		Files.batchIt("batch", null, numBatches, commands, Matrix.toStringArrays(v));
 	}	
 
@@ -191,7 +192,7 @@ public class AnalysisFormats implements Runnable {
 		Vector<Vector<String>> sampleLists = new Vector<Vector<String>>();
 		String[] samples = proj.getSamples();
 		Thread[] threads;
-		Hashtable<String,String> hash;
+		HashSet<String> hash;
 
 		for (int i = 0; i<numThreads; i++) {
 			sampleLists.add(new Vector<String>());
@@ -202,7 +203,7 @@ public class AnalysisFormats implements Runnable {
 		if (markers == null) {
 			hash = null;
 		} else {
-			hash = HashVec.loadFileToHashNull(proj.getProjectDir()+markers, false);
+			hash = HashVec.loadFileToHashSet(proj.getProjectDir()+markers, false);
 		}
 		threads = new Thread[numThreads];
 		for (int i = 0; i<numThreads; i++) {
@@ -222,7 +223,7 @@ public class AnalysisFormats implements Runnable {
 		byte[] chrs;
 		int[] positions;
 		int countFromList, countInRegions, countOverlap;
-		Hashtable<String,String> hash;
+		HashSet<String> hash;
 		
 		if (outfile == null) {
 			System.err.println("Error - outfile is defined as null; need to provide a filename before results can be filtered");
@@ -236,9 +237,9 @@ public class AnalysisFormats implements Runnable {
 		}
 
 		if (list.equals("")) {
-			hash = new Hashtable<String,String>();
+			hash = new HashSet<String>();
 		} else {
-			hash = HashVec.loadFileToHashNull(proj.getProjectDir()+list, false);
+			hash = HashVec.loadFileToHashSet(proj.getProjectDir()+list, false);
 		}
 
 		markers = proj.getMarkerSet();
@@ -252,11 +253,11 @@ public class AnalysisFormats implements Runnable {
 			for (int i = 0; i<markerNames.length; i++) {
 				if (segs.length > 0 && Segment.overlapsAny(new Segment(chrs[i], positions[i], positions[i]), segs)) {
 					countInRegions++;
-					if (hash.containsKey(markerNames[i])) {
+					if (hash.contains(markerNames[i])) {
 						countFromList++;
 						countOverlap++;
 					}
-				} else if (hash.containsKey(markerNames[i])) {
+				} else if (hash.contains(markerNames[i])) {
 					countFromList++;
 				} else {
 					writer.println(markerNames[i]);
