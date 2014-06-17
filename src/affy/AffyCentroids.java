@@ -261,7 +261,7 @@ public class AffyCentroids implements Serializable {
 		counts = new int[5];
 		boolean use = true;
 		confs = markerData.getGCs();
-		genotypes = markerData.getAB_Genotypes();
+		genotypes = markerData.getAbGenotypes();
 		thetas = markerData.getThetas();
 		rs = markerData.getRs();
 		if (!markerName.startsWith("CN_")) {

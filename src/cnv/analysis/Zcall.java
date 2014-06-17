@@ -3,6 +3,7 @@ package cnv.analysis;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import cnv.filesys.ClusterFilterCollection;
@@ -20,7 +21,7 @@ public class Zcall {
 	public static final String[] AB_GENOTYPES = {"NC", "AA", "AB", "BB"};
 
 	public static void createZcallInputFile(Project proj, String filenameOfSamplesToInclude, String markersToInclude, Logger log) {
-		Hashtable<String, String> hash;
+		HashSet<String> hash;
 		
 		boolean[] samplesToInclude;
 		String[] samples;
@@ -28,10 +29,10 @@ public class Zcall {
 		samples = proj.getSamples();
 		samplesToInclude = new boolean[samples.length];
 		
-		hash = HashVec.loadFileToHashNull(filenameOfSamplesToInclude, false);
+		hash = HashVec.loadFileToHashSet(filenameOfSamplesToInclude, false);
 		
 		for (int i = 0; i < samples.length; i++) {
-			samplesToInclude[i] = hash.containsKey(samples[i]);
+			samplesToInclude[i] = hash.contains(samples[i]);
 		}
 
 		createZcallInputFile(proj, samplesToInclude, markersToInclude, log);

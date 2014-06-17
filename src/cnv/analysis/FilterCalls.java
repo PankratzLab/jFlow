@@ -2,7 +2,7 @@ package cnv.analysis;
 
 import java.io.*;
 import java.util.Date;
-import java.util.Hashtable;
+import java.util.HashSet;
 import java.util.Vector;
 
 import filesys.*;
@@ -44,7 +44,7 @@ public class FilterCalls {
 		String[] line;
 		CNVariant cnv;
 		Segment[] problemRegions, centromereMidpoints, commonReference;
-		Hashtable<String, String> indHash;
+		HashSet<String> indHash;
 		int countGiant, countCentromeric, countGiantCentromeric;
 		int[][] centromereBoundaries;
 
@@ -52,7 +52,7 @@ public class FilterCalls {
 		centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres, build, log);
 		centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
 		commonReference = commonInOutOrIgnore!=COMMON_IGNORED?Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true)+DEFAULT_COMMON_CNP_REFERENCE, false):new Segment[0];
-		indHash = individualsToKeepList==null?null:HashVec.loadToHashNull(individualsToKeepList);
+		indHash = individualsToKeepList==null?null:HashVec.loadToHashSet(individualsToKeepList);
 
 		try {
 			reader = new BufferedReader(new FileReader(dir+in));
@@ -72,7 +72,7 @@ public class FilterCalls {
 							||(commonInOutOrIgnore==COMMON_IN&&inOneOfTheseRegions(cnv, commonReference))
 							||(commonInOutOrIgnore==COMMON_OUT&&!inOneOfTheseRegions(cnv, commonReference)) )
 						&& (indHash == null
-							|| indHash.containsKey(line[0]+"\t"+line[1])) )
+							|| indHash.contains(line[0]+"\t"+line[1])) )
 					{
 						if (cnv.overlaps(centromereMidpoints[cnv.getChr()])) {
 							if (breakupCentromeres) {
