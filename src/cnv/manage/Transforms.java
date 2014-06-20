@@ -43,7 +43,11 @@ public class Transforms {
 				trav = new float[indices[i].length];
 				for (int j = 0; j < indices[i].length; j++) {
 					if ((input[indices[i][j]]+"").equals("NaN")) {
-						indices[i][j] *= -1;
+						if (indices[i][j] == 0) {
+							indices[i][j] = Integer.MAX_VALUE;
+						} else {
+							indices[i][j] *= -1;
+						}
 					} else {
 						trav[count] = input[indices[i][j]];
 						count++;
@@ -56,6 +60,9 @@ public class Transforms {
 				for (int j = 0; j < indices[i].length; j++) {
 					if (indices[i][j] < 0) {
 						indices[i][j] *= -1;
+						output[indices[i][j]] = Float.NaN;
+					} else if (indices[i][j] == Integer.MAX_VALUE) {
+						indices[i][j] = 0;
 						output[indices[i][j]] = Float.NaN;
 					} else {
 						output[indices[i][j]] = trav[count];

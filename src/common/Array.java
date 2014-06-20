@@ -2081,6 +2081,36 @@ public class Array {
 
 		return subarray;
 	}
+	
+	/**
+	 * Creates a new array using only the bytes at indices with a true in the boolean array
+	 * 
+	 * @param array
+	 *            an array of byte
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static byte[] subArray(byte[] array, boolean[] use) {
+		byte[] subarray;
+		int count;
+
+		if (array.length != use.length) {
+			System.err.println("Error - mismatched array lengths for boolean subset");
+			return null;
+		}
+		
+		count = 0;
+		subarray = new byte[booleanArraySum(use)];
+		for (int i = 0; i<array.length; i++) {
+			if (use[i]) {
+				subarray[count] = array[i];
+				count++;
+			}
+		}
+
+		return subarray;
+	}
 
 	/**
 	 * Creates a new array using only the indices between start and stop
@@ -2174,6 +2204,29 @@ public class Array {
 			arr[i-start] = array[i];
 		}
 
+		return arr;
+	}
+	
+	/**
+	 * Creates a new array using only the indices between start and stop
+	 * 
+	 * @param array
+	 *            an array of boolean
+	 * @param start
+	 *            first index to use
+	 * @param stop
+	 *            last index to use
+	 * @return the subset of the original array
+	 */
+	public static boolean[] subArray(boolean[] array, int start, int stopBefore) {
+		boolean[] arr;
+		if (start<0||stopBefore>array.length||stopBefore<=start) {
+			System.err.println("Error - invalid start ("+start+") and stopBefore ("+stopBefore+") indicies for an array");
+		}
+		arr = new boolean[stopBefore-start];
+		for (int i = start; i<stopBefore; i++) {
+			arr[i-start] = array[i];
+		}
 		return arr;
 	}
 	
@@ -3480,6 +3533,20 @@ public class Array {
 	 */
 	public static float[] toFloatArray(ArrayList<Float> al) {
 		float[] result = new float[al.size()];
+		for (int i = 0; i < al.size(); i++) {
+			result[i] = al.get(i);
+		}
+		return result;
+	}
+
+	/**
+	 * Creates an array of float and copies the contents of an ArrayList of float into it
+	 * 
+	 * @param al
+	 * @return an array of floats copied from a ArrayList of floats
+	 */
+	public static double[] toDoubleArray(ArrayList<Double> al) {
+		double[] result = new double[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			result[i] = al.get(i);
 		}
