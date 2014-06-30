@@ -13,15 +13,16 @@ public class LrrSd extends Parallelizable {
 	private String centroidsFile;
 	private int threadNumber;
 	private int numThreads;
-	private boolean[] markersForCallrate;
+	private boolean[] markersForCallrate, markersForEverythingElse;
 
-	public LrrSd(Project proj, String[] samples, boolean[] markersForCallrate, String centroidsFile, int threadNumber, int numThreads) {
+	public LrrSd(Project proj, String[] samples, boolean[] markersForCallrate, boolean[] markersForEverythingElse, String centroidsFile, int threadNumber, int numThreads) {
 		this.proj = proj;
 		this.samples = samples;
 		this.centroidsFile = centroidsFile;
 		this.threadNumber = threadNumber;
 		this.numThreads = numThreads;
 		this.markersForCallrate = markersForCallrate;
+		this.markersForEverythingElse = markersForEverythingElse;
 	}
 	
 	public void run() {
@@ -33,7 +34,6 @@ public class LrrSd extends Parallelizable {
 		double abCallRate, forwardCallRate;
 		int[] bafBinCounts;
 		boolean multimodal;
-		int numCallMarkers;
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
@@ -43,6 +43,9 @@ public class LrrSd extends Parallelizable {
 				cents = null;
 			} else {
 				cents = Centroids.load(centroidsFile, false).getCentroids(); 
+			}
+			if (markersForEverythingElse != null) {
+				markersForEverythingElse = Array.subArray(markersForEverythingElse, 0, Array.indexOfByte(proj.getMarkerSet().getChrs(), (byte) 23));
 			}
 			
 			for (int i = 0; i<samples.length; i++) {
@@ -57,8 +60,21 @@ public class LrrSd extends Parallelizable {
 					bafs = fsamp.getBAFs();
 					bafs = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
 					bafsWide = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
+					
+					if (markersForEverythingElse != null) {
+						lrrs = Array.subArray(lrrs, markersForEverythingElse);
+						bafs = Array.subArray(bafs, markersForEverythingElse);
+						bafsWide = Array.subArray(bafsWide, markersForEverythingElse);
+					}
+					
 					abGenotypes = fsamp.getAB_Genotypes();
 					forwardGenotypes = fsamp.getForwardGenotypes();
+					
+					if (markersForCallrate != null) {
+						abGenotypes = (abGenotypes == null ? abGenotypes : Array.subArray(abGenotypes, markersForCallrate));
+						forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes : Array.subArray(forwardGenotypes, markersForCallrate));
+					}
+
 					bafBinCounts = new int[101];
 					for (int j = 0; j < bafs.length; j++) {
 						if (!Float.isNaN(bafs[j])) {
@@ -72,34 +88,23 @@ public class LrrSd extends Parallelizable {
 						}
 					}
 					abCallRate = 0;
-					numCallMarkers = 0;
 					if (abGenotypes != null) {
 						for (int j = 0; j < abGenotypes.length; j++) {
-							if (markersForCallrate == null || markersForCallrate[j]) {
-								numCallMarkers++;
-								if (abGenotypes[j] >= 0) {
-									abCallRate++;
-								}
+							if (abGenotypes[j] >= 0) {
+								abCallRate++;
 							}
 						}
-						if (abCallRate > 0) {
-							abCallRate /= numCallMarkers;
-						}
+						abCallRate /= abGenotypes.length;
+						
 					}
 					forwardCallRate = 0;
-					numCallMarkers = 0;
 					if (forwardGenotypes != null) {
 						for (int j = 0; j < forwardGenotypes.length; j++) {
-							if (markersForCallrate == null || markersForCallrate[j]) {
-								numCallMarkers++;
-								if (forwardGenotypes[j] > 0) {
-									forwardCallRate++;
-								}
+							if (forwardGenotypes[j] > 0) {
+								forwardCallRate++;
 							}
 						}
-						if (forwardCallRate > 0) {
-							forwardCallRate /= numCallMarkers;
-						}
+						forwardCallRate /= forwardGenotypes.length;
 					}
 					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
 					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true)+"\t"+Array.stdev(bafs, true)+"\t"+abCallRate+"\t"+forwardCallRate+"\t"+multimodal+"\t"+Array.toStr(bafBinCounts));
@@ -122,43 +127,35 @@ public class LrrSd extends Parallelizable {
         }
 	}
 	
-	public static boolean[] getMarkerSubset(Project proj, String markersSubsetFile) {
-		String[] subMarkers = null;
-		if (markersSubsetFile != null) {
-			subMarkers = HashVec.loadFileToStringArray(markersSubsetFile, false, new int[] { 0 }, false);
-		}
-		return getMarkerSubset(proj, subMarkers);
-	}
-
 	private static boolean[] getMarkerSubset(Project proj, String[] subMarkers) {
 		String[] markers = proj.getMarkerNames();
-		boolean[] markersForCallrate = new boolean[markers.length];
+		boolean[] markerSubset = new boolean[markers.length];
 		if (subMarkers == null) {
-			Arrays.fill(markersForCallrate, true);
+			Arrays.fill(markerSubset, true);
 		} else {
-			Arrays.fill(markersForCallrate, false);
+			Arrays.fill(markerSubset, false);
 			int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, new Logger(null), true, false);
 			for (int i = 0; i < indicesToUse.length; i++) {
 				if (indicesToUse[i] < 0) {
 					return null;
 				} else {
-					markersForCallrate[indicesToUse[i]] = true;
+					markerSubset[indicesToUse[i]] = true;
 				}
 			}
 		}
-		return markersForCallrate;
+		return markerSubset;
 	}
 	
 	public static void init(Project proj, String customSampleFileList, String centroidsFile, int numThreads) {
-		init(proj, customSampleFileList, null, centroidsFile, numThreads);
+		init(proj, customSampleFileList, null, null, centroidsFile, numThreads);
 	}
 
-	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile, String centroidsFile, int numThreads) {
+	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile, String markersForEverythingElseFile, String centroidsFile, int numThreads) {
 		String[] samples, subsamples;
 		String[][] threadSeeds;
 		LrrSd[] runables;
 		boolean error;
-		boolean[] markersForCallrate;
+		boolean[] markersForCallrate, markersForEverythingElse;
 		error = false;
 		samples = proj.getSamples();
 		if (customSampleFileList != null) {
@@ -177,16 +174,27 @@ public class LrrSd extends Parallelizable {
 			}
 		}
 		
-		markersForCallrate = getMarkerSubset(proj, markersForCallrateFile);
-		if (markersForCallrate == null) {
-			System.err.println("Error - missing markers from " + markersForCallrateFile + ", QC will not be performed");
-			return;
+		markersForCallrate = null;
+		markersForEverythingElse = null;
+		if (markersForCallrateFile != null) {
+			markersForCallrate = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false));
+			if (markersForCallrate == null) {
+				System.err.println("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project");
+				return;
+			}
 		}
-		
+		if (markersForEverythingElseFile != null) {
+			markersForEverythingElse = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false, new int[] { 0 }, false));
+			if (markersForCallrate == null) {
+				System.err.println("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project");
+				return;
+			}
+		}
+
 		threadSeeds = Parallelizable.splitList(samples, numThreads, false);
 		runables = new LrrSd[numThreads];
 		for (int i = 0; i<numThreads; i++) {
-			runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, centroidsFile, i + 1, numThreads);
+			runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse, centroidsFile, i + 1, numThreads);
         }
 		
 		Parallelizable.launch(runables);
@@ -198,16 +206,19 @@ public class LrrSd extends Parallelizable {
 		String centroids = null;
 		String filenameOfListOfSamples = null;
 		String markersForCallrateFile = null;
+		String markersForEverythingElseFile = null;
 		int numThreads = 1;
 		Project proj;
 
 		String usage = "\n"+
-		"cnv.qc.LrrSd requires 0-4 arguments\n"+
+		"cnv.qc.LrrSd requires 0-6 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+
 		"   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"+
 		"   (3) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+
-		"   (5) optional: if you only want to compute call rates from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"+
+		"   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"+
+		"   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"+
+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -222,6 +233,9 @@ public class LrrSd extends Parallelizable {
 				numArgs--;
 			} else if (args[i].startsWith("callRateMarkers=")) {
 				markersForCallrateFile = args[i].split("=")[1];
+				numArgs--;
+			}else if (args[i].startsWith("otherMarkers=")) {
+				markersForEverythingElseFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("cents=")) {
 				centroids = args[i].split("=")[1];
@@ -240,8 +254,7 @@ public class LrrSd extends Parallelizable {
 //			filenameOfListOfSamples = "D:/data/GEDI/plate51.txt";			
 //			
 			proj = new Project(filename, false);
-
-			init(proj, filenameOfListOfSamples, markersForCallrateFile, centroids, numThreads);
+			init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, centroids, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import stats.Maths;
@@ -101,9 +102,19 @@ public class QCIterator implements Runnable {
 		int[][] indices = markerSet.getIndicesByChr();
 		int[] positions = markerSet.getPositions();
 		String[] markerNames = markerSet.getMarkerNames();
-		MarkerFreqs markerFreqs = MarkerFreqs.load(proj.getProjectDir() + markerMAFser, false);
-		double[] mafs = markerFreqs.getMafs();
-		if (markerFreqs.getFingerprint() != markerSet.getFingerprint()) {
+		MarkerFreqs markerFreqs; 
+		
+		double[] mafs;
+		if (markerMAFser != null) {
+			markerFreqs	= MarkerFreqs.load(proj.getProjectDir() + markerMAFser, false);
+			mafs = markerFreqs.getMafs();
+		} else {
+			markerFreqs=null;
+			mafs = new double[markerNames.length];
+			Arrays.fill(mafs, 0.5);
+			log.report("Warning - a marker Frequency file was not provided, setting all MAF values to 0.5");
+		}
+		if (markerFreqs!=null &&markerFreqs.getFingerprint() != markerSet.getFingerprint()) {
 			log.reportError("Error - mismatched marker fingerprints in the project's marker set and the imported AlleleFrequency file (" + markerMAFser + "); aborting");
 			System.exit(1);
 		}
