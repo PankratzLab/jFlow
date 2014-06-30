@@ -40,7 +40,11 @@ public class MarkerFreqs implements Serializable {
 	}
 
 	public static MarkerFreqs load(String filename, boolean jar) {
-		return (MarkerFreqs) Files.readSerial(filename, jar, true);
+		if (Files.exists(filename)) {
+			return (MarkerFreqs) Files.readSerial(filename, jar, true);
+		} else {
+			return null;
+		}
 	}
 
 	public static void exportToText(String filename, String mafFilename, String exportFilename, Logger log) {

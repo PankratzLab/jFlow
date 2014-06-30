@@ -2,8 +2,11 @@ package cnv.analysis;
 
 import java.util.ArrayList;
 
+import cnv.filesys.MarkerSet;
+import cnv.filesys.Project;
 import cnv.manage.Transforms;
 import cnv.var.CNVariant;
+import cnv.var.SampleData;
 import common.Array;
 import common.Logger;
 import filesys.Segment;
@@ -12,7 +15,7 @@ import filesys.Segment;
  * Class to compute beast scores similar to the beast algorithm http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0086272.
  * Values are always inverse normalized with 5df, and scaled by the empirically derived SCALE_FACTOR_MAD. NaN data is discourage, but is ignored;
  * Note: Since the input data is always inverse normalized, the MAD for a region (such as a cnv) is the median of the (absolute value) inverse normalized data across that region (scaled by the MAD of the superset i.e the chromosome)
- * Note: one difference to the score scheme is that a min/max length parameter has not been added. i.e(length<=min -> score=-, length>=max -> height goes to min height. This may make long cnv calls have inflated scores. 
+ * Note: one difference to the score scheme is that a min/max length parameter has not been added. i.e(length<=min -> score=0, length>=max -> height goes to min height. This may make long cnv calls have inflated scores. 
  */
 public class BeastScore {
 	/**
@@ -254,6 +257,67 @@ public class BeastScore {
 			return null;
 		}
 		return indices;
+	}
+	
+	
+	/**
+	 * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght = number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual
+	 * 
+	 * @return an array of beastScores, 1 per with scores computed across the individuals cnvs
+	 */
+	public static BeastScore[] beastInds(Project proj, CNVariant[][] cNVariantInds, Logger log) {
+		BeastScore[] beastScores = new BeastScore[cNVariantInds.length];
+		MarkerSet markerSet = proj.getMarkerSet();
+		byte[] chr = markerSet.getChrs();
+		int[] positions = markerSet.getPositions();
+		int[][] indicesByChr = markerSet.getIndicesByChr();
+		SampleData sampleData = proj.getSampleData(0, false);
+		
+		for (int i = 0; i < cNVariantInds.length; i++) {
+			beastScores[i] = beastInd(proj, sampleData, cNVariantInds[i], chr, positions, indicesByChr, log);
+		}
+		return beastScores;
+	}
+
+	/**
+	 * Helper function to compute beast scores for CNVariant[] representing a single individual
+	 * 
+	 * @return BeastScore (for all the individual's cnvs)
+	 */
+	public static BeastScore beastInd(Project proj, SampleData sampleData, CNVariant[] cNVariantInd, byte[] chr, int[] positions, int[][] indicesByChr, Logger log) {
+		BeastScore score = null;
+		int[][] indices = new int[cNVariantInd.length][];
+		String ind;
+		if (cNVariantInd.length > 0) {
+			String key = cNVariantInd[0].getFamilyID() + "\t" + cNVariantInd[0].getIndividualID();
+			try{
+			ind = sampleData.lookup(key)[0];
+			}catch(NullPointerException npe){
+				log.reportError("Error - could not look up the sample "+key+" in the sample data file "+ proj.getFilename(Project.SAMPLE_DATA_FILENAME) +", cannot load sample to compute beast score" );
+				log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="+cNVariantInd[0].getFamilyID() +" and IID="+ cNVariantInd[0].getIndividualID() );
+				log.reportException(npe);
+				return null;
+			}
+			for (int i = 0; i < cNVariantInd.length; i++) {
+				if (!key.equals(cNVariantInd[i].getFamilyID() + "\t" + cNVariantInd[i].getIndividualID())) {
+					log.reportError("Error - this method can only be used with cnvs from the same individual according to FID\tIID identifiers, returning null score");
+					return score;
+				} else {
+					indices[i] = getCNVMarkerIndices(chr, positions, cNVariantInd[i], log);
+				}
+			}
+			try{
+				float[] lrrs =proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
+				score = new BeastScore(lrrs, indicesByChr, indices, log);
+				score.computeBeastScores();
+			}catch(NullPointerException npe){
+				log.reportError("Error - could not compute score for the sample "+ind+"\t"+key+", please ensure samples have been parsed prior to computing beast score" );
+				log.reportException(npe);
+			}
+		} else {
+			log.reportError("Warning - no CNVariants were found for an individual, returning a null BeastScore");
+		}
+		return score;
 	}
 }
 
