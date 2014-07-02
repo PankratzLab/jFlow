@@ -26,7 +26,7 @@ public class CNVariant extends Segment {
 	private String individualID;
 	private int cn;
 	private double score;
-	private int numMarkers;
+	protected int numMarkers;
 	private int source;
 
 	public CNVariant(String[] plinkLine) {

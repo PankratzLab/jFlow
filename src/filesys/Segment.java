@@ -65,6 +65,10 @@ public class Segment implements Serializable {
 	public String getUCSClocation() {
 		return "chr"+chr+":"+start+"-"+stop;
 	}
+	
+	public String getUCSCLink() {
+		return Positions.getUCSClinkInExcel(new int[] { getChr(), getStart(), getStop() });
+	}
 
 	public int getSize() {
 		return stop - start + 1;
@@ -100,7 +104,12 @@ public class Segment implements Serializable {
 	public boolean significantOverlap(Segment seg) {
 		return amountOfOverlapInBasepairs(seg)>Math.min(getSize(), seg.getSize())/2;
 	}
-	
+
+	public double overlapScore(Segment seg) {
+		int overLap = amountOfOverlapInBasepairs(seg);
+		return (((double) overLap / getSize()) + ((double) overLap / seg.getSize())) / 2;
+	}
+
 //	public boolean significantOverlapOld(Segment seg) {
 //		return chr==seg.chr&&((start>=seg.start&&start<=seg.stop&&seg.stop-start>=getSize()/2)||(stop>=seg.start&&stop<=seg.stop&&stop-seg.start>=getSize()/2)||(seg.start>=start&&seg.start<=stop&&seg.stop-seg.start>=getSize()/2)||(seg.stop>=start&&seg.stop<=stop&&seg.stop-seg.start>=getSize()/2));
 //	}
