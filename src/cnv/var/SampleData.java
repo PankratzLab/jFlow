@@ -881,7 +881,7 @@ public class SampleData {
 	 *            What to replace missing data with (when a key is not found)
 	 * @param linkDataDelimiter
 	 *            The delimiter to use for the data in linkData
-	 * @param log
+	 * @param log 
 	 *            a log!
 	 * 
 	 * @return true if data was added successfully, false if not
