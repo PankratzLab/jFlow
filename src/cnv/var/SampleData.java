@@ -863,4 +863,116 @@ public class SampleData {
 			System.err.println(colorKey + "deleted in sample data");
 		}
 	}
+	
+	/**
+	 * Add column(s) to sample data according to linker (linker must be a single column i.e "DNA" ,"FID","IID",and not "FID\tIID") that corresponds to a single column in the sample data file, new columns will be appended, not inserted.
+	 * <p>
+	 * Warning - checks are not done to see if identical columns already exist in sample data
+	 * <p>
+	 * Warning - alternate names for linker are not determined, please do that prior to use
+	 * 
+	 * @param linkData
+	 *            Hashtable with the linker entry as the key (DNA, , FID, IID, plate, sex etc), and data to add as value. If adding more than one column, the data to add can be delimited
+	 * @param linker
+	 *            The linker column header in sample Data, the linker should be verified prior to being used in this function i.e check that the linker is present before hand and determine the appropriate linker. Data will not be added if linker is not present in header.
+	 * @param columnHeaders
+	 *            The headers to be added. The length of the header must equal the length of the (delimited) data for every addition, missing keys will be replaced with columnHeaders.length missingData values
+	 * @param missingData
+	 *            What to replace missing data with (when a key is not found)
+	 * @param linkDataDelimiter
+	 *            The delimiter to use for the data in linkData
+	 * @param log
+	 *            a log!
+	 * 
+	 * @return true if data was added successfully, false if not
+	 */
+	public boolean addData(Hashtable<String, String> linkData, String linker, String[] columnHeaders, String missingData, String linkDataDelimiter, Logger log) {
+		boolean add = true;
+		boolean writerWasOpened = false;
+		BufferedReader reader;
+		PrintWriter writer;
+		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		// in memory backup
+		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null, false);
+		String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
+		int linkerIndex = ext.indexOfStr(linker, sampleDataHeader);
+		// fail if can't find linker
+		if (linkerIndex == -1) {
+			log.reportError("Error - could not find linker " + linker + " in sample data file " + sampleDatafilename + ", will not add data");
+			add = false;
+		} else {
+			String bakDir = proj.getDir(Project.BACKUP_DIRECTORY, true);
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				log.reportException(e1);
+			}
+
+			String bakFile = bakDir + ext.removeDirectoryInfo(sampleDatafilename) + "_" + System.currentTimeMillis();
+			// fail if can't back up file
+			if (!Files.copyFile(sampleDatafilename, bakFile) || !new File(bakFile).exists()) {
+				log.reportError("Error - could not back up sample data file " + sampleDatafilename + ", will not add data");
+				add = false;
+			} else if (add) {
+				log.report("Info - backed up sample data file" + sampleDatafilename + " to " + bakFile);
+				int numMissing = 0;
+				int numAdded = 0;
+				try {
+					reader = new BufferedReader(new FileReader(bakFile));
+					String[] tmpHeader = reader.readLine().trim().split("\t");
+					// fail if header of original and backup do no match
+					if (!Array.equals(tmpHeader, sampleDataHeader, true)) {
+						log.reportError("Error - backup sample data " + bakFile + " does not contain the same header as " + sampleDatafilename + ", will not add data");
+						add = false;
+					} else {
+						writerWasOpened = true;
+						writer = Files.getAppropriateWriter(sampleDatafilename);
+						writer.println(Array.toStr(sampleDataHeader) + "\t" + Array.toStr(columnHeaders));
+						String[] blanks = new String[columnHeaders.length];
+						Arrays.fill(blanks, missingData);
+						String[] line;
+						while (reader.ready() && add) {
+							line = reader.readLine().trim().split("\t");
+							if (linkData.containsKey(line[linkerIndex])) {
+								String[] data = linkData.get(line[linkerIndex]).split(linkDataDelimiter);
+								if (data.length == columnHeaders.length) {
+									writer.println(Array.toStr(line) + "\t" + Array.toStr(data));
+									numAdded++;
+								}// fail if added data for a linker is the wrong length after delimiting
+								else {
+									log.reportError("Error - the number of enteries in the column header " + Array.toStr(columnHeaders) + " does not equal the number of entries in the data " + Array.toStr(data));
+									log.reportError("Cancelling the addition and replacing  sample data with backup");
+									add = false;
+								}
+							} else {
+								writer.println(Array.toStr(line) + "\t" + Array.toStr(blanks));
+								numMissing++;
+							}
+						}
+						writer.close();
+					}
+					reader.close();
+					if (add) {
+						log.report("Info - added new data to sample data for " + numAdded + (numAdded > 1 ? " samples " : " samples"));
+						if (numMissing > 0) {
+							log.report("Warning - " + numMissing + " " + (numMissing > 1 ? "samples" : "samples") + " had missing data ");
+						}
+					} else if (!add && writerWasOpened) {
+						if (!Files.copyFile(bakFile, sampleDatafilename)) {
+							Files.writeMatrix(sampleDataMatrix, sampleDatafilename, "\t");
+						}
+					}
+				} catch (FileNotFoundException e) {
+					log.reportError("Error: Sample Data backup file " + bakFile + " not found");
+					log.reportException(e);
+					add = false;
+				} catch (IOException e) {
+					log.reportError("Error: unable to read sample data backup file" + bakFile);
+					log.reportException(e);
+					add = false;
+				}
+			}
+		}
+		return add;
+	}
 }
