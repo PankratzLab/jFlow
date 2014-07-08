@@ -275,7 +275,7 @@ public class BeastScore {
 
 	/**
 	 * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght = number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual
-	 * 
+	 *  
 	 * @return an array of beastScores, 1 per with scores computed across the individuals cnvs
 	 */
 	public static BeastScore[] beastInds(Project proj, CNVariant[][] cNVariantInds, Logger log) {
