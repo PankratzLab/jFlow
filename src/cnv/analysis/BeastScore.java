@@ -12,16 +12,16 @@ import common.Logger;
 import filesys.Segment;
 
 /**
- * Class to compute beast scores similar to the beast algorithm http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0086272.
- * Values are always inverse normalized with 5df, and scaled by the empirically derived SCALE_FACTOR_MAD. NaN data is discourage, but is ignored;
- * Note: Since the input data is always inverse normalized, the MAD for a region (such as a cnv) is the median of the (absolute value) inverse normalized data across that region (scaled by the MAD of the superset i.e the chromosome)
- * Note: one difference to the score scheme is that a min/max length parameter has not been added. i.e(length<=min -> score=0, length>=max -> height goes to min height. This may make long cnv calls have inflated scores. 
+ * Class to compute beast scores similar to the beast algorithm http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0086272. Values are always inverse normalized with 5df, and scaled by the empirically derived SCALE_FACTOR_MAD. NaN data is discouraged, but is ignored; Note: Since the input data is always inverse normalized, the MAD for a region (such as a cnv) is the median of the (absolute value) inverse normalized data across that region (scaled by the MAD of the superset i.e the chromosome) Note: one difference to the score scheme is that a min/max length parameter has not been added. i.e(length<=min -> score=0, length>=max -> height goes to min height. This may make long cnv calls have inflated scores.
  */
 public class BeastScore {
 	/**
 	 * The scale factor was empirically derived and scales all MAD values for consistent comparisons across samples
 	 */
 	public static final double SCALE_FACTOR_MAD = 0.134894516;
+	/**
+	 * The alpha suggested by the beast folks
+	 */
 	public static final float DEFAULT_ALPHA = 0.5f;
 	private float[] inputData, beastHeights, beastScores, invTransScaledStdev;
 	private int[][] indicesToChunk;
@@ -30,14 +30,14 @@ public class BeastScore {
 	private Logger log;
 
 	/**
-	 * @param inputData 
-	 * 			  Most often LRR values for a single sample
+	 * @param inputData
+	 *            Most often LRR values for a single sample
 	 * @param indicesToChunk
 	 *            Most often the indices of chromosomes
 	 * @param indicesForScores
 	 *            Most often the indices of markers in cnvs for a particular sample
-	 * @param log 
-	 * 			  You know, a log
+	 * @param log
+	 *            You know, a log
 	 */
 	public BeastScore(float[] inputData, int[][] indicesToChunk, int[][] indicesForScores, Logger log) {
 		super();
@@ -66,6 +66,13 @@ public class BeastScore {
 		return invTransScaledStdev;
 	}
 
+	public String getSummaryAt(int index) {
+		if (index >= beastScores.length) {
+			log.reportError("Error - requested a summary for an index that is too big");
+		}
+		return getBeastHeights()[index] + "\t" + getBeastLengths()[index] + "\t" + getBeastScores()[index];
+	}
+
 	/**
 	 * Computes beast score using the default alpha
 	 */
@@ -83,12 +90,20 @@ public class BeastScore {
 	 * 
 	 */
 	public void computeBeastScores(float alpha) {
-		float[] inverseTransformedData = transformData(inputData, indicesToChunk, log);
-		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, log);
-		float[] inverseTransformedDataScaleMAD = getscaleMADData(inverseTransformedData, indicesToChunk, indicesMADScaled, log);
+		float[] inverseTransformedDataScaleMAD = getinverseTransformedDataScaleMAD();
 		this.beastHeights = getBeastHeights(inverseTransformedDataScaleMAD, indicesForScores, log);
 		this.beastLengths = getBeastLengths(inverseTransformedDataScaleMAD, indicesForScores, log);
 		this.beastScores = getBeastScores(beastHeights, beastLengths, alpha, log);
+	}
+
+	/**
+	 * Consolidates the data transformations, just in case you want to operate on the transformed data
+	 */
+	public float[] getinverseTransformedDataScaleMAD() {
+		float[] inverseTransformedData = transformData(inputData, indicesToChunk, log);
+		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, log);
+		float[] inverseTransformedDataScaleMAD = getscaleMADData(inverseTransformedData, indicesToChunk, indicesMADScaled, log);
+		return inverseTransformedDataScaleMAD;
 	}
 
 	/**
@@ -220,8 +235,7 @@ public class BeastScore {
 	 * @param alpha
 	 * @param height
 	 * @param log
-	 * @return the beast score using using length^alpha * height
-	 * We do not implement a max/min height
+	 * @return the beast score using using length^alpha * height We do not implement a max/min height
 	 */
 	public static float scoreBeast(int length, float alpha, float height, Logger log) {
 		return (float) Math.abs(Math.pow(length, alpha) * height);
@@ -258,8 +272,7 @@ public class BeastScore {
 		}
 		return indices;
 	}
-	
-	
+
 	/**
 	 * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght = number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual
 	 * 
@@ -272,7 +285,7 @@ public class BeastScore {
 		int[] positions = markerSet.getPositions();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		SampleData sampleData = proj.getSampleData(0, false);
-		
+
 		for (int i = 0; i < cNVariantInds.length; i++) {
 			beastScores[i] = beastInd(proj, sampleData, cNVariantInds[i], chr, positions, indicesByChr, log);
 		}
@@ -290,11 +303,11 @@ public class BeastScore {
 		String ind;
 		if (cNVariantInd.length > 0) {
 			String key = cNVariantInd[0].getFamilyID() + "\t" + cNVariantInd[0].getIndividualID();
-			try{
-			ind = sampleData.lookup(key)[0];
-			}catch(NullPointerException npe){
-				log.reportError("Error - could not look up the sample "+key+" in the sample data file "+ proj.getFilename(Project.SAMPLE_DATA_FILENAME) +", cannot load sample to compute beast score" );
-				log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="+cNVariantInd[0].getFamilyID() +" and IID="+ cNVariantInd[0].getIndividualID() );
+			try {
+				ind = sampleData.lookup(key)[0];
+			} catch (NullPointerException npe) {
+				log.reportError("Error - could not look up the sample " + key + " in the sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
+				log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + cNVariantInd[0].getFamilyID() + " and IID=" + cNVariantInd[0].getIndividualID());
 				log.reportException(npe);
 				return null;
 			}
@@ -306,12 +319,12 @@ public class BeastScore {
 					indices[i] = getCNVMarkerIndices(chr, positions, cNVariantInd[i], log);
 				}
 			}
-			try{
-				float[] lrrs =proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
+			try {
+				float[] lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
 				score = new BeastScore(lrrs, indicesByChr, indices, log);
 				score.computeBeastScores();
-			}catch(NullPointerException npe){
-				log.reportError("Error - could not compute score for the sample "+ind+"\t"+key+", please ensure samples have been parsed prior to computing beast score" );
+			} catch (NullPointerException npe) {
+				log.reportError("Error - could not compute score for the sample " + ind + "\t" + key + ", please ensure samples have been parsed prior to computing beast score");
 				log.reportException(npe);
 			}
 		} else {
@@ -321,75 +334,3 @@ public class BeastScore {
 	}
 }
 
-
-//public static float[] getStandardDeviationForTargets(int[][] indicesToStDev, int[][] indicesForStdev, float[] data, Logger log) {
-//	float[] stDev = getSTDevIndices(indicesToStDev, data, log);
-//	float[] stDevData = assignStdevToDataAllIndices(data, indicesToStDev, stDev, log);
-//	return getStDevByTarget(stDevData, indicesForStdev, log);
-//}
-//
-///**
-// * Compute the standard deviation of the data across the indices according to indicesToStDev (usually across chromosomes)
-// * 
-// * @param indicesToStDev
-// * @param data
-// * @param log
-// * @return
-// */
-//public static float[] getSTDevIndices(int[][] indicesToStDev, float[] data, Logger log) {
-//	float[] stDev = new float[indicesToStDev.length];
-//	for (int i = 0; i < indicesToStDev.length; i++) {
-//		if (indicesToStDev[i] != null && indicesToStDev[i].length > 0) {
-//			ArrayList<Float> stDevIndices = new ArrayList<Float>();
-//			for (int j = 0; j < indicesToStDev[i].length; j++) {
-//				if (!Double.isNaN(data[j])) {
-//					stDevIndices.add(data[j]);
-//				}
-//			}
-//			stDev[i] = Array.stdev(Array.toFloatArray(stDevIndices), true);
-//		}
-//	}
-//	return stDev;
-//}
-//
-///**
-// * 
-// * Assigns standard standard deviations computed from the global regions (usually chromosomes) to the indices of the full data array as specified by indicesToScale
-// * 
-// * @param data
-// * @param indicesToScale
-// * @param stDev
-// * @param log
-// * @return
-// */
-//public static float[] assignStdevToDataAllIndices(float[] data, int[][] indicesToScale, float[] stDev, Logger log) {
-//	if (stDev.length != indicesToScale.length) {
-//		log.reportError("Error - the indices to scale and the factor to scale by must have the same length");
-//		return null;
-//	}
-//	float[] stDevData = new float[data.length];
-//	for (int i = 0; i < indicesToScale.length; i++) {
-//		if (indicesToScale != null && indicesToScale[i].length > 0) {
-//			for (int j = 0; j < indicesToScale[i].length; j++) {
-//				stDevData[indicesToScale[i][j]] = stDev[i];
-//			}
-//		}
-//	}
-//	return stDevData;
-//}
-//
-///**
-// * Assigns standard deviations of the global region (usually chromosome) to the target regions (usually cnvs)
-// * 
-// * @param stDevAllData
-// * @param indicesForStdev
-// * @param log
-// * @return
-// */
-//public static float[] getStDevByTarget(float[] stDevAllData, int[][] indicesForStdev, Logger log) {
-//	float[] stDev = new float[indicesForStdev.length];
-//	for (int i = 0; i < indicesForStdev.length; i++) {
-//		stDev[i] = stDevAllData[indicesForStdev[i][0]];
-//	}
-//	return stDev;
-//}
