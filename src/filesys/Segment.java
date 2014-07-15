@@ -63,9 +63,9 @@ public class Segment implements Serializable {
 	}
 
 	public String getUCSClocation() {
-		return "chr"+chr+":"+start+"-"+stop;
+		return Positions.getUCSCformat(new int[] { getChr(), getStart(), getStop() });
 	}
-	
+
 	public String getUCSCLink() {
 		return Positions.getUCSClinkInExcel(new int[] { getChr(), getStart(), getStop() });
 	}
@@ -414,6 +414,64 @@ public class Segment implements Serializable {
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + firstFile + "\"");
 			System.exit(2);
+		}
+	}
+
+	/**
+	 * Nested class to compare a segment to a list of other segments using {@link Segment#overlapScore}
+	 * 
+	 */
+	public class SegmentCompare {
+
+		private Segment[] compareSegments;
+		private double maximumOverlapScore, scoreThreshold;
+		private Segment maxScoreSegment;
+		private int numOverlapingPastThreshold;
+
+		/**
+		 * 
+		 * Usage: Segment.SegmentCompare segmentCompare = segment.new SegmentCompare(compareSegments, scoreThreshold, log);
+		 * <p>
+		 * 
+		 * @param compareSegments
+		 *            Segment[] to compare this Segment to
+		 * @param scoreThreshold
+		 *            score threshold for the {@link Segment#overlapScore}. The number of segments exceeding this threshold will be stored.
+		 * @param log
+		 *            place holder, not currently used
+		 */
+		public SegmentCompare(Segment[] compareSegments, double scoreThreshold, Logger log) {
+			this.compareSegments = compareSegments;
+			this.scoreThreshold = scoreThreshold;
+			this.maximumOverlapScore = 0;
+			this.numOverlapingPastThreshold = 0;
+			this.maxScoreSegment = new Segment((byte) 0, 0, 0);
+			// this.log = log;
+		}
+
+		public void compare() {
+			for (int i = 0; i < compareSegments.length; i++) {
+				double score = Segment.this.overlapScore(compareSegments[i]);
+				if (score > maximumOverlapScore) {
+					maximumOverlapScore = score;
+					maxScoreSegment = compareSegments[i];
+				}
+				if (score > scoreThreshold) {
+					numOverlapingPastThreshold++;
+				}
+			}
+		}
+
+		public Segment getMaxScoreSegment() {
+			return maxScoreSegment;
+		}
+
+		public double getMaximumOverlapScore() {
+			return maximumOverlapScore;
+		}
+
+		public int getNumOverlapingPastThreshold() {
+			return numOverlapingPastThreshold;
 		}
 	}
 
