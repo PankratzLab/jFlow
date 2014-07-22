@@ -302,6 +302,40 @@ public class Plink {
         }
 	}
 	
+	/**
+	 * Filter a genomeFile by removing ids
+	 * 
+	 * @param genomeFile
+	 *            da genome file (full path)
+	 * @param ids
+	 *            a file (full path) containing FID/IID (one per line, tab delimited) of individuals to remove.
+	 *            <p>
+	 *            Warning - any time an individual is seen, that line is filtered out...individual 1 AND individual 2 DO NOT both have to be present in the ids file -> only individual 1 OR individual 2
+	 */
+	public static void removeIndividuals(String genomeFile, String ids) {
+		String[] line;
+		Hashtable<String, String> hash = HashVec.loadFileToHashString(ids, new int[] { 0, 1 }, null, false, "\t", false, false, false);
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(genomeFile));
+			PrintWriter writer = new PrintWriter(new FileWriter(genomeFile + "_" + ext.rootOf(ids)));
+			writer.println(Array.toStr(reader.readLine().trim().split("[\\s]+")));
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				if (!hash.containsKey(line[0] + "\t" + line[1]) && !hash.containsKey(line[2] + "\t" + line[3])) {
+					writer.println(Array.toStr(line));
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + genomeFile + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + genomeFile + "\"");
+			System.exit(2);
+		}
+	}
+	
 	public static void flagRelateds(String genomeFile, String famFile, String iMissFile, String lrrFile, String[] flags, double[][] thresholds, int removeOutTo) {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -752,6 +786,7 @@ public class Plink {
 		String root = "../plink";
 		int count;
 		String[] genomeID_files = null;
+		String[] removeFiles =null;
 		String genomeFile = null;
 		String famFile = "plink.fam";
 		String iMissFile = "plink.imiss";
@@ -783,6 +818,8 @@ public class Plink {
 		"  OR\n"+
 		"   (1) filter genome file by ids (i.e. filter=plink.genome,ids.txt (not the default))\n"+
 		"   (2) filter pairs of ids (i.e. -filterPairs (not the default))\n"+
+		"  OR\n"+
+		"   (1) remove ids from the genome file (i.e. remove=plink.genome,ids.txt (not the default))\n"+
 		"  OR\n"+
 		"   (1) delineate related indiviudals and select one to keep (i.e. relate=plink.genome.gz (not the default))\n"+
 		"   (2) (optional) if genome is incomplete (e.g. truncated at PI_HAT>0.10) (i.e. fam="+famFile+" (default))\n"+
@@ -830,7 +867,10 @@ public class Plink {
 					System.out.println(threads+": "+count);
 		        }
 				return;
-			} else if (args[i].startsWith("filter=")) {
+			} else if (args[i].startsWith("remove=")) {
+				removeFiles = args[i].split("=")[1].split(",");
+				numArgs--;
+			}else if (args[i].startsWith("filter=")) {
 				genomeID_files = args[i].split("=")[1].split(",");
 				numArgs--;
 			} else if (args[i].startsWith("-filterPairs")) {
@@ -896,6 +936,8 @@ public class Plink {
 				batchGenome(root, genom, minPiHatToKeep);
 			} else if (genomeID_files != null) {
 				filterGenome(genomeID_files[0], genomeID_files[1], filterPairs);
+			} else if (removeFiles != null) {
+				removeIndividuals(removeFiles[0], removeFiles[1]);
 			} else if (genomeFile != null) {
 				flagRelateds(genomeFile, famFile, iMissFile, lrrFile, FLAGS, THRESHOLDS, removeOutTo);
 			} else if (mperm != null) {
