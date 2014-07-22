@@ -504,7 +504,8 @@ public class MarkerMetrics {
 		PrintWriter writer, writerMissed;
 		String[] line;
 		Hashtable<String, Vector<String>> warningHash;
-		Hashtable<String, String> flaggedMarkers, droppedMarkers, annotatedMarkers, reclusteredMarkers, allOtherMarkers;
+		Hashtable<String, String> flaggedMarkers, droppedMarkers, annotatedMarkers, reclusteredMarkers;
+		HashSet<String> allOtherMarkers;
 		Vector<String> v;
 		String[] filenames;
 		String dir;
@@ -523,7 +524,7 @@ public class MarkerMetrics {
 		String missedOutputFile;
 		boolean annotated;
 		char[] annotationKeys;
-		Hashtable<String, Hashtable<String,String>> warningHashHash;
+		Hashtable<String, HashSet<String>> warningHashHash;
 		int[] warningCounts;
 		String[] markersWithAnnotation;
 		boolean[] shouldBeExcluded;
@@ -617,15 +618,7 @@ public class MarkerMetrics {
 					System.out.println((j+1)+" of "+markerNames.length);
 				}
 				if (checkForDeletedMarkers) {
-					do {
-						markerData = markerDataLoader.getMarkerData(j);
-						if (markerData == null) {
-							System.out.println("waiting...");
-							try {
-								Thread.sleep(1000);
-							} catch (InterruptedException ie) {}
-						}
-					} while (markerData == null);
+					markerData = markerDataLoader.requestMarkerData(j);
 					zeroedOut = true;
 					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 					for (int k = 0; k < genotypes.length; k++) {
@@ -686,7 +679,7 @@ public class MarkerMetrics {
 
 				missedOutputFile = dir+filenames[i]+"_missed.out";
 				writerMissed = new PrintWriter(new FileWriter(missedOutputFile));
-				allOtherMarkers = HashVec.loadToHashNull(proj.getMarkerNames());
+				allOtherMarkers = HashVec.loadToHashSet(proj.getMarkerNames());
 				for (int j = 0; j < markerNames.length; j++) {
 					if (!annotatedMarkers.containsKey(markerNames[j])) {
 						writerMissed.println(markerNames[j]+"\t"+flaggedMarkers.get(markerNames[j]));
@@ -713,15 +706,7 @@ public class MarkerMetrics {
 				}
 				for (int j = 0; j < markerNames.length; j++) {
 					if (checkForDeletedMarkers) {
-						do {
-							markerData = markerDataLoader.getMarkerData(j);
-							if (markerData == null) {
-								System.out.println("waiting...");
-								try {
-									Thread.sleep(500);
-								} catch (InterruptedException ie) {}
-							}
-						} while (markerData == null);
+						markerData = markerDataLoader.requestMarkerData(j);
 						zeroedOut = true;
 						genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 						for (int k = 0; k < genotypes.length; k++) {
@@ -764,10 +749,10 @@ public class MarkerMetrics {
 			}
 
 			
-			warningHashHash = new Hashtable<String, Hashtable<String,String>>();
+			warningHashHash = new Hashtable<String, HashSet<String>>();
 			warningCounts = new int[warningKeys.length];
 			for (int k = 0; k < warningKeys.length; k++) {
-				warningHashHash.put(warningKeys[k], HashVec.loadToHashNull(Array.toStringArray(warningHash.get(warningKeys[k]))));
+				warningHashHash.put(warningKeys[k], HashVec.loadToHashSet(Array.toStringArray(warningHash.get(warningKeys[k]))));
 				warningCounts[k] = warningHashHash.get(warningKeys[k]).size();
 			}
 			try {
@@ -782,7 +767,7 @@ public class MarkerMetrics {
 					warningCounts = new int[warningKeys.length];
 					for (int k = 0; k < markersWithAnnotation.length; k++) {
 						for (int w = 0; w < warningKeys.length; w++) {
-							if (warningHashHash.get(warningKeys[w]).containsKey(markersWithAnnotation[k])) {
+							if (warningHashHash.get(warningKeys[w]).contains(markersWithAnnotation[k])) {
 								warningCounts[w]++;
 							}
 						}
@@ -796,12 +781,75 @@ public class MarkerMetrics {
 			}
 		}
 		
-		annotationReports(proj, checkForDeletedMarkers, dir+"results/annotationReport.xln", log);
+		annotationReports(proj, checkForDeletedMarkers, proj.getDir(Project.RESULTS_DIRECTORY)+"annotationReport.xln", log);
+	}
+	
+	public static void tallyClusterFilters(Project proj, boolean[] samplesToInclude, String markersSubset, Logger log) {
+		PrintWriter writer;
+		String[] markerNames;
+		MarkerDataLoader markerDataLoader;
+		MarkerData markerData;
+		ClusterFilterCollection clusterFilterCollection;
+		byte[] genotypesBefore, genotypesAfter;
+		float gcThreshold;
+		String filename;
+		int numGenotypesAffected, numNonMissingBefore, numNonMissingAfter;
+		
+		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
+        clusterFilterCollection = proj.getClusterFilterCollection();
+        if (samplesToInclude == null) {
+        	samplesToInclude = proj.getSamplesToInclude(null, log);
+        }
+
+        filename = proj.getDir(Project.RESULTS_DIRECTORY)+"reclusteredMarkers.xln";
+		try {
+			writer = new PrintWriter(new FileWriter(filename));
+			writer.println("Marker\tnumClusterFilters\tnumGenotypesAffected\tproportionGenotypesAffected\tCallrateBefore\tCallrateAfter\tCallrateChange");
+
+			markerNames = clusterFilterCollection.getMarkerNames();
+			log.report("Found "+markerNames.length+" markers with cluster filters");
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+
+			for (int i = 0; i < markerNames.length; i++) {
+				markerData = markerDataLoader.requestMarkerData(i);
+				numGenotypesAffected = numNonMissingBefore = numNonMissingAfter = 0;
+				genotypesBefore = markerData.getAbGenotypes();
+				genotypesAfter = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[i], gcThreshold);
+				for (int k = 0; k < genotypesBefore.length; k++) {
+					if (samplesToInclude[k]) {
+						if (genotypesBefore[k] != genotypesAfter[k]) {
+							numGenotypesAffected++;
+						}
+						if (genotypesBefore[k] != -1) {
+							numNonMissingBefore++;
+						}
+						if (genotypesAfter[k] != -1) {
+							numNonMissingAfter++;
+						}
+					}
+				}
+				writer.println(markerNames[i]+
+						"\t"+clusterFilterCollection.getClusterFilters(markerNames[i]).size()+
+						"\t"+numGenotypesAffected+
+						"\t"+((double)numGenotypesAffected/(double)genotypesBefore.length)+
+						"\t"+((double)numNonMissingBefore/(double)genotypesBefore.length)+
+						"\t"+((double)numNonMissingAfter/(double)genotypesBefore.length)+
+						"\t"+(((double)numNonMissingBefore/(double)genotypesBefore.length) - ((double)numNonMissingAfter/(double)genotypesBefore.length))
+						);
+				markerDataLoader.releaseIndex(i);
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + filename);
+			e.printStackTrace();
+		}
+		log.report("Output successfully written to "+filename);
 	}
 	
 	public static void annotationReports(Project proj, boolean checkForDeletedMarkers, String outputFile, Logger log) {
 		PrintWriter writer, writerMissed;
-		Hashtable<String, String> reclusteredMarkers, droppedMarkers, allOtherMarkers;
+		Hashtable<String, String> reclusteredMarkers, droppedMarkers;
+		HashSet<String> allOtherMarkers;
 		String[] markerNames, markersWithAnnotation;
 		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
@@ -836,15 +884,7 @@ public class MarkerMetrics {
 				System.out.println((j+1)+" of "+markerNames.length+" annotated markers");
 			}
 			if (checkForDeletedMarkers) {
-				do {
-					markerData = markerDataLoader.getMarkerData(j);
-					if (markerData == null) {
-						System.out.println("waiting...");
-						try {
-							Thread.sleep(500);
-						} catch (InterruptedException ie) {}
-					}
-				} while (markerData == null);
+				markerData = markerDataLoader.requestMarkerData(j);
 				zeroedOut = true;
 				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 				for (int k = 0; k < genotypes.length; k++) {
@@ -885,16 +925,16 @@ public class MarkerMetrics {
 				writer.println(annotation+"\t"+markersWithAnnotation.length+"\t"+numReclustered+"\t"+numDropped);
 			}
 			writer.println("Any annotation\t"+markerNames.length+"\t"+reclusteredMarkers.size()+"\t"+droppedMarkers.size());
-			Files.writeList(HashVec.getKeys(droppedMarkers), proj.getProjectDir()+"results/markers_that_were_dropped.out");
+			Files.writeList(HashVec.getKeys(droppedMarkers), proj.getDir(Project.RESULTS_DIRECTORY)+"markers_that_were_dropped.out");
 			
-			allOtherMarkers = HashVec.loadToHashNull(proj.getMarkerNames());
+			allOtherMarkers = HashVec.loadToHashSet(proj.getMarkerNames());
 			for (int j = 0; j < markerNames.length; j++) {
 				allOtherMarkers.remove(markerNames[j]);
 			}
 			numReclustered = numDropped = 0;
 			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
 			writer.print("Everything else\t"+markerNames.length);
-			Files.writeList(markerNames, proj.getProjectDir()+"results/markers_not_yet_annotated.out");
+			Files.writeList(markerNames, proj.getDir(Project.RESULTS_DIRECTORY)+"markers_not_yet_annotated.out");
 
 
 			for (int j = 0; j < markerNames.length; j++) {
@@ -914,15 +954,7 @@ public class MarkerMetrics {
 			writerMissed = new PrintWriter(new FileWriter(missedOutputFile));
 			for (int j = 0; j < markerNames.length; j++) {
 				if (checkForDeletedMarkers) {
-					do {
-						markerData = markerDataLoader.getMarkerData(j);
-						if (markerData == null) {
-							System.out.println("waiting...");
-							try {
-								Thread.sleep(500);
-							} catch (InterruptedException ie) {}
-						}
-					} while (markerData == null);
+					markerData = markerDataLoader.requestMarkerData(j);
 					zeroedOut = true;
 					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
 					for (int k = 0; k < genotypes.length; k++) {
@@ -1008,9 +1040,6 @@ public class MarkerMetrics {
 			System.err.println("Error writing to " + proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln");
 			e.printStackTrace();
 		}
-		
-		
-		
 	}
 
 	public static void main(String[] args) {
@@ -1020,7 +1049,7 @@ public class MarkerMetrics {
 		String logfile = null;
 		Logger log;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		boolean sexSeparation = false;
 		boolean fullQC = false;
 		boolean filter = false;
@@ -1028,12 +1057,13 @@ public class MarkerMetrics {
 		boolean tally = false;
 		boolean checkForDeletedMarkers = true;
 		String pheno = null;
+		boolean countFilters = false;
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
 				"   (1) project file (i.e. proj="+filename+" (default))\n"+
-				"   (2) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
-				"   (3) filename of subset of samples to include / otherwise all samples (i.e. samples=" + samples + " (default))\n" +
+				"   (2) filename of subset of samples to include (i.e. samples=" + samples + " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n" +
+				"   (3) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
 				"  AND\n" + 
 				"   (4) look at intensity separation between males and females (i.e. -separation (not the default))\n" + 
 				"  OR\n" + 
@@ -1045,6 +1075,8 @@ public class MarkerMetrics {
 				"  OR\n" + 
 				"   (4) tally the number of reviewed markers that were changed or dropped (i.e. -tally (not the default))\n" + 
 				"   (5) check for deleted markers (i.e. checkForDeleted="+checkForDeletedMarkers+" (default))\n" + 
+				"  OR\n" + 
+				"   (3) list which markers were adjusted using a cluster filter and how many genotypes changed class (i.e. -countFilters (not the default))\n" + 
 				"  OR\n" + 
 				"   (2) variable name in SampleData.txt to use as the outcome variable in the regression analyses (i.e. pheno=Class=ExamplePheno (not the default))\n" + 
 				"";
@@ -1076,6 +1108,9 @@ public class MarkerMetrics {
 				numArgs--;
 			} else if (args[i].startsWith("-tally")) {
 				tally = true;
+				numArgs--;
+			} else if (args[i].startsWith("-countFilters")) {
+				countFilters = true;
 				numArgs--;
 			} else if (args[i].startsWith("checkForDeleted=")) {
 				checkForDeletedMarkers = ext.parseBooleanArg(args[i]);
@@ -1113,11 +1148,13 @@ public class MarkerMetrics {
 //			filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
 //			filename = "/home/npankrat/projects/BOSS.properties";
 //			filename = "/home/npankrat/projects/SOL_Metabochip.properties";
+//			filename = "/home/npankrat/projects/WinterHillsCombo.properties";
 //			fullQC = true;
 //			markersSubset = "nans.txt";
 //			tally = true;
 //			checkForDeletedMarkers = true;
 //			pheno = "Class=BAF_Outliers";
+//			countFilters = true;
 			
 			proj = new Project(filename, false);
 			log = new Logger(logfile);
@@ -1136,6 +1173,9 @@ public class MarkerMetrics {
 			}
 			if (tally) {
 				tallyFlaggedReviewedChangedAndDropped(proj, checkForDeletedMarkers, log);
+			}
+			if (countFilters) {
+				tallyClusterFilters(proj, proj.getSamplesToInclude(samples, log), markersSubset, log);
 			}
 			if (pheno != null) {
 				regress(proj, pheno, log);

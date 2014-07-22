@@ -554,14 +554,14 @@ public class CARe_Analyses {
 	}
 	
 	public static void generateForests() {
-		Hashtable<String, String> hash;
+		HashSet<String> hash;
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, dirs;
 		String dir;
 //		Logger log;
 		
-		hash = HashVec.loadFileToHashNull("targets.txt", false);
+		hash = HashVec.loadFileToHashSet("targets.txt", false);
 		dirs = new String[] {"whites/ARIC/", "whites/CARDIA/", "whites/CFS/", "whites/CHS/", "whites/FHS/", "whites/MESA/", "blacks/CARDIA/", "blacks/CHS/", "blacks/CFS/", "blacks/MESA/", "asians/MESA/", "hispanics/MESA/", "whites_i3_", "blacks_i3_", ""};
 
 //		log = new Logger("forests.log");
@@ -572,7 +572,7 @@ public class CARe_Analyses {
 					reader = new BufferedReader(new FileReader(dir+"plink_pheno_iteration1.InvVar1.out"));
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
-						if (hash.containsKey(line[0])) {
+						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(line[0]+".txt", true));
 								if (new File(line[0]+".txt").length() == 0) {
@@ -603,7 +603,7 @@ public class CARe_Analyses {
 					reader = new BufferedReader(new FileReader(dir+"plink_pheno_iteration1.se.metal"));
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
-						if (hash.containsKey(line[0])) {
+						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(line[0]+".txt", true));
 								if (new File(line[0]+".txt").length() == 0) {
@@ -721,12 +721,12 @@ public class CARe_Analyses {
 //		if (true)
 //			return;
 
-		Hashtable<String, String> hash;
+		HashSet<String> hash;
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, leaders;
 		
-		hash = HashVec.loadFileToHashNull(DRIVE_ROOT+"Analyses/ICAM/"+"targets.txt", false);
+		hash = HashVec.loadFileToHashSet(DRIVE_ROOT+"Analyses/ICAM/"+"targets.txt", false);
 //		leaders = new String[] {"whites/ARIC/", "whites/CARDIA/", "whites/CFS/", "whites/CHS/", "whites/FHS/", "whites/MESA/", "blacks/CARDIA/", "blacks/CHS/", "blacks/CFS/", "blacks/MESA/", "asians/MESA/", "hispanics/MESA/", "whites_i3_", "blacks_i3_", ""};
 		leaders = new String[] {"whites_ARIC", "whites_CARDIA", "whites_CFS", "whites_CHS", "whites_FHS", "whites_MESA", "blacks_CARDIA", "blacks_CHS", "blacks_CFS", "blacks_MESA", "asians_MESA", "hispanics_MESA", "whites", "blacks", "joint"};
 
@@ -738,7 +738,7 @@ public class CARe_Analyses {
 					reader = new BufferedReader(new FileReader(dir+"_SE1.out"));
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
-						if (hash.containsKey(line[0])) {
+						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(DRIVE_ROOT+"Analyses/ICAM/"+line[0]+".txt", true));
 								if (new File(DRIVE_ROOT+"Analyses/ICAM/"+line[0]+".txt").length() == 0) {
@@ -769,7 +769,7 @@ public class CARe_Analyses {
 					reader = new BufferedReader(new FileReader(dir+".se.metal"));
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
-						if (hash.containsKey(line[0])) {
+						if (hash.contains(line[0])) {
 							try {
 								writer = new PrintWriter(new FileWriter(DRIVE_ROOT+"Analyses/ICAM/"+line[0]+".txt", true));
 								if (new File(DRIVE_ROOT+"Analyses/ICAM/"+line[0]+".txt").length() == 0) {

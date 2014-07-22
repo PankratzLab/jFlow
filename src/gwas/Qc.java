@@ -125,6 +125,12 @@ public class Qc {
 		dir = "D:/data/WinterHillsCombo/QC/";
 		dir = "D:/data/Poynter/QC/";
 		dir = "D:/BOSS/IBC_meta_analyses/Lipids_GxG/SecondRun/newlyCleanedGenotypeCalls/QC/";
+		dir = "C:/PoynterLinabery/QC/unrelateds/";
+		dir = "C:/PoynterLinabery/QC/fullSample/";
+		dir = "C:/PoynterLinabery/QC/justLinabery/";
+		dir = "C:/PoynterLinabery/QC/withHapMap/";
+		dir = "D:/data/WinterHillsCombo/QC/beforeRelease/";
+		
 		keepGenomeInfoForRelatedsOnly = false;
 
 		String usage = "\n" +

@@ -32,7 +32,7 @@ public class GenerateDemoPackage {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_SCATTER_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String logfile = null;
 		Logger log;
 		Project proj;

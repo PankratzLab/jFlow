@@ -11,7 +11,7 @@ public class Stats {
 
 	public static void main(String[] args) {
 	    int numArgs = args.length;
-	    String filename = Project.DEFAULT_PROJECT;
+	    String filename = cnv.Launch.getDefaultDebugProjectFile();
 
 	    String usage = "\n"+"cnv.manage.Stats requires 0-1 arguments\n"+
 		"   (1) project file (i.e. proj="+filename+" (default))\n"+

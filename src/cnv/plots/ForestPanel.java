@@ -18,6 +18,7 @@ import common.*;
  * @author Rohit Sinha
  */
 public class ForestPanel extends AbstractPanel {
+	static final long serialVersionUID = 1L;
 
 	public static final Color[] DEFAULT_COLORS = { new Color(33, 31, 53), // dark dark
 			new Color(23, 58, 172), // dark blue
@@ -34,7 +35,6 @@ public class ForestPanel extends AbstractPanel {
 	};
 	protected ForestPlot forestPlot;
 	private Logger log;
-	private boolean swapAxes;
 	private boolean rectangleGeneratable;
 	DecimalFormat precision2Decimal;
 
@@ -133,10 +133,6 @@ public class ForestPanel extends AbstractPanel {
 		displayXaxis = displayYaxis = true;
 		xAxisLabel = forestPlot.plotLabel;
 		yAxisLabel = " ";
-	}
-
-	public void setSwapAxes(boolean swapAxes) {
-		this.swapAxes = swapAxes;
 	}
 
 	@Override
@@ -436,7 +432,7 @@ public class ForestPanel extends AbstractPanel {
 				}
 			}
 		} else {
-			System.err.println("Error - invalid chart type: " + chartType);
+			log.reportError("Error - invalid chart type: " + chartType);
 		}
 
 		if (getNumberOfNaNSamples() > 0) {

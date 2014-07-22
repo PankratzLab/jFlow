@@ -100,7 +100,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 
 		String usage = "\n"+
 		"plot.MosaicPlot requires 0-1 arguments\n"+

@@ -1265,7 +1265,7 @@ public class ParseAffySNP6 implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		boolean map = false;
 		int numThreads = 1;
 		// boolean parseABlookup = false;

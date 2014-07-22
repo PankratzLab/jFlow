@@ -470,7 +470,7 @@ public class Conditional {
 				files[i] = null;
 				allMarkers = new Hashtable<String, String>();
 			} else {
-				allMarkers = HashVec.loadFileToHashNull(files[i], false);
+				allMarkers = HashVec.loadFileToHashString(files[i], false);
 			}
 			baseCovars = new String[dirs.length][];
 			for (int k = 0; k < dirs.length; k++) {

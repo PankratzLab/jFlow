@@ -202,7 +202,7 @@ public class LrrSd extends Parallelizable {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String centroids = null;
 		String filenameOfListOfSamples = null;
 		String markersForCallrateFile = null;

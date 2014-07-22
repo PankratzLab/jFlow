@@ -2065,7 +2065,7 @@ public class SeqMeta {
 		String[][][] finalSets;
 		String localDir;
 		String filename;
-		Hashtable<String, String> markersOfInterest;
+		HashSet<String> markersOfInterest;
 		String[][] phenotypes, races, methods;
 		String[] studies;
 		String temp;
@@ -2090,7 +2090,7 @@ public class SeqMeta {
 
 		files = Files.list(dir, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
-		markersOfInterest = HashVec.loadFileToHashNull(betasFor, false);
+		markersOfInterest = HashVec.loadFileToHashSet(betasFor, false);
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(betasFor)+"_summary.xln"));
@@ -2108,7 +2108,7 @@ public class SeqMeta {
 								while (reader.ready()) {
 									temp = reader.readLine();
 									line = ext.splitCommasIntelligently(temp, true, log);
-									if (markersOfInterest.containsKey(line[1])) {
+									if (markersOfInterest.contains(line[1])) {
 										writer.println(phenotypes[i][0]+"\t"+races[k][0]+"\t"+studies[j]+"\t"+Array.toStr(line));
 									}
 								}

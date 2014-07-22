@@ -255,7 +255,7 @@ public class DosageData implements Serializable {
 //		int[] positions;
 		String delimiter;
 		String[] markersToKeep;
-		Hashtable<String,String> keeps;
+		HashSet<String> keeps;
 		String root;
 		SnpMarkerSet newMarkerSet; 
 
@@ -265,7 +265,7 @@ public class DosageData implements Serializable {
 //			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
 		} else {
 			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, false);
-			keeps = HashVec.loadToHashNull(markersToKeep);
+			keeps = HashVec.loadToHashSet(markersToKeep);
 			root = ext.rootOf(filename, false);
 			if (mapOut == null) {
 				mapOut = root+".map";
@@ -322,7 +322,7 @@ public class DosageData implements Serializable {
 					}
 				} else if (parameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
-						if (extract == null || keeps.containsKey(markerNames[i])) {
+						if (extract == null || keeps.contains(markerNames[i])) {
 							for (int j = 0; j < parameters[3]; j++) {
 								writer.print(delimiter+markerNames[i]);
 							}
@@ -334,7 +334,7 @@ public class DosageData implements Serializable {
 			
 			if (parameters[2] == MARKER_DOMINANT_FORMAT) {
 				for (int i = 0; i < markerNames.length; i++) {
-					if (extract == null || keeps.containsKey(markerNames[i])) {
+					if (extract == null || keeps.contains(markerNames[i])) {
 						line = LEADS[parameters[11]]==null?new String[parameters[1]]:LEADS[parameters[11]];
 						line[parameters[5]] = markerNames[i];
 						if (parameters[6] >= 0) {
@@ -400,13 +400,13 @@ public class DosageData implements Serializable {
 					                                  
 					if (parameters[3] == 1) {
 						for (int j = 0; j < markerNames.length; j++) {
-							if (extract == null || keeps.containsKey(markerNames[j])) {
+							if (extract == null || keeps.contains(markerNames[j])) {
 								writer.print(delimiter+ext.formDeci(dosageValues[j][i], parameters[13], parameters[12] == parameters[13]));
 							}
 						}
 					} else {
 						for (int j = 0; j < markerNames.length; j++) {
-							if (extract == null || keeps.containsKey(markerNames[j])) {
+							if (extract == null || keeps.contains(markerNames[j])) {
 								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13]));
 								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][1], parameters[13], parameters[12] == parameters[13]));
 								if (parameters[3] == 3) {
@@ -433,7 +433,8 @@ public class DosageData implements Serializable {
 	public void analyze(String phenoFile, String phenoMissingValue, String snpList, boolean verbose, Logger log) {
 		PrintWriter writer, w2;
 		String[] line;
-		Hashtable<String, String> hash, snps;
+		Hashtable<String, String> hash;
+		HashSet<String> snps;
 		int count;
 		String[] traits, markerNames;
 		boolean[] use, analyze;
@@ -456,9 +457,9 @@ public class DosageData implements Serializable {
 		alleles = markerSet.getAlleles();
 		analyze = Array.booleanArray(markerNames.length, true);
 		if (snpList != null) {
-			snps = HashVec.loadFileToHashNull(snpList, false);
+			snps = HashVec.loadFileToHashSet(snpList, false);
 			for (int i = 0; i < markerNames.length; i++) {
-				if (!snps.containsKey(markerNames[i])) {
+				if (!snps.contains(markerNames[i])) {
 					analyze[i] = false;
 				}
 			}
@@ -596,7 +597,7 @@ public class DosageData implements Serializable {
 		PrintWriter writer;
 		String delimiter;
 		String[] lead, markersToKeep;
-		Hashtable<String,String> keeps;
+		HashSet<String> keeps;
 		String root;
 		IntVector cols;
 		int offset, numColsEach;
@@ -621,7 +622,7 @@ public class DosageData implements Serializable {
 			keeps = null;
 		} else {
 			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, false);
-			keeps = HashVec.loadToHashNull(markersToKeep);
+			keeps = HashVec.loadToHashSet(markersToKeep);
 			root = ext.rootOf(outfile, false);
 			markerSet = markerSet.trim(markersToKeep, true, false, log);		// allows missing markers, but will list how many
 			if (mapOut == null) {
@@ -665,7 +666,7 @@ public class DosageData implements Serializable {
 			}
 			numColsEach = fromParameters[3];
 			for (int i = 0; i < markerNames.length; i++) {
-				if (keeps.containsKey(markerNames[i])) {
+				if (keeps.contains(markerNames[i])) {
 					for (int j = 0; j < numColsEach; j++) {
 						cols.add(offset+i*numColsEach+j+1);
 					}
@@ -757,7 +758,7 @@ public class DosageData implements Serializable {
 						}
 					} else if (toParameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
 						for (int i = 0; i < markerNames.length; i++) {
-							if (extract == null || keeps.containsKey(markerNames[i])) {
+							if (extract == null || keeps.contains(markerNames[i])) {
 								for (int j = 0; j < toParameters[3]; j++) {
 									writer.print(delimiter+markerNames[i]);
 								}
@@ -839,7 +840,7 @@ public class DosageData implements Serializable {
 							System.exit(1);
 						}
 						
-						if (extract == null || keeps.containsKey(markerNames[i])) {
+						if (extract == null || keeps.contains(markerNames[i])) {
 							lead = LEADS[toParameters[11]]==null?new String[toParameters[1]]:LEADS[toParameters[11]];
 							lead[toParameters[5]] = markerNames[i];
 
@@ -926,7 +927,7 @@ public class DosageData implements Serializable {
 						writer.print(Array.toStr(lead, delimiter));
 						
 						for (int j = 0; j < markerNames.length; j++) {
-							if (extract == null || keeps.containsKey(markerNames[j])) {
+							if (extract == null || keeps.contains(markerNames[j])) {
 								if (fromParameters[3] == 1) {
 									dosageValue = Float.parseFloat(line[fromParameters[1]+j]);
 								} else {

@@ -43,7 +43,7 @@ public class BurdenMatrix implements Serializable {
 		int[] indices;
 		double trav;
 		int variantIndex;
-		Hashtable<String, String> idsToUse;
+		HashSet<String> idsToUse;
 		int countObserved;
 		String[][] importedWeights;
 		Hashtable<String, Double> weightsHash;
@@ -226,9 +226,9 @@ public class BurdenMatrix implements Serializable {
 				useForImputation = Array.booleanArray(ids.length, true);
 			} else {
 				useForImputation = new boolean[ids.length];
-				idsToUse = HashVec.loadToHashNull(imputeUsingDataFreqFromTheseIDsNotAnnotationFreq);
+				idsToUse = HashVec.loadToHashSet(imputeUsingDataFreqFromTheseIDsNotAnnotationFreq);
 				for (int i = 0; i < ids.length; i++) {
-					useForImputation[i] = idsToUse.containsKey(ids[i]);
+					useForImputation[i] = idsToUse.contains(ids[i]);
 				}
 			}
 			observedFreqs = Array.doubleArray(markerNames.length, Double.MAX_VALUE);
@@ -390,7 +390,8 @@ public class BurdenMatrix implements Serializable {
 	public void analyze(String phenoFile, String phenoMissingValue, String geneListSubset, String outputFile, boolean verbose, Logger log) {
 		PrintWriter writer;
 		String[] line;
-		Hashtable<String, String> hash, genes;
+		Hashtable<String, String> hash;
+		HashSet<String> genes;
 		int countSamplesUsed;
 		String[] traits;
 		boolean[] use, analyze;
@@ -416,9 +417,9 @@ public class BurdenMatrix implements Serializable {
 //		alleles = markerSet.getAlleles();
 		analyze = Array.booleanArray(geneNames.length, true);
 		if (geneListSubset != null) {
-			genes = HashVec.loadFileToHashNull(geneListSubset, false);
+			genes = HashVec.loadFileToHashSet(geneListSubset, false);
 			for (int i = 0; i < geneNames.length; i++) {
-				if (!genes.containsKey(geneNames[i]) || geneNames[i].equals("NA")) {
+				if (!genes.contains(geneNames[i]) || geneNames[i].equals("NA")) {
 					analyze[i] = false;
 				}
 			}

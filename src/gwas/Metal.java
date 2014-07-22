@@ -1351,6 +1351,50 @@ public class Metal {
 		log.report(ext.getTime()+"\tdone!");
 	}
 
+	public static void countMissing(String filename, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer, w2;
+		String[] line;
+		String trav;
+		int present, absent;
+		
+		try {
+			reader = Files.getAppropriateReader(filename);
+			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_counts.out"));
+			w2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_lowCount.out"));
+			writer.println("MarkerName\tnumPresent\tnumAbsent");
+			line = reader.readLine().trim().split("[\\s]+");
+			ext.checkHeader(line, new String[] {"MarkerName", "Allele1", "Allele2", "Effect", "StdErr", "P-value", "Direction"}, new int[] {0,1,2,3,4,5,6}, false, log, true);
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				trav = line[6];
+				present = absent = 0;
+				for (int i = 0; i < trav.length(); i++) {
+					if (trav.charAt(i) == '+' || trav.charAt(i) == '-' || trav.charAt(i) == '0') {
+						present++;
+					} else if (trav.charAt(i) == '?') {
+						absent++;
+					} else {
+						log.report("Error - don't know what to do with symbol: "+trav.charAt(i));
+					}
+				}
+				writer.println(line[0]+"\t"+present+"\t"+absent);
+				if (present < 3) {
+					w2.println(line[0]+"\t"+present+"\t"+absent);
+				}
+			}
+			reader.close();
+			writer.close();
+			w2.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + filename + "\"");
+			return;
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String results = "additive.assoc.logistic";
@@ -1383,6 +1427,7 @@ public class Metal {
 		String output = "META_SE";
 		boolean se = true;
 		String compResults = null;
+		String countMissing = null;
 		String[] unitOfAnalyses = Aliases.MARKER_NAMES;
 		boolean gcControlOn = true;
 		
@@ -1399,6 +1444,9 @@ public class Metal {
 //		calcFreq = "D:/Myron/CARe/ICAM1/LOG_ICAM1/IBC/whites.xln";
 //		calcFreq = "D:/mega/Consortium/Megas/alleleFreqInput.dat";
 
+//		compResults = "META_ANALYSIS_beta_se_Final1.tbl,AllResults.txt";
+//		countMissing = "D:/mega/Discovery_allResults_23AndMe_just10K.tbl";
+		
 		String usage = "\n"+
 		"gwas.Metal requires 0-1 arguments\n"+
 		"   (0) directory (i.e. dir="+dir+" (default))\n"+
@@ -1437,6 +1485,8 @@ public class Metal {
 		"   (5) use genomic control (i.e. gcControlOn="+gcControlOn+" (default))\n"+
 		" OR\n"+
 		"   (1) compare two sets of meta-analysis results (i.e. compResults=fileA1.tbl,fileB1.tbl (not the default))\n"+
+		" OR\n"+
+		"   (1) count the number of studies missing each variant (i.e. countMissing=fileA1.tbl (not the default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -1521,6 +1571,9 @@ public class Metal {
 			} else if (args[i].startsWith("compResults=")) {
 				compResults = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("countMissing=")) {
+				countMissing = ext.parseStringArg(args[i], null);
+				numArgs--;
 			} else {
 				System.err.println("Error - don't know what to do with argument: '"+args[i]+"'");
 			}
@@ -1529,8 +1582,6 @@ public class Metal {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		
-//		compResults = "META_ANALYSIS_beta_se_Final1.tbl,AllResults.txt";
 		
 		try {
 			if (batch) {
@@ -1549,6 +1600,8 @@ public class Metal {
 				metaAnalyze("./", analyze.split(","), unitOfAnalyses, output, SE_ANALYSIS, null, gcControlOn, new Logger());
 			} else if (compResults != null) {
 				compareResults(compResults.split(","), new Logger("compareMetalResults.log"));
+			} else if (countMissing != null) {
+				countMissing(countMissing, new Logger("countMissing.log"));
 			} else {
 				convertPlinkResults(dir, results, test, method, freq, useSE, useMetalNomenclature, outfile, false);
 			}

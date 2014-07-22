@@ -571,7 +571,7 @@ public class PennCNV {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String rawlog = null;
 		String rawcnvs = null;
 		int batch = 0;

@@ -5,6 +5,7 @@ import java.util.*;
 
 import javax.swing.JOptionPane;
 
+import cnv.Launch;
 import cnv.filesys.ABLookup;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
@@ -1267,7 +1268,7 @@ public class ParseKcol implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = Launch.getDefaultDebugProjectFile();
 		boolean map = false;
 		int numThreads = 1;
 		// boolean parseABlookup = false;

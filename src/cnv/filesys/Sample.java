@@ -1127,7 +1127,7 @@ public class Sample implements Serializable {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project(Project.DEFAULT_CURRENT, false);
+		Project proj = new Project(cnv.Launch.getDefaultDebugProjectFile(), false);
 		String[] samples = proj.getSamples();
 		Sample samp;
 		

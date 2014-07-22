@@ -178,21 +178,21 @@ public class IndependentSNPs {
         
 		if (forceBeforeFile != null && new File(dir+forceBeforeFile).exists()) {
 			log.report("Forcing those SNPs in '"+forceBeforeFile+"' to be included as tags if p-value met");
-			forceBefore = HashVec.loadFileToHashNull(dir+forceBeforeFile, false);
+			forceBefore = HashVec.loadFileToHashString(dir+forceBeforeFile, false);
 		} else {
 			log.report((forceBeforeFile==null?"No ":"No file named '"+forceBeforeFile+"'; no ")+"SNPs will be forced to be included as tags");
 			forceBefore = new Hashtable<String,String>();
 		}
 		if (forceAfterFile != null && new File(dir+forceAfterFile).exists()) {
 			log.report("Forcing those SNPs in '"+forceAfterFile+"' to be included as tags if p-value met");
-			forceAfter = HashVec.loadFileToHashNull(dir+forceAfterFile, false);
+			forceAfter = HashVec.loadFileToHashString(dir+forceAfterFile, false);
 		} else {
 			log.report((forceAfterFile==null?"No ":"No file named '"+forceAfterFile+"'; no ")+"SNPs will be forced to be included as tags after tagging");
 			forceAfter = new Hashtable<String,String>();
 		}
 		if (forceRegardlessFile != null && new File(dir+forceRegardlessFile).exists()) {
 			log.report("Forcing those SNPs in '"+forceRegardlessFile+"' to be included as tags regardless of p-value");
-			forceRegardless = HashVec.loadFileToHashNull(dir+forceRegardlessFile, false);
+			forceRegardless = HashVec.loadFileToHashString(dir+forceRegardlessFile, false);
 			forcedKeys = HashVec.getKeys(forceRegardless);
 		} else {
 			log.report((forceRegardlessFile==null?"No ":"No file named '"+forceRegardlessFile+"'; no ")+"additional SNPs will be forced regardless of p-value");

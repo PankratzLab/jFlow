@@ -2454,8 +2454,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
     }
 
     public static void main(String[] args) {
-		final String filename = Project.DEFAULT_SCATTER_PROJECT;
-//		boolean jar = args.length>0&&args[0].equals("-notJar")?false:true;
+		final String filename = cnv.Launch.getDefaultDebugProjectFile();
 		final boolean jar = false;
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {

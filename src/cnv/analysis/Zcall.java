@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Hashtable;
 
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
@@ -121,8 +120,7 @@ public class Zcall {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-//		String filename = Project.DEFAULT_PROJECT;
-		String filename = "C:/workspace/Genvisis/projects/GEDI_exome.properties";
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String logfile = null;
 		Logger log;
 		Project proj;

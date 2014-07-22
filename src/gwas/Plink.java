@@ -886,8 +886,8 @@ public class Plink {
 		
 //		genomeID_files = new String[] {"cluster.genome"};
 		
-		parseHitsForAllFilesInDirectory("D:/Visualization/ARIC_primary/gwas/QT_interval/", 0.0001, new Logger());
-		System.exit(1);
+//		parseHitsForAllFilesInDirectory("D:/Visualization/ARIC_primary/gwas/QT_interval/", 0.0001, new Logger());
+//		System.exit(1);
 		
 		try {
 			if (addGenom>0) {

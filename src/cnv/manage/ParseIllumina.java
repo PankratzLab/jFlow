@@ -699,6 +699,7 @@ public class ParseIllumina implements Runnable {
 		char[][] abLookup;
 		String filename;
 		Hashtable<String, Float> allOutliers;
+		Hashtable<String, String> renamedIDsHash;
 
         System.out.println("Parsing files using the Long Format algorithm");
         
@@ -717,7 +718,7 @@ public class ParseIllumina implements Runnable {
 		System.out.println("There were "+markerNames.length+" markers present in '"+proj.getFilename(Project.MARKERSET_FILENAME, true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
 		
 		int snpIndex, sampIndex, key;
-		String trav;
+		String trav, temp;
 		int[] dataIndices, genotypeIndices;
 		boolean parseAtAt;
 
@@ -737,6 +738,7 @@ public class ParseIllumina implements Runnable {
 		countHash = new CountHash();
 		dupHash = new CountHash();
 		allOutliers = new Hashtable<String, Float>();
+		renamedIDsHash = new Hashtable<String, String>();
         try {
 			for (int i = 0; i<files.length; i++) {
 				try {
@@ -778,7 +780,24 @@ public class ParseIllumina implements Runnable {
 								System.err.println("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample");
 								parseAtAt = false;
 							}
-							trav = parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex];
+							temp = parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex];
+							trav = ext.replaceWithLinuxSafeCharacters(temp, true);
+							
+							if (!trav.equals(temp) && !renamedIDsHash.containsKey(temp)) {
+								try {
+									writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt", true));
+									if (renamedIDsHash.size() == 0) {
+										writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
+									}
+									writer.println(temp+"\t"+trav);
+									writer.close();
+								} catch (Exception e) {
+									System.err.println("Error writing to " + proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt");
+									e.printStackTrace();
+								}
+								renamedIDsHash.put(temp, trav);
+							}
+							
 						} else {
 							done = true;
 							trav = null;
@@ -786,34 +805,18 @@ public class ParseIllumina implements Runnable {
 
 						if (done || !trav.equals(sampleName)) {
 							if (!sampleName.equals("just starting")) {
+								if (markerCount!=markerNames.length) {
+									System.err.println("Error - expecting "+markerNames.length+" markers and only found "+markerCount+" for sample "+sampleName+"; this usually happens when the input file is truncated");
+									return;
+								}
+
 								if (fixes.containsKey(sampleName)) {
 									sampleName = fixes.get(sampleName);
-								}
-								
-								trav = ext.replaceWithLinuxSafeCharacters(sampleName, true);
-								if (!trav.equals(sampleName)) {
-									try {
-										writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt", true));
-										if (new File(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt").length() == 0) {
-											writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
-										}
-										writer.println(sampleName+"\t"+trav);
-										writer.close();
-									} catch (Exception e) {
-										System.err.println("Error writing to " + proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt");
-										e.printStackTrace();
-									}
-									sampleName = trav;
 								}
 								
 								filename = determineFilename(proj.getDir(Project.SAMPLE_DIRECTORY, true), sampleName, timeBegan);
 								if (filename == null) {
 									return;
-								}
-								
-								if (markerCount!=markerNames.length) {
-									System.err.println("Error - expecting "+markerNames.length+" markers and only found "+markerCount+" for sample "+sampleName+"; this usually happens when there is truncated input file");
-									System.exit(1);
 								}
 
 								samp = new Sample(sampleName, fingerprint, data, genotypes, false);
@@ -822,25 +825,27 @@ public class ParseIllumina implements Runnable {
 								count++;
 								markerCount = 0;
 							}
-							if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
-								System.err.println("Warning - marker data must be out of order, becaue we're seeing "+trav+" again at line "+count);
-								samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
-								data = samp.getAllData();
-								genotypes = samp.getAllGenotypes();
-							} else {
-								data = new float[Sample.DATA_FIELDS.length][];
-								for (int j = 0; j<data.length; j++) {
-									if (dataIndices[j] != -1) {
-										data[j] = Array.floatArray(markerNames.length, Float.POSITIVE_INFINITY);
+							if (!done) {
+								if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+									System.err.println("Warning - marker data must be out of order, becaue we're seeing "+trav+(fixes.containsKey(trav)?"-->"+fixes.get(trav):"")+" again at line "+count);
+									samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
+									data = samp.getAllData();
+									genotypes = samp.getAllGenotypes();
+								} else {
+									data = new float[Sample.DATA_FIELDS.length][];
+									for (int j = 0; j<data.length; j++) {
+										if (dataIndices[j] != -1) {
+											data[j] = Array.floatArray(markerNames.length, Float.POSITIVE_INFINITY);
+										}
+				                    }
+									genotypes = new byte[2][];
+									genotypes[0] = Array.byteArray(markerNames.length, (byte)0);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
+									if (!ignoreAB) {
+										genotypes[1] = Array.byteArray(markerNames.length, (byte)-1);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
 									}
-			                    }
-								genotypes = new byte[2][];
-								genotypes[0] = Array.byteArray(markerNames.length, (byte)0);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
-								if (!ignoreAB) {
-									genotypes[1] = Array.byteArray(markerNames.length, (byte)-1);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
 								}
-							}							
-							sampleName = trav;
+								sampleName = trav;
+							}
 						}
 
 						if (!done) {
@@ -926,7 +931,7 @@ public class ParseIllumina implements Runnable {
 		}
 
         
-		System.out.println("Parsed "+count+" sample(s)");
+		System.out.println(ext.getTime()+"\t"+"Parsed "+count+" sample(s)");
 		SampleList.generateSampleList(proj).writeToTextFile(proj.getProjectDir()+"ListOfSamples.txt");
 
 		try {
@@ -1138,7 +1143,7 @@ public class ParseIllumina implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		boolean map = false;
 		int numThreads = 1;
 		boolean parseAlleleLookupFromFinalReports = false;

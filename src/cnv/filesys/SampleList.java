@@ -81,7 +81,7 @@ public class SampleList implements Serializable {
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 
 		String usage = "\n"+
 		"filesys.SampleList requires 1 argument\n"+
