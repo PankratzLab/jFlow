@@ -14,7 +14,7 @@ public class SexChecks {
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner", "Mean X LRR", "Num X markers", "Num X 10-90", "% 10-90", "Mean Y LRR", "Num Y markers"};
 	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
 	public static final String[] SNP_FIELDS = {"Sample", "X", "Y", "X Raw", "Y Raw", "Theta", "R", "B Allele Freq", "Log R Ratio", "AlleleCount"};
-	public static final String RESULTS_DIR = "results/genderChecks/";
+	public static final String RESULTS_DIR = "genderChecks/";
 	public static final float NUM_SD_FOR_MALE_OUTLIERS = 5.0f;
 	public static final float NUM_SD_FOR_FEMALE_OUTLIERS = 5.0f;
 
@@ -148,14 +148,14 @@ public class SexChecks {
 		String trav;
 		Hashtable<String,String> hash = new Hashtable<String,String>();
 
-		File[] filenames = new File(RESULTS_DIR).listFiles(new FilenameFilter() {
+		File[] filenames = new File(proj.getDir(Project.RESULTS_DIRECTORY)+RESULTS_DIR).listFiles(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return filename.endsWith("_genderChecks.xln");
 			}
 		});
 
 		if (filenames==null) {
-			System.err.println("Error - directory not found: "+RESULTS_DIR);
+			System.err.println("Error - directory not found: "+proj.getDir(Project.RESULTS_DIRECTORY)+RESULTS_DIR);
 
 		} else {
 			System.out.println("Found results for "+filenames.length+" lookup files");
@@ -446,6 +446,7 @@ public class SexChecks {
         boolean[] sexChrs;
         byte[] chrs;
         int[][] genotypeCounts;
+        boolean[] samplesToExclude;
         
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
@@ -454,6 +455,7 @@ public class SexChecks {
 		}
         
         sampleData = proj.getSampleData(2, false);
+        samplesToExclude = proj.getSamplesToExclude(log);
         samples = proj.getSamples();
         sexes = new int[samples.length];
         for (int i = 0; i < samples.length; i++) {
@@ -474,7 +476,7 @@ public class SexChecks {
 
         try {
 			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY, true, log, false)+"pseudoautosomalSearch.xln"));
-			writer.println("SNP\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
+			writer.println("SNP\tChr\tPosition\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 			
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList, log);
 			time = new Date().getTime();
@@ -491,7 +493,7 @@ public class SexChecks {
 				values[0] = new DoubleVector();
 				values[1] = new DoubleVector();
 				for (int s = 0; s < samples.length; s++) {
-					if (ext.isValidDouble(lrrs[s]+"")) {
+					if (ext.isValidDouble(lrrs[s]+"") && !samplesToExclude[s]) {
 						if (sexes[s] == 1 || sexes[s] == 2) {
 							values[sexes[s]-1].add(lrrs[s]);
 							genotypeCounts[sexes[s]-1][abGenotypes[s]+1]++;
@@ -499,7 +501,7 @@ public class SexChecks {
 					}
 				}
 
-				line += markerName;
+				line += markerName +"\t"+ markerData.getChr() +"\t"+ markerData.getPosition();
 				if (values[0].size() > 0) {
 					line += "\t"+Array.mean(values[0].toArray());
 				} else {
@@ -550,7 +552,7 @@ public class SexChecks {
 		String allMarkers = "data/markerListWithIndices.dat";
 		boolean drop = false;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		boolean par = false;
 		Logger log;
 
@@ -602,7 +604,7 @@ public class SexChecks {
 
 //		check = true;
 //		par = true;
-		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
+//		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 		try {
 			proj = new Project(filename, false);
 			log = new Logger();

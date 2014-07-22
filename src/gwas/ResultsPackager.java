@@ -19,7 +19,8 @@ public class ResultsPackager {
 		PrintWriter writer;
 		String[] line;
 		String temp, trav;
-		Hashtable<String, String> markerHash, mapHash, originalFreqHash, customFreqHash;
+		HashSet<String> markerHash;
+		Hashtable<String, String> mapHash, originalFreqHash, customFreqHash;
 		String delimiter;
 		String[] alleles;
 		String freq;
@@ -29,7 +30,7 @@ public class ResultsPackager {
 		}
 		
 		if (markersToReport != null) {
-			markerHash = HashVec.loadFileToHashNull(dir+markersToReport, false);
+			markerHash = HashVec.loadFileToHashSet(dir+markersToReport, false);
 		} else {
 			markerHash = null;
 		}
@@ -56,7 +57,7 @@ public class ResultsPackager {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[0];
-				if ((markerHash == null || markerHash.containsKey(trav)) && !line[3].equals("") && (filter >= 1 || (!ext.isMissingValue(line[3]) && Double.parseDouble(line[3]) <= filter))) {
+				if ((markerHash == null || markerHash.contains(trav)) && !line[3].equals("") && (filter >= 1 || (!ext.isMissingValue(line[3]) && Double.parseDouble(line[3]) <= filter))) {
 					if (mapHash.containsKey(trav)) {
 						writer.print(mapHash.get(trav));
 					} else if (mapHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
@@ -107,7 +108,8 @@ public class ResultsPackager {
 		PrintWriter writer;
 		String[] line;
 		String temp, trav;
-		Hashtable<String, String> markerHash, mapHash, freqHash; // , customFreqHash;
+		HashSet<String> markerHash;
+		Hashtable<String, String> mapHash, freqHash; // , customFreqHash;
 		String delimiter;
 		int[] indices;
 		boolean logistic;
@@ -117,7 +119,7 @@ public class ResultsPackager {
 		}
 		
 		if (markersToReport != null) {
-			markerHash = HashVec.loadFileToHashNull(dir+markersToReport, false);
+			markerHash = HashVec.loadFileToHashSet(dir+markersToReport, false);
 		} else {
 			markerHash = null;
 		}
@@ -166,7 +168,7 @@ public class ResultsPackager {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[indices[0]];
-				if ((markerHash == null || markerHash.containsKey(trav)) && !line[3].equals("") && line[indices[2]].equalsIgnoreCase(test) && (filter >= 1 || (!ext.isMissingValue(line[indices[7]]) && Double.parseDouble(line[indices[7]]) <= filter))) {
+				if ((markerHash == null || markerHash.contains(trav)) && !line[3].equals("") && line[indices[2]].equalsIgnoreCase(test) && (filter >= 1 || (!ext.isMissingValue(line[indices[7]]) && Double.parseDouble(line[indices[7]]) <= filter))) {
 					writer.print(trav); // MarkerName
 					if (mapHash.containsKey(trav)) {
 						writer.print("\t"+mapHash.get(trav)); // chr, pos
@@ -222,7 +224,8 @@ public class ResultsPackager {
 		PrintWriter writer;
 		String[] line;
 		String temp, trav;
-		Hashtable<String, String> markerHash, mapHash;  // , freqHash; // , customFreqHash;
+		HashSet<String> markerHash;
+		Hashtable<String, String> mapHash;  // , freqHash; // , customFreqHash;
 		String delimiter;
 		int[] indices;
 		boolean logistic;
@@ -237,7 +240,7 @@ public class ResultsPackager {
 		}
 		
 		if (markersToReport != null) {
-			markerHash = HashVec.loadFileToHashNull(dir+markersToReport, false);
+			markerHash = HashVec.loadFileToHashSet(dir+markersToReport, false);
 		} else {
 			markerHash = null;
 		}
@@ -303,7 +306,7 @@ public class ResultsPackager {
 					lowCallrateMarkers.add(trav);
 				}
 				
-				if ((markerHash == null || markerHash.containsKey(trav)) && (callrate > callRateThreshold) && (filter >= 1 || (!ext.isMissingValue(line[indices[3]]) && Double.parseDouble(line[indices[3]]) <= filter))) {
+				if ((markerHash == null || markerHash.contains(trav)) && (callrate > callRateThreshold) && (filter >= 1 || (!ext.isMissingValue(line[indices[3]]) && Double.parseDouble(line[indices[3]]) <= filter))) {
 					writer.print(trav); // MarkerName
 					if (mapHash.containsKey(trav)) {
 						writer.print("\t"+mapHash.get(trav)); // chr, pos, A1, A2

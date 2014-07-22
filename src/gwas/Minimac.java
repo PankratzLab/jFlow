@@ -117,7 +117,7 @@ public class Minimac {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		Hashtable<String, String> flipHash, dropHash;
+		HashSet<String> flipHash, dropHash;
 		int count;
 		String[] markerNames, finalMarkerNames;
 		int mapType;
@@ -131,13 +131,13 @@ public class Minimac {
 		}
 		markerNames = new SnpMarkerSet(mapFile, mapType, false, new Logger()).getMarkerNames();
 		
-		flipHash = flips==null?new Hashtable<String, String>():HashVec.loadFileToHashNull(flips, false);
-		dropHash = drops==null?new Hashtable<String, String>():HashVec.loadFileToHashNull(drops, false);
+		flipHash = flips==null?new HashSet<String>():HashVec.loadFileToHashSet(flips, false);
+		dropHash = drops==null?new HashSet<String>():HashVec.loadFileToHashSet(drops, false);
 		flip = new boolean[markerNames.length];
 		drop = new boolean[markerNames.length];
 		for (int i = 0; i < markerNames.length; i++) {
-			flip[i] = flipHash.containsKey(markerNames[i]);
-			drop[i] = dropHash.containsKey(markerNames[i]);
+			flip[i] = flipHash.contains(markerNames[i]);
+			drop[i] = dropHash.contains(markerNames[i]);
 		}
 		
 		try {

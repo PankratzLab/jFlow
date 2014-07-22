@@ -13,13 +13,59 @@ import common.Grafik;
 import common.Logger;
 import common.ext;
 
-/**
- * Forest Plot class
- *
- * @author Rohit Sinha
- */
-public class ForestPlot extends JPanel implements ActionListener{
+class ForestTree {
+	public String label;
+	public float beta;
+	public float stderr;
+	public int color;
+	public byte shape;
+	public float[] confInterval;
+	public float zScore;
 
+	public ForestTree(String label, float beta, float stderr, int color, byte shape) {
+		this.label = label;
+		this.beta = beta;
+		this.stderr = stderr;
+		this.color = color;
+		this.shape = shape;
+		this.confInterval = new float[2];
+		this.confInterval[0] = (float) (beta - 1.96 * stderr);
+		this.confInterval[1] = (float) (beta + 1.96 * stderr);
+		this.zScore = stderr == 0.0f ? 0.0f : beta / stderr;
+	}
+
+	public String getLabel() {
+		return label;
+	}
+
+	public float getBeta() {
+		return beta;
+	}
+
+	public float getStderr() {
+		return stderr;
+	}
+
+	public int getColor() {
+		return color;
+	}
+
+	public byte getShape() {
+		return shape;
+	}
+
+	public float[] getConfInterval() {
+		return confInterval;
+	}
+
+	public float getzScore() {
+		return zScore;
+	}
+}
+
+public class ForestPlot extends JPanel implements ActionListener{
+	private static final long serialVersionUID = 1L;
+	
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String ADD_DATA_FILE = "Add Data File";
 	public static final String REMOVE_DATA_FILE = "Remove Data File";
@@ -46,7 +92,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 	float sumZScore;
 	String longestStudyNameSize;
 	private JButton flipButton, invXButton, invYButton;
-	private boolean flipStatus, xInvStatus, yInvStatus;
 	private JLayeredPane layeredPane;
 	String[] dataFileHeaders;
 	private JButton first, previous, next, last;
@@ -87,12 +132,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 		layeredPane = new JLayeredPane();
 		layeredPane.setLayout(new BorderLayout());
-		generateFlipButton();
-		layeredPane.add(flipButton);
-		generateInvXButton();
-		layeredPane.add(invXButton);
-		generateInvYButton();
-		layeredPane.add(invYButton);
 
 		layeredPane.add(forestPanel);
 		layeredPane.setPreferredSize(new Dimension(1000, 600));
@@ -337,58 +376,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 		return markerNames;
 	}
 
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		String betaSource = "SeqMeta_results.csv";
-		String markerList = "markersToDisplay.txt";
-		String sourceType = "SeqMeta";
-		String logfile = null;
-		final Logger log;
-
-		String usage = "\n" + "cnv.plots.ForestPlot requires 3 arguments\n" +
-				"(1) Name of the file with betas and standard errors (i.e. betaSource=" + betaSource +"(default))\n" +
-				"(2) File type (i.e. type=" + sourceType +" (default))" +
-				"(3) Name of the file with the list of markers to display (i.e. markerList="+ markerList +" (default))\n" + "";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("betaSource=")) {
-				betaSource = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("type=")) {
-				sourceType = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("markerList=")) {
-				markerList = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			log = new Logger(logfile);
-
-			final String finalDataFile = betaSource;
-			final String finalMarkerFile = markerList;
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					createAndShowGUI(finalDataFile, finalMarkerFile, log);
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static void createAndShowGUI(String dataFile, String markerFile, Logger log) {
 
 		// Create and set up the window.
@@ -448,77 +435,12 @@ public class ForestPlot extends JPanel implements ActionListener{
 		forestPanel.setActionMap(actionMap);
 	}
 
-	private void generateFlipButton() {
-		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", false));
-		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg", false));
-		flipButton.setToolTipText("Inverts axes");
-		flipButton.setBorder(null);
-		flipButton.setVisible(true);
-		flipStatus = true;
-		flipButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				// twoDPanel.setSwapable(flipStatus);
-				forestPanel.setPointsGeneratable(true);
-				forestPanel.setRectangleGeneratable(true);// zx
-				forestPanel.setSwapAxes(flipStatus);
-				forestPanel.paintAgain();
-				if (flipStatus) {
-					flipStatus = false;
-				} else {
-					flipStatus = true;
-				}
-			}
-		});
-	}
-
-	private void generateInvXButton() {
-		invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
-		invXButton.setBorder(null);
-		invXButton.setVisible(true);
-		xInvStatus = true;
-		invXButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				forestPanel.setPointsGeneratable(true);
-				forestPanel.setRectangleGeneratable(true);// zx
-				forestPanel.setXinversion(xInvStatus);
-				forestPanel.paintAgain();
-				if (xInvStatus) {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true));
-				} else {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
-				}
-				xInvStatus = !xInvStatus;
-			}
-		});
-	}
-
-	private void generateInvYButton() {
-		invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
-		invYButton.setBorder(null);
-		invYButton.setVisible(true);
-		yInvStatus = true;
-		invYButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				forestPanel.setPointsGeneratable(true);
-				forestPanel.setRectangleGeneratable(true);// zx
-				forestPanel.setYinversion(yInvStatus);
-				forestPanel.paintAgain();
-				if (yInvStatus) {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true));
-				} else {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
-				}
-				yInvStatus = !yInvStatus;
-			}
-		});
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent ae) {
 
 		String command = ae.getActionCommand();
-		String filename;
-		int count;
+//		String filename;
+//		int count;
 
 		if (command.equals(FIRST)) {
 			first();
@@ -565,54 +487,56 @@ public class ForestPlot extends JPanel implements ActionListener{
 			updateForestPlot();
 		}
 	}
-}
+	
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String betaSource = "SeqMeta_results.csv";
+		String markerList = "markersToDisplay.txt";
+		String sourceType = "SeqMeta";
+		String logfile = null;
+		final Logger log;
 
-class ForestTree {
-	public String label;
-	public float beta;
-	public float stderr;
-	public int color;
-	public byte shape;
-	public float[] confInterval;
-	public float zScore;
+		String usage = "\n" + "cnv.plots.ForestPlot requires 3 arguments\n" +
+				"(1) Name of the file with betas and standard errors (i.e. betaSource=" + betaSource +"(default))\n" +
+				"(2) File type (i.e. type=" + sourceType +" (default))" +
+				"(3) Name of the file with the list of markers to display (i.e. markerList="+ markerList +" (default))\n" + "";
 
-	public ForestTree(String label, float beta, float stderr, int color, byte shape) {
-		this.label = label;
-		this.beta = beta;
-		this.stderr = stderr;
-		this.color = color;
-		this.shape = shape;
-		this.confInterval = new float[2];
-		this.confInterval[0] = (float) (beta - 1.96 * stderr);
-		this.confInterval[1] = (float) (beta + 1.96 * stderr);
-		this.zScore = stderr == 0.0f ? 0.0f : beta / stderr;
-	}
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("betaSource=")) {
+				betaSource = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("type=")) {
+				sourceType = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("markerList=")) {
+				markerList = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			log = new Logger(logfile);
 
-	public String getLabel() {
-		return label;
-	}
-
-	public float getBeta() {
-		return beta;
-	}
-
-	public float getStderr() {
-		return stderr;
-	}
-
-	public int getColor() {
-		return color;
-	}
-
-	public byte getShape() {
-		return shape;
-	}
-
-	public float[] getConfInterval() {
-		return confInterval;
-	}
-
-	public float getzScore() {
-		return zScore;
+			final String finalDataFile = betaSource;
+			final String finalMarkerFile = markerList;
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					createAndShowGUI(finalDataFile, finalMarkerFile, log);
+				}
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

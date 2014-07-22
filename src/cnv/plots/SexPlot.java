@@ -108,7 +108,7 @@ public class SexPlot extends JFrame{
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 
 		String usage = "\n"+
 		"cnv.plot.SexPlot requires 0-1 arguments\n"+

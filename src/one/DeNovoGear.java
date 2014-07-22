@@ -9,8 +9,6 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.Vector;
 
-import cnv.analysis.PennCNV;
-import cnv.filesys.Project;
 import common.Files;
 import common.Logger;
 import common.ext;
@@ -84,7 +82,7 @@ public class DeNovoGear {
 
 	public static void main(String[] args) {
 		String pedegreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir, scriptFileDir, qsubLogsDir, bamFilePrefix;
-		String[] commands, commandVariables;
+		String[] commands;
 		Logger log;
 
 //		pedegreeFileFullPath = "/home/pankrat2/shared/logan/denovogear/all.ped";

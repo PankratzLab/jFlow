@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
@@ -23,45 +24,6 @@ import cnv.var.SampleData;
 
 public class Project extends Properties {
 	private static final long serialVersionUID = 1L;
-
-//	public static final String DEFAULT_PROJECT = "these.properties";
-//	public static final String DEFAULT_PROJECT = "D:/home/npankrat/projects/pd_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/SingaporeReplication.properties";
-	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/SOL_metabochip.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/GEDI_exome_slim.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/TsaiPilot.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/HumanHap550_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortium.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplication.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/consortiumReplicationLRR.properties";
-//	public static final String DEFAULT_PROJECT = "/Users/zxu/workspace/Genvisis/projects/practice.properties";
-//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/practice.properties";
-//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/GEDI_exome.properties";
-//	public static final String DEFAULT_PROJECT = "/workspace/Genvisis/projects/twodplot.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/strat_demo.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/boss.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/load_win.properties";
-//	public static final String DEFAULT_PROJECT = "/home/npankrat/projects/demo.proj";
-	public static final String DEFAULT_CURRENT = "D:/home/npankrat/projects/pd_win.properties";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/HumanHap550_win.properties";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/myron_excision.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_excision.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/sing550_win.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortium.properties";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/consortiumReplication.properties";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/demo_indian_diabetes.proj";
-//	public static final String DEFAULT_CURRENT = "/home/npankrat/projects/boss.proj";
-	
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/demo.properties";
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/pd_fia_broad.properties";
-	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/GEDI.properties";
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/load_win.properties";
-//	public static final String DEFAULT_SCATTER_PROJECT = "/home/npankrat/projects/sing550_win.proj";
-//	public static final String DEFAULT_SCATTER_PROJECT = "C:/workspace/Genvisis/projects/GEDI_exome.properties";
-
 
 	public static final String DEFAULT_PROPERTIES = "cnv/filesys/default.properties";
 
@@ -126,7 +88,6 @@ public class Project extends Properties {
 	public static final String MARKER_EXCLUSION_CRITERIA_FILENAME = "MARKER_EXCLUSION_CRITERIA_FILENAME";
 	public static final String MARKER_COMBINED_CRITERIA_FILENAME = "MARKER_COMBINED_CRITERIA_FILENAME";
 	public static final String ANNOTATION_FILENAME = "ANNOTATION_FILENAME";
-//	public static final String ANNOTATION_DIRECTORY = "ANNOTATION_DIRECTORY";
 	public static final String CUSTOM_COLOR_SCHEME_FILENAME = "ANNOTATION_FILENAME";
 	public static final String BACKUP_DIRECTORY = "BACKUP_DIRECTORY";
 	public static final String SHIFT_SEX_CHR_COLORS_YESNO = "SHIFT_SEX_CHR_COLORS_YESNO";
@@ -137,7 +98,7 @@ public class Project extends Properties {
 	private String projectPropertiesFilename;
 	private SampleList sampleList;
 	private SampleData sampleData;
-	private Hashtable<String,String> cnvFilesLoadedInSampleData;
+	private HashSet<String> cnvFilesLoadedInSampleData;
 	private MarkerLookup markerLookup;
 	private Logger log;
 	private boolean gui;
@@ -146,7 +107,7 @@ public class Project extends Properties {
 		Files.loadProperties(this, DEFAULT_PROPERTIES, true, true, false);
 		sampleList = null;
 		sampleData = null;
-		cnvFilesLoadedInSampleData = new Hashtable<String, String>();
+		cnvFilesLoadedInSampleData = new HashSet<String>();
 		markerLookup = null;
 		log = new Logger();
 		gui = false;
@@ -412,17 +373,29 @@ public class Project extends Properties {
 		return samplesToExclude;
 	}
 	
+	// set filename to null to only include samples not marked in the "Excluded" column of SampleData.txt
 	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, Logger log) {
 		boolean[] samplesToInclude;
 		String[] samples;
 		SampleData sampleData;
 		int counter = 0;
+		HashSet<String> hash;
+		
+		if (fileWithListOfSamplesToUse != null) {
+			hash = HashVec.loadFileToHashSet(fileWithListOfSamplesToUse, false);
+		} else {
+			hash = null;
+		}
 		
 		sampleData = getSampleData(0, false);
 		samples = getSamples();
 		samplesToInclude = new boolean[samples.length];
 		for (int i = 0; i < samples.length; i++) {
-			samplesToInclude[i] = !sampleData.individualShouldBeExcluded(samples[i]);
+			if (hash == null) {
+				samplesToInclude[i] = !sampleData.individualShouldBeExcluded(samples[i]);
+			} else {
+				samplesToInclude[i] = hash.contains(samples[i]);
+			}
 			if (samplesToInclude[i]) {
 				counter++;
 			}
@@ -468,7 +441,7 @@ public class Project extends Properties {
 	public SampleData getSampleData(int numberOfBasicClassesToLoad, String[] cnvFilenames) {
 		if (cnvFilenames != null) {
 			for (int i = 0; i < cnvFilenames.length; i++) {
-				if (!cnvFilesLoadedInSampleData.containsKey(cnvFilenames[i])) {
+				if (!cnvFilesLoadedInSampleData.contains(cnvFilenames[i])) {
 					resetSampleData();
 				}
 			}
@@ -477,7 +450,7 @@ public class Project extends Properties {
 		if (sampleData == null) {
 			sampleData = new SampleData(this, numberOfBasicClassesToLoad, cnvFilenames);
 //			System.err.println("SampleData loaded with "+(cnvFilenames == null?"no cnv files":Array.toStr(cnvFilenames, "/")));
-			cnvFilesLoadedInSampleData = HashVec.loadToHashNull(cnvFilenames);
+			cnvFilesLoadedInSampleData = HashVec.loadToHashSet(cnvFilenames);
 		}
 		return sampleData;
 	}

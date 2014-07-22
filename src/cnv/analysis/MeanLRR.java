@@ -373,7 +373,7 @@ public class MeanLRR {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String regions = "cnps.txt";
 		boolean dumpAll = false;
 		String dump = null;

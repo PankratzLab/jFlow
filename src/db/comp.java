@@ -6,7 +6,6 @@ import java.io.*;
 import java.util.*;
 
 import mining.Transformations;
-
 import common.AlleleFreq;
 import common.Array;
 import common.DoubleVector;
@@ -16,7 +15,6 @@ import common.Logger;
 import common.Matrix;
 import common.Sort;
 import common.ext;
-
 import stats.ContingencyTable;
 import stats.LeastSquares;
 import stats.LogisticRegression;
@@ -55,6 +53,7 @@ public class comp {
 		new comp(DEFAULT_INPUT);
 	}
 
+	@SuppressWarnings("resource")
 	public comp(String filename) throws IOException {
 		BufferedReader reader, r2;
 		PrintWriter writer = null;

@@ -95,7 +95,7 @@ public class ClusterFilterCollection implements Serializable {
 		float[] realY;
 		ArrayList<ClusterFilter> clusterFilters;
 		
-		original = markerData.getAB_Genotypes(); 
+		original = markerData.getAbGenotypes(); 
 		clusterFilters = hash.get(markerData.getMarkerName());
 		result = new byte[original.length];
 		for (int j=0; j<original.length; j++) {
@@ -130,7 +130,7 @@ public class ClusterFilterCollection implements Serializable {
 				realY = markerData.getYs();
 			}
 			// iterate through all samples
-			for (int j=0; j<markerData.getAB_Genotypes().length; j++) {
+			for (int j=0; j<markerData.getAbGenotypes().length; j++) {
 				if (realX[j]>=clusterFilters.get(i).getXMin()
 						&& realY[j]>=clusterFilters.get(i).getYMin()
 						&& realX[j]<=clusterFilters.get(i).getXMax()

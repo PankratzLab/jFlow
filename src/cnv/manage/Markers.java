@@ -72,7 +72,10 @@ public class Markers {
 		time = new Date().getTime();
 		delimiter = proj.getSourceFileDelimiter();
 		try {
-			reader = new BufferedReader(new FileReader(proj.getProjectDir()+snpTable));
+			if (!Files.exists(snpTable) && Files.exists(proj.getProjectDir()+snpTable)) {
+				snpTable = proj.getProjectDir()+snpTable;
+			}
+			reader = new BufferedReader(new FileReader(snpTable));
 			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_POSITION_FILENAME, true, true)));
 			indices = ext.indexFactors(ParseIllumina.SNP_TABLE_FIELDS, reader.readLine().trim().split(delimiter), false, true, true, true);
 			writer.println("Marker\tChr\tPosition");
@@ -146,7 +149,7 @@ public class Markers {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String snpTable = "";
 		String fileToConvert = "";
 		String lookupFile = "alleleLookup.txt";

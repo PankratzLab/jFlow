@@ -93,7 +93,7 @@ public class ThetaOutliers {
 		if (clusterFilterCollection != null) {
 			genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), 0);
 		} else {
-			genotypes = markerData.getAB_Genotypes();
+			genotypes = markerData.getAbGenotypes();
 		}
 //		for (int i=0; i<genotypes.length; i++) {
 //			if (genotypes[i]>-1) {

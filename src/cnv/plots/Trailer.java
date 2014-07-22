@@ -865,10 +865,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		FontMetrics fontMetrics;
 		String refresh;
 		int maxWidth;
+		MessageOfEncouragment mess;
 
 		time = new Date().getTime();
 		log.report("  Getting a list of all files with extension "+Sample.SAMPLE_DATA_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
-		new Thread(new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...", proj)).start();
+		mess = new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...", proj);
+		new Thread(mess).start();
 		filesPresent = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
 		log.report("Getting list of files took "+ext.getTimeElapsed(time));
 		time = new Date().getTime();
@@ -877,6 +879,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		maxWidth = fontMetrics.stringWidth(refresh);
 		System.out.println("  computing font metrics took "+ext.getTimeElapsed(time));
 		System.out.println("Determined sample list in "+ext.getTimeElapsed(time));
+		mess.disregard();
 
 		if (filesPresent == null || filesPresent.length == 0) {
 			samplesPresent = new String[] {proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty", refresh};
@@ -1330,7 +1333,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		boolean jar;
 		
 		jar = !(args.length>0&&args[0].equals("-notJar"));
-		proj = new Project(Project.DEFAULT_PROJECT, jar);
+		proj = new Project(cnv.Launch.getDefaultDebugProjectFile(), jar);
 		new Trailer(proj, DEFAULT_SAMPLE, proj.getFilenames(Project.CNV_FILENAMES), DEFAULT_LOCATION);
 	}
 }

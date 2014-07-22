@@ -769,7 +769,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String regionFileName = "cnps.txt";
 		String headless = "true";
 		int transformationType = 0;

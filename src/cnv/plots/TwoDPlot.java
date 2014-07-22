@@ -30,7 +30,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final String REMOVE_DATA_FILE = "Remove Data File";
 //	public static final String SET_AS_COLORKEY = "Set as Color Key";
 //	public static final String SET_AS_LINKKEY = "Set as Link Key";
-	private static final String NO_VALUE_FOUND = ".";
+//	private static final String NO_VALUE_FOUND = ".";
 	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE};
 	public static final String[][] LINKERS = {
 			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
@@ -1427,7 +1427,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             public void run() {
 //                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/twodplot.properties", false), new Logger());
 //                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false), new Logger());
-                createAndShowGUI(new Project(Project.DEFAULT_PROJECT, false), new Logger());
+                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(), false), new Logger());
             }
         });
 		

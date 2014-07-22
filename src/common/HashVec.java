@@ -64,6 +64,23 @@ public class HashVec {
 			return array;
 		}
 	}
+	
+	public static String[] getKeys(HashSet<String> hash) {
+		return getKeys(hash, true, false);
+	}
+
+	public static String[] getKeys(HashSet<String> hash, boolean sort, boolean treatAsNumbers) {
+		String[] array;
+		
+		array = hash.toArray(new String[hash.size()]);
+		if (sort) {
+			return Sort.putInOrder(array, treatAsNumbers);
+		} else {
+			return array;
+		}
+	}
+	
+	
 
 	public static Object addToHashIfAbsent(Hashtable<String,Object> hash, String key, Object value) {
 		Object o;
@@ -168,18 +185,23 @@ public class HashVec {
 		return loadFileToHashString(filename, 0, new int[] {1}, null, ignoreFirstLine);
 	}
 
-	public static Hashtable<String,String> loadFileToHashNull(String filename, boolean ignoreFirstLine) {
-		return loadFileToHashString(filename, 0, null, null, ignoreFirstLine);
+	public static HashSet<String> loadFileToHashSet(String filename, boolean ignoreFirstLine) {
+		return convertHashNullToHashSet(loadFileToHashString(filename, 0, null, null, ignoreFirstLine));
 	}
 
-	public static Hashtable<String,String> loadToHashNull(String[] list) {
-		Hashtable<String,String> hash = new Hashtable<String,String>((list == null?10:list.length));
+	public static HashSet<String> loadToHashSet(String[] list) {
+		HashSet<String> hash = new HashSet<String>((list == null?10:list.length));
 		
 		for (int i = 0; list != null && i<list.length; i++) {
-			hash.put(list[i], "");
+			hash.add(list[i]);
 		}
 
 		return hash;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static HashSet<String> convertHashNullToHashSet(Hashtable hash) {
+		return loadToHashSet(getKeys(hash, false, false));
 	}
 
 	public static Hashtable<String,Integer> loadToHashIndices(String[] list) {

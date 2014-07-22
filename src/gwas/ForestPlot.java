@@ -2,6 +2,7 @@ package gwas;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 
 public class ForestPlot {
@@ -59,7 +60,7 @@ public class ForestPlot {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, data;
-		Hashtable<String, String> markers;
+		HashSet<String> markers;
 		Vector<String> v = new Vector<String>();
 		String filename;
         String[] header, roots;
@@ -69,7 +70,7 @@ public class ForestPlot {
 		String[][] studies;
 		
 		if (markerListFile != null) {
-			markers = HashVec.loadFileToHashNull(dir+markerListFile, false);
+			markers = HashVec.loadFileToHashSet(dir+markerListFile, false);
 		} else {
 			markers = null;
 		}
@@ -152,7 +153,7 @@ public class ForestPlot {
 
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				if (markers == null || markers.containsKey(line[markerIndex])) {
+				if (markers == null || markers.contains(line[markerIndex])) {
 					filename = ext.replaceWithLinuxSafeCharacters(line[markerIndex], true)+".txt";
 					try {
 						writer = new PrintWriter(new FileWriter(dir+"forests/"+filename));

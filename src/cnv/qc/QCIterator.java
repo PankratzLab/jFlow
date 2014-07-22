@@ -551,7 +551,7 @@ public class QCIterator implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		// String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		int numArgs = args.length;
 		String usage = "TODO";
 		// String usage = "\n"+
@@ -561,7 +561,7 @@ public class QCIterator implements Runnable {
 		// "   (2) a tab delimited file defining the comparisons (i.e. comp=replicates.txt (default)) "+
 		// "   (3) name of the output file (i.e. out=qcThresholds.txt (default)"+
 		// "";
-		String filename = "C:/workspace/Genvisis/projects/ARICGenvisis_CEL_11908.properties";
+//		String filename = "C:/workspace/Genvisis/projects/ARICGenvisis_CEL_11908.properties";
 		// C:\workspace\Genvisis\projects\ARICGenvisis_CEL_11908.properties
 		String duplicatesFile = "rootsANDdubs.comp.txt";
 		String plinkCnvs = "Not_all_gw6.cnv";

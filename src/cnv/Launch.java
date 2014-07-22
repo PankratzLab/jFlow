@@ -469,6 +469,21 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(TALLY_WITHOUT_DETERMINING_DROPS)) {
 				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, false, log);
 			} else if (command.equals(KITANDKABOODLE)) {
+				String filename;
+
+				if (!Files.exists(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false))) {
+					log.reportError("Could not find required file "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+"\n    attempting to generate one for you...");
+					if (Files.exists(proj.getProjectDir()+"SNP_Map.csv")) {
+						filename = "SNP_Map.csv";
+					} else if (Files.exists(proj.getDir(Project.SOURCE_DIRECTORY, false, log, false)+"SNP_Map.csv")) {
+						filename = proj.getDir(Project.SOURCE_DIRECTORY, false, log, false)+"SNP_Map.csv";
+					} else {
+						log.reportError("Failed; could not find \"SNP_Map.csv\" in "+proj.getProjectDir()+" or in "+proj.getDir(Project.SOURCE_DIRECTORY, false, log, false));
+						return;
+					}
+					log.report("Generating from "+filename);
+					cnv.manage.Markers.generateMarkerPositions(proj, filename);
+				}
 				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS), proj.getLog());
 
 				TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
@@ -602,6 +617,25 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			launchProperties.save();
     	}
     }
+    
+	public static String getDefaultDebugProjectFile() {
+		LaunchProperties launchProperties;
+		String dir, filename;
+		
+		launchProperties = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE);
+		dir = launchProperties.getProperty(LaunchProperties.PROJECTS_DIR);
+		filename = launchProperties.getProperty(LaunchProperties.DEBUG_PROJECT_FILENAME);
+		if (dir == null || filename == null) {
+			System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"+LaunchProperties.DEBUG_PROJECT_FILENAME+"=' property listed in '"+LaunchProperties.DEFAULT_PROPERTIES_FILE+"'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
+			filename = "default.properties";
+		} else if (!Files.exists(dir) || !Files.exists(dir+filename)) {
+			System.err.println("Error - default debug project properties file does not exist: "+dir+filename);
+		} else {
+			System.out.println("The default debug project properties file is currently set to '"+dir+filename+"'");
+		}
+		
+		return dir+filename;
+	}
 
 	public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {

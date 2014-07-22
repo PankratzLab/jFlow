@@ -234,7 +234,7 @@ public class PlinkFormat {
 	
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String pick = "";
 		String filters = null;
 		String plinkPrefix = "plinkPed";

@@ -335,7 +335,7 @@ public class CNValidate implements Runnable {
 
 // public static void main(String[] args) {
 // int numArgs = args.length;
-// // String filename = Project.DEFAULT_PROJECT;
+// // String filename = cnv.Launch.getDefaultDebugProjectFile();
 // String filename = "C:/workspace/Genvisis/projects/inSilicoValidate.properties";
 // String plinkCnvs = "C:/data/inSilicoValidate/Filtered_LRR_35.35_conf_0.0_numMarkers_0_RootsANDDups.cnv";
 //

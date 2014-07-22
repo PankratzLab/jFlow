@@ -882,7 +882,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				createAndShowGUI(new Project(Project.DEFAULT_PROJECT, false), new Logger());
+				createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(), false), new Logger());
 			}
 		});
 

@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import cnv.var.SampleData;
 import stats.Correlation;
@@ -147,7 +146,7 @@ public class MarkerData implements Serializable {
 		return lrrs;
 	}
 
-	public byte[] getAB_Genotypes() {
+	public byte[] getAbGenotypes() {
 		// TODO if null then compute from cluster centers
 		return abGenotypes;
 	}
@@ -169,7 +168,7 @@ public class MarkerData implements Serializable {
 		float[] realX;
 		float[] realY;
 		
-		original = getAB_Genotypes(); 
+		original = getAbGenotypes(); 
 		result = new boolean[original.length];
 		for (int i=0; i<original.length; i++) {
 			result[i] = false;
@@ -223,11 +222,11 @@ public class MarkerData implements Serializable {
 		int counter;
 		
 		if (clusterFilterCollection == null) {
-			return getAB_Genotypes();
+			return getAbGenotypes();
 		}
 		
 		
-		original = getAB_Genotypes();
+		original = getAbGenotypes();
 		result = new byte[original.length];
 		if (gcThreshold > 1 || gcThreshold < 0) {
 			System.err.println("Error - Invalid GC threshold: " + gcThreshold + ", expecting a decimal number between 0 and 1. Use 0 to include everything.");
@@ -468,7 +467,7 @@ public class MarkerData implements Serializable {
 		char[] mapping;
 		
 		mapping = new char[] {'0','0'};
-		abGenotypes = getAB_Genotypes();
+		abGenotypes = getAbGenotypes();
 		forwardGenotypes = getForwardGenotypes();
 
 		for (int i = 0; i < abGenotypes.length; i++) {
@@ -492,7 +491,7 @@ public class MarkerData implements Serializable {
 		byte[] genoytpes;
 		
 		if (clusterFilterCollection == null) {
-			genoytpes = getAB_Genotypes();
+			genoytpes = getAbGenotypes();
 		} else {
 			genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
 		}
@@ -533,7 +532,7 @@ public class MarkerData implements Serializable {
 
 		if (chr == 23 && sex != null) {
 			if (clusterFilterCollection == null) {
-				genoytpes = getAB_Genotypes();
+				genoytpes = getAbGenotypes();
 			} else {
 				genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
 			}

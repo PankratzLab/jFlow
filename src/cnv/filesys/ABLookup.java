@@ -492,7 +492,7 @@ public class ABLookup {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		boolean parseFromOriginalGenotypes = false;
 		boolean parseFromGenotypeClusterCenters = false;
 		String outfile = DEFAULT_AB_FILE;
@@ -560,6 +560,9 @@ public class ABLookup {
 //		filename = "/home/npankrat/projects/SingaporeReplication.properties";
 //		incompleteABlookupFilename = "D:/data/SingaporeReplication/fromclusters_posssible_AB_lookup.dat";
 //		mapFile = "D:/data/SingaporeReplication/SNP_Map.csv";
+		
+		filename = "/home/npankrat/projects/WinterHillsCombo.properties";
+		parseFromOriginalGenotypes = true;
 		
 		try {
 			proj = new Project(filename, false);

@@ -133,7 +133,7 @@ public class Parallelize implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		int numThreads = 1;
 		int type = DEFAULT_TYPE;
 		boolean tabulate = true;

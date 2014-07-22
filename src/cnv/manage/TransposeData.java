@@ -1125,7 +1125,7 @@ public class TransposeData {
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		boolean transpose = false;
 		boolean reversetranspose = false;
 		boolean keepFilesOpen = false;

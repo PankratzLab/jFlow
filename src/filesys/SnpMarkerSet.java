@@ -736,7 +736,7 @@ public class SnpMarkerSet implements Serializable {
 		char[][] newAlleles;
 		String[][] newAnnotation;
 		boolean error;
-		Hashtable<String, String> hash;
+		HashSet<String> hash;
 		int count, numMissing;
 		
 		if (markersToKeep.length != Array.unique(markersToKeep).length) {
@@ -747,9 +747,9 @@ public class SnpMarkerSet implements Serializable {
 		error = false;
 		numMissing = 0;
 		markerNames = getMarkerNames();
-		hash = HashVec.loadToHashNull(markerNames);
+		hash = HashVec.loadToHashSet(markerNames);
 		for (int i = 0; i < markersToKeep.length; i++) {
-			if (hash.containsKey(markersToKeep[i])) {
+			if (hash.contains(markersToKeep[i])) {
 				count++;
 			} else {
 				if (!allowIncompleteList) {
@@ -790,10 +790,10 @@ public class SnpMarkerSet implements Serializable {
 		} else {
 			newAnnotation = new String[count][];
 		}
-		hash = HashVec.loadToHashNull(markersToKeep);
+		hash = HashVec.loadToHashSet(markersToKeep);
 		count = 0;
 		for (int i = 0; i < markerNames.length; i++) {
-			if (hash.containsKey(markerNames[i])) {
+			if (hash.contains(markerNames[i])) {
 				if (count >= newMarkerNames.length) {
 					log.reportError("Error - there are duplicate markerNames within this SnpMarkerSet which has caused trim() to fail");
 					return null;

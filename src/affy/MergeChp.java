@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import cnv.filesys.Project;
+import cnv.Launch;
 import common.Array;
 import common.Files;
 import common.ext;
@@ -152,7 +152,7 @@ public class MergeChp implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		System.out.println(numArgs);
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = Launch.getDefaultDebugProjectFile();
 		String output = "";
 		int numThreads = 8;
 		String commonSubFolderPattern = "";

@@ -195,7 +195,8 @@ public class GenotypeMatrix implements Serializable {
 	public void analyze(String phenoFile, String phenoMissingValue, String snpList, boolean verbose, Logger log) {
 		PrintWriter writer, w2;
 		String[] line;
-		Hashtable<String, String> hash, snps;
+		Hashtable<String, String> hash;
+		HashSet<String> snps;
 		int count, countUsed;
 		String[] traits, markerNames;
 		boolean[] use, analyze;
@@ -221,9 +222,9 @@ public class GenotypeMatrix implements Serializable {
 		alleles = markerSet.getAlleles();
 		analyze = Array.booleanArray(markerNames.length, true);
 		if (snpList != null) {
-			snps = HashVec.loadFileToHashNull(snpList, false);
+			snps = HashVec.loadFileToHashSet(snpList, false);
 			for (int i = 0; i < markerNames.length; i++) {
-				if (!snps.containsKey(markerNames[i])) {
+				if (!snps.contains(markerNames[i])) {
 					analyze[i] = false;
 				}
 			}

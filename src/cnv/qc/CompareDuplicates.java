@@ -135,7 +135,7 @@ public class CompareDuplicates {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String pairs = "duplicatePairs.txt";
 
 		String usage = "\n"+

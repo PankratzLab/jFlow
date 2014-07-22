@@ -143,7 +143,8 @@ public class GWAF {
 		PrintWriter writer;
 		String[] line;
 		String temp, trav;
-		Hashtable<String, String> markerHash, alleleHash;
+		Hashtable<String, String> alleleHash;
+		HashSet<String> markerHash;
 		String delimiter;
 		
 		String dir = "";
@@ -154,7 +155,7 @@ public class GWAF {
 		}
 		
 		if (markersToReport != null) {
-			markerHash = HashVec.loadFileToHashNull(dir+markersToReport, false);
+			markerHash = HashVec.loadFileToHashSet(dir+markersToReport, false);
 		} else {
 			markerHash = null;
 		}
@@ -183,7 +184,7 @@ public class GWAF {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				trav = line[0];
-				if ((markerHash == null || markerHash.containsKey(trav)) && !line[3].equals("")) {
+				if ((markerHash == null || markerHash.contains(trav)) && !line[3].equals("")) {
 					writer.print(trav);
 					if (alleleHash.containsKey(trav)) {
 						writer.print("\t"+alleleHash.get(trav));

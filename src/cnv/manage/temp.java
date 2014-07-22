@@ -133,7 +133,7 @@ public class temp {
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 
 		String usage = "\n"+"filesys.temp requires 0-1 arguments\n"+"   (1) project file (i.e. proj="+filename+" (default))\n"+"";
 

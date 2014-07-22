@@ -345,7 +345,7 @@ public class AnnotationCollection implements Serializable {
 		String logfile = null;
 		Logger log;
 		Project proj;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		String exportList = "listOfAnnotations.out";
 		String importList = null;
 		AnnotationCollection annotationCollection;

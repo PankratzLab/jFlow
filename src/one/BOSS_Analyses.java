@@ -171,7 +171,6 @@ public class BOSS_Analyses {
 		int numArgs = args.length;
 		String dir, resultDir, mafDir, geneListFile;
 		Boolean createGwaf, isGenerate, isStandardize, isParse, isProcessMacs;
-		Logger log;
 	
 		dir = "D:/temp/BOSS/E1/";
 		resultDir = "/home/pankrat2/shared/boss/emmax/prpidsk/results/ver5_newPCs_residual/";

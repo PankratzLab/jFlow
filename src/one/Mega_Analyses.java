@@ -307,8 +307,8 @@ public class Mega_Analyses {
 		
 //		threeOrMore = HashVec.loadFileToHashNull(DIR+"filtered/SNPs_in3orMoreStudies.txt", false);
 //		threeOrMoreAndRef = HashVec.loadFileToHashNull(DIR+"filtered/SNPs_in3orMoreStudies.txt", false);
-		threeOrMoreAndRef = HashVec.loadFileToHashNull(DIR+"filtered/allSNPs.txt", false);
-		notInRef = HashVec.loadFileToHashNull(DIR+"non1000G_markers/markersToDelete.txt", false);
+		threeOrMoreAndRef = HashVec.loadFileToHashString(DIR+"filtered/allSNPs.txt", false);
+		notInRef = HashVec.loadFileToHashString(DIR+"non1000G_markers/markersToDelete.txt", false);
 		
 		keys = HashVec.getKeys(notInRef);
 		for (int i = 0; i < keys.length; i++) {
@@ -710,7 +710,7 @@ public class Mega_Analyses {
 //		FilterByLists.process("META_ANALYSIS_beta_se1.tbl", new int[] {0}, "META_ANALYSIS_beta_se_Final1.tbl", threeOrMore, null, true, false, false, new Logger());
 //		System.exit(1);
 
-		Hashtable<String,String> threeOrMore = HashVec.loadFileToHashNull("SNPs_in3orMoreStudies.txt", false);
+		Hashtable<String,String> threeOrMore = HashVec.loadFileToHashString("SNPs_in3orMoreStudies.txt", false);
 		FilterByLists.process(DIR+"filtered/OnlyThoseInRef/MetasoftResults.txt", new int[] {0}, DIR+"filtered/OnlyThoseInRef/MetasoftResults_Final.out", threeOrMore, null, true, false, false, false, new Logger());
 		System.exit(1);
 		
@@ -742,7 +742,7 @@ public class Mega_Analyses {
 		if (Math.random() < 2 || subset != null) {
 			line = HashVec.loadFileToStringArray(subset, true, new int[] {0}, false);
 		} else {
-			line = HashVec.getKeys(HashVec.loadFileToHashNull(DIR+"filtered/allSNPs.txt", false), false, false);
+			line = HashVec.getKeys(HashVec.loadFileToHashSet(DIR+"filtered/allSNPs.txt", false), false, false);
 		}
 		
 		for (int i = 0; i < metasoftParams.length; i++) {

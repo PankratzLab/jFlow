@@ -277,8 +277,7 @@ public class AnalysisFormats implements Runnable {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-//		String filename = Project.DEFAULT_PROJECT;
-		String filename = "C:/workspace/Genvisis/projects/OSv2.properties";
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 		int numThreads = 6;
 		int program = PENN_CNV;
 		String filterRegions = "";

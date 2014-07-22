@@ -205,7 +205,7 @@ public class Centroids implements Serializable {
 		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);
 			
-			genotypes = markerData.getAB_Genotypes();
+			genotypes = markerData.getAbGenotypes();
 			thetas = markerData.getThetas();
 			rs = markerData.getRs();
 			meanThetas = new double[5];
@@ -355,7 +355,7 @@ public class Centroids implements Serializable {
 		int[] counts;
 		
 		centers = new float[3][2];
-		genotypes = markerData.getAB_Genotypes();
+		genotypes = markerData.getAbGenotypes();
 		xs = markerData.getXs();
 		ys = markerData.getYs();
 		meanXs = new double[5];
@@ -446,7 +446,7 @@ public class Centroids implements Serializable {
 		
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = Project.DEFAULT_PROJECT;
+		String filename = cnv.Launch.getDefaultDebugProjectFile();
 //		String centFile = "ForNathan_table.csv";
 //		String centFile = "SNP Table Myers raw dataset final 022908.csv";
 //		String centFile = "Myers_final_042208_ReclusteredCNV_SNP_Table2.csv";
