@@ -9,6 +9,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import common.*;
+import cyto.CytoGUI;
 import cnv.analysis.DeNovoCNV;
 import cnv.analysis.Mosaicism;
 import cnv.filesys.*;
@@ -57,13 +58,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String GCMODEL = "Compute GC model file";
 	public static final String DENOVO_CNV = "De Novo CNV";
 	public static final String EXPORT_CNVS = "Export CNVs to Pedfile format";
+	public static final String CYTO_WORKBENCH = "Parse workbench files";
 	public static final String TEST = "Test new program";
 	
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP},
-			{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, TEST},
+			{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
 	
@@ -382,7 +384,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //						if () {
 //							
 //						}
-					success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
+					//success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
 					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.getLog());
 					if (success) {
 						try {
@@ -443,6 +445,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.analysis.PennCNV.populationBAF(proj, log);
 			} else if (command.equals(EXPORT_CNVS)) {
 				cnv.manage.ExportCNVsToPedFormat.main(null);
+			} else if (command.equals(CYTO_WORKBENCH)) {
+				new CytoGUI(proj, proj.getProjectDir(), null);
 			} else if (command.equals(TEST)) {
 //				log.report("No new program to test");
 //				ScatterPlot.createAndShowGUI(proj, null, null, false);
