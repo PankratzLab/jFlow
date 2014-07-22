@@ -23,6 +23,7 @@ public class ParseIllumina implements Runnable {
     public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
     public static final String CANCEL_OPTION_FILE = ".cancel_option";
     public static final String HOLD_OPTION_FILE = ".hold_option";
+	public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";	
 
 	private Project proj;
 	private String[] files;
@@ -82,11 +83,15 @@ public class ParseIllumina implements Runnable {
 					reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
-					} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
+					} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 					
 					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
-					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
+					if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
+						sampIndex = -7;
+					} else {
+						sampIndex = ext.indexFactors(new String[] { idHeader }, line, false, true)[0];
+					}
 					snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 					
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
@@ -124,12 +129,15 @@ public class ParseIllumina implements Runnable {
 					parseAtAt = Boolean.parseBoolean(proj.getProperty(Project.PARSE_AT_AT_SYMBOL));
 					while (reader.ready()) {
 						line = reader.readLine().split(delimiter);
-						if (parseAtAt&&line[sampIndex].indexOf("@")==-1) {
-							System.err.println("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample");
-							parseAtAt = false;
+						if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
+							trav = files[i].substring(0, files[i].indexOf(proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)));
+						} else {
+							if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
+								System.err.println("Error - " + idHeader + " '" + line[sampIndex] + "' did not contain an @ sample");
+								parseAtAt = false;
+							}
+							trav = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex];
 						}
-						trav = parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex];
-
 						if (count==0) {
 							sampleName = trav;
 						} else if (!trav.equals(sampleName)) {
@@ -179,7 +187,7 @@ public class ParseIllumina implements Runnable {
 									if (line[genotypeIndices[j]].charAt(0) == abLookup[count][1]) {
 										genotypes[1][key]++;
 									} else if (line[genotypeIndices[j]].charAt(0) != abLookup[count][0]) {
-										System.err.println("Error - alleles for individual '"+line[sampIndex]+"' ("+line[genotypeIndices[0]]+"/"+line[genotypeIndices[1]]+") do not match up with the defined AB lookup alleles ("+abLookup[count][0]+"/"+abLookup[count][1]+") for marker "+markerNames[count]);
+										System.err.println("Error - alleles for individual '" + (sampIndex < 0 ? trav : line[sampIndex]) + "' (" + line[genotypeIndices[0]] + "/" + line[genotypeIndices[1]] + ") do not match up with the defined AB lookup alleles (" + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker " + markerNames[count]);
 									}
                                 }
 							}
@@ -389,7 +397,7 @@ public class ParseIllumina implements Runnable {
 			System.err.println("Error - no files to parse");
 			return;
 		}
-
+		
 		abLookupRequired = false;
 		System.out.println("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" to parse");
 		fixes = new Hashtable<String,String>();
@@ -410,7 +418,7 @@ public class ParseIllumina implements Runnable {
 //				if (count < 20) {
 //					System.out.println(Array.toStr(line));
 //				}
-			} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
+			} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 			
 			// If we reached the end of the file, it means that we didn't find the header we are looking for
 			// The most common cause of this is that the delimiter was misspecified
@@ -452,7 +460,7 @@ public class ParseIllumina implements Runnable {
 				reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[0]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
-				} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
+				} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 				System.out.println(1);
 			}
 
@@ -475,21 +483,29 @@ public class ParseIllumina implements Runnable {
 				abLookupRequired = true;
 			}
 
-			ext.indexFactors(new String[] {idHeader}, line, false, true); // sampIndex
+			if (!idHeader.equals(FILENAME_AS_ID_OPTION)) {
+				ext.indexFactors(new String[] { idHeader }, line, false, true); // sampIndex
+			}
 			snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, true, true)[0];
 
 			idHeader = proj.getProperty(Project.ID_HEADER);
-			sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
-			
-			parseAtAt = Boolean.parseBoolean(proj.getProperty(Project.PARSE_AT_AT_SYMBOL));
 			reader.mark(1000);
-			line = reader.readLine().split(delimiter);
-			if (parseAtAt&&line[sampIndex].indexOf("@")==-1) {
-				System.err.println("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample; if your ID's do not naturally contain at symbols, then set "+Project.PARSE_AT_AT_SYMBOL+" in the project properties file to FALSE");
+
+
+			if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
+				sampleName = files[0].substring(0, files[0].indexOf(proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)));
+				sampIndex = -7;
 				parseAtAt = false;
+			} else {
+				sampIndex = ext.indexFactors(new String[] { idHeader }, line, false, true)[0];
+				line = reader.readLine().split(delimiter);
+				parseAtAt = Boolean.parseBoolean(proj.getProperty(Project.PARSE_AT_AT_SYMBOL));
+				if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
+					System.err.println("Error - " + idHeader + " '" + line[sampIndex] + "' did not contain an @ sample; if your ID's do not naturally contain at symbols, then set " + Project.PARSE_AT_AT_SYMBOL + " in the project properties file to FALSE");
+					parseAtAt = false;
+				}
+				sampleName = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex];
 			}
-			sampleName = parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex];
-			
 			if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false)+"markers.0.mdRAF").exists()) {
 
 				overwriteOptions = new String[] {
@@ -509,11 +525,7 @@ public class ParseIllumina implements Runnable {
 				case -1:
 					return;
 				case 0:
-					filesToDelete = Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY), MarkerData.MARKER_DATA_FILE_EXTENSION, false);
-					for (int i = 0; i < filesToDelete.length; i++) {
-						new File(proj.getDir(Project.MARKER_DATA_DIRECTORY) + filesToDelete[i]).delete();
-					}
-					new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + "outliers.ser").delete();
+					deleteAllFilesInMarkerDataDirectory(proj);
 					break;
 				case 1:
 					return;
@@ -523,7 +535,7 @@ public class ParseIllumina implements Runnable {
 				}
 			}
 
-			if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+sampleName+Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+			if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION).exists() || new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + ext.replaceWithLinuxSafeCharacters(sampleName, true) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 
 				overwriteOptions = new String[] {
 						"Delete All", 
@@ -543,11 +555,7 @@ public class ParseIllumina implements Runnable {
 				case -1:
 					return;
 				case 0:
-					filesToDelete = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
-					for (int i = 0; i < filesToDelete.length; i++) {
-						new File(proj.getDir(Project.SAMPLE_DIRECTORY) + filesToDelete[i]).delete();
-					}
-					new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser").delete();
+					deleteAllFilesInSampleDirectory(proj);
 					break;
 				case 1:
 					// keep "outlier.ser"
@@ -579,8 +587,11 @@ public class ParseIllumina implements Runnable {
 				}
 				if (markerNameHash.containsKey(trav)) {
 					log.reportError("The same marker ('"+trav+"') was seen twice...");
-					if (!(parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex]).equals(sampleName)) {
-						log.reportError("... and the sample name changed from "+sampleName+" to "+(parseAtAt?line[sampIndex].substring(0, line[sampIndex].indexOf("@")):line[sampIndex])+", so this must be a Long Format file. The property file will be updated to reflect this, and an attempt will be made to launch the Long Format file processor now.");
+					if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
+						log.report("... this could mean that the file contains multiple samples. This should not happen when " + Project.ID_HEADER + " is set to " + FILENAME_AS_ID_OPTION);
+						return;
+					} else if (!(parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]).equals(sampleName)) {
+						log.reportError("... and the sample name changed from " + sampleName + " to " + (parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]) + ", so this must be a Long Format file. The property file will be updated to reflect this, and an attempt will be made to launch the Long Format file processor now.");
 						proj.setProperty(Project.LONG_FORMAT, "TRUE");
 						proj.saveProperties();
 						createFilesFromLongFormat(proj, files, idHeader, fixes, delimiter, abLookupRequired, timeBegan);
@@ -596,6 +607,7 @@ public class ParseIllumina implements Runnable {
 			return;
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+proj.getDir(Project.SOURCE_DIRECTORY)+files[0]+"\"");
+			ioe.printStackTrace();
 			return;
 		}
 
@@ -667,6 +679,25 @@ public class ParseIllumina implements Runnable {
 		if (allOutliers.size()>0) {
 			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
+	}
+
+	public static void deleteAllFilesInSampleDirectory(Project proj) {
+		String[] filesToDelete;
+		filesToDelete = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+		for (int i = 0; i < filesToDelete.length; i++) {
+			new File(proj.getDir(Project.SAMPLE_DIRECTORY) + filesToDelete[i]).delete();
+		}
+		new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser").delete();
+	}
+
+	public static void deleteAllFilesInMarkerDataDirectory(Project proj) {
+		String[] filesToDelete;
+		
+		filesToDelete = Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY), MarkerData.MARKER_DATA_FILE_EXTENSION, false);
+		for (int i = 0; i < filesToDelete.length; i++) {
+			new File(proj.getDir(Project.MARKER_DATA_DIRECTORY) + filesToDelete[i]).delete();
+		}
+		new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, true) + "outliers.ser").delete();
 	}
 
 	public static char[][] getABLookup(boolean abLookupRequired, String[] markerNames, Project proj) {
@@ -1045,7 +1076,7 @@ public class ParseIllumina implements Runnable {
 				reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[i]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
-				} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
+				} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line)==-1)));
 
 				snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, new Logger(null), false, false);
