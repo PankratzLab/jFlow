@@ -587,7 +587,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 						if (prog == null) {
 							prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
 						}
-						prog.setProgress(i);//zx
+						prog.setProgress(i);
 					}
 				}
 				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
@@ -662,7 +662,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		setFinalImage(true);
 		
 		if (base && prog != null) {
-			prog.close();//zxu
+			prog.close();
 		}
 		//System.out.println("Paint time: "+ext.getTimeElapsed(time));
 		
@@ -988,6 +988,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			g.drawOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
 			break;
 		case PlotPoint.FILLED_SQUARE:
+			g.fillPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
+						  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
+						  4);
+			break;
+		case PlotPoint.OPEN_SQUARE:
 			g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
 						  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
 						  4);

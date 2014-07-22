@@ -9,9 +9,15 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 //import java.text.SimpleDateFormat;
 //import java.util.Date;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.swing.JPopupMenu;
 
@@ -23,6 +29,7 @@ import cnv.gui.LaunchAction;
 import cnv.var.SampleData;
 import cnv.var.IndiPheno;
 import common.CountVector;
+import common.Files;
 import common.HashVec;
 import common.IntVector;
 import common.Sort;
@@ -76,7 +83,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	protected SampleData sampleData;
 	protected Color[] colorScheme;
 	protected IntVector indicesOfNearbySamples;
-	private boolean updateQcPanel;		//zx: A control variable. Do not update QcPanel when resizing, or etc.
+	private boolean updateQcPanel;		//A control variable. Do not update QcPanel when resizing, or etc.
 	private int mouseStartX;
 	private int mouseStartY;
 	private int mouseEndX;
@@ -150,16 +157,18 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int numCents, count;
 		byte centSize;
 		float x, y;
-		//int[][] dataForQc;//zx
+		//int[][] dataForQc;
 		int[] genotype;
 		String[] sex;
 		String[] otherClass;
-		CountVector uniqueValueCounts;//zx
-//		ClusterFilterCollection clusterFilterCollection;//zx
+		CountVector uniqueValueCounts;
+//		ClusterFilterCollection clusterFilterCollection;
 		MarkerData markerData;
 		int currentClass;
 		Hashtable<String, String> disabledClassValues;
 		boolean shiftColorOfSexChromosomes;
+		String newGenotypingFilename;
+		boolean[] isNewGenotypingDifferent = null;
 		
 		disabledClassValues = sp.getDisabledClassValues();
 		
@@ -187,9 +196,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
 		datapoints = markerData.getDatapoints(plotType);
-//		alleleCounts = markerData[markerIndex].getAB_Genotypes();//zx
+//		alleleCounts = markerData[markerIndex].getAB_Genotypes();
 //		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
-		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());//zx
+		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());
+		newGenotypingFilename = sp.getProject().getDir(Project.DATA_DIRECTORY) + sp.getMarkerName() + "_newGenotyping.xln";
+		if(new File(newGenotypingFilename).exists()) {
+			isNewGenotypingDifferent = loadNewGenotyping(newGenotypingFilename);
+		}
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 		sp.displayClusterFilterIndex();
 		chr = markerData.getChr();
@@ -243,7 +256,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			forcePlotXmax = 1;
 		}
 
-		//dataForQc = new int[3][samples.length];//zx
+		//dataForQc = new int[3][samples.length];
 		//genotype = markerData[markerIndex].getAB_GenotypesAfterFilters(null, sp.getGCthreshold());
 		genotype = new int[samples.length];
 		sex = new String[samples.length];
@@ -278,7 +291,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				} else {
 				}
 				
-				//System.out.println("Current loop:\t"+i+"\t code:\t"+code+"\t alleleCounts: "+alleleCounts[i]+"\t gcScores: "+gcScores[i]);//zx
+				//System.out.println("Current loop:\t"+i+"\t code:\t"+code+"\t alleleCounts: "+alleleCounts[i]+"\t gcScores: "+gcScores[i]);
 				if (classCode <= -1 && !sp.maskMissing()) {
 					classCode = 0;
 				}
@@ -287,6 +300,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //				} else if (currentClass==1 && alleleCounts[i]==-1) {
 				} else if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
 					type = PlotPoint.MISSING;
+				} else if (isNewGenotypingDifferent != null && isNewGenotypingDifferent[i]) {
+					type = PlotPoint.OPEN_SQUARE;
 				} else {
 					type = PlotPoint.FILLED_CIRCLE;
 				}
@@ -303,7 +318,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				
 				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
 					uniqueValueCounts.add(0+"");
-					genotype[i]=0;//zx
+					genotype[i]=0;
 				} else {
 					uniqueValueCounts.add(classCode+"");
 				}
@@ -370,6 +385,40 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 	}
 
+	private boolean[] loadNewGenotyping(String alternativeGenotypingFilename) {
+		Hashtable<String, Byte> alleleCountsNew;
+		boolean[] isNewGenotypingDifferent;
+		BufferedReader reader;
+		String[] line;
+		
+		try {
+			alleleCountsNew = new Hashtable<String, Byte> (alleleCounts.length);
+			isNewGenotypingDifferent = new boolean[alleleCounts.length];
+			reader = new BufferedReader(new FileReader(alternativeGenotypingFilename));
+			reader.readLine();
+			while (reader.ready()) {
+				line = reader.readLine().split("\t");
+				alleleCountsNew.put(line[0], Byte.parseByte(line[9]));
+			}
+			reader.close();
+			
+			for (int i = 0; i < samples.length; i++) {
+				if (alleleCountsNew.containsKey(samples[i]) && alleleCounts[i] != alleleCountsNew.get(samples[i])) {
+					alleleCounts[i] = alleleCountsNew.get(samples[i]);
+					isNewGenotypingDifferent[i] = true;
+				}
+			}
+			
+		} catch (FileNotFoundException fnfe) {
+//			log.reportError("Error: file \"" + name + "\" not found in current directory");
+			return null;
+		} catch (IOException ioe) {
+//			log.reportError("Error reading file \"" + name + "\"");
+			return null;
+		}
+		return isNewGenotypingDifferent;
+	}
+
 	public void mouseMoved(MouseEvent event) {
 		Graphics g = getGraphics();
 		String pos;
@@ -389,7 +438,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		byte size, xFontSize;
 		MarkerData mData;
 		
-		//IntVector indicesOfDataPoint;//zx
+		//IntVector indicesOfDataPoint;
 		
 		
 		plotType = sp.getPlotType();
@@ -415,7 +464,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//iv = locLookup.get(pos);
 		//indicesOfDataPoint = lookupNearbyPoints(x, y, pos);
 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
-		//System.out.println("Number of nearby samples: "+(indicesOfNearbySamples==null?0:indicesOfNearbySamples.size()));//zx test point
 		//prox = new IntVector();
 
 		mData = sp.getCurrentMarkerData();
@@ -432,7 +480,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5)));
 		xWidth = g.getFontMetrics(g.getFont()).stringWidth("X");
 
-		//System.out.println("pos: "+pos+"\t iv.size():"+(indicesOfNearbySamples==null?"null":indicesOfNearbySamples.size()));//zx test point
 		for (int l = 0; indicesOfNearbySamples!=null && l<indicesOfNearbySamples.size(); l++) {
 			i = indicesOfNearbySamples.elementAt(l);
 			if (i < samples.length) { // can also be centroids or other points

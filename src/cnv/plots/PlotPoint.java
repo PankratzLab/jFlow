@@ -11,6 +11,7 @@ public class PlotPoint implements Serializable {
 	public static final byte NOT_A_NUMBER = 4;
 	public static final byte FILLED_SQUARE = 5;
 	public static final byte FILLED_TRIANGLE = 6;
+	public static final byte OPEN_SQUARE = 7;
 	public static final String MISSING_STR = "X";
 	public static final String NAN_STR = "NaN";
 

@@ -1708,8 +1708,12 @@ public class Files {
 		return list(directory, null, suffix, false, jar);
 	}
 	
-	// These variables need to be final in order to work in the FilenameFilter
 	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar) {
+		return list(directory, prefix, suffix, caseSensitive, jar, false);
+	}
+
+	// These variables need to be final in order to work in the FilenameFilter
+	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar, final boolean fullPath) {
 		if (directory == null || directory.length() == 0) {
 			directory = "./";
 		}
@@ -1734,7 +1738,11 @@ public class Files {
 							trav = trav.substring(1);
 						}
 						if (!trav.contains("/")) {
-							v.add(trav);
+							if (fullPath) {
+								v.add(directory + trav);
+							} else {
+								v.add(trav);
+							}
 						}
 					}
 				}
@@ -1774,6 +1782,11 @@ public class Files {
 				}
 			});
 			
+			if (fullPath) {
+				for (int i = 0; i < files.length; i++) {
+					files[i] = directory + files[i];
+				}
+			}
 			
 			if (files == null) {
 				return new String[0];
