@@ -93,6 +93,9 @@ public class Project extends Properties {
 	public static final String SHIFT_SEX_CHR_COLORS_YESNO = "SHIFT_SEX_CHR_COLORS_YESNO";
 	public static final String QQ_MAX_NEG_LOG10_PVALUE = "QQ_MAX_NEG_LOG10_PVALUE";
 	public static final String GC_MODEL_FILENAME = "GC_MODEL_FILENAME";
+	public static final String COMMON_CNP_FILENAME = "COMMON_CNP_FILENAME";
+	public static final String REPORTED_CNP_FILENAME = "REPORTED_CNP_FILENAME";
+	public static final String UNREPORTED_CNP_FILENAME = "UNREPORTED_CNP_FILENAME";
 
 	private boolean jar;
 	private String projectPropertiesFilename;

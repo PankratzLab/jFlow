@@ -12,6 +12,7 @@ public class SampleData {
 	public static final String HEATMAP = "Heat map";
 	public static final String GENOTYPE = "Genotype";
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
+	public static final String[] MINIMAL_SAMPLE_DATA_HEADER = { "DNA", "FID", "IID" };
 	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
 
 	public static final String[][] LINKERS = {
@@ -209,8 +210,8 @@ public class SampleData {
 				sexValues = Array.toIntArray(sexCountHash.getValues());
 				sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
 				if (sexValues[0] != 2) {
-					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
-					proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+					System.err.println("Warning -  no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+					//proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 				}
 //
 //				sexCountHash.sort(true);
@@ -287,7 +288,7 @@ public class SampleData {
 			return -1;
 		}
 		
-		if (indi.getClasses()[sexClassIndex] == Integer.MIN_VALUE) {
+		if (sexClassIndex == -1 || indi.getClasses()[sexClassIndex] == Integer.MIN_VALUE) {
 			return -1;
 		} else {
 			return indi.getClasses()[sexClassIndex];
@@ -920,7 +921,7 @@ public class SampleData {
 				try {
 					reader = new BufferedReader(new FileReader(bakFile));
 					String[] tmpHeader = reader.readLine().trim().split("\t");
-					// fail if header of original and backup do no match
+					// fail if header of original and backup do not match
 					if (!Array.equals(tmpHeader, sampleDataHeader, true)) {
 						log.reportError("Error - backup sample data " + bakFile + " does not contain the same header as " + sampleDatafilename + ", will not add data");
 						add = false;
@@ -974,5 +975,45 @@ public class SampleData {
 			}
 		}
 		return add;
+	}
+	
+	/**
+	 * Creates a minimal sample data file using sample names. Sample names are assigned for all entries in {@link SampleData#MINIMAL_SAMPLE_DATA_HEADER} (currently DNA,FID,IID)
+	 * <p>
+	 * Warning - if a sample data file already exists for the project, a new one will not be created
+	 * <p>
+	 * Warning - samples must be parsed prior to using this method as sample names are retrieved with {@link Project#getSamples}
+	 * 
+	 * @return true if a minimal sample data file was created, false if not
+	 */
+	public static boolean createMinimalSampleData(Project proj, Logger log) {
+		boolean created = false;
+		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		if (Files.exists(sampleDatafilename)) {
+			log.reportError("Error - Sample data file " + sampleDatafilename + " already exists, will not create a new one");
+		} else {
+			String[] samples = proj.getSamples();
+			if (samples == null || samples.length < 1) {
+				log.reportError("Error - Could not generate sample data file " + sampleDatafilename + ", samples have not been parsed");
+			} else {
+				try {
+					PrintWriter writer = new PrintWriter(new FileWriter(sampleDatafilename));
+					writer.println(Array.toStr(MINIMAL_SAMPLE_DATA_HEADER));
+					for (int i = 0; i < samples.length; i++) {
+						for (int j = 0; j < MINIMAL_SAMPLE_DATA_HEADER.length; j++) {
+							writer.print(samples[i] + (j < (MINIMAL_SAMPLE_DATA_HEADER.length - 1) ? "\t" : ""));
+						}
+						writer.println();
+					}
+					writer.close();
+					created = true;
+				} catch (Exception e) {
+					log.reportError("Error writing to " + sampleDatafilename);
+					log.reportException(e);
+					created = false;
+				}
+			}
+		}
+		return created;
 	}
 }

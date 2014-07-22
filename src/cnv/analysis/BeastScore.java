@@ -162,7 +162,7 @@ public class BeastScore {
 				for (int j = 0; j < indicesToScale[i].length; j++) {
 					inverseTransformedDataScaleMAD[indicesToScale[i][j]] = (float) (inverseTransformedData[indicesToScale[i][j]] / (scaleMAD[i]));
 				}
-			} else {
+			} else if (i < 24) {
 				log.reportError("Warning - the index " + i + " was missing data");
 			}
 		}
@@ -275,7 +275,7 @@ public class BeastScore {
 
 	/**
 	 * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght = number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual
-	 *  
+	 * 
 	 * @return an array of beastScores, 1 per with scores computed across the individuals cnvs
 	 */
 	public static BeastScore[] beastInds(Project proj, CNVariant[][] cNVariantInds, Logger log) {
@@ -301,6 +301,7 @@ public class BeastScore {
 		BeastScore score = null;
 		int[][] indices = new int[cNVariantInd.length][];
 		String ind;
+		float[] lrrs = null;
 		if (cNVariantInd.length > 0) {
 			String key = cNVariantInd[0].getFamilyID() + "\t" + cNVariantInd[0].getIndividualID();
 			try {
@@ -308,8 +309,7 @@ public class BeastScore {
 			} catch (NullPointerException npe) {
 				log.reportError("Error - could not look up the sample " + key + " in the sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
 				log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + cNVariantInd[0].getFamilyID() + " and IID=" + cNVariantInd[0].getIndividualID());
-				log.reportException(npe);
-				return null;
+				return score;
 			}
 			for (int i = 0; i < cNVariantInd.length; i++) {
 				if (!key.equals(cNVariantInd[i].getFamilyID() + "\t" + cNVariantInd[i].getIndividualID())) {
@@ -320,17 +320,17 @@ public class BeastScore {
 				}
 			}
 			try {
-				float[] lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
-				score = new BeastScore(lrrs, indicesByChr, indices, log);
-				score.computeBeastScores();
+				lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
 			} catch (NullPointerException npe) {
-				log.reportError("Error - could not compute score for the sample " + ind + "\t" + key + ", please ensure samples have been parsed prior to computing beast score");
-				log.reportException(npe);
+				log.reportError("Error - could not load data for the sample " + ind + "\t" + key + ", please ensure samples have been parsed prior to computing beast score");
+				log.report("Skipping beast score for sample " + ind + "\t" + key);
+				return score;
 			}
+			score = new BeastScore(lrrs, indicesByChr, indices, log);
+			score.computeBeastScores();
 		} else {
 			log.reportError("Warning - no CNVariants were found for an individual, returning a null BeastScore");
 		}
 		return score;
 	}
 }
-

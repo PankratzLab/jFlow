@@ -2678,6 +2678,23 @@ public class Files {
 		}
 	}
 
+	/**
+	 * Warning - does not check existence,null, etc.. just appends and moves on
+	 * 
+	 * @param fileNamesNoDirectory
+	 *            these are fileNames with directory info removed (i.e from Files.list)
+	 * @param directoryToAppend
+	 *            append this directory info to each file in fileNamesNoDirectory
+	 * @return the appended fileNames
+	 */
+	public static String[] toFullPaths(String[] fileNamesNoDirectory, String directoryToAppend) {
+		String[] fullPaths = new String[fileNamesNoDirectory.length];
+		for (int i = 0; i < fileNamesNoDirectory.length; i++) {
+			fullPaths[i] = directoryToAppend + fileNamesNoDirectory[i];
+		}
+		return fullPaths;
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
