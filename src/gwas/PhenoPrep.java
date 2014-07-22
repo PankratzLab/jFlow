@@ -21,8 +21,14 @@ public class PhenoPrep {
 	}
 
 	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, Logger log) {
-		if (phenos.length != outputs.length) {
-			log.reportError("Error - number of phenos is not equal to number of outputs.");
+		if (phenos == null) {
+			log.reportError("Error - phenos is null");
+			System.exit(1);
+		} else if (outputs == null) {
+			log.reportError("Error - outputs is null");
+			System.exit(1);
+		} else if (phenos.length != outputs.length) {
+			log.reportError("Error - number of phenos is not equal to number of outputs");
 			System.exit(1);
 		} else {
 			for (int i = 0; i < phenos.length; i++) {

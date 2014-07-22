@@ -416,7 +416,7 @@ public class Heritability {
 		
 		if (args.length == 0) {
 			controlFile = "heritabilityTest.crf";
-			controlFile = "N:/statgen/BOSS/phenotypes/PhenoPrep/word_recogition/testHeritability.crf";
+			controlFile = "N:/statgen/BOSS/phenotypes/PhenoPrep/MMSE/heritability.crf";
 		}
 		try {
 			log = new Logger(logfile);
