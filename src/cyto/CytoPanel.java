@@ -46,6 +46,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	private static final String SAMPLES_EXT = ".txt";
 	private static final String PANEL_LOG = "parser.log";
 	private static final String FINAL_CNV = "ALL_Variants" + CytoCNVariant.CNV_EXT;
+
 	private static final String SER = ".ser";
 	private static final String ALL = ".all";
 	private static final String IND = ".ind";
@@ -337,18 +338,31 @@ public class CytoPanel extends JPanel implements ActionListener {
 		for (int i = 0; i < workBenchFiles.length; i++) {
 			CytoCNVariant.writeIndCNVariantFiles(CytoCNVariant.directToInds(workBenchFiles[i], log), dir, log);
 		}
-		Files.cat(Files.toFullPaths(Files.list(dir, CytoCNVariant.CNV_EXT, false), dir), dir + FINAL_CNV, new int[0], log);
+		String[] cnvsToCat = Files.toFullPaths(Files.list(dir, CytoCNVariant.CNV_EXT, false), dir);
+		cnvsToCat = filterCNP(proj, cnvsToCat);
+		Files.cat(cnvsToCat, dir + FINAL_CNV, new int[0], log);
 		if (!projectHasCNVFile(proj, CNV_DIR + FINAL_CNV, log)) {
 			addCNVFile(proj, CNV_DIR + FINAL_CNV);
 		}
 		convertCNPfiles(proj, CNV_DIR, log);
-//TODO document and regions list etc
+		// TODO document and regions list etc
+	}
+
+	private static String[] filterCNP(Project proj, String[] files) {
+		ArrayList<String> filter = new ArrayList<String>();
+		for (int i = 0; i < files.length; i++) {
+			if (!proj.getFilename(Project.COMMON_CNP_FILENAME).equals(files[i]) && !proj.getFilename(Project.REPORTED_CNP_FILENAME).equals(files[i]) && !proj.getFilename(Project.UNREPORTED_CNP_FILENAME).equals(files[i])) {
+				filter.add(files[i]);
+			}
+
+		}
+		return filter.toArray(new String[filter.size()]);
 	}
 
 	private static void convertCNPfiles(Project proj, String cnvdir, Logger log) {
-		convertCNPfiles(proj, proj.getFilename(Project.COMMON_CNP_FILENAME), cnvdir + ext.rootOf(proj.getFilename(Project.COMMON_CNP_FILENAME)) + CytoCNVariant.CNV_EXT, log);
-		convertCNPfiles(proj, proj.getFilename(Project.REPORTED_CNP_FILENAME), cnvdir + ext.rootOf(proj.getFilename(Project.REPORTED_CNP_FILENAME)) + CytoCNVariant.CNV_EXT, log);
-		convertCNPfiles(proj, proj.getFilename(Project.UNREPORTED_CNP_FILENAME), cnvdir + ext.rootOf(proj.getFilename(Project.UNREPORTED_CNP_FILENAME)) + CytoCNVariant.CNV_EXT, log);
+		convertCNPfiles(proj, proj.getFilename(Project.COMMON_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(Project.COMMON_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
+		convertCNPfiles(proj, proj.getFilename(Project.REPORTED_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(Project.REPORTED_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
+		convertCNPfiles(proj, proj.getFilename(Project.UNREPORTED_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(Project.UNREPORTED_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
 	}
 
 	/**
@@ -394,7 +408,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 					PrintWriter writer = new PrintWriter(new FileWriter(output));
 					writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 					for (int i = 0; i < segs.length; i++) {
-						writer.println(new CNVariant(ext.rootOf(cnpFile), segs[i].getUCSClocation(), segs[i].getChr(), segs[i].getStart(), segs[i].getStop(), 2, 0, 0, 0).toPlinkFormat());
+						writer.println(new CNVariant(ext.rootOf(output), segs[i].getUCSClocation(), segs[i].getChr(), segs[i].getStart(), segs[i].getStop(), 2, 0, 0, 0).toPlinkFormat());
 					}
 					writer.close();
 					converted = true;
