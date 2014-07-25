@@ -15,6 +15,7 @@ import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
 import cnv.filesys.SampleList;
 import cnv.qc.MarkerMetrics;
@@ -46,6 +47,10 @@ public class MitoPipeline {
 	private static final String[] SPLITS = { "\t", "," };
 	private static final String PROJECT_EXT = ".properties";
 	private static final String DEFUALT_QC_FILE = "lrr_sd.xln";
+	private static final String PC_MARKER_COMMAND = "PCmarkers=";
+	private static final String MEDIAN_MARKER_COMMAND = "medianMarkers=";
+	private static final String USE_FILE_COMMAND = "useFile=";
+
 	private String projectName;
 	private String fileName;
 	private Project proj;
@@ -124,7 +129,7 @@ public class MitoPipeline {
 	}
 
 	/**
-	 * Copies the defualt project to the project directory if the desired fileName does not already exist
+	 * Copies the default project to the project directory if the desired fileName does not already exist
 	 */
 	public void initProject(String path) {
 		if (Files.exists(fileName)) {
@@ -164,7 +169,7 @@ public class MitoPipeline {
 		if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(medianMarkers))) {
 			Files.copyFile(medianMarkers, projectDirectory + ext.removeDirectoryInfo(medianMarkers));
 		}
-		if (Files.exists(abLookup) && !Files.exists(projectDirectory + abLookup)) {
+		if (abLookup != null && Files.exists(abLookup) && !Files.exists(projectDirectory + abLookup)) {
 			Files.copyFile(abLookup, projectDirectory + ext.removeDirectoryInfo(abLookup));
 		}
 	}
@@ -181,7 +186,7 @@ public class MitoPipeline {
 		proj.setProperty(Project.LRRSD_CUTOFF, defaultLRRSdFilter);
 		proj.setProperty(Project.TARGET_MARKERS_FILENAME, ext.removeDirectoryInfo(targetMarkers));
 		proj.setProperty(Project.MARKER_POSITION_FILENAME, ext.removeDirectoryInfo(markerPositions));
-		if (Files.exists(projectDirectory + abLookup)) {
+		if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
 			proj.setProperty(Project.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
 		}
 		proj.saveProperties();
@@ -202,13 +207,13 @@ public class MitoPipeline {
 
 	/**
 	 * @param pedFile
-	 *            ped format file to create sample data, 
+	 *            ped format file to create sample data,
 	 * @param sampleMapCsv
 	 *            sample_Map.csv format file to create sample data
 	 * @param proj
 	 *            an existing, or newly created project
 	 * @param log
-	 * Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead
+	 *            Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead Note: if sample data already exists, we leave it alone
 	 */
 	public static void createSampleData(String pedFile, String sampleMapCsv, Project proj, Logger log) {
 		String sampleDataFilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
@@ -228,18 +233,6 @@ public class MitoPipeline {
 
 	/**
 	 * The main event. Takes the samples from raw data through import and PCA
-	 * 
-	 * @param proj
-	 * @param numThreads
-	 * @param defaultCallRateFilter
-	 * @param medianMarkers
-	 * @param numComponents
-	 * @param outputBase
-	 * @param homosygousOnly
-	 * @param markerQC
-	 * @param callRateToKeep
-	 * @param useFile
-	 * @param log
 	 */
 
 	public static void catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, Logger log) {
@@ -257,39 +250,168 @@ public class MitoPipeline {
 		}
 
 		createSampleData(pedFile, sampleMapCsv, proj, log);
-		if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false) + "markers.0.mdRAF").exists()) {
-			log.report("Warning - Marker data (at least the first file 'markers.0.mdRAF') have already been parsed");
-			log.report("Warning - Skipping transpose step for the analysis. If you would like to re-transpose the data, please remove (or change the name of) " + proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false));
-		} else {
-			TransposeData.transposeData(proj, 2000000000, false, log); // proj.getLog()
-		}
-		String markersForABCallRate = null;
-		String markersForEverythingElse = null;
-		// if marker QC is not flagged, sample qc is based on all target markers by default
-		if (markerQC) {
-			qcMarkers(proj, markerCallRateFilter, log);
-			markersForABCallRate = proj.getProjectDir() + MARKERS_FOR_ABCALLRATE;
-			if (!Files.exists(markersForABCallRate)) {
-				log.reportError("Error - markerQC was flagged but the file " + proj.getProjectDir() + MARKERS_FOR_ABCALLRATE + " could not be found");
-				return;
+		// we require that every sample that has been parsed has an entry in sampleData
+		if (verifyAllSamples(proj, sampleList.getSamples(), log)) {
+			// if a useFile is given, all samples must be available
+			if (verifyUseFile(proj, sampleList.getSamples(), useFile, log)) {
+				if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false) + "markers.0.mdRAF").exists()) {
+					log.report("Warning - Marker data (at least the first file 'markers.0.mdRAF') have already been parsed");
+					log.report("Warning - Skipping transpose step for the analysis. If you would like to re-transpose the data, please remove (or change the name of) " + proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false));
+				} else {
+					TransposeData.transposeData(proj, 2000000000, false, log); // proj.getLog()
+				}
+				// we make sure each marker has an entry in the projects Markerlookup. I am doing this in case previous steps have already failed, and this should catch it
+				if (verifyAllProjectMarkersAreAvailable(proj, log)) {
+					String markersForABCallRate = null;
+					String markersForEverythingElse = null;
+					// check that all target markers are available
+					if (verifyAuxMarkers(proj, proj.getFilename(Project.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND, log)) {
+						// if marker QC is not flagged, sample qc is based on all target markers by default
+						if (markerQC) {
+							qcMarkers(proj, markerCallRateFilter, log);
+							markersForABCallRate = proj.getProjectDir() + MARKERS_FOR_ABCALLRATE;
+							if (!Files.exists(markersForABCallRate)) {
+								log.reportError("Error - markerQC was flagged but the file " + proj.getProjectDir() + MARKERS_FOR_ABCALLRATE + " could not be found");
+								return;
+							}
+						} else {
+							markersForABCallRate = proj.getProjectDir() + MARKERS_TO_QC_FILE;
+							writeMarkersToQC(proj, log);
+						}
+
+						markersForEverythingElse = proj.getProjectDir() + MARKERS_TO_QC_FILE;
+
+						filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile, log);
+						// check that all median markers are available
+						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND, log)) {
+							// compute PCs with samples passing QC
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, outputBase + PCA_SAMPLES, outputBase, log);
+							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
+							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
+							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, outputBase, log);
+							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
+							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, outputBase, log);
+							generateFinalReport(proj, outputBase, pcResids.getResidOutput(), log);
+						}
+					}
+				}
 			}
-		} else {
-			markersForABCallRate = proj.getProjectDir() + MARKERS_TO_QC_FILE;
-			writeMarkersToQC(proj, log);
 		}
+	}
 
-		markersForEverythingElse = proj.getProjectDir() + MARKERS_TO_QC_FILE;
+	/**
+	 * if a subset of individuals is provided, we try to verify that they are all present in the project The String[] samples should be retrieved from the sample list so that it reflects parsed samples
+	 */
+	public static boolean verifyUseFile(Project proj, String[] samples, String useFile, Logger log) {
+		boolean allParsed = true;
+		if (useFile != null) {
+			String[] samplesToVerify = HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, false);
+			Hashtable<String, String> track = new Hashtable<String, String>();
+			ArrayList<String> notAvailable = new ArrayList<String>();
+			ArrayList<String> available = new ArrayList<String>();
+			for (int i = 0; i < samples.length; i++) {
+				track.put(samples[i], samples[i]);
+			}
+			for (int i = 0; i < samplesToVerify.length; i++) {
+				if (track.containsKey(samplesToVerify[i])) {
+					available.add(samplesToVerify[i]);
+				} else {
+					notAvailable.add(samplesToVerify[i]);
+					allParsed = false;
+				}
+			}
+			if (notAvailable.size() > 0) {
+				String missingFile = useFile + ".missing";
+				String haveFile = useFile + ".have";
+				Files.writeList(notAvailable.toArray(new String[notAvailable.size()]), missingFile);
+				Files.writeList(available.toArray(new String[available.size()]), haveFile);
+				log.reportError("Error - detected that not all samples (missing " + notAvailable.size() + ") from " + useFile + " are availble in the current project");
+				log.reportError("	   - Please review the missing samples in " + missingFile + " and the samples available in " + haveFile + ". If you wish to continue after review,  change the argument \"" + USE_FILE_COMMAND + useFile + "\" to \"" + USE_FILE_COMMAND + haveFile + "\"");
+				log.reportError("	   - Please note that sample names should correspond to the \"DNA\" column in the sample data file " + proj.getProjectDir() + proj.getProperty(Project.SAMPLE_DATA_FILENAME) + ", and the name of the file (directory and extension removed) in " + proj.getDir(Project.SAMPLE_DIRECTORY));
+			}
+		}
+		return allParsed;
+	}
 
-		filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile, log);
-		// compute PCs with samples passing QC
-		PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, outputBase + PCA_SAMPLES, outputBase, log);
-		// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
-		// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
-		PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, outputBase, log);
-		// Compute Medians for (MT) markers and compute residuals from PCs for everyone
-		PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, outputBase, log);
-		// generateFinalReport(proj, outputBase, "PCA_GENVISIS.PCs.summary.report.txt", log);
-		generateFinalReport(proj, outputBase, pcResids.getResidOutput(), log);
+	/**
+	 * We try to verify that every sample has an entry in sample data, since we will need to look up ids from the PC file later.
+	 * <p>
+	 * The String[] samples should be retrieved from the sample list so that it reflects parsed samples
+	 */
+	private static boolean verifyAllSamples(Project proj, String[] samples, Logger log) {
+		boolean allParsed = true;
+		SampleData sampleData = proj.getSampleData(0, false);
+		ArrayList<String> notInSampleData = new ArrayList<String>();
+		for (int i = 0; i < samples.length; i++) {
+			if (sampleData.lookup(samples[i]) == null) {
+				notInSampleData.add(samples[i]);
+				allParsed = false;
+			}
+		}
+		if (notInSampleData.size() > 0) {
+			log.reportError("Error - detected that some samples (missing " + notInSampleData.size() + ") do not have an entry in the sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + ", halting");
+			log.reportError("	   - Please make sure the following samples have entries: " + Array.toStr(notInSampleData.toArray(new String[notInSampleData.size()]), "\n"));
+		}
+		return allParsed;
+	}
+
+	/**
+	 * We try to ensure that all the markers contained in each aux file (PC markers/median markers) are available in the current project.
+	 * <p>
+	 * If they are not, we create lists of the markers available and missing TODO this could be consolidated with verify methods, but currently I wanted some specific reporting
+	 */
+	private static boolean verifyAuxMarkers(Project proj, String fileOfMarkers, String command, Logger log) {
+		boolean allAvailable = true;
+		MarkerLookup markerLookup = proj.getMarkerLookup();
+		String[] markersToVerify = HashVec.loadFileToStringArray(fileOfMarkers, false, new int[] { 0 }, false);
+		ArrayList<String> notAvailable = new ArrayList<String>();
+		ArrayList<String> available = new ArrayList<String>();
+
+		if (markerLookup == null) {
+			allAvailable = false;
+		} else {
+			for (int i = 0; i < markersToVerify.length; i++) {
+				if (!markerLookup.contains(markersToVerify[i])) {
+					notAvailable.add(markersToVerify[i]);
+					allAvailable = false;
+				} else {
+					available.add(markersToVerify[i]);
+				}
+			}
+		}
+		if (notAvailable.size() > 0) {
+			String missingFile = fileOfMarkers + ".missing";
+			String haveFile = fileOfMarkers + ".have";
+			Files.writeList(notAvailable.toArray(new String[notAvailable.size()]), missingFile);
+			Files.writeList(available.toArray(new String[available.size()]), haveFile);
+			log.reportError("Error - detected that not all markers (missing " + notAvailable.size() + ") from " + fileOfMarkers + " are availble in the current project");
+			log.reportError("	   - Please review the missing markers in " + missingFile + " and the markers available in " + haveFile + ". If you wish to continue after review,  change the argument \"" + command + fileOfMarkers + "\" to \"" + command + haveFile + "\"");
+		}
+		return allAvailable;
+	}
+
+	/**
+	 * We try to verify that every marker has a place in a transposed file
+	 */
+	private static boolean verifyAllProjectMarkersAreAvailable(Project proj, Logger log) {
+		boolean allParsed = true;
+		ArrayList<String> notParsed = new ArrayList<String>();
+		String[] markers = proj.getMarkerNames();
+		MarkerLookup markerLookup = proj.getMarkerLookup();
+		if (markerLookup == null) {
+			allParsed = false;
+		} else {
+			for (int i = 0; i < markers.length; i++) {
+				if (!markerLookup.contains(markers[i])) {
+					notParsed.add(markers[i]);
+					allParsed = false;
+				}
+			}
+		}
+		if (notParsed.size() > 0) {
+			log.reportError("Error - detected that not all markers (missing " + notParsed.size() + ") were properly parsed, halting: This should not happen");
+		}
+		return allParsed;
 	}
 
 	public static void qcMarkers(Project proj, double markerCallRateFilter, Logger log) {
@@ -531,7 +653,7 @@ public class MitoPipeline {
 				return;
 			}
 
-			log.report("Info - " + numPassing + " " + (numPassing == 1 ? " sample " : " samples") + " passed the QC threshold");
+			log.report("Info - " + numPassing + " " + (numPassing == 1 ? " sample " : " samples") + " passed the QC threshold" + (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
 
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + DEFUALT_QC_FILE + "\" not found in current directory");
@@ -585,7 +707,7 @@ public class MitoPipeline {
 		if (qcAdded(proj, log)) {
 			addToSampleData = false;
 			log.reportError("Warning - detected that sample data QC metrics have been added already, will not add these again");
-			log.reportError("If new thresholds were used, please remove the columns " + Array.toStr(SAMPLE_DATA_ADDITION_HEADERS) + " in" + proj.getFilename(Project.SAMPLE_DATA_FILENAME));
+			log.reportError("If new thresholds were used, please remove the columns " + Array.toStr(SAMPLE_DATA_ADDITION_HEADERS) + " in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME));
 		}
 		return addToSampleData;
 	}
@@ -790,19 +912,20 @@ public class MitoPipeline {
 		String targetMarkers = "D:/data/AuxFiles/targetMarkers.txt";
 		String markerPositions = "D:/data/AuxFiles/markerPositions.txt";
 		String medianMarkers = "D:/data/AuxFiles/MTMARKERS.txt";
-		String abLookup = "D:/data/AuxFiles/AB_Lookup.dat";
+		String output = "PCA_GENVISIS";
+		String idHeader = "Sample ID";
+		String abLookup = null;
 		// String pedFile = "D:/data/TestAuto/testped.txt";
 		String pedFile = null;
 		// String sampleMapCsv = null;
 		String sampleMapCsv = null;
 		String dataExtension = ".gz";
-		String idHeader = "Sample ID";
 		String defaultLRRSdFilter = "0.5";
 		String sampleCallRateFilter = "0.95";
 		double markerCallRateFilter = 0.98;
-		boolean markerQC = false;
+		boolean markerQC = true;
 		String useFile = null;
-		String output = "PCA_GENVISIS";
+
 		int numThreads = 1;
 		int numComponents = 100;
 		boolean homosygousOnly = true;
@@ -811,29 +934,29 @@ public class MitoPipeline {
 		usage += "  \n";
 		usage += "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=" + projectDirectory + " (default))\n";
 		usage += "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=" + sourceDirectory + " (default))\n";
-		usage += "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. PCmarkers=" + targetMarkers + " (default))\n";
-		usage += "   (4) The full path for a file with a list of markers (one per line, typically mitochondrial markers) to use for computing computing median Log R Ratios (i.e. medianMarkers=" + medianMarkers + " (default))\n";
+		usage += "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. " + PC_MARKER_COMMAND + targetMarkers + " (default))\n";
+		usage += "   (4) The full path for a file with a list of markers (one per line, typically mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MEDIAN_MARKER_COMMAND + medianMarkers + " (default))\n";
 		usage += "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=" + markerPositions + " (default))\n";
 
 		usage += "   OPTIONAL:\n";
-		usage += "   (6) The full path for a tab-delimited .PED format file with header \"" + Array.toStr(PED_INPUT) + "\" (i.e. pedFile=" + pedFile + "(no default))\n";
+		usage += "	 (6) A file listing a subset of samples (DNA ID) to use for QC and PC computation portions of the analysis, often a list of unrelated individuals. If a list is not provided, all samples in the source directory will be analyzed (i.e. " + USE_FILE_COMMAND + useFile + " (no default))\n";
+		usage += "   (7) The full path for a tab-delimited .PED format file with header \"" + Array.toStr(PED_INPUT) + "\" (i.e. pedFile=" + pedFile + "(no default))\n";
 		usage += "   OR:\n";
-		usage += "   (7) The full path for a Sample_Map.csv file, with at least two columns having headers \"" + SAMPLEMAP_INPUT[1] + "\" and \"" + SAMPLEMAP_INPUT[2] + "\"(i.e. mapFile=" + sampleMapCsv + " (default))\n\n";
+		usage += "   (8) The full path for a Sample_Map.csv file, with at least two columns having headers \"" + SAMPLEMAP_INPUT[1] + "\" and \"" + SAMPLEMAP_INPUT[2] + "\"(i.e. mapFile=" + sampleMapCsv + " (default))\n\n";
 		usage += "   NOTE:\n";
 		usage += "   All samples to be analyzed must be contained in the sample manifest (.PED format file, or Sample_Map.csv file)\n";
-		usage += "   (8) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
-		usage += "   (9) Data extension for files contained in the source data directory (i.e. dirExt=" + dataExtension + " (default))\n";
-		usage += "   (10) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + defaultLRRSdFilter + " (default))\n";
-		usage += "   (11) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
-		usage += "   (12) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
-		usage += "   (13) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
-		usage += "   (14) Output file baseName (i.e. output=" + output + " (default))\n";
-		usage += "   (15) Project filename (if you manually created a project properties file, or edited an existing project) (i.e. proj=" + fileName + " (no default))\n";
-		usage += "	 (16) A file listing a subset of samples (DNA) to use for QC and PC computation portions of the analysis. If a list is not provided, all samples in the source directory will be analyzed (i.e. useFile=" + useFile + " (no default))\n";
+		usage += "   (9) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
+		usage += "   (10) Data extension for files contained in the source data directory (i.e. dirExt=" + dataExtension + " (default))\n";
+		usage += "   (11) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + defaultLRRSdFilter + " (default))\n";
+		usage += "   (12) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
+		usage += "   (13) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
+		usage += "   (14) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
+		usage += "   (15) Output file baseName (i.e. output=" + output + " (default))\n";
+		usage += "   (16) Project filename (if you manually created a project properties file, or edited an existing project) (i.e. proj=" + fileName + " (no default))\n";
 		usage += "	 (17) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
-		usage += "	 (18) A file specifying the AB allele lookup for markers, often times required  (i.e. abLookup=" + idHeader + " (default))\n";
-		usage += "	 (19) Perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -markerQC (not the default))\n";
-		usage += "	 (20) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
+		// usage += "	 (18) A file specifying the AB allele lookup for markers, often times required  (i.e. abLookup=" + idHeader + " (default))\n";
+		usage += "	 (18) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
+		usage += "	 (19) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -872,13 +995,13 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("sampleCallRate=")) {
 				sampleCallRateFilter = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("PCmarkers=")) {
+			} else if (args[i].startsWith(PC_MARKER_COMMAND)) {
 				targetMarkers = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("output=")) {
 				output = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("medianMarkers=")) {
+			} else if (args[i].startsWith(MEDIAN_MARKER_COMMAND)) {
 				medianMarkers = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("markerPositions=")) {
@@ -893,13 +1016,13 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("-allCalls")) {
 				homosygousOnly = false;
 				numArgs--;
-			} else if (args[i].startsWith("-markerQC")) {
+			} else if (args[i].startsWith("-nomarkerQC")) {
 				markerQC = true;
 				numArgs--;
 			} else if (args[i].startsWith("markerCallRate=")) {
 				markerCallRateFilter = Double.parseDouble(args[i].split("=")[1]);
 				numArgs--;
-			} else if (args[i].startsWith("useFile=")) {
+			} else if (args[i].startsWith(USE_FILE_COMMAND)) {
 				useFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("abLookup=")) {
