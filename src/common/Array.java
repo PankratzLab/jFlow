@@ -836,6 +836,33 @@ public class Array {
 	}
 
 	/**
+	 * Calculates the mean of a float array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return mean of the array
+	 */
+	public static float mean(float[] array, boolean ignoreNaN) {
+		float sum;
+		int count;
+		
+		sum = 0;
+		count = 0;
+		for (int i = 0; i<array.length; i++) {
+			if (!Float.isNaN(array[i]) || !ignoreNaN) {
+				sum += array[i];
+				count++;
+			}
+		}
+		
+		if (count == 0) {
+			return Float.NaN;
+		}
+		
+		return sum/(float)count;
+	}
+	
+	/**
 	 * Calculates the mean of an array
 	 * 
 	 * @param array
