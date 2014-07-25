@@ -408,7 +408,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 					PrintWriter writer = new PrintWriter(new FileWriter(output));
 					writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 					for (int i = 0; i < segs.length; i++) {
-						writer.println(new CNVariant(ext.rootOf(output), segs[i].getUCSClocation(), segs[i].getChr(), segs[i].getStart(), segs[i].getStop(), 2, 0, 0, 0).toPlinkFormat());
+						writer.println(new CNVariant(ext.rootOf(output), segs[i].getUCSClocation(), segs[i].getChr(), segs[i].getStart(), segs[i].getStop(), 2, 10f, 10, 0).toPlinkFormat());
 					}
 					writer.close();
 					converted = true;
