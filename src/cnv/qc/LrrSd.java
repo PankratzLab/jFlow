@@ -37,7 +37,7 @@ public class LrrSd extends Parallelizable {
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
-			writer.println("Sample\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate");
+			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate");
 
 			if (centroidsFile==null) {
 				cents = null;
@@ -107,7 +107,7 @@ public class LrrSd extends Parallelizable {
 						forwardCallRate /= forwardGenotypes.length;
 					}
 					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-					writer.println(samples[i]+"\t"+Array.stdev(lrrs, true)+"\t"+Array.stdev(bafs, true)+"\t"+abCallRate+"\t"+forwardCallRate+"\t"+multimodal+"\t"+Array.toStr(bafBinCounts));
+					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + "\t" + abCallRate + "\t" + forwardCallRate + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
 					writer.flush();
 				}
 			}
