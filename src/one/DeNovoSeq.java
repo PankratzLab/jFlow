@@ -4,28 +4,46 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import common.Array;
 import common.CmdLine;
 import common.Files;
+import common.Logger;
 import common.Sort;
 import common.ext;
 
-public class DeNovoSNP {
+public class DeNovoSeq {
 	public static final String[] SAMPLE_SUFFIX = new String[] {"C", "D", "M"};
 	public static final char[] BASES = new char[] {'A', 'T', 'G', 'C'};
-	public static final String[] BASES_AND_INDELS = new String[] {"A", "T", "G", "C", "Ins", "Del"};
+	public static final char[] BASES_WITH_N = new char[] {'A', 'T', 'G', 'C', 'N'};
+	public static final String[] BASES_WITH_N_INS_DEL = new String[] {"A", "T", "G", "C", "N", "Ins", "Del"};
+	public static final byte INDEX_OF_N = 4;
+	public static final byte INDEX_OF_INS = 5;
+	public static final byte INDEX_OF_DEL = 6;
 	public static final byte MARKERDATA_NUMSAMPLES_START = 0;
 	public static final byte MARKERDATA_NUMSAMPLES_LEN = 4;
 	public static final int DEFAULT_PHRED_SCORE_FOR_DELETION = 30;
 	public static final double THRESHOLD_PHRED_SCORE_FOR_INS_DEL = .10;
 	public static final int MAX_ALLELE_COUNT_TREATED_AS_ZERO = 2;
+	public static final int MIN_ALLELE_COUNT_FOR_DENOVO_MUTATION = 5;
+	public static final double MIN_ALLELE_FREQ_FOR_DENOVO_MUTATION = .20;
 	public static final int MIN_READ_DEPTH = 10;
+	public static final int NEIGHBOR = 60;
+	public static final double DISCOUNT_FOR_NEIGHBOR_MUTATION_OR_INDEL = .75;
+	public static final double DISCOUNT_FOR_N = .50;
+	public static final int REGION_LEN_AT_A_TIME = 100000;
 
 	public static void generateScriptForSamtools(String fileNameOfDeNovoPointMutationCandidateList, String bamFileDir, String scriptDir) {
 		BufferedReader candidateList;
@@ -99,7 +117,7 @@ public class DeNovoSNP {
 		int index, startPositionOfTheRead, lengthOfCurrentSegmentOfCurrentRead, positionOnThisRead;
 		String[][] operatorsOperatorIndicesAndSplit;
 
-		result = new int[] {0, 0, 0, 0, 0, 0, 0};	//A, T, G, C, Del, Total, #Alleles
+		result = new int[] {0, 0, 0, 0, 0, 0, 0, 0};	//A, T, G, C, N, Ins, Del, Total, #Alleles
 		try {
 			bamFile =  new BufferedReader(new FileReader(readsFileFullPath));
 			while(bamFile.ready()) {
@@ -116,16 +134,16 @@ public class DeNovoSNP {
 								positionOnThisRead += lengthOfCurrentSegmentOfCurrentRead;
 								index += lengthOfCurrentSegmentOfCurrentRead;
 							} else if (operatorsOperatorIndicesAndSplit[0][i].equals("D") || operatorsOperatorIndicesAndSplit[0][i].equals("P")) {
-								result[4] ++;
+								result[6] ++;
 								break;
 							} else {
 								index += (positionOnThisRead - startPositionOfTheRead - index);
 //								index = (positionOnThisRead - startPositionOfTheRead);
-								index = ext.indexOfChar(line[9].charAt(index), BASES);
+								index = ext.indexOfChar(line[9].charAt(index), BASES_WITH_N);
 								if (index >= 0) {
 									result[index] ++;
 								} else {
-									System.out.println("Error - unrecognized base (neither A, T, G, or C) in the following file and read:\n" + readsFileFullPath + "\nRead ID: " + line[0]);
+									System.out.println("Error - unrecognized base " + line[9].charAt(index) + " in the following file and read:\n" + readsFileFullPath + "\nRead ID: " + line[0]);
 								}
 								break;
 							}
@@ -150,9 +168,9 @@ public class DeNovoSNP {
 		}
 
 		for (int i = 0; i < 4; i++) {
-			result[5] += result[i];
+			result[7] += result[i];
 			if (result[i] > thresholdFor3Alleles) {
-				result[6] ++;
+				result[8] ++;
 			}
 		}
 
@@ -218,7 +236,7 @@ public class DeNovoSNP {
 		int index;
 
 		index = ext.indexOfChar(alternativeAllele, BASES);
-		if (alleleCounts[1][index] > thresholdFor3Alleles || alleleCounts[2][index] > thresholdFor3Alleles || alleleCounts[0][6] > 2) {
+		if (alleleCounts[1][index] > thresholdFor3Alleles || alleleCounts[2][index] > thresholdFor3Alleles || alleleCounts[0][8] > 2) {
 			DenovoMutationScore = 0;
 		} else {
 			DenovoMutationScore = 1;
@@ -230,20 +248,198 @@ public class DeNovoSNP {
 		return false;
 	}
 
+	public static void processGenome(String bamDir, String[] bamFilenames, String refFastaFilename, String bedFilename, String outputDir, Logger log) {
+		BufferedReader reader;
+		String[] line;
+		byte chr;
+		int start;
+		int stop;
+		PrintWriter writer;
+		String trioId;
+		String outFileName;
+		long timer;
+		SimpleDateFormat timeFormat;
+
+		if (log == null) {
+			log = new Logger();
+		}
+
+		trioId = rootOf(bamFilenames);
+		outFileName = outputDir + trioId + "_denovoMutations_" + ext.rootOf(bedFilename) + ".txt";
+        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+       	timer = new Date().getTime();
+		try {
+			writer = new PrintWriter(outFileName);
+//			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
+			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+			reader = Files.getAppropriateReader(bedFilename);
+			reader.readLine();
+			reader.readLine();
+			while (reader.ready()) {
+				line = reader.readLine().split("\t");
+				chr = Byte.parseByte(line[0].substring(3));
+				start = Integer.parseInt(line[1]);
+				stop = Integer.parseInt(line[2]);
+				while (start + REGION_LEN_AT_A_TIME <= stop) {
+					processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, start + REGION_LEN_AT_A_TIME, writer, null);
+					start = start + REGION_LEN_AT_A_TIME + 1;
+				}
+				if (stop > start) {
+					processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, null);
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + bedFilename + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + bedFilename + "\"");
+			return;
+		}
+	}
+
+
+	public static void processGenomeMultiThread(String bamDir, String[] bamFilenames, String refFastaFilename, String bedFilename, String outputDir, int numThreads, Logger log) {
+		BufferedReader reader;
+		String[] line;
+		byte chr;
+		int start;
+		int stop;
+		PrintWriter writer;
+		String trioId;
+		String outFileName;
+		long timer;
+		SimpleDateFormat timeFormat;
+		int processId;
+
+		if (log == null) {
+			log = new Logger();
+		}
+
+		trioId = rootOf(bamFilenames);
+		outFileName = outputDir + trioId + "_denovoMutations_genome" + ".txt";
+		processId = 0;
+        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+       	timer = new Date().getTime();
+		try {
+			writer = new PrintWriter(outFileName);
+//			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
+			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+			reader = Files.getAppropriateReader(bedFilename);
+			reader.readLine();
+			reader.readLine();
+			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+			while (reader.ready()) {
+				line = reader.readLine().split("\t");
+				chr = Byte.parseByte(line[0].substring(3));
+				start = Integer.parseInt(line[1]);
+				stop = Integer.parseInt(line[2]);
+				while (start + REGION_LEN_AT_A_TIME <= stop) {
+					Runnable worker = new WorkerThread(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, start + REGION_LEN_AT_A_TIME, writer, null, processId);
+					executor.execute(worker);
+					start = start + REGION_LEN_AT_A_TIME + 1;
+					processId ++;
+				}
+				if (stop > start) {
+					Runnable worker = new WorkerThread(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, null, processId);
+					executor.execute(worker);
+					processId ++;
+				}
+			}
+			reader.close();
+			writer.close();
+			executor.awaitTermination(7, TimeUnit.DAYS);
+			executor.shutdown();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + bedFilename + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + bedFilename + "\"");
+			return;
+		} catch (InterruptedException e) {
+		}
+	}
+
+	public static class WorkerThread implements Runnable {
+		private String bamDir;
+		private String[] bamFilenames;
+		private String trioId;
+		private String refFastaFilename;
+		private byte chr;
+		private int start;
+		private int stop;
+		private PrintWriter writer;
+		private String outAlleleCountsFileName;
+		private int threadId;
+
+		public WorkerThread(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, byte chr, int start, int stop, PrintWriter writer, String outAlleleCountsFileName, int threadId) {
+			super();
+			this.bamDir = bamDir;
+			this.bamFilenames = bamFilenames;
+			this.trioId = trioId;
+			this.refFastaFilename = refFastaFilename;
+			this.chr = chr;
+			this.start = start;
+			this.stop = stop;
+			this.writer = writer;
+			this.outAlleleCountsFileName = outAlleleCountsFileName;
+			this.threadId = threadId;
+		}
+
+		@Override
+		public void run() {
+			processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, outAlleleCountsFileName);
+		}
+	}
+
 //	public static byte[][] processRegion(String dir, String bamFilename, byte chr, int start, int stop) {
 //		PrintStream stream;
 //		similar to piping or redirecting in linux
 //		BufferedReader reader = new BufferedReader();
 //		CmdLine.run("samtools view "+bamFilename+" chr"+chr+":"+start+"-"+stop, dir, stream);
 
-	public static void processRegion(String bamDir, String[] bamFilenames, String refFastaFilename, byte chr, int start, int stop, String outputDir) {
+	public static void processRegion(String bamDir, String[] bamFilenames, String refFastaFilename, byte chr, int start, int stop, String outputDir, boolean isToOutputAlleleCounts) {
+		PrintWriter writer;
+		String trioId;
+		String outFileName;
+		PrintWriter writer2;
+		String outAlleleCountsFileName;
+		long timer;
+		SimpleDateFormat timeFormat;
+
+		trioId = rootOf(bamFilenames);
+		outFileName = outputDir + trioId + "_denovoMutations_chr" + chr + "_" + start + "_" + stop + ".txt";
+		if (isToOutputAlleleCounts) {
+			outAlleleCountsFileName = outputDir + trioId + "_alleleCounts_chr" + chr + "_" + start + "_" + stop + ".txt";
+		} else {
+			outAlleleCountsFileName = null;
+		}
+        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+       	timer = new Date().getTime();
+		try {
+			writer = new PrintWriter(outFileName);
+//			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
+			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+			processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, outAlleleCountsFileName);
+			writer.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		timer = new Date().getTime() - timer;
+		System.out.println("processRegion result is ready at: " + outFileName + (isToOutputAlleleCounts? "\nAllele counts result is ready at:" + outAlleleCountsFileName : "") + "\nTotal time used " + timeFormat.format(timer));
+	}
+
+	public static void processRegion(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, byte chr, int start, int stop, PrintWriter writer, String outAlleleCountsFileName) {
 		Process p;
 //		ProcessBuilder ps;
 		BufferedReader reader;
 		BufferedReader error;
 		String line;
-		String outFileName;
-		String trioId;
 		Vector<String[]> bamContentVec;
 		int numLines;
 		int numMarkers;
@@ -254,16 +450,15 @@ public class DeNovoSNP {
 /*		int[] depthes;
 		double totalPhredScores;
 		String[][] phredScoresProportions;
-*/		PrintWriter writer;
-		String refAlleles;
-		byte[] denovoMarkerCandidateScores;
+*/		String refAlleles;
+		byte[] denovoMutationScores;
 		String[] denovoMarkerNotes;
 
         try {
             numMarkers = stop - start + 1;
-			alleleCounts = new int[SAMPLE_SUFFIX.length][numMarkers][BASES_AND_INDELS.length];
-			phredScores = new int[SAMPLE_SUFFIX.length][numMarkers][BASES_AND_INDELS.length];
-			mappingScores = new int[SAMPLE_SUFFIX.length][numMarkers][BASES_AND_INDELS.length];
+			alleleCounts = new int[SAMPLE_SUFFIX.length][numMarkers][BASES_WITH_N_INS_DEL.length];
+			phredScores = new int[SAMPLE_SUFFIX.length][numMarkers][BASES_WITH_N_INS_DEL.length];
+			mappingScores = new int[SAMPLE_SUFFIX.length][numMarkers][BASES_WITH_N_INS_DEL.length];
 
 			for (int i = 0; i < bamFilenames.length; i++) {
 				bamContentVec = new Vector<String[]>();
@@ -286,11 +481,10 @@ public class DeNovoSNP {
 		        reader.close();
 		
 				numLines = bamContentVec.size();
-				System.out.println(numLines);
 		        for (int j = 0; j < numLines; j++) {
 		        	getAlleleCountsPhredScoresMappingScores(bamContentVec.elementAt(j), chr, start, stop, 0, alleleCounts[i], phredScores[i], mappingScores[i]);
 				};
-		
+
 //		        error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 //		        while ((line = error.readLine()) != null) {
 //		            System.out.println(line);
@@ -299,6 +493,9 @@ public class DeNovoSNP {
 //				error.close();
 
 				displayErrorStream(p);
+			}
+			if (outAlleleCountsFileName != null) {
+				saveToFile(outAlleleCountsFileName, alleleCounts, start, true);
 			}
 
 			p = Runtime.getRuntime().exec("samtools faidx " + refFastaFilename + " chr" + chr + ":" + start + "-" + stop, null, new File(ext.parseDirectoryOfFile(refFastaFilename)));
@@ -327,48 +524,16 @@ public class DeNovoSNP {
 	        displayErrorStream(p);
 
 	        depths = new int[SAMPLE_SUFFIX.length][numMarkers];
-			denovoMarkerCandidateScores = new byte[numMarkers];
+			denovoMutationScores = new byte[numMarkers];
 			denovoMarkerNotes = new String[numMarkers];
-			getDenovoMarkerCandidateScores(alleleCounts, phredScores, mappingScores, depths, denovoMarkerCandidateScores, denovoMarkerNotes);
-			trioId = rootOf(bamFilenames);
-			outFileName = outputDir + trioId + "_denovoSnp.txt";
+			getDenovoMutationScores(alleleCounts, phredScores, mappingScores, depths, denovoMutationScores, denovoMarkerNotes);
 /*			depthes = new int[NUMSAMPLES_IN_A_TRIO];
 			phredScoresProportions = new double[NUMSAMPLES_IN_A_TRIO][BASES.length];
-*/			writer = new PrintWriter(outFileName);
-//			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
-			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
-			for (int i = 0; i < numMarkers; i++) {
-				if(denovoMarkerCandidateScores[i] > 0) {
-					exportInfoForPosition(writer, trioId, chr, start + i, refAlleles.charAt(i), denovoMarkerCandidateScores[i], alleleCounts, phredScores, mappingScores, i, denovoMarkerNotes, "Phred score proportions < " + THRESHOLD_PHRED_SCORE_FOR_INS_DEL);
+*/			for (int i = 0; i < numMarkers; i++) {
+				if(denovoMutationScores[i] > 0) {
+					exportInfoForPosition(writer, trioId, chr, start + i, refAlleles.charAt(i), denovoMutationScores[i], alleleCounts, phredScores, mappingScores, i, denovoMarkerNotes, "Phred score proportions < " + THRESHOLD_PHRED_SCORE_FOR_INS_DEL);
 				}
 			}
-
-/*			for (int i = 0; i < numMarkers; i++) {
-				for (int j = 0; j < depthes.length; j++) {
-					depthes[j] = alleleCounts[j][i][0] + alleleCounts[j][i][1] + alleleCounts[j][i][2] + alleleCounts[j][i][3];
-					totalPhredScores = phredScores[j][i][0] + phredScores[j][i][1] + phredScores[j][i][2] + phredScores[j][i][3];
-					for (int k = 0; k < BASES.length; k++) {
-						phredScoresProportions[j][k] = phredScores[j][i][k] / totalPhredScores;
-					}
-				}
-				for (int j = 0; j < BASES.length; j++) {
-//					if (alleleCounts[0][i][j] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[1][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && phredScoresProportions[0][j] < THRESHOLD_PHRED_SCORE_FOR_INS_DEL) {
-					if (alleleCounts[0][i][j] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[1][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
-						forwardGenotypes = getForwardGenotypes(alleleCounts, i);
-						exportInfoForPosition(writer, trioId, chr, start + i, refAlleles.charAt(i) + "", BASES[j] + "", .75 + "",
-								"(" + (alleleCounts[0][i][0]==0? "-" : alleleCounts[0][i][0]) + "," + (alleleCounts[0][i][1]==0? "-" : alleleCounts[0][i][1]) + "," + (alleleCounts[0][i][2]==0? "-" : alleleCounts[0][i][2]) + "," + (alleleCounts[0][i][3]==0? "-" : alleleCounts[0][i][3]) + "," + (alleleCounts[0][i][4]==0? "-" : alleleCounts[0][i][4]) + "," + (alleleCounts[0][i][5]==0? "-" : alleleCounts[0][i][5]) + ") (" + (alleleCounts[1][i][0]==0? "-" : alleleCounts[1][i][0]) + "," + (alleleCounts[1][i][1]==0? "-" : alleleCounts[1][i][1]) + "," + (alleleCounts[1][i][2]==0? "-" : alleleCounts[1][i][2]) + "," + (alleleCounts[1][i][3]==0? "-" : alleleCounts[1][i][3]) + "," + (alleleCounts[1][i][4]==0? "-" : alleleCounts[1][i][4]) + "," + (alleleCounts[1][i][5]==0? "-" : alleleCounts[1][i][5]) + ") (" + (alleleCounts[2][i][0]==0? "-" : alleleCounts[2][i][0]) + "," + (alleleCounts[2][i][1]==0? "-" : alleleCounts[2][i][1]) + "," + (alleleCounts[2][i][2]==0? "-" : alleleCounts[2][i][2]) + "," + (alleleCounts[2][i][3]==0? "-" : alleleCounts[2][i][3]) + "," + (alleleCounts[2][i][4]==0? "-" : alleleCounts[2][i][4]) + "," + (alleleCounts[2][i][5]==0? "-" : alleleCounts[2][i][5]) + ")",
-								forwardGenotypes, "Phred score proportions < " + THRESHOLD_PHRED_SCORE_FOR_INS_DEL, depthes[0], depthes[1], depthes[2],
-//								phredScores[0][i][j] / totalPhredScores[0], phredScores[1][i][j] / totalPhredScores[1], phredScores[2][i][j] / totalPhredScores[2],
-								"(" + (phredScoresProportions[0][0]==0? "-" : ext.formDeci(phredScoresProportions[0][0], 3)) +"," + (phredScoresProportions[0][1]==0? "-" : ext.formDeci(phredScoresProportions[0][1], 3)) + "," + (phredScoresProportions[0][2]==0? "-" : ext.formDeci(phredScoresProportions[0][2], 3)) + "," + (phredScoresProportions[0][3]==0? "-" : ext.formDeci(phredScoresProportions[0][3], 3)) + ") (" + (phredScoresProportions[1][0]==0? "-" : ext.formDeci(phredScoresProportions[1][0], 3)) + "," + (phredScoresProportions[1][1]==0? "-" : ext.formDeci(phredScoresProportions[1][1], 3)) + "," + (phredScoresProportions[1][2]==0? "-" : ext.formDeci(phredScoresProportions[1][2], 3)) + "," + (phredScoresProportions[1][3]==0? "-" : ext.formDeci(phredScoresProportions[1][3], 3)) + ") (" + (phredScoresProportions[2][0]==0? "-" : ext.formDeci(phredScoresProportions[2][0], 3)) + "," + (phredScoresProportions[2][1]==0? "-" : ext.formDeci(phredScoresProportions[2][1], 3)) + "," + (phredScoresProportions[2][2]==0? "-" : ext.formDeci(phredScoresProportions[2][2], 3)) + "," + (phredScoresProportions[2][3]==0? "-" : ext.formDeci(phredScoresProportions[2][3], 3)) + ")",
-								(mappingScores[0][i][0] + mappingScores[0][i][1] + mappingScores[0][i][2] + mappingScores[0][i][3]) / depthes[0], (mappingScores[1][i][0] + mappingScores[1][i][1] + mappingScores[1][i][2] + mappingScores[1][i][3]) / depthes[1], (mappingScores[2][i][0] + mappingScores[2][i][1] + mappingScores[2][i][2] + mappingScores[2][i][3]) / depthes[2],
-								forwardGenotypes.charAt(0), forwardGenotypes.charAt(1), forwardGenotypes.charAt(3), forwardGenotypes.charAt(4), forwardGenotypes.charAt(6), forwardGenotypes.charAt(7));
-						break;
-					}
-				}
-			}
-*/			writer.close();
-			System.out.println("processRegion result is ready at: " + outFileName);
-
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(-1);
@@ -449,85 +614,195 @@ public class DeNovoSNP {
 		}
 	}
 */
-	public static void getAlleleCountsPhredScoresMappingScores(String[] aSingleLineOfBamFile, int chr, int start, int stop, int thresholdFor3Alleles, int[][] output1_AlleleCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
-//		char[] bases;
+/*	public static void getAlleleCountsPhredScoresMappingScores(String[] aSingleLineOfBamFile, int chr, int start, int stop, int thresholdFor3Alleles, int[][] output1_AlleleCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
 		int readPointer;
 		int outputArrayPointer;
-//		int positionOffset;
-		int index2, positionPointer, lengthOfCurrentSegment, positionToLookFor;
+		int positionPointer;
+		int lengthOfCurrentSegment;
+		int indexInBases;
 		String[][] readSegments;
 		int currentMappingScore;
+		boolean isFirstPosition;
 
-		currentMappingScore = Integer.parseInt(aSingleLineOfBamFile[4]);
-		positionToLookFor = start;
-		readSegments = ext.getOperatorsOperatorIndicesAndSplit(aSingleLineOfBamFile[5], "DIMNPSH");
-		positionPointer = Integer.parseInt(aSingleLineOfBamFile[3]);
-		readPointer = 0;
-//		positionOffset = 0;
-		outputArrayPointer = Math.max(0, positionPointer - start);
-		for (int i = 0; i < readSegments[0].length; i++) {
-			lengthOfCurrentSegment = Integer.parseInt(readSegments[2][i]);
-			if (readSegments[0][i].equals("I")) {
-				if ((positionToLookFor - positionPointer) == 1) {
-					output1_AlleleCounts[outputArrayPointer][4] ++;
-					output2_PhredScores[outputArrayPointer][4] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));	//TODO
-					output3_MappingScores[outputArrayPointer][4] += currentMappingScore;
-				}
-				readPointer += lengthOfCurrentSegment;
-			} else if (readSegments[0][i].equals("S") || readSegments[0][i].equals("H") || readSegments[0][i].equals("N")) {
-				readPointer += lengthOfCurrentSegment;
-			} else if (readSegments[0][i].equals("D")) {
-				if ((positionToLookFor - positionPointer) <= lengthOfCurrentSegment) {
-					while (positionToLookFor <= stop && lengthOfCurrentSegment > 0) {
-						output1_AlleleCounts[outputArrayPointer][5] ++;
-						output2_PhredScores[outputArrayPointer][5] += DEFAULT_PHRED_SCORE_FOR_DELETION;
-						output3_MappingScores[outputArrayPointer][5] += currentMappingScore;
-						positionPointer ++;
-						outputArrayPointer ++;
-						positionToLookFor ++;
-						lengthOfCurrentSegment --;
+		if (aSingleLineOfBamFile[2].equalsIgnoreCase("chr" + chr) && Integer.parseInt(aSingleLineOfBamFile[1]) < 512) {
+			positionPointer = Integer.parseInt(aSingleLineOfBamFile[3]);
+			currentMappingScore = Integer.parseInt(aSingleLineOfBamFile[4]);
+			readSegments = ext.getOperatorsOperatorIndicesAndSplit(aSingleLineOfBamFile[5], "DIMNPSH");
+			readPointer = 0;
+			outputArrayPointer = Math.max(0, positionPointer - start);
+			isFirstPosition = true;
+			for (int i = 0; i < readSegments[0].length; i++) {
+				lengthOfCurrentSegment = Integer.parseInt(readSegments[2][i]);
+				if (readSegments[0][i].equals("I")) {
+					if (Math.abs(start + outputArrayPointer - positionPointer) <= 1) {
+						output1_AlleleCounts[outputArrayPointer][INDEX_OF_INS] ++;
+						output2_PhredScores[outputArrayPointer][INDEX_OF_INS] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));	//TODO
+						output3_MappingScores[outputArrayPointer][INDEX_OF_INS] += currentMappingScore;
 					}
-				} else {
-					positionPointer += lengthOfCurrentSegment;
-				}
-			} else if (readSegments[0][i].equals("P")) {
-				positionPointer += lengthOfCurrentSegment;
-			} else if (readSegments[0][i].equals("M")) {
-//				lengthAlreadySearchedOnCurrentRead += lengthOfCurrentSegmentOfCurrentRead;
-				if ((positionToLookFor - positionPointer) <= lengthOfCurrentSegment) {
-					while (positionToLookFor <= stop && lengthOfCurrentSegment > 0) {
-						index2 = ext.indexOfChar(aSingleLineOfBamFile[9].charAt(readPointer), BASES);
-						if (index2 >= 0) {
-							output1_AlleleCounts[outputArrayPointer][index2] ++;
-							output2_PhredScores[outputArrayPointer][index2] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
-							output3_MappingScores[outputArrayPointer][index2] += currentMappingScore; 
-						} else {
-							System.err.println("Error - unrecognized base (neither A, T, G, nor C) at chr" + chr + ":" + positionToLookFor + " Read ID: " + aSingleLineOfBamFile[0]);
-						}
-						positionPointer ++;
-						readPointer ++;
-						outputArrayPointer ++;
-						positionToLookFor ++;
-						lengthOfCurrentSegment --;
-					}
-				} else {
-					positionPointer += lengthOfCurrentSegment;
 					readPointer += lengthOfCurrentSegment;
+				} else if (readSegments[0][i].equals("S") || readSegments[0][i].equals("H") || readSegments[0][i].equals("N")) {
+					readPointer += lengthOfCurrentSegment;
+				} else if (readSegments[0][i].equals("D")) {
+					if ((start + outputArrayPointer - positionPointer) <= lengthOfCurrentSegment) {
+						while ((start + outputArrayPointer) <= stop && lengthOfCurrentSegment > 0) {
+							output1_AlleleCounts[outputArrayPointer][INDEX_OF_DEL] ++;
+							output2_PhredScores[outputArrayPointer][INDEX_OF_DEL] += DEFAULT_PHRED_SCORE_FOR_DELETION;
+							output3_MappingScores[outputArrayPointer][INDEX_OF_DEL] += currentMappingScore;
+							positionPointer ++;
+							outputArrayPointer ++;
+							lengthOfCurrentSegment --;
+						}
+					} else {
+						positionPointer += lengthOfCurrentSegment;
+					}
+				} else if (readSegments[0][i].equals("P")) {
+					positionPointer += lengthOfCurrentSegment;
+				} else if (readSegments[0][i].equals("M")) {
+					if ((start + outputArrayPointer - positionPointer) < lengthOfCurrentSegment) {
+						if (isFirstPosition) {
+							readPointer += (start + outputArrayPointer - positionPointer);
+							lengthOfCurrentSegment -= (start + outputArrayPointer - positionPointer);
+							positionPointer = start + outputArrayPointer;
+							isFirstPosition = false;
+						}
+						while ((start + outputArrayPointer) <= stop && lengthOfCurrentSegment > 0) {
+							indexInBases = ext.indexOfChar(aSingleLineOfBamFile[9].charAt(readPointer), BASES_WITH_N);
+//							if (positionPointer == 39346603) {
+//								System.out.println(aSingleLineOfBamFile[0] + "\t" + aSingleLineOfBamFile[3] + "\t" + aSingleLineOfBamFile[5] + "\t" + aSingleLineOfBamFile[9] + "\t" + readPointer + "\t" + outputArrayPointer + "\t" + (outputArrayPointer + start) + "\t" + BASES[index2]);
+//							}
+							if (indexInBases >= 0) {
+								output1_AlleleCounts[outputArrayPointer][indexInBases] ++;
+								output2_PhredScores[outputArrayPointer][indexInBases] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
+								output3_MappingScores[outputArrayPointer][indexInBases] += currentMappingScore;
+							} else {
+								System.err.println("Error - unrecognized base (" + aSingleLineOfBamFile[9].charAt(readPointer) + ") at chr" + chr + ":" + start + outputArrayPointer + " Read ID: " + aSingleLineOfBamFile[0]);
+							}
+							positionPointer ++;
+							readPointer ++;
+							outputArrayPointer ++;
+							lengthOfCurrentSegment --;
+						}
+					} else {
+						positionPointer += lengthOfCurrentSegment;
+						readPointer += lengthOfCurrentSegment;
+					}
+				} else {
+					System.err.println("Unrecognized CIGAR string: " + readSegments[0][i]);
 				}
-			} else {
-				System.err.println("Unrecognized CIGAR string: " + readSegments[0][i]);
+				
+				if(start + outputArrayPointer > stop) {
+					break;
+				}
 			}
 		}
 
-//				if (readSegments[0][i].equals("I") || readSegments[0][i].equals("S") || readSegments[0][i].equals("H") || readSegments[0][i].equals("N")) {
-////					positionToLookForOnCurrentRead += lengthOfCurrentSegmentOfCurrentRead;
-////					lengthAlreadySearchedOnCurrentRead += lengthOfCurrentSegmentOfCurrentRead;
-//				} else if (readSegments[0][i].equals("D") || readSegments[0][i].equals("P")) {
-////					startPositionOfCurrentRead -= lengthOfCurrentSegmentOfCurrentRead;
-//					lengthAlreadySearchedOnCurrentRead += lengthOfCurrentSegmentOfCurrentRead;
-//				} else {
-//					lengthAlreadySearchedOnCurrentRead += lengthOfCurrentSegmentOfCurrentRead;
-//				}
+//		if (readSegments[0][i].equals("I") || readSegments[0][i].equals("S") || readSegments[0][i].equals("H") || readSegments[0][i].equals("N")) {
+//		} else if (readSegments[0][i].equals("D") || readSegments[0][i].equals("P")) {
+//		} else {
+//		}
+	}
+*/
+	public static void getAlleleCountsPhredScoresMappingScores(String[] aSingleLineOfBamFile, int chr, int start, int stop, int thresholdFor3Alleles, int[][] output1_AlleleCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
+		int readPointer;
+		int outputArrayPointer;
+		int currentPosition;
+		int lengthOfCurrentSegment;
+		int outputArrayLength;
+		int loop;
+		int indexInBases;
+		String[][] readSegments;
+		int currentMappingScore;
+
+		if (aSingleLineOfBamFile[2].equalsIgnoreCase("chr" + chr) && Integer.parseInt(aSingleLineOfBamFile[1]) < 512) {
+			currentPosition = Integer.parseInt(aSingleLineOfBamFile[3]);
+			currentMappingScore = Integer.parseInt(aSingleLineOfBamFile[4]);
+			readSegments = ext.getOperatorsOperatorIndicesAndSplit(aSingleLineOfBamFile[5], "DIMNPSH");
+			readPointer = 0;
+			outputArrayPointer = currentPosition - start;
+			outputArrayLength = stop - start + 1;
+			for (int i = 0; i < readSegments[0].length; i++) {
+				lengthOfCurrentSegment = Integer.parseInt(readSegments[2][i]);
+				if (readSegments[0][i].equals("I")) {	// present in read sequence, but NOT in output sequence.
+					if (outputArrayPointer >= 0) {
+						output1_AlleleCounts[outputArrayPointer][INDEX_OF_INS] ++;
+						output2_PhredScores[outputArrayPointer][INDEX_OF_INS] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
+						output3_MappingScores[outputArrayPointer][INDEX_OF_INS] += currentMappingScore;
+					}
+					readPointer += lengthOfCurrentSegment;
+
+				} else if (readSegments[0][i].equals("S") || readSegments[0][i].equals("N")) {	// present in read sequence, but NOT in output sequence.	//TODO N
+					readPointer += lengthOfCurrentSegment;
+
+				} else if (readSegments[0][i].equals("H")) {	// NOT present in read sequence, and NOT in output sequence.	//TODO to confirm
+
+				} else if (readSegments[0][i].equals("D")) {	// NOT present in read sequence, but does in output sequence.
+					if ((outputArrayPointer + lengthOfCurrentSegment) <= 0) {
+						currentPosition += lengthOfCurrentSegment;
+						outputArrayPointer += lengthOfCurrentSegment;
+					} else {
+						if (outputArrayPointer < 0) {
+							currentPosition -= outputArrayPointer;
+//							readPointer -= outputArrayPointer;
+							lengthOfCurrentSegment += outputArrayPointer;
+							outputArrayPointer = 0;
+						}
+
+						loop = outputArrayPointer + Math.min(lengthOfCurrentSegment, outputArrayLength - outputArrayPointer);
+						while (outputArrayPointer < loop) {
+							output1_AlleleCounts[outputArrayPointer][INDEX_OF_DEL] ++;
+							output2_PhredScores[outputArrayPointer][INDEX_OF_DEL] += DEFAULT_PHRED_SCORE_FOR_DELETION;
+							output3_MappingScores[outputArrayPointer][INDEX_OF_DEL] += currentMappingScore;
+							outputArrayPointer ++;
+						}
+						if (outputArrayPointer == outputArrayLength) {
+							break;
+						} else {
+							currentPosition += lengthOfCurrentSegment;
+						}
+					}
+
+				} else if (readSegments[0][i].equals("P")) {	// TODO to confirm
+					currentPosition += lengthOfCurrentSegment;
+
+				} else if (readSegments[0][i].equals("M")) {	// present in read sequence, and also in output sequence.
+					if ((outputArrayPointer + lengthOfCurrentSegment) <= 0) {
+						currentPosition += lengthOfCurrentSegment;
+						outputArrayPointer += lengthOfCurrentSegment;
+						readPointer += lengthOfCurrentSegment;
+					} else {
+						if (outputArrayPointer < 0) {
+							currentPosition -= outputArrayPointer;
+							readPointer -= outputArrayPointer;
+							lengthOfCurrentSegment += outputArrayPointer;
+							outputArrayPointer = 0;
+						}
+
+						loop = outputArrayPointer + Math.min(lengthOfCurrentSegment, outputArrayLength - outputArrayPointer);
+						while (outputArrayPointer < loop) {
+							indexInBases = ext.indexOfChar(aSingleLineOfBamFile[9].charAt(readPointer), BASES_WITH_N);
+							if (indexInBases >= 0) {
+								output1_AlleleCounts[outputArrayPointer][indexInBases] ++;
+								output2_PhredScores[outputArrayPointer][indexInBases] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
+								output3_MappingScores[outputArrayPointer][indexInBases] += currentMappingScore;
+							} else {
+								System.err.println("Error - unrecognized base (" + aSingleLineOfBamFile[9].charAt(readPointer) + ") at chr" + chr + ":" + start + outputArrayPointer + " Read ID: " + aSingleLineOfBamFile[0]);
+							}
+							readPointer ++;
+							outputArrayPointer ++;
+						}
+
+						if (outputArrayPointer == outputArrayLength) {
+							break;
+						} else {
+							currentPosition += lengthOfCurrentSegment;
+						}
+					}
+
+				} else {
+					System.err.println("Unrecognized CIGAR string: " + readSegments[0][i]);
+				}
+			}
+		}
 	}
 
 	public static int convertToPhredScore(char asciiString) {
@@ -604,38 +879,108 @@ public class DeNovoSNP {
 		return notes;
 	}
 
-	public static void getDenovoMarkerCandidateScores(int[][][] alleleCounts, int[][][] phredScores, int[][][] mappingScores, int[][] output1ReadDepths, byte[] output2DenovoMutationCandidateScores, String[] output3DenovoMutationNotes) {
+	public static void getDenovoMutationScores(int[][][] alleleCounts, int[][][] phredScores, int[][][] mappingScores, int[][] output1ReadDepths, byte[] output2DenovoMutationScores, String[] output3DenovoMutationNotes) {
 		boolean[] isThreeAlleles;
 		String output3DenovoMutationNote;
+		int loop;
+		byte[] indicesOfInDels;
 
-		if (output2DenovoMutationCandidateScores.length != alleleCounts[0].length) {
-			System.err.println("The length of the array outputDenovoMutationCandidateScores (" + output2DenovoMutationCandidateScores.length + ") is not consistent with that of the array alleleCounts (" + alleleCounts[0].length + ")");
+		if (output2DenovoMutationScores.length != alleleCounts[0].length) {
+			System.err.println("The length of the array outputDenovoMutationCandidateScores (" + output2DenovoMutationScores.length + ") is not consistent with that of the array alleleCounts (" + alleleCounts[0].length + ")");
 		} else {
-			for (int i = 0; i < output2DenovoMutationCandidateScores.length; i++) {
+			for (int i = 0; i < output2DenovoMutationScores.length; i++) {
 				for (int j = 0; j < alleleCounts.length; j++) {
 					output1ReadDepths[j][i] = alleleCounts[j][i][0] + alleleCounts[j][i][1] + alleleCounts[j][i][2] + alleleCounts[j][i][3] + alleleCounts[j][i][4] + alleleCounts[j][i][5];
 				}
-//				System.out.println(39346502 + i + ":\t" + output1ReadDepths[0][i] + "\t" + output1ReadDepths[1][i] + "\t" + output1ReadDepths[2][i]);
 				if (output1ReadDepths[0][i] > MIN_READ_DEPTH && output1ReadDepths[1][i] > MIN_READ_DEPTH && output1ReadDepths[2][i] > MIN_READ_DEPTH) {
 					for (int j = 0; j < BASES.length; j++) {
-						if (alleleCounts[0][i][j] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[1][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
-							isThreeAlleles = isThreeAlleles(alleleCounts, i, MAX_ALLELE_COUNT_TREATED_AS_ZERO);
-							output3DenovoMutationNote = "";
-							for (int l = 0; l < SAMPLE_SUFFIX.length; l++) {
-								if(isThreeAlleles[l]) {
-									output2DenovoMutationCandidateScores[i] = 25;
-									if (output3DenovoMutationNote.equals("")) {
-										output3DenovoMutationNote = SAMPLE_SUFFIX[l];
+						if ((alleleCounts[0][i][j] > MIN_ALLELE_COUNT_FOR_DENOVO_MUTATION && alleleCounts[1][i][j] == 0 && alleleCounts[2][i][j] == 0)
+								|| (alleleCounts[1][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][i][j] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && (alleleCounts[1][i][j] + alleleCounts[2][i][j]) > 0 && alleleCounts[0][i][j] > (MIN_ALLELE_COUNT_FOR_DENOVO_MUTATION + 2 * (alleleCounts[1][i][j] + alleleCounts[2][i][j])))) {
+							output2DenovoMutationScores[i] = 100;
+							break;
+						}
+					}
+
+					if (output2DenovoMutationScores[i] > 0) {
+						output3DenovoMutationNote = "";
+						for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
+							if (alleleCounts[j][i][INDEX_OF_N] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+								if (output3DenovoMutationNote.equals("")) {
+									output3DenovoMutationNote = SAMPLE_SUFFIX[j];
+								} else {
+									output3DenovoMutationNote += "," + SAMPLE_SUFFIX[j];
+								}
+							}
+						}
+						if (! output3DenovoMutationNote.equals("")) {
+							output2DenovoMutationScores[i] = (byte) (output2DenovoMutationScores[i] * DISCOUNT_FOR_N);
+							if (output3DenovoMutationNotes[i] == null) {
+								output3DenovoMutationNotes[i] = output3DenovoMutationNote + " missing values";
+							} else {
+								output3DenovoMutationNotes[i] += (output3DenovoMutationNote + " missing values");
+							}
+						}
+
+						isThreeAlleles = isThreeAlleles(alleleCounts, i, MAX_ALLELE_COUNT_TREATED_AS_ZERO);
+						output3DenovoMutationNote = "";
+						for (int l = 0; l < SAMPLE_SUFFIX.length; l++) {
+							if(isThreeAlleles[l]) {
+								output2DenovoMutationScores[i] = 25;
+								if (output3DenovoMutationNote.equals("")) {
+									output3DenovoMutationNote = SAMPLE_SUFFIX[l];
+								} else {
+									output3DenovoMutationNote += "," + SAMPLE_SUFFIX[l];
+								}
+							}
+						}
+						if (! output3DenovoMutationNote.equals("")) {
+							output2DenovoMutationScores[i] = (byte) (output2DenovoMutationScores[i] * .25);
+							if (output3DenovoMutationNotes[i] == null) {
+								output3DenovoMutationNotes[i] = output3DenovoMutationNote + ":3 alleles";
+							} else {
+								output3DenovoMutationNotes[i] += (output3DenovoMutationNote + ":3 alleles");
+							}
+						} else {
+							loop = Math.min(NEIGHBOR, i);
+							for (int l = 1; l <= loop; l++) {
+								if (output2DenovoMutationScores[i - l] > 0) {
+									output2DenovoMutationScores[i - l] = (byte) (output2DenovoMutationScores[i - l] * DISCOUNT_FOR_NEIGHBOR_MUTATION_OR_INDEL);
+									if (output3DenovoMutationNotes[i - l] == null) {
+										output3DenovoMutationNotes[i - l] = "DeNovo mutation nearby";
+									} else if (output3DenovoMutationNotes[i - l].contains("DeNovo mutation nearby")) {
 									} else {
-										output3DenovoMutationNote += "," + SAMPLE_SUFFIX[l];
+										output3DenovoMutationNotes[i - l] += "; DeNovo mutation nearby";
 									}
 								}
 							}
-							if (! output3DenovoMutationNote.equals("")) {
-								output3DenovoMutationNotes[i] = output3DenovoMutationNote + ":3 alleles";
-								output2DenovoMutationCandidateScores[i] = 25;
+						}
+					}
+				}
+
+				indicesOfInDels = new byte[] {INDEX_OF_INS, INDEX_OF_DEL};
+				for (int j = 0; j < indicesOfInDels.length; j++) {
+					output3DenovoMutationNote = ""; 
+					for (int m = 0; m < alleleCounts.length; m++) {
+						if (alleleCounts[m][i][indicesOfInDels[j]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+							if (output3DenovoMutationNote.equals("")) {
+								output3DenovoMutationNote = SAMPLE_SUFFIX[m];
 							} else {
-								output2DenovoMutationCandidateScores[i] = 100;
+								output3DenovoMutationNote += "," + SAMPLE_SUFFIX[m];
+							}
+						}
+
+					}
+					if (! output3DenovoMutationNote.equals("")) {
+						loop = Math.min(NEIGHBOR, i);
+						for (int l = 1; l <= loop; l++) {
+							if (output2DenovoMutationScores[i - l] > 0) {
+								output2DenovoMutationScores[i - l] = (byte) (output2DenovoMutationScores[i - l] * DISCOUNT_FOR_NEIGHBOR_MUTATION_OR_INDEL);
+								if (output3DenovoMutationNotes[i - l] == null) {
+									output3DenovoMutationNotes[i - l] = output3DenovoMutationNote + ":" + BASES_WITH_N_INS_DEL[indicesOfInDels[j]] + " nearby";
+								} else if (output3DenovoMutationNotes[i - l].contains(BASES_WITH_N_INS_DEL[indicesOfInDels[j]] + " nearby")) {
+								} else {
+									output3DenovoMutationNotes[i - l] += "; " + output3DenovoMutationNote + ":" + BASES_WITH_N_INS_DEL[indicesOfInDels[j]] + " nearby";
+								}
 							}
 						}
 					}
@@ -689,7 +1034,7 @@ public class DeNovoSNP {
 				+ "\t" + ref
 				+ "\t" + (forwardGenotypes.charAt(4) == forwardGenotypes.charAt(3)? forwardGenotypes.charAt(4) + "" : forwardGenotypes.charAt(7) + "")	//TODO alt allele
 				+ "\t" + (call==100? "1.00" : "." + call)
-				+ "\t(" + (alleleCounts[0][indexOfCurrentMarker][0]==0? "-" : alleleCounts[0][indexOfCurrentMarker][0]) + "," + (alleleCounts[0][indexOfCurrentMarker][1]==0? "-" : alleleCounts[0][indexOfCurrentMarker][1]) + "," + (alleleCounts[0][indexOfCurrentMarker][2]==0? "-" : alleleCounts[0][indexOfCurrentMarker][2]) + "," + (alleleCounts[0][indexOfCurrentMarker][3]==0? "-" : alleleCounts[0][indexOfCurrentMarker][3]) + "," + (alleleCounts[0][indexOfCurrentMarker][4]==0? "-" : alleleCounts[0][indexOfCurrentMarker][4]) + "," + (alleleCounts[0][indexOfCurrentMarker][5]==0? "-" : alleleCounts[0][indexOfCurrentMarker][5]) + ") (" + (alleleCounts[1][indexOfCurrentMarker][0]==0? "-" : alleleCounts[1][indexOfCurrentMarker][0]) + "," + (alleleCounts[1][indexOfCurrentMarker][1]==0? "-" : alleleCounts[1][indexOfCurrentMarker][1]) + "," + (alleleCounts[1][indexOfCurrentMarker][2]==0? "-" : alleleCounts[1][indexOfCurrentMarker][2]) + "," + (alleleCounts[1][indexOfCurrentMarker][3]==0? "-" : alleleCounts[1][indexOfCurrentMarker][3]) + "," + (alleleCounts[1][indexOfCurrentMarker][4]==0? "-" : alleleCounts[1][indexOfCurrentMarker][4]) + "," + (alleleCounts[1][indexOfCurrentMarker][5]==0? "-" : alleleCounts[1][indexOfCurrentMarker][5]) + ") (" + (alleleCounts[2][indexOfCurrentMarker][0]==0? "-" : alleleCounts[2][indexOfCurrentMarker][0]) + "," + (alleleCounts[2][indexOfCurrentMarker][1]==0? "-" : alleleCounts[2][indexOfCurrentMarker][1]) + "," + (alleleCounts[2][indexOfCurrentMarker][2]==0? "-" : alleleCounts[2][indexOfCurrentMarker][2]) + "," + (alleleCounts[2][indexOfCurrentMarker][3]==0? "-" : alleleCounts[2][indexOfCurrentMarker][3]) + "," + (alleleCounts[2][indexOfCurrentMarker][4]==0? "-" : alleleCounts[2][indexOfCurrentMarker][4]) + "," + (alleleCounts[2][indexOfCurrentMarker][5]==0? "-" : alleleCounts[2][indexOfCurrentMarker][5]) + ")" + (denovoMarkerNotes[indexOfCurrentMarker]==null? "" : (" " + denovoMarkerNotes[indexOfCurrentMarker]))
+				+ "\t(" + (alleleCounts[0][indexOfCurrentMarker][0]==0? "-" : alleleCounts[0][indexOfCurrentMarker][0]) + "," + (alleleCounts[0][indexOfCurrentMarker][1]==0? "-" : alleleCounts[0][indexOfCurrentMarker][1]) + "," + (alleleCounts[0][indexOfCurrentMarker][2]==0? "-" : alleleCounts[0][indexOfCurrentMarker][2]) + "," + (alleleCounts[0][indexOfCurrentMarker][3]==0? "-" : alleleCounts[0][indexOfCurrentMarker][3]) + "/" + (alleleCounts[0][indexOfCurrentMarker][4]==0? "-" : alleleCounts[0][indexOfCurrentMarker][4]) + "," + (alleleCounts[0][indexOfCurrentMarker][5]==0? "-" : alleleCounts[0][indexOfCurrentMarker][5]) + "," + (alleleCounts[0][indexOfCurrentMarker][6]==0? "-" : alleleCounts[0][indexOfCurrentMarker][6]) + ") (" + (alleleCounts[1][indexOfCurrentMarker][0]==0? "-" : alleleCounts[1][indexOfCurrentMarker][0]) + "," + (alleleCounts[1][indexOfCurrentMarker][1]==0? "-" : alleleCounts[1][indexOfCurrentMarker][1]) + "," + (alleleCounts[1][indexOfCurrentMarker][2]==0? "-" : alleleCounts[1][indexOfCurrentMarker][2]) + "," + (alleleCounts[1][indexOfCurrentMarker][3]==0? "-" : alleleCounts[1][indexOfCurrentMarker][3]) + "/" + (alleleCounts[1][indexOfCurrentMarker][4]==0? "-" : alleleCounts[1][indexOfCurrentMarker][4]) + "," + (alleleCounts[1][indexOfCurrentMarker][5]==0? "-" : alleleCounts[1][indexOfCurrentMarker][5]) + "," + (alleleCounts[1][indexOfCurrentMarker][6]==0? "-" : alleleCounts[1][indexOfCurrentMarker][6]) + ") (" + (alleleCounts[2][indexOfCurrentMarker][0]==0? "-" : alleleCounts[2][indexOfCurrentMarker][0]) + "," + (alleleCounts[2][indexOfCurrentMarker][1]==0? "-" : alleleCounts[2][indexOfCurrentMarker][1]) + "," + (alleleCounts[2][indexOfCurrentMarker][2]==0? "-" : alleleCounts[2][indexOfCurrentMarker][2]) + "," + (alleleCounts[2][indexOfCurrentMarker][3]==0? "-" : alleleCounts[2][indexOfCurrentMarker][3]) + "/" + (alleleCounts[2][indexOfCurrentMarker][4]==0? "-" : alleleCounts[2][indexOfCurrentMarker][4]) + "," + (alleleCounts[2][indexOfCurrentMarker][5]==0? "-" : alleleCounts[2][indexOfCurrentMarker][5]) + "," + (alleleCounts[2][indexOfCurrentMarker][6]==0? "-" : alleleCounts[2][indexOfCurrentMarker][6]) + ")" + (denovoMarkerNotes[indexOfCurrentMarker]==null? "" : (" " + denovoMarkerNotes[indexOfCurrentMarker]))
 				+ "\t" + forwardGenotypes
 				+ "\t" + flag
 				+ "\t" + depths[0]
@@ -721,6 +1066,41 @@ public class DeNovoSNP {
 		}
 	}
 
+	public static void saveToFile(String filename, int[][][] alleleCounts, int startPosition, boolean toIgnorePositionsWithZeroCount) {
+		PrintWriter writer;
+		String line;
+		int total;
+
+        try {
+			writer = new PrintWriter(new FileWriter(filename));
+			line = "position";
+			for (int i = 0; i < SAMPLE_SUFFIX.length; i++) {
+				line += ("\t" + SAMPLE_SUFFIX[i]);
+			}
+			writer.println(line);
+			for (int i = 0; i < alleleCounts[0].length; i++) {
+				line = startPosition + "";
+				total = 0;
+				for (int j = 0; j < alleleCounts.length; j++) {
+					line += "\t(";
+					for (int k = 0; k < BASES_WITH_N_INS_DEL.length; k++) {
+						line += ((k == 0? "" : ",") + (alleleCounts[j][i][k] == 0? "-" : alleleCounts[j][i][k]));
+						total += alleleCounts[j][i][k];
+					}
+					line += ")";
+				}
+				if (! (toIgnorePositionsWithZeroCount && total == 0)) {
+					writer.println(line);
+				}
+				startPosition ++;
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.out.println("Error writing to " + filename);
+			System.out.println(e);
+		}
+	}
+
 	public static String rootOf(String[] filenames) {
 		String[] roots;
 		String commomRoot;
@@ -738,7 +1118,7 @@ public class DeNovoSNP {
 		int numArgs = args.length;
 		String[] commands;
 		String fileNameOfDeNovoPointMutationCandidateList;
-		String[] bamFilenamesTheTrio;
+		String[] bamFilenamesOfTheTrio;
 		String bamDir;
 		String scriptDir;
 		String outputDir;
@@ -749,10 +1129,11 @@ public class DeNovoSNP {
 		int start;
 		int stop;
 		String refFastaFilename;
+		String bedFilename;
 
 		fileNameOfDeNovoPointMutationCandidateList = "N:/statgen/OS_Logan/IGV_validation/results_test1.txt";
 		bamDir = "/home/spectorl/shared/exome_processing/bam/";
-		bamFilenamesTheTrio = new String[] {"rrd_F10639C_L008.bam", "rrd_F10639D_L007.bam", "rrd_F10639M_L007.bam"};
+		bamFilenamesOfTheTrio = new String[] {"rrd_F10639C_L008.bam", "rrd_F10639D_L007.bam", "rrd_F10639M_L007.bam"};
 //		bamDir = "D:/bams/";
 //		bamFilenamesTheTrio = new String[] {"F10639C_chr17_39346502_39346622.txt", "F10639D_chr17_39346502_39346622.txt", "F10639M_chr17_39346502_39346622.txt"};
 		refFastaFilename = "/home/spectorl/xuz2/hg19_canonical.fa";
@@ -761,14 +1142,13 @@ public class DeNovoSNP {
 		isToAnnotate = false;
 		isToProcessRegion = true;
 		chr = (byte) 17;
-		start = 39346622;
+		start = 39346600;
 		stop = 39346622;
-//		start = 39345622;
-//		stop = 39346722;
+		bedFilename = "/home/spectorl/xuz2/outputs/S04380219_Regions_chr2.bed";
 
 		bamFilenamesForHelpMenu = "";
-		for (int i = 0; i < bamFilenamesTheTrio.length; i++) {
-			bamFilenamesForHelpMenu += bamFilenamesTheTrio[i] + ";";
+		for (int i = 0; i < bamFilenamesOfTheTrio.length; i++) {
+			bamFilenamesForHelpMenu += bamFilenamesOfTheTrio[i] + ";";
 		}
 		bamFilenamesForHelpMenu.substring(0, bamFilenamesForHelpMenu.length() - 1);
 
@@ -812,7 +1192,7 @@ public class DeNovoSNP {
 				isToProcessRegion = true;
 				numArgs--;
 			} else if (args[i].startsWith(commands[6])) {
-				bamFilenamesTheTrio = args[i].split("=")[1].split(";");
+				bamFilenamesOfTheTrio = args[i].split("=")[1].split(";");
 				numArgs--;
 			} else if (args[i].startsWith(commands[7])) {
 				chr = Byte.parseByte(args[i].split("=")[1]);
@@ -838,10 +1218,11 @@ public class DeNovoSNP {
 		if (isToAnnotate) {
 //			getAlleleCounts("D:/bams/F10639C_chr11_89531764.txt", 11, 89531764, 3);	//Testing only. Feature already included in screenDeNovoPointMutation()
 //			getAlleleCounts("D:/bams/F10639C_chr5_140558628.txt", 5, 140558628, 3);
-			generateScriptForSamtools(fileNameOfDeNovoPointMutationCandidateList, bamFilenamesTheTrio[0], scriptDir);
-			screenDeNovoPointMutation(fileNameOfDeNovoPointMutationCandidateList, bamFilenamesTheTrio[0], 1);
+			generateScriptForSamtools(fileNameOfDeNovoPointMutationCandidateList, bamFilenamesOfTheTrio[0], scriptDir);
+			screenDeNovoPointMutation(fileNameOfDeNovoPointMutationCandidateList, bamFilenamesOfTheTrio[0], 1);
 		} else if (isToProcessRegion) {
-			processRegion(bamDir, bamFilenamesTheTrio, refFastaFilename, chr, start, stop, outputDir);
+//			processRegion(bamDir, bamFilenamesOfTheTrio, refFastaFilename, chr, start, stop, outputDir, false);
+			processGenome(bamDir, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, outputDir, null);
 		}
 	}
 
