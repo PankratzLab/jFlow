@@ -264,7 +264,7 @@ public class DeNovoSeq {
 			log = new Logger();
 		}
 
-		trioId = rootOf(bamFilenames);
+		trioId = getRootOf(bamFilenames);
 		outFileName = outputDir + trioId + "_denovoMutations_" + ext.rootOf(bedFilename) + ".txt";
         timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -318,7 +318,7 @@ public class DeNovoSeq {
 			log = new Logger();
 		}
 
-		trioId = rootOf(bamFilenames);
+		trioId = getRootOf(bamFilenames);
 		outFileName = outputDir + trioId + "_denovoMutations_genome" + ".txt";
 		processId = 0;
         timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -410,7 +410,7 @@ public class DeNovoSeq {
 		long timer;
 		SimpleDateFormat timeFormat;
 
-		trioId = rootOf(bamFilenames);
+		trioId = getRootOf(bamFilenames);
 		outFileName = outputDir + trioId + "_denovoMutations_chr" + chr + "_" + start + "_" + stop + ".txt";
 		if (isToOutputAlleleCounts) {
 			outAlleleCountsFileName = outputDir + trioId + "_alleleCounts_chr" + chr + "_" + start + "_" + stop + ".txt";
@@ -1101,17 +1101,76 @@ public class DeNovoSeq {
 		}
 	}
 
-	public static String rootOf(String[] filenames) {
-		String[] roots;
-		String commomRoot;
+	/**
+	 * Get the common root of all the filenames, assuming the filenames following the format of "*_*_*"
+	 * @param filenames
+	 * @return
+	 */
+	public static String getRootOf(String[] filenames) {
+		String[][] roots;
+		String commonRoot = null;
+		int maxLength;
+		int index1 = 0;
+		int index2 = 0;
+		boolean found;
+		int loop;
+		String str;
 
-		roots = new String[filenames.length];
+		roots = new String[filenames.length][];
+		maxLength = 0;
 		for (int i = 0; i < roots.length; i++) {
-			roots[i] = ext.rootOf(filenames[i]);
+			roots[i] = ext.rootOf(filenames[i]).split("_");
+			if (roots[i].length > maxLength) {
+				maxLength = roots[i].length;
+			}
 		}
-		
-//		return commonRoot;
-		return "F10639";
+
+		found = false;
+		for (int i = 0; i < maxLength; i++) {
+			for (int j = 0; j < roots.length; j++) {
+				if (roots[j].length > i) {
+					commonRoot = roots[j][i];
+					index1 = j;
+					index2 = i;
+					break;
+				}
+			}
+			for (int j = index1; j < roots.length; j++) {
+				if(! roots[j][i].equalsIgnoreCase(commonRoot)) {
+					found = true;
+					break;
+				}
+			}
+			if (found) {
+				break;
+			}
+		}
+
+		if (found) {
+			found = false;
+			maxLength = 0;
+			loop = commonRoot.length();
+			for (int i = 0; i <= loop; i++) {
+				for (int j = 0; j < roots.length; j++) {
+					if (! roots[j][index2].substring(0, i).equalsIgnoreCase(commonRoot.substring(0, i))) {
+						if (i > 0) {
+							commonRoot = commonRoot.substring(0, i - 1);
+						} else if (index2 > 0) { 
+							commonRoot = roots[index1][index2 - 1] + commonRoot.substring(0, 0);
+						}
+						found = true;
+						break;
+					}
+				}
+				if (found) {
+					break;
+				}
+			}
+		} else {
+			commonRoot = ext.rootOf(filenames[0]);
+		}
+
+		return commonRoot;
 	}
 	
 	public static void main(String[] args) {
@@ -1124,6 +1183,7 @@ public class DeNovoSeq {
 		String outputDir;
 		boolean isToAnnotate;
 		boolean isToProcessRegion;
+		boolean isToProcessGenome;
 		String bamFilenamesForHelpMenu;
 		byte chr;
 		int start;
@@ -1140,11 +1200,12 @@ public class DeNovoSeq {
 		scriptDir = "D:/logan/DeNovos/scripts/";
 		outputDir = "/home/spectorl/xuz2/outputs/";
 		isToAnnotate = false;
-		isToProcessRegion = true;
+		isToProcessRegion = false;
+		isToProcessGenome = true;
 		chr = (byte) 17;
 		start = 39346600;
 		stop = 39346622;
-		bedFilename = "/home/spectorl/xuz2/outputs/S04380219_Regions_chr2.bed";
+		bedFilename = "/home/spectorl/xuz2/outputs/S04380219_Regions.bed";
 
 		bamFilenamesForHelpMenu = "";
 		for (int i = 0; i < bamFilenamesOfTheTrio.length; i++) {
@@ -1152,7 +1213,7 @@ public class DeNovoSeq {
 		}
 		bamFilenamesForHelpMenu.substring(0, bamFilenamesForHelpMenu.length() - 1);
 
-		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outputdir=", "-processregion", "bamset=", "reffasta=", "chr=", "start=", "stop="};
+		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outputdir=", "-processregion", "bamset=", "reffasta=", "chr=", "start=", "stop=", "-processgenome", "bed="};
 		String usage = "\n"
 				+ "To annotate a list of candidate markers:"
 				+ "   (1) command for annotatation (i.e. " + commands[0] + " (default))\n"
@@ -1167,6 +1228,12 @@ public class DeNovoSeq {
 				+ "   (5) start position of the region (i.e. " + commands[9] + start + " (default))\n"
 				+ "   (6) stop position of the region (i.e. " + commands[10] + stop + " (default))\n"
 				+ "   (7) directory for the output files (i.e. " + commands[4] + outputDir + " (default))\n"
+				+ "To process genome:"
+				+ "   (1) command for processing a region (i.e. " + commands[11] + " (default))\n"
+				+ "   (2) directory of the bam files (i.e. " + commands[6] + bamFilenamesForHelpMenu + " (default))\n"
+				+ "   (3) full path of the reference Fasta file (i.e. " + commands[7] + refFastaFilename + " (default))\n"
+				+ "   (4) full path of the bed file (i.e. " + commands[12] + bedFilename + " (default))\n"
+				+ "   (5) directory for the output files (i.e. " + commands[4] + outputDir + " (default))\n"
 				+ "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -1206,6 +1273,12 @@ public class DeNovoSeq {
 			} else if (args[i].startsWith(commands[10])) {
 				stop = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith(commands[11])) {
+				isToProcessGenome = true;
+				numArgs--;
+			} else if (args[i].startsWith(commands[12])) {
+				bedFilename = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -1221,7 +1294,9 @@ public class DeNovoSeq {
 			generateScriptForSamtools(fileNameOfDeNovoPointMutationCandidateList, bamFilenamesOfTheTrio[0], scriptDir);
 			screenDeNovoPointMutation(fileNameOfDeNovoPointMutationCandidateList, bamFilenamesOfTheTrio[0], 1);
 		} else if (isToProcessRegion) {
-//			processRegion(bamDir, bamFilenamesOfTheTrio, refFastaFilename, chr, start, stop, outputDir, false);
+			processRegion(bamDir, bamFilenamesOfTheTrio, refFastaFilename, chr, start, stop, outputDir, false);
+		} else if (isToProcessGenome) {
+//			System.out.println(getRootOf(bamFilenamesOfTheTrio));
 			processGenome(bamDir, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, outputDir, null);
 		}
 	}
