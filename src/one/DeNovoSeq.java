@@ -248,111 +248,169 @@ public class DeNovoSeq {
 		return false;
 	}
 
-	public static void processGenome(String bamDir, String[] bamFilenames, String refFastaFilename, String bedFilename, String outputDir, Logger log) {
-		BufferedReader reader;
-		String[] line;
-		byte chr;
-		int start;
-		int stop;
-		PrintWriter writer;
-		String trioId;
-		String outFileName;
-		long timer;
-		SimpleDateFormat timeFormat;
+//	public static void processGenome(String bamDir, String[] bamFilenames, String refFastaFilename, String bedFilename, String outputDir, Logger log) {
+//		BufferedReader reader;
+//		String[] line;
+//		byte chr;
+//		int start;
+//		int stop;
+//		PrintWriter writer;
+//		String trioId;
+//		String outFileName;
+//		long timer;
+//		SimpleDateFormat timeFormat;
+//
+//		if (log == null) {
+//			log = new Logger();
+//		}
+//
+//		trioId = getRootOf(bamFilenames);
+//		outFileName = outputDir + trioId + "_denovoMutations_" + ext.rootOf(bedFilename) + ".txt";
+//        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+//		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+//       	timer = new Date().getTime();
+//		try {
+//			writer = new PrintWriter(outFileName);
+////			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
+//			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+//			reader = Files.getAppropriateReader(bedFilename);
+//			reader.readLine();
+//			reader.readLine();
+//			while (reader.ready()) {
+//				line = reader.readLine().split("\t");
+//				chr = Byte.parseByte(line[0].substring(3));
+//				start = Integer.parseInt(line[1]);
+//				stop = Integer.parseInt(line[2]);
+//				while (start + REGION_LEN_AT_A_TIME <= stop) {
+//					processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, start + REGION_LEN_AT_A_TIME, writer, null);
+//					start = start + REGION_LEN_AT_A_TIME + 1;
+//				}
+//				if (stop > start) {
+//					processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, null);
+//				}
+//			}
+//			reader.close();
+//			writer.close();
+//		} catch (FileNotFoundException fnfe) {
+//			log.reportError("Error: file \"" + bedFilename + "\" not found in current directory");
+//			return;
+//		} catch (IOException ioe) {
+//			log.reportError("Error reading file \"" + bedFilename + "\"");
+//			return;
+//		}
+//	}
 
-		if (log == null) {
-			log = new Logger();
+	public static void processGenomeOfAllTriosInDir(String bamDir, String refFastaFilename, String bedFilename, String outputDir, int numThreads, Logger log) {
+		String[] bamFilenames;
+		String[][] bamFilenamesByTrios;
+//		String trioId;
+//		String outFileName;
+//		PrintWriter writer;
+
+		bamFilenames = Files.list(bamDir, ".bam", false);
+		bamFilenamesByTrios = getNameByTrios(bamFilenames);
+		for (int i = 0; i < bamFilenamesByTrios.length; i++) {
+			processGenomeOfOneTrio(bamDir, bamFilenames, refFastaFilename, bedFilename, outputDir, numThreads, log);
 		}
 
-		trioId = getRootOf(bamFilenames);
-		outFileName = outputDir + trioId + "_denovoMutations_" + ext.rootOf(bedFilename) + ".txt";
-        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-       	timer = new Date().getTime();
-		try {
-			writer = new PrintWriter(outFileName);
-//			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
-			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
-			reader = Files.getAppropriateReader(bedFilename);
-			reader.readLine();
-			reader.readLine();
-			while (reader.ready()) {
-				line = reader.readLine().split("\t");
-				chr = Byte.parseByte(line[0].substring(3));
-				start = Integer.parseInt(line[1]);
-				stop = Integer.parseInt(line[2]);
-				while (start + REGION_LEN_AT_A_TIME <= stop) {
-					processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, start + REGION_LEN_AT_A_TIME, writer, null);
-					start = start + REGION_LEN_AT_A_TIME + 1;
-				}
-				if (stop > start) {
-					processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, null);
-				}
-			}
-			reader.close();
-			writer.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + bedFilename + "\" not found in current directory");
-			return;
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + bedFilename + "\"");
-			return;
-		}
+//		trioId = getRootOf(bamFilenamesByTrios[0]);
+//		outFileName = outputDir + trioId + "_denovoMutations_genome" + ext.rootOf(bedFilename) + ".txt";
+//		try {
+//			writer = new PrintWriter(outFileName);
+////			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
+//			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+//			for (int i = 0; i < bamFilenamesByTrios.length; i++) {
+//				processGenomeOfOneTrio(bamDir, bamFilenames, refFastaFilename, bedFilename, writer, numThreads, log);
+//			}
+//			writer.close();
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		}
 	}
 
+//	public static void processGenomeOfOneTrio(String bamDir, String[] bamFilenamesOfTheTrio, String refFastaFilename, String bedFilename, String outputDir, int numThreads, Logger log) {
+//		String trioId;
+//		String outFileName;
+//		PrintWriter writer;
+//		long timer;
+//		SimpleDateFormat timeFormat;
+//
+//		trioId = getRootOf(bamFilenamesOfTheTrio);
+//		outFileName = outputDir + trioId + "_denovoSeq_" + ext.rootOf(bedFilename) + ".txt";
+//        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+//		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+//       	timer = new Date().getTime();
+//		try {
+//			writer = new PrintWriter(outFileName);
+////			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
+//			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+//			processGenomeOfOneTrio(bamDir, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, writer, numThreads, log);
+//			writer.close();
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		}
+//
+//		log.report("DeNovo mutation result is ready at: " + outFileName + "\nTotal time used " + timeFormat.format(new Date().getTime() - timer));
+//	}
 
-	public static void processGenomeMultiThread(String bamDir, String[] bamFilenames, String refFastaFilename, String bedFilename, String outputDir, int numThreads, Logger log) {
+	public static void processGenomeOfOneTrio(String bamDir, String[] bamFilenamesOfTheTrio, String refFastaFilename, String bedFilename, String outputDir, int numThreads, Logger log) {
 		BufferedReader reader;
 		String[] line;
-		byte chr;
+		String chr, prevChr;
 		int start;
 		int stop;
+		int loop;
 		PrintWriter writer;
 		String trioId;
 		String outFileName;
-		long timer;
-		SimpleDateFormat timeFormat;
+		ExecutorService executor = null;
 		int processId;
 
 		if (log == null) {
 			log = new Logger();
 		}
 
-		trioId = getRootOf(bamFilenames);
+		trioId = getRootOf(bamFilenamesOfTheTrio);
 		outFileName = outputDir + trioId + "_denovoMutations_genome" + ".txt";
 		processId = 0;
-        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-       	timer = new Date().getTime();
+		prevChr = "start";
 		try {
 			writer = new PrintWriter(outFileName);
-//			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
 			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
 			reader = Files.getAppropriateReader(bedFilename);
 			reader.readLine();
 			reader.readLine();
-			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+			if (numThreads > 1) {
+				executor = Executors.newFixedThreadPool(numThreads);
+			}
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
-				chr = Byte.parseByte(line[0].substring(3));
+				chr = line[0].substring(3);
+				if (!chr.equals(prevChr) && numThreads == 1) {
+					System.out.println(ext.getTime()+"\t"+"Starting chr"+chr+"; identified "+Files.countLines(outFileName, true)+" possible de novo events so far");
+					prevChr = chr;
+				}
 				start = Integer.parseInt(line[1]);
 				stop = Integer.parseInt(line[2]);
-				while (start + REGION_LEN_AT_A_TIME <= stop) {
-					Runnable worker = new WorkerThread(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, start + REGION_LEN_AT_A_TIME, writer, null, processId);
-					executor.execute(worker);
-					start = start + REGION_LEN_AT_A_TIME + 1;
-					processId ++;
+				while (start <= stop) {
+					loop = Math.min(start + REGION_LEN_AT_A_TIME, stop);
+					if (numThreads > 1) {
+						Runnable worker = new WorkerThread(bamDir, bamFilenamesOfTheTrio, trioId, refFastaFilename, chr, start, loop, writer, null, processId);
+						executor.execute(worker);
+						processId ++;
+					} else {
+						System.out.println(chr + "\t" + start + "\t" + loop);
+						processRegion(bamDir, bamFilenamesOfTheTrio, trioId, refFastaFilename, chr, start, loop, writer, null);
+					}
+					start += (REGION_LEN_AT_A_TIME + 1);
 				}
-				if (stop > start) {
-					Runnable worker = new WorkerThread(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, null, processId);
-					executor.execute(worker);
-					processId ++;
-				}
+			}
+			if (numThreads > 1) {
+				executor.awaitTermination(7, TimeUnit.DAYS);
+				executor.shutdown();
 			}
 			reader.close();
 			writer.close();
-			executor.awaitTermination(7, TimeUnit.DAYS);
-			executor.shutdown();
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + bedFilename + "\" not found in current directory");
 			return;
@@ -363,19 +421,81 @@ public class DeNovoSeq {
 		}
 	}
 
+//	public static void processGenomeMultiThread(String bamDir, String[] bamFilenames, String refFastaFilename, String bedFilename, String outputDir, int numThreads, Logger log) {
+//		BufferedReader reader;
+//		String[] line;
+//		byte chr;
+//		int start;
+//		int stop;
+//		PrintWriter writer;
+//		String trioId;
+//		String outFileName;
+//		long timer;
+//		SimpleDateFormat timeFormat;
+//		int processId;
+//
+//		if (log == null) {
+//			log = new Logger();
+//		}
+//
+//		trioId = getRootOf(bamFilenames);
+//		outFileName = outputDir + trioId + "_denovoMutations_genome" + ".txt";
+//		processId = 0;
+//        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+//		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+//       	timer = new Date().getTime();
+//		try {
+//			writer = new PrintWriter(outFileName);
+////			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
+//			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+//			reader = Files.getAppropriateReader(bedFilename);
+//			reader.readLine();
+//			reader.readLine();
+//			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+//			while (reader.ready()) {
+//				line = reader.readLine().split("\t");
+//				chr = Byte.parseByte(line[0].substring(3));
+//				start = Integer.parseInt(line[1]);
+//				stop = Integer.parseInt(line[2]);
+//				while (start + REGION_LEN_AT_A_TIME <= stop) {
+//					Runnable worker = new WorkerThread(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, start + REGION_LEN_AT_A_TIME, writer, null, processId);
+//					executor.execute(worker);
+//					start = start + REGION_LEN_AT_A_TIME + 1;
+//					processId ++;
+//				}
+//				if (stop > start) {
+//					Runnable worker = new WorkerThread(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, null, processId);
+//					executor.execute(worker);
+//					processId ++;
+//				}
+//			}
+//			reader.close();
+//			writer.close();
+//			executor.awaitTermination(7, TimeUnit.DAYS);
+//			executor.shutdown();
+//		} catch (FileNotFoundException fnfe) {
+//			log.reportError("Error: file \"" + bedFilename + "\" not found in current directory");
+//			return;
+//		} catch (IOException ioe) {
+//			log.reportError("Error reading file \"" + bedFilename + "\"");
+//			return;
+//		} catch (InterruptedException e) {
+//		}
+//	}
+
 	public static class WorkerThread implements Runnable {
 		private String bamDir;
 		private String[] bamFilenames;
 		private String trioId;
 		private String refFastaFilename;
-		private byte chr;
+		private String chr;
 		private int start;
 		private int stop;
 		private PrintWriter writer;
 		private String outAlleleCountsFileName;
 		private int threadId;
 
-		public WorkerThread(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, byte chr, int start, int stop, PrintWriter writer, String outAlleleCountsFileName, int threadId) {
+		public WorkerThread(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, String chr, int start, int stop, PrintWriter writer, String outAlleleCountsFileName, int threadId) {
 			super();
 			this.bamDir = bamDir;
 			this.bamFilenames = bamFilenames;
@@ -401,7 +521,7 @@ public class DeNovoSeq {
 //		BufferedReader reader = new BufferedReader();
 //		CmdLine.run("samtools view "+bamFilename+" chr"+chr+":"+start+"-"+stop, dir, stream);
 
-	public static void processRegion(String bamDir, String[] bamFilenames, String refFastaFilename, byte chr, int start, int stop, String outputDir, boolean isToOutputAlleleCounts) {
+	public static void processRegion(String bamDir, String[] bamFilenames, String refFastaFilename, String chr, int start, int stop, String outputDir, boolean isToOutputAlleleCounts) {
 		PrintWriter writer;
 		String trioId;
 		String outFileName;
@@ -434,7 +554,7 @@ public class DeNovoSeq {
 		System.out.println("processRegion result is ready at: " + outFileName + (isToOutputAlleleCounts? "\nAllele counts result is ready at:" + outAlleleCountsFileName : "") + "\nTotal time used " + timeFormat.format(timer));
 	}
 
-	public static void processRegion(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, byte chr, int start, int stop, PrintWriter writer, String outAlleleCountsFileName) {
+	public static void processRegion(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, String chr, int start, int stop, PrintWriter writer, String outAlleleCountsFileName) {
 		Process p;
 //		ProcessBuilder ps;
 		BufferedReader reader;
@@ -702,7 +822,7 @@ public class DeNovoSeq {
 //		}
 	}
 */
-	public static void getAlleleCountsPhredScoresMappingScores(String[] aSingleLineOfBamFile, int chr, int start, int stop, int thresholdFor3Alleles, int[][] output1_AlleleCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
+	public static void getAlleleCountsPhredScoresMappingScores(String[] aSingleLineOfBamFile, String chr, int start, int stop, int thresholdFor3Alleles, int[][] output1_AlleleCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
 		int readPointer;
 		int outputArrayPointer;
 		int currentPosition;
@@ -713,58 +833,17 @@ public class DeNovoSeq {
 		String[][] readSegments;
 		int currentMappingScore;
 
-		if (aSingleLineOfBamFile[2].equalsIgnoreCase("chr" + chr) && Integer.parseInt(aSingleLineOfBamFile[1]) < 512) {
+		if (aSingleLineOfBamFile[2].equalsIgnoreCase("chr" + chr) && Integer.parseInt(aSingleLineOfBamFile[1]) < 512 && ! aSingleLineOfBamFile[9].equalsIgnoreCase("*")) {
 			currentPosition = Integer.parseInt(aSingleLineOfBamFile[3]);
 			currentMappingScore = Integer.parseInt(aSingleLineOfBamFile[4]);
-			readSegments = ext.getOperatorsOperatorIndicesAndSplit(aSingleLineOfBamFile[5], "DIMNPSH");
+			readSegments = ext.getOperatorsOperatorIndicesAndSplit(aSingleLineOfBamFile[5], "MIDNSHP=X");
 			readPointer = 0;
 			outputArrayPointer = currentPosition - start;
 			outputArrayLength = stop - start + 1;
-			for (int i = 0; i < readSegments[0].length; i++) {
+
+			for (int i = 0; (outputArrayPointer < outputArrayLength) && (i < readSegments[0].length); i++) {
 				lengthOfCurrentSegment = Integer.parseInt(readSegments[2][i]);
-				if (readSegments[0][i].equals("I")) {	// present in read sequence, but NOT in output sequence.
-					if (outputArrayPointer >= 0) {
-						output1_AlleleCounts[outputArrayPointer][INDEX_OF_INS] ++;
-						output2_PhredScores[outputArrayPointer][INDEX_OF_INS] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
-						output3_MappingScores[outputArrayPointer][INDEX_OF_INS] += currentMappingScore;
-					}
-					readPointer += lengthOfCurrentSegment;
-
-				} else if (readSegments[0][i].equals("S") || readSegments[0][i].equals("N")) {	// present in read sequence, but NOT in output sequence.	//TODO N
-					readPointer += lengthOfCurrentSegment;
-
-				} else if (readSegments[0][i].equals("H")) {	// NOT present in read sequence, and NOT in output sequence.	//TODO to confirm
-
-				} else if (readSegments[0][i].equals("D")) {	// NOT present in read sequence, but does in output sequence.
-					if ((outputArrayPointer + lengthOfCurrentSegment) <= 0) {
-						currentPosition += lengthOfCurrentSegment;
-						outputArrayPointer += lengthOfCurrentSegment;
-					} else {
-						if (outputArrayPointer < 0) {
-							currentPosition -= outputArrayPointer;
-//							readPointer -= outputArrayPointer;
-							lengthOfCurrentSegment += outputArrayPointer;
-							outputArrayPointer = 0;
-						}
-
-						loop = outputArrayPointer + Math.min(lengthOfCurrentSegment, outputArrayLength - outputArrayPointer);
-						while (outputArrayPointer < loop) {
-							output1_AlleleCounts[outputArrayPointer][INDEX_OF_DEL] ++;
-							output2_PhredScores[outputArrayPointer][INDEX_OF_DEL] += DEFAULT_PHRED_SCORE_FOR_DELETION;
-							output3_MappingScores[outputArrayPointer][INDEX_OF_DEL] += currentMappingScore;
-							outputArrayPointer ++;
-						}
-						if (outputArrayPointer == outputArrayLength) {
-							break;
-						} else {
-							currentPosition += lengthOfCurrentSegment;
-						}
-					}
-
-				} else if (readSegments[0][i].equals("P")) {	// TODO to confirm
-					currentPosition += lengthOfCurrentSegment;
-
-				} else if (readSegments[0][i].equals("M")) {	// present in read sequence, and also in output sequence.
+				if (readSegments[0][i].equals("M") || readSegments[0][i].equals("=") || readSegments[0][i].equals("X")) {	// present in read sequence, and also in reference sequence.
 					if ((outputArrayPointer + lengthOfCurrentSegment) <= 0) {
 						currentPosition += lengthOfCurrentSegment;
 						outputArrayPointer += lengthOfCurrentSegment;
@@ -791,12 +870,58 @@ public class DeNovoSeq {
 							outputArrayPointer ++;
 						}
 
-						if (outputArrayPointer == outputArrayLength) {
-							break;
-						} else {
-							currentPosition += lengthOfCurrentSegment;
-						}
+						currentPosition += lengthOfCurrentSegment;
 					}
+
+				} else if (readSegments[0][i].equals("I")) {	// present in read sequence, but NOT in reference sequence.
+					if (outputArrayPointer >= 0) {
+						output1_AlleleCounts[outputArrayPointer][INDEX_OF_INS] ++;
+						output2_PhredScores[outputArrayPointer][INDEX_OF_INS] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
+						output3_MappingScores[outputArrayPointer][INDEX_OF_INS] += currentMappingScore;
+					}
+					readPointer += lengthOfCurrentSegment;
+
+				} else if (readSegments[0][i].equals("D")) {	// NOT present in read sequence, but does in reference sequence.
+					if ((outputArrayPointer + lengthOfCurrentSegment) <= 0) {
+						currentPosition += lengthOfCurrentSegment;
+						outputArrayPointer += lengthOfCurrentSegment;
+					} else {
+						if (outputArrayPointer < 0) {
+							currentPosition -= outputArrayPointer;
+//							readPointer -= outputArrayPointer;
+							lengthOfCurrentSegment += outputArrayPointer;
+							outputArrayPointer = 0;
+						}
+
+						loop = outputArrayPointer + Math.min(lengthOfCurrentSegment, outputArrayLength - outputArrayPointer);
+						while (outputArrayPointer < loop) {
+							output1_AlleleCounts[outputArrayPointer][INDEX_OF_DEL] ++;
+							output2_PhredScores[outputArrayPointer][INDEX_OF_DEL] += DEFAULT_PHRED_SCORE_FOR_DELETION;
+							output3_MappingScores[outputArrayPointer][INDEX_OF_DEL] += currentMappingScore;
+							outputArrayPointer ++;
+						}
+
+						currentPosition += lengthOfCurrentSegment;
+					}
+
+				} else if (readSegments[0][i].equals("N")) {	// NOT present in read sequence, but does in reference sequence. Similar to D.
+					currentPosition += lengthOfCurrentSegment;
+					outputArrayPointer += lengthOfCurrentSegment;
+
+				} else if (readSegments[0][i].equals("S")) {	// present in read sequence, and also in reference sequence, but do not match. Lower case letters in read sequence.
+					if (i == 0) {
+						readPointer += lengthOfCurrentSegment;
+					} else {
+						currentPosition += lengthOfCurrentSegment;
+						outputArrayPointer += lengthOfCurrentSegment;
+						readPointer += lengthOfCurrentSegment;
+					}
+
+				} else if (readSegments[0][i].equals("H")) {	// NOT present in read sequence, but in reference sequence. Similar to D.
+					currentPosition += lengthOfCurrentSegment;
+					outputArrayPointer += lengthOfCurrentSegment;
+
+				} else if (readSegments[0][i].equals("P")) {	// present in read sequence, but NOT in reference sequence. Similar to I.
 
 				} else {
 					System.err.println("Unrecognized CIGAR string: " + readSegments[0][i]);
@@ -1009,7 +1134,7 @@ public class DeNovoSeq {
 		return	isThreeAlleles;
 	}
 
-	public static void exportInfoForPosition(PrintWriter writer, String id, byte chr, int pos, char ref, byte call, int[][][] alleleCounts, int[][][] phredScores, int[][][] mappingScores, int indexOfCurrentMarker, String[] denovoMarkerNotes, String flag) {
+	public static void exportInfoForPosition(PrintWriter writer, String id, String chr, int pos, char ref, byte call, int[][][] alleleCounts, int[][][] phredScores, int[][][] mappingScores, int indexOfCurrentMarker, String[] denovoMarkerNotes, String flag) {
 		double totalPhredScores;
 		double phredScoreProportion;
 		int[] depths;
@@ -1046,6 +1171,7 @@ public class DeNovoSeq {
 				+ "\t" + (depths[2] == 0? "" : ((mappingScores[2][indexOfCurrentMarker][0] + mappingScores[2][indexOfCurrentMarker][1] + mappingScores[2][indexOfCurrentMarker][2] + mappingScores[2][indexOfCurrentMarker][3]) / depths[2]))
 				+ "\t" + forwardGenotypes.charAt(0) + "\t" + forwardGenotypes.charAt(1) + "\t" + forwardGenotypes.charAt(3) + "\t" + forwardGenotypes.charAt(4) + "\t" + forwardGenotypes.charAt(6) + "\t" + forwardGenotypes.charAt(7)
 				);
+		writer.flush();
 	}
 
 	public static void displayErrorStream(Process p) {
@@ -1172,7 +1298,12 @@ public class DeNovoSeq {
 
 		return commonRoot;
 	}
-	
+
+	public static String[][] getNameByTrios(String[] filenames) {
+
+		return null;
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String[] commands;
@@ -1184,16 +1315,19 @@ public class DeNovoSeq {
 		boolean isToAnnotate;
 		boolean isToProcessRegion;
 		boolean isToProcessGenome;
+		int numThreads;
 		String bamFilenamesForHelpMenu;
-		byte chr;
+		String chr;
 		int start;
 		int stop;
 		String refFastaFilename;
 		String bedFilename;
+		Logger log;
 
 		fileNameOfDeNovoPointMutationCandidateList = "N:/statgen/OS_Logan/IGV_validation/results_test1.txt";
 		bamDir = "/home/spectorl/shared/exome_processing/bam/";
 		bamFilenamesOfTheTrio = new String[] {"rrd_F10639C_L008.bam", "rrd_F10639D_L007.bam", "rrd_F10639M_L007.bam"};
+//		bamFilenamesOfTheTrio = new String[] {"rrd_F10008C_L005.bam", "rrd_F10008D_L004.bam", "rrd_F10008M_L003.bam"};
 //		bamDir = "D:/bams/";
 //		bamFilenamesTheTrio = new String[] {"F10639C_chr17_39346502_39346622.txt", "F10639D_chr17_39346502_39346622.txt", "F10639M_chr17_39346502_39346622.txt"};
 		refFastaFilename = "/home/spectorl/xuz2/hg19_canonical.fa";
@@ -1202,18 +1336,18 @@ public class DeNovoSeq {
 		isToAnnotate = false;
 		isToProcessRegion = false;
 		isToProcessGenome = true;
-		chr = (byte) 17;
+		numThreads = 1;
+		chr = "17";
 		start = 39346600;
 		stop = 39346622;
 		bedFilename = "/home/spectorl/xuz2/outputs/S04380219_Regions.bed";
 
-		bamFilenamesForHelpMenu = "";
-		for (int i = 0; i < bamFilenamesOfTheTrio.length; i++) {
-			bamFilenamesForHelpMenu += bamFilenamesOfTheTrio[i] + ";";
+		bamFilenamesForHelpMenu = (bamFilenamesOfTheTrio == null || bamFilenamesOfTheTrio[0] == null)? "" : bamFilenamesOfTheTrio[0];
+		for (int i = 1; i < bamFilenamesOfTheTrio.length; i++) {
+			bamFilenamesForHelpMenu += "," + bamFilenamesOfTheTrio[i];
 		}
-		bamFilenamesForHelpMenu.substring(0, bamFilenamesForHelpMenu.length() - 1);
 
-		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outputdir=", "-processregion", "bamset=", "reffasta=", "chr=", "start=", "stop=", "-processgenome", "bed="};
+		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outputdir=", "-processregion", "bamset=", "reffasta=", "chr=", "start=", "stop=", "-processgenome", "bed=", "numthreads="};
 		String usage = "\n"
 				+ "To annotate a list of candidate markers:"
 				+ "   (1) command for annotatation (i.e. " + commands[0] + " (default))\n"
@@ -1234,6 +1368,7 @@ public class DeNovoSeq {
 				+ "   (3) full path of the reference Fasta file (i.e. " + commands[7] + refFastaFilename + " (default))\n"
 				+ "   (4) full path of the bed file (i.e. " + commands[12] + bedFilename + " (default))\n"
 				+ "   (5) directory for the output files (i.e. " + commands[4] + outputDir + " (default))\n"
+				+ "   (6) number of threads (i.e. " + commands[13] + numThreads + " (default))\n"
 				+ "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -1259,13 +1394,13 @@ public class DeNovoSeq {
 				isToProcessRegion = true;
 				numArgs--;
 			} else if (args[i].startsWith(commands[6])) {
-				bamFilenamesOfTheTrio = args[i].split("=")[1].split(";");
+				bamFilenamesOfTheTrio = args[i].split("=")[1].split(",");
 				numArgs--;
 			} else if (args[i].startsWith(commands[7])) {
-				chr = Byte.parseByte(args[i].split("=")[1]);
+				refFastaFilename = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(commands[8])) {
-				chr = Byte.parseByte(args[i].split("=")[1]);
+				chr = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(commands[9])) {
 				start = Integer.parseInt(args[i].split("=")[1]);
@@ -1279,6 +1414,9 @@ public class DeNovoSeq {
 			} else if (args[i].startsWith(commands[12])) {
 				bedFilename = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith(commands[13])) {
+				numThreads = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -1287,6 +1425,8 @@ public class DeNovoSeq {
 			System.err.println(usage);
 			System.exit(1);
 		}
+
+		log = new Logger(outputDir + "DeNovoSeq_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
 		
 		if (isToAnnotate) {
 //			getAlleleCounts("D:/bams/F10639C_chr11_89531764.txt", 11, 89531764, 3);	//Testing only. Feature already included in screenDeNovoPointMutation()
@@ -1296,8 +1436,11 @@ public class DeNovoSeq {
 		} else if (isToProcessRegion) {
 			processRegion(bamDir, bamFilenamesOfTheTrio, refFastaFilename, chr, start, stop, outputDir, false);
 		} else if (isToProcessGenome) {
-//			System.out.println(getRootOf(bamFilenamesOfTheTrio));
-			processGenome(bamDir, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, outputDir, null);
+			if (bamFilenamesOfTheTrio.length < 2 || bamFilenamesOfTheTrio == null) {
+				processGenomeOfAllTriosInDir(bamDir, refFastaFilename, bedFilename, outputDir, numThreads, log);
+			} else {
+				processGenomeOfOneTrio(bamDir, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, outputDir, numThreads, log);
+			}
 		}
 	}
 
