@@ -268,7 +268,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		int[] newLocation = plot.getCPLocation();
-		int chromosomeLength = Positions.CHROMOSOME_LENGTHS[newLocation[0]];
+		int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]];
 		int x = e.getPoint().x;
 		double diff = (int) (clickStart - x);
 
@@ -299,7 +299,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		int[] newLocation = plot.getCPLocation();
 		int[] oldLocation = Arrays.copyOf(newLocation, newLocation.length);
-		int chromosomeLength = Positions.CHROMOSOME_LENGTHS[newLocation[0]];
+		int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]];
 
 		int rotation = e.getWheelRotation();
 		double width = endBase - startBase;
