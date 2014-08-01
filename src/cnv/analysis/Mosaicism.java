@@ -210,7 +210,7 @@ public class Mosaicism {
 		        	if (listOfArms[i][1].charAt(listOfArms[i][1].length()-1) == 'p') {
 		        		arm = new Segment((byte)chr, 0, Positions.CENTROMERE_MIDPOINTS[chr]);
 		        	} else {
-		        		arm = new Segment((byte)chr, Positions.CENTROMERE_MIDPOINTS[chr], Positions.CHROMOSOME_LENGTHS[chr]);
+		        		arm = new Segment((byte)chr, Positions.CENTROMERE_MIDPOINTS[chr], Positions.CHROMOSOME_LENGTHS_B36_HG18[chr]);
 		        	}
 		        	
 		        	cnvs = indiPheno.getCNVs(0, chr);
