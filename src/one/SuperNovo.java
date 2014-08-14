@@ -34,12 +34,14 @@ public class SuperNovo {
 	public static final char[] BASES = new char[] {'A', 'T', 'G', 'C'};
 	public static final char[] BASES_WITH_N = new char[] {'A', 'T', 'G', 'C', 'N'};
 	public static final String[] BASES_WITH_N_INDEL = new String[] {"A", "T", "G", "C", "N", "Ins", "Del"};
+	public static final String[] READS_COUNTS_ARRAY_STRUCT = new String[] {"A", "T", "G", "C", "N", "Ins", "Del", "numAllelesStrictCount", "numAllelesLooseCount"};
 	public static final byte INDEX_OF_N = 4;
 	public static final byte INDEX_OF_INS = 5;
 	public static final byte INDEX_OF_DEL = 6;
-	public static final String[] ALLELE_COUNTS_ARRAY_STRUCT = new String[] {"A", "T", "G", "C", "N", "Ins", "Del", "numAllelesStrictCount", "numAllelesLooseCount"};
 	public static final byte INDEX_OF_NUM_ALLELES_STRICT = 7;
 	public static final byte INDEX_OF_NUM_ALLELES_LOOSE = 8;
+	public static final String[] DENOVO_MUTATION_ARRAY_STRUCT = new String[] {"i", "score", "C_readDepth", "D_readDepth", "M_readDepth", "C_allele1", "C_allele2", "D_allele1", "D_allele2", "M_allele1", "M_allele2"};
+	public static final String[] DENOVO_MUTATION_NOTES_ARRAY_STRUCT = new String[] {"Ins", "Del", "Var", "3Allelic"};
 	public static final int MIN_AVERAGE_MAPPING_SCORE = 20;
 	public static final int DEFAULT_PHRED_SCORE_FOR_DELETION = 30;
 	public static final double THRESHOLD_PHRED_SCORE_FOR_INS_DEL = .10;
@@ -59,6 +61,9 @@ public class SuperNovo {
 	public static final double DISCOUNT_FOR_3ALLELES_STRICT = .50;
 	public static final double DISCOUNT_FOR_NEARBY_DENOVOMUTATION = .90;
 	public static final int REGION_LEN_AT_A_TIME = 100000;
+	public static final String OUTPUT_FILE_HEADER = "id\tchr\tpos\tlookup\tref\talt\tcall\treadsCounts\tnumNearbyInDelVars\tposNearbyInDelVars\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore";
+//	public static final String OUTPUT_FILE_HEADER2 = "id\tchr\tpos\tlookup\tref\talt\tcall\tcA\tcT\tcG\tcC\tcN\tcI\tcD\tdA\tdT\tdG\tdC\tdN\tdI\tdD\tmA\tmT\tmG\tmC\tmN\tmI\tmD\tcIns\tdIns\tmIns\tcDel\tdDel\tmDel\tcVar\tdVar\tmVar\tposNearbyInDelVars\tdeNovoGT\tflag\tcDepth\tdDepth\tmDepth\tcAPhred\tcTPhred\tcGPhred\tcCPhred\tdAPhred\tdTPhred\tdGPhred\tdCPhred\tmAPhred\tmTPhred\tmGPhred\tmCPhred\tcMap\tdMap\tmMap";
+	public static final String OUTPUT_FILE_HEADER2 = "id\tchr\tpos\tlookup\tref\talt\tcall\tcA\tcT\tcG\tcC\tcN\tcI\tcD\tdA\tdT\tdG\tdC\tdN\tdI\tdD\tmA\tmT\tmG\tmC\tmN\tmI\tmD\tcIns\tdIns\tmIns\tcDel\tdDel\tmDel\tcVar\tdVar\tmVar\tc3Allelic\td3Allelic\tm3Allelic\tposNearbyInDelVars\tdeNovoGT\tflag\tcDepth\tdDepth\tmDepth\tcAPhred\tcTPhred\tcGPhred\tcCPhred\tdAPhred\tdTPhred\tdGPhred\tdCPhred\tmAPhred\tmTPhred\tmGPhred\tmCPhred\tcMap\tdMap\tmMap";
 
 	public static void generateScriptForSamtools(String fileNameOfDeNovoPointMutationCandidateList, String bamFileDir, String scriptDir) {
 		BufferedReader candidateList;
@@ -95,7 +100,7 @@ public class SuperNovo {
 		BufferedReader candidateList;
 		PrintWriter writer;
 		String[] line;
-		int[][] alleleCounts;
+		int[][] readsCounts;
 		String notes;
 		int score;
 
@@ -107,12 +112,12 @@ public class SuperNovo {
 			while(candidateList.ready()) {
 				line = candidateList.readLine().split("\t");
 				//look for the chr location in bcfFile
-				alleleCounts = new int[3][];
-				for (int i = 0; i < alleleCounts.length; i++) {
-					alleleCounts[i] = getAlleleCounts(bamFileDir + line[0].substring(0, line[0].length()-1) + SAMPLE_SUFFIX[i] + "_" + line[1] + "_" + line[3] + ".txt", Integer.parseInt(line[1].split("chr")[1]), Integer.parseInt(line[3]), thresholdFor3Alleles);
+				readsCounts = new int[3][];
+				for (int i = 0; i < readsCounts.length; i++) {
+					readsCounts[i] = getAlleleCounts(bamFileDir + line[0].substring(0, line[0].length()-1) + SAMPLE_SUFFIX[i] + "_" + line[1] + "_" + line[3] + ".txt", Integer.parseInt(line[1].split("chr")[1]), Integer.parseInt(line[3]), thresholdFor3Alleles);
 				}
-				score = getScoreForDeNovoMutation(alleleCounts, line[9].charAt(0), line[8].charAt(0), thresholdFor3Alleles);
-				notes = getNotesForDeNovoMutation(alleleCounts, line[9].charAt(0), thresholdFor3Alleles);
+				score = getScoreForDeNovoMutation(readsCounts, line[9].charAt(0), line[8].charAt(0), thresholdFor3Alleles);
+				notes = getNotesForDeNovoMutation(readsCounts, line[9].charAt(0), thresholdFor3Alleles);
 				writer.println(line[0] + "\t" + line[1] + "\t" + line[3] + "\t" + line[6] + "\t" + line[7] + "\t" + line[8] + "\t" + line[9] + "\t" + line[10] + "\t" + line[11] + "\t" + line[12] + "\t" + line[13] + "\t" + line[14] + "\t" + line[15] + "\t" + line[16] + "\t" + line[17] + "\t" + line[18] + "\t" + score + "\t" + notes);
 			}
 			candidateList.close();
@@ -192,15 +197,15 @@ public class SuperNovo {
 		return result;
 	}
 
-//	public static boolean[] isThreeAlleles(int[][] alleleCounts, int threshold) {
+//	public static boolean[] isThreeAlleles(int[][] readsCounts, int threshold) {
 //		byte count;
 //		boolean[] result;
 //
-//		result = new boolean[alleleCounts.length];
+//		result = new boolean[readsCounts.length];
 //		for (int i = 0; i < result.length; i++) {
 //			count = 0;
-//			for (int j = 0; j < alleleCounts[i].length; j++) {
-//				if (alleleCounts[i][j] > threshold) {
+//			for (int j = 0; j < readsCounts[i].length; j++) {
+//				if (readsCounts[i][j] > threshold) {
 //					count ++;
 //				}
 //			}
@@ -211,9 +216,9 @@ public class SuperNovo {
 //		return result;
 //	}
 
-//	public static boolean isDeNovoMutation(int[][] alleleCounts, int threshold) {
-//		for (int j = 0; j < alleleCounts[0].length; j++) {
-//			if (alleleCounts[0][j] > threshold && alleleCounts[1][j] <= threshold && alleleCounts[2][j] <= threshold) {
+//	public static boolean isDeNovoMutation(int[][] readsCounts, int threshold) {
+//		for (int j = 0; j < readsCounts[0].length; j++) {
+//			if (readsCounts[0][j] > threshold && readsCounts[1][j] <= threshold && readsCounts[2][j] <= threshold) {
 //				return true;
 //			}
 //		}
@@ -222,36 +227,36 @@ public class SuperNovo {
 
 	/**
 	 * Annotate the markers with allele frequencies, allele counts, and deletion and insertion counts.
-	 * @param alleleCounts
+	 * @param readsCounts
 	 * @param alternativeAllele
 	 * @param thresholdFor3Alleles
 	 * @return
 	 */
-	public static String getNotesForDeNovoMutation(int[][] alleleCounts, char alternativeAllele, int thresholdFor3Alleles) {
+	public static String getNotesForDeNovoMutation(int[][] readsCounts, char alternativeAllele, int thresholdFor3Alleles) {
 		byte index;
 		index = (byte) ext.indexOfChar(alternativeAllele, BASES);
 
-		return	((alleleCounts[1][index] > thresholdFor3Alleles || alleleCounts[2][index] > thresholdFor3Alleles)? ext.formDeci(100 * alleleCounts[0][index] / (double) alleleCounts[0][5], 1) + "%," + alleleCounts[1][index] + "," + alleleCounts[2][index] + "; " : "")
-			+	"C" + (alleleCounts[0][6]>2? "(" + alleleCounts[0][6]+ " alleles)" : "") + ":" + alleleCounts[0][0] + "," + alleleCounts[0][1] + "," + alleleCounts[0][2] + "," + alleleCounts[0][3] + ",(" + alleleCounts[0][4] + "," + alleleCounts[0][5] + ")"
-			+ "; D" + (alleleCounts[1][6]>2? "(" + alleleCounts[1][6] + "alleles)" : "") + ":" + alleleCounts[1][0] + "," + alleleCounts[1][1] + "," + alleleCounts[1][2] + "," + alleleCounts[1][3] + ",(" + alleleCounts[1][4] + "," + alleleCounts[1][5] + ")"
-			+ "; M" + (alleleCounts[2][6]>2? "(" + alleleCounts[2][6] + "alleles)" : "") + ":" + alleleCounts[2][0] + "," + alleleCounts[2][1] + "," + alleleCounts[2][2] + "," + alleleCounts[2][3] + ",(" + alleleCounts[2][4] + "," + alleleCounts[2][5] + ")";
+		return	((readsCounts[1][index] > thresholdFor3Alleles || readsCounts[2][index] > thresholdFor3Alleles)? ext.formDeci(100 * readsCounts[0][index] / (double) readsCounts[0][5], 1) + "%," + readsCounts[1][index] + "," + readsCounts[2][index] + "; " : "")
+			+	"C" + (readsCounts[0][6]>2? "(" + readsCounts[0][6]+ " alleles)" : "") + ":" + readsCounts[0][0] + "," + readsCounts[0][1] + "," + readsCounts[0][2] + "," + readsCounts[0][3] + ",(" + readsCounts[0][4] + "," + readsCounts[0][5] + ")"
+			+ "; D" + (readsCounts[1][6]>2? "(" + readsCounts[1][6] + "alleles)" : "") + ":" + readsCounts[1][0] + "," + readsCounts[1][1] + "," + readsCounts[1][2] + "," + readsCounts[1][3] + ",(" + readsCounts[1][4] + "," + readsCounts[1][5] + ")"
+			+ "; M" + (readsCounts[2][6]>2? "(" + readsCounts[2][6] + "alleles)" : "") + ":" + readsCounts[2][0] + "," + readsCounts[2][1] + "," + readsCounts[2][2] + "," + readsCounts[2][3] + ",(" + readsCounts[2][4] + "," + readsCounts[2][5] + ")";
 	}
 
 	/**
 	 * A decimal value ranging 0 through 1 to indicate how likely the marker is a De Novo point mutation, with 1 being very likely and 0 very unlikely 
-	 * @param alleleCounts
+	 * @param readsCounts
 	 * @param alternativeAllele
 	 * @param referencedAllele
 	 * @param thresholdFor3Alleles
 	 * @return
 	 */
 	//This is functioning but naive. Has been replaced by getDenovoMarkerCandidateScores(...)
-	public static int getScoreForDeNovoMutation(int[][] alleleCounts, char alternativeAllele, char referencedAllele, int thresholdFor3Alleles) {
+	public static int getScoreForDeNovoMutation(int[][] readsCounts, char alternativeAllele, char referencedAllele, int thresholdFor3Alleles) {
 		int DenovoMutationScore;
 		int index;
 
 		index = ext.indexOfChar(alternativeAllele, BASES);
-		if (alleleCounts[1][index] > thresholdFor3Alleles || alleleCounts[2][index] > thresholdFor3Alleles || alleleCounts[0][8] > 2) {
+		if (readsCounts[1][index] > thresholdFor3Alleles || readsCounts[2][index] > thresholdFor3Alleles || readsCounts[0][8] > 2) {
 			DenovoMutationScore = 0;
 		} else {
 			DenovoMutationScore = 1;
@@ -323,12 +328,12 @@ public class SuperNovo {
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
      	timer = new Date().getTime();
 		trioId = getRootOf(bamFilenamesOfTheTrio);
-		outFileName = outputDir + trioId + "_denovoSeq_" + ext.rootOf(bedFilename) + ".txt";
+		outFileName = outputDir + trioId + "_superNovo_" + ext.rootOf(bedFilename) + ".txt";
 		processId = 0;
 		prevChr = "start";
 		try {
 			writer = new PrintWriter(outFileName);
-			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\talleleCounts\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
+			writer.println(OUTPUT_FILE_HEADER2);
 			reader = Files.getAppropriateReader(bedFilename);
 			reader.readLine();
 			reader.readLine();
@@ -445,7 +450,7 @@ public class SuperNovo {
 		trioId = getRootOf(bamFilenames);
 		outFileName = outputDir + trioId + "_denovoMutations_chr" + chr + "_" + start + "_" + stop + ".txt";
 		if (isToOutputAlleleCounts) {
-			outAlleleCountsFileName = outputDir + trioId + "_alleleCounts_chr" + chr + "_" + start + "_" + stop + ".txt";
+			outAlleleCountsFileName = outputDir + trioId + "_readsCounts_chr" + chr + "_" + start + "_" + stop + ".txt";
 		} else {
 			outAlleleCountsFileName = null;
 		}
@@ -456,7 +461,7 @@ public class SuperNovo {
 			writer = new PrintWriter(outFileName);
 //			writer.println("id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality");
 //			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8");
-			writer.println("id\tchr\tpos\tlookup\tref\talt\tcall\talleleCounts\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore");
+			writer.println(OUTPUT_FILE_HEADER2);
 			processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr, start, stop, writer, outAlleleCountsFileName);
 			writer.close();
 		} catch (FileNotFoundException e) {
@@ -477,7 +482,7 @@ public class SuperNovo {
 		int numLines;
 		int numMarkersPlusWindow;
 		int window;
-		int[][][] alleleCounts = null;
+		int[][][] readsCounts = null;
 		int[][][] phredScores = null;
 		int[][][] mappingScores = null;
 		String refAlleles;
@@ -491,7 +496,7 @@ public class SuperNovo {
         	startPosAdjForWindow = Math.max(0, startPosition - window);
         	stopPosAdjForWindow = Math.min(Positions.CHROMOSOME_LENGTHS_MAX[ext.indexOfStr(chr, Positions.CHR_CODES, false, true)], stopPosition + window);
     		numMarkersPlusWindow = stopPosAdjForWindow - startPosAdjForWindow + 1;
-			alleleCounts = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][ALLELE_COUNTS_ARRAY_STRUCT.length];
+			readsCounts = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][READS_COUNTS_ARRAY_STRUCT.length];
 			phredScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
 			mappingScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
 
@@ -516,7 +521,7 @@ public class SuperNovo {
 		
 				numLines = bamContentVec.size();
 		        for (int j = 0; j < numLines; j++) {
-		        	getAlleleCountsPhredScoresMappingScores(bamContentVec.elementAt(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0, alleleCounts[i], phredScores[i], mappingScores[i]);
+		        	cigarDecoding(bamContentVec.elementAt(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0, readsCounts[i], phredScores[i], mappingScores[i]);
 				};
 
 //		        error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
@@ -529,7 +534,7 @@ public class SuperNovo {
 				displayErrorStream(p);
 			}
 			if (outAlleleCountsFileName != null) {
-				saveAlleleCountsToFile(outAlleleCountsFileName, alleleCounts, startPosition, true);
+				saveAlleleCountsToFile(outAlleleCountsFileName, readsCounts, startPosition, true);
 			}
 
 			p = Runtime.getRuntime().exec("samtools faidx " + refFastaFilename + " chr" + chr + ":" + startPosition + "-" + stopPosition, null, new File(ext.parseDirectoryOfFile(refFastaFilename)));
@@ -558,17 +563,13 @@ public class SuperNovo {
 	        displayErrorStream(p);
 
 			denovoMutations = new Vector<int[]>(10);
-//			denovoMarkerNotes = new String[SAMPLE_SUFFIX.length][numMarkers][3]; // Insertion, Deletion, Variances.
-//			nearbyInDelVarCounts = new int[SAMPLE_SUFFIX.length][numMarkers][3]; // Insertion, Deletion, Variances.
-//			filtersStage1(alleleCounts, phredScores, mappingScores, denovoMutationScores, denovoMarkerNotes, nearbyInDelVarCounts, startPosition - startPosAdjForWindow, stopPosition - startPosAdjForWindow);
-//			filtersStage1(alleleCounts, phredScores, mappingScores, denovoMutations, denovoMutationNotes, startPosition - startPosAdjForWindow, stopPosition - startPosAdjForWindow);
-			filterByAlleleCounts(alleleCounts, mappingScores, startPosition - startPosAdjForWindow, stopPosition - startPosAdjForWindow, denovoMutations);
+			filterByAlleleCount(readsCounts, mappingScores, startPosition - startPosAdjForWindow, stopPosition - startPosAdjForWindow, denovoMutations);
 			denovoMutationNotes = new Vector<Vector<Integer>[][]>(denovoMutations.size());
 			for (int j = 0; j < denovoMutations.size(); j++) {
-				denovoMutationNotes.add(new Vector[3][3]);
+				denovoMutationNotes.add(new Vector[DENOVO_MUTATION_NOTES_ARRAY_STRUCT.length][SAMPLE_SUFFIX.length]);
 			}
-			filterByNearbyIndels(alleleCounts, denovoMutations, denovoMutationNotes);
-			exportResult(writer, trioId, chr, startPosition, refAlleles, alleleCounts, phredScores, mappingScores, denovoMutations, denovoMutationNotes, "Phred score proportions < " + THRESHOLD_PHRED_SCORE_FOR_INS_DEL);
+			filterByNearbyInDelVars(readsCounts, denovoMutations, denovoMutationNotes);
+			exportResult(writer, trioId, chr, startPosAdjForWindow, startPosition, refAlleles, readsCounts, phredScores, mappingScores, denovoMutations, denovoMutationNotes, "Phred score proportions < " + THRESHOLD_PHRED_SCORE_FOR_INS_DEL, (byte) 2);
 			writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -582,7 +583,7 @@ public class SuperNovo {
 	//	resultAlleleCounts = new int[markers][6];	//A, T, G, C, Ind, Del
 	//	resultPhredScores = new int[markers][6];	//A, T, G, C, Ind, Del
 	//	resultMappingScores = new int[markers];
-	public static void getAlleleCountsPhredScoresMappingScores(String[] aSingleLineOfBamFile, String chr, int startPos, int stopPos, int thresholdFor3Alleles, int[][] output1_AlleleCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
+	public static void cigarDecoding(String[] aSingleLineOfBamFile, String chr, int startPos, int stopPos, int thresholdFor3Alleles, int[][] output1_ReadsCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
 		int readPointer;
 		int outputArrayPointer;
 		int currentPosition;
@@ -620,7 +621,7 @@ public class SuperNovo {
 						while (outputArrayPointer < loop) {
 							indexInBases = ext.indexOfChar(aSingleLineOfBamFile[9].charAt(readPointer), BASES_WITH_N);
 							if (indexInBases >= 0) {
-								output1_AlleleCounts[outputArrayPointer][indexInBases] ++;
+								output1_ReadsCounts[outputArrayPointer][indexInBases] ++;
 								output2_PhredScores[outputArrayPointer][indexInBases] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
 								output3_MappingScores[outputArrayPointer][indexInBases] += currentMappingScore;
 							} else {
@@ -635,7 +636,7 @@ public class SuperNovo {
 
 				} else if (readSegments[0][i].equals("I")) {	// present in read sequence, but NOT in reference sequence.
 					if (outputArrayPointer >= 0) {
-						output1_AlleleCounts[outputArrayPointer][INDEX_OF_INS] ++;
+						output1_ReadsCounts[outputArrayPointer][INDEX_OF_INS] ++;
 						output2_PhredScores[outputArrayPointer][INDEX_OF_INS] += convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
 						output3_MappingScores[outputArrayPointer][INDEX_OF_INS] += currentMappingScore;
 					}
@@ -655,7 +656,7 @@ public class SuperNovo {
 
 						loop = outputArrayPointer + Math.min(lengthOfCurrentSegment, outputArrayLength - outputArrayPointer);
 						while (outputArrayPointer < loop) {
-							output1_AlleleCounts[outputArrayPointer][INDEX_OF_DEL] ++;
+							output1_ReadsCounts[outputArrayPointer][INDEX_OF_DEL] ++;
 							output2_PhredScores[outputArrayPointer][INDEX_OF_DEL] += DEFAULT_PHRED_SCORE_FOR_DELETION;
 							output3_MappingScores[outputArrayPointer][INDEX_OF_DEL] += currentMappingScore;
 							outputArrayPointer ++;
@@ -715,224 +716,169 @@ public class SuperNovo {
 		return result;
 	}
 
-	public static String getForwardGenotypes(int[][][] alleleCounts, int currentMarkerIndex) {
-		String result;
-		int[] tempIndices;
-		int tempIndex1;
-		int tempIndex2;
-		int tempIndex3;
+//	public static String getForwardGenotypes(int[][][] readsCounts, int currentMarkerIndex) {
+//		String result;
+//		int[] sortedIndices;
+//		int tempIndex1;
+//		int tempIndex2;
+//		int tempIndex3;
+//
+//		result = "";
+//		for (int i = 0; i < readsCounts.length; i++) {
+//			sortedIndices = Sort.quicksort(readsCounts[i][currentMarkerIndex], Sort.DESCENDING);
+//			tempIndex1 = sortedIndices.length - 1;
+//			while (tempIndex1 >= 0) {
+//				if (sortedIndices[tempIndex1] >= BASES.length) {
+//					tempIndex1 --;
+//				} else {
+//					break;
+//				}
+//			}
+//			tempIndex2 = tempIndex1 - 1;
+//			while (tempIndex2 >= 0) {
+//				if (sortedIndices[tempIndex2] >= BASES.length) {
+//					tempIndex2 --;
+//				} else {
+//					break;
+//				}
+//			}
+//			if (readsCounts[i][currentMarkerIndex][sortedIndices[tempIndex2]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+//				tempIndex2 = tempIndex1;
+//			}
+//			
+//			if (sortedIndices[tempIndex1] > sortedIndices[tempIndex2]) {
+//				tempIndex3 = tempIndex2;
+//				tempIndex2 = tempIndex1;
+//				tempIndex1 = tempIndex3;
+//			}
+//			result += BASES[sortedIndices[tempIndex1]] + "" + BASES[sortedIndices[tempIndex2]] + (i == (readsCounts.length - 1)? "" : ",");
+//		}
+//		return result;
+//	}
 
-		result = "";
-		for (int i = 0; i < alleleCounts.length; i++) {
-			tempIndices = Sort.quicksort(alleleCounts[i][currentMarkerIndex]);
-			tempIndex1 = tempIndices.length - 1;
-			while (tempIndex1 >= 0) {
-				if (tempIndices[tempIndex1] >= BASES.length) {
-					tempIndex1 --;
-				} else {
-					break;
-				}
-			}
-			tempIndex2 = tempIndex1 - 1;
-			while (tempIndex2 >= 0) {
-				if (tempIndices[tempIndex2] >= BASES.length) {
-					tempIndex2 --;
-				} else {
-					break;
-				}
-			}
-			if (alleleCounts[i][currentMarkerIndex][tempIndices[tempIndex2]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
-				tempIndex2 = tempIndex1;
-			}
-			
-			if (tempIndices[tempIndex1] > tempIndices[tempIndex2]) {
-				tempIndex3 = tempIndex2;
-				tempIndex2 = tempIndex1;
-				tempIndex1 = tempIndex3;
-			}
-			result += BASES[tempIndices[tempIndex1]] + "" + BASES[tempIndices[tempIndex2]] + (i == (alleleCounts.length - 1)? "" : ",");
-		}
-		return result;
-	}
-
-	public static String getNotes(String id, byte chr, int start, int stop, int[][] output1_AlleleCounts, int[][] output2_PhredScores, int[][] output3_MappingScores) {
-		String notes;
-		notes = "";
-		
-		return notes;
-	}
-
-	public static void filterByAlleleCounts(int[][][] alleleCounts, int[][][] mappingScores, int inputArrayStartIndex, int inputArrayStopIndex, Vector<int[]> output1DenovoMutations) {
+	public static void filterByAlleleCount(int[][][] readsCounts, int[][][] mappingScores, int inputArrayStartIndex, int inputArrayStopIndex, Vector<int[]> output1DenovoMutations) {
 		int[][] orderedIndices;
 		int[] numInsDelMismatch;
 		int minRead;
 		int[] temp;
 
-		orderedIndices = new int[alleleCounts.length][];
-		numInsDelMismatch = new int[alleleCounts.length];
+		orderedIndices = new int[readsCounts.length][];
+		numInsDelMismatch = new int[readsCounts.length];
 		minRead = MIN_READ_DEPTH / 2;
 		for (int i = inputArrayStartIndex; i <= inputArrayStopIndex; i++) {
 			for (int j = 0; j < orderedIndices.length; j++) {
-				orderedIndices[j] = Sort.quicksort(new int[] {alleleCounts[j][i][0], alleleCounts[j][i][1], alleleCounts[j][i][2], alleleCounts[j][i][3]}, Sort.DESCENDING);
-				numInsDelMismatch[j] = alleleCounts[j][i][4] + alleleCounts[j][i][5] + alleleCounts[j][i][6];
+				orderedIndices[j] = Sort.quicksort(new int[] {readsCounts[j][i][0], readsCounts[j][i][1], readsCounts[j][i][2], readsCounts[j][i][3]}, Sort.DESCENDING);
+				numInsDelMismatch[j] = readsCounts[j][i][4] + readsCounts[j][i][5] + readsCounts[j][i][6];
 			}
 
-//			System.out.println(formatString(alleleCounts, i));
-			if (isReadDepth(alleleCounts, orderedIndices, i, minRead)
-					&& isAlleleCounts(alleleCounts, orderedIndices, i)
-					&& is3Allelic(alleleCounts, orderedIndices, i)
-					&& isMappingQuality(mappingScores, alleleCounts, orderedIndices, i)
-					&& isInDel(alleleCounts, orderedIndices, numInsDelMismatch, i)
+//			System.out.println(formatString(readsCounts, i));
+			if (isReadDepth(readsCounts, orderedIndices, i, minRead)
+					&& isAlleleCounts(readsCounts, orderedIndices, i)
+					&& is3Allelic(readsCounts, orderedIndices, i)
+					&& isMappingQuality(mappingScores, readsCounts, orderedIndices, i)
+//					&& isInDel(readsCounts, orderedIndices, numInsDelMismatch, i)
 
 				// 5) Insertion Deletion
-//					&& (numInsDelMismatch[0] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[0][i][orderedIndices[0][0]] + alleleCounts[0][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[0])
-//					&& (numInsDelMismatch[1] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[1][i][orderedIndices[0][0]] + alleleCounts[1][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[1])
-//					&& (numInsDelMismatch[2] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[2][i][orderedIndices[0][0]] + alleleCounts[2][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[2])
+//					&& (numInsDelMismatch[0] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[0][i][orderedIndices[0][0]] + readsCounts[0][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[0])
+//					&& (numInsDelMismatch[1] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[1][i][orderedIndices[0][0]] + readsCounts[1][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[1])
+//					&& (numInsDelMismatch[2] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[2][i][orderedIndices[0][0]] + readsCounts[2][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[2])
 					) {
 
-				temp = new int[5];	//i, score, read depth C, D, M
+				temp = new int[DENOVO_MUTATION_ARRAY_STRUCT.length];
 				temp[0] = i;
-				if ((alleleCounts[1][i][orderedIndices[0][0]] == 0 && alleleCounts[2][i][orderedIndices[0][0]] == 0) || (alleleCounts[1][i][orderedIndices[0][1]] == 0 && alleleCounts[2][i][orderedIndices[0][1]] == 0)) {
+				if ((readsCounts[1][i][orderedIndices[0][0]] == 0 && readsCounts[2][i][orderedIndices[0][0]] == 0) || (readsCounts[1][i][orderedIndices[0][1]] == 0 && readsCounts[2][i][orderedIndices[0][1]] == 0)) {
 					temp[1] = 100;
 				} else {
 					temp[1] = 80;
 				}
-				for (int j = 0; j < orderedIndices.length; j++) {
+				for (int j = 0; j < readsCounts.length; j++) {
 					for (int k = 0; k < 7; k++) {
-						temp[j + 2] += alleleCounts[j][i][k];
+						temp[j + 2] += readsCounts[j][i][k];
+					}
+					temp[2 * j + 5] = orderedIndices[j][0];
+					if (readsCounts[j][i][orderedIndices[j][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+						temp[2 * j + 6] = orderedIndices[j][1];
+					} else {
+						temp[2 * j + 6] = -1;
 					}
 				}
 				output1DenovoMutations.add(temp);
 
-//				adjDenovoMutationScoresForMismatches(alleleCounts, i, output1DenovoMutationScores, output2DenovoMutationNotes);
-//				adjDenovoMutationScoresForThreeAlleles(alleleCounts, i, output1DenovoMutationScores, output2DenovoMutationNotes);
+//				adjDenovoMutationScoresForMismatches(readsCounts, i, output1DenovoMutationScores, output2DenovoMutationNotes);
+//				adjDenovoMutationScoresForThreeAlleles(readsCounts, i, output1DenovoMutationScores, output2DenovoMutationNotes);
 			}
 		}
 	}
 
-//	public static void filtersStage1(int[][][] alleleCounts, int[][][] phredScores, int[][][] mappingScores, byte[] output1DenovoMutationScores, String[][][] output2DenovoMutationNotes, int[][][] nearbyInDelVarCounts, int startIndex, int stopIndex) {
-////		if (output1DenovoMutationScores.length != alleleCounts[0].length) {
-////			System.err.println("The length of the array outputDenovoMutationCandidateScores (" + output1DenovoMutationScores.length + ") is not consistent with that of the array alleleCounts (" + alleleCounts[0].length + ")");
-////		} else {
-//			filterByAlleleCounts(alleleCounts, mappingScores, startIndex, stopIndex, output1DenovoMutationScores, 0);
-//			filterByNearbyIndels(alleleCounts, startIndex, output1DenovoMutationScores, output2DenovoMutationNotes, nearbyInDelVarCounts);
-////			denovoMutationFilterByNearbyVariances(alleleCounts, output1DenovoMutationScores, output2DenovoMutationNotes);
-////			denovoMutationFilterByNearbyDeNovoMutations(output1DenovoMutationScores, output2DenovoMutationNotes);
-////		}
-//	}
-
-//	public static void filterByAlleleCounts(int[][][] alleleCounts, int[][][] mappingScores, int inputArrayStartIndex, int inputArrayStopIndex, byte[] output1DenovoMutationScores, int outputsArrayStartIndex) {
-//		int[][] orderedIndices;
-//		int[] numInsDelMismatch;
-//		int outputArraysIndex;
-//		int minRead;
-//
-//		orderedIndices = new int[alleleCounts.length][];
-//		numInsDelMismatch = new int[alleleCounts.length];
-//		outputArraysIndex = outputsArrayStartIndex;
-//		minRead = MIN_READ_DEPTH / 2;
-//		for (int i = inputArrayStartIndex; i <= inputArrayStopIndex; i++) {
-//			for (int j = 0; j < orderedIndices.length; j++) {
-//				orderedIndices[j] = Sort.quicksort(new int[] {alleleCounts[j][i][0], alleleCounts[j][i][1], alleleCounts[j][i][2], alleleCounts[j][i][3]}, Sort.DESCENDING);
-//				numInsDelMismatch[j] = alleleCounts[j][i][4] + alleleCounts[j][i][5] + alleleCounts[j][i][6];
-//			}
-//
-////			System.out.println(formatString(alleleCounts, i));
-//			if (isReadDepth(alleleCounts, orderedIndices, i, minRead)
-//					&& isAlleleCounts(alleleCounts, orderedIndices, i)
-//					&& is3Allelic(alleleCounts, orderedIndices, i)
-//					&& isMappingQuality(mappingScores, alleleCounts, orderedIndices, i)
-//					&& isInDel(alleleCounts, orderedIndices, numInsDelMismatch, i)
-//
-//				// 5) Insertion Deletion
-////					&& (numInsDelMismatch[0] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[0][i][orderedIndices[0][0]] + alleleCounts[0][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[0])
-////					&& (numInsDelMismatch[1] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[1][i][orderedIndices[0][0]] + alleleCounts[1][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[1])
-////					&& (numInsDelMismatch[2] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[2][i][orderedIndices[0][0]] + alleleCounts[2][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[2])
-//					) {
-//
-//				if ((alleleCounts[1][i][orderedIndices[0][0]] == 0 && alleleCounts[2][i][orderedIndices[0][0]] == 0) || (alleleCounts[1][i][orderedIndices[0][1]] == 0 && alleleCounts[2][i][orderedIndices[0][1]] == 0)) {
-//					output1DenovoMutationScores[outputArraysIndex] = 100;
-//				} else {
-//					output1DenovoMutationScores[outputArraysIndex] = 80;
-//				}
-//
-//				for (int j = 0; j < orderedIndices.length; j++) {
-//					alleleCounts[j][i][INDEX_OF_TOTAL_READS] = alleleCounts[j][i][0] + alleleCounts[j][i][1] + alleleCounts[j][i][2] + alleleCounts[j][i][3] + alleleCounts[j][i][4] + alleleCounts[j][i][5];
-//				}
-//
-////				adjDenovoMutationScoresForMismatches(alleleCounts, i, output1DenovoMutationScores, output2DenovoMutationNotes);
-////				adjDenovoMutationScoresForThreeAlleles(alleleCounts, i, output1DenovoMutationScores, output2DenovoMutationNotes);
-//			}
-//
-//			outputArraysIndex ++;
-//		}
-//	}
-
-	public static boolean isReadDepth (int[][][] alleleCounts, int[][] orderedIndices, int i, int minRead) {
-		return (   alleleCounts[0][i][orderedIndices[0][0]] >= minRead
-				&& alleleCounts[1][i][orderedIndices[1][0]] >= minRead
-				&& alleleCounts[2][i][orderedIndices[2][0]] >= minRead
-				&& (alleleCounts[0][i][orderedIndices[0][0]] + alleleCounts[0][i][orderedIndices[0][1]]) >= MIN_READ_DEPTH
-				&& (alleleCounts[1][i][orderedIndices[1][0]] + alleleCounts[1][i][orderedIndices[1][1]]) >= MIN_READ_DEPTH
-				&& (alleleCounts[2][i][orderedIndices[2][0]] + alleleCounts[2][i][orderedIndices[2][1]]) >= MIN_READ_DEPTH
-//				&& alleleCounts[0][i][INDEX_OF_TOTAL_READS] >= MIN_READ_DEPTH
-//				&& alleleCounts[1][i][INDEX_OF_TOTAL_READS] >= MIN_READ_DEPTH
-//				&& alleleCounts[2][i][INDEX_OF_TOTAL_READS] >= MIN_READ_DEPTH
+	public static boolean isReadDepth (int[][][] readsCounts, int[][] orderedIndices, int i, int minRead) {
+		return (   readsCounts[0][i][orderedIndices[0][0]] >= minRead
+				&& readsCounts[1][i][orderedIndices[1][0]] >= minRead
+				&& readsCounts[2][i][orderedIndices[2][0]] >= minRead
+				&& (readsCounts[0][i][orderedIndices[0][0]] + readsCounts[0][i][orderedIndices[0][1]]) >= MIN_READ_DEPTH
+				&& (readsCounts[1][i][orderedIndices[1][0]] + readsCounts[1][i][orderedIndices[1][1]]) >= MIN_READ_DEPTH
+				&& (readsCounts[2][i][orderedIndices[2][0]] + readsCounts[2][i][orderedIndices[2][1]]) >= MIN_READ_DEPTH
+//				&& readsCounts[0][i][INDEX_OF_TOTAL_READS] >= MIN_READ_DEPTH
+//				&& readsCounts[1][i][INDEX_OF_TOTAL_READS] >= MIN_READ_DEPTH
+//				&& readsCounts[2][i][INDEX_OF_TOTAL_READS] >= MIN_READ_DEPTH
 				);
 	}
 
-	public static boolean isAlleleCounts (int[][][] alleleCounts, int[][] orderedIndices, int i) {
-		return (  (alleleCounts[0][i][orderedIndices[0][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
-				&& alleleCounts[1][i][orderedIndices[0][1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-				&& alleleCounts[2][i][orderedIndices[0][1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-				&& alleleCounts[0][i][orderedIndices[0][1]] > .18 * alleleCounts[0][i][orderedIndices[0][0]]
-				&& alleleCounts[0][i][orderedIndices[0][1]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][i][orderedIndices[0][1]] + alleleCounts[2][i][orderedIndices[0][1]]))
-//				&& (alleleCounts[1][i][orderedIndices[0][1]] * 19) < (alleleCounts[1][i][orderedIndices[0][0]] + alleleCounts[1][i][orderedIndices[0][2]] + alleleCounts[1][i][orderedIndices[0][3]])
-//				&& (alleleCounts[2][i][orderedIndices[0][1]] * 19) < (alleleCounts[2][i][orderedIndices[0][0]] + alleleCounts[2][i][orderedIndices[0][2]] + alleleCounts[2][i][orderedIndices[0][3]])
-				) || (alleleCounts[0][i][orderedIndices[0][0]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[1][i][orderedIndices[0][0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[2][i][orderedIndices[0][0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[0][i][orderedIndices[0][0]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][i][orderedIndices[0][0]] + alleleCounts[2][i][orderedIndices[0][0]]))
-//						&& (alleleCounts[1][i][orderedIndices[0][0]] * 19) < (alleleCounts[1][i][orderedIndices[0][1]] + alleleCounts[1][i][orderedIndices[0][2]] + alleleCounts[1][i][orderedIndices[0][3]])
-//						&& (alleleCounts[2][i][orderedIndices[0][0]] * 19) < (alleleCounts[2][i][orderedIndices[0][1]] + alleleCounts[2][i][orderedIndices[0][2]] + alleleCounts[2][i][orderedIndices[0][3]])
-				) || (alleleCounts[0][i][INDEX_OF_INS] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[1][i][INDEX_OF_INS] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[2][i][INDEX_OF_INS] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[0][i][INDEX_OF_INS] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][i][INDEX_OF_INS] + alleleCounts[2][i][INDEX_OF_INS]))
-				) || (alleleCounts[0][i][INDEX_OF_DEL] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[1][i][INDEX_OF_DEL] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[2][i][INDEX_OF_DEL] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-						&& alleleCounts[0][i][INDEX_OF_DEL] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][i][INDEX_OF_DEL] + alleleCounts[2][i][INDEX_OF_DEL]))
+	public static boolean isAlleleCounts (int[][][] readsCounts, int[][] orderedIndices, int i) {
+		return (	(readsCounts[0][i][orderedIndices[0][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[1][i][orderedIndices[0][1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[2][i][orderedIndices[0][1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[0][i][orderedIndices[0][1]] > .18 * readsCounts[0][i][orderedIndices[0][0]]
+						&& readsCounts[0][i][orderedIndices[0][1]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][i][orderedIndices[0][1]] + readsCounts[2][i][orderedIndices[0][1]]))
+//						&& readsCounts[0][i][orderedIndices[0][1]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + readsCounts[1][i][orderedIndices[0][1]] + readsCounts[2][i][orderedIndices[0][1]])
+//						&& (readsCounts[1][i][orderedIndices[0][1]] * 19) < (readsCounts[1][i][orderedIndices[0][0]] + readsCounts[1][i][orderedIndices[0][2]] + readsCounts[1][i][orderedIndices[0][3]])
+//						&& (readsCounts[2][i][orderedIndices[0][1]] * 19) < (readsCounts[2][i][orderedIndices[0][0]] + readsCounts[2][i][orderedIndices[0][2]] + readsCounts[2][i][orderedIndices[0][3]])
+				) || (readsCounts[0][i][orderedIndices[0][0]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[1][i][orderedIndices[0][0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[2][i][orderedIndices[0][0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[0][i][orderedIndices[0][0]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][i][orderedIndices[0][0]] + readsCounts[2][i][orderedIndices[0][0]]))
+//						&& readsCounts[0][i][orderedIndices[0][0]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + readsCounts[1][i][orderedIndices[0][0]] + readsCounts[2][i][orderedIndices[0][0]])
+//						&& (readsCounts[1][i][orderedIndices[0][0]] * 19) < (readsCounts[1][i][orderedIndices[0][1]] + readsCounts[1][i][orderedIndices[0][2]] + readsCounts[1][i][orderedIndices[0][3]])
+//						&& (readsCounts[2][i][orderedIndices[0][0]] * 19) < (readsCounts[2][i][orderedIndices[0][1]] + readsCounts[2][i][orderedIndices[0][2]] + readsCounts[2][i][orderedIndices[0][3]])
+				) || (readsCounts[0][i][INDEX_OF_INS] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[1][i][INDEX_OF_INS] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[2][i][INDEX_OF_INS] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[0][i][INDEX_OF_INS] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][i][INDEX_OF_INS] + readsCounts[2][i][INDEX_OF_INS]))
+//						&& readsCounts[0][i][INDEX_OF_INS] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + readsCounts[1][i][INDEX_OF_INS] + readsCounts[2][i][INDEX_OF_INS])
+				) || (readsCounts[0][i][INDEX_OF_DEL] > MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[1][i][INDEX_OF_DEL] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[2][i][INDEX_OF_DEL] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+						&& readsCounts[0][i][INDEX_OF_DEL] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][i][INDEX_OF_DEL] + readsCounts[2][i][INDEX_OF_DEL]))
+//						&& readsCounts[0][i][INDEX_OF_DEL] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + readsCounts[1][i][INDEX_OF_DEL] + readsCounts[2][i][INDEX_OF_DEL])
 				));
 	}
 
-	public static boolean isInDel (int[][][] alleleCounts, int[][] orderedIndices, int[] numInsDelMismatch, int i) {
-		return (   (numInsDelMismatch[0] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[0][i][orderedIndices[0][0]] + alleleCounts[0][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[0])
-				&& (numInsDelMismatch[1] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[1][i][orderedIndices[0][0]] + alleleCounts[1][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[1])
-				&& (numInsDelMismatch[2] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[2][i][orderedIndices[0][0]] + alleleCounts[2][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[2]));
+	public static boolean isInDel (int[][][] readsCounts, int[][] orderedIndices, int[] numInsDelMismatch, int i) {
+		return (   (numInsDelMismatch[0] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[0][i][orderedIndices[0][0]] + readsCounts[0][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[0])
+				&& (numInsDelMismatch[1] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[1][i][orderedIndices[0][0]] + readsCounts[1][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[1])
+				&& (numInsDelMismatch[2] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[2][i][orderedIndices[0][0]] + readsCounts[2][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[2]));
 	}
 
-	public static boolean is3Allelic (int[][][] alleleCounts, int[][] orderedIndices, int i) {
-		return (   (alleleCounts[0][i][orderedIndices[0][2]] + alleleCounts[0][i][orderedIndices[0][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-				&& (alleleCounts[1][i][orderedIndices[1][2]] + alleleCounts[1][i][orderedIndices[1][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-				&& (alleleCounts[2][i][orderedIndices[2][2]] + alleleCounts[2][i][orderedIndices[2][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO);
+	public static boolean is3Allelic (int[][][] readsCounts, int[][] orderedIndices, int i) {
+		return (   (readsCounts[0][i][orderedIndices[0][2]] + readsCounts[0][i][orderedIndices[0][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+				&& (readsCounts[1][i][orderedIndices[1][2]] + readsCounts[1][i][orderedIndices[1][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+				&& (readsCounts[2][i][orderedIndices[2][2]] + readsCounts[2][i][orderedIndices[2][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO);
 	}
 
-	public static boolean isMappingQuality (int[][][] mappingScores, int[][][] alleleCounts, int[][] orderedIndices, int i) {
-		return (   mappingScores[0][i][orderedIndices[0][0]] >= (MIN_AVERAGE_MAPPING_SCORE * alleleCounts[0][i][orderedIndices[0][0]])
-				&& mappingScores[1][i][orderedIndices[1][0]] >= (MIN_AVERAGE_MAPPING_SCORE * alleleCounts[0][i][orderedIndices[1][0]])
-				&& mappingScores[2][i][orderedIndices[2][0]] >= (MIN_AVERAGE_MAPPING_SCORE * alleleCounts[0][i][orderedIndices[2][0]])
-				&& mappingScores[0][i][orderedIndices[0][1]] >= (MIN_AVERAGE_MAPPING_SCORE * alleleCounts[0][i][orderedIndices[0][1]])
-				&& mappingScores[1][i][orderedIndices[1][1]] >= (MIN_AVERAGE_MAPPING_SCORE * alleleCounts[0][i][orderedIndices[1][1]])
-				&& mappingScores[2][i][orderedIndices[2][1]] >= (MIN_AVERAGE_MAPPING_SCORE * alleleCounts[0][i][orderedIndices[2][1]]));
+	public static boolean isMappingQuality (int[][][] mappingScores, int[][][] readsCounts, int[][] orderedIndices, int i) {
+		return (   mappingScores[0][i][orderedIndices[0][0]] >= (MIN_AVERAGE_MAPPING_SCORE * readsCounts[0][i][orderedIndices[0][0]])
+				&& mappingScores[1][i][orderedIndices[1][0]] >= (MIN_AVERAGE_MAPPING_SCORE * readsCounts[0][i][orderedIndices[1][0]])
+				&& mappingScores[2][i][orderedIndices[2][0]] >= (MIN_AVERAGE_MAPPING_SCORE * readsCounts[0][i][orderedIndices[2][0]])
+				&& mappingScores[0][i][orderedIndices[0][1]] >= (MIN_AVERAGE_MAPPING_SCORE * readsCounts[0][i][orderedIndices[0][1]])
+				&& mappingScores[1][i][orderedIndices[1][1]] >= (MIN_AVERAGE_MAPPING_SCORE * readsCounts[0][i][orderedIndices[1][1]])
+				&& mappingScores[2][i][orderedIndices[2][1]] >= (MIN_AVERAGE_MAPPING_SCORE * readsCounts[0][i][orderedIndices[2][1]]));
 	}
 
-	public static void adjDenovoMutationScoresForMismatches(int[][][] alleleCounts, int inputArrayMarkerIndex, byte[] output1DenovoMutationScores, String[] output2DenovoMutationNotes) {
+	public static void adjDenovoMutationScoresForMismatches(int[][][] readsCounts, int inputArrayMarkerIndex, byte[] output1DenovoMutationScores, String[] output2DenovoMutationNotes) {
 		String note;
 
 		note = "";
 		for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
-			if (alleleCounts[j][inputArrayMarkerIndex][INDEX_OF_N] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+			if (readsCounts[j][inputArrayMarkerIndex][INDEX_OF_N] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
 				if (note.equals("")) {
 					note = SAMPLE_SUFFIX[j];
 				} else {
@@ -952,22 +898,22 @@ public class SuperNovo {
 		}
 	}
 
-	public static void adjDenovoMutationScoresForThreeAlleles(int[][][] alleleCounts, int indexCurrentMarker, byte[] output1DenovoMutationScores, String[] output2DenovoMutationNotes) {
+	public static void adjDenovoMutationScoresForThreeAlleles(int[][][] readsCounts, int indexCurrentMarker, byte[] output1DenovoMutationScores, String[] output2DenovoMutationNotes) {
 		String note;
 		double discountRate;
 
 		note = "";
 		discountRate = 1.0;
-		updateNumAlleles(alleleCounts, indexCurrentMarker);
+		updateNumAlleles(readsCounts, indexCurrentMarker);
 		for(int i = 0; i < SAMPLE_SUFFIX.length; i++) {
-			if(alleleCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] > 2) {
+			if(readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] > 2) {
 				if (note.equals("")) {
 					note = SAMPLE_SUFFIX[i];
 				} else {
 					note += "," + SAMPLE_SUFFIX[i];
 				}
 
-				if (alleleCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_LOOSE] > 2 || alleleCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] > 3) {
+				if (readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_LOOSE] > 2 || readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] > 3) {
 					discountRate = DISCOUNT_FOR_3ALLELES_LOOSE;
 				} else {
 					discountRate = DISCOUNT_FOR_3ALLELES_STRICT;
@@ -985,56 +931,19 @@ public class SuperNovo {
 		}
 	}
 
-	public static void updateNumAlleles(int[][][] alleleCounts, int indexCurrentMarker) {
+	public static void updateNumAlleles(int[][][] readsCounts, int indexCurrentMarker) {
 		for(int i = 0; i < SAMPLE_SUFFIX.length; i++) {
 			for (int j = 0; j < BASES.length; j++) {
-				if (alleleCounts[i][indexCurrentMarker][j] > 0) {
-					alleleCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] ++;
-				} else if (alleleCounts[i][indexCurrentMarker][j] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
-					alleleCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_LOOSE] ++;
+				if (readsCounts[i][indexCurrentMarker][j] > 0) {
+					readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] ++;
+				} else if (readsCounts[i][indexCurrentMarker][j] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+					readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_LOOSE] ++;
 				}
 			}
 		}
 	}
 
-//	public static void filterByNearbyIndels(int[][][] alleleCounts, int offset, byte[] output1DenovoMutationScores, String[][][] output2DenovoMutationNotes, int[][][] output3NumNearbyInDelVars) {
-//		byte[] indicesOfInDels;
-//		String note;
-//		double discountDifference;
-//		int numMarkers;
-//		int index;
-//		int loop;
-//
-//		note = "";
-//		numMarkers = alleleCounts[0].length;
-//		discountDifference = DISCOUNT_FOR_NEARBY_INDEL - DISCOUNT_FOR_ON_INDEL_SITE;
-//		indicesOfInDels = new byte[] {INDEX_OF_INS, INDEX_OF_DEL};
-//		for (int i = 0; i < numMarkers; i++) {
-//			for (int j = 0; j < indicesOfInDels.length; j++) {
-//				note = ""; 
-//				for (int k = 0; k < alleleCounts.length; k++) {
-//					if (alleleCounts[k][i][indicesOfInDels[j]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
-//						index = i - offset;
-//						loop = Math.min(output1DenovoMutationScores.length, index + WINDOW_SIZE_FOR_NEARBY_INDEL);
-//						for (int l = Math.max(0, index - WINDOW_SIZE_FOR_NEARBY_INDEL); l < loop; l++) {
-//							if (output1DenovoMutationScores[l] > 0) {
-//								output1DenovoMutationScores[l] = adjDeNovoMutationScore(output1DenovoMutationScores[l], (DISCOUNT_FOR_ON_INDEL_SITE + Math.pow(Math.abs(index - l) / WINDOW_SIZE_FOR_NEARBY_INDEL, 3) * discountDifference));
-//								output3NumNearbyInDelVars[k][l][0] ++;
-//								if (output2DenovoMutationNotes[l] == null) {
-//									output2DenovoMutationNotes[k][l][j] = (i - l) + "";
-//								} else {
-//									output2DenovoMutationNotes[k][l][j] = "," + (i - l);
-//								}
-//							}
-//						}
-//					}
-//	
-//				}
-//			}
-//		}
-//	}
-
-	public static void filterByNearbyIndels(int[][][] alleleCounts, Vector<int[]> denovoMutations, Vector<Vector<Integer>[][]> output2DenovoMutationNotes) {
+	public static void filterByNearbyInDelVars(int[][][] readsCounts, Vector<int[]> denovoMutations, Vector<Vector<Integer>[][]> output2DenovoMutationNotes) {
 		byte[] indicesOfInDels;
 		double discountDifference;
 		int index;
@@ -1043,20 +952,20 @@ public class SuperNovo {
 		Vector<Integer>[][] temp;
 	
 		discountDifference = DISCOUNT_FOR_NEARBY_INDEL - DISCOUNT_FOR_ON_INDEL_SITE;
-		indicesOfInDels = new byte[] {INDEX_OF_INS, INDEX_OF_DEL};
+		indicesOfInDels = new byte[] {INDEX_OF_INS, INDEX_OF_DEL, INDEX_OF_NUM_ALLELES_LOOSE};
 		loop1 = denovoMutations.size();
 		for (int i = 0; i < loop1; i++) {
 			index = denovoMutations.elementAt(i)[0];
 			temp = output2DenovoMutationNotes.elementAt(i);
-			loop2 = Math.min(alleleCounts[0].length, index + WINDOW_SIZE_FOR_NEARBY_INDEL);
+			loop2 = Math.min(readsCounts[0].length, index + WINDOW_SIZE_FOR_NEARBY_INDEL);
 			for (int j = Math.max(0, index - WINDOW_SIZE_FOR_NEARBY_INDEL); j < loop2; j++) {
-				for (int k = 0; k < alleleCounts.length; k++) {
-					for (int l = 0; l < indicesOfInDels.length; l++) {
-						if (alleleCounts[k][j][indicesOfInDels[l]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+				for (int k = 0; k < readsCounts.length; k++) {
+					for (int l = 0; l < DENOVO_MUTATION_NOTES_ARRAY_STRUCT.length; l++) {
+						if ((l < 2 && readsCounts[k][j][indicesOfInDels[l]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) || (l == 2 && readsCounts[k][j][indicesOfInDels[l]] == 2) || (l == 3 && readsCounts[k][j][INDEX_OF_NUM_ALLELES_LOOSE] > 2)) {
 							if (temp[l][k] == null) {
 								temp[l][k] = new Vector<Integer>();
 							}
-							temp[l][k].addElement(j);
+							temp[l][k].addElement(j - index);
 						}
 					}
 				}
@@ -1064,100 +973,25 @@ public class SuperNovo {
 		}
 	}
 
-	public static void denovoMutationFilterByNearbyVariances(int[][][] alleleCounts, byte[] output1DenovoMutationScores, String[] output2DenovoMutationNotes) {
-		String note;
-		int loop;
-
-		for (int i = 0; i < output1DenovoMutationScores.length; i++) {
-			if(alleleCounts[0][i][INDEX_OF_NUM_ALLELES_STRICT] == 0) {
-				updateNumAlleles(alleleCounts, i);
-			}
-
-			if (output1DenovoMutationScores[i] > 0 && (alleleCounts[1][i][INDEX_OF_NUM_ALLELES_STRICT] == 2 || alleleCounts[2][i][INDEX_OF_NUM_ALLELES_STRICT] == 2)) {
-				output1DenovoMutationScores[i] *= DISCOUNT_FOR_ON_VARIANCE_SITE;
-				if (output1DenovoMutationScores[i] == 0) {
-					output1DenovoMutationScores[i] = 1;
-				}
-				if (output2DenovoMutationNotes[i] == null) {
-					output2DenovoMutationNotes[i] = "on variance site";
-				} else {
-					output2DenovoMutationNotes[i] += "; on variance site";
-				}
-			}
-
-			note = "";
-			for (int j = 0; j < alleleCounts.length; j++) {
-				if (alleleCounts[j][i][INDEX_OF_NUM_ALLELES_LOOSE] == 2) {
-					if (note.equals("")) {
-						note = SAMPLE_SUFFIX[j];
-					} else {
-						note += "," + SAMPLE_SUFFIX[j];
-					}
-				}
-			}
-			if (! note.equals("")) {
-				loop = Math.min(output1DenovoMutationScores.length, i + WINDOW_SIZE_FOR_NEARBY_VARIANCE);
-				for (int j = Math.max(0, i - WINDOW_SIZE_FOR_NEARBY_VARIANCE); j < loop; j++) {
-					if (output1DenovoMutationScores[j] > 0) {
-						output1DenovoMutationScores[j] *= DISCOUNT_FOR_NEARBY_VARIANCE;
-						if (output1DenovoMutationScores[j] == 0) {
-							output1DenovoMutationScores[j] = 1;
-						}
-						if (output2DenovoMutationNotes[j] == null) {
-							output2DenovoMutationNotes[j] = "variance(s) nearby";
-						} else if (output2DenovoMutationNotes[j].contains("variance(s) nearby")) {
-						} else {
-							output2DenovoMutationNotes[j] += "; variance(s) nearby";
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public static void denovoMutationFilterByNearbyDeNovoMutations(byte[] denovoMutationScores, String[] outputDenovoMutationNotes) {
-		int loop;
-
-		for (int i = 0; i < denovoMutationScores.length; i++) {
-			if (denovoMutationScores[i] >= 80) {
-				loop = Math.min(denovoMutationScores.length, i + WINDOW_SIZE_FOR_NEARBY_VARIANCE);
-				for (int j = Math.max(0, i - WINDOW_SIZE_FOR_NEARBY_VARIANCE); j < i; j++) {
-					if (denovoMutationScores[j] > 0) {
-						denovoMutationScores[j] = (byte) (denovoMutationScores[i - j] * DISCOUNT_FOR_NEARBY_DENOVOMUTATION);
-						if (denovoMutationScores[j] == 0) {
-							denovoMutationScores[j] = 1;
-						}
-						if (outputDenovoMutationNotes[j] == null) {
-							outputDenovoMutationNotes[j] = "DeNovo mutation nearby";
-						} else if (outputDenovoMutationNotes[j].contains("DeNovo mutation nearby")) {
-						} else {
-							outputDenovoMutationNotes[j] += "; DeNovo mutation nearby";
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public static boolean[] isThreeAlleles(int[][][] alleleCounts, int indexCurrentMarker, int thresholdFor3Alleles) {
-		boolean[] isThreeAlleles;
-		int DenovoMutationScore;
-
-		isThreeAlleles = new boolean[alleleCounts.length];
-		for(int i = 0; i < alleleCounts.length; i++) {
-			DenovoMutationScore = 0;
-			for (int j = 0; j < BASES.length; j++) {
-				if (alleleCounts[i][indexCurrentMarker][j] > thresholdFor3Alleles) {
-					DenovoMutationScore ++;
-				}
-			}
-			if(DenovoMutationScore > 2) {
-				isThreeAlleles[i] = true;
-			}
-		}
-
-		return	isThreeAlleles;
-	}
+//	public static boolean[] isThreeAlleles(int[][][] readsCounts, int indexCurrentMarker, int thresholdFor3Alleles) {
+//		boolean[] isThreeAlleles;
+//		int DenovoMutationScore;
+//
+//		isThreeAlleles = new boolean[readsCounts.length];
+//		for(int i = 0; i < readsCounts.length; i++) {
+//			DenovoMutationScore = 0;
+//			for (int j = 0; j < BASES.length; j++) {
+//				if (readsCounts[i][indexCurrentMarker][j] > thresholdFor3Alleles) {
+//					DenovoMutationScore ++;
+//				}
+//			}
+//			if(DenovoMutationScore > 2) {
+//				isThreeAlleles[i] = true;
+//			}
+//		}
+//
+//		return	isThreeAlleles;
+//	}
 
 	public static byte adjDeNovoMutationScore (byte oldScore, double discountRate) {
 		oldScore *= discountRate;
@@ -1186,11 +1020,8 @@ public class SuperNovo {
 		return	result;
 	}
 
-	public static void exportResult(PrintWriter writer, String id, String chr, int pos, String ref, int[][][] alleleCounts, int[][][] phredScores, int[][][] mappingScores, Vector<int[]> denovoMutations, Vector<Vector<Integer>[][]> denovoMutationNotes, String flag) {
-		double totalPhredScores;
-		double phredScoreProportion;
-		String[][] phredScoreProportions;
-		String forwardGenotypes;
+	public static void exportResult(PrintWriter writer, String id, String chr, int startPosAdjForWindow, int startPos, String ref, int[][][] readsCounts, int[][][] phredScores, int[][][] mappingScores, Vector<int[]> denovoMutations, Vector<Vector<Integer>[][]> denovoMutationNotes, String flag, byte format) {
+		String currentRef;
 		int[] temp;
 		int loop;
 		int l;
@@ -1199,124 +1030,227 @@ public class SuperNovo {
 		for (int i = 0; i < loop; i++) {
 			temp = denovoMutations.elementAt(i);
 			l = temp[0];
-			phredScoreProportions = new String[SAMPLE_SUFFIX.length][BASES.length];
-			for (int j = 0; j < phredScoreProportions.length; j++) {
-				totalPhredScores = phredScores[j][l][0] + phredScores[j][l][1] + phredScores[j][l][2] + phredScores[j][l][3];
-				for (int k = 0; k < phredScoreProportions[j].length; k++) {
-					phredScoreProportion = phredScores[j][l][k] / totalPhredScores;
-					phredScoreProportions[j][k] = (phredScoreProportion==0? "-" : ext.formDeci(phredScoreProportion, 3));
-				}
-			}
-			forwardGenotypes = getForwardGenotypes(alleleCounts, l);
+			currentRef = ref.substring(l + startPosAdjForWindow - startPos, l + startPosAdjForWindow - startPos + 1);
 			writer.println(id
 					+ "\t" + chr
-					+ "\t" + pos
-					+ "\tchr" + chr + ":" + pos
-					+ "\t" + ref
-					+ "\t" + (forwardGenotypes.substring(1, 2).equalsIgnoreCase(ref)? (forwardGenotypes.substring(0, 1).equalsIgnoreCase(ref)? "" : forwardGenotypes.substring(1,2)) : forwardGenotypes.charAt(1) + "")
+					+ "\t" + (startPosAdjForWindow + l)
+					+ "\tchr" + chr + ":" + (startPosAdjForWindow + l)
+					+ "\t" + currentRef
+					+ "\t" + formatAltAllele(temp, currentRef)
 					+ "\t" + ext.formDeci(temp[1] / (double)100, 2)
-	//				+ "\t(" + (alleleCounts[0][indexOfCurrentMarkerInArrays][0]==0? "-" : alleleCounts[0][indexOfCurrentMarkerInArrays][0]) + "," + (alleleCounts[0][indexOfCurrentMarkerInArrays][1]==0? "-" : alleleCounts[0][indexOfCurrentMarkerInArrays][1]) + "," + (alleleCounts[0][indexOfCurrentMarkerInArrays][2]==0? "-" : alleleCounts[0][indexOfCurrentMarkerInArrays][2]) + "," + (alleleCounts[0][indexOfCurrentMarkerInArrays][3]==0? "-" : alleleCounts[0][indexOfCurrentMarkerInArrays][3]) + "/" + (alleleCounts[0][indexOfCurrentMarkerInArrays][4]==0? "-" : alleleCounts[0][indexOfCurrentMarkerInArrays][4]) + "," + (alleleCounts[0][indexOfCurrentMarkerInArrays][5]==0? "-" : alleleCounts[0][indexOfCurrentMarkerInArrays][5]) + "," + (alleleCounts[0][indexOfCurrentMarkerInArrays][6]==0? "-" : alleleCounts[0][indexOfCurrentMarkerInArrays][6]) + ") (" + (alleleCounts[1][indexOfCurrentMarkerInArrays][0]==0? "-" : alleleCounts[1][indexOfCurrentMarkerInArrays][0]) + "," + (alleleCounts[1][indexOfCurrentMarkerInArrays][1]==0? "-" : alleleCounts[1][indexOfCurrentMarkerInArrays][1]) + "," + (alleleCounts[1][indexOfCurrentMarkerInArrays][2]==0? "-" : alleleCounts[1][indexOfCurrentMarkerInArrays][2]) + "," + (alleleCounts[1][indexOfCurrentMarkerInArrays][3]==0? "-" : alleleCounts[1][indexOfCurrentMarkerInArrays][3]) + "/" + (alleleCounts[1][indexOfCurrentMarkerInArrays][4]==0? "-" : alleleCounts[1][indexOfCurrentMarkerInArrays][4]) + "," + (alleleCounts[1][indexOfCurrentMarkerInArrays][5]==0? "-" : alleleCounts[1][indexOfCurrentMarkerInArrays][5]) + "," + (alleleCounts[1][indexOfCurrentMarkerInArrays][6]==0? "-" : alleleCounts[1][indexOfCurrentMarkerInArrays][6]) + ") (" + (alleleCounts[2][indexOfCurrentMarkerInArrays][0]==0? "-" : alleleCounts[2][indexOfCurrentMarkerInArrays][0]) + "," + (alleleCounts[2][indexOfCurrentMarkerInArrays][1]==0? "-" : alleleCounts[2][indexOfCurrentMarkerInArrays][1]) + "," + (alleleCounts[2][indexOfCurrentMarkerInArrays][2]==0? "-" : alleleCounts[2][indexOfCurrentMarkerInArrays][2]) + "," + (alleleCounts[2][indexOfCurrentMarkerInArrays][3]==0? "-" : alleleCounts[2][indexOfCurrentMarkerInArrays][3]) + "/" + (alleleCounts[2][indexOfCurrentMarkerInArrays][4]==0? "-" : alleleCounts[2][indexOfCurrentMarkerInArrays][4]) + "," + (alleleCounts[2][indexOfCurrentMarkerInArrays][5]==0? "-" : alleleCounts[2][indexOfCurrentMarkerInArrays][5]) + "," + (alleleCounts[2][indexOfCurrentMarkerInArrays][6]==0? "-" : alleleCounts[2][indexOfCurrentMarkerInArrays][6]) + ")" + (denovoMarkerNotes[indexOfCurrentMarker]==null? "" : (" " + denovoMarkerNotes[indexOfCurrentMarker]))
-					+ "\t" + formatAlleleCounts(alleleCounts, l)
-					+ "\t" + formatNotes(denovoMutationNotes, i)
-					+ "\t" + forwardGenotypes
+					+ "\t" + formatAlleleCounts(readsCounts, l, format)
+					+ "\t" + formatNotes(denovoMutationNotes, i, format)
+					+ "\t" + formatForwardGenotypes(temp, currentRef)
 					+ "\t" + flag
 					+ "\t" + temp[2]
 					+ "\t" + temp[3]
 					+ "\t" + temp[4]
-					+ "\t(" + phredScoreProportions[0][0] + "," + phredScoreProportions[0][1] + "," + phredScoreProportions[0][2] + "," + phredScoreProportions[0][3] + ") (" + phredScoreProportions[1][0] + "," + phredScoreProportions[1][1] + "," + phredScoreProportions[1][2] + "," + phredScoreProportions[1][3] + ") (" + phredScoreProportions[2][0] + "," + phredScoreProportions[2][1] + "," + phredScoreProportions[2][2] + "," + phredScoreProportions[2][3] + ")"
-					+ "\t" + (temp[2] == 0? "" : ((mappingScores[0][l][0] + mappingScores[0][l][1] + mappingScores[0][l][2] + mappingScores[0][l][3]) / temp[2]))
-					+ "\t" + (temp[3] == 0? "" : ((mappingScores[1][l][0] + mappingScores[1][l][1] + mappingScores[1][l][2] + mappingScores[1][l][3]) / temp[3]))
-					+ "\t" + (temp[4] == 0? "" : ((mappingScores[2][l][0] + mappingScores[2][l][1] + mappingScores[2][l][2] + mappingScores[2][l][3]) / temp[4]))
-	//				+ "\t" + forwardGenotypes.charAt(0) + "\t" + forwardGenotypes.charAt(1) + "\t" + forwardGenotypes.charAt(3) + "\t" + forwardGenotypes.charAt(4) + "\t" + forwardGenotypes.charAt(6) + "\t" + forwardGenotypes.charAt(7)
+					+ "\t" + formatPhred(phredScores, l, format)
+					+ "\t" + formatMapping(mappingScores, temp, l, format) 
 					);
 		}
 //		writer.flush();
 	}
 
-	public static String formatAlleleCounts(int[][][] alleleCounts, int indexOfCurrentMarker) {
+	public static String formatAlleleCounts(int[][][] readsCounts, int indexOfCurrentMarker, byte format) {
 		String result;
 		
 		result = "";
-		for (int i = 0; i < alleleCounts.length; i++) {
-			result += (i==0? "(": " (");
-			for (int j = 0; j < BASES.length; j++) {
-				result += ((j == 0? "" : ";") + (alleleCounts[i][indexOfCurrentMarker][j]==0? "-" : alleleCounts[i][indexOfCurrentMarker][j]));
+		if (format == 2) {
+			for (int i = 0; i < readsCounts.length; i++) {
+				for (int j = 0; j < BASES_WITH_N_INDEL.length; j++) {
+					result += ((i==0 && j == 0? "" : "\t") + (readsCounts[i][indexOfCurrentMarker][j]==0? "" : readsCounts[i][indexOfCurrentMarker][j]));
+				}
 			}
-			result += "/";
-			for (int j = BASES.length; j < BASES_WITH_N_INDEL.length; j++) {
-				result += ((j == BASES.length? "" : ";") + (alleleCounts[i][indexOfCurrentMarker][j]==0? "-" : alleleCounts[i][indexOfCurrentMarker][j]));
+		} else {
+			for (int i = 0; i < readsCounts.length; i++) {
+				result += (i==0? "(": " (");
+				for (int j = 0; j < BASES.length; j++) {
+					result += ((j == 0? "" : ",") + (readsCounts[i][indexOfCurrentMarker][j]==0? "-" : readsCounts[i][indexOfCurrentMarker][j]));
+				}
+				result += "/";
+				for (int j = BASES.length; j < BASES_WITH_N_INDEL.length; j++) {
+					result += ((j == BASES.length? "" : ",") + (readsCounts[i][indexOfCurrentMarker][j]==0? "-" : readsCounts[i][indexOfCurrentMarker][j]));
+				}
+				result += ")";
 			}
-			result += ")";
 		}
 
 		return result;
-//		return (alleleCounts[0][indexOfCurrentMarker][0]==0? "-" : alleleCounts[0][indexOfCurrentMarker][0]) + "," + (alleleCounts[0][indexOfCurrentMarker][1]==0? "-" : alleleCounts[0][indexOfCurrentMarker][1]) + "," + (alleleCounts[0][indexOfCurrentMarker][2]==0? "-" : alleleCounts[0][indexOfCurrentMarker][2]) + "," + (alleleCounts[0][indexOfCurrentMarker][3]==0? "-" : alleleCounts[0][indexOfCurrentMarker][3]) + "/" + (alleleCounts[0][indexOfCurrentMarker][4]==0? "-" : alleleCounts[0][indexOfCurrentMarker][4]) + "," + (alleleCounts[0][indexOfCurrentMarker][5]==0? "-" : alleleCounts[0][indexOfCurrentMarker][5]) + "," + (alleleCounts[0][indexOfCurrentMarker][6]==0? "-" : alleleCounts[0][indexOfCurrentMarker][6]) + ") (" + (alleleCounts[1][indexOfCurrentMarker][0]==0? "-" : alleleCounts[1][indexOfCurrentMarker][0]) + "," + (alleleCounts[1][indexOfCurrentMarker][1]==0? "-" : alleleCounts[1][indexOfCurrentMarker][1]) + "," + (alleleCounts[1][indexOfCurrentMarker][2]==0? "-" : alleleCounts[1][indexOfCurrentMarker][2]) + "," + (alleleCounts[1][indexOfCurrentMarker][3]==0? "-" : alleleCounts[1][indexOfCurrentMarker][3]) + "/" + (alleleCounts[1][indexOfCurrentMarker][4]==0? "-" : alleleCounts[1][indexOfCurrentMarker][4]) + "," + (alleleCounts[1][indexOfCurrentMarker][5]==0? "-" : alleleCounts[1][indexOfCurrentMarker][5]) + "," + (alleleCounts[1][indexOfCurrentMarker][6]==0? "-" : alleleCounts[1][indexOfCurrentMarker][6]) + ") (" + (alleleCounts[2][indexOfCurrentMarker][0]==0? "-" : alleleCounts[2][indexOfCurrentMarker][0]) + "," + (alleleCounts[2][indexOfCurrentMarker][1]==0? "-" : alleleCounts[2][indexOfCurrentMarker][1]) + "," + (alleleCounts[2][indexOfCurrentMarker][2]==0? "-" : alleleCounts[2][indexOfCurrentMarker][2]) + "," + (alleleCounts[2][indexOfCurrentMarker][3]==0? "-" : alleleCounts[2][indexOfCurrentMarker][3]) + "/" + (alleleCounts[2][indexOfCurrentMarker][4]==0? "-" : alleleCounts[2][indexOfCurrentMarker][4]) + "," + (alleleCounts[2][indexOfCurrentMarker][5]==0? "-" : alleleCounts[2][indexOfCurrentMarker][5]) + "," + (alleleCounts[2][indexOfCurrentMarker][6]==0? "-" : alleleCounts[2][indexOfCurrentMarker][6]) + ")";
+//		return (readsCounts[0][indexOfCurrentMarker][0]==0? "-" : readsCounts[0][indexOfCurrentMarker][0]) + "," + (readsCounts[0][indexOfCurrentMarker][1]==0? "-" : readsCounts[0][indexOfCurrentMarker][1]) + "," + (readsCounts[0][indexOfCurrentMarker][2]==0? "-" : readsCounts[0][indexOfCurrentMarker][2]) + "," + (readsCounts[0][indexOfCurrentMarker][3]==0? "-" : readsCounts[0][indexOfCurrentMarker][3]) + "/" + (readsCounts[0][indexOfCurrentMarker][4]==0? "-" : readsCounts[0][indexOfCurrentMarker][4]) + "," + (readsCounts[0][indexOfCurrentMarker][5]==0? "-" : readsCounts[0][indexOfCurrentMarker][5]) + "," + (readsCounts[0][indexOfCurrentMarker][6]==0? "-" : readsCounts[0][indexOfCurrentMarker][6]) + ") (" + (readsCounts[1][indexOfCurrentMarker][0]==0? "-" : readsCounts[1][indexOfCurrentMarker][0]) + "," + (readsCounts[1][indexOfCurrentMarker][1]==0? "-" : readsCounts[1][indexOfCurrentMarker][1]) + "," + (readsCounts[1][indexOfCurrentMarker][2]==0? "-" : readsCounts[1][indexOfCurrentMarker][2]) + "," + (readsCounts[1][indexOfCurrentMarker][3]==0? "-" : readsCounts[1][indexOfCurrentMarker][3]) + "/" + (readsCounts[1][indexOfCurrentMarker][4]==0? "-" : readsCounts[1][indexOfCurrentMarker][4]) + "," + (readsCounts[1][indexOfCurrentMarker][5]==0? "-" : readsCounts[1][indexOfCurrentMarker][5]) + "," + (readsCounts[1][indexOfCurrentMarker][6]==0? "-" : readsCounts[1][indexOfCurrentMarker][6]) + ") (" + (readsCounts[2][indexOfCurrentMarker][0]==0? "-" : readsCounts[2][indexOfCurrentMarker][0]) + "," + (readsCounts[2][indexOfCurrentMarker][1]==0? "-" : readsCounts[2][indexOfCurrentMarker][1]) + "," + (readsCounts[2][indexOfCurrentMarker][2]==0? "-" : readsCounts[2][indexOfCurrentMarker][2]) + "," + (readsCounts[2][indexOfCurrentMarker][3]==0? "-" : readsCounts[2][indexOfCurrentMarker][3]) + "/" + (readsCounts[2][indexOfCurrentMarker][4]==0? "-" : readsCounts[2][indexOfCurrentMarker][4]) + "," + (readsCounts[2][indexOfCurrentMarker][5]==0? "-" : readsCounts[2][indexOfCurrentMarker][5]) + "," + (readsCounts[2][indexOfCurrentMarker][6]==0? "-" : readsCounts[2][indexOfCurrentMarker][6]) + ")";
 	}
 
-	public static String formatNearbyInDelVarsCounts(int[][][] nearbyInDelVarCounts, int indexOfCurrentMarker) {
-		String result;
-		
-		result = "";
-		for (int i = 0; i < nearbyInDelVarCounts.length; i++) {
-			result += (i==0? "(": " (");
-			for (int j = 0; j < nearbyInDelVarCounts[0][indexOfCurrentMarker].length; j++) {
-				result += (nearbyInDelVarCounts[i][indexOfCurrentMarker][j]==0? "-" : nearbyInDelVarCounts[i][indexOfCurrentMarker][j]);
-			}
-			result += ")";
-		}
-
-		return result;
-//		return (alleleCounts[0][indexOfCurrentMarker][0]==0? "-" : alleleCounts[0][indexOfCurrentMarker][0]) + "," + (alleleCounts[0][indexOfCurrentMarker][1]==0? "-" : alleleCounts[0][indexOfCurrentMarker][1]) + "," + (alleleCounts[0][indexOfCurrentMarker][2]==0? "-" : alleleCounts[0][indexOfCurrentMarker][2]) + "," + (alleleCounts[0][indexOfCurrentMarker][3]==0? "-" : alleleCounts[0][indexOfCurrentMarker][3]) + "/" + (alleleCounts[0][indexOfCurrentMarker][4]==0? "-" : alleleCounts[0][indexOfCurrentMarker][4]) + "," + (alleleCounts[0][indexOfCurrentMarker][5]==0? "-" : alleleCounts[0][indexOfCurrentMarker][5]) + "," + (alleleCounts[0][indexOfCurrentMarker][6]==0? "-" : alleleCounts[0][indexOfCurrentMarker][6]) + ") (" + (alleleCounts[1][indexOfCurrentMarker][0]==0? "-" : alleleCounts[1][indexOfCurrentMarker][0]) + "," + (alleleCounts[1][indexOfCurrentMarker][1]==0? "-" : alleleCounts[1][indexOfCurrentMarker][1]) + "," + (alleleCounts[1][indexOfCurrentMarker][2]==0? "-" : alleleCounts[1][indexOfCurrentMarker][2]) + "," + (alleleCounts[1][indexOfCurrentMarker][3]==0? "-" : alleleCounts[1][indexOfCurrentMarker][3]) + "/" + (alleleCounts[1][indexOfCurrentMarker][4]==0? "-" : alleleCounts[1][indexOfCurrentMarker][4]) + "," + (alleleCounts[1][indexOfCurrentMarker][5]==0? "-" : alleleCounts[1][indexOfCurrentMarker][5]) + "," + (alleleCounts[1][indexOfCurrentMarker][6]==0? "-" : alleleCounts[1][indexOfCurrentMarker][6]) + ") (" + (alleleCounts[2][indexOfCurrentMarker][0]==0? "-" : alleleCounts[2][indexOfCurrentMarker][0]) + "," + (alleleCounts[2][indexOfCurrentMarker][1]==0? "-" : alleleCounts[2][indexOfCurrentMarker][1]) + "," + (alleleCounts[2][indexOfCurrentMarker][2]==0? "-" : alleleCounts[2][indexOfCurrentMarker][2]) + "," + (alleleCounts[2][indexOfCurrentMarker][3]==0? "-" : alleleCounts[2][indexOfCurrentMarker][3]) + "/" + (alleleCounts[2][indexOfCurrentMarker][4]==0? "-" : alleleCounts[2][indexOfCurrentMarker][4]) + "," + (alleleCounts[2][indexOfCurrentMarker][5]==0? "-" : alleleCounts[2][indexOfCurrentMarker][5]) + "," + (alleleCounts[2][indexOfCurrentMarker][6]==0? "-" : alleleCounts[2][indexOfCurrentMarker][6]) + ")";
-	}
-
-//	public static String formatNotes(String[][][] denovoMarkerNotes, int indexOfCurrentMarker) {
-//		String result;
-//		
-//		result = null;
-//		for (int i = 0; i < denovoMarkerNotes.length; i++) {
-//			for (int j = 0; j < denovoMarkerNotes[0][indexOfCurrentMarker].length; j++) {
-//				if (denovoMarkerNotes[0][indexOfCurrentMarker][j] != null) {
-//					if (result == null) {
-//						result = (denovoMarkerNotes[i][indexOfCurrentMarker][j]);
-//					} else {
-//						result += (denovoMarkerNotes[i][indexOfCurrentMarker][j]);
-//					}
-//				}
-//			}
-//			result += ")";
-//		}
-//
-//		return result;
-//	}
-
-	public static String formatNotes(Vector<Vector<Integer>[][]> denovoMarkerNotes, int indexOfCurrentElement) {
-		String result;
+	public static String formatNotes(Vector<Vector<Integer>[][]> denovoMarkerNotes, int indexOfCurrentElement, byte format) {
+		String result2;
+		String result1;
 		Vector<Integer>[][] temp;
 		int loop;
 		boolean isFirstInTheSection;
+		boolean isFirstSection;
 		
-		result = "";
+		result1 = "";
+		result2 = "";
 		temp = denovoMarkerNotes.elementAt(indexOfCurrentElement);
-		for (int i = 0; i < temp.length; i++) {
-			isFirstInTheSection = true;
-			for (int j = 0; j < temp[0].length; j++) {
-				if (temp[i][j] != null) {
-					if (isFirstInTheSection) {
-						result += BASES_WITH_N_INDEL[i + 4] + "(";
-						isFirstInTheSection = false;
+		isFirstSection = true;
+		if (format == 2) {
+			for (int i = 0; i < temp.length; i++) {
+				isFirstInTheSection = true;
+				for (int j = 0; j < temp[0].length; j++) {
+					if (temp[i][j] != null) {
+						if (isFirstInTheSection) {
+							result2 += ((isFirstSection? "" : " ") + DENOVO_MUTATION_NOTES_ARRAY_STRUCT[i] + "(");
+							isFirstInTheSection = false;
+							isFirstSection = false;
+						} else {
+							result2 += " ";
+						}
+						result2 += (SAMPLE_SUFFIX[j] + ":" + temp[i][j].elementAt(0));
+						loop = temp[i][j].size();
+						for (int k = 1; k < loop; k++) {
+							result2 += ("," + temp[i][j].elementAt(k));
+						}
+						result1 += ((i==0 && j==0? "" : "\t") + temp[i][j].size());
 					} else {
-						result += " ";
-					}
-					result += (SAMPLE_SUFFIX[j] + ":" + temp[i][j].elementAt(0));
-					loop = temp[i][j].size();
-					for (int k = 1; k < loop; k++) {
-						result += ";" + temp[i][j].elementAt(k);
+						result1 += (i==0 && j==0? "" : "\t");
 					}
 				}
+				if (! isFirstInTheSection) {
+					result2 += ")";
+				}
 			}
-			if (! isFirstInTheSection) {
+		} else {
+			for (int i = 0; i < temp.length; i++) {
+				isFirstInTheSection = true;
+				result1 += ((result1.equals("")? "": " ") + "(");
+				for (int j = 0; j < temp[0].length; j++) {
+					if (temp[i][j] != null) {
+						if (isFirstInTheSection) {
+							result2 += (DENOVO_MUTATION_NOTES_ARRAY_STRUCT[i] + "(");
+							isFirstInTheSection = false;
+						} else {
+							result2 += " ";
+						}
+						result2 += (SAMPLE_SUFFIX[j] + ":" + temp[i][j].elementAt(0));
+						loop = temp[i][j].size();
+						for (int k = 1; k < loop; k++) {
+							result2 += ("," + temp[i][j].elementAt(k));
+						}
+						result1 += ((j==0? "" : ",") + temp[i][j].size());
+					} else {
+						result1 += ((j==0? "" : ",") + "-");
+					}
+				}
+				if (! isFirstInTheSection) {
+					result2 += ")";
+				}
+				result1 += ")";
+			}
+		}
+
+		return result1 + "\t" + result2;
+	}
+
+	public static String formatAltAllele(int[] temp, String ref) {
+		String result;
+
+		if (temp[6] < 0) {
+			result = "";
+		} else {
+			result = (BASES[temp[6]] + "");
+			if (result.equalsIgnoreCase(ref)) {
+				result = (BASES[temp[5]] + "");
+			}
+		}
+
+		return result;
+	}
+
+	public static String formatForwardGenotypes(int[] temp, String ref) {
+		String allele1;
+		String result;
+
+		result = "";
+		for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
+			result += (j == 0? "" : ",");
+			allele1 = BASES[temp[5 + 2 * j]] + "";
+			if (temp[6 + 2 * j] < 0) {
+				result += (allele1 + allele1);
+			} else {
+				if (allele1.equalsIgnoreCase(ref)) {
+					result += (allele1 + BASES[temp[6 + 2 * j]]);
+				} else {
+					result += (BASES[temp[6 + 2 * j]] + allele1);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public static String formatPhred(int[][][] phredScores, int indexOfCurrentMarker, byte format) {
+		double[][] phredScoreProportions;
+		double totalPhredScores;
+		String result;
+
+		phredScoreProportions = new double[SAMPLE_SUFFIX.length][BASES.length];
+		for (int j = 0; j < phredScoreProportions.length; j++) {
+			totalPhredScores = phredScores[j][indexOfCurrentMarker][0] + phredScores[j][indexOfCurrentMarker][1] + phredScores[j][indexOfCurrentMarker][2] + phredScores[j][indexOfCurrentMarker][3];
+			for (int k = 0; k < phredScoreProportions[j].length; k++) {
+				phredScoreProportions[j][k] = phredScores[j][indexOfCurrentMarker][k] / totalPhredScores;
+			}
+		}
+
+		result = "";
+		if (format == 2) {
+			for (int i = 0; i < phredScoreProportions.length; i++) {
+				for (int j = 0; j < phredScoreProportions[i].length; j++) {
+					result += ((i==0 && j==0? "" : "\t") + (phredScoreProportions[i][j] == 0? "" : ext.formDeci(phredScoreProportions[i][j], 3)));
+				}
+			}
+		} else {
+			for (int i = 0; i < phredScoreProportions.length; i++) {
+				result += ((i==0? "": " ") + "(");
+				for (int j = 0; j < phredScoreProportions[i].length; j++) {
+					result += ((j==0? "" : ",") + (phredScoreProportions[i][j] == 0? "-" : ext.formDeci(phredScoreProportions[i][j], 3)));
+				}
 				result += ")";
 			}
+		}
+
+		return result;
+	}
+
+	public static String formatMapping(int[][][] mappingScores, int[] temp, int indexOfCurrentMarker, byte format) {
+		int sum;
+		String result;
+
+		result = "";
+		if (format == 2) {
+			for (int i = 0; i < mappingScores.length; i++) {
+				if (temp[i + 2] == 0) {
+					result += (i==0? "" : "\t");
+				} else {
+					sum = 0;
+					for (int j = 0; j < BASES.length; j++) {
+						sum += mappingScores[i][indexOfCurrentMarker][j];
+					}
+					result += ((i==0? "" : "\t") + (sum/temp[i + 2]));
+				}
+			}
+		} else {
+			for (int i = 0; i < mappingScores.length; i++) {
+				result += (i==0? "(" : ",");
+				if (temp[i + 2] == 0) {
+					result += "-";
+				} else {
+					sum = 0;
+					for (int j = 0; j < BASES.length; j++) {
+						sum += mappingScores[i][indexOfCurrentMarker][j];
+					}
+					result += (sum/temp[i + 2]);
+				}
+			}
+			result += ")";
 		}
 
 		return result;
@@ -1423,7 +1357,7 @@ public class SuperNovo {
 		String key;
 		String[] tmp1;
 		String[] tmp2;
-		int[][] alleleCounts;
+		int[][] readsCounts;
 		int[] orderedIndices;
 		int numTmp;
 		double[] altProportion;
@@ -1432,7 +1366,7 @@ public class SuperNovo {
 		resultFilenames = Files.list(resultDir, ".txt", false);
 		trioIds = new String[resultFilenames.length];
 		result = new HashMap<String, HashMap<String, String[]>>();
-		alleleCounts = new int[3][7];
+		readsCounts = new int[3][7];
 		for (int i = 0; i < trioIds.length; i++) {
 			trioIds[i] = resultFilenames[i].split("_")[0];
 	        try {
@@ -1446,42 +1380,42 @@ public class SuperNovo {
 		        			tmp2 = tmp1[j].substring(1).split("[,/()]");
 	        				for (int k = 0; k < 7; k++) {
 	        					if (tmp2[k].equals("-")) {
-	        						alleleCounts[j][k] = 0;
+	        						readsCounts[j][k] = 0;
 	        					} else {
-	        						alleleCounts[j][k] = Integer.parseInt(tmp2[k]);
+	        						readsCounts[j][k] = Integer.parseInt(tmp2[k]);
 	        					}
 							}
 						}
 
-	        			orderedIndices = Sort.quicksort(new int[] {alleleCounts[0][0], alleleCounts[0][1], alleleCounts[0][2], alleleCounts[0][3]}, Sort.DESCENDING);
-	        			numTmp = alleleCounts[0][4] + alleleCounts[0][5] + alleleCounts[0][6];
+	        			orderedIndices = Sort.quicksort(new int[] {readsCounts[0][0], readsCounts[0][1], readsCounts[0][2], readsCounts[0][3]}, Sort.DESCENDING);
+	        			numTmp = readsCounts[0][4] + readsCounts[0][5] + readsCounts[0][6];
 	        			if (Integer.parseInt(line[14]) > 20 && Integer.parseInt(line[15]) > 20 && Integer.parseInt(line[16]) > 20
-//	        					&& ((alleleCounts[0][orderedIndices[1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[1][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[0][orderedIndices[1]] > .18 * alleleCounts[0][orderedIndices[0]] && alleleCounts[0][orderedIndices[1]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][orderedIndices[1]] + alleleCounts[2][orderedIndices[1]])) && (alleleCounts[1][orderedIndices[1]] * 19 ) < (alleleCounts[1][orderedIndices[0]] + alleleCounts[1][orderedIndices[2]] + alleleCounts[1][orderedIndices[3]]) && (alleleCounts[2][orderedIndices[1]] * 19 ) < (alleleCounts[2][orderedIndices[0]] + alleleCounts[2][orderedIndices[2]] + alleleCounts[2][orderedIndices[3]]))
-//	        							|| (alleleCounts[0][orderedIndices[0]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[1][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO &&  alleleCounts[0][orderedIndices[0]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][orderedIndices[0]] + alleleCounts[2][orderedIndices[0]]))) && (alleleCounts[1][orderedIndices[0]] * 19 ) < (alleleCounts[1][orderedIndices[1]] + alleleCounts[1][orderedIndices[2]] + alleleCounts[1][orderedIndices[3]]) && (alleleCounts[2][orderedIndices[0]] * 19 ) < (alleleCounts[2][orderedIndices[1]] + alleleCounts[2][orderedIndices[2]] + alleleCounts[2][orderedIndices[3]]))
-	        					&& ((alleleCounts[0][orderedIndices[1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[1][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[0][orderedIndices[1]] > .18 * alleleCounts[0][orderedIndices[0]] && alleleCounts[0][orderedIndices[1]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][orderedIndices[1]] + alleleCounts[2][orderedIndices[1]])))
-	        							|| (alleleCounts[0][orderedIndices[0]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[1][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && alleleCounts[2][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO &&  alleleCounts[0][orderedIndices[0]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (alleleCounts[1][orderedIndices[0]] + alleleCounts[2][orderedIndices[0]]))))
-	        					&& (alleleCounts[0][orderedIndices[2]] + alleleCounts[0][orderedIndices[3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
-	        					&& (numTmp <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (alleleCounts[0][orderedIndices[0]] + alleleCounts[0][orderedIndices[1]]) >= 20 * numTmp)) {
+//	        					&& ((readsCounts[0][orderedIndices[1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[1][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[2][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[0][orderedIndices[1]] > .18 * readsCounts[0][orderedIndices[0]] && readsCounts[0][orderedIndices[1]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][orderedIndices[1]] + readsCounts[2][orderedIndices[1]])) && (readsCounts[1][orderedIndices[1]] * 19 ) < (readsCounts[1][orderedIndices[0]] + readsCounts[1][orderedIndices[2]] + readsCounts[1][orderedIndices[3]]) && (readsCounts[2][orderedIndices[1]] * 19 ) < (readsCounts[2][orderedIndices[0]] + readsCounts[2][orderedIndices[2]] + readsCounts[2][orderedIndices[3]]))
+//	        							|| (readsCounts[0][orderedIndices[0]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[1][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[2][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO &&  readsCounts[0][orderedIndices[0]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][orderedIndices[0]] + readsCounts[2][orderedIndices[0]]))) && (readsCounts[1][orderedIndices[0]] * 19 ) < (readsCounts[1][orderedIndices[1]] + readsCounts[1][orderedIndices[2]] + readsCounts[1][orderedIndices[3]]) && (readsCounts[2][orderedIndices[0]] * 19 ) < (readsCounts[2][orderedIndices[1]] + readsCounts[2][orderedIndices[2]] + readsCounts[2][orderedIndices[3]]))
+	        					&& ((readsCounts[0][orderedIndices[1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[1][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[2][orderedIndices[1]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[0][orderedIndices[1]] > .18 * readsCounts[0][orderedIndices[0]] && readsCounts[0][orderedIndices[1]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][orderedIndices[1]] + readsCounts[2][orderedIndices[1]])))
+	        							|| (readsCounts[0][orderedIndices[0]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[1][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[2][orderedIndices[0]] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO &&  readsCounts[0][orderedIndices[0]] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + 2.5 * (readsCounts[1][orderedIndices[0]] + readsCounts[2][orderedIndices[0]]))))
+	        					&& (readsCounts[0][orderedIndices[2]] + readsCounts[0][orderedIndices[3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+	        					&& (numTmp <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[0][orderedIndices[0]] + readsCounts[0][orderedIndices[1]]) >= 20 * numTmp)) {
 
 	        				isThreeAllelesOrInDel = false;
 		        			altProportion = new double[3];
 		        			for (int j = 0; j < altProportion.length; j++) {
-			        			orderedIndices = Sort.quicksort(new int[] {alleleCounts[j][0], alleleCounts[j][1], alleleCounts[j][2], alleleCounts[j][3]}, Sort.DESCENDING);
-			        			if ((alleleCounts[j][orderedIndices[2]] + alleleCounts[j][orderedIndices[3]]) > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+			        			orderedIndices = Sort.quicksort(new int[] {readsCounts[j][0], readsCounts[j][1], readsCounts[j][2], readsCounts[j][3]}, Sort.DESCENDING);
+			        			if ((readsCounts[j][orderedIndices[2]] + readsCounts[j][orderedIndices[3]]) > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
 			        				isThreeAllelesOrInDel = true;
 			        				break;
 			        			}
-			        			numTmp = alleleCounts[j][4] + alleleCounts[j][5] + alleleCounts[j][6];
-			        			if (numTmp > MAX_ALLELE_COUNT_TREATED_AS_ZERO && (alleleCounts[j][orderedIndices[0]] + alleleCounts[j][orderedIndices[1]]) < 20 * numTmp) {
+			        			numTmp = readsCounts[j][4] + readsCounts[j][5] + readsCounts[j][6];
+			        			if (numTmp > MAX_ALLELE_COUNT_TREATED_AS_ZERO && (readsCounts[j][orderedIndices[0]] + readsCounts[j][orderedIndices[1]]) < 20 * numTmp) {
 			        				isThreeAllelesOrInDel = true;
 			        				break;
 			        			}
 
 			        			numTmp = ext.indexOfChar(line[4].toUpperCase().charAt(0), BASES);
 			        			if (orderedIndices[0] != numTmp) {
-			        				altProportion[j] = alleleCounts[j][orderedIndices[0]] / (double) (alleleCounts[j][numTmp] + alleleCounts[j][orderedIndices[0]]);
+			        				altProportion[j] = readsCounts[j][orderedIndices[0]] / (double) (readsCounts[j][numTmp] + readsCounts[j][orderedIndices[0]]);
 			        			} else {
-			        				altProportion[j] = alleleCounts[j][orderedIndices[1]] / (double) (alleleCounts[j][numTmp] + alleleCounts[j][orderedIndices[1]]);
+			        				altProportion[j] = readsCounts[j][orderedIndices[1]] / (double) (readsCounts[j][numTmp] + readsCounts[j][orderedIndices[1]]);
 			        			}
 							}
 
@@ -1550,7 +1484,7 @@ public class SuperNovo {
 		}
 	}
 
-	public static void saveAlleleCountsToFile(String filename, int[][][] alleleCounts, int startPosition, boolean toIgnorePositionsWithZeroCount) {
+	public static void saveAlleleCountsToFile(String filename, int[][][] readsCounts, int startPosition, boolean toIgnorePositionsWithZeroCount) {
 		PrintWriter writer;
 		String line;
 		int total;
@@ -1562,19 +1496,19 @@ public class SuperNovo {
 				line += ("\t" + SAMPLE_SUFFIX[i]);
 			}
 			writer.println(line);
-			for (int i = 0; i < alleleCounts[0].length; i++) {
+			for (int i = 0; i < readsCounts[0].length; i++) {
 				line = startPosition + "";
 				total = 0;
-				for (int j = 0; j < alleleCounts.length; j++) {
+				for (int j = 0; j < readsCounts.length; j++) {
 					line += "\t(";
 					for (int k = 0; k < BASES.length; k++) {
-						line += ((k == 0? "" : ",") + (alleleCounts[j][i][k] == 0? "-" : alleleCounts[j][i][k]));
-						total += alleleCounts[j][i][k];
+						line += ((k == 0? "" : ",") + (readsCounts[j][i][k] == 0? "-" : readsCounts[j][i][k]));
+						total += readsCounts[j][i][k];
 					}
 					line += "/";
 					for (int k = BASES.length; k < BASES_WITH_N_INDEL.length; k++) {
-						line += ((k == 0? "" : ",") + (alleleCounts[j][i][k] == 0? "-" : alleleCounts[j][i][k]));
-						total += alleleCounts[j][i][k];
+						line += ((k == 0? "" : ",") + (readsCounts[j][i][k] == 0? "-" : readsCounts[j][i][k]));
+						total += readsCounts[j][i][k];
 					}
 					line += ")";
 				}
@@ -1736,7 +1670,7 @@ public class SuperNovo {
 		bamFilenamesOfTheTrio = null;
 //		bamDir = "D:/bams/";
 //		bamFilenamesTheTrio = new String[] {"F10639C_chr17_39346502_39346622.txt", "F10639D_chr17_39346502_39346622.txt", "F10639M_chr17_39346502_39346622.txt"};
-		refFastaFilename = "/home/spectorl/xuz2/hg19_canonical.fa";
+		refFastaFilename = "/home/spectorl/xuz2/ref_fasta/hg19_canonical.fa";
 		scriptDir = "/home/spectorl/xuz2/scripts/";
 		outputDir = "/home/spectorl/xuz2/outputs/";
 		isToAnnotate = false;
