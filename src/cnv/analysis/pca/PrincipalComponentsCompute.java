@@ -32,7 +32,7 @@ import ejml.SingularValueDecomposition;
  * @author Peter Abeles , John Lane
  */
 public class PrincipalComponentsCompute {
-	private static final String[] OUTPUT_EXT = { ".PCs.txt", ".PCs.MarkerReport.txt", ".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt", ".Summary.txt" };
+	public static final String[] OUTPUT_EXT = { ".PCs.txt", ".PCs.MarkerReport.txt", ".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt", ".Summary.txt" };
 	public static final String PC_STRING = "PC";
 	public static final String[] SAMPLE = { "sample", "FID", "IID" };
 	public static final String MARKER = "markerName";
@@ -150,10 +150,21 @@ public class PrincipalComponentsCompute {
 		DenseMatrix64F W = svd.getW(null);
 		// Singular values are in an arbitrary order initially
 		SingularOps.descendingOrder(null, false, W, V_t, true);
+		
 		// strip off unneeded components and find the basis
 		V_t.reshape(numComponents, mean.length, true);
-		singularValues = Array.subArray(svd.getSingularValues(), 0, numComponents);
+		
+		this.singularValues = Array.subArray(getDiagonal(W), 0, numComponents);//W is the sorted (descending order on the diagonal) matrix of singular values
 
+	} 
+	
+	public double[] getDiagonal(DenseMatrix64F W) {
+		int numSingular = Math.min(W.numRows, W.numCols);
+		double[] singularValues = new double[numSingular];
+		for (int i = 0; i < numSingular; i++) {
+			singularValues[i] = W.get(i, i);
+		}
+		return singularValues;
 	}
 
 	/**
@@ -232,11 +243,9 @@ public class PrincipalComponentsCompute {
 					} catch (IllegalArgumentException iae) {
 						log.reportError("Error - could not add all data for SVD");
 						log.reportException(iae);
-						System.exit(1);
 					} catch (ArrayIndexOutOfBoundsException aioe) {
 						log.reportError("Error - matrix for SVD ran out of space, the maximum number of markers can be "+(int)(Integer.MAX_VALUE/numSamples));
 						log.reportException(aioe);
-						System.exit(1);
 					}
 				}
 			}
@@ -247,11 +256,9 @@ public class PrincipalComponentsCompute {
 				log.reportError("Error - the number of components must be less than the number of markers used AND less than the number of samples used");
 				log.reportError("Error - Please select a smaller number of principal components to compute, or add more markers or samples");
 				log.reportException(iae);
-				System.exit(1);
 			}
 		} else {
 			log.reportError("Error - no valid data was found");
-			System.exit(1);
 		}
 		return pcs;
 	}
@@ -642,7 +649,7 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return extracted components
 	 */
-	private static double[][] getPCs(PrincipalComponentsCompute pcs, int numComponents, Logger log) {
+	public static double[][] getPCs(PrincipalComponentsCompute pcs, int numComponents, Logger log) {
 		double[][] pcsBasis = new double[numComponents][];
 		log.report(ext.getTime() + " Extracting " + numComponents + " principle components");
 		for (int i = 0; i < numComponents; i++) {
