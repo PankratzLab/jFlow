@@ -920,7 +920,7 @@ public class MitoPipeline {
 		// String sampleMapCsv = null;
 		String sampleMapCsv = null;
 		String dataExtension = ".gz";
-		String defaultLRRSdFilter = "0.5";
+		String sampleLRRSdFilter = "0.5";
 		String sampleCallRateFilter = "0.95";
 		double markerCallRateFilter = 0.98;
 		boolean markerQC = true;
@@ -947,7 +947,7 @@ public class MitoPipeline {
 		usage += "   All samples to be analyzed must be contained in the sample manifest (.PED format file, or Sample_Map.csv file)\n";
 		usage += "   (9) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
 		usage += "   (10) Data extension for files contained in the source data directory (i.e. dirExt=" + dataExtension + " (default))\n";
-		usage += "   (11) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + defaultLRRSdFilter + " (default))\n";
+		usage += "   (11) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + sampleLRRSdFilter + " (default))\n";
 		usage += "   (12) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
 		usage += "   (13) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
 		usage += "   (14) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
@@ -990,7 +990,7 @@ public class MitoPipeline {
 				dataExtension = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("LRRSD=")) {
-				defaultLRRSdFilter = args[i].split("=")[1];
+				sampleLRRSdFilter = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("sampleCallRate=")) {
 				sampleCallRateFilter = args[i].split("=")[1];
@@ -1044,9 +1044,13 @@ public class MitoPipeline {
 		Project proj;
 		Logger log;
 		if (fileName == null) {
-			proj = createNewProject(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, defaultLRRSdFilter, sampleCallRateFilter, new Logger());
+			proj = createNewProject(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, new Logger());
 		} else {
 			proj = new Project(fileName, false);
+			// setting these properties so they are modified if an existing project is supplied at the command line
+			proj.setProperty(Project.TARGET_MARKERS_FILENAME, targetMarkers);
+			proj.setProperty(Project.LRRSD_CUTOFF, sampleLRRSdFilter);
+			proj.saveProperties();
 		}
 		log = proj.getLog();
 		catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, log);

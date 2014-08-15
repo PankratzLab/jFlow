@@ -13,6 +13,7 @@ public class LeastSquares extends RegressionModel {
 	private double meanY;
 	private double[][] invP;
 	private int sigDig = 3;
+	private boolean svdRegression;
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public LeastSquares(Vector vDeps, Vector vIndeps) { // deps = Vector of int/double as String, indeps = Vector of double[]
@@ -41,11 +42,16 @@ public class LeastSquares extends RegressionModel {
 	}
 	
 	public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames, boolean bypassDataCheck, boolean verbose) {
+		this(new_deps, new_indeps, null, bypassDataCheck, verbose, false);
+	}
+
+	public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames, boolean bypassDataCheck, boolean verbose, boolean svdRegression) {
 		this.deps = new_deps;
 		this.indeps = new_indeps;
 		this.verbose = verbose;
 		this.analysisFailed = false;
 		this.logistic = false;
+		this.svdRegression = svdRegression;
 
 		if (deps.length!=indeps.length) {
 			System.err.println("Error - mismatched number of records: "+deps.length+" dependent elements and "+indeps.length+" independent elements");
@@ -262,7 +268,14 @@ public class LeastSquares extends RegressionModel {
 		if (!analysisFailed) {
 			maxNameSize = (M+1)<10?8:7+((M+1)+"").length();
 
-			linregr();
+			if (!svdRegression) {
+				linregr();
+			} else {
+				SVDRegression svdRegress = new SVDRegression(deps, indeps, log);
+				svdRegress.svdRegression();
+				betas = svdRegress.getBetas();
+				invP = svdRegress.getInvP_Diagonal_Equivalent();// Warning! this is not a full invP matrix, only the diagonal elements are computed
+			}
 
 //			meanRes = 0;
 			predicteds = new double[N];

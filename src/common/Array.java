@@ -1818,9 +1818,9 @@ public class Array {
 			if (!hash.containsKey(array[i])) {
 				newArray[count] = array[i];
 				count++;
+				hash.put(array[i], array[i]);
 			}
 		}
-
 		return Array.subArray(newArray, 0, count);
 	}
 

@@ -11,8 +11,8 @@ import common.ext;
  * @author John Lane
  */
 public class PCA {
+	public static final String[] FILE_EXTs = { ".PCs.extrapolated.txt", ".PCs.summary.txt" };
 	private static final String EVALUATION_FILENAME = "Evaluated_PCs.txt";
-	private static final String[] FILE_EXTs = { ".PCs.extrapolated.txt", ".PCs.summary.txt" };
 
 	/**
 	 * @param proj

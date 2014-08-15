@@ -1,13 +1,21 @@
 package cnv.analysis.pca;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import stats.CrossValidation;
 import stats.LeastSquares;
 import stats.RegressionModel;
 import cnv.filesys.ClusterFilterCollection;
@@ -26,10 +34,11 @@ import common.ext;
  * 
  *
  */
-public class PrincipalComponentsResiduals {
+public class PrincipalComponentsResiduals implements Cloneable {
 	private static final String[] MT_REPORT = { "DNA", "FID", "IID", "Sex", "median_MT_LRR_raw", "median_MT_LRR_PC_residuals", "median_MT_LRR_PC_residuals_inverseTransformed" };
 	private static final String[] MT_REPORT_EXT = { ".report.txt" };
 	private static final String[] MT_REPORT_MARKERS_USED = { ".MedianMarkers.MarkersUsed.txt", ".MedianMarkers.RawValues.txt" };
+	private static final String[] MT_RESIDUAL_CROSS_VALIDATED_REPORT = { "Time Completed", "Time to complete(seconds)", "PC", "Cross-validation Average SSerr", "Cross-validation Average R-squared", "Average Standard Error of Betas", "Full model R-squared", "Full model SSerr" };
 
 	private String markersToAssessFile, output, residOutput;
 	private String[] markersToAssess, samplesToReport, allProjSamples;
@@ -39,7 +48,7 @@ public class PrincipalComponentsResiduals {
 	private float gcThreshold;
 	private Logger log;
 	private Project proj;
-	private int numSamples, numComponents;
+	private int numSamples, numComponents, totalNumComponents;// numComponents are loaded, totalNumComponents are present in the pc file
 	private Hashtable<String, Integer> samplesInPc;
 	private boolean[] samplesToUse;
 	private boolean printFull, homozygousOnly;
@@ -92,17 +101,21 @@ public class PrincipalComponentsResiduals {
 	}
 
 	/**
-	 * Regress out the Pcs from the medians
+	 * Regress out the Pcs from the medians, return the model's R-squared value for checking
 	 */
-	public void computeResiduals() {
+	public double computeResiduals() {
+		//TODO, add svdRegression option
 		RegressionModel model = (RegressionModel) new LeastSquares(medians, prepPcs(pcBasis));
+		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
 			this.residuals = model.getResiduals();
+			R2 = model.getRsquare();
 			log.report("" + model.getRsquare());
 		} else {
 			log.reportError("Error - the regression model has failed and residuals could not be computed");
 			this.residuals = null;
 		}
+		return R2;
 	}
 
 	/**
@@ -380,9 +393,10 @@ public class PrincipalComponentsResiduals {
 				return;
 			}
 			if ((line.length - 2) < numComponents) {
-				log.reportError("Error - cannot use " + numComponents + " components when only " + (line.length - 2) + " are provided");
-				return;
+				log.reportError("Warning - cannot use " + numComponents + " components when only " + (line.length - 2) + " are provided, only loading " + (line.length - 2));
+				numComponents = line.length - 2;
 			}
+			this.totalNumComponents = line.length - 2;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (sampleData.lookup(line[0] + "\t" + line[1]) != null) {
@@ -441,4 +455,215 @@ public class PrincipalComponentsResiduals {
 		return count;
 	}
 
+	// The following methods are geared toward the cross validation of principal components
+
+	/**
+	 * So we can track which pc File went in
+	 */
+	public String getOutput() {
+		return output;
+	}
+
+	public int getNumComponents() {
+		return numComponents;
+	}
+
+	public int getNumSamples() {
+		return numSamples;
+	}
+
+	public int getTotalNumComponents() {
+		return totalNumComponents;
+	}
+
+	public double[][] getPcBasis() {
+		return pcBasis;
+	}
+
+	public double[] getMedians() {
+		return medians;
+	}
+
+	public Hashtable<String, Integer> getSamplesInPc() {
+		return samplesInPc;
+	}
+
+	public void setMedians(double[] medians) {
+		this.medians = medians;
+	}
+
+	public void setPcBasis(double[][] pcBasis) {
+		this.pcBasis = pcBasis;
+	}
+
+	public PrincipalComponentsResiduals clone() {
+		try {
+			final PrincipalComponentsResiduals result = (PrincipalComponentsResiduals) super.clone();
+			return result;
+		} catch (final CloneNotSupportedException e) {
+			log.reportError("Error - could not clone the residuals");
+			log.reportException(e);
+			return null;
+		}
+	}
+
+	/**
+	 * We trim the double[][] holding the basis vectors to a new number of components, this is so we do not have to keep loading the same pc file
+	 */
+	public static double[][] trimPcBasis(int numComponents, double[][] pcBasis, Logger log) {
+		double[][] trimmed = new double[0][];
+		if (numComponents > pcBasis.length) {
+			log.reportError("Error - we cannot trim the basis vectors to " + numComponents + ", only " + pcBasis.length + " remaining");
+			return trimmed;
+		} else if (numComponents != pcBasis.length) {
+			trimmed = new double[numComponents][];
+			for (int i = 0; i < trimmed.length; i++) {
+				trimmed[i] = pcBasis[i];
+			}
+		} else {
+			log.report("Retaining all components");
+			trimmed = pcBasis;
+		}
+		return trimmed;
+	}
+
+	/**
+	 * @param kFolds
+	 *            the number of chunks to use for training/validation
+	 * @param numComponents
+	 *            the number of components to include, starting from PC 1
+	 * @return the results of each training/validation combination
+	 */
+	public CrossValidation[] crossValidate(int kFolds, int numComponents, boolean svdRegression) {
+		return CrossValidation.kFoldCrossValidate(medians, prepPcs(trimPcBasis(numComponents, pcBasis, log)), kFolds, false, svdRegression, log);
+	}
+
+	/**
+	 * Cross validate a pc file
+	 * 
+	 * @param kFolds
+	 *            the number of chunks to use for training/validation
+	 * @param numComponentsIter
+	 *            the number of components to include, starting from PC 1
+	 * @param numThreads
+	 *            number of threads
+	 * @param tmpOutput
+	 *            report to a temporary file, if null, this will be skipped
+	 * 
+	 * @param tmpOutput
+	 *            val_pcs If another {@linkPrincipalComponentsResiduals} is provided, this file will become the validation set
+	 * @return the results of each training/validation combination
+	 */
+	public CrossValidation[][] crossValidate(int kFolds, int[] numComponentsIter, int numThreads, boolean svdRegression, String tmpOutput, PrincipalComponentsResiduals val_pcs) {
+		if (tmpOutput != null && Files.exists(tmpOutput)) {
+			new File(tmpOutput).delete();
+		}
+		CrossValidation[][] crossValidations = new CrossValidation[numComponentsIter.length][];
+		ExecutorService executor = Executors.newFixedThreadPool(numThreads);// da pool of threads
+		ArrayList<Future<CrossValidation[]>> tmpResults = new ArrayList<Future<CrossValidation[]>>();// stores the future CrossValidation[] that will be actualized once the thread has finished
+		for (int i = 0; i < numComponentsIter.length; i++) {// need to submit the jobs first
+			WorkerPCThread worker = new WorkerPCThread(medians, prepPcs(trimPcBasis(Math.min(numComponentsIter[i], numComponents), pcBasis, log)), kFolds, tmpOutput, svdRegression, val_pcs, log);
+			tmpResults.add(executor.submit(worker));// tracks the future object
+		}
+		for (int i = 0; i < numComponentsIter.length; i++) {
+			try {
+				crossValidations[i] = tmpResults.get(i).get();// get is only applied after the job has finished
+			} catch (InterruptedException e) {
+				log.reportException(e);
+			} catch (ExecutionException e) {
+				log.reportException(e);
+			}
+		}
+		executor.shutdown();
+		try {
+			executor.awaitTermination(7, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			return crossValidations;
+		}
+		return crossValidations;
+	}
+
+	/**
+	 * WorkerThreads which process the validations at each PC requested
+	 */
+
+	private static class WorkerPCThread implements Callable<CrossValidation[]> {
+		private PrincipalComponentsResiduals val_pcs;// can be null
+		private double fullModelR2, fullModelSSerr;
+		private double[] deps;
+		private double[][] indeps;
+		private int kFolds;
+		private boolean svdRegression;
+		private String tmpOutput;
+		private Logger log;
+
+		public WorkerPCThread(double[] deps, double[][] indeps, int kFolds, String tmpOutput, boolean svdRegression, PrincipalComponentsResiduals val_pcs, Logger log) {
+			super();
+			this.deps = deps;
+			this.indeps = indeps;
+			this.kFolds = kFolds;
+			this.tmpOutput = tmpOutput;
+			this.fullModelR2 = Double.NaN;
+			this.fullModelSSerr = Double.NaN;
+			this.svdRegression = svdRegression;
+			this.val_pcs = val_pcs;
+			this.log = log;
+		}
+
+		@Override
+		public CrossValidation[] call() {// acts like run
+			log.report(ext.getTime() + " Info - Starting validations for PC" + indeps[0].length + " on thread" + Thread.currentThread().getName());
+			long time = System.currentTimeMillis();
+			CrossValidation[] crossValidation;
+			if (val_pcs == null) {
+				crossValidation = CrossValidation.kFoldCrossValidate(deps, indeps, kFolds, true, svdRegression, log);
+			} else {
+				// if we cannot trim to a particular number of components, the crossvalidation will fail and will be ignored
+				double[][] val_basis = prepPcs(trimPcBasis(Math.min(indeps[0].length, val_pcs.getNumComponents()), val_pcs.getPcBasis(), log));
+				crossValidation = CrossValidation.kFoldCrossValidateOutSample(deps, indeps, val_pcs.getMedians(), val_basis, kFolds, true, svdRegression, log);
+			}
+			log.report(ext.getTime() + " Info - finished validations for PC" + indeps[0].length + " and took " + ext.getTimeElapsed(time));
+			char S = 'S';
+			computeFullModel();
+			writeToTmpFile(crossValidation, ext.getTimeSince(time, S) + "");
+			return crossValidation;
+		}
+
+		private void computeFullModel() {
+			if (deps.length > indeps[0].length) {
+				RegressionModel model = (RegressionModel) new LeastSquares(deps, indeps, null, false, true, svdRegression);
+				if (!model.analysisFailed()) {
+					fullModelR2 = model.getRsquare();
+					fullModelSSerr = computeFullModelSSerr(model.getResiduals());
+				}
+			}
+		}
+
+		private static double computeFullModelSSerr(double[] residuals) {
+			double SSerr = 0;
+			for (int i = 0; i < residuals.length; i++) {
+				SSerr += Math.pow(residuals[i], 2);
+			}
+			return SSerr;
+		}
+
+		/**
+		 * We write to a temporary file so we can monitor progress
+		 */
+		private void writeToTmpFile(CrossValidation[] crossValidation, String time) {
+			if (tmpOutput != null) {
+				if (!Files.exists(tmpOutput)) {
+					Files.write(Array.toStr(MT_RESIDUAL_CROSS_VALIDATED_REPORT), tmpOutput);
+				}
+				try {
+					PrintWriter writer = new PrintWriter(new FileWriter(tmpOutput, true));
+					writer.println(ext.getTime() + "\t" + time + "\t" + indeps[0].length + "\t" + CrossValidation.getEstimateError(crossValidation) + "\t" + CrossValidation.getAverageR2(crossValidation) + "\t" + CrossValidation.getAverageSEbetas(crossValidation) + "\t" + fullModelR2 + "\t" + fullModelSSerr);
+					writer.close();
+				} catch (Exception e) {
+					System.err.println("Error writing to " + tmpOutput);
+					System.err.println(e);
+				}
+			}
+		}
+	}
 }
