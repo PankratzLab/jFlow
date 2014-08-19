@@ -1,12 +1,12 @@
 package cnv.analysis.pca;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import cnv.filesys.MarkerData;
@@ -14,8 +14,10 @@ import cnv.filesys.Project;
 import cnv.filesys.SampleList;
 import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
+import common.Aliases;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.ext;
 import ejml.CommonOps;
@@ -36,7 +38,7 @@ public class PrincipalComponentsCompute {
 	public static final String PC_STRING = "PC";
 	public static final String[] SAMPLE = { "sample", "FID", "IID" };
 	public static final String MARKER = "markerName";
-	private static final String[] MARKER_REPORT_SMALL = { "Marker", "Used for PCA (Did not contain NaN values)" };
+	private static final String[] MARKER_REPORT_SMALL = { "Marker", "Used for PCA (Contains at least one value that is not NaN)" };
 	private static final String SV_STRING = "Singular Value";
 	// principle component subspace is stored in the rows
 	private DenseMatrix64F V_t;
@@ -197,20 +199,34 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return the PrincipalComponentsCompute object with PCs computed
 	 */
-	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, String useFile, String output, Logger log) {
-		boolean[] samplesToUse = getSamples(proj, excludeSamples, useFile, log);
-		String[] markers = getMarkers(proj, log);
+	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, String useFile, String output) {
+		Logger log = proj.getLog();
+		boolean[] samplesToUse = getSamples(proj, excludeSamples, useFile);
+		String[] markers = getMarkers(proj);
+		int numSamples = Array.booleanArraySum(samplesToUse);
+		
+		if (numComponents > numSamples) {
+			log.reportError("Error - cannot request more principal components (n="+numComponents+") than there are valid samples (n="+numSamples+")");
+			return null;
+		}
+
+		if (numComponents > markers.length) {
+			log.reportError("Error - cannot request more principal components (n="+numComponents+") than there are markers (n="+markers.length+")");
+			return null;
+		}
+		
 		// deals with NaN on the fly
-		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, output, log);
+		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, output);
 		PrincipalComponentsCompute pcs = getPrincipalComponents(numComponents, center, dataToUse, log);
 		double[][] pcsBasis = getPCs(pcs, numComponents, log);
-		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis, log);
+		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
 		if (reportMarkerLoadings) {
-			reportLoadings(proj, pcs, dataToUse, pcsBasis, markers, output, log);
+			reportLoadings(proj, pcs, dataToUse, pcsBasis, markers, output);
 		}
 		if (reportSingularValues) {
-			reportSingularValues(proj, pcs, output, log);
+			reportSingularValues(proj, pcs, output);
 		}
+		
 		return pcs;
 	}
 
@@ -270,22 +286,24 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return  boolean[] of all samples in the project
 	 */
-	public static boolean[] getSamples(Project proj, boolean excludeSamples, String useFile, Logger log) {
+	public static boolean[] getSamples(Project proj, boolean excludeSamples, String useFile) {
 		if (useFile == null) {
-			return getSamples(proj, excludeSamples, log);
+			return getSamples(proj, excludeSamples);
 		}
 		if (!Files.exists(proj.getProjectDir() + useFile)) {
-			log.reportError("Error -could not find the file of samples to use " + proj.getProjectDir() + useFile);
+			proj.getLog().reportError("Error - could not find the file of samples to use " + proj.getProjectDir() + useFile);
 			return null;
 		} else {
-			return getSamplesFromFile(proj, proj.getProjectDir() + useFile, log);
+			return getSamplesFromFile(proj, proj.getProjectDir() + useFile);
 		}
 	}
 
-	private static boolean[] getSamples(Project proj, boolean excludeSamples, Logger log) {
+	private static boolean[] getSamples(Project proj, boolean excludeSamples) {
 		SampleList sampleList = proj.getSampleList();
 		String[] samples = sampleList.getSamples();
 		boolean[] samplesToUse = new boolean[samples.length];
+		Logger log = proj.getLog();
+		
 		if (!proj.getSampleData(1, false).hasExcludedIndividuals() && excludeSamples) {
 			log.reportError("Error - cannot exclude individuals for PCA , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
 			return null;
@@ -298,22 +316,25 @@ public class PrincipalComponentsCompute {
 					use++;
 				}
 			}
-			log.report("Computing PCAs using " + use + " samples");
+			log.report("Computing PCs using " + use + " samples");
 		} else {
-			log.report("Computing PCAs using " + samples.length + " samples");
+			log.report("Computing PCs using all " + samples.length + " samples");
 			Arrays.fill(samplesToUse, true);
 		}
+		
 		return samplesToUse;
 	}
 
 	// can return null
-	private static boolean[] getSamplesFromFile(Project proj, String useFile, Logger log) {
+	private static boolean[] getSamplesFromFile(Project proj, String useFile) {
 		SampleData sampleData = proj.getSampleData(0, false);
-		String[] samplesToUseFromFile = loadToArray(useFile, log);
+		Logger log = proj.getLog();
+		String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, new int[] {0}, true);
 		String[] projSamples = proj.getSampleList().getSamples();
 		boolean[] samplesToUse = new boolean[projSamples.length];
 		Hashtable<String, Boolean> track = new Hashtable<String, Boolean>();
 		int used = 0;
+		
 		for (int i = 0; i < samplesToUseFromFile.length; i++) {
 			if (sampleData.lookup(samplesToUseFromFile[i]) != null) {
 				track.put(sampleData.lookup(samplesToUseFromFile[i])[0], true);
@@ -334,35 +355,14 @@ public class PrincipalComponentsCompute {
 			log.reportError("Error - " + used + " " + (used > 1 ? "samples were " : "sample was ") + " not found in the sample data file " + proj.getProperty(Project.SAMPLE_DATA_FILENAME));
 			return null;
 		}
-		log.report(ext.getTime() +" Using " + used + " samples");
+		log.report(ext.getTime() +" Using the " + used + " samples in the project"+(useFile != null?" that were also in the useFile":""));
+		
 		return samplesToUse;
 	}
 
-	/**
-	 * We do not split the columns in case FID\tIID is used
-	 * @param file
-	 * @param log
-	 * @return
-	 */
-	public static String[] loadToArray(String file, Logger log) {
-		ArrayList<String> al = new ArrayList<String>();
-		try {
-			BufferedReader reader = Files.getReader(file, false, true, false);
-			while (reader.ready()) {
-				al.add(reader.readLine().trim());
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + file + "\" not found in current directory");
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + file + "\"");
-		}
-		return al.toArray(new String[al.size()]);
-	}
-
 	// this version only supports target markers, and it takes them all
-	private static String[] getMarkers(Project proj, Logger log) {
-		String[] markers = proj.getTargetMarkers(log);
+	private static String[] getMarkers(Project proj) {
+		String[] markers = proj.getTargetMarkers();
 		return sortByProjectMarkers(proj, markers);
 	}
 
@@ -373,19 +373,30 @@ public class PrincipalComponentsCompute {
 	 * @return
 	 */
 	public static String[] sortByProjectMarkers(Project proj, String[] markers) {
-		String[] projectMarkers = proj.getMarkerNames();
-		String[] sorted = new String[markers.length];
-		Hashtable<String, Boolean> tracker = new Hashtable<String, Boolean>();
+		String[] projectMarkers, sorted;
+		HashSet<String> tracker;
+		int index;
+
+		projectMarkers = proj.getMarkerNames();
+		tracker = new HashSet<String>();
+
 		for (int i = 0; i < markers.length; i++) {
-			tracker.put(markers[i], true);
+			if (ext.indexOfStr(markers[i], Aliases.MARKER_NAMES) == -1) {
+				tracker.add(markers[i]);
+			}
 		}
-		int index = 0;
+
+		index = 0;
+		sorted = new String[tracker.size()];
 		for (int i = 0; i < projectMarkers.length; i++) {
-			if (tracker.containsKey(projectMarkers[i])) {
+			if (tracker.contains(projectMarkers[i])) {
 				sorted[index] = projectMarkers[i];
+				tracker.remove(projectMarkers[i]);
 				index++;
 			}
 		}
+		
+		
 		return sorted;
 	}
 
@@ -416,18 +427,20 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return
 	 */
-	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, String output, Logger log) {
+	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, String output) {
 		double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers, new Logger());
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		boolean[] markerUsed = new boolean[markers.length];
+		Logger log = proj.getLog();
+		
 		Arrays.fill(markerUsed, true);
 		for (int i = 0; i < markers.length; i++) {
 			float[][] data = new float[1][dataToUse[0].length];
-			if (i % 100 == 0) {
+			if (i % 1000 == 0) {
 				float usedMemory =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
 				float maxMemory =Runtime.getRuntime().maxMemory();
-				log.report(ext.getTime() + " Free memory: " + ((float) (100 * freeMemory/maxMemory)) + "%");
+				log.report(ext.getTime() + "\tData loaded = "+Math.round(((double)i/(double)markers.length*100.0))+"%\tFree memory: " + Math.round(((double)freeMemory/(double)maxMemory*100.0)) + "%");
 			}
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			data[0] = markerData.getLRRs();
@@ -457,7 +470,7 @@ public class PrincipalComponentsCompute {
 			}
 			markerDataLoader.releaseIndex(i);
 		}
-		reportMarkersUsed(proj, markers, markerUsed, dataToUse, printFullData, samplesToUse, output, log);
+		reportMarkersUsed(proj, markers, markerUsed, dataToUse, printFullData, samplesToUse, output);
 		return dataToUse;
 	}
 
@@ -509,8 +522,10 @@ public class PrincipalComponentsCompute {
 		return use;
 	}
 
-	private static void reportMarkersUsed(Project proj, String[] markers, boolean[] markerUsed, double[][] dataToUse, boolean printFullData, boolean[] samplesToUse, String output, Logger log) {
+	private static void reportMarkersUsed(Project proj, String[] markers, boolean[] markerUsed, double[][] dataToUse, boolean printFullData, boolean[] samplesToUse, String output) {
 		String markersUsedForPCA = proj.getProjectDir() + ext.rootOf(output) + OUTPUT_EXT[1];
+		Logger log = proj.getLog();
+		
 		try {
 			if (Files.exists(markersUsedForPCA)) {
 				Files.backup(ext.rootOf(output) + OUTPUT_EXT[1], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
@@ -564,7 +579,9 @@ public class PrincipalComponentsCompute {
 		writer.println();
 	}
 
-	public static void reportSingularValues(Project proj, PrincipalComponentsCompute pcs, String output, Logger log) {
+	public static void reportSingularValues(Project proj, PrincipalComponentsCompute pcs, String output) {
+		Logger log = proj.getLog();
+		
 		output = ext.rootOf(output)  + OUTPUT_EXT[3];
 		pcs.setSingularValuesFile(output);
 		try {
@@ -593,7 +610,9 @@ public class PrincipalComponentsCompute {
 	/**
 	 * Report the marker loadings for the corresponding components, instead of storing loadings in memory, we track the related file
 	 */
-	private static void reportLoadings(Project proj, PrincipalComponentsCompute pcs, double[][] dataToUse, double[][] pcsBasis, String[] markers, String output, Logger log) {
+	private static void reportLoadings(Project proj, PrincipalComponentsCompute pcs, double[][] dataToUse, double[][] pcsBasis, String[] markers, String output) {
+		Logger log = proj.getLog();
+		
 		output = ext.rootOf(output)  + OUTPUT_EXT[2];
 		pcs.setMarkerLoadingFile(output);
 		try {
@@ -664,15 +683,17 @@ public class PrincipalComponentsCompute {
 		return pcsBasis;
 	}
 
-	private static double[][] reportPCs(Project proj, PrincipalComponentsCompute pcs, int numComponents, String output, boolean[] samplesToUse, double[][] pcsBasis, Logger log) {
+	private static double[][] reportPCs(Project proj, PrincipalComponentsCompute pcs, int numComponents, String output, boolean[] samplesToUse, double[][] pcsBasis) {
 		SampleData sampleData = proj.getSampleData(0, false);
+		Logger log = proj.getLog();
+		
 		output = ext.rootOf(output)  + OUTPUT_EXT[0];
 		pcs.setPcFile(output);
 		try {
 			if (Files.exists(proj.getProjectDir() + output)) {
 				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
 			}
-			log.report(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
+			log.report(ext.getTime() + " Free memory: " + Math.round(((double)Runtime.getRuntime().freeMemory() / (double)Runtime.getRuntime().totalMemory() * 100.0)) + "%");
 			log.report(ext.getTime() + " Reporting top " + numComponents + " PCs");
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + output));
 			String[] samples = proj.getSampleList().getSamples();

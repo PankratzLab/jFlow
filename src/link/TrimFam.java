@@ -291,7 +291,7 @@ public class TrimFam {
 	}
 
 	public TrimFam(Vector<String> preinfo) {
-		this(preinfo, true, false, true, DEFAULT_NAMING_SCHEME, 0, false, false, new Logger(null));
+		this(preinfo, true, false, true, DEFAULT_NAMING_SCHEME, 0, false, false, new Logger());
 	}
 
 	public TrimFam(Vector<String> preinfo, boolean deleteSinglets, boolean unrelatedsOnly, boolean canRename, int scheme, int favorGeneration, boolean listGeneration, boolean allowMissingIndividuals, Logger logger) {
@@ -793,7 +793,7 @@ public class TrimFam {
 		pre.add("70504	71	103	104	2	2	1");
 
 		try {
-			v = new TrimFam(pre, false, false, false, DEFAULT_NAMING_SCHEME, 0, false, false, new Logger(null)).getExtendedFamilyInformation();
+			v = new TrimFam(pre, false, false, false, DEFAULT_NAMING_SCHEME, 0, false, false, new Logger()).getExtendedFamilyInformation();
 			for (int i = 0; i<v.size(); i++) {
 				System.out.println(v.elementAt(i));
 			}

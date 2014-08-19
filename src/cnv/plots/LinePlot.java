@@ -83,12 +83,15 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	Logger log;
 
 	public LinePlot() {
-		this(null, new Logger());
+		this(null);
 	}
 
-	public LinePlot(Project project, Logger log) {
+	public LinePlot(Project project) {
 		String[] previouslyLoadedFiles;
-		this.log = log;
+		
+		this.log = proj.getLog();
+		log.report("Creating new Line Plot object");
+
 		proj = project;
 		treeFilenameLookup = new Vector<String>();
 		// TODO Need to save the previously loaded files in other location.
@@ -109,7 +112,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		}
 		setLayout(new BorderLayout());
 
-		linePanel = new LinePanel(this, log);
+		linePanel = new LinePanel(this);
 
 		layeredPane = new JLayeredPane();
 		layeredPane.setLayout(new BorderLayout());
@@ -835,7 +838,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	 * @param log
 	 *            {@link Logger} a logger
 	 */
-	public static void createAndShowGUI(Project proj, Logger log) {
+	public static void createAndShowGUI(Project proj) {
 
 		// Create and set up the window.
 //		JFrame frame = new JFrame("Line Plot");
@@ -843,8 +846,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		// Create and set up the content pane.
-		log.report("Creating new Line Plot object");
-		LinePlot twoDPlot = new LinePlot(proj, log);
+		LinePlot twoDPlot = new LinePlot(proj);
 		frame.setJMenuBar(twoDPlot.menuBar());
 		twoDPlot.setOpaque(true); // content panes must be opaque
 		frame.setContentPane(twoDPlot);
@@ -882,7 +884,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(), false), new Logger());
+				createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
 			}
 		});
 

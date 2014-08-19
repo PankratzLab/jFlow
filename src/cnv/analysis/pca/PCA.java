@@ -1,7 +1,6 @@
 package cnv.analysis.pca;
 
 import cnv.filesys.Project;
-import common.Logger;
 import common.ext;
 
 /**
@@ -38,8 +37,8 @@ public class PCA {
 	 * @param log
 	 * @return
 	 */
-	public static PrincipalComponentsCompute computePrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, String useFile, String output, Logger log) {
-		return PrincipalComponentsCompute.getPrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, reportMarkerLoadings, reportSingularValues, imputeMeanForNaN, useFile, output, log);
+	public static PrincipalComponentsCompute computePrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, String useFile, String output) {
+		return PrincipalComponentsCompute.getPrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, reportMarkerLoadings, reportSingularValues, imputeMeanForNaN, useFile, output);
 	}
 
 	/**
@@ -56,10 +55,10 @@ public class PCA {
 	 * @param log
 	 * @return
 	 */
-	public static PrincipalComponentsApply applyLoadings(Project proj, int numComponents, String singularFile, String markerLoadingFile, String useFile, boolean excludeSamples, boolean imputeMeanForNaN, String output, Logger log) {
+	public static PrincipalComponentsApply applyLoadings(Project proj, int numComponents, String singularFile, String markerLoadingFile, String useFile, boolean excludeSamples, boolean imputeMeanForNaN, String output) {
 		//first retrieve the samples to apply marker loadings to
-		boolean[] samplesToUse = PrincipalComponentsCompute.getSamples(proj, excludeSamples, useFile, log);
-		PrincipalComponentsApply pcApply = new PrincipalComponentsApply(proj, numComponents, singularFile, markerLoadingFile, samplesToUse, imputeMeanForNaN, log);
+		boolean[] samplesToUse = PrincipalComponentsCompute.getSamples(proj, excludeSamples, useFile);
+		PrincipalComponentsApply pcApply = new PrincipalComponentsApply(proj, numComponents, singularFile, markerLoadingFile, samplesToUse, imputeMeanForNaN);
 		pcApply.applyLoadings();
 		pcApply.reportExtropolatedPCs(ext.rootOf(output) + FILE_EXTs[0]);
 		return pcApply;
@@ -84,8 +83,8 @@ public class PCA {
 	 * @param log
 	 * @return
 	 */
-	public static PrincipalComponentsResiduals computeResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, String output, Logger log) {
-		PrincipalComponentsResiduals pcResids = new PrincipalComponentsResiduals(proj, pcFile, markersToAssessFile, numComponents, printFull, gcThreshold, homozygousOnly, ext.rootOf(output), log);
+	public static PrincipalComponentsResiduals computeResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, String output) {
+		PrincipalComponentsResiduals pcResids = new PrincipalComponentsResiduals(proj, pcFile, markersToAssessFile, numComponents, printFull, gcThreshold, homozygousOnly, ext.rootOf(output));
 		pcResids.computeAssesmentDataMedians();
 		pcResids.computeResiduals();
 		pcResids.computeInverseTransformResiduals();
@@ -279,16 +278,15 @@ public class PCA {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		Project proj = new Project(filename, false);
-		Logger log = new Logger(proj.getProjectDir() + logfile, false);
-
+		Project proj = new Project(filename, logfile, false);
+		
 		if (applyLoadings) {
-			applyLoadings(proj, numComponents, singularValueFile, markerLoadingFile, useFile, excludeSamples, imputeMeanForNaN, evalOut, log);
+			applyLoadings(proj, numComponents, singularValueFile, markerLoadingFile, useFile, excludeSamples, imputeMeanForNaN, evalOut);
 		} else if (computeResiduals) {
-			computeResiduals(proj, pcFile, markersToassessFile, numComponents, printFullData, gcThreshold, homozygousOnly, evalOut, log);
+			computeResiduals(proj, pcFile, markersToassessFile, numComponents, printFullData, gcThreshold, homozygousOnly, evalOut);
 		} else {
-			PrincipalComponentsCompute pc = computePrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, true, true, imputeMeanForNaN, useFile, evalOut, log);
-			applyLoadings(proj, numComponents, pc.getSingularValuesFile(), pc.getMarkerLoadingFile(), useApplyfile, excludeSamples, imputeMeanForNaN, evalOut, log);
+			PrincipalComponentsCompute pc = computePrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, true, true, imputeMeanForNaN, useFile, evalOut);
+			applyLoadings(proj, numComponents, pc.getSingularValuesFile(), pc.getMarkerLoadingFile(), useApplyfile, excludeSamples, imputeMeanForNaN, evalOut);
 
 		}
 	}

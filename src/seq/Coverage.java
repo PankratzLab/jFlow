@@ -21,7 +21,7 @@ public class Coverage {
         int fileIndex;
         
         files = Files.list(dir, ".txt", false);
-        ext.checkHeader(Files.getHeaderOfFile(filename, "\t", new Logger(null)), new String[] {"Sample", "Chr", "Position"}, new int[] {0,1,2}, false, new Logger(null), true);
+        ext.checkHeader(Files.getHeaderOfFile(filename, "\t", new Logger()), new String[] {"Sample", "Chr", "Position"}, new int[] {0,1,2}, false, new Logger(), true);
         variants = HashVec.loadFileToStringArray(filename, true, new int[] {0,1,2}, false);
         
         hashes = new Hashtable<String,Hashtable<String,String>>();

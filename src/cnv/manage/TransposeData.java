@@ -42,7 +42,7 @@ public class TransposeData {
 	 * Genvisis_TransposeData_yyyyMMdd_HHmmss.log will be used.
 	 */
 	@SuppressWarnings("unchecked")
-	public static void transposeData(Project proj, long markerFileSizeSuggested, boolean keepAllSampleFilesOpen, Logger log) {
+	public static void transposeData(Project proj, long markerFileSizeSuggested, boolean keepAllSampleFilesOpen) {
 		boolean isFileClosed;
 		boolean done; // safe;
 		byte nullStatus = 0;
@@ -85,10 +85,9 @@ public class TransposeData {
 		SimpleDateFormat timeFormat;
 		RandomAccessFile sampleFile;
 		RandomAccessFile[] sampleFiles = null;
+		Logger log;
 
-        if (log == null) {
-			log = new Logger(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false) + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-		}
+		log = proj.getLog();
 		log.report("Transposing data for the project in " + proj.getProjectDir());
 
 		timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -131,7 +130,7 @@ public class TransposeData {
 				countTotalChunks_writeBuffer = countTotalChunks_MarkerFile;
 				markerFilenames = new String[numFiles];
 				markersInEachFile = new byte[numFiles][];
-				backupCount = backupOlderFiles(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false), new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, true);
+				backupCount = backupOlderFiles(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, false), new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, true);
 				backupOlderFile(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false), backupCount);
 				log.report( "--\nProject:\t" + allMarkerNamesInProj.length + " markers\t" + allSampleNamesInProj.length +" samples"
 						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
@@ -288,7 +287,7 @@ public class TransposeData {
 				e.printStackTrace();
 			} catch (OutOfMemoryError oome) {
 				numMarkers_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numMarkers_WriteBuffer, -1);
-				deleteOlderRafs(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false), null, new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
+				deleteOlderRafs(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, false), null, new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -436,7 +435,7 @@ public class TransposeData {
 	 * Genvisis_TransposeData_yyyyMMdd_HHmmss.log will be used.
 	 */
 	@SuppressWarnings("unchecked")
-	public static void reverseTranspose(Project proj, Logger log) {
+	public static void reverseTranspose(Project proj) {
 //		boolean isCurrentOutFileComplete;
 		boolean done; // safe;
 		byte nullStatus = 0;
@@ -462,11 +461,9 @@ public class TransposeData {
 		String[] markerDataRafFilenames;
 		SimpleDateFormat timeFormat;
 		String markerFile;
+		Logger log;
 
-        if (log == null) {
-//        	log = Files.generateLogFileName(isSampToMarkConversion? proj.getDir(Project.MARKER_DATA_DIRECTORY, true, new Logger(), false) : proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false));
-        	log = proj.generateLog();
-		}
+		log = proj.getLog();
         log.report("Reverse transposing data for the project in " + proj.getProjectDir());
 
         timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -491,7 +488,7 @@ public class TransposeData {
 			try {
 				numRoundsLoadingMarkerFiles = (int) Math.ceil((double)listOfAllSamplesInProj.length / (double)numSamples_WriteBuffer);
 				numMarkers_LastRound = listOfAllSamplesInProj.length % numSamples_WriteBuffer;
-				backupOlderFiles(proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false), new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, true);
+				backupOlderFiles(proj.getDir(Project.SAMPLE_DIRECTORY, true, false), new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, true);
 				log.report( "--\nProject:\t" + listOfAllMarkersInProj.length + " markers\t" + listOfAllSamplesInProj.length +" samples"
 						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
 						  + "\nwriteBuffer:\t" + numSamples_WriteBuffer + " samples\t" + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp / (double)Runtime.getRuntime().maxMemory() * 100, 1) + "% heap efficiency");
@@ -571,7 +568,7 @@ public class TransposeData {
 				e.printStackTrace();
 			} catch (OutOfMemoryError oome) {
 				numSamples_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numSamples_WriteBuffer, -1);
-				deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true, new Logger(), false), null, new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
+				deleteOlderRafs(proj.getDir(Project.SAMPLE_DIRECTORY, true, false), null, new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1125,7 +1122,7 @@ public class TransposeData {
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		boolean transpose = false;
 		boolean reversetranspose = false;
 		boolean keepFilesOpen = false;
@@ -1134,7 +1131,7 @@ public class TransposeData {
 
 		String usage = "\n"+
 		"TransposeData requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj=" + filename + " (default))\n" +
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) transpose data (i.e. -transpose (" + (transpose? "" : "not the ") + "default))\n" +
 		"   (3) keep all files open at once (i.e. -keepFilesOpen (" + (keepFilesOpen? "" : "not the ") + "default; not recommended usually allowed on linux servers))\n" +
 		"   (4) maximum size of each file in bytes (i.e. max=" + maxFileSize + " (default))\n" +
@@ -1183,9 +1180,9 @@ public class TransposeData {
 //		lookup = true;
 		try {
 			if (transpose) {
-				transposeData(proj, maxFileSize, keepFilesOpen, null);
+				transposeData(proj, maxFileSize, keepFilesOpen);
 			} else if (reversetranspose) {
-				reverseTranspose(proj, null);
+				reverseTranspose(proj);
 			} else if (lookup) {
 				recreateMarkerLookup(proj);
 			} else {

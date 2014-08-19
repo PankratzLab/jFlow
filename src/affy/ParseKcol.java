@@ -5,7 +5,6 @@ import java.util.*;
 
 import javax.swing.JOptionPane;
 
-import cnv.Launch;
 import cnv.filesys.ABLookup;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
@@ -668,7 +667,7 @@ public class ParseKcol implements Runnable {
 
 		// markerNames = Array.toStringArray(markerNameHash);
 		markerNames = Array.toStringArray(alNames);
-		keys = Markers.orderMarkers(markerNames, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true));
+		keys = Markers.orderMarkers(markerNames, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true), proj.getLog());
 		if (keys == null) {
 			return;
 		}
@@ -729,7 +728,7 @@ public class ParseKcol implements Runnable {
 		char[][] lookup;
 
 		if (abLookupRequired && Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
-			abLookup = new ABLookup(markerNames, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, false);
+			abLookup = new ABLookup(markerNames, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, false, proj.getLog());
 			lookup = abLookup.getLookup();
 			if (lookup == null) {
 				System.err.println("Warning - filed to provide columns \"" + GENOTYPE_FIELDS[2][0] + "\" / \"" + GENOTYPE_FIELDS[3][0] + "\" and the specificed AB_lookup file '" + proj.getProperty(Project.AB_LOOKUP_FILENAME) + "' does not exist; you'll need reconstruct the B allele for analysis");
@@ -757,7 +756,7 @@ public class ParseKcol implements Runnable {
 
 		System.out.println("Parsing files using the Long Format algorithm");
 
-		Markers.orderMarkers(null, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true));
+		Markers.orderMarkers(null, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true), proj.getLog());
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		fingerprint = proj.getMarkerSet().getFingerprint();
@@ -1142,7 +1141,7 @@ public class ParseKcol implements Runnable {
 				} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 
 				snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
-				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, new Logger(null), false, false);
+				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(), false, false);
 
 				while (reader.ready()) {
 					line = reader.readLine().split(delimiter);
@@ -1268,7 +1267,7 @@ public class ParseKcol implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		boolean map = false;
 		int numThreads = 1;
 		// boolean parseABlookup = false;
@@ -1276,10 +1275,18 @@ public class ParseKcol implements Runnable {
 		boolean combineChpFiles = false;
 		String mapOutput = "filenamesMappedToSamples.txt";
 
-		String usage = "\n" + "cnv.manage.ParseKcol requires 0-1 arguments\n" + "   (1) project file (i.e. proj=" + filename + " (default))\n" + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n" + " OPTIONAL:\n" + "   (3) map filenames to sample IDs (i.e. -mapFiles (" + (map ? "" : "not the ") + "default))\n" + "   (4) output file for mappings (i.e. out=" + mapOutput + " (default))\n" +
+		String usage = "\n" + 
+		"cnv.manage.ParseKcol requires 0-1 arguments\n" + 
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n" + 
+		" OPTIONAL:\n" + 
+		"   (3) map filenames to sample IDs (i.e. -mapFiles (" + (map ? "" : "not the ") + "default))\n" + 
+		"   (4) output file for mappings (i.e. out=" + mapOutput + " (default))\n" +
 		// " OR:\n"+
 		// "   (1) parse AB lookup (i.e. --parseAB (not the default))\n"+
-		" OR:\n" + "   (1) parse Forward/TOP/AB/etc lookup (i.e. --parseAlleleLookup (not the default))\n" + "";
+		" OR:\n" + 
+		"   (1) parse Forward/TOP/AB/etc lookup (i.e. --parseAlleleLookup (not the default))\n" + 
+		"";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {

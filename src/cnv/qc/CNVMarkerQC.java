@@ -41,7 +41,7 @@ public class CNVMarkerQC implements Runnable {
 		// TODO is loading in a separate thread within a separate thread a good thing or bad
 		// TODO add sex specific calculation, and include/exclude from sampleData
 
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, new Logger());
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 		for (int i = 0; i < markerNames.length; i++) {
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			mafs[i] = markerData.getMAF(samplesToBeUsed, null, null, 0);
@@ -49,22 +49,22 @@ public class CNVMarkerQC implements Runnable {
 		}
 	}
 
-	public static void computeMAFs(Project proj, int threads, boolean excludeSamples, String outputSer, Logger log) {
+	public static void computeMAFs(Project proj, int threads, boolean excludeSamples, String outputSer) {
 		MarkerLookup markerLookup = proj.getMarkerLookup();
 		MarkerSet markerSet = proj.getMarkerSet();
 		SampleData sampleData = proj.getSampleData(2, false);
 		String[] markerNames = markerSet.getMarkerNames();
 		Hashtable<String, ArrayList<String>> markerFiles = assignFiles(markerLookup, markerNames);
 		ArrayList<ArrayList<String>> cabinet = getcabinet(markerFiles, threads);
-		boolean[] samplesToBeUsed = getSamplesToBeUsed(proj, excludeSamples, sampleData, log);
+		boolean[] samplesToBeUsed = getSamplesToBeUsed(proj, excludeSamples, sampleData);
 		CNVMarkerQC[] markerFrequencies = computeFileMAFS(proj, threads, cabinet, samplesToBeUsed);
-		double[] mafs = summarize(proj, markerFrequencies, markerNames, log);
+		double[] mafs = summarize(proj, markerFrequencies, markerNames);
 		new MarkerFreqs(mafs, markerSet.getFingerprint()).serialize(proj.getProjectDir() + outputSer);
 	}
 
 
-	private static boolean[] getSamplesToBeUsed(Project proj, boolean excludeSamples, SampleData sampleData, Logger log) {
-		boolean doExclude = shouldExclude(proj, excludeSamples, sampleData, log);
+	private static boolean[] getSamplesToBeUsed(Project proj, boolean excludeSamples, SampleData sampleData) {
+		boolean doExclude = shouldExclude(proj, excludeSamples, sampleData);
 		if (!doExclude) {
 			return null;
 		} else {
@@ -77,20 +77,20 @@ public class CNVMarkerQC implements Runnable {
 		}
 	}
 
-	private static boolean shouldExclude(Project proj, boolean excludeSamples, SampleData sampleData, Logger log) {
+	private static boolean shouldExclude(Project proj, boolean excludeSamples, SampleData sampleData) {
 		boolean doExclude = false;
 		if (!excludeSamples) {
 			doExclude = false;
 		} else if (sampleData != null && sampleData.hasExcludedIndividuals()) {
 			doExclude = true;
 		} else {
-			log.reportError("Error - cannot exclude individuals for MAF computation , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
+			proj.getLog().reportError("Error - cannot exclude individuals for MAF computation, no factor named 'Exclude/CLASS=Exclude' in Sample Data");
 			System.exit(1);
 		}
 		return doExclude;
 	}
 
-	private static double[] summarize(Project proj, CNVMarkerQC[] markerFrequencies, String[] markerNames, Logger log) {
+	private static double[] summarize(Project proj, CNVMarkerQC[] markerFrequencies, String[] markerNames) {
 		Hashtable<String, Double> mafBuilder = new Hashtable<String, Double>();
 		double[] mafs = new double[markerNames.length];
 		for (int i = 0; i < markerFrequencies.length; i++) {
@@ -104,7 +104,7 @@ public class CNVMarkerQC implements Runnable {
 			if (mafBuilder.containsKey(markerNames[i])) {
 				mafs[i] = mafBuilder.get(markerNames[i]);
 			} else {
-				log.reportError("Error - could not find marker " + markerNames[i] + ", this should not happen");
+				proj.getLog().reportError("Error - could not find marker " + markerNames[i] + ", this should not happen");
 				System.exit(1);
 			}
 		}
@@ -221,13 +221,13 @@ public class CNVMarkerQC implements Runnable {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			Logger log = new Logger(proj.getProjectDir() + "CNVMarkerQCLog.txt");
+			proj.setLog(new Logger(proj.getProjectDir() + "CNVMarkerQCLog.txt"));
 			if (!convert) {
-				computeMAFs(proj, numThreads, excludeSamples, markerFreqSer, log);
+				computeMAFs(proj, numThreads, excludeSamples, markerFreqSer);
 			// currently always output .txt format as well since it is small
-				MarkerFreqs.exportToText(filename, markerFreqSer, markerFreqTxt, log);
+				MarkerFreqs.exportToText(filename, markerFreqSer, markerFreqTxt);
 			} else {
-				MarkerFreqs.convertMarkerFreqsFromTxt(proj, markerFreqTxt, markerFreqSer, log);
+				MarkerFreqs.convertMarkerFreqsFromTxt(proj, markerFreqTxt, markerFreqSer);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

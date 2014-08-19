@@ -1786,7 +1786,7 @@ public class Mach {
 				if (intEx || splitByRegion >= 0) {
 					extractIntermediate(extract, splitByRegion, doseFormat, infoFormat);
 				} else {
-					extractSpecificMarkers("", extract, doseFormat, infoFormat, true, new Logger(null));
+					extractSpecificMarkers("", extract, doseFormat, infoFormat, true, new Logger());
 				}
 			} else if (!database.equals("")) {
 				createDatabase(database);

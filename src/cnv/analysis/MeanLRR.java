@@ -12,7 +12,7 @@ import filesys.Segment;
 import stats.*;
 
 public class MeanLRR {
-	public static void createFilesFromFullSample(Project proj, String regionsFile, Logger log) {
+	public static void createFilesFromFullSample(Project proj, String regionsFile) {
 		PrintWriter writer;
 		MarkerSet markerSet;
 		SampleList sampleList;
@@ -32,7 +32,9 @@ public class MeanLRR {
 		Hashtable<String, String> hash;
 		int[][] markerChrIndices;
 		boolean[] transChrs;
+		Logger log;
 		
+		log = proj.getLog();
 		log.report("Computing LRR values from FullSample. While this is slower, it allows for additional columns containing normalized values.");
 		
 		markerSet = proj.getMarkerSet();
@@ -112,7 +114,7 @@ public class MeanLRR {
 		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, Transforms.TRANFORMATIONS).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
 	}
 	
-	public static void createFilesFromMarkerData(Project proj, String regionsFile, Logger log) {
+	public static void createFilesFromMarkerData(Project proj, String regionsFile) {
 		PrintWriter writer;
 		MarkerSet markerSet;
 		SampleList sampleList;
@@ -128,7 +130,9 @@ public class MeanLRR {
 		Hashtable<String, String> hash;
 		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
+		Logger log;
 		
+		log = proj.getLog();		
 		log.report("Computing LRR values from MarkerData. This is faster, but does not allow for additional columns containing normalized values.");
 		
 		markerSet = proj.getMarkerSet();
@@ -166,7 +170,7 @@ public class MeanLRR {
 				numberOfMarkers[i] = markerNames.length;
 				writer.println(regions[i].getUCSClocation()+"\t"+markerNames.length+"\t"+regions[i].getChr()+"\t"+regions[i].getStart()+"\t"+regions[i].getStop()+"\t"+Array.toStr(markerNames));
 				log.report("Computing mean Log R ratios for: "+regions[i].getUCSClocation());
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 				counts = new int[samples.length];
 				for (int j = 0; j < markerNames.length; j++) {
 					markerData = markerDataLoader.requestMarkerData(j);
@@ -195,7 +199,7 @@ public class MeanLRR {
 		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, new String[] {Transforms.TRANFORMATIONS[0]}).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
 	}
 
-	public static void analyze(Project proj, String phenotype, String mlrrSetFile, Logger log) {
+	public static void analyze(Project proj, String phenotype, String mlrrSetFile) {
         PrintWriter writer;
 		MeanLRRset mlrrSet;
 		float[][][] data;
@@ -207,7 +211,9 @@ public class MeanLRR {
 		Hashtable<String, String> hash;
 		double[] pheno;
 		String phen;
+		Logger log;
 		
+		log = proj.getLog();		
 		hash = HashVec.loadFileToHashString(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenotype}, "");
 		sampleList = proj.getSampleList(); 
 		samples = sampleList.getSamples();
@@ -259,7 +265,7 @@ public class MeanLRR {
         }
 	}
 
-	public static void dump(Project proj, String[] phenotypes, String mlrrSetFile, String regionToDumpOrNullForAll, int transformationToUse, Logger log) {
+	public static void dump(Project proj, String[] phenotypes, String mlrrSetFile, String regionToDumpOrNullForAll, int transformationToUse) {
         PrintWriter writer;
 		MeanLRRset mlrrSet;
 		float[][][] data;
@@ -269,7 +275,9 @@ public class MeanLRR {
 		Hashtable<String, String> hash;
 		int index;
 		String[] transformations;
+		Logger log;
 		
+		log = proj.getLog();		
 		if (!Files.exists(mlrrSetFile)) {
 			log.report("Error - mlrr dataset file '"+mlrrSetFile+"' was never created");
 			return;
@@ -373,7 +381,7 @@ public class MeanLRR {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String regions = "cnps.txt";
 		boolean dumpAll = false;
 		String dump = null;
@@ -414,7 +422,7 @@ public class MeanLRR {
 
 		String usage = "\n"+
 				"cnv.analysis.MeanLRR requires 0-1 arguments\n"+"" +
-				"   (1) project file (i.e. proj="+filename+" (default))\n"+
+				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) filename of the regions in UCSC format (chr8:25129632-25130278) (i.e. regions="+regions+" (default))\n"+
 				"   (3) phenotype in SampleData.txt; delimit with a comma for export, only first will be analyzed (i.e. pheno="+Array.toStr(phenotypes, ",")+" (default))\n"+
 				"   (4) compute transforms as well (takes much much longer) (i.e. transform=false (default))\n"+
@@ -466,26 +474,26 @@ public class MeanLRR {
 			return;
 		}
 		try {
-			log = new Logger(logfile);
 			time = new Date().getTime();
-			proj = new Project(filename, false);
+			proj = new Project(filename, logfile, false);
+			log = proj.getLog();
 			if (!new File(proj.getProjectDir()+ext.rootOf(regions)+".mlrr").exists()) {
 				if (transform) {
-					createFilesFromFullSample(proj, regions, log);
+					createFilesFromFullSample(proj, regions);
 				} else {
-					createFilesFromMarkerData(proj, regions, log);
+					createFilesFromMarkerData(proj, regions);
 				}
 			}
 			if (dumpAll) {
 				log.report("Dumping all regions");
-				dump(proj, phenotypes, proj.getProjectDir()+ext.rootOf(regions)+".mlrr", null, transIndex, log);
+				dump(proj, phenotypes, proj.getProjectDir()+ext.rootOf(regions)+".mlrr", null, transIndex);
 			} else if (dump != null) {
 				log.report("Dumping "+dump);
-				dump(proj, phenotypes, proj.getProjectDir()+ext.rootOf(regions)+".mlrr", dump, -1, log);
+				dump(proj, phenotypes, proj.getProjectDir()+ext.rootOf(regions)+".mlrr", dump, -1);
 			}
 			if (analyze) {
 				log.report("Analyzing "+regions+" using "+phenotypes[0]);
-				analyze(proj, phenotypes[0], proj.getProjectDir()+ext.rootOf(regions)+".mlrr", log);
+				analyze(proj, phenotypes[0], proj.getProjectDir()+ext.rootOf(regions)+".mlrr");
 			}
 			log.report("Finished in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {

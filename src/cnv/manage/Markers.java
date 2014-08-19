@@ -13,7 +13,7 @@ import common.*;
 
 public class Markers {
 
-	public static int[] orderMarkers(String[] markerNames, String markerDatabase, String output) {
+	public static int[] orderMarkers(String[] markerNames, String markerDatabase, String output, Logger log) {
 		Hashtable<String,String> snpPositions;
 		byte[] chrs;
 		int[] positions, keys;
@@ -34,7 +34,7 @@ public class Markers {
 		}
 
 		v = new Vector<String>();
-		System.out.println(ext.getTime()+"\tOrdering markers");
+		log.report(ext.getTime()+"\tOrdering markers");
 		chrs = new byte[markerNames.length];
 		positions = new int[markerNames.length];
 		for (int i = 0; i<markerNames.length; i++) {
@@ -47,7 +47,8 @@ public class Markers {
 			}
 		}
 		if (v.size() > 0) {
-			System.err.println("Error - The there "+(v.size()==1?"was one":"were "+v.size())+" markers found in the FinalReport file that were not listed in the file of SNP positions; halting parse operation");
+			log.reportError("Error - There "+(v.size()==1?"was one":"were "+v.size())+" markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation");
+			log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
 			Files.writeList(Array.toStringArray(v), ext.parseDirectoryOfFile(markerDatabase)+"markersNotInPositionsFile.txt");
 			return null;			
 		}
@@ -56,7 +57,7 @@ public class Markers {
 
 		new MarkerSet(markerNames, chrs, positions, keys).serialize(output);
 
-		System.out.println(ext.getTime()+"\tFinished ordering");
+		log.report(ext.getTime()+"\tFinished ordering");
 
 		return keys;
 	}
@@ -68,15 +69,17 @@ public class Markers {
 		int[] indices;
 		String delimiter;
 		long time;
-	
+		Logger log;
+		
+		log = proj.getLog();
 		time = new Date().getTime();
 		delimiter = proj.getSourceFileDelimiter();
 		try {
 			if (!Files.exists(snpTable) && Files.exists(proj.getProjectDir()+snpTable)) {
 				snpTable = proj.getProjectDir()+snpTable;
 			}
-			reader = new BufferedReader(new FileReader(snpTable));
-			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_POSITION_FILENAME, true, true)));
+			reader = Files.getAppropriateReader(snpTable);
+			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)));
 			indices = ext.indexFactors(ParseIllumina.SNP_TABLE_FIELDS, reader.readLine().trim().split(delimiter), false, true, true, true);
 			writer.println("Marker\tChr\tPosition");
 			while (reader.ready()) {
@@ -89,10 +92,10 @@ public class Markers {
 			proj.message("Error: file \""+snpTable+"\" not found in "+proj.getProjectDir());
 			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+snpTable+"\"");
+			proj.message("Error reading file \""+snpTable+"\"");
 			return;
 		}
-		System.out.println("Finished parsing "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+" in " + ext.getTimeElapsed(time));
+		log.report("Finished parsing "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+" in " + ext.getTimeElapsed(time));
 	}
 
 	public static void useAlleleLookup(String filename, int alleleCol, String lookupFile, int setFrom, int setTo) {
@@ -102,7 +105,7 @@ public class Markers {
 		Hashtable<String, String> hash;
 		String[] header, alleles;
 		
-		header = Files.getHeaderOfFile(lookupFile, "\t", new Logger(null));
+		header = Files.getHeaderOfFile(lookupFile, "\t", new Logger());
 		System.out.println("Converting from columns "+header[1+setFrom*2+0]+"/"+header[1+setFrom*2+1]+" to columns "+header[1+setTo*2+0]+"/"+header[1+setTo*2+1]);
 		hash = HashVec.loadFileToHashString(lookupFile, 0, Array.intArray(header.length), "\t", true);
 		
@@ -149,7 +152,7 @@ public class Markers {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String snpTable = "";
 		String fileToConvert = "";
 		String lookupFile = "alleleLookup.txt";
@@ -159,7 +162,7 @@ public class Markers {
 
 		String usage = "\n" +
 		"cnv.manage.Markers requires 0-1 arguments\n" +
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) filename of SNP Table (i.e. snps=Table.csv (not the default))\n"+
 		" OR:\n"+
 		"   (2) use allele lookup to convert a file form forward to TOP strand (i.e. convert=file.txt (not the default))\n"+

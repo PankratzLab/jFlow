@@ -9,8 +9,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import common.Files;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -85,10 +83,10 @@ public class DeNovoCNV {
         } catch (IOException ioe) {
             log.reportError("Error reading file \""+input_pedigreeFullPath+"\"");
         }
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": generated list of trio sets " + output_listOfTrioSetsFullPath);
+		log.report(ext.getTime()+"\tgenerated list of trio sets " + output_listOfTrioSetsFullPath);
 	}
 
-	public static void verifyDataAvailabilityForListOfTrioSets(Project proj, String originalListOfTrioSetsFullPath, Logger log) {
+	public static void verifyDataAvailabilityForListOfTrioSets(Project proj, String originalListOfTrioSetsFullPath) {
 		BufferedReader reader;
 		String line1;
 		String[] line;
@@ -102,6 +100,7 @@ public class DeNovoCNV {
 		String originalDirAndRoot;
 		String originalExt;
 		String filename;
+		Logger log = proj.getLog();
 
 		originalDirAndRoot = ext.parseDirectoryOfFile(originalListOfTrioSetsFullPath) + ext.rootOf(originalListOfTrioSetsFullPath);
 		counter = originalListOfTrioSetsFullPath.lastIndexOf(".");
@@ -163,7 +162,7 @@ public class DeNovoCNV {
         } catch (IOException ioe) {
             log.reportError("Error reading file \"" + originalListOfTrioSetsFullPath + "\"");
         }
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": verified data availability for the list of trio sets " + originalListOfTrioSetsFullPath);
+		log.report(ext.getTime() + "\tverified data availability for the list of trio sets " + originalListOfTrioSetsFullPath);
 	}
 
 	/**
@@ -175,7 +174,7 @@ public class DeNovoCNV {
 	 * @param pennOutFileNameRoot
 	 * @param pennBinDir
 	 */
-	public static void runPennCnv(Project proj, String listOfTrioSetsFullPath, String pennDataDir, String gcModelFullPath, String pennOutDir, String pennOutFileNameRoot, String pennBinDir, int numQsubFiles, int numCommandsPerQsubFile, Logger log) {
+	public static void runPennCnv(Project proj, String listOfTrioSetsFullPath, String pennDataDir, String gcModelFullPath, String pennOutDir, String pennOutFileNameRoot, String pennBinDir, int numQsubFiles, int numCommandsPerQsubFile) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -191,6 +190,7 @@ public class DeNovoCNV {
 		String pennDataFileExtension;
 		String commandPrefix;
 		String commandSuffix;
+		Logger log = proj.getLog();
 		
 		if (!(new File(pennOutDir)).exists()) {
 			new File(pennOutDir).mkdir();
@@ -273,7 +273,7 @@ public class DeNovoCNV {
 		}
 
 		if (System.getProperty("os.name").startsWith("Windows")) {
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": starting PennCNV for CNV detection.");
+			log.report(ext.getTime()+"\tstarting PennCNV for CNV detection.");
 			for (int i = 0; i < iterations.length; i++) {
 				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".rawcnv", pennOutDir);
 				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -trio -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcModelFullPath + " -cnv " + pennOutDir + iterations[i][0] + ".rawcnv " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".triocnv", pennOutDir);
@@ -287,7 +287,7 @@ public class DeNovoCNV {
 //				System.err.println("Error deleting the temporaryfile 'resultAll_tmp.jointcnv'.");
 //			}
 
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": finished running PennCNV. Output location: " + pennOutDir);
+			log.report(ext.getTime()+"\tfinished running PennCNV. Output location: " + pennOutDir);
 		} else {
 //			Runtime.getRuntime().exec("/home/pankrat2/shared/penncnv/detect_cnv.pl -joint -hmm /home/pankrat2/shared/penncnv/lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -gcmodel " + gcBaseFileFullPath + " " + pennDataDir + line[4] + " " + pennDataDir + line[5] + " " + pennDataDir + line[6] + " -out " + line[4] + ".jointcnv");
 //			Runtime.getRuntime().exec("/home/pankrat2/shared/penncnv/detect_cnv.pl -trio -hmm /home/pankrat2/shared/penncnv/lib/hh550.hmm -pfb " + proj.getProjectDir() + "custom.pfb -cnv " + pennOutDir + pennOutFileNameRoot + " " + pennDataDir + line[4] + " " + pennDataDir + line[5] + " " + pennDataDir + line[6] + " -out " + line[4] + ".triocnv");
@@ -311,11 +311,11 @@ public class DeNovoCNV {
 			}
 			Files.qsubMultiple(jobNamesWithAbsolutePaths, null, pennOutDir+"scripts/", "chunkCNV", 8, true, null, -1, 22000, 24);
 			
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": finished generating the batch scripts to run PennCNV for trio CNV and joint CNV detection.\n                 output location: " + pennOutDir + "scripts/\nYour next step after this program: submit/run the corresponding scripts.");
+			log.report(ext.getTime()+"\tfinished generating the batch scripts to run PennCNV for trio CNV and joint CNV detection.\n                 output location: " + pennOutDir + "scripts/\nYour next step after this program: submit/run the corresponding scripts.");
 		}
 	}
 
-	public static void parsePennCnvResult(Project proj, String pennCnvResultDir, String pennCnvResultFileNameExt, Logger log) {
+	public static void parsePennCnvResult(Project proj, String pennCnvResultDir, String pennCnvResultFileNameExt) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -329,6 +329,7 @@ public class DeNovoCNV {
 		String[] ids;
 		String[] filenames;
 		boolean offspringExisted;
+		Logger log = proj.getLog();
 
 		sampleData = proj.getSampleData(2, false);
 		if (pennCnvResultFileNameExt.startsWith(".")) {
@@ -346,7 +347,7 @@ public class DeNovoCNV {
 				while (reader.ready()) {
 					temp = reader.readLine();
 					if (! temp.startsWith("NOTICE:")) {
-						temp = PennCNV.translateDerivedSamples(temp);
+						temp = PennCNV.translateDerivedSamples(temp, log);
 						line = temp.trim().split("[\\s]+");
 						if (line[7].equalsIgnoreCase("offspring")) {
 							if (line[8].split("=")[1].startsWith("33")) {
@@ -402,7 +403,7 @@ public class DeNovoCNV {
 		}
 	}
 
-	public static void parsePennCnvResult(Project proj, String pennCnvResultDir, String triosPedigreeFullPath, String pennCnvResultFileNameExt, Logger log) {
+	public static void parsePennCnvResult(Project proj, String pennCnvResultDir, String triosPedigreeFullPath, String pennCnvResultFileNameExt) {
 		BufferedReader reader;
 		PrintWriter writer1, writer2;
 		String[] line;
@@ -416,6 +417,7 @@ public class DeNovoCNV {
 		String[] ids;
 		String[] filenames;
 		String[] currentParents;
+		Logger log = proj.getLog();
 
 		sampleData = proj.getSampleData(2, false);
 		if (pennCnvResultFileNameExt.startsWith(".")) {
@@ -441,7 +443,7 @@ public class DeNovoCNV {
 				while (reader.ready()) {
 					temp = reader.readLine();
 					if (! temp.startsWith("NOTICE:")) {
-						temp = PennCNV.translateDerivedSamples(temp);
+						temp = PennCNV.translateDerivedSamples(temp, log);
 						line = temp.trim().split("[\\s]+");
 						if (line[7].equalsIgnoreCase("offspring")) {
 							if (line[8].split("=")[1].startsWith("33")) {
@@ -499,10 +501,10 @@ public class DeNovoCNV {
 			return;
 		}
 
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": parsed PennCNV results for " + pennCnvResultDir + "*" + pennCnvResultFileNameExt);
+		log.report(ext.getTime()+"\tparsed PennCNV results for " + pennCnvResultDir + "*" + pennCnvResultFileNameExt);
 	}
 
-	public static void generateFamFileForTrios(Project proj, String triosPedigreeFileFullPath, boolean pedigreeHasHeader, Logger log) {
+	public static void generateFamFileForTrios(Project proj, String triosPedigreeFileFullPath, boolean pedigreeHasHeader) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -536,7 +538,7 @@ public class DeNovoCNV {
 //	 * @param cnvFileHasHeader
 //	 * @param log
 //	 */
-//	public static void generateDenovoList(Project proj, String cnvFileFullPath, boolean cnvFileHasHeader, Logger log) {
+//	public static void generateDenovoList(Project proj, String cnvFileFullPath, boolean cnvFileHasHeader) {
 //		BufferedReader reader;
 //		PrintWriter writer;
 //		String[] line;
@@ -549,7 +551,7 @@ public class DeNovoCNV {
 //		String[] ids;
 //		String[] filenames;
 //		boolean offspringExisted;
-//
+//      Logger log = proj.getLog();
 //		sampleData = proj.getSampleData(2, false);
 //		try {
 //			reader = new BufferedReader(new FileReader(cnvFileFullPath));
@@ -662,7 +664,7 @@ public class DeNovoCNV {
 	    		log.report("Directory " + listOfFiles[i].getName());
 	    	}
 	    }
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": generated De Novo CNV output for " + pennCnvResultDir + "*" + cnvFileExtensions);
+		log.report(ext.getTime()+"\tgenerated De Novo CNV output for " + pennCnvResultDir + "*" + cnvFileExtensions);
 	}
 	
 	public static void main(String[] args) {
@@ -756,8 +758,8 @@ public class DeNovoCNV {
 		}
 
 		proj = new Project(projPropertyFileFullPath, false);
-		log = new Logger(proj.getProjectDir() + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": starting DeNovoCNV.java");
+		log = proj.getLog();
+		log.report(ext.getTime()+"\tstarting DeNovoCNV.java");
 		pedigreeFullPath = proj.getDir(Project.DATA_DIRECTORY) + "pedigree.dat";
 		trioPedigreeFullPath = ext.parseDirectoryOfFile(pedigreeFullPath) + "pedigreeTrios.dat";
 		gcModelFullPath = proj.getProjectDir() + "custom.gcmodel";
@@ -767,30 +769,30 @@ public class DeNovoCNV {
 
 		if (! new File(trioPedigreeFullPath).exists()) {
 			generateListOfTrios(pedigreeFullPath, trioPedigreeFullPath, log);
-			verifyDataAvailabilityForListOfTrioSets(proj, trioPedigreeFullPath, log);
-			generateFamFileForTrios(proj, trioPedigreeFullPath, true, log);
+			verifyDataAvailabilityForListOfTrioSets(proj, trioPedigreeFullPath);
+			generateFamFileForTrios(proj, trioPedigreeFullPath, true);
 		} else {
 			log.report("Skipped generating list of trio sets, - found " + trioPedigreeFullPath);
 		}
 
 		if (! new File(proj.getProjectDir() + "custom.pfb").exists()) {
-			PennCNV.populationBAF(proj, log);
+			PennCNV.populationBAF(proj);
 		} else {
 			log.report("Skipped generating custom population BAF, - found " + trioPedigreeFullPath);
 		}
 
 		if (! new File(gcModelFullPath).exists()) {
-			PennCNV.gcModel(proj, gcBaseFileFullPath, gcModelFullPath, numWindowUnits, log);
+			PennCNV.gcModel(proj, gcBaseFileFullPath, gcModelFullPath, numWindowUnits);
 		} else {
 			log.report("Skipped generating custom GC Model, - found " + trioPedigreeFullPath);
 		}
 
 		if (! parseOrNot) {
-			runPennCnv(proj, trioPedigreeFullPath, pennDataDir, gcModelFullPath, pennOutputDir, pennOutputFilenameRoot, pennBinDir, -1, 30, log);
+			runPennCnv(proj, trioPedigreeFullPath, pennDataDir, gcModelFullPath, pennOutputDir, pennOutputFilenameRoot, pennBinDir, -1, 30);
 		} else {
 //			batch(pedigreeFullPath);
-			parsePennCnvResult(proj, pennOutputDir, trioPedigreeFullPath, ".jointcnv", log);
-			parsePennCnvResult(proj, pennOutputDir, trioPedigreeFullPath, ".triocnv", log);
+			parsePennCnvResult(proj, pennOutputDir, trioPedigreeFullPath, ".jointcnv");
+			parsePennCnvResult(proj, pennOutputDir, trioPedigreeFullPath, ".triocnv");
 			
 //			generateDenovoList(proj, proj.getDir(Project.DATA_DIRECTORY) + "denovo_joint.cnv", true, log);
 
@@ -798,7 +800,7 @@ public class DeNovoCNV {
 //			detectDenovoCnv(usage, ".jointcnv", log);
 		}
 
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": finished DeNovoCNV.java.");
+		log.report(ext.getTime()+"\tfinished DeNovoCNV.java.");
 	}
 	
 }

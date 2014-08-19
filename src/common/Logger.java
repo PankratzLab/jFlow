@@ -150,6 +150,10 @@ public class Logger implements Serializable {
 		        e2.printStackTrace();
 	        }
 		}
+		
+		if (level >= 11) {
+			System.exit(1);
+		}
 	}
 	
 	public void timestamp() {

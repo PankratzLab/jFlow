@@ -942,7 +942,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			    			options = new String[] {"Yes, overwrite", "No"};
 			    			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			    			if (choice == 0) {
-//			    				filename = proj.getFilename(Project.ANNOTATION_DIRECTORY, false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
 			    				filenameBak = proj.getFilename(proj.getProjectDir(), false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
 			    				log.report("Writing to " + filenameBak);
 			    				annotationCollection.serialize(filenameBak);
@@ -1928,7 +1927,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 	
 	public void loadMarkerDataFromList(int newMarkerIndex) {
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList, log);
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 //		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerList);
 
 		markerIndex = newMarkerIndex;
@@ -2454,12 +2453,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
     }
 
     public static void main(String[] args) {
-		final String filename = cnv.Launch.getDefaultDebugProjectFile();
-		final boolean jar = false;
-
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-            	createAndShowGUI(new Project(filename, jar), null, null, true);
+            	createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false), null, null, true);
             }
         });
 	}

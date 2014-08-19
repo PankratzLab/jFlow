@@ -53,19 +53,20 @@ public class cnvTrio {
 	 * <p>
 	 * Optional: 7. update the projects region and individual list for ease of viewing filtered calls
 	 */
-	public static void analyze(Project proj, String trioFile, int fileType, Filter filter, String filenameOfProblematicRegions, boolean updateRegionAndList, int numThreads, Logger log) {
-		Trio[] trios = Trio.loadTrios(proj, trioFile, log);
-		DeNovoCNV.parsePennCnvResult(proj, proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY), proj.getDir(Project.DATA_DIRECTORY) + trioFile, TRIOS[fileType], log);
+	public static void analyze(Project proj, String trioFile, int fileType, Filter filter, String filenameOfProblematicRegions, boolean updateRegionAndList, int numThreads) {
+		Logger log = proj.getLog();
+		Trio[] trios = Trio.loadTrios(proj, trioFile);
+		DeNovoCNV.parsePennCnvResult(proj, proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY), proj.getDir(Project.DATA_DIRECTORY) + trioFile, TRIOS[fileType]);
 		String[] no = null;
 		FilterCalls.filter(proj.getDir(Project.DATA_DIRECTORY), COMBINED_TRIOS[fileType], COMBINED_TRIOS[fileType] + BEAST_OUTPUT[2], 0, 0, filter.getNumProbes(), 0, filenameOfProblematicRegions, 3, no, false, null, false, 36, log);
 		CNVariant[] cnVariants = CNVariant.loadPlinkFile(proj.getDir(Project.DATA_DIRECTORY) + COMBINED_TRIOS[fileType] + BEAST_OUTPUT[2], false);
 
 		parseTrios(cnVariants, trios, proj.getSampleData(0, false), log);
-		processTrios(proj, trios, filter, numThreads, log);
-		summarizeTrios(proj, trios, fileType, log);
+		processTrios(proj, trios, filter, numThreads);
+		summarizeTrios(proj, trios, fileType);
 
 		if (updateRegionAndList) {
-			writeRegionList(proj, proj.getDir(Project.DATA_DIRECTORY) + COMBINED_TRIOS[fileType] + BEAST_OUTPUT[1], log);
+			writeRegionList(proj, proj.getDir(Project.DATA_DIRECTORY) + COMBINED_TRIOS[fileType] + BEAST_OUTPUT[1]);
 		}
 	}
 
@@ -105,12 +106,12 @@ public class cnvTrio {
 	/**
 	 * To speed things up a bit, we send out the heavy beast lifting to other threads
 	 */
-	public static void processTrios(Project proj, Trio[] trios, Filter filter, int numThreads, Logger log) {
+	public static void processTrios(Project proj, Trio[] trios, Filter filter, int numThreads) {
 		MarkerSet markerSet = proj.getMarkerSet();
-		int[][] indi =markerSet.getIndicesByChr();
+		int[][] indi = markerSet.getIndicesByChr();
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		for (int i = 0; i < trios.length; i++) {
-			Runnable worker = new WorkerThread(proj, trios[i], markerSet.getChrs(), markerSet.getPositions(), Matrix.clone(indi), filter, log, i);
+			Runnable worker = new WorkerThread(proj, trios[i], markerSet.getChrs(), markerSet.getPositions(), Matrix.clone(indi), filter, i);
 			executor.execute(worker);
 		}
 		executor.shutdown();
@@ -118,7 +119,7 @@ public class cnvTrio {
 			executor.awaitTermination(7, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
 		}
-		log.report(ext.getTime() + "Info - completed beast score computation");
+		proj.getLog().report(ext.getTime() + "Info - completed beast score computation");
 	}
 
 	/**
@@ -132,10 +133,10 @@ public class cnvTrio {
 		private int[] positions;
 		private int[][] indicesByChr;
 		private Filter filter;
-		private Logger log;
+//		private Logger log;
 		private int threadID;
 
-		public WorkerThread(Project proj, Trio trio, byte[] chr, int[] positions, int[][] indicesByChr, Filter filter, Logger log, int threadID) {
+		public WorkerThread(Project proj, Trio trio, byte[] chr, int[] positions, int[][] indicesByChr, Filter filter, int threadID) {
 			super();
 			this.proj = proj;
 			this.trio = trio;
@@ -143,14 +144,15 @@ public class cnvTrio {
 			this.positions = positions;
 			this.indicesByChr = indicesByChr;
 			this.filter = filter;
-			this.log = log;
 			this.threadID = threadID;
 		}
 
 		@Override
 		public void run() {
+			Logger log = proj.getLog();
+			
 			log.report(ext.getTime() + " Info - trio (" + (threadID + 1) + ") " + trio.getTrio());
-			trio.computeTrioBeast(proj, chrs, positions, indicesByChr, filter, log);
+			trio.computeTrioBeast(proj, chrs, positions, indicesByChr, filter);
 		}
 	}
 
@@ -162,7 +164,7 @@ public class cnvTrio {
 	 * @param fileType
 	 * @param log
 	 */
-	private static void summarizeTrios(Project proj, Trio[] trios, int fileType, Logger log) {
+	private static void summarizeTrios(Project proj, Trio[] trios, int fileType) {
 		backup(proj, fileType);
 		PrintWriter writerFullSummary = Files.getAppropriateWriter(proj.getDir(Project.DATA_DIRECTORY) + COMBINED_TRIOS[fileType] + BEAST_OUTPUT[0]);
 		PrintWriter writerFiltered = Files.getAppropriateWriter(proj.getDir(Project.DATA_DIRECTORY) + COMBINED_TRIOS[fileType] + BEAST_OUTPUT[1]);
@@ -281,8 +283,10 @@ public class cnvTrio {
 		/***
 		 * The main event, grabs LRR_SD and BeastScore and few others. Summarizes QC across trio... max LRR_SD across the trio and minimum beast score (height) distance from offspring to parent Writes to two files: writerFullSummary the full summary of the beast-> writerFullSummary writerFiltered a new filtered cnv file with passing calls, and calls assigned to each of the parents for ease of vis in comp plot->trailer
 		 */
-		public void computeTrioBeast(Project proj, byte[] chrs, int[] positions, int[][] indicesByChr, Filter filter, Logger log) {
+		public void computeTrioBeast(Project proj, byte[] chrs, int[] positions, int[][] indicesByChr, Filter filter) {
 			CNVariant[] analyzeCNV = ICNV.toArray(new CNVariant[ICNV.size()]);
+			Logger log = proj.getLog();
+			
 			if (analyzeCNV.length == 0) {
 				log.reportError("Warning - trio " + getTrio() + " does not have any CNVs defined");
 			} else {
@@ -477,9 +481,11 @@ public class cnvTrio {
 		 * @param log
 		 * @return
 		 */
-		public static Trio[] loadTrios(Project proj, String trioFile, Logger log) {
+		public static Trio[] loadTrios(Project proj, String trioFile) {
 			ArrayList<Trio> alTrio = new ArrayList<Trio>();
 			int trioIndex = 0;
+			Logger log = proj.getLog();
+			
 			try {
 				BufferedReader reader = Files.getReader(proj.getDir(Project.DATA_DIRECTORY) + trioFile, false, true, false);
 				String[] line = reader.readLine().trim().split(SPLITS[0]);
@@ -526,9 +532,9 @@ public class cnvTrio {
 	 *            converts this cnv file to Region list, Individual CNV list, and a bed type file
 	 * @param log
 	 */
-	private static void writeRegionList(Project proj, String cnvFile, Logger log) {
+	private static void writeRegionList(Project proj, String cnvFile) {
 		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
-		log.report("Info - updating regions and list using " + cnvs.length + " cnvs");
+		proj.getLog().report("Info - updating regions and list using " + cnvs.length + " cnvs");
 		String list = proj.getFilename(Project.INDIVIDUAL_CNV_LIST_FILENAMES).replaceAll(";", "");
 		String regionList = proj.getFilename(Project.REGION_LIST_FILENAMES).replaceAll(";", "");
 		ArrayList<String> lists = new ArrayList<String>();
@@ -698,9 +704,8 @@ public class cnvTrio {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		Project proj = new Project(filename, false);
-		Logger log = new Logger(logFile);
+		Project proj = new Project(filename, logFile, false);
 		Filter filter = new Filter(minBeastHeightDiffThreshold, maxLrrSdThreshold, maxBeastHeightParents, maxNumCallsThreshold, numProbes, maxBAF1585SD);
-		analyze(proj, trioFile, fileType, filter, filenameOfProblematicRegions, updateRegionAndList, numThreads, log);
+		analyze(proj, trioFile, fileType, filter, filenameOfProblematicRegions, updateRegionAndList, numThreads);
 	}
 }

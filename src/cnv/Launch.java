@@ -1,7 +1,6 @@
 package cnv;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -21,6 +20,8 @@ import cnv.qc.MarkerMetrics;
 
 public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
 	public static final long serialVersionUID = 1L;
+	
+	public static final String VERSION = "0.60";
 
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties";
@@ -51,7 +52,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String LINE_PLOT = "Line Plot";
 	public static final String COMP = "Comp module";
 
+	public static final String GENERATE_ABLOOKUP = "Generate AB Lookup";
 	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
+	public static final String GENERATE_PLINK_BINARY_FILES = "Generate PLINK binary files";
 	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
 	public static final String PARSE_RAW_PENNCNV_RESULTS = "Parse raw PennCNV results files";
 	public static final String POPULATIONBAF = "Compute Population BAF file";
@@ -65,7 +68,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP},
-			{"Tools", GENERATE_PLINK_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, TEST},
+			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
 	
@@ -105,8 +108,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 
 	public void loadProject() {
-		String logfile;
-		
 		proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProj], jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
@@ -115,18 +116,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.getProjectDir()+"') for project '"+proj.getNameOfProject()+"' did not exist; creating now. If this was in error, please edit the property file.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
-		logfile = "Genvisis_"+new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log";
-		if (!proj.getJarStatus()) {
-			logfile = proj.getProjectDir()+"logs/"+logfile;
-			if (!Files.exists(proj.getProjectDir()+"logs/", proj.getJarStatus())) {
-				new File(proj.getProjectDir()+"logs/").mkdirs();
-			}
-		}
-		
-		log = new Logger(logfile);
+		log = proj.getLog();
 	    log.linkTextArea(output);
-	    log.report("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
-		log.report("\nCurrent project: " + ext.rootOf(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED)) + "\n");
 	}
 
 	public void setIndexOfCurrentProject(String projPropertiesFileName) {
@@ -361,13 +352,25 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			if (command.equals(MAP_FILES)) {
 				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
-				cnv.manage.Markers.generateMarkerPositions(proj, "SNP_Map.csv");
+				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map());
 			} else if (command.equals(PARSE_FILES_CSV)) {
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS), proj.getLog());
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);
 			} else if (command.equals(TRANSPOSE_DATA)) {
-				TransposeData.transposeData(proj, 2000000000, false, log);	//proj.getLog()
+				TransposeData.transposeData(proj, 2000000000, false);
+			} else if (command.equals(GENERATE_ABLOOKUP)) {
+				ABLookup abLookup;
+				String filename;
+				
+				filename = proj.getProjectDir()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+				if (!Files.exists(filename)) {
+					abLookup = new ABLookup();
+					abLookup.parseFromOriginalGenotypes(proj);
+					abLookup.writeToFile(filename);
+				}
+				
+				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map());
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				String filename;
 				boolean success;
@@ -385,7 +388,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //							
 //						}
 					//success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
-					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.getLog());
+					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename);
 					if (success) {
 						try {
 							log.report("Converting ped/map files to binary PLINK files...", false, true);
@@ -404,12 +407,25 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		//			vis cnv.manage.PlinkFormat root=../plink genome=6
 				}
 
+			} else if (command.equals(GENERATE_PLINK_BINARY_FILES)) {
+				String filename;
+
+				filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
+				if (filename == null) {
+					log.report("No ClusterFilterCollection will be used");
+				} else {
+					log.report("The ClusterFilterCollection in '"+proj.getProperty(Project.DATA_DIRECTORY)+"/"+filename+"' will be used");
+				}
+
+				if (PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true)) {
+					log.report("Success!");
+				}
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
 			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
 				// TODO make dialog to ask for filenames with a JCheckBox for denovo parsing
-				cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log", proj.getLog());
-				cnv.analysis.PennCNV.parseResults(proj, "penncnv.rawcnv", false, proj.getLog());
+				cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");
+				cnv.analysis.PennCNV.parseResults(proj, "penncnv.rawcnv", false);
 			} else if (command.equals(LRR_SD)) {
 				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 			} else if (command.equals(CNP_SCAN)) {
@@ -420,7 +436,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(SCATTER)) {
 				ScatterPlot.createAndShowGUI(proj, null, null, false);
 			} else if (command.equals(QQ)) {
-				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false, proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE));
+				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false, proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
 			} else if (command.equals(STRAT)) {
 				StratPlot.loadStratificationResults(proj);
 			} else if (command.equals(MOSAICISM)) {
@@ -433,16 +449,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
 			} else if (command.equals(TWOD)) {
 //				TwoDPlot twoDP = 
-				TwoDPlot.createAndShowGUI(proj, proj.getLog());
+				TwoDPlot.createAndShowGUI(proj);
 				//TODO: Sample call to test this functionality. Should be removed when seems to work fine.
 				// replace the filename according to the path on local machine
 //				twoDP.showSpecificFile(proj, "/Users/rohitsinha/Documents/development/ra/practice/sexCheck.xln", 5, 9, proj.getLog());
 			} else if (command.equals(LINE_PLOT)) {
-				LinePlot.createAndShowGUI(proj, proj.getLog());
+				LinePlot.createAndShowGUI(proj);
 			} else if (command.equals(COMP)) {
 				new CompPlot(proj);
 			} else if (command.equals(POPULATIONBAF)) {
-				cnv.analysis.PennCNV.populationBAF(proj, log);
+				cnv.analysis.PennCNV.populationBAF(proj);
 			} else if (command.equals(EXPORT_CNVS)) {
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(CYTO_WORKBENCH)) {
@@ -455,7 +471,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 				Mosaicism.findOutliers(proj);
 
-				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, proj.getLog());
+				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
 				new File(proj.getProjectDir()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
@@ -463,38 +479,34 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 				
 			} else if (command.equals(GCMODEL)) {
-				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100, log);
+				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
-				cnv.qc.MarkerMetrics.fullQC(proj, (boolean[])null, null, proj.getLog()); // need the declaration, otherwise the call is ambiguous
+				cnv.qc.MarkerMetrics.fullQC(proj, null, null);
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
-				cnv.qc.MarkerMetrics.filterMetrics(proj, proj.getLog());
+				cnv.qc.MarkerMetrics.filterMetrics(proj);
 			} else if (command.equals(TALLY_MARKER_ANNOTATIONS)) {
-				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, true, log);
+				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, true);
 			} else if (command.equals(TALLY_WITHOUT_DETERMINING_DROPS)) {
-				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, false, log);
+				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, false);
 			} else if (command.equals(KITANDKABOODLE)) {
 				String filename;
 
 				if (!Files.exists(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false))) {
 					log.reportError("Could not find required file "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+"\n    attempting to generate one for you...");
-					if (Files.exists(proj.getProjectDir()+"SNP_Map.csv")) {
-						filename = "SNP_Map.csv";
-					} else if (Files.exists(proj.getDir(Project.SOURCE_DIRECTORY, false, log, false)+"SNP_Map.csv")) {
-						filename = proj.getDir(Project.SOURCE_DIRECTORY, false, log, false)+"SNP_Map.csv";
-					} else {
-						log.reportError("Failed; could not find \"SNP_Map.csv\" in "+proj.getProjectDir()+" or in "+proj.getDir(Project.SOURCE_DIRECTORY, false, log, false));
+					filename = proj.getLocationOfSNP_Map();
+					if (filename == null) {
 						return;
 					}
 					log.report("Generating from "+filename);
 					cnv.manage.Markers.generateMarkerPositions(proj, filename);
 				}
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS), proj.getLog());
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
 
-				TransposeData.transposeData(proj, 2000000000, false, proj.getLog()); // compact if no LRR was provided
+				TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
 				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 				cnv.qc.SexChecks.sexCheck(proj);
 
-				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, proj.getLog());
+				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
 				new File(proj.getProjectDir()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
@@ -622,7 +634,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	}
     }
     
-	public static String getDefaultDebugProjectFile() {
+	public static String getDefaultDebugProjectFile(boolean verbose) {
 		LaunchProperties launchProperties;
 		String dir, filename;
 		
@@ -630,12 +642,18 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		dir = launchProperties.getProperty(LaunchProperties.PROJECTS_DIR);
 		filename = launchProperties.getProperty(LaunchProperties.DEBUG_PROJECT_FILENAME);
 		if (dir == null || filename == null) {
-			System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"+LaunchProperties.DEBUG_PROJECT_FILENAME+"=' property listed in '"+LaunchProperties.DEFAULT_PROPERTIES_FILE+"'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
+			if (verbose) {
+				System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"+LaunchProperties.DEBUG_PROJECT_FILENAME+"=' property listed in '"+LaunchProperties.DEFAULT_PROPERTIES_FILE+"'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
+			}
 			filename = "default.properties";
 		} else if (!Files.exists(dir) || !Files.exists(dir+filename)) {
-			System.err.println("Error - default debug project properties file does not exist: "+dir+filename);
+			if (verbose) {
+				System.err.println("Error - default debug project properties file does not exist: "+dir+filename);
+			}
 		} else {
-			System.out.println("The default debug project properties file is currently set to '"+dir+filename+"'");
+			if (verbose) {
+				System.out.println("The default debug project properties file is currently set to '"+dir+filename+"'");
+			}
 		}
 		
 		return dir+filename;

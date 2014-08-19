@@ -637,7 +637,6 @@ public class Files {
 		return reader;
 	}
 	
-	@SuppressWarnings("resource")
 	public static BufferedReader getAppropriateReader(String filename) throws FileNotFoundException {
 		InputStreamReader isReader = null;
 
@@ -1561,7 +1560,7 @@ public class Files {
 	}
 
 	public static BufferedReader getReader(String filename, boolean jar, boolean verbose, boolean kill) {
-		return getReader(filename, jar, verbose, new Logger(null), kill);
+		return getReader(filename, jar, verbose, new Logger(), kill);
 	}
 	
 	public static BufferedReader getReader(String filename, boolean jar, boolean verbose, Logger log, boolean kill) {
@@ -1713,6 +1712,8 @@ public class Files {
 	}
 
 	// These variables need to be final in order to work in the FilenameFilter
+	// The only illegal character in all operating systems is the colon :
+	// so this was chosen to signify NOT
 	public static String[] list(String directory, final String prefix, final String suffix, final boolean caseSensitive, boolean jar, final boolean fullPath) {
 		if (directory == null || directory.length() == 0) {
 			directory = "./";
@@ -1731,8 +1732,33 @@ public class Files {
 				Enumeration<JarEntry> entries = jarFile.entries();
 				while (entries.hasMoreElements()) {
 					String entryName = entries.nextElement().getName();
+					boolean passes = true;
 
-					if (entryName.startsWith(directory) && (prefix == null || prefix.equals("") || entryName.toLowerCase().startsWith(prefix.toLowerCase())) && (suffix == null || suffix.equals("") || entryName.toLowerCase().endsWith(suffix.toLowerCase()))) {
+					if (!entryName.startsWith(directory)) {
+						passes = false;
+					}
+					 
+					if (prefix != null && !prefix.equals("")) {
+						if (prefix.startsWith(":")) {
+							if (entryName.toLowerCase().startsWith(prefix.toLowerCase())) {
+								passes = false;
+							}
+						} else if (!entryName.toLowerCase().startsWith(prefix.toLowerCase())) {
+							passes = false;
+						}
+					}
+
+					if (suffix != null && !suffix.equals("")) {
+						if (suffix.startsWith(":")) {
+							if (entryName.toLowerCase().endsWith(suffix.toLowerCase())) {
+								passes = false;
+							}
+						} else if (!entryName.toLowerCase().endsWith(suffix.toLowerCase())) {
+							passes = false;
+						}
+					}
+					
+					if (passes) {
 						String trav = entryName.substring(directory.length());
 						if (trav.startsWith("/")) {
 							trav = trav.substring(1);
@@ -1760,25 +1786,38 @@ public class Files {
 			
 			files = new File(directory).list(new FilenameFilter() {
 				public boolean accept(File file, String filename) {
-					if (caseSensitive) {
-						if (prefix != null && !prefix.equals("") && !filename.startsWith(prefix)) {
-							return false;
-						}
-						if (suffix != null && !suffix.equals("") && !filename.endsWith(suffix)) {
-							return false;
-						}
-					} else {
-						if (prefix != null && !prefix.equals("") && !filename.toLowerCase().startsWith(prefix.toLowerCase())) {
-							return false;
-						}
-						if (suffix != null && !suffix.equals("") && !filename.toLowerCase().endsWith(suffix.toLowerCase())) {
-							return false;
-						}
-					}
+					boolean passes = true;
+					String pre, suf; 
+					
 					if (new File(file, filename).isDirectory()) {
 						return false;
 					}
-					return true;
+					
+					pre = prefix == null ? null : (caseSensitive ? prefix : prefix.toLowerCase());
+					suf = suffix == null ? null : (caseSensitive ? suffix : suffix.toLowerCase());
+					filename = caseSensitive ? filename : filename.toLowerCase();
+					
+					if (pre != null && !pre.equals("")) {
+						if (pre.startsWith(":")) {
+							if (filename.toLowerCase().startsWith(pre.substring(1).toLowerCase())) {
+								passes = false;
+							}
+						} else if (!filename.toLowerCase().startsWith(pre.toLowerCase())) {
+							passes = false;
+						}
+					}
+
+					if (suf != null && !suf.equals("")) {
+						if (suf.startsWith(":")) {
+							if (filename.toLowerCase().endsWith(suf.substring(1).toLowerCase())) {
+								passes = false;
+							}
+						} else if (!filename.toLowerCase().endsWith(suf.toLowerCase())) {
+							passes = false;
+						}
+					}
+					
+					return passes;
 				}
 			});
 			
@@ -1795,7 +1834,7 @@ public class Files {
 			}
 		}
 	}
-
+	
 	public static String[] listDirectories(String directory, boolean jar) {
 		if (jar) {
 			try {

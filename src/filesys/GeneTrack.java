@@ -68,7 +68,7 @@ public class GeneTrack implements Serializable {
 
         v = new Vector<GeneData>();
         region = new Segment((byte) chr, start, stop);
-        if (starts[chr].length > 0) {
+        if (chr < starts.length && starts[chr].length > 0) {
             first = Array.binarySearch(starts[chr], start, false);
             if (first == starts[chr].length) {
                 return new GeneData[0];

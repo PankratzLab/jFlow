@@ -34,7 +34,9 @@ public class LrrSd extends Parallelizable {
 		double abCallRate, forwardCallRate;
 		int[] bafBinCounts;
 		boolean multimodal;
-
+		Logger log;
+		
+		log = proj.getLog();
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
 			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate");
@@ -49,11 +51,11 @@ public class LrrSd extends Parallelizable {
 			}
 			
 			for (int i = 0; i<samples.length; i++) {
-	        	System.out.println((i+1)+" of "+samples.length);
+	        	log.report((i+1)+" of "+samples.length);
 				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
 				chrs = proj.getMarkerSet().getChrs();
 				if (fsamp == null) {
-					System.err.println("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
+					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
 					lrrs = cents==null?fsamp.getLRRs():fsamp.getLRRs(cents);
 					lrrs = Array.subArray(lrrs, 0, Array.indexOfByte(chrs, (byte)23));
@@ -121,7 +123,7 @@ public class LrrSd extends Parallelizable {
 		String[] files; 
 		
 		files = Array.stringArraySequence(numThreads, proj.getProjectDir()+"lrr_sd.");
-		Files.cat(files, proj.getProjectDir()+"lrr_sd.xln", Array.intArray(files.length, 0), new Logger(null));
+		Files.cat(files, proj.getProjectDir()+"lrr_sd.xln", Array.intArray(files.length, 0), proj.getLog());
 		for (int i = 0; i<files.length; i++) {
 			new File(files[i]).delete();
         }
@@ -134,7 +136,7 @@ public class LrrSd extends Parallelizable {
 			Arrays.fill(markerSubset, true);
 		} else {
 			Arrays.fill(markerSubset, false);
-			int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, new Logger(null), true, false);
+			int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, proj.getLog(), true, false);
 			for (int i = 0; i < indicesToUse.length; i++) {
 				if (indicesToUse[i] < 0) {
 					return null;
@@ -156,18 +158,21 @@ public class LrrSd extends Parallelizable {
 		LrrSd[] runables;
 		boolean error;
 		boolean[] markersForCallrate, markersForEverythingElse;
+		Logger log;
+		
 		error = false;
+		log = proj.getLog();
 		samples = proj.getSamples();
 		if (customSampleFileList != null) {
 			subsamples = HashVec.loadFileToStringArray(customSampleFileList, false, new int[] {0}, false);
 			for (int i = 0; i < subsamples.length; i++) {
 				if (ext.indexOfStr(subsamples[i], samples) == -1) {
-					System.err.println("Error - subsample '"+subsamples[i]+"' was not found in the list of samples of project '"+proj.getNameOfProject()+"'");
+					log.reportError("Error - subsample '"+subsamples[i]+"' was not found in the list of samples of project '"+proj.getNameOfProject()+"'");
 					error = true;
 				}
 			}
 			if (error) {
-				System.err.println("Error - missing some samples, QC will not be performed");
+				log.reportError("Error - missing some samples, QC will not be performed");
 				return;
 			} else {
 				samples = subsamples;
@@ -179,14 +184,14 @@ public class LrrSd extends Parallelizable {
 		if (markersForCallrateFile != null) {
 			markersForCallrate = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false));
 			if (markersForCallrate == null) {
-				System.err.println("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project");
+				log.reportError("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project");
 				return;
 			}
 		}
 		if (markersForEverythingElseFile != null) {
 			markersForEverythingElse = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false, new int[] { 0 }, false));
 			if (markersForCallrate == null) {
-				System.err.println("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project");
+				log.reportError("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project");
 				return;
 			}
 		}
@@ -197,12 +202,12 @@ public class LrrSd extends Parallelizable {
 			runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse, centroidsFile, i + 1, numThreads);
         }
 		
-		Parallelizable.launch(runables);
+		Parallelizable.launch(runables, log);
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String centroids = null;
 		String filenameOfListOfSamples = null;
 		String markersForCallrateFile = null;
@@ -212,7 +217,7 @@ public class LrrSd extends Parallelizable {
 
 		String usage = "\n"+
 		"cnv.qc.LrrSd requires 0-6 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"+
 		"   (3) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+

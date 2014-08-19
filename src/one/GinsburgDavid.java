@@ -329,7 +329,7 @@ public class GinsburgDavid {
 		// System.err.println("ERROR! YOU HAVE YET TO CONVERT TO THE NEW INPUT
 		// FOR TrimFam!");
 		// TrimFam trimmer = new TrimFam(preData, dnaList, true, false);
-		TrimFam trimmer = new TrimFam(preData, true, false, false, TrimFam.SCORE_99_NAMING_SCHEME, 0, false, false, new Logger(null));
+		TrimFam trimmer = new TrimFam(preData, true, false, false, TrimFam.SCORE_99_NAMING_SCHEME, 0, false, false, new Logger());
 		v = trimmer.getExtendedFamilyInformation();
 		dnaList.remove(1);
 		dnaList.remove(0);
@@ -788,7 +788,7 @@ public class GinsburgDavid {
 			models = LinkageMap.parseModels(dir+filename);
 		}
 		
-		markerSet = new SnpMarkerSet(dir+"markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false, new Logger(null));
+		markerSet = new SnpMarkerSet(dir+"markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false, new Logger());
 		markerNames = markerSet.getMarkerNames();
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
@@ -842,7 +842,7 @@ public class GinsburgDavid {
 		
 		root = ext.rootOf(exploreFile, true);
 		
-		markerSet = new SnpMarkerSet(dir+"markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false, new Logger(null));
+		markerSet = new SnpMarkerSet(dir+"markers.dat", SnpMarkerSet.PLINK_MAP_FORMAT, false, new Logger());
 		chrHash = markerSet.getChrHash();
 		
 //		markerNames = Matrix.extractColumn(Markers.readIn(dir+"markers.dat"), 0);
@@ -942,7 +942,7 @@ public class GinsburgDavid {
 		}
 
 //		markerNames = Matrix.extractColumn(Markers.readIn(dir+exploreList), 0);
-		markerSet = new SnpMarkerSet(exploreList, SnpMarkerSet.NAMES_ONLY, false, new Logger(null));
+		markerSet = new SnpMarkerSet(exploreList, SnpMarkerSet.NAMES_ONLY, false, new Logger());
 		markerNames = markerSet.getMarkerNames();
 		for (int i = 0; i<markerNames.length; i++) {
 			if (!new File(dir+exploreDir+markerNames[i]+".xln").exists()) {

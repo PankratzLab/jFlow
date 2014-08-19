@@ -227,7 +227,7 @@ public class PathwayAnalysis {
         filenames[0] = ext.rootOf(pheno, false)+"."+rep+pheno.substring(pheno.lastIndexOf("."));
         filenames[1] = ext.rootOf(pheno, false)+"_cov."+rep+pheno.substring(pheno.lastIndexOf("."));
         trait = HashVec.loadFileToStringArray(pheno, true, new int[] {2}, false);
-    	line = Files.getHeaderOfFile(pheno, "[\\s]+", new Logger(null));
+    	line = Files.getHeaderOfFile(pheno, "[\\s]+", new Logger());
     	if (!line[0].equals("FID") || !line[1].equals("IID")) {
     		System.err.println("Error - need to use FID/IID in both pheno and covar files");
     		Files.writeList(new String[] {"Error - need to use FID/IID in both pheno and covar files"}, "NEED_TO_USE_FID-IID_IN_BOTH_PHENO_AND_COVAR_FILES.txt");
@@ -264,7 +264,7 @@ public class PathwayAnalysis {
         		Files.writeList(new String[] {}, "pheno_covar_checks_out");
         	}
         	
-        	line = Files.getHeaderOfFile(covars, "[\\s]+", new Logger(null));
+        	line = Files.getHeaderOfFile(covars, "[\\s]+", new Logger());
         	indices = new int[line.length-2];
         	for (int i = 0; i < indices.length; i++) {
         		indices[i] = 2+i;
@@ -363,7 +363,7 @@ public class PathwayAnalysis {
         
 		try {
 	        reader = new BufferedReader(new FileReader(filename));
-	        indices = ext.indexFactors(new String[] {"SNP", "TEST", "P"}, reader.readLine().trim().split("[\\s]+"), false, new Logger(null), false, false);
+	        indices = ext.indexFactors(new String[] {"SNP", "TEST", "P"}, reader.readLine().trim().split("[\\s]+"), false, new Logger(), false, false);
 	        results = new float[markerNames.length];
 	        root = ext.rootOf(filename);
 	        if (root.endsWith(".assoc")) {
@@ -619,7 +619,7 @@ public class PathwayAnalysis {
 		        System.err.println("Error writing to "+dir+"pathways/"+keys[i]+".crf");
 	        	e.printStackTrace();
         	}
-        	MapGenesToSNPs.filter(dir+"pathways/"+keys[i]+".crf", new Logger(null));
+        	MapGenesToSNPs.filter(dir+"pathways/"+keys[i]+".crf", new Logger());
 		}
         
         try {

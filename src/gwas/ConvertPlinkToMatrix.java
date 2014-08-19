@@ -13,7 +13,7 @@ public class ConvertPlinkToMatrix {
         String[] line;
         String[] markerNames;
         
-        markerNames = new SnpMarkerSet(dir+root+".map", false, new Logger(null)).getMarkerNames();
+        markerNames = new SnpMarkerSet(dir+root+".map", false, new Logger()).getMarkerNames();
         try {
             reader = new BufferedReader(new FileReader(dir+root+".ped"));
             writer = new PrintWriter(new FileWriter(dir+root+".matrix"));

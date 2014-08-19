@@ -52,7 +52,7 @@ public class MitoPipeline {
 	private static final String USE_FILE_COMMAND = "useFile=";
 
 	private String projectName;
-	private String fileName;
+	private String filename;
 	private Project proj;
 	private Logger log;
 	private String projectDirectory, sourceDirectory, dataExtension, defaultLRRSdFilter, targetMarkers, medianMarkers, markerPositions, idHeader, abLookup;
@@ -83,11 +83,10 @@ public class MitoPipeline {
 	 *            markers that will have their median values summarized. PCs will be regressed out of the median values
 	 * @param log
 	 */
-	public MitoPipeline(String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String defaultLRRSdFilter, String defaultCallRateFilter, String targetMarkers, String markerPositions, String medianMarkers, Logger log) {
+	public MitoPipeline(String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String defaultLRRSdFilter, String defaultCallRateFilter, String targetMarkers, String markerPositions, String medianMarkers, String logfile) {
 		String path = initGenvisisProject();
-		this.log = log;
 		this.projectName = projectName;
-		this.fileName = path + projectName + PROJECT_EXT;
+		this.filename = path + projectName + PROJECT_EXT;
 		this.projectDirectory = projectDirectory;
 		this.sourceDirectory = sourceDirectory;
 		this.dataExtension = dataExtension;
@@ -97,10 +96,16 @@ public class MitoPipeline {
 		this.targetMarkers = targetMarkers;
 		this.markerPositions = markerPositions;
 		this.medianMarkers = medianMarkers;
+		this.log = new Logger(logfile);
 		initProjectDir();
 		initProject(path);
-		copyAuxFiles();
+		if (logfile != null) {
+			proj.setLog(log);
+		} else {
+			log = proj.getLog();
+		}
 		initMainProperties();
+		copyAuxFiles();
 		initDataDir();
 	}
 
@@ -132,14 +137,14 @@ public class MitoPipeline {
 	 * Copies the default project to the project directory if the desired fileName does not already exist
 	 */
 	public void initProject(String path) {
-		if (Files.exists(fileName)) {
-			Files.backup(ext.removeDirectoryInfo(fileName), path, path + "backup/", false);
-			log.report("Info - using project file " + fileName + ", you may also specify project filename using the command line argument \"proj=\"");
+		if (Files.exists(filename)) {
+			Files.backup(ext.removeDirectoryInfo(filename), path, path + "backup/", false);
+			log.report("Info - using project file " + filename + ", you may also specify project filename using the command line argument \"proj=\"");
 		} else {
-			log.report("Info - project properties file can be found at " + fileName);
-			Files.write(Project.PROJECT_NAME + "=" + projectName, fileName);
+			log.report("Info - project properties file can be found at " + filename);
+			Files.write(Project.PROJECT_NAME + "=" + projectName, filename);
 		}
-		this.proj = new Project(fileName, false);
+		this.proj = new Project(filename, false);
 
 	}
 
@@ -159,18 +164,49 @@ public class MitoPipeline {
 	 * Copy all auxiliary files to project directory if not already present
 	 */
 	public void copyAuxFiles() {
+		boolean missingFile;
+		
+		missingFile = false;
 		log.report("Info - preparing auxiliary files in " + projectDirectory);
 		if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(targetMarkers))) {
-			Files.copyFile(targetMarkers, projectDirectory + ext.removeDirectoryInfo(targetMarkers));
+			if (!Files.copyFile(targetMarkers, projectDirectory + ext.removeDirectoryInfo(targetMarkers))) {
+				log.reportError("Error - the filename specified for targetMarkers (\""+targetMarkers+"\") was not found");
+				missingFile = true;
+			}
 		}
-		if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
-			Files.copyFile(markerPositions, projectDirectory + ext.removeDirectoryInfo(markerPositions));
+		if (markerPositions == null) {
+			log.report("Info - markerPositions was set to null, so attempting to auto-create from SNP_Map.csv");
+			String snpMapFilename = proj.getLocationOfSNP_Map();
+			if (snpMapFilename == null) {
+				log.reportError("Error - unfortunately a SNP_Map.csv file could not be found; either create a markerPositions.txt file with MarkerName/Chr/Position, or supply a SNP_Map.csv file");
+				log.reportError("aborting MitoPipeline");
+				System.exit(1);
+			} else {
+				log.report("\nParsing "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+" using "+snpMapFilename);
+				cnv.manage.Markers.generateMarkerPositions(proj, snpMapFilename);
+			}
+		} else if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
+			if (!Files.copyFile(markerPositions, projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
+				log.reportError("Error - the filename specified for markerPositions (\""+markerPositions+"\") was not found");
+				missingFile = true;
+			}
 		}
 		if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(medianMarkers))) {
-			Files.copyFile(medianMarkers, projectDirectory + ext.removeDirectoryInfo(medianMarkers));
+			if (!Files.copyFile(medianMarkers, projectDirectory + ext.removeDirectoryInfo(medianMarkers))) {
+				log.reportError("Error - the filename specified for medianMarkers (\""+medianMarkers+"\") was not found");
+				missingFile = true;
+			}
 		}
 		if (abLookup != null && Files.exists(abLookup) && !Files.exists(projectDirectory + abLookup)) {
-			Files.copyFile(abLookup, projectDirectory + ext.removeDirectoryInfo(abLookup));
+			if (!Files.copyFile(abLookup, projectDirectory + ext.removeDirectoryInfo(abLookup))) {
+				log.reportError("Error - the filename specified for abLookup (\""+abLookup+"\") was not found");
+				missingFile = true;
+			}
+		}
+		
+		if (missingFile) {
+			log.reportError("Error - critical file missing; aborting MitoPipeline");
+			System.exit(1);
 		}
 	}
 
@@ -185,23 +221,25 @@ public class MitoPipeline {
 		proj.setProperty(Project.ID_HEADER, idHeader);
 		proj.setProperty(Project.LRRSD_CUTOFF, defaultLRRSdFilter);
 		proj.setProperty(Project.TARGET_MARKERS_FILENAME, ext.removeDirectoryInfo(targetMarkers));
-		proj.setProperty(Project.MARKER_POSITION_FILENAME, ext.removeDirectoryInfo(markerPositions));
+		if (markerPositions != null) {
+			proj.setProperty(Project.MARKER_POSITION_FILENAME, ext.removeDirectoryInfo(markerPositions));
+		}
 		if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
 			proj.setProperty(Project.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
 		}
 		proj.saveProperties();
 	}
 
-	public static void generateSampleDataMap(Project proj, String sampleMapCsv, Logger log) {
-		generateSampleData(proj, loadSampleMapFile(sampleMapCsv, log), log);
+	public static void generateSampleDataMap(Project proj, String sampleMapCsv) {
+		generateSampleData(proj, loadSampleMapFile(sampleMapCsv, proj.getLog()));
 	}
 
-	public static void generateSampleDataPed(Project proj, String pedFile, Logger log) {
-		generateSampleData(proj, loadPedFile(pedFile, log), log);
+	public static void generateSampleDataPed(Project proj, String pedFile) {
+		generateSampleData(proj, loadPedFile(pedFile, proj.getLog()));
 	}
 
-	public static Project createNewProject(String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String targetMarkers, String medianMarkers, String markerPositions, String defaultLRRSdFilter, String defaultCallRateFilter, Logger log) {
-		MitoPipeline projG = new MitoPipeline(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, defaultLRRSdFilter, defaultCallRateFilter, targetMarkers, markerPositions, medianMarkers, log);
+	public static Project createNewProject(String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String targetMarkers, String medianMarkers, String markerPositions, String defaultLRRSdFilter, String defaultCallRateFilter, String logfile) {
+		MitoPipeline projG = new MitoPipeline(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, defaultLRRSdFilter, defaultCallRateFilter, targetMarkers, markerPositions, medianMarkers, logfile);
 		return projG.getProj();
 	}
 
@@ -215,19 +253,19 @@ public class MitoPipeline {
 	 * @param log
 	 *            Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead Note: if sample data already exists, we leave it alone
 	 */
-	public static void createSampleData(String pedFile, String sampleMapCsv, Project proj, Logger log) {
-		String sampleDataFilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+	public static void createSampleData(String pedFile, String sampleMapCsv, Project proj) {
+		String sampleDataFilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
 		if (sampleMapCsv == null && pedFile == null && !Files.exists(sampleDataFilename)) {
-			log.report("Warning - neither a sample manifest OR a sample map file was provided, generating sample data file at : " + sampleDataFilename);
-			SampleData.createMinimalSampleData(proj, log);
+			proj.getLog().report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: " + sampleDataFilename);
+			SampleData.createMinimalSampleData(proj);
 		} else if (!Files.exists(sampleDataFilename)) {
 			if (pedFile != null) {
-				generateSampleDataPed(proj, pedFile, log);
+				generateSampleDataPed(proj, pedFile);
 			} else {
-				generateSampleDataMap(proj, sampleMapCsv, log);
+				generateSampleDataMap(proj, sampleMapCsv);
 			}
 		} else {
-			log.report("Warning - detected that a sampleData file already exists at " + sampleDataFilename + ", skipping sampleData creation");
+			proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename + ", skipping sampleData creation");
 		}
 	}
 
@@ -235,13 +273,20 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static void catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, Logger log) {
-		SampleList sampleList = proj.getSampleList();
-		if (sampleList != null && sampleList.getSamples().length > 0) {
-			log.report("Warning - Detected that " + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length + " samples have" : sampleList.getSamples().length + "sample has") + " already been parsed");
-			log.report("Warning - Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of ) " + proj.getFilename(Project.SAMPLELIST_FILENAME) + " and " + proj.getFilename(Project.SAMPLE_DIRECTORY));
+	public static void catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv) {
+		String sampleDirectory;
+		SampleList sampleList;
+		int[] counts;
+		Logger log;
+		
+		log = proj.getLog();
+		sampleDirectory = proj.getDir(Project.SAMPLE_DIRECTORY, false, false);
+		if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length > 0 || (proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0))) {
+			sampleList = proj.getSampleList();
+			log.report("Detected that " + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length + " samples have" : sampleList.getSamples().length + " sample has") + " already been parsed");
+			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(Project.SAMPLELIST_FILENAME) + " and " + proj.getDir(Project.SAMPLE_DIRECTORY));
 		} else {
-			cnv.manage.ParseIllumina.createFiles(proj, numThreads, log);
+			cnv.manage.ParseIllumina.createFiles(proj, numThreads);
 			sampleList = proj.getSampleList();
 		}
 		if (sampleList == null || sampleList.getSamples().length == 0) {
@@ -249,26 +294,26 @@ public class MitoPipeline {
 			return;
 		}
 
-		createSampleData(pedFile, sampleMapCsv, proj, log);
+		createSampleData(pedFile, sampleMapCsv, proj);
 		// we require that every sample that has been parsed has an entry in sampleData
-		if (verifyAllSamples(proj, sampleList.getSamples(), log)) {
+		if (verifyAllSamples(proj, sampleList.getSamples())) {
 			// if a useFile is given, all samples must be available
-			if (verifyUseFile(proj, sampleList.getSamples(), useFile, log)) {
-				if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false) + "markers.0.mdRAF").exists()) {
-					log.report("Warning - Marker data (at least the first file 'markers.0.mdRAF') have already been parsed");
-					log.report("Warning - Skipping transpose step for the analysis. If you would like to re-transpose the data, please remove (or change the name of) " + proj.getDir(Project.MARKER_DATA_DIRECTORY, false, log, false));
+			if (verifyUseFile(proj, sampleList.getSamples(), useFile)) {
+				if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false) + "markers.0.mdRAF").exists()) {
+					log.report("Marker data (at least the first file 'markers.0.mdRAF') have already been parsed");
+					log.report("Skipping transpose step for the analysis. If you would like to re-transpose the data, please remove (or change the name of) " + proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false));
 				} else {
-					TransposeData.transposeData(proj, 2000000000, false, log); // proj.getLog()
+					TransposeData.transposeData(proj, 2000000000, false);
 				}
 				// we make sure each marker has an entry in the projects Markerlookup. I am doing this in case previous steps have already failed, and this should catch it
-				if (verifyAllProjectMarkersAreAvailable(proj, log)) {
+				if (verifyAllProjectMarkersAreAvailable(proj)) {
 					String markersForABCallRate = null;
 					String markersForEverythingElse = null;
 					// check that all target markers are available
-					if (verifyAuxMarkers(proj, proj.getFilename(Project.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND, log)) {
+					if (verifyAuxMarkers(proj, proj.getFilename(Project.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						if (markerQC) {
-							qcMarkers(proj, markerCallRateFilter, log);
+							qcMarkers(proj, markerCallRateFilter);
 							markersForABCallRate = proj.getProjectDir() + MARKERS_FOR_ABCALLRATE;
 							if (!Files.exists(markersForABCallRate)) {
 								log.reportError("Error - markerQC was flagged but the file " + proj.getProjectDir() + MARKERS_FOR_ABCALLRATE + " could not be found");
@@ -276,22 +321,34 @@ public class MitoPipeline {
 							}
 						} else {
 							markersForABCallRate = proj.getProjectDir() + MARKERS_TO_QC_FILE;
-							writeMarkersToQC(proj, log);
+							writeMarkersToQC(proj);
 						}
 
 						markersForEverythingElse = proj.getProjectDir() + MARKERS_TO_QC_FILE;
 
-						filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile, log);
+						counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
+						if (counts[1] != sampleList.getSamples().length) {
+							counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
+							if (counts[1] != sampleList.getSamples().length) {
+								log.reportError("Error - different number of samples (n="+counts[1]+") listed in the QC file ("+DEFUALT_QC_FILE+") compared to the number of samples in the project (n="+sampleList.getSamples().length+")");
+								log.reportError("      - delete the QC file ("+DEFUALT_QC_FILE+") to regenerate it with the correct number of samples");
+								log.reportError("aborting...");
+								return;
+							}							
+						}
 						// check that all median markers are available
-						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND, log)) {
+						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, outputBase + PCA_SAMPLES, outputBase, log);
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, outputBase + PCA_SAMPLES, outputBase);
+							if (pcs == null) {
+								return;
+							}
 							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
-							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, outputBase, log);
+							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, outputBase);
 							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
-							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, outputBase, log);
-							generateFinalReport(proj, outputBase, pcResids.getResidOutput(), log);
+							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, outputBase);
+							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 						}
 					}
 				}
@@ -302,8 +359,10 @@ public class MitoPipeline {
 	/**
 	 * if a subset of individuals is provided, we try to verify that they are all present in the project The String[] samples should be retrieved from the sample list so that it reflects parsed samples
 	 */
-	public static boolean verifyUseFile(Project proj, String[] samples, String useFile, Logger log) {
+	public static boolean verifyUseFile(Project proj, String[] samples, String useFile) {
 		boolean allParsed = true;
+		Logger log = proj.getLog();
+		
 		if (useFile != null) {
 			String[] samplesToVerify = HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, false);
 			Hashtable<String, String> track = new Hashtable<String, String>();
@@ -327,7 +386,7 @@ public class MitoPipeline {
 				Files.writeList(available.toArray(new String[available.size()]), haveFile);
 				log.reportError("Error - detected that not all samples (missing " + notAvailable.size() + ") from " + useFile + " are availble in the current project");
 				log.reportError("	   - Please review the missing samples in " + missingFile + " and the samples available in " + haveFile + ". If you wish to continue after review,  change the argument \"" + USE_FILE_COMMAND + useFile + "\" to \"" + USE_FILE_COMMAND + haveFile + "\"");
-				log.reportError("	   - Please note that sample names should correspond to the \"DNA\" column in the sample data file " + proj.getProjectDir() + proj.getProperty(Project.SAMPLE_DATA_FILENAME) + ", and the name of the file (directory and extension removed) in " + proj.getDir(Project.SAMPLE_DIRECTORY));
+				log.reportError("	   - Please note that sample names should correspond to the \"DNA\" column in the sample data file " + proj.getProjectDir() + proj.getProperty(Project.SAMPLE_DATA_FILENAME) + ", and the name of the file (directory and extension removed) in " + proj.getDir(Project.SAMPLE_DIRECTORY, false, false));
 			}
 		}
 		return allParsed;
@@ -338,10 +397,12 @@ public class MitoPipeline {
 	 * <p>
 	 * The String[] samples should be retrieved from the sample list so that it reflects parsed samples
 	 */
-	private static boolean verifyAllSamples(Project proj, String[] samples, Logger log) {
+	private static boolean verifyAllSamples(Project proj, String[] samples) {
 		boolean allParsed = true;
 		SampleData sampleData = proj.getSampleData(0, false);
 		ArrayList<String> notInSampleData = new ArrayList<String>();
+		Logger log = proj.getLog();
+		
 		for (int i = 0; i < samples.length; i++) {
 			if (sampleData.lookup(samples[i]) == null) {
 				notInSampleData.add(samples[i]);
@@ -360,12 +421,13 @@ public class MitoPipeline {
 	 * <p>
 	 * If they are not, we create lists of the markers available and missing TODO this could be consolidated with verify methods, but currently I wanted some specific reporting
 	 */
-	private static boolean verifyAuxMarkers(Project proj, String fileOfMarkers, String command, Logger log) {
+	private static boolean verifyAuxMarkers(Project proj, String fileOfMarkers, String command) {
 		boolean allAvailable = true;
 		MarkerLookup markerLookup = proj.getMarkerLookup();
 		String[] markersToVerify = HashVec.loadFileToStringArray(fileOfMarkers, false, new int[] { 0 }, false);
 		ArrayList<String> notAvailable = new ArrayList<String>();
 		ArrayList<String> available = new ArrayList<String>();
+		Logger log = proj.getLog();
 
 		if (markerLookup == null) {
 			allAvailable = false;
@@ -393,7 +455,7 @@ public class MitoPipeline {
 	/**
 	 * We try to verify that every marker has a place in a transposed file
 	 */
-	private static boolean verifyAllProjectMarkersAreAvailable(Project proj, Logger log) {
+	private static boolean verifyAllProjectMarkersAreAvailable(Project proj) {
 		boolean allParsed = true;
 		ArrayList<String> notParsed = new ArrayList<String>();
 		String[] markers = proj.getMarkerNames();
@@ -409,38 +471,40 @@ public class MitoPipeline {
 			}
 		}
 		if (notParsed.size() > 0) {
-			log.reportError("Error - detected that not all markers (missing " + notParsed.size() + ") were properly parsed, halting: This should not happen");
+			proj.getLog().reportError("Error - detected that not all markers (missing " + notParsed.size() + ") were properly parsed, halting: This should not happen");
 		}
 		return allParsed;
 	}
 
-	public static void qcMarkers(Project proj, double markerCallRateFilter, Logger log) {
+	public static void qcMarkers(Project proj, double markerCallRateFilter) {
+		Logger log = proj.getLog();
+		
 		// skip if marker qc file exists
 		if (Files.exists(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false))) {
-			log.report("Warning - Marker QC file " + proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false) + " exists");
-			log.report("Warning - Skipping Marker QC computation for the analysis, filtering on existing file");
+			log.report("Marker QC file " + proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false) + " exists");
+			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
-			log.report("Info - Computing marker QC for markers in " + proj.getFilename(Project.TARGET_MARKERS_FILENAME));
-			writeMarkersToQC(proj, log);
+			log.report("Computing marker QC for markers in " + proj.getFilename(Project.TARGET_MARKERS_FILENAME));
+			writeMarkersToQC(proj);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
-			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE, proj.getLog());
+			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE);
 		}
-		filterMarkerMetricsFile(proj, markerCallRateFilter, log);
+		filterMarkerMetricsFile(proj, markerCallRateFilter);
 	}
 
 	/**
 	 * Currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
 	 */
-	private static void writeMarkersToQC(Project proj, Logger log) {
+	private static void writeMarkersToQC(Project proj) {
 		String[] markersToQC = { proj.getFilename(Project.TARGET_MARKERS_FILENAME, true, false) };
-		Files.writeList(setMarkersToQC(proj, markersToQC, log), proj.getProjectDir() + MARKERS_TO_QC_FILE);
+		Files.writeList(setMarkersToQC(proj, markersToQC), proj.getProjectDir() + MARKERS_TO_QC_FILE);
 	}
 
 	/**
 	 * Similar to above, currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
 	 */
-	private static String[] setMarkersToQC(Project proj, String[] files, Logger log) {
+	private static String[] setMarkersToQC(Project proj, String[] files) {
 		ArrayList<String> markersToUse = new ArrayList<String>();
 		for (int i = 0; i < files.length; i++) {
 			String[] markers = HashVec.loadFileToStringArray(files[i], false, new int[] { 0 }, false);
@@ -454,9 +518,11 @@ public class MitoPipeline {
 	/**
 	 * Write a filtered list of markers to use for ab callRate in sample QC
 	 */
-	private static void filterMarkerMetricsFile(Project proj, double markerCallRateFilter, Logger log) {
+	private static void filterMarkerMetricsFile(Project proj, double markerCallRateFilter) {
 		ArrayList<String> abMarkersToUse = new ArrayList<String>();
 		BufferedReader reader;
+		Logger log = proj.getLog();
+		
 		try {
 			reader = Files.getReader(proj.getFilename(Project.MARKER_METRICS_FILENAME), false, true, false);
 			String[] header = reader.readLine().trim().split("\t");
@@ -496,18 +562,20 @@ public class MitoPipeline {
 	/**
 	 * The last thing to do, gives us a report of summarized median markers, qc stats, and pcs..
 	 */
-	public static void generateFinalReport(Project proj, String outputBase, String residualFile, Logger log) {
+	public static void generateFinalReport(Project proj, String outputBase, String residualFile) {
 		BufferedReader reader;
 		PrintWriter writer;
 		int DNAIndex = 0;
-		Hashtable<String, String> qcLookup = loadQC(proj, outputBase, log);
+		Hashtable<String, String> qcLookup = loadQC(proj, outputBase);
+		Logger log = proj.getLog();
+		
 		try {
 			String finalReport = ext.rootOf(residualFile) + PCA_FINAL_REPORT;
 			if (Files.exists(proj.getProjectDir() + finalReport)) {
 				Files.backup(finalReport, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
 			}
 
-			DNAIndex = getDNAIndex(proj, proj.getProjectDir() + residualFile, log);
+			DNAIndex = getDNAIndex(proj, proj.getProjectDir() + residualFile);
 			reader = Files.getReader(proj.getProjectDir() + residualFile, false, true, false);
 			writer = Files.getAppropriateWriter(proj.getProjectDir() + finalReport);
 
@@ -535,12 +603,14 @@ public class MitoPipeline {
 	/**
 	 * Loads the PCA_SAMPLES_SUMMARY File
 	 */
-	private static Hashtable<String, String> loadQC(Project proj, String outputBase, Logger log) {
+	private static Hashtable<String, String> loadQC(Project proj, String outputBase) {
 		BufferedReader reader;
 		Hashtable<String, String> qcLookup = new Hashtable<String, String>();
 		int DNAIndex = 0;
+		Logger log = proj.getLog();
+		
 		try {
-			DNAIndex = getDNAIndex(proj, proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY, log);
+			DNAIndex = getDNAIndex(proj, proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY);
 			reader = Files.getReader(proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY, false, true, false);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
@@ -558,7 +628,8 @@ public class MitoPipeline {
 	/**
 	 * Tries to get the DNA index so we always match up
 	 */
-	private static int getDNAIndex(Project proj, String fileName, Logger log) {
+	private static int getDNAIndex(Project proj, String fileName) {
+		Logger log = proj.getLog();
 		int DNAIndex;
 		DNAIndex = ext.indexOfEndsWith(DNA_LINKER, Files.getHeaderOfFile(fileName, log), false);
 		if (DNAIndex == -1) {
@@ -583,41 +654,43 @@ public class MitoPipeline {
 	 *            a further filter of samples that will be used
 	 * @param log
 	 */
-	public static void filterSamples(Project proj, String outputBase, String markersForABCallRate, String markersForEverythingElse, int numThreads, String sampleCallRateFilter, String useFile, Logger log) {
+	public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate, String markersForEverythingElse, int numThreads, String sampleCallRateFilter, String useFile) {
 		Hashtable<String, String> sampDataQC = new Hashtable<String, String>();
 		int[] indices;
 		String[] line;
-		int numPassing = 0;
+		int numPassing, count;
+		Logger log = proj.getLog();
 
 		SampleData sampleData = proj.getSampleData(0, false);
 		double lrrSdFilter = Double.parseDouble(proj.getProperty(Project.LRRSD_CUTOFF));
 		double callRateFilter = Double.parseDouble(sampleCallRateFilter);
-		boolean addToSampleData = checkSampleData(proj, sampleData, log);
+		boolean addToSampleData = checkSampleData(proj, sampleData);
 		Hashtable<String, String> subset = checkSubset(useFile, log);
 
 		if (Files.exists(proj.getProjectDir() + DEFUALT_QC_FILE)) {
-			log.report("Warning - the sample qc file " + proj.getProjectDir() + DEFUALT_QC_FILE + " already exists");
-			log.report("Warning - Skipping qc computation, filtering on existing qc file " + proj.getProjectDir() + DEFUALT_QC_FILE);
+			log.report("The sample qc file " + proj.getProjectDir() + DEFUALT_QC_FILE + " already exists");
+			log.report("Skipping qc computation, filtering on existing qc file " + proj.getProjectDir() + DEFUALT_QC_FILE);
 		} else {
 			log.report("Computing sample QC for all samples");
 			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
 		}
 
+		count = 0;
+		numPassing = 0;
 		try {
-
 			BufferedReader reader = Files.getReader(proj.getProjectDir() + DEFUALT_QC_FILE, false, true, false);
 			PrintWriter writerUse = new PrintWriter(new FileWriter(proj.getProjectDir() + outputBase + PCA_SAMPLES));
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY));
 
 			writerSummary.println(Array.toStr(SAMPLE_QC_SUMMARY));
 			line = reader.readLine().trim().split(SPLITS[0]);
-			indices = ext.indexFactors(QC_COLUMNS, line, true, false);
+			indices = ext.indexFactors(QC_COLUMNS, line, true, log, true, false);
 
-			if (!checkIndices(proj, indices, log)) {
+			if (!checkIndices(proj, indices)) {
 				writerUse.close();
 				writerSummary.close();
 				reader.close();
-				return;
+				return null;
 			}
 
 			while (reader.ready()) {
@@ -640,6 +713,7 @@ public class MitoPipeline {
 						sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t" + "1");
 						writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]] + "\t" + "FALSE");
 					}
+					count++;
 				}
 			}
 
@@ -650,10 +724,10 @@ public class MitoPipeline {
 			if (numPassing == 0) {
 				log.reportError("Error - all Samples were filtered out by the QC step");
 				log.reportError("If there are a large number of cnv-only probes on the array, try lowering the call rate threshold for samples or use the \"-markerQC\" option to only select markers with high quality call rates");
-				return;
+				return null;
 			}
 
-			log.report("Info - " + numPassing + " " + (numPassing == 1 ? " sample " : " samples") + " passed the QC threshold" + (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
+			log.report("Info - " + numPassing + " " + (numPassing == 1 ? "sample" : "samples") + " passed the QC threshold" + (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
 
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + DEFUALT_QC_FILE + "\" not found in current directory");
@@ -664,6 +738,8 @@ public class MitoPipeline {
 		if (addToSampleData) {
 			sampleData.addData(sampDataQC, DNA_LINKER, SAMPLE_DATA_ADDITION_HEADERS, ext.MISSING_VALUES[1], SPLITS[0], log);
 		}
+		
+		return new int[] {numPassing, count};
 	}
 
 	/**
@@ -689,7 +765,7 @@ public class MitoPipeline {
 				return null;
 			}
 		} else {
-			log.report("Info - A subset of samples was not provided with the \"useFile=\" argument, using all parsed samples as input");
+			log.report("Info - A subset of samples was not provided with the \"useFile=\" argument, using all parsed samples as input to the SVD");
 		}
 		return subset;
 	}
@@ -697,17 +773,19 @@ public class MitoPipeline {
 	/**
 	 * Check to make sure that sample data has DNA header, and that the QC has not already been added
 	 */
-	private static boolean checkSampleData(Project proj, SampleData sampleData, Logger log) {
+	private static boolean checkSampleData(Project proj, SampleData sampleData) {
 		// This should not happen, but if it is the case we will not attempt to add qc metrics
 		boolean addToSampleData = true;
+		Logger log = proj.getLog();
+		
 		if (!sampleData.containsDNA()) {
 			addToSampleData = false;
 			log.reportError("Error - sample data did not contain column with header \"DNA\", not adding sample qc summaries to sample data");
 		}
-		if (qcAdded(proj, log)) {
+		if (qcAdded(proj)) {
 			addToSampleData = false;
-			log.reportError("Warning - detected that sample data QC metrics have been added already, will not add these again");
-			log.reportError("If new thresholds were used, please remove the columns " + Array.toStr(SAMPLE_DATA_ADDITION_HEADERS) + " in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME));
+			log.reportError("Detected that sample data QC metrics have been added already, will not add these again");
+			log.reportError("If new thresholds were used, please remove the columns [" + ext.listWithCommas(SAMPLE_DATA_ADDITION_HEADERS, true) + "] in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME));
 		}
 		return addToSampleData;
 	}
@@ -715,12 +793,12 @@ public class MitoPipeline {
 	/**
 	 * Check all indices for -1 status
 	 */
-	private static boolean checkIndices(Project proj, int[] indices, Logger log) {
+	private static boolean checkIndices(Project proj, int[] indices) {
 		boolean allGood = true;
 		for (int i = 0; i < indices.length; i++) {
 			if (indices[i] == -1) {
 				allGood = false;
-				log.reportError("Error - The sample QC file " + proj.getProjectDir() + DEFUALT_QC_FILE + " did not contain the proper headings, this should not happen");
+				proj.getLog().reportError("Error - The sample QC file " + proj.getProjectDir() + DEFUALT_QC_FILE + " did not contain the proper headings, this should not happen");
 			}
 		}
 		return allGood;
@@ -729,10 +807,10 @@ public class MitoPipeline {
 	/**
 	 * Check the header of the sample data file to see if the sample data qc headers are present
 	 */
-	private static boolean qcAdded(Project proj, Logger log) {
+	private static boolean qcAdded(Project proj) {
 		boolean added = true;
-		String[] header = Files.getHeaderOfFile(proj.getFilename(Project.SAMPLE_DATA_FILENAME), log);
-		int[] indices = ext.indexFactors(SAMPLE_DATA_ADDITION_HEADERS, header, true, false);
+		String[] header = Files.getHeaderOfFile(proj.getFilename(Project.SAMPLE_DATA_FILENAME), proj.getLog());
+		int[] indices = ext.indexFactors(SAMPLE_DATA_ADDITION_HEADERS, header, true, proj.getLog(), false, false);
 		for (int i = 0; i < indices.length; i++) {
 			if (indices[i] < 0) {
 				added = false;
@@ -744,8 +822,10 @@ public class MitoPipeline {
 	/**
 	 * We use the Individual class as input so that we only need one method to generate the sample data
 	 */
-	public static void generateSampleData(Project proj, Individual[] inds, Logger log) {
+	public static void generateSampleData(Project proj, Individual[] inds) {
 		String sampleDataFile = proj.getProjectDir() + proj.getProperty(Project.SAMPLE_DATA_FILENAME);
+		Logger log = proj.getLog();
+		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
 			String[] classed = PED_INPUT;
@@ -768,7 +848,7 @@ public class MitoPipeline {
 		File file = new File(outputDirectory);
 		if (!file.exists()) {
 			if (file.mkdirs()) {
-				log.report(ext.getTime() + " Created directory " + outputDirectory);
+				log.report("\n"+ext.getTime() + " Created directory " + outputDirectory);
 			} else {
 				log.reportError("Error - failed to create  " + outputDirectory + ", please manually create it unless it already exists");
 			}
@@ -905,7 +985,7 @@ public class MitoPipeline {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String fileName = null;
+		String filename = null;
 		String projectName = "GENVISIS_project1";
 		String projectDirectory = "D:/data/Project1/";
 		String sourceDirectory = "D:/data/dataForProject1/";
@@ -925,12 +1005,13 @@ public class MitoPipeline {
 		double markerCallRateFilter = 0.98;
 		boolean markerQC = true;
 		String useFile = null;
+		String logfile = null;
 
 		int numThreads = 1;
 		int numComponents = 100;
 		boolean homosygousOnly = true;
 		String usage = "\n";
-		usage += "jlDev.ProjectGenPCA requires 6 arguments\n";
+		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
 		usage += "  \n";
 		usage += "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=" + projectDirectory + " (default))\n";
 		usage += "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=" + sourceDirectory + " (default))\n";
@@ -952,11 +1033,12 @@ public class MitoPipeline {
 		usage += "   (13) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
 		usage += "   (14) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
 		usage += "   (15) Output file baseName (i.e. output=" + output + " (default))\n";
-		usage += "   (16) Project filename (if you manually created a project properties file, or edited an existing project) (i.e. proj=" + fileName + " (no default))\n";
-		usage += "	 (17) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
-		// usage += "	 (18) A file specifying the AB allele lookup for markers, often times required  (i.e. abLookup=" + idHeader + " (default))\n";
-		usage += "	 (18) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
-		usage += "	 (19) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
+		usage += "   (16) Project filename (if you manually created a project properties file, or edited an existing project) (i.e. proj=" + filename + " (no default))\n";
+		usage += "   (17) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
+		// usage += "   (18) A file specifying the AB allele lookup for markers, often times required  (i.e. abLookup=" + idHeader + " (default))\n";
+		usage += "   (18) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
+		usage += "   (19) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
+		usage += "   (20) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -969,49 +1051,49 @@ public class MitoPipeline {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (args[i].startsWith("projName=")) {
-				projectName = args[i].split("=")[1];
+				projectName = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("proj=")) {
-				fileName = args[i].split("=")[1];
+				filename = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("dirProj=")) {
-				projectDirectory = args[i].split("=")[1];
+				projectDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("dirSrc=")) {
-				sourceDirectory = args[i].split("=")[1];
+				sourceDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("pedFile=")) {
-				pedFile = args[i].split("=")[1];
+				pedFile = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("mapFile=")) {
-				sampleMapCsv = args[i].split("=")[1];
+				sampleMapCsv = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("dirExt=")) {
-				dataExtension = args[i].split("=")[1];
+				dataExtension = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("LRRSD=")) {
-				sampleLRRSdFilter = args[i].split("=")[1];
+				sampleLRRSdFilter = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("sampleCallRate=")) {
-				sampleCallRateFilter = args[i].split("=")[1];
+				sampleCallRateFilter = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith(PC_MARKER_COMMAND)) {
-				targetMarkers = args[i].split("=")[1];
+				targetMarkers = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("output=")) {
-				output = args[i].split("=")[1];
+				output = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith(MEDIAN_MARKER_COMMAND)) {
-				medianMarkers = args[i].split("=")[1];
+				medianMarkers = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("markerPositions=")) {
-				markerPositions = args[i].split("=")[1];
+				markerPositions = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("numThreads=")) {
-				numThreads = Integer.parseInt(args[i].split("=")[1]);
+				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("numComponents=")) {
-				numComponents = Integer.parseInt(args[i].split("=")[1]);
+				numComponents = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("-allCalls")) {
 				homosygousOnly = false;
@@ -1020,17 +1102,20 @@ public class MitoPipeline {
 				markerQC = true;
 				numArgs--;
 			} else if (args[i].startsWith("markerCallRate=")) {
-				markerCallRateFilter = Double.parseDouble(args[i].split("=")[1]);
+				markerCallRateFilter = ext.parseDoubleArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith(USE_FILE_COMMAND)) {
-				useFile = args[i].split("=")[1];
+				useFile = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("abLookup=")) {
-				abLookup = args[i].split("=")[1];
+				abLookup = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("idHeader=")) {
 				System.out.println(args[i]);
-				idHeader = args[i].split("=")[1].replaceAll("_", " ");
+				idHeader = ext.parseStringArg(args[i].replaceAll("_", " "), null);
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else {
 				System.err.println("\n\nError - invalid argument " + args[i] + "\n\n");
@@ -1040,19 +1125,13 @@ public class MitoPipeline {
 			System.err.println(usage);
 			System.exit(1);
 		}
-
+		
 		Project proj;
-		Logger log;
-		if (fileName == null) {
-			proj = createNewProject(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, new Logger());
+		if (filename == null) {
+			proj = createNewProject(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
 		} else {
-			proj = new Project(fileName, false);
-			// setting these properties so they are modified if an existing project is supplied at the command line
-			proj.setProperty(Project.TARGET_MARKERS_FILENAME, targetMarkers);
-			proj.setProperty(Project.LRRSD_CUTOFF, sampleLRRSdFilter);
-			proj.saveProperties();
+			proj = new Project(filename, logfile, false);
 		}
-		log = proj.getLog();
-		catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, log);
+		catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv);
 	}
 }

@@ -169,7 +169,7 @@ public class Beagle {
 	        if (files.length == 1) {
 		        writer.println("plink --bfile ../plink --keep "+filename+" --make-bed");
 	        } else {
-	        	Files.cat(files, root+".txt", Array.intArray(files.length, 0), new Logger(null));
+	        	Files.cat(files, root+".txt", Array.intArray(files.length, 0), new Logger());
 		        writer.println("cp "+root+".txt "+root+"/");
 		        writer.println("plink --bfile ../plink --keep "+root+".txt"+" --make-bed");
 	        }
@@ -348,7 +348,7 @@ public class Beagle {
         ids = HashVec.loadFileToStringMatrix(list, false, new int[] {0, 1}, false);
         dir = ext.parseDirectoryOfFile(filename);
         if (new File(dir+"plink.map").exists() || new File(dir+"plink.bim").exists()) {
-        	markerSet = new SnpMarkerSet(new File(dir+"plink.map").exists()?dir+"plink.map":dir+"plink.bim", false, new Logger(null));
+        	markerSet = new SnpMarkerSet(new File(dir+"plink.map").exists()?dir+"plink.map":dir+"plink.bim", false, new Logger());
         	markerNames = markerSet.getMarkerNames();
         	chrs = markerSet.getChrs();
         	positions = markerSet.getPositions();
@@ -565,7 +565,7 @@ public class Beagle {
         for (int chr = 1; chr<=22; chr++) {
             if (new File("chr"+chr+"/").exists()) {
                 if (new File("chr"+chr+"/plink.map").exists() || new File("chr"+chr+"/plink.bim").exists()) {
-                	markerSet = new SnpMarkerSet(new File("chr"+chr+"/plink.map").exists()?"chr"+chr+"/plink.map":"chr"+chr+"/plink.bim", false, new Logger(null));
+                	markerSet = new SnpMarkerSet(new File("chr"+chr+"/plink.map").exists()?"chr"+chr+"/plink.map":"chr"+chr+"/plink.bim", false, new Logger());
                 	markerNames[chr-1] = markerSet.getMarkerNames();
                 	chrs[chr-1] = markerSet.getChrs();
                 	positions[chr-1] = markerSet.getPositions();

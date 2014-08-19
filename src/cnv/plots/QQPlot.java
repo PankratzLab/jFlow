@@ -119,7 +119,7 @@ public class QQPlot extends JFrame implements ActionListener {
 //		return str;		
 //	}
 //	
-	public static void loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles, boolean displayStandardQQ, boolean displayRotatedQQ, double maxToPlot, boolean symmetric, float maxValue) {
+	public static void loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles, boolean displayStandardQQ, boolean displayRotatedQQ, double maxToPlot, boolean symmetric, float maxValue, Logger log) {
 		BufferedReader reader;
 		String[] labels;
 		double[][] pvals;
@@ -130,10 +130,7 @@ public class QQPlot extends JFrame implements ActionListener {
 		double minPval;
 		String delimiter;
 		String temp;
-		Logger log;
 		int invalids;
-		
-		log = new Logger();
 		
 		if (filenames == null || filenames.length == 0) {
 			JOptionPane.showMessageDialog(null, "There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the has symbol (\"#\"))", "Error", JOptionPane.ERROR_MESSAGE);
@@ -169,7 +166,7 @@ public class QQPlot extends JFrame implements ActionListener {
 				JOptionPane.showMessageDialog(null, "Error - file "+filenames[i]+" does not exist", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			delimiter = Files.determineDelimiter(filenames[i], new Logger());
+			delimiter = Files.determineDelimiter(filenames[i], log);
 			try {
 				reader = Files.getReader(filenames[i], JAR, true, true);
 				count = 0;
@@ -341,6 +338,7 @@ public class QQPlot extends JFrame implements ActionListener {
 		boolean symmetric = false;
 		String plotLabel = "Q-Q Plot";
 		float maxValue = Float.MAX_VALUE;
+		String logfile = null;
 
 		String usage = "\n"+
 		"plot.QQPlot requires 0-1 arguments\n"+
@@ -349,6 +347,7 @@ public class QQPlot extends JFrame implements ActionListener {
 		"   (3) make symmetric (i.e. -symmetric (not the default))\n"+
 		"   (4) name of plot, for frame (i.e. plotLabel="+plotLabel+" (default))\n"+
 		"   (5) maximum -log10 p-value to plot (i.e. maxValue=Infinity (default))\n"+
+		"   (6) (optinal) log file (i.e. log="+logfile+" (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -385,6 +384,9 @@ public class QQPlot extends JFrame implements ActionListener {
 			} else if (args[i].startsWith("maxValue=")) {
 				maxValue = ext.parseFloatArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = ext.parseStringArg(args[i], null);
+				numArgs--;
 			}
 			
 		}
@@ -399,7 +401,7 @@ public class QQPlot extends JFrame implements ActionListener {
 			if (computePrefix != null) {
 				computeCI(computeDir, computePrefix, max);
 			} else {
-				loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ, maxToPlot, symmetric, maxValue);
+				loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ, maxToPlot, symmetric, maxValue, new Logger(logfile));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

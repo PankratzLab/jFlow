@@ -192,7 +192,7 @@ public class OriginalNrss {
 				markerPositions[i][0] = Integer.parseInt(line[1]);
 				markerPositions[i][1] = Integer.parseInt(line[2]);
 			}
-			genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, window, new Logger(null));
+			genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, window, new Logger());
 			writer = new PrintWriter(new FileWriter(dir+outfile));
 			writer.println("Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"+(variate_column==-1?"":"\tvars"));
 			for (int i = 0; i<v.size(); i++) {

@@ -28,7 +28,7 @@ public class ABLookup {
 		lookup = new char[0][0];
 	}
 	
-	public ABLookup(String[] markerNames, String filename, boolean verbose, boolean allOrNothing) {
+	public ABLookup(String[] markerNames, String filename, boolean verbose, boolean allOrNothing, Logger log) {
 		Hashtable<String,char[]> lookupHash;
 		int count;
 		
@@ -36,7 +36,7 @@ public class ABLookup {
 		this.markerNames = markerNames;
         lookup = new char[markerNames.length][];
         if (filename.toLowerCase().endsWith(".csv")) {
-        	lookupHash = generateABLookupHashFromCSV(filename);
+        	lookupHash = generateABLookupHashFromCSV(filename, log);
         } else {
         	lookupHash = generateABLookupHash(filename);
         }
@@ -120,7 +120,7 @@ public class ABLookup {
 	        writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"AB_breakdown.xln"));
 	        writer.println("Marker\tG11\tG12\tG22\tG11 counts\tG12 counts\tG22 counts\tMean Theta G11\tMean Theta G12\tMean Theta G22\torder\tA allele\tB allele");
 	        writer2 = new PrintWriter(new FileWriter(proj.getProjectDir()+"posssible_"+DEFAULT_AB_FILE));
-	        writer2.println("Marker\tAlleleA\tAlleleB");
+	        writer2.println("Marker\tA\tB");
 //	        int countMissing;
 	        lookup = new char[markerNames.length][];
 	        for (int i = 0; i<markerNames.length; i++) {
@@ -293,7 +293,7 @@ public class ABLookup {
         }
 	}
 
-	public static Hashtable<String,char[]> generateABLookupHashFromCSV(String filename) {
+	public static Hashtable<String,char[]> generateABLookupHashFromCSV(String filename, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		Hashtable<String,char[]> hash;
@@ -303,12 +303,12 @@ public class ABLookup {
 		
         hash = new Hashtable<String,char[]>();
 		try {
-            reader = new BufferedReader(new FileReader(filename));
+            reader = Files.getAppropriateReader(filename);
             do {
             	temp = reader.readLine();
             	line = temp.trim().split(",");
             } while (reader.ready() && (!temp.contains("Name") || !temp.contains("SNP")));
-            indices = ext.indexFactors(new String[][] {{"Name", "MarkerName"}, {"SNP"}}, line, false, true, true, new Logger(), true);
+            indices = ext.indexFactors(new String[][] {{"Name", "MarkerName"}, {"SNP"}}, line, false, true, true, log, true);
             prev = temp;
             while (reader.ready()) {
             	temp = reader.readLine();
@@ -318,16 +318,16 @@ public class ABLookup {
             			reader.readLine();
             			count++;
             		}
-            		System.out.println("Ended with an ignored tail of "+count+" line(s)");
+            		log.report("Ended with an ignored tail of "+count+" line(s)");
             	} else {
 	            	try {
 		            	line = temp.trim().split(",");
 		            	hash.put(line[indices[0]], new char[] {line[indices[1]].charAt(1), line[indices[1]].charAt(3)});
 	            	} catch (ArrayIndexOutOfBoundsException aioobe) {
-	            		System.err.println("Error - could not parse line:");
-	            		System.err.println(temp);
-	            		System.err.println("Where the previous line was:");
-	            		System.err.println(prev);
+	            		log.reportError("Error - could not parse line:");
+	            		log.reportError(temp);
+	            		log.reportError("Where the previous line was:");
+	            		log.reportError(prev);
 	            		aioobe.printStackTrace();
 	            	}
 	                prev = temp;
@@ -336,10 +336,10 @@ public class ABLookup {
             reader.close();
             return hash;
         } catch (FileNotFoundException fnfe) {
-            System.err.println("File not found: \""+filename+"\"");
+        	log.reportError("File not found: \""+filename+"\"");
         	return null;
         } catch (IOException ioe) {
-            System.err.println("Error reading file \""+filename+"\"");
+        	log.reportError("Error reading file \""+filename+"\"");
             return null;
         }
 	}
@@ -372,7 +372,7 @@ public class ABLookup {
         String genotype;
         byte[] forwardGenotypes, abGenotypes;
         
-		abLookup = new ABLookup(proj.getMarkerNames(), proj.getFilename(Project.AB_LOOKUP_FILENAME), false, false);
+		abLookup = new ABLookup(proj.getMarkerNames(), proj.getFilename(Project.AB_LOOKUP_FILENAME), false, false, proj.getLog());
         samples = proj.getSamples();
         for (int i=0; i<samples.length; i++) {
         	System.out.println((i+1)+" of "+samples.length);
@@ -402,7 +402,7 @@ public class ABLookup {
         }
 	}
 	
-	public static void fillInMissingAlleles(Project proj, String incompleteABlookupFilename, String mapFile, Logger log) {
+	public static void fillInMissingAlleles(Project proj, String incompleteABlookupFilename, String mapFile) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -413,7 +413,10 @@ public class ABLookup {
 		MarkerDataLoader markerDataLoader;
 		String[] markerNames;
 		char[] refAlleles;
+		Logger log;
+		ClusterFilterCollection clusterFilterCollection;
 		
+		log = proj.getLog();
         if (!mapFile.toLowerCase().endsWith(".csv")) {
         	log.reportError("Error - expecting an Illumina style format, but this map file '"+mapFile+"' does not end in .csv; aborting...");
         	return;
@@ -424,19 +427,21 @@ public class ABLookup {
         	return;
         }
         
-        lookupHash = generateABLookupHashFromCSV(mapFile);
+        lookupHash = generateABLookupHashFromCSV(mapFile, proj.getLog());
 
         markersWithNoLink = new Vector<String>();
         try {
 			reader = Files.getAppropriateReader(incompleteABlookupFilename);
 			writer = new PrintWriter(new FileWriter(ext.addToRoot(incompleteABlookupFilename, "_filledIn")));
 			line = reader.readLine().trim().split("[\\s]+");
-			ext.checkHeader(line, new String[] {"Marker", "AlleleA", "AlleleB"}, new int[] {0,1,2}, false, log, true);
+			ext.checkHeader(line, new String[] {"Marker", "A", "B"}, new int[] {0,1,2}, false, log, true);
 			writer.println(Array.toStr(line));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line[1].equals("N") && line[2].equals("N")) {
 					markersWithNoLink.add(line[0]);
+					line[1] = "A";
+					line[2] = "B";
 				} else if (line[1].equals("N") || line[2].equals("N")) {
 					knownIndex = line[1].equals("N")?1:0;
 					knownAllele = line[1+knownIndex].charAt(0);
@@ -472,12 +477,13 @@ public class ABLookup {
 			reader.close();
 			writer.close();
 			
-			log.report("There were "+markersWithNoLink.size()+" markers that were zeroed out in the original export; for list check "+Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
+			clusterFilterCollection = proj.getClusterFilterCollection();
+			log.report("There were "+markersWithNoLink.size()+" markers that were zeroed out in the original export; these are set to alleles 'A' and 'B'; for list check "+Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
 			markerNames = Array.toStringArray(markersWithNoLink);
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerNames);
 			System.err.println("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
 			for (int i = 0; i < markerNames.length; i++) {
-				markerNames[i] = markerNames[i]+"\t"+markerDataLoader.getMarkerData(i).getFrequencyOfB(null, null, proj.getClusterFilterCollection(), proj.getFloat(Project.GC_THRESHOLD));
+				markerNames[i] = markerNames[i]+"\t"+markerDataLoader.getMarkerData(i).getFrequencyOfB(null, null, clusterFilterCollection, proj.getFloat(Project.GC_THRESHOLD));
 			}
 			Files.writeList(markerNames, Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
 		} catch (FileNotFoundException fnfe) {
@@ -492,7 +498,7 @@ public class ABLookup {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		boolean parseFromOriginalGenotypes = false;
 		boolean parseFromGenotypeClusterCenters = false;
 		String outfile = DEFAULT_AB_FILE;
@@ -503,7 +509,7 @@ public class ABLookup {
 
 		String usage = "\n" +
 				"cnv.filesys.ABLookup requires 0-1 arguments\n" +
-				"   (1) project file (i.e. proj="+filename+" (default))\n"+
+				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) name of output file (i.e. out="+outfile+" (default))\n" + 
 				"  AND\n" + 
 				"   (3) parse ABLookup from centroids (i.e. -parseFromGenotypeClusterCenters (not the default))\n" + 
@@ -561,13 +567,13 @@ public class ABLookup {
 //		incompleteABlookupFilename = "D:/data/SingaporeReplication/fromclusters_posssible_AB_lookup.dat";
 //		mapFile = "D:/data/SingaporeReplication/SNP_Map.csv";
 		
-		filename = "/home/npankrat/projects/WinterHillsCombo.properties";
-		parseFromOriginalGenotypes = true;
+//		filename = "/home/npankrat/projects/WinterHillsCombo.properties";
+//		parseFromOriginalGenotypes = true;
 		
 		try {
 			proj = new Project(filename, false);
 			if (incompleteABlookupFilename != null) {
-				fillInMissingAlleles(proj, incompleteABlookupFilename, mapFile, new Logger());
+				fillInMissingAlleles(proj, incompleteABlookupFilename, mapFile);
 			} else if (parseFromOriginalGenotypes) {
 				abLookup = new ABLookup();
 				abLookup.parseFromOriginalGenotypes(proj);

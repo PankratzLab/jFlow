@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 
 import cnv.filesys.Project;
-
 import common.*;
 import filesys.Segment;
 
@@ -13,6 +12,8 @@ public class SampleData {
 	public static final String GENOTYPE = "Genotype";
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
 	public static final String[] MINIMAL_SAMPLE_DATA_HEADER = { "DNA", "FID", "IID" };
+	public static final String[] EUPHAMISMS = {"CleanedSex", "Sex", "CLASS=Sex", "Gender", "CLASS=Gender"};
+	public static final String[] EXCLUDE_ALIASES = {"Exclude", "CLASS=Exclude"};
 	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
 
 	public static final String[][] LINKERS = {
@@ -92,7 +93,7 @@ public class SampleData {
 		colorKeyIndex = new Hashtable<String, ArrayList<Integer>>();
 		
 		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
-			System.err.println("Error - selected number of basic classes to use exceeds the number defined");
+			log.reportError("Error - selected number of basic classes to use exceeds the number defined");
 			numberOfBasicClassesToUse = BASIC_CLASSES.length;
 		}
 		basicClasses = new String[numberOfBasicClassesToUse];
@@ -112,25 +113,25 @@ public class SampleData {
 			famIndex = ext.indexOfStr("FID", header);
 			indIndex = ext.indexOfStr("IID", header);
 			if (dnaIndex == -1) {
-				System.err.println("Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
+				log.reportError("Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
 				dnaIndex = 0;
 				containsDNA = false;
 			}
 			if (cnvFilenames.length > 0 && famIndex == -1) {
-				System.err.println("Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
+				log.reportError("Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
 //				cnvFilesnames = new String[0];
 			}
 			if (cnvFilenames.length > 0 && indIndex == -1) {
-				System.err.println("Error - 'IID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
+				log.reportError("Error - 'IID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
 //				cnvFilesnames = new String[0];
 			}
 			if (famIndex == -1) {
-				System.err.println("Error - 'FID' was not a header in the SampleData file; assuming family ID is in the second column");
+				log.reportError("Error - 'FID' was not a header in the SampleData file; assuming family ID is in the second column");
 				famIndex = 1;
 				containsFID = false;
 			}
 			if (indIndex == -1) {
-				System.err.println("Error - 'IID' was not a header in the SampleData file; assuming individual ID is in the third column");
+				log.reportError("Error - 'IID' was not a header in the SampleData file; assuming individual ID is in the third column");
 				indIndex = 2;
 				containsIID = false;
 			}
@@ -160,14 +161,15 @@ public class SampleData {
 				for (int j = 1; j<line.length; j++) {
 					classColorKeys[i][j-1] = line[j].split("=");
 					if (classColorKeys[i][j-1].length != 2) {
-						System.err.println("Error - invalid key for class '"+classes[i]+"'; must use format #=Key (not '"+line[j]+"'), separated by semicolons");
+						log.reportError("Error - invalid key for class '"+classes[i]+"'; must use format #=Key (not '"+line[j]+"'), separated by semicolons");
 						classColorKeys[i][j-1] = new String[0];
 					}
                 }
 			}
-			sexClassIndex = ext.indexFactors(new String[][] {{"CleanedSex", "Sex", "CLASS=Sex", "Gender", "CLASS=Gender"}}, classes, true, false, true, true, log, false)[0];
-			excludeClassIndex = ext.indexFactors(new String[][] {{"Exclude", "CLASS=Exclude"}}, classes, false, false, true, true, log, false)[0];
-			System.out.println(Array.toStr(classes));
+			
+			sexClassIndex = ext.indexFactors(new String[][] {EUPHAMISMS}, classes, true, false, true, log.getLevel()>=1?true:false, log, false)[0];
+			excludeClassIndex = ext.indexFactors(new String[][] {EXCLUDE_ALIASES}, classes, false, false, true, log.getLevel()>=1?true:false, log, false)[0];
+			log.report("Class list: "+Array.toStr(classes), true, true, 1);
 
 			sexCountHash = new CountVector();
 			sampleHash = new Hashtable<String,IndiPheno>();
@@ -206,24 +208,17 @@ public class SampleData {
 			}
 			reader.close();
 			
-			if (sexClassIndex != -1) {
-				sexValues = Array.toIntArray(sexCountHash.getValues());
-				sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
-				if (sexValues[0] != 2) {
-					System.err.println("Warning -  no females listed in SampleData file; make sure 1=male and 2=female in the coding");
-					//proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+			if (log.getLevel()>=1) {
+				if (sexClassIndex != -1) {
+					sexValues = Array.toIntArray(sexCountHash.getValues());
+					sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
+					if (sexValues[0] != 2) {
+						log.reportError("Warning - no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+						//proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+					}
+				} else {
+					proj.message("Error - variable names '"+Array.toStr(EUPHAMISMS, "/")+"' was not found in the SampleData file; make sure 1=male and 2=female in the coding");
 				}
-//
-//				sexCountHash.sort(true);
-//				sexValues = sexCountHash.getValues();
-//				sexCounts = sexCountHash.getCounts();
-//				if (!sexValues[0].equals("2")) {
-//					System.err.println("Error - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
-//					proj.message("ascending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
-//				}
-//			
-			} else {
-				proj.message("Error - variable names 'Sex' was found in the SampleData file; also make sure 1=male and 2=female in the coding");
 			}
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
@@ -232,8 +227,6 @@ public class SampleData {
 			System.err.println("Error reading file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\"");
 			System.exit(2);
 		}
-		
-		
 		
 		if (cnvFilenames.length > 0) {
 			loadCNVs(cnvFilenames, proj.getJarStatus());
@@ -594,9 +587,12 @@ public class SampleData {
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 
-		String usage = "\\n" + "cnv.var.SampleData requires 0-1 arguments\n" + " (1) project file (i.e. proj=" + filename + " (default))\n";
+		String usage = "\\n" + 
+		"cnv.var.SampleData requires 0-1 arguments\n" + 
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -613,10 +609,9 @@ public class SampleData {
 		}
 
 		Project thisProject = new Project(filename, false);
-		SampleData thisSampleData = null;
 
 		if (Files.exists(thisProject.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), thisProject.getJarStatus())) {
-			thisSampleData = thisProject.getSampleData(2, false);
+			thisProject.getSampleData(2, false);
 		} else {
 			System.err.println("Error: Unable to find sample data file in project. Please add sample data file path");
 		}
@@ -986,9 +981,11 @@ public class SampleData {
 	 * 
 	 * @return true if a minimal sample data file was created, false if not
 	 */
-	public static boolean createMinimalSampleData(Project proj, Logger log) {
+	public static boolean createMinimalSampleData(Project proj) {
 		boolean created = false;
-		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
+		Logger log = proj.getLog();
+		
 		if (Files.exists(sampleDatafilename)) {
 			log.reportError("Error - Sample data file " + sampleDatafilename + " already exists, will not create a new one");
 		} else {

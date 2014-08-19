@@ -11,10 +11,11 @@ public class Stats {
 
 	public static void main(String[] args) {
 	    int numArgs = args.length;
-	    String filename = cnv.Launch.getDefaultDebugProjectFile();
+	    String filename = null;
 
-	    String usage = "\n"+"cnv.manage.Stats requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+	    String usage = "\n"+
+	    "cnv.manage.Stats requires 0-1 arguments\n"+
+   		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"";
 	    
 	    for (int i = 0; i<args.length; i++) {

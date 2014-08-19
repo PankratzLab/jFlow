@@ -65,7 +65,7 @@ public class RareVariants {
 //				filename = "phenos/unr_phen."+rep+".tab";
 				filename = "phenos/pheno1_adj.xln";
 				hash = HashVec.loadFileToHashString(analysis_dir+filename, new int[] {0,1},
-						ext.indexFactors(new String[] {Traits.PHENOS[j]}, Files.getHeaderOfFile(analysis_dir+filename, "\t", new Logger(null)), false, true),
+						ext.indexFactors(new String[] {Traits.PHENOS[j]}, Files.getHeaderOfFile(analysis_dir+filename, "\t", new Logger()), false, true),
 						false, "\t", true, false, false);
 				ids = wss.getIDs();
 				trait = new double[ids.length];

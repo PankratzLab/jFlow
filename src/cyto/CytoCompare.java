@@ -149,7 +149,7 @@ public class CytoCompare {
 				log.reportError("Warning - a sample data file is needed to lookup samples by FID/IID, skipping beast scores :(");
 			} else {
 				log.report(ext.getTime() + " Info - computing beast scores for " + cNVariantInds.length + " individuals");
-				beastScores = BeastScore.beastInds(proj, cNVariantInds, log);
+				beastScores = BeastScore.beastInds(proj, cNVariantInds);
 			}
 		}
 		return beastScores;

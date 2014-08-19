@@ -656,7 +656,7 @@ public class CreateDatabaseFromPlink {
 		outfile = dir+"gwaf.csv";
 		
 		try {
-//			createCountsMatrix("simpleM.crf", new Logger(null));
+//			createCountsMatrix("simpleM.crf", new Logger());
 			toGWAF(pedfile, mapfile, freqfile, rlinker, outfile);
 		} catch (Exception e) {
 			e.printStackTrace();

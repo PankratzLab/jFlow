@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
 import common.Files;
-import common.ext;
 
 public class SkatMeta {
 	public static void generateRScript(String sourceRDataFilesDir, String snpInfoFile, String condFileDir, String rScriptDir, String resultsDir) {
@@ -93,7 +92,7 @@ public class SkatMeta {
 		PrintWriter writer;
 
 		files = listFilesInDirAndAllSubDirs(sourceRDataFilesDir);
-		if (files != null || files.length > 0) {
+		if (files != null && files.length > 0) {
 			try {
 				writer = new PrintWriter(new FileOutputStream(sourceRDataFilesDir  + "qc.R"));
 				writer.println("result <- c(\"\", \"\")\n");

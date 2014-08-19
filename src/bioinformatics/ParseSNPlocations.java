@@ -472,7 +472,7 @@ public class ParseSNPlocations {
 			} else if (!mergeSource.equals("")) {
 				createMergeDBfromSource(mergeSource, merge);
 			} else {
-				SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger(null));
+				SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger());
 				map.parseSNPlocations(db, merge, new Logger());
 				map.writeToFile(dir+ext.rootOf(filename)+"_newPositions.out", SnpMarkerSet.GENERIC_FORMAT);
 			}

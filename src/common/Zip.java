@@ -303,7 +303,8 @@ public class Zip {
 		int minutesToSleep;
 		long time;
 
-		files = Files.list("./", null, false);
+		// get all files in the directory, excluding the crf itself and its corresponding log
+		files = Files.list("./", ":"+ext.rootOf(filename), ":.crf", false, false);
 		files = Array.addStrToArray("delay_in_minutes=0", files, 0);
 		
 		params = Files.parseControlFile(filename, "gzip", files, log);

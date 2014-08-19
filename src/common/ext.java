@@ -729,7 +729,7 @@ public class ext {
 	}
 
 	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive, boolean kill) {
-		return indexFactors(subset, superset, casesensitive, new Logger(null), true, kill);
+		return indexFactors(subset, superset, casesensitive, new Logger(), true, kill);
 	}
 	
 	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive, Logger log, boolean verbose, boolean kill) {
@@ -779,7 +779,7 @@ public class ext {
 //	}
 //
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset, boolean caseSensitive, boolean exactMatch, boolean verbose, boolean kill) {
-		return indexFactors(targetsWithAlts, superset, caseSensitive, exactMatch, verbose, new Logger(null), kill);
+		return indexFactors(targetsWithAlts, superset, caseSensitive, exactMatch, verbose, new Logger(), kill);
 	}
 	
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset, boolean caseSensitive, boolean exactMatch, boolean verbose, Logger log, boolean kill) {
@@ -850,7 +850,7 @@ public class ext {
 	}
 	
 	public static boolean checkHeader(String[] observed, String[] expected, boolean caseSensitive, boolean kill) {
-		return checkHeader(observed, expected, caseSensitive, new Logger(null), kill);
+		return checkHeader(observed, expected, caseSensitive, new Logger(), kill);
 	}
 	
 	public static boolean checkHeader(String[] observed, String[] expected, boolean caseSensitive, Logger log, boolean kill) {
@@ -1223,7 +1223,7 @@ public class ext {
 	}
 	
 	public static boolean parseBooleanArg(String arg) {
-		return parseBooleanArg(arg, new Logger(null));
+		return parseBooleanArg(arg, new Logger());
 	}
 	
 	public static boolean parseBooleanArg(String arg, Logger log) {

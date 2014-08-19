@@ -141,7 +141,7 @@ public class Slopes {
         if (refFile == null) {
         	refs = new Hashtable<String,String>();
         } else {
-        	line = Files.getHeaderOfFile(dir+refFile, "\t", new Logger(null));
+        	line = Files.getHeaderOfFile(dir+refFile, "\t", new Logger());
             ext.checkHeader(line, new String[] {"id", "date"}, false);
             refs = HashVec.loadFileToHashString(dir+refFile, true);
         }
@@ -158,12 +158,12 @@ public class Slopes {
         	allIs[i*2+1] = valueIs[i];
         }
         
-    	line = Files.getHeaderOfFile(dir+filename, "\t", new Logger(null));
+    	line = Files.getHeaderOfFile(dir+filename, "\t", new Logger());
     	trait = line[valueIs[0]];
     	if (valueIs.length > 1) {
     		trait = trait.substring(0, trait.lastIndexOf("_"));
     	}
-        ext.checkHeader(line, new String[] {"id"}, new int[] {0}, false, new Logger(null), true);
+        ext.checkHeader(line, new String[] {"id"}, new int[] {0}, false, new Logger(), true);
         hash = HashVec.loadFileToHashVec(dir+filename, idIndex, allIs, "\t", true, false);
         
         ids = HashVec.getKeys(hash, true, true);
@@ -252,7 +252,7 @@ public class Slopes {
         if (refFile == null) {
         	refs = new Hashtable<String,String>();
         } else {
-        	line = Files.getHeaderOfFile(dir+refFile, "\t", new Logger(null));
+        	line = Files.getHeaderOfFile(dir+refFile, "\t", new Logger());
             ext.checkHeader(line, new String[] {"id", "date"}, false);
             refs = HashVec.loadFileToHashString(dir+refFile, true);
         }
@@ -269,12 +269,12 @@ public class Slopes {
         	allIs[i*2+1] = valueIs[i];
         }
         
-    	line = Files.getHeaderOfFile(dir+filename, "\t", new Logger(null));
+    	line = Files.getHeaderOfFile(dir+filename, "\t", new Logger());
     	trait = line[valueIs[0]];
     	if (valueIs.length > 1) {
     		trait = trait.substring(0, trait.lastIndexOf("_"));
     	}
-        ext.checkHeader(line, new String[] {"id"}, new int[] {0}, false, new Logger(null), true);
+        ext.checkHeader(line, new String[] {"id"}, new int[] {0}, false, new Logger(), true);
         hash = HashVec.loadFileToHashVec(dir+filename, idIndex, allIs, "\t", true, false);
         
         ids = HashVec.getKeys(hash, true, true);

@@ -64,7 +64,7 @@ public class Algorithm {
 		String[] genes;
 		LDdatabase lddb;
 		
-		lddb = new LDdatabase(ldRoot, LDdatabase.TYPE_LONG, new Logger(null));
+		lddb = new LDdatabase(ldRoot, LDdatabase.TYPE_LONG, new Logger());
 		chrHash = lddb.getChrHash();
 
 		try {
@@ -225,7 +225,7 @@ public class Algorithm {
 				markerPositions[i][0] = Integer.parseInt(line[1]);
 				markerPositions[i][1] = Integer.parseInt(line[2]);
 			}
-			genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, window, new Logger(null));
+			genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, window, new Logger());
 			writer = new PrintWriter(new FileWriter(dir+outfile));
 			writer.println("Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"+(variate_column==-1?"":"\tvars"));
 			for (int i = 0; i<v.size(); i++) {
@@ -557,7 +557,7 @@ public class Algorithm {
 		}
 		System.out.println("Found "+MODELS.length+" thresholds to consider (min index pvalue of "+maxThreshold+")");
 
-		lddb = new LDdatabase(ldRoot, LDdatabase.TYPE_LONG, new Logger(null));
+		lddb = new LDdatabase(ldRoot, LDdatabase.TYPE_LONG, new Logger());
 
 //        lddb.updateWithTheseMarkers(superset, ext.replaceDirectoryCharsWithUnderscore(dir+filename, 2));
 		
@@ -794,7 +794,7 @@ public class Algorithm {
         SnpMarkerSet markerSet;
         
         System.out.println("Loading marker set...");
-        markerSet = new SnpMarkerSet(filename, SnpMarkerSet.GENERIC_FORMAT_ANNOTATED_IGNORE_FIRST_LINE, true, new Logger(null));
+        markerSet = new SnpMarkerSet(filename, SnpMarkerSet.GENERIC_FORMAT_ANNOTATED_IGNORE_FIRST_LINE, true, new Logger());
         System.out.println("Sorting markers...");
         markerSet.sortMarkers();
         System.out.println("Writing sorted list...");

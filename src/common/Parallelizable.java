@@ -6,7 +6,7 @@ public abstract class Parallelizable implements Runnable {
 	
 	public abstract void finalAction();
 
-	public static void launch(Parallelizable[] threadSeeds) {
+	public static void launch(Parallelizable[] threadSeeds, Logger log) {
 		Thread[] threads;
 		boolean wait;
 		int numThreads;
@@ -40,7 +40,7 @@ public abstract class Parallelizable implements Runnable {
 		
 		threadSeeds[0].finalAction();
 		
-		System.out.println(" in "+ext.getTimeElapsed(time));
+		log.report(" in "+ext.getTimeElapsed(time));
 	}
 	
 	public static String[][] splitList(String[] list, int numThreads, boolean collate) {

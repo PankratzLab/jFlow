@@ -133,14 +133,14 @@ public class Parallelize implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		int numThreads = 1;
 		int type = DEFAULT_TYPE;
 		boolean tabulate = true;
 
 		String usage = "\n"+
 		"filesys.ParseIllumina requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (3) which algorithm to run (i.e. type="+type+" (default))\n"+
 		"";

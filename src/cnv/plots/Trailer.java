@@ -1,4 +1,3 @@
-// to run from within this class, the argument -notJar must be passed to it
 package cnv.plots;
 
 import java.io.*;
@@ -254,8 +253,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 					switch (transformation_type) {
 					case 0:
+						// Illumina
 						min = -3;
 						max = 3;
+						// Agilent
+//						min = -1.5f;
+//						max = 1.5f;
 						break;
 					case 1:
 						min = 0;
@@ -638,14 +641,14 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			public static final long serialVersionUID = 7L;
 
 			public void actionPerformed(ActionEvent e) {
-				parseLocation("chr"+Math.min(chr+1, 25));
+				parseLocation("chr"+Math.min(chr+1, 26));
 			}
 		});
 		actionMap.put(LAST_CHR, new AbstractAction() {
 			public static final long serialVersionUID = 8L;
 
 			public void actionPerformed(ActionEvent e) {
-				parseLocation("chr25");
+				parseLocation("chr26");
 			}
 		});
 		actionMap.put(FIRST_REGION, new AbstractAction() {
@@ -697,9 +700,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		} else if (command.equals(PREVIOUS_CHR)) {
 			parseLocation("chr"+Math.max(chr-1, 1));
 		} else if (command.equals(NEXT_CHR)) {
-			parseLocation("chr"+Math.min(chr+1, 25));
+			parseLocation("chr"+Math.min(chr+1, 26));
 		} else if (command.equals(LAST_CHR)) {
-			parseLocation("chr25");
+			parseLocation("chr26");
 		} else if (command.equals(FIRST_REGION)) {
 			regionIndex = 0;
 			showRegion();
@@ -1330,10 +1333,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	
 	public static void main(String[] args) {
 		Project proj;
-		boolean jar;
 		
-		jar = !(args.length>0&&args[0].equals("-notJar"));
-		proj = new Project(cnv.Launch.getDefaultDebugProjectFile(), jar);
+		proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
 		new Trailer(proj, DEFAULT_SAMPLE, proj.getFilenames(Project.CNV_FILENAMES), DEFAULT_LOCATION);
 	}
 }

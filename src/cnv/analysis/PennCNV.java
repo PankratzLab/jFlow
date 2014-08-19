@@ -22,7 +22,9 @@ public class PennCNV {
 		String[] files;
 		int step;
 		String execDir, dataDir, resultsDir;
+		Logger log;
 		
+		log = proj.getLog();
 		execDir = proj.getDir(Project.PENNCNV_EXECUTABLE_DIRECTORY);
 		dataDir = proj.getDir(Project.PENNCNV_DATA_DIRECTORY);
 		resultsDir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY);
@@ -33,7 +35,7 @@ public class PennCNV {
 				pfbFile = ext.pwd()+pfbFile;
 			}
 			if (!Files.exists(pfbFile)) {
-				System.err.println("Error - pfb file '"+pfbFile+"' does not exist; aborting");
+				log.reportError("Error - pfb file '"+pfbFile+"' does not exist; aborting");
 				return;
 			}
 		}
@@ -44,7 +46,7 @@ public class PennCNV {
 				gcmodelFile = ext.pwd()+gcmodelFile;
 			}
 			if (!Files.exists(gcmodelFile)) {
-				System.err.println("Error - gcmodel file '"+gcmodelFile+"' does not exist; aborting");
+				log.reportError("Error - gcmodel file '"+gcmodelFile+"' does not exist; aborting");
 				return;
 			}
 		}
@@ -54,10 +56,10 @@ public class PennCNV {
 				return file.length()>1000;
 			}
 		});
-		System.out.println("Found "+files.length+" files");
+		log.report("Found "+files.length+" files");
 
 		step = (int)Math.ceil((double)files.length/(double)numBatches);
-		System.out.println("Which means the step for "+numBatches+" batches would be "+step);
+		log.report("Which means the step for "+numBatches+" batches would be "+step);
 		new File(resultsDir).mkdir();
 		for (int i = 0; i<numBatches; i++) {
 			try {
@@ -71,8 +73,8 @@ public class PennCNV {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to list"+(i+1)+".txt");
-				e.printStackTrace();
+				log.reportError("Error writing to list"+(i+1)+".txt");
+				log.reportException(e);
 			}
 		}
 
@@ -93,7 +95,7 @@ public class PennCNV {
 		Files.chmod("assemblePenncnv");
 	}
 
-	public static void parseWarnings(Project proj, String filename, Logger log) {
+	public static void parseWarnings(Project proj, String filename) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, data;
@@ -105,9 +107,11 @@ public class PennCNV {
 		double lrrSD_cutoff;
 		String[] ids;
 		long time;
+		Logger log;
 		
-		System.out.println("Parsing PennCNV warning...");
 		time = new Date().getTime();
+		log = proj.getLog();
+		log.report("Parsing PennCNV warning...");
 		
 		sampleData = proj.getSampleData(2, false);
 		lrrSD_cutoff = proj.getDouble(Project.LRRSD_CUTOFF);
@@ -116,7 +120,7 @@ public class PennCNV {
 			reader = new BufferedReader(new FileReader(proj.getProjectDir()+filename));
 			while (reader.ready()) {
 				temp = reader.readLine();
-				temp = translateDerivedSamples(temp);
+				temp = translateDerivedSamples(temp, log);
 				line = temp.trim().split("[\\s]+");
 				try {
 					if (temp.contains("quality summary")) {
@@ -186,10 +190,10 @@ public class PennCNV {
 			log.reportError("Error reading file \""+proj.getProjectDir()+filename+"\"");
 			return;
 		}
-		System.out.println("Parsed PennCNV warnings in " + ext.getTimeElapsed(time));
+		log.report("Parsed PennCNV warnings in " + ext.getTimeElapsed(time));
 	}
 	
-	public static String translateDerivedSamples(String str) {
+	public static String translateDerivedSamples(String str, Logger log) {
 		String trav;
 		int start, stop;
 		
@@ -201,18 +205,18 @@ public class PennCNV {
 		
 		trav = str.substring(start+1, stop); 
 		if (trav.contains("`")) {
-			System.err.println("Error - more than one set of quotes for: "+str);
+			log.reportError("Error - more than one set of quotes for: "+str);
 		}
 		if (trav.startsWith("gunzip -c") && trav.endsWith(".gz")) {
 			trav = trav.substring(9, trav.length()-3).trim();
 		} else {
-			System.err.println("Error - not currently set up to handle the following construction into a sample_ID: "+trav);
+			log.reportError("Error - not currently set up to handle the following construction into a sample_ID: "+trav);
 		}
 		
 		return str.substring(0, start)+trav+str.substring(stop+1);		
 	}
 
-	public static void parseResults(Project proj, String filename, boolean denovoOnly, Logger log) {
+	public static void parseResults(Project proj, String filename, boolean denovoOnly) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -227,8 +231,10 @@ public class PennCNV {
 		String[] ids, fams, inds;
 		long time;
 		int sex;
+		Logger log;
 		
-		System.out.println("Parsing PennCNV rawcnvs...");
+		log = proj.getLog();
+		log.report("Parsing PennCNV rawcnvs...");
 		time = new Date().getTime();
 		
 		if (!Files.exists(proj.getProjectDir()+filename)) {
@@ -247,7 +253,7 @@ public class PennCNV {
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (!temp.startsWith("NOTICE:")) {
-					temp = translateDerivedSamples(temp);
+					temp = translateDerivedSamples(temp, log);
 					line = temp.trim().split("[\\s]+");
 					position = Positions.parseUCSClocation(line[0]);
 					trav = line[4];
@@ -308,7 +314,7 @@ public class PennCNV {
 			return;
 		}
 
-		System.out.println("...finished in " + ext.getTimeElapsed(time));
+		log.report("...finished in " + ext.getTimeElapsed(time));
 	}
 
 	// Available in cnv.Launch
@@ -336,7 +342,7 @@ public class PennCNV {
 	 * 	rs10002743  4       6327482		0.567557695424774
 	 * 
 	 */
-	public static void populationBAF(Project proj, Logger log) {
+	public static void populationBAF(Project proj) {
 		PrintWriter writer;
 		Sample samp;
 		String[] sampleList;
@@ -350,11 +356,9 @@ public class PennCNV {
 		byte[] chrs, genotypes;
 		int[] positions;
 		String filename, output;
+		Logger log;
 
-		if (log == null) {
-			log = new Logger();
-		}
-
+		log = proj.getLog();
 		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
 
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
@@ -410,7 +414,7 @@ public class PennCNV {
 			log.report("Population BAF file is now ready at: " + output);
 		} catch (Exception e) {
 			log.reportError("Error writing to '" + output + "'");
-			e.printStackTrace();
+			log.reportException(e);
 		}
 	}
 
@@ -449,7 +453,7 @@ public class PennCNV {
 	 * 	rs10002743  4       6327482		0.567557695424774
 	 * 
 	 */
-	public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath, int numwindow, Logger log) {
+	public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath, int numwindow) {
 		MarkerSet markerSet;
 		String[] markerNames;
 		byte[] chrs;
@@ -468,12 +472,10 @@ public class PennCNV {
 		double[] snp_sum;
 		byte prechr = -1;
 		int prestart = -1;
-
 		int chr_index;
+		Logger log;
 		
-		if (log == null) {
-			log = new Logger();
-		}
+		log = proj.getLog();
 		
 		// generate or load SnpFile (pbf file or Population B Allele Frequency)
 		markerSet = proj.getMarkerSet();
@@ -506,11 +508,13 @@ public class PennCNV {
 					if (curchr == prechr) {
 						if (curstart < prestart) {
 							log.reportError("Error in gcFile: a record in chr"+curchr+" has position "+curstart+", less then the previous position $prestart");
-							System.exit(1);
+							reader.close();
+							return;
 						}
 					} else if (seen_chr.containsKey(curchr)) {
 						log.reportError("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"+curchr+" occur multiple times in non-continuous segment of the "+inputGcBaseFullPath+": at "+curchr+":"+curstart);
-						System.exit(1);
+						reader.close();
+						return;
 					} else {
 						seen_chr.put(curchr,(byte)1);
 	
@@ -547,8 +551,8 @@ public class PennCNV {
 			reader.close();
 		} catch (Exception e) {
 			log.reportError("Error reading from '" + inputGcBaseFullPath + "'");
-			e.printStackTrace();
-			System.exit(0);
+			log.reportException(e);
+			return;
 		}
 		
 		// load pfb file or generate it
@@ -565,13 +569,13 @@ public class PennCNV {
 			log.report("Generated population GC Model "+outputGcModelFullPath);
 		} catch (Exception e) {
 			log.reportError("Error writing to '" + outputGcModelFullPath + "'");
-			e.printStackTrace();
+			log.reportException(e);
 		}
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String rawlog = null;
 		String rawcnvs = null;
 		int batch = 0;
@@ -585,11 +589,10 @@ public class PennCNV {
 		boolean parsePFB = false;
 		String gc5base = null;
 		String logfile = null;
-		Logger log;
 
 		String usage = "\n"+
 		"cnv.park.PennCNV requires 0-1 arguments\n"+
-		"   (0) project properties filename (i.e. proj="+filename+" (default))\n"+
+		"   (0) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (1) number of batches to do (i.e. batch=12 (not the default))\n"+
 		"   (2) generate qsub files instead of batch files (i.e. -qsub (not the default))\n"+
 		"   (3) create lists for batches (i.e. -lists (not the default))\n"+
@@ -610,7 +613,7 @@ public class PennCNV {
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
 				System.err.println(usage);
-				System.exit(1);
+				return;
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
@@ -654,7 +657,7 @@ public class PennCNV {
 		}
 		if (numArgs!=0) {
 			System.err.println(usage);
-			System.exit(1);
+			return;
 		}
 		try {
 
@@ -671,22 +674,21 @@ public class PennCNV {
 //			pfbFile = "gedi.pfb";
 //			gcmodelFile = "gedi.gcmodel";
 			
-			proj = new Project(filename, false);
-			log = new Logger(logfile);
+			proj = new Project(filename, logfile, false);
 			if (parsePFB) {
-				populationBAF(proj, null);
+				populationBAF(proj);
 			}
 			if (gc5base != null) {
-				gcModel(proj, gc5base, proj.getProjectDir()+"custom.gcmodel", 100, null);
+				gcModel(proj, gc5base, proj.getProjectDir()+"custom.gcmodel", 100);
 			}
 			if (batch>0) {
 				batch(proj, batch, lists, qsub, pfbFile, gcmodelFile);
 			}
 			if (rawlog != null) {
-				parseWarnings(proj, rawlog, log);
+				parseWarnings(proj, rawlog);
 			}
 			if (rawcnvs != null) {
-				parseResults(proj, rawcnvs, denovoOnly, log);
+				parseResults(proj, rawcnvs, denovoOnly);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

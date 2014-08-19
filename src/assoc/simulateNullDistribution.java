@@ -97,7 +97,7 @@ public class simulateNullDistribution {
 					if (vips.containsKey(prev)) {
 						System.err.println("ERROR! YOU HAVE YET TO CONVERT TO THE NEW INPUT FOR TrimFam!");
 						// tf = new TrimFam(pre, vips.get(prev), false, true);
-						tf = new TrimFam(pre, false, false, true, TrimFam.SCORE_99_NAMING_SCHEME, 0, false, false, new Logger(null));
+						tf = new TrimFam(pre, false, false, true, TrimFam.SCORE_99_NAMING_SCHEME, 0, false, false, new Logger());
 						v = tf.getExtendedFamilyInformation();
 						affs = phenos.get(prev);
 						for (int i = 0; i<v.size(); i++) {

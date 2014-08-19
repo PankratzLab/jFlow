@@ -1,6 +1,3 @@
-/*
- * Revised in Feb, 2012. Add mouse dragged feature.
- */
 package cnv.plots;
 
 import java.awt.Color;
@@ -14,10 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-//import java.text.SimpleDateFormat;
-//import java.util.Date;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import javax.swing.JPopupMenu;
 
@@ -29,7 +23,6 @@ import cnv.gui.LaunchAction;
 import cnv.var.SampleData;
 import cnv.var.IndiPheno;
 import common.CountVector;
-import common.Files;
 import common.HashVec;
 import common.IntVector;
 import common.Sort;
@@ -146,23 +139,18 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int position, markerIndex, plotType;
 		byte chr, genotypeCode, classCode, type;
 		float[][] datapoints;
-//		byte[] alleleCounts;
-//		float gcThreshold;
 		byte layer;
 		IndiPheno indi;
-//		long time;
 		byte size, xFontSize;
 		boolean[] displayCents;
 		float[][][][] cents;
 		int numCents, count;
 		byte centSize;
 		float x, y;
-		//int[][] dataForQc;
 		int[] genotype;
 		String[] sex;
 		String[] otherClass;
 		CountVector uniqueValueCounts;
-//		ClusterFilterCollection clusterFilterCollection;
 		MarkerData markerData;
 		int currentClass;
 		Hashtable<String, String> disabledClassValues;
@@ -174,13 +162,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		shiftColorOfSexChromosomes = sp.getProject().getBoolean(Project.SHIFT_SEX_CHR_COLORS_YESNO);
 
-//		time = new Date().getTime();
-//		System.out.println("*** " + (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date())) + " Stack Trace Tracking *** ScatterPanel.generatePoints()");
-//		StackTraceElement[] ste = new Throwable().getStackTrace();
-//		for (int i = 0; i < ste.length; i++)
-//			System.out.println("Class Name: " + ste[i].getClassName()+ ", Method Name: " + ste[i].getMethodName());
-//		System.out.println("*** End ***");
-		
 		if (!sp.markerDataIsActive()) {
 			return;
 		}

@@ -62,8 +62,10 @@ public class CNVariantQC implements Serializable {
 	}
 
 
-	public void findMarkerNamesinCNV(Project proj, int[][] indices, int[] positions, String[] markerNames, Logger log) {
+	public void findMarkerNamesinCNV(Project proj, int[][] indices, int[] positions, String[] markerNames) {
 		int numMarkers = 0;
+		Logger log = proj.getLog();
+		
 		for (int i = 0; i < indices[cnVariant.getChr()].length; i++) {
 			int position = positions[indices[cnVariant.getChr()][i]];
 			if (inCNV(position, cnVariant)) {
@@ -117,23 +119,23 @@ public class CNVariantQC implements Serializable {
 		return getIndividualCNVQCArrays(inds, IndCNVQCs);
 	}
 
-	public static CNVariantQC[][][] prepCNVQCsForComparison(Project proj, String plinkCnvQCs, Hashtable<String, Hashtable<String, Integer>> defineCompHash, Logger log) {
+	public static CNVariantQC[][][] prepCNVQCsForComparison(Project proj, String plinkCnvQCs, Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
 		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.getProjectDir() + plinkCnvQCs, false).getCnVariantQCs();
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
-			log.reportError("Error - the cnvQC file " + proj.getProjectDir() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
+			proj.getLog().reportError("Error - the cnvQC file " + proj.getProjectDir() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
 			System.exit(1);
 		}
 		Hashtable<String, CNVariantQC[]> indCNVQCssArrays = getIndCNVQCs(inds, cnVariantQCs);
-		return assignCNVComparisions(inds, defineCompHash, indCNVQCssArrays, log);
+		return assignCNVComparisions(inds, defineCompHash, indCNVQCssArrays, proj.getLog());
 
 	}
 
-	public static void filterCNVQCsByComparison(Project proj, String plinkCnvQCs, Hashtable<String, Hashtable<String, Integer>> defineCompHash, Logger log) {
+	public static void filterCNVQCsByComparison(Project proj, String plinkCnvQCs, Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
 		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.getProjectDir() + plinkCnvQCs, false).getCnVariantQCs();
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
-			log.reportError("Error - the cnvQC file " + proj.getProjectDir() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
+			proj.getLog().reportError("Error - the cnvQC file " + proj.getProjectDir() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
 			System.exit(1);
 		}
 		Hashtable<String, CNVariantQC[]> indCNVQCssArrays = getIndCNVQCs(inds, cnVariantQCs);

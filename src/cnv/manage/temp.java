@@ -132,28 +132,8 @@ public class temp {
 	}
 
 	public static void main(String[] args) throws IOException {
-		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
-
-		String usage = "\n"+"filesys.temp requires 0-1 arguments\n"+"   (1) project file (i.e. proj="+filename+" (default))\n"+"";
-
-		for (int i = 0; i<args.length; i++) {
-			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
-				numArgs--;
-			}
-		}
-		if (numArgs!=0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-
 		try {
-			yap(null);
-			// yap(new Project(filename, false));
+			yap(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

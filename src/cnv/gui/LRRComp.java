@@ -28,7 +28,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
-import common.Logger;
 import common.ext;
 import cnv.analysis.MedianLRRWorker;
 import cnv.filesys.Project;
@@ -140,8 +139,8 @@ public class LRRComp extends JFrame implements Runnable {
 					revalidate();
 					try {
 						fileNameToVisualize = medianLRRWorker.get();
-						TwoDPlot twoDplot = TwoDPlot.createAndShowGUI(proj, proj.getLog());
-						twoDplot.showSpecificFile(proj, fileNameToVisualize, 2, 3, proj.getLog());
+						TwoDPlot twoDplot = TwoDPlot.createAndShowGUI(proj);
+						twoDplot.showSpecificFile(proj, fileNameToVisualize, 2, 3);
 						twoDplot.updateGUI();
 						// twoDPlot;
 
@@ -187,7 +186,7 @@ public class LRRComp extends JFrame implements Runnable {
 				progressBar.setVisible(true);
 				progressBar.setStringPainted(true);
 				computeComplete = 0;
-				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, null);
+				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, proj.getLog());
 				medianLRRWorker.execute();
 				revalidate();
 			}
@@ -291,13 +290,13 @@ public class LRRComp extends JFrame implements Runnable {
 	public ActionListener getradioListener() {
 		return new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
-				if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true, new Logger(), false) >= 0) {
-					transformationType = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true, new Logger(), false);
+				if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true, proj.getLog(), false) >= 0) {
+					transformationType = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true, proj.getLog(), false);
 					outputBase = Transforms.TRANFORMATIONS[transformationType];
-				} else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, new Logger(), false) >= 0 && transformationType == 0) {
+				} else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, proj.getLog(), false) >= 0 && transformationType == 0) {
 					JOptionPane.showMessageDialog(null, "Transform by Chromosome or Genome not valid for Raw Values");
-				} else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, new Logger(), false) >= 0) {
-					scope = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, new Logger(), false);
+				} else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, proj.getLog(), false) >= 0) {
+					scope = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, proj.getLog(), false);
 					outputBase = Transforms.TRANFORMATIONS[transformationType] + "_" + Transforms.SCOPES[scope];
 				} else {
 					System.err.println("Error - could not find transformation type");
@@ -377,7 +376,7 @@ public class LRRComp extends JFrame implements Runnable {
 
 // class ComputeWorker extends SwingWorker<Void, String> {
 // String computeOutputBase = outputBase;
-// Logger computelog = new Logger(proj.getProjectDir() + outputBase + ".log");
+// Logger computelog = proj.getLog();
 // Project computeProject = proj;
 // ProgressBarDialog progressBarDialog;
 //

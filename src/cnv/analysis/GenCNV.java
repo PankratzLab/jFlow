@@ -883,7 +883,7 @@ public class GenCNV implements Runnable {
 			for (int j = 0; j < ANALYSIS_TYPES.length; j++) {
 				String prefix = getFileBase(i, j);
 				String outputRoot = getOutputDir(dir, i, j) + "/" + prefix;
-				ExportCNVsToPedFormat.export(dir + cnvFilename, dir + pedFilename, outputRoot, "\n", false, ANALYSIS_MODEL_PARAMS[i][0], ANALYSIS_MODEL_PARAMS[i][1], ANALYSIS_MODEL_PARAMS[i][2], ANALYSIS_MODEL_PARAMS[i][3], ANALYSIS_MODEL_PARAMS[i][4], true, numMarkersPerFile, DEFAULT_WINDOWS[j]);
+				ExportCNVsToPedFormat.export(dir + cnvFilename, dir + pedFilename, outputRoot, "\n", false, ANALYSIS_MODEL_PARAMS[i][0], ANALYSIS_MODEL_PARAMS[i][1], ANALYSIS_MODEL_PARAMS[i][2], ANALYSIS_MODEL_PARAMS[i][3], ANALYSIS_MODEL_PARAMS[i][4], true, numMarkersPerFile, DEFAULT_WINDOWS[j], log);
 			}
 		}
 	}

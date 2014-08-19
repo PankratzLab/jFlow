@@ -19,7 +19,7 @@ public class Zcall {
 	public static final String[] BASIC_HEADER = {"Name", "Chr", "Position"};
 	public static final String[] AB_GENOTYPES = {"NC", "AA", "AB", "BB"};
 
-	public static void createZcallInputFile(Project proj, String filenameOfSamplesToInclude, String markersToInclude, Logger log) {
+	public static void createZcallInputFile(Project proj, String filenameOfSamplesToInclude, String markersToInclude) {
 		HashSet<String> hash;
 		
 		boolean[] samplesToInclude;
@@ -34,10 +34,10 @@ public class Zcall {
 			samplesToInclude[i] = hash.contains(samples[i]);
 		}
 
-		createZcallInputFile(proj, samplesToInclude, markersToInclude, log);
+		createZcallInputFile(proj, samplesToInclude, markersToInclude);
 	}
 	
-	public static void createZcallInputFile(Project proj, boolean[] samplesToInclude, String markersToInclude, Logger log) {
+	public static void createZcallInputFile(Project proj, boolean[] samplesToInclude, String markersToInclude) {
 		PrintWriter writer;
 		String[] samples;
 		float[] xs, ys;
@@ -50,7 +50,9 @@ public class Zcall {
         MarkerDataLoader markerDataLoader;
         String[] markerNames;
         String eol;
+        Logger log;
 
+        log = proj.getLog();
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
 		} else {
@@ -84,7 +86,7 @@ public class Zcall {
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 
 			time = new Date().getTime();
 			for (int i = 0; i < markerNames.length; i++) {
@@ -120,16 +122,15 @@ public class Zcall {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String logfile = null;
-		Logger log;
 		Project proj;
 		String samples = "sampleSubset.txt";
 		String markersSubset = null;
 		
 		String usage = "\n" + 
 		"cnv.analysis.Zcall requires 0-1 arguments\n" + 
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
 		"   (3) filename of subset of samples to include / otherwise all samples (i.e. samples=" + samples + " (default))\n" +
 		"";
@@ -153,10 +154,9 @@ public class Zcall {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
-			proj = new Project(filename, false);
-//			createZcallInputFile(proj, proj.getProjectDir() + samples, proj.getDir(Project.DATA_DIRECTORY) + "test.txt", log);
-			createZcallInputFile(proj, proj.getProjectDir() + samples, null, log);
+			proj = new Project(filename, logfile, false);
+//			createZcallInputFile(proj, proj.getProjectDir() + samples, proj.getDir(Project.DATA_DIRECTORY) + "test.txt");
+			createZcallInputFile(proj, proj.getProjectDir() + samples, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

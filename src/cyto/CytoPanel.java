@@ -288,9 +288,9 @@ public class CytoPanel extends JPanel implements ActionListener {
 
 			log.report(ext.getTime() + " Info - found " + importFiles.length + " files");
 			CytoAgilentParse.parseCytoToGenvisis(proj, importFiles, log);
-			cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS), log);
+			cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
 			deleteSampleList();
-			TransposeData.transposeData(proj, 2000000000, false, proj.getLog());
+			TransposeData.transposeData(proj, 2000000000, false);
 
 			new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + ParseIllumina.OVERWRITE_OPTION_FILE).delete();
 		}
