@@ -338,7 +338,7 @@ public class CrossValidation {
 
 	/**
 	 * @param crossValidation
-	 * @return the average R-squared of non-failing CrossValidations
+	 * @return the average Standared error of all betas for non-failing CrossValidations
 	 */
 
 	public static double getAverageSEbetas(CrossValidation[] crossValidation) {
