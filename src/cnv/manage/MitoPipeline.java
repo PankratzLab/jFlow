@@ -83,7 +83,7 @@ public class MitoPipeline {
 	 *            markers that will have their median values summarized. PCs will be regressed out of the median values
 	 * @param log
 	 */
-	public MitoPipeline(String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String defaultLRRSdFilter, String defaultCallRateFilter, String targetMarkers, String markerPositions, String medianMarkers, String logfile) {
+	public MitoPipeline(Project existingProj, String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String defaultLRRSdFilter, String defaultCallRateFilter, String targetMarkers, String markerPositions, String medianMarkers, String logfile) {
 		String path = initGenvisisProject();
 		this.projectName = projectName;
 		this.filename = path + projectName + PROJECT_EXT;
@@ -98,7 +98,11 @@ public class MitoPipeline {
 		this.medianMarkers = medianMarkers;
 		this.log = new Logger(logfile);
 		initProjectDir();
-		initProject(path);
+		if (existingProj == null) {
+			initProject(path);
+		} else {
+			this.proj = existingProj;
+		}
 		if (logfile != null) {
 			proj.setLog(log);
 		} else {
@@ -165,12 +169,12 @@ public class MitoPipeline {
 	 */
 	public void copyAuxFiles() {
 		boolean missingFile;
-		
+
 		missingFile = false;
 		log.report("Info - preparing auxiliary files in " + projectDirectory);
 		if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(targetMarkers))) {
 			if (!Files.copyFile(targetMarkers, projectDirectory + ext.removeDirectoryInfo(targetMarkers))) {
-				log.reportError("Error - the filename specified for targetMarkers (\""+targetMarkers+"\") was not found");
+				log.reportError("Error - the filename specified for targetMarkers (\"" + targetMarkers + "\") was not found");
 				missingFile = true;
 			}
 		}
@@ -182,28 +186,28 @@ public class MitoPipeline {
 				log.reportError("aborting MitoPipeline");
 				System.exit(1);
 			} else {
-				log.report("\nParsing "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+" using "+snpMapFilename);
+				log.report("\nParsing " + proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false) + " using " + snpMapFilename);
 				cnv.manage.Markers.generateMarkerPositions(proj, snpMapFilename);
 			}
 		} else if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
 			if (!Files.copyFile(markerPositions, projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
-				log.reportError("Error - the filename specified for markerPositions (\""+markerPositions+"\") was not found");
+				log.reportError("Error - the filename specified for markerPositions (\"" + markerPositions + "\") was not found");
 				missingFile = true;
 			}
 		}
 		if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(medianMarkers))) {
 			if (!Files.copyFile(medianMarkers, projectDirectory + ext.removeDirectoryInfo(medianMarkers))) {
-				log.reportError("Error - the filename specified for medianMarkers (\""+medianMarkers+"\") was not found");
+				log.reportError("Error - the filename specified for medianMarkers (\"" + medianMarkers + "\") was not found");
 				missingFile = true;
 			}
 		}
 		if (abLookup != null && Files.exists(abLookup) && !Files.exists(projectDirectory + abLookup)) {
 			if (!Files.copyFile(abLookup, projectDirectory + ext.removeDirectoryInfo(abLookup))) {
-				log.reportError("Error - the filename specified for abLookup (\""+abLookup+"\") was not found");
+				log.reportError("Error - the filename specified for abLookup (\"" + abLookup + "\") was not found");
 				missingFile = true;
 			}
 		}
-		
+
 		if (missingFile) {
 			log.reportError("Error - critical file missing; aborting MitoPipeline");
 			System.exit(1);
@@ -238,8 +242,8 @@ public class MitoPipeline {
 		generateSampleData(proj, loadPedFile(pedFile, proj.getLog()));
 	}
 
-	public static Project createNewProject(String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String targetMarkers, String medianMarkers, String markerPositions, String defaultLRRSdFilter, String defaultCallRateFilter, String logfile) {
-		MitoPipeline projG = new MitoPipeline(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, defaultLRRSdFilter, defaultCallRateFilter, targetMarkers, markerPositions, medianMarkers, logfile);
+	public static Project initializeProject(Project proj, String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String targetMarkers, String medianMarkers, String markerPositions, String defaultLRRSdFilter, String defaultCallRateFilter, String logfile) {
+		MitoPipeline projG = new MitoPipeline(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, defaultLRRSdFilter, defaultCallRateFilter, targetMarkers, markerPositions, medianMarkers, logfile);
 		return projG.getProj();
 	}
 
@@ -278,7 +282,7 @@ public class MitoPipeline {
 		SampleList sampleList;
 		int[] counts;
 		Logger log;
-		
+
 		log = proj.getLog();
 		sampleDirectory = proj.getDir(Project.SAMPLE_DIRECTORY, false, false);
 		if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length > 0 || (proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0))) {
@@ -330,11 +334,11 @@ public class MitoPipeline {
 						if (counts[1] != sampleList.getSamples().length) {
 							counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
 							if (counts[1] != sampleList.getSamples().length) {
-								log.reportError("Error - different number of samples (n="+counts[1]+") listed in the QC file ("+DEFUALT_QC_FILE+") compared to the number of samples in the project (n="+sampleList.getSamples().length+")");
-								log.reportError("      - delete the QC file ("+DEFUALT_QC_FILE+") to regenerate it with the correct number of samples");
+								log.reportError("Error - different number of samples (n=" + counts[1] + ") listed in the QC file (" + DEFUALT_QC_FILE + ") compared to the number of samples in the project (n=" + sampleList.getSamples().length + ")");
+								log.reportError("      - delete the QC file (" + DEFUALT_QC_FILE + ") to regenerate it with the correct number of samples");
 								log.reportError("aborting...");
 								return;
-							}							
+							}
 						}
 						// check that all median markers are available
 						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
@@ -362,7 +366,7 @@ public class MitoPipeline {
 	public static boolean verifyUseFile(Project proj, String[] samples, String useFile) {
 		boolean allParsed = true;
 		Logger log = proj.getLog();
-		
+
 		if (useFile != null) {
 			String[] samplesToVerify = HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, false);
 			Hashtable<String, String> track = new Hashtable<String, String>();
@@ -402,7 +406,7 @@ public class MitoPipeline {
 		SampleData sampleData = proj.getSampleData(0, false);
 		ArrayList<String> notInSampleData = new ArrayList<String>();
 		Logger log = proj.getLog();
-		
+
 		for (int i = 0; i < samples.length; i++) {
 			if (sampleData.lookup(samples[i]) == null) {
 				notInSampleData.add(samples[i]);
@@ -478,7 +482,7 @@ public class MitoPipeline {
 
 	public static void qcMarkers(Project proj, double markerCallRateFilter) {
 		Logger log = proj.getLog();
-		
+
 		// skip if marker qc file exists
 		if (Files.exists(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false))) {
 			log.report("Marker QC file " + proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false) + " exists");
@@ -522,7 +526,7 @@ public class MitoPipeline {
 		ArrayList<String> abMarkersToUse = new ArrayList<String>();
 		BufferedReader reader;
 		Logger log = proj.getLog();
-		
+
 		try {
 			reader = Files.getReader(proj.getFilename(Project.MARKER_METRICS_FILENAME), false, true, false);
 			String[] header = reader.readLine().trim().split("\t");
@@ -568,7 +572,7 @@ public class MitoPipeline {
 		int DNAIndex = 0;
 		Hashtable<String, String> qcLookup = loadQC(proj, outputBase);
 		Logger log = proj.getLog();
-		
+
 		try {
 			String finalReport = ext.rootOf(residualFile) + PCA_FINAL_REPORT;
 			if (Files.exists(proj.getProjectDir() + finalReport)) {
@@ -608,7 +612,7 @@ public class MitoPipeline {
 		Hashtable<String, String> qcLookup = new Hashtable<String, String>();
 		int DNAIndex = 0;
 		Logger log = proj.getLog();
-		
+
 		try {
 			DNAIndex = getDNAIndex(proj, proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY);
 			reader = Files.getReader(proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY, false, true, false);
@@ -738,8 +742,8 @@ public class MitoPipeline {
 		if (addToSampleData) {
 			sampleData.addData(sampDataQC, DNA_LINKER, SAMPLE_DATA_ADDITION_HEADERS, ext.MISSING_VALUES[1], SPLITS[0], log);
 		}
-		
-		return new int[] {numPassing, count};
+
+		return new int[] { numPassing, count };
 	}
 
 	/**
@@ -777,7 +781,7 @@ public class MitoPipeline {
 		// This should not happen, but if it is the case we will not attempt to add qc metrics
 		boolean addToSampleData = true;
 		Logger log = proj.getLog();
-		
+
 		if (!sampleData.containsDNA()) {
 			addToSampleData = false;
 			log.reportError("Error - sample data did not contain column with header \"DNA\", not adding sample qc summaries to sample data");
@@ -825,7 +829,7 @@ public class MitoPipeline {
 	public static void generateSampleData(Project proj, Individual[] inds) {
 		String sampleDataFile = proj.getProjectDir() + proj.getProperty(Project.SAMPLE_DATA_FILENAME);
 		Logger log = proj.getLog();
-		
+
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
 			String[] classed = PED_INPUT;
@@ -848,7 +852,7 @@ public class MitoPipeline {
 		File file = new File(outputDirectory);
 		if (!file.exists()) {
 			if (file.mkdirs()) {
-				log.report("\n"+ext.getTime() + " Created directory " + outputDirectory);
+				log.report("\n" + ext.getTime() + " Created directory " + outputDirectory);
 			} else {
 				log.reportError("Error - failed to create  " + outputDirectory + ", please manually create it unless it already exists");
 			}
@@ -987,11 +991,17 @@ public class MitoPipeline {
 		int numArgs = args.length;
 		String filename = null;
 		String projectName = "GENVISIS_project1";
-		String projectDirectory = "D:/data/Project1/";
-		String sourceDirectory = "D:/data/dataForProject1/";
-		String targetMarkers = "D:/data/AuxFiles/targetMarkers.txt";
-		String markerPositions = "D:/data/AuxFiles/markerPositions.txt";
-		String medianMarkers = "D:/data/AuxFiles/MTMARKERS.txt";
+		
+		boolean[] requiredArray = new boolean[5];
+		Arrays.fill(requiredArray, false);
+		String[] requiredArgs = {"dirProj=","dirSrc=",PC_MARKER_COMMAND,MEDIAN_MARKER_COMMAND, "markerPositions="};
+		
+		String projectDirectory = null;
+		String sourceDirectory = null;
+		String targetMarkers = null;
+		String markerPositions = null;
+		String medianMarkers = null;
+		
 		String output = "PCA_GENVISIS";
 		String idHeader = "Sample ID";
 		String abLookup = null;
@@ -1013,11 +1023,11 @@ public class MitoPipeline {
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
 		usage += "  \n";
-		usage += "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=" + projectDirectory + " (default))\n";
-		usage += "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=" + sourceDirectory + " (default))\n";
-		usage += "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. " + PC_MARKER_COMMAND + targetMarkers + " (default))\n";
-		usage += "   (4) The full path for a file with a list of markers (one per line, typically mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MEDIAN_MARKER_COMMAND + medianMarkers + " (default))\n";
-		usage += "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=" + markerPositions + " (default))\n";
+		usage += "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=/home/usr/projects/)\n";
+		usage += "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=/home/usr/data/project1/)\n";
+		usage += "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. " + PC_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.PC_Markers.txt)\n";
+		usage += "   (4) The full path for a file with a list of markers (one per line, typically mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MEDIAN_MARKER_COMMAND +  "/home/usr/auxFiles/exomeChip.MT_Markers.txt)\n";
+		usage += "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=/home/usr/auxFiles/exomeChip.Positions.txt)\n";
 
 		usage += "   OPTIONAL:\n";
 		usage += "	 (6) A file listing a subset of samples (DNA ID) to use for QC and PC computation portions of the analysis, often a list of unrelated individuals. If a list is not provided, all samples in the source directory will be analyzed (i.e. " + USE_FILE_COMMAND + useFile + " (no default))\n";
@@ -1059,9 +1069,11 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("dirProj=")) {
 				projectDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
+				requiredArray[0]=true;
 			} else if (args[i].startsWith("dirSrc=")) {
 				sourceDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
+				requiredArray[1]=true;
 			} else if (args[i].startsWith("pedFile=")) {
 				pedFile = ext.parseStringArg(args[i], null);
 				numArgs--;
@@ -1080,15 +1092,18 @@ public class MitoPipeline {
 			} else if (args[i].startsWith(PC_MARKER_COMMAND)) {
 				targetMarkers = ext.parseStringArg(args[i], null);
 				numArgs--;
+				requiredArray[2]=true;
 			} else if (args[i].startsWith("output=")) {
 				output = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith(MEDIAN_MARKER_COMMAND)) {
 				medianMarkers = ext.parseStringArg(args[i], null);
 				numArgs--;
+				requiredArray[3]=true;
 			} else if (args[i].startsWith("markerPositions=")) {
 				markerPositions = ext.parseStringArg(args[i], null);
 				numArgs--;
+				requiredArray[4]=true;
 			} else if (args[i].startsWith("numThreads=")) {
 				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
@@ -1125,12 +1140,24 @@ public class MitoPipeline {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		
-		Project proj;
+		if (Array.booleanArraySum(requiredArray) != 5) {
+			System.err.println(usage+"\n\n");
+			System.err.println("The MitoPipeline currently requires "+requiredArray.length+" arguments and we only detected " + Array.booleanArraySum(requiredArray) +" of the "+requiredArray.length);
+			System.err.println("Here is a list of missing arguments...");
+			for (int i = 0; i < requiredArgs.length; i++) {
+				if (!requiredArray[i]) {
+					System.err.println("\""+requiredArgs[i]+"\"");
+				}
+			}
+			System.exit(1);
+		}
+
+		Project proj = null;
 		if (filename == null) {
-			proj = createNewProject(projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
+			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
 		} else {
 			proj = new Project(filename, logfile, false);
+			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
 		}
 		catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv);
 	}
