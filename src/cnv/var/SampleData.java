@@ -910,7 +910,7 @@ public class SampleData {
 				log.reportError("Error - could not back up sample data file " + sampleDatafilename + ", will not add data");
 				add = false;
 			} else if (add) {
-				log.report("Info - backed up sample data file" + sampleDatafilename + " to " + bakFile);
+				log.report("Info - backed up sample data file (" + sampleDatafilename + ") to " + bakFile);
 				int numMissing = 0;
 				int numAdded = 0;
 				try {
