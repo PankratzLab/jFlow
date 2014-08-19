@@ -383,7 +383,13 @@ public class Files {
 		}
 	}
 
+	
+	
 	public static void qsub(String root, String commands, String[][] iterations) {
+		qsub(root, commands, iterations, -1, -1, -1);
+	}
+
+	public static void qsub(String root, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs) {
 		PrintWriter writer;
 		String filename, trav;
 
@@ -396,7 +402,7 @@ public class Files {
 				for (int j = 0; j<iterations[i].length; j++) {
 					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
 				}
-				qsub(filename, trav, -1, -1, -1);
+				qsub(filename, trav, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
 				writer.println("qsub "+filename);
 			}
 			writer.close();

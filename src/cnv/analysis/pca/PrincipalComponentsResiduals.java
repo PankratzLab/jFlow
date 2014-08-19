@@ -41,7 +41,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private static final String[] MT_REPORT_MARKERS_USED = { ".MedianMarkers.MarkersUsed.txt", ".MedianMarkers.RawValues.txt" };
 	private static final String[] MT_RESIDUAL_CROSS_VALIDATED_REPORT = { "Time Completed", "Time to complete(seconds)", "PC", "Cross-validation Average SSerr", "Cross-validation Average R-squared", "Average Standard Error of Betas", "Full model R-squared", "Full model SSerr" };
 
-	private String markersToAssessFile, output, residOutput;
+	private String markersToAssessFile, output, residOutput,pcFile;
 	private String[] markersToAssess, samplesToReport, allProjSamples;
 	private double[] medians, residuals, invTResiduals;
 	private double[][] assessmentData, pcBasis;
@@ -84,6 +84,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.gcThreshold = gcThreshold;
 		this.homozygousOnly = homozygousOnly;
 		this.output = output;
+		this.pcFile = pcFile;
 		loadPcFile(pcFile);
 		parseSamplesToUse();
 	}
@@ -499,6 +500,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.pcBasis = pcBasis;
 	}
 
+	public String getPcFile() {
+		return pcFile;
+	}
+
 	public PrincipalComponentsResiduals clone() {
 		try {
 			final PrincipalComponentsResiduals result = (PrincipalComponentsResiduals) super.clone();
@@ -633,7 +638,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		}
 
 		private void computeFullModel() {
-			if (deps.length > indeps[0].length) {
+			if (deps.length > indeps[0].length+1) {
 				RegressionModel model = (RegressionModel) new LeastSquares(deps, indeps, null, false, true, svdRegression);
 				if (!model.analysisFailed()) {
 					fullModelR2 = model.getRsquare();
