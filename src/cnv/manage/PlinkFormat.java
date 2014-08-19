@@ -12,7 +12,7 @@ import cnv.filesys.Project;
 import common.*;
 
 public class PlinkFormat {
-	public static boolean createPlink(Project proj, String filenameRoot, String clusterFilterFilename, Logger log) {
+	public static boolean createPlink(Project proj, String filenameRoot, String clusterFilterFilename) {
 		BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,String> hash;
@@ -34,7 +34,9 @@ public class PlinkFormat {
 		char[][] abLookup;
 		String temp;
 		Hashtable<Integer,Integer> invalidAbLookups;
+		Logger log;
 
+		log = proj.getLog();
 		System.out.println(ext.getTime());
 		hash = new Hashtable<String,String>();
 		markerSet = proj.getMarkerSet();
@@ -110,7 +112,7 @@ public class PlinkFormat {
 				System.err.println("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
 				return false;
 			}
-			abLookup = new ABLookup(markerNames, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true).getLookup();
+			abLookup = new ABLookup(markerNames, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
 			log.report("Using "+clusterFilterFilename+" and "+proj.getProperty(Project.AB_LOOKUP_FILENAME)+" to call genotypes");
 		} else {
 			abLookup = null;
@@ -183,7 +185,7 @@ public class PlinkFormat {
 				log.reportError("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(Project.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
 				try {
 					writer = new PrintWriter(new FileWriter(proj.getDir(Project.DATA_DIRECTORY)+"invalid_AB_codes.out"));
-					writer.println("MarkerNames\tAlleleA\tAlleleB");
+					writer.println("MarkerNames\tA\tB");
 					indices = Array.toIntArray(invalidAbLookups);
 					for (int i = 0; i < indices.length; i++) {
 						writer.println(markerNames[indices[i]]+"\t"+abLookup[indices[i]][0]+"\t"+abLookup[indices[i]][1]);
@@ -234,15 +236,15 @@ public class PlinkFormat {
 	
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String pick = "";
 		String filters = null;
 		String plinkPrefix = "plinkPed";
 
 		String usage = "\\n"+
 		"cnv.manage.PlinkFormat requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
-		"     requires pedigree file and targets file to be delineated in the Project properties file\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"     requires pedigree file and targets file to be delineated in the project properties file\n"+
 		"   (2) prefix for plink ped files (i.e. prefix="+plinkPrefix+" (default))\n"+
 		"   (3) filename of cluster filters to use during processing (i.e. filters=data/clusterFilters.ser (not the default))\n"+
 		"  OR\n"+
@@ -271,12 +273,16 @@ public class PlinkFormat {
 			System.err.println(usage);
 			System.exit(1);
 		}
+		
+//		filename = "/home/npankrat/projects/PoynterLinabery.properties";
+//		System.err.println(PlinkData.saveGenvisisToPlinkBedSet(new Project(filename, false), "adultHits", filename, -1, true));
+//		System.exit(1);
 
 		try {
 			if (!pick.equals("")) {
 				pickTargets(pick);
 			} else {
-				createPlink(new Project(filename, false), plinkPrefix, filters, new Logger());
+				createPlink(new Project(filename, false), plinkPrefix, filters);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

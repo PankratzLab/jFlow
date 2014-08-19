@@ -770,15 +770,15 @@ public class IndependentSNPs {
 //	    numSNPs = 768;
 	    
 	    filename = "indepHapMap.crf";
-	    selectFromParameters(filename, new Logger(null));
+	    selectFromParameters(filename, new Logger());
 	    System.exit(1);
 	    
 	    
 	    try {
 	    	if (compare) {
-	    		compareSelectionParameters(numSNPs, dir, filename, pval_threshold, ldRoots, position_reportType, r2_compType, r2_threshold, dirIlluminaScores, filteringDataset, forceBeforeFile, forceAfterFile, forceRegardlessFile, new Logger(null));
+	    		compareSelectionParameters(numSNPs, dir, filename, pval_threshold, ldRoots, position_reportType, r2_compType, r2_threshold, dirIlluminaScores, filteringDataset, forceBeforeFile, forceAfterFile, forceRegardlessFile, new Logger());
 	    	} else {
-	    		findOptimalSet(dir, filename, outputRoot, numSNPs, pval_threshold, ldRoots, position_reportType, r2_compType, r2_threshold, dirIlluminaScores, scoreThresholds, scoreDiffThreshold, scoreClassBump, filteringDataset, forceBeforeFile, forceAfterFile, forceRegardlessFile, new Logger(null));
+	    		findOptimalSet(dir, filename, outputRoot, numSNPs, pval_threshold, ldRoots, position_reportType, r2_compType, r2_threshold, dirIlluminaScores, scoreThresholds, scoreDiffThreshold, scoreClassBump, filteringDataset, forceBeforeFile, forceAfterFile, forceRegardlessFile, new Logger());
 	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();

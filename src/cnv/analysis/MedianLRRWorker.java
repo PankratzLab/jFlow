@@ -57,7 +57,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private String outputBase;
 	private int transformationType;
 	private int scope;
-	private Logger computelog;
+	private Logger computelog;	// considered using the project's default log or using the proj.setLog() command, but nice to have the region specific log named the same
 	private String[] samples, markerNames;
 	private byte[] chrs;
 	private int[] positions;
@@ -81,7 +81,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	}
 
 	// for access from command line
-	public static void computeMedianLrrs(Project proj, String regionFileName, int transfromationType, int scope, String outputBase, Logger log) {
+	public static void computeMedianLrrs(Project proj, String regionFileName, int transfromationType, int scope, String outputBase) {
+		Logger log = proj.getLog();
 		String[] input = readToArray(proj.getProjectDir() + regionFileName, log);
 		MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope, outputBase, null, log);
 		log.report("Starting job for " + input.length + " regions");
@@ -261,8 +262,17 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private float[][] getRawValueResultsForRegion(MarkerRegion markerRegion) {
 		String[] regionMarkers = markerRegion.returnMarkers();
 		float[][] sampleLrrs = new float[regionMarkers.length][samples.length];
+		MarkerDataLoader markerDataLoader;
+		Logger projLog;
+
+		regionMarkers = markerRegion.returnMarkers();
+		sampleLrrs = new float[regionMarkers.length][samples.length];
 		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[2], "[%" + 0 + "]", markerRegion.getRegionName()));
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers, computelog);
+		projLog = proj.getLog();
+		proj.setLog(computelog);
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers);
+		proj.setLog(projLog);
+		
 		for (int i = 0; i < regionMarkers.length; i++) {
 			if (i == 0) {
 				newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName()));
@@ -769,7 +779,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String regionFileName = "cnps.txt";
 		String headless = "true";
 		int transformationType = 0;
@@ -780,9 +790,23 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		Logger log;
 		Project proj;
 
-		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + "   (1) project file (i.e. proj=" + filename + " (default))\n" + "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n" + "       OR:\n" + "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + "       (i.e. regions=" + regionFileName + "(default))\n" + "       OPTIONAL:\n" + "   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + "       transformations are: " + Array.toStr(Transforms.TRANFORMATIONS) + "\n" + "   (4) scope of transformation (i.e. scope=0 (default))\n" + "       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + "   (5) base name of the output files (i.e out=" + outputBase + " (default))\n" + "   (6) name of the log file (i.e. log=" + logfile + "\n" + "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));" + "";
+		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + 
+		"" + 
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n" + 
+		"       OR:\n" + "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + 
+		"       (i.e. regions=" + regionFileName + "(default))\n" + 
+		"       OPTIONAL:\n" + 
+		"   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + 
+		"       transformations are: " + Array.toStr(Transforms.TRANFORMATIONS) + "\n" + 
+		"   (4) scope of transformation (i.e. scope=0 (default))\n" + 
+		"       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + 
+		"   (5) base name of the output files (i.e out=" + outputBase + " (default))\n" + 
+		"   (6) name of the log file (i.e. log=" + logfile + "\n" + 
+		"   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));" + 
+		"";
 		// String usage= "cnv.analysis.MedianLRRWorker requires 2 arguments\n"+"" +
-		// "   (1) project file (i.e. proj="+filename+" (default))\n"+
+		// "   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		// "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n"+
 		// "       OR:\n"+
 		// "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\""+ MARKER_REGION_DELIMITER +"\n"+
@@ -831,9 +855,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			return;
 		}
 		try {
-			log = new Logger(logfile);
 			time = new Date().getTime();
-			proj = new Project(filename, false);
+			proj = new Project(filename, logfile, false);
+			log = proj.getLog();
+			
 			System.setProperty("java.awt.headless", headless);
 			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, log);
 			medianLRRWorker.execute();

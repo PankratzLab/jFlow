@@ -4,6 +4,7 @@ import java.io.*;
 
 import common.Files;
 import common.Sort;
+import common.ext;
 
 public class SampleList implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -51,6 +52,7 @@ public class SampleList implements Serializable {
 		String[] files, samples;
 		SampleList list;
 		int[] keys;
+		int countAt;
 
 //		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY, true), MarkerData.MARKER_DATA_FILE_EXTENSION, proj.getJarStatus()).length>0) {
 //			System.err.println("Error - Refusing to create new SampleList until the plots directory is either deleted or emptied; altering the SampleList will invalidate those files");
@@ -58,34 +60,37 @@ public class SampleList implements Serializable {
 //		}
 
 		if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY), false)) {
-			files = new File(proj.getDir(Project.SAMPLE_DIRECTORY)).list(new FilenameFilter() {
-				public boolean accept(File file, String filename) {
-					return filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
-				}
-			});
+			files = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 		} else {
 			System.err.println("Error - failed to find the SAMPLE_DIRECTORY ("+proj.getDir(Project.SAMPLE_DIRECTORY)+"); no SampleList could be generated");
 			return null;
 		}
-			
+
+		countAt = 0;
 		keys = Sort.quicksort(files);
 		samples = new String[files.length];
 		for (int i = 0; i<samples.length; i++) {
 			samples[i] = files[keys[i]].substring(0, files[keys[i]].lastIndexOf("."));
+			if (samples[i].contains("@")) {
+				countAt++;
+			}
 		}
 		list = new SampleList(samples);
 		list.serialize(proj.getFilename(Project.SAMPLELIST_FILENAME, true, true));
+		if (countAt > 0) {
+			proj.getLog().report("Note - "+countAt+" ("+(Double.parseDouble(ext.prettyP((double)countAt/(double)samples.length))*100)+"%) of your Sample IDs contain the @ symbol, which is often used when concatenating the sample's bar code. If you would like these to be stripped, then set "+Project.PARSE_AT_AT_SYMBOL+"=TRUE in the properties file, delete the samples/ directory and reparse the data");
+		}
 
 		return list;
 	}
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 
 		String usage = "\n"+
 		"filesys.SampleList requires 1 argument\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {

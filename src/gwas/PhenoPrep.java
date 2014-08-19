@@ -9,11 +9,13 @@ import mining.Transformations;
 import common.*;
 
 public class PhenoPrep {
-	public static final String[] SUMMARY_INFO_HEADER = {"Race", "Trait", "meanTrait", "stdevTrait", "minTrait", "maxTrait", "numFemales", "numMales", "meanAge", "stdevAge", "minAge", "maxAge"};
+	public static final String[] SUMMARY_INFO_HEADER = {"Race", "Trait", "meanTrait", "stdevTrait", "minTrait", "maxTrait", "numFemales", "numMales", "meanAge", "stdevAge", "minAge", "maxAge", "numBelowLowerThrehsold", "numAboveUpperThrehsold"};
 
 	private String[] finalHeader;
 	private String[] finalIDs;
 	private double[][] database;
+	private int numBelowLowerThreshold;
+	private int numAboveUpperThreshold;
 	private Logger log;
 
 	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, Logger log) {
@@ -92,7 +94,7 @@ public class PhenoPrep {
 		} else {
 			covars = covarList.split(",");
 		}
-		
+
 		prep = new PhenoPrep(dir+filename, idFile==null? null : dir+idFile, idColName, pheno, covars, log);
 		
 		if (prep.failed()) {
@@ -169,7 +171,8 @@ public class PhenoPrep {
 			}
 			writer.println((idFile == null?"All":ext.replaceAllWith(ext.rootOf(idFile), "_keeps", ""))+"\t"+finalHeader[0]+"\t"+ext.formDeci(Array.mean(trait), 4, false)+"\t"+ext.formDeci(Array.stdev(trait), 4, false)+"\t"+ext.formDeci(Array.min(trait), 4, false)+"\t"+ext.formDeci(Array.max(trait), 4, false)
 					+(males==null?"\t.\t.":"\t"+(males.length-Array.sum(males))+"\t"+Array.sum(males))
-					+(ages==null?"\t.\t.\t.\t.":"\t"+ext.formDeci(Array.mean(ages), 4, false)+"\t"+ext.formDeci(Array.stdev(ages), 4, false)+"\t"+ext.formDeci(Array.min(ages), 4, false)+"\t"+ext.formDeci(Array.max(ages), 4, false)));
+					+(ages==null?"\t.\t.\t.\t.":"\t"+ext.formDeci(Array.mean(ages), 4, false)+"\t"+ext.formDeci(Array.stdev(ages), 4, false)+"\t"+ext.formDeci(Array.min(ages), 4, false)+"\t"+ext.formDeci(Array.max(ages), 4, false))
+					+"\t"+(numBelowLowerThreshold < 0 ? "NA":numBelowLowerThreshold)+"\t"+(numAboveUpperThreshold < 0 ? "NA":numAboveUpperThreshold));
 						
 			writer.close();
 		} catch (Exception e) {
@@ -195,6 +198,8 @@ public class PhenoPrep {
 		String[] header;
 
 		this.log = log;
+		numBelowLowerThreshold = -1;
+		numAboveUpperThreshold = -1;
 		
 		if (idFile == null) {
 			idsWithDNA = null;
@@ -305,11 +310,15 @@ public class PhenoPrep {
 		lowerThreshold = mean-sdThreshold*sd;
 		upperThreshold = mean+sdThreshold*sd;
 		
+		numBelowLowerThreshold = 0;
+		numAboveUpperThreshold = 0;		
 		if (winsorize) {
 			for (int i = 0; i < data.length; i++) {
 				if (data[i] < lowerThreshold) {
+					numBelowLowerThreshold++;
 					database[i][0] = lowerThreshold;
 				} else if (data[i] > upperThreshold) {
+					numAboveUpperThreshold++;
 					database[i][0] = upperThreshold;
 				} else {
 					database[i][0] = data[i];
@@ -323,7 +332,11 @@ public class PhenoPrep {
 
 			for (int i = 0; i < data.length; i++) {
 				rowsToUse[i] = true;
-				if (data[i] < lowerThreshold || data[i] > upperThreshold) {
+				if (data[i] < lowerThreshold) {
+					numBelowLowerThreshold++;
+					rowsToUse[i] = false;
+				} else if (data[i] > upperThreshold) {
+					numAboveUpperThreshold++;
 					rowsToUse[i] = false;
 				}
 			}

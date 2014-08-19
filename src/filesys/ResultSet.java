@@ -41,7 +41,7 @@ public class ResultSet implements Serializable {
         String[] line;
         int numMarkers;
 		
-		markerSet = new SnpMarkerSet(filename, snp_indices, header, true, new Logger(null));
+		markerSet = new SnpMarkerSet(filename, snp_indices, header, true, new Logger());
 		numMarkers = markerSet.getMarkerNames().length;
 		try {
 			reader = new BufferedReader(new FileReader(filename));

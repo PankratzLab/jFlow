@@ -22,7 +22,6 @@ import common.Array;
 import common.CountVector;
 import common.Files;
 import common.IntVector;
-import common.Logger;
 import common.Positions;
 
 public class LinePanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -48,18 +47,16 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 	protected LinePlot tdp;
 	private boolean updateQcPanel;
 	private boolean swapAxes;
-	private Logger log;
 	private MarkerLookup markerLookup;
 	private SampleData sampleData;
 	private Project proj;
 	private String[][] setOfKeys;
 
-	public LinePanel(LinePlot twoDPlot, Logger log) {
+	public LinePanel(LinePlot twoDPlot) {
 		super();
 
-		this.tdp = twoDPlot;
-		this.log = log;
-		this.proj = tdp.getProject();
+		tdp = twoDPlot;
+		proj = tdp.getProject();
 		// this.samples = twoDPlot.getSamples();
 		// this.markerData = twoDPlot.getMarkerData();
 		// this.sampleData = twoDPlot.getSampleData();
@@ -96,13 +93,13 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 		} else {
 			if (Files.exists(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false), proj.getJarStatus())) {
 				markerLookup = proj.getMarkerLookup();
-				System.out.println("Marker data is available for this project");
+				proj.getLog().report("Marker data is available for this project");
 			} else {
 				markerLookup = new MarkerLookup(new Hashtable<String, String>());
 			}
 			if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
 				sampleData = proj.getSampleData(1, false);
-				System.out.println("Sample lookup is available for this project");
+				proj.getLog().report("Sample lookup is available for this project");
 			}
 		}
 
@@ -407,7 +404,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 				}
 
 				sample = null;
-				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, log, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
+				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
 					sample = setOfKeys[prox.elementAt(i)][2];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
@@ -418,7 +415,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 					if (ids == null) {
 						ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][0]);
 					}
-					if (ids != null && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, log, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
+					if (ids != null && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
 						sample = ids[0];
 					}
 				}

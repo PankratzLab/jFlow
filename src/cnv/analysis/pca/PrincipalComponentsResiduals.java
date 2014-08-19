@@ -25,6 +25,7 @@ import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.ext;
 
@@ -71,11 +72,11 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * @param output
 	 * @param log
 	 */
-	public PrincipalComponentsResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, String output, Logger log) {
+	public PrincipalComponentsResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, String output) {
 		super();
 		this.numComponents = numComponents;
-		this.log = log;
 		this.proj = proj;
+		this.log = proj.getLog();
 		this.numSamples = 0;
 		this.samplesInPc = new Hashtable<String, Integer>();
 		this.markersToAssessFile = markersToAssessFile;
@@ -91,7 +92,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * Compute the median data in project order, and then set back to pcfile order, just in case
 	 */
 	public void computeAssesmentDataMedians() {
-		this.markersToAssess = PrincipalComponentsCompute.sortByProjectMarkers(proj, PrincipalComponentsCompute.loadToArray(proj.getProjectDir() + markersToAssessFile, log));
+		this.markersToAssess = PrincipalComponentsCompute.sortByProjectMarkers(proj, HashVec.loadFileToStringArray(proj.getProjectDir() + markersToAssessFile, false, new int[] {0}, true));
 		getData();
 		double[] projectOrderMedians = getLRRMedian();
 		if (printFull) {
@@ -176,7 +177,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * Load each of the markers to assess (LRR, and AbGenotypesAfterFilters); We load genotypes to allow filtering by homozygous only, gc threshold, etc... Data is loaded to assessmentData organized assessmentData[marker0][data for samples in PCs], ditto for abGenotypesAfterFilters Note that the order of assessmentData[marker0] does not neccesarily reflect the same order as the samples in the pc file
 	 */
 	public void getData() {
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess, new Logger());
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess);
 		int count = numUsed(samplesToUse);
 		this.assessmentData = new double[markersToAssess.length][count];
 		this.abGenotypesAfterFilters = new byte[markersToAssess.length][count];
@@ -255,7 +256,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 */
 	private void printFull() {
 		String[] files = { output + MT_REPORT_MARKERS_USED[0], output + MT_REPORT_MARKERS_USED[1] };
-		PrintWriter[] writers = getNWriters(proj, files, log);
+		PrintWriter[] writers = getNWriters(proj, files);
 		String[] projOrderedSubset = getUsedSubset(allProjSamples, samplesToUse, log);
 		if (projOrderedSubset == null) {
 			log.reportError("Error - could not print full data, please remove flag or contact jlanej@gmail.com");
@@ -296,7 +297,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private static String[] getUsedSubset(String[] samples, boolean[] samplesToUse, Logger log) {
 		ArrayList<String> used = new ArrayList<String>();
 		if (samples.length != samples.length) {
-			log.reportError("Error - mismatched number of samples when extracting samples used ,this should not happen");
+			log.reportError("Error - mismatched number of samples when extracting samples used, this should not happen");
 			return null;
 		}
 		for (int i = 0; i < samplesToUse.length; i++) {
@@ -307,8 +308,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		return used.toArray(new String[used.size()]);
 	}
 
-	private static PrintWriter[] getNWriters(Project proj, String[] fileOuts, Logger log) {
+	private static PrintWriter[] getNWriters(Project proj, String[] fileOuts) {
 		PrintWriter[] writers = new PrintWriter[fileOuts.length];
+		Logger log = proj.getLog();
+		
 		for (int i = 0; i < fileOuts.length; i++) {
 			if (Files.exists(proj.getProjectDir() + fileOuts[i])) {
 				Files.backup(fileOuts[i], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));

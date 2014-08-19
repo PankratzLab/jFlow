@@ -21,7 +21,7 @@ public class MarkerMetrics {
 	public static final String DEFAULT_EXCLUSION_CRITERIA = "cnv/qc/default_exclusion.criteria";
 	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
 	
-	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude, Logger log) {
+	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude) {
 		PrintWriter writer;
 		String[] samples;
 		float[] thetas, rs, lrrs;
@@ -39,6 +39,9 @@ public class MarkerMetrics {
 		double temp, lrrSexZ;
 		int numNaNs, numLRRNaNs;
 		ArrayList<Float> aLRR;
+		Logger log;
+		
+		log = proj.getLog();
 
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
@@ -49,7 +52,7 @@ public class MarkerMetrics {
         samples = proj.getSamples();
         clusterFilterCollection = proj.getClusterFilterCollection();
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
-		sexes = getSexes(proj, samples, log);
+		sexes = getSexes(proj, samples);
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false)));
 			writer.println(Array.toStr(FULL_QC_HEADER));
@@ -59,14 +62,13 @@ public class MarkerMetrics {
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			line = "";
 			time = new Date().getTime();
-			System.out.println("hi!");
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				if (i % 1000 == 0) {
-					System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+					log.report(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
 				}
 
 				markerName = markerData.getMarkerName();
@@ -174,7 +176,7 @@ public class MarkerMetrics {
 	 * Retrieves Sex coding (1=male, 2=female) for all samples <p>
 	 * @author John Lane
 	 */
-	private static int[] getSexes(Project proj, String[] samples, Logger log) {
+	private static int[] getSexes(Project proj, String[] samples) {
 		int[] sexes = new int[samples.length];
 		SampleData sampleData = proj.getSampleData(2, false);
 		for (int i = 0; i < samples.length; i++) {
@@ -207,7 +209,7 @@ public class MarkerMetrics {
 		return zscore;
 	}
 	
-	public static void lrrVariance(Project proj, boolean[] samplesToInclude, String markersToInclude, Logger log) {
+	public static void lrrVariance(Project proj, boolean[] samplesToInclude, String markersToInclude) {
 		PrintWriter writer;
 		float[] lrrs, bafs;
 		boolean[] useBAFs;
@@ -217,7 +219,9 @@ public class MarkerMetrics {
         MarkerDataLoader markerDataLoader;
         String[] markerNames;
         String line, eol;
-
+        Logger log;
+        
+        log = proj.getLog();
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
 		} else {
@@ -233,14 +237,13 @@ public class MarkerMetrics {
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			line = "";
 			time = new Date().getTime();
-			System.out.println("hi!");
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				if (i % 1000 == 0) {
-					System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+					log.report(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
 				}
 
 				markerName = markerData.getMarkerName();
@@ -250,7 +253,7 @@ public class MarkerMetrics {
 				line += markerName+"\t"+markerData.getChr()+"\t"+markerData.getPosition();
 
 				if (lrrs == null) {
-					System.err.println("Error - null lrr array for marker "+markerName);
+					log.reportError("Error - null lrr array for marker "+markerName);
 				}
 				lrrs = Array.removeNaN(Array.subArray(lrrs, samplesToInclude));
 				line += "\t"+Array.stdev(lrrs, true);
@@ -290,7 +293,7 @@ public class MarkerMetrics {
 		}
 	}
 	
-	public static void separationOfSexes(Project proj, String subset, Logger log) {
+	public static void separationOfSexes(Project proj, String subset) {
 		PrintWriter writer;
 		String[] samples;
 		float[] xs, ys;
@@ -337,7 +340,7 @@ public class MarkerMetrics {
 			} else {
 				markerList = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 			time = new Date().getTime();
 			line = "";
 			for (int i = 0; i < markerList.length; i++) {
@@ -370,7 +373,7 @@ public class MarkerMetrics {
 						if (values[k][ab][1] != null) {
 							maleValues = values[k][ab][1].toArray();
 							counts[k][ab-1] += maleValues.length;
-//							System.out.println(markerName+"\t"+FullSample.AB_PAIRS[ab-1]+"/"+(k==0?"X":"Y")+"\t"+maleValues.length+" males\t"+Array.mean(maleValues));
+//							log.report(markerName+"\t"+FullSample.AB_PAIRS[ab-1]+"/"+(k==0?"X":"Y")+"\t"+maleValues.length+" males\t"+Array.mean(maleValues));
 							
 							// use all the females with a missing genotype for comparison, if any females have this genotype, only use that group if they outnumber those with a missing genotype 
 							femaleValues = null;
@@ -386,7 +389,7 @@ public class MarkerMetrics {
 								femaleComp = 0;
 								tVals[k][ab-1] = Double.NaN;
 							} else {
-//								System.out.println(markerName+"\t"+FullSample.AB_PAIRS[ab-1]+"/"+(k==0?"X":"Y")+"\t"+femaleValues.length+" females\t"+Array.mean(femaleValues));
+//								log.report(markerName+"\t"+FullSample.AB_PAIRS[ab-1]+"/"+(k==0?"X":"Y")+"\t"+femaleValues.length+" females\t"+Array.mean(femaleValues));
 								femaleComp = Array.mean(femaleValues);
 								tVals[k][ab-1] = Math.abs(new Ttest(maleValues, femaleValues).getT());											
 							}
@@ -451,19 +454,21 @@ public class MarkerMetrics {
 				}
 			}
 			writer.print(line);
-			System.out.println("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
+			proj.getLog().report("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
 
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing results");
+			proj.getLog().reportError("Error writing results");
 			e.printStackTrace();
 		}
 		
 	}
 
-	public static void filterMetrics(Project proj, Logger log) {
+	public static void filterMetrics(Project proj) {
 		String markerMetricsFilename, reviewCriteriaFilename, exclusionCriteriaFilename, combinedCriteriaFilename;
+		Logger log;
 
+		log = proj.getLog();
 		markerMetricsFilename = proj.getFilename(Project.MARKER_METRICS_FILENAME, false, false);
 		if (!Files.exists(markerMetricsFilename)) {
 			log.reportError("Error - marker metrics file not found at "+markerMetricsFilename);
@@ -499,7 +504,7 @@ public class MarkerMetrics {
 		FilterDB.filter(markerMetricsFilename, combinedCriteriaFilename, proj.getDir(Project.RESULTS_DIRECTORY)+"markersToReviewCombined.out", log);
 	}
 	
-	public static void tallyFlaggedReviewedChangedAndDropped(Project proj, boolean checkForDeletedMarkers, Logger log) {
+	public static void tallyFlaggedReviewedChangedAndDropped(Project proj, boolean checkForDeletedMarkers) {
 		BufferedReader reader;
 		PrintWriter writer, writerMissed;
 		String[] line;
@@ -528,10 +533,12 @@ public class MarkerMetrics {
 		int[] warningCounts;
 		String[] markersWithAnnotation;
 		boolean[] shouldBeExcluded;
+		Logger log;
 		
+		log = proj.getLog();
 		dir = proj.getProjectDir();
 		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
-		shouldBeExcluded = proj.getSamplesToExclude(log);
+		shouldBeExcluded = proj.getSamplesToExclude();
 
 		filenames = new String[] {"results/markersToExclude.out", "results/markersToReview.out"};
 		filenames = new String[] {"results/markersToBoth.out"};
@@ -560,7 +567,7 @@ public class MarkerMetrics {
 			}
 		}
 		if (problem) {
-			System.exit(1);
+			return;
 		}
 		
         clusterFilterCollection = proj.getClusterFilterCollection();
@@ -596,17 +603,17 @@ public class MarkerMetrics {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \"" + dir+filenames[i] + "\" not found in current directory");
-				System.exit(1);
+				log.reportError("Error: file \"" + dir+filenames[i] + "\" not found in current directory");
+				return;
 			} catch (IOException ioe) {
-				System.err.println("Error reading file \"" + dir+filenames[i] + "\"");
-				System.exit(2);
+				log.reportError("Error reading file \"" + dir+filenames[i] + "\"");
+				return;
 			}
 			
 			markerNames = Array.toStringArray(v);
 			log.report(markerNames.length+" markers met at least one criterion in "+filenames[i]);
 			if (checkForDeletedMarkers) {
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			} else {
 				markerDataLoader = null;
 			}
@@ -615,7 +622,7 @@ public class MarkerMetrics {
 			droppedMarkers = new Hashtable<String, String>();
 			for (int j = 0; j < markerNames.length; j++) {
 				if (j % 1000 == 0) {
-					System.out.println((j+1)+" of "+markerNames.length);
+					log.report((j+1)+" of "+markerNames.length);
 				}
 				if (checkForDeletedMarkers) {
 					markerData = markerDataLoader.requestMarkerData(j);
@@ -702,7 +709,7 @@ public class MarkerMetrics {
 				}
 				markerNames = HashVec.getKeys(allOtherMarkers, false, false);
 				if (checkForDeletedMarkers) {
-					markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+					markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 				}
 				for (int j = 0; j < markerNames.length; j++) {
 					if (checkForDeletedMarkers) {
@@ -744,8 +751,8 @@ public class MarkerMetrics {
 					new File(missedOutputFile).delete();
 				}
 			} catch (Exception e) {
-				System.err.println("Error writing to " + dir+ext.rootOf(filenames[i], false)+"_counts.out");
-				e.printStackTrace();
+				log.reportError("Error writing to " + dir+ext.rootOf(filenames[i], false)+"_counts.out");
+				log.reportException(e);
 			}
 
 			
@@ -776,15 +783,15 @@ public class MarkerMetrics {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to " + dir+ext.rootOf(filenames[i], false)+"_matrix.out");
-				e.printStackTrace();
+				log.reportError("Error writing to " + dir+ext.rootOf(filenames[i], false)+"_matrix.out");
+				log.reportException(e);
 			}
 		}
 		
-		annotationReports(proj, checkForDeletedMarkers, proj.getDir(Project.RESULTS_DIRECTORY)+"annotationReport.xln", log);
+		annotationReports(proj, checkForDeletedMarkers, proj.getDir(Project.RESULTS_DIRECTORY)+"annotationReport.xln");
 	}
 	
-	public static void tallyClusterFilters(Project proj, boolean[] samplesToInclude, String markersSubset, Logger log) {
+	public static void tallyClusterFilters(Project proj, boolean[] samplesToInclude, String markersSubset) {
 		PrintWriter writer;
 		String[] markerNames;
 		MarkerDataLoader markerDataLoader;
@@ -794,11 +801,13 @@ public class MarkerMetrics {
 		float gcThreshold;
 		String filename;
 		int numGenotypesAffected, numNonMissingBefore, numNonMissingAfter;
+		Logger log;
 		
+		log = proj.getLog();
 		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
         clusterFilterCollection = proj.getClusterFilterCollection();
         if (samplesToInclude == null) {
-        	samplesToInclude = proj.getSamplesToInclude(null, log);
+        	samplesToInclude = proj.getSamplesToInclude(null);
         }
 
         filename = proj.getDir(Project.RESULTS_DIRECTORY)+"reclusteredMarkers.xln";
@@ -808,7 +817,7 @@ public class MarkerMetrics {
 
 			markerNames = clusterFilterCollection.getMarkerNames();
 			log.report("Found "+markerNames.length+" markers with cluster filters");
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
@@ -840,13 +849,13 @@ public class MarkerMetrics {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + filename);
-			e.printStackTrace();
+			log.reportError("Error writing to " + filename);
+			log.reportException(e);
 		}
 		log.report("Output successfully written to "+filename);
 	}
 	
-	public static void annotationReports(Project proj, boolean checkForDeletedMarkers, String outputFile, Logger log) {
+	public static void annotationReports(Project proj, boolean checkForDeletedMarkers, String outputFile) {
 		PrintWriter writer, writerMissed;
 		Hashtable<String, String> reclusteredMarkers, droppedMarkers;
 		HashSet<String> allOtherMarkers;
@@ -863,9 +872,11 @@ public class MarkerMetrics {
 		String annotation;
 		String missedOutputFile;
 		boolean[] shouldBeExcluded;
+		Logger log;
 		
+		log = proj.getLog();
 		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
-		shouldBeExcluded = proj.getSamplesToExclude(log);
+		shouldBeExcluded = proj.getSamplesToExclude();
 
         clusterFilterCollection = proj.getClusterFilterCollection();
         annotationCollection = proj.getAnnotationCollection();
@@ -873,7 +884,7 @@ public class MarkerMetrics {
 		markerNames = annotationCollection.getMarkerLists();
 		log.report(markerNames.length+" markers have an annotation");
 		if (checkForDeletedMarkers) {
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 		} else {
 			markerDataLoader = null;
 		}
@@ -881,7 +892,7 @@ public class MarkerMetrics {
 		droppedMarkers = new Hashtable<String, String>();
 		for (int j = 0; j < markerNames.length; j++) {
 			if (j % 1000 == 0) {
-				System.out.println((j+1)+" of "+markerNames.length+" annotated markers");
+				log.report((j+1)+" of "+markerNames.length+" annotated markers");
 			}
 			if (checkForDeletedMarkers) {
 				markerData = markerDataLoader.requestMarkerData(j);
@@ -946,7 +957,7 @@ public class MarkerMetrics {
 			}
 			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
 			if (checkForDeletedMarkers) {
-				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			} else {
 				markerDataLoader = null;
 			}
@@ -982,12 +993,12 @@ public class MarkerMetrics {
 				new File(missedOutputFile).delete();
 			}
 		} catch (Exception e) {
-			System.err.println("Error writing to " + outputFile);
-			e.printStackTrace();
+			log.reportError("Error writing to " + outputFile);
+			log.reportException(e);
 		}
 	}
 	
-	public static void regress(Project proj, String phenotype, Logger log) {
+	public static void regress(Project proj, String phenotype) {
 		PrintWriter writer;
 		String trav;
 		Hashtable<String, String> hash;
@@ -1000,7 +1011,9 @@ public class MarkerMetrics {
 		String[] markerNames;
 		RegressionModel model;
 		boolean binary;
+		Logger log;
 		
+		log = proj.getLog();
 		filename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
 		header = Files.getHeaderOfFile(filename, log);
 		indices = ext.indexFactors(new String[] {"DNA",  phenotype}, header, false, true);
@@ -1019,7 +1032,7 @@ public class MarkerMetrics {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln"));
 			writer.println("MarkerName\tBAF_p");
 //			markerDataLoader = new MarkerDataLoader(proj, markerNames, -1, log);
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				indeps = Array.toDoubleArray(markerData.getBAFs());
@@ -1030,15 +1043,15 @@ public class MarkerMetrics {
 				}
 				writer.println(markerNames[i]+"\t"+model.getSigs()[1]);
 				if (i < 5) {
-					System.out.println(model.getSummary());
+					log.report(model.getSummary());
 				}
 				markerDataLoader.releaseIndex(i);
 			}
 
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln");
-			e.printStackTrace();
+			log.reportError("Error writing to " + proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln");
+			log.reportException(e);
 		}
 	}
 
@@ -1047,9 +1060,8 @@ public class MarkerMetrics {
 		String markersSubset = null;
 		String samples = null;
 		String logfile = null;
-		Logger log;
 		Project proj;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		boolean sexSeparation = false;
 		boolean fullQC = false;
 		boolean filter = false;
@@ -1061,7 +1073,7 @@ public class MarkerMetrics {
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
-				"   (1) project file (i.e. proj="+filename+" (default))\n"+
+				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) filename of subset of samples to include (i.e. samples=" + samples + " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n" +
 				"   (3) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
 				"  AND\n" + 
@@ -1156,29 +1168,28 @@ public class MarkerMetrics {
 //			pheno = "Class=BAF_Outliers";
 //			countFilters = true;
 			
-			proj = new Project(filename, false);
-			log = new Logger(logfile);
+			proj = new Project(filename, logfile, false);
 			
 			if (sexSeparation) {
-				separationOfSexes(proj, markersSubset, log);
+				separationOfSexes(proj, markersSubset);
 			} 
 			if (fullQC) {			
-				fullQC(proj, proj.getSamplesToExclude(log), markersSubset, log);
+				fullQC(proj, proj.getSamplesToExclude(), markersSubset);
 			}
 			if (lrrVariance) {
-				lrrVariance(proj, proj.getSamplesToInclude(samples, log), markersSubset, log);
+				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);
 			}
 			if (filter) {			
-				filterMetrics(proj, log);
+				filterMetrics(proj);
 			}
 			if (tally) {
-				tallyFlaggedReviewedChangedAndDropped(proj, checkForDeletedMarkers, log);
+				tallyFlaggedReviewedChangedAndDropped(proj, checkForDeletedMarkers);
 			}
 			if (countFilters) {
-				tallyClusterFilters(proj, proj.getSamplesToInclude(samples, log), markersSubset, log);
+				tallyClusterFilters(proj, proj.getSamplesToInclude(samples), markersSubset);
 			}
 			if (pheno != null) {
-				regress(proj, pheno, log);
+				regress(proj, pheno);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

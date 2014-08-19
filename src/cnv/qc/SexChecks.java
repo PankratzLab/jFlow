@@ -30,26 +30,29 @@ public class SexChecks {
 
 	public static void sexCheck(Project proj) {
 		long time;
+		Logger log;
+		
+		log = proj.getLog();
 		time = new Date().getTime();
 
 		markerSet = proj.getMarkerSet();
 		sampleData = proj.getSampleData(2, false);
 		if (sampleData.failedToLoad()) {
-			System.err.println("Error - without a SampleData file, sexChecks will fail");
+			log.reportError("Error - without a SampleData file, sexChecks will fail");
 			return;
 		}
 
-		System.out.println("Took "+ext.getTimeElapsed(time)+" to hash samples");
+		log.report("Took "+ext.getTimeElapsed(time)+" to hash samples");
 		time = new Date().getTime();
 
 		samples = proj.getSamples();
 		lrrCounts(samples, proj, sexlinked(markerSet.getChrs()));
 		writeToFile(proj, estimateSex(samples));
 
-		System.out.println("Took "+ext.getTimeElapsed(time)+" to parse "+samples.length+" samples");
+		log.report("Took "+ext.getTimeElapsed(time)+" to parse "+samples.length+" samples");
 	}
 
-	public static void markerByMarker(Project proj, Logger log) {
+	public static void markerByMarker(Project proj) {
 		PrintWriter writer;
 		String[] samples;
 		Vector<double[]> xys, baflrrs; 
@@ -63,7 +66,9 @@ public class SexChecks {
 		MarkerData markerData;
 		String[] markerNames;
 		long time;
+		Logger log;
         
+		log = proj.getLog();
         sampleData = proj.getSampleData(2, false);
         samples = proj.getSamples();
         sexes = new int[samples.length];
@@ -78,11 +83,11 @@ public class SexChecks {
 			
 	        time = new Date().getTime();
 	        markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 	        for (int i = 0; i < markerNames.length; i++) {
 	        	markerData = markerDataLoader.requestMarkerData(i);
 	        	if (i % 100 == 0) {
-	        		System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+	        		log.report(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
 	        	}
 
 				output = markerData.getMarkerName();
@@ -105,7 +110,7 @@ public class SexChecks {
 				
 				
 				if (intensityDeps.size()==0) {
-					System.err.println("Warning - no data for marker "+markerData.getMarkerName());
+					log.reportError("Warning - no data for marker "+markerData.getMarkerName());
 					output += "\t.\t.\t.\t.\t.\t.\t.\t.";
 				} else {
 					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(xys), 0)).getPvalue());
@@ -132,11 +137,11 @@ public class SexChecks {
 				writer.flush();
 				markerDataLoader.releaseIndex(i);
 			}
-			System.out.println("Finished in " + ext.getTimeElapsed(time));
+	        log.reportError("Finished in " + ext.getTimeElapsed(time));
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing results");
-			e.printStackTrace();
+			log.reportError("Error writing results");
+			log.reportException(e);
 		}
 
 	}
@@ -147,7 +152,10 @@ public class SexChecks {
 		String[] line;
 		String trav;
 		Hashtable<String,String> hash = new Hashtable<String,String>();
+		Logger log;
 
+		log = proj.getLog();
+		
 		File[] filenames = new File(proj.getDir(Project.RESULTS_DIRECTORY)+RESULTS_DIR).listFiles(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return filename.endsWith("_genderChecks.xln");
@@ -155,10 +163,10 @@ public class SexChecks {
 		});
 
 		if (filenames==null) {
-			System.err.println("Error - directory not found: "+proj.getDir(Project.RESULTS_DIRECTORY)+RESULTS_DIR);
+			log.reportError("Error - directory not found: "+proj.getDir(Project.RESULTS_DIRECTORY)+RESULTS_DIR);
 
 		} else {
-			System.out.println("Found results for "+filenames.length+" lookup files");
+			log.report("Found results for "+filenames.length+" lookup files");
 		}
 
 		hash = HashVec.loadFileToHashString(proj.getFilename(Project.MARKERSET_FILENAME), 0, new int[] {1, 2}, "\t", true);
@@ -166,7 +174,7 @@ public class SexChecks {
 		try {
 			writer = new PrintWriter(new FileWriter("GenderChecks.xln"));
 			for (int i = 0; i<filenames.length; i++) {
-				System.out.println((i+1)+" of "+filenames.length);
+				log.report((i+1)+" of "+filenames.length);
 				try {
 					reader = new BufferedReader(new FileReader(filenames[i]));
 					if (i==0) {
@@ -183,11 +191,13 @@ public class SexChecks {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""+filenames[i].getName()+"\" not found in current directory");
-					System.exit(1);
+					log.reportError("Error: file \""+filenames[i].getName()+"\" not found in current directory");
+					writer.close();
+					return;
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \""+filenames[i].getName()+"\"");
-					System.exit(2);
+					log.reportError("Error reading file \""+filenames[i].getName()+"\"");
+					writer.close();
+					return;
 				}
 			}
 			line = HashVec.getKeys(hash);
@@ -196,8 +206,8 @@ public class SexChecks {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing results");
-			e.printStackTrace();
+			log.reportError("Error writing results");
+			log.reportException(e);
 		}
 	}
 
@@ -205,16 +215,16 @@ public class SexChecks {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		Vector<String> v = new Vector<String>();
+		HashSet<String> hashSet;
 
-		v = HashVec.loadFileToVec(markersToDrop, false, true, true, true);
+		hashSet = HashVec.loadFileToHashSet(markersToDrop, false);
 
 		try {
 			reader = new BufferedReader(new FileReader(allMarkers));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(allMarkers)+"_dropped.out"));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				if (!v.contains(line[0])) {
+				if (!hashSet.contains(line[0])) {
 					writer.println(Array.toStr(line));
 				}
 			}
@@ -231,6 +241,7 @@ public class SexChecks {
 
 	private static boolean[][] sexlinked(byte[] chrs) {
 		boolean[][] sexlinked;
+		
 		sexlinked = new boolean[chrs.length][2];
 		for (int i = 0; i<chrs.length; i++) {
 			if (chrs[i]==23) {
@@ -245,6 +256,10 @@ public class SexChecks {
 
 	private static void lrrCounts(String[] samples, Project proj, boolean[][] sexlinked) {
 		float[] lrrs, bafs;
+		Logger log;
+		
+		log = proj.getLog();
+		
 		numXs = new int[samples.length];
 		numYs = new int[samples.length];
 		numX_10_90 = new int[samples.length];
@@ -258,12 +273,12 @@ public class SexChecks {
 //			samp = proj.getSample(samples[i]);
 			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			if (samp==null) {
-				System.err.println("Error - could not load sample: "+samples[i]);
-				System.exit(1);
+				log.reportError("Error - could not load sample: "+samples[i]);
+				return;
 			}
 			if (markerSet.getFingerprint()!=samp.getFingerprint()) {
-				System.err.println("Error - mismatched MarkerSet fingerprints for sample "+samples[i]);
-				System.exit(1);
+				log.reportError("Error - mismatched MarkerSet fingerprints for sample "+samples[i]);
+				return;
 			}
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
@@ -284,7 +299,7 @@ public class SexChecks {
 			}
 
 			if (i%100 == 0) {
-				System.out.println("parsed "+samples[i]+" ("+(i+1)+" of "+samples.length+")");
+				log.report("parsed "+samples[i]+" ("+(i+1)+" of "+samples.length+")");
 			}
 		}
 	}
@@ -425,7 +440,7 @@ public class SexChecks {
 		}
 	}
 	
-	public static void identifyPseudoautosomalBreakpoints(Project proj, Logger log) {
+	public static void identifyPseudoautosomalBreakpoints(Project proj) {
 		PrintWriter writer;
 		String[] samples;
 		float[] lrrs;
@@ -455,7 +470,7 @@ public class SexChecks {
 		}
         
         sampleData = proj.getSampleData(2, false);
-        samplesToExclude = proj.getSamplesToExclude(log);
+        samplesToExclude = proj.getSamplesToExclude();
         samples = proj.getSamples();
         sexes = new int[samples.length];
         for (int i = 0; i < samples.length; i++) {
@@ -475,10 +490,10 @@ public class SexChecks {
         gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
 
         try {
-			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY, true, log, false)+"pseudoautosomalSearch.xln"));
+			writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY, true, false)+"pseudoautosomalSearch.xln"));
 			writer.println("SNP\tChr\tPosition\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 			
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 			time = new Date().getTime();
 			line = "";
 			for (int i = 0; i < markerList.length; i++) {
@@ -552,13 +567,12 @@ public class SexChecks {
 		String allMarkers = "data/markerListWithIndices.dat";
 		boolean drop = false;
 		Project proj;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		boolean par = false;
-		Logger log;
 
 		String usage = "\\n"+
 		"qc.GenderChecks requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) check sex of indiviudals (i.e. -check (not the default))\n"+
 		" OR\n"+
 		"   (2) parse all results (i.e. -parse (not the default))\n"+
@@ -607,18 +621,17 @@ public class SexChecks {
 //		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 		try {
 			proj = new Project(filename, false);
-			log = new Logger();
 			
 			if (check) {
 				sexCheck(proj);
 			} else if (parse) {
 				parse(proj);
 			} else if (par) {
-				identifyPseudoautosomalBreakpoints(proj, log);
+				identifyPseudoautosomalBreakpoints(proj);
 			} else if (drop) {
 				dropMarkers(allMarkers, markersToDrop);
 			} else {
-				markerByMarker(proj, log);
+				markerByMarker(proj);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

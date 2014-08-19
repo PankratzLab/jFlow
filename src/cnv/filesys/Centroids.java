@@ -200,7 +200,7 @@ public class Centroids implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
 		
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, new Logger());
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 		time = new Date().getTime();
 		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);
@@ -446,7 +446,7 @@ public class Centroids implements Serializable {
 		
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 //		String centFile = "ForNathan_table.csv";
 //		String centFile = "SNP Table Myers raw dataset final 022908.csv";
 //		String centFile = "Myers_final_042208_ReclusteredCNV_SNP_Table2.csv";
@@ -464,7 +464,7 @@ public class Centroids implements Serializable {
 
 		String usage = "\n"+
 			"cnv.filesys.Centroids requires 0-1 arguments\n"+
-			"   (1) project (i.e. proj=" + filename + " (default))\n"+
+			"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 			"   (2) filename (i.e. file=" + centFile + " (default))\n"+
 			" OR\n"+
 			"   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n"+

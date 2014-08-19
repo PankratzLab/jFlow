@@ -8,7 +8,7 @@ import common.*;
 
 public class GenerateDemoPackage {
 
-	public static void makeUpScatter(Project proj, String filenameOfMarkerList, Logger log) {
+	public static void makeUpScatter(Project proj, String filenameOfMarkerList) {
 		if (new File("demo/").exists()) {
 			new File("demo/").renameTo(new File(Files.backup("demo", "", "")));
 //			new File("projects/").renameTo(new File(Files.backup("demo/projects", "", "")));
@@ -32,12 +32,14 @@ public class GenerateDemoPackage {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String logfile = null;
-		Logger log;
 		Project proj;
 
-		String usage = "\n" + "cnv.manage.GenerateDemoPackage requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + 
+		"cnv.manage.GenerateDemoPackage requires 0-1 arguments\n" + 
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -58,9 +60,8 @@ public class GenerateDemoPackage {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
-			proj = new Project(filename, false);
-			makeUpScatter(proj, proj.getFilename(Project.DISPLAY_MARKERS_FILENAME), log);
+			proj = new Project(filename, logfile, false);
+			makeUpScatter(proj, proj.getFilename(Project.DISPLAY_MARKERS_FILENAME));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

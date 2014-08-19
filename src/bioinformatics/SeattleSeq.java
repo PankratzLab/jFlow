@@ -7,9 +7,9 @@ import common.*;
 
 public class SeattleSeq {
 	public static final String[][] NEEDS = {{"Chr"}, {"MapInfo", "Position"}, {"MarkerName", "SNP"}, {"RefStrand"}};
-	public static final String[][] RELEVANTS = {{"chromosome"}, {"position"}, {"sampleAlleles"}, {"accession"}, {"functionGVS"}, {"aminoAcids"}, {"geneList"}, {"inDBSNPOrNot"}, {"microRNAs"}};
+	public static final String[][] RELEVANTS = {{"chromosome"}, {"position"}, {"sampleAlleles"}, {"accession"}, {"functionGVS"}, {"aminoAcids"}, {"geneList"}, {"inDBSNPOrNot"}, {"rsID"}, {"microRNAs"}};
 //	"# inDBSNPOrNot", "", "position", "referenceBase", "sampleGenotype", "sampleAlleles", "allelesDBSNP", "accession", "functionGVS", "functionDBSNP", "rsID", "aminoAcids", "proteinPosition", "cDNAPosition", "polyPhen", "granthamScore", "scorePhastCons", "consScoreGERP", "chimpAllele", "CNV", "geneList", "AfricanHapMapFreq", "EuropeanHapMapFreq", "AsianHapMapFreq", "hasGenotypes", "dbSNPValidation", "repeatMasker", "tandemRepeat", "clinicalAssociation", "distanceToSplice", "microRNAs", "proteinSequence"
-	public static final String[] ORDER = {"nonsense", "missense", "splice-5", "splice-3", "coding-synonymous", "coding-notMod3", "utr-5", "utr-3", "intron", "near-gene-5", "near-gene-3", "intergenic"};
+	public static final String[] ORDER = {"stop-gained-near-splice", "stop-gained", "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense", "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3", "synonymous-near-splice", "intron-near-splice", "coding-unknown-near-splice", "synonymous", "coding-synonymous", "coding-unknown", "coding-notMod3", "non-coding-exon-near-splice", "non-coding-exon", "5-prime-UTR", "utr-5", "3-prime-UTR", "utr-3", "intron", "upstream-gene", "near-gene-5", "downstream-gene", "near-gene-3", "intergenic"};
 	public static final String[] BAD = {"missense", "stop-gained", "stop-lost", "missense-near-splice", "splice-donor", "splice-acceptor"};
 	public static final String[] NEUTRAL = {"intron-near-splice", "5-prime-UTR", "downstream-gene", "upstream-gene", "synonymous", "coding-synonymous", "intergenic", "non-coding-exon", "3-prime-UTR", "intron", "coding-notMod3"};
 	
@@ -131,6 +131,7 @@ public class SeattleSeq {
 							trav = v.elementAt(i);
 							type = ext.indexOfStr(trav[indices[4]], ORDER);
 							if (type == -1) {
+								System.out.println("unknown type: "+trav[indices[4]]);
 								System.out.println(Array.toStr(trav));
 								System.exit(1);
 							}
@@ -209,7 +210,7 @@ public class SeattleSeq {
 		}
 	}
 
-	public static void geneCounts(String filename) {
+	public static void geneCounts(String filename, String freqFilename) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, trav;
@@ -224,13 +225,14 @@ public class SeattleSeq {
 		String[] keys;
 		Hashtable<String,String> hashFreq;
 		double freq;
+		int linesSkipped;
 		
-		hashFreq = HashVec.loadFileToHashString("D:/home/npankrat/NCBI/ESP_exome_chip/EVS/freqInfo_proc.dat", new int[] {0}, new int[] {3}, false, "", true, false, false);
+		hashFreq = HashVec.loadFileToHashString(freqFilename, new int[] {0}, new int[] {3}, false, "", true, false, false);
 		
 		try {
-			reader = new BufferedReader(new FileReader(filename));
+			reader = Files.getAppropriateReader(filename);
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_summary.out"));
-			writer.println(Array.toStr(Matrix.extractColumn(RELEVANTS, 0)));
+			writer.println(Array.toStr(Matrix.extractColumn(RELEVANTS, 0))+"\tAlleleFrequency\tMAF<1%\tMAF<5%");
 			log = new Logger(ext.rootOf(filename, false)+".log");
 			temp = reader.readLine().trim();
 			if (temp.startsWith("#"));
@@ -242,9 +244,14 @@ public class SeattleSeq {
 			prev = "";
 			
 			done = false;
+			linesSkipped = 0;
 			while (!done) {
 				if (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
+					if (line.length < Array.max(indices)) {
+						linesSkipped++;
+						continue;
+					}
 				} else {
 					done = true;
 				}
@@ -259,6 +266,7 @@ public class SeattleSeq {
 							trav = v.elementAt(i);
 							type = ext.indexOfStr(trav[indices[4]], ORDER);
 							if (type == -1) {
+								System.out.println("unknown type: "+trav[indices[4]]);
 								System.out.println(Array.toStr(trav));
 								System.exit(1);
 							}
@@ -268,23 +276,22 @@ public class SeattleSeq {
 							}						
 						}
 						trav = v.elementAt(worst);
-						if (worstType == 0) {
-							if (trav[indices[5]].startsWith("stop")) {
-								trav[indices[4]] = "stoploss";
-							} else {
-								trav[indices[4]] = "stopgain";
-							}
+						if (trav[indices[8]].equals("0")) {
+							trav[indices[8]] = ".";
+						} else {
+							trav[indices[8]] = "rs"+trav[indices[8]];
 						}
 						for (int i = 0; i < indices.length; i++) {
 							writer.print((i==0?"":"\t")+trav[indices[i]]);
 						}
-						if (hashFreq.containsKey(line[indices[0]].toLowerCase()+"^"+line[indices[1]])) {
-							freq = Double.parseDouble(hashFreq.get(line[indices[0]].toLowerCase()+"^"+line[indices[1]]));
+						if (hashFreq.containsKey(trav[indices[0]].toLowerCase()+"^"+trav[indices[1]])) {
+							freq = Double.parseDouble(hashFreq.get(trav[indices[0]].toLowerCase()+"^"+trav[indices[1]]));
 							writer.print("\t"+freq+"\t"+(freq<0.01?1:0)+"\t"+(freq<0.05?1:0));
 						} else {
 							writer.print("\t.\t.\t.");
 						}
 						writer.println();
+						writer.flush();
 					}
 					hash = new Hashtable<String, Vector<String[]>>();
 				}
@@ -293,6 +300,7 @@ public class SeattleSeq {
 			}
 			writer.close();
 			reader.close();
+			System.out.println("Skipped "+linesSkipped+" line(s)");
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + filename + "\" not found in current directory");
 			System.exit(1);
@@ -302,44 +310,6 @@ public class SeattleSeq {
 		}
 	}
 	
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		String filename = "SeattleSeq.dat";
-
-		String usage = "\n" + 
-		"bioinformatics.SeattleSeq requires 0-1 arguments\n" + 
-				"   (1) filename (i.e. file=" + filename + " (default))\n" + 
-		"";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-//		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/seattleInput.txt";
-		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/SeattleSeqAnnotation131.seattleInput.input.240042724786.txt";
-//		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/FGG.txt";
-//		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/F11.txt";
-		try {
-//			proc(filename);
-//			summarize(filename);
-			geneCounts(filename);
-//			parseFreq("D:/home/npankrat/NCBI/ESP_exome_chip/EVS/freqInfo.out");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static Hashtable<String, String[]> loadAllAnnotationInDir(String directory, Logger log) {
 		BufferedReader reader;
 		String[] files, line;
@@ -393,5 +363,51 @@ public class SeattleSeq {
 		}		
 
 		return hash;
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String filename = "SeattleSeq.dat";
+		String freqFilename = "D:/home/npankrat/NCBI/ESP_exome_chip/EVS/freqInfo_proc.dat";
+
+		String usage = "\n" + 
+		"bioinformatics.SeattleSeq requires 0-1 arguments\n" + 
+		"   (1) filename of SeattleSeq annotation (i.e. file=" + filename + " (default))\n" + 
+		"   (2) filename of allele frequency data (i.e. freqFile=" + freqFilename + " (default))\n" + 
+		"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("freqFile=")) {
+				freqFilename = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+//		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/seattleInput.txt";
+//		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/SeattleSeqAnnotation131.seattleInput.input.240042724786.txt";
+//		filename = "D:/Logan/SuperNovo/SeattleSeq/SeattleSeqAnnotation138.input.307359078671.txt.gz";
+//		filename = "D:/Logan/SuperNovo/SeattleSeq/SeattleSeqAnnotation138.input_new.307436705306.txt.gz";
+		
+//		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/FGG.txt";
+//		filename = "D:/home/npankrat/NCBI/ESP_exome_chip/F11.txt";
+		try {
+//			proc(filename);
+//			summarize(filename);
+			geneCounts(filename, freqFilename);
+//			parseFreq("D:/home/npankrat/NCBI/ESP_exome_chip/EVS/freqInfo.out");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

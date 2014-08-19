@@ -204,11 +204,15 @@ public class HashVec {
 		return loadToHashSet(getKeys(hash, false, false));
 	}
 
-	public static Hashtable<String,Integer> loadToHashIndices(String[] list) {
+	public static Hashtable<String,Integer> loadToHashIndices(String[] list, Logger log) {
 		Hashtable<String,Integer> hash = new Hashtable<String,Integer>((list == null?10:list.length));
 		
 		for (int i = 0; list != null && i<list.length; i++) {
-			hash.put(list[i], i);
+			if (list[i] == null) {
+				log.report("Cannot add null as a key in a hashIndices object");
+			} else {
+				hash.put(list[i], i);
+			}
 		}
 
 		return hash;
@@ -241,6 +245,7 @@ public class HashVec {
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols, boolean trimFirst, boolean onlyIfAbsent, boolean jar, String delimiter) {
 		BufferedReader reader = null;
 		Vector<String> v = new Vector<String>();
+		HashSet<String> onlyIfAbsentHash = new HashSet<String>();
 		String trav;
 		String[] line;
 		int count;
@@ -269,10 +274,11 @@ public class HashVec {
 						trav += (i==0?"":"\t")+line[cols[i]];
 					}
 				}
-				if (onlyIfAbsent) {
-					addIfAbsent(trav, v);
-				} else {
+				if (!onlyIfAbsent || !onlyIfAbsentHash.contains(trav)) {
 					v.add(trav);
+					if (onlyIfAbsent) {
+						onlyIfAbsentHash.add(trav);
+					}
 				}
 				count++;
 			}

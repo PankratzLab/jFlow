@@ -262,13 +262,13 @@ public class Mosaicism {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		Project proj;
 		boolean check = false;
 
 		String usage = "\n"+
 		"filesys.ParseIllumina requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) check for overlap between mosaic arms and CNV calls in the first CNV file listed in the project file (i.e. -check (not the default))\n"+
 		"";
 

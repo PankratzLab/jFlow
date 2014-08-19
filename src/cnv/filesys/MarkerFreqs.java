@@ -47,12 +47,15 @@ public class MarkerFreqs implements Serializable {
 		}
 	}
 
-	public static void exportToText(String filename, String mafFilename, String exportFilename, Logger log) {
+	public static void exportToText(String filename, String mafFilename, String exportFilename) {
 		Project proj = new Project(filename, false);
 		MarkerFreqs markerMAF = load(proj.getProjectDir() + mafFilename, false);
 		MarkerSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		double[] mafs = markerMAF.getMafs();
+		Logger log;
+		
+		log = proj.getLog();
 		if (markerNames.length != mafs.length) {
 			log.reportError("Error - mismatched number of markers in the project's marker set and the imported AlleleFrequency file (" + mafFilename + "); aborting");
 			System.exit(1);
@@ -82,7 +85,7 @@ public class MarkerFreqs implements Serializable {
 		}
 	}
 
-	public static void convertMarkerFreqsFromTxt(Project proj, String Freqfilename, String outputFileNameSer, Logger log) {
+	public static void convertMarkerFreqsFromTxt(Project proj, String Freqfilename, String outputFileNameSer) {
 		BufferedReader reader;
 		String[] line, header;
 		Hashtable<String, String> hash;
@@ -90,6 +93,9 @@ public class MarkerFreqs implements Serializable {
 		String[] markerNames;
 		int index;
 		MarkerSet markerSet;
+		Logger log;
+		
+		log = proj.getLog();
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		double[] mafs = new double[markerNames.length];

@@ -278,7 +278,7 @@ public class BeastScore {
 	 * 
 	 * @return an array of beastScores, 1 per with scores computed across the individuals cnvs
 	 */
-	public static BeastScore[] beastInds(Project proj, CNVariant[][] cNVariantInds, Logger log) {
+	public static BeastScore[] beastInds(Project proj, CNVariant[][] cNVariantInds) {
 		BeastScore[] beastScores = new BeastScore[cNVariantInds.length];
 		MarkerSet markerSet = proj.getMarkerSet();
 		byte[] chr = markerSet.getChrs();
@@ -287,7 +287,7 @@ public class BeastScore {
 		SampleData sampleData = proj.getSampleData(0, false);
 
 		for (int i = 0; i < cNVariantInds.length; i++) {
-			beastScores[i] = beastInd(proj, sampleData, cNVariantInds[i], chr, positions, indicesByChr, log);
+			beastScores[i] = beastInd(proj, sampleData, cNVariantInds[i], chr, positions, indicesByChr);
 		}
 		return beastScores;
 	}
@@ -297,11 +297,13 @@ public class BeastScore {
 	 * 
 	 * @return BeastScore (for all the individual's cnvs)
 	 */
-	public static BeastScore beastInd(Project proj, SampleData sampleData, CNVariant[] cNVariantInd, byte[] chr, int[] positions, int[][] indicesByChr, Logger log) {
+	public static BeastScore beastInd(Project proj, SampleData sampleData, CNVariant[] cNVariantInd, byte[] chr, int[] positions, int[][] indicesByChr) {
 		BeastScore score = null;
 		int[][] indices = new int[cNVariantInd.length][];
 		String ind;
 		float[] lrrs = null;
+		Logger log = proj.getLog();
+		
 		if (cNVariantInd.length > 0) {
 			String key = cNVariantInd[0].getFamilyID() + "\t" + cNVariantInd[0].getIndividualID();
 			try {

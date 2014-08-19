@@ -307,7 +307,7 @@ public class Fst {
         int count;
         StringVector[] fileContents;
         
-        ext.checkHeader(Files.getHeaderOfFile(filename, "[\\s]+", new Logger(null)), new String[] {"FID", "IID"}, new int[] {0,1}, false, new Logger(null), true);
+        ext.checkHeader(Files.getHeaderOfFile(filename, "[\\s]+", new Logger()), new String[] {"FID", "IID"}, new int[] {0,1}, false, new Logger(), true);
         hash = HashVec.loadFileToHashVec(filename, 2, new int[] {0,1}, "\t", true, false);
         keys = HashVec.getKeys(hash);
         

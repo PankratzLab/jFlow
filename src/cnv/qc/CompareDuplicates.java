@@ -9,7 +9,7 @@ import common.*;
 
 public class CompareDuplicates {
 
-	public static String doIt(Project proj, String[] pair, String[] markerNames, int[] discordantCounts, Logger log) {
+	public static String doIt(Project proj, String[] pair, String[] markerNames, int[] discordantCounts) {
 		Sample[] fsamps;
 		byte[] chrs;
 		float[][] xs, ys;
@@ -98,21 +98,18 @@ public class CompareDuplicates {
 		String[][] pairs;
 		String[] markerNames;
 		int[] discordantCounts;
-		Logger log;
 		
 		markerNames = proj.getMarkerNames();
 		discordantCounts = new int[markerNames.length];
 		
 		pairs = HashVec.loadFileToStringMatrix(proj.getProjectDir()+pairFile, false, new int[] {0,1}, "\t", proj.getJarStatus(), 100, false);
 		
-		log = new Logger(proj.getProjectDir()+"DuplicateErrors.log");
-
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"DuplicateQC.xln"));
 			writer.println("DNA1\tDNA2\tgenotypeConcordance\tx_correlation\tcorr_pval\t#diffGeno");
 			for (int i = 0; i < pairs.length; i++) {
 				System.out.println((i+1)+" of "+pairs.length);
-				writer.println(Array.toStr(pairs[i])+"\t"+doIt(proj, pairs[i], markerNames, discordantCounts, log));
+				writer.println(Array.toStr(pairs[i])+"\t"+doIt(proj, pairs[i], markerNames, discordantCounts));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -135,12 +132,12 @@ public class CompareDuplicates {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String pairs = "duplicatePairs.txt";
 
 		String usage = "\n"+
 		"cnv.qc.CompareDuplicates requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) file with list of sample pairs (i.e. pairs="+pairs+" (default; to be found in project directory))\n"+
 		"";
 

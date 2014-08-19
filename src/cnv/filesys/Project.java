@@ -96,6 +96,7 @@ public class Project extends Properties {
 	public static final String COMMON_CNP_FILENAME = "COMMON_CNP_FILENAME";
 	public static final String REPORTED_CNP_FILENAME = "REPORTED_CNP_FILENAME";
 	public static final String UNREPORTED_CNP_FILENAME = "UNREPORTED_CNP_FILENAME";
+	public static final String LOG_LEVEL = "LOG_LEVEL";
 
 	private boolean jar;
 	private String projectPropertiesFilename;
@@ -117,7 +118,16 @@ public class Project extends Properties {
 	}
 	
 	public Project(String filename, boolean jar) {
+		this(filename, null, jar);
+	}
+	
+	// Set LOG_LEVEL to a negative value, if you do not want a log file to be generated in addition to standard out/err
+	public Project(String filename, String logfile, boolean jar) {
 		this();
+		
+		if (filename == null) {
+			filename = cnv.Launch.getDefaultDebugProjectFile(true);
+		}
 		
 		this.projectPropertiesFilename = filename;
 		screenProperties();
@@ -129,6 +139,26 @@ public class Project extends Properties {
 		setProperty(SAMPLE_DIRECTORY, ext.verifyDirFormat(getProperty(SAMPLE_DIRECTORY)));
         
         this.jar = jar;
+        
+		int logLevel;
+		
+		logLevel = getInt(LOG_LEVEL);
+		if (logfile == null) {
+			logfile = "Genvisis_"+new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log";
+			if (!getJarStatus()) {
+				logfile = getProjectDir()+"logs/"+logfile;
+				if (!Files.exists(getProjectDir()+"logs/", getJarStatus())) {
+					new File(getProjectDir()+"logs/").mkdirs();
+				}
+			}
+			log = new Logger(logLevel<0?null:logfile, false, Math.abs(logLevel));
+		} else {
+			log = new Logger(logfile, false, Math.abs(logLevel));
+		}
+		
+	    log.report("Genvisis, v"+cnv.Launch.VERSION+"\n(c)2009-2014 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
+		log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
+		log.report("Log level (verbosity) is set to " + getProperty(LOG_LEVEL) + "\n");
 	}
 
 	public Logger getLog() {
@@ -140,14 +170,14 @@ public class Project extends Properties {
 	}
 	
 	public String getDir(String directory) {
-		return getDir(directory, false);
+		return getDir(directory, false, true);
 	}
 	
 	public String getDir(String directory, boolean mkdirs) {
-		return getDir(directory, mkdirs, new Logger(), true);
+		return getDir(directory, mkdirs, true);
 	}
 	
-	public String getDir(String directory, boolean mkdirs, Logger log, boolean verbose) {
+	public String getDir(String directory, boolean mkdirs, boolean verbose) {
 		String dir = null;
 		
 		if (containsKey(directory)) {
@@ -336,7 +366,7 @@ public class Project extends Properties {
 			if (Files.exists(getFilename(SAMPLELIST_FILENAME), getJarStatus())) {
 				sampleList = SampleList.load(getFilename(SAMPLELIST_FILENAME), getJarStatus());
 			} else {
-				System.out.println("Failed to find SampleList; generating one...");
+				log.report("Failed to find SampleList; generating one...");
 				sampleList = SampleList.generateSampleList(this);
 			}
 		}
@@ -355,7 +385,7 @@ public class Project extends Properties {
 		}
 	}
 	
-	public boolean[] getSamplesToExclude(Logger log) {
+	public boolean[] getSamplesToExclude() {
 		boolean[] samplesToExclude;
 		String[] samples;
 		SampleData sampleData;
@@ -377,7 +407,7 @@ public class Project extends Properties {
 	}
 	
 	// set filename to null to only include samples not marked in the "Excluded" column of SampleData.txt
-	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, Logger log) {
+	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse) {
 		boolean[] samplesToInclude;
 		String[] samples;
 		SampleData sampleData;
@@ -509,10 +539,11 @@ public class Project extends Properties {
 	public ClusterFilterCollection getClusterFilterCollection() {
 		String filename;
 		
-		filename = getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME);
+		filename = getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, false, false);
         if (Files.exists(filename)) {
         	return ClusterFilterCollection.load(filename, jar);
         } else {
+        	log.reportError("Warning - could not find cluster filter file, assuming no markers have been reclustered ("+filename+")");
         	return null;
         }
 	}
@@ -695,7 +726,7 @@ public class Project extends Properties {
         }
 	}
 
-	public String[] getTargetMarkers(Logger log) {
+	public String[] getTargetMarkers() {
 		String targetMarkers;
 		String[] targets;
 
@@ -715,7 +746,7 @@ public class Project extends Properties {
 	public String archiveFile(String filename) {
 		String backup;
 		
-		backup = getDir(Project.BACKUP_DIRECTORY, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
+		backup = getDir(Project.BACKUP_DIRECTORY, true, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
 		new File(filename).renameTo(new File(backup));
 		
 		if (Files.exists(backup)) {
@@ -741,7 +772,22 @@ public class Project extends Properties {
 		}
 	}
 	
-	public Logger generateLog() {
-		return new Logger(getProjectDir() + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+	public String getLocationOfSNP_Map() {
+		String filename;
+		
+		if (Files.exists(getProjectDir()+"SNP_Map.csv")) {
+			filename = getProjectDir()+"SNP_Map.csv";
+		} else if (Files.exists(getProjectDir()+"SNP_Map.csv.gz")) {
+			filename = getProjectDir()+"SNP_Map.csv.gz";
+		} else if (Files.exists(getDir(Project.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv")) {
+			filename = getDir(Project.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv";
+		} else if (Files.exists(getDir(Project.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv.gz")) {
+			filename = getDir(Project.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv.gz";
+		} else {
+			log.reportError("Failed; could not find \"SNP_Map.csv\" or \"SNP_Map.csv.gz\" in "+getProjectDir()+" or in "+getDir(Project.SOURCE_DIRECTORY, false, false));
+			return null;
+		}
+		
+		return filename;
 	}
 }

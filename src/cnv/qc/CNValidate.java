@@ -24,15 +24,14 @@ public class CNValidate implements Runnable {
 	private CNVariantQC[][] indcnVariantQCs;
 	private Logger log;
 
-	public CNValidate(Project proj, String[] inds, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet, Logger log) {
+	public CNValidate(Project proj, String[] inds, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
 		this.proj = proj;
 		this.inds = inds;
 		this.allIndcnVariantQCs = allIndcnVariantQCs;
 		this.sampleData = proj.getSampleData(2, false);
 		this.markerSet = markerSet;
 		this.indcnVariantQCs = new CNVariantQC[inds.length][];
-		this.log = log;
-
+		this.log = proj.getLog();
 	}
 
 	public void run() {
@@ -61,14 +60,14 @@ public class CNValidate implements Runnable {
 		}
 	}
 
-	public static CNVariantQC[][] computeMultiThreadedValidations(Project proj, String[] inds, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet, int processors, Logger log) {
+	public static CNVariantQC[][] computeMultiThreadedValidations(Project proj, String[] inds, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet, int processors) {
 		if (processors == 0) {
 			processors = Runtime.getRuntime().availableProcessors();
 		}
 		Thread[] threads = new Thread[processors];
 		Vector<Vector<String>> cabinet = getcabinet(inds, processors);
-		CNValidate[] cnvals = processValidations(proj, processors, threads, cabinet, allIndcnVariantQCs, markerSet, log);
-		return collectAllValidations(processors, cnvals, inds, log);
+		CNValidate[] cnvals = processValidations(proj, processors, threads, cabinet, allIndcnVariantQCs, markerSet);
+		return collectAllValidations(processors, cnvals, inds, proj.getLog());
 
 	}
 
@@ -191,10 +190,10 @@ public class CNValidate implements Runnable {
 		return array;
 	}
 
-	private static CNValidate[] processValidations(Project proj, int processors, Thread[] threads, Vector<Vector<String>> cabinet, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet, Logger log) {
+	private static CNValidate[] processValidations(Project proj, int processors, Thread[] threads, Vector<Vector<String>> cabinet, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
 		CNValidate[] cnvals = new CNValidate[processors];
 		for (int i = 0; i < processors; i++) {
-			cnvals[i] = new CNValidate(proj, cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]), allIndcnVariantQCs, markerSet, log);
+			cnvals[i] = new CNValidate(proj, cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]), allIndcnVariantQCs, markerSet);
 			threads[i] = new Thread(cnvals[i]);
 			threads[i].start();
 		}

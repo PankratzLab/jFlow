@@ -16,7 +16,7 @@ public class Mapability {
 		int pos;
 		double value, sum, mean, max;
 		
-		header = Files.getHeaderOfFile(filename, "\t", new Logger(null));
+		header = Files.getHeaderOfFile(filename, "\t", new Logger());
 		data = HashVec.loadFileToStringMatrix(filename, true, Array.intArray(header.length), false);
 		indices = ext.indexFactors(REQS, header, false, true);
 	
@@ -118,7 +118,7 @@ public class Mapability {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(filename+"_positions.xln"));
 			line = reader.readLine().trim().split("[\\s]+");
-			ext.checkHeader(line, new String[] {"Chr", "Position"}, new int[] {0,1}, false, new Logger(null), true);
+			ext.checkHeader(line, new String[] {"Chr", "Position"}, new int[] {0,1}, false, new Logger(), true);
 			for (int i = 0; i < passes.length; i++) {
 				line = Array.insertStringAt(ext.rootOf(passes[i]), line, 2+i);
 			}

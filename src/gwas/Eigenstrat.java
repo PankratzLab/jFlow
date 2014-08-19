@@ -118,7 +118,7 @@ public class Eigenstrat {
         strandHash = HashVec.loadFileToHashString(sourceRoot+".snp", 0, new int[] {4,5}, " ", false);
         
         System.out.print("Parsing weights...");
-        numEigens = Files.getHeaderOfFile(sourceRoot+".weights.out", "[\\s]+", new Logger(null)).length - 3;
+        numEigens = Files.getHeaderOfFile(sourceRoot+".weights.out", "[\\s]+", new Logger()).length - 3;
         weightsHash = HashVec.loadFileToHashString(sourceRoot+".weights.out", 0, Array.subArray(Array.intArray(numEigens+3), 3, numEigens+3), "\t", false);
         System.out.println("found weights for "+weightsHash.size()+" markers");
 
@@ -126,7 +126,7 @@ public class Eigenstrat {
         	System.err.println("Error - could not find a '"+targetRoot+(eigenFormat?".bim":".map")+"' to pair up with '"+targetRoot+(eigenFormat?".eigenstratgeno":".ped")+"'; problem if markers are in a different order ("+targetRoot+".snp does not necessarily reflect the actual order in "+targetRoot+".eigenstratgeno)");
         	System.exit(1);
         }
-    	markerNames = new SnpMarkerSet(targetRoot+(eigenFormat?".bim":".map"), false, new Logger(null)).getMarkerNames();
+    	markerNames = new SnpMarkerSet(targetRoot+(eigenFormat?".bim":".map"), false, new Logger()).getMarkerNames();
         weights = new double[markerNames.length][];
         alleles = new char[markerNames.length][2];
         mafs = new double[markerNames.length];

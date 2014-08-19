@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import cnv.Launch;
 import common.Array;
 import common.Files;
 import common.ext;
@@ -152,13 +151,18 @@ public class MergeChp implements Runnable {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		System.out.println(numArgs);
-		String filename = Launch.getDefaultDebugProjectFile();
 		String output = "";
 		int numThreads = 8;
 		String commonSubFolderPattern = "";
 		String commonFilename = ".txt";
 		String affyResultsDir = "";
-		String usage = "\n" + "affy.MergeChprequires 0-1 arguments\n" + "   (1) project file (i.e. proj=" + filename + " (default))\n" + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n";
+		String usage = 
+				"\n" + 
+				"affy.MergeChp requires 0-1 arguments\n" + 
+				"   (1) Affy results directory (i.e. affyResultsDir= (default))\n"+
+				"   (2) number of threads to use (i.e. threads=" + numThreads + " (default))"+
+				"   (3) output directory (i.e. output=" + output + " (default))"+
+				"\n";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -166,9 +170,6 @@ public class MergeChp implements Runnable {
 				return;
 			} else if (args[i].startsWith("threads=")) {
 				numThreads = Integer.parseInt(args[i].split("=")[1]);
-				numArgs--;
-			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				output = args[i].split("=")[1];
@@ -182,7 +183,7 @@ public class MergeChp implements Runnable {
 			System.err.println(usage);
 			return;
 		}
-		// filename = "C:/workspace/Genvisis/projects/dbGaP_test_CEL.properties";
+
 		try {
 			combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, commonFilename, output);
 		}

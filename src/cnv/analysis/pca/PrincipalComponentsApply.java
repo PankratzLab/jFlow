@@ -52,9 +52,10 @@ public class PrincipalComponentsApply {
 	 *            impute the mean of the marker for a sample value with NaN
 	 * @param log
 	 */
-	public PrincipalComponentsApply(Project proj, int numComponents, String singularFile, String markerLoadingFile, boolean[] samplesToUse, boolean imputeMeanForNaN, Logger log) {
+	public PrincipalComponentsApply(Project proj, int numComponents, String singularFile, String markerLoadingFile, boolean[] samplesToUse, boolean imputeMeanForNaN) {
 		super();
 		this.proj = proj;
+		this.log = proj.getLog();
 		this.singularValues = new SingularValues(proj.getProjectDir() + singularFile, numComponents, log);
 		this.numComponents = numComponents;
 		this.samplesToUse = samplesToUse;
@@ -79,8 +80,14 @@ public class PrincipalComponentsApply {
 			log.reportError("Error - the boolean array of samples to use does not equal the length of the samples in the project, exiting");
 			return;
 		} else {
-			MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers, new Logger());
+			MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 			for (int i = 0; i < markers.length; i++) {
+				if (i % 1000 == 0) {
+					float usedMemory =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+					float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
+					float maxMemory =Runtime.getRuntime().maxMemory();
+					log.report(ext.getTime() + "\tData loaded = "+Math.round(((double)i/(double)markers.length*100.0))+"%\tFree memory: " + Math.round(((double)freeMemory/(double)maxMemory*100.0)) + "%");
+				}
 				MarkerData markerData = markerDataLoader.requestMarkerData(i);
 				float[] lrrs = markerData.getLRRs();
 				if (!hasNAN(lrrs)) {

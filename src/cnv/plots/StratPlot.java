@@ -318,10 +318,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	}
 
 	public static void main(String[] args) {
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
-		
 		try {
-			loadStratificationResults(new Project(filename, false));
+			loadStratificationResults(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

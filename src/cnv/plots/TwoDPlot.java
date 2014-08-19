@@ -83,14 +83,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	Vector<String[]> linkKeyValues;
 	
 	public TwoDPlot() {
-		this(null, new Logger());
+		this(new Project());
 	}
 
-	public TwoDPlot(Project project, Logger log) {
+	public TwoDPlot(Project proj) {
 		String[] previouslyLoadedFiles;
 		
-		this.log = log;
-		proj = project;
+		this.proj = proj;
+		log = proj.getLog();
 		size = DEFAULT_SIZE;
 
 		if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
@@ -118,7 +118,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		SpringLayout layout = new SpringLayout();
 //        setLayout(layout);
 
-		twoDPanel = new TwoDPanel(this, log);
+		twoDPanel = new TwoDPanel(this);
 //		twoDPanel.setBounds(0,0,1000,600);
 //		twoDPanel.setPreferredSize(new Dimension(1000, 600));
 
@@ -1179,7 +1179,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		field.setText((markerIndex+1)+" of "+markerList.length);
 //	}
 
-	public void showSpecificFile(Project proj, String filename, int colForX, int colForY, Logger log) {
+	public void showSpecificFile(Project proj, String filename, int colForX, int colForY) {
 		String[] prevFiles = proj.getProperty(Project.TWOD_LOADED_FILENAMES).split(";");
 		if(Arrays.binarySearch(prevFiles, filename) < 0){
 			// the supplied file was not found so load it
@@ -1386,7 +1386,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	     * this method should be invoked from the
 	     * event-dispatching thread.
 	     */
-	public static TwoDPlot createAndShowGUI(Project proj, Logger log) {
+	public static TwoDPlot createAndShowGUI(Project proj) {
 
 		//Create and set up the window.
 		JFrame frame = new JFrame("2D Plot");
@@ -1395,7 +1395,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         //Create and set up the content pane.
-        TwoDPlot twoDPlot = new TwoDPlot(proj, log);
+        TwoDPlot twoDPlot = new TwoDPlot(proj);
         frame.setJMenuBar(twoDPlot.menuBar());
         twoDPlot.setOpaque(true); //content panes must be opaque
         frame.setContentPane(twoDPlot);
@@ -1421,13 +1421,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	}
 
 	public static void main(String[] args) {
-		ext.verifyDirFormat("");
-
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-//                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/twodplot.properties", false), new Logger());
-//                createAndShowGUI(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false), new Logger());
-                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(), false), new Logger());
+                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
             }
         });
 		

@@ -90,13 +90,9 @@ public class SnpMarkerSet implements Serializable {
 	}
 	
 	public SnpMarkerSet(String filename) {
-		this(filename, true, new Logger(null));
+		this(filename, true, new Logger());
 	}
 
-//	public SnpMarkerSet(String filename, boolean verbose) {
-//		this(filename, verbose, new Logger(null));
-//	}
-	
 	public SnpMarkerSet(String filename, boolean verbose, Logger log) {
 		this(filename, determineType(filename), verbose, log);
 	}
@@ -708,7 +704,7 @@ public class SnpMarkerSet implements Serializable {
 		if (!Files.exists(filenameSource+".hash.ser", false)) {
 			System.out.print("Loading "+filenameSource);
             time = new Date().getTime();
-			markerSet = new SnpMarkerSet(filenameSource, snpMarkerSetType, true, new Logger(null));
+			markerSet = new SnpMarkerSet(filenameSource, snpMarkerSetType, true, new Logger());
 			System.out.println("...finished in "+ext.getTimeElapsed(time));
 	        time = new Date().getTime();
 			System.out.print("Mapping master list to chromosomes");
@@ -919,7 +915,7 @@ public class SnpMarkerSet implements Serializable {
 		markerNames = Matrix.extractColumn(annotation, 0);
 		annotation = Array.toMatrix(Matrix.extractColumns(annotation, Array.subArray(Array.intArray(sets.length+2), 1), "\t"));
 		
-		indices = HashVec.loadToHashIndices(markerNames);
+		indices = HashVec.loadToHashIndices(markerNames, new Logger());
 		if (Array.booleanArraySum(hasPositions) > 0) {
 			chrs = Array.byteArray(markerNames.length, (byte)-9);
 			rawPositions = new int[markerNames.length];
@@ -1058,20 +1054,20 @@ public class SnpMarkerSet implements Serializable {
 	    		if (new File(filename+".ser").exists()) {
 	    			markerSet = SnpMarkerSet.load(filename+".ser", false);
 	    		} else {
-	    			markerSet = new SnpMarkerSet(filename, verbose, new Logger(null));
+	    			markerSet = new SnpMarkerSet(filename, verbose, new Logger());
 	    			markerSet.serialize(filename+".ser");
 	    		}
 	    		if (new File(source+".ser").exists()) {
 	    			sourceSet = SnpMarkerSet.load(source+".ser", false);
 	    		} else {
-	    			sourceSet = new SnpMarkerSet(source, verbose, new Logger(null));
+	    			sourceSet = new SnpMarkerSet(source, verbose, new Logger());
 	    			sourceSet.sortMarkers();
 	    			sourceSet.serialize(source+".ser");
 	    		}
 	    		markerSet.interpolateCentiMorgans(sourceSet);
 	    		markerSet.writeToFile(ext.rootOf(filename, false)+"_with_centiMorgans.bim", determineType(filename));
 	    	} else {
-	    		new SnpMarkerSet(filename, verbose, new Logger(null)).listUnambiguousMarkers(filename+"_unambiguous.txt", noX);
+	    		new SnpMarkerSet(filename, verbose, new Logger()).listUnambiguousMarkers(filename+"_unambiguous.txt", noX);
 	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();

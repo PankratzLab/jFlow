@@ -2558,7 +2558,7 @@ public class SeqMeta {
 		}
 
 		markerNames = HashVec.loadFileToStringArray(maps.getSnpInfoFilename(), true, new int[] {0}, false);
-		indexHash = HashVec.loadToHashIndices(markerNames);
+		indexHash = HashVec.loadToHashIndices(markerNames, log);
 
 		for (int i = 0; i < phenotypes.length; i++) {
 			hashFilename = dir+phenotypes[i][0]+"/"+phenotypes[i][0]+"_mafs.ser";

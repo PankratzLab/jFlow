@@ -44,8 +44,10 @@ public class CNVSampleQC {
 		GCWF = gCWF;
 	}
 
-	public static CNVSampleQC[] getCNVSampleQCFromFile(Project proj, String QCFile, Logger log) {
+	public static CNVSampleQC[] getCNVSampleQCFromFile(Project proj, String QCFile) {
 		ArrayList<CNVSampleQC> cnvSampleQCs = new ArrayList<CNVSampleQC>();
+		Logger log = proj.getLog();
+		
 		try {
 			BufferedReader reader = Files.getAppropriateReader(proj.getProjectDir()+QCFile);
 			String[] line;
@@ -75,12 +77,12 @@ public class CNVSampleQC {
 		return cnvSampleQCs.toArray(new CNVSampleQC[cnvSampleQCs.size()]);
 	}
 
-	public static Hashtable<String, CNVSampleQC> getSampleQCs(Project proj, String QCFile, Logger log) {
+	public static Hashtable<String, CNVSampleQC> getSampleQCs(Project proj, String QCFile) {
 		Hashtable<String, CNVSampleQC> cnvSampleQCHash = new Hashtable<String, CNVSampleQC>();
 		if (QCFile == null) {
 			return null;
 		}
-		CNVSampleQC[] cnvSampleQCs = getCNVSampleQCFromFile(proj, QCFile, log);
+		CNVSampleQC[] cnvSampleQCs = getCNVSampleQCFromFile(proj, QCFile);
 		for (int i = 0; i < cnvSampleQCs.length; i++) {
 			cnvSampleQCHash.put(cnvSampleQCs[i].getFID() + "\t" + cnvSampleQCs[i].getIID(), cnvSampleQCs[i]);
 		}

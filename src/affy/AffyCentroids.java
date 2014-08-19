@@ -140,7 +140,7 @@ public class AffyCentroids implements Serializable {
 		return AFFYLRRs;
 	}
 
-	public static void recompute(Project proj, String centroidsFile, Logger log) {
+	public static void recompute(Project proj, String centroidsFile) {
 		MarkerSet markerSet;
 		Centroids affyCentroids;
 		Sample original, sample;
@@ -150,6 +150,9 @@ public class AffyCentroids implements Serializable {
 		float[] Ys;
 		float[] AFFYBAFs;
 		float[] AFFYLRRs;
+		Logger log;
+		
+		log = proj.getLog();
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		affyCentroids = Centroids.load(centroidsFile, proj.getJarStatus());
@@ -175,7 +178,9 @@ public class AffyCentroids implements Serializable {
 		}
 	}
 
-	public static void parseCentroidsFilteredSamples(Project proj, double missingnessThreshold, double confThreshold, Logger log) {
+	public static void parseCentroidsFilteredSamples(Project proj, double missingnessThreshold, double confThreshold) {
+		Logger log = proj.getLog();
+		
 		if (!proj.getSampleData(1, false).hasExcludedIndividuals()) {
 			log.reportError("Error - cannot exclude individuals for centroid computations , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
 			System.exit(1);
@@ -192,11 +197,11 @@ public class AffyCentroids implements Serializable {
 				}
 			}
 			log.report("Info - generating new cluster centers using " + use + " individuals");
-			parseCentroids(proj, samplesToBeUsed, missingnessThreshold, confThreshold, log);
+			parseCentroids(proj, samplesToBeUsed, missingnessThreshold, confThreshold);
 		}
 	}
 
-	public static void parseCentroids(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, double confThreshold, Logger log) {
+	public static void parseCentroids(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, double confThreshold) {
 		String[] samples, markerNames;
 		float[][][] centroids;
 		int count;
@@ -206,6 +211,9 @@ public class AffyCentroids implements Serializable {
 		SampleData sampleData;
 		long time;
 		MarkerSet markerSet;
+		Logger log;
+		
+		log = proj.getLog();
 		time = new Date().getTime();
 		log.report("Computing centroids from intensity means");
 		sampleList = proj.getSampleList();
@@ -218,12 +226,12 @@ public class AffyCentroids implements Serializable {
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 
 		time = new Date().getTime();
 		for (int i = 0; i < markerNames.length; i++) {
 			markerData = markerDataLoader.requestMarkerData(i);
-			centroids[i] = computeCluster(proj, samplesToBeUsed, missingnessThreshold, samples, sampleData, markerData, i, confThreshold, log);
+			centroids[i] = computeCluster(proj, samplesToBeUsed, missingnessThreshold, samples, sampleData, markerData, i, confThreshold);
 			markerDataLoader.releaseIndex(i);
 		}
 		count = 0;
@@ -244,7 +252,7 @@ public class AffyCentroids implements Serializable {
 		log.report("Computation took " + ext.getTimeElapsed(time));
 	}
 
-	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, SampleData sampleData, MarkerData markerData, int i, double confThreshold, Logger log) {
+	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, SampleData sampleData, MarkerData markerData, int i, double confThreshold) {
 		float[][] centroid;
 		float[] thetas;
 		float[] rs;
@@ -255,6 +263,9 @@ public class AffyCentroids implements Serializable {
 		int[] counts;
 		PrintWriter writer = null;
 		String markerName;
+		Logger log;
+		
+		log = proj.getLog();
 		markerName = markerData.getMarkerName();
 		meanThetas = new double[5];
 		meanRs = new double[5];
@@ -493,18 +504,14 @@ public class AffyCentroids implements Serializable {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		proj = new Project(filename, false);
-		if (logfile == null) {
-			logfile = "AffyCentroidlog.txt";
-		}
-		Logger log = new Logger(proj.getProjectDir() + logfile);
+		proj = new Project(filename, logfile, false);
 		try {
 			if (fromGenotypes) {
-				parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1, callConfidence, log);
+				parseCentroids(proj, Array.booleanArray(proj.getSamples().length, true), 1, callConfidence);
 			} else if (sampleFilter) {
-				parseCentroidsFilteredSamples(proj, 1, callConfidence, log);
+				parseCentroidsFilteredSamples(proj, 1, callConfidence);
 			} else if (!compute.equals("")) {
-				recompute(proj, compute, log);
+				recompute(proj, compute);
 			}
 			Files.backup(logfile, proj.getProjectDir(), proj.getProjectDir());
 		} catch (Exception e) {

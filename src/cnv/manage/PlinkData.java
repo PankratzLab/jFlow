@@ -1,8 +1,8 @@
 package cnv.manage;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
+import java.text.SimpleDateFormat;
 
 import common.*;
 import cnv.filesys.*;
@@ -570,7 +570,7 @@ public class PlinkData {
 	 * @param clusterFilterFileName
 	 * @param gcThreshold
 	 */
-	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix, String clusterFilterFileName, float gcThreshold, boolean isSnpMajor, Logger log) {
+	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix, String clusterFilterFileName, float gcThreshold, boolean isSnpMajor) {
 		String[] targetMarkers;
 		int[] indicesOfTargetSamplesInProj;
 		int[] indicesOfTargetMarkersInProj;
@@ -580,11 +580,9 @@ public class PlinkData {
 		char[][] abLookup;
 		String[] targetSamples;
 		String outFileDirAndFilenameRoot;
-
-		if (log == null) {
-			log = new Logger();
-		}
-
+		Logger log;
+		
+		log = proj.getLog();
 		outFileDirAndFilenameRoot = proj.getProjectDir() + plinkPrefix;
 		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
 			log.reportError("System abort. Plink binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
@@ -597,7 +595,7 @@ public class PlinkData {
 //			new File(outFileDirAndFilenameRoot + ".fam").delete();
 //		}
 
-		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, log);
+		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot);
 		allSamplesInProj = proj.getSamples();
 		if (targetSamples != null) {
 			indicesOfTargetSamplesInProj = getSortedIndicesOfTargetSamplesInProj(allSamplesInProj, targetSamples, log);
@@ -611,12 +609,12 @@ public class PlinkData {
 		}
 
 //		allMarkersInProj = proj.getMarkerNames();
-		targetMarkers = proj.getTargetMarkers(log);
+		targetMarkers = proj.getTargetMarkers();
 		if (targetMarkers != null) {
 			indicesOfTargetMarkersInProj = new int[targetMarkers.length];
 			chrsOfTargetMarkers = new byte[targetMarkers.length];
 			posOfTargetMarkers = new int[targetMarkers.length];
-			getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers, log);
+			getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers);
 
 		} else {
 			indicesOfTargetMarkersInProj = null;
@@ -630,10 +628,10 @@ public class PlinkData {
 		}
 		
 		if (isSnpMajor) {
-			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
-//			abLookup = createBedFileSnpMajorAllInMemory(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot, log);
+			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot);
+//			abLookup = createBedFileSnpMajorAllInMemory(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot);
 		} else {
-			abLookup = createBedFileIndividualMajor(proj, targetSamples, targetMarkers, indicesOfTargetMarkersInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
+			abLookup = createBedFileIndividualMajor(proj, targetSamples, targetMarkers, indicesOfTargetMarkersInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot);
 		}
 		
 		if (abLookup == null) {
@@ -686,13 +684,14 @@ public class PlinkData {
 	}
 
 //	public static int[] getIndicesOfMarkersToInclude(Project proj, log) {
-	public static void getIndicesOfTargetMarkers(Project proj, String[] inputTargetMarkers, int[] outputIndicesOfTargetMarkers, byte[] outputChrOfTagetMarkers, int[] outputPosOfTargetMarkers, Logger log) {
+	public static void getIndicesOfTargetMarkers(Project proj, String[] inputTargetMarkers, int[] outputIndicesOfTargetMarkers, byte[] outputChrOfTagetMarkers, int[] outputPosOfTargetMarkers) {
 		String[] allMarkersInProj;
 //		Hashtable<String,String> hash;
 		MarkerSet markerSet;
 		byte[] chrs;
 		int[] positions;
 		boolean[] found;
+		Logger log = proj.getLog();
 	
 //		hash = new Hashtable<String,String>();
 		if (inputTargetMarkers == null) {
@@ -788,7 +787,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static char[][] createBedFileIndividualMajor(Project proj, String[] targetSamples, String[] targetMarkers, int[] indicesOfTargetMarkers, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot, Logger log) {
+	public static char[][] createBedFileIndividualMajor(Project proj, String[] targetSamples, String[] targetMarkers, int[] indicesOfTargetMarkers, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot) {
 //		String[] markList;
 		RandomAccessFile out;
 		byte[] outStream;
@@ -812,7 +811,7 @@ public class PlinkData {
 			if (clusterFilterCollection == null) {
 				abLookup = null;
 			} else {
-				abLookup = new ABLookup(targetMarkers, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true).getLookup();
+				abLookup = new ABLookup(targetMarkers, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
 			}
 			
 			out = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
@@ -890,7 +889,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static char[][] createBedFileSnpMajorAllInMemory(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot, Logger log) {
+	public static char[][] createBedFileSnpMajorAllInMemory(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot) {
 		RandomAccessFile out1;
 		byte[] outStream;
 		byte[] genotypes;
@@ -919,13 +918,13 @@ public class PlinkData {
 			if (clusterFilterCollection == null) {
 				abLookup = null;
 			} else {
-				abLookup = new ABLookup(targetMarkers, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true).getLookup();
+				abLookup = new ABLookup(targetMarkers, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
 			}
 			
 			sampleFingerPrint = proj.getSampleList().getFingerprint();
 			allSamplesInProj = proj.getSamples();
 			markerDataDir = proj.getDir(Project.MARKER_DATA_DIRECTORY);
-			markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0, log);
+			markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0);
 			outliersHash = MarkerDataLoader.loadOutliers(proj);
 			batches = markerDataLoader.getBatches();
 			filenames = HashVec.getKeys(batches);
@@ -964,7 +963,7 @@ public class PlinkData {
 						}
 					}
 				}
-				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, markerDataDir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, log);
+				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, markerDataDir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
 
 				for (int j = 0; j < markerData.length; j++) {
 					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, markersOfThisFile[j], 0);
@@ -1001,7 +1000,7 @@ public class PlinkData {
 			e.printStackTrace();
 		}
 		
-		log.report("Finished creating binary PLINK files in "+ext.getTimeElapsed(startTime));
+		proj.getLog().report("Finished creating binary PLINK files in "+ext.getTimeElapsed(startTime));
 
 		return abLookup;
 	}
@@ -1020,7 +1019,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot, Logger log) {
+	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot) {
 		RandomAccessFile out;
 		byte[] outStream;
 		byte[] genotypes;
@@ -1048,7 +1047,7 @@ public class PlinkData {
 
         clusterFilterCollection = proj.getClusterFilterCollection();
 		if (Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false))) {
-			abLookup = new ABLookup(targetMarkers, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true).getLookup();
+			abLookup = new ABLookup(targetMarkers, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
 		} else if (clusterFilterCollection == null) {
 			abLookup = new char[targetMarkers.length][];
 		} else {
@@ -1067,7 +1066,7 @@ public class PlinkData {
 		sampleFingerPrint = proj.getSampleList().getFingerprint();
 		allSamplesInProj = proj.getSamples();
 		dir = proj.getDir(Project.MARKER_DATA_DIRECTORY);
-		markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0, log);
+		markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0);
 		outliersHash = MarkerDataLoader.loadOutliers(proj);
 		batches = markerDataLoader.getBatches();
 		filenames = HashVec.getKeys(batches);
@@ -1100,7 +1099,7 @@ public class PlinkData {
 				
 				subTime = new Date().getTime();
 				System.out.println("Starting batch "+(i+1)+" of "+filenames.length);
-				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, log);
+				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
 				System.out.println("Done loading in "+ext.getTimeElapsed(subTime));
 
 				subTime = new Date().getTime();
@@ -1133,7 +1132,7 @@ public class PlinkData {
 			e.printStackTrace();
 		}
 		
-		log.report("Finished creating binary PLINK files in "+ext.getTimeElapsed(startTime));
+		proj.getLog().report("Finished creating binary PLINK files in "+ext.getTimeElapsed(startTime));
 
 		return abLookup;
 	}
@@ -1183,7 +1182,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot, Logger log) {
+	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot) {
 		BufferedReader reader;
 		PrintWriter writer;
 		int count;
@@ -1192,7 +1191,9 @@ public class PlinkData {
 		Vector<String> dna;
 		String[] allSamples;
 		String filename;
+		Logger log;
 		
+		log = proj.getLog();
 		allSamples = proj.getSamples();
 		dna = new Vector<String>();
 
@@ -1207,13 +1208,9 @@ public class PlinkData {
 			count = 1;
 			while (reader.ready()) {
 				count++;
-				if (count % 100 == 0) {
-					System.out.println(count);
-				}
 				temp = reader.readLine().trim();
 				line = temp.split(ext.determineDelimiter(temp));
 				writer.println(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
-				line = temp.split("\\s+");
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
@@ -1833,7 +1830,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static int[] parseSampleIndicesForProject(Project proj, String plinkFileRoot, Logger log) {
+	public static int[] parseSampleIndicesForProject(Project proj, String plinkFileRoot) {
 		BufferedReader reader;
 		String[] line;
 		int count;
@@ -1854,7 +1851,7 @@ public class PlinkData {
 				famIndID = line[0]+"\t"+line[1];
 				allIDs = sampleData.lookup(famIndID);
 				if (allIDs == null) {
-					log.report("Warning - sample in plink file "+plinkFileRoot+".fam that is not in the project's sampleData file: "+famIndID);
+					proj.getLog().report("Warning - sample in plink file "+plinkFileRoot+".fam that is not in the project's sampleData file: "+famIndID);
 				} else {
 					sampleID = allIDs[0];
 					sampleIndices[ext.indexOfStr(sampleID, finalSampleIDs)] = count;
@@ -2122,34 +2119,34 @@ public class PlinkData {
 
 		} else if  (conversionToRun.equals("genvisistoped")) {
 			proj = new Project(projPropertyFileFullPath, false);
-			log = new Logger(proj.getProjectDir() + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": Converting Genvisis to Plink text (.ped) data set.");
-			PlinkFormat.createPlink(proj, "gwas", proj.getDir(Project.DATA_DIRECTORY) + Project.CLUSTER_FILTER_COLLECTION_FILENAME, log);
+			log = proj.getLog();
+			log.report(ext.getTime()+"\tConverting Genvisis to Plink text (.ped) data set.");
+			PlinkFormat.createPlink(proj, "gwas", proj.getDir(Project.DATA_DIRECTORY) + Project.CLUSTER_FILTER_COLLECTION_FILENAME);
 
 		} else if (conversionToRun.equals("genvisistobed")) {
 			proj = new Project(projPropertyFileFullPath, false);
-			log = new Logger(proj.getProjectDir() + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": Converting from Genvisis to Plink binary (.bed) data set.");
-			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.getDir(Project.DATA_DIRECTORY) + Project.CLUSTER_FILTER_COLLECTION_FILENAME, gcThreshold, true, log);
+			log = proj.getLog();
+			log.report(ext.getTime()+"\tConverting from Genvisis to Plink binary (.bed) data set.");
+			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.getDir(Project.DATA_DIRECTORY) + Project.CLUSTER_FILTER_COLLECTION_FILENAME, gcThreshold, true);
 
 		} else if  (conversionToRun.equals("pedtobed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": Converting from Plink text (.ped) data set to Plink binary (.bed) data set.");
+			log.report(ext.getTime()+"\tConverting from Plink text (.ped) data set to Plink binary (.bed) data set.");
 			convertPedSetToBedSet(plinkDataDirAndFilenameRoot, isSnpMajor, log);
 
 		} else if  (conversionToRun.equals("bedtoped")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": Converting from Plink binary (.bed) data set to Plink text (.ped) data set.");
+			log.report(ext.getTime()+"\tConverting from Plink binary (.bed) data set to Plink text (.ped) data set.");
 			convertBedSetToPedSet(plinkDataDirAndFilenameRoot, log);
 
 		} else if  (conversionToRun.equals("bitmap")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": Showing bitmap.");
+			log.report(ext.getTime()+"\tShowing bitmap.");
 			showBitMapOfBedFile(plinkDataDirAndFilenameRoot + ".bed", startByte, nBytes, log);
 
 		} else if  (conversionToRun.equals("bitmapinpedlayout")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": Showing bitmap.");
+			log.report(ext.getTime()+"\tShowing bitmap.");
 			showBitMapOfBedFileWithPedLayout(plinkDataDirAndFilenameRoot, indexOfStartMarker, nMarkers, indexOfStartSample, nSamples, log);
 
 		} else {
@@ -2157,7 +2154,7 @@ public class PlinkData {
 			log.report("Unrecognized command conversion=" + conversionToRun);
 		}
 
-		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": Finished PlinkData.java.");
+		log.report(ext.getTime()+"\tFinished PlinkData.java.");
 		
 	}
 }

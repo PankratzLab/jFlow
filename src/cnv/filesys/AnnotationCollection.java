@@ -345,7 +345,7 @@ public class AnnotationCollection implements Serializable {
 		String logfile = null;
 		Logger log;
 		Project proj;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		String exportList = "listOfAnnotations.out";
 		String importList = null;
 		AnnotationCollection annotationCollection;
@@ -354,7 +354,7 @@ public class AnnotationCollection implements Serializable {
 
 		String usage = "\n" + 
 		"cnv.filesys.AnnotationCollection requires 0-1 arguments\n" + 
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"  AND\n" +
 		"   (2) list annotations (i.e. exportList="+exportList+" (default))\n" +
 		"  OR\n" +
@@ -399,8 +399,8 @@ public class AnnotationCollection implements Serializable {
 			if (recoverDir != null) {
 				recover(recoverDir);
 			} else {
-				proj = new Project(filename, false);
-				log = new Logger(logfile);
+				proj = new Project(filename, logfile, false);
+				log = proj.getLog();
 
 				annotationCollection = proj.getAnnotationCollection();
 				if (dump) {

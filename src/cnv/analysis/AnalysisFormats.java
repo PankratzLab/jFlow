@@ -277,7 +277,7 @@ public class AnalysisFormats implements Runnable {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		int numThreads = 6;
 		int program = PENN_CNV;
 		String filterRegions = "";
@@ -287,7 +287,7 @@ public class AnalysisFormats implements Runnable {
 
 		String usage = "\n"+
 		"filesys.AnalysisFormats requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (3) filter markers out within specified regions (i.e. filterRegions=problematicRegions.dat (not the default))\n"+
 		"   (4) filter markers out from list (i.e. filterList=drops.dat (not the default))\n"+

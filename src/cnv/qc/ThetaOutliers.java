@@ -21,7 +21,7 @@ public class ThetaOutliers {
 	 * @param proj The project where the data is.
 	 * 
 	 */
-	public static void loadData(Project proj, boolean useClusterFilters, byte stdDev, Logger log) {
+	public static void loadData(Project proj, boolean useClusterFilters, byte stdDev) {
 		PrintWriter writer;
 		String[] sampleList;
 		String filename, output;
@@ -52,7 +52,7 @@ public class ThetaOutliers {
 
 	        time = new Date().getTime();
 	        markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 	        clusterFilterCollection = proj.getClusterFilterCollection();
 
 	        for (int i = 0; i < markerNames.length; i++) {
@@ -178,7 +178,7 @@ public class ThetaOutliers {
 		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 //		Project proj = new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false);
 		proj = new Project(filename, false);
-		loadData(proj, true, (byte) 12, proj.getLog());
+		loadData(proj, true, (byte) 12);
 
 //		MarkerData[] markers = MarkerSet.loadFromList(proj, new String[] {"rs17080321", "rs7898873", "rs17080321", "rs7898873"});
 //		MarkerData[] markers = MarkerSet.loadFromList(proj, new String[] {"rs17246013", "rs34771052", "rs17080321", "rs7898873", "rs17231443", "rs2227433", "rs9907972", "rs34148246", "rs11572080", "rs34942735", "rs4646168"});

@@ -16,7 +16,7 @@ public class PeakZero {
 	public static final String[] DUMP_THESE = {"rs277452", "rs2968487"};
 //	public static final String[] DUMP_THESE = null;
 		
-	public static void checkDists(Project proj, String phenoOfSamplesToInclude, Logger log) {
+	public static void checkDists(Project proj, String phenoOfSamplesToInclude) {
         PrintWriter writer;
         String trav;
         Hashtable<String,String> hash, drops;
@@ -65,7 +65,7 @@ public class PeakZero {
 
 	        time = new Date().getTime();
 			markerNames = proj.getMarkerNames();
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames, log);
+			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				if (i % 100 == 0) {
@@ -112,12 +112,12 @@ public class PeakZero {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = cnv.Launch.getDefaultDebugProjectFile();
+		String filename = null;
 		boolean check = true;
 
 		String usage = "\\n"+
-		"qc.PeakZero requires 0-1 arguments\n"+
-		"   (1) project file (i.e. proj="+filename+" (default))\n"+
+		"cnv.qc.PeakZero requires 0-1 arguments\n"+
+		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) check distributions (i.e. -check (not the default))\n"+
 		"";
 
@@ -142,7 +142,7 @@ public class PeakZero {
 
 		try {
 			if (check) {
-				checkDists(new Project(filename, false), "", new Logger());
+				checkDists(new Project(filename, false), "");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

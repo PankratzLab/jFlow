@@ -165,7 +165,7 @@ public class Collapsed {
 	}
 
 	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive, boolean kill) {
-		return indexFactors(subset, superset, casesensitive, new Logger(null), kill);
+		return indexFactors(subset, superset, casesensitive, new Logger(), kill);
 	}
 	
 	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive, Logger log, boolean kill) {

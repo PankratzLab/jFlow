@@ -39,11 +39,11 @@ public class MarkerDataLoader implements Runnable {
 	private Thread thread;
 	private Logger log;
 
-	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB, Logger log) {
-		this(proj, markerNames, amountToLoadAtOnceInMB, null, log);	
+	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
+		this(proj, markerNames, amountToLoadAtOnceInMB, null);	
 	}
 	
-	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB, String plinkFileRoot, Logger log) {
+	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB, String plinkFileRoot) {
 		Hashtable<String, Integer> markerHash;
 		Vector<String> missingMarkers, v;
 		String[] markerNamesProj;
@@ -53,8 +53,8 @@ public class MarkerDataLoader implements Runnable {
 		int index;
 		
 		this.proj = proj;
+		this.log = proj.getLog();
 		this.markerNames = markerNames;
-		this.log = log;
 
 		if (markerNames == null) {
 			log.reportError("The list of markers for MarkerDataLoader to load was null");
@@ -78,7 +78,7 @@ public class MarkerDataLoader implements Runnable {
 		markerNamesProj = proj.getMarkerNames();
 		chrsProj = proj.getMarkerSet().getChrs();
 		positionsProj = proj.getMarkerSet().getPositions();
-		markerHash = HashVec.loadToHashIndices(markerNames);
+		markerHash = HashVec.loadToHashIndices(markerNames, log);
 		for (int i = 0; i<markerNamesProj.length; i++) {
 			if (markerHash.containsKey(markerNamesProj[i])) {
 				index = markerHash.get(markerNamesProj[i]);
@@ -92,7 +92,7 @@ public class MarkerDataLoader implements Runnable {
 			this.plinkFormat = true;
 			this.plinkFileRoot = plinkFileRoot;
 			markerLookup = PlinkData.parseMarkerLookup(plinkFileRoot); // Note: markerLookup from PlinkData contains alleles, unlike its standard counterpart 
-			plinkSampleIndices = PlinkData.parseSampleIndicesForProject(proj, plinkFileRoot, proj.getLog());
+			plinkSampleIndices = PlinkData.parseSampleIndicesForProject(proj, plinkFileRoot);
 		} else {
 			this.plinkFormat = false;
 			this.plinkFileRoot = null;
@@ -125,7 +125,11 @@ public class MarkerDataLoader implements Runnable {
 
 				if (readAheadLimit == -1) {
 					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineNBytesPerMarker(proj.getDir(Project.MARKER_DATA_DIRECTORY)+line[0], log));
-					log.report("Read ahead limit was computed to be "+readAheadLimit+" markers at a time");
+					if (readAheadLimit > markerNames.length) {
+						log.report("Read ahead limit was computed to be greater than the number of markers; all markers will be loaded into memory at once");
+					} else {
+						log.report("Read ahead limit was computed to be "+readAheadLimit+" markers at a time");
+					}
 				}
 			} else {
 				missingMarkers.add(markerNames[0]);
@@ -262,7 +266,7 @@ public class MarkerDataLoader implements Runnable {
 		byte[] allChrsInProj;
 		int[] allPosInProj;
 		String[] allSampsInProj;
-		long time;
+		long time, subtime;
 		int maxPerCycle;
 		Hashtable<String, Float> outlierHash;
 		String[][] plinkMarkerAlleles;
@@ -286,9 +290,9 @@ public class MarkerDataLoader implements Runnable {
 		} else {
 			outlierHash = new Hashtable<String, Float>();
 		}
-		time = new Date().getTime();
+		time = subtime = new Date().getTime();
 		count = 0;
-		log.report("filenames.size(): " + filenames.size());
+//		log.report("filenames.size(): " + filenames.size());
 		while (filenames.size() > 0) {
 			while (loaded[currentIndexBeingLoaded]) {
 				if (currentIndexBeingLoaded+1 == markerNames.length) {
@@ -311,8 +315,8 @@ public class MarkerDataLoader implements Runnable {
 			for (int i = 0; allRemaining.size() >0 && i < maxPerCycle; i++) {
 				v.addElement(allRemaining.remove(0));
 			}
-			log.report("Loaded up "+v.size()+" from MarkerData file:"+filename+"; "+allRemaining.size()+" remaining for that file; "+ext.getTimeElapsed(time));
-			time = new Date().getTime();
+			log.report("Loaded up "+v.size()+" from MarkerData file:"+filename+"; "+allRemaining.size()+" remaining for that file; "+ext.getTimeElapsed(subtime), true, true, 1);
+			subtime = new Date().getTime();
 			if (allRemaining.size() == 0) {
 				filenames.remove(filename);
 			}
@@ -599,9 +603,6 @@ public class MarkerDataLoader implements Runnable {
         byte numBytesPerSampleMarker;
         int numMarkersCurrentFile;
 
-        if (log == null) {
-        	log = new Logger();
-        }
 		parameterReadBuffer = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
 
 		try {
@@ -648,14 +649,14 @@ public class MarkerDataLoader implements Runnable {
         return result;
 	}
 
-	public static MarkerDataLoader loadMarkerDataFromListInSeparateThread(Project proj, String[] markerList, Logger log) {
+	public static MarkerDataLoader loadMarkerDataFromListInSeparateThread(Project proj, String[] markerList) {
 		MarkerDataLoader markerDataLoader;
 		Thread thread2;
 		int amountToLoadAtOnceInMB;
 		
-		log.report("Marker data is loading in an independent thread.");
+		proj.getLog().report("Marker data is loading in an independent thread.");
 		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
-		markerDataLoader = new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB, log);
+		markerDataLoader = new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
 		if (markerDataLoader.isKilled()) {
 			return null;
 		}
@@ -679,13 +680,13 @@ public class MarkerDataLoader implements Runnable {
 		this.thread = thread;
 	}
 
-	public static MarkerDataLoader loadMarkerDataFromListInSameThread(Project proj, String[] markerList, Logger log) {
+	public static MarkerDataLoader loadMarkerDataFromListInSameThread(Project proj, String[] markerList) {
 		MarkerDataLoader markerDataLoader;
 		int amountToLoadAtOnceInMB;
 		
-		log.report("Marker data is loading in the same thread.");
+		proj.getLog().report("Marker data is loading in the same thread.");
 		amountToLoadAtOnceInMB = proj.getInt(Project.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
-		markerDataLoader= new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB, log);
+		markerDataLoader= new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
 		markerDataLoader.run();
 
 		return markerDataLoader;
