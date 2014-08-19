@@ -34,17 +34,19 @@ public class ParseIllumina implements Runnable {
 	private Hashtable<String,String> fixes;
 	private long timeBegan;
 	private int threadId;
+	private String delimiter;
 
-	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, long fingerprint, Hashtable<String,String> fixes, long timeBegan) {
-		this(proj, files, markerNames, keysKeys, abLookup, fingerprint, fixes, timeBegan, -1);
+	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, String delimiter, long fingerprint, Hashtable<String,String> fixes, long timeBegan) {
+		this(proj, files, markerNames, keysKeys, abLookup, delimiter, fingerprint, fixes, timeBegan, -1);
 	}
 
-	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, long fingerprint, Hashtable<String,String> fixes, long timeBegan, int threadId) {
+	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, String delimiter, long fingerprint, Hashtable<String,String> fixes, long timeBegan, int threadId) {
 		this.proj = proj;
 		this.files = files;
 		this.markerNames = markerNames;
 		this.keysKeys = keysKeys;
 		this.abLookup = abLookup;
+		this.delimiter = delimiter; 
 		this.fingerprint = fingerprint;
 		this.fixes = fixes;
 		this.timeBegan = timeBegan;
@@ -66,14 +68,14 @@ public class ParseIllumina implements Runnable {
 		byte[][] genotypes;
 		boolean ignoreAB;
 		String idHeader;
-		String delimiter;
+//		String delimiter;
 		String filename;
 		Hashtable<String, Float> allOutliers;
 		Logger log;
 		
 		log = proj.getLog();
 		idHeader = proj.getProperty(Project.ID_HEADER);
-		delimiter = proj.getSourceFileDelimiter();
+//		delimiter = proj.getSourceFileDelimiter();
 		allOutliers = new Hashtable<String, Float>();
         try {
 			for (int i = 0; i<files.length; i++) {
@@ -639,7 +641,7 @@ public class ParseIllumina implements Runnable {
 		}
 		threads = new Thread[numThreads];
 		for (int i = 0; i<numThreads; i++) {
-			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), markerNames, keysKeys, lookup, fingerprint, fixes, timeBegan, i));
+			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), markerNames, keysKeys, lookup, delimiter, fingerprint, fixes, timeBegan, i));
 			threads[i].start();
 			try {
 				Thread.sleep(100L);
