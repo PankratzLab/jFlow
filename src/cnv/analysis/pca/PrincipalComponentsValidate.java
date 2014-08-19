@@ -1,6 +1,9 @@
 package cnv.analysis.pca;
 
+import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Random;
@@ -24,9 +27,14 @@ public class PrincipalComponentsValidate {
 	public static final String OUTSAMP = ".outsample.txt";
 	private static final String BATCH = "b";
 	private static final String JAVA = "/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java ";
-	private static final String CP = "-cp /home/pankrat2/lanej/park3.jar ";
+	private static final String CP = "-cp /home/pankrat2/lanej/park2.jar ";
 	private static final String MT_PIPE = " cnv.manage.MitoPipeline ";
+	private static final String VAL_PIPE = " cnv.analysis.pca.PrincipalComponentsValidate ";
+
 	private static final String XMX = " -Xmx23g ";
+	private static final int MEMORY_MB = 23000;
+	private static final double WALLTIME = 48;
+
 	private static final String[] PC_TYPES = { PrincipalComponentsCompute.OUTPUT_EXT[0], PCA.FILE_EXTs[0] };
 	private static final String PC = "PC number from pc type";
 
@@ -65,7 +73,11 @@ public class PrincipalComponentsValidate {
 			log.report(ext.getTime() + " Info - finished initializing regressions");
 			if (principalComponentsResiduals.length > 0) {
 				if (compareAcrossFiles) {
-					compareAcrossFiles(proj, dir, principalComponentsResiduals, startAtComponent, stopAtComponent, numPcSamplings, kfolds, pcType, mtMarkers, numThreads, svdRegression, output, log);
+					if (principalComponentsResiduals.length > 1) {
+						compareAcrossFiles(proj, dir, principalComponentsResiduals, startAtComponent, stopAtComponent, numPcSamplings, kfolds, pcType, mtMarkers, numThreads, svdRegression, output, log);
+					} else {
+						log.reportError("Error - must have at least two PC files of type " + PC_TYPES[pcType] + " in directory " + proj.getProjectDir() + dir + " to compare across files");
+					}
 				} else {
 					compareWithinFile(proj, dir, startAtComponent, stopAtComponent, numPcSamplings, kfolds, pcType, numThreads, svdRegression, output, log, principalComponentsResiduals);
 				}
@@ -74,6 +86,37 @@ public class PrincipalComponentsValidate {
 			}
 			return principalComponentsResiduals;
 		}
+	}
+
+	/**
+	 * Batch the regression validations by pc number. Subdirectories will be created for the analysis to run in
+	 */
+	public static PrincipalComponentsResiduals[] analyzeRegressionsBatched(Project proj, String dir, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, boolean compareAcrossFiles, String output, Logger log) {
+		PrincipalComponentsResiduals[] principalComponentsResiduals = initRegressions(proj, dir, stopAtComponent, pcType, mtMarkers, log);
+		ArrayList<String> componentBatches = new ArrayList<String>();
+		for (int i = 0; i < principalComponentsResiduals.length; i++) {
+			int numTotalComponents = principalComponentsResiduals[i].getTotalNumComponents();
+			componentBatches.add(numTotalComponents + "");
+			String subDir = dir + BATCH + numTotalComponents + "/";
+			if (!new File(proj.getProjectDir() + subDir).exists()) {
+				new File(proj.getProjectDir() + subDir).mkdirs();
+			}
+			if (!Files.exists(proj.getProjectDir() + subDir + ext.removeDirectoryInfo(principalComponentsResiduals[i].getPcFile()))) {
+				Files.copyFile(proj.getProjectDir() + principalComponentsResiduals[i].getPcFile(), proj.getProjectDir() + subDir + ext.removeDirectoryInfo(principalComponentsResiduals[i].getPcFile()));
+			}
+		}
+
+		int[] uniqBatches = Array.toIntArray(Array.unique(componentBatches.toArray(new String[componentBatches.size()])));
+		Arrays.sort(uniqBatches);
+		String[][] batches = new String[uniqBatches.length][1];
+		for (int i = 0; i < uniqBatches.length; i++) {
+			batches[i][0] = uniqBatches[i] + "";
+		}
+		String command = JAVA + CP + XMX + VAL_PIPE + "proj=" + proj.getFilename(Project.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir + BATCH + "[%0]/" + "  numThreads=" + numThreads;
+		command += " startAtComponent=" + startAtComponent + " stopAtComponent=" + stopAtComponent + " numPcIterations=" + numPcSamplings + " pcType=" + pcType;
+		command += " kfolds=" + kfolds + " mtMarkers=" + mtMarkers + " output=regress[%0]";
+		Files.qsub("Regression", command, batches, MEMORY_MB, WALLTIME, numThreads);
+		return principalComponentsResiduals;
 	}
 
 	private static void compareWithinFile(Project proj, String dir, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, int numThreads, boolean svdRegression, String output, Logger log, PrincipalComponentsResiduals[] principalComponentsResiduals) {
@@ -101,6 +144,12 @@ public class PrincipalComponentsValidate {
 		}
 	}
 
+	/**
+	 * This runs a cross-validation where the validation data comes from another files PCs and sample medians.
+	 * <p>
+	 * We use the same {@link PrincipalComponentsValidate#computeRegressions()} as {@link PrincipalComponentsValidate#compareWithinFile()} but provide a validation set that comes from another pc file
+	 * 
+	 */
 	public static ValidationResults[][][] compareAcrossFiles(Project proj, String dir, PrincipalComponentsResiduals[] principalComponentsResiduals, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, String output, Logger log) {
 		assignMedians(principalComponentsResiduals, log);
 		ValidationResults[] inSamplevalidationResults = computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent, numPcSamplings, kfolds, numThreads, proj.getProjectDir() + dir + "tmp_" + output + OUTPUT, svdRegression, log);
@@ -115,29 +164,26 @@ public class PrincipalComponentsValidate {
 			int index = 0;
 			for (int j = 0; j < principalComponentsResiduals.length; j++) {
 				if (j != i) {
-					PrincipalComponentsResiduals val_pc = filterExclude(train_pc[0], principalComponentsResiduals[j], log);// remove training individuals from the validation
-					// PrincipalComponentsResiduals val_pc = principalComponentsResiduals[j]; Testing to see if this got the full model SSerr
-					if (val_pc != null) {
-						System.out.println(val_pc.getOutput() + "\t" + val_pc.getPcBasis()[0].length + "\t" + train_pc[0].getPcBasis()[0].length);
-						// TODO, why da modify
-						// String fullDir = proj.getProjectDir() + dir;
-						String file = train_pc[0].getOutput() + "_val_on_" + ext.rootOf(val_pc.getOutput()) + "_" + val_pc.getPcBasis()[0].length + "_individuals";
+					// PrincipalComponentsResiduals val_pc = filterExclude(train_pc[0], principalComponentsResiduals[j], log);// remove training individuals from the validation
+					PrincipalComponentsResiduals val_pc = principalComponentsResiduals[j];
+					String file = train_pc[0].getOutput() + "_val_on_" + ext.rootOf(val_pc.getOutput()) + "_" + val_pc.getPcBasis()[0].length + "_individuals";
+					if (val_pc.getPcBasis()[0].length > 0) {
 						outOfSampleValidationResults[i][index] = computeRegressions(train_pc, val_pc, startAtComponent, stopAtComponent, numPcSamplings, kfolds, numThreads, null, svdRegression, log);// this can create alot of tempory files we skip the tmp reporting
-						comparisons[i][index] = file;
-						index++;
 					} else {
-						log.reportError("Error - all individuals from the validation pc file " + principalComponentsResiduals[j].getOutput() + " were present in the training file " + train_pc[0].getOutput());
-						return outOfSampleValidationResults;
+						log.reportError("Warning - all individuals from the validation pc file " + principalComponentsResiduals[j].getOutput() + " were present in the training file " + train_pc[0].getOutput());
 					}
-
+					comparisons[i][index] = file;
+					index++;
 				}
 			}
 		}
 		summarizePCGenerators(inSamplevalidationResults, outOfSampleValidationResults, principalComponentsResiduals, comparisons, pcType, proj.getProjectDir() + dir + output, log);
-
 		return outOfSampleValidationResults;
 	}
 
+	/**
+	 * This summarizes both the within file and out of file validation results
+	 */
 	private static void summarizePCGenerators(ValidationResults[] inSamplevalidationResults, ValidationResults[][][] outOfSampleValidationResults, PrincipalComponentsResiduals[] principalComponentsResiduals, String[][] comparisons, int pcType, String output, Logger log) {
 		PrintWriter writer = Files.getAppropriateWriter(output + OUTSAMP);
 
@@ -151,7 +197,11 @@ public class PrincipalComponentsValidate {
 			for (int j = 0; j < outOfSampleValidationResults.length; j++) {// for all training file used
 				writer.print("\t" + inSamplevalidationResults[i].getAverageSSerrAt(j));
 				for (int j2 = 0; j2 < outOfSampleValidationResults[j].length; j2++) {// for all validation files used
-					writer.print("\t" + outOfSampleValidationResults[j][j2][i].getAverageSSerrAt(0));// only one train file
+					if (outOfSampleValidationResults[j][j2] == null) {
+						writer.print("\t" + Double.NaN);
+					} else {
+						writer.print("\t" + outOfSampleValidationResults[j][j2][i].getAverageSSerrAt(0));// only one train file
+					}
 				}
 			}
 			writer.println();
@@ -160,9 +210,9 @@ public class PrincipalComponentsValidate {
 	}
 
 	/**
-	 * We remove individuals from toExclude from toFilter (only changing the basis and median arrays)
+	 * We remove individuals contained in toExclude from toFilter by changing the basis and median arrays.
 	 */
-	private static PrincipalComponentsResiduals filterExclude(PrincipalComponentsResiduals toExclude, PrincipalComponentsResiduals toFilter, Logger log) {
+	public static PrincipalComponentsResiduals filterExclude(PrincipalComponentsResiduals toExclude, PrincipalComponentsResiduals toFilter, Logger log) {
 		String[] toFilterInds = Collections.list(toFilter.getSamplesInPc().keys()).toArray(new String[toFilter.getSamplesInPc().size()]);
 
 		Hashtable<String, Integer> toExcludeSamps = toExclude.getSamplesInPc();
@@ -195,14 +245,15 @@ public class PrincipalComponentsValidate {
 			}
 		}
 		log.report(ext.getTime() + " Kept " + indicesToKeep.size() + " individuals from " + toFilter.getOutput() + " that were not in the " + toExcludeSamps.size() + " samples from" + toExclude.getOutput() + " for the validation set");
+		PrincipalComponentsResiduals filtered = toFilter.clone();// need to de-reference and create a new one
 		if (indicesToKeep.size() > 0) { // all individuals present in toExclude
-			PrincipalComponentsResiduals filtered = toFilter.clone();// need to de-reference and create a new one
 			filtered.setMedians(filteredMedians);
 			filtered.setPcBasis(filteredBasis);
-			return filtered;
 		} else {
-			return null;
+			filtered.setMedians(new double[0]);
+			filtered.setPcBasis(new double[1][0]);// 0 individuals
 		}
+		return filtered;
 	}
 
 	/**
@@ -232,7 +283,7 @@ public class PrincipalComponentsValidate {
 		for (int i = 0; i < principalComponentsResiduals.length; i++) {
 			int totalNumComponents = principalComponentsResiduals[i].getTotalNumComponents();// total number of PCs in the file, assumed to be number of samples minus 1
 			int numSamples = principalComponentsResiduals[i].getNumSamples();
-			addToValidations(principalComponentsResiduals[i].crossValidate(kFolds, componentsToTest, numThreads, svdRegression, tmpOutput + ext.rootOf(principalComponentsResiduals[i].getOutput()), val_pcs), validationResults, i, totalNumComponents, numSamples);
+			addToValidations(principalComponentsResiduals[i].crossValidate(kFolds, componentsToTest, numThreads, svdRegression, (tmpOutput == null ? null : tmpOutput + ext.rootOf(principalComponentsResiduals[i].getOutput())), val_pcs), validationResults, i, totalNumComponents, numSamples);
 		}
 		return validationResults;
 	}
@@ -324,7 +375,7 @@ public class PrincipalComponentsValidate {
 		}
 
 		/**
-		 * @return number of unique TOTAL number of components betwen files
+		 * @return number of unique TOTAL number of components between files
 		 */
 		private Hashtable<Integer, Integer> getNumReps() {// We assume files with the same number of components were computed from the same number of samples
 			Hashtable<Integer, Integer> numReps = new Hashtable<Integer, Integer>();
@@ -548,11 +599,12 @@ public class PrincipalComponentsValidate {
 		int pcType = 1;
 		int numThreads = 1;
 		boolean batch = false;
+		boolean regressionBatch = false;
 		boolean svdRegression = true;
 		boolean compareAcrossFiles = false;
 		Logger log;
 
-		String usage = "\n" + "jlDev.PrincipalComponentsValidate requires 0-1 arguments\n";
+		String usage = "\n" + "cnv.analysis.pca.PrincipalComponentsValidate requires 0-1 arguments\n";
 		usage += "   For creating jobs to compute PCs:";
 		usage += "   (1) directory (i.e. dir=" + dir + " (default))\n" + "";
 		usage += "   (2) filename of individuals to validate by computing batches of PCs (i.e. indsToValidateFile=" + indsToValidateFile + " (default))\n" + "";
@@ -565,7 +617,7 @@ public class PrincipalComponentsValidate {
 		usage += "   For cross validating pre-computed PC files:";
 		usage += "   (1) project filename  (i.e. proj=" + fileName + " (default))\n" + "";
 		usage += "   (2) directory under the project directory with pc files(i.e. dir=" + dir + " (default))\n" + "";
-		usage += "   (3) Max number of PCs to begin iterations with (i.e. stopAtComponent=" + stopAtComponent + " (default))\n" + "";
+		usage += "   (3) Max number of PCs to iterate with (i.e. stopAtComponent=" + stopAtComponent + " (default))\n" + "";
 		usage += "   (4) Minimum number of PCs to begin iterations with (i.e. startAtComponent=" + startAtComponent + " (default))\n" + "";
 		usage += "   (5) Create the batches to run (i.e. -batch (not the default))\n" + "";
 		usage += "   (6) Type of PC (i.e. pcType=" + pcType + " (default))\n" + "";
@@ -575,6 +627,7 @@ public class PrincipalComponentsValidate {
 		usage += "   (10) do not use SVD to compute betas (i.e. -noSVD (not the default))\n" + "";
 		usage += "   (11) output base name (i.e. output=" + output + " (default))\n";
 		usage += "   (12) along with the default within-file validation, train on each file, and predict the others(i.e -compareAcrossFiles)\n";
+		usage += "   (13) batch the cross-validations(i.e -regressionBatch (not the default))\n";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -625,6 +678,9 @@ public class PrincipalComponentsValidate {
 			} else if (args[i].startsWith("-batch")) {
 				batch = true;
 				numArgs--;
+			} else if (args[i].startsWith("-regressionBatch")) {
+				regressionBatch = true;
+				numArgs--;
 			} else if (args[i].startsWith("-noSVD")) {
 				svdRegression = false;
 				numArgs--;
@@ -647,7 +703,11 @@ public class PrincipalComponentsValidate {
 			log = new Logger(logfile);
 			if (batch) {
 				batchJobs(proj, dir, indsToValidateFile, numberOfBatches, stopAtComponent, mtMarkers, pcMarkers, pcReplicates, log);
-			} else {
+			} else if (regressionBatch) {
+				analyzeRegressionsBatched(proj, dir, startAtComponent, stopAtComponent, numPcIterations, kfolds, pcType, mtMarkers, numThreads, svdRegression, compareAcrossFiles, output, log);
+			}
+
+			else {
 				analyzeRegressions(proj, dir, startAtComponent, stopAtComponent, numPcIterations, kfolds, pcType, mtMarkers, numThreads, svdRegression, compareAcrossFiles, output, log);
 			}
 		} catch (Exception e) {
