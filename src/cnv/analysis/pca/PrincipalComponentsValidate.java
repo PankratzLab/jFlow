@@ -439,7 +439,7 @@ public class PrincipalComponentsValidate {
 		PrincipalComponentsResiduals[] principalComponentsResiduals = new PrincipalComponentsResiduals[files.length];
 		log.report(ext.getTime() + " Info - Using the following files for validation\n" + Array.toStr(files, "\n"));
 		for (int i = 0; i < files.length; i++) {
-			principalComponentsResiduals[i] = new PrincipalComponentsResiduals(proj, files[i], mtMarkers, numComponents, false, 0, true, ext.rootOf(files[i]), log);
+			principalComponentsResiduals[i] = new PrincipalComponentsResiduals(proj, files[i], mtMarkers, numComponents, false, 0, true, ext.rootOf(files[i]));
 		}
 		return principalComponentsResiduals;
 	}
