@@ -76,7 +76,9 @@ public class SampleList implements Serializable {
 			}
 		}
 		list = new SampleList(samples);
-		list.serialize(proj.getFilename(Project.SAMPLELIST_FILENAME, true, true));
+		if (samples.length > 0) {
+			list.serialize(proj.getFilename(Project.SAMPLELIST_FILENAME, true, true));
+		}
 		if (countAt > 0) {
 			proj.getLog().report("Note - "+countAt+" ("+(Double.parseDouble(ext.prettyP((double)countAt/(double)samples.length))*100)+"%) of your Sample IDs contain the @ symbol, which is often used when concatenating the sample's bar code. If you would like these to be stripped, then set "+Project.PARSE_AT_AT_SYMBOL+"=TRUE in the properties file, delete the samples/ directory and reparse the data");
 		}
