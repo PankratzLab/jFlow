@@ -111,7 +111,7 @@ public class Polymutt {
 		
 		unknownAnnotations = new Vector<String>();
 		finishedAnnotations = new Vector<String>();
-		parsedAnnotations = SeattleSeq.loadAllAnnotationInDir(annotationDir, log);
+		parsedAnnotations = SeattleSeq.loadAllBadAnnotationInDir(annotationDir, log);
 		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0,1,2}, false);
 		for (int i = 0; i < iterations.length; i++) {
 			if (Files.exists(vcfDir+iterations[i][0]+".vcf")) {

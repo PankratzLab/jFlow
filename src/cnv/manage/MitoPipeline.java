@@ -293,6 +293,9 @@ public class MitoPipeline {
 			cnv.manage.ParseIllumina.createFiles(proj, numThreads);
 			sampleList = proj.getSampleList();
 		}
+		try {
+			Thread.sleep(5000); // Got hit with the error below for no reason twice now
+		} catch (InterruptedException ie) {}
 		if (sampleList == null || sampleList.getSamples().length == 0) {
 			log.report("Error - could not import samples, halting");
 			return;
@@ -1009,7 +1012,7 @@ public class MitoPipeline {
 		String pedFile = null;
 		// String sampleMapCsv = null;
 		String sampleMapCsv = null;
-		String dataExtension = ".gz";
+		String dataExtension = ".csv";
 		String sampleLRRSdFilter = "0.5";
 		String sampleCallRateFilter = "0.95";
 		double markerCallRateFilter = 0.98;

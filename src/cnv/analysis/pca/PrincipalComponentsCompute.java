@@ -355,7 +355,7 @@ public class PrincipalComponentsCompute {
 			log.reportError("Error - " + used + " " + (used > 1 ? "samples were " : "sample was ") + " not found in the sample data file " + proj.getProperty(Project.SAMPLE_DATA_FILENAME));
 			return null;
 		}
-		log.report(ext.getTime() +" Using the " + used + " samples in the project"+(useFile != null?" that were also in the useFile":""));
+		log.report(ext.getTime() +" Using the " + used + " samples in the project that passed QC "+(useFile != null?" and that were also in the useFile":""));
 		
 		return samplesToUse;
 	}
