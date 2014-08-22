@@ -59,17 +59,19 @@ public class PrincipalComponentsValidate {
 	 *            use an svd-based regression, much faster for large number of pcs
 	 * @param compareAcrossFiles
 	 *            do an all versus all comparison using one file as the training set and another as the validation
+	 * @param recomputeLRR
+	 *            recompute Log R Ratios for median markers
 	 * @param output
 	 * @param log
 	 * @return
 	 */
-	public static PrincipalComponentsResiduals[] analyzeRegressions(Project proj, String dir, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, boolean compareAcrossFiles, String output, Logger log) {
+	public static PrincipalComponentsResiduals[] analyzeRegressions(Project proj, String dir, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, boolean compareAcrossFiles, boolean recomputeLRR, String output, Logger log) {
 		if (numPcSamplings > stopAtComponent) {
 			log.reportError("Error - cannot break " + stopAtComponent + " components into " + numPcSamplings + " chunks");
 			return new PrincipalComponentsResiduals[0];
 		} else {
 			log.report(ext.getTime() + " Info - initializing regressions");
-			PrincipalComponentsResiduals[] principalComponentsResiduals = initRegressions(proj, dir, stopAtComponent, pcType, mtMarkers, log);
+			PrincipalComponentsResiduals[] principalComponentsResiduals = initRegressions(proj, dir, stopAtComponent, pcType, mtMarkers, recomputeLRR, log);
 			log.report(ext.getTime() + " Info - finished initializing regressions");
 			if (principalComponentsResiduals.length > 0) {
 				if (compareAcrossFiles) {
@@ -91,8 +93,8 @@ public class PrincipalComponentsValidate {
 	/**
 	 * Batch the regression validations by pc number. Subdirectories will be created for the analysis to run in
 	 */
-	public static PrincipalComponentsResiduals[] analyzeRegressionsBatched(Project proj, String dir, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, boolean compareAcrossFiles, String output, Logger log) {
-		PrincipalComponentsResiduals[] principalComponentsResiduals = initRegressions(proj, dir, stopAtComponent, pcType, mtMarkers, log);
+	public static PrincipalComponentsResiduals[] analyzeRegressionsBatched(Project proj, String dir, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, boolean compareAcrossFiles, boolean recomputeLRR, String output, Logger log) {
+		PrincipalComponentsResiduals[] principalComponentsResiduals = initRegressions(proj, dir, stopAtComponent, pcType, mtMarkers, recomputeLRR, log);
 		ArrayList<String> componentBatches = new ArrayList<String>();
 		for (int i = 0; i < principalComponentsResiduals.length; i++) {
 			int numTotalComponents = principalComponentsResiduals[i].getTotalNumComponents();
@@ -150,7 +152,7 @@ public class PrincipalComponentsValidate {
 	 * We use the same {@link PrincipalComponentsValidate#computeRegressions()} as {@link PrincipalComponentsValidate#compareWithinFile()} but provide a validation set that comes from another pc file
 	 * 
 	 */
-	public static ValidationResults[][][] compareAcrossFiles(Project proj, String dir, PrincipalComponentsResiduals[] principalComponentsResiduals, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, String output, Logger log) {
+	private static ValidationResults[][][] compareAcrossFiles(Project proj, String dir, PrincipalComponentsResiduals[] principalComponentsResiduals, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, String output, Logger log) {
 		assignMedians(principalComponentsResiduals, log);
 		ValidationResults[] inSamplevalidationResults = computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent, numPcSamplings, kfolds, numThreads, proj.getProjectDir() + dir + "tmp_" + output + OUTPUT, svdRegression, log);
 		summarize(inSamplevalidationResults, principalComponentsResiduals, pcType, proj.getProjectDir() + dir + output + OUTPUT, log);
@@ -212,7 +214,7 @@ public class PrincipalComponentsValidate {
 	/**
 	 * We remove individuals contained in toExclude from toFilter by changing the basis and median arrays.
 	 */
-	public static PrincipalComponentsResiduals filterExclude(PrincipalComponentsResiduals toExclude, PrincipalComponentsResiduals toFilter, Logger log) {
+	private static PrincipalComponentsResiduals filterExclude(PrincipalComponentsResiduals toExclude, PrincipalComponentsResiduals toFilter, Logger log) {
 		String[] toFilterInds = Collections.list(toFilter.getSamplesInPc().keys()).toArray(new String[toFilter.getSamplesInPc().size()]);
 
 		Hashtable<String, Integer> toExcludeSamps = toExclude.getSamplesInPc();
@@ -339,7 +341,7 @@ public class PrincipalComponentsValidate {
 	 */
 	private static void assignMedians(PrincipalComponentsResiduals[] principalComponentsResiduals, Logger log) {
 		for (int i = 0; i < principalComponentsResiduals.length; i++) {
-			principalComponentsResiduals[i].computeAssesmentDataMedians();
+			principalComponentsResiduals[i].computeAssessmentDataMedians();
 		}
 	}
 
@@ -481,7 +483,7 @@ public class PrincipalComponentsValidate {
 	 * @return
 	 */
 
-	public static PrincipalComponentsResiduals[] initRegressions(Project proj, String dir, int numComponents, int pcType, String mtMarkers, Logger log) {
+	private static PrincipalComponentsResiduals[] initRegressions(Project proj, String dir, int numComponents, int pcType, String mtMarkers, boolean recomputeLRR, Logger log) {
 		String[] files = Files.toFullPaths(Files.list(proj.getProjectDir() + dir, PC_TYPES[pcType], false), dir);
 		if (files == null || files.length < 1) {
 			log.reportError("Error - could not find any files of type " + PC_TYPES[pcType]);
@@ -490,7 +492,7 @@ public class PrincipalComponentsValidate {
 		PrincipalComponentsResiduals[] principalComponentsResiduals = new PrincipalComponentsResiduals[files.length];
 		log.report(ext.getTime() + " Info - Using the following files for validation\n" + Array.toStr(files, "\n"));
 		for (int i = 0; i < files.length; i++) {
-			principalComponentsResiduals[i] = new PrincipalComponentsResiduals(proj, files[i], mtMarkers, numComponents, false, 0, true, ext.rootOf(files[i]));
+			principalComponentsResiduals[i] = new PrincipalComponentsResiduals(proj, files[i], mtMarkers, numComponents, false, 0, true, recomputeLRR, ext.rootOf(files[i]));
 		}
 		return principalComponentsResiduals;
 	}
@@ -602,13 +604,14 @@ public class PrincipalComponentsValidate {
 		boolean regressionBatch = false;
 		boolean svdRegression = true;
 		boolean compareAcrossFiles = false;
+		boolean recomputeLRR = false;
 		Logger log;
 
 		String usage = "\n" + "cnv.analysis.pca.PrincipalComponentsValidate requires 0-1 arguments\n";
 		usage += "   For creating jobs to compute PCs:";
-		usage += "   (1) directory (i.e. dir=" + dir + " (default))\n" + "";
-		usage += "   (2) filename of individuals to validate by computing batches of PCs (i.e. indsToValidateFile=" + indsToValidateFile + " (default))\n" + "";
-		usage += "   (3) project filename  (i.e. proj=" + fileName + " (default))\n" + "";
+		usage += "   (1) Directory (i.e. dir=" + dir + " (default))\n" + "";
+		usage += "   (2) Filename of individuals to validate by computing batches of PCs (i.e. indsToValidateFile=" + indsToValidateFile + " (default))\n" + "";
+		usage += "   (3) Project filename  (i.e. proj=" + fileName + " (default))\n" + "";
 		usage += "   (4) PCMarkers to validate on (i.e. pcMarkers=" + pcMarkers + " (default))\n" + "";
 		usage += "   (5) MT markers to validate on (i.e. mtMarkers=" + mtMarkers + " (default))\n" + "";
 		usage += "   (6) Number of subset batches to compute separate PCs with (i.e. numberOfBatches=" + numberOfBatches + " (default))\n" + "";
@@ -628,6 +631,7 @@ public class PrincipalComponentsValidate {
 		usage += "   (11) output base name (i.e. output=" + output + " (default))\n";
 		usage += "   (12) along with the default within-file validation, train on each file, and predict the others(i.e -compareAcrossFiles)\n";
 		usage += "   (13) batch the cross-validations(i.e -regressionBatch (not the default))\n";
+		usage += "   (14) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. -recomputeLRR (not the default))\n";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -678,6 +682,9 @@ public class PrincipalComponentsValidate {
 			} else if (args[i].startsWith("-batch")) {
 				batch = true;
 				numArgs--;
+			} else if (args[i].startsWith("-recomputeLRR")) {
+				recomputeLRR = true;
+				numArgs--;
 			} else if (args[i].startsWith("-regressionBatch")) {
 				regressionBatch = true;
 				numArgs--;
@@ -704,11 +711,10 @@ public class PrincipalComponentsValidate {
 			if (batch) {
 				batchJobs(proj, dir, indsToValidateFile, numberOfBatches, stopAtComponent, mtMarkers, pcMarkers, pcReplicates, log);
 			} else if (regressionBatch) {
-				analyzeRegressionsBatched(proj, dir, startAtComponent, stopAtComponent, numPcIterations, kfolds, pcType, mtMarkers, numThreads, svdRegression, compareAcrossFiles, output, log);
+				analyzeRegressionsBatched(proj, dir, startAtComponent, stopAtComponent, numPcIterations, kfolds, pcType, mtMarkers, numThreads, svdRegression, compareAcrossFiles, recomputeLRR, output, log);
 			}
-
 			else {
-				analyzeRegressions(proj, dir, startAtComponent, stopAtComponent, numPcIterations, kfolds, pcType, mtMarkers, numThreads, svdRegression, compareAcrossFiles, output, log);
+				analyzeRegressions(proj, dir, startAtComponent, stopAtComponent, numPcIterations, kfolds, pcType, mtMarkers, numThreads, svdRegression, compareAcrossFiles, recomputeLRR, output, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -716,337 +722,3 @@ public class PrincipalComponentsValidate {
 	}
 }
 
-//
-// * We exclude one chunk of inds from each batch, so that each individual appears chunks.length -1 times in batches
-// */
-//
-// private static String[][] getBatches(String[] inds, int[] chunks,int replicates, Logger log) {
-// Hashtable<Integer, ArrayList<String>> tmp = new Hashtable<Integer, ArrayList<String>>();
-// int indIndex = 0;
-// for (int i = 0; i < chunks.length; i++) {
-// for (int j = 0; j < chunks[i]; j++) {
-// for (int j2 = 0; j2 < chunks.length; j2++) {
-// if (j2 != i) {
-// if (!tmp.containsKey(j2)) {
-// tmp.put(j2, new ArrayList<String>());
-// }
-// tmp.get(j2).add(inds[indIndex]);
-// }
-// }
-// indIndex++;
-// }
-// }
-// String[][] batches = new String[tmp.size()][];
-// for (int i = 0; i < chunks.length; i++) {
-// batches[i] = tmp.get(i).toArray(new String[tmp.get(i).size()]);
-// }
-// return batches;
-// }
-//
-// private static String[] getRandomSubset(String[] a, int num, Logger log) {
-// Random randomGenerator = new Random();
-// String[] randomSubset = new String[num];
-// if (a.length == num) {
-// randomSubset = a;
-// } else if (a.length < num) {
-// randomSubset = a;
-// log.reportError("Error - cannot choose " + num + " random strings from " + a.length + " strings, using all available instead");
-// } else {
-// Hashtable<Integer, Boolean> tracker = new Hashtable<Integer, Boolean>();
-// for (int i = 0; i < num; i++) {
-// int index = randomGenerator.nextInt(a.length);
-// if (tracker.containsKey(index)) {
-// while (tracker.containsKey(index)) {
-// index = randomGenerator.nextInt(a.length);
-// }
-// }
-// randomSubset[i] = a[index];
-// tracker.put(index, true);
-// }
-// }
-// return randomSubset;
-// }
-
-// /**
-// * Two multi -threaded paths, on assigns a thread to each file, and another assigns a thread to each regression within a file
-// */
-// private static ValidationResults[] computeRegressions(PrincipalComponentsResiduals[] principalComponentsResiduals, int numComponents, int numPcSamplings, int kFolds, int numThreads, boolean multiThreadByFile, String tmpOutput, Logger log) {
-// int[] pcChunks = Array.splitUp(numComponents, numPcSamplings);
-// int[] componentsToTest = getComponentsToTest(pcChunks);
-// ValidationResults[] validationResults = new ValidationResults[componentsToTest.length];
-// if (multiThreadByFile) {
-// for (int i = 0; i < componentsToTest.length; i++) {
-// log.report(ext.getTime() + " Info starting validations for PC" + componentsToTest[i]);
-// validationResults[i] = regressFilesAt(principalComponentsResiduals, componentsToTest[i], kFolds, numThreads, log);
-// log.report(ext.getTime() + " Finished validations for PC" + componentsToTest[i]);
-// }
-// } else {
-// regressPCsAt(principalComponentsResiduals, kFolds, numThreads, componentsToTest, validationResults, tmpOutput);
-// }
-// return validationResults;
-// }
-//
-// /**
-// * multi-thread by each of the pc files
-// */
-// private static ValidationResults regressFilesAt(PrincipalComponentsResiduals[] principalComponentsResiduals, int regressAtComponent, int kfolds, int numThreads, Logger log) {
-// ValidationResults validationResults = new ValidationResults(principalComponentsResiduals.length, kfolds, regressAtComponent);
-// ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-// for (int i = 0; i < principalComponentsResiduals.length; i++) {
-// WorkerFileThread worker = new WorkerFileThread(principalComponentsResiduals[i], regressAtComponent, kfolds, i);
-// executor.submit(worker);// principalComponentsResiduals[i].crossValidate();
-// validationResults.addCrossValidation(i, worker.call());
-// }
-// executor.shutdown();
-// try {
-// executor.awaitTermination(7, TimeUnit.DAYS);
-// } catch (InterruptedException e) {
-// }
-// return validationResults;
-// }
-//
-// /**
-// * Since files may contain different individuals, we assign the medians separately
-// */
-// private static void assignMedians(PrincipalComponentsResiduals[] principalComponentsResiduals, Logger log) {
-// for (int i = 0; i < principalComponentsResiduals.length; i++) {
-// principalComponentsResiduals[i].computeAssesmentDataMedians();
-// }
-// }
-//
-// /**
-// * WorkerThreads which processes each file
-// */
-//
-// private static class WorkerFileThread implements Callable<CrossValidation[]> {
-// private PrincipalComponentsResiduals principalComponentsResidual;
-// private int regressAtComponent;
-// private int kfolds;
-//
-// public WorkerFileThread(PrincipalComponentsResiduals principalComponentsResidual, int regressAtComponent, int kfolds, int threadID) {
-// super();
-// this.principalComponentsResidual = principalComponentsResidual;
-// this.regressAtComponent = regressAtComponent;
-// this.kfolds = kfolds;
-// }
-//
-// @Override
-// public CrossValidation[] call() {
-// return principalComponentsResidual.crossValidate(kfolds, regressAtComponent);
-// }
-//
-// }
-// private static double getAverageRSS(IndividualRegressionResults[] individualRegressionResults, int iteration, Logger log) {
-// int sum = 0;
-// int count = 0;
-// for (int i = 0; i < individualRegressionResults.length; i++) {
-// if (individualRegressionResults[i].isValid()) {
-// sum += individualRegressionResults[i].getAverageSquareResidualAt(iteration);
-// count++;
-// System.out.println(count+"\t"+sum);
-//
-// }
-// }
-// System.out.println(sum / (double) (count));
-// return sum / (double) (count);
-// }
-// private static void forgiveMyRegressions(IndividualRegressionResults[] individualRegressionResults, String outputDir, Logger log) {
-// int numIters = individualRegressionResults[0].getNumIters();
-// int[] componentsTested = new int[0];
-// double[] avgErrors = new double[numIters];
-// String[] summary = new String[numIters];
-// for (int i = 0; i < individualRegressionResults.length; i++) {
-// if (individualRegressionResults[i].isValid()) {
-// individualRegressionResults[i].computeAvgError();
-// if (componentsTested.length == 0) {
-// componentsTested = individualRegressionResults[i].getComponentsTested();
-// }
-// }
-// }
-// for (int i = 0; i < numIters; i++) {
-// double sum = 0;
-// int count = 0;
-// double maxError = 0;
-// for (int j = 0; j < individualRegressionResults.length; j++) {
-// if (individualRegressionResults[j].isValid()) {
-// double error = individualRegressionResults[j].getErrorAt(i);
-// sum += error;
-// count++;
-// if (error > maxError) {
-// maxError = error;
-// }
-// } else {
-//
-// }
-//
-// }
-// avgErrors[i] = sum / (double) (count);
-// System.out.println(sum + "\t" + count + "\t" + avgErrors[i]);
-//
-// summary[i] = componentsTested[i] + "\t" + avgErrors[i] + "\t" + count + "\t" + maxError + "\t" + getAverageRSS(individualRegressionResults, i, log);
-// }
-// Files.writeList(summary, outputDir + "test" + OUTPUT);
-// }
-
-// /**
-// * Currently we require that each pc file has the same samples (i.e have been extrapolate, or computed on identical sets of individuals) in the same order
-// * <p>
-// */
-// private static boolean validateRegressionSamples(PrincipalComponentsResiduals[] principalComponentsResiduals, Logger log) {
-// boolean validated = true;
-// log.report(ext.getTime() + " Info - verifying order of pc files");
-// Hashtable<String, Integer> sampsInPc = principalComponentsResiduals[0].getSamplesInPc();
-// String[] samples = Collections.list(sampsInPc.keys()).toArray(new String[sampsInPc.size()]);
-// for (int i = 0; i < samples.length; i++) {
-// for (int j = 0; j < principalComponentsResiduals.length; j++) {
-// if (principalComponentsResiduals[j].getSamplesInPc().containsKey(samples[i])) {
-// int index1 = sampsInPc.get(samples[i]);
-// int index2 = principalComponentsResiduals[j].getSamplesInPc().get(samples[i]);
-// if (index1 != index2) {
-// log.reportError("Error - sample " + samples[i] + " does not have the same position in every pc file");
-// validated = false;
-// }
-// } else {
-// log.reportError("Error - sample " + samples[i] + " was not found in every pc file");
-// validated = false;
-// }
-// }
-// }
-// if (validated) {
-// log.report(ext.getTime() + " Info - found " + samples.length + " samples in the same order across " + principalComponentsResiduals.length + " files");
-// }
-// return validated;
-// }
-//
-// /**
-// * @param principalComponentsResiduals
-// * @param individualRegressionResults
-// * @param iteration
-// * the iteration, may not correspond to the actual PC being tested
-// * @param component
-// * the actual Pc being tested
-// * @param log
-// */
-// private static void storeResultsAt(PrincipalComponentsResiduals[] principalComponentsResiduals, IndividualRegressionResults[] individualRegressionResults, int iteration, int component, Logger log) {
-// int regressIndex = 0;
-// int numInvalid = 0;
-// for (int i = 0; i < individualRegressionResults.length; i++) {
-// if (hasRegressionResultsAt(principalComponentsResiduals, i)) {
-// for (int j = 0; j < principalComponentsResiduals.length; j++) {
-// individualRegressionResults[i].setRegressionResultAt(iteration, component, j, principalComponentsResiduals[j].getResidualAt(regressIndex));
-// }
-// regressIndex++;
-// } else {
-// numInvalid++;
-// individualRegressionResults[i].invalidate();
-// }
-// }
-// }
-
-//
-// private static boolean hasRegressionResultsAt(PrincipalComponentsResiduals[] principalComponentsResiduals, int index) {
-// boolean has = true;
-// for (int i = 0; i < principalComponentsResiduals.length; i++) {
-// if (!principalComponentsResiduals[i].hasMedianAt(index)) {
-// has = false;
-// }
-// }
-//
-// private static IndividualRegressionResults[] initIndiRegressions(String[] samples, int numPcIterations, int numRegressions) {
-// IndividualRegressionResults[] individualRegressionResults = new IndividualRegressionResults[samples.length];
-// for (int i = 0; i < samples.length; i++) {
-// individualRegressionResults[i] = new IndividualRegressionResults(samples[i], numPcIterations, numRegressions);
-// }
-// return individualRegressionResults;
-// }
-// return has;
-// }
-
-// public static class regressionResults {
-// private String individual;
-// private double[][] regressions;
-// private double[] avgError;
-// private int[] componentsTested;
-// private boolean valid;
-//
-// public regressionResults(String individual, int numPcIterations, int numRegressions) {
-// this.individual = individual;
-// this.regressions = new double[numPcIterations][numRegressions];
-// this.componentsTested = new int[numPcIterations];
-// this.avgError = new double[numPcIterations];
-// this.valid = true;
-// }
-//
-// /**
-// * @param iteration
-// * the current iteration (0 indexed) to store results at
-// * @param pcTested
-// * the actual component tested
-// * @param regressionIndex
-// * corresponding to a particular pcfile
-// * @param value
-// * the residual
-// */
-// public void setRegressionResultAt(int iteration, int pcTested, int regressionIndex, double value) {
-// regressions[iteration][regressionIndex] = value;
-// componentsTested[iteration] = pcTested;
-// }
-//
-// public int getNumIters() {
-// return componentsTested.length;
-// }
-//
-// public void computeAvgError() {
-// for (int i = 0; i < regressions.length; i++) {
-// avgError[i] = crossValidate(regressions[i]);
-// }
-// }
-//
-// public double getErrorAt(int index) {
-// return avgError[index];
-// }
-//
-// public int[] getComponentsTested() {
-// return componentsTested;
-// }
-//
-// public boolean isValid() {
-// return valid;
-// }
-//
-// public void invalidate() {
-// this.valid = false;
-// }
-//
-// public double getAverageSquareResidualAt(int iteration) {
-// double sum = 0;
-// int count = 0;
-// for (int i = 0; i < regressions[iteration].length; i++) {
-// sum += Math.pow(regressions[iteration][i], 2);
-// count++;
-// }
-// return sum / (double) (count);
-// }
-//
-// public static double crossValidate(double[] data) {
-// double errors = 0;
-// for (int i = 0; i < data.length; i++) {
-// errors += crossValidateAt(data, i);
-// }
-// return errors / (double) (data.length);
-// }
-//
-// public static double crossValidateAt(double[] data, int withold) {
-// double compare = data[withold];
-// double errors = 0;
-// int count = 0;
-// for (int i = 0; i < data.length; i++) {
-// if (i != withold) {
-// errors += data[i];
-// count++;
-// }
-// }
-// return Math.abs((errors / (double) (count)) - compare);
-// }
-//
-// }

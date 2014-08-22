@@ -26,7 +26,6 @@ import ejml.DenseMatrix64F;
 import ejml.SingularOps;
 import ejml.SingularValueDecomposition;
 
-
 /**
  * <p>
  * Computes basis (principal components) of a dataset , adapted from ejml
@@ -152,14 +151,14 @@ public class PrincipalComponentsCompute {
 		DenseMatrix64F W = svd.getW(null);
 		// Singular values are in an arbitrary order initially
 		SingularOps.descendingOrder(null, false, W, V_t, true);
-		
+
 		// strip off unneeded components and find the basis
 		V_t.reshape(numComponents, mean.length, true);
-		
-		this.singularValues = Array.subArray(getDiagonal(W), 0, numComponents);//W is the sorted (descending order on the diagonal) matrix of singular values
 
-	} 
-	
+		this.singularValues = Array.subArray(getDiagonal(W), 0, numComponents);// W is the sorted (descending order on the diagonal) matrix of singular values
+
+	}
+
 	public double[] getDiagonal(DenseMatrix64F W) {
 		int numSingular = Math.min(W.numRows, W.numCols);
 		double[] singularValues = new double[numSingular];
@@ -171,7 +170,9 @@ public class PrincipalComponentsCompute {
 
 	/**
 	 * Extract a particular basis vector (principal component)
-	 * @param which basis to extract
+	 * 
+	 * @param which
+	 *            basis to extract
 	 * @return
 	 */
 	public double[] getBasisVector(int which) {
@@ -187,36 +188,47 @@ public class PrincipalComponentsCompute {
 	// main access point for project based analysis
 	/**
 	 * @param proj
-	 * @param excludeSamples exclude samples as defined in sample data
-	 * @param numComponents number of components to compute
-	 * @param printFullData print the full data that is loaded (use only for testing/to verify)
-	 * @param center center the marker about its mean
-	 * @param reportMarkerLoadings report loadings
-	 * @param reportSingularValues report singular values
-	 * @param imputeMeanForNaN impute the marker to a sample when it has a NaN value
-	 * @param useFile an optional file of samples to use
-	 * @param output the base name
+	 * @param excludeSamples
+	 *            exclude samples as defined in sample data
+	 * @param numComponents
+	 *            number of components to compute
+	 * @param printFullData
+	 *            print the full data that is loaded (use only for testing/to verify)
+	 * @param center
+	 *            center the marker about its mean
+	 * @param reportMarkerLoadings
+	 *            report loadings
+	 * @param reportSingularValues
+	 *            report singular values
+	 * @param imputeMeanForNaN
+	 *            impute the marker to a sample when it has a NaN value
+	 * @param recomputeLRR
+	 *            recompute Log R Ratios on the fly
+	 * @param useFile
+	 *            an optional file of samples to use
+	 * @param output
+	 *            the base name
 	 * @param log
 	 * @return the PrincipalComponentsCompute object with PCs computed
 	 */
-	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, String useFile, String output) {
+	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output) {
 		Logger log = proj.getLog();
 		boolean[] samplesToUse = getSamples(proj, excludeSamples, useFile);
 		String[] markers = getMarkers(proj);
 		int numSamples = Array.booleanArraySum(samplesToUse);
-		
+
 		if (numComponents > numSamples) {
-			log.reportError("Error - cannot request more principal components (n="+numComponents+") than there are valid samples (n="+numSamples+")");
+			log.reportError("Error - cannot request more principal components (n=" + numComponents + ") than there are valid samples (n=" + numSamples + ")");
 			return null;
 		}
 
 		if (numComponents > markers.length) {
-			log.reportError("Error - cannot request more principal components (n="+numComponents+") than there are markers (n="+markers.length+")");
+			log.reportError("Error - cannot request more principal components (n=" + numComponents + ") than there are markers (n=" + markers.length + ")");
 			return null;
 		}
-		
+
 		// deals with NaN on the fly
-		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, output);
+		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, recomputeLRR, output);
 		PrincipalComponentsCompute pcs = getPrincipalComponents(numComponents, center, dataToUse, log);
 		double[][] pcsBasis = getPCs(pcs, numComponents, log);
 		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
@@ -226,14 +238,17 @@ public class PrincipalComponentsCompute {
 		if (reportSingularValues) {
 			reportSingularValues(proj, pcs, output);
 		}
-		
+
 		return pcs;
 	}
 
 	/**
-	 * @param numComponents number of components to compute
-	 * @param center center about the mean
-	 * @param dataToUse a double[][], organized as dataToUse[marker0][dataforMarkerAcrossSamples] (marker dominant, not sample dominant)
+	 * @param numComponents
+	 *            number of components to compute
+	 * @param center
+	 *            center about the mean
+	 * @param dataToUse
+	 *            a double[][], organized as dataToUse[marker0][dataforMarkerAcrossSamples] (marker dominant, not sample dominant)
 	 * @param log
 	 * @return
 	 */
@@ -241,16 +256,16 @@ public class PrincipalComponentsCompute {
 		// count valid input (is not null )
 		int initpc = getUseCount(dataToUse);
 		PrincipalComponentsCompute pcs = new PrincipalComponentsCompute();
-		int numSamples =0;
+		int numSamples = 0;
 		if (initpc > 0) {
 			for (int i = 0; i < dataToUse.length; i++) {
-				if(dataToUse[i]!=null){
-					//initialize underlying arrays
+				if (dataToUse[i] != null) {
+					// initialize underlying arrays
 					pcs.setup(initpc, dataToUse[i].length);
-					numSamples =dataToUse[i].length;
+					numSamples = dataToUse[i].length;
 				}
 			}
-			log.report(ext.getTime() + " Using " + initpc + (initpc > 1 ? " inputs" : " input") + " with valid (not NaN) data for SVD across "+numSamples +" samples");
+			log.report(ext.getTime() + " Using " + initpc + (initpc > 1 ? " inputs" : " input") + " with valid (not NaN) data for SVD across " + numSamples + " samples");
 			// adding on a per marker basis
 			for (int i = 0; i < dataToUse.length; i++) {
 				if (dataToUse[i] != null) {
@@ -260,7 +275,7 @@ public class PrincipalComponentsCompute {
 						log.reportError("Error - could not add all data for SVD");
 						log.reportException(iae);
 					} catch (ArrayIndexOutOfBoundsException aioe) {
-						log.reportError("Error - matrix for SVD ran out of space, the maximum number of markers can be "+(int)(Integer.MAX_VALUE/numSamples));
+						log.reportError("Error - matrix for SVD ran out of space, the maximum number of markers can be " + (int) (Integer.MAX_VALUE / numSamples));
 						log.reportException(aioe);
 					}
 				}
@@ -281,10 +296,12 @@ public class PrincipalComponentsCompute {
 
 	/**
 	 * @param proj
-	 * @param excludeSamples determine whether to exclude samples as defined in sample data
-	 * @param useFile if null, we get project samples, based on excludeSamples status
+	 * @param excludeSamples
+	 *            determine whether to exclude samples as defined in sample data
+	 * @param useFile
+	 *            if null, we get project samples, based on excludeSamples status
 	 * @param log
-	 * @return  boolean[] of all samples in the project
+	 * @return boolean[] of all samples in the project
 	 */
 	public static boolean[] getSamples(Project proj, boolean excludeSamples, String useFile) {
 		if (useFile == null) {
@@ -303,7 +320,7 @@ public class PrincipalComponentsCompute {
 		String[] samples = sampleList.getSamples();
 		boolean[] samplesToUse = new boolean[samples.length];
 		Logger log = proj.getLog();
-		
+
 		if (!proj.getSampleData(1, false).hasExcludedIndividuals() && excludeSamples) {
 			log.reportError("Error - cannot exclude individuals for PCA , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
 			return null;
@@ -321,7 +338,7 @@ public class PrincipalComponentsCompute {
 			log.report("Computing PCs using all " + samples.length + " samples");
 			Arrays.fill(samplesToUse, true);
 		}
-		
+
 		return samplesToUse;
 	}
 
@@ -329,12 +346,12 @@ public class PrincipalComponentsCompute {
 	private static boolean[] getSamplesFromFile(Project proj, String useFile) {
 		SampleData sampleData = proj.getSampleData(0, false);
 		Logger log = proj.getLog();
-		String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, new int[] {0}, true);
+		String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, true);
 		String[] projSamples = proj.getSampleList().getSamples();
 		boolean[] samplesToUse = new boolean[projSamples.length];
 		Hashtable<String, Boolean> track = new Hashtable<String, Boolean>();
 		int used = 0;
-		
+
 		for (int i = 0; i < samplesToUseFromFile.length; i++) {
 			if (sampleData.lookup(samplesToUseFromFile[i]) != null) {
 				track.put(sampleData.lookup(samplesToUseFromFile[i])[0], true);
@@ -355,8 +372,8 @@ public class PrincipalComponentsCompute {
 			log.reportError("Error - " + used + " " + (used > 1 ? "samples were " : "sample was ") + " not found in the sample data file " + proj.getProperty(Project.SAMPLE_DATA_FILENAME));
 			return null;
 		}
-		log.report(ext.getTime() +" Using the " + used + " samples in the project that passed QC "+(useFile != null?" and that were also in the useFile":""));
-		
+		log.report(ext.getTime() + " Using the " + used + " samples in the project that passed QC " + (useFile != null ? " and that were also in the useFile" : ""));
+
 		return samplesToUse;
 	}
 
@@ -368,6 +385,7 @@ public class PrincipalComponentsCompute {
 
 	/**
 	 * This is necessary to allow marker data loader to load markers in order. Otherwise it can easily reach the read ahead limit, and parent thread cannot release
+	 * 
 	 * @param proj
 	 * @param markers
 	 * @return
@@ -395,13 +413,13 @@ public class PrincipalComponentsCompute {
 				index++;
 			}
 		}
-		
-		
+
 		return sorted;
 	}
 
 	/**
 	 * Set up a matrix for the number of markers and samples
+	 * 
 	 * @param numMarkers
 	 * @param samplesToUse
 	 * @return
@@ -417,33 +435,46 @@ public class PrincipalComponentsCompute {
 	}
 
 	/**
-	 * @param proj current project
-	 * @param markers markers to load
-	 * @param samplesToUse samples to use
-	 * @param printFullData print all data loaded
-	 * @param imputeMeanForNaN if a sample has NaN, impute it with the mean of the current marker
-	 * @param dealWithNaN 
+	 * @param proj
+	 *            current project
+	 * @param markers
+	 *            markers to load
+	 * @param samplesToUse
+	 *            samples to use
+	 * @param printFullData
+	 *            print all data loaded
+	 * @param imputeMeanForNaN
+	 *            if a sample has NaN, impute it with the mean of the current marker
+	 * @param recomputeLRR
+	 *            recompute Log R Ratios on the fly
+	 * @param dealWithNaN
 	 * @param output
 	 * @param log
 	 * @return
 	 */
-	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, String output) {
+	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR, String output) {
 		double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		boolean[] markerUsed = new boolean[markers.length];
 		Logger log = proj.getLog();
-		
+
 		Arrays.fill(markerUsed, true);
 		for (int i = 0; i < markers.length; i++) {
 			float[][] data = new float[1][dataToUse[0].length];
 			if (i % 1000 == 0) {
-				float usedMemory =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+				float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
-				float maxMemory =Runtime.getRuntime().maxMemory();
-				log.report(ext.getTime() + "\tData loaded = "+Math.round(((double)i/(double)markers.length*100.0))+"%\tFree memory: " + Math.round(((double)freeMemory/(double)maxMemory*100.0)) + "%");
+				float maxMemory = Runtime.getRuntime().maxMemory();
+				log.report(ext.getTime() + "\tData loaded = " + Math.round(((double) i / (double) markers.length * 100.0)) + "%\tFree memory: " + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
 			}
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
-			data[0] = markerData.getLRRs();
+			if (recomputeLRR) {
+				// Warning - assuming only autosomal, not providing sex. Not caring about gc Threshold or call rate either
+				// TODO Recompute only from samplesToUse??
+				data[0] = markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, log)[1];
+			} else {
+				data[0] = markerData.getLRRs();
+			}
 			// please hard code dealWithNaN as it determines whether later data checks must be done;
 			if (dealWithNaN && hasNAN(data)) {
 				markerUsed[i] = false;
@@ -494,7 +525,7 @@ public class PrincipalComponentsCompute {
 			}
 		} else {
 			log.reportError("Error - could not impute mean values for marker " + markerName + " (all values were NaN), skipping this marker...");
-			data =null;
+			data = null;
 		}
 		return data;
 	}
@@ -525,7 +556,7 @@ public class PrincipalComponentsCompute {
 	private static void reportMarkersUsed(Project proj, String[] markers, boolean[] markerUsed, double[][] dataToUse, boolean printFullData, boolean[] samplesToUse, String output) {
 		String markersUsedForPCA = proj.getProjectDir() + ext.rootOf(output) + OUTPUT_EXT[1];
 		Logger log = proj.getLog();
-		
+
 		try {
 			if (Files.exists(markersUsedForPCA)) {
 				Files.backup(ext.rootOf(output) + OUTPUT_EXT[1], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
@@ -581,8 +612,8 @@ public class PrincipalComponentsCompute {
 
 	public static void reportSingularValues(Project proj, PrincipalComponentsCompute pcs, String output) {
 		Logger log = proj.getLog();
-		
-		output = ext.rootOf(output)  + OUTPUT_EXT[3];
+
+		output = ext.rootOf(output) + OUTPUT_EXT[3];
 		pcs.setSingularValuesFile(output);
 		try {
 			if (Files.exists(proj.getProjectDir() + output)) {
@@ -612,8 +643,8 @@ public class PrincipalComponentsCompute {
 	 */
 	private static void reportLoadings(Project proj, PrincipalComponentsCompute pcs, double[][] dataToUse, double[][] pcsBasis, String[] markers, String output) {
 		Logger log = proj.getLog();
-		
-		output = ext.rootOf(output)  + OUTPUT_EXT[2];
+
+		output = ext.rootOf(output) + OUTPUT_EXT[2];
 		pcs.setMarkerLoadingFile(output);
 		try {
 			if (Files.exists(proj.getProjectDir() + output)) {
@@ -648,9 +679,12 @@ public class PrincipalComponentsCompute {
 	}
 
 	/**
-	 * @param singularValue the corresponding singular value for the component
-	 * @param data the intensity data (across marker)
-	 * @param basis the basis for the component (across samples)
+	 * @param singularValue
+	 *            the corresponding singular value for the component
+	 * @param data
+	 *            the intensity data (across marker)
+	 * @param basis
+	 *            the basis for the component (across samples)
 	 * @return sum of marker intensities * basis per sample divided by singular value
 	 */
 	private static double getMarkerLoading(double singularValue, double[] data, double[] basis) {
@@ -663,8 +697,11 @@ public class PrincipalComponentsCompute {
 
 	/**
 	 * Extract a given number of principal components to a double[][] organized as double[pc0][pcs for samples]
-	 * @param pcs PrincipalComponentsCompute object with computed basis vectors
-	 * @param numComponents number of components to extract
+	 * 
+	 * @param pcs
+	 *            PrincipalComponentsCompute object with computed basis vectors
+	 * @param numComponents
+	 *            number of components to extract
 	 * @param log
 	 * @return extracted components
 	 */
@@ -686,14 +723,14 @@ public class PrincipalComponentsCompute {
 	private static double[][] reportPCs(Project proj, PrincipalComponentsCompute pcs, int numComponents, String output, boolean[] samplesToUse, double[][] pcsBasis) {
 		SampleData sampleData = proj.getSampleData(0, false);
 		Logger log = proj.getLog();
-		
-		output = ext.rootOf(output)  + OUTPUT_EXT[0];
+
+		output = ext.rootOf(output) + OUTPUT_EXT[0];
 		pcs.setPcFile(output);
 		try {
 			if (Files.exists(proj.getProjectDir() + output)) {
 				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
 			}
-			log.report(ext.getTime() + " Free memory: " + Math.round(((double)Runtime.getRuntime().freeMemory() / (double)Runtime.getRuntime().totalMemory() * 100.0)) + "%");
+			log.report(ext.getTime() + " Free memory: " + Math.round(((double) Runtime.getRuntime().freeMemory() / (double) Runtime.getRuntime().totalMemory() * 100.0)) + "%");
 			log.report(ext.getTime() + " Reporting top " + numComponents + " PCs");
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + output));
 			String[] samples = proj.getSampleList().getSamples();

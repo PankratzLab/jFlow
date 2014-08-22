@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+import stats.Maths;
 import stats.ProbDist;
 
 public class Array {
@@ -3578,5 +3579,20 @@ public class Array {
 			result[i] = al.get(i);
 		}
 		return result;
+	}
+	
+	/**
+	 * Takes the log base 2 of every element in the array a
+	 * 
+	 * @param a
+	 *            an array of doubles
+	 * @return the array containing the log base 2 value of each element in the array
+	 */
+	public static double[] log2(double[] a) {
+		double[] log2A = new double[a.length];
+		for (int i = 0; i < a.length; i++) {
+			log2A[i] = Maths.log2(a[i]);
+		}
+		return log2A;
 	}
 }
