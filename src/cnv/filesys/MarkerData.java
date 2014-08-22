@@ -5,11 +5,13 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import cnv.analysis.CentroidCompute;
 import cnv.var.SampleData;
 import stats.Correlation;
 import common.AlleleFreq;
 import common.Array;
 import common.DoubleVector;
+import common.Logger;
 
 public class MarkerData implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -160,6 +162,25 @@ public class MarkerData implements Serializable {
 			}
 		}
 		return result;
+	}
+	
+	/**
+	 * See {@link CentroidCompute#Centroid} for further usage
+	 * 
+	 * @param LRRonly
+	 *            only return the lrr values. Warning the float[][] returned will have bafs=new float[0]. To get the LRRs, use getRecomputedLRR_BAF(...arguments...)[1];
+	 * @return float[][] organized as float[0] = new BAFs, float[1]= new LRRs
+	 */
+	public float[][] getRecomputedLRR_BAF(int[] sampleSex, boolean[] samplesToUse, boolean intensityOnly, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean LRRonly, Logger log) {
+		CentroidCompute cent = getCentroid(sampleSex, samplesToUse, intensityOnly, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
+		return new float[][] { (LRRonly ? new float[0] : cent.getRecomputedBAF()), cent.getRecomputedLRR() };
+	}
+
+	/**
+	 * See {@link CentroidCompute#Centroid} for further usage
+	 */
+	public CentroidCompute getCentroid(int[] sampleSex, boolean[] samplesToUse, boolean intensityOnly, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, Logger log) {
+		return new CentroidCompute(this, sampleSex, samplesToUse, intensityOnly, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 	}
 
 	public boolean[] getHighlightStatus(ClusterFilter clusterFilter) {

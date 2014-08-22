@@ -30,7 +30,7 @@ public class PrincipalComponentsApply {
 	private SingularValues singularValues;
 	private int numComponents;
 	private boolean[] samplesToUse;
-	private boolean imputeMeanForNaN;
+	private boolean imputeMeanForNaN, recomputeLRR;
 	private String[] markers;
 	private String extrapolatedPCsFile;
 	// sample,PC#
@@ -52,7 +52,7 @@ public class PrincipalComponentsApply {
 	 *            impute the mean of the marker for a sample value with NaN
 	 * @param log
 	 */
-	public PrincipalComponentsApply(Project proj, int numComponents, String singularFile, String markerLoadingFile, boolean[] samplesToUse, boolean imputeMeanForNaN) {
+	public PrincipalComponentsApply(Project proj, int numComponents, String singularFile, String markerLoadingFile, boolean[] samplesToUse, boolean imputeMeanForNaN, boolean recomputeLRR) {
 		super();
 		this.proj = proj;
 		this.log = proj.getLog();
@@ -61,6 +61,7 @@ public class PrincipalComponentsApply {
 		this.samplesToUse = samplesToUse;
 		this.markerLoadings = MarkerLoadings.getLoadings(proj.getProjectDir() + markerLoadingFile, numComponents, log);
 		this.imputeMeanForNaN = imputeMeanForNaN;
+		this.recomputeLRR = recomputeLRR;
 		getMarkers();
 		initExtPCS();
 	}
@@ -83,13 +84,18 @@ public class PrincipalComponentsApply {
 			MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 			for (int i = 0; i < markers.length; i++) {
 				if (i % 1000 == 0) {
-					float usedMemory =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+					float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 					float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
-					float maxMemory =Runtime.getRuntime().maxMemory();
-					log.report(ext.getTime() + "\tData loaded = "+Math.round(((double)i/(double)markers.length*100.0))+"%\tFree memory: " + Math.round(((double)freeMemory/(double)maxMemory*100.0)) + "%");
+					float maxMemory = Runtime.getRuntime().maxMemory();
+					log.report(ext.getTime() + "\tData loaded = " + Math.round(((double) i / (double) markers.length * 100.0)) + "%\tFree memory: " + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
 				}
 				MarkerData markerData = markerDataLoader.requestMarkerData(i);
-				float[] lrrs = markerData.getLRRs();
+				float[] lrrs;
+				if (recomputeLRR) {
+					lrrs = markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, log)[1];
+				} else {
+					lrrs = markerData.getLRRs();
+				}
 				if (!hasNAN(lrrs)) {
 					applyMarkerLoading(lrrs, i);
 				} else if (imputeMeanForNaN) {

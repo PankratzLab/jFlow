@@ -41,18 +41,18 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private static final String[] MT_REPORT_MARKERS_USED = { ".MedianMarkers.MarkersUsed.txt", ".MedianMarkers.RawValues.txt" };
 	private static final String[] MT_RESIDUAL_CROSS_VALIDATED_REPORT = { "Time Completed", "Time to complete(seconds)", "PC", "Cross-validation Average SSerr", "Cross-validation Average R-squared", "Average Standard Error of Betas", "Full model R-squared", "Full model SSerr" };
 
-	private String markersToAssessFile, output, residOutput,pcFile;
+	private String markersToAssessFile, output, residOutput, pcFile;
 	private String[] markersToAssess, samplesToReport, allProjSamples;
-	private double[] medians, residuals, invTResiduals;
+	private double[] assesmentData, residuals, invTResiduals;
 	private double[][] assessmentData, pcBasis;
 	private byte[][] abGenotypesAfterFilters;
 	private float gcThreshold;
 	private Logger log;
-	private Project proj;
+	protected Project proj;
 	private int numSamples, numComponents, totalNumComponents;// numComponents are loaded, totalNumComponents are present in the pc file
 	private Hashtable<String, Integer> samplesInPc;
-	private boolean[] samplesToUse;
-	private boolean printFull, homozygousOnly;
+	protected boolean[] samplesToUse;//corresponds to the samples in the PC
+	private boolean printFull, homozygousOnly, recomputeLRR;
 
 	/**
 	 * @param proj
@@ -69,10 +69,12 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 *            threshold to use a marker
 	 * @param homozygousOnly
 	 *            only use homozygous calls
+	 * @param recomputeLRR
+	 *            recompute Log R Ratios for median markers
 	 * @param output
 	 * @param log
 	 */
-	public PrincipalComponentsResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, String output) {
+	public PrincipalComponentsResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, boolean recomputeLRR, String output) {
 		super();
 		this.numComponents = numComponents;
 		this.proj = proj;
@@ -83,6 +85,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.printFull = printFull;
 		this.gcThreshold = gcThreshold;
 		this.homozygousOnly = homozygousOnly;
+		this.recomputeLRR = recomputeLRR;
 		this.output = output;
 		this.pcFile = pcFile;
 		loadPcFile(pcFile);
@@ -92,22 +95,22 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	/**
 	 * Compute the median data in project order, and then set back to pcfile order, just in case
 	 */
-	public void computeAssesmentDataMedians() {
-		this.markersToAssess = PrincipalComponentsCompute.sortByProjectMarkers(proj, HashVec.loadFileToStringArray(proj.getProjectDir() + markersToAssessFile, false, new int[] {0}, true));
+	public void computeAssessmentDataMedians() {
+		this.markersToAssess = PrincipalComponentsCompute.sortByProjectMarkers(proj, HashVec.loadFileToStringArray(proj.getProjectDir() + markersToAssessFile, false, new int[] { 0 }, true));
 		getData();
 		double[] projectOrderMedians = getLRRMedian();
 		if (printFull) {
 			printFull();
 		}
-		setMedianSortByPCs(projectOrderMedians);
+		setAssesmentDataSortByPCs(projectOrderMedians);
 	}
 
 	/**
-	 * Regress out the Pcs from the medians, return the model's R-squared value for checking
+	 * Regress out the Pcs from the assessment data, return the model's R-squared value for checking
 	 */
 	public double computeResiduals() {
-		//TODO, add svdRegression option
-		RegressionModel model = (RegressionModel) new LeastSquares(medians, prepPcs(pcBasis));
+		// TODO, add svdRegression option
+		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
 		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
 			this.residuals = model.getResiduals();
@@ -133,14 +136,14 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	/**
-	 * Here we set the medians back to the same order as samples represented in the pc file
+	 * Here we set the AssesmentData back to the same order as samples represented in the pc file
 	 */
-	private void setMedianSortByPCs(double[] projectOrderMedians) {
-		this.medians = new double[projectOrderMedians.length];
+	private void setAssesmentDataSortByPCs(double[] projectOrderMedians) {
+		this.assesmentData = new double[projectOrderMedians.length];
 		int sampleIndex = 0;
 		for (int i = 0; i < allProjSamples.length; i++) {
 			if (samplesToUse[i]) {
-				medians[samplesInPc.get(allProjSamples[i])] = projectOrderMedians[sampleIndex];
+				assesmentData[samplesInPc.get(allProjSamples[i])] = projectOrderMedians[sampleIndex];
 				sampleIndex++;
 			}
 		}
@@ -175,7 +178,12 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	/**
-	 * Load each of the markers to assess (LRR, and AbGenotypesAfterFilters); We load genotypes to allow filtering by homozygous only, gc threshold, etc... Data is loaded to assessmentData organized assessmentData[marker0][data for samples in PCs], ditto for abGenotypesAfterFilters Note that the order of assessmentData[marker0] does not neccesarily reflect the same order as the samples in the pc file
+	 * Load each of the markers to assess (LRR, and AbGenotypesAfterFilters); We load genotypes to allow filtering by homozygous only, gc threshold, etc...
+	 * <p>
+	 * Data is loaded to assessmentData organized assessmentData[marker0][data for samples in PCs], ditto for abGenotypesAfterFilters
+	 * <p>
+	 * Note that the order of assessmentData[marker0] does not neccesarily reflect the same order as the samples in the pc file
+	 * 
 	 */
 	public void getData() {
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess);
@@ -195,7 +203,14 @@ public class PrincipalComponentsResiduals implements Cloneable {
 
 		for (int i = 0; i < markersToAssess.length; i++) {
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
-			lrrs = markerData.getLRRs();
+			if (recomputeLRR) {
+				// TODO, I think it is important to cluster on everyone at this point, since we may get inaccurate applications of the clusters
+				// i.e Penncnv demands all three genotype clusters or none, we allow 1,2,and 3.
+				// this could pose a problem if a genotype for a missing cluster is used
+				lrrs = markerData.getRecomputedLRR_BAF(null, null, false, 1, gcThreshold, cluster, true, true, log)[1];
+			} else {
+				lrrs = markerData.getLRRs();
+			}
 			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[i], gcThreshold);
 			int sampleIndex = 0;
 			for (int k = 0; k < samplesToUse.length; k++) {
@@ -312,7 +327,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private static PrintWriter[] getNWriters(Project proj, String[] fileOuts) {
 		PrintWriter[] writers = new PrintWriter[fileOuts.length];
 		Logger log = proj.getLog();
-		
+
 		for (int i = 0; i < fileOuts.length; i++) {
 			if (Files.exists(proj.getProjectDir() + fileOuts[i])) {
 				Files.backup(fileOuts[i], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
@@ -356,10 +371,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 				} else {
 					writer.print("\t" + sampleData.getSexForIndividual(samp[0]));
 				}
-				if (Double.isNaN(medians[i])) {
+				if (Double.isNaN(assesmentData[i])) {
 					writer.print("\tNA\tNA\tNA");
 				} else {
-					writer.print("\t" + medians[i] + "\t" + (residuals == null ? "NA" : residuals[modelCount]) + "\t" + (invTResiduals == null ? "NA" : invTResiduals[modelCount]));
+					writer.print("\t" + assesmentData[i] + "\t" + (residuals == null ? "NA" : residuals[modelCount]) + "\t" + (invTResiduals == null ? "NA" : invTResiduals[modelCount]));
 					modelCount++;
 				}
 				for (int k = 0; k < numComponents; k++) {
@@ -485,7 +500,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	public double[] getMedians() {
-		return medians;
+		return assesmentData;
 	}
 
 	public Hashtable<String, Integer> getSamplesInPc() {
@@ -493,7 +508,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	public void setMedians(double[] medians) {
-		this.medians = medians;
+		this.assesmentData = medians;
 	}
 
 	public void setPcBasis(double[][] pcBasis) {
@@ -543,7 +558,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * @return the results of each training/validation combination
 	 */
 	public CrossValidation[] crossValidate(int kFolds, int numComponents, boolean svdRegression) {
-		return CrossValidation.kFoldCrossValidate(medians, prepPcs(trimPcBasis(numComponents, pcBasis, log)), kFolds, false, svdRegression, log);
+		return CrossValidation.kFoldCrossValidate(assesmentData, prepPcs(trimPcBasis(numComponents, pcBasis, log)), kFolds, false, svdRegression, log);
 	}
 
 	/**
@@ -570,7 +585,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);// da pool of threads
 		ArrayList<Future<CrossValidation[]>> tmpResults = new ArrayList<Future<CrossValidation[]>>();// stores the future CrossValidation[] that will be actualized once the thread has finished
 		for (int i = 0; i < numComponentsIter.length; i++) {// need to submit the jobs first
-			WorkerPCThread worker = new WorkerPCThread(medians, prepPcs(trimPcBasis(Math.min(numComponentsIter[i], numComponents), pcBasis, log)), kFolds, tmpOutput, svdRegression, val_pcs, log);
+			WorkerPCThread worker = new WorkerPCThread(assesmentData, prepPcs(trimPcBasis(Math.min(numComponentsIter[i], numComponents), pcBasis, log)), kFolds, tmpOutput, svdRegression, val_pcs, log);
 			tmpResults.add(executor.submit(worker));// tracks the future object
 		}
 		for (int i = 0; i < numComponentsIter.length; i++) {
@@ -638,7 +653,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		}
 
 		private void computeFullModel() {
-			if (deps.length > indeps[0].length+1) {
+			if (deps.length > indeps[0].length + 1) {
 				RegressionModel model = (RegressionModel) new LeastSquares(deps, indeps, null, false, true, svdRegression);
 				if (!model.analysisFailed()) {
 					fullModelR2 = model.getRsquare();
@@ -674,4 +689,20 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			}
 		}
 	}
+
+	// the following methods aid in correcting intensities
+	/**
+	 * Constructor mainly used by {@link PrincipalComponentsIntensity} Essentially handles the loading of the PCs
+	 * 
+	 * @param proj
+	 * @param pcFile
+	 * @param numComponents
+	 * @param recomputeLRR
+	 * @param output
+	 */
+	public PrincipalComponentsResiduals(Project proj, String pcFile, int numComponents, boolean recomputeLRR, String output) {
+		this(proj, pcFile, null, numComponents, false, 0, false, recomputeLRR, output);
+	}
+	
+	
 }

@@ -277,7 +277,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static void catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv) {
+	public static void catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -295,7 +295,8 @@ public class MitoPipeline {
 		}
 		try {
 			Thread.sleep(5000); // Got hit with the error below for no reason twice now
-		} catch (InterruptedException ie) {}
+		} catch (InterruptedException ie) {
+		}
 		if (sampleList == null || sampleList.getSamples().length == 0) {
 			log.report("Error - could not import samples, halting");
 			return;
@@ -346,15 +347,15 @@ public class MitoPipeline {
 						// check that all median markers are available
 						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, outputBase + PCA_SAMPLES, outputBase);
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase);
 							if (pcs == null) {
 								return;
 							}
 							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
-							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, outputBase);
+							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, recomputeLRR_PCs, outputBase);
 							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
-							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, outputBase);
+							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase);
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 						}
 					}
@@ -994,17 +995,17 @@ public class MitoPipeline {
 		int numArgs = args.length;
 		String filename = null;
 		String projectName = "GENVISIS_project1";
-		
+
 		boolean[] requiredArray = new boolean[5];
 		Arrays.fill(requiredArray, false);
-		String[] requiredArgs = {"dirProj=","dirSrc=",PC_MARKER_COMMAND,MEDIAN_MARKER_COMMAND, "markerPositions="};
-		
+		String[] requiredArgs = { "dirProj=", "dirSrc=", PC_MARKER_COMMAND, MEDIAN_MARKER_COMMAND, "markerPositions=" };
+
 		String projectDirectory = null;
 		String sourceDirectory = null;
 		String targetMarkers = null;
 		String markerPositions = null;
 		String medianMarkers = null;
-		
+
 		String output = "PCA_GENVISIS";
 		String idHeader = "Sample ID";
 		String abLookup = null;
@@ -1017,6 +1018,8 @@ public class MitoPipeline {
 		String sampleCallRateFilter = "0.95";
 		double markerCallRateFilter = 0.98;
 		boolean markerQC = true;
+		boolean recomputeLRR_PCs = false;
+		boolean recomputeLRR_Median = false;
 		String useFile = null;
 		String logfile = null;
 
@@ -1029,7 +1032,7 @@ public class MitoPipeline {
 		usage += "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=/home/usr/projects/)\n";
 		usage += "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=/home/usr/data/project1/)\n";
 		usage += "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. " + PC_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.PC_Markers.txt)\n";
-		usage += "   (4) The full path for a file with a list of markers (one per line, typically mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MEDIAN_MARKER_COMMAND +  "/home/usr/auxFiles/exomeChip.MT_Markers.txt)\n";
+		usage += "   (4) The full path for a file with a list of markers (one per line, typically mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MEDIAN_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.MT_Markers.txt)\n";
 		usage += "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=/home/usr/auxFiles/exomeChip.Positions.txt)\n";
 
 		usage += "   OPTIONAL:\n";
@@ -1046,12 +1049,14 @@ public class MitoPipeline {
 		usage += "   (13) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
 		usage += "   (14) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
 		usage += "   (15) Output file baseName (i.e. output=" + output + " (default))\n";
-		usage += "   (16) Project filename (if you manually created a project properties file, or edited an existing project) (i.e. proj=" + filename + " (no default))\n";
+		usage += "   (16) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj=" + filename + " (no default))\n";
 		usage += "   (17) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
 		// usage += "   (18) A file specifying the AB allele lookup for markers, often times required  (i.e. abLookup=" + idHeader + " (default))\n";
 		usage += "   (18) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
 		usage += "   (19) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
 		usage += "   (20) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
+		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. -recomputeLRR_PCs (not the default))\n";
+		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. -recomputeLRR_Median (not the default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -1072,11 +1077,11 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("dirProj=")) {
 				projectDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
-				requiredArray[0]=true;
+				requiredArray[0] = true;
 			} else if (args[i].startsWith("dirSrc=")) {
 				sourceDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
-				requiredArray[1]=true;
+				requiredArray[1] = true;
 			} else if (args[i].startsWith("pedFile=")) {
 				pedFile = ext.parseStringArg(args[i], null);
 				numArgs--;
@@ -1095,18 +1100,18 @@ public class MitoPipeline {
 			} else if (args[i].startsWith(PC_MARKER_COMMAND)) {
 				targetMarkers = ext.parseStringArg(args[i], null);
 				numArgs--;
-				requiredArray[2]=true;
+				requiredArray[2] = true;
 			} else if (args[i].startsWith("output=")) {
 				output = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith(MEDIAN_MARKER_COMMAND)) {
 				medianMarkers = ext.parseStringArg(args[i], null);
 				numArgs--;
-				requiredArray[3]=true;
+				requiredArray[3] = true;
 			} else if (args[i].startsWith("markerPositions=")) {
 				markerPositions = ext.parseStringArg(args[i], null);
 				numArgs--;
-				requiredArray[4]=true;
+				requiredArray[4] = true;
 			} else if (args[i].startsWith("numThreads=")) {
 				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
@@ -1118,6 +1123,12 @@ public class MitoPipeline {
 				numArgs--;
 			} else if (args[i].startsWith("-nomarkerQC")) {
 				markerQC = true;
+				numArgs--;
+			} else if (args[i].startsWith("-recomputeLRR_PCs")) {
+				recomputeLRR_PCs = true;
+				numArgs--;
+			} else if (args[i].startsWith("-recomputeLRR_Median")) {
+				recomputeLRR_Median = true;
 				numArgs--;
 			} else if (args[i].startsWith("markerCallRate=")) {
 				markerCallRateFilter = ext.parseDoubleArg(args[i]);
@@ -1143,13 +1154,14 @@ public class MitoPipeline {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		if (Array.booleanArraySum(requiredArray) != 5) {
-			System.err.println(usage+"\n\n");
-			System.err.println("The MitoPipeline currently requires "+requiredArray.length+" arguments and we only detected " + Array.booleanArraySum(requiredArray) +" of the "+requiredArray.length);
+		
+		if (Array.booleanArraySum(requiredArray) != requiredArray.length) {
+			System.err.println(usage + "\n\n");
+			System.err.println("The MitoPipeline currently requires " + requiredArray.length + " arguments and we only detected " + Array.booleanArraySum(requiredArray) + " of the " + requiredArray.length);
 			System.err.println("Here is a list of missing arguments...");
 			for (int i = 0; i < requiredArgs.length; i++) {
 				if (!requiredArray[i]) {
-					System.err.println("\""+requiredArgs[i]+"\"");
+					System.err.println("\"" + requiredArgs[i] + "\"");
 				}
 			}
 			System.exit(1);
@@ -1162,6 +1174,6 @@ public class MitoPipeline {
 			proj = new Project(filename, logfile, false);
 			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
 		}
-		catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv);
+		catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median);
 	}
 }
