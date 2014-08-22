@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -23,8 +24,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import bioinformatics.Samtools;
+import bioinformatics.SeattleSeq;
+import common.Array;
 import common.Files;
 import common.Logger;
+import common.Matrix;
 import common.Positions;
 import common.Sort;
 import common.ext;
@@ -267,7 +272,7 @@ public class SuperNovo {
 		}
 
 		try {
-			writer = new PrintWriter(new FileOutputStream(scriptDir + "master_run"));
+			writer = new PrintWriter(new FileOutputStream(scriptDir + "master_run.sh"));
 			writer.println("cd " + scriptDir);
 			for (int i = 0; i < qsubFilesVec.size(); i++) {
 				writer.println("qsub " + qsubFilesVec.elementAt(i));
@@ -1455,7 +1460,7 @@ public class SuperNovo {
 	}
 
 
-	public static void parseResults(String resultDir, byte resultFormat, double callScoreThreshold, byte outFormat, Logger log) {
+	public static void parseResults(String resultDir, String annotationDir, String miniBamDir, String fullPathToTrioNameList, byte resultFormat, double callScoreThreshold, byte outFormat, Logger log) {
 		String[] resultFilenames;
 		String[] trioIds;
 		BufferedReader reader;
@@ -1467,14 +1472,24 @@ public class SuperNovo {
 		int[][] orderedIndices;
 		int index;
 		double[] altProportion;
-
+		String[] annotation;
+		Hashtable<String, String[]> annotationHash;
+		HashSet<String> miniBamHash;
+		Vector<String> annotationNeeds, miniBamNeeds;
+		String markerName;
+		String[] resultElements;
+		String miniBamLink;
+		String[] seatleSeekHeader;
+		
+		annotationNeeds = new Vector<String>();
+		miniBamNeeds = new Vector<String>();
+		annotationHash = SeattleSeq.loadAllAnnotationInDir(annotationDir, log);
+		miniBamHash = Samtools.listFiles(miniBamDir, log);
 		resultFilenames = Files.list(resultDir, ".txt", false);
 		trioIds = new String[resultFilenames.length];
 		result = new HashMap<String, HashMap<String, String[]>>();
-		readsCounts = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
-		phredScores = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
-		mappingScores = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
 		orderedIndices = new int[SAMPLE_SUFFIX.length][];
+		seatleSeekHeader = Matrix.extractColumn(SeattleSeq.RELEVANTS, 0);
 		for (int i = 0; i < trioIds.length; i++) {
 			trioIds[i] = resultFilenames[i].split("_")[0];
 	        try {
@@ -1483,16 +1498,35 @@ public class SuperNovo {
 	        	while(reader.ready()) {
 	        		line = reader.readLine().split("\t");
 	        		if (Double.parseDouble(line[6]) >= callScoreThreshold) {
+						readsCounts = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
+						phredScores = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
+						mappingScores = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
 	        			parseLine(line, resultFormat, readsCounts, phredScores, mappingScores);
 
 	        			for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
-	        				orderedIndices[j] = Sort.quicksort(new int[] {readsCounts[0][0][0], readsCounts[0][0][1], readsCounts[0][0][2], readsCounts[0][0][3]}, Sort.DESCENDING);
+	        				orderedIndices[j] = Sort.quicksort(new int[] {readsCounts[j][0][0], readsCounts[j][0][1], readsCounts[j][0][2], readsCounts[j][0][3]}, Sort.DESCENDING);
 						}
-//	        			if (isMappingQuality(mappingScores, readsCounts, orderedIndices, 0)
-//	        					&& isAlleleCounts(readsCounts, orderedIndices, 0)
-//	        					&& is3Allelic(readsCounts, orderedIndices, 0)
+	        			if (isMappingQuality(mappingScores, readsCounts, orderedIndices, 0)
+	        					&& isAlleleCounts(readsCounts, orderedIndices, 0)
+	        					&& is3Allelic(readsCounts, orderedIndices, 0)
 //	        					&& isInDel(readsCounts, orderedIndices, 0)
-//	        					) {
+	        					) {
+
+		        			markerName = line[1] + ":" + line[2] + "_" + line[4] + "_" + line[5];
+		        			if (annotationHash.containsKey(markerName)) {
+		        				annotation = annotationHash.get(markerName);
+		        			} else {
+		        				annotation = Array.stringArray(seatleSeekHeader.length);
+		        				annotationNeeds.add(line[1] + "\t" + line[2] + "\t" + line[5] + "\t" + line[5]);	//chr + pos + alt + alt
+		        			}
+
+		        			if (miniBamHash.contains(line[0] + "\t" + line[1] + "\t" + line[2])) {	//trioId + chr + pos
+//		        				miniBamLink = "=HYPERLINK(something)";
+		        				miniBamLink = "exists";
+		        			} else {
+		        				miniBamLink = "missing";
+		        				miniBamNeeds.add(line[0] + "\t" + line[1] + "\t" + line[2]);	//trioId + chr + pos
+		        			}
 
 		        			altProportion = new double[3];
 		        			for (int j = 0; j < altProportion.length; j++) {
@@ -1507,7 +1541,40 @@ public class SuperNovo {
 		        			if (! result.containsKey(line[3])) {
 		        				result.put(line[3], new HashMap<String, String[]>());
 		        			}
-		        			result.get(line[3]).put(line[0], new String[] {line[4], line[5], line[6], line[41], line[42], line[44], line[45], line[46], line[47], line[48], line[49], line[50], line[51], line[52], line[53], line[54], line[55], line[56], line[57], line[58], line[59], line[60], line[61], ext.formDeci(altProportion[0], 3), ext.formDeci(altProportion[1], 3), ext.formDeci(altProportion[2], 3)});//	        			}
+
+		        			resultElements = new String[] {
+		        					line[4], //ref
+		        					line[5], //alt
+		        					line[6], //position
+		        					line[41], //posNearbyInDelVars
+		        					line[42], //deNovoGT
+		        					line[44], //cDepth
+		        					line[45], //dDepth
+		        					line[46], //mDepth
+		        					line[47], //cAPhred
+		        					line[48], //cTPhred
+		        					line[49], //cGPhred
+		        					line[50], //cCPhred
+		        					line[51], //dAPhred
+		        					line[52], //dTPhred
+		        					line[53], //dGPhred
+		        					line[54], //dCPhred
+		        					line[55], //mAPhred
+		        					line[56], //mTPhred
+		        					line[57], //mGPhred	
+		        					line[58], //mCPhred
+		        					line[59], //cMap
+		        					line[60], //dMap
+		        					line[61], //mMap
+		        					ext.formDeci(altProportion[0], 3), 
+		        					ext.formDeci(altProportion[1], 3), 
+		        					ext.formDeci(altProportion[2], 3)
+		        					};
+		        			
+		        			resultElements = Array.concatAll(resultElements, annotation);
+
+		        			result.get(line[3]).put(line[0], resultElements);//	        			}
+	        			}
 	        		}
 	        	}
 				reader.close();
@@ -1517,10 +1584,18 @@ public class SuperNovo {
 			}
 		}
 
-		saveParsedResults(resultDir + "SuperNovo_summary.txt", trioIds, result, outFormat, PARSE_RESULT_HEADER, log);
+		if (annotationNeeds.size() > 0) {
+			Files.writeList(Array.toStringArray(annotationNeeds), annotationDir + "annotationNeeds.input");
+		}
+		if (miniBamNeeds.size() > 0) {
+			Files.writeList(Array.toStringArray(miniBamNeeds), miniBamDir + "miniBamNeeds.input");
+			Samtools.writerToFile(miniBamDir + "generateMiniBams.sh", miniBamNeeds, loadNamesFromList(fullPathToTrioNameList), 50, log);
+		}
+
+		saveParsedResults(resultDir + "SuperNovo_summary.txt", trioIds, result, outFormat, PARSE_RESULT_HEADER + "\t" + Array.toStr(seatleSeekHeader), log);
 	}
 
-	public static void saveParsedResults(String filename, String[] trioIds, HashMap<String, HashMap<String, String[]>> result, byte format, String header, Logger log) {
+	public static void saveParsedResults(String resultsFilename, String[] trioIds, HashMap<String, HashMap<String, String[]>> result, byte format, String header, Logger log) {
 		PrintWriter writer;
 		String[] line;
 		Object[] keys;
@@ -1532,7 +1607,7 @@ public class SuperNovo {
 		try {
 			keys = result.keySet().toArray();
 			Arrays.sort(keys);
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = new PrintWriter(new FileWriter(resultsFilename));
 			if (format == 1) {
 //				writer.println("id\tchr\tposition\tlookup\tnumHits\tref\talt\tcall\tnote\tfwdGenotype\treadDepth_C\treadDepth_D\treadDepth_M\tPhredScores\tMappingQuality_C\tMappingQuality_D\tMappingQuality_M\taltAllele%_C\taltAllele%_D\taltAllele%_M");
 				writer.println(header);
@@ -1574,10 +1649,10 @@ public class SuperNovo {
 			}
 
 			writer.close();
-			log.report("Summerized result is available at: " + filename);
+			log.report("Summerized result is available at: " + resultsFilename);
 
 		} catch (Exception e) {
-			log.reportError("Error writing to " + filename);
+			log.reportError("Error writing to " + resultsFilename);
 			e.printStackTrace();
 		}
 	}
@@ -1586,6 +1661,7 @@ public class SuperNovo {
 		String[] tmp1;
 		String[] tmp2;
 		int index;
+		int score;
 
 		if (resultFormat == 1) {
 			tmp1 = line[7].split(" ");
@@ -1621,7 +1697,10 @@ public class SuperNovo {
 			index = 59;
 			for (int i = 0; i < SAMPLE_SUFFIX.length; i++) {
 				if (line[index] != null && ! line[index].isEmpty()) {
-					mappingScores[i][0][0] = Integer.parseInt(line[index]);
+					score = Integer.parseInt(line[index]);
+					for (int j = 0; j < mappingScores[i][0].length; j++) {
+						mappingScores[i][0][j] = score * readsCounts[i][0][j];
+					}
 				}
 				index ++;
 			}
@@ -1903,7 +1982,7 @@ public class SuperNovo {
 		String[] bamFilenamesOfTheTrio;
 		String bamDir;
 		String scriptDir;
-		String outputDir;
+		String outputDir, annotationDir, miniBamDir;
 		boolean isToAnnotate;
 		int numThreads;
 		String bamFilenamesForHelpMenu;
@@ -1945,6 +2024,9 @@ public class SuperNovo {
 		isParseResult = true;
 		bedFilename = null;
 		outputDir = "N:/statgen/OS_Logan/SuperNovo/rawOutput/";
+		annotationDir = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
+		miniBamDir = "N:/statgen/OS_Logan/SuperNovo/mini_bams/";
+		fullPathToTrioList = "N:/statgen/OS_Logan/SuperNovo/trios_rrd_list.txt";
 
 		bamFilenamesForHelpMenu = (bamFilenamesOfTheTrio == null || bamFilenamesOfTheTrio[0] == null)? "" : bamFilenamesOfTheTrio[0];
 		for (int i = 1; bamFilenamesOfTheTrio != null && i < bamFilenamesOfTheTrio.length && bamFilenamesOfTheTrio[i] != null; i++) {
@@ -2063,7 +2145,7 @@ public class SuperNovo {
 				processGenomeOfOneTrio(bamDir, trioId, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, outputDir, numThreads, log);
 			}
 		} else if (isParseResult) {
-			parseResults(outputDir, (byte) 2, 0, (byte) 1, log);
+			parseResults(outputDir, annotationDir, miniBamDir, fullPathToTrioList, (byte) 2, 0, (byte) 1, log);
 		} else {
 			log.reportError("No command executed, due to:\n1) " + commands[0] + " is not specified; or 2) chr, start and stop are not complete; or 3) .bed file is not found");
 		}
