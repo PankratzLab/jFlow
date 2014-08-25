@@ -474,13 +474,14 @@ public class SuperNovo {
 		int[][][] readsCounts = null;
 		int[][][] phredScores = null;
 		int[][][] mappingScores = null;
-		String refAlleles;
+		String[] refAlleles;
 		Vector<int[]> denovoMutations;
 		Vector<Vector<Integer>[][]> denovoMutationNotes;
 		int startPosAdjForWindow;
 		int stopPosAdjForWindow;
-//		SimpleDateFormat timeFormat;
-//		long timer;
+		SimpleDateFormat timeFormat;
+		long timer;
+		String status;
 
         try {
         	window = Math.max(WINDOW_SIZE_FOR_NEARBY_INDEL, WINDOW_SIZE_FOR_NEARBY_VARIANCE);
@@ -490,13 +491,14 @@ public class SuperNovo {
 			readsCounts = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][READS_COUNTS_ARRAY_STRUCT.length];
 			phredScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
 			mappingScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
-//	        timeFormat = new SimpleDateFormat("mm:ss.SSS");
-//			timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+	        timeFormat = new SimpleDateFormat("mm:ss.SSS");
+			timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+			status = trioId + "\tchr" + chr + ":" + startPosAdjForWindow + "-" + stopPosAdjForWindow;
 
+			timer = new Date().getTime();
 			for (int i = 0; i < bamFilenames.length; i++) {
 				bamContentVec = new Vector<String[]>();
 
-//				timer = new Date().getTime();
 				p = Runtime.getRuntime().exec("samtools view " + bamFilenames[i] + " chr" + chr + ":" + startPosAdjForWindow + "-" + stopPosAdjForWindow, null, new File(bamDir));
 
 //				ps=new ProcessBuilder("samtools", "view", bamFilenames[i], "chr" + chr + ":" + start + "-" + stop);
@@ -517,8 +519,7 @@ public class SuperNovo {
 		        for (int j = 0; j < numLines; j++) {
 		        	cigarDecoding(bamContentVec.elementAt(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0, readsCounts[i], phredScores[i], mappingScores[i]);
 				};
-//				timer = new Date().getTime() - timer;
-//				log.report(bamFilenames[i] + "\t" + chr + "\t" + startPosAdjForWindow + "\t" + stopPosAdjForWindow + "\t" + numLines + "\t" + timeFormat.format(timer));
+				status += ("\t" + numLines);
 
 //		        error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 //		        while ((line = error.readLine()) != null) {
@@ -532,31 +533,8 @@ public class SuperNovo {
 			if (outAlleleCountsFileName != null) {
 				saveAlleleCountsToFile(outAlleleCountsFileName, readsCounts, startPosAdjForWindow, true);
 			}
-
-			p = Runtime.getRuntime().exec("samtools faidx " + refFastaFilename + " chr" + chr + ":" + startPosition + "-" + stopPosition, null, new File(ext.parseDirectoryOfFile(refFastaFilename)));
-
-//			ps=new ProcessBuilder("samtools", "faidx", refFastaFilename, "chr" + chr + ":" + start + "-" + stop);
-//	        ps.redirectErrorStream(true);
-//	        ps.directory(new File(ext.parseDirectoryOfFile(refFastaFilename)));
-//	        p = ps.start();  
-
-//	        p.waitFor();
-	        reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-	        line = reader.readLine();
-        	refAlleles = "";
-	        while ((line = reader.readLine()) != null) {
-	        	refAlleles += line;
-	        }
-	        p.waitFor();
-	        reader.close();
-
-//	        error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-//	        while ((line = error.readLine()) != null) {
-//	            System.out.println(line);
-//	        }
-//			error.close();
-	        
-	        displayErrorStream(p);
+			status += ("\t" + (timeFormat.format(new Date().getTime() - timer)));
+			log.report(status);
 
 			denovoMutations = new Vector<int[]>(10);
 			filterByAlleleCount(readsCounts, mappingScores, startPosition - startPosAdjForWindow, stopPosition - startPosAdjForWindow, denovoMutations);
@@ -566,6 +544,7 @@ public class SuperNovo {
 			}
 			filterByNearbyInDelVars(readsCounts, denovoMutations, denovoMutationNotes);
 			filterByNearbyDeNovos(readsCounts, denovoMutations, denovoMutationNotes);
+			refAlleles = getRefFromFasta(refFastaFilename, denovoMutations, chr, startPosAdjForWindow);
 			exportResult(writer, trioId, chr, startPosAdjForWindow, startPosition, refAlleles, readsCounts, phredScores, mappingScores, denovoMutations, denovoMutationNotes, "Phred score proportions < " + THRESHOLD_PHRED_SCORE_FOR_INS_DEL, (byte) 2);
 			writer.flush();
         } catch (IOException e) {
@@ -1030,8 +1009,56 @@ public class SuperNovo {
 		return	result;
 	}
 
-	public static void exportResult(PrintWriter writer, String id, String chr, int startPosAdjForWindow, int startPos, String ref, int[][][] readsCounts, int[][][] phredScores, int[][][] mappingScores, Vector<int[]> denovoMutations, Vector<Vector<Integer>[][]> denovoMutationNotes, String flag, byte format) {
-		String currentRef;
+	public static String[] getRefFromFasta(String refFastaFilename, Vector<int[]> denovoMutations, String chr, int startPosAdjForWindow) {
+		int loop;
+		int[] temp;
+		Process p;
+		BufferedReader reader;
+//		BufferedReader error;
+		String line;
+		int pos;
+		String[] refs;
+
+		loop = denovoMutations.size();
+		refs = new String[loop];
+		try {
+			for (int i = 0; i < loop; i++) {
+				temp = denovoMutations.elementAt(i);
+				pos = temp[0] + startPosAdjForWindow;
+				p = Runtime.getRuntime().exec("samtools faidx " + refFastaFilename + " chr" + chr + ":" + pos + "-" + pos, null, new File(ext.parseDirectoryOfFile(refFastaFilename)));
+	
+//				ps=new ProcessBuilder("samtools", "faidx", refFastaFilename, "chr" + chr + ":" + start + "-" + stop);
+//				ps.redirectErrorStream(true);
+//				ps.directory(new File(ext.parseDirectoryOfFile(refFastaFilename)));
+//				p = ps.start();  
+	
+//				p.waitFor();
+				reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				line = reader.readLine();
+				while ((line = reader.readLine()) != null) {
+					refs[i] = line;
+				}
+				p.waitFor();
+				reader.close();
+	
+//				error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+//				while ((line = error.readLine()) != null) {
+//					System.out.println(line);
+//				}
+//				error.close();
+
+				displayErrorStream(p);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return refs;
+	}
+
+	public static void exportResult(PrintWriter writer, String id, String chr, int startPosAdjForWindow, int startPos, String[] refsForDeNovoMutations, int[][][] readsCounts, int[][][] phredScores, int[][][] mappingScores, Vector<int[]> denovoMutations, Vector<Vector<Integer>[][]> denovoMutationNotes, String flag, byte format) {
 		int[] temp;
 		int loop;
 		int l;
@@ -1040,17 +1067,16 @@ public class SuperNovo {
 		for (int i = 0; i < loop; i++) {
 			temp = denovoMutations.elementAt(i);
 			l = temp[0];
-			currentRef = ref.substring(l + startPosAdjForWindow - startPos, l + startPosAdjForWindow - startPos + 1);
 			writer.println(id
 					+ "\t" + chr
 					+ "\t" + (startPosAdjForWindow + l)
 					+ "\tchr" + chr + ":" + (startPosAdjForWindow + l)
-					+ "\t" + currentRef
-					+ "\t" + formatAltAllele(temp, currentRef)
+					+ "\t" + refsForDeNovoMutations[i]
+					+ "\t" + formatAltAllele(temp, refsForDeNovoMutations[i])
 					+ "\t" + ext.formDeci(temp[1] / (double)100, 2)
 					+ "\t" + formatAlleleCounts(readsCounts, l, format)
 					+ "\t" + formatNotes(denovoMutationNotes, i, format)
-					+ "\t" + formatForwardGenotypes(temp, currentRef)
+					+ "\t" + formatForwardGenotypes(temp, refsForDeNovoMutations[i])
 					+ "\t" + flag
 					+ "\t" + temp[2]
 					+ "\t" + temp[3]
@@ -1512,7 +1538,7 @@ public class SuperNovo {
 //	        					&& isInDel(readsCounts, orderedIndices, 0)
 	        					) {
 
-		        			markerName = line[1] + ":" + line[2] + "_" + line[4] + "_" + line[5];
+		        			markerName = "chr" + line[1] + ":" + line[2] + "_" + line[4].toUpperCase() + "_" + line[5].toUpperCase();
 		        			if (annotationHash.containsKey(markerName)) {
 		        				annotation = annotationHash.get(markerName);
 		        			} else {
@@ -1585,11 +1611,11 @@ public class SuperNovo {
 		}
 
 		if (annotationNeeds.size() > 0) {
-			Files.writeList(Array.toStringArray(annotationNeeds), annotationDir + "annotationNeeds.input");
+			Files.writeList(Array.toStringArray(annotationNeeds), annotationDir + "seattleSeq_input_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
 		}
 		if (miniBamNeeds.size() > 0) {
-			Files.writeList(Array.toStringArray(miniBamNeeds), miniBamDir + "miniBamNeeds.input");
-			Samtools.writerToFile(miniBamDir + "generateMiniBams.sh", miniBamNeeds, loadNamesFromList(fullPathToTrioNameList), 50, log);
+			Files.writeList(Array.toStringArray(miniBamNeeds), miniBamDir + "miniBamNeeds_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
+			Samtools.writerToFile(miniBamDir + "generateMiniBams" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".sh", miniBamNeeds, loadNamesFromList(fullPathToTrioNameList), 50, log);
 		}
 
 		saveParsedResults(resultDir + "SuperNovo_summary.txt", trioIds, result, outFormat, PARSE_RESULT_HEADER + "\t" + Array.toStr(seatleSeekHeader), log);
@@ -2016,17 +2042,19 @@ public class SuperNovo {
 		start = 39346600;
 		stop = 39346622;
 		bedFilename = "/home/spectorl/xuz2/outputs/WholeGenome.bed";
+		annotationDir = "/home/spectorl/xuz2/outputs/SeattleSeqAnnotation/";
+		miniBamDir = "/home/spectorl/xuz2/outputs/mini_bams/";
 		isParseResult = false;
 
 //		bamDir = "D:/logan/DeNovos/bams/";
 //		bedFilename = "D:/logan/DeNovos/outputs/WholeGenome.bed";
 
-		isParseResult = true;
-		bedFilename = null;
-		outputDir = "N:/statgen/OS_Logan/SuperNovo/rawOutput/";
-		annotationDir = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
-		miniBamDir = "N:/statgen/OS_Logan/SuperNovo/mini_bams/";
-		fullPathToTrioList = "N:/statgen/OS_Logan/SuperNovo/trios_rrd_list.txt";
+//		isParseResult = true;
+//		bedFilename = null;
+//		outputDir = "N:/statgen/OS_Logan/SuperNovo/rawOutput/";
+//		annotationDir = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
+//		miniBamDir = "D:/logan/DeNovos/mini_bams/";
+//		fullPathToTrioList = "N:/statgen/OS_Logan/SuperNovo/triolist_rrd.txt";
 
 		bamFilenamesForHelpMenu = (bamFilenamesOfTheTrio == null || bamFilenamesOfTheTrio[0] == null)? "" : bamFilenamesOfTheTrio[0];
 		for (int i = 1; bamFilenamesOfTheTrio != null && i < bamFilenamesOfTheTrio.length && bamFilenamesOfTheTrio[i] != null; i++) {
