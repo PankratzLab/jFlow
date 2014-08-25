@@ -7,7 +7,7 @@ import common.ext;
  * <p>
  * One class to bring other PC classes together
  * 
- * @author John Lane
+ *
  */
 public class PCA {
 	public static final String[] FILE_EXTs = { ".PCs.extrapolated.txt", ".PCs.summary.txt" };
@@ -35,9 +35,9 @@ public class PCA {
 	 * @param useFile
 	 *            a subset of individuals to use
 	 * @param output
-	 *            a base name (
+	 *            a base name 
 	 * @param log
-	 * @return
+	 * Warning - if the principal component, singular values, and marker loadings files already exist, the {@link PrincipalComponentsCompute} object returned will only have the existing filenames populated. The U,V,and W matrices will not be computed again
 	 */
 	public static PrincipalComponentsCompute computePrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output) {
 		return PrincipalComponentsCompute.getPrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, reportMarkerLoadings, reportSingularValues, imputeMeanForNaN, recomputeLRR, useFile, output);
@@ -57,14 +57,18 @@ public class PCA {
 	 *            recompute the log R ratios on the fly
 	 * @param output
 	 * @param log
-	 * @return
+ 	 * Warning - if the extrapolated principal component file already exists, the {@link PrincipalComponentsApply} object returned will only have the extrapolated pc file populated
 	 */
 	public static PrincipalComponentsApply applyLoadings(Project proj, int numComponents, String singularFile, String markerLoadingFile, String useFile, boolean excludeSamples, boolean imputeMeanForNaN, boolean recomputeLRR, String output) {
 		// first retrieve the samples to apply marker loadings to
 		boolean[] samplesToUse = PrincipalComponentsCompute.getSamples(proj, excludeSamples, useFile);
 		PrincipalComponentsApply pcApply = new PrincipalComponentsApply(proj, numComponents, singularFile, markerLoadingFile, samplesToUse, imputeMeanForNaN, recomputeLRR);
-		pcApply.applyLoadings();
-		pcApply.reportExtropolatedPCs(ext.rootOf(output) + FILE_EXTs[0]);
+		if (pcApply.outputExists(proj.getProjectDir() + ext.rootOf(output) + FILE_EXTs[0], true)) {//warn about existence when checking
+			pcApply.setExtrapolatedPCsFile(ext.rootOf(output) + FILE_EXTs[0]);
+		} else {
+			pcApply.applyLoadings();
+			pcApply.reportExtropolatedPCs(ext.rootOf(output) + FILE_EXTs[0]);
+		}
 		return pcApply;
 	}
 
@@ -99,14 +103,14 @@ public class PCA {
 	}
 
 	public static void main(String[] args) {
-		String filename = "C:/workspace/Genvisis/projects/gedi_exomechip_original.properties";
+		String filename = null;
 		String logfile = "PCA.log";
 		String useFile = null;
 		String markersToassessFile = "MT_Markers.txt";
 		String markerLoadingFile = "loadings.txt";
 		String singularValueFile = "singularValues.txt";
 		String useApplyfile = null;
-		String pcFile = "PC_150_LRR_progress_10000_markers_7.txt";
+		String pcFile = "PCs.txt";
 		String evalOut = EVALUATION_FILENAME;
 		int numArgs = args.length;
 		boolean excludeSamples = false;
@@ -121,7 +125,7 @@ public class PCA {
 		int numComponents = 100;
 
 		String usage = // String usage = "\n"+
-				 "jlDev.PCA requires 1 argument\n"+
+				 "cnv.analysis.PCA requires 1 argument\n"+
 				 "   To generate principal components, use the following options \n"+
 				 "   (1) project (i.e. proj=" + filename + " (default))\n"+
 				 "  OPTIONAL \n"+

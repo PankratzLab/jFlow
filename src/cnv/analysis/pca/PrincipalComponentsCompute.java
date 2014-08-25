@@ -213,6 +213,11 @@ public class PrincipalComponentsCompute {
 	 */
 	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output) {
 		Logger log = proj.getLog();
+		PrincipalComponentsCompute pcs = populateWithExistingFiles(proj, output, log);
+		if (pcs != null) {
+			return pcs; //we found all three necessary files, and so we just use them
+		}
+
 		boolean[] samplesToUse = getSamples(proj, excludeSamples, useFile);
 		String[] markers = getMarkers(proj);
 		int numSamples = Array.booleanArraySum(samplesToUse);
@@ -229,7 +234,7 @@ public class PrincipalComponentsCompute {
 
 		// deals with NaN on the fly
 		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, recomputeLRR, output);
-		PrincipalComponentsCompute pcs = getPrincipalComponents(numComponents, center, dataToUse, log);
+		pcs = getPrincipalComponents(numComponents, center, dataToUse, log);
 		double[][] pcsBasis = getPCs(pcs, numComponents, log);
 		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
 		if (reportMarkerLoadings) {
@@ -313,6 +318,33 @@ public class PrincipalComponentsCompute {
 		} else {
 			return getSamplesFromFile(proj, proj.getProjectDir() + useFile);
 		}
+	}
+
+	/**
+	 * If the pcFile, singular value file, and marker loading file all exist, we return a {@link PrincipalComponentsCompute} with these files populated.
+	 * <p>
+	 * These three files are generally all that are needed. If they do not all exist, we return {@link null} and continue with the computation
+	 *TODO, perhaps check the files for proper number of components and identical samples
+	 */
+	private static PrincipalComponentsCompute populateWithExistingFiles(Project proj, String output, Logger log) {
+		PrincipalComponentsCompute pcs;
+		String pcFile, singularValuesFile, markerLoadingFile;
+		pcFile = ext.rootOf(output) + OUTPUT_EXT[0];
+		singularValuesFile = ext.rootOf(output) + OUTPUT_EXT[3];
+		markerLoadingFile = ext.rootOf(output) + OUTPUT_EXT[2];
+		if (Files.exists(proj.getProjectDir() + pcFile) && Files.exists(proj.getProjectDir() + singularValuesFile) && Files.exists(proj.getProjectDir() + markerLoadingFile)) {
+			log.report("Detected that the following principal component files already exist:\n" + proj.getProjectDir() + pcFile + "\n" + proj.getProjectDir() + singularValuesFile + "\n" + proj.getProjectDir() + markerLoadingFile + "\n");
+			log.report("Skipping the principal component computation and using these files instead.");
+			log.report("If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the files listed above.\n Alternatively, specify a new analysis name");
+			pcs = new PrincipalComponentsCompute();
+			pcs.setPcFile(pcFile);
+			pcs.setSingularValuesFile(singularValuesFile);
+			pcs.setMarkerLoadingFile(markerLoadingFile);
+
+		} else {
+			pcs = null;
+		}
+		return pcs;
 	}
 
 	private static boolean[] getSamples(Project proj, boolean excludeSamples) {
