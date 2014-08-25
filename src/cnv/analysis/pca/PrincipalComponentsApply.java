@@ -73,6 +73,30 @@ public class PrincipalComponentsApply {
 		return extrapolatedPCsFile;
 	}
 
+	public void setExtrapolatedPCsFile(String extrapolatedPCsFile) {
+		this.extrapolatedPCsFile = extrapolatedPCsFile;
+	}
+
+	/**
+	 * @param output
+	 *            the filename to use as output
+	 * @param warn
+	 *            report a message geared towards skipping the computation
+	 * @return true if output exists
+	 */
+	public boolean outputExists(String output, boolean warn) {
+		boolean exists = false;
+		if (Files.exists(output)) {
+			if (warn) {
+				proj.getLog().report("Detected that the following extrapolated principal component file already exists:\n" + output + "\n");
+				proj.getLog().report("Skipping the principal component extrapolation and using this file instead");
+				proj.getLog().report("If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the file listed above.\n Alternatively, specify a new analysis name");
+			}
+			exists = true;
+		}
+		return exists;
+	}
+
 	/**
 	 * Load the necessary markers and apply each marker's loadings on the fly
 	 */
