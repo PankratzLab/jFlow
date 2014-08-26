@@ -706,7 +706,7 @@ public class ext {
 			String sub = casesensitive ? subset[i] : subset[i].toLowerCase();
 			if (track.containsKey(sub)) {
 				int index = track.get(sub);
-				if (index > 0) {
+				if (index >= 0) {
 					indices[i] = index;
 					track.put(sub, -1);
 				} else {
