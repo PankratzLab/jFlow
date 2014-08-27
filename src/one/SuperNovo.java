@@ -363,6 +363,9 @@ public class SuperNovo {
 				}
 			}
 			if (numThreads > 1) {
+				if (chrs.size() < numThreads) {
+					numThreads = chrs.size();
+				}
 				numElementsATime = (int) Math.ceil((double) chrs.size() / numThreads);
 				startElement = 0;
 				for (int i = 0; i < numThreads; i++) {
@@ -1494,7 +1497,6 @@ public class SuperNovo {
 			e.printStackTrace();
 		}
 	}
-
 
 	public static void parseResults(String resultDir, String annotationDir, String miniBamDir, String fullPathToTrioNameList, byte resultFormat, double callScoreThreshold, byte outFormat, Logger log) {
 		String[] resultFilenames;
