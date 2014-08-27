@@ -66,7 +66,7 @@ public class SuperNovo {
 	public static final double DISCOUNT_FOR_3ALLELES_LOOSE = .25;
 	public static final double DISCOUNT_FOR_3ALLELES_STRICT = .50;
 	public static final double DISCOUNT_FOR_NEARBY_DENOVOMUTATION = .90;
-	public static final int REGION_LEN_AT_A_TIME = 100000;
+	public static final int REGION_LEN_AT_A_TIME_DEFAULT = 100000;
 //	public static final String OUTPUT_FILE_HEADER = "id\tchr\tpos\tlookup\tsarver\tref\talt\tmendelianLikelihood\tmendelianPP\tmendelianGT\tsnpCode\tcode\tdeNovoLikelihood\tdeNovoPP\tactualDenovo\tconf\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tchildQuality\tdadQuality\tmomQuality";
 //	public static final String OUTPUT_FILE_HEADER = "id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8";
 	public static final String OUTPUT_FILE_HEADER = "id\tchr\tpos\tlookup\tref\talt\tcall\treadsCounts\tnumNearbyInDelVars\tposNearbyInDelVars\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore";
@@ -247,7 +247,7 @@ public class SuperNovo {
 		return	DenovoMutationScore;
 	}
 
-	public static void processGenomeOfAllTriosInDir(String bamDir, String refFastaFilename, String bedFilename, String outputDir, String scriptDir, String fullPathToTrioNameList, int numThreads, Logger log) {
+	public static void processGenomeOfAllTriosInDir(String bamDir, String refFastaFilename, String bedFilename, String outputDir, String scriptDir, String fullPathToTrioNameList, int regionLegnthATime, int numThreads, Logger log) {
 		String[][] bamFilenamesByTrios;
 		String command;
 		String trioId;
@@ -260,7 +260,7 @@ public class SuperNovo {
 			bamFilenamesByTrios = loadNamesFromList(fullPathToTrioNameList);
 		}
 		qsubFilesVec = new Vector<String>(bamFilenamesByTrios.length);
-		command = "cd " + outputDir + "\njcp one.SuperNovo bed=" + bedFilename + " outdir=" + outputDir + " bamdir=" + bamDir + " reffasta=" + refFastaFilename + " numthreads=" + numThreads;
+		command = "cd " + outputDir + "\njcp one.SuperNovo bed=" + bedFilename + " outdir=" + outputDir + " bamdir=" + bamDir + " reffasta=" + refFastaFilename + " regionlengthatime=" + regionLegnthATime + " numthreads=" + numThreads;
 		for (int i = 0; i < bamFilenamesByTrios.length; i++) {
 //			processGenomeOfOneTrio(bamDir, bamFilenames, refFastaFilename, bedFilename, outputDir, numThreads, log);
 			trioId = bamFilenamesByTrios[i][0];
@@ -285,7 +285,7 @@ public class SuperNovo {
 		log.report("Scripts for all trios in " + bamDir + " are ready at " + scriptDir);
 	}
 
-	public static void processGenomeOfOneTrio(String bamDir, String trioId, String[] bamFilenamesOfTheTrio, String refFastaFilename, String bedFilename, String outputDir, int numThreads, Logger log) {
+	public static void processGenomeOfOneTrio(String bamDir, String trioId, String[] bamFilenamesOfTheTrio, String refFastaFilename, String bedFilename, String outputDir, int regionLengthATime, int numThreads, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		String chr, prevChr;
@@ -299,8 +299,8 @@ public class SuperNovo {
 //		String trioId;
 		String outFileName;
 		ExecutorService executor = null;
-		Runnable worker = null;
-		int processId;
+		int numElementsATime;
+		int startElement;
 		long timer;
 		SimpleDateFormat timeFormat;
 
@@ -308,6 +308,9 @@ public class SuperNovo {
 			log = new Logger();
 		}
 
+		if (regionLengthATime <= 0) {
+			regionLengthATime = REGION_LEN_AT_A_TIME_DEFAULT;
+		}
 		timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
      	timer = new Date().getTime();
@@ -315,7 +318,6 @@ public class SuperNovo {
      		trioId = getRootOf(bamFilenamesOfTheTrio, false);
      	}
 		outFileName = outputDir + trioId + "_superNovo_" + ext.rootOf(bedFilename) + ".txt";
-		processId = 0;
 		prevChr = "start";
 		try {
 			writer = new PrintWriter(outFileName);
@@ -346,7 +348,7 @@ public class SuperNovo {
 						stop = Integer.parseInt(line[2]);
 					}
 					while (start <= stop) {
-						loop = Math.min(start + REGION_LEN_AT_A_TIME, stop);
+						loop = Math.min(start + regionLengthATime - 1, stop);
 						if (numThreads > 1) {
 							chrs.add(chr);
 							starts.add(start);
@@ -354,19 +356,24 @@ public class SuperNovo {
 						} else {
 							processRegion(bamDir, bamFilenamesOfTheTrio, trioId, refFastaFilename, chr, start, loop, writer, null, log);
 						}
-						start += (REGION_LEN_AT_A_TIME + 1);
+						start += regionLengthATime;
 					}
 				} else {
 					log.reportError("Warning: unrecognized chr number '" + line[0] + "' in bed file " + bedFilename);
 				}
 			}
 			if (numThreads > 1) {
+				numElementsATime = (int) Math.ceil((double) chrs.size() / numThreads);
+				startElement = 0;
 				for (int i = 0; i < numThreads; i++) {
-					worker = new WorkerThread(bamDir, bamFilenamesOfTheTrio, trioId, refFastaFilename, chrs, starts, stops, writer, null, processId, log);
-					executor.execute(worker);
+					if ((i + 1) == numThreads) {
+						numElementsATime = chrs.size() % numElementsATime;
+					}
+					executor.execute(new WorkerThread(bamDir, bamFilenamesOfTheTrio, trioId, refFastaFilename, chrs, starts, stops, startElement, numElementsATime, writer, null, i, log));
+					startElement += numElementsATime;
 				}
-				executor.awaitTermination(7, TimeUnit.DAYS);
 				executor.shutdown();
+				executor.awaitTermination(2, TimeUnit.DAYS);
 			}
 			reader.close();
 			writer.close();
@@ -387,23 +394,28 @@ public class SuperNovo {
 		private String[] bamFilenames;
 		private String trioId;
 		private String refFastaFilename;
-		private Vector<String> chr;
-		private Vector<Integer> start;
-		private Vector<Integer> stop;
+		private String[] chrs;
+		private int[] startPositions;
+		private int[] stopPositions;
 		private PrintWriter writer;
 		private String outAlleleCountsFileName;
 		private int threadId;
 		private Logger log;
 
-		public WorkerThread(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, Vector<String> chr, Vector<Integer> start, Vector<Integer> stop, PrintWriter writer, String outAlleleCountsFileName, int threadId, Logger log) {
+		public WorkerThread(String bamDir, String[] bamFilenames, String trioId, String refFastaFilename, Vector<String> chrs, Vector<Integer> starts, Vector<Integer> stops, int startIndexOfTheVectors, int numElementsOfTheVectors, PrintWriter writer, String outAlleleCountsFileName, int threadId, Logger log) {
 			super();
 			this.bamDir = bamDir;
 			this.bamFilenames = bamFilenames;
 			this.trioId = trioId;
 			this.refFastaFilename = refFastaFilename;
-			this.chr = chr;
-			this.start = start;
-			this.stop = stop;
+			this.chrs = new String[numElementsOfTheVectors];
+			this.startPositions = new int[numElementsOfTheVectors];
+			this.stopPositions = new int[numElementsOfTheVectors];
+			for (int i = 0; i < numElementsOfTheVectors; i++) {
+				this.chrs[i] = chrs.elementAt(i + startIndexOfTheVectors);
+				this.startPositions[i] = starts.elementAt(i + startIndexOfTheVectors);
+				this.stopPositions[i] = stops.elementAt(i + startIndexOfTheVectors);
+			}
 			this.writer = writer;
 			this.outAlleleCountsFileName = outAlleleCountsFileName;
 			this.threadId = threadId;
@@ -412,10 +424,8 @@ public class SuperNovo {
 
 		@Override
 		public void run() {
-			int loop;
-			loop = chr.size();
-			for (int i = 0; i < loop; i++) {
-				processRegion(bamDir, bamFilenames, trioId, refFastaFilename, chr.elementAt(i), start.elementAt(i), stop.elementAt(i), writer, outAlleleCountsFileName, log);
+			for (int i = 0; i < this.chrs.length; i++) {
+				processRegion(bamDir, bamFilenames, trioId, refFastaFilename, this.chrs[i], this.startPositions[i], this.stopPositions[i], writer, outAlleleCountsFileName, log);
 			}
 		}
 		
@@ -493,7 +503,7 @@ public class SuperNovo {
 			mappingScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
 	        timeFormat = new SimpleDateFormat("mm:ss.SSS");
 			timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-			status = trioId + "\tchr" + chr + ":" + startPosAdjForWindow + "-" + stopPosAdjForWindow;
+			status = trioId + "\tchr" + chr + ":" + startPosAdjForWindow + "-" + stopPosAdjForWindow + "\t(" + startPosition + "-" + stopPosition + ")";
 
 			timer = new Date().getTime();
 			for (int i = 0; i < bamFilenames.length; i++) {
@@ -1501,13 +1511,14 @@ public class SuperNovo {
 		String[] annotation;
 		Hashtable<String, String[]> annotationHash;
 		HashSet<String> miniBamHash;
-		Vector<String> annotationNeeds, miniBamNeeds;
+		Vector<String> annotationNeedsVars, annotationNeedsInDels, miniBamNeeds;
 		String markerName;
 		String[] resultElements;
 		String miniBamLink;
 		String[] seatleSeekHeader;
 		
-		annotationNeeds = new Vector<String>();
+		annotationNeedsVars = new Vector<String>();
+		annotationNeedsInDels =  new Vector<String>();
 		miniBamNeeds = new Vector<String>();
 		annotationHash = SeattleSeq.loadAllAnnotationInDir(annotationDir, log);
 		miniBamHash = Samtools.listFiles(miniBamDir, log);
@@ -1543,7 +1554,11 @@ public class SuperNovo {
 		        				annotation = annotationHash.get(markerName);
 		        			} else {
 		        				annotation = Array.stringArray(seatleSeekHeader.length);
-		        				annotationNeeds.add(line[1] + "\t" + line[2] + "\t" + line[5] + "\t" + line[5]);	//chr + pos + alt + alt
+		        				if (readsCounts[0][0][orderedIndices[0][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+		        					annotationNeedsVars.add(line[1] + "\t" + line[2] + "\t" + line[5] + "\t" + line[5]);	//chr + pos + alt + alt
+		        				} else {
+		        					annotationNeedsInDels.add(line[1] + "\t" + line[2] + "\t" + line[5] + "\t" + line[5]);
+		        				}
 		        			}
 
 		        			if (miniBamHash.contains(line[0] + "\t" + line[1] + "\t" + line[2])) {	//trioId + chr + pos
@@ -1610,8 +1625,11 @@ public class SuperNovo {
 			}
 		}
 
-		if (annotationNeeds.size() > 0) {
-			Files.writeList(Array.toStringArray(annotationNeeds), annotationDir + "seattleSeq_input_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
+		if (annotationNeedsVars.size() > 0) {
+			Files.writeList(Array.toStringArray(annotationNeedsVars), annotationDir + "seattleSeq_input_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
+		}
+		if (annotationNeedsInDels.size() > 0) {
+			Files.writeList(Array.toStringArray(annotationNeedsInDels), annotationDir + "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
 		}
 		if (miniBamNeeds.size() > 0) {
 			Files.writeList(Array.toStringArray(miniBamNeeds), miniBamDir + "miniBamNeeds_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
@@ -2010,6 +2028,7 @@ public class SuperNovo {
 		String scriptDir;
 		String outputDir, annotationDir, miniBamDir;
 		boolean isToAnnotate;
+		int regionLegnthATime;
 		int numThreads;
 		String bamFilenamesForHelpMenu;
 		String chr;
@@ -2037,6 +2056,7 @@ public class SuperNovo {
 		scriptDir = "/home/spectorl/xuz2/scripts/";
 		outputDir = "/home/spectorl/xuz2/outputs/";
 		isToAnnotate = false;
+		regionLegnthATime = -1;
 		numThreads = 1;
 		chr = "";
 		start = 39346600;
@@ -2061,7 +2081,7 @@ public class SuperNovo {
 			bamFilenamesForHelpMenu += "," + bamFilenamesOfTheTrio[i];
 		}
 
-		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bed=", "numthreads=", "-parseresult", "trioid=", "triolistfile="};
+		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bed=", "numthreads=", "-parseresult", "trioid=", "triolistfile=", "regionlengthatime="};
 		String usage = "\n"
 				+ "To annotate a list of candidate markers:"
 				+ "   (1) command for annotatation (i.e. " + commands[0] + " (default))\n"
@@ -2148,6 +2168,9 @@ public class SuperNovo {
 			} else if (args[i].startsWith(commands[14])) {
 				fullPathToTrioList = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith(commands[15])) {
+				regionLegnthATime = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -2168,9 +2191,9 @@ public class SuperNovo {
 			processRegion(bamDir, bamFilenamesOfTheTrio, refFastaFilename, chr, start, stop, outputDir, false, log);
 		} else if (bedFilename != null && new File(bedFilename).exists()) {
 			if (bamFilenamesOfTheTrio == null || bamFilenamesOfTheTrio.length < 2) {
-				processGenomeOfAllTriosInDir(bamDir, refFastaFilename, bedFilename, outputDir, scriptDir, fullPathToTrioList, numThreads, log);
+				processGenomeOfAllTriosInDir(bamDir, refFastaFilename, bedFilename, outputDir, scriptDir, fullPathToTrioList, regionLegnthATime, numThreads, log);
 			} else {
-				processGenomeOfOneTrio(bamDir, trioId, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, outputDir, numThreads, log);
+				processGenomeOfOneTrio(bamDir, trioId, bamFilenamesOfTheTrio, refFastaFilename, bedFilename, outputDir, regionLegnthATime, numThreads, log);
 			}
 		} else if (isParseResult) {
 			parseResults(outputDir, annotationDir, miniBamDir, fullPathToTrioList, (byte) 2, 0, (byte) 1, log);
