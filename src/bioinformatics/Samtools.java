@@ -133,10 +133,13 @@ public class Samtools {
 				pos = Integer.parseInt(line[2]);
 				index = getIndex(line[0], bamFilenamesByTrios, log);
 
-				writer.print(	  "samtools view " + bamFilenamesByTrios[index][1] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_C.bam\n"
-								+ "samtools view " + bamFilenamesByTrios[index][2] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_D.bam\n"
-								+ "samtools view " + bamFilenamesByTrios[index][3] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_M.bam\n"
-								);
+				writer.print("samtools view " + bamFilenamesByTrios[index][1] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_C.bam\n"
+							+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_C.bam\n"
+							+ "samtools view " + bamFilenamesByTrios[index][2] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_D.bam\n"
+							+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_D.bam\n"
+							+ "samtools view " + bamFilenamesByTrios[index][3] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_M.bam\n"
+							+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_M.bam\n"
+							);
 			}
 			
 			writer.close();
