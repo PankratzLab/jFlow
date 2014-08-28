@@ -298,7 +298,7 @@ public class MitoPipeline {
 		} catch (InterruptedException ie) {
 		}
 		if (sampleList == null || sampleList.getSamples().length == 0) {
-			log.report("Error - could not import samples, halting");
+			log.report(ext.getTime()+"\tError - could not import samples, halting");
 			return;
 		}
 
@@ -1018,14 +1018,15 @@ public class MitoPipeline {
 		String sampleCallRateFilter = "0.95";
 		double markerCallRateFilter = 0.98;
 		boolean markerQC = true;
-		boolean recomputeLRR_PCs = false;
-		boolean recomputeLRR_Median = false;
+		boolean recomputeLRR_PCs = true;
+		boolean recomputeLRR_Median = true;
 		String useFile = null;
 		String logfile = null;
 
 		int numThreads = 1;
 		int numComponents = 100;
 		boolean homosygousOnly = true;
+		
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
 		usage += "  \n";
@@ -1055,8 +1056,8 @@ public class MitoPipeline {
 		usage += "   (18) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
 		usage += "   (19) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
 		usage += "   (20) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
-		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. -recomputeLRR_PCs (not the default))\n";
-		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. -recomputeLRR_Median (not the default))\n";
+		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs="+recomputeLRR_PCs+" (default))\n";
+		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median="+recomputeLRR_Median+" (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -1124,11 +1125,11 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("-nomarkerQC")) {
 				markerQC = true;
 				numArgs--;
-			} else if (args[i].startsWith("-recomputeLRR_PCs")) {
-				recomputeLRR_PCs = true;
+			} else if (args[i].startsWith("recomputeLRR_PCs=")) {
+				recomputeLRR_PCs = ext.parseBooleanArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("-recomputeLRR_Median")) {
-				recomputeLRR_Median = true;
+			} else if (args[i].startsWith("recomputeLRR_Median=")) {
+				recomputeLRR_Median = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("markerCallRate=")) {
 				markerCallRateFilter = ext.parseDoubleArg(args[i]);
