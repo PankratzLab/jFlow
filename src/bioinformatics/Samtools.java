@@ -133,13 +133,17 @@ public class Samtools {
 				pos = Integer.parseInt(line[2]);
 				index = getIndex(line[0], bamFilenamesByTrios, log);
 
-				writer.print("samtools view " + bamFilenamesByTrios[index][1] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_C.bam\n"
-							+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_C.bam\n"
-							+ "samtools view " + bamFilenamesByTrios[index][2] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_D.bam\n"
-							+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_D.bam\n"
-							+ "samtools view " + bamFilenamesByTrios[index][3] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_M.bam\n"
-							+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_M.bam\n"
-							);
+				if (index < 0) {
+					log.reportError("Trio ID (" + line[0] + ") from a phase 1 output file does not match any row of the Trio ID List file, - skipped generating some scripts for mini bam files");
+				} else {
+					writer.print("samtools view " + bamFilenamesByTrios[index][1] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_C.bam\n"
+								+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_C.bam\n"
+								+ "samtools view " + bamFilenamesByTrios[index][2] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_D.bam\n"
+								+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_D.bam\n"
+								+ "samtools view " + bamFilenamesByTrios[index][3] + " -b chr" + chr + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_M.bam\n"
+								+ "samtools index " + bamFilenamesByTrios[index][0] + "_chr" + chr + "_" + pos+"_M.bam\n"
+								);
+				}
 			}
 			
 			writer.close();
