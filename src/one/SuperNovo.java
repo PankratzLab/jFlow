@@ -1637,7 +1637,7 @@ public class SuperNovo {
 			        				if (readsCounts[0][0][orderedIndices[0][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
 			        					annotationNeedsVars.add(line[1] + "\t" + line[2] + "\t" + allelesOfInDels[j] + "\t" + allelesOfInDels[j]);	//chr + pos + alt + alt
 			        				} else {
-			        					annotationNeedsInDels.add(line[1] + "\t" + line[2] + "\t" + (Integer.parseInt(line[2]) + allelesOfInDels[j].length()) + "\t" + allelesOfInDels[j]);
+			        					annotationNeedsInDels.add(line[1] + "\t" + line[2] + "\t" + (allelesOfInDels[j].startsWith("+")? line[2]: (Integer.parseInt(line[2]) + allelesOfInDels[j].length() - 1)) + "\t" + allelesOfInDels[j]);
 			        				}
 			        			}
 							}
@@ -2167,19 +2167,19 @@ public class SuperNovo {
 //		bamFilenamesOfTheTrio = new String[] {"F10639_chr17_38000000_C.bam", "F10639_chr17_38000000_D.bam", "F10639_chr17_38000000_M.bam"};
 //		trioId = "F10639_mini";
 
-//		isParseResult = true;
-//		bedFilename = null;
-//		outputDir = "N:/statgen/OS_Logan/SuperNovo/rawOutput/";
-//		annotationDir = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
-//		miniBamDir = "D:/logan/DeNovos/mini_bams/";
-//		fullPathToTrioList = "N:/statgen/OS_Logan/SuperNovo/triolist_rrd.txt";
-
 		isParseResult = true;
 		bedFilename = null;
-		outputDir = "D:/logan/DeNovos/outputs/test/";
-		seattleSeqDir = "D:/logan/DeNovos/outputs/test/SeattleSeqAnnotation/";
-		miniBamDir = "D:/logan/DeNovos/outputs/test/mini_bams/";
-		fullPathToTrioList = "D:/logan/DeNovos/outputs/test/triolists/triolist_rrd.txt";
+		outputDir = "N:/statgen/OS_Logan/SuperNovo/output/";
+		seattleSeqDir = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
+		miniBamDir = "D:/logan/DeNovos/mini_bams/";
+		fullPathToTrioList = "N:/statgen/OS_Logan/SuperNovo/triolist_rrd.txt";
+
+//		isParseResult = true;
+//		bedFilename = null;
+//		outputDir = "D:/logan/DeNovos/outputs/test/";
+//		seattleSeqDir = "D:/logan/DeNovos/outputs/test/SeattleSeqAnnotation/";
+//		miniBamDir = "D:/logan/DeNovos/outputs/test/mini_bams/";
+//		fullPathToTrioList = "D:/logan/DeNovos/outputs/test/triolists/triolist_rrd.txt";
 
 		bamFilenamesForHelpMenu = (bamFilenamesOfTheTrio == null || bamFilenamesOfTheTrio[0] == null)? "" : bamFilenamesOfTheTrio[0];
 		for (int i = 1; bamFilenamesOfTheTrio != null && i < bamFilenamesOfTheTrio.length && bamFilenamesOfTheTrio[i] != null; i++) {

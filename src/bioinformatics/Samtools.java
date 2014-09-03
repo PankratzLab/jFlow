@@ -158,26 +158,27 @@ public class Samtools {
 		String[] line1;
 		String[] line2;
 		HashSet<String> result;
-		int isAllThreeFilesExist;
+		Vector<String> currentTrio;
 
 		result = new HashSet<String>();
 		filenames = Files.list(miniBamDir, ".bam", false);
 		isVisited = new boolean[filenames.length];
 		for (int i = 0; i < filenames.length; i++) {
 			if (! isVisited[i]) {
-				isAllThreeFilesExist = 1;
+				currentTrio = new Vector<String>(3);
+				currentTrio.add(filenames[i]);
 				line1 = filenames[i].split("_");
 				for (int j = 0; j < filenames.length; j++) {
 					line2 = filenames[j].split("_");
 					if (! isVisited[j] && j != i && line2[0].equals(line1[0]) && line2[1].equals(line1[1]) && line2[2].equals(line1[2])) {
 						isVisited[j] = true;
-						isAllThreeFilesExist ++;
+						currentTrio.add(filenames[j]);
 					}
 				}
-				if (isAllThreeFilesExist == 3) {
+				if (currentTrio.size() == 3) {
 					result.add(line1[0] + "_" + line1[1] + "_" + line1[2]);
-					if (! new File(miniBamDir + "/xmls/" + line1[1] + "_" + line1[2] + ".xml").exists()) {
-						Files.write(getIgvScript(miniBamDir, new String[0]), miniBamDir + "/xmls/" + line1[1] + "_" + line1[2] + ".xml");
+					if (! new File(miniBamDir + "/xmls/" + line1[0] + "_" + line1[1] + "_" + line1[2] + ".xml").exists()) {
+						Files.write(getIgvScript(miniBamDir, new String[] {line1[0], currentTrio.elementAt(0), currentTrio.elementAt(1), currentTrio.elementAt(2)}), miniBamDir + "xmls/" + line1[0] + "_" + line1[1] + "_" + line1[2] + ".xml");
 					}
 				}
 			}
