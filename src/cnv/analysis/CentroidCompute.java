@@ -29,6 +29,7 @@ public class CentroidCompute {
 	private double[] centerThetas, centerRs;
 	private int[] counts, sampleSex;
 	private double missingnessThreshold, gcThreshold;
+	private byte[] alternateGenotypes;
 	private float[][] centroid; // centroid[genotype][centerTheta,centerR]
 	private ClusterFilterCollection clusterFilterCollection;
 	private Logger log;
@@ -71,6 +72,7 @@ public class CentroidCompute {
 		this.centerRs = new double[5];
 		this.counts = new int[5];
 		this.centroid = null;
+		this.alternateGenotypes = null;
 		this.log = log;
 		checkData();// fail early if mismatched array sizes
 	}
@@ -86,6 +88,36 @@ public class CentroidCompute {
 
 	public MarkerData getMarkerData() {
 		return markerData;
+	}
+
+	/**
+	 * We favor returning {@link #alternateGenotypes} if they have been explicitly set.
+	 * <p>
+	 * Next we favor the {@link #clusterFilterCollection} genotypes.
+	 * <P>
+	 * Lastly we take the {@link #markerData} original genotypes
+	 */
+	public byte[] getClustGenotypes() {
+		if (alternateGenotypes != null) {
+			return alternateGenotypes;
+		}
+		if (clusterFilterCollection == null) {
+			return markerData.getAbGenotypes();
+		} else {
+			return markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), (float) gcThreshold);
+		}
+	}
+
+	public byte[] getAlternateGenotypes() {
+		return alternateGenotypes;
+	}
+
+	public void setAlternateGenotypes(byte[] alternateGenotypes) {
+		this.alternateGenotypes = alternateGenotypes;
+	}
+
+	public boolean failed() {
+		return failed;
 	}
 
 	public float[] getRecomputedLRR() {
@@ -111,7 +143,14 @@ public class CentroidCompute {
 
 	}
 
-	private void computeCentroid() {
+	public void init() {
+		this.centerThetas = new double[5];// 0=all,1=missing,2=AA,3=AB,4=BB
+		this.centerRs = new double[5];
+		this.counts = new int[5];
+	}
+
+	public void computeCentroid() {
+		init();
 		computeCenters();
 		if (!failed) {
 			if (intensityOnly) {
@@ -294,12 +333,8 @@ public class CentroidCompute {
 		ArraySpecialLists slThetas = new ArraySpecialLists(centerThetas.length, thetas.length); // only used for median
 		ArraySpecialLists slRs = new ArraySpecialLists(centerRs.length, rs.length);// only used for median
 
-		if (clusterFilterCollection == null) {
-			genotypes = markerData.getAbGenotypes();
-		} else {
-			genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), (float) gcThreshold);
-		}
-		checkGenoClusterMarkerData(thetas, rs, confs, genotypes);
+		genotypes = getClustGenotypes();
+		checkGenoClusterMarkerData(thetas, rs, confs, genotypes, gcThreshold, log);
 		if (!failed) {
 			for (int i = 0; i < genotypes.length; i++) {
 				if (checkSex(chr, i) && (samplesToUse == null || samplesToUse[i]) && useMarker(thetas[i], rs[i], confs[i], gcThreshold)) {
@@ -323,6 +358,7 @@ public class CentroidCompute {
 					if (medianCenter) {
 						centerThetas[k] = slThetas.getMedianAt(k);
 						centerRs[k] = slRs.getMedianAt(k);
+
 					} else {
 						centerThetas[k] /= counts[k];
 						centerRs[k] /= counts[k];
@@ -337,7 +373,11 @@ public class CentroidCompute {
 		}
 	}
 
-	private void checkGenoClusterMarkerData(float[] thetas, float[] rs, float[] confs, byte[] genotypes) {
+	/**
+	 * A data check for genotype based clustering
+	 */
+	private static boolean checkGenoClusterMarkerData(float[] thetas, float[] rs, float[] confs, byte[] genotypes, double gcThreshold, Logger log) {
+		boolean failed = false;
 		if (thetas == null) {
 			log.reportError("Error - no theta values found, cannot compute genotype centers");
 			failed = true;
@@ -354,6 +394,7 @@ public class CentroidCompute {
 			log.reportError("Error - no genotype values found, cannot compute genotype centers");
 			failed = true;
 		}
+		return failed;
 	}
 
 	/**
@@ -404,7 +445,7 @@ public class CentroidCompute {
 	}
 
 	private static boolean useMarker(float theta, float r, float conf, double confThreshold) {
-		return !Float.isNaN(theta) && !Float.isNaN(r) && !Float.isNaN(conf) && conf > confThreshold;
+		return !Float.isNaN(theta) && !Float.isNaN(r) && !Float.isNaN(conf) && (confThreshold == 0 || conf > confThreshold);
 	}
 
 	/**
