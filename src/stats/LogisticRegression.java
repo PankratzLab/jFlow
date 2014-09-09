@@ -408,6 +408,7 @@ public class LogisticRegression extends RegressionModel {
 		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
 		for (int i = 1; i<betas.length; i++) {
 			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(stats[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], 3, true), 7)+"\t  "+ext.formDeci(odds_ratios[i][0], 3, true)+" ("+ext.formDeci(odds_ratios[i][1], 3, true)+", "+ext.formDeci(odds_ratios[i][2], 3, true)+")"+eol;
+			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], 3, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], 3, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], 3, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t==CHIDIST("+Math.abs(stats[i])+",1) (untested)"+eol;
 		}
 		str += ext.formStr(varNames[0], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[0], 3, true), 7)+eol;
 

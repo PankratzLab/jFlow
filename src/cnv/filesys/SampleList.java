@@ -3,6 +3,7 @@ package cnv.filesys;
 import java.io.*;
 
 import common.Files;
+import common.Logger;
 import common.Sort;
 import common.ext;
 
@@ -53,6 +54,9 @@ public class SampleList implements Serializable {
 		SampleList list;
 		int[] keys;
 		int countAt;
+		Logger log;
+		
+		log = proj.getLog();
 
 //		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY, true), MarkerData.MARKER_DATA_FILE_EXTENSION, proj.getJarStatus()).length>0) {
 //			System.err.println("Error - Refusing to create new SampleList until the plots directory is either deleted or emptied; altering the SampleList will invalidate those files");
@@ -62,7 +66,7 @@ public class SampleList implements Serializable {
 		if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY), false)) {
 			files = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 		} else {
-			System.err.println("Error - failed to find the SAMPLE_DIRECTORY ("+proj.getDir(Project.SAMPLE_DIRECTORY)+"); no SampleList could be generated");
+			log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("+proj.getDir(Project.SAMPLE_DIRECTORY)+"); no SampleList could be generated");
 			return null;
 		}
 
@@ -78,6 +82,8 @@ public class SampleList implements Serializable {
 		list = new SampleList(samples);
 		if (samples.length > 0) {
 			list.serialize(proj.getFilename(Project.SAMPLELIST_FILENAME, true, true));
+		} else {
+			log.reportError("Error - there are no samples in the samples directory; parsing must have failed, so cannot create a SampleList");
 		}
 		if (countAt > 0) {
 			proj.getLog().report("Note - "+countAt+" ("+(Double.parseDouble(ext.prettyP((double)countAt/(double)samples.length))*100)+"%) of your Sample IDs contain the @ symbol, which is often used when concatenating the sample's bar code. If you would like these to be stripped, then set "+Project.PARSE_AT_AT_SYMBOL+"=TRUE in the properties file, delete the samples/ directory and reparse the data");

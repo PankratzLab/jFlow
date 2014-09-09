@@ -73,7 +73,7 @@ public class Markers {
 		
 		log = proj.getLog();
 		time = new Date().getTime();
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = Files.determineDelimiter(snpTable, log);
 		try {
 			if (!Files.exists(snpTable) && Files.exists(proj.getProjectDir()+snpTable)) {
 				snpTable = proj.getProjectDir()+snpTable;

@@ -137,7 +137,7 @@ public class Files {
         	minutes = (int)Math.ceil((walltimeRequestedInHours-hours)*60.0);
         	params.add("walltime="+ext.formNum(hours, 2)+":"+ext.formNum(minutes, 2)+":00");
         }
-        params.add("nodes=1:ppn="+numProcs);
+        params.add("nodes=1:ppn="+(numProcs<=0?"1":numProcs));
         if (params.size() > 0) {
 	        writer.println("#PBS -m ae"); // send mail when aborts or ends (add b, as in #PBS -m abe, for begins as well)
         	writer.println("#PBS -l "+Array.toStr(Array.toStringArray(params), ","));

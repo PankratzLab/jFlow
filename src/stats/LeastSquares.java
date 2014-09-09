@@ -362,7 +362,7 @@ public class LeastSquares extends RegressionModel {
 			str += "Number of independent observations: "+Array.unique(famIDs).length+""+eol;
 			str += ""+eol;
 		} else {
-			str += "Fstat = "+ext.formDeci(overall, 3)+", Sig. "+ext.formDeci(overallSig, 3, true)+" and R2= "+ext.formDeci(Rsquare, 4)+""+eol;
+			str += "n="+N+" Fstat = "+ext.formDeci(overall, 3)+", Sig. "+ext.formDeci(overallSig, 3, true)+" and R2= "+ext.formDeci(Rsquare, 4)+""+eol;
 			str += ""+eol;
 		}
 		str += "Coefficients:"+eol;
@@ -378,7 +378,7 @@ public class LeastSquares extends RegressionModel {
 
 		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
 		for (int i = 0; i<betas.length; i++) {
-			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], 3, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], 3, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], 3, true), 7)+eol;
+			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], 3, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], 3, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], 3, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t=TDIST("+Math.abs(stats[i])+","+((onePer?Array.unique(famIDs).length:N)-2)+",2)"+eol;
 		}
 
 		return str;

@@ -50,6 +50,8 @@ public class MitoPipeline {
 	private static final String PC_MARKER_COMMAND = "PCmarkers=";
 	private static final String MEDIAN_MARKER_COMMAND = "medianMarkers=";
 	private static final String USE_FILE_COMMAND = "useFile=";
+	private static final String IMPORT_EXTENSION = "dirExt=";
+	private static final long RECOMMENDED_MEMORY = 1000000000;
 
 	private String projectName;
 	private String filename;
@@ -277,13 +279,23 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static void catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median) {
+	public static int catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
 		Logger log;
+		long memoryAvailable;
 
 		log = proj.getLog();
+		
+		memoryAvailable = Runtime.getRuntime().maxMemory();
+		log.report("Memory available = " + memoryAvailable +"  ("+ext.prettyUpSize(memoryAvailable, 1)+")");
+		if (memoryAvailable < RECOMMENDED_MEMORY) {
+			log.reportError("\nWarning - "+ext.prettyUpSize(memoryAvailable, 1)+" may not be enough RAM to get the job done; add the following -Xmx argument at the command line to increase the amount of memory to the Java virtual machine");
+			log.reportError("java -Xmx10g -cp /path/to/genvisis.jar ... ");
+			log.reportError("which will allocate 10 Gb of RAM (likewise, you can set it to -Xmx2g for 2 GB or -Xmx250 for 250Gb)\n");
+		}
+		
 		sampleDirectory = proj.getDir(Project.SAMPLE_DIRECTORY, false, false);
 		if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length > 0 || (proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0))) {
 			sampleList = proj.getSampleList();
@@ -291,15 +303,18 @@ public class MitoPipeline {
 			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(Project.SAMPLELIST_FILENAME) + " and " + proj.getDir(Project.SAMPLE_DIRECTORY));
 		} else {
 			cnv.manage.ParseIllumina.createFiles(proj, numThreads);
-			sampleList = proj.getSampleList();
+			if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length == 0)) {
+				log.reportError("\nMake sure your "+IMPORT_EXTENSION+" argument is set to the right file extension");
+			}
 		}
 		try {
 			Thread.sleep(5000); // Got hit with the error below for no reason twice now
 		} catch (InterruptedException ie) {
 		}
+		sampleList = proj.getSampleList();
 		if (sampleList == null || sampleList.getSamples().length == 0) {
-			log.report(ext.getTime()+"\tError - could not import samples, halting");
-			return;
+			log.report("\n"+ext.getTime()+"\tError - samples were not imported properly, halting MitoPipeline");
+			return 41;
 		}
 
 		createSampleData(pedFile, sampleMapCsv, proj);
@@ -325,7 +340,7 @@ public class MitoPipeline {
 							markersForABCallRate = proj.getProjectDir() + MARKERS_FOR_ABCALLRATE;
 							if (!Files.exists(markersForABCallRate)) {
 								log.reportError("Error - markerQC was flagged but the file " + proj.getProjectDir() + MARKERS_FOR_ABCALLRATE + " could not be found");
-								return;
+								return 1;
 							}
 						} else {
 							markersForABCallRate = proj.getProjectDir() + MARKERS_TO_QC_FILE;
@@ -341,7 +356,7 @@ public class MitoPipeline {
 								log.reportError("Error - different number of samples (n=" + counts[1] + ") listed in the QC file (" + DEFUALT_QC_FILE + ") compared to the number of samples in the project (n=" + sampleList.getSamples().length + ")");
 								log.reportError("      - delete the QC file (" + DEFUALT_QC_FILE + ") to regenerate it with the correct number of samples");
 								log.reportError("aborting...");
-								return;
+								return 2;
 							}
 						}
 						// check that all median markers are available
@@ -349,7 +364,7 @@ public class MitoPipeline {
 							// compute PCs with samples passing QC
 							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase);
 							if (pcs == null) {
-								return;
+								return 3;
 							}
 							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
@@ -362,6 +377,8 @@ public class MitoPipeline {
 				}
 			}
 		}
+		
+		return 42;
 	}
 
 	/**
@@ -485,10 +502,13 @@ public class MitoPipeline {
 	}
 
 	public static void qcMarkers(Project proj, double markerCallRateFilter) {
-		Logger log = proj.getLog();
+		Logger log;
+		String markerMetricsFilename;
 
+		log = proj.getLog();
+		markerMetricsFilename = proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false);
 		// skip if marker qc file exists
-		if (Files.exists(proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false))) {
+		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(proj.getProjectDir() + MARKERS_TO_QC_FILE) && Files.countLines(markerMetricsFilename, true) >= Files.countLines(proj.getProjectDir() + MARKERS_TO_QC_FILE, false)) {
 			log.report("Marker QC file " + proj.getFilename(Project.MARKER_METRICS_FILENAME, true, false) + " exists");
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
@@ -526,7 +546,7 @@ public class MitoPipeline {
 	/**
 	 * Write a filtered list of markers to use for ab callRate in sample QC
 	 */
-	private static void filterMarkerMetricsFile(Project proj, double markerCallRateFilter) {
+	private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter) {
 		ArrayList<String> abMarkersToUse = new ArrayList<String>();
 		BufferedReader reader;
 		Logger log = proj.getLog();
@@ -537,7 +557,7 @@ public class MitoPipeline {
 			int abIndex = ext.indexOfStr(MarkerMetrics.FULL_QC_HEADER[2], header);
 			if (abIndex == -1) {
 				log.reportError("Error - the necessary marker metrics header " + MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" + proj.getFilename(Project.MARKER_METRICS_FILENAME));
-				return;
+				return false;
 			} else {
 				String[] metrics;
 				while (reader.ready()) {
@@ -554,7 +574,7 @@ public class MitoPipeline {
 			}
 			if (abMarkersToUse.size() == 0) {
 				log.reportError("Error - no markers passed the callRate threshold. Please consider lowering threshold, or ensure that markers can have call rates (not cnv only probes)");
-				return;
+				return false;
 			} else {
 				log.report("Info - sample call rate will be computed with " + abMarkersToUse.size() + " markers");
 				Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]), proj.getProjectDir() + MARKERS_FOR_ABCALLRATE);
@@ -565,6 +585,8 @@ public class MitoPipeline {
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + proj.getFilename(Project.MARKER_METRICS_FILENAME) + "\"");
 		}
+		
+		return true;
 	}
 
 	/**
@@ -1027,6 +1049,8 @@ public class MitoPipeline {
 		int numComponents = 100;
 		boolean homosygousOnly = true;
 		
+		int attempts, result;
+		
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
 		usage += "  \n";
@@ -1089,7 +1113,7 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("mapFile=")) {
 				sampleMapCsv = ext.parseStringArg(args[i], null);
 				numArgs--;
-			} else if (args[i].startsWith("dirExt=")) {
+			} else if (args[i].startsWith(IMPORT_EXTENSION)) {
 				dataExtension = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("LRRSD=")) {
@@ -1175,6 +1199,15 @@ public class MitoPipeline {
 			proj = new Project(filename, logfile, false);
 			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
 		}
-		catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median);
+		attempts = 0;
+		while (attempts < 2) {
+			result = catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median);
+			attempts++;
+			if (result == 41) {
+				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");
+			} else {
+				attempts++;
+			}
+		}
 	}
 }
