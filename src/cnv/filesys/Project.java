@@ -363,10 +363,15 @@ public class Project extends Properties {
 
 	public SampleList getSampleList() {
 		if (sampleList == null) {
-			if (Files.exists(getFilename(SAMPLELIST_FILENAME), getJarStatus())) {
+			if (Files.exists(getFilename(SAMPLELIST_FILENAME, false, false), getJarStatus())) {
 				sampleList = SampleList.load(getFilename(SAMPLELIST_FILENAME), getJarStatus());
-			} else {
+			}
+			if (sampleList == null) {
 				log.report("Failed to find SampleList; generating one...");
+				sampleList = SampleList.generateSampleList(this);
+			}
+			if (sampleList != null && sampleList.getSamples().length == 0) {
+				log.report("SampleList is of length zero; generating a new one...");
 				sampleList = SampleList.generateSampleList(this);
 			}
 		}

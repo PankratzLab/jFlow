@@ -134,6 +134,11 @@ public class Plink {
 	        ext.checkHeader(reader.readLine().trim().split("[\\s]+"), IMISS_HEADER, true);
 	        while (reader.ready()) {
 	        	line = reader.readLine().trim().split("[\\s]+");
+	        	if (line.length < 6) {
+	    			System.err.println("Error: file \"" + filename + "\" appears to be truncated (or is not finished being generated)");
+	    			reader.close();
+	    			return null;
+	        	}
 	        	imiss.put(line[0]+"\t"+line[1], line[5]);
 	        }
 	        reader.close();

@@ -398,9 +398,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 								log.report("PLINK conversion failed");
 							}
 //							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
-//							new File(proj.getProjectDir()+"genome/").mkdirs();
-//							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-//							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+							new File(proj.getProjectDir()+"genome/").mkdirs();
+							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
+							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
 //							CmdLine.run("plink --bfile plink --mind 0.1 --geno 0.9 --make-bed --out plinkSlim", proj.getProjectDir());
 						} catch (Exception e) {}
 					}

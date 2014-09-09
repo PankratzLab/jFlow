@@ -399,7 +399,7 @@ public class ParseIllumina implements Runnable {
 		}
 		
 		if (files.length == 0) {
-			log.reportError("Error - no files to parse");
+			log.reportError("Error - no files to parse; are you sure you have the right extension specified for your FinalReport files? It is currently set to \""+proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)+"\"");
 			return;
 		}
 		
@@ -423,14 +423,14 @@ public class ParseIllumina implements Runnable {
 //				if (count < 20) {
 //					log.report(Array.toStr(line));
 //				}
-			} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
+			} while (reader.ready() && count < 1000 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 			
 			// If we reached the end of the file, it means that we didn't find the header we are looking for
 			// The most common cause of this is that the delimiter was misspecified
 			// The following code checks all of the common delimiters (tab, comma, space) and determines which one to use when it tries for a second time
-			if (!reader.ready()) {
-				log.reportError("Error - reached the end of the file without finding a line with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
-				log.reportError("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
+			if (!reader.ready() || count == 1000) {
+				log.reportError("Error - Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
+				log.reportError("      - perhaps the delimiter is set incorrectly? Determining the most stable delimiter...");
 
 				reader.close();
 				reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[0]);
