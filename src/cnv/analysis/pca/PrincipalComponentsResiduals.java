@@ -755,7 +755,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			proj.getLog().reportError("Error - array of samples to correct and data must be the same length");
 			return null;
 		} else {
-			setAssesmentDataSortByPCs(Array.subArray(data, samplesToUse));// sorts the lrrs according to the order in the pcFile
+			setAssesmentDataSortByPCs(Array.subArray(data, samplesToUse));// sorts the lrrs according to the order of samples in the pcFile
 			RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, getTrimmedPreppedPCs(numComponents));
 			if (!model.analysisFailed()) {
 				double[] residuals = model.getResiduals();
