@@ -267,6 +267,7 @@ public class CentroidCompute {
 	}
 
 	private void assignIntensityCentroid() {
+		this.centroid = new float[3][2];
 		centroid[0] = new float[] { (float) centerThetas[2], (float) centerRs[2] };// median/mean of the log base 2 values
 		centroid[1] = new float[] { (float) centerThetas[3], (float) centerRs[3] };// mean/median of the log base 2 values
 		centroid[2] = new float[] { (float) centerThetas[4], (float) centerRs[4] };// median/mean of the actual X values
@@ -334,7 +335,7 @@ public class CentroidCompute {
 		ArraySpecialLists slRs = new ArraySpecialLists(centerRs.length, rs.length);// only used for median
 
 		genotypes = getClustGenotypes();
-		checkGenoClusterMarkerData(thetas, rs, confs, genotypes, gcThreshold, log);
+		failed = checkGenoClusterMarkerData(thetas, rs, confs, genotypes, gcThreshold, log);
 		if (!failed) {
 			for (int i = 0; i < genotypes.length; i++) {
 				if (checkSex(chr, i) && (samplesToUse == null || samplesToUse[i]) && useMarker(thetas[i], rs[i], confs[i], gcThreshold)) {
@@ -511,7 +512,7 @@ public class CentroidCompute {
 	 * Gives a printout of the correlation to existing LRRs and BAFs
 	 */
 	public static void test(Project proj) {
-		String[] markers = proj.getMarkerNames();
+		String[] markers = proj.getTargetMarkers();
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		System.out.println(proj.getPropertyFilename() + "\t" + markers.length);
 		String min = "";

@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
@@ -28,6 +29,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
+import common.Array;
+import common.Files;
 import common.ext;
 import cnv.analysis.MedianLRRWorker;
 import cnv.filesys.Project;
@@ -39,8 +42,12 @@ public class LRRComp extends JFrame implements Runnable {
 	// once a job has been started, used to track completion
 	private volatile int computeComplete = 42;
 	public static final String FILENAME = "Enter Analysis Name";
-	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC or probeset-based regions of Interest (one per Line):", "Progress...", "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: " };
+	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC or probeset-based regions of Interest (one per Line):", "Progress...", "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: ", "Select a correction method" };
 	public static final String[] CLASSES_TO_DUMP = { "IID" };
+	public static final String[] BASIC_CORRECTION = { "None", "Recompute LRR" };
+	public static final String[] BASIC_CORRECTION_TIPS = { "No Correction Procedure will be performed, select this option if you wish to transform the data", "Recompute Log R Ratios" };
+
+	public static final String[] EXTRA_CORRECTION = { "Correct LRR", "Correct XY" };
 
 	private int transformationType;
 	private int scope;
@@ -48,12 +55,15 @@ public class LRRComp extends JFrame implements Runnable {
 	private MedianLRRWorker medianLRRWorker;
 	private Project proj;
 	private String outputBase;
+	private boolean[] correctionParams;
 
 	public LRRComp(Project proj, String initRegion) {
 		this.proj = proj;
 		this.initRegion = initRegion;
 		this.transformationType = 0;
 		this.scope = 0;
+		this.correctionParams = new boolean[BASIC_CORRECTION.length + EXTRA_CORRECTION.length];
+		Arrays.fill(correctionParams, false);
 	}
 
 	public void run() {
@@ -61,7 +71,7 @@ public class LRRComp extends JFrame implements Runnable {
 	}
 
 	public void createAndShowGUI() {
-		setSize(500, 360);
+		setSize(500, 500);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setTitle("Median Log R Ratio Settings");
@@ -104,8 +114,11 @@ public class LRRComp extends JFrame implements Runnable {
 			progressBar = new JProgressBar(0, 100);
 			computeButton = new ComputeButton(this);
 			twoDPlotButton = new TwoDPlotButton(this);
-			addLabel(REGION_TEXT_FIELD_LABELS[4]);
 			ActionListener actionListener = getradioListener();
+			addLabel(REGION_TEXT_FIELD_LABELS[5]);
+			addCorrectionButtons(actionListener, 0);
+
+			addLabel(REGION_TEXT_FIELD_LABELS[4]);
 			addTransformButtons(actionListener, transformationType);
 			addLabel(REGION_TEXT_FIELD_LABELS[3]);
 			addScopeButtons(actionListener, scope);
@@ -186,7 +199,7 @@ public class LRRComp extends JFrame implements Runnable {
 				progressBar.setVisible(true);
 				progressBar.setStringPainted(true);
 				computeComplete = 0;
-				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, proj.getLog());
+				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, correctionParams[1], correctionParams[2], correctionParams[3], proj.getLog());
 				medianLRRWorker.execute();
 				revalidate();
 			}
@@ -195,7 +208,6 @@ public class LRRComp extends JFrame implements Runnable {
 
 		private void resetOutputBase() {
 			outputBase = outputBase.replaceFirst(ext.replaceWithLinuxSafeCharacters(fileInputArea.getText() + "_", true), "");
-
 		}
 
 		private JLabel addLabel(String text) {
@@ -232,6 +244,34 @@ public class LRRComp extends JFrame implements Runnable {
 				this.add(transformationRadioButtons[i]);
 			}
 			transformationRadioButtons[initScope].setSelected(true);
+		}
+
+		private void addCorrectionButtons(ActionListener actionListener, int initCorrection) {
+			ButtonGroup correctionRadio = new ButtonGroup();
+			boolean extra = false;
+			int numButtons = BASIC_CORRECTION.length;
+			if (Files.exists(proj.getFilename(Project.INTENSITY_PC_FILENAME))) {
+				extra = true;
+				numButtons = BASIC_CORRECTION.length + EXTRA_CORRECTION.length;
+			}
+			JRadioButton[] correctionRadioButtons = new JRadioButton[numButtons];
+			for (int i = 0; i < BASIC_CORRECTION.length; i++) {
+				correctionRadioButtons[i] = new JRadioButton(BASIC_CORRECTION[i], false);
+				correctionRadioButtons[i].setFont(new Font("Arial", 0, 14));
+				correctionRadio.add(correctionRadioButtons[i]);
+				correctionRadioButtons[i].addActionListener(actionListener);
+				this.add(correctionRadioButtons[i]);
+			}
+			if (extra) {
+				for (int i = BASIC_CORRECTION.length; i < numButtons; i++) {
+					correctionRadioButtons[i] = new JRadioButton(EXTRA_CORRECTION[i - BASIC_CORRECTION.length], false);
+					correctionRadioButtons[i].setFont(new Font("Arial", 0, 14));
+					correctionRadio.add(correctionRadioButtons[i]);
+					correctionRadioButtons[i].addActionListener(actionListener);
+					this.add(correctionRadioButtons[i]);
+				}
+			}
+			correctionRadioButtons[initCorrection].setSelected(true);
 		}
 	}
 
@@ -290,6 +330,7 @@ public class LRRComp extends JFrame implements Runnable {
 	public ActionListener getradioListener() {
 		return new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
+
 				if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true, proj.getLog(), false) >= 0) {
 					transformationType = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true, proj.getLog(), false);
 					outputBase = Transforms.TRANFORMATIONS[transformationType];
@@ -298,150 +339,22 @@ public class LRRComp extends JFrame implements Runnable {
 				} else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, proj.getLog(), false) >= 0) {
 					scope = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true, proj.getLog(), false);
 					outputBase = Transforms.TRANFORMATIONS[transformationType] + "_" + Transforms.SCOPES[scope];
-				} else {
-					System.err.println("Error - could not find transformation type");
+				} else if (ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true, proj.getLog(), false) >= 0) {
+					int index = ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true, proj.getLog(), false);
+					Arrays.fill(correctionParams, false);
+					correctionParams[index] = true;
+					outputBase = BASIC_CORRECTION[index];
+
+				} else if (ext.indexOfStr(actionEvent.getActionCommand(), EXTRA_CORRECTION, true, true, proj.getLog(), false) >= 0) {
+					int index = ext.indexOfStr(actionEvent.getActionCommand(), EXTRA_CORRECTION, true, true, proj.getLog(), false);
+					Arrays.fill(correctionParams, false);
+					correctionParams[(BASIC_CORRECTION.length + index)] = true;
+					outputBase = EXTRA_CORRECTION[index];
 				}
-				System.out.println(actionEvent.getActionCommand() + "\t" + transformationType + "\t" + scope);
+				if (transformationType != 0 && !correctionParams[0]) {
+					JOptionPane.showMessageDialog(null, "Intensity Correction not valid for Transformed Values");
+				} 
 			}
 		};
 	}
 }
-
-// String[] classes = { "IID" };
-// // public static void dump(Project proj, String[] phenotypes, String mlrrSetFile, String regionToDumpOrNullForAll, int transformationToUse, Logger log) {
-// MedianLRR.dump(proj, classes, proj.getProjectDir() + outputBase + ".mlrr", null, 0, log);
-// TwoDPlot twoDPlot = new TwoDPlot(proj, log);
-// twoDPlot.loadFile(proj.getProjectDir() + outputBase + "_dump.xln");
-
-// private class ValidateButton extends JButton {
-// private static final long serialVersionUID = 1L;
-//
-// private ValidateButton(ActionListener actionListener) {
-// this.setFont(new Font("Tahoma", Font.PLAIN, 14));
-// this.setText("Validate Regions");
-// this.setToolTipText("Check UCSC formats");
-// this.addActionListener(actionListener);
-// }
-//
-// }
-
-// private class Compute implements Runnable {
-// private volatile boolean isRunning;
-//
-// private Project proj;
-// private Segment[] segs;
-// private int transformationType;
-// private int scope;
-// private Logger log;
-//
-// public Compute(Project proj, Segment[] segs, int transformationType, int scope, Logger log) {
-// this.proj = proj;
-// this.log = log;
-// this.segs = segs;
-// this.transformationType = transformationType;
-// this.scope = scope;
-// this.isRunning = true;
-// }
-//
-// public Compute() {
-// this.isRunning = false;
-// }
-//
-// public void kill() {
-// log.report("Interupting current Thread...");
-// while (computethread.isAlive()) {
-// computethread.interrupt();
-// Thread.currentThread().interrupt();
-// isRunning = false;
-// }
-// log.report("Thread killed :(");
-// }
-//
-// public boolean isRunning() {
-// return isRunning;
-// }
-//
-// public void run() {
-//
-// while (isRunning && !Thread.currentThread().isInterrupted()) {
-// if (transformationType == 0) {
-// MedianLRR.createFilesFromMarkerData(proj, segs, outputBase, log);
-// MedianLRR.dump(proj, CLASSES_TO_DUMP, proj.getProjectDir() + outputBase + ".mlrr", null, 0, log);
-// isRunning = false;
-//
-// }
-// }
-// }
-// }
-
-// class ComputeWorker extends SwingWorker<Void, String> {
-// String computeOutputBase = outputBase;
-// Logger computelog = proj.getLog();
-// Project computeProject = proj;
-// ProgressBarDialog progressBarDialog;
-//
-// public ComputeWorker(ProgressBarDialog progressBarDialog) {
-// this.progressBarDialog = progressBarDialog;
-// }
-//
-// protected Void doInBackground() throws Exception {
-// computeComplete = 0;
-// // public ProgressBarDialog(String frameText, int min, int max, int width, int height) {
-//
-// MedianLRRWorker.createFilesFromMarkerData(computeProject, segs, computeOutputBase, computelog);
-// Thread.sleep(100);
-// publish("Step 2");
-// MedianLRRWorker.dump(computeProject, CLASSES_TO_DUMP, computeProject.getProjectDir() + computeOutputBase + ".mlrr", null, 0, computelog);
-// Thread.sleep(1000);
-// computeComplete = 42;
-// return null;
-// }
-//
-// protected void process(ArrayList<String> chunks) {
-// jlabel.setText(chunks.get(chunks.size() - 1)); // The last value in this array is all we care about.
-// System.out.println(chunks.get(chunks.size() - 1));
-// }
-//
-// protected void done() {
-// try {
-// get();
-// JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
-// } catch (ExecutionException e) {
-// computelog.reportError("Error - could not compute median Log R ratio values");
-// } catch (InterruptedException e) {
-// computelog.reportError("Error - Median Log R ratio computation was interupted ");
-// }
-// }
-// }
-
-// private boolean validateRegions() {
-// String notValid = "\n";
-// String[] regions = regionTextField.getText().split("\n");
-// boolean allvalid = true;
-// if (regions == null) {
-// JOptionPane.showMessageDialog(this, "No regions Present");
-// }
-// int numBad = 0;
-// for (int i = 0; i < regions.length; i++) {
-// if (!checkRegions(regions[i])) {
-// notValid += regions[i] + "\n";
-// allvalid = false;
-// numBad++;
-// }
-// }
-// if (!allvalid) {
-// JOptionPane.showMessageDialog(this, (numBad > 1 ? "Invalid formats: " : "Invalid format: ") + notValid);
-// }
-// return allvalid;
-// }
-//
-// private boolean checkRegions(String region) {
-// boolean valid = false;
-// int[] newLocation = Positions.parseUCSClocation(region);
-// if ((newLocation == null || newLocation.length != 3 || newLocation[0] < 0) || (newLocation[1] < 0) || (newLocation[2] < 0)) {
-// valid = false;
-// } else {
-// valid = true;
-// }
-// return valid;
-// }

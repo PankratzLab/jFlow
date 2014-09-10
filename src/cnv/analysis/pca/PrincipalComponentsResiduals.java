@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -47,11 +48,12 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private double[][] assessmentData, pcBasis;
 	private byte[][] abGenotypesAfterFilters;
 	private float gcThreshold;
-	private Logger log;
+	protected Logger log;
 	protected Project proj;
-	private int numSamples, numComponents, totalNumComponents;// numComponents are loaded, totalNumComponents are present in the pc file
-	private Hashtable<String, Integer> samplesInPc;
-	protected boolean[] samplesToUse;//corresponds to the samples in the PC
+	protected int numComponents, totalNumComponents;
+	private int numSamples;// numComponents are loaded, totalNumComponents are present in the pc file
+	protected Hashtable<String, Integer> samplesInPc;// stores the index of a sample in the pc file
+	protected boolean[] samplesToUse;// corresponds to the samples in the PC
 	private boolean printFull, homozygousOnly, recomputeLRR;
 
 	/**
@@ -400,7 +402,13 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * @param pcFile
 	 */
 	public void loadPcFile(String pcFile) {
-		String pcFilefull = proj.getProjectDir() + pcFile;
+		String pcFilefull;
+		if (Files.exists(pcFile)) {
+			pcFilefull = pcFile;
+		} else {
+			pcFilefull = proj.getProjectDir() + pcFile;
+		}
+		log.report("Info - loading principal components from " + pcFilefull);
 		SampleData sampleData = proj.getSampleData(0, false);
 		ArrayList<String> pcSamps = new ArrayList<String>();
 		int sampIndex = 0;
@@ -544,7 +552,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 				trimmed[i] = pcBasis[i];
 			}
 		} else {
-			log.report("Retaining all components");
+			// log.report("Retaining all components");
 			trimmed = pcBasis;
 		}
 		return trimmed;
@@ -690,19 +698,95 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		}
 	}
 
-	// the following methods aid in correcting intensities
+	// the following methods aid in correcting XY intensities
 	/**
 	 * Constructor mainly used by {@link PrincipalComponentsIntensity} Essentially handles the loading of the PCs
-	 * 
-	 * @param proj
-	 * @param pcFile
-	 * @param numComponents
-	 * @param recomputeLRR
-	 * @param output
+	 *
 	 */
-	public PrincipalComponentsResiduals(Project proj, String pcFile, int numComponents, boolean recomputeLRR, String output) {
-		this(proj, pcFile, null, numComponents, false, 0, false, recomputeLRR, output);
+
+	public PrincipalComponentsResiduals(PrincipalComponentsResiduals principalComponentsResiduals) {
+		this.numComponents = principalComponentsResiduals.getNumComponents();
+		this.pcBasis = principalComponentsResiduals.getPcBasis();
+		this.samplesToUse = principalComponentsResiduals.getSamplesToUse();
+		this.proj = principalComponentsResiduals.getProj();
+		this.samplesInPc = principalComponentsResiduals.getSamplesInPc();
+		this.allProjSamples = principalComponentsResiduals.getAllProjSamples();
+		this.log = proj.getLog();
+
 	}
-	
-	
+
+	public String[] getAllProjSamples() {
+		return allProjSamples;
+	}
+
+	public Project getProj() {
+		return proj;
+	}
+
+	public boolean[] getSamplesToUse() {
+		return samplesToUse;
+	}
+
+	public double[][] getPreppedPCs() {
+		return prepPcs(pcBasis);
+	}
+
+	public double[][] getTrimmedPreppedPCs(int numComponents) {
+		return prepPcs(trimPcBasis(numComponents, pcBasis, log));
+	}
+
+	/**
+	 * @param data
+	 *            Currently, the data must be the same length as all samples in the project. To remove individuals from the regression, set values to NaN
+	 * @param numComponents
+	 *            number of components to include in the regression model
+	 * @param title
+	 *            optional to report if model has failed (could be a specific marker or trait, etc...)
+	 * @return
+	 */
+	public double[] getCorrectedDataAt(double[] data, int numComponents, String title) {
+		String finalTitle = (title == null ? " data" : title);
+		double[] correctedData = new double[data.length];
+		if (data == null || willFailNAN(data, numComponents)) {
+			proj.getLog().reportError("Error - there are not enough samples with non NAN data for " + title + " using " + numComponents + " " + (numComponents == 1 ? "principal component " : "principal components") + " to run a regression, skipping");
+			return null;
+		}
+		if (data.length != samplesToUse.length) {// samplesToUse in project order;
+			proj.getLog().reportError("Error - array of samples to correct and data must be the same length");
+			return null;
+		} else {
+			setAssesmentDataSortByPCs(Array.subArray(data, samplesToUse));// sorts the lrrs according to the order in the pcFile
+			RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, getTrimmedPreppedPCs(numComponents));
+			if (!model.analysisFailed()) {
+				double[] residuals = model.getResiduals();
+				int indexResid = 0;
+				for (int i = 0; i < correctedData.length; i++) {
+					if (samplesToUse[i] && !Double.isNaN(data[i])) {
+						correctedData[i] = residuals[indexResid];
+						indexResid++;
+					} else {
+						correctedData[i] = Double.NaN;
+					}
+				}
+			} else {
+				Arrays.fill(correctedData, Float.NaN);
+				proj.getLog().report("Warning - could not correct" + finalTitle + ", regression model has failed...setting all values to NaN");
+			}
+		}
+		return correctedData;
+	}
+
+	private static boolean willFailNAN(double[] data, float numComponents) {
+		int count = 0;
+		for (int i = 0; i < data.length; i++) {
+			if (!Double.isNaN(data[i])) {
+				count++;
+			}
+			if (count > numComponents) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 }
