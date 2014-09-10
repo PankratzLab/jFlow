@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.concurrent.CancellationException;
@@ -21,6 +22,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
+import cnv.analysis.pca.PrincipalComponentsIntensity;
+import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -57,7 +60,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private String outputBase;
 	private int transformationType;
 	private int scope;
-	private Logger computelog;	// considered using the project's default log or using the proj.setLog() command, but nice to have the region specific log named the same
+	private Logger computelog; // considered using the project's default log or using the proj.setLog() command, but nice to have the region specific log named the same
 	private String[] samples, markerNames;
 	private byte[] chrs;
 	private int[] positions;
@@ -66,6 +69,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private SampleList sampleList;
 	private int[] processTracker;
 	private boolean[] transChrs;
+	private boolean recomputeLRR;
+	private boolean correctXY;
+	private boolean correctLRR;
 	private JProgressBar progressBar;
 
 	public static boolean checkExists(Project proj, String outputBase) {
@@ -84,13 +90,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	public static void computeMedianLrrs(Project proj, String regionFileName, int transfromationType, int scope, String outputBase) {
 		Logger log = proj.getLog();
 		String[] input = readToArray(proj.getProjectDir() + regionFileName, log);
-		MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope, outputBase, null, log);
+		MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope, outputBase, null, false, false, false, log);
 		log.report("Starting job for " + input.length + " regions");
 		medianLRRWorker.execute();
 
 	}
 
-	public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope, String outputBase, JProgressBar jProgressBar, Logger log) {
+	public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope, String outputBase, JProgressBar jProgressBar, boolean recomputeLRR, boolean correctLRR, boolean correctXY, Logger log) {
 		this.proj = proj;
 		this.input = input;
 		this.outputBase = outputBase;
@@ -116,6 +122,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		// total ,processed;
 		this.processTracker = new int[2];
 		this.transChrs = Array.booleanArray(27, false);
+		this.recomputeLRR = recomputeLRR;
+		this.correctLRR = correctLRR;
+		this.correctXY = correctXY;
 
 		// this.cnvFile =proj.getProperty(key)
 
@@ -263,8 +272,20 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		String[] regionMarkers = markerRegion.returnMarkers();
 		float[][] sampleLrrs = new float[regionMarkers.length][samples.length];
 		MarkerDataLoader markerDataLoader;
+		boolean[] samplesToUse = null;
 		Logger projLog;
-
+		PrincipalComponentsResiduals pcrs = null;
+		if (correctLRR || correctXY || recomputeLRR) {// not truly necessary for recomputing LRR, but currently forcing it anyway
+			if (!Files.exists(proj.getFilename(Project.INTENSITY_PC_FILENAME))) {
+				String Error = "Error - could not find the file " + proj.getFilename(Project.INTENSITY_PC_FILENAME) + ", cannot perform intensity correction";
+				computelog.reportError(Error);
+				warnAndCancel(Error);
+			} else {
+				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(Project.INTENSITY_PC_FILENAME), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+				samplesToUse = getSamplesToUseForClustering(proj);
+				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + " for correction clustering");
+			}
+		}
 		regionMarkers = markerRegion.returnMarkers();
 		sampleLrrs = new float[regionMarkers.length][samples.length];
 		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[2], "[%" + 0 + "]", markerRegion.getRegionName()));
@@ -272,7 +293,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		proj.setLog(computelog);
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers);
 		proj.setLog(projLog);
-		
+
 		for (int i = 0; i < regionMarkers.length; i++) {
 			if (i == 0) {
 				newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName()));
@@ -284,8 +305,36 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				computelog.reportError(Error);
 				warnAndCancel(Error);
 			}
-			float[] lrrs = markerData.getLRRs();
+			float[] lrrs = markerData.getLRRs();// default
+			if (recomputeLRR || correctLRR || correctXY) {
+
+				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, null, true, false, 2, 5, 0, false, null);
+				if (recomputeLRR && !correctLRR) {
+					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
+				} else if (correctLRR) {
+					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
+					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), regionMarkers[i]);
+					if (tmplrrs != null) {
+						lrrs = Array.toFloatArray(tmplrrs);
+					} else {
+						String Error = "Error - could not correct Log R Ratios for " + markerData.getMarkerName();
+						computelog.reportError(Error);
+						warnAndCancel(Error);
+					}
+				} else if (correctXY) {
+					pcIntensity.correctXYAt(Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)));
+					float[][] correctedXYs = new float[][] { pcIntensity.getCorrectedXFull(), pcIntensity.getCorrectedYFull() };
+					MarkerData mdsNew = new MarkerData(markerData.getMarkerName(), markerData.getChr(), markerData.getPosition(), markerData.getFingerprint(), markerData.getGCs(), null, null, correctedXYs[0], correctedXYs[1], null, null, null, null, pcIntensity.getCentroidCompute().getAlternateGenotypes(), pcIntensity.getCentroidCompute().getAlternateGenotypes());
+					lrrs = mdsNew.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, proj.getLog())[1];
+				}
+				if (lrrs == null) {
+					String Error = "Error - could not correct Log R Ratios for " + markerData.getMarkerName();
+					computelog.reportError(Error);
+					warnAndCancel(Error);
+				}
+			}
 			markerDataLoader.releaseIndex(i);
+
 			for (int j = 0; j < samples.length; j++) {
 				try {
 					// marker;samples...
@@ -299,6 +348,17 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		}
 		process(processTracker[1]);
 		return getSampleResults(sampleLrrs);
+	}
+
+	private boolean[] getSamplesToUseForClustering(Project proj) {
+		String[] samples = proj.getSamples();
+		boolean[] samplesToUse = new boolean[samples.length];
+		Arrays.fill(samplesToUse, true);
+		SampleData sampleData = proj.getSampleData(0, false);
+		for (int i = 0; i < samples.length; i++) {
+			samplesToUse[i] = !sampleData.individualShouldBeExcluded(samples[i]);
+		}
+		return samplesToUse;
 	}
 
 	private float[][] getSampleResults(float[][] lrrs) {
@@ -790,21 +850,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		Logger log;
 		Project proj;
 
-		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + 
-		"" + 
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
-		"   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n" + 
-		"       OR:\n" + "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + 
-		"       (i.e. regions=" + regionFileName + "(default))\n" + 
-		"       OPTIONAL:\n" + 
-		"   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + 
-		"       transformations are: " + Array.toStr(Transforms.TRANFORMATIONS) + "\n" + 
-		"   (4) scope of transformation (i.e. scope=0 (default))\n" + 
-		"       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + 
-		"   (5) base name of the output files (i.e out=" + outputBase + " (default))\n" + 
-		"   (6) name of the log file (i.e. log=" + logfile + "\n" + 
-		"   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));" + 
-		"";
+		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n" + "       OR:\n" + "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + "       (i.e. regions=" + regionFileName + "(default))\n" + "       OPTIONAL:\n" + "   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + "       transformations are: " + Array.toStr(Transforms.TRANFORMATIONS) + "\n" + "   (4) scope of transformation (i.e. scope=0 (default))\n" + "       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + "   (5) base name of the output files (i.e out=" + outputBase + " (default))\n" + "   (6) name of the log file (i.e. log=" + logfile + "\n" + "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));" + "";
 		// String usage= "cnv.analysis.MedianLRRWorker requires 2 arguments\n"+"" +
 		// "   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		// "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n"+
@@ -858,9 +904,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			time = new Date().getTime();
 			proj = new Project(filename, logfile, false);
 			log = proj.getLog();
-			
+
 			System.setProperty("java.awt.headless", headless);
-			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, log);
+			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, false, false, false, log);
 			medianLRRWorker.execute();
 			while (!medianLRRWorker.isDone()) {
 				Thread.sleep(100);

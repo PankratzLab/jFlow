@@ -50,6 +50,8 @@ public class PrincipalComponentsApply {
 	 *            boolean array of samples to use
 	 * @param imputeMeanForNaN
 	 *            impute the mean of the marker for a sample value with NaN
+	 * @param recomputeLRR
+	 *            recompute Log R Ratios on the fly
 	 * @param log
 	 */
 	public PrincipalComponentsApply(Project proj, int numComponents, String singularFile, String markerLoadingFile, boolean[] samplesToUse, boolean imputeMeanForNaN, boolean recomputeLRR) {

@@ -97,6 +97,8 @@ public class Project extends Properties {
 	public static final String REPORTED_CNP_FILENAME = "REPORTED_CNP_FILENAME";
 	public static final String UNREPORTED_CNP_FILENAME = "UNREPORTED_CNP_FILENAME";
 	public static final String LOG_LEVEL = "LOG_LEVEL";
+	public static final String INTENSITY_PC_FILENAME = "INTENSITY_PC_FILENAME";
+	public static final String INTENSITY_PC_NUM_COMPONENTS = "INTENSITY_PC_NUM_COMPONENTS";
 
 	private boolean jar;
 	private String projectPropertiesFilename;
@@ -795,4 +797,5 @@ public class Project extends Properties {
 		
 		return filename;
 	}
+	
 }

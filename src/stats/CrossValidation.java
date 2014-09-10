@@ -174,6 +174,10 @@ public class CrossValidation {
 	public double getSSerr() {
 		return SSerr;
 	}
+	
+	public void setBetas(double[] betas) {
+		this.betas = betas;
+	}
 
 	public double[] getResiduals() {
 		return residuals;
@@ -197,6 +201,10 @@ public class CrossValidation {
 
 	public double getAvgSEofBs() {
 		return avgSEofBs;
+	}
+	
+	public double[] getPredicteds() {
+		return predicteds;
 	}
 
 	// Full model variables must be set from outside, only for storage..

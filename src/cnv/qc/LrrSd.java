@@ -184,14 +184,14 @@ public class LrrSd extends Parallelizable {
 		if (markersForCallrateFile != null) {
 			markersForCallrate = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false));
 			if (markersForCallrate == null) {
-				log.reportError("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project");
+				log.reportError("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project, or were duplicates");
 				return;
 			}
 		}
 		if (markersForEverythingElseFile != null) {
 			markersForEverythingElse = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false, new int[] { 0 }, false));
 			if (markersForCallrate == null) {
-				log.reportError("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project");
+				log.reportError("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project, or were duplicates");
 				return;
 			}
 		}
