@@ -99,7 +99,7 @@ public class ConvertToBuild37 {
 				positions[i] = Integer.parseInt(line[1]);
 				locs[i] = Positions.getUCSCformat(line);
 			}
-			order = Sort.orderTwoLayers(chrs, positions);
+			order = Sort.orderTwoLayers(chrs, positions, new Logger());
 			locs = Sort.putInOrder(locs, order);
 			if (new File(dir+"liftOver.in").exists() && Array.equals(locs, HashVec.loadFileToStringArray(dir+"liftOver.in", false, new int[] {0}, false), false)) {
 				System.err.println("Error - getting the same list of positions to convert and it's not the same number as is in liftOver.bed");

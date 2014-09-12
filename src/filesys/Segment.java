@@ -222,7 +222,7 @@ public class Segment implements Serializable {
 			positions[i] = array[i].start;
 		}
 
-		return Sort.orderTwoLayers(chrs, positions);
+		return Sort.orderTwoLayers(chrs, positions, new Logger());
 	}
 
 	public static Segment[] putInOrder(Segment[] array, int[] order) {

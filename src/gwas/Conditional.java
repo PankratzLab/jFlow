@@ -751,7 +751,7 @@ public class Conditional {
 							}
 						}
 					}
-					order = Sort.orderTwoLayers(chrs, positions);
+					order = Sort.orderTwoLayers(chrs, positions, log);
 					writer.print("Marker\tChr\tPosition"+(annotationHeader.length>0?"\t"+Array.toStr(annotationHeader, annotationHeaderMask, "\t", "."):""));
 					for (int j = 1; j < count; j++) {
 						writer.print("\titeration"+1);

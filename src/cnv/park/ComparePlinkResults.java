@@ -84,7 +84,7 @@ public class ComparePlinkResults {
 				}
 			}
 
-			keys = Sort.orderTwoLayers(Matrix.toMatrix(hits));
+			keys = Sort.orderTwoLayers(Matrix.toMatrix(hits), new Logger());
 
 			composite = new Vector<int[]>();
 			for (int j = 0; j<hits.size(); j++) {

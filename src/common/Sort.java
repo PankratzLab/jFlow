@@ -743,8 +743,8 @@ public class Sort {
 	 *            matrix to be sorted
 	 * @return array of sorted indices
 	 */
-	public static int[] orderTwoLayers(int[][] matrix) {
-		return orderTwoLayers(Array.toByteArray(Matrix.extractColumn(matrix, 0)), Matrix.extractColumn(matrix, 1));
+	public static int[] orderTwoLayers(int[][] matrix, Logger log) {
+		return orderTwoLayers(Array.toByteArray(Matrix.extractColumn(matrix, 0)), Matrix.extractColumn(matrix, 1), log);
 	}
 
 	/**
@@ -756,17 +756,29 @@ public class Sort {
 	 *            second order array
 	 * @return array of sorted indices
 	 */
-	public static int[] orderTwoLayers(byte[] first, int[] second) {
+	public static int[] orderTwoLayers(byte[] first, int[] second, Logger log) {
 		String[] primaryKeys, secondaryKeys;
 		int count;
 		int[] values, finalIndices, primaryIndices, secondaryIndices;
 		Hashtable<String,Hashtable<String,String>> mapFirstToSecond;
 		Hashtable<String,String> hash, finalKeyHash;
-//		boolean inOrder;
+		boolean inOrder;
 
 		if (first.length!=second.length) {
-			System.err.println("Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
+			log.reportError("Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
 			System.exit(1);
+		}
+		
+		inOrder = true;
+		for (int i = 1; i < first.length; i++) {
+			if (first[i] < first[i-1] || (second[i] < second[i-1] && first[i] == first[i-1])) {
+//				log.report("chr"+first[i]+":"+second[i]+" < chr"+first[i-1]+":"+second[i-1]);
+				inOrder = false;
+			}
+		}
+		if (inOrder) {
+			log.report("Markers were already in order");
+			return Array.intArray(second.length);
 		}
 
 		mapFirstToSecond = new Hashtable<String,Hashtable<String,String>>();
