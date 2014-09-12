@@ -17,6 +17,7 @@ import cnv.analysis.pca.PrincipalComponentsCompute;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
+import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
 import cnv.qc.MarkerMetrics;
 import cnv.var.SampleData;
@@ -145,9 +146,9 @@ public class MitoPipeline {
 	public void initProject(String path) {
 		if (Files.exists(filename)) {
 			Files.backup(ext.removeDirectoryInfo(filename), path, path + "backup/", false);
-			log.report("Info - using project file " + filename + ", you may also specify project filename using the command line argument \"proj=\"");
+			log.report("Using project file " + filename + ", you may also specify project filename using the command line argument \"proj=\"");
 		} else {
-			log.report("Info - project properties file can be found at " + filename);
+			log.report("Project properties file can be found at " + filename);
 			Files.write(Project.PROJECT_NAME + "=" + projectName, filename);
 		}
 		this.proj = new Project(filename, false);
@@ -173,7 +174,7 @@ public class MitoPipeline {
 		boolean missingFile;
 
 		missingFile = false;
-		log.report("Info - preparing auxiliary files in " + projectDirectory);
+		log.report("Preparing auxiliary files in " + projectDirectory);
 		if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(targetMarkers))) {
 			if (!Files.copyFile(targetMarkers, projectDirectory + ext.removeDirectoryInfo(targetMarkers))) {
 				log.reportError("Error - the filename specified for targetMarkers (\"" + targetMarkers + "\") was not found");
@@ -285,6 +286,7 @@ public class MitoPipeline {
 		int[] counts;
 		Logger log;
 		long memoryAvailable;
+		int result;
 
 		log = proj.getLog();
 		
@@ -297,12 +299,19 @@ public class MitoPipeline {
 		}
 		
 		sampleDirectory = proj.getDir(Project.SAMPLE_DIRECTORY, false, false);
-		if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length > 0 || (proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0))) {
+		if (Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
 			sampleList = proj.getSampleList();
 			log.report("Detected that " + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length + " samples have" : sampleList.getSamples().length + " sample has") + " already been parsed");
 			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(Project.SAMPLELIST_FILENAME) + " and " + proj.getDir(Project.SAMPLE_DIRECTORY));
 		} else {
-			cnv.manage.ParseIllumina.createFiles(proj, numThreads);
+			result = cnv.manage.ParseIllumina.createFiles(proj, numThreads);
+			if (result == 0) {
+				return 0;
+			} else if (result == 7) {
+				log.reportError("\nAlternatively, mitoPipeline can do this for you, if you set the markerPositions argument to be null or blank (i.e., \"markerPositions=\")");
+				return 0;
+			}
+				
 			if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length == 0)) {
 				log.reportError("\nMake sure your "+IMPORT_EXTENSION+" argument is set to the right file extension");
 			}
@@ -576,7 +585,7 @@ public class MitoPipeline {
 				log.reportError("Error - no markers passed the callRate threshold. Please consider lowering threshold, or ensure that markers can have call rates (not cnv only probes)");
 				return false;
 			} else {
-				log.report("Info - sample call rate will be computed with " + abMarkersToUse.size() + " markers");
+				log.report("Sample call rate will be computed with " + abMarkersToUse.size() + " markers");
 				Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]), proj.getProjectDir() + MARKERS_FOR_ABCALLRATE);
 			}
 			reader.close();
@@ -788,7 +797,7 @@ public class MitoPipeline {
 					log.reportError("Error - did not find any samples in the subset file " + useFile);
 					return null;
 				} else {
-					log.report("Info - analysis will be performed starting with the subset of " + subset.size() + " samples found in " + useFile);
+					log.report("Analysis will be performed starting with the subset of " + subset.size() + " samples found in " + useFile);
 				}
 			} else {
 				log.reportError("Error - a file list of samples to use was provided, but the file " + useFile + " does not exist");
@@ -914,7 +923,7 @@ public class MitoPipeline {
 	public static Individual[] loadSampleMapFile(String sampleMapCsv, Logger log) {
 		String[] line;
 		ArrayList<Individual> al = new ArrayList<Individual>();
-		log.report("Info - using Sample Map file " + sampleMapCsv);
+		log.report("Using Sample Map file " + sampleMapCsv);
 		try {
 			BufferedReader reader = Files.getReader(sampleMapCsv, false, true, false);
 			line = reader.readLine().trim().split(SPLITS[1]);
@@ -1044,6 +1053,7 @@ public class MitoPipeline {
 		boolean recomputeLRR_Median = true;
 		String useFile = null;
 		String logfile = null;
+		Project proj;
 
 		int numThreads = 1;
 		int numComponents = 100;
@@ -1192,7 +1202,7 @@ public class MitoPipeline {
 			System.exit(1);
 		}
 
-		Project proj = null;
+		proj = null;
 		if (filename == null) {
 			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
 		} else {

@@ -185,13 +185,11 @@ public class Positions {
 		} else {
 			try {
 				chr = Byte.parseByte(chromosome);
-				if (chr < 0 || chr > 27 && log.getLevel() == 10) {
-					log.reportError("Error - chromosome number '" + chromosome + "' out of range for homo sapiens");
+				if (chr < 0 || chr > 26) {
+					log.reportError("Error - chromosome number '" + chromosome + "' out of range for homo sapiens", true, true, 10);
 				}
 			} catch (NumberFormatException nfe) {
-				if (log.getLevel() == 10) {
-					log.reportError("Error - '" + chromosome + "' is an invalid chromosome");
-				}
+				log.reportError("Error - '" + chromosome + "' is an invalid chromosome", true, true, 10);
 			}
 		}
 

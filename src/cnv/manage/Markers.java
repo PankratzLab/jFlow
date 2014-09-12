@@ -12,6 +12,7 @@ import cnv.filesys.*;
 import common.*;
 
 public class Markers {
+	public static final int MAX_ERRORS_TO_REPORT = 30;
 
 	public static int[] orderMarkers(String[] markerNames, String markerDatabase, String output, Logger log) {
 		Hashtable<String,String> snpPositions;
@@ -19,28 +20,33 @@ public class Markers {
 		int[] positions, keys;
 		String[] line;
 		Vector<String> v;
+		long time;
+		int logLevel;
 
-		snpPositions = HashVec.loadFileToHashString(markerDatabase, 0, new int[] {1, 2}, "\t", false);
+		logLevel = log.getLevel();
+		log.setLevel(9);
+		time = new Date().getTime();
+		snpPositions = loadFileToHashString(markerDatabase, log);
+		if (snpPositions == null) {
+			return null;
+		}
 		if (markerNames == null) {
-			// TODO
-			// replace with Metal.MARKER_NAMES after merge
-			String[] MARKER_NAMES = new String[] {"MarkerName", "Marker", "Name", "SNP"};
-			for (int i = 0; i < MARKER_NAMES.length; i++) {
-				if (snpPositions.containsKey(MARKER_NAMES[i])) {
-					snpPositions.remove(MARKER_NAMES[i]);
+			for (int i = 0; i < Aliases.MARKER_NAMES.length; i++) {
+				if (snpPositions.containsKey(Aliases.MARKER_NAMES[i])) {
+					snpPositions.remove(Aliases.MARKER_NAMES[i]);
 				}
 			}
 			markerNames = HashVec.getKeys(snpPositions);
 		}
 
 		v = new Vector<String>();
-		log.report(ext.getTime()+"\tOrdering markers");
+		log.report(ext.getTime()+"\tSorting markers by chromosome and position");
 		chrs = new byte[markerNames.length];
 		positions = new int[markerNames.length];
 		for (int i = 0; i<markerNames.length; i++) {
 			if (snpPositions.containsKey(markerNames[i])) {
 				line = snpPositions.get(markerNames[i]).split("[\\s]+");
-				chrs[i] = Positions.chromosomeNumber(line[0]);
+				chrs[i] = Positions.chromosomeNumber(line[0], log);
 				positions[i] = Integer.parseInt(line[1]);
 			} else {
 				v.add(markerNames[i]);
@@ -53,14 +59,141 @@ public class Markers {
 			return null;			
 		}
 
-		keys = Sort.orderTwoLayers(chrs, positions);
+		keys = Sort.orderTwoLayers(chrs, positions, log);
 
 		new MarkerSet(markerNames, chrs, positions, keys).serialize(output);
 
-		log.report(ext.getTime()+"\tFinished ordering");
-
+		log.report(ext.getTime()+"\tFinished sorting in " + ext.getTimeElapsed(time));
+		log.setLevel(logLevel);
+		
 		return keys;
 	}
+	
+	public static Hashtable<String,String> loadFileToHashString(String filename, Logger log) {
+		BufferedReader reader = null;
+		String[] line;
+		Hashtable<String,String> hash = new Hashtable<String,String>();
+		String markerName, chr, position, delimiter, temp;
+		byte chrValue;
+		int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames, numInvalidChrs, numInvalidPositions, numIncompleteLines;
+		
+		delimiter = Files.determineDelimiter(filename, log);
+
+		count = countBad = 0;
+		numBlankNames = numBlankChrs = numBlankPositions = numRepeatedNames = numInvalidChrs = numInvalidPositions = numIncompleteLines = 0;
+		try {
+			reader = Files.getAppropriateReader(filename);
+			while (reader.ready()) {
+				temp = reader.readLine();
+				if (delimiter.equals(",")) {
+					line = ext.splitCommasIntelligently(temp, true, new Logger());
+				} else if (temp.indexOf("\t") == -1) {
+					line = temp.trim().split("[\\s]+");
+				} else {
+					line = temp.split("\t", -1);
+				}
+				if (count == 0 && ext.indexOfStr(line[0], Aliases.MARKER_NAMES) >= 0) {
+					
+				} else if (line.length < 3) {
+					if (countBad < MAX_ERRORS_TO_REPORT) {
+						log.report("Error - incomplete line at row "+count+" for marker \""+line[0]+"\"; line will not be added");
+					}
+					numIncompleteLines++;
+				} else {
+					markerName = line[0];
+					chr = line[1];
+					position = line[2];
+					
+					if (markerName.equals("")) {
+						if (countBad < MAX_ERRORS_TO_REPORT) {
+							log.reportError("Error - blank marker name at line "+count+" of "+filename);
+						}
+						numBlankNames++;
+						countBad++;
+					} else if (chr.equals("")) {
+						if (countBad < MAX_ERRORS_TO_REPORT) {
+							log.reportError("Error - blank chr for marker '"+markerName+"' at line "+count+" of "+filename);
+						}
+						numBlankChrs++;
+						countBad++;
+					} else if (position.equals("")) {
+						if (countBad < MAX_ERRORS_TO_REPORT) {
+							log.reportError("Error - blank position for marker '"+markerName+"' at line "+count+" of "+filename);
+						}
+						numBlankPositions++;
+						countBad++;
+					} else {
+						if (hash.containsKey(markerName)) {
+							log.reportError("Error - marker '"+markerName+"' is already listed in the markerPositions file and is seen again at line "+count+" of "+filename);
+							numRepeatedNames++;
+							countBad++;
+						}
+						chrValue = Positions.chromosomeNumber(chr, log);
+						if (chrValue < 0 || chrValue > 26) {
+							numInvalidChrs++;
+							countBad++;
+						}
+						try {
+							Integer.parseInt(position);
+						} catch (NumberFormatException nfe) {
+							if (countBad < MAX_ERRORS_TO_REPORT) {
+								log.reportError("Error - invalid position ("+position+") for marker '"+markerName+"' at line "+count+" of "+filename);
+							}
+							numInvalidPositions++;
+							countBad++;
+						}
+					}
+					
+					hash.put(markerName, chr+"\t"+position);
+				}
+				if (countBad == MAX_ERRORS_TO_REPORT) {
+					log.reportError("...");
+					countBad++;
+				}
+				count++;
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \""+filename+"\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \""+filename+"\"");
+			System.exit(2);
+		}
+
+		log.report("\nRead in "+count+" markers from the markerPositions file");
+		if (countBad > MAX_ERRORS_TO_REPORT) {
+			countBad--;
+		}
+
+		if (countBad > 0) {
+			log.report("...with a total of "+countBad+" problem"+(countBad==1?"":"s"));
+		}
+		if (numIncompleteLines > 0) {
+			log.report("...including "+numIncompleteLines+" incomplete line"+(countBad==1?"":"s"));
+		}
+		if (numBlankNames > 0) {
+			log.report("Number of blank marker names: "+numBlankNames);
+		}
+		if (numBlankChrs > 0) {
+			log.report("Number of blank chromosomes: "+numBlankChrs);
+		}
+		if (numBlankPositions > 0) {
+			log.report("Number of blank marker positions: "+numBlankPositions);
+		}
+		if (numRepeatedNames > 0) {
+			log.report("Number of repeated marker names: "+numRepeatedNames);
+		}
+		if (numInvalidChrs > 0) {
+			log.report("Number of invalid chromosomes: "+numInvalidChrs);
+		}
+		if (numInvalidPositions > 0) {
+			log.report("Number of invalid positions: "+numInvalidPositions);
+		}
+		log.report("");
+		
+		return hash;
+	}	
 
 	public static void generateMarkerPositions(Project proj, String snpTable) {
 		BufferedReader reader;

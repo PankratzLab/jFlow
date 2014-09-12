@@ -481,8 +481,8 @@ public class SnpMarkerSet implements Serializable {
 		anchorChrs = nearbyThese.getChrs();
 		anchorPositions = nearbyThese.getPositions();
 		
-		anchorOrder = Sort.orderTwoLayers(anchorChrs, anchorPositions);
-		localOrder = Sort.orderTwoLayers(chrs, positions);
+		anchorOrder = Sort.orderTwoLayers(anchorChrs, anchorPositions, new Logger());
+		localOrder = Sort.orderTwoLayers(chrs, positions, new Logger());
 		
 		anchorIndex = localIndex = 0;
 		overlaps = Array.booleanArray(positions.length, false);
@@ -649,7 +649,7 @@ public class SnpMarkerSet implements Serializable {
 	public void sortMarkers() {
 		int[] keys;
 		
-		keys = Sort.orderTwoLayers(chrs, positions);
+		keys = Sort.orderTwoLayers(chrs, positions, new Logger());
 		rsNumbers = Sort.putInOrder(rsNumbers, keys);
 		chrs = Sort.putInOrder(chrs, keys);
 		positions = Sort.putInOrder(positions, keys);

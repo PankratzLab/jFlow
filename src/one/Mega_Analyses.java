@@ -507,7 +507,7 @@ public class Mega_Analyses {
 		System.err.println("Loading reference map from: "+IMPUTATION_MAP);
 		refChrHash = new SnpMarkerSet(IMPUTATION_MAP, SnpMarkerSet.PLINK_MAP_FORMAT_WITHOUT_CM, false, log).getChrHash();
 		
-		order = Sort.orderTwoLayers(chrs.toArray(), positions.toArray());
+		order = Sort.orderTwoLayers(chrs.toArray(), positions.toArray(), log);
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_positions.xln"));
 			writer.println("MarkerName\tChr\tPosition\tAltLoc\trefChr\trefPos\trefAgree\tStudy/chr/pos");

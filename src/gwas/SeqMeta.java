@@ -1834,7 +1834,7 @@ public class SeqMeta {
 		
 		System.out.println("Coalated positions at " + ext.getTimeElapsed(time));
 
-		indices = Sort.orderTwoLayers(chrs, positions);
+		indices = Sort.orderTwoLayers(chrs, positions, log);
 		
 		System.out.println("Finished sorting at " + ext.getTimeElapsed(time));
 			

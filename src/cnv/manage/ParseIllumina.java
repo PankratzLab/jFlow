@@ -20,6 +20,7 @@ public class ParseIllumina implements Runnable {
 	public static final String[] FIELDS = {"Sample ID", "Sample Name"};
 	public static final String[][] SNP_TABLE_FIELDS = {{"Name"}, {"Chr", "Chromosome"}, {"Position"}};
 	public static final String[] DELIMITERS = {",", "\t", " "};
+	public static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
     public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
     public static final String CANCEL_OPTION_FILE = ".cancel_option";
     public static final String HOLD_OPTION_FILE = ".hold_option";
@@ -340,7 +341,7 @@ public class ParseIllumina implements Runnable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void createFiles(Project proj, int numThreads) {
+	public static int createFiles(Project proj, int numThreads) {
 		BufferedReader reader;
 		String[] line, markerNames, files;
 		Hashtable<String,Integer> markerNameHash;
@@ -377,12 +378,12 @@ public class ParseIllumina implements Runnable {
 
 		if (!proj.getDir(Project.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
 			log.reportError("Error - the Project source location is invalid: "+proj.getDir(Project.SOURCE_DIRECTORY));
-			return;
+			return 0;
 		}
         
 		if (!new File(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)).exists()) {
 			log.reportError("Error - missing markerPositions: "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false));
-			return;
+			return 0;
 		}
 
 		delimiter = proj.getSourceFileDelimiter();
@@ -400,7 +401,7 @@ public class ParseIllumina implements Runnable {
 		
 		if (files.length == 0) {
 			log.reportError("Error - no files to parse; are you sure you have the right extension specified for your FinalReport files? It is currently set to \""+proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)+"\"");
-			return;
+			return 0;
 		}
 		
 		abLookupRequired = false;
@@ -429,8 +430,8 @@ public class ParseIllumina implements Runnable {
 			// The most common cause of this is that the delimiter was misspecified
 			// The following code checks all of the common delimiters (tab, comma, space) and determines which one to use when it tries for a second time
 			if (!reader.ready() || count == 1000) {
-				log.reportError("Error - Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
-				log.reportError("      - perhaps the delimiter is set incorrectly? Determining the most stable delimiter...");
+				log.reportError("Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
+				log.reportError("   Perhaps the delimiter, which is currently set to "+proj.getProperty(Project.SOURCE_FILE_DELIMITER)+", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
 
 				reader.close();
 				reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[0]);
@@ -448,18 +449,18 @@ public class ParseIllumina implements Runnable {
 							delimiter = DELIMITERS[j];
 						} else {
 							proj.message("Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+DELIMITERS[j]+"'");
-							return;
+							return 0;
 						}
 					}
 				}
 				reader.close();
 				
 				if (delimiter == null) {
-					proj.message("Failed to auto-detect the delimiter used in the Final Reports file; exitting");
-					return;
+					proj.message("Failed to auto-detect the delimiter used in the Final Reports file; exiting");
+					return 0;
 				}
 				
-				log.reportError("      - determined delimiter to be '"+delimiter+"'");
+				log.reportError("      - determined delimiter to be "+DELIMITER_DESCRIPTIONS[ext.indexOfStr(delimiter, DELIMITERS)]);
 
 				// Tries again to determine the header fields and column names
 				reader = Files.getAppropriateReader(proj.getDir(Project.SOURCE_DIRECTORY)+files[0]);
@@ -475,13 +476,13 @@ public class ParseIllumina implements Runnable {
 				log.reportError("      - failed to see that in "+files[0]);
 				log.reportError(Array.toStr(line));
 				
-				return;
+				return 0;
 			}
 			// TODO check different fields depending upon Affy/Illumina flag
 			indices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
 			if (indices[0] == -1 || indices[1] == -1) {
 				log.reportError("Error - the files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
-				return;
+				return 0;
 			}
 			if (indices[2] == -1 || indices[3] == -1) {
 				abLookupRequired = true;
@@ -527,15 +528,15 @@ public class ParseIllumina implements Runnable {
 
 				switch (response) {
 				case -1:
-					return;
+					return 0;
 				case 0:
 					deleteAllFilesInMarkerDataDirectory(proj);
 					break;
 				case 1:
-					return;
+					return 0;
 				default:
 					proj.message("Should be impossible to obtain this message ("+response+")");
-					return;
+					return 0;
 				}
 			}
 
@@ -557,7 +558,7 @@ public class ParseIllumina implements Runnable {
 
 				switch (response) {
 				case -1:
-					return;
+					return 0;
 				case 0:
 					deleteAllFilesInSampleDirectory(proj);
 					break;
@@ -565,10 +566,10 @@ public class ParseIllumina implements Runnable {
 					// keep "outlier.ser"
 					break;
 				case 2:
-					return;
+					return 0;
 				default:
 					proj.message("Should be impossible to obtain this message ("+response+")");
-					return;
+					return 0;
 				}
 			}
 			
@@ -578,7 +579,7 @@ public class ParseIllumina implements Runnable {
 			if (Boolean.parseBoolean(proj.getProperty(Project.LONG_FORMAT))) {
 				reader.close();
 				createFilesFromLongFormat(proj, files, idHeader, fixes, delimiter, abLookupRequired, timeBegan);
-				return;
+				return 0;
 			}
 
 			markerNameHash = new Hashtable<String, Integer>(500000);
@@ -593,13 +594,13 @@ public class ParseIllumina implements Runnable {
 					log.reportError("The same marker ('"+trav+"') was seen twice...");
 					if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
 						log.report("... this could mean that the file contains multiple samples. This should not happen when " + Project.ID_HEADER + " is set to " + FILENAME_AS_ID_OPTION);
-						return;
+						return 0;
 					} else if (!(parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]).equals(sampleName)) {
 						log.reportError("... and the sample name changed from " + sampleName + " to " + (parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]) + ", so this must be a Long Format file. The property file will be updated to reflect this, and an attempt will be made to launch the Long Format file processor now.");
 						proj.setProperty(Project.LONG_FORMAT, "TRUE");
 						proj.saveProperties();
 						createFilesFromLongFormat(proj, files, idHeader, fixes, delimiter, abLookupRequired, timeBegan);
-						return;
+						return 0;
 					}
 				} else {
 					markerNameHash.put(trav, markerNameHash.size());
@@ -608,11 +609,11 @@ public class ParseIllumina implements Runnable {
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \""+proj.getDir(Project.SOURCE_DIRECTORY)+files[0]+"\" not found in current directory");
-			return;
+			return 0;
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \""+proj.getDir(Project.SOURCE_DIRECTORY)+files[0]+"\"");
 			log.reportException(ioe);
-			return;
+			return 0;
 		}
 
 		markerNames = Array.toStringArray(markerNameHash);
@@ -623,8 +624,9 @@ public class ParseIllumina implements Runnable {
 				log.reportError("\nSuch a file was found: "+filename);
 				log.reportError("\nIn order to process it use the command:");
 				log.reportError("   java -cp [package_name].jar cnv.manage.Markers proj="+proj.getPropertyFilename()+" snps="+filename);
+				return 7;
 			}
-			return;
+			return 0;
 		}
 		keysKeys = Sort.quicksort(keys); // very important
 		fingerprint = proj.getMarkerSet().getFingerprint();
@@ -689,6 +691,8 @@ public class ParseIllumina implements Runnable {
 		if (allOutliers.size()>0) {
 			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
+
+		return 1;
 	}
 
 	public static void deleteAllFilesInSampleDirectory(Project proj) {
@@ -746,7 +750,7 @@ public class ParseIllumina implements Runnable {
 		log = proj.getLog();
         log.report("Parsing files using the Long Format algorithm");
         
-        Markers.orderMarkers(null, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true), proj.getLog());
+//        Markers.orderMarkers(null, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true), proj.getLog());
         markerSet = proj.getMarkerSet();
         markerNames = markerSet.getMarkerNames();
 		fingerprint = proj.getMarkerSet().getFingerprint();

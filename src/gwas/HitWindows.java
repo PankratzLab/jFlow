@@ -94,7 +94,7 @@ public class HitWindows {
 	public static String[][] determineButOrderFirst(String[] markerNames, byte[] chrs, int[] positions, double[] pvals, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold, String[] additionalAnnotationVariableNames, String[][] annotation) {
 		int[] order;
 		
-		order = Sort.orderTwoLayers(chrs, positions);
+		order = Sort.orderTwoLayers(chrs, positions, new Logger());
 		
 		markerNames = Sort.putInOrder(markerNames, order);
 		chrs = Sort.putInOrder(chrs, order);

@@ -74,7 +74,7 @@ public class VTE_Analyses {
 			positions[i] = ext.isMissingValue(trav[2])?-1:Integer.parseInt(trav[2]);
 		}
 		log.report(ext.getTime()+"\tSorting positions...");
-		order = Sort.orderTwoLayers(chrs, positions);
+		order = Sort.orderTwoLayers(chrs, positions, log);
 		log.report(ext.getTime()+"\tWriting to file...");
 		try {
 			writer = new PrintWriter(new FileWriter(DIR+"allSNPs.map"));
