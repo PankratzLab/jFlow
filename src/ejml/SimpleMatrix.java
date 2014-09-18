@@ -81,6 +81,7 @@ import java.util.Random;
  * @author Peter Abeles
  */
 public class SimpleMatrix extends SimpleBase<SimpleMatrix> {
+	private static final long serialVersionUID = 1L;
 
     /**
      * A simplified way to reference the last row or column in the matrix for some functions.

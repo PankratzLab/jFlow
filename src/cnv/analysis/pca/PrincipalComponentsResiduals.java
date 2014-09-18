@@ -200,7 +200,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			cluster = ClusterFilterCollection.load(proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME), false);
 		} else {
 			cluster = new ClusterFilterCollection();
-			log.report("Info - did not find the cluster filter file " + proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME) + " using original genotypes");
+			log.report("Info - did not find the cluster filter file " + proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME) + "; using original genotypes");
 		}
 
 		for (int i = 0; i < markersToAssess.length; i++) {

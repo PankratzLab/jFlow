@@ -143,6 +143,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		System.out.println(Array.toStr(filenames, "; "));
 
 		long time;
+		String trackFilename;
 
 		this.proj = proj;
 		this.log = proj.getLog();
@@ -194,16 +195,20 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         time = new Date().getTime();
 //		track = GeneTrack.load(proj.getDir(Project.DATA_DIRECTORY)+GeneSet.REFSEQ_TRACK, jar);
         if (new File(proj.getFilename(Project.GENETRACK_FILENAME, false, false)).isFile()) {
-        	track = GeneTrack.load(proj.getFilename(Project.GENETRACK_FILENAME), jar);
+        	trackFilename = proj.getFilename(Project.GENETRACK_FILENAME);
         } else if (new File(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK).exists()) {
-            track = GeneTrack.load(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK, jar);
+        	trackFilename = GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK;
         } else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
-        	track = GeneTrack.load(GeneSet.REFSEQ_TRACK, jar);
+        	trackFilename = GeneSet.REFSEQ_TRACK;
         } else {
 //			JOptionPane.showMessageDialog(this, "Gene track is not installed. Gene boundaries will not be displayed.", "FYI", JOptionPane.INFORMATION_MESSAGE);
-        	track = null;
+        	trackFilename = null;
         }
-		System.out.println("Loaded track in "+ext.getTimeElapsed(time));
+        if (trackFilename != null) {
+        	log.report("Loading track from "+trackFilename);	
+        	track = GeneTrack.load(trackFilename, jar);
+        }
+        log.report("Loaded track in "+ext.getTimeElapsed(time));
 		
 		
 		updateSample(sample);

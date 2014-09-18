@@ -27,7 +27,9 @@ import java.io.Serializable;
  * </p>
  */
 public class Complex64F implements Serializable {
-    public double real;
+	private static final long serialVersionUID = 1L;
+
+	public double real;
     public double imaginary;
 
     public Complex64F(double real, double imaginary) {

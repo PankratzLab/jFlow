@@ -28,4 +28,6 @@ package ejml;
  * @author Peter Abeles
  */
 public class SingularMatrixException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
+
 }

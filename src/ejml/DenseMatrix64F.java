@@ -80,6 +80,8 @@ import java.io.PrintStream;
  * @author Peter Abeles
  */
 public class DenseMatrix64F extends RowD1Matrix64F {
+	private static final long serialVersionUID = 1L;
+
 
     /**
      * <p>

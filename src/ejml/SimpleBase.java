@@ -33,6 +33,7 @@ import java.io.Serializable;
  */
 @SuppressWarnings({"unchecked"})
 public abstract class SimpleBase <T extends SimpleBase> implements Serializable {
+	private static final long serialVersionUID = 1L;
 
     /**
      * Internal matrix which this is a wrapper around.
