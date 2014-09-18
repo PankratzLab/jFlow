@@ -161,7 +161,7 @@ public class Markers {
 			System.exit(2);
 		}
 
-		log.report("\nRead in "+count+" markers from the markerPositions file");
+		log.report("\nRead in "+count+" lines from the markerPositions file");
 		if (countBad > MAX_ERRORS_TO_REPORT) {
 			countBad--;
 		}
@@ -172,6 +172,7 @@ public class Markers {
 		if (numIncompleteLines > 0) {
 			log.report("...including "+numIncompleteLines+" incomplete line"+(countBad==1?"":"s"));
 		}
+		log.report("Number of final valid marker positions: "+hash.size());
 		if (numBlankNames > 0) {
 			log.report("Number of blank marker names: "+numBlankNames);
 		}

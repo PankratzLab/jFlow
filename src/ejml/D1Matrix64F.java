@@ -28,6 +28,8 @@ package ejml;
  * @author Peter Abeles
  */
 public abstract class D1Matrix64F extends ReshapeMatrix64F {
+	private static final long serialVersionUID = 1L;
+
     /**
      * Where the raw data for the matrix is stored.  The format is type dependent.
      */

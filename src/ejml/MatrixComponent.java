@@ -30,6 +30,8 @@ import java.awt.image.BufferedImage;
  * @author Peter Abeles
  */
 public class MatrixComponent extends JPanel {
+	private static final long serialVersionUID = 1L;
+
     BufferedImage image;
 
     public MatrixComponent( int width , int height ) {

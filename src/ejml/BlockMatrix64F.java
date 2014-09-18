@@ -26,7 +26,9 @@ package ejml;
  * @author Peter Abeles
  */
 public class BlockMatrix64F extends D1Matrix64F {
-    public int blockLength;
+	private static final long serialVersionUID = 1L;
+
+	public int blockLength;
 
     public BlockMatrix64F( int numRows , int numCols , int blockLength)
     {

@@ -25,6 +25,8 @@ package ejml;
  * @author Peter Abeles
  */
 public class FixedMatrix2_64F implements FixedMatrix64F {
+	private static final long serialVersionUID = 1L;
+
     public double a1,a2;
 
     public FixedMatrix2_64F() {

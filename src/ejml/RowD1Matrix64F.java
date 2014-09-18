@@ -24,5 +24,6 @@ package ejml;
  * @author Peter Abeles
  */
 public abstract class RowD1Matrix64F extends D1Matrix64F {
+	private static final long serialVersionUID = 1L;
 
 }

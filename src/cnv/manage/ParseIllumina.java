@@ -168,6 +168,10 @@ public class ParseIllumina implements Runnable {
 							} catch (NumberFormatException nfe) {
 								log.reportError("Error - failed to parse '"+line[dataIndices[j]]+"' into a valid "+Array.toStr(Sample.DATA_FIELDS[j], "/"));
 								return;
+							} catch (Exception e) {
+								log.reportError("Some other exception");
+								log.reportException(e);
+								return;
 							}
 						}
 
@@ -925,7 +929,7 @@ public class ParseIllumina implements Runnable {
 										log.reportError("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+line[snpIndex]+" of sample "+files[i]);
 									} else {
 										genotypes[0][key] = 0;
-									}								
+									}
 								}
 								
 //								if (!ignoreAB) {
@@ -1011,6 +1015,8 @@ public class ParseIllumina implements Runnable {
 		String[] files;
 		String idHeader, delimiter;
 		Logger log;
+		boolean longFormat, done;
+		String prev;
 
 		log = proj.getLog();
 		if (!Files.exists(proj.getDir(Project.SOURCE_DIRECTORY, false, false))) {
@@ -1019,6 +1025,7 @@ public class ParseIllumina implements Runnable {
 		}
 		
 		delimiter = proj.getSourceFileDelimiter();
+		longFormat = proj.getBoolean(Project.LONG_FORMAT);
 		idHeader = proj.getProperty(Project.ID_HEADER);
 		log.report(ext.getTime()+"\tSearching for "+proj.getProperty(Project.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.getDir(Project.SOURCE_DIRECTORY));
 		files = Files.list(proj.getDir(Project.SOURCE_DIRECTORY), proj.getProperty(Project.SOURCE_FILENAME_EXTENSION), false);
@@ -1039,8 +1046,18 @@ public class ParseIllumina implements Runnable {
 					}
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
 
-					line = reader.readLine().split(delimiter);
-					writer.println(files[i]+"\t"+line[sampIndex]+"\t"+(line[sampIndex].indexOf("@") >= 0?line[sampIndex].split("@")[0]:line[sampIndex]));
+					done = false;
+					prev = null;
+					while (!done) {
+						line = reader.readLine().split(delimiter);
+						if (!line[sampIndex].equals(prev)) {
+							writer.println(files[i]+"\t"+line[sampIndex]+(line[sampIndex].indexOf("@") >= 0?"\t"+line[sampIndex].split("@")[0]:""));
+						}
+						if (!longFormat || !reader.ready()) {
+							done = true;
+						}
+						prev = line[sampIndex];
+					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
 					log.reportError("Error: file \""+files[i]+"\" not found in "+proj.getDir(Project.SOURCE_DIRECTORY));
