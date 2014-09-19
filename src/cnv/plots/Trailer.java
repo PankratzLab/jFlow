@@ -69,16 +69,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String PREVIOUS_REGION = "Previous region";
 	private static final String NEXT_REGION = "Next region";
 	private static final String LAST_REGION = "Last region";
+	private static final String TO_SCATTER_PLOT = "To Scatter Plot";
 
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
 	private JTextField navigationField;
-	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion;
+	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, launchScatterButton;
 	private Project proj;
 	private String sample;
 	private IndiPheno indiPheno;
 	private boolean jar;
-	private int numMarkers;
+	private String[] markerNames;
 	private MarkerSet markerSet;
 	private long fingerprint;
 	private int[] positions;
@@ -492,10 +493,21 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 
 		descrPanel.add(Box.createHorizontalGlue());
+		
+		JPanel compPanel = new JPanel();
+		
 		commentLabel = new JLabel(" ", JLabel.CENTER);
 		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		commentLabel.setFont(new Font("Arial", 0, 14));
-		descrPanel.add(commentLabel);
+		compPanel.add(commentLabel);
+
+		launchScatterButton = new JButton(TO_SCATTER_PLOT);
+		launchScatterButton.setActionCommand(TO_SCATTER_PLOT);
+		launchScatterButton.addActionListener(this);
+		compPanel.add(launchScatterButton);
+		
+		descrPanel.add(compPanel);
+
 		descrPanel.add(Box.createHorizontalGlue());
 
 		JPanel navigationPanel = new JPanel();
@@ -730,6 +742,18 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		} else if (command.equals(LAST_REGION)) {
 			regionIndex = regions.length-1;
 			showRegion();
+		} else if (command.equals(TO_SCATTER_PLOT)) {
+			String[] listOfMarkers;
+			
+			listOfMarkers = new String[stopMarker-startMarker];
+			if (listOfMarkers.length == 0) {
+				JOptionPane.showMessageDialog(null, "There are no markers within this region; ScatterPlot will not bother launching", "Error", JOptionPane.ERROR_MESSAGE);
+			} else {
+				for (int i = startMarker; i < stopMarker; i++) {
+					listOfMarkers[i-startMarker] = markerNames[i];
+				}
+				ScatterPlot.createAndShowGUI(proj, listOfMarkers, null, false);
+			}
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
@@ -908,7 +932,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	public boolean loadMarkers() {
 		Hashtable<String,String> hash;
-		String[] markerNames;
 		byte[] chrs;
 		long time;
 		int chr;
@@ -924,18 +947,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		fingerprint = markerSet.getFingerprint();
 		markerNames = markerSet.getMarkerNames();
-		numMarkers = markerNames.length;
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 
-		dropped = new boolean[numMarkers];
+		dropped = new boolean[markerNames.length];
 		chrBoundaries = new int[27][2];
 		for (int i = 0; i<chrBoundaries.length; i++) {
 //			chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
 			chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
 		}
 		chr = 0;
-		for (int i = 0; i<numMarkers; i++) {
+		for (int i = 0; i<markerNames.length; i++) {
 			dropped[i] = hash.containsKey(markerNames[i]);
 			if (chrs[i]>chr) {
 				if (chr!=0) {
@@ -945,11 +967,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				chrBoundaries[chr][0] = i;
 			}
 		}
-		chrBoundaries[chr][1] = numMarkers-1;
+		chrBoundaries[chr][1] = markerNames.length-1;
 		chrBoundaries[0][0] = 0;
-		chrBoundaries[0][1] = numMarkers-1;
+		chrBoundaries[0][1] = markerNames.length-1;
 
-		System.out.println("Read in data for "+numMarkers+" markers in "+ext.getTimeElapsed(time));
+		System.out.println("Read in data for "+markerNames.length+" markers in "+ext.getTimeElapsed(time));
 		return true;
 	}
 
