@@ -123,19 +123,27 @@ public class Positions {
 	}
 
 	public static String getUCSClink(int[] pos) {
+		return getUCSClink(pos, "hg18");
+	}
+
+	public static String getUCSClink(int[] pos, String hgBuild) {
 		if (pos.length != 3) {
 			System.err.println("Error - not a valid UCSC position");
 			return null;
 		}
-		return "http://genome.ucsc.edu/cgi-bin/hgTracks?position=" + getUCSCformat(pos);
+		return "http://genome.ucsc.edu/cgi-bin/hgTracks?db=" + hgBuild + "&position=" + getUCSCformat(pos);
 	}
 
 	public static String getUCSClinkInExcel(int[] pos) {
+		return getUCSClinkInExcel(pos, "hg18");
+	}
+
+	public static String getUCSClinkInExcel(int[] pos, String hgBuild) {
 		if (pos.length != 3) {
 			System.err.println("Error - not a valid UCSC position");
 			return null;
 		}
-		return "=HYPERLINK(\"" + getUCSClink(pos) + "\", \"" + getUCSCformat(pos) + "\")";
+		return "=HYPERLINK(\"" + getUCSClink(pos, hgBuild) + "\", \"" + getUCSCformat(pos) + "\")";
 	}
 
 	public static String getUCSCUploadLink(int[] pos, String filename) {

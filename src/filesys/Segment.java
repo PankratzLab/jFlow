@@ -66,8 +66,8 @@ public class Segment implements Serializable {
 		return Positions.getUCSCformat(new int[] { getChr(), getStart(), getStop() });
 	}
 
-	public String getUCSCLink() {
-		return Positions.getUCSClinkInExcel(new int[] { getChr(), getStart(), getStop() });
+	public String getUCSCLink(String hgBuild) {
+		return Positions.getUCSClinkInExcel(new int[] { getChr(), getStart(), getStop() }, hgBuild);
 	}
 
 	public int getSize() {
