@@ -69,9 +69,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private SampleList sampleList;
 	private int[] processTracker;
 	private boolean[] transChrs;
-	private boolean recomputeLRR;
-	private boolean correctXY;
-	private boolean correctLRR;
+	private boolean recomputeLRR, correctXY, correctLRR;
+	//, homozygousOnly;
+
 	private JProgressBar progressBar;
 
 	public static boolean checkExists(Project proj, String outputBase) {
@@ -90,13 +90,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	public static void computeMedianLrrs(Project proj, String regionFileName, int transfromationType, int scope, String outputBase) {
 		Logger log = proj.getLog();
 		String[] input = readToArray(proj.getProjectDir() + regionFileName, log);
-		MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope, outputBase, null, false, false, false, log);
+		MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope, outputBase, null, false, false, false, false, log);
 		log.report("Starting job for " + input.length + " regions");
 		medianLRRWorker.execute();
 
 	}
 
-	public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope, String outputBase, JProgressBar jProgressBar, boolean recomputeLRR, boolean correctLRR, boolean correctXY, Logger log) {
+	public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope, String outputBase, JProgressBar jProgressBar, boolean recomputeLRR, boolean correctLRR, boolean correctXY, boolean homozygousOnly, Logger log) {
 		this.proj = proj;
 		this.input = input;
 		this.outputBase = outputBase;
@@ -381,8 +381,14 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			}
 		}
 		for (int i = 0; i < sampleLRRS.size(); i++) {
-			results[0][i] = Array.quants(toFloatArray(sampleLRRS.get(i)), QUANTILES)[0];
-			results[1][i] = getMAD(toFloatArray(sampleLRRS.get(i)), results[0][i]);
+			if (sampleLRRS.get(i).size() > 0) {
+				results[0][i] = Array.quants(toFloatArray(sampleLRRS.get(i)), QUANTILES)[0];
+				results[1][i] = getMAD(toFloatArray(sampleLRRS.get(i)), results[0][i]);
+			} else {
+				proj.getLog().reportError("Warning - sample " + proj.getSamples()[i] + " did not have any data for a region, setting to NaN");
+				results[0][i] = Float.NaN;
+				results[1][i] = Float.NaN;
+			}
 		}
 		return results;
 	}
@@ -906,7 +912,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			log = proj.getLog();
 
 			System.setProperty("java.awt.headless", headless);
-			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, false, false, false, log);
+			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, false, false, false, false, log);
 			medianLRRWorker.execute();
 			while (!medianLRRWorker.isDone()) {
 				Thread.sleep(100);
