@@ -26,7 +26,7 @@ import common.Logger;
 import common.Matrix;
 import common.ext;
 import filesys.Segment;
-
+//TODO, split the centromeres or remove?
 /**
  * Class for filtering denovo calls in offspring by BEAST SCORE and LRR_SD, and a few other metrics Filtering at the default metrics here seems to work OK
  */
