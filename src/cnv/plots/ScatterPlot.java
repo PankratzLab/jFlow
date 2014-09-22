@@ -15,6 +15,7 @@ import stats.ProbDist;
 import java.awt.*;
 import java.awt.event.*;
 
+import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.*;
 import cnv.gui.AnnotationAction;
 import cnv.gui.AutoSaveForScatterPlot;
@@ -60,6 +61,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 	private JPanel qcPanel;
+	private JLabel pcLabel,nStageLabel;
 	private JScrollPane annotationScrollPane;
 	private JPanel annotationPanel;
 	private JPanel annotationPanelLowerPart;
@@ -118,6 +120,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private boolean exitOnClose;
 	private Logger log;
 	
+	private int numComponents , nStage;
+	private PrincipalComponentsResiduals pcResids;
+	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
 		SampleList sampleList;
 		long time;
@@ -130,6 +135,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		size = DEFAULT_SIZE;
 		this.exitOnClose = exitOnClose;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
+		numComponents =Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS));
+		nStage =5;
 		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
 		if (!Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY), proj.getJarStatus())) {
@@ -189,7 +196,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		indexOfAnnotationUsedAsMarkerList = -1;
 		
 		loadMarkerDataFromList(0);
-		
+		pcResids = loadPcResids();//returns null if not found, marker data should return original x/y if null
 		log.reportError("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
 		sessionID = (new Date().getTime()+"").substring(5);
@@ -474,7 +481,72 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 		return gcSliderPanel;
 	}
+	
+	private JPanel pcSliderPanel() {
+		JPanel pcSliderPanel = new JPanel();
+		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
+		pcSliderPanel.setBackground(BACKGROUND_COLOR);
 
+		JSlider slider = new JSlider(JSlider.HORIZONTAL, 2, 20, DEFAULT_SIZE);
+		// slider.setSize(new Dimension(150, 20));
+		slider.setBackground(BACKGROUND_COLOR);
+		slider = new JSlider(JSlider.HORIZONTAL, 0,  Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), 0);
+		slider.setValue(1);
+		slider.setBackground(BACKGROUND_COLOR);
+		pcLabel = new JLabel("Total PCs Loaded = "+numComponents, JLabel.CENTER);
+		pcLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+		// tabPanel.add(gcLabel, gbc);
+		pcSliderPanel.add(pcLabel);
+
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent ce) {
+				JSlider slider = (JSlider) ce.getSource();
+				numComponents = slider.getValue();
+				pcLabel.setText("NumPCs = "+numComponents);
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
+				scatPanel.paintAgain();
+				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
+			}
+		});
+		// tabPanel.add(slider, gbc);
+		pcSliderPanel.add(slider);
+
+		return pcSliderPanel;
+	}
+
+	private JPanel nstageSliderPanel() {
+		JPanel pcSliderPanel = new JPanel();
+		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
+		pcSliderPanel.setBackground(BACKGROUND_COLOR);
+
+		JSlider slider = new JSlider(JSlider.HORIZONTAL, 2, 20, DEFAULT_SIZE);
+		// slider.setSize(new Dimension(150, 20));
+		slider.setBackground(BACKGROUND_COLOR);
+		slider = new JSlider(JSlider.HORIZONTAL, 2,  10, nStage);
+		slider.setValue(nStage);
+		slider.setBackground(BACKGROUND_COLOR);
+		nStageLabel = new JLabel("Number of stages "+nStage, JLabel.CENTER);
+		nStageLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+		// tabPanel.add(gcLabel, gbc);
+		pcSliderPanel.add(nStageLabel);
+
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent ce) {
+				JSlider slider = (JSlider) ce.getSource();
+				nStage = slider.getValue();
+				nStageLabel.setText("Number of stages "+nStage);
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
+				scatPanel.paintAgain();
+				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
+			}
+		});
+		// tabPanel.add(slider, gbc);
+		pcSliderPanel.add(slider);
+
+		return pcSliderPanel;
+}
 	private JPanel clusterFilterPanel() {
 		JPanel clusterFilterPanel = new JPanel();
 		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
@@ -585,6 +657,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 		controlPanel.add(sizeSliderPanel(), gbc);
 		controlPanel.add(gcSliderPanel(), gbc);
+		controlPanel.add(pcSliderPanel(), gbc);
+		controlPanel.add(nstageSliderPanel(), gbc);
 
 		ItemListener symmetryListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
@@ -2459,4 +2533,34 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
             }
         });
 	}
+    
+    public PrincipalComponentsResiduals getPcResids() {
+		return pcResids;
+	}
+
+	private  PrincipalComponentsResiduals loadPcResids() {
+		String pcFile = proj.getFilename(Project.INTENSITY_PC_FILENAME);
+		PrincipalComponentsResiduals pcResids;
+		if (Files.exists(proj.getProjectDir() + ext.removeDirectoryInfo(pcFile))) {
+			proj.getLog().report("Info - loading " + ext.removeDirectoryInfo(pcFile));
+			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+			setNumComponents(Math.min(numComponents, pcResids.getTotalNumComponents()));
+		} else {
+			proj.getLog().report("Info - did not find " + proj.getProjectDir() + ext.removeDirectoryInfo(pcFile));
+			pcResids = null;
+		}
+		return pcResids;
+	}
+
+	public int getNumComponents() {
+		return numComponents;
+	}
+
+	public void setNumComponents(int numComponents) {
+		this.numComponents = numComponents;
+	}
+
+	public int getnStage() {
+		return nStage;
+}
 }

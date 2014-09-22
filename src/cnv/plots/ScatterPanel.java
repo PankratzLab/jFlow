@@ -176,7 +176,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		markerIndex = sp.getMarkerIndex();
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
-		datapoints = markerData.getDatapoints(plotType);
+		datapoints = markerData.getDatapoints(plotType, null, null, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), sp.getnStage(),2, sp.getProject().getLog());
 //		alleleCounts = markerData[markerIndex].getAB_Genotypes();
 //		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());
@@ -202,7 +202,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			errorMessage = null;
 		}
 		
-		if (plotType == 1 || plotType == 2) {
+		if (plotType == 1 || plotType == 2||plotType>=5) {
 			numCents = Array.booleanArraySum(displayCents);
 			points = new PlotPoint[samples.length+numCents*3];
 
@@ -231,7 +231,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			numCents = 0;
 		}
 		
-		if (plotType < 2) {
+		if (plotType < 2||plotType>=5) {
 			forcePlotXmax = Float.NaN;
 		} else {
 			forcePlotXmax = 1;

@@ -17,6 +17,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -29,7 +30,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
-import common.Array;
 import common.Files;
 import common.ext;
 import cnv.analysis.MedianLRRWorker;
@@ -42,7 +42,7 @@ public class LRRComp extends JFrame implements Runnable {
 	// once a job has been started, used to track completion
 	private volatile int computeComplete = 42;
 	public static final String FILENAME = "Enter Analysis Name";
-	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC or probeset-based regions of Interest (one per Line):", "Progress...", "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: ", "Select a correction method" };
+	public static final String[] REGION_TEXT_FIELD_LABELS = { "Input UCSC or probeset-based regions of Interest (one per Line):", "Progress...", "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: ", "Select a correction method", "Select for homozygous markers only" };
 	public static final String[] CLASSES_TO_DUMP = { "IID" };
 	public static final String[] BASIC_CORRECTION = { "None", "Recompute LRR" };
 	public static final String[] BASIC_CORRECTION_TIPS = { "No Correction Procedure will be performed, select this option if you wish to transform the data", "Recompute Log R Ratios" };
@@ -56,6 +56,7 @@ public class LRRComp extends JFrame implements Runnable {
 	private Project proj;
 	private String outputBase;
 	private boolean[] correctionParams;
+	private JCheckBox homozygousCheckBox;// this is fairly specific for mitochondrial markers
 
 	public LRRComp(Project proj, String initRegion) {
 		this.proj = proj;
@@ -64,6 +65,7 @@ public class LRRComp extends JFrame implements Runnable {
 		this.scope = 0;
 		this.correctionParams = new boolean[BASIC_CORRECTION.length + EXTRA_CORRECTION.length];
 		Arrays.fill(correctionParams, false);
+		correctionParams[0]=true;//defaults to no correction
 	}
 
 	public void run() {
@@ -114,6 +116,9 @@ public class LRRComp extends JFrame implements Runnable {
 			progressBar = new JProgressBar(0, 100);
 			computeButton = new ComputeButton(this);
 			twoDPlotButton = new TwoDPlotButton(this);
+			homozygousCheckBox = new JCheckBox(REGION_TEXT_FIELD_LABELS[6]);
+			homozygousCheckBox.setSelected(false);
+
 			ActionListener actionListener = getradioListener();
 			addLabel(REGION_TEXT_FIELD_LABELS[5]);
 			addCorrectionButtons(actionListener, 0);
@@ -129,6 +134,7 @@ public class LRRComp extends JFrame implements Runnable {
 			add(regionTextField, BorderLayout.CENTER);
 			JScrollPane scroll = new JScrollPane(regionTextField);
 			add(scroll);
+			//add(homozygousCheckBox);TODO
 			add(computeButton, BorderLayout.EAST);
 			// TODO add action to launch 2D plot with created file
 			add(twoDPlotButton, BorderLayout.WEST);
@@ -199,7 +205,7 @@ public class LRRComp extends JFrame implements Runnable {
 				progressBar.setVisible(true);
 				progressBar.setStringPainted(true);
 				computeComplete = 0;
-				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, correctionParams[1], correctionParams[2], correctionParams[3], proj.getLog());
+				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, correctionParams[1], correctionParams[2], correctionParams[3], false, proj.getLog());//TODO homozygous box
 				medianLRRWorker.execute();
 				revalidate();
 			}
@@ -352,8 +358,11 @@ public class LRRComp extends JFrame implements Runnable {
 					outputBase = EXTRA_CORRECTION[index];
 				}
 				if (transformationType != 0 && !correctionParams[0]) {
-					JOptionPane.showMessageDialog(null, "Intensity Correction not valid for Transformed Values");
-				} 
+					JOptionPane.showMessageDialog(null, "Intensity Correction is currently not valid for Transformed Values");
+				}
+				if (transformationType != 0 && homozygousCheckBox.isSelected()) {
+					JOptionPane.showMessageDialog(null, "Selecting homozygous markers is currently not valid for Transformed Values");
+				}
 			}
 		};
 	}

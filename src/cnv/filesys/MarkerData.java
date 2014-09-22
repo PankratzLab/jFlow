@@ -6,6 +6,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import cnv.analysis.CentroidCompute;
+import cnv.analysis.pca.PrincipalComponentsIntensity;
+import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.var.SampleData;
 import stats.Correlation;
 import common.AlleleFreq;
@@ -16,7 +18,12 @@ import common.Logger;
 public class MarkerData implements Serializable {
 	public static final long serialVersionUID = 1L;
 	public static final String MARKER_DATA_FILE_EXTENSION = ".mdRAF";
-	public static final String[][] TYPES = { {"X Raw", "Y Raw"}, {"X", "Y"}, {"Theta", "R"}, {"B Allele Freq", "Log R Ratio"}};
+	//Use for more alternate correction types
+	//public static final String[][] TYPES = { { "X Raw", "Y Raw" }, { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }, { "BAF2", "LRR2" }, { "missThetaX", "missThetaY" },{ "twostageX", "twostageY" } ,{ "NstageX", "NstageY" },{ "N+1stageXResidual", "N+1stageYResidual" }};
+	//Use for original scatter plot behavior
+	//public static final String[][] TYPES = { { "X Raw", "Y Raw" }, { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }};
+	public static final String[][] TYPES = { { "X Raw", "Y Raw" }, { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }, { "BAF2", "LRR2" },{ "NstageX", "NstageY" }};
+
 	// TODO remove X Raw / Y Raw from the entire project
 	
 	private String markerName;
@@ -54,20 +61,53 @@ public class MarkerData implements Serializable {
 	}
 
 	public float[][] getDatapoints(int type) {
+		return getDatapoints(type, null, null, false, 1, 0, null, true,null, 0,0,0,new Logger());
+	}
+	
+	public float[][] getDatapoints(int type, int[] sampleSex, boolean[] samplesToUse, boolean intensityOnly, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int nstage, double residStandardDeviationFilter, Logger log) {
 		switch (type) {
 		case 0:
-			return new float[][] {xRaws, yRaws};
+			return new float[][] { xRaws, yRaws };
 		case 1:
-			return new float[][] {xs, ys};
+			return new float[][] { xs, ys };
 		case 2:
-//			return new float[][] {thetas, rs};
-			return new float[][] {getThetas(), getRs()};
+			// return new float[][] {thetas, rs};
+			return new float[][] { getThetas(), getRs() };
 		case 3:
-			return new float[][] {bafs, lrrs};
+			return new float[][] { bafs, lrrs };
+		case 4:
+			return getRecomputedLRR_BAF(sampleSex, samplesToUse, intensityOnly, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, false, log);
+			// case 5:
+			// return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 0, 0, 0, false, log);
+			// case 6:
+			// return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 1, 0, 0, false, log);
+			// case 7:
+			// return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, 0, false, log);
+		//new case 5
+		case 5:
+			return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, 0, false, log);
+
 		default:
 			System.err.println("Error - invalid plot type");
 			return null;
 		}
+	}
+
+	private float[][] getCorrectedIntesity(int[] sampleSex, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage, double residStandardDeviationFilter, boolean correctLRR, Logger log) {
+		if (pcResids == null || numComponents == 0) {
+			if (pcResids == null && numComponents > 0) {
+				log.report("Info - an intensity PCA file was not found as specified by " + Project.INTENSITY_PC_FILENAME);
+			}
+			return new float[][] { xs, ys };
+		}  else {
+			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, null, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? true : false), correctionType, nStage, residStandardDeviationFilter, false, null);
+			pcIntensity.correctXYAt(numComponents);
+			return new float[][] { pcIntensity.getCorrectedXFull(), pcIntensity.getCorrectedYFull() };
+		}
+	}
+
+	public void setAbGenotypes(byte[] abGenotypes) {
+		this.abGenotypes = abGenotypes;
 	}
 
 	public String getMarkerName() {

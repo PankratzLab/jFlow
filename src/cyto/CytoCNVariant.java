@@ -135,7 +135,7 @@ public class CytoCNVariant extends CNVariant {
 	 * @return a summary of the region (as requested by the cytogenics lab)
 	 */
 	public String getMyReport() {
-		return getUCSClocation() + "\t" + getUCSCLink() + "\t" + getISCN() + "\t" + getInterpretation() + "\t" + getStringGenes() + "\t" + getAvgLogRatio() + "\t" + getNumMarkers();
+		return getUCSClocation() + "\t" + getUCSCLink("hg18") + "\t" + getISCN() + "\t" + getInterpretation() + "\t" + getStringGenes() + "\t" + getAvgLogRatio() + "\t" + getNumMarkers();
 	}
 
 	/**

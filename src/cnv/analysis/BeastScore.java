@@ -82,6 +82,7 @@ public class BeastScore {
 
 	/**
 	 * Inverse transforms data, scales chunks (usually chromosomes) by MAD scale factor, uses scaled chromosome values to obtain scaled MAD values for input data
+	 * 
 	 * @param alpha
 	 * @param computeSTDevRaw
 	 *            compute standard deviation of each chunk corresponding to the indicesForScores from raw data
@@ -259,15 +260,19 @@ public class BeastScore {
 		}
 		for (int i = 0; i < chr.length; i++) {
 			if (cnVariant.overlaps(new Segment(chr[i], positions[i], positions[i]))) {
-				if (count >= indices.length) {
-					log.reportError("Error - found too many markers for cnVariant " + cnVariant.toString() + "\n Perhaps some markers were filtered out prior to calling?");
+				if (count < indices.length) {
+					indices[count] = i;
 				}
-				indices[count] = i;
 				count++;
 			}
 		}
-		if (indices.length < count) {
-			log.reportError("Error - not enough markers were found for cnVariant" + cnVariant.toString() + " using the current chr/position data");
+		if (count > indices.length) {
+			log.reportError("Warning - found too many markers (" + count + ") for cnVariant " + cnVariant.toPlinkFormat() + "\n Perhaps some markers were filtered out prior to calling?");
+			log.reportError("Warning - the beast score will be computed for the first " + cnVariant.getNumMarkers() + " found in this region, and may be inaccurate");
+
+		}
+		if (count < indices.length) {
+			log.reportError("Error - not enough markers were found for cnVariant" + cnVariant.toPlinkFormat() + " using the current chr/position data");
 			return null;
 		}
 		return indices;
@@ -303,7 +308,7 @@ public class BeastScore {
 		String ind;
 		float[] lrrs = null;
 		Logger log = proj.getLog();
-		
+
 		if (cNVariantInd.length > 0) {
 			String key = cNVariantInd[0].getFamilyID() + "\t" + cNVariantInd[0].getIndividualID();
 			try {
