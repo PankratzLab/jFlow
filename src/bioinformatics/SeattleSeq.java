@@ -9,9 +9,9 @@ public class SeattleSeq {
 	public static final String[][] NEEDS = {{"Chr"}, {"MapInfo", "Position"}, {"MarkerName", "SNP"}, {"RefStrand"}};
 	public static final String[][] RELEVANTS = {{"chromosome"}, {"position"}, {"sampleAlleles"}, {"accession"}, {"functionGVS"}, {"aminoAcids"}, {"geneList"}, {"inDBSNPOrNot"}, {"rsID"}, {"microRNAs"}};
 //	"# inDBSNPOrNot", "", "position", "referenceBase", "sampleGenotype", "sampleAlleles", "allelesDBSNP", "accession", "functionGVS", "functionDBSNP", "rsID", "aminoAcids", "proteinPosition", "cDNAPosition", "polyPhen", "granthamScore", "scorePhastCons", "consScoreGERP", "chimpAllele", "CNV", "geneList", "AfricanHapMapFreq", "EuropeanHapMapFreq", "AsianHapMapFreq", "hasGenotypes", "dbSNPValidation", "repeatMasker", "tandemRepeat", "clinicalAssociation", "distanceToSplice", "microRNAs", "proteinSequence"
-	public static final String[] ORDER = {"stop-gained-near-splice", "stop-gained", "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense", "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3", "synonymous-near-splice", "intron-near-splice", "coding-unknown-near-splice", "synonymous", "coding-synonymous", "coding-unknown", "coding-notMod3", "non-coding-exon-near-splice", "non-coding-exon", "5-prime-UTR", "utr-5", "3-prime-UTR", "utr-3", "intron", "upstream-gene", "near-gene-5", "downstream-gene", "near-gene-3", "intergenic"};
+	public static final String[] ORDER = {"frameshift-near-splice", "frameshift", "stop-gained-near-splice", "stop-gained", "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense", "coding-near-splice", "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3", "synonymous-near-splice", "intron-near-splice", "coding-unknown-near-splice", "synonymous", "coding-synonymous", "coding-unknown", "coding-notMod3", "non-coding-exon-near-splice", "non-coding-exon", "5-prime-UTR", "utr-5", "3-prime-UTR", "utr-3", "intron", "upstream-gene", "near-gene-5", "downstream-gene", "near-gene-3", "intergenic"};
 //	public static final String[] BAD = {"missense", "stop-gained", "stop-lost", "missense-near-splice", "splice-donor", "splice-acceptor"};
-	public static final String[] BAD = {"stop-gained-near-splice", "stop-gained", "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense", "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3"};
+	public static final String[] BAD = {"frameshift-near-splice", "frameshift", "stop-gained-near-splice", "stop-gained", "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense", "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3"};
 	public static final String[] NEUTRAL = {"intron-near-splice", "5-prime-UTR", "downstream-gene", "upstream-gene", "synonymous", "coding-synonymous", "intergenic", "non-coding-exon", "3-prime-UTR", "intron", "coding-notMod3"};
 	
 	public static void proc(String filename) {
@@ -284,6 +284,7 @@ public class SeattleSeq {
 		int type, worstType, worst;
 		int linesSkipped;
 		boolean problem;
+		long time;
 
 		problem = false;
 		finalHash = new Hashtable<String, String[]>();
@@ -295,8 +296,9 @@ public class SeattleSeq {
 			log.reportError("        returning an empty hashtable");
 		} else {
 			files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false, false);
-			log.report("Found "+files.length+" file(s) with a .SeattleSeq extension to include");
+			log.report(ext.getTime()+"\tFound "+files.length+" file(s) with a .SeattleSeq extension to include");
 			for (int f = 0; f < files.length; f++) {
+				time = new Date().getTime();
 				log.report("Processing SeattleSeq file "+(f+1)+" of "+files.length+"\t"+files[f], false, true);
 				try {
 					reader = Files.getAppropriateReader(directory+files[f]);
@@ -319,52 +321,56 @@ public class SeattleSeq {
 								linesSkipped++;
 								continue;
 							}
-							
-							try {
-								markerName = "chr"+line[1]+":"+line[2]+"_"+line[3]+"_"+line[4];
-								if (v.size() > 0 && !markerName.equals(prev) || done) {
-									worst = -1;
-									worstType = ORDER.length;
-									type = -1;
-									for (int i = 0; i < v.size(); i++) {
-										trav = v.elementAt(i);
-										type = ext.indexOfStr(trav[indices[4]], ORDER);
-										if (type == -1) {
-											log.reportError("unknown type: "+trav[indices[4]]);
-											log.reportError(Array.toStr(trav));
-											problem = true;
-										}
-										if (type < worstType) {
-											worstType = type;
-											worst = i;
-										}						
-									}
-									trav = v.elementAt(worst);
-									if (trav[indices[8]].equals("0")) {
-										trav[indices[8]] = ".";
-									} else {
-										trav[indices[8]] = "rs"+trav[indices[8]];
-									}
-									
-									trav = Array.subArray(trav, indices);	// trim to the relevant columns
-									trav = Array.addStrToArray(ext.indexOfStr(trav[4], BAD) >= 0?"1":"0", trav, 0); // determine if mutation is missense/splice or worse 
-									finalHash.put(markerName, trav);
-									v = new Vector<String[]>();
-								}
-								v.add(line);
-								prev = markerName;
-							} catch (Exception e) {
-								log.reportError("Error reading line: "+Array.toStr(line));
-								log.reportException(e);
-								problem = true;
-								System.exit(1);
-							}								
 						} else {
 							done = true;
 						}
+
+						try {
+							markerName = "chr"+line[1]+":"+line[2]+"_"+line[3]+"_"+line[4];
+							if (line[4].startsWith("I") || line[4].startsWith("D")) {
+								markerName = "chr"+line[1]+":"+line[2]+"_"+line[3].charAt(0)+"_"+line[5];
+							}
+							if (done || (v.size() > 0 && !markerName.equals(prev))) {
+								worst = -1;
+								worstType = ORDER.length;
+								type = -1;
+								for (int i = 0; i < v.size(); i++) {
+									trav = v.elementAt(i);
+									type = ext.indexOfStr(trav[indices[4]], ORDER);
+									if (type == -1) {
+										log.reportError("unknown type: "+trav[indices[4]]);
+										log.reportError(Array.toStr(trav));
+										problem = true;
+									}
+									if (type < worstType) {
+										worstType = type;
+										worst = i;
+									}						
+								}
+								trav = v.elementAt(worst);
+								if (trav[indices[8]].equals("0")) {
+									trav[indices[8]] = ".";
+								} else {
+									trav[indices[8]] = "rs"+trav[indices[8]];
+								}
+								
+								trav = Array.subArray(trav, indices);	// trim to the relevant columns
+								trav = Array.addStrToArray(ext.indexOfStr(trav[4], BAD) >= 0?"1":"0", trav, 0); // determine if mutation is missense/splice or worse 
+								finalHash.put(prev, trav);
+								v = new Vector<String[]>();
+							}
+							v.add(line);
+							prev = markerName;
+						} catch (Exception e) {
+							log.reportError("Error reading line: "+Array.toStr(line));
+							log.reportException(e);
+							problem = true;
+							System.exit(1);
+						}
+						
 					}
 					
-					log.report(" ...skipped "+linesSkipped+" line(s)");
+					log.report(" ...skipped "+linesSkipped+" line(s); finished in " + ext.getTimeElapsed(time));
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \"" + directory+files[f]
@@ -375,7 +381,7 @@ public class SeattleSeq {
 					System.exit(2);
 				}
 			}
-		}		
+		}
 
 		if (problem) {
 			return null;
