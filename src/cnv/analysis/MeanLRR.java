@@ -417,6 +417,10 @@ public class MeanLRR {
 //		phenotypes = new String[] {"Class=LQ LRR_SD;2=Bad;3=KindaBad", "Class=BAF_outliers", "Class=Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner", "Class=Exclude"};
 //		dumpAll = true;
 //		transform = true;
+//		
+//		phenotypes = new String[] {"Class=Exclude"};
+//		dump = "chr20:58,433,777-58,497,422";
+//		dumpAll = true;
 
 		Project proj;
 
