@@ -26,6 +26,7 @@ public class Markers {
 		logLevel = log.getLevel();
 		log.setLevel(9);
 		time = new Date().getTime();
+		log.report(ext.getTime()+"\tLoading marker data from " + markerDatabase);
 		snpPositions = loadFileToHashString(markerDatabase, log);
 		if (snpPositions == null) {
 			return null;
@@ -63,7 +64,7 @@ public class Markers {
 
 		new MarkerSet(markerNames, chrs, positions, keys).serialize(output);
 
-		log.report(ext.getTime()+"\tFinished sorting in " + ext.getTimeElapsed(time));
+		log.report(ext.getTime()+"\tFinished loading and sorting in " + ext.getTimeElapsed(time));
 		log.setLevel(logLevel);
 		
 		return keys;

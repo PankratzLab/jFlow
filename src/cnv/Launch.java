@@ -645,6 +645,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			if (verbose) {
 				System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"+LaunchProperties.DEBUG_PROJECT_FILENAME+"=' property listed in '"+LaunchProperties.DEFAULT_PROPERTIES_FILE+"'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
 			}
+			dir = "./";
 			filename = "default.properties";
 		} else if (!Files.exists(dir) || !Files.exists(dir+filename)) {
 			if (verbose) {

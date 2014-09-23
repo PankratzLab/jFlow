@@ -755,6 +755,7 @@ public class ParseIllumina implements Runnable {
         log.report("Parsing files using the Long Format algorithm");
         
 //        Markers.orderMarkers(null, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true), proj.getLog());
+        // creates and serializes the markers.bim, the returned keys are not used here as the markerIndices fill that purpose
         markerSet = proj.getMarkerSet();
         markerNames = markerSet.getMarkerNames();
 		fingerprint = proj.getMarkerSet().getFingerprint();
@@ -780,6 +781,7 @@ public class ParseIllumina implements Runnable {
 		boolean ignoreAB;
 		CountHash countHash, dupHash;
 		boolean done;
+		int numCols;
 		
 		if (Files.exists(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt")) {
 			Files.backup("FYI_IDS_WERE_CHANGED.txt", proj.getProjectDir(), proj.getProjectDir(), true);
@@ -824,9 +826,15 @@ public class ParseIllumina implements Runnable {
 					data = null;
 					genotypes = null;
 					parseAtAt = Boolean.parseBoolean(proj.getProperty(Project.PARSE_AT_AT_SYMBOL));
+					numCols = -1;
 					while (!done) {
 						if (reader.ready()) {
 							line = reader.readLine().split(delimiter);
+							if (numCols == -1) {
+								numCols = line.length;
+							} else if (line.length != numCols) {
+								log.reportError("Error - mismatched number of columns at marker index "+markerCount);
+							}
 							if (parseAtAt&&line[sampIndex].indexOf("@")==-1) {
 								log.reportError("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample");
 								parseAtAt = false;
@@ -870,6 +878,7 @@ public class ParseIllumina implements Runnable {
 									return;
 								}
 
+//								log.report("Saving file sample "+sampleName+" which has data for "+markerCount+" markers"); 
 								samp = new Sample(sampleName, fingerprint, data, genotypes, false);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
 								
