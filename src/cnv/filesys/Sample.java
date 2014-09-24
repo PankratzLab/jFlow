@@ -176,7 +176,7 @@ public class Sample implements Serializable {
 		if (lrrs==null) {
 			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
 		}
-		if (abGenotypes==null || forwardGenotypes==null) {
+		if (abGenotypes==null && forwardGenotypes==null) {
 			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 		}
 
@@ -629,6 +629,9 @@ public class Sample implements Serializable {
 					if (canXYBeNegative) {
 						isOutlier = ! Compression.xyCompressAllowNegative(xs[j], writeBuffer, writeBufferIndex);
 					} else {
+						if (writeBufferIndex == 2726570) {
+							System.out.println();
+						}
 						isOutlier = ! Compression.xyCompressPositiveOnly(xs[j], writeBuffer, writeBufferIndex);
 					}
 					if (isOutlier) {
