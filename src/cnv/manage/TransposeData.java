@@ -985,7 +985,7 @@ public class TransposeData {
 			isYNull = Sample.isYNull(nullStatus);
 			isBafNull = Sample.isBafNull(nullStatus);
 			isLrrNull = Sample.isLrrNull(nullStatus);
-			isGenotypeNull = Sample.isAbOrForwardGenotypeNull(nullStatus);
+			isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
 			isNegativeXOrYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
 			numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
 			numBytesPerMarker = numBytesPerSampleMarker * nSamples;

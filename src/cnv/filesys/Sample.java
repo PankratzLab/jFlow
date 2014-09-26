@@ -202,7 +202,7 @@ public class Sample implements Serializable {
 		if (((nullStatus >> NULLSTATUS_LRR_LOCATION) & 0x01) == 1) {
 			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
 		}
-		if (isAbOrForwardGenotypeNull(nullStatus)) {
+		if (isAbAndForwardGenotypeNull(nullStatus)) {
 			nBytesPerSampleMarker -= Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 		}
 
@@ -241,8 +241,8 @@ public class Sample implements Serializable {
 		return ((nullStatus >> NULLSTATUS_LRR_LOCATION) & 0x01) == 1;
 	}
 
-	public static boolean isAbOrForwardGenotypeNull(byte nullStatus) {
-		return (((nullStatus >> NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) == 1 || ((nullStatus >> NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) == 1);
+	public static boolean isAbAndForwardGenotypeNull(byte nullStatus) {
+		return (((nullStatus >> NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) == 1 && ((nullStatus >> NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) == 1);
 	}
 
 	public float[][] getAllData() {
@@ -837,7 +837,7 @@ public class Sample implements Serializable {
 				indexStart += 3;
 			}
 			index = indexStart;
-			if ((!isAbOrForwardGenotypeNull(nullStatus)) && loadAbOrForwardGenotypes) {
+			if ((!isAbAndForwardGenotypeNull(nullStatus)) && loadAbOrForwardGenotypes) {
 				abGenotypes = new byte[numMarkers];
 				fwdGenotypes = new byte[numMarkers];
 				for (int j=0; j<numMarkers; j++) {

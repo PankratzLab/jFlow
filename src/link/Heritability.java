@@ -181,6 +181,20 @@ public class Heritability {
 		}
 	}
 
+	public static void getHeritabilitiesOfAllPhenosInADir(String dir, String pedigreeFile, String covars, Logger log) {
+		String[] phenos, results;
+		String merlinExec, solarExec;
+		
+		merlinExec = DEFAULT_MERLIN_EXEC;
+		solarExec = DEFAULT_SOLAR_EXEC;
+		phenos = Files.list(dir, ".txt", false);
+		results = new String[phenos.length];
+		for (int i = 0; i < phenos.length; i++) {
+			results[i] = computeWithMerlin(dir, pedigreeFile, phenos[i], covars, ext.rootOf(phenos[i]), merlinExec, log);
+		}
+		Files.writeList(results, dir + "heritabilities.txt");
+	}
+
 	public static void fromParameters(String filename, Logger log) {
 		PrintWriter writer, summary;
 		String[] line;
@@ -355,6 +369,7 @@ public class Heritability {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
+		String phenoDir = "N:/statgen/Mitochondrial_CN_heritability/phenos/";
 		String pheno = "pheno.dat";
 		String covars = "covars.dat";
 		String pedfile = "plink.fam";
@@ -380,6 +395,13 @@ public class Heritability {
 		"   (1) control file (i.e. crf=pheno.crf (not the default))\n" + 
 		"";
 
+		controlFile = null;
+		method = "";
+		phenoDir = null;
+
+		phenoDir = "N:/statgen/Mitochondrial_CN_heritability/phenos/";
+		pedfile = "N:/statgen/Mitochondrial_CN_heritability/pedigrees/pedigree.dat";
+
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -402,6 +424,9 @@ public class Heritability {
 			} else if (args[i].startsWith("crf=")) {
 				controlFile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("phenodir=")) {
+				phenoDir = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -414,10 +439,10 @@ public class Heritability {
 			System.exit(1);
 		}
 		
-		if (args.length == 0) {
-			controlFile = "heritabilityTest.crf";
-			controlFile = "N:/statgen/BOSS/phenotypes/PhenoPrep/MMSE/heritability.crf";
-		}
+//		if (args.length == 0) {
+//			controlFile = "heritabilityTest.crf";
+//			controlFile = "N:/statgen/BOSS/phenotypes/PhenoPrep/MMSE/heritability.crf";
+//		}
 		try {
 			log = new Logger(logfile);
 			if (controlFile != null) {
@@ -428,6 +453,9 @@ public class Heritability {
 				}
 				if (method.equalsIgnoreCase("solar") || method.equalsIgnoreCase("both")) {
 					computeWithSolar(pedfile, pheno, covars, prefix, "", DEFAULT_SOLAR_EXEC, log);
+				}
+				if (phenoDir != null) {
+					getHeritabilitiesOfAllPhenosInADir(phenoDir, pedfile, covars, log);
 				}
 			}
 		} catch (Exception e) {
