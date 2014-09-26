@@ -477,7 +477,7 @@ public class MarkerDataLoader implements Runnable {
 		isYNull = Sample.isYNull(nullStatus);
 		isBafNull = Sample.isBafNull(nullStatus);
 		isLrrNull = Sample.isLrrNull(nullStatus);
-		isGenotypeNull = Sample.isAbOrForwardGenotypeNull(nullStatus);
+		isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
 		isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
 
         for (int i=0; i<markersIndicesInFile.length; i++) {
