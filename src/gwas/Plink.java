@@ -346,6 +346,7 @@ public class Plink {
 		PrintWriter writer;
 		String[] line, metrics, ids;
 		Hashtable<String, String> callrates, lrr_sds, in, out, trav;
+		List<Set<String>> duplicates;
 		Logger log;
 		int numExtras;
 		double[] probs;
@@ -404,6 +405,7 @@ public class Plink {
 		counts = new int[removeOutTo];
 		numExtras = 0;
 		out = new Hashtable<String, String>();
+		duplicates = new ArrayList<Set<String>>();
 		try {
 			reader = Files.getAppropriateReader(genomeFile);
 			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CLUSTER_HEADER, true);
@@ -439,13 +441,33 @@ public class Plink {
 								metrics[k*2+1] = lrr_sds.get(line[k*2+0]+"\t"+line[k*2+1]);
 							}
 						}
-						writer.print(line[0]+"\t"+line[1]+"\t"+metrics[0]+"\t"+metrics[1]+"\t"+line[2]+"\t"+line[3]+"\t"+metrics[2]+"\t"+metrics[3]+"\t"+line[4]+"\t"+line[5]+"\t"+line[6]+"\t"+line[7]+"\t"+flags[i]);
-						if (out.containsKey(line[0]+"\t"+line[1]) && out.containsKey(line[2]+"\t"+line[3])) {
+						
+						String fidIid1 = line[0]+"\t"+line[1];
+						String fidIid2 = line[2]+"\t"+line[3];
+						
+						if ("duplicate".equals(flags[i])) {
+							boolean found = false;
+							for (Set<String> dupeSet : duplicates) {
+								if (dupeSet.contains(fidIid1) || dupeSet.contains(fidIid2)) {
+									dupeSet.add(fidIid1);
+									dupeSet.add(fidIid2);
+									found = true;
+								}
+							}
+							if (!found) {
+								HashSet<String> newDuplicateSet = new HashSet<String>();
+								newDuplicateSet.add(fidIid1);
+								newDuplicateSet.add(fidIid2);
+								duplicates.add(newDuplicateSet);
+							}
+						}
+						writer.print(fidIid1+"\t"+metrics[0]+"\t"+metrics[1]+"\t"+fidIid2+"\t"+metrics[2]+"\t"+metrics[3]+"\t"+line[4]+"\t"+line[5]+"\t"+line[6]+"\t"+line[7]+"\t"+flags[i]);
+						if (out.containsKey(fidIid1) && out.containsKey(fidIid2)) {
 							writer.println("\t.\t.\t.\t.");
-						} else if (out.containsKey(line[0]+"\t"+line[1])) {
-							writer.println("\t"+line[2]+"\t"+line[3]+"\t.\t.");
-						} else if (out.containsKey(line[2]+"\t"+line[3])) {
-							writer.println("\t"+line[0]+"\t"+line[1]+"\t.\t.");
+						} else if (out.containsKey(fidIid1)) {
+							writer.println("\t"+fidIid2+"\t.\t.");
+						} else if (out.containsKey(fidIid2)) {
+							writer.println("\t"+fidIid1+"\t.\t.");
 						} else {
 							if (metrics[0].equals(".") || metrics[2].equals(".") || (Double.parseDouble(metrics[0]) == Double.parseDouble(metrics[2]))) {
 								if (metrics[1].equals(".") || metrics[3].equals(".") || (Double.parseDouble(metrics[1]) == Double.parseDouble(metrics[3]))) {
@@ -462,11 +484,11 @@ public class Plink {
 							}
 							
 							if (sel == 0) {
-								writer.println("\t"+line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]);
-								out.put(line[2]+"\t"+line[3], in.remove(line[2]+"\t"+line[3]));
+								writer.println("\t"+fidIid1+"\t"+fidIid2);
+								out.put(fidIid2, in.remove(fidIid2));
 							} else {
-								writer.println("\t"+line[2]+"\t"+line[3]+"\t"+line[0]+"\t"+line[1]);
-								out.put(line[0]+"\t"+line[1], in.remove(line[0]+"\t"+line[1]));
+								writer.println("\t"+fidIid2+"\t"+fidIid1);
+								out.put(fidIid1, in.remove(fidIid1));
 							}
 						}
 
@@ -534,6 +556,29 @@ public class Plink {
 				e.printStackTrace();
 			}
 		}
+		
+		if (!duplicates.isEmpty()) {
+			log.report("Writing duplicates file - found " + duplicates.size() + " sets of duplicate identifiers");
+			try {
+				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicates.dat"));
+				for (Set<String> dupeSet : duplicates) {
+					for (String fidIid : dupeSet) {
+						String iid = fidIid.split("[\\s]+")[1];
+						writer.print(iid);
+						writer.print("\t");
+					}
+					writer.println();
+				}
+				writer.close();
+			} catch (IOException e) {
+				System.err.println("Error writing to duplicateSets.txt file");
+				e.printStackTrace();
+			}
+		} else {
+			log.report("No duplicates to write out");
+		}
+		log.report("");
+		
 		
 		if (Files.exists("ofInterest.txt", false)) {
 			trav = HashVec.loadFileToHashString("ofInterest.txt", new int[] {0,1}, new int[] {-7}, false, "\t", false, false, false);
@@ -959,3 +1004,4 @@ public class Plink {
 		}
 	}
 }
+
