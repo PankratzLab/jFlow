@@ -2041,7 +2041,37 @@ public class Array {
 
 		return -1;
 	}
-	
+
+	/**
+	 * Tries to find the instance in a sorted array where all values up to, but not including, that index are less than a given maximum target
+	 * <p>
+	 * For example, calling {@link Array#indexOfLastMinByte} using (new byte[] {0,1,2,24,25}, 23), would return 3 (all values up to index 3 are less than 23);
+	 * 
+	 * @param array
+	 *            an array of bytes
+	 * @param maxByte
+	 *            the number to find
+	 * 
+	 * @return the index, or -1 if all values were greater than the maximum, or the array's length if all values were less than the maximum
+	 */
+	public static int indexOfFirstMaxByte(byte[] array, byte maxByte) {
+		boolean found = false;
+		int max = -1;
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] < maxByte) {
+				max = i;
+				found = true;
+			} else if (found) {
+				return max + 1; // can stop here, and set max to the next index
+			}
+		}
+		if (found) {
+			return array.length;//all values were less than max
+		} else {
+			return max; //all values were greater than max
+		}
+	}
+
 	/**
 	 * Creates a new array using only the indices between start and stop
 	 * 
