@@ -299,7 +299,8 @@ public class PowerCalculatorForQuantitativeTraits {
 //			rangeOfSigmaShiftsAndMAFsViaSimulation(10000, 1000, 1000000);	// inflammation discovery
 //			rangeOfSigmaShiftsAndMAFsViaSimulation(5000, 1000, 100);		// inflammation replication
 //			rangeOfSigmaShiftsAndMAFsViaSimulation(200, 1000, 75);			// hearing inflammation sequence discovery
-			rangeOfSigmaShiftsAndMAFsViaSimulation(2500, 1000, 40);			// hearing inflammation sequence discovery
+//			rangeOfSigmaShiftsAndMAFsViaSimulation(2500, 1000, 40);			// hearing inflammation sequence discovery
+			rangeOfSigmaShiftsAndMAFsViaSimulation(50000, 1000, 1000000);	// Genvisis analyses
 
 //			simulatedBetting(10000, 1000, 1, 0.00);
 			System.out.println("Finished in " + ext.getTimeElapsed(time));

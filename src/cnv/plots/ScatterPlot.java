@@ -2128,7 +2128,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
             }
 		}
-		
+		if(plot_type==5){
+			symmetryBox.setEnabled(true);
+			scatPanel.setSymmetricAxes(symmetryBox.isSelected());
+		}
 		if (fileterRadioButtons != null) {
 			updateAnnotationPanelFilterRadioButtons();
 			updateAnnotationPanelAnnotationCheckBoxes();
@@ -2521,7 +2524,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			frame.addWindowListener(scatterPlot);
 	
 	        frame.pack();
-			frame.setSize(1000, 720);
+			frame.setSize(1200, 870);
 			frame.setVisible(true);
     	}
     }

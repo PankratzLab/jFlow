@@ -34,35 +34,45 @@ public class LrrSd extends Parallelizable {
 		double abCallRate, forwardCallRate;
 		int[] bafBinCounts;
 		boolean multimodal;
+		int subIndex = -1;
 		Logger log;
 		
 		log = proj.getLog();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
-			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate");
-
 			if (centroidsFile==null) {
 				cents = null;
 			} else {
 				cents = Centroids.load(centroidsFile, false).getCentroids(); 
 			}
-			if (markersForEverythingElse != null) {
-				markersForEverythingElse = Array.subArray(markersForEverythingElse, 0, Array.indexOfByte(proj.getMarkerSet().getChrs(), (byte) 23));
+			chrs = proj.getMarkerSet().getChrs();
+			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23, chrs.length if all are less, -1 if none are less
+			if (subIndex < 0) {
+				proj.getLog().reportError("Error - was not able to detect any autosomal markers for sample QC in " + proj.getFilename(Project.MARKERSET_FILENAME));
+				return;
 			}
+			if (chrs[subIndex] != 23) {
+				proj.getLog().report("Info - did not detect chromosome 23 in " + proj.getFilename(Project.MARKERSET_FILENAME));
+			}
+			if (markersForEverythingElse != null) {
+				markersForEverythingElse = (subIndex == markersForEverythingElse.length ? markersForEverythingElse : Array.subArray(markersForEverythingElse, 0, subIndex));
+			}
+
+			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
+			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate");
+
 			
 			for (int i = 0; i<samples.length; i++) {
 	        	log.report((i+1)+" of "+samples.length);
 				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-				chrs = proj.getMarkerSet().getChrs();
 				if (fsamp == null) {
 					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
-					lrrs = cents==null?fsamp.getLRRs():fsamp.getLRRs(cents);
-					lrrs = Array.subArray(lrrs, 0, Array.indexOfByte(chrs, (byte)23));
+					lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
+					lrrs = (subIndex == lrrs.length ? lrrs : Array.subArray(lrrs, 0, subIndex));
 					bafs = fsamp.getBAFs();
-					bafs = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
-					bafsWide = Array.subArray(bafs, 0, Array.indexOfByte(chrs, (byte)23));
-					
+					bafs = (subIndex == bafs.length ? bafs : Array.subArray(bafs, 0, subIndex));
+					bafsWide = bafs;
+
 					if (markersForEverythingElse != null) {
 						lrrs = Array.subArray(lrrs, markersForEverythingElse);
 						bafs = Array.subArray(bafs, markersForEverythingElse);
@@ -72,7 +82,7 @@ public class LrrSd extends Parallelizable {
 					abGenotypes = fsamp.getAB_Genotypes();
 					forwardGenotypes = fsamp.getForwardGenotypes();
 					
-					if (markersForCallrate != null) {
+					if (markersForCallrate != null) {//we do not need autosomal only markers here...
 						abGenotypes = (abGenotypes == null ? abGenotypes : Array.subArray(abGenotypes, markersForCallrate));
 						forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes : Array.subArray(forwardGenotypes, markersForCallrate));
 					}

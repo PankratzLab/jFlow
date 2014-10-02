@@ -733,7 +733,7 @@ public class ParseKcol implements Runnable {
 			if (lookup == null) {
 				System.err.println("Warning - filed to provide columns \"" + GENOTYPE_FIELDS[2][0] + "\" / \"" + GENOTYPE_FIELDS[3][0] + "\" and the specificed AB_lookup file '" + proj.getProperty(Project.AB_LOOKUP_FILENAME) + "' does not exist; you'll need reconstruct the B allele for analysis");
 			} else {
-				abLookup.writeToFile(proj.getProjectDir() + "checkAB.xln");
+				abLookup.writeToFile(proj.getProjectDir() + "checkAB.xln", proj.getLog());
 			}
 		} else {
 			lookup = null;
