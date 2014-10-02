@@ -90,6 +90,10 @@ public class CentroidCompute {
 		return markerData;
 	}
 
+	public boolean[] getSamplesToUse() {
+		return samplesToUse;
+	}
+
 	/**
 	 * We favor returning {@link #alternateGenotypes} if they have been explicitly set.
 	 * <p>

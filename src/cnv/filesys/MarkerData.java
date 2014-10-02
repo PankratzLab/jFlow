@@ -93,6 +93,9 @@ public class MarkerData implements Serializable {
 		}
 	}
 
+	/**
+	 * Warning - the behavior of this method will likely be volatile for some time as the correction methods are improved
+	 */
 	private float[][] getCorrectedIntesity(int[] sampleSex, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage, double residStandardDeviationFilter, boolean correctLRR, Logger log) {
 		if (pcResids == null || numComponents == 0) {
 			if (pcResids == null && numComponents > 0) {
@@ -102,7 +105,25 @@ public class MarkerData implements Serializable {
 		}  else {
 			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, null, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? true : false), correctionType, nStage, residStandardDeviationFilter, false, null);
 			pcIntensity.correctXYAt(numComponents);
+			//This will display the genotypes after correction in scatter plot for testing
+			//setAbGenotypes(pcIntensity.getCentroidCompute().getClustGenotypes());			
 			return new float[][] { pcIntensity.getCorrectedXFull(), pcIntensity.getCorrectedYFull() };
+		}
+	}
+	
+	/**
+	 * Warning - the behavior of this method will likely be volatile for some time as the correction methods are improved
+	 */
+	public byte[] getAlternateGenotypes(int[] sampleSex,boolean[] samplesToUse, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage, double residStandardDeviationFilter, boolean correctLRR, Logger log) {
+		if (pcResids == null || numComponents == 0) {
+			if (pcResids == null && numComponents > 0) {
+				log.report("Info - an intensity PCA file was not found as specified by " + Project.INTENSITY_PC_FILENAME);
+			}
+			return abGenotypes;
+		} else {
+			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? true : false), correctionType, nStage, residStandardDeviationFilter, false, null);
+			pcIntensity.correctXYAt(numComponents);
+			return pcIntensity.getCentroidCompute().getClustGenotypes();
 		}
 	}
 

@@ -45,8 +45,8 @@ public class CNVTrioFilter extends CNVFilter {
 		this.numCalls = numCalls;
 	}
 
-	public CNVTrioFilter(double maxBeastHeightParents, double minBeastHeightDifference, double maxTrioLrrSD, double maxTrio1585SD, int numCalls, int minNumMarkers, int maxNumMarkers, int minSize, int maxSize, double minScore, double maxScore, Segment[] problemRegions, Segment[] centromereMidpoints, Segment[] commonReference, int[][] centromereBoundaries, boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash, int build, Logger log) {
-		super(minNumMarkers, maxNumMarkers, minSize, maxSize, minScore, maxScore, problemRegions, centromereMidpoints, commonReference, centromereBoundaries, breakupCentromeres, commonIn, indHash, build, log);
+	public CNVTrioFilter(double maxBeastHeightParents, double minBeastHeightDifference, double maxTrioLrrSD, double maxTrio1585SD, int numCalls, int minNumMarkers, int maxNumMarkers, int minSize, int maxSize, double minScore, double maxScore, Segment[] problemRegions, Segment[] centromereMidpoints, Segment[] commonReference, int[][] centromereBoundaries, boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash, int build, int CN, Logger log) {
+		super(minNumMarkers, maxNumMarkers, minSize, maxSize, minScore, maxScore, problemRegions, centromereMidpoints, commonReference, centromereBoundaries, breakupCentromeres, commonIn, indHash, build, CN, log);
 		this.maxBeastHeightParents = maxBeastHeightParents;
 		this.minBeastHeightDifference = minBeastHeightDifference;
 		this.maxTrioLrrSD = maxTrioLrrSD;
@@ -113,7 +113,7 @@ public class CNVTrioFilter extends CNVFilter {
 	}
 
 	public CNVFilterPass getCNVTrioFilterPass(cnvTrio CNVTrio) {
-		CNVFilterPass filterPass = getFilterCNVPass(CNVTrio);
+		CNVFilterPass filterPass = getCNVFilterPass(CNVTrio);
 		CNVTrio.computeMinHeightDist(maxBeastHeightParents);
 		if (filterPass.passedFilter()) {
 			if (!checkMaxThreshold(Math.abs(CNVTrio.getFAHEIGHT()), maxBeastHeightParents)) {
