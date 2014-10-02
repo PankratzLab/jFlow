@@ -40,7 +40,7 @@ public abstract class Parallelizable implements Runnable {
 		
 		threadSeeds[0].finalAction();
 		
-		log.report(" in "+ext.getTimeElapsed(time));
+		log.report(" ...finished in "+ext.getTimeElapsed(time));
 	}
 	
 	public static String[][] splitList(String[] list, int numThreads, boolean collate) {
