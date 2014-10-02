@@ -70,7 +70,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private int[] processTracker;
 	private boolean[] transChrs;
 	private boolean recomputeLRR, correctXY, correctLRR;
-	//, homozygousOnly;
+	// , homozygousOnly;
 
 	private JProgressBar progressBar;
 
@@ -282,7 +282,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				warnAndCancel(Error);
 			} else {
 				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(Project.INTENSITY_PC_FILENAME), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
-				samplesToUse = getSamplesToUseForClustering(proj);
+				samplesToUse = proj.getSamplesToInclude(null);
 				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + " for correction clustering");
 			}
 		}
@@ -308,7 +308,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			float[] lrrs = markerData.getLRRs();// default
 			if (recomputeLRR || correctLRR || correctXY) {
 
-				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, null, true, false, 2, 5, 0, false, null);
+				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, proj.getClusterFilterCollection(), true, false, 2, 5, 0, false, null);
 				if (recomputeLRR && !correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 				} else if (correctLRR) {
@@ -325,7 +325,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 					pcIntensity.correctXYAt(Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)));
 					float[][] correctedXYs = new float[][] { pcIntensity.getCorrectedXFull(), pcIntensity.getCorrectedYFull() };
 					MarkerData mdsNew = new MarkerData(markerData.getMarkerName(), markerData.getChr(), markerData.getPosition(), markerData.getFingerprint(), markerData.getGCs(), null, null, correctedXYs[0], correctedXYs[1], null, null, null, null, pcIntensity.getCentroidCompute().getAlternateGenotypes(), pcIntensity.getCentroidCompute().getAlternateGenotypes());
-					lrrs = mdsNew.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, proj.getLog())[1];
+					lrrs = mdsNew.getRecomputedLRR_BAF(null, samplesToUse, false, 1, 0, proj.getClusterFilterCollection(), true, true, proj.getLog())[1];
 				}
 				if (lrrs == null) {
 					String Error = "Error - could not correct Log R Ratios for " + markerData.getMarkerName();
@@ -348,17 +348,6 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		}
 		process(processTracker[1]);
 		return getSampleResults(sampleLrrs);
-	}
-
-	private boolean[] getSamplesToUseForClustering(Project proj) {
-		String[] samples = proj.getSamples();
-		boolean[] samplesToUse = new boolean[samples.length];
-		Arrays.fill(samplesToUse, true);
-		SampleData sampleData = proj.getSampleData(0, false);
-		for (int i = 0; i < samples.length; i++) {
-			samplesToUse[i] = !sampleData.individualShouldBeExcluded(samples[i]);
-		}
-		return samplesToUse;
 	}
 
 	private float[][] getSampleResults(float[][] lrrs) {

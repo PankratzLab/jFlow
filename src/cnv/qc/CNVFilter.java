@@ -1,12 +1,11 @@
 package cnv.qc;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
-import cnv.var.SampleData;
+import common.Array;
 import common.HashVec;
 import common.Logger;
 import common.Positions;
@@ -15,9 +14,7 @@ import filesys.Segment;
 
 public class CNVFilter {
 
-	//TODO document, centromeres
 	/**
-	 * All values for public static final...NO_FILTER should result in no filtering. Each threshold must have a no filter option
 	 */
 	public static final int GIANT_BP = 10000000;
 	public static final int GIANT_NUM_MARKERS = 500;
@@ -28,6 +25,9 @@ public class CNVFilter {
 	public static final boolean DEFAULT_COMMON_IN = false;
 	public static final int DEFAULT_BUILD = 36;
 
+	/**
+	 * COMMAND_* variables are for building .crf parameters, and can be used for command line usage
+	 */
 	public static final String COMMAND_MIN_NUM_MARKERS = "minNumMarkers=";//
 	public static final String COMMAND_MAX_NUM_MARKERS = "maxNumMarkers=";//
 	public static final String COMMAND_MIN_SIZE = "minSize=";//
@@ -42,6 +42,10 @@ public class CNVFilter {
 	public static final String COMMAND_INDIVIDUALS_TO_KEEP = "individualsToKeepFile=";
 	public static final String COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA = "exclude=";
 
+	/**
+	 * Thes parameters should result in no filtering
+	 */
+	public static final int NO_FILTER_CN = -1;
 	public static final int NO_FILTER_MIN_NUM_MARKERS = -1;
 	public static final int NO_FILTER_MAX_NUM_MARKERS = Integer.MAX_VALUE;
 	public static final double NO_FILTER_MIN_SCORE = -1;
@@ -55,7 +59,7 @@ public class CNVFilter {
 	public static final boolean NO_FILTER_BREAK_UP_CENTROMERES = false;
 	public static final HashSet<String> NO_FILTER_INDIVUAL_HASH = null;
 
-	private int minNumMarkers, maxNumMarkers, minSize, maxSize, build;
+	private int minNumMarkers, maxNumMarkers, minSize, maxSize, build, CN;
 	private double minScore, maxScore;
 	private Segment[] problemRegions, centromereMidpoints, commonReference;
 	private int[][] centromereBoundaries;
@@ -64,7 +68,7 @@ public class CNVFilter {
 	private Hashtable<String, String> commandLineFiltersInEffect = new Hashtable<String, String>();
 	private Logger log;
 
-	public CNVFilter(int minNumMarkers, int maxNumMarkers, int minSize, int maxSize, double minScore, double maxScore, Segment[] problemRegions, Segment[] centromereMidpoints, Segment[] commonReference, int[][] centromereBoundaries, boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash, int build, Logger log) {
+	public CNVFilter(int minNumMarkers, int maxNumMarkers, int minSize, int maxSize, double minScore, double maxScore, Segment[] problemRegions, Segment[] centromereMidpoints, Segment[] commonReference, int[][] centromereBoundaries, boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash, int build, int CN, Logger log) {
 		super();
 		this.minNumMarkers = minNumMarkers;
 		this.maxNumMarkers = maxNumMarkers;
@@ -80,7 +84,12 @@ public class CNVFilter {
 		this.commonIn = commonIn;
 		this.indHash = indHash;
 		this.build = build;
+		this.CN = CN;
 		this.log = log;
+	}
+
+	public CNVFilter(Logger log) {
+		this(NO_FILTER_MIN_NUM_MARKERS, NO_FILTER_MAX_NUM_MARKERS, NO_FILTER_MIN_SIZE, NO_FILTER_MAX_SIZE, NO_FILTER_MIN_SCORE, NO_FILTER_MAX_SCORE, NO_FILTER_PROBLEM_REGIONS, NO_FILTER_CENTROMERE_MIDPOINTS, NO_FILTER_COMMON_REFERENCE, NO_FILTER_CENTROMERE_BOUNDARIES, NO_FILTER_BREAK_UP_CENTROMERES, DEFAULT_COMMON_IN, NO_FILTER_INDIVUAL_HASH, DEFAULT_BUILD, NO_FILTER_CN, log);
 	}
 
 	public void setCNVDefaults(Project proj) {
@@ -92,6 +101,88 @@ public class CNVFilter {
 		setCommonIn(DEFAULT_COMMON_IN);
 	}
 
+	/**
+	 * @param cnv
+	 *            the cnv to be tested against all filters currently set The returned object is a {@link CNVFilterPass}
+	 *            <p>
+	 *            Can call {@link CNVFilterPass#passedFilter()} to see if the cnv made it through all filters
+	 *            <p>
+	 *            Can call {@link CNVFilterPass#getReasonNotPassing()} to get a full report of why the cnv was filtered out. This is useful for testing new filters
+	 * @return {@link CNVFilterPass}
+	 */
+	public CNVFilterPass getCNVFilterPass(CNVariant cnv) {
+		CNVFilterPass filterPass = new CNVFilterPass();
+		if (minSize != NO_FILTER_MIN_SIZE && cnv.getSize() < minSize) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("minimum size < " + minSize, ";");
+		}
+		if (maxSize != NO_FILTER_MAX_SIZE && cnv.getSize() > maxSize) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("maximum size > " + maxSize, ";");
+		}
+		if (minNumMarkers != NO_FILTER_MIN_NUM_MARKERS && cnv.getNumMarkers() < minNumMarkers) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("min number of markers < " + minNumMarkers, ";");
+		}
+		if (maxNumMarkers != NO_FILTER_MAX_NUM_MARKERS && cnv.getNumMarkers() > maxNumMarkers) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("max number of markers > " + maxNumMarkers, ";");
+		}
+		if (minScore != NO_FILTER_MIN_SCORE && cnv.getScore() < minScore) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("minimum score < " + minScore, ";");
+		}
+		if (maxScore != NO_FILTER_MAX_SCORE && cnv.getSize() < maxScore) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("minimum score > " + maxScore, ";");
+		}
+		if (commonReference != NO_FILTER_COMMON_REFERENCE) {
+			if (commonIn && !inOneOfTheseRegions(cnv, commonReference)) {
+				filterPass.prepFail();
+				filterPass.addReasonFailing("commonIn=" + commonIn + " and was not in commonReference", ";");
+			} else if (inOneOfTheseRegions(cnv, commonReference)) {
+				filterPass.prepFail();
+				filterPass.addReasonFailing("commonIn=" + commonIn + " and was in commonReference", ";");
+			}
+		}
+		if (problemRegions != NO_FILTER_PROBLEM_REGIONS) {
+			if (inOneOfTheseRegions(cnv, problemRegions)) {
+				filterPass.prepFail();
+				filterPass.addReasonFailing("problematic regions were defined and was in a problematic region ", ";");
+			}
+		}
+		if (indHash != NO_FILTER_INDIVUAL_HASH && !indHash.contains(cnv.getFamilyID() + "\t" + cnv.getIndividualID())) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing(cnv.getFamilyID() + "\t" + cnv.getIndividualID() + " was not in the individual filter list", ";");
+			filterPass.setIndIsExcluded(true);// this is useful if you are computing concordance, and do not want excluded individuals counted against
+		}
+		// TODO better, and break up everytime if needed without the extra method
+		if (centromereBoundaries != NO_FILTER_CENTROMERE_BOUNDARIES && centromereMidpoints != NO_FILTER_CENTROMERE_MIDPOINTS && cnv.overlaps(centromereMidpoints[cnv.getChr()]) && !breakupCentromeres) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("breakupCentromeres=" + breakupCentromeres + " and was in a centromere", ";");
+			filterPass.setCentromeric(true);
+		}
+		if (cnv.getSize() > GIANT_BP || cnv.getNumMarkers() > GIANT_NUM_MARKERS) {
+			filterPass.setGiant(true);
+		}
+		if (CN != NO_FILTER_CN && cnv.getCN() != CN) {
+			filterPass.prepFail();
+			filterPass.addReasonFailing("cnv was not copy number" + CN, ";");
+		}
+		return filterPass;
+	}
+
+	/**
+	 * @param proj
+	 * @param args
+	 *            these are usually the args passed to a main method, if an arg is not valid we do not warn or exit, simply skip
+	 * @param filter
+	 *            a pre-existing filter, can be null
+	 * @param defaults
+	 *            set the filter to the defualt values as defined by {@link CNVFilter#setCNVDefaults(Project)}
+	 * @param log
+	 * @return
+	 */
 	public static CNVFilter setupCNVFilterFromArgs(Project proj, String[] args, CNVFilter filter, boolean defaults, Logger log) {
 		if (filter == null) {
 			filter = new CNVFilter(log);
@@ -186,8 +277,11 @@ public class CNVFilter {
 		this.commandLineFiltersInEffect = commandLineFiltersInEffect;
 	}
 
+	/**
+	 * @return a String array of the default parameters, typically used for creating a .crf
+	 */
 	public static String[] getDefaultCNVParams() {
-		String[] params = new String[17];
+		String[] params = new String[27];
 		params[0] = "# CNV Specific Filters: ";
 
 		params[1] = "# minimum number of markers";
@@ -211,35 +305,34 @@ public class CNVFilter {
 		params[13] = "# a path (relative to the project directory) to a file of problematic regions.";
 		params[14] = "#" + COMMAND_PROBLEM_REGIONS_FILE;
 
-		params[13] = "# a path (relative to the project directory) to a file common regions";
-		params[14] = "#" + COMMAND_COMMON_REFERENCE;
+		params[15] = "# a path (relative to the project directory) to a file common regions";
+		params[16] = "#" + COMMAND_COMMON_REFERENCE;
 
-		params[13] = "# a path (relative to the project directory) to a file common containing individuals to use (note this will override " + COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + ")";
-		params[14] = "#" + COMMAND_COMMON_REFERENCE;
+		params[17] = "# if a common reference is provided, keep only variants in the common regions. Defaults to removing (" + DEFAULT_COMMON_IN + ")";
+		params[18] = COMMAND_COMMON_IN + DEFAULT_COMMON_IN;
 
-		params[13] = "# if a common reference is provided, keep only variants in the common regions. Defaults to removing (" + DEFAULT_COMMON_IN + ")";
-		params[14] = COMMAND_COMMON_IN + DEFAULT_COMMON_IN;
+		params[19] = "# a path (relative to the project directory) to a file common individuals to use (note this will override " + COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + ")";
+		params[20] = "#" + COMMAND_INDIVIDUALS_TO_KEEP;
 
-		params[15] = "# the genome build to use for centromere locations";
-		params[16] = COMMAND_BUILD + DEFAULT_BUILD;
+		params[21] = "# the genome build to use for centromere locations";
+		params[22] = COMMAND_BUILD + DEFAULT_BUILD;
 
-		params[15] = "# break up CNVs spanning centromers, defualts to removing cnvs that span centromeres(" + DEFAULT_BREAK_UP_CENTROMERES + ")";
-		params[16] = COMMAND_BREAK_UP_CENTROMERES;
+		params[23] = "# break up CNVs spanning centromers, defualts to removing cnvs that span centromeres(" + DEFAULT_BREAK_UP_CENTROMERES + ")";
+		params[24] = "#" + COMMAND_BREAK_UP_CENTROMERES;
 
-		params[15] = "# exclude indivudals as defined by sample data";
-		params[16] = COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + DEFAULT_EXCLUDE_SAMPLE_DATA;
+		params[25] = "# exclude indivudals as defined by sample data";
+		params[26] = COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + DEFAULT_EXCLUDE_SAMPLE_DATA;
 
 		return params;
 	}
 
-	public CNVFilter(Logger log) {
-		this(NO_FILTER_MIN_NUM_MARKERS, NO_FILTER_MAX_NUM_MARKERS, NO_FILTER_MIN_SIZE, NO_FILTER_MAX_SIZE, NO_FILTER_MIN_SCORE, NO_FILTER_MAX_SCORE, NO_FILTER_PROBLEM_REGIONS, NO_FILTER_CENTROMERE_MIDPOINTS, NO_FILTER_COMMON_REFERENCE, NO_FILTER_CENTROMERE_BOUNDARIES, NO_FILTER_BREAK_UP_CENTROMERES, DEFAULT_COMMON_IN, NO_FILTER_INDIVUAL_HASH, DEFAULT_BUILD, log);
-	}
-
 	public boolean passesCNVFilter(CNVariant cnv) {
-		return getFilterCNVPass(cnv).passedFilter();
+		return getCNVFilterPass(cnv).passedFilter();
 	}
 
+	/**
+	 * A bare bones filter
+	 */
 	public void setBasicCNVFilters(int minNumMarkers, int maxNumMarkers, int minSize, int maxSize, double minScore, double maxScore) {
 		this.minNumMarkers = minNumMarkers;
 		this.maxNumMarkers = maxNumMarkers;
@@ -249,58 +342,18 @@ public class CNVFilter {
 		this.maxScore = maxScore;
 	}
 
-	public CNVFilterPass getFilterCNVPass(CNVariant cnv) {
-		CNVFilterPass filterPass = new CNVFilterPass();
-		if (minSize != NO_FILTER_MIN_SIZE && cnv.getSize() < minSize) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("minimum size < " + minSize, ";");
-		}
-		if (maxSize != NO_FILTER_MAX_SIZE && cnv.getSize() > maxSize) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("maximum size > " + maxSize, ";");
-		}
-		if (minNumMarkers != NO_FILTER_MIN_NUM_MARKERS && cnv.getNumMarkers() < minNumMarkers) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("min number of markers < " + minNumMarkers, ";");
-		}
-		if (maxNumMarkers != NO_FILTER_MAX_NUM_MARKERS && cnv.getNumMarkers() > maxNumMarkers) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("max number of markers > " + maxNumMarkers, ";");
-		}
-		if (minScore != NO_FILTER_MIN_SCORE && cnv.getScore() < minScore) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("minimum score < " + minScore, ";");
-		}
-		if (maxScore != NO_FILTER_MAX_SCORE && cnv.getSize() < maxScore) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("minimum score > " + maxScore, ";");
-		}
-		if (commonReference != NO_FILTER_COMMON_REFERENCE) {
-			if (commonIn && !inOneOfTheseRegions(cnv, commonReference)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("commonIn=" + commonIn + " and was not in commonReference", ";");
-			} else if (inOneOfTheseRegions(cnv, commonReference)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("commonIn=" + commonIn + " and was in commonReference", ";");
-			}
-		}
-		if (indHash != NO_FILTER_INDIVUAL_HASH && !indHash.contains(cnv.getFamilyID() + "\t" + cnv.getIndividualID())) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing(cnv.getFamilyID() + "\t" + cnv.getIndividualID() + " was not in the individual filter list", ";");
-		}
-		// TODO better
-		if (centromereBoundaries != NO_FILTER_CENTROMERE_BOUNDARIES && centromereMidpoints != NO_FILTER_CENTROMERE_MIDPOINTS && cnv.overlaps(centromereMidpoints[cnv.getChr()]) && !breakupCentromeres) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("breakupCentromeres=" + breakupCentromeres + " and was in a centromere", ";");
-			filterPass.setCentromeric(true);
-		}
-		if (cnv.getSize() > GIANT_BP || cnv.getNumMarkers() > GIANT_NUM_MARKERS) {
-			filterPass.setGiant(true);
-		}
-		return filterPass;
+	public int getCN() {
+		return CN;
 	}
 
-	public CNVariant[] determineCentromere(CNVFilterPass filterPass, CNVariant cnv) {
+	public void setCN(int cN) {
+		CN = cN;
+	}
+
+	/**
+	 * The method {@link CNVFilter#getCNVFilterPass(CNVariant) } does not explicitly break up centromeres, this must be called to do that
+	 */
+	public CNVariant[] breakUpCentromere(CNVFilterPass filterPass, CNVariant cnv) {
 		CNVariant[] cnvCentromere;
 		if (breakupCentromeres && filterPass.passedFilter() && centromereMidpoints != NO_FILTER_CENTROMERE_MIDPOINTS && filterPass.isCentromeric()) {
 			cnvCentromere = new CNVariant[2];
@@ -312,10 +365,15 @@ public class CNVFilter {
 		return cnvCentromere;
 	}
 
+	/**
+	 * Any or all can be null,
+	 * 
+	 * @param commonIn
+	 *            include (true) or exclude (false) common variants
+	 */
 	public void setAllAuxillaryRegionsFromFiles(String fullPathToProblematicRegions, String fullPathToMarkerSetFilename, String fullPathToCommonCNPReference, String fullPathToIndividualsToKeepFile, boolean commonIn) {
 		setProblemRegionsFromFile(fullPathToProblematicRegions);
 		setCentromereBoundariesFromFile(fullPathToMarkerSetFilename);
-
 		setCommonReferenceFromFile(fullPathToCommonCNPReference, commonIn);
 		setIndividualsToKeepFromFile(fullPathToIndividualsToKeepFile);
 	}
@@ -363,22 +421,9 @@ public class CNVFilter {
 	}
 
 	public void setIndividualsToKeepFromSampleData(Project proj) {
-		SampleData sampleData = proj.getSampleData(0, false);
-		String samples[] = proj.getSamples();
-		ArrayList<String> samplesToKeep = new ArrayList<String>();
-		if (!sampleData.hasExcludedIndividuals()) {
-			setIndHash(samples);
-		} else {
-			log.report("Info - excluding samples as defined in sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME));
-			for (int i = 0; i < samples.length; i++) {
-				if (!sampleData.individualShouldBeExcluded(samples[i])) {
-					samplesToKeep.add(sampleData.lookup(samples[i])[1]);// convert to FID/IID
-				}
-			}
-			log.report("Info - retaining " + samplesToKeep.size() + (samplesToKeep.size() == 1 ? " sample" : " samples"));
-
-			setIndHash(samplesToKeep.toArray(new String[samplesToKeep.size()]));
-		}
+		String samples[] = Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
+		log.report("Info - retaining " + samples.length + (samples.length == 1 ? " sample" : " samples") + " in the cnv filter set");
+		setIndHash(samples);
 	}
 
 	public boolean isCommonIn() {
@@ -513,6 +558,7 @@ public class CNVFilter {
 	public static class CNVFilterPass {
 		private boolean passes, centromeric, giant;
 		private String reasonNotPassing;
+		private boolean indIsExcluded;
 		private static final String IT_PASSED = "Passed QC";
 		private static final String DID_NOT_PASS = "Did not pass QC for the following reasons:";
 
@@ -522,6 +568,15 @@ public class CNVFilter {
 			this.centromeric = false;
 			this.giant = false;
 			this.reasonNotPassing = IT_PASSED;
+			this.indIsExcluded = false;
+		}
+
+		public boolean isIndIsExcluded() {
+			return indIsExcluded;
+		}
+
+		public void setIndIsExcluded(boolean indIsExcluded) {
+			this.indIsExcluded = indIsExcluded;
 		}
 
 		public boolean isGiant() {
@@ -570,7 +625,5 @@ public class CNVFilter {
 				reasonNotPassing += sep + reason;
 			}
 		}
-
 	}
-
 }
