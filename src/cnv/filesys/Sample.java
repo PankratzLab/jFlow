@@ -629,9 +629,6 @@ public class Sample implements Serializable {
 					if (canXYBeNegative) {
 						isOutlier = ! Compression.xyCompressAllowNegative(xs[j], writeBuffer, writeBufferIndex);
 					} else {
-						if (writeBufferIndex == 2726570) {
-							System.out.println();
-						}
 						isOutlier = ! Compression.xyCompressPositiveOnly(xs[j], writeBuffer, writeBufferIndex);
 					}
 					if (isOutlier) {

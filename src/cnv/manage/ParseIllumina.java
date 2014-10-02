@@ -234,7 +234,7 @@ public class ParseIllumina implements Runnable {
 					}
 
 					
-					filename = determineFilename(proj.getDir(Project.SAMPLE_DIRECTORY, true), sampleName, timeBegan);
+					filename = determineFilename(proj.getDir(Project.SAMPLE_DIRECTORY, true), sampleName, timeBegan, log);
 					if (filename == null) {
 						return;
 					}
@@ -276,7 +276,7 @@ public class ParseIllumina implements Runnable {
 		}
 	}
 
-	private static String determineFilename(String dir, String sampleName, long timeBegan) {
+	private static String determineFilename(String dir, String sampleName, long timeBegan, Logger log) {
 		String filename, trav;
 		int version, versionToOverwrite;
 		String[] overwriteOptions;
@@ -315,6 +315,17 @@ public class ParseIllumina implements Runnable {
 			if (new File(dir+OVERWRITE_OPTION_FILE).exists()) {
 				response = 1;
 			} else {
+				
+				if (!System.getProperty("os.name").startsWith("Windows")) {
+					log.reportError("Error - the same sample name '"+sampleName+"' is being parsed again and the previous file existed before the current command began. "
+							+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted. "
+							+ "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory. "
+							+ "To automatically overwrite when there is conflict like this, then create an empty file with the following name: "
+							+ dir+OVERWRITE_OPTION_FILE
+							);
+					return null;
+				}
+				
 				do {
 					response = JOptionPane.showOptionDialog(null, 
 							"Error - the same sample name '"+sampleName+"' is being parsed again and the previous file existed before the current command began.\n"+
@@ -516,6 +527,11 @@ public class ParseIllumina implements Runnable {
 				sampleName = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex];
 			}
 			if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false)+"markers.0.mdRAF").exists()) {
+				
+				if (!System.getProperty("os.name").startsWith("Windows")) {
+					log.reportError("Error - Marker data (at least the first file 'markers.0.mdRAF') have already been parsed. This happens if you had previously transposed the data or if the parser was interrupted and manually restarted. Please delete the marker directory to start over from scratch.");
+					return 0;
+				}
 
 				overwriteOptions = new String[] {
 						"Delete All", 
@@ -728,7 +744,7 @@ public class ParseIllumina implements Runnable {
             if (lookup == null) {
             	proj.getLog().reportError("Warning - filed to provide columns \""+Sample.GENOTYPE_FIELDS[2][0]+"\" / \""+Sample.GENOTYPE_FIELDS[3][0]+"\" and the specificed AB_lookup file '"+proj.getProperty(Project.AB_LOOKUP_FILENAME)+"' does not exist; you'll need reconstruct the B allele for analysis");
             } else {
-            	abLookup.writeToFile(proj.getProjectDir()+"checkAB.xln");
+            	abLookup.writeToFile(proj.getProjectDir()+"checkAB.xln", proj.getLog());
             }
 		} else {
 			lookup = null;
@@ -873,7 +889,7 @@ public class ParseIllumina implements Runnable {
 									sampleName = fixes.get(sampleName);
 								}
 								
-								filename = determineFilename(proj.getDir(Project.SAMPLE_DIRECTORY, true), sampleName, timeBegan);
+								filename = determineFilename(proj.getDir(Project.SAMPLE_DIRECTORY, true), sampleName, timeBegan, log);
 								if (filename == null) {
 									return;
 								}
@@ -884,6 +900,10 @@ public class ParseIllumina implements Runnable {
 								
 								count++;
 								markerCount = 0;
+								
+								if (count % 100 == 0) {
+									log.report(count+" of ???"); // TODO make this intelligent and guess the number remaining in this file based on average byte usage and the size of the file (estimate when the file is gzip compressed, the factor is probably somewhere around ~15%)
+								}
 							}
 							if (!done) {
 								if (new File(proj.getDir(Project.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {

@@ -367,7 +367,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				if (!Files.exists(filename)) {
 					abLookup = new ABLookup();
 					abLookup.parseFromOriginalGenotypes(proj);
-					abLookup.writeToFile(filename);
+					abLookup.writeToFile(filename, proj.getLog());
 				}
 				
 				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map());
@@ -638,23 +638,28 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		LaunchProperties launchProperties;
 		String dir, filename;
 		
-		launchProperties = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE);
-		dir = launchProperties.getProperty(LaunchProperties.PROJECTS_DIR);
-		filename = launchProperties.getProperty(LaunchProperties.DEBUG_PROJECT_FILENAME);
-		if (dir == null || filename == null) {
-			if (verbose) {
-				System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"+LaunchProperties.DEBUG_PROJECT_FILENAME+"=' property listed in '"+LaunchProperties.DEFAULT_PROPERTIES_FILE+"'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
-			}
-			dir = "./";
-			filename = "default.properties";
-		} else if (!Files.exists(dir) || !Files.exists(dir+filename)) {
-			if (verbose) {
-				System.err.println("Error - default debug project properties file does not exist: "+dir+filename);
+		if (Files.exists(LaunchProperties.DEFAULT_PROPERTIES_FILE)) {
+			launchProperties = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE);
+			dir = launchProperties.getProperty(LaunchProperties.PROJECTS_DIR);
+			filename = launchProperties.getProperty(LaunchProperties.DEBUG_PROJECT_FILENAME);
+			if (dir == null || filename == null) {
+				if (verbose) {
+					System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"+LaunchProperties.DEBUG_PROJECT_FILENAME+"=' property listed in '"+LaunchProperties.DEFAULT_PROPERTIES_FILE+"'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
+				}
+				dir = "./";
+				filename = "default.properties";
+			} else if (!Files.exists(dir) || !Files.exists(dir+filename)) {
+				if (verbose) {
+					System.err.println("Error - default debug project properties file does not exist: "+dir+filename);
+				}
+			} else {
+				if (verbose) {
+					System.out.println("The default debug project properties file is currently set to '"+dir+filename+"'");
+				}
 			}
 		} else {
-			if (verbose) {
-				System.out.println("The default debug project properties file is currently set to '"+dir+filename+"'");
-			}
+			dir = "./";
+			filename = "default.properties";
 		}
 		
 		return dir+filename;

@@ -710,7 +710,7 @@ public class MitoPipeline {
 			log.report("The sample qc file " + proj.getProjectDir() + DEFUALT_QC_FILE + " already exists");
 			log.report("Skipping qc computation, filtering on existing qc file " + proj.getProjectDir() + DEFUALT_QC_FILE);
 		} else {
-			log.report("Computing sample QC for all samples");
+			log.report("Computing sample QC for all samples...");
 			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
 		}
 
