@@ -754,7 +754,7 @@ public class ParseIllumina implements Runnable {
 		log = proj.getLog();
         log.report("Parsing files using the Long Format algorithm");
         
-//        Markers.orderMarkers(null, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true), proj.getLog());
+		Markers.orderMarkers(null, proj.getFilename(Project.MARKER_POSITION_FILENAME), proj.getFilename(Project.MARKERSET_FILENAME, true, true), proj.getLog());
         // creates and serializes the markers.bim, the returned keys are not used here as the markerIndices fill that purpose
         markerSet = proj.getMarkerSet();
         markerNames = markerSet.getMarkerNames();
