@@ -666,10 +666,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	}
 
 	public static void main(String[] args) {
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-            	createAndShowGUI();
-            }
-        });
+    	try {
+	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+	            public void run() {
+	            		createAndShowGUI();
+	            }
+	        });
+    	} catch (InternalError e) {
+    		if (e.getMessage().contains("X11")) {
+    			System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
+    		}
+    	}
 	}
 }
