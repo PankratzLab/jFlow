@@ -15,6 +15,7 @@ import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
@@ -280,24 +281,23 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median) {
+	public static int catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
 		Logger log;
 		long memoryAvailable;
 		int result;
-
 		log = proj.getLog();
-		
+
 		memoryAvailable = Runtime.getRuntime().maxMemory();
-		log.report("Memory available = " + memoryAvailable +"  ("+ext.prettyUpSize(memoryAvailable, 1)+")");
+		log.report("Memory available = " + memoryAvailable + "  (" + ext.prettyUpSize(memoryAvailable, 1) + ")");
 		if (memoryAvailable < RECOMMENDED_MEMORY) {
-			log.reportError("\nWarning - "+ext.prettyUpSize(memoryAvailable, 1)+" may not be enough RAM to get the job done; add the following -Xmx argument at the command line to increase the amount of memory to the Java virtual machine");
+			log.reportError("\nWarning - " + ext.prettyUpSize(memoryAvailable, 1) + " may not be enough RAM to get the job done; add the following -Xmx argument at the command line to increase the amount of memory to the Java virtual machine");
 			log.reportError("java -Xmx10g -cp /path/to/genvisis.jar ... ");
 			log.reportError("which will allocate 10 Gb of RAM (likewise, you can set it to -Xmx2g for 2 GB or -Xmx250 for 250Gb)\n");
 		}
-		
+
 		sampleDirectory = proj.getDir(Project.SAMPLE_DIRECTORY, false, false);
 		if (Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
 			sampleList = proj.getSampleList();
@@ -310,10 +310,11 @@ public class MitoPipeline {
 			} else if (result == 7) {
 				log.reportError("\nAlternatively, mitoPipeline can do this for you, if you set the markerPositions argument to be null or blank (i.e., \"markerPositions=\")");
 				return 0;
+			} else if (result == 6) {
+				doAbLookup = true;
 			}
-				
 			if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length == 0)) {
-				log.reportError("\nMake sure your "+IMPORT_EXTENSION+" argument is set to the right file extension");
+				log.reportError("\nMake sure your " + IMPORT_EXTENSION + " argument is set to the right file extension");
 			}
 		}
 		try {
@@ -322,13 +323,23 @@ public class MitoPipeline {
 		}
 		sampleList = proj.getSampleList();
 		if (sampleList == null || sampleList.getSamples().length == 0) {
-			log.report("\n"+ext.getTime()+"\tError - samples were not imported properly, halting MitoPipeline");
-			return 41;
+			log.report("\n" + ext.getTime() + "\tError - samples were not imported properly, halting MitoPipeline");
+			if (doAbLookup) {
+				return 42;// we return 42 so that the next attempt will remember to create an ab Lookup
+			} else {
+				return 41;
+			}
 		}
 
 		createSampleData(pedFile, sampleMapCsv, proj);
 		// we require that every sample that has been parsed has an entry in sampleData
 		if (verifyAllSamples(proj, sampleList.getSamples())) {
+			if (doAbLookup) {
+				log.report("Info - determined that an AB lookup is required and was not provided, attempting to generate one now");
+				if (generateABLookup(proj, log) == 0) {
+					return 0;
+				}
+			}
 			// if a useFile is given, all samples must be available
 			if (verifyUseFile(proj, sampleList.getSamples(), useFile)) {
 				if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false) + "markers.0.mdRAF").exists()) {
@@ -337,6 +348,7 @@ public class MitoPipeline {
 				} else {
 					TransposeData.transposeData(proj, 2000000000, false);
 				}
+
 				// we make sure each marker has an entry in the projects Markerlookup. I am doing this in case previous steps have already failed, and this should catch it
 				if (verifyAllProjectMarkersAreAvailable(proj)) {
 					String markersForABCallRate = null;
@@ -386,7 +398,7 @@ public class MitoPipeline {
 				}
 			}
 		}
-		
+
 		return 42;
 	}
 
@@ -594,7 +606,7 @@ public class MitoPipeline {
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + proj.getFilename(Project.MARKER_METRICS_FILENAME) + "\"");
 		}
-		
+
 		return true;
 	}
 
@@ -859,6 +871,38 @@ public class MitoPipeline {
 	}
 
 	/**
+	 * This function will attempt to generate an AB lookup for the project. It should only be called if it is required
+	 */
+
+	private static int generateABLookup(Project proj, Logger log) {
+		ABLookup abLookup;
+		String snpMapFile;
+		abLookup = new ABLookup();
+		abLookup.parseFromGenotypeClusterCenters(proj);
+		abLookup.writeToFile(proj.getFilename(Project.AB_LOOKUP_FILENAME), proj.getLog());
+		if (Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
+			snpMapFile = proj.getLocationOfSNP_Map();
+			if (snpMapFile != null) {
+				log.report("Info - attempting to fill in missing alleles from " + snpMapFile);
+				ABLookup.fillInMissingAlleles(proj, proj.getFilename(Project.AB_LOOKUP_FILENAME), snpMapFile);
+				if (Files.exists(ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME), "_filledIn"))) {
+					proj.setProperty(Project.AB_LOOKUP_FILENAME, ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME), "_filledIn"));
+					proj.saveProperties();
+				} else {
+					log.reportError("Error - detected " + snpMapFile + ", but could not fill in missing AB Lookup values. Reverting to " + proj.getFilename(Project.AB_LOOKUP_FILENAME));
+				}
+			} else {
+				log.report("Warning - will not be able to fill in missing alleles from " + proj.getFilename(Project.AB_LOOKUP_FILENAME) + ", a SNP_MAP file could not be found");
+			}
+			ABLookup.applyABLookupToFullSampleFiles(proj);
+			return 1;
+		} else {
+			log.reportError("Error - detected that an AB Lookup file is required, but failed to create AB Lookup file " + proj.getFilename(Project.AB_LOOKUP_FILENAME));
+			return 0;
+		}
+	}
+
+	/**
 	 * We use the Individual class as input so that we only need one method to generate the sample data
 	 */
 	public static void generateSampleData(Project proj, Individual[] inds) {
@@ -1058,9 +1102,10 @@ public class MitoPipeline {
 		int numThreads = 1;
 		int numComponents = 100;
 		boolean homosygousOnly = true;
-		
+		boolean doAbLookup = false;
+
 		int attempts, result;
-		
+
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
 		usage += "  \n";
@@ -1090,8 +1135,8 @@ public class MitoPipeline {
 		usage += "   (18) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
 		usage += "   (19) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
 		usage += "   (20) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
-		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs="+recomputeLRR_PCs+" (default))\n";
-		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median="+recomputeLRR_Median+" (default))\n";
+		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs=" + recomputeLRR_PCs + " (default))\n";
+		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median=" + recomputeLRR_Median + " (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -1189,7 +1234,7 @@ public class MitoPipeline {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		
+
 		if (Array.booleanArraySum(requiredArray) != requiredArray.length) {
 			System.err.println(usage + "\n\n");
 			System.err.println("The MitoPipeline currently requires " + requiredArray.length + " arguments and we only detected " + Array.booleanArraySum(requiredArray) + " of the " + requiredArray.length);
@@ -1211,10 +1256,13 @@ public class MitoPipeline {
 		}
 		attempts = 0;
 		while (attempts < 2) {
-			result = catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median);
+			result = catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup);
 			attempts++;
-			if (result == 41) {
+			if (result == 41 || result == 42) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");
+				if (result == 42) {// ParseIllumina determined an AB Lookup was necessary
+					doAbLookup = true;
+				}
 			} else {
 				attempts++;
 			}

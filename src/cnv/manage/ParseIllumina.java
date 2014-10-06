@@ -724,8 +724,11 @@ public class ParseIllumina implements Runnable {
 		if (allOutliers.size()>0) {
 			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
-
-		return 1;
+		if (abLookupRequired && !Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
+			return 6;
+		} else {
+			return 1;
+		}
 	}
 
 	private static int checkForSNP_Map(Project proj, Logger log) {
@@ -1059,7 +1062,12 @@ public class ParseIllumina implements Runnable {
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+OVERWRITE_OPTION_FILE).delete();
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+HOLD_OPTION_FILE).delete();
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+CANCEL_OPTION_FILE).delete();
-        return 1;
+       
+		if (abLookupRequired && !Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
+			return 6;
+		} else {
+			return 1;
+		}
 	}
 
 	public static void mapFilenamesToSamples(Project proj, String filename) {
