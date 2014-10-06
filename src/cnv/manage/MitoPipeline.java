@@ -325,7 +325,7 @@ public class MitoPipeline {
 		if (sampleList == null || sampleList.getSamples().length == 0) {
 			log.report("\n" + ext.getTime() + "\tError - samples were not imported properly, halting MitoPipeline");
 			if (doAbLookup) {
-				return 42;// we return 42 so that the next attempt will remember to create an ab Lookup
+				return 40;// we return 40 so that the next attempt will remember to create an ab Lookup
 			} else {
 				return 41;
 			}
@@ -398,7 +398,6 @@ public class MitoPipeline {
 				}
 			}
 		}
-
 		return 42;
 	}
 
@@ -1258,9 +1257,9 @@ public class MitoPipeline {
 		while (attempts < 2) {
 			result = catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup);
 			attempts++;
-			if (result == 41 || result == 42) {
+			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");
-				if (result == 42) {// ParseIllumina determined an AB Lookup was necessary
+				if (result == 40) {// ParseIllumina determined an AB Lookup was necessary if result is 40
 					doAbLookup = true;
 				}
 			} else {
