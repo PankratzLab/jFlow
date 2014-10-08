@@ -135,7 +135,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		size = DEFAULT_SIZE;
 		this.exitOnClose = exitOnClose;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
-		numComponents =Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS));
 		nStage =5;
 		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
@@ -196,7 +195,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		indexOfAnnotationUsedAsMarkerList = -1;
 		
 		loadMarkerDataFromList(0);
-		pcResids = loadPcResids();//returns null if not found, marker data should return original x/y if null
+		pcResids = loadPcResids();// returns null if not found, marker data should return original x/y if null
+		numComponents = 0;//initialize to 0 PCs
 		log.reportError("3\t"+ext.getTimeElapsed(time));
 		loadCentroids();
 		sessionID = (new Date().getTime()+"").substring(5);
@@ -491,11 +491,14 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		// slider.setSize(new Dimension(150, 20));
 		slider.setBackground(BACKGROUND_COLOR);
 		slider = new JSlider(JSlider.HORIZONTAL, 0,  Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), 0);
-		slider.setValue(1);
+		slider.setValue(0);
 		slider.setBackground(BACKGROUND_COLOR);
-		pcLabel = new JLabel("Total PCs Loaded = "+numComponents, JLabel.CENTER);
+		if (pcResids == null) {
+			pcLabel = new JLabel("PC file not detected", JLabel.CENTER);
+		} else {
+			pcLabel = new JLabel("Total PCs Loaded = " + pcResids.getNumComponents(), JLabel.CENTER);
+		}
 		pcLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-		// tabPanel.add(gcLabel, gbc);
 		pcSliderPanel.add(pcLabel);
 
 		slider.addChangeListener(new ChangeListener() {
@@ -506,10 +509,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				scatPanel.setPointsGeneratable(true);
 				scatPanel.setQcPanelUpdatable(true);
 				scatPanel.paintAgain();
-				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
 			}
 		});
-		// tabPanel.add(slider, gbc);
 		pcSliderPanel.add(slider);
 
 		return pcSliderPanel;

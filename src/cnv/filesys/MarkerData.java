@@ -110,7 +110,7 @@ public class MarkerData implements Serializable {
 			}
 		} else {
 			numThreads = Math.min(numThreads, 6);// currently can only utilize 6
-			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, pcResids.getProj().getSamplesToInclude(null), missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? true : false), correctionType, nStage, residStandardDeviationFilter, numThreads, false, null);
+			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, pcResids.getProj().getSamplesToInclude(null, false), missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? true : false), correctionType, nStage, residStandardDeviationFilter, numThreads, false, null);
 			pcIntensity.correctXYAt(numComponents);
 			// This will display the genotypes after correction in scatter plot for testing
 			// setAbGenotypes(pcIntensity.getCentroidCompute().getClustGenotypes());
