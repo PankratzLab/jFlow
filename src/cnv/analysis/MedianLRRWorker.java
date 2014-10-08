@@ -307,13 +307,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			}
 			float[] lrrs = markerData.getLRRs();// default
 			if (recomputeLRR || correctLRR || correctXY) {
-
-				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, proj.getClusterFilterCollection(), true, false, 2, 5, 0, false, null);
+				int numThreads = Integer.parseInt(proj.getProperty(Project.NUM_THREADS));
+				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, proj.getClusterFilterCollection(), true, false, 2, 5, 0, numThreads, false, null);
 				if (recomputeLRR && !correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 				} else if (correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
-					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), regionMarkers[i]);
+					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, regionMarkers[i]).getResiduals();
 					if (tmplrrs != null) {
 						lrrs = Array.toFloatArray(tmplrrs);
 					} else {
@@ -323,9 +323,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 					}
 				} else if (correctXY) {
 					pcIntensity.correctXYAt(Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)));
-					float[][] correctedXYs = new float[][] { pcIntensity.getCorrectedXFull(), pcIntensity.getCorrectedYFull() };
-					MarkerData mdsNew = new MarkerData(markerData.getMarkerName(), markerData.getChr(), markerData.getPosition(), markerData.getFingerprint(), markerData.getGCs(), null, null, correctedXYs[0], correctedXYs[1], null, null, null, null, pcIntensity.getCentroidCompute().getAlternateGenotypes(), pcIntensity.getCentroidCompute().getAlternateGenotypes());
-					lrrs = mdsNew.getRecomputedLRR_BAF(null, samplesToUse, false, 1, 0, proj.getClusterFilterCollection(), true, true, proj.getLog())[1];
+					lrrs =pcIntensity.getCorrectedLRRBAF(true)[1];
 				}
 				if (lrrs == null) {
 					String Error = "Error - could not correct Log R Ratios for " + markerData.getMarkerName();
@@ -361,10 +359,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			for (int k = 0; k < lrrs[i].length; k++) {
 				// Not Including NaNs
 				// if marker i, sample k
-				if (Float.isNaN(lrrs[i][k])) {
-					continue;
-				} else {
-					// add to sample k array list, marker i , sample k value
+				if (!Float.isNaN(lrrs[i][k])) {
 					sampleLRRS.get(k).add((lrrs[i][k]));
 				}
 			}

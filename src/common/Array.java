@@ -956,6 +956,48 @@ public class Array {
 	}
 
 	/**
+	 * Calculates the mean of an array if the sum is already known
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return mean of the array
+	 */
+	public static double mean(double[] array, double sum) {
+		return sum / array.length;
+	}
+
+	/**
+	 * Calculates the sum of squares of an array if the mean is already known
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param avg
+	 *            precomputed average of the array
+	 * @return variance of the array
+	 */
+	public static double sumSq(double[] array, double avg) {
+		double sum = 0;
+		for (int i = 0; i < array.length; i++) {
+			sum += Math.pow(avg - array[i], 2);
+		}
+
+		return sum;
+	}
+
+	/**
+	 * Calculates the variance of an array if the sum of squares is known
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param avg
+	 *            precomputed average of the array
+	 * @return variance of the array
+	 */
+	public static double variance(double[] array, double sumSq) {
+		return sumSq / (array.length - 1);
+	}
+
+	/**
 	 * Calculates the variance of an array
 	 * 
 	 * @param array

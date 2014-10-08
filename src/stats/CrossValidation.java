@@ -224,6 +224,11 @@ public class CrossValidation {
 		this.fullModelSSerr = fullModelSSerr;
 	}
 
+	
+	public void setAnalysisFailed(boolean analysisFailed) {
+		this.analysisFailed = analysisFailed;
+	}
+
 	/**
 	 * So we can save some memory if we return a bunch of validations
 	 */

@@ -54,7 +54,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private int numSamples;// numComponents are loaded, totalNumComponents are present in the pc file
 	protected Hashtable<String, Integer> samplesInPc;// stores the index of a sample in the pc file
 	protected boolean[] samplesToUse;// corresponds to the samples in the PC
-	private boolean printFull, homozygousOnly, recomputeLRR;
+	private boolean printFull, homozygousOnly, recomputeLRR, sortedByProject;
 
 	/**
 	 * @param proj
@@ -92,6 +92,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.pcFile = pcFile;
 		loadPcFile(pcFile);
 		parseSamplesToUse();
+		this.sortedByProject = determineSortedByProject();
 	}
 
 	/**
@@ -138,6 +139,62 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	/**
+	 * Summarize the medians, residuals from the PCs, and inverse transformed values in the same order as the input pc file
+	 */
+	public void summarize(String output) {
+		this.residOutput = ext.rootOf(output) + MT_REPORT_EXT[0];
+		SampleData sampleData = proj.getSampleData(0, false);
+		try {
+			if (Files.exists(proj.getProjectDir() + residOutput)) {
+				Files.backup(residOutput, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
+			}
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + residOutput));
+			writer.print(Array.toStr(MT_REPORT));
+			for (int i = 0; i < numComponents; i++) {
+				writer.print("\t" + PrincipalComponentsCompute.PC_STRING + (i + 1));
+			}
+			writer.println();
+			int modelCount = 0;
+			// samplesToReport is in the same sample order as the pc file
+			for (int i = 0; i < samplesToReport.length; i++) {
+				String[] samp = sampleData.lookup(samplesToReport[i]);
+				writer.print(samp[0] + "\t" + samp[1]);
+				if (sampleData.getSexForIndividual(samp[0]) == -1) {
+					writer.print("\tNA");
+				} else {
+					writer.print("\t" + sampleData.getSexForIndividual(samp[0]));
+				}
+				if (Double.isNaN(assesmentData[i])) {
+					writer.print("\tNA\tNA\tNA");
+				} else {
+					writer.print("\t" + assesmentData[i] + "\t" + (residuals == null ? "NA" : residuals[modelCount]) + "\t" + (invTResiduals == null ? "NA" : invTResiduals[modelCount]));
+					modelCount++;
+				}
+				for (int k = 0; k < numComponents; k++) {
+					writer.print("\t" + pcBasis[k][i]);
+				}
+				writer.println();
+			}
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + residOutput + "\" could not be written to (it's probably open)");
+			log.reportException(fnfe);
+			System.exit(1);
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + residOutput + "\"");
+			log.reportException(ioe);
+			System.exit(2);
+		}
+	}
+
+	/**
+	 * The residual file that the results were summarized to
+	 */
+	public String getResidOutput() {
+		return residOutput;
+	}
+
+	/**
 	 * Here we set the AssesmentData back to the same order as samples represented in the pc file
 	 */
 	private void setAssesmentDataSortByPCs(double[] projectOrderMedians) {
@@ -173,13 +230,6 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	/**
-	 * The residual file that the results were summarized to
-	 */
-	public String getResidOutput() {
-		return residOutput;
-	}
-
-	/**
 	 * Load each of the markers to assess (LRR, and AbGenotypesAfterFilters); We load genotypes to allow filtering by homozygous only, gc threshold, etc...
 	 * <p>
 	 * Data is loaded to assessmentData organized assessmentData[marker0][data for samples in PCs], ditto for abGenotypesAfterFilters
@@ -187,7 +237,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * Note that the order of assessmentData[marker0] does not neccesarily reflect the same order as the samples in the pc file
 	 * 
 	 */
-	public void getData() {
+	private void getData() {
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess);
 		int count = numUsed(samplesToUse);
 		this.assessmentData = new double[markersToAssess.length][count];
@@ -314,7 +364,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 */
 	private static String[] getUsedSubset(String[] samples, boolean[] samplesToUse, Logger log) {
 		ArrayList<String> used = new ArrayList<String>();
-		if (samples.length != samples.length) {
+		if (samples.length != samplesToUse.length) {
 			log.reportError("Error - mismatched number of samples when extracting samples used, this should not happen");
 			return null;
 		}
@@ -348,60 +398,11 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	/**
-	 * Summarize the medians, residuals from the PCs, and inverse transformed values in the same order as the input pc file
-	 */
-	public void summarize(String output) {
-		this.residOutput = ext.rootOf(output) + MT_REPORT_EXT[0];
-		SampleData sampleData = proj.getSampleData(0, false);
-		try {
-			if (Files.exists(proj.getProjectDir() + residOutput)) {
-				Files.backup(residOutput, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
-			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + residOutput));
-			writer.print(Array.toStr(MT_REPORT));
-			for (int i = 0; i < numComponents; i++) {
-				writer.print("\t" + PrincipalComponentsCompute.PC_STRING + (i + 1));
-			}
-			writer.println();
-			int modelCount = 0;
-			// samplesToReport is in the same sample order as the pc file
-			for (int i = 0; i < samplesToReport.length; i++) {
-				String[] samp = sampleData.lookup(samplesToReport[i]);
-				writer.print(samp[0] + "\t" + samp[1]);
-				if (sampleData.getSexForIndividual(samp[0]) == -1) {
-					writer.print("\tNA");
-				} else {
-					writer.print("\t" + sampleData.getSexForIndividual(samp[0]));
-				}
-				if (Double.isNaN(assesmentData[i])) {
-					writer.print("\tNA\tNA\tNA");
-				} else {
-					writer.print("\t" + assesmentData[i] + "\t" + (residuals == null ? "NA" : residuals[modelCount]) + "\t" + (invTResiduals == null ? "NA" : invTResiduals[modelCount]));
-					modelCount++;
-				}
-				for (int k = 0; k < numComponents; k++) {
-					writer.print("\t" + pcBasis[k][i]);
-				}
-				writer.println();
-			}
-			writer.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + residOutput + "\" could not be written to (it's probably open)");
-			log.reportException(fnfe);
-			System.exit(1);
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + residOutput + "\"");
-			log.reportException(ioe);
-			System.exit(2);
-		}
-	}
-
-	/**
 	 * Loads a principal component file to pcBasis[][] organized as pcBasis[Basis0][Basis for samples]. As the components are loaded, the corresponding sample (DNA) is tracked by the hashtable samplesInPc SamplestoReport maintains the order of samples represented by the pcFile
 	 * 
 	 * @param pcFile
 	 */
-	public void loadPcFile(String pcFile) {
+	private void loadPcFile(String pcFile) {
 		String pcFilefull;
 		if (Files.exists(pcFile)) {
 			pcFilefull = pcFile;
@@ -473,16 +474,12 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 	private static int numUsed(boolean[] samplesToUse) {
-		int count = 0;
-		for (int i = 0; i < samplesToUse.length; i++) {
-			if (samplesToUse[i]) {
-				count++;
-			}
-		}
-		return count;
+		return Array.booleanArraySum(samplesToUse);
 	}
 
+	//
 	// The following methods are geared toward the cross validation of principal components
+	//
 
 	/**
 	 * So we can track which pc File went in
@@ -511,6 +508,9 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		return assesmentData;
 	}
 
+	/**
+	 * Holds the index of the sample in the pc file, useful for sorting against the project
+	 */
 	public Hashtable<String, Integer> getSamplesInPc() {
 		return samplesInPc;
 	}
@@ -711,6 +711,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.proj = principalComponentsResiduals.getProj();
 		this.samplesInPc = principalComponentsResiduals.getSamplesInPc();
 		this.allProjSamples = principalComponentsResiduals.getAllProjSamples();
+		this.sortedByProject = principalComponentsResiduals.isSortedByProject();
 		this.log = proj.getLog();
 
 	}
@@ -723,16 +724,168 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		return proj;
 	}
 
+	/**
+	 * @return boolean array representing all samples in the project that have a pc in this object
+	 */
 	public boolean[] getSamplesToUse() {
 		return samplesToUse;
 	}
 
+	/**
+	 * transposes from PC dominant to sample dominant (to be used for regressions etc...)
+	 */
 	public double[][] getPreppedPCs() {
 		return prepPcs(pcBasis);
 	}
 
-	public double[][] getTrimmedPreppedPCs(int numComponents) {
-		return prepPcs(trimPcBasis(numComponents, pcBasis, log));
+	/**
+	 * Transposes from PC dominant to sample dominant and trims the proper number of PCs, optionally can be sorted by project, if needed See {@link PrincipalComponentsResiduals#isSortedByProject()} and {@link PrincipalComponentsResiduals#determineSortedByProject()} to see if the file is sorted already
+	 * 
+	 * @param numComponents
+	 * @param sortByProject
+	 * @return
+	 */
+	public double[][] getTrimmedPreppedPCs(int numComponents, boolean sortByProject) {
+		double[][] trimmedPrepped = prepPcs(trimPcBasis(numComponents, pcBasis, log));
+		if (!sortByProject) {
+			return trimmedPrepped;
+		} else {
+			String[] samples = proj.getSamples();
+			double[][] tmp = new double[samples.length][numComponents];
+			for (int i = 0; i < tmp.length; i++) {
+				if (!samplesInPc.containsKey(samples[i])) {
+					Arrays.fill(tmp[i], Double.NaN);
+				} else {
+					tmp[i] = trimmedPrepped[samplesInPc.get(samples[i])];
+				}
+			}
+			return tmp;
+		}
+	}
+
+	public boolean isSortedByProject() {
+		return sortedByProject;
+	}
+
+	/**
+	 * @param data
+	 *            the data to be corrected with the PCs {@link PrincipalComponentsResiduals } object, currently the data must correspond in length and order to all samples in the project. Set to NaN to mask
+	 * @param samplesTobuildModel
+	 *            if not null, must correpsond in length and order to project samples, these individual will be used to build the regression model
+	 * @param numComponentsForModel
+	 *            number of components to use, must be >0
+	 * @param svdRegression
+	 *            if the number of components is large, use an svd based regression
+	 * @param title
+	 *            a title string for error reporting (marker name, phenotype, etc)
+	 * @return a computed {@link CrossValidation}
+	 * 
+	 *         NOTE: the pc object does not have to be in project order, or contain all samples, but it should
+	 */
+	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title) {
+		int numSamples = proj.getSamples().length;
+		boolean go = true;
+		CrossValidation cval;
+		if (numComponentsForModel == 0) {
+			proj.getLog().reportError("Error - number of components specified must be greater than 0");
+		}
+		if (data == null || willFailNAN(data, numComponents)) {
+			proj.getLog().reportError("Error - there are not enough samples with non NAN data for " + title + " using " + numComponents + " " + (numComponents == 1 ? "principal component " : "principal components") + " to run a regression");
+			go = false;
+		}
+		if (data.length != numSamples) {
+			proj.getLog().reportError("Error - data points must be provided for every sample in the project, only found " + data.length);
+			proj.getLog().reportError("      - data for unwanted samples can be set to NaN and masked ");
+			go = false;
+		}
+		if (samplesTobuildModel != null && samplesTobuildModel.length != numSamples) {
+			proj.getLog().reportError("Error - boolean definitions of samples to build the regression model must be provided for every sample in the project, only found  " + samplesTobuildModel.length);
+			go = false;
+		}
+
+		if (numComponentsForModel > numComponents) {
+			proj.getLog().reportError("Error - too many components (" + numComponentsForModel + ") were specified for the model, only have " + numComponents + " available");
+			go = false;
+		}
+		if (!sortedByProject) {// this could happen if the extrapolated pcs are not used...encourage the full pc file since it is matched to the project
+			proj.getLog().report("Warning - detected that the PC file is not perfectly matched to the project");
+			if (numSamples != samplesInPc.size()) {
+				proj.getLog().report("Warning - missing individuals (" + (numSamples - samplesInPc.size()) + ") will be set to NaN across all PCs");
+			}
+			proj.getLog().report("Warning - an extra step will be taken to allign the principal components to individuals in the project");
+		}
+		if (!go) {
+			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0], true, svdRegression, proj.getLog());
+			cval.setAnalysisFailed(true);
+		} else {
+			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
+			double[][] train_indeps = getTrimmedPreppedProjectPCsFor(samplesTobuildModel, numComponentsForModel);
+			double[][] val_indeps = getTrimmedPreppedProjectPCsFor(null, numComponentsForModel);
+			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, true, svdRegression, proj.getLog());
+			cval.train();
+			cval.computePredictedValues();
+			cval.computeResiduals();
+		}
+		return cval;
+	}
+
+	/**
+	 */
+	public static CrossValidation getCorrectedDataAt(PrincipalComponentsResiduals principalComponentsResiduals, float[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title) {
+		return principalComponentsResiduals.getCorrectedDataAt(Array.toDoubleArray(data), samplesTobuildModel, numComponentsForModel, svdRegression, title);
+	}
+
+	/**
+	 * Used to extract a subset of individuals from the PCs,
+	 * 
+	 * @param toExtract
+	 *            must be the same length as the samples in the project
+	 */
+	private double[][] getTrimmedPreppedProjectPCsFor(boolean[] toExtract, int numComponents) {
+		double[][] prepped;
+		prepped = getTrimmedPreppedPCs(numComponents, sortedByProject);
+		if (toExtract == null) {
+			return prepped;
+		} else {
+			double[][] preppedFor = new double[Array.booleanArraySum(toExtract)][];
+			int index = 0;
+			for (int i = 0; i < toExtract.length; i++) {
+				if (toExtract[i]) {
+					preppedFor[index] = prepped[i];
+					index++;
+				}
+			}
+			return preppedFor;
+		}
+	}
+
+	/**
+	 * @return whether all the samples for a project are present, and whether they are in the same order
+	 */
+	private boolean determineSortedByProject() {
+		if (allProjSamples.length != Array.booleanArraySum(samplesToUse)) {
+			return false;
+		} else {
+			for (int i = 0; i < allProjSamples.length; i++) {
+				if (!samplesInPc.containsKey(allProjSamples[i]) || samplesInPc.get(allProjSamples[i]) != i) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	private static boolean willFailNAN(double[] data, float numComponents) {
+		int count = 0;
+		for (int i = 0; i < data.length; i++) {
+			if (!Double.isNaN(data[i])) {
+				count++;
+			}
+			if (count > numComponents) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -742,9 +895,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 *            number of components to include in the regression model
 	 * @param title
 	 *            optional to report if model has failed (could be a specific marker or trait, etc...)
+	 * OLD OLD
 	 * @return
 	 */
-	public double[] getCorrectedDataAt(double[] data, int numComponents, String title) {
+	public double[] getCorrectdedDataAt(double[] data, int numComponents, String title) {
 		String finalTitle = (title == null ? " data" : title);
 		double[] correctedData = new double[data.length];
 		if (data == null || willFailNAN(data, numComponents)) {
@@ -755,8 +909,8 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			proj.getLog().reportError("Error - array of samples to correct and data must be the same length");
 			return null;
 		} else {
-			setAssesmentDataSortByPCs(Array.subArray(data, samplesToUse));// sorts the lrrs according to the order of samples in the pcFile
-			RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, getTrimmedPreppedPCs(numComponents));
+			setAssesmentDataSortByPCs(Array.subArray(data, samplesToUse));// sorts according to the order of samples in the pcFile
+			RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, getTrimmedPreppedPCs(numComponents, false));
 			if (!model.analysisFailed()) {
 				double[] residuals = model.getResiduals();
 				int indexResid = 0;
@@ -775,18 +929,4 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		}
 		return correctedData;
 	}
-
-	private static boolean willFailNAN(double[] data, float numComponents) {
-		int count = 0;
-		for (int i = 0; i < data.length; i++) {
-			if (!Double.isNaN(data[i])) {
-				count++;
-			}
-			if (count > numComponents) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 }
