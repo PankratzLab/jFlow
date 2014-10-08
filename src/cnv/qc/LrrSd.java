@@ -45,8 +45,8 @@ public class LrrSd extends Parallelizable {
 				cents = Centroids.load(centroidsFile, false).getCentroids(); 
 			}
 			chrs = proj.getMarkerSet().getChrs();
-			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23, chrs.length if all are less, -1 if none are less
-			if (subIndex < 0) {
+			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23, chrs.length if all are less, -1 if none are less, 0 if all are greater!
+			if (subIndex <= 0) {
 				proj.getLog().reportError("Error - was not able to detect any autosomal markers for sample QC in " + proj.getFilename(Project.MARKERSET_FILENAME));
 				return;
 			}
@@ -55,6 +55,29 @@ public class LrrSd extends Parallelizable {
 			}
 			if (markersForEverythingElse != null) {
 				markersForEverythingElse = (subIndex == markersForEverythingElse.length ? markersForEverythingElse : Array.subArray(markersForEverythingElse, 0, subIndex));
+			}
+			
+			
+			int numAb = (markersForCallrate == null ? chrs.length : Array.booleanArraySum(markersForCallrate));
+			int numAllElse = (markersForEverythingElse == null ? subIndex : Array.booleanArraySum(markersForEverythingElse));
+			if (threadNumber == 1) {// we can just show this once
+				proj.getLog().report("Info - using " + numAb + " markers for sample call rate qc");
+				proj.getLog().report("Info - using " + numAllElse + " autosomal markers for all other sample qc metrics");
+			}
+			if (numAb == 0 || numAllElse == 0) {
+				if (numAb == 0) {
+					proj.getLog().report("Error - cannot compute sample call rate with 0 markers, halting");
+				}
+				if (numAllElse == 0) {
+					proj.getLog().report("Error - cannot compute sample qc metrics with 0 markers, halting");
+				}
+				return;
+			}
+			if (numAb < 1000) {
+				proj.getLog().report("Warning - using " + numAb + (numAb == 1 ? " marker" : " markers") + " for sample call rate may result in inaccurate sample qc, please consider using more");
+			}
+			if (numAllElse < 1000) {
+				proj.getLog().report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers") + " for other qc metrics may result in inaccurate sample qc, please consider using more");
 			}
 
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
