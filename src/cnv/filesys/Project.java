@@ -412,9 +412,18 @@ public class Project extends Properties {
 
 		return samplesToExclude;
 	}
-	
-	// set filename to null to only include samples not marked in the "Excluded" column of SampleData.txt
+
 	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse) {
+		return getSamplesToInclude(fileWithListOfSamplesToUse, true);
+	}
+
+	/**
+	 * @param fileWithListOfSamplesToUse
+	 *            set filename to null to only include samples not marked in the "Excluded" column of SampleData.txt
+	 * @param verbose
+	 *            report number to be included
+	 */
+	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, boolean verbose) {
 		boolean[] samplesToInclude;
 		String[] samples;
 		SampleData sampleData;
@@ -440,8 +449,10 @@ public class Project extends Properties {
 				counter++;
 			}
 		}
-
-		log.report("Number of samples to be included is " + counter + " (out of "+samplesToInclude.length+" total samples)");
+		
+		if (verbose) {
+			log.report("Number of samples to be included is " + counter + " (out of " + samplesToInclude.length + " total samples)");
+		}
 
 		return samplesToInclude;
 	}
