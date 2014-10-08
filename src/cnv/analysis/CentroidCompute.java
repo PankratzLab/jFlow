@@ -90,6 +90,13 @@ public class CentroidCompute {
 		return markerData;
 	}
 
+	/**
+	 * Nice if you want to quickly recompute with new Xs and Ys, but all other parameters the same
+	 */
+	public void setMarkerData(MarkerData markerData) {
+		this.markerData = markerData;
+	}
+
 	public boolean[] getSamplesToUse() {
 		return samplesToUse;
 	}
@@ -151,6 +158,7 @@ public class CentroidCompute {
 		this.centerThetas = new double[5];// 0=all,1=missing,2=AA,3=AB,4=BB
 		this.centerRs = new double[5];
 		this.counts = new int[5];
+		hasCentroid = false;//just to make sure its not passed on
 	}
 
 	public void computeCentroid() {
@@ -227,6 +235,14 @@ public class CentroidCompute {
 		if (samplesToUse != null && samplesToUse.length != check) {
 			failed = true;
 			log.reportError("Error - mismatched number of samples to use for data's length");
+		}
+		if (sampleSex != null && sexSpecific && chr == 23 && Array.countIf(sampleSex, 2) == 0) {
+			log.reportError("Error - sample sex was defined, but no females were found; cannot properly cluster chr X ");
+			sampleSex = null;
+		}
+		if (sampleSex != null && sexSpecific && chr == 24 && Array.countIf(sampleSex, 1) == 0) {
+			log.reportError("Error - sample sex was defined, but no males were found; cannot properly cluster chr Y");
+			sampleSex = null;
 		}
 	}
 
