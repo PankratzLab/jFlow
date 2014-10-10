@@ -334,7 +334,7 @@ public class PennCNVPrep {
 			batches[i][0] = "batch_" + i + "_" + chunks[i] + "_markers";
 			Files.writeList(chunk.toArray(new String[chunk.size()]), proj.getProjectDir() + dir + batches[i][0] + ".txt");
 		}
-		String command = "module load java\n" + java + " -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getFilename(Project.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir;
+		String command = "module load java\njava -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getFilename(Project.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir;
 		Files.qsub("PennCNVPrepFormatExport", command + " -create", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
 		command += " numThreads=" + numThreads + " numComponents=" + numComponents + " markers=" + proj.getProjectDir() + dir + "[%0].txt";
 		Files.qsub("PennCNVPrepFormatTmpFiles", command, batches, memoryInMB, wallTimeInHours, numThreads);
@@ -362,7 +362,7 @@ public class PennCNVPrep {
 		int numComponents = 40;
 		String markers = null;
 		boolean exportToPennCNV = false;
-		int batch = 10;
+		int batch = 0;
 
 		// Ex - Recommend modifying this to run the corrections
 
@@ -386,8 +386,8 @@ public class PennCNVPrep {
 		usage += "   (6) a full path to a file listing markers to export in the current batch, (i.e. markers=" + numComponents + " (default))\n" + "";
 		usage += "   (7) create PennCNV files from the tempory markerData files, (i.e. -create ( not the default))\n" + "";
 		usage += "   (8) set this up for a batch run, which is recommended. Set to 0 if batch is not wanted (i.e. batch=" + batch + " (default))\n" + "";
-		usage += "   (9) java location for batch run (i.e. java=" + java + " (default))\n" + "";
-		usage += "   (10) classPath for batch run (i.e. classPath=" + classPath + " (default))\n" + "";
+		// usage += "   (9) java location for batch run (i.e. java=" + java + " (default))\n" + "";
+		usage += "   (9) classPath for batch run (i.e. classPath=" + classPath + " (default))\n" + "";
 
 		usage += "   NOTE: aprox 50 *(numSamples/5000) batches per 500,000 markers" + "";
 		usage += "   NOTE: If using ChrX/ChrY markers, it is important that the projects sample data file has sex defined for all samples that are used for clustering" + "";
