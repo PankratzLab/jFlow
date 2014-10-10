@@ -270,35 +270,33 @@ public class SexChecks {
 			numXs[i] = numYs[i] = numX_10_90[i] = 0;
 			lrrsX[i] = lrrsY[i] = 0;
 
-//			samp = proj.getSample(samples[i]);
 			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
-			if (samp==null) {
-				log.reportError("Error - could not load sample: "+samples[i]);
+			if (samp == null) {
+				log.reportError("Error - could not load sample: " + samples[i]);
 				return;
 			}
-			if (markerSet.getFingerprint()!=samp.getFingerprint()) {
-				log.reportError("Error - mismatched MarkerSet fingerprints for sample "+samples[i]);
+			if (markerSet.getFingerprint() != samp.getFingerprint()) {
+				log.reportError("Error - mismatched MarkerSet fingerprints for sample " + samples[i]);
 				return;
 			}
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
 
-			for (int j = 0; j<lrrs.length; j++) {
-				if (sexlinked[j][0]&&!Double.isNaN(lrrs[j])) {
+			for (int j = 0; j < lrrs.length; j++) {
+				if (sexlinked[j][0] && !Double.isNaN(lrrs[j])) {
 					lrrsX[i] += lrrs[j];
 					numXs[i]++;
-//					if (bafs[j] > 0.15 && bafs[j] < 0.85) {
 					if (bafs[j] > 0.10 && bafs[j] < 0.9) {
 						numX_10_90[i]++;
 					}
 				}
-				if (sexlinked[j][1]&&!Double.isNaN(lrrs[j])) {
+				if (sexlinked[j][1] && !Double.isNaN(lrrs[j])) {
 					lrrsY[i] += lrrs[j];
 					numYs[i]++;
 				}
 			}
 
-			if (i%100 == 0) {
+			if (i % 100 == 0) {
 				log.report("parsed "+samples[i]+" ("+(i+1)+" of "+samples.length+")");
 			}
 		}
@@ -331,30 +329,37 @@ public class SexChecks {
 		numMales = numFemales = 0;
 		for (int i=0; i<samples.length; i++) {
 			putativeSex = sampleData.getSexForIndividual(samples[i]);
+			if (putativeSex == -1) {
+				if (lrrsY[i] / numYs[i] < -0.75) {
+					putativeSex = 2;
+				} else {
+					putativeSex = 1;
+				}
+			}
 			switch (putativeSex) {
-			case 1:
-				putativeMaleMeanY += (lrrsY[i]/numYs[i]);
-				numMales++;
-				break;
-			case 2:
-				putativeFemaleMeanY += (lrrsY[i]/numYs[i]);
-				numFemales++;
-				break;
-			default:
+				case 1:
+					putativeMaleMeanY += (lrrsY[i]/numYs[i]);
+					numMales++;
+					break;
+				case 2:
+					putativeFemaleMeanY += (lrrsY[i]/numYs[i]);
+					numFemales++;
+					break;
+				default:
 					
 			}
 		}
-		putativeMaleMeanY=putativeMaleMeanY/(double)numMales;
-		putativeFemaleMeanY=putativeFemaleMeanY/(double)numFemales;
+		putativeMaleMeanY = putativeMaleMeanY / (double) numMales;
+		putativeFemaleMeanY = putativeFemaleMeanY / (double) numFemales;
 
 		DoubleVector males, females;
 		males = new DoubleVector();
 		females = new DoubleVector();
-		for (int i=0; i<samples.length; i++) {
-			if (Math.abs(lrrsY[i]/numYs[i] - putativeMaleMeanY) < Math.abs(lrrsY[i]/numYs[i] - putativeFemaleMeanY)) {
-				males.add((lrrsX[i]/numXs[i]));
+		for (int i = 0; i < samples.length; i++) {
+			if (Math.abs(lrrsY[i] / numYs[i] - putativeMaleMeanY) < Math.abs(lrrsY[i] / numYs[i] - putativeFemaleMeanY)) {
+				males.add((lrrsX[i] / numXs[i]));
 			} else {
-				females.add((lrrsX[i]/numXs[i]));
+				females.add((lrrsX[i] / numXs[i]));
 			}
 		}
 		
