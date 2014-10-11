@@ -510,7 +510,7 @@ public class SuperNovo {
 
 	public static void processRegion(String samDir, String[] samFilenames, String trioId, String refFastaFilename, String chr, int startPosition, int stopPosition, PrintWriter writer, PrintWriter fullpathToSaveReadCounts, byte readCountsFileFormat, Logger log) {
 		String line;
-		Vector<String[]> bamContentVec;
+		Vector<String[]> samContentVec;
 		int numLines;
 		int numMarkersPlusWindow;
 		int window;
@@ -538,10 +538,10 @@ public class SuperNovo {
 
 		timer = new Date().getTime();
 		for (int i = 0; i < samFilenames.length; i++) {
-			bamContentVec = loadBam(samDir, samFilenames[i], chr, startPosAdjForWindow, stopPosAdjForWindow);
-			numLines = bamContentVec.size();
+			samContentVec = loadBamByPipeline(samDir, samFilenames[i], chr, startPosAdjForWindow, stopPosAdjForWindow);
+			numLines = samContentVec.size();
 		    for (int j = 0; j < numLines; j++) {
-		    	cigarDecoding(bamContentVec.elementAt(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0, readsCounts[i], phredScores[i], mappingScores[i], (i==0? altAllelesForInsertions_Child : null));
+		    	cigarDecoding(samContentVec.elementAt(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0, readsCounts[i], phredScores[i], mappingScores[i], (i==0? altAllelesForInsertions_Child : null));
 			};
 			status += ("\t" + numLines);
 		}
@@ -1394,15 +1394,15 @@ public class SuperNovo {
 		return result;
 	}
 
-	public static Vector<String[]> loadBam(String samDir, String samFilename, String chr, int begin, int end) {
+	public static Vector<String[]> loadBamByPipeline(String samDir, String samFilename, String chr, int begin, int end) {
 		Process p;
 //		ProcessBuilder ps;
 		BufferedReader reader;
 //		BufferedReader error;
 		String line;
-		Vector<String[]> bamContentVec;
+		Vector<String[]> samContentVec;
 
-		bamContentVec = new Vector<String[]>();
+		samContentVec = new Vector<String[]>();
 
 		try {
 			p = Runtime.getRuntime().exec("samtools view " + samFilename + " chr" + chr + ":" + begin + "-" + end, null, new File(samDir));
@@ -1416,7 +1416,7 @@ public class SuperNovo {
 			reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 	
 	        while ((line = reader.readLine()) != null) {
-	        	bamContentVec.add(line.split("[\t]"));
+	        	samContentVec.add(line.split("[\t]"));
 	        }
 	        p.waitFor();
 	        reader.close();
@@ -1428,7 +1428,26 @@ public class SuperNovo {
 			e.printStackTrace();
 		}
         
-        return bamContentVec;
+        return samContentVec;
+	}
+
+	public static Vector<String[]> loadBamByFileReader(String samDir, String samFilename, String chr, int begin, int end) {
+		BufferedReader reader;
+		String line;
+		Vector<String[]> samContentVec;
+
+		samContentVec = new Vector<String[]>();
+		try {
+			reader = new BufferedReader(new FileReader(samDir + samFilename));
+			while ((line = reader.readLine()) != null) {
+				samContentVec.add(line.split("[\t]"));
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        
+        return samContentVec;
 	}
 
 	public static void displayErrorStream(Process p) {
@@ -2305,7 +2324,7 @@ public class SuperNovo {
 		return result2;
 	}
 
-	public static void getHaplotypes(String listOfRegionsFilename, String fullPathToTrioNameList, String bamDir, boolean toOutputHaplotypeStrings, Logger log) {
+	public static void getHaplotypes(String fullPathToParsedResult, String fullPathToTrioNameList, String bamDir, boolean toOutputHaplotypeStrings, Logger log) {
 		String dirAndRoot = null;
 		PrintWriter writer;
 		BufferedReader reader;
@@ -2315,11 +2334,11 @@ public class SuperNovo {
 
 		bamFilenamesByTrios = loadNamesFromList(fullPathToTrioNameList);
 		if (toOutputHaplotypeStrings) {
-			dirAndRoot = ext.parseDirectoryOfFile(listOfRegionsFilename) + ext.rootOf(listOfRegionsFilename);
+			dirAndRoot = ext.parseDirectoryOfFile(fullPathToParsedResult) + ext.rootOf(fullPathToParsedResult);
 		}
 		try {
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(listOfRegionsFilename) + ext.rootOf(listOfRegionsFilename) + "_haplotypeCount.txt"));
-			reader = Files.getAppropriateReader(listOfRegionsFilename);
+			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(fullPathToParsedResult) + ext.rootOf(fullPathToParsedResult) + "_haplotypeCount.txt"));
+			reader = Files.getAppropriateReader(fullPathToParsedResult);
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
@@ -2337,21 +2356,21 @@ public class SuperNovo {
 			reader.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + listOfRegionsFilename + "\" not found in current directory");
+			log.reportError("Error: file \"" + fullPathToParsedResult + "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + listOfRegionsFilename + "\"");
+			log.reportError("Error reading file \"" + fullPathToParsedResult + "\"");
 			return;
 		}
 	}
 
-	public static int getHaplotypes(String bamDir, String[] bamFilenames, String trioId, String chr, int beginPosition, int endPosition, String haplotypeFilename, Logger log) {
+	public static int getHaplotypes(String samDir, String[] samFilenames, String trioId, String chr, int beginPosition, int endPosition, String haplotypeFilename, Logger log) {
 		Process p;
 //		ProcessBuilder ps;
 		BufferedReader reader;
 //		BufferedReader error;
 		String line;
-		Vector<String[]> bamContentVec;
+		Vector<String[]> samContentVec;
 		int numLines, numMarkersPlusWindow, window, begin, end, beginPositionExt, endPositionExt;
 //		int[][][] readsCounts = null;
 //		int[][][] phredScores = null;
@@ -2363,8 +2382,6 @@ public class SuperNovo {
 		Hashtable<Integer, String> insertionStringOfCurrentRead, insertionPhredOfCurrentRead;
 		Hashtable<Byte, Hashtable<Integer, String>> haplotypeDb;
 		Hashtable<Byte, Vector<int[]>> readCounts;
-		long timer;
-		String status;
 
     	window = WINDOW_SIZE_FOR_HAPLOTYPE_CHECK;
     	beginPositionExt = Math.max(0, beginPosition - window);
@@ -2377,76 +2394,44 @@ public class SuperNovo {
 		haplotypeDb = new Hashtable<Byte, Hashtable<Integer, String>>();
 		readCounts = new Hashtable<Byte, Vector<int[]>>();
 		ref = new char[endPositionExt - beginPositionExt + 1];
-		status = trioId + "\tchr" + chr + ":" + beginPositionExt + "-" + endPositionExt + "\t(" + beginPosition + "-" + endPosition + ")";
 //		haplotypeStrings = new Vector<String>();
 //		haplotypeStrings.add("");
 
-		timer = new Date().getTime();
-        try {
-			for (int i = 0; i < bamFilenames.length; i++) {
-				bamContentVec = new Vector<String[]>();
-
-				p = Runtime.getRuntime().exec("samtools view " + bamFilenames[i] + " chr" + chr + ":" + beginPositionExt + "-" + endPositionExt, null, new File(bamDir));
-
-//				ps=new ProcessBuilder("samtools", "view", bamFilenames[i], "chr" + chr + ":" + start + "-" + stop);
-//		        ps.redirectErrorStream(true);
-//		        ps.directory(new File(bamDir));
-//		        p = ps.start();  
-
-//		        p.waitFor();
-				reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-		        while ((line = reader.readLine()) != null) {
-		        	bamContentVec.add(line.split("[\t]"));
-		        }
-		        p.waitFor();
-		        reader.close();
-		
-				numLines = bamContentVec.size();
-		        for (int j = 0; j < numLines; j++) {
-		        	insertionStringOfCurrentRead = new Hashtable<Integer, String>();
-		        	insertionPhredOfCurrentRead = new Hashtable<Integer, String>();
-		        	tmp = cigarToReFormatedString(bamContentVec.elementAt(j), beginPositionExt, endPositionExt, insertionStringOfCurrentRead, insertionPhredOfCurrentRead);
-		        	if (tmp != null) {
-		        		updateRefAndAlt(tmp[1], ref, Integer.parseInt(tmp[0]), insertionStringOfCurrentRead, haplotypeDb, readCounts);
-			        	log.report(haplotypeDb.size() + "\t" + tmp[0] + "\t" + tmp[1] + "\t" + formatHaplotype(haplotypeDb, beginPositionExt));
-//			        	log.report(haplotypeDb.size() + "\t" + tmp[0] + "\t" + tmp[1]);
-//			        	log.report(bamContentVec.elementAt(j)[0]
-//			        			+ "\t" + bamContentVec.elementAt(j)[1]
-//			        			+ "\t" + bamContentVec.elementAt(j)[2]
-//			        			+ "\t" + bamContentVec.elementAt(j)[3]
-//			        			+ "\t" + bamContentVec.elementAt(j)[4]
-//			        			+ "\t" + bamContentVec.elementAt(j)[5]
-//			        			+ "\t" + bamContentVec.elementAt(j)[6]
-//			        			+ "\t" + bamContentVec.elementAt(j)[7]
-//					        	+ "\t" + bamContentVec.elementAt(j)[8]
-//							    + "\t" + bamContentVec.elementAt(j)[9]
-//			        			+ "\t" + bamContentVec.elementAt(j)[10]);
-		        	}
-				}
-				status += ("\t" + numLines);
-
-//		        error = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-//		        while ((line = error.readLine()) != null) {
-//		            System.out.println(line);
-//		        }
-//		        p.waitFor();
-//				error.close();
-
-//				displayErrorStream(p);
-			}
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        } catch (InterruptedException e) {
-			e.printStackTrace();
+		if (! Files.exists(samDir, samFilenames)) {
+			return -1;
 		}
 
-//        log.report("Number of haplotypes: " + (altAlleles.size() + 1) + " (from altAlleles)\t" + readCounts.size() + " (from readCounts)");
-        if (haplotypeFilename != null) {
-        	exportHaplotypes(haplotypeDb, readCounts, ref, beginPositionExt, haplotypeFilename);
-        }
-        return (haplotypeDb.size() + 1);
+		for (int i = 0; i < samFilenames.length; i++) {
+			samContentVec = loadBamByPipeline(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
+//				samContentVec = loadBamByFileReader(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
+			numLines = samContentVec.size();
+			for (int j = 0; j < numLines; j++) {
+				insertionStringOfCurrentRead = new Hashtable<Integer, String>();
+				insertionPhredOfCurrentRead = new Hashtable<Integer, String>();
+				tmp = cigarToReFormatedString(samContentVec.elementAt(j), beginPositionExt, endPositionExt, insertionStringOfCurrentRead, insertionPhredOfCurrentRead);
+				if (tmp != null) {
+					updateRefAndAlt(tmp[1], ref, Integer.parseInt(tmp[0]), insertionStringOfCurrentRead, haplotypeDb, readCounts);
+//			        	log.report(haplotypeDb.size() + "\t" + tmp[0] + "\t" + tmp[1] + "\t" + formatHaplotype(haplotypeDb, beginPositionExt));
+//			        	log.report(haplotypeDb.size() + "\t" + tmp[0] + "\t" + tmp[1]);
+//			        	log.report(samContentVec.elementAt(j)[0]
+//			        			+ "\t" + samContentVec.elementAt(j)[1]
+//			        			+ "\t" + samContentVec.elementAt(j)[2]
+//			        			+ "\t" + samContentVec.elementAt(j)[3]
+//			        			+ "\t" + samContentVec.elementAt(j)[4]
+//			        			+ "\t" + samContentVec.elementAt(j)[5]
+//			        			+ "\t" + samContentVec.elementAt(j)[6]
+//			        			+ "\t" + samContentVec.elementAt(j)[7]
+//					        	+ "\t" + samContentVec.elementAt(j)[8]
+//							    + "\t" + samContentVec.elementAt(j)[9]
+//			        			+ "\t" + samContentVec.elementAt(j)[10]);
+				}
+			}
+		}
+
+		if (haplotypeFilename != null) {
+			exportHaplotypes(haplotypeDb, readCounts, ref, beginPositionExt, haplotypeFilename);
+		}
+		return (haplotypeDb.size() + 1);
 	}
 
 	public static String[] cigarToReFormatedString(String[] aSingleLineOfBamFile, int beginPos, int endPos, Hashtable<Integer, String> insertionStrings, Hashtable<Integer, String> insertionPhreds) {
@@ -3094,7 +3079,7 @@ public class SuperNovo {
 		int numArgs = args.length;
 		String[] commands;
 		String[] bamFilenamesOfTheTrio;
-		String helpMenu, fullPathVariantCandidatesList, fullPathRefFasta, fullPathBed, fullPathReadCounts, fullPathTrioList, fullPathToParsedResult, fullPathHaplotypeStrings;
+		String helpMenu, fullPathVariantCandidatesList, fullPathRefFasta, fullPathBed, fullPathReadCounts, fullPathTrioList, fullPathToParsedResult, fullPathToOutputHaplotypeStrings;
 		String dirBam, dirScript, dirDenovoVars, dirSeattleSeq, dirMiniBam, dirReadCounts;
 		String trioId, thresholdsForReadCounts, thresholdsForMapping;
 		String chr;
@@ -3115,8 +3100,8 @@ public class SuperNovo {
 		fullPathRefFasta = "/home/spectorl/xuz2/ref_fasta/hg19_canonical.fa";
 		fullPathBed = "/home/spectorl/xuz2/outputs/wholegenome.bed";
 		fullPathReadCounts = "/home/spectorl/xuz2/readcounts/wholegenome_rrd/readCount_F10639.txt.gz";
-		fullPathToParsedResult = "/home/spectorl/xuz2/outputs/wholegenome_rrd_47/SuperNovo_summary.xln";
-		fullPathHaplotypeStrings = "/home/spectorl/xuz2/outputs/tests/haplotypes.txt";
+		fullPathToParsedResult = "/home/spectorl/xuz2/outputs/wholegenome_rrd_46/SuperNovo_summary.xln";
+		fullPathToOutputHaplotypeStrings = "/home/spectorl/xuz2/outputs/tests/haplotypes.txt";
 		dirScript = "/home/spectorl/xuz2/scripts/";
 		dirDenovoVars = "/home/spectorl/xuz2/outputs/";
 		dirReadCounts = "/home/spectorl/xuz2/readcounts/wholegenome_rrd/readcounts_";
@@ -3142,7 +3127,7 @@ public class SuperNovo {
 			helpMenu += "," + bamFilenamesOfTheTrio[i];
 		}
 
-		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bed=", "numthreads=", "-parseresult", "trioid=", "triolistfile=", "regionlengthatime=", "seattleseqdir=", "minibamdir=", "outputreadcounts=", "-coverage", "-denovo", "readcountsdir=", "thresholdreadcount=", "thresholdmapping=", "-test", "-haplotypes", "haplotypeout=", "-outhaplotypes"};
+		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bed=", "numthreads=", "-parseresult", "trioid=", "triolistfile=", "regionlengthatime=", "seattleseqdir=", "minibamdir=", "outputreadcounts=", "-coverage", "-denovo", "readcountsdir=", "thresholdreadcount=", "thresholdmapping=", "-test", "-haplotypes", "haplotypeout=", "-outhaplotypes", "parsedresult="};
 		String usage = "\nTo annotate a list of candidate markers:"
 					+ "\n   (1) command for annotatation (i.e. " + commands[0] + " (default))"
 					+ "\n   (2) full path of the candidate list file (i.e. " + commands[1] + fullPathVariantCandidatesList + " (default))"
@@ -3198,7 +3183,7 @@ public class SuperNovo {
 					+ "\n   (5) chr of the region (i.e. " + commands[7] + chr + " (default))"
 					+ "\n   (6) start position of the region (i.e. " + commands[8] + begin + " (default))"
 					+ "\n   (7) stop position of the region (i.e. " + commands[9] + end + " (default))"
-					+ "\n   (8) full path to output the haploytype strings, if needed (i.e. " + commands[26] + fullPathHaplotypeStrings + " (default))"
+					+ "\n   (8) full path to output the haploytype strings, if needed (i.e. " + commands[26] + fullPathToOutputHaplotypeStrings + " (default))"
 					+ "\nNote:"
 					+ "\n   Bam file names in " + commands[5] + " and the trio list file must follow the order of Child, Dad, and Mom."
 					+ "";
@@ -3302,10 +3287,13 @@ public class SuperNovo {
 				isGetHaplotypes = true;
 				numArgs--;
 			} else if (args[i].startsWith(commands[26])) {
-				fullPathHaplotypeStrings = args[i].split("=")[1];
+				fullPathToOutputHaplotypeStrings = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(commands[27])) {
 				isToOutputHaplotypeStrings = true;
+				numArgs--;
+			} else if (args[i].startsWith(commands[28])) {
+				fullPathToParsedResult = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -3329,9 +3317,28 @@ public class SuperNovo {
 //		dirMiniBam = "D:/logan/DeNovos/mini_bams/";
 //		fullPathTrioList = "N:/statgen/OS_Logan/SuperNovo/bed/triolist_rrd_47_dedup.txt";
 
-		isGetHaplotypes = true;
-		fullPathToParsedResult = "/home/spectorl/xuz2/outputs/wholegenome_rrd_47/SuperNovo_summary.xln";
-		fullPathTrioList = "/home/spectorl/xuz2/lists/triolist_rrd_47_dedup.txt";
+//		isGetHaplotypes = true;
+//		fullPathToParsedResult = "/home/spectorl/xuz2/outputs/wholegenome_rrd_46/SuperNovo_summary.xln";
+//		fullPathTrioList = "/home/spectorl/xuz2/lists/triolist_rrd_46_dedup.txt";
+//		isToOutputHaplotypeStrings = false;
+
+//		isGetHaplotypes = true;
+//		chr = 11 + "";
+//		dirBam = "/home/spectorl/shared/exome/project126/all_101/";
+//		bamFilenamesOfTheTrio = new String[] {"dedup_F10476C.bam", "dedup_F10476D.bam", "dedup_F10476M.bam"};
+//		trioId = "dedup_F10476";
+//		begin = 130079255;
+//		end = 130079459;
+//		fullPathToOutputHaplotypeStrings = "~/outputs/tests/dedup_F10476_chr11_130079357_haplotypes.txt";
+
+//		isGetHaplotypes = true;
+//		chr = 11 + "";
+//		dirBam = "D:/logan/DeNovos/mini_bams/";
+//		bamFilenamesOfTheTrio = new String[] {"dedup_F10476_chr11_130079357_C.sam", "dedup_F10476_chr11_130079357_D.sam", "dedup_F10476_chr11_130079357_M.sam"};
+//		trioId = "dedup_F10476";
+//		begin = 130079255;
+//		end = 130079459;
+//		fullPathToOutputHaplotypeStrings = "D:/logan/DeNovos/tests/haplotypes.txt";
 
 //		isToTest = true;
 
@@ -3364,11 +3371,16 @@ public class SuperNovo {
 				getCoverages(fullPathReadCounts, null, fullPathBed, thresholdsForReadCounts, thresholdsForMapping, true, log);
 			}
 		} else if (isGetHaplotypes) {
-			log = new Logger("/home/spectorl/xuz2/outputs/tests/haplotypes.log");
 			if (chr == null) {
+				log = new Logger(ext.parseDirectoryOfFile(fullPathToParsedResult) + "haplotypes.log");
 				getHaplotypes(fullPathToParsedResult, fullPathTrioList, dirBam, isToOutputHaplotypeStrings, log);
 			} else {
-				log.report("Number of haplotypes: " + getHaplotypes(dirBam, bamFilenamesOfTheTrio, trioId, chr, begin, end, fullPathHaplotypeStrings, log));
+				if (fullPathToOutputHaplotypeStrings == null) {
+					log = new Logger();
+				} else {
+					log = new Logger(ext.parseDirectoryOfFile(fullPathToOutputHaplotypeStrings) + "haplotypes.log");
+				}
+				log.report("Number of haplotypes: " + getHaplotypes(dirBam, bamFilenamesOfTheTrio, trioId, chr, begin, end, fullPathToOutputHaplotypeStrings, log));
 			}
 		} else if (isToTest) {
 			log = new Logger();

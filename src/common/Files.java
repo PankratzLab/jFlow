@@ -1614,6 +1614,20 @@ public class Files {
 		return size;
 	}
 
+	public static boolean exists(String dir, String[] filenames) {
+		boolean result;
+
+		result = true;
+		for (int i = 0; i < filenames.length; i++) {
+			if (! exists(dir + filenames[i], false)) {
+				result = false;
+				break;
+			}
+		}
+
+		return result;
+	}
+
 	public static boolean exists(String filename) {
 		return exists(filename, false);
 	}
