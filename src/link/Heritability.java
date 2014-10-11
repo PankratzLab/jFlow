@@ -401,6 +401,7 @@ public class Heritability {
 
 		phenoDir = "N:/statgen/Mitochondrial_CN_heritability/phenos/";
 		pedfile = "N:/statgen/Mitochondrial_CN_heritability/pedigrees/pedigree.dat";
+		covars = null;
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -448,14 +449,15 @@ public class Heritability {
 			if (controlFile != null) {
 				fromParameters(controlFile, new Logger(ext.rootOf(controlFile, false)+".log"));
 			} else {
-				if (method.equalsIgnoreCase("merlin") || method.equalsIgnoreCase("both")) {
-					computeWithMerlin(pedfile, pheno, covars, prefix, "", DEFAULT_MERLIN_EXEC, log);
-				}
-				if (method.equalsIgnoreCase("solar") || method.equalsIgnoreCase("both")) {
-					computeWithSolar(pedfile, pheno, covars, prefix, "", DEFAULT_SOLAR_EXEC, log);
-				}
 				if (phenoDir != null) {
 					getHeritabilitiesOfAllPhenosInADir(phenoDir, pedfile, covars, log);
+				} else {
+					if (method.equalsIgnoreCase("merlin") || method.equalsIgnoreCase("both")) {
+						computeWithMerlin(pedfile, pheno, covars, prefix, "", DEFAULT_MERLIN_EXEC, log);
+					}
+					if (method.equalsIgnoreCase("solar") || method.equalsIgnoreCase("both")) {
+						computeWithSolar(pedfile, pheno, covars, prefix, "", DEFAULT_SOLAR_EXEC, log);
+					}
 				}
 			}
 		} catch (Exception e) {
