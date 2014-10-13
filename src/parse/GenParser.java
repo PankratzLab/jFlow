@@ -53,7 +53,7 @@ public class GenParser {
 		
     	filename = line[0];
 		commaDelimited = Files.suggestDelimiter(filename, log).equals(",")||ext.indexOfStr(",", line) >= 0;
-		tabDelimited = ext.indexOfStr("tab", line) >= 0;
+		tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
 		simplifyQuotes = ext.indexOfStr("simplifyQuotes", line) >= 0;
 		
 		columnHeaders = Files.getHeaderOfFile(filename, commaDelimited?","+(simplifyQuotes?"!":""):(tabDelimited?"\t":"[\\s]+"), log);

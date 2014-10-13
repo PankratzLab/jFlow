@@ -451,7 +451,7 @@ public class DumpSAS {
 		    			indices = ext.indexFactors(Array.toStringArray(ids), header, false, log, false, false);
 		    			for (int j = 0; j < ids.size(); j++) {
 			    			if (indices[j] != -1) {
-			    				writer.print(" '"+ids.elementAt(j)+"'");
+//			    				writer.print(" '"+ids.elementAt(j)+"'");
 			    				if (foundAnID) {
 			    					log.reportError("More than one \"valid\" ID available for file '"+file+"'; the first will be used and the remainder flagged to be reported");
 			    				} else {
