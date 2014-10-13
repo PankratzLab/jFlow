@@ -878,25 +878,25 @@ public class MitoPipeline {
 		String snpMapFile;
 		abLookup = new ABLookup();
 		abLookup.parseFromGenotypeClusterCenters(proj);
-		abLookup.writeToFile(proj.getFilename(Project.AB_LOOKUP_FILENAME), proj.getLog());
-		if (Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
+		abLookup.writeToFile(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), proj.getLog());
+		if (Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false))) {
 			snpMapFile = proj.getLocationOfSNP_Map();
 			if (snpMapFile != null) {
 				log.report("Info - attempting to fill in missing alleles from " + snpMapFile);
-				ABLookup.fillInMissingAlleles(proj, proj.getFilename(Project.AB_LOOKUP_FILENAME), snpMapFile);
-				if (Files.exists(ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME), "_filledIn"))) {
-					proj.setProperty(Project.AB_LOOKUP_FILENAME, ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME), "_filledIn"));
+				ABLookup.fillInMissingAlleles(proj, proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), snpMapFile);
+				if (Files.exists(ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), "_filledIn"))) {
+					proj.setProperty(Project.AB_LOOKUP_FILENAME, ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), "_filledIn"));
 					proj.saveProperties();
 				} else {
-					log.reportError("Error - detected " + snpMapFile + ", but could not fill in missing AB Lookup values. Reverting to " + proj.getFilename(Project.AB_LOOKUP_FILENAME));
+					log.reportError("Error - detected " + snpMapFile + ", but could not fill in missing AB Lookup values. Reverting to " + proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false));
 				}
 			} else {
-				log.report("Warning - will not be able to fill in missing alleles from " + proj.getFilename(Project.AB_LOOKUP_FILENAME) + ", a SNP_MAP file could not be found");
+				log.report("Warning - will not be able to fill in missing alleles from " + proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false) + ", a SNP_MAP file could not be found");
 			}
 			ABLookup.applyABLookupToFullSampleFiles(proj);
 			return 1;
 		} else {
-			log.reportError("Error - detected that an AB Lookup file is required, but failed to create AB Lookup file " + proj.getFilename(Project.AB_LOOKUP_FILENAME));
+			log.reportError("Error - detected that an AB Lookup file is required, but failed to create AB Lookup file " + proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false));
 			return 0;
 		}
 	}

@@ -158,7 +158,7 @@ public class CentroidCompute {
 		this.centerThetas = new double[5];// 0=all,1=missing,2=AA,3=AB,4=BB
 		this.centerRs = new double[5];
 		this.counts = new int[5];
-		hasCentroid = false;//just to make sure its not passed on
+		hasCentroid = false;// just to make sure its not passed on
 	}
 
 	public void computeCentroid() {
@@ -358,7 +358,7 @@ public class CentroidCompute {
 		failed = checkGenoClusterMarkerData(thetas, rs, confs, genotypes, gcThreshold, log);
 		if (!failed) {
 			for (int i = 0; i < genotypes.length; i++) {
-				if (checkSex(chr, i) && (samplesToUse == null || samplesToUse[i]) && useMarker(thetas[i], rs[i], confs[i], gcThreshold)) {
+				if (checkSex(chr, i) && (samplesToUse == null || samplesToUse[i]) && useMarker(thetas[i], rs[i], confs == null ? 0 : confs[i], gcThreshold)) {
 					counts[0]++;
 					counts[genotypes[i] + 2]++;
 					if (medianCenter) {// a bit slower

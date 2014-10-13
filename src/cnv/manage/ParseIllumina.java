@@ -724,7 +724,7 @@ public class ParseIllumina implements Runnable {
 		if (allOutliers.size()>0) {
 			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
-		if (abLookupRequired && !Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
+		if (abLookupRequired && !Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false))) {
 			return 6;
 		} else {
 			return 1;
@@ -1063,7 +1063,7 @@ public class ParseIllumina implements Runnable {
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+HOLD_OPTION_FILE).delete();
         new File(proj.getDir(Project.SAMPLE_DIRECTORY, true)+CANCEL_OPTION_FILE).delete();
        
-		if (abLookupRequired && !Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
+		if (abLookupRequired && !Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false))) {
 			return 6;
 		} else {
 			return 1;
