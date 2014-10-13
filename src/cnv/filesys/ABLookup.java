@@ -432,6 +432,7 @@ public class ABLookup {
 		char[] refAlleles;
 		Logger log;
 		ClusterFilterCollection clusterFilterCollection;
+		String output;
 		
 		log = proj.getLog();
         if (!mapFile.toLowerCase().endsWith(".csv")) {
@@ -494,12 +495,30 @@ public class ABLookup {
 			clusterFilterCollection = proj.getClusterFilterCollection();
 			log.report("There were "+markersWithNoLink.size()+" markers that were zeroed out in the original export; these are set to alleles 'A' and 'B'; for list check "+Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
 			markerNames = Array.toStringArray(markersWithNoLink);
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerNames);
-			log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
-			for (int i = 0; i < markerNames.length; i++) {
-				markerNames[i] = markerNames[i]+"\t"+markerDataLoader.getMarkerData(i).getFrequencyOfB(null, null, clusterFilterCollection, proj.getFloat(Project.GC_THRESHOLD));
+			markerDataLoader=null;
+			output = Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false) + "_test_markersWithNoLink#.txt");
+			try {
+				if (Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false))) {
+					markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+					log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
+				} else {
+					log.report("Warning - since " + proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false) + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in " + output + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
+					log.report("java -cp /your/path/to/park.jar cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
+				}
+			} catch (NullPointerException nullPointerException) {// MarkerDataLoader will likely throw this if there are other issues
+				log.report("Warning - was not able to load marker data, frequency of B allele will not be reported in " + output);
+				log.reportException(nullPointerException);
 			}
-			Files.writeList(markerNames, Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)+"_test_markersWithNoLink#.txt"));
+			for (int i = 0; i < markerNames.length; i++) {
+				if (markerDataLoader == null) {
+					markerNames[i] = markerNames[i];// skip frequency of b allele
+				} else {
+					MarkerData markerData = markerDataLoader.requestMarkerData(i);
+					markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null, clusterFilterCollection, proj.getFloat(Project.GC_THRESHOLD));
+					markerDataLoader.releaseIndex(i);
+				}
+			}
+			Files.writeList(markerNames, output);
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + incompleteABlookupFilename + "\" not found in current directory");
 			return;
