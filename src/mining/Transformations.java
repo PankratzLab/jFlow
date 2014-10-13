@@ -22,6 +22,7 @@ public class Transformations {
 	public static final int QUANTILE = 12;
 	public static final int INVERSE_TDIST_5DF = 13;
 	public static final int NEGATIVE_LOG10 = 14;
+	public static final int LOG10 = 15;
 	
 	public static double[] transform(double[] array, int type) {
 		return transform(array, type, new Logger());
@@ -47,6 +48,8 @@ public class Transformations {
 			return naturalLogTransform(array);
 		case NEGATIVE_LOG10:
 			return negativeLog10Transform(array);
+		case LOG10:
+			return log10Transform(array);
 		case INVERSE:
 			return inverseTransform(array);
 		case SQUARE_ROOT:
@@ -162,6 +165,16 @@ public class Transformations {
 
 		for (int i = 0; i<array.length; i++) {
 			trans[i] = -1*Math.log10(array[i]);
+		}
+
+		return trans;
+	}
+
+	public static double[] log10Transform(double[] array) {
+		double[] trans = new double[array.length];
+
+		for (int i = 0; i<array.length; i++) {
+			trans[i] = Math.log10(array[i]);
 		}
 
 		return trans;

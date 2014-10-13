@@ -183,6 +183,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		int[][] currentPair;
 		String[] sampleID;
 		boolean tagalong;
+		int countFails;
 
 		currentClass = sp.getCurrentVariable();
 		currentPair = sp.getCurrentPair();
@@ -202,6 +203,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 				setColorScheme(DEFAULT_COLORS);
 			}
 			
+			countFails = 0;
 			points = new PlotPoint[sampleList.length]; 
 			classCounts.clear();
 			for (int i = 0; i<sampleList.length; i++) {
@@ -209,9 +211,15 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 				if (data[currentPair[0][0]] != null && data[currentPair[1][0]] != null && !Float.isNaN(data[currentPair[0][0]][currentPair[0][1]])  && !Float.isNaN(data[currentPair[1][0]][currentPair[1][1]])) {
 					sampleID = sampleData.lookup(sampleList[i]);
 					if (sampleID == null) {
-						sp.getProject().getLog().reportError("Error - could not look up "+sampleList[i]); // looks up any individual present in any .mds file that was loaded, even those not in the current file
+						if (countFails < 10) {
+							sp.getProject().getLog().reportError("Error - could not look up "+sampleList[i]); // looks up any individual present in any .mds file that was loaded, even those not in the current file
+						} else if (countFails == 10) {
+							sp.getProject().getLog().reportError("..."); // looks up any individual present in any .mds file that was loaded, even those not in the current file
+							countFails++;
+						} 
 						tagalong = true;
 						colorCode = 0;
+						countFails++;
 					} else {
 						tagalong = false;
 						colorCode = sampleData.getClassForInd(sampleID[0], currentClass);
@@ -223,6 +231,10 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 					points[i] = new PlotPoint(sampleList[i], PlotPoint.FILLED_CIRCLE, data[currentPair[0][0]][currentPair[0][1]], data[currentPair[1][0]][currentPair[1][1]], tagalong?SIZE_TAGALONGS:SIZE, colorCode, (byte)(colorCode>0?1:0));
 					classCounts.add(colorCode+"");
 				}
+			}
+			
+			if (countFails > 10) {
+				sp.getProject().getLog().reportError("There were a total of "+(countFails-1)+" sample ID pairs found in any of the files that were not found in SampleData");
 			}
 		}
 		sp.updateColorKey(getClassCounts().convertToHash());

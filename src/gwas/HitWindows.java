@@ -51,6 +51,12 @@ public class HitWindows {
 			indices = ext.indexFactors(factors, header, false, false, true, true, log, false);
 			if (Array.min(indices) == -1) {
 				System.err.println("Aborting after failing to find the appropriate column headers in file "+filename);
+				System.err.println("Missing:");
+				for (int i = 0; i < indices.length; i++) {
+					if (indices[i] == -1) {
+						System.err.println("  "+Array.toStr(factors[i], "/"));
+					}
+				}
 				System.exit(1);
 			}
 			count = 0;

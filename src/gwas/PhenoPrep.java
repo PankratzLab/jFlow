@@ -285,6 +285,8 @@ public class PhenoPrep {
 			// do nothing
 		} else if (transform.equalsIgnoreCase("ln")) {
 			data = Transformations.naturalLogTransform(data);
+		} else if (transform.equalsIgnoreCase("log10")) {
+			data = Transformations.log10Transform(data);
 		} else if (transform.equalsIgnoreCase("sqrt")) {
 			data = Transformations.sqrtTransform(data);
 		} else {
@@ -584,7 +586,7 @@ public class PhenoPrep {
 				"covar=Age,Sex,Site1,Site2",
 				"# name of output file",
 				"out=output.dat",
-				"# transformation to apply to phenotype (current options are ln, sqrt, or null for none)",
+				"# transformation to apply to phenotype (current options are ln, log10, sqrt, or null for none)",
 				"transform=none",
 				"# name of file with IDs to use (e.g., that are in a genotype file); must be a plink .fam file if we are creating PLINK formatted files; otherwise, only the first column is used",
 				"ids=plink.fam",
@@ -793,7 +795,7 @@ public class PhenoPrep {
 				"	 (4) covariate column name(s) (i.e. covar=Age,Sex,Site1,Site2 (not the default))\n" +
 				"	 (5) name of file with IDs to use (e.g., that are in a genotype file) (i.e. ids=" + idFile + " (default; set to null to include all rows with complete data))\n" +
 				"	 (6) name of output file (i.e. out=" + outFile + " (default))\n" +
-				"	 (7) transformation to apply to phenotype (i.e. transform=" + transform + " (default; current options are ln, sqrt, or null for none))\n" +
+				"	 (7) transformation to apply to phenotype (i.e. transform=" + transform + " (default; current options are ln, log10, sqrt, or null for none))\n" +
 				"	 (8) winsorize phenotype (i.e. winsorize=" + winsorize + " (default))\n" +
 				"	 (9) remove outliers (i.e. remove=" + remove + " (default))\n" +
 				"	(10) threshold in standard deviation units at which to winsorize or remove outliers (i.e. sdThreshold=" + sdThreshold + " (default))\n" +

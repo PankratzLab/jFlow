@@ -381,6 +381,9 @@ public class PennCNV {
 		bafCounts = new int[chrs.length];
 		genoCounts = new int[chrs.length];
 		for (int i=0; i<sampleList.length; i++) {
+			if (i % 100 == 0) {
+				log.report("Loading file "+(i+1)+" of "+sampleList.length);
+			}
 			samp = proj.getFullSampleFromRandomAccessFile(sampleList[i]);
 			bafs = samp.getBAFs();
 			genotypes = samp.getAB_Genotypes();
