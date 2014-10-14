@@ -804,7 +804,7 @@ public class SkatMeta {
 		condFileDir = "N:/statgen/CHARGE-S_conditionals/conditions/";
 		rScriptDir = "N:/statgen/CHARGE-S_conditionals/scripts/selectedSnpInfo_MoreCohorts/";
 		resultsDir = "N:/statgen/CHARGE-S_conditionals/results/newFromSmallerSNPInfo/";
-		summaryDir = "N:/statgen/CHARGE-S_conditionals/results/summary/";
+		summaryDir = "N:/statgen/CHARGE-S_conditionals/results/summary/automated_summaries/";
 
 		commands = new String[] {"-rscript", "rdatadir=", "snpinfo=", "conditionsdir=", "resultdir=", "scriptdir=", "-rscriptsubdir", "-qcscript", "-summary", "summarydir="};
 		String usage = "\nTo generate Skat Meta R scripts for all the .RData files in a single directory:"
