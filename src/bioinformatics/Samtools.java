@@ -110,19 +110,19 @@ public class Samtools {
 	}
 
 	public static String getIgvLaunchScript(String fulPathToXml) {
-		return "java -Xmx1200m -Dproduction=true -Djava.net.preferIPv4Stack=true -Dsun.java2d.noddraw=true -jar D:/logan/DeNovos/IGV/IGV_2.3.34/igv.jar "
+		return "java -Xmx1200m -Dproduction=true -Djava.net.preferIPv4Stack=true -Dsun.java2d.noddraw=true -jar D:/logan/DeNovos/IGV/IGV_2.3.36/igv.jar "
 				+ fulPathToXml;
 	}
 
 	/**
 	 * 
-	 * @param filename
+	 * @param scriptFileName
 	 * @param trioIdChrPos		trioId + chr + pos
 	 * @param samFilenamesByTrios
 	 * @param windowInBp
 	 * @param log
 	 */
-	public static void saveScriptsGeneratingMiniSams(String filename, Vector<String> trioIdChrPos, String[][] samFilenamesByTrios, int windowInBp, Logger log) {
+	public static void saveScriptsGeneratingMiniSamsOfOneGene (String scriptFileName, String miniSamDir, Vector<String> trioIdChrPos, String[][] samFilenamesByTrios, int windowInBp, Logger log) {
 		PrintWriter writer;
 		int index;
 		String[] line;
@@ -130,7 +130,7 @@ public class Samtools {
 		int pos;
 
 		try {
-			writer = new PrintWriter(new FileWriter(filename));
+			writer = new PrintWriter(new FileWriter(scriptFileName));
 			for (String key : trioIdChrPos) {
 				line = key.split("\t");
 //				chr = line[1];
@@ -140,16 +140,61 @@ public class Samtools {
 				if (index < 0) {
 					log.reportError("Trio ID (" + line[0] + ") from a phase 1 output file does not match any row of the Trio ID List file, - skipped generating some scripts for mini bam files");
 				} else {
-					writer.print("samtools view " + samFilenamesByTrios[index][1] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_C.bam\n"
-								+ "samtools index " + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_C.bam\n"
-								+ "samtools view " + samFilenamesByTrios[index][2] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_D.bam\n"
-								+ "samtools index " + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_D.bam\n"
-								+ "samtools view " + samFilenamesByTrios[index][3] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_M.bam\n"
-								+ "samtools index " + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_M.bam\n"
+					writer.print("samtools view " + samFilenamesByTrios[index][1] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_C.bam\n"
+								+ "samtools index " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_C.bam\n"
+								+ "samtools view " + samFilenamesByTrios[index][2] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_D.bam\n"
+								+ "samtools index " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_D.bam\n"
+								+ "samtools view " + samFilenamesByTrios[index][3] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_M.bam\n"
+								+ "samtools index " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_M.bam\n"
 								);
 				}
 			}
 			
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 
+	 * @param scriptFileName
+	 * @param trioIdChrPos		trioId + chr + pos
+	 * @param samFilenamesByTrios
+	 * @param windowInBp
+	 * @param log
+	 */
+	public static void saveScriptsGeneratingMiniSamsAllGenesAtOnce (String scriptFileName, String miniSamDir, Hashtable<String, Vector<String>> miniSamNeeded, String[][] samFilenamesByTrios, int windowInBp, Logger log) {
+		PrintWriter writer;
+		int index;
+		Vector<String> trioIdChrPos;
+		String[] line;
+//		String chr;
+		int pos;
+
+		try {
+			writer = new PrintWriter(new FileWriter(scriptFileName));
+			for (String gene : miniSamNeeded.keySet()) {
+				trioIdChrPos = miniSamNeeded.get(gene);
+				for (String key : trioIdChrPos) {
+					line = key.split("\t");
+	//				chr = line[1];
+					pos = Integer.parseInt(line[2]);
+					index = getIndex(line[0], samFilenamesByTrios, log);
+	
+					if (index < 0) {
+						log.reportError("Trio ID (" + line[0] + ") from a phase 1 output file does not match any row of the Trio ID List file, - skipped generating some scripts for mini bam files");
+					} else {
+						writer.print("samtools view " + samFilenamesByTrios[index][1] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_C.bam\n"
+									+ "samtools index " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_C.bam\n"
+									+ "samtools view " + samFilenamesByTrios[index][2] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_D.bam\n"
+									+ "samtools index " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_D.bam\n"
+									+ "samtools view " + samFilenamesByTrios[index][3] + " -b chr" + line[1] + ":" + Math.max(0, pos - windowInBp) + "-" + (pos + windowInBp) + " > " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_M.bam\n"
+									+ "samtools index " + miniSamDir + samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_M.bam\n"
+									);
+					}
+				}
+			}
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -167,7 +212,7 @@ public class Samtools {
 			if (index < 0) {
 				log.reportError("Trio ID (" + line[0] + ") from a phase 1 output file does not match any row of the Trio ID List file, - skipped generating some scripts for mini bam files");
 			} else {
-				if (! new File(miniSamDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml").exists()) {
+				if (! new File(igvScriptDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml").exists()) {
 					Files.write(getIgvXmlScript(miniSamDir, line[1], line[2], new String[] {line[0], samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_C.bam", samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_D.bam", samFilenamesByTrios[index][0] + "_chr" + line[1] + "_" + line[2] + "_M.bam"}), igvScriptDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".xml");
 					Files.write(getIgvLaunchScript(igvScriptDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".xml"), igvScriptDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat");
 				}

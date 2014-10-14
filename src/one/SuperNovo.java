@@ -1643,13 +1643,13 @@ public class SuperNovo {
 		}
 	}
 
-	public static void parseResults(String resultDir, String annotationDir, String miniSamDir, String fullPathToTrioNameList, byte resultFormat, double callScoreThreshold, byte outFormat, Logger log) {
+	public static void parseResults(String resultDir, String annotationDir, String miniSamScriptsDir, String miniSamDir, String fullPathToTrioNameList, byte resultFormat, double callScoreThreshold, byte outFormat, Logger log) {
 		int index;
 		int[] indices, numVarInDelDenovos;
 		int[][] orderedIndices;
 		int[][][] readsCounts, phredScores, mappingScores;
 		double[] pctDenovoAllele;
-		String markerName, miniBamLink = null, miniSamSubDir, trioId;
+		String markerName, miniBamLink = null, miniSamScriptSubDir, trioId;
 		String[] alleles, resultFilenames, annotation = null, resultElements, seatleSeekHeader, header, genes, line;
 		BufferedReader reader;
 		Vector<String> annotationNeedsVars, annotationNeedsInDels;
@@ -1671,7 +1671,7 @@ public class SuperNovo {
 		annotationNeedsVars = new Vector<String>();
 		annotationNeedsInDels =  new Vector<String>();
 //		miniBamNeeds = new Vector<String>();
-		miniSamHash = Samtools.listFiles(miniSamDir, log);
+		miniSamHash = Samtools.listFiles(miniSamScriptsDir, log);
 		annotationHash = SeattleSeq.loadAllAnnotationInDir(annotationDir, log);
 		miniSamNeeded = new Hashtable<String, Vector<String>>();
 		resultFilenames = Files.list(resultDir, ".txt", false);
@@ -1725,6 +1725,7 @@ public class SuperNovo {
 								if (annotationHash != null && annotationHash.containsKey(markerName)) {
 									annotation = annotationHash.get(markerName);
 									if (annotation[0].equals("1")) {
+//									if (true) {
 										if (alleles[j].startsWith("+")) {
 											index = 5;	//TODO if there are two strings for this insertion, say "+T" and "+TGC", then cannot tell how many reads are for the former and how many the latter. Only have the number of the reads for the combination of the two.
 										} else if (alleles[j].startsWith("-")) {
@@ -1753,7 +1754,11 @@ public class SuperNovo {
 												}
 
 												//TODO "none"?
-												miniSamSubDir = miniSamDir + genes[k] + "/";
+												miniSamScriptSubDir = miniSamScriptsDir + genes[k] + "/";
+												if (!new File(miniSamScriptSubDir).exists()) {
+													new File(miniSamScriptSubDir).mkdir();
+												}
+
 //												if (new File(miniSamSubDir).exists()) {
 //													miniSamHash = Samtools.listFiles(miniSamSubDir, log);
 													//TODO is the new region contained in the older region?
@@ -1761,10 +1766,13 @@ public class SuperNovo {
 //														if (! new File(miniSamSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml").exists()) {
 //															Files.write(Samtools.getIgvXmlScript(miniSamDir, line[1], line[2], miniSamFilenamesOfOneTrio), miniSamSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml");
 //														}
-														if (! new File(miniSamSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat").exists()) {
-															Files.write(Samtools.getIgvLaunchScript(miniSamSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml"), miniSamSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".bat");
+														if (! new File(miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat").exists()) {
+															Files.write(Samtools.getIgvLaunchScript(miniSamScriptSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml"), miniSamScriptSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".bat");
 														}
-														miniBamLink = "=HYPERLINK(\"" + miniSamSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat\",\"IGV\")";
+														if (! new File(miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".xml").exists()) {
+															Files.write(Samtools.getIgvXmlScript(miniSamDir, line[1], line[2], new String[] {line[0], line[0] + "_chr" + line[1] + "_" + line[2] + "_C.bam", line[0] + "_chr" + line[1] + "_" + line[2] + "_D.bam", line[0] + "_chr" + line[1] + "_" + line[2] + "_M.bam"}), miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".xml");
+														}
+														miniBamLink = "=HYPERLINK(\"" + miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat\",\"IGV\")";
 //														miniBamLink = miniSamSubDir;
 													} else {
 														miniBamLink = "";
@@ -1827,21 +1835,23 @@ public class SuperNovo {
 		}
 
 		if (annotationNeedsVars.size() > 0) {
-			Files.writeList(Array.toStringArray(annotationNeedsVars), annotationDir + "seattleSeq_input_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
+			Files.writeList(Array.toStringArray(annotationNeedsVars), annotationDir + "seattleSeq_input_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date()) + ".txt");
 		}
 		if (annotationNeedsInDels.size() > 0) {
-			Files.writeList(Array.toStringArray(annotationNeedsInDels), annotationDir + "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
+			Files.writeList(Array.toStringArray(annotationNeedsInDels), annotationDir + "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date()) + ".txt");
 		}
 		if (miniSamNeeded.size() > 0) {
-//					Files.writeList(Array.toStringArray(miniSamNeeded), miniSamDir + "miniBamNeeds_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
+//			Files.writeList(Array.toStringArray(miniSamNeeded), miniSamDir + "miniBamNeeds_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
 			geneSet = miniSamNeeded.keySet();
 			for(String gene : geneSet) {
-				if (! new File(miniSamDir + gene + "/").exists()) {
-					new File(miniSamDir + gene + "/").mkdir();
+				if (! new File(miniSamScriptsDir + gene + "/").exists()) {
+					new File(miniSamScriptsDir + gene + "/").mkdir();
 				}
-				Samtools.saveScriptsGeneratingMiniSams(miniSamDir + gene + "/generateMiniSams" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".sh", miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 1000, log);
-				Samtools.saveScriptsLaunchingIgv(miniSamDir + gene + "/", miniSamDir, miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 50000, log);
+//				Samtools.saveScriptsGeneratingMiniSams(miniSamScriptsDir + gene + "/generateMiniSams" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".sh", miniSamDir, miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 200, log);
+				Samtools.saveScriptsGeneratingMiniSamsOfOneGene(miniSamScriptsDir + gene + "/generateMiniSams_" + gene + ".sh", "/home/spectorl/xuz2/mini_bams/", miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 200, log);
+				Samtools.saveScriptsLaunchingIgv(miniSamScriptsDir + gene + "/", miniSamDir, miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 50000, log);
 			}
+			Samtools.saveScriptsGeneratingMiniSamsAllGenesAtOnce (miniSamScriptsDir + "generateMiniSams_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date()) + ".sh", "/home/spectorl/xuz2/mini_bams/", miniSamNeeded, loadNamesFromList(fullPathToTrioNameList), 200, log);
 		}
 
 		saveParsedResults(resultDir + DEFAULT_OUTPUT_FILENAME, null, result, geneCounts, geneTrioCounts, outFormat, PARSE_RESULT_HEADER + "\tBAD\t" + Array.toStr(seatleSeekHeader), log);
@@ -3080,7 +3090,7 @@ public class SuperNovo {
 		String[] commands;
 		String[] bamFilenamesOfTheTrio;
 		String helpMenu, fullPathVariantCandidatesList, fullPathRefFasta, fullPathBed, fullPathReadCounts, fullPathTrioList, fullPathToParsedResult, fullPathToOutputHaplotypeStrings;
-		String dirBam, dirScript, dirDenovoVars, dirSeattleSeq, dirMiniBam, dirReadCounts;
+		String dirSam, dirScript, dirDenovoVars, dirSeattleSeq, dirMiniSam, dirMiniSamScripts, dirReadCounts;
 		String trioId, thresholdsForReadCounts, thresholdsForMapping;
 		String chr;
 		int regionLegnthATime, numThreads;
@@ -3089,7 +3099,8 @@ public class SuperNovo {
 		Logger log;
 
 		fullPathVariantCandidatesList = "N:/statgen/OS_Logan/IGV_validation/results_test1.txt";
-		dirBam = "/home/spectorl/shared/exome_processing/bam/";
+		dirSam = "/home/spectorl/shared/exome_processing/bam/";
+//		dirSam = "/home/spectorl/shared/exome/project126/all_101/";
 		bamFilenamesOfTheTrio = new String[] {"rrd_F10639C_L008.bam", "rrd_F10639D_L007.bam", "rrd_F10639M_L007.bam"};
 		if (bamFilenamesOfTheTrio != null && !bamFilenamesOfTheTrio[0].equals("")) {
 			trioId = getRootOf(bamFilenamesOfTheTrio, false);
@@ -3106,7 +3117,8 @@ public class SuperNovo {
 		dirDenovoVars = "/home/spectorl/xuz2/outputs/";
 		dirReadCounts = "/home/spectorl/xuz2/readcounts/wholegenome_rrd/readcounts_";
 		dirSeattleSeq = "/home/spectorl/xuz2/outputs/SeattleSeqAnnotation/";
-		dirMiniBam = "/home/spectorl/xuz2/outputs/mini_bams/";
+		dirMiniSam = "/home/spectorl/xuz2/outputs/mini_bams/";
+		dirMiniSamScripts = "/home/spectorl/xuz2/outputs/mini_bams/";
 		regionLegnthATime = -1;
 		numThreads = 1;
 		chr = "";
@@ -3127,17 +3139,17 @@ public class SuperNovo {
 			helpMenu += "," + bamFilenamesOfTheTrio[i];
 		}
 
-		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bed=", "numthreads=", "-parseresult", "trioid=", "triolistfile=", "regionlengthatime=", "seattleseqdir=", "minibamdir=", "outputreadcounts=", "-coverage", "-denovo", "readcountsdir=", "thresholdreadcount=", "thresholdmapping=", "-test", "-haplotypes", "haplotypeout=", "-outhaplotypes", "parsedresult="};
+		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bed=", "numthreads=", "-parseresult", "trioid=", "triolistfile=", "regionlengthatime=", "seattleseqdir=", "minibamscriptdir=", "outputreadcounts=", "-coverage", "-denovo", "readcountsdir=", "thresholdreadcount=", "thresholdmapping=", "-test", "-haplotypes", "haplotypeout=", "-outhaplotypes", "parsedresult=", "minibamdir="};
 		String usage = "\nTo annotate a list of candidate markers:"
 					+ "\n   (1) command for annotatation (i.e. " + commands[0] + " (default))"
 					+ "\n   (2) full path of the candidate list file (i.e. " + commands[1] + fullPathVariantCandidatesList + " (default))"
-					+ "\n   (3) directory of the bam files (i.e. " + commands[2] + dirBam + " (default))"
+					+ "\n   (3) directory of the bam files (i.e. " + commands[2] + dirSam + " (default))"
 					+ "\n   (4) directory for the output script file to extract information from bam files (i.e. " + commands[3] + dirScript + " (default))"
 					+ "\nTo process a region:"
 					+ "\n   (1) chr of the region (i.e. " + commands[7] + chr + " (default))"
 					+ "\n   (2) start position of the region (i.e. " + commands[8] + begin + " (default))"
 					+ "\n   (3) stop position of the region (i.e. " + commands[9] + end + " (default))"
-					+ "\n   (4) directory of the bam files (i.e. " + commands[2] + dirBam + " (default))"
+					+ "\n   (4) directory of the bam files (i.e. " + commands[2] + dirSam + " (default))"
 					+ "\n   (5) names of bam/sam files of the trio, if just for a trio (i.e. " + commands[5] + helpMenu + " (default))"
 					+ "\n   (6) label of the trio, to be used in name of the output file (i.e. " + commands[13] + trioId + " (default))"
 					+ "\n   (7) full path of the reference Fasta file (i.e. " + commands[6] + fullPathRefFasta + " (default))"
@@ -3145,7 +3157,7 @@ public class SuperNovo {
 					+ "\n   (9) directory for the output files (i.e. " + commands[4] + dirDenovoVars + " (default))"
 					+ "\nTo process genome:"
 					+ "\n   (1) full path of the bed file (i.e. " + commands[10] + fullPathBed + " (default))"
-					+ "\n   (2) directory of the bam files (i.e. " + commands[2] + dirBam + " (default))"
+					+ "\n   (2) directory of the bam files (i.e. " + commands[2] + dirSam + " (default))"
 					+ "\n   (3) names the bam/sam files of the trio, if just for a trio (i.e. " + commands[5] + helpMenu + " (default))"
 					+ "\n   (4) full path of the reference Fasta file (i.e. " + commands[7] + fullPathRefFasta + " (default))"
 					+ "\n   (5) directory for the output files (i.e. " + commands[4] + dirDenovoVars + " (default))"
@@ -3157,7 +3169,8 @@ public class SuperNovo {
 					+ "\n   (2) directory for the phase 1 output files (i.e. " + commands[4] + dirDenovoVars + " (default))"
 					+ "\n   (3) full path to the trio list file (i.e. " + commands[14] + fullPathTrioList + " (default), can be left as null if no mini bam script is needed)"
 					+ "\n   (4) directory to output the SeattleSeq annotation files (i.e. " + commands[16] + dirSeattleSeq + " (default))"
-					+ "\n  (5) directory to output the scripts for generating the mini bam files (i.e. " + commands[17] + dirMiniBam + " (default))"
+					+ "\n   (5) directory to output the scripts for generating the mini .bam files (i.e. " + commands[17] + dirMiniSamScripts + " (default))"
+					+ "\n   (6) directory to output the mini .bam files (i.e. " + commands[29] + dirMiniSam + " (default))"
 					+ "\nTo assess coverage of one specific trio:"
 					+ "\n   (1) command for assess coverage (i.e. " + commands[19] + " (not default))"
 					+ "\n   (2) full path to the read counts file of the trio (i.e. " + commands[18] + fullPathReadCounts + " (default)"
@@ -3173,13 +3186,13 @@ public class SuperNovo {
 					+ "\nTo get haplotypes of all trios in a summary file (output of the phase 2 parsing):"
 					+ "\n   (1) command for haplotypes (i.e. " + commands[25] + " (default))"
 					+ "\n   (2) full path to the trio list file (i.e. " + commands[14] + fullPathTrioList + " (default))"
-					+ "\n   (3) directory of the bam files (i.e. " + commands[2] + dirBam + " (default))"
+					+ "\n   (3) directory of the bam files (i.e. " + commands[2] + dirSam + " (default))"
 					+ "\n   (4) whether to output the haplotype strings (i.e. " + commands[27] + " (default))"
 					+ "\nTo get haplotypes of all trios in a summary file (output of the phase 2 parsing):"
 					+ "\n   (1) command for haplotypes (i.e. " + commands[25] + " (default))"
 					+ "\n   (2) label of the trio, to be used in name of the output file (i.e. " + commands[13] + trioId + " (default))"
 					+ "\n   (3) names of bam/sam files of the trio, if just for a trio (i.e. " + commands[5] + helpMenu + " (default))"
-					+ "\n   (4) directory of the bam files (i.e. " + commands[2] + dirBam + " (default))"
+					+ "\n   (4) directory of the bam files (i.e. " + commands[2] + dirSam + " (default))"
 					+ "\n   (5) chr of the region (i.e. " + commands[7] + chr + " (default))"
 					+ "\n   (6) start position of the region (i.e. " + commands[8] + begin + " (default))"
 					+ "\n   (7) stop position of the region (i.e. " + commands[9] + end + " (default))"
@@ -3203,7 +3216,7 @@ public class SuperNovo {
 				fullPathVariantCandidatesList = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(commands[2])) {
-				dirBam = args[i].split("=")[1];
+				dirSam = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(commands[3])) {
 				dirScript = args[i].split("=")[1];
@@ -3260,7 +3273,7 @@ public class SuperNovo {
 				dirSeattleSeq = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(commands[17])) {
-				dirMiniBam = args[i].split("=")[1];
+				dirMiniSamScripts = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(commands[18])) {
 				fullPathReadCounts = args[i].split("=")[1];
@@ -3295,6 +3308,9 @@ public class SuperNovo {
 			} else if (args[i].startsWith(commands[28])) {
 				fullPathToParsedResult = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith(commands[29])) {
+				dirMiniSam = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -3311,11 +3327,12 @@ public class SuperNovo {
 //		bamFilenamesOfTheTrio = new String[] {"F10639_chr17_38000000_C.bam", "F10639_chr17_38000000_D.bam", "F10639_chr17_38000000_M.bam"};
 //		trioId = "F10639_mini";
 
-//		isParseResult = true;
-//		dirDenovoVars = "D:/logan/DeNovos/denovo47dedup/";
-//		dirSeattleSeq = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
-//		dirMiniBam = "D:/logan/DeNovos/mini_bams/";
-//		fullPathTrioList = "N:/statgen/OS_Logan/SuperNovo/bed/triolist_rrd_47_dedup.txt";
+		isParseResult = true;
+		dirDenovoVars = "D:/logan/DeNovos/denovos_rrd42_rrd46_dedup4/";
+		dirSeattleSeq = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
+		dirMiniSamScripts = "D:/logan/DeNovos/mini_bam_scripts/";
+		dirMiniSam = "D:/logan/DeNovos/mini_bams/";
+		fullPathTrioList = "N:/statgen/OS_Logan/SuperNovo/beds/triolist_rrd42_rrd46-6_dedup4.txt";
 
 //		isGetHaplotypes = true;
 //		fullPathToParsedResult = "/home/spectorl/xuz2/outputs/wholegenome_rrd_46/SuperNovo_summary.xln";
@@ -3351,17 +3368,17 @@ public class SuperNovo {
 			log = new Logger(dirDenovoVars + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
 			if (chr != null && !chr.equals("") && begin > 0 && end > 0 && end >= begin) {
 				log = new Logger(dirDenovoVars + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-				processRegion(dirBam, bamFilenamesOfTheTrio, fullPathRefFasta, chr, begin, end, dirDenovoVars, fullPathReadCounts, log);
+				processRegion(dirSam, bamFilenamesOfTheTrio, fullPathRefFasta, chr, begin, end, dirDenovoVars, fullPathReadCounts, log);
 			} else if (fullPathBed != null && ! new File(fullPathBed).exists()) {
 				log.reportError("Error - for " + commands[20] + ", bed file has not been specified or does not exist.");
 			} else if (bamFilenamesOfTheTrio == null || bamFilenamesOfTheTrio.length < 2) {
-				processGenomeOfAllTriosInDir(dirBam, fullPathRefFasta, fullPathBed, dirDenovoVars, dirScript, fullPathTrioList, dirReadCounts, regionLegnthATime, numThreads, log);
+				processGenomeOfAllTriosInDir(dirSam, fullPathRefFasta, fullPathBed, dirDenovoVars, dirScript, fullPathTrioList, dirReadCounts, regionLegnthATime, numThreads, log);
 			} else {
-				processGenomeOfOneTrio(dirBam, trioId, bamFilenamesOfTheTrio, fullPathRefFasta, fullPathBed, dirDenovoVars, fullPathReadCounts, regionLegnthATime, numThreads, log);
+				processGenomeOfOneTrio(dirSam, trioId, bamFilenamesOfTheTrio, fullPathRefFasta, fullPathBed, dirDenovoVars, fullPathReadCounts, regionLegnthATime, numThreads, log);
 			}
 		} else if (isParseResult) {
 			log = new Logger(dirDenovoVars + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-			parseResults(dirDenovoVars, dirSeattleSeq, dirMiniBam, fullPathTrioList, (byte) 2, 0, (byte) 1, log);
+			parseResults(dirDenovoVars, dirSeattleSeq, dirMiniSamScripts, dirMiniSam, fullPathTrioList, (byte) 2, 0, (byte) 1, log);
 		} else if (isToAssessCoverage) {
 			if ((dirReadCounts != null && !dirReadCounts.equals("")) || fullPathReadCounts == null || fullPathReadCounts.equals("")) {
 				log = new Logger(dirReadCounts + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
@@ -3373,14 +3390,14 @@ public class SuperNovo {
 		} else if (isGetHaplotypes) {
 			if (chr == null) {
 				log = new Logger(ext.parseDirectoryOfFile(fullPathToParsedResult) + "haplotypes.log");
-				getHaplotypes(fullPathToParsedResult, fullPathTrioList, dirBam, isToOutputHaplotypeStrings, log);
+				getHaplotypes(fullPathToParsedResult, fullPathTrioList, dirSam, isToOutputHaplotypeStrings, log);
 			} else {
 				if (fullPathToOutputHaplotypeStrings == null) {
 					log = new Logger();
 				} else {
 					log = new Logger(ext.parseDirectoryOfFile(fullPathToOutputHaplotypeStrings) + "haplotypes.log");
 				}
-				log.report("Number of haplotypes: " + getHaplotypes(dirBam, bamFilenamesOfTheTrio, trioId, chr, begin, end, fullPathToOutputHaplotypeStrings, log));
+				log.report("Number of haplotypes: " + getHaplotypes(dirSam, bamFilenamesOfTheTrio, trioId, chr, begin, end, fullPathToOutputHaplotypeStrings, log));
 			}
 		} else if (isToTest) {
 			log = new Logger();
