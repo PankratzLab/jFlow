@@ -4,11 +4,13 @@ package cnv.plots;
 import java.io.*;
 import java.util.*;
 import java.awt.*;
+
 import javax.swing.*;
 
 import common.*;
 import cnv.filesys.Project;
 import cnv.gui.ColorIcon;
+import cnv.gui.WrapLayout;
 import cnv.qc.SexChecks;
 
 public class SexPlot extends JFrame{
@@ -51,7 +53,7 @@ public class SexPlot extends JFrame{
 	}
 
 	private JPanel colorLegendPanel() {
-		JPanel colorLegendPanel = new JPanel();
+		JPanel colorLegendPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 0, 0));
 		colorLegendPanel.setBackground(Color.WHITE);//BACKGROUND_COLOR);
 	
 	    JLabel legend = new JLabel("Color Key: ");
@@ -59,8 +61,11 @@ public class SexPlot extends JFrame{
 		colorLegendPanel.add(legend);
 		
 		for (int i=0; i<SexPanel.COLOR_SCHEME.length; i++){
-			colorLegendPanel.add(new JLabel(new ColorIcon(12,12,SexPanel.COLOR_SCHEME[i])));
-			colorLegendPanel.add(new JLabel(SexPanel.COLOR_SCHEME_MEANING[i]));
+			JPanel enclosure = new JPanel();
+			enclosure.setBackground(Color.WHITE);
+			enclosure.add(new JLabel(new ColorIcon(12,12,SexPanel.COLOR_SCHEME[i])));
+			enclosure.add(new JLabel(SexPanel.COLOR_SCHEME_MEANING[i]));
+			colorLegendPanel.add(enclosure);
 		}
 		return colorLegendPanel;
 	}

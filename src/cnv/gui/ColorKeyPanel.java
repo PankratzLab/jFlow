@@ -4,6 +4,7 @@
 package cnv.gui;
 
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
@@ -88,11 +89,11 @@ public class ColorKeyPanel extends JPanel {
 		this.colorScheme = newColorScheme;
 
 		setLayout(new GridLayout(2, 1));
-		classVariablesPanel = new JPanel();
+		classVariablesPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 0, 0));
 		classVariablesPanel.setBackground(BACKGROUND_COLOR);
 		updateColorVariablePanel();
 		add(classVariablesPanel);
-		classValuesPanel = new JPanel();
+		classValuesPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 0, 0));
         classValuesPanel.setBackground(BACKGROUND_COLOR);
 		add(classValuesPanel);
 	}
@@ -214,8 +215,11 @@ public class ColorKeyPanel extends JPanel {
 				label.setForeground(Color.BLACK);
 				label.setFont(new Font("Arial", 0, 14));
 			}
-			classValuesPanel.add(block);
-			classValuesPanel.add(label);
+			JPanel labelEnclosure = new JPanel();
+			labelEnclosure.setBackground(BACKGROUND_COLOR);
+			labelEnclosure.add(block);
+			labelEnclosure.add(label);
+			classValuesPanel.add(labelEnclosure);
 		}
 
 		keys = HashVec.getKeys(currentClassUniqueValues);
