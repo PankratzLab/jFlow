@@ -125,7 +125,7 @@ public class CrossValidation {
 				}
 			}
 			if (droppedNaN > 0 && verbose) {
-				log.report("Warning - " + droppedNaN + " " + (droppedNaN > 1 ? "individuals" : "individual") + " were not included in the residual sum of squares calculation due to missing independent or dependent variables");
+				log.report("Warning - " + droppedNaN + " " + (droppedNaN > 1 ? "individuals were" : "individual was") + " not included in the residual sum of squares calculation due to missing independent or dependent variables");
 			}
 		} else {
 			log.reportError("Error - could not train data set, cannot compute residuals values");
@@ -174,7 +174,7 @@ public class CrossValidation {
 	public double getSSerr() {
 		return SSerr;
 	}
-	
+
 	public void setBetas(double[] betas) {
 		this.betas = betas;
 	}
@@ -199,10 +199,14 @@ public class CrossValidation {
 		return SEofBs;
 	}
 
+	public double[] getBetas() {
+		return betas;
+	}
+
 	public double getAvgSEofBs() {
 		return avgSEofBs;
 	}
-	
+
 	public double[] getPredicteds() {
 		return predicteds;
 	}
@@ -224,7 +228,6 @@ public class CrossValidation {
 		this.fullModelSSerr = fullModelSSerr;
 	}
 
-	
 	public void setAnalysisFailed(boolean analysisFailed) {
 		this.analysisFailed = analysisFailed;
 	}

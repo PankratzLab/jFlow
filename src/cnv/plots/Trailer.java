@@ -12,6 +12,8 @@ import cnv.filesys.*;
 import cnv.gui.SingleClick;
 import cnv.gui.ClickListener;
 import cnv.manage.Transforms;
+import cnv.qc.GcAdjustor;
+import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
 import cnv.var.SampleData;
@@ -109,6 +111,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JLabel commentLabel;
 	private int transformation_type;
 	private boolean transformSeparatelyByChromosome;
+	private GcModel gcModel;
+	private JCheckBox gcCorrectButton;
 	private Logger log;
 	private boolean fail;
 	
@@ -161,8 +165,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		if (fail) {
 			return;
 		}
+		if (Files.exists(proj.getFilename(Project.GC_MODEL_FILENAME, false, false))) {
+			gcModel = GcAdjustor.GcModel.populateFromFile(proj.getFilename(Project.GC_MODEL_FILENAME, false, false), true, proj.getLog());
+		} else {
+			gcModel = null;
+		}
 		generateComponents();
-		
+			
 		sample = selectedSample==null?samplesPresent[0]:selectedSample;
 		sampleData = proj.getSampleData(2, cnvFilenames);
 		if (sampleData.failedToLoad()) {
@@ -568,17 +577,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
 		ItemListener typeListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
-				JRadioButton jrb = (JRadioButton)ie.getItem();
+				JRadioButton jrb = (JRadioButton) ie.getItem();
 				if (jrb.isSelected()) {
-					for (int i = 0; i<Transforms.TRANFORMATIONS.length; i++) {
+					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
 						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
 							transformation_type = i;
-							System.out.println("Transformation type: "+transformation_type);
-							if (transformation_type > 0) {
-								lrrValues = Transforms.transform(lrrs, transformation_type, transformSeparatelyByChromosome, markerSet);
-							} else {
-								lrrValues = lrrs;
-							}
+							lrrValues =getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
 							updateGUI();
 						}
 					}
@@ -593,6 +597,29 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //			transformationRadioButtons[i].setBackground(BACKGROUND_COLOR);
 			transformationPanel.add(transformationRadioButtons[i]);
 		}
+		
+		ItemListener gcListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				JCheckBox jrb = (JCheckBox) ie.getItem();
+				if (jrb.isSelected()) {
+					// gc correct, and apply any transformation
+					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, true, true, log);
+				} else {
+					// reset any transformation
+					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, false, false, log);
+				}
+				updateGUI();
+			}
+		};
+
+		gcCorrectButton = new JCheckBox(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
+		if (gcModel != null) {
+			gcCorrectButton.setFont(new Font("Arial", 0, 14));
+			gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
+			gcCorrectButton.addItemListener(gcListener);
+			transformationPanel.add(gcCorrectButton);
+		}
+
 		transformationRadioButtons[0].setSelected(true);
 		descrPanel.add(transformationPanel);
 		
@@ -604,14 +631,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		JRadioButton[] scopeRadioButtons = new JRadioButton[2];
 		ItemListener scopeListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
+					
 				JRadioButton jrb = (JRadioButton)ie.getItem();
 				if (jrb.isSelected()) {
 					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
-					if (transformation_type > 0) {
-						lrrValues = Transforms.transform(lrrs, transformation_type, transformSeparatelyByChromosome, markerSet);
-					} else {
-						lrrValues = lrrs;
-					}
+					lrrValues =getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
 					updateGUI();
 				}
 			}
@@ -626,6 +650,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		scopeRadioButtons[0].setSelected(true);
 		descrPanel.add(scopePanel);
+
 
 		getContentPane().add(descrPanel, BorderLayout.NORTH);
 
@@ -1320,6 +1345,42 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         }
 	}
 	
+	/**
+	 * @param proj
+	 * @param lrrsToTransform
+	 *            the log R ratio input array
+	 * @param transformation_type
+	 *            transformation type for {@link Transforms#transform(float[], int, boolean, MarkerSet)}
+	 * @param transformSeparatelyByChromosome
+	 *            transform log R ratios separately
+	 * @param markerSet
+	 * @param gcModel
+	 *            a gc model, if the gcmodel is null and correctGC is true, we report an error
+	 * @param correctGC
+	 *            whether to perform gc correction, must have a valid {@link GcModel} to correct
+	 * @param correctGCFirst
+	 *            perform the gc correction first, and then any transformations
+	 * @param log
+	 * @return
+	 */
+	private static float[] getNewLRRs(Project proj, float[] lrrsToTransform, int transformation_type, boolean transformSeparatelyByChromosome, MarkerSet markerSet, GcModel gcModel, boolean correctGC, boolean correctGCFirst, Logger log) {
+		float[] tmpLrrs = lrrsToTransform; // make sure not to modify
+		if (gcModel == null && correctGC) {
+			log.reportError("Error - gc Correction was flagged and the model was null, this should not happen...skipping gc correction");
+			correctGC = false;
+		}
+		if (correctGC && correctGCFirst) {
+			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, false, false, false, true).getCorrectedIntensities());
+		}
+
+		if (transformation_type > 0) {
+			tmpLrrs = Transforms.transform(tmpLrrs, transformation_type, transformSeparatelyByChromosome, markerSet);
+		}
+		if (correctGC && !correctGCFirst) {
+			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, false, false, false, true).getCorrectedIntensities());
+		}
+		return tmpLrrs;
+	}
 //	public static CNVariant[] loadCNVfiles(Project proj, String[] filenames) {
 //		BufferedReader reader;
 //		Vector<CNVariant> v = null;
@@ -1356,7 +1417,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //
 //		return CNVariant.sortCNVs(CNVariant.toArray(v));
 //	}
-
+	
 	
 	public static void main(String[] args) {
 		Project proj;
