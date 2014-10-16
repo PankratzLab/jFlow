@@ -22,6 +22,7 @@ public class Markers {
 		Vector<String> v;
 		long time;
 		int logLevel;
+		int[] chrCounts;
 
 		logLevel = log.getLevel();
 		log.setLevel(9);
@@ -43,11 +44,13 @@ public class Markers {
 		v = new Vector<String>();
 		log.report(ext.getTime()+"\tSorting markers by chromosome and position");
 		chrs = new byte[markerNames.length];
+		chrCounts = new int[Positions.CHR_CODES.length];
 		positions = new int[markerNames.length];
 		for (int i = 0; i<markerNames.length; i++) {
 			if (snpPositions.containsKey(markerNames[i])) {
 				line = snpPositions.get(markerNames[i]).split("[\\s]+");
 				chrs[i] = Positions.chromosomeNumber(line[0], log);
+				chrCounts[chrs[i]]++;
 				positions[i] = Integer.parseInt(line[1]);
 			} else {
 				v.add(markerNames[i]);
@@ -66,6 +69,14 @@ public class Markers {
 
 		log.report(ext.getTime()+"\tFinished loading and sorting in " + ext.getTimeElapsed(time));
 		log.setLevel(logLevel);
+		
+		if (log.getLevel() >= 0) {
+			log.report("\nBreakdown of marker counts by chromosome:");
+			for (int i = 0; i < Positions.CHR_CODES.length; i++) {
+				log.report("chr"+Positions.CHR_CODES[i]+"\t"+ext.addCommas(chrCounts[i]));
+			}
+			log.report("");
+		}
 		
 		return keys;
 	}
@@ -162,35 +173,35 @@ public class Markers {
 			System.exit(2);
 		}
 
-		log.report("\nRead in "+count+" lines from the markerPositions file");
+		log.report("\nRead in "+ext.addCommas(count)+" lines from the markerPositions file");
 		if (countBad > MAX_ERRORS_TO_REPORT) {
 			countBad--;
 		}
 
 		if (countBad > 0) {
-			log.report("...with a total of "+countBad+" problem"+(countBad==1?"":"s"));
+			log.report("...with a total of "+ext.addCommas(countBad)+" problem"+(countBad==1?"":"s"));
 		}
 		if (numIncompleteLines > 0) {
-			log.report("...including "+numIncompleteLines+" incomplete line"+(countBad==1?"":"s"));
+			log.report("...including "+ext.addCommas(numIncompleteLines)+" incomplete line"+(numIncompleteLines==1?"":"s"));
 		}
-		log.report("Number of final valid marker positions: "+hash.size());
+		log.report("Number of final valid marker positions: "+ext.addCommas(hash.size()));
 		if (numBlankNames > 0) {
-			log.report("Number of blank marker names: "+numBlankNames);
+			log.report("Number of blank marker names: "+ext.addCommas(numBlankNames));
 		}
 		if (numBlankChrs > 0) {
-			log.report("Number of blank chromosomes: "+numBlankChrs);
+			log.report("Number of blank chromosomes: "+ext.addCommas(numBlankChrs));
 		}
 		if (numBlankPositions > 0) {
-			log.report("Number of blank marker positions: "+numBlankPositions);
+			log.report("Number of blank marker positions: "+ext.addCommas(numBlankPositions));
 		}
 		if (numRepeatedNames > 0) {
-			log.report("Number of repeated marker names: "+numRepeatedNames);
+			log.report("Number of repeated marker names: "+ext.addCommas(numRepeatedNames));
 		}
 		if (numInvalidChrs > 0) {
-			log.report("Number of invalid chromosomes: "+numInvalidChrs);
+			log.report("Number of invalid chromosomes: "+ext.addCommas(numInvalidChrs));
 		}
 		if (numInvalidPositions > 0) {
-			log.report("Number of invalid positions: "+numInvalidPositions);
+			log.report("Number of invalid positions: "+ext.addCommas(numInvalidPositions));
 		}
 		log.report("");
 		
