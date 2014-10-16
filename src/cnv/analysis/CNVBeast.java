@@ -609,7 +609,7 @@ public class CNVBeast {
 		// TODO, add customizations to the config file, currently running with beast defaults
 		String usage = "\n" + "cnv.analysis.CNVBeast requires 1 argument\n";
 		usage += "   (1) project filename (i.e. file=" + filename + " (no default))\n" + "";
-		usage += "   (2) full path to beast.exe (i.e. beast=" + fullPathToBeastExe + " (default))\n" + "";
+		usage += "   (2) full path to beast.exe (i.e. beast=" + fullPathToBeastExe + " (default))\n" + "";// if you can get this to work on linux, this same argument could be used in that environment
 		usage += "   (3) analysis subdirectory under the project directory (i.e. dir=" + analysisDirectory + " (default))\n" + "";
 		usage += "   (4) overwrite existing result files (i.e. " + OVERWRITE_OPTION + " (default))\n" + "";
 		usage += "   (5) int number of threads to use (i.e. numThreads=" + numThreads + " (default))\n" + "";

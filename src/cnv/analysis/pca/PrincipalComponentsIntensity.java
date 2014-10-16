@@ -113,8 +113,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 					estimateNewGenotypes(atComponent);// applies new genotypes to clusters
 					correctXYAt(atComponent);// estimate with new genotypes
 				} else if (correctionMethod == CORRECTION_INTS[2] && !fail) {
-					if(verbose){
-					log.report("Correcting at stage " + nStage);
+					if (verbose) {
+						log.report("Correcting at stage " + nStage);
 					}
 					nStage--;
 
@@ -177,8 +177,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		} else {
 			byte[] genotypesToUse = originalGenotypes ? centroid.getMarkerData().getAbGenotypes() : centroid.getAlternateGenotypes();
 			MarkerData tmpMarkerData = new MarkerData(centroid.getMarkerData().getMarkerName(), centroid.getMarkerData().getChr(), centroid.getMarkerData().getPosition(), centroid.getMarkerData().getFingerprint(), centroid.getMarkerData().getGCs(), null, null, correctedXFull, correctedYFull, null, null, null, null, genotypesToUse, genotypesToUse);
-			if(verbose){
-			log.report("Recomputing BAFS/LRRS from centroid");
+			if (verbose) {
+				log.report("Recomputing BAFS/LRRS from centroid");
 			}
 			centroid.setMarkerData(tmpMarkerData);
 			centroid.computeCentroid();
@@ -578,8 +578,6 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		// assign all to this cluster
 	}
 
-	
-
 	private static class WorkerRegression implements Callable<CrossValidation> {
 		private PrincipalComponentsResiduals principalComponentsResiduals;
 		private double[] data;
@@ -587,7 +585,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		private int clusterComponent;
 		private boolean svdRegression;
 		private String title;
-	//	private Logger log;
+
+		// private Logger log;
 
 		public WorkerRegression(PrincipalComponentsResiduals principalComponentsResiduals, double[] data, boolean[] samplesTobuildModel, int clusterComponent, boolean svdRegression, String title, Logger log) {
 			super();
@@ -597,7 +596,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			this.clusterComponent = clusterComponent;
 			this.svdRegression = svdRegression;
 			this.title = title;
-			//this.log = log;
+			// this.log = log;
 		}
 
 		@Override
@@ -648,8 +647,6 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		// }
 	}
 }
-
-
 
 //
 // *

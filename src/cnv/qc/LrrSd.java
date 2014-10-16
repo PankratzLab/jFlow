@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Arrays;
 
 import cnv.filesys.*;
+import cnv.qc.GcAdjustor.GcModel;
 //import java.util.*;
 import common.*;
 
@@ -14,8 +15,9 @@ public class LrrSd extends Parallelizable {
 	private int threadNumber;
 	private int numThreads;
 	private boolean[] markersForCallrate, markersForEverythingElse;
+	private GcModel gcModel;
 
-	public LrrSd(Project proj, String[] samples, boolean[] markersForCallrate, boolean[] markersForEverythingElse, String centroidsFile, int threadNumber, int numThreads) {
+	public LrrSd(Project proj, String[] samples, boolean[] markersForCallrate, boolean[] markersForEverythingElse, String centroidsFile, GcModel gcModel, int threadNumber, int numThreads) {
 		this.proj = proj;
 		this.samples = samples;
 		this.centroidsFile = centroidsFile;
@@ -23,6 +25,7 @@ public class LrrSd extends Parallelizable {
 		this.numThreads = numThreads;
 		this.markersForCallrate = markersForCallrate;
 		this.markersForEverythingElse = markersForEverythingElse;
+		this.gcModel = gcModel;
 	}
 	
 	public void run() {
@@ -31,7 +34,7 @@ public class LrrSd extends Parallelizable {
 		float[][][] cents;
 		byte[] chrs, abGenotypes, forwardGenotypes;
 		float[] lrrs, bafs, bafsWide;
-		double abCallRate, forwardCallRate;
+		double abCallRate, forwardCallRate, wfPost, gcwfPost, lrrsdPost;
 		int[] bafBinCounts;
 		boolean multimodal;
 		int subIndex = -1;
@@ -81,8 +84,7 @@ public class LrrSd extends Parallelizable {
 			}
 
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
-			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate");
-
+			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate\tWF_Post_Correction\tGCWF_Post_Correction\tLRR_SD_Post_Correction");
 			
 			for (int i = 0; i<samples.length; i++) {
 	        	log.report((i+1)+" of "+samples.length);
@@ -141,8 +143,25 @@ public class LrrSd extends Parallelizable {
 						}
 						forwardCallRate /= forwardGenotypes.length;
 					}
+
+					wfPost = Double.NaN;
+					gcwfPost = Double.NaN;
+					lrrsdPost = Double.NaN;
+					if (gcModel != null) {
+						GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, fsamp, gcModel, false, false, true, false);
+						if (!gcAdjustor.isFail()) {
+							wfPost = gcAdjustor.getWfPost();
+							gcwfPost = gcAdjustor.getGcwfPost();
+							if (markersForEverythingElse == null) {
+								lrrsdPost = Array.stdev(Array.toFloatArray(gcAdjustor.getCorrectedIntensities()), true);
+							} else {
+								lrrsdPost = Array.stdev(Array.toFloatArray(Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse)), true);
+							}
+						}
+					}
+					
 					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + "\t" + abCallRate + "\t" + forwardCallRate + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
+					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + "\t" + abCallRate + "\t" + forwardCallRate + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
 					writer.flush();
 				}
 			}
@@ -191,6 +210,7 @@ public class LrrSd extends Parallelizable {
 		LrrSd[] runables;
 		boolean error;
 		boolean[] markersForCallrate, markersForEverythingElse;
+		GcModel gcModel;
 		Logger log;
 		
 		error = false;
@@ -214,6 +234,7 @@ public class LrrSd extends Parallelizable {
 		
 		markersForCallrate = null;
 		markersForEverythingElse = null;
+		gcModel = null;
 		if (markersForCallrateFile != null) {
 			markersForCallrate = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false));
 			if (markersForCallrate == null) {
@@ -228,11 +249,21 @@ public class LrrSd extends Parallelizable {
 				return;
 			}
 		}
+		if (Files.exists(proj.getFilename(Project.GC_MODEL_FILENAME, false, false))) {
+			gcModel = GcAdjustor.GcModel.populateFromFile(proj.getFilename(Project.GC_MODEL_FILENAME, false, false), false, log);
+			if (gcModel == null) {
+				log.reportError("Error - detected the gc model defined by " + Project.GC_MODEL_FILENAME + " as " + proj.getFilename(Project.GC_MODEL_FILENAME, false, false) + " in property file " + proj.getPropertyFilename() + " exists, but an error occurred while loading the file");
+				log.reportError("	   - If you would like to skip WF and GCWF qc metrics, either change the " + Project.GC_MODEL_FILENAME + " property to a filename that does not exist, or change the name of " + proj.getFilename(Project.GC_MODEL_FILENAME, false, false));
+				return;
+			}
+		} else {
+			log.report("Info - did not find gc model file " + proj.getFilename(Project.GC_MODEL_FILENAME, false, false) + ", skipping gc correction and related qc");
+		}
 
 		threadSeeds = Parallelizable.splitList(samples, numThreads, false);
 		runables = new LrrSd[numThreads];
 		for (int i = 0; i<numThreads; i++) {
-			runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse, centroidsFile, i + 1, numThreads);
+			runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse, centroidsFile, gcModel, i + 1, numThreads);
         }
 		
 		Parallelizable.launch(runables, log);
@@ -257,6 +288,7 @@ public class LrrSd extends Parallelizable {
 		"   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"+
 		"   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"+
 
+		"   Note: if a gc model is available as defined by " + Project.GC_MODEL_FILENAME + " in the project properties file, WF and GCFW (after adjusting for GC content) will be reported\n" +
 		"";
 
 		for (int i = 0; i<args.length; i++) {
