@@ -980,7 +980,6 @@ public class Array {
 		for (int i = 0; i < array.length; i++) {
 			sum += Math.pow(avg - array[i], 2);
 		}
-
 		return sum;
 	}
 
@@ -1421,7 +1420,23 @@ public class Array {
 		
 		return quantiles;
 	}
-
+	
+	/**
+	 * Determines the median absolute difference of an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return mad of the array
+	 */
+	public static double mad(double[] array) {
+		double median = (quant(array, 0.50));
+		double[] tmp = new double[array.length];
+		for (int i = 0; i < array.length; i++) {
+			tmp[i] = Math.abs(array[i] - median);
+		}
+		return (quant(tmp, 0.50));
+	}
+	
 	/**
 	 * Determines the median of an array of numbers
 	 * 
@@ -2279,6 +2294,28 @@ public class Array {
 			}
 		}
 
+		return subarray;
+	}
+	
+	/**
+	 * Creates a new array using only the double values at indices defined by the Integer array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static double[] subArray(double[] array, int[] use) {
+		double[] subarray = new double[use.length];
+		try {
+			for (int i = 0; i < use.length; i++) {
+				subarray[i] = array[use[i]];
+			}
+		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+			System.err.println("Error - out of bounds index for subset");
+			return null;
+		}
 		return subarray;
 	}
 
@@ -3640,13 +3677,41 @@ public class Array {
 	}
 
 	/**
-	 * Creates an array of float and copies the contents of an ArrayList of float into it
+	 * Creates an array of double and copies the contents of an ArrayList of double into it
 	 * 
 	 * @param al
-	 * @return an array of floats copied from a ArrayList of floats
+	 * @return an array of doubles copied from a ArrayList of doubles
 	 */
 	public static double[] toDoubleArray(ArrayList<Double> al) {
 		double[] result = new double[al.size()];
+		for (int i = 0; i < al.size(); i++) {
+			result[i] = al.get(i);
+		}
+		return result;
+	}
+
+	/**
+	 * Creates an array of byte and copies the contents of an ArrayList of byte into it
+	 * 
+	 * @param al
+	 * @return an array of byte copied from a ArrayList of byte
+	 */
+	public static byte[] toByteArray(ArrayList<Byte> al) {
+		byte[] result = new byte[al.size()];
+		for (int i = 0; i < al.size(); i++) {
+			result[i] = al.get(i);
+		}
+		return result;
+	}
+
+	/**
+	 * Creates an array of Integer and copies the contents of an ArrayList of Integer into it
+	 * 
+	 * @param al
+	 * @return an array of Integer copied from a ArrayList of Integer
+	 */
+	public static int[] toIntegerArray(ArrayList<Integer> al) {
+		int[] result = new int[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			result[i] = al.get(i);
 		}
