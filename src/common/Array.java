@@ -1422,7 +1422,7 @@ public class Array {
 	}
 	
 	/**
-	 * Determines the median absolute difference of an array of numbers
+	 * Determines the median absolute difference of an array of double
 	 * 
 	 * @param array
 	 *            an array of numbers
