@@ -383,14 +383,17 @@ public class MitoPipeline {
 						// check that all median markers are available
 						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
+							log.report("\nReady to perform the principal components analysis (PCA)\n");
 							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase);
 							if (pcs == null) {
 								return 3;
 							}
 							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
+							log.report("\nApplying the loadings from the principal components analysis to all samples\n");
 							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, recomputeLRR_PCs, outputBase);
 							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
+							log.report("\nComputing residuals after regressing out "+numComponents+" principal component"+(numComponents==1?"":"s")+"\n");
 							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase);
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 						}

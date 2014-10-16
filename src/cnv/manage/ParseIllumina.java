@@ -484,7 +484,7 @@ public class ParseIllumina implements Runnable {
 			}
 
 			// check immediately to make sure these fields are valid
-			indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, true, false); // dataIndices
+			indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false); // dataIndices // TODO turn verbose back on after removing Raw X, Raw Y, Theta and R
 			if (indices[3] == -1 || indices[4] == -1) {
 				log.reportError("Error - at the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
 				log.reportError("      - failed to see that in "+files[0]);
