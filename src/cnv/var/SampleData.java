@@ -872,11 +872,11 @@ public class SampleData {
 	 * @param linker
 	 *            The linker column header in sample Data, the linker should be verified prior to being used in this function i.e check that the linker is present before hand and determine the appropriate linker. Data will not be added if linker is not present in header.
 	 * @param columnHeaders
-	 *            The headers to be added. The length of the header must equal the length of the (delimited) data for every addition, missing keys will be replaced with columnHeaders.length missingData values
+	 *            The headers to be added. If greater than 1, the length of the header must equal the length of the (delimited) data for every addition, missing keys will be replaced with columnHeaders.length missingData values
 	 * @param missingData
 	 *            What to replace missing data with (when a key is not found)
 	 * @param linkDataDelimiter
-	 *            The delimiter to use for the data in linkData
+	 *            The delimiter to use for the data in linkData, or <code>null</code> if only adding one column of data
 	 * @param log 
 	 *            a log!
 	 * 
@@ -930,15 +930,21 @@ public class SampleData {
 						while (reader.ready() && add) {
 							line = reader.readLine().trim().split("\t");
 							if (linkData.containsKey(line[linkerIndex])) {
-								String[] data = linkData.get(line[linkerIndex]).split(linkDataDelimiter);
-								if (data.length == columnHeaders.length) {
-									writer.println(Array.toStr(line) + "\t" + Array.toStr(data));
+								if (columnHeaders.length > 1) {
+									String[] data = linkData.get(line[linkerIndex]).split(linkDataDelimiter);
+									if (data.length == columnHeaders.length) {
+										writer.println(Array.toStr(line) + "\t" + Array.toStr(data));
+										numAdded++;
+									}// fail if added data for a linker is the wrong length after delimiting
+									else {
+										log.reportError("Error - the number of entries in the column header " + Array.toStr(columnHeaders) + " (" + columnHeaders.length + ") does not equal the number of entries in the data " + Array.toStr(data) + " (" + data.length + ")");
+										log.reportError("Cancelling the addition and replacing sample data with backup");
+										add = false;
+									}
+								} else {
+									String data = linkData.get(line[linkerIndex]);
+									writer.println(Array.toStr(line) + "\t" + data);
 									numAdded++;
-								}// fail if added data for a linker is the wrong length after delimiting
-								else {
-									log.reportError("Error - the number of enteries in the column header " + Array.toStr(columnHeaders) + " does not equal the number of entries in the data " + Array.toStr(data));
-									log.reportError("Cancelling the addition and replacing  sample data with backup");
-									add = false;
 								}
 							} else {
 								writer.println(Array.toStr(line) + "\t" + Array.toStr(blanks));
