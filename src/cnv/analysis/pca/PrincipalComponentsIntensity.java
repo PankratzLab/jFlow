@@ -318,9 +318,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				String keyX = i + "_" + clusterComponent + "_X";
 				String keyY = i + "_" + clusterComponent + "_Y";
-				WorkerRegression workerX = new WorkerRegression(this, Xs, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " X values", log);
+				WorkerRegression workerX = new WorkerRegression(this, Xs, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " X values", verbose, log);
 				tmpResults.put(keyX, executor.submit(workerX));
-				WorkerRegression workerY = new WorkerRegression(this, Ys, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " Y values", log);
+				WorkerRegression workerY = new WorkerRegression(this, Ys, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " Y values", verbose, log);
 				tmpResults.put(keyY, executor.submit(workerY));
 			} else {
 				cvals[i][0] = null;
@@ -585,10 +585,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		private int clusterComponent;
 		private boolean svdRegression;
 		private String title;
+		boolean verbose;
 
 		// private Logger log;
 
-		public WorkerRegression(PrincipalComponentsResiduals principalComponentsResiduals, double[] data, boolean[] samplesTobuildModel, int clusterComponent, boolean svdRegression, String title, Logger log) {
+		public WorkerRegression(PrincipalComponentsResiduals principalComponentsResiduals, double[] data, boolean[] samplesTobuildModel, int clusterComponent, boolean svdRegression, String title, boolean verbose, Logger log) {
 			super();
 			this.principalComponentsResiduals = principalComponentsResiduals;
 			this.data = data;
@@ -596,12 +597,13 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			this.clusterComponent = clusterComponent;
 			this.svdRegression = svdRegression;
 			this.title = title;
+			this.verbose = verbose;
 			// this.log = log;
 		}
 
 		@Override
 		public CrossValidation call() {// acts like run
-			return principalComponentsResiduals.getCorrectedDataAt(data, samplesTobuildModel, clusterComponent, svdRegression, title);
+			return principalComponentsResiduals.getCorrectedDataAt(data, samplesTobuildModel, clusterComponent, svdRegression, title, verbose);
 
 		}
 	}

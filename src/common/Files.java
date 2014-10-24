@@ -671,8 +671,19 @@ public class Files {
 		} else {
 			isReader = new FileReader(filename);
 		}
-
-		return isReader==null?null:new BufferedReader(isReader);
+		if (isReader == null) {
+			return null;
+		}
+		BufferedReader reader = new BufferedReader(isReader);
+		try {
+			if (!reader.ready()) {
+				System.err.println("Error - " + filename + " was empty");
+			}
+		} catch (IOException e) {
+			System.err.println("Error accessing '" + filename + "'");
+			e.printStackTrace();
+		}
+		return reader;
 	}
 
 	public static PrintWriter getWriter(String filename) {
