@@ -19,6 +19,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.manage.TransposeData;
 import cnv.var.SampleData;
 
@@ -807,6 +808,22 @@ public class Project extends Properties {
 		}
 		
 		return filename;
+	}
+
+	/**
+	 * Grab the {@link PrincipalComponentsResiduals} from {@link Project#INTENSITY_PC_FILENAME}, will return null if can not be found
+	 */
+	public PrincipalComponentsResiduals loadPcResids() {
+		String pcFile = getFilename(Project.INTENSITY_PC_FILENAME);
+		PrincipalComponentsResiduals pcResids;
+		if (Files.exists(pcFile)) {
+			getLog().report("Info - loading Intensity PC File " + ext.removeDirectoryInfo(pcFile));
+			pcResids = new PrincipalComponentsResiduals(this, pcFile, null, Integer.parseInt(getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+		} else {
+			getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by" + Project.INTENSITY_PC_FILENAME);
+			pcResids = null;
+		}
+		return pcResids;
 	}
 	
 }

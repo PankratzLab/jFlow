@@ -1630,6 +1630,40 @@ public class Array {
 		return str;
 	}
 
+	
+	/**
+	 * Breaks an array of strings into nChunks
+	 * 
+	 * @param strings
+	 *            the array
+	 * @param nChunks
+	 *            number of chunks
+	 * @param log
+	 */
+	public static String[][] splitUpStringArray(String[] strings, int nChunks, Logger log) {
+		int index = 0;
+		if (strings.length < nChunks) {
+			log.reportError("Error - too many chunks (" + nChunks + ") for " + strings.length + " strings, setting to" + strings.length);
+			nChunks = strings.length;
+		}
+		if (nChunks <= 0) {
+			log.reportError("Error - not enough chunks (" + nChunks + ") for " + strings.length + " strings, setting to 1");
+			nChunks = 1;
+		}
+		int[] chunks = Array.splitUp(strings.length, nChunks);
+		String[][] stringChunks = new String[chunks.length][];
+
+		for (int i = 0; i < chunks.length; i++) {
+			ArrayList<String> chunk = new ArrayList<String>(chunks[i]);
+			for (int j = 0; j < chunks[i]; j++) {
+				chunk.add(strings[index]);
+				index++;
+			}
+			stringChunks[i] = chunk.toArray(new String[chunk.size()]);
+		}
+		return stringChunks;
+	}
+
 	/**
 	 * Returns an array splitting a number as equally as possible into different
 	 * amounts

@@ -312,7 +312,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 				} else if (correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
-					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, regionMarkers[i]).getResiduals();
+					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, regionMarkers[i], true).getResiduals();
 					if (tmplrrs != null) {
 						lrrs = Array.toFloatArray(tmplrrs);
 					} else {

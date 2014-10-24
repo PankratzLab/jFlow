@@ -782,7 +782,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * 
 	 *         NOTE: the pc object does not have to be in project order, or contain all samples, but it should
 	 */
-	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title) {
+	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title, boolean verbose) {
 		int numSamples = proj.getSamples().length;
 		boolean go = true;
 		CrossValidation cval;
@@ -821,7 +821,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
 			double[][] train_indeps = getTrimmedPreppedProjectPCsFor(samplesTobuildModel, numComponentsForModel);
 			double[][] val_indeps = getTrimmedPreppedProjectPCsFor(null, numComponentsForModel);
-			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, true, svdRegression, proj.getLog());
+			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, verbose, svdRegression, proj.getLog());
 			cval.train();
 			cval.computePredictedValues();
 			cval.computeResiduals();
@@ -832,7 +832,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	/**
 	 */
 	public static CrossValidation getCorrectedDataAt(PrincipalComponentsResiduals principalComponentsResiduals, float[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title) {
-		return principalComponentsResiduals.getCorrectedDataAt(Array.toDoubleArray(data), samplesTobuildModel, numComponentsForModel, svdRegression, title);
+		return principalComponentsResiduals.getCorrectedDataAt(Array.toDoubleArray(data), samplesTobuildModel, numComponentsForModel, svdRegression, title, true);
 	}
 
 	/**
@@ -894,8 +894,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * @param numComponents
 	 *            number of components to include in the regression model
 	 * @param title
-	 *            optional to report if model has failed (could be a specific marker or trait, etc...)
-	 * OLD OLD
+	 *            optional to report if model has failed (could be a specific marker or trait, etc...) OLD OLD
 	 * @return
 	 */
 	public double[] getCorrectdedDataAt(double[] data, int numComponents, String title) {

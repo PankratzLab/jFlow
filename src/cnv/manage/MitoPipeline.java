@@ -371,14 +371,25 @@ public class MitoPipeline {
 						markersForEverythingElse = proj.getProjectDir() + MARKERS_TO_QC_FILE;
 
 						counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
-						if (counts[1] != sampleList.getSamples().length) {
+						if (counts == null || counts[1] != sampleList.getSamples().length) {
+							if (counts == null || counts[1] == 0 && Files.exists(proj.getProjectDir() + DEFUALT_QC_FILE)) {
+								log.reportError("Error - was unable to parse QC file " + proj.getProjectDir() + DEFUALT_QC_FILE + ", backing up this file to " + proj.getDir(Project.BACKUP_DIRECTORY, false, false) + " and re-starting sample qc");
+								Files.backup(DEFUALT_QC_FILE, proj.getProjectDir(), proj.getDir(Project.BACKUP_DIRECTORY, true, false), true);
+							}
 							counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
-							if (counts[1] != sampleList.getSamples().length) {
-								log.reportError("Error - different number of samples (n=" + counts[1] + ") listed in the QC file (" + DEFUALT_QC_FILE + ") compared to the number of samples in the project (n=" + sampleList.getSamples().length + ")");
-								log.reportError("      - delete the QC file (" + DEFUALT_QC_FILE + ") to regenerate it with the correct number of samples");
+							if (counts == null || counts[1] != sampleList.getSamples().length) {
+								if (counts == null) {
+									log.reportError("Error - could not parse QC file (" + DEFUALT_QC_FILE + ")");
+								} else {
+									log.reportError("Error - different number of samples (n=" + counts[1] + ") listed in the QC file (" + DEFUALT_QC_FILE + ") compared to the number of samples in the project (n=" + sampleList.getSamples().length + ")");
+									log.reportError("      - delete the QC file (" + DEFUALT_QC_FILE + ") to regenerate it with the correct number of samples");
+								}
 								log.reportError("aborting...");
 								return 2;
 							}
+						}
+						if (counts == null || counts[0] == 0) {// no samples passed threshold, null case shouldn't happen but we will test anyway
+							return 2;// message handled already
 						}
 						// check that all median markers are available
 						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
@@ -393,9 +404,12 @@ public class MitoPipeline {
 							log.report("\nApplying the loadings from the principal components analysis to all samples\n");
 							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, recomputeLRR_PCs, outputBase);
 							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
-							log.report("\nComputing residuals after regressing out "+numComponents+" principal component"+(numComponents==1?"":"s")+"\n");
+							log.report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
 							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase);
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
+							proj.setProperty(Project.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
+							proj.setProperty(Project.INTENSITY_PC_NUM_COMPONENTS, numComponents + "");
+							proj.saveProperties();
 						}
 					}
 				}
@@ -736,6 +750,13 @@ public class MitoPipeline {
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY));
 
 			writerSummary.println(Array.toStr(SAMPLE_QC_SUMMARY));
+			if (!reader.ready()) {
+				writerUse.close();
+				writerSummary.close();
+				reader.close();
+				log.reportError("Error - QC file (" + DEFUALT_QC_FILE + ") was empty");
+				return new int[] { numPassing, count };
+			}
 			line = reader.readLine().trim().split(SPLITS[0]);
 			indices = ext.indexFactors(QC_COLUMNS, line, true, log, true, false);
 
@@ -743,6 +764,7 @@ public class MitoPipeline {
 				writerUse.close();
 				writerSummary.close();
 				reader.close();
+				log.reportError("Error - could not detect proper header in QC file (" + DEFUALT_QC_FILE + ")");
 				return null;
 			}
 
@@ -777,11 +799,9 @@ public class MitoPipeline {
 			if (numPassing == 0) {
 				log.reportError("Error - all Samples were filtered out by the QC step");
 				log.reportError("If there are a large number of cnv-only probes on the array, try lowering the call rate threshold for samples or use the \"-markerQC\" option to only select markers with high quality call rates");
-				return null;
+				return new int[] { numPassing, count };
 			}
-
 			log.report("Info - " + numPassing + " " + (numPassing == 1 ? "sample" : "samples") + " passed the QC threshold" + (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
-
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + DEFUALT_QC_FILE + "\" not found in current directory");
 		} catch (IOException ioe) {
@@ -791,7 +811,6 @@ public class MitoPipeline {
 		if (addToSampleData) {
 			sampleData.addData(sampDataQC, DNA_LINKER, SAMPLE_DATA_ADDITION_HEADERS, ext.MISSING_VALUES[1], SPLITS[0], log);
 		}
-
 		return new int[] { numPassing, count };
 	}
 
