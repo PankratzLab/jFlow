@@ -147,10 +147,10 @@ public class Zip {
 	}
 
 	public static void gzip(String filename) {
-		gzip(filename, filename+".gz");
+		gzip(filename, filename+".gz", true);
 	}
 	
-	public static void gzip(String filename, String outputFilename) {
+	public static void gzip(String filename, String outputFilename, boolean retainTimestamp) {
 		GZIPOutputStream out;
 		FileInputStream in;
 		byte[] buf = new byte[1024];
@@ -168,6 +168,10 @@ public class Zip {
 		} catch (IOException e) {
 			System.err.println("Error creating zipfile '"+outputFilename+"'");
 			e.printStackTrace();
+		}
+		
+		if (retainTimestamp) {
+			new File(outputFilename).setLastModified(new File(filename).lastModified());
 		}
 	}
 
@@ -220,7 +224,7 @@ public class Zip {
 		files = Files.list(dirin, null, false);
 		for (int i = 0; i < files.length; i++) {
 			log.report("compressing file #"+(i+1)+" of "+files.length+" ("+files[i]+")");
-			gzip(dirin+files[i], dirout+files[i]+".gz");
+			gzip(dirin+files[i], dirout+files[i]+".gz", true);
 		}
 	}
 	
@@ -302,10 +306,17 @@ public class Zip {
 		String[] files;
 		int minutesToSleep;
 		long time;
+		String outputDirectory = "";
+		boolean retainOriginalTimestamp = true;
 
 		// get all files in the directory, excluding the crf itself and its corresponding log
 		files = Files.list("./", ":"+ext.rootOf(filename), ":.crf", false, false);
-		files = Array.addStrToArray("delay_in_minutes=0", files, 0);
+		files = Array.addStrToArray("# Output directory (i.e., sometimes more efficient if on a different drive); default is the same directory as the original file", files, 0);
+		files = Array.addStrToArray("outputDirectory=", files, 1);
+		files = Array.addStrToArray("# retain the timestamp of the original file", files, 2);
+		files = Array.addStrToArray("retainTimestamp="+retainOriginalTimestamp, files, 3);
+		files = Array.addStrToArray("# Number of minutes to wait before beginning a step (can be used more than once)", files, 4);
+		files = Array.addStrToArray("delay_in_minutes=0", files, 5);		
 		
 		params = Files.parseControlFile(filename, "gzip", files, log);
 
@@ -316,16 +327,30 @@ public class Zip {
 					filename = params.elementAt(i);
 					if (filename.startsWith("delay_in_minutes=")) {
 						minutesToSleep = ext.parseIntArg(params.elementAt(i));
-						System.out.println("Going to sleep for "+ext.getTimeElapsed(new Date().getTime()-minutesToSleep*60*1000));
+						log.report("Going to sleep for "+ext.getTimeElapsed(new Date().getTime()-minutesToSleep*60*1000));
 						try {
 							Thread.sleep(minutesToSleep*60*1000);
 						} catch (InterruptedException ie) {
 						}
+					} else if (filename.startsWith("outputDirectory=")) {
+						outputDirectory = ext.parseStringArg(params.elementAt(i), null);
+						log.report("Setting output directory to "+outputDirectory);
+						if (!Files.isDirectory(outputDirectory)) {
+							log.report("Output directory does not exist; attempting to create...");
+							if (new File(outputDirectory).mkdirs()) {
+								log.report("successful");
+							} else {
+								log.report("failed");
+							}
+						}
+					} else if (filename.startsWith("retainTimestamp=")) {
+						retainOriginalTimestamp = ext.parseBooleanArg(params.elementAt(i));
+						log.report("The timestamp from the original file will "+(retainOriginalTimestamp?"":"NOT ")+"be retained");
 					} else if (Files.exists(filename)) {
-						System.out.println(ext.getTime()+"\tCompressing "+filename);
-						gzip(filename, filename+".gz");
+						log.report("\n"+ext.getTime()+"\tCompressing "+filename+" to "+outputDirectory+filename+".gz");
+						gzip(filename, outputDirectory+filename+".gz", retainOriginalTimestamp);
 					} else {
-						System.err.println("Error - could not find file "+filename);
+						log.reportError("Error - could not find file "+filename);
 					}
 					
 				}

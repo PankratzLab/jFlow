@@ -130,6 +130,7 @@ public class Qc {
 		dir = "C:/PoynterLinabery/QC/justLinabery/";
 		dir = "C:/PoynterLinabery/QC/withHapMap/";
 		dir = "D:/data/WinterHillsCombo/QC/beforeRelease/";
+		dir = "C:/PoynterLinabery/QC/completeDataset/";
 		
 		keepGenomeInfoForRelatedsOnly = false;
 
