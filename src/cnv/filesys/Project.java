@@ -820,10 +820,9 @@ public class Project extends Properties {
 			getLog().report("Info - loading Intensity PC File " + ext.removeDirectoryInfo(pcFile));
 			pcResids = new PrincipalComponentsResiduals(this, pcFile, null, Integer.parseInt(getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
 		} else {
-			getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by" + Project.INTENSITY_PC_FILENAME);
+			getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by" + Project.INTENSITY_PC_FILENAME + "=" + this.getProperty(Project.INTENSITY_PC_FILENAME));
 			pcResids = null;
 		}
 		return pcResids;
 	}
-	
 }

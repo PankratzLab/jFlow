@@ -38,6 +38,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private static final String NEXT = "Next";
 	private static final String LAST = "Last";
 	private static final String SYMMETRY = "Symmetry";
+	private static final String CORRECTION = "Correction";
 	private static final String CLUSTER_FILTER_BACKWARD = "Backward";
 	private static final String CLUSTER_FILTER_FORWARD = "Forward";
 	private static final String CLUSTER_FILTER_DELETE = "Delete";
@@ -61,7 +62,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 	private JPanel qcPanel;
-	private JLabel pcLabel,nStageLabel;
+	private JLabel pcLabel,nStageStDevLabel;
 	private JScrollPane annotationScrollPane;
 	private JPanel annotationPanel;
 	private JPanel annotationPanelLowerPart;
@@ -102,6 +103,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private boolean jar;
 	private SampleData sampleData;
 	private JCheckBox symmetryBox;
+	private JCheckBox correctionBox;
 	private boolean maskMissing;
 	private ClusterFilterCollection clusterFilterCollection;
 	private AnnotationCollection annotationCollection;
@@ -119,8 +121,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private boolean fail;
 	private boolean exitOnClose;
 	private Logger log;
-	
-	private int numComponents , nStage;
+	private double stdevFilter;
+	private int numComponents ;
 	private PrincipalComponentsResiduals pcResids;
 	
 	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
@@ -135,7 +137,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		size = DEFAULT_SIZE;
 		this.exitOnClose = exitOnClose;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
-		nStage =5;
+		stdevFilter =0;
 		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
 		if (!Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY), proj.getJarStatus())) {
@@ -516,27 +518,27 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		return pcSliderPanel;
 	}
 
-	private JPanel nstageSliderPanel() {
+	private JPanel nstageStdevSliderPanel() {
 		JPanel pcSliderPanel = new JPanel();
 		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
 		pcSliderPanel.setBackground(BACKGROUND_COLOR);
 
-		JSlider slider = new JSlider(JSlider.HORIZONTAL, 2, 20, DEFAULT_SIZE);
+		JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 100, DEFAULT_SIZE);
 		// slider.setSize(new Dimension(150, 20));
 		slider.setBackground(BACKGROUND_COLOR);
-		slider = new JSlider(JSlider.HORIZONTAL, 2,  10, nStage);
-		slider.setValue(nStage);
+		slider = new JSlider(JSlider.HORIZONTAL, 0,  100, 0);
+		slider.setValue(0);
 		slider.setBackground(BACKGROUND_COLOR);
-		nStageLabel = new JLabel("Number of stages "+nStage, JLabel.CENTER);
-		nStageLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+		nStageStDevLabel = new JLabel("Standard deviation filter "+stdevFilter, JLabel.CENTER);
+		nStageStDevLabel.setFont(new Font("Arial", Font.PLAIN, 16));
 		// tabPanel.add(gcLabel, gbc);
-		pcSliderPanel.add(nStageLabel);
+		pcSliderPanel.add(nStageStDevLabel);
 
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent ce) {
 				JSlider slider = (JSlider) ce.getSource();
-				nStage = slider.getValue();
-				nStageLabel.setText("Number of stages "+nStage);
+				stdevFilter = (double)slider.getValue()/25;
+				nStageStDevLabel.setText("Alternate Genotype stdev Filter "+stdevFilter);
 				scatPanel.setPointsGeneratable(true);
 				scatPanel.setQcPanelUpdatable(true);
 				scatPanel.paintAgain();
@@ -659,7 +661,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		controlPanel.add(sizeSliderPanel(), gbc);
 		controlPanel.add(gcSliderPanel(), gbc);
 		controlPanel.add(pcSliderPanel(), gbc);
-		controlPanel.add(nstageSliderPanel(), gbc);
+		controlPanel.add(nstageStdevSliderPanel(), gbc);
 
 		ItemListener symmetryListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
@@ -674,8 +676,25 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		symmetryBox.addItemListener(symmetryListener);
 		symmetryBox.setBackground(BACKGROUND_COLOR);
 
-		controlPanel.add(symmetryBox, gbc);
 		
+		ItemListener correctionListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
+				scatPanel.paintAgain();
+				updateGUI();
+			}
+		};
+		correctionBox = new JCheckBox("Correct Data");
+		correctionBox.setToolTipText("The keyboard shortcut for this function is ctrl+D");
+		correctionBox.setFont(new Font("Arial", 0, 14));
+		correctionBox.addItemListener(correctionListener);
+		correctionBox.setBackground(BACKGROUND_COLOR);
+		
+		
+		controlPanel.add(symmetryBox, gbc);
+		controlPanel.add(correctionBox, gbc);
+
 		JButton button = new JButton(CAPTURE);
 		button.addActionListener(this);
 		button.setActionCommand(CAPTURE);
@@ -1425,6 +1444,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), NEXT);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, InputEvent.CTRL_MASK), LAST);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK), SYMMETRY);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK), CORRECTION);
 
 		actionMap.put(ALT_UP, new CycleRadio(typeRadioButtons, -1));
 		actionMap.put(ALT_DOWN, new CycleRadio(typeRadioButtons, 1));
@@ -1463,6 +1483,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 			public void actionPerformed(ActionEvent e) {
 				symmetryBox.setSelected(!symmetryBox.isSelected());
+			}
+		});
+		actionMap.put(CORRECTION, new AbstractAction() {
+			public static final long serialVersionUID = 7L;
+
+			public void actionPerformed(ActionEvent e) {
+				correctionBox.setSelected(!correctionBox.isSelected());
 			}
 		});
 
@@ -2564,7 +2591,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		this.numComponents = numComponents;
 	}
 
-	public int getnStage() {
-		return nStage;
-}
+	public double getstdevFilter() {
+		return stdevFilter;
+	}
+
+	public JCheckBox getCorrectionBox() {
+		return correctionBox;
+	}
+	
+	
 }

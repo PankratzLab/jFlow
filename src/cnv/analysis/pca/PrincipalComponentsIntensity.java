@@ -25,6 +25,10 @@ import cnv.plots.ScatterPlot;
  */
 public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private static final String[] CORRECTION_METHODS = { "Assign Missing Genotypes to Clusters (by nearest theta)", "Two stage correction (use existing genotypes to find most predictive model)", "N stage correction (use existing genotypes to find most predictive model)", "N stage correction with residual filtering (use existing genotypes to find most predictive model)" };
+	public static final String XY_RETURN = "X_Y";
+	public static final String THETA_R_RETURN = "THETA_R";
+	public static final String BAF_LRR_RETURN = "BAF_LRR";
+
 	private static final int[] CORRECTION_INTS = { 0, 1, 2, 3 };
 	private static final int KILL_INT = -99;
 	private static final String[] AFFY_INTENSITY_ONLY_FLAG = { "CN_" };
@@ -74,7 +78,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	}
 
 	public byte[] getGenotypesUsed() {
-		return centroid.getAlternateGenotypes();
+		return centroid.getClustGenotypes();
 	}
 
 	public boolean shouldforceOriginalGenotypes() {// to switch genotypes, we demand that we have at least two valid clusters above min size
@@ -171,18 +175,52 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		return correctedYFull;
 	}
 
-	public float[][] getCorrectedLRRBAF(boolean originalGenotypes) {
-		if (fail || correctedXFull == null || correctedYFull == null) {
-			return new float[][] { centroid.getMarkerData().getBAFs(), centroid.getMarkerData().getLRRs() };
+	private float[][] getCorrectedXY(boolean original) {
+		if (original || fail || correctedXFull == null || correctedYFull == null) {
+			return new float[][] { centroid.getMarkerData().getXs(), centroid.getMarkerData().getYs() };
 		} else {
-			byte[] genotypesToUse = originalGenotypes ? centroid.getMarkerData().getAbGenotypes() : centroid.getAlternateGenotypes();
-			MarkerData tmpMarkerData = new MarkerData(centroid.getMarkerData().getMarkerName(), centroid.getMarkerData().getChr(), centroid.getMarkerData().getPosition(), centroid.getMarkerData().getFingerprint(), centroid.getMarkerData().getGCs(), null, null, correctedXFull, correctedYFull, null, null, null, null, genotypesToUse, genotypesToUse);
-			if (verbose) {
-				log.report("Recomputing BAFS/LRRS from centroid");
-			}
+			return new float[][] { getCorrectedXFull(), getCorrectedYFull() };
+		}
+	}
+
+	public float[][] getCorrectedIntensity(String type, boolean originalGenotypes) {
+		boolean original = false;
+		if (fail || correctedXFull == null || correctedYFull == null) {
+			original = true;
+		}
+		if (type.equals(XY_RETURN)) {
+			return getCorrectedXY(original);
+		}
+		byte[] genotypesToUse = originalGenotypes ? centroid.getMarkerData().getAbGenotypes() : getGenotypesUsed();
+		MarkerData tmpMarkerData = new MarkerData(centroid.getMarkerData().getMarkerName(), centroid.getMarkerData().getChr(), centroid.getMarkerData().getPosition(), centroid.getMarkerData().getFingerprint(), centroid.getMarkerData().getGCs(), null, null, correctedXFull, correctedYFull, null, null, null, null, genotypesToUse, genotypesToUse);
+
+		if (type.equals(THETA_R_RETURN)) {
+			return getCorrectedThetaR(original, tmpMarkerData);
+		} else if (type.equals(BAF_LRR_RETURN)) {
+			return getCorrectedBAFLRR(original, tmpMarkerData);
+		} else {
+			log.reportError("Error - invalid request for corrected data");
+			return null;
+		}
+
+	}
+
+	private float[][] getCorrectedBAFLRR(boolean original, MarkerData tmpMarkerData) {
+		if (original) {
+			return new float[][] { centroid.getMarkerData().getBAFs(), centroid.getMarkerData().getLRRs() };
+
+		} else {
 			centroid.setMarkerData(tmpMarkerData);
 			centroid.computeCentroid();
 			return new float[][] { centroid.getRecomputedBAF(), centroid.getRecomputedLRR() };
+		}
+	}
+
+	private float[][] getCorrectedThetaR(boolean original, MarkerData tmpMarkerData) {
+		if (original) {
+			return new float[][] { centroid.getMarkerData().getThetas(), centroid.getMarkerData().getRs() };
+		} else {
+			return new float[][] { tmpMarkerData.getThetas(), tmpMarkerData.getRs() };
 		}
 	}
 

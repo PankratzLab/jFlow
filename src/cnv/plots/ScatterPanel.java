@@ -176,9 +176,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		markerIndex = sp.getMarkerIndex();
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
-		datapoints = markerData.getDatapoints(plotType, null, null, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), sp.getnStage(), 2, Integer.parseInt(sp.getProject().getProperty(Project.NUM_THREADS)), sp.getProject().getLog());
-//		alleleCounts = markerData[markerIndex].getAB_Genotypes();
-//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
+		datapoints = markerData.getDatapoints(plotType, null, null, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), Integer.parseInt(sp.getProject().getProperty(Project.NUM_THREADS)), sp.getCorrectionBox().isSelected(), sp.getProject().getLog());
+		// alleleCounts = markerData[markerIndex].getAB_Genotypes();
+		//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());
 		newGenotypingFilename = sp.getProject().getDir(Project.DATA_DIRECTORY) + sp.getMarkerName() + "_newGenotyping.xln";
 		if(new File(newGenotypingFilename).exists()) {
