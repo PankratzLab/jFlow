@@ -176,7 +176,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		markerIndex = sp.getMarkerIndex();
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
-		datapoints = markerData.getDatapoints(plotType, null, null, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), Integer.parseInt(sp.getProject().getProperty(Project.NUM_THREADS)), sp.getCorrectionBox().isSelected(), sp.getProject().getLog());
+		datapoints = markerData.getDatapoints(plotType, null, sp.getProject().getSamplesToInclude(null, false), false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), Integer.parseInt(sp.getProject().getProperty(Project.NUM_THREADS)), sp.getCorrectionBox().isSelected(), sp.getProject().getLog());
 		// alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());
