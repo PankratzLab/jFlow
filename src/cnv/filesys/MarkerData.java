@@ -70,20 +70,20 @@ public class MarkerData implements Serializable {
 			return new float[][] { xRaws, yRaws };
 		case 1:
 			if (correctedData) {
-				return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, PrincipalComponentsIntensity.XY_RETURN, numThreads, log);
+				return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, PrincipalComponentsIntensity.XY_RETURN, numThreads, log);
 			} else {
 				return new float[][] { xs, ys };
 			}
 		case 2:
 			// return new float[][] {thetas, rs};
 			if (correctedData) {
-				return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, PrincipalComponentsIntensity.THETA_R_RETURN, numThreads, log);
+				return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, PrincipalComponentsIntensity.THETA_R_RETURN, numThreads, log);
 			} else {
 				return new float[][] { getThetas(), getRs() };
 			}
 		case 3:
 			if (correctedData) {
-				return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, PrincipalComponentsIntensity.BAF_LRR_RETURN, numThreads, log);
+				return getCorrectedIntesity(sampleSex,samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, PrincipalComponentsIntensity.BAF_LRR_RETURN, numThreads, log);
 			} else {
 				return new float[][] { bafs, lrrs };
 			}
@@ -110,14 +110,14 @@ public class MarkerData implements Serializable {
 	/**
 	 * Warning - the behavior of this method will likely be volatile for some time as the correction methods are improved
 	 */
-	public float[][] getCorrectedIntesity(int[] sampleSex, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage, double residStandardDeviationFilter, String typeToReturn, int numThreads, Logger log) {
+	public float[][] getCorrectedIntesity(int[] sampleSex, boolean[] samplesToUse, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage, double residStandardDeviationFilter, String typeToReturn, int numThreads, Logger log) {
 		if (pcResids == null || numComponents == 0) {
 			if (pcResids == null && numComponents > 0) {
 				log.report("Info - an intensity PCA file was not found as specified by " + Project.INTENSITY_PC_FILENAME);
 			}
 			if (typeToReturn.equals(PrincipalComponentsIntensity.BAF_LRR_RETURN)) {
 				// TODO, currently getRecomputedLRR_BAF may differ from PrincipalComponentsIntensity due to the intensity only flag...at false
-				return getRecomputedLRR_BAF(sampleSex, pcResids.getProj().getSamplesToInclude(null, false), false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, false, log);
+				return getRecomputedLRR_BAF(sampleSex, samplesToUse, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, false, log);
 			}
 			if (typeToReturn.equals(PrincipalComponentsIntensity.XY_RETURN)) {
 				return new float[][] { xs, ys };
