@@ -322,7 +322,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 					}
 				} else if (correctXY) {
 					pcIntensity.correctXYAt(Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)));
-					lrrs =pcIntensity.getCorrectedLRRBAF(true)[1];
+					lrrs = pcIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN, true)[1];
 				}
 				if (lrrs == null) {
 					String Error = "Error - could not correct Log R Ratios for " + markerData.getMarkerName();

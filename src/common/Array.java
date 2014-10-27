@@ -1663,6 +1663,29 @@ public class Array {
 		}
 		return stringChunks;
 	}
+	
+	/**
+	 * Breaks an array of strings into nChunks with boolean representation, each boolean array has the same length as the original input
+	 * 
+	 * @param strings
+	 *            the array
+	 * @param nChunks
+	 *            number of chunks
+	 * @param log
+	 */
+	public static boolean[][] splitUpStringArrayToBoolean(String[] strings, int nChunks, Logger log) {
+		String[][] stringSplits = splitUpStringArray(strings, nChunks, log);
+		boolean[][] stringBoolSplits = new boolean[stringSplits.length][];
+		for (int i = 0; i < stringBoolSplits.length; i++) {
+			int[] indicesThisChunk = ext.indexLargeFactors(stringSplits[i], strings, true, log, true, false);
+			stringBoolSplits[i] = new boolean[strings.length];
+			Arrays.fill(stringBoolSplits[i], false);
+			for (int j = 0; j < indicesThisChunk.length; j++) {
+				stringBoolSplits[i][indicesThisChunk[j]] = true;
+			}
+		}
+		return stringBoolSplits;
+	}
 
 	/**
 	 * Returns an array splitting a number as equally as possible into different
