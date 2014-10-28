@@ -421,7 +421,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					log.report("Success!");
 				}
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
-				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null);
+				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null);
 			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
 				// TODO make dialog to ask for filenames with a JCheckBox for denovo parsing
 				cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");

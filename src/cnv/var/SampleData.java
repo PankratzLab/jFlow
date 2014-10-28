@@ -883,6 +883,7 @@ public class SampleData {
 	 * @return true if data was added successfully, false if not
 	 */
 	public boolean addData(Hashtable<String, String> linkData, String linker, String[] columnHeaders, String missingData, String linkDataDelimiter, Logger log) {
+		// TODO check for duplicate columns (esp. EXCLUDE)
 		boolean add = true;
 		boolean writerWasOpened = false;
 		BufferedReader reader;
@@ -955,6 +956,13 @@ public class SampleData {
 					}
 					reader.close();
 					if (add) {
+						// TODO check for new classes/filters/etc
+						for (String header : columnHeaders) {
+							if (header.toUpperCase().startsWith("CLASS=")) {
+								classes = Array.addStrToArray(header.split("=")[1], classes);
+							} 
+						}
+						
 						log.report("Info - added new data to sample data for " + numAdded + (numAdded > 1 ? " samples " : " samples"));
 						if (numMissing > 0) {
 							log.report("Warning - " + numMissing + " " + (numMissing > 1 ? "samples" : "samples") + " had missing data ");

@@ -2630,7 +2630,69 @@ public class Array {
 
 		return count;
 	}
+	
+	public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value, int keyIndex, boolean exact) {
+		return binarySearch(list, value, keyIndex, 0, list.size() - 1, exact);
+	}
+	
+	public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value, int keyIndex, int low, int high, boolean exact) {
+		int mid;
 
+		while (low <= high) {
+			mid = low + (high - low) / 2;
+			if (mid >= list.size()) {
+				if (exact) {
+					return -9;
+				} else {
+					return list.size();
+				}
+			}
+			if (list.get(mid)[keyIndex].compareTo(value[keyIndex]) > 0) {
+				high = mid - 1;
+			} else if (list.get(mid)[keyIndex].compareTo(value[keyIndex]) < 0) {
+				low = mid + 1;
+			} else {
+				return mid;
+			}
+		}
+		if (exact) {
+			return -1;
+		} else {
+			return low;
+		}
+	}
+
+	public static int binarySearch(String[] array, String value, boolean exact) {
+		return binarySearch(array, value, 0, array.length-1, exact);
+	}
+	
+	public static int binarySearch(String[] array, String value, int low, int high, boolean exact) {
+		int mid;
+
+		while (low <= high) {
+			mid = low + (high - low) / 2;
+			if (mid >= array.length) {
+				if (exact) {
+					return -9;
+				} else {
+					return array.length;
+				}
+			}
+			if (array[mid].compareTo(value) > 0) {
+				high = mid - 1;
+			} else if (array[mid].compareTo(value) < 0) {
+				low = mid + 1;
+			} else {
+				return mid;
+			}
+		}
+		if (exact) {
+			return -1;
+		} else {
+			return low;
+		}
+	}
+	
 	public static int binarySearch(int[] array, int value, boolean exact) {
 		return binarySearch(array, value, 0, array.length-1, exact);
 	}
