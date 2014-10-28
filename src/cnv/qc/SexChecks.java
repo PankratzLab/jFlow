@@ -11,7 +11,8 @@ import common.*;
 import stats.*;
 
 public class SexChecks {
-	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner", "Mean X LRR", "Num X markers", "Num X 10-90", "% 10-90", "Mean Y LRR", "Num Y markers"};
+	public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner";
+	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Mean X LRR", "Num X markers", "Num X 10-90", "% 10-90", "Mean Y LRR", "Num Y markers"};
 	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
 	public static final String[] SNP_FIELDS = {"Sample", "X", "Y", "X Raw", "Y Raw", "Theta", "R", "B Allele Freq", "Log R Ratio", "AlleleCount"};
 	public static final String RESULTS_DIR = "genderChecks/";
@@ -38,7 +39,7 @@ public class SexChecks {
 		markerSet = proj.getMarkerSet();
 		sampleData = proj.getSampleData(2, false);
 		if (sampleData.failedToLoad()) {
-			log.reportError("Error - without a SampleData file, sexChecks will fail");
+			log.reportError("Error - without a sample data file, sexChecks will fail");
 			return;
 		}
 
@@ -47,8 +48,30 @@ public class SexChecks {
 
 		samples = proj.getSamples();
 		lrrCounts(samples, proj, sexlinked(markerSet.getChrs()));
-		writeToFile(proj, estimateSex(samples));
-
+		byte[] estSex = estimateSex(samples);
+		writeToFile(proj, estSex);
+		
+		String[] classes = sampleData.getClasses();
+		int sexInd = -1;
+		for (int i = 0; i < classes.length; i++) {
+			if (SexChecks.EST_SEX_HEADER.equals(classes[i])) {
+				sexInd = i;
+				break;
+			}
+		}
+		if (sexInd == -1) {
+			Hashtable<String, String> linkData = new Hashtable<String, String>();
+			for (int i = 0; i < samples.length; i++) {
+				linkData.put(samples[i], "" + estSex[i]);
+			}
+			if (!sampleData.addData(linkData, "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "", log)) {
+				log.reportError("Error - failed to write Estimated Sex to sample data file");
+			}
+		} else {
+			log.report("Warning - sample data already contains estimated sex; will not process data into sample data file."); 
+		}
+		
+		
 		log.report("Took "+ext.getTimeElapsed(time)+" to parse "+samples.length+" samples");
 	}
 
@@ -421,10 +444,10 @@ public class SexChecks {
 		return new double[] {maleX.get(maleX.size()/2), maleY.get(maleY.size()/2), femaleX.get(femaleX.size()/2), femaleY.get(femaleY.size()/2)};
 	}
 
-	public static void writeToFile (Project proj, byte[] estimatedSex) {
+	private static void writeToFile (Project proj, byte[] estimatedSex) {
 		PrintWriter writer;
 		String famIndPair;
-
+		
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"sexCheck.xln"));
 			writer.println(Array.toStr(SEX_HEADER));

@@ -8,9 +8,13 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import cnv.filesys.*;
+import cnv.manage.MarkerDataLoader;
+import cnv.qc.SexChecks;
+import cnv.var.SampleData;
 import common.Array;
 import common.Files;
 import common.HashVec;
+import common.Logger;
 import common.Matrix;
 import common.ext;
 import filesys.Segment;
@@ -37,7 +41,7 @@ public class AnalysisFormats implements Runnable {
 	public void run() {
 		switch (program) {
 		case PENN_CNV:
-			penncnv(proj, samples, hash);
+			penncnv(proj, samples, hash, null);
 			break;
 		case QUANTISNP:
 			quantisnp(proj, samples, hash);
@@ -49,50 +53,414 @@ public class AnalysisFormats implements Runnable {
 
 	}
 
-	public static void penncnv(Project proj, String[] samples, HashSet<String> hash) {
+	public static void penncnv(Project proj, String[] samples, HashSet<String> markersToWrite, String subDir) {
 		PrintWriter writer;
 		String[] markerNames = proj.getMarkerNames();
 		Sample samp;
 		float[] lrrs, bafs;
 		byte[] genotypes;
 		boolean jar, gzip;
-		String dir;
-
-		dir = proj.getDir(Project.PENNCNV_DATA_DIRECTORY);
+		String dir, sampleDir;
+		Logger log = proj.getLog();
+		
+		dir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY) + proj.getProperty(Project.PENNCNV_DATA_DIRECTORY) + (subDir == null ? "" : subDir);
+		sampleDir = proj.getDir(Project.SAMPLE_DIRECTORY);
 		new File(dir).mkdirs();
 		jar = proj.getJarStatus();
 		gzip = proj.getBoolean(Project.PENNCNV_GZIP_YESNO);
-		for (int i = 0; i<samples.length; i++) {
-			System.out.println(ext.getTime()+"\tTransforming "+(i+1)+" of "+samples.length);
-			if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-//				samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, jar);
-				samp = Sample.loadFromRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
+		
+		for (int i = 0; i < samples.length; i++) {
+			log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
+			if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+				samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
 			} else {
-//				System.err.println("Error - the " + Sample.SAMPLE_DATA_FILE_EXTENSION + " file is not found for the following item in sampleList " + samples[i]);
-				System.err.println("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+				log.reportError("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
 				return;
 			}
-//			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
 			genotypes = samp.getAB_Genotypes();
 
 			try {
-				writer = Files.getAppropriateWriter(dir+samples[i]+(gzip?".gz":""));
-				writer.println("Name\t"+samples[i]+".GType\t"+samples[i]+".Log R Ratio\t"+samples[i]+".B Allele Freq");
-				for (int j = 0; j<markerNames.length; j++) {
-					if (hash == null || hash.contains(markerNames[j])) {
-						writer.println(markerNames[j]+"\t"+(genotypes[j]==-1?"NC":Sample.AB_PAIRS[genotypes[j]])+"\t"+lrrs[j]+"\t"+bafs[j]);
+				writer = Files.getAppropriateWriter(dir + samples[i] + (gzip ? ".gz" : ""));
+				writer.println("Name\t" + samples[i] + ".GType\t" + samples[i] + ".Log R Ratio\t" + samples[i] + ".B Allele Freq");
+				for (int j = 0; j < markerNames.length; j++) {
+					if (markersToWrite == null || markersToWrite.contains(markerNames[j])) {
+						writer.println(markerNames[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrrs[j] + "\t" + bafs[j]);
 					}
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing PennCNV data for "+samples[i]);
-				e.printStackTrace();
+				log.reportError("Error writing PennCNV data for " + samples[i]);
+				log.reportException(e);
 			}
 		}
 	}
+	
+	public static String[] pennCNVSexHack(Project proj, String gcModelFile) {
+		// exports data for chr23-chr26 and recodes them as chr1-chr4 in a new subdirectory ~/penndata/sexSpecific/
+		boolean jar, gzip, writeNewPFBs, writeCentroids, writeGCFile;
+		boolean[] inclSampAll, inclSampMales, inclSampFemales;
+		int[] sampleSex;
+		byte[] markerChrs, genM, genF, genotypes;
+		float[] bafCnt, bafSum, genCnt, bafM, bafF, thetas, rs;
+		String[] allMarkers, sexMarkers, samples, header, centFilePathM, centFilePathF;
+		Logger log;
+		MarkerSet ms;
+		MarkerDataLoader markerDataLoader;
+		SampleData sampleData;
+		PrintWriter writer;
+		Sample samp;
+		String sampleDataFile, sampleDir, sexDir, pennDir, pennData, maleDir, femaleDir, malePFBFile, femalePFBFile, newGCFile;
+		float[][][] rawCentroidsMale, rawCentroidsFemale;
 
+		Vector<String[]> malePFBs, femalePFBs;
+		Vector<String> markerList;
+		Hashtable<String, Vector<String>> sexData;
+		Hashtable<String, Integer> sexMarkerToIndex = new Hashtable<String, Integer>();
+		
+		Centroids centroidsMale, centroidsFemale;
+		
+		log = proj.getLog();
+
+		pennDir = proj.getProperty(Project.PENNCNV_RESULTS_DIRECTORY);
+		pennData = proj.getProperty(Project.PENNCNV_DATA_DIRECTORY);
+		sexDir = proj.getProjectDir() + pennDir + pennData + "sexSpecific/";
+		
+		maleDir = sexDir + "male/";
+		femaleDir = sexDir + "female/";
+		
+		new File(sexDir).mkdirs();
+		new File(maleDir).mkdir();
+		new File(femaleDir).mkdir();
+		
+		malePFBFile = sexDir + "males.pfb";
+		femalePFBFile = sexDir + "females.pfb";
+		newGCFile = sexDir + "sexSpecific.gcModel";
+
+//		centFilePathM = sexDir + "sexSpecific_Male.cent";
+//		centFilePathF = sexDir + "sexSpecific_Female.cent";
+		
+		centFilePathM = new String[]{pennDir + pennData + "sexSpecific/sexSpecific_Male.cent", ""};
+		centFilePathF = new String[]{pennDir + pennData + "sexSpecific/sexSpecific_Female.cent", ""};
+		centFilePathM[1] = proj.getProjectDir() + centFilePathM[0];
+		centFilePathF[1] = proj.getProjectDir() + centFilePathF[0];
+		
+		
+		writeCentroids = !Files.exists(centFilePathM[1]) && !Files.exists(centFilePathF[1]);
+		writeNewPFBs = !Files.exists(malePFBFile) && !Files.exists(femalePFBFile);
+		writeGCFile = !Files.exists(newGCFile);
+		
+		if (!writeCentroids && !writeNewPFBs && !writeGCFile) {
+			return new String[]{malePFBFile, femalePFBFile, newGCFile};
+		}
+		
+		ms = proj.getMarkerSet();
+		sampleData = proj.getSampleData(0, false);
+		
+		allMarkers = ms.getMarkerNames();
+		markerChrs = ms.getChrs();
+		markerList = new Vector<String>();
+		
+		for (int i = 0; i < markerChrs.length; i++) {
+			switch(markerChrs[i]) {
+				case 23:
+				case 24:
+				case 25:
+				case 26:
+					markerList.add(allMarkers[i]);
+					sexMarkerToIndex.put(allMarkers[i], Integer.valueOf(i));
+					break;
+			}
+		}
+		sexMarkers = Array.toStringArray(markerList);
+		
+		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, sexMarkers);
+		
+		inclSampAll = proj.getSamplesToInclude(null);
+		if (!sampleData.hasExcludedIndividuals()) {
+			log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
+		}
+		samples = proj.getSamples();
+		sampleDataFile = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
+		header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
+		int sexInd = -1;
+		for (int i = 0; i < header.length; i++) {
+			if (("CLASS=" + SexChecks.EST_SEX_HEADER).toUpperCase().equals(header[i].toUpperCase())) {
+				sexInd = i;
+				break;
+			}
+		}
+		if (sexInd == -1) {
+			log.reportError("Error - no estimated sex found in sample data file - please run SexChecks with -check argument to generate the required data");
+			return null;
+		}
+		sexData = HashVec.loadFileToHashVec(sampleDataFile, 0, new int[] { sexInd }, "\t", true, false);
+		
+		inclSampMales = Array.clone(inclSampAll);
+		inclSampFemales = Array.clone(inclSampAll);
+		sampleSex = new int[inclSampAll.length];
+		for (int i = 0; i < samples.length; i++) {
+			int sex = sampleData.getSexForIndividual(samples[i]);
+			if (sex == -1) {
+				sex = Integer.parseInt(sexData.get(samples[i].toUpperCase()).get(0));
+			}
+			sampleSex[i] = sex;
+			if (sex == 1) {
+				inclSampFemales[i] = false;
+			} else if (sex == 2) {
+				inclSampMales[i] = false;
+			} else {
+				// TODO ?
+				// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
+			}
+		}
+		
+		
+		// TODO should we write these out as they're computed instead of storing and writing later?
+		malePFBs = new Vector<String[]>();
+		femalePFBs = new Vector<String[]>();
+		
+		rawCentroidsMale = new float[sexMarkers.length][][];
+		rawCentroidsFemale = new float[sexMarkers.length][][];
+		
+		log.report("Computing sex-specific centroids for " + sexMarkers.length + " sex-specific markers");
+		CentroidCompute centCompM;
+		CentroidCompute centCompF;
+		for (int i = 0; i < sexMarkers.length; i++) {
+			MarkerData markerData = markerDataLoader.requestMarkerData(i);
+			
+			centCompM = new CentroidCompute(markerData, 
+											sampleSex, 
+											inclSampMales, 
+											false, // NOT intensity only 
+											1, // no filtering
+											0,  // no filtering
+											null,  // no filtering
+											true,  // median, not mean
+											proj.getLog());
+			
+			centCompF = new CentroidCompute(markerData, 
+											sampleSex, 
+											inclSampFemales, 
+											false, // NOT intensity only 
+											1, // no filtering
+											0,  // no filtering
+											null,  // no filtering
+											true,  // median, not mean
+											proj.getLog());
+			
+			centCompM.computeCentroid();
+			centCompF.computeCentroid();
+			
+			rawCentroidsMale[i] = centCompM.getCentroid();
+			rawCentroidsFemale[i] = centCompF.getCentroid();
+			
+			bafCnt = new float[]{0, 0};
+			bafSum = new float[]{0, 0};
+			genCnt = new float[]{0, 0};
+			bafM = centCompM.getRecomputedBAF();
+			genM = centCompM.getClustGenotypes();
+			bafF = centCompF.getRecomputedBAF();
+			genF = centCompF.getClustGenotypes();
+			for (int s = 0; s < inclSampAll.length; s++) {
+				if (inclSampMales[s]) {
+					if (!Float.isNaN(bafM[s])) {
+						bafSum[0] += bafM[s];
+						bafCnt[0]++;
+						if (genM[s] >= 0) {
+							genCnt[0]++;
+						}
+					}
+				}
+				if (inclSampFemales[s]) {
+					if (!Float.isNaN(bafF[s])) {
+						bafSum[1] += bafF[s];
+						bafCnt[1]++;
+						if (genF[s] >= 0) {
+							genCnt[1]++;
+						}
+					}
+				}
+			}
+			
+			malePFBs.add(new String[]{markerData.getMarkerName(), "" + (markerData.getChr() - 22), "" + markerData.getPosition(), "" + (genCnt[0] > 0 ? (bafSum[0] / bafCnt[0]) : 2)});
+			femalePFBs.add(new String[]{markerData.getMarkerName(), "" + (markerData.getChr() - 22), "" + markerData.getPosition(), "" + (genCnt[1] > 0 ? (bafSum[1] / bafCnt[1]) : 2)});
+			if (i > 0 && i % 10000 == 0) {
+				log.report(ext.getTime() + "\t...sex centroids computed up to marker " + i + " of " + sexMarkers.length);
+			}
+			
+			markerDataLoader.releaseIndex(i);
+			centCompM = null;
+			centCompF = null;
+		}
+		
+		if (writeNewPFBs) {
+			log.report("Writing sex-specific PFB files");
+			
+			try {
+				writer = new PrintWriter(new FileWriter(malePFBFile));
+				writer.println("Name\tChr\tPosition\tPFB");
+				for (String[] male : malePFBs) {
+					writer.println(male[0] + "\t" + male[1] + "\t" + male[2] + "\t" + male[3]);
+				}
+				writer.close();
+			} catch (IOException e1) {
+				log.reportError("Error - problem occured when writing to new male-only .pfb file");
+				log.reportException(e1);
+			}
+			
+			try {
+				writer = new PrintWriter(new FileWriter(femalePFBFile));
+				writer.println("Name\tChr\tPosition\tPFB");
+				for (String[] female : femalePFBs) {
+					writer.println(female[0] + "\t" + female[1] + "\t" + female[2] + "\t" + female[3]);
+				}
+				writer.close();
+			} catch (IOException e1) {
+				log.reportError("Error - problem occured when writing to new female-only .pfb file");
+				log.reportException(e1);
+			}
+		}
+		malePFBs = null;
+		femalePFBs = null;
+		
+		if (writeCentroids) {
+			log.report("Writing sex-specific Centroid files");
+			
+			centroidsMale = new Centroids(rawCentroidsMale, MarkerSet.fingerprint(sexMarkers));
+			centroidsMale.serialize(centFilePathM[1]);
+			Centroids.exportToText(proj, centFilePathM[0], centFilePathM[0] + ".txt", sexMarkers);
+			
+			centroidsFemale = new Centroids(rawCentroidsFemale, MarkerSet.fingerprint(sexMarkers));
+			centroidsFemale.serialize(centFilePathF[1]);
+			Centroids.exportToText(proj, centFilePathF[0], centFilePathF[0] + ".txt", sexMarkers);
+		}
+		centroidsMale = null;
+		centroidsFemale = null;
+		
+		log.report("Exporting sex-specific sample data");
+		
+		sampleDir = proj.getDir(Project.SAMPLE_DIRECTORY);
+		jar = proj.getJarStatus();
+		gzip = proj.getBoolean(Project.PENNCNV_GZIP_YESNO);
+		samples = proj.getSamples();
+		
+		for (int i = 0; i < samples.length; i++) {
+			log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
+			if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+				samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
+			} else {
+				log.reportError("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+				// TODO okay to just skip this sample instead of halting entirely?
+				continue;
+			}
+			
+			thetas = samp.getThetas();
+			rs = samp.getRs();
+			genotypes = samp.getAB_Genotypes();
+			
+			try {
+				writer = Files.getAppropriateWriter(maleDir + samples[i] + (gzip ? ".gz" : ""));
+				writer.println("Name\t" + samples[i] + ".GType\t" + samples[i] + ".Log R Ratio\t" + samples[i] + ".B Allele Freq");
+				for (int j = 0; j < sexMarkers.length; j++) {
+					int markerIndex = sexMarkerToIndex.get(sexMarkers[i]).intValue();
+					
+					float lrr = Centroids.calcLRR(thetas[markerIndex], rs[markerIndex], rawCentroidsMale[j]);
+					float baf = Centroids.calcBAF(thetas[markerIndex], rawCentroidsMale[j]);
+					
+					writer.println(sexMarkers[j] + "\t" + (genotypes[markerIndex] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[markerIndex]]) + "\t" + lrr + "\t" + baf);
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing sex-specific (male) PennCNV data for " + samples[i]);
+				log.reportException(e);
+			}
+			try {
+				writer = Files.getAppropriateWriter(femaleDir + samples[i] + (gzip ? ".gz" : ""));
+				writer.println("Name\t" + samples[i] + ".GType\t" + samples[i] + ".Log R Ratio\t" + samples[i] + ".B Allele Freq");
+				for (int j = 0; j < sexMarkers.length; j++) {
+					int markerIndex = sexMarkerToIndex.get(sexMarkers[i]).intValue();
+					
+					float lrr = Centroids.calcLRR(thetas[markerIndex], rs[markerIndex], rawCentroidsFemale[j]);
+					float baf = Centroids.calcBAF(thetas[markerIndex], rawCentroidsFemale[j]);
+					
+					writer.println(sexMarkers[j] + "\t" + (genotypes[markerIndex] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[markerIndex]]) + "\t" + lrr + "\t" + baf);
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing sex-specific (female) PennCNV data for " + samples[i]);
+				log.reportException(e);
+			}
+		}
+		
+		if (writeGCFile) {
+			filterSexSpecificGCModel(proj, gcModelFile, newGCFile, new String[]{"23", "X", "24", "Y", "25", "XY", "26", "M"});
+		}
+		
+		return new String[]{malePFBFile, femalePFBFile, newGCFile};
+	}
+	
+	private static String filterSexSpecificGCModel(Project proj, String gcModelFile, String newGCFile, String[] chrs) {
+		// TODO combine method with filter methods in PennCNV - only difference is changing chr #
+		BufferedReader reader = null;
+		PrintWriter writer = null;
+		
+		try {
+			reader = new BufferedReader(new FileReader(gcModelFile));
+			writer = new PrintWriter(new FileWriter(newGCFile));
+
+			String header;
+			String temp;
+			String[] line;
+			if (reader.ready()) {
+				header = reader.readLine();
+				writer.println(header);
+			}
+			while(reader.ready()) {
+				temp = reader.readLine();
+				line = temp.trim().split("[\\s]+");
+				for (String chr : chrs) {
+					if (line[1].equals(chr)) {
+						
+						byte chrVal = 0;
+						if ("23".equals(chr) || "X".equals(chr)) {
+							chrVal = 23;
+						} else if ("24".equals(chr) || "Y".equals(chr)) {
+							chrVal = 25;
+						} else if ("25".equals(chr) || "XY".equals(chr)) {
+							chrVal = 26;
+						} else if ("26".equals(chr) || "M".equals(chr)) {
+							chrVal = 27;
+						}
+						
+						writer.println(line[0] + "\t" + (chrVal - 22) + "\t" + line[2] + "\t" + line[3]);
+					}
+				}
+			}
+		} catch (IOException e) {
+			proj.getLog().reportError("Error - transforming sex-specific gcModel failed");
+			proj.getLog().reportException(e);
+			return gcModelFile;
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					proj.getLog().reportError("Error - couldn't properly close file reader for " + gcModelFile);
+					proj.getLog().reportException(e);
+				}
+				reader = null;
+			}
+			if (writer != null) {
+				writer.close();
+				writer = null;
+			}
+		}
+		
+		return newGCFile;
+	}
+	
 	public static void quantisnp(Project proj, String[] samples, HashSet<String> hash) {
 		PrintWriter writer;
 		MarkerSet set;

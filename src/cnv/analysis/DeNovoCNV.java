@@ -227,7 +227,7 @@ public class DeNovoCNV {
 				for (int i=4; i<=6; i++) {
 					if (!(new File(pennDataDir + line[i] + pennDataFileExtension)).exists()) {
 						if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY) + line[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jarStatus)) {
-							cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null);	//TODO How to generate .gz format?
+							cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null, null);	//TODO How to generate .gz format?
 						} else {
 							log.reportError("warning - skipped the following trio set due to no data avaiable (iDNA: " + line[4] + "\tFaDNA: " + line[5] + "\tMoDNA:" + line[6] + ")");
 							found = false;
