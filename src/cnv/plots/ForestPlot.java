@@ -13,25 +13,98 @@ import common.Grafik;
 import common.Logger;
 import common.ext;
 
-class ForestTree {
-	public String label;
-	public float beta;
-	public float stderr;
-	public int color;
-	public byte shape;
-	public float[] confInterval;
-	public float zScore;
+class MetaStudy {
+	final ArrayList<StudyData> studies;
+	ArrayList<StudyData> sorted;
+	private final HashMap<String, StudyData> nameMap;
+	final float metaBeta;
+	final float metaStderr;
+	final float[] metaConf = new float[2];
+	
+	public MetaStudy(float metaBeta, float metaStderr) {
+		studies = new ArrayList<StudyData>();
+		nameMap = new HashMap<String, StudyData>();
+		this.metaBeta = metaBeta;
+		this.metaStderr = metaStderr;
+		this.metaConf[0] = (float) (metaBeta - 1.96 * metaStderr);
+		this.metaConf[1] = (float) (metaBeta + 1.96 * metaStderr);
+	}
+	
+	public void addStudy(StudyData studyData) {
+		studies.add(studyData);
+		nameMap.put(studyData.getLabel(), studyData);
+	}
 
-	public ForestTree(String label, float beta, float stderr, int color, byte shape) {
+	String findLongestStudyNameSize() {
+		String longest = "";
+		for(StudyData ft : studies){
+			longest = longest.length() < ft.getLabel().length() ? ft.getLabel() : longest;
+		}
+		return longest;
+	}
+	
+	float calcSumZScore() {
+		float sum = 0;
+		for	(StudyData ft : studies){
+			sum += ft.getZScore();
+		}
+		return sum;
+	}
+	
+	float findMaxZScore() {
+		float max = Float.MIN_VALUE;
+		for (StudyData data: studies) {
+			max = Math.max(max, data.getZScore());
+		}
+		return max;
+	}
+
+	public ArrayList<StudyData> getStudies(boolean sorted) {
+		return sorted ? getSorted() : this.studies;
+	}
+	
+	private ArrayList<StudyData> getSorted() {
+		if (this.sorted == null) {
+			this.sorted = new ArrayList<StudyData>();
+			
+			TreeMap<Float, String> betaStudyMap = new TreeMap<Float, String>();
+			for (StudyData study : studies) {
+				betaStudyMap.put(study.getBeta(), study.getLabel());
+			}
+			ArrayList<StudyData> desc = new ArrayList<StudyData>();
+			for (java.util.Map.Entry<Float, String> entry : betaStudyMap.entrySet()) {
+				desc.add(nameMap.get(entry.getValue()));
+			}
+			for (int i = desc.size() - 1; i >= 0; i--) {
+				sorted.add(desc.get(i));
+			}
+		}
+		
+		return this.sorted;
+	}
+	
+}
+
+class StudyData {
+	private final String label;
+	private final float beta;
+	private final float stderr;
+	private int color;
+	private byte shape;
+	private final float[] confInterval;
+	private final float zScore;
+
+	public StudyData(String label, float beta, float stderr, int color, byte shape) {
 		this.label = label;
 		this.beta = beta;
 		this.stderr = stderr;
 		this.color = color;
 		this.shape = shape;
 		this.confInterval = new float[2];
+		// TODO replace magic number (1.96) with named constant
 		this.confInterval[0] = (float) (beta - 1.96 * stderr);
 		this.confInterval[1] = (float) (beta + 1.96 * stderr);
-		this.zScore = stderr == 0.0f ? 0.0f : beta / stderr;
+		this.zScore = stderr == 0.0f ? 0.0f : Math.abs(beta / stderr);
 	}
 
 	public String getLabel() {
@@ -58,7 +131,7 @@ class ForestTree {
 		return confInterval;
 	}
 
-	public float getzScore() {
+	public float getZScore() {
 		return zScore;
 	}
 }
@@ -73,6 +146,8 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private static final String ALT_DOWN = "ALT DOWN";
 	private static final String ALT_LEFT = "ALT LEFT";
 	private static final String ALT_RIGHT = "ALT RIGHT";
+	private static final String BETA_META_HEADER = "beta";
+	private static final String SE_META_HEADER = "se";
 	private static final String BETA_PREFIX = "beta.";
 	private static final String SE_PREFIX = "se.";
 	private static final String FIRST = "First";
@@ -82,50 +157,55 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private  String dataFile;
 	private LinkedHashSet<String> markers;
 	private ArrayList<String> markersIndexes;
-	private HashMap<String, Integer> markerToColMap;
-	HashMap<String, ArrayList<ForestTree>> markersToTreesMap;
-	ArrayList<ForestTree> curTrees;
+	private HashMap<String, Integer> studyToColIndexMap;
+//	HashMap<String, ArrayList<StudyData>> markersToDataMap;
+	HashMap<String, MetaStudy> markersToMetaMap;
+//	ArrayList<StudyData> currStudies;
+	MetaStudy currMetaStudy;
+	int[] metaIndicies;
 	String plotLabel;
 	Logger log;
 	ForestPanel forestPanel;
 	float maxZScore;
 	float sumZScore;
 	String longestStudyNameSize;
+	private JCheckBox btnSortStudies;
 	private JButton flipButton, invXButton, invYButton;
 	private JLayeredPane layeredPane;
-	String[] dataFileHeaders;
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
 	int curMarkerIndex;
-	private boolean atleastOneTree;
+	private boolean atleastOneStudy;
 
 
 	public ForestPlot(String dataFile, String markerFile, Logger log) {
 		this.log = log;
-		atleastOneTree = false;
+		atleastOneStudy = false;
 		this.dataFile = dataFile;
-		markersIndexes = new ArrayList<String>();
 		this.markers = readMarkerNames(markerFile);
-		this.dataFileHeaders = Files.getHeaderOfFile(dataFile, this.log);
-		markerToColMap = new HashMap<String, Integer>();
-		markersToTreesMap = new HashMap<String, ArrayList<ForestTree>>();
+		this.markersIndexes = new ArrayList<String>();
+		this.markersIndexes.addAll(this.markers);
+		studyToColIndexMap = new HashMap<String, Integer>();
+//		markersToDataMap = new HashMap<String, ArrayList<StudyData>>();
+		markersToMetaMap = new HashMap<String, MetaStudy>();
 		try{
 			mapMarkersToCol();
 		} catch(RuntimeException rte){
+			// TODO handle runtime exceptions!
 			log.reportException(rte);
 		}
-
-		System.out.println(markerToColMap.toString());
+//		System.out.println(studyToColIndexMap.toString());
 
 		try{
-			loadTrees();
+			loadStudyData();
 		} catch (RuntimeException re){
+			// TODO handle runtime exceptions!
 			log.reportException(re);
-			System.exit(1);
 		}
+		
 		curMarkerIndex = 0;
-		setCurTree(markersIndexes.get(0));
-
+		setCurMarker(markersIndexes.get(0));
+		
 		setLayout(new BorderLayout());
 
 		forestPanel = new ForestPanel(this, log);
@@ -185,9 +265,9 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 			public void componentResized(ComponentEvent e) {
 				// layeredPane.setSize(new Dimension(getWidth()-20, getHeight()-50)); //???zx
-				flipButton.setBounds(70, layeredPane.getHeight() - 75, 38, 38);
-				invXButton.setBounds(70, layeredPane.getHeight() - 35, 38, 13);
-				invYButton.setBounds(55, layeredPane.getHeight() - 75, 13, 38);
+//				flipButton.setBounds(70, layeredPane.getHeight() - 75, 38, 38);
+//				invXButton.setBounds(70, layeredPane.getHeight() - 35, 38, 13);
+//				invYButton.setBounds(55, layeredPane.getHeight() - 75, 13, 38);
 				// layeredPane.repaint();
 				// twoDPanel.paintAgain();
 
@@ -205,13 +285,14 @@ public class ForestPlot extends JPanel implements ActionListener{
 	}
 
 
-	public void  updateForestPlot(){
+	public void updateForestPlot(){
 		forestPanel.setPointsGeneratable(true);// zx
 		forestPanel.setRectangleGeneratable(true);// zx
 		forestPanel.setExtraLayersVisible(new byte[] { 99 });
 		displayIndex(navigationField);
 		updateGUI();
 	}
+	
 	private JPanel markerPanel() {
 		JPanel descrPanel = new JPanel();
 		JPanel navigationPanel = new JPanel();
@@ -236,7 +317,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
 					if (trav >=0 && trav < markersIndexes.size()) {
 						curMarkerIndex = trav;
-						setCurTree(markersIndexes.get(curMarkerIndex));
+						setCurMarker(markersIndexes.get(curMarkerIndex));
 						updateForestPlot();
 					}
 				} catch (NumberFormatException nfe) {
@@ -259,11 +340,25 @@ public class ForestPlot extends JPanel implements ActionListener{
 		last.addActionListener(this);
 		last.setActionCommand(LAST);
 		last.setPreferredSize(new Dimension(20, 20));
+		
+		AbstractAction sortAction = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				 ForestPlot.this.forestPanel.sortedDisplay = btnSortStudies.isSelected();
+				 ForestPlot.this.forestPanel.paintAgain();
+			}
+		};
+		btnSortStudies = new JCheckBox(sortAction);
+		btnSortStudies.setText("Sort Studies (experimental)");
+		btnSortStudies.setBackground(BACKGROUND_COLOR);
+		
 		navigationPanel.add(first);
 		navigationPanel.add(previous);
 		navigationPanel.add(navigationField);
 		navigationPanel.add(next);
 		navigationPanel.add(last);
+		navigationPanel.add(btnSortStudies);
 
 		navigationPanel.setBackground(BACKGROUND_COLOR);
 		descrPanel.add(navigationPanel);
@@ -275,104 +370,125 @@ public class ForestPlot extends JPanel implements ActionListener{
 		field.setText((curMarkerIndex + 1) + " of " + markersIndexes.size());
 	}
 
-	private void setCurTree(String markerName) {
-		curTrees = markersToTreesMap.get(markerName);
-		maxZScore = findMaxZScore();
-		sumZScore = calcSumZScore();
-		longestStudyNameSize = findLongestStudyNameSize();
+	private void setCurMarker(String markerName) {
+		currMetaStudy = markersToMetaMap.get(markerName);
+//		currStudies = markersToDataMap.get(markerName);
+		maxZScore = currMetaStudy.findMaxZScore();
+		sumZScore = currMetaStudy.calcSumZScore();
+		longestStudyNameSize = currMetaStudy.findLongestStudyNameSize();
 		plotLabel = markerName;
-	}
-
-	private String findLongestStudyNameSize() {
-		String longest = "";
-		for(ForestTree ft : curTrees){
-			longest = longest.length() < ft.getLabel().length() ? ft.getLabel() : longest;
-		}
-		return longest;
 	}
 
 	public String getLongestStudyNameSize() {
 		return longestStudyNameSize;
 	}
 
-	private float calcSumZScore() {
-		float sum=0;
-		for	(ForestTree ft : curTrees){
-			sum += ft.getzScore();
-		}
-		return sum;
-	}
-
-	private void loadTrees() throws RuntimeException{
-		BufferedReader dataReader = Files.getReader(dataFile, false,true, log, true);
+	private void loadStudyData() throws RuntimeException{
+		BufferedReader dataReader = Files.getReader(dataFile, 
+														false, // not a jar file
+														true, // verbose mode on 
+														log, 
+														false // DON'T KILL THE WHOLE DAMN SYSTEM (esp. if we're running a GUI)
+														);
 		String delimiter = Files.determineDelimiter(dataFile, log);
 		try {
-			dataReader.readLine();	// skip headers
+			dataReader.readLine();	// skip header
 
-			while(dataReader.ready()){
+			while(dataReader.ready()) {
 				String readLine = dataReader.readLine();
 				String readData[] = readLine.split(delimiter);
-				if(markers.contains(readData[1])){
-					getAllTrees(readData);
-					atleastOneTree = true;
+				String markerName = readData[1];
+				if(markers.contains(markerName)){
+					if(markersToMetaMap.containsKey(markerName)){
+						throw new RuntimeException("Malformed Data File: Duplicate marker name found");
+					} else {
+						markersToMetaMap.put(markerName, getMetaStudy(readData));
+					}
+					atleastOneStudy = true;
 				}
+//				if(markers.contains(markerName)){
+//					if(markersToDataMap.containsKey(markerName)){
+//						throw new RuntimeException("Malformed Data File: Duplicate marker name found");
+//					} else {
+//						markersToDataMap.put(markerName, getStudyEntries(readData));
+//					}
+//					atleastOneStudy = true;
+//				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.reportException(e);
 		}
 
-		if(!atleastOneTree)
-			throw new RuntimeException("Not able to find trees with the given markers. Please make sure that markers are right");
-	}
-
-	private void getAllTrees(String[] readData) {
-		if(markersToTreesMap.containsKey(readData[1])){
-			throw new RuntimeException("Malformed Data File: Duplicate marker name found");
-		} else {
-			markersToTreesMap.put(readData[1], getTrees(readData));
+		if(!atleastOneStudy) {
+			throw new RuntimeException("Not able to find data for the given markers. Please make sure the given markers are correct and included in the data file.");
 		}
 	}
-
-	private ArrayList<ForestTree> getTrees(String[] readData) {
-		ArrayList<ForestTree> trees = new ArrayList<ForestTree>();
-		for(String studyName : markerToColMap.keySet()){
-			float beta = ext.isValidDouble(readData[markerToColMap.get(studyName)]) ? Float.parseFloat(readData[markerToColMap.get(studyName)]) : 0.0f;
-			float stderr =  ext.isValidDouble(readData[markerToColMap.get(studyName) + 1]) ? Float.parseFloat(readData[markerToColMap.get(studyName) + 1]) : 0.0f;
-			trees.add(new ForestTree(studyName, beta, stderr,  0, PlotPoint.FILLED_CIRCLE));
+	
+	private MetaStudy getMetaStudy(String[] readData) {
+		String metaB, metaS;
+		float metaBeta, metaStderr;
+		
+		metaB = readData[metaIndicies[0]];
+		metaS = readData[metaIndicies[1]];
+		metaBeta = ext.isValidDouble(metaB) ? Float.parseFloat(metaB) : 0.0f;
+		metaStderr = ext.isValidDouble(metaS) ? Float.parseFloat(metaS) : 0.0f;
+		
+		MetaStudy ms = new MetaStudy(metaBeta, metaStderr);
+		ArrayList<StudyData> studies = getStudyEntries(readData);
+		for (int i = 0; i < studies.size(); i++) {
+			ms.addStudy(studies.get(i));
 		}
-		return trees;
+		
+		return ms;
+	}
+
+	private ArrayList<StudyData> getStudyEntries(String[] readData) {
+		ArrayList<StudyData> studies = new ArrayList<StudyData>();
+		String betaVal, seVal;
+		for(String studyName : studyToColIndexMap.keySet()){
+			betaVal = readData[studyToColIndexMap.get(studyName)];
+			seVal = readData[studyToColIndexMap.get(studyName) + 1];
+			float beta = ext.isValidDouble(betaVal) ? Float.parseFloat(betaVal) : 0.0f;
+			float stderr = ext.isValidDouble(seVal) ? Float.parseFloat(seVal) : 0.0f;
+			studies.add(new StudyData(studyName, beta, stderr, 0, PlotPoint.FILLED_CIRCLE));
+		}
+		return studies;
 	}
 
 	private void mapMarkersToCol() throws RuntimeException {
-
+		String[] dataFileHeaders = Files.getHeaderOfFile(this.dataFile, this.log);
 		for (int i = 0; i < dataFileHeaders.length; i++) {
-			if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
+			if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADER)) {
+				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADER)) {
+					metaIndicies = new int[]{i, i+1};
+				}
+			} else if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
 				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)) {
-					if (markerToColMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
+					if (studyToColIndexMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
 						throw new RuntimeException("Malformed data file: Duplicate study name found in file");
 					} else {
-						markerToColMap.put(dataFileHeaders[i].split("\\.")[1], i);
+						studyToColIndexMap.put(dataFileHeaders[i].split("\\.")[1], i);
 					}
 				} else {
 					throw new RuntimeException("Malformed data file: SE is not present after Beta for: " + dataFileHeaders[i]);
 				}
 			}
 		}
+		dataFileHeaders = null;
 	}
 
 	private LinkedHashSet<String> readMarkerNames(String markerFile) {
 		LinkedHashSet<String> markerNames = new LinkedHashSet<String>();
 		BufferedReader markerReader = Files.getReader(markerFile, false, true, true);
-
+		
 		try {
 			while (markerReader.ready()) {
 				markerNames.add(markerReader.readLine().trim());
-
 			}
 		} catch (IOException e) {
 			log.reportException(e);
 		}
-		markersIndexes.addAll(markerNames);
+		
 		return markerNames;
 	}
 
@@ -396,13 +512,13 @@ public class ForestPlot extends JPanel implements ActionListener{
 		frame.setVisible(true);
 	}
 
-//	public static ArrayList<ForestTree> getTrees() {
-//		ArrayList<ForestTree> trees = new ArrayList<ForestTree>();
-//		trees.add(new ForestTree("PROGENI/GenePD", 0.296154f, 0.0834038f, 0, PlotPoint.FILLED_CIRCLE));
-//		trees.add(new ForestTree("NGRC", 0.105856f, 0.0559677f, 0, PlotPoint.FILLED_CIRCLE));
-//		trees.add(new ForestTree("23andMe", 0.213202f, 0.027064f, 0, PlotPoint.FILLED_CIRCLE));
-//		trees.add(new ForestTree("Summary", 0.156191625f, 0.022027313f, 0, PlotPoint.FILLED_CIRCLE));
-//		return trees;
+//	public static ArrayList<StudyData> getTrees() {
+//		ArrayList<StudyData> data = new ArrayList<StudyData>();
+//		data.add(new StudyData("PROGENI/GenePD", 0.296154f, 0.0834038f, 0, PlotPoint.FILLED_CIRCLE));
+//		data.add(new StudyData("NGRC", 0.105856f, 0.0559677f, 0, PlotPoint.FILLED_CIRCLE));
+//		data.add(new StudyData("23andMe", 0.213202f, 0.027064f, 0, PlotPoint.FILLED_CIRCLE));
+//		data.add(new StudyData("Summary", 0.156191625f, 0.022027313f, 0, PlotPoint.FILLED_CIRCLE));
+//		return data;
 //	}
 
 	public float getMaxZScore() {
@@ -411,14 +527,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 	public float getSumZScore() {
 		return sumZScore;
-	}
-
-	private float findMaxZScore() {
-		float max = Float.MIN_VALUE;
-		for (ForestTree tree : curTrees) {
-			max = Math.max(max, tree.getzScore());
-		}
-		return max;
 	}
 
 	public void updateGUI() {
@@ -450,7 +558,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 			next();
 		} else if (command.equals(LAST)) {
 			last();
-		}	else {
+		} else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}
 
@@ -459,7 +567,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	public void first() {
 		if(curMarkerIndex != 0){
 			curMarkerIndex = 0;
-			setCurTree(markersIndexes.get(curMarkerIndex));
+			setCurMarker(markersIndexes.get(curMarkerIndex));
 			updateForestPlot();
 		}
 	}
@@ -467,7 +575,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	public void previous() {
 		if(curMarkerIndex != 0){
 			curMarkerIndex--;
-			setCurTree(markersIndexes.get(curMarkerIndex));
+			setCurMarker(markersIndexes.get(curMarkerIndex));
 			updateForestPlot();
 		}
 	}
@@ -475,7 +583,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	public void next() {
 		if(curMarkerIndex != markersIndexes.size()-1){
 			curMarkerIndex++;
-			setCurTree(markersIndexes.get(curMarkerIndex));
+			setCurMarker(markersIndexes.get(curMarkerIndex));
 			updateForestPlot();
 		}
 	}
@@ -483,7 +591,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	public void last() {
 		if(curMarkerIndex < markersIndexes.size()-1){
 			curMarkerIndex = markersIndexes.size()-1;
-			setCurTree(markersIndexes.get(curMarkerIndex));
+			setCurMarker(markersIndexes.get(curMarkerIndex));
 			updateForestPlot();
 		}
 	}
@@ -498,7 +606,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 		String usage = "\n" + "cnv.plots.ForestPlot requires 3 arguments\n" +
 				"(1) Name of the file with betas and standard errors (i.e. betaSource=" + betaSource +"(default))\n" +
-				"(2) File type (i.e. type=" + sourceType +" (default))" +
+				"(2) File type (i.e. type=" + sourceType +" (default))\n" +
 				"(3) Name of the file with the list of markers to display (i.e. markerList="+ markerList +" (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
