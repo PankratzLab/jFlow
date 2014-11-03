@@ -333,7 +333,7 @@ public class Zip {
 						} catch (InterruptedException ie) {
 						}
 					} else if (filename.startsWith("outputDirectory=")) {
-						outputDirectory = ext.parseStringArg(params.elementAt(i), null);
+						outputDirectory = ext.parseStringArg(params.elementAt(i), "");
 						log.report("Setting output directory to "+outputDirectory);
 						if (!Files.isDirectory(outputDirectory)) {
 							log.report("Output directory does not exist; attempting to create...");

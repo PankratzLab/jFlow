@@ -2055,7 +2055,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			} catch (InterruptedException ie) {
 			}
 			if (count > 8 && count % 8 == 0) {
-				log.reportError("Error - have been waiting on markerDataLoader to load " + markerList[markerIndex] + " for " + (count/4) + " secounds");
+				log.reportError("Error - ScatterPlot has been waiting on markerDataLoader to load " + markerList[markerIndex] + " for " + (count/4) + " secounds");
 			}
 		}
 		
