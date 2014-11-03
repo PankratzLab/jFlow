@@ -1,11 +1,11 @@
 package cnv.manage;
 
 import common.Array;
+import common.CountHash;
 import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
-
 import cnv.filesys.*;
 
 import java.io.File;
@@ -38,6 +38,8 @@ public class MarkerDataLoader implements Runnable {
 	private int[] plinkSampleIndices;
 	private Thread thread;
 	private Logger log;
+	private CountHash finalWaitTimeCounts;
+	private HashSet<Integer> waitTimesSeen;
 
 	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
 		this(proj, markerNames, amountToLoadAtOnceInMB, null);	
@@ -74,6 +76,8 @@ public class MarkerDataLoader implements Runnable {
 		sampleFingerprint = proj.getSampleList().getFingerprint();
 		numberCurrentlyLoaded = 0;
 		initiated = false;
+		waitTimesSeen = new HashSet<Integer>();
+		finalWaitTimeCounts = new CountHash();
 
 		markerNamesProj = proj.getMarkerNames();
 		chrsProj = proj.getMarkerSet().getChrs();
@@ -128,7 +132,7 @@ public class MarkerDataLoader implements Runnable {
 					if (readAheadLimit > markerNames.length) {
 						log.report("Read ahead limit was computed to be greater than the number of markers; all markers will be loaded into memory at once");
 					} else {
-						log.report("Read ahead limit was computed to be "+readAheadLimit+" markers at a time");
+						log.report("Read ahead limit was computed to be "+ext.addCommas(readAheadLimit)+" markers at a time");
 					}
 				}
 			} else {
@@ -243,11 +247,31 @@ public class MarkerDataLoader implements Runnable {
 			} catch (InterruptedException ie) {
 			}
 			if (count > 8 && count % 8 == 0) {
-				log.reportError("Have been waiting on markerDataLoader to load "+markerNames[markerIndex]+" for "+(count/4)+" seconds");
+				if (!waitTimesSeen.contains(count)) {
+					log.reportError("Have been waiting on markerDataLoader to load "+markerNames[markerIndex]+" for "+(count/4)+" seconds");
+					waitTimesSeen.add(count);
+				}
 			}
 		}
 
+		finalWaitTimeCounts.add(count+"");
+		
 		return markerData;
+	}
+	
+	public void reportWaitTimes() {
+		String[] values;
+		int[] counts;
+		
+		finalWaitTimeCounts.sortValuesAlphanumerically();
+		values = finalWaitTimeCounts.getValues();
+		counts = finalWaitTimeCounts.getCounts();
+
+		log.report("Final wait times for markerDataLoader:");
+		log.report("All markers:\t"+markerNames.length);
+		for (int i = 0; i < values.length; i++) {
+			log.report(ext.formDeci(Double.parseDouble(values[i])/4.0, 2, true)+" seconds:\t"+counts[i]);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -315,7 +339,7 @@ public class MarkerDataLoader implements Runnable {
 			for (int i = 0; allRemaining.size() >0 && i < maxPerCycle; i++) {
 				v.addElement(allRemaining.remove(0));
 			}
-			log.report("Loaded up "+v.size()+" from MarkerData file:"+filename+"; "+allRemaining.size()+" remaining for that file; "+ext.getTimeElapsed(subtime), true, true, 1);
+			log.report("Loaded up "+v.size()+" from MarkerData file:"+filename+"; "+allRemaining.size()+" remaining for that file; "+ext.getTimeElapsed(subtime), true, true, 8);
 			subtime = new Date().getTime();
 			if (allRemaining.size() == 0) {
 				filenames.remove(filename);

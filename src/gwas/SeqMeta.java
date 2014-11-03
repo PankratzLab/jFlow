@@ -4,13 +4,10 @@ import java.io.*;
 import java.util.*;
 
 import parse.GenParser;
-
 import mining.Transformations;
-
 import stats.Correlation;
 import stats.ProbDist;
 import stats.Rscript;
-
 import common.*;
 import filesys.*;
 
@@ -1190,7 +1187,7 @@ public class SeqMeta {
 		String[] header;
 		int[] indices;
 		Hashtable<String, String> snpGeneHash;
-		Hashtable<String, String> snpGeneFunctionalHash;
+		Hashtable<String, String> snpGeneFunctionalHash, snpGeneFunctionalHashPan, snpGeneFunctionalHashRaceSpecific;
 		Hashtable<String, Vector<String>> geneLoci;
 		String[] keys;
 		Hashtable<String, int[]> macs, raceSpecificMacs;
@@ -1227,18 +1224,22 @@ public class SeqMeta {
 			return;
 		}
 		if (Files.exists(filename+".mappings.ser") && Files.exists(filename+".maf"+mafThreshold+".functionalMappings.ser")) {
+			log.report(ext.getTime()+"\tLoading "+filename+".mappings.ser");
 			snpGeneHash = SerialHash.loadSerializedStringHash(filename+".mappings.ser");
+			log.report(ext.getTime()+"\tReloaded marker mappings (n="+ext.addCommas(snpGeneHash.size())+" variants) in " + ext.getTimeElapsed(time));
+			log.report(ext.getTime()+"\tLoading "+filename+".functionalMappings.ser");
 			snpGeneFunctionalHash = SerialHash.loadSerializedStringHash(filename+".maf"+mafThreshold+".functionalMappings.ser");
-			log.report(ext.getTime()+"\tReloaded marker mappings in " + ext.getTimeElapsed(time));
+			log.report(ext.getTime()+"\tReloaded marker mappings (n="+ext.addCommas(snpGeneFunctionalHash.size())+" functional variants) in " + ext.getTimeElapsed(time));
 		} else {
 			snpGeneHash = new Hashtable<String, String>();
 			snpGeneFunctionalHash = new Hashtable<String, String>();
 			geneLoci = new Hashtable<String, Vector<String>>();
 
 			try {
+				log.report(ext.getTime()+"\tReading in " + filename);
 				reader = new BufferedReader(new FileReader(filename));
 				header = ext.splitCommasIntelligently(reader.readLine(), true, log);
-				needs = new String[][] {Aliases.MARKER_NAMES, Aliases.GENE_UNITS, new String[] {functionFlagName}, Aliases.CHRS, {"MAF", "EC_ALL_MAF"}};
+				needs = new String[][] {Aliases.MARKER_NAMES, Aliases.GENE_UNITS, new String[] {functionFlagName}, Aliases.CHRS};
 				indices = ext.indexFactors(needs, header, false, true, true, log, false);
 				if (Array.min(indices) == -1) {
 					log.reportError("Improper header for file '"+filename+"', found: "+Array.toStr(header, "/")+"\nMissing one of these: "+Array.toStr(needs[ext.indexOfInt(-1, indices)], "/"));
@@ -1248,7 +1249,7 @@ public class SeqMeta {
 				while (reader.ready()) {
 					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 					snpGeneHash.put(line[indices[0]], line[indices[1]]);
-					if (line[indices[2]].equals("TRUE") && !line[indices[4]].equals("NA") && Double.parseDouble(line[indices[4]]) <= mafThresholdDouble ) {
+					if (line[indices[2]].equals("TRUE")) { // && !line[indices[4]].equals("NA") && Double.parseDouble(line[indices[4]]) <= mafThresholdDouble ) {
 						snpGeneFunctionalHash.put(line[indices[0]], line[indices[1]]);
 					}
 					if (!geneLoci.containsKey(line[indices[1]])) {
@@ -1257,6 +1258,7 @@ public class SeqMeta {
 					HashVec.addIfAbsent(line[indices[3]], geneLoci.get(line[indices[1]]));
 				}
 				reader.close();
+				log.report(ext.getTime()+"\tProcessed marker mappings (n="+ext.addCommas(snpGeneHash.size())+" variants; n="+ext.addCommas(snpGeneFunctionalHash.size())+" functional variants) in " + ext.getTimeElapsed(time));
 			} catch (FileNotFoundException fnfe) {
 				System.err.println("Error: file \"" + filename + "\" not found in current directory");
 				System.exit(1);
@@ -1264,8 +1266,6 @@ public class SeqMeta {
 				System.err.println("Error reading file \"" + filename + "\"");
 				System.exit(2);
 			}
-			
-			log.report(ext.getTime()+"\tLoaded data in " + ext.getTimeElapsed(time));
 			
 			keys = HashVec.getKeys(geneLoci);
 			for (int i = 0; i < keys.length; i++) {
@@ -1285,14 +1285,21 @@ public class SeqMeta {
 			System.err.println("Error - this program erroneously assumed that the first model was SingleSNP and got confused (it's actually "+methods[0][0]+"); aborting");
 			return;
 		}
-
+		
 		files = Files.list(dir, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 
 		for (int i = 0; i < phenotypes.length; i++) {
+			log.report(ext.getTime()+"\tStarting calculations for "+phenotypes[i][0]);
 			macs = new Hashtable<String, int[]>();
+			snpGeneFunctionalHashPan = filterSnpGeneFunctionalHash(dir+phenotypes[i][0]+"/"+methods[0][0]+"/"+phenotypes[i][0]+"_"+methods[0][0]+".csv", snpGeneFunctionalHash, mafThresholdDouble, log);
+			log.report(ext.getTime()+"\tThere are "+ext.addCommas(snpGeneFunctionalHashPan.size())+" functional variants remaining after MAF checks in the cross-ethnic meta-analysis");
+
 			for (int k = 0; k < races.length; k++) {
+				log.report(ext.getTime()+"\tStarting calculations for "+phenotypes[i][0]+" specifically for "+races[k][0]);
 				raceSpecificMacs = new Hashtable<String, int[]>();
+				snpGeneFunctionalHashRaceSpecific = filterSnpGeneFunctionalHash(dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[0][0]+"/"+races[k][0]+"_"+phenotypes[i][0]+"_"+methods[0][0]+".csv", snpGeneFunctionalHash, mafThresholdDouble, log);
+				log.report(ext.getTime()+"\tThere are "+ext.addCommas(snpGeneFunctionalHashRaceSpecific.size())+" functional variants remaining after MAF checks in the "+races[k][0]+" meta-analysis");
 				localDir = dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[0][0]+"/";
 				for (int j = 0; j < studies.length; j++) {
 					if (!finalSets[i][j][k].equals("<missing>")) {
@@ -1311,8 +1318,8 @@ public class SeqMeta {
 								if (!snpGeneHash.containsKey(line[indices[0]])) {
 									log.reportError("Warning - variant '"+line[indices[0]]+"' was not found in the snpInfo file");
 								}
-								if (snpGeneFunctionalHash.containsKey(line[indices[0]])) {
-									gene = snpGeneFunctionalHash.get(line[indices[0]]);
+								if (snpGeneFunctionalHashPan.containsKey(line[indices[0]])) {
+									gene = snpGeneFunctionalHashPan.get(line[indices[0]]);
 									
 									// pan-ethnic
 									if (macs.containsKey(gene)) {
@@ -1323,6 +1330,11 @@ public class SeqMeta {
 									if (!line[indices[1]].equals("NA")) {
 										counts[j] += Math.round(Double.parseDouble(line[indices[1]]) * Double.parseDouble(line[indices[2]]) * 2);
 									}
+								}
+								
+
+								if (snpGeneFunctionalHashRaceSpecific.containsKey(line[indices[0]])) {
+									gene = snpGeneFunctionalHashRaceSpecific.get(line[indices[0]]);
 
 									// race-specific
 									if (raceSpecificMacs.containsKey(gene)) {
@@ -1376,6 +1388,42 @@ public class SeqMeta {
 				e.printStackTrace();
 			}
 		}
+		
+		log.report(ext.getTime()+"\tFinished verything in "+ext.getTimeElapsed(time));
+	}
+	
+	public static Hashtable<String,String> filterSnpGeneFunctionalHash(String filename, Hashtable<String,String> snpGeneFunctionalHash, double mafThresholdDouble, Logger log) {
+		Hashtable<String,String> snpGeneFunctionalHashFiltered;
+		BufferedReader reader;
+		String[] line, header;
+		int[] indices;
+		long time;
+		
+		time = new Date().getTime();
+		log.report(ext.getTime()+"\tFiltering "+ext.removeDirectoryInfo(filename)+" based on a "+ext.formDeci(mafThresholdDouble*100, 10, false)+"% threshold");
+		
+		snpGeneFunctionalHashFiltered = new Hashtable<String, String>(snpGeneFunctionalHash.size()/2);
+		try {
+			reader = Files.getAppropriateReader(filename);
+			header = ext.splitCommasIntelligently(reader.readLine(), true, log);
+			indices = ext.indexFactors(new String[] {"Name", "maf"}, header, false, true);
+			while (reader.ready()) {
+				line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+				if (snpGeneFunctionalHash.containsKey(line[indices[0]]) && !line[indices[1]].equals("NA") && Double.parseDouble(line[indices[1]]) <= mafThresholdDouble) {
+					snpGeneFunctionalHashFiltered.put(line[indices[0]], snpGeneFunctionalHash.get(line[indices[0]]));
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			return null;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + filename + "\"");
+			return null;
+		}
+		log.report("Finished reading in " + ext.getTimeElapsed(time));
+		
+		return snpGeneFunctionalHashFiltered;
 	}
 
 	public static void assembleHits(String dir, MetaAnalysisParams maps, int macThresholdStudy, int macThresholdTotal, double mafThreshold) {
@@ -1414,7 +1462,7 @@ public class SeqMeta {
 		groupAnnotationParams = maps.getGroupAnnotationParams();
 
 		log = new Logger(dir+"assembleHits.log");
-		log.report("Using a threshold of "+macThresholdStudy+"/"+macThresholdTotal);
+		log.report("Using MAC thresholds of "+macThresholdStudy+" for study / "+macThresholdTotal+" for meta-analysis");
 
 		// match all rdata files to pheno/study/race
 		files = Files.list(dir, ".Rdata", false);
@@ -1918,7 +1966,7 @@ public class SeqMeta {
 				additionalCols = new Vector<String>();
 				if (groups[g].equals("SingleVariant")) {
 					additionalCols.add("SKATgene");
-					additionalCols.add("CHARGE_ALL_AF");
+//					additionalCols.add("CHARGE_ALL_AF");
 //					additionalCols.add("single_func_region");
 					additionalCols.add("Function");
 				}
@@ -2138,6 +2186,7 @@ public class SeqMeta {
 	
 	private static void makeSetOfMockRdataFiles(String dir, MetaAnalysisParams maps) {
 		String[] files;
+		String[][][] finalSets;
 		
 		if (dir == null || dir.equals("")) {
 			dir = new File("").getAbsolutePath()+"/";
@@ -2145,10 +2194,20 @@ public class SeqMeta {
 		dir = ext.verifyDirFormat(dir);
 		
 		files = Files.list(dir, ".Rdata", false);
-		identifySet(maps, files, new Logger());
+		finalSets = identifySet(maps, files, new Logger());
 		new File(dir+"mockRdata/").mkdirs();
-		for (int i = 0; i < files.length; i++) {
-			Files.writeList(new String[0], dir+"mockRdata/"+files[i]);
+		for (int i = 0; i < finalSets.length; i++) {
+			for (int j = 0; j < finalSets[i].length; j++) {
+				for (int k = 0; k < finalSets[i][j].length; k++) {
+					if (!finalSets[i][j][k].equals("<missing>")) {
+						files = finalSets[i][j][k].split(";");
+						for (int f = 0; f < finalSets.length; f++) {
+						Files.writeList(new String[0], dir+"mockRdata/"+files[f]);
+						}
+					}
+				}
+
+			}
 		}
 	}
 	
@@ -3069,12 +3128,16 @@ public class SeqMeta {
 //		summarizePhenotypes(dir, new MetaAnalysisParams(dir+"metaAnalysis.params", new Logger()), true, true, new Logger());
 //		System.exit(1);
 
+//		dir = "D:/ExomeChip/Hematology/results/11_accurateMACs/";
+//		log = new Logger(logfile);
+//		computeMACs = true;
+
 		try {
 			log = new Logger(logfile);
 			if (metalSensitivity != null) {
 				metalCohortSensitivity(dir, metalSensitivity, log);
 			} else {
-				maps = new MetaAnalysisParams(mapsFile, log);
+				maps = new MetaAnalysisParams(dir+mapsFile, log);
 				if (determineObjectNames) {
 					determineObjectNames(dir, maps, log);
 				} else if (splitAll) {

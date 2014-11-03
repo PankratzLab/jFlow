@@ -132,6 +132,9 @@ public class PrincipalComponentsApply {
 				}
 				markerDataLoader.releaseIndex(i);
 			}
+
+			markerDataLoader.reportWaitTimes();
+
 			applySingularValues();
 		}
 	}

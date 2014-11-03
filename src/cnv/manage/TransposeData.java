@@ -132,10 +132,10 @@ public class TransposeData {
 				markersInEachFile = new byte[numFiles][];
 				backupCount = backupOlderFiles(proj.getDir(Project.MARKER_DATA_DIRECTORY, true, false), new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, true);
 				backupOlderFile(proj.getFilename(Project.MARKERLOOKUP_FILENAME, false, false), backupCount);
-				log.report( "--\nProject:\t" + allMarkerNamesInProj.length + " markers\t" + allSampleNamesInProj.length +" samples"
+				log.report( "--\nProject:\t" + ext.addCommas(allMarkerNamesInProj.length) + " markers\t" + ext.addCommas(allSampleNamesInProj.length) +" samples"
 						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
-						  + "\nwriteBuffer:\t" + numMarkers_WriteBuffer + " markers\t" + numChunks_WriteBuffer+ " chunks\t"+numMarkers_Chunk+" Markers/chunk\t" +  ext.formDeci((double) numMarkers_WriteBuffer * numBytes_Mark / (double)Runtime.getRuntime().maxMemory() * 100, 1) + "% heap efficiency" 
-						  + "\nMarkerFile:\t" + numMarkers_File + " markers\t" + numChunks_File + " chunks\t" + markerFileSizeSuggested/1024/1024/1024 + "." + ((int)(markerFileSizeSuggested/1024/1024/10.24) - (int)(markerFileSizeSuggested/1024/1024/1024*102.4)) + " gb\t" + numFiles + " files");
+						  + "\nwriteBuffer:\t" + ext.addCommas(numMarkers_WriteBuffer) + " markers\t" + numChunks_WriteBuffer+ " chunks\t"+ext.addCommas(numMarkers_Chunk)+" Markers/chunk\t" +  ext.formDeci((double) numMarkers_WriteBuffer * numBytes_Mark / (double)Runtime.getRuntime().maxMemory() * 100, 1) + "% heap efficiency" 
+						  + "\nMarkerFile:\t" + ext.addCommas(numMarkers_File) + " markers\t" + numChunks_File + " chunks\t" + markerFileSizeSuggested/1024/1024/1024 + "." + ((int)(markerFileSizeSuggested/1024/1024/10.24) - (int)(markerFileSizeSuggested/1024/1024/1024*102.4)) + " gb\t" + numFiles + " files");
 
 
 				markerIndex = 0;
@@ -293,8 +293,7 @@ public class TransposeData {
 			}
 
 		} 
-		timerOverAll = (new Date().getTime() - timerOverAll);
-		log.report("--\nFinished transposing data. Total Time used: "+ timeFormat.format(timerOverAll));
+		log.report("--\nFinished transposing data. Total Time used: "+ ext.getTimeElapsed(timerOverAll)+"\n");
 	}
 
 
