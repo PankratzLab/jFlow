@@ -67,11 +67,19 @@ class MetaStudy {
 		if (this.sorted == null) {
 			this.sorted = new ArrayList<StudyData>();
 			
+			TreeMap<String, String> zeroStudyMap = new TreeMap<String, String>();
 			TreeMap<Float, String> betaStudyMap = new TreeMap<Float, String>();
 			for (StudyData study : studies) {
-				betaStudyMap.put(study.getBeta(), study.getLabel());
+				if (study.getBeta() == 0.0f) {
+					zeroStudyMap.put(study.getLabel(), study.getLabel());
+				} else {
+					betaStudyMap.put(study.getBeta(), study.getLabel());
+				}
 			}
 			ArrayList<StudyData> desc = new ArrayList<StudyData>();
+			for (java.util.Map.Entry<String, String> entry : zeroStudyMap.entrySet()) {
+				desc.add(nameMap.get(entry.getValue()));
+			}
 			for (java.util.Map.Entry<Float, String> entry : betaStudyMap.entrySet()) {
 				desc.add(nameMap.get(entry.getValue()));
 			}
@@ -350,7 +358,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 			}
 		};
 		btnSortStudies = new JCheckBox(sortAction);
-		btnSortStudies.setText("Sort Studies (experimental)");
+		btnSortStudies.setText("Sort Studies");
 		btnSortStudies.setBackground(BACKGROUND_COLOR);
 		
 		navigationPanel.add(first);
