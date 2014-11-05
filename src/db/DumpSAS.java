@@ -451,7 +451,7 @@ public class DumpSAS {
 		    			indices = ext.indexFactors(Array.toStringArray(ids), header, false, log, false, false);
 		    			for (int j = 0; j < ids.size(); j++) {
 			    			if (indices[j] != -1) {
-//			    				writer.print(" '"+ids.elementAt(j)+"'");
+			    				writer.print(" '"+ids.elementAt(j)+"'");
 			    				if (foundAnID) {
 			    					log.reportError("More than one \"valid\" ID available for file '"+file+"'; the first will be used and the remainder flagged to be reported");
 			    				} else {
@@ -541,8 +541,9 @@ public class DumpSAS {
 //				procAllContents("N:/cardia/phenotypes/Year 25 Dec 1 2011/dump/");
 //				catAllAlls("N:/cardia/phenotypes/", "manifest.txt");
 //				tallyAll("D:/Myron/CARDIA/ICAM1/", "tallyho.txt", "tableFormat.txt");
-				procAllContents("D:/PAGE/SOL/00src/dumps/");
+//				procAllContents("D:/PAGE/SOL/00src/dumps/");
 //				procAllContents("D:/PAGE/SOL/00src/dumps/test/");
+				mergeFromParameters("parseBloodCellTraits.crf", new Logger("parseBloodCellTraits_.log"));
 			} else {
 				dump(dir, sasExecutable, password);
 				procAllContents("./");
