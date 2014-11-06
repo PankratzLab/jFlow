@@ -2055,7 +2055,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 			} catch (InterruptedException ie) {
 			}
 			if (count > 8 && count % 8 == 0) {
-				log.reportError("Error - have been waiting on markerDataLoader to load " + markerList[markerIndex] + " for " + (count/4) + " secounds");
+				log.reportError("Error - ScatterPlot has been waiting on markerDataLoader to load " + markerList[markerIndex] + " for " + (count/4) + " secounds");
 			}
 		}
 		
@@ -2092,11 +2092,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		fileList = new Vector<String>(); 
 		for (int i = 0; i<files.length; i++) {
 			log.report("<", false, true);
-			trav = Centroids.load(proj.getDir(Project.DATA_DIRECTORY)+files[i], jar);
+			trav = Centroids.load(proj.getDir(Project.DATA_DIRECTORY)+files[i], jar);			
 			log.report(">", false, true);
 			if (trav.getFingerprint() != set.getFingerprint()) {
-				log.reportError("Error - Centroids file '"+files[i]+"' does not match up with the fingerprint of the current marker set");
-				System.exit(1);
+				log.reportError("Error - Centroids file '"+proj.getDir(Project.DATA_DIRECTORY) + files[i]+"' does not match up with the fingerprint of the current marker set and therefore will not load; if you don't want to see this error message again, then remove the .cent extension from this file.");
 			} else {
 				travCents = trav.getCentroids();
 				targetCents = new float[markerList.length][][];

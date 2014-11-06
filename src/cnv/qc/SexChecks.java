@@ -11,8 +11,9 @@ import common.*;
 import stats.*;
 
 public class SexChecks {
-	public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner";
+public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner";
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Mean X LRR", "Num X markers", "Num X 10-90", "% 10-90", "Mean Y LRR", "Num Y markers"};
+	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXX", "X", "X", "XYY", "XXYY"};
 	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
 	public static final String[] SNP_FIELDS = {"Sample", "X", "Y", "X Raw", "Y Raw", "Theta", "R", "B Allele Freq", "Log R Ratio", "AlleleCount"};
 	public static final String RESULTS_DIR = "genderChecks/";
@@ -306,14 +307,14 @@ public class SexChecks {
 			bafs = samp.getBAFs();
 
 			for (int j = 0; j < lrrs.length; j++) {
-				if (sexlinked[j][0] && !Double.isNaN(lrrs[j])) {
+				if (sexlinked[j][0] && !Double.isNaN(lrrs[j]) && !Double.isInfinite(lrrs[j])) {
 					lrrsX[i] += lrrs[j];
 					numXs[i]++;
 					if (bafs[j] > 0.10 && bafs[j] < 0.9) {
 						numX_10_90[i]++;
 					}
 				}
-				if (sexlinked[j][1] && !Double.isNaN(lrrs[j])) {
+				if (sexlinked[j][1] && !Double.isNaN(lrrs[j]) && !Double.isInfinite(lrrs[j])) {
 					lrrsY[i] += lrrs[j];
 					numYs[i]++;
 				}
@@ -343,9 +344,9 @@ public class SexChecks {
 			values[i] = lrrsY[i]/numYs[i];
 		}
 		// TODO not sure where we left off with this...
-		if (Array.isBimodal(values, 0.01, 100)) {
-			
-		}
+//		if (Array.isBimodal(values, 0.01, 100)) {
+//			
+//		}
 
 		putativeMaleMeanY=0;
 		putativeFemaleMeanY=0;
@@ -395,7 +396,7 @@ public class SexChecks {
 
 		for (int i=0; i<samples.length; i++) {
 			if (Math.abs(lrrsY[i]/numYs[i] - putativeMaleMeanY) < Math.abs(lrrsY[i]/numYs[i] - putativeFemaleMeanY)) {
-				if (lrrsX[i]/numXs[i] > (maleMeanX + NUM_SD_FOR_MALE_OUTLIERS*maleStdDevX)) {
+				if (lrrsX[i]/numXs[i] > (maleMeanX + NUM_SD_FOR_MALE_OUTLIERS * maleStdDevX)) {
 					if (samp.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
 						result[i] = 4; // mosaic Klinefelter
 					} else {

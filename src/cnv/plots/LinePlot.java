@@ -88,11 +88,10 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 	public LinePlot(Project project) {
 		String[] previouslyLoadedFiles;
-		
-		this.log = proj.getLog();
-		log.report("Creating new Line Plot object");
 
 		proj = project;
+		this.log = proj.getLog();
+		log.report("Creating new Line Plot object");
 		treeFilenameLookup = new Vector<String>();
 		// TODO Need to save the previously loaded files in other location.
 //		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);

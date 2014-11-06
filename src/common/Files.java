@@ -1667,6 +1667,7 @@ public class Files {
 		try {
 			oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(filename)));
 			oos.writeObject(o);
+			oos.flush();
 			oos.close();
 		} catch (Exception e) {
 			e.printStackTrace();
