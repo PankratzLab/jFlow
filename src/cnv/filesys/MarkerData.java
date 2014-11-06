@@ -448,6 +448,9 @@ public class MarkerData implements Serializable {
 			return;
         }
 		
+		thetas = getThetas();
+		rs = getRs();
+		
 		hasExcludedIndividuals = sampleData != null && sampleData.hasExcludedIndividuals();
 
 		try {

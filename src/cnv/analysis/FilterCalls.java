@@ -327,6 +327,11 @@ public class FilterCalls {
 	
 	public static void fromParameters(String filename, Logger log) {
 		Vector<String> params;
+		String dir = "";
+
+		if (Files.exists("N:/statgen/NCBI/")) {
+			dir = "N:/statgen/NCBI/";
+		}
 
 		params = Files.parseControlFile(filename, "filterCNVs", new String[] {
 				"dir=",
@@ -338,18 +343,18 @@ public class FilterCalls {
 				"# minimum number of SNPs:",
 				"number=15",
 				"minScore=10.0",
-				"filterRegions=/home/npankrat/NCBI/problematicRegions_hg19.dat",
-				"# pedfile to be used as a filter:" +
+				"filterFile="+dir+"problematicRegions_hg19.dat",
+				"# pedfile to be used as a filter:",
 				"ped=plink.fam",
 				"# if CNV spans centromere, break into two spanning actual markers",
 				"breakCentromere=true",
 				"# make a UCSC track (.bed file) as well",
 				"ucsc=true",
 				"",
-				"# ALTERNATIVELY, in addition to the dir/in/out and ignoreing all other filters you can",
+				"# ALTERNATIVELY, in addition to the dir/in/out and ignoring all other filters you can",
 				"# keep only CNVs overlapping these segments (simply uncomment the following argument):",
 				"#segs=gene_region.dat",
-				"# exlcude instead of include:",
+				"# exclude instead of include:",
 				"#excludeSegsInstead=true"
 		}, log);
 

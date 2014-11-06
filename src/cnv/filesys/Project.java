@@ -473,7 +473,7 @@ public class Project extends Properties {
 			return null;
 		}
 	}
-
+	
 	public Sample getPartialSampleFromRandomAccessFile(String sample) {
 		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
 			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, getJarStatus());
@@ -481,7 +481,15 @@ public class Project extends Properties {
 			return null;
 		}
 	}
-
+	
+	public Sample getPartialSampleFromRandomAccessFile(String sample, boolean gc, boolean xy, boolean baf, boolean lrr, boolean geno) {
+		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
+			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, gc, xy, baf, lrr, geno, getJarStatus());
+		} else {
+			return null;
+		}
+	}
+	
 	public void resetSampleData() {
 		sampleData = null;
 	}

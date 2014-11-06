@@ -233,8 +233,11 @@ public class ColorKeyPanel extends JPanel {
 				label.setName(currentClass+"\t"+keys[i]);
 				label.setFont(new Font("Arial", 0, 14));
 				label.addMouseListener(mouseListenerForColorKey);
-				classValuesPanel.add(block);
-				classValuesPanel.add(label);
+				JPanel labelEnclosure = new JPanel();
+				labelEnclosure.setBackground(BACKGROUND_COLOR);
+				labelEnclosure.add(block);
+				labelEnclosure.add(label);
+				classValuesPanel.add(labelEnclosure);
 			}
 		}
 

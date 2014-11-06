@@ -6,6 +6,8 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import common.*;
 import cnv.filesys.*;
@@ -88,7 +90,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private boolean[] dropped;
 	private int[][] chrBoundaries;
 	private float[] lrrs, lrrValues;
-	private float[] bafs;
+	private float[] bafs, originalBAFs;
 	private byte[] genotypes;
 	private byte chr;
 	private int start, startMarker;
@@ -113,6 +115,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private boolean transformSeparatelyByChromosome;
 	private GcModel gcModel;
 	private JCheckBox gcCorrectButton;
+	private Hashtable<String, String> namePathMap;
+	private JComboBox<String> centroidsSelection;
 	private Logger log;
 	private boolean fail;
 	
@@ -134,6 +138,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			{new Color(201, 30, 10), new Color(217, 109, 194)}, // deep red/pink
 			{new Color(33, 31, 53), new Color(255, 255, 255)} // dark dark/ light light
 	};
+
+	private float[][][] centroids;
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -267,6 +273,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					// max = 1.5;
 
 					switch (transformation_type) {
+					case -1:
 					case 0:
 						// Illumina
 						min = -3;
@@ -450,7 +457,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		// getContentPane().setBackground(Color.WHITE);
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
-
+		
+		JPanel overPanel = new JPanel();
+//		overPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 2));
+		overPanel.setLayout(new BoxLayout(overPanel, BoxLayout.LINE_AXIS));
 		JPanel descrPanel = new JPanel();
 		descrPanel.setLayout(new BoxLayout(descrPanel, BoxLayout.Y_AXIS));
 //		descrPanel.setLayout(new GridLayout(2, 1));
@@ -568,10 +578,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		navigationPanel.add(lastChr);
 		descrPanel.add(navigationPanel);
 		
+		JPanel dataOptionPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+		dataOptionPanel.setBorder(new EmptyBorder(0, 25, 0, 10));
 		JPanel transformationPanel = new JPanel();
+		transformationPanel.setLayout(new BoxLayout(transformationPanel, BoxLayout.PAGE_AXIS));
 		JLabel label = new JLabel("Log R Ratio transformation: ");
 		label.setFont(new Font("Arial", 0, 14));
+		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+		label.setBorder(new EmptyBorder(0, 0, 5, 0));
 		transformationPanel.add(label);
+		transformationPanel.add(Box.createHorizontalGlue());
 		
 		ButtonGroup typeRadio = new ButtonGroup();
 		JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
@@ -582,32 +598,58 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
 						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
 							transformation_type = i;
-							lrrValues =getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+							lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
 							updateGUI();
 						}
 					}
 				}
 			}
 		};
+		ItemListener centListener = new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent ie) {
+				JRadioButton jrb = (JRadioButton) ie.getItem();
+				if (jrb.isSelected()) {
+					transformation_type = -1;
+					setCentroid();
+					loadValues();
+					updateGUI();
+					repaint();
+				} else {
+					centroids = null;
+				}
+			}
+		};
+		
+		
 		for (int i = 0; i<Transforms.TRANFORMATIONS.length; i++) {
 			transformationRadioButtons[i] = new JRadioButton(Transforms.TRANFORMATIONS[i], false);
 			transformationRadioButtons[i].setFont(new Font("Arial", 0, 14));
 			typeRadio.add(transformationRadioButtons[i]);
 			transformationRadioButtons[i].addItemListener(typeListener);
+			transformationRadioButtons[i].setMargin(new Insets(0,0,0,0));
 //			transformationRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			transformationPanel.add(transformationRadioButtons[i]);
+
+			JPanel transOptPanel = new JPanel();
+			transOptPanel.setLayout(new BoxLayout(transOptPanel, BoxLayout.LINE_AXIS));
+//			transformationPanel.add(transformationRadioButtons[i]);
+			transOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
+			transOptPanel.add(transformationRadioButtons[i]);
+			transOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+			transformationPanel.add(transOptPanel);
 		}
 		
 		ItemListener gcListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
 				JCheckBox jrb = (JCheckBox) ie.getItem();
-				if (jrb.isSelected()) {
-					// gc correct, and apply any transformation
-					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, true, true, log);
-				} else {
-					// reset any transformation
-					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, false, false, log);
-				}
+				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
+//				if (jrb.isSelected()) {
+//					// gc correct, and apply any transformation
+//					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, true, true, log);
+//				} else {
+//					// reset any transformation
+//					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, false, false, log);
+//				}
 				updateGUI();
 			}
 		};
@@ -621,11 +663,66 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 
 		transformationRadioButtons[0].setSelected(true);
-		descrPanel.add(transformationPanel);
+		dataOptionPanel.add(transformationPanel);
+		//descrPanel.add(transformationPanel);
+		
+
+		JPanel centroidPanel = new JPanel();
+		centroidPanel.setLayout(new BoxLayout(centroidPanel, BoxLayout.PAGE_AXIS));
+		label = new JLabel("Derive from Centroids:");
+		label.setFont(new Font("Arial", 0, 14));
+		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+		label.setBorder(new EmptyBorder(0, 0, 5, 0));
+		centroidPanel.add(label);
+		JPanel centSubPanel = new JPanel();
+		centSubPanel.setLayout(new BoxLayout(centSubPanel, BoxLayout.LINE_AXIS));
+		centSubPanel.add(Box.createRigidArea(new Dimension(25, 1)));
+		centSubPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		JRadioButton centTransformButton = new JRadioButton("", false);
+		centTransformButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+		centTransformButton.setMargin(new Insets(0,0,0,0));
+		centTransformButton.addItemListener(centListener);
+		typeRadio.add(centTransformButton);
+		centSubPanel.add(centTransformButton);
+		
+		namePathMap = new Hashtable<String, String>();
+		Vector<String> centFiles = new Vector<String>();
+		centFiles.add(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME));
+		centFiles.add(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
+		centFiles.add(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME));
+		centFiles.add(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
+		for (String file : centFiles) {
+			if (Files.exists(file)) {
+				String name = file.substring(file.lastIndexOf("/") + 1);
+				name = name.substring(0, name.lastIndexOf("."));
+				namePathMap.put(name, file);
+			}
+		}
+		
+		centroidsSelection = new JComboBox<String>((String[]) namePathMap.keySet().toArray(new String[]{}));
+		centroidsSelection.setMaximumSize(new Dimension(150, 25));
+		centroidsSelection.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (transformation_type == -1) {
+					setCentroid();
+					loadValues();
+					updateGUI();
+					repaint();
+				}
+			}
+		});
+		centSubPanel.add(centroidsSelection);
+		centroidPanel.add(centSubPanel);
+		dataOptionPanel.add(centroidPanel);
+		
 		
 		JPanel scopePanel = new JPanel();
+		scopePanel.setLayout(new BoxLayout(scopePanel, BoxLayout.PAGE_AXIS));
 		label = new JLabel("Transform by: ");
 		label.setFont(new Font("Arial", 0, 14));
+		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+		label.setBorder(new EmptyBorder(0, 0, 5, 0));
 		scopePanel.add(label);
 		ButtonGroup scopeRadio = new ButtonGroup();
 		JRadioButton[] scopeRadioButtons = new JRadioButton[2];
@@ -635,7 +732,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				JRadioButton jrb = (JRadioButton)ie.getItem();
 				if (jrb.isSelected()) {
 					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
-					lrrValues =getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
 					updateGUI();
 				}
 			}
@@ -645,14 +742,41 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			scopeRadioButtons[i].setFont(new Font("Arial", 0, 14));
 			scopeRadio.add(scopeRadioButtons[i]);
 			scopeRadioButtons[i].addItemListener(scopeListener);
+			scopeRadioButtons[i].setAlignmentX(Component.LEFT_ALIGNMENT);
 //			scopeRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			scopePanel.add(scopeRadioButtons[i]);
+			scopeRadioButtons[i].setMargin(new Insets(0,0,0,0));
+			
+
+			JPanel scopeOptPanel = new JPanel();
+			scopeOptPanel.setLayout(new BoxLayout(scopeOptPanel, BoxLayout.LINE_AXIS));
+			scopeOptPanel.setBorder(null);
+//			transformationPanel.add(transformationRadioButtons[i]);
+			scopeOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
+			scopeOptPanel.add(scopeRadioButtons[i]);
+			scopeOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+			scopePanel.add(scopeOptPanel);
+			
+			
+//			scopePanel.add(scopeRadioButtons[i]);
 		}
 		scopeRadioButtons[0].setSelected(true);
-		descrPanel.add(scopePanel);
-
-
-		getContentPane().add(descrPanel, BorderLayout.NORTH);
+		//descrPanel.add(scopePanel);
+		dataOptionPanel.add(scopePanel);
+		
+		
+		
+		JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
+		sep.setMaximumSize(new Dimension(1, 150));
+		overPanel.setBorder(new EmptyBorder(5, 0, 5, 0));
+		
+		overPanel.add(Box.createHorizontalGlue());
+		overPanel.add(descrPanel);
+		overPanel.add(sep);
+		overPanel.add(dataOptionPanel);
+		overPanel.add(Box.createHorizontalGlue());
+		
+//		getContentPane().add(descrPanel, BorderLayout.NORTH);
+		getContentPane().add(overPanel, BorderLayout.NORTH);
 
 		InputMap inputMap = panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
@@ -756,7 +880,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			if (regions.length == 0) {
 				filenames = proj.getIndividualRegionLists();
 				if (filenames.length == 0) {
-					JOptionPane.showMessageDialog(null, "Error - No regions have been loaded, since there no indiviudal CNV region list files are defined in the properties file", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, "Error - No regions have been loaded, since there no individual CNV region files defined in the properties file", "Error", JOptionPane.ERROR_MESSAGE);
 				} else {
 					JOptionPane.showMessageDialog(null, "Error - No regions have been loaded; files include: "+Array.toStr(filenames, ", "), "Error", JOptionPane.ERROR_MESSAGE);
 				}
@@ -1002,23 +1126,26 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	public void loadValues() {
 		Sample samp;
-
-		samp = proj.getPartialSampleFromRandomAccessFile(sample);
+		
+		samp = proj.getPartialSampleFromRandomAccessFile(sample, false, true, true, true, false);
 		if (samp == null) {
 			System.err.println("Error - sample '"+sample+"' not found in "+proj.getDir(Project.SAMPLE_DIRECTORY));
 		} else if ( samp.getFingerprint()!=fingerprint) {
 			System.err.println("Error - Sample "+proj.getDir(Project.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
 		} else {
 			lrrs = samp.getLRRs();
+			bafs = samp.getBAFs();
+			genotypes = samp.getAB_Genotypes();
 			
 			if (transformation_type > 0) {
 				lrrValues = Transforms.transform(lrrs, transformation_type, transformSeparatelyByChromosome, markerSet);
+			} else if (transformation_type < 0 && centroids != null) {
+				lrrValues = samp.getLRRs(centroids);
+				bafs = samp.getBAFs(centroids);
 			} else {
 				lrrValues = lrrs;
 			}
 			
-			bafs = samp.getBAFs();
-			genotypes = samp.getAB_Genotypes();
 		}
 		// lrrMin = Math.floor(lrrMin);
 		// lrrMax = Math.ceil(lrrMax);
@@ -1096,10 +1223,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				return;
 			}
 			loadValues();
-			procCNVs(chr);
 			if (regionsList.length == 0 || !Files.exists(regionsList[regionsListIndex], jar)) {
 				loadCNVsAsRegions();
 			}
+			procCNVs(chr);
 			updateGUI();
 			System.out.println("updated in "+ext.getTimeElapsed(time));
 		} else {
@@ -1381,6 +1508,14 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		return tmpLrrs;
 	}
+	
+	private void setCentroid() {
+		String name = centroidsSelection.getSelectedItem().toString();
+		String path = namePathMap.get(name);
+		Centroids cent = Centroids.load(path, false);
+		centroids = cent.getCentroids();
+	}
+	
 //	public static CNVariant[] loadCNVfiles(Project proj, String[] filenames) {
 //		BufferedReader reader;
 //		Vector<CNVariant> v = null;

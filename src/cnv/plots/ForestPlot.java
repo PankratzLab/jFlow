@@ -373,11 +373,11 @@ public class ForestPlot extends JPanel implements ActionListener{
 		descrPanel.setBackground(BACKGROUND_COLOR);
 		return descrPanel;
 	}
-
+	
 	public void displayIndex(JTextField field) {
 		field.setText((curMarkerIndex + 1) + " of " + markersIndexes.size());
 	}
-
+	
 	private void setCurMarker(String markerName) {
 		currMetaStudy = markersToMetaMap.get(markerName);
 //		currStudies = markersToDataMap.get(markerName);

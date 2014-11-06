@@ -162,8 +162,12 @@ public class CentroidCompute {
 	}
 
 	public void computeCentroid() {
+		computeCentroid(false);
+	}
+	
+	public void computeCentroid(boolean forceAuto) {
 		init();
-		computeCenters();
+		computeCenters(forceAuto);
 		if (!failed) {
 			if (intensityOnly) {
 				assignIntensityCentroid();
@@ -293,17 +297,17 @@ public class CentroidCompute {
 		centroid[2] = new float[] { (float) centerThetas[4], (float) centerRs[4] };// median/mean of the actual X values
 	}
 
-	private void computeCenters() {
+	private void computeCenters(boolean forceAuto) {
 		if (!failed) {
-			if (!intensityOnly) {
-				computeGenotypeCenters();
+			if (intensityOnly) {
+				computeIntensityCenters(forceAuto);
 			} else {
-				computeIntensityCenters();
+				computeGenotypeCenters(forceAuto);
 			}
 		}
 	}
 
-	private void computeIntensityCenters() {
+	private void computeIntensityCenters(boolean forceAuto) {
 		byte chr = markerData.getChr();
 		float[] xs = markerData.getXs();
 		if (xs == null) {
@@ -312,7 +316,7 @@ public class CentroidCompute {
 		} else {
 			ArrayList<Double> filteredXs = new ArrayList<Double>(xs.length);
 			for (int i = 0; i < xs.length; i++) {
-				if (checkSex(chr, i) && (samplesToUse == null || samplesToUse[i]) && !Float.isNaN(xs[i])) {
+				if ((forceAuto || checkSex(chr, i)) && (samplesToUse == null || samplesToUse[i]) && !Float.isNaN(xs[i])) {
 					filteredXs.add((double) xs[i]);
 				}
 			}
@@ -344,7 +348,7 @@ public class CentroidCompute {
 	/**
 	 * We compute the center for thetas and Rs according to samplesToUse (if available), sex (if available and required), confidence threshold, and clusterfilters.
 	 */
-	private void computeGenotypeCenters() {
+	private void computeGenotypeCenters(boolean forceAuto) {
 
 		byte chr = markerData.getChr();
 		float[] thetas = markerData.getThetas();
@@ -358,7 +362,13 @@ public class CentroidCompute {
 		failed = checkGenoClusterMarkerData(thetas, rs, confs, genotypes, gcThreshold, log);
 		if (!failed) {
 			for (int i = 0; i < genotypes.length; i++) {
-				if (checkSex(chr, i) && (samplesToUse == null || samplesToUse[i]) && useMarker(thetas[i], rs[i], confs == null ? 0 : confs[i], gcThreshold)) {
+				boolean check1 = forceAuto || checkSex(chr, i);
+				boolean check2 = (samplesToUse == null || samplesToUse[i]);
+				boolean check3 = useMarker(thetas[i], rs[i], confs == null ? 0 : confs[i], gcThreshold);
+				
+//				System.out.println(i + " - s:" + sampleSex[i] + "->" + check1 + " ; " + samplesToUse[i]);
+				
+				if (check1 && check2 && check3) {
 					counts[0]++;
 					counts[genotypes[i] + 2]++;
 					if (medianCenter) {// a bit slower
@@ -477,10 +487,10 @@ public class CentroidCompute {
 	 */
 	private static boolean useSampleSex(int sampleSex, byte chr) {
 		boolean use = true;
-		if ((int) chr == 23 && sampleSex != 2) {// only cluster females on chromosome 23
+		if (chr == 23 && sampleSex != 2) {// only cluster females on chromosome 23
 			use = false;
 		}
-		if ((int) chr == 24 && sampleSex != 1) {// only cluster males on chromosome 24
+		if (chr == 24 && sampleSex != 1) {// only cluster males on chromosome 24
 			use = false;
 		}
 		return use;
