@@ -217,86 +217,6 @@ public class temp {
 		
 	}
 	
-	
-	
-	
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		String filename = "source.txt";
-
-		ls();
-		
-		System.exit(1);
-		
-		
-		String usage = "\n"+
-		".temp requires 0-1 arguments\n"+
-		"   (1) filename (i.e. file=" + filename + " (default))\n"+
-		"";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
-				numArgs--;
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			String dir = "D:/data/COGA_exome/00src/";
-			String ext = ".AxiomGT1.txt";
-			int start = 8, stop = 1008;
-			Files.splitFilesByLine(dir, ext, start, stop);
-			System.exit(1);
-			
-//			Internat.downloadFile("http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2708794/pdf/JPATH175000054.pdf", "D:/SH3GL2.pdf");
-			
-//			parseAll(filename);
-//			downloadAll(ext.rootOf(filename)+"_parsed.out", "C:/Ezgi/");
-//			downloadAll("catchup.txt", "C:/Ezgi/");
-
-//			script();
-//			runPennCnv("TriosForDenovoCnv.txt");
-//			schaid("D:/tWork/LOAD/Schaid_request/pruned/load_fancy_eigens.xln");
-//			schaid("D:/tWork/LOAD/Schaid_request/pruned/load_norm_fancy_eigens.xln");
-//			schaid("D:/tWork/LOAD/Schaid_request/all_snps/all_load_fancy_eigens.xln");
-//			schaid("D:/tWork/LOAD/Schaid_request/all_snps/all_load_fancy_postnormed_eigens.xln");
-//			schaid("D:/tWork/LOAD/Schaid_request/pruned_snps/load_fancy_eigens.xln", "D:/tWork/LOAD/Schaid_request/pruned_snps/all_load_fancy_eigens.out");
-//			schaid("D:/tWork/LOAD/Schaid_request/pruned_snps/load_fancy_postnormed_eigens.xln", "D:/tWork/LOAD/Schaid_request/pruned_snps/all_load_normalized_fancy_eigens.out");
-			
-//			moveSamplesToDifferentFolder();
-			
-			testEffectOfLNontype1error(100, 1.0);
-			testEffectOfLNontype1error(100, 1.0);
-
-			testEffectOfLNontype1error(1000, 1.0);
-			testEffectOfLNontype1error(1000, 1.0);
-			
-			testEffectOfLNontype1error(100, 1.3);
-			testEffectOfLNontype1error(100, 1.3);
-			testEffectOfLNontype1error(100, 1.3);
-			testEffectOfLNontype1error(100, 1.3);
-			testEffectOfLNontype1error(100, 1.3);
-			testEffectOfLNontype1error(100, 1.3);
-			testEffectOfLNontype1error(100, 0.78);
-			testEffectOfLNontype1error(100, 0.78);
-			testEffectOfLNontype1error(100, 0.78);
-			testEffectOfLNontype1error(100, 0.78);
-			testEffectOfLNontype1error(100, 0.78);
-			testEffectOfLNontype1error(100, 0.78);
-			
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	private static void ls() {
 		String[] files;
 		String dir;
@@ -390,5 +310,117 @@ public class temp {
 		System.out.println(nCounts[0]+"\t"+(double)nCounts[0]/reps);
 		System.out.println(nCounts[1]+"\t"+(double)nCounts[1]/reps);
 		
+	}
+
+	private static void reviewInIGV(String dir, int delayInMilliseconds) {
+		String clip;
+		String[] geneNames, batchFiles;
+		
+		dir = ext.verifyDirFormat(dir);
+		clip = 	ext.getClipboard();
+		geneNames = clip.split("\n");
+		for (int i = 0; i < geneNames.length; i++) {
+			System.out.println("Launching "+geneNames[i]);
+			geneNames[i] = geneNames[i].split(",")[0];
+			if (Files.exists(dir+geneNames[i])) {
+				batchFiles = Files.list(dir+geneNames[i], ".bat", false);
+				for (int j = 0; j < batchFiles.length; j++) {
+					try {
+						Runtime.getRuntime().exec(dir+geneNames[i]+"/"+batchFiles[j]);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				try {
+					Thread.sleep(delayInMilliseconds+1000*i);
+				} catch (InterruptedException ie) {
+				}
+			} else {
+				System.out.println("Could not find a directory named "+geneNames[i]+"/ within "+dir);
+			}
+			
+		}
+
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String filename = "source.txt";
+
+		reviewInIGV("D:/Logan/DeNovos/mini_bam_scripts/", 1000);
+		
+		System.exit(1);
+
+		ls();
+		
+		System.exit(1);
+		
+		
+		String usage = "\n"+
+		".temp requires 0-1 arguments\n"+
+		"   (1) filename (i.e. file=" + filename + " (default))\n"+
+		"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			String dir = "D:/data/COGA_exome/00src/";
+			String ext = ".AxiomGT1.txt";
+			int start = 8, stop = 1008;
+			Files.splitFilesByLine(dir, ext, start, stop);
+			System.exit(1);
+			
+//			Internat.downloadFile("http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2708794/pdf/JPATH175000054.pdf", "D:/SH3GL2.pdf");
+			
+//			parseAll(filename);
+//			downloadAll(ext.rootOf(filename)+"_parsed.out", "C:/Ezgi/");
+//			downloadAll("catchup.txt", "C:/Ezgi/");
+
+//			script();
+//			runPennCnv("TriosForDenovoCnv.txt");
+//			schaid("D:/tWork/LOAD/Schaid_request/pruned/load_fancy_eigens.xln");
+//			schaid("D:/tWork/LOAD/Schaid_request/pruned/load_norm_fancy_eigens.xln");
+//			schaid("D:/tWork/LOAD/Schaid_request/all_snps/all_load_fancy_eigens.xln");
+//			schaid("D:/tWork/LOAD/Schaid_request/all_snps/all_load_fancy_postnormed_eigens.xln");
+//			schaid("D:/tWork/LOAD/Schaid_request/pruned_snps/load_fancy_eigens.xln", "D:/tWork/LOAD/Schaid_request/pruned_snps/all_load_fancy_eigens.out");
+//			schaid("D:/tWork/LOAD/Schaid_request/pruned_snps/load_fancy_postnormed_eigens.xln", "D:/tWork/LOAD/Schaid_request/pruned_snps/all_load_normalized_fancy_eigens.out");
+			
+//			moveSamplesToDifferentFolder();
+			
+			testEffectOfLNontype1error(100, 1.0);
+			testEffectOfLNontype1error(100, 1.0);
+
+			testEffectOfLNontype1error(1000, 1.0);
+			testEffectOfLNontype1error(1000, 1.0);
+			
+			testEffectOfLNontype1error(100, 1.3);
+			testEffectOfLNontype1error(100, 1.3);
+			testEffectOfLNontype1error(100, 1.3);
+			testEffectOfLNontype1error(100, 1.3);
+			testEffectOfLNontype1error(100, 1.3);
+			testEffectOfLNontype1error(100, 1.3);
+			testEffectOfLNontype1error(100, 0.78);
+			testEffectOfLNontype1error(100, 0.78);
+			testEffectOfLNontype1error(100, 0.78);
+			testEffectOfLNontype1error(100, 0.78);
+			testEffectOfLNontype1error(100, 0.78);
+			testEffectOfLNontype1error(100, 0.78);
+			
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
