@@ -533,6 +533,9 @@ public class PrincipalComponentsCompute {
 			}
 			markerDataLoader.releaseIndex(i);
 		}
+
+		markerDataLoader.reportWaitTimes();
+
 		reportMarkersUsed(proj, markers, markerUsed, dataToUse, printFullData, samplesToUse, output);
 		return dataToUse;
 	}

@@ -274,6 +274,8 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			}
 			markerDataLoader.releaseIndex(i);
 		}
+
+		markerDataLoader.reportWaitTimes();
 	}
 
 	/**
