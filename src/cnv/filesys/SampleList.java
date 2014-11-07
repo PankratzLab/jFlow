@@ -1,6 +1,7 @@
 package cnv.filesys;
 
 import java.io.*;
+import java.util.Hashtable;
 
 import common.Files;
 import common.Logger;
@@ -92,13 +93,44 @@ public class SampleList implements Serializable {
 		return list;
 	}
 
+	public static void serializeOutliers(Project proj) {
+		String[] samples = proj.getSamples();
+		String sampleDir = proj.getDir(Project.SAMPLE_DIRECTORY);
+		
+		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+		
+		proj.getLog().report("Extracting outliers from " + samples.length + " Sample files");
+		for (int i = 0; i < samples.length; i++) {
+			try {
+				String sampleFile = sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				Hashtable<String, Float> outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampleFile);
+				
+				// TODO duplicates?
+				if (outliers != null) {
+					for (java.util.Map.Entry<String, Float> entry : outliers.entrySet()) {
+						String[] keyParts = entry.getKey().split("\t");
+						allOutliers.put(keyParts[0] + "\t" + samples[i] + "\t" + keyParts[1], entry.getValue());
+					}
+				}
+				// for duplicates, loop through outliers and use allOutliers.putIfAbsent and compare returned value
+			} catch (Exception e) {
+				proj.getLog().reportException(e);
+			}
+			
+		}
+		Files.writeSerial(allOutliers, sampleDir + "outliers.ser");
+		
+	}
+	
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		String filename = null;
-
+		boolean outliers = false;
+		
 		String usage = "\n"+
-		"filesys.SampleList requires 1 argument\n"+
+		"filesys.SampleList requires 1+ argument\n"+
 		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (2) (Optional) use -outliers argument to generate an 'outliers.ser' file (not the default)\n" +
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -108,6 +140,9 @@ public class SampleList implements Serializable {
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("-outliers")) {
+				outliers = true;
+				numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -115,10 +150,14 @@ public class SampleList implements Serializable {
 			System.exit(1);
 		}
 
-		try {
-			generateSampleList(new Project(filename, false));
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (outliers) {
+			serializeOutliers(new Project(filename, false));
+		} else {
+			try {
+				generateSampleList(new Project(filename, false));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

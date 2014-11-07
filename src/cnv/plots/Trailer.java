@@ -590,7 +590,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		transformationPanel.add(Box.createHorizontalGlue());
 		
 		ButtonGroup typeRadio = new ButtonGroup();
-		JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
+		final JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
 		ItemListener typeListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
 				JRadioButton jrb = (JRadioButton) ie.getItem();
@@ -610,6 +610,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			public void itemStateChanged(ItemEvent ie) {
 				JRadioButton jrb = (JRadioButton) ie.getItem();
 				if (jrb.isSelected()) {
+					
+					if (namePathMap == null || namePathMap.isEmpty()) {
+						jrb.setSelected(false);
+						if (transformationRadioButtons != null && transformationRadioButtons[0] != null) {
+							transformationRadioButtons[0].setSelected(true);
+						}
+						return;
+					}
+					
 					transformation_type = -1;
 					setCentroid();
 					loadValues();
@@ -617,6 +626,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					repaint();
 				} else {
 					centroids = null;
+					bafs = originalBAFs;
 				}
 			}
 		};
@@ -1141,9 +1151,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				lrrValues = Transforms.transform(lrrs, transformation_type, transformSeparatelyByChromosome, markerSet);
 			} else if (transformation_type < 0 && centroids != null) {
 				lrrValues = samp.getLRRs(centroids);
+				originalBAFs = bafs;
 				bafs = samp.getBAFs(centroids);
 			} else {
 				lrrValues = lrrs;
+				originalBAFs = bafs;
 			}
 			
 		}

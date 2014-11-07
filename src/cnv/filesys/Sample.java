@@ -852,6 +852,9 @@ public class Sample implements Serializable {
 		}
 		return result;
 	}
+	
+	
+	
 
 //	@SuppressWarnings("unchecked")
 //	public static void loadFromRandomAccessFileWithoutDecompress(RandomAccessFile sampleFile, byte[] readBuffer, int indexOfCurrentSample, int indexOfFirstMarkerToLoad, byte bytesPerSampleMarker, int numMarkersInProj, Hashtable<String, Float> allOutliers) {
@@ -1023,6 +1026,47 @@ public class Sample implements Serializable {
 		}
 
 		return nullStatusOfTheFile;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Hashtable<String, Float> loadOutOfRangeValuesFromRandomAccessFile(String filename) throws Exception {
+		int numMarkers;
+		RandomAccessFile file;
+	    byte[] readBuffer;
+	    byte[] temp;
+	    int numBytesOfOutOfRangeValues;
+	    Hashtable<String, Float> outOfRangeValues = null;
+	    int outlierSectionLocation;
+	    byte nullStatus;
+	    byte bytesPerSampleMarker;
+	
+		file = new RandomAccessFile(filename, "r");
+		readBuffer = new byte[(int) file.length()];	//numMarkers * BYTES_PER_SAMPLE_MARKER
+		file.read(readBuffer);
+		file.close();
+
+		temp = new byte[PARAMETER_SECTION_NUMMARKERS_LENGTH];
+		for (int i=0; i < temp.length; i++) {
+			temp[i] = readBuffer[PARAMETER_SECTION_NUMMARKERS_LOCATION + i];
+		}
+		numMarkers = Compression.bytesToInt(temp);
+
+		nullStatus = readBuffer[PARAMETER_SECTION_NULLSTAT_LOCATION];
+
+		temp = new byte[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LENGTH];
+		for (int i=0; i<temp.length; i++) {
+			temp[i] = readBuffer[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION + i];
+		}
+		numBytesOfOutOfRangeValues = Compression.bytesToInt(temp);
+
+		bytesPerSampleMarker = getNBytesPerSampleMarker(nullStatus);
+
+		if (numBytesOfOutOfRangeValues>0) {
+			outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampleMarker;
+			outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(readBuffer, outlierSectionLocation, numBytesOfOutOfRangeValues);
+		}
+		
+		return outOfRangeValues;
 	}
 
 	@SuppressWarnings("unchecked")
