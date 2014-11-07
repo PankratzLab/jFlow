@@ -104,6 +104,7 @@ public class AnalysisFormats implements Runnable {
 		String[] allMarkers, markersToUse, samples, header;
 		byte[] markerChrs, genM, genF;
 		boolean[] inclSampAll, inclSampFemales, inclSampMales;
+		int markerCount = Array.booleanArraySum(includeList);
 		int[] sampleSex;
 		float[] bafCnt, bafSum, genCnt, bafM, bafF;
 		float[][][] rawCentroidsFemale, rawCentroidsMale;
@@ -172,14 +173,20 @@ public class AnalysisFormats implements Runnable {
 			}
 		}
 		
-		rawCentroidsMale = new float[markersToUse.length][][];
-		rawCentroidsFemale = new float[markersToUse.length][][];
+		rawCentroidsMale = new float[allMarkers.length][][];
+		rawCentroidsFemale = new float[allMarkers.length][][];
 		
-		log.report("Computing sex-specific centroids for " + markersToUse.length + " sex-separated markers");
+		log.report("Computing sex-specific centroids for " + markerCount + " sex-separated markers");
 		CentroidCompute centCompM;
 		CentroidCompute centCompF;
-		for (int i = 0; i < markersToUse.length; i++) {
-			MarkerData markerData = markerDataLoader.requestMarkerData(i);
+		int markerIndex = 0;
+		for (int i = 0; i < allMarkers.length; i++) {
+			if (!includeList[i]) {
+				rawCentroidsMale[i] = new float[][]{{Float.NaN, Float.NaN}, {Float.NaN, Float.NaN}, {Float.NaN, Float.NaN}};
+				rawCentroidsFemale[i] = new float[][]{{Float.NaN, Float.NaN}, {Float.NaN, Float.NaN}, {Float.NaN, Float.NaN}};
+				continue;
+			}
+			MarkerData markerData = markerDataLoader.requestMarkerData(markerIndex);
 			
 			centCompM = new CentroidCompute(markerData, 
 											null, 
@@ -238,11 +245,12 @@ public class AnalysisFormats implements Runnable {
 			
 			malePFBs.add(new String[]{markerData.getMarkerName(), "" + markerData.getChr(), "" + markerData.getPosition(), "" + (genCnt[0] > 0 ? (bafSum[0] / bafCnt[0]) : 2)});
 			femalePFBs.add(new String[]{markerData.getMarkerName(), "" + markerData.getChr(), "" + markerData.getPosition(), "" + (genCnt[1] > 0 ? (bafSum[1] / bafCnt[1]) : 2)});
-			if (i > 0 && i % 10000 == 0) {
-				log.report(ext.getTime() + "\t...sex centroids computed up to marker " + i + " of " + markersToUse.length);
+			if (markerIndex > 0 && markerIndex % 10000 == 0) {
+				log.report(ext.getTime() + "\t...sex centroids computed up to marker " + markerIndex + " of " + markerCount);
 			}
 			
-			markerDataLoader.releaseIndex(i);
+			markerDataLoader.releaseIndex(markerIndex);
+			markerIndex++;
 			centCompM = null;
 			centCompF = null;
 		}
@@ -278,13 +286,13 @@ public class AnalysisFormats implements Runnable {
 		log.report("Writing sex-specific Centroid files");
 		
 		Centroids[] centroids = new Centroids[2]; 
-		centroids[0] = new Centroids(rawCentroidsMale, MarkerSet.fingerprint(markersToUse));
+		centroids[0] = new Centroids(rawCentroidsMale, markerSet.getFingerprint());
 		centroids[0].serialize(proj.getProjectDir() + centFiles[0]);
-		Centroids.exportToText(proj, centFiles[0], centFiles[0] + ".txt", markersToUse);
+		Centroids.exportToText(proj, centFiles[0], centFiles[0] + ".txt", allMarkers);
 		
-		centroids[1] = new Centroids(rawCentroidsFemale, MarkerSet.fingerprint(markersToUse));
+		centroids[1] = new Centroids(rawCentroidsFemale, markerSet.getFingerprint());
 		centroids[1].serialize(proj.getProjectDir() + centFiles[1]);
-		Centroids.exportToText(proj, centFiles[1], centFiles[1] + ".txt", markersToUse);
+		Centroids.exportToText(proj, centFiles[1], centFiles[1] + ".txt", allMarkers);
 		
 		return centroids;
 	}
