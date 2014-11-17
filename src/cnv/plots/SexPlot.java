@@ -13,7 +13,7 @@ import cnv.gui.ColorIcon;
 import cnv.gui.WrapLayout;
 import cnv.qc.SexChecks;
 
-public class SexPlot extends JFrame{
+public class SexPlot extends JFrame {
 	public static final long serialVersionUID = 1L;
 
 	SexPanel sexPanel;
@@ -23,7 +23,7 @@ public class SexPlot extends JFrame{
 	}
 
 	public SexPlot(Project proj, String[][] samples, double[][] data, byte[] sexes, byte[] estimatedSexes) {
-		super("Genvisis - Sex Plot");
+		super("Genvisis - Sex Plot - " + proj.getNameOfProject());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		SexPanel sexPanel = new SexPanel(proj, samples, data, sexes, estimatedSexes);

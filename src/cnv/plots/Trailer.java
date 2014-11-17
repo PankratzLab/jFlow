@@ -147,7 +147,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location, int startX, int startY, int width, int height) {
-		super("Genvisis - Trailer");
+		super("Genvisis - Trailer - " + proj.getNameOfProject());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		System.out.println("startX: "+startX+"\t startY: "+startY+"\t width: "+width+"\t height: "+height);

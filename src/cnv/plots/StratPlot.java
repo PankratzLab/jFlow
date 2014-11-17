@@ -40,7 +40,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 	
 	// TODO need to move frame, etc out of constructor to fail as the others do
 	public StratPlot(Project project, String[][] names, Hashtable<String,float[][]> hash) {
-		super("Genvisis - Stratify");
+		super("Genvisis - Stratify - " + project.getNameOfProject());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		JPanel treePanel, classPanel, classPanelTop;
