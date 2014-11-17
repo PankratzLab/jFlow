@@ -74,6 +74,7 @@ public class Centroids implements Serializable {
 //		if (centroids[2][1] < 0.0000001) {
 //			centroids[2][0] = 1;
 //		}
+		
 		if (centroids[0] != null && theta < centroids[0][0] || (centroids[1] == null && centroids[2] == null)) {
 			estimatedR = centroids[0][1];
 		} else if (centroids[1] != null && theta < centroids[1][0]) {
@@ -473,7 +474,7 @@ public class Centroids implements Serializable {
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.print(markerNames[i]);
 				for (int j = 0; j < 3; j++) {
-					if (centroids[i][j] == null) {
+					if (centroids[i] == null || centroids[i][j] == null) {
 						writer.print("\t.\t.");
 					} else {
 						writer.print("\t"+centroids[i][j][0]+"\t"+centroids[i][j][1]);

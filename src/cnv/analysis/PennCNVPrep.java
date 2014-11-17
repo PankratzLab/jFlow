@@ -486,7 +486,7 @@ public class PennCNVPrep {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String classPath = "/home/pankrat2/lanej/park.jar";
+		String classPath = "/home/pankrat2/coleb/park.jar";
 		String java = "/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java";// for lab
 		// String java ="/soft/java/jdk1.7.0_45/bin/java"; //for itasca
 		int memoryInMB = 22000;

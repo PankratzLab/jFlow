@@ -27,7 +27,234 @@ public class FilterCalls {
 	public static final int DEFAULT_COMMON_IN_OUT_OR_IGNORED = COMMON_IGNORED;
 	public static final boolean DEFAULT_BREAK_CENTROMERE = false;
 	
-	public static void filter(String dir, String in, String out, int delSize, int dupSize, int number, double score, String filenameOfProblematicRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
+	public static void filterExlusions(Project proj, String cnvFile) {
+		PrintWriter writer;
+		BufferedReader reader;
+		String path = cnvFile.substring(0, cnvFile.lastIndexOf('/'));
+		String fileext = cnvFile.substring(cnvFile.lastIndexOf('/'));
+		String filenm = fileext.substring(0, fileext.lastIndexOf('.'));
+		String newFile = path + filenm + ".excluded.cnv";
+		
+		String[] excludes = Array.subArray(proj.getSamples(), proj.getSamplesToExclude());
+		HashSet<String> excludeSet = new HashSet<String>();
+		for (String exclude : excludes) excludeSet.add(exclude);
+		
+		try {
+			reader = new BufferedReader(new FileReader(cnvFile));
+			writer = new PrintWriter(new FileWriter(newFile));
+			
+			while(reader.ready()) {
+				String line = reader.readLine();
+				if (excludeSet.contains(line.split("\t")[0])) continue;
+				writer.println(line);
+			}
+			
+			writer.flush();
+			
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException e) {
+			proj.getLog().reportException(e);
+		} catch (IOException e) {
+			proj.getLog().reportException(e);
+		}
+	}
+	
+
+	public static void filterExclusions(String dir, String in, String out, String excludeFile) {
+		PrintWriter writer;
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+		boolean[] remove = new boolean[cnvs.size()];
+		HashSet<String> excludeList = HashVec.loadFileToHashSet(excludeFile, false);
+		
+		for (int i = 0; i < remove.length; i++) {
+			CNVariant examine = cnvs.get(i);
+			if (excludeList.contains(examine.getIndividualID())) { // remove all CNVs not belonging to a listed sample ID
+				remove[i] = true;
+				continue;
+			}
+			
+		}
+
+		try {
+			writer = new PrintWriter(new FileWriter(dir + out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (int i = 0; i < remove.length; i++) {
+				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	/**
+	 * Given a list of CNVs, and a list of sample IDs, find all CNVs that overlap at least one CNV belonging to a sample ID on the given list.
+	 * 
+	 * Useful for data without controls, but with known affected samples.
+	 * 
+	 * @param dir location of in / out files
+	 * @param in Plink-formatted CNV file for input
+	 * @param out desired name of filtered CNV file
+	 * @param listFile file name (full path) of the list of sample IDs
+	 */
+	public static void filterForAllCNVsSharedInGroup(String dir, String in, String out, String listFile) {
+		PrintWriter writer;
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+		boolean[] remove = new boolean[cnvs.size()];
+		HashSet<String> indivList = HashVec.loadFileToHashSet(listFile, false);
+		
+		for (int i = 0; i < remove.length; i++) {
+			CNVariant examine = cnvs.get(i);
+			
+			boolean mark = true;
+			for (CNVariant groupCNV : cnvs) {
+				if (!indivList.contains(groupCNV.getIndividualID())) { // loop through only those belonging to listed sample IDs
+					continue;
+				}
+				
+				if (examine.overlaps(groupCNV)) {
+					mark = false;
+					break;
+				}
+			}
+			remove[i] = mark;
+		}
+		
+		try {
+			writer = new PrintWriter(new FileWriter(dir + out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (int i = 0; i < remove.length; i++) {
+				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void filterForGroupCNVs(String dir, String in, String out, String listFile, String excludeFile, boolean excludeCommon) {
+		PrintWriter writer;
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+		boolean[] remove = new boolean[cnvs.size()];
+		HashSet<String> indivList = HashVec.loadFileToHashSet(listFile, false);
+		HashSet<String> excludeList = HashVec.loadFileToHashSet(excludeFile, false);
+		
+		for (int i = 0; i < remove.length; i++) {
+			CNVariant examine = cnvs.get(i);
+			if (!indivList.contains(examine.getIndividualID()) || excludeList.contains(examine.getIndividualID())) { // remove all CNVs not belonging to a listed sample ID
+				remove[i] = true;
+				continue;
+			}
+			
+			if (excludeCommon) {
+				for (int j = 0; j < remove.length; j++) {
+					if (i == j) continue;
+					CNVariant check = cnvs.get(j);
+					if (examine.significantOverlap(check, true) && !indivList.contains(check.getIndividualID())) {
+						// if the sample ID of the second CNV isn't on the list, and the current cnv is on the list, remove both
+						remove[i] = true;
+						remove[j] = true;
+					}
+				}
+			}
+			
+		}
+
+		try {
+			writer = new PrintWriter(new FileWriter(dir + out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (int i = 0; i < remove.length; i++) {
+				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	public static void filterOutCommonCNVs(String dir, String in, String out, double pct, boolean checkLarger) {
+		PrintWriter writer;
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+		boolean[] remove = new boolean[cnvs.size()];
+		
+		for (int i = 0; i < remove.length; i++) {
+			CNVariant examine = cnvs.get(i);
+			int overlapCnt = 0;
+			
+			for (int j = 0; j < remove.length; j++) {
+				if (i == j) continue;
+				
+				if (examine.significantOverlap(cnvs.get(j), checkLarger)) {
+					overlapCnt++;
+				}
+			}
+			
+			if (((double)overlapCnt) / ((double)cnvs.size()) > pct) {
+				remove[i] = true;
+			} else {
+				remove[i] = false;
+			}
+		}
+		
+		try {
+			writer = new PrintWriter(new FileWriter(dir + out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (int i = 0; i < remove.length; i++) {
+				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void filterOutCommonCNVs(String dir, String in, String out, double pct) {
+		PrintWriter writer;
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+		boolean[] remove = new boolean[cnvs.size()];
+		
+		for (int i = 0; i < remove.length; i++) {
+			CNVariant examine = cnvs.get(i);
+			int overlapCnt = 0;
+			
+			for (int j = 0; j < remove.length; j++) {
+				if (i == j) continue;
+				
+				if (examine.significantOverlap(cnvs.get(j))) {
+					overlapCnt++;
+				}
+			}
+			
+			if (((double)overlapCnt) / ((double)cnvs.size()) > pct) {
+				remove[i] = true;
+			} else {
+				remove[i] = false;
+			}
+		}
+		
+		try {
+			writer = new PrintWriter(new FileWriter(dir + out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (int i = 0; i < remove.length; i++) {
+				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public static void filter(String dir, String in, String out, int[] delSize, int[] dupSize, int[] number, double score, String filenameOfProblematicRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
 		String[] individualsToKeepList;
 		if (individualsToKeepFile != null && !new File(individualsToKeepFile).exists()) {
 			System.err.println("Error - could not find \""+individualsToKeepFile+"\" in directory; will not be able to filter by indiviudals");
@@ -38,7 +265,7 @@ public class FilterCalls {
 		filter(dir, in, out, delSize, dupSize, number, score, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepList, breakupCentromeres, markerSetFilenameToBreakUpCentromeres, makeUCSCtrack, build, log);
 	}
 	
-	public static void filter(String dir, String in, String out, int delSize, int dupSize, int number, double score, String filenameOfProblematicRegions, int commonInOutOrIgnore, String[] individualsToKeepList, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
+	public static void filter(String dir, String in, String out, int[] delSize, int[] dupSize, int[] number, double score, String filenameOfProblematicRegions, int commonInOutOrIgnore, String[] individualsToKeepList, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -65,8 +292,16 @@ public class FilterCalls {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				cnv = new CNVariant(line);
-				if (((cnv.getCN() < 2 && cnv.getSize()>=delSize*1000) || (cnv.getCN() > 2 && cnv.getSize()>=dupSize*1000))
-						&&cnv.getNumMarkers()>=number&&cnv.getScore()>score&&!inOneOfTheseRegions(cnv, problemRegions)) {
+				if (	(	(cnv.getCN() == 1 && cnv.getSize() >= delSize[0] * 1000) || // heterozygous deletion
+							(cnv.getCN() == 0 && cnv.getSize() >= delSize[1] * 1000) || // homozygous deletion
+							(cnv.getCN() > 2 && cnv.getSize() >= dupSize[0] * 1000) // duplications
+							// ignoring homozygotic duplications
+						) 
+						&& 
+							(((cnv.getCN() == 1 || cnv.getCN() == 3 || cnv.getCN() == 4) && cnv.getNumMarkers() >= number[0]) ||
+							(cnv.getCN() == 2 && cnv.getNumMarkers() >= number[1]))
+						&& cnv.getScore() > score 
+						&& !inOneOfTheseRegions(cnv, problemRegions)) {
 
 					if ( (commonInOutOrIgnore==COMMON_IGNORED
 							||(commonInOutOrIgnore==COMMON_IN&&inOneOfTheseRegions(cnv, commonReference))
@@ -307,9 +542,9 @@ public class FilterCalls {
 
 		log = new Logger();
 		root = ext.rootOf(filename);
-		FilterCalls.filter(dir, filename, root+"_allAbove10.0_unfiltered.cnv", 1, 1, 1, 10, null, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks,  build, log);
-		FilterCalls.filter(dir, filename, root+"_allAbove10.0_filtered.cnv", 1, 1, 1, 10, DEFAULT_PROBLEMATIC_REGIONS, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks, build, log);
-		FilterCalls.filter(dir, filename, root+"_ConservativeCalls.cnv", 100, 100, 20, 10, DEFAULT_PROBLEMATIC_REGIONS, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks, build, log);
+		FilterCalls.filter(dir, filename, root+"_allAbove10.0_unfiltered.cnv", new int[]{1, 1}, new int[]{1, 1}, new int[]{1, 1}, 10, null, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks,  build, log);
+		FilterCalls.filter(dir, filename, root+"_allAbove10.0_filtered.cnv", new int[]{1, 1}, new int[]{1, 1}, new int[]{1, 1}, 10, DEFAULT_PROBLEMATIC_REGIONS, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks, build, log);
+		FilterCalls.filter(dir, filename, root+"_ConservativeCalls.cnv", new int[]{100, 100}, new int[]{100, 100}, new int[]{20, 20}, 10, DEFAULT_PROBLEMATIC_REGIONS, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks, build, log);
 
 		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inGenes.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, false);
 		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inExons.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_EXONS, false);
@@ -337,11 +572,16 @@ public class FilterCalls {
 				"dir=",
 				"in=penncnv.cnv",
 				"out=conf15used.cnv",
-				"# minimum size of a deletions / duplications (in kb):",
+				"# minimum size of heterozygous deletions / duplications (in kb):",
 				"delSize=0",
 				"dupSize=0",
-				"# minimum number of SNPs:",
+				"# minimum size of homozygous deletions / duplications (in kb):",
+				"hDelSize = 0",
+				"hDupSize = 0",
+				"# minimum number of heterozygous SNPs:",
 				"number=15",
+				"# minimum number of homozygous SNPs:",
+				"hNumber=15",
 				"minScore=10.0",
 				"filterFile="+dir+"problematicRegions_hg19.dat",
 				"# pedfile to be used as a filter:",
@@ -368,7 +608,10 @@ public class FilterCalls {
 		int numArgs = args.length;
 		int delSize = DEFAULT_MIN_SIZE_KB;
 		int dupSize = DEFAULT_MIN_SIZE_KB;
+		int hDelSize = DEFAULT_MIN_SIZE_KB;
+		int hDupSize = DEFAULT_MIN_SIZE_KB;
 		int number = DEFAULT_MIN_NUM_SNPS;
+		int hNumber = DEFAULT_MIN_NUM_SNPS;
 		double score = DEFAULT_MIN_SCORE;
 		String filenameOfProblematicRegions = null;
 		int inOutIgnore = COMMON_IGNORED;
@@ -391,29 +634,50 @@ public class FilterCalls {
 		String logfile = null;
 		int build = 37;
 		String markerSetFilenameToBreakUpCentromeres = null;
+		boolean common = false;
+		double pct = 0.05;
+		String listFile = null;
+		String excludeFile = null;
+		boolean exclude = false;
+		boolean group = false;
 
 		String usage = 
-		"vis.cnv.FilterCalls requires 0-1 arguments\n"+
+		"vis.cnv.FilterCalls requires 2+ arguments\n"+
 		"   (1) directory (i.e. dir="+dir+" (default))\n"+
 		"   (2) file in (i.e. in="+in+" (default))\n"+
 		"   (3) file out (i.e. out="+out+" (default))\n"+
 		"   (4) minimum size of a deletion (in kb) (i.e. delSize="+delSize+" (default))\n"+
 		"   (5) minimum size of a duplication (in kb) (i.e. dupSize="+dupSize+" (default))\n"+
-		"   (6) minimum number of SNPs (i.e. number="+number+" (default))\n"+
-		"   (7) minimum score (i.e. minScore="+score+" (default))\n"+
-		"   (8) filter out cnvs in known problematicRegions (i.e. filterFile="+filenameOfProblematicRegions+" (default))\n"+
-		"   (9) pedfile to use as a filter (i.e. ped="+pedfile+" (default))\n"+
-		"   (10) if CNV spans centromere, break into two spanning actual markers (i.e. breakCentromere="+breakCent+" (default))\n"+
-		"   (11) build of the genome to use for centromeres (i.e. build="+build+" (default))\n"+
-		"   (12) custom marker set to determine the last and first marker of the centromeres (i.e. markerFile=plink.bim (not the default))\n"+
-		"   (13) make UCSC track as well (i.e. ucsc=true (default))\n"+
+		"   (6) (Optional) minimum size of a homozygous deletion (in kb) (i.e. hDelSize="+hDelSize+" (default))\n"+
+		"   (7) (Optional) minimum size of a homozygous duplication (in kb) (i.e. hDupSize="+hDelSize+" (default))\n"+
+		"   (8) minimum number of heterozygous SNPs (i.e. number="+number+" (default))\n"+
+		"   (9) (Optional) minimum number of homozygous SNPs (i.e. hNumber=" + number + " (default))\n" + 
+		"   (9) minimum score (i.e. minScore="+score+" (default))\n"+
+		"   (10) filter out cnvs in known problematicRegions (i.e. filterFile="+filenameOfProblematicRegions+" (default))\n"+
+		"   (11) pedfile to use as a filter (i.e. ped="+pedfile+" (default))\n"+
+		"   (12) if CNV spans centromere, break into two spanning actual markers (i.e. breakCentromere="+breakCent+" (default))\n"+
+		"   (13) build of the genome to use for centromeres (i.e. build="+build+" (default))\n"+
+		"   (14) custom marker set to determine the last and first marker of the centromeres (i.e. markerFile=plink.bim (not the default))\n"+
+		"   (15) make UCSC track as well (i.e. ucsc=true (default))\n"+
 		"  OR\n"+
 		"   (1) keep only CNVs overlapping these segments (i.e. segs=gene_region.dat (not the default))\n"+
-		"   (2) exlcude instead of include (i.e. excludeSegsInstead=false (default))\n"+
+		"   (2) exclude instead of include (i.e. excludeSegsInstead=false (default))\n"+
 //		"   (3) require a significant overlap to filter (i.e. -sigOverlap (not the default))\n"+
 		"  OR\n"+
 		"   (1) perform all standard filters (i.e. -std (not the default))\n"+
 		"   (2) make UCSC tracks as well (i.e. ucsc=false (default))\n"+
+		"  OR\n" + 
+		"   (1) directory (i.e. dir="+dir+" (default))\n"+
+		"   (2) file in (i.e. in="+in+" (default))\n"+
+		"   (3) file out (i.e. out="+out+" (default))\n"+
+		"   (4) filter out CNVs that overlap with a percentage of other CNVs (i.e. -common (not the default))\n" +
+		"   (5) percent threshold for filtering common CNVs (i.e. pct=.05 (default))\n" +
+		"  OR\n" + 
+		"   (1) directory (i.e. dir="+dir+" (default))\n"+
+		"   (2) file in (i.e. in="+in+" (default))\n"+
+		"   (3) file out (i.e. out="+out+" (default))\n"+
+		"   (4) remove all CNVs not belonging to a group of sample IDs (i.e. list=/path/to/list.txt (not the default))\n" +
+		"   (5) (Optional) remove all CNVs that overlap other CNVs not belonging to the given list of sample IDs (i.e. -exclude (not the default))" + 
 		"";
 
 		System.out.println();
@@ -436,8 +700,17 @@ public class FilterCalls {
 			} else if (args[i].startsWith("dupSize=")) {
 				dupSize = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("hDelSize=")) {
+				hDelSize = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("hDupSize=")) {
+				hDupSize = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("number=")) {
 				number = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("hNumber=")) {
+				hNumber = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
 			} else if (args[i].startsWith("minScore=")) {
 				score = ext.parseDoubleArg(args[i]);
@@ -472,6 +745,24 @@ public class FilterCalls {
 			} else if (args[i].startsWith("build=")) {
 				build = ext.parseIntArg(args[i]);
 				numArgs--;				
+			} else if (args[i].startsWith("pct=")) {
+				pct = ext.parseDoubleArg(args[i]);
+				numArgs--;				
+			} else if (args[i].startsWith("-common")) {
+				common = true;
+				numArgs--;				
+			} else if (args[i].startsWith("-exclude")) {
+				exclude = true;
+				numArgs--;				
+			} else if (args[i].startsWith("-group")) { 
+				group = true;
+				numArgs--;
+			} else if (args[i].startsWith("list=")) {
+				listFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("excludeFile=")) { 
+				excludeFile = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;				
@@ -505,8 +796,18 @@ public class FilterCalls {
 				stdFilters(dir, in, tracks, pedfile, build);
 			} else if (!segs.equals("")) {
 				filterOnSegments(dir, in, out, segs, excludeSegs);
+			} else if (common) {
+				filterOutCommonCNVs(dir, in, out, pct);
+			} else if (listFile != null) { 
+				if (group) {
+					filterForAllCNVsSharedInGroup(dir, in, out, listFile);
+				} else {
+					filterForGroupCNVs(dir, in, out, listFile, excludeFile, exclude);
+				}
+			} else if (excludeFile != null) {
+				filterExclusions(dir, in, out, excludeFile);
 			} else {
-				filter(dir, in, out, delSize, dupSize, number, score, filenameOfProblematicRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, markerSetFilenameToBreakUpCentromeres, tracks, build, new Logger(logfile));
+				filter(dir, in, out, new int[]{delSize, hDelSize}, new int[]{dupSize, hDupSize}, new int[]{number, hNumber}, score, filenameOfProblematicRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, markerSetFilenameToBreakUpCentromeres, tracks, build, new Logger(logfile));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

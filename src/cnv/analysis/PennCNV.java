@@ -913,9 +913,14 @@ public class PennCNV {
 
 	public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent, boolean transformData, int batch, boolean qsub, String pfbFile, String gcmodelFile, boolean submitImmed, boolean createCombined) {
 		if (transformData) {
+			
+			String[] allSamples = proj.getSamples();
+			boolean[] exludeList = proj.getSamplesToExclude();
+			String[] samples = Array.subArray(allSamples, exludeList);
+
 			if (auto) {
 				proj.getLog().report("Transforming data for autosomal CNV analysis");
-				AnalysisFormats.penncnv(proj, proj.getSamples(), null, null);
+				AnalysisFormats.penncnv(proj, samples, null, null);
 			}
 			if (chrx) {
 				MarkerSet ms = proj.getMarkerSet();
@@ -931,7 +936,7 @@ public class PennCNV {
 							xMarkers.add(markers[i]);
 						}
 					}
-					AnalysisFormats.penncnv(proj, proj.getSamples(), xMarkers, "chrX/");
+					AnalysisFormats.penncnv(proj, samples, xMarkers, "chrX/");
 				}
 			}
 		}
@@ -957,7 +962,9 @@ public class PennCNV {
 		if (sexCent) {
 			proj.getLog().report("Transforming data for 'faked' chromosomal CNV analysis");
 			// [males.pfb, females.pfb, sexSpecific.gcModel]
-			String[] files = AnalysisFormats.pennCNVSexHack(proj, gcmodelFile);
+			
+			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile);
+//			String[] files = AnalysisFormats.pennCNVSexHackSingleThreaded(proj, gcmodelFile);
 
 			proj.getLog().report("Creating batch scripts for 'faked' chromosomal CNV analysis");
 			String scriptDir = "penn_scripts/sexSpecific/";

@@ -729,6 +729,7 @@ public class TransposeData {
 		}
 
 		keys = allOutliers.keys();
+		
 		while (keys.hasMoreElements()) {
 			key = keys.nextElement();
 			line = key.split("\t");
@@ -739,7 +740,7 @@ public class TransposeData {
 				}
 			}
 			if (sampleIndex == -1) {
-				System.err.println("Error - Cannot find the sample " + line[1] + "in the project's sample list.");
+				System.err.println("Error - Cannot find the sample " + line[1] + " in the project's sample list.");
 			}
 			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put((Integer.parseInt(line[0]) % numMarkersInEachFile) + "\t" + sampleIndex + "\t" + line[2], allOutliers.get(key));
 		}
