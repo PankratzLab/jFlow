@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -57,15 +56,13 @@ public class AnalysisFormats implements Runnable {
 
 	}
 
-	public static void penncnv(Project proj, String[] samples, HashSet<String> markersToWrite, String subDir) {
-		PrintWriter writer;
-		String[] markerNames = proj.getMarkerNames();
-		Sample samp;
-		float[] lrrs, bafs;
-		byte[] genotypes;
-		boolean jar, gzip;
-		String dir, sampleDir;
-		Logger log = proj.getLog();
+	public static void penncnv(Project proj, final String[] samples, final HashSet<String> markersToWrite, String subDir) {
+		final String[] markerNames = proj.getMarkerNames();
+		final boolean jar;
+		final boolean gzip;
+		final String dir;
+		final String sampleDir;
+		final Logger log = proj.getLog();
 		
 		dir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY) + proj.getProperty(Project.PENNCNV_DATA_DIRECTORY) + (subDir == null ? "" : subDir);
 		sampleDir = proj.getDir(Project.SAMPLE_DIRECTORY);
@@ -73,84 +70,102 @@ public class AnalysisFormats implements Runnable {
 		jar = proj.getJarStatus();
 		gzip = proj.getBoolean(Project.PENNCNV_GZIP_YESNO);
 		
-		for (int i = 0; i < samples.length; i++) {
-			log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
-			if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-				samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
-			} else {
-				log.reportError("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
-				return;
-			}
-			lrrs = samp.getLRRs();
-			bafs = samp.getBAFs();
-			genotypes = samp.getAB_Genotypes();
+		int threadCount = Runtime.getRuntime().availableProcessors();
 
-			try {
-				writer = Files.getAppropriateWriter(dir + samples[i] + (gzip ? ".gz" : ""));
-				writer.println("Name\t" + samples[i] + ".GType\t" + samples[i] + ".Log R Ratio\t" + samples[i] + ".B Allele Freq");
-				for (int j = 0; j < markerNames.length; j++) {
-					if (markersToWrite == null || markersToWrite.contains(markerNames[j])) {
-						writer.println(markerNames[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrrs[j] + "\t" + bafs[j]);
-					}
-				}
-				writer.close();
-			} catch (Exception e) {
-				log.reportError("Error writing PennCNV data for " + samples[i]);
-				log.reportException(e);
-			}
+		final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues = new ConcurrentLinkedQueue[threadCount];
+		for (int i = 0; i < threadCount; i++) {
+			sampleIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
 		}
+		for (int i = 0; i < samples.length; i++) {
+			sampleIndexQueues[i % threadCount].add(i);
+		}
+
+		ExecutorService computeHub = Executors.newFixedThreadPool(threadCount);
+		for (int threadI = 0; threadI < threadCount; threadI++) {
+			final int myIndex = threadI;
+			final long myStartTime = System.currentTimeMillis();
+			computeHub.execute(new Runnable() {
+				@Override
+				public void run() {
+					PrintWriter writer;
+					int mySampleCount = 0;
+					String sampleName;
+					float[] lrrs, bafs;
+					byte[] genotypes; 
+					Sample mySample;
+
+					while(!sampleIndexQueues[myIndex].isEmpty()) {
+						int sampleIndex = sampleIndexQueues[myIndex].poll();
+						sampleName = samples[sampleIndex];
+						log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + samples.length);
+						if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+							mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
+						} else {
+							log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+							return;
+						}
+						lrrs = mySample.getLRRs();
+						bafs = mySample.getBAFs();
+						genotypes = mySample.getAB_Genotypes();
+			
+						try {
+							writer = Files.getAppropriateWriter(dir + sampleName + (gzip ? ".gz" : ""));
+							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
+							for (int j = 0; j < markerNames.length; j++) {
+								if (markersToWrite == null || markersToWrite.contains(markerNames[j])) {
+									writer.println(markerNames[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrrs[j] + "\t" + bafs[j]);
+								}
+							}
+							writer.close();
+						} catch (Exception e) {
+							log.reportError("Error writing PennCNV data for " + sampleName);
+							log.reportException(e);
+						}
+						
+						mySampleCount++;
+					}
+
+					System.out.println("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime));
+				}
+			});
+		}
+		
+		computeHub.shutdown();
+		try {
+			computeHub.awaitTermination(Long.MAX_VALUE, java.util.concurrent.TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+			log.report("Sample export was interrupted - exported sample files may not be complete or correct.");
+		}
+		computeHub = null;
+
 	}
 	
 	private static Centroids[] computeCentroids(final Project proj, final boolean[] includeList, String[] pfbFiles, String[] centFiles, final boolean shiftPFBForSex) {
 		PrintWriter writerM, writerF;
 		MarkerSet markerSet;
 		String sampleDataFile;
-		String[] allMarkers, markersToUse, samples, header;
+		String[] allMarkers, samples, header;//, markersToUse;
 		byte[] markerChrs;
-//		byte[] genM, genF;
 		final boolean[] inclSampAll;
 		final boolean[] inclSampFemales;
 		final boolean[] inclSampMales;
 		final int markerCount = Array.booleanArraySum(includeList);
-		System.out.println("Markers: " + markerCount);
 		int[] sampleSex;
 		final float[][][] rawCentroidsFemale;
 		final float[][][] rawCentroidsMale;
-		Vector<String> markerList;
+		Vector<String>[] markerLists;
 		final Logger log = proj.getLog();
 		ExecutorService computeHub;
-		final ConcurrentLinkedQueue<Integer> markerIndexQueue;
-		markerIndexQueue = new ConcurrentLinkedQueue<Integer>();
+		final ConcurrentLinkedQueue<Integer>[] markerIndexQueues;
 		final Hashtable<Integer, String[][]> pfbInfo;
-		final Hashtable<Integer, Integer> fullToTruncMarkerIndices;
+		final Hashtable<Integer, Integer>[] fullToTruncMarkerIndices;
 		Hashtable<String, Vector<String>> sexData;
-		final MarkerDataLoader markerDataLoader;
+		final MarkerDataLoader[] markerDataLoaders;
 		SampleData sampleData;
 		
 		markerSet = proj.getMarkerSet();
 		sampleData = proj.getSampleData(0, false);
-		
-		allMarkers = markerSet.getMarkerNames();
-		if (includeList.length != allMarkers.length) {
-			log.reportError("Error - mismatched lists; list of markers to include in centroid computation must be the same size as the marker list for the given project"); 
-		}
-		markerChrs = markerSet.getChrs();
-		markerList = new Vector<String>();
-		
-		fullToTruncMarkerIndices = new Hashtable<Integer, Integer>();
-		int cnt = 0;
-		for (int i = 0; i < markerChrs.length; i++) {
-			if (includeList[i]) {
-				markerList.add(allMarkers[i]);
-				fullToTruncMarkerIndices.put(i, cnt);
-				markerIndexQueue.add(Integer.valueOf(i));
-				cnt++;
-			}
-		}
-		
-		markersToUse = Array.toStringArray(markerList);
-		
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToUse);
+
 
 		inclSampAll = proj.getSamplesToInclude(null);
 		if (!sampleData.hasExcludedIndividuals()) {
@@ -190,16 +205,44 @@ public class AnalysisFormats implements Runnable {
 			}
 		}
 		
+		int threadCount = Runtime.getRuntime().availableProcessors();
+		markerIndexQueues = new ConcurrentLinkedQueue[threadCount];
+		markerLists = new Vector[threadCount];
+		fullToTruncMarkerIndices = new Hashtable[threadCount];
+		markerDataLoaders = new MarkerDataLoader[threadCount];
+		for (int i = 0; i < threadCount; i++) {
+			markerLists[i] = new Vector<String>();
+			markerIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
+			fullToTruncMarkerIndices[i] = new Hashtable<Integer, Integer>();
+		}
+		
+		allMarkers = markerSet.getMarkerNames();
+		if (includeList.length != allMarkers.length) {
+			log.reportError("Error - mismatched lists; list of markers to include in centroid computation must be the same size as the marker list for the given project"); 
+		}
+		markerChrs = markerSet.getChrs();
+		
+		int qInd = 0;
+		for (int i = 0; i < markerChrs.length; i++) {
+			if (includeList[i]) {
+				markerLists[qInd].add(allMarkers[i]);
+				fullToTruncMarkerIndices[qInd].put(i, markerLists[qInd].size() - 1);
+				markerIndexQueues[qInd].add(Integer.valueOf(i));
+				qInd = (qInd + 1) % threadCount;
+			}
+		}
+		
+		for (int i = 0; i < threadCount; i++) {
+			markerDataLoaders[i] = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, Array.toStringArray(markerLists[i]));
+		}
+		
 		rawCentroidsMale = new float[allMarkers.length][][];
 		rawCentroidsFemale = new float[allMarkers.length][][];
 
 		pfbInfo = new Hashtable<Integer, String[][]>();
-		int threadCount = Runtime.getRuntime().availableProcessors();
-		int taskCount = markerIndexQueue.size();
 		
 		log.report("Computing sex-specific centroids for " + markerCount + " sex-specific markers on " + threadCount + " thread(s).");
 		
-		final CountDownLatch latch = new CountDownLatch(taskCount);
 		computeHub = Executors.newFixedThreadPool(threadCount);
 		for (int i = 0; i < threadCount; i++) {
 			final int myIndex = i;
@@ -208,8 +251,8 @@ public class AnalysisFormats implements Runnable {
 				@Override
 				public void run() {
 					int myMarkerCount = 0;
-					while(!markerIndexQueue.isEmpty()) {
-						Integer indexInt = markerIndexQueue.poll();
+					while(!markerIndexQueues[myIndex].isEmpty()) {
+						Integer indexInt = markerIndexQueues[myIndex].poll();
 						if (indexInt == null) continue;
 						int index = indexInt.intValue();
 						
@@ -219,8 +262,8 @@ public class AnalysisFormats implements Runnable {
 							continue;
 						}
 						
-						int markerIndex = fullToTruncMarkerIndices.get(index);
-						MarkerData markerData = markerDataLoader.requestMarkerData(markerIndex);
+						int markerIndex = fullToTruncMarkerIndices[myIndex].get(index);
+						MarkerData markerData = markerDataLoaders[myIndex].requestMarkerData(markerIndex);
 						CentroidCompute centCompM = new CentroidCompute(markerData, 
 													null, 
 													inclSampMales, 
@@ -276,43 +319,33 @@ public class AnalysisFormats implements Runnable {
 							}
 						}
 						
-						pfbInfo.put(markerIndex, new String[][]{
+						pfbInfo.put(index, new String[][]{
 								{markerData.getMarkerName(), "" + (shiftPFBForSex ? markerData.getChr() - 22 : markerData.getChr()), "" + markerData.getPosition(), "" + (genCnt[0] > 0 ? (bafSum[0] / bafCnt[0]) : 2)},
 								{markerData.getMarkerName(), "" + (shiftPFBForSex ? markerData.getChr() - 22 : markerData.getChr()), "" + markerData.getPosition(), "" + (genCnt[1] > 0 ? (bafSum[1] / bafCnt[1]) : 2)}
 						});
 						if (markerIndex > 0 && markerIndex % 10000 == 0) {
-							log.report(ext.getTime() + "\t...sex centroids computed up to marker " + (markerCount - markerIndexQueue.size()) + " of " + markerCount);
+							log.report(ext.getTime() + "\t...sex centroids computed up to marker " + (markerCount - markerIndex) + " of " + markerCount);
 						}
 						
-						markerDataLoader.releaseIndex(markerIndex);
+						markerDataLoaders[myIndex].releaseIndex(markerIndex);
 						centCompM = null;
 						centCompF = null;
 						
 						myMarkerCount++;
 					}
 					
-					latch.countDown();
 					System.out.println("Thread " + myIndex + " processed " + myMarkerCount + " markers in " + ext.getTimeElapsed(myStartTime));
 				}
 			});
 		}
 		
-//		computeHub.shutdown();
-//		try {
-//			latch.await();
-//		} catch (InterruptedException e) {
-//			log.report("Centroid computation was interrupted - .pfb and .cent files may not be complete or correct.");
-//		}
-		
-		System.out.println("Shutting down compute hub");
 		computeHub.shutdown();
-		System.out.println("Awaiting compute hub shutdown");
 		try {
 			computeHub.awaitTermination(Long.MAX_VALUE, java.util.concurrent.TimeUnit.NANOSECONDS);
 		} catch (InterruptedException e) {
 			log.report("Centroid computation was interrupted - .pfb and .cent files may not be complete or correct.");
 		}
-		System.out.println("Compute hub shutdown complete");
+		computeHub = null;
 		
 		int nullCnt = 0;
 		for (int i = 0; i < rawCentroidsFemale.length; i++) {
@@ -332,13 +365,11 @@ public class AnalysisFormats implements Runnable {
 				writerM.println("Name\tChr\tPosition\tPFB");
 				writerF.println("Name\tChr\tPosition\tPFB");
 				
-				int count = 0;
 				for (int i = 0; i < allMarkers.length; i++) {
 					if (!includeList[i]) continue;
-					String[][] pfbEntry = pfbInfo.get(Integer.valueOf(count));
+					String[][] pfbEntry = pfbInfo.get(Integer.valueOf(i));
 					writerM.println(pfbEntry[0][0] + "\t" + pfbEntry[0][1] + "\t" + pfbEntry[0][2] + "\t" + pfbEntry[0][3]);
 					writerF.println(pfbEntry[1][0] + "\t" + pfbEntry[1][1] + "\t" + pfbEntry[1][2] + "\t" + pfbEntry[1][3]);
-					count++;
 				}
 				
 				writerM.flush();
@@ -373,19 +404,25 @@ public class AnalysisFormats implements Runnable {
 	}
 	
 	public static String[] pennCNVSexHackMultiThreaded(Project proj, String gcModelFile) {
-		String sampleDataFile, sampleDir, sexDir, pennDir, pennData, maleDir, femaleDir, malePFBFile, femalePFBFile, newGCFile, centFilePathM, centFilePathF;
-		String[] allMarkers, allSamples, header;
-		SampleData sampleData;
+		String sampleDataFile;
+		final String sampleDir;
+		String sexDir, pennDir, pennData;
+		final String maleDir;
+		final String femaleDir;
+		String malePFBFile, femalePFBFile, newGCFile, centFilePathM, centFilePathF;
+		final String[] allMarkers;
+		final String[] allSamples;
+		String[] header;
+		final SampleData sampleData;
 		MarkerSet ms;
-		float[] thetas, rs;
-		byte[] markerChrs, genotypes;
-		boolean jar, gzip;
-		boolean[] includeMarkersList, includeSamplesList;
-		PrintWriter writer;
-		Sample samp;
-		Hashtable<String, Vector<String>> sexData;
+		byte[] markerChrs;
+		final boolean jar;
+		final boolean gzip;
+		final boolean[] includeMarkersList;
+		boolean[] includeSamplesList;
+		final Hashtable<String, Vector<String>> sexData;
 		
-		Logger log = proj.getLog();
+		final Logger log = proj.getLog();
 		
 		pennDir = proj.getProperty(Project.PENNCNV_RESULTS_DIRECTORY);
 		pennData = proj.getProperty(Project.PENNCNV_DATA_DIRECTORY);
@@ -429,10 +466,10 @@ public class AnalysisFormats implements Runnable {
 					break;
 			}
 		}
-//		String[] markersUsed = Array.toStringArray(markerList);
 		
 		Centroids[] centroids = computeCentroids(proj, includeMarkersList, new String[]{malePFBFile, femalePFBFile}, new String[]{centFilePathM, centFilePathF}, true);
-		float[][][] rawCentroidsMale, rawCentroidsFemale;
+		final float[][][] rawCentroidsMale;
+		final float[][][] rawCentroidsFemale;
 		rawCentroidsMale = centroids[0].getCentroids();
 		rawCentroidsFemale = centroids[1].getCentroids();
 		
@@ -463,44 +500,85 @@ public class AnalysisFormats implements Runnable {
 		}
 		sexData = HashVec.loadFileToHashVec(sampleDataFile, 0, new int[] { sexInd }, "\t", true, false);
 		
-		for (int i = 0; i < allSamples.length; i++) {
-			log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + allSamples.length);
-			if (Files.exists(sampleDir + allSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-				samp = Sample.loadFromRandomAccessFile(sampleDir + allSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
-			} else {
-				log.reportError("Error - the " + allSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
-				// TODO okay to just skip this sample instead of halting entirely?
-				continue;
-			}
-			
-			int sex = sampleData.getSexForIndividual(allSamples[i]);
-			if (sex == -1) {
-				sex = Integer.parseInt(sexData.get(allSamples[i].toUpperCase()).get(0));
-			}
-			boolean compFemale = SexChecks.KARYOTYPES[sex].contains("XX");
-			
-			thetas = samp.getThetas();
-			rs = samp.getRs();
-			genotypes = samp.getAB_Genotypes();
-			
-			try {
-				writer = Files.getAppropriateWriter((compFemale ? femaleDir : maleDir) + allSamples[i] + (gzip ? ".gz" : ""));
-				writer.println("Name\t" + allSamples[i] + ".GType\t" + allSamples[i] + ".Log R Ratio\t" + allSamples[i] + ".B Allele Freq");
-				for (int j = 0; j < allMarkers.length; j++) {
-					if (!includeMarkersList[j] || null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) continue;
-					
-					float lrr = Centroids.calcLRR(thetas[j], rs[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-					float baf = Centroids.calcBAF(thetas[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-					
-					writer.println(allMarkers[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrr + "\t" + baf);
-				}
-				writer.close();
-			} catch (Exception e) {
-				log.reportError("Error writing sex-specific ("+ (compFemale ? "female" : "male") +") PennCNV data for " + allSamples[i]);
-				log.reportException(e);
-			}
-			
+		
+		int threadCount = Runtime.getRuntime().availableProcessors();
+
+		final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues = new ConcurrentLinkedQueue[threadCount];
+		for (int i = 0; i < threadCount; i++) {
+			sampleIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
 		}
+		for (int i = 0; i < allSamples.length; i++) {
+			sampleIndexQueues[i % threadCount].add(i);
+		}
+		
+
+		ExecutorService computeHub = Executors.newFixedThreadPool(threadCount);
+		for (int threadI = 0; threadI < threadCount; threadI++) {
+			final int myIndex = threadI;
+			final long myStartTime = System.currentTimeMillis();
+			computeHub.execute(new Runnable() {
+				@Override
+				public void run() {
+					PrintWriter writer;
+					int mySampleCount = 0;
+					String sampleName;
+					float[] thetas, rs;
+					byte[] genotypes; 
+					while(!sampleIndexQueues[myIndex].isEmpty()) {
+						Sample mySample;
+						int sampleIndex = sampleIndexQueues[myIndex].poll();
+						sampleName = allSamples[sampleIndex];
+						log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + allSamples.length);
+						if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+							mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
+						} else {
+							log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+							// TODO okay to just skip this sample instead of halting entirely?
+							continue;
+						}
+						
+						int sex = sampleData.getSexForIndividual(sampleName);
+						if (sex == -1) {
+							sex = Integer.parseInt(sexData.get(sampleName.toUpperCase()).get(0));
+						}
+						boolean compFemale = SexChecks.KARYOTYPES[sex].contains("XX");
+						
+						thetas = mySample.getThetas();
+						rs = mySample.getRs();
+						genotypes = mySample.getAB_Genotypes();
+
+						try {
+							writer = Files.getAppropriateWriter((compFemale ? femaleDir : maleDir) + sampleName + (gzip ? ".gz" : ""));
+							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
+							for (int j = 0; j < allMarkers.length; j++) {
+								if (!includeMarkersList[j] || null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) continue;
+								
+								float lrr = Centroids.calcLRR(thetas[j], rs[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+								float baf = Centroids.calcBAF(thetas[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+								
+								writer.println(allMarkers[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrr + "\t" + baf);
+							}
+							writer.close();
+						} catch (Exception e) {
+							log.reportError("Error writing sex-specific ("+ (compFemale ? "female" : "male") +") PennCNV data for " + sampleName);
+							log.reportException(e);
+						}
+						
+						mySampleCount++;
+					}
+
+					System.out.println("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime));
+				}
+			});
+		}
+		
+		computeHub.shutdown();
+		try {
+			computeHub.awaitTermination(Long.MAX_VALUE, java.util.concurrent.TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+			log.report("Sample export was interrupted - exported sample files may not be complete or correct.");
+		}
+		computeHub = null;
 		
 		filterSexSpecificGCModel(proj, gcModelFile, newGCFile, new String[]{"23", "X", "24", "Y", "25", "XY", "26", "M"});
 		
