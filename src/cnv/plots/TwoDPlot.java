@@ -1389,7 +1389,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static TwoDPlot createAndShowGUI(Project proj) {
 
 		//Create and set up the window.
-		JFrame frame = new JFrame("2D Plot");
+		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.getNameOfProject());
 //        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

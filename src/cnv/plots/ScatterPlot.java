@@ -2545,7 +2545,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
     	scatterPlot = new ScatterPlot(proj, markerList, commentList, exitOnClose);
     	
     	if (!scatterPlot.failed()) {
-	    	frame = new JFrame("ScatterPlot");
+	    	frame = new JFrame("Genvisis - ScatterPlot - " + proj.getNameOfProject());
 			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	        frame.setContentPane(scatterPlot);
 			frame.addWindowListener(scatterPlot);
