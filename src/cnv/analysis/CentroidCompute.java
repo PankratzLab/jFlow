@@ -231,7 +231,7 @@ public class CentroidCompute {
 		int check = markerData.getThetas().length;
 		byte chr = markerData.getChr();
 		if (sampleSex == null && sexSpecific) {
-			log.report("Warning - marker " + markerData.getMarkerName() + " is on chromosome " + chr + " and sample sex was not provided, cluster centers may be inaccurate");
+			//log.report("Warning - marker " + markerData.getMarkerName() + " is on chromosome " + chr + " and sample sex was not provided, cluster centers may be inaccurate");
 		} else if (sampleSex != null && sampleSex.length != check) {
 			failed = true;
 			log.reportError("Error - mismatched number of samples for data's length");

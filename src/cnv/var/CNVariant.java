@@ -6,7 +6,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 import common.ByteVector;
@@ -15,10 +17,54 @@ import common.IntVector;
 import common.Positions;
 import common.StringVector;
 import common.ext;
-
 import filesys.Segment;
 
 public class CNVariant extends Segment {
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + cn;
+		result = prime * result + ((familyID == null) ? 0 : familyID.hashCode());
+		result = prime * result + ((individualID == null) ? 0 : individualID.hashCode());
+		result = prime * result + numMarkers;
+		long temp;
+		temp = Double.doubleToLongBits(score);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + source;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CNVariant other = (CNVariant) obj;
+		if (cn != other.cn)
+			return false;
+		if (familyID == null) {
+			if (other.familyID != null)
+				return false;
+		} else if (!familyID.equals(other.familyID))
+			return false;
+		if (individualID == null) {
+			if (other.individualID != null)
+				return false;
+		} else if (!individualID.equals(other.individualID))
+			return false;
+		if (numMarkers != other.numMarkers)
+			return false;
+		if (Double.doubleToLongBits(score) != Double.doubleToLongBits(other.score))
+			return false;
+		if (source != other.source)
+			return false;
+		return true;
+	}
+
 	public static final long serialVersionUID = 1L;
 	public static final String[] PLINK_CNV_HEADER = { "FID", "IID", "CHR", "BP1", "BP2", "TYPE", "SCORE", "SITES" };
 
@@ -106,6 +152,10 @@ public class CNVariant extends Segment {
 
 	public boolean overlapsLocAndIndividual(CNVariant cnv) {
 		return familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && amountOfOverlapInBasepairs(cnv) > 0;
+	}
+	
+	public boolean overlapsLocAndIndividualSignificantly(CNVariant cnv) {
+		return familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && significantOverlap(cnv);
 	}
 
 	public String toPlinkFormat() {
@@ -247,6 +297,132 @@ public class CNVariant extends Segment {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void findSignificantConsensus(String file1, String file2) {
+		PrintWriter writer;
+		CNVariant[] list1, list2;
+		HashSet<CNVariant> matched1 = new HashSet<CNVariant>();
+		HashSet<CNVariant> matched2 = new HashSet<CNVariant>();
+
+		HashSet<CNVariant> unmatched1 = new HashSet<CNVariant>();
+		HashSet<CNVariant> unmatched2 = new HashSet<CNVariant>();
+		Vector<String> outputLines = new Vector<String>();
+		
+		list1 = loadPlinkFile(file1, false);
+		list2 = loadPlinkFile(file2, false);
+		
+		for (int i = 0; i < list1.length; i++) {
+			for (int j = 0; j < list2.length; j++) {
+				if (list1[i].overlapsLocAndIndividualSignificantly(list2[j])) {
+					matched1.add(list1[i]);
+					matched2.add(list2[j]);
+				}
+			}
+		}
+		
+		for (int i = 0; i < list1.length; i++) {
+			if (matched1.contains(list1[i])) {
+				outputLines.add(list1[i].toPlinkFormat() + "\t3");
+			} else {
+				unmatched1.add(list1[i]);
+			}
+		}
+
+		for (int i = 0; i < list2.length; i++) {
+			if (matched2.contains(list2[i])) {
+				outputLines.add(list2[i].toPlinkFormat() + "\t3");
+			} else {
+				unmatched2.add(list1[i]);
+			}
+		}
+		
+		Iterator<CNVariant> unmatchedIterator = unmatched1.iterator();
+		while(unmatchedIterator.hasNext()) {
+			outputLines.add(unmatchedIterator.next().toPlinkFormat() + "\t1");
+		}
+		unmatchedIterator = unmatched2.iterator();
+		while(unmatchedIterator.hasNext()) {
+			outputLines.add(unmatchedIterator.next().toPlinkFormat() + "\t2");
+		}
+		
+
+		try {
+			writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_signif_consensus.cnv"));
+			for (int i = 0; i < outputLines.size(); i++) {
+				writer.println(outputLines.get(i));
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing significant-consensus file");
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
+	public static void findSignificantConsensus(String file1, String file2, boolean checkLarger) {
+		PrintWriter writer;
+		CNVariant[] list1, list2;
+		HashSet<CNVariant> matched1 = new HashSet<CNVariant>();
+		HashSet<CNVariant> matched2 = new HashSet<CNVariant>();
+
+		HashSet<CNVariant> unmatched1 = new HashSet<CNVariant>();
+		HashSet<CNVariant> unmatched2 = new HashSet<CNVariant>();
+		Vector<String> outputLines = new Vector<String>();
+		
+		list1 = loadPlinkFile(file1, false);
+		list2 = loadPlinkFile(file2, false);
+		
+		for (int i = 0; i < list1.length; i++) {
+			for (int j = 0; j < list2.length; j++) {
+
+				if (list1[i].familyID.equals(list2[j].familyID) && list1[i].equals(list2[j].individualID) && list1[i].significantOverlap(list2[j], checkLarger)) {
+					matched1.add(list1[i]);
+					matched2.add(list2[j]);
+				}
+			}
+		}
+		
+		for (int i = 0; i < list1.length; i++) {
+			if (matched1.contains(list1[i])) {
+				outputLines.add(list1[i].toPlinkFormat() + "\t3");
+			} else {
+				unmatched1.add(list1[i]);
+			}
+		}
+
+		for (int i = 0; i < list2.length; i++) {
+			if (matched2.contains(list2[i])) {
+				outputLines.add(list2[i].toPlinkFormat() + "\t3");
+			} else {
+				unmatched2.add(list1[i]);
+			}
+		}
+		
+		Iterator<CNVariant> unmatchedIterator = unmatched1.iterator();
+		while(unmatchedIterator.hasNext()) {
+			outputLines.add(unmatchedIterator.next().toPlinkFormat() + "\t1");
+		}
+		unmatchedIterator = unmatched2.iterator();
+		while(unmatchedIterator.hasNext()) {
+			outputLines.add(unmatchedIterator.next().toPlinkFormat() + "\t2");
+		}
+		
+
+		try {
+			writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_signif_consensus.cnv"));
+			for (int i = 0; i < outputLines.size(); i++) {
+				writer.println(outputLines.get(i));
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing significant-consensus file");
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
 
 	public static CNVariant[] putInOrder(CNVariant[] array, int[] order) {
 		CNVariant[] newArray;
@@ -268,20 +444,71 @@ public class CNVariant extends Segment {
 	}
 
 	public static void main(String[] args) {
-		String file1 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\penncnv\\again_noGenderProblems\\conf_0kb_5SNP_10.0.cnv";
-		String file2 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\quantisnp\\noGenderProblems\\conf_0kb_5SNP_10.0.cnv";
-		// String file1 = "Penn_conf_0kb_5SNP_10.0.cnv";
-		// String file2 = "Quanti_conf_0kb_5SNP_10.0.cnv";
+		int numArgs = args.length;
+		String filename1 = "CNVariant1.dat";
+		String filename2 = "CNVariant2.dat";
+		String logfile = null;
+		boolean signif = false;
+		
+		String usage = 
+						"\n" + 
+						"cnv.var.CNVariant requires 2+ arguments\n" + 
+						"   (1) first CNV filename (i.e. file1=" + filename1 + " (not the default))\n" +
+						"   (2) second CNV filename (i.e. file2=" + filename2 + " (not the default))\n" +
+						"   (3) (Optional) restrict to significant overlap (i.e. -sig (not the default))\n" + 
+						"";
 
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file1=")) {
+				filename1 = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("file2=")) {
+				filename1 = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-sig")) {
+				signif = true;
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
 		try {
-			findConsensus(file1, file2);
+			if (signif) {
+				findSignificantConsensus(filename1, filename2);
+			} else {
+				findConsensus(filename1, filename2);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+//	public static void main(String[] args) {
+//		String file1 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\penncnv\\again_noGenderProblems\\conf_0kb_5SNP_10.0.cnv";
+//		String file2 = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\quantisnp\\noGenderProblems\\conf_0kb_5SNP_10.0.cnv";
+//		// String file1 = "Penn_conf_0kb_5SNP_10.0.cnv";
+//		// String file2 = "Quanti_conf_0kb_5SNP_10.0.cnv";
+//
+//		try {
+//			findConsensus(file1, file2);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	// Return the Individual ID when getting as a string
 	public String toString() {
 		return getIndividualID();
 	}
 }
+

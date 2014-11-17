@@ -16,6 +16,34 @@ import common.Sort;
 import common.ext;
 
 public class Segment implements Serializable {
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + chr;
+		result = prime * result + start;
+		result = prime * result + stop;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Segment other = (Segment) obj;
+		if (chr != other.chr)
+			return false;
+		if (start != other.start)
+			return false;
+		if (stop != other.stop)
+			return false;
+		return true;
+	}
+
 	public static final long serialVersionUID = 1L;
 
 	protected byte chr;
@@ -102,9 +130,32 @@ public class Segment implements Serializable {
 	}
 
 	public boolean significantOverlap(Segment seg) {
-		return amountOfOverlapInBasepairs(seg)>Math.min(getSize(), seg.getSize())/2;
+		return amountOfOverlapInBasepairs(seg) > Math.min(getSize(), seg.getSize()) / 2;
 	}
+	
+	public boolean significantOverlap(Segment seg, boolean checkLarger) {
+		int overlap = amountOfOverlapInBasepairs(seg);
+		
+		int mySize = getSize();
+		int segSize = seg.getSize();
 
+		/* 
+		 * Get the threshold that overlap needs to pass to be significant:
+		 * 		First check which is larger, then
+		 * 		check argument flag,
+		 * 		then set the threshold to the minimum of either 
+		 * 			half the size of the larger CNV or
+		 * 			the entirety of the smaller CNV 
+		 * 				(if the smaller CNV is smaller than half the size of the larger CNV - otherwise we'd never call significance) 
+		 */
+		int threshold = mySize > segSize ? 
+							(checkLarger ? Math.min(mySize / 2, segSize) : Math.min(segSize / 2, mySize))
+						: 
+							(checkLarger ? Math.min(segSize / 2, mySize ) : Math.min(mySize  / 2, segSize));
+		
+		return overlap > threshold;
+	}
+	
 	public double overlapScore(Segment seg) {
 		int overLap = amountOfOverlapInBasepairs(seg);
 		return ((double) overLap / getSize());
