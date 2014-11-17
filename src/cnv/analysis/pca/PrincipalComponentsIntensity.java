@@ -88,6 +88,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 				goodClust++;
 				// System.out.println("good Enough geno" + i);
 			} else {
+				if (verbose) {
+					proj.getLog().report("Info - forcing genotype cluster " + i);
+				}
 				forceThisCluster[i] = true;
 			}
 		}
@@ -404,6 +407,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	 */
 	private void mergeCorrectedClusters() {
 		int[] genoIndices = new int[genoSampleClusters.length];
+		int count = 0;
 		for (int i = 0; i < numTotalSamples; i++) {
 			boolean hasCorrection = false;
 			for (int j = 0; j < genoSampleClusters.length; j++) {
@@ -414,16 +418,20 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 					correctedYFull[i] = Math.max(0, correctedYCluster[j][genoIndices[j]] + (float) toCartesianY(centroid.getCentroid()[j]));
 					genoIndices[j]++;
 					hasCorrection = true;
+					count++;
 				}
 			}
 			if (!hasCorrection) {
-				if (verbose) {
-					proj.getLog().report("Warning - sample " + samples[i] + " could not be corrected for marker " + centroid.getMarkerData().getMarkerName());
-				}
+				// if (verbose) {
+				// proj.getLog().report("Warning - sample " + samples[i] + " could not be corrected for marker " + centroid.getMarkerData().getMarkerName());
+				// }
 				correctedXFull[i] = centroid.getMarkerData().getXs()[i];
 				correctedYFull[i] = centroid.getMarkerData().getYs()[i];
 
 			}
+		}
+		if (verbose) {
+			proj.getLog().report("Info - corrected a total of " + count + " of " + numTotalSamples + " " + (count == 1 ? "sample" : "samples"));
 		}
 	}
 

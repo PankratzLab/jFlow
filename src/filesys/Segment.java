@@ -310,6 +310,33 @@ public class Segment implements Serializable {
 		return -1;
 	}
 
+	/**
+	 * Note that this function is chromosome aware and {@link Segment#binarySearchForOverlap(Segment, Segment[])} is not
+	 * 
+	 * @param seg
+	 *            segment to search for
+	 * @param orderedList
+	 *            orderList of segments, in order by chromosome and then position
+	 * @return index of the overlapping segment, or -1 if not found
+	 */
+	public static int binarySearchForOverlapChromosomeAware(Segment seg, Segment[] orderedList) {
+		int low, high, mid;
+
+		low = 0;
+		high = orderedList.length - 1;
+		while (low <= high) {
+			mid = low + (high - low) / 2;
+			if (orderedList[mid].overlaps(seg)) {
+				return mid;
+			} else if (seg.chr < orderedList[mid].chr || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+				high = mid - 1;
+			} else {
+				low = mid + 1;
+			}
+		}
+		return -1;
+	}
+	
 	public static int binarySearchForStartPositions(Segment seg, Segment[] orderedList) {
 		int low, high, mid;
 		
