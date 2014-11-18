@@ -50,7 +50,7 @@ public class CmdLine {
 					while (in.available()>0||err.available()>0) {
 						while (in.available()>0) {
 							if (log != null) {
-								log.report((char) in.read()+"");
+								log.report((char) in.read()+"",false,true);
 							} else if (inOs != null) {
 								inOs.print((char) in.read());
 							} else {
@@ -59,7 +59,7 @@ public class CmdLine {
 						}
 						while (err.available() > 0) {
 							if (log != null) {
-								log.report((char) err.read() + "");
+								log.report((char) err.read() + "",false,true);
 							} else if (errOS != null) {
 								errOS.print((char) err.read());
 							} else {

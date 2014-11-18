@@ -1683,6 +1683,35 @@ public class Files {
 		return readSerial(filename, jar, new Logger(), kill);
 	}
 	
+	
+	/**
+	 * Checks if a serialized version of the non serial filename exists
+	 * 
+	 * @param altDir
+	 *            if the file should be in a different directory (optional)
+	 * @param nonSerialFilename
+	 * @return
+	 */
+	public static boolean serializedVersionExists(String altDir, String nonSerialFilename) {
+		return Files.exists(getSerializedFileName(altDir, nonSerialFilename));
+	}
+
+	/**
+	 * returns a serialized version of the non serial filename
+	 * 
+	 * @param altDir
+	 *            if the file should be in a different directory (optional)
+	 * @param nonSerialFilename
+	 * @return
+	 */
+	public static String getSerializedFileName(String altDir, String nonSerialFilename) {
+		if (altDir == null) {
+			return ext.rootOf(nonSerialFilename, false) + SERIALIZED_FILE_EXTENSION;
+		} else {
+			return altDir + ext.rootOf(nonSerialFilename, true) + SERIALIZED_FILE_EXTENSION;
+		}
+	}
+
 	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill) {
 		ObjectInputStream ois;
 		Object o = null;
