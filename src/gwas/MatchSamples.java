@@ -785,10 +785,7 @@ public class MatchSamples {
 				new MatchesVisualized("", anchorFile, barnacleFile, coordsFile, coords, pairs);
 				eval("", pairs, demographicsFile, demoFactors);
 				new MatchesVisualized("", anchorFile, barnacleFile, coordsFile, coords, pairs);
-				try {
-					new BufferedReader(new InputStreamReader(System.in)).readLine();
-				} catch (IOException ioe) {
-				}
+				ext.waitForResponse();
 			} catch (Exception e) {
 				log.reportError("Error matching files");
 				log.reportException(e);

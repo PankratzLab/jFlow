@@ -359,10 +359,7 @@ public class Zip {
 				System.err.println("Error at some point");
 				e.printStackTrace();
 			}
-			try {
-				new BufferedReader(new InputStreamReader(System.in)).readLine();
-			} catch (IOException ioe) {
-			}
+			ext.waitForResponse();
 		}
 	}
 

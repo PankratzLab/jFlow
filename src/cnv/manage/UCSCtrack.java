@@ -132,12 +132,7 @@ public class UCSCtrack {
 			e.printStackTrace();
 		}
 
-		if (System.getProperty("os.name").startsWith("Windows")) {
-			try {
-				new BufferedReader(new InputStreamReader(System.in)).readLine();
-			} catch (IOException ioe) {
-			}	
-		}
+		ext.waitForResponse();
 	}
 
 }

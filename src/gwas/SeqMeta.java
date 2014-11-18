@@ -1526,9 +1526,9 @@ public class SeqMeta {
 								header[h] = "'"+header[h]+"'="+studies[j]+"_"+races[k][0]+"_"+header[h]+"_"+methods[m][0];
 							}
 							if (methods[m][1].equals("BurdenTests")) {
-								groupParams.get(methods[m][1]).add(localRaceDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+								groupParams.get(methods[m][1]).add(localRaceDir+filename+" "+Array.toStr(header, " "));
 							} else {
-								groupParams.get(methods[m][1]).add(localRaceDir+filename+" simplifyQuotes "+Array.toStr(Array.subArray(header, 1), " "));
+								groupParams.get(methods[m][1]).add(localRaceDir+filename+" "+Array.toStr(Array.subArray(header, 1), " "));
 							}
 						}
 					}
@@ -1557,7 +1557,7 @@ public class SeqMeta {
 						header[1] = temp;
 						header = Array.subArray(header, 0, getHeaderForMethod(methods[m]).length);
 					}
-					groupParams.get(methods[m][1]).add(k, localRaceDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+					groupParams.get(methods[m][1]).add(k, localRaceDir+filename+" "+Array.toStr(header, " "));
 					groupHits.get(methods[m][1]).incorporateFromFile(localDir+pvalFile, new int[] {0,1}, 0.001, log);
 				}
 
@@ -1583,7 +1583,7 @@ public class SeqMeta {
 					header[1] = temp;
 					header = Array.subArray(header, 0, getHeaderForMethod(methods[m]).length);
 				}
-				groupParams.get(methods[m][1]).add(0, localDir+filename+" simplifyQuotes "+Array.toStr(header, " "));
+				groupParams.get(methods[m][1]).add(0, localDir+filename+" "+Array.toStr(header, " "));
 				groupHits.get(methods[m][1]).incorporateFromFile(localDir+pvalFile, new int[] {0,1}, 0.001, log);
 				
 				
@@ -2801,7 +2801,7 @@ public class SeqMeta {
 			}
 			
 			params = Array.toStringArray(indices);
-			params = Array.addStrToArray("simplifyQuotes", params);
+//			params = Array.addStrToArray("simplifyQuotes", params);
 			params = Array.insertStringAt(filenames[i], params, 0);
 			parsers[i] = new GenParser(params, log);
 		}

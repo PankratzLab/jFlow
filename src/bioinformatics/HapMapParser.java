@@ -248,10 +248,7 @@ public class HapMapParser {
 		
 		if (filename == null && map.equals("")) {
 			System.err.println("Error - need to pass a filename as an argument (i.e. file=MAPT.tsv)");
-			try {
-				new BufferedReader(new InputStreamReader(System.in)).readLine();
-			} catch (IOException ioe) {
-			}
+			ext.waitForResponse();
 			return;
 		}
 		
@@ -282,7 +279,7 @@ public class HapMapParser {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			new BufferedReader(new InputStreamReader(System.in)).readLine();
+			ext.waitForResponse();
 		}
 	}
 }

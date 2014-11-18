@@ -1069,10 +1069,7 @@ public class ext {
 			} catch (Exception e) {
 				System.err.println("Error - failed to parse: '"+ori+"'");
 				e.printStackTrace();
-				try {
-					new BufferedReader(new InputStreamReader(System.in)).readLine();
-				} catch (IOException ioe) {
-				}
+				ext.waitForResponse();
 			}
 		}
 		return str;
@@ -1468,6 +1465,19 @@ public class ext {
 		}
 	}
 
+	public static void waitForResponse() {
+		waitForResponse("Press ENTER to continue");
+	}
+	
+	public static void waitForResponse(String message) {
+		if (System.getProperty("os.name").startsWith("Windows")) {
+			System.out.println(message);
+			try {
+				new BufferedReader(new InputStreamReader(System.in)).readLine();
+			} catch (IOException ioe) {}
+		}
+	}
+	
 	public static void main(String[] args) {
 		String temp;
 		Logger log;

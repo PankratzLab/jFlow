@@ -3,14 +3,6 @@ package common;
 import java.io.*;
 
 public class CmdLine {
-	public static void stdin() {
-		try {
-			new BufferedReader(new InputStreamReader(System.in)).readLine();
-		} catch (IOException ioe) {
-			System.err.println("Error trying to get input");
-		}		
-	}
-	
 	public static boolean run(String command, String dir) {
 		return run(command, dir, null);
 	}

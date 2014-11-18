@@ -260,8 +260,9 @@ public class HashVec {
 				trav = reader.readLine();
 				if (cols!=null) {
 					if (trimFirst) {
-						line = trav.trim().split(delimiter, -1); // trim() needed for all PLINK files
-					} else if (delimiter.equals(",")) {
+						trav = trav.trim(); // trim() needed for all PLINK files
+					}
+					if (delimiter.equals(",")) {
 						line = ext.splitCommasIntelligently(trav, true, new Logger());
 					} else {
 						line = trav.split(delimiter, -1);

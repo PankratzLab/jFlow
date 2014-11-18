@@ -3,6 +3,7 @@ package db;
 import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
+
 import common.*;
 import stats.LeastSquares;
 import stats.LogisticRegression;
@@ -1024,10 +1025,8 @@ public class crfDB {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if (!suppress && System.getProperty("os.name").startsWith("Windows")) {
-			System.err.println();
-			System.err.println("Press any key to close this window");
-			new BufferedReader(new InputStreamReader(System.in)).readLine();
+		if (!suppress) {
+			ext.waitForResponse("Press any key to close this window");
 		}
 	}
 }
