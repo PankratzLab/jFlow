@@ -2,10 +2,12 @@ package cnv.qc;
 
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
 import common.Array;
+import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.Positions;
@@ -41,6 +43,12 @@ public class CNVFilter {
 	public static final String COMMAND_COMMON_REFERENCE = "commonReferenceFile=";
 	public static final String COMMAND_INDIVIDUALS_TO_KEEP = "individualsToKeepFile=";
 	public static final String COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA = "exclude=";
+	public static final String COMMAND_PROJECT = "proj=";
+	public static final String COMMAND_CNV_FILE = "cnvFile=";
+	public static final String COMMAND_CNV_FILE_OUT = "out=";
+
+	public static final String COMMAND_CNV_FILTER_CRF = "filter cnvs";
+	public static final String COMMAND_CNV_FILTER_DESCRIPTION = "filter a file of cnvs";
 
 	/**
 	 * Thes parameters should result in no filtering
@@ -624,6 +632,75 @@ public class CNVFilter {
 			} else {
 				reasonNotPassing += sep + reason;
 			}
+		}
+	}
+
+	public static String[] getParserParams() {
+		String[] params = new String[7];
+		params[0] = "#To intialize the cnv filter, provide the following arguments";
+		params[1] = "#the full path to a project properties file";
+		params[2] = COMMAND_PROJECT;
+		params[3] = "# the path (relative to the project directory) for a cnv file";
+		params[4] = COMMAND_CNV_FILE;
+		params[5] = "# the path (relative to the project directory) for the filtered output";
+		params[6] = COMMAND_CNV_FILE_OUT;
+		params = Array.concatAll(params, getDefaultCNVParams());
+		return params;
+	}
+
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params;
+		params = Files.parseControlFile(filename, CNVTrioFilter.COMMAND_CNV_TRIO_CRF, getParserParams(), log);
+		if (params != null) {
+			main(Array.toStringArray(params));
+		}
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String filename = null;
+		String cnvFile = "Genvisis.cnv";
+		String out = "Genvisis.filt.cnv";
+		String logfile = null;
+		Project proj;
+
+		String usage = "\n" + "cnv.qc.CNVFilter requires 1 argument\n";
+		usage += "   (1) project file name (i.e. " + COMMAND_PROJECT + filename + " (no default))\n" + "";
+		usage += "   (2) cnv file name (relative to the project directory) (i.e. " + COMMAND_CNV_FILE + cnvFile + " ( default))\n" + "";
+		usage += "   (2) cnv file name (relative to the project directory) (i.e. " + COMMAND_CNV_FILE + cnvFile + " ( default))\n" + "";
+
+		if (ext.indexOfStr(COMMAND_PROJECT, args, true, false) >= 0) {
+			proj = new Project(ext.parseStringArg(args[ext.indexOfStr(COMMAND_PROJECT, args, true, false)], ""), logfile, false);
+		} else {
+			proj = new Project(filename, null, false);
+		}
+		CNVFilter cnvFilter = setupCNVFilterFromArgs(proj, args, null, true, proj.getLog());
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				filename = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (cnvFilter.isCommandLineFilterInEffect(args[i])) {
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }
