@@ -7,8 +7,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Vector;
 
+import common.Array;
 import common.Files;
 import common.Logger;
 import common.Positions;
@@ -311,6 +313,42 @@ public class Segment implements Serializable {
 	}
 
 	/**
+	 * This function searches for a seed index using {@link Segment#binarySearchForOverlapChromosomeAware(Segment, Segment[])} and then scans up and down to
+	 * <p>
+	 * retrieve any other matches
+	 * 
+	 * @param seg
+	 *            segment to search for
+	 * @param orderedList
+	 *            orderList of segments, in order by chromosome and then position
+	 * @return index/indices of the overlapping segment, or null if not found
+	 */
+	public static int[] binarySearchForAllOverLappingIndices(Segment seg, Segment[] orderedList) {
+		int index = binarySearchForOverlapChromosomeAware(seg, orderedList);
+		if (index < 0) {
+			return null;
+		} else {
+			ArrayList<Integer> overlaps = new ArrayList<Integer>();
+			overlaps.add(index);
+			for (int i = index + 1; i < orderedList.length; i++) {
+				if (seg.overlaps(orderedList[i])) {
+					overlaps.add(i);
+				} else {
+					break;
+				}
+			}
+			for (int i = index - 1; i >= 0; i--) {
+				if (seg.overlaps(orderedList[i])) {
+					overlaps.add(i);
+				} else {
+					break;
+				}
+			}
+			return Array.toIntegerArray(overlaps);
+		}
+	}
+	
+	/**
 	 * Note that this function is chromosome aware and {@link Segment#binarySearchForOverlap(Segment, Segment[])} is not
 	 * 
 	 * @param seg
@@ -439,28 +477,42 @@ public class Segment implements Serializable {
 		return Segment.toArray(v);
 	}
 
+	
+	
 	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, boolean ignoreFirstLine) {
+		return loadRegions(filename, chrCol, startCol, stopCol, ignoreFirstLine ? 1 : 0, true, true);
+	}
+
+	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, int skipNumLines, boolean sorted, boolean inclusiveStart, boolean inclusiveStop) {
+		if (sorted) {
+			return sortSegments(loadRegions(filename, chrCol, startCol, stopCol, skipNumLines, inclusiveStart, inclusiveStop));
+		} else {
+			return loadRegions(filename, chrCol, startCol, stopCol, skipNumLines, inclusiveStart, inclusiveStop);
+		}
+	}
+
+	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, int skipNumLines, boolean inclusiveStart, boolean inclusiveStop) {
 		BufferedReader reader;
 		Vector<Segment> v = new Vector<Segment>();
 		String[] line;
 
 		try {
-	        reader = new BufferedReader(new FileReader(filename));
-	        if (ignoreFirstLine) {
-	        	reader.readLine();
-	        }
-	        while (reader.ready()) {
-	        	line = reader.readLine().trim().split("[\\s]+");
-				v.add(new Segment(Positions.chromosomeNumber(line[chrCol]), Integer.parseInt(line[startCol]), Integer.parseInt(line[stopCol])));
-	        }
-	        reader.close();
-        } catch (FileNotFoundException fnfe) {
-	        System.err.println("Error: file \""+filename+"\" not found in current directory");
-	        System.exit(1);
-        } catch (IOException ioe) {
-	        System.err.println("Error reading file \""+filename+"\"");
-	        System.exit(2);
-        }
+			reader = new BufferedReader(new FileReader(filename));
+			for (int i = 0; i < skipNumLines; i++) {
+				reader.readLine();
+			}
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				v.add(new Segment(Positions.chromosomeNumber(line[chrCol]), (inclusiveStart ? Integer.parseInt(line[startCol]) : Integer.parseInt(line[startCol]) + 1), (inclusiveStop ? Integer.parseInt(line[stopCol]) : Integer.parseInt(line[stopCol]) - 1)));
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + filename + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + filename + "\"");
+			System.exit(2);
+		}
 
 		return Segment.toArray(v);
 	}
