@@ -1163,6 +1163,46 @@ public class Array {
 	}
 	
 	/**
+	 * Normalizes (calculates z-scores) for an array of numbers using separate standard deviations for positive and negative numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return array of sign-specific z-scores
+	 */
+	public static double[] normalizeSigned(double[] array) {
+		double[] newData;
+		double mean = 0;
+		double stdevPositive, stdevNegative;
+		DoubleVector positives, negatives;
+
+		negatives = new DoubleVector();
+		positives = new DoubleVector();
+		for (int i = 0; i<array.length; i++) {
+			if (array[i] < 0) {
+				negatives.add(array[i]);
+				negatives.add(-1*array[i]);
+			} else {
+				positives.add(array[i]);
+				positives.add(-1*array[i]);
+			}
+		}
+
+		stdevNegative = Array.stdev(negatives.toArray());
+		stdevPositive = Array.stdev(positives.toArray());
+		
+		newData = new double[array.length];
+		for (int i = 0; i<newData.length; i++) {
+			if (array[i] < 0) {
+				newData[i] = (array[i]-mean)/stdevNegative;
+			} else {
+				newData[i] = (array[i]-mean)/stdevPositive;
+			}
+		}
+
+		return newData;
+	}
+	
+	/**
 	 * Returns the quantiles of an array
 	 * 
 	 * @param array

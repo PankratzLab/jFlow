@@ -65,11 +65,7 @@ public class SystemLinkage {
 			System.err.println("      - you have '"+filename+"' with a length of "+filename.length());
 		}
 
-		try {
-			new BufferedReader(new InputStreamReader(System.in)).readLine();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		ext.waitForResponse();
 	}
 
 	public static void main(String[] args) throws IOException {

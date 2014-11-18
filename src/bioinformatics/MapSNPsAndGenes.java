@@ -323,9 +323,7 @@ public class MapSNPsAndGenes {
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (filename.endsWith(".snps")) {
-				try {
-					new BufferedReader(new InputStreamReader(System.in)).readLine();
-				} catch (Exception e2) {}					
+				ext.waitForResponse();
 			}			
 		}
 	}

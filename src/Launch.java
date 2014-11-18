@@ -17,18 +17,16 @@ import db.*;
 
 
 public class Launch {
-	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers", CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION };
+	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers", "bestTransformation", CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION };
 
 	public static void run(String filename, Logger log) throws Elision {
-		BufferedReader reader;
 		String temp;
 
 		try {
-			reader = Files.getReader(filename, false, true, log, true);
 			if (new File(filename).length() == 0) {
 				temp = ext.rootOf(filename);
 			} else {
-				temp = reader.readLine();
+				temp = Files.getReader(filename, false, true, log, true).readLine();
 			}
 			
 			log.report("Launching option '"+temp+"'");
@@ -118,6 +116,8 @@ public class Launch {
 				HitWindows.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("phenoPrep")) {
 				PhenoPrep.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("bestTransformation")) {
+				PhenoPrep.summarizeFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("gzip")) {
 				Zip.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("SuperNovo")) {
@@ -131,11 +131,7 @@ public class Launch {
 		} catch (Exception e) {
 			log.reportError(e.getMessage());
 			log.reportException(e);
-			if (System.getProperty("os.name").startsWith("Windows")) {
-				try {
-					new BufferedReader(new InputStreamReader(System.in)).readLine();
-				} catch (IOException ioe) {}
-			}
+			ext.waitForResponse();
 		}
 	}
 
@@ -177,6 +173,7 @@ public class Launch {
 				new File(filename).createNewFile();
 			} else {
 				System.err.println("Error - file '"+filename+"' does not exist; add -create to the commandline to autogenerate");
+				ext.waitForResponse();
 				return;
 			}
 		}
@@ -186,10 +183,8 @@ public class Launch {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if (!suppress && System.getProperty("os.name").startsWith("Windows")) {
-			System.err.println();
-			System.err.println("Press any key to close this window");
-			new BufferedReader(new InputStreamReader(System.in)).readLine();
+		if (!suppress) {
+			ext.waitForResponse("Press any key to close this window");
 		}
 	}
 }

@@ -118,7 +118,7 @@ public class Unique {
 		System.out.println("...done");
 
 		if (!noInput) {
-			CmdLine.stdin();
+			ext.waitForResponse();
 		}
 	}
 

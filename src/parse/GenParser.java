@@ -54,7 +54,7 @@ public class GenParser {
     	filename = line[0];
 		commaDelimited = Files.suggestDelimiter(filename, log).equals(",")||ext.indexOfStr(",", line) >= 0;
 		tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
-		simplifyQuotes = ext.indexOfStr("simplifyQuotes", line) >= 0;
+		simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
 		
 		columnHeaders = Files.getHeaderOfFile(filename, commaDelimited?","+(simplifyQuotes?"!":""):(tabDelimited?"\t":"[\\s]+"), log);
     	if (Array.toStr(line).contains("'")) {
@@ -95,7 +95,7 @@ public class GenParser {
     			outfile = line[j].split("=")[1];
     		} else if (line[j].startsWith("replace=")) {
     			replaceBlanks = ext.parseStringArg(line[j], "");
-    		} else if (line[j].equalsIgnoreCase("tab") || line[j].equals(",") || line[j].equalsIgnoreCase("simplifyQuotes")) {
+    		} else if (line[j].equalsIgnoreCase("tab") || line[j].equals(",") || line[j].equalsIgnoreCase("doNotSimplifyQuotes")) {
     			// already taken care of
     		} else if (line[j].equalsIgnoreCase("fail")) {
     			forceFailCodes = true;
@@ -492,7 +492,7 @@ public class GenParser {
 	public static void parseFile(String filename, Logger log) {
         String[][] params;
 
-		params = Files.parseControlFile(filename, false, "parse", new String[] {"data.csv , out=parsed_data.xln !11!NA !10>-5 !10<5 !1=2 0 'Chr'=chr 2=pos 10 11 $12*13=effN;0 $'n'*'Rsq'=effN2 skip=11 replace=. 12=Needed;NA fail RS=>rs simplifyQuotes"}, log);
+		params = Files.parseControlFile(filename, false, "parse", new String[] {"data.csv , out=parsed_data.xln !11!NA !10>-5 !10<5 !1=2 0 'Chr'=chr 2=pos 10 11 $12*13=effN;0 $'n'*'Rsq'=effN2 skip=11 replace=. 12=Needed;NA fail RS=>rs doNotSimplifyQuotes"}, log);
 		if (params != null) {
         	parse(params[0], log);
 		}
@@ -518,8 +518,8 @@ public class GenParser {
 	    "  where at a minimum you will have the file name and the columns you are intrested in.\n"+
 	    "\n"+
 	    "  Optional parameters include:\n"+
-	    "    ,               file is comma delimited (default is whitespace delimited)\n"+
-	    "    tab             file is tab delimited (i.e. can include blanks and spaces)\n"+
+	    "    ,               file is comma delimited (default is whitespace delimited, unless filename ends with .csv)\n"+
+	    "    tab             file is tab delimited (i.e. fields can include blanks and spaces)\n"+
 	    "    out=file.txt    delineates a specific output file name\n"+
 	    "    skip=5          skip the first 5 rows (default is skip=1)\n"+
 	    "    noHeader        will start parsing the first row (i.e. skip=0)\n"+
@@ -541,7 +541,7 @@ public class GenParser {
 	    "    @1.1 or @fini   set to this value no matter what\n"+
 	    "    $%2;3:1;2:1;1:0;.	check value in column index 2 and if it is 3 or 2 then replace with 1, if 1 then replace with 0, otherwise set to missing\n"+
 	    "    *               all columns in file with the original header\n"+
-	    "    simplifyQuotes  after smartCommaSplit, the surrounding quotes are removed and the rest are simplified\n"+
+	    "    doNotSimplifyQuotes  after smartCommaSplit, the surrounding quotes are normally removed and the rest are simplified; this will prevent that\n"+
 	    "";
 
 //	    args = new String [] {"subset.genome_parsed.xln out=admixedUnrelatedsCheck.txt 0 1 2 3 6 7 8 9 !9>0.2"};

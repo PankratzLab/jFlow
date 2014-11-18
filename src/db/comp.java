@@ -1425,7 +1425,7 @@ public class comp {
 		} finally {
 			if (System.getProperty("os.name").startsWith("Windows") && !suppress) {
 				System.out.println("...done");
-				new BufferedReader(new InputStreamReader(System.in)).readLine();
+				ext.waitForResponse();
 			}
 		}
 	}

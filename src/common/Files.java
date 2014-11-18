@@ -1111,8 +1111,8 @@ public class Files {
         }
 
     	line = null;
-        try {
-            for (int i = 0; i<fileParameters.length; i++) {
+        for (int i = 0; i<fileParameters.length; i++) {
+        	try {
                 data = new String[keys.length+1][];
 
                 line = fileParameters[i].trim().split("[\\s]+");
@@ -1198,11 +1198,12 @@ public class Files {
                 	}
                     Files.writeMatrix(data, "file."+(i+1)+".temp", delimiter);
             	}                
-            }
-        } catch (OutOfMemoryError oome) {
-        	log.reportError("Uh oh! Ran out of memory parsing file '"+line[0]+"'!");
-        } catch (Exception e) {
-        	log.reportException(e);
+	        } catch (OutOfMemoryError oome) {
+	        	log.reportError("Uh oh! Ran out of memory parsing file '"+fileParameters[i].trim().split("[\\s]+")[0]+"' at line:");
+	        	log.reportError(Array.toStr(line, "/"));
+	        } catch (Exception e) {
+	        	log.reportException(e);
+	        }
         }
         
         try {

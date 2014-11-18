@@ -61,10 +61,7 @@ public class diff {
 	    		}
 	    		if (i == 14) {
 	    			System.err.println("Error - second file never opened, highlight 2 (ctrl+left click) and try again");
-	    			try {
-						new BufferedReader(new InputStreamReader(System.in)).readLine();
-					} catch (IOException ioe) {
-					}
+					ext.waitForResponse();
 	    		}
 	    	}
 	    }
@@ -181,10 +178,7 @@ public class diff {
             reader2.close();
             if (nothingChanged) {
                 System.err.println("These files (" + file1 + " & " + file2 + ") are identical");
-            	try {
-    				new BufferedReader(new InputStreamReader(System.in)).readLine();
-    			} catch (IOException ioe) {
-    			}
+				ext.waitForResponse();
             } else {
                 writer.close();
             }
