@@ -119,6 +119,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JComboBox<String> centroidsSelection;
 	private Logger log;
 	private boolean fail;
+	private float[][][] centroids;
+	private String currentCentroid;
+	private static final String SEX_CENT = "Sex-Specific";
 	
 	// private Color[] colorScheme = {new Color(33, 31, 53), // dark dark
 	// new Color(23, 58, 172), // dark blue
@@ -139,7 +142,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			{new Color(33, 31, 53), new Color(255, 255, 255)} // dark dark/ light light
 	};
 
-	private float[][][] centroids;
+
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -701,8 +704,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		centFiles.add(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
 		centFiles.add(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME));
 		centFiles.add(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
+		
+		String[] tempFiles = proj.getFilenames(Project.SEX_CENTROIDS_FILENAMES);
+		if (tempFiles != null) {
+			centFiles.add(SEX_CENT);
+		}
+		
 		for (String file : centFiles) {
-			if (Files.exists(file)) {
+			if (SEX_CENT.equals(file)) {
+				namePathMap.put(SEX_CENT + " - Male", tempFiles[0]);
+				namePathMap.put(SEX_CENT + " - Female", tempFiles[1]);
+			} else if (Files.exists(file)) {
 				String name = file.substring(file.lastIndexOf("/") + 1);
 				name = name.substring(0, name.lastIndexOf("."));
 				namePathMap.put(name, file);
@@ -712,13 +724,20 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		centroidsSelection = new JComboBox<String>((String[]) namePathMap.keySet().toArray(new String[]{}));
 		centroidsSelection.setMaximumSize(new Dimension(150, 25));
 		centroidsSelection.addActionListener(new ActionListener() {
+			boolean isSetting = false;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (transformation_type == -1) {
+				if (!isSetting) {
+					isSetting = true;
+					if (transformation_type == -1) {
+						setCentroid();
+						loadValues();
+						updateGUI();
+						repaint();
+					}
+					isSetting = false;
+				} else {
 					setCentroid();
-					loadValues();
-					updateGUI();
-					repaint();
 				}
 			}
 		});
@@ -1143,6 +1162,19 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		} else if ( samp.getFingerprint()!=fingerprint) {
 			System.err.println("Error - Sample "+proj.getDir(Project.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
 		} else {
+			
+			if (currentCentroid != null && currentCentroid.startsWith(SEX_CENT)) {
+				SampleData sampleData = proj.getSampleData(0, false);
+				int sex = sampleData.getSexForIndividual(samp.getSampleName());
+				if (sex == 1 && currentCentroid.endsWith("Female")) {
+					centroidsSelection.setSelectedItem(SEX_CENT + " - Male");
+				} else if (sex == 2 && currentCentroid.endsWith("Male")) {
+					centroidsSelection.setSelectedItem(SEX_CENT + " - Female");
+				} else {
+					log.report("Warning - no sex specified for sample " + samp.getSampleName() + " using currently selected centroid file");
+				}
+			}
+			
 			lrrs = samp.getLRRs();
 			bafs = samp.getBAFs();
 			genotypes = samp.getAB_Genotypes();
@@ -1523,9 +1555,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	
 	private void setCentroid() {
 		String name = centroidsSelection.getSelectedItem().toString();
-		String path = namePathMap.get(name);
-		Centroids cent = Centroids.load(path, false);
-		centroids = cent.getCentroids();
+		if (!name.equals(currentCentroid)) {
+			String path = namePathMap.get(name);
+			Centroids cent = Centroids.load(path, false);
+			centroids = cent.getCentroids();
+			currentCentroid = name;
+		}
 	}
 	
 //	public static CNVariant[] loadCNVfiles(Project proj, String[] filenames) {
