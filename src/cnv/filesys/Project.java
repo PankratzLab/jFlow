@@ -51,6 +51,7 @@ public class Project extends Properties {
 	public static final String GENOTYPE_CENTROIDS_FILENAME = "GENOTYPE_CENTROIDS_FILENAME";
 	public static final String CHIMERA_CENTROIDS_FILENAME = "CHIMERA_CENTROIDS_FILENAME";
 	public static final String CUSTOM_CENTROIDS_FILENAME = "CUSTOM_CENTROIDS_FILENAME";
+	public static final String SEX_CENTROIDS_FILENAMES = "SEX_CENTROIDS_FILENAMES";
 	public static final String DISPLAY_MARKERS_FILENAME = "DISPLAY_MARKERS_FILENAME";
 	public static final String FILTERED_MARKERS_FILENAME = "FILTERED_MARKERS_FILENAME";
 	public static final String PEDIGREE_FILENAME = "PEDIGREE_FILENAME";
