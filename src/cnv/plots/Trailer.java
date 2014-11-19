@@ -706,7 +706,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		centFiles.add(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
 		
 		String[] tempFiles = proj.getFilenames(Project.SEX_CENTROIDS_FILENAMES);
-		if (tempFiles != null) {
+		if (tempFiles != null && tempFiles.length > 0) {
 			centFiles.add(SEX_CENT);
 		}
 		
@@ -722,7 +722,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		
 		centroidsSelection = new JComboBox<String>((String[]) namePathMap.keySet().toArray(new String[]{}));
-		centroidsSelection.setMaximumSize(new Dimension(150, 25));
+		centroidsSelection.setMaximumSize(new Dimension(160, 25));
 		centroidsSelection.addActionListener(new ActionListener() {
 			boolean isSetting = false;
 			@Override
@@ -1166,12 +1166,18 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			if (currentCentroid != null && currentCentroid.startsWith(SEX_CENT)) {
 				SampleData sampleData = proj.getSampleData(0, false);
 				int sex = sampleData.getSexForIndividual(samp.getSampleName());
-				if (sex == 1 && currentCentroid.endsWith("Female")) {
-					centroidsSelection.setSelectedItem(SEX_CENT + " - Male");
-				} else if (sex == 2 && currentCentroid.endsWith("Male")) {
-					centroidsSelection.setSelectedItem(SEX_CENT + " - Female");
+				if (sex == 1) {
+					if (currentCentroid.endsWith("Female")) {
+						centroidsSelection.setSelectedItem(SEX_CENT + " - Male");
+						log.report("Switching to specified male centroid file");
+					}
+				} else if (sex == 2) {
+					if (currentCentroid.endsWith("Male")) {
+						centroidsSelection.setSelectedItem(SEX_CENT + " - Female");
+						log.report("Switching to specified female centroid file");
+					}
 				} else {
-					log.report("Warning - no sex specified for sample " + samp.getSampleName() + " using currently selected centroid file");
+					log.report("Warning - no sex specified for sample " + samp.getSampleName() + "; using currently selected centroid file");
 				}
 			}
 			
