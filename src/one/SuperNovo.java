@@ -262,7 +262,7 @@ public class SuperNovo {
 		return	DenovoMutationScore;
 	}
 
-	public static void processGenomeOfAllTriosInDir(String bamDir, String refFastaFilename, String bedFilename, String outputDir, String scriptDir, String fullPathToTrioNameList, String pathAndRootToOutputReadCounts, int regionLegnthATime, int numThreads, Logger log) {
+	public static void processGenomeOfAllTriosInDir(String bamDir, String refFastaFilename, String bimFilename, String outputDir, String scriptDir, String fullPathToTrioNameList, String pathAndRootToOutputReadCounts, int regionLegnthATime, int numThreads, Logger log) {
 		String[][] bamFilenamesByTrios;
 		String command;
 		String trioId;
@@ -275,7 +275,7 @@ public class SuperNovo {
 			bamFilenamesByTrios = loadNamesFromList(fullPathToTrioNameList);
 		}
 		qsubFilesVec = new Vector<String>(bamFilenamesByTrios.length);
-		command = "cd " + outputDir + "\njcp one.SuperNovo bed=" + bedFilename + " outdir=" + outputDir + " bamdir=" + bamDir + " reffasta=" + refFastaFilename + " regionlengthatime=" + regionLegnthATime + " numthreads=" + numThreads + " -denovo";
+		command = "cd " + outputDir + "\njcp one.SuperNovo -denovo bim=" + bimFilename + " outdir=" + outputDir + " bamdir=" + bamDir + " reffasta=" + refFastaFilename + " regionlengthatime=" + regionLegnthATime + " numthreads=" + numThreads + " -denovo";
 		for (int i = 0; i < bamFilenamesByTrios.length; i++) {
 //			processGenomeOfOneTrio(bamDir, bamFilenames, refFastaFilename, bedFilename, outputDir, numThreads, log);
 			trioId = bamFilenamesByTrios[i][0];
@@ -300,7 +300,7 @@ public class SuperNovo {
 		log.report("Scripts for all trios in " + bamDir + " are ready at " + scriptDir);
 	}
 
-	public static void processGenomeOfOneTrio(String bamDir, String trioId, String[] bamFilenamesOfTheTrio, String refFastaFilename, String bedFilename, String outputDir, String fullpathToSaveAlleleCounts, int regionLengthATime, int numThreads, Logger log) {
+	public static void processGenomeOfOneTrio(String bamDir, String trioId, String[] bamFilenamesOfTheTrio, String refFastaFilename, String bimFilename, String outputDir, String fullpathToSaveAlleleCounts, int regionLengthATime, int numThreads, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		String chr;
@@ -334,12 +334,10 @@ public class SuperNovo {
      	if (trioId == null) {
      		trioId = getRootOf(bamFilenamesOfTheTrio, false);
      	}
-		outFileName = outputDir + trioId + "_superNovo_" + ext.rootOf(bedFilename) + ".txt";
+		outFileName = outputDir + trioId + "_superNovo_" + ext.rootOf(bimFilename) + ".txt";
 //		prevChr = "start";
 		try {
-			reader = Files.getAppropriateReader(bedFilename);
-			reader.readLine();
-			reader.readLine();
+			reader = Files.getAppropriateReader(bimFilename);
 			chrs = new Vector<String>();
 			starts = new Vector<Integer>();
 			stops = new Vector<Integer>();
@@ -371,7 +369,7 @@ public class SuperNovo {
 						start += regionLengthATime;
 					}
 				} else {
-					log.reportError("Warning: unrecognized chr number '" + line[0] + "' in bed file " + bedFilename);
+					log.reportError("Warning: unrecognized chr number '" + line[0] + "' in the file '" + bimFilename + "'. Skipped the region.");
 				}
 			}
 			reader.close();
@@ -411,10 +409,10 @@ public class SuperNovo {
 				alleleCountWriter.close();
 			}
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + bedFilename + "\" not found in current directory");
+			log.reportError("Error: file \"" + bimFilename + "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + bedFilename + "\"");
+			log.reportError("Error reading file \"" + bimFilename + "\"");
 			return;
 		} catch (InterruptedException e) {
 		}
@@ -737,8 +735,10 @@ public class SuperNovo {
 			}
 			updateNumAlleles(readsCounts, orderedIndices, i);
 
-			if (filterReadDepth(readsCounts, orderedIndices, i, minRead)
-					&& filterReadsCount(readsCounts, orderedIndices, i)
+			if (filterVariants(readsCounts, orderedIndices, i)
+//			if (filterReadDepth(readsCounts, orderedIndices, i, minRead)
+//					&& filterReadsCount(readsCounts, orderedIndices, i)
+
 //					&& filter3Allelic(readsCounts, orderedIndices, i)
 //					&& filterMappingQuality(mappingScores, readsCounts, orderedIndices, i)
 //					&& filterInDel(readsCounts, orderedIndices, i)
@@ -811,6 +811,14 @@ public class SuperNovo {
 				));
 	}
 
+	public static boolean filterVariants(int[][][] readsCounts, int[][] orderedIndices, int i) {
+		return (   readsCounts[0][i][orderedIndices[0][1]] >= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+//				|| readsCounts[1][i][orderedIndices[1][1]] >= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+//				|| readsCounts[2][i][orderedIndices[2][1]] >= MAX_ALLELE_COUNT_TREATED_AS_ZERO
+				&& (readsCounts[0][i][orderedIndices[0][0]] + readsCounts[0][i][orderedIndices[0][1]]) >= MIN_READ_DEPTH
+				);
+	}
+
 	public static boolean filterMismatch(int[][][] readsCounts, int[][] orderedIndices, int i) {
 		return (   (readsCounts[0][i][INDEX_OF_N] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[0][i][orderedIndices[0][0]] + readsCounts[0][i][orderedIndices[0][1]]) >= 20 * readsCounts[0][i][INDEX_OF_N])
 				&& (readsCounts[1][i][INDEX_OF_N] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[1][i][orderedIndices[0][0]] + readsCounts[1][i][orderedIndices[0][1]]) >= 20 * readsCounts[1][i][INDEX_OF_N])
@@ -826,10 +834,17 @@ public class SuperNovo {
 				&& (numInsDelMismatch[2] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO || (readsCounts[2][i][orderedIndices[0][0]] + readsCounts[2][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[2]));
 	}
 
-	public static boolean filter3Allelic(int[][][] readsCounts, int[][] orderedIndices, int i) {
+	public static boolean filterThreeAllelic(int[][][] readsCounts, int[][] orderedIndices, int i) {
 		return (   (readsCounts[0][i][orderedIndices[0][2]] + readsCounts[0][i][orderedIndices[0][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
 				&& (readsCounts[1][i][orderedIndices[1][2]] + readsCounts[1][i][orderedIndices[1][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
 				&& (readsCounts[2][i][orderedIndices[2][2]] + readsCounts[2][i][orderedIndices[2][3]]) <= MAX_ALLELE_COUNT_TREATED_AS_ZERO);
+	}
+
+	public static boolean filterChildAltAlleleCount(int[][][] readsCounts, int[][] orderedIndices, int i, int altAlleleCountThreshold) {
+		return (   (readsCounts[0][i][orderedIndices[0][1]]) >= altAlleleCountThreshold
+//				&& (readsCounts[1][i][orderedIndices[1][2]] + readsCounts[1][i][orderedIndices[1][3]]) <= altAlleleCountThreshold
+//				&& (readsCounts[2][i][orderedIndices[2][2]] + readsCounts[2][i][orderedIndices[2][3]]) <= altAlleleCountThreshold
+				);
 	}
 
 	public static boolean filterMappingQuality(int[][][] mappingScores, int[][][] readsCounts, int[][] orderedIndices, int i) {
@@ -1300,16 +1315,20 @@ public class SuperNovo {
 		String result;
 
 		result = "";
-		for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
-			result += (j == 0? "" : ",");
-			allele1 = BASES[temp[5 + 2 * j]] + "";
-			if (temp[6 + 2 * j] < 0) {
+		for (int i = 0; i < SAMPLE_SUFFIX.length; i++) {
+			result += (i == 0? "" : ",");
+			if (temp[5 + 2 * i] == -1) {
+				allele1 = "";
+			} else {
+				allele1 = BASES[temp[5 + 2 * i]] + "";
+			}
+			if (temp[6 + 2 * i] < 0) {
 				result += (allele1 + allele1);
 			} else {
 				if (allele1.equalsIgnoreCase(ref)) {
-					result += (allele1 + BASES[temp[6 + 2 * j]]);
+					result += (allele1 + BASES[temp[6 + 2 * i]]);
 				} else {
-					result += (BASES[temp[6 + 2 * j]] + allele1);
+					result += (BASES[temp[6 + 2 * i]] + allele1);
 				}
 			}
 		}
@@ -1358,34 +1377,34 @@ public class SuperNovo {
 		return result;
 	}
 
-	public static String formatMapping(int[][][] mappingScores, int[] temp, int indexOfCurrentMarker, byte format) {
+	public static String formatMapping(int[][][] mappingScores, int[] denovoMutation, int indexOfCurrentMarker, byte format) {
 		int sum;
 		String result;
 
 		result = "";
 		if (format == 2) {
 			for (int i = 0; i < mappingScores.length; i++) {
-				if (temp[i + 2] == 0) {
+				if (denovoMutation[i + 2] == 0) {
 					result += (i==0? "" : "\t");
 				} else {
 					sum = 0;
 					for (int j = 0; j < BASES.length; j++) {
 						sum += mappingScores[i][indexOfCurrentMarker][j];
 					}
-					result += ((i==0? "" : "\t") + (sum/temp[i + 2]));
+					result += ((i==0? "" : "\t") + (sum/denovoMutation[i + 2]));
 				}
 			}
 		} else {
 			for (int i = 0; i < mappingScores.length; i++) {
 				result += (i==0? "(" : ",");
-				if (temp[i + 2] == 0) {
+				if (denovoMutation[i + 2] == 0) {
 					result += "-";
 				} else {
 					sum = 0;
 					for (int j = 0; j < BASES.length; j++) {
 						sum += mappingScores[i][indexOfCurrentMarker][j];
 					}
-					result += (sum/temp[i + 2]);
+					result += (sum/denovoMutation[i + 2]);
 				}
 			}
 			result += ")";
@@ -1687,7 +1706,8 @@ public class SuperNovo {
 
 			try {
 				reader = new BufferedReader(new FileReader(resultDir + resultFilenames[i]));
-				header = reader.readLine().trim().split("[\\s]+");
+//				header = reader.readLine().trim().split("[\\s]+");
+				header = reader.readLine().trim().split("\t");
 				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false, true);
 				while(reader.ready()) {
 					line = reader.readLine().split("\t");
@@ -1701,10 +1721,12 @@ public class SuperNovo {
 						for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
 							orderedIndices[j] = Sort.quicksort(new int[] {readsCounts[j][0][0], readsCounts[j][0][1], readsCounts[j][0][2], readsCounts[j][0][3]}, Sort.DESCENDING);
 						}
-						if (filterMappingQuality(mappingScores, readsCounts, orderedIndices, 0)
-								&& filter3Allelic(readsCounts, orderedIndices, 0)
-								&& filterPhred(phredScores, readsCounts, orderedIndices, 0)
-								&& filterNearbyVarInDelDenovo(numVarInDelDenovos)
+						if (true
+//						if (filterMappingQuality(mappingScores, readsCounts, orderedIndices, 0)
+//								&& filter3Allelic(readsCounts, orderedIndices, 0)
+//								&& filterPhred(phredScores, readsCounts, orderedIndices, 0)
+//								&& filterNearbyVarInDelDenovo(numVarInDelDenovos)
+
 //								&& filterInDel(readsCounts, orderedIndices, 0)
 								) {
 
@@ -1724,8 +1746,8 @@ public class SuperNovo {
 
 								if (annotationHash != null && annotationHash.containsKey(markerName)) {
 									annotation = annotationHash.get(markerName);
-									if (annotation[0].equals("1")) {
-//									if (true) {
+//									if (annotation[0].equals("1")) {
+									if (true) {
 										if (alleles[j].startsWith("+")) {
 											index = 5;	//TODO if there are two strings for this insertion, say "+T" and "+TGC", then cannot tell how many reads are for the former and how many the latter. Only have the number of the reads for the combination of the two.
 										} else if (alleles[j].startsWith("-")) {
@@ -1856,6 +1878,291 @@ public class SuperNovo {
 
 		saveParsedResults(resultDir + DEFAULT_OUTPUT_FILENAME, null, result, geneCounts, geneTrioCounts, outFormat, PARSE_RESULT_HEADER + "\tBAD\t" + Array.toStr(seatleSeekHeader), log);
 		log.report(ext.getTime()+"\tFinished in " + ext.getTimeElapsed(time));
+	}
+
+	public static void parseResults2(String resultDir, String seatleSeqDir, String fullpathToAdditionalComments, String miniSamScriptsDir, String miniSamDir, String fullPathToTrioNameList, byte resultFormat, double callScoreThreshold, byte outFormat, Logger log) {
+		int index;
+		int[] indices, numVarInDelDenovos;
+		int[][] orderedIndices;
+		int[][][] readsCounts, phredScores, mappingScores;
+		double[] pctDenovoAllele;
+		String markerName, miniBamLink = null, miniSamScriptSubDir, trioId, tmp;
+		String[] alleles, resultFilenames, annotation = null, resultElements, seatleSeekHeader, header, genes, line, temp;
+		BufferedReader reader;
+		Vector<String> annotationNeedsVars, annotationNeedsInDels;
+		Hashtable<String, String[]> additionalComment;
+		CountHash geneCounts;
+		CountHash geneTrioCounts;
+		Set<String> geneSet;
+		HashSet<String> miniSamHash;
+		Hashtable<String, Vector<String>> miniSamNeeded;
+		Hashtable<String, Hashtable<String, String[]>> result;
+		Hashtable<String, String[]> annotationHash;
+		Hashtable<String,Hashtable<String, String[]>> additionalComments = null;
+		HashSet<String> geneTrioCount;
+		long time;
+
+		time = new Date().getTime();
+		if (!Files.exists(seatleSeqDir)) {
+			log.report("Creating new annotation directory in: "+seatleSeqDir);
+			new File(seatleSeqDir).mkdirs();
+		}
+		annotationNeedsVars = new Vector<String>();
+		annotationNeedsInDels =  new Vector<String>();
+//		miniBamNeeds = new Vector<String>();
+		miniSamHash = Samtools.listFiles(miniSamScriptsDir, log);
+		annotationHash = SeattleSeq.loadAllAnnotationInDir(seatleSeqDir, log);
+		additionalComments = loadAdditionalComments(fullpathToAdditionalComments);
+		miniSamNeeded = new Hashtable<String, Vector<String>>();
+		resultFilenames = Files.list(resultDir, ".txt", false);
+		result = new Hashtable<String, Hashtable<String, String[]>>();
+		orderedIndices = new int[SAMPLE_SUFFIX.length][];
+		seatleSeekHeader = Matrix.extractColumn(SeattleSeq.RELEVANTS, 0);
+		geneCounts = new CountHash();
+		geneTrioCounts = new CountHash();
+		geneTrioCount = new HashSet<String>();
+		for (int i = 0; i < resultFilenames.length; i++) {
+			trioId = resultFilenames[i].split("_")[0];
+			log.report(ext.getTime()+"\tProcessing " + trioId);
+
+			try {
+				reader = new BufferedReader(new FileReader(resultDir + resultFilenames[i]));
+//				header = reader.readLine().trim().split("[\\s]+");
+				header = reader.readLine().trim().split("\t");
+				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false, true);
+				while(reader.ready()) {
+					line = reader.readLine().split("\t");
+					if (Double.parseDouble(line[6]) >= callScoreThreshold) {
+						readsCounts = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
+						phredScores = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
+						mappingScores = new int[SAMPLE_SUFFIX.length][1][BASES_WITH_N_INDEL.length];
+						parseLine(line, resultFormat, readsCounts, phredScores, mappingScores);
+						numVarInDelDenovos = getNumVarsInDelsDenovos(line[44]);
+
+						for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
+							orderedIndices[j] = Sort.quicksort(new int[] {readsCounts[j][0][0], readsCounts[j][0][1], readsCounts[j][0][2], readsCounts[j][0][3]}, Sort.DESCENDING);
+						}
+
+						if (true
+//								&& filterMappingQuality(mappingScores, readsCounts, orderedIndices, 0)
+//								&& filter3Allelic(readsCounts, orderedIndices, 0)
+//								&& filterPhred(phredScores, readsCounts, orderedIndices, 0)
+//								&& filterNearbyVarInDelDenovo(numVarInDelDenovos)
+								&& filterChildAltAlleleCount(readsCounts, orderedIndices, 0, 5)
+//								&& filterInDel(readsCounts, orderedIndices, 0)
+								) {
+
+//							line[5] = formatAltAllele(new int[] {0, 1, 2, 3, 4, orderedIndices[0][0], orderedIndices[0][1]}, readsCounts, 0, line[4], (line[5].startsWith("+")? line[5] : null), log);
+							if (line[5] == null || line[5].equals("")) {
+								alleles = new String[] {line[4]};
+							} else {
+								alleles = line[5].split(",");
+							}
+
+							for (int j = 0; j < alleles.length; j++) {
+								if (alleles[j].startsWith("-")) {
+									markerName = "chr" + line[1] + ":" + (Integer.parseInt(line[2]) - 1) + "_" + line[4].toUpperCase() + "_" + alleles[j].toUpperCase();
+								} else {
+									markerName = "chr" + line[1] + ":" + line[2] + "_" + line[4].toUpperCase() + "_" + alleles[j].toUpperCase();
+								}
+
+								if (annotationHash != null && annotationHash.containsKey(markerName)) {
+									annotation = annotationHash.get(markerName);
+//									if (annotation[0].equals("1")) {
+									if (true) {
+										if (alleles[j].startsWith("+")) {
+											index = 5;	//TODO if there are two strings for this insertion, say "+T" and "+TGC", then cannot tell how many reads are for the former and how many the latter. Only have the number of the reads for the combination of the two.
+										} else if (alleles[j].startsWith("-")) {
+											index = 6;
+										} else {
+											index = ext.indexOfChar(alleles[j].toUpperCase().charAt(0), BASES);	//TODO maybe add a column in phase1's output: DeNovo Allele
+											if (! (readsCounts[0][0][index] > MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[1][0][index] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && readsCounts[2][0][index] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO && (readsCounts[0][0][index] > (MAX_ALLELE_COUNT_TREATED_AS_ZERO + readsCounts[1][0][index] + readsCounts[2][0][index])))) {
+												index = ext.indexOfChar(line[4].toUpperCase().charAt(0), BASES);
+											}
+										}
+
+										pctDenovoAllele = new double[SAMPLE_SUFFIX.length];
+										for (int k = 0; k < pctDenovoAllele.length; k++) {
+											pctDenovoAllele[k] = readsCounts[k][0][index] / (double) (readsCounts[k][0][0] + readsCounts[k][0][1] + readsCounts[k][0][2] + readsCounts[k][0][3] + readsCounts[k][0][5] + readsCounts[k][0][6]);
+										}
+
+										if (pctDenovoAllele[0] >= .2) {
+											genes = annotation[7].split(",");
+											for (int k = 0; k < genes.length; k++) {
+												if (! genes[k].equals("none")) {
+													geneCounts.add(genes[k]);
+													if (! geneTrioCount.contains(genes[k] + "\t" + line[0])) {	// genes[k] \t trioId
+														geneTrioCounts.add(genes[k]);
+														geneTrioCount.add(genes[k] + "\t" + line[0]);	// genes[k] \t trioId
+													}
+												}
+
+												//TODO "none"?
+												miniSamScriptSubDir = miniSamScriptsDir + genes[k] + "/";
+												if (!new File(miniSamScriptSubDir).exists()) {
+													new File(miniSamScriptSubDir).mkdir();
+												}
+
+//												if (new File(miniSamSubDir).exists()) {
+//													miniSamHash = Samtools.listFiles(miniSamSubDir, log);
+													//TODO is the new region contained in the older region?
+													if (miniSamHash.contains(line[0] + "\t" + line[1] + "\t" + line[2])) {	//trioId + "\t" + chr + "\t" + pos
+//														if (! new File(miniSamSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml").exists()) {
+//															Files.write(Samtools.getIgvXmlScript(miniSamDir, line[1], line[2], miniSamFilenamesOfOneTrio), miniSamSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml");
+//														}
+														if (! new File(miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat").exists()) {
+															Files.write(Samtools.getIgvLaunchScript(miniSamScriptSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".xml"), miniSamScriptSubDir + line[0] + "_" + line[1] + "_" + line[2] + ".bat");
+														}
+														if (! new File(miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".xml").exists()) {
+															Files.write(Samtools.getIgvXmlScript(miniSamDir, line[1], line[2], new String[] {line[0], line[0] + "_chr" + line[1] + "_" + line[2] + "_C.bam", line[0] + "_chr" + line[1] + "_" + line[2] + "_D.bam", line[0] + "_chr" + line[1] + "_" + line[2] + "_M.bam"}), miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".xml");
+														}
+														miniBamLink = "=HYPERLINK(\"" + miniSamScriptSubDir + line[0] + "_chr" + line[1] + "_" + line[2] + ".bat\",\"IGV\")";
+//														miniBamLink = miniSamSubDir;
+													} else {
+														miniBamLink = "";
+														if (! miniSamNeeded.containsKey(genes[k])) {
+															miniSamNeeded.put(genes[k], new Vector<String>());
+														}
+														miniSamNeeded.get(genes[k]).add(line[0] + "\t" + line[1] + "\t" + line[2]);	//trioId + chr + pos
+													}
+//												} else {
+//													miniBamLink = "";
+//													if (! miniSamNeeded.containsKey(genes[k])) {
+//														miniSamNeeded.put(genes[k], new Vector<String>());
+//													}
+//													miniSamNeeded.get(genes[k]).add(line[0] + "\t" + line[1] + "\t" + line[2]);	//trioId + chr + pos
+//												}
+											}
+
+											additionalComment = additionalComments.get(line[1] + ":" + line[2]); 
+//											additionalComment = additionalComments.get(line[3].replaceAll("chr", ""));
+
+											resultElements = Array.subArray(line, indices);
+											resultElements = Array.concatAll(new String[] {annotation[7], miniBamLink}, resultElements);
+											resultElements = Array.concatAll(resultElements, new String[] {ext.formDeci(pctDenovoAllele[0], 3), ext.formDeci(pctDenovoAllele[1], 3), ext.formDeci(pctDenovoAllele[2], 3)});
+											resultElements = Array.concatAll(resultElements, annotation);
+											if (additionalComment != null && additionalComment.containsKey(line[45].substring(0, 2))) {
+												resultElements = Array.concatAll(resultElements, additionalComment.get(line[45].substring(0, 2)));
+											} else {
+												resultElements = Array.concatAll(resultElements, new String[] {".", ".", ".", ".", ".", "."});
+											}
+											tmp = "";
+											if (additionalComment != null) {
+												for (String allelePair : additionalComment.keySet()) {
+													if (! allelePair.equals(line[45].substring(0, 2))) {
+														if (! tmp.equals("")) {
+															tmp += " /";
+														}
+														tmp += allelePair;
+														temp = additionalComment.get(allelePair);
+														for (int l = 0; l < temp.length; l++) {
+															tmp += ("; " + temp[l]);
+														}
+													}
+												}
+											}
+											resultElements = Array.concatAll(resultElements, new String[] {tmp});
+
+											if (! result.containsKey(line[3])) {
+												result.put(line[3], new Hashtable<String, String[]>());
+											}
+											result.get(line[3]).put(line[0] + "_" + alleles[j], resultElements);
+
+										}
+									}
+								} else {
+//									System.out.println("missing "+markerName);
+//									if (alleles[j].startsWith("+")) {
+//										System.out.println("missing "+markerName);
+//									}
+									annotation = Array.stringArray(seatleSeekHeader.length);
+			        				// this is capturing a subset of the indels
+//			        				if (readsCounts[0][0][orderedIndices[0][1]] > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
+//		        						annotationNeedsVars.add(line[1] + "\t" + line[2] + "\t" + allelesOfInDels[j] + "\t" + allelesOfInDels[j]);	//chr + pos + alt + alt
+//			        				} else {
+										if (alleles[j].startsWith("+")) {
+											annotationNeedsInDels.add(line[1] + "\t" + line[2] + "\t" + line[2] + "\t" + alleles[j].toUpperCase());
+										} else if (alleles[j].startsWith("-")) {
+											annotationNeedsInDels.add(line[1] + "\t" + (Integer.parseInt(line[2]) - 1) + "\t" + (Integer.parseInt(line[2]) + alleles[j].length() - 2) + "\t" + alleles[j].toUpperCase());
+										} else {
+											annotationNeedsVars.add(line[1] + "\t" + line[2] + "\t" + alleles[j].toUpperCase() + "\t" + alleles[j].toUpperCase());	//chr + pos + alt + alt
+										}
+//									}
+								}
+
+							}
+						}
+					}
+				}
+				reader.close();
+		
+			} catch (Exception e) {
+				log.report("Error reading from " + resultDir + resultFilenames[i]);
+				e.printStackTrace();
+			}
+		}
+
+		if (annotationNeedsVars.size() > 0) {
+			Files.writeList(Array.toStringArray(annotationNeedsVars), seatleSeqDir + "seattleSeq_input_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date()) + ".txt");
+		}
+		if (annotationNeedsInDels.size() > 0) {
+			Files.writeList(Array.toStringArray(annotationNeedsInDels), seatleSeqDir + "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date()) + ".txt");
+		}
+		if (miniSamNeeded.size() > 0) {
+//			Files.writeList(Array.toStringArray(miniSamNeeded), miniSamDir + "miniBamNeeds_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".txt");
+			geneSet = miniSamNeeded.keySet();
+			for(String gene : geneSet) {
+				if (! new File(miniSamScriptsDir + gene + "/").exists()) {
+					new File(miniSamScriptsDir + gene + "/").mkdir();
+				}
+//				Samtools.saveScriptsGeneratingMiniSams(miniSamScriptsDir + gene + "/generateMiniSams" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".sh", miniSamDir, miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 200, log);
+				Samtools.saveScriptsGeneratingMiniSamsOfOneGene(miniSamScriptsDir + gene + "/generateMiniSams_" + gene + ".sh", "/home/spectorl/xuz2/mini_bams/", miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 200, log);
+				Samtools.saveScriptsLaunchingIgv(miniSamScriptsDir + gene + "/", miniSamDir, miniSamNeeded.get(gene), loadNamesFromList(fullPathToTrioNameList), 50000, log);
+			}
+			Samtools.saveScriptsGeneratingMiniSamsAllGenesAtOnce (miniSamScriptsDir + "generateMiniSams_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date()) + ".sh", "/home/spectorl/xuz2/mini_bams/", miniSamNeeded, loadNamesFromList(fullPathToTrioNameList), 200, log);
+		}
+
+		saveParsedResults(resultDir + DEFAULT_OUTPUT_FILENAME, null, result, geneCounts, geneTrioCounts, outFormat, PARSE_RESULT_HEADER + "\tBAD\t" + Array.toStr(seatleSeekHeader) + "\tSKATgene\tfunc_region\tMAF_whites\tn_whites\tMAF_blacks\tn_blacks\totherAllelePairs", log);
+		log.report(ext.getTime()+"\tFinished in " + ext.getTimeElapsed(time));
+	}
+
+	public static Hashtable<String, Hashtable<String, String[]>> loadAdditionalComments (String filename) {
+		BufferedReader reader;
+		String[] line;
+		Hashtable<String, Hashtable<String, String[]>> result;
+		Hashtable<String, String[]> allelePairs;
+		int i;
+
+		result = new Hashtable<String, Hashtable<String, String[]>> ();
+		try {
+			reader = Files.getAppropriateReader(filename);
+			reader.readLine();
+			while (reader.ready()) {
+				line = reader.readLine().split("\t");
+				if (result.containsKey(line[0])) {
+					allelePairs = result.get(line[0]);
+				} else {
+					allelePairs = new Hashtable<String, String[]>();
+					result.put(line[0], allelePairs);
+				}
+				i = 3;
+				while (line.length > i) {
+					if (line.length > 9) {
+						System.out.println();
+					}
+//					allelePairs.put(line[1] + "\t" + line[2], new String[] {line[i], line[1 + i], line[2 + i], line[3 + i], line[4 + i], line[5 + i]});
+					allelePairs.put(line[1] + line[2], new String[] {line[i], line[1 + i], line[2 + i], line[3 + i], line[4 + i], line[5 + i]});
+					i += 6;
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return result;
 	}
 
 	public static void saveParsedResults(String resultsFilename, String[] trioIds, Hashtable<String, Hashtable<String, String[]>> result, CountHash geneCounts, CountHash geneTrioCounts, byte format, String header, Logger log) {
@@ -2020,7 +2327,7 @@ public class SuperNovo {
 
 			index = 83;
 			for (int i = 0; i < SAMPLE_SUFFIX.length; i++) {
-				if (line[index] != null && ! line[index].isEmpty()) {
+				if (line[index] != null && ! line[index].isEmpty() && ! line[index].equals(".")) {
 					score = Integer.parseInt(line[index]);
 					for (int j = 0; j < mappingScores[i][0].length; j++) {
 						mappingScores[i][0][j] = score * readsCounts[i][0][j];
@@ -2376,6 +2683,66 @@ public class SuperNovo {
 
 	public static int getHaplotypes(String samDir, String[] samFilenames, String trioId, String chr, int beginPosition, int endPosition, String haplotypeFilename, Logger log) {
 		Process p;
+		BufferedReader reader;
+		String line;
+		Vector<String[]> samContentVec;
+		int numLines, numMarkersPlusWindow, window, begin, end, beginPositionExt, endPositionExt;
+		char[] ref;
+		String[] tmp;
+		Hashtable<Integer, String> insertionStringOfCurrentRead, insertionPhredOfCurrentRead;
+		Hashtable<Byte, Hashtable<Integer, String>> haplotypeDb;
+		Hashtable<Byte, Vector<int[]>> readCounts;
+
+		window = WINDOW_SIZE_FOR_HAPLOTYPE_CHECK;
+		beginPositionExt = Math.max(0, beginPosition - window);
+		endPositionExt = Math.min(Positions.CHROMOSOME_LENGTHS_MAX[ext.indexOfStr(chr, Positions.CHR_CODES, false, true)], endPosition + window);
+		numMarkersPlusWindow = endPositionExt - beginPositionExt + 1;
+		haplotypeDb = new Hashtable<Byte, Hashtable<Integer, String>>();
+		readCounts = new Hashtable<Byte, Vector<int[]>>();
+		ref = new char[endPositionExt - beginPositionExt + 1];
+
+		if (! Files.exists(samDir, samFilenames)) {
+			return -1;
+		}
+
+		for (int i = 0; i < samFilenames.length; i++) {
+//			samContentVec = loadBamByPipeline(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
+			samContentVec = loadBamByFileReader(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
+			numLines = samContentVec.size();
+			for (int j = 0; j < numLines; j++) {
+				insertionStringOfCurrentRead = new Hashtable<Integer, String>();
+				insertionPhredOfCurrentRead = new Hashtable<Integer, String>();
+				tmp = cigarToReFormatedString(samContentVec.elementAt(j), beginPositionExt, endPositionExt, insertionStringOfCurrentRead, insertionPhredOfCurrentRead);
+				if (tmp != null && (beginPositionExt + Integer.parseInt(tmp[0])) <= endPosition &&  (beginPositionExt + Integer.parseInt(tmp[0]) + tmp[1].length()) >= beginPosition) {	//TODO
+					updateRefAndAlt(tmp[1], ref, Integer.parseInt(tmp[0]), insertionStringOfCurrentRead, haplotypeDb, readCounts);
+//			        	log.report(haplotypeDb.size() + "\t" + tmp[0] + "\t" + tmp[1] + "\t" + formatHaplotype(haplotypeDb, beginPositionExt));
+//			        	log.report(haplotypeDb.size() + "\t" + tmp[0] + "\t" + tmp[1]);
+//			        	log.report(samContentVec.elementAt(j)[0]
+//			        			+ "\t" + samContentVec.elementAt(j)[1]
+//			        			+ "\t" + samContentVec.elementAt(j)[2]
+//			        			+ "\t" + samContentVec.elementAt(j)[3]
+//			        			+ "\t" + samContentVec.elementAt(j)[4]
+//			        			+ "\t" + samContentVec.elementAt(j)[5]
+//			        			+ "\t" + samContentVec.elementAt(j)[6]
+//			        			+ "\t" + samContentVec.elementAt(j)[7]
+//					        	+ "\t" + samContentVec.elementAt(j)[8]
+//							    + "\t" + samContentVec.elementAt(j)[9]
+//			        			+ "\t" + samContentVec.elementAt(j)[10]);
+				}
+			}
+		}
+
+		if (haplotypeFilename != null) {
+			exportHaplotypes(haplotypeDb, readCounts, ref, beginPositionExt, haplotypeFilename);
+		}
+		return (haplotypeDb.size() + 1);
+	}
+
+	/*
+	 * Original, working version
+	 */
+/*	public static int getHaplotypes(String samDir, String[] samFilenames, String trioId, String chr, int beginPosition, int endPosition, String haplotypeFilename, Logger log) {
+		Process p;
 //		ProcessBuilder ps;
 		BufferedReader reader;
 //		BufferedReader error;
@@ -2412,8 +2779,8 @@ public class SuperNovo {
 		}
 
 		for (int i = 0; i < samFilenames.length; i++) {
-			samContentVec = loadBamByPipeline(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
-//				samContentVec = loadBamByFileReader(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
+//			samContentVec = loadBamByPipeline(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
+			samContentVec = loadBamByFileReader(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt);
 			numLines = samContentVec.size();
 			for (int j = 0; j < numLines; j++) {
 				insertionStringOfCurrentRead = new Hashtable<Integer, String>();
@@ -2443,7 +2810,7 @@ public class SuperNovo {
 		}
 		return (haplotypeDb.size() + 1);
 	}
-
+*/
 	public static String[] cigarToReFormatedString(String[] aSingleLineOfBamFile, int beginPos, int endPos, Hashtable<Integer, String> insertionStrings, Hashtable<Integer, String> insertionPhreds) {
 		int readPointer, outputStringPointer, currentPosition, lengthOfCurrentSegment, outputStringStopLocation, loop, beginPosOfOutputString = -1;
 		String[][] readSegments;
@@ -3001,6 +3368,8 @@ public class SuperNovo {
 	}
 
 	public static void test() {
+		loadAdditionalComments("N:/statgen/OS_Logan/SuperNovo/charge_fibrinogen_mafs_and_counts.xln.gz");
+
 //		try {
 //			BufferedReader reader = new BufferedReader(new FileReader("D:/logan/DeNovos/bams/test2.txt"));
 //			String line;
@@ -3021,27 +3390,27 @@ public class SuperNovo {
 //			e.printStackTrace();
 //		}
 
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader("D:/logan/DeNovos/tests/haplotypes.log"));
-			String[] line;
-			char[] ref = new char[300];
-			Hashtable<Integer, String> varsInCurrentString;
-			Hashtable<Byte, Hashtable<Integer, String>> haplotypeDb = new Hashtable<Byte, Hashtable<Integer, String>>();
-			Hashtable<Byte, Vector<int[]>> readCounts = new Hashtable<Byte, Vector<int[]>>();
-			while (reader.ready()) {
-				varsInCurrentString = new Hashtable<Integer, String>();
-				line = reader.readLine().split("\t");
-				if (line[2].endsWith("AGGGCTTCCT")) {
-					System.out.println();
-				}
-				updateRefAndAlt(line[2], ref, Integer.parseInt(line[1]), varsInCurrentString, haplotypeDb, readCounts);
-			}
-			reader.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			BufferedReader reader = new BufferedReader(new FileReader("D:/logan/DeNovos/tests/haplotypes.log"));
+//			String[] line;
+//			char[] ref = new char[300];
+//			Hashtable<Integer, String> varsInCurrentString;
+//			Hashtable<Byte, Hashtable<Integer, String>> haplotypeDb = new Hashtable<Byte, Hashtable<Integer, String>>();
+//			Hashtable<Byte, Vector<int[]>> readCounts = new Hashtable<Byte, Vector<int[]>>();
+//			while (reader.ready()) {
+//				varsInCurrentString = new Hashtable<Integer, String>();
+//				line = reader.readLine().split("\t");
+//				if (line[2].endsWith("AGGGCTTCCT")) {
+//					System.out.println();
+//				}
+//				updateRefAndAlt(line[2], ref, Integer.parseInt(line[1]), varsInCurrentString, haplotypeDb, readCounts);
+//			}
+//			reader.close();
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 
 //		Hashtable<Integer, Vector<int[]>> test = new Hashtable<Integer, Vector<int[]>>();
 //		test.put(53700, new Vector<int[]>());
@@ -3089,7 +3458,7 @@ public class SuperNovo {
 		int numArgs = args.length;
 		String[] commands;
 		String[] bamFilenamesOfTheTrio;
-		String helpMenu, fullPathVariantCandidatesList, fullPathRefFasta, fullPathBed, fullPathReadCounts, fullPathTrioList, fullPathToParsedResult, fullPathToOutputHaplotypeStrings;
+		String helpMenu, fullPathVariantCandidatesList, fullPathRefFasta, fullPathBim, fullPathReadCounts, fullPathTrioList, fullPathToParsedResult, fullPathToOutputHaplotypeStrings;
 		String dirSam, dirScript, dirDenovoVars, dirSeattleSeq, dirMiniSam, dirMiniSamScripts, dirReadCounts;
 		String trioId, thresholdsForReadCounts, thresholdsForMapping;
 		String chr;
@@ -3109,7 +3478,7 @@ public class SuperNovo {
 		}
 		fullPathTrioList = "/home/spectorl/xuz2/lists/trios_list.txt";
 		fullPathRefFasta = "/home/spectorl/xuz2/ref_fasta/hg19_canonical.fa";
-		fullPathBed = "/home/spectorl/xuz2/outputs/wholegenome.bed";
+		fullPathBim = "/home/spectorl/xuz2/outputs/wholegenome.bim";
 		fullPathReadCounts = "/home/spectorl/xuz2/readcounts/wholegenome_rrd/readCount_F10639.txt.gz";
 		fullPathToParsedResult = "/home/spectorl/xuz2/outputs/wholegenome_rrd_46/SuperNovo_summary.xln";
 		fullPathToOutputHaplotypeStrings = "/home/spectorl/xuz2/outputs/tests/haplotypes.txt";
@@ -3139,7 +3508,7 @@ public class SuperNovo {
 			helpMenu += "," + bamFilenamesOfTheTrio[i];
 		}
 
-		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bed=", "numthreads=", "-parseresult", "trioid=", "triolistfile=", "regionlengthatime=", "seattleseqdir=", "minibamscriptdir=", "outputreadcounts=", "-coverage", "-denovo", "readcountsdir=", "thresholdreadcount=", "thresholdmapping=", "-test", "-haplotypes", "haplotypeout=", "-outhaplotypes", "parsedresult=", "minibamdir="};
+		commands = new String[] {"-annotation", "candidate=", "bamdir=", "scriptdir=", "outdir=", "bamset=", "reffasta=", "chr=", "start=", "stop=", "bim=", "numthreads=", "-parseresult", "trioid=", "triolistfile=", "regionlengthatime=", "seattleseqdir=", "minibamscriptdir=", "outputreadcounts=", "-coverage", "-denovo", "readcountsdir=", "thresholdreadcount=", "thresholdmapping=", "-test", "-haplotypes", "haplotypeout=", "-outhaplotypes", "parsedresult=", "minibamdir="};
 		String usage = "\nTo annotate a list of candidate markers:"
 					+ "\n   (1) command for annotatation (i.e. " + commands[0] + " (default))"
 					+ "\n   (2) full path of the candidate list file (i.e. " + commands[1] + fullPathVariantCandidatesList + " (default))"
@@ -3156,7 +3525,7 @@ public class SuperNovo {
 					+ "\n   (8) to output read count files, full path to output read counts (i.e. " + commands[18] + fullPathReadCounts + " (not default))"
 					+ "\n   (9) directory for the output files (i.e. " + commands[4] + dirDenovoVars + " (default))"
 					+ "\nTo process genome:"
-					+ "\n   (1) full path of the bed file (i.e. " + commands[10] + fullPathBed + " (default))"
+					+ "\n   (1) full path of the bed file (i.e. " + commands[10] + fullPathBim + " (default))"
 					+ "\n   (2) directory of the bam files (i.e. " + commands[2] + dirSam + " (default))"
 					+ "\n   (3) names the bam/sam files of the trio, if just for a trio (i.e. " + commands[5] + helpMenu + " (default))"
 					+ "\n   (4) full path of the reference Fasta file (i.e. " + commands[7] + fullPathRefFasta + " (default))"
@@ -3174,13 +3543,13 @@ public class SuperNovo {
 					+ "\nTo assess coverage of one specific trio:"
 					+ "\n   (1) command for assess coverage (i.e. " + commands[19] + " (not default))"
 					+ "\n   (2) full path to the read counts file of the trio (i.e. " + commands[18] + fullPathReadCounts + " (default)"
-					+ "\n   (3) full path of the bed file (i.e. " + commands[10] + fullPathBed + " (default))"
+					+ "\n   (3) full path of the bed file (i.e. " + commands[10] + fullPathBim + " (default))"
 					+ "\n   (4) thresholds of read counts (i.e. " + commands[22] + thresholdsForReadCounts + " (default))"
 					+ "\n   (5) thresholds of mapping quality scores (i.e. " + commands[23] + thresholdsForMapping + " (default))"
 					+ "\nTo assess coverage of all trios in a directory:"
 					+ "\n   (1) command for assess coverage (i.e. " + commands[19] + " (not default))"
 					+ "\n   (2) dir the read counts files (i.e. " + commands[21] + dirReadCounts + " (default)"
-					+ "\n   (3) full path of the bed file (i.e. " + commands[10] + fullPathBed + " (default))"
+					+ "\n   (3) full path of the bed file (i.e. " + commands[10] + fullPathBim + " (default))"
 					+ "\n   (4) thresholds of read counts (i.e. " + commands[22] + thresholdsForReadCounts + " (default))"
 					+ "\n   (5) thresholds of mapping quality scores (i.e. " + commands[23] + thresholdsForMapping + " (default)"
 					+ "\nTo get haplotypes of all trios in a summary file (output of the phase 2 parsing):"
@@ -3249,9 +3618,9 @@ public class SuperNovo {
 				numArgs--;
 			} else if (args[i].startsWith(commands[10])) {
 				if (args[i].split("=").length < 2) {
-					fullPathBed = null;
+					fullPathBim = null;
 				} else {
-					fullPathBed = args[i].split("=")[1];
+					fullPathBim = args[i].split("=")[1];
 				}
 				numArgs--;
 			} else if (args[i].startsWith(commands[11])) {
@@ -3328,7 +3697,8 @@ public class SuperNovo {
 //		trioId = "F10639_mini";
 
 		isParseResult = true;
-		dirDenovoVars = "D:/logan/DeNovos/denovos_rrd42_rrd46_dedup4/";
+//		dirDenovoVars = "D:/logan/DeNovos/phase1outputs_denovos_rrd42_rrd46_dedup4/";
+		dirDenovoVars = "D:/logan/DeNovos/phase1outputs_inherited/";
 		dirSeattleSeq = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
 		dirMiniSamScripts = "D:/logan/DeNovos/mini_bam_scripts/";
 		dirMiniSam = "D:/logan/DeNovos/mini_bams/";
@@ -3341,7 +3711,7 @@ public class SuperNovo {
 
 //		isGetHaplotypes = true;
 //		chr = 11 + "";
-//		dirBam = "/home/spectorl/shared/exome/project126/all_101/";
+//		dirSam = "/home/spectorl/shared/exome/project126/all_101/";
 //		bamFilenamesOfTheTrio = new String[] {"dedup_F10476C.bam", "dedup_F10476D.bam", "dedup_F10476M.bam"};
 //		trioId = "dedup_F10476";
 //		begin = 130079255;
@@ -3349,12 +3719,12 @@ public class SuperNovo {
 //		fullPathToOutputHaplotypeStrings = "~/outputs/tests/dedup_F10476_chr11_130079357_haplotypes.txt";
 
 //		isGetHaplotypes = true;
-//		chr = 11 + "";
-//		dirBam = "D:/logan/DeNovos/mini_bams/";
-//		bamFilenamesOfTheTrio = new String[] {"dedup_F10476_chr11_130079357_C.sam", "dedup_F10476_chr11_130079357_D.sam", "dedup_F10476_chr11_130079357_M.sam"};
+//		chr = 17 + "";
+//		dirSam = "D:/logan/DeNovos/mini_bams/";
+//		bamFilenamesOfTheTrio = new String[] {"F10503_chr17_7577102_C.sam", "F10503_chr17_7577102_D.sam", "F10503_chr17_7577102_M.sam"};
 //		trioId = "dedup_F10476";
-//		begin = 130079255;
-//		end = 130079459;
+//		begin = 7577102;
+//		end = 7577102;
 //		fullPathToOutputHaplotypeStrings = "D:/logan/DeNovos/tests/haplotypes.txt";
 
 //		isToTest = true;
@@ -3369,23 +3739,24 @@ public class SuperNovo {
 			if (chr != null && !chr.equals("") && begin > 0 && end > 0 && end >= begin) {
 				log = new Logger(dirDenovoVars + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
 				processRegion(dirSam, bamFilenamesOfTheTrio, fullPathRefFasta, chr, begin, end, dirDenovoVars, fullPathReadCounts, log);
-			} else if (fullPathBed != null && ! new File(fullPathBed).exists()) {
+			} else if (fullPathBim != null && ! new File(fullPathBim).exists()) {
 				log.reportError("Error - for " + commands[20] + ", bed file has not been specified or does not exist.");
 			} else if (bamFilenamesOfTheTrio == null || bamFilenamesOfTheTrio.length < 2) {
-				processGenomeOfAllTriosInDir(dirSam, fullPathRefFasta, fullPathBed, dirDenovoVars, dirScript, fullPathTrioList, dirReadCounts, regionLegnthATime, numThreads, log);
+				processGenomeOfAllTriosInDir(dirSam, fullPathRefFasta, fullPathBim, dirDenovoVars, dirScript, fullPathTrioList, dirReadCounts, regionLegnthATime, numThreads, log);
 			} else {
-				processGenomeOfOneTrio(dirSam, trioId, bamFilenamesOfTheTrio, fullPathRefFasta, fullPathBed, dirDenovoVars, fullPathReadCounts, regionLegnthATime, numThreads, log);
+				processGenomeOfOneTrio(dirSam, trioId, bamFilenamesOfTheTrio, fullPathRefFasta, fullPathBim, dirDenovoVars, fullPathReadCounts, regionLegnthATime, numThreads, log);
 			}
 		} else if (isParseResult) {
 			log = new Logger(dirDenovoVars + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-			parseResults(dirDenovoVars, dirSeattleSeq, dirMiniSamScripts, dirMiniSam, fullPathTrioList, (byte) 2, 0, (byte) 1, log);
+//			parseResults(dirDenovoVars, dirSeattleSeq, dirMiniSamScripts, dirMiniSam, fullPathTrioList, (byte) 2, 0, (byte) 1, log);
+			parseResults2(dirDenovoVars, dirSeattleSeq, "N:/statgen/OS_Logan/SuperNovo/charge_fibrinogen_mafs_and_counts.xln.gz", dirMiniSamScripts, dirMiniSam, fullPathTrioList, (byte) 2, 0, (byte) 1, log);
 		} else if (isToAssessCoverage) {
 			if ((dirReadCounts != null && !dirReadCounts.equals("")) || fullPathReadCounts == null || fullPathReadCounts.equals("")) {
 				log = new Logger(dirReadCounts + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-				getCoverages(dirReadCounts, DEFAULT_READ_COUNTS_FILENAME_SUFFIX, fullPathBed, thresholdsForReadCounts, thresholdsForMapping, log);
+				getCoverages(dirReadCounts, DEFAULT_READ_COUNTS_FILENAME_SUFFIX, fullPathBim, thresholdsForReadCounts, thresholdsForMapping, log);
 			} else {
 				log = new Logger(ext.parseDirectoryOfFile(fullPathReadCounts) + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-				getCoverages(fullPathReadCounts, null, fullPathBed, thresholdsForReadCounts, thresholdsForMapping, true, log);
+				getCoverages(fullPathReadCounts, null, fullPathBim, thresholdsForReadCounts, thresholdsForMapping, true, log);
 			}
 		} else if (isGetHaplotypes) {
 			if (chr == null) {
@@ -3403,8 +3774,7 @@ public class SuperNovo {
 			log = new Logger();
 			test();
 		} else {
-			log = new Logger();
-			log.reportError("No command executed, due to none of the following is specified: " + commands[0] + ", " + commands[12] + ", " + commands[19] + ", or " + commands[20] + ".");
+			System.out.println("\nNo command executed, due to none of the following is specified: " + commands[0] + ", " + commands[20] + ", " + commands[12] + ", or " + commands[19] + ".\n" + usage);
 		}
 	}
 }
