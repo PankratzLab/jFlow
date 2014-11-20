@@ -371,7 +371,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					abLookup.writeToFile(filename, proj.getLog());
 				}
 				
-				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map());
+				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(), false);
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				String filename;
 				boolean success;
