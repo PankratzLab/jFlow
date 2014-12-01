@@ -24,6 +24,8 @@ public class GATK {
 	public static final String PRINT_READS = "PrintReads";
 	public static final String[] LOAD_R = { "module load R", "R" };
 	public static final String RSCRIPT = "Rscript";
+	public static final String NT = "-nt";
+	public static final String NCT = "-nct";
 
 	public static final String BEFORE = "-before";
 	public static final String AFTER = "-after";
@@ -61,6 +63,18 @@ public class GATK {
 
 	public boolean isFail() {
 		return fail;
+	}
+
+	public String getGATKLocation() {
+		return GATKLocation;
+	}
+
+	public String[] getKnownSitesSnpFile() {
+		return knownSitesSnpFile;
+	}
+
+	public String[] getKnownSitesIndelFile() {
+		return knownSitesIndelFile;
 	}
 
 	public BaseRecalibration recalibrateABam(String baseId, String realigned_dedup_reads_bam, Logger altLog) {

@@ -44,6 +44,10 @@ public class Picard {
 		this.log = log;
 	}
 
+	public String getPicardLocation() {
+		return picardLocation;
+	}
+
 	public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
 		String[] command = new String[] { javaLocation, JAR, picardLocation + SORT_SAM_JAR, INPUT + inputFile, OUTPUT + outputFile, SORT_ORDER + DEFAULT_SORT_ORDER, TMP_DIR + ext.parseDirectoryOfFile(outputFile) };
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] { inputFile }, new String[] { outputFile }, verbose, overwriteExisting, true, (altLog == null ? log : altLog));
