@@ -178,10 +178,9 @@ public class ParseIllumina implements Runnable {
 						genotypes[0][key] = (byte)ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALLELE_PAIRS);
 						if (genotypes[0][key] == -1) {
 							if (ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALT_NULLS) == -1) {
-								log.reportError("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+markerNames[count]+" of sample "+files[i]);
-							} else {
-								genotypes[0][key] = 0;
+								log.reportError("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+markerNames[count]+" of sample "+files[i]+"; setting to missing");
 							}								
+							genotypes[0][key] = 0;
 						}
 						if (ignoreAB) {
 							// do nothing, will need to use these files to determine AB lookup table
@@ -983,10 +982,9 @@ public class ParseIllumina implements Runnable {
 								genotypes[0][key] = (byte)ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALLELE_PAIRS);
 								if (genotypes[0][key] == -1) {
 									if (ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALT_NULLS) == -1) {
-										log.reportError("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+line[snpIndex]+" of sample "+files[i]);
-									} else {
-										genotypes[0][key] = 0;
+										log.reportError("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+line[snpIndex]+" of sample "+files[i]+"; setting to missing");
 									}
+									genotypes[0][key] = 0;
 								}
 								
 //								if (!ignoreAB) {

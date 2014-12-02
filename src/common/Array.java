@@ -1524,10 +1524,15 @@ public class Array {
 	public static String toStr(String[] array, boolean[] display, String delimiter, String nullValue) {
 		String str = "";
 		int count;
+		boolean commaDelimited;
 
 		count = 0;
+		commaDelimited = delimiter.equals(",");
 		for (int i = 0; i<array.length; i++) {
 			if (display == null || display[i]) {
+				if (commaDelimited && array[i].contains(",")) {
+					array[i] = "\""+array[i]+"\"";
+				}
 				str += (count==0?"":delimiter)+(array[i]==null?nullValue:array[i]);
 				count++;
 			}

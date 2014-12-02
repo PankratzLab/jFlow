@@ -287,7 +287,7 @@ public class ExportCNVsToPedFormat {
 			
 			time = new Date().getTime();
 			log.report("Transposing "+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber));
-			Files.transpose(dir+"rfgls/"+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber), "\t", dir+"rfgls/"+ext.removeDirectoryInfo(root+"_bySample_"+fileNumber), "\t");
+			Files.transpose(dir+"rfgls/"+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber), "\t", dir+"rfgls/"+ext.removeDirectoryInfo(root+"_bySample_"+fileNumber), "\t", log);
 			log.report("\t...finished in "+ext.getTimeElapsed(time));
 			new File(dir+"rfgls/"+ext.removeDirectoryInfo(root+"_byMarker_"+fileNumber)).delete();
 			

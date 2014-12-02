@@ -78,7 +78,7 @@ public class HitWindows {
 						annotation[count][i] = line[4+i];
 					}
 				} catch (Exception e) {
-					log.reportError("Error - reading: "+temp);
+					log.reportError("Error - reading file "+filename+" at line "+count+": "+temp);
 					log.reportError("  which was parsed as : "+Array.toStr(line));
 					log.reportException(e);
 					return null;

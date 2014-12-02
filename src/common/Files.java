@@ -1432,24 +1432,34 @@ public class Files {
 		return Matrix.toStringArrays(v);
 	}
 	
-	public static void transpose(String filein, String delimiterIn, String fileout, String delimiterOut) {
+	public static void transpose(String filein, String delimiterIn, String fileout, String delimiterOut, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
-		String[] line;
-		Vector<String[]> v = new Vector<String[]>();
+		String[][] matrix;
 		int size = -1;
-
+		int lineCount;
+		long time;
+		
+		time = new Date().getTime();
 		try {
+			log.report("Counting lines in "+filein);
+			lineCount = Files.countLines(filein, false);
+			log.report("Line count = "+lineCount);
+			log.report("Loading "+filein+" into memory");
 			reader = new BufferedReader(new FileReader(filein));
-			while (reader.ready()) {
-				line = reader.readLine().trim().split(delimiterIn);
-				if (size==-1) {
-					size = line.length;
-				} else if (line.length!=size) {
-					System.err.println("Error transposing file: different number of columns (previously: "+size+"; line "+(v.size()+1)+": "+line.length+")");
-					System.err.println("   Make sure that the delimiter is set correctly");
+			matrix = new String[lineCount][];
+			for (int i = 0; i < matrix.length; i++) {
+				if (i % (matrix.length/20) == 0) {
+					log.report(ext.getTime()+"\t"+Math.round(100*(float)i/(float)matrix.length)+"% loaded; ", false, true);
+					log.memoryPercentFree();
 				}
-				v.add(line);
+				matrix[i] = reader.readLine().trim().split(delimiterIn);
+				if (size==-1) {
+					size = matrix[i].length;
+				} else if (matrix[i].length!=size) {
+					log.reportError("Error transposing file: different number of columns (previously: "+size+"; line "+(i+1)+": "+matrix[i].length+")");
+					log.reportError("   Make sure that the delimiter is set correctly");
+				}
 			}
 			reader.close();
 
@@ -1457,11 +1467,15 @@ public class Files {
 				fileout = filein+"-transposed.xln";
 			}
 			
+			log.report("Writing out to "+fileout);
 			writer = new PrintWriter(new FileWriter(fileout));
-			for (int i = 0; i<size; i++) {
-				for (int j = 0; j<v.size(); j++) {
-					line = v.elementAt(j);
-					writer.print((j==0?"":delimiterOut)+line[i]);
+			for (int j = 0; j<size; j++) {
+				if (j % (size/20) == 0) {
+					log.report(ext.getTime()+"\t"+Math.round(100*(float)j/(float)size)+"% loaded; ", false, true);
+					log.memoryPercentFree();
+				}
+				for (int i = 0; i<matrix[i].length; i++) {
+					writer.print((i==0?"":delimiterOut)+matrix[i][j]);
 				}
 				writer.println();
 			}
@@ -1469,48 +1483,56 @@ public class Files {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+filein+"\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \""+filein+"\" not found in current directory");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+filein+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+filein+"\"");
+			return;
+		} catch (OutOfMemoryError oome) {
+			log.reportError("Ran out of memory");
+			return;
 		}
+		log.report("Finished in " + ext.getTimeElapsed(time));
 	}
 
-	public static void transposeHuge(String filename, int step) {
-		transposeHuge(filename, filename+"-transposeHuge.xln", step);
+	public static void transposeHuge(String filename, int step, Logger log) {
+		transposeHuge(filename, Files.determineDelimiter(filename, log), filename+"-transposeHuge.xln", "\t", step, log);
 	}
 
-	public static void transposeHuge(String filename, String fileout, int step) {
+	public static void transposeHuge(String filename, String delimiterIn, String fileout, String delimiterOut, int step, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
-		Vector<String[]> v = new Vector<String[]>();
+		String[][] matrix;
 		int size = 1, inc = 0;
-
+		int lineCount;
+		
+		log.report("Counting lines in "+filename);
+		lineCount = Files.countLines(filename, false);
+		matrix = new String[lineCount][];
 		try {
 			writer = new PrintWriter(new FileWriter(fileout));
 			while (inc<size) {
-				System.out.println(inc);
+				log.report(ext.getTime()+"\t"+Math.round(100*(float)inc/(float)size)+"% processed; ", false, true);
+				log.memoryPercentFree();
+				
 				reader = new BufferedReader(new FileReader(filename));
-				v.removeAllElements();
-				while (reader.ready()) {
-					line = reader.readLine().trim().split("[\\s]+");
+				for (int i = 0; i < matrix.length; i++) {
+					line = reader.readLine().trim().split(delimiterIn);
 					if (size==1) {
 						size = line.length;
 					} else if (line.length!=size) {
-						System.err.println("Error transposing file: different number of columns (previously: "+size+"; line "+(v.size()+1)+": "+line.length+")");
-						System.err.println("   Make sure that the delimiter is set correctly");
+						log.reportError("Error transposing file: different number of columns (previously: "+size+"; line "+(i+1)+": "+line.length+")");
+						log.reportError("   Make sure that the delimiter is set correctly");
 					}
-					v.add(Array.subArray(line, inc, inc+step>size?size:inc+step));
-					// System.out.println(v.size());
+					matrix[i] = Array.subArray(line, inc, inc+step>size?size:inc+step);
 				}
 				reader.close();
 
-				for (int i = 0; i<(inc+step>size?size-inc:step); i++) {
-					for (int j = 0; j<v.size(); j++) {
-						line = v.elementAt(j);
-						writer.print((j==0?"":"\t")+line[i]);
+				log.report(ext.getTime()+"\tWriting");
+				for (int j = 0; j<(inc+step>size?size-inc:step); j++) {
+					for (int i = 0; i<matrix.length; i++) {
+						writer.print((i==0?"":delimiterOut)+matrix[i][j]);
 					}
 					writer.println();
 					writer.flush();
@@ -1521,11 +1543,64 @@ public class Files {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+filename+"\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \""+filename+"\" not found in current directory");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+filename+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+filename+"\"");
+			return;
+		} catch (OutOfMemoryError oome) {
+			log.reportError("Ran out of memory");
+			return;
+		}
+	}
+	
+	public static void transposeFromParameters(String filename, Logger log) {
+		Vector<String> paramV;
+		String infile, outfile;
+		String[] line;
+		boolean huge;
+		int step = 1000;
+		long memoryAvailable, filesize;
+		int colCount, suggestedStep;
+
+		paramV = Files.parseControlFile(filename, "transpose", new String[] { "sourcefile.txt out=newfile.txt forceHuge=false forceStep=-1", "# (step is only used for huge"}, log);
+		if (paramV != null) {
+        	line = paramV.remove(0).trim().split("[\\s]+");
+			
+        	huge = false;
+        	infile = line[0];
+	    	outfile = ext.rootOf(filename)+"_transposed.xln";
+        	for (int i = 1; i<line.length; i++) {
+        		if (line[i].startsWith("out=")) {
+        			outfile = line[i].split("=")[1];
+        		} else if (line[i].startsWith("forceHuge=")) {
+        			huge = ext.parseBooleanArg(line[i]);
+        		} else if (line[i].startsWith("forceStep=")) {
+        			step = ext.parseIntArg(line[i]);
+        		} else {
+        			log.reportError("Error - don't know what to do with argument: "+line[i]);
+        		}
+            }
+        	
+        	memoryAvailable = log.memoryMax();
+        	filesize = new File(infile).length();
+        	log.report("The size of the file is "+ext.prettyUpSize(filesize, 1));
+        	if (huge || memoryAvailable < filesize*20) {
+        		log.report("Using the (slower) huge file transpose given these constraints"); 
+        	
+            	colCount = Files.getHeaderOfFile(infile, log).length;
+            	log.report("There are "+colCount+" columns in the file");
+            	suggestedStep = (int)((double)memoryAvailable/40/((double)filesize/(double)colCount));
+            	log.report("( "+memoryAvailable+" / 40 ) / ( "+filesize +" / "+colCount+" ) = "+suggestedStep);
+            	if (step == -1) {
+            		step = suggestedStep;
+            	}
+        	
+        		log.report("Using the huge transpose option with a step of "+step +" which will take "+(int)(Math.ceil((double)colCount/(double)step))+" cycles");
+        		transposeHuge(infile, Files.determineDelimiter(infile, log), outfile, Files.suggestDelimiter(outfile, log), step, log);
+        	} else {
+        		transpose(infile, Files.determineDelimiter(infile, log), outfile, Files.suggestDelimiter(outfile, log), log);
+        	}
 		}
 	}
 
@@ -2938,7 +3013,7 @@ public class Files {
 			} else if (filename != null) {
 				makeQsub(filename, multiple, start, stop, separate, patterns, cwd);
 			} else if (transpose != null) {
-				transpose(transpose, commaDelimitedIn?",":"\t", outfile, commaDelimitedOut?",":"\t");
+				transpose(transpose, commaDelimitedIn?",":"\t", outfile, commaDelimitedOut?",":"\t", new Logger());
 			} else if (dir != null) {
 				summarizeAllFilesInDirectory(dir);
 			} else {

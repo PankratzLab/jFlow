@@ -451,11 +451,30 @@ public class ext {
 		return prettyP(d+"", sigfigs, sigfigWhenConverting, sigfigWhenConverted, useE);
 	}
 
+	/**
+	 * Converts a String (which is usually a p-value) to a double and then back to a String using scientific notation if beyond a certain magnitude
+	 * 
+	 * @param nummer
+	 *            the original number in String format
+	 * @param sigfigs
+	 *            the number of significant digits to use if there is no conversion (usually 2)
+	 * @param sigfigBeforeConverting
+	 *            the number of digits (i.e., the number of zeros after the decimal plus one) required before switching to scientific notation (usually 4 or 5)
+	 * @param sigfigWhenConverted
+	 *            the number of significant digits to use when using scientific notation (if you use 3, then that means there will be the one digit before the decimal and two after)
+	 * @param useE
+	 *            use E-0# instead of x 10^-#
+	 * @return the pretty version of the number
+	 */
 	public static String prettyP(String nummer, int sigfigs, int sigfigBeforeConverting, int sigfigWhenConverted, boolean useE) {
 		String str = "";
 		double d = -999;
 		int power;
 		String sigdigits, temp;
+		
+		if (isMissingValue(nummer)) {
+			return nummer;
+		}
 
 		try {
 			d = Double.parseDouble(nummer);

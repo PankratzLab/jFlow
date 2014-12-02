@@ -132,6 +132,7 @@ public class Qc {
 		dir = "D:/data/WinterHillsCombo/QC/beforeRelease/";
 		dir = "C:/PoynterLinabery/QC/completeDataset/";
 		dir = "C:/PoynterLinabery/QC/bizarrePC12/";
+		dir = "C:/PoynterLinabery/GEDImerge/QC/";
 		
 		keepGenomeInfoForRelatedsOnly = false;
 

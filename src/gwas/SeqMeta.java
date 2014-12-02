@@ -945,6 +945,21 @@ public class SeqMeta {
 					}
 				}
 			}
+
+			for (int i = 0; i < phenotypes.length; i++) {
+				for (int k = 0; k <= races.length; k++) {
+					root = (k == races.length?"":races[k][0]+"_")+phenotypes[i][0]+"_"+method;
+					outputFilename = dir+phenotypes[i][0]+"/"+(k == races.length?"":races[k][0]+"/")+method+"/"+root+".csv";
+					if (Files.exists(outputFilename)) {
+						log.report("Processing "+outputFilename);
+						line = procFile(outputFilename, log);
+						writer.println("Meta\t"+(k == races.length?"PanEthnic":races[k][0])+"\t"+phenotypes[i][0]+"\t"+Array.toStr(line));
+						hash.put("Meta_"+(k == races.length?"PanEthnic":races[k][0])+"_"+phenotypes[i][0], line[7]);
+					} else {
+						log.report("Error - missing expected file: "+outputFilename);
+					}
+				}
+			}
 			writer.close();
 		} catch (Exception e) {
 			System.err.println("Error writing to " + dir+"summary_metrics_list.xln");
@@ -953,20 +968,20 @@ public class SeqMeta {
 
 		try {
 			writer = new PrintWriter(new FileWriter(dir+"summary_metrics_table.xln"));
-			for (int k = 0; k < races.length; k++) {
-				writer.print(races[k][0]);
+			for (int k = 0; k <= races.length; k++) {
+				writer.print(k==races.length?"PanEthnic":races[k][0]);
 				for (int i = 0; i < phenotypes.length; i++) {
 					writer.print("\t"+phenotypes[i][0]);
 				}
 				writer.println();
-				for (int j = 0; j < studies.length; j++) {
+				for (int j = (k==races.length?studies.length:0); j <= studies.length; j++) {
 					count = 0;
-					temp = studies[j];
+					temp = (j==studies.length?"Meta":studies[j]);
 					for (int i = 0; i < phenotypes.length; i++) {
-						if (finalSets[i][j][k].equals("<missing>")) {
+						if (k<races.length && j<studies.length && finalSets[i][j][k].equals("<missing>")) {
 							temp += "\t";
 						} else {
-							root = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0];
+							root = (j==studies.length?"Meta":studies[j])+"_"+(k==races.length?"PanEthnic":races[k][0])+"_"+phenotypes[i][0];
 							if (hash.containsKey(root)) {
 								temp += "\t"+hash.get(root);
 							} else {
@@ -1509,7 +1524,7 @@ public class SeqMeta {
 					for (int j = 0; j < studies.length; j++) {
 						if (!finalSets[i][j][k].equals("<missing>")) {
 							filename = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0]+".csv";
-							pvalFile = studies[j]+"_"+races[k][0]+"_pvals.dat";
+							pvalFile = studies[j]+"_"+races[k][0]+"_pvals_mac"+macThresholdTotal+".dat";
 
 							count = parsePvals(localRaceDir+filename, localDir+pvalFile, studies[j], methods[m], macHashesHashByRace.get(races[k][0]), macThresholdStudy, mafThreshold, log);
 							if (count == -1) {
@@ -1535,7 +1550,7 @@ public class SeqMeta {
 					log.report("", true, false);
 
 					filename = races[k][0]+"_"+phenotypes[i][0]+"_"+methods[m][0]+".csv";
-					pvalFile = "meta_"+races[k][0]+"_pvals.dat";
+					pvalFile = "meta_"+races[k][0]+"_pvals_mac"+macThresholdTotal+".dat";
 
 					count = parsePvals(localRaceDir+filename, localDir+pvalFile, "Total", methods[m], macHashesHashByRace.get(races[k][0]), macThresholdTotal, mafThreshold, log);
 					log.report(count+" lines of pvalues for "+filename);
@@ -1562,7 +1577,7 @@ public class SeqMeta {
 				}
 
 				filename = phenotypes[i][0]+"_"+methods[m][0]+".csv";
-				pvalFile = "meta_panEthnic_pvals.dat";
+				pvalFile = "meta_panEthnic_pvals_mac"+macThresholdTotal+".dat";
 				
 				count = parsePvals(localDir+filename, localDir+pvalFile, "Total", methods[m], macHashesHashByRace.get("PanEthnic"), macThresholdTotal, mafThreshold, log);
 				if (count == -1) {
@@ -1605,7 +1620,7 @@ public class SeqMeta {
 				if (filenames.length() == 0) {
 					System.err.println("Error - why are there no files for "+phenotypes[i][0]+" "+methods[m][0]);
 				}
-				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0, filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs.bat");
+				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0, filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs_mac"+macThresholdTotal+".bat");
 			}
 			
 			groups = HashVec.getKeys(groupHits);
@@ -1659,7 +1674,7 @@ public class SeqMeta {
 		
 		copyHits(dir, maps);
 		log.report("Copied to assembledHits/ and regions are being delineated");
-		delineateRegions(dir, maps);
+		delineateRegions(dir, maps, macThresholdTotal);
 		
 		lineCounts.insertElementAt("Study\tRace\tPhenotype\tMethod\tCount", 0);
 		Files.writeList(Array.toStringArray(lineCounts), dir+"lineCounts.xln");
@@ -1902,7 +1917,7 @@ public class SeqMeta {
 		System.out.println("and done with a total time of " + ext.getTimeElapsed(time));
 	}
 	
-	public static void delineateRegions(String dir, MetaAnalysisParams maps) {
+	public static void delineateRegions(String dir, MetaAnalysisParams maps, int macThresholdTotal) {
 		Vector<Vector<String>> filesToCat;
 		int[] ns;
 		float indexThreshold;
@@ -1921,6 +1936,7 @@ public class SeqMeta {
 		dir = ext.verifyDirFormat(dir);
 		
 		log = new Logger(dir+"delineateRegions.log");
+		log.report("Computing Bonferroni p-value thresholds from the MAC>="+macThresholdTotal+" results.");
 		
 		if (!Files.exists(dir+"hitsAssembled/")) {
 			copyHits(dir, maps);
@@ -1946,7 +1962,7 @@ public class SeqMeta {
 		for (int i = 0; i < phenotypes.length; i++) {
 			ns = Array.intArray(groups.length, -1);
 			for (int m = 0; m < methods.length; m++) {
-				filename = phenotypes[i][0]+"/"+methods[m][0]+"/meta_panEthnic_pvals.dat";
+				filename = phenotypes[i][0]+"/"+methods[m][0]+"/meta_panEthnic_pvals_mac"+macThresholdTotal+".dat";
 				index = ext.indexOfStr(methods[m][1], groups);
 				if (Files.exists(dir+filename)) {
 					ns[index] = Math.max(ns[index], Files.countLines(filename, true));
@@ -2012,27 +2028,104 @@ public class SeqMeta {
 		}
 	}
 	
-	public static void makeQQplots(String dir, MetaAnalysisParams maps) {
-//		String[] groups;
-//		String filename;
-		String[][] phenotypes;
-		String[][] methods;
+	public static void makeTables(String dir, MetaAnalysisParams maps, int sigfigs) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		Logger log;
+		boolean[] keeps, pvals;
+		Vector<String> v;
+		
 		if (dir == null || dir.equals("")) {
 			dir = new File("").getAbsolutePath()+"/";
 		}
-		dir = ext.verifyDirFormat(dir);
-		
-		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
-		methods = maps.getMethods();
 
-		new File(dir+"hitsAssembled/").mkdirs();
-//		groups = maps.getGroups();
-		for (int i = 0; i < phenotypes.length; i++) {
-			
-			for (int m = 0; m < methods.length; m++) {
-//				cnv.plots.QQPlot
-			}
+		log = new Logger(dir+"makeTables.log");
+
+		if (!Files.exists(dir+"hitsAssembled/")) {
+			log.reportError("Error - directory hitsAssembled/ does not exist");
+			return;
 		}
+
+		if (!Files.exists(dir+"hitsAssembled/SingleVariant_regions.xln")) {
+			log.reportError("Error - SingleVariant_regions.xln does not exist");
+			return;
+		}
+		
+		if (!Files.exists(dir+"hitsAssembled/BurdenTests_regions.xln")) {
+			log.reportError("Error - BurdenTests_regions.xln does not exist");
+			return;
+		}
+		
+		try {
+			reader = Files.getAppropriateReader(dir+"hitsAssembled/BurdenTests_regions.xln");
+			writer = new PrintWriter(new FileWriter(dir+"hitsAssembled/BurdenTests_regions_processed.xln"));
+			line = reader.readLine().trim().split("[\\s]+");
+			keeps = Array.booleanArray(line.length, true);
+
+//			Trait	Region	Gene	Chr	 Position 	p-value	Region+Window	RegionStart	RegionStop	NumSigMarkers	NumSuggestiveMarkers	NumTotalMarkers	SizeOfRegion	PanEthnic_nsnpsTotal_T5Count	PanEthnic_p_T1Count	Whites_p_T1Count	Blacks_p_T1Count	Hispanics_p_T1Count	PanEthnic_p_T5Count	Whites_p_T5Count	Blacks_p_T5Count	Hispanics_p_T5Count	PanEthnic_p_SKATwu5	Whites_p_SKATwu5	Blacks_p_SKATwu5	Hispanics_p_SKATwu5
+			keeps[1] = false; // Region # by trait
+			keeps[5] = false; // min pvalue
+			keeps[6] = false; // region
+			keeps[7] = false; // regionstart
+			keeps[8] = false; // regionstop
+			keeps[11] = false; // total markers/genes
+			keeps[12] = false; // size
+			line[13] = "#variants";
+
+			line = Array.subArray(line, keeps);			
+			pvals = Array.booleanArray(line.length, false);
+			
+			v = new Vector<String>();
+			for (int i = 1; i < line.length; i++) {
+				writer.print("\t");
+				if (line[i].contains("_p_")) {
+					pvals[i] = true;
+					writer.print(line[i].substring(line[i].indexOf("_p_")+3, line[i].length()));
+					line[i] = line[i].substring(0, line[i].indexOf("_p_"));
+					if (line[i].equalsIgnoreCase("Whites")) {
+						line[i] = "EA";
+						HashVec.addIfAbsent("EA", v);
+					} else if (line[i].equalsIgnoreCase("Blacks")) {
+						line[i] = "AA";
+						HashVec.addIfAbsent("AA", v);
+					} else if (line[i].equalsIgnoreCase("Hispanics")) {
+						line[i] = "HA";
+						HashVec.addIfAbsent("HA", v);
+					} else if (line[i].equalsIgnoreCase("Asians")) {
+						line[i] = "AS";
+						HashVec.addIfAbsent("AS", v);
+					}
+				}
+			}
+			for (int i = 0; i < line.length; i++) {
+				if (line[i].equalsIgnoreCase("PanEthnic")) {
+					line[i] = Array.toStr(Array.toStringArray(v), "+");
+				}
+			}
+			writer.println();
+			writer.println(Array.toStr(line));
+			
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+				line = Array.subArray(line, keeps);			
+				for (int i = 0; i < pvals.length; i++) {
+					if (pvals[i]) {
+						line[i] = "\""+ext.prettyP(line[i], 2, 4, sigfigs, true)+"\"";
+					}
+				}
+				writer.println(Array.toStr(line));
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + dir+"hitsAssembled/BurdenTests_regions.xln" + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + dir+"hitsAssembled/BurdenTests_regions.xln" + "\"");
+			return;
+		}
+		
 	}
 	
 	public static void stitch(String dir, String pattern, String fileout, Logger log) {
@@ -2269,7 +2362,7 @@ public class SeqMeta {
 		return statsForStudyRacePheno;
 	}
 	
-	private static void summarizePhenotypes(String dir, MetaAnalysisParams maps, boolean includeSD, boolean includeRange, Logger log) {
+	private static void summarizePhenotypes(String dir, MetaAnalysisParams maps, boolean includeSD, boolean includeRange, int numSigFigs, Logger log) {
 		String[] line, mainLine, unitsLine, countsLine;
 		String[] files;
 		String[][][] finalSets;
@@ -2318,7 +2411,7 @@ public class SeqMeta {
 							line = statsForStudyRacePheno.get(studies[j]+"\t"+races[k][0]+"\t"+phenotypes[i][0]);
 							mainLine[i] = ext.formDeci(Double.parseDouble(line[4]), 3, true);
 							if (includeSD || includeRange) {
-								mainLine[i] += "("+(includeSD?ext.formDeci(Double.parseDouble(line[5]), 3, true):"")+(includeSD&&includeRange?"; ":"")+(includeRange?ext.formDeci(Double.parseDouble(line[6]), 3, true)+" - "+ext.formDeci(Double.parseDouble(line[7]), 3, true):"")+")";
+								mainLine[i] += " ("+(includeSD?ext.formDeci(Double.parseDouble(line[5]), numSigFigs, true):"")+(includeSD&&includeRange?"; ":"")+(includeRange?ext.formDeci(Double.parseDouble(line[6]), numSigFigs, true)+" - "+ext.formDeci(Double.parseDouble(line[7]), numSigFigs, true):"")+")";
 							}
 							unitsLine[i] = line[2];
 							sampleSizes = Array.addIntToArray(Integer.parseInt(line[8])+Integer.parseInt(line[9]), sampleSizes);
@@ -2907,7 +3000,6 @@ public class SeqMeta {
 		boolean metrics = false;
 		boolean forceMeta = false;
 		boolean copy = false;
-		boolean qq = false;
 		boolean genePositions = false;
 		boolean stashMetaResults = false;
 		String betasFor = null;
@@ -2920,6 +3012,8 @@ public class SeqMeta {
 		boolean checkMAFs = false;
 		boolean pleiotropy = false;
 		double maxPval = 0.0001;
+		int numSigFigs = 3;
+		boolean tables = false;
 		
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Hct_SingleSNP.csv", new Logger());
@@ -2960,8 +3054,12 @@ public class SeqMeta {
 		"   (2) copy top hit files (i.e. -copy (not the default))\n" + 
 		" OR\n" + 
 		"   (2) parse regions from top hits (i.e. -regions (not the default))\n" + 
+		"   (3) minor allele count threshold for meta-analysis to determine Bonferroni correction (i.e. macThresholdTotal="+macThresholdTotal+" (default))\n" + 
 		" OR\n" + 
-		"   (2) make QQ plots (i.e. -qq (not the default))\n" + 
+		"   (2) make tables from the final list (i.e. -tables (not the default))\n" + 
+		"   (3) number of significant digits for scientific notation (i.e. numSigFigs="+numSigFigs+" (default))\n" +
+		" OR\n" + 
+		"   (2) making QQ plots is now part of hitsAssembled, so this the option -qq no longer works on its own\n" + 
 		" OR\n" + 
 		"   (2) stash meta-analysis resluts (before adding/removing a cohort) (i.e. -stashMetaResults (not the default))\n" + 
 		" OR\n" + 
@@ -2971,7 +3069,8 @@ public class SeqMeta {
 		" OR\n" + 
 		"   (2) summarize phenotypes into a set of tables (i.e. -sumPhenos (not the default))\n" + 
 		"   (3) include standard deviation (i.e. includeSD="+includeSD+" (default))\n" + 
-		"   (4) include the range of values (i.e. includeSD="+includeRange+" (default))\n" + 
+		"   (4) include the range of values (i.e. includeRange="+includeRange+" (default))\n" +
+		"   (5) number of significant digits for SD and range (i.e. numSigFigs="+numSigFigs+" (default))\n" +
 		" \n" + 
 		" OR\n" + 
 		"   (1) filename of singleSNP results to run through a series of leave one study out METAL analyses (i.e. metalSensitivity=Whites_Hct_SingleSNP.csv (not the default))\n" +
@@ -3043,11 +3142,11 @@ public class SeqMeta {
 			} else if (args[i].startsWith("-copy")) {
 				copy = true;
 				numArgs--;
+			} else if (args[i].startsWith("-tables")) {
+				tables = true;
+				numArgs--;
 			} else if (args[i].startsWith("-regions")) {
 				regions = true;
-				numArgs--;
-			} else if (args[i].startsWith("-qq")) {
-				qq = true;
 				numArgs--;
 			} else if (args[i].startsWith("-stashMetaResults")) {
 				stashMetaResults = true;
@@ -3057,6 +3156,15 @@ public class SeqMeta {
 				numArgs--;
 			} else if (args[i].startsWith("-sumPhenos")) {
 				summarizePhenotypes = true;
+				numArgs--;
+			} else if (args[i].startsWith("includeSD=")) {
+				includeSD = ext.parseBooleanArg(args[i]);
+				numArgs--;				
+			} else if (args[i].startsWith("includeRange=")) {
+				includeRange = ext.parseBooleanArg(args[i]);
+				numArgs--;				
+			} else if (args[i].startsWith("numSigFigs=")) {
+				numSigFigs = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("-mock")) {
 				mockery = true;
@@ -3131,7 +3239,9 @@ public class SeqMeta {
 //		dir = "D:/ExomeChip/Hematology/results/11_accurateMACs/";
 //		log = new Logger(logfile);
 //		computeMACs = true;
-
+		
+//		regions = true;
+		
 		try {
 			log = new Logger(logfile);
 			if (metalSensitivity != null) {
@@ -3166,9 +3276,9 @@ public class SeqMeta {
 				} else if (copy) {
 					copyHits(dir, maps);
 				} else if (regions) {
-					delineateRegions(dir, maps);
-				} else if (qq) {
-					makeQQplots(dir, maps);
+					delineateRegions(dir, maps, macThresholdTotal);
+				} else if (tables) {
+					makeTables(dir, maps, numSigFigs);
 				} else if (stashMetaResults) {
 					stashMetaResults(dir, maps);
 				} else if (betasFor != null) {
@@ -3176,7 +3286,7 @@ public class SeqMeta {
 				} else if (mockery) {
 					makeSetOfMockRdataFiles(dir, maps);
 				} else if (summarizePhenotypes) {
-					summarizePhenotypes(dir, maps, includeSD, includeRange, log);
+					summarizePhenotypes(dir, maps, includeSD, includeRange, numSigFigs, log);
 				} else if (metalSensitivityAll) {
 					batchAllMetalSensitivityAnalyses(dir, maps);
 				} else if (checkMAFs) {
