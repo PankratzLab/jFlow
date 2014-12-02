@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -30,8 +31,8 @@ public class BWA_Analysis {
 	public static final String REFERENCE_GENOME_COMMAND = "referenceGenomeFasta=";
 	public static final String BWA_LOCATION_COMMAND = "bwaLocation=";
 	public static final String QUIET_COMMAND = "-quiet";
-	public static final String NUM_MEM_THREADS_COMMAND = "numMemThreads=";
-	public static final String NUM_SAMPLE_THREADS_COMMAND = "numSampleThreads=";
+	public static final String NUM_BETWEEN_THREADS_COMMAND = "numBetweenThreads=";
+	public static final String NUM_WITHIN_THREADS_COMMAND = "numWithinThreads=";
 	public static final String LOG_FILE_COMMAND = "logFile=";
 	public static final String BATCH_COMMAND = "-batch";
 	public static final String NUMBATCHES_COMMAND = "numBatches=";
@@ -46,18 +47,18 @@ public class BWA_Analysis {
 
 	private BWA bwa;
 	private boolean fail, verbose;
-	private int numMemThreads, numSampleThreads;
+	private int numWithinSampleThreads, numBetweenSampleThreads;
 
 	private Logger log;
 
-	public BWA_Analysis(String rootInputDir, String rootOutputDir, String referenceGenomeFasta, boolean verbose, int numMemThreads, int numSampleThreads, BWA bwa, Logger log) {
+	public BWA_Analysis(String rootInputDir, String rootOutputDir, String referenceGenomeFasta, boolean verbose, int numWithinSampleThreads, int numBetweenSampleThreads, BWA bwa, Logger log) {
 		super();
 		this.rootInputDir = rootInputDir;
 		this.rootOutputDir = rootOutputDir == null ? rootInputDir : rootOutputDir;
 		this.referenceGenomeFasta = referenceGenomeFasta;
 		this.verbose = verbose;
-		this.numMemThreads = numMemThreads;
-		this.numSampleThreads = numSampleThreads;
+		this.numWithinSampleThreads = numWithinSampleThreads;
+		this.numBetweenSampleThreads = numBetweenSampleThreads;
 		this.bwa = bwa;
 		this.fail = bwa.isFail();
 		this.log = log;
@@ -69,11 +70,11 @@ public class BWA_Analysis {
 			fail = !verifyReferenceGenome();
 			verifyAnalsyisInds();
 			if (!fail) {
-				ExecutorService executor = Executors.newFixedThreadPool(numSampleThreads);
+				ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
 				Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<String, Future<Boolean>>();
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
-					Logger tmpLog = new Logger(ext.rootOf(log.getFilename(), false) + "_BWA_ID_" + bwAnalysisIndividuals[i].getID() + "_batch" + bwAnalysisIndividuals[i].getBatch() + ".log");
-					tmpResults.put(i + "", executor.submit(new WorkerBWA_Analysis(bwAnalysisIndividuals[i], numMemThreads, verbose, tmpLog)));
+					Logger tmpLog = new Logger(ext.rootOf(log.getFilename(), false) + "_BWA_ID_" + bwAnalysisIndividuals[i].getID() + "_batch" + bwAnalysisIndividuals[i].getLibrary() + ".log");
+					tmpResults.put(i + "", executor.submit(new WorkerBWA_Analysis(bwAnalysisIndividuals[i], numWithinSampleThreads, verbose, tmpLog)));
 				}
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
@@ -108,6 +109,34 @@ public class BWA_Analysis {
 		}
 	}
 
+	public boolean isVerbose() {
+		return verbose;
+	}
+
+	public String getRootInputDir() {
+		return rootInputDir;
+	}
+
+	public String getReferenceGenomeFasta() {
+		return referenceGenomeFasta;
+	}
+
+	public String[] getInputFiles() {
+		return inputFiles;
+	}
+
+	public BWA getBwa() {
+		return bwa;
+	}
+
+	public int getNumMemThreads() {
+		return numWithinSampleThreads;
+	}
+
+	public int getNumSampleThreads() {
+		return numBetweenSampleThreads;
+	}
+
 	public void batch(int numBatches, int memoryInMB, int wallTimeInHours, String baseName) {
 		String[] allFilesMatched = new String[bwAnalysisIndividuals.length];
 		for (int i = 0; i < allFilesMatched.length; i++) {
@@ -124,12 +153,16 @@ public class BWA_Analysis {
 
 		String command = "load module java\njava -cp park.jar -Xmx" + memoryInMB + "m seq.BWA_Analysis " + ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
 		command += REFERENCE_GENOME_COMMAND + referenceGenomeFasta + SPACE + BWA_LOCATION_COMMAND + bwa.getBwaLocation() + SPACE;
-		command += NUM_MEM_THREADS_COMMAND + numMemThreads + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + rootOutputDir + "[%0].txt" + SPACE + NUM_SAMPLE_THREADS_COMMAND + numSampleThreads;
-		Files.qsub("BWA_MEM" + baseName, command, batches, memoryInMB, wallTimeInHours, numMemThreads * numSampleThreads);
+		command += NUM_BETWEEN_THREADS_COMMAND + numWithinSampleThreads + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + rootOutputDir + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + numBetweenSampleThreads;
+		Files.qsub("BWA_MEM" + baseName, command, batches, memoryInMB, wallTimeInHours, numWithinSampleThreads * numBetweenSampleThreads);
 	}
 
 	public BWA_AnalysisIndividual[] getBwAnalysisIndividuals() {
 		return bwAnalysisIndividuals;
+	}
+
+	public void setBwAnalysisIndividuals(BWA_AnalysisIndividual[] bwAnalysisIndividuals) {
+		this.bwAnalysisIndividuals = bwAnalysisIndividuals;
 	}
 
 	public boolean isFail() {
@@ -159,13 +192,13 @@ public class BWA_Analysis {
 					FileNameParser fileNameParser = new FileNameParser(inputFiles[i], log);
 					fileNameParser.parse();
 					if (fileNameParser.isValid()) {
-						if (!track.containsKey(fileNameParser.getID())) {
-							track.put(fileNameParser.getID(), currIndex);
+						if (!track.containsKey(fileNameParser.getIDLane())) {
+							track.put(fileNameParser.getIDLane(), currIndex);
 							bwAnalysisIndividuals[currIndex] = getAnalysisIndFromFileParser(fileNameParser);
 							bwAnalysisIndividuals[currIndex].assignFile(inputFiles[i]);
 							currIndex++;
 						} else {
-							bwAnalysisIndividuals[track.get(fileNameParser.getID())].assignFile(inputFiles[i]);
+							bwAnalysisIndividuals[track.get(fileNameParser.getIDLane())].assignFile(inputFiles[i]);
 						}
 					} else {
 						log.reportError("Error - file name " + inputFiles[i] + " could not be parsed according to our assumptions");
@@ -278,27 +311,27 @@ public class BWA_Analysis {
 		private BWA bwa;
 		private String ID;
 		private String Lane;
-		private String batch;
+		private String library;
 		private String referenceGenomeFasta;
 		private String readFQ1;
 		private String readFQ2;
-		private String samOutput;
+		private String output;
 		private String outputDir;
 		private boolean fail;
 		private boolean success;
 		private Logger log;
 
-		public BWA_AnalysisIndividual(BWA bwa, String outputDir, String iD, String lane, String batch, String referenceGenomeFasta, Logger log) {
+		public BWA_AnalysisIndividual(BWA bwa, String outputDir, String iD, String lane, String library, String referenceGenomeFasta, Logger log) {
 			super();
 			this.bwa = bwa;
 			this.outputDir = outputDir;
 			this.ID = iD;
 			this.Lane = lane;
-			this.batch = batch;
+			this.library = library;
 			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.fail = false;
 			this.log = log;
-			this.samOutput = outputDir + ID + OUTPUT_SEP + batch + SAM_EXT;
+			this.output = outputDir + ID + OUTPUT_SEP + Lane + OUTPUT_SEP + library + SAM_EXT;
 			this.success = false;
 		}
 
@@ -307,7 +340,7 @@ public class BWA_Analysis {
 				fail = !hasBothFiles();
 				if (!fail) {
 					new File(outputDir).mkdirs();
-					success = bwa.bwaMEM(referenceGenomeFasta, readFQ1, readFQ2, samOutput, getReadGroup(), numMemThreads, (altLog == null ? log : altLog));
+					success = bwa.bwaMEM(referenceGenomeFasta, readFQ1, readFQ2, output, getReadGroup(), numMemThreads, (altLog == null ? log : altLog));
 				} else {
 					log.reportError("Error - could not find both files for ID" + ID);
 				}
@@ -319,8 +352,12 @@ public class BWA_Analysis {
 			return readFQ1 != null && readFQ2 != null;
 		}
 
-		public String getSamOutput() {
-			return samOutput;
+		public String getOutput() {
+			return output;
+		}
+
+		public void setOutput(String output) {
+			this.output = output;
 		}
 
 		// @RG\tID:group1\tSM:sample1\tPL:illumina\tLB:lib1\tPU:unit1
@@ -329,7 +366,7 @@ public class BWA_Analysis {
 			RG += "\\tID:" + ID + "_" + Lane;// unique for sample and lane
 			RG += "\\tSM:" + ID;// unique for sample
 			RG += "\\tPL:ILLUMINA";// not used, currently TODO
-			RG += "\\tLB:" + batch;// library prep, I think this is correct TODO
+			RG += "\\tLB:" + library;// library prep, I think this is correct TODO
 			RG += "\"";
 			return RG;
 		}
@@ -374,8 +411,34 @@ public class BWA_Analysis {
 			return Lane;
 		}
 
-		public String getBatch() {
-			return batch;
+		public String getLibrary() {
+			return library;
+		}
+
+		public static String[] getBatchesByLane(BWA_AnalysisIndividual[] bwIndividuals) {
+			Hashtable<String, ArrayList<BWA_AnalysisIndividual>> track = new Hashtable<String, ArrayList<BWA_AnalysisIndividual>>();
+			ArrayList<String> unique = new ArrayList<String>();
+			for (int i = 0; i < bwIndividuals.length; i++) {
+				String baseId = bwIndividuals[i].getID();
+				if (!track.containsKey(baseId)) {
+					track.put(baseId, new ArrayList<BWA_AnalysisIndividual>());
+					unique.add(baseId);
+				}
+				track.get(baseId).add(bwIndividuals[i]);
+			}
+			String[] batchedByLane = new String[unique.size()];
+			for (int i = 0; i < unique.size(); i++) {
+				ArrayList<BWA_AnalysisIndividual> current = track.get(unique.get(i));
+				batchedByLane[i] = "";
+				for (int j = 0; j < current.size(); j++) {
+					if (j == 0) {
+						batchedByLane[i] = current.get(j).getAvailableFiles("\t");
+					} else {
+						batchedByLane[i] += "\n" + current.get(j).getAvailableFiles("\t");
+					}
+				}
+			}
+			return batchedByLane;
 		}
 
 	}
@@ -437,7 +500,7 @@ public class BWA_Analysis {
 			} else {
 				this.lane = split[split.length - 3];
 				this.batch = split[split.length - 1];
-				this.ID = Array.toStr(Array.subArray(split, 0, split.length - 2), "_");
+				this.ID = Array.toStr(Array.subArray(split, 0, split.length - 3), "_");
 			}
 		}
 
@@ -445,9 +508,9 @@ public class BWA_Analysis {
 			return ID;
 		}
 
-		// public String getIDLane() {
-		// return ID + SPLIT + lane;
-		// }
+		public String getIDLane() {
+			return ID + SPLIT + lane;
+		}
 
 		public String getLane() {
 			return lane;
@@ -517,7 +580,7 @@ public class BWA_Analysis {
 		usage += "   (4) the full path to a  reference genome in fasta format (i.e." + REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
 		usage += "   (5) the full path to the bwa executable (i.e. " + BWA_LOCATION_COMMAND + bwaLocation + " (no default, defualts to systems path))\n" + "";
 		usage += "   (6) run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";
-		usage += "   (7) number of threads for bwa mem (i.e." + NUM_MEM_THREADS_COMMAND + numMemThreads + " (default))\n" + "";
+		usage += "   (7) number of threads for bwa mem (i.e." + NUM_BETWEEN_THREADS_COMMAND + numMemThreads + " (default))\n" + "";
 		usage += "   (8) filename for a log (i.e. " + LOG_FILE_COMMAND + logFile + " (default))\n" + "";
 		usage += "   (9) set up a batch analysis for the root input directory for a log (i.e. " + BATCH_COMMAND + " (not the default))\n" + "";
 		usage += "   (10) number of batches for a batched analysis (i.e. " + NUMBATCHES_COMMAND + numBatches + " (the default))\n" + "";
@@ -549,10 +612,10 @@ public class BWA_Analysis {
 			} else if (args[i].startsWith(BASE_NAME_COMMAND)) {
 				baseName = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith(NUM_MEM_THREADS_COMMAND)) {
+			} else if (args[i].startsWith(NUM_BETWEEN_THREADS_COMMAND)) {
 				numMemThreads = ext.parseIntArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith(NUM_SAMPLE_THREADS_COMMAND)) {
+			} else if (args[i].startsWith(NUM_WITHIN_THREADS_COMMAND)) {
 				numSampleThreads = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith(NUMBATCHES_COMMAND)) {
