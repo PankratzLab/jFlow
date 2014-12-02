@@ -124,6 +124,8 @@ public class Launch {
 				SuperNovo.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase(CNVTrioFilter.COMMAND_CNV_TRIO_CRF)) {
 				cnvTrio.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("transpose")) {
+				Files.transposeFromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
@@ -177,7 +179,7 @@ public class Launch {
 				return;
 			}
 		}
-		
+				
 		try {
 			run(filename, new Logger(ext.rootOf(filename)+".log"));
 		} catch (Exception e) {

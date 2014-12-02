@@ -159,4 +159,46 @@ public class Logger implements Serializable {
 	public void timestamp() {
 		report(ext.getDate()+"\t"+ext.getTime());
 	}
+	
+	public long memoryTotal(){
+		long memory;
+		
+		report("Total heap size is: " +ext.prettyUpSize(memory = Runtime.getRuntime().totalMemory(), 1));
+		
+		return memory;
+	}
+
+	public long memoryFree(){
+		long memory;
+		
+		report("Free heap size is: " +ext.prettyUpSize(memory = Runtime.getRuntime().freeMemory(), 1));
+		
+		return memory;
+	}
+
+	public double memoryPercentFree(){
+		double percentFree;
+		
+		percentFree = ((float) 100*Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory());
+		
+		report("Percent free heap size is: " +ext.formDeci(percentFree,1) + "%");
+		
+		return percentFree;
+	}
+
+	public long memoryUsed(){
+		long memory;
+		
+		report("Used heap size is: " +ext.prettyUpSize(memory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()), 1));
+		
+		return memory;
+	}
+
+	public long memoryMax(){
+		long memory;
+		
+		report("Used heap size is: " +ext.prettyUpSize(memory = Runtime.getRuntime().maxMemory(), 1));
+		
+		return memory;
+	}	
 }

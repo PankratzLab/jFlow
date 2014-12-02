@@ -1008,7 +1008,7 @@ public class Beagle {
 				System.err.println("Error writing to " + dir+"SegAlignment_"+ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@")+".xln");
 				e.printStackTrace();
 			}
-			Files.transpose(dir+"SegAlignment_"+ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@")+".xln", "\t", null, "\t");
+			Files.transpose(dir+"SegAlignment_"+ext.replaceAllWith(intervals[i].getUCSClocation(), ":", "@")+".xln", "\t", null, "\t", new Logger());
 		}
 		
 		

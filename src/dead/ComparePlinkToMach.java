@@ -79,7 +79,7 @@ public class ComparePlinkToMach {
 			if (new File(dir+"mach_step2_chr"+chr+".mldose-transposeHuge.xln").exists()) {
 				System.out.println("transposed file already exists for chr"+chr);
 			} else {
-				Files.transposeHuge(dir+"mach_step2_chr"+chr+".mldose", 1000);
+				Files.transposeHuge(dir+"mach_step2_chr"+chr+".mldose", 1000, new Logger());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
