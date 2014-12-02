@@ -1,23 +1,24 @@
 package cnv.plots;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
 
 import stats.Maths;
-import common.*;
+
+import common.Array;
+import common.Grafik;
+import common.Logger;
+import common.ext;
 
 /**
  * Forest Panel
- *
- * @author Rohit Sinha
  */
 public class ForestPanel extends AbstractPanel {
 	static final long serialVersionUID = 1L;
@@ -343,7 +344,7 @@ public class ForestPanel extends AbstractPanel {
 		int rightsize = 0;
 		if (base) {
 			g.fillRect(0, 0, getWidth(), getHeight());
-			g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
+			g.setFont(new Font("Arial", 0, axisFontSize));
 
 			fontMetrics = g.getFontMetrics(g.getFont());
 			missingWidth = fontMetrics.stringWidth("X");
@@ -394,7 +395,7 @@ public class ForestPanel extends AbstractPanel {
 				canvasSectionMinimumX = 0;
 				canvasSectionMaximumX = WIDTH_BUFFER + rightsize;
 				canvasSectionMinimumY = HEIGHT_X_AXIS + (fontMetrics.getHeight() * 2);
-				canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
+				canvasSectionMaximumY = getHeight() - (2 * HEAD_BUFFER);
 				
 //				System.out.println("points: " + (points.length + 1) + "y axis pixel:" + (canvasSectionMaximumY - canvasSectionMinimumY)/(points.length+1)*0.70);
 				if (!makeSymmetric || plotMinMaxStep == null) {
@@ -442,8 +443,7 @@ public class ForestPanel extends AbstractPanel {
 		canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
 		canvasSectionMaximumX = getWidth() - rightsize;
 		canvasSectionMinimumY = HEIGHT_X_AXIS + (fontMetrics.getHeight() * 2);
-		canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
-		
+		canvasSectionMaximumY = getHeight() - (2 * HEAD_BUFFER);
 		
 		
 		// Draw the lines
@@ -500,6 +500,7 @@ public class ForestPanel extends AbstractPanel {
 		}
 		
 		if(base) {
+			g.setColor(Color.BLACK);
 			int xL = getXPixel(forestPlot.currMetaStudy.metaBeta - 1.96 * forestPlot.currMetaStudy.metaStderr);
 			int xM = getXPixel(forestPlot.currMetaStudy.metaBeta);
 			int xR = getXPixel(forestPlot.currMetaStudy.metaBeta + 1.96 * forestPlot.currMetaStudy.metaStderr);
@@ -513,7 +514,7 @@ public class ForestPanel extends AbstractPanel {
 			Grafik.drawThickLine(g, xL, yM, xM, yD, 2, META_COLOR);
 			Grafik.drawThickLine(g, xM, yD, xR, yM, 2, META_COLOR);
 			
-			int yMin = WIDTH_BUFFER;
+			int yMin = (3 * HEAD_BUFFER) - 5;
 			int yMax = getHeight() - HEIGHT_X_AXIS;
 			
 			Grafik.drawThickLine(g, getXPixel(0.0), yMin, getXPixel(0.0), yMax, 3, Color.BLACK);
@@ -525,9 +526,18 @@ public class ForestPanel extends AbstractPanel {
 				yStart = yMin + (dashSize * i) + (dashSpacing * i);
 				Grafik.drawThickLine(g, xM+1, yStart, xM+1, yStart + dashSize, 2, Color.GRAY);
 			}
-			
-			
+
+			g.setColor(Color.BLACK);
+			g.setFont(new Font("Arial", Font.ITALIC, 16));
+			String comm = forestPlot.dataIndices.get(forestPlot.currentDataIndex).comment;
+			if (!"".equals(comm)) {
+				int w = fontMetrics.stringWidth(comm);
+				g.drawString(comm, getWidth() / 2 - w, 2 * HEAD_BUFFER + 14);
+			}
 		}
+		
+		
+		
 //		// Draw the rectangle outlined by dragging the mouse
 //		if (highlightRectangle != null) {
 //			rectangleXPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
