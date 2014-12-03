@@ -77,7 +77,7 @@ public class AnalysisFormats implements Runnable {
 			sampleIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
 		}
 		for (int i = 0; i < samples.length; i++) {
-			sampleIndexQueues[i % threadCount].add(i);
+			sampleIndexQueues[i % threadCount].add(i);	
 		}
 
 		ExecutorService computeHub = Executors.newFixedThreadPool(threadCount);

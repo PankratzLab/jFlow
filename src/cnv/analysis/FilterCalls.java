@@ -1,6 +1,7 @@
 package cnv.analysis;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Vector;
@@ -27,7 +28,192 @@ public class FilterCalls {
 	public static final int DEFAULT_COMMON_IN_OUT_OR_IGNORED = COMMON_IGNORED;
 	public static final boolean DEFAULT_BREAK_CENTROMERE = false;
 	
-	public static void filterExlusions(Project proj, String cnvFile) {
+	
+	private static class CNVFilterNode {
+		public static final int HET_DEL = 0;
+		public static final int HOM_DEL = 1;
+		public static final int HET_DUP = 2;
+		public static final int HOM_DUP = 3;
+		
+		final CNVariant cnv;
+		final int popCnt;
+		final ArrayList<CNVariant> major = new ArrayList<CNVariant>();
+		final ArrayList<CNVariant> minor = new ArrayList<CNVariant>();
+		
+		public CNVFilterNode(CNVariant myCNV, int pop) {
+			this.cnv = myCNV;
+			this.popCnt = pop;
+		}
+		
+		public void addMajor(CNVariant cnv) {
+			this.major.add(cnv);
+		}
+		
+		public void addMinor(CNVariant cnv) {
+			this.minor.add(cnv);
+		}
+		
+		public int countType(int type, boolean lookMajor) {
+			int lookingFor = -1;
+			switch(type) {
+				case HET_DEL:
+					lookingFor = 1;
+					break;
+				case HOM_DEL:
+					lookingFor = 0;
+					break;
+				case HET_DUP:
+					lookingFor = 3;
+					break;
+				case HOM_DUP:
+					lookingFor = 4;
+					break;
+				default: 
+					// TODO show error message
+					return 0;
+			}
+			
+			int cnt = 0;
+			ArrayList<CNVariant> pop = lookMajor ? major : minor;
+			for (CNVariant cnv : pop) {
+				// TODO output warning if CN > 4
+				if (cnv.getCN() == lookingFor || (lookingFor == 4 && cnv.getCN() > lookingFor)) {
+					cnt++;
+				}
+			}
+			
+			return cnt;
+		}
+		
+		public String toString() {
+			System.out.println("Major: " + major.size() + " of " + popCnt + " - " + ext.formDeci((((double)(major.size()) / ((double)popCnt)) * 100.0), 3, true) + "%");
+			System.out.println("Minor: " + minor.size() + " of " + popCnt + " - " + ext.formDeci((((double)(minor.size()) / ((double)popCnt)) * 100.0), 3, true) + "%");
+
+			return cnv.toPlinkFormat() + "\t"
+					+ ext.formDeci((((double)(major.size()) / ((double)popCnt)) * 100.0), 3, true) + "\t"
+					+ ext.formDeci((((double)(minor.size()) / ((double)popCnt)) * 100.0), 3, true) + "\t"
+					+ "(" + this.countType(HOM_DEL, true) + ","
+						  + this.countType(HET_DEL, true) + ","
+						  + this.countType(HET_DUP, true) + ","
+						  + this.countType(HOM_DUP, true) + ")\t"
+					+ "(" + this.countType(HOM_DEL, false) + ","
+					  + this.countType(HET_DEL, false) + ","
+					  + this.countType(HET_DUP, false) + ","
+					  + this.countType(HOM_DUP, false) + ")";
+		}
+		
+	}
+	
+	public static void CNVStats(Project proj, String dir, String filenameNoExt) {
+		// find .cnv and .fam file from fileroot
+		
+		
+		
+	}
+	
+	public static void filterLists(String cnvList, String[] cnvFiles, String outputFile) {
+		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(cnvList, false);
+		ArrayList<CNVariant> compCNVs = new ArrayList<CNVariant>();
+		HashSet<String> ids = new HashSet<String>();
+		for (String file : cnvFiles) {
+			CNVariant[] cnvs = CNVariant.loadPlinkFile(file, false);
+			for (CNVariant cnv : cnvs) {
+				compCNVs.add(cnv);
+				ids.add(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+			}
+		}
+		
+		
+		ArrayList<CNVFilterNode> outputNodes = new ArrayList<FilterCalls.CNVFilterNode>();
+		
+		for (CNVariant cnv : srcCNVs) {
+			CNVFilterNode cnvNode = new CNVFilterNode(cnv, ids.size());
+			outputNodes.add(cnvNode);
+			
+			for (CNVariant comp : compCNVs) {
+				if (cnv.equalsIncludingIndividual(comp)) continue;
+				int overlap = cnv.amountOfOverlapInBasepairs(comp);
+				if (overlap == -1) continue;
+				if (overlap >= (cnv.getSize() / 2)) {
+					cnvNode.addMajor(comp);
+				} else {
+					cnvNode.addMinor(comp);
+				}
+			}
+			
+		}
+		
+		String header = Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t") + "\t%major\t%minor\tStats(M)\tStats(m)";
+		
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(new FileWriter(outputFile));
+			writer.println(header);
+			for (CNVFilterNode node : outputNodes) {
+				writer.println(node.toString());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void filterList(String cnvList, String cnvFile, String outputFile) {	
+		/*
+		 * INPUT (PLINK formatted):
+		 * |  FID  |  IID  |  CHR  |  BP1  |  BP2  |  TYPE  |  SCORE  |  SITES  | 
+		 * 
+		 * OUTPUT:
+		 * |  FID  |  IID  |  CHR  |  BP1  |  BP2  |  TYPE  |  SCORE  |  SITES  |  % cnvs overlapping >50% of source cnv  |  % cnvs overlapping <50% of source cnv  |   of major overlapping, # of hDel, hmDel, hDup, hmDup  |  of minor overlapping, # of hDel, hmDel, hDup, hmDup  |
+		 */
+		
+		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(cnvList, false);
+		CNVariant[] compCNVs = CNVariant.loadPlinkFile(cnvFile, false);
+		
+		HashSet<String> ids = new HashSet<String>();
+		for (CNVariant cnv : compCNVs) {
+			ids.add(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+		}
+		
+		ArrayList<CNVFilterNode> outputNodes = new ArrayList<FilterCalls.CNVFilterNode>();
+		
+		for (CNVariant cnv : srcCNVs) {
+			CNVFilterNode cnvNode = new CNVFilterNode(cnv, ids.size());
+			outputNodes.add(cnvNode);
+			
+			for (CNVariant comp : compCNVs) {
+				if (cnv.equalsIncludingIndividual(comp)) continue;
+				int overlap = cnv.amountOfOverlapInBasepairs(comp);
+				if (overlap == -1) continue;
+				if (overlap >= (cnv.getSize() / 2)) {
+					cnvNode.addMajor(comp);
+				} else {
+					cnvNode.addMinor(comp);
+				}
+			}
+			
+		}
+		
+		String header = Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t") + "\t%major\t%minor\tStats(M)\tStats(m)";
+		
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(new FileWriter(outputFile));
+			writer.println(header);
+			for (CNVFilterNode node : outputNodes) {
+				writer.println(node.toString());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void filterExclusions(Project proj, String cnvFile) {
 		PrintWriter writer;
 		BufferedReader reader;
 		String path = cnvFile.substring(0, cnvFile.lastIndexOf('/'));
@@ -69,7 +255,7 @@ public class FilterCalls {
 		
 		for (int i = 0; i < remove.length; i++) {
 			CNVariant examine = cnvs.get(i);
-			if (excludeList.contains(examine.getIndividualID())) { // remove all CNVs not belonging to a listed sample ID
+			if (excludeList.contains(examine.getIndividualID())) { // remove all CNVs belonging to a listed sample ID
 				remove[i] = true;
 				continue;
 			}
@@ -136,12 +322,13 @@ public class FilterCalls {
 		}
 	}
 	
+	
 	public static void filterForGroupCNVs(String dir, String in, String out, String listFile, String excludeFile, boolean excludeCommon) {
 		PrintWriter writer;
 		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
 		boolean[] remove = new boolean[cnvs.size()];
 		HashSet<String> indivList = HashVec.loadFileToHashSet(listFile, false);
-		HashSet<String> excludeList = HashVec.loadFileToHashSet(excludeFile, false);
+		HashSet<String> excludeList = excludeFile == null ? new HashSet<String>() : HashVec.loadFileToHashSet(excludeFile, false);
 		
 		for (int i = 0; i < remove.length; i++) {
 			CNVariant examine = cnvs.get(i);
@@ -637,9 +824,11 @@ public class FilterCalls {
 		boolean common = false;
 		double pct = 0.05;
 		String listFile = null;
+		String[] listFiles = null;
 		String excludeFile = null;
 		boolean exclude = false;
 		boolean group = false;
+		boolean stats = false;
 
 		String usage = 
 		"vis.cnv.FilterCalls requires 2+ arguments\n"+
@@ -757,10 +946,16 @@ public class FilterCalls {
 			} else if (args[i].startsWith("-group")) { 
 				group = true;
 				numArgs--;
+			} else if (args[i].startsWith("-stats")) { 
+				stats = true;
+				numArgs--;
 			} else if (args[i].startsWith("list=")) {
 				listFile = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("excludeFile=")) { 
+			} else if (args[i].startsWith("lists=")) {
+				listFiles = args[i].split("=")[1].split(",");
+				numArgs--;
+			}  else if (args[i].startsWith("excludeFile=")) { 
 				excludeFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
@@ -801,9 +996,13 @@ public class FilterCalls {
 			} else if (listFile != null) { 
 				if (group) {
 					filterForAllCNVsSharedInGroup(dir, in, out, listFile);
+				} else if (stats) {
+					filterList(in, listFile, out);
 				} else {
 					filterForGroupCNVs(dir, in, out, listFile, excludeFile, exclude);
 				}
+			} else if (listFiles != null) {
+				filterLists(in, listFiles, out);
 			} else if (excludeFile != null) {
 				filterExclusions(dir, in, out, excludeFile);
 			} else {
