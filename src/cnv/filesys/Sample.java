@@ -303,6 +303,10 @@ public class Sample implements Serializable {
 		thetas = getThetas();
 		bafs = new float[xs.length];
 		for (int i = 0; i<xs.length; i++) {
+			if (centroids[i] == null) {
+				bafs[i] = 1.2f; 
+				continue;
+			}
 			bafs[i] = Centroids.calcBAF(thetas[i], centroids[i]);
         }
 
@@ -320,6 +324,10 @@ public class Sample implements Serializable {
 		rs = getRs();
 		lrrs = new float[xs.length];
 		for (int i = 0; i<xs.length; i++) {
+			if (centroids[i] == null) {
+				lrrs[i] = 1.2f; 
+				continue;
+			}
 			lrrs[i] = Centroids.calcLRR(thetas[i], rs[i], centroids[i]);
         }
 

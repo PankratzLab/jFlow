@@ -1143,6 +1143,7 @@ public class PennCNV {
 			if (rawcnvs != null) {
 				parseResults(proj, rawcnvs, denovoOnly);
 			}
+			
 			if (cnvFiles != null && outputFile != null) {
 				combineResults(proj, cnvFiles, outputFile, recode);
 			}
