@@ -23,13 +23,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
 	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-			   									  new Color(23, 58, 172), // dark blue
+			   									  new Color(189, 243, 61), // light green
 			   									  new Color(201, 30, 10), // deep red
+			   									  new Color(23, 58, 172), // dark blue
 			   									  new Color(140, 20, 180), // deep purple
 			   									  new Color(33, 87, 0), // dark green
 			   									  new Color(55, 129, 252), // light blue
 			   									  new Color(94, 88, 214), // light purple
-			   									  new Color(189, 243, 61), // light green
 			   									  new Color(217, 109, 194), // pink
 			   									new Color(0, 0, 128), // ALL KINDS OF BLUES
 			   									new Color(100, 149, 237),
@@ -57,6 +57,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	};
 	
+	
 	protected TwoDPlot tdp;
 	IntVector indicesOfNearbySamples;
 	private boolean updateQcPanel;
@@ -77,7 +78,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		locLookup = new Hashtable<String,IntVector>();//??? zx
 		setOfKeys = new String[0][0];
 //		this.updateQcPanel = true;//zx
-		
+		this.setAxisFontSize(24);
 		setColorScheme(DEFAULT_COLORS);
 
 		// taken care of in AbstractPanel constructor
@@ -133,9 +134,9 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		return false;
 	}
 	
-	public void toggleMasking() {
-		
-	}	
+//	public void toggleMasking() {
+//		
+//	}	
 	
 	public void highlightPoints() {
 		byte defaultSize;
@@ -195,7 +196,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		byte index;
 
 		includeColorKeyValue = true;
-		currentData= tdp.getDataSelected(includeColorKeyValue);
+		currentData = tdp.getDataSelected(includeColorKeyValue);
 		uniqueValueCounts = new CountVector();
 		
 		points = new PlotPoint[currentData.size()];
@@ -217,7 +218,6 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				type = PlotPoint.FILLED_CIRCLE;
 				uniqueValueCounts.add(line[3]);
 			}
-
 			if (swapAxes) {
 				points[i] = new PlotPoint(line[0], type, yAxisValue, xAxisValue, (byte)5, Byte.parseByte(line[3]), (byte)0);
 			} else {
@@ -395,20 +395,20 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	// End of original section
 	*/
 
-    public void mousePressed(MouseEvent e) {}
-
-    public void mouseReleased(MouseEvent e) { }
-
-    public void mouseDragged(MouseEvent e) { }
+//    public void mousePressed(MouseEvent e) {}
+//
+//    public void mouseReleased(MouseEvent e) { }
+//
+//    public void mouseDragged(MouseEvent e) { }
 
 	public void mouseClicked(MouseEvent e) {
 		JPopupMenu menu;
 		int[] linkKeyIndicies;
 //		Vector<String[]> linkKeyValues;
 //		boolean scatter, trailer;
-		String[] ids;
+		String[] ids = null;
 		String markerName;
-		String sample, region;
+		String sample, region, region2;
 		int[] positions;
 		byte maxNumPoints;
 
@@ -426,27 +426,30 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			menu = new JPopupMenu();
 			maxNumPoints = (byte) Math.min(20, prox.size());
 			for (int i = 0; i < maxNumPoints; i++) {
+				String[] keys = setOfKeys[prox.elementAt(i)];
+				
 //				menu.add(new LaunchAction(linkKeyValues[prox.elementAt(i)][0] + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
-				menu.add(new LaunchAction(points[prox.elementAt(i)].getId() + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
+//				menu.add(new LaunchAction(points[prox.elementAt(i)].getId() + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
 
 				if (linkKeyIndicies[3] >= 0) {
-					markerName = setOfKeys[prox.elementAt(i)][3];
+					markerName = keys[3];
 					if (markerLookup.get(markerName) != null) {
 						menu.add(new LaunchAction(proj, markerName, Color.CYAN));
 					}
 				}
 				
 				sample = null;
+				// TODO this check will ALWAYS fail!
 				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
-					sample = setOfKeys[prox.elementAt(i)][2];
+					sample = keys[2];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
 					ids = null;
 					if (linkKeyIndicies[1] >= 0) { // if FID present
-						ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][1] + "\t" + setOfKeys[prox.elementAt(i)][0]);
+						ids = sampleData.lookup(keys[1] + "\t" + keys[0]);
 					}
 					if (ids == null) {
-						ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][0]);
+						ids = sampleData.lookup(keys[0]);
 					}
 					if (ids != null && Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, false, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
 						sample = ids[0];
@@ -455,29 +458,59 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 				positions = new int[] {-1,-1,-1};
 				region = null;
+				region2 = null;
 				if (linkKeyIndicies[4] >= 0) {
-					region = setOfKeys[prox.elementAt(i)][4];
+					region = keys[4];
 				} else if (linkKeyIndicies[5] >= 0) {
-					positions[0] = Positions.chromosomeNumber(setOfKeys[prox.elementAt(i)][5]);
+					positions[0] = Positions.chromosomeNumber(keys[5]);
 					if (positions[0] != -1) {
 						if (linkKeyIndicies[6] >= 0) {
 							try {
-								positions[1] = Integer.parseInt(setOfKeys[prox.elementAt(i)][6]);
+								positions[1] = Integer.parseInt(keys[6]);
 							} catch (NumberFormatException nfe) {
 							}
 						}
 						if (linkKeyIndicies[7] >= 0) {
 							try {
-								positions[2] = Integer.parseInt(setOfKeys[prox.elementAt(i)][7]);
+								positions[2] = Integer.parseInt(keys[7]);
 							} catch (NumberFormatException nfe) {
 							}
 						}
 						region = Positions.getUCSCformat(positions);
 					}
+				} else {
+					String[][] metaData = tdp.getCurrentColumnMetaData();
+					if (metaData != null) {
+						if (metaData[0] != null) {
+							int[] tempPositions = new int[3];
+							tempPositions[0] = Positions.chromosomeNumber(metaData[0][0]);
+							tempPositions[1] = Integer.parseInt(metaData[0][2]);
+							tempPositions[2] = Integer.parseInt(metaData[0][3]);
+							region = Positions.getUCSCformat(tempPositions);
+//							if (sample != null && tempRegion != null) {
+//								menu.add(new LaunchAction(proj, sample, tempRegion, Color.GRAY));
+//							}
+						}
+						if (metaData[1] != null) {
+							positions[0] = Positions.chromosomeNumber(metaData[1][0]);
+							positions[1] = Integer.parseInt(metaData[1][2]);
+							positions[2] = Integer.parseInt(metaData[1][3]);
+							region2 = Positions.getUCSCformat(positions);
+						}
+					}
+					
 				}
 				
+				Color sampColor = null;
+				if (sampleData != null && ids != null) {
+					sampColor = this.colorScheme[sampleData.determineCodeFromClass(tdp.colorKeyPanel.getCurrentClass(), (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) 0, 0)];
+				}
 				if (sample != null && region != null) {
-					menu.add(new LaunchAction(proj, sample, region, Color.GRAY));
+					if (region2 != null) {
+						menu.add(new LaunchAction(proj, sample, new String[]{region, region2}, sampColor == null ? Color.GRAY : sampColor));
+					} else {
+						menu.add(new LaunchAction(proj, sample, region, sampColor == null ? Color.GRAY : sampColor));
+					}
 				}
 			}
 			menu.show(this, e.getX(), e.getY());

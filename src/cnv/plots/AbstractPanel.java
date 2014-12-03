@@ -59,6 +59,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int DELAY = 0;	//A control variable to reduce the repaint() operations during component resizing;
 	public static final int SCATTER_PLOT_TYPE = 1; 
 	public static final int HEAT_MAP_TYPE = 2;
+
 	public static final int DEFAULT_TYPE = SCATTER_PLOT_TYPE;
 	
 	protected Color[] colorScheme;
@@ -82,6 +83,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean displayGrid;
 	protected int missingWidth;
 	protected int nanWidth;
+	protected int axisFontSize = AXIS_FONT_SIZE;
 	protected float forcePlotXmax, forcePlotYmax;
 	protected float forcePlotXmin, forcePlotYmin;
 	protected boolean createLookup;
@@ -271,6 +273,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public abstract void assignAxisLabels();
 
+	public void setAxisFontSize(int sz) {
+		if (sz > 0) {
+			this.axisFontSize = sz;
+		}
+	}
+	
 	public void setChartType(int chartType) {
 		this.chartType = chartType;
 	}
@@ -413,7 +421,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		if (base) {
 			//g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
-			g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
+			g.setFont(new Font("Arial", 0, axisFontSize));
 	//		System.out.println("getWidth: "+getWidth()+"\t getHeight: "+getHeight());
 			
 			fontMetrics = g.getFontMetrics(g.getFont());
@@ -435,7 +443,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
 						Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
-						str = ext.formDeci(Math.abs(x)<DOUBLE_INACCURACY_HEDGE?0:x, sigFigs, true);
+						str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
 						g.drawString(str, getXPixel(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
 					}
 				}
@@ -457,15 +465,26 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
 					if (y >= plotYmin || !truncate) {
 						Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
-						str = ext.formDeci(Math.abs(y)<DOUBLE_INACCURACY_HEDGE?0:y, sigFigs, true);
-						g.drawString(str, canvasSectionMaximumX-TICK_LENGTH-str.length()*15-5, getYPixel(y)+9);
+						str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
+						Font prevFont = g.getFont();
+						if (str.length() == 5) {
+							g.setFont(prevFont.deriveFont(prevFont.getSize2D() - 5));
+							g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 + 17, getYPixel(y) + 8);
+							g.setFont(prevFont);
+						} else if (str.length() >= 6) {
+							g.setFont(prevFont.deriveFont(prevFont.getSize2D() - 10));
+							g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 + 35, getYPixel(y) + 6);
+							g.setFont(prevFont);
+						} else {
+							g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 + 5, getYPixel(y) + 9);
+						}
 					}
 				}
 				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
 
 				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
 				gfx = yLabel.createGraphics();
-				gfx.setFont(new Font("Arial", 0, 28));
+				gfx.setFont(new Font("Arial", 0, axisFontSize));
 				gfx.setColor(Color.WHITE);
 				gfx.fillRect(0, 0, getWidth(), getHeight());
 				gfx.setColor(Color.BLACK);
@@ -1011,7 +1030,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			} else {
 				g.setFont(new Font("Arial", 0, point.getSize()));//zx
 				g.drawString(PlotPoint.MISSING_STR, getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2);//zx
-				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));//zx
+				g.setFont(new Font("Arial", 0, axisFontSize));//zx
 			}
 			break;
 		case PlotPoint.NOT_A_NUMBER:
