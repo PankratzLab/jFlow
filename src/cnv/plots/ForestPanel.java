@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import cnv.plots.ForestPlot.ForestInput;
 import stats.Maths;
-
 import common.Array;
 import common.Grafik;
 import common.Logger;
@@ -69,6 +69,21 @@ public class ForestPanel extends AbstractPanel {
 
 	@Override
 	public void generatePoints() {
+		if (forestPlot.currMetaStudy == null) {
+			ForestInput input;
+			String errorMessage;
+			
+			input = forestPlot.dataIndices.get(forestPlot.currentDataIndex);
+			errorMessage = "Cannot generate points for marker "+input.marker+" because the data did not load; check to see if file \""+input.file+"\" actually exists and if the beta/stderr columns are named as expected";
+			setNullMessage(errorMessage);
+			log.reportError("Error - "+errorMessage);
+			
+			points = new PlotPoint[0];
+			setPointsGeneratable(false);
+			setRectangleGeneratable(false);
+			
+			return;
+		}
 		ArrayList<StudyData> currentData = forestPlot.currMetaStudy.getStudies(sortedDisplay);
 		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
 		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
@@ -245,7 +260,7 @@ public class ForestPanel extends AbstractPanel {
 //		} else 
 		if (isPointsGeneratable()) {
 			generatePoints();
-			order : {
+			if (isPointsGeneratable()) {
 				TreeMap<Float, Integer> scoreIndexMap = new TreeMap<Float, Integer>();
 				TreeSet<Integer> zeros = new TreeSet<Integer>();
 				for (int i = 0; i < forestPlot.currMetaStudy.studies.size(); i++) {
@@ -266,13 +281,10 @@ public class ForestPanel extends AbstractPanel {
 					order[i] = iter.next().intValue();
 				}
 			}
-			
 		}
 //		highlightPoints();
 
-		
-		
-		if (points.length == 0) {
+		if (!isPointsGeneratable() || points.length == 0) {
 			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			if (getNullMessage() != null) {

@@ -1919,6 +1919,7 @@ public class SeqMeta {
 	
 	public static void delineateRegions(String dir, MetaAnalysisParams maps, int macThresholdTotal) {
 		Vector<Vector<String>> filesToCat;
+		Vector<String> inputsToCat, batchesToCat;
 		int[] ns;
 		float indexThreshold;
 		Logger log, pvalThresholdsLog;
@@ -1927,7 +1928,7 @@ public class SeqMeta {
 		
 		String[] groups, races;
 		String filename;
-		String[][] phenotypes, methods, results;
+		String[][] phenotypes, methods, results, forestInputs;
 		Vector<String> additionalCols;
 		
 		if (dir == null || dir.equals("")) {
@@ -1948,6 +1949,8 @@ public class SeqMeta {
 
 		groups = new String[] {};
 		filesToCat = new Vector<Vector<String>>();
+		inputsToCat = new Vector<String>();
+		batchesToCat = new Vector<String>();
 		countHash = new CountHash();
 		for (int m = 0; m < methods.length; m++) {
 			if (ext.indexOfStr(methods[m][1], groups) == -1) {
@@ -2012,6 +2015,19 @@ public class SeqMeta {
 					for (int j = 1; j < results.length; j++) {
 						results[j] = Array.addStrToArray(phenotypes[i][0], results[j], 0);
 					}
+					
+					// this won't be called if there is no SingleSNP method
+					if (groups[g].equals("SingleVariant") && methods[0][0].equals("SingleSNP")) {
+						forestInputs = new String[results.length-1][3];
+						for (int j = 0; j < forestInputs.length; j++) {
+							forestInputs[j][0] = results[j+1][2];
+							forestInputs[j][1] = results[j+1][0]+"/"+methods[0][0]+"/"+results[j+1][0]+"_"+methods[0][0]+".csv";
+							forestInputs[j][2] = "PanEthnic "+methods[0][0]+" for "+results[j+1][0]+" (p="+ext.prettyP(results[j+1][5])+")";
+						}
+						Files.writeMatrix(forestInputs, ext.rootOf(dir+"hitsAssembled/"+filename, false)+"_forestPlot.input", "\t");
+						inputsToCat.add(ext.rootOf(dir+"hitsAssembled/"+filename, false)+"_forestPlot.input");
+						batchesToCat.addElement("# jcp cnv.plots.ForestPlot markerList=hitsAssembled/"+ext.rootOf(filename, false)+"_forestPlot.input");
+					}
 					Files.writeMatrix(results, ext.rootOf(dir+"hitsAssembled/"+filename, false)+"_regions.xln", "\t");
 //					String temp = phenotypes[i][0];
 //					Files.write(temp, dir+"hitsAssembled/"+temp+".tmp");
@@ -2025,6 +2041,11 @@ public class SeqMeta {
 		
 		for (int g = 0; g < groups.length; g++) {
 			Files.cat(Array.toStringArray(filesToCat.elementAt(g)), dir+"hitsAssembled/"+groups[g]+"_regions.xln", new int[0], log);
+		}
+		if (inputsToCat.size() > 0) {
+			Files.cat(Array.toStringArray(inputsToCat), dir+"hitsAssembled/allForestPlots.input", new int[0], log);
+			batchesToCat.addElement("jcp cnv.plots.ForestPlot markerList=hitsAssembled/allForestPlots.input");
+			Files.writeList(Array.toStringArray(batchesToCat), dir+"allForestPlots.bat");
 		}
 	}
 	
