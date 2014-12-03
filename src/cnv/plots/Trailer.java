@@ -78,7 +78,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
 	private JTextField navigationField;
-	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, launchScatterButton;
+	private JTextField regionsField;
+	private JButton firstChr, previousChr, nextChr, lastChr, firstRegion, previousRegion, nextRegion, lastRegion, launchScatterButton;
 	private Project proj;
 	private String sample;
 	private IndiPheno indiPheno;
@@ -119,6 +120,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JComboBox<String> centroidsSelection;
 	private Logger log;
 	private boolean fail;
+	boolean isSettingCentroid = false;
 	private float[][][] centroids;
 	private String currentCentroid;
 	private static final String SEX_CENT = "Sex-Specific";
@@ -532,7 +534,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		descrPanel.add(Box.createHorizontalGlue());
 
-		JPanel navigationPanel = new JPanel();
+		JPanel navigateChrPanel = new JPanel();
 		firstChr = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
 		firstChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
 		firstChr.addActionListener(this);
@@ -574,12 +576,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		lastChr.addActionListener(this);
 		lastChr.setActionCommand(LAST_CHR);
 		lastChr.setPreferredSize(new Dimension(20, 20));
-		navigationPanel.add(firstChr);
-		navigationPanel.add(previousChr);
-		navigationPanel.add(navigationField);
-		navigationPanel.add(nextChr);
-		navigationPanel.add(lastChr);
-		descrPanel.add(navigationPanel);
+		navigateChrPanel.add(firstChr);
+		navigateChrPanel.add(previousChr);
+		navigateChrPanel.add(navigationField);
+		navigateChrPanel.add(nextChr);
+		navigateChrPanel.add(lastChr);
+		descrPanel.add(navigateChrPanel);
 		
 		JPanel dataOptionPanel = new JPanel(new GridLayout(2, 2, 5, 5));
 		dataOptionPanel.setBorder(new EmptyBorder(0, 25, 0, 10));
@@ -598,6 +600,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			public void itemStateChanged(ItemEvent ie) {
 				JRadioButton jrb = (JRadioButton) ie.getItem();
 				if (jrb.isSelected()) {
+					centroids = null;
+					bafs = originalBAFs;
 					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
 						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
 							transformation_type = i;
@@ -628,6 +632,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					updateGUI();
 					repaint();
 				} else {
+					currentCentroid = null;
 					centroids = null;
 					bafs = originalBAFs;
 				}
@@ -724,18 +729,18 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		centroidsSelection = new JComboBox<String>((String[]) namePathMap.keySet().toArray(new String[]{}));
 		centroidsSelection.setMaximumSize(new Dimension(160, 25));
 		centroidsSelection.addActionListener(new ActionListener() {
-			boolean isSetting = false;
+			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!isSetting) {
-					isSetting = true;
+				if (!isSettingCentroid) {
+					isSettingCentroid = true;
 					if (transformation_type == -1) {
 						setCentroid();
 						loadValues();
 						updateGUI();
 						repaint();
 					}
-					isSetting = false;
+					isSettingCentroid = false;
 				} else {
 					setCentroid();
 				}
@@ -1167,12 +1172,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				SampleData sampleData = proj.getSampleData(0, false);
 				int sex = sampleData.getSexForIndividual(samp.getSampleName());
 				if (sex == 1) {
-					if (currentCentroid.endsWith("Female")) {
+					if (currentCentroid.endsWith("Female") && !isSettingCentroid) {
 						centroidsSelection.setSelectedItem(SEX_CENT + " - Male");
 						log.report("Switching to specified male centroid file");
 					}
 				} else if (sex == 2) {
-					if (currentCentroid.endsWith("Male")) {
+					if (currentCentroid.endsWith("Male") && !isSettingCentroid) {
 						centroidsSelection.setSelectedItem(SEX_CENT + " - Female");
 						log.report("Switching to specified female centroid file");
 					}
@@ -1425,7 +1430,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		if (regions[regionIndex].length > 2) {
 			commentLabel.setText("region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
 		} else {
-			commentLabel.setText(" ");
+			commentLabel.setText(" -- no comment -- ");
 		}
 		
 		if (!regions[regionIndex][0].equals(sample)) {
