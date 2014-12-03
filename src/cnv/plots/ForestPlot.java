@@ -172,7 +172,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 	float sumZScore;
 	String longestStudyNameSize;
 	private JCheckBox btnSortStudies;
-	private JButton flipButton, invXButton, invYButton;
 	private JLayeredPane layeredPane;
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
@@ -188,12 +187,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 		this.dataIndices = new ArrayList<ForestInput>();
 		this.dataIndices.addAll(data);
 		dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
-		try{
-			mapMarkersToCol();
-		} catch(RuntimeException rte){
-			// TODO handle runtime exceptions!
-			log.reportException(rte);
-		}
 
 		Iterator<ForestInput> iter = this.data.iterator();
 		while(iter.hasNext()) {
@@ -374,6 +367,10 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private void setCurrentData(int index) {
 		currentDataIndex = index;
 		currMetaStudy = dataToMetaMap.get(dataIndices.get(index));
+		if (currMetaStudy == null) {
+			log.reportError("Error - could not set index to "+index+" since the data did not load properly; check to see if any results files are missing");
+			return;
+		}
 		maxZScore = currMetaStudy.findMaxZScore();
 		maxZScore = currMetaStudy.findMaxZScore();
 		sumZScore = currMetaStudy.calcSumZScore();
@@ -390,15 +387,20 @@ public class ForestPlot extends JPanel implements ActionListener{
 														false, // not a jar file
 														true, // verbose mode on 
 														log, 
-														false // DON'T KILL THE WHOLE DAMN SYSTEM (esp. if we're running a GUI)
+														false // don't kill the whole process, esp. if we're running a GUI
 														);
+		if (dataReader == null) {
+			return;
+		}
 		String delimiter = Files.determineDelimiter(data.file, log);
 		try {
 			dataReader.readLine();	// skip header
 			
+			mapMarkersToCol(data);
+			
 			while(dataReader.ready()) {
 				String readLine = dataReader.readLine();
-				String readData[] = readLine.split(delimiter);
+				String readData[] = delimiter.equals(",")?ext.splitCommasIntelligently(readLine, true, log):readLine.split(delimiter);
 				String markerName = readData[1];
 				if(data.marker.equals(markerName)) {
 					dataToMetaMap.put(data, getMetaStudy(data, readData));
@@ -410,7 +412,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 		}
 
 		if(!atleastOneStudy) {
-			throw new RuntimeException("Not able to find data for the given markers. Please make sure the given markers are correct and included in the data file.");
+			log.reportError("Not able to find data for marker '"+data.marker+"'. Please make sure the given markers are correct and included in data file '"+data.file+"'.");
 		}
 	}
 	
@@ -445,32 +447,29 @@ public class ForestPlot extends JPanel implements ActionListener{
 		return studies;
 	}
 	
-	private void mapMarkersToCol() throws RuntimeException {
-		Iterator<ForestInput> iter = this.data.iterator();
-		while(iter.hasNext()) {
-			ForestInput data = iter.next();
-			
-			String[] dataFileHeaders = Files.getHeaderOfFile(data.file, this.log);
-			for (int i = 0; i < dataFileHeaders.length; i++) {
-				if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADER)) {
-					if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADER)) {
-						data.metaIndicies = new int[]{i, i+1};
-					}
-				} else if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
-					if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)) {
-						if (data.studyToColIndexMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
-							throw new RuntimeException("Malformed data file: Duplicate study name found in file");
-						} else {
-							data.studyToColIndexMap.put(dataFileHeaders[i].split("\\.")[1], i);
-						}
+	private void mapMarkersToCol(ForestInput data) throws RuntimeException {
+		String[] dataFileHeaders = Files.getHeaderOfFile(data.file, data.file.toLowerCase().endsWith(".csv")?",!":null, this.log);
+		for (int i = 0; i < dataFileHeaders.length; i++) {
+			if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADER)) {
+				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADER)) {
+					data.metaIndicies = new int[]{i, i+1};
+				}
+			} else if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
+				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)) {
+					if (data.studyToColIndexMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
+						throw new RuntimeException("Malformed data file: Duplicate study name found in file");
 					} else {
-						throw new RuntimeException("Malformed data file: SE is not present after Beta for: " + dataFileHeaders[i]);
+						data.studyToColIndexMap.put(dataFileHeaders[i].split("\\.")[1], i);
 					}
+				} else {
+					throw new RuntimeException("Malformed data file: SE is not present after Beta for: " + dataFileHeaders[i]);
 				}
 			}
-			dataFileHeaders = null;
-			
 		}
+		if (data.metaIndicies == null) {
+			log.reportError("Error - never found the beta/stderr pairing for file "+data.file);
+		}
+		dataFileHeaders = null;
 	}
 	
 	class ForestInput {
