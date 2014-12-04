@@ -37,14 +37,14 @@ public class ForestPanel extends AbstractPanel {
 
 	};
 
-	private static final String META_LABEL = "Overall";
-
-	private static final Color META_COLOR = Color.BLACK;
-	protected ForestPlot forestPlot;
+	public static final String META_LABEL = "Overall";
+	public static final Color META_COLOR = Color.BLACK;
+	
+	private ForestPlot forestPlot;
 	private Logger log;
 	private boolean rectangleGeneratable;
-	boolean sortedDisplay = false;
-	DecimalFormat precision2Decimal;
+	private boolean sortedDisplay = false;
+	private DecimalFormat precision2Decimal;
 
 	public ForestPanel(ForestPlot forestPlot, Logger log) {
 		super();
@@ -70,11 +70,11 @@ public class ForestPanel extends AbstractPanel {
 
 	@Override
 	public void generatePoints() {
-		if (forestPlot.currMetaStudy == null) {
+		if (forestPlot.getCurrentMetaStudy() == null) {
 			ForestInput input;
 			String errorMessage;
 			
-			input = forestPlot.dataIndices.get(forestPlot.currentDataIndex);
+			input = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex());
 			errorMessage = "Cannot generate points for marker "+input.marker+" because the data did not load; check to see if file \""+input.file+"\" actually exists and if the beta/stderr columns are named as expected";
 			setNullMessage(errorMessage);
 			log.reportError("Error - "+errorMessage);
@@ -85,7 +85,7 @@ public class ForestPanel extends AbstractPanel {
 			
 			return;
 		}
-		ArrayList<StudyData> currentData = forestPlot.currMetaStudy.getStudies(sortedDisplay);
+		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies(sortedDisplay);
 		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
 		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
 
@@ -131,7 +131,7 @@ public class ForestPanel extends AbstractPanel {
 	}
 
 	private void generateRectangles(Graphics g) {
-		ArrayList<StudyData> currentData = forestPlot.currMetaStudy.getStudies(sortedDisplay);
+		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies(sortedDisplay);
 		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
 		rectangles = new GenericRectangle[0];
 
@@ -177,7 +177,7 @@ public class ForestPanel extends AbstractPanel {
 	@Override
 	public void assignAxisLabels() {
 		displayXaxis = displayYaxis = true;
-		xAxisLabel = forestPlot.plotLabel;
+		xAxisLabel = forestPlot.getPlotLabel();
 		yAxisLabel = " ";
 	}
 	
@@ -276,14 +276,14 @@ public class ForestPanel extends AbstractPanel {
 			if (isPointsGeneratable()) {
 				TreeMap<Float, Integer> scoreIndexMap = new TreeMap<Float, Integer>();
 				TreeSet<Integer> zeros = new TreeSet<Integer>();
-				for (int i = 0; i < forestPlot.currMetaStudy.studies.size(); i++) {
-					if (forestPlot.currMetaStudy.studies.get(i).getZScore() != 0.0) {
-						scoreIndexMap.put((forestPlot.currMetaStudy.studies.get(i).getZScore() / forestPlot.getSumZScore()) * 100, i);
+				for (int i = 0; i < forestPlot.getCurrentMetaStudy().getStudies().size(); i++) {
+					if (forestPlot.getCurrentMetaStudy().getStudies().get(i).getZScore() != 0.0) {
+						scoreIndexMap.put((forestPlot.getCurrentMetaStudy().getStudies().get(i).getZScore() / forestPlot.getSumZScore()) * 100, i);
 					} else {
 						zeros.add(i);
 					}
 				}
-				order = new int[forestPlot.currMetaStudy.studies.size()];
+				order = new int[forestPlot.getCurrentMetaStudy().getStudies().size()];
 				int ind = scoreIndexMap.size() - 1;
 				for (java.util.Map.Entry<Float, Integer> entry : scoreIndexMap.entrySet()) {
 					order[ind] = entry.getValue().intValue();
@@ -481,7 +481,7 @@ public class ForestPanel extends AbstractPanel {
 				}
 				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
 				
-				g.drawString(prepareRightMarkers(forestPlot.currMetaStudy.metaBeta, forestPlot.currMetaStudy.metaConf[0], forestPlot.currMetaStudy.metaConf[1]), getWidth() - rightsize + 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
+				g.drawString(prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(), forestPlot.getCurrentMetaStudy().getMetaConf()[0], forestPlot.getCurrentMetaStudy().getMetaConf()[1]), getWidth() - rightsize + 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
 //				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS / 2.0), AXIS_THICKNESS, Color.BLACK);
 //				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
 //				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
@@ -563,9 +563,9 @@ public class ForestPanel extends AbstractPanel {
 		
 		if(base) {
 			g.setColor(Color.BLACK);
-			int xL = getXPixel(forestPlot.currMetaStudy.metaBeta - 1.96 * forestPlot.currMetaStudy.metaStderr);
-			int xM = getXPixel(forestPlot.currMetaStudy.metaBeta);
-			int xR = getXPixel(forestPlot.currMetaStudy.metaBeta + 1.96 * forestPlot.currMetaStudy.metaStderr);
+			int xL = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta() - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr());
+			int xM = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta());
+			int xR = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta() + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr());
 			
 			int yM = getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 15;
 			int yU = yM - (fontMetrics.getHeight() / 2) - 1;
@@ -591,7 +591,7 @@ public class ForestPanel extends AbstractPanel {
 
 			g.setColor(Color.BLACK);
 			g.setFont(new Font("Arial", Font.ITALIC, 16));
-			String comm = forestPlot.dataIndices.get(forestPlot.currentDataIndex).comment;
+			String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
 			if (!"".equals(comm)) {
 				int w = fontMetrics.stringWidth(comm);
 				g.drawString(comm, getWidth() / 2 - w, 2 * HEAD_BUFFER + 14);
@@ -722,5 +722,9 @@ public class ForestPanel extends AbstractPanel {
 		double scale = 0.60;
 		double mkSz = ((getWidth() - WIDTH_BUFFER) - WIDTH_Y_AXIS) / (points.length * 2) * scale;
 		return mkSz;
+	}
+
+	public void setSortedDisplay(boolean sorted) {
+		this.sortedDisplay = sorted;
 	}
 }

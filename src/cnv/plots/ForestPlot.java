@@ -14,30 +14,30 @@ import common.Logger;
 import common.ext;
 
 class MetaStudy {
-	final ArrayList<StudyData> studies;
-	ArrayList<StudyData> sorted;
+	private final ArrayList<StudyData> studies;
+	private ArrayList<StudyData> sorted;
 	private final HashMap<String, StudyData> nameMap;
-	final float metaBeta;
-	final float metaStderr;
-	final float[] metaConf = new float[2];
+	private final float metaBeta;
+	private final float metaStderr;
+	private final float[] metaConf = new float[2];
 	
 	public MetaStudy(float metaBeta, float metaStderr) {
 		studies = new ArrayList<StudyData>();
 		nameMap = new HashMap<String, StudyData>();
 		this.metaBeta = metaBeta;
 		this.metaStderr = metaStderr;
-		this.metaConf[0] = (float) (metaBeta - 1.96 * metaStderr);
-		this.metaConf[1] = (float) (metaBeta + 1.96 * metaStderr);
+		this.getMetaConf()[0] = (float) (metaBeta - 1.96 * metaStderr);
+		this.getMetaConf()[1] = (float) (metaBeta + 1.96 * metaStderr);
 	}
 	
 	public void addStudy(StudyData studyData) {
-		studies.add(studyData);
+		getStudies().add(studyData);
 		nameMap.put(studyData.getLabel(), studyData);
 	}
 
 	String findLongestStudyNameSize() {
 		String longest = "";
-		for(StudyData ft : studies){
+		for(StudyData ft : getStudies()){
 			longest = longest.length() < ft.getLabel().length() ? ft.getLabel() : longest;
 		}
 		return longest;
@@ -45,7 +45,7 @@ class MetaStudy {
 	
 	float calcSumZScore() {
 		float sum = 0;
-		for	(StudyData ft : studies){
+		for	(StudyData ft : getStudies()){
 			sum += ft.getZScore();
 		}
 		return sum;
@@ -53,7 +53,7 @@ class MetaStudy {
 	
 	float findMaxZScore() {
 		float max = Float.MIN_VALUE;
-		for (StudyData data: studies) {
+		for (StudyData data: getStudies()) {
 			max = Math.max(max, data.getZScore());
 		}
 		return max;
@@ -69,7 +69,7 @@ class MetaStudy {
 			
 			TreeMap<String, String> zeroStudyMap = new TreeMap<String, String>();
 			TreeMap<Float, String> betaStudyMap = new TreeMap<Float, String>();
-			for (StudyData study : studies) {
+			for (StudyData study : getStudies()) {
 				if (study.getBeta() == 0.0f) {
 					zeroStudyMap.put(study.getLabel(), study.getLabel());
 				} else {
@@ -89,6 +89,22 @@ class MetaStudy {
 		}
 		
 		return this.sorted;
+	}
+
+	public ArrayList<StudyData> getStudies() {
+		return studies;
+	}
+
+	public float[] getMetaConf() {
+		return metaConf;
+	}
+
+	public float getMetaBeta() {
+		return metaBeta;
+	}
+
+	public float getMetaStderr() {
+		return metaStderr;
 	}
 	
 }
@@ -162,21 +178,21 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private static final String NEXT = "Next";
 	private static final String LAST = "Last";
 	private LinkedHashSet<ForestInput> data;
-	ArrayList<ForestInput> dataIndices;
-	HashMap<ForestInput, MetaStudy> dataToMetaMap;
-	MetaStudy currMetaStudy;
-	String plotLabel;
-	Logger log;
-	ForestPanel forestPanel;
-	float maxZScore;
-	float sumZScore;
-	String longestStudyNameSize;
+	private ArrayList<ForestInput> dataIndices;
+	private HashMap<ForestInput, MetaStudy> dataToMetaMap;
+	private MetaStudy currMetaStudy;
+	private String plotLabel;
+	private Logger log;
+	private ForestPanel forestPanel;
+	private float maxZScore;
+	private float sumZScore;
+	private String longestStudyNameSize;
 	private JCheckBox btnSortStudies;
 	private JLayeredPane layeredPane;
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
 //	int curMarkerIndex;
-	int currentDataIndex;
+	private int currentDataIndex;
 	private boolean atleastOneStudy;
 
 
@@ -184,8 +200,8 @@ public class ForestPlot extends JPanel implements ActionListener{
 		this.log = log;
 		atleastOneStudy = false;
 		this.data = readMarkerFile(markerFile);
-		this.dataIndices = new ArrayList<ForestInput>();
-		this.dataIndices.addAll(data);
+		this.setDataIndices(new ArrayList<ForestInput>());
+		this.getDataIndices().addAll(data);
 		dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
 
 		Iterator<ForestInput> iter = this.data.iterator();
@@ -310,7 +326,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e) {
 				try {
 					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
-					if (trav >=0 && trav < dataIndices.size()) {
+					if (trav >=0 && trav < getDataIndices().size()) {
 						setCurrentData(trav);
 						updateForestPlot();
 					}
@@ -339,7 +355,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				 ForestPlot.this.forestPanel.sortedDisplay = btnSortStudies.isSelected();
+				 ForestPlot.this.forestPanel.setSortedDisplay(btnSortStudies.isSelected());
 				 ForestPlot.this.forestPanel.paintAgain();
 			}
 		};
@@ -361,21 +377,21 @@ public class ForestPlot extends JPanel implements ActionListener{
 	}
 	
 	public void displayIndex(JTextField field) {
-		field.setText((currentDataIndex + 1) + " of " + dataIndices.size());
+		field.setText((getCurrentDataIndex() + 1) + " of " + getDataIndices().size());
 	}
 	
 	private void setCurrentData(int index) {
-		currentDataIndex = index;
-		currMetaStudy = dataToMetaMap.get(dataIndices.get(index));
-		if (currMetaStudy == null) {
+		setCurrentDataIndex(index);
+		setCurrentMetaStudy(dataToMetaMap.get(getDataIndices().get(index)));
+		if (getCurrentMetaStudy() == null) {
 			log.reportError("Error - could not set index to "+index+" since the data did not load properly; check to see if any results files are missing");
 			return;
 		}
-		maxZScore = currMetaStudy.findMaxZScore();
-		maxZScore = currMetaStudy.findMaxZScore();
-		sumZScore = currMetaStudy.calcSumZScore();
-		longestStudyNameSize = currMetaStudy.findLongestStudyNameSize();
-		plotLabel = dataIndices.get(index).marker;
+		maxZScore = getCurrentMetaStudy().findMaxZScore();
+		maxZScore = getCurrentMetaStudy().findMaxZScore();
+		sumZScore = getCurrentMetaStudy().calcSumZScore();
+		longestStudyNameSize = getCurrentMetaStudy().findLongestStudyNameSize();
+		setPlotLabel(getDataIndices().get(index).marker);
 	}
 	
 	public String getLongestStudyNameSize() {
@@ -606,29 +622,29 @@ public class ForestPlot extends JPanel implements ActionListener{
 	}
 
 	public void first() {
-		if(currentDataIndex != 0){
+		if(getCurrentDataIndex() != 0){
 			setCurrentData(0);
 			updateForestPlot();
 		}
 	}
 
 	public void previous() {
-		if(currentDataIndex != 0){
-			setCurrentData(currentDataIndex - 1);
+		if(getCurrentDataIndex() != 0){
+			setCurrentData(getCurrentDataIndex() - 1);
 			updateForestPlot();
 		}
 	}
 
 	public void next() {
-		if(currentDataIndex != dataIndices.size() - 1){
-			setCurrentData(currentDataIndex + 1);
+		if(getCurrentDataIndex() != getDataIndices().size() - 1){
+			setCurrentData(getCurrentDataIndex() + 1);
 			updateForestPlot();
 		}
 	}
 
 	public void last() {
-		if(currentDataIndex < dataIndices.size() - 1){
-			setCurrentData( dataIndices.size() - 1);
+		if(getCurrentDataIndex() < getDataIndices().size() - 1){
+			setCurrentData( getDataIndices().size() - 1);
 			updateForestPlot();
 		}
 	}
@@ -683,5 +699,45 @@ public class ForestPlot extends JPanel implements ActionListener{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+
+	public MetaStudy getCurrentMetaStudy() {
+		return currMetaStudy;
+	}
+
+
+	public void setCurrentMetaStudy(MetaStudy currMetaStudy) {
+		this.currMetaStudy = currMetaStudy;
+	}
+
+
+	public int getCurrentDataIndex() {
+		return currentDataIndex;
+	}
+
+
+	public void setCurrentDataIndex(int currentDataIndex) {
+		this.currentDataIndex = currentDataIndex;
+	}
+
+
+	public ArrayList<ForestInput> getDataIndices() {
+		return dataIndices;
+	}
+
+
+	public void setDataIndices(ArrayList<ForestInput> dataIndices) {
+		this.dataIndices = dataIndices;
+	}
+
+
+	public String getPlotLabel() {
+		return plotLabel;
+	}
+
+
+	public void setPlotLabel(String plotLabel) {
+		this.plotLabel = plotLabel;
 	}
 }
