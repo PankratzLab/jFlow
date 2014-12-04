@@ -3,6 +3,7 @@ package cnv.analysis;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
 
@@ -11,6 +12,7 @@ import common.*;
 import cnv.filesys.*;
 import cnv.manage.UCSCtrack;
 import cnv.var.CNVariant;
+import cnv.var.SampleData;
 
 public class FilterCalls {
 	public static final int DEFAULT_MIN_SIZE_KB = 0;
@@ -27,6 +29,7 @@ public class FilterCalls {
 	public static final int COMMON_IGNORED = 3;
 	public static final int DEFAULT_COMMON_IN_OUT_OR_IGNORED = COMMON_IGNORED;
 	public static final boolean DEFAULT_BREAK_CENTROMERE = false;
+	private static final double[][] CNV_STATS_THRESHOLDS = new double[][]{{10, 10}, {10, 20}};
 	
 	
 	private static class CNVFilterNode {
@@ -104,10 +107,71 @@ public class FilterCalls {
 		
 	}
 	
-	public static void CNVStats(Project proj, String dir, String filenameNoExt) {
+	public static void CNVStats(Project proj, String dir, String filenameNoExt) throws IOException {
+		String qcFile, cnvFile, famFile, outputFile;
+		PrintWriter writer;
+		BufferedReader reader;
+		SampleData sampleData;
+		
 		// find .cnv and .fam file from fileroot
+		qcFile = proj.getProjectDir() + "Sample_QC.xln";
+		cnvFile = dir + filenameNoExt + ".cnv";
+//		famFile = dir + filenameNoExt + ".fam";
 		
+		outputFile = dir + filenameNoExt + "_CNVStats.xln";
+		writer = new PrintWriter(outputFile);
 		
+		sampleData = proj.getSampleData(0, false);
+		
+		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, proj.getJarStatus());
+		HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
+		for (CNVariant cnv : cnvList) {
+			ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+			if (indivLists == null) {
+				indivLists = new ArrayList[]{new ArrayList<CNVariant>(), new ArrayList<CNVariant>(), new ArrayList<CNVariant>()};
+				cnvMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), indivLists);
+			}
+			indivLists[0].add(cnv);
+			if (cnv.getScore() > CNV_STATS_THRESHOLDS[0][0] && cnv.getNumMarkers() > CNV_STATS_THRESHOLDS[0][1]) {
+				indivLists[1].add(cnv);
+			}
+			if (cnv.getScore() > CNV_STATS_THRESHOLDS[1][0] && cnv.getNumMarkers() > CNV_STATS_THRESHOLDS[1][1]) {
+				indivLists[2].add(cnv);
+			}
+		}
+		
+		/*
+		 * OUTPUT
+		 * |  SAMPLE/DNA  |  FID  |  IID  |  Excluded  |  LRRSD  |  CNV COUNTS ....  |    |    | 
+		 */
+		reader = new BufferedReader(new FileReader(qcFile));
+		String line, SID, FID, IID, LRRSD;
+		boolean excluded;
+		String[] cnts;
+		String[] data;
+		reader.readLine();
+		while(reader.ready()) {
+			line = reader.readLine();
+			data = line.split("\t");
+			SID = data[0];
+			FID = data[1];
+			IID = data[2];
+			
+			LRRSD = data[11];
+			excluded = sampleData.individualShouldBeExcluded(SID);
+			
+			ArrayList<CNVariant>[] indivLists = cnvMap.get(FID + "\t" + IID);
+			if (indivLists == null) {
+				cnts = new String[]{".", ".", "."};
+			} else {
+				cnts = new String[]{indivLists[0].size() + "", indivLists[1].size() + "", indivLists[2].size() + ""};
+			}
+			
+			writer.println(SID + "\t" + FID + "\t" + IID + "\t" + (excluded ? "1" : "0") + "\t" + LRRSD + "\t" + cnts[0] + "\t" + cnts[1] + "\t" + cnts[2]);
+		}
+		reader.close();
+		writer.flush();
+		writer.close();
 		
 	}
 	
