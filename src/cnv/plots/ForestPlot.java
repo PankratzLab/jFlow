@@ -235,15 +235,15 @@ public class ForestPlot extends JPanel implements ActionListener{
 		//
 		// treePanel.add(new JScrollPane(tree), BorderLayout.CENTER);
 		// tree.addTreeSelectionListener(this);
-		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, layeredPane, treePanel);
-		splitPane.setBackground(Color.WHITE);
-		splitPane.setOneTouchExpandable(true);
-		splitPane.setDividerLocation(getWidth() - 150);
+//		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, layeredPane, treePanel);
+//		splitPane.setBackground(Color.WHITE);
+//		splitPane.setOneTouchExpandable(true);
+//		splitPane.setDividerLocation(getWidth() - 150);
 
 		Dimension minimumSize = new Dimension(100, 50);
 		layeredPane.setMinimumSize(minimumSize);
 
-		add(splitPane, BorderLayout.CENTER);
+		add(layeredPane, BorderLayout.CENTER);
 		inputMapAndActionMap();
 
 		forestPanel.setPointsGeneratable(true);// zx

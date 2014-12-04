@@ -56,6 +56,7 @@ public class ForestPanel extends AbstractPanel {
 		precision2Decimal = new DecimalFormat("#0.00");
 
 		setZoomable(false, true);
+//		setZoomable(true, true);
 		setColorScheme(DEFAULT_COLORS);
 	}
 
@@ -230,15 +231,27 @@ public class ForestPanel extends AbstractPanel {
 				numHashes -= 2;
 			}
 		} else {
-			numHashes = (int) ((canvasSectionMaximumY - canvasSectionMinimumY) / (fontMetrics.getHeight() + 4.0));
+			numHashes = (int) ((canvasSectionMaximumY - canvasSectionMinimumY) / (fontMetrics.getHeight()));
 		}
-
-		while (range/plotStep>numHashes) {
+		
+		while (range / plotStep > numHashes) {
 			plotStep += stepStep;
 		}
 
 		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf)), Double.parseDouble(ext.formDeci(plotMin, sf))};
 
+	}
+	
+	public static double calcStepStep(double range) {
+		String[] line;
+		
+		try {
+			line = new DecimalFormat("0.0E0").format(range).split("E");
+			return Math.pow(10, Integer.parseInt(line[1])-1)*1;//(Double.parseDouble(line[0]));//>2.0?5:1);
+		} catch (Exception e) {
+			System.err.println("Error - could not parse stepStep from range '"+range+"'");
+			return Double.NaN;
+		}
 	}
 	
 	@Override
@@ -289,7 +302,44 @@ public class ForestPanel extends AbstractPanel {
 			g.fillRect(0, 0, getWidth(), getHeight());
 			if (getNullMessage() != null) {
 				g.setColor(Color.BLACK);
-				g.drawString(getNullMessage(), getWidth() / 2 - g.getFontMetrics(g.getFont()).stringWidth(getNullMessage()) / 2, getHeight() / 2);
+				String msg = getNullMessage();
+				boolean skip = false;
+				int width = g.getFontMetrics().stringWidth(msg);
+				int index = msg.length() / 2;
+				if (width >= getWidth() - 20) {
+					// search for a space
+					while (msg.charAt(index) != ' ' && index < msg.length()) {
+						index++;
+					}
+					if (index == msg.length()) {
+						index = msg.length() / 2;
+						// search for a space other direction
+						while (msg.charAt(index) != ' ' && index >= 0) {
+							index--;
+						}
+					}
+					if (index != 0) {
+						skip = true;
+					}
+				}
+				
+				int x = getWidth() / 2 - g.getFontMetrics(g.getFont()).stringWidth(msg) / 2;
+				int y = getHeight() / 2;
+				
+				if (!skip) {
+					g.drawString(msg, x, y);
+				} else {
+					String s1, s2;
+					int x1, x2, y1, y2;
+					s1 = msg.substring(0, index);
+					s2 = msg.substring(index);
+					x1 = getWidth() / 2 - (g.getFontMetrics().stringWidth(s1) / 2);
+					x2 = getWidth() / 2 - (g.getFontMetrics().stringWidth(s2) / 2);
+					y1 = getHeight() / 2;
+					y2 = getHeight() / 2 + g.getFontMetrics().getHeight() + 3;
+					g.drawString(s1, x1, y1);
+					g.drawString(s2, x2, y2);
+				}
 			}
 			
 			setFinalImage(true);
@@ -424,14 +474,14 @@ public class ForestPanel extends AbstractPanel {
 						str = str.split("\\.")[0];
 						int index = Integer.parseInt(str) - 1;
 						String left = points[index].getId().split("\\|")[0];
-						g.drawString(left, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(left) - 15, getYPixel(y) + 7);
+						g.drawString(left, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(left) - 15, getYPixel(y) + 3);
 						String right = points[index].getId().split("\\|")[1];
-						g.drawString(right, getWidth() - rightsize + 15, getYPixel(y) + 7);
+						g.drawString(right, getWidth() - rightsize + 15, getYPixel(y) + 3);
 					}
 				}
-				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 7);
+				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
 				
-				g.drawString(prepareRightMarkers(forestPlot.currMetaStudy.metaBeta, forestPlot.currMetaStudy.metaConf[0], forestPlot.currMetaStudy.metaConf[1]), getWidth() - rightsize + 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 7);
+				g.drawString(prepareRightMarkers(forestPlot.currMetaStudy.metaBeta, forestPlot.currMetaStudy.metaConf[0], forestPlot.currMetaStudy.metaConf[1]), getWidth() - rightsize + 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
 //				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS / 2.0), AXIS_THICKNESS, Color.BLACK);
 //				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
 //				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
