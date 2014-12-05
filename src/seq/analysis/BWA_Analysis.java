@@ -78,7 +78,9 @@ public class BWA_Analysis {
 				}
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
-						tmpResults.get(i + "").get();
+						if (!tmpResults.get(i + "").get()) {
+							fail = true;
+						}
 					} catch (InterruptedException e) {
 						log.reportError("Error - could running bwa mem on internal index " + i);
 						log.reportException(e);
@@ -358,6 +360,10 @@ public class BWA_Analysis {
 
 		public void setOutput(String output) {
 			this.output = output;
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
 		}
 
 		// @RG\tID:group1\tSM:sample1\tPL:illumina\tLB:lib1\tPU:unit1

@@ -80,6 +80,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
 						picard_Analysis[i] = tmpResults.get(i + "").get();
+						if (picard_Analysis[i].isFail() && !isFail()) {
+							setFail(true);
+						}
 					} catch (InterruptedException e) {
 						getLog().reportError("Error - could running Picard on internal index " + i);
 						getLog().reportException(e);
@@ -125,6 +128,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 				for (int i = 0; i < picard_Analysis.length; i++) {
 					try {
 						gIndelPreps[i] = tmpResults.get(i + "").get();
+						if (gIndelPreps[i].isFail() && !isFail()) {
+							setFail(true);
+						}
 					} catch (InterruptedException e) {
 						getLog().reportError("Error - could running GATK indel Prep on internal index " + i);
 						getLog().reportException(e);
@@ -160,6 +166,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 				for (int i = 0; i < gIndelPreps.length; i++) {
 					try {
 						gRecalibrations[i] = tmpResults.get(i + "").get();
+						if (gRecalibrations[i].isFail() && !isFail()) {
+							setFail(true);
+						}
 					} catch (InterruptedException e) {
 						getLog().reportError("Error - when running GATK Base recalibraion on internal index " + i);
 						getLog().reportException(e);
@@ -197,6 +206,9 @@ public class GATK_LanePrep extends BWA_Analysis {
 				for (int i = 0; i < mBamMergers.length; i++) {
 					try {
 						mBamMergers[i] = tmpResults.get(i + "").get();
+						if (mBamMergers[i].isFail() && !isFail()) {
+							setFail(true);
+						}
 					} catch (InterruptedException e) {
 						getLog().reportError("Error - when running GATK Base recalibraion on internal index " + i);
 						getLog().reportException(e);
@@ -243,15 +255,16 @@ public class GATK_LanePrep extends BWA_Analysis {
 			batches[i][0] = "batch_" + i + "_" + baseName;
 			Files.writeList(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
 		}
-		String command = "module load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_LanePrep " + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
+		// TODO, change classpath
+		String command = "module load R\nmodule load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_LanePrep " + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
 		command += REFERENCE_GENOME_COMMAND + getReferenceGenomeFasta() + SPACE + BWA_LOCATION_COMMAND + getBwa().getBwaLocation() + SPACE;
 		command += NUM_BETWEEN_THREADS_COMMAND + getNumMemThreads() + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + getNumSampleThreads() + SPACE;
 		command += MergeBam.SAMTOOLS_COMMAND + getMergeBam().getSamtoolsLocation() + SPACE;
 		command += Picard.PICARD_LOCATION_COMMAND + getPicard().getPicardLocation() + SPACE;
 		command += GATK.GATK_LOCATION_COMMAND + getGatk().getGATKLocation() + SPACE;
-		command += GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(getGatk().getKnownSitesSnpFile(), GATK.KNOWN_SITES_SPLITTER);
+		command += GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(getGatk().getKnownSitesSnpFile(), GATK.KNOWN_SITES_SPLITTER) + SPACE;
 		command += GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(getGatk().getKnownSitesIndelFile(), GATK.KNOWN_SITES_SPLITTER);
-		Files.qsub( "GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours, getNumMemThreads() * getNumSampleThreads());
+		Files.qsub("GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours, getNumMemThreads() * getNumSampleThreads());
 	}
 
 	private static class WorkerPicard implements Callable<Picard.Picard_Analysis> {
