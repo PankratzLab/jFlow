@@ -90,6 +90,7 @@ public class GATK {
 				}
 			}
 		}
+		baseRecalibration.setFail(progress);
 		return baseRecalibration;
 	}
 
@@ -104,6 +105,7 @@ public class GATK {
 				indelPrep.setAllThere(progress);
 			}
 		}
+		indelPrep.setFail(progress);
 		return indelPrep;
 	}
 
@@ -195,7 +197,7 @@ public class GATK {
 		private static final String RECALIBRATION_PLOTS = ".recalibration_plots.pdf";
 
 		private String realigned_dedup_reads_bam, rrd_bam, bqsr_before, bqsr_post, recalibration_plots, baseId;
-		private boolean allThere;
+		private boolean allThere, fail;
 		private Logger log;
 
 		public BaseRecalibration(String baseId, String realigned_dedup_reads_bam, Logger log) {
@@ -203,6 +205,7 @@ public class GATK {
 			this.baseId = baseId;
 			this.realigned_dedup_reads_bam = realigned_dedup_reads_bam;
 			this.allThere = false;
+			this.fail = false;
 			this.log = log;
 		}
 
@@ -237,8 +240,20 @@ public class GATK {
 			return allThere;
 		}
 
+		public void setAllThere(boolean allThere) {
+			this.allThere = allThere;
+		}
+
 		public Logger getLog() {
 			return log;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
 		}
 
 		public String getBaseId() {
@@ -251,7 +266,7 @@ public class GATK {
 		private static final String TARGET_INTERVALS = ".targetIntervals.list";
 		private static final String REALIGNED = ".realigned";
 		private String dedup_reads_bam, targetIntervalsList, realigned_dedup_reads_bam, baseId;
-		private boolean allThere;
+		private boolean allThere, fail;
 		private Logger log;
 
 		public IndelPrep(String baseId, String dedup_reads_bam, Logger log) {
@@ -259,6 +274,7 @@ public class GATK {
 			this.baseId = baseId;
 			this.dedup_reads_bam = dedup_reads_bam;
 			this.allThere = false;
+			this.fail = false;
 			this.log = log;
 		}
 
@@ -293,6 +309,14 @@ public class GATK {
 
 		public Logger getLog() {
 			return log;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
 		}
 
 	}

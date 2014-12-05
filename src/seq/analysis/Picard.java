@@ -81,6 +81,7 @@ public class Picard {
 				}
 			}
 		}
+		picard_Analysis.setFail(progress);
 		return picard_Analysis;
 	}
 
@@ -92,13 +93,14 @@ public class Picard {
 		public static final String METRICS = ".metrics.txt";
 
 		private String fullPathToSamFile, fullPathToSortedBamFile, fullPathToSortedDeDuppedBamFile, fullPathToSortedDeDuppedBamFileIndex, fullPathToMetricsTxt, baseID;
-		private boolean allThere;
+		private boolean allThere, fail;
 		private Logger log;
 
 		public Picard_Analysis(String baseId, String fullPathToSamFile, Logger log) {
 			super();
 			this.baseID = baseId;
 			this.fullPathToSamFile = fullPathToSamFile;
+			this.fail = false;
 			this.log = log;
 		}
 
@@ -143,6 +145,14 @@ public class Picard {
 
 		public void setAllThere(boolean allThere) {
 			this.allThere = allThere;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
 		}
 
 	}

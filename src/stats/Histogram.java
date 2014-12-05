@@ -42,6 +42,19 @@ public class Histogram {
 			}
         }
 	}
+
+	/**
+	 * When the data to be used is not known before hand (many many data points from a .bam file, etc...) This is generally the constructor used for {@link DynamicHistogram}
+	 */
+	private Histogram(double min, double max, int sigfigs) {
+		this.min = min;
+		this.max = max;
+		this.sigfigs = sigfigs;
+		this.window = DEFAULT_WINDOW;
+		this.peakThreshold = DEFAULT_PEAK_THRESHOLD;
+		this.counts = new int[(int) ((max - min) * Math.pow(10, sigfigs)) + 1];
+		this.sumTotal = 0;
+	}
 	
 	public Histogram(float[] array, float min, float max, int sigfigs) {
 		this(array, array.length, min, max, sigfigs);
@@ -196,6 +209,46 @@ public class Histogram {
 	        e.printStackTrace();
         }
     }
+	
+	public double getMin() {
+		return min;
+	}
+
+	public double getMax() {
+		return max;
+	}
+
+	public int getSigfigs() {
+		return sigfigs;
+	}
+	
+	public void addToSumTotal(){
+		sumTotal++;
+	}
+
+	/**
+	 * Extension of {@link Histogram} that allows data to be added on the fly, useful when there are many millions of data points that do not need to be kept in memory
+	 *
+	 */
+	public static class DynamicHistogram extends Histogram {
+
+		public DynamicHistogram(double min, double max, int sigfigs) {
+			super(min, max, sigfigs);
+		}
+
+		public void addDataPointToHistogram(double data) {
+			addToSumTotal();
+			if (Double.isNaN(data)) {
+
+			} else if (data < getMin()) {
+				getCounts()[0]++;
+			} else if (data > getMax()) {
+				getCounts()[getCounts().length - 1]++;
+			} else {
+				getCounts()[(int) (data * Math.pow(10, getSigfigs()) - getMin() * Math.pow(10, getSigfigs()))]++;
+			}
+		}
+	}
 	
 	public static void main(String[] args) {
 	    int numArgs = args.length;
