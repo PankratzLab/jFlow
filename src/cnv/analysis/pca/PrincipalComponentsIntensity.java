@@ -566,7 +566,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			clusterComponent = Math.max(numGenoCounts - 1, 0);
 		}
 		clusterComponent = Math.min(atComponent, clusterComponent);
-		System.out.println("Clustering at " + clusterComponent + "\t" + currentCorrectionRatio + "\t" + correctionRatio + "\t" + numGenoCounts);
+		if (verbose) {
+			log.report("Clustering at component " + clusterComponent + "\tCurrent correction Ratio:" + currentCorrectionRatio + "\tMax correction Ratio:" + correctionRatio + "\tNumber in cluster " + geno + ":" + numGenoCounts);
+		}
 		return clusterComponent;
 	}
 
