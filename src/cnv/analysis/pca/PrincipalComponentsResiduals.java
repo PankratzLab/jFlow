@@ -749,7 +749,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 */
 	public double[][] getTrimmedPreppedPCs(int numComponents, boolean sortByProject) {
 		double[][] trimmedPrepped = prepPcs(trimPcBasis(numComponents, pcBasis, log));
-		if (!sortByProject) {
+		if (sortByProject) {
 			return trimmedPrepped;
 		} else {
 			String[] samples = proj.getSamples();
