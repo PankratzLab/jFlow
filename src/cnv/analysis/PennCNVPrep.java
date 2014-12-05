@@ -72,7 +72,7 @@ public class PennCNVPrep {
 			// TODO, if we have more than 6 threads we could probably do that here
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			MarkerData markerDataToStore = null;
-			PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(principalComponentsResiduals, markerData, true, sampleSex, samplesToUseCluster, 1, 0, null, true, false, 2, 5, 0, numCorrectionThreads, false, null);
+			PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(principalComponentsResiduals, markerData, true, sampleSex, samplesToUseCluster, 1, 0, null, true, false, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numCorrectionThreads, false, null);
 			markerDataLoader.releaseIndex(i);
 			principalComponentsIntensity.correctXYAt(numComponents);
 			if (principalComponentsIntensity.isFail()) {

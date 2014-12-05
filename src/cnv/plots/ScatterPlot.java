@@ -15,6 +15,7 @@ import stats.ProbDist;
 import java.awt.*;
 import java.awt.event.*;
 
+import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.*;
 import cnv.gui.AnnotationAction;
@@ -62,7 +63,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 	private JPanel qcPanel;
-	private JLabel pcLabel,nStageStDevLabel;
+	private JLabel pcLabel, nStageStDevLabel, correctionRatioLabel;
 	private JScrollPane annotationScrollPane;
 	private JPanel annotationPanel;
 	private JPanel annotationPanelLowerPart;
@@ -121,7 +122,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private boolean fail;
 	private boolean exitOnClose;
 	private Logger log;
-	private double stdevFilter;
+	private double stdevFilter, correctionRatio;
 	private int numComponents ;
 	private PrincipalComponentsResiduals pcResids;
 	
@@ -138,6 +139,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		this.exitOnClose = exitOnClose;
 		gcThreshold = (float)DEFAULT_GC_THRESHOLD/100f;
 		stdevFilter =0;
+		correctionRatio =PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO;
 		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
 		if (!Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY), proj.getJarStatus())) {
@@ -550,6 +552,42 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 		return pcSliderPanel;
 }
+
+	private JPanel nstageCorrectionRatio() {
+		JPanel pcSliderPanel = new JPanel();
+		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
+		pcSliderPanel.setBackground(BACKGROUND_COLOR);
+
+		JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 100, DEFAULT_SIZE);
+		// slider.setSize(new Dimension(150, 20));
+		slider.setBackground(BACKGROUND_COLOR);
+		slider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+		slider.setValue(0);
+		slider.setBackground(BACKGROUND_COLOR);
+		correctionRatioLabel = new JLabel("Correction Ratio " + correctionRatio, JLabel.CENTER);
+		correctionRatioLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+		String usage = "This limits the ratio of PCs to the number of samples in a cluster...";
+
+		correctionRatioLabel.setToolTipText(usage);
+		// tabPanel.add(gcLabel, gbc);
+		pcSliderPanel.add(correctionRatioLabel);
+
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent ce) {
+				JSlider slider = (JSlider) ce.getSource();
+				correctionRatio = (double) slider.getValue() / 100;
+				correctionRatioLabel.setText("Correction Ratio " + correctionRatio);
+				scatPanel.setPointsGeneratable(true);
+				scatPanel.setQcPanelUpdatable(true);
+				scatPanel.paintAgain();
+				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
+			}
+		});
+		// tabPanel.add(slider, gbc);
+		pcSliderPanel.add(slider);
+
+		return pcSliderPanel;
+	}
 	private JPanel clusterFilterPanel() {
 		JPanel clusterFilterPanel = new JPanel();
 		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
@@ -662,7 +700,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		controlPanel.add(gcSliderPanel(), gbc);
 		controlPanel.add(pcSliderPanel(), gbc);
 		controlPanel.add(nstageStdevSliderPanel(), gbc);
-
+		controlPanel.add(nstageCorrectionRatio(), gbc);
+		
 		ItemListener symmetryListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
 //				scatPanel.setPointsGenerated(true); ??? Why not true?
@@ -2592,6 +2631,11 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 	public double getstdevFilter() {
 		return stdevFilter;
+	}
+	
+
+	public double getCorrectionRatio() {
+		return correctionRatio;
 	}
 
 	public JCheckBox getCorrectionBox() {

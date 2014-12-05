@@ -28,12 +28,15 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	public static final String XY_RETURN = "X_Y";
 	public static final String THETA_R_RETURN = "THETA_R";
 	public static final String BAF_LRR_RETURN = "BAF_LRR";
+	public static final double DEFAULT_CORRECTION_RATIO = 0.1;
+	public static final double DEFAULT_RESID_STDV_FILTER = 0.0;
 
 	private static final int[] CORRECTION_INTS = { 0, 1, 2, 3 };
 	private static final int KILL_INT = -99;
 	private static final String[] AFFY_INTENSITY_ONLY_FLAG = { "CN_" };
 	private static final String[] ILLUMINA_INTENSITY_ONLY_FLAG = { "cnvi" };
-	private static final double MIN_CLUSTER_PERCENT = 0.05;
+	private static final double MIN_CLUSTER_PERCENT = 0.0;//
+
 	private CentroidCompute centroid;
 	private boolean fail, svdRegression, verbose;
 	private int correctionMethod, nStage, numThreads;
@@ -42,11 +45,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private float[][] correctedXCluster, correctedYCluster;
 	private int[] genoClusterCounts;
 	private int numTotalSamples;
-	private double residStandardDeviationFilter;
+	private double residStandardDeviationFilter, correctionRatio;
 	private boolean[][] genoSampleClusters;// genotype, sample
 	private boolean[] forceThisCluster;
 
-	public PrincipalComponentsIntensity(PrincipalComponentsResiduals principalComponentsResiduals, MarkerData markerData, boolean recomputeLRR, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean svdRegression, int correctionMethod, int nStage, double residStandardDeviationFilter, int numThreads, boolean verbose, String output) {
+	public PrincipalComponentsIntensity(PrincipalComponentsResiduals principalComponentsResiduals, MarkerData markerData, boolean recomputeLRR, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean svdRegression, int correctionMethod, int nStage, double residStandardDeviationFilter, double correctionRatio, int numThreads, boolean verbose, String output) {
 		super(principalComponentsResiduals);// we hijack the loading of the PC file and tracking of samples etc ...
 		this.samples = proj.getSamples();
 		this.svdRegression = svdRegression;
@@ -61,6 +64,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		this.correctedYFull = new float[numTotalSamples];
 		this.forceThisCluster = new boolean[3];
 		this.numThreads = numThreads;
+		this.correctionRatio = correctionRatio;
 		if (centroid.failed()) {
 			fail = true;
 		}
@@ -81,6 +85,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		return centroid.getClustGenotypes();
 	}
 
+	/**
+	 * TODO, do we want to force, and keep the correction ratio as well? This method is now a place holder if we want to revert to up-front forcing, {@link PrincipalComponentsIntensity#MIN_CLUSTER_PERCENT} must be altered if you ever want to force clusters.
+	 */
 	public boolean shouldforceOriginalGenotypes() {// to switch genotypes, we demand that we have at least two valid clusters above min size
 		int goodClust = 0;
 		for (int i = 0; i < genoClusterCounts.length; i++) {
@@ -106,6 +113,12 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 	public void correctXYAt(int atComponent) {
 		if (!fail) {
+			if (atComponent > getNumComponents()) {
+				if (verbose) {
+					log.report("Warning - cannot correct at " + atComponent + ", only " + getNumComponents() + " are available. Setting correction to " + getNumComponents());
+				}
+				atComponent = getNumComponents();
+			}
 			assignGenotypeClusterStatus(centroid.getClustGenotypes());
 			if (hasSomeGenotypes()) {
 				this.correctedXCluster = new float[genoSampleClusters.length][];
@@ -230,7 +243,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private void correctXYRegression(int atComponent) {
 		CrossValidation[][] cvals = threadIt(atComponent, Array.toDoubleArray(centroid.getMarkerData().getXs()), Array.toDoubleArray(centroid.getMarkerData().getYs()));
 		for (int i = 0; i < genoSampleClusters.length; i++) {
-			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				correctedXCluster[i] = Array.toFloatArray(Array.subArray(cvals[i][0].getResiduals(), genoSampleClusters[i]));
 				correctedYCluster[i] = Array.toFloatArray(Array.subArray(cvals[i][1].getResiduals(), genoSampleClusters[i]));
@@ -258,7 +271,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		CrossValidation[][] cvals = threadIt(atComponent, Xs, Ys);// organaized as genotype,x/y
 
 		for (int i = 0; i < genoSampleClusters.length; i++) {
-			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 
 				CrossValidation cvalX = cvals[i][0];
@@ -355,7 +368,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		ExecutorService executor = Executors.newFixedThreadPool(Math.min(6, numThreads));// da pool of threads, maximum of 6 needed
 		Hashtable<String, Future<CrossValidation>> tmpResults = new Hashtable<String, Future<CrossValidation>>();
 		for (int i = 0; i < genoSampleClusters.length; i++) {
-			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				String keyX = i + "_" + clusterComponent + "_X";
 				String keyY = i + "_" + clusterComponent + "_Y";
@@ -370,7 +383,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		}
 
 		for (int i = 0; i < genoSampleClusters.length; i++) {
-			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				String keyX = i + "_" + clusterComponent + "_X";
 				String keyY = i + "_" + clusterComponent + "_Y";
@@ -504,7 +517,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		return isClusterBigEnough(genoClusterCounts, numSamples) && clusterComponent > 0;
 	}
 
-	public static boolean isClusterBigEnough(int count, int numSamples) {
+	private static boolean isClusterBigEnough(int count, int numSamples) {
 		return (double) count / numSamples > MIN_CLUSTER_PERCENT;
 	}
 
@@ -534,18 +547,26 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	}
 
 	/**
-	 * We check to make sure this cluster has enough individuals to use for a given number of components. We try to use the max number we can
+	 * We check to make sure this cluster has enough individuals to use for a given number of components. We now use the max number we can if correction ratio is 0
 	 */
-	private static int getProperComponent(int atComponent, int numGenoCounts, int geno, String markerName, boolean verbose, Logger log) {
+	private static int getProperComponent(int atComponent, int numGenoCounts, int geno, double correctionRatio, String markerName, boolean verbose, Logger log) {
 		int clusterComponent = atComponent;
-		if (numGenoCounts <= clusterComponent) {// number of inds must be greater than the number of PCs being regressed
-			clusterComponent = Math.max(numGenoCounts - 1, 0);
+		double currentCorrectionRatio = (double) clusterComponent / numGenoCounts;
+		if (currentCorrectionRatio > correctionRatio) {// need adjust the ratio
+			clusterComponent = Math.max(Math.round((float) correctionRatio * numGenoCounts - 1), 0);
+			clusterComponent = Math.min(clusterComponent, numGenoCounts - 1);// number of inds must be greater than the number of PCs being regressed
+
 			if (clusterComponent > 0) {
 				if (verbose) {
 					log.report("Warning - marker " + markerName + " only has " + numGenoCounts + (numGenoCounts == 1 ? " individual " : " individuals") + " for the " + ScatterPlot.GENOTYPE_OPTIONS[geno + 1] + " genotype, can only correct for " + clusterComponent + (clusterComponent + clusterComponent == 1 ? " component " : " components"));
 				}
 			}
 		}
+		if (correctionRatio == 1) {
+			clusterComponent = Math.max(numGenoCounts - 1, 0);
+		}
+		clusterComponent = Math.min(atComponent, clusterComponent);
+		System.out.println("Clustering at " + clusterComponent + "\t" + currentCorrectionRatio + "\t" + correctionRatio + "\t" + numGenoCounts);
 		return clusterComponent;
 	}
 
