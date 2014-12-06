@@ -403,7 +403,7 @@ public class AnalysisFormats implements Runnable {
 		return centroids;
 	}
 	
-	public static String[] pennCNVSexHackMultiThreaded(Project proj, String gcModelFile) {
+	public static String[] pennCNVSexHackMultiThreaded(Project proj, String gcModelFile, boolean useExcluded) {
 		String sampleDataFile;
 		final String sampleDir;
 		String sexDir, pennDir, pennData;
@@ -479,11 +479,15 @@ public class AnalysisFormats implements Runnable {
 		jar = proj.getJarStatus();
 		gzip = proj.getBoolean(Project.PENNCNV_GZIP_YESNO);
 		
-		includeSamplesList = proj.getSamplesToInclude(null);
-		if (!sampleData.hasExcludedIndividuals()) {
-			log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
+		if (!useExcluded) {
+			includeSamplesList = proj.getSamplesToInclude(null);
+			if (!sampleData.hasExcludedIndividuals()) {
+				log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
+			}
+			allSamples = Array.subArray(proj.getSamples(), includeSamplesList);
+		} else {
+			allSamples = proj.getSamples();
 		}
-		allSamples = Array.subArray(proj.getSamples(), includeSamplesList);
 		
 		sampleDataFile = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
 		header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());

@@ -138,7 +138,9 @@ public class ForestPanel extends AbstractPanel {
 		float xAxisValue, yAxisValue;
 
 		float xAxisStep = (float) calcStepStep(plotXmax - plotXmin);
+		xAxisStep = Math.max(xAxisStep, 0.1f);
 		float yAxisStep = (float) calcStepStep(plotYmax - plotYmin);
+		yAxisStep = Math.max(yAxisStep, 0.1f);
 		
 		for (int i = 0; i < currentData.size(); i++) {
 			if(currentData.get(i).getBeta() != 0 && currentData.get(i).getStderr() != 0){
@@ -146,9 +148,12 @@ public class ForestPanel extends AbstractPanel {
 				yAxisValue = (float) i + 1;
 				// max scale = .25
 //				float scale = currentData.get(i).getZScore() / forestPlot.getMaxZScore() / 4;
+				
 				float scale = (float) (Math.sqrt(currentData.get(i).getZScore()) / Math.sqrt(forestPlot.getMaxZScore()) / 4);
 				float xDelta = xAxisStep * scale;
 				float yDelta = yAxisStep * scale;
+				xDelta = Math.max(xDelta, 0.05f);
+				yDelta = Math.max(yDelta, 0.05f);
 				rectData.add(new GenericRectangle(xAxisValue - xDelta, 
 													yAxisValue - yDelta, 
 													xAxisValue + xDelta, 
@@ -198,13 +203,14 @@ public class ForestPanel extends AbstractPanel {
 			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf)), fontMetrics.stringWidth(ext.formDeci(max, sf)));
 			numHashes = 12;
 			while ((wid+30)*numHashes>canvasSectionMaximumX-canvasSectionMinimumX) {
-				numHashes -= 2;
+				numHashes -= 1;
 			}
 		} else {
 			numHashes = 10;
 		}
+		numHashes = Math.max(numHashes, 1);
 
-		while (range / plotStep > numHashes) {
+		while (range / plotStep >= numHashes) {
 			plotStep += stepStep;
 		}
 		plotMin = plotMax = 0;
@@ -228,13 +234,14 @@ public class ForestPanel extends AbstractPanel {
 			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf)), fontMetrics.stringWidth(ext.formDeci(max, sf)));
 			numHashes = 12;
 			while ((wid+30)*numHashes>canvasSectionMaximumX-canvasSectionMinimumX) {
-				numHashes -= 2;
+				numHashes -= 1;
 			}
 		} else {
 			numHashes = (int) ((canvasSectionMaximumY - canvasSectionMinimumY) / (fontMetrics.getHeight()));
 		}
+		numHashes = Math.max(numHashes, 1);
 		
-		while (range / plotStep > numHashes) {
+		while (range / plotStep >= numHashes) {
 			plotStep += stepStep;
 		}
 
@@ -414,9 +421,12 @@ public class ForestPanel extends AbstractPanel {
 
 			// Calculate the plot area's range (X-axis, Y-axis)
 			plotMinMaxStep = null;
-//
-			leftsize = determineLongestLeft(g, getMarkerFontSize());
-			rightsize = determineRightBorder(g, getMarkerFontSize());
+			
+			float xRange = getXPixel(maximumObservedRawX) - getXPixel(minimumObservedRawX);
+			float yRange = getYPixel(minimumObservedRawY) - getYPixel(maximumObservedRawY);
+			
+			leftsize = determineLongestLeft(g, getMarkerFontSize(g));
+			rightsize = determineRightBorder(g, getMarkerFontSize(g));
 //			System.out.println("size: " + getMarkerFontSize());
 
 			if (displayXaxis) {
@@ -452,7 +462,7 @@ public class ForestPanel extends AbstractPanel {
 			}
 
 			if (displayYaxis) {
-				g.setFont(new Font("Arial", 0, (int)getMarkerFontSize()));
+				g.setFont(new Font("Arial", 0, (int)getMarkerFontSize(g)));
 				fontMetrics = g.getFontMetrics();
 				canvasSectionMinimumX = 0;
 				canvasSectionMaximumX = WIDTH_BUFFER + rightsize;
@@ -462,21 +472,23 @@ public class ForestPanel extends AbstractPanel {
 //				System.out.println("points: " + (points.length + 1) + "y axis pixel:" + (canvasSectionMaximumY - canvasSectionMinimumY)/(points.length+1)*0.70);
 				if (!makeSymmetric || plotMinMaxStep == null) {
 					plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
+					System.out.println(Array.toStr(plotMinMaxStep));
 				}
-				
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
+				
 				sigFigs = getNumSigFig(plotMinMaxStep[2]);
-				for (double y = plotMinMaxStep[3]; y <= plotYmax; y += plotMinMaxStep[2]) {
+				double step = Math.max(0.5, Math.round(plotMinMaxStep[2] * 2) / 2.0f);
+				for (double y = plotMinMaxStep[3]; y <= plotYmax; y += step) {
 					if ((y >= plotYmin && y == (int) y && y <= points.length && y > 0) || !truncate) {
 //						Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
 						str = str.split("\\.")[0];
 						int index = Integer.parseInt(str) - 1;
 						String left = points[index].getId().split("\\|")[0];
-						g.drawString(left, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(left) - 15, getYPixel(y) + 3);
+						g.drawString(left, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(left) - 15, getYPixel(y) + 7);
 						String right = points[index].getId().split("\\|")[1];
-						g.drawString(right, getWidth() - rightsize + 15, getYPixel(y) + 3);
+						g.drawString(right, getWidth() - rightsize + 15, getYPixel(y) + 7);
 					}
 				}
 				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
@@ -593,7 +605,7 @@ public class ForestPanel extends AbstractPanel {
 			g.setFont(new Font("Arial", Font.ITALIC, 16));
 			String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
 			if (!"".equals(comm)) {
-				int w = fontMetrics.stringWidth(comm);
+				int w = fontMetrics.stringWidth(comm) / 2;
 				g.drawString(comm, getWidth() / 2 - w, 2 * HEAD_BUFFER + 14);
 			}
 		}
@@ -714,14 +726,29 @@ public class ForestPanel extends AbstractPanel {
 	private int determineLongestLeft(Graphics g, double markerFontSize) {
 		Font        defaultFont = new Font("Arial", 0, (int) markerFontSize);
 		FontMetrics fmt =  g.getFontMetrics(defaultFont);
-		int width = fmt.stringWidth(forestPlot.getLongestStudyNameSize());
+		int width = fmt.stringWidth(forestPlot.getLongestStudyName());
 		return (int) Math.floor(width);
 	}
 
-	private double getMarkerFontSize() {
-		double scale = 0.60;
-		double mkSz = ((getWidth() - WIDTH_BUFFER) - WIDTH_Y_AXIS) / (points.length * 2) * scale;
-		return mkSz;
+	private double getMarkerFontSize(Graphics g) {
+//		double scale = 0.60;
+//		double mkSz = ((getWidth() - WIDTH_BUFFER) - WIDTH_Y_AXIS) / (points.length * 2) * scale;
+//		double mkSz = 20 - Math.atan(points.length - 15);
+//		return mkSz;
+		String largestLbl = forestPlot.getLongestStudyName();
+		double yRange = getHeight() - (2 * HEAD_BUFFER) - (2 * HEIGHT_X_AXIS);
+		double studies = points.length;
+		double xMax = getWidth() / 4;
+		double yMax = yRange / studies;
+		
+		int fontSz = 20;
+		FontMetrics fm = g.getFontMetrics(new Font("Arial", 0, fontSz));
+		while (fm.getHeight() > yMax || fm.stringWidth(largestLbl) > xMax) {
+			fontSz--;
+			fm = g.getFontMetrics(new Font("Arial", 0, fontSz));
+		}
+		
+		return fontSz;
 	}
 
 	public void setSortedDisplay(boolean sorted) {

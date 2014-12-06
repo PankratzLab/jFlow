@@ -35,7 +35,7 @@ class MetaStudy {
 		nameMap.put(studyData.getLabel(), studyData);
 	}
 
-	String findLongestStudyNameSize() {
+	String findLongestStudyName() {
 		String longest = "";
 		for(StudyData ft : getStudies()){
 			longest = longest.length() < ft.getLabel().length() ? ft.getLabel() : longest;
@@ -186,7 +186,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private ForestPanel forestPanel;
 	private float maxZScore;
 	private float sumZScore;
-	private String longestStudyNameSize;
+	private String longestStudyName;
 	private JCheckBox btnSortStudies;
 	private JLayeredPane layeredPane;
 	private JButton first, previous, next, last;
@@ -390,12 +390,12 @@ public class ForestPlot extends JPanel implements ActionListener{
 		maxZScore = getCurrentMetaStudy().findMaxZScore();
 		maxZScore = getCurrentMetaStudy().findMaxZScore();
 		sumZScore = getCurrentMetaStudy().calcSumZScore();
-		longestStudyNameSize = getCurrentMetaStudy().findLongestStudyNameSize();
+		longestStudyName = getCurrentMetaStudy().findLongestStudyName();
 		setPlotLabel(getDataIndices().get(index).marker);
 	}
 	
-	public String getLongestStudyNameSize() {
-		return longestStudyNameSize;
+	public String getLongestStudyName() {
+		return longestStudyName;
 	}
 
 	private void loadStudyData(ForestInput data) throws RuntimeException{
@@ -649,59 +649,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 		}
 	}
 	
-	public static void main(String[] args) {
-		int numArgs = args.length;
-//		String betaSource = "SeqMeta_results.csv";
-		String markerList = "markersToDisplay.txt";
-		String sourceType = "SeqMeta";
-		String logfile = null;
-		final Logger log;
-
-		String usage = "\n" + "cnv.plots.ForestPlot requires 2 arguments\n" +
-//				"(1) Name of the file with betas and standard errors (i.e. betaSource=" + betaSource +"(default))\n" +
-				"(1) File type (i.e. type=" + sourceType +" (default))\n" +
-				"(2) Name of the file with the list of markers to display (i.e. markerList="+ markerList +" (default))\n" + "";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-//			} else if (args[i].startsWith("betaSource=")) {
-//				betaSource = args[i].split("=")[1];
-//				numArgs--;
-			} else if (args[i].startsWith("type=")) {
-				sourceType = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("markerList=")) {
-				markerList = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			log = new Logger(logfile);
-
-//			final String finalDataFile = betaSource;
-			final String finalMarkerFile = markerList;
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					createAndShowGUI(finalMarkerFile, log);
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-
 	public MetaStudy getCurrentMetaStudy() {
 		return currMetaStudy;
 	}
@@ -740,4 +687,57 @@ public class ForestPlot extends JPanel implements ActionListener{
 	public void setPlotLabel(String plotLabel) {
 		this.plotLabel = plotLabel;
 	}
+
+
+	public static void main(String[] args) {
+			int numArgs = args.length;
+	//		String betaSource = "SeqMeta_results.csv";
+			String markerList = "markersToDisplay.txt";
+			String sourceType = "SeqMeta";
+			String logfile = null;
+			final Logger log;
+	
+			String usage = "\n" + "cnv.plots.ForestPlot requires 2 arguments\n" +
+	//				"(1) Name of the file with betas and standard errors (i.e. betaSource=" + betaSource +"(default))\n" +
+					"(1) File type (i.e. type=" + sourceType +" (default))\n" +
+					"(2) Name of the file with the list of markers to display (i.e. markerList="+ markerList +" (default))\n" + "";
+	
+			for (int i = 0; i < args.length; i++) {
+				if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+					System.err.println(usage);
+					System.exit(1);
+	//			} else if (args[i].startsWith("betaSource=")) {
+	//				betaSource = args[i].split("=")[1];
+	//				numArgs--;
+				} else if (args[i].startsWith("type=")) {
+					sourceType = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith("markerList=")) {
+					markerList = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith("log=")) {
+					logfile = args[i].split("=")[1];
+					numArgs--;
+				} else {
+					System.err.println("Error - invalid argument: " + args[i]);
+				}
+			}
+			if (numArgs != 0) {
+				System.err.println(usage);
+				System.exit(1);
+			}
+			try {
+				log = new Logger(logfile);
+	
+	//			final String finalDataFile = betaSource;
+				final String finalMarkerFile = markerList;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						createAndShowGUI(finalMarkerFile, log);
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 }
