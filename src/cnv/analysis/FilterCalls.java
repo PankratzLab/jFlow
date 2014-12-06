@@ -119,7 +119,6 @@ public class FilterCalls {
 //		famFile = dir + filenameNoExt + ".fam";
 		
 		outputFile = dir + filenameNoExt + "_CNVStats.xln";
-		writer = new PrintWriter(outputFile);
 		
 		sampleData = proj.getSampleData(0, false);
 		
@@ -144,6 +143,9 @@ public class FilterCalls {
 		 * OUTPUT
 		 * |  SAMPLE/DNA  |  FID  |  IID  |  Excluded  |  LRRSD  |  CNV COUNTS ....  |    |    | 
 		 */
+		String header = "SAMPLE/DNA\tFID\tIID\tExclude\tLRRSD\t#CNVs\t#CNVs_c10p10\t#CNVs_c20p10";
+		writer = new PrintWriter(outputFile);
+		writer.println(header);
 		reader = new BufferedReader(new FileReader(qcFile));
 		String line, SID, FID, IID, LRRSD;
 		boolean excluded;
@@ -195,7 +197,7 @@ public class FilterCalls {
 			outputNodes.add(cnvNode);
 			
 			for (CNVariant comp : compCNVs) {
-				if (cnv.equalsIncludingIndividual(comp)) continue;
+				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= (cnv.getSize() / 2)) {
@@ -248,7 +250,7 @@ public class FilterCalls {
 			outputNodes.add(cnvNode);
 			
 			for (CNVariant comp : compCNVs) {
-				if (cnv.equalsIncludingIndividual(comp)) continue;
+				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= (cnv.getSize() / 2)) {
@@ -890,6 +892,7 @@ public class FilterCalls {
 		String listFile = null;
 		String[] listFiles = null;
 		String excludeFile = null;
+		String projName = null;
 		boolean exclude = false;
 		boolean group = false;
 		boolean stats = false;
@@ -1025,6 +1028,9 @@ public class FilterCalls {
 			} else if (args[i].startsWith("log=")) {
 				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;				
+			} else if (args[i].startsWith("proj=")) { 
+				projName = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - don't know what to do with argument: "+args[i]);
 			}
@@ -1067,6 +1073,9 @@ public class FilterCalls {
 				}
 			} else if (listFiles != null) {
 				filterLists(in, listFiles, out);
+			} else if (projName != null) {
+				Project proj = new Project(projName, false);
+				CNVStats(proj, dir, in);
 			} else if (excludeFile != null) {
 				filterExclusions(dir, in, out, excludeFile);
 			} else {

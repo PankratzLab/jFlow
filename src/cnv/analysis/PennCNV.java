@@ -910,11 +910,21 @@ public class PennCNV {
 			log.reportException(e);
 		}
 	}
+	
+	private static String[] getSamplesForTransform(Project proj, boolean incl, boolean excl) {
+		if (incl && excl) {
+			return proj.getSamples();
+		} else if (incl) {
+			return Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
+		} else if (excl) {
+			return Array.subArray(proj.getSamples(), Array.booleanNegative(proj.getSamplesToInclude(null)));
+		} else return null;
+	}
 
-	public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent, boolean transformData, int batch, boolean qsub, String pfbFile, String gcmodelFile, boolean submitImmed, boolean createCombined) {
+	public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent, boolean transformData, int batch, boolean qsub, String pfbFile, String gcmodelFile, boolean submitImmed, boolean createCombined, boolean useExcludes) {
 		if (transformData) {
 			
-			String[] samples = Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
+			String[] samples = getSamplesForTransform(proj, false, useExcludes);
 
 			if (auto) {
 				proj.getLog().report("Transforming data for autosomal CNV analysis");
@@ -961,7 +971,7 @@ public class PennCNV {
 			proj.getLog().report("Transforming data for 'faked' chromosomal CNV analysis");
 			// [males.pfb, females.pfb, sexSpecific.gcModel]
 			
-			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile);
+			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes);
 //			String[] files = AnalysisFormats.pennCNVSexHackSingleThreaded(proj, gcmodelFile);
 
 			proj.getLog().report("Creating batch scripts for 'faked' chromosomal CNV analysis");
@@ -1017,6 +1027,7 @@ public class PennCNV {
 		String outputFile = null;
 		boolean recode = false;
 		boolean submit = false;
+		boolean excludes = false;
 		
 		String usage = "\n"+
 		"cnv.park.PennCNV requires 0-1 arguments\n"+
@@ -1106,6 +1117,9 @@ public class PennCNV {
 			} else if (args[i].startsWith("-submit")) {
 				submit = true;
 				numArgs--;
+			} else if (args[i].startsWith("-useExcluded")) {
+				excludes = true;
+				numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -1135,7 +1149,7 @@ public class PennCNV {
 				gcModel(proj, gc5base, proj.getProjectDir()+"custom.gcmodel", 100);
 			}
 			if (batch > 0) {
-				doBatch(proj, auto, chrx, sexCent, transformData, batch, qsub, pfbFile, gcmodelFile, qsub ? submit : false, recode);
+				doBatch(proj, auto, chrx, sexCent, transformData, batch, qsub, pfbFile, gcmodelFile, qsub ? submit : false, recode, excludes);
 			}
 			if (rawlog != null) {
 				parseWarnings(proj, rawlog);

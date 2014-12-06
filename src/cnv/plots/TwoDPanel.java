@@ -505,11 +505,15 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				if (sampleData != null && ids != null) {
 					sampColor = this.colorScheme[sampleData.determineCodeFromClass(tdp.colorKeyPanel.getCurrentClass(), (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) 0, 0)];
 				}
-				if (sample != null && region != null) {
-					if (region2 != null) {
-						menu.add(new LaunchAction(proj, sample, new String[]{region, region2}, sampColor == null ? Color.GRAY : sampColor));
+				if (sample != null) {
+					if (region != null) {
+						if(region2 != null) {
+							menu.add(new LaunchAction(proj, sample, new String[]{region, region2}, sampColor == null ? Color.GRAY : sampColor));
+						} else {
+							menu.add(new LaunchAction(proj, sample, region, sampColor == null ? Color.GRAY : sampColor));
+						}
 					} else {
-						menu.add(new LaunchAction(proj, sample, region, sampColor == null ? Color.GRAY : sampColor));
+						menu.add(new LaunchAction(proj, sample, Trailer.DEFAULT_LOCATION, sampColor));
 					}
 				}
 			}
