@@ -79,6 +79,7 @@ public class BWA_Analysis {
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
 						if (!tmpResults.get(i + "").get()) {
+							log.reportError("Error - failed bwa for " + bwAnalysisIndividuals[i].getAvailableFiles("\n"));
 							fail = true;
 						}
 					} catch (InterruptedException e) {
