@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import cnv.plots.ForestPlot.ForestInput;
 import stats.Maths;
 import common.Array;
 import common.Grafik;
@@ -74,8 +73,12 @@ public class ForestPanel extends AbstractPanel {
 			ForestInput input;
 			String errorMessage;
 			
-			input = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex());
-			errorMessage = "Cannot generate points for marker "+input.marker+" because the data did not load; check to see if file \""+input.file+"\" actually exists and if the beta/stderr columns are named as expected";
+			if (forestPlot.getDataIndices().size() == 0) {
+				errorMessage = "No data file selected, or no data found in input file.  Please select a data file.";
+			} else {
+				input = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex());
+				errorMessage = "Cannot generate points for marker "+input.marker+" because the data did not load; check to see if file \""+input.file+"\" actually exists and if the beta/stderr columns are named as expected";
+			}
 			setNullMessage(errorMessage);
 			log.reportError("Error - "+errorMessage);
 			
@@ -467,18 +470,18 @@ public class ForestPanel extends AbstractPanel {
 				canvasSectionMinimumX = 0;
 				canvasSectionMaximumX = WIDTH_BUFFER + rightsize;
 				canvasSectionMinimumY = HEIGHT_X_AXIS + (fontMetrics.getHeight() * 2);
-				canvasSectionMaximumY = getHeight() - (2 * HEAD_BUFFER);
+				canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 				
 //				System.out.println("points: " + (points.length + 1) + "y axis pixel:" + (canvasSectionMaximumY - canvasSectionMinimumY)/(points.length+1)*0.70);
 				if (!makeSymmetric || plotMinMaxStep == null) {
 					plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
-					System.out.println(Array.toStr(plotMinMaxStep));
+//					System.out.println(Array.toStr(plotMinMaxStep));
 				}
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
 				
 				sigFigs = getNumSigFig(plotMinMaxStep[2]);
-				double step = Math.max(0.5, Math.round(plotMinMaxStep[2] * 2) / 2.0f);
+				double step = 1;//Math.max(1, Math.round(plotMinMaxStep[2] * 2) / 2.0f);
 				for (double y = plotMinMaxStep[3]; y <= plotYmax; y += step) {
 					if ((y >= plotYmin && y == (int) y && y <= points.length && y > 0) || !truncate) {
 //						Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
@@ -517,7 +520,7 @@ public class ForestPanel extends AbstractPanel {
 		canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
 		canvasSectionMaximumX = getWidth() - rightsize;
 		canvasSectionMinimumY = HEIGHT_X_AXIS + (fontMetrics.getHeight() * 2);
-		canvasSectionMaximumY = getHeight() - (2 * HEAD_BUFFER);
+		canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 		
 		
 		// Draw the lines
@@ -588,7 +591,7 @@ public class ForestPanel extends AbstractPanel {
 			Grafik.drawThickLine(g, xL, yM, xM, yD, 2, META_COLOR);
 			Grafik.drawThickLine(g, xM, yD, xR, yM, 2, META_COLOR);
 			
-			int yMin = (3 * HEAD_BUFFER) - 5;
+			int yMin = (4 * HEAD_BUFFER) - 5;
 			int yMax = getHeight() - HEIGHT_X_AXIS;
 			
 			Grafik.drawThickLine(g, getXPixel(0.0), yMin, getXPixel(0.0), yMax, 3, Color.BLACK);
@@ -606,7 +609,7 @@ public class ForestPanel extends AbstractPanel {
 			String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
 			if (!"".equals(comm)) {
 				int w = fontMetrics.stringWidth(comm) / 2;
-				g.drawString(comm, getWidth() / 2 - w, 2 * HEAD_BUFFER + 14);
+				g.drawString(comm, getWidth() / 2 - w, 3 * HEAD_BUFFER + 14);
 			}
 		}
 		

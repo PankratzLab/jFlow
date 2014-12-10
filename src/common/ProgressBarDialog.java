@@ -20,7 +20,7 @@ public class ProgressBarDialog extends JDialog {
 		
 		this.timeDelay = timeDelay;
 		timeStarted = System.currentTimeMillis();
-
+		
 		pb = new JProgressBar(min, max);
 		pb.setPreferredSize(new Dimension(175, 20));
 		pb.setStringPainted(true);
@@ -42,11 +42,18 @@ public class ProgressBarDialog extends JDialog {
 		this.timeDelay = delay;
 	}
 
-	public void setProgress(int value) {
-		if (System.currentTimeMillis() - timeStarted > timeDelay) {
-			pb.setValue(value);
-			pb.setString((int)((double)value/(double)(pb.getMaximum()-pb.getMinimum())*100)+"%");
-		}
+	public void setProgress(final int value) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if (System.currentTimeMillis() - timeStarted > timeDelay) {
+					pb.setValue(value);
+					pb.setString((int)((double)value/(double)(pb.getMaximum()-pb.getMinimum())*100)+"%");
+				}
+				
+			}
+		});
+
 	}
 
 	public void close() {

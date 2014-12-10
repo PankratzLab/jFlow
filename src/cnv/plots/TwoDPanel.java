@@ -206,17 +206,31 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		}
 		for (int i = 0; i < points.length; i++) {
 			line = currentData.elementAt(i);
-			xAxisValue = Float.parseFloat(line[1]);
-			yAxisValue = Float.parseFloat(line[2]);
-			if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
-				type = PlotPoint.NOT_A_NUMBER;
+			boolean missing = false;
+			for (String miss : TwoDPlot.MISSING_VALUES) {
+				if (miss.equals(line[1]) || miss.equals(line[2])) {
+					missing = true;
+					break;
+				}
+			}
+			if (missing) {
+				xAxisValue = Float.NaN;
+				yAxisValue = Float.NaN;
+				type = PlotPoint.MISSING;
 				uniqueValueCounts.add("0");
-//			} else if (alleleCounts[i]==-1) {
-//				type = PlotPoint.MISSING;
-//				uniqueValueCounts.add("0");
 			} else {
-				type = PlotPoint.FILLED_CIRCLE;
-				uniqueValueCounts.add(line[3]);
+				xAxisValue = Float.parseFloat(line[1]);
+				yAxisValue = Float.parseFloat(line[2]);
+				if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
+					type = PlotPoint.NOT_A_NUMBER;
+					uniqueValueCounts.add("0");
+	//			} else if (alleleCounts[i]==-1) {
+	//				type = PlotPoint.MISSING;
+	//				uniqueValueCounts.add("0");
+				} else {
+					type = PlotPoint.FILLED_CIRCLE;
+					uniqueValueCounts.add(line[3]);
+				}
 			}
 			if (swapAxes) {
 				points[i] = new PlotPoint(line[0], type, yAxisValue, xAxisValue, (byte)5, Byte.parseByte(line[3]), (byte)0);

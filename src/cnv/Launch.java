@@ -51,6 +51,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String TWOD = "2D Plot";
 	public static final String LINE_PLOT = "Line Plot";
 	public static final String COMP = "Comp module";
+	public static final String FOREST_PLOT = "Forest Plot";
 
 	public static final String GENERATE_ABLOOKUP = "Generate AB Lookup";
 	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
@@ -285,8 +286,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	private JPanel topIconBar() {
 		JPanel iconBar;
 		JButton button;
-		String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg"};
-		String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD};
+		String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg", "images/forestPlot1.png"};
+		String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD, FOREST_PLOT};
 		
 		iconBar = new JPanel();
 		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -457,6 +458,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				LinePlot.createAndShowGUI(proj);
 			} else if (command.equals(COMP)) {
 				new CompPlot(proj);
+			} else if (command.equals(FOREST_PLOT)) {
+				ForestPlot plot = new ForestPlot(proj);
+				plot.setVisible(true);
 			} else if (command.equals(POPULATIONBAF)) {
 				cnv.analysis.PennCNV.populationBAF(proj);
 			} else if (command.equals(EXPORT_CNVS)) {

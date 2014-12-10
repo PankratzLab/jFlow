@@ -54,6 +54,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static int POS_INDEX_IN_LINKERS = 6;
 	public static int STOP_POS_INDEX_IN_LINKERS = 7;
 	
+	public static final String[] MISSING_VALUES = {"."};
+	
 	/*
 	 * regex to match and pull out column title, chromosome, and position
 	 */
@@ -413,7 +415,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 
-	public void setColorKeyHnadler(int[] selectedColorKey){
+	public void setColorKeyHandler(int[] selectedColorKey){
 		String[][] selectedNodes;
 
 		selectedNodes = tree.getSelectionValues();
@@ -980,7 +982,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 					@Override
 					public void actionPerformed(ActionEvent e1) {
-						setColorKeyHnadler(tree.getSelectionRows());
+						setColorKeyHandler(tree.getSelectionRows());
 					}
 				});
 				menu.add(new AbstractAction("Set As Link Key") {
@@ -1387,7 +1389,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             	dataHash.get(filename).add(line);
             	for (int i=0; i<header.length; i++) {
             		if (!ext.isValidDouble(line[i])) {
-            			numericHash.get(filename)[i] = false;
+            			boolean res = false;
+            			for (String miss : MISSING_VALUES) {
+            				if (miss.equals(line[i])) {
+            					res = true;
+            					break;
+            				}
+            			}
+            			numericHash.get(filename)[i] = res;
             		}
             	}
             }

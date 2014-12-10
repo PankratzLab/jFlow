@@ -100,7 +100,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 			}
 
 			// In Collapsed mode, draw a 'xN' to indicate that there are N CNVs associated with this rectangle
-			if (displayMode.equals("Collapsed")) {
+			if (displayMode.equals("Collapsed") && cnvRect.getCNVs().size() > 1) {
 				String numCNVs = "x" + cnvRect.getCNVs().size();
 				// If there are 0 copies it may end up black, so don't draw black-on-black
 				if (cnvRect.getCNV().getCN() == 0) {
