@@ -81,7 +81,7 @@ public class Picard {
 				}
 			}
 		}
-		picard_Analysis.setFail(progress);
+		picard_Analysis.setFail(!progress);
 		return picard_Analysis;
 	}
 

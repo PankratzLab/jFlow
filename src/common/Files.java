@@ -1732,6 +1732,29 @@ public class Files {
 		}
 	}
 	
+	/**
+	 * @param dir
+	 *            directory, set to "" if full paths
+	 * @param filenames
+	 *            array of filenames to check...all will be checked
+	 * @param verbose
+	 *            report an error to the log for each filename missing
+	 * @param log
+	 * @return true if all files exist
+	 */
+	public static boolean checkAllFiles(String dir, String[] filenames, boolean verbose, Logger log) {
+		boolean result = true;
+		for (int i = 0; i < filenames.length; i++) {
+			if (!Files.exists(dir + filenames[i])) {
+				if (verbose & log != null) {
+					log.reportError("Error - could not find file " + dir + filenames[i]);
+				}
+				result = false;
+			}
+		}
+		return result;
+	}
+
 	public static boolean isDirectory(String handle) {
 		return exists(handle) && new File(handle).isDirectory();
 	}

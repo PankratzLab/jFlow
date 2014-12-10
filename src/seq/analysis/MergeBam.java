@@ -81,7 +81,7 @@ public class MergeBam {
 		if (bamMerger.shouldMerge()) {
 			progress = mergeSomeBams(bamMerger.getInputBams(), bamMerger.getOutputBam(), altLog);
 		}
-		bamMerger.setFail(progress);
+		bamMerger.setFail(!progress);
 		return bamMerger;
 	}
 

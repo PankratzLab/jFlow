@@ -21,11 +21,19 @@ public class GATK {
 	public static final String INDEL_REALIGNER = "IndelRealigner";
 	public static final String BASE_RECALIBRATOR = "BaseRecalibrator";
 	public static final String ANALYZE_COVARIATES = "AnalyzeCovariates";
+	public static final String HAPLOTYPE_CALLER = "HaplotypeCaller";
+
 	public static final String PRINT_READS = "PrintReads";
 	public static final String[] LOAD_R = { "module load R", "R" };
 	public static final String RSCRIPT = "Rscript";
 	public static final String NT = "-nt";
 	public static final String NCT = "-nct";
+
+	public static final String ERC_MODE = "--emitRefConfidence GVCF";
+	public static final String VARIANT_INDEX_LINEAR = "--variant_index_type LINEAR";
+	public static final String VARIANT_INDEX_PARAMETER = "--variant_index_parameter 128000";
+	public static final String DB_SNP = "--dbsnp";
+	public static final String DB_SNP_FILE = "dbsnp";
 
 	public static final String BEFORE = "-before";
 	public static final String AFTER = "-after";
@@ -41,6 +49,9 @@ public class GATK {
 
 	public static final String TARGET_INTERVALS = "-targetIntervals";
 	public static final String O = "-o";
+
+	public static final String VCF = ".vcf";
+	public static final String GVCF = ".gvcf";
 
 	private String GATKLocation, referenceGenomeFasta;
 	private String[] knownSitesSnpFile, knownSitesIndelFile;
@@ -90,7 +101,7 @@ public class GATK {
 				}
 			}
 		}
-		baseRecalibration.setFail(progress);
+		baseRecalibration.setFail(!progress);
 		return baseRecalibration;
 	}
 
@@ -105,8 +116,17 @@ public class GATK {
 				indelPrep.setAllThere(progress);
 			}
 		}
-		indelPrep.setFail(progress);
+		indelPrep.setFail(!progress);
 		return indelPrep;
+	}
+
+	public SingleSampleHaplotypeCaller haplotypeCallABam(String baseId, String inputBam, Logger altLog) {
+		boolean progress = false;
+		SingleSampleHaplotypeCaller haplotypeCaller = new SingleSampleHaplotypeCaller(inputBam, baseId, altLog);
+		haplotypeCaller.parseInput();
+		progress = singleSampleAllSitesCall(haplotypeCaller.getInputBam(), haplotypeCaller.getOutputGVCF(), haplotypeCaller.getLog());
+		haplotypeCaller.setFail(progress);
+		return haplotypeCaller;
 	}
 
 	public String getReferenceGenomeFasta() {
@@ -189,6 +209,29 @@ public class GATK {
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] { referenceGenomeFasta, realigned_dedup_reads_bam, bqsrFile }, new String[] { output }, verbose, overWriteExisting, false, (altLog == null ? log : altLog));
 	}
 
+	private boolean singleSampleAllSitesCall(String bamFile, String output, Logger altLog) {
+		String dbSnpFile = null;
+		String[] input = new String[] { referenceGenomeFasta, bamFile };
+		if (knownSitesSnpFile != null && knownSitesSnpFile.length > 0) {
+			for (int i = 0; i < knownSitesSnpFile.length; i++) {
+				if (knownSitesSnpFile[i].contains("dbsnp")) {
+					dbSnpFile = knownSitesSnpFile[i];
+				}
+			}
+		}
+		if (dbSnpFile == null) {
+			log.reportError("Warning - did not detect a file containing \"" + DB_SNP_FILE + "\" in the file name, will not annotate variants");
+		} else {
+			if (verbose) {
+				log.report(ext.getTime() + " Info - will annotate variants from " + bamFile + " with db snp file " + dbSnpFile);
+			}
+			input = Array.concatAll(input, new String[] { dbSnpFile });
+		}
+
+		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile, ERC_MODE, VARIANT_INDEX_LINEAR, VARIANT_INDEX_PARAMETER, dbSnpFile == null ? "" : DB_SNP + " " + dbSnpFile };
+		return CmdLine.runCommandWithFileChecks(command, "", input, new String[] { output }, verbose, overWriteExisting, false, (altLog == null ? log : altLog));
+	}
+
 	public static class BaseRecalibration {
 		private static final String RECAL_DATA = ".recal_data.table";
 		private static final String RECAL = ".recal";
@@ -258,6 +301,60 @@ public class GATK {
 
 		public String getBaseId() {
 			return baseId;
+		}
+
+	}
+
+	public static class SingleSampleHaplotypeCaller {
+		private String inputBam, outputGVCF, baseId;
+		private boolean fail, allThere;
+		private Logger log;
+
+		public SingleSampleHaplotypeCaller(String inputBam, String baseId, Logger log) {
+			super();
+			this.inputBam = inputBam;
+			this.baseId = baseId;
+			this.log = log;
+		}
+
+		public void parseInput() {
+			this.outputGVCF = ext.rootOf(inputBam, false) + GVCF;
+		}
+
+		public String getBaseId() {
+			return baseId;
+		}
+
+		public void setBaseId(String baseId) {
+			this.baseId = baseId;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
+		}
+
+		public Logger getLog() {
+			return log;
+		}
+
+		public boolean isAllThere() {
+			return allThere;
+		}
+
+		public void setAllThere(boolean allThere) {
+			this.allThere = allThere;
+		}
+
+		public String getInputBam() {
+			return inputBam;
+		}
+
+		public String getOutputGVCF() {
+			return outputGVCF;
 		}
 
 	}
@@ -346,4 +443,5 @@ public class GATK {
 			return true;
 		}
 	}
+
 }
