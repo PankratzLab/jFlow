@@ -101,6 +101,7 @@ public class Project extends Properties {
 	public static final String LOG_LEVEL = "LOG_LEVEL";
 	public static final String INTENSITY_PC_FILENAME = "INTENSITY_PC_FILENAME";
 	public static final String INTENSITY_PC_NUM_COMPONENTS = "INTENSITY_PC_NUM_COMPONENTS";
+	public static final String FOREST_PLOT_FILES = "FOREST_PLOT_FILES";
 
 	private boolean jar;
 	private String projectPropertiesFilename;

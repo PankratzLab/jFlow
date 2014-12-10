@@ -1,13 +1,43 @@
 package cnv.plots;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.TreeMap;
+import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
+import cnv.filesys.Project;
 import common.Files;
 import common.Grafik;
 import common.Logger;
@@ -159,16 +189,70 @@ class StudyData {
 	}
 }
 
-public class ForestPlot extends JPanel implements ActionListener{
+class ForestInput {
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
+		result = prime * result + ((file == null) ? 0 : file.hashCode());
+		result = prime * result + ((marker == null) ? 0 : marker.hashCode());
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ForestInput other = (ForestInput) obj;
+		if (comment == null) {
+			if (other.comment != null)
+				return false;
+		} else if (!comment.equals(other.comment))
+			return false;
+		if (file == null) {
+			if (other.file != null)
+				return false;
+		} else if (!file.equals(other.file))
+			return false;
+		if (marker == null) {
+			if (other.marker != null)
+				return false;
+		} else if (!marker.equals(other.marker))
+			return false;
+		return true;
+	}
+	
+	final String marker;
+	final String file;
+	final String comment;
+	int[] metaIndicies;
+	HashMap<String, Integer> studyToColIndexMap;
+	
+	public ForestInput(String marker, String file, String comment) {
+		this.marker = marker;
+		this.file = file;
+		this.comment = comment;
+		this.studyToColIndexMap = new HashMap<String, Integer>();
+	}
+	
+}
+
+public class ForestPlot extends JFrame/*JPanel implements ActionListener*/ {
 	private static final long serialVersionUID = 1L;
 	
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String ADD_DATA_FILE = "Add Data File";
 	public static final String REMOVE_DATA_FILE = "Remove Data File";
-	private static final String ALT_UP = "ALT UP";
-	private static final String ALT_DOWN = "ALT DOWN";
-	private static final String ALT_LEFT = "ALT LEFT";
-	private static final String ALT_RIGHT = "ALT RIGHT";
+//	private static final String ALT_UP = "ALT UP";
+//	private static final String ALT_DOWN = "ALT DOWN";
+//	private static final String ALT_LEFT = "ALT LEFT";
+//	private static final String ALT_RIGHT = "ALT RIGHT";
 	private static final String BETA_META_HEADER = "beta";
 	private static final String SE_META_HEADER = "se";
 	private static final String BETA_PREFIX = "beta.";
@@ -187,39 +271,81 @@ public class ForestPlot extends JPanel implements ActionListener{
 	private float maxZScore;
 	private float sumZScore;
 	private String longestStudyName;
-	private JCheckBox btnSortStudies;
+	private JCheckBox chkSortStudies;
 	private JLayeredPane layeredPane;
 	private JButton first, previous, next, last;
+	private JButton btnScreen, btnScreenAll;
 	private JTextField navigationField;
+	private JComboBox<String> markerFileList;
+	private HashMap<String, String> markerFileNameLoc = new HashMap<String, String>();
 //	int curMarkerIndex;
 	private int currentDataIndex;
 	private boolean atleastOneStudy;
 
+	private String markerFileName;
 
-	public ForestPlot(/*String dataFile, */String markerFile, Logger log) {
-		this.log = log;
-		atleastOneStudy = false;
-		this.data = readMarkerFile(markerFile);
-		this.setDataIndices(new ArrayList<ForestInput>());
-		this.getDataIndices().addAll(data);
-		dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
+	protected Project proj;
 
-		Iterator<ForestInput> iter = this.data.iterator();
-		while(iter.hasNext()) {
-			ForestInput data = iter.next();
-			try{
-				loadStudyData(data);
-			} catch (RuntimeException re){
-				// TODO handle runtime exceptions!
-				log.reportException(re);
-			}
-		}
+	
+	public ForestPlot(Project proj) {
+		super("Genvisis - Forest Plot - " + proj.getNameOfProject());
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-		setCurrentData(0);
+		this.proj = proj;
+		this.log = proj.getLog();
+		setup();
+		
+		setBounds(20, 20, 1000, 600);
+		
+		pack();
+		setVisible(true);
+	}
+	
+	public ForestPlot(String markerFile, Logger log) {
+		super("Forest Plot");
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
+		this.log = log;
+		this.markerFileName = markerFile;
+		setup();
+		
+		setBounds(20, 20, 1000, 600);
+		
+		pack();
+		setVisible(true);
+	}
+	
+//	public static void createAndShowGUI(Project proj, String markerFile, Logger log) {
+//	
+//			// Create and set up the window.
+//			JFrame frame = new JFrame("Forest Plot");
+//			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//	
+//			// Create and set up the content pane.
+//			log.report("Creating new Forest Plot object");
+//			ForestPlot forestPlot;
+//			if (proj == null) {
+//				forestPlot = new ForestPlot(markerFile, log);
+//			} else {
+//				forestPlot = new ForestPlot(proj);
+//			}
+//			// frame.setJMenuBar(twoDPlot.menuBar());
+//	//		forestPlot.getContentPane().setOpaque(true); // content panes must be opaque
+//			frame.setContentPane(forestPlot);
+//			// frame.addWindowListener(twoDPlot);
+//			frame.setBounds(20, 20, 1000, 600);
+//	
+//			// Display the window.
+//			frame.pack();
+//			frame.setVisible(true);
+//		}
+
+	private void setup() {
 		
 		setLayout(new BorderLayout());
 
 		forestPanel = new ForestPanel(this, log);
+		forestPanel.setLayout(new BorderLayout());
 
 		layeredPane = new JLayeredPane();
 		layeredPane.setLayout(new BorderLayout());
@@ -242,7 +368,8 @@ public class ForestPlot extends JPanel implements ActionListener{
 		// button.addActionListener(this);
 		//infoPanel.add(header);
 
-		forestPanel.add(markerPanel(), BorderLayout.SOUTH);
+		forestPanel.add(createControlPanel(), BorderLayout.NORTH);
+//		forestPanel.add(createControlPanel(), BorderLayout.SOUTH);
 		//treePanel.add(infoPanel, BorderLayout.NORTH);
 
 
@@ -261,9 +388,10 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 		add(layeredPane, BorderLayout.CENTER);
 		inputMapAndActionMap();
-
-		forestPanel.setPointsGeneratable(true);// zx
-		forestPanel.setRectangleGeneratable(true);// zx
+		
+		reloadData();
+		forestPanel.setPointsGeneratable(this.markerFileName != null);
+		forestPanel.setRectangleGeneratable(this.markerFileName != null);
 		forestPanel.setExtraLayersVisible(new byte[] { 99 });
 		updateGUI();
 		displayIndex(navigationField);
@@ -296,7 +424,28 @@ public class ForestPlot extends JPanel implements ActionListener{
 	}
 
 
-	public void updateForestPlot(){
+	private void reloadData() {
+		atleastOneStudy = false;
+	
+		this.setDataIndices(new ArrayList<ForestInput>());
+		if (this.markerFileName != null) {
+			this.data = readMarkerFile(this.markerFileName);
+			this.getDataIndices().addAll(data);
+		} else {
+			this.data = new LinkedHashSet<ForestInput>();
+		}
+		
+		dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
+		
+		if (!this.data.isEmpty()) {
+			loadStudyData();
+			setCurrentData(0);
+		} else {
+			clearCurrentData();
+		}
+	}
+
+	private void updateForestPlot(){
 		forestPanel.setPointsGeneratable(true);// zx
 		forestPanel.setRectangleGeneratable(true);// zx
 		forestPanel.setExtraLayersVisible(new byte[] { 99 });
@@ -304,17 +453,15 @@ public class ForestPlot extends JPanel implements ActionListener{
 		updateGUI();
 	}
 	
-	private JPanel markerPanel() {
-		JPanel descrPanel = new JPanel();
-		JPanel navigationPanel = new JPanel();
+	private JPanel createControlPanel() {
 		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
 		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
-		first.addActionListener(this);
+		first.addActionListener(navFirstAction);
 		first.setActionCommand(FIRST);
 		first.setPreferredSize(new Dimension(20, 20));
 		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
 		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
-		previous.addActionListener(this);
+		previous.addActionListener(navPrevAction);
 		previous.setActionCommand(PREVIOUS);
 		previous.setPreferredSize(new Dimension(20, 20));
 		navigationField = new JTextField("", 8);
@@ -339,15 +486,14 @@ public class ForestPlot extends JPanel implements ActionListener{
 			}
 		});
 
-
 		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
 		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
-		next.addActionListener(this);
+		next.addActionListener(navNextAction);
 		next.setActionCommand(NEXT);
 		next.setPreferredSize(new Dimension(20, 20));
 		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
 		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
-		last.addActionListener(this);
+		last.addActionListener(navLastAction);
 		last.setActionCommand(LAST);
 		last.setPreferredSize(new Dimension(20, 20));
 		
@@ -355,32 +501,194 @@ public class ForestPlot extends JPanel implements ActionListener{
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				 ForestPlot.this.forestPanel.setSortedDisplay(btnSortStudies.isSelected());
+				 ForestPlot.this.forestPanel.setSortedDisplay(chkSortStudies.isSelected());
 				 ForestPlot.this.forestPanel.paintAgain();
 			}
 		};
-		btnSortStudies = new JCheckBox(sortAction);
-		btnSortStudies.setText("Sort Studies");
-		btnSortStudies.setBackground(BACKGROUND_COLOR);
+		chkSortStudies = new JCheckBox(sortAction);
+		chkSortStudies.setText("Sort Studies");
+		chkSortStudies.setBackground(BACKGROUND_COLOR);
+		chkSortStudies.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		
-		navigationPanel.add(first);
-		navigationPanel.add(previous);
-		navigationPanel.add(navigationField);
-		navigationPanel.add(next);
-		navigationPanel.add(last);
-		navigationPanel.add(btnSortStudies);
-
+		AbstractAction screenAction1 = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ForestPlot.this.screenCap();
+			}
+		};
+		AbstractAction screenAction2 = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ForestPlot.this.screenCapAll();
+			}
+		};
+		btnScreen = new JButton(screenAction1);
+		btnScreen.setText("Screen Capture");
+		btnScreen.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		btnScreen.setMinimumSize(new Dimension(140, 26));
+		btnScreen.setPreferredSize(new Dimension(140, 26));
+		btnScreen.setMaximumSize(new Dimension(140, 26));
+		
+		btnScreenAll = new JButton(screenAction2);
+		btnScreenAll.setText("Screen Capture All");
+		btnScreenAll.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		
+		JPanel subNavPanel = new JPanel();
+		subNavPanel.setBackground(BACKGROUND_COLOR);
+		subNavPanel.add(first);
+		subNavPanel.add(previous);
+		subNavPanel.add(navigationField);
+		subNavPanel.add(next);
+		subNavPanel.add(last);
+		
+		Vector<String> items = new Vector<String>();
+		items.add("Select Input File...");
+		if (proj != null) {
+			String[] files = proj.getFilenames(Project.FOREST_PLOT_FILES);
+			String name;
+			for (String file : files) {
+				name = ext.rootOf(file);
+				markerFileNameLoc.put(name, file);
+				items.add(name);
+			}
+		}
+		items.add("Add New File");
+		markerFileList = new JComboBox<String>(items);
+		markerFileList.setFont(new Font("Arial", 0, 12));
+		markerFileList.setMinimumSize(new Dimension(200, 20));
+		markerFileList.setPreferredSize(new Dimension(200, 20));
+		markerFileList.setMaximumSize(new Dimension(200, 20));
+		AbstractAction markerFileSelectAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String shortName = (String) ((JComboBox<String>)e.getSource()).getSelectedItem();
+				if (!"Add New File".equals(shortName) && !"Select Input File...".equals(shortName)) {
+					String file = markerFileNameLoc.get(shortName);
+					if (file != null && file.equals(ForestPlot.this.markerFileName)) {
+						return;
+					}
+					ForestPlot.this.markerFileName = file;
+					reloadData();
+					forestPanel.setPointsGeneratable(ForestPlot.this.markerFileName != null);
+					forestPanel.setRectangleGeneratable(ForestPlot.this.markerFileName != null);
+					forestPanel.setExtraLayersVisible(new byte[] { 99 });
+					updateGUI();
+					displayIndex(navigationField);
+				} else if ("Select Input File...".equals(shortName)) {
+					// leave as currently selected marker
+					if (ForestPlot.this.markerFileName != "" && ForestPlot.this.markerFileName != null) {
+						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(ForestPlot.this.markerFileName));
+					}
+					return;
+				} else {
+					// TODO Add new file
+				}
+			}
+		};
+		markerFileList.addActionListener(markerFileSelectAction);
+		
+		JPanel navigationPanel = new JPanel();
+		navigationPanel.setLayout(new BoxLayout(navigationPanel, BoxLayout.Y_AXIS));
 		navigationPanel.setBackground(BACKGROUND_COLOR);
+		navigationPanel.add(subNavPanel);
+		navigationPanel.add(markerFileList);
+		navigationPanel.add(Box.createVerticalGlue());
+		
+		final JPanel subOptPanel = new JPanel();
+		subOptPanel.setLayout(new BoxLayout(subOptPanel, BoxLayout.Y_AXIS));
+		subOptPanel.setBackground(BACKGROUND_COLOR);
+		subOptPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		subOptPanel.add(btnScreen);
+		subOptPanel.add(Box.createRigidArea(new Dimension(0,5)));
+		subOptPanel.add(btnScreenAll);
+		
+		JPanel optPanel = new JPanel() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Dimension getMaximumSize() {
+				return super.getPreferredSize();
+			}
+		};
+		optPanel.setBackground(BACKGROUND_COLOR);
+		optPanel.add(chkSortStudies);
+		optPanel.add(subOptPanel);
+
+		
+		JPanel descrPanel = new JPanel();
+		descrPanel.setLayout(new BoxLayout(descrPanel, BoxLayout.X_AXIS));
+		// All of these are needed (or at least, have some effect)
+		descrPanel.add(Box.createHorizontalGlue());
+		descrPanel.add(Box.createHorizontalGlue());
+		descrPanel.add(Box.createHorizontalGlue());
+		descrPanel.add(Box.createHorizontalGlue());
+		descrPanel.add(Box.createHorizontalGlue());
 		descrPanel.add(navigationPanel);
+		descrPanel.add(Box.createHorizontalGlue());
+		descrPanel.add(Box.createHorizontalGlue());
+		descrPanel.add(Box.createHorizontalGlue());
+		descrPanel.add(optPanel);
 		descrPanel.setBackground(BACKGROUND_COLOR);
 		return descrPanel;
 	}
 	
-	public void displayIndex(JTextField field) {
-		field.setText((getCurrentDataIndex() + 1) + " of " + getDataIndices().size());
+	private void screenCapture(boolean allMarkers) {
+		if (allMarkers) {
+			screenCapAll();
+		} else {
+			screenCap();
+		}
+	}
+	
+	private void screenCapAll() {
+		int currentSelection = getCurrentDataIndex();
+		ArrayList<ForestInput> data = getDataIndices();
+		for (int i = 0; i < data.size(); i++) {
+			setCurrentData(i);
+			forestPanel.createImage();
+			String marker = "", filename = "", ctrlFile = "";
+			int count = 1;
+			String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.getProjectDir());
+			do {
+				marker = getDataIndices().get(getCurrentDataIndex()).marker;
+				ctrlFile = ext.rootOf(markerFileName);
+				filename = marker + "_" + ctrlFile + "_v" + count;
+				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+				count++;
+			} while (new File(root+filename+".png").exists());
+			log.report("Writing screenshot to file " + root + filename + ".png");
+			ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
+		}
+		setCurrentData(currentSelection);
+		updateForestPlot();
+	}
+	
+	private void screenCap() {
+		String marker = "", filename = "", ctrlFile = "";
+		int count = 1;
+		String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.getProjectDir());
+		do {
+			marker = getDataIndices().get(getCurrentDataIndex()).marker;
+			ctrlFile = ext.rootOf(markerFileName);
+			filename = marker + "_" + ctrlFile + "_v" + count;
+			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+			count++;
+		} while (new File(root+filename+".png").exists());
+		log.report("Writing screenshot to file " + root + filename + ".png");
+		ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
+	}
+	
+	private void displayIndex(JTextField field) {
+		if (getDataIndices().size() == 0) {
+			field.setText("0 of 0");
+		} else {
+			field.setText((getCurrentDataIndex() + 1) + " of " + getDataIndices().size());
+		}
 	}
 	
 	private void setCurrentData(int index) {
+		if (this.data.size() == 0 || index < 0 || index > this.data.size()) return;
 		setCurrentDataIndex(index);
 		setCurrentMetaStudy(dataToMetaMap.get(getDataIndices().get(index)));
 		if (getCurrentMetaStudy() == null) {
@@ -394,41 +702,68 @@ public class ForestPlot extends JPanel implements ActionListener{
 		setPlotLabel(getDataIndices().get(index).marker);
 	}
 	
+	private void clearCurrentData() {
+		setCurrentDataIndex(-1);
+		setCurrentMetaStudy(null);
+		maxZScore = 0;
+		maxZScore = 0;
+		sumZScore = 0;
+		longestStudyName = "";
+		setPlotLabel("");
+	}
+	
 	public String getLongestStudyName() {
 		return longestStudyName;
 	}
 
-	private void loadStudyData(ForestInput data) throws RuntimeException{
-		BufferedReader dataReader = Files.getReader(data.file, 
-														false, // not a jar file
-														true, // verbose mode on 
-														log, 
-														false // don't kill the whole process, esp. if we're running a GUI
-														);
-		if (dataReader == null) {
-			return;
-		}
-		String delimiter = Files.determineDelimiter(data.file, log);
-		try {
-			dataReader.readLine();	// skip header
-			
-			mapMarkersToCol(data);
-			
-			while(dataReader.ready()) {
-				String readLine = dataReader.readLine();
-				String readData[] = delimiter.equals(",")?ext.splitCommasIntelligently(readLine, true, log):readLine.split(delimiter);
-				String markerName = readData[1];
-				if(data.marker.equals(markerName)) {
-					dataToMetaMap.put(data, getMetaStudy(data, readData));
-					atleastOneStudy = true;
-				}
+	private void loadStudyData() throws RuntimeException {
+		Iterator<ForestInput> iter = this.data.iterator();
+		HashMap<String, ArrayList<ForestInput>> files = new HashMap<String, ArrayList<ForestInput>>();
+		while(iter.hasNext()) {
+			ForestInput fi = iter.next();
+			ArrayList<ForestInput> inputList = files.get(fi.file);
+			if (inputList == null) {
+				inputList = new ArrayList<ForestInput>();
+				files.put(fi.file, inputList);
 			}
-		} catch (IOException e) {
-			log.reportException(e);
+			inputList.add(fi);
 		}
-
-		if(!atleastOneStudy) {
-			log.reportError("Not able to find data for marker '"+data.marker+"'. Please make sure the given markers are correct and included in data file '"+data.file+"'.");
+		for (java.util.Map.Entry<String, ArrayList<ForestInput>> fileMap : files.entrySet()) {
+			BufferedReader dataReader = Files.getReader(fileMap.getKey(), 
+															false, // not a jar file
+															true, // verbose mode on 
+															log, 
+															false // don't kill the whole process, esp. if we're running a GUI
+															);
+			if (dataReader == null) {
+				continue;
+			}
+			String delimiter = Files.determineDelimiter(fileMap.getKey(), log);
+			String header;
+			try {
+				header = dataReader.readLine();	// skip header
+				
+				for (ForestInput inputData : fileMap.getValue()) {
+					mapMarkersToCol(inputData, header);
+				}
+				while (dataReader.ready()) {
+					String readLine = dataReader.readLine();
+					String readData[] = delimiter.equals(",") ? ext.splitCommasIntelligently(readLine, true, log) : readLine.split(delimiter);
+					String markerName = readData[1];
+					for (ForestInput inputData : fileMap.getValue()) {
+						if(inputData.marker.equals(markerName)) {
+							dataToMetaMap.put(inputData, getMetaStudy(inputData, readData));
+							atleastOneStudy = true;
+						}
+					}
+				}
+			} catch (IOException e) {
+				log.reportException(e);
+			}
+	
+			if(!atleastOneStudy) {
+				log.reportError("Not able to find data for file '"+fileMap.getKey()+"'. Please make sure the given markers are correct and included in data file.");
+			}
 		}
 	}
 	
@@ -463,8 +798,9 @@ public class ForestPlot extends JPanel implements ActionListener{
 		return studies;
 	}
 	
-	private void mapMarkersToCol(ForestInput data) throws RuntimeException {
-		String[] dataFileHeaders = Files.getHeaderOfFile(data.file, data.file.toLowerCase().endsWith(".csv")?",!":null, this.log);
+	private void mapMarkersToCol(ForestInput data, String hdr) throws RuntimeException {
+		String delim = data.file.toLowerCase().endsWith(".csv") ? ",!" : ext.determineDelimiter(hdr);
+		String[] dataFileHeaders = delim.startsWith(",") ? ext.splitCommasIntelligently(hdr, delim.endsWith("!"), log) : hdr.trim().split(delim);
 		for (int i = 0; i < dataFileHeaders.length; i++) {
 			if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADER)) {
 				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADER)) {
@@ -488,60 +824,6 @@ public class ForestPlot extends JPanel implements ActionListener{
 		dataFileHeaders = null;
 	}
 	
-	class ForestInput {
-		
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-			result = prime * result + ((file == null) ? 0 : file.hashCode());
-			result = prime * result + ((marker == null) ? 0 : marker.hashCode());
-			return result;
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			ForestInput other = (ForestInput) obj;
-			if (comment == null) {
-				if (other.comment != null)
-					return false;
-			} else if (!comment.equals(other.comment))
-				return false;
-			if (file == null) {
-				if (other.file != null)
-					return false;
-			} else if (!file.equals(other.file))
-				return false;
-			if (marker == null) {
-				if (other.marker != null)
-					return false;
-			} else if (!marker.equals(other.marker))
-				return false;
-			return true;
-		}
-		
-		final String marker;
-		final String file;
-		final String comment;
-		int[] metaIndicies;
-		HashMap<String, Integer> studyToColIndexMap;
-		
-		public ForestInput(String marker, String file, String comment) {
-			this.marker = marker;
-			this.file = file;
-			this.comment = comment;
-			this.studyToColIndexMap = new HashMap<String, Integer>();
-		}
-		
-	}
-	
 	private LinkedHashSet<ForestInput> readMarkerFile(String markerFile) {
 		LinkedHashSet<ForestInput> markerNames = new LinkedHashSet<ForestInput>();
 		BufferedReader markerReader = Files.getReader(markerFile, false, true, true);
@@ -549,33 +831,17 @@ public class ForestPlot extends JPanel implements ActionListener{
 		try {
 			while (markerReader.ready()) {
 				String[] line = markerReader.readLine().trim().split("\\t");
-				markerNames.add(new ForestInput(line[0], line[1], line.length > 2 ? line[2] : ""));
+				if (line.length >= 2) {
+					markerNames.add(new ForestInput(line[0], line[1], line.length > 2 ? line[2] : ""));
+				} else if (line.length == 1) {
+					markerNames.add(new ForestInput(line[0], "", ""));
+				}
 			}
 		} catch (IOException e) {
 			log.reportException(e);
 		}
 		
 		return markerNames;
-	}
-
-	public static void createAndShowGUI(String markerFile, Logger log) {
-
-		// Create and set up the window.
-		JFrame frame = new JFrame("Forest Plot");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-		// Create and set up the content pane.
-		log.report("Creating new Forest Plot object");
-		ForestPlot forestPlot = new ForestPlot(markerFile, log);
-		// frame.setJMenuBar(twoDPlot.menuBar());
-		forestPlot.setOpaque(true); // content panes must be opaque
-		frame.setContentPane(forestPlot);
-		// frame.addWindowListener(twoDPlot);
-		frame.setBounds(20, 20, 1000, 600);
-
-		// Display the window.
-		frame.pack();
-		frame.setVisible(true);
 	}
 
 	public float getMaxZScore() {
@@ -592,69 +858,68 @@ public class ForestPlot extends JPanel implements ActionListener{
 
 	private void inputMapAndActionMap() {
 		InputMap inputMap = forestPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), FIRST);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), LAST);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), PREVIOUS);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), NEXT);
 		ActionMap actionMap = forestPanel.getActionMap();
+		actionMap.put(FIRST, navFirstAction);
+		actionMap.put(LAST, navLastAction);
+		actionMap.put(PREVIOUS, navPrevAction);
+		actionMap.put(NEXT, navNextAction);
 		forestPanel.setActionMap(actionMap);
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent ae) {
-
-		String command = ae.getActionCommand();
-//		String filename;
-//		int count;
-
-		if (command.equals(FIRST)) {
-			first();
-		} else if (command.equals(PREVIOUS)) {
-			previous();
-		} else if (command.equals(NEXT)) {
-			next();
-		} else if (command.equals(LAST)) {
-			last();
-		} else {
-			log.reportError("Error - unknown command '"+command+"'");
+	AbstractAction navFirstAction = new AbstractAction() {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(getCurrentDataIndex() != 0){
+				setCurrentData(0);
+				updateForestPlot();
+			}
 		}
+	};
 
-	}
-
-	public void first() {
-		if(getCurrentDataIndex() != 0){
-			setCurrentData(0);
-			updateForestPlot();
+	AbstractAction navPrevAction = new AbstractAction() {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(getCurrentDataIndex() != 0){
+				setCurrentData(getCurrentDataIndex() - 1);
+				updateForestPlot();
+			}
 		}
-	}
+	};
 
-	public void previous() {
-		if(getCurrentDataIndex() != 0){
-			setCurrentData(getCurrentDataIndex() - 1);
-			updateForestPlot();
+	AbstractAction navNextAction = new AbstractAction() {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(getCurrentDataIndex() < getDataIndices().size() - 1){
+				setCurrentData(getCurrentDataIndex() + 1);
+				updateForestPlot();
+			}
 		}
-	}
+	};
 
-	public void next() {
-		if(getCurrentDataIndex() != getDataIndices().size() - 1){
-			setCurrentData(getCurrentDataIndex() + 1);
-			updateForestPlot();
+	AbstractAction navLastAction = new AbstractAction() {
+		private static final long serialVersionUID = 1L;
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(getCurrentDataIndex() < getDataIndices().size() - 1){
+				setCurrentData(getDataIndices().size() - 1);
+				updateForestPlot();
+			}
 		}
-	}
-
-	public void last() {
-		if(getCurrentDataIndex() < getDataIndices().size() - 1){
-			setCurrentData( getDataIndices().size() - 1);
-			updateForestPlot();
-		}
-	}
+	};
 	
 	public MetaStudy getCurrentMetaStudy() {
 		return currMetaStudy;
 	}
 
 
-	public void setCurrentMetaStudy(MetaStudy currMetaStudy) {
+	private void setCurrentMetaStudy(MetaStudy currMetaStudy) {
 		this.currMetaStudy = currMetaStudy;
 	}
 
@@ -664,7 +929,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	}
 
 
-	public void setCurrentDataIndex(int currentDataIndex) {
+	private void setCurrentDataIndex(int currentDataIndex) {
 		this.currentDataIndex = currentDataIndex;
 	}
 
@@ -674,7 +939,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	}
 
 
-	public void setDataIndices(ArrayList<ForestInput> dataIndices) {
+	private void setDataIndices(ArrayList<ForestInput> dataIndices) {
 		this.dataIndices = dataIndices;
 	}
 
@@ -684,7 +949,7 @@ public class ForestPlot extends JPanel implements ActionListener{
 	}
 
 
-	public void setPlotLabel(String plotLabel) {
+	private void setPlotLabel(String plotLabel) {
 		this.plotLabel = plotLabel;
 	}
 
@@ -693,14 +958,15 @@ public class ForestPlot extends JPanel implements ActionListener{
 			int numArgs = args.length;
 	//		String betaSource = "SeqMeta_results.csv";
 			String markerList = "markersToDisplay.txt";
-			String sourceType = "SeqMeta";
+//			String sourceType = "SeqMeta";
+			String filename = null;
 			String logfile = null;
 			final Logger log;
 	
-			String usage = "\n" + "cnv.plots.ForestPlot requires 2 arguments\n" +
-	//				"(1) Name of the file with betas and standard errors (i.e. betaSource=" + betaSource +"(default))\n" +
-					"(1) File type (i.e. type=" + sourceType +" (default))\n" +
-					"(2) Name of the file with the list of markers to display (i.e. markerList="+ markerList +" (default))\n" + "";
+			String usage = "\n" + "cnv.plots.ForestPlot requires 1 arguments\n" +
+					"  (1) Name of the file with the list of markers (SeqMeta format), files, and comments, to display (i.e. markerList="+ markerList +" (default))\n" +
+					"OR\n" +
+					"  (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n";
 	
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -709,8 +975,11 @@ public class ForestPlot extends JPanel implements ActionListener{
 	//			} else if (args[i].startsWith("betaSource=")) {
 	//				betaSource = args[i].split("=")[1];
 	//				numArgs--;
-				} else if (args[i].startsWith("type=")) {
-					sourceType = args[i].split("=")[1];
+//				} else if (args[i].startsWith("type=")) {
+//					sourceType = args[i].split("=")[1];
+//					numArgs--;
+				} else if (args[i].startsWith("proj=")) {
+					filename = args[i].split("=")[1];
 					numArgs--;
 				} else if (args[i].startsWith("markerList=")) {
 					markerList = args[i].split("=")[1];
@@ -727,13 +996,18 @@ public class ForestPlot extends JPanel implements ActionListener{
 				System.exit(1);
 			}
 			try {
+				final Project proj = (filename != null ? new Project(filename, false) : null);
 				log = new Logger(logfile);
 	
 	//			final String finalDataFile = betaSource;
 				final String finalMarkerFile = markerList;
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						createAndShowGUI(finalMarkerFile, log);
+						if (proj != null) {
+							new ForestPlot(proj);
+						} else {
+							new ForestPlot(finalMarkerFile, log);
+						}
 					}
 				});
 			} catch (Exception e) {
