@@ -2269,6 +2269,29 @@ public class Array {
 		return subArray(array, start, array.length);
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static <T> T[] subArray(T[] array, boolean[] use) {
+		T[] subarray;
+		int count;
+		
+		if (array.length != use.length) {
+			System.err.println("Error - mismatched array lengths for boolean subset");
+			return null;
+		}
+		
+		count = 0;
+		subarray = (T[]) java.lang.reflect.Array.newInstance(array[0].getClass(), booleanArraySum(use));// new T[booleanArraySum(use)];
+		
+		for (int i = 0; i < array.length; i++) {
+			if (use[i]) {
+				subarray[count] = array[i];
+				count++;
+			}
+		}
+		
+		return subarray;
+	}
+	
 	/**
 	 * Creates a new array using only the strings at indices with a true in the boolean array
 	 * 
