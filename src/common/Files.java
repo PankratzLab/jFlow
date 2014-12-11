@@ -2231,6 +2231,21 @@ public class Files {
         return -1;
 	}
 	
+	public static int countLines(String filename, int discard) {
+		try {
+			LineNumberReader lnr = new LineNumberReader(new java.io.FileReader(filename));
+			lnr.skip(Long.MAX_VALUE);
+			int lines = lnr.getLineNumber();
+			lnr.close();
+			return lines - discard;
+	    } catch (FileNotFoundException fnfe) {
+	        System.err.println("Error: file \""+filename+"\" not found in current directory");
+	    } catch (IOException ioe) {
+	        System.err.println("Error reading file \""+filename+"\"");
+	    }
+		return -1;
+	}
+	
 	public static boolean countIfMoreThanNLines(String filename, int n) {
 		BufferedReader reader;
         int count;
