@@ -34,7 +34,7 @@ public class LrrSd extends Parallelizable {
 		float[][][] cents;
 		byte[] chrs, abGenotypes, forwardGenotypes;
 		float[] lrrs, bafs, bafsWide;
-		double abCallRate, forwardCallRate, wfPost, gcwfPost, lrrsdPost;
+		double abCallRate, forwardCallRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdPost;
 		int[] bafBinCounts;
 		boolean multimodal;
 		int subIndex = -1;
@@ -84,7 +84,7 @@ public class LrrSd extends Parallelizable {
 			}
 
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
-			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate\tWF_Post_Correction\tGCWF_Post_Correction\tLRR_SD_Post_Correction");
+			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate\tWF_Prior_Correction\tGCWF_Prior_Correction\tWF_Post_Correction\tGCWF_Post_Correction\tLRR_SD_Post_Correction");
 			
 			for (int i = 0; i<samples.length; i++) {
 	        	log.report((i+1)+" of "+samples.length);
@@ -143,13 +143,16 @@ public class LrrSd extends Parallelizable {
 						}
 						forwardCallRate /= forwardGenotypes.length;
 					}
-
+					wfPrior = Double.NaN;
+					gcwfPrior = Double.NaN;
 					wfPost = Double.NaN;
 					gcwfPost = Double.NaN;
 					lrrsdPost = Double.NaN;
 					if (gcModel != null) {
-						GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, fsamp, gcModel, false, false, true, false);
+						GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, fsamp, gcModel, false, true, true, false);
 						if (!gcAdjustor.isFail()) {
+							wfPrior = gcAdjustor.getWfPrior();
+							gcwfPrior = gcAdjustor.getGcwfPrior();
 							wfPost = gcAdjustor.getWfPost();
 							gcwfPost = gcAdjustor.getGcwfPost();
 							if (markersForEverythingElse == null) {
@@ -161,7 +164,7 @@ public class LrrSd extends Parallelizable {
 					}
 					
 					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + "\t" + abCallRate + "\t" + forwardCallRate + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
+					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + "\t" + abCallRate + "\t" + forwardCallRate + "\t" + wfPrior + "\t" + gcwfPrior + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
 					writer.flush();
 				}
 			}
