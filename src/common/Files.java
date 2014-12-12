@@ -394,9 +394,36 @@ public class Files {
 		String filename, trav;
 
 		try {
-			writer = new PrintWriter(new FileWriter("master."+(root==null?"qsub":root)));
+			if (root == null) {
+				filename = "master.qsub";
+			} else {
+				trav = root;
+				for (int j = 0; j<iterations[0].length; j++) {
+					trav = ext.replaceAllWith(trav, "[%" + j + "]", "");
+				}
+				if (ext.rootOf(trav).equals("")) {
+					filename = ext.parseDirectoryOfFile(trav) + "master.qsub";
+				} else {
+					filename = ext.parseDirectoryOfFile(trav) + "master." + ext.rootOf(trav) + ".qsub";
+				}
+			}
+			writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i<iterations.length; i++) {
-				filename = (root==null?"":root+"_")+i+".qsub"; 
+				if (root == null) {
+					filename = i + ".qsub";
+				} else if (ext.rootOf(root).equals("")) {
+					filename = root + i + ".qsub"; 
+				} else {
+					trav = root;
+					for (int j = 0; j<iterations[i].length; j++) {
+						trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
+					}
+					if (trav.equals(root)) {
+						filename = root + "_" + i + ".qsub"; 
+					} else {
+						filename = trav + ".qsub";
+					}
+				}
 
 				trav = commands;
 				for (int j = 0; j<iterations[i].length; j++) {

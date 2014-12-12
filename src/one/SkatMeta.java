@@ -16,10 +16,12 @@ import java.util.Vector;
 
 import common.Files;
 import common.Logger;
+import common.Sort;
 import common.ext;
 
 public class SkatMeta {
 	public static final String[] GENE_RESULT_COLUMNS = new String[] {"gene", "p"};
+	public static final String[] SNPINFO_COLUMNS = new String[] {"Name", "Chr", "MapInfo"};
 
 	public static void generateSkatMetaRScript(String sourceRDataFilesDir, String snpInfoFile, String condFileDir, String rScriptDir, String resultsDir) {
 		String[] files;
@@ -154,34 +156,41 @@ public class SkatMeta {
 		return result;
 	}
 
-	public static void summary(String resultsDir, String summaryDir, Logger log) {
+	public static void summary(String resultsDir, int[] columnIndeciesOfPhenoConditionEthnicAnalysis, double pThreshold, String[] ethnicList, String fullpathToSnpInfo, String summaryDir, Logger log) {
 		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups;
 		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvalSummary;
-		String[] phenoList, analysesList, columnsAsTheKey, otherColumnsNeeded;
+		String[] phenoList, analysesList, columnsAsTheKey, otherColumnsNeeded, otherColumnsNeededFromUnconditional;
 		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll;
 		String[] geneSnpList;
+		Hashtable<String, String[]> snpInfo;
 		Hashtable<String, Double> snpsWithSignificantPval;
 
 		if (log == null) {
 			log = new Logger();
 		}
 
-		phenoGroups = groupFileNames(Files.list(resultsDir, null, ".csv", false, false), log);
+		snpInfo = loadSnpInfo(fullpathToSnpInfo);
+		phenoGroups = groupFileNames(Files.list(resultsDir, null, ".csv", false, false), columnIndeciesOfPhenoConditionEthnicAnalysis, log);
+		if (ethnicList == null || ethnicList.length < 1) {
+			ethnicList = getEthnicList(phenoGroups, log);
+		}
 		if (phenoGroups != null && phenoGroups.size() > 0) {
-			analysesList = new String[] {"T5Count", "SKAT_T5"};
+//			analysesList = new String[] {"T5Count", "SKAT_T5"};
+			analysesList = new String[] {"T5Count", "T5"};
 			genePvalSummary = summarizeGenePvalues(phenoGroups, analysesList, resultsDir);
 			phenoList = getPhenoList(genePvalSummary, log);
 //			getListsOfPhenosConditionsEthnicsAnalysesGenes(genePvalSummary, phenoList, conditionListAllPhenos, ethnicList, analysesList, geneListAllPhenos, log);
-			printSummarizedGenePvalues(genePvalSummary, phenoList, new String[] {"EA", "AA", "EAAA"}, analysesList, summaryDir + "summary_genePvalues.txt", log);
+			printSummarizedGenePvalues(genePvalSummary, phenoList, ethnicList, analysesList, summaryDir + "summary_genePvalues.xln", log);
 
 			analysesList = new String[] {"SingleSNP"};
-			columnsAsTheKey = new String[] {"gene", "Name"};
-			otherColumnsNeeded = new String[] {"maf", "ntotal", "nmiss", "beta", "se", "p"};
+			columnsAsTheKey = new String[] {"Name", "gene"};	//TODO "Chr", "Position"
+			otherColumnsNeeded = new String[] {"beta", "se", "p"};
+			otherColumnsNeededFromUnconditional = new String[] {"ntotal", "nmiss", "maf"};
 			for (String pheno : phenoList) {
-				snpResultsAll = summarizeSnpPvalues(phenoGroups.get(pheno), resultsDir, analysesList, columnsAsTheKey, otherColumnsNeeded, log);
+				snpResultsAll = summarizeSnpPvalues(phenoGroups.get(pheno), snpInfo, resultsDir, analysesList, columnsAsTheKey, otherColumnsNeeded, otherColumnsNeededFromUnconditional, log);
 				geneSnpList = getListOfGeneSnps(snpResultsAll, log);
-				snpsWithSignificantPval = printSnpResults(snpResultsAll, getConditionList(genePvalSummary, pheno, log), new String[] {"EAAA", "EA", "AA"}, analysesList, geneSnpList, otherColumnsNeeded, new String[] {"maf", "ntotal", "nmiss", "p"}, 0.00000185, summaryDir + "summary_" + pheno + "_snps.txt", log);
-				printSummarizedSnpResults(snpResultsAll, snpsWithSignificantPval, getConditionList(genePvalSummary, pheno, log), new String[] {"EAAA", "EA", "AA"}, analysesList, otherColumnsNeeded, summaryDir + "summary_" + pheno + "_snpPvalues.txt", log);
+				snpsWithSignificantPval = printSnpResults(snpResultsAll, getConditionList(genePvalSummary, pheno, log), ethnicList, analysesList, geneSnpList, otherColumnsNeeded, otherColumnsNeededFromUnconditional, new String[] {"p"}, pThreshold, summaryDir + "summary_" + pheno + "_snps.xln", log);
+				printSummarizedSnpResults(snpResultsAll, snpsWithSignificantPval, getConditionList(genePvalSummary, pheno, log), ethnicList, analysesList, otherColumnsNeeded, summaryDir + "summary_" + pheno + "_snpPvalues.xln", log);
 			}
 		}
 	}
@@ -339,6 +348,37 @@ public class SkatMeta {
 		return a;
 	}
 
+	public static String[] getEthnicList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups, Logger log) {
+		Vector<String> result;
+		Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
+		Hashtable<String, Hashtable<String, String>> ethnicGroup;
+	
+		if (log == null) {
+			log = new Logger();
+		}
+	
+		result = new Vector<String> ();
+		if (phenoGroups != null && phenoGroups.size() > 0) {
+			for (String pheno : phenoGroups.keySet()) {
+				conditionGroup = phenoGroups.get(pheno);
+				for (String condition : conditionGroup.keySet()) {
+					ethnicGroup = conditionGroup.get(condition);
+					for (String ethnic : ethnicGroup.keySet()) {
+						if (! result.contains(ethnic)) {
+							result.add(ethnic);
+						}
+					}
+				}
+			}
+		}
+	
+		if (! result.isEmpty()) {
+			return result.toArray(new String[0]);
+		} else {
+			return null;
+		}
+	}
+
 	public static String[] getEthnicsList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll, Logger log) {
 		Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> ethnicGroup;
 		HashSet<String> ethnicList;
@@ -455,7 +495,7 @@ public class SkatMeta {
 		}
 	}
 
-	public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> summarizeSnpPvalues(Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroups, String dir, String[] analysesNeeded, String[] columnsAsTheKey, String[] otherColumnsNeeded, Logger log) {
+	public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> summarizeSnpPvalues(Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroups, Hashtable<String, String[]> snpInfo, String dir, String[] analysesNeeded, String[] columnsAsTheKey, String[] otherColumnsNeeded, String[] otherColumnsNeededForUnconditional, Logger log) {
 		Hashtable<String, Hashtable<String, String>> ethnicGroup;
 		Hashtable<String, String> analysesGroup;
 		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll = null;
@@ -484,7 +524,11 @@ public class SkatMeta {
 						snpResultsEthnicGroup = snpResultsConditionGroup.get(ethnic);
 					}
 					for (String analysis : analysesNeeded) {	//analysesGroup.keySet()
-						snpResultsEachFile = loadFile(dir + analysesGroup.get(analysis), columnsAsTheKey, otherColumnsNeeded, null, null);
+						if (condition.equals("cond1")) {
+							snpResultsEachFile = loadFile(dir + analysesGroup.get(analysis), snpInfo, columnsAsTheKey, otherColumnsNeededForUnconditional, null, null);
+							snpResultsEthnicGroup.put(analysis + "_totals", snpResultsEachFile);
+						}
+						snpResultsEachFile = loadFile(dir + analysesGroup.get(analysis), snpInfo, columnsAsTheKey, otherColumnsNeeded, null, null);
 						snpResultsEthnicGroup.put(analysis, snpResultsEachFile);
 //						for (String geneSnp : snpResultsEachFile.keySet()) {
 //							if(! geneSnpList.contains(geneSnp)) {
@@ -499,30 +543,100 @@ public class SkatMeta {
 		return snpResultsAll;
 	}
 
-	public static Hashtable<String, String[]> loadFile(String filefullpath, String[] columnsAsTheKey, String[] otherColumnsNeeded, String[] criteriaColumns, double[] criteria) {
+	public static Hashtable<String, String[]> loadFile(String filefullpath, Hashtable<String, String[]> snpList, String[] columnsAsTheKey, String[] otherColumnsNeeded, String[] criteriaColumns, String[] criteria) {
 		BufferedReader reader;
 		Hashtable<String, String[]> result;
-		String key;
+		String key, delimiter, header;
 		String[] line, tmp;
-		int[] indicesKey, indicesOther;
+		int[] indicesKey, indicesOther, indicesCriteria = null, indicesCriteriaGroup_LessThanOrEqualTo = null, indicesCriteriaGroup_EqualsString = null;
+		Vector <Integer> criteriaGroup_LessThanOrEqualTo_tmp, criteriaGroup_EqualsString_tmp;
+		String[] criteriaColumns_LessThanOrEqualTo, criteriaColumns_EqualsString;
+		double[] criteriaGroup_LessThanOrEqualTo = null;
+		String[] criteriaGroup_EqualsString = null;
+		boolean isToInclude;
 
 		result = new Hashtable<String, String[]>();
 		try {
 			reader = new BufferedReader(new FileReader(filefullpath));
-			line = reader.readLine().replaceAll("\"", "").split(",");
+			header = reader.readLine();
+			delimiter = ext.determineDelimiter(header);
+			line = header.replaceAll("\"", "").split(delimiter);
 			indicesKey = ext.indexFactors(columnsAsTheKey, line, false, true);
 			indicesOther = ext.indexFactors(otherColumnsNeeded, line, false, true);
+			if (criteriaColumns != null) {
+				criteriaGroup_LessThanOrEqualTo_tmp = new Vector<Integer>();
+				criteriaGroup_EqualsString_tmp = new Vector<Integer>();
+				for (int i = 0; i < criteriaColumns.length; i++) {
+					if (criteria[i].startsWith("<=")) {
+						criteriaGroup_LessThanOrEqualTo_tmp.add(i);
+					} else if ((criteria[i].charAt(0) >= 65 && criteria[i].charAt(0) <= 90) || (criteria[i].charAt(0) >= 97 && criteria[i].charAt(0) <= 122)) {
+						criteriaGroup_EqualsString_tmp.add(i);
+					} else {
+						System.out.println("Error - current version does not support the criteria " + criteriaColumns[i] + " " + criteria[i]);
+						System.exit(0);
+					}
+				}
+				if (criteriaGroup_LessThanOrEqualTo_tmp.size() > 0) {
+					criteriaColumns_LessThanOrEqualTo = new String[criteriaGroup_LessThanOrEqualTo_tmp.size()];
+					criteriaGroup_LessThanOrEqualTo = new double[criteriaGroup_LessThanOrEqualTo_tmp.size()];
+					for (int i = 0; i < criteriaColumns_LessThanOrEqualTo.length; i++) {
+						criteriaColumns_LessThanOrEqualTo[i] = criteriaColumns[criteriaGroup_LessThanOrEqualTo_tmp.elementAt(i)];
+						criteriaGroup_LessThanOrEqualTo[i] = Double.parseDouble(criteria[criteriaGroup_LessThanOrEqualTo_tmp.elementAt(i)].substring(2));
+					}
+					indicesCriteriaGroup_LessThanOrEqualTo = ext.indexFactors(criteriaColumns_LessThanOrEqualTo, line, false, true);
+				}
+				if (criteriaGroup_EqualsString_tmp.size() > 0) {
+					criteriaColumns_EqualsString = new String[criteriaGroup_EqualsString_tmp.size()];
+					criteriaGroup_EqualsString = new String[criteriaGroup_EqualsString_tmp.size()];
+					for (int i = 0; i < criteriaColumns_EqualsString.length; i++) {
+						criteriaColumns_EqualsString[i] = criteriaColumns[criteriaGroup_EqualsString_tmp.elementAt(i)];
+						criteriaGroup_EqualsString[i] = criteria[criteriaGroup_EqualsString_tmp.elementAt(i)];
+					}
+					indicesCriteriaGroup_EqualsString = ext.indexFactors(criteriaColumns_EqualsString, line, false, true);
+				}
+//				indicesCriteria = ext.indexFactors(criteriaColumns, line, false, true);
+			}
 			while (reader.ready()) {
-				line = reader.readLine().replaceAll("\"", "").split(",");
-				key = line[indicesKey[0]];
-				for (int i = 1; i < indicesKey.length; i++) {
-					key += ("\t" + line[indicesKey[i]]);
+				line = reader.readLine().replaceAll("\"", "").split(delimiter);
+				isToInclude = true;
+//				for (int i = 0; indicesCriteria != null && i < indicesCriteria.length; i++) {
+//					if (! line[indicesCriteria[i]].equalsIgnoreCase(criteria[i])) {
+//						isToInclude = false;
+//						break;
+//					}
+//				}
+				for (int i = 0; indicesCriteriaGroup_LessThanOrEqualTo != null && i < indicesCriteriaGroup_LessThanOrEqualTo.length; i++) {
+					if (line[1].equals("exm-rs4765623")) {
+						System.out.println("");
+					}
+					if (line[indicesCriteriaGroup_LessThanOrEqualTo[i]].equals("NA") || Double.parseDouble(line[indicesCriteriaGroup_LessThanOrEqualTo[i]]) > criteriaGroup_LessThanOrEqualTo[i]) {
+						isToInclude = false;
+						break;
+					}
 				}
-				tmp = new String[indicesOther.length];
-				for (int i = 0; i < indicesOther.length; i++) {
-					tmp[i] = line[indicesOther[i]];
+				for (int i = 0; indicesCriteriaGroup_EqualsString != null && i < indicesCriteriaGroup_EqualsString.length; i++) {
+					if (! line[indicesCriteriaGroup_EqualsString[i]].equalsIgnoreCase(criteriaGroup_EqualsString[i])) {
+						isToInclude = false;
+						break;
+					}
 				}
-				result.put(key, tmp);
+				if (isToInclude) {
+					key = line[indicesKey[0]];
+					for (int i = 1; i < indicesKey.length; i++) {
+						key += ("\t" + line[indicesKey[i]]);
+					}
+					if (snpList != null) {
+						tmp = snpList.get(key);
+						for (int i = 0; i < tmp.length; i++) {
+							key += ("\t" + tmp[i]);
+						}
+					}
+					tmp = new String[indicesOther.length];
+					for (int i = 0; i < indicesOther.length; i++) {
+						tmp[i] = line[indicesOther[i]];
+					}
+					result.put(key, tmp);
+				}
 			}
 			reader.close();
 		} catch (FileNotFoundException e) {
@@ -531,6 +645,32 @@ public class SkatMeta {
 			e.printStackTrace();
 		}
 		
+		return result;
+	}
+
+	private static Hashtable<String, String[]> loadSnpInfo(String fullpathToSnpInfo) {
+		BufferedReader reader;
+		Hashtable<String, String[]> result;
+		String delimiter;
+		int[] indices;
+		String[] line;
+
+		result = new Hashtable<String, String[]>();
+		try {
+			delimiter = Files.determineDelimiter(fullpathToSnpInfo, null);
+			reader = Files.getAppropriateReader(fullpathToSnpInfo);
+			line = reader.readLine().split(delimiter);
+			indices = ext.indexFactors(SNPINFO_COLUMNS, line, false, true);
+			while (reader.ready()) {
+				line = reader.readLine().split(delimiter);
+				result.put(line[indices[0]], new String[] {line[indices[1]], line[indices[2]]});
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 
@@ -564,7 +704,7 @@ public class SkatMeta {
 		return result;
 	}
 
-	public static Hashtable<String, Double> printSnpResults (Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll, String[] conditionList, String[] ethnicList, String[] analysesList, String[] geneSnpList, String[] columnNamesOfTheData, String[] columnNamesToOutput, Double threshold, String fullPathOutFilename, Logger log) {
+	public static Hashtable<String, Double> printSnpResults (Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll, String[] conditionList, String[] ethnicList, String[] analysesList, String[] geneSnpList, String[] columnNamesOfTheData, String[] columnNamesOfTheDataForUnconditional, String[] columnNamesToOutput, Double threshold, String fullPathOutFilename, Logger log) {
 		Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> snpResultsCurrentCondition;
 		Hashtable<String, Hashtable<String, String[]>> snpResultsCurrentEthnic;
 		Hashtable<String, String[]> snpResultsEachFile;
@@ -594,7 +734,18 @@ public class SkatMeta {
 
 			try {
 				writer = new PrintWriter(new FileOutputStream(fullPathOutFilename));
-				line = "gene\tsnp\tmin_p";
+				line = "snp\tgene\tchr\tposition\tmin_p";
+				for (String condition : conditionList) {
+					snpResultsCurrentCondition = snpResultsAll.get(condition);
+					for (String item : columnNamesOfTheDataForUnconditional) {
+						for (String ethnic : ethnicList) {
+							snpResultsCurrentEthnic = snpResultsCurrentCondition.get(ethnic);
+							line += ("\t" + item + "_" + ethnic);
+						}
+					}
+					break;
+				}
+
 				for (String condition : conditionList) {
 					snpResultsCurrentCondition = snpResultsAll.get(condition);
 					for (String ethnic : ethnicList) {
@@ -610,6 +761,19 @@ public class SkatMeta {
 
 				for (String geneSnp : geneSnpList) {
 					line = "";
+					snpResultsCurrentCondition = snpResultsAll.get("cond1");
+					for (int i = 0; i < columnNamesOfTheDataForUnconditional.length; i ++) {
+						for (String ethnic : ethnicList) {
+							if (snpResultsCurrentCondition.containsKey(ethnic)) {
+								snpResultsCurrentEthnic = snpResultsCurrentCondition.get(ethnic);
+								for (String analysis : analysesList) {
+									tmp = snpResultsCurrentEthnic.get(analysis + "_totals").get(geneSnp);
+									line += ("\t" + tmp[i]);
+								}
+							}
+						}
+					}
+
 					minPvalue = Double.MAX_VALUE;
 					for (String condition : conditionList) {
 						snpResultsCurrentCondition = snpResultsAll.get(condition);
@@ -676,7 +840,7 @@ public class SkatMeta {
 
 			try {
 				writer = new PrintWriter(new FileOutputStream(fullPathOutFilename));
-				line = "gene\tsnp\tmin_p";
+				line = "snp\tgene\tchr\tposition\tmin_p";
 				for (String condition : conditionList) {
 					snpResultsCurrentCondition = snpResultsAll.get(condition);
 					for (String ethnic : ethnicList) {
@@ -729,12 +893,12 @@ public class SkatMeta {
 		}
 	}
 
-	public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>  groupFileNames(String[] filenames, Logger log) {
+	public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(String[] filenames, int[] columnIndeciesOfPhenoConditionEthnicAnalysis, Logger log) {
 		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroup = null;
 		Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
 		Hashtable<String, Hashtable<String, String>> ethnicGroup;
 		Hashtable<String, String> analysesGroup;
-		String[] tmp;
+		String[] filenameRoot;
 
 		if (log == null) {
 			log = new Logger();
@@ -743,37 +907,37 @@ public class SkatMeta {
 		if (filenames != null && filenames.length > 0) {
 			phenoGroup = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>();
 			for (int i = 0; i < filenames.length; i++) {
-				tmp = ext.rootOf(filenames[i]).split("_");
-				if (phenoGroup.containsKey(tmp[0])) {
-					conditionGroup = phenoGroup.get(tmp[0]);
+				filenameRoot = ext.rootOf(filenames[i]).split("_");
+				if (phenoGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[0]])) {
+					conditionGroup = phenoGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[0]]);
 				} else {
 					conditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
-					phenoGroup.put(tmp[0], conditionGroup);
+					phenoGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[0]], conditionGroup);
 				}
 
-				if (conditionGroup.containsKey(tmp[1])) {
-					ethnicGroup = conditionGroup.get(tmp[1]);
+				if (conditionGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
+					ethnicGroup = conditionGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]]);
 				} else {
 					ethnicGroup = new Hashtable<String, Hashtable<String, String>>();
-					conditionGroup.put(tmp[1], ethnicGroup);
+					conditionGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]], ethnicGroup);
 				}
 
-				if (ethnicGroup.containsKey(tmp[2])) {
-					analysesGroup = ethnicGroup.get(tmp[2]);
+				if (ethnicGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
+					analysesGroup = ethnicGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]]);
 				} else {
 					analysesGroup = new Hashtable<String, String>();
-					ethnicGroup.put(tmp[2], analysesGroup);
+					ethnicGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]], analysesGroup);
 				}
 
-				if (tmp.length > 4) {
-					tmp[3] = tmp[3] + "_" + tmp[4];
-				}
+//				if (filenameRoot.length > 4) {
+//					filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]] = filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]] + "_" + filenameRoot[4];
+//				}
 
-				if (analysesGroup.containsKey(tmp[3])) {
-					analysesGroup = ethnicGroup.get(tmp[3]);
-					log.reportError("Error - " + filenames[i] + " get duplicated with " + analysesGroup.get(tmp[3]) + ". \nSystem halted.");
+				if (analysesGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])) {
+					analysesGroup = ethnicGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]]);
+					log.reportError("Error - " + filenames[i] + " get duplicated with " + analysesGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]]) + ". \nSystem halted.");
 				} else {
-					analysesGroup.put(tmp[3], filenames[i]);
+					analysesGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]], filenames[i]);
 				}
 			}
 		}
@@ -781,24 +945,169 @@ public class SkatMeta {
 		return phenoGroup;
 	}
 
+	public static void conditionalAnalysisWholeProcess (String fullpathToPreviousRoundResult, String fullpathToPreviousRoundCondition, String fullpathToOutputNextRoundCondition, double pThreshold, Logger log) {
+		int a = 1;
+
+		while (developConditions("D:/Inflammation/outputs/ARIC_AAEA_LpPLA2_activity_prepCondScores_seqMeta_cond" + a + "_SingleSNP.csv", "D:/Inflammation/tests/activity_cond" + a + ".txt", "D:/Inflammation/tests/activity_cond" + (a + 1) + ".txt", pThreshold, log)) {
+			//TODO run R script;
+			a ++;
+		}
+	}
+
+	public static boolean developConditions (String fullpathToPreviousRoundResult, String fullpathToPreviousRoundCondition, String fullpathToOutputNextRoundCondition, double pThreshold, Logger log) {
+		Hashtable <String, String[]> previousRoundResult, previousCondition;
+		Vector <String> geneList = null, snpList = null, uniqueGenes = null, uniqueSnps = null, output;
+		Hashtable <Integer, Double> significantSnpOfEachRegion_p;
+		Hashtable <Integer, String> significantSnpOfEachRegion_snp;
+		String[] line;
+		String tmp, chr;
+		int regionId;
+		int[] regionIdsOrdered;
+		Hashtable <Integer, Vector<String>> regionToGene, regionToSnp;
+
+		if (log == null) {
+			log = new Logger();
+		}
+		previousCondition = loadFile(fullpathToPreviousRoundCondition, null, new String[] {"SKATgene", "SNP"}, new String[] {"CHROM"}, null, null);
+		uniqueGenes = new Vector<String> ();
+		uniqueSnps = new Vector<String> ();
+		for (String geneSnp : previousCondition.keySet()) {
+			line = geneSnp.split("\t");
+			if(! uniqueGenes.contains(line[0])) {
+				uniqueGenes.add(line[0]);
+			}
+			if(! uniqueSnps.contains(line[1])) {
+				uniqueSnps.add(line[1]);
+			}
+		}
+		regionToGene = new Hashtable <Integer, Vector<String>>();
+		regionToSnp = new Hashtable <Integer, Vector<String>>();
+		for (String snp : uniqueSnps) {
+			for (String gene : uniqueGenes) {
+				if (previousCondition.containsKey(gene + "\t" + snp)) {
+					regionId = -1;
+					regionId = getKeyOfValue(regionToSnp, snp, log);
+					if (regionId == -1) {
+						regionId = getKeyOfValue(regionToGene, gene, log);
+					}
+		
+					if (regionId > -1) {
+						snpList = regionToSnp.get(regionId);
+						geneList = regionToGene.get(regionId);
+					} else {
+						snpList = new Vector<String>();
+						geneList = new Vector<String>();
+						regionId = regionToSnp.size();
+						regionToSnp.put(regionId, snpList);
+						regionToGene.put(regionId, geneList);
+					}
+		
+					if (! snpList.contains(snp)) {
+						snpList.add(snp);
+					}
+					if (! geneList.contains(gene)) {
+						geneList.add(gene);
+					}
+				}
+			}
+		}
+		
+		previousRoundResult = loadFile(fullpathToPreviousRoundResult, null, new String[] {"gene", "Name"}, new String[] {"p"}, new String[] {"p"}, new String[] {"<=" + pThreshold});
+		if (previousRoundResult.size() > 0) {
+			significantSnpOfEachRegion_p = new Hashtable <Integer, Double> ();
+			significantSnpOfEachRegion_snp = new Hashtable <Integer, String> ();
+			for (String geneSnp: previousRoundResult.keySet()) {
+				line = geneSnp.split("\t");
+				regionId = getKeyOfValue(regionToGene, line[0], log);
+				if (regionId == -1) {
+					log.reportError("Error - the Snp (" + line[0] + ", " + line[1] + ") from the following file cannot match the regions in the condition\n" + fullpathToPreviousRoundResult);
+					System.exit(0);
+				}
+				if (! significantSnpOfEachRegion_p.containsKey(regionId) || significantSnpOfEachRegion_p.get(regionId) > Double.parseDouble(previousRoundResult.get(geneSnp)[0])) {
+					significantSnpOfEachRegion_p.put(regionId, Double.parseDouble(previousRoundResult.get(geneSnp)[0]));
+					significantSnpOfEachRegion_snp.put(regionId, line[1]);
+				}
+			}
+	
+			regionIdsOrdered = new int[significantSnpOfEachRegion_snp.size()];
+			regionId = 0;
+			for (int region: significantSnpOfEachRegion_snp.keySet()) {
+				regionIdsOrdered[regionId] = region;
+				regionId ++;
+			}
+			Sort.putInOrder(regionIdsOrdered);
+	
+			output = new Vector<String>();
+			output.add("SNP\tSKATgene\tCHROM");
+			for (int region : regionIdsOrdered) {
+				snpList = regionToSnp.get(region);
+				geneList = regionToGene.get(region);
+				for (String snp : snpList) {
+					for (String gene : geneList) {
+						tmp = gene + "\t" + snp;
+						if (previousCondition.containsKey(tmp)) {
+							output.add(snp + "\t" + gene + "\t" + previousCondition.get(tmp)[0]);
+						}
+					}
+				}
+	
+				tmp = significantSnpOfEachRegion_snp.get(region);
+				for (String gene : geneList) {
+					chr = "";
+					for (String geneSnp : previousCondition.keySet()) {
+						if (geneSnp.split("\t")[0].equalsIgnoreCase(gene)) {
+							chr = previousCondition.get(geneSnp)[0];
+							break;
+						}
+					}
+					output.add(tmp + "\t" + gene + "\t" + chr);
+				}
+			}
+	
+			Files.writeList(output.toArray(new String[0]), fullpathToOutputNextRoundCondition);
+			return true;
+		} else {
+			log.report("No marker is found with significan p-value, so no condition file is generated at " + fullpathToOutputNextRoundCondition);
+			return false;
+		}
+	}
+
+	public static int getKeyOfValue (Hashtable <Integer, Vector<String>> hash, String value, Logger log) {
+		int keyFound;
+		Vector<String> vector;
+
+		keyFound = -1;
+		for (int key : hash.keySet()) {
+			vector = hash.get(key);
+			if (vector.contains(value)) {
+				keyFound = key;
+				break;
+			}
+		}
+
+		return keyFound;
+	}
+
+
 	/**
 	 * This is a program specifically for 
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		boolean isRScripts, isRScriptsSubFolders, isQcScript, isSummary;
-		String cohortRDataFilesDir, snpInfoFile, condFileDir, rScriptDir, resultsDir, summaryDir;
+		boolean isRScripts, isRScriptsSubFolders, isQcScript, isSummary, isConditional;
+		String cohortRDataFilesDir, snpInfoFile, condFileDir, rScriptDir, resultsDir, summaryDir, fullPathToSnpInfo;
+		String command, commandConditional;
 		String[] commands;
+		int[] columnIndeciesOfPhenoConditionEthnicAnalysis;
+		double pThreshold;
 		Logger log;
 
 		isRScripts = false;
 		isRScriptsSubFolders = false;
 		isQcScript = false;
 		isSummary = false;
-//		sourceRDataFilesDir = "N:/statgen/CHARGE-S_conditionals/F7/cond1/";
-//		rScriptDir = "N:/statgen/CHARGE-S_conditionals/scripts/";
-//		resultsDir = "N:/statgen/CHARGE-S_conditionals/results/";
+		isConditional = false;
 		cohortRDataFilesDir = "N:/statgen/CHARGE-S_conditionals/cohortRDataFiles/";
 		snpInfoFile = "D:/CHARGE-S_conditionals/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.RData";
 		condFileDir = "N:/statgen/CHARGE-S_conditionals/conditions/";
@@ -807,6 +1116,7 @@ public class SkatMeta {
 		summaryDir = "N:/statgen/CHARGE-S_conditionals/results/summary/automated_summaries/";
 
 		commands = new String[] {"-rscript", "rdatadir=", "snpinfo=", "conditionsdir=", "resultdir=", "scriptdir=", "-rscriptsubdir", "-qcscript", "-summary", "summarydir="};
+		commandConditional = "-conditional";
 		String usage = "\nTo generate Skat Meta R scripts for all the .RData files in a single directory:"
 					+ "\n   (1) command for generating R scripts (i.e. " + commands[0] + " (default))"
 					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
@@ -832,6 +1142,20 @@ public class SkatMeta {
 					+ "\n   (2) directory of Skat Meta results (i.e. " + commands[4] + resultsDir + " (default))"
 					+ "\n   (3) directory to output summary (i.e. " + commands[9] + resultsDir + " (default))"
 					+ "";
+
+		cohortRDataFilesDir = null;
+		snpInfoFile = null;
+		condFileDir = null;
+		rScriptDir = null;
+		resultsDir = "D:/Inflammation/outputs/";
+		columnIndeciesOfPhenoConditionEthnicAnalysis = new int[] {3, 6, 1, 7};	//Indices of the following info appeared in a file name Pheno, ConditionID, Ethnic, and AnalysisName, where a file name reads like this: ARIC_AA_LpPLA2_activity_prepCondScores_seqMeta_cond1_SingleSNP.csv
+		pThreshold = 0.0001;
+		fullPathToSnpInfo = "N:/statgen/inflammation/summary/SNPInfo_ExomeChipV5.csv";
+		summaryDir = "D:/Inflammation/summary/";
+
+//		isRScriptsSubFolders = true;
+//		isSummary = true;
+		isConditional = false;
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -877,9 +1201,6 @@ public class SkatMeta {
 			System.exit(1);
 		}
 
-//		isRScriptsSubFolders = true;
-//		isSummary = true;
-
 		if (isRScripts) {
 			log = new Logger();
 			generateSkatMetaRScript(cohortRDataFilesDir, snpInfoFile, condFileDir, rScriptDir, resultsDir);
@@ -891,7 +1212,11 @@ public class SkatMeta {
 			qcScript(cohortRDataFilesDir);
 		} else if (isSummary) {
 			log = new Logger(resultsDir + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-			summary(resultsDir, summaryDir, log);
+			summary(resultsDir, columnIndeciesOfPhenoConditionEthnicAnalysis, pThreshold, null, fullPathToSnpInfo, summaryDir, log);
+		} else if (isConditional) {
+			log = new Logger();
+//			conditionalAnalysisWholeProcess(fullpathToPreviousRoundResult, fullpathToPreviousRoundCondition, fullpathToOutputNextRoundCondition, pThreshold, log);
+			conditionalAnalysisWholeProcess(null, null, null, pThreshold, log);
 		} else {
 			log = new Logger();
 			log.reportError("No command executed, due to none of the following is specified: " + commands[0] + ", " + commands[12] + ", " + commands[19] + ", or " + commands[20] + ".");
