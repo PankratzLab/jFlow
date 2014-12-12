@@ -133,6 +133,7 @@ public class Qc {
 		dir = "C:/PoynterLinabery/QC/completeDataset/";
 		dir = "C:/PoynterLinabery/QC/bizarrePC12/";
 		dir = "C:/PoynterLinabery/GEDImerge/QC/";
+		dir = "C:/PoynterLinabery/Poynter/EMIM/checkQC/";
 		
 		keepGenomeInfoForRelatedsOnly = false;
 

@@ -8,7 +8,7 @@ import mining.Transformations;
 import common.*;
 
 public class PhenoPrep {
-	public static final String[] SUMMARY_INFO_HEADER = {"Race", "Trait", "meanTrait", "stdevTrait", "minTrait", "maxTrait", "numFemales", "numMales", "meanAge", "stdevAge", "minAge", "maxAge", "numBelowLowerThrehsold", "numAboveUpperThrehsold"};
+	public static final String[] SUMMARY_INFO_HEADER = {"Race", "Trait", "meanTrait", "medianTrait", "stdevTrait", "minTrait", "maxTrait", "numFemales", "numMales", "meanAge", "medianAge", "stdevAge", "minAge", "maxAge", "numBelowLowerThrehsold", "numAboveUpperThrehsold"};
 	public static final String[] NORMALIZATION_METHODS = {"none", "normalized", "normalizedSigned"};
 
 	private String[] finalHeader;
@@ -18,7 +18,7 @@ public class PhenoPrep {
 	private int numAboveUpperThreshold;
 	private Logger log;
 
-	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
+	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
 		if (phenos == null) {
 			log.reportError("Error - phenos is null");
 			System.exit(1);
@@ -30,12 +30,12 @@ public class PhenoPrep {
 			System.exit(1);
 		} else {
 			for (int i = 0; i < phenos.length; i++) {
-				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, zscore, signZ, log);
 			}
 		}
 	}
 
-	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
+	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
 		PhenoPrep prep;
 		String[] covars;
 		
@@ -135,7 +135,7 @@ public class PhenoPrep {
 			prep.sort();
 		}
 
-		prep.writeFinalFile(dir+outFile, plinkFormat, variablesAllInOneFile, idFile, finalHeader);
+		prep.writeFinalFile(dir+outFile, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, idFile, finalHeader);
 		prep.summarizeCentralMoments(idFile);
 	}
 	
@@ -162,9 +162,9 @@ public class PhenoPrep {
 			} else {
 				ages = null;
 			}
-			writer.println((idFile == null?"All":ext.replaceAllWith(ext.rootOf(idFile), "_keeps", ""))+"\t"+finalHeader[0]+"\t"+ext.formDeci(Array.mean(trait), 4, false)+"\t"+ext.formDeci(Array.stdev(trait), 4, false)+"\t"+ext.formDeci(Array.min(trait), 4, false)+"\t"+ext.formDeci(Array.max(trait), 4, false)
+			writer.println((idFile == null?"All":ext.replaceAllWith(ext.rootOf(idFile), "_keeps", ""))+"\t"+finalHeader[0]+"\t"+ext.formDeci(Array.mean(trait), 4, false)+"\t"+ext.formDeci(Array.median(trait), 4, false)+"\t"+ext.formDeci(Array.stdev(trait), 4, false)+"\t"+ext.formDeci(Array.min(trait), 4, false)+"\t"+ext.formDeci(Array.max(trait), 4, false)
 					+(males==null?"\t.\t.":"\t"+(males.length-Array.sum(males))+"\t"+Array.sum(males))
-					+(ages==null?"\t.\t.\t.\t.":"\t"+ext.formDeci(Array.mean(ages), 4, false)+"\t"+ext.formDeci(Array.stdev(ages), 4, false)+"\t"+ext.formDeci(Array.min(ages), 4, false)+"\t"+ext.formDeci(Array.max(ages), 4, false))
+					+(ages==null?"\t.\t.\t.\t.":"\t"+ext.formDeci(Array.mean(ages), 4, false)+"\t"+ext.formDeci(Array.median(ages), 4, false)+"\t"+ext.formDeci(Array.stdev(ages), 4, false)+"\t"+ext.formDeci(Array.min(ages), 4, false)+"\t"+ext.formDeci(Array.max(ages), 4, false))
 					+"\t"+(numBelowLowerThreshold < 0 ? "NA":numBelowLowerThreshold)+"\t"+(numAboveUpperThreshold < 0 ? "NA":numAboveUpperThreshold));
 						
 			writer.close();
@@ -460,27 +460,35 @@ public class PhenoPrep {
 		database = Matrix.toDoubleArrays(vData);
 	}
 	
-	public void writeFinalFile(String filename, boolean plinkFormat, boolean variablesAllInOneFile, String idFile, boolean printFinalHeader)	{
+	public void writeFinalFile(String filename, boolean plinkFormat, boolean pedFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String idFile, boolean printFinalHeader)	{
 		Hashtable<String, String> hash;
 		PrintWriter writer;
 		String delimiter;
 		
-		if (plinkFormat) {
+		delimiter = Files.suggestDelimiter(filename, log);
+
+		if (plinkFormat || pedFormat) {
 			if (idFile == null || !idFile.toLowerCase().endsWith(".fam")) {
 				log.reportError("Error - cannot export to plink format without an idFile.fam to lookup the FIDs");
 				return;
 			}
 			
-			hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0}, false, "", false, false, false);
+			if (pedFormat) {
+				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1, 2, 3, 4}, false, delimiter, false, false, false);
+			} else {
+				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1}, false, delimiter, false, false, false);
+			}
 			if (variablesAllInOneFile) {
 				try {
 					writer = new PrintWriter(new FileWriter(filename));
 					if (printFinalHeader) {
-						writer.println("FID\tIID\t" + Array.toStr(finalHeader));
+						writer.println("FID"+delimiter+"IID"+delimiter+(pedFormat?"FA"+delimiter+"MO"+delimiter+"SEX"+delimiter:"")+ Array.toStr(finalHeader, delimiter));
 					}
 					for (int i = 0; i < finalIDs.length; i++) {
 						if (hash.containsKey(finalIDs[i])) {
-							writer.println(hash.get(finalIDs[i]) + "\t" + finalIDs[i] + "\t" + Array.toStr(database[i]));
+							if (!excludeMissingValues || !Array.containsMissingValue(database[i])) {
+								writer.println(hash.get(finalIDs[i]) + delimiter + Array.toStr(database[i], -1, -1, delimiter));
+							}
 						} else {
 							log.report("Error - there was no record of " + finalIDs[i] + " in " + idFile + "; so no FID can be determined");
 							writer.close();
@@ -496,11 +504,13 @@ public class PhenoPrep {
 				try {
 					writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_pheno")));
 					if (printFinalHeader) {
-						writer.println("FID\tIID\t" + finalHeader[0]);
+						writer.println("FID"+delimiter+"IID"+delimiter+(pedFormat?"FA"+delimiter+"MO"+delimiter+"SEX"+delimiter:"")+finalHeader[0]);
 					}
 					for (int j = 0; j < finalIDs.length; j++) {
 						if (hash.containsKey(finalIDs[j])) {
-							writer.println(hash.get(finalIDs[j]) + "\t" + finalIDs[j] + "\t" + database[j][0]);
+							if (!excludeMissingValues || !Array.containsMissingValue(database[j])) {
+								writer.println(hash.get(finalIDs[j]) + delimiter + database[j][0]);
+							}
 						}
 						else {
 							log.report("Error - there was no record of " + finalIDs[j] + " in " + idFile + "; so no FID can be determined");
@@ -517,11 +527,13 @@ public class PhenoPrep {
 					try {
 						writer = new PrintWriter(new FileWriter(ext.addToRoot(filename, "_covars")));
 						if (printFinalHeader) {
-							writer.println("FID\tIID\t" + Array.toStr(Array.subArray(finalHeader, 1), "\t"));
+							writer.println("FID"+delimiter+"IID"+delimiter + Array.toStr(Array.subArray(finalHeader, 1), delimiter));
 						}
 						for (int k = 0; k < finalIDs.length; k++) {
 							if (hash.containsKey(finalIDs[k])) {
-								writer.println(hash.get(finalIDs[k]) + "\t" + finalIDs[k] + "\t" + Array.toStr(Array.subArray(database[k], 1)));
+								if (!excludeMissingValues || !Array.containsMissingValue(database[k])) {
+									writer.println(hash.get(finalIDs[k]).split(delimiter, -1)[0] + delimiter + finalIDs[k] + delimiter + Array.toStr(Array.subArray(database[k], 1), -1, -1, delimiter));
+								}
 							} else {
 								log.report("Error - there was no record of " + finalIDs[k] + " in " + idFile + "; so no FID can be determined");
 								writer.close();
@@ -539,12 +551,13 @@ public class PhenoPrep {
 		} else {
 			try {
 				writer = new PrintWriter(new FileWriter(filename));
-				delimiter = Files.suggestDelimiter(filename, log);
 				if (printFinalHeader) {
 					writer.println("id" + delimiter + Array.toStr(finalHeader, delimiter));
 				}
 				for (int m = 0; m < finalIDs.length; m++) {
-					writer.println(finalIDs[m] + delimiter + Array.toStr(database[m], -1, -1, delimiter));
+					if (!excludeMissingValues || !Array.containsMissingValue(database[m])) {
+						writer.println(finalIDs[m] + delimiter + Array.toStr(database[m], -1, -1, delimiter));
+					}
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -629,6 +642,10 @@ public class PhenoPrep {
 				"sort=false",
 				"# output using FID and IID; FID is obtained from the ID file, which must have a .fam extension",
 				"plinkFormat=false",
+				"# use the .fam file to create .ped files instead (source must have a .fam extension)",
+				"pedFormat=false",
+				"# remove NaN values from the final file, even if matching, etc.",
+				"excludeMissing=false",
 				"# output using FID and IID, same as above, but have all variables in one file",
 				"variablesAllInOneFile=false",
 				"# whether to include a header row with the final file(s)",
@@ -743,7 +760,7 @@ public class PhenoPrep {
 								System.out.println(outFile);
 								outFile += ".csv";
 								if (!Files.exists(dir+outFile)) {
-									PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, false, false, true, null, outFile, true, false, false, normalize, normSigned, log);
+									PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, false, false, false, true, true, null, outFile, true, false, false, normalize, normSigned, log);
 								}
 								if (Files.exists(dir+outFile)) {
 									rawData = HashVec.loadFileToStringArray(dir+outFile, false, true, new int[] {1}, false, false, Files.determineDelimiter(dir+outFile, log));
@@ -800,6 +817,8 @@ public class PhenoPrep {
 		boolean zscore = false;
 		boolean signZ = false;
 		int normalization = 2;
+		boolean pedFormat = false;
+		boolean excludeMissingValues = false;
 
 //		dir = "";
 //		filename = "N:/statgen/BOSS/phenotypes/PhenoPrep/taste/Taste_withOtherIDs.xln";
@@ -870,12 +889,14 @@ public class PhenoPrep {
 				"	(15) match the order of the IDs in the idFile and the final file, using NA for missing data (i.e. match=" + matchIdOrder + " (default))\n" +
 				"	(16) output using FID and IID; FID is obtained from the ID file, which must have a .fam extension (i.e. plinkFormat=" + plinkFormat + " (default))\n" +
 				"	(17) use PLINK FID and IID from .fam file, but have all variables in one file (i.e. variablesAllInOneFile=" + variablesAllInOneFile + " (default))\n" +
-				"	(18) include a header with the final file(s) (i.e. finalHeader=" + finalHeader + " (default))\n" +
-				"	(19) add an intercept variable (value equals 1 constantly) as the 3rd column (i.e. addintercept=" + addintercept + " (default))\n" +
-				"	(20) sort the output by the 1st column (i.e. sort=" + sort + " (default))\n" +
-				"	(21) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
-				"	(22) convert final phenotype into a z-score (i.e. zscore=" + zscore + " (default))\n" +
-				"	(21) z-score uses positive-only (mirrored) and negative-only (mirrored) distributions to compute the standard deviation for the z-scores (i.e. signZ="+signZ+" (default))\n" +
+				"	(18) use the .fam file to create .ped files instead (i.e. pedFormat="+pedFormat+" (default))\n" +
+				"	(19) remove NaN values (i.e. excludeMissing="+excludeMissingValues+" (default))\n" +
+				"	(20) include a header with the final file(s) (i.e. finalHeader=" + finalHeader + " (default))\n" +
+				"	(21) add an intercept variable (value equals 1 constantly) as the 3rd column (i.e. addintercept=" + addintercept + " (default))\n" +
+				"	(22) sort the output by the 1st column (i.e. sort=" + sort + " (default))\n" +
+				"	(23) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
+				"	(24) convert final phenotype into a z-score (i.e. zscore=" + zscore + " (default))\n" +
+				"	(25) z-score uses positive-only (mirrored) and negative-only (mirrored) distributions to compute the standard deviation for the z-scores (i.e. signZ="+signZ+" (default))\n" +
 				"  OR:\n" +
 				"	 (6) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n" +
 				"	 (7) include normaliation transformations (i.e. normalization="+normalization+" (default; 0=none, 1=standard, 2=standard and sign-specific stdevs))\n" +
@@ -943,6 +964,12 @@ public class PhenoPrep {
 			} else if (args[i].startsWith("plinkFormat=")) {
 				plinkFormat = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("pedFormat=")) {
+				pedFormat = ext.parseBooleanArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("excludeMissing=")) {
+				excludeMissingValues = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("variablesAllInOneFile=")) {
 				variablesAllInOneFile = ext.parseBooleanArg(args[i]);
 				numArgs--;
@@ -987,9 +1014,9 @@ public class PhenoPrep {
 			if (summarizeAll) {
 				summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile);
 			} else if (phenos.contains(",")) {
-				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outputs, finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs, finalHeader, addintercept, sort, zscore, signZ, log);
 			} else {
-				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, variablesAllInOneFile, extras, outFile, finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, extras, outFile, finalHeader, addintercept, sort, zscore, signZ, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

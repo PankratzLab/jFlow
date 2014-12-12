@@ -479,7 +479,7 @@ public class ext {
 		try {
 			d = Double.parseDouble(nummer);
 		} catch (Exception e) {
-			return "ugly number (failed pretyP)";
+			return "'"+nummer+"' is an ugly number (failed prettyP)";
 		}
 
 		if (d>(Math.pow(0.1, sigfigs)-Math.pow(0.1, sigfigs+1)/2)||Double.isNaN(d)) {

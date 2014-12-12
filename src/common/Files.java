@@ -1449,7 +1449,7 @@ public class Files {
 			reader = new BufferedReader(new FileReader(filein));
 			matrix = new String[lineCount][];
 			for (int i = 0; i < matrix.length; i++) {
-				if (i % (matrix.length/20) == 0) {
+				if (lineCount > 20 && i % (matrix.length/20) == 0) {
 					log.report(ext.getTime()+"\t"+Math.round(100*(float)i/(float)matrix.length)+"% loaded; ", false, true);
 					log.memoryPercentFree();
 				}
@@ -1470,11 +1470,11 @@ public class Files {
 			log.report("Writing out to "+fileout);
 			writer = new PrintWriter(new FileWriter(fileout));
 			for (int j = 0; j<size; j++) {
-				if (j % (size/20) == 0) {
+				if (size > 20 && j % (size/20) == 0) {
 					log.report(ext.getTime()+"\t"+Math.round(100*(float)j/(float)size)+"% loaded; ", false, true);
 					log.memoryPercentFree();
 				}
-				for (int i = 0; i<matrix[i].length; i++) {
+				for (int i = 0; i<matrix.length; i++) {
 					writer.print((i==0?"":delimiterOut)+matrix[i][j]);
 				}
 				writer.println();
