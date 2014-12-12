@@ -606,10 +606,12 @@ public class ForestPanel extends AbstractPanel {
 
 			g.setColor(Color.BLACK);
 			g.setFont(new Font("Arial", Font.ITALIC, 16));
-			String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
-			if (!"".equals(comm)) {
-				int w = fontMetrics.stringWidth(comm) / 2;
-				g.drawString(comm, getWidth() / 2 - w, 3 * HEAD_BUFFER + 14);
+			if (forestPlot.getDataIndices().size() > 0) {
+				String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
+				if (!"".equals(comm)) {
+					int w = fontMetrics.stringWidth(comm) / 2;
+					g.drawString(comm, getWidth() / 2 - w, 3 * HEAD_BUFFER + 14);
+				} 
 			}
 		}
 		
