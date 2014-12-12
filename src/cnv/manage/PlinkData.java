@@ -1210,7 +1210,6 @@ public class PlinkData {
 				count++;
 				temp = reader.readLine().trim();
 				line = temp.split(ext.determineDelimiter(temp));
-				writer.println(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
@@ -1230,6 +1229,7 @@ public class PlinkData {
 					//dna.add(null);
 				} else {
 					dna.add(line[6]);
+					writer.println(line[0]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[5]);
 				}
 			}
 			reader.close();
