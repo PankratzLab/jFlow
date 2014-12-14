@@ -1987,6 +1987,7 @@ public class SeqMeta {
 				additionalCols = new Vector<String>();
 				if (groups[g].equals("SingleVariant")) {
 					additionalCols.add("SKATgene");
+					additionalCols.add("PanEthnic_beta_SingleSNP");
 //					additionalCols.add("CHARGE_ALL_AF");
 //					additionalCols.add("single_func_region");
 					additionalCols.add("Function");
@@ -2143,7 +2144,7 @@ public class SeqMeta {
 					for (int j = 0; j < typesToSplit.length; j++) {
 						if (typeMatrix[j][i]) {
 							if (typesToSplit[j].equals("_p_")) {
-								line[i] = "\""+ext.prettyP(line[i], 2, 4, sigfigs, true)+"\"";
+								line[i] = "=\""+ext.prettyP(line[i], 2, 4, sigfigs, true)+"\"";
 							} else if (typesToSplit[j].equals("_maf_")) {
 								line[i] = ext.isMissingValue(line[i])?line[i]:("=\""+ext.prettyP(Double.parseDouble(line[i])*100, 1, 6, 1, true)+"%\"");
 							} 
