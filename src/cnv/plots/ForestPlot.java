@@ -1305,6 +1305,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 					final Project proj = (filename != null ? new Project(filename, false) : null);
 					log = new Logger(logfile);
 		
+//					markerList = "list.txt";
+					
 		//			final String finalDataFile = betaSource;
 					final String finalMarkerFile = markerList;
 					SwingUtilities.invokeLater(new Runnable() {
