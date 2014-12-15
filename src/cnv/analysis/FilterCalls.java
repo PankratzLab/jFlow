@@ -127,15 +127,15 @@ public class FilterCalls {
 		SampleData sampleData;
 		
 		// find .cnv and .fam file from fileroot
-		qcFile = proj.getProjectDir() + "Sample_QC.xln";
+		qcFile = (proj == null ? dir : proj.getProjectDir()) + "Sample_QC.xln";
 		cnvFile = dir + filenameNoExt + ".cnv";
 //		famFile = dir + filenameNoExt + ".fam";
 		
 		outputFile = dir + filenameNoExt + "_CNVStats.xln";
 		
-		sampleData = proj.getSampleData(0, false);
+		sampleData = proj == null ? null : proj.getSampleData(0, false);
 		
-		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, proj.getJarStatus());
+		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, proj == null ? false : proj.getJarStatus());
 		HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
 		for (CNVariant cnv : cnvList) {
 			ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
@@ -178,7 +178,7 @@ public class FilterCalls {
 			IID = data[2];
 			
 			LRRSD = data[11];
-			excluded = sampleData.individualShouldBeExcluded(SID);
+			excluded = sampleData == null ? false : sampleData.individualShouldBeExcluded(SID);
 			
 			ArrayList<CNVariant>[] indivLists = cnvMap.get(FID + "\t" + IID);
 			if (indivLists == null) {
