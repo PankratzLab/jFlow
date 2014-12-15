@@ -156,7 +156,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 				ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
 				Hashtable<String, Future<GATK.IndelPrep>> tmpResults = new Hashtable<String, Future<GATK.IndelPrep>>();
 				for (int i = 0; i < picard_Analysis.length; i++) {
-					getLog().report(ext.getTime() + "Info - beginning realignment for " + picard_Analysis[i].getFullPathToSamFile());
+					getLog().report(ext.getTime() + "Info - beginning realignment for " + picard_Analysis[i].getFullPathToSortedDeDuppedBamFile());
 					Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false) + "_IndelPrep_ID_" + getBwAnalysisIndividuals()[i].getID() + "_Lane_" + getBwAnalysisIndividuals()[i].getLane() + ".log");
 					tmpResults.put(i + "", executor.submit(new WorkerIndel(gatk, picard_Analysis[i].getBaseID(), picard_Analysis[i].getFullPathToSortedDeDuppedBamFile(), altLog)));
 				}
@@ -296,13 +296,13 @@ public class GATK_LanePrep extends BWA_Analysis {
 		// TODO, change classpath
 		String command = "module load R\nmodule load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_LanePrep " + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
 		command += REFERENCE_GENOME_COMMAND + getReferenceGenomeFasta() + SPACE + BWA_LOCATION_COMMAND + getBwa().getBwaLocation() + SPACE;
-		command += NUM_BETWEEN_THREADS_COMMAND + getNumSampleThreads() + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + getNumMemThreads() + SPACE;
+		command += NUM_BETWEEN_THREADS_COMMAND + getnumBetweenSampleThreads() + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + getnumWithinSampleThreads() + SPACE;
 		command += MergeBam.SAMTOOLS_COMMAND + getMergeBam().getSamtoolsLocation() + SPACE;
 		command += Picard.PICARD_LOCATION_COMMAND + getPicard().getPicardLocation() + SPACE;
 		command += GATK.GATK_LOCATION_COMMAND + getGatk().getGATKLocation() + SPACE;
-		command += GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(getGatk().getKnownSitesSnpFile(), GATK.KNOWN_SITES_SPLITTER) + SPACE;
-		command += GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(getGatk().getKnownSitesIndelFile(), GATK.KNOWN_SITES_SPLITTER);
-		Files.qsub("GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours, getNumMemThreads() * getNumSampleThreads());
+		command += GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(getGatk().getKnownSitesSnpFile(), GATK.SPLIT) + SPACE;
+		command += GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(getGatk().getKnownSitesIndelFile(), GATK.SPLIT);
+		Files.qsub("GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours, getnumWithinSampleThreads() * getnumBetweenSampleThreads());
 	}
 
 	private static class WorkerPicard implements Callable<Picard.Picard_Analysis> {
@@ -402,43 +402,45 @@ public class GATK_LanePrep extends BWA_Analysis {
 			gLanePrep.runBaseRecal();
 			gLanePrep.runBamMerge();// should skip if only one lane
 			// now on to a per sample basis, if needed
-			String[] mergedFiles = null;// to genotype after merging
-			String[] filesNotMerged = null;// to genotype directly
-
-			if (gLanePrep.getmBamMergers() != null && Array.booleanArraySum(getMergeMask(gLanePrep.getmBamMergers(), log)) > 0) {
-				gLanePrep.resetBwAnalysisIndividuals(gLanePrep.getmBamMergers());// step right before picard, set output of merge to input of picard and go again
-				gLanePrep.runPicard();
-				gLanePrep.runIndelRealign();
-				if (!gLanePrep.isFail()) {
-					mergedFiles = gLanePrep.getCurrentFiles(true);
-					if (mergedFiles == null) {
-						log.reportError("Error - could not retrieve merged filenames");
-						gLanePrep.setFail(true);
-					}
-				}
-			}
-			if (!gLanePrep.isFail()) {
-				String[] bamsToGenotype = null;
-				filesNotMerged = gLanePrep.getFilesNotMerged();
-				if (mergedFiles != null) {
-					bamsToGenotype = mergedFiles;
-				}
-				if (filesNotMerged != null && bamsToGenotype != null) {
-					bamsToGenotype = Array.concatAll(bamsToGenotype, filesNotMerged);
-				} else if (filesNotMerged != null) {
-					bamsToGenotype = filesNotMerged;
-				}
-				if (bamsToGenotype == null) {
-					log.reportError("Error - could not find any files to genotype, this should not happen");
-				} else {
-					GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, gLanePrep.getNumSampleThreads(), verbose, log);
-					gatk_Genotyper.runSingleSampleAllSites(bamsToGenotype);
-				}
-			}
-
+			finalize(gatk, gLanePrep, verbose, log);
 		}
-
 		return true;
+	}
+
+	private static void finalize(GATK gatk, GATK_LanePrep gLanePrep, boolean verbose, Logger log) {
+		String[] mergedFiles = null;// to genotype after merging
+		String[] filesNotMerged = null;// to genotype directly
+
+		if (gLanePrep.getmBamMergers() != null && Array.booleanArraySum(getMergeMask(gLanePrep.getmBamMergers(), log)) > 0) {
+			gLanePrep.resetBwAnalysisIndividuals(gLanePrep.getmBamMergers());// step right before picard, set output of merge to input of picard and go again
+			gLanePrep.runPicard();
+			gLanePrep.runIndelRealign();
+			if (!gLanePrep.isFail()) {
+				mergedFiles = gLanePrep.getCurrentFiles(true);
+				if (mergedFiles == null) {
+					log.reportError("Error - could not retrieve merged filenames");
+					gLanePrep.setFail(true);
+				}
+			}
+		}
+		if (!gLanePrep.isFail()) {
+			String[] bamsToGenotype = null;
+			filesNotMerged = gLanePrep.getFilesNotMerged();
+			if (mergedFiles != null) {
+				bamsToGenotype = mergedFiles;
+			}
+			if (filesNotMerged != null && bamsToGenotype != null) {
+				bamsToGenotype = Array.concatAll(bamsToGenotype, filesNotMerged);
+			} else if (filesNotMerged != null) {
+				bamsToGenotype = filesNotMerged;
+			}
+			if (bamsToGenotype == null) {
+				log.reportError("Error - could not find any files to genotype, this should not happen");
+			} else {
+				GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, gLanePrep.getnumBetweenSampleThreads(), gLanePrep.getnumWithinSampleThreads(), verbose, log);
+				gatk_Genotyper.runSingleSampleAllSites(bamsToGenotype);
+			}
+		}
 	}
 
 	private static GATK.BaseRecalibration[][] getCalibrationsToMerge(GATK.BaseRecalibration[] gRecalibrations) {
@@ -509,8 +511,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 		usage += "   (4) the full path to a  reference genome in fasta format (i.e." + REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
 		usage += "   (5) the full path to the bwa executable (i.e. " + BWA_LOCATION_COMMAND + bwaLocation + " (defualts to systems path))\n" + "";
 		usage += "   (6) the full path to the picard directory containing .jar files (i.e. " + Picard.PICARD_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
-		usage += "   (7) the full path to the GATK executable (i.e. " + MergeBam.SAMTOOLS_COMMAND + samtoolsLocation + " (defualts to systems path))\n" + "";
-		usage += "   (7) the full path to the samtools directory containing .jar files (i.e. " + GATK.GATK_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
+		usage += "   (7) the full path to the GATK executable (i.e. " + GATK.GATK_LOCATION_COMMAND + gATKLocation + " (defualts to systems path))\n" + "";
+		usage += "   (7) the full path to the samtools directory containing .jar files (i.e. " + MergeBam.SAMTOOLS_COMMAND + samtoolsLocation + " (defualts to systems path))\n" + "";
 		usage += "   (8) the full path to reference indel files (comma delimited if multiple) (i.e. " + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + knownSitesIndelFile + " (default))\n" + "";
 		usage += "   (9) the full path to reference snp files (comma delimited if multiple) (i.e. " + GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + knownSitesSnpFile + " (default))\n" + "";
 
@@ -579,10 +581,10 @@ public class GATK_LanePrep extends BWA_Analysis {
 				gATKLocation = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith(GATK.KNOWN_SITES_SNP_LOCATION_COMMAND)) {
-				knownSitesSnpFile = ext.parseStringArg(args[i], "").split(GATK.KNOWN_SITES_SPLITTER);
+				knownSitesSnpFile = ext.parseStringArg(args[i], "").split(GATK.SPLIT);
 				numArgs--;
 			} else if (args[i].startsWith(GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND)) {
-				knownSitesIndelFile = ext.parseStringArg(args[i], "").split(GATK.KNOWN_SITES_SPLITTER);
+				knownSitesIndelFile = ext.parseStringArg(args[i], "").split(GATK.SPLIT);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
