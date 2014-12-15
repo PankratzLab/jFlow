@@ -394,9 +394,36 @@ public class Files {
 		String filename, trav;
 
 		try {
-			writer = new PrintWriter(new FileWriter("master."+(root==null?"qsub":root)));
+			if (root == null) {
+				filename = "master.qsub";
+			} else {
+				trav = root;
+				for (int j = 0; j<iterations[0].length; j++) {
+					trav = ext.replaceAllWith(trav, "[%" + j + "]", "");
+				}
+				if (ext.rootOf(trav).equals("")) {
+					filename = ext.parseDirectoryOfFile(trav) + "master.qsub";
+				} else {
+					filename = ext.parseDirectoryOfFile(trav) + "master." + ext.rootOf(trav) + ".qsub";
+				}
+			}
+			writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i<iterations.length; i++) {
-				filename = (root==null?"":root+"_")+i+".qsub"; 
+				if (root == null) {
+					filename = i + ".qsub";
+				} else if (ext.rootOf(root).equals("")) {
+					filename = root + i + ".qsub"; 
+				} else {
+					trav = root;
+					for (int j = 0; j<iterations[i].length; j++) {
+						trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
+					}
+					if (trav.equals(root)) {
+						filename = root + "_" + i + ".qsub"; 
+					} else {
+						filename = trav + ".qsub";
+					}
+				}
 
 				trav = commands;
 				for (int j = 0; j<iterations[i].length; j++) {
@@ -1449,7 +1476,7 @@ public class Files {
 			reader = new BufferedReader(new FileReader(filein));
 			matrix = new String[lineCount][];
 			for (int i = 0; i < matrix.length; i++) {
-				if (i % (matrix.length/20) == 0) {
+				if (lineCount > 20 && i % (matrix.length/20) == 0) {
 					log.report(ext.getTime()+"\t"+Math.round(100*(float)i/(float)matrix.length)+"% loaded; ", false, true);
 					log.memoryPercentFree();
 				}
@@ -1470,11 +1497,11 @@ public class Files {
 			log.report("Writing out to "+fileout);
 			writer = new PrintWriter(new FileWriter(fileout));
 			for (int j = 0; j<size; j++) {
-				if (j % (size/20) == 0) {
+				if (size > 20 && j % (size/20) == 0) {
 					log.report(ext.getTime()+"\t"+Math.round(100*(float)j/(float)size)+"% loaded; ", false, true);
 					log.memoryPercentFree();
 				}
-				for (int i = 0; i<matrix[i].length; i++) {
+				for (int i = 0; i<matrix.length; i++) {
 					writer.print((i==0?"":delimiterOut)+matrix[i][j]);
 				}
 				writer.println();

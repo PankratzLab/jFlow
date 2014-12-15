@@ -905,7 +905,7 @@ public class MitoPipeline {
 			snpMapFile = proj.getLocationOfSNP_Map();
 			if (snpMapFile != null) {
 				log.report("Info - attempting to fill in missing alleles from " + snpMapFile);
-				ABLookup.fillInMissingAlleles(proj, proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), snpMapFile);
+				ABLookup.fillInMissingAlleles(proj, proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), snpMapFile, false);
 				if (Files.exists(ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), "_filledIn"))) {
 					proj.setProperty(Project.AB_LOOKUP_FILENAME, ext.addToRoot(proj.getFilename(Project.AB_LOOKUP_FILENAME, false, false), "_filledIn"));
 					proj.saveProperties();

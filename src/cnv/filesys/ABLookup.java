@@ -419,7 +419,7 @@ public class ABLookup {
         }
 	}
 	
-	public static void fillInMissingAlleles(Project proj, String incompleteABlookupFilename, String mapFile) {
+	public static void fillInMissingAlleles(Project proj, String incompleteABlookupFilename, String mapFile, boolean updatingPlinkFile) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -433,6 +433,7 @@ public class ABLookup {
 		Logger log;
 		ClusterFilterCollection clusterFilterCollection;
 		String output;
+		int markerIndex, first, second;
 		
 		log = proj.getLog();
         if (!mapFile.toLowerCase().endsWith(".csv")) {
@@ -451,32 +452,41 @@ public class ABLookup {
         try {
 			reader = Files.getAppropriateReader(incompleteABlookupFilename);
 			writer = new PrintWriter(new FileWriter(ext.addToRoot(incompleteABlookupFilename, "_filledIn")));
-			line = reader.readLine().trim().split("[\\s]+");
-			ext.checkHeader(line, new String[] {"Marker", "A", "B"}, new int[] {0,1,2}, false, log, true);
-			writer.println(Array.toStr(line));
+			if (updatingPlinkFile) {
+				markerIndex = 1;
+				first = 4;
+				second = 5;
+			} else {
+				markerIndex = 0;
+				first = 1;
+				second = 2;
+				line = reader.readLine().trim().split("[\\s]+");
+				ext.checkHeader(line, new String[] {"Marker", "A", "B"}, new int[] {0,1,2}, false, log, true);
+				writer.println(Array.toStr(line));
+			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				if (line[1].equals("N") && line[2].equals("N")) {
+				if (line[first].equals("N") && line[second].equals("N")) {
 					markersWithNoLink.add(line[0]);
-					line[1] = "A";
-					line[2] = "B";
-				} else if (line[1].equals("N") || line[2].equals("N")) {
-					knownIndex = line[1].equals("N")?1:0;
-					knownAllele = line[1+knownIndex].charAt(0);
-					refAlleles = lookupHash.get(line[0]);
+					line[first] = "A";
+					line[second] = "B";
+				} else if (line[first].equals("N") || line[second].equals("N")) {
+					knownIndex = line[first].equals("N")?1:0;
+					knownAllele = line[first+knownIndex].charAt(0);
+					refAlleles = lookupHash.get(line[markerIndex]);
 					if (refAlleles == null) {
-						log.reportError("Error - allele lookup failed for marker "+line[0]);
+						log.reportError("Error - allele lookup failed for marker "+line[markerIndex]);
 					} else {
 						for (int i = 0; knownIndex != -9 && i < refAlleles.length; i++) {
 							if (knownAllele == refAlleles[i]) {
-								line[1+(1-knownIndex)] = refAlleles[1-i]+"";
+								line[first+(1-knownIndex)] = refAlleles[1-i]+"";
 								knownIndex = -9;
 							}
 						}
 						if (knownIndex != -9) {
 							for (int i = 0; knownIndex != -9 && i < refAlleles.length; i++) {
 								if (knownAllele == Sequence.flip(refAlleles[i])) {
-									line[1+(1-knownIndex)] = Sequence.flip(refAlleles[1-i])+"";
+									line[first+(1-knownIndex)] = Sequence.flip(refAlleles[1-i])+"";
 									knownIndex = -9;
 								}
 							}
@@ -539,6 +549,7 @@ public class ABLookup {
 		String mapFile = "SNP_Map.csv";
 		boolean applyAB = false;
 		String incompleteABlookupFilename = null;
+		boolean updatingPlinkFile = false;
 
 		String usage = "\n" +
 				"cnv.filesys.ABLookup requires 0-1 arguments\n" +
@@ -551,6 +562,7 @@ public class ABLookup {
 				"  OR\n" + 
 				"   (3) fill in a partial existing ABLookup file using an Illumina SNP Table (i.e. incompleteAB=posssible_AB_lookup.dat (not the default))\n" + 
 				"   (4) the filename of the Illumina SNP Table (i.e. mapFile="+mapFile+" (default))\n" + 
+				"   (5) (optional) use a plink.bim file as input instead of an ABLookup file (i.e. plinkFile="+updatingPlinkFile+" (default))\n" + 
 				"  OR\n" + 
 				"   (3) apply the project's AB lookup to all Sample files in project (i.e. -applyAB (not the default))\n" + 
 				"";
@@ -560,7 +572,7 @@ public class ABLookup {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
+				filename = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				outfile = args[i].split("=")[1];
@@ -576,6 +588,9 @@ public class ABLookup {
 				numArgs--;
 			} else if (args[i].startsWith("mapFile=")) {
 				mapFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("plinkFile=")) {
+				updatingPlinkFile = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].equalsIgnoreCase("-applyAB")) {
 				applyAB = true;
@@ -607,7 +622,7 @@ public class ABLookup {
 		try {
 			proj = new Project(filename, false);
 			if (incompleteABlookupFilename != null) {
-				fillInMissingAlleles(proj, incompleteABlookupFilename, mapFile);
+				fillInMissingAlleles(proj, incompleteABlookupFilename, mapFile, updatingPlinkFile);
 			} else if (parseFromOriginalGenotypes) {
 				abLookup = new ABLookup();
 				abLookup.parseFromOriginalGenotypes(proj);

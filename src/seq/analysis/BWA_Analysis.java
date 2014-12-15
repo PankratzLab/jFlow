@@ -132,11 +132,11 @@ public class BWA_Analysis {
 		return bwa;
 	}
 
-	public int getNumMemThreads() {
+	public int getnumWithinSampleThreads() {
 		return numWithinSampleThreads;
 	}
 
-	public int getNumSampleThreads() {
+	public int getnumBetweenSampleThreads() {
 		return numBetweenSampleThreads;
 	}
 
