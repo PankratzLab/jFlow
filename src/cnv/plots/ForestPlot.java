@@ -739,13 +739,15 @@ public class ForestPlot extends JFrame implements WindowListener {
 			String marker = "", filename = "", ctrlFile = "";
 			int count = 1;
 			String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.getProjectDir());
-			do {
-				marker = getDataIndices().get(getCurrentDataIndex()).marker;
-				ctrlFile = ext.rootOf(markerFileName);
+			marker = getDataIndices().get(getCurrentDataIndex()).marker;
+			ctrlFile = ext.rootOf(markerFileName);
+			filename = marker + "_" + ctrlFile;
+			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+			while (new File(root+filename+".png").exists()) {
 				filename = marker + "_" + ctrlFile + "_v" + count;
 				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 				count++;
-			} while (new File(root+filename+".png").exists());
+			}
 			log.report("Writing screenshot to file " + root + filename + ".png");
 			ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
 		}
@@ -757,13 +759,15 @@ public class ForestPlot extends JFrame implements WindowListener {
 		String marker = "", filename = "", ctrlFile = "";
 		int count = 1;
 		String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.getProjectDir());
-		do {
-			marker = getDataIndices().get(getCurrentDataIndex()).marker;
-			ctrlFile = ext.rootOf(markerFileName);
+		marker = getDataIndices().get(getCurrentDataIndex()).marker;
+		ctrlFile = ext.rootOf(markerFileName);
+		filename = marker + "_" + ctrlFile;
+		filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+		while (new File(root+filename+".png").exists()) {
 			filename = marker + "_" + ctrlFile + "_v" + count;
 			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 			count++;
-		} while (new File(root+filename+".png").exists());
+		}
 		log.report("Writing screenshot to file " + root + filename + ".png");
 		ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
 	}
