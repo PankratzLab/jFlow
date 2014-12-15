@@ -3919,4 +3919,13 @@ public class Array {
 		}
 		return log2A;
 	}
+
+	public static boolean containsMissingValue(double[] array) {
+		for (int i = 0; i < array.length; i++) {
+			if (!ext.isValidDouble(array[i]+"")) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

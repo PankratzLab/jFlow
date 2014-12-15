@@ -18,7 +18,6 @@ import java.io.LineNumberReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -1310,6 +1309,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 					final Project proj = (filename != null ? new Project(filename, false) : null);
 					log = new Logger(logfile);
 		
+//					markerList = "list.txt";
+					
 		//			final String finalDataFile = betaSource;
 					final String finalMarkerFile = markerList;
 					SwingUtilities.invokeLater(new Runnable() {
