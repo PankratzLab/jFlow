@@ -51,7 +51,6 @@ public class GATK_Genotyper {
 
 	public void runJointGenotyping(JointGATKGenotyper jGatkGenotyper) {
 		boolean progress = true;
-		System.out.println("HIHD");
 		if (!jGatkGenotyper.isFail()) {
 			progress = gatk.jointGenotypeGVCFs(jGatkGenotyper.getInputGVCFs(), jGatkGenotyper.getOutputVCF(), numWithinSampleThreads, jGatkGenotyper.getLog());
 			jGatkGenotyper.setFail(!progress);
@@ -198,16 +197,16 @@ public class GATK_Genotyper {
 			this.fileOfGVCFs = fileOfGVCFs;
 			this.rawVCF = currentRoot + GATK.VCF;
 
-			this.recalSNPFile = currentRoot + GATK.SNP + RECAL_EXT;
-			this.tranchesSNPFile = currentRoot + GATK.SNP + TRANCHES_EXT;
-			this.rscriptSNPFile = currentRoot + GATK.SNP + RScript_EXT;
+			this.recalSNPFile = currentRoot + "." + GATK.SNP + RECAL_EXT;
+			this.tranchesSNPFile = currentRoot + "." + GATK.SNP + TRANCHES_EXT;
+			this.rscriptSNPFile = currentRoot + "." + GATK.SNP + RScript_EXT;
 
-			this.recalINDELFile = currentRoot + GATK.INDEL + RECAL_EXT;
-			this.tranchesINDELFile = currentRoot + GATK.INDEL + TRANCHES_EXT;
-			this.rscriptINDELFile = currentRoot + GATK.INDEL + RScript_EXT;
+			this.recalINDELFile = currentRoot + "." + GATK.INDEL + RECAL_EXT;
+			this.tranchesINDELFile = currentRoot + "." + GATK.INDEL + TRANCHES_EXT;
+			this.rscriptINDELFile = currentRoot + "." + GATK.INDEL + RScript_EXT;
 
-			this.recalSNP_VCF_File = ext.addToRoot(rawVCF, RECAL_EXT + GATK.SNP);
-			this.recalSNP_Indel_VCF_File = ext.addToRoot(rawVCF, RECAL_EXT + GATK.INDEL);
+			this.recalSNP_VCF_File = ext.addToRoot(rawVCF, "." + GATK.SNP + RECAL_EXT);
+			this.recalSNP_Indel_VCF_File = ext.addToRoot(recalSNP_VCF_File, "." + GATK.INDEL + RECAL_EXT);
 
 			if (fileOfGVCFs != null) {
 				log.report(ext.getTime() + " Info - using GVCF files listed in the first column of" + fileOfGVCFs);
