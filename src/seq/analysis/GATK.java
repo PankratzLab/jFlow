@@ -57,7 +57,7 @@ public class GATK {
 	public static final String MAX_GAUSSIANS = "--maxGaussians";
 	public static final String DEFAULT_MAX_GAUSSIANS = "4";
 	public static final String TS_FILTER_LEVEL = "--ts_filter_level";
-	public static final String DEFUALT_TS_FILTER_LEVEL = "99.0";
+	public static final String DEFUALT_TS_FILTER_LEVEL = "99.9";
 	public static final String AN = "-an";
 	public static final String[] ANS = { "DP", "FS", "MQRankSum", "ReadPosRankSum" };
 	public static final String AN_QD = "QD";
@@ -407,7 +407,6 @@ public class GATK {
 		String[] ans = new String[ANS.length * 2];
 		int index = 0;
 		for (int i = 0; i < ANS.length; i++) {
-			System.out.println(ans.length + "\t" + index);
 			ans[index] = AN;
 			index++;
 			ans[index] = ANS[i];

@@ -38,22 +38,22 @@ public class FastQC {
 	public static final String FASTA_QC_LOCATION_COMMAND = "fastaQCLocation=";
 	public static final String NUM_THREADS_COMMAND = "numThreads=";
 	private String fastQCLocation;
-	private String rootInputDir;
+	private String[] rootInputDirs;
 	private String rootOutputDir;
 	private String[] fastaQFiles;
 	private int numThreads;
 	private boolean verbose, fail, overWriteExistingOutput;
 	private Logger log;
 
-	public FastQC(String fastQCLocation, String rootInputDir, String rootOutputDir, int numThreads, boolean verbose, boolean overWriteExistingOutput, Logger log) {
+	public FastQC(String fastQCLocation, String[] rootInputDirs, String rootOutputDir, int numThreads, boolean verbose, boolean overWriteExistingOutput, Logger log) {
 		super();
 		this.fastQCLocation = fastQCLocation;
-		this.rootInputDir = rootInputDir;
-		this.rootOutputDir = (rootOutputDir == null ? rootInputDir : rootOutputDir);
+		this.rootInputDirs = rootInputDirs;
+		this.rootOutputDir = (rootOutputDir == null ? rootInputDirs[0] : rootOutputDir);
 		this.numThreads = numThreads;
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExistingOutput;
-		this.fail = !verify(fastQCLocation);
+		this.fail = !verify(new String[] { fastQCLocation });
 		this.log = log;
 		if (fail) {
 			log.reportError("Error - could not find fastQC location " + fastQCLocation);
@@ -199,28 +199,38 @@ public class FastQC {
 
 	private void gatherFastaQFiles() {
 		if (!fail) {
-			fail = !verify(rootInputDir);
+			fail = !verify(rootInputDirs);
 			if (!fail) {
 				if (verbose) {
-					log.report(ext.getTime() + " Info - gathering files from " + rootInputDir);
+					log.report(ext.getTime() + " Info - gathering files from " + Array.toStr(rootInputDirs, "\n"));
 				}
+				ArrayList<String> tmpAllFiles = new ArrayList<String>();
+
 				for (int i = 0; i < BWA_Analysis.FQ_EXTS.length; i++) {
-					String[] tmpFiles = Files.list(rootInputDir, BWA_Analysis.FQ_EXTS[i], false);
-					if (tmpFiles != null && tmpFiles.length > 0) {
-						if (verbose) {
-							log.report("Info - found " + tmpFiles.length + " of type " + BWA_Analysis.FQ_EXTS[i]);
+					for (int j = 0; j < rootInputDirs.length; j++) {
+
+						String[] tmpFiles = Files.list(rootInputDirs[j], BWA_Analysis.FQ_EXTS[i], false);
+						if (tmpFiles != null && tmpFiles.length > 0) {
+							if (verbose) {
+								log.report("Info - found " + tmpFiles.length + " of type " + BWA_Analysis.FQ_EXTS[i] + " in " + rootInputDirs[j]);
+							}
+							tmpFiles = Files.toFullPaths(tmpFiles, rootInputDirs[j]);
+							for (int k = 0; k < tmpFiles.length; k++) {
+								tmpAllFiles.add(tmpFiles[k]);
+							}
 						}
-						this.fastaQFiles = Files.toFullPaths(tmpFiles, rootInputDir);
-						break;
 					}
 				}
+				this.fastaQFiles = tmpAllFiles.toArray(new String[tmpAllFiles.size()]);
 			} else {
-				log.reportError("Error - could not find input directory " + rootInputDir);
+				log.reportError("Error - could not find input location(s) " + Array.toStr(rootInputDirs, "\n"));
 			}
 		}
 		if (fastaQFiles == null || fastaQFiles.length < 1) {
 			fail = true;
-			log.reportError("Error - could not find any input files with any of the following extensions in " + rootInputDir + "\n" + Array.toStr(BWA_Analysis.FQ_EXTS, "\n"));
+			log.reportError("Error - could not find any input files in " + Array.toStr(rootInputDirs, "\n") + "\nwith any of the following extensions:" + Array.toStr(BWA_Analysis.FQ_EXTS, "\n"));
+		} else {
+			log.report(ext.getTime() + " Info - found " + fastaQFiles.length + " file(s) to QC");
 		}
 	}
 
@@ -228,8 +238,13 @@ public class FastQC {
 		return fail;
 	}
 
-	private static boolean verify(String dirOrFile) {
-		return Files.exists(dirOrFile);
+	private static boolean verify(String[] dirs) {
+		for (int i = 0; i < dirs.length; i++) {
+			if (!Files.exists(dirs[i])) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static class FastQCWorkerThread implements Callable<Boolean> {
@@ -272,8 +287,8 @@ public class FastQC {
 		}
 	}
 
-	public static void run(String fastQCLocation, String rootInputDir, String rootOutputDir, int numThreads, boolean verbose, boolean overWriteExistingOutput, boolean batch, Logger log) {
-		FastQC fastQC = new FastQC(fastQCLocation, rootInputDir, rootOutputDir, numThreads, verbose, overWriteExistingOutput, log);
+	public static void run(String fastQCLocation, String[] rootInputDirs, String rootOutputDir, int numThreads, boolean verbose, boolean overWriteExistingOutput, boolean batch, Logger log) {
+		FastQC fastQC = new FastQC(fastQCLocation, rootInputDirs, rootOutputDir, numThreads, verbose, overWriteExistingOutput, log);
 		if (!fastQC.isFail()) {
 			fastQC.fastaQC();
 		}
@@ -360,7 +375,7 @@ public class FastQC {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String rootInputDir = "";
+		ArrayList<String> rootInputDirs = new ArrayList<String>();
 		String rootOutputDir = null;
 		boolean overwriteExisting = false;
 
@@ -374,7 +389,7 @@ public class FastQC {
 		String logFile = "FastaQC.log";
 
 		String usage = "\n" + "seq.FastaQC requires 2 argument\n";
-		usage += "   (1) root input directory (i.e. " + BWA_Analysis.ROOT_INPUT_COMMAND + rootInputDir + " (no default))\n" + "";
+		usage += "   (1) root input directory (if multiple, use the argument for each directory) (i.e. " + BWA_Analysis.ROOT_INPUT_COMMAND + " (no default))\n" + "";
 		usage += "   (2) root output directory (i.e. " + BWA_Analysis.ROOT_OUTPUT_COMMAND + rootOutputDir + " (default))\n" + "";
 		usage += "   (3) the full path to the fastaQC executable (i.e. " + FASTA_QC_LOCATION_COMMAND + fastQCLocation + " (defualts to systems path))\n" + "";
 		usage += "   (4) run in quiet mode (i.e. " + BWA_Analysis.QUIET_COMMAND + " (not tbe default))\n" + "";
@@ -389,7 +404,7 @@ public class FastQC {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (args[i].startsWith(BWA_Analysis.ROOT_INPUT_COMMAND)) {
-				rootInputDir = ext.parseStringArg(args[i], "");
+				rootInputDirs.add(ext.parseStringArg(args[i], ""));
 				numArgs--;
 			} else if (args[i].startsWith(BWA_Analysis.ROOT_OUTPUT_COMMAND)) {
 				rootOutputDir = ext.parseStringArg(args[i], "");
@@ -426,8 +441,8 @@ public class FastQC {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		Logger log = new Logger((rootOutputDir == null ? rootInputDir : rootOutputDir) + logFile);
-		run(fastQCLocation, rootInputDir, rootOutputDir, numThreads, verbose, overwriteExisting, batch, log);
+		Logger log = new Logger(rootOutputDir + logFile);
+		run(fastQCLocation, rootInputDirs.toArray(new String[rootInputDirs.size()]), rootOutputDir, numThreads, verbose, overwriteExisting, batch, log);
 	}
 
 }
