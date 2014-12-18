@@ -1525,4 +1525,14 @@ public class ext {
 			e.printStackTrace();
 		}
 	}
+
+	public static int getNumSigFig(double num) {
+		String str = formDeci(num, 5);
+	
+		if (str.contains(".")) {
+			return str.length()-str.indexOf(".")-1;
+		} else {
+			return 0;
+		}
+	}
 }

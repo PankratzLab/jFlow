@@ -1,5 +1,8 @@
 package one;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +12,7 @@ import java.util.Vector;
 import common.Array;
 import common.HashVec;
 import common.ext;
+import cnv.filesys.Project;
 import cnv.var.CNVariant;
 import stats.LeastSquares;
 
@@ -54,36 +58,12 @@ public class CNVBurdenIterator {
 		}
 		
 	}
-	
-	 static class Results {
-		double[] betas;
-		double rsquared;
-		double[] sigs;
-		
-		public Results(double[] b, double r, double[] sigs) {
-			this.betas = b;
-			this.rsquared = r;
-			this.sigs = sigs;
-		}
-		
-		@Override
-		public String toString() {
-			return rsquared + "\t" + Array.toStr(betas) + "\t" + Array.toStr(sigs);
-		}
-		
-	}
-	
-	
-	private static void runProgram() {
-		String cnvFile = "D:/SIDS and IQ/penncnv.cnv";
-		String famFile = "D:/SIDS and IQ/penncnv.fam";
-		String dataFile = "D:/SIDS and IQ/short_version.txt";
-		String idsFile = "";//"D:/SIDS and IQ/ids_with_high_quality_CNV_data_from_blood_cluster.unrelateds_keep.dat";
+
+	private static void runProgram(String cnvFile, String famFile, String dataFile, String idsFile) {
 		int males = 0, females = 0;
 		HashSet<String> famIDs, tempIDs, usedIDs;
 		Hashtable<String, String> dataTable;
 		HashMap<String, Data> idData;
-		HashMap<String, Results> resultsMap;
 		
 		famIDs = new HashSet<String>();
 		if (famFile != null && !"".equals(famFile)) {
@@ -155,7 +135,9 @@ public class CNVBurdenIterator {
 						run leastsquares
 		*/
 		
-		resultsMap = new HashMap<String, CNVBurdenIterator.Results>();
+		double[][][] resultsB = new double[3][4][6];
+		double[][][] resultsP = new double[3][4][6];
+		double[][][] resultsR = new double[3][4][6];
 		
 		int[] CNV_FILTERS = new int[]{0, 1, 3, 4};
 		double[] CNV_SIZES = new double[]{5000, 2500, 1000, 500, 250, 100};
@@ -165,8 +147,8 @@ public class CNVBurdenIterator {
 		String[] indepVarNames = new String[]{"Age", "PC1", "PC2", "CNVBurden"};
 		
 		// both sexes
-		for (int cn : CNV_FILTERS) {
-			for (double sz : CNV_SIZES) {
+		for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				depVars = new double[idData.size()];
 				indepVars = new double[idData.size()][4];
 				int cnt = 0;
@@ -175,19 +157,22 @@ public class CNVBurdenIterator {
 					indepVars[cnt][0] = indiv.getValue().age;
 					indepVars[cnt][1] = indiv.getValue().pc1;
 					indepVars[cnt][2] = indiv.getValue().pc2;
-					indepVars[cnt][3] = indiv.getValue().getCNVs(sz, cn);
+					indepVars[cnt][3] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]);
 					cnt++;
 				}
 				LeastSquares lsBoth = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
-				Results res = new Results(lsBoth.getBetas(), lsBoth.getRsquare(), lsBoth.getSigs());
-				resultsMap.put("both_cn" + cn + "_p" + sz, res);
+				
+				resultsB[0][cn][sz] = lsBoth.getBetas()[4];
+				resultsP[0][cn][sz] = lsBoth.getSigs()[4];
+				resultsR[0][cn][sz] = lsBoth.getRsquare(); 
+
 				lsBoth.destroy();
 			}
 		}
 		
 		// males only
-		for (int cn : CNV_FILTERS) {
-			for (double sz : CNV_SIZES) {
+		for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				depVars = new double[males];
 				indepVars = new double[males][4];
 				int cnt = 0;
@@ -201,15 +186,18 @@ public class CNVBurdenIterator {
 					cnt++;
 				}
 				LeastSquares lsMales = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
-				Results res = new Results(lsMales.getBetas(), lsMales.getRsquare(), lsMales.getSigs());
-				resultsMap.put("male_cn" + cn + "_p" + sz, res);
+				
+				resultsB[1][cn][sz] = lsMales.getBetas()[4];
+				resultsP[1][cn][sz] = lsMales.getSigs()[4];
+				resultsR[1][cn][sz] = lsMales.getRsquare(); 
+
 				lsMales.destroy();
 			}
 		}
 		
 		// females only
-		for (int cn : CNV_FILTERS) {
-			for (double sz : CNV_SIZES) {
+		for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				depVars = new double[females];
 				indepVars = new double[females][4];
 				int cnt = 0;
@@ -223,20 +211,154 @@ public class CNVBurdenIterator {
 					cnt++;
 				}
 				LeastSquares lsFemales = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
-				Results res = new Results(lsFemales.getBetas(), lsFemales.getRsquare(), lsFemales.getSigs());
-				resultsMap.put("female_cn" + cn + "_p" + sz, res);
+
+				resultsB[2][cn][sz] = lsFemales.getBetas()[4];
+				resultsP[2][cn][sz] = lsFemales.getSigs()[4];
+				resultsR[2][cn][sz] = lsFemales.getRsquare();
+				
 				lsFemales.destroy();
 			}
 		}
 		
-		for (java.util.Map.Entry<String, Results> entry : resultsMap.entrySet()) {
-			System.out.println(entry.getKey() + "\t" + entry.getValue().toString());
+		String header = "\tCN=0\tCN=1\tCN=3\tCN=4";
+		
+		String outputFile = "";
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(new FileWriter(outputFile));
+		
+			writer.println("Betas");
+			writer.println("Both" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsB[0][cn][sz], ext.getNumSigFig(resultsB[0][cn][sz])));
+				}
+			}
+			writer.println("p-values");
+			writer.println("Both" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsP[0][cn][sz], ext.getNumSigFig(resultsP[0][cn][sz])));
+				}
+			}
+			writer.println("Rsq");
+			writer.println("Both" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsR[0][cn][sz], ext.getNumSigFig(resultsR[0][cn][sz])));
+				}
+			}
+			writer.println("Betas");
+			writer.println("Males" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsB[1][cn][sz], ext.getNumSigFig(resultsB[1][cn][sz])));
+				}
+			}
+			writer.println("p-values");
+			writer.println("Males" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsP[1][cn][sz], ext.getNumSigFig(resultsP[1][cn][sz])));
+				}
+			}
+			writer.println("Rsq");
+			writer.println("Males" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsR[1][cn][sz], ext.getNumSigFig(resultsR[1][cn][sz])));
+				}
+			}
+			writer.println("Betas");
+			writer.println("Females" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsB[2][cn][sz], ext.getNumSigFig(resultsB[2][cn][sz])));
+				}
+			}
+			writer.println("p-values");
+			writer.println("Females" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsP[2][cn][sz], ext.getNumSigFig(resultsP[2][cn][sz])));
+				}
+			}
+			writer.println("Rsq");
+			writer.println("Females" + header);
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				writer.print(CNV_SIZES[sz]);
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.println("\t" + ext.formDeci(resultsR[2][cn][sz], ext.getNumSigFig(resultsR[2][cn][sz])));
+				}
+			}
+	
+			writer.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		System.out.println();
 	}
 	
+	
+	
+	
+	
+	
+	
 	public static void main(String[] args) {
-		runProgram();
+		String cnvFile = "D:/SIDS and IQ/penncnv.cnv";
+		String famFile = "D:/SIDS and IQ/penncnv.fam";
+		String dataFile = "D:/SIDS and IQ/short_version.txt";
+		String idsFile = "";//"D:/SIDS and IQ/ids_with_high_quality_CNV_data_from_blood_cluster.unrelateds_keep.dat";
+	
+		String usage = "\n"+
+				"one.CNVBurdenIterator requires 2-4 arguments:\n" +
+				"   (0) cnvFile " + 
+				"   (1) dataFile " +
+				"   (2) famFile " +
+				"   (4) idsFile ";
+		int numArgs = args.length;
+		for (int i = 0; i<args.length; i++) {
+			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
+				System.err.println(usage);
+				return;
+			} else if (args[i].startsWith("cnvFile=")) {
+				cnvFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("famFile=")) {
+				famFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("dataFile=")) {
+				dataFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("idsFile=")) {
+				idsFile = args[i].split("=")[1];
+				numArgs--;
+			}
+		}
+		if (numArgs!=0) {
+			System.err.println(usage);
+			return;
+		}
+		try {
+			runProgram(cnvFile, famFile, dataFile, idsFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	
+	
+	
+	
+	
+	
 	}
 	
 }

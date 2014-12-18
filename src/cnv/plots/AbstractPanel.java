@@ -439,7 +439,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				plotXmin = plotMinMaxStep[0];
 				plotXmax = plotMinMaxStep[1];
 
-				sigFigs = getNumSigFig(plotMinMaxStep[2]);
+				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
 				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
 						Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
@@ -461,7 +461,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
-				sigFigs = getNumSigFig(plotMinMaxStep[2]);
+				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
 				for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
 					if (y >= plotYmin || !truncate) {
 						Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
@@ -1053,16 +1053,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 
-	public static int getNumSigFig(double num) {
-		String str = ext.formDeci(num, 5);
-
-		if (str.contains(".")) {
-			return str.length()-str.indexOf(".")-1;
-		} else {
-			return 0;
-		}
-	}
-
 	public double[] getPlotMinMaxStep(double min, double max, Graphics g, boolean xAxis) {
 		double range, plotStep, stepStep, plotMin, plotMax;
 		double zoomMin, zoomMax, dist;
@@ -1073,7 +1063,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		range = max-min;
 //		System.out.println(min+"\t"+max+"\t"+range);
 		plotStep = stepStep = calcStepStep(range);
-		sf = getNumSigFig(stepStep);
+		sf = ext.getNumSigFig(stepStep);
 
 		if (xAxis) {
 			fontMetrics = g.getFontMetrics(g.getFont());
@@ -1109,7 +1099,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			
 			range = zoomMax-zoomMin;
 			plotStep = stepStep = calcStepStep(range);
-			sf = getNumSigFig(stepStep);
+			sf = ext.getNumSigFig(stepStep);
 
 			if (xAxis) {
 				fontMetrics = g.getFontMetrics(g.getFont());
