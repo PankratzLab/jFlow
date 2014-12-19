@@ -33,6 +33,50 @@ public class FilterCalls {
 	private static final double[][] CNV_STATS_THRESHOLDS = new double[][]{{10, 10}, {10, 20}};
 	
 	
+	private static void simpleFilters(String dir, String in, String out, int[] minProbes, double minScore) {
+		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(dir + in, false);
+		
+		boolean[] keep = Array.booleanArray(srcCNVs.length, true);
+		
+		for (int i = 0; i < srcCNVs.length; i++) {
+			if (srcCNVs[i].getScore() < minScore) keep[i] = false;
+			switch(srcCNVs[i].getCN()) {
+				case 0:
+					if (srcCNVs[i].getNumMarkers() < minProbes[0]) keep[i] = false;
+					break;
+				case 1:
+					if (srcCNVs[i].getNumMarkers() < minProbes[1]) keep[i] = false;
+					break;
+				case 3: 
+					if (srcCNVs[i].getNumMarkers() < minProbes[2]) keep[i] = false;
+					break;
+				case 4:
+					if (srcCNVs[i].getNumMarkers() < minProbes[3]) keep[i] = false;
+					break;
+				default:
+					break;
+			}
+		}
+		
+		CNVariant[] leftovers = Array.subArray(srcCNVs, keep);
+		
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(new FileWriter(dir + out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (CNVariant node : leftovers) {
+				writer.println(node.toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
 	private static class CNVFilterNode {
 		public static final int HET_DEL = 0;
 		public static final int HOM_DEL = 1;
@@ -228,7 +272,7 @@ public class FilterCalls {
 			for (CNVariant comp : compCNVs) {
 				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				if (comp.getScore() < score) continue;
-				if (comp.getNumMarkers() < probes) continue;
+				if ((comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 && comp.getNumMarkers() < probes)) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= (cnv.getSize() / 2)) {
@@ -266,7 +310,7 @@ public class FilterCalls {
 	 * @param score Minimum score threshold for comparison
 	 * @param probes Minimum probe-count threshold for comparison
 	 */
-	public static void variantStats(String cnvList, String cnvFile, String outputFile, double score, int probes) {	
+	public static void variantStats(String cnvList, String cnvFile, String famFile, String outputFile, double score, int probes) {	
 		/*
 		 * INPUT (PLINK formatted):
 		 * |  FID  |  IID  |  CHR  |  BP1  |  BP2  |  TYPE  |  SCORE  |  SITES  | 
@@ -285,14 +329,16 @@ public class FilterCalls {
 		
 		ArrayList<CNVFilterNode> outputNodes = new ArrayList<FilterCalls.CNVFilterNode>();
 		
+		int popCnt = Files.countLines(famFile, 1);
+		
 		for (CNVariant cnv : srcCNVs) {
-			CNVFilterNode cnvNode = new CNVFilterNode(cnv, ids.size());
+			CNVFilterNode cnvNode = new CNVFilterNode(cnv, popCnt);
 			outputNodes.add(cnvNode);
 			
 			for (CNVariant comp : compCNVs) {
 				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				if (comp.getScore() < score) continue;
-				if (comp.getNumMarkers() < probes) continue;
+				if ((comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 && comp.getNumMarkers() < probes)) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= (cnv.getSize() / 2)) {
@@ -355,21 +401,24 @@ public class FilterCalls {
 	}
 	
 
-	public static void filterExclusions(String dir, String in, String out, String excludeFile) {
+	public static void filterExclusions(String dir, String in, String out, String indivFile, boolean exclude) {
 		PrintWriter writer;
 		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
-		boolean[] remove = new boolean[cnvs.size()];
-		HashSet<String> excludeList = HashVec.loadFileToHashSet(excludeFile, false);
+		boolean[] remove = Array.booleanArray(cnvs.size(), !exclude);
+		HashSet<String> indivList = HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile, new int[]{0, 1}, null, false, "\t", false, false, false));
 		
+		int cnt = 0;
 		for (int i = 0; i < remove.length; i++) {
 			CNVariant examine = cnvs.get(i);
-			if (excludeList.contains(examine.getIndividualID())) { // remove all CNVs belonging to a listed sample ID
-				remove[i] = true;
+			if (indivList.contains(examine.getFamilyID() + "\t" + examine.getIndividualID())) { 
+				cnt++;
+				remove[i] = exclude;
 				continue;
 			}
-			
 		}
-
+		
+		System.out.println("Matched " + cnt + " CNVs");
+		
 		try {
 			writer = new PrintWriter(new FileWriter(dir + out));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
@@ -511,19 +560,34 @@ public class FilterCalls {
 		}
 	}
 	
-	public static void filterOutCommonCNVs(String dir, String in, String out, double pct) {
+	public static void filterCommonCNVs(String dir, String in, String out, double pct) {
 		PrintWriter writer;
 		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
 		boolean[] remove = new boolean[cnvs.size()];
+		
+		HashMap<Integer, ArrayList<CNVariant>> chrToCNVs = new HashMap<Integer, ArrayList<CNVariant>>();
+		HashMap<CNVariant, Integer> indexMap = new HashMap<CNVariant, Integer>();
+		for (int index = 0; index < cnvs.size(); index++) {
+			ArrayList<CNVariant> chrList = chrToCNVs.get((int) cnvs.get(index).getChr());
+			if (chrList == null) {
+				chrList = new ArrayList<CNVariant>();
+				chrToCNVs.put((int) cnvs.get(index).getChr(), chrList);
+			}
+			chrList.add(cnvs.get(index));
+			indexMap.put(cnvs.get(index), index);
+		}
+
+		int hundredthStep = (cnvs.size() / 100) + 1;
 		
 		for (int i = 0; i < remove.length; i++) {
 			CNVariant examine = cnvs.get(i);
 			int overlapCnt = 0;
 			
-			for (int j = 0; j < remove.length; j++) {
-				if (i == j) continue;
+			ArrayList<CNVariant> compCNVs = chrToCNVs.get((int) examine.getChr());
+			for (CNVariant comp : compCNVs) {
+				if (i == indexMap.get(comp).intValue()) continue;
 				
-				if (examine.significantOverlap(cnvs.get(j))) {
+				if (examine.significantOverlap(comp)) {
 					overlapCnt++;
 				}
 			}
@@ -532,6 +596,10 @@ public class FilterCalls {
 				remove[i] = true;
 			} else {
 				remove[i] = false;
+			}
+			
+			if (i > 0 && i % hundredthStep == 0) {
+				System.out.println(ext.getTime() + "] Examined " + i + " of " + cnvs.size() + " CNVs...");
 			}
 		}
 		
@@ -546,7 +614,6 @@ public class FilterCalls {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	public static void filter(String dir, String in, String out, int[] delSize, int[] dupSize, int[] number, double score, String filenameOfProblematicRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
@@ -594,7 +661,7 @@ public class FilterCalls {
 						) 
 						&& 
 							(((cnv.getCN() == 1 || cnv.getCN() == 3 || cnv.getCN() == 4) && cnv.getNumMarkers() >= number[0]) ||
-							(cnv.getCN() == 2 && cnv.getNumMarkers() >= number[1]))
+							(cnv.getCN() == 0 && cnv.getNumMarkers() >= number[1]))
 						&& cnv.getScore() > score 
 						&& !inOneOfTheseRegions(cnv, problemRegions)) {
 
@@ -898,6 +965,10 @@ public class FilterCalls {
 			main(Array.toStringArray(params));
 		}
 	}
+	
+	
+	
+//	dir="D:/SIDS and IQ/" in="penncnv.cnv" out="IQ/c10_p3,15.cnv" delSize=15 hDelSize=4 dupSize=15 hDupSize=15 filterFile="N:/statgen/NCBI/problematicRegions_hg19.dat" breakCentromere=true
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -930,7 +1001,10 @@ public class FilterCalls {
 		boolean common = false;
 		boolean exclude = false;
 		boolean group = false;
-		boolean stats = false;
+		boolean stats = false; 
+		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo, proportionOfProbesThatNeedToPassForFinalInclusion;
+		totalRequired = delRequired = dupRequired = totalLimitedTo = delLimitedTo = dupLimitedTo = proportionOfProbesThatNeedToPassForFinalInclusion = 0.0;
+		String famFile = null;
 
 		String usage = 
 		"cnv.analysis.FilterCalls requires 2+ arguments\n"+
@@ -969,7 +1043,8 @@ public class FilterCalls {
 		"   (4) remove all CNVs not belonging to a group of sample IDs (i.e. list=/path/to/list.txt (not the default))\n" +
 		"   (5) (Optional) remove all CNVs that overlap other CNVs not belonging to the given list of sample IDs (i.e. -exclude (not the default))" + 
 		"";
-
+		
+		
 		System.out.println();
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
@@ -1065,6 +1140,30 @@ public class FilterCalls {
 			} else if (args[i].startsWith("proj=")) { 
 				projName = args[i].split("=")[1];
 				numArgs--;
+			} else if(args[i].startsWith("famFile=")) {
+				famFile = args[i].split("=")[1];
+				numArgs--;
+			} else if(args[i].startsWith("totalRequired=")) {
+				totalRequired = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if(args[i].startsWith("delRequired=")) {
+				delRequired = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if(args[i].startsWith("dupRequired=")) {
+				dupRequired = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if(args[i].startsWith("totalLimitedTo=")) {
+				totalLimitedTo = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if(args[i].startsWith("delLimitedTo=")) {
+				delLimitedTo = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if(args[i].startsWith("dupLimitedTo=")) {
+				dupLimitedTo = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if(args[i].startsWith("proportion=")) {
+				proportionOfProbesThatNeedToPassForFinalInclusion = ext.parseDoubleArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - don't know what to do with argument: "+args[i]);
 			}
@@ -1097,11 +1196,10 @@ public class FilterCalls {
 		listFiles, in, out, score, number  -->  filterLists
 		projName, dir, in  -->  CNVStats
 		excludeFile, dir, in, out  -->  filterExclusions
+		proj, in, out, req[], lim[], proportion
 		
-		
-			(dir, in)
+			(dir, in, out)
 			  --> (filter)
-				out
 				delSize
 					hDelSize
 				dupSize
@@ -1116,45 +1214,40 @@ public class FilterCalls {
 				tracks
 				build
 				logfile
+		      --> (filterOutCommonCNVs)
+			    -common
+			    pct
+			  --> (filterForAllCNVsSharedInGroup)
+			  	-group
+			  	listFile
+			  --> (filterForGroupCNVs)
+			  	listFile
+			  	excludeFile
+			  	-exclude
+			  --> (filterExclusions)
+			  	excludeFile
+			 (dir, in)
 		      --> (stdFilters)
 		      	-std
 		        tracks
 		        pedfile
 		        build
-		      --> (filterOutCommonCNVs)
-			    -common
-			    out
-			    pct
-			  --> (filterForAllCNVsSharedInGroup)
-			  	-group
-			  	out
-			  	listFile
-			  --> (filterForGroupCNVs)
-			  	out
-			  	listFile
-			  	excludeFile
-			  	-exclude
 			  --> (CNVStats)
 			  	projName
-			  --> (filterExclusions)
-			  	out
-			  	excludeFile
 		  	(in, out)
 		  	  --> (filterList)
 			  	-stats
-			  	out
 			  	listFile
 			  	score
 			  	number
 		  	  --> (filterLists)
 			  	-stats
-			  	out
 			  	listFiles
 			  	score
 			  	number
 			
 		*/
-		
+
 		try {
 //			FilterCalls.filterOnSegments(dir+"conf_100kb_20SNP_10.0_CNPstatusIgnored.cnv", dir+"ConservativeGeneCentric.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, true);
 //			MakeUCSCtrack.makeTrack(dir, "ConservativeGeneCentric.cnv");
@@ -1163,12 +1256,12 @@ public class FilterCalls {
 			} else if (!segs.equals("")) {
 				filterOnSegments(dir, in, out, segs, excludeSegs);
 			} else if (common) {
-				filterOutCommonCNVs(dir, in, out, pct);
+				filterCommonCNVs(dir, in, out, pct);
 			} else if (listFile != null) { 
 				if (group) {
 					filterForAllCNVsSharedInGroup(dir, in, out, listFile);
 				} else if (stats) {
-					variantStats(in, listFile, out, score, number);
+					variantStats(in, listFile, famFile, out, score, number);
 				} else {
 					filterForGroupCNVs(dir, in, out, listFile, excludeFile, exclude);
 				}
@@ -1177,10 +1270,16 @@ public class FilterCalls {
 				variantStats(in, listFiles, out, score, number);
 			} else if (projName != null) {
 				Project proj = new Project(projName, false);
-				CNVStats(proj, dir, in);
+				if (dir != null &&!"".equals(dir)) {
+					CNVStats(proj, dir, in);
+				} else {
+					int famCnt = Files.countLines(famFile, 1);
+					filterBasedOnNumberOfCNVsAtLocus(proj, in, out, (int) (totalRequired * famCnt * 2.0), (int) (delRequired * famCnt * 2.0), (int)(dupRequired * famCnt * 2.0), (int)(totalLimitedTo * famCnt * 2.0), (int)(delLimitedTo * famCnt * 2.0), (int)(dupLimitedTo * famCnt * 2.0), proportionOfProbesThatNeedToPassForFinalInclusion);
+				}
+				
 				//proj=D:/projects/NY_Registry_Combo_Data.properties dir=D:/data/ny_registry/new_york/penncnvShadow/ in=penncnv
 			} else if (excludeFile != null) {
-				filterExclusions(dir, in, out, excludeFile);
+				filterExclusions(dir, in, out, excludeFile, exclude);
 			} else {
 				filter(dir, in, out, new int[]{delSize, hDelSize}, new int[]{dupSize, hDupSize}, new int[]{number, hNumber}, score, filenameOfProblematicRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, markerSetFilenameToBreakUpCentromeres, tracks, build, new Logger(logfile));
 			}
