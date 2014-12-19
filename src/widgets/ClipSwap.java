@@ -47,6 +47,24 @@ public class ClipSwap {
 		ext.setClipboard(ext.getClipboard());
 	}
 
+	public static void prettyP() {
+		String[] lines, line;
+		String result;
+		
+		lines = ext.getClipboard().trim().split("\\n");
+		
+		result = "";
+		for (int i = 0; i < lines.length; i++) {
+			line = lines[i].split("\t", -1);
+			for (int j = 0; j < line.length; j++) {
+				result += (j==0?"":"\t") + "=\""+ext.prettyP(line[j], 2, 4, 2, true)+"\"";
+			}
+			result += "\r\n";
+		}
+		
+		ext.setClipboard(result);
+	}
+
 	public static void main(String[] args) {
 	    int numArgs = args.length;
 	    boolean slash = false;
@@ -54,6 +72,7 @@ public class ClipSwap {
 	    boolean contract = false;
 	    boolean expand = false;
 	    boolean removeFormatting = false;
+	    boolean prettyP = false;
 
 	    String usage = "\n"+
 	    "widgets.ClipSwap requires 0-1 arguments\n"+
@@ -83,6 +102,9 @@ public class ClipSwap {
 		    } else if (args[i].startsWith("-removeFormatting")) {
 			    removeFormatting = true;
 			    numArgs--;
+		    } else if (args[i].startsWith("-prettyP")) {
+		    	prettyP = true;
+			    numArgs--;
 		    }
 	    }
 	    if (numArgs!=0) {
@@ -104,6 +126,9 @@ public class ClipSwap {
 	    	}
 	    	if (removeFormatting) {
 	    		removeFormatting();
+	    	}
+	    	if (prettyP) {
+	    		prettyP();
 	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();
