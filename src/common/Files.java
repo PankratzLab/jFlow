@@ -2162,7 +2162,14 @@ public class Files {
 		int[] skips;
 		String out;
 		
-		params = parseControlFile(filename, "cat", new String[] {"outfile.xln", "file1.txt", "file2.txt skip=1", "file3.txt skip=1"}, log);
+		// get all files in the directory, excluding the crf itself and its corresponding log
+		files = Files.list("./", ":"+ext.rootOf(filename), ":.crf", false, false);
+		files = Array.addStrToArray("outfile.xln", files, 0);
+		for (int i = 2; i < files.length; i++) {
+			files[i] += " skip=1";
+		}
+		
+		params = parseControlFile(filename, "cat", files, log);
 		if (params != null) {
     		out = params.remove(0);
     		files = new String[params.size()];

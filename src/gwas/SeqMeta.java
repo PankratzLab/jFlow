@@ -1937,6 +1937,7 @@ public class SeqMeta {
 			dir = new File("").getAbsolutePath()+"/";
 		}
 		dir = ext.verifyDirFormat(dir);
+		hitsDirectory = ext.verifyDirFormat(hitsDirectory);
 		
 		log = new Logger(dir+"delineateRegions.log");
 		log.report("Computing Bonferroni p-value thresholds from the MAC>="+macThresholdTotal+" results.");
@@ -2343,11 +2344,11 @@ public class SeqMeta {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(betasFor)+"_summary.xln"));
 			writer.println("Pheno\tRace\tStudy\t"+Array.toStr(HEADER_TYPES[ext.indexOfStr(methods[0][2], ALGORITHMS)]));
 			for (int i = 0; i < phenotypes.length; i++) {
-				for (int k = 0; k < races.length; k++) {
-					localDir = dir+phenotypes[i][0]+"/"+races[k][0]+"/"+methods[0][0]+"/";
-					for (int j = 0; j < studies.length; j++) {
-						if (!finalSets[i][j][k].equals("<missing>")) {
-							filename = studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0]+"_"+methods[0][0]+".csv";
+				for (int k = 0; k <= races.length; k++) {
+					localDir = dir+phenotypes[i][0]+"/"+(k==races.length?"":races[k][0]+"/")+methods[0][0]+"/";
+					for (int j = 0; j <= studies.length; j++) {
+						if ((k==races.length && j==studies.length) || j==studies.length || (k<races.length && !finalSets[i][j][k].equals("<missing>"))) {
+							filename = (j==studies.length?"":studies[j]+"_")+(k==races.length?"":races[k][0]+"_")+phenotypes[i][0]+"_"+methods[0][0]+".csv";
 							log.report(ext.getTime()+"\tReading "+filename);
 							
 							try {
@@ -2356,7 +2357,7 @@ public class SeqMeta {
 									temp = reader.readLine();
 									line = ext.splitCommasIntelligently(temp, true, log);
 									if (markersOfInterest.contains(line[1])) {
-										writer.println(phenotypes[i][0]+"\t"+races[k][0]+"\t"+studies[j]+"\t"+Array.toStr(line));
+										writer.println(phenotypes[i][0]+"\t"+(k==races.length?"PanEthnic":races[k][0])+"\t"+(j==studies.length?"Meta":studies[j])+"\t"+Array.toStr(line));
 									}
 								}
 								reader.close();

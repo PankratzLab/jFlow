@@ -786,10 +786,14 @@ public class FilterCalls {
 		for (int i = 0; i<cnvs.length; i++) {
 			firstSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
 			lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
-			indel = cnvs[i].getCN()<2?0:1;
-			for (int j = firstSNP; j<=lastSNP; j++) {
-				counts[cnvs[i].getChr()][j][indel]++;
-            }
+			if (firstSNP == -1 || lastSNP == -1) {
+				System.err.println("Error - could not locate start or stop position for "+cnvs[i].getUCSClocation());
+			} else {
+				indel = cnvs[i].getCN()<2?0:1;
+				for (int j = firstSNP; j<=lastSNP; j++) {
+					counts[cnvs[i].getChr()][j][indel]++;
+	            }
+			}
         }
 		
 		for (int i = 0; i<positions.length; i++) {
@@ -806,25 +810,30 @@ public class FilterCalls {
 	        writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i<cnvs.length; i++) {
 				firstSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
-				lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
+				lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), false);
 				indel = cnvs[i].getCN()<2?0:1;
 
-				if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
-					countAcceptable = 0;
-					for (int j = firstSNP; j <= lastSNP; j++) {
-						if (acceptableSNPs[cnvs[i].getChr()][j]) {
-							countAcceptable++;
-						}
-					}
-					accepted = (double)countAcceptable / (double)(lastSNP - firstSNP + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
-				} else {
-					index = firstSNP;
+				
+				if (firstSNP == -1 || lastSNP == -1) {
 					accepted = false;
-					while (!accepted && index <= lastSNP) {
-						if (acceptableSNPs[cnvs[i].getChr()][index]) {
-							accepted = true;
+				} else {
+					if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
+						countAcceptable = 0;
+						for (int j = firstSNP; j <= lastSNP; j++) {
+							if (acceptableSNPs[cnvs[i].getChr()][j]) {
+								countAcceptable++;
+							}
 						}
-						index++;
+						accepted = (double)countAcceptable / (double)(lastSNP - firstSNP + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
+					} else {
+						index = firstSNP;
+						accepted = false;
+						while (!accepted && index <= lastSNP) {
+							if (acceptableSNPs[cnvs[i].getChr()][index]) {
+								accepted = true;
+							}
+							index++;
+						}
 					}
 				}
 				

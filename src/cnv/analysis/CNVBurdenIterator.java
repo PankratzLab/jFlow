@@ -139,7 +139,8 @@ public class CNVBurdenIterator {
 		double[][][] resultsP = new double[3][4][6];
 		double[][][] resultsR = new double[3][4][6];
 		
-		int[] CNV_FILTERS = new int[]{0, 1, 3, 4};
+//		int[] CNV_FILTERS = new int[]{0, 1, 3, 4};
+		int[] CNV_FILTERS = new int[]{1, 3};
 		double[] CNV_SIZES = new double[]{5000, 2500, 1000, 500, 250, 100};
 		
 		double[] depVars = null;
@@ -157,13 +158,17 @@ public class CNVBurdenIterator {
 					indepVars[cnt][0] = indiv.getValue().age;
 					indepVars[cnt][1] = indiv.getValue().pc1;
 					indepVars[cnt][2] = indiv.getValue().pc2;
-					indepVars[cnt][3] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]);
+					if (CNV_FILTERS[cn] == 1) {
+						indepVars[cnt][3] = (indiv.getValue().getCNVs(CNV_SIZES[sz], 0)+indiv.getValue().getCNVs(CNV_SIZES[sz], 1))>0?1:0;
+					} else {
+						indepVars[cnt][3] = (indiv.getValue().getCNVs(CNV_SIZES[sz], 3)+indiv.getValue().getCNVs(CNV_SIZES[sz], 4))>0?1:0;
+					}
 					cnt++;
 				}
 				LeastSquares lsBoth = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 				
-				resultsB[0][cn][sz] = lsBoth.getBetas().length > 1 ? lsBoth.getBetas()[3] : Double.NaN;
-				resultsP[0][cn][sz] = lsBoth.getSigs().length > 1 ? lsBoth.getSigs()[3] : Double.NaN;
+				resultsB[0][cn][sz] = lsBoth.getBetas().length > 4 ? lsBoth.getBetas()[4] : Double.NaN;
+				resultsP[0][cn][sz] = lsBoth.getSigs().length > 4 ? lsBoth.getSigs()[4] : Double.NaN;
 				resultsR[0][cn][sz] = lsBoth.getRsquare(); 
 
 				lsBoth.destroy();
@@ -187,8 +192,8 @@ public class CNVBurdenIterator {
 				}
 				LeastSquares lsMales = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 				
-				resultsB[1][cn][sz] = lsMales.getBetas().length > 1 ? lsMales.getBetas()[3] : Double.NaN;
-				resultsP[1][cn][sz] = lsMales.getSigs().length > 1 ? lsMales.getSigs()[3] : Double.NaN;
+				resultsB[1][cn][sz] = lsMales.getBetas().length > 4 ? lsMales.getBetas()[4] : Double.NaN;
+				resultsP[1][cn][sz] = lsMales.getSigs().length > 4 ? lsMales.getSigs()[4] : Double.NaN;
 				resultsR[1][cn][sz] = lsMales.getRsquare(); 
 
 				lsMales.destroy();
@@ -212,8 +217,8 @@ public class CNVBurdenIterator {
 				}
 				LeastSquares lsFemales = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 
-				resultsB[2][cn][sz] = lsFemales.getBetas().length > 1 ? lsFemales.getBetas()[3] : Double.NaN;
-				resultsP[2][cn][sz] = lsFemales.getSigs().length > 1 ? lsFemales.getSigs()[3] : Double.NaN;
+				resultsB[2][cn][sz] = lsFemales.getBetas().length > 4 ? lsFemales.getBetas()[4] : Double.NaN;
+				resultsP[2][cn][sz] = lsFemales.getSigs().length > 4 ? lsFemales.getSigs()[4] : Double.NaN;
 				resultsR[2][cn][sz] = lsFemales.getRsquare();
 				
 				lsFemales.destroy();
@@ -222,10 +227,10 @@ public class CNVBurdenIterator {
 		
 		String header = "\tCN=0\tCN=1\tCN=3\tCN=4";
 		
-		String outputFile = "D:/SIDS and IQ/IQ/" + ext.rootOf(cnvFile) + ".burden";
+		String outputFile = ext.rootOf(cnvFile, false) + ".burden";
 		PrintWriter writer;
 		try {
-			writer = new PrintWriter(new FileWriter("D:/SIDS and IQ/IQ/" + ext.rootOf(cnvFile) + ".counts.xln"));
+			writer = new PrintWriter(new FileWriter(ext.rootOf(cnvFile, false) + ".counts.xln"));
 
 			writer.print("FID\tIID");
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
@@ -380,18 +385,11 @@ public class CNVBurdenIterator {
 			System.err.println(usage);
 			return;
 		}
+		
 		try {
 			runProgram(cnvFile, famFile, dataFile, idsFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	
-	
-	
-	
-	
-	
 	}
-	
 }
-
