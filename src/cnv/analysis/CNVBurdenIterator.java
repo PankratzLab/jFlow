@@ -1,4 +1,4 @@
-package one;
+package cnv.analysis;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -162,8 +162,8 @@ public class CNVBurdenIterator {
 				}
 				LeastSquares lsBoth = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 				
-				resultsB[0][cn][sz] = lsBoth.getBetas()[4];
-				resultsP[0][cn][sz] = lsBoth.getSigs()[4];
+				resultsB[0][cn][sz] = lsBoth.getBetas().length > 1 ? lsBoth.getBetas()[3] : Double.NaN;
+				resultsP[0][cn][sz] = lsBoth.getSigs().length > 1 ? lsBoth.getSigs()[3] : Double.NaN;
 				resultsR[0][cn][sz] = lsBoth.getRsquare(); 
 
 				lsBoth.destroy();
@@ -182,13 +182,13 @@ public class CNVBurdenIterator {
 					indepVars[cnt][0] = indiv.getValue().age;
 					indepVars[cnt][1] = indiv.getValue().pc1;
 					indepVars[cnt][2] = indiv.getValue().pc2;
-					indepVars[cnt][3] = indiv.getValue().getCNVs(sz, cn);
+					indepVars[cnt][3] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]);
 					cnt++;
 				}
 				LeastSquares lsMales = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 				
-				resultsB[1][cn][sz] = lsMales.getBetas()[4];
-				resultsP[1][cn][sz] = lsMales.getSigs()[4];
+				resultsB[1][cn][sz] = lsMales.getBetas().length > 1 ? lsMales.getBetas()[3] : Double.NaN;
+				resultsP[1][cn][sz] = lsMales.getSigs().length > 1 ? lsMales.getSigs()[3] : Double.NaN;
 				resultsR[1][cn][sz] = lsMales.getRsquare(); 
 
 				lsMales.destroy();
@@ -207,13 +207,13 @@ public class CNVBurdenIterator {
 					indepVars[cnt][0] = indiv.getValue().age;
 					indepVars[cnt][1] = indiv.getValue().pc1;
 					indepVars[cnt][2] = indiv.getValue().pc2;
-					indepVars[cnt][3] = indiv.getValue().getCNVs(sz, cn);
+					indepVars[cnt][3] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]);
 					cnt++;
 				}
 				LeastSquares lsFemales = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 
-				resultsB[2][cn][sz] = lsFemales.getBetas()[4];
-				resultsP[2][cn][sz] = lsFemales.getSigs()[4];
+				resultsB[2][cn][sz] = lsFemales.getBetas().length > 1 ? lsFemales.getBetas()[3] : Double.NaN;
+				resultsP[2][cn][sz] = lsFemales.getSigs().length > 1 ? lsFemales.getSigs()[3] : Double.NaN;
 				resultsR[2][cn][sz] = lsFemales.getRsquare();
 				
 				lsFemales.destroy();
@@ -222,9 +222,32 @@ public class CNVBurdenIterator {
 		
 		String header = "\tCN=0\tCN=1\tCN=3\tCN=4";
 		
-		String outputFile = "";
+		String outputFile = "D:/SIDS and IQ/IQ/" + ext.rootOf(cnvFile) + ".burden";
 		PrintWriter writer;
 		try {
+			writer = new PrintWriter(new FileWriter("D:/SIDS and IQ/IQ/" + ext.rootOf(cnvFile) + ".counts.xln"));
+
+			writer.print("FID\tIID");
+			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+					writer.print("\t" + CNV_SIZES[sz] + "_" + CNV_FILTERS[cn]);
+				}
+			}
+			writer.println();
+			
+			for (java.util.Map.Entry<String, Data> indiv : idData.entrySet()) {
+				String id = indiv.getKey();
+				writer.print(id);
+				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+						String value = ""+indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]);
+						writer.print("\t" + value);
+					}
+				}
+				writer.println();
+			}
+			writer.close();
+			
 			writer = new PrintWriter(new FileWriter(outputFile));
 		
 			writer.println("Betas");
@@ -232,72 +255,81 @@ public class CNVBurdenIterator {
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsB[0][cn][sz], ext.getNumSigFig(resultsB[0][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsB[0][cn][sz], ext.getNumSigFig(resultsB[0][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("p-values");
 			writer.println("Both" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsP[0][cn][sz], ext.getNumSigFig(resultsP[0][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsP[0][cn][sz], ext.getNumSigFig(resultsP[0][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("Rsq");
 			writer.println("Both" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsR[0][cn][sz], ext.getNumSigFig(resultsR[0][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsR[0][cn][sz], ext.getNumSigFig(resultsR[0][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("Betas");
 			writer.println("Males" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsB[1][cn][sz], ext.getNumSigFig(resultsB[1][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsB[1][cn][sz], ext.getNumSigFig(resultsB[1][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("p-values");
 			writer.println("Males" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsP[1][cn][sz], ext.getNumSigFig(resultsP[1][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsP[1][cn][sz], ext.getNumSigFig(resultsP[1][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("Rsq");
 			writer.println("Males" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsR[1][cn][sz], ext.getNumSigFig(resultsR[1][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsR[1][cn][sz], ext.getNumSigFig(resultsR[1][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("Betas");
 			writer.println("Females" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsB[2][cn][sz], ext.getNumSigFig(resultsB[2][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsB[2][cn][sz], ext.getNumSigFig(resultsB[2][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("p-values");
 			writer.println("Females" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsP[2][cn][sz], ext.getNumSigFig(resultsP[2][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsP[2][cn][sz], ext.getNumSigFig(resultsP[2][cn][sz])));
 				}
+				writer.println();
 			}
 			writer.println("Rsq");
 			writer.println("Females" + header);
 			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 				writer.print(CNV_SIZES[sz]);
 				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.println("\t" + ext.formDeci(resultsR[2][cn][sz], ext.getNumSigFig(resultsR[2][cn][sz])));
+					writer.print("\t" + ext.formDeci(resultsR[2][cn][sz], ext.getNumSigFig(resultsR[2][cn][sz])));
 				}
+				writer.println();
 			}
 	
 			writer.close();
