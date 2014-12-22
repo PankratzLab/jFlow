@@ -1677,7 +1677,7 @@ public class Array {
 
 	
 	/**
-	 * Breaks an array of strings into nChunks
+	 * Breaks an array of strings into nChunks. This is geared toward spliting up filenames etc for batching
 	 * 
 	 * @param strings
 	 *            the array
@@ -1695,7 +1695,7 @@ public class Array {
 			log.reportError("Error - not enough chunks (" + nChunks + ") for " + strings.length + " strings, setting to 1");
 			nChunks = 1;
 		}
-		int[] chunks = Array.splitUp(strings.length, nChunks);
+		int[] chunks = Array.splitUpDistributeRemainder(strings.length, nChunks, log);
 		String[][] stringChunks = new String[chunks.length][];
 
 		for (int i = 0; i < chunks.length; i++) {
@@ -1753,6 +1753,37 @@ public class Array {
 		return splits;
 	}
 
+	/**
+	 * Returns an array splitting a number equally, and distributes the remainder
+	 *
+	 * @param total
+	 *            number to be split into groups
+	 * @param numSplits
+	 *            number of groups to split total into
+	 * @return array of the numbers for each group
+	 */
+	public static int[] splitUpDistributeRemainder(int total, int numSplits, Logger log) {
+		int[] splits = new int[numSplits];
+		// TODO, could also redistribute if remainder is small
+		for (int i = 0; i < numSplits - 1; i++) {
+			splits[i] = (int) Math.floor((double) total / (double) numSplits);
+		}
+		int remainder = total - (numSplits - 1) * (int) Math.floor((double) total / (double) numSplits);
+		if (numSplits > 1 && splits[numSplits - 2] < remainder) {
+			splits[numSplits - 1] = splits[numSplits - 2];
+			remainder -= splits[numSplits - 1];
+			for (int i = 0; i < remainder; i++) {
+				splits[i]++;
+			}
+		} else {
+			splits[numSplits - 1] = remainder;
+		}
+		if (Array.sum(splits) != total) {
+			log.reportError("Internal Error - could not properly split up " + total + " into " + numSplits);
+			splits = null;
+		}
+		return splits;
+	}
 	/**
 	 * Creates an array of Strings and copies the contents of a Vector into it
 	 * 

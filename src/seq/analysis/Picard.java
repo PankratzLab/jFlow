@@ -24,6 +24,9 @@ public class Picard {
 	public static final String INPUT = "INPUT=";
 	public static final String OUTPUT = "OUTPUT=";
 	public static final String SORT_ORDER = "SORT_ORDER=";
+	public static final String SORTING_COLLECTION_SIZE_RATIO = "SORTING_COLLECTION_SIZE_RATIO=";
+	public static final double DEFAULT_SORTING_COLLECTION_SIZE_RATIO = 0.25;
+
 	public static final String DEFAULT_SORT_ORDER = "coordinate";
 	public static final String PICARD_LOCATION_COMMAND = "picard=";
 	public static final String METRICS_FILE = "METRICS_FILE=";
@@ -49,17 +52,17 @@ public class Picard {
 	}
 
 	public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
-		String[] command = new String[] { javaLocation, JAR, picardLocation + SORT_SAM_JAR, INPUT + inputFile, OUTPUT + outputFile, SORT_ORDER + DEFAULT_SORT_ORDER, TMP_DIR + ext.parseDirectoryOfFile(outputFile) };
+		String[] command = new String[] { javaLocation, JAR, picardLocation + SORT_SAM_JAR, INPUT + inputFile, OUTPUT + outputFile, SORT_ORDER + DEFAULT_SORT_ORDER, getTMPdirectory(inputFile, outputFile) };
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] { inputFile }, new String[] { outputFile }, verbose, overwriteExisting, true, (altLog == null ? log : altLog));
 	}
 
-	public boolean markDuplicates(String inputFile, String outputFile, String metricsFile, Logger altLog) {
-		String[] command = new String[] { javaLocation, JAR, picardLocation + MARK_DUPLICATES_JAR, INPUT + inputFile, OUTPUT + outputFile, METRICS_FILE + metricsFile, TMP_DIR + ext.parseDirectoryOfFile(outputFile) };
+	public boolean markDuplicates(String inputFile, String outputFile, String metricsFile, double memoryRatio, Logger altLog) {
+		String[] command = new String[] { javaLocation, JAR, picardLocation + MARK_DUPLICATES_JAR, INPUT + inputFile, OUTPUT + outputFile, METRICS_FILE + metricsFile, getTMPdirectory(inputFile, inputFile), SORTING_COLLECTION_SIZE_RATIO + memoryRatio };
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] { inputFile }, new String[] { outputFile, metricsFile }, verbose, overwriteExisting, true, (altLog == null ? log : altLog));
 	}
 
 	public boolean indexBAM(String inputFile, String expectedOutput, Logger altLog) {
-		String[] command = new String[] { javaLocation, JAR, picardLocation + BUILD_BAM_INDEX, INPUT + inputFile, TMP_DIR + ext.parseDirectoryOfFile(expectedOutput) };
+		String[] command = new String[] { javaLocation, JAR, picardLocation + BUILD_BAM_INDEX, INPUT + inputFile, getTMPdirectory(inputFile, expectedOutput) };
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] { inputFile }, new String[] { expectedOutput }, verbose, overwriteExisting, true, (altLog == null ? log : altLog));
 	}
 
@@ -67,13 +70,18 @@ public class Picard {
 		return new File(picardLocation).exists();
 	}
 
-	public Picard_Analysis picardASam(String baseId, String fullPathToSamFile, Logger altLog) {
+	private static String getTMPdirectory(String inputFile, String expectedOutput) {
+
+		return TMP_DIR + ext.parseDirectoryOfFile(expectedOutput) + ext.rootOf(inputFile) + "picard_tmp/";
+	}
+
+	public Picard_Analysis picardASam(String baseId, String fullPathToSamFile, double memoryRatio, Logger altLog) {
 		boolean progress = false;
 		Picard_Analysis picard_Analysis = new Picard_Analysis(baseId, fullPathToSamFile, (altLog == null ? log : altLog));
 		picard_Analysis.parseInput();
 		progress = sortSam(picard_Analysis.getFullPathToSamFile(), picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
 		if (progress) {
-			progress = markDuplicates(picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getFullPathToSortedDeDuppedBamFile(), picard_Analysis.getFullPathToMetricsTxt(), picard_Analysis.getLog());
+			progress = markDuplicates(picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getFullPathToSortedDeDuppedBamFile(), picard_Analysis.getFullPathToMetricsTxt(), memoryRatio, picard_Analysis.getLog());
 			if (progress) {
 				progress = indexBAM(picard_Analysis.getFullPathToSortedDeDuppedBamFile(), picard_Analysis.getFullPathToSortedDeDuppedBamFileIndex(), picard_Analysis.getLog());
 				if (progress) {
