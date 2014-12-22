@@ -9,15 +9,14 @@ import common.Logger;
 import common.ext;
 
 /**
- * Note we currently use bwa mem ref.fa read1.fq read2.fq > aln-pe.sam to do the allignments
+ * Note we currently use bwa mem -M ref.fa read1.fq read2.fq > aln-pe.sam to do the allignments
  */
 public class BWA {
 	public static final String INDEX_COMMAND = "index";
 	public static final String ALIGN_COMMAND = "aln";
 	public static final String ALIGN_COMBINED_COMMAND = "sampe";
-	public static final String BWA_MEM_COMMAND = "mem";// for picard comapatability
+	public static final String BWA_MEM_COMMAND = "mem";
 	public static final String BWA_COMMAND = "bwa";
-	// public static final String INDEX_EXPECTED = "mem";// for picard comapatability
 
 	private String bwaLocation;
 	private boolean fail, verbose, overwriteExisting;
@@ -40,7 +39,7 @@ public class BWA {
 			String command = fullPathToOutputFile + ".bat";
 			Files.write(Array.toStr(commandArray, " "), command);
 			Files.chmod(command);
-			return CmdLine.runCommandWithFileChecks(new String[] { command }, "", inputFiles, outputFiles, verbose, overwriteExisting,false, (altLog == null ? log : altLog));
+			return CmdLine.runCommandWithFileChecks(new String[] { command }, "", inputFiles, outputFiles, verbose, overwriteExisting,true, (altLog == null ? log : altLog));
 		} else {
 			return false;
 		}

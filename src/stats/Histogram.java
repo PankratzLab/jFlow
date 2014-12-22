@@ -248,8 +248,19 @@ public class Histogram {
 				getCounts()[(int) (data * Math.pow(10, getSigfigs()) - getMin() * Math.pow(10, getSigfigs()))]++;
 			}
 		}
+
+		/**
+		 * If you would like to initialize several histograms to the same value
+		 */
+		public static DynamicHistogram[] initHistograms(int numHistograms, double min, double max, int sigFigs) {
+			DynamicHistogram[] dynamicHistograms = new DynamicHistogram[numHistograms];
+			for (int i = 0; i < dynamicHistograms.length; i++) {
+				dynamicHistograms[i] = new DynamicHistogram(min, max, sigFigs);
+			}
+			return dynamicHistograms;
+		}
 	}
-	
+
 	public static void main(String[] args) {
 	    int numArgs = args.length;
 	    String filename = "Histogram.dat";

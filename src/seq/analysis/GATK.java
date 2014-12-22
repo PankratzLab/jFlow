@@ -76,6 +76,8 @@ public class GATK {
 	public static final String O = "-o";
 
 	public static final String VCF = ".vcf";
+	public static final String VCF_INDEX = ".idx";
+
 	public static final String GVCF = ".gvcf";
 	public static final String RESOURCE = "-resource:";
 	public static final String[] RESOURCES = { "hapmap", "omni", "1000G", "dbsnp" };
@@ -314,7 +316,7 @@ public class GATK {
 		}
 
 		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile, ERC_MODE, GVCF_MODE, VARIANT_INDEX_TYPE, LINEAR, VARIANT_INDEX_PARAMETER, VARIANT_INDEX_DEFAULT, dbSnpFile == null ? "" : DB_SNP, dbSnpFile == null ? "" : dbSnpFile, O, output, NCT, numWithinSampleThreads + "" };
-		return CmdLine.runCommandWithFileChecks(command, "", input, new String[] { output }, verbose, overWriteExisting, true, (altLog == null ? log : altLog));
+		return CmdLine.runCommandWithFileChecks(command, "", input, new String[] { output, output + VCF_INDEX }, verbose, overWriteExisting, true, (altLog == null ? log : altLog));
 	}
 
 	private String[] getCurrentResourceBundle() {

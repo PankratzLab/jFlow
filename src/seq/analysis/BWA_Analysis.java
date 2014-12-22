@@ -54,7 +54,8 @@ public class BWA_Analysis {
 	public BWA_Analysis(String rootInputDir, String rootOutputDir, String referenceGenomeFasta, boolean verbose, int numWithinSampleThreads, int numBetweenSampleThreads, BWA bwa, Logger log) {
 		super();
 		this.rootInputDir = rootInputDir;
-		this.rootOutputDir = rootOutputDir == null ? rootInputDir : rootOutputDir;
+		this.rootOutputDir = rootOutputDir;
+		new File(rootOutputDir).mkdirs();
 		this.referenceGenomeFasta = referenceGenomeFasta;
 		this.verbose = verbose;
 		this.numWithinSampleThreads = numWithinSampleThreads;

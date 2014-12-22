@@ -27,7 +27,6 @@ public class GATK_LanePrep extends BWA_Analysis {
 	private GATK.BaseRecalibration[] gRecalibrations;
 	private MergeBam.BamMerger[] mBamMergers;
 	private MergeBam mergeBam;
-
 	private int numBetweenSampleThreads;
 
 	public GATK_LanePrep(String rootInputDir, String rootOutputDir, String referenceGenomeFasta, boolean verbose, int numWithinSampleThreads, int numBetweenSampleThreads, BWA bwa, Picard picard, GATK gatk, MergeBam mergeBam, Logger log) {
@@ -71,14 +70,22 @@ public class GATK_LanePrep extends BWA_Analysis {
 			BWA_AnalysisIndividual[] bwAnalysisIndividuals = getBwAnalysisIndividuals();
 			if (bwAnalysisIndividuals != null) {
 				this.picard_Analysis = new Picard.Picard_Analysis[bwAnalysisIndividuals.length];
+				double memoryRatio = (double) 1 / bwAnalysisIndividuals.length;// added this because with more than 4 samples,
+				memoryRatio -= .01;
+				if (memoryRatio > Picard.DEFAULT_SORTING_COLLECTION_SIZE_RATIO) {
+					memoryRatio = Picard.DEFAULT_SORTING_COLLECTION_SIZE_RATIO;
+				} else {
+					getLog().report(ext.getTime() + " Info - adjusting Picard's memory ratio to " + memoryRatio + " since there are more than 3 samples...");
+				}
 				ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
 				Hashtable<String, Future<Picard.Picard_Analysis>> tmpResults = new Hashtable<String, Future<Picard.Picard_Analysis>>();
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false) + "_Picard_ID_" + bwAnalysisIndividuals[i].getID() + "_Lane_" + bwAnalysisIndividuals[i].getLane() + ".log");
-					tmpResults.put(i + "", executor.submit(new WorkerPicard(picard, bwAnalysisIndividuals[i].getID(), bwAnalysisIndividuals[i].getOutput(), altLog)));
+					tmpResults.put(i + "", executor.submit(new WorkerPicard(picard, bwAnalysisIndividuals[i].getID(), bwAnalysisIndividuals[i].getOutput(), memoryRatio, altLog)));
 				}
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
+						getLog().memoryPercentFree();
 						picard_Analysis[i] = tmpResults.get(i + "").get();
 						getLog().report(ext.getTime() + "Info - retrieving picard results for " + picard_Analysis[i].getFullPathToSamFile());
 						if (picard_Analysis[i].isFail() && !isFail()) {
@@ -294,7 +301,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 			Files.writeList(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
 		}
 		// TODO, change classpath
-		String command = "module load R\nmodule load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_LanePrep " + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
+		String command = "module load samtools\nmodule load R\nmodule load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_LanePrep " + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
 		command += REFERENCE_GENOME_COMMAND + getReferenceGenomeFasta() + SPACE + BWA_LOCATION_COMMAND + getBwa().getBwaLocation() + SPACE;
 		command += NUM_BETWEEN_THREADS_COMMAND + getnumBetweenSampleThreads() + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + getnumWithinSampleThreads() + SPACE;
 		command += MergeBam.SAMTOOLS_COMMAND + getMergeBam().getSamtoolsLocation() + SPACE;
@@ -309,18 +316,20 @@ public class GATK_LanePrep extends BWA_Analysis {
 		private Picard picard;
 		private String fullPathToSamFile, baseId;
 		private Logger altLog;
+		private double memoryRatio;
 
-		public WorkerPicard(Picard picard, String baseId, String fullPathToSamFile, Logger altLog) {
+		public WorkerPicard(Picard picard, String baseId, String fullPathToSamFile, double memoryRatio, Logger altLog) {
 			super();
 			this.picard = picard;
 			this.baseId = baseId;
 			this.fullPathToSamFile = fullPathToSamFile;
+			this.memoryRatio = memoryRatio;
 			this.altLog = altLog;
 		}
 
 		@Override
 		public Picard.Picard_Analysis call() {// acts like run
-			return picard.picardASam(baseId, fullPathToSamFile, altLog);
+			return picard.picardASam(baseId, fullPathToSamFile, memoryRatio, altLog);
 		}
 	}
 
