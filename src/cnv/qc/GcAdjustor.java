@@ -572,7 +572,7 @@ public class GcAdjustor {
 					log.reportError("Error - did not find any valid markers in gc model file " + fullPathToGcModel);
 					return null;
 				} else {
-					log.report("Info - loaded " + markers.size() + " markers from gc model file" + fullPathToGcModel);
+					log.report("Info - loaded " + markers.size() + " markers from gc model file " + fullPathToGcModel);
 					GcModel gcModel = new GcModel(Array.toStringArray(markers), Array.toByteArray(chrs), Array.toIntegerArray(positions), Array.toDoubleArray(gcs), index, log);
 					gcModel.Serialize(fullPathToGcSer);
 					return gcModel;

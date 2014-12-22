@@ -57,7 +57,9 @@ public class LrrSd extends Parallelizable {
 				proj.getLog().report("Info - did not detect chromosome 23 in " + proj.getFilename(Project.MARKERSET_FILENAME));
 			}
 			if (markersForEverythingElse != null) {
-				markersForEverythingElse = (subIndex == markersForEverythingElse.length ? markersForEverythingElse : Array.subArray(markersForEverythingElse, 0, subIndex));
+				for (int i = subIndex; i < markersForEverythingElse.length; i++) {
+					markersForEverythingElse[i] = false;
+				}
 			}
 			
 			
@@ -93,9 +95,7 @@ public class LrrSd extends Parallelizable {
 					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
 					lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
-					lrrs = (subIndex == lrrs.length ? lrrs : Array.subArray(lrrs, 0, subIndex));
 					bafs = fsamp.getBAFs();
-					bafs = (subIndex == bafs.length ? bafs : Array.subArray(bafs, 0, subIndex));
 					bafsWide = bafs;
 
 					if (markersForEverythingElse != null) {
