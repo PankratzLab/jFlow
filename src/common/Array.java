@@ -2306,7 +2306,7 @@ public class Array {
 		int count;
 		
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for boolean subset");
+			System.err.println("Error - mismatched array lengths for the aray (n="+array.length+") and the boolean subset (n="+use.length+")");
 			return null;
 		}
 		
@@ -2337,7 +2337,7 @@ public class Array {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for boolean subset");
+			System.err.println("Error - mismatched array lengths for the aray (n="+array.length+") and the boolean subset (n="+use.length+")");
 			return null;
 		}
 		
@@ -2367,7 +2367,7 @@ public class Array {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for boolean subset");
+			System.err.println("Error - mismatched array lengths for the aray (n="+array.length+") and the boolean subset (n="+use.length+")");
 			return null;
 		}
 		
@@ -2437,7 +2437,7 @@ public class Array {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for boolean subset");
+			System.err.println("Error - mismatched array lengths for the aray (n="+array.length+") and the boolean subset (n="+use.length+")");
 			return null;
 		}
 		
@@ -2537,7 +2537,7 @@ public class Array {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for boolean subset");
+			System.err.println("Error - mismatched array lengths for the aray (n="+array.length+") and the boolean subset (n="+use.length+")");
 			return null;
 		}
 		
@@ -2650,7 +2650,7 @@ public class Array {
 		int count;
 
 		if (array.length != use.length) {
-			System.err.println("Error - mismatched array lengths for boolean subset");
+			System.err.println("Error - mismatched array lengths for the aray (n="+array.length+") and the boolean subset (n="+use.length+")");
 			return null;
 		}
 		

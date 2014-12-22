@@ -32,6 +32,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String PARSE_FILES_CSV = "Parse .csv files";
 	public static final String TRANSPOSE_DATA = "Transpose data";
 	public static final String KITANDKABOODLE = "Kit and Kaboodle";
+	public static final String MITOPIPELINE = "MitoPipeline";
 
 	public static final String CHECK_SEX = "Check sex";
 	public static final String LRR_SD = "LRR Stdevs";
@@ -66,7 +67,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String TEST = "Test new program";
 	
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
-			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE},
+			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
 			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, TEST},
@@ -483,7 +484,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 				
 			} else if (command.equals(GCMODEL)) {
-				cnv.analysis.PennCNV.gcModel(proj, "/projects/gcModel/gc5Base.txt", "/projects/gcModel/ourResult.gcModel", 100);
+				cnv.analysis.PennCNV.gcModel(proj, "N:/statgen/NCBI/gc5Base.txt", proj.getProjectDir()+"data/custom.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
 				cnv.qc.MarkerMetrics.fullQC(proj, null, null);
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
@@ -492,6 +493,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, true);
 			} else if (command.equals(TALLY_WITHOUT_DETERMINING_DROPS)) {
 				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, false);
+			} else if (command.equals(MITOPIPELINE)) {
+//				MitoPipeline.guiLauncher(proj);
 			} else if (command.equals(KITANDKABOODLE)) {
 				String filename;
 
