@@ -1376,6 +1376,8 @@ public class Array {
 	 * @return specified quantile of the array
 	 */
 	public static double quant(double[] array, double q) {
+		if (array.length == 0) return Double.NaN;
+
 		int keys[] = Sort.quicksort(array);
 
 		try {

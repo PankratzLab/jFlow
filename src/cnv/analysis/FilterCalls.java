@@ -2,9 +2,13 @@ package cnv.analysis;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import filesys.*;
@@ -31,51 +35,6 @@ public class FilterCalls {
 	public static final boolean DEFAULT_BREAK_CENTROMERE = false;
 	/** Score/Probe thresholds for CNVStats, altering these will alter the number of columns in the outputted stats file */
 	private static final double[][] CNV_STATS_THRESHOLDS = new double[][]{{10, 10}, {10, 20}};
-	
-	
-	private static void simpleFilters(String dir, String in, String out, int[] minProbes, double minScore) {
-		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(dir + in, false);
-		
-		boolean[] keep = Array.booleanArray(srcCNVs.length, true);
-		
-		for (int i = 0; i < srcCNVs.length; i++) {
-			if (srcCNVs[i].getScore() < minScore) keep[i] = false;
-			switch(srcCNVs[i].getCN()) {
-				case 0:
-					if (srcCNVs[i].getNumMarkers() < minProbes[0]) keep[i] = false;
-					break;
-				case 1:
-					if (srcCNVs[i].getNumMarkers() < minProbes[1]) keep[i] = false;
-					break;
-				case 3: 
-					if (srcCNVs[i].getNumMarkers() < minProbes[2]) keep[i] = false;
-					break;
-				case 4:
-					if (srcCNVs[i].getNumMarkers() < minProbes[3]) keep[i] = false;
-					break;
-				default:
-					break;
-			}
-		}
-		
-		CNVariant[] leftovers = Array.subArray(srcCNVs, keep);
-		
-		PrintWriter writer;
-		try {
-			writer = new PrintWriter(new FileWriter(dir + out));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
-			for (CNVariant node : leftovers) {
-				writer.println(node.toPlinkFormat());
-			}
-			writer.flush();
-			writer.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
-	
 	
 	private static class CNVFilterNode {
 		public static final int HET_DEL = 0;
@@ -366,6 +325,421 @@ public class FilterCalls {
 			e.printStackTrace();
 		}
 	}
+	
+	private static class CleanCNVariant {
+		int markerStart;
+		int markerStop;
+		CNVariant cnv;
+		double medianLRR;
+		double stdevLRR;
+		
+		public CleanCNVariant(int start, int stop, CNVariant cnvariant) {
+			this.markerStart = start;
+			this.markerStop = stop;
+			this.cnv = cnvariant;
+		}
+	}
+	
+	public static void cleanCNVs(Project proj, String in, String out, double distanceQuotient) {
+		Logger log = proj.getLog();
+		log.report(ext.getTime() + "] Loading CNV file...");
+		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(in, false);
+		
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			
+			HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+
+			log.report(ext.getTime() + "] Organizing CNVs in memory...");
+			for (CNVariant cnv : srcCNVs) {
+				HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+				if (chrCNVMap == null) {
+					chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
+					indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
+				}
+				ArrayList<CNVariant> cnvList = chrCNVMap.get(cnv.getChr());
+				if (cnvList == null) {
+					cnvList = new ArrayList<CNVariant>();
+					chrCNVMap.put(cnv.getChr(), cnvList);
+				}
+				cnvList.add(cnv);
+			}
+			
+			srcCNVs = null;
+	
+			MarkerSet markerSet = proj.getMarkerSet();
+			int[][] positions = markerSet.getPositionsByChr();
+			Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
+			String[] markerNames = markerSet.getMarkerNames();
+			SampleData sampleData = proj.getSampleData(0, false);
+			
+			log.report(ext.getTime() + "] Cleaning CNVs...");
+			int size = indivChrCNVMap.size();
+			int cnt = 0;
+			int step = size / 10;
+			for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap.entrySet()) {
+				if (cnt > 0 && cnt % step == 0) {
+					log.report(ext.getTime() + "] \t" + ((cnt / step) * 10) + "% complete");
+				}
+//				log.report(ext.getTime() + "] Analyzing CNVs for {" + entry.getKey() + "}");
+				String fidiid = entry.getKey();
+				
+				String ind;
+				float[] lrrs;
+				try {
+					ind = sampleData.lookup(fidiid)[0];
+				} catch (NullPointerException npe) {
+					log.reportError("Error - could not look up the sample " + fidiid + " in the sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
+					log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + fidiid.split("\t")[0] + " and IID=" + fidiid.split("\t")[1]);
+					continue;
+				}
+				try {
+					lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
+				} catch (NullPointerException npe) {
+					log.reportError("Error - could not load data for the sample " + ind + "\t" + fidiid + ", please ensure samples have been parsed prior to computing beast score");
+					log.report("Skipping beast score for sample " + ind + "\t" + fidiid);
+					continue;
+				}
+				
+				for (java.util.Map.Entry<Byte, ArrayList<CNVariant>> cnvLists : entry.getValue().entrySet()) {
+					byte chr = cnvLists.getKey();
+					
+					if (cnvLists.getValue().size() == 0) {
+						continue;
+					} else if (cnvLists.getValue().size() == 1) {
+						writer.println(cnvLists.getValue().get(0).toPlinkFormat());
+						continue;
+					}
+					
+					ArrayList<CNVariant> cnvList = cnvLists.getValue();
+					cnvList.sort(new Comparator<CNVariant>() {
+						@Override
+						public int compare(CNVariant o1, CNVariant o2) {
+							if (o1.getStart() < o2.getStart()) {
+								return -1;
+							} else if (o1.getStart() > o2.getStart()) {
+								return 1;
+							} else {
+								if (o1.getStop() < o2.getStop()) {
+									return -1;
+								} else if (o1.getStop() > o2.getStop()) {
+									return 1;
+								} else {
+									return 0;
+								}
+							}
+						}
+					});
+					LinkedList<CleanCNVariant> tempChromo = new LinkedList<FilterCalls.CleanCNVariant>();
+					
+					// create objects for all CNVs while also setting start/end marker indices, accounting for dropped markers
+					for (int i = 0; i < cnvList.size(); i++) {
+						int firstSNPIndex = Array.binarySearch(positions[chr], cnvList.get(i).getStart(), true);
+						int lastSNPIndex = Array.binarySearch(positions[chr], cnvList.get(i).getStop(), true);
+						
+						// account for dropped markers
+						if (droppedMarkerNames.contains(markerNames[firstSNPIndex])) {
+							int f1 = firstSNPIndex, f2 = firstSNPIndex;
+							while(f1 > (i == 0 ? 0 : tempChromo.get(i - 1).markerStop) && droppedMarkerNames.contains(markerNames[f1])) {
+								f1--;
+							}
+							while(f2 < lastSNPIndex - 1 && droppedMarkerNames.contains(markerNames[f2])) {
+								f2++;
+							}
+							firstSNPIndex = ((firstSNPIndex - f1) < (f2 - firstSNPIndex) ? f1 : f2);
+						}
+						if (droppedMarkerNames.contains(markerNames[lastSNPIndex])) {
+							int s1 = firstSNPIndex, s2 = lastSNPIndex;
+							while(s1 > firstSNPIndex && droppedMarkerNames.contains(markerNames[s1])) {
+								s1--;
+							}
+							while(s2 < markerNames.length - 1 && droppedMarkerNames.contains(markerNames[s2])) {
+								s2++;
+							}
+							
+							lastSNPIndex = ((lastSNPIndex - s1) < (s2 - lastSNPIndex) ? s1 : s2);
+						}
+						
+						tempChromo.add(new CleanCNVariant(firstSNPIndex, lastSNPIndex, cnvList.get(i)));
+					}
+					
+					LinkedList<CleanCNVariant> chromo = new LinkedList<FilterCalls.CleanCNVariant>();
+					
+					// create full list: CNVs and objects for the spaces between CNVs, also accounting for dropped markers
+					chromo.add(tempChromo.get(0));
+					for (int i = 1; i < tempChromo.size(); i++) {
+						CleanCNVariant cnv1 = tempChromo.get(i - 1);
+						CleanCNVariant cnv2 = tempChromo.get(i);
+						
+						if (cnv2.markerStart - cnv1.markerStop <= 1) {
+							chromo.add(cnv2);
+							continue;
+						}
+						
+						int m1 = cnv1.markerStop + 1;
+						int m2 = cnv2.markerStart - 1;
+						
+						if (droppedMarkerNames.contains(markerNames[m1])) {
+							int f1 = m1;
+							while(f1 < m2 - 1 && droppedMarkerNames.contains(markerNames[f1])) {
+								f1++;
+							}
+							m1 = f1;
+						}
+						if (droppedMarkerNames.contains(markerNames[m2])) {
+							int s1 = m2;
+							while(s1 > m1 + 1 && droppedMarkerNames.contains(markerNames[s1])) {
+								s1--;
+							}
+							m2 = s1;
+						}
+						
+						chromo.add(new CleanCNVariant(m1, m2, null));
+						chromo.add(cnv2);
+					}
+					tempChromo = null;
+					
+					// iterate through full array and compute median and stdev of LRRs
+					for (int i = 0; i < chromo.size(); i++) {
+						CleanCNVariant cnv = chromo.get(i);
+						setLRRMedStdDev(cnv, droppedMarkerNames, markerNames, lrrs);
+					}
+					
+					HashMap<Integer, CleanCNVariant> removed = new HashMap<Integer, FilterCalls.CleanCNVariant>();
+					TreeSet<Integer> indexList = new TreeSet<Integer>();
+					boolean done = false;
+					while (!done) {
+						int index = 0;
+						CleanCNVariant cnv = chromo.get(0);
+						// find index of first ICS (inter-CNV space); should never be index 0 or max
+						for (index = 1; index < chromo.size() - 1 && cnv.cnv != null; index++) {
+							cnv = chromo.get(index);
+						}
+						
+						if (cnv.cnv != null) {
+							// iterated through entire list and no ICSs left!
+							done = true;
+							break;
+						}
+						index--;
+						
+						CleanCNVariant actualCNV1 = chromo.get(index - 1);
+						CleanCNVariant actualCNV2 = chromo.get(index + 1);
+						
+						if (((cnv.markerStop - cnv.markerStart + 1) / (actualCNV1.cnv.getNumMarkers() + actualCNV2.cnv.getNumMarkers())) > distanceQuotient || actualCNV1.cnv.getCN() != actualCNV2.cnv.getCN()) {
+							// can't combine CNVs, so remove ICS placeholder
+							removed.put(index, chromo.remove(index));
+							indexList.add(index);
+							// and continue
+							continue;
+						}
+						
+						if (cnv.medianLRR > actualCNV1.medianLRR - actualCNV1.stdevLRR && 
+								cnv.medianLRR < actualCNV1.medianLRR + actualCNV1.stdevLRR &&
+								cnv.medianLRR > actualCNV2.medianLRR - actualCNV2.stdevLRR &&
+								cnv.medianLRR < actualCNV2.medianLRR + actualCNV2.stdevLRR) {
+							CleanCNVariant newCNV = new CleanCNVariant(actualCNV1.markerStart, actualCNV2.markerStop, new CNVariant(actualCNV1.cnv.getFamilyID(), actualCNV1.cnv.getIndividualID(), chr, actualCNV1.cnv.getStart(), actualCNV2.cnv.getStop(), actualCNV1.cnv.getCN(), Math.max(actualCNV1.cnv.getScore(), actualCNV2.cnv.getScore()), actualCNV2.markerStop - actualCNV1.markerStart + 1, actualCNV1.cnv.getSource()));
+							setLRRMedStdDev(newCNV, droppedMarkerNames, markerNames, lrrs);
+							// remove ICS
+							chromo.remove(index);
+							// remove CNV2
+							chromo.remove(index);
+							// remove CNV1
+							chromo.remove(index - 1);
+							chromo.add(index - 1, newCNV);
+							
+							// add removed ICSs, in case we've altered things enough to now combine more
+							Integer addBack = indexList.pollLast();
+							while(addBack != null) {
+								chromo.add(addBack, removed.remove(addBack));
+								addBack = indexList.pollLast();
+							}
+						} else {
+							// not close enough to combine, so remove ICS placeholder
+							removed.put(index, chromo.remove(index));
+							indexList.add(index);
+							continue;
+						}
+						
+					}
+					
+					// shouldn't have any ICSs remaining... but check anyway, just to be safe?
+					for (int i = 0; i < chromo.size(); i++) {
+						if (chromo.get(i).cnv != null) {
+							writer.println(chromo.get(i).cnv.toPlinkFormat());
+						}
+					}
+				}
+				cnt++;
+			}
+
+			writer.flush();
+			writer.close();			
+			
+			log.report(ext.getTime() + "] CNV cleaning complete!");
+		} catch (IOException e) {
+			proj.getLog().reportException(e);
+		}
+	}
+	
+	
+	private static void setLRRMedStdDev(CleanCNVariant cnv, Hashtable<String, String> droppedMarkerNames, String[] markerNames, float[] lrrs) {
+		ArrayList<Float> lrr = new ArrayList<Float>();
+		for (int m = cnv.markerStart; m <= cnv.markerStop; m++) {
+			if (droppedMarkerNames.contains(markerNames[m])) {
+				continue;
+			}
+			if (!Double.isNaN(lrrs[m])) {
+				lrr.add(lrrs[m]);
+			}
+		}
+		double[] lrrsDubs = Array.toDoubleArray(Array.toFloatArray(lrr)); 
+		cnv.medianLRR = Array.median(lrrsDubs);
+		cnv.stdevLRR = Array.stdev(lrrsDubs);
+	}
+
+
+	public static final float DEFAULT_CLEAN_FACTOR = 0.2f;
+	public static final float DEFAULT_CLEAN_FLOOR = 0.0001f;
+	public static final float DEFAULT_CLEAN_FACTOR_SCALE = 5; 
+	
+	/**
+	 * Combine CNV calls iteratively.
+	 * <br /><br />
+	 * Start with the given distance/size factor (0.2 recommended).  This quotient is used to decide whether or not to combine two CNVs.  If the proportion of the distance between two CNVs to the combined size of both CNVs is less than this factor, the two CNVs are combined.
+	 * <br /><br />
+	 * We do this iteratively: starting at the given value, we scale the factor down, requiring CNVs to be closer and closer with each iteration.  The factor is scaled by 1/5th each iteration, and the iterations continue until the factor is &lt; 0.0001.
+	 * <br /> 
+	 * <br />
+	 * 
+	 * 
+	 * @param in
+	 * @param out
+	 * @param distFactor
+	 */
+	public static void cleanCNVs(String in, String out, float distFactor) {
+		Vector<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, false);
+		
+		float factor = distFactor;
+		ArrayList<CNVariant> newCNVs = new ArrayList<CNVariant>();
+		newCNVs.addAll(inputCNVs);
+		inputCNVs = null;
+		int cnt = 1;
+		while(factor > DEFAULT_CLEAN_FLOOR) {
+			newCNVs = getCleanCNVs(newCNVs, factor);
+			factor = factor / DEFAULT_CLEAN_FACTOR_SCALE;
+			cnt++;
+		}
+		
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (CNVariant cnv : newCNVs) {
+				writer.println(cnv.toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println(cnt + " iterations");
+	}
+	
+	private static ArrayList<CNVariant> getCleanCNVs(ArrayList<CNVariant> inputCNVs, float distFactor) {
+
+		HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+		
+		for (CNVariant cnv : inputCNVs) {
+			HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+			if (chrCNVMap == null) {
+				chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
+				indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
+			}
+			ArrayList<CNVariant> cnvList = chrCNVMap.get(cnv.getChr());
+			if (cnvList == null) {
+				cnvList = new ArrayList<CNVariant>();
+				chrCNVMap.put(cnv.getChr(), cnvList);
+			}
+			cnvList.add(cnv);
+		}
+		
+		ArrayList<CNVariant> newCNVs = new ArrayList<CNVariant>();
+		
+		StringBuilder status = new StringBuilder();
+		
+		for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap.entrySet()) {
+			String fidiid = entry.getKey();
+			
+			for (java.util.Map.Entry<Byte, ArrayList<CNVariant>> chrEntry : entry.getValue().entrySet()) {
+				byte chr = chrEntry.getKey();
+				ArrayList<CNVariant> cnvList = chrEntry.getValue();
+				
+				cnvList.sort(new Comparator<CNVariant>() {
+					@Override
+					public int compare(CNVariant o1, CNVariant o2) {
+						if (o1.getStart() < o2.getStart()) {
+							return -1;
+						} else if (o1.getStart() > o2.getStart()) {
+							return 1;
+						} else {
+							if (o1.getStop() < o2.getStop()) {
+								return -1;
+							} else if (o1.getStop() > o2.getStop()) {
+								return 1;
+							} else {
+								return 0;
+							}
+						}
+					}
+				});
+				if (cnvList.size() == 1) {
+					newCNVs.add(cnvList.get(0));
+				} else {
+					for (int i = 0; i < cnvList.size() - 1; i++) {
+						CNVariant curr = cnvList.get(i);
+						CNVariant next = cnvList.get(i + 1);
+						if (curr.getCN() != next.getCN()) {
+							newCNVs.add(curr);
+							if (i == cnvList.size() - 2) {
+								newCNVs.add(next);
+							}
+							continue;
+						}
+						
+						float sz = curr.getSize() + next.getSize();
+						float diff = next.getStart() - curr.getStop();
+						
+						if (diff / sz <= distFactor) {
+							// TODO Fix numMarkers to include in-between markers.  Also fix CNV score.
+							newCNVs.add(new CNVariant(curr.getFamilyID(), curr.getIndividualID(), chr, curr.getStart(), next.getStop(), curr.getCN(), Math.max(curr.getScore(), next.getScore()), curr.getNumMarkers() + next.getNumMarkers() + 0, 0));
+							status.append(fidiid).append(" > ").append(curr.getChr()).append("{").append(curr.getStart()).append(", ").append(next.getStop()).append("}").append("\n");
+							// skip combined CNVs
+							i++;
+						} else {
+							newCNVs.add(curr);
+							if (i == cnvList.size() - 2) {
+								newCNVs.add(next);
+							}
+						}
+						
+					}
+				}
+				
+			}
+			
+		}
+		
+		indivChrCNVMap = null;
+		
+		System.out.println("Created " + (inputCNVs.size() - newCNVs.size()) + " combined CNVs");
+		System.out.println(status.toString());
+		System.out.println("------------------------------------------------");
+		
+		return newCNVs;
+	}
+	
 	
 	public static void filterExclusions(Project proj, String cnvFile) {
 		PrintWriter writer;
@@ -1011,6 +1385,7 @@ public class FilterCalls {
 		boolean exclude = false;
 		boolean group = false;
 		boolean stats = false; 
+		boolean clean = false;
 		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo, proportionOfProbesThatNeedToPassForFinalInclusion;
 		totalRequired = delRequired = dupRequired = totalLimitedTo = delLimitedTo = dupLimitedTo = proportionOfProbesThatNeedToPassForFinalInclusion = 0.0;
 		String famFile = null;
@@ -1134,6 +1509,9 @@ public class FilterCalls {
 			} else if (args[i].startsWith("-stats")) { 
 				stats = true;
 				numArgs--;
+			} else if (args[i].startsWith("-clean")) { 
+				clean = true;
+				numArgs--;
 			} else if (args[i].startsWith("list=")) {
 				listFile = args[i].split("=")[1];
 				numArgs--;
@@ -1254,6 +1632,8 @@ public class FilterCalls {
 			  	listFiles
 			  	score
 			  	number
+			  --> (cleanCNVs)
+			  	-clean
 			
 		*/
 
@@ -1279,8 +1659,10 @@ public class FilterCalls {
 				variantStats(in, listFiles, out, score, number);
 			} else if (projName != null) {
 				Project proj = new Project(projName, false);
-				if (dir != null &&!"".equals(dir)) {
+				if (dir != null && !"".equals(dir)) {
 					CNVStats(proj, dir, in);
+				} else if (clean) {
+					cleanCNVs(proj, in, out, DEFAULT_CLEAN_FACTOR);
 				} else {
 					int famCnt = Files.countLines(famFile, 1);
 					filterBasedOnNumberOfCNVsAtLocus(proj, in, out, (int) (totalRequired * famCnt * 2.0), (int) (delRequired * famCnt * 2.0), (int)(dupRequired * famCnt * 2.0), (int)(totalLimitedTo * famCnt * 2.0), (int)(delLimitedTo * famCnt * 2.0), (int)(dupLimitedTo * famCnt * 2.0), proportionOfProbesThatNeedToPassForFinalInclusion);
@@ -1289,6 +1671,8 @@ public class FilterCalls {
 				//proj=D:/projects/NY_Registry_Combo_Data.properties dir=D:/data/ny_registry/new_york/penncnvShadow/ in=penncnv
 			} else if (excludeFile != null) {
 				filterExclusions(dir, in, out, excludeFile, exclude);
+			} else if (clean) {
+				cleanCNVs(in, out, DEFAULT_CLEAN_FACTOR);
 			} else {
 				filter(dir, in, out, new int[]{delSize, hDelSize}, new int[]{dupSize, hDupSize}, new int[]{number, hNumber}, score, filenameOfProblematicRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, markerSetFilenameToBreakUpCentromeres, tracks, build, new Logger(logfile));
 			}
