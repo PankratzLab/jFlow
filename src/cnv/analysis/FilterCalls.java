@@ -330,6 +330,7 @@ public class FilterCalls {
 		int markerStart;
 		int markerStop;
 		CNVariant cnv;
+		final ArrayList<CleanCNVariant> originalCNVs = new ArrayList<CleanCNVariant>();
 		double medianLRR;
 		double stdevLRR;
 		
@@ -338,6 +339,14 @@ public class FilterCalls {
 			this.markerStop = stop;
 			this.cnv = cnvariant;
 		}
+		
+		public CleanCNVariant addOriginalCNV(CleanCNVariant cnv) {
+			if (cnv != null) {
+				this.originalCNVs.add(cnv);
+			}
+			return this;
+		}
+		
 	}
 	
 	public static void cleanCNVs(Project proj, String in, String out, double distanceQuotient) {
@@ -373,6 +382,9 @@ public class FilterCalls {
 			Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
 			String[] markerNames = markerSet.getMarkerNames();
 			SampleData sampleData = proj.getSampleData(0, false);
+			
+			PrintWriter verboseWriter = new PrintWriter(new FileWriter(ext.rootOf(out, false) + ".results"));
+			verboseWriter.println("CNV1_LRR\tCNV1_SD\tICS_LRR\tICS_SD\tCNV2_LRR\tCNV2_SD");
 			
 			log.report(ext.getTime() + "] Cleaning CNVs...");
 			int size = indivChrCNVMap.size();
@@ -461,7 +473,9 @@ public class FilterCalls {
 							lastSNPIndex = ((lastSNPIndex - s1) < (s2 - lastSNPIndex) ? s1 : s2);
 						}
 						
-						tempChromo.add(new CleanCNVariant(firstSNPIndex, lastSNPIndex, cnvList.get(i)));
+						CleanCNVariant orig = new CleanCNVariant(firstSNPIndex, lastSNPIndex, cnvList.get(i));
+						orig.addOriginalCNV(orig);
+						tempChromo.add(orig);
 					}
 					
 					LinkedList<CleanCNVariant> chromo = new LinkedList<FilterCalls.CleanCNVariant>();
@@ -527,26 +541,56 @@ public class FilterCalls {
 						CleanCNVariant actualCNV1 = chromo.get(index - 1);
 						CleanCNVariant actualCNV2 = chromo.get(index + 1);
 						
-						if (((cnv.markerStop - cnv.markerStart + 1) / (actualCNV1.cnv.getNumMarkers() + actualCNV2.cnv.getNumMarkers())) > distanceQuotient || actualCNV1.cnv.getCN() != actualCNV2.cnv.getCN()) {
-							// can't combine CNVs, so remove ICS placeholder
+						int bpSize = countBP(actualCNV1) + countBP(actualCNV2);
+						
+						// same CN
+						boolean sameCN = actualCNV1.cnv.getCN() == actualCNV2.cnv.getCN();
+						// less than distanceQuotient percent space vs # of markers
+						boolean markerQuotient = (cnv.markerStop - cnv.markerStart + 1) / (actualCNV1.cnv.getNumMarkers() + actualCNV2.cnv.getNumMarkers()) < distanceQuotient;
+						// less than 100% of total called base pairs
+						boolean basepairQuotient = (actualCNV2.cnv.getStart() - actualCNV1.cnv.getStop() + 1) <= bpSize;
+						
+						if (!sameCN || !markerQuotient || !basepairQuotient) {
+							// remove ICS placeholder
 							removed.put(index, chromo.remove(index));
 							indexList.add(index);
 							// and continue
 							continue;
 						}
 						
-						if (cnv.medianLRR > actualCNV1.medianLRR - actualCNV1.stdevLRR && 
-								cnv.medianLRR < actualCNV1.medianLRR + actualCNV1.stdevLRR &&
-								cnv.medianLRR > actualCNV2.medianLRR - actualCNV2.stdevLRR &&
-								cnv.medianLRR < actualCNV2.medianLRR + actualCNV2.stdevLRR) {
+						
+						double[] medSDLimits = {Math.max(actualCNV1.medianLRR - actualCNV1.stdevLRR, actualCNV2.medianLRR - actualCNV2.stdevLRR), 
+									Math.min(actualCNV1.medianLRR + actualCNV1.stdevLRR, actualCNV2.medianLRR + actualCNV2.stdevLRR)};
+						
+						if (cnv.medianLRR > medSDLimits[0] && cnv.medianLRR < medSDLimits[1]) {
 							CleanCNVariant newCNV = new CleanCNVariant(actualCNV1.markerStart, actualCNV2.markerStop, new CNVariant(actualCNV1.cnv.getFamilyID(), actualCNV1.cnv.getIndividualID(), chr, actualCNV1.cnv.getStart(), actualCNV2.cnv.getStop(), actualCNV1.cnv.getCN(), Math.max(actualCNV1.cnv.getScore(), actualCNV2.cnv.getScore()), actualCNV2.markerStop - actualCNV1.markerStart + 1, actualCNV1.cnv.getSource()));
+							
+							// recomputeTotal
 							setLRRMedStdDev(newCNV, droppedMarkerNames, markerNames, lrrs);
+							// meanLRRrestrictedSD
+//							setLRRMedStdDev(newCNV, actualCNV1, actualCNV2);
+							// recomputeAggregatedOriginal
+							setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames, lrrs);
+							
 							// remove ICS
 							chromo.remove(index);
 							// remove CNV2
 							chromo.remove(index);
 							// remove CNV1
 							chromo.remove(index - 1);
+							
+							verboseWriter.print(actualCNV1.medianLRR);
+							verboseWriter.print("\t");
+							verboseWriter.print(actualCNV1.stdevLRR);
+							verboseWriter.print("\t");
+							verboseWriter.print(cnv.medianLRR);
+							verboseWriter.print("\t");
+							verboseWriter.print(cnv.stdevLRR);
+							verboseWriter.print("\t");
+							verboseWriter.print(actualCNV2.medianLRR);
+							verboseWriter.print("\t");
+							verboseWriter.println(actualCNV2.stdevLRR);
+							
 							chromo.add(index - 1, newCNV);
 							
 							// add removed ICSs, in case we've altered things enough to now combine more
@@ -564,8 +608,8 @@ public class FilterCalls {
 						
 					}
 					
-					// shouldn't have any ICSs remaining... but check anyway, just to be safe?
 					for (int i = 0; i < chromo.size(); i++) {
+						// shouldn't have any ICSs remaining... but check anyway, just to be safe?
 						if (chromo.get(i).cnv != null) {
 							writer.println(chromo.get(i).cnv.toPlinkFormat());
 						}
@@ -584,6 +628,7 @@ public class FilterCalls {
 	}
 	
 	
+
 	private static void setLRRMedStdDev(CleanCNVariant cnv, Hashtable<String, String> droppedMarkerNames, String[] markerNames, float[] lrrs) {
 		ArrayList<Float> lrr = new ArrayList<Float>();
 		for (int m = cnv.markerStart; m <= cnv.markerStop; m++) {
@@ -599,6 +644,37 @@ public class FilterCalls {
 		cnv.stdevLRR = Array.stdev(lrrsDubs);
 	}
 
+	private static void setLRRMedStdDev(CleanCNVariant newCNV, CleanCNVariant oldCNV1, CleanCNVariant oldCNV2, Hashtable<String, String> droppedMarkerNames, String[] markerNames, float[] lrrs) {
+		ArrayList<CleanCNVariant> allOriginalCNVs = new ArrayList<CleanCNVariant>();
+		allOriginalCNVs.addAll(oldCNV1.originalCNVs);
+		allOriginalCNVs.addAll(oldCNV2.originalCNVs);
+		
+		ArrayList<Float> lrr = new ArrayList<Float>();
+		for (CleanCNVariant cnv : allOriginalCNVs) {
+			for (int m = cnv.markerStart; m <= cnv.markerStop; m++) {
+				if (droppedMarkerNames.contains(markerNames[m])) {
+					continue;
+				}
+				if (!Double.isNaN(lrrs[m])) {
+					lrr.add(lrrs[m]);
+				}
+			}
+		}
+
+		double[] lrrsDubs = Array.toDoubleArray(Array.toFloatArray(lrr)); 
+		newCNV.medianLRR = Array.median(lrrsDubs);
+		newCNV.stdevLRR = Array.stdev(lrrsDubs);
+		
+		newCNV.originalCNVs.addAll(allOriginalCNVs);
+	}
+
+	private static int countBP(CleanCNVariant actualCNV1) {
+		int bpCount = 0;
+		for (CleanCNVariant cnv : actualCNV1.originalCNVs) {
+			bpCount += cnv.cnv.getSize();
+		}
+		return bpCount;
+	}
 
 	public static final float DEFAULT_CLEAN_FACTOR = 0.2f;
 	public static final float DEFAULT_CLEAN_FLOOR = 0.0001f;
@@ -621,16 +697,15 @@ public class FilterCalls {
 	public static void cleanCNVs(String in, String out, float distFactor) {
 		Vector<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, false);
 		
-		float factor = distFactor;
 		ArrayList<CNVariant> newCNVs = new ArrayList<CNVariant>();
 		newCNVs.addAll(inputCNVs);
 		inputCNVs = null;
 		int cnt = 1;
-		while(factor > DEFAULT_CLEAN_FLOOR) {
-			newCNVs = getCleanCNVs(newCNVs, factor);
-			factor = factor / DEFAULT_CLEAN_FACTOR_SCALE;
+		int startCnt = newCNVs.size();
+		do {
+			newCNVs = getCleanCNVs(newCNVs, distFactor);
 			cnt++;
-		}
+		} while(!newCNVs.isEmpty());
 		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
@@ -644,7 +719,7 @@ public class FilterCalls {
 			e.printStackTrace();
 		}
 		
-		System.out.println(cnt + " iterations");
+		System.out.println(cnt + " iterations; from " + startCnt + " to " + newCNVs.size() + " CNVs");
 	}
 	
 	private static ArrayList<CNVariant> getCleanCNVs(ArrayList<CNVariant> inputCNVs, float distFactor) {
