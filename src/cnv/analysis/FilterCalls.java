@@ -374,6 +374,7 @@ public class FilterCalls {
 		Logger log = proj.getLog();
 		log.report(ext.getTime() + "] Loading CNV file...");
 		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(in, false);
+		int initialCount = srcCNVs.length;
 		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
@@ -410,6 +411,7 @@ public class FilterCalls {
 			int size = indivChrCNVMap.size();
 			int cnt = 0;
 			int step = size / 10;
+			int cnvCount = 0;
 			for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap.entrySet()) {
 				if (cnt > 0 && cnt % step == 0) {
 					log.report(ext.getTime() + "] \t" + ((cnt / step) * 10) + "% complete");
@@ -549,9 +551,11 @@ public class FilterCalls {
 						// same CN
 						boolean sameCN = actualCNV1.cnv.getCN() == actualCNV2.cnv.getCN();
 						// less than distanceQuotient percent space vs # of markers
-						boolean markerQuotient = (cnv.markerStop - cnv.markerStart + 1) / (actualCNV1.cnv.getNumMarkers() + actualCNV2.cnv.getNumMarkers()) < distanceQuotient;
+						float mkQ = (float)((cnv.markerStop - cnv.markerStart + 1)) / (float)((actualCNV1.cnv.getNumMarkers() + actualCNV2.cnv.getNumMarkers()));
+						boolean markerQuotient = mkQ < distanceQuotient;
 						// less than 100% of total called base pairs
-						boolean basepairQuotient = (actualCNV2.cnv.getStart() - actualCNV1.cnv.getStop() + 1) <= bpSize;
+						float bpQ = (actualCNV2.cnv.getStart() - actualCNV1.cnv.getStop() + 1) / (float)bpSize;
+						boolean basepairQuotient = bpQ < 1;
 						
 						if (!sameCN || !markerQuotient || !basepairQuotient) {
 							// remove ICS placeholder
@@ -599,6 +603,8 @@ public class FilterCalls {
 						
 					}
 					
+					cnvCount += chromo.size();
+					
 					for (int i = 0; i < chromo.size(); i++) {
 						// shouldn't have any ICSs remaining... but check anyway, just to be safe?
 						if (chromo.get(i).cnv != null) {
@@ -617,7 +623,7 @@ public class FilterCalls {
 			verboseWriter.flush();
 			verboseWriter.close();
 			
-			log.report(ext.getTime() + "] CNV cleaning complete!");
+			log.report(ext.getTime() + "] CNV cleaning complete!  Started with " + initialCount + " CNVs, reduced to " + cnvCount + " CNVs");
 		} catch (IOException e) {
 			proj.getLog().reportException(e);
 		}
@@ -632,10 +638,10 @@ public class FilterCalls {
 //		}
 		int newSize = positions[cleanCNVariant.markerStop] - positions[cleanCNVariant.markerStart] + 1;
 		
-		int sz = 250;
-//		if (cleanCNVariant.originalCNVs.get(0).cnv.getCN() < 0) {
-//			sz = 250;
-//		}
+		int sz = 1000;
+		if (cleanCNVariant.originalCNVs.get(0).cnv.getCN() < 0) {
+			sz = 250;
+		}
 		
 		return newSize > sz * 1000;
 	}
