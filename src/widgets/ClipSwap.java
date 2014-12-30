@@ -1,5 +1,6 @@
 package widgets;
 
+import stats.Histogram;
 import common.*;
 
 public class ClipSwap {
@@ -65,6 +66,53 @@ public class ClipSwap {
 		ext.setClipboard(result);
 	}
 
+	public static void histogram() {
+		String[] lines, line;
+		DoubleVector dv;
+		int countMoreThan, countInvalids;
+		Histogram histo;
+		int sigfigs = -1;
+		double[] array;
+		
+		countMoreThan = countInvalids = 0;
+		lines = ext.getClipboard().trim().split("\\n");
+		dv = new DoubleVector();
+		for (int i = 0; i < lines.length; i++) {
+			line = lines[i].split("\t", -1);
+			if (line.length > 1) {
+				if (countMoreThan < 5) {
+					System.out.println("Line # "+(i+1)+" had more than one column: "+Array.toStr(line, " / "));
+				}
+				countMoreThan++;
+			}
+			if (line[0].startsWith("sigfigs=")) {
+				sigfigs = ext.parseIntArg(line[0]);
+			} else if (ext.isMissingValue(line[0])) {
+				if (countInvalids < 5) {
+					System.out.println("Line # "+(i+1)+" had an invalid double: "+Array.toStr(line, " / "));
+				}
+				countInvalids++;
+			} else {
+				dv.add(Double.parseDouble(line[0]));
+			}
+		}
+		if (countMoreThan >= 5) {
+			System.out.println("There were "+countMoreThan+" lines with more than one column");
+		}
+		if (countInvalids >= 5) {
+			System.out.println("There were "+countInvalids+" invalid doubles in the data");
+		}
+		
+		array = dv.toArray();
+		if (sigfigs == -1) {
+			histo = new Histogram(array);
+		} else {
+			histo = new Histogram(array, Array.min(array), Array.max(array), sigfigs);
+		}
+		
+		ext.setClipboard(histo.getSummary());
+	}
+
 	public static void main(String[] args) {
 	    int numArgs = args.length;
 	    boolean slash = false;
@@ -73,6 +121,7 @@ public class ClipSwap {
 	    boolean expand = false;
 	    boolean removeFormatting = false;
 	    boolean prettyP = false;
+	    boolean histogram = false;
 
 	    String usage = "\n"+
 	    "widgets.ClipSwap requires 0-1 arguments\n"+
@@ -80,7 +129,9 @@ public class ClipSwap {
 	    "   (2) Contracts contents of clipboard (i.e. -contract (not the default))\n"+
 	    "   (3) Expands contents of clipboard (i.e. -expand (not the default))\n"+
 	    "   (4) Find unique set and count counts (i.e. -unique (not the default))\n"+
-	    "   (4) Remove formatting, leaving only plain text (i.e. -removeFormatting (not the default))\n"+
+	    "   (5) Remove formatting, leaving only plain text (i.e. -removeFormatting (not the default))\n"+
+	    "   (6) Make p-values pretty (i.e. -prettyP (not the default))\n"+
+	    "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"+
 	    "";
 
 	    for (int i = 0; i<args.length; i++) {
@@ -104,6 +155,9 @@ public class ClipSwap {
 			    numArgs--;
 		    } else if (args[i].startsWith("-prettyP")) {
 		    	prettyP = true;
+			    numArgs--;
+		    } else if (args[i].startsWith("-histogram")) {
+		    	histogram = true;
 			    numArgs--;
 		    }
 	    }
@@ -130,8 +184,12 @@ public class ClipSwap {
 	    	if (prettyP) {
 	    		prettyP();
 	    	}
+	    	if (histogram) {
+	    		histogram();
+	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();
+		    ext.waitForResponse("Some sort of error");
 	    }
     }
 }
