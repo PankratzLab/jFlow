@@ -90,6 +90,8 @@ public class Histogram {
 		this.extrastep = 0;
 		this.counts = new int[(int) ((max - min) * Math.pow(10, sigfigs)) + 1];
 		this.sumTotal = 0;
+
+		this.counts = new int[(int)((max-determineStart())*Math.pow(10, sigfigs))+1]; // does not currently use EXTRA_STEPS[extrastep]
 	}
 	
 	public Histogram(float[] array, float min, float max, int sigfigs) {
@@ -105,12 +107,12 @@ public class Histogram {
 
 		d = 0;
 		step = determineStep();
-		if (d>min) {
+		if (d > min) {
 			while (d > min) {
 				d -= step;
 			}
 		} else {
-			while (d < min) {
+			while (d + step < min) {
 				d += step;
 			}
 		}
@@ -312,7 +314,8 @@ public class Histogram {
 			} else if (data > getMax()) {
 				getCounts()[getCounts().length - 1]++;
 			} else {
-				getCounts()[(int) (data * Math.pow(10, getSigfigs()) - getMin() * Math.pow(10, getSigfigs()))]++;
+				getCounts()[(int)((data+determineStep()/2)*Math.pow(10, getSigfigs())-determineStart()*Math.pow(10, getSigfigs()))]++;
+				
 			}
 		}
 
