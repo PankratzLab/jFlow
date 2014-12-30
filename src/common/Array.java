@@ -3861,23 +3861,6 @@ public class Array {
         return false;
     }
 
-	public static void main(String[] args) {
-	    double alleleFreq = 0.2;
-	    double stdev = 0.12;
-	    double[] array = new double[10000];
-	    for (int i = 0; i<array.length; i++) {
-	    	array[i] = 0;
-	    	for (int j = 0; j < 2; j++) {
-		    	array[i] += Math.random() < alleleFreq?0.5:0;
-			}
-	    	array[i] += (Math.random()<0.5?-1:1)*ProbDist.NormDistReverse(Math.random())*stdev;
-        }
-	    System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01, false)));
-	    
-	    Files.writeList(Array.toStringArray(array), "oi.xln");
-
-    }
-
 	public static double lambda(double[] pvals) {
 		return ProbDist.ChiDistReverse(Array.median(pvals), 1)/ProbDist.ChiDistReverse(0.50, 1);
 	}
@@ -3961,4 +3944,21 @@ public class Array {
 		}
 		return false;
 	}
+
+	public static void main(String[] args) {
+	    double alleleFreq = 0.2;
+	    double stdev = 0.12;
+	    double[] array = new double[10000];
+	    for (int i = 0; i<array.length; i++) {
+	    	array[i] = 0;
+	    	for (int j = 0; j < 2; j++) {
+		    	array[i] += Math.random() < alleleFreq?0.5:0;
+			}
+	    	array[i] += (Math.random()<0.5?-1:1)*ProbDist.NormDistReverse(Math.random())*stdev;
+        }
+	    System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01, false)));
+	    
+	    Files.writeList(Array.toStringArray(array), "oi.xln");
+
+    }
 }

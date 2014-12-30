@@ -86,10 +86,10 @@ public class PeakZero {
 	        			count++;
 	        		}
                 }
-	        	lrrHist = new Histogram(lrrArray, count, -10, 10, 1);
-	        	bafHist = new Histogram(bafArray, count, 0, 1, 2);
-	        	xHist = new Histogram(lrrArray, count, 0, 5, 1);
-	        	yHist = new Histogram(bafArray, count, 0, 5, 1);
+	        	lrrHist = new Histogram(lrrArray, -10, 10, 1);
+	        	bafHist = new Histogram(bafArray, 0, 1, 2);
+	        	xHist = new Histogram(lrrArray, 0, 5, 1);
+	        	yHist = new Histogram(bafArray, 0, 5, 1);
 
 	        	if (DUMP_THESE != null && ext.indexOfStr(markerData.getMarkerName(), DUMP_THESE) >= 0) {
 	        		lrrHist.dump(proj.getProjectDir()+markerData.getMarkerName()+"_lrr_hist.xln");
