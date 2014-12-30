@@ -36,6 +36,27 @@ public class FilterCalls {
 	/** Score/Probe thresholds for CNVStats, altering these will alter the number of columns in the outputted stats file */
 	private static final double[][] CNV_STATS_THRESHOLDS = new double[][]{{10, 10}, {10, 20}};
 	
+	private static final class CNVComparator implements Comparator<CNVariant> {
+		@Override
+		public int compare(CNVariant o1, CNVariant o2) {
+			if (o1.getStart() < o2.getStart()) {
+				return -1;
+			} else if (o1.getStart() > o2.getStart()) {
+				return 1;
+			} else {
+				if (o1.getStop() < o2.getStop()) {
+					return -1;
+				} else if (o1.getStop() > o2.getStop()) {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		}
+	}
+
+	final static CNVComparator cnvComparator = new CNVComparator();
+
 	private static class CNVFilterNode {
 		public static final int HET_DEL = 0;
 		public static final int HOM_DEL = 1;
@@ -384,7 +405,6 @@ public class FilterCalls {
 			SampleData sampleData = proj.getSampleData(0, false);
 			
 			PrintWriter verboseWriter = new PrintWriter(new FileWriter(ext.rootOf(out, false) + ".results"));
-			verboseWriter.println("CNV1_LRR\tCNV1_SD\tICS_LRR\tICS_SD\tCNV2_LRR\tCNV2_SD");
 			
 			log.report(ext.getTime() + "] Cleaning CNVs...");
 			int size = indivChrCNVMap.size();
@@ -425,24 +445,7 @@ public class FilterCalls {
 					}
 					
 					ArrayList<CNVariant> cnvList = cnvLists.getValue();
-					cnvList.sort(new Comparator<CNVariant>() {
-						@Override
-						public int compare(CNVariant o1, CNVariant o2) {
-							if (o1.getStart() < o2.getStart()) {
-								return -1;
-							} else if (o1.getStart() > o2.getStart()) {
-								return 1;
-							} else {
-								if (o1.getStop() < o2.getStop()) {
-									return -1;
-								} else if (o1.getStop() > o2.getStop()) {
-									return 1;
-								} else {
-									return 0;
-								}
-							}
-						}
-					});
+					cnvList.sort(cnvComparator);
 					LinkedList<CleanCNVariant> tempChromo = new LinkedList<FilterCalls.CleanCNVariant>();
 					
 					// create objects for all CNVs while also setting start/end marker indices, accounting for dropped markers
@@ -579,18 +582,6 @@ public class FilterCalls {
 							// remove CNV1
 							chromo.remove(index - 1);
 							
-							verboseWriter.print(actualCNV1.medianLRR);
-							verboseWriter.print("\t");
-							verboseWriter.print(actualCNV1.stdevLRR);
-							verboseWriter.print("\t");
-							verboseWriter.print(cnv.medianLRR);
-							verboseWriter.print("\t");
-							verboseWriter.print(cnv.stdevLRR);
-							verboseWriter.print("\t");
-							verboseWriter.print(actualCNV2.medianLRR);
-							verboseWriter.print("\t");
-							verboseWriter.println(actualCNV2.stdevLRR);
-							
 							chromo.add(index - 1, newCNV);
 							
 							// add removed ICSs, in case we've altered things enough to now combine more
@@ -612,6 +603,9 @@ public class FilterCalls {
 						// shouldn't have any ICSs remaining... but check anyway, just to be safe?
 						if (chromo.get(i).cnv != null) {
 							writer.println(chromo.get(i).cnv.toPlinkFormat());
+							if (newLargeCNV(chromo.get(i), positions[chr])) {
+								verboseWriter.println(chromo.get(i).cnv.toPlinkFormat());
+							}
 						}
 					}
 				}
@@ -620,6 +614,8 @@ public class FilterCalls {
 
 			writer.flush();
 			writer.close();			
+			verboseWriter.flush();
+			verboseWriter.close();
 			
 			log.report(ext.getTime() + "] CNV cleaning complete!");
 		} catch (IOException e) {
@@ -628,6 +624,21 @@ public class FilterCalls {
 	}
 	
 	
+
+	private static boolean newLargeCNV(CleanCNVariant cleanCNVariant, int[] positions) {
+//		int originalSize = 0;
+//		for (CleanCNVariant cnv : cleanCNVariant.originalCNVs) {
+//			originalSize += cnv.cnv.getSize(); 
+//		}
+		int newSize = positions[cleanCNVariant.markerStop] - positions[cleanCNVariant.markerStart] + 1;
+		
+		int sz = 250;
+//		if (cleanCNVariant.originalCNVs.get(0).cnv.getCN() < 0) {
+//			sz = 250;
+//		}
+		
+		return newSize > sz * 1000;
+	}
 
 	private static void setLRRMedStdDev(CleanCNVariant cnv, Hashtable<String, String> droppedMarkerNames, String[] markerNames, float[] lrrs) {
 		ArrayList<Float> lrr = new ArrayList<Float>();
@@ -751,24 +762,7 @@ public class FilterCalls {
 				byte chr = chrEntry.getKey();
 				ArrayList<CNVariant> cnvList = chrEntry.getValue();
 				
-				cnvList.sort(new Comparator<CNVariant>() {
-					@Override
-					public int compare(CNVariant o1, CNVariant o2) {
-						if (o1.getStart() < o2.getStart()) {
-							return -1;
-						} else if (o1.getStart() > o2.getStart()) {
-							return 1;
-						} else {
-							if (o1.getStop() < o2.getStop()) {
-								return -1;
-							} else if (o1.getStop() > o2.getStop()) {
-								return 1;
-							} else {
-								return 0;
-							}
-						}
-					}
-				});
+				cnvList.sort(cnvComparator);
 				if (cnvList.size() == 1) {
 					newCNVs.add(cnvList.get(0));
 				} else {
