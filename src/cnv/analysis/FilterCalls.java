@@ -37,6 +37,8 @@ public class FilterCalls {
 	/** Score/Probe thresholds for CNVStats, altering these will alter the number of columns in the outputted stats file */
 	private static final double[][] CNV_STATS_THRESHOLDS = new double[][]{{10, 10}, {10, 20}};
 	
+	public static final float DEFAULT_CLEAN_FACTOR = 0.2f;
+
 	private static final class CNVComparator implements Comparator<CNVariant> {
 		@Override
 		public int compare(CNVariant o1, CNVariant o2) {
@@ -449,6 +451,7 @@ public class FilterCalls {
 					
 					ArrayList<CNVariant> cnvList = cnvLists.getValue();
 					Collections.sort(cnvList, cnvComparator);
+					
 					LinkedList<CleanCNVariant> tempChromo = new LinkedList<FilterCalls.CleanCNVariant>();
 					
 					// create objects for all CNVs while also setting start/end marker indices, accounting for dropped markers
@@ -562,7 +565,6 @@ public class FilterCalls {
 							// remove ICS placeholder
 							removed.put(index, chromo.remove(index));
 							indexList.add(index);
-							// and continue
 							continue;
 						}
 						
@@ -693,27 +695,12 @@ public class FilterCalls {
 		}
 		return bpCount;
 	}
-
-	public static final float DEFAULT_CLEAN_FACTOR = 0.2f;
-	public static final float DEFAULT_CLEAN_FLOOR = 0.0001f;
-	public static final float DEFAULT_CLEAN_FACTOR_SCALE = 5; 
 	
-	/**
-	 * Combine CNV calls iteratively.
-	 * <br /><br />
-	 * Start with the given distance/size factor (0.2 recommended).  This quotient is used to decide whether or not to combine two CNVs.  If the proportion of the distance between two CNVs to the combined size of both CNVs is less than this factor, the two CNVs are combined.
-	 * <br /><br />
-	 * We do this iteratively: starting at the given value, we scale the factor down, requiring CNVs to be closer and closer with each iteration.  The factor is scaled by 1/5th each iteration, and the iterations continue until the factor is &lt; 0.0001.
-	 * <br /> 
-	 * <br />
-	 * 
-	 * 
-	 * @param in
-	 * @param out
-	 * @param distFactor
-	 */
-	public static void cleanCNVs(String in, String out, float distFactor) {
+	public static void cleanCNVs(String in, String out, float distanceQuotient, String bimFile) {
 		Vector<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, false);
+		MarkerSet markerSet = MarkerSet.load(bimFile, false);
+		
+		int[][] positions = markerSet.getPositionsByChr();
 		
 		ArrayList<CNVariant> newCNVs = new ArrayList<CNVariant>();
 		newCNVs.addAll(inputCNVs);
@@ -721,9 +708,9 @@ public class FilterCalls {
 		int cnt = 1;
 		int startCnt = newCNVs.size();
 		do {
-			newCNVs = getCleanCNVs(newCNVs, distFactor);
+			newCNVs = getCleanCNVs(newCNVs, distanceQuotient, positions);
 			cnt++;
-		} while(!newCNVs.isEmpty());
+		} while(startCnt > newCNVs.size());
 		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
@@ -740,7 +727,35 @@ public class FilterCalls {
 		System.out.println(cnt + " iterations; from " + startCnt + " to " + newCNVs.size() + " CNVs");
 	}
 	
-	private static ArrayList<CNVariant> getCleanCNVs(ArrayList<CNVariant> inputCNVs, float distFactor) {
+	public static void cleanCNVs(String in, String out, float distanceQuotient) {
+		Vector<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, false);
+		
+		ArrayList<CNVariant> newCNVs = new ArrayList<CNVariant>();
+		newCNVs.addAll(inputCNVs);
+		inputCNVs = null;
+		int cnt = 1;
+		int startCnt = newCNVs.size();
+		do {
+			newCNVs = getCleanCNVs(newCNVs, distanceQuotient, null);
+			cnt++;
+		} while(startCnt > newCNVs.size());
+		
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(out));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+			for (CNVariant cnv : newCNVs) {
+				writer.println(cnv.toPlinkFormat());
+			}
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println(cnt + " iterations; from " + startCnt + " to " + newCNVs.size() + " CNVs");
+	}
+	
+	private static ArrayList<CNVariant> getCleanCNVs(ArrayList<CNVariant> inputCNVs, float distFactor, int[][] positions) {
 
 		HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
 		
@@ -784,12 +799,12 @@ public class FilterCalls {
 							continue;
 						}
 						
-						float sz = curr.getSize() + next.getSize();
-						float diff = next.getStart() - curr.getStop();
+						float[] szDiff = getSizeAndDist(curr, next, positions);
+						float sz = szDiff[0];
+						float diff = szDiff[1];
 						
 						if (diff / sz <= distFactor) {
-							// TODO Fix numMarkers to include in-between markers.  Also fix CNV score.
-							newCNVs.add(new CNVariant(curr.getFamilyID(), curr.getIndividualID(), chr, curr.getStart(), next.getStop(), curr.getCN(), Math.max(curr.getScore(), next.getScore()), curr.getNumMarkers() + next.getNumMarkers() + 0, 0));
+							newCNVs.add(new CNVariant(curr.getFamilyID(), curr.getIndividualID(), chr, curr.getStart(), next.getStop(), curr.getCN(), Math.max(curr.getScore(), next.getScore()), (int) (curr.getNumMarkers() + next.getNumMarkers() + (null == positions ? 0 : szDiff[1])), 0));
 							status.append(fidiid).append(" > ").append(curr.getChr()).append("{").append(curr.getStart()).append(", ").append(next.getStop()).append("}").append("\n");
 							// skip combined CNVs
 							i++;
@@ -817,6 +832,20 @@ public class FilterCalls {
 	}
 	
 	
+	private static float[] getSizeAndDist(CNVariant curr, CNVariant next, int[][] positions) {
+		if (null == positions) {
+			return new float[]{curr.getSize() + next.getSize(), next.getStart() - curr.getStop()};
+		}
+		
+		int lastSNPIndex1 = Array.binarySearch(positions[curr.getChr()], curr.getStop(), true);
+		int firstSNPIndex2 = Array.binarySearch(positions[next.getChr()], next.getStart(), true);
+		
+		float sz = (curr.getNumMarkers() + next.getNumMarkers());
+		float dist = firstSNPIndex2 - lastSNPIndex1 - 2;
+		
+		return new float[]{sz, dist};
+	}
+
 	public static void filterExclusions(Project proj, String cnvFile) {
 		PrintWriter writer;
 		BufferedReader reader;
