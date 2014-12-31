@@ -931,4 +931,13 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		}
 		return correctedData;
 	}
+
+	public void setMarkersToAssessFile(String markersToAssessFile) {
+		this.markersToAssessFile = markersToAssessFile;
+	}
+
+	public void setRecomputeLRR(boolean recomputeLRR) {
+		this.recomputeLRR = recomputeLRR;
+	}
+
 }

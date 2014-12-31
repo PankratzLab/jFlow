@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import seq.analysis.SNPEFF.SnpEffResult;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -19,15 +20,17 @@ import common.ext;
 public class GATK_Genotyper {
 	public static final String SPACE = " ";
 	private GATK gatk;
+	private SNPEFF snpeff;
 	private GATK.SingleSampleHaplotypeCaller[] siSampleHaplotypeCallers;
 	private boolean fail, verbose;
 	private int numBetweenSampleThreads;
 	private int numWithinSampleThreads;
 	private Logger log;
 
-	public GATK_Genotyper(GATK gatk, int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose, Logger log) {
+	public GATK_Genotyper(GATK gatk, SNPEFF snpeff, int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose, Logger log) {
 		super();
 		this.gatk = gatk;
+		this.snpeff = snpeff;
 		this.numBetweenSampleThreads = numBetweenSampleThreads;
 		this.numWithinSampleThreads = numWithinSampleThreads;
 		this.log = log;
@@ -49,6 +52,10 @@ public class GATK_Genotyper {
 		this.verbose = verbose;
 	}
 
+	public SNPEFF getSnpeff() {
+		return snpeff;
+	}
+
 	public void runJointGenotyping(JointGATKGenotyper jGatkGenotyper) {
 		boolean progress = true;
 		if (!jGatkGenotyper.isFail()) {
@@ -63,7 +70,12 @@ public class GATK_Genotyper {
 		}
 	}
 
-	public void batch(JointGATKGenotyper jointGATKGenotyper, String rootOutputDir, int memoryInMB, int wallTimeInHours, String baseName) {
+	public void annotateVCF(String inputVCF, String build) {
+		SnpEffResult snpEffResult =snpeff.annotateAVCF(inputVCF, build);
+		gatk.annotateAVcfWithSnpEFF(snpEffResult);
+	}
+
+	public void batch(JointGATKGenotyper jointGATKGenotyper, String rootOutputDir, boolean annotate, int memoryInMB, int wallTimeInHours, String baseName) {
 		// TODO, change classpath
 		String command = "module load R\nmodule load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_Genotyper ";
 		command += GATK_LanePrep.ROOT_INPUT_COMMAND + jointGATKGenotyper.getRootInputDir() + SPACE;
@@ -71,16 +83,21 @@ public class GATK_Genotyper {
 		command += GATK_LanePrep.REFERENCE_GENOME_COMMAND + gatk.getReferenceGenomeFasta() + SPACE;
 		command += GATK.GATK_LOCATION_COMMAND + gatk.getGATKLocation() + SPACE;
 		command += NUM_THREADS + numWithinSampleThreads + SPACE;
-		command += OUTPUT + jointGATKGenotyper.getOutput() + SPACE;
-		command += GATK_LanePrep.LOG_FILE_COMMAND + jointGATKGenotyper.getLog().getFilename() + SPACE;
+		command += OUTPUT_COMMAND + jointGATKGenotyper.getOutput() + SPACE;
+		command += GATK_LanePrep.LOG_FILE_COMMAND + ext.removeDirectoryInfo(jointGATKGenotyper.getLog().getFilename()) + SPACE;
 		if (jointGATKGenotyper.getFileOfGVCFs() != null) {
 			command += FILE_OF_GVCFS + jointGATKGenotyper.getFileOfGVCFs() + SPACE;
 		}
-		command += HAPMAP_TRAIN + gatk.getHapMapTraining() + SPACE;
-		command += OMNI_TRAIN + gatk.getOmniTraining() + SPACE;
-		command += G1000 + gatk.getThousandGTraining() + SPACE;
-		command += DBSNP + gatk.getDbSnpTraining() + SPACE;
+		command += HAPMAP_TRAIN_COMMAND + gatk.getHapMapTraining() + SPACE;
+		command += OMNI_TRAIN_COMMAND + gatk.getOmniTraining() + SPACE;
+		command += G1000_COMMAND + gatk.getThousandGTraining() + SPACE;
+		command += DBSNP_COMMMAND + gatk.getDbSnpTraining() + SPACE;
 		command += MILLS + gatk.getMillsIndelTraining() + SPACE;
+		if (annotate) {
+			command += SNPEFF.SNP_EFF_COMMAND + snpeff.getSnpEffLocation() + SPACE;
+		} else {
+			command += SNPEFF.SNP_EFF_NO_ANNO_COMMAND;
+		}
 		Files.qsub("GATK_Genotype_" + baseName, command, memoryInMB, wallTimeInHours, numWithinSampleThreads);
 	}
 
@@ -313,32 +330,37 @@ public class GATK_Genotyper {
 
 	}
 
-	public static void jointGenotype(String rootInputDir, String rootOutputDir, String output, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, boolean verbose, boolean overwriteExisting, boolean batch, int numThreads, int memoryInMB, int wallTimeInHours, Logger log) {
+	public static void jointGenotype(String rootInputDir, String rootOutputDir, String output, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String annoBuild, boolean verbose, boolean overwriteExisting, boolean batch, boolean annotate, int numThreads, int memoryInMB, int wallTimeInHours, Logger log) {
 		GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
 		gatk.setDbSnpTraining(dbSnpTraining);
 		gatk.setHapMapTraining(hapMapTraining);
 		gatk.setOmniTraining(omniTraining);
 		gatk.setThousandGTraining(thousandGTraining);
 		gatk.setMillsIndelTraining(millsIndelTraining);
-		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, 0, numThreads, verbose, log);
+		SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
+		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, 0, numThreads, verbose, log);
 		JointGATKGenotyper jGatkGenotyper = new JointGATKGenotyper(rootInputDir, rootOutputDir, output, log);
 		jGatkGenotyper.init(fileOfGVCFs);
 		new File(rootOutputDir).mkdirs();
 		if (batch) {
-			genotyper.batch(jGatkGenotyper, rootOutputDir, memoryInMB, wallTimeInHours, output);
+			genotyper.batch(jGatkGenotyper, rootOutputDir, annotate, memoryInMB, wallTimeInHours, output);
 		} else {
 			genotyper.runJointGenotyping(jGatkGenotyper);
 			genotyper.runRecalibration(jGatkGenotyper);
+			if (annotate) {
+				// /
+				genotyper.annotateVCF(jGatkGenotyper.getRecalSNP_Indel_VCF_File(), annoBuild);
+			}
 		}
 	}
 
 	public static final String NUM_THREADS = "numThreads=";
 	public static final String FILE_OF_GVCFS = "gvcfs=";
-	public static final String OUTPUT = "output=";
-	public static final String HAPMAP_TRAIN = "hapmap=";
-	public static final String OMNI_TRAIN = "omni=";
-	public static final String G1000 = "1000G=";
-	public static final String DBSNP = "dbSNP=";
+	public static final String OUTPUT_COMMAND = "output=";
+	public static final String HAPMAP_TRAIN_COMMAND = "hapmap=";
+	public static final String OMNI_TRAIN_COMMAND = "omni=";
+	public static final String G1000_COMMAND = "1000G=";
+	public static final String DBSNP_COMMMAND = "dbSNP=";
 	public static final String MILLS = "mills=";
 
 	public static void main(String[] args) {
@@ -361,6 +383,9 @@ public class GATK_Genotyper {
 		String thousandGTraining = null;
 		String dbSnpTraining = null;
 		String millsIndelTraining = null;
+		String snpEffLocation = "";
+		String annoBuild = SNPEFF.BUILDS[0];
+		boolean annotate = true;
 
 		String logFile = "GATK_GENOTYPE.log";
 
@@ -377,29 +402,34 @@ public class GATK_Genotyper {
 		usage += "   (8) filename for a log (i.e. " + GATK_LanePrep.LOG_FILE_COMMAND + logFile + " (default))\n" + "";
 		usage += "   (9) over-write exsiting files (i.e. " + GATK_LanePrep.OVERWRITE_EXISTING_COMMAND + " (not the default))\n" + "";
 		usage += "   (10) set up a batch analysis for the root input directory for a log (i.e. " + GATK_LanePrep.BATCH_COMMAND + " (not the default))\n" + "";
-		usage += "   (11) root output for analysis (i.e. " + OUTPUT + output + " ( default))\n" + "";
-		usage += "   (12) HapMap SNP Training Referenece (i.e. " + HAPMAP_TRAIN + " ( no default))\n" + "";
-		usage += "   (13) Omni SNP Training Referenece (i.e. " + OMNI_TRAIN + " ( no default))\n" + "";
-		usage += "   (14) 1000 SNP genomes Training Referenece (i.e. " + G1000 + " ( no default))\n" + "";
-		usage += "   (15) dbSNP SNP Training Referenece (i.e. " + DBSNP + " ( no default))\n" + "";
+		usage += "   (11) root output for analysis (i.e. " + OUTPUT_COMMAND + output + " ( default))\n" + "";
+		usage += "   (12) HapMap SNP Training Referenece (i.e. " + HAPMAP_TRAIN_COMMAND + " ( no default))\n" + "";
+		usage += "   (13) Omni SNP Training Referenece (i.e. " + OMNI_TRAIN_COMMAND + " ( no default))\n" + "";
+		usage += "   (14) 1000 SNP genomes Training Referenece (i.e. " + G1000_COMMAND + " ( no default))\n" + "";
+		usage += "   (15) dbSNP SNP Training Referenece (i.e. " + DBSNP_COMMMAND + " ( no default))\n" + "";
 		usage += "   (16) mills INDEL Training Referenece (i.e. " + MILLS + " ( no default))\n" + "";
-		usage += "   (17) log file name (i.e. " + MILLS + " ( no default))\n" + "";
+		usage += "   (17) full path to the SNP EFF directory (i.e. " + SNPEFF.SNP_EFF_COMMAND + " ( no default))\n" + "";
+		usage += "   (18) the build version for SNP EFF annotation (options are " + Array.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND + annoBuild + " ( default))\n" + "";
+
+		usage += "   (19) do not annotate with SNPEFF (i.e. " + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
+
+		usage += "   (18) log file name (i.e. " + MILLS + " ( no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith(HAPMAP_TRAIN)) {
+			} else if (args[i].startsWith(HAPMAP_TRAIN_COMMAND)) {
 				hapMapTraining = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith(OMNI_TRAIN)) {
+			} else if (args[i].startsWith(OMNI_TRAIN_COMMAND)) {
 				omniTraining = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith(G1000)) {
+			} else if (args[i].startsWith(G1000_COMMAND)) {
 				thousandGTraining = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith(DBSNP)) {
+			} else if (args[i].startsWith(DBSNP_COMMMAND)) {
 				dbSnpTraining = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith(MILLS)) {
@@ -441,7 +471,13 @@ public class GATK_Genotyper {
 			} else if (args[i].startsWith(GATK.GATK_LOCATION_COMMAND)) {
 				gATKLocation = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith(OUTPUT)) {
+			} else if (args[i].startsWith(SNPEFF.SNP_EFF_COMMAND)) {
+				snpEffLocation = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith(SNPEFF.SNP_EFF_NO_ANNO_COMMAND)) {
+				annotate = false;
+				numArgs--;
+			} else if (args[i].startsWith(OUTPUT_COMMAND)) {
 				output = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else {
@@ -451,8 +487,9 @@ public class GATK_Genotyper {
 		if (numArgs != 0) {
 			System.exit(1);
 		}
+		new File(rootOutputDir).mkdirs();
 		Logger log = new Logger(rootOutputDir + logFile);
-		jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, verbose, overwriteExisting, batch, numThreads, memoryInMB, wallTimeInHours, log);
+		jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation, annoBuild, verbose, overwriteExisting, batch, annotate, numThreads, memoryInMB, wallTimeInHours, log);
 	}
 
 }

@@ -21,7 +21,7 @@ public class MergeBam {
 
 	private static final String MERGE = "merge";
 	private static final String BAM = ".bam";
-	//private static final String R = "-r";// to add read groups while merging
+	// private static final String R = "-r";// to add read groups while merging
 	private static final String H = "-H";
 	private static final String SMALL_H = "-h";
 	private String samtoolsLocation;
@@ -68,7 +68,7 @@ public class MergeBam {
 				return true;
 			}
 		} else {
-			log.reportError("Error - could not merge bam files...");
+			log.reportError("Error - could not merge bam files...most likely samtools was not seen");
 			return false;
 		}
 	}
