@@ -185,63 +185,66 @@ public class CNVBurdenIterator {
 		}
 		
 		String header = collapseCNVTypes ? "\tDeletions\tDuplications" : "\tCN=0\tCN=1\tCN=3\tCN=4";
+		StringBuilder header2 = new StringBuilder("Betas\t\t\t");
+		if (!collapseCNVTypes) {
+			header2 = header2.append("\t\t");
+		}
+		header2.append("p-values\t\t\t");
+		if (!collapseCNVTypes) {
+			header2 = header2.append("\t\t");
+		}
+		header2.append("Rsq\t\t\t");
+		if (!collapseCNVTypes) {
+			header2 = header2.append("\t\t");
+		}
 		
 		String outputFile = ext.rootOf(cnvFile, false) + ".burden";
 		PrintWriter writer;
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(cnvFile, false) + ".counts.xln"));
-
-			writer.print("FID\tIID");
-			for (int sz = 0; sz < CNV_SIZES.length; sz++) {
-				for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-					writer.print("\t" + CNV_SIZES[sz] + "_" + CNV_FILTERS[cn] + (collapseCNVTypes ? "/" + (CNV_FILTERS[cn] - 1) : ""));
-				}
-			}
-			writer.println();
-			
+			int[][] counts = new int[CNV_FILTERS.length][CNV_SIZES.length];
 			for (java.util.Map.Entry<String, Data> indiv : idData.entrySet()) {
-				String id = indiv.getKey();
-				writer.print(id);
+//				String id = indiv.getKey();
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
-						String value = ""+(indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn] - 1) : 0));
-						writer.print("\t" + value);
+						int val = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn] - 1) : 0);
+						counts[cn][sz] += val;
 					}
 				}
-				writer.println();
 			}
-			writer.close();
 			
 			writer = new PrintWriter(new FileWriter(outputFile));
 			
 			String[] labels = {"Both", "Males", "Females"};
+			
 			for (int sex = 0; sex < 3; sex++) {
-				writer.println("Betas");
-				writer.println(labels[sex] + header);
+				writer.println(header2.toString());
+				writer.println(labels[sex] + header + "\t" + labels[sex] + header + "\t" + labels[sex] + header + (sex == 0 ? "\tCounts" + header : ""));
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 					writer.print(CNV_SIZES[sz]);
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
 						writer.print("\t" + ext.formDeci(resultsB[sex][cn][sz], ext.getNumSigFig(resultsB[sex][cn][sz])));
 					}
-					writer.println();
-				}
-				writer.println("p-values");
-				writer.println(labels[sex] + header);
-				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+					writer.print("\t");
 					writer.print(CNV_SIZES[sz]);
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
 						writer.print("\t" + ext.formDeci(resultsP[sex][cn][sz], ext.getNumSigFig(resultsP[sex][cn][sz])));
 					}
-					writer.println();
-				}
-				writer.println("Rsq");
-				writer.println(labels[sex] + header);
-				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+					writer.print("\t");
 					writer.print(CNV_SIZES[sz]);
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
 						writer.print("\t" + ext.formDeci(resultsR[sex][cn][sz], ext.getNumSigFig(resultsR[sex][cn][sz])));
 					}
+					
+					if (sex == 0) {
+						writer.print("\t");
+						writer.print(CNV_SIZES[sz]);
+						for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+							writer.print("\t" + counts[cn][sz]);
+						}
+					}
+					
 					writer.println();
+					
 				}
 			}
 			
