@@ -2,6 +2,7 @@ package cnv.analysis;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -145,7 +146,7 @@ public class FilterCalls {
 	 * @throws IOException
 	 */
 	public static void CNVStats(Project proj, String dir, String filenameNoExt) throws IOException {
-		String qcFile, cnvFile, famFile, outputFile;
+		String qcFile, cnvFile, outputFile;
 		PrintWriter writer;
 		BufferedReader reader;
 		SampleData sampleData;
@@ -447,7 +448,7 @@ public class FilterCalls {
 					}
 					
 					ArrayList<CNVariant> cnvList = cnvLists.getValue();
-					cnvList.sort(cnvComparator);
+					Collections.sort(cnvList, cnvComparator);
 					LinkedList<CleanCNVariant> tempChromo = new LinkedList<FilterCalls.CleanCNVariant>();
 					
 					// create objects for all CNVs while also setting start/end marker indices, accounting for dropped markers
@@ -768,7 +769,7 @@ public class FilterCalls {
 				byte chr = chrEntry.getKey();
 				ArrayList<CNVariant> cnvList = chrEntry.getValue();
 				
-				cnvList.sort(cnvComparator);
+				Collections.sort(cnvList, cnvComparator);
 				if (cnvList.size() == 1) {
 					newCNVs.add(cnvList.get(0));
 				} else {
