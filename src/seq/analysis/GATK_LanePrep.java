@@ -2,6 +2,7 @@ package seq.analysis;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -239,7 +240,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		// TODO get uniq files
 		if (!isFail()) {
 			if (gRecalibrations != null) {
-				GATK.BaseRecalibration[][] gRecalibrationsToMerge = getCalibrationsToMerge(gRecalibrations);
+				GATK.BaseRecalibration[][] gRecalibrationsToMerge = getCalibrationsToMerge(gRecalibrations, getLog());
 				this.mBamMergers = new MergeBam.BamMerger[gRecalibrationsToMerge.length];
 				ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
 				Hashtable<String, Future<MergeBam.BamMerger>> tmpResults = new Hashtable<String, Future<MergeBam.BamMerger>>();
@@ -446,17 +447,18 @@ public class GATK_LanePrep extends BWA_Analysis {
 			if (bamsToGenotype == null) {
 				log.reportError("Error - could not find any files to genotype, this should not happen");
 			} else {
-				GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, gLanePrep.getnumBetweenSampleThreads(), gLanePrep.getnumWithinSampleThreads(), verbose, log);
+				GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, null, gLanePrep.getnumBetweenSampleThreads(), gLanePrep.getnumWithinSampleThreads(), verbose, log);
 				gatk_Genotyper.runSingleSampleAllSites(bamsToGenotype);
 			}
 		}
 	}
 
-	private static GATK.BaseRecalibration[][] getCalibrationsToMerge(GATK.BaseRecalibration[] gRecalibrations) {
+	private static GATK.BaseRecalibration[][] getCalibrationsToMerge(GATK.BaseRecalibration[] gRecalibrations, Logger log) {
+		log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited fields of the input fastaq files, and barcodes are the third");
 		Hashtable<String, ArrayList<GATK.BaseRecalibration>> track = new Hashtable<String, ArrayList<GATK.BaseRecalibration>>();
 		ArrayList<String> unique = new ArrayList<String>();
 		for (int i = 0; i < gRecalibrations.length; i++) {
-			String baseId = gRecalibrations[i].getBaseId();
+			String baseId = parseBaseId(gRecalibrations[i].getBaseId());
 			if (!track.containsKey(baseId)) {
 				track.put(baseId, new ArrayList<GATK.BaseRecalibration>());
 				unique.add(baseId);
@@ -467,8 +469,25 @@ public class GATK_LanePrep extends BWA_Analysis {
 		for (int i = 0; i < unique.size(); i++) {
 			ArrayList<GATK.BaseRecalibration> current = track.get(unique.get(i));
 			calibrationsToMerge[i] = current.toArray(new GATK.BaseRecalibration[current.size()]);
+			String barcode = calibrationsToMerge[i][0].getBarcode();
+			ArrayList<String> barcodesToAdd = new ArrayList<String>();
+			for (int j = 0; j < calibrationsToMerge[i].length; j++) {
+				if (!calibrationsToMerge[i][j].getBarcode().equals(barcode)) {
+					log.report(ext.getTime() + " Info - since " + calibrationsToMerge[i][0].getBaseId() + " and " + calibrationsToMerge[i][j].getBaseId() + " appear to be the same sample with different barcodes, they will be merged");
+					barcodesToAdd.add(calibrationsToMerge[i][j].getBarcode());
+				}
+			}
+			if (barcodesToAdd.size() > 0) {
+				String barcodesAdded = Array.toStr(Array.unique(barcodesToAdd.toArray(new String[barcodesToAdd.size()])), FileNameParser.SPLIT);
+				calibrationsToMerge[i][0].setBaseId(calibrationsToMerge[i][0].getBaseId() + FileNameParser.SPLIT + barcodesAdded);
+				log.report(ext.getTime() + " Info - new ID is  " + calibrationsToMerge[i][0].getBaseId());
+			}
 		}
 		return calibrationsToMerge;
+	}
+
+	private static String parseBaseId(String baseId) {
+		return Array.toStr(Array.subArray(baseId.split(FileNameParser.SPLIT), 0, 2));
 	}
 
 	private static String[] getInputFilesFrom(GATK.BaseRecalibration[] gRecalibrations) {

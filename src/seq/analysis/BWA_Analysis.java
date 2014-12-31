@@ -483,8 +483,8 @@ public class BWA_Analysis {
 		}
 	}
 
-	private static class FileNameParser {
-		private static final String SPLIT = "_";
+	public static class FileNameParser {
+		public static final String SPLIT = "_";
 		private String fileName;
 		private String[] split;
 		private String ID;
@@ -508,7 +508,7 @@ public class BWA_Analysis {
 			} else {
 				this.lane = split[split.length - 3];
 				this.batch = split[split.length - 1];
-				this.ID = Array.toStr(Array.subArray(split, 0, split.length - 3), "_");
+				this.ID = Array.toStr(Array.subArray(split, 0, split.length - 3), SPLIT);
 			}
 		}
 
