@@ -401,11 +401,11 @@ public class Files {
 				for (int j = 0; j<iterations[0].length; j++) {
 					trav = ext.replaceAllWith(trav, "[%" + j + "]", "");
 				}
-				if (ext.rootOf(trav).equals("")) {
+//				if (ext.rootOf(trav).equals("")) {
 					filename = ext.parseDirectoryOfFile(trav) + "master.qsub";
-				} else {
-					filename = ext.parseDirectoryOfFile(trav) + "master." + ext.rootOf(trav) + ".qsub";
-				}
+//				} else {
+//					filename = ext.parseDirectoryOfFile(trav) + "master" + ext.rootOf(trav) + ".qsub";
+//				}
 			}
 			writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i<iterations.length; i++) {
