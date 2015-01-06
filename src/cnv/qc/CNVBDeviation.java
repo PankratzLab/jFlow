@@ -14,6 +14,7 @@ import common.ext;
  * Currently this is designed to compute markers on the fly...and does not maintain a copy of the input data <br>
  * Note: Since affy copy number probes do not have a meaningful baf, we deviate from the above method by skipping all intensity only flags if defined<br>
  * Also, we take the median b-deviation as opposed to the mean
+ *
  */
 public class CNVBDeviation {
 
@@ -25,8 +26,8 @@ public class CNVBDeviation {
 
 	private String[] intensityOnlyFlags;
 	private double gcThreshold, medianBDeviationAll, medianBDeviationHet;
-	private ArrayList<Double> bDeviationsAll;// all markers
-	private ArrayList<Double> bDeviationsHet;// heterozygous markers
+	private ArrayList<Double> bDeviationsAll;// all markers b-deviation
+	private ArrayList<Double> bDeviationsHet;// heterozygous markers b-deviation
 
 	/**
 	 * @param intensityOnlyFlags
@@ -37,6 +38,7 @@ public class CNVBDeviation {
 	public CNVBDeviation(String[] intensityOnlyFlags, double gcThreshold) {
 		this.intensityOnlyFlags = intensityOnlyFlags;
 		this.gcThreshold = gcThreshold;
+		// TODO, set the 0s to NaN?
 		this.medianBDeviationAll = 0;
 		this.medianBDeviationHet = 0;
 		this.bDeviationsAll = new ArrayList<Double>();
@@ -59,14 +61,15 @@ public class CNVBDeviation {
 		if (Float.isNaN(baf) || ext.indexOfStartsWith(markerName, intensityOnlyFlags, false) > 0 || gc < gcThreshold) {// skip intensity only, and gc filtered
 			added = false;
 		} else {
-			double currentBDeviation = Double.NaN;
+			double currentBDeviation = Double.NaN;// metric from paper
 
 			if (genotype == 1) {
 				currentBDeviation = Math.abs(dBaf - 0.5);
 				bDeviationsHet.add(currentBDeviation);
 			} else if (genotype == 0 || genotype == 2) {
 				currentBDeviation = Math.min(baf, 1 - dBaf);
-			} else {
+
+			} else {// no call
 				currentBDeviation = Math.min(Math.min(baf, 1 - baf), Math.abs(baf - 0.5));
 			}
 			currentBDeviation = Math.sqrt(currentBDeviation);
@@ -87,7 +90,6 @@ public class CNVBDeviation {
 		if (bDeviationsHet.size() > 0) {
 			double[] bDeviationsDHet = Array.toDoubleArray(bDeviationsHet);
 			medianBDeviationHet = Array.median(bDeviationsDHet);
-
 		}
 	}
 
@@ -97,66 +99,6 @@ public class CNVBDeviation {
 
 	public double getMedianBDeviationHet() {
 		return medianBDeviationHet;
-	}
-
-	/**
-	 * Helper class to facilitate a marker data based computation across all samples
-	 *
-	 */
-	public static class PoplulationBDeviation {
-		private CNVBDeviation[] cnvbDeviations;
-
-		public PoplulationBDeviation(int numSamples, String[] intensityOnlyFlags, double gcThreshold) {
-			this.cnvbDeviations = initPopulation(numSamples, intensityOnlyFlags, gcThreshold);
-
-		}
-
-		public void add(String markerName, byte[] genotypes, float[] bafs, float[] gcs) {
-			for (int i = 0; i < cnvbDeviations.length; i++) {
-				cnvbDeviations[i].add(markerName, genotypes[i], bafs[i], gcs[i]);
-			}
-		}
-
-		public void summarize() {
-			for (int i = 0; i < cnvbDeviations.length; i++) {
-				cnvbDeviations[i].summarize();
-			}
-		}
-
-		public CNVBDeviation[] getCnvbDeviations() {
-			return cnvbDeviations;
-		}
-
-	}
-
-	private static CNVBDeviation[] initPopulation(int numSamples, String[] intensityOnlyFlags, double gcThreshold) {
-		CNVBDeviation[] cnvbDeviations = new CNVBDeviation[numSamples];
-		for (int i = 0; i < cnvbDeviations.length; i++) {
-			cnvbDeviations[i] = new CNVBDeviation(intensityOnlyFlags, gcThreshold);
-		}
-		return cnvbDeviations;
-	}
-
-	public static void test() {
-		Project proj = new Project(null, false);
-		String display = proj.getFilename(Project.DISPLAY_MARKERS_FILENAME);
-		String[] markers = HashVec.loadFileToStringArray(display, false, new int[] { 0 }, true);
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
-		PoplulationBDeviation poplulationBDeviation = new PoplulationBDeviation(proj.getSamples().length, DEFAULT_INTENSITY_ONLY_FLAGS, DEFAULT_GC_THRESHOLD);
-		for (int i = 0; i < markers.length; i++) {
-			MarkerData markerData = markerDataLoader.requestMarkerData(i);
-			poplulationBDeviation.add(markers[i], markerData.getAbGenotypes(), markerData.getBAFs(), markerData.getGCs());
-
-			markerDataLoader.releaseIndex(i);
-
-		}
-		poplulationBDeviation.summarize();
-
-	}
-
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		test();
 	}
 
 }
