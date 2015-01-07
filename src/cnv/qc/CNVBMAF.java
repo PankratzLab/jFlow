@@ -7,14 +7,17 @@ import cnv.filesys.Project;
 import cnv.manage.MarkerDataLoader;
 import common.Array;
 import common.HashVec;
+import common.Logger;
 
 /**
- * Class to compute a QC metric based on B-allele MINOR allele frequency (BMAF) "min(meanBAF, 1-meanBAF)
+ * Class to compute a QC metric based on B-allele MINOR allele frequency (BMAF) "min(medianBAF, 1-medianBAF)
  *
  */
 public class CNVBMAF extends CNVBDeviation {
 
-	public static final double DEFUALT_BAF_PENALTY = 0;
+	public static final double DEFUALT_BAF_HET_PENALTY = .5;
+	public static final double DEFUALT_GENO_HET_PENALTY = 1;
+
 	public static final double DEFUALT_BAF_HET_LOWER = .15;
 	public static final double DEFUALT_BAF_HET_UPPER = .85;
 
@@ -30,37 +33,55 @@ public class CNVBMAF extends CNVBDeviation {
 
 	private ArrayList<Double> bmafAll;// keeping as ArrayList for now in case we want to use medians later
 	private ArrayList<Double> bmafNonHet;
-	private int countsHet;
+	private int countsHetGeno, countsHetBAF;
 	private double bmafMetric, percentHet;
 
 	public CNVBMAF(String[] intensityOnlyFlags, double gcThreshold) {
 		super(intensityOnlyFlags, gcThreshold);
 		this.bmafAll = new ArrayList<Double>();
 		this.bmafNonHet = new ArrayList<Double>();
-		this.countsHet = 0;
+		this.countsHetGeno = 0;
+		this.countsHetBAF = 0;
+
 		this.bmafMetric = 0;// TODO, could set to NaN instead
-		this.percentHet = 1;
+		this.percentHet = 0;
 	}
 
+	/**
+	 * 
+	 * @param markerName
+	 * @param genotype
+	 * @param baf
+	 * @param bmaf
+	 *            is B-allele MINOR allele frequency (BMAF) min(medianBAF, 1-medianBAF)
+	 * @param gc
+	 */
 	public void add(String markerName, byte genotype, float baf, double bmaf, float gc) {
 		if (super.add(markerName, genotype, baf, gc)) {
-			// checkBafForHet(baf)
-			if (genotype != 1 && checkBafForHet(baf)) {
+			if (genotype != 1 && !isBafHet(baf)) {
 				bmafNonHet.add(bmaf);
 			} else {
-				countsHet++;
+				if (genotype == 1) {
+					countsHetGeno++;
+				}
+				if (genotype != 1 && isBafHet(baf)) {// TODO exclusive counts, or overlapping?
+					countsHetBAF++;
+				}
 			}
 			bmafAll.add(bmaf);
 		}
 	}
 
 	/**
-	 * @param bafPenalty
-	 *            the number of heterozygous calls times this number will be subracted from the final metric. Set to 0 if no penalty is desired
+	 * @param genoHetPenalty
+	 *            the number of heterozygous genotypes times this number will be subtracted from the final metric. Set to 0 if no penalty is desired
+	 * @param bafHetPenalty
+	 *            the number of heterozygous bafs times this number will be subtracted from the final metric. Set to 0 if no penalty is desired
 	 * @param summaryType
 	 *            see {@link #SUMMARY_BY_SUM_BMAF_ALL_MARKERS} and {@link #SUMMARY_BY_NUM_ALL_MARKERS} for options
+	 * @param log
 	 */
-	public void summarize(double bafPenalty, String summaryType) {
+	public void summarize(double genoHetPenalty, double bafHetPenalty, String summaryType, Logger log) {
 		super.summarize();
 		if (bmafNonHet.size() > 0) {
 			bmafMetric = Array.sum(Array.toDoubleArray(bmafNonHet));
@@ -69,10 +90,17 @@ public class CNVBMAF extends CNVBDeviation {
 				bmafMetric /= bmafAll.size();
 			} else if (summaryType.equals(SUMMARY_BY_SUM_BMAF_ALL_MARKERS)) {
 				bmafMetric /= Array.sum(Array.toDoubleArray(bmafAll));
+			} else {
+				log.reportError("Error - internal error, invalid summary type");
+				bmafMetric = Double.NaN;
 			}
-			percentHet = (double) countsHet / bmafAll.size();
 		}
-		bmafMetric -= (double) countsHet * bafPenalty;
+		if (bmafAll.size() > 0) {// could have been all copy number probes, filtered by gc, etc..
+			percentHet = (double) countsHetGeno / bmafAll.size();
+		}
+		bmafMetric -= (double) countsHetGeno * genoHetPenalty;
+		bmafMetric -= (double) countsHetBAF * bafHetPenalty;
+
 	}
 
 	public double getBmafMetric() {
@@ -83,8 +111,8 @@ public class CNVBMAF extends CNVBDeviation {
 		return percentHet;
 	}
 
-	private static boolean checkBafForHet(float baf) {
-		return baf < DEFUALT_BAF_HET_LOWER || baf > DEFUALT_BAF_HET_UPPER;
+	private static boolean isBafHet(float baf) {
+		return baf > DEFUALT_BAF_HET_LOWER && baf < DEFUALT_BAF_HET_UPPER;
 	}
 
 	/**
@@ -106,9 +134,9 @@ public class CNVBMAF extends CNVBDeviation {
 			}
 		}
 
-		public void summarize() {
+		public void summarize(Logger log) {
 			for (int i = 0; i < cnvbmafs.length; i++) {
-				cnvbmafs[i].summarize(DEFUALT_BAF_PENALTY, SUMMARY_BY_NUM_ALL_MARKERS);
+				cnvbmafs[i].summarize(DEFUALT_GENO_HET_PENALTY, DEFUALT_BAF_HET_PENALTY, SUMMARY_BY_SUM_BMAF_ALL_MARKERS, log);
 			}
 		}
 
@@ -139,7 +167,10 @@ public class CNVBMAF extends CNVBDeviation {
 			markerDataLoader.releaseIndex(i);
 
 		}
-		poplulationBDeviation.summarize();
+		poplulationBDeviation.summarize(new Logger());
 	}
 
+	public static void main(String[] args) {
+		test();
+	}
 }

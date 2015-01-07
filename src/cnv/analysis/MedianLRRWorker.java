@@ -305,14 +305,15 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers);
 		proj.setLog(projLog);
 		ClusterFilterCollection clusterFilterCollection = proj.getClusterFilterCollection();
-		
+
 		cnv.qc.CNVBMAF.PoplulationBAFs pDeviation = new cnv.qc.CNVBMAF.PoplulationBAFs(samples.length, CNVBDeviation.DEFAULT_INTENSITY_ONLY_FLAGS, CNVBDeviation.DEFAULT_GC_THRESHOLD);
 		for (int i = 0; i < regionMarkers.length; i++) {
-			if (i == 0) {
-				newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName()));
+			if (i % 10 == 0) {
+				newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName() + " (" + (i) + " of " + regionMarkers.length + ")"));
 			}
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			processTracker[1]++;
+			process(processTracker[1]);
 			if (markerData.getFingerprint() != sampleList.getFingerprint()) {
 				String Error = "Error - mismatched fingerprint for " + markerData.getMarkerName();
 				computelog.reportError(Error);
@@ -363,7 +364,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				}
 			}
 		}
-		pDeviation.summarize();
+		pDeviation.summarize(proj.getLog());
 		process(processTracker[1]);
 		return getSampleResults(sampleLrrs, pDeviation);
 	}
