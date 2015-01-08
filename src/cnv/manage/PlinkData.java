@@ -2083,7 +2083,7 @@ public class PlinkData {
 			} else if (args[i].equalsIgnoreCase("pedtobed")) {
 				conversionToRun = args[i];
 			} else if (args[i].equalsIgnoreCase("bedtoped")) {
-				conversionToRun = args[i].split("=")[1];
+				conversionToRun = args[i];
 			} else if (args[i].startsWith("bitmap")) {
 				conversionToRun = args[i];
 			} else if (args[i].startsWith("bitmapinpedlayout")) {
