@@ -119,8 +119,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		this.markerNames = markerSet.getMarkerNames();
 		this.chrs = markerSet.getChrs();
 		this.positions = markerSet.getPositions();
-		this.hash = proj.getFilteredHash();
 		this.sampleList = proj.getSampleList();
+		this.hash = proj.getFilteredHash();
 		this.samples = sampleList.getSamples();
 		// total ,processed;
 		this.processTracker = new int[2];
@@ -935,27 +935,31 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		int transformationType = 0;
 		int scope = 0;
 		long time;
+		boolean correctXY = false;
 		String outputBase = Transforms.TRANFORMATIONS[transformationType];
 		String logfile = outputBase + ".log";
 		Logger log;
 		Project proj;
 
-		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n" + "       OR:\n" + "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + "       (i.e. regions=" + regionFileName + "(default))\n" + "       OPTIONAL:\n" + "   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + "       transformations are: " + Array.toStr(Transforms.TRANFORMATIONS) + "\n" + "   (4) scope of transformation (i.e. scope=0 (default))\n" + "       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + "   (5) base name of the output files (i.e out=" + outputBase + " (default))\n" + "   (6) name of the log file (i.e. log=" + logfile + "\n" + "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));" + "";
-		// String usage= "cnv.analysis.MedianLRRWorker requires 2 arguments\n"+"" +
-		// "   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
-		// "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n"+
-		// "       OR:\n"+
-		// "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\""+ MARKER_REGION_DELIMITER +"\n"+
-		// "       (i.e. regions="+regionFileName+"(default))\n"+
-		// "       OPTIONAL:\n"+
-		// "   (3) transformation type (i.e. transform=0 (default, "+Transforms.TRANFORMATIONS[transformationType]+")) \n"+
-		// "       transformations are: "+ Array.toStr(Transforms.TRANFORMATIONS)+"\n"+
-		// "   (4) scope of transformation (i.e. scope=0 (default))\n"+
-		// "       scopes are: "+Array.toStr(Transforms.SCOPES)+"\n"+
-		// "   (5) base name of the output files (i.e out="+outputBase+" (default))\n"+
-		// "   (6) name of the log file (i.e. log="+logfile+"\n"+
-		// "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));"+
-		// "";
+		// String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n" + "       OR:\n" + "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + "       (i.e. regions=" + regionFileName + "(default))\n" + "       OPTIONAL:\n" + "   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + "       transformations are: " +
+		// Array.toStr(Transforms.TRANFORMATIONS) + "\n" + "   (4) scope of transformation (i.e. scope=0 (default))\n" + "       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + "   (5) base name of the output files (i.e out=" + outputBase + " (default))\n" + "   (6) name of the log file (i.e. log=" + logfile + "\n" + "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));" + "";
+		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n";
+		usage += "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
+		usage += "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n";
+		usage += "       OR:\n";
+		usage += "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n";
+		usage += "       (i.e. regions=" + regionFileName + "(default))\n";
+		usage += "       OPTIONAL:\n";
+		usage += "   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n";
+		usage += "       transformations are: " + Array.toStr(Transforms.TRANFORMATIONS) + "\n";
+		usage += "   (4) scope of transformation (i.e. scope=0 (default))\n";
+		usage += "       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n";
+		usage += "   (5) base name of the output files (i.e out=" + outputBase + " (default))\n";
+		usage += "   (6) name of the log file (i.e. log=" + logfile + "\n";
+		usage += "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));";
+		usage += "   (8) correct data with principal components (must be defined by the properties file) (i.e. correctXY=" + correctXY + " (default));";
+
+		usage += "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -982,6 +986,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			} else if (args[i].startsWith("headless=")) {
 				headless = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("correctXY=")) {
+				correctXY = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -996,7 +1003,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			log = proj.getLog();
 
 			System.setProperty("java.awt.headless", headless);
-			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, false, false, false, false, log);
+			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, false, false, correctXY, false, log);
 			medianLRRWorker.execute();
 			while (!medianLRRWorker.isDone()) {
 				Thread.sleep(100);
