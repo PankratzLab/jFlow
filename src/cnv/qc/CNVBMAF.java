@@ -15,8 +15,8 @@ import common.Logger;
  */
 public class CNVBMAF extends CNVBDeviation {
 
-	public static final double DEFUALT_BAF_HET_PENALTY = .5;
-	public static final double DEFUALT_GENO_HET_PENALTY = 1;
+	public static final double DEFUALT_BAF_HET_PENALTY = 0;
+	public static final double DEFUALT_GENO_HET_PENALTY = 0;
 
 	public static final double DEFUALT_BAF_HET_LOWER = .15;
 	public static final double DEFUALT_BAF_HET_UPPER = .85;
@@ -25,6 +25,10 @@ public class CNVBMAF extends CNVBDeviation {
 	 * Metric is divided by all markers
 	 */
 	public static final String SUMMARY_BY_NUM_ALL_MARKERS = "SUMMARY_BY_NUM_ALL_MARKERS";
+	/**
+	 * Metric is divided by all markers, and the average heterzygous bmaf is subtracted from the score
+	 */
+	public static final String SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY = "SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY";
 
 	/**
 	 * Metric is divided by sum of all markers
@@ -33,6 +37,8 @@ public class CNVBMAF extends CNVBDeviation {
 
 	private ArrayList<Double> bmafAll;// keeping as ArrayList for now in case we want to use medians later
 	private ArrayList<Double> bmafNonHet;
+	private ArrayList<Double> bmafHet;
+
 	private int countsHetGeno, countsHetBAF;
 	private double bmafMetric, percentHet;
 
@@ -40,9 +46,9 @@ public class CNVBMAF extends CNVBDeviation {
 		super(intensityOnlyFlags, gcThreshold);
 		this.bmafAll = new ArrayList<Double>();
 		this.bmafNonHet = new ArrayList<Double>();
+		this.bmafHet = new ArrayList<Double>();
 		this.countsHetGeno = 0;
 		this.countsHetBAF = 0;
-
 		this.bmafMetric = 0;// TODO, could set to NaN instead
 		this.percentHet = 0;
 	}
@@ -58,9 +64,11 @@ public class CNVBMAF extends CNVBDeviation {
 	 */
 	public void add(String markerName, byte genotype, float baf, double bmaf, float gc) {
 		if (super.add(markerName, genotype, baf, gc)) {
-			if (genotype != 1 && !isBafHet(baf)) {
+			// && !isBafHet(baf)
+			if (genotype != 1) {
 				bmafNonHet.add(bmaf);
 			} else {
+				bmafHet.add(bmaf);
 				if (genotype == 1) {
 					countsHetGeno++;
 				}
@@ -85,9 +93,13 @@ public class CNVBMAF extends CNVBDeviation {
 		super.summarize();
 		if (bmafNonHet.size() > 0) {
 			bmafMetric = Array.sum(Array.toDoubleArray(bmafNonHet));
-
 			if (summaryType.equals(SUMMARY_BY_NUM_ALL_MARKERS)) {
 				bmafMetric /= bmafAll.size();
+			} else if (summaryType.equals(SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY)) {
+				bmafMetric /= bmafAll.size();
+				if (bmafHet.size() > 0) {
+					bmafMetric -= Array.mean(Array.toDoubleArray(bmafHet));
+				}
 			} else if (summaryType.equals(SUMMARY_BY_SUM_BMAF_ALL_MARKERS)) {
 				bmafMetric /= Array.sum(Array.toDoubleArray(bmafAll));
 			} else {
@@ -134,14 +146,22 @@ public class CNVBMAF extends CNVBDeviation {
 			}
 		}
 
-		public void summarize(Logger log) {
+		public void summarize(double genoHetPenalty, double bafHetPenalty, String summaryType, Logger log) {
 			for (int i = 0; i < cnvbmafs.length; i++) {
-				cnvbmafs[i].summarize(DEFUALT_GENO_HET_PENALTY, DEFUALT_BAF_HET_PENALTY, SUMMARY_BY_SUM_BMAF_ALL_MARKERS, log);
+				cnvbmafs[i].summarize(genoHetPenalty, bafHetPenalty, summaryType, log);
 			}
 		}
 
 		public CNVBMAF[] getCnvbmafs() {
 			return cnvbmafs;
+		}
+
+		public double[] getCnvbmafsMetrics() {
+			double[] cnvbmafsMetrics = new double[cnvbmafs.length];
+			for (int i = 0; i < cnvbmafsMetrics.length; i++) {
+				cnvbmafsMetrics[i] = cnvbmafs[i].getBmafMetric();
+			}
+			return cnvbmafsMetrics;
 		}
 
 	}
@@ -163,11 +183,10 @@ public class CNVBMAF extends CNVBDeviation {
 		for (int i = 0; i < markers.length; i++) {
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			poplulationBDeviation.add(markers[i], markerData.getAbGenotypes(), markerData.getBAFs(), markerData.getGCs());
-
 			markerDataLoader.releaseIndex(i);
 
 		}
-		poplulationBDeviation.summarize(new Logger());
+		poplulationBDeviation.summarize(DEFUALT_GENO_HET_PENALTY, DEFUALT_BAF_HET_PENALTY, SUMMARY_BY_NUM_ALL_MARKERS, new Logger());
 	}
 
 	public static void main(String[] args) {
