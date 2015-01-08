@@ -31,6 +31,7 @@ import cnv.filesys.SampleList;
 import cnv.manage.MarkerDataLoader;
 import cnv.manage.Transforms;
 import cnv.qc.CNVBDeviation;
+import cnv.qc.CNVBMAF;
 import cnv.qc.CNVBMAF.PoplulationBAFs;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
@@ -52,7 +53,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private static final double[] QUANTILES = { 0.5 };
 	private static final String[] MEDIAN_WORKER_JOBS = { "Parsing and intitializing Regions", "Computing Median Log R Ratios for " + MARKER_REGION_REGEX, "Waiting for data to Load for Region " + MARKER_REGION_REGEX, "Creating Output Files", "Assigning cnv copyNumber for " };
 	private static final String[] CLASSES_TO_DUMP = { "IID" };
-	private static final String[] MARKER_REGION_RESULTS_SUFFIX = { "MEDIAN", "MAD", "BDeviation_All", "BDeviation_Het", "BMAF_Metric", "Proportion_Het" };
+	private static final String[] MARKER_REGION_RESULTS_SUFFIX = { "MEDIAN", "MAD", "BDeviation_All", "BDeviation_Het", "BMAF_Metric", "BMAF_Metric_Penalty", "Proportion_Het" };
 	private static final String CNV_CLASSES = "COPYNUMBER" + MARKER_REGION_REGEX + ";5=CN0;1=CN1;2=CN2;3=CN3;4=CN4";
 
 	// private static final String CNV_CLASSES = "COPYNUMBER" + MARKER_REGION_REGEX;
@@ -263,6 +264,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		float[][] rawBDevRegionsAll = new float[markerRegions.length][samples.length];
 		float[][] rawBDevRegionsHet = new float[markerRegions.length][samples.length];
 		float[][] rawBDevBmafMetric = new float[markerRegions.length][samples.length];
+		float[][] rawBDevBmafMetricPenalty = new float[markerRegions.length][samples.length];
+
 		float[][] rawBDevPercentHet = new float[markerRegions.length][samples.length];
 
 		assignMarkerIndices(markerRegions);
@@ -274,9 +277,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			rawBDevRegionsAll[i] = results[2];
 			rawBDevRegionsHet[i] = results[3];
 			rawBDevBmafMetric[i] = results[4];
-			rawBDevPercentHet[i] = results[5];
+			rawBDevBmafMetricPenalty[i] = results[5];
+			rawBDevPercentHet[i] = results[6];
 		}
-		return new RegionResults(rawMediansRegions, rawMADRegions, rawBDevRegionsAll, rawBDevRegionsHet, rawBDevBmafMetric, rawBDevPercentHet);
+		return new RegionResults(rawMediansRegions, rawMADRegions, rawBDevRegionsAll, rawBDevRegionsHet, rawBDevBmafMetric, rawBDevBmafMetricPenalty, rawBDevPercentHet);
 	}
 
 	private float[][] getRawValueResultsForRegion(MarkerRegion markerRegion) {
@@ -329,6 +333,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, clusterFilterCollection, true, false, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
 				if (recomputeLRR && !correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
+					// bafs = pcIntensity.getCentroidCompute().getRecomputedBAF();
 				} else if (correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, regionMarkers[i], true).getResiduals();
@@ -364,14 +369,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				}
 			}
 		}
-		pDeviation.summarize(proj.getLog());
 		process(processTracker[1]);
 		return getSampleResults(sampleLrrs, pDeviation);
 	}
 
 	private float[][] getSampleResults(float[][] lrrs, PoplulationBAFs pDeviation) {
 		// store median, MAD,median B deviation all,median B deviation het
-		float[][] results = new float[6][lrrs[0].length];
+		float[][] results = new float[7][lrrs[0].length];
 		ArrayList<ArrayList<Float>> sampleLRRS = new ArrayList<ArrayList<Float>>();
 		for (int i = 0; i < lrrs[0].length; i++) {
 			sampleLRRS.add(new ArrayList<Float>());
@@ -385,14 +389,20 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				}
 			}
 		}
+		pDeviation.summarize(CNVBMAF.DEFUALT_GENO_HET_PENALTY, CNVBMAF.DEFUALT_BAF_HET_PENALTY, CNVBMAF.SUMMARY_BY_NUM_ALL_MARKERS, proj.getLog());
+		double[] cnvbmafsNoPenalty = pDeviation.getCnvbmafsMetrics();
+		pDeviation.summarize(CNVBMAF.DEFUALT_GENO_HET_PENALTY, CNVBMAF.DEFUALT_BAF_HET_PENALTY, CNVBMAF.SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY, proj.getLog());
+		double[] cnvbmafsPenalty = pDeviation.getCnvbmafsMetrics();
+
 		for (int i = 0; i < sampleLRRS.size(); i++) {
 			if (sampleLRRS.get(i).size() > 0) {
 				results[0][i] = Array.quants(toFloatArray(sampleLRRS.get(i)), QUANTILES)[0];
 				results[1][i] = getMAD(toFloatArray(sampleLRRS.get(i)), results[0][i]);
 				results[2][i] = (float) pDeviation.getCnvbmafs()[i].getMedianBDeviationAll();
 				results[3][i] = (float) pDeviation.getCnvbmafs()[i].getMedianBDeviationHet();
-				results[4][i] = (float) pDeviation.getCnvbmafs()[i].getBmafMetric();
-				results[5][i] = (float) pDeviation.getCnvbmafs()[i].getPercentHet();
+				results[4][i] = (float) cnvbmafsNoPenalty[i];
+				results[5][i] = (float) cnvbmafsPenalty[i];
+				results[6][i] = (float) pDeviation.getCnvbmafs()[i].getPercentHet();
 
 			} else {
 				proj.getLog().reportError("Warning - sample " + proj.getSamples()[i] + " did not have any data for a region, setting to NaN");
@@ -402,6 +412,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				results[3][i] = Float.NaN;
 				results[4][i] = Float.NaN;
 				results[5][i] = Float.NaN;
+				results[6][i] = Float.NaN;
+
 			}
 		}
 		return results;
@@ -423,18 +435,20 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			// region,sample,cnvFile
 			// CN are reported as 1=homzydel,2=hetrodel,3=none,4=hetrodup,5=homozydup;
 			process(0);
-			newJob("loading " + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv " + (proj.getFilenames(Project.CNV_FILENAMES).length > 1 ? "files" : "file"));
+			newJob("loading " + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv " + (proj.getFilenames(Project.CNV_FILENAMES).length > 1 ? " files" : " file"));
 			cnvFileCNs = new int[markerRegions.length][samples.length][Project.CNV_FILENAMES.length()];
-			computelog.report("Info - assigning cnvs for " + proj.getFilenames(Project.CNV_FILENAMES).length + "cnv files");
+			computelog.report("Info - assigning cnvs for " + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv files");
 			sampleData.loadCNVs(proj.getFilenames(Project.CNV_FILENAMES), false);
 			String[] cnvClasses = sampleData.getCnvClasses();
 			computelog.report("Info - assigning cnvs for " + proj.getFilenames(Project.CNV_FILENAMES).length);
 			newJob(MEDIAN_WORKER_JOBS[4] + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv files");
-
+			processTracker[1] = 0;
 			for (int i = 0; i < markerRegions.length; i++) {
-				process(0);
-				newJob(MEDIAN_WORKER_JOBS[4] + " region " + markerRegions[i].getRegionName());
 				assignSampleProgress();
+				process(processTracker[1]);
+				newJob(MEDIAN_WORKER_JOBS[4] + " region " + markerRegions[i].getRegionName());
+				process(processTracker[1]);
+
 				// Assuming that all markers are from the same chromosome...,but checking anyway
 				byte chr = chrs[markerRegions[i].getMarkerIndex().get(0)];
 				boolean oneChromosome = markerRegions[i].isOneChromosome();
@@ -443,6 +457,11 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				}
 				Segment region = markerRegions[i].getSegment(chr);
 				for (int j = 0; j < samples.length; j++) {
+					processTracker[1]++;
+					if (j % 10 == 0) {
+						newJob(MEDIAN_WORKER_JOBS[4] + " region " + markerRegions[i].getRegionName() + " (" + j + " of " + samples.length + " samples)");
+						process(processTracker[1]);
+					}
 					for (int k = 0; k < cnvClasses.length; k++) {
 						// region,sample,cnvFile
 						cnvFileCNs[i][j][k] = 2;
@@ -509,7 +528,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			for (int i = 0; i < samples.length; i++) {
 				writer.print(samples[i] + "\t" + (hashSamps.containsKey(samples[i]) ? hashSamps.get(samples[i]) : Array.stringArray(CLASSES_TO_DUMP.length, ".")));
 				for (int j = 0; j < markerRegions.length; j++) {
-					writer.print("\t" + regionResults.getMedianAt(j, i) + "\t" + regionResults.getMADAt(j, i) + "\t" + regionResults.getBDeviationAllAt(j, i) + "\t" + regionResults.getBDeviationHetAt(j, i) + "\t" + regionResults.getBmafMetricAt(j, i) + "\t" + regionResults.getPercentHetAt(j, i));
+					writer.print("\t" + regionResults.getMedianAt(j, i) + "\t" + regionResults.getMADAt(j, i) + "\t" + regionResults.getBDeviationAllAt(j, i) + "\t" + regionResults.getBDeviationHetAt(j, i) + "\t" + regionResults.getBmafMetricAt(j, i) + "\t" + regionResults.getBmafMetricPenaltyAt(j, i) + "\t" + regionResults.getPercentHetAt(j, i));
 					if (reportCNVCN) {
 						for (int k = 0; k < cnvFiles.length; k++) {
 							writer.print("\t" + format(regionResults.getCNAt(j, i, k)));
@@ -744,19 +763,21 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		private float[][] regionBDeviationAll;
 		private float[][] regionBDeviationHet;
 		private float[][] regionBmafMetric;
+		private float[][] regionBmafMetricPenalty;
 		private float[][] regionPercentHet;
 
 		// stored as region,sample,cnvFile
 		private int[][][] cnvFileCNs;
 		private String[] cnvFileNames;
 
-		public RegionResults(float[][] regionMedianValues, float[][] regionMADValues, float[][] regionBDeviationAll, float[][] regionBDeviationHet, float[][] regionBmafMetric, float[][] regionPercentHet) {
+		public RegionResults(float[][] regionMedianValues, float[][] regionMADValues, float[][] regionBDeviationAll, float[][] regionBDeviationHet, float[][] regionBmafMetric, float[][] regionBmafMetricPenalty, float[][] regionPercentHet) {
 			super();
 			this.regionMedianValues = regionMedianValues;
 			this.regionMADValues = regionMADValues;
 			this.regionBDeviationAll = regionBDeviationAll;
 			this.regionBDeviationHet = regionBDeviationHet;
 			this.regionBmafMetric = regionBmafMetric;
+			this.regionBmafMetricPenalty = regionBmafMetricPenalty;
 			this.regionPercentHet = regionPercentHet;
 			this.cnvFileCNs = null;
 			this.cnvFileNames = null;
@@ -797,6 +818,14 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		public float getBmafMetricAt(int region, int sample) {
 			if (regionBmafMetric != null) {
 				return regionBmafMetric[region][sample];
+			} else {
+				return Float.NaN;
+			}
+		}
+
+		public float getBmafMetricPenaltyAt(int region, int sample) {
+			if (regionBmafMetricPenalty != null) {
+				return regionBmafMetricPenalty[region][sample];
 			} else {
 				return Float.NaN;
 			}
@@ -867,7 +896,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				regionMADValues[j][i] = getMAD(toFloatArray(regionLrrs), regionMedianValues[j][i]);
 			}
 		}
-		return new RegionResults(regionMedianValues, regionMADValues, null, null, null, null);// TODO if b-deviation is effective
+		return new RegionResults(regionMedianValues, regionMADValues, null, null, null, null, null);// TODO if b-deviation is effective
 	}
 
 	private float getMAD(float[] regionLrrs, float median) {
