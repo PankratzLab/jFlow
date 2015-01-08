@@ -101,6 +101,10 @@ public class CentroidCompute {
 		return samplesToUse;
 	}
 
+	public void setIntensityOnly(boolean intensityOnly) {
+		this.intensityOnly = intensityOnly;
+	}
+
 	/**
 	 * We favor returning {@link #alternateGenotypes} if they have been explicitly set.
 	 * <p>
@@ -164,7 +168,7 @@ public class CentroidCompute {
 	public void computeCentroid() {
 		computeCentroid(false);
 	}
-	
+
 	public void computeCentroid(boolean forceAuto) {
 		init();
 		computeCenters(forceAuto);
@@ -220,7 +224,7 @@ public class CentroidCompute {
 			} else {
 				float[] xs = markerData.getXs();
 				for (int i = 0; i < xs.length; i++) {
-					baf[i] = 0;
+					baf[i] = 1;
 				}
 			}
 		}
@@ -231,7 +235,7 @@ public class CentroidCompute {
 		int check = markerData.getThetas().length;
 		byte chr = markerData.getChr();
 		if (sampleSex == null && sexSpecific) {
-			//log.report("Warning - marker " + markerData.getMarkerName() + " is on chromosome " + chr + " and sample sex was not provided, cluster centers may be inaccurate");
+			// log.report("Warning - marker " + markerData.getMarkerName() + " is on chromosome " + chr + " and sample sex was not provided, cluster centers may be inaccurate");
 		} else if (sampleSex != null && sampleSex.length != check) {
 			failed = true;
 			log.reportError("Error - mismatched number of samples for data's length");
@@ -365,9 +369,9 @@ public class CentroidCompute {
 				boolean check1 = forceAuto || checkSex(chr, i);
 				boolean check2 = (samplesToUse == null || samplesToUse[i]);
 				boolean check3 = useMarker(thetas[i], rs[i], confs == null ? 0 : confs[i], gcThreshold);
-				
-//				System.out.println(i + " - s:" + sampleSex[i] + "->" + check1 + " ; " + samplesToUse[i]);
-				
+
+				// System.out.println(i + " - s:" + sampleSex[i] + "->" + check1 + " ; " + samplesToUse[i]);
+
 				if (check1 && check2 && check3) {
 					counts[0]++;
 					counts[genotypes[i] + 2]++;
