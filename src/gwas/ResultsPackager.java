@@ -425,7 +425,7 @@ public class ResultsPackager {
 				mendelErrors = one.SkatMeta.loadFile(mendelErrorFile, null, new String[] {"SNP"}, new String[] {"N"}, null, null);
 			}
 			if (hweFile != null) {
-				hwe = one.SkatMeta.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST"}, new String[] {"UNAFF"});
+				hwe = one.SkatMeta.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST==UNAFF"}, log);
 			}
 			if (tdtResultsFile != null) {
 				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new String[] {"T", "U", "OR", "P"}, null, null);
