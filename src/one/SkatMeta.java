@@ -787,6 +787,7 @@ public class SkatMeta {
 		}
 	}
 
+	//TODO need to input condition list, but different pheno have different number of conditions and thus making the code complex.
 	public static void summary(String resultsDirFilenameTemplate, double pThreshold, String[] phenos, String[] ethnics, String snpInfoDirNameTemplate, String conditionFileDirNameTemplate, String summaryDir, Logger log) {
 		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups;
 		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvalSummary;
@@ -802,10 +803,9 @@ public class SkatMeta {
 			log = new Logger();
 		}
 
-
 		columnIndeciesOfPhenoConditionEthnicAnalysis = getIndicesOfPhenoConditionEthnicAnalysis(resultsDirFilenameTemplate, "_");
 		resultDir = ext.parseDirectoryOfFile(resultsDirFilenameTemplate);
-		phenoGroups = groupFileNames(Files.list(resultDir, null, ".csv", false, false), columnIndeciesOfPhenoConditionEthnicAnalysis, log);
+		phenoGroups = groupFileNames(Files.list(resultDir, null, ".csv", false, false), columnIndeciesOfPhenoConditionEthnicAnalysis, phenos, log);
 		if (ethnics == null || ethnics.length < 1) {
 			ethnics = getEthnicList(phenoGroups, log);
 		}
@@ -1987,6 +1987,82 @@ public class SkatMeta {
 
 				if (analysesGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])) {
 					log.reportError("Error - " + filenames[i] + " get duplicated with " + analysesGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]]) + ". \nSystem halted.");
+					System.exit(0);
+				} else {
+					analysesGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]], filenames[i]);
+				}
+			}
+		}
+
+		return phenoGroup;
+	}
+
+	public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(String[] filenames, int[] columnIndeciesOfPhenoConditionEthnicAnalysis, String[] phenos, Logger log) {
+		Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroup = null;
+		Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
+		Hashtable<String, Hashtable<String, String>> ethnicGroup;
+		Hashtable<String, String> analysesGroup;
+		String[] filenameRoot;
+		String tmp;
+		int index;
+		boolean found;
+
+		if (log == null) {
+			log = new Logger();
+		}
+
+		if (filenames != null && filenames.length > 0) {
+			for (int i = 1; i < columnIndeciesOfPhenoConditionEthnicAnalysis.length; i++) {
+				if (columnIndeciesOfPhenoConditionEthnicAnalysis[i] > columnIndeciesOfPhenoConditionEthnicAnalysis[0]) {
+					columnIndeciesOfPhenoConditionEthnicAnalysis[i] --;
+				}
+			}
+			phenoGroup = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>();
+			for (int i = 0; i < filenames.length; i++) {
+				tmp = ext.rootOf(filenames[i]);
+				index = -1;
+				for (int j = 0; j < phenos.length; j++) {
+					if (tmp.contains("_" + phenos[j] + "_") || tmp.endsWith("_" + phenos[j])) {
+						tmp = tmp.replace("_" + phenos[j], "");
+						index = j;
+					} else if (tmp.startsWith(phenos[j] + "_")) {
+						tmp = tmp.replace(phenos[j] + "_", "");
+						index = j;
+					}
+					if (index >= 0) {
+						break;
+					}
+				}
+				if (index < 0) {
+					log.reportError("Error - the following file name does not contain any pheno from the list: " + Array.toStr(phenos) + "\n" + filenames[i] + "\nSystem halted.");
+					System.exit(0);
+				}
+				
+				filenameRoot = tmp.split("_");
+				if (phenoGroup.containsKey(phenos[index])) {
+					conditionGroup = phenoGroup.get(phenos[index]);
+				} else {
+					conditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
+					phenoGroup.put(phenos[index], conditionGroup);
+				}
+
+				if (conditionGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
+					ethnicGroup = conditionGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]]);
+				} else {
+					ethnicGroup = new Hashtable<String, Hashtable<String, String>>();
+					conditionGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]], ethnicGroup);
+				}
+
+				if (ethnicGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
+					analysesGroup = ethnicGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]]);
+				} else {
+					analysesGroup = new Hashtable<String, String>();
+					ethnicGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]], analysesGroup);
+				}
+
+				if (analysesGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])) {
+					log.reportError("Error - " + filenames[i] + " get duplicated with " + analysesGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]]) + ". \nSystem halted.");
+					System.exit(0);
 				} else {
 					analysesGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]], filenames[i]);
 				}
@@ -2061,7 +2137,7 @@ public class SkatMeta {
 			}
 		}
 
-		summary(previousResultFileDirFileameTemplate, pThresholdHigher, phenos, ethnics, null, condFileDirFilenameTemplate, resultSummariesDir, log);
+		summary(previousResultFileDirFileameTemplate, pThresholdHigher, phenos, ethnics, "/home/pankrat2/shared/skatMeta/exome_chip_hematology/SNPInfo_ExomeChipV5.csv", condFileDirFilenameTemplate, resultSummariesDir, log);
 	}
 
 	/* This is a working copy before the last modification of the method with the same name
