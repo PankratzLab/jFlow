@@ -2412,8 +2412,8 @@ public class SkatMeta {
 									CmdLine.run(rcommand + " " + rScriptFile, rScriptDir);
 	
 									if (! new File(resultFiles[j][0]).exists()) {
-										resultFiles[j][0] = null;
 										log.report("Warning - Potential failure of R. The following R output is not found and will be ignored:\n" + resultFiles[j][0]);
+										resultFiles[j][0] = null;
 									} else {
 										isAllRDataFilesMissing = false;
 									}
