@@ -769,7 +769,12 @@ public class ext {
 			}
 			if (indices[i]==-1) {
 				if (verbose) {
-					log.reportError("Error - no factor was named '"+subset[i]+"'");
+					if (kill) {
+						log.reportError("Error - no factor was named '"+subset[i]+"'");
+					} else {
+//						log.reportError("Warning - no factor was named '" + subset[i] + "' in the String array:\n" + Array.toStr(superset));
+						log.reportError("Warning - no factor was named '" + subset[i] + "'");
+					}
 				}
 				err = true;
 			}
