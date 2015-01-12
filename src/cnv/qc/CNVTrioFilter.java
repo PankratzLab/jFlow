@@ -117,28 +117,34 @@ public class CNVTrioFilter extends CNVFilter {
 		CNVTrio.computeMinHeightDist(maxBeastHeightParents);
 		if (filterPass.passedFilter()) {
 			if (!checkMaxThreshold(Math.abs(CNVTrio.getFAHEIGHT()), maxBeastHeightParents)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("father's beast height > " + maxBeastHeightParents, ";");
+//				filterPass.prepFail();
+//				filterPass.addReasonFailing("father's beast height > " + maxBeastHeightParents, ";");
+				filterPass.setFailed("father's beast height > " + maxBeastHeightParents, ";");
 			}
 			if (!checkMaxThreshold(Math.abs(CNVTrio.getMOHEIGHT()), maxBeastHeightParents)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("mother's beast height > " + maxBeastHeightParents, ";");
+//				filterPass.prepFail();
+//				filterPass.addReasonFailing("mother's beast height > " + maxBeastHeightParents, ";");
+				filterPass.setFailed("mother's beast height > " + maxBeastHeightParents, ";");
 			}
 			if (!checkTripleMax(CNVTrio.getILRR_SD(), CNVTrio.getFALRR_SD(), CNVTrio.getMOLRR_SD(), maxTrioLrrSD)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("trio had LRR SD > " + maxTrioLrrSD, ";");
+//				filterPass.prepFail();
+//				filterPass.addReasonFailing("trio had LRR SD > " + maxTrioLrrSD, ";");
+				filterPass.setFailed("trio had LRR SD > " + maxTrioLrrSD, ";");
 			}
 			if (!checkTripleMax(CNVTrio.getIBAF1585_SD(), CNVTrio.getFABAF1585_SD(), CNVTrio.getMOBAF1585_SD(), maxTrio1585SD)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("trio had BAF 15/85 SD > " + maxTrio1585SD, ";");
+//				filterPass.prepFail();
+//				filterPass.addReasonFailing("trio had BAF 15/85 SD > " + maxTrio1585SD, ";");
+				filterPass.setFailed("trio had BAF 15/85 SD > " + maxTrio1585SD, ";");
 			}
 			if (!checkMinThreshold(CNVTrio.getMinBeastHeightDifference(), minBeastHeightDifference)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("minimum beast height (" + CNVTrio.getMinBeastHeightDifference() + ") <" + minBeastHeightDifference, ";");
+//				filterPass.prepFail();
+//				filterPass.addReasonFailing("minimum beast height (" + CNVTrio.getMinBeastHeightDifference() + ") <" + minBeastHeightDifference, ";");
+				filterPass.setFailed("minimum beast height (" + CNVTrio.getMinBeastHeightDifference() + ") <" + minBeastHeightDifference, ";");
 			}
 			if (CNVTrio.getNumCalls() > numCalls) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("number of calls > " + numCalls, ";");
+//				filterPass.prepFail();
+//				filterPass.addReasonFailing("number of calls > " + numCalls, ";");
+				filterPass.setFailed("number of calls > " + numCalls, ";");
 			}
 		}
 		return filterPass;

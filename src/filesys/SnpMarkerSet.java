@@ -242,6 +242,33 @@ public class SnpMarkerSet implements Serializable {
 		return positions;
 	}
 	
+	public int[][] getPositionsByChr() {
+		IntVector iv;
+		byte chr;
+		int[][] positionsByChr;
+		boolean done;
+		
+		positionsByChr = new int[27][0];
+		
+		chr = 0;
+		iv = new IntVector(20000);
+		done = false;
+		for (int i = 0; !done; i++) {
+			if (i==chrs.length || chrs[i] != chr) {
+				positionsByChr[chr] = iv.toArray();
+				chr = i==chrs.length?0:chrs[i];
+				iv = new IntVector(20000);
+			}
+			if (i==chrs.length) {
+				done = true;
+			} else {
+				iv.add(positions[i]);
+			}
+        }
+		
+		return positionsByChr;
+	}
+	
 	public String[] getChrAndPositions() {
 		String[] chrPositions = new String[positions.length];
 		
