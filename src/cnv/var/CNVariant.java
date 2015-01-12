@@ -510,5 +510,6 @@ public class CNVariant extends Segment {
 	public String toString() {
 		return getIndividualID();
 	}
+
 }
 

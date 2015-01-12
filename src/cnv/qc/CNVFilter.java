@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
 import common.Array;
@@ -13,6 +14,7 @@ import common.Logger;
 import common.Positions;
 import common.ext;
 import filesys.Segment;
+import filesys.SnpMarkerSet;
 
 public class CNVFilter {
 
@@ -65,12 +67,13 @@ public class CNVFilter {
 	public static final Segment[] NO_FILTER_COMMON_REFERENCE = new Segment[0];
 	public static final int[][] NO_FILTER_CENTROMERE_BOUNDARIES = null;
 	public static final boolean NO_FILTER_BREAK_UP_CENTROMERES = false;
-	public static final HashSet<String> NO_FILTER_INDIVUAL_HASH = null;
+	public static final HashSet<String> NO_FILTER_INDIVIDUAL_HASH = null;
 
 	private int minNumMarkers, maxNumMarkers, minSize, maxSize, build, CN;
 	private double minScore, maxScore;
 	private Segment[] problemRegions, centromereMidpoints, commonReference;
 	private int[][] centromereBoundaries;
+	private int[][] positions;
 	private boolean breakupCentromeres, commonIn;
 	private HashSet<String> indHash;
 	private Hashtable<String, String> commandLineFiltersInEffect = new Hashtable<String, String>();
@@ -97,7 +100,7 @@ public class CNVFilter {
 	}
 
 	public CNVFilter(Logger log) {
-		this(NO_FILTER_MIN_NUM_MARKERS, NO_FILTER_MAX_NUM_MARKERS, NO_FILTER_MIN_SIZE, NO_FILTER_MAX_SIZE, NO_FILTER_MIN_SCORE, NO_FILTER_MAX_SCORE, NO_FILTER_PROBLEM_REGIONS, NO_FILTER_CENTROMERE_MIDPOINTS, NO_FILTER_COMMON_REFERENCE, NO_FILTER_CENTROMERE_BOUNDARIES, NO_FILTER_BREAK_UP_CENTROMERES, DEFAULT_COMMON_IN, NO_FILTER_INDIVUAL_HASH, DEFAULT_BUILD, NO_FILTER_CN, log);
+		this(NO_FILTER_MIN_NUM_MARKERS, NO_FILTER_MAX_NUM_MARKERS, NO_FILTER_MIN_SIZE, NO_FILTER_MAX_SIZE, NO_FILTER_MIN_SCORE, NO_FILTER_MAX_SCORE, NO_FILTER_PROBLEM_REGIONS, NO_FILTER_CENTROMERE_MIDPOINTS, NO_FILTER_COMMON_REFERENCE, NO_FILTER_CENTROMERE_BOUNDARIES, NO_FILTER_BREAK_UP_CENTROMERES, DEFAULT_COMMON_IN, NO_FILTER_INDIVIDUAL_HASH, DEFAULT_BUILD, NO_FILTER_CN, log);
 	}
 
 	public void setCNVDefaults(Project proj) {
@@ -121,61 +124,55 @@ public class CNVFilter {
 	public CNVFilterPass getCNVFilterPass(CNVariant cnv) {
 		CNVFilterPass filterPass = new CNVFilterPass();
 		if (minSize != NO_FILTER_MIN_SIZE && cnv.getSize() < minSize) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("minimum size < " + minSize, ";");
+			filterPass.setFailed("minimum size < " + minSize, ";");
 		}
 		if (maxSize != NO_FILTER_MAX_SIZE && cnv.getSize() > maxSize) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("maximum size > " + maxSize, ";");
+			filterPass.setFailed("maximum size > " + maxSize, ";");
 		}
 		if (minNumMarkers != NO_FILTER_MIN_NUM_MARKERS && cnv.getNumMarkers() < minNumMarkers) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("min number of markers < " + minNumMarkers, ";");
+			filterPass.setFailed("min number of markers < " + minNumMarkers, ";");
 		}
 		if (maxNumMarkers != NO_FILTER_MAX_NUM_MARKERS && cnv.getNumMarkers() > maxNumMarkers) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("max number of markers > " + maxNumMarkers, ";");
+			filterPass.setFailed("max number of markers > " + maxNumMarkers, ";");
 		}
 		if (minScore != NO_FILTER_MIN_SCORE && cnv.getScore() < minScore) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("minimum score < " + minScore, ";");
+			filterPass.setFailed("minimum score < " + minScore, ";");
 		}
-		if (maxScore != NO_FILTER_MAX_SCORE && cnv.getSize() < maxScore) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("minimum score > " + maxScore, ";");
+		if (maxScore != NO_FILTER_MAX_SCORE && cnv.getScore() > maxScore) {
+			filterPass.setFailed("maximum score > " + maxScore, ";");
 		}
 		if (commonReference != NO_FILTER_COMMON_REFERENCE) {
 			if (commonIn && !inOneOfTheseRegions(cnv, commonReference)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("commonIn=" + commonIn + " and was not in commonReference", ";");
+				filterPass.setFailed("commonIn=" + commonIn + " and was not in commonReference", ";");
 			} else if (inOneOfTheseRegions(cnv, commonReference)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("commonIn=" + commonIn + " and was in commonReference", ";");
+				filterPass.setFailed("commonIn=" + commonIn + " and was in commonReference", ";");
 			}
 		}
 		if (problemRegions != NO_FILTER_PROBLEM_REGIONS) {
 			if (inOneOfTheseRegions(cnv, problemRegions)) {
-				filterPass.prepFail();
-				filterPass.addReasonFailing("problematic regions were defined and was in a problematic region ", ";");
+				filterPass.setFailed("problematic regions were defined and was in a problematic region ", ";");
 			}
 		}
-		if (indHash != NO_FILTER_INDIVUAL_HASH && !indHash.contains(cnv.getFamilyID() + "\t" + cnv.getIndividualID())) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing(cnv.getFamilyID() + "\t" + cnv.getIndividualID() + " was not in the individual filter list", ";");
+		if (indHash != NO_FILTER_INDIVIDUAL_HASH && !indHash.contains(cnv.getFamilyID() + "\t" + cnv.getIndividualID())) {
+			filterPass.setFailed(cnv.getFamilyID() + "\t" + cnv.getIndividualID() + " was not in the individual filter list", ";");
 			filterPass.setIndIsExcluded(true);// this is useful if you are computing concordance, and do not want excluded individuals counted against
 		}
 		// TODO better, and break up everytime if needed without the extra method
-		if (centromereBoundaries != NO_FILTER_CENTROMERE_BOUNDARIES && centromereMidpoints != NO_FILTER_CENTROMERE_MIDPOINTS && cnv.overlaps(centromereMidpoints[cnv.getChr()]) && !breakupCentromeres) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("breakupCentromeres=" + breakupCentromeres + " and was in a centromere", ";");
+		if (centromereBoundaries != NO_FILTER_CENTROMERE_BOUNDARIES && 
+				centromereMidpoints != NO_FILTER_CENTROMERE_MIDPOINTS && 
+				cnv.overlaps(centromereMidpoints[cnv.getChr()])) {
+//			filterPass.prepFail();
+//			filterPass.addReasonFailing("breakupCentromeres=" + breakupCentromeres + " and was in a centromere", ";");
+			if (!breakupCentromeres) {
+				filterPass.setFailed("breakupCentromeres=" + breakupCentromeres + " and was in a centromere", ";");
+			}
 			filterPass.setCentromeric(true);
 		}
 		if (cnv.getSize() > GIANT_BP || cnv.getNumMarkers() > GIANT_NUM_MARKERS) {
 			filterPass.setGiant(true);
 		}
 		if (CN != NO_FILTER_CN && cnv.getCN() != CN) {
-			filterPass.prepFail();
-			filterPass.addReasonFailing("cnv was not copy number" + CN, ";");
+			filterPass.setFailed("cnv was not copy number" + CN, ";");
 		}
 		return filterPass;
 	}
@@ -237,7 +234,7 @@ public class CNVFilter {
 				filter.setCommonIn(ext.parseBooleanArg(args[i]));
 				filter.addCommandLineFilter(args[i], COMMAND_COMMON_IN);
 			} else if (args[i].startsWith(COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA)) {
-				if (filter.getIndHash() == NO_FILTER_INDIVUAL_HASH && ext.parseBooleanArg(args[i])) {
+				if (filter.getIndHash() == NO_FILTER_INDIVIDUAL_HASH && ext.parseBooleanArg(args[i])) {
 					filter.setIndividualsToKeepFromSampleData(proj);
 				}
 				filter.addCommandLineFilter(args[i], COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA);
@@ -363,10 +360,56 @@ public class CNVFilter {
 	 */
 	public CNVariant[] breakUpCentromere(CNVFilterPass filterPass, CNVariant cnv) {
 		CNVariant[] cnvCentromere;
-		if (breakupCentromeres && filterPass.passedFilter() && centromereMidpoints != NO_FILTER_CENTROMERE_MIDPOINTS && filterPass.isCentromeric()) {
-			cnvCentromere = new CNVariant[2];
-			cnvCentromere[0] = new CNVariant(cnv.getFamilyID(), cnv.getIndividualID(), cnv.getChr(), cnv.getStart(), centromereBoundaries[cnv.getChr()][0], cnv.getCN(), cnv.getScore(), cnv.getNumMarkers(), cnv.getSource());
-			cnvCentromere[1] = new CNVariant(cnv.getFamilyID(), cnv.getIndividualID(), cnv.getChr(), centromereBoundaries[cnv.getChr()][1], cnv.getStop(), cnv.getCN(), cnv.getScore(), cnv.getNumMarkers(), cnv.getSource());
+		if (breakupCentromeres 
+				&& filterPass.passedFilter() 
+				&& centromereMidpoints != NO_FILTER_CENTROMERE_MIDPOINTS 
+				&& centromereBoundaries != NO_FILTER_CENTROMERE_BOUNDARIES 
+				&& filterPass.isCentromeric()) {
+			
+			int[] bounds = centromereBoundaries[cnv.getChr()];
+			boolean startWithin = cnv.getStart() >= bounds[0];
+			boolean endWithin = cnv.getStop() <= bounds[1];
+			
+			CNVariant newCNV1 = null;
+			CNVariant newCNV2 = null;
+			if (startWithin && endWithin) {
+				cnvCentromere = new CNVariant[]{};
+			} else {
+				if (startWithin || !endWithin) {
+					// if startWithin or (implied: !startWithin and) !endWithin 
+					int newStart = bounds[1] + 1;
+					if (cnv.getStop() - newStart <= 1) {
+						cnvCentromere = new CNVariant[]{};
+					}
+					
+					int secondMarker = Array.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
+					int firstMarker = Array.binarySearch(positions[cnv.getChr()], bounds[1], true);
+					int markerCnt = secondMarker - firstMarker + 1;
+					newCNV1 = new CNVariant(cnv.getFamilyID(), cnv.getIndividualID(), cnv.getChr(), positions[cnv.getChr()][firstMarker], cnv.getStop(), cnv.getCN(), cnv.getScore(), markerCnt, cnv.getSource());
+				}
+				if (endWithin || !startWithin) {
+					// if endWithin or (implied: !endWithin and) !startWithin 
+					int newEnd = bounds[0] - 1;
+					if (newEnd - cnv.getStart() <= 1) {
+						cnvCentromere = new CNVariant[]{};
+					}
+					
+					int firstMarker = Array.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
+					int secondMarker = Array.binarySearch(positions[cnv.getChr()], bounds[0], true);
+					int markerCnt = secondMarker - firstMarker + 1;
+					newCNV2 = new CNVariant(cnv.getFamilyID(), cnv.getIndividualID(), cnv.getChr(), cnv.getStart(), positions[cnv.getChr()][secondMarker], cnv.getCN(), cnv.getScore(), markerCnt, cnv.getSource());
+				}
+				
+				if (!endWithin && !startWithin) {
+					cnvCentromere = new CNVariant[]{newCNV1, newCNV2};
+				} else if (startWithin && !endWithin) {
+					cnvCentromere = new CNVariant[]{newCNV1};
+				} else if (endWithin && !startWithin) {
+					cnvCentromere = new CNVariant[]{newCNV2};
+				} else {
+					cnvCentromere = new CNVariant[]{};
+				}
+			}
 		} else {
 			cnvCentromere = new CNVariant[] { cnv };
 		}
@@ -402,6 +445,8 @@ public class CNVFilter {
 		if (fullPathToMarkerSetFilename == null || fullPathToMarkerSetFilename.equals("")) {
 			this.centromereBoundaries = NO_FILTER_CENTROMERE_BOUNDARIES;
 		} else {
+			MarkerSet markerSet = MarkerSet.load(fullPathToMarkerSetFilename, false);
+			this.positions = markerSet.getPositionsByChr();
 			this.centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(fullPathToMarkerSetFilename, build, log);
 		}
 		computeCentromereMidPoints();
@@ -422,7 +467,7 @@ public class CNVFilter {
 
 	public void setIndividualsToKeepFromFile(String fullPathToIndividualsToKeepFile) {
 		if (fullPathToIndividualsToKeepFile == null || fullPathToIndividualsToKeepFile.equals("")) {
-			setIndHash(NO_FILTER_INDIVUAL_HASH);
+			setIndHash(NO_FILTER_INDIVIDUAL_HASH);
 		} else {
 			setIndHash(HashVec.loadFileToStringArray(fullPathToIndividualsToKeepFile, false, false, new int[] { 0, 1 }, true, false, "\t"));
 		}
@@ -607,10 +652,6 @@ public class CNVFilter {
 			return reasonNotPassing;
 		}
 
-		public void setFail() {
-			passes = false;
-		}
-
 		public boolean isCentromeric() {
 			return centromeric;
 		}
@@ -618,21 +659,19 @@ public class CNVFilter {
 		public void setCentromeric(boolean centromeric) {
 			this.centromeric = centromeric;
 		}
-
-		public void prepFail() {
-			if (passes) {
-				setFail();
-				reasonNotPassing = DID_NOT_PASS;
-			}
-		}
-
-		public void addReasonFailing(String reason, String sep) {
-			if (reasonNotPassing.equals(DID_NOT_PASS)) {
+		
+		
+		public void setFailed(String reason, String sep) {
+			if (passes) passes = false;
+			if (DID_NOT_PASS.equals(reasonNotPassing)) {
 				reasonNotPassing += reason;
+			} else if(IT_PASSED.equals(reasonNotPassing)) {
+				reasonNotPassing = DID_NOT_PASS + reason;
 			} else {
 				reasonNotPassing += sep + reason;
 			}
 		}
+		
 	}
 
 	public static String[] getParserParams() {
