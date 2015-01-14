@@ -46,6 +46,7 @@ public class PSF {
 	public static class Cmd {
 		/**
 		 * Make sure to include an "&" after any profile.pl usage in a .pbs script
+		 * It looks like this may actually profile all your jobs on a node
 		 */
 		public static final String PROFILE_PL = "profile.pl";
 
