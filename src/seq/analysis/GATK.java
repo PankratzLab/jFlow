@@ -65,10 +65,15 @@ public class GATK {
 	public static final String MAX_GAUSSIANS = "--maxGaussians";
 	public static final String DEFAULT_MAX_GAUSSIANS = "4";
 	public static final String TS_FILTER_LEVEL = "--ts_filter_level";
-	public static final String DEFUALT_TS_FILTER_LEVEL = "99.9";
+	public static final String DEFUALT_TS_FILTER_LEVEL_SNP = "99.5";
+	public static final String DEFUALT_TS_FILTER_LEVEL_INDEL = "99.0";
+
 	public static final String AN = "-an";
-	public static final String[] ANS = { "DP", "FS", "MQRankSum", "ReadPosRankSum" };
-	public static final String AN_QD = "QD";
+	// from https://www.broadinstitute.org/gatk/guide/article?id=1259
+	// date = 12-17-14
+	public static final String[] ANS_SNP = { "QD", "MQ", "MQRankSum", "ReadPosRankSum", "FS", "SOR", "InbreedingCoeff" };// NO DP for Exomes
+	public static final String[] ANS_INDEL = { "QD", "FS", "SOR", "ReadPosRankSum", "MQRankSum", "InbreedingCoeff" };// NO DP for Exomes
+
 	public static final String MODE = "-mode";
 	public static final String SNP = "SNP";
 	public static final String INDEL = "INDEL";
@@ -99,9 +104,10 @@ public class GATK {
 	public static final String[] PRIORS = { "15.0", "12.0", "10.0", "2.0" };
 
 	public static final String TRANCHE = "-tranche";
-	public static final String[] TRANCHES = { "100.0", "99.9", "99.0", "90.0" };
+	public static final String[] TRANCHES = { "100.0", "99.9", "99.5", "99.0", "90.0" };
 
-	public static final String INDEL_RESOURCE_FULL = "-resource:mills,known=true,training=true,truth=true,prior=12.0";
+	public static final String INDEL_RESOURCE_FULL_MILLS = "-resource:mills,known=false,training=true,truth=true,prior=12.0";
+	public static final String INDEL_RESOURCE_FULL_DBSNP = "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0";
 
 	private String GATKLocation, referenceGenomeFasta;
 	private String[] knownSitesSnpFile, knownSitesIndelFile;
@@ -399,14 +405,14 @@ public class GATK {
 	private boolean applySNPRecalibrationModel(String inputVCF, String recalFile, String tranchesFile, String output, int numThreads, Logger altLog) {
 		String[] inputs = new String[] { inputVCF, recalFile, tranchesFile };
 		String[] ouputs = new String[] { output };
-		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, APPLY_RECALIBRATION, R, referenceGenomeFasta, INPUT, inputVCF, MODE, SNP, TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile, TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL, O, output };
+		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, APPLY_RECALIBRATION, R, referenceGenomeFasta, INPUT, inputVCF, MODE, SNP, TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile, TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL_SNP, O, output };
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose, overWriteExistingOutput, true, (altLog == null ? log : altLog));
 	}
 
 	private boolean buildINDELRecalibrationModel(String inputVCF, String recalFile, String tranchesFile, String rscriptFile, int numThreads, Logger altLog) {
 		String[] inputs = new String[] { inputVCF, getMillsIndelTraining() };
 		String[] ouputs = new String[] { recalFile, tranchesFile, rscriptFile };
-		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, VARIANT_RECALIBRATOR, R, referenceGenomeFasta, INPUT, inputVCF, MODE, INDEL, TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile, R_SCRIPT_FILE, rscriptFile, MAX_GAUSSIANS, DEFAULT_MAX_GAUSSIANS, INDEL_RESOURCE_FULL, getMillsIndelTraining() };
+		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, VARIANT_RECALIBRATOR, R, referenceGenomeFasta, INPUT, inputVCF, MODE, INDEL, TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile, R_SCRIPT_FILE, rscriptFile, MAX_GAUSSIANS, DEFAULT_MAX_GAUSSIANS, INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining(), INDEL_RESOURCE_FULL_DBSNP, getDbSnpTraining() };
 		command = Array.concatAll(command, buildAns(false), buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose, overWriteExistingOutput, true, (altLog == null ? log : altLog));
 	}
@@ -415,7 +421,7 @@ public class GATK {
 		String[] inputs = new String[] { inputVCF, recalFile, tranchesFile };
 		String[] ouputs = new String[] { output };
 		// NO DQ!
-		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, APPLY_RECALIBRATION, R, referenceGenomeFasta, INPUT, inputVCF, MODE, INDEL, TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile, TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL, O, output };
+		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, APPLY_RECALIBRATION, R, referenceGenomeFasta, INPUT, inputVCF, MODE, INDEL, TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile, TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL_INDEL, O, output };
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose, overWriteExistingOutput, true, (altLog == null ? log : altLog));
 	}
 
@@ -436,16 +442,14 @@ public class GATK {
 	}
 
 	private static String[] buildAns(boolean SNP) {
-		String[] ans = new String[ANS.length * 2];
+		String[] ansToUse = SNP ? ANS_SNP : ANS_INDEL;
+		String[] ans = new String[ansToUse.length * 2];
 		int index = 0;
-		for (int i = 0; i < ANS.length; i++) {
+		for (int i = 0; i < ansToUse.length; i++) {
 			ans[index] = AN;
 			index++;
-			ans[index] = ANS[i];
+			ans[index] = ansToUse[i];
 			index++;
-		}
-		if (SNP) {
-			ans = Array.concatAll(ans, new String[] { AN, AN_QD });
 		}
 		return ans;
 	}
