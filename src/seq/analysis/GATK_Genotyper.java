@@ -15,22 +15,25 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.PSF;
 import common.ext;
 
 public class GATK_Genotyper {
 	public static final String SPACE = " ";
 	private GATK gatk;
 	private SNPEFF snpeff;
+	private SNPSIFT snpsift;
 	private GATK.SingleSampleHaplotypeCaller[] siSampleHaplotypeCallers;
 	private boolean fail, verbose;
 	private int numBetweenSampleThreads;
 	private int numWithinSampleThreads;
 	private Logger log;
 
-	public GATK_Genotyper(GATK gatk, SNPEFF snpeff, int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose, Logger log) {
+	public GATK_Genotyper(GATK gatk, SNPEFF snpeff, SNPSIFT snpsift, int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose, Logger log) {
 		super();
 		this.gatk = gatk;
 		this.snpeff = snpeff;
+		this.snpsift = snpsift;
 		this.numBetweenSampleThreads = numBetweenSampleThreads;
 		this.numWithinSampleThreads = numWithinSampleThreads;
 		this.log = log;
@@ -56,23 +59,35 @@ public class GATK_Genotyper {
 		return snpeff;
 	}
 
-	public void runJointGenotyping(JointGATKGenotyper jGatkGenotyper) {
-		boolean progress = true;
-		if (!jGatkGenotyper.isFail()) {
+	public boolean runJointGenotyping(JointGATKGenotyper jGatkGenotyper) {
+		boolean progress = !jGatkGenotyper.isFail();
+		if (progress) {
 			progress = gatk.jointGenotypeGVCFs(jGatkGenotyper.getInputGVCFs(), jGatkGenotyper.getOutputVCF(), numWithinSampleThreads, jGatkGenotyper.getLog());
 			jGatkGenotyper.setFail(!progress);
 		}
+		return progress;
 	}
 
-	public void runRecalibration(JointGATKGenotyper jGatkGenotyper) {
-		if (!jGatkGenotyper.isFail()) {
-			jGatkGenotyper = gatk.recalibrateAVCF(jGatkGenotyper, numWithinSampleThreads, log);
+	public boolean runRecalibration(final JointGATKGenotyper jGatkGenotyper) {
+		boolean progress = !jGatkGenotyper.isFail();
+		if (progress) {
+			gatk.recalibrateAVCF(jGatkGenotyper, numWithinSampleThreads, log);
 		}
+		return progress;
 	}
 
 	public void annotateVCF(String inputVCF, String build) {
-		SnpEffResult snpEffResult =snpeff.annotateAVCF(inputVCF, build);
-		gatk.annotateAVcfWithSnpEFF(snpEffResult);
+		if (!fail && !snpeff.isFail()) {
+			SnpEffResult snpEffResult = snpeff.annotateAVCF(inputVCF, build);
+			gatk.annotateAVcfWithSnpEFF(snpEffResult, true);
+			if (!snpEffResult.isFail()) {
+				snpsift.annotateDbnsfp(snpEffResult.getOutputGatkSnpEffVCF(), log);
+			}
+		}
+	}
+
+	public void determineTsTV(String inputVCF) {
+		snpsift.tsTv(inputVCF, log);
 	}
 
 	public void batch(JointGATKGenotyper jointGATKGenotyper, String rootOutputDir, boolean annotate, int memoryInMB, int wallTimeInHours, String baseName) {
@@ -95,6 +110,7 @@ public class GATK_Genotyper {
 		command += MILLS + gatk.getMillsIndelTraining() + SPACE;
 		if (annotate) {
 			command += SNPEFF.SNP_EFF_COMMAND + snpeff.getSnpEffLocation() + SPACE;
+			command += SNPSIFT.SNP_SIFT_LOCATION_COMMAND + snpsift.getSnpSiftLocation() + SPACE;
 		} else {
 			command += SNPEFF.SNP_EFF_NO_ANNO_COMMAND;
 		}
@@ -330,7 +346,7 @@ public class GATK_Genotyper {
 
 	}
 
-	public static void jointGenotype(String rootInputDir, String rootOutputDir, String output, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String annoBuild, boolean verbose, boolean overwriteExisting, boolean batch, boolean annotate, int numThreads, int memoryInMB, int wallTimeInHours, Logger log) {
+	public static void jointGenotype(String rootInputDir, String rootOutputDir, String output, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annoBuild, boolean verbose, boolean overwriteExisting, boolean batch, boolean annotate, int numThreads, int memoryInMB, int wallTimeInHours, Logger log) {
 		GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
 		gatk.setDbSnpTraining(dbSnpTraining);
 		gatk.setHapMapTraining(hapMapTraining);
@@ -338,18 +354,23 @@ public class GATK_Genotyper {
 		gatk.setThousandGTraining(thousandGTraining);
 		gatk.setMillsIndelTraining(millsIndelTraining);
 		SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
-		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, 0, numThreads, verbose, log);
+		SNPSIFT snpsift = new SNPSIFT(snpSiftLocation, verbose, overwriteExisting, log);
+		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, 0, numThreads, verbose, log);
 		JointGATKGenotyper jGatkGenotyper = new JointGATKGenotyper(rootInputDir, rootOutputDir, output, log);
 		jGatkGenotyper.init(fileOfGVCFs);
 		new File(rootOutputDir).mkdirs();
 		if (batch) {
 			genotyper.batch(jGatkGenotyper, rootOutputDir, annotate, memoryInMB, wallTimeInHours, output);
 		} else {
-			genotyper.runJointGenotyping(jGatkGenotyper);
-			genotyper.runRecalibration(jGatkGenotyper);
-			if (annotate) {
-				// /
-				genotyper.annotateVCF(jGatkGenotyper.getRecalSNP_Indel_VCF_File(), annoBuild);
+			boolean progress = genotyper.runJointGenotyping(jGatkGenotyper);
+			if (progress) {
+				progress = genotyper.runRecalibration(jGatkGenotyper);
+				if (progress) {
+					genotyper.determineTsTV(jGatkGenotyper.getRecalSNP_Indel_VCF_File());
+					if (annotate) {
+						genotyper.annotateVCF(jGatkGenotyper.getRecalSNP_Indel_VCF_File(), annoBuild);
+					}
+				}
 			}
 		}
 	}
@@ -383,7 +404,9 @@ public class GATK_Genotyper {
 		String thousandGTraining = null;
 		String dbSnpTraining = null;
 		String millsIndelTraining = null;
-		String snpEffLocation = "";
+		String snpEffLocation = PSF.Ext.BLANK;
+		String snpSiftLocation = PSF.Ext.BLANK;
+
 		String annoBuild = SNPEFF.BUILDS[0];
 		boolean annotate = true;
 
@@ -410,10 +433,10 @@ public class GATK_Genotyper {
 		usage += "   (16) mills INDEL Training Referenece (i.e. " + MILLS + " ( no default))\n" + "";
 		usage += "   (17) full path to the SNP EFF directory (i.e. " + SNPEFF.SNP_EFF_COMMAND + " ( no default))\n" + "";
 		usage += "   (18) the build version for SNP EFF annotation (options are " + Array.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND + annoBuild + " ( default))\n" + "";
+		usage += "   (19) full path to the SNP SIFT directory (only if different from the SNP EFF directory) (i.e. " + SNPSIFT.SNP_SIFT_LOCATION_COMMAND + " ( no default))\n" + "";
+		usage += "   (20) do not annotate with SNP EFF/SIFT (i.e. " + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
 
-		usage += "   (19) do not annotate with SNPEFF (i.e. " + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
-
-		usage += "   (18) log file name (i.e. " + MILLS + " ( no default))\n" + "";
+		// usage += "   (18) log file name (i.e. " + MILLS + " ( no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 
@@ -474,6 +497,9 @@ public class GATK_Genotyper {
 			} else if (args[i].startsWith(SNPEFF.SNP_EFF_COMMAND)) {
 				snpEffLocation = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith(SNPSIFT.SNP_SIFT_LOCATION_COMMAND)) {
+				snpSiftLocation = ext.parseStringArg(args[i], "");
+				numArgs--;
 			} else if (args[i].startsWith(SNPEFF.SNP_EFF_NO_ANNO_COMMAND)) {
 				annotate = false;
 				numArgs--;
@@ -489,7 +515,9 @@ public class GATK_Genotyper {
 		}
 		new File(rootOutputDir).mkdirs();
 		Logger log = new Logger(rootOutputDir + logFile);
-		jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation, annoBuild, verbose, overwriteExisting, batch, annotate, numThreads, memoryInMB, wallTimeInHours, log);
+		if (snpSiftLocation.equals(PSF.Ext.BLANK)) {
+			snpSiftLocation = snpEffLocation;
+		}
+		jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation, snpSiftLocation, annoBuild, verbose, overwriteExisting, batch, annotate, numThreads, memoryInMB, wallTimeInHours, log);
 	}
-
 }

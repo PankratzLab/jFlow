@@ -140,10 +140,33 @@ public class CmdLine {
 			}
 		} else {
 			if (verbose) {
-				log.report(ext.getTime() + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping");
+				log.report(ext.getTime() + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
+				log.report("COMMAND SKIPPED: " + Array.toStr(commandArray, " "));
 			}
 			success = true;
 		}
 		return success;
+	}
+	
+	/**
+	 * @param commandArray
+	 *            an array representing the command to run
+	 * @param batFile
+	 *            where the the command will be written
+	 * @param verbose
+	 *            report the command written to the batFile
+	 * @param log
+	 * 
+	 * 
+	 * @return String[] of the batFile
+	 */
+
+	public static String[] prepareBatchForCommandLine(String[] commandArray, String batFile, boolean verbose, Logger log) {
+		if (verbose) {
+			log.report(ext.getTime() + " Info - running command " + Array.toStr(commandArray, " ") + "\nUsing file " + batFile);
+		}
+		Files.write(Array.toStr(commandArray, " "), batFile);
+		Files.chmod(batFile);
+		return new String[] { batFile };
 	}
 }

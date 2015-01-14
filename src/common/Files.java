@@ -118,8 +118,12 @@ public class Files {
 			chmod(dir+"master."+(root==null?"qsub":root));
 		}
 	}
-	
 	private static void writeQsubHeader(PrintWriter writer, String filename, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String nodeToUse) {
+		writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs, nodeToUse, true);
+	}
+
+		
+	private static void writeQsubHeader(PrintWriter writer, String filename, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String nodeToUse, boolean profile) {
 		Vector<String> params;
 		int hours, minutes;
 
@@ -147,6 +151,13 @@ public class Files {
         if (nodeToUse != null) {
 	        writer.println("#$ -q *@"+nodeToUse);
         }
+		writer.println();
+		
+		if (profile) {
+			writer.println(PSF.Load.MODULE_LOAD_RISS_UTIL);
+			writer.println(PSF.Cmd.getProfilePLWithOutput(ext.rootOf(filename, false) + ".profile"));
+		}
+		
 		writer.println();
 		writer.println("echo \"start "+ext.rootOf(filename)+" at: \" `date`");
 		writer.println("/bin/hostname");
@@ -401,11 +412,11 @@ public class Files {
 				for (int j = 0; j<iterations[0].length; j++) {
 					trav = ext.replaceAllWith(trav, "[%" + j + "]", "");
 				}
-//				if (ext.rootOf(trav).equals("")) {
+				if (ext.rootOf(trav).equals("")) {
 					filename = ext.parseDirectoryOfFile(trav) + "master.qsub";
-//				} else {
-//					filename = ext.parseDirectoryOfFile(trav) + "master" + ext.rootOf(trav) + ".qsub";
-//				}
+				} else {
+					filename = ext.parseDirectoryOfFile(trav) + "master." + ext.rootOf(trav) + ".qsub";
+				}
 			}
 			writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i<iterations.length; i++) {
@@ -1890,6 +1901,10 @@ public class Files {
         }
 	}
 
+	public static String[] listFullPaths(String directory, final String suffix, boolean jar) {
+		return list(directory, null, suffix, false, jar, true);
+	}
+	
 	public static String[] list(String directory, final String suffix, boolean jar) {
 		return list(directory, null, suffix, false, jar);
 	}

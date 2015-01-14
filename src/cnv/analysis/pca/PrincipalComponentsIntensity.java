@@ -222,13 +222,19 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	}
 
 	private float[][] getCorrectedBAFLRR(boolean original, MarkerData tmpMarkerData) {
+
 		if (original) {
 			return new float[][] { centroid.getMarkerData().getBAFs(), centroid.getMarkerData().getLRRs() };
-
 		} else {
+
 			centroid.setMarkerData(tmpMarkerData);
 			centroid.computeCentroid();
-			return new float[][] { centroid.getRecomputedBAF(), centroid.getRecomputedLRR() };
+			float[] lrrs = centroid.getRecomputedLRR();
+			if (isAffyIntensityOnly(tmpMarkerData)) {
+				centroid.setIntensityOnly(true); // this is to get proper LRRs /BAFs for affy CN_ probes. The correction process does not need this flag however
+			}
+			float[] bafs = centroid.getRecomputedBAF();
+			return new float[][] { bafs, lrrs };
 		}
 	}
 
@@ -611,7 +617,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 	private static CentroidCompute prepareProperCentroid(MarkerData markerData, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, Logger log) {
 		CentroidCompute centroid;
-		if (markerData.getMarkerName().startsWith(AFFY_INTENSITY_ONLY_FLAG[0])) {
+		if (isAffyIntensityOnly(markerData)) {
 			// centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, true, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			setFakeAB(markerData, centroid, clusterFilterCollection, .1f);
@@ -623,6 +629,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		}
 		centroid.computeCentroid();
 		return centroid;
+	}
+
+	private static boolean isAffyIntensityOnly(MarkerData markerData) {
+		return markerData.getMarkerName().startsWith(AFFY_INTENSITY_ONLY_FLAG[0]);
 	}
 
 	/**
@@ -637,7 +647,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			counts[clustAB[i] + 1]++;
 		}
 		if (counts[0] == clustAB.length) {
-			byte tmpCluster = Array.mean(markerData.getXs()) >= Array.mean(markerData.getYs()) ? (byte) 0 : (byte) 1;
+			byte tmpCluster = Array.mean(markerData.getXs()) > Array.mean(markerData.getYs()) ? (byte) 0 : (byte) 1;
 			Arrays.fill(fakeAB, (byte) tmpCluster);
 			centroid.setAlternateGenotypes(fakeAB);
 

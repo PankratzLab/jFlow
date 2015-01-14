@@ -2,7 +2,6 @@ package seq.analysis;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -237,21 +236,23 @@ public class GATK_LanePrep extends BWA_Analysis {
 	}
 
 	public void runBamMerge() {
+		System.out.println(isFail() + "\t" + mergeBam.isFail());
+
 		// TODO get uniq files
-		if (!isFail()) {
+		if (!isFail() && !mergeBam.isFail()) {
 			if (gRecalibrations != null) {
-				GATK.BaseRecalibration[][] gRecalibrationsToMerge = getCalibrationsToMerge(gRecalibrations, getLog());
+				GATK.BaseRecalibration[][] gRecalibrationsToMerge = getCalibrationsToMerge(gRecalibrations, mergeBam, getLog());
 				this.mBamMergers = new MergeBam.BamMerger[gRecalibrationsToMerge.length];
 				ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
 				Hashtable<String, Future<MergeBam.BamMerger>> tmpResults = new Hashtable<String, Future<MergeBam.BamMerger>>();
 				for (int i = 0; i < mBamMergers.length; i++) {
 					Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false) + "_BaseRecalibration_ID_" + getBwAnalysisIndividuals()[i].getID() + "_Lane_" + getBwAnalysisIndividuals()[i].getLane() + ".log");
-					tmpResults.put(i + "", executor.submit(new WorkerBamMerger(mergeBam, gRecalibrationsToMerge[i][0].getBaseId(), getRootOutputDir(), MergeBam.BamMerger.MERGE_STAGES[0], getInputFilesFrom(gRecalibrationsToMerge[i]), altLog)));
+					tmpResults.put(i + "", executor.submit(new WorkerBamMerger(mergeBam, getAllBaseIds(gRecalibrationsToMerge[i]), gRecalibrationsToMerge[i][0].getNewBaseId(), getRootOutputDir(), MergeBam.BamMerger.MERGE_STAGES[0], getInputFilesFrom(gRecalibrationsToMerge[i]), altLog)));
 				}
 				for (int i = 0; i < mBamMergers.length; i++) {
 					try {
 						mBamMergers[i] = tmpResults.get(i + "").get();
-						if (mBamMergers[i].isFail() && !isFail()) {
+						if ((mergeBam.isFail() || mBamMergers[i].isFail()) && !isFail()) {
 							getLog().reportError("Error - failed merging for " + Array.toStr(mBamMergers[i].getInputBams(), "\n"));
 							setFail(true);
 						}
@@ -275,6 +276,14 @@ public class GATK_LanePrep extends BWA_Analysis {
 				// TODO better check
 			}
 		}
+	}
+
+	private static String[] getAllBaseIds(GATK.BaseRecalibration[] gRecalibrationsToMerge) {
+		String[] uniq = new String[gRecalibrationsToMerge.length];
+		for (int i = 0; i < uniq.length; i++) {
+			uniq[i] = gRecalibrationsToMerge[i].getBaseId();
+		}
+		return Array.unique(uniq);
 	}
 
 	public Picard getPicard() {
@@ -374,14 +383,15 @@ public class GATK_LanePrep extends BWA_Analysis {
 
 	private static class WorkerBamMerger implements Callable<MergeBam.BamMerger> {
 		private MergeBam mergeBam;
-		private String baseId, outputDir, mergeStage;
-		private String[] inputBams;
+		private String newBaseId, outputDir, mergeStage;
+		private String[] inputBams, baseIds;
 		private Logger altLog;
 
-		public WorkerBamMerger(MergeBam mergeBam, String baseId, String outputDir, String mergeStage, String[] inputBams, Logger altLog) {
+		public WorkerBamMerger(MergeBam mergeBam, String[] baseIds, String newBaseId, String outputDir, String mergeStage, String[] inputBams, Logger altLog) {
 			super();
 			this.mergeBam = mergeBam;
-			this.baseId = baseId;
+			this.baseIds = baseIds;
+			this.newBaseId = newBaseId;
 			this.outputDir = outputDir;
 			this.mergeStage = mergeStage;
 			this.inputBams = inputBams;
@@ -390,7 +400,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 
 		@Override
 		public MergeBam.BamMerger call() {
-			return mergeBam.mergeABam(baseId, inputBams, outputDir, mergeStage, altLog);
+			return mergeBam.mergeABam(baseIds, newBaseId, inputBams, outputDir, mergeStage, altLog);
 		}
 	}
 
@@ -447,13 +457,13 @@ public class GATK_LanePrep extends BWA_Analysis {
 			if (bamsToGenotype == null) {
 				log.reportError("Error - could not find any files to genotype, this should not happen");
 			} else {
-				GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, null, gLanePrep.getnumBetweenSampleThreads(), gLanePrep.getnumWithinSampleThreads(), verbose, log);
+				GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, null, null, gLanePrep.getnumBetweenSampleThreads(), gLanePrep.getnumWithinSampleThreads(), verbose, log);
 				gatk_Genotyper.runSingleSampleAllSites(bamsToGenotype);
 			}
 		}
 	}
 
-	private static GATK.BaseRecalibration[][] getCalibrationsToMerge(GATK.BaseRecalibration[] gRecalibrations, Logger log) {
+	private static GATK.BaseRecalibration[][] getCalibrationsToMerge(GATK.BaseRecalibration[] gRecalibrations, MergeBam mergeBam, Logger log) {
 		log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited fields of the input fastaq files, and barcodes are the third");
 		Hashtable<String, ArrayList<GATK.BaseRecalibration>> track = new Hashtable<String, ArrayList<GATK.BaseRecalibration>>();
 		ArrayList<String> unique = new ArrayList<String>();
@@ -477,10 +487,24 @@ public class GATK_LanePrep extends BWA_Analysis {
 					barcodesToAdd.add(calibrationsToMerge[i][j].getBarcode());
 				}
 			}
-			if (barcodesToAdd.size() > 0) {
+			if (barcodesToAdd.size() > 0) {// we will re-header the file here
 				String barcodesAdded = Array.toStr(Array.unique(barcodesToAdd.toArray(new String[barcodesToAdd.size()])), FileNameParser.SPLIT);
-				calibrationsToMerge[i][0].setBaseId(calibrationsToMerge[i][0].getBaseId() + FileNameParser.SPLIT + barcodesAdded);
+				String newSampleId = calibrationsToMerge[i][0].getBaseId() + FileNameParser.SPLIT + barcodesAdded;
+				for (int j = 0; j < calibrationsToMerge[i].length; j++) {
+					calibrationsToMerge[i][j].setNewBaseId(newSampleId);
+					// ReHeader reHeader = mergeBam.reHeaderBamFilePriorToMerge(calibrationsToMerge[i][j].getRrd_bam(), calibrationsToMerge[i][j].getBaseId(), newSampleId, log);
+					// if (!reHeader.isFail()) {
+					// // calibrationsToMerge[i][j].setRrd_bam(reHeader.getReHeaderBam());
+					// } else {
+					// log.report("Error - could not re header file " + calibrationsToMerge[i][j].getRrd_bam());
+					// calibrationsToMerge[i][j].setFail(reHeader.isFail());
+					// }
+				}
 				log.report(ext.getTime() + " Info - new ID is  " + calibrationsToMerge[i][0].getBaseId());
+			} else {
+				for (int j = 0; j < calibrationsToMerge[i].length; j++) {
+					calibrationsToMerge[i][j].setNewBaseId(calibrationsToMerge[i][j].getBaseId());// no modification
+				}
 			}
 		}
 		return calibrationsToMerge;

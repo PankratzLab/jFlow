@@ -25,6 +25,8 @@ public class SNPEFF {
 
 	public static final String ONLY_CODING = "-onlyCoding";
 	public static final String I = "-i";
+	public static final String INTERVAL = "-interval";
+
 	public static final String O = "-o";
 	public static final String GATK = "gatk";
 	public static final String[] BUILDS = { "hg19" };
@@ -36,11 +38,16 @@ public class SNPEFF {
 
 	public SNPEFF(String snpEffLocation, boolean verbose, boolean overWriteExistingOutput, Logger log) {
 		super();
+
 		this.snpEffLocation = snpEffLocation;
 		this.log = log;
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExistingOutput;
 		this.fail = !verify();
+	}
+
+	public boolean isFail() {
+		return fail;
 	}
 
 	private boolean verify() {
@@ -64,25 +71,34 @@ public class SNPEFF {
 		this.snpEffLocation = snpEffLocation;
 	}
 
-	public boolean runSnpEffCountOnBamDirectory(String inputDirectory, String output, String build, String match, int numThreads) {
-		String[] inputBams = Files.list(inputDirectory, match, false);
+	public boolean runSnpEffCountOnBamDirectory(String inputDirectory, String output, String build, String match, String bedFile, int numThreads) {
+		String[] inputBams = Files.toFullPaths(Files.list(inputDirectory, match, false), inputDirectory);
 		if (inputBams != null && inputBams.length > 0) {
-			return runSnpEFFCount(inputBams, output, build, numThreads);
+			return runSnpEFFCount(inputBams, output, build, bedFile, numThreads);
 		} else {
 			log.reportError("Error - no files ending with " + match + " were found in dirctory " + inputDirectory);
 			return false;
 		}
 	}
 
-	public boolean runSnpEFFCount(String[] inputBams, String output, String build, int numThreads) {
+	public boolean runSnpEFFCount(String[] inputBams, String output, String build, String bedFile, int numThreads) {
 		boolean progress = true;
-		String[] command = new String[] { JAVA, JAR, snpEffLocation + SNP_EFF, COUNT, V, build };
+		String[] command = new String[] { JAVA, JAR, snpEffLocation + SNP_EFF, COUNT };
+		String[] inputs = inputBams;
+		if (bedFile != null) {
+			inputs = Array.concatAll(inputBams, new String[] { bedFile });
+			command = Array.concatAll(command, new String[] { INTERVAL, bedFile });
+		}
+		command = Array.concatAll(command, new String[] { V, build });
+
+		// command = Array.concatAll(command, new String[] { V, build });
+
 		command = Array.concatAll(command, inputBams);
 		command = Array.concatAll(command, new String[] { CARROT, output });
 		String batFile = ext.addToRoot(output, ".bat");
 		Files.write(Array.toStr(command, " "), batFile);
 		Files.chmod(batFile);
-		progress = CmdLine.runCommandWithFileChecks(new String[] { batFile }, "", inputBams, new String[] { output }, verbose, overWriteExistingOutput, false, log);
+		progress = CmdLine.runCommandWithFileChecks(new String[] { batFile }, "", inputs, new String[] { output }, verbose, overWriteExistingOutput, false, log);
 		return progress;
 	}
 
@@ -171,19 +187,20 @@ public class SNPEFF {
 
 	}
 
-	public static void testCounts(String snpEffLocation, String inputDirectory, String build, String match, int numThreads, Logger log) {
+	public static void testCounts(String snpEffLocation, String inputDirectory, String build, String match, String bedFile, int numThreads, Logger log) {
 		SNPEFF snpeff = new SNPEFF(snpEffLocation, true, true, log);
-		snpeff.runSnpEffCountOnBamDirectory(inputDirectory, inputDirectory + "SnpEff.counts", build, match, numThreads);
+		snpeff.runSnpEffCountOnBamDirectory(inputDirectory, inputDirectory + "SnpEff.counts", build, match, bedFile, numThreads);
 	}
 
 	public static void main(String[] args) {
 		String snpEffLocation = "/home/pankrat2/public/bin/snpEff/";
 		String inputDirectory = "/home/tsaim/shared/Project_Tsai_Project_021/bam/";
+		String bedFile = "/home/tsaim/lane0212/bin/ref/S04380219_Regions.bed";
 		String build = BUILDS[0];
 		String match = ".bam";
 		int numThreads = 2;
 		Logger log = new Logger(inputDirectory + "snpEff.log");
-		testCounts(snpEffLocation, inputDirectory, build, match, numThreads, log);
+		testCounts(snpEffLocation, inputDirectory, build, match, bedFile, numThreads, log);
 
 		// String usage = "\n" + "seq.analysis.SNPEFF requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 		//
