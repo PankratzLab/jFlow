@@ -86,9 +86,9 @@ public class Positions {
 			System.err.println("Error - could not make a valid UCSC position from '" + Array.toStr(pos, "/") + "' (need 1-3 integers)");
 			return null;
 		}
-		return "chr" + getChromosomeUCSC(pos[0]) + (pos.length > 1 ? ":" + pos[1] + (pos.length == 3 ? "-" + pos[2] : "") : "");
+		return "chr" + getChromosomeUCSC(pos[0], false) + (pos.length > 1 ? ":" + pos[1] + (pos.length == 3 ? "-" + pos[2] : "") : "");
 	}
-	
+
 	/**
 	 * This function is necessary due to UCSC representing the following chromosomes as follows
 	 * <p>
@@ -104,9 +104,12 @@ public class Positions {
 	 * 
 	 * @param chr
 	 *            integer representing the chromosome to parse
+	 * @param addChr
+	 *            add "chr" to the string returned
 	 * @return the original chromosome if it is less than 23. Else, the parsed version, or "" if unable to parse;
 	 */
-	public static String getChromosomeUCSC(int chr) {
+
+	public static String getChromosomeUCSC(int chr, boolean addChr) {
 		String chrUCSC = "";
 		if (chr < 23) {
 			chrUCSC = chr + "";
@@ -119,7 +122,7 @@ public class Positions {
 		} else if (chr == 26) {
 			chrUCSC = "M";
 		}
-		return chrUCSC;
+		return addChr ? "chr" + chrUCSC : chrUCSC;
 	}
 
 	public static String getUCSClink(int[] pos) {
