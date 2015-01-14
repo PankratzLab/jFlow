@@ -64,7 +64,7 @@ public class CNVBMAF extends CNVBDeviation {
 	 */
 	public void add(String markerName, byte genotype, float baf, double bmaf, float gc) {
 		if (super.add(markerName, genotype, baf, gc)) {
-			// && !isBafHet(baf)
+			// && !isBafHet(baf) //TODO, could add this back in, but seems to give better separation if not there
 			if (genotype != 1) {
 				bmafNonHet.add(bmaf);
 			} else {

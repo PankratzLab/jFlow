@@ -194,7 +194,7 @@ public class CytoCNVariant extends CNVariant {
 	 * Format the cytoband as chromosome(UCSC,not int if appropriate) and band1band2....
 	 */
 	private void formatCytoBand() {
-		this.cytoBand = Positions.getChromosomeUCSC(chr) + Array.toStr(cytoBandtmp.toArray(new String[cytoBandtmp.size()]), "");
+		this.cytoBand = Positions.getChromosomeUCSC(chr,false) + Array.toStr(cytoBandtmp.toArray(new String[cytoBandtmp.size()]), "");
 	}
 
 	/**
