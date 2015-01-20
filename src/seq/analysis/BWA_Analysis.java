@@ -217,7 +217,7 @@ public class BWA_Analysis {
 	}
 
 	private BWA_AnalysisIndividual getAnalysisIndFromFileParser(FileNameParser fileNameParser) {
-		return new BWA_AnalysisIndividual(bwa, rootOutputDir, fileNameParser.getID(), fileNameParser.getLane(), fileNameParser.getBatch(), referenceGenomeFasta, log);
+		return new BWA_AnalysisIndividual(bwa, rootOutputDir, fileNameParser.getID(), fileNameParser.getLane(), fileNameParser.getBatch(), fileNameParser.getBarcode(), referenceGenomeFasta, log);
 	}
 
 	private void verifyAnalsyisInds() {
@@ -316,6 +316,7 @@ public class BWA_Analysis {
 		private String ID;
 		private String Lane;
 		private String library;
+		private String barcode;
 		private String referenceGenomeFasta;
 		private String readFQ1;
 		private String readFQ2;
@@ -325,13 +326,14 @@ public class BWA_Analysis {
 		private boolean success;
 		private Logger log;
 
-		public BWA_AnalysisIndividual(BWA bwa, String outputDir, String iD, String lane, String library, String referenceGenomeFasta, Logger log) {
+		public BWA_AnalysisIndividual(BWA bwa, String outputDir, String iD, String lane, String library, String barcode, String referenceGenomeFasta, Logger log) {
 			super();
 			this.bwa = bwa;
 			this.outputDir = outputDir;
 			this.ID = iD;
 			this.Lane = lane;
 			this.library = library;
+			this.barcode = barcode;
 			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.fail = false;
 			this.log = log;
@@ -371,10 +373,12 @@ public class BWA_Analysis {
 		// @RG\tID:group1\tSM:sample1\tPL:illumina\tLB:lib1\tPU:unit1
 		public String getReadGroup() {
 			String RG = "\"@RG";
-			RG += "\\tID:" + ID + "_" + Lane;// unique for sample and lane
+			RG += "\\tID:" + ID + "_" + barcode + "_" + Lane + "_" + library;// unique for this run of the sample
 			RG += "\\tSM:" + ID;// unique for sample
 			RG += "\\tPL:ILLUMINA";// not used, currently TODO
 			RG += "\\tLB:" + library;// library prep, I think this is correct TODO
+			RG += "\\tPU:" + barcode;
+			RG += "\\tCN:UMGC";
 			RG += "\"";
 			return RG;
 		}
@@ -490,6 +494,7 @@ public class BWA_Analysis {
 		private String ID;
 		private String lane;
 		private String batch;
+		private String barcode;
 		private boolean valid;
 		private Logger log;
 
@@ -502,13 +507,14 @@ public class BWA_Analysis {
 		}
 
 		public void parse() {
-			if (split.length < 3) {
-				log.reportError("Error - could not parse filename " + fileName + " to ID, lane, and batch");
+			if (split.length < 4) {
+				log.reportError("Error - could not parse filename " + fileName + " to ID, lane, barcode, and batch");
 				valid = false;
 			} else {
 				this.lane = split[split.length - 3];
 				this.batch = split[split.length - 1];
-				this.ID = Array.toStr(Array.subArray(split, 0, split.length - 3), SPLIT);
+				this.barcode = split[split.length - 4];
+				this.ID = Array.toStr(Array.subArray(split, 0, split.length - 4), SPLIT);// we do not include barcode in the id, instead adding it to the RG
 			}
 		}
 
@@ -522,6 +528,10 @@ public class BWA_Analysis {
 
 		public String getLane() {
 			return lane;
+		}
+
+		public String getBarcode() {
+			return barcode;
 		}
 
 		public String getBatch() {

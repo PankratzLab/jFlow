@@ -492,8 +492,8 @@ public class GATK {
 			this.bqsr_post = ext.addToRoot(bqsr_before, POST);
 			this.recalibration_plots = ext.rootOf(realigned_dedup_reads_bam, false) + RECALIBRATION_PLOTS;
 			if (baseId.split(BWA_Analysis.FileNameParser.SPLIT).length != 3) {
-				log.reportError("Error - internal parsing error, the current baseId " + baseId + " should have 3 " + BWA_Analysis.FileNameParser.SPLIT + "-delimited fields");
-				fail = true;
+				barcode = "";
+				log.reportTimeWarning("The current baseId " + baseId + " did not have 3 " + BWA_Analysis.FileNameParser.SPLIT + " - delimited fields, assuming no barcodes are present in the ids");
 			} else {
 				barcode = baseId.split(BWA_Analysis.FileNameParser.SPLIT)[2];
 			}
