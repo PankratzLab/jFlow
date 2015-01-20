@@ -54,6 +54,11 @@ public class Logger implements Serializable {
 	public void reportTimeInfo(String str) {
 		report(ext.getTime() + " Info - " + str, true, true);
 	}
+
+	public void reportTimeWarning(String str) {
+		report(ext.getTime() + " Warning - " + str, true, true);
+	}
+	
 	
 	public void reportTimeError(String str) {
 		reportError(ext.getTime() + " Error - " + str, true, true);

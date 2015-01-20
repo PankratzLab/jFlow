@@ -57,7 +57,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		int index = 0;
 		for (int i = 0; i < mBamMergers.length; i++) {
 			if (mergeMask[i]) {
-				bwAnalysisIndividuals[index] = new BWA_AnalysisIndividual(null, getRootOutputDir(), mBamMergers[i].getBaseId(), null, null, null, getLog());
+				bwAnalysisIndividuals[index] = new BWA_AnalysisIndividual(null, getRootOutputDir(), mBamMergers[i].getBaseId(), null, null, null, null, getLog());
 				bwAnalysisIndividuals[index].setOutput(mBamMergers[i].getOutputBam());
 				index++;
 			}
