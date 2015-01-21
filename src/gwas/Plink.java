@@ -560,15 +560,20 @@ public class Plink {
 		if (!duplicates.isEmpty()) {
 			log.report("Writing duplicates file - found " + duplicates.size() + " sets of duplicate identifiers");
 			try {
+				PrintWriter writerSet = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicatesSet.dat"));
 				writer = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicates.dat"));
+				int set = 1;
 				for (Set<String> dupeSet : duplicates) {
 					for (String fidIid : dupeSet) {
 						String iid = fidIid.split("[\\s]+")[1];
+						writerSet.println(iid + "\t" + set);
 						writer.print(iid);
 						writer.print("\t");
 					}
 					writer.println();
+					set++;
 				}
+				writerSet.close();
 				writer.close();
 			} catch (IOException e) {
 				System.err.println("Error writing to duplicateSets.txt file");
