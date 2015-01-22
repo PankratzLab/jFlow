@@ -882,7 +882,7 @@ public class FilterCalls {
 			}
 		}
 		
-		System.out.println("Matched " + cnt + " CNVs");
+		System.out.println((exclude ? "Removed " : "Matched ") + cnt + " of " + cnvs.size() + " CNVs");
 		
 		try {
 			writer = new PrintWriter(new FileWriter(dir + out));
@@ -1066,7 +1066,8 @@ public class FilterCalls {
 			return;
 		}
 	}
-	
+
+	@Deprecated
 	public static void filter(String dir, String in, String out, int[] delSize, int[] dupSize, int[] number, double score, String filenameOfProblematicRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
 		String[] individualsToKeepList;
 		if (individualsToKeepFile != null && !new File(individualsToKeepFile).exists()) {
@@ -1078,6 +1079,7 @@ public class FilterCalls {
 		filter(dir, in, out, delSize, dupSize, number, score, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepList, breakupCentromeres, markerSetFilenameToBreakUpCentromeres, makeUCSCtrack, build, log);
 	}
 	
+	@Deprecated
 	public static void filter(String dir, String in, String out, int[] delSize, int[] dupSize, int[] number, double score, String filenameOfProblematicRegions, int commonInOutOrIgnore, String[] individualsToKeepList, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -1461,12 +1463,9 @@ public class FilterCalls {
 		boolean standards = false;
 		boolean tracks = false;
 		boolean breakCent = DEFAULT_BREAK_CENTROMERE;
-		boolean common = false;
 		boolean exclude = false;
-		boolean group = false;
 		boolean stats = false; 
-		boolean clean = false;
-		boolean doBeta = false;
+		boolean merge = false;
 		
 		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo, proportionOfProbesThatNeedToPassForFinalInclusion;
 		totalRequired = delRequired = dupRequired = totalLimitedTo = delLimitedTo = dupLimitedTo = proportionOfProbesThatNeedToPassForFinalInclusion = 0.0;
@@ -1582,23 +1581,14 @@ public class FilterCalls {
 			} else if (args[i].startsWith("overlap=")) {
 				overlap = ext.parseDoubleArg(args[i]);
 				numArgs--;				
-			} else if (args[i].startsWith("-common")) {
-				common = true;
-				numArgs--;				
 			} else if (args[i].startsWith("-exclude")) {
 				exclude = true;
 				numArgs--;				
-			} else if (args[i].startsWith("-group")) { 
-				group = true;
-				numArgs--;
 			} else if (args[i].startsWith("-stats")) { 
 				stats = true;
 				numArgs--;
-			} else if (args[i].startsWith("-clean")) { 
-				clean = true;
-				numArgs--;
-			} else if (args[i].startsWith("-beta")) { 
-				doBeta = true;
+			} else if (args[i].startsWith("-merge")) { 
+				merge = true;
 				numArgs--;
 			} else if (args[i].startsWith("list=")) {
 				listFile = args[i].split("=")[1];
@@ -1724,7 +1714,6 @@ public class FilterCalls {
 			  	-clean
 			
 		*/
-
 		try {
 //			FilterCalls.filterOnSegments(dir+"conf_100kb_20SNP_10.0_CNPstatusIgnored.cnv", dir+"ConservativeGeneCentric.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, true);
 //			MakeUCSCtrack.makeTrack(dir, "ConservativeGeneCentric.cnv");
@@ -1741,7 +1730,7 @@ public class FilterCalls {
 				Project proj = new Project(projName, false);
 				if (dir != null && !"".equals(dir)) {
 					CNVStats(proj, dir, in);
-				} else if (clean) {
+				} else if (merge) {
 					mergeCNVs(proj, in, out, DEFAULT_CLEAN_FACTOR);
 				} else {
 					int famCnt = Files.countLines(famFile, 0);
@@ -1750,15 +1739,10 @@ public class FilterCalls {
 				//proj=D:/projects/NY_Registry_Combo_Data.properties dir=D:/data/ny_registry/new_york/penncnvShadow/ in=penncnv
 			} else if (excludeFile != null) {
 				filterExclusions(dir, in, out, excludeFile, exclude);
-			} else if (clean) {
+			} else if (merge) {
 				mergeCNVs(in, out, DEFAULT_CLEAN_FACTOR, null);
 			} else {
-				if (doBeta) {
-					filterCNVs(dir, in, out, new int[]{delSize, hDelSize}, new int[]{dupSize, hDupSize}, new int[]{number, hNumber}, score, filenameOfProblematicRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, markerSetFilenameToBreakUpCentromeres, tracks, build, new Logger(logfile));
-				} else {
-					filter(dir, in, out, new int[]{delSize, hDelSize}, new int[]{dupSize, hDupSize}, new int[]{number, hNumber}, score, filenameOfProblematicRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, markerSetFilenameToBreakUpCentromeres, tracks, build, new Logger(logfile));
-				}
-				
+				filterCNVs(dir, in, out, new int[]{delSize, hDelSize}, new int[]{dupSize, hDupSize}, new int[]{number, hNumber}, score, filenameOfProblematicRegions, DEFAULT_COMMON_IN_OUT_OR_IGNORED, pedfile, breakCent, markerSetFilenameToBreakUpCentromeres, tracks, build, new Logger(logfile));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

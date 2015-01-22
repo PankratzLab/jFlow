@@ -416,7 +416,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			jfc.setMultiSelectionEnabled(true);
 			if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
 				File selFile = jfc.getSelectedFile();
-				createScreenshots(selFile.toString());
+				Vector<String> params = parseControlFile(selFile.getAbsolutePath(), log);
+//				final String projFile = params.get(0).split("=")[1];
+				final String baseDir = params.get(1).split("=")[1];
+				final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
+				createScreenshots(baseDir, screens);
 			}
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
@@ -1260,6 +1264,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	@Override
 	public void windowClosing(WindowEvent e) {
+		if (e == null) {
+			GuiManager.disposeOfParentFrame(this);
+			return;
+		}
 		String[] options;
 		int choice;
 		String filenames, selections = "", message;
@@ -1331,160 +1339,213 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 	
 	
-	class ScreenToCapture {
+	static class ScreenToCapture {
 		String dataXFile;
 		String dataYFile;
 		String colorFile;
-		String excludeFile;
-		int xDataIndex, yDataIndex, colorIndex, excludeIndex;
-		int xIDIndex, yIDIndex, colorIDIndex, excludeIDIndex;
+		int xDataIndex, yDataIndex, colorIndex;
+		int xIDIndex, yIDIndex, colorIDIndex;
+		float minX, minY, maxX, maxY;
+		boolean hideExcluded;
 		
-		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices) {
+		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices, float[] displayWindow, boolean excluded) {
 			dataXFile = files[0];
 			dataYFile = files[1];
 			colorFile = files[2];
-			excludeFile = files[3];
 			xDataIndex = dataIndices[0];
 			yDataIndex = dataIndices[1];
 			colorIndex = dataIndices[2];
-			excludeIndex = dataIndices[3];
 			xIDIndex = idIndices[0];
 			yIDIndex = idIndices[1];
 			colorIDIndex = idIndices[2];
-			excludeIDIndex = idIndices[3];
+			minX = displayWindow[0];
+			maxX = displayWindow[1];
+			minY = displayWindow[2];
+			maxY = displayWindow[3];
+			hideExcluded = excluded;
 		}
 	}
 	
-	/*
-	 * Control File schema:
-	 * 
-	 * |  X-Value Filename  |  X-Value column index/name  |  X-column ID index/name  
-	 * |  Y-value Filename  |  Y-value column index/name  |  Y-column ID index/name  
-	 * |  Color Filename  |  Color data column index/name  |  Color file ID index/name
-	 * |  Exclude Filename  |  Exclude data column index/name  |  Exclude file ID index/name
-	 * 
-	 */
-	public void createScreenshots(String ctrlFile) {
-		String[][] ctrlData = HashVec.loadFileToStringMatrix(ctrlFile, true, null, "\t", proj.getJarStatus(), 50, true);
+	private static Vector<String> parseControlFile(String filename, Logger log) {
+		Vector<String> params;
 		
-		HashSet<String> dataFiles = new HashSet<String>();
-		HashMap<String, String[]> headers = new HashMap<String, String[]>();
-		ArrayList<ScreenToCapture> caps = new ArrayList<TwoDPlot.ScreenToCapture>();
+		params = Files.parseControlFile(filename, "twoDScreenshots", new String[] {
+				"proj=",
+				"dir=",
+				"# Per-line:",
+				"# after being set once, all tags can be duplicated in a subsequent line by omitting them; the only necessary tags are {xDataColumn=<> and yDataColumn=<>}",
+				"# fileX=<> fileY=<> xDataColumn=<> yDataColumn=<> xIDColumn=<> yIDColumn=<> colorFile=<> colorDataColumn=<> colorIDColumn=<> minX=<> minY=<> maxX=<> maxY=<>",
+		}, log);
 		
-		outer : for (String[] ctrlLine : ctrlData) {
-			if (ctrlLine.length < 6 || ctrlLine.length > 12 || ctrlLine.length % 3 != 0) {
-				// TODO throw or log exception
-				continue;
-			}
-			for (int i = 0; i < 6; i++) {
-				if (ctrlLine[i] == null) {
-					// TODO throw or log exception
-					continue;
-				}
-			}
-			
-			String[] files = new String[]{null, null, null, null};
-			int[] data = new int[]{-1, -1, -1, -1}; 
-			int[] ids = new int[]{-1, -1, -1, -1};
-			for (int i = 0; i < ctrlLine.length; i++) {
-				int value = i % 3;
-				switch (value) {
-					case 0:
-						files[i / 3] = ctrlLine[i];
-						break;
-					case 1:
-						String base = ctrlLine[i];
-						int index = -1;
-						if (base.startsWith("'") && base.endsWith("'")) {
-							String[] hdr = headers.get(ctrlLine[i - 1]);
-							if (hdr == null) {
-								hdr = Files.getHeaderOfFile(ctrlLine[i - 1], proj.getLog());
-								headers.put(ctrlLine[i - 1], hdr);
-							}
-							index = ext.indexOfStr(base.substring(0, base.length() - 1), hdr);
-						} else {
-							try {
-								index = Integer.parseInt(base);
-							} catch (NumberFormatException e) {
-								// TODO throw or log exception
-								continue outer;
-							}
-						}
-						data[i / 3] = index;
-						break;
-					case 2:
-						String base1 = ctrlLine[i];
-						int index1 = -1;
-						if (base1.startsWith("'") && base1.endsWith("'")) {
-							String[] hdr = headers.get(ctrlLine[i - 2]);
-							if (hdr == null) {
-								hdr = Files.getHeaderOfFile(ctrlLine[i - 2], proj.getLog());
-								headers.put(ctrlLine[i - 2], hdr);
-							}
-							index1 = ext.indexOfStr(base1.substring(0, base1.length() - 1), hdr);
-						} else {
-							try {
-								index1 = Integer.parseInt(base1);
-							} catch (NumberFormatException e) {
-								// TODO throw or log exception
-								continue outer;
-							}
-						}
-						ids[i / 3] = index1;
-						break;
-				}
-			}
-			ScreenToCapture stc = new ScreenToCapture(files, data, ids);
-			caps.add(stc);
-			
-			// x-file
-			dataFiles.add(ctrlLine[0]);
-			// y-file
-			dataFiles.add(ctrlLine[3]);
-		}
+		return params;
+	}
 
-		String fileRoot = ext.parseDirectoryOfFile(ctrlFile);
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params = parseControlFile(filename, log);
+		
+		if (params != null) {
+			final String projFile = params.get(0).split("=")[1];
+			final String baseDir = params.get(1).split("=")[1];
+			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
+			javax.swing.SwingUtilities.invokeLater(new Runnable() {
+	            public void run() {
+	                TwoDPlot tdp = createHiddenGUI(new Project(projFile, false));//createAndShowGUI(new Project(projFile, false));
+//	                tdp.hideExcludes = true;
+	                tdp.createScreenshots(baseDir, screens);
+	                tdp.windowClosing(null);
+//	                ((JFrame)tdp.getParent().getParent()).dispose();
+                }
+	        });
+		}
+	}
+	
+	public static ArrayList<ScreenToCapture> /*String*/ condenseCtrlFile(java.util.List<String> ctrlLines) {
+		HashSet<String> tagSet = new HashSet<String>();
+		tagSet.add("fileX");
+		tagSet.add("fileY");
+		tagSet.add("colorFile");
+		tagSet.add("xDataColumn");
+		tagSet.add("yDataColumn");
+		tagSet.add("colorDataColumn");
+		tagSet.add("xIDColumn");
+		tagSet.add("yIDColumn");
+		tagSet.add("colorIDColumn");
+		tagSet.add("minX");
+		tagSet.add("minY");
+		tagSet.add("maxX");
+		tagSet.add("maxY");
+		tagSet.add("hideExcluded");
+		
+		HashMap<String, ArrayList<String>> tagValues = new HashMap<String, ArrayList<String>>();
+		for (String tagKey : tagSet) tagValues.put(tagKey, new ArrayList<String>());
+		
+		HashSet<String> lineTagEntries = new HashSet<String>();
+		for (String line : ctrlLines) {
+			String[] lineTags = line.split("\\s+");
+			for (String lineTag : lineTags) {
+				String tagKey = lineTag.split("=")[0];
+				String tagValue = lineTag.split("=").length > 1 ? lineTag.split("=")[1] : "-1";
+				
+				if (!tagSet.contains(tagKey)) {
+					// TODO unknown keyword!
+				} else {
+					if (lineTagEntries.contains(tagKey)) {
+						// TODO duplicate keyword!
+					} else {
+						lineTagEntries.add(tagKey);
+						tagValues.get(tagKey).add(tagValue);
+					}
+				}
+				
+			}
+			
+			for (String tag : tagSet) {
+				if (!lineTagEntries.contains(tag)) {
+					ArrayList<String> values = tagValues.get(tag);
+					if (values.isEmpty()) {
+						// TODO empty list of values for missing tag!
+					} else {
+						values.add(values.get(values.size() - 1));
+					}
+				}
+			}
+			
+			lineTagEntries.clear();
+		}
+		
+		ArrayList<ScreenToCapture> caps = new ArrayList<TwoDPlot.ScreenToCapture>();
+		int capCnt = ctrlLines.size();
+		for (int i = 0; i < capCnt; i++) {
+			String[] files = new String[3];
+			int[] idCols = new int[3];
+			int[] dataCols = new int[3];
+			float[] window = new float[4];
+			boolean hideExcludes = false;
+		
+			files[0] = tagValues.get("fileX").get(i);
+			files[1] = tagValues.get("fileY").get(i);
+			files[2] = tagValues.get("colorFile").get(i);
+			
+			dataCols[0] = Integer.parseInt(tagValues.get("xDataColumn").get(i));
+			dataCols[1] = Integer.parseInt(tagValues.get("yDataColumn").get(i));
+			dataCols[2] = Integer.parseInt(tagValues.get("colorDataColumn").get(i));
+			
+			idCols[0] = Integer.parseInt(tagValues.get("xIDColumn").get(i));
+			idCols[1] = Integer.parseInt(tagValues.get("yIDColumn").get(i));
+			idCols[2] = Integer.parseInt(tagValues.get("colorIDColumn").get(i));
+
+			window[0] = Float.parseFloat(tagValues.get("minX").get(i));
+			window[1] = Float.parseFloat(tagValues.get("maxX").get(i));
+			window[2] = Float.parseFloat(tagValues.get("minY").get(i));
+			window[3] = Float.parseFloat(tagValues.get("maxY").get(i));
+			
+			hideExcludes = Boolean.parseBoolean(tagValues.get("hideExcluded").get(i));
+			
+			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes);
+			caps.add(sc);
+		}
+		
+		return caps;
+	}
+	
+	public void createScreenshots(String baseDir, ArrayList<ScreenToCapture> screens) {
+		HashSet<String> dataFiles = new HashSet<String>();
+
+		for (ScreenToCapture cap : screens) {
+			dataFiles.add(cap.dataXFile);
+			dataFiles.add(cap.dataYFile);
+			dataFiles.add(cap.colorFile);
+		}
+		
 		for (String file : dataFiles) {
-			loadFile(fileRoot + file);
+			loadFile(baseDir + file);
 		}
 
 		twoDPanel.setPointsGeneratable(true);	
 		twoDPanel.paintAgain();
 		updateTree();
-		for (ScreenToCapture screencap : caps) {
-			tree.performCheckBoxAction(namesHash.get(fileRoot + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
-			tree.performCheckBoxAction(namesHash.get(fileRoot + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);	
+		for (ScreenToCapture screencap : screens) {
+			tree.performCheckBoxAction(namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
+			if (screencap.xIDIndex != -1) {
+				setLinkKeyHandler(new int[]{screencap.xIDIndex});
+			}
+			
+			tree.performCheckBoxAction(namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);	
+			if (screencap.yIDIndex != -1) {
+				setLinkKeyHandler(new int[]{screencap.yIDIndex});
+			}
+			
+			if (screencap.colorFile != null && !screencap.colorFile.equals("")) {
+//				setColorKeyHandler(new int[]{screencap.colorIndex});
+			}
+			
+			if (screencap.hideExcluded) {
+				this.hideExcludes = true;
+			} else {
+				this.hideExcludes = false;
+			}
+			
 			updateTree();
+			
+			twoDPanel.forcePlotXmin = screencap.minX;
+			twoDPanel.forcePlotXmax = screencap.maxX;
+			twoDPanel.forcePlotYmin = screencap.minY;
+			twoDPanel.forcePlotYmax = screencap.maxY;
+			
 			twoDPanel.createImage();
 			
 			int count = 1;
-			String basename = namesHash.get(fileRoot + screencap.dataXFile)[screencap.xDataIndex] + "_" + namesHash.get(fileRoot + screencap.dataYFile)[screencap.yDataIndex];
+			String basename = namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex] + "_" + namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
 			String screenname = basename;
-			while((new File(fileRoot + screenname)).exists()) {
+			while((new File(baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true) + ".png")).exists()) {
 				screenname = basename + "_v" + count;
 				count++;
 			}
 			
-			screenname = fileRoot + ext.replaceWithLinuxSafeCharacters(screenname, true) + ".png";
+			screenname = baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true) + ".png";
 
 			twoDPanel.screenCapture(screenname);
 		}
-		
-//		if(colForX != Integer.MIN_VALUE){
-//			// select the x axis
-//			tree.performCheckBoxAction(namesHash.get(filename)[colForX], ItemEvent.SELECTED);
-//		}
-//
-//		if(colForY != Integer.MIN_VALUE){
-//			// select the x axis
-//			tree.performCheckBoxAction(namesHash.get(filename)[colForY], ItemEvent.SELECTED);
-//		}
-//
-//		updateTree();
-//		updateGUI();
-//		tree.expandRow(treeFilenameLookup.indexOf(filename));
-//		twoDPanel.paintAgain();
-		
 		
 	}
 	
@@ -1617,16 +1678,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
     /**
-	     * Create the GUI and show it.  For thread safety,
-	     * this method should be invoked from the
-	     * event-dispatching thread.
-	     */
+     * Create the GUI and show it.  For thread safety,
+     * this method should be invoked from the
+     * event-dispatching thread.
+     */
 	public static TwoDPlot createAndShowGUI(Project proj) {
-
-		//Create and set up the window.
 		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.getNameOfProject());
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         //Create and set up the content pane.
@@ -1644,16 +1701,25 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		return twoDPlot;
     }
+	
+	private static TwoDPlot createHiddenGUI(Project proj) {
+		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.getNameOfProject());
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
+        //Create and set up the content pane.
+        TwoDPlot twoDPlot = new TwoDPlot(proj);
+        frame.setJMenuBar(twoDPlot.menuBar());
+        twoDPlot.setOpaque(true); //content panes must be opaque
+        frame.setContentPane(twoDPlot);
+        frame.addWindowListener(twoDPlot);
+        frame.setBounds(20, 20, 1000, 600);
+//		frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 
-//	public void closeStream(Closeable s) {
-//		try {
-//			if (s != null) {
-//				s.close();
-//			}
-//		} catch (IOException e) {
-//			//Log or rethrow as unchecked (like RuntimException) ;)
-//		}
-//	}
+        //Display the window.
+        frame.pack();
+        
+		return twoDPlot;
+	}
 
 	// CHR, REGION, START, STOP
 	public String[][] getCurrentColumnMetaData() {
@@ -1696,24 +1762,49 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public String[] getColumnMetaData(int index) {
 		return columnMetaData.get(index);
 	}
-
-	//	public void closeStream(Closeable s) {
-	//		try {
-	//			if (s != null) {
-	//				s.close();
-	//			}
-	//		} catch (IOException e) {
-	//			//Log or rethrow as unchecked (like RuntimException) ;)
-	//		}
-	//	}
 	
-		public static void main(String[] args) {
-	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-	            public void run() {
-	                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
-	            }
-	        });
-			
-		}
+	public static void main(String[] args) {
+//		HashSet<String> tagSet = new HashSet<String>();
+//		tagSet.add("fileXs");
+//		tagSet.add("fileYs");
+//		tagSet.add("xDataColumns");
+//		tagSet.add("yDataColumns");
+//		tagSet.add("xIDColumns");
+//		tagSet.add("yIDColumns");
+//		tagSet.add("colorFiles");
+//		tagSet.add("colorDataColumns");
+//		tagSet.add("colorIDColumns");
+//		tagSet.add("excludeFiles");
+//		tagSet.add("excludeDataColumns");
+//		tagSet.add("excludeIDColumns");
+//		tagSet.add("minXs");
+//		tagSet.add("minYs");
+//		tagSet.add("maxXs");
+//		tagSet.add("maxYs");
+//		
+//		HashMap<String, String> tagValues = new HashMap<String, String>();
+//		
+//		String usage = "";
+//		
+//		System.out.println();
+//		for (int i = 0; i<args.length; i++) {
+//			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
+//				System.err.println(usage);
+//				System.exit(1);
+//			} else if (tagSet.contains(args[i].split("=")[0])) {
+//				tagValues.put(args[i].split("=")[0], args[i].split("=")[1]);
+//			}
+//		}
+//		
+//		
+//		
+		fromParameters("D:/data/gedi_gwas/twoDtest.crf", new Logger());
+//        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+//            public void run() {
+//                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
+//            }
+//        });
+	}
 }
+
 

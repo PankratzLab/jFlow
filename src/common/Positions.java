@@ -232,6 +232,49 @@ public class Positions {
 		return midpoints;
 	}
 
+	public static int[][] determineCentromereBoundariesFromMarkerSet(byte[] chrs, int[] positions, int build, Logger log) {
+		byte chr;
+		int[] midpointEstimates;
+		Segment[] midpointSegments;
+		int[][] centromereBoundaries;
+		int markerPosition;
+
+		if (build == 36) {
+			centromereBoundaries = CENTROMERE_BOUNDARIES_FROM_SNPS_B36_HG18;
+		} else if (build == 37) {
+			centromereBoundaries = CENTROMERE_BOUNDARIES_FROM_SNPS_B37_HG19;
+		} else {
+			log.reportError("Error - build needs to be either 36 or 37 at this point in time, not '" + build + "'");
+			return null;
+		}
+
+		midpointEstimates = new int[27];
+		midpointSegments = computeCentromereMidpoints(centromereBoundaries);
+		for (chr = 0; chr < 27; chr++) {
+			centromereBoundaries[chr] = new int[] { -1, Integer.MAX_VALUE };
+			midpointEstimates[chr] = midpointSegments[chr].getStart();
+		}
+
+		for (int i = 0; i < positions.length; i++) {
+			chr = chrs[i];
+			markerPosition = positions[i];
+			if (markerPosition < midpointEstimates[chr] && markerPosition > centromereBoundaries[chr][0]) {
+				centromereBoundaries[chr][0] = markerPosition;
+			}
+			if (markerPosition > midpointEstimates[chr] && markerPosition < centromereBoundaries[chr][1]) {
+				centromereBoundaries[chr][1] = markerPosition;
+			}
+		}
+
+		for (chr = 0; chr < 27; chr++) {
+			if (centromereBoundaries[chr][1] == Integer.MAX_VALUE) {
+				centromereBoundaries[chr] = new int[] { 0, 0 };
+			}
+		}
+
+		return centromereBoundaries;
+	}
+	
 	public static int[][] determineCentromereBoundariesFromMarkerSet(String markerSetFilename, int build, Logger log) {
 		byte chr;
 		byte[] chrs;
