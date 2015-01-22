@@ -9,6 +9,9 @@ import cnv.qc.GcAdjustor.GcModel;
 import common.*;
 
 public class LrrSd extends Parallelizable {
+	
+	public static final String[] NUMERIC_COLUMNS = {  "LRR_AVG", "LRR_SD", "BAF1585_SD", "AB_callrate", "Forward_callrate", "WF_Prior_Correction", "GCWF_Prior_Correction", "WF_Post_Correction", "GCWF_Post_Correction", "LRR_SD_Post_Correction" };
+	public static final String SAMPLE_COLUMN = "Sample";
 	private Project proj;
 	private String[] samples;
 	private String centroidsFile;
@@ -85,8 +88,8 @@ public class LrrSd extends Parallelizable {
 				proj.getLog().report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers") + " for other qc metrics may result in inaccurate sample qc, please consider using more");
 			}
 
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrr_sd."+threadNumber));
-			writer.println("Sample\tLRR_AVG\tLRR_SD\tBAF1585_SD\tAB_callrate\tForward_callrate\tWF_Prior_Correction\tGCWF_Prior_Correction\tWF_Post_Correction\tGCWF_Post_Correction\tLRR_SD_Post_Correction");
+			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.getFilename(Project.SAMPLE_QC_FILENAME), false) + "." + threadNumber));
+			writer.println(SAMPLE_COLUMN + "\t" + Array.toStr(NUMERIC_COLUMNS));
 			
 			for (int i = 0; i<samples.length; i++) {
 	        	log.report((i+1)+" of "+samples.length);
@@ -177,8 +180,8 @@ public class LrrSd extends Parallelizable {
 	public void finalAction() {
 		String[] files; 
 		
-		files = Array.stringArraySequence(numThreads, proj.getProjectDir()+"lrr_sd.");
-		Files.cat(files, proj.getProjectDir()+"lrr_sd.xln", Array.intArray(files.length, 0), proj.getLog());
+		files = Array.stringArraySequence(numThreads, ext.rootOf(proj.getFilename(Project.SAMPLE_QC_FILENAME), false) + ".");
+		Files.cat(files, proj.getFilename(Project.SAMPLE_QC_FILENAME), Array.intArray(files.length, 0), proj.getLog());
 		for (int i = 0; i<files.length; i++) {
 			new File(files[i]).delete();
         }
