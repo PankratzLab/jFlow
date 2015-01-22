@@ -447,7 +447,7 @@ public class CNVFilter {
 		} else {
 			MarkerSet markerSet = MarkerSet.load(fullPathToMarkerSetFilename, false);
 			this.positions = markerSet.getPositionsByChr();
-			this.centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(fullPathToMarkerSetFilename, build, log);
+			this.centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), build, log);
 		}
 		computeCentromereMidPoints();
 	}
