@@ -102,6 +102,7 @@ public class Project extends Properties {
 	public static final String INTENSITY_PC_FILENAME = "INTENSITY_PC_FILENAME";
 	public static final String INTENSITY_PC_NUM_COMPONENTS = "INTENSITY_PC_NUM_COMPONENTS";
 	public static final String FOREST_PLOT_FILES = "FOREST_PLOT_FILES";
+	public static final String SAMPLE_QC_FILENAME = "SAMPLE_QC_FILENAME";
 
 	private boolean jar;
 	private String projectPropertiesFilename;

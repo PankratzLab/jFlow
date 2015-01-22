@@ -1464,6 +1464,41 @@ public class Array {
 	}
 	
 	/**
+	 * Determines the specified quantiles of an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param q
+	 *            quantiles to be determined
+	 * @return specified quantiles of the array
+	 */
+	public static double[] quants(double[] array, double[] qs) {
+		int keys[] = Sort.quicksort(array);
+		double[] quantiles;
+
+		quantiles = new double[qs.length];
+		for (int i = 0; i < quantiles.length; i++) {
+			try {
+				if (qs[i] > 1 || qs[i] < 0) {
+					quantiles[i] = -1;
+				} else {
+					double index = (array.length + 1) * qs[i];
+					if (index - (int) index == 0) {
+						quantiles[i] = array[keys[(int) index - 1]];
+					} else {
+						quantiles[i] = (double) (qs[i] * array[keys[(int) Math.floor(index) - 1]] + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				quantiles[i] = -999;
+			}
+		}
+
+		return quantiles;
+	}
+	
+	/**
 	 * Determines the median absolute difference of an array of double
 	 * 
 	 * @param array
