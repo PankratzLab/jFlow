@@ -158,7 +158,7 @@ public class LRRComp extends JFrame implements Runnable {
 					revalidate();
 					try {
 						fileNameToVisualize = medianLRRWorker.get();
-						TwoDPlot twoDplot = TwoDPlot.createAndShowGUI(proj);
+						TwoDPlot twoDplot = TwoDPlot.createGUI(proj, true);
 						twoDplot.showSpecificFile(proj, fileNameToVisualize, 2, 3);
 						twoDplot.updateGUI();
 						// twoDPlot;

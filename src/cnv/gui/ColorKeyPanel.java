@@ -247,6 +247,10 @@ public class ColorKeyPanel extends JPanel {
 	public int getCurrentClass() {
 		return currentClass;
 	}
+	
+	public void setCurrentClass(int clazz) {
+		currentClass = clazz;
+	}
 
 	public Hashtable<String, String> getDisabledClassValues() {
 		return disabledClassValues;

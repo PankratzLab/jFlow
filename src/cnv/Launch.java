@@ -451,7 +451,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
 			} else if (command.equals(TWOD)) {
 //				TwoDPlot twoDP = 
-				TwoDPlot.createAndShowGUI(proj);
+				TwoDPlot.createGUI(proj, true);
 				//TODO: Sample call to test this functionality. Should be removed when seems to work fine.
 				// replace the filename according to the path on local machine
 //				twoDP.showSpecificFile(proj, "/Users/rohitsinha/Documents/development/ra/practice/sexCheck.xln", 5, 9, proj.getLog());
