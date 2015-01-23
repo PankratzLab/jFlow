@@ -1389,7 +1389,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
-	                TwoDPlot tdp = createHiddenGUI(new Project(projFile, false));//createAndShowGUI(new Project(projFile, false));
+	                TwoDPlot tdp = createGUI(new Project(projFile, false), false);//createAndShowGUI(new Project(projFile, false));
 //	                tdp.hideExcludes = true;
 	                tdp.createScreenshots(baseDir, screens);
 	                tdp.windowClosing(null);
@@ -1531,6 +1531,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			twoDPanel.forcePlotXmax = screencap.maxX;
 			twoDPanel.forcePlotYmin = screencap.minY;
 			twoDPanel.forcePlotYmax = screencap.maxY;
+			
+			colorKeyPanel.setCurrentClass(0);
+			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
 			
 			twoDPanel.createImage();
 			
@@ -1682,7 +1685,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
      * this method should be invoked from the
      * event-dispatching thread.
      */
-	public static TwoDPlot createAndShowGUI(Project proj) {
+	public static TwoDPlot createGUI(Project proj, boolean show) {
 		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.getNameOfProject());
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -1697,29 +1700,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
         //Display the window.
         frame.pack();
-        frame.setVisible(true);
+        frame.setVisible(show);
 
 		return twoDPlot;
     }
-	
-	private static TwoDPlot createHiddenGUI(Project proj) {
-		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.getNameOfProject());
-		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		
-        //Create and set up the content pane.
-        TwoDPlot twoDPlot = new TwoDPlot(proj);
-        frame.setJMenuBar(twoDPlot.menuBar());
-        twoDPlot.setOpaque(true); //content panes must be opaque
-        frame.setContentPane(twoDPlot);
-        frame.addWindowListener(twoDPlot);
-        frame.setBounds(20, 20, 1000, 600);
-//		frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
-
-        //Display the window.
-        frame.pack();
-        
-		return twoDPlot;
-	}
 
 	// CHR, REGION, START, STOP
 	public String[][] getCurrentColumnMetaData() {
@@ -1798,7 +1782,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		
 //		
 //		
-		fromParameters("D:/data/gedi_gwas/twoDtest.crf", new Logger());
+		fromParameters("D:/data/gedi_gwas/data/twoDscreenshots.dat", new Logger());
 //        javax.swing.SwingUtilities.invokeLater(new Runnable() {
 //            public void run() {
 //                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
