@@ -309,7 +309,7 @@ public class SampleData {
 		}
 		
 		if (indi == null) {
-			System.err.println("Error - id '"+id+"' was not present in the SampleData");
+//			System.err.println("Error - id '"+id+"' was not present in the SampleData");
 			return false;
 		}
 		
@@ -567,7 +567,7 @@ public class SampleData {
 		}
 	}
 
-	public void setLinkKey(int selectedLinkKey, String filename) {
+	public void setLinkKey(String filename, int selectedLinkKey) {
 		int[] linkKeyColumnLabels;
 
 		linkKeyColumnLabels = determineKeyIndices(filename);
@@ -627,11 +627,11 @@ public class SampleData {
 		}
 		for (Integer colorKey : colorKeys) {
 			if (colorKey == selectedColorKey) {
-				System.out.println("Error: Already sey as color key");
+				System.out.println("Error: Already set as color key");
 				// TODO: Make these thing to display
 				// JOptionPane.showMessageDialog(null, "Error: Already sey as color key", "Error",
 				// JOptionPane.ERROR_MESSAGE);
-				System.err.println("Error: Already sey as color key");
+				System.err.println("Error: Already set as color key");
 				return;
 			}
 		}

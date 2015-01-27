@@ -1428,8 +1428,10 @@ public class ext {
 //					System.out.println(v.elementAt(v.size()-1));
 					startIndex = i+1;
 					if (insideQuotes && str.charAt(i-1) != '\"') {
-						log.reportError("Error - improperly formed quotes in comma delimited string:");
-						log.reportError(str);
+						if (log != null) {
+							log.reportError("Error - improperly formed quotes in comma delimited string:");
+							log.reportError(str);
+						}
 					}
 					insideQuotes = false;
 				}

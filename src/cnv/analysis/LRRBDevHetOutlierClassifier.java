@@ -1,13 +1,17 @@
-package one;
+package cnv.analysis;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
+import cnv.filesys.Project;
+import cnv.var.SampleData;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.ext;
 
@@ -50,7 +54,7 @@ public class LRRBDevHetOutlierClassifier {
 			public boolean testIndiv(PopulationData popData, IndividualDatum indivDatum) {
 				double sdCntBDev = (indivDatum.dataBDev - popData.meanBDev) / popData.stdDevBDev;
 				double sdCntLRR = (indivDatum.dataLRR - popData.meanLRR) / popData.stdDevLRR;
-				System.out.println("Scr_BD: " + sdCntBDev + " ;; Scr_LRR: " + sdCntLRR);
+//				System.out.println("Scr_BD: " + sdCntBDev + " ;; Scr_LRR: " + sdCntLRR);
 				return false;
 			}
 		},
@@ -101,12 +105,33 @@ public class LRRBDevHetOutlierClassifier {
 		this.filename = file;
 	}
 	
-	
 	String filename;
 	HashMap<String, IndividualDatum> dataMap;
 	PopulationData populationData;
+	private ArrayList<String> indivList;
+	private ArrayList<String> outlierList;
+	private HashSet<String> excludeList;
 	
-	private void loadData(int idCol, int lrrCol, int bdevCol) {
+	private LRRBDevHetOutlierClassifier loadExcluded(String file, boolean project) {
+		excludeList = new HashSet<String>();
+		if (file == null) { return this; }
+		
+		if (project) {
+			Project proj = new Project(file, false);
+			SampleData sampleData = proj.getSampleData(0, false);
+			for (String id : Array.subArray(proj.getSamples(), proj.getSamplesToExclude())) {
+				for (String subID : sampleData.lookup(id)) {
+					excludeList.add(subID);
+				}
+			}
+		} else {
+			excludeList.addAll(HashVec.loadFileToHashSet(file, false));
+		}
+		
+		return this;
+	}
+
+	private LRRBDevHetOutlierClassifier loadData(int idCol, int lrrCol, int bdevCol) {
 		dataMap = new HashMap<String, IndividualDatum>(10000);
 		
 		BufferedReader reader = Files.getReader(filename, false, true, false);
@@ -115,7 +140,9 @@ public class LRRBDevHetOutlierClassifier {
 				String temp = reader.readLine();
 				while ((temp = reader.readLine()) != null) {
 					String[] line = temp.split("\t");
-					dataMap.put(line[idCol], new IndividualDatum(line[idCol], Double.parseDouble(line[lrrCol]), Double.parseDouble(line[bdevCol])));
+					if (!excludeList.contains(line[idCol])) {
+						dataMap.put(line[idCol], new IndividualDatum(line[idCol], Double.parseDouble(line[lrrCol]), Double.parseDouble(line[bdevCol])));
+					}
 				}
 				reader.close();
 			} catch (IOException e) {
@@ -126,9 +153,10 @@ public class LRRBDevHetOutlierClassifier {
 			// TODO error logging?
 		}
 		
+		return this;
 	}
 	
-	private void setPopData() {
+	private LRRBDevHetOutlierClassifier setPopData() {
 		double[] bdev = new double[dataMap.size()];
 		double[] lrr = new double[dataMap.size()];
 		
@@ -140,39 +168,67 @@ public class LRRBDevHetOutlierClassifier {
 		}
 		
 		this.populationData = new PopulationData(Array.mean(bdev), Array.mean(lrr), Array.stdev(bdev), Array.stdev(lrr), Array.median(bdev), Array.median(lrr));
+		
+		return this;
 	}
 	
-	private ArrayList<String> getPotentialOutliers() {
-		ArrayList<String> indivList = new ArrayList<String>();
+	private LRRBDevHetOutlierClassifier filterPotentialOutliers() {
+		indivList = new ArrayList<String>();
+		outlierList = new ArrayList<String>();
 		
 		outer: for (java.util.Map.Entry<String, IndividualDatum> entry : dataMap.entrySet()) {
 			for (OutlierTest test : OutlierTest.values()) {
 				if (test.testIndiv(populationData, entry.getValue())) {
-					indivList.add(entry.getKey());
+					outlierList.add(entry.getKey());
 					continue outer;
 				}
 			}
+			indivList.add(entry.getKey());
 		}
 		
-		return indivList;
+		return this;
 	}
 	
-	private void writeResults(ArrayList<String> potentialOutliers) {
-		String fileRoot = ext.rootOf(filename, false);
-		String file = fileRoot + "_outlier_IDs.txt";
+	private LRRBDevHetOutlierClassifier writeResults(String outFile) {
+		String fileRoot = outFile.startsWith("_") ? ext.rootOf(filename, false) : ext.parseDirectoryOfFile(filename);
+		String file = fileRoot + (outFile == null ? "_outliers.txt" : outFile);
 		
 		PrintWriter writer = Files.getAppropriateWriter(file);
-		for (String outlier : potentialOutliers) {
-			writer.println(outlier);
+		writer.println("ID\tOutlier");
+		for (String outlier : outlierList) {
+			writer.print(outlier);
+			writer.println("\t1");
+		}
+		for (String outlier : indivList) {
+			writer.print(outlier);
+			writer.println("\t0");
 		}
 		writer.flush();
 		writer.close();
+		
+		return this;
+	}
+	
+	private LRRBDevHetOutlierClassifier dispose() {
+		this.filename = null;
+		this.populationData = null;
+		this.dataMap = null;
+		this.indivList = null;
+		this.outlierList = null;
+		try {
+			this.finalize();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+		}
+		return null;
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "LRR_MEDIAN.xln";
-
+		String proj = null;
+		String exclFile = null;
+		String outFile = null;
 		int idCol = 0;
 		int lrrCol = 1;
 		int bdevCol = 2;
@@ -182,7 +238,12 @@ public class LRRBDevHetOutlierClassifier {
 						+ "   (1) filename (i.e. file=" + filename + " (default))\n"
 						+ "   (2) Column index for IDs (i.e. id=" + idCol + " (default))\n"
 						+ "   (3) Column index for LRR data (i.e. lrr=" + lrrCol + " (default))\n"
-						+ "   (4) Column index for BDev data (i.e. bdev=" + bdevCol + " (default))\n";
+						+ "   (4) Column index for BDev data (i.e. bdev=" + bdevCol + " (default))\n"
+						+ "       OPTIONAL:"
+						+ "   (5a) (Optional) Use an existing Project to remove excluded data from analysis (i.e. proj=default.properties (not the default))\n"
+						+ "       OR "
+						+ "   (5b) (Optional) Excluded data from analysis based on a file of excluded sample IDs (i.e. excl=excluded.txt (not the default))\n"
+						+ "\n";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -190,6 +251,12 @@ public class LRRBDevHetOutlierClassifier {
 				System.exit(1);
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("proj=")) {
+				proj = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("excl=")) {
+				exclFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("id=")) {
 				idCol = Integer.parseInt(args[i].split("=")[1]);
@@ -200,6 +267,9 @@ public class LRRBDevHetOutlierClassifier {
 			} else if (args[i].startsWith("bdev=")) {
 				bdevCol = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				outFile = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -208,11 +278,13 @@ public class LRRBDevHetOutlierClassifier {
 			System.err.println(usage);
 			System.exit(1);
 		}
+		
+		String file = (proj == null ? exclFile : proj);
+		boolean isProj = proj != null;
+		String outfile = outFile == null ? "_" + idCol + "-" + lrrCol + "," + bdevCol + "_outliers.txt" : outFile;
 		try {
 			LRRBDevHetOutlierClassifier classifier = new LRRBDevHetOutlierClassifier(filename);
-			classifier.loadData(idCol, lrrCol, bdevCol);
-			classifier.setPopData();
-			classifier.writeResults(classifier.getPotentialOutliers());
+			classifier.loadExcluded(file, isProj).loadData(idCol, lrrCol, bdevCol).setPopData().filterPotentialOutliers().writeResults(outfile).dispose();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
