@@ -641,7 +641,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				JOptionPane.showMessageDialog(null, "There was a problem in your selection. Please select again", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			sampleData.setLinkKey(selectedLinkKey[0], selectedCol);
+			sampleData.setLinkKey(selectedCol, selectedLinkKey[0]);
 		}
 	}
 
@@ -872,12 +872,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		return result;
 //	}
 
-
-
-	public Vector<String[]> getDataSelected() {
-		return getDataSelected(false);
-	}
-
 	public Vector<String[]> getDataSelected(boolean includeColorKeyValue) {
 //		String[][] result;
 		String[][] selectedNodes;
@@ -943,38 +937,30 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			keys = HashVec.getKeys(xHash, false, false);
 			v = new Vector<String[]>();
-			if (includeColorKeyValue) {
-				for (String key : keys) {
-					if (yHash.containsKey(key)) {
+			for (String key : keys) {
+				if (yHash.containsKey(key)) {
+					inLine = xHash.get(key);
+					inLine[2] = yHash.get(key);
+					if (includeColorKeyValue) {
 						if (sampleData != null) {
 							ids = sampleData.lookup(key);
 							if (ids == null) {
 								colorCode = 0;
+							} else if (generatingScreenshots) {
+								colorCode = getColorForScreenshot(ids[0]);
 							} else {
 								colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) 0, 0);
 							}
 						} else {
 							colorCode = 0;
 						}
-						inLine = xHash.get(key);
-						inLine[2] = yHash.get(key);
 						inLine[3] = colorCode + "";
-//						v.add(new String[] {keys[i], line[0], yHash.get(keys[i]), colorCode + ""});
-						v.add(inLine);
 					}
-				}
-			} else {
-				for (String key : keys) {
-					if (yHash.containsKey(key)) {
-						inLine = xHash.get(key);
-						inLine[2] = yHash.get(key);
-//						v.add(new String[] {keys[i], xHash.get(keys[i]), yHash.get(keys[i]), "all other keys"});
+//					if (!inLine[3].equals("0"))
 						v.add(inLine);
-					}
 				}
 			}
 		}
-
 		return v;
 	}
 
@@ -1027,6 +1013,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		public void mouseExited(MouseEvent e) {
 		}
 	};
+	private boolean generatingScreenshots;
+	private HashMap<String, Integer> colorData;
 
 //	public float[][] getDataSelected() {
 //		return getDataSelected(false);
@@ -1232,10 +1220,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		reloadSampleDataUI();
 	}
 
-//	public void displayIndex(JTextField field) {
-//		field.setText((markerIndex+1)+" of "+markerList.length);
-//	}
-
 	public void showSpecificFile(Project proj, String filename, int colForX, int colForY) {
 		String[] prevFiles = proj.getProperty(Project.TWOD_LOADED_FILENAMES).split(";");
 		if(Arrays.binarySearch(prevFiles, filename) < 0) {
@@ -1366,6 +1350,23 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 	
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params = parseControlFile(filename, log);
+		
+		if (params != null) {
+			final String projFile = params.get(0).split("=")[1];
+			final String baseDir = params.get(1).split("=")[1];
+			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
+			javax.swing.SwingUtilities.invokeLater(new Runnable() {
+	            public void run() {
+	                TwoDPlot tdp = createGUI(new Project(projFile, false), false);
+	                tdp.createScreenshots(baseDir, screens);
+	                tdp.windowClosing(null);
+                }
+	        });
+		}
+	}
+	
 	private static Vector<String> parseControlFile(String filename, Logger log) {
 		Vector<String> params;
 		
@@ -1380,26 +1381,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return params;
 	}
 
-	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params = parseControlFile(filename, log);
-		
-		if (params != null) {
-			final String projFile = params.get(0).split("=")[1];
-			final String baseDir = params.get(1).split("=")[1];
-			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
-			javax.swing.SwingUtilities.invokeLater(new Runnable() {
-	            public void run() {
-	                TwoDPlot tdp = createGUI(new Project(projFile, false), false);//createAndShowGUI(new Project(projFile, false));
-//	                tdp.hideExcludes = true;
-	                tdp.createScreenshots(baseDir, screens);
-	                tdp.windowClosing(null);
-//	                ((JFrame)tdp.getParent().getParent()).dispose();
-                }
-	        });
-		}
-	}
-	
-	public static ArrayList<ScreenToCapture> /*String*/ condenseCtrlFile(java.util.List<String> ctrlLines) {
+	private static ArrayList<ScreenToCapture> condenseCtrlFile(java.util.List<String> ctrlLines) {
 		HashSet<String> tagSet = new HashSet<String>();
 		tagSet.add("fileX");
 		tagSet.add("fileY");
@@ -1488,7 +1470,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return caps;
 	}
 	
-	public void createScreenshots(String baseDir, ArrayList<ScreenToCapture> screens) {
+	private void createScreenshots(String baseDir, ArrayList<ScreenToCapture> screens) {
+		this.generatingScreenshots = true;
 		HashSet<String> dataFiles = new HashSet<String>();
 
 		for (ScreenToCapture cap : screens) {
@@ -1500,40 +1483,33 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		for (String file : dataFiles) {
 			loadFile(baseDir + file);
 		}
-
+		
 		twoDPanel.setPointsGeneratable(true);	
 		twoDPanel.paintAgain();
 		updateTree();
-		for (ScreenToCapture screencap : screens) {
-			tree.performCheckBoxAction(namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
-			if (screencap.xIDIndex != -1) {
-				setLinkKeyHandler(new int[]{screencap.xIDIndex});
+		
+		for (ScreenToCapture screencap : screens) {			
+			if (screencap.colorFile != null && !screencap.colorFile.equals("")) {
+				loadColor(baseDir, screencap);
 			}
+			
+			tree.performCheckBoxAction(namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
 			
 			tree.performCheckBoxAction(namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);	
-			if (screencap.yIDIndex != -1) {
-				setLinkKeyHandler(new int[]{screencap.yIDIndex});
-			}
-			
-			if (screencap.colorFile != null && !screencap.colorFile.equals("")) {
-//				setColorKeyHandler(new int[]{screencap.colorIndex});
-			}
-			
+
 			if (screencap.hideExcluded) {
 				this.hideExcludes = true;
 			} else {
 				this.hideExcludes = false;
 			}
 			
-			updateTree();
-			
 			twoDPanel.forcePlotXmin = screencap.minX;
 			twoDPanel.forcePlotXmax = screencap.maxX;
 			twoDPanel.forcePlotYmin = screencap.minY;
 			twoDPanel.forcePlotYmax = screencap.maxY;
 			
-			colorKeyPanel.setCurrentClass(0);
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
+			this.colorKeyPanel.getClassRadioButtons()[this.colorKeyPanel.getClassRadioButtons().length - 1].setSelected(true);
 			
 			twoDPanel.createImage();
 			
@@ -1552,7 +1528,19 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		
 	}
 	
-	public void loadFile(String filename) {
+	private void loadColor(String baseDir, ScreenToCapture screencap) {
+		Hashtable<String, String> colorData = HashVec.loadFileToHashString(baseDir + screencap.colorFile, screencap.colorIDIndex, new int[]{screencap.colorIndex}, "\t", true);
+		this.colorData = new HashMap<String, Integer>();
+		for (java.util.Map.Entry<String, String> entry : colorData.entrySet()) {
+			this.colorData.put(entry.getKey(), Integer.valueOf(entry.getValue()));
+		}
+	}
+
+	private byte getColorForScreenshot(String id) {
+		return (byte) (this.colorData.get(id) == null ? 0 : this.colorData.get(id).intValue());
+	}
+
+	private void loadFile(String filename) {
 		BufferedReader reader;
 		String[] header, line;
 		String readBuffer;

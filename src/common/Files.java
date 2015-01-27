@@ -2677,7 +2677,7 @@ public class Files {
 		lines = null;
 		try {
 	        reader = getAppropriateReader(filename);
-	        if (reader == null) {
+	        if (reader == null && log != null) {
 	        	log.reportError("Error: file \""+filename+"\" not found in current directory");
 	        }
 	        v = new Vector<String>();
@@ -2691,9 +2691,13 @@ public class Files {
 	        return Array.toStringArray(v);
 	        
         } catch (FileNotFoundException fnfe) {
-        	log.reportError("Error: file \""+filename+"\" not found in current directory");
+        	if (log != null) {
+        		log.reportError("Error: file \""+filename+"\" not found in current directory");
+        	}
         } catch (IOException ioe) {
-        	log.reportError("Error reading file \""+filename+"\"");
+        	if (log != null) {
+        		log.reportError("Error reading file \""+filename+"\"");
+        	}
         }
 		
 		return lines;

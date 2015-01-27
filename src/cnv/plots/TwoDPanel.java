@@ -242,7 +242,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				setOfKeys[i][j] = line[j + index];
 			}
 		}
-		
+
 		tdp.updateColorKey(uniqueValueCounts.convertToHash());
 	}
 
