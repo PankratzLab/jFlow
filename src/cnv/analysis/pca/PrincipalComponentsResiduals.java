@@ -45,7 +45,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private String markersToAssessFile, output, residOutput, pcFile;
 	private String[] markersToAssess, samplesToReport, allProjSamples;
 	private double[] assesmentData, residuals, invTResiduals;
-	private double[][] assessmentData, pcBasis;
+	private double[][] fullData, pcBasis;
 	private byte[][] abGenotypesAfterFilters;
 	private float gcThreshold;
 	protected Logger log;
@@ -106,6 +106,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			printFull();
 		}
 		setAssesmentDataSortByPCs(projectOrderMedians);
+	}
+
+	public void setHomozygousOnly(boolean homozygousOnly) {
+		this.homozygousOnly = homozygousOnly;
 	}
 
 	/**
@@ -240,7 +244,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private void getData() {
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess);
 		int count = numUsed(samplesToUse);
-		this.assessmentData = new double[markersToAssess.length][count];
+		this.fullData = new double[markersToAssess.length][count];
 		this.abGenotypesAfterFilters = new byte[markersToAssess.length][count];
 		float[] lrrs;
 		byte[] abGenos;
@@ -267,7 +271,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			int sampleIndex = 0;
 			for (int k = 0; k < samplesToUse.length; k++) {
 				if (samplesToUse[k]) {
-					assessmentData[i][sampleIndex] = lrrs[k];
+					fullData[i][sampleIndex] = lrrs[k];
 					abGenotypesAfterFilters[i][sampleIndex] = abGenos[k];
 					sampleIndex++;
 				}
@@ -281,16 +285,16 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	/**
 	 * Compute the median value (after filtering) across the markers to assess for each sample represented in the principal component file Note, medians are computed in a project order manner. A further step may be required if the Pc file is not in the same sample order as the project.
 	 */
-	private double[] getLRRMedian() {
-		double[] medians = new double[assessmentData[0].length];
+	public double[] getLRRMedian() {
+		double[] medians = new double[fullData[0].length];
 		// for sample
-		for (int i = 0; i < assessmentData[0].length; i++) {
+		for (int i = 0; i < fullData[0].length; i++) {
 			// for marker
 			ArrayList<Double> sampLRR = new ArrayList<Double>();
-			for (int k = 0; k < assessmentData.length; k++) {
+			for (int k = 0; k < fullData.length; k++) {
 				// test for null in case we dropped data, test for individual NaN, test for homozygous, test for missing if gcThreshold greater than 0
 				if (useMarker(i, k)) {
-					sampLRR.add(assessmentData[k][i]);
+					sampLRR.add(fullData[k][i]);
 				}
 			}
 			if (sampLRR.size() > 0) {
@@ -315,7 +319,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 */
 	private boolean useMarker(int sampIndex, int markerIndex) {
 		boolean good = false;
-		if (assessmentData[markerIndex] != null && !Double.isNaN(assessmentData[markerIndex][sampIndex]) && (gcThreshold == 0 || abGenotypesAfterFilters[markerIndex][sampIndex] >= 0) && (abGenotypesAfterFilters[markerIndex][sampIndex] == (byte) 0 || abGenotypesAfterFilters[markerIndex][sampIndex] == (byte) 2 || !homozygousOnly)) {
+		if (fullData[markerIndex] != null && !Double.isNaN(fullData[markerIndex][sampIndex]) && (gcThreshold == 0 || abGenotypesAfterFilters[markerIndex][sampIndex] >= 0) && (abGenotypesAfterFilters[markerIndex][sampIndex] == (byte) 0 || abGenotypesAfterFilters[markerIndex][sampIndex] == (byte) 2 || !homozygousOnly)) {
 			good = true;
 		}
 		return good;
@@ -334,14 +338,14 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		} else {
 			writers[0].println(MT_REPORT[0] + "\t" + Array.toStr(markersToAssess));
 			writers[1].println(MT_REPORT[0] + "\t" + Array.toStr(markersToAssess));
-			for (int i = 0; i < assessmentData[0].length; i++) {
+			for (int i = 0; i < fullData[0].length; i++) {
 				writers[0].print(projOrderedSubset[i]);
 				writers[1].print(projOrderedSubset[i]);
 				// for marker
-				for (int k = 0; k < assessmentData.length; k++) {
+				for (int k = 0; k < fullData.length; k++) {
 					if (useMarker(i, k)) {
 						writers[0].print("\tTRUE");
-						writers[1].print("\t" + assessmentData[k][i]);
+						writers[1].print("\t" + fullData[k][i]);
 					} else {
 						writers[0].print("\tFalse");
 						writers[1].print("\t.");
@@ -940,4 +944,35 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.recomputeLRR = recomputeLRR;
 	}
 
+	public void setFullData(double[][] fullData) {
+		this.fullData = fullData;
+	}
+
+	public double[][] getFullData() {
+		return fullData;
+	}
+
+	public void setAbGenotypesAfterFilters(byte[][] abGenotypesAfterFilters) {
+		this.abGenotypesAfterFilters = abGenotypesAfterFilters;
+	}
+
+	/**
+	 * @param PC
+	 *            one - based pc basis to extract
+	 * @return
+	 */
+	public double[] getBasisAt(int PC) {
+		double[] basis = null;
+		if (PC <= 0) {
+			log.reportTimeError("Requested PC must be greater than 0 (one -based extraction");
+			return basis;
+		}
+		if (PC > numComponents) {
+			log.reportTimeError("Requested PC must be less than or equal to the total number of components (" + numComponents + ")");
+			return basis;
+		} else {
+			return pcBasis[PC - 1];
+		}
+
+	}
 }

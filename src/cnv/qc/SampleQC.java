@@ -11,6 +11,7 @@ import common.Files;
 import common.HashVec;
 import common.Sort;
 import common.ext;
+import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.Project;
 import cnv.var.SampleData;
 
@@ -55,35 +56,46 @@ public class SampleQC {
 		}
 	}
 
-	public Quantiles getQuantileMembershipFor(String qcTitle, int numQ) {
-		return new Quantiles(getDataFor(qcTitle), numQ, proj.getLog());
+	public void addQCsToSampleData(int numQ, boolean justClasses) {
+		addToSampleData(proj, qcMatrix, qctitles, numQ, justClasses);
 	}
 
-	public double[] getDataFor(String qcTitle) {
-		return getDataFor(ext.indexOfStr(qcTitle, qctitles));
+	public void addPCsToSampleData(int numQ, int numPCs, boolean justClasses) {
+		proj.getLog().reportTimeInfo("Adding "+numPCs+" to sample data");
+		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
+		double[][] pcBasisSubset = new double[numPCs][];
+		String[] pcTitles = new String[numPCs];
+		if (pcResiduals.isSortedByProject()) {
+			for (int i = 0; i < pcTitles.length; i++) {
+				pcTitles[i] = "PC" + (i + 1);
+				pcBasisSubset[i] = pcResiduals.getBasisAt((i + 1));
+			}
+			addToSampleData(proj, pcBasisSubset, pcTitles, numQ, justClasses);
+		} else {
+			proj.getLog().reportTimeError("PCs are not sorted by project, currently this is not supported");
+		}
 	}
 
-	public double[] getDataFor(int qcTitleIndex) {
-		return qcMatrix[qcTitleIndex];
-	}
-
-	public void addQCToSampleData(int numQ, boolean justClasses) {
+	private static void addToSampleData(Project proj, double[][] variableDomMatrix, String[] titles, int numQ, boolean justClasses) {
 		SampleData sampledata = proj.getSampleData(0, false);
-		Quantiles[] quantiles = getQuintiles(numQ);
-		Hashtable<String, String> hashtable = developQCHash(quantiles, justClasses);
-		String[] header = developQCHeader(quantiles, numQ, justClasses);
-		proj.getLog().reportTimeInfo("Adding " + qctitles.length + " sample qc metric(s) to sample data");
+		Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, variableDomMatrix, titles, proj.getLog());
+		Hashtable<String, String> hashtable = developQCHash(quantiles, proj.getSamples(), variableDomMatrix, justClasses);
+		String[] header = developQCHeader(quantiles, titles, numQ, justClasses);
+		proj.getLog().reportTimeInfo("Adding " + titles.length + " sample qc metric(s) to sample data");
 		sampledata.addData(hashtable, "DNA", header, "NaN", "\t", proj.getLog());
 	}
 
-	private Hashtable<String, String> developQCHash(Quantiles[] quantiles, boolean justClasses) {
+	/**
+	 * Prepares a hash to be used in the addition to sample data
+	 */
+	private static Hashtable<String, String> developQCHash(Quantiles[] quantiles, String[] samples, double[][] variableDomMatrix, boolean justClasses) {
 		Hashtable<String, String> hashtable = new Hashtable<String, String>();
 		for (int i = 0; i < samples.length; i++) {
 			String qcInfo = "";
 			for (int j = 0; j < quantiles.length; j++) {
 				qcInfo += (j == 0 ? "" : "\t");
 				if (!justClasses) {
-					qcInfo += qcMatrix[j][i] + "\t";
+					qcInfo += variableDomMatrix[j][i] + "\t";
 				}
 				qcInfo += quantiles[j].getQuantileMembershipAsRoundedInt()[i];
 			}
@@ -92,20 +104,23 @@ public class SampleQC {
 		return hashtable;
 	}
 
-	private String[] developQCHeader(Quantiles[] quantiles, int numQ, boolean justClasses) {
+	private static String[] developQCHeader(Quantiles[] quantiles, String[] titles, int numQ, boolean justClasses) {
 		String[] qcHeader = new String[justClasses ? quantiles.length : quantiles.length * 2];
 		int curIndex = 0;
 		for (int i = 0; i < quantiles.length; i++) {
 			if (!justClasses) {
-				qcHeader[curIndex] = qctitles[i];
+				qcHeader[curIndex] = titles[i];
 				curIndex++;
 			}
-			qcHeader[curIndex] = getClassForQuantile(quantiles[i], qctitles[i], numQ);
+			qcHeader[curIndex] = getClassForQuantile(quantiles[i], titles[i], numQ);
 			curIndex++;
 		}
 		return qcHeader;
 	}
 
+	/**
+	 * Creates sample data friendly class titles for column headers
+	 */
 	private static String getClassForQuantile(Quantiles quantiles, String qcTitle, int numQ) {
 		String thisClass = "CLASS=QUANTILE_" + numQ + "_" + qcTitle;
 		int[] uniqLabels = Array.toIntArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembershipAsRoundedInt())));
@@ -116,18 +131,6 @@ public class SampleQC {
 			thisClass += ";" + uniqLabels[orderLabels[i]] + "=q_" + ext.formDeci(uniqQs[orderQs[i]], 3);
 		}
 		return thisClass;
-	}
-
-	private Quantiles[] getQuintiles(int numQ) {
-		proj.getLog().reportTimeInfo("Computing quantiles for " + qctitles.length + " sample qc metrics");
-
-		Quantiles[] quantiles = new Quantiles[qctitles.length];
-		for (int i = 0; i < qctitles.length; i++) {
-			quantiles[i] = getQuantileMembershipFor(qctitles[i], numQ);
-		}
-		proj.getLog().reportTimeInfo("Finished computing quantiles for " + qctitles.length + " sample qc metrics");
-
-		return quantiles;
 	}
 
 	private static boolean verifyAllProjectSamples(Project proj, String lrrSdToLoad, int sampleColumn) {
@@ -191,21 +194,26 @@ public class SampleQC {
 		return sampleQC;
 	}
 
-	public static void parseAndAddToSampleData(Project proj, int numQ, boolean justClasses) {
+	public static void parseAndAddToSampleData(Project proj, int numQ, int numPCs, boolean justClasses) {
 		SampleQC sampleQC = loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS);
-		sampleQC.addQCToSampleData(numQ, justClasses);
+		sampleQC.addQCsToSampleData(numQ, justClasses);
+		if (numPCs > 0) {
+			sampleQC.addPCsToSampleData(numQ, numPCs, justClasses);
+		}
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
 		int numQ = 5;
+		int numPCs = 0;
 		boolean justClasses = true;
 
 		String usage = "\n" + "cnv.qc.SampleQC requires 0-1 arguments\n";
 		usage += "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
 		usage += "   (2) number of quantiles to divide the sample QC metrics into (5 = quintiles, 100 = percentiles) (i.e. numQ=" + numQ + " (default))\n" + "";
 		usage += "   (3) add only class (quantiled) qc data to sample data  (i.e. justClasses=" + justClasses + " (default))\n" + "";
+		usage += "   (4) if a pc file is available, add this many pcs to the sample data file , must be set to >=1 to be added  (i.e. numPCs=" + numPCs + " (default,no addition))\n" + "";
 
 		usage += "   NOTE: the projects sample qc file must be present, for the qc metrics to be added to sample data";
 
@@ -218,6 +226,9 @@ public class SampleQC {
 				numArgs--;
 			} else if (args[i].startsWith("numQ=")) {
 				numQ = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("numPCs=")) {
+				numPCs = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("justClasses=")) {
 				justClasses = ext.parseBooleanArg(args[i]);
@@ -232,7 +243,7 @@ public class SampleQC {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			parseAndAddToSampleData(proj, numQ, justClasses);
+			parseAndAddToSampleData(proj, numQ, numPCs, justClasses);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

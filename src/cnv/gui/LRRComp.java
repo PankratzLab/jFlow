@@ -65,7 +65,7 @@ public class LRRComp extends JFrame implements Runnable {
 		this.scope = 0;
 		this.correctionParams = new boolean[BASIC_CORRECTION.length + EXTRA_CORRECTION.length];
 		Arrays.fill(correctionParams, false);
-		correctionParams[0]=true;//defaults to no correction
+		correctionParams[0] = true;// defaults to no correction
 	}
 
 	public void run() {
@@ -116,10 +116,14 @@ public class LRRComp extends JFrame implements Runnable {
 			progressBar = new JProgressBar(0, 100);
 			computeButton = new ComputeButton(this);
 			twoDPlotButton = new TwoDPlotButton(this);
+			ActionListener actionListener = getradioListener();
+
 			homozygousCheckBox = new JCheckBox(REGION_TEXT_FIELD_LABELS[6]);
 			homozygousCheckBox.setSelected(false);
+			homozygousCheckBox.setVisible(true);
+			homozygousCheckBox.setToolTipText("Only Homozygous calls will be included in the median value computation (does not change other metrics)");
+			homozygousCheckBox.addActionListener(actionListener);
 
-			ActionListener actionListener = getradioListener();
 			addLabel(REGION_TEXT_FIELD_LABELS[5]);
 			addCorrectionButtons(actionListener, 0);
 
@@ -134,7 +138,7 @@ public class LRRComp extends JFrame implements Runnable {
 			add(regionTextField, BorderLayout.CENTER);
 			JScrollPane scroll = new JScrollPane(regionTextField);
 			add(scroll);
-			//add(homozygousCheckBox);TODO
+			add(homozygousCheckBox);
 			add(computeButton, BorderLayout.EAST);
 			// TODO add action to launch 2D plot with created file
 			add(twoDPlotButton, BorderLayout.WEST);
@@ -205,7 +209,7 @@ public class LRRComp extends JFrame implements Runnable {
 				progressBar.setVisible(true);
 				progressBar.setStringPainted(true);
 				computeComplete = 0;
-				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, correctionParams[1], correctionParams[2], correctionParams[3], false, proj.getLog());//TODO homozygous box
+				medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType, scope, outputBase, progressBar, correctionParams[1], correctionParams[2], correctionParams[3], homozygousCheckBox.isSelected(), proj.getLog());// TODO homozygous box
 				medianLRRWorker.execute();
 				revalidate();
 			}
@@ -239,8 +243,9 @@ public class LRRComp extends JFrame implements Runnable {
 		}
 
 		// button for type of transformation
+		ButtonGroup typeRadio = new ButtonGroup();
+
 		private void addTransformButtons(ActionListener actionListener, int initScope) {
-			ButtonGroup typeRadio = new ButtonGroup();
 			JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
 			for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
 				transformationRadioButtons[i] = new JRadioButton(Transforms.TRANFORMATIONS[i], false);
@@ -362,6 +367,7 @@ public class LRRComp extends JFrame implements Runnable {
 				}
 				if (transformationType != 0 && homozygousCheckBox.isSelected()) {
 					JOptionPane.showMessageDialog(null, "Selecting homozygous markers is currently not valid for Transformed Values");
+					homozygousCheckBox.setSelected(false);
 				}
 			}
 		};

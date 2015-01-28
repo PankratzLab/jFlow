@@ -215,7 +215,7 @@ public class PrincipalComponentsCompute {
 		Logger log = proj.getLog();
 		PrincipalComponentsCompute pcs = populateWithExistingFiles(proj, output, log);
 		if (pcs != null) {
-			return pcs; //we found all three necessary files, and so we just use them
+			return pcs; // we found all three necessary files, and so we just use them
 		}
 
 		boolean[] samplesToUse = getSamples(proj, excludeSamples, useFile);
@@ -234,8 +234,8 @@ public class PrincipalComponentsCompute {
 
 		// deals with NaN on the fly
 		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, recomputeLRR, output);
-		pcs = getPrincipalComponents(numComponents, center, dataToUse, log);
-		double[][] pcsBasis = getPCs(pcs, numComponents, log);
+		pcs = getPrincipalComponents(numComponents, center, dataToUse, true, log);
+		double[][] pcsBasis = getPCs(pcs, numComponents, true, log);
 		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
 		if (reportMarkerLoadings) {
 			reportLoadings(proj, pcs, dataToUse, pcsBasis, markers, output);
@@ -257,7 +257,7 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return
 	 */
-	public static PrincipalComponentsCompute getPrincipalComponents(int numComponents, boolean center, double[][] dataToUse, Logger log) {
+	public static PrincipalComponentsCompute getPrincipalComponents(int numComponents, boolean center, double[][] dataToUse, boolean verbose, Logger log) {
 		// count valid input (is not null )
 		int initpc = getUseCount(dataToUse);
 		PrincipalComponentsCompute pcs = new PrincipalComponentsCompute();
@@ -270,7 +270,9 @@ public class PrincipalComponentsCompute {
 					numSamples = dataToUse[i].length;
 				}
 			}
-			log.report(ext.getTime() + " Using " + initpc + (initpc > 1 ? " inputs" : " input") + " with valid (not NaN) data for SVD across " + numSamples + " samples");
+			if (verbose) {
+				log.report(ext.getTime() + " Using " + initpc + (initpc > 1 ? " inputs" : " input") + " with valid (not NaN) data for SVD across " + numSamples + " samples");
+			}
 			// adding on a per marker basis
 			for (int i = 0; i < dataToUse.length; i++) {
 				if (dataToUse[i] != null) {
@@ -285,7 +287,9 @@ public class PrincipalComponentsCompute {
 					}
 				}
 			}
-			log.report(ext.getTime() + " Added all valid input data to matrix, computing SVD");
+			if (verbose) {
+				log.report(ext.getTime() + " Added all valid input data to matrix, computing SVD");
+			}
 			try {
 				pcs.computeBasis(numComponents, center);
 			} catch (IllegalArgumentException iae) {
@@ -323,8 +327,7 @@ public class PrincipalComponentsCompute {
 	/**
 	 * If the pcFile, singular value file, and marker loading file all exist, we return a {@link PrincipalComponentsCompute} with these files populated.
 	 * <p>
-	 * These three files are generally all that are needed. If they do not all exist, we return {@link null} and continue with the computation
-	 *TODO, perhaps check the files for proper number of components and identical samples
+	 * These three files are generally all that are needed. If they do not all exist, we return {@link null} and continue with the computation TODO, perhaps check the files for proper number of components and identical samples
 	 */
 	private static PrincipalComponentsCompute populateWithExistingFiles(Project proj, String output, Logger log) {
 		PrincipalComponentsCompute pcs;
@@ -740,9 +743,11 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return extracted components
 	 */
-	public static double[][] getPCs(PrincipalComponentsCompute pcs, int numComponents, Logger log) {
+	public static double[][] getPCs(PrincipalComponentsCompute pcs, int numComponents, boolean verbose, Logger log) {
 		double[][] pcsBasis = new double[numComponents][];
-		log.report(ext.getTime() + " Extracting " + numComponents + " principle components");
+		if (verbose) {
+			log.report(ext.getTime() + " Extracting " + numComponents + " principle components");
+		}
 		for (int i = 0; i < numComponents; i++) {
 			try {
 				pcsBasis[i] = pcs.getBasisVector(i);

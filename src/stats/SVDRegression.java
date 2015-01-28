@@ -24,6 +24,7 @@ public class SVDRegression {
 	private double[][] indepsT;
 	private double[][] U;// num components by num inds
 	private double[][] V;// num components by num independent variables (full rank)
+	private boolean verbose;
 
 	private PrincipalComponentsCompute principalComponentsCompute;
 	private Logger log;
@@ -36,11 +37,12 @@ public class SVDRegression {
 	 *            Warning - no data checks are done and it is assumed that this is called after a regression model's QC steps
 	 */
 
-	public SVDRegression(double[] deps, double[][] new_indeps, Logger log) {
+	public SVDRegression(double[] deps, double[][] new_indeps, boolean verbose, Logger log) {
 		super();
 		this.deps = deps;
 		this.indepsT = addConstant(Matrix.transpose(new_indeps));// transpose is neccesary;
 		this.log = log;
+		this.verbose = verbose;
 		// for testing against the paper
 		// this.deps =new double[]{41.38,31.01,37.41,50.05,39.17,38.86,46.14,44.47};
 	}
@@ -53,7 +55,7 @@ public class SVDRegression {
 	public void svdRegression() {
 		this.numComponents = indepsT.length;// number of independent variables, plus the constant = full rank
 		this.betas = new double[numComponents];
-		this.principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(numComponents, false, indepsT, log);
+		this.principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(numComponents, false, indepsT, verbose, log);
 		extractU();
 		extractW();
 		computeV();
@@ -74,7 +76,7 @@ public class SVDRegression {
 	}
 
 	private void extractU() {// technically U transposed
-		this.U = PrincipalComponentsCompute.getPCs(principalComponentsCompute, numComponents, log);
+		this.U = PrincipalComponentsCompute.getPCs(principalComponentsCompute, numComponents, verbose, log);
 	}
 
 	private void extractW() {
