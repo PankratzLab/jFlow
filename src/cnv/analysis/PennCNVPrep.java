@@ -77,6 +77,7 @@ public class PennCNVPrep {
 			// TODO, if we have more than 6 threads we could probably do that here
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			MarkerData markerDataToStore = null;
+
 			PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(principalComponentsResiduals, markerData, true, sampleSex, samplesToUseCluster, 1, 0, null, true, svdRegression, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numCorrectionThreads, false, null);
 			markerDataLoader.releaseIndex(i);
 			principalComponentsIntensity.correctXYAt(numComponents);
@@ -432,6 +433,8 @@ public class PennCNVPrep {
 		if (exportToPennCNV) {
 			boolean[] exportThese = new boolean[proj.getSamples().length];
 			Arrays.fill(exportThese, true);
+			// TODO, samples for Clustering!
+
 			PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, exportThese, null, null, null, numComponents, dir, svdRegression, numThreads);
 			String[] sortedFileNames = getSortedFileNames(proj, dir);
 			if (sortedFileNames == null || sortedFileNames.length == 0) {
