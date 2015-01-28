@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import seq.analysis.ANNOVAR.AnnovarResults;
 import seq.analysis.SNPEFF.SnpEffResult;
 import common.Array;
 import common.Files;
@@ -22,6 +23,7 @@ public class GATK_Genotyper {
 	public static final String SPACE = " ";
 	private GATK gatk;
 	private SNPEFF snpeff;
+	private ANNOVAR annovar;
 	private SNPSIFT snpsift;
 	private GATK.SingleSampleHaplotypeCaller[] siSampleHaplotypeCallers;
 	private boolean fail, verbose;
@@ -29,7 +31,7 @@ public class GATK_Genotyper {
 	private int numWithinSampleThreads;
 	private Logger log;
 
-	public GATK_Genotyper(GATK gatk, SNPEFF snpeff, SNPSIFT snpsift, int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose, Logger log) {
+	public GATK_Genotyper(GATK gatk, SNPEFF snpeff, SNPSIFT snpsift, ANNOVAR annovar, int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose, Logger log) {
 		super();
 		this.gatk = gatk;
 		this.snpeff = snpeff;
@@ -59,6 +61,10 @@ public class GATK_Genotyper {
 		return snpeff;
 	}
 
+	public ANNOVAR getAnnovar() {
+		return annovar;
+	}
+
 	public boolean runJointGenotyping(JointGATKGenotyper jGatkGenotyper) {
 		boolean progress = !jGatkGenotyper.isFail();
 		if (progress) {
@@ -77,8 +83,9 @@ public class GATK_Genotyper {
 	}
 
 	public void annotateVCF(String inputVCF, String build) {
-		if (!fail && !snpeff.isFail()) {
-			SnpEffResult snpEffResult = snpeff.annotateAVCF(inputVCF, build);
+		if (!fail && !snpeff.isFail() && !annovar.isFail()) {
+			AnnovarResults annovarResults = annovar.AnnovarAVCF(inputVCF, build, log);
+			SnpEffResult snpEffResult = snpeff.annotateAVCF(annovarResults.getOutputVCF(), build);
 			gatk.annotateAVcfWithSnpEFF(snpEffResult, true);
 			if (!snpEffResult.isFail()) {
 				snpsift.annotateDbnsfp(snpEffResult.getOutputGatkSnpEffVCF(), log);
@@ -86,13 +93,14 @@ public class GATK_Genotyper {
 		}
 	}
 
-	public void determineTsTV(String inputVCF) {
-		snpsift.tsTv(inputVCF, log);
+	public boolean determineTsTV(String inputVCF) {
+		return !snpsift.tsTv(inputVCF, log).isFail();
 	}
 
 	public void batch(JointGATKGenotyper jointGATKGenotyper, String rootOutputDir, boolean annotate, int memoryInMB, int wallTimeInHours, String baseName) {
 		// TODO, change classpath
-		String command = "module load R\nmodule load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_Genotyper ";
+		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
+		command += "\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_Genotyper ";
 		command += GATK_LanePrep.ROOT_INPUT_COMMAND + jointGATKGenotyper.getRootInputDir() + SPACE;
 		command += GATK_LanePrep.ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
 		command += GATK_LanePrep.REFERENCE_GENOME_COMMAND + gatk.getReferenceGenomeFasta() + SPACE;
@@ -111,6 +119,7 @@ public class GATK_Genotyper {
 		if (annotate) {
 			command += SNPEFF.SNP_EFF_COMMAND + snpeff.getSnpEffLocation() + SPACE;
 			command += SNPSIFT.SNP_SIFT_LOCATION_COMMAND + snpsift.getSnpSiftLocation() + SPACE;
+			command += ANNOVAR.ANNOVAR_COMMAND + annovar.getAnnovarLocation() + SPACE;
 		} else {
 			command += SNPEFF.SNP_EFF_NO_ANNO_COMMAND;
 		}
@@ -346,7 +355,7 @@ public class GATK_Genotyper {
 
 	}
 
-	public static void jointGenotype(String rootInputDir, String rootOutputDir, String output, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annoBuild, boolean verbose, boolean overwriteExisting, boolean batch, boolean annotate, int numThreads, int memoryInMB, int wallTimeInHours, Logger log) {
+	public static void jointGenotype(String rootInputDir, String rootOutputDir, String output, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, boolean batch, boolean annotate, int numThreads, int memoryInMB, int wallTimeInHours, Logger log) {
 		GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
 		gatk.setDbSnpTraining(dbSnpTraining);
 		gatk.setHapMapTraining(hapMapTraining);
@@ -355,7 +364,8 @@ public class GATK_Genotyper {
 		gatk.setMillsIndelTraining(millsIndelTraining);
 		SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
 		SNPSIFT snpsift = new SNPSIFT(snpSiftLocation, verbose, overwriteExisting, log);
-		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, 0, numThreads, verbose, log);
+		ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
+		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, numThreads, verbose, log);
 		JointGATKGenotyper jGatkGenotyper = new JointGATKGenotyper(rootInputDir, rootOutputDir, output, log);
 		jGatkGenotyper.init(fileOfGVCFs);
 		new File(rootOutputDir).mkdirs();
@@ -366,8 +376,8 @@ public class GATK_Genotyper {
 			if (progress) {
 				progress = genotyper.runRecalibration(jGatkGenotyper);
 				if (progress) {
-					genotyper.determineTsTV(jGatkGenotyper.getRecalSNP_Indel_VCF_File());
-					if (annotate) {
+					progress = genotyper.determineTsTV(jGatkGenotyper.getRecalSNP_Indel_VCF_File());
+					if (progress && annotate) {
 						genotyper.annotateVCF(jGatkGenotyper.getRecalSNP_Indel_VCF_File(), annoBuild);
 					}
 				}
@@ -406,6 +416,7 @@ public class GATK_Genotyper {
 		String millsIndelTraining = null;
 		String snpEffLocation = PSF.Ext.BLANK;
 		String snpSiftLocation = PSF.Ext.BLANK;
+		String annovarLocation = PSF.Ext.BLANK;
 
 		String annoBuild = SNPEFF.BUILDS[0];
 		boolean annotate = true;
@@ -434,7 +445,8 @@ public class GATK_Genotyper {
 		usage += "   (17) full path to the SNP EFF directory (i.e. " + SNPEFF.SNP_EFF_COMMAND + " ( no default))\n" + "";
 		usage += "   (18) the build version for SNP EFF annotation (options are " + Array.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND + annoBuild + " ( default))\n" + "";
 		usage += "   (19) full path to the SNP SIFT directory (only if different from the SNP EFF directory) (i.e. " + SNPSIFT.SNP_SIFT_LOCATION_COMMAND + " ( no default))\n" + "";
-		usage += "   (20) do not annotate with SNP EFF/SIFT (i.e. " + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
+		usage += "   (20) do not annotate with SNP EFF/SIFT/ANNOVAR (i.e. " + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
+		usage += "   (21) full path to the ANNOVAR directory (i.e. " + ANNOVAR.ANNOVAR_COMMAND + " ( no default))\n" + "";
 
 		// usage += "   (18) log file name (i.e. " + MILLS + " ( no default))\n" + "";
 
@@ -506,6 +518,9 @@ public class GATK_Genotyper {
 			} else if (args[i].startsWith(OUTPUT_COMMAND)) {
 				output = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith(ANNOVAR.ANNOVAR_COMMAND)) {
+				annovarLocation = ext.parseStringArg(args[i], "");
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -518,6 +533,6 @@ public class GATK_Genotyper {
 		if (snpSiftLocation.equals(PSF.Ext.BLANK)) {
 			snpSiftLocation = snpEffLocation;
 		}
-		jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation, snpSiftLocation, annoBuild, verbose, overwriteExisting, batch, annotate, numThreads, memoryInMB, wallTimeInHours, log);
+		jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, verbose, overwriteExisting, batch, annotate, numThreads, memoryInMB, wallTimeInHours, log);
 	}
 }
