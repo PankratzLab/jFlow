@@ -54,8 +54,11 @@ public class LRRBDevHetOutlierClassifier {
 			public boolean testIndiv(PopulationData popData, IndividualDatum indivDatum) {
 				double sdCntBDev = (indivDatum.dataBDev - popData.meanBDev) / popData.stdDevBDev;
 				double sdCntLRR = (indivDatum.dataLRR - popData.meanLRR) / popData.stdDevLRR;
-//				System.out.println("Scr_BD: " + sdCntBDev + " ;; Scr_LRR: " + sdCntLRR);
-				return false;
+				// 4.0 derived through examination of results from other measures - outliers classified by other measures all exceed 4.0 on this test. 
+				return sdCntBDev > 4.0 || sdCntLRR > 4.0 || sdCntBDev < -4.0 || sdCntLRR < -4.0;
+			}
+			public int getMethodID() {
+				return 1;
 			}
 		},
 		/**
@@ -63,11 +66,15 @@ public class LRRBDevHetOutlierClassifier {
 		 */
 		PT_1_TEST() {
 			public boolean testIndiv(PopulationData popData, IndividualDatum indivDatum) {
+//				System.out.print("\t" + indivDatum.id + "\t");
 				if (indivDatum.dataBDev >= 0.1
 						&& (indivDatum.dataLRR >= 0.1 || indivDatum.dataLRR <= -0.1)) {
 					return true;
 				}
 				return false;
+			}
+			public int getMethodID() {
+				return 2;
 			}
 		},
 		/**
@@ -84,6 +91,9 @@ public class LRRBDevHetOutlierClassifier {
 				}
 				return false;
 			}
+			public int getMethodID() {
+				return 3;
+			}
 		},
 		/**
 		 * Test if BDev exceeds 0.1 and LRR is exceeds more than 2 SD's from the mean
@@ -96,9 +106,13 @@ public class LRRBDevHetOutlierClassifier {
 				}
 				return false;
 			}
+			public int getMethodID() {
+				return 4;
+			}
 		};
 		
 		abstract boolean testIndiv(PopulationData popData, IndividualDatum indivDatum);
+		abstract int getMethodID();
 	}
 	
 	public LRRBDevHetOutlierClassifier(String file) {
@@ -110,6 +124,7 @@ public class LRRBDevHetOutlierClassifier {
 	PopulationData populationData;
 	private ArrayList<String> indivList;
 	private ArrayList<String> outlierList;
+	private HashMap<String, Integer> scoringMap;
 	private HashSet<String> excludeList;
 	
 	private LRRBDevHetOutlierClassifier loadExcluded(String file, boolean project) {
@@ -175,14 +190,18 @@ public class LRRBDevHetOutlierClassifier {
 	private LRRBDevHetOutlierClassifier filterPotentialOutliers() {
 		indivList = new ArrayList<String>();
 		outlierList = new ArrayList<String>();
+		scoringMap = new HashMap<String, Integer>();
 		
 		outer: for (java.util.Map.Entry<String, IndividualDatum> entry : dataMap.entrySet()) {
 			for (OutlierTest test : OutlierTest.values()) {
 				if (test.testIndiv(populationData, entry.getValue())) {
 					outlierList.add(entry.getKey());
+					scoringMap.put(entry.getKey(), test.getMethodID());
+//					System.out.println("\t" + entry.getValue().id + "\t1"); 
 					continue outer;
 				}
 			}
+//			System.out.println();
 			indivList.add(entry.getKey());
 		}
 		
@@ -197,7 +216,7 @@ public class LRRBDevHetOutlierClassifier {
 		writer.println("ID\tOutlier");
 		for (String outlier : outlierList) {
 			writer.print(outlier);
-			writer.println("\t1");
+			writer.println("\t" + scoringMap.get(outlier));
 		}
 		for (String outlier : indivList) {
 			writer.print(outlier);

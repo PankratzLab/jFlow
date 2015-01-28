@@ -23,13 +23,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
 	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-			   									  new Color(189, 243, 61), // light green
 			   									  new Color(201, 30, 10), // deep red
+			   									  new Color(94, 88, 214).brighter(), // light purple
+			   									  new Color(189, 243, 61), // light green
 			   									  new Color(23, 58, 172), // dark blue
 			   									  new Color(140, 20, 180), // deep purple
 			   									  new Color(33, 87, 0), // dark green
 			   									  new Color(55, 129, 252), // light blue
-			   									  new Color(94, 88, 214), // light purple
 			   									  new Color(217, 109, 194), // pink
 			   									new Color(0, 0, 128), // ALL KINDS OF BLUES
 			   									new Color(100, 149, 237),
