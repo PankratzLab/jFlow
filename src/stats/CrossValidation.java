@@ -9,7 +9,7 @@ import common.Logger;
 public class CrossValidation {
 
 	private double Rsquare, SSerr, avgSEofBs, fullModelR2, fullModelSSerr;
-	private double[] SEofBs;
+	private double[] SEofBs, stats;
 	private double[] train_deps;
 	private double[][] train_indeps;
 	private double[] val_deps;
@@ -63,7 +63,7 @@ public class CrossValidation {
 				log.reportError("Error - currently can only handle linear cross-validations, I think");
 				analysisFailed = true;
 			} else {
-				this.model = (RegressionModel) new LeastSquares(train_deps, train_indeps, null, false, true, svdRegression);
+				this.model = (RegressionModel) new LeastSquares(train_deps, train_indeps, null, false, verbose, svdRegression);
 			}
 			if (model.analysisFailed()) {
 				analysisFailed = true;
@@ -73,6 +73,7 @@ public class CrossValidation {
 				this.SEofBs = model.getSEofBs();
 				this.avgSEofBs = Array.mean(SEofBs);
 				Rsquare = model.getRsquare();
+				this.stats = model.getStats();
 
 			}
 		} else {
@@ -230,6 +231,10 @@ public class CrossValidation {
 
 	public void setAnalysisFailed(boolean analysisFailed) {
 		this.analysisFailed = analysisFailed;
+	}
+
+	public double[] getStats() {
+		return stats;
 	}
 
 	/**

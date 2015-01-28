@@ -73,7 +73,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private int[] processTracker;
 	private boolean[] transChrs;
 	private boolean recomputeLRR, correctXY, correctLRR;
-	// , homozygousOnly;
+	private boolean homozygousOnly;
 
 	private JProgressBar progressBar;
 
@@ -128,6 +128,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		this.recomputeLRR = recomputeLRR;
 		this.correctLRR = correctLRR;
 		this.correctXY = correctXY;
+		this.homozygousOnly = homozygousOnly;// only valid for marker-based approaches
 
 		// this.cnvFile =proj.getProperty(key)
 
@@ -299,7 +300,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(Project.INTENSITY_PC_FILENAME), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
 				samplesToUse = proj.getSamplesToInclude(null);
 				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + " for correction clustering");
+				proj.getLog().reportTimeInfo("Correcting with " + proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS) + " components");
 			}
+
 		}
 		regionMarkers = markerRegion.returnMarkers();
 		sampleLrrs = new float[regionMarkers.length][samples.length];
@@ -312,7 +315,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 		cnv.qc.CNVBMAF.PoplulationBAFs pDeviation = new cnv.qc.CNVBMAF.PoplulationBAFs(samples.length, CNVBDeviation.DEFAULT_INTENSITY_ONLY_FLAGS, CNVBDeviation.DEFAULT_GC_THRESHOLD);
 		for (int i = 0; i < regionMarkers.length; i++) {
-			if (i % 10 == 0) {
+			if (i % 10 == 0||correctXY) {
 				newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName() + " (" + (i) + " of " + regionMarkers.length + ")"));
 			}
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
@@ -327,7 +330,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			float[] bafs = markerData.getBAFs();
 			float[] gcs = markerData.getGCs();
 			byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, regionMarkers[i], 0);
-
+ 
 			if (recomputeLRR || correctLRR || correctXY) {
 				int numThreads = Integer.parseInt(proj.getProperty(Project.NUM_THREADS));
 				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, clusterFilterCollection, true, false, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
@@ -354,6 +357,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 					String Error = "Error - could not correct Log R Ratios for " + markerData.getMarkerName();
 					computelog.reportError(Error);
 					warnAndCancel(Error);
+				}
+			}
+			if (homozygousOnly) {
+				for (int j = 0; j < genotypes.length; j++) {
+					if (genotypes[j] != 0 && genotypes[j] != 2) {
+						lrrs[j] = Float.NaN;// will no longer be included in the median
+					}
 				}
 			}
 			markerDataLoader.releaseIndex(i);

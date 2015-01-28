@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.PSF;
 import common.ext;
 
 /**
@@ -311,7 +312,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 			Files.writeList(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
 		}
 		// TODO, change classpath
-		String command = "module load samtools\nmodule load R\nmodule load java\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_LanePrep " + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
+		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
+		command += "\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_LanePrep " + ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND + getRootOutputDir() + SPACE;
 		command += REFERENCE_GENOME_COMMAND + getReferenceGenomeFasta() + SPACE + BWA_LOCATION_COMMAND + getBwa().getBwaLocation() + SPACE;
 		command += NUM_BETWEEN_THREADS_COMMAND + getnumBetweenSampleThreads() + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + getnumWithinSampleThreads() + SPACE;
 		command += MergeBam.SAMTOOLS_COMMAND + getMergeBam().getSamtoolsLocation() + SPACE;
@@ -464,11 +466,12 @@ public class GATK_LanePrep extends BWA_Analysis {
 	}
 
 	private static GATK.BaseRecalibration[][] getCalibrationsToMerge(GATK.BaseRecalibration[] gRecalibrations, MergeBam mergeBam, Logger log) {
-		log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited fields of the input fastaq files, and barcodes are the third");
+		//log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited fields of the input fastaq files, and barcodes are the third");
 		Hashtable<String, ArrayList<GATK.BaseRecalibration>> track = new Hashtable<String, ArrayList<GATK.BaseRecalibration>>();
 		ArrayList<String> unique = new ArrayList<String>();
 		for (int i = 0; i < gRecalibrations.length; i++) {
 			String baseId = parseBaseId(gRecalibrations[i].getBaseId());
+		
 			if (!track.containsKey(baseId)) {
 				track.put(baseId, new ArrayList<GATK.BaseRecalibration>());
 				unique.add(baseId);
@@ -507,11 +510,17 @@ public class GATK_LanePrep extends BWA_Analysis {
 				}
 			}
 		}
+		
 		return calibrationsToMerge;
 	}
 
 	private static String parseBaseId(String baseId) {
-		return Array.toStr(Array.subArray(baseId.split(FileNameParser.SPLIT), 0, 2));
+		int len = baseId.split(FileNameParser.SPLIT).length;
+		if (len < 3) {
+			return baseId;
+		} else {
+			return Array.toStr(Array.subArray(baseId.split(FileNameParser.SPLIT), 0, 2));
+		}
 	}
 
 	private static String[] getInputFilesFrom(GATK.BaseRecalibration[] gRecalibrations) {

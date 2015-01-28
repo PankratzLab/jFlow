@@ -271,7 +271,7 @@ public class LeastSquares extends RegressionModel {
 			if (!svdRegression) {
 				linregr();
 			} else {
-				SVDRegression svdRegress = new SVDRegression(deps, indeps, log);
+				SVDRegression svdRegress = new SVDRegression(deps, indeps, verbose, log);
 				svdRegress.svdRegression();
 				betas = svdRegress.getBetas();
 				invP = svdRegress.getInvP_Diagonal_Equivalent();// Warning! this is not a full invP matrix, only the diagonal elements are computed
@@ -423,4 +423,6 @@ public class LeastSquares extends RegressionModel {
 		Y = null;
 		invP = null;
 	}
+	
+	
 }

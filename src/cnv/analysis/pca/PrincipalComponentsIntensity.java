@@ -49,7 +49,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private boolean[][] genoSampleClusters;// genotype, sample
 	private boolean[] forceThisCluster;
 
-	public PrincipalComponentsIntensity(PrincipalComponentsResiduals principalComponentsResiduals, MarkerData markerData, boolean recomputeLRR, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean svdRegression, int correctionMethod, int nStage, double residStandardDeviationFilter, double correctionRatio, int numThreads, boolean verbose, String output) {
+	public PrincipalComponentsIntensity(final PrincipalComponentsResiduals principalComponentsResiduals, final MarkerData markerData, boolean recomputeLRR, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean svdRegression, int correctionMethod, int nStage, double residStandardDeviationFilter, double correctionRatio, int numThreads, boolean verbose, String output) {
 		super(principalComponentsResiduals);// we hijack the loading of the PC file and tracking of samples etc ...
 		this.samples = proj.getSamples();
 		this.svdRegression = svdRegression;

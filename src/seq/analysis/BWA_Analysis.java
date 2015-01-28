@@ -337,7 +337,7 @@ public class BWA_Analysis {
 			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.fail = false;
 			this.log = log;
-			this.output = outputDir + ID + OUTPUT_SEP + Lane + OUTPUT_SEP + library + SAM_EXT;
+			this.output = outputDir + ID + OUTPUT_SEP + barcode + OUTPUT_SEP + Lane + OUTPUT_SEP + library + SAM_EXT;
 			this.success = false;
 		}
 
@@ -377,8 +377,6 @@ public class BWA_Analysis {
 			RG += "\\tSM:" + ID;// unique for sample
 			RG += "\\tPL:ILLUMINA";// not used, currently TODO
 			RG += "\\tLB:" + library;// library prep, I think this is correct TODO
-			RG += "\\tPU:" + barcode;
-			RG += "\\tCN:UMGC";
 			RG += "\"";
 			return RG;
 		}

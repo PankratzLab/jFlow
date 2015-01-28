@@ -1,8 +1,13 @@
 package stats;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
 import common.Array;
+import common.HashVec;
 import common.Logger;
 import common.Sort;
+import common.ext;
 
 /**
  * Class to compute quantiles of a data set, and facilitates quantile designation http://en.wikipedia.org/wiki/Quantile
@@ -13,6 +18,7 @@ public class Quantiles {
 	private double[] qs;
 	private double[] quantileMembership;
 	private double[] quantiles;
+	private String title;
 	private Logger log;
 
 	public Quantiles(double[] data, int numQs, Logger log) {
@@ -27,10 +33,20 @@ public class Quantiles {
 		this.log = log;
 		this.quantiles = Array.quants(Array.removeNaN(data), qs);
 		this.quantileMembership = determineQuantileMembership(data, quantiles, qs, log);
+		this.title = "Quantile";
+
 	}
 
 	public Logger getLog() {
 		return log;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public double[] getQs() {
@@ -98,4 +114,96 @@ public class Quantiles {
 		}
 	}
 
+	public static Quantiles[] qetQuantilesFor(int numQ, double[][] variableDominantMatrix, String[] variableTitles, Logger log) {
+		if (variableTitles != null && variableTitles.length != variableDominantMatrix.length) {
+			log.reportTimeError("titles must be the same length as the data matrix");
+			return null;
+		}
+
+		Quantiles[] quantiles = new Quantiles[variableDominantMatrix.length];
+		for (int i = 0; i < quantiles.length; i++) {
+			quantiles[i] = new Quantiles(variableDominantMatrix[i], numQ, log);
+			quantiles[i].setTitle(variableTitles[i]);
+		}
+		return quantiles;
+	}
+
+	public static Quantiles[] qetQuantilesFor(int[] numQs, double[] variableDominant, String variableTitle, Logger log) {
+		Quantiles[] quantiles = new Quantiles[numQs.length];
+		for (int i = 0; i < numQs.length; i++) {
+			quantiles[i] = new Quantiles(variableDominant, numQs[i], log);
+			if (variableDominant != null) {
+				quantiles[i].setTitle(variableTitle);
+			}
+		}
+		return quantiles;
+	}
+
+	public static void developQuantiles(String fileName, int[] toQuantileColumns, int numQ, Logger log) {
+
+		String[][] toQ = HashVec.loadFileToStringMatrix(fileName, false, null, false);// sample,data
+		double[][] qData = new double[toQuantileColumns.length][toQ.length];
+		for (int i = 0; i < toQ.length; i++) {// for sample
+			for (int j = 0; j < toQuantileColumns.length; j++) {// for type
+				qData[j][i] = Double.parseDouble(toQ[i][toQuantileColumns[j]]);
+			}
+		}
+		// System.out.println(qData[0].length + "\t" + qData.length);
+		int[][] memberships = new int[toQuantileColumns.length][];
+		for (int i = 0; i < qData.length; i++) {
+			double[] curData = qData[i];
+			Quantiles quantiles = new Quantiles(curData, numQ, log);
+			memberships[i] = quantiles.getQuantileMembershipAsRoundedInt();
+			// System.out.println(Array.toStr(quantiles.getQuantiles()) + "\n" + Array.toStr(qData[i]));
+
+		}
+		String output = ext.addToRoot(fileName, ".quant");
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			for (int i = 0; i < memberships[0].length; i++) {// for sample,
+				writer.print(Array.toStr(toQ[i]));
+				for (int j = 0; j < memberships.length; j++) {
+					writer.print("\t" + memberships[j][i]);
+				}
+				writer.println();
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + output);
+			log.reportException(e);
+		}
+
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String filename = "D:/data/LLFS_GWAS/QPCR_MITO/QPCR_quantiles.txt";
+	//	String logfile = null;
+
+		developQuantiles(filename, new int[] { 1, 2 }, 10, new Logger());
+		String usage = "\n" + "stats.Quantiles requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				//logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
