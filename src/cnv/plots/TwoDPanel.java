@@ -79,7 +79,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		setOfKeys = new String[0][0];
 //		this.updateQcPanel = true;//zx
 		this.setAxisFontSize(24);
-		setColorScheme(DEFAULT_COLORS);
+//		setColorScheme(DEFAULT_COLORS);
 
 		// taken care of in AbstractPanel constructor
 //		addMouseListener(this);
