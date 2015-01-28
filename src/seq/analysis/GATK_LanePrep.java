@@ -459,19 +459,19 @@ public class GATK_LanePrep extends BWA_Analysis {
 			if (bamsToGenotype == null) {
 				log.reportError("Error - could not find any files to genotype, this should not happen");
 			} else {
-				GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, null, null, gLanePrep.getnumBetweenSampleThreads(), gLanePrep.getnumWithinSampleThreads(), verbose, log);
+				GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, null, null, null, gLanePrep.getnumBetweenSampleThreads(), gLanePrep.getnumWithinSampleThreads(), verbose, log);
 				gatk_Genotyper.runSingleSampleAllSites(bamsToGenotype);
 			}
 		}
 	}
 
 	private static GATK.BaseRecalibration[][] getCalibrationsToMerge(GATK.BaseRecalibration[] gRecalibrations, MergeBam mergeBam, Logger log) {
-		//log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited fields of the input fastaq files, and barcodes are the third");
+		// log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited fields of the input fastaq files, and barcodes are the third");
 		Hashtable<String, ArrayList<GATK.BaseRecalibration>> track = new Hashtable<String, ArrayList<GATK.BaseRecalibration>>();
 		ArrayList<String> unique = new ArrayList<String>();
 		for (int i = 0; i < gRecalibrations.length; i++) {
 			String baseId = parseBaseId(gRecalibrations[i].getBaseId());
-		
+
 			if (!track.containsKey(baseId)) {
 				track.put(baseId, new ArrayList<GATK.BaseRecalibration>());
 				unique.add(baseId);
@@ -510,7 +510,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 				}
 			}
 		}
-		
+
 		return calibrationsToMerge;
 	}
 

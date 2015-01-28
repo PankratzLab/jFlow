@@ -69,6 +69,9 @@ public class PSF {
 		public static final String echoAString(String toEcho) {
 			return ECHO + "\"" + toEcho + "\"";
 		}
+		
+		public static final String PERL = "perl";
+
 	}
 
 	/**
