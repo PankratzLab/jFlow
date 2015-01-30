@@ -212,7 +212,7 @@ public class PrincipalComponentsValidate {
 	}
 
 	/**
-	 * We remove individuals contained in toExclude from toFilter by changing the basis and median arrays.
+	 * We remove  individuals contained in toExclude from toFilter by changing the basis and median arrays.
 	 */
 	private static PrincipalComponentsResiduals filterExclude(PrincipalComponentsResiduals toExclude, PrincipalComponentsResiduals toFilter, Logger log) {
 		String[] toFilterInds = Collections.list(toFilter.getSamplesInPc().keys()).toArray(new String[toFilter.getSamplesInPc().size()]);
