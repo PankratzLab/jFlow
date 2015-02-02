@@ -917,7 +917,7 @@ public class SkatMeta {
 			}
 		}
 
-		if (snpInfoDirFilenameTemplate != null) {
+		if (snpInfoDirFilenameTemplate != null && (snpInfoDirFilenameTemplate.endsWith(".csv") || snpInfoDirFilenameTemplate.endsWith(".xln") || snpInfoDirFilenameTemplate.endsWith(".csv.gz") || snpInfoDirFilenameTemplate.endsWith(".xln.gz"))) {
 			if (chromosomes == null) {
 				if (snpInfoDirFilenameTemplate != null && snpInfoDirFilenameTemplate.contains(FILENAME_CHROMOSOME_SEGMENT)) {
 					chromosomes = new String[] {"1", "2", "3", "4", "5", "6", "7", 	"8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y", "MT"};
@@ -951,6 +951,8 @@ public class SkatMeta {
 					e.printStackTrace();
 				}
 			}
+		} else {
+			log.report("Warning - Snp Info File is not available for the summarize result process: " + snpInfoDirFilenameTemplate);
 		}
 
 		if (notYetFound.size() > 0) {
@@ -2176,6 +2178,7 @@ public class SkatMeta {
 		int currentCondition, startCondition = 1;
 		String condFileDirAndNameTemplateAfterPhenoFilled, phenoDirAndNameTemplateAfterPhenoFilled, snpInfoFile = null, resultFile, resultsDir, condFile, allEthnics;
 		String[] fromPreConditionResults;
+		boolean isInitialConditionReady;
 
 		if (! previousResultFileDirFileameTemplate.contains(FILENAME_CONDITION_SEGMENT)) {
 			log.reportError("Error - result file name template does not contain a condition segment: " + previousResultFileDirFileameTemplate + "\nNote: even the existing file(s) do not have condition segment, please still specify the segment in the file name template for next rounds' files.");
@@ -2184,6 +2187,8 @@ public class SkatMeta {
 		allEthnics = Array.toStr(ethnics, "");
 
 		for (int i = 0; i < phenos.length; i++) {
+			log.report("Processing pheno " + phenos[i]);
+			isInitialConditionReady = false;
 			phenoDirAndNameTemplateAfterPhenoFilled = phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]);
 			condFileDirAndNameTemplateAfterPhenoFilled = condFileDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]);
 			resultsDir = previousResultFileDirFileameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]);
@@ -2199,7 +2204,12 @@ public class SkatMeta {
 						fromPreConditionResults = getFirstCondition(resultFile, new String[] {"SingleVariant", "Chr", "Position"}, new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001", "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"}, regionSearchDistance, log);
 						if (fromPreConditionResults != null) {
 							Files.writeList(fromPreConditionResults, condFile);
+							isInitialConditionReady = true;
+							log.report("No existing initial condition found. Has developed new initial condition from:\n  " + resultFile);
 						}
+					} else {
+						log.report("Found existing initial condition and will skip developing new initial condition:\n  " + condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
+						isInitialConditionReady = true;
 					}
 				}
 			} else {
@@ -2208,24 +2218,36 @@ public class SkatMeta {
 					fromPreConditionResults = getFirstCondition(resultFile, new String[] {"SingleVariant", "Chr", "Position"}, new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001", "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"}, regionSearchDistance, log);
 					if (fromPreConditionResults != null) {
 						Files.writeList(fromPreConditionResults, condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
+						isInitialConditionReady = true;
+						log.report("No existing initial condition found. Has developed new initial condition from:\n  " + resultFile);
 					}
+				} else {
+					log.report("Found existing initial condition and will skip developing new initial condition:\n  " + condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
+					isInitialConditionReady = true;
 				}
 			}
-			startCondition = 1;
 
-			if (condFileDirFilenameTemplate.contains(FILENAME_ETHNIC_SEGMENT)) {
-				for (int j = 0; j < ethnics.length; j++) {
-					condFileDirAndNameTemplateAfterPhenoFilled = condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]);
+			if (isInitialConditionReady) {
+				startCondition = 1;
+	
+				if (condFileDirFilenameTemplate.contains(FILENAME_ETHNIC_SEGMENT)) {
+					for (int j = 0; j < ethnics.length; j++) {
+						condFileDirAndNameTemplateAfterPhenoFilled = condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]);
+						currentCondition = startCondition;
+						while (runConditionalAnalysisWholeProcessOfOnePheno(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition + ""), phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]), genoDirFileameTemplate, snpInfoDirFilenameTemplate, new String[] {ethnics[j]}, rScriptDir, resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition), rcommand, pThresholdHigher, condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + (currentCondition + 1)), log)) {
+							log.report("Finished condition " + currentCondition);
+							currentCondition ++;
+						}
+					}
+				} else {
 					currentCondition = startCondition;
-					while (runConditionalAnalysisWholeProcessOfOnePheno(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition + ""), phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]), genoDirFileameTemplate, snpInfoDirFilenameTemplate, new String[] {ethnics[j]}, rScriptDir, resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition), rcommand, pThresholdHigher, condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + (currentCondition + 1)), log)) {
+					while (runConditionalAnalysisWholeProcessOfOnePheno(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition + ""), phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]), genoDirFileameTemplate, snpInfoDirFilenameTemplate, ethnics, rScriptDir, resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition), rcommand, pThresholdHigher, condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + (currentCondition + 1)), log)) {
+						log.report("Finished condition " + currentCondition);
 						currentCondition ++;
 					}
 				}
 			} else {
-				currentCondition = startCondition;
-				while (runConditionalAnalysisWholeProcessOfOnePheno(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition + ""), phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]), genoDirFileameTemplate, snpInfoDirFilenameTemplate, ethnics, rScriptDir, resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition), rcommand, pThresholdHigher, condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + (currentCondition + 1)), log)) {
-					currentCondition ++;
-				}
+				log.reportError("Error - No input is available to initialize conditional alaysis for pheno " + phenos[i] + ". Need either one of the following files:\n  " + resultFile.replaceAll("_" + FILENAME_ETHNIC_SEGMENT, "") + "\n  " + condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
 			}
 		}
 
@@ -2582,7 +2604,7 @@ public class SkatMeta {
 									CmdLine.run(rcommand + " " + rScriptFile, rScriptDir);
 	
 									if (! new File(resultFiles[j][0]).exists()) {
-										log.report("Warning - Potential failure of R. The following R output is not found and will be ignored:\n" + resultFiles[j][0] + "\nCheck the following R script for detail:\n" + rScriptFile);
+										log.report("Warning - Potential failure of R. The following R output is not found and will be ignored:\n  " + resultFiles[j][0] + "\nCheck the following R script for detail:\n  " + rScriptFile);
 										resultFiles[j][0] = null;
 									} else {
 										isAllRDataFilesForTheChromosomeMissing = false;
@@ -2646,7 +2668,7 @@ public class SkatMeta {
 				result = true;
 			}
 		} else {
-			log.reportError("Error - Potential failure of the merging of R outputs of different chromosomes. The following file is not found:\n" + resultFileForNextCond);
+			log.reportError("Warning - Potential failure of the merging of R outputs of different chromosomes. The following file is not found and will be ignored:\n  " + resultFileForNextCond);
 		}
 
 		return result;
@@ -3260,6 +3282,10 @@ public class SkatMeta {
 
 		if (log == null) {
 			log = new Logger();
+		}
+		if (! new File(resultFullPath).exists()) {
+			log.reportError("Error - the following file does not exist:\n  " + resultFullPath);
+			return null;
 		}
 
 		regionToSnpWithMinP = new Hashtable <Integer, String>();
