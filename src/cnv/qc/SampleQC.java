@@ -17,6 +17,8 @@ import cnv.var.SampleData;
 
 /**
  * Class that automates adding sample QC metrics to sample data, and also parses the qc metrics to the desired quantile class
+ * <p>
+ * Currently requires that all samples are present
  *
  */
 public class SampleQC {
@@ -39,8 +41,23 @@ public class SampleQC {
 		return samples;
 	}
 
+	public String[] getQctitles() {
+		return qctitles;
+	}
+
 	public boolean verify() {
 		return numAdded == qctitles.length * samples.length;
+	}
+
+	public double[] getDataFor(String qctitle) {
+		int indexToExtract = ext.indexOfStr(qctitle, qctitles);
+		if (indexToExtract < 0) {
+			proj.getLog().reportTimeError("Invalid title " + qctitle + " returning null");
+			return null;
+		} else {
+			return qcMatrix[indexToExtract];
+		}
+
 	}
 
 	public void addToMatrix(String sample, int qcTitleIndex, double data) {
@@ -61,7 +78,7 @@ public class SampleQC {
 	}
 
 	public void addPCsToSampleData(int numQ, int numPCs, boolean justClasses) {
-		proj.getLog().reportTimeInfo("Adding "+numPCs+" to sample data");
+		proj.getLog().reportTimeInfo("Adding " + numPCs + " to sample data");
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		double[][] pcBasisSubset = new double[numPCs][];
 		String[] pcTitles = new String[numPCs];
@@ -140,6 +157,10 @@ public class SampleQC {
 		return fileSamples.length - Array.countIf(indices, -1) == projSamples.length;
 	}
 
+	public static SampleQC loadSampleQC(Project proj) {
+		return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS);
+	}
+
 	public static SampleQC loadSampleQC(Project proj, String sampleColumnName, String[] qcTitlesToLoad) {
 		String lrrSdToLoad = proj.getFilename(Project.SAMPLE_QC_FILENAME);
 		SampleQC sampleQC = null;
@@ -155,6 +176,8 @@ public class SampleQC {
 				int sampleColumn = ext.indexOfStr(sampleColumnName, header);
 				if (Array.countIf(indicesToLoad, -1) > 0 || sampleColumn < 0) {
 					proj.getLog().reportTimeError("Could not find all desired columns in qc file " + lrrSdToLoad);
+					proj.getLog().reportTimeError("Consider re-creating " + lrrSdToLoad + " if sample qc has been updated");
+
 				} else if (!verifyAllProjectSamples(proj, lrrSdToLoad, sampleColumn)) {
 					proj.getLog().reportTimeError("Could not find all of the projects samples in qc file " + lrrSdToLoad);
 				} else {
