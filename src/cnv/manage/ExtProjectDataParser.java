@@ -1,0 +1,444 @@
+package cnv.manage;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Arrays;
+
+import parse.TypedFileParser;
+import parse.TypedFileParser.TypedFileLine;
+import common.Array;
+import common.Files;
+import common.ext;
+import cnv.filesys.Project;
+
+/**
+ * Trying to have a single framework to load and match sample or marker data to a project from external files This has not been heavily tested, so please verify and test before use...
+ * 
+ *
+ */
+public class ExtProjectDataParser {
+	private static final String DEFUALT_SAMPLE_NAME_COLUMN = "DNA";
+	private static final int DEFUALT_SAMPLE_NAME_COLUMN_INDEX = 0;
+	private static final String DEFUALT_MISSING_STRING = ".";
+
+	// private static final String DEFUALT_MARKER_NAME_COLUMN = "marker";
+	// private static final int DEFUALT_MARKER_NAME_COLUMN_INDEX = 0;
+	private Project proj;
+	private TypedFileParser typedFileParser;
+	private double[][] numericData;
+	private String[][] stringData;
+	private String[] numericDataTitles, stringDataTitles;
+	private int dataKeyColumnIndex;
+	private String dataKeyColumnName;
+	private String[] dataToLoad;
+	private boolean[] dataPresent;
+	private boolean requireAll;
+	private boolean skipUnFound;
+	private boolean hasHeader;
+	private boolean treatAllNumeric;
+	private String fullPathToDataFile;
+	private String missingString;
+	private boolean sampleBased;
+
+	public void loadData() {
+		proj.getLog().reportTimeInfo("Attempting to load data from " + fullPathToDataFile);
+		if (treatAllNumeric) {
+			treatAllNumeric();
+		}
+		init();
+		try {
+			if (hasHeader) {
+				typedFileParser.readLine();
+			}
+			while (typedFileParser.ready()) {
+				TypedFileLine typedFileLine = typedFileParser.readTypedLine();
+				if (typedFileLine.isValidLine()) {
+					String samp = typedFileLine.getStringData()[0][0];
+					int dataIndex = ext.indexOfStr(samp, dataToLoad);
+
+					if (dataIndex < 0) {
+						if (skipUnFound) {
+							proj.getLog().reportTimeWarning("Did not find " + samp + " in project's samples, skipping");
+						} else {
+							proj.getLog().reportTimeError("Did not find " + samp + " in project's samples, halting");
+							typedFileParser.close();
+							return;
+						}
+					} else {
+						dataPresent[dataIndex] = true;
+						if (typedFileLine.hasNumericData() && numericData != null) {
+							for (int i = 0; i < numericData.length; i++) {
+								numericData[i][dataIndex] = typedFileLine.getNumericData()[0][i];
+							}
+
+						}
+						if (typedFileLine.hasStringData() && stringData != null) {
+							for (int i = 0; i < stringData.length; i++) {
+								stringData[i][dataIndex] = typedFileLine.getStringData()[1][i];// 0 is reserved for the samples
+							}
+						}
+					}
+				}
+			}
+			typedFileParser.close();
+			int dataLoaded = Array.booleanArraySum(dataPresent);
+			if (requireAll && dataLoaded != dataToLoad.length) {
+				proj.getLog().reportTimeError("All data were required to be present, but did not see all of them");
+				stringData = null;
+				numericData = null;
+			} else {
+				proj.getLog().reportTimeInfo("Loaded data for " + dataLoaded + " " + (sampleBased ? "sample(s)" : "marker(s)"));
+			}
+		} catch (IOException e) {
+			proj.getLog().reportTimeError("Error reading file " + fullPathToDataFile);
+			e.printStackTrace();
+		}
+
+	}
+
+	public boolean determineIndicesFromTitles() {
+		boolean determined = true;
+		if (hasHeader) {
+
+			String[] header = Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(), proj.getLog());
+			if (numericDataTitles == null && stringDataTitles == null) {
+				proj.getLog().reportTimeError("Must provide valid arrays to determine indices");
+				determined = false;
+			}
+			if (dataKeyColumnName == null) {
+				proj.getLog().reportTimeError("Must provide a data name column to determine indices");
+				determined = false;
+			}
+			determined = determineSampleIndex(determined, header);
+			if (determined && stringDataTitles != null) {
+				if (typedFileParser.getStringColumns() != null) {
+					proj.getLog().reportTimeWarning("String columns were already provided, skipping string column assignment");
+				} else {
+					int[] tmp = ext.indexFactors(stringDataTitles, header, true, false);
+					determined = Array.min(tmp) >= 0;
+					if (!determined) {
+						proj.getLog().reportTimeError("Could not find all string indices in header " + Array.toStr(header));
+					} else {
+						typedFileParser.setStringColumns(new int[][] { tmp });
+					}
+				}
+			}
+			if (determined && numericDataTitles != null) {
+				if (typedFileParser.getNumericColumns() != null) {
+					proj.getLog().reportTimeWarning("Numeric columns were already provided, skipping numeric column assignment");
+				} else {
+					int[] tmp = ext.indexFactors(numericDataTitles, header, true, false);
+					determined = Array.min(tmp) >= 0;
+					if (!determined) {
+						proj.getLog().reportTimeError("Could not find all numeric indices in header " + Array.toStr(header));
+					} else {
+						typedFileParser.setNumericColumns(new int[][] { tmp });
+					}
+				}
+
+			}
+		} else {
+			determined = false;
+			proj.getLog().reportTimeError("Header option must be flagged to use this method");
+		}
+		return determined;
+	}
+
+	public double[][] getNumericData() {
+		return numericData;
+	}
+
+	public String[][] getStringData() {
+		return stringData;
+	}
+
+	public String[] getNumericDataTitles() {
+		return numericDataTitles;
+	}
+
+	public String[] getStringDataTitles() {
+		return stringDataTitles;
+	}
+
+	private boolean determineSampleIndex(boolean determined, String[] header) {
+		if (determined && !dataKeyColumnName.equals(DEFUALT_SAMPLE_NAME_COLUMN)) {
+			dataKeyColumnIndex = ext.indexOfStr(dataKeyColumnName, header);
+			if (dataKeyColumnIndex < 0) {
+				proj.getLog().reportTimeError("Header must contain sample name column " + dataKeyColumnName);
+				determined = false;
+			}
+		}
+		return determined;
+	}
+
+	private void init() {
+		String[] header = Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(), proj.getLog());
+		this.dataToLoad = sampleBased ? proj.getSamples() : proj.getMarkerNames();
+		this.dataPresent = new boolean[dataToLoad.length];
+		Arrays.fill(dataPresent, false);
+
+		if (typedFileParser.getNumericColumns() != null && typedFileParser.getNumericColumns().length > 1) {
+			proj.getLog().reportTimeError("Currently this method only handles one dimensionional numeric extraction, even though its an int[][]");
+			return;
+		}
+		if (typedFileParser.getStringColumns() != null && typedFileParser.getStringColumns().length > 1) {
+			proj.getLog().reportTimeError("Currently this method only handles one dimensionional string extraction, even though its an int[][]");
+			return;
+		}
+
+		typedFileParser.addStringColumns(new int[] { dataKeyColumnIndex });// samples will be in first array position
+
+		if (typedFileParser.getNumericColumns() != null) {
+			this.numericData = new double[typedFileParser.getNumericColumns()[0].length][dataToLoad.length];
+			if (numericDataTitles == null) {
+				proj.getLog().reportTimeInfo("Numeric titles were not provided, assigning...");
+				if (hasHeader) {
+					numericDataTitles = Array.subArray(header, typedFileParser.getNumericColumns()[0]);
+				} else {
+					numericDataTitles = Array.toStringArray(typedFileParser.getNumericColumns()[0]);
+				}
+			}
+			for (int i = 0; i < numericData.length; i++) {
+				Arrays.fill(numericData[i], Double.NaN);
+			}
+		}
+		if (typedFileParser.getStringColumns() != null && typedFileParser.getStringColumns().length > 1) {// more than just the sample column we added above
+			this.stringData = new String[typedFileParser.getStringColumns()[1].length][dataToLoad.length];
+			if (stringDataTitles == null) {
+				proj.getLog().reportTimeInfo("String titles were not provided, assigning...");
+				if (hasHeader) {
+					stringDataTitles = Array.subArray(header, typedFileParser.getStringColumns()[1]);
+				} else {
+					stringDataTitles = Array.toStringArray(typedFileParser.getStringColumns()[1]);
+				}
+			}
+
+			for (int i = 0; i < stringData.length; i++) {
+				Arrays.fill(stringData[i], missingString);
+			}
+		}
+	}
+
+	private void treatAllNumeric() {
+		String[] header = Files.getHeaderOfFile(fullPathToDataFile, proj.getLog());
+		if (!hasHeader || determineSampleIndex(true, header)) {
+			proj.getLog().reportTimeInfo("Treating all columns besides index " + dataKeyColumnIndex + " (" + dataKeyColumnName + ") as numeric column(s)");
+			proj.getLog().reportTimeInfo("If data titles are present, they are assumed to be in order of the column header");
+
+			if (!hasHeader && numericDataTitles == null) {
+				proj.getLog().reportTimeInfo("Since no header or data titles are present, numeric titles will be the relative indices");
+			} else if (numericDataTitles != null && numericDataTitles.length != header.length - 1) {
+				proj.getLog().reportTimeError("The length of the data title (" + numericDataTitles.length + ") does not match the data in the file's length (" + (header.length - 1) + ")");
+				return;
+			}
+			int[] tmpNumeric = new int[header.length - 1];
+			String[] tmpString = new String[header.length - 1];
+			int index = 0;
+			for (int i = 0; i < header.length; i++) {
+				if (i != dataKeyColumnIndex) {
+					tmpNumeric[index] = i;
+					if (hasHeader && numericDataTitles == null) {
+						tmpString[index] = header[i];
+					} else if (numericDataTitles == null) {
+						tmpString[index] = "Data" + index;
+					} else {
+						tmpString[index] = numericDataTitles[index];
+					}
+					index++;
+				}
+			}
+			numericDataTitles = tmpString;
+			typedFileParser.setNumericColumns(new int[][] { tmpNumeric });
+			proj.getLog().reportTimeInfo("Using " + numericDataTitles.length + " numeric data columns");
+			if (numericDataTitles.length < 10) {
+				proj.getLog().reportTimeInfo("Data columns are: " + Array.toStr(numericDataTitles));
+
+			}
+		} else {
+			proj.getLog().reportTimeError("Could not determine proper sample column index for treating all data as numeric");
+		}
+	}
+
+	/**
+	 * Builder for {@link ExtProjectDataParser}: the default options should handle a file with a header containing DNA, and all other columns (with header) containing numeric data
+	 *
+	 */
+	public static class Builder {
+		TypedFileParser.Builder typeBuilder = new TypedFileParser.Builder();
+		private String[] numericDataTitles;
+		private String[] stringDataTitles;
+		private int dataKeyColumnIndex = DEFUALT_SAMPLE_NAME_COLUMN_INDEX;
+		private String dataKeyColumnName = DEFUALT_SAMPLE_NAME_COLUMN;
+		private String[] dataToLoad;
+		private boolean[] dataPresent;
+		private boolean requireAll = false;
+		private boolean skipUnFound = true;
+		private boolean hasHeader = true;
+		private boolean treatAllNumeric = true;
+		private String fullPathToDataFile;
+		private String missingString = DEFUALT_MISSING_STRING;
+		private boolean sampleBased = true;
+
+		/**
+		 * @param separator
+		 *            data separator for the file being loaded
+		 * @return
+		 */
+		public Builder separator(String separator) {
+			typeBuilder.separator(separator);
+			return this;
+		}
+
+		/**
+		 * 
+		 * @param numericDataIndices
+		 *            indices to extract for numeric data...all data goes to double[]
+		 * @return
+		 */
+		public Builder numericDataIndices(int[][] numericDataIndices) {
+			typeBuilder.numericDataIndices(numericDataIndices);
+			return this;
+		}
+
+		/**
+		 * @param stringDataIndices
+		 *            indices to extract for string data...
+		 * @return
+		 */
+		public Builder stringDataIndices(int[][] stringDataIndices) {
+			typeBuilder.stringDataIndices(stringDataIndices);
+			return this;
+		}
+
+		/**
+		 * @param numericDataTitles
+		 *            optional titles of the numeric data...usually if a header is not present
+		 * @return
+		 */
+		public Builder numericDataTitles(String[] numericDataTitles) {
+			this.numericDataTitles = numericDataTitles;
+			return this;
+		}
+
+		/**
+		 * @param numericDataTitles
+		 *            optional titles of the string data...usually if a header is not present
+		 * @return
+		 */
+		public Builder stringDataTitles(String[] stringDataTitles) {
+			this.stringDataTitles = stringDataTitles;
+			return this;
+		}
+
+		/**
+		 * @param dataKeyColumnIndex
+		 *            this column will be matched to either the projects samples or markers
+		 * @return
+		 */
+		public Builder dataKeyColumnIndex(int dataKeyColumnIndex) {
+			this.dataKeyColumnIndex = dataKeyColumnIndex;
+			return this;
+		}
+
+		/**
+		 * @param dataKeyColumnName
+		 *            name of the data to match column
+		 * @return
+		 */
+		public Builder dataKeyColumnName(String dataKeyColumnName) {
+			this.dataKeyColumnName = dataKeyColumnName;
+			return this;
+		}
+
+		/**
+		 * @param requireAll
+		 *            require all samples or markers to be present in the file
+		 * @return
+		 */
+		public Builder requireAll(boolean requireAll) {
+			this.requireAll = requireAll;
+			return this;
+		}
+
+		/**
+		 * @param skipUnFound
+		 *            if a sample or marker is not found, keep going and just skip it
+		 * @return
+		 */
+		public Builder skipUnFound(boolean skipUnFound) {
+			this.skipUnFound = skipUnFound;
+			return this;
+		}
+
+		/**
+		 * @param hasHeader
+		 *            the file has a header
+		 * @return
+		 */
+		public Builder hasHeader(boolean hasHeader) {
+			this.hasHeader = hasHeader;
+			return this;
+		}
+
+		/**
+		 * @param treatAllNumeric
+		 *            all columns will be treated as numeric except for the column to be matched
+		 * @return
+		 */
+		public Builder treatAllNumeric(boolean treatAllNumeric) {
+			this.treatAllNumeric = treatAllNumeric;
+			return this;
+		}
+
+		/**
+		 * @param missingString
+		 *            for string data, set strings to this if a sample/marker is not found in the data file
+		 * @return
+		 */
+		public Builder missingString(String missingString) {
+			this.missingString = missingString;
+			return this;
+		}
+
+		/**
+		 * @param sampleBased
+		 *            the file will be matched to samples
+		 * @return
+		 */
+		public Builder sampleBased(boolean sampleBased) {
+			this.sampleBased = sampleBased;
+			return this;
+		}
+
+		/**
+		 * Construct the parser with the options set by the builder
+		 * 
+		 * @param proj
+		 *            the project that will match the data
+		 * @param fullPathToDataFile
+		 *            data file to load
+		 * @return
+		 * @throws FileNotFoundException
+		 */
+		public ExtProjectDataParser build(Project proj, String fullPathToDataFile) throws FileNotFoundException {
+			return new ExtProjectDataParser(this, proj, typeBuilder, fullPathToDataFile);
+		}
+	}
+
+	private ExtProjectDataParser(Builder builder, Project proj, TypedFileParser.Builder typeBuilder, String fullPathToDataFile) throws FileNotFoundException {
+		this.numericDataTitles = builder.numericDataTitles;
+		this.stringDataTitles = builder.stringDataTitles;
+		this.dataKeyColumnIndex = builder.dataKeyColumnIndex;
+		this.dataKeyColumnName = builder.dataKeyColumnName;
+		this.dataToLoad = builder.dataToLoad;
+		this.dataPresent = builder.dataPresent;
+		this.requireAll = builder.requireAll;
+		this.skipUnFound = builder.skipUnFound;
+		this.hasHeader = builder.hasHeader;
+		this.treatAllNumeric = builder.treatAllNumeric;
+		this.fullPathToDataFile = builder.fullPathToDataFile;
+		this.missingString = builder.missingString;
+		this.sampleBased = builder.sampleBased;
+		this.typedFileParser = typeBuilder.build(Files.getAppropriateReader(fullPathToDataFile));
+	}
+}

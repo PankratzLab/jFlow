@@ -9,7 +9,7 @@ import common.Logger;
 public class CrossValidation {
 
 	private double Rsquare, SSerr, avgSEofBs, fullModelR2, fullModelSSerr;
-	private double[] SEofBs, stats;
+	private double[] SEofBs, stats, sigs;
 	private double[] train_deps;
 	private double[][] train_indeps;
 	private double[] val_deps;
@@ -74,7 +74,7 @@ public class CrossValidation {
 				this.avgSEofBs = Array.mean(SEofBs);
 				Rsquare = model.getRsquare();
 				this.stats = model.getStats();
-
+				this.sigs = model.getSigs();
 			}
 		} else {
 			analysisFailed = true;
@@ -233,8 +233,18 @@ public class CrossValidation {
 		this.analysisFailed = analysisFailed;
 	}
 
+	/**
+	 * stats of the training model
+	 */
 	public double[] getStats() {
 		return stats;
+	}
+
+	/**
+	 * sigs of the training model
+	 */
+	public double[] getSigs() {
+		return sigs;
 	}
 
 	/**
