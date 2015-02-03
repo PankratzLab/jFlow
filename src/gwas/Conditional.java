@@ -79,13 +79,13 @@ public class Conditional {
 			log.report("Curently using file '" + allPossibleSNPs + "', which has "+markerNames.length+" independent elements in it");
 //			CmdLine.run("plink --bfile "+plinkFiles+" --extract ../"+(baseDir.equals("")?"":"../")+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
 //			CmdLine.run("C:/plink/plink --bfile "+plinkFiles+" --extract ../"+(baseDir.equals("")?"":"../")+ext.removeDirectoryInfo(allPossibleSNPs)+" --make-bed", dir);
-			CmdLine.run("C:/plink/plink --bfile " + plinkFileDirPlusRoot + " --extract ../" + ext.removeDirectoryInfo(allPossibleSNPs) + " --make-bed", dir);
+			CmdLine.run("plink --bfile " + plinkFileDirPlusRoot + " --extract ../" + ext.removeDirectoryInfo(allPossibleSNPs) + " --make-bed", dir);
 		}
 		
 //		CmdLine.run("plink --bfile plink --recode", dir);
 //		CmdLine.run("plink --bfile plink --freq", dir);
-		CmdLine.run("C:/plink/plink --bfile plink --recode", dir);
-		CmdLine.run("C:/plink/plink --bfile plink --freq", dir);
+		CmdLine.run("plink --bfile plink --recode", dir);
+		CmdLine.run("plink --bfile plink --freq", dir);
 		markerSet = new SnpMarkerSet(dir+"plink.map");
 		markerNames = markerSet.getMarkerNames();
 		log.report("Found "+markerNames.length+" of these markers in the PLINK dataset");

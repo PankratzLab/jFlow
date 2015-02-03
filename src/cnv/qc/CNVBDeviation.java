@@ -2,11 +2,7 @@ package cnv.qc;
 
 import java.util.ArrayList;
 
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
 import common.Array;
-import common.HashVec;
 import common.ext;
 
 /**

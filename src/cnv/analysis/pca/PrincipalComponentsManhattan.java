@@ -36,7 +36,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	/**
 	 * 
 	 */
-	private static final String[] HEADER = { "Index", "SNP", "CHR", "BP", "P", "T_STAT" };
+	private static final String[] HEADER = { "Index", "SNP", "CHR", "BP", "P", "T_STAT_ABS" };
 	private static final String EXT = ".hat.linear";
 
 	private String[] markersToTest;
@@ -48,14 +48,15 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 * @param proj
 	 * @param markersToTest
 	 *            these markers will be tested against the pcs, and any other data provided
+	 * @param fullPathToaltDataFile
+	 *            besides manhattans for the pcs, generate for this data file as well
 	 * @param numPcs
 	 */
-	public PrincipalComponentsManhattan(Project proj, String[] markersToTest, int numPcs) {
+	public PrincipalComponentsManhattan(Project proj, String[] markersToTest, String fullPathToaltDataFile, int numPcs) {
 		super(proj.loadPcResids());
 		this.markersToTest = PrincipalComponentsCompute.sortByProjectMarkers(getProj(), markersToTest);
-		this.manhattanTests = null;
-		this.results = null;
 		this.numPCs = numPcs > 0 ? numPcs : getNumComponents();
+		initTests(fullPathToaltDataFile);
 
 	}
 
@@ -71,8 +72,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	/**
 	 * computes for all markers
 	 */
-	public void populateResults(String fullPathToaltDataFile, int numThreads, boolean verbose, boolean svdRegression) {
-		initTests(fullPathToaltDataFile);
+	public void populateResults(int numThreads, boolean verbose, boolean svdRegression) {
 		getProj().getLog().reportTimeInfo("Generating Manhattan plot(s) from " + markersToTest.length + " markers");
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(getProj(), markersToTest);
 		for (int i = 0; i < markersToTest.length; i++) {
@@ -207,7 +207,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			if (dataToTest.length != dataTest.length) {
 				log.reportTimeError("Mismatched array sizes for regression input");
 			}
-			double[] stats = null;
+			double[] result = new double[2];
+			Arrays.fill(result, Double.NaN);
 			double[] tmpdep = dataTest;
 			double[] tmpInd = dataToTest;
 			if (dataMask != null) {
@@ -219,9 +220,10 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			crossValidation.computePredictedValues();
 			crossValidation.computeResiduals();
 			if (!crossValidation.analysisFailed()) {
-				stats = crossValidation.getStats();
+				result[0] = crossValidation.getSigs()[1];
+				result[1] = crossValidation.getStats()[1];
 			}
-			return stats;
+			return result;
 		}
 
 		public String getTitle() {
@@ -297,8 +299,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	public static void createManhattans(Project proj, String outputBase, String altDataFile, int numPCs, int numThreads, boolean verbose, boolean svdRegression) {
 		proj.getLog().reportTimeInfo("Loading markers from " + proj.getFilename(Project.TARGET_MARKERS_FILENAME));
 		String[] markers = HashVec.loadFileToStringArray(proj.getFilename(Project.TARGET_MARKERS_FILENAME), false, new int[] { 0 }, true);
-		PrincipalComponentsManhattan principalComponentsManhattan = new PrincipalComponentsManhattan(proj, markers, numPCs);
-		principalComponentsManhattan.populateResults(altDataFile == null ? null : proj.getProjectDir() + altDataFile, numThreads, verbose, svdRegression);
+		PrincipalComponentsManhattan principalComponentsManhattan = new PrincipalComponentsManhattan(proj, markers, altDataFile == null ? null : proj.getProjectDir() + altDataFile, numPCs);
+		principalComponentsManhattan.populateResults(numThreads, verbose, svdRegression);
 		outputBase = proj.getProjectDir() + outputBase;
 		new File(ext.parseDirectoryOfFile(outputBase)).mkdirs();
 		principalComponentsManhattan.dumpResults(outputBase);
@@ -311,7 +313,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		String logfile = null;
 		int numPCs = 5;
 		String altDataFile = "PC1Test.txt";
-		int numThreads = 8;
+		int numThreads = 1;
 		String outputBase = "Manhattan/manhattan";
 
 		String usage = "\n" + "cnv.analysis.pca.PrincipalComponentsManhattan requires 0-1 arguments\n";

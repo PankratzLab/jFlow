@@ -72,7 +72,7 @@ public class CALiCo {
 
 
 
-	public static void parseAllFilesInDirectory(String genoPlinkDirPlusRoot, String phenoCovarDir, String resultDir, String scratchDir, Logger log) {
+	public static void parseAllFilesInDirectory(String genoPlinkDirPlusRoot, String phenoCovarDir, String resultDir, String scratchDir, String plinkCommand, Logger log) {
 		String[] models = null;
 		String[] args;
 		String[] uniqueMarkers;
@@ -138,7 +138,7 @@ public class CALiCo {
 					markersConditional = conditionals.get(models[i])[1].split(",");
 					if (markersConditional.length==1) {
 						if (!new File(scratchDir + "plink_chr" + chrs[i] + ".bim").exists() || !new File(scratchDir + "plink_chr" + chrs[i] + ".bim").exists()) {
-							CmdLine.run("C:/plink/plink --bfile " + genoPlinkDirPlusRoot + " --chr " + chrs[i] + " --make-bed --out plink_chr"+chrs[i], scratchDir);
+							CmdLine.run("plink --bfile " + genoPlinkDirPlusRoot + " --chr " + chrs[i] + " --make-bed --out plink_chr"+chrs[i], scratchDir);
 							log.report("Generated new set of genotype files: " + scratchDir + "plink_chr" + chrs[i] + ".");
 						} else {
 							log.reportError("Warning --- Found existing set of genotype files: " + scratchDir + "plink_chr" + chrs[i] + ", and will use them for the analysis followed.");
@@ -148,14 +148,14 @@ public class CALiCo {
 						condGenoPlinkDirPlusRoot = genoPlinkDirPlusRoot;
 					}
 					Files.writeList(markersConditional, resultDir + models[i] + ".txt");
-	
+
 					idVariable[0] = ext.indexOfStr(Files.getHeaderOfFile(phenoCovarDir + root + ".xln", null)[0], SAMPLE_ID_SYNONYMS);
 					sexAsCovariate = parsePhenotypes(condGenoPlinkDirPlusRoot, phenoCovarDir + root + ".xln", SAMPLE_ID_SYNONYMS[idVariable[0]], subDir, logs[i]);
 					Conditional.addCountsAsCovariate(resultDir, models[i] + "/", condGenoPlinkDirPlusRoot, models[i] + "/" + root + "_covars.dat", models[i] + "_covars.dat", models[i] + ".txt", logs[i]);
 					new File(resultDir + models[i] + ".txt").delete();
 					new File(resultDir  + models[i] + "/" + root + "_covars.dat").delete();
 	
-					runAndParseResults(condGenoPlinkDirPlusRoot, resultDir + models[i] + "/" + root, resultDir + models[i] + "/" + models[i] + "_covars.dat", sexAsCovariate, scratchDir, resultDir + models[i] + "/", models[i], true, logs[i]);
+					runAndParseResults(condGenoPlinkDirPlusRoot, resultDir + models[i] + "/" + root, resultDir + models[i] + "/" + models[i] + "_covars.dat", sexAsCovariate, scratchDir, resultDir + models[i] + "/", models[i], true, plinkCommand, logs[i]);
 //					new File(resultDir + models[i] + "/" + models[i] + ".out").renameTo(new File(resultDir + models[i] + ".out"));
 	
 					GenParser.parse(args, logs[i]);
@@ -196,7 +196,7 @@ public class CALiCo {
 					parsePhenotypes(genoPlinkDirPlusRoot, phenoCovarDir + models[i], SAMPLE_ID_SYNONYMS[idVariable[i]], scratchDir, log);
 					sexAsCovariate = parsePhenotypes(genoPlinkDirPlusRoot, phenoCovarDir + models[i], SAMPLE_ID_SYNONYMS[idVariable[i]], resultDir, log);
 //					runAndParseResults(genoFileDirPlusRoot, resultDir, ext.rootOf(files[i]), sexAsCovariate, scratchDir, log);
-					runAndParseResults(genoPlinkDirPlusRoot, resultDir + root, resultDir + root + "_covars.dat", sexAsCovariate, scratchDir, resultDir, root, false, log);
+					runAndParseResults(genoPlinkDirPlusRoot, resultDir + root, resultDir + root + "_covars.dat", sexAsCovariate, scratchDir, resultDir, root, false, plinkCommand, log);
 				} else {
 					log.reportError("\nWarning --- Found '" + resultDir + models[i] + ".out' already exists. Unless you rename or delete the file or directory,"
 							+ "the program does not regenerate this file and the '" + resultDir + models[i] + "_hits.txt' file, "
@@ -802,7 +802,7 @@ public class CALiCo {
 //		}
 //	}
 
-	public static void runAndParseResults(String genoFileDirPlusRoot, String phenoFileDirPlusRoot, String covarFileDirPlusName, boolean sexAsCovariate, String scratchDir, String resultDir, String outFileRoot, boolean isConditional, Logger log) {
+	public static void runAndParseResults(String genoFileDirPlusRoot, String phenoFileDirPlusRoot, String covarFileDirPlusName, boolean sexAsCovariate, String scratchDir, String resultDir, String outFileRoot, boolean isConditional, String plinkCommand, Logger log) {
 		String[] commands;
 		String plinkResultFile;
 
@@ -810,11 +810,16 @@ public class CALiCo {
 			scratchDir = resultDir;
 		}
 
+		if (plinkCommand == null) {
+			plinkCommand = "plink";
+		}
+
 		commands = new String[] {//"Path = %Path%; C:\plink",
-				  "C:/PLINK/plink --bfile " + genoFileDirPlusRoot + " --pheno " + phenoFileDirPlusRoot + "_pheno.dat --covar " + covarFileDirPlusName + (sexAsCovariate?" --sex":"") + " --logistic --ci 0.95 --out " + scratchDir + outFileRoot,
-				  "C:/PLINK/plink --bfile " + genoFileDirPlusRoot + " --keep " + phenoFileDirPlusRoot + "_used.dat --freq --out " + scratchDir + outFileRoot + "_freq"
+					plinkCommand + " --bfile " + genoFileDirPlusRoot + " --pheno " + phenoFileDirPlusRoot + "_pheno.dat --covar " + covarFileDirPlusName + (sexAsCovariate?" --sex":"") + " --logistic --ci 0.95 --out " + scratchDir + outFileRoot,
+					plinkCommand + " --bfile " + genoFileDirPlusRoot + " --keep " + phenoFileDirPlusRoot + "_used.dat --freq --out " + scratchDir + outFileRoot + "_freq"
 				  };
 		Files.writeList(commands, resultDir + "run_" + outFileRoot + ".bat");
+		Files.chmod(resultDir + "run_" + outFileRoot + ".bat");
 		
 		//run batch
 		CmdLine.run(resultDir + "run_" + outFileRoot + ".bat", "");
@@ -918,7 +923,7 @@ public class CALiCo {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String genos = "N:/statgen/CALiCo/filteredGenotypes/plink";
+		String geno = "N:/statgen/CALiCo/filteredGenotypes/plink";
 //		String genos = "N:/statgen/CALiCo_ARIC/filteredGenotypes/plink";
 //		String phenoCovarFilename = "N:/statgen/CALiCo/BMI/Males.xln";
 		String phenoCovarFilename = null;
@@ -928,6 +933,7 @@ public class CALiCo {
 		String scratchDir = "D:/scratch/";
 //		String resultDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/results/";
 		String resultDir = phenoCovarDir + (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)?"conditionals/":"results/");
+		String plinkCommand;
 		Logger log;
 		boolean exists = true;
 		
@@ -945,32 +951,55 @@ public class CALiCo {
 
 //		metaAnalyzeSOL("N:/statgen/CALICo_SOL/T2DM/results_ver6/", "T2DM_MODEL1_SolGeno#_%%_ver6.out", "T2DM", "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt");
 //		System.exit(1);
-		
+
+		plinkCommand = "C:/plink/plink";
+
 		String usage = "\n" +
-		"one.CALiCo requires 0-1 arguments\n" + 
-		"   (1) location of genotype files (i.e. geno=" + genos + " (default))\n" + 
-		"   (2) phenotype filename (i.e. phenocovarfile=" + phenoCovarFilename + " (default))\n" + 
+		"one.CALiCo requires 0-1 arguments\n" +
+		"  Note: to run conditional analysis, please save the file \"conditionals.txt\" in the directory of pheno and covariates.\n" +
+		"   (1) plink command (i.e. plinkcommand=" + plinkCommand + " (default))\n" +
+		"   (2) location of genotype files (i.e. geno=" + geno + " (default))\n" +
+		"   (3) phenotype filename (i.e. phenocovarfile=" + phenoCovarFilename + " (default))\n" +
 		" 	OR:\n" +
-		"   (2) directory to perform for all *.xln files (i.e. phenocovardir=C:/test/ (not the default))\n" + 
-		"   (3) (optional) results directory (i.e. scratchdir=" + scratchDir + " (default; use null for directory of phenotype file))\n" + 
-		"   (4) (optional) scratch directory (i.e. scratchdir=" + resultDir + " (default; use null for directory of phenotype file))\n" + 
+		"   (3) directory to perform for all *.xln files (i.e. phenocovardir=C:/test/ (not the default))\n" +
+		"   (4) (optional) scratch directory (i.e. scratchdir=" + scratchDir + " (default; use null for directory of phenotype file))\n" +
+		"   (5) (optional) results directory (i.e. resultdir=" + resultDir + " (default; use null for directory of phenotype file))\n" +
 		"";
+
+		phenoCovarDir = null;
+		phenoCovarFilename = null;
+		scratchDir = null;
+		resultDir = null;
+
+		/**
+		 * The following 3 parameters are all what needed for conditional analysis, in addition to the "conditionals.txt" file mentioned in the help.
+		 */
+		geno = "D:/CALiCo_conditional/plink";
+		phenoCovarDir = "D:/CALiCo_conditional/";
+		plinkCommand = null;
+
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
+			} else if (args[i].startsWith("plinkcommand=")) {
+				plinkCommand = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("phenocovarfile=")) {
 				phenoCovarFilename = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("genos=")) {
-				genos = args[i].split("=")[1];
+			} else if (args[i].startsWith("geno=")) {
+				geno = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("scratchdir=")) {
 				scratchDir = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("phenocovardir=")) {
 				phenoCovarDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("resultdir=")) {
+				resultDir = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -982,14 +1011,25 @@ public class CALiCo {
 		}
 
 		try {
+			if (resultDir == null) {
+				resultDir = phenoCovarDir + "results/";
+			}
 			if(!new File(resultDir).exists()) {
 				new File(resultDir).mkdir();
 				exists = false;
 			}
+			
+			if (scratchDir == null) {
+				scratchDir = phenoCovarDir + "scratch/";
+			}
+			if(!new File(scratchDir).exists()) {
+				new File(scratchDir).mkdir();
+			}
+
 			log = new Logger(resultDir + "Genvisis_CALiCo_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 			log.report("Genvisis (R) 2013. \nCalico analysis "
 						+ (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
-						+ "\n\n-Geno data directory and prefix: " + genos
+						+ "\n\n-Geno data directory and prefix: " + geno
 						+ "\n-Pheno and covariate data directory: " + phenoCovarFilename
 						+ "\n-Scratch directory: " + scratchDir
 						+ "\n-Result directory: " + resultDir);
@@ -1011,10 +1051,10 @@ public class CALiCo {
 //				if (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)) {
 //					runConditional(genos, phenoCovarDir, resultDir, scratchDir, log);
 //				} else {
-					parseAllFilesInDirectory(genos, phenoCovarDir, resultDir, scratchDir, log);
+					parseAllFilesInDirectory(geno, phenoCovarDir, resultDir, scratchDir, plinkCommand, log);
 //				}
 			} else {
-				parsePhenotypes(genos, phenoCovarFilename, SAMPLE_ID_SYNONYMS[0], resultDir, log);
+				parsePhenotypes(geno, phenoCovarFilename, SAMPLE_ID_SYNONYMS[1], resultDir, log);
 			}
 			log.report("\nCalico analysis is finished.");
 
