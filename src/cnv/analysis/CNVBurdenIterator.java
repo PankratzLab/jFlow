@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import common.Array;
 import common.HashVec;
+import common.Logger;
 import common.ext;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
@@ -142,12 +143,11 @@ public class CNVBurdenIterator {
 		double[][][] resultsB = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
 		double[][][] resultsP = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
 		double[][][] resultsR = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
-		
+		double[][][] resultsSE = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
 		
 		double[] depVars = null;
 		double[][] indepVars = new double[4][];
 		String[] indepVarNames = new String[]{"Age", "PC1", "PC2", "CNVBurden"};
-		
 		
 		for (int sex = 0; sex < 3; sex++) {
 			for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
@@ -155,6 +155,7 @@ public class CNVBurdenIterator {
 					depVars = new double[VAR_SIZES[sex]];
 					indepVars = new double[VAR_SIZES[sex]][4];
 					int cnt = 0;
+					ArrayList<Double> popIQs = new ArrayList<Double>();
 					for (java.util.Map.Entry<String, Data> indiv : idData.entrySet()) {
 						if (sex > 0) {
 							if ((indiv.getValue().male && sex == 2) || (!indiv.getValue().male && sex == 1)) {
@@ -173,11 +174,13 @@ public class CNVBurdenIterator {
 						
 						cnt++;
 					}
+					
 					LeastSquares regression = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 					
 					resultsB[sex][cn][sz] = regression.getBetas().length > 4 ? regression.getBetas()[4] : Double.NaN;
 					resultsP[sex][cn][sz] = regression.getSigs().length > 4 ? regression.getSigs()[4] : Double.NaN;
 					resultsR[sex][cn][sz] = regression.getRsquare(); 
+					resultsSE[sex][cn][sz] = regression.getSEofBs()[4];
 					
 					regression.destroy();
 				}
@@ -194,6 +197,14 @@ public class CNVBurdenIterator {
 			header2 = header2.append("\t\t");
 		}
 		header2.append("Rsq\t\t\t\t");
+		if (!collapseCNVTypes) {
+			header2 = header2.append("\t\t");
+		}
+		header2.append("Counts\t\t\t\t");
+		if (!collapseCNVTypes) {
+			header2 = header2.append("\t\t");
+		}
+		header2.append("StdErr\t\t\t\t");
 		if (!collapseCNVTypes) {
 			header2 = header2.append("\t\t");
 		}
@@ -223,7 +234,7 @@ public class CNVBurdenIterator {
 			
 			for (int sex = 0; sex < 3; sex++) {
 				writer.println(header2.toString());
-				writer.println(labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\tCounts" + header + "\tn=" + VAR_SIZES[sex]);
+				writer.println(labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\tn=" + VAR_SIZES[sex]);
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 					writer.print(CNV_SIZES[sz]);
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
@@ -244,6 +255,12 @@ public class CNVBurdenIterator {
 					writer.print(CNV_SIZES[sz]);
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
 						writer.print("\t" + counts[sex][cn][sz]);
+					}
+					
+					writer.print("\t\t");
+					writer.print(CNV_SIZES[sz]);
+					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+						writer.print("\t" + resultsSE[sex][cn][sz]);
 					}
 					
 					writer.println();

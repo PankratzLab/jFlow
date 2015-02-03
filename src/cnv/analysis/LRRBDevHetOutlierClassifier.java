@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import cnv.filesys.Project;
 import cnv.var.SampleData;
@@ -50,17 +53,34 @@ public class LRRBDevHetOutlierClassifier {
 	
 	enum OutlierTest {
 		
-		SD_SCORE() {
-			public boolean testIndiv(PopulationData popData, IndividualDatum indivDatum) {
-				double sdCntBDev = (indivDatum.dataBDev - popData.meanBDev) / popData.stdDevBDev;
-				double sdCntLRR = (indivDatum.dataLRR - popData.meanLRR) / popData.stdDevLRR;
+//		SD_SCORE() {
+//			
+//			HashMap<String, Double> scoreMap = new HashMap<String, Double>();
+//			TreeSet<String> scoreList = new TreeSet<String>(new Comparator<String>() {
+//				@Override
+//				public int compare(String o1, String o2) {
+//					return scoreMap.get(o1).compareTo(scoreMap.get(o2));
+//				}
+//			});
+//			
+//			public boolean testIndiv(PopulationData popData, IndividualDatum indivDatum) {
+//				double sdCntBDev = (indivDatum.dataBDev - popData.meanBDev) / popData.stdDevBDev;
+//				double sdCntLRR = (indivDatum.dataLRR - popData.meanLRR) / popData.stdDevLRR;
+//				
+//				double scr = Math.sqrt( (2 * (sdCntBDev * sdCntBDev)) + sdCntLRR * sdCntLRR);
+//				scoreMap.put(indivDatum.id, Double.valueOf(scr));
+//				scoreList.add(indivDatum.id);
+//				System.out.println(indivDatum.id + "\t" + scr);
+//				
 				// 4.0 derived through examination of results from other measures - outliers classified by other measures all exceed 4.0 on this test. 
-				return sdCntBDev > 4.0 || sdCntLRR > 4.0 || sdCntBDev < -4.0 || sdCntLRR < -4.0;
-			}
-			public int getMethodID() {
-				return 1;
-			}
-		},
+//				return sdCntBDev > 4.0 || sdCntLRR > 4.0 || sdCntBDev < -4.0 || sdCntLRR < -4.0;
+//				
+//				return scr > 8.0;
+//			}
+//			public int getMethodID() {
+//				return 1;
+//			}
+//		},
 		/**
 		 * Test if BDev exceeds 0.1 and LRR exceeds 0.1 or -0.1
 		 */
@@ -74,7 +94,7 @@ public class LRRBDevHetOutlierClassifier {
 				return false;
 			}
 			public int getMethodID() {
-				return 2;
+				return 1;
 			}
 		},
 		/**
@@ -92,7 +112,7 @@ public class LRRBDevHetOutlierClassifier {
 				return false;
 			}
 			public int getMethodID() {
-				return 3;
+				return 2;
 			}
 		},
 		/**
@@ -107,7 +127,7 @@ public class LRRBDevHetOutlierClassifier {
 				return false;
 			}
 			public int getMethodID() {
-				return 4;
+				return 3;
 			}
 		};
 		
@@ -122,9 +142,9 @@ public class LRRBDevHetOutlierClassifier {
 	String filename;
 	HashMap<String, IndividualDatum> dataMap;
 	PopulationData populationData;
-	private ArrayList<String> indivList;
-	private ArrayList<String> outlierList;
-	private HashMap<String, Integer> scoringMap;
+	private HashSet<String> indivList;
+	private HashSet<String> outlierList;
+	private HashMap<String, Boolean[]> scoringMap;
 	private HashSet<String> excludeList;
 	
 	private LRRBDevHetOutlierClassifier loadExcluded(String file, boolean project) {
@@ -171,7 +191,7 @@ public class LRRBDevHetOutlierClassifier {
 		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier setPopData() {
+	private LRRBDevHetOutlierClassifier derivePopData() {
 		double[] bdev = new double[dataMap.size()];
 		double[] lrr = new double[dataMap.size()];
 		
@@ -187,22 +207,75 @@ public class LRRBDevHetOutlierClassifier {
 		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier filterPotentialOutliers() {
-		indivList = new ArrayList<String>();
-		outlierList = new ArrayList<String>();
-		scoringMap = new HashMap<String, Integer>();
+	private LRRBDevHetOutlierClassifier markScoredOutliers() {
 		
-		outer: for (java.util.Map.Entry<String, IndividualDatum> entry : dataMap.entrySet()) {
-			for (OutlierTest test : OutlierTest.values()) {
-				if (test.testIndiv(populationData, entry.getValue())) {
-					outlierList.add(entry.getKey());
-					scoringMap.put(entry.getKey(), test.getMethodID());
-//					System.out.println("\t" + entry.getValue().id + "\t1"); 
-					continue outer;
-				}
+		final HashMap<String, Double> scoreMap = new HashMap<String, Double>();
+		final TreeSet<String> scoreList = new TreeSet<String>(new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return scoreMap.get(o1).compareTo(scoreMap.get(o2));
 			}
-//			System.out.println();
-			indivList.add(entry.getKey());
+		});
+		double[] scores = new double[dataMap.size()]; 
+		
+		int index = 0;
+		for (java.util.Map.Entry<String, IndividualDatum> entry : dataMap.entrySet()) {
+			IndividualDatum indivDatum = entry.getValue();
+			double sdCntBDev = (indivDatum.dataBDev - populationData.meanBDev) / populationData.stdDevBDev;
+			double sdCntLRR = (indivDatum.dataLRR - populationData.meanLRR) / populationData.stdDevLRR;
+			
+			double scr = Math.sqrt( (2 * (sdCntBDev * sdCntBDev)) + (sdCntLRR * sdCntLRR));
+			scoreMap.put(indivDatum.id, Double.valueOf(scr));
+			scoreList.add(indivDatum.id);
+			scores[index] = scr;
+			index++;
+		}
+		
+		String indivLow = scoreList.pollFirst(); // remove
+		String indivHigher = scoreList.first(); // look at
+		double scrLow = scoreMap.get(indivLow);
+		double scrHigher = scoreMap.get(indivHigher);
+		while(scrHigher - scrLow < 1) {
+			indivLow = scoreList.pollFirst();
+			if (scoreList.size() == 0) break;
+			indivHigher = scoreList.first();
+			scrLow = scoreMap.get(indivLow);
+			scrHigher = scoreMap.get(indivHigher);
+		}
+
+		outlierList = new HashSet<String>();
+		this.outlierList.addAll(scoreList);
+		
+		indivList = new HashSet<String>();
+		for (java.util.Map.Entry<String, IndividualDatum> entry : dataMap.entrySet()) {
+			if (!outlierList.contains(entry.getKey())) {
+				indivList.add(entry.getKey());
+			}
+		}
+		
+		
+		return this;
+	}
+	
+	private LRRBDevHetOutlierClassifier markPotentialOutliers() {
+//		indivList = new HashSet<String>();
+//		outlierList = new HashSet<String>();
+		scoringMap = new HashMap<String, Boolean[]>();
+		
+		markScoredOutliers();
+		
+		/*outer:*/ for (java.util.Map.Entry<String, IndividualDatum> entry : dataMap.entrySet()) {
+			Boolean[] results = new Boolean[OutlierTest.values().length + 1];
+			for (OutlierTest test : OutlierTest.values()) {
+				results[test.getMethodID()-1] = test.testIndiv(populationData, entry.getValue());
+//				if (result) {
+////					outlierList.add(entry.getKey());
+//					continue outer;
+//				}
+			}
+			results[results.length - 1] = outlierList.contains(entry.getKey());
+			scoringMap.put(entry.getKey(), results);
+//			indivList.add(entry.getKey());
 		}
 		
 		return this;
@@ -213,10 +286,24 @@ public class LRRBDevHetOutlierClassifier {
 		String file = fileRoot + (outFile == null ? "_outliers.txt" : outFile);
 		
 		PrintWriter writer = Files.getAppropriateWriter(file);
-		writer.println("ID\tOutlier");
+		writer.print("ID\tOutlier\n");
+//		for (java.util.Map.Entry<String, IndividualDatum> entry : dataMap.entrySet()) {
+//			writer.println(entry.getKey() + "\t" + (outlierList.contains(entry.getKey()) ? "1" : "0"));
+//		}
+//		for (OutlierTest test : OutlierTest.values()) {
+//			writer.print(test.name() + "\t");
+//		}
+//		writer.println();
+//		for (java.util.Map.Entry<String, Boolean[]> score : scoringMap.entrySet()) {
+//			writer.print(score.getKey() + "\t");
+//			for (int i = 0; i < score.getValue().length; i++) {
+//				writer.print((score.getValue()[i].booleanValue() ? "1" : "0") + "\t");
+//			}
+//			writer.println();
+//		}
 		for (String outlier : outlierList) {
 			writer.print(outlier);
-			writer.println("\t" + scoringMap.get(outlier));
+			writer.println("\t1");// + scoringMap.get(outlier));
 		}
 		for (String outlier : indivList) {
 			writer.print(outlier);
@@ -241,7 +328,7 @@ public class LRRBDevHetOutlierClassifier {
 		}
 		return null;
 	}
-
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "LRR_MEDIAN.xln";
@@ -303,7 +390,7 @@ public class LRRBDevHetOutlierClassifier {
 		String outfile = outFile == null ? "_" + idCol + "-" + lrrCol + "," + bdevCol + "_outliers.txt" : outFile;
 		try {
 			LRRBDevHetOutlierClassifier classifier = new LRRBDevHetOutlierClassifier(filename);
-			classifier.loadExcluded(file, isProj).loadData(idCol, lrrCol, bdevCol).setPopData().filterPotentialOutliers().writeResults(outfile).dispose();
+			classifier.loadExcluded(file, isProj).loadData(idCol, lrrCol, bdevCol).derivePopData().markPotentialOutliers().writeResults(outfile).dispose();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

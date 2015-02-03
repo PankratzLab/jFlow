@@ -35,6 +35,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	public static final int DOUBLE_CLICK_INTERVAL = 500;
 
 	private Color[] mosaicColorScheme = {Color.BLACK,
+			Color.GRAY,
 			new Color(55, 129, 252), // dark/light blue
 			new Color(140, 20, 180), // deep purple
 			new Color(0, 100, 0), // green
