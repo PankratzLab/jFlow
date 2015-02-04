@@ -1,5 +1,6 @@
 package cnv.analysis.pca;
 
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,6 +15,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.JOptionPane;
 
 import stats.CrossValidation;
 import common.Array;
@@ -36,6 +39,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	/**
 	 * 
 	 */
+	public static final String PRINCIPAL_MANHATTAN_MI = "Generate manhattan plots";
 	private static final String[] HEADER = { "Index", "SNP", "CHR", "BP", "P", "T_STAT_ABS" };
 	private static final String EXT = ".hat.linear";
 
@@ -86,7 +90,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	}
 
 	/**
-	 * So that this can be done in conjuntion with other marker based things
+	 * So that this can be done in conjunction with other marker based things
 	 */
 	public void populateDataForMarker(int numThreads, boolean verbose, boolean svdRegression, int i, MarkerData markerData) {
 		double[] lrrs = Array.toDoubleArray(markerData.getLRRs());
@@ -292,8 +296,34 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 				maTests[i] = new ManhattanTest(titles[i], data[i], masks[i]);
 			}
 		}
-
 		return maTests;
+	}
+
+	public static void guiAccess(Project proj, Component parentComponent) {
+		String pcFile = proj.getFilename(Project.INTENSITY_PC_FILENAME, false, false);
+		String[] targetMarkers = proj.getTargetMarkers();
+		if (targetMarkers == null) {
+			JOptionPane.showMessageDialog(parentComponent, "Failed to load target markers '" + proj.getFilename(Project.TARGET_MARKERS_FILENAME) + "'; this is the designated marker in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		int numMarkers = targetMarkers.length;
+		if (Files.exists(pcFile)) {
+			String ObjButtons[] = { "OK", "Cancel" };
+			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate manhattan plots for " + numMarkers + " marker(s) over " + proj.getInt(Project.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Manhattan Plot", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+			if (promptResult == 0) {
+				PrincipalComponentsManhattan.createManhattans(proj);
+			}
+		} else {
+			JOptionPane.showMessageDialog(parentComponent, "Failed to detect " + Project.INTENSITY_PC_FILENAME + " " + pcFile + " ; this is the designated intensity pc filename in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/**
+	 * Mainly for gui access using all defualts
+	 */
+	public static void createManhattans(Project proj) {
+		int numComponents = proj.getInt(Project.INTENSITY_PC_NUM_COMPONENTS);
+		createManhattans(proj, "Manhattan/manhattan", null, numComponents, 1, false, numComponents >= 250);
 	}
 
 	public static void createManhattans(Project proj, String outputBase, String altDataFile, int numPCs, int numThreads, boolean verbose, boolean svdRegression) {

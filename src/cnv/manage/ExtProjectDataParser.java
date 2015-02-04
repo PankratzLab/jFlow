@@ -4,11 +4,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
-import parse.TypedFileParser;
-import parse.TypedFileParser.TypedFileLine;
 import common.Array;
 import common.Files;
+import common.TypedFileParser;
 import common.ext;
+import common.TypedFileParser.TypedFileLine;
 import cnv.filesys.Project;
 
 /**

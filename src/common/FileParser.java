@@ -1,10 +1,8 @@
-package parse;
+package common;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-
-import common.Logger;
 
 /**
  * parser to extract a string array based on a separator

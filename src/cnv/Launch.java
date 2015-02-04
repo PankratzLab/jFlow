@@ -11,6 +11,8 @@ import common.*;
 import cyto.CytoGUI;
 import cnv.analysis.DeNovoCNV;
 import cnv.analysis.Mosaicism;
+import cnv.analysis.pca.PrincipalComponentsCrossTabs;
+import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
 //import cnv.gui.GuiManager;
 //import cnv.gui.PropertyEditor;
@@ -64,13 +66,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String DENOVO_CNV = "De Novo CNV";
 	public static final String EXPORT_CNVS = "Export CNVs to Pedfile format";
 	public static final String CYTO_WORKBENCH = "Parse workbench files";
+	public static final String PRINCIPAL_COMPONENTS = "Principal Components";
+
+
 	public static final String TEST = "Test new program";
 	
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, TEST},
+			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
 	
@@ -263,6 +268,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			        }
 //					projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
 					menu.add(submenu);
+				} else if (MENUS[i][j].equals(PRINCIPAL_COMPONENTS)){
+					String[] pcSubMenuOptions = new String[] { PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI, PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI };
+					JMenu pcSubMenu = new JMenu(MENUS[i][j]);
+					for (int k = 0; k < pcSubMenuOptions.length; k++) {
+						JMenuItem pcSubItem = new JMenuItem(pcSubMenuOptions[k]);
+						pcSubItem.addActionListener(this);
+						pcSubMenu.add(pcSubItem);
+					}
+					menu.add(pcSubMenu);
+
 				} else {
 					menuItem = new JMenuItem(MENUS[i][j]);
 					for (int k = 0; k < MENUS[i][j].length(); k++) {
@@ -520,9 +535,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
 
 
-
+			} else if (command.equals(PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI)) {
+				PrincipalComponentsManhattan.guiAccess(proj, null);
+			} else if (command.equals(PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI)) {
+				PrincipalComponentsCrossTabs.guiAccess(proj, null);
 			} else {
-				log.reportError("Error - unknown command: "+command);
+				log.reportError("Error - unknown command: " + command);
 			}
 		}
 

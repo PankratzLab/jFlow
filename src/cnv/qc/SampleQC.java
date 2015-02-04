@@ -45,6 +45,10 @@ public class SampleQC {
 		return qctitles;
 	}
 
+	public double[][] getQcMatrix() {
+		return qcMatrix;
+	}
+
 	public boolean verify() {
 		return numAdded == qctitles.length * samples.length;
 	}
@@ -60,12 +64,12 @@ public class SampleQC {
 
 	}
 
-	public void addToMatrix(String sample, int qcTitleIndex, double data) {
+	private void addToMatrix(String sample, int qcTitleIndex, double data) {
 		int sampleIndex = ext.indexOfStr(sample, samples);
 		addToMatrix(sampleIndex, qcTitleIndex, data);
 	}
 
-	public void addToMatrix(int sampleIndex, int qcTitleIndex, double data) {
+	private void addToMatrix(int sampleIndex, int qcTitleIndex, double data) {
 		qcMatrix[qcTitleIndex][sampleIndex] = data;
 		numAdded++;
 		if (numAdded > qctitles.length * samples.length) {

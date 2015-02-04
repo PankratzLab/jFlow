@@ -27,13 +27,25 @@ public class Quantiles {
 
 	public Quantiles(double[] data, double[] qs, Logger log) {
 		super();
-		// this.data = data;
 		this.qs = qs;
 		this.quantiles = new double[qs.length];
 		this.log = log;
-		this.quantiles = Array.quants(Array.removeNaN(data), qs);
+		this.quantiles = initQuantiles(data, qs, log);
 		this.quantileMembership = determineQuantileMembership(data, quantiles, qs, log);
 		this.title = "Quantile";
+
+	}
+
+	private static double[] initQuantiles(double[] data, double[] qs, Logger log) {
+		double[] quantiles = null;
+		double[] tmp = Array.removeNaN(data);
+		if (tmp.length == 0) {
+			log.reportTimeError("Found all NaN values, setting all to quantiles 0");
+			quantiles = new double[] { .5 };
+		} else {
+			quantiles = Array.quants(tmp, qs);
+		}
+		return quantiles;
 
 	}
 
@@ -53,21 +65,28 @@ public class Quantiles {
 		return qs;
 	}
 
+	public int[] getQsAsRoundedInt() {
+		return roundInt(qs, 10, log);
+	}
+
 	public double[] getQuantileMembership() {
 		return quantileMembership;
 	}
 
 	public int[] getQuantileMembershipAsRoundedInt() {
+		int mult = quantiles.length <= 10 ? 10 : quantiles.length <= 100 ? 100 : quantiles.length <= 1000 ? 1000 : 10000;
+		return roundInt(quantileMembership, mult, log);
+	}
+
+	private static int[] roundInt(double[] quantileMembership, int mult, Logger log) {
 		int[] qMembers = new int[quantileMembership.length];
 		for (int i = 0; i < qMembers.length; i++) {
-			int mult = quantiles.length <= 10 ? 10 : quantiles.length <= 100 ? 100 : quantiles.length <= 1000 ? 1000 : 10000;
 			if (mult > 10000) {
 				log.reportTimeWarning("That is a lot of quintiles to be using this method");
 			}
 			qMembers[i] = (int) Math.round((float) 10 * quantileMembership[i]);
 		}
 		return qMembers;
-
 	}
 
 	public double[] getQuantiles() {
@@ -121,6 +140,7 @@ public class Quantiles {
 		}
 
 		Quantiles[] quantiles = new Quantiles[variableDominantMatrix.length];
+
 		for (int i = 0; i < quantiles.length; i++) {
 			quantiles[i] = new Quantiles(variableDominantMatrix[i], numQ, log);
 			quantiles[i].setTitle(variableTitles[i]);
@@ -178,7 +198,7 @@ public class Quantiles {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "D:/data/LLFS_GWAS/QPCR_MITO/QPCR_quantiles.txt";
-	//	String logfile = null;
+		// String logfile = null;
 
 		developQuantiles(filename, new int[] { 1, 2 }, 10, new Logger());
 		String usage = "\n" + "stats.Quantiles requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
@@ -191,7 +211,7 @@ public class Quantiles {
 				filename = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
-				//logfile = args[i].split("=")[1];
+				// logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
