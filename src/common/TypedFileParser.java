@@ -1,9 +1,7 @@
-package parse;
+package common;
 
 import java.io.IOException;
 import java.io.Reader;
-
-import common.Array;
 
 /**
  * a parser that will extract typed data for each line based on indices provided

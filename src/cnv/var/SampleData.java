@@ -257,6 +257,22 @@ public class SampleData {
 		return sexClassIndex;
 	}
 	
+	/**
+	 * @return the sex designation (1=male and 2=female) of all samples in the project, relies on {@link SampleData#getSexForIndividual(String)}
+	 */
+	public int[] getSexForAllIndividuals() {
+		String[] samples = proj.getSamples();
+		int[] sexes = new int[samples.length];
+
+		if (sexClassIndex < 0) {
+			proj.getLog().reportTimeWarning("Variable names '" + Array.toStr(EUPHAMISMS, "/") + "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
+		}
+		for (int i = 0; i < samples.length; i++) {
+			sexes[i] = getSexForIndividual(samples[i]);
+		}
+		return sexes;
+	}
+	
 	public int getSexForIndividual(String id) {
 		IndiPheno indi;
 		String[] ids;

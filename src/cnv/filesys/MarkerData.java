@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import stats.Correlation;
 import common.AlleleFreq;
@@ -753,5 +754,18 @@ public class MarkerData implements Serializable {
 	    	outData[j++]=(byte)(data>>>0);
 	    }
 		return outData;
+	}
+	
+	public static MarkerData[] loadMarkerData(Project proj, String[] markers) {
+		if (markers.length > 500) {
+			proj.getLog().reportTimeWarning("This method is generally used for loading a small subset of markers in the same thread, currently loading " + markers.length + " markers");
+		}
+		MarkerData[] markerDatas = new MarkerData[markers.length];
+		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
+		for (int i = 0; i < markerDatas.length; i++) {
+			markerDatas[i] = markerDataLoader.requestMarkerData(i);
+			markerDataLoader.releaseIndex(i);
+		}
+		return markerDatas;
 	}
 }

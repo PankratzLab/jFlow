@@ -1,8 +1,12 @@
 package cnv.analysis.pca;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import javax.swing.JOptionPane;
+
+import common.Files;
 import common.ext;
 import stats.StatsCrossTabs;
 import stats.StatsCrossTabs.CORREL_TYPE;
@@ -15,15 +19,18 @@ import cnv.qc.SampleQC;
  * Class that may be used for pruning/testing principal components according to correlation with sample QC and other metrics TODO , implement a pc-selector based of thresholds....
  */
 public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
+	public static final String PRINCIPAL_CROSSTABS_MI = "Generate PC crosstabs";
 
 	private SampleQC sampleQC;
 	private int numPCs;
 	private StatsCrossTabs sTabs;
+	private boolean verbose;
 
-	public PrincipalComponentsCrossTabs(PrincipalComponentsResiduals pResiduals, int numPCs) {
+	public PrincipalComponentsCrossTabs(PrincipalComponentsResiduals pResiduals, int numPCs, boolean verbose) {
 		super(pResiduals);
 		this.sampleQC = SampleQC.loadSampleQC(getProj());
 		this.numPCs = numPCs;
+		this.verbose = verbose;
 	}
 
 	public SampleQC getSampleQC() {
@@ -39,7 +46,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 			additionalDataTitles = extSampleFileParser.getNumericDataTitles();
 		}
 		log.reportTimeInfo("Developing cross tabs...");
-		this.sTabs = getCorrelationTable(this, numPCs, sampleQC, CORREL_TYPE.PEARSON, additionalData, additionalDataTitles);
+		this.sTabs = getCorrelationTable(this, numPCs, sampleQC, CORREL_TYPE.PEARSON, additionalData, additionalDataTitles, verbose);
 		log.reportTimeInfo("Finished developing cross tabs...");
 
 	}
@@ -66,7 +73,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 		return extSampleFileParser;
 	}
 
-	private static StatsCrossTabs getCorrelationTable(PrincipalComponentsCrossTabs pCorrelation, int numPcs, SampleQC sampleQC, StatsCrossTabs.CORREL_TYPE cType, double[][] additionalData, String[] additionalDataTitles) {
+	private static StatsCrossTabs getCorrelationTable(PrincipalComponentsCrossTabs pCorrelation, int numPcs, SampleQC sampleQC, StatsCrossTabs.CORREL_TYPE cType, double[][] additionalData, String[] additionalDataTitles, boolean verbose) {
 		int numCorrels = sampleQC.getQctitles().length + numPcs + (additionalData == null ? 0 : additionalData.length);
 		double[][] data = new double[numCorrels][];
 		String[] titles = new String[numCorrels];
@@ -93,15 +100,33 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 				}
 			}
 		}
-		StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, titles, cType, pCorrelation.getProj().getLog());
+		StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, titles, cType, verbose, pCorrelation.getProj().getLog());
 		statsCrossTabs.computeTable();
 		return statsCrossTabs;
 	}
 
-	public static void crossTabulate(Project proj, int numPCs, String alternateDataFile) {
+	public static void guiAccess(Project proj, Component parentComponent) {
+		String pcFile = proj.getFilename(Project.INTENSITY_PC_FILENAME, false, false);
+		String sampleQCFile = proj.getFilename(Project.SAMPLE_QC_FILENAME, false, false);
+		if (!Files.exists(sampleQCFile)) {
+			JOptionPane.showMessageDialog(parentComponent, "Failed to detect " + Project.SAMPLE_QC_FILENAME + " " + sampleQCFile + "'; this is the designated sample QC file in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		if (Files.exists(pcFile)) {
+			String ObjButtons[] = { "OK", "Cancel" };
+			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over " + proj.getInt(Project.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+			if (promptResult == 0) {
+				crossTabulate(proj, proj.getInt(Project.INTENSITY_PC_NUM_COMPONENTS), null, false);
+			}
+		} else {
+			JOptionPane.showMessageDialog(parentComponent, "Failed to detect " + Project.INTENSITY_PC_FILENAME + " " + pcFile + " ; this is the designated intensity pc filename in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	public static void crossTabulate(Project proj, int numPCs, String alternateDataFile, boolean verbose) {
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		numPCs = numPCs > 0 ? numPCs : pcResiduals.getNumComponents();
-		PrincipalComponentsCrossTabs pcCorrelation = new PrincipalComponentsCrossTabs(pcResiduals, numPCs);
+		PrincipalComponentsCrossTabs pcCorrelation = new PrincipalComponentsCrossTabs(pcResiduals, numPCs, verbose);
 		pcCorrelation.developCrossTabs(alternateDataFile == null ? null : proj.getProjectDir() + alternateDataFile);
 		pcCorrelation.dumpTables();
 
@@ -141,7 +166,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			crossTabulate(proj, numPCs, alternateDataFile);
+			crossTabulate(proj, numPCs, alternateDataFile, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

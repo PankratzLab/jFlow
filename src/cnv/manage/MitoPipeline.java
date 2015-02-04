@@ -281,7 +281,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup) {
+	public static int catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup, boolean imputeMeanForNaN) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -395,14 +395,14 @@ public class MitoPipeline {
 						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
 							log.report("\nReady to perform the principal components analysis (PCA)\n");
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, true, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase);
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase);
 							if (pcs == null) {
 								return 3;
 							}
 							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
 							log.report("\nApplying the loadings from the principal components analysis to all samples\n");
-							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, true, recomputeLRR_PCs, outputBase);
+							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase);
 							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
 							log.report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
 							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase);
@@ -1122,6 +1122,7 @@ public class MitoPipeline {
 
 		int numThreads = 1;
 		int numComponents = 100;
+		boolean imputeMeanForNaN = true;
 		boolean homosygousOnly = true;
 		boolean doAbLookup = false;
 
@@ -1158,6 +1159,7 @@ public class MitoPipeline {
 		usage += "   (20) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
 		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs=" + recomputeLRR_PCs + " (default))\n";
 		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median=" + recomputeLRR_Median + " (default))\n";
+		usage += "   (23) Impute mean for markers with NaN data, if false markers with NaN values for any sample will be skipped (i.e. imputeMeanForNaN=" + imputeMeanForNaN + " (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -1231,6 +1233,9 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("recomputeLRR_Median=")) {
 				recomputeLRR_Median = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("imputeMeanForNaN=")) {
+				imputeMeanForNaN = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("markerCallRate=")) {
 				markerCallRateFilter = ext.parseDoubleArg(args[i]);
 				numArgs--;
@@ -1277,7 +1282,7 @@ public class MitoPipeline {
 		}
 		attempts = 0;
 		while (attempts < 2) {
-			result = catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup);
+			result = catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup, imputeMeanForNaN);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

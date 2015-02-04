@@ -415,7 +415,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		} else {
 			pcFilefull = proj.getProjectDir() + pcFile;
 		}
-		log.report("Info - loading principal components from " + pcFilefull);
+		log.reportTimeInfo("loading principal components from " + pcFilefull);
 		SampleData sampleData = proj.getSampleData(0, false);
 		ArrayList<String> pcSamps = new ArrayList<String>();
 		int sampIndex = 0;
