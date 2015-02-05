@@ -36,10 +36,12 @@ public abstract class RegressionModel {
 	protected String[] famIDs;
 	protected int failures;
 	protected boolean analysisFailed;
+	protected int sigfigs;
 	
 	public RegressionModel() {
 		verbose = true;
 		log = new Logger();
+		sigfigs = 3;
 	}
 
 	public abstract String modelSummary();
@@ -151,6 +153,10 @@ public abstract class RegressionModel {
 				maxNameSize = names[i].length();
 			}
 		}
+	}
+	
+	public void setSigFigs(int sigfigs) {
+		this.sigfigs = sigfigs;
 	}
 
 	public void dumpData(String filename) {

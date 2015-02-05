@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import parse.GenParser;
+import parse.LookupTable;
 import mining.Transformations;
 import stats.Correlation;
 import stats.ProbDist;
@@ -2055,34 +2056,54 @@ public class SeqMeta {
 	
 	public static void makeTables(String dir, String hitsDirectory, MetaAnalysisParams maps, int sigfigs) {
 		BufferedReader reader;
-		PrintWriter writer;
+		PrintWriter writer, forestWriter;
 		String[] line;
 		Logger log;
 		boolean[] keeps, pvals;
 		String[] typesToSplit = new String[] {"_p_", "_maf_", "_ntotal_"};			
 		boolean[][] typeMatrix;
 		Vector<String> v;
+		String[] phenotypes;
+		boolean error;
+		String filename, outputFile;
 		
 		if (dir == null || dir.equals("")) {
 			dir = new File("").getAbsolutePath()+"/";
 		}
 		
+		phenotypes = Matrix.extractColumn(maps.getPhenotypesWithFilenameAliases(true), 0);
 		hitsDirectory = ext.verifyDirFormat(hitsDirectory);
 
 		log = new Logger(dir+"makeTables.log");
 
+		error = false;
 		if (!Files.exists(dir+hitsDirectory)) {
 			log.reportError("Error - directory "+dir+hitsDirectory+" does not exist");
-			return;
+			error = true;
 		}
 
 		if (!Files.exists(dir+hitsDirectory+"SingleVariant_regions.xln")) {
 			log.reportError("Error - SingleVariant_regions.xln does not exist");
-			return;
+			error = true;
 		}
 		
 		if (!Files.exists(dir+hitsDirectory+"BurdenTests_regions.xln")) {
 			log.reportError("Error - BurdenTests_regions.xln does not exist");
+			error = true;
+		}
+		
+		for (int i = 0; i < phenotypes.length; i++) {
+			if (!Files.exists(dir+hitsDirectory+phenotypes[i]+"_SingleVariant.csv")) {
+				log.reportError("Error - "+phenotypes[i]+"_SingleVariant.csv does not exist");
+				error = true;
+			}
+			if (!Files.exists(dir+hitsDirectory+phenotypes[i]+"_BurdenTests.csv")) {
+				log.reportError("Error - "+phenotypes[i]+"_BurdenTests.csv does not exist");
+				error = true;
+			}
+		}
+
+		if (error) {
 			return;
 		}
 		
@@ -2233,6 +2254,81 @@ public class SeqMeta {
 			log.reportError("Error reading file \"" + dir+hitsDirectory+"BurdenTests_regions.xln" + "\"");
 			return;
 		}
+		
+		outputFile = "SupplementalTable2.xln";
+		try {
+			writer = new PrintWriter(new FileWriter(dir+hitsDirectory+outputFile));
+			forestWriter = new PrintWriter(new FileWriter(dir+hitsDirectory+"subthresholdForest.input"));
+
+			for (int i = 0; i < phenotypes.length; i++) {
+				filename = phenotypes[i]+"_SingleVariant.csv";
+				try {
+					reader = Files.getAppropriateReader(dir+hitsDirectory+filename);
+					line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+					keeps = Array.booleanArray(line.length, true);
+					
+					for (int j = 0; j < line.length; j++) {
+						if (line[j].equals("gene")) {
+							keeps[j] = false;
+						}
+						if (line[j].equals("CHARGE_ALL_AF")) {
+							keeps[j] = false;
+						}
+						
+						if (line[j].endsWith("_SingleSNP")) {
+							line[j] = line[j].substring(0, line[j].lastIndexOf("_SingleSNP"));
+						}
+						
+						line[j] = ext.replaceAllWith(line[j], new String[][] {
+								{"Whites_", "EA_"},	
+								{"Blacks_", "AA_"},	
+								{"Hispanics_", "HA_"},	
+								{"PanEthnic_", "EA+AA_"},	
+//								{"_p", "_pval"},	
+						});
+					}
+					for (int j = 28; j < line.length; j++) {
+						keeps[j] = false;
+					}
+
+					if (i == 0) {
+						line = Array.subArray(line, keeps);
+						writer.println("Trait\t"+Array.toStr(line));
+					}
+					
+					while (reader.ready()) {
+						line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+						line = Array.subArray(line, keeps);			
+						writer.println(ext.replaceAllWith(phenotypes[i], new String[][] { {"F7", "Factor VII"}, {"F8", "Factor VIII"} }) +"\t"+Array.toStr(line));
+						forestWriter.println(line[0]+"\t"+phenotypes[i]+"/SingleSNP/"+phenotypes[i]+"_SingleSNP.csv\tPanEthnic SingleSNP for "+phenotypes[i]+" (p="+ext.prettyP(line[7])+")");
+					}
+					reader.close();
+				} catch (FileNotFoundException fnfe) {
+					log.reportError("Error: file \"" + filename + "\" not found in "+dir+hitsDirectory);
+					reader.close();
+					writer.close();
+					forestWriter.close();
+					return;
+				} catch (IOException ioe) {
+					log.reportError("Error reading file \"" + dir+hitsDirectory+filename + "\"");
+					reader.close();
+					writer.close();
+					forestWriter.close();
+					return;
+				}
+			}
+			writer.close();
+			forestWriter.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: could not write to file \"" + outputFile + "\" in "+dir+hitsDirectory);
+			log.reportException(fnfe);
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error writing to file \"" + dir+hitsDirectory+outputFile + "\"");
+			log.reportException(ioe);
+			return;
+		}		
+		
 	}
 	
 	public static void stitch(String dir, String pattern, String fileout, Logger log) {
@@ -3085,6 +3181,100 @@ public class SeqMeta {
 		log.report("Finished in " + ext.getTimeElapsed(time));
 	}
 
+	public static void extractFromDumps(String dir, String genoPattern, String markerList, boolean plinkFormat) {
+		BufferedReader reader;
+		String[] line;
+		String temp, trav;
+		Vector<String> v = new Vector<String>();
+		int count;
+		long time;
+		String[][] replacements;
+		
+		PrintWriter writer;
+		Hashtable<String, Vector<String>> hash;
+		String[] markerNames, header;
+		int[] indices;
+		Logger log;
+		String params;
+		boolean hitup;
+		
+		hitup = false;
+		log = new Logger();
+		hash = HashVec.loadFileToHashVec(dir+markerList, 1, new int[] {0}, null, false, true);
+		try {
+			writer = new PrintWriter(new FileWriter(dir+ext.rootOf(markerList)+"_extract.crf"));
+			writer.println("lookup");
+			for (int chr = 1; chr <= 24; chr++) {
+				if (hash.containsKey(chr+"")) {
+					markerNames = Array.toStringArray(hash.get(chr+""));
+					header = Files.getHeaderOfFile(dir+ext.insertNumbers(genoPattern, chr, 1), ",!", log);
+					indices = ext.indexFactors(markerNames, header, false, false);
+					params = dir+ext.insertNumbers(genoPattern, chr, 1)+" 0";
+					if (!hitup) {
+						writer.println(dir+ext.insertNumbers(genoPattern, chr, 1)+" 0 , header out="+ext.rootOf(markerList)+"_extracted.xln lessMemoryButSlower");
+						hitup = true;
+//						params += plinkFormat?" 0=IID $#0=FA $#0=MO $#1=Sex $#1=Aff":"";
+						params += plinkFormat?" 0=IID $@0=FA $@0=MO $@1=Sex $@1=Aff":"";
+					}
+					for (int i = 0; i < indices.length; i++) {
+						if (indices[i] != -1) {
+							params += " "+(indices[i]+1)+"="+markerNames[i];
+						}
+					}
+//					params += plinkFormat?" 0=>AA 1=>AC 2=>CC NA=>00":"";
+					writer.println(params);
+				}
+
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + dir+ext.rootOf(markerList)+"_extract.crf");
+			log.reportException(e);
+		}
+		
+		LookupTable.fromParameters(dir+ext.rootOf(markerList)+"_extract.crf", log);
+		
+		if (plinkFormat) {
+			try {
+				reader = Files.getAppropriateReader(ext.rootOf(markerList)+"_extracted.xln");
+				header = reader.readLine().trim().split("[\\s]+");
+				writer = new PrintWriter(new FileWriter(ext.rootOf(markerList)+".map"));
+				for (int i = 6; i < header.length; i++) {
+					line = header[i].split(":");
+					if (line[0].startsWith("chr")) {
+						line[0] = line[0].substring(3);
+					}
+					writer.println(line[0]+"\t"+header[i]+"\t0\t"+line[1]);
+				}			
+				writer.close();
+				
+				replacements = new String[][] {
+						{"2", "C\tC"},
+						{"1", "A\tC"},
+						{"0", "A\tA"},
+				};
+				
+				writer = new PrintWriter(new FileWriter(ext.rootOf(markerList)+".ped"));
+				while (reader.ready()) {
+					line = reader.readLine().trim().split("[\\s]+");
+					for (int i = 6; i < line.length; i++) {
+						line[i] = ext.replaceAllWith(line[i], replacements);
+						line[i] = ext.replaceAllWith(line[i], "NA", "0\t0");
+					}
+					writer.println(Array.toStr(line));
+				}
+				reader.close();
+				writer.close();
+			} catch (FileNotFoundException fnfe) {
+				log.reportError("Error: file \"" + ext.rootOf(markerList)+"_extracted.xln" + "\" not found in current directory");
+				return;
+			} catch (IOException ioe) {
+				log.reportError("Error reading file \"" + ext.rootOf(markerList)+"_extracted.xln" + "\"");
+				return;
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String logfile = null;
@@ -3122,6 +3312,10 @@ public class SeqMeta {
 		int numSigFigs = 3;
 		boolean tables = false;
 		String hitsDirectory = "hitsAssembled/";
+		boolean extractMarkers = false;
+		String markerList = null;
+		String genoPattern = "chr#.csv.gz";
+		boolean plinkFormat = false;
 		
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Hct_SingleSNP.csv", new Logger());
@@ -3299,6 +3493,18 @@ public class SeqMeta {
 			} else if (args[i].startsWith("maxP=")) {
 				maxPval = ext.parseDoubleArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("-extract")) {
+				extractMarkers = true;
+				numArgs--;
+			} else if (args[i].startsWith("markerList=")) {
+				markerList = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("genoPattern=")) {
+				genoPattern = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("-plinkFormat")) {
+				plinkFormat = true;
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -3357,12 +3563,21 @@ public class SeqMeta {
 		
 //		regions = true;
 		
+//		dir = "D:/LITE/CHARGE-S/aric_wes_freeze4/results/";
+//		hitsDirectory = "hitsAssembled_final_wAccurateMACs/";
 //		tables = true;
+		
+//		extractMarkers = true;
+//		dir = "D:/LITE/CHARGE-S/aric_wes_freeze4/EA_all/";
+//		markerList = "FibrinogenConditionals.txt";
+//		plinkFormat = true;
 		
 		try {
 			log = new Logger(logfile);
 			if (metalSensitivity != null) {
 				metalCohortSensitivity(dir, metalSensitivity, log);
+			} else if (extractMarkers) {
+				extractFromDumps(dir, genoPattern, markerList, plinkFormat);
 			} else {
 				maps = new MetaAnalysisParams(dir+mapsFile, log);
 				if (determineObjectNames) {

@@ -335,7 +335,7 @@ public class Metal {
 					return;
 				}
 				travCommaDelimited = filenames[i].endsWith(".csv");
-				header = Files.getHeaderOfFile(dir+filenames[i], travCommaDelimited?",":"\t", log);
+				header = Files.getHeaderOfFile(dir+filenames[i], log);
 
 				indices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, true, log, false);
 				if (indices[0] == -1) {

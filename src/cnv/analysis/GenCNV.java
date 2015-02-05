@@ -816,10 +816,10 @@ public class GenCNV implements Runnable {
 		}
 		ArrayList<ArrayList<Analysis>> cabinet = getcabinet(analyses, numThreads);
 		GenCNV[] genCNVs = runAnalysis(cabinet, numThreads, threads, log);
-		summerizeAll(genCNVs, dir, gPhenoFile, outputSerial, log);
+		summarizeAll(genCNVs, dir, gPhenoFile, outputSerial, log);
 	}
 
-	private static void summerizeAll(GenCNV[] genCNVs, String dir, String gPhenoFile, String outputSerial, Logger log) {
+	private static void summarizeAll(GenCNV[] genCNVs, String dir, String gPhenoFile, String outputSerial, Logger log) {
 		log.report(Array.toStr(ANALYSIS_SUMMARY_HEADER));
 		ArrayList<Significance> allSigs = new ArrayList<Significance>();
 		ArrayList<Burden> allburdens = new ArrayList<Burden>();

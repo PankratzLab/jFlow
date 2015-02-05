@@ -44,6 +44,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String FILTER_MARKER_METRICS = "Filter marker metrics";
 	public static final String TALLY_MARKER_ANNOTATIONS = "Tally marker annotations";
 	public static final String TALLY_WITHOUT_DETERMINING_DROPS = "Tally without determining dropped markers (much faster)";
+	public static final String TALLY_CLUSTER_FILTERS = "Tally all reclustered markers";
 	
 	public static final String SCATTER = "Scatter module";
 	public static final String QQ = "QQ module";
@@ -73,7 +74,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE}, // , MITOPIPELINE
-			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS},
+			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
 			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, TEST},
 			{"Help", "Contents", "Search", "About"}};
@@ -508,6 +509,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, true);
 			} else if (command.equals(TALLY_WITHOUT_DETERMINING_DROPS)) {
 				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, false);
+			} else if (command.equals(TALLY_CLUSTER_FILTERS)) {
+				MarkerMetrics.tallyClusterFilters(proj, proj.getSamplesToInclude(null), null);
 			} else if (command.equals(MITOPIPELINE)) {
 //				MitoPipeline.guiLauncher(proj);
 			} else if (command.equals(KITANDKABOODLE)) {
