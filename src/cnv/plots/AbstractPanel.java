@@ -398,17 +398,50 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		maximumObservedRawY = maximumObservedRawY==Float.MIN_VALUE?1:maximumObservedRawY;
 
 //		otherwise step is off
-		minimumObservedRawX = minimumObservedRawX>0?0:minimumObservedRawX;
-		minimumObservedRawY = minimumObservedRawY>0?0:minimumObservedRawY;
+		minimumObservedRawX = minimumObservedRawX > 0 ? 0 : minimumObservedRawX;
+		minimumObservedRawY = minimumObservedRawY > 0 ? 0 : minimumObservedRawY;
 		
-		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX:forcePlotXmin;
-//		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX-(maximumObservedRawX-minimumObservedRawX)*(float)0.01:forcePlotXmin;
-//		maximumObservedRawX = Float.isNaN(forcePlotXmax)?maximumObservedRawX:forcePlotXmax;
-		maximumObservedRawX = Float.isNaN(forcePlotXmax)?(maximumObservedRawX+(maximumObservedRawX-minimumObservedRawX)*(float)0.01):forcePlotXmax;
-		minimumObservedRawY = Float.isNaN(forcePlotYmin)?minimumObservedRawY:forcePlotYmin;
-//		minimumObservedRawY = Float.isNaN(forcePlotYmin)?(minimumObservedRawY-(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmin;
-//		maximumObservedRawY = Float.isNaN(forcePlotYmax)?maximumObservedRawY:forcePlotYmax;
-		maximumObservedRawY =  Float.isNaN(forcePlotYmax)?(maximumObservedRawY+(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmax;
+		if (Float.isNaN(forcePlotXmin)) {
+//			minimumObservedRawX = minimumObservedRawX;
+		} else {
+			if (forcePlotXmin > minimumObservedRawX) {
+				System.err.println("WARNING - specified [minimum X boundary : " + forcePlotXmin + "] is higher than the data point with the [lowest X value : " + minimumObservedRawX + "]");
+			}
+			minimumObservedRawX = forcePlotXmin;
+		}
+		if (Float.isNaN(forcePlotXmax)) {
+			maximumObservedRawX = (maximumObservedRawX + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
+		} else {
+			if (forcePlotXmax < maximumObservedRawX) {
+				System.err.println("WARNING - specified [maximum X boundary : " + forcePlotXmax + "] is lower than the data point with the [highest X value : " + maximumObservedRawX + "]");
+			}
+			maximumObservedRawX = forcePlotXmax;
+		}
+		if (Float.isNaN(forcePlotYmin)) {
+//			minimumObservedRawY = minimumObservedRawY;
+		} else {
+			if (forcePlotYmin > minimumObservedRawY) {
+				System.err.println("WARNING - specified [minimum Y boundary : " + forcePlotYmin + "] is higher than the data point with the [lowest Y value : " + minimumObservedRawY + "]");
+			}
+			minimumObservedRawY = forcePlotYmin;
+		}
+		if (Float.isNaN(forcePlotYmax)) {
+			maximumObservedRawY = (maximumObservedRawY + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
+		} else {
+			if (forcePlotYmax < maximumObservedRawY) {
+				System.err.println("WARNING - specified [maximum Y boundary : " + forcePlotYmax + "] is lower than the data point with the [highest Y value : " + maximumObservedRawY + "]");
+			}
+			maximumObservedRawY = forcePlotYmax;
+		}
+		
+//		minimumObservedRawX = Float.isNaN(forcePlotXmin) ? minimumObservedRawX : forcePlotXmin;
+////		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX-(maximumObservedRawX-minimumObservedRawX)*(float)0.01:forcePlotXmin;
+////		maximumObservedRawX = Float.isNaN(forcePlotXmax)?maximumObservedRawX:forcePlotXmax;
+//		maximumObservedRawX = Float.isNaN(forcePlotXmax) ? (maximumObservedRawX + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01) : forcePlotXmax;
+//		minimumObservedRawY = Float.isNaN(forcePlotYmin) ? minimumObservedRawY : forcePlotYmin;
+////		minimumObservedRawY = Float.isNaN(forcePlotYmin)?(minimumObservedRawY-(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmin;
+////		maximumObservedRawY = Float.isNaN(forcePlotYmax)?maximumObservedRawY:forcePlotYmax;
+//		maximumObservedRawY =  Float.isNaN(forcePlotYmax) ? (maximumObservedRawY + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01) : forcePlotYmax;
 		
 		if (makeSymmetric) {
 			maximumObservedRawX = Math.max(maximumObservedRawX, maximumObservedRawY);

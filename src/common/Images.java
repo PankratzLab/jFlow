@@ -17,7 +17,7 @@ import javax.imageio.*;
 public class Images {
 	
 
-	public static void stitchImages(String dir, String listFile, String outFile, Color bgColor, boolean[] drawBorder/*, boolean pack*/) {
+	public static void stitchImages(String dir, String listFile, String outFile, Color bgColor, boolean drawInnerBorder, boolean drawOuterBorder/*, boolean pack*/) {
 		System.out.print("Loading input file...");
 		String[] imageFiles = HashVec.loadFileToStringArray(dir + listFile, false, new int[]{0}, false);
 		System.out.println("Complete!");
@@ -64,11 +64,11 @@ public class Images {
 				int x = (i % arrSzCols) * maxWid;
 				Graphics2D graphics = finalImage.createGraphics();
 				BufferedImage image = images.get(imageFiles[i]);
-				if (drawBorder != null && drawBorder.length > 1 && drawBorder[1]) {
+				if (drawInnerBorder) {
 					graphics.setColor(Color.GRAY);
 					graphics.drawRect(x, y, image.getWidth(), image.getHeight());
 				} 
-				if (drawBorder != null && drawBorder.length > 0 && drawBorder[0]) {
+				if (drawOuterBorder) {
 					graphics.setColor(Color.BLACK);
 					graphics.drawRect(x, y, maxWid, maxHgt);
 				}
@@ -160,12 +160,49 @@ public class Images {
 //	}
 
 	public static void main(String[] args) {
+		int numArgs = args.length;
 		String file = "imagelist.txt";
-		String dir = "D:/data/gedi_gwas/data/pngs/test4/";
+		String dir = "D:/data/gedi_gwas/data/";
 		String out = "stitched.png";
 		Color bgColor = Color.WHITE;
-		stitchImages(dir, file, out, bgColor, new boolean[]{true, true}/*, false*/);
+		boolean outerBorder = true;
+		boolean innerBorder = true;
+
+		String usage = "\n" + 
+						"common.Images requires 3+ arguments\n" +  
+						"   (1) directory (i.e. dir=" + dir + " (default))\n" +
+						"   (2) filename (i.e. file=" + file + " (default))\n" + 
+						"   (3) output filename (i.e. out=" + out + " (default))\n" +
+						"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("file=")) {
+				file = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("dir=")) {
+				dir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				out = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		
+		try {
+			stitchImages(dir, file, out, bgColor, innerBorder, outerBorder/*, false*/);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
-	
 	
 }
