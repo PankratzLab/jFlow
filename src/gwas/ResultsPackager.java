@@ -641,16 +641,16 @@ public class ResultsPackager {
 			System.exit(1);
 		}
 
-		type = "emim";
-
-		resultsFileChild = "D:/logan/emim/emim_516/emimsummary_C_1equals2.out";
-		resultsFileMom = "D:/logan/emim/emim_516/emimsummary_M_1equals2.out";
-		resultsFileChildMom = "D:/logan/emim/emim_516/emimsummary_CM_1equals2.out";
-		mapFile = "D:/logan/emim/emim_516/plink.bim";
-		outfile = "D:/logan/emim/emim_516/results_pVals_1equals2.xln";
-		resultsFileTdt = "D:/logan/emim/emim_516/plink.tdt";
-		mendelErrorFile = "D:/logan/emim/emim_516/plink.lmendel";
-		hweFile = "D:/logan/emim/emim_516/plink.hwe";
+//		type = "emim";
+//
+//		resultsFileChild = "D:/logan/emim/emim_516/emimsummary_C_1equals2.out";
+//		resultsFileMom = "D:/logan/emim/emim_516/emimsummary_M_1equals2.out";
+//		resultsFileChildMom = "D:/logan/emim/emim_516/emimsummary_CM_1equals2.out";
+//		mapFile = "D:/logan/emim/emim_516/plink.bim";
+//		outfile = "D:/logan/emim/emim_516/results_pVals_1equals2.xln";
+//		resultsFileTdt = "D:/logan/emim/emim_516/plink.tdt";
+//		mendelErrorFile = "D:/logan/emim/emim_516/plink.lmendel";
+//		hweFile = "D:/logan/emim/emim_516/plink.hwe";
 
 //		resultsFileChild = "D:/logan/emim/emim_276/emimsummary_C_1equals2.out";
 //		resultsFileMom = "D:/logan/emim/emim_276/emimsummary_M_1equals2.out";

@@ -12,9 +12,8 @@ public class LeastSquares extends RegressionModel {
 	private double[][] Y;
 	private double meanY;
 	private double[][] invP;
-	private int sigDig = 3;
 	private boolean svdRegression;
-
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public LeastSquares(Vector vDeps, Vector vIndeps) { // deps = Vector of int/double as String, indeps = Vector of double[]
 		this(vDeps, vIndeps, false, true);
@@ -338,10 +337,10 @@ public class LeastSquares extends RegressionModel {
 	}
 
 	public String getEquation() {
-		String output = "y = "+ext.formDeci(betas[0], sigDig);
+		String output = "y = "+ext.formDeci(betas[0], sigfigs);
 
 		for (int i = 1; i<=M; i++)
-			output += " + "+ext.formDeci(betas[i], sigDig)+"x"+i;
+			output += " + "+ext.formDeci(betas[i], sigfigs)+"x"+i;
 
 		return output;
 	}
@@ -378,7 +377,7 @@ public class LeastSquares extends RegressionModel {
 
 		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
 		for (int i = 0; i<betas.length; i++) {
-			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], 3, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], 3, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], 3, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], 3, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t=TDIST("+Math.abs(stats[i])+","+((onePer?Array.unique(famIDs).length:N)-2)+",2)"+eol;
+			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], sigfigs, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t=TDIST("+Math.abs(stats[i])+","+((onePer?Array.unique(famIDs).length:N)-2)+",2)"+eol;
 		}
 
 		return str;

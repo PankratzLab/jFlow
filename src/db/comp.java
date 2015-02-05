@@ -36,7 +36,7 @@ public class comp {
 	public static int BOOT_REPS_DEFAULT = 10000;
 	public static final String[] OPTIONS = {"dump", "dumpAll", "sw", "allsw", "predicteds", "residuals", "normalized", "inverseNormalized", "exactRegressionValues", "table", "sdtable", "trend", "oneperfamily", "verbose", "force", "noserialperm", "chis", "audit", "hwe"};
 	public static final int MAX_CLASSES = 15;
-	public static final int DEFAULT_SIG_FIGS = 1;
+	public static final int DEFAULT_SIG_FIGS = 3;
 	public static final int SIG_FIGS_PERCENTAGES = 1;
 
 	private boolean[] flags = new boolean[OPTIONS.length];
@@ -808,6 +808,7 @@ public class comp {
 					}
 				}
 				model = logistic?(RegressionModel)new LogisticRegression(deps, indeps, false, optionFlagged("verbose")):(RegressionModel)new LeastSquares(deps, indeps, false, optionFlagged("verbose"));
+				model.setSigFigs(sigfigs);
 				line = new String[indices.length-1];
 				for (int i = 0; i<M; i++) {
 					line[i] = factorNames[indices[i+1]];
