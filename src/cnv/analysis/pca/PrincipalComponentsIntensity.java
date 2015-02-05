@@ -250,10 +250,15 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		CrossValidation[][] cvals = threadIt(atComponent, Array.toDoubleArray(centroid.getMarkerData().getXs()), Array.toDoubleArray(centroid.getMarkerData().getYs()));
 		for (int i = 0; i < genoSampleClusters.length; i++) {
 			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
-			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
+			if (cvals[i] != null && cvals[i][1] != null && cvals[i][0] != null && !cvals[i][0].analysisFailed() && !cvals[i][1].analysisFailed() && validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				correctedXCluster[i] = Array.toFloatArray(Array.subArray(cvals[i][0].getResiduals(), genoSampleClusters[i]));
 				correctedYCluster[i] = Array.toFloatArray(Array.subArray(cvals[i][1].getResiduals(), genoSampleClusters[i]));
 			} else {
+				if (cvals[i] == null || cvals[i][1] == null || cvals[i][0] == null || cvals[i][0].analysisFailed() || cvals[i][1].analysisFailed()) {
+					if (verbose) {
+						proj.getLog().reportTimeError("Analysis failed for " + "Genotype cluster: " + i + " Marker " + centroid.getMarkerData().getMarkerName());
+					}
+				}
 				genoSampleClusters[i] = new boolean[genoSampleClusters[i].length];
 				Arrays.fill(genoSampleClusters[i], false); // not enough individuals, no corrections
 			}
@@ -283,7 +288,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 				CrossValidation cvalX = cvals[i][0];
 				CrossValidation cvalY = cvals[i][1];
 
-				if (!cvalX.analysisFailed()) {
+				if (cvalX != null && !cvalX.analysisFailed()) {
 					fullXPredicteds[i] = cvalX.getPredicteds();
 					if (residStandardDeviationFilter != 0) {
 						residX[i] = cvalX.getResiduals();
@@ -297,7 +302,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 					residX[i] = null;
 					residstdevX[i] = Double.NaN;
 				}
-				if (!cvalY.analysisFailed()) {
+				if (cvalY != null && !cvalY.analysisFailed()) {
 					fullYPredicteds[i] = cvalY.getPredicteds();
 					if (residStandardDeviationFilter != 0) {
 						residY[i] = cvalY.getResiduals();
@@ -325,14 +330,14 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 				for (int j = 0; j < genoSampleClusters.length; j++) {
 					if (!forceThisCluster[j]) {// this cluster has two few inds, we won't use it for new genotypes
 						if (fullXPredicteds[j] != null && fullYPredicteds[j] != null && genoClusterCounts[j] > 1) {// must have predicteds, and at more than one individual
-							if (residStandardDeviationFilter == 0 || (Math.abs(residY[j][i]) < residStandardDeviationFilter * residstdevY[j] && Math.abs(residX[j][i]) < residStandardDeviationFilter * residstdevX[j])) {
-								double tmpDist = cartDistance(Xs[i], Ys[i], fullXPredicteds[j][i], fullYPredicteds[j][i]);
-								if (tmpDist < minDist) {
-									minDist = tmpDist;
-									tmpGenotype = (byte) j;
+							if (!Double.isNaN(fullXPredicteds[j][i]) && !Double.isNaN(fullXPredicteds[j][i])) {
+								if (residStandardDeviationFilter == 0 || (Math.abs(residY[j][i]) < residStandardDeviationFilter * residstdevY[j] && Math.abs(residX[j][i]) < residStandardDeviationFilter * residstdevX[j])) {
+									double tmpDist = cartDistance(Xs[i], Ys[i], fullXPredicteds[j][i], fullYPredicteds[j][i]);
+									if (tmpDist < minDist) {
+										minDist = tmpDist;
+										tmpGenotype = (byte) j;
+									}
 								}
-							} else {
-
 							}
 						}
 					}
@@ -378,9 +383,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				String keyX = i + "_" + clusterComponent + "_X";
 				String keyY = i + "_" + clusterComponent + "_Y";
-				WorkerRegression workerX = new WorkerRegression(this, Xs, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " X values", verbose, log);
+				WorkerRegression workerX = new WorkerRegression(this, Xs, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " X values for Marker " + centroid.getMarkerData().getMarkerName(), verbose, log);
 				tmpResults.put(keyX, executor.submit(workerX));
-				WorkerRegression workerY = new WorkerRegression(this, Ys, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " Y values", verbose, log);
+				WorkerRegression workerY = new WorkerRegression(this, Ys, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " Y values for Marker " + centroid.getMarkerData().getMarkerName(), verbose, log);
 				tmpResults.put(keyY, executor.submit(workerY));
 			} else {
 				cvals[i][0] = null;
@@ -427,6 +432,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private void mergeCorrectedClusters() {
 		int[] genoIndices = new int[genoSampleClusters.length];
 		int count = 0;
+		boolean hasAnyCorrection = false;
 		for (int i = 0; i < numTotalSamples; i++) {
 			boolean hasCorrection = false;
 			for (int j = 0; j < genoSampleClusters.length; j++) {
@@ -437,6 +443,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 					correctedYFull[i] = Math.max(0, correctedYCluster[j][genoIndices[j]] + (float) toCartesianY(centroid.getCentroid()[j]));
 					genoIndices[j]++;
 					hasCorrection = true;
+					hasAnyCorrection = true;
 					count++;
 				}
 			}
@@ -451,6 +458,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		}
 		if (verbose) {
 			proj.getLog().report("Info - corrected a total of " + count + " of " + numTotalSamples + " " + (count == 1 ? "sample" : "samples"));
+		}
+		if (!hasAnyCorrection) {
+			proj.getLog().reportTimeWarning("Marker " + centroid.getMarkerData().getMarkerName() + " was unable to be corrected...");
 		}
 	}
 
