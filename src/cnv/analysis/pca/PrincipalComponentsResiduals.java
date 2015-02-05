@@ -792,12 +792,13 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		int numSamples = proj.getSamples().length;
 		boolean go = true;
 		CrossValidation cval;
-		if (numComponentsForModel == 0) {
+		if (numComponentsForModel <= 0) {
 			proj.getLog().reportError("Error - number of components specified must be greater than 0");
 			go = false;
 		}
-		if (data == null || willFailNAN(data, numComponents)) {
-			proj.getLog().reportError("Error - there are not enough samples with non NAN data for " + title + " using " + numComponents + " " + (numComponents == 1 ? "principal component " : "principal components") + " to run a regression");
+		if (data == null || willFailNAN(data, numComponentsForModel)) {
+			int numNonNaN = data == null ? 0 : Array.removeNaN(data).length;
+			proj.getLog().reportError("Error - there are not enough samples with non NAN (n=" + numNonNaN + ") data for " + title + " using " + numComponentsForModel + " " + (numComponentsForModel == 1 ? "principal component " : "principal components") + " to run a regression");
 			go = false;
 		}
 		if (data.length != numSamples) {

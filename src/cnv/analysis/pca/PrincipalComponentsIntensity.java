@@ -380,6 +380,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		Hashtable<String, Future<CrossValidation>> tmpResults = new Hashtable<String, Future<CrossValidation>>();
 		for (int i = 0; i < genoSampleClusters.length; i++) {
 			int clusterComponent = getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio, centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+			if (verbose) {
+				proj.getLog().reportTimeInfo("Attempting to enter regression model with " + clusterComponent + " principal components for genotype cluster " + i);
+			}
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				String keyX = i + "_" + clusterComponent + "_X";
 				String keyY = i + "_" + clusterComponent + "_Y";
@@ -500,6 +503,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 						}
 					} else {
 						assignAllFalseAt(i, genoSampleClusters);// simply skip missing markers
+					}
+				}
+				if (verbose) {
+					for (int i = 0; i < genoClusterCounts.length; i++) {
+						proj.getLog().reportTimeInfo("Genotype Cluster: " + i + ", n=" + genoClusterCounts[i]);
 					}
 				}
 			} else {
