@@ -86,7 +86,7 @@ public class ProbDist {
 		}
 		
 		if (x>1000|n>1000) {
-			double q = NormDist((Math.pow(x/n, 1/3)+2/(9*n)-1)/Math.sqrt(2/(9*n)))/2;
+			double q = NormDist((Math.pow(x/n, 1.0/3.0)+2.0/(9.0*n)-1)/Math.sqrt(2.0/(9.0*n)))/2.0;
 			if (x>n) {
 				return q;
 			} else {

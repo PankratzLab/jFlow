@@ -543,7 +543,7 @@ public class Array {
 		}
 		return arr;
 	}
-	
+		
 	/**
 	 * Creates an array of byte and copies the contents of a vector of byte into it
 	 * 
@@ -2361,6 +2361,56 @@ public class Array {
 	}
 	
 	/**
+	 * Creates a new array using only the byte values at indices defined by the Integer array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static byte[] subArray(byte[] array, int[] use) {
+		byte[] subarray = new byte[use.length];
+		int currentIndex = 0;
+		try {
+
+			for (int i = 0; i < use.length; i++) {
+				currentIndex = use[i];
+				subarray[i] = array[use[i]];
+			}
+		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n=" + array.length + ")");
+			return null;
+		}
+		return subarray;
+	}
+
+	/**
+	 * Creates a new array using only the float values at indices defined by the Integer array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static float[] subArray(float[] array, int[] use) {
+		float[] subarray = new float[use.length];
+		int currentIndex = 0;
+		try {
+
+			for (int i = 0; i < use.length; i++) {
+				currentIndex = use[i];
+				subarray[i] = array[use[i]];
+			}
+		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n=" + array.length + ")");
+			return null;
+		}
+		return subarray;
+	}
+	
+	/**
 	 * Creates a new array using only the strings at indices with a true in the boolean array
 	 * 
 	 * @param array
@@ -3936,6 +3986,20 @@ public class Array {
 	 */
 	public static byte[] toByteArray(ArrayList<Byte> al) {
 		byte[] result = new byte[al.size()];
+		for (int i = 0; i < al.size(); i++) {
+			result[i] = al.get(i);
+		}
+		return result;
+	}
+	
+	/**
+	 * Creates an array of byte and copies the contents of an ArrayList of byte into it
+	 * 
+	 * @param al
+	 * @return an array of byte copied from a ArrayList of byte
+	 */
+	public static boolean[] toBooleanArray(ArrayList<Boolean> al) {
+		boolean[] result = new boolean[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			result[i] = al.get(i);
 		}

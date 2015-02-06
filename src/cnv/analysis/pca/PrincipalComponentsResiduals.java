@@ -783,10 +783,11 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * @param svdRegression
 	 *            if the number of components is large, use an svd based regression
 	 * @param title
-	 *            a title string for error reporting (marker name, phenotype, etc)
+	 *            a title string for error reporting (marker name, phenotype, etc) * <br>
+	 *  NOTE: the pc object does not have to be in project order, or contain all samples, but it should
+	 * 
 	 * @return a computed {@link CrossValidation}
 	 * 
-	 *         NOTE: the pc object does not have to be in project order, or contain all samples, but it should
 	 */
 	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title, boolean verbose) {
 		int numSamples = proj.getSamples().length;

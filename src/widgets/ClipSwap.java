@@ -1,5 +1,6 @@
 package widgets;
 
+import gwas.MetaAnalysis;
 import stats.Histogram;
 import common.*;
 
@@ -113,6 +114,11 @@ public class ClipSwap {
 		ext.setClipboard(histo.getSummary());
 	}
 
+	public static void inverseVarianceMeta() {
+//		System.out.println(Array.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"), new Logger()), "/"));
+		ext.setClipboard(Array.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"), new Logger())));
+	}
+
 	public static void main(String[] args) {
 	    int numArgs = args.length;
 	    boolean slash = false;
@@ -122,6 +128,7 @@ public class ClipSwap {
 	    boolean removeFormatting = false;
 	    boolean prettyP = false;
 	    boolean histogram = false;
+	    boolean inverseVariance = false;
 
 	    String usage = "\n"+
 	    "widgets.ClipSwap requires 0-1 arguments\n"+
@@ -132,6 +139,7 @@ public class ClipSwap {
 	    "   (5) Remove formatting, leaving only plain text (i.e. -removeFormatting (not the default))\n"+
 	    "   (6) Make p-values pretty (i.e. -prettyP (not the default))\n"+
 	    "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"+
+	    "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"+
 	    "";
 
 	    for (int i = 0; i<args.length; i++) {
@@ -158,6 +166,9 @@ public class ClipSwap {
 			    numArgs--;
 		    } else if (args[i].startsWith("-histogram")) {
 		    	histogram = true;
+			    numArgs--;
+		    } else if (args[i].startsWith("-inverseVariance")) {
+		    	inverseVariance = true;
 			    numArgs--;
 		    }
 	    }
@@ -186,6 +197,9 @@ public class ClipSwap {
 	    	}
 	    	if (histogram) {
 	    		histogram();
+	    	}
+	    	if (inverseVariance) {
+	    		inverseVarianceMeta();
 	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();

@@ -134,6 +134,7 @@ public class Qc {
 		dir = "C:/PoynterLinabery/QC/bizarrePC12/";
 		dir = "C:/PoynterLinabery/GEDImerge/QC/";
 		dir = "C:/PoynterLinabery/Poynter/EMIM/checkQC/";
+		dir = "D:/ExomeChip/CARDIA_primary/QC/EA/";
 		
 		keepGenomeInfoForRelatedsOnly = false;
 
