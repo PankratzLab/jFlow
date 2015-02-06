@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import cnv.filesys.Project;
+import cnv.gui.FileChooser;
 import cnv.manage.ParseIllumina;
 import cnv.manage.TransposeData;
 import cnv.var.CNVariant;

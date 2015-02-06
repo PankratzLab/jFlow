@@ -26,6 +26,14 @@ public class PSF {
 			}
 			return javaJar;
 		}
+		
+		public static String[] buildJavaCP(String fullPathTojarFile) {
+			String[] javaJar = Array.concatAll(buildJava(), new String[] { CP });
+			if (fullPathTojarFile != null) {
+				javaJar = Array.concatAll(javaJar, new String[] { fullPathTojarFile });
+			}
+			return javaJar;
+		}
 	}
 
 	/**
