@@ -68,6 +68,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EXPORT_CNVS = "Export CNVs to Pedfile format";
 	public static final String CYTO_WORKBENCH = "Parse workbench files";
 	public static final String PRINCIPAL_COMPONENTS = "Principal Components";
+	public static final String GENERATE_DEMO_PACKAGE = "Generate a demo package";
 
 
 	public static final String TEST = "Test new program";
@@ -76,7 +77,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, TEST},
+			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
 	
@@ -177,20 +178,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 		//Create and set up the content pane.
     	launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
-    	if (!new File(launchPropertiesFile).exists()) {
-//			frame.output.append("Could not find file '"+launchPropertiesFile+"'; generating a blank one that you can populate with your own project links");
-			try {
-				path = ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath());
-			} catch (IOException ioe) {
-				path = "";
-			}
-			new File(path+"projects/").mkdirs();
-			new File(path+"example/").mkdirs();
-			Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR="+path+"projects/"}, launchPropertiesFile);
-	    	if (!new File(path+"projects/example.properties").exists()) {
-	    		Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/"}, path+"projects/example.properties");
-	    	}
-    	}
+		initLaunchProperties(launchPropertiesFile, false);
     	frame = new Launch(launchPropertiesFile, false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -211,6 +199,34 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
 		frame.loadProject();
     }
+
+	public static void initLaunchProperties(String launchPropertiesFile, boolean force) {
+		String path;
+		try {
+			path = ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath());
+		} catch (IOException ioe) {
+			path = "";
+		}
+		if (force || !new File(launchPropertiesFile).exists()) {
+			//			frame.output.append("Could not find file '"+launchPropertiesFile+"'; generating a blank one that you can populate with your own project links");
+			
+			new File(path+"projects/").mkdirs();
+			new File(path+"example/").mkdirs();
+			Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR="+path+"projects/"}, launchPropertiesFile);
+	    	if (!new File(path+"projects/example.properties").exists()) {
+	    		Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/"}, path+"projects/example.properties");
+	    	}
+    	}
+		String bat = path + "Launch.bat";
+		String sh = path + "Launch.sh";
+		if (!Files.exists(bat)) {
+			Files.write(getLaunchBat(), bat);
+		}
+		if (!Files.exists(sh)) {
+			Files.write(getLaunchSH(), sh);
+		}
+
+	}
 
     public Container createContentPane() {
 	    //Create the content-pane-to-be.
@@ -542,6 +558,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				PrincipalComponentsManhattan.guiAccess(proj, null);
 			} else if (command.equals(PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI)) {
 				PrincipalComponentsCrossTabs.guiAccess(proj, null);
+			} else if (command.equals(GENERATE_DEMO_PACKAGE)) {
+				DemoPackage.guiAccess(proj);
 			} else {
 				log.reportError("Error - unknown command: " + command);
 			}
@@ -705,5 +723,26 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     			System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
     		}
     	}
+	}
+
+	public static String getLaunchBat() {
+		String bat = "#This script is intended for launch on Windows machines\n";
+		bat += "#-Xmx2000m indicates 2000 mb of memory, adjust number up or down as needed\n";
+		bat += "#Script must be in the same directory as vis.jar\n";
+		bat += "for %%x in (%0) do set BatchPath=%%~dpsx\n";
+		bat += "for %%x in (%BatchPath%) do set BatchPath=%%~dpsx\n";
+		bat += "java  -Xmx22000m -jar %BatchPath%/vis.jar  %*\n";
+		return bat;
+	}
+
+	public static String getLaunchSH() {
+		String sh = "#!/bin/sh\n";
+		sh += "#This script is intended for launch on *nix machines\n";
+		sh += "#-Xmx2000m indicates 2000 mb of memory, adjust number up or down as needed\n";
+		sh += "#Script must be in the same directory as vis.jar\n";
+		sh += "prefix=`dirname $(readlink $0 || echo $0)`\n";
+		sh += "exec java -Xmx2000m \\\n";
+		sh += "	-jar \"$prefix\"/vis.jar \"$@\"\n";
+		return sh;
 	}
 }
