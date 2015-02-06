@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -28,7 +30,6 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import mining.Distance;
-
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -117,6 +118,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private String nullMessage;
 	private boolean randomTest;
 	private int numberOfNaNSamples;
+	private boolean antiAlias = true;
 	
 	public AbstractPanel() {
 		canvasSectionMinimumX = 0;
@@ -322,6 +324,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		ProgressBarDialog prog;//zx
     	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
 //    	int index;
+    	
+    	if (g instanceof Graphics2D) {
+    		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+    		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+    	}
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
 		setFinalImage(false);

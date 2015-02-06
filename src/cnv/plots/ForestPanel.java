@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,6 +46,7 @@ public class ForestPanel extends AbstractPanel {
 	private boolean rectangleGeneratable;
 	private boolean sortedDisplay = false;
 	private DecimalFormat precision2Decimal;
+	private boolean antiAlias = true;
 
 	public ForestPanel(ForestPlot forestPlot, Logger log) {
 		super();
@@ -273,6 +276,11 @@ public class ForestPanel extends AbstractPanel {
 		FontMetrics fontMetrics = g.getFontMetrics();
 		int[] order = null;
 		int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
+		
+    	if (g instanceof Graphics2D) {
+    		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+    		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+    	}
 		
 		setFinalImage(false);
 //		if (isRandomTest()) {

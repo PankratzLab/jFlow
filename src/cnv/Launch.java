@@ -173,6 +173,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //			System.err.println("Error - failed to load custom font 'LiberationSans'");
 //			e.printStackTrace();
 //		}
+    	
+    	// set system-wide anti-aliasing
+    	System.setProperty("awt.useSystemAAFontSettings","on");
+    	System.setProperty("swing.aatext", "true");
+    	
 
 		//Create and set up the content pane.
     	launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
