@@ -1,7 +1,9 @@
 package cnv.manage;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -308,7 +310,8 @@ public class DemoPackage {
 			}
 		}
 		JFrame jFrame = new JFrame();
-
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		jFrame.setLocation(dim.width / 2 - jFrame.getSize().width / 2, dim.height / 2 - jFrame.getSize().height / 2);
 		jFrame.setSize(width, 200);
 		jFrame.setVisible(true);
 		jFrame.setTitle("Generate Demo Project");

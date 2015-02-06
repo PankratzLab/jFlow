@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 
+import common.Array;
 import common.Files;
 import cnv.filesys.Project;
 import cnv.filesys.SampleList;
@@ -55,7 +56,7 @@ public class DemoProject extends Project {
 			copyFileIfExists(Project.MARKER_POSITION_FILENAME);
 			copyFileIfExists(Project.SAMPLE_DATA_FILENAME);
 			copyFileIfExists(Project.SAMPLE_QC_FILENAME);
-			copyFileIfExists(Project.DISPLAY_MARKERS_FILENAME);
+			// copyFileIfExists(Project.DISPLAY_MARKERS_FILENAME);
 			copyFileIfExists(Project.INTENSITY_PC_FILENAME);
 
 		} else {
@@ -162,6 +163,7 @@ public class DemoProject extends Project {
 					if (dType == DEMO_TYPE.MARKER_FOCUS) {
 						proj.getLog().reportTimeInfo("Finished subsetting the samples...Attempting to transpose the data");
 						TransposeData.transposeData(this, 2000000000, false);
+						Files.writeList(markersToExport, getFilename(Project.DISPLAY_MARKERS_FILENAME));
 					}
 					SampleList.generateSampleList(this).writeToTextFile(getProjectDir() + "ListOfSamples.txt");
 					getSamples();
