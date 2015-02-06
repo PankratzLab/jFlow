@@ -9,6 +9,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 
+ * @param <T>
+ *            parameterize and run callables returning this type
+ */
 public class WorkerHive<T> {
 	private int timeOutDays;
 	private ExecutorService executor;
@@ -48,10 +53,10 @@ public class WorkerHive<T> {
 	public ArrayList<T> getResults() {
 		return results;
 	}
-	
-//	public void run(Runnable[] rs){
-//		executor.invokeAll(tasks)
-//	}
+
+	// public void run(Runnable[] rs){
+	// executor.invokeAll(tasks)
+	// }
 
 	public void execute(boolean awaitTermination) {
 
