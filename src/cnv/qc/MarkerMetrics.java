@@ -843,7 +843,7 @@ public class MarkerMetrics {
 						"\t"+((double)numGenotypesAffected/(double)genotypesBefore.length)+
 						"\t"+((double)numNonMissingBefore/(double)genotypesBefore.length)+
 						"\t"+((double)numNonMissingAfter/(double)genotypesBefore.length)+
-						"\t"+(((double)numNonMissingBefore/(double)genotypesBefore.length) - ((double)numNonMissingAfter/(double)genotypesBefore.length))
+						"\t"+(((double)numNonMissingAfter/(double)genotypesBefore.length) - ((double)numNonMissingBefore/(double)genotypesBefore.length))
 						);
 				markerDataLoader.releaseIndex(i);
 			}

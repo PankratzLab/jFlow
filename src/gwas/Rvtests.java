@@ -1,9 +1,6 @@
-package one;
+package gwas;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.Vector;
 
 import common.Files;

@@ -313,7 +313,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	}
 	
 	public ForestPlot(String markerFile, Logger log) {
-		super("Forest Plot");
+		super("Genvisis - Forest Plot");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		
 		this.log = log;

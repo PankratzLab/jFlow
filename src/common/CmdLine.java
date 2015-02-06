@@ -27,7 +27,7 @@ public class CmdLine {
         	dir = "./";
         }
         
-		try {
+        try {
 			if (System.getProperty("os.name").startsWith("Windows") && (command.contains(">") || command.contains("|"))) {
 				System.err.println("FYI - the Runtime.exec command will likely not work, since it contains a pipe, write command to a .bat file and exec that instead");
 			}
@@ -123,7 +123,7 @@ public class CmdLine {
 				if (verbose) {
 					log.report(ext.getTime() + " Info - running command " + Array.toStr(commandArray, " "));
 				}
-				if (run(null, commandArray, dir, null, null, (skipReporting ? null : log), false)) {
+				if (run(Array.toStr(commandArray, " "), commandArray, dir, null, null, (skipReporting ? null : log), false)) {
 					if (expectedOutputFiles != null && !Files.exists(dir, expectedOutputFiles)) {
 						log.reportError("Error - the command " + Array.toStr(commandArray, " ") + " appeared to run, but could not find all neccesary output files:" + Array.toStr(expectedOutputFiles, "\n"));
 					} else {

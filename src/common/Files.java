@@ -2171,7 +2171,7 @@ public class Files {
         }
 	}
 	
-	public static void catFilesFromParamters(String filename, Logger log) {
+	public static void catFilesFromParameters(String filename, Logger log) {
 		Vector<String> params;
 		String[] line, files;
 		int[] skips;
@@ -2199,6 +2199,45 @@ public class Files {
 				}
 			}
 			cat(files, out, skips, log);
+		}
+	}
+
+	public static void renameFilesFromParameters(String filename, Logger log) {
+		Vector<String> params;
+		String[] line, files;
+		String[][] matchingFilenames;
+		boolean problem;
+		
+		// get all files in the directory, excluding the crf itself and its corresponding log
+		files = Files.list("./", ":"+ext.rootOf(filename), ":.crf", false, false);
+		params = parseControlFile(filename, "rename", files, log);
+		if (params != null) {
+    		matchingFilenames = new String[params.size()][2];
+    		problem = false;
+    		for (int i = 0; i < matchingFilenames.length; i++) {
+    			line = params.elementAt(i).trim().split("[\\s]+");
+    			if (line.length != 2) {
+    				log.reportError("Error - skipping this line, invalid number of arguments: "+Array.toStr(line, "/"));
+    				problem = true;
+    			} else {
+        			matchingFilenames[i] = line;
+        			if (!Files.exists(line[0])) {
+        				log.reportError("Error - file '"+line[0]+"' does not exist, cannot be renamed to "+line[1]);
+        				problem = true;
+        			}
+        			if (Files.exists(line[1])) {
+        				log.reportError("Error - file '"+line[1]+"' already exists, and will not be overwritten by the contents of "+line[0]);
+        				problem = true;
+        			}
+    			}
+			}
+    		if (!problem) {
+    			for (int i = 0; i < matchingFilenames.length; i++) {
+    				log.report("Renaming "+matchingFilenames[i][0]+" to "+matchingFilenames[i][1]);
+    				new File(matchingFilenames[i][0]).renameTo(new File(matchingFilenames[i][1]));
+				}
+    		}
+    		
 		}
 	}
 	
@@ -2235,7 +2274,7 @@ public class Files {
         }
 
         try {
-	        writer = new PrintWriter(new FileWriter(finalFile));
+        	writer = Files.getAppropriateWriter(finalFile);
 	        for (int i = 0; i<originalFiles.length; i++) {
 	        	try {
 
@@ -2415,7 +2454,7 @@ public class Files {
 		splitFile(filename, numSplits, numLinesCopiedToAll, blockSize, rootForNewFiles, extForNewFiles, allowUnevenBlocks);
 	}
 	
-	public static void splitFileFromParamters(String filename, Logger log) {
+	public static void splitFileFromParameters(String filename, Logger log) {
 		String[][] params;
 		
 		params = parseControlFile(filename, false, "split", new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"}, log);

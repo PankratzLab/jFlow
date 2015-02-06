@@ -1,4 +1,4 @@
-package cyto;
+package cnv.gui;
 
 import java.awt.Component;
 import java.io.File;

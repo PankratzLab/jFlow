@@ -41,13 +41,14 @@ public class ExtProjectDataParser {
 	private boolean sampleBased;
 
 	public void loadData() {
-		proj.getLog().reportTimeInfo("Attempting to load data from " + fullPathToDataFile);
+		proj.getLog().reportTimeInfo("Attempting to load " + (sampleBased ? "sample based" : "marker based") + " data from " + fullPathToDataFile);
 		if (treatAllNumeric) {
 			treatAllNumeric();
 		}
 		init();
 		try {
 			if (hasHeader) {
+				proj.getLog().reportTimeWarning("The has header option was flagged, skipping the first line");
 				typedFileParser.readLine();
 			}
 			while (typedFileParser.ready()) {
@@ -94,6 +95,10 @@ public class ExtProjectDataParser {
 			e.printStackTrace();
 		}
 
+	}
+
+	public String[] getStringDataAt(int index, boolean subset) {
+		return subset ? Array.subArray(stringData[index], dataPresent) : stringData[index];
 	}
 
 	public boolean determineIndicesFromTitles() {
@@ -160,6 +165,10 @@ public class ExtProjectDataParser {
 		return stringDataTitles;
 	}
 
+	public boolean[] getDataPresent() {
+		return dataPresent;
+	}
+
 	private boolean determineSampleIndex(boolean determined, String[] header) {
 		if (determined && !dataKeyColumnName.equals(DEFUALT_SAMPLE_NAME_COLUMN)) {
 			dataKeyColumnIndex = ext.indexOfStr(dataKeyColumnName, header);
@@ -174,6 +183,12 @@ public class ExtProjectDataParser {
 	private void init() {
 		String[] header = Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(), proj.getLog());
 		this.dataToLoad = sampleBased ? proj.getSamples() : proj.getMarkerNames();
+		if (sampleBased) {
+			proj.getLog().reportTimeInfo("Sample based loader:");
+		} else {
+			proj.getLog().reportTimeInfo("Marker based loader:");
+
+		}
 		this.dataPresent = new boolean[dataToLoad.length];
 		Arrays.fill(dataPresent, false);
 
@@ -275,7 +290,6 @@ public class ExtProjectDataParser {
 		private boolean skipUnFound = true;
 		private boolean hasHeader = true;
 		private boolean treatAllNumeric = true;
-		private String fullPathToDataFile;
 		private String missingString = DEFUALT_MISSING_STRING;
 		private boolean sampleBased = true;
 
@@ -426,6 +440,7 @@ public class ExtProjectDataParser {
 	}
 
 	private ExtProjectDataParser(Builder builder, Project proj, TypedFileParser.Builder typeBuilder, String fullPathToDataFile) throws FileNotFoundException {
+		this.proj = proj;
 		this.numericDataTitles = builder.numericDataTitles;
 		this.stringDataTitles = builder.stringDataTitles;
 		this.dataKeyColumnIndex = builder.dataKeyColumnIndex;
@@ -436,7 +451,7 @@ public class ExtProjectDataParser {
 		this.skipUnFound = builder.skipUnFound;
 		this.hasHeader = builder.hasHeader;
 		this.treatAllNumeric = builder.treatAllNumeric;
-		this.fullPathToDataFile = builder.fullPathToDataFile;
+		this.fullPathToDataFile = fullPathToDataFile;
 		this.missingString = builder.missingString;
 		this.sampleBased = builder.sampleBased;
 		this.typedFileParser = typeBuilder.build(Files.getAppropriateReader(fullPathToDataFile));

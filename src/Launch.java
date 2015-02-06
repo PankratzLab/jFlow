@@ -17,7 +17,7 @@ import db.*;
 
 
 public class Launch {
-	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers", "bestTransformation", CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION };
+	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat - concatenate the specified files", "rename - rename the specified files", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers", "bestTransformation", CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION };
 
 	public static void run(String filename, Logger log) throws Elision {
 		String temp;
@@ -28,6 +28,8 @@ public class Launch {
 			} else {
 				temp = Files.getReader(filename, false, true, log, true).readLine();
 			}
+			
+			temp = temp.trim();
 			
 			log.report("Launching option '"+temp+"'");
 
@@ -61,13 +63,15 @@ public class Launch {
 			} else if (temp.equals("ucsc")) {
 				UCSCtrack.describeFromParameters(filename, log);
 			} else if (temp.equals("split")) {
-				Files.splitFileFromParamters(filename, log);
+				Files.splitFileFromParameters(filename, log);
 			} else if (temp.equals("dir")) {
 				Files.summarizeDirectoryFromParameters(filename, log);
 			} else if (temp.equals("copy")) {
 				Files.copySpecificFiles(filename, log);
 			} else if (temp.equals("cat")) {
-				Files.catFilesFromParamters(filename, log);
+				Files.catFilesFromParameters(filename, log);
+			} else if (temp.equals("rename")) {
+				Files.renameFilesFromParameters(filename, log);
 			} else if (temp.equals("db")) {
 				CreateMarkerDatabase.createFromParameters(filename, log);
 			} else if (temp.equals("merge")) {

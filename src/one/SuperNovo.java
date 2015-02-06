@@ -1652,7 +1652,7 @@ public class SuperNovo {
 			}
 
 			writer.close();
-			log.report("Summerized result is available at: " + filename);
+			log.report("Summarized result is available at: " + filename);
 
 		} catch (Exception e) {
 			log.reportError("Error writing to " + filename);
@@ -3550,7 +3550,7 @@ public class SuperNovo {
 					+ "\n   (8) to output read count files, directory and prefix for the read counts files (i.e. " + commands[21] + dirReadCounts + " (default)"
 					+ "\n   (9) maximum length that a region is to be broken into, for the scan of .sam/.bam files at a time (i.e. " + regionLegnthATime
 					+ "\n   (10) number of threads (i.e. " + commands[11] + numThreads + " (default))"
-					+ "\nTo filter and summerize the outputs of the .sam files' scanning of all trios (phase 2 scan):"
+					+ "\nTo filter and summarize the outputs of the .sam files' scanning of all trios (phase 2 scan):"
 					+ "\nYou might need to repeat this command for several times, after each of which you'll use the updated lists to download the annotations from SeattleSeq and output of this summary will be based on the updated SeattleSeq annotations before the run."
 					+ "\n   (1) command for filter and summarize results (i.e. " + commandIsToFilterAndSummarizeResults + " (default))"
 					+ "\n   (2) directory for the output files of the scan of .sam files (phase 1 scan) (i.e. " + commandOutDir + dirOutputsFromTheScanningOfSamFilesForDenovoMutations + " (default))"
