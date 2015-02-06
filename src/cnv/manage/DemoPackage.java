@@ -16,7 +16,6 @@ import javax.swing.JTextField;
 import cnv.LaunchProperties;
 import cnv.filesys.Project;
 import cnv.gui.FileChooser;
-import cnv.gui.LRRComp;
 import cnv.manage.DemoProject.DEMO_TYPE;
 import common.*;
 
@@ -55,7 +54,7 @@ public class DemoPackage {
 			}
 			if (!Files.exists(demoPark) || !Files.exists(demoVis)) {
 				if (!Files.exists(copyRunning)) {
-					log.reportTimeInfo("Detected " + runningJar + ", copying to " + copyRunning + "\n\t (this takes a while do to byte by byte copying)");
+					log.reportTimeInfo("Detected " + runningJar + ", copying to " + copyRunning + "\n\t (this takes a while due to byte by byte copying)");
 					if (Files.copyFileExactlyByteByByte(runningJar, copyRunning)) {
 						log.reportTimeInfo("Finished copying " + runningJar + ", to " + copyRunning);
 					} else {
@@ -67,7 +66,7 @@ public class DemoPackage {
 				String other = ext.parseDirectoryOfFile(runningJar, false) + ext.removeDirectoryInfo(copyOther);
 				if (Files.exists(other) && !Files.exists(copyOther)) {
 					if (Files.exists(other)) {
-						log.reportTimeInfo("Detected " + other + ", copying to " + copyOther + "\n\t (this takes a while do to byte by byte copying)");
+						log.reportTimeInfo("Detected " + other + ", copying to " + copyOther + "\n\t (this takes a while due to byte by byte copying)");
 						if (Files.copyFileExactlyByteByByte(other, copyOther)) {
 							log.reportTimeInfo("Finished copying " + other + ", to " + copyOther);
 						} else {

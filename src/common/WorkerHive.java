@@ -69,7 +69,7 @@ public class WorkerHive<T> {
 				try {
 					results.add(futures.get(i).get());
 					if (reportEvery > 0 && i % reportEvery == 0 && i != 0) {
-						log.reportTimeInfo("Finished" + (i) + " of " + futures.size());
+						log.reportTimeInfo("Finished " + (i) + " of " + futures.size());
 					}
 				} catch (InterruptedException e) {
 					log.reportTimeError("Could not complete job on internal index " + i);
