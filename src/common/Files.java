@@ -3014,6 +3014,15 @@ public class Files {
 		return fullPaths;
 	}
 	
+	/**
+	 * trys to determine if the path is relative or absolute
+	 * 
+	 * @param path
+	 */
+	public static boolean isRelativePath(String path) {
+		return (path.startsWith("/") || path.indexOf(":") < 0);
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;

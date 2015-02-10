@@ -183,7 +183,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 		//Create and set up the content pane.
     	launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
-		initLaunchProperties(launchPropertiesFile, false);
+		initLaunchProperties(launchPropertiesFile, false, false);
     	frame = new Launch(launchPropertiesFile, false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -205,23 +205,24 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		frame.loadProject();
     }
 
-	public static void initLaunchProperties(String launchPropertiesFile, boolean force) {
-		String path;
-		try {
-			path = ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath());
-		} catch (IOException ioe) {
-			path = "";
+	public static void initLaunchProperties(String launchPropertiesFile, boolean force, boolean relativePath) {
+		String path = LaunchProperties.directoryOfLaunchProperties(launchPropertiesFile);
+		String pathToSet;
+		if (relativePath) {
+			pathToSet = "";
+		} else {
+			pathToSet = path;
 		}
 		if (force || !new File(launchPropertiesFile).exists()) {
-			//			frame.output.append("Could not find file '"+launchPropertiesFile+"'; generating a blank one that you can populate with your own project links");
-			
-			new File(path+"projects/").mkdirs();
-			new File(path+"example/").mkdirs();
-			Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR="+path+"projects/"}, launchPropertiesFile);
-	    	if (!new File(path+"projects/example.properties").exists()) {
-	    		Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/"}, path+"projects/example.properties");
-	    	}
-    	}
+			// frame.output.append("Could not find file '"+launchPropertiesFile+"'; generating a blank one that you can populate with your own project links");
+			System.out.println("creating " + launchPropertiesFile);
+			new File(path + "projects/").mkdirs();
+			new File(path + "example/").mkdirs();
+			Files.writeList(new String[] { "LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR=" + pathToSet + "projects/" }, launchPropertiesFile);
+			if (!new File(path + "projects/example.properties").exists()) {
+				Files.writeList(new String[] { "PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/" }, path + "projects/example.properties");
+			}
+		}
 		String bat = path + "Launch.bat";
 		String sh = path + "Launch.sh";
 		if (!Files.exists(bat)) {
@@ -737,6 +738,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		bat += "for %%x in (%0) do set BatchPath=%%~dpsx\n";
 		bat += "for %%x in (%BatchPath%) do set BatchPath=%%~dpsx\n";
 		bat += "java  -Xmx22000m -jar %BatchPath%/vis.jar  %*\n";
+		bat += "PAUSE";
 		return bat;
 	}
 

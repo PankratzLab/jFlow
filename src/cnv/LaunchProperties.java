@@ -43,15 +43,30 @@ public class LaunchProperties extends Properties {
 		return dir;
 	}
 	
+
+	public String getFilename() {
+		return filename;
+	}
+
+	public static String directoryOfLaunchProperties(String launchPropertiesFile) {
+		String path = null;
+		try {
+			path = ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath());
+		} catch (IOException ioe) {
+			path = "";
+		}
+		return path;
+	}
+	
 	public void save() {
 		FileOutputStream out;
 		
 		try {
-			out = new FileOutputStream(DEFAULT_PROPERTIES_FILE);
+			out = new FileOutputStream(filename);
 			store(out, null);
 			out.close();		
         } catch (Exception e) {
-        	System.err.println("Failed to save \""+DEFAULT_PROPERTIES_FILE+"\"");
+        	System.err.println("Failed to save \""+filename+"\"");
         }
 	}
 	
