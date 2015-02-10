@@ -12,12 +12,16 @@ import common.Logger;
 import common.WorkerHive;
 import common.ext;
 
+/**
+ *Subsets samples
+ * 
+ */
 public class FocusedSample {
 
 	private Sample focusedSample;
 	private boolean overwriteExisting;
 	private Hashtable<String, Float> outliers;
- 
+
 	// private boolean fail;
 
 	public FocusedSample(int[] focusedIndices, Sample sample, long newFingerPrint, boolean overwriteExisting) {

@@ -10,9 +10,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 
- * @param <T>
- *            parameterize and run callables returning this type
+ * Trying to consolidate some common multi threading tasks
  */
 public class WorkerHive<T> {
 	private int timeOutDays;
@@ -23,6 +21,13 @@ public class WorkerHive<T> {
 	private int reportEvery = 0;
 	private Logger log;
 
+	/**
+	 * @param nThreads
+	 *            constructs an executor service with this many threads
+	 * @param timeOutDay
+	 *            time the job will run for before quitting
+	 * @param log
+	 */
 	public WorkerHive(int nThreads, int timeOutDay, Logger log) {
 		super();
 		this.log = log;
@@ -32,24 +37,43 @@ public class WorkerHive<T> {
 		this.results = new ArrayList<T>();
 	}
 
+	/**
+	 * @param bee
+	 *            a single job for the que
+	 */
 	public void addCallable(Callable<T> bee) {
 		bees.add(bee);
 	}
 
+	/**
+	 * @param beesToAdd
+	 *            multiple jobs for the que
+	 */
 	public void addCallables(List<Callable<T>> beesToAdd) {
 		bees.addAll(beesToAdd);
 	}
 
+	/**
+	 * @param reportEvery
+	 *            a message will be display everytime this many jobs are completed
+	 */
 	public void setReportEvery(int reportEvery) {
 		this.reportEvery = reportEvery;
 	}
 
+	/**
+	 * @param beesToAdd
+	 *            multiple jobs for the que
+	 */
 	public void addCallables(Callable<T>[] beesToAdd) {
 		for (int i = 0; i < beesToAdd.length; i++) {
 			addCallable(beesToAdd[i]);
 		}
 	}
 
+	/**
+	 * @return an array list of objects representing the called method of the completed jobs
+	 */
 	public ArrayList<T> getResults() {
 		return results;
 	}

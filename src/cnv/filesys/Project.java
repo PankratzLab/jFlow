@@ -22,6 +22,7 @@ import common.ext;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.manage.TransposeData;
 import cnv.var.SampleData;
+import filesys.GeneSet;
 
 public class Project extends Properties {
 	private static final long serialVersionUID = 1L;
@@ -835,5 +836,30 @@ public class Project extends Properties {
 			pcResids = null;
 		}
 		return pcResids;
+	}
+	
+	/**
+	 * Attempts to return the gene track file from the properties, and then attempts the statgen default (only valid for local)
+	 * 
+	 * @param report
+	 *            log which file is used
+	 * 
+	 */
+	public String getGeneTrackFileName(boolean report) {
+		String tmp = getFilename(Project.GENETRACK_FILENAME, false, false);
+		if (tmp == null || !Files.exists(tmp)) {
+			tmp = GeneSet.DIRECTORY + GeneSet.REFSEQ_TRACK;
+			if (tmp == null || !Files.exists(tmp)) {
+				tmp = null;
+			}
+		}
+		if (report) {
+			if (tmp == null) {
+				log.reportTimeWarning("Did not find a gene track to use");
+			} else {
+				log.reportTimeInfo("Using gene track " + tmp);
+			}
+		}
+		return tmp;
 	}
 }

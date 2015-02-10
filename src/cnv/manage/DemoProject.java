@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import common.Array;
 import common.Files;
+import common.ext;
 import cnv.filesys.Project;
 import cnv.filesys.SampleList;
 import cnv.manage.ExtProjectDataParser.Builder;
@@ -50,14 +51,26 @@ public class DemoProject extends Project {
 			new File(getProjectDir()).mkdirs();
 			getDir(Project.DATA_DIRECTORY, true, false);
 			getDir(Project.SAMPLE_DIRECTORY, true, false);
+			getDir(Project.RESULTS_DIRECTORY, true, false);
+
 			if (dType == DEMO_TYPE.MARKER_FOCUS) {
 				getDir(Project.MARKER_DATA_DIRECTORY, true, false);
 			}
+
+			// single file Copies
 			copyFileIfExists(Project.MARKER_POSITION_FILENAME);
 			copyFileIfExists(Project.SAMPLE_DATA_FILENAME);
 			copyFileIfExists(Project.SAMPLE_QC_FILENAME);
-			// copyFileIfExists(Project.DISPLAY_MARKERS_FILENAME);
+			copyFileIfExists(Project.MOSAIC_RESULTS_FILENAME);
+			copyFileIfExists(Project.SEXCHECK_RESULTS_FILENAME);
 			copyFileIfExists(Project.INTENSITY_PC_FILENAME);
+			copyFileIfExists(Project.CLUSTER_FILTER_COLLECTION_FILENAME);
+			copyFileIfExists(Project.ANNOTATION_FILENAME);
+
+			// multi-file Copies
+			copyIfFilesExists(Project.TWOD_LOADED_FILENAMES);
+			copyStratResults(proj, this);
+			copyGeneTrack(proj, this);
 
 		} else {
 			proj.getLog().reportTimeError(demoProjectDirectory + " exists and the overwrite option was not flagged, halting");
@@ -65,11 +78,56 @@ public class DemoProject extends Project {
 		}
 	}
 
-	private void copyFileIfExists(String property) {
-		if (Files.exists(proj.getFilename(property))) {
-			Files.copyFile(proj.getFilename(property, false, false), getFilename(property, false, false));
+	private static void copyGeneTrack(Project original, Project demo) {
+		String geneTrack = original.getGeneTrackFileName(true);
+		if (geneTrack != null && Files.exists(geneTrack)) {
+			demo.setProperty(Project.GENETRACK_FILENAME, ext.removeDirectoryInfo(geneTrack));
+			original.getLog().reportTimeInfo("Detected " + geneTrack + ", copying to " + demo.getFilename(Project.GENETRACK_FILENAME, false, false) + "\n\t (this takes a while due to byte by byte copying)");
+			Files.copyFileExactlyByteByByte(geneTrack, demo.getFilename(Project.GENETRACK_FILENAME, false, false));
+		}
+	}
+
+	private static void copyStratResults(Project original, Project demo) {
+		String[] strats = Array.toStringArray(original.getStratResults());
+		if (strats != null && strats.length > 0) {
+			for (int i = 0; i < strats.length; i++) {
+				Files.copyFile(strats[i], demo.getProjectDir() + ext.removeDirectoryInfo(strats[i]));
+			}
 		} else {
-			proj.getLog().reportTimeWarning("Did not find file " + proj.getFilename(property, false, false) + " cannot copy to demo");
+			original.getLog().reportTimeWarning("Did not find any stratification results");
+		}
+
+	}
+
+	private void copyIfFilesExists(String propertyWithMultipleFiles) {
+		String propertyValue = proj.getProperty(propertyWithMultipleFiles);
+		String propertyValueNew = propertyValue;
+		propertyValueNew = propertyValueNew.replace(proj.getProjectDir(), getProjectDir());
+		setProperty(propertyWithMultipleFiles, propertyValueNew);
+
+		String[] filesOriginal = proj.getFilenames(propertyWithMultipleFiles);
+		String[] filesNew = getFilenames(propertyWithMultipleFiles, true);
+		copyFiles(filesOriginal, filesNew);
+	}
+
+	private void copyFiles(String[] filesOriginal, String[] filesNew) {
+		if (filesOriginal != null && filesOriginal.length > 0) {
+			for (int i = 0; i < filesOriginal.length; i++) {
+				if (filesOriginal[i] != null && Files.exists(filesOriginal[i])) {
+					Files.copyFile(filesOriginal[i], filesNew[i]);
+				} else {
+					proj.getLog().reportTimeWarning("Did not find file " + filesOriginal[i] + " cannot copy to demo");
+				}
+			}
+		}
+	}
+
+	private void copyFileIfExists(String property) {
+		String file = proj.getFilename(property, false, false);
+		if (file != null && Files.exists(file)) {
+			Files.copyFile(file, getFilename(property, false, false));
+		} else {
+			proj.getLog().reportTimeWarning("Did not find file " + file + " cannot copy to demo");
 		}
 	}
 

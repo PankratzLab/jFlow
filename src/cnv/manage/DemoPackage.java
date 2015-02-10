@@ -87,7 +87,7 @@ public class DemoPackage {
 			fail = true;
 		}
 		String launchProperties = demoDirectory + LaunchProperties.DEFAULT_PROPERTIES_FILE;
-		cnv.Launch.initLaunchProperties(launchProperties, true);
+		cnv.Launch.initLaunchProperties(launchProperties, true, true);
 
 		this.newLaunchProperties = new LaunchProperties(launchProperties);
 		System.out.println(newLaunchProperties.getProperty(LaunchProperties.PROJECTS_DIR));
@@ -147,18 +147,21 @@ public class DemoPackage {
 
 		DemoProject demoProjectMarkerFocus = new DemoProject(proj, demoDirectory, overwriteExisting, DEMO_TYPE.MARKER_FOCUS);
 		demoProjectMarkerFocus.createProjectDemo(markersFile, null, numThreads);// all samples for these markers...
-		saveDemoProperties(proj, demoProjectMarkerFocus);
+		saveDemoProperties(proj, demoProjectMarkerFocus, false);
 
 		DemoProject demoProjectSampleFocus = new DemoProject(proj, demoDirectory, overwriteExisting, DEMO_TYPE.SAMPLE_FOCUS);
 		demoProjectSampleFocus.createProjectDemo(null, samplesFile, numThreads);// all markers for these samples...
-		saveDemoProperties(proj, demoProjectSampleFocus);
+		saveDemoProperties(proj, demoProjectSampleFocus, true);
 	}
 
-	private void saveDemoProperties(Project proj, DemoProject demoProject) {
-		String projectDir = newLaunchProperties.getProperty(LaunchProperties.PROJECTS_DIR);
+	private void saveDemoProperties(Project proj, DemoProject demoProject, boolean setToDefault) {
+		String projectsDir = newLaunchProperties.getDirectory();
+		if (Files.isRelativePath(projectsDir)) {
+			projectsDir = ext.parseDirectoryOfFile(newLaunchProperties.getFilename()) + projectsDir;
+		}
 		demoProject.setProperty(Project.PROJECT_NAME, proj.getNameOfProject() + "_" + demoProject.getdType());
-		String newProjectFile = projectDir + demoProject.getNameOfProject() + ".properties";
-		demoProject.setProperty(Project.PROJECT_PROPERTIES_FILENAME, Project.DEFAULT_PROPERTIES);
+		String newProjectFile = projectsDir + demoProject.getNameOfProject() + ".properties";
+		demoProject.setProperty(Project.PROJECT_DIRECTORY, demoProject.getNameOfProject() + "/");
 		if (!demoProject.isFail()) {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(newProjectFile));
@@ -168,6 +171,10 @@ public class DemoPackage {
 				log.reportError("Error writing to " + newProjectFile);
 				log.reportException(e);
 			}
+		}
+		if (setToDefault) {
+			newLaunchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED, demoProject.getNameOfProject() + ".properties");
+			newLaunchProperties.save();
 		}
 	}
 
