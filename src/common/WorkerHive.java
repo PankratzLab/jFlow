@@ -82,6 +82,9 @@ public class WorkerHive<T> {
 	// executor.invokeAll(tasks)
 	// }
 
+	/**
+	 * @param awaitTermination call the shutdown method
+	 */
 	public void execute(boolean awaitTermination) {
 
 		if (bees.size() > 0) {
