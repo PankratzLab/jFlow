@@ -225,11 +225,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		}
 		String bat = path + "Launch.bat";
 		String sh = path + "Launch.sh";
+		String command = path + "Launch.command";
+
 		if (!Files.exists(bat)) {
 			Files.write(getLaunchBat(), bat);
 		}
 		if (!Files.exists(sh)) {
 			Files.write(getLaunchSH(), sh);
+		}
+		if (!Files.exists(command)) {
+			Files.write(getLaunchSH(), command);
 		}
 
 	}
@@ -731,6 +736,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	}
 	}
 
+	/**
+	 * @return launch for windows
+	 */
 	public static String getLaunchBat() {
 		String bat = "#This script is intended for launch on Windows machines\n";
 		bat += "#-Xmx2000m indicates 2000 mb of memory, adjust number up or down as needed\n";
@@ -741,7 +749,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		bat += "PAUSE";
 		return bat;
 	}
-
+	/**
+	 * @return launch for linux and mac
+	 */
 	public static String getLaunchSH() {
 		String sh = "#!/bin/sh\n";
 		sh += "#This script is intended for launch on *nix machines\n";
@@ -752,4 +762,5 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		sh += "	-jar \"$prefix\"/vis.jar \"$@\"\n";
 		return sh;
 	}
+	
 }
