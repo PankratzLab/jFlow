@@ -39,6 +39,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private static final String NEXT = "Next";
 	private static final String LAST = "Last";
 	private static final String SYMMETRY = "Symmetry";
+	private static final String EXCLUDE = "Exclude";
 	private static final String CORRECTION = "Correction";
 	private static final String CLUSTER_FILTER_BACKWARD = "Backward";
 	private static final String CLUSTER_FILTER_FORWARD = "Forward";
@@ -104,6 +105,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	private boolean jar;
 	private SampleData sampleData;
 	private JCheckBox symmetryBox;
+	private JCheckBox excludeBox;
 	private JCheckBox correctionBox;
 	private boolean maskMissing;
 	private ClusterFilterCollection clusterFilterCollection;
@@ -247,6 +249,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 //    	newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(getMarkerName(), currentClusterFilter)+1);
 		symmetryBox.setSelected(true);
+//		excludeBox.setSelected(false);
+//		currentStateOfExcludeBox = false;
 		if (centList.length > 0) {
 			centBoxes[0].setSelected(true);
 		}
@@ -709,13 +713,59 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				updateGUI();
 			}
 		};
-		
 		symmetryBox = new JCheckBox("Symmetric axes");
 		symmetryBox.setFont(new Font("Arial", 0, 14));
 		symmetryBox.addItemListener(symmetryListener);
 		symmetryBox.setBackground(BACKGROUND_COLOR);
 
-		
+		ItemListener excludeListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				if (ie.getStateChange() == ItemEvent.SELECTED) {
+					String filename;
+					String[] exclude;
+					Vector<String> newMarkerList;
+					int index;
+	
+					filename = proj.getFilename(Project.FILTERED_MARKERS_FILENAME);
+					if (!new File(filename).exists()) {
+						JOptionPane.showOptionDialog(null, "'Exclude Markers' is not activated due to the following file not found:\n  " + filename, "File Not Found", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[] {"Cancel"}, "Cancel");
+					} else {
+						exclude = HashVec.loadFileToStringArray(filename, false, null, false);
+						newMarkerList = new Vector<String>();
+						index = 0;
+						for (int i = 0; i < markerList.length; i++) {
+							for (int j = 0; j < exclude.length; j++) {
+								if (markerList[i].equalsIgnoreCase(exclude[j])) {
+									newMarkerList.add(exclude[j]);
+									if (i == markerIndex) {
+										index = newMarkerList.size() - 1;
+									}
+									break;
+								}
+							}
+						}
+						changeToNewMarkerList(newMarkerList.toArray(new String[0]), index);
+						updateGUI();
+					}
+				} else {
+					int index = markerIndexBak;
+					for (int i = 0; i < masterMarkerList.length; i++) {
+						if(masterMarkerList[i].equalsIgnoreCase(markerList[markerIndex])) {
+							index = i;
+							break;
+						}
+					}
+					revertMarkersToOriginalList(index);
+					updateGUI();
+				}
+			}
+		};
+		excludeBox = new JCheckBox("Exclude markers");
+		excludeBox.setFont(new Font("Arial", 0, 14));
+		excludeBox.addItemListener(excludeListener);
+		excludeBox.setBackground(BACKGROUND_COLOR);
+//		excludeBox.setSelected(false);
+
 		ItemListener correctionListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
 				scatPanel.setPointsGeneratable(true);
@@ -733,6 +783,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		
 		controlPanel.add(symmetryBox, gbc);
 		controlPanel.add(correctionBox, gbc);
+		controlPanel.add(excludeBox, gbc);
 
 		JButton button = new JButton(CAPTURE);
 		button.addActionListener(this);
@@ -753,157 +804,6 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 		return controlPanel;
 	}
-
-//	private JPanel controlPanel() {
-//		JPanel controlPanel;
-//		JPanel panel;
-//		JButton button;
-//
-//		controlPanel = new JPanel();
-//		controlPanel.setSize(100, 500);
-//		controlPanel.setBackground(BACKGROUND_COLOR);
-//
-////		GridBagConstraints gbc = new GridBagConstraints();
-////		gbc.insets = new Insets(1,3,0,30);
-////		gbc.weightx = 1.0;
-////		gbc.fill = GridBagConstraints.HORIZONTAL;
-////		gbc.gridwidth = GridBagConstraints.REMAINDER;
-////		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-//		SpringLayout springLayout = new SpringLayout();
-//		controlPanel.setLayout(springLayout);
-//
-//		panel = sizeSliderPanel();
-//		controlPanel.add(panel);
-//		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
-//		springLayout.putConstraint(SpringLayout.NORTH, panel, 5, SpringLayout.NORTH, controlPanel);
-//		panel = gcSliderPanel();
-//		controlPanel.add(panel);
-//		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
-//		springLayout.putConstraint(SpringLayout.NORTH, panel, 45, SpringLayout.NORTH, controlPanel);
-//
-//		ItemListener symmetryListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-////				scatPanel.setPointsGenerated(true); ??? Why not true?
-////				scatPanel.setUpdateQcPanel(false); ??? Why cannot set to false?
-//				updateGUI();
-//			}
-//		};
-//		
-//		symmetryBox = new JCheckBox("Symmetric axes");
-//		symmetryBox.setFont(new Font("Arial", 0, 14));
-//		symmetryBox.addItemListener(symmetryListener);
-//		symmetryBox.setBackground(BACKGROUND_COLOR);
-//
-//		controlPanel.add(symmetryBox);
-//		springLayout.putConstraint(SpringLayout.WEST, symmetryBox, 5, SpringLayout.WEST, controlPanel);
-//		springLayout.putConstraint(SpringLayout.NORTH, symmetryBox, 85, SpringLayout.NORTH, controlPanel);
-////		tabPanel.add(symmetryBox);
-//		
-//		button = new JButton(CAPTURE);
-//		button.addActionListener(this);
-//		button.setActionCommand(CAPTURE);
-//		controlPanel.add(button);
-//		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
-//		springLayout.putConstraint(SpringLayout.NORTH, button, 115, SpringLayout.NORTH, controlPanel);
-////		tabPanel.add(button);
-//
-//		button = new JButton(DUMP);
-//		button.addActionListener(this);
-//		button.setActionCommand(DUMP);
-//		controlPanel.add(button);
-//		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
-//		springLayout.putConstraint(SpringLayout.NORTH, button, 145, SpringLayout.NORTH, controlPanel);
-////		tabPanel.add(button);
-//		
-//		button = new JButton(MASK_MISSING);
-//		button.addActionListener(this);
-//		button.setActionCommand(MASK_MISSING);
-//		controlPanel.add(button);
-//		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
-//		springLayout.putConstraint(SpringLayout.NORTH, button, 175, SpringLayout.NORTH, controlPanel);
-//		
-//		panel = plotTypePanel();
-//		controlPanel.add(panel);
-//		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
-//		springLayout.putConstraint(SpringLayout.NORTH, panel, 205, SpringLayout.NORTH, controlPanel);
-//		
-//
-//		return controlPanel;
-//	}
-
-
-//	private JPanel controlPanel() {
-//		JPanel controlPanel;
-//		JPanel panel;
-//		JButton button;
-//
-//		controlPanel = new JPanel();
-//		controlPanel.setSize(100, 500);
-//		controlPanel.setBackground(BACKGROUND_COLOR);
-//
-//		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-////		SpringLayout springLayout = new SpringLayout();
-////		controlPanel.setLayout(springLayout);
-//
-//		panel = sizeSliderPanel();
-//		controlPanel.add(panel);
-////		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
-////		springLayout.putConstraint(SpringLayout.NORTH, panel, 5, SpringLayout.NORTH, controlPanel);
-//		panel = gcSliderPanel();
-//		controlPanel.add(panel);
-////		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
-////		springLayout.putConstraint(SpringLayout.NORTH, panel, 45, SpringLayout.NORTH, controlPanel);
-//
-//		ItemListener symmetryListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-////				scatPanel.setPointsGenerated(true); ??? Why not true?
-////				scatPanel.setUpdateQcPanel(false); ??? Why cannot set to false?
-//				updateGUI();
-//			}
-//		};
-//		
-//		symmetryBox = new JCheckBox("Symmetric axes");
-//		symmetryBox.setFont(new Font("Arial", 0, 14));
-//		symmetryBox.addItemListener(symmetryListener);
-//		symmetryBox.setBackground(BACKGROUND_COLOR);
-//
-//		controlPanel.add(symmetryBox);
-////		springLayout.putConstraint(SpringLayout.WEST, symmetryBox, 5, SpringLayout.WEST, controlPanel);
-////		springLayout.putConstraint(SpringLayout.NORTH, symmetryBox, 85, SpringLayout.NORTH, controlPanel);
-////		tabPanel.add(symmetryBox);
-//		
-//		button = new JButton(CAPTURE);
-//		button.addActionListener(this);
-//		button.setActionCommand(CAPTURE);
-//		controlPanel.add(button);
-////		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
-////		springLayout.putConstraint(SpringLayout.NORTH, button, 115, SpringLayout.NORTH, controlPanel);
-////		tabPanel.add(button);
-//
-//		button = new JButton(DUMP);
-//		button.addActionListener(this);
-//		button.setActionCommand(DUMP);
-//		controlPanel.add(button);
-////		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
-////		springLayout.putConstraint(SpringLayout.NORTH, button, 145, SpringLayout.NORTH, controlPanel);
-////		tabPanel.add(button);
-//		
-//		button = new JButton(MASK_MISSING);
-//		button.addActionListener(this);
-//		button.setActionCommand(MASK_MISSING);
-//		controlPanel.add(button);
-////		springLayout.putConstraint(SpringLayout.WEST, button, 5, SpringLayout.WEST, controlPanel);
-////		springLayout.putConstraint(SpringLayout.NORTH, button, 175, SpringLayout.NORTH, controlPanel);
-//		
-//		panel = plotTypePanel();
-//		controlPanel.add(panel);
-////		springLayout.putConstraint(SpringLayout.WEST, panel, 5, SpringLayout.WEST, controlPanel);
-////		springLayout.putConstraint(SpringLayout.NORTH, panel, 205, SpringLayout.NORTH, controlPanel);
-//		
-//
-//		return controlPanel;
-//	}
-
 
 	private JPanel centroidPanel() {
 		JPanel centroidPanel;
@@ -1229,17 +1129,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 								}
 							}
 
-							if (!saveClusterFilterAndAnnotationCollection()) {
-								return;
-							}
-
-							indexOfAnnotationUsedAsMarkerList = -2;
-							markerIndexBak = markerIndex;
-							markerList = annotationCollection.getMarkerLists(annotationKeys[annotationIndex]);
-							commentList = new String[markerList.length];
-							loadMarkerDataFromList(0);
-							displayIndex(navigationField);
-							updateGUI();
+							changeToNewMarkerList(annotationCollection.getMarkerLists(annotationKeys[annotationIndex]), markerIndex);
 						}
 
 						public boolean isEnabled() {
@@ -1252,19 +1142,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 						@Override
 						public void actionPerformed(ActionEvent e2) {
-							if (!saveClusterFilterAndAnnotationCollection()) {
-								return;
-							}
-
-							for (int i = 0; i < annotationCheckBoxes.length; i ++) {
-								annotationCheckBoxes[i].setEnabled(true);
-							}
-							indexOfAnnotationUsedAsMarkerList = -1;
-							markerList = masterMarkerList;
-							commentList = masterCommentList;
-							loadMarkerDataFromList(markerIndexBak);
-							displayIndex(navigationField);
-							updateGUI();
+							revertMarkersToOriginalList(markerIndexBak);
 						}
 						
 						@Override
@@ -1522,6 +1400,13 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 			public void actionPerformed(ActionEvent e) {
 				symmetryBox.setSelected(!symmetryBox.isSelected());
+			}
+		});
+		actionMap.put(EXCLUDE, new AbstractAction() {
+			public static final long serialVersionUID = 7L;
+
+			public void actionPerformed(ActionEvent e) {
+				excludeBox.setSelected(!excludeBox.isSelected());
 			}
 		});
 		actionMap.put(CORRECTION, new AbstractAction() {
@@ -2153,6 +2038,37 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		centList = Array.toStringArray(fileList);
 	}
 
+	public void changeToNewMarkerList(String[] newMarkerList, int indexOfDefaultFirstMarker) {
+		if (!saveClusterFilterAndAnnotationCollection()) {
+			return;
+		}
+
+		indexOfAnnotationUsedAsMarkerList = -2;
+		markerIndexBak = markerIndex;
+//		markerList = annotationCollection.getMarkerLists(annotationKeys[annotationIndex]);
+		markerList = newMarkerList;
+		commentList = new String[markerList.length];
+		loadMarkerDataFromList(0);
+		displayIndex(navigationField);
+		updateGUI();
+	}
+
+	public void revertMarkersToOriginalList(int indexOfDefaultFirstMarker) {
+		if (!saveClusterFilterAndAnnotationCollection()) {
+			return;
+		}
+
+		for (int i = 0; i < annotationCheckBoxes.length; i ++) {
+			annotationCheckBoxes[i].setEnabled(true);
+		}
+		indexOfAnnotationUsedAsMarkerList = -1;
+		markerList = masterMarkerList;
+		commentList = masterCommentList;
+		loadMarkerDataFromList(indexOfDefaultFirstMarker);
+		displayIndex(navigationField);
+		updateGUI();
+	}
+
 	public void updateGUI() {
 //		log.report("Entering updateGUI()");
 		if (markerDataLoader == null) {
@@ -2164,7 +2080,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 ////			create visual that we're loading data, (write to scatter panel "Loading data from file")
 //			loadMarkerData(markerIndex);
 //		}
-		
+
 		if (markerList.length==0) {
 			markerName.setText("Error: marker data was not successfully loaded");
 			commentLabel.setText("Check to make sure MarkerLookup is synchronized with the current data");

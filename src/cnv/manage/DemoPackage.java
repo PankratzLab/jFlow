@@ -14,6 +14,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import cnv.LaunchProperties;
 import cnv.filesys.Project;
@@ -54,8 +56,8 @@ public class DemoPackage {
 				copyRunning = demoVis;
 				copyOther = demoPark;
 			}
-			if (!Files.exists(demoPark) || !Files.exists(demoVis)) {
-				if (!Files.exists(copyRunning)) {
+			if (!Files.exists(demoVis)) {
+				if (!Files.exists(copyRunning) && !runningJar.endsWith(GENVISIS_PARK_JAR)) {
 					log.reportTimeInfo("Detected " + runningJar + ", copying to " + copyRunning + "\n\t (this takes a while due to byte by byte copying)");
 					if (Files.copyFileExactlyByteByByte(runningJar, copyRunning)) {
 						log.reportTimeInfo("Finished copying " + runningJar + ", to " + copyRunning);
@@ -66,7 +68,7 @@ public class DemoPackage {
 				}
 
 				String other = ext.parseDirectoryOfFile(runningJar, false) + ext.removeDirectoryInfo(copyOther);
-				if (Files.exists(other) && !Files.exists(copyOther)) {
+				if (Files.exists(other) && !Files.exists(copyOther) && !other.endsWith(GENVISIS_PARK_JAR)) {
 					if (Files.exists(other)) {
 						log.reportTimeInfo("Detected " + other + ", copying to " + copyOther + "\n\t (this takes a while due to byte by byte copying)");
 						if (Files.copyFileExactlyByteByByte(other, copyOther)) {
@@ -311,9 +313,9 @@ public class DemoPackage {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Thread(new DemoPackageWorker(proj, markerButton.getCurrentFile(), sampButton.getCurrentFile(), null, proj.getInt(Project.NUM_THREADS), false)).start();
+				new Thread(new DemoPackageWorker(proj, markerButton.getCurrentFile(), sampButton.getCurrentFile(), null, proj.getInt(Project.NUM_THREADS), true)).start();
 				jFrame.pack();
-				;
+
 			}
 		}
 		JFrame jFrame = new JFrame();
@@ -327,9 +329,9 @@ public class DemoPackage {
 		mainPanel.setLayout(new BorderLayout());
 
 		JPanel filePanel = new JPanel(new GridLayout(2, 0));
-		JTextField sampFileText = new JTextField(proj.getFilename(Project.SAMPLE_SUBSET_FILENAME));
+		JTextField sampFileText = new JTextField(proj.getFilename(Project.SAMPLE_SUBSET_FILENAME).replaceAll("\"", ""));
 		sampFileText.setSize(width, 30);
-		JTextField markFileText = new JTextField(proj.getFilename(Project.TARGET_MARKERS_FILENAME));
+		JTextField markFileText = new JTextField(proj.getFilename(Project.TARGET_MARKERS_FILENAME).replaceAll("\"", ""));
 		filePanel.add(markFileText, BorderLayout.NORTH);
 		filePanel.add(sampFileText, BorderLayout.SOUTH);
 
@@ -366,6 +368,23 @@ public class DemoPackage {
 			super(title);
 			addActionListener(this);
 			this.text = text;
+			this.text.getDocument().addDocumentListener(new DocumentListener() {
+
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					updateText();
+				}
+
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					updateText();
+				}
+
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+					updateText();
+				}
+			});
 			this.proj = proj;
 			this.exists = exists;
 			this.jFrame = jFrame;
@@ -373,12 +392,21 @@ public class DemoPackage {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			FileChooser fileChooser = new FileChooser(null, proj.getProjectDir(), true, false, getText(), proj.getLog());
-			fileChooser.setApproveButtonToolTipText("Note this file will only be applied to the " + DemoProject.DEMO_TYPE.SAMPLE_FOCUS + " demo set");
-			if (fileChooser.isSelected()) {
-				text.setText(fileChooser.getFiles()[0]);
+				FileChooser fileChooser = new FileChooser(null, proj.getProjectDir(), true, false, getText(), proj.getLog());
+				fileChooser.setApproveButtonToolTipText("Note this file will only be applied to the " + DemoProject.DEMO_TYPE.SAMPLE_FOCUS + " demo set");
+				if (fileChooser.isSelected()) {
+					text.setText(fileChooser.getFiles()[0]);
+					updateText();
+					jFrame.pack();
+				}
+			
+		}
+
+		private void updateText() {
+			if (Files.exists(text.getText())) {
 				exists.setText("File exists");
-				jFrame.pack();
+			} else {
+				exists.setText("File does not exist");
 			}
 		}
 

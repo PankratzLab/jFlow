@@ -66,9 +66,11 @@ public class DemoProject extends Project {
 			copyFileIfExists(Project.INTENSITY_PC_FILENAME);
 			copyFileIfExists(Project.CLUSTER_FILTER_COLLECTION_FILENAME);
 			copyFileIfExists(Project.ANNOTATION_FILENAME);
-
 			// multi-file Copies
 			copyIfFilesExists(Project.TWOD_LOADED_FILENAMES);
+			
+			copyIfFilesExists(Project.INDIVIDUAL_CNV_LIST_FILENAMES);//copying to both marker and sample focus in case of marker focused cnvs
+
 			copyStratResults(proj, this);
 			copyGeneTrack(proj, this);
 
