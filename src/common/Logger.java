@@ -51,17 +51,45 @@ public class Logger implements Serializable {
 		this.level = level;
 	}
 
+	/**
+	 * @param str
+	 *            report this string with a time stamp and info message
+	 */
 	public void reportTimeInfo(String str) {
 		report(ext.getTime() + " Info - " + str, true, true);
 	}
 
+	/**
+	 * @param str
+	 *            report this string with a time stamp and warning message
+	 */
 	public void reportTimeWarning(String str) {
 		report(ext.getTime() + " Warning - " + str, true, true);
 	}
-	
-	
+
+	/**
+	 * @param str
+	 *            report this string with a time stamp and error message
+	 */
 	public void reportTimeError(String str) {
 		reportError(ext.getTime() + " Error - " + str, true, true);
+	}
+	
+	/**
+	 * @param filename report that this file was not found with a time stamp and error message
+	 */
+	public void reportFileNotFound(String filename) {
+		String str = "file \"" + filename + "\" not found in current directory";
+		reportTimeError(str);
+	}
+
+	/**
+	 * @param filename
+	 *            report that this file had an IO err with time stamp and error message
+	 */
+	public void reportIOException(String filename) {
+		String str = "could not read file \"" + filename + "\"";
+		reportTimeError(str);
 	}
 	
 	public void report(String str) {
