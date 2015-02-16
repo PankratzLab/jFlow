@@ -88,12 +88,40 @@ public class CheckBoxTree extends JTree implements ItemListener {
 		fireValueChanged(new TreeSelectionEvent(this, getPathForRow(0), true, getPathForRow(0), getPathForRow(0)));
 	}
 
+
+	@SuppressWarnings("unchecked")
+	public DefaultMutableTreeNode searchNode(String fileName, String nodeStr)
+	{
+		DefaultTreeModel model = (DefaultTreeModel)getModel();
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) model.getRoot();
+		Enumeration<DefaultMutableTreeNode> topLevel = node.children();
+		while(topLevel.hasMoreElements()) {
+			DefaultMutableTreeNode tpNd = topLevel.nextElement();
+			if(((Branch)tpNd.getUserObject()).toString().equals(fileName)) {
+				Enumeration<DefaultMutableTreeNode> subElements = tpNd.breadthFirstEnumeration();
+				while(subElements.hasMoreElements()) {
+					node = subElements.nextElement();
+					if(node.getUserObject() instanceof JCheckBox){
+						JCheckBox thisNode= (JCheckBox) node.getUserObject();
+						//System.out.println("this:" + thisNode.getText());
+						if(nodeStr.equals(thisNode.getText())) {
+							return node;
+						}
+					}
+				}
+			}
+		}
+		
+		//tree node with string node found return null
+		return null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public DefaultMutableTreeNode searchNode(String nodeStr)
 	{
 		DefaultTreeModel model = (DefaultTreeModel)getModel();
-		DefaultMutableTreeNode node = (DefaultMutableTreeNode) model.getRoot();
-		Enumeration<DefaultMutableTreeNode> enumeration= node.breadthFirstEnumeration();
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) model.getRoot();		
+		Enumeration<DefaultMutableTreeNode> enumeration = node.breadthFirstEnumeration();
 		while(enumeration.hasMoreElements()) {
 			node = enumeration.nextElement();
 			if(node.getUserObject() instanceof JCheckBox){
@@ -119,6 +147,15 @@ public class CheckBoxTree extends JTree implements ItemListener {
 	public void performCheckBoxAction(String checkboxName, int action) {
 		// try to get the checkbox from the CheckBoxTree
 		DefaultMutableTreeNode searchNode = searchNode(checkboxName);
+		checkBoxAction(searchNode, action);
+	}
+	
+	public void performCheckBoxAction(String fileName, String checkboxName, int action) {
+		DefaultMutableTreeNode searchNode = searchNode(fileName, checkboxName);
+		checkBoxAction(searchNode, action);
+	}
+	
+	private void checkBoxAction(DefaultMutableTreeNode searchNode, int action) {
 		if (searchNode != null) {
 			JCheckBox thisCheckBox = (JCheckBox) searchNode.getUserObject();
 			if (action == ItemEvent.SELECTED) {
