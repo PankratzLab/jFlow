@@ -31,6 +31,7 @@ public class LRRBDevHetOutlierClassifier {
 		HashSet<String> indivList = new HashSet<String>();
 		HashSet<String> outlierList = new HashSet<String>();
 		HashMap<String, Double> scoreMap;
+		HashMap<String, Integer> validatedCodes;
 		int popCount;
 		private String ucscRegion;
 		
@@ -485,109 +486,13 @@ public class LRRBDevHetOutlierClassifier {
 		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier writeResults(String outFile, boolean writeOutliersOnly, boolean writeScores, boolean writeHeader, boolean combine) {
-		String fileRoot = ext.parseDirectoryOfFile(filename);
-		String file = outFile == null ? ext.rootOf(filename, true) + "_outliers.txt" : outFile;
-		PrintWriter writer = null;
-		if (combine) {
-			file = fileRoot + ext.replaceWithLinuxSafeCharacters(file, false);
-			writer = Files.getAppropriateWriter(file);	
-			if (writeOutliersOnly) {
-				if (writeHeader) {
-					StringBuilder hdrStr = new StringBuilder("ID\tUCSC");
-					if (writeScores) {
-						hdrStr.append("\tScores");
-					}
-					hdrStr.append("\tN=" + analyses.get(0).popCount);
-					hdrStr.append("\n");
-					writer.print(hdrStr.toString());
-				}
-
-				for (int i = 0; i < analyses.size(); i++) {
-					for (String id : analyses.get(i).outlierList) {
-						StringBuilder resultLine = new StringBuilder(id).append("\t").append(analyses.get(i).ucscRegion);
-						if (writeScores) {
-							resultLine.append("\t").append(analyses.get(i).scoreMap.get(id));
-						}
-						resultLine.append("\n");
-						writer.print(resultLine.toString());
-					}
-				}
-			} else {
-				if (writeHeader) {
-					StringBuilder hdrStr = new StringBuilder("ID");
-					for (int i = 0; i < analyses.size(); i++) {
-						hdrStr.append("\tOutliers_").append(analyses.get(i).ucscRegion);
-						if (writeScores) {
-							hdrStr.append("\tScores_").append(analyses.get(i).ucscRegion);
-						}
-					}
-					hdrStr.append("\n");
-					writer.print(hdrStr.toString());
-				}
-
-				for (String dnaID : popList) {
-					StringBuilder resultLine = new StringBuilder(dnaID);
-					for (int i = 0; i < analyses.size(); i++) {
-						resultLine.append(analyses.get(i).outlierList.contains(dnaID) ? "\t1" : "\t0");
-						if (writeScores) {
-							resultLine.append("\t").append(analyses.get(i).scoreMap.get(dnaID));
-						}
-					}
-					writer.println(resultLine.toString());
-				}
-			}
-
-			writer.flush();
-			writer.close();
-		} else {
-			for (AnalysisData analysis : analyses) {
-				file = outFile == null ? analysis.ucscRegion + "_outliers.txt" : outFile;
-				file = fileRoot + ext.replaceWithLinuxSafeCharacters(file, false);
-				writer = Files.getAppropriateWriter(file);
-				if (writeHeader) {
-					writer.println("ID\tOutliers" + (writeScores ? "\tScore" : "") + "\tN=" + analyses.get(0).popCount);
-				}
-
-				for (String outlier : analysis.outlierList) {
-					writer.print(outlier);
-					writer.print("\t1");
-					if (writeScores) {
-						writer.print("\t" + analysis.scoreMap.get(outlier));
-					}
-					writer.println();
-				}
-				if (!writeOutliersOnly) {
-					for (String outlier : analysis.indivList) {
-						writer.print(outlier);
-						writer.print("\t0");
-						if (writeScores) {
-							writer.print("\t" + analysis.scoreMap.get(outlier));
-						}
-						writer.println();
-					}
-				}
-				
-				writer.flush();
-				writer.close();
-			}
-		}
-		
-		return this;
-	}
-	
-	private LRRBDevHetOutlierClassifier dispose() {
-		this.filename = null;
-		this.excludeList = null;
-		this.analyses = null;
-		try {
-			this.finalize();
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-		}
-		return null;
-	}
-	
+	/**
+	 * Validation file must be in format: {ID ... UCSC ... 0/1 ... 0-5}
+	 * 
+	 * @param validationFile
+	 * @return
+	 * @throws IOException
+	 */
 	private LRRBDevHetOutlierClassifier validateResults(String validationFile) throws IOException {
 		if (validationFile == null) return this;
 		HashSet<String> locationsInValidationSet = new HashSet<String>();
@@ -622,6 +527,7 @@ public class LRRBDevHetOutlierClassifier {
 		}
 		reader.close();
 
+		int[] totalStats = {0, 0, 0, 0};
 		// TP, FP, FN, TN
 		HashMap<String, int[]> regionStats = new HashMap<String, int[]>();
 		
@@ -633,21 +539,36 @@ public class LRRBDevHetOutlierClassifier {
 				for (String id : analysis.outlierList) {
 					if (validOutliers.contains(id)) {
 						stats[0]++;
+						totalStats[0]++;
 					} else {
 						stats[1]++;
+						totalStats[1]++;
 					}
 					validOutliers.remove(id);
 				}
 				// FN
 				stats[2] = validOutliers.size();
+				totalStats[2] += validOutliers.size();
 			}
 			// TN
 			stats[3] = analysis.popCount - stats[0] - stats[1] - stats[2];
+			totalStats[3] += stats[3];
 			
 			regionStats.put(analysis.ucscRegion, stats);
+			
+			HashMap<String, Integer> indivDetails = regionToIndivDetailMap.get(analysis.ucscRegion);
+			if (indivDetails == null) continue;
+			analysis.validatedCodes = new HashMap<String, Integer>();
+			for (String id : analysis.dataMap.keySet()) {
+				Integer code = indivDetails.get(id);
+				if (code == null) {
+					code = 0;
+				}
+				analysis.validatedCodes.put(id, code);
+			}
 		}
 		
-
+	
 		PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(filename, false) + "_validation.txt");
 		String header = "UCSC\tTP\tFP\tFN\tTN\tScore";
 		writer.println(header);
@@ -658,13 +579,14 @@ public class LRRBDevHetOutlierClassifier {
 			score = ((stats[0] + stats[2]) == 0 ? 0 : ((0.5 * stats[0])/(stats[0] + stats[2]))) + ((0.5 * stats[3])/(stats[3] + stats[1]));
 			writer.println(regionStat.getKey() + "\t" + stats[0] + "\t" + stats[1] + "\t" + stats[2] + "\t" + stats[3] + "\t" + score);
 		}
+		writer.println("\t\t" + totalStats[0] + "\t" + totalStats[1] + "\t" + totalStats[2] + "\t" + totalStats[3]);
 		
 		writer.flush();
 		writer.close();
 		
 		return this;
 	}
-	
+
 	private static void validateResults(String validationFile, String resultsFile, String outFile) throws IOException {
 		HashSet<String> locationsInValidationSet = new HashSet<String>();
 		HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<String, HashSet<String>>();
@@ -719,6 +641,7 @@ public class LRRBDevHetOutlierClassifier {
 		
 		// TP, FP, FN, TN
 		HashMap<String, int[]> regionStats = new HashMap<String, int[]>();
+		int[] totalStats = {0, 0, 0, 0};
 		
 		for (java.util.Map.Entry<String, HashSet<String>> regionOutliers : calledOutliers.entrySet()) {
 			int[] stats = {0, 0, 0, 0};
@@ -728,20 +651,24 @@ public class LRRBDevHetOutlierClassifier {
 				for (String id : regionOutliers.getValue()) {
 					if (validOutliers.contains(id)) {
 						stats[0]++;
+						totalStats[0]++;
 					} else {
 						stats[1]++;
+						totalStats[1]++;
 					}
 					validOutliers.remove(id);
 				}
 				// FN
 				stats[2] = validOutliers.size();
+				totalStats[2] += validOutliers.size();
 			}
 			// TN
 			stats[3] = popCnt - stats[0] - stats[1] - stats[2];
+			totalStats[3] += stats[3];
 			
 			regionStats.put(regionOutliers.getKey(), stats);
 		}
-
+	
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		String header = "UCSC\tTP\tFP\tFN\tTN\tScore";
 		writer.println(header);
@@ -752,11 +679,126 @@ public class LRRBDevHetOutlierClassifier {
 			score = ((stats[0] + stats[2]) == 0 ? 0 : ((0.5 * stats[0])/(stats[0] + stats[2]))) + ((0.5 * stats[3])/(stats[3] + stats[1]));
 			writer.println(regionStat.getKey() + "\t" + stats[0] + "\t" + stats[1] + "\t" + stats[2] + "\t" + stats[3] + "\t" + score);
 		}
+		writer.println("\t\t" + totalStats[0] + "\t" + totalStats[1] + "\t" + totalStats[2] + "\t" + totalStats[3]);
 		
 		writer.flush();
 		writer.close();
 	}
+
+	private LRRBDevHetOutlierClassifier writeResults(String outFile, boolean writeOutliersOnly, boolean recodeOutliers, boolean writeScores, boolean writeHeader, boolean combine) {
+		String fileRoot = ext.parseDirectoryOfFile(filename);
+		String file = outFile == null ? ext.rootOf(filename, true) + "_outliers.txt" : outFile;
+		PrintWriter writer = null;
+		if (combine) {
+			file = fileRoot + ext.replaceWithLinuxSafeCharacters(file, false);
+			writer = Files.getAppropriateWriter(file);	
+			if (writeOutliersOnly) {
+				if (writeHeader) {
+					StringBuilder hdrStr = new StringBuilder("ID\tUCSC");
+					if (writeScores) {
+						hdrStr.append("\tScores");
+					}
+					hdrStr.append("\tN=" + analyses.get(0).popCount);
+					hdrStr.append("\n");
+					writer.print(hdrStr.toString());
+				}
+
+				for (int i = 0; i < analyses.size(); i++) {
+					for (String id : analyses.get(i).outlierList) {
+						StringBuilder resultLine = new StringBuilder(id).append("\t").append(analyses.get(i).ucscRegion);
+						if (writeScores) {
+							resultLine.append("\t").append(analyses.get(i).scoreMap.get(id));
+						}
+						resultLine.append("\n");
+						writer.print(resultLine.toString());
+					}
+				}
+			} else {
+				if (writeHeader) {
+					StringBuilder hdrStr = new StringBuilder("ID");
+					for (int i = 0; i < analyses.size(); i++) {
+						hdrStr.append("\tOutliers_").append(analyses.get(i).ucscRegion);
+						if (writeScores) {
+							hdrStr.append("\tScores_").append(analyses.get(i).ucscRegion);
+						}
+					}
+					hdrStr.append("\n");
+					writer.print(hdrStr.toString());
+				}
+
+				for (String dnaID : popList) {
+					StringBuilder resultLine = new StringBuilder(dnaID);
+					for (int i = 0; i < analyses.size(); i++) {
+						if (recodeOutliers && analyses.get(i).validatedCodes != null) {
+							resultLine.append("\t").append(analyses.get(i).validatedCodes.get(dnaID));
+						} else {
+							resultLine.append(analyses.get(i).outlierList.contains(dnaID) ? "\t1" : "\t0");
+						}
+						if (writeScores) {
+							resultLine.append("\t").append(analyses.get(i).scoreMap.get(dnaID));
+						}
+					}
+					writer.println(resultLine.toString());
+				}
+			}
+
+			writer.flush();
+			writer.close();
+		} else {
+			for (AnalysisData analysis : analyses) {
+				file = outFile == null ? analysis.ucscRegion + "_outliers.txt" : outFile;
+				file = fileRoot + ext.replaceWithLinuxSafeCharacters(file, false);
+				writer = Files.getAppropriateWriter(file);
+				if (writeHeader) {
+					writer.println("ID\tOutliers" + (writeScores ? "\tScore" : "") + "\tN=" + analyses.get(0).popCount);
+				}
+
+				for (String outlier : analysis.outlierList) {
+					writer.print(outlier);
+					if (recodeOutliers) {
+						writer.print("\t"+analysis.validatedCodes.get(outlier));
+					} else {
+						writer.print("\t1");
+					}
+					if (writeScores) {
+						writer.print("\t" + analysis.scoreMap.get(outlier));
+					}
+					writer.println();
+				}
+				if (!writeOutliersOnly) {
+					for (String outlier : analysis.indivList) {
+						writer.print(outlier);
+						if (recodeOutliers) {
+							writer.print("\t"+analysis.validatedCodes.get(outlier));
+						} else {
+							writer.print("\t0");
+						}
+						if (writeScores) {
+							writer.print("\t" + analysis.scoreMap.get(outlier));
+						}
+						writer.println();
+					}
+				}
+				
+				writer.flush();
+				writer.close();
+			}
+		}
+		
+		return this;
+	}
 	
+	private LRRBDevHetOutlierClassifier dispose() {
+		this.filename = null;
+		this.excludeList = null;
+		this.analyses = null;
+		try {
+			this.finalize();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+		}
+		return null;
+	}
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -888,7 +930,7 @@ public class LRRBDevHetOutlierClassifier {
 			}
 			classifier.scoreOutliers().validateResults(validationFilename);
 			if (!validationOnly) {
-				classifier.writeResults(outFile, outliersOnly, writeScores, !noHeader, !splitResults);
+				classifier.writeResults(outFile, outliersOnly, validationFilename != null, writeScores, !noHeader, !splitResults);
 			}
 			classifier.dispose();
 		} catch (Exception e) {

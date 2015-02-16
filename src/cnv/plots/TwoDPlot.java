@@ -76,7 +76,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	private JRadioButton[] typeRadioButtons;
 //	private JRadioButton[] classRadioButtons;
 	private JButton flipButton, invXButton, invYButton;
-	private boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
+	private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
 	private CheckBoxTree tree;
 	private Vector<String> treeFilenameLookup;
 //	Hashtable<String, String[][]> dataHash;
@@ -140,7 +140,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		layeredPane.setLayout(new BorderLayout());
 //		SpringLayout layout = new SpringLayout();
 //		layeredPane.setLayout(layout);
-
+		
 		generateFlipButton();
 		layeredPane.add(flipButton);
 		generateInvXButton();
@@ -214,7 +214,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			public void componentMoved(ComponentEvent e) {}
 			public void componentHidden(ComponentEvent e) {}
 		});
-
+		
 		setVisible(true);
 		generateShortcutMenus();
 	}
@@ -245,6 +245,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				}
 			}
 		});
+		flipButton.setDoubleBuffered(true);
 	}
 
 	private void generateInvXButton() {
@@ -265,6 +266,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				xInvStatus = !xInvStatus;
 			}
 		});
+		invXButton.setDoubleBuffered(true);
 	}
 
 	private void generateInvYButton() {
@@ -285,6 +287,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				yInvStatus = !yInvStatus;
 			}
 		});
+		invYButton.setDoubleBuffered(true);
 	}
 
 	private void inputMapAndActionMap() {
@@ -342,8 +345,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         menu.setMnemonic(KeyEvent.VK_V);
 		menuBar.add(menu);
 		
-		hideExcludes = false;
-		menuItemExclude = new JCheckBoxMenuItem("Hide Excluded", false);
+		hideExcludes = true;
+		menuItemExclude = new JCheckBoxMenuItem("Hide Excluded", true);
 		menuItemExclude.setMnemonic(KeyEvent.VK_H);
 		menuItemExclude.addActionListener(new ActionListener() {
 			@Override
@@ -1350,23 +1353,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 	
-	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params = parseControlFile(filename, log);
-		
-		if (params != null) {
-			final String projFile = params.get(0).split("=")[1];
-			final String baseDir = params.get(1).split("=")[1];
-			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
-			javax.swing.SwingUtilities.invokeLater(new Runnable() {
-	            public void run() {
-	                TwoDPlot tdp = createGUI(new Project(projFile, false), false);
-	                tdp.createScreenshots(baseDir, screens);
-	                tdp.windowClosing(null);
-                }
-	        });
-		}
-	}
-	
 	private static Vector<String> parseControlFile(String filename, Logger log) {
 		Vector<String> params;
 		
@@ -1493,9 +1479,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				loadColor(baseDir, screencap);
 			}
 			
-			tree.performCheckBoxAction(namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
 			
-			tree.performCheckBoxAction(namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);	
+			tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
+			tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);	
 
 			if (screencap.hideExcluded) {
 				this.hideExcludes = true;
@@ -1735,6 +1721,23 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return columnMetaData.get(index);
 	}
 	
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params = parseControlFile(filename, log);
+		
+		if (params != null) {
+			final String projFile = params.get(0).split("=")[1];
+			final String baseDir = params.get(1).split("=")[1];
+			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
+			javax.swing.SwingUtilities.invokeLater(new Runnable() {
+	            public void run() {
+	                TwoDPlot tdp = createGUI(new Project(projFile, false), false);
+	                tdp.createScreenshots(baseDir, screens);
+	                tdp.windowClosing(null);
+	            }
+	        });
+		}
+	}
+
 	public static void main(String[] args) {
 //		HashSet<String> tagSet = new HashSet<String>();
 //		tagSet.add("fileXs");
@@ -1770,7 +1773,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		
 //		
 //		
-		fromParameters("D:/data/gedi_gwas/data/twoDscreenshots.dat", new Logger());
+		fromParameters("D:/data/gedi_gwas/data/corrected/twoDscreenshots.dat", new Logger());
 //        javax.swing.SwingUtilities.invokeLater(new Runnable() {
 //            public void run() {
 //                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
