@@ -78,7 +78,7 @@ public class MeAnd23 {
 			}
 		}
 		if (!merged) {
-			log.reportTimeError("Could not merge files. If the issues was strand flips /.missnp related, try running again until all problematic markers have been found");
+			log.reportTimeError("Could not merge files. If the issues was strand flips /.missnp related, try running again until all problematic markers have been found and removed");
 		}
 		return merged;
 
@@ -105,6 +105,11 @@ public class MeAnd23 {
 			super();
 			this.input = input;
 			this.name = ext.rootOf(input);
+			if(name.length()>=38){
+				name.replaceAll("genome_Patient__Full_", "");
+				name.replaceAll("genome_", "");
+				name.replaceAll("Full_", "");
+			}
 			this.log = log;
 			this.plinks = PSF.Plink.getPlinkBedBimFam(ext.rootOf(input, false));
 			this.outRoot = ext.rootOf(input, false);
@@ -142,7 +147,7 @@ public class MeAnd23 {
 		int numArgs = args.length;
 		String directory = null;
 		String outputRoot = "MeAnd23_merge";
-		int numThreads = 1;//be careful, not tested when excluding problematic markers
+		int numThreads = 1;// be careful, not tested when excluding problematic markers
 		Logger log;
 
 		String usage = "\n" + "gwas.MeAnd23 requires 0-1 arguments\n";

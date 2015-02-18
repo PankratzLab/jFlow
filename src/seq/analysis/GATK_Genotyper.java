@@ -17,6 +17,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.PSF;
+import common.WorkerHive;
 import common.ext;
 
 public class GATK_Genotyper {
@@ -36,6 +37,7 @@ public class GATK_Genotyper {
 		this.gatk = gatk;
 		this.snpeff = snpeff;
 		this.snpsift = snpsift;
+		this.annovar = annovar;
 		this.numBetweenSampleThreads = numBetweenSampleThreads;
 		this.numWithinSampleThreads = numWithinSampleThreads;
 		this.log = log;
@@ -131,36 +133,21 @@ public class GATK_Genotyper {
 		if (!isFail() && Files.checkAllFiles("", inputBams, verbose, log)) {
 			if (inputBams != null) {
 				this.siSampleHaplotypeCallers = new GATK.SingleSampleHaplotypeCaller[inputBams.length];
-				int[] actualWithinSampleThreads = optimizeThreads(siSampleHaplotypeCallers.length, numBetweenSampleThreads, numWithinSampleThreads, log);
-
-				ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
-				Hashtable<String, Future<GATK.SingleSampleHaplotypeCaller>> tmpResults = new Hashtable<String, Future<GATK.SingleSampleHaplotypeCaller>>();
+				int[] actualWithinSampleThreads = optimizeThreads(inputBams.length, numBetweenSampleThreads, numWithinSampleThreads, log);
+				WorkerHive<GATK.SingleSampleHaplotypeCaller> hive = new WorkerHive<GATK.SingleSampleHaplotypeCaller>(numBetweenSampleThreads, 10, log);
+				WorkerSingleSampleAllSites[] workers = new WorkerSingleSampleAllSites[inputBams.length];
 				for (int i = 0; i < inputBams.length; i++) {
 					Logger altLog = new Logger(ext.rootOf(inputBams[i], false) + ".HC_ERC.log");
-					tmpResults.put(i + "", executor.submit(new WorkerSingleSampleAllSites(gatk, inputBams[i], ext.rootOf(inputBams[i]), actualWithinSampleThreads[i], altLog)));
+					workers[i] = new WorkerSingleSampleAllSites(gatk, inputBams[i], ext.rootOf(inputBams[i]), actualWithinSampleThreads[i], altLog);
 				}
-				for (int i = 0; i < siSampleHaplotypeCallers.length; i++) {
-					try {
-						siSampleHaplotypeCallers[i] = tmpResults.get(i + "").get();
-						if (siSampleHaplotypeCallers[i].isFail() && !isFail()) {
-							log.reportError("Error - failed single sample haplotype calling for " + siSampleHaplotypeCallers[i].getInputBam());
-							setFail(true);
-						}
-					} catch (InterruptedException e) {
-						log.reportError("Error - when running GATK single sample haplotype calling on internal index " + i);
-						log.reportException(e);
-						setFail(true);
-					} catch (ExecutionException e) {
-						log.reportError("Error - when running GATK single sample haplotype calling on internal index " + i);
-						log.reportException(e);
-						setFail(true);
+				hive.addCallables(workers);
+				hive.execute(true);
+				siSampleHaplotypeCallers = hive.getResults().toArray(new GATK.SingleSampleHaplotypeCaller[hive.getResults().size()]);
+				for (int i = 0; i < workers.length; i++) {
+					if (siSampleHaplotypeCallers[i].isFail()) {
+						log.reportTimeError("Failed single sample haplotype calling for " + siSampleHaplotypeCallers[i].getInputBam());
+						fail = true;
 					}
-				}
-				executor.shutdown();
-				try {
-					executor.awaitTermination(10, TimeUnit.DAYS);
-				} catch (InterruptedException e) {
-					log.reportException(e);
 				}
 			} else {
 				// TODO better check
@@ -259,6 +246,7 @@ public class GATK_Genotyper {
 			} else {
 				log.report(ext.getTime() + " Info - finding files with extension " + GATK.GVCF + " in " + rootInputDir);
 				this.inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF, false), rootInputDir);
+
 			}
 			if (inputGVCFs == null || inputGVCFs.length < 1) {
 				log.reportError("Error - could not find any GVCF files to joint genotype");
@@ -476,7 +464,7 @@ public class GATK_Genotyper {
 			} else if (args[i].startsWith(GATK_LanePrep.ROOT_OUTPUT_COMMAND)) {
 				rootOutputDir = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith(GATK_LanePrep.FILE_OF_SAMPLE_PAIRS_COMMAND)) {
+			} else if (args[i].startsWith(FILE_OF_GVCFS)) {
 				fileOfGVCFs = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith(GATK_LanePrep.REFERENCE_GENOME_COMMAND)) {
