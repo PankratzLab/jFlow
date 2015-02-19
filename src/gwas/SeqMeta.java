@@ -2497,8 +2497,8 @@ public class SeqMeta {
 				for (int k = 0; k < finalSets[i][j].length; k++) {
 					if (!finalSets[i][j][k].equals("<missing>")) {
 						files = finalSets[i][j][k].split(";");
-						for (int f = 0; f < finalSets.length; f++) {
-						Files.writeList(new String[0], dir+"mockRdata/"+files[f]);
+						for (int f = 0; f < files.length; f++) {
+							Files.writeList(new String[0], dir+"mockRdata/"+files[f]);
 						}
 					}
 				}

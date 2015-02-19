@@ -46,10 +46,11 @@ public class Histogram {
 		computeCounts(array);
 	}
 
-	public Histogram(double[] array, double min, double max, int sigfigs) {
+	public Histogram(double[] array, double min, double max, int sigfigs, int extrastep) {
 		this.min = min;
 		this.max = max;
 		this.sigfigs = sigfigs;
+		this.extrastep = extrastep;
 		this.window = DEFAULT_WINDOW;
 		this.peakThreshold = DEFAULT_PEAK_THRESHOLD;
 		this.sumTotal = array.length;
@@ -63,7 +64,10 @@ public class Histogram {
 		
 		start = determineStart();
 		halfStep = determineStep()/2;
-		counts = new int[(int)((max-start)*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep]))+1];
+		counts = new int[(int)((max-start)*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep]))+2];
+		
+		System.out.println("min: "+min+"; max: "+max+"; start: "+start+"; step: "+determineStep(sigfigs, extrastep)+"; # bins: "+counts.length);
+
 
 		for (int i = 0; i<array.length; i++) {
 			if (Double.isNaN(array[i])) {
@@ -73,7 +77,11 @@ public class Histogram {
 			} else if (array[i] > max) {
 				counts[counts.length-1]++;
 			} else {
-				counts[(int)((array[i]+halfStep)*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep])-start*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep]))]++;
+				int num = (int)((array[i]+halfStep)*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep])-start*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep]));
+				if (num >= counts.length) {
+					System.err.println("Error - trying to place value "+array[i]+" in position "+num+", but we only went up to "+counts.length);
+				}
+				counts[num]++;
 			}
         }
 	}
@@ -95,13 +103,48 @@ public class Histogram {
 	}
 	
 	public Histogram(float[] array, float min, float max, int sigfigs) {
-		this(Array.toDoubleArray(array), min, max, sigfigs);
+		this(Array.toDoubleArray(array), min, max, sigfigs, 0);
 	}
 	
 	public double determineStep() {
-		return Double.parseDouble(ext.formDeci(Math.pow(10, -1*(sigfigs+EXTRA_STEPS[extrastep])), sigfigs+1));
+		return determineStep(sigfigs, extrastep);
 	}
 	
+	public static double determineStep(int sigfigs, int extrastep) {
+		return Double.parseDouble(ext.formDeci(Math.pow(10, -1*(sigfigs+EXTRA_STEPS[extrastep])), sigfigs+2));
+	}
+	
+	public static int[] reverseStep(double step) {
+		int[] trav, best;
+		double diff, closestDiff;
+		boolean done;
+		
+		best = null;
+		done = false;
+		trav = new int[] {0, EXTRA_STEPS.length-1};
+		closestDiff = Double.POSITIVE_INFINITY;
+		while (!done) {
+			double travStep = determineStep(trav[0], trav[1]);
+			System.out.println(trav[0]+","+trav[1]+"\t"+travStep);
+			diff = Math.abs(determineStep(trav[0], trav[1])-step);
+			if (diff < closestDiff) {
+				best = Array.clone(trav);
+				closestDiff = diff;
+			} else if (diff > closestDiff) {
+				done = true;
+			}
+			trav[1]--;
+			if (trav[1] == 0) {
+				trav[0]++;
+			}
+			if (trav[1] < 0) {
+				trav[1] = EXTRA_STEPS.length-1;
+			}
+		}
+
+		return best;
+	}
+
 	public double determineStart() {
 		double d, step;
 
