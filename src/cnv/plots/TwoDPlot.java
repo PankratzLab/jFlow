@@ -5,11 +5,13 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
 import cnv.filesys.*;
 import cnv.gui.CheckBoxTree;
@@ -1334,8 +1336,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		int xIDIndex, yIDIndex, colorIDIndex;
 		float minX, minY, maxX, maxY;
 		boolean hideExcluded;
+		boolean createColorKey;
+		boolean includeColorKey;
 		
-		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices, float[] displayWindow, boolean excluded) {
+		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices, float[] displayWindow, boolean excluded, boolean colorKey, boolean appendColorKey) {
 			dataXFile = files[0];
 			dataYFile = files[1];
 			colorFile = files[2];
@@ -1350,6 +1354,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			minY = displayWindow[2];
 			maxY = displayWindow[3];
 			hideExcluded = excluded;
+			createColorKey = colorKey;
+			includeColorKey = appendColorKey;
 		}
 	}
 	
@@ -1383,6 +1389,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		tagSet.add("maxX");
 		tagSet.add("maxY");
 		tagSet.add("hideExcluded");
+		tagSet.add("colorKey");
+		tagSet.add("includeColorKey");
 		
 		HashMap<String, ArrayList<String>> tagValues = new HashMap<String, ArrayList<String>>();
 		for (String tagKey : tagSet) tagValues.put(tagKey, new ArrayList<String>());
@@ -1429,6 +1437,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			int[] dataCols = new int[3];
 			float[] window = new float[4];
 			boolean hideExcludes = false;
+			boolean colorKey = false;
+			boolean inclKey = false;
 		
 			files[0] = tagValues.get("fileX").get(i);
 			files[1] = tagValues.get("fileY").get(i);
@@ -1448,8 +1458,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			window[3] = Float.parseFloat(tagValues.get("maxY").get(i));
 			
 			hideExcludes = Boolean.parseBoolean(tagValues.get("hideExcluded").get(i));
+			colorKey = Boolean.parseBoolean(tagValues.get("colorKey").get(i));
+			inclKey = Boolean.parseBoolean(tagValues.get("includeColorKey").get(i));
 			
-			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes);
+			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes, colorKey, inclKey);
 			caps.add(sc);
 		}
 		
@@ -1508,10 +1520,57 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 			
 			screenname = baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true) + ".png";
-
-			twoDPanel.screenCapture(screenname);
+			
+			if (screencap.createColorKey) {
+				// Use a JFrame for it's 'pack()' method - this shrinks colorKeyPanel to the minimum required dimensions
+				JFrame frame = new JFrame();
+				// then change the layout (briefly) to disable WrapLayout's line-wrapping
+				colorKeyPanel.classValuesPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+				frame.add(colorKeyPanel.classValuesPanel);
+				frame.pack();
+				BufferedImage bi = new BufferedImage(colorKeyPanel.classValuesPanel.getWidth(), colorKeyPanel.classValuesPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
+				colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
+				// then reset and dispose of extra resources
+				colorKeyPanel.classValuesPanel.setLayout(new cnv.gui.WrapLayout(FlowLayout.CENTER, 0, 0));
+				frame.removeAll();
+				frame.dispose();
+				frame = null;
+				if (screencap.includeColorKey) {
+					int totW, totH;
+					totW = Math.max(bi.getWidth(), twoDPanel.image.getWidth());
+					totH = bi.getHeight() + twoDPanel.image.getHeight();
+					BufferedImage img = new BufferedImage(totW, totH, BufferedImage.TYPE_INT_ARGB);
+					Graphics2D g = img.createGraphics();
+					g.drawImage(twoDPanel.image, 0, 0, null);
+					int x = (int) ((.5 * twoDPanel.getWidth()) - (.5 * bi.getWidth()));
+					g.drawImage(bi, x, twoDPanel.getHeight(), null);
+//					g.drawImage(bi, 0, twoDPanel.getHeight(), null);
+					try {
+						ImageIO.write(img, "png", new File(screenname));
+					} catch (IOException ie) {
+						JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
+					}
+				} else {
+					twoDPanel.screenCapture(screenname);
+					
+					String legName = baseDir + ext.replaceWithLinuxSafeCharacters(basename, true) + "_legend.png";
+					count = 1;
+					while((new File(legName).exists())) {
+						legName = baseDir + ext.replaceWithLinuxSafeCharacters(basename, true) + "_legend_v" + count + ".png";
+						count++;
+					}
+					try {
+						ImageIO.write(bi, "png", new File(legName));
+					} catch (IOException ie) {
+						JOptionPane.showMessageDialog(null, "Error while trying to save the plot legend");
+					}
+				}
+			} else {
+				twoDPanel.screenCapture(screenname);
+			}
+			
 		}
-		
+
 	}
 	
 	private void loadColor(String baseDir, ScreenToCapture screencap) {

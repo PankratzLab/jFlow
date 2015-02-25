@@ -90,7 +90,7 @@ public class DosageData implements Serializable {
 
 		invalids = new Hashtable<String, String>();
 		try {
-			reader = new BufferedReader(new FileReader(dosageFile));
+			reader = Files.getAppropriateReader(dosageFile);//new BufferedReader(new FileReader(dosageFile));
 			if (parameters[4] == 1) {
 				line = reader.readLine().trim().split(parameters[10]==1?",":"[\\s]+");
 				if (parameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
@@ -161,7 +161,7 @@ public class DosageData implements Serializable {
 					}
 
 					if (line.length - parameters[1] != ids.length * parameters[3]) {
-						log.reportError("Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+ids.length+"*"+parameters[3]+"+"+parameters[1]+", found "+line.length);
+						log.reportError("Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+ids.length+"*"+parameters[3]+"+"+parameters[1]+"[="+(ids.length * parameters[3] + parameters[1])+"], found "+line.length);
 						System.exit(1);
 					}
 					if (parameters[3] == 1) {
@@ -185,7 +185,7 @@ public class DosageData implements Serializable {
 				for (int i = 0; i < ids.length; i++) {
 					line = reader.readLine().trim().split(parameters[10]==1?",":"[\\s]+");
 					if (line.length - parameters[1] != markerNames.length * parameters[3]) {
-						log.reportError("Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+markerNames.length+"*"+parameters[3]+"+"+parameters[1]+", found "+line.length);
+						log.reportError("Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+markerNames.length+"*"+parameters[3]+"+"+parameters[1]+"[="+(markerNames.length * parameters[3] + parameters[1])+"], found "+line.length);
 						System.exit(1);
 					}
 					if (parameters[3] == 1) {
@@ -262,7 +262,7 @@ public class DosageData implements Serializable {
 		
 		if (extract == null) {
 			keeps = null;
-//			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
+			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
 		} else {
 			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, false);
 			keeps = HashVec.loadToHashSet(markersToKeep);
@@ -551,7 +551,13 @@ public class DosageData implements Serializable {
 		return (DosageData)Files.readSerial(filename, jar, true);
 	}
 
-	public static int determineType(String dosageFile) {
+	public static int determineType(String dosageFileName) {
+		String dosageFile = dosageFileName;
+		if (dosageFile.endsWith(".gz")) {
+			dosageFile = dosageFile.substring(0, dosageFile.length()-3);
+		} else if (dosageFile.endsWith(".zip")) {
+			dosageFile = dosageFile.substring(0, dosageFile.length()-4);
+		}
 		if (dosageFile.endsWith(".mldose")) {
 			return MACH_MLDOSE_FORMAT;
 		} else if (dosageFile.endsWith(".gen")) {
@@ -712,7 +718,7 @@ public class DosageData implements Serializable {
 			delimiter = DELIMITERS[toParameters[10]];
 			invalids = new Hashtable<String, String>();
 			try {
-				reader = new BufferedReader(new FileReader(dosageFile));
+				reader = Files.getAppropriateReader(dosageFile); // new BufferedReader(new FileReader(dosageFile));
 				writer = new PrintWriter(new FileWriter(outfile));
 	
 				if (fromParameters[4] == 1) {
@@ -1008,10 +1014,11 @@ public class DosageData implements Serializable {
 		"        1   .gen      probabilites for all three genotypes, plus map information\n" + 
 		"        2   .fhsR     input file for GWAF\n" + 
 		"        3   .dosage   input file for PLINK\n" + 
-		"        4   .mldose   MACH style .mlprob file\n" + 
+		"        4   .mlprob   MACH style .mlprob file\n" + 
 		"        5   .dosage   output from MINIMAC\n" + 
 		"        6   .impute2  output from IMPUTE2\n" + 
 		"        7   .db.xln   database format\n" + 
+		"        [Files may also be zipped or gzipped]" +
 		"";
 
 		for (int i = 0; i < args.length; i++) {

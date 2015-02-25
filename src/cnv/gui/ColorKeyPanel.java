@@ -67,7 +67,7 @@ public class ColorKeyPanel extends JPanel {
 
 	private Color[] colorScheme;
 	private JPanel classVariablesPanel;
-	private JPanel classValuesPanel;
+	public JPanel classValuesPanel;
 	private int currentClass;
 	private JRadioButton[] classRadioButtons;
 

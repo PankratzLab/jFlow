@@ -1,11 +1,11 @@
 package common;
 
 public class Aliases {
-	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests"};
+	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "rs_id", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests"};
 	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 	
 	public static final String[] CHRS = {"Chr", "Chromosome", "CHROM"};
-	public static final String[] POSITIONS = {"Position", "pos", "BP", "MapInfo", "PositionOfFirstMarkerInGene"};
+	public static final String[] POSITIONS = {"Position", "position", "pos", "BP", "MapInfo", "PositionOfFirstMarkerInGene"};
 	public static final String[] CENTIMORGANS = {"centiMorgans", "cM"};
 
 	public static final String[][] ALLELES = {

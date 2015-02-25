@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
+import cnv.analysis.GenCNV.Analysis;
 import cnv.filesys.Project;
 import cnv.var.SampleData;
 import common.Array;
@@ -32,6 +33,10 @@ public class LRRBDevHetOutlierClassifier {
 		HashSet<String> outlierList = new HashSet<String>();
 		HashMap<String, Double> scoreMap;
 		HashMap<String, Integer> validatedCodes;
+		ArrayList<String> truePositive;
+		ArrayList<String> trueNegative;
+		ArrayList<String> falsePositive;
+		ArrayList<String> falseNegative;
 		int popCount;
 		private String ucscRegion;
 		
@@ -500,7 +505,7 @@ public class LRRBDevHetOutlierClassifier {
 		HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap = new HashMap<String, HashMap<String, Integer>>();
 		
 		BufferedReader reader = Files.getAppropriateReader(validationFile);
-		String line = reader.readLine();
+		String line = reader.readLine(); // skip header
 		while((line = reader.readLine()) != null) {
 			String[] temp = line.split("\t");
 			String id = temp[0];
@@ -532,6 +537,10 @@ public class LRRBDevHetOutlierClassifier {
 		HashMap<String, int[]> regionStats = new HashMap<String, int[]>();
 		
 		for (AnalysisData analysis : analyses) {
+			analysis.truePositive = new ArrayList<String>();
+			analysis.trueNegative = new ArrayList<String>();
+			analysis.falsePositive = new ArrayList<String>();
+			analysis.falseNegative = new ArrayList<String>();
 			int[] stats = {0, 0, 0, 0};
 			
 			HashSet<String> validOutliers = outliersInRegionsMap.get(analysis.ucscRegion);
@@ -540,15 +549,18 @@ public class LRRBDevHetOutlierClassifier {
 					if (validOutliers.contains(id)) {
 						stats[0]++;
 						totalStats[0]++;
+						analysis.truePositive.add(id);
 					} else {
 						stats[1]++;
 						totalStats[1]++;
+						analysis.falsePositive.add(id);
 					}
 					validOutliers.remove(id);
 				}
 				// FN
 				stats[2] = validOutliers.size();
 				totalStats[2] += validOutliers.size();
+				analysis.falseNegative.addAll(validOutliers);
 			}
 			// TN
 			stats[3] = analysis.popCount - stats[0] - stats[1] - stats[2];
@@ -565,7 +577,16 @@ public class LRRBDevHetOutlierClassifier {
 					code = 0;
 				}
 				analysis.validatedCodes.put(id, code);
+				if (code == 4 || code == 9) {
+					if (!analysis.falsePositive.contains(id)) {
+						analysis.trueNegative.add(id);
+					}
+				}
 			}
+			
+//			int totalValidated = analysis.truePositive.size() + analysis.falseNegative.size() + analysis.trueNegative.size();
+			System.out.println(analysis.ucscRegion + " -> " + analysis.truePositive.size() + " " + analysis.falsePositive.size() + " " + analysis.falseNegative.size() + " " + analysis.trueNegative.size());
+			
 		}
 		
 	
@@ -685,7 +706,7 @@ public class LRRBDevHetOutlierClassifier {
 		writer.close();
 	}
 
-	private LRRBDevHetOutlierClassifier writeResults(String outFile, boolean writeOutliersOnly, boolean recodeOutliers, boolean writeScores, boolean writeHeader, boolean combine) {
+	private LRRBDevHetOutlierClassifier writeResults(String outFile, boolean writeOutliersOnly, boolean recodeOutliers, boolean recodeResults, boolean writeScores, boolean writeHeader, boolean combine) {
 		String fileRoot = ext.parseDirectoryOfFile(filename);
 		String file = outFile == null ? ext.rootOf(filename, true) + "_outliers.txt" : outFile;
 		PrintWriter writer = null;
@@ -730,7 +751,22 @@ public class LRRBDevHetOutlierClassifier {
 					StringBuilder resultLine = new StringBuilder(dnaID);
 					for (int i = 0; i < analyses.size(); i++) {
 						if (recodeOutliers && analyses.get(i).validatedCodes != null) {
-							resultLine.append("\t").append(analyses.get(i).validatedCodes.get(dnaID));
+							if (recodeResults) {
+								int code = 0;
+								AnalysisData analysis = analyses.get(i);
+								if (analysis.truePositive.contains(dnaID)) {
+									code = 1;
+								} else if (analysis.falsePositive.contains(dnaID)) {
+									code = 2;
+								} else if (analysis.falseNegative.contains(dnaID)) {
+									code = 3;
+								} else if (analysis.trueNegative.contains(dnaID)) {
+									code = 4;
+								}
+								resultLine.append("\t").append(code);
+							} else {
+								resultLine.append("\t").append(analyses.get(i).validatedCodes.get(dnaID));
+							}
 						} else {
 							resultLine.append(analyses.get(i).outlierList.contains(dnaID) ? "\t1" : "\t0");
 						}
@@ -930,7 +966,7 @@ public class LRRBDevHetOutlierClassifier {
 			}
 			classifier.scoreOutliers().validateResults(validationFilename);
 			if (!validationOnly) {
-				classifier.writeResults(outFile, outliersOnly, validationFilename != null, writeScores, !noHeader, !splitResults);
+				classifier.writeResults(outFile, outliersOnly, validationFilename != null, validationFilename != null, writeScores, !noHeader, !splitResults);
 			}
 			classifier.dispose();
 		} catch (Exception e) {

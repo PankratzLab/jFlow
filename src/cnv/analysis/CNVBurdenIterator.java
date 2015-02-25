@@ -9,23 +9,23 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import common.Array;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import cnv.filesys.Project;
-import cnv.var.CNVariant;
 import stats.LeastSquares;
+import stats.LogisticRegression;
+import stats.RegressionModel;
+import cnv.var.CNVariant;
+import common.Array;
+import common.Files;
+import common.HashVec;
+import common.ext;
 
 public class CNVBurdenIterator {
 	
-	static class Data {
-		String fidiid;
-		double age;
-		double iq;
-		boolean male;
-		double pc1;
-		double pc2;
+	static abstract class CNVData {
+		
+		abstract String getID();
+		abstract void setData(int ind, double data);
+		abstract double getData(int ind);
+		
 		final ArrayList<CNVariant> cnvs = new ArrayList<CNVariant>();
 		
 		public int getCNVs(double minSizeKB) {
@@ -57,18 +57,81 @@ public class CNVBurdenIterator {
 			}
 			return cnt;
 		}
+	}
+	
+	static class MappedData extends CNVData {
+		String fidiid;
+		HashMap<Integer, Double> data = new HashMap<Integer, Double>();
+		
+		@Override
+		String getID() { return fidiid; }
+		
+		double getData(int ind) {
+			Double d = data.get(ind);
+//			if (d == null) {
+//				System.out.println(fidiid + " -> " + ind);
+//				return Double.NaN;
+//			}
+			return d.doubleValue(); 
+		}
+		
+		public void setData(int ind, double data) {
+			this.data.put(ind, data);
+		}
+		
+		@Override
+		public String toString() {
+			return "{id: " + fidiid + "; data: " + data.toString() + "}";
+		}
 		
 	}
-
-	private static void runProgram(String cnvFile, String famFile, String dataFile, String idsFile, boolean collapseCNVTypes, boolean binaryCNVcounts) {
-		int males = 0, females = 0;
-		HashSet<String> famIDs, tempIDs, usedIDs;
-		Hashtable<String, String> dataTable;
-		HashMap<String, Data> idData;
+	
+//	static class EduData extends CNVData {
+//		String fidiid;
+//		boolean college;
+//		boolean dropout;
+//		double years;
+//		double attain;
+//	}
+//	
+//	static class Data extends CNVData {
+//		String fidiid;
+//		double age;
+//		double iq;
+//		boolean male;
+//		double pc1;
+//		double pc2;
+//	}
+	
+	static int[] ID_COLS = {0, 1}; 
+	static int[] DATA_COLS = {2, 3, 4, 5};
+	static int EXCLUDE_COL = -1;
+	
+	HashSet<String> usedIDs;
+	HashMap<String, MappedData> idData;
+	boolean logistic = false;
+	boolean collapseCNVTypes = false;
+	boolean binaryCNVCounts = false;
+	int genderCol = -1;
+	int males = 0, females = 0;
+	int depInd;
+	int[] indepInds;
+	String depHdr;
+	String[] indepHdrs;
+	int[] CNV_FILTERS;
+	double[] CNV_SIZES;
+	int[] VAR_SIZES;
+	double[][][] resultsB;
+	double[][][] resultsP;
+	double[][][] resultsR;
+	double[][][] resultsSE;
+	
+	private void loadIDs(String famFile, String idsFile) {
+		HashSet<String> famIDs, tempIDs;
 		
 		famIDs = new HashSet<String>();
 		if (famFile != null && !"".equals(famFile)) {
-			famIDs.addAll(HashVec.loadFileToHashString(famFile, new int[]{0, 1}, null, false, "\t", false, false, false).keySet());
+			famIDs.addAll(HashVec.loadFileToHashString(famFile, ID_COLS, null, false, "\t", false, false, false).keySet());
 		}
 		
 		tempIDs = new HashSet<String>();
@@ -83,110 +146,392 @@ public class CNVBurdenIterator {
 			usedIDs.retainAll(famIDs);
 			usedIDs.retainAll(tempIDs);
 		}
+	}
+	
+	//	
+	//	private static void runProgram(String cnvFile, String famFile, String dataFile, String idsFile, boolean collapseCNVTypes, boolean binaryCNVcounts) {
+	//		int males = 0, females = 0;
+	//		HashSet<String> famIDs, tempIDs, usedIDs;
+	//		Hashtable<String, String> dataTable;
+	//		HashMap<String, CNVData> idData;
+	//		
+	//		famIDs = new HashSet<String>();
+	//		if (famFile != null && !"".equals(famFile)) {
+	//			famIDs.addAll(HashVec.loadFileToHashString(famFile, ID_COLS, null, false, "\t", false, false, false).keySet());
+	//		}
+	//		
+	//		tempIDs = new HashSet<String>();
+	//		if (idsFile != null && !"".equals(idsFile)) {
+	//			tempIDs = HashVec.loadFileToHashSet(idsFile, false);
+	//		}
+	//		
+	//		usedIDs = new HashSet<String>();
+	//		usedIDs.addAll(famIDs);
+	//		usedIDs.addAll(tempIDs);
+	//		if (famIDs.size() > 0 && tempIDs.size() > 0) {
+	//			usedIDs.retainAll(famIDs);
+	//			usedIDs.retainAll(tempIDs);
+	//		}
+	//		
+	//		dataTable = HashVec.loadFileToHashString(dataFile, ID_COLS, DATA_COLS, false, "\t", true, false, true);
+	//		idData = new HashMap<String, CNVData>();
+	//		
+	//		for (java.util.Map.Entry<String, String> entry : dataTable.entrySet()) {
+	//			String[] dataLine = entry.getValue().split("\t");
+	//			
+	//			if (shouldSkip(dataLine)) {
+	//				continue;
+	//			}
+	//			
+	//			if (!usedIDs.contains(entry.getKey())) {
+	//				continue;
+	//			}
+	//			
+	//			// "short_version.xlsx"
+	////			Data newData = new Data();
+	////			newData.fidiid = entry.getKey();
+	////			newData.iq = Double.parseDouble(dataLine[0]);
+	////			newData.age = Double.parseDouble(dataLine[1]);
+	////			newData.male = dataLine[2].equals("1");
+	////			if (newData.male) {
+	////				males++;
+	////			} else {
+	////				females++;
+	////			}
+	////			newData.pc1 = Double.parseDouble(dataLine[3]);
+	////			newData.pc2 = Double.parseDouble(dataLine[4]);
+	//			
+	//			// "edutainment.txt"
+	//			EduData newData = new EduData();
+	//			newData.college = "1".equals(dataLine[0]);
+	//			newData.dropout = "1".equals(dataLine[1]);
+	//			newData.years = Integer.parseInt(dataLine[2]);
+	//			newData.attain = Integer.parseInt(dataLine[3]);
+	//			
+	//			idData.put(newData.fidiid, newData);
+	//		}
+	//		
+	//		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, false);
+	//		
+	//		for (CNVariant cnv : cnvs) {
+	//			CNVData indiv = idData.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+	//			if (indiv != null) {
+	//				indiv.cnvs.add(cnv);
+	//			}
+	//		}
+	//		
+	//		/* 
+	//			for each sex : {BOTH, FEMALE, MALE}
+	//				filter individuals in data
+	//				
+	//				for each CN : {0, 1, 3, 4+}
+	//					for each length : {5 mb, 2.5 mb, 1 mb, 500 kb, 250 kb, 100kb}
+	//						filter cnvs by individuals, CN, and length
+	//						set as CNVBurden variable
+	//						
+	//						run leastsquares
+	//		*/
+	//		
+	//		int[] CNV_FILTERS = collapseCNVTypes ? new int[]{1, 4} : new int[]{0, 1, 3, 4};
+	//		double[] CNV_SIZES = new double[]{5000, 2500, 1000, 500, 250, 100};
+	//		int[] VAR_SIZES = {idData.size(), males, females};
+	//		
+	//		double[][][] resultsB = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
+	//		double[][][] resultsP = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
+	//		double[][][] resultsR = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
+	//		double[][][] resultsSE = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
+	//
+	//		double[] depVars = null;
+	//		double[][] indepVars = new double[4][];
+	//		String[] indepVarNames = new String[]{"Age", "PC1", "PC2", "CNVBurden"};
+	//		
+	//		for (int sex = 0; sex < 3; sex++) {
+	//			for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+	//				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+	//					depVars = new double[VAR_SIZES[sex]];
+	//					indepVars = new double[VAR_SIZES[sex]][4];
+	//					int cnt = 0;
+	//					ArrayList<Double> popIQs = new ArrayList<Double>();
+	//					for (java.util.Map.Entry<String, Data> indiv : idData.entrySet()) {
+	//						if (sex > 0) {
+	//							if ((indiv.getValue().male && sex == 2) || (!indiv.getValue().male && sex == 1)) {
+	//								continue;
+	//							}
+	//						}
+	//						depVars[cnt] = indiv.getValue().iq;
+	//						indepVars[cnt][0] = indiv.getValue().age;
+	//						indepVars[cnt][1] = indiv.getValue().pc1;
+	//						indepVars[cnt][2] = indiv.getValue().pc2;
+	//						
+	//						indepVars[cnt][3] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]-1) : 0);
+	//						if (binaryCNVcounts) {
+	//							indepVars[cnt][3] = Math.min(1, indepVars[cnt][3]);
+	//						}
+	//						
+	//						cnt++;
+	//					}
+	//					
+	//					LeastSquares regression = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
+	//					
+	//					resultsB[sex][cn][sz] = regression.getBetas().length > 4 ? regression.getBetas()[4] : Double.NaN;
+	//					resultsP[sex][cn][sz] = regression.getSigs().length > 4 ? regression.getSigs()[4] : Double.NaN;
+	//					resultsR[sex][cn][sz] = regression.getRsquare(); 
+	//					resultsSE[sex][cn][sz] = regression.getSEofBs()[4];
+	//					
+	//					regression.destroy();
+	//				}
+	//			}
+	//		}
+	//		
+	//		String header = collapseCNVTypes ? "\tDeletions\tDuplications" : "\tCN=0\tCN=1\tCN=3\tCN=4";
+	//		StringBuilder header2 = new StringBuilder("Betas\t\t\t\t");
+	//		if (!collapseCNVTypes) {
+	//			header2 = header2.append("\t\t");
+	//		}
+	//		header2.append("p-values\t\t\t\t");
+	//		if (!collapseCNVTypes) {
+	//			header2 = header2.append("\t\t");
+	//		}
+	//		header2.append("Rsq\t\t\t\t");
+	//		if (!collapseCNVTypes) {
+	//			header2 = header2.append("\t\t");
+	//		}
+	//		header2.append("Counts\t\t\t\t");
+	//		if (!collapseCNVTypes) {
+	//			header2 = header2.append("\t\t");
+	//		}
+	//		header2.append("StdErr\t\t\t\t");
+	//		if (!collapseCNVTypes) {
+	//			header2 = header2.append("\t\t");
+	//		}
+	//		
+	//		String outputFile = ext.rootOf(cnvFile, false) + ".burden";
+	//		PrintWriter writer;
+	//		try {
+	//			int[][][] counts = new int[3][CNV_FILTERS.length][CNV_SIZES.length];
+	//			for (java.util.Map.Entry<String, Data> indiv : idData.entrySet()) {
+	////				String id = indiv.getKey();
+	//				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+	//					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+	//						int val = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn] - 1) : 0);
+	//						counts[0][cn][sz] += val;
+	//						if (indiv.getValue().male) {
+	//							counts[1][cn][sz] += val;
+	//						} else {
+	//							counts[2][cn][sz] += val;
+	//						}
+	//					}
+	//				}
+	//			}
+	//			
+	//			writer = new PrintWriter(new FileWriter(outputFile));
+	//			
+	//			String[] labels = {"Both", "Males", "Females"};
+	//			
+	//			for (int sex = 0; sex < 3; sex++) {
+	//				writer.println(header2.toString());
+	//				writer.println(labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\tn=" + VAR_SIZES[sex]);
+	//				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
+	//					writer.print(CNV_SIZES[sz]);
+	//					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+	//						writer.print("\t" + ext.formDeci(resultsB[sex][cn][sz], ext.getNumSigFig(resultsB[sex][cn][sz])));
+	//					}
+	//					writer.print("\t\t");
+	//					writer.print(CNV_SIZES[sz]);
+	//					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+	//						writer.print("\t" + ext.formDeci(resultsP[sex][cn][sz], ext.getNumSigFig(resultsP[sex][cn][sz])));
+	//					}
+	//					writer.print("\t\t");
+	//					writer.print(CNV_SIZES[sz]);
+	//					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+	//						writer.print("\t" + ext.formDeci(resultsR[sex][cn][sz], ext.getNumSigFig(resultsR[sex][cn][sz])));
+	//					}
+	//					
+	//					writer.print("\t\t");
+	//					writer.print(CNV_SIZES[sz]);
+	//					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+	//						writer.print("\t" + counts[sex][cn][sz]);
+	//					}
+	//					
+	//					writer.print("\t\t");
+	//					writer.print(CNV_SIZES[sz]);
+	//					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+	//						writer.print("\t" + resultsSE[sex][cn][sz]);
+	//					}
+	//					
+	//					writer.println();
+	//					
+	//				}
+	//				writer.println();
+	//			}
+	//			
+	//			writer.close();
+	//
+	//		} catch (IOException e) {
+	//			e.printStackTrace();
+	//		}
+	//	}
 		
-		dataTable = HashVec.loadFileToHashString(dataFile, new int[]{0, 1}, new int[]{2, 3, 4, 5, 6, 9}, false, "\t", true, false, true);
 		
-		idData = new HashMap<String, Data>();
-		
+	private static boolean shouldSkip(String[] dataLine) {
+		for (String str : dataLine) {
+			if (!ext.isValidDouble(str)) return true;
+		}
+		return false;
+	}
+
+	private void loadIDData(String dataFile, int[] idCols, int[] dataCols) {
+		String[] hdr = Files.getHeaderOfFile(dataFile, null);
+		depHdr = hdr[depInd]; 
+		indepHdrs = new String[indepInds.length];
+		for (int i = 0; i < indepInds.length; i++) {
+			indepHdrs[i] = hdr[indepInds[i]];
+		}
+		int[] inclGenderDataCols;
+		if (genderCol >= 0) {
+			boolean found = false;
+			for (int i : dataCols) {
+				if (i == genderCol) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				inclGenderDataCols = new int[dataCols.length + 1];
+				for (int i = 0; i < dataCols.length; i++) {
+					inclGenderDataCols[i] = dataCols[i];
+				}
+				inclGenderDataCols[dataCols.length] = genderCol;
+			} else {
+				inclGenderDataCols = dataCols;
+			}
+		} else {
+			inclGenderDataCols = dataCols;
+		}
+		Hashtable<String, String> dataTable = HashVec.loadFileToHashString(dataFile, idCols, inclGenderDataCols, false, "\t", true, false, true);
+		idData = new HashMap<String, MappedData>();
 		for (java.util.Map.Entry<String, String> entry : dataTable.entrySet()) {
 			String[] dataLine = entry.getValue().split("\t");
-			if (dataLine[5].equals("0") || 
-					!ext.isValidDouble(dataLine[0]) || 
-					!ext.isValidDouble(dataLine[1]) ||
-					!ext.isValidDouble(dataLine[3]) || 
-					!ext.isValidDouble(dataLine[4])) {
+			
+			if (shouldSkip(dataLine)) {
 				continue;
 			}
+			
 			if (!usedIDs.contains(entry.getKey())) {
 				continue;
 			}
-			Data newData = new Data();
+			
+			MappedData newData = new MappedData();
 			newData.fidiid = entry.getKey();
-			newData.iq = Double.parseDouble(dataLine[0]);
-			newData.age = Double.parseDouble(dataLine[1]);
-			newData.male = dataLine[2].equals("1");
-			if (newData.male) {
-				males++;
-			} else {
-				females++;
+			boolean setGender = false;
+			for (int i = 0; i < dataCols.length; i++) {
+				Double value = Double.parseDouble(dataLine[i]);
+				newData.setData(dataCols[i], value);
+				if (dataCols[i] == genderCol) {
+					if (value.doubleValue() > 0.5) {
+						males++;
+					} else {
+						females++;
+					}
+					setGender = true;
+				}
 			}
-			newData.pc1 = Double.parseDouble(dataLine[3]);
-			newData.pc2 = Double.parseDouble(dataLine[4]);
+			if (!setGender && inclGenderDataCols.length - dataCols.length == 1) {
+				Double gender = Double.parseDouble(dataLine[dataCols.length]);
+				newData.setData(genderCol, gender);
+				if (gender.doubleValue() > 0.5) {
+					males++;
+				} else {
+					females++;
+				}
+			}
+
 			idData.put(newData.fidiid, newData);
 		}
 		
+	}
+	
+	private void loadCNVs(String cnvFile) {
 		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, false);
 		
 		for (CNVariant cnv : cnvs) {
-			Data indiv = idData.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+			CNVData indiv = idData.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
 			if (indiv != null) {
 				indiv.cnvs.add(cnv);
 			}
 		}
 		
-		/* 
-			for each sex : {BOTH, FEMALE, MALE}
-				filter individuals in data
-				
-				for each CN : {0, 1, 3, 4+}
-					for each length : {5 mb, 2.5 mb, 1 mb, 500 kb, 250 kb, 100kb}
-						filter cnvs by individuals, CN, and length
-						set as CNVBurden variable
-						
-						run leastsquares
-		*/
+	}
+	
+	private void runCalc() {
+		CNV_FILTERS = collapseCNVTypes ? new int[]{1, 4} : new int[]{0, 1, 3, 4};
+		CNV_SIZES = new double[]{5000, 2500, 1000, 500, 250, 100};
+		if (genderCol >= 0) {
+			VAR_SIZES = new int[]{idData.size(), males, females}; 
+		} else {
+			VAR_SIZES = new int[]{idData.size()};
+		}
 		
-		int[] CNV_FILTERS = collapseCNVTypes ? new int[]{1, 4} : new int[]{0, 1, 3, 4};
-		double[] CNV_SIZES = new double[]{5000, 2500, 1000, 500, 250, 100};
-		int[] VAR_SIZES = {idData.size(), males, females};
-		
-		double[][][] resultsB = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
-		double[][][] resultsP = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
-		double[][][] resultsR = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
-		double[][][] resultsSE = new double[3][CNV_FILTERS.length][CNV_SIZES.length];
-		
+		resultsB = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
+		resultsP = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
+		resultsR = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
+		resultsSE = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
+
 		double[] depVars = null;
-		double[][] indepVars = new double[4][];
-		String[] indepVarNames = new String[]{"Age", "PC1", "PC2", "CNVBurden"};
+		double[][] indepVars = new double[indepInds.length][];
+		String[] indepVarNames = new String[indepHdrs.length + 1];
+		for (int i = 0; i < indepHdrs.length; i++) {
+			indepVarNames[i] = indepHdrs[i];
+		}
+		indepVarNames[indepHdrs.length] = "CNVBurden";
 		
-		for (int sex = 0; sex < 3; sex++) {
+		for (int sex = 0; sex < VAR_SIZES.length; sex++) {
 			for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 					depVars = new double[VAR_SIZES[sex]];
-					indepVars = new double[VAR_SIZES[sex]][4];
+					indepVars = new double[VAR_SIZES[sex]][indepInds.length + 1];
 					int cnt = 0;
-					ArrayList<Double> popIQs = new ArrayList<Double>();
-					for (java.util.Map.Entry<String, Data> indiv : idData.entrySet()) {
+					for (java.util.Map.Entry<String, MappedData> indiv : idData.entrySet()) {
 						if (sex > 0) {
-							if ((indiv.getValue().male && sex == 2) || (!indiv.getValue().male && sex == 1)) {
+							double doub = indiv.getValue().getData(genderCol); 
+							if ((doub > 0.5 && sex == 2) || (doub < 0.5 && sex == 1)) {
 								continue;
 							}
 						}
-						depVars[cnt] = indiv.getValue().iq;
-						indepVars[cnt][0] = indiv.getValue().age;
-						indepVars[cnt][1] = indiv.getValue().pc1;
-						indepVars[cnt][2] = indiv.getValue().pc2;
 						
-						indepVars[cnt][3] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]-1) : 0);
-						if (binaryCNVcounts) {
-							indepVars[cnt][3] = Math.min(1, indepVars[cnt][3]);
+						depVars[cnt] = indiv.getValue().getData(depInd);
+						for (int i = 0; i < indepInds.length; i++) {
+							indepVars[cnt][i] = indiv.getValue().getData(indepInds[i]);
+						}
+						
+						indepVars[cnt][indepInds.length] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]-1) : 0);
+						if (binaryCNVCounts) {
+							indepVars[cnt][indepInds.length] = Math.min(1, indepVars[cnt][indepInds.length]);
 						}
 						
 						cnt++;
 					}
 					
-					LeastSquares regression = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
+					RegressionModel model;
+					if (logistic) {
+						model = new LogisticRegression(depVars, indepVars, indepVarNames, false, true);
+					} else {
+						model = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
+					}
 					
-					resultsB[sex][cn][sz] = regression.getBetas().length > 4 ? regression.getBetas()[4] : Double.NaN;
-					resultsP[sex][cn][sz] = regression.getSigs().length > 4 ? regression.getSigs()[4] : Double.NaN;
-					resultsR[sex][cn][sz] = regression.getRsquare(); 
-					resultsSE[sex][cn][sz] = regression.getSEofBs()[4];
+					int thresh = indepInds.length + 1;
+					resultsB[sex][cn][sz] = model.getBetas().length > thresh ? model.getBetas()[thresh] : Double.NaN;
+					resultsP[sex][cn][sz] = model.getSigs().length > thresh ? model.getSigs()[thresh] : Double.NaN;
+					resultsR[sex][cn][sz] = model.getRsquare(); 
+					resultsSE[sex][cn][sz] = model.getBetas().length > thresh ? model.getSEofBs()[thresh] : Double.NaN;
 					
-					regression.destroy();
+					model = null;
 				}
 			}
 		}
-		
+	}
+	
+	private void writeOutput(String outFile) {
 		String header = collapseCNVTypes ? "\tDeletions\tDuplications" : "\tCN=0\tCN=1\tCN=3\tCN=4";
 		StringBuilder header2 = new StringBuilder("Betas\t\t\t\t");
 		if (!collapseCNVTypes) {
@@ -209,30 +554,30 @@ public class CNVBurdenIterator {
 			header2 = header2.append("\t\t");
 		}
 		
-		String outputFile = ext.rootOf(cnvFile, false) + ".burden";
 		PrintWriter writer;
 		try {
-			int[][][] counts = new int[3][CNV_FILTERS.length][CNV_SIZES.length];
-			for (java.util.Map.Entry<String, Data> indiv : idData.entrySet()) {
-//				String id = indiv.getKey();
+			int[][][] counts = new int[genderCol >= 0 ? 3 : 1][CNV_FILTERS.length][CNV_SIZES.length];
+			for (java.util.Map.Entry<String, MappedData> indiv : idData.entrySet()) {
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
 						int val = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn] - 1) : 0);
 						counts[0][cn][sz] += val;
-						if (indiv.getValue().male) {
-							counts[1][cn][sz] += val;
-						} else {
-							counts[2][cn][sz] += val;
+						if (genderCol >= 0) {
+							if (indiv.getValue().getData(genderCol) > 0.5) {
+								counts[1][cn][sz] += val;
+							} else {
+								counts[2][cn][sz] += val;
+							}
 						}
 					}
 				}
 			}
 			
-			writer = new PrintWriter(new FileWriter(outputFile));
+			writer = new PrintWriter(new FileWriter(outFile));
 			
-			String[] labels = {"Both", "Males", "Females"};
+			String[] labels = genderCol >= 0 ? new String[]{"BothSexes", "Males", "Females"} : new String[]{"BothSexes"};
 			
-			for (int sex = 0; sex < 3; sex++) {
+			for (int sex = 0; sex < labels.length; sex++) {
 				writer.println(header2.toString());
 				writer.println(labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\tn=" + VAR_SIZES[sex]);
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
@@ -276,6 +621,25 @@ public class CNVBurdenIterator {
 		}
 	}
 	
+	public void runProgram(String cnvFile, String dataFile, String famFile, String idsFile, int[] idCols, int[] dataCols, int depCol, int genderCol, boolean logistic, boolean collapseCNVTypes, boolean binaryCNVcounts) {
+		this.logistic = logistic;
+		this.genderCol = genderCol;
+		this.collapseCNVTypes = collapseCNVTypes;
+		this.binaryCNVCounts = binaryCNVcounts;
+		depInd = depCol;
+		indepInds = new int[dataCols.length-1];
+		int ind = 0;
+		for (int i : dataCols) {
+			if (i == depCol) continue;
+			indepInds[ind] = i;
+			ind++;
+		}
+		loadIDs(famFile, idsFile);
+		loadIDData(dataFile, idCols, dataCols);
+		loadCNVs(cnvFile);
+		runCalc();
+		writeOutput(ext.rootOf(cnvFile, false) + ".burden");
+	}
 	
 	public static void main(String[] args) {
 		String cnvFile = "D:/SIDS and IQ/penncnv.cnv";
@@ -284,14 +648,25 @@ public class CNVBurdenIterator {
 		String idsFile = "";//"D:/SIDS and IQ/ids_with_high_quality_CNV_data_from_blood_cluster.unrelateds_keep.dat";
 		boolean collapse = false;
 		boolean binaryCnts = false;
-		
+		boolean logisticRun = false;
+		int[] dataCols = new int[]{2, 3, 5, 6}; 
+		int[] idsCols = new int[]{0, 1};
+		int depCol = 2;
+		int genCol = 4;
 		
 		String usage = "\n"+
 				"one.CNVBurdenIterator requires 2-4+ arguments:\n" +
-				"   (0) cnvFile " + 
-				"   (1) dataFile " +
-				"   (2) famFile " +
-				"   (4) idsFile ";
+				"   (0) cnvFile \n" + 
+				"   (1) dataFile \n" +
+				"   (2) famFile \n" +
+				"   (4) idsFile \n" +
+				"   (5) genderColumn \n" +
+				"   (6) idColumns \n" + 
+				"   (7) dataColumns \n" + 
+				"   (8) dependColumn \n" + 
+				"   (9) -collapse \n" + 
+				"  (10) -binary \n" + 
+				"  (11) -logistic \n";
 		int numArgs = args.length;
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
@@ -309,11 +684,34 @@ public class CNVBurdenIterator {
 			} else if (args[i].startsWith("idsFile=")) {
 				idsFile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("genderColumn=")) {
+				genCol = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("idColumns=")) {
+				String[] cols = args[i].split("=")[1].split(",");
+				idsCols = new int[cols.length];
+				for (int j = 0; j < cols.length; j++) {
+					idsCols[j] = Integer.parseInt(cols[j]);
+				}
+				numArgs--;
+			} else if (args[i].startsWith("dataColumns=")) {
+				String[] cols = args[i].split("=")[1].split(",");
+				dataCols = new int[cols.length];
+				for (int j = 0; j < cols.length; j++) {
+					dataCols[j] = Integer.parseInt(cols[j]);
+				}
+				numArgs--;
+			} else if (args[i].startsWith("dependColumn=")) {
+				depCol = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
 			} else if (args[i].startsWith("-collapse")) {
 				collapse = true;
 				numArgs--;
 			} else if (args[i].startsWith("-binary")) {
 				binaryCnts = true;
+				numArgs--;
+			} else if (args[i].startsWith("-logistic")) {
+				logisticRun = true;
 				numArgs--;
 			}
 		}
@@ -323,9 +721,11 @@ public class CNVBurdenIterator {
 		}
 		
 		try {
-			runProgram(cnvFile, famFile, dataFile, idsFile, collapse, binaryCnts);
+			CNVBurdenIterator burden = new CNVBurdenIterator();
+			burden.runProgram(cnvFile, dataFile, famFile, idsFile, idsCols, dataCols, depCol, genCol, logisticRun, collapse, binaryCnts);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 }
+ 

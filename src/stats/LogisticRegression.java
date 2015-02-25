@@ -116,7 +116,7 @@ public class LogisticRegression extends RegressionModel {
 	public void compute() {
 		N = indeps.length; // number of cases
 		if (N==0) {
-			System.err.println("Error - cannot perform logistic regression with zero indivudals!!");
+			System.err.println("Error - cannot perform logistic regression with zero individuals!!");
 			fail();
 			return;
 		}
