@@ -113,6 +113,14 @@ public class SNPSIFT {
 			this.outputTsTv = ext.rootOf(inputVCF, false) + TYPES[1];
 		}
 
+		public boolean isVerbose() {
+			return verbose;
+		}
+
+		public Logger getLog() {
+			return log;
+		}
+
 		public boolean isFail() {
 			return fail;
 		}

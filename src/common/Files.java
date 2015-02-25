@@ -2683,6 +2683,25 @@ public class Files {
 		return max;
 	}
 	
+	/**
+	 * @param filename
+	 *            search the header of this file
+	 * @param toSearch
+	 *            strings to search the header for
+	 * @param log
+	 * @return true if all strings are present
+	 */
+	public static boolean headerOfFileContainsAll(String filename, String[] toSearch, Logger log) {
+		String[] header = getHeaderOfFile(filename, log);
+		boolean has = true;
+		if (toSearch.length > header.length) {
+			has = false;
+		} else if (Array.countIf(ext.indexFactors(toSearch, header, true, log, false, false), -1) > 0) {
+			has = false;
+		}
+		return has;
+	}
+	
 	public static String[] getHeaderOfFile(String filename, Logger log) {
 		return getHeaderOfFile(filename, null, log);
 	}

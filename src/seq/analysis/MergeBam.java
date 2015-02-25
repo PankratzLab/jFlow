@@ -298,24 +298,24 @@ public class MergeBam {
 		return outputHeader;
 	}
 
-	private static void checkSampleName(String headerFile, String baseId, Logger log) {
-		String readGroup;
-		try {
-			BufferedReader reader = Files.getAppropriateReader(headerFile);
-			while (reader.ready()) {
-				String line = reader.readLine().trim();
-				if (line.startsWith("@RG")) {
-					readGroup = line;
-				}
-			}
-			reader.close();
-
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + headerFile + "\" not found in current directory");
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + headerFile + "\"");
-		}
-	}
+//	private static void checkSampleName(String headerFile, String baseId, Logger log) {
+//		String readGroup;
+//		try {
+//			BufferedReader reader = Files.getAppropriateReader(headerFile);
+//			while (reader.ready()) {
+//				String line = reader.readLine().trim();
+//				if (line.startsWith("@RG")) {
+//					readGroup = line;
+//				}
+//			}
+//			reader.close();
+//
+//		} catch (FileNotFoundException fnfe) {
+//			log.reportError("Error: file \"" + headerFile + "\" not found in current directory");
+//		} catch (IOException ioe) {
+//			log.reportError("Error reading file \"" + headerFile + "\"");
+//		}
+//	}
 
 	// private static String replaceSMifNeeded(String baseID, String readGroupLine, Logger log) {
 	// String[] curRGInfo = readGroupLine.split("\t");

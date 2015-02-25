@@ -72,9 +72,10 @@ public class ClipSwap {
 		DoubleVector dv;
 		int countMoreThan, countInvalids;
 		Histogram histo;
-		int sigfigs = -1;
+		int[] sigfigsExtrastep;
 		double[] array;
 		
+		sigfigsExtrastep = null;
 		countMoreThan = countInvalids = 0;
 		lines = ext.getClipboard().trim().split("\\n");
 		dv = new DoubleVector();
@@ -87,7 +88,10 @@ public class ClipSwap {
 				countMoreThan++;
 			}
 			if (line[0].startsWith("sigfigs=")) {
-				sigfigs = ext.parseIntArg(line[0]);
+				sigfigsExtrastep = new int[] {ext.parseIntArg(line[0]), 0};
+			} else if (line[0].startsWith("step=")) {
+				sigfigsExtrastep = Histogram.reverseStep(ext.parseDoubleArg(line[0]));
+				System.out.println("Overriding step to be "+ext.formDeci(Histogram.determineStep(sigfigsExtrastep[0], sigfigsExtrastep[1]), sigfigsExtrastep[0]+2));
 			} else if (ext.isMissingValue(line[0])) {
 				if (countInvalids < 5) {
 					System.out.println("Line # "+(i+1)+" had an invalid double: "+Array.toStr(line, " / "));
@@ -105,10 +109,10 @@ public class ClipSwap {
 		}
 		
 		array = dv.toArray();
-		if (sigfigs == -1) {
+		if (sigfigsExtrastep == null) {
 			histo = new Histogram(array);
 		} else {
-			histo = new Histogram(array, Array.min(array), Array.max(array), sigfigs);
+			histo = new Histogram(array, Array.min(array), Array.max(array), sigfigsExtrastep[0], sigfigsExtrastep[1]);
 		}
 		
 		ext.setClipboard(histo.getSummary());
@@ -197,6 +201,7 @@ public class ClipSwap {
 	    	}
 	    	if (histogram) {
 	    		histogram();
+	    	    ext.waitForResponse("done!");
 	    	}
 	    	if (inverseVariance) {
 	    		inverseVarianceMeta();

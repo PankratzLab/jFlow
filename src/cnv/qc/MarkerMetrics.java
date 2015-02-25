@@ -813,7 +813,7 @@ public class MarkerMetrics {
         filename = proj.getDir(Project.RESULTS_DIRECTORY)+"reclusteredMarkers.xln";
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			writer.println("Marker\tnumClusterFilters\tnumGenotypesAffected\tproportionGenotypesAffected\tCallrateBefore\tCallrateAfter\tCallrateChange");
+			writer.println("Marker\tChr\tPosition\tnumClusterFilters\tnumGenotypesAffected\tproportionGenotypesAffected\tCallrateBefore\tCallrateAfter\tCallrateChange\tmafBefore\tmafAfter");
 
 			markerNames = clusterFilterCollection.getMarkerNames();
 			log.report("Found "+markerNames.length+" markers with cluster filters");
@@ -838,12 +838,16 @@ public class MarkerMetrics {
 					}
 				}
 				writer.println(markerNames[i]+
+						"\t"+markerData.getChr()+
+						"\t"+markerData.getPosition()+
 						"\t"+clusterFilterCollection.getClusterFilters(markerNames[i]).size()+
 						"\t"+numGenotypesAffected+
 						"\t"+((double)numGenotypesAffected/(double)genotypesBefore.length)+
 						"\t"+((double)numNonMissingBefore/(double)genotypesBefore.length)+
 						"\t"+((double)numNonMissingAfter/(double)genotypesBefore.length)+
-						"\t"+(((double)numNonMissingAfter/(double)genotypesBefore.length) - ((double)numNonMissingBefore/(double)genotypesBefore.length))
+						"\t"+(((double)numNonMissingAfter/(double)genotypesBefore.length) - ((double)numNonMissingBefore/(double)genotypesBefore.length))+
+						"\t"+(Array.mean(Array.removeAllValues(genotypesBefore, (byte)-1))/2)+
+						"\t"+(Array.mean(Array.removeAllValues(genotypesAfter, (byte)-1))/2)
 						);
 				markerDataLoader.releaseIndex(i);
 			}
