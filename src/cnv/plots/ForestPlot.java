@@ -296,10 +296,17 @@ public class ForestPlot extends JFrame implements WindowListener {
 
 	private volatile boolean loadingFile;
 	private Thread loadingThread;
+	public static final  String[][] REPLACEMENTS_FOOLISHLY_HARD_CODED = new String[][] {
+			{"_WBC_TOTAL", ""},
+			{"_WBC_NEUTRO", ""},
+			{"_", " "},
+	};
+
 	
 	public ForestPlot(Project proj) {
 		super("Genvisis - Forest Plot - " + proj.getNameOfProject());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
 		
 		this.proj = proj;
 		this.log = proj.getLog();
@@ -1039,7 +1046,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 			seVal = readData[input.studyToColIndexMap.get(studyName) + 1];
 			float beta = ext.isValidDouble(betaVal) ? Float.parseFloat(betaVal) : 0.0f;
 			float stderr = ext.isValidDouble(seVal) ? Float.parseFloat(seVal) : 0.0f;
-			studies.add(new StudyData(studyName, beta, stderr, 0, PlotPoint.FILLED_CIRCLE));
+			studies.add(new StudyData(ext.replaceAllWith(studyName, REPLACEMENTS_FOOLISHLY_HARD_CODED), beta, stderr, 0, PlotPoint.FILLED_CIRCLE));
 		}
 		return studies;
 	}
@@ -1291,7 +1298,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 					} else if (args[i].startsWith("proj=")) {
 						filename = args[i].split("=")[1];
 						numArgs--;
-					} else if (args[i].startsWith("markerList=")) {
+					} else if (args[i].startsWith("markerList=") || args[i].startsWith("file=")) {
 						markerList = args[i].split("=")[1];
 						numArgs--;
 					} else if (args[i].startsWith("log=")) {

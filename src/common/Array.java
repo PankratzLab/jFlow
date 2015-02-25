@@ -780,6 +780,22 @@ public class Array {
 		return sum;
 	}
 
+	/**
+	 * Calculates the sum of an array
+	 * 
+	 * @param array
+	 *            an array of integers
+	 * @return sum of the array
+	 */
+	public static int sum(byte[] array) {
+		int sum = 0;
+
+		for (int i = 0; i<array.length; i++) {
+			sum += array[i];
+		}
+
+		return sum;
+	}
 
 	/**
 	 * Calculates the sum of an array
@@ -871,6 +887,17 @@ public class Array {
 	 * @return mean of the array
 	 */
 	public static double mean(int[] array) {
+		return (double)sum(array)/array.length;
+	}
+
+	/**
+	 * Calculates the mean of an array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return mean of the array
+	 */
+	public static double mean(byte[] array) {
 		return (double)sum(array)/array.length;
 	}
 
@@ -3133,6 +3160,26 @@ public class Array {
 		use = new boolean[array.length];
 		for (int i = 0; i<use.length; i++) {
 			use[i] = !(array[i]+"").equals("NaN");
+        }
+
+		return subArray(array, use);
+	}
+	
+	/**
+	 * Removes all instances of a specified value from an array
+	 * 
+	 * @param array
+	 *            an array of bytes
+	 * @param valueToRemove
+	 *            value to reove from the array
+	 * @return filtered array
+	 */
+	public static byte[] removeAllValues(byte[] array, byte valueToRemove) {
+		boolean[] use;
+		
+		use = new boolean[array.length];
+		for (int i = 0; i<use.length; i++) {
+			use[i] = array[i] != valueToRemove;
         }
 
 		return subArray(array, use);
