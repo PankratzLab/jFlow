@@ -3594,6 +3594,7 @@ public class SkatMeta {
 		isQcScript = false;
 		isSummary = false;
 		isConditional = false;
+		summarize = false;
 
 		pThreshold = 0.0001;
 		pThresholdHigher = 0.001;
@@ -3611,9 +3612,8 @@ public class SkatMeta {
 		phenoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + "_ABO.csv";
 //		phenoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + ".csv";
 		condFileDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
-		condFileDirFilenameTemplate = "D:/charges_conditional_new/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
+//		condFileDirFilenameTemplate = "D:/charges_conditional_new/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
 
-//		phenos = "F7,Fibrinogen,F8,VWF";
 		phenos = "F8,VWF";
 //		phenos = "F7,Fibrinogen";
 		races = "AA,EA";
@@ -3645,20 +3645,20 @@ public class SkatMeta {
 //		summaryDir = "D:/Inflammation/summary/";
 
 //		isRScriptsSubFolders = true;
-		summarize = true;
-		cohortRDataFilesDir = "D:/CHARGE-S_conditionals/npReplicate/cohortRDataFiles/";
-		snpInfoDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
-		condFileDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
-		rScriptDir = "D:/CHARGE-S_conditionals/npReplicate/scripts/";
-		condResultsDir = "D:/CHARGE-S_conditionals/npReplicate/results/";
+//		summarize = true;
+//		cohortRDataFilesDir = "D:/CHARGE-S_conditionals/npReplicate/cohortRDataFiles/";
+//		snpInfoDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
+//		condFileDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
+//		rScriptDir = "D:/CHARGE-S_conditionals/npReplicate/scripts/";
+//		condResultsDir = "D:/CHARGE-S_conditionals/npReplicate/results/";
 		originalResultsDir = "D:/CHARGE-S_conditionals/npReplicate/originalResults/";
-		fullPathToSnpInfo = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
-		summaryDir = "D:/CHARGE-S_conditionals/npReplicate/summaries/";
+//		fullPathToSnpInfo = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
+//		summaryDir = "D:/CHARGE-S_conditionals/npReplicate/summaries/";
 		
-		phenos = "Fibrinogen,F7,F8,VWF";
-		races = "EAAA,EA,AA";
+//		phenos = "Fibrinogen,F7,F8,VWF";
+//		races = "EAAA,EA,AA";
 
-		commands = new String[] {"", "rdatadir=", "snpinfofile=", "conditionfile=", "resultdir=", "scriptdir=", "", "", "", };
+		commands = new String[] {"", "rdatadir=", "snpinfofile=", "conditionfile=", "resultdir=", "scriptdir="};
 		commandRscript = "-rscript";
 		commandRscriptSubDir = "-rscriptsubdir";
 		commandQcScript = "-qcscript";
@@ -3672,6 +3672,7 @@ public class SkatMeta {
 		commandRCommand = "rcommand=";
 		commandPThreshold = "pthreshold=";
 		commandPThresholdHigher = "pthresholdhigh=";
+
 		String usage = "\nTo generate Skat Meta R scripts for all the .RData files in a single directory:"
 					+ "\n   (1) command for generating R scripts (i.e. " + commands[0] + " (default))"
 					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
