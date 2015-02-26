@@ -11,8 +11,8 @@ import filesys.SerialHash;
 import filesys.SnpMarkerSet;
 
 public class ParseSNPlocations {
-//	public static final String DEFAULT_NCBI_DIRECTORY = "C:/projects/NCBI/";
-	public static final String DEFAULT_NCBI_DIRECTORY = "C:/NCBI/";
+//	public static final String DEFAULT_NCBI_DIRECTORY = "C:/NCBI/";
+	public static final String DEFAULT_NCBI_DIRECTORY = "N:/statgen/NCBI/";
 
 	public static final String DEFAULT_B36_SOURCE = DEFAULT_NCBI_DIRECTORY+"b130_SNPChrPosOnRef_36_3.bcp.gz";
 	public static final String DEFAULT_B36_DB = DEFAULT_NCBI_DIRECTORY+"b130_36_3.ser";
