@@ -1748,8 +1748,8 @@ public class SkatMeta {
 			isMatchCurrentCriterion = false;
 			for (int j = 0; j < criteriaColumnIndices[i].length; j++) {
 				if (criteriaColumnIndices[i][j] >= 0) {
-					criteriaValue = Double.parseDouble(criteriaValues[i]);
 					try {
+						criteriaValue = Double.parseDouble(criteriaValues[i]);
 						value = Double.parseDouble(strToBeScreened[criteriaColumnIndices[i][j]]);
 						if ((criteriaOperators[i].equalsIgnoreCase("<=") && value <= criteriaValue)
 								|| (criteriaOperators[i].equalsIgnoreCase("==") && value == criteriaValue)
