@@ -2,14 +2,7 @@ package seq.analysis;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
 import seq.analysis.ANNOVAR.AnnovarResults;
 import seq.analysis.SNPEFF.SnpEffResult;
 import common.Array;

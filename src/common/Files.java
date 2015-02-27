@@ -2706,11 +2706,24 @@ public class Files {
 		return getHeaderOfFile(filename, null, log);
 	}
 	
-	// if you want to force the removal of quotes in a comma-delimited file, then set delimiter to ",!"
 	public static String[] getHeaderOfFile(String filename, String delimiter, Logger log) {
+		return getHeaderOfFile(filename, delimiter, null, log);
+	}
+
+	
+	
+	// if you want to force the removal of quotes in a comma-delimited file, then set delimiter to ",!"
+	/**
+	 * @param filename
+	 * @param delimiter
+	 * @param patternToSkip lines starting with this pattern will not be included, set to null to skip this filter
+	 * @param log
+	 * @return
+	 */
+	public static String[] getHeaderOfFile(String filename, String delimiter,String[] patternsToSkip, Logger log) {
 		String[] lines;
 
-		lines = getFirstNLinesOfFile(filename, 1, log);
+		lines = getFirstNLinesOfFile(filename, 1,patternsToSkip, log);
 		if (lines == null) {
 			return null;
 		}
@@ -2727,6 +2740,17 @@ public class Files {
 	}
 	
 	public static String[] getFirstNLinesOfFile(String filename, int nLines, Logger log) {
+		return getFirstNLinesOfFile(filename, nLines, null, log);
+	}
+
+	/**
+	 * @param filename
+	 * @param nLines
+	 * @param patternsToSkip lines starting with this pattern will not be included, set to null to skip this filter
+	 * @param log
+	 * @return
+	 */
+	public static String[] getFirstNLinesOfFile(String filename, int nLines, String[] patternsToSkip, Logger log) {
 		BufferedReader reader;
 		String[] lines;
 		Vector<String> v;
@@ -2734,16 +2758,29 @@ public class Files {
 		
 		lines = null;
 		try {
-	        reader = getAppropriateReader(filename);
-	        if (reader == null && log != null) {
-	        	log.reportError("Error: file \""+filename+"\" not found in current directory");
-	        }
-	        v = new Vector<String>();
-	        count = 0;
-	        if (reader.ready() && count < nLines) {
-	        	v.add(reader.readLine());
-	        	count++;
-	        }
+			reader = getAppropriateReader(filename);
+			if (reader == null && log != null) {
+				log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			}
+			v = new Vector<String>();
+			count = 0;
+			while (reader.ready() && count < nLines) {
+				String line = reader.readLine();
+				boolean add = true;
+				if (patternsToSkip != null) {
+					for (int i = 0; i < patternsToSkip.length; i++) {
+						if (patternsToSkip[i] != null && line.startsWith(patternsToSkip[i])) {
+							add = false;
+							break;
+						}
+					}
+				}
+				if (add) {
+					v.add(line);
+					count++;
+				}
+
+			}
 	        reader.close();
 	        
 	        return Array.toStringArray(v);
@@ -2761,6 +2798,38 @@ public class Files {
 		return lines;
 	}
 
+	/**
+	 * @param filename
+	 * @param delimiter
+	 * @param containing
+	 * @param log
+	 * @return the first line containing the containing array, null if all are not found
+	 */
+	public static String[] getLineContaining(String filename, String delimiter, String[] containing, Logger log) {
+	
+		try {
+			BufferedReader reader = Files.getAppropriateReader(filename);
+
+			String line;
+			while ((line = reader.readLine()) != null) {
+				String[] tmp = line.trim().split(delimiter);
+				if (Array.countIf(ext.indexFactors(containing, tmp, false, log, false, false), -1) == 0) {
+					reader.close();
+					return tmp;
+				}
+			}
+			reader.close();
+			log.reportTimeError("Could not find the header containing " + Array.toStr(containing) + " in file " + filename);
+			return null;
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			return null;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + filename + "\"");
+			return null;
+		}
+	}
+	
 	public static String[][] parseControlFile(String filename, boolean tab, String command, String[] sampleCode, Logger log) {
 		Vector<String> v;
 		
@@ -2899,7 +2968,7 @@ public class Files {
 	}
 	
 	private static String determineDelimiterFromFirstLine(String filename, Logger log) {
-		return ext.determineDelimiter(Files.getFirstNLinesOfFile(filename, 1, log)[0]);
+		return ext.determineDelimiter(Files.getFirstNLinesOfFile(filename, 1,null, log)[0]);
 	}
 	
 	public static void moveFilesMoved(String filesMoved, String dir) {
@@ -3040,6 +3109,47 @@ public class Files {
 	 */
 	public static boolean isRelativePath(String path) {
 		return (path.startsWith("/") || path.indexOf(":") < 0);
+	}
+	
+	/**
+	 * Attempts to grab all file paths of a type from an ftp site
+	 * 
+	 * @param ftpdirAddress
+	 *            a remote directory of an ftp site
+	 * @param type
+	 *            the type of file to collect
+	 * @param log
+	 * @return
+	 */
+	public static String[] parseRemoteFTPFiles(String ftpdirAddress, String type, Logger log) {
+		ArrayList<String> remoteVcfs = new ArrayList<String>();
+		URL url;
+		if (!ftpdirAddress.startsWith("ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/")) {
+			log.reportTimeWarning("Did not detect that " + ftpdirAddress + " was an ftp address starting with ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/");
+			log.reportTimeWarning("\t this parsing method is therefore un-tested");
+		}
+		try {
+			url = new URL(ftpdirAddress);
+			BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+			String inputLine;
+
+			while ((inputLine = in.readLine()) != null) {
+				String[] line = inputLine.trim().split("[\\s]+");
+				int possibleVcfIndex = ext.indexOfEndsWith(type, line, false);
+				if (possibleVcfIndex > 0) {
+					remoteVcfs.add(ftpdirAddress + line[possibleVcfIndex]);
+				}
+			}
+			in.close();
+
+		} catch (MalformedURLException e) {
+			log.reportTimeError("malformed URL " + ftpdirAddress);
+			e.printStackTrace();
+		} catch (IOException e) {
+			log.reportIOException(ftpdirAddress);
+			e.printStackTrace();
+		}
+		return remoteVcfs.toArray(new String[remoteVcfs.size()]);
 	}
 
 	public static void main(String[] args) {

@@ -1741,6 +1741,42 @@ public class Array {
 
 	
 	/**
+	 * Breaks an array nChunks <br>
+	 * Warning, one of my first times with the <T> stuff
+	 * 
+	 * @param array
+	 *            the array
+	 * @param nChunks
+	 *            number of chunks
+	 * @param log
+	 */
+
+	public static <T> ArrayList<T[]> splitUpArray(T[] array, int nChunks, Logger log) {
+		int index = 0;
+		if (array.length < nChunks) {
+			log.reportError("Error - too many chunks (" + nChunks + ") for " + array.length + " things, setting to" + array.length);
+			nChunks = array.length;
+		}
+		if (nChunks <= 0) {
+			log.reportError("Error - not enough chunks (" + nChunks + ") for " + array.length + " things, setting to 1");
+			nChunks = 1;
+		}
+		int[] chunks = Array.splitUpDistributeRemainder(array.length, nChunks, log);
+		ArrayList<T[]> da = new ArrayList<T[]>();
+		int start = 0;
+		for (int i = 0; i < chunks.length; i++) {
+			for (int j = 0; j < chunks[i]; j++) {
+				index++;
+			}
+			T[] result = Arrays.copyOf(array, index - start);
+			System.arraycopy(array, start, result, 0, result.length);
+			da.add(result);
+			start = index;
+		}
+		return da;
+	}
+
+	/**
 	 * Breaks an array of strings into nChunks. This is geared toward spliting up filenames etc for batching
 	 * 
 	 * @param strings
