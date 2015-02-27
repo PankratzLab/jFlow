@@ -17,24 +17,45 @@ public class TypedFileParser extends FileParser {
 		String[][] stringData = null;
 		boolean validLine = true;
 		// TODO, check length of line
-		if (numericColumns != null) {
-			numericData = new double[numericColumns.length][];
-			try {
-				for (int i = 0; i < numericColumns.length; i++) {
-					numericData[i] = Array.toDoubleArray(Array.subArray(line, numericColumns[i]));
+		try {
+			if (numericColumns != null) {
+				numericData = new double[numericColumns.length][];
+				try {
+					for (int i = 0; i < numericColumns.length; i++) {
+						numericData[i] = Array.toDoubleArray(Array.subArray(line, numericColumns[i]));
+					}
+				} catch (NumberFormatException e) {
+					log.reportTimeError("Found invalid number on line " + Array.toStr(line));
+					validLine = false;
 				}
-			} catch (NumberFormatException e) {
-				log.reportTimeError("Found invalid number on line " + Array.toStr(line));
-				validLine = false;
 			}
-		}
-		if (stringColumns != null) {
-			stringData = new String[stringColumns.length][];
-			for (int i = 0; i < stringColumns.length; i++) {
-				stringData[i] = Array.subArray(line, stringColumns[i]);
+			if (stringColumns != null) {
+				stringData = new String[stringColumns.length][];
+				for (int i = 0; i < stringColumns.length; i++) {
+					stringData[i] = Array.subArray(line, stringColumns[i]);
+				}
 			}
+			return new TypedFileLine(numericData, stringData, validLine);
+		} catch (ArrayIndexOutOfBoundsException aiob) {
+			log.reportTimeError("Could not extract indices from line " + Array.toStr(line));
+			if (numericColumns != null) {
+				String numeric = "";
+				for (int i = 0; i < numericColumns.length; i++) {
+					numeric += "\t" + Array.toStr(numericColumns[i]);
+				}
+				log.reportTimeError("Indices for numeric data: " + numeric);
+			}
+			if (stringColumns != null) {
+				String string = "";
+				for (int i = 0; i < stringColumns.length; i++) {
+					string += "\t" + Array.toStr(stringColumns[i]);
+				}
+				log.reportTimeError("Indices for numeric data: " + string);
+			}
+			// log.reportException(aiob);
+			// aiob.printStackTrace();
+			return new TypedFileLine(null, null, false);
 		}
-		return new TypedFileLine(numericData, stringData, validLine);
 	}
 
 	public int[][] getNumericColumns() {

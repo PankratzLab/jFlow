@@ -26,7 +26,7 @@ public class PSF {
 			}
 			return javaJar;
 		}
-		
+
 		public static String[] buildJavaCP(String fullPathTojarFile) {
 			String[] javaJar = Array.concatAll(buildJava(), new String[] { CP });
 			if (fullPathTojarFile != null) {
@@ -77,7 +77,7 @@ public class PSF {
 		public static final String echoAString(String toEcho) {
 			return ECHO + "\"" + toEcho + "\"";
 		}
-		
+
 		public static final String PERL = "perl";
 
 	}
@@ -88,10 +88,16 @@ public class PSF {
 	 */
 	public static class Ext {
 		public static final String CARROT = ">";
+		public static final String REV_CARROT = "<";
+
 		public static final String AMP = "&";
 		public static final String BLANK = "";
 		public static final String NUM_THREADS_COMMAND = "numthreads=";
 		public static final String OUTPUT_DIR_COMMAND = "outputdir=";
+
+		public static String getNumThreadsCommand(int argNumber, int numThreads) {
+			return "   (" + argNumber + ")" + " number of threads to use (i.e. " + NUM_THREADS_COMMAND + numThreads + " (default))\n";
+		}
 
 	}
 
@@ -101,8 +107,15 @@ public class PSF {
 	 */
 	public static class Plink {
 		public static final String PLINK2 = "plink2";
+		public static final String PLINK = "plink";
+
 		public static final String BFILE = "--bfile";
+		public static final String INDEP_PAIRWISE = "--indep-pairwise";
 		public static final String MAKE_BED = "--make-bed";
+		public static final String BIALLELIC_ONLY = "--biallelic-only";
+		public static final String STRICT = "strict";
+		public static final String LIST = "list";
+
 		public static final String DOUBLE_ID = "--double-id";
 		public static final String NO_WEB = "--noweb";
 		public static final String VCF = "--vcf";
@@ -119,7 +132,20 @@ public class PSF {
 		 * @return
 		 */
 		public static String[] getPlinkVCFCommand(String inputVCF, String outputBase) {
-			return new String[] { PLINK2, VCF, inputVCF, DOUBLE_ID, MAKE_BED, OUT, outputBase, NO_WEB };
+			return new String[] { PLINK2, VCF, inputVCF, DOUBLE_ID, MAKE_BED, OUT, outputBase, BIALLELIC_ONLY, STRICT, LIST, NO_WEB };
+		}
+
+		/**
+		 * @param root
+		 *            likely full path
+		 * @param outputBase
+		 *            likely full path
+		 * @return
+		 */
+		// CmdLine.run("plink --bfile plink --indep-pairwise 50 5 0.3", dir+"ldPruning/");
+
+		public static String[] getPlinkLDCommand(String root) {
+			return new String[] { PLINK, BFILE, root, INDEP_PAIRWISE, "50", "5", "0.3" };
 		}
 
 		/**

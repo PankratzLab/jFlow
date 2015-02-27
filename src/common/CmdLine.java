@@ -1,6 +1,7 @@
 package common;
 
 import java.io.*;
+import java.util.Map;
 
 public class CmdLine {
 	public static boolean run(String command, String dir) {
@@ -169,4 +170,23 @@ public class CmdLine {
 		Files.chmod(batFile);
 		return new String[] { batFile };
 	}
+	
+	public static String getCmdLocation(String commmand) {
+		Map<String, String> env = System.getenv();
+		 for (String envName : env.keySet()) {
+	            System.out.format("%s=%s%n",
+	                              envName,
+	                              env.get(envName));
+	        }
+		
+		if (env.containsKey(commmand)) {
+			return env.get(commmand);
+		} else {
+			return null;
+		}
+	}
+	
+	
+
+	
 }

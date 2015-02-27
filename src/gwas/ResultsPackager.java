@@ -389,7 +389,7 @@ public class ResultsPackager {
 		}
 	}
 
-	private static void parseEmimFormat(String childResultsFile, String momResultsFile, String childMomResultsFile, String tdtResultsFile, String mapFile, String mendelErrorFile, String hweFile, double pValueThreshold, String outfile, Logger log) {
+	public static void parseEmimFormat(String childResultsFile, String momResultsFile, String childMomResultsFile, String tdtResultsFile, String mapFile, String mendelErrorFile, String hweFile, double pValueThreshold, String outfile, Logger log) {
 		BufferedReader reader1, reader2, reader3;
 		PrintWriter writer;
 		String[] lineC, lineM, lineCM, pvalEquations;
