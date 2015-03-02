@@ -395,7 +395,7 @@ public class ResultsPackager {
 		String[] lineC, lineM, lineCM, pvalEquations;
 		String temp, trav;
 		Hashtable<Long, String> snpList;  // , freqHash; // , customFreqHash;
-		String delimiter;
+		String delimiter1, delimiter2, delimiter3;
 		int[] indicesC, indicesM, indicesCM;
 		double freq, hweThreshold;
 		double[] pvals;
@@ -438,35 +438,38 @@ public class ResultsPackager {
 			reader2 = Files.getAppropriateReader(momResultsFile);
 			writer = Files.getAppropriateWriter(outfile);
 			temp = reader1.readLine().trim();
-			delimiter = ext.determineDelimiter(temp);
-			lineC = temp.split(delimiter);
+			delimiter1 = ext.determineDelimiter(temp);
+			lineC = temp.split(delimiter1);
 			indicesC = ext.indexFactors(EMIM_REQS, lineC, false, log, false, false);
 			temp = reader2.readLine().trim();
-			delimiter = ext.determineDelimiter(temp);
-			lineM = temp.split(delimiter);
+			delimiter2 = ext.determineDelimiter(temp);
+			lineM = temp.split(delimiter2);
 			indicesM = ext.indexFactors(EMIM_REQS, lineM, false, log, false, false);	//TODO EMIM_REQS
 			temp = reader3.readLine().trim();
-			delimiter = ext.determineDelimiter(temp);
-			lineCM = temp.split(delimiter);
+			delimiter3 = ext.determineDelimiter(temp);
+			lineCM = temp.split(delimiter3);
 			indicesCM = ext.indexFactors(EMIM_REQS, lineCM, false, log, false, false);	//TODO EMIM_REQS
 			
 			writer.println(Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT1_SNPS) + (mendelErrorFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT2_MENDEL_ERRORS))) + (hweFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT3_HWE))) + (tdtResultsFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT5_TDT))) + "\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT4_EMIM_RESULTS));
 			while (reader1.ready()) {
-				lineC = reader1.readLine().trim().split(delimiter, -1);
+//				lineC = reader1.readLine().replaceAll("\\*", " ").trim().split(delimiter1, -1);
+				lineC = reader1.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN").trim().split(delimiter1, -1);
 				freq = Double.parseDouble(lineC[indicesC[1]]);
-				lineM = reader2.readLine().trim().split(delimiter, -1);
-				lineCM = reader3.readLine().trim().split(delimiter, -1);
+//				lineM = reader2.readLine().replaceAll("\\*", " ").trim().split(delimiter2, -1);
+//				lineCM = reader3.readLine().replaceAll("\\*", " ").trim().split(delimiter3, -1);
+				lineM = reader2.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN").trim().split(delimiter2, -1);
+				lineCM = reader3.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN").trim().split(delimiter3, -1);
+
 				if (! lineC[indicesC[0]].equals(lineM[indicesM[0]]) || ! lineC[indicesC[0]].equals(lineCM[indicesCM[0]])) {
 					log.reportError("Error - SNP ID in the files are not lined up. Child SNP ID: " + lineC[indicesC[0]] + "; Mom SNP ID: " + lineM[indicesM[0]] + "; ChildMom SNP ID: " + lineCM[indicesCM[0]] + ".");
 					return;
 				}
 				pvals = getPvalues(Double.parseDouble(lineC[indicesC[10]]), Double.parseDouble(lineC[indicesC[11]]), Double.parseDouble(lineM[indicesM[11]]), Double.parseDouble(lineCM[indicesCM[11]]), log);
-//				if (pval <= pValueThreshold && freq >= .01) {
-//					writer.println(getOutputString(snpList, index, lineC, lineM, lineCM, log));
-//				}
-				pvalEquations = getEquations(lineC[indicesC[10]], lineC[indicesC[11]], lineM[indicesM[11]], lineCM[indicesCM[11]], log);
-//				writer.println(getOutputString(snpList, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
-				writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
+				if ((tdtResults.contains(value) <= pValueThreshold || pvals[0] <= pValueThreshold || pvals[1] <= pValueThreshold || pvals[2] <= pValueThreshold) && freq >= .01) {
+					pvalEquations = getEquations(lineC[indicesC[10]], lineC[indicesC[11]], lineM[indicesM[11]], lineCM[indicesCM[11]], log);
+//					writer.println(getOutputString(snpList, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
+					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
+				}
 			}
 			reader1.close();
 			reader3.close();
@@ -575,6 +578,7 @@ public class ResultsPackager {
 		String logfile = null;
 		double filter = 1;
 		double callRateThreshold = 0;
+		double pThreshold = .000001;
 
 		String usage = "\n" +
 		"gwas.ResultsPackager requires 0-1 arguments\n" + 
@@ -605,6 +609,24 @@ public class ResultsPackager {
 			} else if (args[i].startsWith("results=")) {
 				resultsFile = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("resultschild=")) {
+				resultsFileChild = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("resultsmom=")) {
+				resultsFileMom = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("resultschildmom=")) {
+				resultsFileChildMom = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("resultstdt=")) {
+				resultsFileTdt = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("resultshwe=")) {
+				hweFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("resultsmendel=")) {
+				mendelErrorFile = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("type=")) {
 				type = args[i].split("=")[1];
 				numArgs--;
@@ -625,6 +647,9 @@ public class ResultsPackager {
 				numArgs--;
 			} else if (args[i].startsWith("callRateThreshold=")) {
 				callRateThreshold = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("pthreshold=")) {
+				pThreshold = ext.parseDoubleArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				outfile = args[i].split("=")[1];
@@ -745,7 +770,7 @@ public class ResultsPackager {
 			} else if (type.equalsIgnoreCase("sol")) {
 				parseSOLformat(dir, resultsFile, "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile, markersToReport, filter, callRateThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("emim")) {
-				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, .000001, outfile, log);
+				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, pThreshold, outfile, log);
 			} else {
 				System.err.println("Error - unknown results type: '"+type+"'");
 			}
