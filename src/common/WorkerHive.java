@@ -45,6 +45,12 @@ public class WorkerHive<T> {
 		bees.add(bee);
 	}
 
+	public void clear() {
+		this.bees = new ArrayList<Callable<T>>();
+		this.futures = new ArrayList<Future<T>>();
+		this.results = new ArrayList<T>();
+	}
+
 	/**
 	 * @param beesToAdd
 	 *            multiple jobs for the que
@@ -83,7 +89,8 @@ public class WorkerHive<T> {
 	// }
 
 	/**
-	 * @param awaitTermination call the shutdown method
+	 * @param awaitTermination
+	 *            call the shutdown method
 	 */
 	public void execute(boolean awaitTermination) {
 
@@ -95,8 +102,8 @@ public class WorkerHive<T> {
 			for (int i = 0; i < futures.size(); i++) {
 				try {
 					results.add(futures.get(i).get());
-					if (reportEvery > 0 && i % reportEvery == 0 && i != 0) {
-						log.reportTimeInfo("Finished " + (i) + " of " + futures.size());
+					if (reportEvery > 0 && i % reportEvery == 0) {
+						log.reportTimeInfo("Finished " + (i + 1) + " of " + futures.size());
 					}
 				} catch (InterruptedException e) {
 					log.reportTimeError("Could not complete job on internal index " + i);

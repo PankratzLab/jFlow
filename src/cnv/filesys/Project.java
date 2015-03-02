@@ -862,4 +862,13 @@ public class Project extends Properties {
 		}
 		return tmp;
 	}
+	
+	public Hashtable<String, Integer> getMarkerIndices() {
+		String[] markerNames = getMarkerNames();
+		Hashtable<String, Integer> indices = new Hashtable<String, Integer>();
+		for (int i = 0; i < markerNames.length; i++) {
+			indices.put(markerNames[i], i);
+		}
+		return indices;
+	}
 }
