@@ -3466,7 +3466,7 @@ public class SuperNovo {
 		boolean isToAnnotate, isToSummarizeResults, isToAssessCoverage, isToScanSamFilesForDenovoMutations, isGetHaplotypes, isToTest, isToOutputHaplotypeStrings;
 		Logger log;
 
-		commandIsToScanSamFilesForDenovoMutations = "--scandenovo";
+		commandIsToScanSamFilesForDenovoMutations = "-scandenovo";
 		commandIsToFilterAndSummarizeResults = "-summarizeresults";
 		commandIsToHaploidCount = "-haploidcount";
 		commandIsToOutputHaplotypeStrings = "outhaplotypes=";
