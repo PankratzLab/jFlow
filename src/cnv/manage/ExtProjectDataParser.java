@@ -3,6 +3,7 @@ package cnv.manage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Hashtable;
 
 import common.Array;
 import common.Files;
@@ -32,15 +33,18 @@ public class ExtProjectDataParser {
 	private String dataKeyColumnName;
 	private String[] dataToLoad;
 	private boolean[] dataPresent;
-	private boolean requireAll;
+	private boolean requireAll, verbose;
 	private boolean skipUnFound;
 	private boolean hasHeader;
 	private boolean treatAllNumeric;
 	private String fullPathToDataFile;
 	private String missingString;
+	private String commentString;
+	private String[] headerFlags;
 	private boolean sampleBased;
 
 	public void loadData() {
+		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
 		proj.getLog().reportTimeInfo("Attempting to load " + (sampleBased ? "sample based" : "marker based") + " data from " + fullPathToDataFile);
 		if (treatAllNumeric) {
 			treatAllNumeric();
@@ -48,20 +52,27 @@ public class ExtProjectDataParser {
 		init();
 		try {
 			if (hasHeader) {
-				proj.getLog().reportTimeWarning("The has header option was flagged, skipping the first line");
-				typedFileParser.readLine();
+				scanToData();
 			}
 			while (typedFileParser.ready()) {
 				TypedFileLine typedFileLine = typedFileParser.readTypedLine();
 				if (typedFileLine.isValidLine()) {
-					String samp = typedFileLine.getStringData()[0][0];
-					int dataIndex = ext.indexOfStr(samp, dataToLoad);
-
+					String data = typedFileLine.getStringData()[0][0];
+					int dataIndex = -1;
+					if (sampleBased) {
+						dataIndex = ext.indexOfStr(data, dataToLoad);
+					} else {
+						if (markerIndices.containsKey(data)) {
+							dataIndex = markerIndices.get(data);
+						}
+					}
 					if (dataIndex < 0) {
 						if (skipUnFound) {
-							proj.getLog().reportTimeWarning("Did not find " + samp + " in project's samples, skipping");
+							if (verbose) {
+								proj.getLog().reportTimeWarning("Did not find " + data + " in project's " + (sampleBased ? "samples" : "markers") + ", skipping");
+							}
 						} else {
-							proj.getLog().reportTimeError("Did not find " + samp + " in project's samples, halting");
+							proj.getLog().reportTimeError("Did not find " + data + " in project's " + (sampleBased ? "samples" : "markers") + ", halting");
 							typedFileParser.close();
 							return;
 						}
@@ -88,13 +99,41 @@ public class ExtProjectDataParser {
 				stringData = null;
 				numericData = null;
 			} else {
-				proj.getLog().reportTimeInfo("Loaded data for " + dataLoaded + " " + (sampleBased ? "sample(s)" : "marker(s)"));
+				proj.getLog().reportTimeInfo("Loaded data for " + dataLoaded + " " + (sampleBased ? "sample(s)" : "marker(s) ") + " of " + dataPresent.length);
 			}
 		} catch (IOException e) {
 			proj.getLog().reportTimeError("Error reading file " + fullPathToDataFile);
 			e.printStackTrace();
 		}
 
+	}
+
+	/**
+	 * Reads until the data begins
+	 * 
+	 * @throws IOException
+	 */
+	private void scanToData() throws IOException {
+		if (commentString != null) {
+			proj.getLog().reportTimeWarning("The has header option was flagged and comments were set, skipping header and comments");
+			String line;
+			do {
+				line = typedFileParser.readLine();
+			} while (line != null && line.startsWith(commentString));
+		} else if (headerFlags != null) {
+			String line;
+			proj.getLog().reportTimeWarning("The has header option was flagged and and header flags were set, skipping lines preceding header");
+			do {
+				line = typedFileParser.readLine();
+				if (verbose) {
+					proj.getLog().reportTimeInfo("Skipping line " + line);
+				}
+			} while (line != null && Array.countIf(ext.indexFactors(headerFlags, line.trim().split(typedFileParser.getSeparator()), true, proj.getLog(), false, false), -1) > 0);
+		} else {
+
+			proj.getLog().reportTimeWarning("The has header option was flagged and comments were not set, skipping the first line");
+			typedFileParser.readLine();
+		}
 	}
 
 	public String[] getStringDataAt(int index, boolean subset) {
@@ -104,48 +143,58 @@ public class ExtProjectDataParser {
 	public boolean determineIndicesFromTitles() {
 		boolean determined = true;
 		if (hasHeader) {
-
-			String[] header = Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(), proj.getLog());
-			if (numericDataTitles == null && stringDataTitles == null) {
-				proj.getLog().reportTimeError("Must provide valid arrays to determine indices");
-				determined = false;
+			String[] header;
+			if (headerFlags == null) {
+				header = Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(), new String[] { commentString }, proj.getLog());
+			} else {
+				header = Files.getLineContaining(fullPathToDataFile, typedFileParser.getSeparator(), headerFlags, proj.getLog());
 			}
-			if (dataKeyColumnName == null) {
-				proj.getLog().reportTimeError("Must provide a data name column to determine indices");
-				determined = false;
-			}
-			determined = determineSampleIndex(determined, header);
-			if (determined && stringDataTitles != null) {
-				if (typedFileParser.getStringColumns() != null) {
-					proj.getLog().reportTimeWarning("String columns were already provided, skipping string column assignment");
-				} else {
-					int[] tmp = ext.indexFactors(stringDataTitles, header, true, false);
-					determined = Array.min(tmp) >= 0;
-					if (!determined) {
-						proj.getLog().reportTimeError("Could not find all string indices in header " + Array.toStr(header));
+			if (header != null) {
+				if (numericDataTitles == null && stringDataTitles == null) {
+					proj.getLog().reportTimeError("Must provide valid arrays to determine indices");
+					determined = false;
+				}
+				if (dataKeyColumnName == null) {
+					proj.getLog().reportTimeError("Must provide a data name column to determine indices");
+					determined = false;
+				}
+				determined = determineSampleIndex(determined, header);
+				if (determined && stringDataTitles != null) {
+					if (typedFileParser.getStringColumns() != null) {
+						proj.getLog().reportTimeWarning("String columns were already provided, skipping string column assignment");
 					} else {
-						typedFileParser.setStringColumns(new int[][] { tmp });
+						int[] tmp = ext.indexFactors(stringDataTitles, header, true, false);
+						determined = Array.min(tmp) >= 0;
+						if (!determined) {
+							proj.getLog().reportTimeError("Could not find all string indices in header " + Array.toStr(header));
+						} else {
+							typedFileParser.setStringColumns(new int[][] { tmp });
+						}
 					}
 				}
-			}
-			if (determined && numericDataTitles != null) {
-				if (typedFileParser.getNumericColumns() != null) {
-					proj.getLog().reportTimeWarning("Numeric columns were already provided, skipping numeric column assignment");
-				} else {
-					int[] tmp = ext.indexFactors(numericDataTitles, header, true, false);
-					determined = Array.min(tmp) >= 0;
-					if (!determined) {
-						proj.getLog().reportTimeError("Could not find all numeric indices in header " + Array.toStr(header));
+				if (determined && numericDataTitles != null) {
+					if (typedFileParser.getNumericColumns() != null) {
+						proj.getLog().reportTimeWarning("Numeric columns were already provided, skipping numeric column assignment");
 					} else {
-						typedFileParser.setNumericColumns(new int[][] { tmp });
+						int[] tmp = ext.indexFactors(numericDataTitles, header, true, false);
+						determined = Array.min(tmp) >= 0;
+						if (!determined) {
+							proj.getLog().reportTimeError("Could not find all numeric indices in header " + Array.toStr(header));
+						} else {
+							typedFileParser.setNumericColumns(new int[][] { tmp });
+						}
 					}
-				}
 
+				}
+			} else {
+				determined = false;
+				proj.getLog().reportTimeError("Could not obtain header with current options");
 			}
 		} else {
 			determined = false;
 			proj.getLog().reportTimeError("Header option must be flagged to use this method");
 		}
+
 		return determined;
 	}
 
@@ -167,6 +216,10 @@ public class ExtProjectDataParser {
 
 	public boolean[] getDataPresent() {
 		return dataPresent;
+	}
+
+	public String[] getDataToLoad() {
+		return dataToLoad;
 	}
 
 	private boolean determineSampleIndex(boolean determined, String[] header) {
@@ -292,6 +345,9 @@ public class ExtProjectDataParser {
 		private boolean treatAllNumeric = true;
 		private String missingString = DEFUALT_MISSING_STRING;
 		private boolean sampleBased = true;
+		private String commentString = null;
+		private boolean verbose = true;
+		private String[] headerFlags = null;
 
 		/**
 		 * @param separator
@@ -425,6 +481,36 @@ public class ExtProjectDataParser {
 		}
 
 		/**
+		 * @param commentString
+		 *            lines starting with this string will be skipped when parsing the header
+		 * @return
+		 */
+		public Builder commentString(String commentString) {
+			this.commentString = commentString;
+			return this;
+		}
+
+		/**
+		 * @param headerFlags
+		 *            the header contains these lines, and others will be skipped
+		 * @return
+		 */
+		public Builder headerFlags(String[] headerFlags) {
+			this.headerFlags = headerFlags;
+			return this;
+		}
+
+		/**
+		 * @param verbose
+		 *            verbose reporting
+		 * @return
+		 */
+		public Builder verbose(boolean verbose) {
+			this.verbose = verbose;
+			return this;
+		}
+
+		/**
 		 * Construct the parser with the options set by the builder
 		 * 
 		 * @param proj
@@ -454,6 +540,9 @@ public class ExtProjectDataParser {
 		this.fullPathToDataFile = fullPathToDataFile;
 		this.missingString = builder.missingString;
 		this.sampleBased = builder.sampleBased;
+		this.commentString = builder.commentString;
+		this.verbose = builder.verbose;
+		this.headerFlags = builder.headerFlags;
 		this.typedFileParser = typeBuilder.build(Files.getAppropriateReader(fullPathToDataFile));
 	}
 }

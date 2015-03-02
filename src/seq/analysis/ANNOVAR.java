@@ -24,10 +24,10 @@ public class ANNOVAR {
 	private static final String NA_STRING = "-nastring";
 	private static final String DEFAULT_NA_STRING = ".";
 	private static final String VCF_INPUT = "-vcfinput";
-	private static final String MULTI_ANNO = "multianno";
+	private static final String MULTI_ANNO = "multianno.vcf";
 
 	private String annovarLocation;
-	private String annovarDB;
+	private String annodvarDB;
 	private boolean fail, verbose, overWriteExistingOutput;
 	private Logger log;
 
@@ -42,6 +42,9 @@ public class ANNOVAR {
 
 	private boolean verify() {
 		boolean verify = true;
+		if(annodvarDB==null){
+			//we don't care for now
+		}
 		if (!Files.exists(annovarLocation)) {
 			verify = false;
 			log.reportError("Warning - could not find Annovar directory  " + annovarLocation);
@@ -79,7 +82,7 @@ public class ANNOVAR {
 	private boolean AnnovarAVCF(String inputVCF, String outputBase, String outputVCF, String build, Logger log) {
 		boolean progress = !fail;
 		if (progress) {
-			String[] command = new String[] { PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF, annovarLocation + annovarDB, BUILD_VERSION, build, OUT, outputBase, REMOVE, PROTOCOL, DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS, NA_STRING, DEFAULT_NA_STRING, VCF_INPUT };
+			String[] command = new String[] { PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF, annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build, OUT, outputBase, REMOVE, PROTOCOL, DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS, NA_STRING, DEFAULT_NA_STRING, VCF_INPUT };
 			progress = CmdLine.runCommandWithFileChecks(command, "", new String[] { inputVCF }, new String[] { outputVCF }, verbose, overWriteExistingOutput, false, log);
 		}
 		return progress;
@@ -102,7 +105,7 @@ public class ANNOVAR {
 
 		public void parse() {
 			this.output = ext.rootOf(inputVCF, false);
-			this.outputVCF = output + build + "_" + MULTI_ANNO;
+			this.outputVCF = output + "."+build + "_" + MULTI_ANNO;
 		}
 
 		public String getInputVCF() {
