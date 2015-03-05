@@ -2401,7 +2401,7 @@ public class SeqMeta {
 		Zip.zip(Array.toStringArray(v), Files.getNextAvailableFilename("metaResultsStash#.zip"), new Logger(), true);
 	}
 
-	private static void parseBetasFor(String dir, MetaAnalysisParams maps, String betasFor, Logger log) {
+	private static void parseBetasFor(String dir, MetaAnalysisParams maps, String betasFor, boolean metasOnly, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -2442,7 +2442,7 @@ public class SeqMeta {
 			for (int i = 0; i < phenotypes.length; i++) {
 				for (int k = 0; k <= races.length; k++) {
 					localDir = dir+phenotypes[i][0]+"/"+(k==races.length?"":races[k][0]+"/")+methods[0][0]+"/";
-					for (int j = 0; j <= studies.length; j++) {
+					for (int j = metasOnly?studies.length:0; j <= studies.length; j++) {
 						if ((k==races.length && j==studies.length) || j==studies.length || (k<races.length && !finalSets[i][j][k].equals("<missing>"))) {
 							filename = (j==studies.length?"":studies[j]+"_")+(k==races.length?"":races[k][0]+"_")+phenotypes[i][0]+"_"+methods[0][0]+".csv";
 							log.report(ext.getTime()+"\tReading "+filename);
@@ -3090,7 +3090,7 @@ public class SeqMeta {
 		parsers = new GenParser[filenames.length];
 		for (int i = 0; i < filenames.length; i++) {
 			header = Files.getHeaderOfFile(filenames[i], ",!", log);
-			indices = ext.indexFactors(new String[][] {{"Name", "SNP", "gene"}, {"p"}, {"cmafUsed", "cmaf", "maf"}, {"nmiss"}}, header, true, false, true, false, log, false);
+			indices = ext.indexFactors(new String[][] {{"Name", "SNP", "gene"}, {"p"}, {"cmafUsed", "cmaf", "maf"}, {"ntotal"}}, header, true, false, true, false, log, false);
 			if (Array.min(indices) == -1) {
 				log.reportError("Error - header for file "+filenames[i]+"; aborting pleiotropy for "+outputFile);
 				return;
@@ -3137,7 +3137,6 @@ public class SeqMeta {
 					} else {
 						dv.add(Double.parseDouble(line[1]));
 					}
-					
 				}
 				temp = trav;
 				pvals = dv.toArray();
@@ -3316,6 +3315,7 @@ public class SeqMeta {
 		String markerList = null;
 		String genoPattern = "chr#.csv.gz";
 		boolean plinkFormat = false;
+		boolean metasOnly = false;
 		
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Hct_SingleSNP.csv", new Logger());
@@ -3370,6 +3370,7 @@ public class SeqMeta {
 		"   (2) stash meta-analysis resluts (before adding/removing a cohort) (i.e. -stashMetaResults (not the default))\n" + 
 		" OR\n" + 
 		"   (2) parse all results for a list of markers (i.e. betasFor=markerList.txt (not the default))\n" + 
+		"   (3) parse results for meta-analyses only (i.e. metasOnly="+metasOnly+" (not the default))\n" + 
 		" OR\n" + 
 		"   (2) create a mock set of the same RData files for summarizing or testing purposes elsewhere (i.e. -mock (not the default))\n" + 
 		" OR\n" + 
@@ -3462,6 +3463,9 @@ public class SeqMeta {
 				numArgs--;
 			} else if (args[i].startsWith("betasFor=")) {
 				betasFor = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("metasOnly=")) {
+				metasOnly = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("-sumPhenos")) {
 				summarizePhenotypes = true;
@@ -3614,7 +3618,7 @@ public class SeqMeta {
 				} else if (stashMetaResults) {
 					stashMetaResults(dir, maps);
 				} else if (betasFor != null) {
-					parseBetasFor(dir, maps, betasFor, log);
+					parseBetasFor(dir, maps, betasFor, metasOnly, log);
 				} else if (mockery) {
 					makeSetOfMockRdataFiles(dir, maps);
 				} else if (summarizePhenotypes) {
