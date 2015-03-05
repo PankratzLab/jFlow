@@ -13,6 +13,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.lang.reflect.InvocationTargetException;
@@ -43,6 +44,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import cnv.filesys.Project;
+import common.Aliases;
 import common.Array;
 import common.Files;
 import common.Grafik;
@@ -301,7 +303,6 @@ public class ForestPlot extends JFrame implements WindowListener {
 			{"_WBC_NEUTRO", ""},
 			{"_", " "},
 	};
-
 	
 	public ForestPlot(Project proj) {
 		super("Genvisis - Forest Plot - " + proj.getNameOfProject());
@@ -884,12 +885,13 @@ public class ForestPlot extends JFrame implements WindowListener {
 			final int lineProg = lineStep;
 			final int totalLines = lines;
 			
-			BufferedReader dataReader = Files.getReader(fileMap.getKey(), 
-															false, // not a jar file
-															true, // verbose mode on 
-															log, 
-															false // don't kill the whole process, esp. if we're running a GUI
-															);
+			BufferedReader dataReader;
+			dataReader = Files.getReader(fileMap.getKey(), 
+											false, // not a jar file
+											true, // verbose mode on 
+											log, 
+											false // don't kill the whole process, esp. if we're running a GUI
+											);
 			if (dataReader == null) {
 				continue;
 			}
@@ -902,6 +904,13 @@ public class ForestPlot extends JFrame implements WindowListener {
 			int lineCnt = 1;
 			try {
 				header = dataReader.readLine();	// skip header
+				String[] hdr;
+				if (delimiter.startsWith(",")) {
+					hdr = ext.splitCommasIntelligently(header, true, log);
+				} else {
+					hdr = header.trim().split(delimiter);
+				}
+				int idIndex = ext.indexFactors(new String[][]{Aliases.MARKER_NAMES}, hdr, false, true, false, false)[0];
 				
 				for (ForestInput inputData : fileMap.getValue()) {
 					if (Thread.interrupted()) {
@@ -936,7 +945,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 						}
 					}
 					String readData[] = delimiter.equals(",") ? ext.splitCommasIntelligently(readLine, true, log) : readLine.split(delimiter);
-					String markerName = readData[1];
+					String markerName = readData[idIndex];
 					for (ForestInput inputData : fileMap.getValue()) {
 						if (Thread.interrupted()) {
 							dataReader.close();
@@ -1072,7 +1081,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 			}
 		}
 		if (data.metaIndicies == null) {
-			log.reportError("Error - never found the beta/stderr pairing for file "+data.file);
+			log.reportError("Error - no overall beta/stderr pairing found in file "+data.file);
 		}
 		dataFileHeaders = null;
 	}
