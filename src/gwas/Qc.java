@@ -108,39 +108,30 @@ public class Qc {
 			return;
 		}
 		
-		// TODO to be conintued...
+		// TODO to be continued...
 		
 	}
 	
+	public static void fromParameters(String filename, Logger log) {
+		Vector<String> params;
+
+		params = Files.parseControlFile(filename, "gwas.Qc", new String[] { "dir=./", "# Make keepGenomeInfoForRelatedsOnly=false if the sample size is small and you want to run MDS plot as well", "keepGenomeInfoForRelatedsOnly=true"}, log);
+
+		if (params != null) {
+			params.add("log=" + log.getFilename());
+			main(Array.toStringArray(params));
+		}
+	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String dir = "./";
 		boolean keepGenomeInfoForRelatedsOnly = true;
 		
-		dir = "D:/Logan/Osteosarcoma/fullGamut/";
-		dir = "D:/Logan/Osteosarcoma/fullGamut_high_quality_parents_only/";
-		dir = "D:/Logan/Osteosarcoma/cases_only/";
-//		dir = "D:/Logan/Osteosarcoma/fullGamut_high_quality_white_parents_only/";
-		dir = "D:/data/WinterHillsCombo/QC/";
-		dir = "D:/data/Poynter/QC/";
-		dir = "D:/BOSS/IBC_meta_analyses/Lipids_GxG/SecondRun/newlyCleanedGenotypeCalls/QC/";
-		dir = "C:/PoynterLinabery/QC/unrelateds/";
-		dir = "C:/PoynterLinabery/QC/fullSample/";
-		dir = "C:/PoynterLinabery/QC/justLinabery/";
-		dir = "C:/PoynterLinabery/QC/withHapMap/";
-		dir = "D:/data/WinterHillsCombo/QC/beforeRelease/";
-		dir = "C:/PoynterLinabery/QC/completeDataset/";
-		dir = "C:/PoynterLinabery/QC/bizarrePC12/";
-		dir = "C:/PoynterLinabery/GEDImerge/QC/";
-		dir = "C:/PoynterLinabery/Poynter/EMIM/checkQC/";
-		dir = "D:/ExomeChip/CARDIA_primary/QC/EA/";
-		
-		keepGenomeInfoForRelatedsOnly = false;
-
 		String usage = "\n" +
 				"gwas.Qc requires 0-1 arguments\n" +
 				"   (1) directory with plink.* files (i.e. dir=" + dir + " (default))\n" + 
+				"   (2) if no MDS will be run, smaller file (i.e. keepGenomeInfoForRelatedsOnly=" + keepGenomeInfoForRelatedsOnly + " (default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -148,7 +139,10 @@ public class Qc {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (args[i].startsWith("dir=")) {
-				dir = args[i].split("=")[1];
+				dir = ext.parseStringArg(args[i], "./");
+				numArgs--;
+			} else if (args[i].startsWith("keepGenomeInfoForRelatedsOnly=")) {
+				keepGenomeInfoForRelatedsOnly = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);

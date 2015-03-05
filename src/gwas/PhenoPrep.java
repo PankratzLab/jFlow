@@ -297,7 +297,7 @@ public class PhenoPrep {
 		} else if (transform.equalsIgnoreCase("sqrt")) {
 			data = Transformations.sqrtTransform(data);
 		} else {
-			System.err.println("Error - unkown transform: '"+transform+"'");
+			System.err.println("Error - unknown transform: '"+transform+"'");
 			return false;
 		}
 		
