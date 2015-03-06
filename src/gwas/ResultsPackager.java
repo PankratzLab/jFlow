@@ -17,8 +17,9 @@ public class ResultsPackager {
 	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT1_SNPS = {"Chr", "Pos", "MarkerName", "allele_A", "allele_B"};
 	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT2_MENDEL_ERRORS = {"Mendel_Errors"};
 	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT3_HWE = {"HWE_GENO", "HWE_P", "SigHWE"};
-	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT4_EMIM_RESULTS = {"freq", "C_lnR1", "C_sd_lnR1", "C_lnR2", "C_sd_lnR2", "C_lnS1", "C_sd_lnS1", "C_lnS2", "C_sd_lnS2", "CM_lnR1", "CM_sd_lnR1", "CM_lnR2", "CM_sd_lnR2", "CM_lnS1", "CM_sd_lnS1", "CM_lnS2", "CM_sd_lnS2", "p-value_C", "Excel_p-value_C", "p-value_CM-C", "Excel_p-value_CM-C", "p-value_CM-M", "Excel_p-value_CM-M"};
-	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT5_TDT = {"tdt_T", "tdt_U", "tdt_OR", "tdt_P"};
+	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT4_EMIM_RESULTS = {"freq", "C_lnR1", "C_sd_lnR1", "C_lnR2", "C_sd_lnR2", "C_lnS1", "C_sd_lnS1", "C_lnS2", "C_sd_lnS2", "CM_lnR1", "CM_sd_lnR1", "CM_lnR2", "CM_sd_lnR2", "CM_lnS1", "CM_sd_lnS1", "CM_lnS2", "CM_sd_lnS2", "pVal_C_df2", "pVal_C_df2_Excel", "pVal_C_df1", "pVal_C_df1_Excel", "pVal_CM-C_df2", "pVal_CM-C_df2_Excel", "pVal_CM-C_df1", "pVal_CM-C_df1_Excel", "pVal_CM-M_df2", "pVal_CM-M_df2_Excel", "pVal_CM-M_df1", "pVal_CM-M_df1_Excel"};
+//	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT5_TDT = {"tdt_T", "tdt_U", "tdt_OR", "tdt_P"};
+	public static final String[] EMIM_OUTPUT_FORMAT_SEGMENT5_TDT = {"T", "U", "OR", "P", "L95", "U95"};
 	public static final String[] PLINK_REQS = {"SNP", "A1", "TEST", "NMISS", "OR", "BETA", "SE", "P"};
 	public static final String[] SOL_REQS = {"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0", "N1", "N2", "NMISS"};
 	public static final String[] EMIM_REQS = {"snpID", "freq", "lnR1", "sd_lnR1", "lnR2", "sd_lnR2", "lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnliknull", "lnlikfull"};
@@ -428,7 +429,8 @@ public class ResultsPackager {
 				hwe = one.SkatMeta.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST==UNAFF"}, log);
 			}
 			if (tdtResultsFile != null) {
-				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new String[] {"T", "U", "OR", "P"}, null, null);
+//				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new String[] {"T", "U", "OR", "P"}, null, null);
+				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, EMIM_OUTPUT_FORMAT_SEGMENT5_TDT, null, null);
 			}
 
 			hweThreshold = 0.05 / (double) Files.countLines(childResultsFile, true);
@@ -450,7 +452,7 @@ public class ResultsPackager {
 			lineCM = temp.split(delimiter3);
 			indicesCM = ext.indexFactors(EMIM_REQS, lineCM, false, log, false, false);	//TODO EMIM_REQS
 			
-			writer.println(Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT1_SNPS) + (mendelErrorFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT2_MENDEL_ERRORS))) + (hweFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT3_HWE))) + (tdtResultsFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT5_TDT))) + "\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT4_EMIM_RESULTS));
+			writer.println(Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT1_SNPS) + (mendelErrorFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT2_MENDEL_ERRORS))) + (hweFile == null? "" : ("\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT3_HWE))) + (tdtResultsFile == null? "" : ("\t" + Array.toStr(addPrefixToArray("tdt_", EMIM_OUTPUT_FORMAT_SEGMENT5_TDT, null)))) + "\t" + Array.toStr(EMIM_OUTPUT_FORMAT_SEGMENT4_EMIM_RESULTS));
 			while (reader1.ready()) {
 //				lineC = reader1.readLine().replaceAll("\\*", " ").trim().split(delimiter1, -1);
 				lineC = reader1.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN").trim().split(delimiter1, -1);
@@ -465,10 +467,16 @@ public class ResultsPackager {
 					return;
 				}
 				pvals = getPvalues(Double.parseDouble(lineC[indicesC[10]]), Double.parseDouble(lineC[indicesC[11]]), Double.parseDouble(lineM[indicesM[11]]), Double.parseDouble(lineCM[indicesCM[11]]), log);
-				if ((tdtResults.contains(value) <= pValueThreshold || pvals[0] <= pValueThreshold || pvals[1] <= pValueThreshold || pvals[2] <= pValueThreshold) && freq >= .01) {
+				temp = tdtResults.get(snpList.get(Long.parseLong(lineC[indicesC[0]].substring(0, lineC[indicesC[0]].indexOf(".")))).split("\t")[2])[3];
+//				if (tdtResults.get(temp)[3].equals("NA")) {
+//					System.out.println(temp + "\t" + tdtResults.get(test)[3]);
+////					System.out.println(temp + "\t" + Double.parseDouble(tdtResults.get(test)[3]));
+//				}
+				if (pValueThreshold > 1 || ((!temp.equals("NA") && Double.parseDouble(temp) <= pValueThreshold) || pvals[0] <= pValueThreshold || pvals[1] <= pValueThreshold || pvals[2] <= pValueThreshold) && freq >= .01) {
 					pvalEquations = getEquations(lineC[indicesC[10]], lineC[indicesC[11]], lineM[indicesM[11]], lineCM[indicesCM[11]], log);
 //					writer.println(getOutputString(snpList, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
-					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
+//					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
+					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[3] + "\t" + pvalEquations[3] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[4] + "\t" + pvalEquations[4] + "\t" + pvals[2] + "\t" + pvalEquations[2] + "\t" + pvals[5] + "\t" + pvalEquations[5]);
 				}
 			}
 			reader1.close();
@@ -487,23 +495,29 @@ public class ResultsPackager {
 	}
 
 	private static double[] getPvalues(double logLikilihood_null_C, double logLikilihood_full_C, double logLikilihood_full_M, double logLikilihood_full_CM, Logger log) {
-		return new double[] {getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), log),
-							 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), log),
-							 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), log)};
+		return new double[] {getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), 2, log),
+							 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 2, log),
+							 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 2, log),
+							 getPvalue(2 * (logLikilihood_full_C - logLikilihood_null_C), 1, log),
+							 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_C), 1, log),
+							 getPvalue(2 * (logLikilihood_full_CM - logLikilihood_full_M), 1, log)};
 	}
 
-	private static double getPvalue(double diffLogLikilihood, Logger log) {
+	private static double getPvalue(double diffLogLikilihood, int degreeFreedom, Logger log) {
 		if (diffLogLikilihood < 0) {
 			return 1;
 		} else {
-			return ProbDist.ChiDist(diffLogLikilihood, 2);
+			return ProbDist.ChiDist(diffLogLikilihood, degreeFreedom);
 		}
 	}
 
 	private static String[] getEquations(String logLikilihood_null_C, String logLikilihood_full_C, String logLikilihood_full_M, String logLikilihood_full_CM, Logger log) {
 		return new String[] {"=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-" + logLikilihood_null_C + "),2,TRUE)",
 							 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),2,TRUE)",
-							 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),2,TRUE)"};
+							 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),2,TRUE)",
+							 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-" + logLikilihood_null_C + "),1,TRUE)",
+							 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),1,TRUE)",
+							 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),1,TRUE)"};
 	}
 
 	private static String getOutputString(Hashtable<Long, String> snpList, Hashtable<String, String[]> mendelErrors, Hashtable<String, String[]> hwe, double hweThreshold, String[] lineC, int[] indicesC, String[] lineM, int[] indicesM, String[] lineCM, int[] indicesCM, Hashtable<String, String[]> tdtResults, Logger log) {
@@ -547,6 +561,185 @@ public class ResultsPackager {
 		return result;
 	}
 
+	public static String[] addPrefixToArray(String prefix, String[] array, Logger log) {
+		String[] result;
+
+		result = new String[array.length];
+		for (int i = 0; i < array.length; i++) {
+			result[i] = prefix + array[i];
+		}
+
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param fullPathStatResults
+	 * @param fullPathMarkerList
+	 * @param markerColumnName
+	 * @param analyses
+	 * @param columnNamesOfAnalyses
+	 * @param fullPathOutFile
+	 * @param log
+	 *
+	 * Examples of using this method:
+	 * 
+	 * getForestPlotParameterFile(new String[][] {{"extragonadal", "D:/temp/Poynter_emim/testing/allFinalPoynter_results_pvals_1.xln"}, {"germinoma", "D:/temp/Poynter_emim/testing/allFinalPoynter_results_pvals_2.xln"}},
+	 * 							  "D:/temp/Poynter_emim/testing/markerList.txt",
+	 * 							  "MarkerName",
+	 * 							  new String[] {"tdt", "emim"},
+	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C"}},
+	 * 							  "D:/temp/Poynter_emim/testing/forestplot.xln",
+	 * 							  null);
+	 * 
+	 * getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt", false, null, false),
+	 * 							  "/home/pankrat2/shared/Poynter_emim/markerList.txt",
+	 * 							  "MarkerName",
+	 * 							  new String[] {"tdt", "emim"},
+	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "p-value_C"}},
+	 * 							  "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
+	 * 							  null);
+	 */
+	public static void getForestPlotParameterFile(String[][] fullPathStatResults, String fullPathMarkerList, String markerColumnName, String[] analyses, String[][] columnNamesOfAnalyses, String fullPathOutFile, Logger log) {
+		Double beta;
+		int markerIndex, mainIndex, columnIndex;
+		int[][] indices;
+		String filename;
+		String[] markers, columnNamesToLoad, out1, out2;
+		String[][][] statResults;
+		Vector<String> columnsTmp;
+		Hashtable markerhash;
+		BufferedReader reader;
+		PrintWriter writer;
+		boolean isMain;
+
+		columnsTmp = new Vector<String>();
+		for (int i = 0; i < columnNamesOfAnalyses.length; i++) {
+			for (int j = 0; j < columnNamesOfAnalyses[i].length; j++) {
+				columnsTmp.add(columnNamesOfAnalyses[i][j]);
+			}
+		}
+		columnNamesToLoad = columnsTmp.toArray(new String[0]);
+
+		markers = HashVec.loadFileToStringArray(fullPathMarkerList, false, false, null, false);
+		statResults = new String[fullPathStatResults.length][][];
+		for (int i = 0; i < statResults.length; i++) {
+			statResults[i] = loadFile(fullPathStatResults[i][1], markerColumnName, markers, columnNamesToLoad, log);
+		}
+
+		out2 = new String[analyses.length * markers.length];
+		mainIndex = -1;
+		for (int i = 0; i < analyses.length; i++) {
+			filename = ext.rootOf(fullPathOutFile) + "_" + analyses[i] + fullPathOutFile.substring(fullPathOutFile.lastIndexOf("."));
+			out1 = new String[markers.length + 1];
+			out1[0] = "Gene\t" + markerColumnName;
+
+			// Header of the output file
+			for (int j = 0; j < fullPathStatResults.length; j++) {
+//				if (analyses[i].equalsIgnoreCase("tdt")) {
+					isMain = (fullPathStatResults[j][0].equals(".") || fullPathStatResults[j][0].equals(""));
+					if (isMain && mainIndex == -1) {
+						mainIndex = j;
+					}
+					out1[0] += "\tbeta" + (isMain? "" : "." + fullPathStatResults[j][0])
+								+ "\tse" + (isMain? "" : "." + fullPathStatResults[j][0]);
+					for (int k = 2; k < columnNamesOfAnalyses[i].length; k++) {
+						out1[0] += "\t" + columnNamesOfAnalyses[i][k] + (isMain? "" : "." + fullPathStatResults[j][0]);
+					}
+//				} else {
+//	    			for (int k = 0; k < columnNamesOfAnalyses[i].length; k++) {
+//	        			line[0] += "\t" + fullPathStatResults[j][0] + "_" + columnNamesOfAnalyses[i][k];
+//					}
+//    			}
+			}
+
+			// content of the output file
+			for (int j = 1; j < out1.length; j++) {
+				markerIndex = j - 1;
+				out1[j] = "Gene\t" + markers[markerIndex];
+				for (int k = 0; k < statResults.length; k++) {
+					if (k == mainIndex) {
+						out2[markerIndex * analyses.length + i] = markers[markerIndex] + "\t" + filename + "\t" + analyses[i];
+					}
+
+					if (statResults[k][markerIndex][0] == null) {
+						out1[j] += "\t.\t.";
+						for (int l = 2; l < columnNamesOfAnalyses[i].length; l++) {
+							out1[j] += "\t.";
+						}
+					} else {
+						if (analyses[i].equalsIgnoreCase("tdt")) {
+							beta = Math.log(Double.parseDouble(statResults[k][markerIndex][0]));
+							out1[j] += "\t" + beta + "\t" + ((Math.log(Double.parseDouble(statResults[k][markerIndex][1])) - beta) / 1.96);
+						} else {
+							out1[j] += "\t" + statResults[k][markerIndex][3] + "\t" + statResults[k][markerIndex][4];
+						}
+
+						for (int l = 2; l < columnNamesOfAnalyses[i].length; l++) {
+							columnIndex = 0;
+							for (int m = 0; m < i; m++) {
+								columnIndex += columnNamesOfAnalyses[m].length;
+							}
+							columnIndex += l;
+							out1[j] += "\t" + statResults[k][markerIndex][columnIndex];
+
+							if (k == mainIndex) {
+								out2[markerIndex * analyses.length + i] += " " + columnNamesOfAnalyses[i][l] + "=" + ext.formDeci(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]), 7);
+							}
+						}
+					}
+				}
+			}
+			Files.writeList(out1, ext.parseDirectoryOfFile(fullPathOutFile) + filename);
+
+			for (int j = 0; j < markers.length; j++) {
+				if (statResults[mainIndex][j][0] == null) {
+				} else {
+					if (analyses[i].equalsIgnoreCase("tdt")) {
+					} else {
+					}
+				}
+				filename = ext.rootOf(filename) + filename.substring(filename.lastIndexOf("."));
+			}
+		}
+
+		Files.writeList(out2, ext.parseDirectoryOfFile(fullPathOutFile) + ext.rootOf(fullPathOutFile) + ".input");
+	}
+
+	public static String[][] loadFile(String fullPathStatResults, String nameOfMarkerColumn, String[] markersToBeLoaded, String[] columnNamesToBeLoaded, Logger log) {
+		Double beta;
+		int markerColumnIndex;
+		int[] indices;
+        String[] line;
+        String[][] result;
+        BufferedReader reader;
+
+        result = new String[markersToBeLoaded.length][columnNamesToBeLoaded.length];
+        try {
+			reader = new BufferedReader(new FileReader(fullPathStatResults));
+			line = reader.readLine().split("\t");
+			markerColumnIndex = ext.indexFactors(new String[] {nameOfMarkerColumn}, line, false, true)[0];
+			indices = ext.indexFactors(columnNamesToBeLoaded, line, false, true);
+			while(reader.ready()) {
+				line = reader.readLine().split("\t");
+				for (int i = 0; i < markersToBeLoaded.length; i++) {
+					if (markersToBeLoaded[i].equalsIgnoreCase(line[markerColumnIndex])) {
+						for (int j = 0; j < indices.length; j++) {
+							result[i][j] = line[indices[j]];
+						}
+						break;
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        return result;
+	}
+
 	public static void createFromParameters(String filename, Logger log) {
         Vector<String> params;
 
@@ -574,6 +767,7 @@ public class ResultsPackager {
 		String resultsFileMom = null;
 		String resultsFileChildMom = null;
 		String resultsFileTdt =null;
+		String resultsFileList = null;
 		Logger log;
 		String logfile = null;
 		double filter = 1;
@@ -666,8 +860,28 @@ public class ResultsPackager {
 			System.exit(1);
 		}
 
+//		getForestPlotParameterFile(new String[][] {{".", "D:/temp/Poynter_emim/testing/allFinalWhitePoynter_results_pvals_1.xln"}, {"extragonadal", "D:/temp/Poynter_emim/testing/allFinalWhitePoynter_results_pvals_2.xln"}, {"intracranial", "D:/temp/Poynter_emim/testing/allFinalWhitePoynter_results_pvals_3.xln"}}, "D:/temp/Poynter_emim/testing/markerList.txt", "MarkerName",  new String[] {"tdt", "emim"}, new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1", "pVal_C_df2"}}, "D:/temp/Poynter_emim/testing/testing_forestplot.xln", null);
+//		getForestPlotParameterFile(new String[][] {{".", "D:/temp/Poynter_emim/testing/testing_results_pVals_df1_df2.xln"}}, "D:/temp/Poynter_emim/testing/markerList.txt", "MarkerName",  new String[] {"tdt", "emim"}, new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1", "pVal_C_df2"}}, "D:/temp/Poynter_emim/testing/testing_forestplot.xln", null);
+//		System.exit(0);
+
+		getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt", false, null, false), "/home/pankrat2/shared/Poynter_emim/markerList.txt", "MarkerName",  new String[] {"tdt", "emim"}, new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}}, "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln", null);
+		getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt", false, null, false), "/home/pankrat2/shared/Poynter_emim/markerList.txt", "MarkerName",  new String[] {"tdt", "emim"}, new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}}, "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln", null);
+		getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt", false, null, false), "/home/pankrat2/shared/Poynter_emim/markerList.txt", "MarkerName",  new String[] {"tdt", "emim"}, new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}}, "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln", null);
+		getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt", false, null, false), "/home/pankrat2/shared/Poynter_emim/markerList.txt", "MarkerName",  new String[] {"tdt", "emim"}, new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}}, "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln", null);
+		System.exit(0);
+
 //		type = "emim";
-//
+
+//		pThreshold = .05;
+//		resultsFileChild = "D:/temp/Poynter_emim/testing/emimsummary_C_allelic.out";
+//		resultsFileMom = "D:/temp/Poynter_emim/testing/emimsummary_M_allelic.out";
+//		resultsFileChildMom = "D:/temp/Poynter_emim/testing/emimsummary_CM_allelic.out";
+//		resultsFileTdt = "D:/temp/Poynter_emim/testing/plink.tdt";
+//		mapFile = "D:/temp/Poynter_emim/testing/plink_noChr23_24_25_26.bim";
+//		mendelErrorFile = "D:/temp/Poynter_emim/testing/plink.lmendel";
+//		hweFile = "D:/temp/Poynter_emim/testing/hardy.hwe";
+//		outfile = "D:/temp/Poynter_emim/testing/testing_results_pVals_df1_df2.xln";
+
 //		resultsFileChild = "D:/logan/emim/emim_516/emimsummary_C_1equals2.out";
 //		resultsFileMom = "D:/logan/emim/emim_516/emimsummary_M_1equals2.out";
 //		resultsFileChildMom = "D:/logan/emim/emim_516/emimsummary_CM_1equals2.out";
