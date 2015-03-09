@@ -6,7 +6,6 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.PSF;
-import common.PSF.Plink;
 import common.Positions;
 import common.ext;
 import filesys.Segment;
@@ -40,6 +39,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import seq.manage.VCFOps.VcfPopulation;
+import seq.qc.FilterNGS.RareVariantFilter;
+
 public class VCF {
 	private static final String SITE_ONLY = ".siteOnly";
 	private static final String BLANK_ANNO = ".";
@@ -65,9 +67,11 @@ public class VCF {
 
 	public VCF(String vcfFile, Logger log) {
 		this.log = log;
-		this.fail = verifyIndex(vcfFile, log);
+		// this.fail = verifyIndex(vcfFile, log);
+		this.fail = false;
+
 		this.vcfFile = vcfFile;
-		this.vcfFileReader = new VCFFileReader(new File(vcfFile));
+		this.vcfFileReader = new VCFFileReader(vcfFile, true);
 		this.variantContextWriter = null;
 		this.extractBams = false;
 	}
@@ -108,13 +112,23 @@ public class VCF {
 		return true;
 	}
 
-	public void filter(String[] jexpression, String[] name, String[] toDump, String bamDir, String outputDir, Hashtable<String, Vector<String>> IDsToExtract, int numThreads, int bpBuffer) {
+	public void filter(String[] jexpression, VcfPopulation vpop, String[] name, String[] toDump, String bamDir, String outputDir, Hashtable<String, Vector<String>> IDsToExtract, String segFile, int numThreads, int bpBuffer, int mac) {
 		BamExtractor.BamSample bamSample = null;
 		ArrayList<String> toDumpTmp = new ArrayList<String>();
 		ArrayList<String> keys = new ArrayList<String>();
-
+		RareVariantFilter rareVariantFilter = null;
+		if (vpop != null) {
+			rareVariantFilter = new RareVariantFilter(vpop.getSubPop().get("CASE"), vpop.getSubPop().get("CONTROL"));
+			rareVariantFilter.setMafRef(0.01);
+			rareVariantFilter.setMacCase(mac);
+			rareVariantFilter.initFilters(log);
+		}
 		Hashtable<String, Integer> histCOUNT = new Hashtable<String, Integer>();
 		Hashtable<String, Integer> histALLELE = new Hashtable<String, Integer>();
+		Segment[] segs = null;
+		if (segFile != null) {
+			segs = Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 0);
+		}
 		if (hasAllInfos(toDump)) {
 			if (toDump != null) {
 				this.log.reportTimeInfo("Will be dumping the following annotations " + Array.toStr(toDump, ","));
@@ -124,8 +138,11 @@ public class VCF {
 				outputDir = ext.parseDirectoryOfFile(this.vcfFile);
 			}
 			new File(outputDir).mkdirs();
-			String outputVCF = outputDir + ext.removeDirectoryInfo(this.vcfFile);
+			String outputVCF = outputDir + ext.removeDirectoryInfo(this.vcfFile).replaceAll(".vcf", "").replaceAll(".gz", "");
 			outputVCF = ext.addToRoot(outputVCF, "." + Array.toStr(name, "_"));
+			if (!outputVCF.endsWith(".vcf.gz")) {
+				outputVCF = outputVCF + ".vcf.gz";
+			}
 			this.variantContextWriter = initWriter(this.vcfFileReader, outputVCF, false);
 			if (bamDir != null) {
 				this.log.reportTimeInfo("Since a bam directory was provided, we will verify that all samples in the vcf have a corresponding bam file prior to filtering");
@@ -142,13 +159,16 @@ public class VCF {
 			int count = 0;
 			int countPass = 0;
 			List<VariantContextUtils.JexlVCMatchExp> jExps = null;
-			if (jexpression != null) {
+			if (jexpression != null && jexpression[0] != null && name != null) {
 				jExps = VariantContextUtils.initializeMatchExps(name, jexpression);
 				this.log.reportTimeInfo("Using " + jExps.size() + " expression(s)");
 			}
+			// VariantContextUtils.match(vc, g, exps)
+			int report = 0;
 			for (VariantContext variantContext : this.vcfFileReader) {
+				// variantContext.getGenotype(1).
 				boolean write = true;
-				if (jexpression != null) {
+				if (jExps != null) {
 					for (VariantContextUtils.JexlVCMatchExp jExp : jExps) {
 						if (!VariantContextUtils.match(variantContext, jExp)) {
 							write = false;
@@ -159,8 +179,17 @@ public class VCF {
 				if (variantContext.isFiltered()) {
 					write = false;
 				}
-				if ((write) && (IDsToExtract.size() > 0)) {
+				if (write && rareVariantFilter != null) {
+					write = rareVariantFilter.filter(variantContext).passed();
+				}
+				if (write && (IDsToExtract.size() > 0)) {
 					write = IDsToExtract.containsKey(variantContext.getID());
+					// if (!write && variantContext.getCommonInfo().hasAttribute("snp138")) {
+					// write = IDsToExtract.containsKey(variantContext.getCommonInfo().getAttributeAsString("snp138", "."));
+					// }
+				}
+				if (write && segs != null) {
+					write = VCOps.isInTheseSegments(variantContext, segs);
 				}
 				if ((count != 0) && (count % 100000 == 0)) {
 					this.log.report(ext.getTime() + " Info - scanned " + count + " variants");
@@ -178,6 +207,10 @@ public class VCF {
 						bamSample.addSegmentToExtract(new Segment(chr, start, start));
 					}
 					if (toDump != null) {
+						if (vpop != null) {
+							variantContext = VCOps.getSubset(variantContext, vpop.getSubPop().get("CASE"));
+						}
+
 						String tmp = variantContext.getChr() + "\t" + variantContext.getStart();
 						int numAlts = variantContext.getHomVarCount() * 2 + variantContext.getHetCount();
 						for (int i = 0; i < toDump.length; i++) {
@@ -329,11 +362,17 @@ public class VCF {
 		vcf.closeReader();
 	}
 
-	public static void filterByExpression(String vcfFile, String jexp, String jexpName, String[] toDump, String bamDir, String outputDir, String idFile, int numThreads, int bpBuffer, Logger log) {
+	public static void filterByExpression(String vcfFile, String popFile, String jexp, String jexpName, String[] toDump, String bamDir, String outputDir, String idFile, String segFile, int numThreads, int bpBuffer, int mac, Logger log) {
 		if (jexp != null) {
 			log.report(ext.getTime() + " Info - using expression " + jexp + " on " + vcfFile);
 		} else {
 			log.reportTimeInfo("No filter expressions were supplied");
+		}
+		VcfPopulation vpop = null;
+		if (popFile != null) {
+			System.out.println(popFile);
+			vpop = VcfPopulation.load(popFile, log);
+			vpop.report(log);
 		}
 		VCF vcf = new VCF(vcfFile, new Logger());
 		Hashtable<String, Vector<String>> IDsToExtract = new Hashtable<String, Vector<String>>();
@@ -341,7 +380,7 @@ public class VCF {
 			IDsToExtract = HashVec.loadFileToHashVec(idFile, 0, new int[1], "\t", false, true);
 			log.reportTimeInfo("Subsetting the search to " + IDsToExtract.size() + " ID(s)");
 		}
-		vcf.filter(new String[] { jexp == null ? null : jexp }, new String[] { jexpName }, toDump, bamDir, outputDir, IDsToExtract, numThreads, bpBuffer);
+		vcf.filter(new String[] { jexp == null ? null : jexp }, vpop, new String[] { jexpName }, toDump, bamDir, outputDir, IDsToExtract, segFile, numThreads, bpBuffer, mac);
 	}
 
 	public static void fromParameters(String filename, Logger log) {
@@ -366,8 +405,10 @@ public class VCF {
 		int numThreads = 1;
 		int bpBuffer = 1000;
 		boolean extractAnnotation = false;
+		String vpop = null;
 		boolean dump = false;
-
+		String segFile = null;
+		int mac = 2;
 		String usage = "\njlDev.VCF requires 0-1 arguments\n";
 		usage = usage + "   (1) vcf filename (i.e.vcf=" + vcfFile + " (default))\n";
 		usage = usage + "   (2) filter expression to use on the vcf file (i.e. filter= (no default))\n";
@@ -378,6 +419,8 @@ public class VCF {
 		usage = usage + "   (7) up and downstream base-pair buffer if extracting bams (i.e. bpBuffer=" + bpBuffer + " ( default))\n";
 		usage = usage + "   (8) ids to filter from the \"ID\" column (note that any other filters will also be applied) (i.e. IDFile= (no default))\n";
 		usage = usage + "   (9) dump these annotations for variants passing the filters (comma separated, must be in INFO column)  (i.e. dump= (no default))\n";
+		usage = usage + "   (10) A population File for call rate   (i.e. vpop= (no default))\n";
+		usage = usage + "   (11) mac for case    (i.e. mac=" + mac + " ( default))\n";
 
 		usage = usage + "   OR:";
 		usage = usage + "   (1) extract available annotations from a vcf for filtering (i.e. name=" + filterName + " (no default))\n";
@@ -411,8 +454,20 @@ public class VCF {
 			} else if (args[i].startsWith("IDFile=")) {
 				idFile = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith("segs=")) {
+				segFile = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("vpop=")) {
+				vpop = ext.parseStringArg(args[i], "");
+				numArgs--;
 			} else if (args[i].startsWith("numthreads=")) {
 				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("bpBuffer=")) {
+				bpBuffer = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("mac=")) {
+				mac = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("-dump")) {
 				dump = true;
@@ -440,10 +495,44 @@ public class VCF {
 			if (dump) {
 				dumpToSiteOnly(vcfFile, log);
 			} else {
-				filterByExpression(vcfFile, expression, filterName, toDump, bamDir, outputDir, idFile, numThreads, bpBuffer, log);
+				filterByExpression(vcfFile, vpop, expression, filterName, toDump, bamDir, outputDir, idFile, segFile, numThreads, bpBuffer, mac, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 }
+
+// TODO dynamic
+
+// VariantContext cushings = VCOps.getSubset(variantContext, vpop.getSubPop().get("CUSHINGS_JOINT_EUR"));
+// VariantContext osteoParents = VCOps.getSubset(variantContext, vpop.getSubPop().get("OSTEO_Parents_JOINT_EUR"));
+// if (VCOps.getCallRate(cushings, null) >= .90 && VCOps.getCallRate(osteoParents, null) >= .90) {
+// double osteoMAF = VCOps.getMAF(osteoParents, null);
+// double mafCushingCounts = VCOps.getMAC(cushings, null);
+// if (osteoMAF <= 0.01 && mafCushingCounts >= 2) {
+// // if (hweFilter.filter(cushings).passed() && hweFilter.filter(variantContext).passed()) {
+// write = true;
+// if (report == 0) {
+// log.reportTimeError("DONT forget about the popFiltering");
+// }
+// report++;
+// if (report % 1000 == 0) {
+// double osteoMAFCounts = VCOps.getMAC(osteoParents, null);
+// log.reportTimeInfo("NUM CUSHINGS: " + cushings.getNSamples());
+// log.reportTimeInfo("NUM OSTEO: " + osteoParents.getNSamples());
+//
+// log.reportTimeInfo("CALLRATE CUSHINGS: " + VCOps.getCallRate(cushings, null));
+// log.reportTimeInfo("CALLRATE OSTEO: " + VCOps.getCallRate(osteoParents, null));
+//
+// log.reportTimeInfo("MAF Count CUSHINGS: " + mafCushingCounts);
+// log.reportTimeInfo("MAF OSTEO: " + osteoMAF);
+// log.reportTimeInfo("MAF OSTEO Counts: " + osteoMAFCounts);
+//
+// }
+// } else {
+// write = false;
+// }
+// } else {
+// write = false;
+// }
