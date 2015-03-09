@@ -48,6 +48,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private double[][] fullData, pcBasis;
 	private byte[][] abGenotypesAfterFilters;
 	private float gcThreshold;
+	/**
+	 * if true, does not do a sample lookup for loading
+	 */
+	protected boolean useIID = false;
 	protected Logger log;
 	protected Project proj;
 	protected int numComponents, totalNumComponents;
@@ -90,7 +94,8 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.recomputeLRR = recomputeLRR;
 		this.output = output;
 		this.pcFile = pcFile;
-		loadPcFile(pcFile);
+		this.useIID = false;
+		loadPcFile(pcFile, useIID);
 		parseSamplesToUse();
 		this.sortedByProject = determineSortedByProject();
 	}
@@ -408,19 +413,25 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * 
 	 * @param pcFile
 	 */
-	private void loadPcFile(String pcFile) {
+	private void loadPcFile(String pcFile, boolean useIID) {
 		String pcFilefull;
-		if (Files.exists(pcFile)) {
+		if (Files.exists(pcFile) || proj == null) {
 			pcFilefull = pcFile;
 		} else {
 			pcFilefull = proj.getProjectDir() + pcFile;
 		}
 		log.reportTimeInfo("loading principal components from " + pcFilefull);
-		SampleData sampleData = proj.getSampleData(0, false);
+
+		SampleData sampleData = null;
+		if (!useIID) {
+			sampleData = proj.getSampleData(0, false);
+		} else {
+			log.reportTimeWarning("Using the IID as supplied in the pc file to load samples");
+		}
 		ArrayList<String> pcSamps = new ArrayList<String>();
 		int sampIndex = 0;
 		try {
-			BufferedReader reader = Files.getReader(pcFilefull, proj.getJarStatus(), true, false);
+			BufferedReader reader = Files.getReader(pcFilefull, proj == null ? false : proj.getJarStatus(), true, false);
 			String[] line = reader.readLine().trim().split("[\\s]+");
 			if (!line[0].equals("FID") || !line[1].equals("IID")) {
 				log.reportError("Error - different format than expected; first column should be FID and second column should be IID, followed by PCs");
@@ -433,9 +444,9 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			this.totalNumComponents = line.length - 2;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				if (sampleData.lookup(line[0] + "\t" + line[1]) != null) {
-					samplesInPc.put(sampleData.lookup(line[0] + "\t" + line[1])[0], numSamples);
-					pcSamps.add(line[0] + "\t" + line[1]);
+				if (useIID || sampleData.lookup(line[0] + "\t" + line[1]) != null) {
+					samplesInPc.put(useIID ? line[1] : sampleData.lookup(line[0] + "\t" + line[1])[0], numSamples);
+					pcSamps.add(useIID ? line[1] : line[0] + "\t" + line[1]);
 					numSamples++;
 				} else {
 					log.reportError("Error - could not find " + line[0] + "\t" + line[1] + " in sample Data");
@@ -444,7 +455,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			}
 			reader.close();
 			this.pcBasis = new double[numComponents][numSamples];
-			reader = Files.getReader(pcFilefull, proj.getJarStatus(), true, false);
+			reader = Files.getReader(pcFilefull, proj == null ? false : proj.getJarStatus(), true, false);
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -784,7 +795,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 *            if the number of components is large, use an svd based regression
 	 * @param title
 	 *            a title string for error reporting (marker name, phenotype, etc) * <br>
-	 *  NOTE: the pc object does not have to be in project order, or contain all samples, but it should
+	 *            NOTE: the pc object does not have to be in project order, or contain all samples, but it should
 	 * 
 	 * @return a computed {@link CrossValidation}
 	 * 
@@ -977,4 +988,24 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		}
 
 	}
+
+	/**
+	 * Constructor for non-project associated (such as {@link PrincipalComponentsPlink}) principal component manipulations
+	 */
+	public PrincipalComponentsResiduals(String pcFile, int numComponents, Logger log) {
+		super();
+		this.numComponents = numComponents;
+		this.log = log;
+		this.numSamples = 0;
+		this.samplesInPc = new Hashtable<String, Integer>();
+		this.pcFile = pcFile;
+		this.useIID = true;
+		loadPcFile(pcFile, useIID);
+		this.sortedByProject = true;
+	}
+
+	public String[] getSamplesToReport() {
+		return samplesToReport;
+	}
+
 }
