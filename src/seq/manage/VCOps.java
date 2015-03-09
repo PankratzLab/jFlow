@@ -1,13 +1,18 @@
 package seq.manage;
 
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
 import common.AlleleFreq;
+import common.Array;
+import common.Logger;
 import common.Positions;
 import filesys.Segment;
 import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 
 /**
@@ -16,7 +21,24 @@ import htsjdk.variant.variantcontext.VariantContext;
  */
 public class VCOps {
 
-	public enum INFO {
+	public enum GENOTYPE_INFO {
+		GQ("GQ"), AD_REF("AD"), AD_ALT("AD"), DP("DP");
+		private String flag;
+
+		private GENOTYPE_INFO(String flag) {
+			this.flag = flag;
+		}
+
+		public String getFlag() {
+			return flag;
+		}
+	}
+
+	/**
+	 * Fields shared across a variant context
+	 *
+	 */
+	public enum COMMON_INFO {
 		/**
 		 * Read depth
 		 */
@@ -30,7 +52,7 @@ public class VCOps {
 		 */
 		private String flag;
 
-		private INFO(String flag) {
+		private COMMON_INFO(String flag) {
 			this.flag = flag;
 		}
 
@@ -47,10 +69,21 @@ public class VCOps {
 		return maf;
 	}
 
+	public static double getMAC(VariantContext vc, Set<String> sampleNames) {
+		VariantContext vcSub = getSubset(vc, sampleNames);
+		int[] alleleCounts = getAlleleCounts(vcSub);
+		if (Array.sum(alleleCounts) == 0) {
+			return Double.NaN;
+		} else {
+			double minor = Math.min(alleleCounts[0], alleleCounts[2]);
+			return (minor * 2 + alleleCounts[1]);
+		}
+	}
+
 	/**
 	 * Averages an info value across samples
 	 */
-	public static double getAverageCommonInfo(VariantContext vc, Set<String> sampleNames, INFO info) {
+	public static double getAverageCommonInfo(VariantContext vc, Set<String> sampleNames, COMMON_INFO info) {
 		VariantContext vcSub = getSubset(vc, sampleNames);
 		double avgCI = Double.NaN;
 		if (vcSub.getCommonInfo().hasAttribute(info.getFlag())) {
@@ -60,6 +93,56 @@ public class VCOps {
 			}
 		}
 		return avgCI;
+	}
+
+	/**
+	 * @param vc
+	 * @return genotypes containing alt alleles (hom var or het)
+	 */
+	public static VariantContext getAltAlleleContext(final VariantContext vc) {
+		GenotypesContext gc = vc.getGenotypes();
+		HashSet<String> samplesWithAlt = new HashSet<String>();
+		for (Genotype geno : gc) {
+			if (geno.isHomVar() || geno.isHet()) {
+				samplesWithAlt.add(geno.getSampleName());
+			}
+		}
+		return getSubset(vc, samplesWithAlt);
+	}
+
+	public static double getAvgGenotypeInfo(VariantContext vc, Set<String> sampleNames, GENOTYPE_INFO info, Logger log) {
+		double avgGI = 0;
+		int numWith = 0;
+		VariantContext vcSub = getSubset(vc, sampleNames);
+		GenotypesContext gc = vcSub.getGenotypes();
+		for (Genotype geno : gc) {
+			if (geno.hasAnyAttribute(info.getFlag())) {
+				numWith++;
+				switch (info) {
+				case AD_REF:
+					avgGI += geno.getAD()[0];
+					break;
+				case AD_ALT:
+					avgGI += geno.getAD()[1];
+					break;
+				case DP:
+					avgGI += geno.getDP();
+					break;
+				case GQ:
+					avgGI += geno.getGQ();
+					break;
+				default:
+					log.reportTimeError("Invalid average type");
+					break;
+				}
+			}
+		}
+		if (numWith > 0) {
+			avgGI = (double) avgGI / numWith;
+		} else {
+			avgGI = Double.NaN;
+		}
+		return avgGI;
 	}
 
 	public enum VC_SUBSET_TYPE {
@@ -144,7 +227,8 @@ public class VCOps {
 		int noCalls = vcSub.getNoCallCount();
 		int numSamps = vcSub.getNSamples();
 		if (numSamps > 0) {
-			callRate = (double) ((numSamps - noCalls) / numSamps);
+			int called = numSamps - noCalls;
+			callRate = (double) called / numSamps;
 		}
 		return callRate;
 	}

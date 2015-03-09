@@ -4,20 +4,19 @@ import filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.writer.AsyncVariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
+import seq.manage.VCFOps;
+import seq.manage.VCFOps.VcfPopulation;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -30,22 +29,32 @@ import common.ext;
  * Class to perform common info queries on local and remote vcf files<br>
  * For spot-checking http://browser.1000genomes.org/Homo_sapiens/Info/Index?db=core;r=1:109818030-109819030;v=rs646776;vdb=variation;vf=510141 http://browser.1000genomes.org/Homo_sapiens/Variation/Population?r=1:109818030-109819030;v=rs646776;vdb=variation;vf=510141
  */
+/**
+ * @author lane0212
+ *
+ */
 public class VcfQuery {
 	/**
-	 * This ftp site currently hosts indexed (.tbi) vcf (.vcf.gz) files that can searched
+	 * This ftp site currently hosts indexed (.tbi) vcf (.vcf.gz) files that can searched<br>
+	 * functional Annotations: ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/supporting/functional_annotation/unfiltered/ <br>
+	 * ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/supporting/functional_annotation/filtered/
 	 */
-	private static final String DEFUALT_DIRECTORY = "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/supporting/vcf_with_sample_level_annotation/";
+	private static final String DEFUALT_DIRECTORY = "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/";
 	/**
 	 * Continental MAF query
 	 */
 	private static final String[] CONTINENTAL_QUERY = new String[] { "AF", "EAS_AF", "EUR_AF", "AFR_AF", "AMR_AF", "SAS_AF" };
+	/**
+	 * Functional query
+	 */
+	// private static final String[] FUNTCTIONAL_QUERY = new String[] { "GERP", "SVTYPE", "CSQ" };
 
 	/**
 	 * Info that will be reported for every variant
 	 */
-	private static final String[] DEFAULT_HEADER = new String[] { "ID", "CHR", "POS", "REF", "ALT" };
+	private static final String[] DEFAULT_HEADER = new String[] { "ID", "CHR", "POS", "REF", "ALT", "POP_CALLRATE" };
 
-	private enum Location {
+	public enum Location {
 		/**
 		 * files are on a local drive
 		 */
@@ -94,6 +103,10 @@ public class VcfQuery {
 		return vcfFile;
 	}
 
+	public VCFFileReader getVcfFileReader() {
+		return vcfFileReader;
+	}
+
 	public Logger getLog() {
 		return log;
 	}
@@ -124,14 +137,18 @@ public class VcfQuery {
 		private Logger log;
 		private String outputDir;
 		private VCF_ORGANIZATION org;
+		private VcfPopulation vpop;
+		private VariantContextWriter writer;
 
-		private QueryManager(String vcfFile, Segment[] seqsToQuery, String[] infoToExtract, String outputDir, VCF_ORGANIZATION org, Logger log) {
+		private QueryManager(String vcfFile, Segment[] seqsToQuery, QueryParams params, String outputDir, VariantContextWriter writer, Logger log) {
 			super();
 			this.vcfFile = vcfFile;
 			this.seqsToQuery = seqsToQuery;
-			this.infoToExtract = infoToExtract;
+			this.infoToExtract = params.getInfoToExtract();
 			this.outputDir = outputDir;
-			this.org = org;
+			this.org = params.getOrg();
+			this.writer = writer;
+			this.vpop = params.getPopulationFile() == null ? null : VcfPopulation.load(params.getPopulationFile(), log);
 			this.log = log;
 		}
 
@@ -140,57 +157,71 @@ public class VcfQuery {
 			QueryResults qResults = new QueryResults();
 			ArrayList<QueryResult> results = new ArrayList<VcfQuery.QueryResult>();
 			String tmpFile = outputDir + ext.rootOf(vcfFile) + ".query";
-			if (!Files.exists(tmpFile) || !Files.headerOfFileContainsAll(tmpFile, infoToExtract, log)) {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException ie) {
-				}
+			VariantContextWriter writer = null;
 
-				log.reportTimeInfo("Beginning query with " + vcfFile + "using: " + Thread.currentThread().getName());
-				VcfQuery vcfQuery = new VcfQuery(vcfFile, log);
-				byte firstChr = vcfQuery.getFirstChr();
-				if (org == VCF_ORGANIZATION.ONE_PER_CHROMOSOME) {
-					log.reportTimeWarning("Assuming all variants from " + ext.rootOf(vcfFile) + " are on chromosome " + firstChr);
-				}
+			// if (!Files.exists(tmpFile) || !Files.headerOfFileContainsAll(tmpFile, infoToExtract, log)) {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException ie) {
+			}
 
-				int thisRound = 0;
-				long time = System.currentTimeMillis();
+			log.reportTimeInfo("Beginning query with " + vcfFile + "using: " + Thread.currentThread().getName());
+			VcfQuery vcfQuery = new VcfQuery(vcfFile, log);
+			// Set<String> EUR = vpop.getSuperPop().get("EUR");
+			if (vpop != null) {
+			}
+			byte firstChr = vcfQuery.getFirstChr();
+			if (org == VCF_ORGANIZATION.ONE_PER_CHROMOSOME) {
+				log.reportTimeWarning("Assuming all variants from " + ext.rootOf(vcfFile) + " are on chromosome " + firstChr);
+			}
 
-				for (int i = 0; i < seqsToQuery.length; i++) {
-					if (org == VCF_ORGANIZATION.MULTI_CHROMOSOME || seqsToQuery[i].getChr() == firstChr) {
-						VariantContext[] vcs = vcfQuery.queryASegment(seqsToQuery[i]);
-						for (int j = 0; j < vcs.length; j++) {
-							thisRound++;
-							QueryResult qResult = QueryResult.getFromVariantContext(vcs[j], infoToExtract, log);
-							if (qResult != null) {
-								results.add(qResult);
-							}
+			int thisRound = 0;
+			long time = System.currentTimeMillis();
+
+			for (int i = 0; i < seqsToQuery.length; i++) {
+				if (org == VCF_ORGANIZATION.MULTI_CHROMOSOME || seqsToQuery[i].getChr() == firstChr) {
+					VariantContext[] vcs = vcfQuery.queryASegment(seqsToQuery[i]);
+					System.out.println(vcs.length);
+
+					for (int j = 0; j < vcs.length; j++) {
+						thisRound++;
+						if (writer != null) {
+							writer.add(vcs[j]);
 						}
-						if (ext.getTimeSince(time, 's') > 10) {
-							time = System.currentTimeMillis();
-							log.report("...", false, true);
-						}
-						if (thisRound > 0 && thisRound % 100 == 0) {
-							log.reportTimeInfo("Found " + thisRound + " variants in " + vcfFile + " \n using: " + Thread.currentThread().getName());
+
+						QueryResult qResult = QueryResult.getFromVariantContext(vcs[j], infoToExtract, log);
+
+						if (qResult != null) {
+							qResult.setVariantContext(vcs[j]);
+							results.add(qResult);
 						}
 					}
+					if (ext.getTimeSince(time, 's') > 10) {
+						time = System.currentTimeMillis();
+						log.report("...", false, true);
+					}
+					if (thisRound > 0 && thisRound % 100 == 0) {
+						log.reportTimeInfo("Found " + thisRound + " variants in " + vcfFile + " \n using: " + Thread.currentThread().getName());
+					}
 				}
-				vcfQuery.close();
-				log.reportTimeInfo("Finished query with " + vcfFile + "using: " + Thread.currentThread().getName());
-				if (results.size() > 0) {
-					log.reportTimeInfo("Reporting temporary results to " + tmpFile);
-					qResults.setHasTmpFile(true);
-					qResults.setTmpFile(tmpFile);
-					qResults.setQueryResults(results.toArray(new QueryResult[results.size()]));
-					dumpToTmpFile(qResults, infoToExtract, tmpFile, false, log);
-				} else {
-					qResults.setHasTmpFile(false);
-				}
-			} else {
-				log.reportTimeWarning("File " + tmpFile + " exists so this query will be skipped");
+			}
+
+			vcfQuery.close();
+			log.reportTimeInfo("Finished query with " + vcfFile + "using: " + Thread.currentThread().getName());
+			if (results.size() > 0) {
+				log.reportTimeInfo("Reporting temporary results to " + tmpFile);
 				qResults.setHasTmpFile(true);
 				qResults.setTmpFile(tmpFile);
+				qResults.setQueryResults(results.toArray(new QueryResult[results.size()]));
+				dumpToTmpFile(qResults, infoToExtract, tmpFile, false, log);
+			} else {
+				qResults.setHasTmpFile(false);
 			}
+			// } else {
+			// log.reportTimeWarning("File " + tmpFile + " exists so this query will be skipped");
+			// qResults.setHasTmpFile(true);
+			// qResults.setTmpFile(tmpFile);
+			// }
 
 			return qResults;
 		}
@@ -269,19 +300,31 @@ public class VcfQuery {
 		private String ref;
 		private String[] alts;
 		private int start;
+		private String callRate;
 		private String[] info;
+		private VariantContext variantContext;
 
-		private QueryResult(String id, String contig, String ref, String[] alts, int start) {
+		private QueryResult(String id, String contig, String ref, String[] alts, int start, String callRate) {
 			super();
 			this.id = id;
 			this.contig = contig;
 			this.ref = ref;
 			this.alts = alts;
 			this.start = start;
+			this.callRate = callRate;
+			// System.out.println(callRate);
+		}
+
+		public VariantContext getVariantContext() {
+			return variantContext;
+		}
+
+		public void setVariantContext(VariantContext variantContext) {
+			this.variantContext = variantContext;
 		}
 
 		private String getDisplayString() {
-			return id + "\t" + contig + "\t" + start + "\t" + ref + "\t" + Array.toStr(alts, ",") + "\t" + Array.toStr(info);
+			return id + "\t" + contig + "\t" + start + "\t" + ref + "\t" + Array.toStr(alts, ",") + "\t" + callRate + "\t" + Array.toStr(info);
 		}
 
 		private void setInfo(String[] info) {
@@ -293,6 +336,7 @@ public class VcfQuery {
 			String chr = vc.getChr();
 			String ref = vc.getReference().getDisplayString();
 			Allele[] alt = vc.getAlternateAlleles().toArray(new Allele[vc.getAlternateAlleles().size()]);
+			String callRate = getCallRate(vc) + "";
 			String[] alts = new String[alt.length];
 			for (int i = 0; i < alts.length; i++) {
 				alts[i] = alt[i].getDisplayString();
@@ -301,7 +345,7 @@ public class VcfQuery {
 			if (name.equals(".")) {
 				name = vc.getChr() + ":" + vc.getStart();
 			}
-			QueryResult qResult = new QueryResult(name, chr, ref, alts, start);
+			QueryResult qResult = new QueryResult(name, chr, ref, alts, start, callRate);
 			if (infoToExtract != null) {
 				String[] info = new String[infoToExtract.length];
 				for (int i = 0; i < info.length; i++) {
@@ -311,55 +355,30 @@ public class VcfQuery {
 			}
 			return qResult;
 		}
-	}
 
-	/**
-	 * Attempts to grab all file paths of a type from an ftp site
-	 * 
-	 * @param ftpdirAddress
-	 *            a remote directory of an ftp site
-	 * @param type
-	 *            the type of file to collect
-	 * @param log
-	 * @return
-	 */
-	private static String[] parseRemoteFTPFiles(String ftpdirAddress, String type, Logger log) {
-		ArrayList<String> remoteVcfs = new ArrayList<String>();
-		URL url;
-		if (!ftpdirAddress.startsWith("ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/")) {
-			log.reportTimeWarning("Did not detect that " + ftpdirAddress + " was an ftp address starting with ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/");
-			log.reportTimeWarning("\t this parsing method is therefore un-tested");
-		}
-		try {
-			url = new URL(ftpdirAddress);
-			BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-			String inputLine;
-
-			while ((inputLine = in.readLine()) != null) {
-				String[] line = inputLine.trim().split("[\\s]+");
-				int possibleVcfIndex = ext.indexOfEndsWith(type, line, false);
-				if (possibleVcfIndex > 0) {
-					remoteVcfs.add(ftpdirAddress + line[possibleVcfIndex]);
-				}
+		private static double getCallRate(VariantContext vc) {
+			int noCalls = vc.getNoCallCount();
+			int numSamps = vc.getNSamples();
+			// System.out.println(numSamps + "\t" + noCalls + "\t" + vc.getHetCount() + "\t" + vc.getHomRefCount() + "\t" + vc.getHomVarCount());
+			if (numSamps > 0) {
+				return (double) ((numSamps - noCalls) / numSamps);
+			} else {
+				return Double.NaN;
 			}
-			in.close();
-
-		} catch (MalformedURLException e) {
-			log.reportTimeError("malformed URL " + ftpdirAddress);
-			e.printStackTrace();
-		} catch (IOException e) {
-			log.reportIOException(ftpdirAddress);
-			e.printStackTrace();
 		}
-		return remoteVcfs.toArray(new String[remoteVcfs.size()]);
 	}
 
 	private static QueryResults[] query(String[] fullPathVCFs, Segment[] segs, QueryParams params, int numThreads, Logger log) {
 		QueryManager[] qManagers = new QueryManager[fullPathVCFs.length];
 		String tmpDir = ext.parseDirectoryOfFile(params.getOutputFileName());
 		new File(tmpDir).mkdirs();
+		VariantContextWriter writer = VCFOps.initWriter(tmpDir + ext.rootOf(fullPathVCFs[0]) + ".query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(fullPathVCFs[0], true)));
+
+		// VCFOps.copyHeader(new VCFFileReader(fullPathVCFs[0], true), writer, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
+
+		AsyncVariantContextWriter asWriter = new AsyncVariantContextWriter(writer);
 		for (int i = 0; i < fullPathVCFs.length; i++) {
-			qManagers[i] = new QueryManager(fullPathVCFs[i], segs, params.getInfoToExtract(), tmpDir, params.getOrg(), log);
+			qManagers[i] = new QueryManager(fullPathVCFs[i], segs, params, tmpDir, writer, log);
 		}
 		log.reportTimeInfo("Attempting to extract the following:\n" + Array.toStr(params.getInfoToExtract(), "\n"));
 		WorkerHive<QueryResults> hive = new WorkerHive<QueryResults>(numThreads, 10, log);
@@ -367,6 +386,19 @@ public class VcfQuery {
 		hive.addCallables(qManagers);
 		hive.execute(true);
 		ArrayList<QueryResults> results = hive.getResults();
+		asWriter.close();
+		VariantContextWriter writer2 = VCFOps.initWriter(tmpDir + "query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(fullPathVCFs[0], true)));
+
+		// VCFOps.copyHeader(new VCFFileReader(fullPathVCFs[0], true), writer2, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
+
+		for (int i = 0; i < results.size(); i++) {
+			if (results.get(i).getQueryResults() != null) {
+				for (int j = 0; j < results.get(i).getQueryResults().length; j++) {
+					writer2.add(results.get(i).getQueryResults()[j].getVariantContext());
+				}
+			}
+		}
+		writer2.close();
 		return results.toArray(new QueryResults[results.size()]);
 	}
 
@@ -381,6 +413,7 @@ public class VcfQuery {
 		private Location location;
 		private String segFile;
 		private String outputFileName;
+		private String populationFile;
 		private VCF_ORGANIZATION org;
 
 		public QueryParams(String dir, String[] infoToExtract, Location location, VCF_ORGANIZATION org) {
@@ -398,6 +431,14 @@ public class VcfQuery {
 
 		public void setLocation(Location location) {
 			this.location = location;
+		}
+
+		public String getPopulationFile() {
+			return populationFile;
+		}
+
+		public void setPopulationFile(String populationFile) {
+			this.populationFile = populationFile;
 		}
 
 		public VCF_ORGANIZATION getOrg() {
@@ -442,8 +483,8 @@ public class VcfQuery {
 
 	}
 
-	public static void queryDir(QueryParams qParams, int numThreads, Logger log) {
-		Segment[] segs = Segment.loadRegions(qParams.getSegFile(), 0, 1, 2, 0, true, true, true);
+	public static void queryDir(QueryParams qParams, int numThreads, int chrColumn, int startColumn, int stopColumn, Logger log) {
+		Segment[] segs = Segment.loadRegions(qParams.getSegFile(), chrColumn, startColumn, stopColumn, 0, true, true, true,0);
 		if (segs == null || segs.length < 1) {
 			log.reportTimeError("Did not find any valid segments in file " + qParams.getSegFile());
 		} else {
@@ -451,7 +492,7 @@ public class VcfQuery {
 			String[] vcfs = new String[0];
 			String[] gzVcfs = new String[0];
 			if (qParams.getLocation() == Location.REMOTE) {
-				vcfs = parseRemoteFTPFiles(qParams.getDir(), ".vcf.gz", log);
+				vcfs = Files.parseRemoteFTPFiles(qParams.getDir(), ".vcf.gz", log);
 			} else {
 				vcfs = Files.listFullPaths(qParams.getDir(), ".vcf", false);
 				gzVcfs = Files.listFullPaths(qParams.getDir(), ".vcf.gz", false);
@@ -473,17 +514,25 @@ public class VcfQuery {
 		int numArgs = args.length;
 		QueryParams params = new QueryParams(DEFUALT_DIRECTORY, CONTINENTAL_QUERY, Location.REMOTE, VCF_ORGANIZATION.ONE_PER_CHROMOSOME);
 		int numThreads = 2;
+		int chrColumn = 0;
+		int startColumn = 1;
+		int stopColumn = 1;
+
 		Logger log;
 
 		String usage = "\n" + "seq.analysis.VcfQuery requires 0-1 arguments\n";
 		usage += "   (1) full path to a file of segments (no header,tab-delimited, chr start stop) (i.e. segFile= (no default))\n" + "";
-		usage += "	 OPTIONAL:";
+		usage += "	 OPTIONAL:\n";
 		usage += "   (2) full path to an output filename (i.e. out= (no default, based off root of segment file))\n" + "";
 		usage += "   (3) number of threads for the query (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads + "(default)\n" + "";
 		usage += "   (4) full path to a directory containing vcf files to query (i.e. dir= " + DEFUALT_DIRECTORY + " (default)\n" + "";
 		usage += "   (5) a comma-delimited list of common info to extract (i.e. info= " + Array.toStr(CONTINENTAL_QUERY, ",") + " (default)\n" + "";
 		usage += "   (6) the directory of vcfs to search is a local directory (i.e. -local (not the default)\n" + "";
 		usage += "   (7) the vcf files are not one file per chromosome (i.e. -multi (not the default, the first variant's chromosome is used as a filter)\n" + "";
+		usage += "   (8) the chromosome column in the segment file (i.e. chr=" + chrColumn + "(default)\n" + "";
+		usage += "   (9) the start column in the segment file (i.e. start=" + startColumn + "(default)\n" + "";
+		usage += "   (10) the stop column in the segment file (i.e. stopColumn=" + stopColumn + "(default)\n" + "";
+		usage += "   (11) full path to a population file (i.e. vpop=null (no default)\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -501,14 +550,26 @@ public class VcfQuery {
 			} else if (args[i].startsWith("info=")) {
 				params.setInfoToExtract(ext.parseStringArg(args[i], "").split(","));
 				numArgs--;
+			} else if (args[i].startsWith("vpop=")) {
+				params.setPopulationFile(ext.parseStringArg(args[i], ""));
+				numArgs--;
 			} else if (args[i].startsWith("-local")) {
 				params.setLocation(Location.LOCAL);
 				numArgs--;
-			} else if (args[i].startsWith("-mulit")) {
+			} else if (args[i].startsWith("-multi")) {
 				params.setOrg(VCF_ORGANIZATION.MULTI_CHROMOSOME);
 				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("chr=")) {
+				chrColumn = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("start=")) {
+				startColumn = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("stop=")) {
+				stopColumn = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -527,10 +588,57 @@ public class VcfQuery {
 					params.setOutputFileName(ext.addToRoot(params.getSegFile(), ".query"));
 				}
 				log = new Logger(params.getSegFile() + ".log");
-				queryDir(params, numThreads, log);
+				queryDir(params, numThreads, chrColumn, startColumn, stopColumn, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 }
+
+// bash script for gmaf
+// chr=0 start=1 stop=1 dir=/home/pankrat2/public/bin/ref/
+//
+// echo "usage:"
+// echo "-c # sets the chromosome column of the segment file (default $chr)"
+// echo "-s # sets the start column of the segment file (default $start)"
+// echo "-p # sets the start column of the segment file (default $stop)"
+// echo "-d aDir sets the directory of vcf files to search (default $dir)"
+// echo "All other arguments are treated as a file of segments"
+//
+//
+// while getopts c:s:p:d: opt; do
+// case $opt in
+// c)
+// chr=$OPTARG
+// ;;
+// s)
+// start=$OPTARG
+// ;;
+// p)
+// stop=$OPTARG
+// ;;
+// d)
+// dir=$OPTARG
+// ;;
+//
+// esac
+// done
+//
+// shift $((OPTIND - 1))
+//
+//
+//
+//
+// echo "Current Params"
+// echo "chromosome column set to $chr"
+// echo "start column set to $start"
+// echo "stop column set to $stop"
+// echo "directory to search set to $dir"
+//
+//
+//
+// for file in "$@"
+// do
+// jcp seq.analysis.VcfQuery -local -multi dir="$dir" segFile="$file" chr="$chr" start="$start" stop="$stop"
+// done

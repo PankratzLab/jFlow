@@ -86,7 +86,7 @@ public class LibraryNGS implements Serializable {
 		LibraryNGS libraryNGS = null;
 		String serLibrary = ext.rootOf(libraryNGSFile, false) + ".ser";
 		if (!Files.exists(serLibrary)) {
-			libraryNGS = new LibraryNGS(Segment.loadRegions(libraryNGSFile, 0, 1, 2, skipNumLines, true, true, true), log);
+			libraryNGS = new LibraryNGS(Segment.loadRegions(libraryNGSFile, 0, 1, 2, skipNumLines, true, true, true,0), log);
 			libraryNGS.serialize(serLibrary);
 		} else {
 			libraryNGS = load(serLibrary, false);
