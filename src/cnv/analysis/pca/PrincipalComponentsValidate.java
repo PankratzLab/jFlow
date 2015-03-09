@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Random;
 
@@ -211,52 +210,52 @@ public class PrincipalComponentsValidate {
 		writer.close();
 	}
 
-	/**
-	 * We remove  individuals contained in toExclude from toFilter by changing the basis and median arrays.
-	 */
-	private static PrincipalComponentsResiduals filterExclude(PrincipalComponentsResiduals toExclude, PrincipalComponentsResiduals toFilter, Logger log) {
-		String[] toFilterInds = Collections.list(toFilter.getSamplesInPc().keys()).toArray(new String[toFilter.getSamplesInPc().size()]);
-
-		Hashtable<String, Integer> toExcludeSamps = toExclude.getSamplesInPc();
-		double[] tmpMedians = toFilter.getMedians();
-		double[][] tmpBasis = toFilter.getPcBasis();
-		Hashtable<Integer, Integer> indicesToKeep = new Hashtable<Integer, Integer>();
-
-		for (int i = 0; i < toFilterInds.length; i++) {
-			if (!toExcludeSamps.containsKey(toFilterInds[i])) {// we keep an individual if they are not in the toExclude PC
-				int indexToKeep = toFilter.getSamplesInPc().get(toFilterInds[i]);
-				indicesToKeep.put(indexToKeep, indexToKeep);
-			}
-		}
-		double[] filteredMedians = new double[indicesToKeep.size()];
-		double[][] filteredBasis = new double[tmpBasis.length][indicesToKeep.size()];
-		int index = 0;
-		for (int i = 0; i < tmpMedians.length; i++) {
-			if (indicesToKeep.containsKey(i)) {// keep it
-				filteredMedians[index] = tmpMedians[i];
-				index++;
-			}
-		}
-		for (int i = 0; i < tmpBasis.length; i++) {// tmpBasis[i][sample1...] is in same order as medians
-			index = 0;
-			for (int j = 0; j < tmpBasis[0].length; j++) {
-				if (indicesToKeep.containsKey(j)) {
-					filteredBasis[i][index] = tmpBasis[i][j];
-					index++;
-				}
-			}
-		}
-		log.report(ext.getTime() + " Kept " + indicesToKeep.size() + " individuals from " + toFilter.getOutput() + " that were not in the " + toExcludeSamps.size() + " samples from" + toExclude.getOutput() + " for the validation set");
-		PrincipalComponentsResiduals filtered = toFilter.clone();// need to de-reference and create a new one
-		if (indicesToKeep.size() > 0) { // all individuals present in toExclude
-			filtered.setMedians(filteredMedians);
-			filtered.setPcBasis(filteredBasis);
-		} else {
-			filtered.setMedians(new double[0]);
-			filtered.setPcBasis(new double[1][0]);// 0 individuals
-		}
-		return filtered;
-	}
+//	/**
+//	 * We remove  individuals contained in toExclude from toFilter by changing the basis and median arrays.
+//	 */
+//	private static PrincipalComponentsResiduals filterExclude(PrincipalComponentsResiduals toExclude, PrincipalComponentsResiduals toFilter, Logger log) {
+//		String[] toFilterInds = Collections.list(toFilter.getSamplesInPc().keys()).toArray(new String[toFilter.getSamplesInPc().size()]);
+//
+//		Hashtable<String, Integer> toExcludeSamps = toExclude.getSamplesInPc();
+//		double[] tmpMedians = toFilter.getMedians();
+//		double[][] tmpBasis = toFilter.getPcBasis();
+//		Hashtable<Integer, Integer> indicesToKeep = new Hashtable<Integer, Integer>();
+//
+//		for (int i = 0; i < toFilterInds.length; i++) {
+//			if (!toExcludeSamps.containsKey(toFilterInds[i])) {// we keep an individual if they are not in the toExclude PC
+//				int indexToKeep = toFilter.getSamplesInPc().get(toFilterInds[i]);
+//				indicesToKeep.put(indexToKeep, indexToKeep);
+//			}
+//		}
+//		double[] filteredMedians = new double[indicesToKeep.size()];
+//		double[][] filteredBasis = new double[tmpBasis.length][indicesToKeep.size()];
+//		int index = 0;
+//		for (int i = 0; i < tmpMedians.length; i++) {
+//			if (indicesToKeep.containsKey(i)) {// keep it
+//				filteredMedians[index] = tmpMedians[i];
+//				index++;
+//			}
+//		}
+//		for (int i = 0; i < tmpBasis.length; i++) {// tmpBasis[i][sample1...] is in same order as medians
+//			index = 0;
+//			for (int j = 0; j < tmpBasis[0].length; j++) {
+//				if (indicesToKeep.containsKey(j)) {
+//					filteredBasis[i][index] = tmpBasis[i][j];
+//					index++;
+//				}
+//			}
+//		}
+//		log.report(ext.getTime() + " Kept " + indicesToKeep.size() + " individuals from " + toFilter.getOutput() + " that were not in the " + toExcludeSamps.size() + " samples from" + toExclude.getOutput() + " for the validation set");
+//		PrincipalComponentsResiduals filtered = toFilter.clone();// need to de-reference and create a new one
+//		if (indicesToKeep.size() > 0) { // all individuals present in toExclude
+//			filtered.setMedians(filteredMedians);
+//			filtered.setPcBasis(filteredBasis);
+//		} else {
+//			filtered.setMedians(new double[0]);
+//			filtered.setPcBasis(new double[1][0]);// 0 individuals
+//		}
+//		return filtered;
+//	}
 
 	/**
 	 * Warning - pc files with the same number of components are summarize as replicates
