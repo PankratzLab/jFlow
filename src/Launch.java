@@ -12,11 +12,12 @@ import bioinformatics.*;
 import common.*;
 import parse.*;
 import seq.Vcf;
+import seq.manage.VCF;
 import gwas.*;
 import db.*;
 
 public class Launch {
-	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat - concatenate the specified files", "rename - rename the specified files", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "gwas.Qc - runs full QC protocol using PLINK", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers", "bestTransformation", CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION };
+	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat - concatenate the specified files", "rename - rename the specified files", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "gwas.Qc - runs full QC protocol using PLINK", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers", "bestTransformation", CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,VCF.VCF_INIT,VCF.VCF_COMMAND };
 
 	public static void run(String filename, Logger log) throws Elision {
 		String temp;
@@ -127,6 +128,8 @@ public class Launch {
 				SuperNovo.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase(CNVTrioFilter.COMMAND_CNV_TRIO_CRF)) {
 				cnvTrio.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase(VCF.VCF_INIT)) {
+				VCF.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("transpose")) {
 				Files.transposeFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("gwas.Qc")) {
