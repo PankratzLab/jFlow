@@ -27,12 +27,11 @@ public class GeneScorePipeline {
 	private static final String[][] LINKERS = {
 		Aliases.MARKER_NAMES,
 		Aliases.ALLELES[0],
-		{"beta", "beta_SNP_add", "Effect", "b"} // aka Aliases.EFFECTS [which doesn't include 'b']
+		Aliases.EFFECTS 
 	};
 	
 	private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tR-SQR\tSIG\tBETA\tSE\tNUM";
 	private String metaDir;
-	private String dataFile;
 	
 	private float[] indexThresholds = new float[]{DEFAULT_INDEX_THRESHOLD};
 	private int[] windowMinSizePerSides = new int[]{DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
@@ -42,6 +41,7 @@ public class GeneScorePipeline {
 	private boolean runPlink = false;
 	private boolean runRegression = false;
 	
+	private ArrayList<String> dataFiles = new ArrayList<String>();
 	private ArrayList<Study> studies = new ArrayList<GeneScorePipeline.Study>();
 	private HashMap<String, Constraints> analysisConstraints = new HashMap<String, GeneScorePipeline.Constraints>();
 	
@@ -58,8 +58,6 @@ public class GeneScorePipeline {
 		String studyName;
 		
 		String plinkPref = "plink";
-		
-		String crossFilterFile;
 		
 		ArrayList<String> phenoFiles = new ArrayList<String>();
 		
@@ -92,9 +90,9 @@ public class GeneScorePipeline {
 		HashMap<String, Double> covars = new HashMap<String, Double>();
 	}
 	
-	public GeneScorePipeline(String metaDir, String dataFile, /*int numThreads,*/ boolean plink, boolean regression, float[] indexThresholds, int[] windowMins, float[] windowExtThresholds) {
+	public GeneScorePipeline(String metaDir, /*String dataFile,*/ /*int numThreads,*/ boolean plink, boolean regression, float[] indexThresholds, int[] windowMins, float[] windowExtThresholds) {
 		this.metaDir = metaDir;
-		this.dataFile = dataFile;
+//		this.dataFile = dataFile;
 //		this.numThreads = numThreads;
 		this.runPlink = plink;
 		this.runRegression = runPlink && regression;
@@ -135,6 +133,8 @@ public class GeneScorePipeline {
 					}
 				}
 				studies.add(study);
+			} else if (f.getAbsolutePath().endsWith(".meta")) {
+				dataFiles.add(f.getName());
 			}
 		}
 	}
@@ -142,13 +142,6 @@ public class GeneScorePipeline {
 	private void loadPhenoFiles() {
 		for (Study study : studies) {
 			for (String pheno : study.phenoFiles) {
-//				for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
-//					File phenoDir = new File(study.studyDir + filePrefix.getKey() + "\\" + ext.rootOf(pheno) + "\\");
-//					if (!phenoDir.exists()) {
-//						phenoDir.mkdirs();
-//					}
-//				}
-
 				PhenoData pd = new PhenoData();
 				pd.phenoName = pheno;
 				
@@ -212,8 +205,22 @@ public class GeneScorePipeline {
 		System.out.println("Processing Complete!");
 	}
 	
+	private void createFolders(Study study) {
+		for (String dataFile : dataFiles) {
+			String dataFolder = study.studyDir + ext.rootOf(dataFile, true) + "\\";
+			for (String constraints : analysisConstraints.keySet()) {
+				String constraintFolder = dataFolder + constraints + "\\";
+				File f = new File(constraintFolder); 
+				if (!(f.exists())) {
+					f.mkdirs();
+				}
+			}
+		}
+	}
+	
 	private void processStudy(Study study) {
 		try {
+			createFolders(study);
 			crossFilterMarkerData(study);
 			runHitWindows(study);
 			extractHitMarkerData(study);
@@ -230,284 +237,320 @@ public class GeneScorePipeline {
 		}
 	}
 	
-
 	private void crossFilterMarkerData(Study study) throws IOException {
-		study.crossFilterFile = study.studyDir + "bimData.xln";
-		if ((new File(study.crossFilterFile).exists())) {
-			System.out.println("Cross-filtered data file already exists! [ --> '" + study.crossFilterFile + "']");
-			return;
-		}
-		System.out.println("Cross-filtering data and .BIM files [ --> '" + study.crossFilterFile + "']");
-		BufferedReader bimReader;
-		BufferedReader dataReader;
-		PrintWriter dataWriter;
-		HashMap<String, String[]> mkrsBim;
-		
-		mkrsBim = new HashMap<String, String[]>();
-		bimReader = Files.getAppropriateReader(study.studyDir + study.plinkPref + ".bim");
-		String line = bimReader.readLine();
-		int cntAmbig = 0;
-		do {
-			String[] parts = line.split("[\\s]+");
-			String mkr = parts[bimMkrIndex];
-			String a1 = parts[bimA1Index];
-			String a2 = parts[bimA2Index];
-			if (Sequence.validAllele(a1) && Sequence.validAllele(a2) && !a1.equals(Sequence.flip(a2))) {
-				mkrsBim.put(mkr, parts);
-			} else {
-				cntAmbig++;
+		for (String dFile : dataFiles) {
+			String dataFile = ext.rootOf(dFile, false);
+			String crossFilterFile = study.studyDir + dataFile + "\\bimData.xln";
+			if ((new File(crossFilterFile).exists())) {
+				System.out.println("Cross-filtered data file already exists! [ --> '" + crossFilterFile + "']");
+				continue;
 			}
-		} while ((line = bimReader.readLine()) != null);
-		bimReader.close();
-		System.out.println("Found " + cntAmbig + " ambiguous markers (will be excluded)");
-		dataReader = Files.getAppropriateReader(metaDir + dataFile);
-		dataWriter = new PrintWriter(study.crossFilterFile);
-		
-		String[] dataHdrs = dataReader.readLine().split("[\\s]+");
-		dataWriter.println("MarkerName\tChr\tPosition\t" + Array.toStr(Array.subArray(dataHdrs, 1))); //Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
-		while((line = dataReader.readLine()) != null) {
-			String[] parts = line.split("[\\s]+");
-			if (mkrsBim.containsKey(parts[0])) {
-				String[] bimParts = mkrsBim.get(parts[0]);
-				dataWriter.print(parts[0]);
-				dataWriter.print("\t");
-				dataWriter.print(bimParts[bimChrIndex]);
-				dataWriter.print("\t");
-				dataWriter.print(bimParts[bimPosIndex]);
-				dataWriter.print("\t");
-				dataWriter.println(Array.toStr(Array.subArray(parts, 1)));
+			System.out.println("Cross-filtering data and .BIM files [ --> '" + crossFilterFile + "']");
+			BufferedReader bimReader;
+			BufferedReader dataReader;
+			PrintWriter dataWriter;
+			HashMap<String, String[]> mkrsBim;
+			
+			mkrsBim = new HashMap<String, String[]>();
+			bimReader = Files.getAppropriateReader(study.studyDir + study.plinkPref + ".bim");
+			String line = bimReader.readLine();
+			int cntAmbig = 0;
+			do {
+				String[] parts = line.split("[\\s]+");
+				String mkr = parts[bimMkrIndex];
+				String a1 = parts[bimA1Index];
+				String a2 = parts[bimA2Index];
+				if (Sequence.validAllele(a1) && Sequence.validAllele(a2) && !a1.equals(Sequence.flip(a2))) {
+					mkrsBim.put(mkr, parts);
+				} else {
+					cntAmbig++;
+				}
+			} while ((line = bimReader.readLine()) != null);
+			bimReader.close();
+			System.out.println("Found " + cntAmbig + " ambiguous markers (will be excluded)");
+			dataReader = Files.getAppropriateReader(metaDir + dFile);
+			dataWriter = new PrintWriter(crossFilterFile);
+			
+			String[] dataHdrs = dataReader.readLine().split("[\\s]+");
+			dataWriter.println("MarkerName\tChr\tPosition\t" + Array.toStr(Array.subArray(dataHdrs, 1))); //Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
+			while((line = dataReader.readLine()) != null) {
+				String[] parts = line.split("[\\s]+");
+				if (mkrsBim.containsKey(parts[0])) {
+					String[] bimParts = mkrsBim.get(parts[0]);
+					dataWriter.print(parts[0]);
+					dataWriter.print("\t");
+					dataWriter.print(bimParts[bimChrIndex]);
+					dataWriter.print("\t");
+					dataWriter.print(bimParts[bimPosIndex]);
+					dataWriter.print("\t");
+					dataWriter.println(Array.toStr(Array.subArray(parts, 1)));
+				}
 			}
+			dataWriter.flush();
+			dataWriter.close();
+			dataReader.close();
 		}
-		dataWriter.flush();
-		dataWriter.close();
-		dataReader.close();
 	}
 	
 	private void runHitWindows(Study study) {
-		for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
-			File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
-			if (!prefDir.exists()) {
-				prefDir.mkdir();
+		for (String dFile : dataFiles) {
+			String dataFile = ext.rootOf(dFile, false);
+			String crossFilterFile = study.studyDir + dataFile + "\\bimData.xln";
+			
+			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
+				if ((new File(hitsFile)).exists()) {
+					System.out.println("Hit window analysis file already exists! [ --> '" + hitsFile + "']");
+					continue;
+				}
+				System.out.println("Running hit window analysis [ --> '" + hitsFile + "']");
+				String[][] results = HitWindows.determine(crossFilterFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES);
+				System.out.println("Found " + results.length + " hit windows");
+				Files.writeMatrix(results, hitsFile, "\t");
 			}
-			String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
-			if ((new File(hitsFile)).exists()) {
-				System.out.println("Hit window analysis file already exists! [ --> '" + hitsFile + "']");
-				continue;
-			}
-			System.out.println("Running hit window analysis [ --> '" + hitsFile + "']");
-			String[][] results = HitWindows.determine(study.crossFilterFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES);
-			System.out.println("Found " + results.length + " hit windows");
-			Files.writeMatrix(results, hitsFile, "\t");
 		}
 	}
 	
 	private void extractHitMarkerData(Study study) {
-		for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
-			File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
-			if (!prefDir.exists()) {
-				System.out.println("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
-				continue;
-			}
-			
-			String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
-			String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
-			if ((new File(mkrDataFile)).exists()) {
-				System.out.println("Hit window marker data file already exists! [ --> '" + mkrDataFile + "']");
-				continue;
-			}
-			System.out.println("Extracting data for hit window markers [ --> '" + mkrDataFile + "']");
-			String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true, new int[]{hitsMkrIndex}, false);
-			HashSet<String> hitMrkSet = new HashSet<String>();
-			for (String mkr : hitMarkers) {
-				hitMrkSet.add(mkr);
-			}
-			
-			String[] header = Files.getHeaderOfFile(study.crossFilterFile, null);
-			int[] cols = ext.indexFactors(LINKERS, header, false, true, false, null, false);
-			String[][] bimData = HashVec.loadFileToStringMatrix(study.crossFilterFile, true, cols, false);
-			
-			PrintWriter hitDataWriter = Files.getAppropriateWriter(mkrDataFile);
-			hitDataWriter.println("MarkerName\tAllele1\tb");
-			for (String[] markerData : bimData) {
-				if (hitMrkSet.contains(markerData[0])) {
-					hitDataWriter.println(Array.toStr(markerData));
+		for (String dFile : dataFiles) {
+			String dataFile = ext.rootOf(dFile, false);
+			String crossFilterFile = study.studyDir + dataFile + "\\bimData.xln";
+
+			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+
+				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
+				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
+				if ((new File(mkrDataFile)).exists()) {
+					System.out.println("Hit window marker data file already exists! [ --> '" + mkrDataFile + "']");
+					continue;
 				}
+				System.out.println("Extracting data for hit window markers [ --> '" + mkrDataFile + "']");
+				String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true, new int[]{hitsMkrIndex}, false);
+				HashSet<String> hitMrkSet = new HashSet<String>();
+				for (String mkr : hitMarkers) {
+					hitMrkSet.add(mkr);
+				}
+				
+				String[] header = Files.getHeaderOfFile(crossFilterFile, null);
+				int[] cols = ext.indexFactors(LINKERS, header, false, true, false, null, false);
+				String[][] bimData = HashVec.loadFileToStringMatrix(crossFilterFile, true, cols, false);
+				
+				PrintWriter hitDataWriter = Files.getAppropriateWriter(mkrDataFile);
+				hitDataWriter.println("MarkerName\tAllele1\tb");
+				for (String[] markerData : bimData) {
+					if (hitMrkSet.contains(markerData[0])) {
+						hitDataWriter.println(Array.toStr(markerData));
+					}
+				}
+				hitDataWriter.flush();
+				hitDataWriter.close();
 			}
-			hitDataWriter.flush();
-			hitDataWriter.close();
 		}
 	}
 	
 	private void runPlink(Study study) {
-		for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
-			File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
-			if (!prefDir.exists()) {
-				System.out.println("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
-				continue;
-			}
-			if ((new File(prefDir + "\\plink.profile")).exists()) {
-				System.out.println("Plink analysis results file already exists! [ --> '" + prefDir + "\\plink.profile" + "']");
-				continue;
-			}
-			String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
-			System.out.print("Running plink command [ --> '");
-			String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../" + study.plinkPref + " --score " + mkrDataFile;
-			System.out.println(cmd + "']");
-			/*boolean results = */CmdLine.run(cmd, prefDir.getAbsolutePath());
-		}
-	}
+		for (String dFile : dataFiles) {
+			String dataFile = ext.rootOf(dFile, false);
 	
-	private void writePlink(Study study) {
-		for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
-			File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
-			if (!prefDir.exists()) {
-				System.out.println("Error - no subfolder for '" + filePrefix + "' analysis");
-				continue;
-			}
-			if ((new File(prefDir + "\\runPlink.sh")).exists()) {
-				System.out.println("Plink analysis shell script already exists! [ --> '" + prefDir + "\\runPlink.sh" + "']");
-				continue;
-			}
-			String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
-			System.out.println("Writing plink command");
-			String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile " + study.plinkPref + " --score " + mkrDataFile;
-			Files.write(cmd, prefDir.getAbsolutePath() + "\\runPlink.sh");
-		}
-	}
-	
-	private void runRegression(Study study) {
-		for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
-			try {
-				File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
+			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+	//			File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
 				if (!prefDir.exists()) {
 					System.out.println("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
 					continue;
 				}
-				
-				String plinkFile = prefDir + "\\plink.profile";
-				
-				HashMap<String, double[]> plinkData = new HashMap<String, double[]>();
-				
-				BufferedReader plinkReader = Files.getAppropriateReader(plinkFile);
-				String line = plinkReader.readLine();
-				while((line = plinkReader.readLine()) != null) {
-					String[] parts = line.split("[\\s]+");
-					String pheno = parts[3];
-					String score = parts[6];
-					plinkData.put(parts[1] + "\t" + parts[2], new double[]{Double.parseDouble(pheno), Double.parseDouble(score)});
+				if ((new File(prefDir + "\\plink.profile")).exists()) {
+					System.out.println("Plink analysis results file already exists! [ --> '" + prefDir + "\\plink.profile" + "']");
+					continue;
 				}
-			
-				for (int i = 0; i < study.phenoFiles.size() + 1; i++) {
+				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
+				System.out.print("Running plink command [ --> '");
+				String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref + " --score " + mkrDataFile;
+				System.out.println(cmd + "']");
+				/*boolean results = */CmdLine.run(cmd, prefDir.getAbsolutePath());
+			}
+		}
+	}
+	
+	private void writePlink(Study study) {
+		for (String dFile : dataFiles) {
+			String dataFile = ext.rootOf(dFile, false);
+	
+			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+//				File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
+				if (!prefDir.exists()) {
+					System.out.println("Error - no subfolder for '" + filePrefix + "' analysis");
+					continue;
+				}
+				if ((new File(prefDir + "\\runPlink.sh")).exists()) {
+					System.out.println("Plink analysis shell script already exists! [ --> '" + prefDir + "\\runPlink.sh" + "']");
+					continue;
+				}
+				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
+				System.out.println("Writing plink command");
+				String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref + " --score " + mkrDataFile;
+				Files.write(cmd, prefDir.getAbsolutePath() + "\\runPlink.sh");
+			}
+		}
+	}
+	
+	private void runRegression(Study study) {
+		for (String dFile : dataFiles) {
+			String dataFile = ext.rootOf(dFile, false);
+		
+			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+				try {
+					File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+//					File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
+//					if (!prefDir.exists()) {
+//						System.out.println("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
+//						continue;
+//					}
 					
-					if (i > 0) {
-						PhenoData pd = study.phenoData.get(study.phenoFiles.get(i-1));
-						ArrayList<Double> depData = new ArrayList<Double>();
-						ArrayList<double[]> indepData = new ArrayList<double[]>();
-
-						for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
-							if (plinkData.containsKey(indiv.getKey())) {
-								depData.add(pd.indivs.get(indiv.getKey()).depvar);
-								double[] covarData = new double[pd.covars.size() + 1];
-								covarData[0] = plinkData.get(indiv.getKey())[1];
-								for (int k = 1; k < pd.covars.size()+1; k++) {
-									covarData[k] = pd.indivs.get(indiv.getKey()).covars.get(pd.covars.get(k - 1));
-								}
-								indepData.add(covarData);
-							}
+					String plinkFile = prefDir + "\\plink.profile";
+					
+					HashMap<String, double[]> plinkData = new HashMap<String, double[]>();
+					
+					int cntTotal = 0, cntZero = 0;
+					BufferedReader plinkReader = Files.getAppropriateReader(plinkFile);
+					String line = plinkReader.readLine();
+					while((line = plinkReader.readLine()) != null) {
+						String[] parts = line.split("[\\s]+");
+						String pheno = parts[3];
+						String score = parts[6];
+						plinkData.put(parts[1] + "\t" + parts[2], new double[]{Double.parseDouble(pheno), Double.parseDouble(score)});
+						cntTotal++;
+						if ("0".equals(pheno) || "0.0".equals(pheno) || (ext.isValidInteger(pheno) && Integer.parseInt(pheno) == 0)) {
+							cntZero++;
 						}
-						
-						
-						double[][] covars = new double[indepData.size()][];
-						for (int k = 0; k < covars.length; k++) {
-							covars[k] = indepData.get(k);
-						}
-						RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), covars, false, true);
-						
-						double beta = model.getBetas()[model.getBetas().length - 1];
-						double se = model.getSEofBs()[model.getSEofBs().length - 1];
-						double rsq = model.getRsquare();
-						double sig = model.getSigs()[model.getSigs().length - 1];
-						
-						study.regressionResults.put(filePrefix.getKey() + pd.phenoName, new double[]{rsq, sig, beta, se, depData.size()});
-						
-						model = null;
-					} else {
-						ArrayList<Double> depData = new ArrayList<Double>();
-						ArrayList<Double> indepData = new ArrayList<Double>();
-						
-						for (java.util.Map.Entry<String, double[]> entry : plinkData.entrySet()) {
-							if (entry.getValue()[0] != 0) {
-								depData.add(entry.getValue()[0]);
-								indepData.add(entry.getValue()[1]);
-							}
-						}
-						
-						RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), Array.toDoubleArray(indepData), false, true);
-
-						double beta = model.getBetas()[model.getBetas().length - 1];
-						double se = model.getSEofBs()[model.getSEofBs().length - 1];
-						double rsq = model.getRsquare();
-						double sig = model.getSigs()[model.getSigs().length - 1];
-						
-						study.regressionResults.put(filePrefix.getKey(), new double[]{rsq, sig, beta, se, depData.size()});
-						
-						model = null;
 					}
+				
+					for (int i = 0; i < study.phenoFiles.size() + 1; i++) {
+						
+						if (i > 0) {
+							PhenoData pd = study.phenoData.get(study.phenoFiles.get(i-1));
+							ArrayList<Double> depData = new ArrayList<Double>();
+							ArrayList<double[]> indepData = new ArrayList<double[]>();
+	
+							for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
+								if (plinkData.containsKey(indiv.getKey())) {
+									depData.add(pd.indivs.get(indiv.getKey()).depvar);
+									double[] covarData = new double[pd.covars.size() + 1];
+									covarData[0] = plinkData.get(indiv.getKey())[1];
+									for (int k = 1; k < pd.covars.size()+1; k++) {
+										covarData[k] = pd.indivs.get(indiv.getKey()).covars.get(pd.covars.get(k - 1));
+									}
+									indepData.add(covarData);
+								}
+							}
+							
+							
+							double[][] covars = new double[indepData.size()][];
+							for (int k = 0; k < covars.length; k++) {
+								covars[k] = indepData.get(k);
+							}
+							RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), covars, false, true);
+							
+							if (model.analysisFailed()) {
+								study.regressionResults.put(filePrefix.getKey() + dataFile + pd.phenoName, new double[]{Double.NaN, Double.NaN, Double.NaN, Double.NaN, depData.size()});
+							} else {
+								double beta = model.getBetas()[1];
+								double se = model.getSEofBs()[1];
+								double rsq = model.getRsquare();
+								double sig = model.getSigs()[1];
+								study.regressionResults.put(filePrefix.getKey() + dataFile + pd.phenoName, new double[]{rsq, sig, beta, se, depData.size()});
+							}
+							
+							model = null;
+						} else if (cntZero < cntTotal) {
+							ArrayList<Double> depData = new ArrayList<Double>();
+							ArrayList<Double> indepData = new ArrayList<Double>();
+							
+							for (java.util.Map.Entry<String, double[]> entry : plinkData.entrySet()) {
+								if (entry.getValue()[0] != 0) {
+									depData.add(entry.getValue()[0]);
+									indepData.add(entry.getValue()[1]);
+								}
+							}
+							
+							RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), Array.toDoubleArray(indepData), false, true);
+							
+							if (model.analysisFailed()) {
+								study.regressionResults.put(filePrefix.getKey() + dataFile, new double[]{Double.NaN, Double.NaN, Double.NaN, Double.NaN, depData.size()});
+							} else {
+								double beta = model.getBetas()[1];
+								double se = model.getSEofBs()[1];
+								double rsq = model.getRsquare();
+								double sig = model.getSigs()[1];
+								study.regressionResults.put(filePrefix.getKey() + dataFile, new double[]{rsq, sig, beta, se, depData.size()});
+							}
+							
+							model = null;
+						} else {
+							System.out.println("Error - no variance in dependent variable!");
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	}
 	
 	private void writeRegressionResults() {
 		PrintWriter writer;
-		for (Study study : studies) {
-			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
-				
-				String resultPrefix = study.studyName + "\t" + dataFile + "\t" + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false) + "\t";
-				String file = study.studyDir + filePrefix.getKey() + "\\regress.out";
-				
-				System.out.println("Writing regression results... [ --> " + file + "]");
-				
-				writer = Files.getAppropriateWriter(file);
-				writer.println(REGRESSION_HEADER);
-				writer.println(resultPrefix + "SCORE\t" + Array.toStr(study.regressionResults.get(filePrefix.getKey())));
-				for (String pheno : study.phenoFiles) {
-					double[] results = study.regressionResults.get(filePrefix.getKey() + pheno);
-					writer.println(resultPrefix + pheno + "\t" + Array.toStr(results));
-				}
-				writer.flush();
-				writer.close();
-			}
-		}
-	}
-	
-	private void writeToForestInput() {
-		String resultsFile = metaDir + "regressions.out";
-		PrintWriter writer = Files.getAppropriateWriter(resultsFile);
-		StringBuilder header = new StringBuilder("Name\tbeta\tse");
-		for (Study study : studies) {
-			header.append("\tbeta.").append(study.studyName).append("\tse.").append(study.studyName);
-		}
-		writer.println(header);
 		
-		StringBuilder dataSB;
-		for (String constraint : analysisConstraints.keySet()) {
-			dataSB = new StringBuilder("GeneScore_").append(constraint);
-			dataSB.append("\t");
-			// TODO meta beta
-			dataSB.append("\t");
-			// TODO meta se
-			for (Study study : studies) {
-				dataSB.append("\t").append(study.regressionResults.get(constraint)[0]).append("\t").append(study.regressionResults.get(constraint)[1]);
+		String resFile = metaDir + "results.xln";
+		System.out.println("Writing regression results... [ --> " + resFile + "]");
+		writer = Files.getAppropriateWriter(resFile);
+		writer.println(REGRESSION_HEADER);
+		
+		for (Study study : studies) {
+			for (String dFile : dataFiles) {
+				String dataFile = ext.rootOf(dFile, false);
+				for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+					String resultPrefix = study.studyName + "\t" + dataFile + "\t" + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false) + "\t";
+					writer.println(resultPrefix + "SCORE\t" + Array.toStr(study.regressionResults.get(filePrefix.getKey() + dataFile)));
+					for (String pheno : study.phenoFiles) {
+						double[] results = study.regressionResults.get(filePrefix.getKey() + dataFile + pheno);
+						writer.println(resultPrefix + pheno + "\t" + Array.toStr(results));
+					}
+				}
 			}
-			writer.println(dataSB.toString());
 		}
 		
 		writer.flush();
 		writer.close();
 	}
+	
+//	private void writeToForestInput() {
+//		String resultsFile = metaDir + "regressions.out";
+//		PrintWriter writer = Files.getAppropriateWriter(resultsFile);
+//		StringBuilder header = new StringBuilder("Name\tbeta\tse");
+//		for (Study study : studies) {
+//			header.append("\tbeta.").append(study.studyName).append("\tse.").append(study.studyName);
+//		}
+//		writer.println(header);
+//		
+//		StringBuilder dataSB;
+//		for (String constraint : analysisConstraints.keySet()) {
+//			dataSB = new StringBuilder("GeneScore_").append(constraint);
+//			dataSB.append("\t");
+//			// TODO meta beta
+//			dataSB.append("\t");
+//			// TODO meta se
+//			for (Study study : studies) {
+//				dataSB.append("\t").append(study.regressionResults.get(constraint)[0]).append("\t").append(study.regressionResults.get(constraint)[1]);
+//			}
+//			writer.println(dataSB.toString());
+//		}
+//		
+//		writer.flush();
+//		writer.close();
+//	}
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -527,13 +570,12 @@ public class GeneScorePipeline {
 		String usage =  "\n" + 
 				"lab.MultiGeneScorePipeline requires 2+ arguments\n" + 
 				"   (1) Metastudy directory root, containing subdirectories for each study (i.e. broot=C:/ (not the default))\n" +
-				"   (2) Data file name, relative to metastudy root directory (i.e. dfile=" + dfile + " (default))" +
 				"       OPTIONAL:\n" + 
-				"   (3) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh=" + DEFAULT_INDEX_THRESHOLD + " (default))\n" + 
-				"   (4) minimum num bp per side of window (or comma delimited list) (i.e. minWinSize=" + DEFAULT_WINDOW_MIN_SIZE_PER_SIDE + " (default))\n" + 
-				"   (5) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh=" + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
-				"   (6) run Plink's SNP scoring routine after completion (i.e. -runPlink (not the default))\n" +
-				"   (7) run a regression analyis after completion (requires '-runPlink') (i.e. -regress (not the default))\n" +
+				"   (2) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh=" + DEFAULT_INDEX_THRESHOLD + " (default))\n" + 
+				"   (3) minimum num bp per side of window (or comma delimited list) (i.e. minWinSize=" + DEFAULT_WINDOW_MIN_SIZE_PER_SIDE + " (default))\n" + 
+				"   (4) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh=" + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
+				"   (5) run Plink's SNP scoring routine after completion (i.e. -runPlink (not the default))\n" +
+				"   (6) run a regression analyis after completion (requires '-runPlink') (i.e. -regress (not the default))\n" +
 //				"   (8) Number of threads to use for computation (i.e. threads=" + threads + " (default))\n" + 
 				"";
 		
@@ -543,9 +585,6 @@ public class GeneScorePipeline {
 				System.exit(1);
 			} else if (args[i].startsWith("broot=")) {
 				broot = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("dfile=")) {
-				dfile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("indexThresh=")) {
 				String[] lst = args[i].split("=")[1].split(",");
@@ -617,7 +656,7 @@ public class GeneScorePipeline {
 			System.exit(1);
 		}
 
-		GeneScorePipeline gsp = new GeneScorePipeline(broot, dfile, /*threads,*/ runPlink, regress, iT, mZ, wT);
+		GeneScorePipeline gsp = new GeneScorePipeline(broot, /*dfile,*/ /*threads,*/ runPlink, regress, iT, mZ, wT);
 		gsp.runPipeline();
 	}
 	
