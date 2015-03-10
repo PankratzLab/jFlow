@@ -313,7 +313,7 @@ public class GeneScorePipeline {
 			String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
 			if ((new File(mkrDataFile)).exists()) {
 				System.out.println("Hit window marker data file already exists! [ --> '" + mkrDataFile + "']");
-				return;
+				continue;
 			}
 			System.out.println("Extracting data for hit window markers [ --> '" + mkrDataFile + "']");
 			String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true, new int[]{hitsMkrIndex}, false);
@@ -466,8 +466,11 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
 				
 				String resultPrefix = study.studyName + "\t" + dataFile + "\t" + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false) + "\t";
+				String file = study.studyDir + filePrefix.getKey() + "\\regress.out";
 				
-				writer = Files.getAppropriateWriter(study.studyDir + filePrefix.getKey() + "\\regress.out");
+				System.out.println("Writing regression results... [ --> " + file + "]");
+				
+				writer = Files.getAppropriateWriter(file);
 				writer.println(REGRESSION_HEADER);
 				writer.println(resultPrefix + "SCORE\t" + Array.toStr(study.regressionResults.get(filePrefix.getKey())));
 				for (String pheno : study.phenoFiles) {
