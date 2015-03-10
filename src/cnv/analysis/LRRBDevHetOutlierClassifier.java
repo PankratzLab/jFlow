@@ -1,7 +1,6 @@
 package cnv.analysis;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -10,9 +9,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
-import cnv.analysis.GenCNV.Analysis;
 import cnv.filesys.Project;
 import cnv.var.SampleData;
+
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -291,10 +290,10 @@ public class LRRBDevHetOutlierClassifier {
 	private HashSet<String> popList;
 	ArrayList<AnalysisData> analyses = new ArrayList<LRRBDevHetOutlierClassifier.AnalysisData>();
 	
-	private LRRBDevHetOutlierClassifier loadExcluded(String file, boolean project) {
+	private void loadExcluded(String file, boolean project) {
 		excludeList = new HashSet<String>();
 		popList = new HashSet<String>();
-		if (file == null) { return this; }
+		if (file == null) { return; }
 		
 		if (project) {
 			Project proj = new Project(file, false);
@@ -310,11 +309,9 @@ public class LRRBDevHetOutlierClassifier {
 		} else {
 			excludeList.addAll(HashVec.loadFileToHashSet(file, false));
 		}
-		
-		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier loadAllFilesAllData(int idCol, String lrrHdr, String bdevHdr) {
+	private void loadAllFilesAllData(int idCol, String lrrHdr, String bdevHdr) {
 		String dir = ext.parseDirectoryOfFile(filename);
 		String prefix = filename.substring(dir.length());
 		String[] files = Files.list(dir, prefix, null, true, false);
@@ -379,13 +376,12 @@ public class LRRBDevHetOutlierClassifier {
 			analysis.popCount = popList.size();
 			analysis.derivePopData();
 		}
-		
-		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier loadAllData(int idCol, String lrrHdr, String bdevHdr) {
+	private void loadAllData(int idCol, String lrrHdr, String bdevHdr) {
 		if (isFileRoot) {
-			return loadAllFilesAllData(idCol, lrrHdr, bdevHdr);
+			loadAllFilesAllData(idCol, lrrHdr, bdevHdr);
+			return;
 		}
 		BufferedReader reader = Files.getReader(filename, false, true, false);
 		if (reader != null) {
@@ -441,11 +437,9 @@ public class LRRBDevHetOutlierClassifier {
 			analysis.popCount = popList.size();
 			analysis.derivePopData();
 		}
-		
-		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier loadData(int idCol, int lrrCol, int bdevCol) {
+	private void loadData(int idCol, int lrrCol, int bdevCol) {
 		AnalysisData analysis = new AnalysisData(lrrCol, bdevCol);
 		
 		BufferedReader reader = Files.getReader(filename, false, true, false);
@@ -478,17 +472,14 @@ public class LRRBDevHetOutlierClassifier {
 		
 		analysis.derivePopData();
 		analyses.add(analysis);
-		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier scoreOutliers() {
+	private void scoreOutliers() {
 		for (final AnalysisData analysis : analyses) {
 			OutlierClassifier.WEIGHTED_BDEV_SD_EUCLIDEAN_NORM.runClassifier(analysis);
 //			OutlierClassifier.UNWEIGHTED_SD_EUCLIDEAN_NORM.runClassifier(analysis);
 //			OutlierClassifier.WEIGHTED_LRR_SD_EUCLIDEAN_NORM.runClassifier(analysis);
 		}
-		
-		return this;
 	}
 	
 	/**
@@ -498,8 +489,8 @@ public class LRRBDevHetOutlierClassifier {
 	 * @return
 	 * @throws IOException
 	 */
-	private LRRBDevHetOutlierClassifier validateResults(String validationFile) throws IOException {
-		if (validationFile == null) return this;
+	private void validateResults(String validationFile) throws IOException {
+		if (validationFile == null) return;
 		HashSet<String> locationsInValidationSet = new HashSet<String>();
 		HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<String, HashSet<String>>();
 		HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap = new HashMap<String, HashMap<String, Integer>>();
@@ -604,8 +595,6 @@ public class LRRBDevHetOutlierClassifier {
 		
 		writer.flush();
 		writer.close();
-		
-		return this;
 	}
 
 	private static void validateResults(String validationFile, String resultsFile, String outFile) throws IOException {
@@ -706,7 +695,7 @@ public class LRRBDevHetOutlierClassifier {
 		writer.close();
 	}
 
-	private LRRBDevHetOutlierClassifier writeResults(String outFile, boolean writeOutliersOnly, boolean recodeOutliers, boolean recodeResults, boolean writeScores, boolean writeHeader, boolean combine) {
+	private void writeResults(String outFile, boolean writeOutliersOnly, boolean recodeOutliers, boolean recodeResults, boolean writeScores, boolean writeHeader, boolean combine) {
 		String fileRoot = ext.parseDirectoryOfFile(filename);
 		String file = outFile == null ? ext.rootOf(filename, true) + "_outliers.txt" : outFile;
 		PrintWriter writer = null;
@@ -820,11 +809,9 @@ public class LRRBDevHetOutlierClassifier {
 				writer.close();
 			}
 		}
-		
-		return this;
 	}
 	
-	private LRRBDevHetOutlierClassifier dispose() {
+	private void dispose() {
 		this.filename = null;
 		this.excludeList = null;
 		this.analyses = null;
@@ -833,7 +820,6 @@ public class LRRBDevHetOutlierClassifier {
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
 		}
-		return null;
 	}
 	
 	public static void main(String[] args) {
@@ -958,13 +944,15 @@ public class LRRBDevHetOutlierClassifier {
 		try {
 			String f = fileRoot == null ? filename : fileRoot;
 			boolean isRoot = fileRoot != null;
-			LRRBDevHetOutlierClassifier classifier = new LRRBDevHetOutlierClassifier(f, isRoot).loadExcluded(file, isProj);
+			LRRBDevHetOutlierClassifier classifier = new LRRBDevHetOutlierClassifier(f, isRoot);
+			classifier.loadExcluded(file, isProj);
 			if (lrrHdr != null && bdevHdr != null) {
 				classifier.loadAllData(idCol, lrrHdr, bdevHdr);
 			} else {
 				classifier.loadData(idCol, lrrCol, bdevCol);
 			}
-			classifier.scoreOutliers().validateResults(validationFilename);
+			classifier.scoreOutliers();
+			classifier.validateResults(validationFilename);
 			if (!validationOnly) {
 				classifier.writeResults(outFile, outliersOnly, validationFilename != null, validationFilename != null, writeScores, !noHeader, !splitResults);
 			}

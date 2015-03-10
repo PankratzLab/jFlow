@@ -30,6 +30,7 @@ public class GeneScorePipeline {
 		{"beta", "beta_SNP_add", "Effect", "b"} // aka Aliases.EFFECTS [which doesn't include 'b']
 	};
 	
+	private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tR-SQR\tSIG\tBETA\tSE\tNUM";
 	private String metaDir;
 	private String dataFile;
 	
@@ -41,8 +42,6 @@ public class GeneScorePipeline {
 	private boolean runPlink = false;
 	private boolean runRegression = false;
 	
-//	private ArrayList<String> studyFolders = new ArrayList<String>();
-//	private HashMap<String, double[]> studyRegressions = new HashMap<String, double[]>();
 	private ArrayList<Study> studies = new ArrayList<GeneScorePipeline.Study>();
 	private HashMap<String, Constraints> analysisConstraints = new HashMap<String, GeneScorePipeline.Constraints>();
 	
@@ -62,21 +61,38 @@ public class GeneScorePipeline {
 		
 		String crossFilterFile;
 		
+		ArrayList<String> phenoFiles = new ArrayList<String>();
+		
+		HashMap<String, PhenoData> phenoData = new HashMap<String, GeneScorePipeline.PhenoData>();
 		HashMap<String, double[]> regressionResults = new HashMap<String, double[]>();
 	}
 	
 	private class Constraints {
-		float indexThreshold;
-		int windowMinSizePerSide;
-		float windowExtensionThreshold;
-		public Constraints(float i, int m, float w) {
+		final float indexThreshold;
+		final int windowMinSizePerSide;
+		final float windowExtensionThreshold;
+//		final String phenoFile;
+		public Constraints(float i, int m, float w/*, String pheno*/) {
 			this.indexThreshold = i;
 			this.windowMinSizePerSide = m;
 			this.windowExtensionThreshold = w;
+//			this.phenoFile = pheno;
 		}
 	}
 	
-	public GeneScorePipeline(String metaDir, String dataFile/*, int numThreads*/, boolean plink, boolean regression, float[] indexThresholds, int[] windowMins, float[] windowExtThresholds) {
+	private class PhenoData {
+		String phenoName;
+		HashMap<String, PhenoIndiv> indivs = new HashMap<String, GeneScorePipeline.PhenoIndiv>();
+		ArrayList<String> covars = new ArrayList<String>();
+	}
+	
+	private class PhenoIndiv {
+		String fid, iid;
+		double depvar;
+		HashMap<String, Double> covars = new HashMap<String, Double>();
+	}
+	
+	public GeneScorePipeline(String metaDir, String dataFile, /*int numThreads,*/ boolean plink, boolean regression, float[] indexThresholds, int[] windowMins, float[] windowExtThresholds) {
 		this.metaDir = metaDir;
 		this.dataFile = dataFile;
 //		this.numThreads = numThreads;
@@ -87,6 +103,8 @@ public class GeneScorePipeline {
 		this.windowMinSizePerSides = windowMins;
 		this.windowExtensionThresholds = windowExtThresholds;
 		setFilePrefices();
+		loadStudyFolders();
+		loadPhenoFiles();
 	}
 	
 	private void setFilePrefices() {
@@ -98,7 +116,6 @@ public class GeneScorePipeline {
 						.append("_").append(ext.formSciNot(m, 4, false))
 						.append("_").append(ext.formSciNot(w, 4, false));
 					analysisConstraints.put(prefixSB.toString(), new Constraints(i, m, w));
-					
 				}
 			}
 		}
@@ -112,7 +129,66 @@ public class GeneScorePipeline {
 				Study study = new Study();
 				study.studyName = ext.rootOf(f.getAbsolutePath(), true);
 				study.studyDir = f.getAbsolutePath() + "\\";
+				for (File f1 : f.listFiles()) {
+					if (f1.getName().endsWith(".pheno")) {
+						study.phenoFiles.add(f1.getName());
+					}
+				}
 				studies.add(study);
+			}
+		}
+	}
+	
+	private void loadPhenoFiles() {
+		for (Study study : studies) {
+			for (String pheno : study.phenoFiles) {
+//				for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+//					File phenoDir = new File(study.studyDir + filePrefix.getKey() + "\\" + ext.rootOf(pheno) + "\\");
+//					if (!phenoDir.exists()) {
+//						phenoDir.mkdirs();
+//					}
+//				}
+
+				PhenoData pd = new PhenoData();
+				pd.phenoName = pheno;
+				
+				try {
+					BufferedReader reader = Files.getAppropriateReader(study.studyDir + pheno);
+					String[] header = reader.readLine().split("\t");
+					// fid == header[0]
+					// iid == header[1]
+					// depvar = header[2];
+					ArrayList<String> covars = new ArrayList<String>();
+					for (int i = 3; i < header.length; i++) {
+						covars.add(header[i]);
+					}
+					pd.covars.addAll(covars);
+					String temp = reader.readLine();
+					indiv: do {
+						String[] line = temp.split("\t");
+						
+						if (!ext.isMissingValue(line[2])) {
+							PhenoIndiv pi = new PhenoIndiv();
+							pi.fid = line[0];
+							pi.iid = line[1];
+							pi.depvar = Double.parseDouble(line[2]);
+							for (int i = 3; i < line.length; i++) {
+								if (ext.isMissingValue(line[i])) {
+									continue indiv;
+								}
+								pi.covars.put(header[i], Double.parseDouble(line[i]));
+							}
+							pd.indivs.put(pi.fid + "\t" + pi.iid, pi);
+						}
+						
+					} while ((temp = reader.readLine()) != null);
+					
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+				study.phenoData.put(pheno, pd);
 			}
 		}
 	}
@@ -212,7 +288,7 @@ public class GeneScorePipeline {
 			File prefDir = new File(study.studyDir + filePrefix.getKey() + "\\");
 			if (!prefDir.exists()) {
 				prefDir.mkdir();
-			}			
+			}
 			String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 			if ((new File(hitsFile)).exists()) {
 				System.out.println("Hit window analysis file already exists! [ --> '" + hitsFile + "']");
@@ -232,7 +308,6 @@ public class GeneScorePipeline {
 				System.out.println("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
 				continue;
 			}
-			
 			
 			String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 			String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
@@ -308,31 +383,77 @@ public class GeneScorePipeline {
 					System.out.println("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
 					continue;
 				}
-	
+				
 				String plinkFile = prefDir + "\\plink.profile";
-				ArrayList<Double> depData = new ArrayList<Double>();
-				ArrayList<Double> indepData = new ArrayList<Double>();
+				
+				HashMap<String, double[]> plinkData = new HashMap<String, double[]>();
+				
 				BufferedReader plinkReader = Files.getAppropriateReader(plinkFile);
 				String line = plinkReader.readLine();
 				while((line = plinkReader.readLine()) != null) {
 					String[] parts = line.split("[\\s]+");
 					String pheno = parts[3];
-	//				String cnt = parts[4];
-	//				String cnt2 = parts[5];
 					String score = parts[6];
-					if (!pheno.equals("0")) {
-						depData.add(Double.parseDouble(pheno));
-						indepData.add(Double.parseDouble(score));
+					plinkData.put(parts[1] + "\t" + parts[2], new double[]{Double.parseDouble(pheno), Double.parseDouble(score)});
+				}
+			
+				for (int i = 0; i < study.phenoFiles.size() + 1; i++) {
+					
+					if (i > 0) {
+						PhenoData pd = study.phenoData.get(study.phenoFiles.get(i-1));
+						ArrayList<Double> depData = new ArrayList<Double>();
+						ArrayList<double[]> indepData = new ArrayList<double[]>();
+
+						for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
+							if (plinkData.containsKey(indiv.getKey())) {
+								depData.add(pd.indivs.get(indiv.getKey()).depvar);
+								double[] covarData = new double[pd.covars.size() + 1];
+								covarData[0] = plinkData.get(indiv.getKey())[1];
+								for (int k = 1; k < pd.covars.size()+1; k++) {
+									covarData[k] = pd.indivs.get(indiv.getKey()).covars.get(pd.covars.get(k - 1));
+								}
+								indepData.add(covarData);
+							}
+						}
+						
+						
+						double[][] covars = new double[indepData.size()][];
+						for (int k = 0; k < covars.length; k++) {
+							covars[k] = indepData.get(k);
+						}
+						RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), covars, false, true);
+						
+						double beta = model.getBetas()[model.getBetas().length - 1];
+						double se = model.getSEofBs()[model.getSEofBs().length - 1];
+						double rsq = model.getRsquare();
+						double sig = model.getSigs()[model.getSigs().length - 1];
+						
+						study.regressionResults.put(filePrefix.getKey() + pd.phenoName, new double[]{rsq, sig, beta, se, depData.size()});
+						
+						model = null;
+					} else {
+						ArrayList<Double> depData = new ArrayList<Double>();
+						ArrayList<Double> indepData = new ArrayList<Double>();
+						
+						for (java.util.Map.Entry<String, double[]> entry : plinkData.entrySet()) {
+							if (entry.getValue()[0] != 0) {
+								depData.add(entry.getValue()[0]);
+								indepData.add(entry.getValue()[1]);
+							}
+						}
+						
+						RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), Array.toDoubleArray(indepData), false, true);
+
+						double beta = model.getBetas()[model.getBetas().length - 1];
+						double se = model.getSEofBs()[model.getSEofBs().length - 1];
+						double rsq = model.getRsquare();
+						double sig = model.getSigs()[model.getSigs().length - 1];
+						
+						study.regressionResults.put(filePrefix.getKey(), new double[]{rsq, sig, beta, se, depData.size()});
+						
+						model = null;
 					}
 				}
-				
-				RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), Array.toDoubleArray(indepData), false, true);
-				
-				double beta = model.getBetas()[model.getBetas().length - 1];
-				double se = model.getSEofBs()[model.getSEofBs().length - 1];
-				
-				study.regressionResults.put(filePrefix.getKey(), new double[]{beta, se});
-				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -340,6 +461,26 @@ public class GeneScorePipeline {
 	}
 	
 	private void writeRegressionResults() {
+		PrintWriter writer;
+		for (Study study : studies) {
+			for (java.util.Map.Entry<String, Constraints> filePrefix : analysisConstraints.entrySet()) {
+				
+				String resultPrefix = study.studyName + "\t" + dataFile + "\t" + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false) + "\t";
+				
+				writer = Files.getAppropriateWriter(study.studyDir + filePrefix.getKey() + "\\regress.out");
+				writer.println(REGRESSION_HEADER);
+				writer.println(resultPrefix + "SCORE\t" + Array.toStr(study.regressionResults.get(filePrefix.getKey())));
+				for (String pheno : study.phenoFiles) {
+					double[] results = study.regressionResults.get(filePrefix.getKey() + pheno);
+					writer.println(resultPrefix + pheno + "\t" + Array.toStr(results));
+				}
+				writer.flush();
+				writer.close();
+			}
+		}
+	}
+	
+	private void writeToForestInput() {
 		String resultsFile = metaDir + "regressions.out";
 		PrintWriter writer = Files.getAppropriateWriter(resultsFile);
 		StringBuilder header = new StringBuilder("Name\tbeta\tse");
@@ -370,7 +511,7 @@ public class GeneScorePipeline {
 		
 		String broot = null;
 		String dfile = "data.xln";
-
+		
 		float[] iT = new float[]{DEFAULT_INDEX_THRESHOLD};
 		int[] mZ = new int[]{DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
 		float[] wT = new float[]{DEFAULT_WINDOW_EXTENSION_THRESHOLD}; 
@@ -379,17 +520,18 @@ public class GeneScorePipeline {
 		boolean runPlink = false;
 		boolean regress = false;
 		
+		
 		String usage =  "\n" + 
 				"lab.MultiGeneScorePipeline requires 2+ arguments\n" + 
 				"   (1) Metastudy directory root, containing subdirectories for each study (i.e. broot=C:/ (not the default))\n" +
 				"   (2) Data file name, relative to metastudy root directory (i.e. dfile=" + dfile + " (default))" +
 				"       OPTIONAL:\n" + 
-				"   (3) p-value threshold (or comma delimited list) for index SNPs (i.e. indexThresh=" + DEFAULT_INDEX_THRESHOLD + " (default))\n" + 
+				"   (3) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh=" + DEFAULT_INDEX_THRESHOLD + " (default))\n" + 
 				"   (4) minimum num bp per side of window (or comma delimited list) (i.e. minWinSize=" + DEFAULT_WINDOW_MIN_SIZE_PER_SIDE + " (default))\n" + 
 				"   (5) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh=" + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
 				"   (6) run Plink's SNP scoring routine after completion (i.e. -runPlink (not the default))\n" +
 				"   (7) run a regression analyis after completion (requires '-runPlink') (i.e. -regress (not the default))\n" +
-//				"   (6) Number of threads to use for computation (i.e. threads=" + threads + " (default))\n" + 
+//				"   (8) Number of threads to use for computation (i.e. threads=" + threads + " (default))\n" + 
 				"";
 		
 		for (int i = 0; i < args.length; i++) {
@@ -471,9 +613,8 @@ public class GeneScorePipeline {
 			System.err.println("Error - '-runPlink' option is required for '-regress' option");
 			System.exit(1);
 		}
-		
-		GeneScorePipeline gsp = new GeneScorePipeline(broot, dfile/*, threads*/, runPlink, regress, iT, mZ, wT);
-		gsp.loadStudyFolders();
+
+		GeneScorePipeline gsp = new GeneScorePipeline(broot, dfile, /*threads,*/ runPlink, regress, iT, mZ, wT);
 		gsp.runPipeline();
 	}
 	
