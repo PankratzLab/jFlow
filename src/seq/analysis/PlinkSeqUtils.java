@@ -4,9 +4,11 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Properties;
 
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.ext;
 
@@ -207,6 +209,98 @@ public class PlinkSeqUtils {
 			return vcfs;
 		}
 
+	}
+
+	public static class PlinkSeqBurdenResults {
+		private static final String[] HEADER = new String[] { "LOCUS", "POS", "ALIAS", "NVAR", "TEST", "P", "I", "DESC" };
+		private String resultsFile;
+		private int numTests;
+		private double bonferoniP;
+		private HashSet<String> genesPassing;
+		private Logger log;
+
+		public PlinkSeqBurdenResults(String resultsFile, Logger log) {
+			this.resultsFile = resultsFile;
+			this.log = log;
+
+			this.numTests = determineNumGenes();
+			this.bonferoniP = determineBonferoni(numTests);
+			this.genesPassing = determineGenesPassing();
+
+		}
+
+		public HashSet<String> getGenesPassing() {
+			return genesPassing;
+		}
+
+		public int getNumTests() {
+			return numTests;
+		}
+
+		public double getBonferoniP() {
+			return bonferoniP;
+		}
+
+		private int determineNumGenes() {
+			log.reportTimeInfo("loading results from " + resultsFile);
+			if (Files.exists(resultsFile)) {
+				String[] header = Files.getLineContaining(resultsFile, "\t", HEADER, log);
+				if (header != null) {
+					int locusIndex = ext.indexOfStr(HEADER[0], header);
+					return HashVec.loadFileToStringArray(resultsFile, true, new int[] { locusIndex }, true).length;
+				} else {
+					return 0;
+				}
+			} else {
+				return 0;
+			}
+		}
+
+		private HashSet<String> determineGenesPassing() {
+			HashSet<String> passingGenes = new HashSet<String>();
+
+			if (Files.exists(resultsFile)) {
+				String[] header = Files.getLineContaining(resultsFile, "\t", HEADER, log);
+				if (header != null) {
+					int locusIndex = ext.indexOfStr(HEADER[0], header);
+					int pvalIndex = ext.indexOfStr(HEADER[5], header);
+					try {
+						BufferedReader reader = Files.getAppropriateReader(resultsFile);
+						while (reader.ready()) {
+							String[] line = reader.readLine().trim().split("[\\s]+");
+							if (line.length == HEADER.length) {
+								try {
+									double pval = Double.parseDouble(line[pvalIndex]);
+									if (pval < bonferoniP) {
+										passingGenes.add(line[locusIndex]);
+									}
+								} catch (NumberFormatException nfe) {
+
+								}
+							}
+						}
+						reader.close();
+						return passingGenes;
+
+					} catch (FileNotFoundException fnfe) {
+						log.reportError("Error: file \"" + resultsFile + "\" not found in current directory");
+						return passingGenes;
+					} catch (IOException ioe) {
+						log.reportError("Error reading file \"" + resultsFile + "\"");
+						return passingGenes;
+					}
+				} else {
+					return passingGenes;
+				}
+			} else {
+				return passingGenes;
+			}
+		}
+
+		private static double determineBonferoni(int numTests) {
+
+			return numTests > 0 ? (double) 0.05 / numTests : 0;
+		}
 	}
 
 }

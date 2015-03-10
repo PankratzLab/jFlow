@@ -38,13 +38,13 @@ public class BamQC {
 	public static int NO_QC_INSERT_HISTOGRAM = 0;
 	public static int QC_INSERT_HISTOGRAM = 1;
 	public static final String READ_DEPTH_AT = "Percent Coverage At";
-//	private static final int DEFUALT_GC_SIG_FIGS = 2;
-//	private static final double DEFUALT_MIN_GC = 0.0D;
-//	private static final double DEFUALT_MAX_GC = 1.0D;
-//	private static final double NORM_UNITS = 1000000.0D;
-//	private static final int DEFUALT_INSERT_SIG_FIGS = 0;
-//	private static final double DEFUALT_MIN_INSERT = 0.0D;
-//	private static final double DEFUALT_MAX_INSERT = 2000.0D;
+	// private static final int DEFUALT_GC_SIG_FIGS = 2;
+	// private static final double DEFUALT_MIN_GC = 0.0D;
+	// private static final double DEFUALT_MAX_GC = 1.0D;
+	// private static final double NORM_UNITS = 1000000.0D;
+	// private static final int DEFUALT_INSERT_SIG_FIGS = 0;
+	// private static final double DEFUALT_MIN_INSERT = 0.0D;
+	// private static final double DEFUALT_MAX_INSERT = 2000.0D;
 	private String inputSamOrBamFile;
 	private String libraryReadDepthResultsFile;
 	private int numDuplicated;
@@ -91,12 +91,12 @@ public class BamQC {
 		this.numInvalidAligments = 0;
 		this.averageInsertSize = new double[NUM_INSERT_HISTOGRAMS];
 		this.totalTargetedBasePairs = 0;
-		this.percentDuplicated = (0.0D / 0.0D);
-		this.percentUnMapped = (0.0D / 0.0D);
-		this.percentOnTarget = (0.0D / 0.0D);
+		this.percentDuplicated = 0;
+		this.percentUnMapped = 0;
+		this.percentOnTarget = 0;
 		this.percentCoverageAtDepth = new double[filterNGS.getReadDepthFilter().length];
-		this.gHistograms = Histogram.DynamicHistogram.initHistograms(NUM_GC_HISTOGRAMS, 0.0D, 1.0D, 2);
-		this.insertHistograms = Histogram.DynamicHistogram.initHistograms(NUM_INSERT_HISTOGRAMS, 0.0D, 2000.0D, 0);
+		this.gHistograms = Histogram.DynamicHistogram.initHistograms(NUM_GC_HISTOGRAMS, 0, 1.0, 2);
+		this.insertHistograms = Histogram.DynamicHistogram.initHistograms(NUM_INSERT_HISTOGRAMS, 0.0, 2000.0, 0);
 		this.filterNGS = filterNGS;
 	}
 
@@ -292,7 +292,7 @@ public class BamQC {
 		}
 		for (int i = 0; i < bamQCs.length; i++) {
 			try {
-				bamQCs[i] =  tmpResults.get(i).get();
+				bamQCs[i] = tmpResults.get(i).get();
 			} catch (InterruptedException e) {
 				log.reportError("Error - in file " + inputbams[i]);
 				log.reportException(e);
@@ -439,7 +439,7 @@ public class BamQC {
 		if (fileOfinputSamOrBams != null) {
 			if (Files.exists(fileOfinputSamOrBams)) {
 				log.report(ext.getTime() + " Info - loading files to qc from " + fileOfinputSamOrBams);
-				inputbams = HashVec.loadFileToStringArray(fileOfinputSamOrBams, false, new int[1], false);
+				inputbams = HashVec.loadFileToStringArray(fileOfinputSamOrBams, false, new int[] { 0 }, false);
 				if (!Files.exists("", inputbams)) {
 					log.reportError("Error - found files that do not exist in " + fileOfinputSamOrBams);
 					inputbams = null;
@@ -455,12 +455,12 @@ public class BamQC {
 	}
 
 	private static double computePercent(int top, int bottom) {
-		return bottom > 0 ? top / bottom : (0.0D / 0.0D);
+		return bottom > 0 ? top / bottom : 0;
 	}
 
 	private static BamQC initBamQC(String inputSamOrBamFile, String outputDir, FilterNGS filterNGS) {
 		if (filterNGS == null) {
-			return new BamQC(inputSamOrBamFile, outputDir, new FilterNGS(0.0D, 0.0D, new int[1]));
+			return new BamQC(inputSamOrBamFile, outputDir, new FilterNGS(0.0, 0.0, new int[1]));
 		}
 		BamQC bamQC = new BamQC(inputSamOrBamFile, outputDir, filterNGS);
 		return bamQC;
@@ -566,9 +566,9 @@ public class BamQC {
 
 	private static boolean passesMapQ(SAMRecord samRecord, FilterNGS filterNGS) {
 		boolean passesMapQ = false;
-		if (filterNGS.getMappingQualityFilter() == 0.0D) {
+		if (filterNGS.getMappingQualityFilter() == 0.0) {
 			passesMapQ = true;
-		} else if (((filterNGS.getMappingQualityFilter() == 0.0D) || (samRecord.getMappingQuality() != 255)) && (samRecord.getMappingQuality() >= filterNGS.getMappingQualityFilter())) {
+		} else if (((filterNGS.getMappingQualityFilter() == 0.0) || (samRecord.getMappingQuality() != 255)) && (samRecord.getMappingQuality() >= filterNGS.getMappingQualityFilter())) {
 			passesMapQ = true;
 		}
 		return passesMapQ;
@@ -585,8 +585,8 @@ public class BamQC {
 		String outputDir = null;
 		int skipNumLines = 2;
 		int numThreads = 4;
-		double mappingQuality = 0.0D;
-		double phreadScore = 0.0D;
+		double mappingQuality = 0;
+		double phreadScore = 0.0;
 		int[] readDepth = { 0, 1, 2, 3, 4, 10, 20, 30, 40 };
 		boolean baitsAsTarget = false;
 		double normalizeDepthsTo = 0.0D;

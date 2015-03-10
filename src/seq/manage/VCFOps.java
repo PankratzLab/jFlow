@@ -3,7 +3,9 @@ package seq.manage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -21,6 +23,7 @@ import htsjdk.variant.vcf.VCFHeader;
 import common.Array;
 import common.CmdLine;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.ext;
@@ -166,12 +169,25 @@ public class VCFOps {
 	public static void convertToPlinkSet(String vcf, String rootOut, Logger log) {
 		String[] plinkCommand = null;
 		String dir = ext.parseDirectoryOfFile(vcf) + "plink" + ext.rootOf(vcf) + "/";
+
 		new File(dir).mkdirs();
+
 		rootOut = dir + rootOut;
 		String[] outFiles = PSF.Plink.getPlinkBedBimFam(rootOut);
-		if (!Files.exists(rootOut, outFiles)) {
+		if (!Files.exists(dir, outFiles)) {
 			plinkCommand = PSF.Plink.getPlinkVCFCommand(vcf, rootOut);
-			CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] { vcf }, outFiles, true, true, false, log);
+			if (CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] { vcf }, outFiles, true, true, false, log)) {
+				Hashtable<String, String> newIDS = new Hashtable<String, String>();
+				newIDS = fixFamFile(log, outFiles[2]);
+				gwas.Qc.fullGamut(dir, false);
+				String mdsFile = dir + "genome/mds20.mds";
+				if (Files.exists(mdsFile)) {
+					fixMdsFile(log, dir, newIDS, mdsFile);
+					CmdLine.run("runEigenstrat2", dir + "ancestry/");
+
+				}
+
+			}
 		} else {
 			log.reportTimeWarning("Detected that the following files already exist " + Array.toStr(outFiles));
 		}
@@ -179,6 +195,100 @@ public class VCFOps {
 			String gwasQC = Array.toStr(PSF.Load.getAllModules(), "\n") + "\njcp gwas.Qc dir=" + dir;
 			Files.qsub(dir + "qc.pbs", gwasQC, 62000, 24, 16);
 		}
+	}
+
+	private static void fixMdsFile(Logger log, String dir, Hashtable<String, String> newIDS, String mdsFile) {
+		if (newIDS.size() > 0 && Files.exists(mdsFile)) {
+			String[] header = Files.getHeaderOfFile(mdsFile, log);
+			int[] indices = new int[header.length];
+			for (int i = 0; i < indices.length; i++) {
+				indices[i] = i;
+			}
+			String[][] mds = HashVec.loadFileToStringMatrix(mdsFile, false, new int[] { 0, 1, 2, 3, 4, 5 }, false);
+			String[][] newMds = new String[mds.length][mds[0].length];
+			for (int i = 0; i < mds.length; i++) {
+				for (int j = 0; j < mds[i].length; j++) {
+					if (j == 0 && j != 1 && newIDS.containsKey(mds[i][0])) {
+						newMds[i][0] = newIDS.get(mds[i][0]);
+						newMds[i][1] = newIDS.get(mds[i][0]);
+					} else {
+						newMds[i][j] = mds[i][j];
+					}
+				}
+			}
+			Files.writeMatrix(newMds, ext.addToRoot(mdsFile, ".fixed"), "\t");
+
+		}
+	}
+
+	private static Hashtable<String, String> fixFamFile(Logger log, String famFile) {
+		Hashtable<String, String> changedIds = new Hashtable<String, String>();
+		Files.copyFile(famFile, famFile + ".bak");
+		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, new int[] { 0, 1, 2, 3, 4, 5 }, false);
+		String[][] newfam = new String[fam.length][fam[0].length];
+		boolean newSex = false;
+		// String[][] fam = HashVec.loadFileToStringMatrix(, false, new int[]{1,2,3,4,5,6}, "[\\s]+", false, 1000, false);
+		int noSexcount = 0;
+
+		for (int i = 0; i < fam.length; i++) {
+			if (fam[i][4].equals("0")) {
+				noSexcount++;
+			}
+		}
+		if (noSexcount == fam.length) {
+			newSex = true;
+			log.reportTimeWarning("Assigning alternating sex specifications");
+		}
+		Hashtable<String, String> uniqIds = new Hashtable<String, String>();
+		boolean swit = true;
+		for (int i = 0; i < fam.length; i++) {
+			String FidIid = fam[i][0];
+			if (FidIid.length() >= 37) {
+				String newID = FidIid.substring(0, 38);
+				log.reportTimeWarning("Changing " + FidIid + " to " + newID);
+				changedIds.put(newID, FidIid);
+				// uniqIds.put(FidIid, newID);
+				FidIid = newID;
+			}
+			uniqIds.put(FidIid, FidIid);
+
+			newfam[i][0] = FidIid;
+			newfam[i][1] = FidIid;
+			if (newSex && swit) {
+				newfam[i][4] = "1";
+				swit = false;
+			} else if (newSex && !swit) {
+				newfam[i][4] = "2";
+				swit = true;
+			} else {
+				newfam[i][4] = fam[i][4];
+			}
+			for (int j = 0; j < newfam[i].length; j++) {
+				if (j != 4 && j != 0 && j != 1) {
+					newfam[i][j] = fam[i][j];
+				}
+			}
+
+		}
+		if (uniqIds.size() != fam.length) {
+			log.reportTimeError("Could not remedy fam file");
+		} else {
+			log.reportTimeInfo("fixed fam file");
+			Files.writeMatrix(newfam, famFile, "\t");
+			if (changedIds.size() > 0) {
+				try {
+					PrintWriter writer = new PrintWriter(new FileWriter(famFile + ".changedIds"));
+					for (String newID : changedIds.keySet()) {
+						writer.print(newID + "\t" + changedIds.get(newID));
+					}
+					writer.close();
+				} catch (Exception e) {
+					log.reportError("Error writing to " + famFile + ".changedIds");
+					log.reportException(e);
+				}
+			}
+		}
+		return changedIds;
 	}
 
 	/**
@@ -348,12 +458,12 @@ public class VCFOps {
 
 	}
 
-	public static void extractSegments(String vcf, String segmentFile, Logger log) {
-		if (vcf != null && !Files.exists(vcf)) {
+	public static void extractSegments(String vcf, String segmentFile, int bpBuffer, Logger log) {
+		if (vcf == null || !Files.exists(vcf)) {
 			log.reportFileNotFound(vcf);
 			return;
 		}
-		if (segmentFile != null && !Files.exists(segmentFile)) {
+		if (segmentFile == null || !Files.exists(segmentFile)) {
 			log.reportFileNotFound(segmentFile);
 			return;
 		}
@@ -361,7 +471,7 @@ public class VCFOps {
 		if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
 			segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
 		} else {
-			segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, false);
+			segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
 		}
 		String dir = ext.parseDirectoryOfFile(vcf);
 		String root = ext.rootOf(vcf).replaceFirst(VCF_EXTENSIONS.REG_VCF.getLiteral(), "");
@@ -370,8 +480,8 @@ public class VCFOps {
 		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf.gz";
 		VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 		copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
-		int progress =0;
-		int found =0;
+		int progress = 0;
+		int found = 0;
 
 		for (VariantContext vc : reader) {
 			progress++;
@@ -380,7 +490,7 @@ public class VCFOps {
 				log.reportTimeInfo(found + " variants found...");
 
 			}
-			if (VCOps.isInTheseSegments(vc, segsToSearch)) {
+			if (!vc.isFiltered() && VCOps.isInTheseSegments(vc, segsToSearch)) {
 				writer.add(vc);
 				found++;
 			}
@@ -389,11 +499,22 @@ public class VCFOps {
 		writer.close();
 	}
 
+	public static int getNumberOfVariants(String vcf) {
+		VCFFileReader vcfFileReader = new VCFFileReader(vcf, true);
+		int numVar = 0;
+		for (VariantContext vc : vcfFileReader) {
+			numVar++;
+		}
+		vcfFileReader.close();
+		return numVar;
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String vcf = "Avcf.vcf";
 		String populationFile = null;
 		String logfile = null;
+		int bpBuffer = 0;
 		UTILITY_TYPE type = UTILITY_TYPE.GWAS_QC;
 		String segmentFile = null;
 		Logger log;
@@ -404,6 +525,7 @@ public class VCFOps {
 		usage += "   (3) full path to a file defining a population for the vcf (i.e. pop= (no default))\n" + "";
 		usage += "   (4) the type of vcf extension (i.e. pop= (no default))\n" + "";
 		usage += "   (5) full path to a file name with chr,start,stop or *.bim to extract (i.e. segs= (no default))\n" + "";
+		usage += "   (6) bp buffer for segments to extract (i.e. bp=" + bpBuffer + "(default))\n" + "";
 
 		usage += "   NOTE: available utilities are:\n";
 
@@ -425,6 +547,9 @@ public class VCFOps {
 				numArgs--;
 			} else if (args[i].startsWith("segs=")) {
 				segmentFile = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("bp=")) {
+				bpBuffer = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -451,7 +576,7 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, log);
+				extractSegments(vcf, segmentFile, bpBuffer, log);
 				break;
 			default:
 				break;

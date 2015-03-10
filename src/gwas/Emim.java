@@ -5,7 +5,7 @@ import java.io.*;
 import common.*;
 
 public class Emim {
-	private static void setTo(String runType) {
+	private static void setTo(String runType, boolean allelic) {
 		String filenameOriginal;
 		Logger log;
 		
@@ -18,30 +18,72 @@ public class Emim {
 		filenameOriginal = Files.backup("emimparams.dat", "./", "./", true);
 		
 		if (runType.equals("C")) {
-			replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-					{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"}, 
-					{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
-					{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"}, 
-					{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"}
-				}, log);
+			if (allelic) {
+				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
+						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"},
+						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
+						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
+						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"},
+						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
+						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
+	
+					}, log);
+			} else {
+				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
+						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"},
+						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
+						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
+						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"},
+						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
+						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
+	
+					}, log);
+			}
+			
 		}
 		
 		if (runType.equals("CM")) {
-			replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-					{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"}, 
-					{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
-					{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
-					{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"}
-				}, log);
+			if (allelic) {
+				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
+						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"}, 
+						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
+						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
+						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
+						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
+						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
+					}, log);
+			} else {
+				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
+						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"}, 
+						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
+						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
+						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
+						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
+						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
+					}, log);
+			}
 		}
 
 		if (runType.equals("M")) {
-			replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-					{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
-					{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
-					{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
-					{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"}
-				}, log);
+			if (allelic) {
+				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
+						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
+						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
+						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
+						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
+						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
+						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
+					}, log);
+			} else {
+				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
+						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
+						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
+						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
+						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
+						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
+						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
+					}, log);
+			}
 		}
 	}
 
@@ -115,18 +157,20 @@ public class Emim {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String runType = "C";
-		String dir = "./";
+		String dir = null;
 		double pValueThreshold = 0.0001;
 		String hweFile = null;
 		String plinkPrefix = null;
+		boolean allelic = true;
 
 		String usage = "\n" +
 		"gwas.Emim requires 0-1 arguments\n" +
 		"   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n" +
+		"   (2) allelic instead of 2df genotypic test (i.e. allelic=" + allelic + " (default))\n" +
 		"  OR\n" +
 		"   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n" + 
 		"  OR\n" +
-		"   (1) directory to parse (i.e. parse=" + dir + " (default))\n" + 
+		"   (1) directory to parse (i.e. parse=./ (not the default))\n" + 
 		"   (2) p-value threshold to filter on (i.e. pThreshold=" + pValueThreshold + " (default))\n" + 
 		"   (3) (optional) plink.hwe file to merge with results (i.e. hwe=" + hweFile + " (default))\n" + 
 		"";
@@ -150,6 +194,9 @@ public class Emim {
 			} else if (args[i].startsWith("hwe=")) {
 				hweFile = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("allelic=")) {
+				allelic = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -164,7 +211,7 @@ public class Emim {
 			} else if (plinkPrefix != null) {
 				scriptAll(plinkPrefix);
 			} else {
-				setTo(runType);
+				setTo(runType, allelic);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

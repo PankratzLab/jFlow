@@ -4,6 +4,7 @@ import common.Array;
 import common.Files;
 import common.Logger;
 import common.Positions;
+import common.WorkerHive;
 import common.ext;
 import filesys.Segment;
 import htsjdk.samtools.QueryInterval;
@@ -16,6 +17,7 @@ import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -116,34 +118,20 @@ final class BamExtractor {
 	}
 
 	public static void extractAll(BamSample bamSample, String outputDirectory, int bpBuffer, boolean verbose, boolean overWriteExisting, int numThreads, Logger log) {
-		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-		Hashtable<String, Future<BamExtractor>> tmpResults = new Hashtable<String, Future<BamExtractor>>();
+		WorkerHive<BamExtractor> hive = new WorkerHive<BamExtractor>(numThreads, 10, log);
+
 		for (int i = 0; i < bamSample.getSamples().length; i++) {
 			String curBam = bamSample.getBamForSampleAt(i);
-			String outputBam = outputDirectory + ext.removeDirectoryInfo(curBam);
-			outputBam = ext.addToRoot(outputBam, ".mini");
-			tmpResults.put(i + "", executor.submit(new WorkerExtractor(bamSample.getSegmentsToExtract(), curBam, verbose, overWriteExisting, bpBuffer, outputBam, log)));
-		}
-		for (int i = 0; i < bamSample.getSamples().length; i++) {
-			try {
-				BamExtractor bamExtractor = tmpResults.get(i).get();
-				if (i == 0) {
-					Files.writeList(bamExtractor.bed, outputDirectory + "regions.bed");
-				}
-			} catch (InterruptedException e) {
-				log.reportTimeError("Error - when running extracting segments on internal index " + i);
-				log.reportException(e);
-			} catch (ExecutionException e) {
-				log.reportTimeError("Error - when running extracting segments on internal index " + i);
-				log.reportException(e);
+			if (curBam != null) {
+				String outputBam = outputDirectory + ext.removeDirectoryInfo(curBam);
+				outputBam = ext.addToRoot(outputBam, ".mini");
+				hive.addCallable(new WorkerExtractor(bamSample.getSegmentsToExtract(), curBam, verbose, overWriteExisting, bpBuffer, outputBam, log));
 			}
+
 		}
-		executor.shutdown();
-		try {
-			executor.awaitTermination(10L, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			log.reportException(e);
-		}
+		hive.execute(true);
+		Files.writeList(hive.getResults().get(0).getBed(), outputDirectory + "regions.bed");
+
 	}
 
 	private static class WorkerExtractor implements Callable<BamExtractor> {
@@ -230,7 +218,11 @@ final class BamExtractor {
 		}
 
 		public String getBamForSampleAt(int index) {
-			return (String) this.bamSampleMap.get(this.samples[index]);
+			if (bamSampleMap.containsKey(samples[index])) {
+				return (String) this.bamSampleMap.get(this.samples[index]);
+			} else {
+				return null;
+			}
 		}
 
 		public boolean verify(String[] samples) {
@@ -254,7 +246,7 @@ final class BamExtractor {
 			for (int i = 0; i < this.samples.length; i++) {
 				String curSample = this.samples[i];
 				if (this.bamSampleMap.containsKey(curSample)) {
-					dumper = dumper + (i == 0 ? "" : "\n") + curSample + "\t" + (String) this.bamSampleMap.get(curSample);
+					dumper = dumper + (i == 0 ? "" : "\n") + curSample + "\t" + "./"+ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
 				} else {
 					this.log.reportTimeError("did not find sample " + curSample + " in the sample map");
 				}
@@ -274,6 +266,7 @@ final class BamExtractor {
 						for (int j = 0; j < sGroupRecords.size(); j++) {
 							this.bamSampleMap.put(((SAMReadGroupRecord) sGroupRecords.get(j)).getSample(), this.bamFiles[i]);
 							tmpSamples.add(((SAMReadGroupRecord) sGroupRecords.get(j)).getSample());
+							//System.out.println((sGroupRecords.get(j)).getSample());
 						}
 						try {
 							reader.close();

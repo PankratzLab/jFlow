@@ -4,9 +4,12 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import common.Logger;
 import seq.manage.VCOps;
+import seq.manage.VCOps.GENOTYPE_INFO;
 
 public class FilterNGS implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -85,6 +88,10 @@ public class FilterNGS implements Serializable {
 	}
 
 	public enum VARIANT_FILTER_DOUBLE {
+
+		MAC(2.0, FILTER_TYPE.GTE_FILTER),
+
+		GQ(90, FILTER_TYPE.GTE_FILTER), DP(10, FILTER_TYPE.GTE_FILTER),
 		/**
 		 * Use for minor allele frequency filtering, maf must be greater
 		 */
@@ -94,7 +101,10 @@ public class FilterNGS implements Serializable {
 		HWE(0.0001, FILTER_TYPE.GTE_FILTER), /**
 		 * Call rate Filtering
 		 */
-		CALL_RATE(0.98, FILTER_TYPE.GTE_FILTER);
+		CALL_RATE(0.95, FILTER_TYPE.GTE_FILTER), /**
+		 * Call rate Filtering
+		 */
+		CALL_RATE_LOOSE(0.90, FILTER_TYPE.GTE_FILTER);
 
 		private double dFilter;
 		private FILTER_TYPE type;
@@ -331,6 +341,33 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
+	private VcFilterDouble getMACFilter(VARIANT_FILTER_DOUBLE dfilter) {
+		return new VcFilterDouble(dfilter) {
+			@Override
+			public Double getValue(VariantContext vc) {
+				return VCOps.getMAC(vc, null);
+			}
+		};
+	}
+
+	private VcFilterDouble getAvgGQFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
+		return new VcFilterDouble(dfilter) {
+			@Override
+			public Double getValue(VariantContext vc) {
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.GQ, log);
+			}
+		};
+	}
+
+	private VcFilterDouble getAvgDPFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
+		return new VcFilterDouble(dfilter) {
+			@Override
+			public Double getValue(VariantContext vc) {
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.DP, log);
+			}
+		};
+	}
+
 	private VcFilterBoolean getBiallelicFilter(VARIANT_FILTER_BOOLEAN bfilter) {
 		return new VcFilterBoolean(bfilter) {
 			@Override
@@ -374,7 +411,19 @@ public class FilterNGS implements Serializable {
 		for (int i = 0; i < vDoubles.length; i++) {
 			VARIANT_FILTER_DOUBLE dfilter = dFilters[i];
 			switch (dfilter) {
+			case MAC:
+				vDoubles[i] = getMACFilter(dfilter);
+				break;
+			case GQ:
+				vDoubles[i] = getAvgGQFilter(dfilter, log);
+				break;
+			case DP:
+				vDoubles[i] = getAvgDPFilter(dfilter, log);
+				break;
 			case CALL_RATE:
+				vDoubles[i] = getCallRateFilter(dfilter);
+				break;
+			case CALL_RATE_LOOSE:
 				vDoubles[i] = getCallRateFilter(dfilter);
 				break;
 			case HWE:
@@ -455,6 +504,72 @@ public class FilterNGS implements Serializable {
 		public String getTestPerformed() {
 			return passed ? "Passed :" : "Failed " + testPerformed;
 
+		}
+
+	}
+
+	public static class RareVariantFilter {
+		private Set<String> totalPop;
+		private Set<String> casePop;
+		private Set<String> refPop;
+		private VARIANT_FILTER_DOUBLE mafRef = VARIANT_FILTER_DOUBLE.MAF;
+
+		private VARIANT_FILTER_DOUBLE macCase = VARIANT_FILTER_DOUBLE.MAC;
+		private VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
+		private VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ;
+		private VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
+		private VariantContextFilter refFilters;
+		private VariantContextFilter caseFilters;
+
+		public RareVariantFilter(Set<String> casePop, Set<String> refPop) {
+			super();
+			this.casePop = casePop;
+			this.refPop = refPop;
+			mafRef.setType(FILTER_TYPE.LTE);
+			this.totalPop = new HashSet<String>();
+		}
+
+		public void setMafRef(double maf) {
+			mafRef.setDFilter(maf);
+		}
+
+		public void setMacCase(double mac) {
+			macCase.setDFilter(mac);
+		}
+
+		public void setCallRate(double cr) {
+			callRate.setDFilter(cr);
+		}
+
+		public void setDepth(double depth) {
+			dp.setDFilter(depth);
+		}
+
+		public void setGQ(double genoQual) {
+			gq.setDFilter(genoQual);
+		}
+
+		public void initFilters(Logger log) {
+			VARIANT_FILTER_DOUBLE[] refF = new VARIANT_FILTER_DOUBLE[] { mafRef, callRate, dp, gq };
+			VARIANT_FILTER_DOUBLE[] caseF = new VARIANT_FILTER_DOUBLE[] { macCase, callRate, dp, gq };
+			this.refFilters = new VariantContextFilter(refF, new VARIANT_FILTER_BOOLEAN[] {}, log);
+			this.caseFilters = new VariantContextFilter(caseF, new VARIANT_FILTER_BOOLEAN[] {}, log);
+		}
+
+		public VariantContextFilterPass filter(final VariantContext vc) {
+			VariantContext vcRef = VCOps.getSubset(vc, refPop);
+			VariantContextFilterPass pass = refFilters.filter(vcRef);
+			if (pass.passed()) {
+				VariantContext vcCase = VCOps.getSubset(vc, casePop);
+				pass = caseFilters.filter(vcCase);
+				if (pass.passed()) {
+					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase);
+					pass = caseFilters.filter(vcAlts);
+					if (pass.passed()) {
+					}
+				}
+			}
+			return pass;
 		}
 
 	}
