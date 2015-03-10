@@ -80,6 +80,8 @@ public class PSF {
 
 		public static final String PERL = "perl";
 
+		public static final String SED = "sed";
+
 	}
 
 	/**

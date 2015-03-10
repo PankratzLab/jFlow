@@ -1,13 +1,18 @@
 package seq.analysis;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.concurrent.Callable;
 
+import seq.analysis.PlinkSeqUtils.PlinkSeqBurdenResults;
 import seq.analysis.PlinkSeqUtils.PseqPhenoTypes;
 import seq.analysis.PlinkSeqUtils.PseqProject;
 import seq.analysis.PlinkSeqUtils.PseqProject.PROPERTIES;
 import common.Array;
 import common.CmdLine;
+import common.Files;
 import common.Logger;
 import common.PSF;
 import common.WorkerHive;
@@ -22,17 +27,24 @@ public class PlinkSeq {
 	private static final String NEW_PROJECT = "new-project";
 	private static final String LOAD_VCF = "load-vcf";
 	private static final String LOAD_PHENO = "load-pheno";
+	private static final String LOAD_LOC = "loc-load";
+
 	private static final String FILE = "--file";
+	private static final String GROUP = "--group";
+
 	private static final String V_ASSOC = "v-assoc";
 	private static final String BURDEN = "assoc";
 
 	private static final String PHENOTYPE = "--phenotype";
 	private static final String PERM = "--perm";
 	private static final String TESTS = "--tests";
+	private static final String REQ_FILE = ".reg";
 	/**
 	 * Command for how the burden tests are collapsed in the locdb
 	 */
 	private static final String LOC_GROUP = "loc.group=";
+	private static final String MAC = "mac=";
+
 	private static final String MASK = "--mask";
 	private static final String V_STATS = "v-stats";
 	private static final String I_STATS = "i-stats";
@@ -62,7 +74,7 @@ public class PlinkSeq {
 	}
 
 	private enum LOAD_TYPES {
-		VCF, PHENO
+		VCF, PHENO, LOC_DB
 	}
 
 	// public static enum BUILDS {
@@ -73,7 +85,7 @@ public class PlinkSeq {
 	private Logger log;
 	private boolean fail, overwriteExisting, verbose;
 
-	private PlinkSeq(boolean overwriteExisting, boolean verbose, Logger log) {
+	public PlinkSeq(boolean overwriteExisting, boolean verbose, Logger log) {
 		this.overwriteExisting = overwriteExisting;
 		this.verbose = verbose;
 		this.log = log;
@@ -98,8 +110,21 @@ public class PlinkSeq {
 				init = pseqProject.isLoaded();
 				if (init) {
 					init = loadData(pseqProject, LOAD_TYPES.VCF, null);
-					if (init) {
-						init = loadData(pseqProject, LOAD_TYPES.PHENO, pseqProject.getPhenoFile());
+				}
+				if (init) {
+					init = loadData(pseqProject, LOAD_TYPES.PHENO, pseqProject.getPhenoFile());
+				}
+				if (init) {
+					String[] reqFiles = Files.listFullPaths(pseqProject.getResourceDirectory(), REQ_FILE, false);
+
+					if (init && reqFiles != null && reqFiles.length > 0) {
+						log.reportTimeInfo("Found the following " + REQ_FILE + " files to load into the loc db: ");
+						log.reportTimeInfo(Array.toStr(reqFiles));
+						for (int i = 0; i < reqFiles.length; i++) {
+							if (init) {
+								init = loadData(pseqProject, LOAD_TYPES.LOC_DB, reqFiles[i]);
+							}
+						}
 					}
 				}
 			}
@@ -109,17 +134,17 @@ public class PlinkSeq {
 		return init;
 	}
 
-	private void fullGamutAssoc(PseqProject pseqProject, String[] locGroups, int numPerm, String outputRoot, int numThreads) {
+	private void fullGamutAssoc(PseqProject pseqProject, String[] locGroups, int numPerm, String mac, String outputRoot, int numThreads) {
 		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(numThreads, 10, log);
 		PseqPhenoTypes[] pseqPhenoTypes = pseqProject.getPhenotypes();
 		for (int i = 0; i < pseqPhenoTypes.length; i++) {
-			assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, pseqPhenoTypes[i].getName(), numPerm, outputRoot, overwriteExisting, log));
+			assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
 			for (int j = 0; j < locGroups.length; j++) {
-				assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[i], pseqPhenoTypes[i].getName(), numPerm, outputRoot, overwriteExisting, log));
+				assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j], pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
 			}
 		}
-		assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, 0, outputRoot, overwriteExisting, log));
-		assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_SUMMARY, null, null, null, 0, outputRoot, overwriteExisting, log));
+		assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, 0, "0", outputRoot, overwriteExisting, log));
+		assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_SUMMARY, null, null, null, 0, "0", outputRoot, overwriteExisting, log));
 		assocHive.execute(true);
 	}
 
@@ -140,6 +165,7 @@ public class PlinkSeq {
 		if (!fail) {
 			String loadCommand = "";
 			String[] inputs = null;
+			boolean overideOverWrite = false;
 			if (pseqProject.isLoaded()) {
 				switch (lTypes) {
 				case VCF:
@@ -147,14 +173,25 @@ public class PlinkSeq {
 					break;
 				case PHENO:
 					loadCommand = LOAD_PHENO;
+					overideOverWrite = true;
+					break;
+				case LOC_DB:
+					loadCommand = LOAD_LOC;
+					overideOverWrite = true;
+					break;
+				default:
+					log.reportTimeError("Invalid load Type");
 					break;
 				}
 				String[] command = new String[] { PSEQ, pseqProject.getProjectNameForPseq(), loadCommand };
 				if (file != null) {
 					command = Array.concatAll(command, new String[] { FILE, file });
+					if (lTypes == LOAD_TYPES.LOC_DB) {
+						command = Array.concatAll(command, new String[] { GROUP, ext.rootOf(file) });
+					}
 					inputs = new String[] { file };
 				}
-				CmdLine.runCommandWithFileChecks(command, "", inputs, null, verbose, overwriteExisting, false, log);
+				CmdLine.runCommandWithFileChecks(command, "", inputs, null, verbose, overideOverWrite, false, log);
 			} else {
 				loaded = false;
 				log.reportTimeError("The project " + pseqProject.getProjectName() + " in directory " + pseqProject.getProjectDirectory() + " has not been loaded");
@@ -194,7 +231,7 @@ public class PlinkSeq {
 	 * @param log
 	 * @return
 	 */
-	private static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String phenotype, int numPerm, String outputRoot, boolean overwriteExisting, Logger log) {
+	private static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String phenotype, int numPerm, String mac, String outputRoot, boolean overwriteExisting, Logger log) {
 		String outputDirectory = ext.parseDirectoryOfFile(pseqProject.getFilename()) + "assoc/";
 		new File(outputDirectory).mkdirs();
 		String outputFile = outputDirectory + outputRoot + "." + type;
@@ -221,7 +258,7 @@ public class PlinkSeq {
 			} else {
 				outputFile += "." + phenotype + "." + ext.replaceWithLinuxSafeCharacters(locGroups, true) + ".txt";
 				commandBase = Array.concatAll(commandBase, new String[] { BURDEN }, getPhenoCommand(phenotype));
-				commandBase = Array.concatAll(commandBase, new String[] { MASK, LOC_GROUP + locGroups });
+				commandBase = Array.concatAll(commandBase, new String[] { MASK, LOC_GROUP + locGroups, mac.equals("0") ? "": MAC + mac });
 			}
 			if (bTests != null) {
 				String[] tests = new String[bTests.length + 1];
@@ -249,7 +286,7 @@ public class PlinkSeq {
 			commandBase = Array.concatAll(commandBase, new String[] { PSF.Ext.CARROT, outputFile });
 			String bat = ext.addToRoot(outputFile, ".bat");
 			commandBase = CmdLine.prepareBatchForCommandLine(commandBase, bat, true, log);
-			return new PlinkSeqWorker(commandBase, new String[] { bat }, new String[] { outputFile }, true, overwriteExisting, false, log);
+			return new PlinkSeqWorker(type, commandBase, new String[] { bat }, new String[] { outputFile }, true, overwriteExisting, false, log);
 		} else {
 			return null;
 		}
@@ -260,14 +297,16 @@ public class PlinkSeq {
 	 *
 	 */
 	private static class PlinkSeqWorker implements Callable<PlinkSeqWorker> {
+		private ANALYSIS_TYPES type;
 		private String[] command;
 		private String[] inputFiles;
 		private String[] outputFiles;
 		private boolean success, verbose, overWriteExisting, skipReporting;
 		private Logger log;
 
-		private PlinkSeqWorker(String[] command, String[] inputFiles, String[] outputFiles, boolean verbose, boolean overWriteExisting, boolean skipReporting, Logger log) {
+		private PlinkSeqWorker(ANALYSIS_TYPES type, String[] command, String[] inputFiles, String[] outputFiles, boolean verbose, boolean overWriteExisting, boolean skipReporting, Logger log) {
 			super();
+			this.type = type;
 			this.command = command;
 			this.inputFiles = inputFiles;
 			this.outputFiles = outputFiles;
@@ -282,7 +321,32 @@ public class PlinkSeq {
 		public PlinkSeqWorker call() throws Exception {
 			success = CmdLine.runCommandWithFileChecks(command, "", inputFiles, outputFiles, verbose, overWriteExisting, skipReporting, log);
 			if (success) {
+				switch (type) {
+				case BURDEN:
+					System.out.println(outputFiles[0]);
+					PlinkSeqBurdenResults pSeqBurdenResults = new PlinkSeqBurdenResults(outputFiles[0], log);
+					String burdenSummary = ext.parseDirectoryOfFile(inputFiles[0]) + "burden.summary";
+					PrintWriter writer = new PrintWriter(new FileWriter(burdenSummary, true));
+					HashSet<String> genesPassing = pSeqBurdenResults.getGenesPassing();
+					writer.print(Array.toStr(command, " ") + "\t" + pSeqBurdenResults.getNumTests() + "\t" + pSeqBurdenResults.getBonferoniP() + "\t" + genesPassing.size());
+					for (String gene : genesPassing) {
+						writer.print("\t" + gene);
+					}
+					writer.println();
+					writer.close();
+					break;
+				case I_SUMMARY:
+					break;
+				case V_ASSOC:
+					break;
+				case V_SUMMARY:
+					break;
+				default:
+					break;
+
+				}
 				isSuccess();
+
 			}
 			return this;
 			// TODO Auto-generated method stub
@@ -333,10 +397,10 @@ public class PlinkSeq {
 		return pseqProject;
 	}
 
-	public static void runPlinkSeq(String projName, String vcf, String phenoFile, String resourceDirectory, String outputRoot, String[] locGroups, boolean overwriteExisting, Logger log) {
+	public static void runPlinkSeq(String projName, String vcf, String phenoFile, String resourceDirectory, String outputRoot, String[] locGroups, boolean overwriteExisting, String mac, int numThreads, Logger log) {
 		PlinkSeq plinkSeq = new PlinkSeq(overwriteExisting, true, log);
-		initialize(plinkSeq, projName, vcf, phenoFile, resourceDirectory, log);
-		// plinkSeq.fullGamutAssoc(pseqProject, locGroups, -1, outputRoot, 4);
+		PlinkSeqUtils.PseqProject pseqProject = initialize(plinkSeq, projName, vcf, phenoFile, resourceDirectory, log);
+		plinkSeq.fullGamutAssoc(pseqProject, locGroups, -1, mac, outputRoot, numThreads);
 	}
 
 	public static void main(String[] args) {
@@ -347,7 +411,8 @@ public class PlinkSeq {
 		String projName = "pseq_project";
 		String outputRoot = "pseq_analysis";
 		String[] locGroups = new String[] { "refseq" };
-
+		int numThreads = 4;
+		String mac = "0";
 		boolean overwriteExisting = false;
 
 		// TODO, use just a project file Name to load everything, loc.group args (refseq)
@@ -360,6 +425,8 @@ public class PlinkSeq {
 		usage += "   (6) project name  (i.e. projName=" + projName + " (default))\n" + "";
 		usage += "   (7) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
 		usage += "   (8) comma -delimted loc groups to test in the association  (i.e. locGroups=" + Array.toStr(locGroups, ",") + " (default))\n" + "";
+		usage += "   (9) mac cutoff for burden tests  (i.e. mac=" + mac + " (default))\n" + "";
+		usage += "   (10) " + PSF.Ext.getNumThreadsCommand(10, numThreads);
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -386,6 +453,12 @@ public class PlinkSeq {
 			} else if (args[i].startsWith("projName=")) {
 				projName = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("mac=")) {
+				mac = ext.parseStringArg(args[i], "");
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -395,7 +468,7 @@ public class PlinkSeq {
 			System.exit(1);
 		}
 		try {
-			runPlinkSeq(projName, vcf, phenoFile, resourceDirectory, outputRoot, locGroups, overwriteExisting, new Logger());
+			runPlinkSeq(projName, vcf, phenoFile, resourceDirectory, outputRoot, locGroups, overwriteExisting, mac, numThreads, new Logger());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -410,7 +483,7 @@ public class PlinkSeq {
 		Logger log = new Logger();
 		PlinkSeq plinkSeq = new PlinkSeq(true, true, log);
 		PseqProject pseqProject = initialize(plinkSeq, projName, testVCF, testPheno, resourceDirectory, log);
-		plinkSeq.fullGamutAssoc(pseqProject, new String[] { "refseq" }, -1, "test", 4);
+		plinkSeq.fullGamutAssoc(pseqProject, new String[] { "refseq" }, -1, "2", "test", 4);
 
 	}
 

@@ -480,18 +480,18 @@ public class Segment implements Serializable {
 	
 	
 	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, boolean ignoreFirstLine) {
-		return loadRegions(filename, chrCol, startCol, stopCol, ignoreFirstLine ? 1 : 0, true, true);
+		return loadRegions(filename, chrCol, startCol, stopCol, ignoreFirstLine ? 1 : 0, true, true, 0);
 	}
 
-	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, int skipNumLines, boolean sorted, boolean inclusiveStart, boolean inclusiveStop) {
+	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, int skipNumLines, boolean sorted, boolean inclusiveStart, boolean inclusiveStop, int bpBuffer) {
 		if (sorted) {
-			return sortSegments(loadRegions(filename, chrCol, startCol, stopCol, skipNumLines, inclusiveStart, inclusiveStop));
+			return sortSegments(loadRegions(filename, chrCol, startCol, stopCol, skipNumLines, inclusiveStart, inclusiveStop, bpBuffer));
 		} else {
-			return loadRegions(filename, chrCol, startCol, stopCol, skipNumLines, inclusiveStart, inclusiveStop);
+			return loadRegions(filename, chrCol, startCol, stopCol, skipNumLines, inclusiveStart, inclusiveStop, bpBuffer);
 		}
 	}
 
-	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, int skipNumLines, boolean inclusiveStart, boolean inclusiveStop) {
+	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, int skipNumLines, boolean inclusiveStart, boolean inclusiveStop, int bpBuffer) {
 		BufferedReader reader;
 		Vector<Segment> v = new Vector<Segment>();
 		String[] line;
@@ -503,7 +503,7 @@ public class Segment implements Serializable {
 			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				v.add(new Segment(Positions.chromosomeNumber(line[chrCol]), (inclusiveStart ? Integer.parseInt(line[startCol]) : Integer.parseInt(line[startCol]) + 1), (inclusiveStop ? Integer.parseInt(line[stopCol]) : Integer.parseInt(line[stopCol]) - 1)));
+				v.add(new Segment(Positions.chromosomeNumber(line[chrCol]), (inclusiveStart ? Integer.parseInt(line[startCol]) : Integer.parseInt(line[startCol]) + 1) - bpBuffer, (inclusiveStop ? Integer.parseInt(line[stopCol]) : Integer.parseInt(line[stopCol]) - 1) + bpBuffer));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {

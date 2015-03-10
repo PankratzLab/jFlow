@@ -3466,7 +3466,7 @@ public class SuperNovo {
 		boolean isToAnnotate, isToSummarizeResults, isToAssessCoverage, isToScanSamFilesForDenovoMutations, isGetHaplotypes, isToTest, isToOutputHaplotypeStrings;
 		Logger log;
 
-		commandIsToScanSamFilesForDenovoMutations = "--scandenovo";
+		commandIsToScanSamFilesForDenovoMutations = "-scandenovo";
 		commandIsToFilterAndSummarizeResults = "-summarizeresults";
 		commandIsToHaploidCount = "-haploidcount";
 		commandIsToOutputHaplotypeStrings = "outhaplotypes=";
@@ -3529,6 +3529,7 @@ public class SuperNovo {
 					+ "\n   (7) full path to the reference Fasta file (i.e. " + commands[6] + fullPathRefFasta + " (default))"
 					+ "\n   (8) directory for the output files (i.e. " + commandOutDir + dirOutputsFromTheScanningOfSamFilesForDenovoMutations + " (default))"
 					+ "\n   (9) to output read counts, full path to the read counts output file (i.e. " + commands[18] + fullPathReadCounts + " (not default))"
+					+ "\n"
 					+ "\nTo scan multiple regions in .sam or .bam files of a trio for De Novo Mutations (phase 1 scan):"
 					+ "\n   (1) " + commandIsToScanSamFilesForDenovoMutations + " (not default))"
 					+ "\n   (2) full paths to the .sam (or .bam) files of the trio (i.e. " + commands[5] + helpMenu + " (not default))"
@@ -3539,6 +3540,7 @@ public class SuperNovo {
 					+ "\n   (7) to output read count files, directory and prefix for the read counts files (i.e. " + commands[21] + dirReadCounts + " (default)"
 					+ "\n   (8) maximum length that a region is to be broken into, for the scan of .sam/.bam files at a time (i.e. " + regionLegnthATime
 					+ "\n   (9) number of threads (i.e. " + commands[11] + numThreads + " (default))"
+					+ "\n"
 					+ "\nTo generate scripts for all the trios in a directory, to scan multiple regions in .sam or .bam files for each one of them at a time for De Novo Mutations (phase 1 scan):"
 					+ "\n   (1) " + commandIsToScanSamFilesForDenovoMutations + " (not default))"
 					+ "\n   (2) directory of the .sam files (i.e. " + commands[2] + dirSam + " (default))"
@@ -3550,6 +3552,7 @@ public class SuperNovo {
 					+ "\n   (8) to output read count files, directory and prefix for the read counts files (i.e. " + commands[21] + dirReadCounts + " (default)"
 					+ "\n   (9) maximum length that a region is to be broken into, for the scan of .sam/.bam files at a time (i.e. " + regionLegnthATime
 					+ "\n   (10) number of threads (i.e. " + commands[11] + numThreads + " (default))"
+					+ "\n"
 					+ "\nTo filter and summarize the outputs of the .sam files' scanning of all trios (phase 2 scan):"
 					+ "\nYou might need to repeat this command for several times, after each of which you'll use the updated lists to download the annotations from SeattleSeq and output of this summary will be based on the updated SeattleSeq annotations before the run."
 					+ "\n   (1) command for filter and summarize results (i.e. " + commandIsToFilterAndSummarizeResults + " (default))"
@@ -3558,18 +3561,21 @@ public class SuperNovo {
 					+ "\n   (4) directory of the SeattleSeq annotation files (existing annotation files will be incorporated into the summary, while new list of the additional files needed will be generated) (i.e. " + commands[16] + dirSeattleSeq + " (default))"
 					+ "\n   (5) directory to output the scripts for generating the mini .bam files (to call samtools and extract regions from the .sam/.bam files) (i.e. " + commands[17] + dirMiniSamScripts + " (default))"
 					+ "\n   (6) directory to output the mini .bam files (i.e. " + commands[29] + dirMiniSam + " (default))"
+					+ "\n"
 					+ "\nTo assess coverage of a specific trio:"
 					+ "\n   (1) command for assess coverage (i.e. " + commands[19] + " (not default))"
 					+ "\n   (2) full path to the read counts file of the trio (i.e. " + commands[18] + fullPathReadCounts + " (default)"
 					+ "\n   (3) full path of the bed file (i.e. " + commands[10] + fullPathBim + " (default))"
 					+ "\n   (4) thresholds of read counts (i.e. " + commands[22] + thresholdsForReadCounts + " (default))"
 					+ "\n   (5) thresholds of mapping quality scores (i.e. " + commands[23] + thresholdsForMapping + " (default))"
+					+ "\n"
 					+ "\nTo assess coverage of all trios in a directory:"
 					+ "\n   (1) command for assess coverage (i.e. " + commands[19] + " (not default))"
 					+ "\n   (2) dir the read counts files (i.e. " + commands[21] + dirReadCounts + " (default)"
 					+ "\n   (3) full path of the bed file (i.e. " + commands[10] + fullPathBim + " (default))"
 					+ "\n   (4) thresholds of read counts (i.e. " + commands[22] + thresholdsForReadCounts + " (default))"
 					+ "\n   (5) thresholds of mapping quality scores (i.e. " + commands[23] + thresholdsForMapping + " (default)"
+					+ "\n"
 					+ "\nTo get haploid counts for a region of a trio (output of the phase 2 parsing):"	//TODO to do haploid count for each individual, rather than trio
 					+ "\n   (1) command for haplotypes (i.e. " + commandIsToHaploidCount + " (not default))"
 					+ "\n   (2) label of the trio, to be used in the name of the output file (i.e. " + commands[13] + trioId + " (default))"
@@ -3578,12 +3584,14 @@ public class SuperNovo {
 					+ "\n   (5) start position of the region (i.e. " + commands[8] + begin + " (default))"
 					+ "\n   (6) stop position of the region (i.e. " + commands[9] + end + " (default))"
 					+ "\n   (7) full path to output the haploytype strings, if needed (i.e. " + commands[26] + fullPathToOutputHaplotypeStrings + " (default))"
+					+ "\n"
 					+ "\nTo get haploid counts of all trios appeared in an output file of the filter and summary (output of the phase 2 scan):"
 					+ "\n   (1) command for haplotypes (i.e. " + commandIsToHaploidCount + " (not default))"
 					+ "\n   (2) full path to the output file of the filter and summary (output of the phase 2 scan) (i.e. " + commandTrioList + fullPathToSummaryOutputFile + " (default))"
 					+ "\n   (3) full path to the trio list file (i.e. " + commandTrioList + fullPathTrioList + " (default))"
 					+ "\n   (4) directory of the bam files (i.e. " + commands[2] + dirSam + " (default))"
 					+ "\n   (5) whether to output the haplotype strings (i.e. " + commandIsToOutputHaplotypeStrings + isToOutputHaplotypeStrings + " (default))"
+					+ "\n"
 					+ "\n(Legacy, obsoleted code): To annotate a list of candidate markers:"
 					+ "\n   (1) command for annotatation (i.e. " + commands[0] + " (default))"
 					+ "\n   (2) full path of the candidate list file (i.e. " + commands[1] + fullPathVariantCandidatesList + " (default))"
@@ -3759,10 +3767,10 @@ public class SuperNovo {
 				log = new Logger(dirOutputsFromTheScanningOfSamFilesForDenovoMutations + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
 				scanARegionInSamFilesOfATrioForDeNovoMutations(fullpathsToSamFilenamesOfTheTrio, fullPathRefFasta, chr, begin, end, dirOutputsFromTheScanningOfSamFilesForDenovoMutations, fullPathReadCounts, log);
 
-			} else if ((fullPathBim != null || !fullPathBim.equals("")) && new File(fullPathBim).exists() && (chr==null || chr.equals(""))) {
+			} else if ((fullPathBim != null || !fullPathBim.equals("")) && new File(fullPathBim).exists() && (chr==null || chr.equals("")) && (dirSam==null || dirSam.equals(""))) {
 				scanMultipleRegionsInSamFilesOfATrioForDenovoMutations(trioId, fullpathsToSamFilenamesOfTheTrio, fullPathRefFasta, fullPathBim, dirOutputsFromTheScanningOfSamFilesForDenovoMutations, fullPathReadCounts, regionLegnthATime, numThreads, log);
 
-			} else if ((dirSam != null || dirSam.equals("")) && fullpathsToSamFilenamesOfTheTrio == null || fullpathsToSamFilenamesOfTheTrio.equals("")) {
+			} else if ((dirSam != null && !dirSam.equals("")) && fullpathsToSamFilenamesOfTheTrio == null || fullpathsToSamFilenamesOfTheTrio.equals("")) {
 				generateScriptsAllTriosInADirectoryToScanSamFilesForDenovoMutation(dirSam, fullPathRefFasta, fullPathBim, dirOutputsFromTheScanningOfSamFilesForDenovoMutations, dirScript, fullPathTrioList, dirReadCounts, regionLegnthATime, numThreads, log);
 
 			} else {
