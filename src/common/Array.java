@@ -2423,6 +2423,16 @@ public class Array {
 		return subarray;
 	}
 	
+	public static int[] subArray(int[] array, int[] use) {
+		int[] subarray;
+
+		subarray = new int[array.length];
+		for (int i = 0; i < use.length; i++) {
+			subarray[i] = array[use[i]];
+		}
+
+		return subarray;
+	}
 	/**
 	 * Creates a new array using only the byte values at indices defined by the Integer array
 	 * 
