@@ -556,7 +556,7 @@ public class FilterNGS implements Serializable {
 			this.caseFilters = new VariantContextFilter(caseF, new VARIANT_FILTER_BOOLEAN[] {}, log);
 		}
 
-		public VariantContextFilterPass filter(final VariantContext vc) {
+		public VariantContextFilterPass filter(final VariantContext vc,Logger log) {
 			VariantContext vcRef = VCOps.getSubset(vc, refPop);
 			VariantContextFilterPass pass = refFilters.filter(vcRef);
 			if (pass.passed()) {

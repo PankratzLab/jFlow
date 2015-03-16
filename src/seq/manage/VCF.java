@@ -180,7 +180,7 @@ public class VCF {
 					write = false;
 				}
 				if (write && rareVariantFilter != null) {
-					write = rareVariantFilter.filter(variantContext).passed();
+					write = rareVariantFilter.filter(variantContext,log).passed();
 				}
 				if (write && (IDsToExtract.size() > 0)) {
 					write = IDsToExtract.containsKey(variantContext.getID());
@@ -374,7 +374,7 @@ public class VCF {
 			vpop = VcfPopulation.load(popFile, log);
 			vpop.report(log);
 		}
-		VCF vcf = new VCF(vcfFile, new Logger());
+		VCF vcf = new VCF(vcfFile, new Logger(ext.rootOf(vcfFile,false)+".log"));
 		Hashtable<String, Vector<String>> IDsToExtract = new Hashtable<String, Vector<String>>();
 		if (idFile != null) {
 			IDsToExtract = HashVec.loadFileToHashVec(idFile, 0, new int[1], "\t", false, true);
