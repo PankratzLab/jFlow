@@ -149,6 +149,12 @@ public class VCFOps {
 		return writer;
 	}
 
+	public static String[] getSamplesInFile(VCFFileReader reader){
+		ArrayList<String> samples =  reader.getFileHeader().getSampleNamesInOrder();
+		return samples.toArray(new String[samples.size()]);	
+	}
+	
+	
 	/**
 	 * Retrieves the sequence dictionary from a reader
 	 * 
@@ -508,6 +514,8 @@ public class VCFOps {
 		vcfFileReader.close();
 		return numVar;
 	}
+	
+	
 
 	public static void main(String[] args) {
 		int numArgs = args.length;

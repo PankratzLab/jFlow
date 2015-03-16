@@ -253,4 +253,41 @@ public class VCOps {
 		return ambiguous;
 	}
 
+	public static class LocusID {
+		private byte chr;
+		private int start;
+		private String ref;
+		private String alt;
+		private String id;
+
+		public LocusID(VariantContext vc) {
+			this.chr = Positions.chromosomeNumber(vc.getChr());
+			this.start = vc.getStart();
+			this.ref = vc.getReference().getDisplayString();
+			this.alt = vc.getAltAlleleWithHighestAlleleCount().getDisplayString();
+			this.id = vc.getID().equals(".") ? chr + ":" + start + ":" + ref + ":" + alt : vc.getID();
+		}
+
+		public byte getChr() {
+			return chr;
+		}
+
+		public int getStart() {
+			return start;
+		}
+
+		public String getRef() {
+			return ref;
+		}
+
+		public String getAlt() {
+			return alt;
+		}
+
+		public String getId() {
+			return id;
+		}
+
+	}
+
 }
