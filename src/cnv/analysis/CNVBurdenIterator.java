@@ -13,7 +13,6 @@ import stats.LeastSquares;
 import stats.LogisticRegression;
 import stats.RegressionModel;
 import cnv.var.CNVariant;
-import common.Array;
 import common.Files;
 import common.HashVec;
 import common.ext;
@@ -112,6 +111,7 @@ public class CNVBurdenIterator {
 	boolean logistic = false;
 	boolean collapseCNVTypes = false;
 	boolean binaryCNVCounts = false;
+	boolean stepSizes = false;
 	int genderCol = -1;
 	int males = 0, females = 0;
 	int depInd;
@@ -125,6 +125,7 @@ public class CNVBurdenIterator {
 	double[][][] resultsP;
 	double[][][] resultsR;
 	double[][][] resultsSE;
+	double[][][] resultsMean;
 	
 	private void loadIDs(String famFile, String idsFile) {
 		HashSet<String> famIDs, tempIDs;
@@ -465,7 +466,7 @@ public class CNVBurdenIterator {
 	
 	private void runCalc() {
 		CNV_FILTERS = collapseCNVTypes ? new int[]{1, 4} : new int[]{0, 1, 3, 4};
-		CNV_SIZES = new double[]{5000, 2500, 1000, 500, 250, 100};
+		CNV_SIZES = new double[]{5000, 2500, 1000, 500, 250, 100, 0.001 };
 		if (genderCol >= 0) {
 			VAR_SIZES = new int[]{idData.size(), males, females}; 
 		} else {
@@ -476,6 +477,7 @@ public class CNVBurdenIterator {
 		resultsP = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
 		resultsR = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
 		resultsSE = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
+		resultsMean = new double[VAR_SIZES.length][CNV_FILTERS.length][CNV_SIZES.length];
 
 		double[] depVars = null;
 		double[][] indepVars = new double[indepInds.length][];
@@ -500,13 +502,20 @@ public class CNVBurdenIterator {
 						}
 						
 						depVars[cnt] = indiv.getValue().getData(depInd);
-						for (int i = 0; i < indepInds.length; i++) {
-							indepVars[cnt][i] = indiv.getValue().getData(indepInds[i]);
+						
+						if (stepSizes) {
+							float larger = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]-1) : 0);
+							float smaller = sz == 0 ? 0 : indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn]-1) : 0);
+							indepVars[cnt][0] = larger - smaller;
+						} else {
+							indepVars[cnt][0] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]-1) : 0);
+						}
+						if (binaryCNVCounts) {
+							indepVars[cnt][0] = Math.min(1, indepVars[cnt][0]);
 						}
 						
-						indepVars[cnt][indepInds.length] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]-1) : 0);
-						if (binaryCNVCounts) {
-							indepVars[cnt][indepInds.length] = Math.min(1, indepVars[cnt][indepInds.length]);
+						for (int i = 1; i < indepInds.length + 1; i++) {
+							indepVars[cnt][i] = indiv.getValue().getData(indepInds[i - 1]);
 						}
 						
 						cnt++;
@@ -519,11 +528,10 @@ public class CNVBurdenIterator {
 						model = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 					}
 					
-					int thresh = indepInds.length + 1;
-					resultsB[sex][cn][sz] = model.getBetas().length > thresh ? model.getBetas()[thresh] : Double.NaN;
-					resultsP[sex][cn][sz] = model.getSigs().length > thresh ? model.getSigs()[thresh] : Double.NaN;
+					resultsB[sex][cn][sz] = model.getBetas()[1];
+					resultsP[sex][cn][sz] = model.getSigs()[1];
 					resultsR[sex][cn][sz] = model.getRsquare(); 
-					resultsSE[sex][cn][sz] = model.getBetas().length > thresh ? model.getSEofBs()[thresh] : Double.NaN;
+					resultsSE[sex][cn][sz] = model.getSEofBs()[1];
 					
 					model = null;
 				}
@@ -553,6 +561,10 @@ public class CNVBurdenIterator {
 		if (!collapseCNVTypes) {
 			header2 = header2.append("\t\t");
 		}
+		header2.append("MeanIQ\t\t\t\t");
+		if (!collapseCNVTypes) {
+			header2 = header2.append("\t\t");
+		}
 		
 		PrintWriter writer;
 		try {
@@ -561,12 +573,21 @@ public class CNVBurdenIterator {
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
 						int val = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn] - 1) : 0);
-						counts[0][cn][sz] += val;
+						if (stepSizes) {
+							int smaller = sz == 0 ? 0 : indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn]) + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn]-1) : 0);
+							val -= smaller;
+						}
+						counts[0][cn][sz] += val > 0 ? 1 : 0;
+						if (val > 0) {
+							resultsMean[0][cn][sz] += indiv.getValue().getData(depInd);
+						}
 						if (genderCol >= 0) {
 							if (indiv.getValue().getData(genderCol) > 0.5) {
-								counts[1][cn][sz] += val;
+								counts[1][cn][sz] += val > 0 ? 1 : 0;
+								resultsMean[1][cn][sz] += val > 0 ? indiv.getValue().getData(depInd) : 0;
 							} else {
-								counts[2][cn][sz] += val;
+								counts[2][cn][sz] += val > 0 ? 1 : 0;
+								resultsMean[2][cn][sz] += val > 0 ? indiv.getValue().getData(depInd) : 0;
 							}
 						}
 					}
@@ -579,7 +600,7 @@ public class CNVBurdenIterator {
 			
 			for (int sex = 0; sex < labels.length; sex++) {
 				writer.println(header2.toString());
-				writer.println(labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\tn=" + VAR_SIZES[sex]);
+				writer.println(labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\t\t" + labels[sex] + header + "\tn=" + VAR_SIZES[sex]);
 				for (int sz = 0; sz < CNV_SIZES.length; sz++) {
 					writer.print(CNV_SIZES[sz]);
 					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
@@ -608,8 +629,13 @@ public class CNVBurdenIterator {
 						writer.print("\t" + resultsSE[sex][cn][sz]);
 					}
 					
-					writer.println();
+					writer.print("\t\t");
+					writer.print(CNV_SIZES[sz]);
+					for (int cn = 0; cn < CNV_FILTERS.length; cn++) {
+						writer.print("\t" + (resultsMean[sex][cn][sz] / counts[sex][cn][sz]));
+					}
 					
+					writer.println();
 				}
 				writer.println();
 			}
@@ -621,11 +647,12 @@ public class CNVBurdenIterator {
 		}
 	}
 	
-	public void runProgram(String cnvFile, String dataFile, String famFile, String idsFile, int[] idCols, int[] dataCols, int depCol, int genderCol, boolean logistic, boolean collapseCNVTypes, boolean binaryCNVcounts) {
+	public void runProgram(String cnvFile, String dataFile, String famFile, String idsFile, int[] idCols, int[] dataCols, int depCol, int genderCol, boolean logistic, boolean collapseCNVTypes, boolean binaryCNVcounts, boolean stepSizes) {
 		this.logistic = logistic;
 		this.genderCol = genderCol;
 		this.collapseCNVTypes = collapseCNVTypes;
 		this.binaryCNVCounts = binaryCNVcounts;
+		this.stepSizes = stepSizes;
 		depInd = depCol;
 		indepInds = new int[dataCols.length-1];
 		int ind = 0;
@@ -649,6 +676,7 @@ public class CNVBurdenIterator {
 		boolean collapse = false;
 		boolean binaryCnts = false;
 		boolean logisticRun = false;
+		boolean stepwise = false;
 		int[] dataCols = new int[]{2, 3, 5, 6}; 
 		int[] idsCols = new int[]{0, 1};
 		int depCol = 2;
@@ -666,7 +694,8 @@ public class CNVBurdenIterator {
 				"   (8) dependColumn \n" + 
 				"   (9) -collapse \n" + 
 				"  (10) -binary \n" + 
-				"  (11) -logistic \n";
+				"  (11) -logistic \n" + 
+				"  (12) -stepwise \n";
 		int numArgs = args.length;
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
@@ -713,6 +742,9 @@ public class CNVBurdenIterator {
 			} else if (args[i].startsWith("-logistic")) {
 				logisticRun = true;
 				numArgs--;
+			} else if (args[i].startsWith("-stepwise")) {
+				stepwise = true;
+				numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -722,7 +754,7 @@ public class CNVBurdenIterator {
 		
 		try {
 			CNVBurdenIterator burden = new CNVBurdenIterator();
-			burden.runProgram(cnvFile, dataFile, famFile, idsFile, idsCols, dataCols, depCol, genCol, logisticRun, collapse, binaryCnts);
+			burden.runProgram(cnvFile, dataFile, famFile, idsFile, idsCols, dataCols, depCol, genCol, logisticRun, collapse, binaryCnts, stepwise);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
