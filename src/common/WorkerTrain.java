@@ -21,6 +21,7 @@ public class WorkerTrain<E> implements Iterator<E> {
 	private BlockingQueue<Future<E>> bq;
 	private int currentQSize, numThreads, qBuffer;
 	private Logger log;
+	private boolean autoShutDown;
 
 	/**
 	 * @param producer
@@ -39,6 +40,7 @@ public class WorkerTrain<E> implements Iterator<E> {
 		this.producer = producer;
 		this.log = log;
 		this.currentQSize = 0;
+		this.autoShutDown = true;
 	}
 
 	public void shutdown() {
@@ -56,7 +58,11 @@ public class WorkerTrain<E> implements Iterator<E> {
 			bq.add(executor.submit(producer.next()));
 			currentQSize++;
 		}
-		return !bq.isEmpty();
+		boolean hasNext = !bq.isEmpty();
+		if (!hasNext && autoShutDown) {
+			shutdown();
+		}
+		return hasNext;
 	}
 
 	@Override
