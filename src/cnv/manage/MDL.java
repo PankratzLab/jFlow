@@ -77,6 +77,9 @@ public class MDL implements Iterator<MarkerData> {
 	@Override
 	public boolean hasNext() {
 		boolean hasNext = numLoaded < markerNames.length;
+		if (!hasNext) {
+			shutdown();
+		}
 		return hasNext;
 	}
 
@@ -271,6 +274,8 @@ public class MDL implements Iterator<MarkerData> {
 			} catch (IOException e) {
 				proj.getLog().reportIOException(currentMarkFilename);
 				e.printStackTrace();
+			} catch (Exception e) {
+				proj.getLog().reportException(e);
 			}
 			numLoaded = markerIndicesInProject.length;
 			return null;
@@ -438,24 +443,32 @@ public class MDL implements Iterator<MarkerData> {
 		Project proj = new Project(null, false);
 		System.out.println(proj.getMarkerNames().length);
 		String[] markers = proj.getMarkerNames();
-		int iter = 10;
 		long totalTime = System.currentTimeMillis();
 		String totalTimeMDL = "";
 		String totalTimemarkerDataLoader = "";
 
+		int iter = 1;
+
 		for (int i = 0; i < iter; i++) {
 			int index = 0;
 			MDL mdl = new MDL(proj, proj.getMarkerNames(), 3, 10);
-
 			while (mdl.hasNext()) {
-				MarkerData markerData = mdl.next();
-				if (!markerData.getMarkerName().equals(markers[index])) {
-					System.err.println("DSKLFJSD\t" + markerData.getMarkerName() + "\t" + markers[index]);
+				try {
+					MarkerData markerData = mdl.next();
+					if (!markerData.getMarkerName().equals(markers[index])) {
+						System.err.println("DSKLFJSD\t" + markerData.getMarkerName() + "\t" + markers[index]);
+					}
+					if (index % 10000 == 0) {
+						proj.getLog().reportTimeInfo(index + " of " + markers.length);
+					}
+				} catch (NullPointerException npe) {
+					System.out.println(markers[index]);
+					System.exit(1);
 				}
 				index++;
 			}
-			mdl.shutdown();
 
+			mdl.shutdown();
 		}
 		totalTimeMDL = "TIME:MDL" + ext.getTimeElapsed(totalTime);
 
@@ -467,14 +480,15 @@ public class MDL implements Iterator<MarkerData> {
 				if (!markerData.getMarkerName().equals(markers[j])) {
 					System.err.println("DSKLFJSD\t" + markerData.getMarkerName() + "\t" + markers[j]);
 				}
+				if (j % 10000 == 0) {
+					proj.getLog().reportTimeInfo(j + " of " + markers.length);
+				}
 				markerDataLoader.releaseIndex(j);
 			}
 		}
 		totalTimemarkerDataLoader = "TIME:MarkerDataloader" + ext.getTimeElapsed(totalTime);
-
 		proj.getLog().reportTimeInfo(totalTimeMDL);
 		proj.getLog().reportTimeInfo(totalTimemarkerDataLoader);
-
 	}
 
 }
