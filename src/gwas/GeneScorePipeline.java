@@ -388,7 +388,7 @@ public class GeneScorePipeline {
 	
 	
 	public void runPipeline() {
-		System.out.println("Processing study data [" + studies.size() + " total]:");
+		System.out.println(ext.getTime()+"]\tProcessing study data [" + studies.size() + " total]:");
 //		if (numThreads == 1) {
 //			for (String studyDir : studyFolders) {
 //				processStudy(studyDir);
@@ -403,7 +403,7 @@ public class GeneScorePipeline {
 //			ExecutorService server = Executors.newFixedThreadPool(numThreads);
 //			
 //		}
-		System.out.println("Processing Complete!");
+		System.out.println(ext.getTime()+"]Processing Complete!");
 	}
 	
 	private void createFolders(Study study) {
@@ -444,11 +444,11 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> constraintEntry : analysisConstraints.entrySet()) {
 				String crossFilterFile = study.studyDir + dataFile + "\\" + constraintEntry.getKey() + "\\bimData.xln";
 				if ((new File(crossFilterFile).exists())) {
-					System.out.println("Cross-filtered data file already exists! [ --> '" + crossFilterFile + "']");
+					System.out.println(ext.getTime()+"]\tCross-filtered data file already exists! [ --> '" + crossFilterFile + "']");
 					study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, Files.countLines(crossFilterFile, true));
 					continue;
 				}
-				System.out.println("Cross-filtering data and .BIM files [ --> '" + crossFilterFile + "']");
+				System.out.println(ext.getTime()+"]\tCross-filtering data and .BIM files [ --> '" + crossFilterFile + "']");
 				BufferedReader bimReader;
 				BufferedReader dataReader;
 				PrintWriter dataWriter;
@@ -470,7 +470,7 @@ public class GeneScorePipeline {
 					}
 				} while ((line = bimReader.readLine()) != null);
 				bimReader.close();
-				System.out.println("Found " + cntAmbig + " ambiguous markers (will be excluded)");
+				System.out.println(ext.getTime()+"]\tFound " + cntAmbig + " ambiguous markers (will be excluded)");
 				dataReader = Files.getAppropriateReader(metaDir + dFile);
 				dataWriter = new PrintWriter(crossFilterFile);
 				
@@ -518,13 +518,13 @@ public class GeneScorePipeline {
 				String crossFilterFile = prefDir + "\\bimData.xln";
 				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 				if ((new File(hitsFile)).exists()) {
-					System.out.println("Hit window analysis file already exists! [ --> '" + hitsFile + "']");
+					System.out.println(ext.getTime()+"]\tHit window analysis file already exists! [ --> '" + hitsFile + "']");
 					study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, Files.countLines(hitsFile, true));
 					continue;
 				}
-				System.out.println("Running hit window analysis [ --> '" + hitsFile + "']");
+				System.out.println(ext.getTime()+"]\tRunning hit window analysis [ --> '" + hitsFile + "']");
 				String[][] results = HitWindows.determine(crossFilterFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES);
-				System.out.println("Found " + results.length + " hit windows");
+				System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
 				Files.writeMatrix(results, hitsFile, "\t");
 				study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, results.length);
 			}
@@ -542,10 +542,10 @@ public class GeneScorePipeline {
 				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
 				if ((new File(mkrDataFile)).exists()) {
-					System.out.println("Hit window marker data file already exists! [ --> '" + mkrDataFile + "']");
+					System.out.println(ext.getTime()+"]\tHit window marker data file already exists! [ --> '" + mkrDataFile + "']");
 					continue;
 				}
-				System.out.println("Extracting data for hit window markers [ --> '" + mkrDataFile + "']");
+				System.out.println(ext.getTime()+"]\tExtracting data for hit window markers [ --> '" + mkrDataFile + "']");
 				String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true, new int[]{hitsMkrIndex}, false);
 				HashSet<String> hitMrkSet = new HashSet<String>();
 				for (String mkr : hitMarkers) {
@@ -576,15 +576,15 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
 				if (!prefDir.exists()) {
-					System.out.println("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
+					System.out.println(ext.getTime()+"]\tError - no subfolder for '" + filePrefix.getKey() + "' analysis");
 					continue;
 				}
 				if ((new File(prefDir + "\\plink.profile")).exists()) {
-					System.out.println("Plink analysis results file already exists! [ --> '" + prefDir + "\\plink.profile" + "']");
+					System.out.println(ext.getTime()+"]\tPlink analysis results file already exists! [ --> '" + prefDir + "\\plink.profile" + "']");
 					continue;
 				}
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
-				System.out.print("Running plink command [ --> '");
+				System.out.print(ext.getTime()+"]\tRunning plink command [ --> '");
 				String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref + " --score " + mkrDataFile;
 				System.out.println(cmd + "']");
 				/*boolean results = */CmdLine.run(cmd, prefDir.getAbsolutePath());
@@ -599,15 +599,15 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
 				if (!prefDir.exists()) {
-					System.out.println("Error - no subfolder for '" + filePrefix + "' analysis");
+					System.out.println(ext.getTime()+"]\tError - no subfolder for '" + filePrefix + "' analysis");
 					continue;
 				}
 				if ((new File(prefDir + "\\runPlink.sh")).exists()) {
-					System.out.println("Plink analysis shell script already exists! [ --> '" + prefDir + "\\runPlink.sh" + "']");
+					System.out.println(ext.getTime()+"]\tPlink analysis shell script already exists! [ --> '" + prefDir + "\\runPlink.sh" + "']");
 					continue;
 				}
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
-				System.out.println("Writing plink command");
+				System.out.println(ext.getTime()+"]\tWriting plink command");
 				String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref + " --score " + mkrDataFile;
 				Files.write(cmd, prefDir.getAbsolutePath() + "\\runPlink.sh");
 			}
@@ -644,7 +644,7 @@ public class GeneScorePipeline {
 						}
 						String[] unq = Array.unique(Array.toStringArray(scores));
 						if (unq.length == 1) {
-							System.out.println("Error - no variance in scores for " + dataFile + " / " + filePrefix.getKey() + " -- no .hist file created");
+							System.out.println(ext.getTime()+"]\tError - no variance in scores for " + dataFile + " / " + filePrefix.getKey() + " -- no .hist file created");
 						} else {
 							Files.write((new Histogram(scores)).getSummary(), prefDir + "\\scores.hist");
 						}
@@ -718,7 +718,7 @@ public class GeneScorePipeline {
 		PrintWriter writer;
 		
 		String resFile = metaDir + "results.xln";
-		System.out.println("Writing regression results... [ --> " + resFile + "]");
+		System.out.println(ext.getTime()+"]\tWriting regression results... [ --> " + resFile + "]");
 		writer = Files.getAppropriateWriter(resFile);
 		writer.println(REGRESSION_HEADER);
 		
