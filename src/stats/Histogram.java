@@ -33,7 +33,6 @@ public class Histogram {
 		sigfigs = 0;
 		extrastep = 0;
 		
-		
 		while ((max - min) / determineStep() < (double)array.length/50.0) {
 			extrastep++;
 			if (extrastep == EXTRA_STEPS.length) {

@@ -2363,6 +2363,7 @@ public class Files {
 		try {
 	        writer = new PrintWriter(new FileWriter(filename));
 	        writer.println(str);
+	        writer.flush();
 	        writer.close();
         } catch (Exception e) {
 	        System.err.println("Error writing to "+filename);
@@ -2378,6 +2379,7 @@ public class Files {
 	        for (int i = 0; i<list.length; i++) {
 	        	writer.println(list[i]);
             }
+	        writer.flush();
 	        writer.close();
         } catch (Exception e) {
 	        System.err.println("Error writing to "+filename);
@@ -2393,6 +2395,7 @@ public class Files {
 	        for (int i = 0; i<matrix.length; i++) {
 	        	writer.println(Array.toStr(matrix[i], delimiterToUse));
             }
+	        writer.flush();
 	        writer.close();
         } catch (Exception e) {
 	        System.err.println("Error writing to "+filename);
