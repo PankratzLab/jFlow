@@ -23,13 +23,14 @@ import common.ext;
 import common.WorkerTrain.Producer;
 
 /**
- * Class to check determine the sex of an individual based on read counts from X and Y chromosomes
+ * Class to check determine the sex of an individual based on read counts from X and Y chromosomes.
  *
  */
 public class SexCheck {
-	private static final String[] CheckHeader = { "Bam_File", "CountX", "CountY" };
+	private static final String[] SEX_CHECK_HEADER = { "DNA", "Bam_File", "CountX", "CountY", "PropX", "PropY" };
 	private static final byte X = 23;
 	private static final byte Y = 24;
+	private static final int MAPQ_FILTER = 60;
 
 	private Logger log;
 	private WorkerTrain<SexCheckResults> train;
@@ -52,13 +53,12 @@ public class SexCheck {
 	public void checkSex(String fullPathTooutput) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathTooutput));
-			writer.print(Array.toStr(CheckHeader));
+			writer.println(Array.toStr(SEX_CHECK_HEADER));
 			while (train.hasNext()) {
 				SexCheckResults sexCheckResults = train.next();
-				writer.println(sexCheckResults.getBamFile() + "\t" + sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads());
-
+				writer.println(sexCheckResults.getSample() + "\t" + sexCheckResults.getBamFile() + "\t" + sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads() + "\t" + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
+				writer.flush();
 			}
-			writer.println();
 
 			writer.close();
 		} catch (Exception e) {
@@ -134,7 +134,7 @@ public class SexCheck {
 		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
 		SamReader reader = samReaderFactory.open(new File(bamFile));
 		reader.indexing();
-		SexCheckResults sexCheckResults = new SexCheckResults(0, 0, bamFile);
+		SexCheckResults sexCheckResults = new SexCheckResults(0, 0, bamFile, bamFile);
 		if (!reader.hasIndex()) {
 			log.reportError("Error - the bam file " + bamFile + " must have a \".bai\" index file associated with it, halting");
 			try {
@@ -147,19 +147,26 @@ public class SexCheck {
 			String seqX = Positions.getChromosomeUCSC((byte) X, true);
 			String seqY = Positions.getChromosomeUCSC((byte) Y, true);
 			SAMFileHeader header = reader.getFileHeader();
+			String sample = header.getReadGroups().get(0).getSample();
+			log.reportTimeInfo("Computing sex checks for sample " + sample + " in file " + bamFile);
 			int refX = header.getSequenceIndex(seqX);
 			int refY = header.getSequenceIndex(seqY);
 
 			QueryInterval qX = new QueryInterval(refX, 0, -1);
 			QueryInterval qY = new QueryInterval(refY, 0, -1);
-			sexCheckResults = getCountsForSexChr(new QueryInterval[] { qX, qY }, reader, bamFile, log);
-
+			sexCheckResults = getCountsForSexChr(new QueryInterval[] { qX, qY }, reader, bamFile, sample, log);
+			try {
+				reader.close();
+			} catch (IOException e) {
+				log.reportIOException(bamFile);
+				e.printStackTrace();
+			}
 		}
 
 		return sexCheckResults;
 	}
 
-	private static SexCheckResults getCountsForSexChr(QueryInterval[] qInterval, SamReader reader, String bamFile, Logger log) {
+	private static SexCheckResults getCountsForSexChr(QueryInterval[] qInterval, SamReader reader, String bamFile, String sample, Logger log) {
 		SAMRecordIterator sIterator = reader.query(qInterval, false);
 		int numXReads = 0;
 		int numYReads = 0;
@@ -177,19 +184,21 @@ public class SexCheck {
 					numYReads++;
 				} else {
 					log.reportTimeError("Invalid chromosome found in " + bamFile + ", halting");
-					return new SexCheckResults(0, 0, bamFile);
+					return new SexCheckResults(0, 0, bamFile, sample);
 				}
 			}
 			if (totalReads % 1000000 == 0) {
-				log.reportTimeInfo("Read " + totalReads + " from chrs " + X + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads + " chr " + X + ", " + numYReads + " chr " + Y);
+				log.reportTimeInfo("Sample: " + sample + " Read " + totalReads + " from chrs " + X + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads + " chr " + X + ", " + numYReads + " chr " + Y);
 			}
 		}
-		return new SexCheckResults(numXReads, numYReads, bamFile);
+		log.reportTimeInfo("Sample: " + sample + " Finished with " + totalReads + " from chrs " + X + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads + " chr " + X + ", " + numYReads + " chr " + Y);
+
+		return new SexCheckResults(numXReads, numYReads, bamFile, sample);
 	}
 
 	/**
 	 * 
-	 * @return true if the read is valid, not a duplicate, is primary, and has a proper pair
+	 * @return true if the read is valid, not a duplicate, is primary, has a proper pair, and passes the MAPQ (trying to avoid pseudoautosomal)
 	 */
 	private static boolean goodRead(SAMRecord samRecord) {
 		if (samRecord.isValid() != null) {
@@ -204,6 +213,10 @@ public class SexCheck {
 		if (!samRecord.getProperPairFlag()) {
 			return false;
 		}
+		if (samRecord.getMappingQuality() == 255 || samRecord.getMappingQuality() < MAPQ_FILTER) {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -211,24 +224,48 @@ public class SexCheck {
 		private int numXReads;
 		private int numYReads;
 		private String bamFile;
+		private String sample;
 
-		public SexCheckResults(int numXReads, int numYReads, String bamFile) {
+		private SexCheckResults(int numXReads, int numYReads, String bamFile, String sample) {
 			super();
 			this.numXReads = numXReads;
 			this.numYReads = numYReads;
 			this.bamFile = bamFile;
+			this.sample = sample;
 		}
 
-		public int getNumXReads() {
+		private String getSample() {
+			return sample;
+		}
+
+		private int getNumXReads() {
 			return numXReads;
 		}
 
-		public int getNumYReads() {
+		private int getNumYReads() {
 			return numYReads;
 		}
 
-		public String getBamFile() {
+		private String getBamFile() {
 			return bamFile;
+		}
+
+		private double getPropX() {
+			double total = (double) numXReads + numYReads;
+			if (total > 0) {
+				return (double) numXReads / total;
+			} else {
+				return 0;
+			}
+		}
+
+		private double getPropY() {
+			double total = (double) numXReads + numYReads;
+			if (total > 0) {
+				return (double) numYReads / total;
+			} else {
+				return 0;
+			}
 		}
 
 	}
