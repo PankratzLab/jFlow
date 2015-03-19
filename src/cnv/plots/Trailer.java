@@ -7,7 +7,6 @@ import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 import common.*;
 import cnv.filesys.*;
@@ -74,7 +73,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String NEXT_REGION = "Next region";
 	private static final String LAST_REGION = "Last region";
 	private static final String TO_SCATTER_PLOT = "To Scatter Plot";
-	private static final String REGION_LIST_NEW_FILE = "Add New File(s)...";
+	private static final String REGION_LIST_NEW_FILE = "Load Region File";
+//	private static final String REGION_LIST_NEW_FILE = "Add New File(s)...";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
 
@@ -82,7 +82,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private String[] samplesPresent;
 	private JTextField navigationField;
 //	private JTextField regionsField;
-	private JButton firstChr, previousChr, nextChr, lastChr, firstRegion, previousRegion, nextRegion, lastRegion, launchScatterButton;
+	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, firstRegion, lastRegion, launchScatterButton;
 	private Project proj;
 	private String sample;
 	private IndiPheno indiPheno;
@@ -118,7 +118,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private int transformation_type;
 	private boolean transformSeparatelyByChromosome;
 	private GcModel gcModel;
-	private JCheckBox gcCorrectButton;
+	private JCheckBoxMenuItem gcCorrectButton;
 	private Hashtable<String, String> namePathMap;
 	private JComboBox<String> centroidsSelection;
 	private Logger log;
@@ -127,6 +127,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private float[][][] centroids;
 	private String currentCentroid;
 	private static final String SEX_CENT = "Sex-Specific";
+	private JMenu loadRecentFileMenu;
+	private ButtonGroup regionButtonGroup;
+	private AbstractAction markerFileSelectAction;
+	private JMenuItem launchScatter;
 	
 	// private Color[] colorScheme = {new Color(33, 31, 53), // dark dark
 	// new Color(23, 58, 172), // dark blue
@@ -149,8 +153,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	final ArrayList<int[]> activeCNVs = new ArrayList<int[]>();
 	volatile int[] selectedCNV = null;
+	private HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
 	private HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
-	private JComboBox<String> regionFileList;
+//	private JComboBox<String> regionFileList;
 	private String regionFileName;
 	private volatile boolean loadingFile = false;
 	
@@ -190,6 +195,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			gcModel = null;
 		}
 		generateComponents();
+		this.setJMenuBar(createMenuBar());
 			
 		sample = selectedSample==null?samplesPresent[0]:selectedSample;
 		sampleData = proj.getSampleData(2, cnvFilenames);
@@ -395,21 +401,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private void addFileToList(String rawfile) {
 		String file = ext.verifyDirFormat(rawfile);
 		file = file.substring(0, file.length() - 1);
-		int num = regionFileList.getModel().getSize() - 3;
-		Vector<String> currFiles = new Vector<String>();
-		if (num > 0) {
-			for (int i = 1; i < num + 1; i++) {
-				currFiles.add(regionFileList.getModel().getElementAt(i));
-			}
-		}
 		String name = ext.rootOf(file);
 		regionFileNameLoc.put(name, file);
-		currFiles.add(name);
-		currFiles.add(0, REGION_LIST_PLACEHOLDER);
-		currFiles.add(REGION_LIST_USE_CNVS);
-		currFiles.add(REGION_LIST_NEW_FILE);
 		
-		regionFileList.setModel(new DefaultComboBoxModel<String>(currFiles));
+		JCheckBoxMenuItem item = new JCheckBoxMenuItem();
+		item.setAction(markerFileSelectAction);
+		item.setText(name);
+
+		regionFileNameBtn.put(name, item);
+		regionButtonGroup.add(item);
+		loadRecentFileMenu.add(item);
 	}
 	
 	public void generateComponents() {
@@ -685,110 +686,110 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width, sampleList.getPreferredSize().height + 5));
 		descrPanel.add(sampPanel);
 		
-		JPanel ctrlPanel = new JPanel(new GridLayout(1, 2, 5, 5));
-		ctrlPanel.setMinimumSize(new Dimension(200, 10));
-		ctrlPanel.setPreferredSize(new Dimension(355, 20));
-		ctrlPanel.setMaximumSize(new Dimension(355, 40));
+//		JPanel ctrlPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+//		ctrlPanel.setMinimumSize(new Dimension(200, 10));
+//		ctrlPanel.setPreferredSize(new Dimension(355, 20));
+//		ctrlPanel.setMaximumSize(new Dimension(355, 40));
 		
-		JButton clipBtn = new JButton();
-		clipBtn.setFont(clipBtn.getFont().deriveFont(8f));
-		clipBtn.setText("Copy to Clipboard");
-		clipBtn.setMinimumSize(new Dimension(150, 10));
-		clipBtn.setPreferredSize(new Dimension(150, 10));
-		clipBtn.setMaximumSize(new Dimension(150, 10));
-		JButton clipPlusBtn = new JButton();
-		clipPlusBtn.setFont(clipPlusBtn.getFont().deriveFont(8f));
-		clipPlusBtn.setText("Copy to Clipboard w/ Position");
-		clipPlusBtn.setMinimumSize(new Dimension(150, 10));
-		clipPlusBtn.setPreferredSize(new Dimension(150, 10));
-		clipPlusBtn.setMaximumSize(new Dimension(150, 10));
-
-		ctrlPanel.add(clipBtn);
-		ctrlPanel.add(clipPlusBtn);
-		descrPanel.add(ctrlPanel);
+//		JButton clipBtn = new JButton();
+//		clipBtn.setFont(clipBtn.getFont().deriveFont(8f));
+//		clipBtn.setText("Copy to Clipboard");
+//		clipBtn.setMinimumSize(new Dimension(150, 10));
+//		clipBtn.setPreferredSize(new Dimension(150, 10));
+//		clipBtn.setMaximumSize(new Dimension(150, 10));
+//		JButton clipPlusBtn = new JButton();
+//		clipPlusBtn.setFont(clipPlusBtn.getFont().deriveFont(8f));
+//		clipPlusBtn.setText("Copy to Clipboard w/ Position");
+//		clipPlusBtn.setMinimumSize(new Dimension(150, 10));
+//		clipPlusBtn.setPreferredSize(new Dimension(150, 10));
+//		clipPlusBtn.setMaximumSize(new Dimension(150, 10));
+//
+//		ctrlPanel.add(clipBtn);
+//		ctrlPanel.add(clipPlusBtn);
+//		descrPanel.add(ctrlPanel);
 		descrPanel.add(Box.createVerticalGlue());
 		
-		Vector<String> items = new Vector<String>();
-		items.add(REGION_LIST_PLACEHOLDER);
-		if (proj != null) {
-			String[] files = proj.getIndividualRegionLists();
-			String name;
-			for (String file : files) {
-				name = ext.rootOf(file);
-				regionFileNameLoc.put(name, file);
-				items.add(name);
-			}
-		}
-		items.add(REGION_LIST_USE_CNVS);
-		items.add(REGION_LIST_NEW_FILE);
-		regionFileList = new JComboBox<String>(items);
-		regionFileList.setFont(new Font("Arial", 0, 12));
-		regionFileList.setMinimumSize(new Dimension(200, 20));
-		regionFileList.setPreferredSize(new Dimension(200, 20));
-		regionFileList.setMaximumSize(new Dimension(200, 20));
-		AbstractAction markerFileSelectAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-	
-			@SuppressWarnings("unchecked")
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String shortName = (String) ((JComboBox<String>)e.getSource()).getSelectedItem();
-				if (!loadingFile 
-						&& !REGION_LIST_NEW_FILE.equals(shortName) 
-						&& !REGION_LIST_PLACEHOLDER.equals(shortName)
-						&& !REGION_LIST_USE_CNVS.equals(shortName)) {
-					String file = regionFileNameLoc.get(shortName);
-					if (file != null && file.equals(Trailer.this.regionFileName)) {
-						return;
-					}
-					Trailer.this.regionFileName = file;
-					loadRegions();
-				} /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
-					// do nothing
-				} */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
-					// leave as currently selected marker
-					if (Trailer.this.regionFileName != "" && Trailer.this.regionFileName != null) {
-						String file = Trailer.this.regionFileName;
-						if (!REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-							file = ext.rootOf(Trailer.this.regionFileName);
-						}
-						((JComboBox<String>)e.getSource()).setSelectedItem(file);
-					}
-					return;
-				} else if (REGION_LIST_USE_CNVS.equals(shortName)) {
-					if (!shortName.equals(Trailer.this.regionFileName)) {
-						Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
-						loadCNVsAsRegions();
-						procCNVs(chr);
-						updateGUI();
-					}
-				} else if (REGION_LIST_NEW_FILE.equals(shortName)) {
-					chooseNewFiles();
-					if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
-						if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-							((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
-						} else {
-							((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
-						}
-					} else {
-						((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
-					}
-				}
-			}
-		};
-		regionFileList.addActionListener(markerFileSelectAction);
+//		Vector<String> items = new Vector<String>();
+//		items.add(REGION_LIST_PLACEHOLDER);
+//		if (proj != null) {
+//			String[] files = proj.getIndividualRegionLists();
+//			String name;
+//			for (String file : files) {
+//				name = ext.rootOf(file);
+//				regionFileNameLoc.put(name, file);
+//				items.add(name);
+//			}
+//		}
+//		items.add(REGION_LIST_USE_CNVS);
+//		items.add(REGION_LIST_NEW_FILE);
+//		regionFileList = new JComboBox<String>(items);
+//		regionFileList.setFont(new Font("Arial", 0, 12));
+//		regionFileList.setMinimumSize(new Dimension(200, 20));
+//		regionFileList.setPreferredSize(new Dimension(200, 20));
+//		regionFileList.setMaximumSize(new Dimension(200, 20));
+//		AbstractAction markerFileSelectAction = new AbstractAction() {
+//			private static final long serialVersionUID = 1L;
+//	
+//			@SuppressWarnings("unchecked")
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				String shortName = (String) ((JComboBox<String>)e.getSource()).getSelectedItem();
+//				if (!loadingFile 
+//						&& !REGION_LIST_NEW_FILE.equals(shortName) 
+//						&& !REGION_LIST_PLACEHOLDER.equals(shortName)
+//						&& !REGION_LIST_USE_CNVS.equals(shortName)) {
+//					String file = regionFileNameLoc.get(shortName);
+//					if (file != null && file.equals(Trailer.this.regionFileName)) {
+//						return;
+//					}
+//					Trailer.this.regionFileName = file;
+//					loadRegions();
+//				} /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
+//					// do nothing
+//				} */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
+//					// leave as currently selected marker
+//					if (Trailer.this.regionFileName != "" && Trailer.this.regionFileName != null) {
+//						String file = Trailer.this.regionFileName;
+//						if (!REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+//							file = ext.rootOf(Trailer.this.regionFileName);
+//						}
+//						((JComboBox<String>)e.getSource()).setSelectedItem(file);
+//					}
+//					return;
+//				} else if (REGION_LIST_USE_CNVS.equals(shortName)) {
+//					if (!shortName.equals(Trailer.this.regionFileName)) {
+//						Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
+//						loadCNVsAsRegions();
+//						procCNVs(chr);
+//						updateGUI();
+//					}
+//				} else if (REGION_LIST_NEW_FILE.equals(shortName)) {
+//					chooseNewFiles();
+//					if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
+//						if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+//							((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
+//						} else {
+//							((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
+//						}
+//					} else {
+//						((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
+//					}
+//				}
+//			}
+//		};
+//		regionFileList.addActionListener(markerFileSelectAction);
 		
 		JPanel compPanel = new JPanel(new GridLayout(3, 1, 5, 5));
 		
-		compPanel.add(regionFileList);
+//		compPanel.add(regionFileList);
 		
-		launchScatterButton = new JButton();
-		launchScatterButton.setFont(launchScatterButton.getFont().deriveFont(10f));
-		launchScatterButton.setText(TO_SCATTER_PLOT);
-		launchScatterButton.setActionCommand(TO_SCATTER_PLOT);
-		launchScatterButton.addActionListener(this);
-		compPanel.setMaximumSize(new Dimension(200, 20));
-		compPanel.add(launchScatterButton);
+//		launchScatterButton = new JButton();
+//		launchScatterButton.setFont(launchScatterButton.getFont().deriveFont(10f));
+//		launchScatterButton.setText(TO_SCATTER_PLOT);
+//		launchScatterButton.setActionCommand(TO_SCATTER_PLOT);
+//		launchScatterButton.addActionListener(this);
+//		compPanel.setMaximumSize(new Dimension(200, 20));
+//		compPanel.add(launchScatterButton);
 		
 		commentLabel = new JLabel(" ", JLabel.CENTER);
 		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -848,219 +849,216 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		navigateChrPanel.add(lastChr);
 		descrPanel.add(navigateChrPanel);
 
-		JPanel dataOptionPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-		dataOptionPanel.setBorder(new EmptyBorder(0, 25, 0, 10));
-		JPanel transformationPanel = new JPanel();
-		transformationPanel.setLayout(new BoxLayout(transformationPanel, BoxLayout.PAGE_AXIS));
-		JLabel label = new JLabel("Log R Ratio transformation: ");
-		label.setFont(new Font("Arial", 0, 14));
-		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-		label.setBorder(new EmptyBorder(0, 0, 5, 0));
-		transformationPanel.add(label);
-		transformationPanel.add(Box.createHorizontalGlue());
-		
-		ButtonGroup typeRadio = new ButtonGroup();
-		final JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
-		ItemListener typeListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButton jrb = (JRadioButton) ie.getItem();
-				if (jrb.isSelected()) {
-					centroids = null;
-					bafs = originalBAFs;
-					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
-						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
-							transformation_type = i;
-							lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
-							updateGUI();
-						}
-					}
-				}
-			}
-		};
-		ItemListener centListener = new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButton jrb = (JRadioButton) ie.getItem();
-				if (jrb.isSelected()) {
-					
-					if (namePathMap == null || namePathMap.isEmpty()) {
-						jrb.setSelected(false);
-						if (transformationRadioButtons != null && transformationRadioButtons[0] != null) {
-							transformationRadioButtons[0].setSelected(true);
-						}
-						return;
-					}
-					
-					transformation_type = -1;
-					setCentroid();
-					loadValues();
-					updateGUI();
-					repaint();
-				} else {
-					currentCentroid = null;
-					centroids = null;
-					bafs = originalBAFs;
-				}
-			}
-		};
-		
-		
-		for (int i = 0; i<Transforms.TRANFORMATIONS.length; i++) {
-			transformationRadioButtons[i] = new JRadioButton(Transforms.TRANFORMATIONS[i], false);
-			transformationRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			typeRadio.add(transformationRadioButtons[i]);
-			transformationRadioButtons[i].addItemListener(typeListener);
-			transformationRadioButtons[i].setMargin(new Insets(0,0,0,0));
-//			transformationRadioButtons[i].setBackground(BACKGROUND_COLOR);
-
-			JPanel transOptPanel = new JPanel();
-			transOptPanel.setLayout(new BoxLayout(transOptPanel, BoxLayout.LINE_AXIS));
-//			transformationPanel.add(transformationRadioButtons[i]);
-			transOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
-			transOptPanel.add(transformationRadioButtons[i]);
-			transOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-			transformationPanel.add(transOptPanel);
-		}
-		
-		ItemListener gcListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JCheckBox jrb = (JCheckBox) ie.getItem();
-				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
+//		JPanel dataOptionPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+//		dataOptionPanel.setBorder(new EmptyBorder(0, 25, 0, 10));
+//		JPanel transformationPanel = new JPanel();
+//		transformationPanel.setLayout(new BoxLayout(transformationPanel, BoxLayout.PAGE_AXIS));
+//		JLabel label = new JLabel("Log R Ratio transformation: ");
+//		label.setFont(new Font("Arial", 0, 14));
+//		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+//		label.setBorder(new EmptyBorder(0, 0, 5, 0));
+//		transformationPanel.add(label);
+//		transformationPanel.add(Box.createHorizontalGlue());
+//		
+//		ButtonGroup typeRadio = new ButtonGroup();
+//		final JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
+//		ItemListener typeListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				JRadioButton jrb = (JRadioButton) ie.getItem();
 //				if (jrb.isSelected()) {
-//					// gc correct, and apply any transformation
-//					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, true, true, log);
-//				} else {
-//					// reset any transformation
-//					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, false, false, log);
+//					centroids = null;
+//					bafs = originalBAFs;
+//					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
+//						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
+//							transformation_type = i;
+//							lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+//							updateGUI();
+//						}
+//					}
 //				}
-				updateGUI();
-			}
-		};
+//			}
+//		};
+//		ItemListener centListener = new ItemListener() {
+//			@Override
+//			public void itemStateChanged(ItemEvent ie) {
+//				JRadioButton jrb = (JRadioButton) ie.getItem();
+//				if (jrb.isSelected()) {
+//					
+//					if (namePathMap == null || namePathMap.isEmpty()) {
+//						jrb.setSelected(false);
+//						if (transformationRadioButtons != null && transformationRadioButtons[0] != null) {
+//							transformationRadioButtons[0].setSelected(true);
+//						}
+//						return;
+//					}
+//					
+//					transformation_type = -1;
+//					setCentroid();
+//					loadValues();
+//					updateGUI();
+//					repaint();
+//				} else {
+//					currentCentroid = null;
+//					centroids = null;
+//					bafs = originalBAFs;
+//				}
+//			}
+//		};
+//		
+//		
+//		for (int i = 0; i<Transforms.TRANFORMATIONS.length; i++) {
+//			transformationRadioButtons[i] = new JRadioButton(Transforms.TRANFORMATIONS[i], false);
+//			transformationRadioButtons[i].setFont(new Font("Arial", 0, 14));
+//			typeRadio.add(transformationRadioButtons[i]);
+//			transformationRadioButtons[i].addItemListener(typeListener);
+//			transformationRadioButtons[i].setMargin(new Insets(0,0,0,0));
+////			transformationRadioButtons[i].setBackground(BACKGROUND_COLOR);
+//
+//			JPanel transOptPanel = new JPanel();
+//			transOptPanel.setLayout(new BoxLayout(transOptPanel, BoxLayout.LINE_AXIS));
+////			transformationPanel.add(transformationRadioButtons[i]);
+//			transOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
+//			transOptPanel.add(transformationRadioButtons[i]);
+//			transOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+//			transformationPanel.add(transOptPanel);
+//		}
+//		
+//		ItemListener gcListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				JCheckBox jrb = (JCheckBox) ie.getItem();
+//				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
+////				if (jrb.isSelected()) {
+////					// gc correct, and apply any transformation
+////					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, true, true, log);
+////				} else {
+////					// reset any transformation
+////					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, false, false, log);
+////				}
+//				updateGUI();
+//			}
+//		};
 
-		gcCorrectButton = new JCheckBox(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
-		if (gcModel != null) {
-			gcCorrectButton.setFont(new Font("Arial", 0, 14));
-			gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
-			gcCorrectButton.addItemListener(gcListener);
-			transformationPanel.add(gcCorrectButton);
-		}
+//		gcCorrectButton = new JCheckBox(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
+//		if (gcModel != null) {
+//			gcCorrectButton.setFont(new Font("Arial", 0, 14));
+//			gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
+//			gcCorrectButton.addItemListener(gcListener);
+////			transformationPanel.add(gcCorrectButton);
+//		}
 
-		transformationRadioButtons[0].setSelected(true);
-		dataOptionPanel.add(transformationPanel);
+//		transformationRadioButtons[0].setSelected(true);
+//		dataOptionPanel.add(transformationPanel);
 		//descrPanel.add(transformationPanel);
 		
 
-		JPanel centroidPanel = new JPanel();
-		centroidPanel.setLayout(new BoxLayout(centroidPanel, BoxLayout.PAGE_AXIS));
-		label = new JLabel("Derive from Centroids:");
-		label.setFont(new Font("Arial", 0, 14));
-		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-		label.setBorder(new EmptyBorder(0, 0, 5, 0));
-		centroidPanel.add(label);
-		JPanel centSubPanel = new JPanel();
-		centSubPanel.setLayout(new BoxLayout(centSubPanel, BoxLayout.LINE_AXIS));
-		centSubPanel.add(Box.createRigidArea(new Dimension(25, 1)));
-		centSubPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		JRadioButton centTransformButton = new JRadioButton("", false);
-		centTransformButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-		centTransformButton.setMargin(new Insets(0,0,0,0));
-		centTransformButton.addItemListener(centListener);
-		typeRadio.add(centTransformButton);
-		centSubPanel.add(centTransformButton);
+//		JPanel centroidPanel = new JPanel();
+//		centroidPanel.setLayout(new BoxLayout(centroidPanel, BoxLayout.PAGE_AXIS));
+//		label = new JLabel("Derive from Centroids:");
+//		label.setFont(new Font("Arial", 0, 14));
+//		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+//		label.setBorder(new EmptyBorder(0, 0, 5, 0));
+//		centroidPanel.add(label);
+//		JPanel centSubPanel = new JPanel();
+//		centSubPanel.setLayout(new BoxLayout(centSubPanel, BoxLayout.LINE_AXIS));
+//		centSubPanel.add(Box.createRigidArea(new Dimension(25, 1)));
+//		centSubPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+//		JRadioButton centTransformButton = new JRadioButton("", false);
+//		centTransformButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+//		centTransformButton.setMargin(new Insets(0,0,0,0));
+//		centTransformButton.addItemListener(centListener);
+//		typeRadio.add(centTransformButton);
+//		centSubPanel.add(centTransformButton);
 		
-		namePathMap = new Hashtable<String, String>();
-		Vector<String> centFiles = new Vector<String>();
-		centFiles.add(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME));
-		centFiles.add(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
-		centFiles.add(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME));
-		centFiles.add(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
+//		namePathMap = new Hashtable<String, String>();
+//		Vector<String> centFiles = new Vector<String>();
+//		centFiles.add(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME));
+//		centFiles.add(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
+//		centFiles.add(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME));
+//		centFiles.add(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
+//		
+//		String[] tempFiles = proj.getFilenames(Project.SEX_CENTROIDS_FILENAMES);
+//		if (tempFiles != null && tempFiles.length > 0) {
+//			centFiles.add(SEX_CENT);
+//		}
+//		
+//		for (String file : centFiles) {
+//			if (SEX_CENT.equals(file)) {
+//				namePathMap.put(SEX_CENT + " - Male", tempFiles[0]);
+//				namePathMap.put(SEX_CENT + " - Female", tempFiles[1]);
+//			} else if (Files.exists(file)) {
+//				String name = file.substring(file.lastIndexOf("/") + 1);
+//				name = name.substring(0, name.lastIndexOf("."));
+//				namePathMap.put(name, file);
+//			}
+//		}
+//		
+//		centroidsSelection = new JComboBox<String>((String[]) namePathMap.keySet().toArray(new String[]{}));
+//		centroidsSelection.setMaximumSize(new Dimension(160, 25));
+//		centroidsSelection.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (!isSettingCentroid) {
+//					isSettingCentroid = true;
+//					if (transformation_type == -1) {
+//						setCentroid();
+//						loadValues();
+//						updateGUI();
+//						repaint();
+//					}
+//					isSettingCentroid = false;
+//				} else {
+//					setCentroid();
+//				}
+//			}
+//		});
+//		centSubPanel.add(centroidsSelection);
+//		centroidPanel.add(centSubPanel);
+//		dataOptionPanel.add(centroidPanel);
 		
-		String[] tempFiles = proj.getFilenames(Project.SEX_CENTROIDS_FILENAMES);
-		if (tempFiles != null && tempFiles.length > 0) {
-			centFiles.add(SEX_CENT);
-		}
 		
-		for (String file : centFiles) {
-			if (SEX_CENT.equals(file)) {
-				namePathMap.put(SEX_CENT + " - Male", tempFiles[0]);
-				namePathMap.put(SEX_CENT + " - Female", tempFiles[1]);
-			} else if (Files.exists(file)) {
-				String name = file.substring(file.lastIndexOf("/") + 1);
-				name = name.substring(0, name.lastIndexOf("."));
-				namePathMap.put(name, file);
-			}
-		}
-		
-		centroidsSelection = new JComboBox<String>((String[]) namePathMap.keySet().toArray(new String[]{}));
-		centroidsSelection.setMaximumSize(new Dimension(160, 25));
-		centroidsSelection.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!isSettingCentroid) {
-					isSettingCentroid = true;
-					if (transformation_type == -1) {
-						setCentroid();
-						loadValues();
-						updateGUI();
-						repaint();
-					}
-					isSettingCentroid = false;
-				} else {
-					setCentroid();
-				}
-			}
-		});
-		centSubPanel.add(centroidsSelection);
-		centroidPanel.add(centSubPanel);
-		dataOptionPanel.add(centroidPanel);
-		
-		
-		JPanel scopePanel = new JPanel();
-		scopePanel.setLayout(new BoxLayout(scopePanel, BoxLayout.PAGE_AXIS));
-		label = new JLabel("Transform by: ");
-		label.setFont(new Font("Arial", 0, 14));
-		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-		label.setBorder(new EmptyBorder(0, 0, 5, 0));
-		scopePanel.add(label);
-		ButtonGroup scopeRadio = new ButtonGroup();
-		JRadioButton[] scopeRadioButtons = new JRadioButton[2];
-		ItemListener scopeListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-					
-				JRadioButton jrb = (JRadioButton)ie.getItem();
-				if (jrb.isSelected()) {
-					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
-					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
-					updateGUI();
-				}
-			}
-		};
-		for (int i = 0; i<Transforms.SCOPES.length; i++) {
-			scopeRadioButtons[i] = new JRadioButton(Transforms.SCOPES[i], false);
-			scopeRadioButtons[i].setFont(new Font("Arial", 0, 14));
-			scopeRadio.add(scopeRadioButtons[i]);
-			scopeRadioButtons[i].addItemListener(scopeListener);
-			scopeRadioButtons[i].setAlignmentX(Component.LEFT_ALIGNMENT);
-//			scopeRadioButtons[i].setBackground(BACKGROUND_COLOR);
-			scopeRadioButtons[i].setMargin(new Insets(0,0,0,0));
-			
-
-			JPanel scopeOptPanel = new JPanel();
-			scopeOptPanel.setLayout(new BoxLayout(scopeOptPanel, BoxLayout.LINE_AXIS));
-			scopeOptPanel.setBorder(null);
-//			transformationPanel.add(transformationRadioButtons[i]);
-			scopeOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
-			scopeOptPanel.add(scopeRadioButtons[i]);
-			scopeOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-			scopePanel.add(scopeOptPanel);
-			
-			
-//			scopePanel.add(scopeRadioButtons[i]);
-		}
-		scopeRadioButtons[0].setSelected(true);
-		//descrPanel.add(scopePanel);
-		dataOptionPanel.add(scopePanel);
+//		JPanel scopePanel = new JPanel();
+//		scopePanel.setLayout(new BoxLayout(scopePanel, BoxLayout.PAGE_AXIS));
+//		label = new JLabel("Transform by: ");
+//		label.setFont(new Font("Arial", 0, 14));
+//		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+//		label.setBorder(new EmptyBorder(0, 0, 5, 0));
+//		scopePanel.add(label);
+//		ButtonGroup scopeRadio = new ButtonGroup();
+//		JRadioButton[] scopeRadioButtons = new JRadioButton[Transforms.SCOPES.length];
+//		ItemListener scopeListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				JRadioButton jrb = (JRadioButton)ie.getItem();
+//				if (jrb.isSelected()) {
+//					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
+//					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+//					updateGUI();
+//				}
+//			}
+//		};
+//		for (int i = 0; i<Transforms.SCOPES.length; i++) {
+//			scopeRadioButtons[i] = new JRadioButton(Transforms.SCOPES[i], false);
+//			scopeRadioButtons[i].setFont(new Font("Arial", 0, 14));
+//			scopeRadio.add(scopeRadioButtons[i]);
+//			scopeRadioButtons[i].addItemListener(scopeListener);
+//			scopeRadioButtons[i].setAlignmentX(Component.LEFT_ALIGNMENT);
+////			scopeRadioButtons[i].setBackground(BACKGROUND_COLOR);
+//			scopeRadioButtons[i].setMargin(new Insets(0,0,0,0));
+//
+//			JPanel scopeOptPanel = new JPanel();
+//			scopeOptPanel.setLayout(new BoxLayout(scopeOptPanel, BoxLayout.LINE_AXIS));
+//			scopeOptPanel.setBorder(null);
+////			transformationPanel.add(transformationRadioButtons[i]);
+//			scopeOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
+//			scopeOptPanel.add(scopeRadioButtons[i]);
+//			scopeOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+//			scopePanel.add(scopeOptPanel);
+//			
+//			
+////			scopePanel.add(scopeRadioButtons[i]);
+//		}
+//		scopeRadioButtons[0].setSelected(true);
+//		//descrPanel.add(scopePanel);
+//		dataOptionPanel.add(scopePanel);
 		
 		
 		JPanel overPanel = new JPanel();
@@ -1074,8 +1072,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		overPanel.add(Box.createHorizontalGlue());
 		overPanel.add(descrPanel);
-		overPanel.add(sep);
-		overPanel.add(dataOptionPanel);
+//		overPanel.add(sep);
+//		overPanel.add(dataOptionPanel);
 		overPanel.add(Box.createHorizontalGlue());
 		
 //		getContentPane().add(descrPanel, BorderLayout.NORTH);
@@ -1150,6 +1148,318 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		nextChr.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT_REGION);
 		nextChr.setActionMap(actionMap);
 		previousChr.setActionMap(actionMap);
+	}
+	
+	private JMenuBar createMenuBar() {
+		JMenuBar menuBar = new JMenuBar();
+		
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic(KeyEvent.VK_F);
+		AbstractAction loadNewFileAction = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				chooseNewFiles();
+				if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
+					if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+						regionFileNameBtn.get(REGION_LIST_USE_CNVS).setSelected(true);
+//						((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
+					} else {
+						regionFileNameBtn.get(ext.rootOf(Trailer.this.regionFileName)).setSelected(true);
+//						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
+					}
+				}/* else {
+					((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
+				}*/	
+			}
+		};
+		markerFileSelectAction = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String shortName = ((JCheckBoxMenuItem)e.getSource()).getText();
+				if (!loadingFile 
+						&& !REGION_LIST_NEW_FILE.equals(shortName) 
+						&& !REGION_LIST_PLACEHOLDER.equals(shortName)
+						&& !REGION_LIST_USE_CNVS.equals(shortName)) {
+					String file = regionFileNameLoc.get(shortName);
+					if (file != null && file.equals(Trailer.this.regionFileName)) {
+						return;
+					}
+					Trailer.this.regionFileName = file;
+					loadRegions();
+				} /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
+					// do nothing
+				} */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
+					// leave as currently selected marker
+					if (Trailer.this.regionFileName != "" && Trailer.this.regionFileName != null) {
+						String file = Trailer.this.regionFileName;
+						if (!REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+							file = ext.rootOf(Trailer.this.regionFileName);
+						}
+//						((JComboBox<String>)e.getSource()).setSelectedItem(file);
+						regionFileNameBtn.get(file).setSelected(true);
+					}
+					return;
+				} else if (REGION_LIST_USE_CNVS.equals(shortName)) {
+					if (!shortName.equals(Trailer.this.regionFileName)) {
+						Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
+						loadCNVsAsRegions();
+						procCNVs(chr);
+						updateGUI();
+					}
+				} /*else if (REGION_LIST_NEW_FILE.equals(shortName)) {
+					chooseNewFiles();
+					if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
+						if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+							((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
+						} else {
+							((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
+						}
+					} else {
+						((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
+					}
+				}*/
+			}
+		};
+		JMenuItem loadRegionFile = new JMenuItem();
+		loadRegionFile.setAction(loadNewFileAction);
+		loadRegionFile.setText("Load Region File");
+		loadRegionFile.setMnemonic(KeyEvent.VK_L);
+		fileMenu.add(loadRegionFile);
+		loadRecentFileMenu = new JMenu("Load Recent...");
+		loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
+		fileMenu.add(loadRecentFileMenu);
+
+		menuBar.add(fileMenu);
+		
+		regionButtonGroup = new ButtonGroup();
+		if (proj != null) {
+			String[] files = proj.getIndividualRegionLists();
+			String name;
+			for (String file : files) {
+				name = ext.rootOf(file);
+				regionFileNameLoc.put(name, file);
+				JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+				menuItem.setAction(markerFileSelectAction);
+				menuItem.setText(name);
+				regionFileNameBtn.put(name, menuItem);
+				regionButtonGroup.add(menuItem);
+				loadRecentFileMenu.add(menuItem);
+			}
+		}
+
+		JCheckBoxMenuItem item1 = new JCheckBoxMenuItem();
+		item1.setAction(markerFileSelectAction);
+		item1.setText(REGION_LIST_USE_CNVS);
+		regionFileNameBtn.put(REGION_LIST_USE_CNVS, item1);
+		regionButtonGroup.add(item1);
+		loadRecentFileMenu.add(item1);
+		
+		gcCorrectButton = new JCheckBoxMenuItem(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
+		
+		JMenu act = new JMenu("Actions");
+        act.setMnemonic(KeyEvent.VK_A);
+		menuBar.add(act);
+		
+		launchScatter = new JMenuItem();
+		launchScatter.setText(TO_SCATTER_PLOT);
+		launchScatter.setFont(new Font("Arial", 0, 12));
+		launchScatter.addActionListener(this);
+		act.add(launchScatter);
+		act.addSeparator();
+		
+//		launchScatterButton = new JButton();
+//		launchScatterButton.setFont(launchScatterButton.getFont().deriveFont(10f));
+//		launchScatterButton.setText(TO_SCATTER_PLOT);
+//		launchScatterButton.setActionCommand(TO_SCATTER_PLOT);
+//		launchScatterButton.addActionListener(this);
+//		compPanel.setMaximumSize(new Dimension(200, 20));
+//		compPanel.add(launchScatterButton);
+		
+		ButtonGroup lrrBtnGrp = new ButtonGroup();
+		ButtonGroup transBtnGrp = new ButtonGroup();
+		
+		JMenuItem lbl1 = act.add("LRR Transforms:");
+		lbl1.setEnabled(false);
+		lbl1.setFont(new Font("Arial", 0, 12));
+		
+		final JRadioButtonMenuItem[] transformBtns = new JRadioButtonMenuItem[Transforms.TRANFORMATIONS.length];
+		ItemListener typeListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				JRadioButtonMenuItem jrb = (JRadioButtonMenuItem) ie.getItem();
+				if (jrb.isSelected()) {
+					centroids = null;
+					bafs = originalBAFs;
+					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
+						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
+							transformation_type = i;
+							lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+							updateGUI();
+						}
+					}
+				}
+			}
+		};
+		HashSet<String> mnems = new HashSet<String>();
+		for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
+			transformBtns[i] = new JRadioButtonMenuItem(Transforms.TRANFORMATIONS[i]);
+			transformBtns[i].addItemListener(typeListener);
+			transformBtns[i].setFont(new Font("Arial", 0, 12));
+			String[] wds = Transforms.TRANFORMATIONS[i].split("[\\s]+");
+			int ind = 0;
+			String mnem = wds[ind].substring(0, 1);
+			while(mnems.contains(mnem)) {
+				mnem = wds[++ind].substring(0, 1);
+			}
+			mnems.add(mnem);
+			transformBtns[i].setMnemonic(mnem.charAt(0));
+			lrrBtnGrp.add(transformBtns[i]);
+			act.add(transformBtns[i]);
+		}
+		transformBtns[0].setSelected(true);
+		
+		act.addSeparator();
+		JMenuItem lbl2 = act.add("Transform By:");
+		lbl2.setEnabled(false);
+		lbl2.setFont(new Font("Arial", 0, 12));
+		
+		JRadioButtonMenuItem[] scopeBtns = new JRadioButtonMenuItem[Transforms.SCOPES.length];
+		ItemListener scopeListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				JRadioButtonMenuItem jrb = (JRadioButtonMenuItem)ie.getItem();
+				if (jrb.isSelected()) {
+					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
+					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+					updateGUI();
+				}
+			}
+		};
+		mnems = new HashSet<String>();
+		for (int i = 0; i<Transforms.SCOPES.length; i++) {
+			scopeBtns[i] = new JRadioButtonMenuItem(Transforms.SCOPES[i]);
+			scopeBtns[i].addItemListener(scopeListener);
+			scopeBtns[i].setFont(new Font("Arial", 0, 12));
+			
+			String[] wds = Transforms.SCOPES[i].split("[\\s]+");
+			int ind = 0;
+			String mnem = wds[ind].substring(0, 1);
+			while(mnems.contains(mnem)) {
+				mnem = wds[++ind].substring(0, 1);
+			}
+			mnems.add(mnem);
+			scopeBtns[i].setMnemonic(mnem.charAt(0));
+			transBtnGrp.add(scopeBtns[i]);
+			act.add(scopeBtns[i]);
+		}
+		scopeBtns[0].setSelected(true);
+		
+		ItemListener gcListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
+				updateGUI();
+			}
+		};
+		
+		gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
+		gcCorrectButton.addItemListener(gcListener);
+		gcCorrectButton.setFont(new Font("Arial", 0, 12));
+		act.addSeparator();
+		act.add(gcCorrectButton).setEnabled(gcModel != null);
+		
+		act.addSeparator();
+		JMenu lbl3 = new JMenu("Derive from Centroids");
+		act.add(lbl3);
+		
+		ItemListener centListener = new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent ie) {
+				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+				if (jrb.isSelected()) {
+					if (namePathMap == null || namePathMap.isEmpty()) {
+						jrb.setSelected(false);
+						if (transformBtns != null && transformBtns[0] != null) {
+							transformBtns[0].setSelected(true);
+						}
+						return;
+					}
+					if (!isSettingCentroid) {
+						isSettingCentroid = true;
+//						if (transformation_type == -1) {
+							transformation_type = -1;
+							setCentroid(jrb.getText());
+							loadValues();
+							updateGUI();
+							repaint();
+//						}
+						isSettingCentroid = false;
+					} else {
+						setCentroid(jrb.getText());
+					}
+					
+//					transformation_type = -1;
+//					setCentroid();
+//					loadValues();
+//					updateGUI();
+//					repaint();
+				} else {
+					currentCentroid = null;
+					centroids = null;
+					bafs = originalBAFs;
+				}
+			}
+		};
+//		new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (!isSettingCentroid) {
+//					isSettingCentroid = true;
+//					if (transformation_type == -1) {
+//						setCentroid();
+//						loadValues();
+//						updateGUI();
+//						repaint();
+//					}
+//					isSettingCentroid = false;
+//				} else {
+//					setCentroid();
+//				}
+//			}
+		namePathMap = new Hashtable<String, String>();
+		Vector<String> centFiles = new Vector<String>();
+		centFiles.add(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME));
+		centFiles.add(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
+		centFiles.add(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME));
+		centFiles.add(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
+		
+		String[] tempFiles = proj.getFilenames(Project.SEX_CENTROIDS_FILENAMES);
+		if (tempFiles != null && tempFiles.length > 0) {
+			centFiles.add(SEX_CENT);
+		}
+		
+		for (String file : centFiles) {
+			if (SEX_CENT.equals(file)) {
+				namePathMap.put(SEX_CENT + " - Male", tempFiles[0]);
+				namePathMap.put(SEX_CENT + " - Female", tempFiles[1]);
+			} else if (Files.exists(file)) {
+				String name = file.substring(file.lastIndexOf("/") + 1);
+				name = name.substring(0, name.lastIndexOf("."));
+				namePathMap.put(name, file);
+			}
+		}
+		
+		ButtonGroup centButtons = new ButtonGroup();
+		String[] centKeys = (String[]) namePathMap.keySet().toArray(new String[]{});
+		for (String key : centKeys) {
+			JCheckBoxMenuItem centBox = new JCheckBoxMenuItem(key);
+			centBox.addItemListener(centListener);
+			centBox.setFont(new Font("Arial", 0, 12));
+			centButtons.add(centBox);
+			lbl3.add(centBox);
+		}
+		
+		return menuBar;
 	}
 	
 	public void actionPerformed(ActionEvent ae) {
@@ -1843,8 +2153,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		return tmpLrrs;
 	}
 	
-	private void setCentroid() {
-		String name = centroidsSelection.getSelectedItem().toString();
+	private void setCentroid(String name) {
+//		String name = centroidsSelection.getSelectedItem().toString();
 		if (!name.equals(currentCentroid)) {
 			String path = namePathMap.get(name);
 			Centroids cent = Centroids.load(path, false);
