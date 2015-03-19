@@ -213,25 +213,28 @@ public class lab {
 	
 	private static void formatLDResults() {
 		String fileTemplate = "D:/LD qsub/chr#_eu_markers.ld";
-		String markerFile = "D:/LD qsub/markers.txt";
+		String markerFile = "D:/LD qsub/markerData.txt";
 		String outfile1name = "D:/LD qsub/eu_snps.ld";
 		String outfile2name = "D:/LD qsub/eu_markers.ld";
 		
-		System.out.println("Reading markers...");
+		System.out.println(ext.getTime()+"]\tReading markers...");
 		HashSet<String> markers = new HashSet<String>();
+		int cnt = 0;
 		try {
 			BufferedReader markerReader = new BufferedReader(new FileReader(markerFile));
-			markerReader.readLine();
-			String line = null;
+			String line = markerReader.readLine();
 			while((line = markerReader.readLine()) != null) {
-				markers.add(line.trim());
+				String[] temp = line.split("\t");
+				markers.add(temp[0]);
+				markers.add("chr" + temp[1] + ":" + temp[2]);
+				cnt++;
 			}
 			markerReader.close();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		System.out.println("..." + markers.size() + " marker names read");
+		System.out.println(ext.getTime()+"]\t..." + cnt + " marker names read");
 
 		String header1 = "SNP_A\tSNP_B\tR2";
 		String header2 = "SNP\t#Variants\tLD_SNPS";
@@ -314,32 +317,39 @@ public class lab {
 			e.printStackTrace();
 		}
 		
+		System.out.println(ext.getTime()+"]\t...Done!");
+		
 	}
 
 	private static void filterLDFiles(double pct) {
-		String markerFile = "markers.txt";
-		String gzFilenameTemplate = "chr#_eu.ld.gz";
-		String outfileTemplate = "chr#_eu_markers.ld";
+		String markerFile = "D:/LD qsub/markerData.txt";
+		String gzFilenameTemplate = "D:/LD qsub/chr#_eu.ld.gz";
+		String outfileTemplate = "D:/LD qsub/chr#_eu_markers.ld";
 		
-		System.out.println("Reading markers...");
+		System.out.println(ext.getTime()+"]\tReading markers...");
 		HashSet<String> markers = new HashSet<String>();
+		int cnt = 0;
 		try {
 			BufferedReader markerReader = new BufferedReader(new FileReader(markerFile));
-			markerReader.readLine();
-			while(markerReader.ready()) {
-				markers.add(markerReader.readLine().trim());
+			String line = markerReader.readLine();
+			while((line = markerReader.readLine()) != null) {
+				String[] temp = line.split("\t");
+				markers.add(temp[0]);
+				markers.add("chr" + temp[1] + ":" + temp[2]);
+				cnt++;
 			}
 			markerReader.close();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		System.out.println("..." + markers.size() + " marker names read");
+		System.out.println(ext.getTime()+"]\t..." + (cnt + 1) + " marker names read");
 		
-		System.out.println("Writing LD Files...");
-		for (int i = 1; i < 23; i++) {
+		System.out.println(ext.getTime()+"]\tWriting LD Files...");
+//		for (int i = 1; i < 23; i++) {
+		for (int i = 6; i < 9; i++) {
 //		for (int i = 17; i < 18; i++) {
-			System.out.println("...chr " + i);
+			System.out.println(ext.getTime()+"]\t...chr " + i);
 			BufferedReader gzReader;
 			try {
 				gzReader = Files.getAppropriateReader(gzFilenameTemplate.replace("#", i+""));
@@ -348,10 +358,11 @@ public class lab {
 				// skip header
 				gzReader.readLine();
 				writer.println("SNP_A\tSNP_B\tR2");
-				int cnt = 0;
+				cnt = 0;
 				String temp = "";
 				String[] line;
 				while((temp = gzReader.readLine()) != null) {
+//					if (cnt % 100 == 0) System.out.print(".");
 					line = temp.split("[\\s]+");
 					if (line.length < 8) {
 						System.out.println(Array.toStr(line));
@@ -374,8 +385,8 @@ public class lab {
 						}
 					}
 				}
-
-				System.out.println("..." + cnt + " markers found");
+				System.out.println();
+				System.out.println(ext.getTime()+"]\t..." + cnt + " markers found");
 				writer.flush();
 				writer.close();
 				gzReader.close();
@@ -387,7 +398,7 @@ public class lab {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("... Done!");
+		System.out.println(ext.getTime()+"]\t... Done!");
 	}
 	
 	private static void filterFAMFile() {
@@ -678,7 +689,7 @@ public class lab {
 //			splitFile();
 //				idSwap(new Project("D:/projects/gedi_gwas.properties", false), "D:/data/gedi_gwas/overlap_ids.txt");
 //			compareMarkers();
-				filterLDFiles(0.5);
+//				filterLDFiles(0.5);
 				formatLDResults();
 //				filter();
 //				breakCentromeric();
