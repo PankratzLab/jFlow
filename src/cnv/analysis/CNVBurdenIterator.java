@@ -528,10 +528,17 @@ public class CNVBurdenIterator {
 						model = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 					}
 					
-					resultsB[sex][cn][sz] = model.getBetas()[1];
-					resultsP[sex][cn][sz] = model.getSigs()[1];
-					resultsR[sex][cn][sz] = model.getRsquare(); 
-					resultsSE[sex][cn][sz] = model.getSEofBs()[1];
+					if (model.getBetas().length < indepInds.length + 1) {
+						resultsB[sex][cn][sz] = Double.NaN;
+						resultsP[sex][cn][sz] = Double.NaN;
+						resultsR[sex][cn][sz] = model.getRsquare(); 
+						resultsSE[sex][cn][sz] = Double.NaN;
+					} else {
+						resultsB[sex][cn][sz] = model.getBetas()[1];
+						resultsP[sex][cn][sz] = model.getSigs()[1];
+						resultsR[sex][cn][sz] = model.getRsquare(); 
+						resultsSE[sex][cn][sz] = model.getSEofBs()[1];
+					}
 					
 					model = null;
 				}
