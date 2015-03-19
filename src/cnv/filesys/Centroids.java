@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 
 import cnv.manage.MarkerDataLoader;
-
 import stats.Maths;
 import common.*;
 
@@ -340,12 +339,20 @@ public class Centroids implements Serializable {
 		}
 
         cents = centroids.getCentroids(); 
-        samples = proj.getSamples();
-        for (int i = 0; i<samples.length; i++) {
-        	original = proj.getFullSampleFromRandomAccessFile(samples[i]);
-        	sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-        	sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION);
-        }
+		samples = proj.getSamples();
+		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+		for (int i = 0; i < samples.length; i++) {
+			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
+			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
+			sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
+		}
+		if (outliers.size() > 0) {
+			if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser")) {
+				Files.copyFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.addToRoot(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.getTimestampForFilename()));
+			}
+			Files.writeSerial(outliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
+		}
+        
 	}
 
 	public static float[][] computeClusterCenters(MarkerData markerData, boolean[] samplesToBeUsed, double missingnessThreshold) {

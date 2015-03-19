@@ -8,6 +8,7 @@ import stats.LogisticRegression;
 import stats.RegressionModel;
 import stats.Ttest;
 import cnv.filesys.*;
+import cnv.manage.MDL;
 import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import common.*;
@@ -62,13 +63,17 @@ public class MarkerMetrics {
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+			//markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+			MDL mdl = new MDL(proj, markerNames, 3, 0);
 			line = "";
 			time = new Date().getTime();
-			for (int i = 0; i < markerNames.length; i++) {
-				markerData = markerDataLoader.requestMarkerData(i);
-				if (i % 1000 == 0) {
-					log.report(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+			//for (int i = 0; i < markerNames.length; i++) {
+			int index =0;
+			while(mdl.hasNext()){
+				markerData = mdl.next();
+		    	index++;
+				if (index % 1000 == 0) {
+					log.report(ext.getTime()+"\tMarker "+index+" of "+markerNames.length);
 				}
 
 				markerName = markerData.getMarkerName();
@@ -161,8 +166,9 @@ public class MarkerMetrics {
 					writer.flush();
 					line = "";
 				}
-				markerDataLoader.releaseIndex(i);
+			//	markerDataLoader.releaseIndex(i);
 			}
+			mdl.shutdown();
 			writer.print(line);
 			writer.close();
 			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));

@@ -12,11 +12,13 @@ import java.util.concurrent.TimeUnit;
 import stats.CrossValidation;
 import common.Array;
 import common.Logger;
+import common.WorkerTrain.Producer;
 import cnv.analysis.CentroidCompute;
 import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
+import cnv.manage.MDL;
 import cnv.plots.ScatterPlot;
 
 /**
@@ -704,6 +706,92 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 		}
 	}
+
+	/**
+	 * corrects on multiple threads
+	 * 
+	 *
+	 */
+	public static class PcCorrectionProducer implements Producer<PrincipalComponentsIntensity> {
+
+		private PrincipalComponentsResiduals pcResiduals;
+		private MDL mdl;
+		private final int[] sampleSex;
+		private final boolean[] samplesToUseCluster;
+		private final boolean svdRegression;
+		private final int numCorrectionThreads;
+		private final int numDecompressThreads;
+		private final String[] markersToCorrect;
+		private final int correctAt;
+
+		public PcCorrectionProducer(PrincipalComponentsResiduals pcResiduals, int correctAt, int[] sampleSex, boolean[] samplesToUseCluster, boolean svdRegression, int numCorrectionThreads, int numDecompressThreads, String[] markersToCorrect) {
+			super();
+			this.pcResiduals = pcResiduals;
+			this.sampleSex = sampleSex;
+			this.samplesToUseCluster = samplesToUseCluster;
+			this.svdRegression = svdRegression;
+			this.numCorrectionThreads = numCorrectionThreads;
+			this.numDecompressThreads = numDecompressThreads;
+			this.markersToCorrect = markersToCorrect;
+			this.correctAt = correctAt;
+			this.mdl = new MDL(pcResiduals.getProj(), markersToCorrect, numDecompressThreads, 0);
+		}
+
+		@Override
+		public boolean hasNext() {
+			return mdl.hasNext();
+		}
+
+		@Override
+		public Callable<PrincipalComponentsIntensity> next() {
+			final MarkerData markerData = mdl.next();
+			Callable<PrincipalComponentsIntensity> compute = new Callable<PrincipalComponentsIntensity>() {
+				@Override
+				public PrincipalComponentsIntensity call() throws Exception {
+					PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals, markerData, true, sampleSex, samplesToUseCluster, 1, 0, null, true, svdRegression, 2, 5, DEFAULT_RESID_STDV_FILTER, DEFAULT_CORRECTION_RATIO, numCorrectionThreads, false, null);
+					principalComponentsIntensity.correctXYAt(correctAt);
+					return principalComponentsIntensity;
+				}
+
+			};
+			return compute;
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void shutdown() {
+			mdl.shutdown();
+		}
+	}
+
+	// public PrincipalComponentsIntensity(final PrincipalComponentsResiduals principalComponentsResiduals, final MarkerData markerData, boolean recomputeLRR, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean svdRegression, int correctionMethod, int nStage, double residStandardDeviationFilter, double correctionRatio, int numThreads, boolean verbose, String output) {
+	// super(principalComponentsResiduals);// we hijack the loading of the PC file and tracking of samples etc ...
+	// this.samples = proj.getSamples();
+	// this.svdRegression = svdRegression;
+	// this.correctionMethod = correctionMethod;
+	// this.residStandardDeviationFilter = residStandardDeviationFilter;
+	// this.verbose = verbose;
+	// this.nStage = nStage;
+	// this.fail = (markerData.getXs() == null || markerData.getYs() == null || markerData.getAbGenotypes() == null);
+	// this.centroid = prepareProperCentroid(markerData, sampleSex, samplesToUseCluster, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, proj.getLog());
+	// this.numTotalSamples = markerData.getXs().length;
+	// this.correctedXFull = new float[numTotalSamples];
+	// this.correctedYFull = new float[numTotalSamples];
+	// this.forceThisCluster = new boolean[3];
+	// this.numThreads = numThreads;
+	// this.correctionRatio = correctionRatio;
+	// if (centroid.failed()) {
+	// fail = true;
+	// }
+	// if (invalidMethod(correctionMethod, this.getProj().getLog())) {
+	// fail = true;
+	// }
+	// }
 
 	// private CrossValidation getRegression(double[] data, boolean[] samplesTobuildModel, int clusterComponent,boolean sv) {
 	// CrossValidation cvalX = getCorrectedDataAt(data, samplesTobuildModel, clusterComponent, svdRegression, "Genotype cluster: " + i + " X values");

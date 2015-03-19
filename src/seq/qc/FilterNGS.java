@@ -550,13 +550,15 @@ public class FilterNGS implements Serializable {
 		}
 
 		public void initFilters(Logger log) {
-			VARIANT_FILTER_DOUBLE[] refF = new VARIANT_FILTER_DOUBLE[] { mafRef, callRate, dp, gq };
-			VARIANT_FILTER_DOUBLE[] caseF = new VARIANT_FILTER_DOUBLE[] { macCase, callRate, dp, gq };
+			VARIANT_FILTER_DOUBLE[] refF = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq };
+			VARIANT_FILTER_DOUBLE[] caseF = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq };
+			// VARIANT_FILTER_DOUBLE[] refF = new VARIANT_FILTER_DOUBLE[] { mafRef, callRate, dp, gq };
+			// VARIANT_FILTER_DOUBLE[] caseF = new VARIANT_FILTER_DOUBLE[] { macCase, callRate, dp, gq };
 			this.refFilters = new VariantContextFilter(refF, new VARIANT_FILTER_BOOLEAN[] {}, log);
 			this.caseFilters = new VariantContextFilter(caseF, new VARIANT_FILTER_BOOLEAN[] {}, log);
 		}
 
-		public VariantContextFilterPass filter(final VariantContext vc,Logger log) {
+		public VariantContextFilterPass filter(final VariantContext vc, Logger log) {
 			VariantContext vcRef = VCOps.getSubset(vc, refPop);
 			VariantContextFilterPass pass = refFilters.filter(vcRef);
 			if (pass.passed()) {

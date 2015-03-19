@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.filesys.SampleList;
-import cnv.manage.MarkerDataLoader;
+import cnv.manage.MDL;
 import cnv.var.SampleData;
 import common.Aliases;
 import common.Array;
@@ -489,12 +489,15 @@ public class PrincipalComponentsCompute {
 	 */
 	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR, String output) {
 		double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
+		MDL mdl = new MDL(proj, markers, 2, 1);
+		// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		boolean[] markerUsed = new boolean[markers.length];
 		Logger log = proj.getLog();
 
 		Arrays.fill(markerUsed, true);
-		for (int i = 0; i < markers.length; i++) {
+		// for (int i = 0; i < markers.length; i++) {
+		int i = 0;
+		while (mdl.hasNext()) {
 			float[][] data = new float[1][dataToUse[0].length];
 			if (i % 1000 == 0) {
 				float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
@@ -502,7 +505,8 @@ public class PrincipalComponentsCompute {
 				float maxMemory = Runtime.getRuntime().maxMemory();
 				log.report(ext.getTime() + "\tData loaded = " + Math.round(((double) i / (double) markers.length * 100.0)) + "%\tFree memory: " + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
 			}
-			MarkerData markerData = markerDataLoader.requestMarkerData(i);
+			// MarkerData markerData = markerDataLoader.requestMarkerData(i);
+			MarkerData markerData = mdl.next();
 			if (recomputeLRR) {
 				// Warning - assuming only autosomal, not providing sex. Not caring about gc Threshold or call rate either
 				// TODO Recompute only from samplesToUse??
@@ -534,10 +538,11 @@ public class PrincipalComponentsCompute {
 				dataToUse[i] = null;
 				markerUsed[i] = false;
 			}
-			markerDataLoader.releaseIndex(i);
+			// markerDataLoader.releaseIndex(i);
+			i++;
 		}
 
-		markerDataLoader.reportWaitTimes();
+		// markerDataLoader.reportWaitTimes();
 
 		reportMarkersUsed(proj, markers, markerUsed, dataToUse, printFullData, samplesToUse, output);
 		return dataToUse;
