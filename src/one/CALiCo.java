@@ -14,14 +14,13 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import bioinformatics.MapSNPsAndGenes;
-
 import parse.GenParser;
 import stats.RegressionModel;
-
 import common.Aliases;
 import common.Array;
 import common.CmdLine;
@@ -845,6 +844,89 @@ public class CALiCo {
 		ResultsPackager.parseStdFormatFromPlink("", plinkResultFile, outFileRoot.substring(outFileRoot.indexOf("_") + 1).replace("_", ":"), genoFileDirPlusRoot+".bim", scratchDir + outFileRoot + "_freq.frq", null, 1, resultDir + outFileRoot + "_cov.out", log);
 	}
 
+	public static void parseResultsForPageGlucoseInsulinPaperFormat(String modelListFileName, String resultFilesDir, String outFileName) {
+		String filename, model, snp, outLine, delimiterForOutputFile;
+		String[] model1, modelLine, snpLine, indexLine, line;
+		Logger log;
+		Hashtable<String, String[]> modelList, resultsSnp, resultsIndex;
+		Enumeration<String> models, snps;
+		Vector<String> outFile;
+		int numSamples;
+		
+		log = new Logger();
+
+		if (outFileName.endsWith(".csv")) {
+			delimiterForOutputFile = ",";
+		} else {
+			delimiterForOutputFile = "\t";
+		}
+
+		outFile = new Vector<String>();
+		outFile.add("model" + delimiterForOutputFile + "SNP.original" + delimiterForOutputFile + "rsID" + delimiterForOutputFile + "CHR.build36" + delimiterForOutputFile + "CHR.build37" + delimiterForOutputFile + "bp.build36" + delimiterForOutputFile + "bp.build37" + delimiterForOutputFile + "analysis.locus" + delimiterForOutputFile  + "analysis.race" + delimiterForOutputFile+ "index.rsID" + delimiterForOutputFile + "snp.coded" + delimiterForOutputFile + "snp.noncoded" + delimiterForOutputFile + "snp.BETA" + delimiterForOutputFile + "snp.SE" + delimiterForOutputFile + "snp.STAT" + delimiterForOutputFile + "snp.P" + delimiterForOutputFile + "snp.L95" + delimiterForOutputFile + "snp.U95" + delimiterForOutputFile + "snp.NMISS" + delimiterForOutputFile + "snp.CAF" + delimiterForOutputFile + "snp.CAC" + delimiterForOutputFile + "index.BETA" + delimiterForOutputFile + "index.SE" + delimiterForOutputFile + "index.STAT" + delimiterForOutputFile + "index.P" + delimiterForOutputFile + "index.L95" + delimiterForOutputFile + "index.U95" + delimiterForOutputFile + "index.NMISS" + delimiterForOutputFile + "index.CAF" + delimiterForOutputFile + "index.CAC" + delimiterForOutputFile + "index.coded" + delimiterForOutputFile + "index.noncoded");
+		modelList = SkatMeta.loadFile(modelListFileName, null, new String[] {"Name", "rsID"}, new String[] {"Locus", "Chr", "bp36.start", "bp36.stop"}, null, true, log);
+		models = modelList.keys();
+		while (models.hasMoreElements()) {
+			model = models.nextElement();
+			model1 = model.replaceAll(" ", "").split("\t");
+			if (! model1[1].startsWith("rs")) {
+				filename = model1[0] + "_rs" + model1[1];
+			} else {
+				filename = model1[0] + "_" + model1[1];
+			}
+			modelLine = modelList.get(model);
+			resultsSnp = SkatMeta.loadFile(resultFilesDir + filename + ".out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
+			resultsIndex = SkatMeta.loadFile(resultFilesDir + filename + "_cov.out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
+			numSamples = Files.countLines(resultFilesDir + filename + "/" + model1[0] + "_pheno.dat", true);
+			snps = resultsSnp.keys();
+			while (snps.hasMoreElements()) {
+				snp = snps.nextElement();
+				snpLine = resultsSnp.get(snp);
+				indexLine = resultsIndex.get(snp);
+				line = snp.split("\t");
+				outLine = model1[0]			//model
+						+ delimiterForOutputFile				//SNP.original
+						+ delimiterForOutputFile + line[0]	//rsID
+						+ delimiterForOutputFile + line[1]	//CHR.build36
+						+ delimiterForOutputFile				//CHR.build37
+						+ delimiterForOutputFile + line[2]	//bp.build36
+						+ delimiterForOutputFile				//bp.build37
+						+ delimiterForOutputFile + modelLine[0]	//analysis.locus
+						+ delimiterForOutputFile + "AA"			//analysis.race
+						+ delimiterForOutputFile + model1[1]	//index.rsID
+						+ delimiterForOutputFile + snpLine[0]	//snp.coded
+						+ delimiterForOutputFile + snpLine[1]	//snp.noncoded
+						+ delimiterForOutputFile + snpLine[4]	//snp.BETA
+						+ delimiterForOutputFile + snpLine[5]	//snp.SE
+						+ delimiterForOutputFile				//snp.Stat
+						+ delimiterForOutputFile + snpLine[6]	//snp.P
+						+ ((snpLine[4].equals("NA") || snpLine[4].equals("NA"))?
+								(delimiterForOutputFile + delimiterForOutputFile) :
+								(delimiterForOutputFile + (Double.parseDouble(snpLine[4]) - 1.95 * Double.parseDouble(snpLine[5]))
+								+ delimiterForOutputFile + (Double.parseDouble(snpLine[4]) + 1.95 * Double.parseDouble(snpLine[5]))))	//snp.L95	snp.U95
+						+ delimiterForOutputFile + (numSamples - Integer.parseInt(snpLine[3]))	//snp.NMISS
+						+ delimiterForOutputFile + snpLine[2]	//snp.CAF
+						+ delimiterForOutputFile + (snpLine[2].equals("NA")? "" : (Double.parseDouble(snpLine[2]) * Integer.parseInt(snpLine[3]) * 2))	//snp.CAC
+						+ delimiterForOutputFile + indexLine[4]	//index.BETA
+						+ delimiterForOutputFile + indexLine[5]	//index.SE
+						+ delimiterForOutputFile	//index.Stat
+						+ delimiterForOutputFile + indexLine[6]	//index.P
+						+ ((indexLine[4].equals("NA") || indexLine[4].equals("NA"))?
+								(delimiterForOutputFile + delimiterForOutputFile) :
+								(delimiterForOutputFile + (Double.parseDouble(indexLine[4]) - 1.95 * Double.parseDouble(indexLine[5]))
+								+ delimiterForOutputFile + (Double.parseDouble(indexLine[4]) + 1.95 * Double.parseDouble(indexLine[5]))))	//index.L95	index.U95
+						+ delimiterForOutputFile + (numSamples - Integer.parseInt(indexLine[3]))	//index.NMISS
+						+ delimiterForOutputFile + indexLine[2]	//index.CAF
+						+ delimiterForOutputFile + (indexLine[2].equals("NA")? "" : (Double.parseDouble(indexLine[2]) * Integer.parseInt(indexLine[3]) * 2))	//index.CAC
+						+ delimiterForOutputFile + indexLine[0]	//index.coded
+						+ delimiterForOutputFile + indexLine[1]	//index.noncoded
+						;
+				outFile.add(outLine);
+			}
+		}
+		Files.writeList(outFile.toArray(new String[0]), outFileName);
+		log.report("Output is ready at: " + outFileName + "\nPlease use other software to sort by model ID, index.rsID, and positions.");
+	}
+
 	public static void metaAnalyzeSOL(String dir, String filePattern, String root, String mapFile) {
 		String filename;
 		Vector<String> v;
@@ -934,6 +1016,8 @@ public class CALiCo {
 //		String resultDir = phenoCovarDir.substring(0, phenoCovarDir.substring(0, phenoCovarDir.length()-2).lastIndexOf("/")) + "/results/";
 		String resultDir = phenoCovarDir + (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)?"conditionals/":"results/");
 		String plinkCommand;
+		String modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = "D:/CALiCo_conditional/instructions/RequestedConditionalAnalyses.txt";
+		String outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = "D:/CALiCo_conditional/parsedResults.csv";
 		Logger log;
 		boolean exists = true;
 		
@@ -964,12 +1048,27 @@ public class CALiCo {
 		"   (3) directory to perform for all *.xln files (i.e. phenocovardir=C:/test/ (not the default))\n" +
 		"   (4) (optional) scratch directory (i.e. scratchdir=" + scratchDir + " (default; use null for directory of phenotype file))\n" +
 		"   (5) (optional) results directory (i.e. resultdir=" + resultDir + " (default; use null for directory of phenotype file))\n" +
+		"\n" +
+		" To parse results per PAGE Glucose Insulin Paper's template:\n" +
+		"   (1) full path to the model list file (i.e. pageglucoseinsulinmodellist=" + modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper  + " (default))\n" +
+		"   (2) results directory (i.e. resultdir=" + resultDir + " (default))\n" +
+		"   (3) full path to the output file of this parsing (i.e. pageglucoseinsulinoutput=" + outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper + " (default))\n" +
 		"";
 
 		phenoCovarDir = null;
 		phenoCovarFilename = null;
 		scratchDir = null;
 		resultDir = null;
+		outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = null;
+
+		/**
+		 * The following is for parsing the Results for Page Glucose Insulin Paper's Format.
+		 */
+//		parseResultsForPageGlucoseInsulinPaperFormat("D:/CALiCo_conditional/instructions/RequestedConditionalAnalyses.txt", "D:/CALiCo_conditional/results/", "D:/CALiCo_conditional/parsedResults.csv");
+//		System.exit(0);
+//		modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = "D:/CALiCo_conditional/instructions/RequestedConditionalAnalyses.txt";
+//		resultDir = "D:/CALiCo_conditional/results/";
+//		outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = "D:/CALiCo_conditional/parsedResults.csv";
 
 		/**
 		 * The following 3 parameters are all what needed for conditional analysis, in addition to the "conditionals.txt" file mentioned in the help.
@@ -977,7 +1076,6 @@ public class CALiCo {
 		geno = "D:/CALiCo_conditional/plink";
 		phenoCovarDir = "D:/CALiCo_conditional/";
 		plinkCommand = null;
-
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -1000,6 +1098,12 @@ public class CALiCo {
 				numArgs--;
 			} else if (args[i].startsWith("resultdir=")) {
 				resultDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("pageglucoseinsulinmodellist=")) {
+				modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("pageglucoseinsulinoutput=")) {
+				outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -1053,9 +1157,14 @@ public class CALiCo {
 //				} else {
 					parseAllFilesInDirectory(geno, phenoCovarDir, resultDir, scratchDir, plinkCommand, log);
 //				}
-			} else {
+
+			} else if (outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper != null) {
 				parsePhenotypes(geno, phenoCovarFilename, SAMPLE_ID_SYNONYMS[1], resultDir, log);
+
+			} else {
+				parseResultsForPageGlucoseInsulinPaperFormat(modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper, resultDir, outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper);
 			}
+
 			log.report("\nCalico analysis is finished.");
 
 		} catch (Exception e) {
