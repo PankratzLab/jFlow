@@ -39,9 +39,9 @@ public class GeneScorePipeline {
 	private float[] windowExtensionThresholds = new float[]{DEFAULT_WINDOW_EXTENSION_THRESHOLD};
 	
 //	private int numThreads = 1;
-	private boolean runPlink = false;
-	private boolean runRegression = false;
-	private boolean writeHist = false;
+//	private boolean runPlink = false;
+//	private boolean runRegression = false;
+//	private boolean writeHist = false;
 	
 	private ArrayList<String> dataFiles = new ArrayList<String>();
 	private ArrayList<Study> studies = new ArrayList<GeneScorePipeline.Study>();
@@ -109,12 +109,12 @@ public class GeneScorePipeline {
 		HashMap<String, Double> covars = new HashMap<String, Double>();
 	}
 	
-	public GeneScorePipeline(String metaDir, /*int numThreads,*/ boolean plink, boolean regression, boolean histogram, float[] indexThresholds, int[] windowMins, float[] windowExtThresholds) {
+	public GeneScorePipeline(String metaDir, /*int numThreads, boolean plink, boolean regression, boolean histogram,*/ float[] indexThresholds, int[] windowMins, float[] windowExtThresholds) {
 		this.metaDir = metaDir;
 //		this.numThreads = numThreads;
-		this.runPlink = plink;
-		this.runRegression = runPlink && regression;
-		this.writeHist = runPlink && histogram;
+//		this.runPlink = plink;
+//		this.runRegression = runPlink && regression;
+//		this.writeHist = runPlink && histogram;
 		
 		this.indexThresholds = indexThresholds;
 		this.windowMinSizePerSides = windowMins;
@@ -396,9 +396,7 @@ public class GeneScorePipeline {
 			for (Study study : studies) {
 				processStudy(study);
 			}
-			if (runRegression) {
-				writeRegressionResults();
-			}
+			writeRegressionResults();
 //		} else {
 //			ExecutorService server = Executors.newFixedThreadPool(numThreads);
 //			
@@ -425,14 +423,9 @@ public class GeneScorePipeline {
 			crossFilterMarkerData(study);
 			runHitWindows(study);
 			extractHitMarkerData(study);
-			if (runPlink) {
-				runPlink(study);
-			} else {
-				writePlink(study);
-			}
-			if (runRegression) {
-				runRegression(study);
-			}
+			runPlink(study);
+//			writePlink(study);
+			runRegression(study);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -635,7 +628,7 @@ public class GeneScorePipeline {
 						plinkData.put(parts[1] + "\t" + parts[2], new double[]{Double.parseDouble(pheno), Double.parseDouble(score)});
 					}
 					
-					if (writeHist && !(new File(prefDir + "\\scores.hist").exists())) {
+					if (!(new File(prefDir + "\\scores.hist").exists())) {
 						double[] scores = new double[plinkData.size()];
 						int ind = 0;
 						for (double[] data : plinkData.values()) {
@@ -800,9 +793,6 @@ public class GeneScorePipeline {
 		float[] wT = new float[]{DEFAULT_WINDOW_EXTENSION_THRESHOLD}; 
 		
 //		int threads = 1;
-		boolean runPlink = false;
-		boolean regress = false;
-		boolean writeHist = false;		
 		
 		String usage =  "\n" + 
 				"lab.MultiGeneScorePipeline requires 2+ arguments\n" + 
@@ -811,8 +801,6 @@ public class GeneScorePipeline {
 				"   (2) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh=" + DEFAULT_INDEX_THRESHOLD + " (default))\n" + 
 				"   (3) minimum num bp per side of window (or comma delimited list) (i.e. minWinSize=" + DEFAULT_WINDOW_MIN_SIZE_PER_SIDE + " (default))\n" + 
 				"   (4) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh=" + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
-				"   (5) run Plink's SNP scoring routine after completion (i.e. -runPlink (not the default))\n" +
-				"   (6) run a regression analyis after completion (requires '-runPlink') (i.e. -regress (not the default))\n" +
 //				"   (8) Number of threads to use for computation (i.e. threads=" + threads + " (default))\n" + 
 				"";
 		
@@ -868,16 +856,7 @@ public class GeneScorePipeline {
 					}
 				}
 				numArgs--;
-			} else if (args[i].startsWith("-runPlink")) {
-				runPlink = true;
-				numArgs--;
-			} else if (args[i].startsWith("-regress")) {
-				regress = true;
-				numArgs--;
-			} else if (args[i].startsWith("-writeHist")) {
-				writeHist = true;
-				numArgs--;
-			} else {
+			}else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -891,16 +870,16 @@ public class GeneScorePipeline {
 			System.err.println("Error - argument 'broot' must be a valid directory");
 			System.exit(1);
 		}
-		if (regress && !runPlink) {
-			System.err.println("Error - '-runPlink' option is required for '-regress' option");
-			System.exit(1);
-		}
-		if (writeHist && !runPlink) {
-			System.err.println("Error - '-runPlink' option is required for '-writeHist' option");
-			System.exit(1);
-		}
+//		if (regress && !runPlink) {
+//			System.err.println("Error - '-runPlink' option is required for '-regress' option");
+//			System.exit(1);
+//		}
+//		if (writeHist && !runPlink) {
+//			System.err.println("Error - '-runPlink' option is required for '-writeHist' option");
+//			System.exit(1);
+//		}
 		
-		GeneScorePipeline gsp = new GeneScorePipeline(broot, /*threads,*/ runPlink, regress, writeHist, iT, mZ, wT);
+		GeneScorePipeline gsp = new GeneScorePipeline(broot, /*threads, runPlink, regress, writeHist,*/ iT, mZ, wT);
 		gsp.runPipeline();
 	}
 	
