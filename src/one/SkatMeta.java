@@ -1536,6 +1536,10 @@ public class SkatMeta {
 	 * @return
 	 */
 	public static Hashtable<String, String[]> loadFile(String filefullpath, Hashtable<String, String[]> snpList, String[] namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash, String[] namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, String[] criteria, Logger log) {
+		return loadFile(filefullpath, snpList, namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash, namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, criteria, false, log);
+	}
+
+	public static Hashtable<String, String[]> loadFile(String filefullpath, Hashtable<String, String[]> snpList, String[] namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash, String[] namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, String[] criteria, boolean isToSkipBlankRows, Logger log) {
 		boolean isToInclude;
 		int[] indicesKey, indicesOther = null;
 		String key, delimiter, header;
@@ -1568,41 +1572,45 @@ public class SkatMeta {
 
 			while (reader.ready()) {
 				line = reader.readLine().replaceAll("\"", "").split(delimiter);
-				
-				if (criteria != null) {
-					isToInclude = screenWithCriteria(line, criteriaColumnIndices, criteriaOperators, criteriaValues, log);
-				} else {
-					isToInclude = true;
-				}
 
-				if (isToInclude) {
-					key = line[indicesKey[0]];
-					if (snpList != null) {
-						tmp = snpList.get(key);
+				if (line.length >= 1) {
+					if (criteria != null) {
+						isToInclude = screenWithCriteria(line, criteriaColumnIndices, criteriaOperators, criteriaValues, log);
 					} else {
-						tmp = null;
+						isToInclude = true;
 					}
-					for (int i = 1; i < indicesKey.length; i++) {
-						key += ("\t" + line[indicesKey[i]]);
-					}
-					if (snpList != null) {
-						for (int i = 0; i < tmp.length; i++) {
-							key += ("\t" + tmp[i]);
-						}
-					}
-					if (indicesOther != null) {
-						tmp = new String[indicesOther.length];
-					} else {
-						tmp = new String[0];
-					}
-					for (int i = 0; i < tmp.length; i++) {
-						if (indicesOther[i] >= 0) {
-							tmp[i] = line[indicesOther[i]];
+	
+					if (isToInclude) {
+						key = line[indicesKey[0]];
+						if (snpList != null) {
+							tmp = snpList.get(key);
 						} else {
-							tmp[i] = "";
+							tmp = null;
 						}
+						for (int i = 1; i < indicesKey.length; i++) {
+							key += ("\t" + line[indicesKey[i]]);
+						}
+						if (snpList != null) {
+							for (int i = 0; i < tmp.length; i++) {
+								key += ("\t" + tmp[i]);
+							}
+						}
+						if (indicesOther != null) {
+							tmp = new String[indicesOther.length];
+						} else {
+							tmp = new String[0];
+						}
+						for (int i = 0; i < tmp.length; i++) {
+							if (indicesOther[i] >= 0) {
+								tmp[i] = line[indicesOther[i]];
+							} else {
+								tmp[i] = "";
+							}
+						}
+						result.put(key, tmp);
 					}
-					result.put(key, tmp);
+				} else if (! isToSkipBlankRows) {
+					log.reportError("Warning - a blank line found in the following file, and is skipped:\n  " + filefullpath);
 				}
 			}
 			reader.close();
