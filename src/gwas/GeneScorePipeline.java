@@ -684,8 +684,14 @@ public class GeneScorePipeline {
 							rr.num = depData.size();
 							rr.logistic = model.isLogistic();
 						} else {
-							int len = model.getBetas().length;
-							if (len < pd.covars.size() + 1) {
+							int ind = -1;
+							for (int l = 0; l < model.getVarNames().length; l++) {
+								if ("Indep 1".equals(model.getVarNames()[l])) {
+									ind = l;
+									break;
+								}
+							}
+							if (ind == -1) {
 								rr.beta = Double.NaN;
 								rr.se = Double.NaN;
 								rr.rsq = model.getRsquare();
@@ -694,13 +700,13 @@ public class GeneScorePipeline {
 								rr.logistic = model.isLogistic();
 								rr.stats = Double.NaN;
 							} else {
-								rr.beta = model.getBetas()[1];
-								rr.se = model.getSEofBs()[1];
+								rr.beta = model.getBetas()[ind];
+								rr.se = model.getSEofBs()[ind];
 								rr.rsq = model.getRsquare();
-								rr.pval = model.getSigs()[1];
+								rr.pval = model.getSigs()[ind];
 								rr.num = depData.size();
 								rr.logistic = model.isLogistic();
-								rr.stats = model.getStats()[1];
+								rr.stats = model.getStats()[ind];
 							}
 						}
 						study.regressions.get(filePrefix.getKey()).get(dataFile).put(pd.phenoName, rr);

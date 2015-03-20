@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -13,6 +14,7 @@ import stats.LeastSquares;
 import stats.LogisticRegression;
 import stats.RegressionModel;
 import cnv.var.CNVariant;
+import common.Array;
 import common.Files;
 import common.HashVec;
 import common.ext;
@@ -527,17 +529,24 @@ public class CNVBurdenIterator {
 					} else {
 						model = new LeastSquares(depVars, indepVars, indepVarNames, false, true);
 					}
-					
-					if (model.getBetas().length < indepInds.length + 1) {
+
+					int ind = -1;
+					for (int i = 0; i < model.getVarNames().length; i++) {
+						if ("Indep 1".equals(model.getVarNames()[i])) {
+							ind = i;
+							break;
+						}
+					}
+					if (ind == -1) {
 						resultsB[sex][cn][sz] = Double.NaN;
 						resultsP[sex][cn][sz] = Double.NaN;
 						resultsR[sex][cn][sz] = model.getRsquare(); 
 						resultsSE[sex][cn][sz] = Double.NaN;
 					} else {
-						resultsB[sex][cn][sz] = model.getBetas()[1];
-						resultsP[sex][cn][sz] = model.getSigs()[1];
+						resultsB[sex][cn][sz] = model.getBetas()[ind];
+						resultsP[sex][cn][sz] = model.getSigs()[ind];
 						resultsR[sex][cn][sz] = model.getRsquare(); 
-						resultsSE[sex][cn][sz] = model.getSEofBs()[1];
+						resultsSE[sex][cn][sz] = model.getSEofBs()[ind];
 					}
 					
 					model = null;
