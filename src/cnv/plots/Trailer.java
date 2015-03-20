@@ -1264,6 +1264,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		launchScatter = new JMenuItem();
 		launchScatter.setText(TO_SCATTER_PLOT);
+		launchScatter.setMnemonic(KeyEvent.VK_S);
 		launchScatter.setFont(new Font("Arial", 0, 12));
 		launchScatter.addActionListener(this);
 		act.add(launchScatter);
@@ -1370,13 +1371,14 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		act.addSeparator();
 		JMenu lbl3 = new JMenu("Derive from Centroids");
+		lbl3.setMnemonic(KeyEvent.VK_D);
 		act.add(lbl3);
 		
 		ItemListener centListener = new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent ie) {
 				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-				if (jrb.isSelected()) {
+				if (jrb.isSelected() && !"None".equals(jrb.getText())) {
 					if (namePathMap == null || namePathMap.isEmpty()) {
 						jrb.setSelected(false);
 						if (transformBtns != null && transformBtns[0] != null) {
@@ -1407,6 +1409,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					currentCentroid = null;
 					centroids = null;
 					bafs = originalBAFs;
+					loadValues();
+					updateGUI();
+					repaint();
 				}
 			}
 		};
@@ -1450,9 +1455,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		
 		ButtonGroup centButtons = new ButtonGroup();
+		JCheckBoxMenuItem centBox = new JCheckBoxMenuItem("None");
+		centBox.addItemListener(centListener);
+		centBox.setFont(new Font("Arial", 0, 12));
+		centBox.setSelected(true);
+		centButtons.add(centBox);
+		lbl3.add(centBox);
 		String[] centKeys = (String[]) namePathMap.keySet().toArray(new String[]{});
 		for (String key : centKeys) {
-			JCheckBoxMenuItem centBox = new JCheckBoxMenuItem(key);
+			centBox = new JCheckBoxMenuItem(key);
 			centBox.addItemListener(centListener);
 			centBox.setFont(new Font("Arial", 0, 12));
 			centButtons.add(centBox);
