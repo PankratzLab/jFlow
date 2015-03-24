@@ -30,6 +30,8 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import mining.Distance;
+import stats.Maths;
+
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -37,7 +39,6 @@ import common.IntVector;
 import common.ProgressBarDialog;
 import common.Sort;
 import common.ext;
-import stats.Maths;
 
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
@@ -70,7 +71,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected int canvasSectionMaximumY;
 	protected double plotXmax, plotYmax;
 	protected double plotXmin, plotYmin;
-	protected BufferedImage image;
+	protected volatile BufferedImage image;
 	protected String prevPos = "";
 	protected Hashtable<String,IntVector> locLookup;
 	protected PlotPoint[] points;						// make private when worked out
@@ -88,8 +89,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected float forcePlotXmax, forcePlotYmax;
 	protected float forcePlotXmin, forcePlotYmin;
 	protected boolean createLookup;
-	protected boolean invertX;
-	protected boolean invertY;
+	protected volatile boolean invertX;
+	protected volatile boolean invertY;
 	protected boolean makeSymmetric;
 	protected String errorMessage;
 	protected float mouseWheelMultiplier;
@@ -345,7 +346,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 //		System.out.println("#points= "+points.length+" flow="+flow+"; base="+base);
 		
-		if (points.length==0) {
+		if (points.length == 0 && (rectangles == null || rectangles.length == 0)) {
 			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			if (nullMessage != null) {
@@ -521,7 +522,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 				}
 				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
-
+				
 				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
 				gfx = yLabel.createGraphics();
 				gfx.setFont(new Font("Arial", 0, axisFontSize));
@@ -594,16 +595,29 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		    	g.setColor(colorScheme[rectangles[i].getColor()]);
 				
 				if (rectangles[i].getFill()) {
-					if (rectangles[i].getRoundedCorners()) {
-						g.fillRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
+					if (rectangles[i].getColor() != rectangles[i].getFillColor()) {
+						if (rectangles[i].getRoundedCorners()) {
+							g.drawRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
+							g.setColor(colorScheme[rectangles[i].getFillColor()]);
+							g.fillRoundRect(rectangleXPixel + rectangles[i].getThickness(), rectangleYPixel + rectangles[i].getThickness(), rectangleWidthPixel - (rectangles[i].getThickness() * 2) + 1, rectangleHeightPixel - (rectangles[i].getThickness() * 2) + 1, 2, 2);
+							g.setColor(colorScheme[rectangles[i].getColor()]);
+						} else {
+					    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, rectangles[i].getThickness());
+					    	g.setColor(colorScheme[rectangles[i].getFillColor()]);
+							g.fillRect(rectangleXPixel + rectangles[i].getThickness(), rectangleYPixel + rectangles[i].getThickness(), rectangleWidthPixel - (rectangles[i].getThickness() * 2) + 1, rectangleHeightPixel - (rectangles[i].getThickness() * 2) + 1);
+							g.setColor(colorScheme[rectangles[i].getColor()]);
+						}
 					} else {
-						g.fillRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
+						if (rectangles[i].getRoundedCorners()) {
+							g.fillRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
+						} else {
+							g.fillRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
+						}
 					}
 				} else {
 					if (rectangles[i].getRoundedCorners()) {
 						g.drawRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
 					} else {
-//						g.drawRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
 				    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, rectangles[i].getThickness());
 					}
 				}
@@ -890,12 +904,18 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public void mouseDragged(MouseEvent e) {
 		int curX, curY;
-		double distance;
+		double distance = -1;
 		
-		System.err.println("AbstractPanel mouseDragged has been called");
+//		System.err.println("AbstractPanel mouseDragged has been called");
 
 		curX = e.getPoint().x;
 		curY = e.getPoint().y;
+//		if (invertX) {
+//			curX = (2 * startX) - curX;
+//		}
+//		if (invertY) {
+//			curY = (2 * startY) - curY;
+//		}
 		
 		for (int i = 0; i < 2; i++) {
 			if (i==0) {
@@ -913,10 +933,18 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			if ((zoomSubsets[i][0]<=0&&distance<0)||(zoomSubsets[i][1]>=1&&distance>0)) {
 
 			} else {
+//				if ((invertX && i == 0) || (invertY && i == 1)) {
+//					zoomSubsets[i][0] -= distance;
+//					zoomSubsets[i][1] -= distance;
+//				} else {
+//					zoomSubsets[i][0] += distance;
+//					zoomSubsets[i][1] += distance;
+//				}
 				zoomSubsets[i][0] += distance;
 				zoomSubsets[i][1] += distance;
 			}
 		}
+		
 		
 		if (inDrag) {
 			paintAgain();
@@ -1037,47 +1065,50 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	public void drawPoint(Graphics g, PlotPoint point) {
+		if (point.getSize() == (byte) 0) {
+			return;
+		}
 		g.setColor(colorScheme[point.getColor()]);
 		
 		switch (point.getType()) {
-		case PlotPoint.FILLED_CIRCLE:
-			g.fillOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
-			break;
-		case PlotPoint.OPEN_CIRCLE:
-			g.drawOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
-			break;
-		case PlotPoint.FILLED_SQUARE:
-			g.fillPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
-						  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
-						  4);
-			break;
-		case PlotPoint.OPEN_SQUARE:
-			g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
-						  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
-						  4);
-			break;
-		case PlotPoint.FILLED_TRIANGLE:
-			Grafik.drawTriangle(g, getXPixel(point.getRawX()), getYPixel(point.getRawY()), point.getSize(), true);
-//			g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX()), getXPixel(point.getRawX())+point.getSize()/2},
-//						  new int[] {getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2},
-//						  3);
-			break;
-		case PlotPoint.MISSING:
-			//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
-			if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")){
-				g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4);//zx
-				g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4);//zx
-			} else {
-				g.setFont(new Font("Arial", 0, point.getSize()));//zx
-				g.drawString(PlotPoint.MISSING_STR, getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2);//zx
-				g.setFont(new Font("Arial", 0, axisFontSize));//zx
-			}
-			break;
-		case PlotPoint.NOT_A_NUMBER:
-//			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
-			break;
-		default:
-			System.err.println("Error - invalid PlotPoint type");
+			case PlotPoint.FILLED_CIRCLE:
+				g.fillOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
+				break;
+			case PlotPoint.OPEN_CIRCLE:
+				g.drawOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
+				break;
+			case PlotPoint.FILLED_SQUARE:
+				g.fillPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
+							  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
+							  4);
+				break;
+			case PlotPoint.OPEN_SQUARE:
+				g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
+							  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
+							  4);
+				break;
+			case PlotPoint.FILLED_TRIANGLE:
+				Grafik.drawTriangle(g, getXPixel(point.getRawX()), getYPixel(point.getRawY()), point.getSize(), true);
+	//			g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX()), getXPixel(point.getRawX())+point.getSize()/2},
+	//						  new int[] {getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2},
+	//						  3);
+				break;
+			case PlotPoint.MISSING:
+				//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
+				if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")){
+					g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4);//zx
+					g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4);//zx
+				} else {
+					g.setFont(new Font("Arial", 0, point.getSize()));//zx
+					g.drawString(PlotPoint.MISSING_STR, getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2);//zx
+					g.setFont(new Font("Arial", 0, axisFontSize));//zx
+				}
+				break;
+			case PlotPoint.NOT_A_NUMBER:
+	//			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
+				break;
+			default:
+				System.err.println("Error - invalid PlotPoint type");
 		}
 	}
 	
@@ -1250,7 +1281,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	public void createImage() {
-//		System.err.println("Creating Image");
 		if (getWidth() > 350 && getHeight() > 0 ) {
 			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 			flow = true;
@@ -1259,7 +1289,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			
 //			repaint();
 //			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-		}
+		}			
 	}
 	
 	public void setLookupResolution(int lookupResolution) {

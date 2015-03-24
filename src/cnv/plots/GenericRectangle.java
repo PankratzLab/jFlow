@@ -9,6 +9,7 @@ public class GenericRectangle {
 	private boolean fill;
 	private boolean roundedCorners;
 	private byte color;
+	private byte fillColor;
 	private byte layer;
 
 	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
@@ -20,11 +21,29 @@ public class GenericRectangle {
 		this.fill = fill;
 		this.roundedCorners = roundedCorners;
 		this.color = color;
+		this.fillColor = color;
+		this.layer = layer;
+	}
+	
+	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte fillColor, byte layer) {
+		this.startXValue = startX;
+		this.startYValue = startY;
+		this.stopXValue = stopX;
+		this.stopYValue = stopY;
+		this.thickness = thickness;
+		this.fill = fill;
+		this.roundedCorners = roundedCorners;
+		this.color = color;
+		this.fillColor = fillColor;
 		this.layer = layer;
 	}
 
 	public void setColor(byte color) {
 		this.color=color;
+	}
+	
+	public void setFillColor(byte color) {
+		this.fillColor=color;
 	}
 
 	public float getStartXValue() {
@@ -59,6 +78,10 @@ public class GenericRectangle {
 		return color;
 	}
 
+	public byte getFillColor() {
+		return fillColor;
+	}
+	
 	public byte getLayer() {
 		return layer;
 	}

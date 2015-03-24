@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -18,6 +19,7 @@ import common.CountVector;
 import common.Files;
 import common.IntVector;
 import common.Positions;
+import common.ext;
 
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
@@ -56,6 +58,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			   									new Color(224, 255, 255),
 
 	};
+	private static final double DEFAULT_HALF_BIN_SIZE = 0.001;
 	
 	
 	protected TwoDPlot tdp;
@@ -199,6 +202,21 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		currentData = tdp.getDataSelected(includeColorKeyValue);
 		uniqueValueCounts = new CountVector();
 		
+		if (tdp.isHistPlot) {
+			zoomable = false;
+			tdp.size = 0;
+			points = new PlotPoint[currentData.size()];
+			for (int i = 0; i < points.length; i++) {
+				points[i] = new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]), PlotPoint.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]), Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0, (byte) 0);
+			}
+			generateRectangles();
+			return;
+		} else {
+			zoomable = true;
+			tdp.size = 8;
+			rectangles = new GenericRectangle[0];
+		}
+		
 		points = new PlotPoint[currentData.size()];
 		index = (byte) (includeColorKeyValue? 4 : 3);
 		if (currentData.size()>0) {
@@ -211,7 +229,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				if (miss.equals(line[1]) || miss.equals(line[2])) {
 					missing = true;
 					break;
-				}
+				}	
 			}
 			if (missing) {
 				xAxisValue = Float.NaN;
@@ -246,7 +264,95 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		tdp.updateColorKey(uniqueValueCounts.convertToHash());
 	}
 
+	private void generateRectangles() {
+		Vector<String[]> currentData;
+		boolean includeColorKeyValue;
+		byte index;
+		String[] line;
+		float xAxisValue, yAxisValue;
+		CountVector uniqueValueCounts;
+		byte type;
+		
+		includeColorKeyValue = true;
+		currentData = tdp.getDataSelected(includeColorKeyValue);
+		uniqueValueCounts = new CountVector();
+		index = (byte) (includeColorKeyValue? 4 : 3);
+		if (currentData.size()>0) {
+			setOfKeys = new String[currentData.size()][currentData.elementAt(0).length - index];
+		}
+		
+		double min = 9999.0;
+		double max = -9999.0;
+		double minDiff = 9999.0;
+		for (int i = 0; i < currentData.size()-1; i++) {
+			double x1 = Double.parseDouble(currentData.get(i)[1]);
+			double x2 = Double.parseDouble(currentData.get(i + 1)[1]);
+			minDiff = Math.min(minDiff, Math.abs(x1 - x2));
+			min = Math.min(min, Math.min(x1, x2));
+			max = Math.max(max, Math.max(x1, x2));
+		}
+		
+		int sig = ext.getNumSigFig(minDiff);
+		minDiff = ext.roundToSignificantFigures(minDiff, sig);
+		float binHalf = (float) (currentData.size() > 1 ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1) : DEFAULT_HALF_BIN_SIZE);
+		
+//		forcePlotXmax = (float) (max + (minDiff / 2.0));
+//		forcePlotXmin = (float) (min - (minDiff / 2.0));
+		forcePlotXmax = (float) (max + binHalf);
+		forcePlotXmin = (float) (min - binHalf);
+		
+		rectangles = new GenericRectangle[currentData.size()];
+		for (int i = 0; i < rectangles.length; i++) {
+			line = currentData.get(i);
+			boolean missing = false;
 
+			for (String miss : TwoDPlot.MISSING_VALUES) {
+				if (miss.equals(line[1]) || miss.equals(line[2])) {
+					missing = true;
+					break;
+				}	
+			}
+			if (missing) {
+				xAxisValue = Float.NaN;
+				yAxisValue = Float.NaN;
+				type = PlotPoint.MISSING;
+				uniqueValueCounts.add("0");
+			} else {
+				xAxisValue = Float.parseFloat(line[1]);
+				yAxisValue = Float.parseFloat(line[2]);
+				if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
+					type = PlotPoint.NOT_A_NUMBER;
+					uniqueValueCounts.add("0");
+	//			} else if (alleleCounts[i]==-1) {
+	//				type = PlotPoint.MISSING;
+	//				uniqueValueCounts.add("0");
+				} else {
+					type = PlotPoint.FILLED_CIRCLE;
+					uniqueValueCounts.add(line[3]);
+				}
+			}
+			float startX, startY, stopX, stopY;
+			if (swapAxes) {
+				startX = 0f;
+				startY = (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig);
+				stopX = yAxisValue;
+				stopY = (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig);
+			} else {
+				startX = (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig);
+				startY = 0f; 
+				stopX = (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig);
+				stopY = yAxisValue;
+			}
+			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false, Byte.parseByte(line[3]), (byte) 2, (byte) 0);
+
+			for (int j = 0; j < setOfKeys[i].length; j ++) {
+				setOfKeys[i][j] = line[j + index];
+			}
+			
+		}
+		
+		
+	}
 
 
 
