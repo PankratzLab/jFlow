@@ -72,13 +72,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private Project proj;
 //	private int currentClass;
 //	private int plot_type;
-	private byte size;
+	byte size;
 	private SampleData sampleData;
 //	private boolean maskMissing;
 //	private JRadioButton[] typeRadioButtons;
 //	private JRadioButton[] classRadioButtons;
 	private JButton flipButton, invXButton, invYButton;
 	private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
+	volatile boolean isHistPlot;
 	private CheckBoxTree tree;
 	private Vector<String> treeFilenameLookup;
 //	Hashtable<String, String[][]> dataHash;
@@ -306,7 +307,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		JMenuBar menuBar;
 		JMenu menu;
 		JMenuItem menuItemExit, menuItemOpen, menuItemSave;
-		final JCheckBoxMenuItem menuItemExclude;
+		final JCheckBoxMenuItem menuItemExclude, menuItemHist;
 		
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -349,7 +350,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		
 		hideExcludes = true;
 		menuItemExclude = new JCheckBoxMenuItem("Hide Excluded", true);
-		menuItemExclude.setMnemonic(KeyEvent.VK_H);
+		menuItemExclude.setMnemonic(KeyEvent.VK_E);
 		menuItemExclude.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -358,6 +359,19 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 		});
 		menu.add(menuItemExclude);
+		
+		menuItemHist = new JCheckBoxMenuItem("Display as Histogram", false);
+		menuItemHist.setMnemonic(KeyEvent.VK_H);
+		menuItemHist.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				isHistPlot = menuItemHist.isSelected();
+				twoDPanel.paintAgain();
+			}
+		});
+		menu.add(menuItemHist);
+		
+		
 //		menu.add(new JMenuItem("Cut"));
 //		menu.add(new JMenuItem("Copy"));
 //		menu.add(new JMenuItem("Paste"));
@@ -1643,11 +1657,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			sampleData.initLinkKey(filename);	// initialize the link key
 			//createLinkKeyToDataHash(filename, linkKeyIndices);
         	dataHash.put(filename, new Vector<String[]>());
-            while (reader.ready()) {
+        	
+        	String tempLine = "";
+        	while ((tempLine = reader.readLine()) != null) {
+        		if ("".equals(tempLine)) continue;
 				if (readBuffer.contains("\t")) {
-					line = reader.readLine().trim().split("\t",-1);
+					line = tempLine.trim().split("\t",-1);
 				} else {
-					line = reader.readLine().trim().split("[\\s]+");
+					line = tempLine.trim().split("[\\s]+");
 				}
             	dataHash.get(filename).add(line);
             	for (int i=0; i<header.length; i++) {
@@ -1832,7 +1849,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		
 //		
 //		
-		fromParameters("D:/data/gedi_gwas/data/corrected/twoDscreenshots.dat", new Logger());
+		fromParameters("D:/data/gedi_gwas/data/corrected/twoDscreenshotsSplit.dat", new Logger());
 //        javax.swing.SwingUtilities.invokeLater(new Runnable() {
 //            public void run() {
 //                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
