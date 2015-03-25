@@ -14,6 +14,7 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextUtils;
 
 /**
  * Class for common actions on {@link VariantContext} objects
@@ -69,6 +70,9 @@ public class VCOps {
 		return maf;
 	}
 
+	/**
+	 * get the minor allele count for a variant context
+	 */
 	public static double getMAC(VariantContext vc, Set<String> sampleNames) {
 		VariantContext vcSub = getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
@@ -78,6 +82,56 @@ public class VCOps {
 			double minor = Math.min(alleleCounts[0], alleleCounts[2]);
 			return (minor * 2 + alleleCounts[1]);
 		}
+	}
+
+	/**
+	 * @param names
+	 *            the names corresponding the the array of jexl expressions
+	 * @param expressions
+	 *            the expressions to be evaluated
+	 * @param log
+	 * @return
+	 */
+	public static List<VariantContextUtils.JexlVCMatchExp> getJexlVCMathExp(String[] names, String[] expressions, Logger log) {
+		List<VariantContextUtils.JexlVCMatchExp> jExps = null;
+		try {
+			jExps = VariantContextUtils.initializeMatchExps(names, expressions);
+		} catch (IllegalArgumentException ile) {
+			log.reportTimeError("Could not intitialize the jexl expressions:");
+			log.reportTimeError("Names: " + Array.toStr(names));
+			log.reportTimeError("JEXLs: " + Array.toStr(expressions));
+			log.reportException(ile);
+		}
+		return jExps;
+	}
+
+	/**
+	 * @param vc
+	 * @param jExp
+	 *            determine if the expression matches for the {@link VariantContext}
+	 * @return
+	 */
+	public static boolean passesJexl(VariantContext vc, VariantContextUtils.JexlVCMatchExp jExp) {
+		return VariantContextUtils.match(vc, jExp);
+	}
+
+	/**
+	 * @param vc
+	 * @param jExps
+	 *            determine if all the expressions match for the {@link VariantContext}
+	 * @return
+	 */
+	public static boolean passesJexls(VariantContext vc, List<VariantContextUtils.JexlVCMatchExp> jExps) {
+		for (VariantContextUtils.JexlVCMatchExp jExp : jExps) {
+			if (!passesJexl(vc, jExp)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static Segment getSegment(VariantContext vc) {
+		return new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getStart());
 	}
 
 	/**

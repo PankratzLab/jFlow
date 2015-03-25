@@ -1,10 +1,12 @@
 package seq.qc;
 
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import common.Logger;
@@ -87,6 +89,8 @@ public class FilterNGS implements Serializable {
 		FALSE_BOOL;
 	}
 
+
+	
 	public enum VARIANT_FILTER_DOUBLE {
 
 		MAC(2.0, FILTER_TYPE.GTE_FILTER),
@@ -155,7 +159,11 @@ public class FilterNGS implements Serializable {
 		BIALLELIC_FILTER(FILTER_TYPE.TRUE_BOOL), /**
 		 * Will pass if the variant is un-ambiguous
 		 */
-		AMBIGUOUS_FILTER(FILTER_TYPE.FALSE_BOOL);
+		AMBIGUOUS_FILTER(FILTER_TYPE.FALSE_BOOL), /**
+		 * Is true when the jexl formatted expression is evaluated
+		 */
+		JEXL(FILTER_TYPE.TRUE_BOOL);
+
 		private FILTER_TYPE type;
 
 		private VARIANT_FILTER_BOOLEAN(FILTER_TYPE type) {
@@ -256,6 +264,24 @@ public class FilterNGS implements Serializable {
 			return Double.NaN;
 		}
 
+	}
+
+	/**
+	 * Handles Filtering with {@link VariantContextUtils.JexlVCMatchExp}
+	 *
+	 */
+	private class VcFilterJEXL extends VcFilterBoolean {
+		private List<VariantContextUtils.JexlVCMatchExp> jExps;
+
+		public VcFilterJEXL(VARIANT_FILTER_BOOLEAN bfilter, String[] names, String[] expressions, Logger log) {
+			super(bfilter);
+			this.jExps = VCOps.getJexlVCMathExp(names, expressions, log);
+		}
+
+		@Override
+		public Boolean getValue(VariantContext vc) {
+			return VCOps.passesJexls(vc, jExps);
+		}
 	}
 
 	/**
@@ -386,6 +412,10 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
+	private VcFilterJEXL getJEXLFilter(VARIANT_FILTER_BOOLEAN bfilter, String[] names, String[] expressions, Logger log) {
+		return new VcFilterJEXL(bfilter, names, expressions, log);
+	}
+
 	private VcFilterBoolean[] getBooleanFilters(VARIANT_FILTER_BOOLEAN[] bFilters, Logger log) {
 		VcFilterBoolean[] vBooleans = new VcFilterBoolean[bFilters.length];
 		for (int i = 0; i < vBooleans.length; i++) {
@@ -448,12 +478,18 @@ public class FilterNGS implements Serializable {
 	public static class VariantContextFilter {
 		private VcFilterDouble[] vDoubles;
 		private VcFilterBoolean[] vBooleans;
+		private VcFilterJEXL vFilterJEXL;
 		private Logger log;
 
-		public VariantContextFilter(VARIANT_FILTER_DOUBLE[] dFilters, VARIANT_FILTER_BOOLEAN[] bFilters, Logger log) {
+		public VariantContextFilter(VARIANT_FILTER_DOUBLE[] dFilters, VARIANT_FILTER_BOOLEAN[] bFilters, String[] jexlNames, String[] jexlExpression, Logger log) {
 			this.log = log;
 			this.vDoubles = new FilterNGS().getDoubleFilters(dFilters, log);
 			this.vBooleans = new FilterNGS().getBooleanFilters(bFilters, log);
+			if (jexlExpression != null) {
+				vFilterJEXL = new FilterNGS().getJEXLFilter(VARIANT_FILTER_BOOLEAN.JEXL, jexlNames, jexlExpression, log);
+			} else {
+				vFilterJEXL = null;
+			}
 		}
 
 		/**
@@ -461,6 +497,13 @@ public class FilterNGS implements Serializable {
 		 * @return if the variant passed all filters Note that this method returns after the first filter it fails for speed
 		 */
 		public VariantContextFilterPass filter(VariantContext vc) {
+
+			if (vFilterJEXL != null) {
+				VariantContextFilterPass vcfp = vFilterJEXL.filter(vc, log);
+				if (!vcfp.passed()) {
+					return vcfp;
+				}
+			}
 			for (int i = 0; i < vBooleans.length; i++) {
 				VariantContextFilterPass vcfp = vBooleans[i].filter(vc, log);
 				if (!vcfp.passed()) {
@@ -554,8 +597,8 @@ public class FilterNGS implements Serializable {
 			VARIANT_FILTER_DOUBLE[] caseF = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq };
 			// VARIANT_FILTER_DOUBLE[] refF = new VARIANT_FILTER_DOUBLE[] { mafRef, callRate, dp, gq };
 			// VARIANT_FILTER_DOUBLE[] caseF = new VARIANT_FILTER_DOUBLE[] { macCase, callRate, dp, gq };
-			this.refFilters = new VariantContextFilter(refF, new VARIANT_FILTER_BOOLEAN[] {}, log);
-			this.caseFilters = new VariantContextFilter(caseF, new VARIANT_FILTER_BOOLEAN[] {}, log);
+			this.refFilters = new VariantContextFilter(refF, new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
+			this.caseFilters = new VariantContextFilter(caseF, new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
 		}
 
 		public VariantContextFilterPass filter(final VariantContext vc, Logger log) {

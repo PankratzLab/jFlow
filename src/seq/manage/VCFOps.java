@@ -26,6 +26,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.PSF;
+import common.Positions;
 import common.ext;
 
 /**
@@ -149,12 +150,11 @@ public class VCFOps {
 		return writer;
 	}
 
-	public static String[] getSamplesInFile(VCFFileReader reader){
-		ArrayList<String> samples =  reader.getFileHeader().getSampleNamesInOrder();
-		return samples.toArray(new String[samples.size()]);	
+	public static String[] getSamplesInFile(VCFFileReader reader) {
+		ArrayList<String> samples = reader.getFileHeader().getSampleNamesInOrder();
+		return samples.toArray(new String[samples.size()]);
 	}
-	
-	
+
 	/**
 	 * Retrieves the sequence dictionary from a reader
 	 * 
@@ -464,7 +464,9 @@ public class VCFOps {
 
 	}
 
-	public static void extractSegments(String vcf, String segmentFile, int bpBuffer, Logger log) {
+	public static void extractSegments(String vcf, String segmentFile, int bpBuffer, String bamDir, Logger log) {
+		BamExtractor.BamSample bamSample = null;
+
 		if (vcf == null || !Files.exists(vcf)) {
 			log.reportFileNotFound(vcf);
 			return;
@@ -473,6 +475,7 @@ public class VCFOps {
 			log.reportFileNotFound(segmentFile);
 			return;
 		}
+
 		Segment[] segsToSearch = null;
 		if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
 			segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
@@ -483,6 +486,15 @@ public class VCFOps {
 		String root = ext.rootOf(vcf).replaceFirst(VCF_EXTENSIONS.REG_VCF.getLiteral(), "");
 
 		VCFFileReader reader = new VCFFileReader(vcf, true);
+		if (bamDir == null) {
+			log.reportTimeInfo("A bam directory was not provided, skipping bam extraction");
+		} else {
+			log.reportTimeInfo("A bam directory was provided, extracting bams to " + dir);
+			bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log, true);
+			bamSample.generateMap();
+			bamSample.getBamSampleMap();
+			bamSample.verify(getSamplesInFile(reader));
+		}
 		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf.gz";
 		VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 		copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
@@ -498,8 +510,17 @@ public class VCFOps {
 			}
 			if (!vc.isFiltered() && VCOps.isInTheseSegments(vc, segsToSearch)) {
 				writer.add(vc);
+				if (bamSample != null) {
+					bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()));
+				}
 				found++;
 			}
+		}
+		if (bamSample != null) {
+			BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, 1, log);
+			bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log, true);
+			bamSample.generateMap();
+			bamSample.dumpToIGVMap(output);
 		}
 		reader.close();
 		writer.close();
@@ -514,8 +535,6 @@ public class VCFOps {
 		vcfFileReader.close();
 		return numVar;
 	}
-	
-	
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -525,6 +544,7 @@ public class VCFOps {
 		int bpBuffer = 0;
 		UTILITY_TYPE type = UTILITY_TYPE.GWAS_QC;
 		String segmentFile = null;
+		String bamDir = null;
 		Logger log;
 
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
@@ -534,6 +554,7 @@ public class VCFOps {
 		usage += "   (4) the type of vcf extension (i.e. pop= (no default))\n" + "";
 		usage += "   (5) full path to a file name with chr,start,stop or *.bim to extract (i.e. segs= (no default))\n" + "";
 		usage += "   (6) bp buffer for segments to extract (i.e. bp=" + bpBuffer + "(default))\n" + "";
+		usage += "   (7) a bam directory to extract associtated reads (i.e. bamdir=" + bamDir + "( no default))\n" + "";
 
 		usage += "   NOTE: available utilities are:\n";
 
@@ -555,6 +576,9 @@ public class VCFOps {
 				numArgs--;
 			} else if (args[i].startsWith("segs=")) {
 				segmentFile = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("bamdir=")) {
+				bamDir = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("bp=")) {
 				bpBuffer = ext.parseIntArg(args[i]);
@@ -584,7 +608,7 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, bpBuffer, log);
+				extractSegments(vcf, segmentFile, bpBuffer, bamDir, log);
 				break;
 			default:
 				break;
