@@ -1,6 +1,7 @@
 package filesys;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -120,7 +121,29 @@ public class GeneTrack implements Serializable {
             { -1, -1, -1 };
     }
 
-    public void serialize(String filename) {
+	/**
+	 * @param geneName name of the gene
+	 * @return all {@link GeneData} objects associated with this name, it appears there can be multiple
+	 */
+	public GeneData[] lookupAllGeneDatas(String geneName) {
+		ArrayList<GeneData> geneDatas = new ArrayList<GeneData>();
+		for (int i = 1; i < 25; i++) {
+			if (genes[i] != null) {
+				for (int j = 0; j < genes[i].length; j++) {
+					if (genes[i][j].getGeneName().equalsIgnoreCase(geneName)) {
+						geneDatas.add(genes[i][j]);
+					}
+				}
+			}
+		}
+		return geneDatas.toArray(new GeneData[geneDatas.size()]);
+	}
+    
+	public GeneData[][] getGenes() {
+		return genes;
+	}
+
+	public void serialize(String filename) {
         Files.writeSerial(this, filename);
     }
 
