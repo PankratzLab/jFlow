@@ -863,6 +863,9 @@ public class Project extends Properties {
 		return tmp;
 	}
 	
+	/**
+	 * @return Hashtable with the indices of each marker in the project
+	 */
 	public Hashtable<String, Integer> getMarkerIndices() {
 		String[] markerNames = getMarkerNames();
 		Hashtable<String, Integer> indices = new Hashtable<String, Integer>();

@@ -1,9 +1,10 @@
 package seq.analysis;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import stats.Histogram.DynamicHistogram;
 import common.Array;
 import common.CmdLine;
 import common.CmdLineProcess;
@@ -75,8 +76,9 @@ public class Blast {
 		return log;
 	}
 
-	public BlastResults[] blastSequence(FastaEntry[] fastaEntries, PrintWriter tmpFile) {
-		ArrayList<BlastResults> blasts = new ArrayList<Blast.BlastResults>();
+	public BlastResultsSummary[] blastSequence(FastaEntry[] fastaEntries, PrintWriter tmpFile) {
+		BlastResultsSummary[] bSummaries = new BlastResultsSummary[fastaEntries.length];
+
 		if (!System.getProperty("os.name").startsWith("Windows")) {
 			if (!fail) {
 				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + "", WORD_SIZE, blastWordSize + "" };
@@ -89,7 +91,9 @@ public class Blast {
 				builder.log(log);
 				builder.verbose(true);
 				CmdLineProcess cmdLineProcess = builder.build(command);
-
+				for (int i = 0; i < bSummaries.length; i++) {
+					bSummaries[i] = new BlastResultsSummary(fastaEntries[i].getName(), reportWordSize);
+				}
 				while (cmdLineProcess.hasNext()) {
 					String line = cmdLineProcess.next();
 					String[] result = line.trim().split("[\\s]+");
@@ -97,11 +101,11 @@ public class Blast {
 						// System.out.println(line);
 						if (result[0].equals(fastaEntries[i].getName())) {
 							BlastResults bResults = new BlastResults(result, log);
+							// System.out.println(Array.toStr(bResults.getResults()));
 							if (bResults.getAlignmentLength() >= reportWordSize) {
+								bSummaries[i].addBlastResult(bResults, log);
 								if (tmpFile != null) {
 									tmpFile.println(Array.toStr(bResults.getResults()));
-								} else {
-									blasts.add(bResults);
 								}
 							}
 						}
@@ -112,7 +116,7 @@ public class Blast {
 		} else {
 			log.reportTimeError("This command can only be used on *.nix systems, apologies");
 		}
-		return blasts.toArray(new BlastResults[blasts.size()]);
+		return bSummaries;
 	}
 
 	public static boolean initDb(BLAST_DB_TYPE type, String fastaDb, Logger log) {
@@ -245,6 +249,18 @@ public class Blast {
 			this.bitScore = tryDouble(blastLine[11], log);
 		}
 
+		public String getQueryID() {
+			return queryID;
+		}
+
+		public String getSubjectID() {
+			return subjectID;
+		}
+
+		public double getPercentIdentity() {
+			return percentIdentity;
+		}
+
 		public int getAlignmentLength() {
 			return alignmentLength;
 		}
@@ -275,7 +291,55 @@ public class Blast {
 
 	}
 
-	public static class BlastWorker implements Callable<BlastResults[]> {
+	public static class BlastResultsSummary {
+		private DynamicHistogram dynamicHistogram;
+		private String name;
+		private Hashtable<String, Integer> hitCounts;
+		private int numPerfectMatches;
+
+		public BlastResultsSummary(String name, int reportWordSize) {
+			super();
+			this.name = name;
+			this.hitCounts = new Hashtable<String, Integer>();
+			this.dynamicHistogram = new DynamicHistogram(reportWordSize, 100, 0);
+			this.numPerfectMatches = 0;
+		}
+
+		public void addBlastResult(BlastResults blastResults, Logger log) {
+			if (!blastResults.getQueryID().equals(name)) {
+				log.reportTimeError("Query id and summary name do not match");
+			} else {
+				dynamicHistogram.addDataPointToHistogram(blastResults.getPercentIdentity());
+				if (!hitCounts.containsKey(blastResults.getSubjectID())) {
+					hitCounts.put(blastResults.getSubjectID(), 0);
+				}
+				int cur = hitCounts.get(blastResults.getSubjectID());
+				hitCounts.put(blastResults.getSubjectID(), cur + 1);
+				if (blastResults.getPercentIdentity() == 100) {
+					numPerfectMatches++;
+				}
+			}
+		}
+
+		public Hashtable<String, Integer> getHitCounts() {
+			return hitCounts;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public int getNumPerfectMatches() {
+			return numPerfectMatches;
+		}
+
+		public DynamicHistogram getDynamicHistogram() {
+			return dynamicHistogram;
+		}
+
+	}
+
+	public static class BlastWorker implements Callable<BlastResultsSummary[]> {
 		private Blast blast;
 		private FastaEntry[] fastaEntries;
 		private String tmpFile;
@@ -288,7 +352,7 @@ public class Blast {
 		}
 
 		@Override
-		public BlastResults[] call() throws Exception {
+		public BlastResultsSummary[] call() throws Exception {
 			PrintWriter writer = null;
 			if (tmpFile != null) {
 				blast.getLog().reportTimeInfo("Output sent to " + tmpFile);
@@ -296,7 +360,7 @@ public class Blast {
 				writer.println(Array.toStr(BLAST_HEADER));
 
 			}
-			BlastResults[] blasts = blast.blastSequence(fastaEntries, writer);
+			BlastResultsSummary[] blasts = blast.blastSequence(fastaEntries, writer);
 			return blasts;
 		}
 
