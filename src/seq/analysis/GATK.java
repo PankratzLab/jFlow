@@ -119,6 +119,7 @@ public class GATK {
 	private String thousandGTraining;
 	private String dbSnpTraining;
 	private String millsIndelTraining;
+	private String regionsFile;
 
 	public GATK(String gATKLocation, String referenceGenomeFasta, String javaLocation, String[] knownSitesSnpFile, String[] knownSitesIndelFile, boolean verbose, boolean overWriteExisting, Logger log) {
 		super();
@@ -131,6 +132,14 @@ public class GATK {
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExisting;
 		this.log = log;
+	}
+
+	public String getRegionsFile() {
+		return regionsFile;
+	}
+
+	public void setRegionsFile(String regionsFile) {
+		this.regionsFile = regionsFile;
 	}
 
 	public boolean isFail() {
