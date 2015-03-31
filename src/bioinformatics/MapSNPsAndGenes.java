@@ -9,8 +9,8 @@ import common.*;
 public class MapSNPsAndGenes {
 //	public static final boolean AUTOMATICALLY_ADD_ONE = true;
 //	public static final boolean AUTOMATICALLY_ADD_ONE = false;
-	public static final String GENES36 = "N:/statgen/NCBI/genes36.xln";
-	public static final String GENES37 = "N:/statgen/NCBI/genes37.xln";
+	public static final String GENES36 = "C:/bin/NCBI/genes36.xln";// "N:/statgen/NCBI/genes36.xln";
+	public static final String GENES37 = "C:/bin/NCBI/genes37.xln";//"N:/statgen/NCBI/genes37.xln";
 //	public static final int DEFAULT_WIGGLE_ROOM = 0;
 	public static final int DEFAULT_WIGGLE_ROOM = 15000;
 //	public static final int DEFAULT_WIGGLE_ROOM = 100000;
@@ -248,6 +248,7 @@ public class MapSNPsAndGenes {
 //				writer.println(markers[i]+"\t"+markerPositions[i][0]+"\t"+(AUTOMATICALLY_ADD_ONE?markerPositions[i][1]+1:markerPositions[i][1])+"\t"+(genes[i].equals("")?".":genes[i])+"\t=HYPERLINK(CONCATENATE(\"http://genome.ucsc.edu/cgi-bin/hgTracks?position=chr"+markerPositions[i][0]+":\","+markerPositions[i][1]+"-$E$1+1,\"-\","+markerPositions[i][1]+"+$E$1),CONCATENATE(\"chr"+markerPositions[i][0]+":\","+markerPositions[i][1]+"-$E$1+1,\"-\","+markerPositions[i][1]+"+$E$1))");
 				writer.println(markers[i]+"\t"+markerPositions[i][0]+"\t"+markerPositions[i][1]+"\t"+(genes[i][0]==null?".":genes[i][0])+"\t"+(genes[i][1]==null?".":genes[i][1])+"\t"+(genes[i][2]==null?".":genes[i][2])+"\t=HYPERLINK(CONCATENATE(\"http://genome.ucsc.edu/cgi-bin/hgTracks?position=chr"+markerPositions[i][0]+":\","+markerPositions[i][1]+"-$E$1+1,\"-\","+markerPositions[i][1]+"+$E$1),CONCATENATE(\"chr"+markerPositions[i][0]+":\","+markerPositions[i][1]+"-$E$1+1,\"-\","+markerPositions[i][1]+"+$E$1))");
 			}
+			writer.flush();
 			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing genes file");

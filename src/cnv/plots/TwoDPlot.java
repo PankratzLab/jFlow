@@ -1350,10 +1350,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		int xIDIndex, yIDIndex, colorIDIndex;
 		float minX, minY, maxX, maxY;
 		boolean hideExcluded;
+		boolean isHistogram;
 		boolean createColorKey;
 		boolean includeColorKey;
 		
-		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices, float[] displayWindow, boolean excluded, boolean colorKey, boolean appendColorKey) {
+		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices, float[] displayWindow, boolean excluded, boolean colorKey, boolean appendColorKey, boolean hist) {
 			dataXFile = files[0];
 			dataYFile = files[1];
 			colorFile = files[2];
@@ -1368,6 +1369,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			minY = displayWindow[2];
 			maxY = displayWindow[3];
 			hideExcluded = excluded;
+			isHistogram = hist;
 			createColorKey = colorKey;
 			includeColorKey = appendColorKey;
 		}
@@ -1403,6 +1405,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		tagSet.add("maxX");
 		tagSet.add("maxY");
 		tagSet.add("hideExcluded");
+		tagSet.add("isHistogram");
 		tagSet.add("colorKey");
 		tagSet.add("includeColorKey");
 		
@@ -1450,7 +1453,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			int[] idCols = new int[3];
 			int[] dataCols = new int[3];
 			float[] window = new float[4];
-			boolean hideExcludes = false;
+			boolean hideExcludes = true;
+			boolean isHistogram = false;
 			boolean colorKey = false;
 			boolean inclKey = false;
 		
@@ -1472,10 +1476,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			window[3] = Float.parseFloat(tagValues.get("maxY").get(i));
 			
 			hideExcludes = Boolean.parseBoolean(tagValues.get("hideExcluded").get(i));
+			isHistogram = Boolean.parseBoolean(tagValues.get("isHistogram").get(i));
 			colorKey = Boolean.parseBoolean(tagValues.get("colorKey").get(i));
 			inclKey = Boolean.parseBoolean(tagValues.get("includeColorKey").get(i));
 			
-			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes, colorKey, inclKey);
+			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes, colorKey, inclKey, isHistogram);
 			caps.add(sc);
 		}
 		
@@ -1505,15 +1510,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				loadColor(baseDir, screencap);
 			}
 			
-			
 			tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
 			tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);	
 
-			if (screencap.hideExcluded) {
-				this.hideExcludes = true;
-			} else {
-				this.hideExcludes = false;
-			}
+			this.hideExcludes = screencap.hideExcluded;
+			this.isHistPlot = screencap.isHistogram;
 			
 			twoDPanel.forcePlotXmin = screencap.minX;
 			twoDPanel.forcePlotXmax = screencap.maxX;
