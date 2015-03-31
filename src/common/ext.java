@@ -846,7 +846,9 @@ public class ext {
 		for (int i = 0; i<targetsWithAlts.length; i++) {
 			if (possibleIndices[i].size()==0) {
 				if (verbose) {
-					log.reportError((kill?"Error":"Warning")+" - no factor named '"+Array.toStr(targetsWithAlts[i], "/")+"'");
+					if (log != null) {
+						log.reportError((kill?"Error":"Warning")+" - no factor named '"+Array.toStr(targetsWithAlts[i], "/")+"'");
+					}
 				}
 				finalIndices[i] = -1;
 				err = true;
@@ -854,11 +856,13 @@ public class ext {
 				finalIndices[i] = possibleIndices[i].elementAt(0);
 				if (possibleIndices[i].size()>1) {
 					if (verbose) {
-						log.reportError("Warning - multiple factors matched; using "+superset[possibleIndices[i].elementAt(0)]+" and not ", false, true);
-						for (int j = 1; j<possibleIndices[i].size(); j++) {
-							log.reportError((j==1?"":" or ")+superset[possibleIndices[i].elementAt(j)], false, true);
+						if (log != null) {
+							log.reportError("Warning - multiple factors matched; using "+superset[possibleIndices[i].elementAt(0)]+" and not ", false, true);
+							for (int j = 1; j<possibleIndices[i].size(); j++) {
+								log.reportError((j==1?"":" or ")+superset[possibleIndices[i].elementAt(j)], false, true);
+							}
+							log.reportError("", true, true);
 						}
-						log.reportError("", true, true);
 					}
 				}
 			}
@@ -1504,6 +1508,30 @@ public class ext {
 		}
 	}
 	
+	public static int getNumSigFig(double num) {
+		String str = formDeci(num, 5);
+	
+		if (str.contains(".")) {
+			return str.length()-str.indexOf(".")-1;
+		} else {
+			return 0;
+		}
+	}
+	
+	public static double roundToSignificantFigures(double num, int n) {
+		// from https://stackoverflow.com/questions/202302/rounding-to-an-arbitrary-number-of-significant-digits
+	    if (num == 0) {
+	        return 0;
+	    }
+	    
+	    final double d = Math.ceil(Math.log10(num < 0 ? -num: num));
+	    final int power = n - (int) d;
+
+	    final double magnitude = Math.pow(10, power);
+	    final long shifted = Math.round(num*magnitude);
+	    return shifted/magnitude;
+	}
+
 	public static void main(String[] args) {
 		String temp;
 		Logger log;
@@ -1531,30 +1559,6 @@ public class ext {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static int getNumSigFig(double num) {
-		String str = formDeci(num, 5);
-	
-		if (str.contains(".")) {
-			return str.length()-str.indexOf(".")-1;
-		} else {
-			return 0;
-		}
-	}
-	
-	public static double roundToSignificantFigures(double num, int n) {
-		// from https://stackoverflow.com/questions/202302/rounding-to-an-arbitrary-number-of-significant-digits
-	    if (num == 0) {
-	        return 0;
-	    }
-
-	    final double d = Math.ceil(Math.log10(num < 0 ? -num: num));
-	    final int power = n - (int) d;
-
-	    final double magnitude = Math.pow(10, power);
-	    final long shifted = Math.round(num*magnitude);
-	    return shifted/magnitude;
 	}
 	
 	
