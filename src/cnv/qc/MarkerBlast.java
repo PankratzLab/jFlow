@@ -15,6 +15,7 @@ import common.WorkerHive;
 import common.ext;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
+import filesys.Segment;
 import seq.analysis.Blast;
 import seq.analysis.Blast.BlastWorker;
 import seq.analysis.Blast.FastaEntry;
@@ -48,9 +49,37 @@ public class MarkerBlast {
 		hive.execute(true);
 		ArrayList<Blast.BlastResultsSummary[]> bSummaries = hive.getResults();
 		String output = ext.rootOf(fileSeq, false) + ".blasted";
-		summarize(proj, bSummaries, output, proj.getLog());
 
+		summarize(proj, bSummaries, output, proj.getLog());
+		String outputOneHitWonders = ext.rootOf(fileSeq, false) + ".oneHitWonders";
+		summarizeOneHitWonders(proj, bSummaries, outputOneHitWonders, proj.getLog());
 		// Files.cat(tmps, ext.rootOf(fileSeq, false) + ".blasted", new int[] {}, proj.getLog());
+	}
+
+	private static void summarizeOneHitWonders(Project proj, ArrayList<Blast.BlastResultsSummary[]> bSummaries, String outputFile, Logger log) {
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+			Hashtable<String, Integer> indices = proj.getMarkerIndices();
+			byte[] chrs = proj.getMarkerSet().getChrs();
+			int[] pos = proj.getMarkerSet().getPositions();
+			for (int i = 0; i < bSummaries.size(); i++) {
+				for (int j = 0; j < bSummaries.get(i).length; j++) {
+					if (bSummaries.get(i)[j].getNumPerfectMatches() == 1) {
+						int currentMarkerIndex = indices.get(bSummaries.get(i)[j].getName());
+						Segment markerSegment = new Segment(chrs[currentMarkerIndex], pos[currentMarkerIndex]-1, pos[currentMarkerIndex] + 1);
+						Segment blastPerfectSegment = bSummaries.get(i)[j].getPerfectMatchSegment();
+						if (blastPerfectSegment != null && blastPerfectSegment.overlaps(markerSegment)) {
+							writer.println(bSummaries.get(i)[j].getName() + "\t" + chrs[currentMarkerIndex] + "\t" + pos[currentMarkerIndex] + "\t" + blastPerfectSegment.getChr() + "\t" + blastPerfectSegment.getStart() + "\t" + blastPerfectSegment.getStop());
+						}
+					}
+				}
+			}
+
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + outputFile);
+			log.reportException(e);
+		}
 	}
 
 	private static void summarize(Project proj, ArrayList<Blast.BlastResultsSummary[]> bSummaries, String outputFile, Logger log) {

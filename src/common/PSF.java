@@ -14,6 +14,7 @@ public class PSF {
 		public static final String JAR = "-jar";
 		public static final String XMX = "-Xmx";
 		public static final String CP = "-cp";
+		public static final String GENVISIS = "park.jar";
 
 		public static String[] buildJava() {
 			return new String[] { JAVA };
@@ -91,14 +92,25 @@ public class PSF {
 	public static class Ext {
 		public static final String CARROT = ">";
 		public static final String REV_CARROT = "<";
+		public static final String SPACE = " ";
 
 		public static final String AMP = "&";
 		public static final String BLANK = "";
 		public static final String NUM_THREADS_COMMAND = "numthreads=";
 		public static final String OUTPUT_DIR_COMMAND = "outputdir=";
+		public static final String MEMORY_MB = "memoryInMb=";
+		public static final String WALLTIME_HRS = "wallTimeInHour=";
 
 		public static String getNumThreadsCommand(int argNumber, int numThreads) {
 			return "   (" + argNumber + ")" + " number of threads to use (i.e. " + NUM_THREADS_COMMAND + numThreads + " (default))\n";
+		}
+
+		public static String getWallTimeCommand(int argNumber, int wallTimeInHours) {
+			return "   (" + argNumber + ")" + " wall time in hours to use (i.e. " + WALLTIME_HRS + wallTimeInHours + " (default))\n";
+		}
+
+		public static String getMemoryMbCommand(int argNumber, int memoryInMb) {
+			return "   (" + argNumber + ")" + " memory in mb to use (i.e. " + MEMORY_MB + memoryInMb + " (default))\n";
 		}
 
 	}
