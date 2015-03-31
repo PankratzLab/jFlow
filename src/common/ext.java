@@ -1561,5 +1561,25 @@ public class ext {
 		}
 	}
 	
+	/**
+	 * @param toAddTo
+	 *            counts will be added to this hash
+	 * @param toAddFrom
+	 *            hash to add counts from
+	 * @return NOTE: couldn't make this generic for {@link Number}. Go for it if it's easy
+	 */
+	public static Hashtable<String, Integer> addHashCounts(Hashtable<String, Integer> toAddTo, Hashtable<String, Integer> toAddFrom) {
+		Set<String> keys = toAddFrom.keySet();
+		for (String key : keys) {
+			if (!toAddTo.containsKey(key)) {
+				toAddTo.put(key, toAddFrom.get(key));
+			} else {
+				int cur = toAddTo.get(key);
+				int curToAdd = toAddFrom.get(key);
+				toAddTo.put(key, cur + curToAdd);
+			}
+		}
+		return toAddTo;
+	}
 	
 }

@@ -1,9 +1,10 @@
 package seq.analysis;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import stats.Histogram.DynamicHistogram;
 import common.Array;
 import common.CmdLine;
 import common.CmdLineProcess;
@@ -14,7 +15,9 @@ import common.PSF;
 import common.CmdLineProcess.OUTPUT_Mode;
 import common.Files;
 import common.Logger;
+import common.Positions;
 import common.ext;
+import filesys.Segment;
 
 public class Blast {
 	private static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };
@@ -53,7 +56,7 @@ public class Blast {
 
 	private String fastaDb;
 	private Logger log;
-	private boolean fail, overwriteExisting, verbose;
+	private boolean fail, taxonMode, overwriteExisting, verbose;
 	private int blastWordSize, reportWordSize;
 
 	public Blast(String fastaDb, int blastWordSize, int reportWordSize, Logger log, boolean overwriteExisting, boolean verbose) {
@@ -66,6 +69,7 @@ public class Blast {
 		this.fail = !verify(fastaDb, log);
 		this.overwriteExisting = overwriteExisting;
 		this.verbose = verbose;
+		this.taxonMode = false;
 		if (!this.fail) {
 			this.fail = !initDb(BLAST_DB_TYPE.NUCL, fastaDb, log);
 		}
@@ -75,11 +79,16 @@ public class Blast {
 		return log;
 	}
 
-	public BlastResults[] blastSequence(FastaEntry[] fastaEntries, PrintWriter tmpFile) {
-		ArrayList<BlastResults> blasts = new ArrayList<Blast.BlastResults>();
+	public void setTaxonMode(boolean taxonMode) {
+		this.taxonMode = taxonMode;
+	}
+
+	public BlastResultsSummary[] blastSequence(FastaEntry[] fastaEntries, PrintWriter tmpFile) {
+		BlastResultsSummary[] bSummaries = new BlastResultsSummary[fastaEntries.length];
+
 		if (!System.getProperty("os.name").startsWith("Windows")) {
 			if (!fail) {
-				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + "", WORD_SIZE, blastWordSize + "" };
+				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : ""), WORD_SIZE, blastWordSize + "" };
 				FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
 				CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
 				builder.STIN(fStream);
@@ -87,21 +96,22 @@ public class Blast {
 				builder.outputMode(OUTPUT_Mode.STOUT_CAPTURE_ITERATOR);
 				builder.errorMode(ERR_Mode.STERR_CAPTURE_BY_LOG);
 				builder.log(log);
-				builder.verbose(true);
+				builder.verbose(verbose);
 				CmdLineProcess cmdLineProcess = builder.build(command);
-
+				for (int i = 0; i < bSummaries.length; i++) {
+					bSummaries[i] = new BlastResultsSummary(fastaEntries[i].getName(), taxonMode, reportWordSize);
+				}
 				while (cmdLineProcess.hasNext()) {
 					String line = cmdLineProcess.next();
+
 					String[] result = line.trim().split("[\\s]+");
 					for (int i = 0; i < fastaEntries.length; i++) {
-						// System.out.println(line);
 						if (result[0].equals(fastaEntries[i].getName())) {
 							BlastResults bResults = new BlastResults(result, log);
 							if (bResults.getAlignmentLength() >= reportWordSize) {
+								bSummaries[i].addBlastResult(bResults, log);
 								if (tmpFile != null) {
 									tmpFile.println(Array.toStr(bResults.getResults()));
-								} else {
-									blasts.add(bResults);
 								}
 							}
 						}
@@ -112,7 +122,7 @@ public class Blast {
 		} else {
 			log.reportTimeError("This command can only be used on *.nix systems, apologies");
 		}
-		return blasts.toArray(new BlastResults[blasts.size()]);
+		return bSummaries;
 	}
 
 	public static boolean initDb(BLAST_DB_TYPE type, String fastaDb, Logger log) {
@@ -129,8 +139,10 @@ public class Blast {
 
 	private static boolean verify(String fastaDb, Logger log) {
 		boolean verified = true;
-		if (!Files.exists(fastaDb)) {
+		if (!Files.exists(fastaDb) && !Files.exists("", getDBFiles(fastaDb))) {
+
 			log.reportTimeError("Could not find fasta file for database " + fastaDb);
+			log.reportTimeError(" " + fastaDb);
 			verified = false;
 		}
 		if (!CmdLine.run(BLAST_COMMANDS.BLASTN.getCommand(), "")) {
@@ -229,6 +241,7 @@ public class Blast {
 		private int sstop;
 		private double evalue;
 		private double bitScore;
+		private String taxID;
 
 		public BlastResults(String[] blastLine, Logger log) {
 			this.queryID = blastLine[0];
@@ -243,6 +256,41 @@ public class Blast {
 			this.sstop = tryInt(blastLine[9], log);
 			this.evalue = tryDouble(blastLine[10], log);
 			this.bitScore = tryDouble(blastLine[11], log);
+			if (blastLine.length > 12) {
+				this.taxID = blastLine[12];
+			}
+		}
+
+		public String getTaxID() {
+			return taxID;
+		}
+
+		public int getSstart() {
+			return sstart;
+		}
+
+		public int getSstop() {
+			return sstop;
+		}
+
+		public int getQstart() {
+			return qstart;
+		}
+
+		public int getQstop() {
+			return qstop;
+		}
+
+		public String getQueryID() {
+			return queryID;
+		}
+
+		public String getSubjectID() {
+			return subjectID;
+		}
+
+		public double getPercentIdentity() {
+			return percentIdentity;
 		}
 
 		public int getAlignmentLength() {
@@ -275,7 +323,77 @@ public class Blast {
 
 	}
 
-	public static class BlastWorker implements Callable<BlastResults[]> {
+	public static class BlastResultsSummary {
+		private DynamicHistogram dynamicHistogram;
+		private String name;
+		private Hashtable<String, Integer> hitCounts;
+		private Segment perfectMatchSegment;
+		private int numPerfectMatches;
+		private boolean taxonMode;
+
+		public BlastResultsSummary(String name, boolean taxonMode, int reportWordSize) {
+			super();
+			this.name = name;
+			this.taxonMode = taxonMode;
+			this.hitCounts = new Hashtable<String, Integer>();
+			this.dynamicHistogram = new DynamicHistogram(reportWordSize, 100, 0);
+			this.numPerfectMatches = 0;
+			this.perfectMatchSegment = null;
+		}
+
+		public void addBlastResult(BlastResults blastResults, Logger log) {
+			if (!blastResults.getQueryID().equals(name)) {
+				log.reportTimeError("Query id and summary name do not match");
+			} else {
+				dynamicHistogram.addDataPointToHistogram(blastResults.getPercentIdentity());
+				if (!hitCounts.containsKey(blastResults.getSubjectID())) {
+					if (taxonMode) {
+						hitCounts.put(blastResults.getTaxID(), 0);
+					} else {
+						hitCounts.put(blastResults.getSubjectID(), 0);
+					}
+				}
+
+				int cur = hitCounts.get(taxonMode ? blastResults.getTaxID() : blastResults.getSubjectID());
+				hitCounts.put(taxonMode ? blastResults.getTaxID() : blastResults.getSubjectID(), cur + 1);
+
+				if (blastResults.getPercentIdentity() == 100) {
+					if (numPerfectMatches == 0) {
+						if (blastResults.getSubjectID().startsWith("chr")) {
+							perfectMatchSegment = new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()), blastResults.getSstart(), blastResults.getSstop());
+						}
+
+					} else {
+						perfectMatchSegment = null;
+					}
+					numPerfectMatches++;
+				}
+			}
+		}
+
+		public Hashtable<String, Integer> getHitCounts() {
+			return hitCounts;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public Segment getPerfectMatchSegment() {
+			return perfectMatchSegment;
+		}
+
+		public int getNumPerfectMatches() {
+			return numPerfectMatches;
+		}
+
+		public DynamicHistogram getDynamicHistogram() {
+			return dynamicHistogram;
+		}
+
+	}
+
+	public static class BlastWorker implements Callable<BlastResultsSummary[]> {
 		private Blast blast;
 		private FastaEntry[] fastaEntries;
 		private String tmpFile;
@@ -288,7 +406,7 @@ public class Blast {
 		}
 
 		@Override
-		public BlastResults[] call() throws Exception {
+		public BlastResultsSummary[] call() throws Exception {
 			PrintWriter writer = null;
 			if (tmpFile != null) {
 				blast.getLog().reportTimeInfo("Output sent to " + tmpFile);
@@ -296,7 +414,7 @@ public class Blast {
 				writer.println(Array.toStr(BLAST_HEADER));
 
 			}
-			BlastResults[] blasts = blast.blastSequence(fastaEntries, writer);
+			BlastResultsSummary[] blasts = blast.blastSequence(fastaEntries, writer);
 			return blasts;
 		}
 

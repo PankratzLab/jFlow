@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.TreeSet;
 
+import stats.Histogram.DynamicHistogram;
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -64,9 +65,12 @@ public class VCFOps {
 		 * Subset a vcf by a super population
 		 */
 		SUBSET_SUPER, /**
-		 * 
+		 * Extracts var
 		 */
-		EXTRACT_SEGMENTS;
+		EXTRACT_SEGMENTS, /**
+		 * Removed variants flagged as filtered
+		 */
+		REMOVE_FILTERED;
 	}
 
 	/**
@@ -464,25 +468,19 @@ public class VCFOps {
 
 	}
 
-	public static void extractSegments(String vcf, String segmentFile, int bpBuffer, String bamDir, Logger log) {
+	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bamDir, String outputDir, boolean skipFiltered, boolean gzipOutput, Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
 		if (vcf == null || !Files.exists(vcf)) {
 			log.reportFileNotFound(vcf);
-			return;
+			return null;
 		}
 		if (segmentFile == null || !Files.exists(segmentFile)) {
 			log.reportFileNotFound(segmentFile);
-			return;
+			return null;
 		}
 
-		Segment[] segsToSearch = null;
-		if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
-			segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
-		} else {
-			segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
-		}
-		String dir = ext.parseDirectoryOfFile(vcf);
+		String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
 		String root = ext.rootOf(vcf).replaceFirst(VCF_EXTENSIONS.REG_VCF.getLiteral(), "");
 
 		VCFFileReader reader = new VCFFileReader(vcf, true);
@@ -495,35 +493,47 @@ public class VCFOps {
 			bamSample.getBamSampleMap();
 			bamSample.verify(getSamplesInFile(reader));
 		}
-		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf.gz";
-		VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
-		copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
-		int progress = 0;
-		int found = 0;
-
-		for (VariantContext vc : reader) {
-			progress++;
-			if (progress % 100000 == 0) {
-				log.reportTimeInfo(progress + " variants read...");
-				log.reportTimeInfo(found + " variants found...");
-
+		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
+		if (!Files.exists(output)) {
+			Segment[] segsToSearch = null;
+			if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
+				segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
+			} else {
+				segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
 			}
-			if (!vc.isFiltered() && VCOps.isInTheseSegments(vc, segsToSearch)) {
-				writer.add(vc);
-				if (bamSample != null) {
-					bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()));
+			log.reportTimeInfo("Loaded " + segsToSearch.length + " segments to search");
+			VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
+			copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
+			int progress = 0;
+			int found = 0;
+
+			for (VariantContext vc : reader) {
+				progress++;
+				if (progress % 100000 == 0) {
+					log.reportTimeInfo(progress + " variants read...");
+					log.reportTimeInfo(found + " variants found...");
+
 				}
-				found++;
+				if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
+					writer.add(vc);
+					if (bamSample != null) {
+						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()));
+					}
+					found++;
+				}
 			}
-		}
-		if (bamSample != null) {
-			BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, 1, log);
-			bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log, true);
-			bamSample.generateMap();
-			bamSample.dumpToIGVMap(output);
+			if (bamSample != null) {
+				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, 1, log);
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam", false), log, true);
+				bamSample.generateMap();
+				bamSample.dumpToIGVMap(output);
+			}
+			writer.close();
+		} else {
+			log.reportTimeWarning("The file " + output + " already exists, skipping extraction step");
 		}
 		reader.close();
-		writer.close();
+		return output;
 	}
 
 	public static int getNumberOfVariants(String vcf) {
@@ -536,6 +546,60 @@ public class VCFOps {
 		return numVar;
 	}
 
+	/**
+	 * Creates a new vcf with filtered variants removed
+	 */
+	public static void removeFilteredVariants(String vcf, boolean gzipOutput, Logger log) {
+		VCFFileReader reader = new VCFFileReader(vcf, true);
+		String output = ext.addToRoot(vcf.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral()) ? vcf.replaceAll(".gz", "") : vcf, ".filtered") + (gzipOutput ? ".gz" : "");
+		log.reportTimeInfo("Will write filtered variants to " + output);
+		VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
+		VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+		DynamicHistogram dyHistogramVQSLOD = null;
+		if (reader.getFileHeader().hasInfoLine("VQSLOD")) {
+			log.reportTimeInfo("Detected info header line for VQSLOD, creating a histogram of scores for passing variants");
+			dyHistogramVQSLOD = new DynamicHistogram(0, 100, 0);
+		}
+		int count = 0;
+		int countFiltered = 0;
+		int countPassed = 0;
+		for (VariantContext vc : reader) {
+			count++;
+
+			if (!vc.isFiltered()) {
+				writer.add(vc);
+				if (dyHistogramVQSLOD != null) {
+					dyHistogramVQSLOD.addDataPointToHistogram(vc.getCommonInfo().getAttributeAsDouble("VQSLOD", 0.0));
+				}
+				countPassed++;
+			} else {
+				countFiltered++;
+			}
+			if (count % 100000 == 0) {
+				log.reportTimeInfo(count + " total variants, " + countPassed + " passed the filters, " + countFiltered + " were filtered");
+			}
+		}
+		reader.close();
+		writer.close();
+		if (dyHistogramVQSLOD != null) {
+			String outputHist = ext.addToRoot(vcf, ".hist.VQSLOD");
+
+			try {
+				PrintWriter writerHist = new PrintWriter(new FileWriter(outputHist));
+				double[] bins = dyHistogramVQSLOD.getBins();
+				int[] counts = dyHistogramVQSLOD.getCounts();
+				writerHist.println("VQSLOD_BIN\tVQSLOD_COUNT");
+				for (int i = 0; i < counts.length; i++) {
+					writerHist.println(bins[i] + "\t" + counts[i]);
+				}
+				writerHist.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + outputHist);
+				log.reportException(e);
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String vcf = "Avcf.vcf";
@@ -545,6 +609,10 @@ public class VCFOps {
 		UTILITY_TYPE type = UTILITY_TYPE.GWAS_QC;
 		String segmentFile = null;
 		String bamDir = null;
+		String outDir = null;
+		boolean skipFiltered = false;
+		boolean gzip = false;
+
 		Logger log;
 
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
@@ -555,6 +623,9 @@ public class VCFOps {
 		usage += "   (5) full path to a file name with chr,start,stop or *.bim to extract (i.e. segs= (no default))\n" + "";
 		usage += "   (6) bp buffer for segments to extract (i.e. bp=" + bpBuffer + "(default))\n" + "";
 		usage += "   (7) a bam directory to extract associtated reads (i.e. bamdir=" + bamDir + "( no default))\n" + "";
+		usage += "   (8) an output directory for extracted vcfs/minibams (i.e. outDir=" + outDir + "( no default))\n" + "";
+		usage += "   (9) skip filtered variants when extracting (i.e. -skipFiltered (not the default))\n" + "";
+		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
 
 		usage += "   NOTE: available utilities are:\n";
 
@@ -580,11 +651,20 @@ public class VCFOps {
 			} else if (args[i].startsWith("bamdir=")) {
 				bamDir = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith("outDir=")) {
+				outDir = ext.parseStringArg(args[i], "");
+				numArgs--;
 			} else if (args[i].startsWith("bp=")) {
 				bpBuffer = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-skipFiltered")) {
+				skipFiltered = true;
+				numArgs--;
+			} else if (args[i].startsWith("-gzip")) {
+				gzip = true;
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -608,7 +688,10 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, bpBuffer, bamDir, log);
+				extractSegments(vcf, segmentFile, bpBuffer, bamDir, outDir, skipFiltered, gzip, log);
+				break;
+			case REMOVE_FILTERED:
+				removeFilteredVariants(vcf, gzip, log);
 				break;
 			default:
 				break;
@@ -617,5 +700,4 @@ public class VCFOps {
 			e.printStackTrace();
 		}
 	}
-
 }

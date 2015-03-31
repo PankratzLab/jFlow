@@ -89,13 +89,15 @@ public class FilterNGS implements Serializable {
 		FALSE_BOOL;
 	}
 
-
-	
 	public enum VARIANT_FILTER_DOUBLE {
 
 		MAC(2.0, FILTER_TYPE.GTE_FILTER),
 
-		GQ(90, FILTER_TYPE.GTE_FILTER), DP(10, FILTER_TYPE.GTE_FILTER),
+		GQ(90, FILTER_TYPE.GTE_FILTER),
+		/**
+		 * Depth
+		 */
+		DP(10, FILTER_TYPE.GTE_FILTER),
 		/**
 		 * Use for minor allele frequency filtering, maf must be greater
 		 */
@@ -108,7 +110,11 @@ public class FilterNGS implements Serializable {
 		CALL_RATE(0.95, FILTER_TYPE.GTE_FILTER), /**
 		 * Call rate Filtering
 		 */
-		CALL_RATE_LOOSE(0.90, FILTER_TYPE.GTE_FILTER);
+		CALL_RATE_LOOSE(0.90, FILTER_TYPE.GTE_FILTER),
+		/**
+		 * Used for filtering on VQSLOD score of variant
+		 */
+		VQSLOD_STRICT(3.0, FILTER_TYPE.GTE_FILTER);
 
 		private double dFilter;
 		private FILTER_TYPE type;
@@ -367,6 +373,19 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
+	private VcFilterDouble getVQSLODFilter(VARIANT_FILTER_DOUBLE dfilter) {
+		return new VcFilterDouble(dfilter) {
+			@Override
+			public Double getValue(VariantContext vc) {
+				if (!vc.hasAttribute("VQSLOD")) {
+					return Double.NaN;
+				} else {
+					return vc.getCommonInfo().getAttributeAsDouble("VQSLOD", 0.0);
+				}
+			}
+		};
+	}
+
 	private VcFilterDouble getMACFilter(VARIANT_FILTER_DOUBLE dfilter) {
 		return new VcFilterDouble(dfilter) {
 			@Override
@@ -461,6 +480,9 @@ public class FilterNGS implements Serializable {
 				break;
 			case MAF:
 				vDoubles[i] = getMAFFilter(dfilter);
+				break;
+			case VQSLOD_STRICT:
+				vDoubles[i] = getVQSLODFilter(dfilter);
 				break;
 			default:
 				log.reportTimeError("Invalid double filter type " + dfilter);
