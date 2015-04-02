@@ -307,14 +307,10 @@ public class ForestPlot extends JFrame implements WindowListener {
 	public ForestPlot(Project proj) {
 		super("Genvisis - Forest Plot - " + proj.getNameOfProject());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		
-		
 		this.proj = proj;
 		this.log = proj.getLog();
 		setup();
-		
 		setBounds(20, 20, 1000, 600);
-		
 		pack();
 		setVisible(true);
 		this.addWindowListener(this);
@@ -323,13 +319,10 @@ public class ForestPlot extends JFrame implements WindowListener {
 	public ForestPlot(String markerFile, Logger log) {
 		super("Genvisis - Forest Plot");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		
 		this.log = log;
 		this.markerFileName = markerFile;
 		setup();
-		
 		setBounds(20, 20, 1000, 600);
-		
 		pack();
 		setVisible(true);
 		this.addWindowListener(this);
@@ -350,9 +343,9 @@ public class ForestPlot extends JFrame implements WindowListener {
 		JPanel treePanel = new JPanel();
 		treePanel.setBackground(BACKGROUND_COLOR);
 		treePanel.setLayout(new BorderLayout());
-
+		
 		forestPanel.add(createControlPanel(), BorderLayout.NORTH);
-
+		
 		Dimension minimumSize = new Dimension(100, 50);
 		layeredPane.setMinimumSize(minimumSize);
 
@@ -487,7 +480,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		Vector<String> items = new Vector<String>();
 		items.add(MARKER_LIST_PLACEHOLDER);
 		if (proj != null) {
-			String[] files = proj.getFilenames(Project.FOREST_PLOT_FILES);
+			String[] files = proj.getFilenames(Project.FOREST_PLOT_FILENAMES);
 			String name;
 			for (String file : files) {
 				name = ext.rootOf(file);
@@ -1229,7 +1222,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 			return;
 		}
 		
-		String[] projFiles = proj.getFilenames(Project.FOREST_PLOT_FILES);
+		String[] projFiles = proj.getFilenames(Project.FOREST_PLOT_FILENAMES);
 		String[] currFiles = markerFileNameLoc.values().toArray(new String[]{});
 		
 		ArrayList<String> newFiles = new ArrayList<String>();
@@ -1255,7 +1248,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		String message = newFiles.size() + " files have been added.  ";
 		int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time Forest Plot is loaded?", "Preserve Forest Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 		if (choice == 0) {
-			proj.setProperty(Project.FOREST_PLOT_FILES, newProp);
+			proj.setProperty(Project.FOREST_PLOT_FILENAMES, newProp);
 			proj.saveProperties();
 		} else if (choice == -1 || choice == 2) {
 			return;
