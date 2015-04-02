@@ -102,9 +102,9 @@ public class Project extends Properties {
 	public static final String LOG_LEVEL = "LOG_LEVEL";
 	public static final String INTENSITY_PC_FILENAME = "INTENSITY_PC_FILENAME";
 	public static final String INTENSITY_PC_NUM_COMPONENTS = "INTENSITY_PC_NUM_COMPONENTS";
-	public static final String FOREST_PLOT_FILES = "FOREST_PLOT_FILES";
+	public static final String FOREST_PLOT_FILENAMES = "FOREST_PLOT_FILENAMES";
 	public static final String SAMPLE_QC_FILENAME = "SAMPLE_QC_FILENAME";
-
+	
 	private boolean jar;
 	private String projectPropertiesFilename;
 	private SampleList sampleList;
@@ -668,7 +668,7 @@ public class Project extends Properties {
         if (knowns.size() > 0) {
         	changed = true;
         	corrections.add("");
-        	corrections.add("# A few more paramters that were not originally defined:");
+        	corrections.add("# A few more parameters that were not originally defined:");
             for (int i = 0; i < knowns.size(); i++) {
             	corrections.add("#"+knowns.elementAt(i)+"="+getProperty(knowns.elementAt(i)));
     		}        

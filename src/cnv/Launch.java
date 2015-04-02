@@ -615,6 +615,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(EDIT)) {
 //			new PropertyEditor(proj);
 			
+//			Configurator configurator = new Configurator(proj);
+//			configurator.setVisible(true);
+			
 			int index = projectsBox.getSelectedIndex();
 			String dir = launchProperties.getDirectory();
 			try {
