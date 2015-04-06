@@ -21,13 +21,13 @@ public class PhenoPrep {
 	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
 		if (phenos == null) {
 			log.reportError("Error - phenos is null");
-			System.exit(1);
+			return;
 		} else if (outputs == null) {
 			log.reportError("Error - outputs is null");
-			System.exit(1);
+			return;
 		} else if (phenos.length != outputs.length) {
 			log.reportError("Error - number of phenos is not equal to number of outputs");
-			System.exit(1);
+			return;
 		} else {
 			for (int i = 0; i < phenos.length; i++) {
 				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, zscore, signZ, log);
@@ -169,8 +169,8 @@ public class PhenoPrep {
 						
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + "summary_stats.txt");
-			e.printStackTrace();
+			log.reportError("Error writing to " + "summary_stats.txt");
+			log.reportException(e);
 		}
 		
 	}
@@ -237,7 +237,7 @@ public class PhenoPrep {
 						vIDs.add(id);
 						data = Array.toDoubleArray(line);
 						if (data == null) {
-							System.err.println("Error - failed to parse data for "+id);
+							log.reportError("Error - failed to parse data for "+id);
 						}
 						vData.add(data);
 					}
@@ -245,11 +245,13 @@ public class PhenoPrep {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + filename + "\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			log.reportException(fnfe);
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + filename + "\"");
-			System.exit(2);
+			log.reportError("Error reading file \"" + filename + "\"");
+			log.reportException(ioe);
+			return;
 		}
 		
 		finalIDs = Array.toStringArray(vIDs);
@@ -297,7 +299,7 @@ public class PhenoPrep {
 		} else if (transform.equalsIgnoreCase("sqrt")) {
 			data = Transformations.sqrtTransform(data);
 		} else {
-			System.err.println("Error - unknown transform: '"+transform+"'");
+			log.reportError("Error - unknown transform: '"+transform+"'");
 			return false;
 		}
 		
@@ -691,6 +693,7 @@ public class PhenoPrep {
 		double mean, stdev, skewness, kurtosis;
 		boolean normalize, normSigned;
 		
+		log = new Logger(dir+"summarizeAll.log");
 		try {
 			writer = new PrintWriter(new FileWriter(dir+"phenoSummary.xln"));
 			writer.println("Trait\tshorthand\ttransform\twinsorize\tremoveOutliers\tmakeResiduals\tafterMakingResidualsDealWithOutliers\tnormalization\tN\tmean\tstdev\tskewness\tkurtosis\t'=SUM(ABS(SKEW)+ABS(KURT))");
@@ -698,8 +701,6 @@ public class PhenoPrep {
 			phenos = phenosCommaDelimited.split(",");
 			
 			transforms = new String[] {null, "ln", "sqrt"};
-			
-			log = new Logger(dir+"summarizeAll.log");
 			
 			inverseNormalize = false;
 			for (int i = 0; i < phenos.length; i++) {
@@ -757,7 +758,7 @@ public class PhenoPrep {
 								if (normalize) {
 									outFile += "_"+NORMALIZATION_METHODS[norm];
 								}
-								System.out.println(outFile);
+								log.report(outFile);
 								outFile += ".csv";
 								if (!Files.exists(dir+outFile)) {
 									PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, false, false, false, true, true, null, outFile, true, false, false, normalize, normSigned, log);
@@ -782,8 +783,8 @@ public class PhenoPrep {
 			
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + dir+"phenoSummary.xln");
-			e.printStackTrace();
+			log.reportError("Error writing to " + dir+"phenoSummary.xln");
+			log.reportException(e);
 		}
 	}
 	
