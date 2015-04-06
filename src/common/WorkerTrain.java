@@ -48,6 +48,14 @@ public class WorkerTrain<E> implements Iterator<E> {
 		producer.shutdown();
 	}
 
+	public void setAutoShutDown(boolean autoShutDown) {
+		this.autoShutDown = autoShutDown;
+	}
+
+	public void setProducer(Producer<E> producer) {
+		this.producer = producer;
+	}
+
 	public Logger getLog() {
 		return log;
 	}
@@ -76,6 +84,7 @@ public class WorkerTrain<E> implements Iterator<E> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		shutdown();
 		return null;
 	}
 

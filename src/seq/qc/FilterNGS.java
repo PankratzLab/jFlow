@@ -1,5 +1,10 @@
 package seq.qc;
 
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.filter.AlignedFilter;
+import htsjdk.samtools.filter.DuplicateReadFilter;
+import htsjdk.samtools.filter.SamRecordFilter;
+import htsjdk.samtools.filter.SecondaryAlignmentFilter;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;
 
@@ -639,6 +644,114 @@ public class FilterNGS implements Serializable {
 			return pass;
 		}
 
+	}
+
+	// Some Same Record Filters
+
+	public abstract class SamRecordExtFilter implements SamRecordFilter {
+		protected double doubleFilter;
+
+		public SamRecordExtFilter(double doubleFilter) {
+			super();
+			this.doubleFilter = doubleFilter;
+		}
+	}
+
+	/**
+	 * @param mapQ
+	 * @return filter that will remove records with mapping qualities less than mapQ
+	 */
+	public FilterNGS.SamRecordExtFilter getSamRecordMapQFilter(double mapQ) {
+		return new SamRecordExtFilter(mapQ) {
+
+			@Override
+			public boolean filterOut(SAMRecord first, SAMRecord second) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean filterOut(SAMRecord record) {
+				int mapQual = record.getMappingQuality();
+				if (mapQual == 255 || (double)mapQual < doubleFilter) {
+					// TODO Auto-generated method stub
+					return true;
+				} else {
+					return false;
+				}
+			}
+		};
+	}
+
+	/**
+	 * @return filter that will remove invalid records
+	 */
+	public SamRecordFilter getValidRecordFilter() {
+		return new SamRecordFilter() {
+
+			@Override
+			public boolean filterOut(SAMRecord first, SAMRecord second) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean filterOut(SAMRecord record) {
+				// TODO Auto-generated method stub
+				return record.isValid() != null;
+			}
+		};
+	}
+
+	/**
+	 * @return filter that removes reads with reference of *
+	 */
+	public SamRecordFilter getValidReferenceFilter() {
+		return new SamRecordFilter() {
+
+			@Override
+			public boolean filterOut(SAMRecord first, SAMRecord second) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean filterOut(SAMRecord record) {
+				// TODO Auto-generated method stub
+				return record.getReferenceName().equals("*");
+			}
+		};
+	}
+
+	public SamRecordFilter getProperlyPairedFilter() {
+		return new SamRecordFilter() {
+
+			@Override
+			public boolean filterOut(SAMRecord first, SAMRecord second) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean filterOut(SAMRecord record) {
+				return !record.getProperPairFlag();
+			}
+		};
+	}
+
+	/**
+	 * @return pretty standard filteres for samrecords
+	 */
+	public ArrayList<SamRecordFilter> getStandardSAMRecordFilters() {
+		ArrayList<SamRecordFilter> filters = new ArrayList<SamRecordFilter>();
+		filters.add(new DuplicateReadFilter());
+		filters.add(new AlignedFilter(true));
+		filters.add(new SecondaryAlignmentFilter());
+		filters.add(getValidRecordFilter());
+		filters.add(getValidReferenceFilter());
+		filters.add(getProperlyPairedFilter());
+
+		return filters;
 	}
 
 }
