@@ -696,7 +696,7 @@ public class PennCNV {
 		log = proj.getLog();
 		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
 
-		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
+		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")||!Files.exists(filename, proj.getJarStatus())) {
 			sampleList = proj.getSampleList().getSamples();
 			output = proj.getProjectDir()+"custom.pfb";
 		} else if (Files.exists(filename, proj.getJarStatus())) {

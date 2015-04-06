@@ -175,6 +175,26 @@ public class Segment implements Serializable {
 		}
 		return new Segment(chr, Math.min(start, seg.start), Math.max(stop, seg.stop));
 	}
+	
+	/**
+	 * @param seg another segment that must overlap
+	 * @param log
+	 * @return the union of the two segments
+	 */
+	public Segment getUnion(Segment seg, Logger log) {
+		if (chr != seg.chr) {
+			String error = "merging segments on different chromosomes";
+			log.reportTimeError(error);
+			throw new IllegalArgumentException(error);
+		}
+		if (!overlaps(seg)) {
+			String error = "segments do not overlap";
+			log.reportTimeError(error);
+			throw new IllegalArgumentException(error);
+		}
+		return new Segment(chr, Math.max(start, seg.start), Math.min(stop, seg.stop));
+	}
+
 
 	public static boolean addIfAbsent(Segment seg, Vector<Segment> exons) {
 		for (int i = 0; i<exons.size(); i++) {

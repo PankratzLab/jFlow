@@ -378,13 +378,14 @@ public class Compression {
 			array[startPosition+1] = REDUCED_PRECISION_LRR_NAN_BYTES[1];
 			array[startPosition+2] = REDUCED_PRECISION_LRR_NAN_BYTES[2];
 			return 0;
-		} else if (lrr<(float)-13.1071 || lrr>(float)13.1071) {
+		} else if (lrr < (float) -13.1071 || lrr > (float) 13.1071 || ((Math.abs(lrr) - 13.1071f) < 0.0001f && (Math.abs(lrr) - 13.1071f) > -0.0001f)) {// (Math.abs(lrr) - 13.1071f) < 0.0001f && (Math.abs(lrr) - 13.1071f) > -0.0001f) added in case you are lucky and have an lrr=-13.10708 and it gets rounded to -13.1071 on compression
 			array[startPosition] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0];
 			array[startPosition+1] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1];
 			array[startPosition+2] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2];
 			return -1;
 		} else {
-//			Note: Currently, the conversion from float to int is through the operation of *10000. Need to change it to bit conversion to pursue higher accuracy.
+			// TODO : could maybe fix ((Math.abs(lrr) - 13.1071f) < 0.0001f) etc check here instead with note below
+			//			Note: Currently, the conversion from float to int is through the operation of *10000. Need to change it to bit conversion to pursue higher accuracy.
 			data = (int) Math.round(lrr * 10000);
 			array[startPosition] = (byte)((data >> 30 & 0x2) | ((data >> 16) & 0x1));
 			array[startPosition+1] = (byte)((data >> 8) & 0xff);

@@ -2386,6 +2386,32 @@ public class Array {
 
 		return arr;
 	}
+	
+
+	/**
+	 * Creates a new array using only the indices between start and stop
+	 * 
+	 * @param array
+	 *            an array of doubles
+	 * @param start
+	 *            first index to use
+	 * @param stop
+	 *            last index to use
+	 * @return the subset of the original array
+	 */
+	public static byte[] subArray(byte[] array, int start, int stopBefore) {
+		byte[] arr;
+
+		if (start < 0 || stopBefore > array.length || stopBefore <= start) {
+			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore + ") indicies for an array");
+		}
+		arr = new byte[stopBefore - start];
+		for (int i = start; i < stopBefore; i++) {
+			arr[i - start] = array[i];
+		}
+
+		return arr;
+	}
 
 	/**
 	 * Creates a new array using only the indices at and after start

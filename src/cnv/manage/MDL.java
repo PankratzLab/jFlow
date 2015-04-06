@@ -30,6 +30,8 @@ public class MDL implements Iterator<MarkerData> {
 	private int numLoaded, fileIndex, numLoadedForFile, markerBuffer;
 	private Hashtable<String, String> missing;
 	private BufferReader producer;
+	private int reportEvery;
+	private boolean debugMode;
 
 	/**
 	 * @param proj
@@ -50,6 +52,8 @@ public class MDL implements Iterator<MarkerData> {
 		this.markerBuffer = markerBuffer;
 		this.numLoaded = 0;
 		this.fileIndex = 0;
+		this.reportEvery = 1000;
+		this.debugMode = false;
 	}
 
 	/**
@@ -60,7 +64,7 @@ public class MDL implements Iterator<MarkerData> {
 		if (decompTrain != null) {
 			decompTrain.shutdown();
 		}
-		this.producer = new BufferReader(proj, match.getFileName(), Array.toIntegerArray(match.getFileIndices()), Array.toIntegerArray(match.getProjIndices()));
+		this.producer = new BufferReader(proj, match.getFileName(), Array.toIntegerArray(match.getFileIndices()), Array.toIntegerArray(match.getProjIndices()), debugMode);
 		try {
 			producer.init();
 		} catch (IllegalStateException e) {
@@ -107,13 +111,30 @@ public class MDL implements Iterator<MarkerData> {
 		}
 		numLoadedForFile++;
 		numLoaded++;
-		return decompTrain.next();
+		if (numLoaded % reportEvery == 0) {
+			proj.getLog().reportTimeInfo("Loaded " + numLoaded + " of " + markerNames.length + " markers");
+		}
+		MarkerData markerData = decompTrain.next();
+		if (!markerData.getMarkerName().equals(markerNames[numLoaded - 1])) {
+			String error = "Internal index error - mismatched marker data found, halting";
+			proj.getLog().reportTimeError(error);
+			throw new IllegalStateException(error);
+		}
+		return markerData;
 	}
 
 	@Override
 	public void remove() {
 		// TODO Auto-generated method stub
 
+	}
+
+	public void setReportEvery(int reportEvery) {
+		this.reportEvery = reportEvery;
+	}
+
+	public void setDebugMode(boolean debugMode) {
+		this.debugMode = debugMode;
 	}
 
 	/**
@@ -202,16 +223,17 @@ public class MDL implements Iterator<MarkerData> {
 		private long fingerprint, sampleFingerprint;
 		private String currentMarkFilename;
 		private Project proj;
-		private boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXYAllowed;
+		private boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXYAllowed, debugMode;
 		private Hashtable<String, Float> outlierHash;
 
-		private BufferReader(Project proj, String currentMarkFilename, int[] markersIndicesInFile, int[] markerIndicesInProject) {
+		private BufferReader(Project proj, String currentMarkFilename, int[] markersIndicesInFile, int[] markerIndicesInProject, boolean debugMode) {
 			super();
 			this.proj = proj;
 			this.currentMarkFilename = currentMarkFilename;
 			this.markersIndicesInFile = markersIndicesInFile;
 			this.markerIndicesInProject = markerIndicesInProject;
 			this.numLoaded = 0;
+			this.debugMode = debugMode;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -249,6 +271,9 @@ public class MDL implements Iterator<MarkerData> {
 			this.isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
 			if (new File(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser").exists()) {
 				outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser");
+				if (debugMode) {
+					proj.getLog().reportTimeInfo("Loading RAF: " + currentMarkFilename + " and outliers " + proj.getDir(Project.MARKER_DATA_DIRECTORY) + "outliers.ser");
+				}
 			} else {
 				outlierHash = new Hashtable<String, Float>();
 			}
