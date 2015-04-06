@@ -375,6 +375,7 @@ public class TransposeData {
 		} else {
 			for (int i = 0; i<files.length; i++) {
 				try {
+					proj.getLog().report((i+1)+" of "+files.length);
 					currentFile = new RandomAccessFile(proj.getDir(Project.MARKER_DATA_DIRECTORY) + files[i], "r");
 					currentFile.seek(MARKERDATA_MARKERNAMELEN_START);
 					readBuffer = new byte[currentFile.readInt()];
