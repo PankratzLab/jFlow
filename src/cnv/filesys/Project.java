@@ -122,6 +122,7 @@ public class Project extends Properties {
 		markerLookup = null;
 		log = new Logger();
 		gui = false;
+		this.projectPropertiesFilename = "example.properties";
 	}
 	
 	public Project(String filename, boolean jar) {

@@ -12,7 +12,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.EventObject;
+import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -59,7 +62,8 @@ public class Configurator extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Configurator frame = new Configurator(new Project());
+					boolean configure = JOptionPane.showConfirmDialog(null, "Convert property names?", "Apply conversion?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+					Configurator frame = new Configurator(new Project(), configure);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -71,8 +75,8 @@ public class Configurator extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Configurator(Project project) {
-		setTitle("Genvisis Configuration");
+	public Configurator(Project project, boolean convertProjects) {
+		setTitle("Genvisis - " + project.getNameOfProject() + " - Project Configuration");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 700, 800);
 		contentPane = new JPanel();
@@ -241,8 +245,21 @@ public class Configurator extends JFrame {
 			public boolean isCellEditable(int row, int column) { return column != 0 && super.isCellEditable(row, column); }
 		};
 		
-		for (String prop : properties) {
-			Object[] values = parseProperty(prop.toString());
+		ArrayList<Object> propKeys = new ArrayList<Object>();
+		Enumeration<?> enumer = proj.propertyNames();
+		while(enumer.hasMoreElements()) {
+			Object key = enumer.nextElement();
+			propKeys.add(key);
+		}
+		for (int keyIndex = propKeys.size() - 1; keyIndex >= 0; keyIndex--) {
+			Object origKey = propKeys.get(keyIndex);
+			String key = origKey.toString();
+			if (convertProjects && CONVERSION_MAP.containsKey(key)) {
+				proj.put(CONVERSION_MAP.get(key), proj.remove(origKey));
+				key = CONVERSION_MAP.get(key);
+			}
+			
+			Object[] values = parseProperty(key);
 			model.addRow(values);
 		}
 		
@@ -404,7 +421,32 @@ public class Configurator extends JFrame {
 		"I",
 		"D"
 	};
-
+	
+	HashMap<String, String> CONVERSION_MAP = new HashMap<String, String>() {
+		private static final long serialVersionUID = 1L;
+		{
+			put("DISPLAY_QUANTILES", "DISPLAY_QUANTILES_YESNO");
+			put("DISPLAY_ROTATED_QQ", "DISPLAY_ROTATED_QQ_YESNO");
+			put("DISPLAY_STANDARD_QQ", "DISPLAY_STANDARD_QQ_YESNO");
+			put("FID_ALIAS", "FID_ALIAS_LIST");
+			put("GC_THRESHOLD", "GC_THRESHOLD_0d0_1d0_D");
+			put("IID_ALIAS", "IID_ALIAS_LIST");
+			put("INTENSITY_PC_NUM_COMPONENTS", "INTENSITY_PC_NUM_COMPONENTS_0_10000_I");
+			put("JAR_STATUS", "JAR_STATUS_YESNO");
+			put("LOG_LEVEL", "LOG_LEVEL_n1_12_I");
+			put("LONG_FORMAT", "LONG_FORMAT_YESNO");
+			put("LRRSD_CUTOFF", "LRRSD_CUTOFF_0d0_1d0_D");
+			put("MAX_MARKERS_LOADED_PER_CYCLE", "MAX_MARKERS_LOADED_PER_CYCLE_1_10000_I");
+			put("MAX_MEMORY_USED_TO_LOAD_MARKER_DATA", "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA_8_65536_I");
+			put("NUM_THREADS", "NUM_THREADS_1_99_I");
+			put("PARSE_AT_AT_SYMBOL", "PARSE_AT_AT_SYMBOL_YESNO");
+			put("QQ_MAX_NEG_LOG10_PVALUE", "QQ_MAX_NEG_LOG10_PVALUE_1_10000_I");
+			put("SAMPLE_ALIAS", "SAMPLE_ALIAS_LIST");
+			put("TWOD_LOADED_VARIABLES", "TWOD_LOADED_VARIABLES_LIST");
+			put("WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER_100_1000000_I");
+		}	
+	};
+	
 	String[] properties  = new String[]{
 			"AB_LOOKUP_FILENAME",
 			"ANNOTATION_FILENAME",

@@ -614,23 +614,26 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			System.exit(0);
 		} else if (command.equals(EDIT)) {
 //			new PropertyEditor(proj);
-			
-//			Configurator configurator = new Configurator(proj);
-//			configurator.setVisible(true);
-			
-			int index = projectsBox.getSelectedIndex();
-			String dir = launchProperties.getDirectory();
-			try {
-				if (System.getProperty("os.name").startsWith("Windows")) {
-					Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
-					if (!new File(dir+projects[index]).exists()) {
-						log.report("Tried to open "+projects[index]+" which does not exist");
+
+			boolean configure = JOptionPane.showConfirmDialog(null, "Use new [in beta] property editor?", "Beta or Notepad?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+			if (configure) {
+				Configurator configurator = new Configurator(proj, JOptionPane.showConfirmDialog(null, "Convert property names?", "Apply conversion?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+				configurator.setVisible(true);
+			} else {
+				int index = projectsBox.getSelectedIndex();
+				String dir = launchProperties.getDirectory();
+				try {
+					if (System.getProperty("os.name").startsWith("Windows")) {
+						Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
+						if (!new File(dir+projects[index]).exists()) {
+							log.report("Tried to open "+projects[index]+" which does not exist");
+						}
+					} else {
+						JOptionPane.showMessageDialog(null, "This button currently only works for the Windows operating system; a full feature property editor will be arriving in due course", "Sorry", JOptionPane.ERROR_MESSAGE);
 					}
-				} else {
-					JOptionPane.showMessageDialog(null, "This button currently only works for the Windows operating system; a full feature property editor will be arriving in due course", "Sorry", JOptionPane.ERROR_MESSAGE);
+				} catch (IOException ioe) {
+					log.reportError("Error - failed to open Notepad");
 				}
-			} catch (IOException ioe) {
-				log.reportError("Error - failed to open Notepad");
 			}
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
