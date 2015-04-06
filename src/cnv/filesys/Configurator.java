@@ -5,7 +5,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
-import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,7 +14,10 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.EventObject;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DefaultCellEditor;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -27,8 +29,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -36,6 +40,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import common.Grafik;
 import common.ext;
 
 public class Configurator extends JFrame {
@@ -114,39 +119,62 @@ public class Configurator extends JFrame {
 		
 		final JCheckBox rendererChkBx = new JCheckBox();
 		rendererChkBx.setBackground(Color.WHITE);
-		final DefaultCellEditor boolEditor = new DefaultCellEditor(rendererChkBx);
+		rendererChkBx.setHorizontalAlignment(SwingConstants.TRAILING);
+		rendererChkBx.setFont(rendererChkBx.getFont().deriveFont(16));
+		Grafik.scaleCheckBoxIcon(rendererChkBx);
+		rendererChkBx.setBorder(null);
+		final JCheckBox editorChkBx = new JCheckBox();  
+		editorChkBx.setBackground(Color.WHITE);
+		editorChkBx.setHorizontalAlignment(SwingConstants.TRAILING);
+		editorChkBx.setFont(editorChkBx.getFont().deriveFont(16));
+		Grafik.scaleCheckBoxIcon(editorChkBx);
+		final DefaultCellEditor boolEditor = new DefaultCellEditor(editorChkBx);
+		final JSpinner rendererSpinner = new JSpinner();
+		rendererSpinner.setBorder(null);
 		final SpinnerEditor numberEditor = new SpinnerEditor();
-		final FileChooserCellEditor fileEditor = new FileChooserCellEditor();
 		final JPanel fileRenderer = new JPanel(new BorderLayout());
 		final JLabel fileLabel = new JLabel();
 		final JButton fileBtn = new JButton("...");
-		fileBtn.setMargin(new Insets(0, 2, 0, 2));
+		fileBtn.setMargin(new Insets(1, 1, 0, 1));
 		fileLabel.setBackground(Color.WHITE);
 		fileRenderer.setBackground(Color.WHITE);
 		fileRenderer.add(fileLabel, BorderLayout.CENTER);
-		fileRenderer.add(fileBtn, BorderLayout.EAST);
-		
+		fileRenderer.add(fileBtn, BorderLayout.EAST);		
+		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(fileBtn, false);
+		final DefaultCellEditor stringEditor = new DefaultCellEditor(new JTextField()) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Object getCellEditorValue() {
+				return ((String) super.getCellEditorValue()).trim();
+			}
+		};
+
 		final DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			public Component getTableCellRendererComponent(final JTable table, Object value, boolean isSelected, boolean hasFocus, final int row, final int column) {
 				if (value instanceof Boolean) {
 					rendererChkBx.setSelected(((Boolean) value).booleanValue());
 					return rendererChkBx;
 				} else if (value instanceof File) {
-					fileLabel.setText(((File) value).getAbsolutePath());
+					fileLabel.setText("./"  +((File) value).getName());
 					return fileRenderer;
 				} else if (value instanceof File[]) {
 					StringBuilder sb = new StringBuilder();
 					if (((File[])value).length > 0) {
 						sb.append(((File[])value)[0].getAbsolutePath());
 						for (int i = 1; i < ((File[])value).length; i++) {
-							sb.append(";").append(((File[])value)[i].getAbsolutePath());
+							sb.append(";").append(((File[])value)[i].getName());
 						}
 					}
 					fileLabel.setText(sb.toString());
 					return fileRenderer;
+				} else if (value instanceof Number) {
+					String propKey = (String) table.getModel().getValueAt(row, 0);
+					Object propVal = table.getModel().getValueAt(row, 1);
+					setByPropertyKey(rendererSpinner, propKey, propVal);
+					return rendererSpinner;
 				}
 				Component superComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column); 
 				return superComp;
@@ -156,6 +184,13 @@ public class Configurator extends JFrame {
 		final Color bgColor2 = new Color(184,207,229);
 		table = new JTable() {
 			private static final long serialVersionUID = 1L;
+			volatile private int editRow = -1;
+			private void setEditRow(int row) {
+				editRow = row;
+			}
+			private int getEditRow() {
+				return editRow;
+			}
 			public javax.swing.table.TableCellEditor getCellEditor(int row, int column) {
 				if (column == 0) {
 					return super.getCellEditor(row, column);
@@ -165,15 +200,24 @@ public class Configurator extends JFrame {
 				Object propVal = this.getModel().getValueAt(row, 1);
 				
 				if (propVal instanceof File || propVal instanceof File[]) {
+					if (getEditRow() != row) {
+						setEditRow(row);
+						fileEditor.reset();
+					}
+					fileEditor.setValue(this.getValueAt(row, column));
 					return fileEditor;
 				} else if (propVal instanceof Boolean) {
 					 return boolEditor;
 				} else if (propVal instanceof Number) {
 					setByPropertyKey(numberEditor.spinner, propKey, propVal);
 					return numberEditor;
+				} else if (propVal instanceof String) {
+					return stringEditor;
+					
 				}
 				
-				return super.getCellEditor(row, column);
+				TableCellEditor editor = super.getCellEditor(row, column); 
+				return editor;
 			}
 			@Override
 			public TableCellRenderer getCellRenderer(int row, int column) {
@@ -193,12 +237,10 @@ public class Configurator extends JFrame {
 		
 		DefaultTableModel model = new DefaultTableModel(new String[]{"Property Name", "Property Value"}, 0) {
 			private static final long serialVersionUID = 1L;
-
 			@Override
 			public boolean isCellEditable(int row, int column) { return column != 0 && super.isCellEditable(row, column); }
 		};
 		
-//		for (Object prop : proj.keySet()) {
 		for (String prop : properties) {
 			Object[] values = parseProperty(prop.toString());
 			model.addRow(values);
@@ -211,8 +253,29 @@ public class Configurator extends JFrame {
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(24);
 		table.setRowMargin(2);
+		
+		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		ActionMap actMap = table.getActionMap();
+		KeyStroke spaceKey = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
+		AbstractAction fileSelectAction = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			public void actionPerformed(ActionEvent evt) {
+				fileEditor.keyed = true;
+		        table.changeSelection(table.getSelectedRow(), 1, false, false);
+		        if (!table.editCellAt(table.getSelectedRow(), 1)) {
+//		            JOptionPane.showMessageDialog(table, "Failed to start cell editing");
+		        }
+				fileEditor.keyed = false;
+		    }
+		};
+		inMap.put(spaceKey, "Action.spacebar");
+		actMap.put("Action.spacebar", fileSelectAction);
+
+		table.setSurrendersFocusOnKeystroke(true);
+
 		scrollPane.setViewportView(table);
 	}
+	
 	
 	private void save() {
 		int rowCount = table.getRowCount();
@@ -242,7 +305,7 @@ public class Configurator extends JFrame {
 		String maxBnd = parts[parts.length - 2];
 		String type = parts[parts.length - 1];
 		
-		if ("D".equals(type)) {
+		if ("D".equals(type.toUpperCase())) {
 			double value = "".equals(propVal) ? 0.0 : Double.valueOf(propVal.toString()).doubleValue();
 			double minMult = 1.0;
 			if (minBnd.toLowerCase().startsWith("n")) {
@@ -263,7 +326,7 @@ public class Configurator extends JFrame {
 				stepSize /= 10.0;
 			}
 			spinner.setModel(new SpinnerNumberModel(value, minimum, maximum, stepSize));
-		} else if ("I".equals(type)) {
+		} else if ("I".equals(type.toUpperCase())) {
 			int value = "".equals(propVal) ? 0 : Integer.valueOf(propVal.toString()).intValue();
 			int minMult = 1;
 			if (minBnd.toLowerCase().startsWith("n")) {
@@ -422,11 +485,12 @@ public class Configurator extends JFrame {
 			"UNREPORTED_CNP_FILENAME",
 			"WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER_100_1000000_I",
 		};
-	// from http://stackoverflow.com/questions/15644319/jfilechooser-within-a-jtable
+		
 	class FileChooserCellEditor extends DefaultCellEditor implements TableCellEditor {
+		// from http://stackoverflow.com/questions/15644319/jfilechooser-within-a-jtable
 		private static final long serialVersionUID = 1L;
 		/** Number of clicks to start editing */
-	    private static final int CLICK_COUNT_TO_START = 2;
+	    private static final int CLICK_COUNT_TO_START = 1;
 	    /** meta panel */
 	    private JPanel panel;
 	    /** static display */
@@ -437,12 +501,16 @@ public class Configurator extends JFrame {
 	    private JFileChooser fileChooser;
 	    /** Selected file(s) */
 	    private Object value;
-
+	    private JTextField textField;
+	    volatile boolean keyed = false;
+	    volatile int keyedCount = 0;
 	    /**
 	     * Constructor.
 	     */
-	    public FileChooserCellEditor() {
+	    public FileChooserCellEditor(final JButton button, boolean editable) {
 	        super(new JTextField());
+	        textField = (JTextField) this.editorComponent;
+	        textField.setEditable(editable);
 	        setClickCountToStart(CLICK_COUNT_TO_START);
 	        setBackground(Color.WHITE);
 	        
@@ -453,10 +521,11 @@ public class Configurator extends JFrame {
 	        label = new JLabel();
 	        label.setBackground(Color.WHITE);
 	        
-	        button = new JButton("...");
-	        button.setFont(button.getFont().deriveFont(Font.PLAIN));
-	        button.setBorder(null);
-	        button.setMargin(new Insets(0, 0, 0, 0));
+	        this.button = button;
+//	        button = new JButton("...");
+//	        button.setFont(button.getFont().deriveFont(Font.PLAIN));
+//	        button.setBorder(null);
+//	        button.setMargin(new Insets(0, 0, 0, 0));
 	        
 	        panel.add(label, BorderLayout.CENTER);
 	        panel.add(button, BorderLayout.EAST);
@@ -475,24 +544,34 @@ public class Configurator extends JFrame {
 	    	this.value = val;
 	    }
 	    
+	    private void reset() {
+	    	keyed = false;
+	    	keyedCount = 0; 
+    	}
+	    
 	    @Override
-	    public Component getTableCellEditorComponent(JTable table, final Object value, boolean isSelected, int row, int column) {
+	    public Component getTableCellEditorComponent(final JTable table, final Object value, boolean isSelected, final int row, final int column) {
 	    	StringBuilder labelText = new StringBuilder();
-	    	
+	    	ActionListener listener = null;
     		if (value instanceof File) {
     			labelText.append(((File) value).getAbsolutePath());
-		        SwingUtilities.invokeLater(new Runnable() {
-		            public void run() {
-		            	fileChooser.setMultiSelectionEnabled(false);
-		            	fileChooser.setSelectedFile((File) value);
-		            	if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
-		                    setValue(fileChooser.getSelectedFile());
-		                } else {
-		                	setValue(value);
-		                }
-		                fireEditingStopped();
-		            }
-		        });
+    			listener = new ActionListener() {
+    				@Override
+    				public void actionPerformed(ActionEvent e) {
+    					SwingUtilities.invokeLater(new Runnable() {
+				            public void run() {
+				            	fileChooser.setMultiSelectionEnabled(false);
+				            	fileChooser.setSelectedFile((File) value);
+				            	if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
+				                    setValue(fileChooser.getSelectedFile());
+				                } else {
+				                	setValue(value);
+				                }
+				                fireEditingStopped();
+				            }
+				        });
+    				}
+    			};
 	    	} else if (value instanceof File[]) {
 	    		File[] files = (File[]) value;
 	    		if (files.length > 0) {
@@ -501,20 +580,38 @@ public class Configurator extends JFrame {
 		    			labelText.append(";").append(files[i].getAbsolutePath());
 		    		}
 	    		}
-	    		SwingUtilities.invokeLater(new Runnable() {
-		            public void run() {
-		            	fileChooser.setMultiSelectionEnabled(true);
-		            	fileChooser.setSelectedFiles((File[]) value);
-		            	if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
-		                    setValue(fileChooser.getSelectedFiles());
-		                } else {
-		                	setValue(value);
-		                }
-		                fireEditingStopped();
-		            }
-		        });
+
+    			listener = new ActionListener() {
+    				@Override
+    				public void actionPerformed(ActionEvent e) {
+			    		SwingUtilities.invokeLater(new Runnable() {
+				            public void run() {
+				            	fileChooser.setMultiSelectionEnabled(true);
+				            	fileChooser.setSelectedFiles((File[]) value);
+				            	if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
+				                    setValue(fileChooser.getSelectedFiles());
+				                } else {
+				                	setValue(value);
+				                }
+				                fireEditingStopped();
+				            }
+				        });
+			    	}
+    			};
 	    	}
 	        label.setText(labelText.toString());
+	        for (int i = button.getActionListeners().length - 1; i >= 0; i--) {
+	        	button.removeActionListener(button.getActionListeners()[i]);
+        	}
+        	final ActionListener finalListener = listener;
+	        button.addActionListener(finalListener);
+	        if (keyed) {
+	        	keyedCount++;
+	        	if (keyedCount == CLICK_COUNT_TO_START) {
+	        		listener.actionPerformed(null);
+	        		keyedCount = 0;	        
+        		}
+    		}
 	        return panel;
 	    }
 	    public JFileChooser getFileChooser() {
@@ -522,22 +619,26 @@ public class Configurator extends JFrame {
 	    }
 	}
 	
-	// from http://stackoverflow.com/questions/3736993/use-jspinner-like-jtable-cell-editor
 	public static class SpinnerEditor extends DefaultCellEditor {
+		// from http://stackoverflow.com/questions/3736993/use-jspinner-like-jtable-cell-editor
 		private static final long serialVersionUID = 1L;
 		JSpinner spinner;
         JSpinner.DefaultEditor editor;
         JTextField textField;
         boolean valueSet;
-
+        
         // Initializes the spinner.
         public SpinnerEditor() {
             super(new JTextField());
             spinner = new JSpinner();
+            spinner.setBorder(null);
             editor = ((JSpinner.DefaultEditor)spinner.getEditor());
+            editor.setBorder(null);
             textField = editor.getTextField();
+            textField.setBorder(null);
+            textField.setMargin(new Insets(0, 0, 0, 4));
             textField.addFocusListener(new FocusListener() {
-                public void focusGained(FocusEvent fe) {
+            	public void focusGained(FocusEvent fe) {
                     SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
                             if (valueSet) {
