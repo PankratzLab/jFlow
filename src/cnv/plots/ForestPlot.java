@@ -241,12 +241,19 @@ class ForestInput {
 	final String comment;
 	int[] metaIndicies;
 	HashMap<String, Integer> studyToColIndexMap;
+	ArrayList<String> studyList;
 	
 	public ForestInput(String marker, String file, String comment) {
 		this.marker = marker;
 		this.file = file;
 		this.comment = comment;
 		this.studyToColIndexMap = new HashMap<String, Integer>();
+		this.studyList = new ArrayList<String>();
+	}
+
+	public void addStudy(String string, int i) {
+		studyList.add(string);
+		studyToColIndexMap.put(string, i);
 	}
 	
 }
@@ -914,6 +921,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 						mapMarkersToCol(inputData, header);
 					} catch (InterruptedException e) {
 						inputData.metaIndicies = null;
+						inputData.studyList.clear();
 						inputData.studyToColIndexMap.clear();
 						interruptLoading();
 						return;
@@ -922,7 +930,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 				while (dataReader.ready() && !Thread.interrupted()) {
 					String readLine = dataReader.readLine();
 					lineCnt++;
-					if (lineProg > 1 || lineCnt % (totalLines / progStep) == 0 /*lineProg > 0*/) {
+					if (lineProg > 1 || lineCnt % (totalLines / progStep > 0 ? totalLines / progStep : 1) == 0 /*lineProg > 0*/) {
 						try {
 							SwingUtilities.invokeAndWait(new Runnable() {
 								@Override
@@ -1043,7 +1051,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private ArrayList<StudyData> getStudyEntries(ForestInput input, String[] readData) {
 		ArrayList<StudyData> studies = new ArrayList<StudyData>();
 		String betaVal, seVal;
-		for(String studyName : input.studyToColIndexMap.keySet()){
+		for (int i = input.studyList.size() - 1; i >= 0; i--) {
+			String studyName = input.studyList.get(i);
 			betaVal = readData[input.studyToColIndexMap.get(studyName)];
 			seVal = readData[input.studyToColIndexMap.get(studyName) + 1];
 			float beta = ext.isValidDouble(betaVal) ? Float.parseFloat(betaVal) : 0.0f;
@@ -1066,7 +1075,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 					if (data.studyToColIndexMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
 						throw new RuntimeException("Malformed data file: Duplicate study name found in file");
 					} else {
-						data.studyToColIndexMap.put(dataFileHeaders[i].split("\\.")[1], i);
+						data.addStudy(dataFileHeaders[i].split("\\.")[1], i);
 					}
 				} else {
 					throw new RuntimeException("Malformed data file: SE is not present after Beta for: " + dataFileHeaders[i]);
