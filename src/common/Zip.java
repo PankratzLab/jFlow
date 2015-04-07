@@ -2,7 +2,10 @@ package common;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.zip.*;
+
+import common.WorkerTrain.Producer;
 
 public class Zip {
 
@@ -201,10 +204,72 @@ public class Zip {
 
 	}
 	
-	public static void gzipAllTextFilesInDirectory(String dirin, String dirout, Logger log) {
+	private static class GzipWorker implements Callable<Boolean> {
+		private String fileIn;
+		private String fileOut;
+		private Logger log;
+
+		public GzipWorker(String fileIn, String fileOut,Logger log) {
+			super();
+			this.fileIn = fileIn;
+			this.fileOut = fileOut;
+			this.log =log;
+		}
+
+		@Override
+		public Boolean call() throws Exception {
+			if (Files.exists(fileOut)) {
+				log.reportTimeWarning("The file " + fileOut + " already exists, skipping compression");
+			} else {
+				gzip(fileIn, fileOut, true);
+			}
+			return Files.exists(fileOut);
+		}
+	}
+
+	private static class GzipProducer implements Producer<Boolean> {
+		private String[] filesToGzip;
+		private String outputDir;
+		private Logger log;
+		private int index;
+
+		public GzipProducer(String[] filesToGzip, String outputDir, Logger log) {
+			super();
+			this.filesToGzip = filesToGzip;
+			this.outputDir = outputDir;
+			this.log = log;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < filesToGzip.length;
+		}
+
+		@Override
+		public Callable<Boolean> next() {
+			log.report("compressing file #" + (index + 1) + " of " + filesToGzip.length + " (" + filesToGzip[index] + ")");
+			GzipWorker worker = new GzipWorker(filesToGzip[index], outputDir + ext.removeDirectoryInfo(filesToGzip[index]) + ".gz", log);
+			index++;
+			return worker;
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+	}
+
+	public static void gzipAllTextFilesInDirectory(String dirin, String dirout, int numThreads, Logger log) {
 		String[] files;
-		
-		
+
 		if (dirin == null) {
 			log.reportError("Error - dir cannot be null");
 			return;
@@ -222,9 +287,21 @@ public class Zip {
 		
 		new File(dirout).mkdirs();
 		files = Files.list(dirin, null, false);
-		for (int i = 0; i < files.length; i++) {
-			log.report("compressing file #"+(i+1)+" of "+files.length+" ("+files[i]+")");
-			gzip(dirin+files[i], dirout+files[i]+".gz", true);
+		if (numThreads > 1) {
+			GzipProducer producer = new GzipProducer(Files.toFullPaths(files, dirin), dirout, log);
+			WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, numThreads, log);
+			int index = 0;
+			while (train.hasNext()) {
+				if (!train.next()) {
+					log.reportTimeError("Could not compress file " + files[index]);
+				}
+				index++;
+			}
+		} else {
+			for (int i = 0; i < files.length; i++) {
+				log.report("compressing file #" + (i + 1) + " of " + files.length + " (" + files[i] + ")");
+				gzip(dirin + files[i], dirout + files[i] + ".gz", true);
+			}
 		}
 	}
 	
@@ -369,6 +446,7 @@ public class Zip {
 		String dirin = "./";
 		String dirout = null;
 		String logfile = null;
+		int numthreads =1;
 		Logger log;
 
 		String usage = "\n" + 
@@ -376,7 +454,8 @@ public class Zip {
 		"   (1) name of file to be gzipped (i.e. file=in.csv (not the default))\n" + 
 		" OR:\n" + 
 		"   (1) directory containing files to be gzipped (i.e. dirin=" + dirin + " (default))\n" + 
-		"   (2) directory where the compressed files should be written to (i.e. dirout=[dirin]/compressed/ (default))\n" + 
+		"   (2) directory where the compressed files should be written to (i.e. dirout=[dirin]/compressed/ (default))\n" +
+        PSF.Ext.getNumThreadsCommand(3, numthreads) +
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -390,9 +469,12 @@ public class Zip {
 				dirin = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("dirout=")) {
-				dirin = args[i].split("=")[1];
+				dirout = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numthreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			}  else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
@@ -423,7 +505,7 @@ public class Zip {
 			if (filename != null) {
 				gzip(filename);
 			} else if (dirin != null) {
-				gzipAllTextFilesInDirectory(dirin, dirout, log);
+				gzipAllTextFilesInDirectory(dirin, dirout, numthreads, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
