@@ -1,11 +1,15 @@
 package seq.qc.contamination;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 
 import seq.manage.BamPileUp.PILE_TYPE;
 import seq.manage.BamPileUp.bamPileWorker;
 import seq.manage.ReferenceGenome;
 import seq.qc.FilterNGS;
+import stats.Histogram.DynamicHistogram;
+import common.Array;
 import common.Files;
 import common.Logger;
 import common.PSF;
@@ -21,10 +25,10 @@ import filesys.Segment;
 public class BamContamination {
 
 	/**
-	 * Producer that defualts to contamination detection
+	 * Producer that defaults to contamination detection
 	 *
 	 */
-	public static class BamContaminationProducer implements Producer<Boolean> {
+	public static class BamContaminationProducer implements Producer<DynamicHistogram> {
 		private Segment[] q;
 		private FilterNGS filterNGS;
 		private ReferenceGenome referenceGenome;
@@ -49,7 +53,7 @@ public class BamContamination {
 		}
 
 		@Override
-		public Callable<Boolean> next() {
+		public Callable<DynamicHistogram> next() {
 			bamPileWorker worker = new bamPileWorker(bamFiles[index], q, filterNGS, referenceGenome, 1, PILE_TYPE.CONTAMINATION, log);
 			index++;
 			return worker;
@@ -68,18 +72,43 @@ public class BamContamination {
 		}
 	}
 
-	public static void runContam(String bamDir, String referenceGenomeFasta, String segFile, int minDepth, double minMapQ, double minPhred, int numthreads, Logger log) {
+	public static void runContam(String bamDir, String referenceGenomeFasta, String segFile, FilterNGS filterNGS, int numthreads, Logger log) {
 
 		String[] bamFiles = Files.listFullPaths(bamDir, ".bam", false);
+		//bamFiles = Array.subArray(bamFiles, 0, numthreads);
 		Segment[] q = segFile == null ? null : Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 0);
-		FilterNGS filterNGS = new FilterNGS(minMapQ, minPhred, new int[] { minDepth });
 		ReferenceGenome referenceGenome = referenceGenomeFasta == null ? null : new ReferenceGenome(referenceGenomeFasta, log);
 		BamContaminationProducer producer = new BamContaminationProducer(q, filterNGS, referenceGenome, bamFiles, log);
 		log.reportTimeInfo("Detected " + bamFiles.length + " bam files in directory " + bamDir);
-		WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, 4, log);
+		DynamicHistogram[] hists = new DynamicHistogram[bamFiles.length];
+		WorkerTrain<DynamicHistogram> train = new WorkerTrain<DynamicHistogram>(producer, numthreads, numthreads, log);
+		int index = 0;
 		while (train.hasNext()) {
-			train.next();
+			hists[index] = train.next();
+			index++;
 		}
+		String outputHist = bamDir + "contamSummary.txt";
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(outputHist));
+			writer.print("PROP_REF_BIN");
+			for (int i = 0; i < hists.length; i++) {
+				writer.print("\t" + ext.rootOf(bamFiles[i]) + "_COUNTS");
+			}
+			writer.println();
+			double[] bins = hists[0].getBins();
+			for (int i = 0; i < bins.length; i++) {
+				writer.print(bins[i]);
+				for (int j = 0; j < hists.length; j++) {
+					writer.print("\t" + hists[j].getCounts()[i]);
+				}
+				writer.println();
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + outputHist);
+			log.reportException(e);
+		}
+
 	}
 
 	public static void main(String[] args) {
@@ -89,7 +118,10 @@ public class BamContamination {
 		String bamDir = null;
 		double minPhred = 30;
 		double minMapQ = 30;
+
 		int minDepth = 20;
+		int minAltDepth = -1;
+
 		int numthreads = 4;
 		String logfile = null;
 		Logger log;
@@ -99,7 +131,9 @@ public class BamContamination {
 		usage += "   (3) full path to a file of segments to subset the pile up  (i.e. segs= (no default))\n" + "";
 		usage += "   (4) minimum phred score for a base pair to be piled  (i.e. minPhred=" + minPhred + " (default))\n" + "";
 		usage += "   (5) minimum mapping quality score for a read to be piled  (i.e. minMapQ=" + minMapQ + " (default))\n" + "";
-		usage += "   (6) minimum depth for a position to be reported  (i.e. minDepth=" + minDepth + " (default))\n" + "";
+		usage += "   (6) minimum total depth for a position to be reported  (i.e. minDepth=" + minDepth + " (default))\n" + "";
+		usage += "   (6) minimum alternate allele depth for a position to be reported  (i.e. minAltDepth=" + minAltDepth + " (default, no minimum))\n" + "";
+
 		usage += PSF.Ext.getNumThreadsCommand(7, numthreads);
 
 		for (int i = 0; i < args.length; i++) {
@@ -121,6 +155,9 @@ public class BamContamination {
 			} else if (args[i].startsWith("minDepth=")) {
 				minDepth = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("minAltDepth=")) {
+				minAltDepth = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("minMapQ=")) {
 				minMapQ = ext.parseDoubleArg(args[i]);
 				numArgs--;
@@ -141,7 +178,8 @@ public class BamContamination {
 		try {
 			logfile = Files.exists(bamDir) ? bamDir + "contam.log" : logfile;
 			log = new Logger(logfile);
-			runContam(bamDir, referenceGenomeFasta, segFile, minDepth, minMapQ, minPhred, numthreads, log);
+			FilterNGS filterNGS = new FilterNGS(minMapQ, minPhred, new int[] { minDepth, minAltDepth });
+			runContam(bamDir, referenceGenomeFasta, segFile, filterNGS, numthreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
