@@ -32,8 +32,8 @@ public class VCFTally {
 	private TallyTracker[] trackersCase, trackersControl, trackersCharge;
 	private Logger log;
 	private static final String AND = "&&";
-	private static final String[] SNPEFF_IMPACTS = { "SNPEFF_IMPACT=='HIGH'", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE')", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW'||SNPEFF_IMPACT=='MODIFIER')" };
-	private static final String[] SNPEFF_NAMES = { "SNPEFF_HIGH", "SNPEFF_HIGH_MODERATE", "SNPEFF_HIGH_MODERATE_LOW_", "SNPEFF_HIGH_MODERATE_LOW_MODIFIER", "NO_SNPEFF" };
+	private static final String[] SNPEFF_IMPACTS = { "(SNPEFF_EFFECT=='STOP_LOST'||SNPEFF_EFFECT=='STOP_GAINED')", "SNPEFF_IMPACT=='HIGH'", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE')", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW'||SNPEFF_IMPACT=='MODIFIER')" };
+	private static final String[] SNPEFF_NAMES = { "SNPEFF_STOPGAIN_LOSS", "SNPEFF_HIGH", "SNPEFF_HIGH_MODERATE", "SNPEFF_HIGH_MODERATE_LOW_", "SNPEFF_HIGH_MODERATE_LOW_MODIFIER", "NO_SNPEFF" };
 	private static final String ESP_FILTER = "(esp6500si_all=='.'||esp6500si_all <= 0.01)";
 	private static final String G1000_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <= 0.01)";
 
@@ -45,7 +45,7 @@ public class VCFTally {
 		this.log = log;
 	}
 
-	public void tallyCaseControlVCF() {
+	public void tallyCaseControlVCF(int altAlleleDepth) {
 
 		if (vpop != null) {
 			VariantContextFilter totalQuality = initializeTrackers();
@@ -65,10 +65,10 @@ public class VCFTally {
 				VariantContext vcControl = VCOps.getSubset(vc, controls);
 				if (totalQuality.filter(vcCase).passed() && totalQuality.filter(vcControl).passed()) {
 					for (int i = 0; i < trackersCase.length; i++) {
-						trackersCase[i].addIfPasses(vcCase);
+						trackersCase[i].addIfPasses(vcCase, altAlleleDepth);
 					}
 					for (int i = 0; i < trackersControl.length; i++) {
-						trackersControl[i].addIfPasses(vcControl);
+						trackersControl[i].addIfPasses(vcControl, altAlleleDepth);
 					}
 				}
 				if (index % 100000 == 0) {
@@ -126,7 +126,7 @@ public class VCFTally {
 		VCFFileReader reader = new VCFFileReader(fullpathToChargeVCF, false);
 		for (VariantContext vc : reader) {
 			for (int i = 0; i < trackersCharge.length; i++) {
-				trackersCharge[i].addIfPasses(vc);
+				trackersCharge[i].addIfPasses(vc, -1);
 			}
 			count++;
 			if (count % 100000 == 0) {
@@ -279,7 +279,7 @@ public class VCFTally {
 			return tallyMAC;
 		}
 
-		public int addIfPasses(VariantContext vc) {
+		public int addIfPasses(VariantContext vc, int altAlleleDepth) {
 			int numAdded = 0;
 			for (int i = 0; i < vContextFilters.length; i++) {
 				if (!vContextFilters[i].filter(vc).passed()) {
@@ -287,7 +287,10 @@ public class VCFTally {
 					return numAdded;
 				}
 			}
-			VariantContext alts = VCOps.getAltAlleleContext(vc);
+			VariantContext alts = VCOps.getAltAlleleContext(vc, altAlleleDepth);
+			if (!charge && alts.getSampleNames().size() <= 0) {
+				return numAdded;
+			}
 			for (int i = 0; i < vContextFilters.length; i++) {
 				if (!vContextFilters[i].filter(alts).passed()) {
 
@@ -296,12 +299,17 @@ public class VCFTally {
 			}
 			double mac = Double.NaN;
 			if (!charge) {
-				mac = VCOps.getMAC(vc, null);
+				mac = VCOps.getMAC(alts, null);
 			} else {
 				mac = vc.getCommonInfo().getAttributeAsDouble("MAF_whites", 0.0);
 			}
 
 			if (mac > 0) {
+				if (mac < alts.getSampleNames().size()) {
+					log.reportTimeError("Mac is less than sample size of alt allele context, skipping due to reference minor allele");
+
+					return numAdded;
+				}
 				int[] matches = Segment.binarySearchForAllOverLappingIndices(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()), geneSegs);
 				if (matches != null && matches.length > 0) {
 					GeneData[] geneDatas = new GeneData[matches.length];
@@ -393,7 +401,9 @@ public class VCFTally {
 		VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
 		VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ;
 		VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
-		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq };
+		VARIANT_FILTER_DOUBLE vqslod = VARIANT_FILTER_DOUBLE.VQSLOD_STRICT;
+
+		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq, vqslod };
 		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
 		return vContextFilter;
 	}
@@ -419,14 +429,17 @@ public class VCFTally {
 
 	public static void test() {
 		String vcf = "D:/data/Project_Tsai_Project_021/JointAnalysis/joint_genotypes.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.AgilentCaptureRegions.vcf.gz";
-		String vpopFile = "D:/data/Project_Tsai_Project_021/JointAnalysis/vPopCaseControl.txt";
+		String[] vpopFiles = new String[] { "D:/data/Project_Tsai_Project_021/JointAnalysis/vPopCaseControl.txt", "D:/data/Project_Tsai_Project_021/JointAnalysis/vPopCaseControlAllRaces.txt" };
 		String fullpathToChargeVCF = "D:/data/CHARGE/CHARGE_MAFS/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
-		VcfPopulation vpop = VcfPopulation.load(vpopFile, new Logger());
-		String geneTrackFile = "N:/statgen/NCBI/RefSeq_hg19.gtrack";
-		VCFTally tally = new VCFTally(vcf, GeneTrack.load(geneTrackFile, false), vpop, new Logger());
-		tally.tallyCaseControlVCF();
-		tally.tallyCharge(fullpathToChargeVCF);
-		tally.summarize(ext.parseDirectoryOfFile(vcf) + "tallyCounts.txt");
+		for (int i = 0; i < vpopFiles.length; i++) {
+			VcfPopulation vpop = VcfPopulation.load(vpopFiles[i], new Logger());
+			String geneTrackFile = "N:/statgen/NCBI/RefSeq_hg19.gtrack";
+			int altAlleleDepth = 6;
+			VCFTally tally = new VCFTally(vcf, GeneTrack.load(geneTrackFile, false), vpop, new Logger());
+			tally.tallyCaseControlVCF(altAlleleDepth);
+			tally.tallyCharge(fullpathToChargeVCF);
+			tally.summarize(ext.parseDirectoryOfFile(vcf) + ext.rootOf(vpopFiles[i]) + "tallyCounts.txt");
+		}
 	}
 
 	public static void main(String[] args) {

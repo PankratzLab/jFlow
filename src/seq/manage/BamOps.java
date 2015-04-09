@@ -1,10 +1,10 @@
 package seq.manage;
 
 import java.io.File;
+import java.io.IOException;
 
 import common.Logger;
 import common.Positions;
-
 import filesys.Segment;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
@@ -60,5 +60,17 @@ public class BamOps {
 			qIntervals = QueryInterval.optimizeIntervals(qIntervals);
 		}
 		return qIntervals;
+	}
+	
+	public static String getSampleName(String bamFile){
+		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
+		String sample = reader.getFileHeader().getReadGroups().get(0).getSample();
+		try {
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sample;
 	}
 }

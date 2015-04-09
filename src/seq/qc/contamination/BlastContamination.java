@@ -109,6 +109,7 @@ public class BlastContamination {
 				Hashtable<String, Integer> curCounts = runContam(ext.rootOf(fastaDbs[j], false), numReads, fastaqs[i], numSampThreads, numReadsPerThread, blastWordSize, reportWordSize, log).getTaxonCounts();
 				allCounts = ext.addHashCounts(allCounts, curCounts);
 			}
+			popCounts.add(allCounts);
 		}
 		ArrayList<String> allTaxa = new ArrayList<String>();
 		HashSet<String> tmpUniq = new HashSet<String>();
@@ -164,7 +165,7 @@ public class BlastContamination {
 		command += BLAST_WORD_SIZE + blastWordSize + PSF.Ext.SPACE;
 		command += REPORT_WORD_SIZE + reportWordSize + PSF.Ext.SPACE;
 		command += OUTPUT_DIR + outputDir + PSF.Ext.SPACE;
-		command += OUTPUT_ROOT + "[%0]" + PSF.Ext.SPACE;
+		command += OUTPUT_ROOT + "[%0].results.txt" + PSF.Ext.SPACE;
 		command += PSF.Ext.NUM_THREADS_COMMAND + numSampThreads + PSF.Ext.SPACE;
 		command += FASTQ_DIR + PSF.Ext.SPACE;
 
