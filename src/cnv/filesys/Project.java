@@ -308,7 +308,7 @@ public class Project /* extends Properties*/ {
 	@SuppressWarnings("unchecked")
 	public <T extends Property<?>> T getProperty(String name) {
 		try {
-			return (T) this.getClass().getDeclaredField(name).get(null);
+			return (T) this.getClass().getField(name).get(this);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -316,7 +316,7 @@ public class Project /* extends Properties*/ {
 	
 	public boolean containsKey(String name) {
 		try {
-			return this.getClass().getDeclaredField(name).get(null) instanceof Property;
+			return this.getClass().getField(name).get(this) instanceof Property;
 		} catch (SecurityException e) {
 			throw new RuntimeException(e);
 		} catch (Exception e) {
