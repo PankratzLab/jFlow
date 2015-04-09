@@ -4096,6 +4096,20 @@ public class Array {
 		}
 		return result;
 	}
+	
+	/**
+	 * Creates an array of int and copies the contents of an ArrayList of int into it
+	 * 
+	 * @param al
+	 * @return an array of int copied from a ArrayList of int
+	 */
+	public static int[] toIntArray(ArrayList<Integer> al) {
+		int[] result = new int[al.size()];
+		for (int i = 0; i < al.size(); i++) {
+			result[i] = al.get(i);
+		}
+		return result;
+	}
 
 	/**
 	 * Creates an array of byte and copies the contents of an ArrayList of byte into it

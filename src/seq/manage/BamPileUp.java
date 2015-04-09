@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import seq.qc.FilterNGS;
+import stats.Histogram.DynamicHistogram;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -54,18 +55,19 @@ public class BamPileUp {
 		this.type = type;
 	}
 
-	public void pileUp() {
+	public DynamicHistogram pileUp() {
 		if (type == PILE_TYPE.CONTAMINATION && referenceGenome == null) {
 			String error = "A reference genome must be provided to detect reference alleles, cannot detect contamination in bam file " + bam;
 			log.reportTimeError(error);
-			return;
-		} else {
+			return null;
+		} else if(referenceGenome==null){
 			log.reportTimeWarning("A reference genome was not provided, reference and alternate alleles will not be recorded");
 		}
+	
 		if (type == PILE_TYPE.CONTAMINATION && binSize != 1) {
 			String error = "A bin size of one must be used for contamination detection on  " + bam;
 			log.reportTimeError(error);
-			return;
+			return null;
 		} else {
 			log.reportTimeInfo("Using a bin size of " + binSize);
 		}
@@ -73,7 +75,7 @@ public class BamPileUp {
 		train.setAutoShutDown(false);
 		TmpBamPileProducer tmpBamPileProducer = null;
 		SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
-
+		DynamicHistogram histogram = new DynamicHistogram(0, 1, 2);
 		QueryInterval[] queryIntervals = null;
 		if (intervals != null) {
 			log.reportTimeInfo("Optimizing " + intervals.length + " queries for pile up");
@@ -123,8 +125,10 @@ public class BamPileUp {
 							bamPile.setReference(referenceGenome);
 						}
 						if (filterNGS.getReadDepthFilter() == null || bamPile.getTotalDepth(false, false) > filterNGS.getReadDepthFilter()[0]) {
-							if (type == PILE_TYPE.REGULAR || (bamPile.hasAltAllele(log) && bamPile.hasOnlyOneAlt(log))) {
+							int altAlleleDepth = filterNGS.getReadDepthFilter().length > 1 ? filterNGS.getReadDepthFilter()[1] : -1;
+							if (type == PILE_TYPE.REGULAR || (bamPile.hasAltAllele(log) && bamPile.hasOnlyOneAlt(log) && bamPile.getNumAlt(log) > altAlleleDepth && bamPile.getNumRef(log) > altAlleleDepth)) {
 								positionsPiled++;
+								histogram.addDataPointToHistogram(bamPile.getPropRef(log));
 								writer.println(bamPile.getOuput(log));
 							}
 						}
@@ -143,6 +147,7 @@ public class BamPileUp {
 			e.printStackTrace();
 		}
 		writer.close();
+		return histogram;
 	}
 
 	private static AggregateFilter initializeFilters(FilterNGS filterNGS) {
@@ -368,14 +373,13 @@ public class BamPileUp {
 		public String getOuput(Logger log) {
 			double numRef = (double) getNumRef(log);
 			double numAlt = (double) getNumAlt(log);
-			double normed = Array.mean(new double[] { numRef, numAlt });
 			String out = "";
 			out += bin.getUCSClocation();
 			out += "\t" + refAllele;
 			out += "\t" + numRef;
 			out += "\t" + numAlt;
-			out += "\t" + numRef / normed;
-			out += "\t" + numAlt / normed;
+			out += "\t" + getPropRef(log);
+			out += "\t" + getPropAlt(log);
 			out += "\t" + counts[0];
 			out += "\t" + counts[1];
 			out += "\t" + counts[2];
@@ -386,6 +390,20 @@ public class BamPileUp {
 			out += "\t" + Array.toStr(avgMapQ);
 			out += "\t" + Array.toStr(avgPhread);
 			return out;
+		}
+
+		public double getPropRef(Logger log) {
+			double numRef = (double) getNumRef(log);
+			double numAlt = (double) getNumAlt(log);
+			double total = numRef + numAlt;
+			return numRef / total;
+		}
+
+		public double getPropAlt(Logger log) {
+			double numRef = (double) getNumRef(log);
+			double numAlt = (double) getNumAlt(log);
+			double total = numRef + numAlt;
+			return numAlt / total;
 		}
 
 		public int[] getAltCounts(Logger log) {
@@ -560,7 +578,7 @@ public class BamPileUp {
 
 	}
 
-	public static class bamPileWorker implements Callable<Boolean> {
+	public static class bamPileWorker implements Callable<DynamicHistogram> {
 		private String bamFile;
 		private Segment[] q;
 		private FilterNGS filterNGS;
@@ -581,11 +599,10 @@ public class BamPileUp {
 		}
 
 		@Override
-		public Boolean call() throws Exception {
+		public DynamicHistogram call() throws Exception {
 			BamPileUp pileUp = new BamPileUp(bamFile, referenceGenome, binSize, filterNGS, q, type, log);
-			pileUp.pileUp();
-			// TODO Auto-generated method stub
-			return true;
+			DynamicHistogram histogram = pileUp.pileUp();
+			return histogram;
 		}
 	}
 
