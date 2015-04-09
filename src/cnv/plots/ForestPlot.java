@@ -13,7 +13,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.lang.reflect.InvocationTargetException;
@@ -242,6 +241,7 @@ class ForestInput {
 	int[] metaIndicies;
 	HashMap<String, Integer> studyToColIndexMap;
 	ArrayList<String> studyList;
+	MetaStudy ms;
 	
 	public ForestInput(String marker, String file, String comment) {
 		this.marker = marker;
@@ -255,7 +255,8 @@ class ForestInput {
 		studyList.add(string);
 		studyToColIndexMap.put(string, i);
 	}
-	
+	public MetaStudy getMetaStudy() { return ms; }
+	public void setMetaStudy(MetaStudy ms) { this.ms = ms; }
 }
 
 public class ForestPlot extends JFrame implements WindowListener {
@@ -280,7 +281,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private static final String MARKER_LIST_PLACEHOLDER = "Select Input File...";
 //	private LinkedHashSet<ForestInput> data = new LinkedHashSet<ForestInput>();
 	private ArrayList<ForestInput> dataIndices = new ArrayList<ForestInput>();
-	private HashMap<ForestInput, MetaStudy> dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
+//	private HashMap<ForestInput, MetaStudy> dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
 	private MetaStudy currMetaStudy;
 	private String plotLabel;
 	private Logger log;
@@ -487,7 +488,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		Vector<String> items = new Vector<String>();
 		items.add(MARKER_LIST_PLACEHOLDER);
 		if (proj != null) {
-			String[] files = proj.getFilenames(Project.FOREST_PLOT_FILENAMES);
+			String[] files = proj.getFilenames(proj.FOREST_PLOT_FILENAMES);
 			String name;
 			for (String file : files) {
 				name = ext.rootOf(file);
@@ -636,7 +637,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 			this.getDataIndices().addAll(readMarkerFile(this.markerFileName));
 		} 
 		
-		dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
+//		dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
 
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
@@ -790,7 +791,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private void setCurrentData(int index) {
 		if (this.getDataIndices().size() == 0 || index < 0 || index > this.getDataIndices().size()) return;
 		setCurrentDataIndex(index);
-		setCurrentMetaStudy(dataToMetaMap.get(getDataIndices().get(index)));
+//		setCurrentMetaStudy(dataToMetaMap.get(getDataIndices().get(index)));
+		setCurrentMetaStudy(getDataIndices().get(index).getMetaStudy());
 		if (getCurrentMetaStudy() == null) {
 			log.reportError("Error - could not set index to "+index+" since the data did not load properly; check to see if any results files are missing");
 			return;
@@ -954,7 +956,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 							return;
 						}
 						if(inputData.marker.equals(markerName)) {
-							dataToMetaMap.put(inputData, getMetaStudy(inputData, readData));
+//							dataToMetaMap.put(inputData, getMetaStudy(inputData, readData));
+							getMetaStudy(inputData, readData);
 							atleastOneStudy = true;
 						}
 					}
@@ -1007,7 +1010,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		this.atleastOneStudy = false;
 		this.markerFileName = "";
 		this.getDataIndices().clear();
-		this.dataToMetaMap.clear();
+//		this.dataToMetaMap.clear();
 		this.clearCurrentData();
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
@@ -1030,7 +1033,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		}
 	}
 	
-	private MetaStudy getMetaStudy(ForestInput input, String[] readData) {
+	private void getMetaStudy(ForestInput input, String[] readData) {
 		String metaB, metaS;
 		float metaBeta, metaStderr;
 		
@@ -1045,7 +1048,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 			ms.addStudy(studies.get(i));
 		}
 		
-		return ms;
+		input.setMetaStudy(ms);
+//		return ms;
 	}
 
 	private ArrayList<StudyData> getStudyEntries(ForestInput input, String[] readData) {
@@ -1231,7 +1235,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 			return;
 		}
 		
-		String[] projFiles = proj.getFilenames(Project.FOREST_PLOT_FILENAMES);
+//		String[] projFiles = proj.getFilenames(Project.FOREST_PLOT_FILENAMES);
+		String[] projFiles = proj.FOREST_PLOT_FILENAMES.getValue();
 		String[] currFiles = markerFileNameLoc.values().toArray(new String[]{});
 		
 		ArrayList<String> newFiles = new ArrayList<String>();
@@ -1252,12 +1257,14 @@ public class ForestPlot extends JFrame implements WindowListener {
 			this.dispose();
 			return;
 		}
-		String newProp = Array.toStr(currFiles, ";");
+//		String newProp = Array.toStr(currFiles, ";");
 		
 		String message = newFiles.size() + " files have been added.  ";
 		int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time Forest Plot is loaded?", "Preserve Forest Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 		if (choice == 0) {
-			proj.setProperty(Project.FOREST_PLOT_FILENAMES, newProp);
+//			proj.setProperty(Project.FOREST_PLOT_FILENAMES, newProp);
+//			proj.setProperty(Project.FOREST_PLOT_FILENAMES, currFiles);
+			proj.FOREST_PLOT_FILENAMES.setValue(currFiles);
 			proj.saveProperties();
 		} else if (choice == -1 || choice == 2) {
 			return;

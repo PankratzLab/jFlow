@@ -145,7 +145,7 @@ public class DemoPackage {
 	 *            overwrite existing demo projects Note:
 	 */
 	public void generateDemoProject(Project proj, String markersFile, String samplesFile, int numThreads, boolean overwriteExisting) {
-		numThreads = numThreads > 0 ? numThreads : proj.getInt(Project.NUM_THREADS);
+		numThreads = numThreads > 0 ? numThreads : proj.getInt(proj.NUM_THREADS);
 
 		DemoProject demoProjectMarkerFocus = new DemoProject(proj, demoDirectory, overwriteExisting, DEMO_TYPE.MARKER_FOCUS);
 		demoProjectMarkerFocus.createProjectDemo(markersFile, null, numThreads);// all samples for these markers...
@@ -161,13 +161,14 @@ public class DemoPackage {
 		if (Files.isRelativePath(projectsDir)) {
 			projectsDir = ext.parseDirectoryOfFile(newLaunchProperties.getFilename()) + projectsDir;
 		}
-		demoProject.setProperty(Project.PROJECT_NAME, proj.getNameOfProject() + "_" + demoProject.getdType());
+		demoProject.setProperty(demoProject.PROJECT_NAME, proj.getNameOfProject() + "_" + demoProject.getdType());
 		String newProjectFile = projectsDir + demoProject.getNameOfProject() + ".properties";
-		demoProject.setProperty(Project.PROJECT_DIRECTORY, demoProject.getNameOfProject() + "/");
+		demoProject.setProperty(demoProject.PROJECT_DIRECTORY, demoProject.getNameOfProject() + "/");
 		if (!demoProject.isFail()) {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(newProjectFile));
-				demoProject.store(writer, demoProject.getNameOfProject());
+//				demoProject.store(writer, demoProject.getNameOfProject());
+				demoProject.saveProperties(newProjectFile);
 				writer.close();
 			} catch (Exception e) {
 				log.reportError("Error writing to " + newProjectFile);
@@ -182,7 +183,7 @@ public class DemoPackage {
 
 	public static void generateDemoPackage(Project proj, String demoDirectory, String markersFile, String samplesFile, int numThreads, boolean overwriteExisting) {
 
-		demoDirectory = demoDirectory == null ? proj.getDir(Project.DEMO_DIRECTORY, true, false) : demoDirectory;
+		demoDirectory = demoDirectory == null ? proj.getDir(proj.DEMO_DIRECTORY, true, false) : demoDirectory;
 		proj.getLog().reportTimeInfo("Using demo directory " + demoDirectory);
 		DemoPackage demoPackage = new DemoPackage(demoDirectory, proj.getLog());
 		if (!demoPackage.isFail()) {
@@ -206,9 +207,9 @@ public class DemoPackage {
 		String usage = "\n" + "cnv.manage.GenerateDemoPackage requires 0-1 arguments\n";
 		usage += "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "";
 		usage += "   OPTIONAL";
-		usage += "   (2) full path to a file with markers to export for marker focused project (i.e. markersFile= ( default exports " + Project.TARGET_MARKERS_FILENAME + ", and all markers if targets does not exist))\n" + "";
-		usage += "   (3) full path to a file of samples to export for sample focused project (i.e. samplesFile= ( default exports " + Project.SAMPLE_SUBSET_FILENAME + " and all samples if subset file does not exist))\n" + "";
-		usage += "   (4) number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads + " ( defaults to " + Project.NUM_THREADS + " ))\n" + "";
+		usage += "   (2) full path to a file with markers to export for marker focused project (i.e. markersFile= ( default exports \"TARGET_MARKERS_FILENAME\", and all markers if targets does not exist))\n" + "";
+		usage += "   (3) full path to a file of samples to export for sample focused project (i.e. samplesFile= ( default exports \"Project.SAMPLE_SUBSET_FILENAME\" and all samples if subset file does not exist))\n" + "";
+		usage += "   (4) number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads + " ( defaults to \"NUM_THREADS\" ))\n" + "";
 		usage += "   (5) force overwrite option for existing demos (i.e. -overwriteExisting (not the default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -266,11 +267,11 @@ public class DemoPackage {
 		new File("demo/transposed/").mkdirs();
 		new File("projects/").mkdirs();
 		Files.copyFile(filenameOfMarkerList, "demo/data/test.txt");
-		Files.copyFile(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "demo/data/" + ext.removeDirectoryInfo(proj.getFilename(Project.SAMPLE_DATA_FILENAME)));
+		Files.copyFile(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "demo/data/" + ext.removeDirectoryInfo(proj.getFilename(proj.SAMPLE_DATA_FILENAME)));
 
 		proj.setJarStatus(true);
-		proj.setProperty(Project.PROJECT_DIRECTORY, "demo/");
-		proj.setProperty(Project.SOURCE_DIRECTORY, "demo/");
+		proj.setProperty(proj.PROJECT_DIRECTORY, "demo/");
+		proj.setProperty(proj.SOURCE_DIRECTORY, "demo/");
 		proj.saveProperties("projects/" + ext.removeDirectoryInfo(proj.getPropertyFilename()));
 	}
 
@@ -278,8 +279,8 @@ public class DemoPackage {
 		String fileExists = "File exists";
 		String fileDoesNotExist = "File does not exist";
 
-		String samplesFile = !Files.exists(proj.getFilename(Project.SAMPLE_SUBSET_FILENAME)) ? null : proj.getFilename(Project.SAMPLE_SUBSET_FILENAME);
-		String markersFile = !Files.exists(proj.getFilename(Project.TARGET_MARKERS_FILENAME)) ? null : proj.getFilename(Project.TARGET_MARKERS_FILENAME);
+		String samplesFile = !Files.exists(proj.getFilename(proj.SAMPLE_SUBSET_FILENAME)) ? null : proj.getFilename(proj.SAMPLE_SUBSET_FILENAME);
+		String markersFile = !Files.exists(proj.getFilename(proj.TARGET_MARKERS_FILENAME)) ? null : proj.getFilename(proj.TARGET_MARKERS_FILENAME);
 		JLabel sampleExists = new JLabel(samplesFile == null ? fileDoesNotExist : fileExists);
 		JLabel markerExists = new JLabel(markersFile == null ? fileDoesNotExist : fileExists);
 
@@ -313,7 +314,7 @@ public class DemoPackage {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Thread(new DemoPackageWorker(proj, markerButton.getCurrentFile(), sampButton.getCurrentFile(), null, proj.getInt(Project.NUM_THREADS), true)).start();
+				new Thread(new DemoPackageWorker(proj, markerButton.getCurrentFile(), sampButton.getCurrentFile(), null, proj.getInt(proj.NUM_THREADS), true)).start();
 				jFrame.pack();
 
 			}
@@ -329,9 +330,9 @@ public class DemoPackage {
 		mainPanel.setLayout(new BorderLayout());
 
 		JPanel filePanel = new JPanel(new GridLayout(2, 0));
-		JTextField sampFileText = new JTextField(proj.getFilename(Project.SAMPLE_SUBSET_FILENAME).replaceAll("\"", ""));
+		JTextField sampFileText = new JTextField(proj.getFilename(proj.SAMPLE_SUBSET_FILENAME).replaceAll("\"", ""));
 		sampFileText.setSize(width, 30);
-		JTextField markFileText = new JTextField(proj.getFilename(Project.TARGET_MARKERS_FILENAME).replaceAll("\"", ""));
+		JTextField markFileText = new JTextField(proj.getFilename(proj.TARGET_MARKERS_FILENAME).replaceAll("\"", ""));
 		filePanel.add(markFileText, BorderLayout.NORTH);
 		filePanel.add(sampFileText, BorderLayout.SOUTH);
 

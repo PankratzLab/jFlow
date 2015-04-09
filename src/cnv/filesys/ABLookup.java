@@ -383,11 +383,11 @@ public class ABLookup {
         Logger log;
         
         log = proj.getLog();
-        if (!Files.exists(proj.getFilename(Project.AB_LOOKUP_FILENAME))) {
-			proj.getLog().reportError("Error - cannot applyABLookupToFullSampleFiles without the AB Lookup file ('"+proj.getFilename(Project.AB_LOOKUP_FILENAME)+"').");
+        if (!Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME))) {
+			proj.getLog().reportError("Error - cannot applyABLookupToFullSampleFiles without the AB Lookup file ('"+proj.getFilename(proj.AB_LOOKUP_FILENAME)+"').");
 			return;
         }
-		abLookup = new ABLookup(proj.getMarkerNames(), proj.getFilename(Project.AB_LOOKUP_FILENAME), false, false, proj.getLog());
+		abLookup = new ABLookup(proj.getMarkerNames(), proj.getFilename(proj.AB_LOOKUP_FILENAME), false, false, proj.getLog());
         samples = proj.getSamples();
         for (int i=0; i<samples.length; i++) {
         	if (i % 100 == 0) {
@@ -415,7 +415,7 @@ public class ABLookup {
         		}
         	}
         	fsamp.setAB_Genotypes(abGenotypes);
-        	fsamp.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY)+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION);
+        	fsamp.saveToRandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY)+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION);
         }
 	}
 	
@@ -508,11 +508,11 @@ public class ABLookup {
 			markerDataLoader=null;
 			output = Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false) + "_test_markersWithNoLink#.txt");
 			try {
-				if (Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false))) {
+				if (Files.exists(proj.getDir(proj.MARKER_DATA_DIRECTORY, false, false))) {
 					markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 					log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
 				} else {
-					log.report("Warning - since " + proj.getDir(Project.MARKER_DATA_DIRECTORY, false, false) + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in " + output + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
+					log.report("Warning - since " + proj.getDir(proj.MARKER_DATA_DIRECTORY, false, false) + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in " + output + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
 					log.report("java -cp /your/path/to/park.jar cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
 				}
 			} catch (NullPointerException nullPointerException) {// MarkerDataLoader will likely throw this if there are other issues
@@ -524,7 +524,7 @@ public class ABLookup {
 					markerNames[i] = markerNames[i];// skip frequency of b allele
 				} else {
 					MarkerData markerData = markerDataLoader.requestMarkerData(i);
-					markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null, clusterFilterCollection, proj.getFloat(Project.GC_THRESHOLD));
+					markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null, clusterFilterCollection, proj.getFloat(proj.GC_THRESHOLD));
 					markerDataLoader.releaseIndex(i);
 				}
 			}

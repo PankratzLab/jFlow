@@ -22,7 +22,8 @@ import common.ext;
  * Forest Panel
  */
 public class ForestPanel extends AbstractPanel {
-	static final long serialVersionUID = 1L;
+									   //FORESTPLOT
+	static final long serialVersionUID = 4023579107L;
 
 	public static final Color[] DEFAULT_COLORS = { new Color(33, 31, 53), // dark dark
 			new Color(23, 58, 172), // dark blue
@@ -140,7 +141,7 @@ public class ForestPanel extends AbstractPanel {
 		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies(sortedDisplay);
 		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
 		rectangles = new GenericRectangle[0];
-
+		
 		float xAxisValue, yAxisValue;
 
 		float xAxisStep = (float) calcStepStep(plotXmax - plotXmin);
@@ -433,8 +434,8 @@ public class ForestPanel extends AbstractPanel {
 			// Calculate the plot area's range (X-axis, Y-axis)
 			plotMinMaxStep = null;
 			
-			float xRange = getXPixel(maximumObservedRawX) - getXPixel(minimumObservedRawX);
-			float yRange = getYPixel(minimumObservedRawY) - getYPixel(maximumObservedRawY);
+//			float xRange = getXPixel(maximumObservedRawX) - getXPixel(minimumObservedRawX);
+//			float yRange = getYPixel(minimumObservedRawY) - getYPixel(maximumObservedRawY);
 			
 			leftsize = determineLongestLeft(g, getMarkerFontSize(g));
 			rightsize = determineRightBorder(g, getMarkerFontSize(g));

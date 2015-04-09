@@ -23,7 +23,8 @@ public class CompareDuplicates {
         float gcThreshold;
 		
         clusterFilterCollection = proj.getClusterFilterCollection();
-        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
+//        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
+        gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 
 //		System.out.println("Comparing "+ext.listWithCommas(pair, true));
 

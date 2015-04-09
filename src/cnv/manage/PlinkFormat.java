@@ -49,7 +49,7 @@ public class PlinkFormat {
 			hash.put(markerNames[i], i+"");
 		}
 		
-		targetMarkers = proj.getFilename(Project.TARGET_MARKERS_FILENAME, false, false);
+		targetMarkers = proj.getFilename(proj.TARGET_MARKERS_FILENAME, false, false);
 		if (new File(targetMarkers).exists()) {
 			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
 			indices = new int[targets.length];
@@ -94,7 +94,7 @@ public class PlinkFormat {
 			return false;
 		}
 
-		gcThreshold = proj.getFloat(Project.GC_THRESHOLD);
+		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
 		if (gcThreshold < 0) {
 			proj.message("Error - GC_THRESHOLD must be greater than zero (not "+gcThreshold+")");
 		}
@@ -105,21 +105,21 @@ public class PlinkFormat {
 		
 		clusterFilterCollection = null;
 		if (clusterFilterFilename != null) {
-			clusterFilterFilename = proj.getProperty(Project.PROJECT_DIRECTORY)+proj.getProperty(Project.DATA_DIRECTORY)+clusterFilterFilename;
+			clusterFilterFilename = proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFilterFilename;
 			if (Files.exists(clusterFilterFilename, proj.getJarStatus())) {
 				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
 			} else {
 				proj.message("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
 				return false;
 			}
-			abLookup = new ABLookup(markerNames, proj.getFilename(Project.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
-			log.report("Using "+clusterFilterFilename+" and "+proj.getProperty(Project.AB_LOOKUP_FILENAME)+" to call genotypes");
+			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+			log.report("Using "+clusterFilterFilename+" and "+proj.getProperty(proj.AB_LOOKUP_FILENAME)+" to call genotypes");
 		} else {
 			abLookup = null;
 		}
 		
 		try {
-			reader = new BufferedReader(new FileReader(proj.getFilename(Project.PEDIGREE_FILENAME)));
+			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filenameRoot+".ped"));
 			count = 1;
 			invalidAbLookups = new Hashtable<Integer, Integer>();
@@ -132,9 +132,9 @@ public class PlinkFormat {
 				temp = reader.readLine();
 				line = temp.split(ext.determineDelimiter(temp));
 				if (line.length < 7) {
-					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(Project.PEDIGREE_FILENAME)+"'.\n"+
+					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(proj.PEDIGREE_FILENAME)+"'.\n"+
 								"  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n"+
-								"  where DNA is the sample name associated with the genotypic data (see the "+proj.getDir(Project.SAMPLE_DIRECTORY)+" directory for examples)");
+								"  where DNA is the sample name associated with the genotypic data (see the "+proj.getDir(proj.SAMPLE_DIRECTORY)+" directory for examples)");
 					reader.close();
 					writer.close();
 					return false;
@@ -147,7 +147,7 @@ public class PlinkFormat {
 				} else {
 					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
 					if (fsamp==null) {
-						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.getDir(Project.SAMPLE_DIRECTORY));
+						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.getDir(proj.SAMPLE_DIRECTORY));
 						for (int i = 0; i<indices.length; i++) {
 							writer.print(" 0 0");
 						}
@@ -182,9 +182,9 @@ public class PlinkFormat {
 			reader.close();
 			writer.close();
 			if (invalidAbLookups.size() > 0) {
-				proj.message("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(Project.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
+				proj.message("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(proj.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
 				try {
-					writer = new PrintWriter(new FileWriter(proj.getDir(Project.DATA_DIRECTORY)+"invalid_AB_codes.out"));
+					writer = new PrintWriter(new FileWriter(proj.getDir(proj.DATA_DIRECTORY)+"invalid_AB_codes.out"));
 					writer.println("MarkerNames\tA\tB");
 					indices = Array.toIntArray(invalidAbLookups);
 					for (int i = 0; i < indices.length; i++) {
@@ -192,15 +192,15 @@ public class PlinkFormat {
 					}
 					writer.close();
 				} catch (Exception e) {
-					proj.message("Error writing to " + proj.getDir(Project.DATA_DIRECTORY)+"invalid_AB_codes.out");
+					proj.message("Error writing to " + proj.getDir(proj.DATA_DIRECTORY)+"invalid_AB_codes.out");
 					log.reportException(e);
 				}
 			}
 		} catch (FileNotFoundException fnfe) {
-			proj.message("Error: file \""+proj.getFilename(Project.PEDIGREE_FILENAME)+"\" not found");
+			proj.message("Error: file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\" not found");
 			return false;
 		} catch (IOException ioe) {
-			proj.message("Error reading file \""+proj.getFilename(Project.PEDIGREE_FILENAME)+"\"");
+			proj.message("Error reading file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\"");
 			return false;
 		}
 

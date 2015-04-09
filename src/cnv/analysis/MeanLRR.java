@@ -214,7 +214,7 @@ public class MeanLRR {
 		Logger log;
 		
 		log = proj.getLog();		
-		hash = HashVec.loadFileToHashString(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenotype}, "");
+		hash = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenotype}, "");
 		sampleList = proj.getSampleList(); 
 		samples = sampleList.getSamples();
 		pheno = new double[samples.length];
@@ -283,7 +283,7 @@ public class MeanLRR {
 			return;
 		}
 		
-		hash = HashVec.loadFileToHashString(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "DNA", phenotypes, "\t");
+		hash = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", phenotypes, "\t");
 		sampleList = proj.getSampleList(); 
 		samples = sampleList.getSamples();
 		

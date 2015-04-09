@@ -33,7 +33,7 @@ public class Positions {
 		if (!str.startsWith("chr")) {
 			System.err.println("Error - '" + str + "' is not a proper UCSC position");
 		}
-
+		
 		try {
 			str = ext.replaceAllWith(str, ",", "");
 			if (str.contains(":-") || str.contains("--")) {

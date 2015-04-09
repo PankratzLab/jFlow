@@ -108,7 +108,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		log = proj.getLog();
 		size = DEFAULT_SIZE;
 
-		if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+		if (Files.exists(proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
 			sampleData = proj.getSampleData(2, false);
 		} else {
 			sampleData = null;
@@ -122,7 +122,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		keyIndices = new Hashtable<String, int[]>();
 		columnMetaData = new Hashtable<Integer, String[]>();
 
-		previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
+		previouslyLoadedFiles = proj.getFilenames(proj.TWOD_LOADED_FILENAMES);
 		for (String previouslyLoadedFile : previouslyLoadedFiles) {
 			loadFile(previouslyLoadedFile);
 		}
@@ -626,7 +626,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		//Make sure to set it back after resetting sample data
 		Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String, Integer>(sampleData.getLinkKeyIndex());
 		proj.resetSampleData();
-		if (Files.exists(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+		if (Files.exists(proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
 			sampleData = proj.getSampleData(2, false);
 		}
 		sampleData = proj.getSampleData(2, false);
@@ -1240,7 +1240,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void showSpecificFile(Project proj, String filename, int colForX, int colForY) {
-		String[] prevFiles = proj.getProperty(Project.TWOD_LOADED_FILENAMES).split(";");
+//		String[] prevFiles = proj.getProperty(Project.TWOD_LOADED_FILENAMES).split(";");
+		String[] prevFiles = proj.getProperty(proj.TWOD_LOADED_FILENAMES);//.split(";");
 		if(Arrays.binarySearch(prevFiles, filename) < 0) {
 			// the supplied file was not found so load it
 			loadFile(filename);	// load the file
@@ -1286,7 +1287,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		options = new String[] {"Yes", "No", "Cancel"};
 		message = "";
 		
-		if (!proj.getProperty(Project.TWOD_LOADED_FILENAMES).equals(filenames)) {
+//		if (!proj.getProperty(Project.TWOD_LOADED_FILENAMES).equals(filenames)) {
+		if (!Array.toStr(proj.getProperty(proj.TWOD_LOADED_FILENAMES)).equals(filenames)) {
 			if (filenames.equals("")) {
 				message = "All files have been unloaded from 2D Plot.";
 			} else {
@@ -1294,7 +1296,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 		}
 		
-		if (!proj.getProperty(Project.TWOD_LOADED_VARIABLES).equals(selections)) {
+		if (!proj.getProperty(proj.TWOD_LOADED_VARIABLES).equals(selections)) {
 			if (!message.equals("")) {
 				if(!selections.equals(""))
 					message = message.substring(0, message.length()-1)+", and new variables have been selected.";
@@ -1314,8 +1316,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			System.out.println("message: '"+message+"'");
 			choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time 2D Plot is loaded?", "Preserve 2D Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				proj.setProperty(Project.TWOD_LOADED_FILENAMES, filenames);
-				proj.setProperty(Project.TWOD_LOADED_VARIABLES, selections);
+//				proj.setProperty(Project.TWOD_LOADED_FILENAMES, filenames);
+				proj.setProperty(proj.TWOD_LOADED_FILENAMES, Array.toStringArray(treeFilenameLookup));
+				proj.setProperty(proj.TWOD_LOADED_VARIABLES, selections);
 				proj.saveProperties();
 				GuiManager.disposeOfParentFrame(this);
 			} else if (choice == 1) {

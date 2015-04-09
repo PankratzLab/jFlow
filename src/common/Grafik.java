@@ -15,7 +15,7 @@ import javax.swing.UIManager;
 
 public class Grafik {
 
-	public static void scaleCheckBoxIcon(JCheckBox checkbox){
+	public static void scaleCheckBoxIcon(JCheckBox checkbox) {
 		// from http://stackoverflow.com/a/26995048/875496 
 	    boolean previousState = checkbox.isSelected();
 	    checkbox.setSelected(false);

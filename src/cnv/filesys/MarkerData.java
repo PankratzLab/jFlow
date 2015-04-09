@@ -114,7 +114,7 @@ public class MarkerData implements Serializable {
 	public float[][] getCorrectedIntesity(int[] sampleSex, boolean[] samplesToUse, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage, double residStandardDeviationFilter,double correctionRatio, String typeToReturn, int numThreads, Logger log) {
 		if (pcResids == null || numComponents == 0) {
 			if (pcResids == null && numComponents > 0) {
-				log.report("Info - an intensity PCA file was not found as specified by " + Project.INTENSITY_PC_FILENAME);
+				log.report("Info - an intensity PCA file was not found as specified by INTENSITY_PC_FILENAME property");
 			}
 			if (typeToReturn.equals(PrincipalComponentsIntensity.BAF_LRR_RETURN)) {
 				// TODO, currently getRecomputedLRR_BAF may differ from PrincipalComponentsIntensity due to the intensity only flag...at false
@@ -145,7 +145,7 @@ public class MarkerData implements Serializable {
 	public byte[] getAlternateGenotypes(int[] sampleSex, boolean[] samplesToUse, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage, double residStandardDeviationFilter, double correctionRatio, boolean correctLRR, int numThreads, Logger log) {
 		if (pcResids == null || numComponents == 0) {
 			if (pcResids == null && numComponents > 0) {
-				log.report("Info - an intensity PCA file was not found as specified by " + Project.INTENSITY_PC_FILENAME);
+				log.report("Info - an intensity PCA file was not found as specified by INTENSITY_PC_FILENAME property");
 			}
 			return abGenotypes;
 		} else {

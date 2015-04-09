@@ -64,10 +64,10 @@ public class SampleList implements Serializable {
 //			System.exit(1);
 //		}
 
-		if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY), false)) {
-			files = Files.list(proj.getDir(Project.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+		if (Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY), false)) {
+			files = Files.list(proj.getDir(proj.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 		} else {
-			log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("+proj.getDir(Project.SAMPLE_DIRECTORY)+"); no SampleList could be generated");
+			log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("+proj.getDir(proj.SAMPLE_DIRECTORY)+"); no SampleList could be generated");
 			return null;
 		}
 
@@ -82,12 +82,12 @@ public class SampleList implements Serializable {
 		}
 		list = new SampleList(samples);
 		if (samples.length > 0) {
-			list.serialize(proj.getFilename(Project.SAMPLELIST_FILENAME, true, true));
+			list.serialize(proj.getFilename(proj.SAMPLELIST_FILENAME, true, true));
 		} else {
 			log.reportError("Error - there are no samples in the samples directory; parsing must have failed, so cannot create a SampleList");
 		}
 		if (countAt > 0) {
-			proj.getLog().report("Note - "+countAt+" ("+(Double.parseDouble(ext.prettyP((double)countAt/(double)samples.length))*100)+"%) of your Sample IDs contain the @ symbol, which is often used when concatenating the sample's bar code. If you would like these to be stripped, then set "+Project.PARSE_AT_AT_SYMBOL+"=TRUE in the properties file, delete the samples/ directory and reparse the data");
+			proj.getLog().report("Note - "+countAt+" ("+(Double.parseDouble(ext.prettyP((double)countAt/(double)samples.length))*100)+"%) of your Sample IDs contain the @ symbol, which is often used when concatenating the sample's bar code. If you would like these to be stripped, then set "+proj.PARSE_AT_AT_SYMBOL.getName()+"=TRUE in the properties file, delete the samples/ directory and reparse the data");
 		}
 
 		return list;
@@ -95,7 +95,7 @@ public class SampleList implements Serializable {
 
 	public static void serializeOutliers(Project proj) {
 		String[] samples = proj.getSamples();
-		String sampleDir = proj.getDir(Project.SAMPLE_DIRECTORY);
+		String sampleDir = proj.getDir(proj.SAMPLE_DIRECTORY);
 		
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		

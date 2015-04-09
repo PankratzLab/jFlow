@@ -193,8 +193,8 @@ public class ClusterFilterCollection implements Serializable {
 													"Apply Cluster Filters",
 													JOptionPane.QUESTION_MESSAGE,
 													null,
-													Array.addStrToArray("(--Do not apply any cluster filter--)", Files.list(proj.getDir(Project.DATA_DIRECTORY), null, ext.removeDirectoryInfo(proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME)), false, proj.getJarStatus())),
-													proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME));
+													Array.addStrToArray("(--Do not apply any cluster filter--)", Files.list(proj.getDir(proj.DATA_DIRECTORY), null, ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)), false, proj.getJarStatus())),
+													proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
 		if (result==null) {
 			result = "cancel";
 		} else if (result.equals("(--Do not apply any cluster filter--)")) {
@@ -211,7 +211,7 @@ public class ClusterFilterCollection implements Serializable {
 													JOptionPane.QUESTION_MESSAGE,
 													null,
 													new String[] {"Lookup Table 1", "Lookup Table 2", "Lookup Table 3"},
-													proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME));
+													proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
 		return result;
 	}
 

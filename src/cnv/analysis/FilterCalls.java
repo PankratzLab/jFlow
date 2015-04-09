@@ -2,7 +2,6 @@ package cnv.analysis;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -449,7 +448,7 @@ public class FilterCalls {
 				try {
 					ind = sampleData.lookup(fidiid)[0];
 				} catch (NullPointerException npe) {
-					log.reportError("Error - could not look up the sample " + fidiid + " in the sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
+					log.reportError("Error - could not look up the sample " + fidiid + " in the sample data file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
 					log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + fidiid.split("\t")[0] + " and IID=" + fidiid.split("\t")[1]);
 					continue;
 				}
@@ -651,12 +650,10 @@ public class FilterCalls {
 
 	private static boolean newLargeCNV(MergedCNVariant cleanCNVariant, int[] positions) {
 		int newSize = positions[cleanCNVariant.markerStop] - positions[cleanCNVariant.markerStart] + 1;
-		
 		int sz = 1000;
 		if (cleanCNVariant.originalCNVs.get(0).cnv.getCN() < 0) {
 			sz = 250;
 		}
-		
 		return newSize > sz * 1000;
 	}
 
@@ -831,7 +828,193 @@ public class FilterCalls {
 		
 		return new float[]{sz, dist};
 	}
+	
 
+//	/**
+//	 * Given a list of CNVs, and a list of sample IDs, find all CNVs that overlap at least one CNV belonging to a sample ID on the given list.
+//	 * 
+//	 * Useful for data without controls, but with known affected samples.
+//	 * 
+//	 * @param dir location of in / out files
+//	 * @param in Plink-formatted CNV file for input
+//	 * @param out desired name of filtered CNV file
+//	 * @param listFile file name (full path) of the list of sample IDs
+//	 */
+//	public static void filterForAllCNVsSharedInGroup(String dir, String in, String out, String listFile) {
+//		PrintWriter writer;
+//		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+//		boolean[] remove = new boolean[cnvs.size()];
+//		HashSet<String> indivList = HashVec.loadFileToHashSet(listFile, false);
+//		
+//		for (int i = 0; i < remove.length; i++) {
+//			CNVariant examine = cnvs.get(i);
+//			
+//			boolean mark = true;
+//			for (CNVariant groupCNV : cnvs) {
+//				if (!indivList.contains(groupCNV.getIndividualID())) { // loop through only those belonging to listed sample IDs
+//					continue;
+//				}
+//				
+//				if (examine.overlaps(groupCNV)) {
+//					mark = false;
+//					break;
+//				}
+//			}
+//			remove[i] = mark;
+//		}
+//		
+//		try {
+//			writer = new PrintWriter(new FileWriter(dir + out));
+//			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+//			for (int i = 0; i < remove.length; i++) {
+//				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+//			}
+//			writer.flush();
+//			writer.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//	
+//	
+//	public static void filterForGroupCNVs(String dir, String in, String out, String listFile, String excludeFile, boolean excludeCommon) {
+//		PrintWriter writer;
+//		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+//		boolean[] remove = new boolean[cnvs.size()];
+//		HashSet<String> indivList = HashVec.loadFileToHashSet(listFile, false);
+//		HashSet<String> excludeList = excludeFile == null ? new HashSet<String>() : HashVec.loadFileToHashSet(excludeFile, false);
+//		
+//		for (int i = 0; i < remove.length; i++) {
+//			CNVariant examine = cnvs.get(i);
+//			if (!indivList.contains(examine.getIndividualID()) || excludeList.contains(examine.getIndividualID())) { // remove all CNVs not belonging to a listed sample ID
+//				remove[i] = true;
+//				continue;
+//			}
+//			
+//			if (excludeCommon) {
+//				for (int j = 0; j < remove.length; j++) {
+//					if (i == j) continue;
+//					CNVariant check = cnvs.get(j);
+//					if (examine.significantOverlap(check, true) && !indivList.contains(check.getIndividualID())) {
+//						// if the sample ID of the second CNV isn't on the list, and the current cnv is on the list, remove both
+//						remove[i] = true;
+//						remove[j] = true;
+//					}
+//				}
+//			}
+//			
+//		}
+//
+//		try {
+//			writer = new PrintWriter(new FileWriter(dir + out));
+//			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+//			for (int i = 0; i < remove.length; i++) {
+//				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+//			}
+//			writer.flush();
+//			writer.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		
+//	}
+//	
+//	
+//	public static void filterOutCommonCNVs(String dir, String in, String out, double pct, boolean checkLarger) {
+//		PrintWriter writer;
+//		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+//		boolean[] remove = new boolean[cnvs.size()];
+//		
+//		for (int i = 0; i < remove.length; i++) {
+//			CNVariant examine = cnvs.get(i);
+//			int overlapCnt = 0;
+//			
+//			for (int j = 0; j < remove.length; j++) {
+//				if (i == j) continue;
+//				
+//				if (examine.significantOverlap(cnvs.get(j), checkLarger)) {
+//					overlapCnt++;
+//				}
+//			}
+//			
+//			if (((double)overlapCnt) / ((double)cnvs.size()) > pct) {
+//				remove[i] = true;
+//			} else {
+//				remove[i] = false;
+//			}
+//		}
+//		
+//		try {
+//			writer = new PrintWriter(new FileWriter(dir + out));
+//			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+//			for (int i = 0; i < remove.length; i++) {
+//				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+//			}
+//			writer.flush();
+//			writer.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//	
+//	public static void filterCommonCNVs(String dir, String in, String out, double pct) {
+//		PrintWriter writer;
+//		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+//		boolean[] remove = new boolean[cnvs.size()];
+//		
+//		HashMap<Integer, ArrayList<CNVariant>> chrToCNVs = new HashMap<Integer, ArrayList<CNVariant>>();
+//		HashMap<CNVariant, Integer> indexMap = new HashMap<CNVariant, Integer>();
+//		for (int index = 0; index < cnvs.size(); index++) {
+//			ArrayList<CNVariant> chrList = chrToCNVs.get((int) cnvs.get(index).getChr());
+//			if (chrList == null) {
+//				chrList = new ArrayList<CNVariant>();
+//				chrToCNVs.put((int) cnvs.get(index).getChr(), chrList);
+//			}
+//			chrList.add(cnvs.get(index));
+//			indexMap.put(cnvs.get(index), index);
+//		}
+//
+//		int hundredthStep = (cnvs.size() / 100) + 1;
+//		
+//		for (int i = 0; i < remove.length; i++) {
+//			CNVariant examine = cnvs.get(i);
+//			int overlapCnt = 0;
+//			
+//			ArrayList<CNVariant> compCNVs = chrToCNVs.get((int) examine.getChr());
+//			for (CNVariant comp : compCNVs) {
+//				if (i == indexMap.get(comp).intValue()) continue;
+//				
+//				if (examine.significantOverlap(comp)) {
+//					overlapCnt++;
+//				}
+//			}
+//			
+//			if (((double)overlapCnt) / ((double)cnvs.size()) > pct) {
+//				remove[i] = true;
+//			} else {
+//				remove[i] = false;
+//			}
+//			
+//			if (i > 0 && i % hundredthStep == 0) {
+//				System.out.println(ext.getTime() + "] Examined " + i + " of " + cnvs.size() + " CNVs...");
+//			}
+//		}
+//		
+//		try {
+//			writer = new PrintWriter(new FileWriter(dir + out));
+//			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
+//			for (int i = 0; i < remove.length; i++) {
+//				if (!remove[i]) writer.println(cnvs.get(i).toPlinkFormat());
+//			}
+//			writer.flush();
+//			writer.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//	
+	
+	
 	public static void filterExclusions(Project proj, String cnvFile) {
 		PrintWriter writer;
 		BufferedReader reader;
@@ -1445,7 +1628,6 @@ public class FilterCalls {
 		int build = 37;
 		int inOutIgnore = COMMON_IGNORED;
 		double score = DEFAULT_MIN_SCORE;
-		double pct = 0.05;
 		double overlap = 0.5;
 		String dir = "";
 		String in = "conf.cnv";
@@ -1574,9 +1756,6 @@ public class FilterCalls {
 				numArgs--;				
 			} else if (args[i].startsWith("build=")) {
 				build = ext.parseIntArg(args[i]);
-				numArgs--;				
-			} else if (args[i].startsWith("pct=")) {
-				pct = ext.parseDoubleArg(args[i]);
 				numArgs--;				
 			} else if (args[i].startsWith("overlap=")) {
 				overlap = ext.parseDoubleArg(args[i]);
@@ -1724,7 +1903,8 @@ public class FilterCalls {
 			} else if (listFile != null && stats) {
 				variantStats(in, listFile, famFile, out, score, number, overlap);
 			} else if (listFiles != null && stats) {
-				//in=D:/data/ny_registry/new_york/data/cnvlist.cnv list=D:/data/ny_registry/new_york/penncnvShadow/penncnv.cnv out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_auto.cnv minScore=10 number=15 -stats
+				// in=D:/data/ny_registry/new_york/data/cnvlist.cnv list=D:/data/ny_registry/new_york/penncnvShadow/penncnv.cnv out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_auto.cnv minScore=10 number=15 -stats
+				// -stats in= out= list= famFile= minScore=10 number=15 overlap=.50
 				variantStats(in, listFiles, out, score, number, overlap);
 			} else if (projName != null) {
 				Project proj = new Project(projName, false);

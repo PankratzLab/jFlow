@@ -33,7 +33,7 @@ public class PeakZero {
 		
 		samples = proj.getSamples();
 		if (!phenoOfSamplesToInclude.equals("")) {
-			hash = HashVec.loadFileToHashString(proj.getDir(Project.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenoOfSamplesToInclude}, "");
+			hash = HashVec.loadFileToHashString(proj.getDir(proj.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenoOfSamplesToInclude}, "");
 			use = new boolean[samples.length];
 			for (int i = 0; i<samples.length; i++) {
 				trav = hash.get(samples[i]);
@@ -54,8 +54,8 @@ public class PeakZero {
 		drops = proj.getFilteredHash();
 		
 		try {
-			new File(proj.getDir(Project.RESULTS_DIRECTORY)).mkdirs();
-	        writer = new PrintWriter(new FileWriter(proj.getDir(Project.RESULTS_DIRECTORY)+PEAK_ZERO_FILE));
+			new File(proj.getDir(proj.RESULTS_DIRECTORY)).mkdirs();
+	        writer = new PrintWriter(new FileWriter(proj.getDir(proj.RESULTS_DIRECTORY)+PEAK_ZERO_FILE));
 	        writer.println("Marker\tPeakOffset\t#LRR_Maxima\t#BAF_Maxima\t#X_Maxima\t#Y_Maxima\tDropped");
 
 	        lrrArray = new float[count];
@@ -105,7 +105,7 @@ public class PeakZero {
 
 	        writer.close();
         } catch (Exception e) {
-	        System.err.println("Error writing to "+proj.getDir(Project.RESULTS_DIRECTORY)+PEAK_ZERO_FILE);
+	        System.err.println("Error writing to "+proj.getDir(proj.RESULTS_DIRECTORY)+PEAK_ZERO_FILE);
 	        e.printStackTrace();
         }
 	}

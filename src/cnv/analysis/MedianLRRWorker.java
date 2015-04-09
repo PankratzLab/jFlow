@@ -292,15 +292,16 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		Logger projLog;
 		PrincipalComponentsResiduals pcrs = null;
 		if (correctLRR || correctXY || recomputeLRR) {// not truly necessary for recomputing LRR, but currently forcing it anyway
-			if (!Files.exists(proj.getFilename(Project.INTENSITY_PC_FILENAME))) {
-				String Error = "Error - could not find the file " + proj.getFilename(Project.INTENSITY_PC_FILENAME) + ", cannot perform intensity correction";
+			if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
+				String Error = "Error - could not find the file " + proj.getFilename(proj.INTENSITY_PC_FILENAME) + ", cannot perform intensity correction";
 				computelog.reportError(Error);
 				warnAndCancel(Error);
 			} else {
-				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(Project.INTENSITY_PC_FILENAME), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+//				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(proj.INTENSITY_PC_FILENAME), null, Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(proj.INTENSITY_PC_FILENAME), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
 				samplesToUse = proj.getSamplesToInclude(null);
-				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + " for correction clustering");
-				proj.getLog().reportTimeInfo("Correcting with " + proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS) + " components");
+				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + " for correction clustering");
+				proj.getLog().reportTimeInfo("Correcting with " + proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS) + " components");
 			}
 
 		}
@@ -332,14 +333,16 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, regionMarkers[i], 0);
  
 			if (recomputeLRR || correctLRR || correctXY) {
-				int numThreads = Integer.parseInt(proj.getProperty(Project.NUM_THREADS));
+//				int numThreads = Integer.parseInt(proj.getProperty(proj.NUM_THREADS));
+				int numThreads = proj.getProperty(proj.NUM_THREADS);
 				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, clusterFilterCollection, true, false, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
 				if (recomputeLRR && !correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 					// bafs = pcIntensity.getCentroidCompute().getRecomputedBAF();
 				} else if (correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
-					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, regionMarkers[i], true).getResiduals();
+//					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false, regionMarkers[i], true).getResiduals();
+					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, regionMarkers[i], true).getResiduals();
 					if (tmplrrs != null) {
 						lrrs = Array.toFloatArray(tmplrrs);
 					} else {
@@ -348,7 +351,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 						warnAndCancel(Error);
 					}
 				} else if (correctXY) {
-					pcIntensity.correctXYAt(Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)));
+//					pcIntensity.correctXYAt(Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)));
+					pcIntensity.correctXYAt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS));
 					float[][] correctedLrrBafs = pcIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN, true);
 					lrrs = correctedLrrBafs[1];
 					bafs = correctedLrrBafs[0];
@@ -439,19 +443,21 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private int[][][] getRegionCNs(MarkerRegion[] markerRegions) {
 		SampleData sampleData = proj.getSampleData(0, false);
 		int[][][] cnvFileCNs = null;
-		if (proj.getFilenames(Project.CNV_FILENAMES) == null || proj.getFilenames(Project.CNV_FILENAMES).length < 1) {
+		if (proj.getFilenames(proj.CNV_FILENAMES) == null || proj.getFilenames(proj.CNV_FILENAMES).length < 1) {
 			computelog.report("Warning - no cnv file was found, not matching regions to cnvs");
 		} else {
 			// region,sample,cnvFile
 			// CN are reported as 1=homzydel,2=hetrodel,3=none,4=hetrodup,5=homozydup;
 			process(0);
-			newJob("loading " + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv " + (proj.getFilenames(Project.CNV_FILENAMES).length > 1 ? " files" : " file"));
-			cnvFileCNs = new int[markerRegions.length][samples.length][Project.CNV_FILENAMES.length()];
-			computelog.report("Info - assigning cnvs for " + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv files");
-			sampleData.loadCNVs(proj.getFilenames(Project.CNV_FILENAMES), false);
+			newJob("loading " + proj.getFilenames(proj.CNV_FILENAMES).length + " cnv " + (proj.getFilenames(proj.CNV_FILENAMES).length > 1 ? " files" : " file"));
+			// TODO potential bug in old code - sets array length to length of String, not of value array
+//			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.length()];
+			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.getValue().length];
+			computelog.report("Info - assigning cnvs for " + proj.getFilenames(proj.CNV_FILENAMES).length + " cnv files");
+			sampleData.loadCNVs(proj.getFilenames(proj.CNV_FILENAMES), false);
 			String[] cnvClasses = sampleData.getCnvClasses();
-			computelog.report("Info - assigning cnvs for " + proj.getFilenames(Project.CNV_FILENAMES).length);
-			newJob(MEDIAN_WORKER_JOBS[4] + proj.getFilenames(Project.CNV_FILENAMES).length + " cnv files");
+			computelog.report("Info - assigning cnvs for " + proj.getFilenames(proj.CNV_FILENAMES).length);
+			newJob(MEDIAN_WORKER_JOBS[4] + proj.getFilenames(proj.CNV_FILENAMES).length + " cnv files");
 			processTracker[1] = 0;
 			for (int i = 0; i < markerRegions.length; i++) {
 				assignSampleProgress();
@@ -507,9 +513,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private String printMedianLRRs(RegionResults regionResults, MarkerRegion[] markerRegions) {
 		boolean reportCNVCN = false;
 		String output = proj.getProjectDir() + FILE_PREFIXES[0] + outputBase + FILE_EXT[0];
-		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.getFilename(Project.SAMPLE_DATA_FILENAME), "DNA", CLASSES_TO_DUMP, "\t");
+		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", CLASSES_TO_DUMP, "\t");
 		int[][][] cnvFileCNs = getRegionCNs(markerRegions);
-		String[] cnvFiles = proj.getFilenames(Project.CNV_FILENAMES);
+		String[] cnvFiles = proj.getFilenames(proj.CNV_FILENAMES);
 		if (cnvFileCNs != null) {
 			computelog.report("Reporting cnvs");
 			regionResults.setCnvFileCNs(cnvFileCNs);

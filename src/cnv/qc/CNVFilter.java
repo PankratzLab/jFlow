@@ -10,14 +10,15 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
+
 import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.ext;
+
 import filesys.Segment;
-import filesys.SnpMarkerSet;
 
 public class CNVFilter {
 
@@ -199,7 +200,7 @@ public class CNVFilter {
 			filter.setCNVDefaults(proj);
 		}
 		filter.setCommandLineFiltersInEffect(new Hashtable<String, String>());
-		filter.setCentromereBoundariesFromFile(proj.getFilename(Project.MARKERSET_FILENAME));// resets if neccesary
+		filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));// resets if neccesary
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].startsWith(COMMAND_MIN_NUM_MARKERS)) {
 				filter.setMinNumMarkers(ext.parseIntArg(args[i]));
@@ -230,7 +231,7 @@ public class CNVFilter {
 				filter.addCommandLineFilter(args[i], COMMAND_INDIVIDUALS_TO_KEEP);
 			} else if (args[i].startsWith(COMMAND_BUILD)) {
 				filter.setBuild(ext.parseIntArg(args[i]));
-				filter.setCentromereBoundariesFromFile(proj.getFilename(Project.MARKERSET_FILENAME));
+				filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
 				filter.addCommandLineFilter(args[i], COMMAND_BUILD);
 			} else if (args[i].startsWith(COMMAND_COMMON_IN)) {
 				filter.setCommonIn(ext.parseBooleanArg(args[i]));
@@ -436,7 +437,7 @@ public class CNVFilter {
 	}
 
 	public void setCentromereBoundariesFromProject(Project proj) {
-		setCentromereBoundariesFromFile(proj.getFilename(Project.MARKERSET_FILENAME));
+		setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
 	}
 
 	public void setCentromereBoundariesFromFile(String fullPathToMarkerSetFilename) {

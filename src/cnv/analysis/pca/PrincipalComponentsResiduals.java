@@ -155,7 +155,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		SampleData sampleData = proj.getSampleData(0, false);
 		try {
 			if (Files.exists(proj.getProjectDir() + residOutput)) {
-				Files.backup(residOutput, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
+				Files.backup(residOutput, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + residOutput));
 			writer.print(Array.toStr(MT_REPORT));
@@ -255,11 +255,11 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		byte[] abGenos;
 		ClusterFilterCollection cluster;
 
-		if (Files.exists(proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME))) {
-			cluster = ClusterFilterCollection.load(proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME), false);
+		if (Files.exists(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME))) {
+			cluster = ClusterFilterCollection.load(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME), false);
 		} else {
 			cluster = new ClusterFilterCollection();
-			log.report("Info - did not find the cluster filter file " + proj.getProperty(Project.CLUSTER_FILTER_COLLECTION_FILENAME) + "; using original genotypes");
+			log.report("Info - did not find the cluster filter file " + proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME) + "; using original genotypes");
 		}
 
 		for (int i = 0; i < markersToAssess.length; i++) {
@@ -393,7 +393,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 
 		for (int i = 0; i < fileOuts.length; i++) {
 			if (Files.exists(proj.getProjectDir() + fileOuts[i])) {
-				Files.backup(fileOuts[i], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
+				Files.backup(fileOuts[i], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			try {
 				writers[i] = new PrintWriter(new FileWriter(proj.getProjectDir() + fileOuts[i]));

@@ -143,7 +143,8 @@ public class PennCNVPrep {
 	 */
 	public void exportSpecialPennCNVData(String[] fileNamesOfMarkerDataInOrder) {
 		int[] sampleIndicesInProject = ext.indexLargeFactors(Array.subArray(proj.getSamples(), samplesToExport), proj.getSamples(), true, proj.getLog(), true, true);
-		int numMarkersPerWrite = Integer.parseInt(proj.getProperty(Project.MAX_MARKERS_LOADED_PER_CYCLE));
+//		int numMarkersPerWrite = Integer.parseInt(proj.getProperty(Project.MAX_MARKERS_LOADED_PER_CYCLE));
+		int numMarkersPerWrite = proj.getProperty(proj.MAX_MARKERS_LOADED_PER_CYCLE);
 		int numMarkersThisRound = 0;
 		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
 		PennCNVIndividual[] pennCNVIndividuals = initSamples(proj, dir, subSamples, false, numMarkersPerWrite, proj.getLog());
@@ -177,7 +178,7 @@ public class PennCNVPrep {
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		int[] subSampleIndicesInProject = ext.indexLargeFactors(Array.subArray(proj.getSamples(), samplesToExport), proj.getSamples(), true, proj.getLog(), true, true);
 		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
-		String dir = proj.getProjectDir() + "shadow" + proj.getProperty(Project.SAMPLE_DIRECTORY);
+		String dir = proj.getProjectDir() + "shadow" + proj.getProperty(proj.SAMPLE_DIRECTORY);
 		proj.getLog().report("Info - checking for existing files in " + dir + "...");
 		boolean allExist = true;
 		for (int i = 0; i < subSamples.length; i++) {
@@ -392,13 +393,14 @@ public class PennCNVPrep {
 	 * Grab the {@link PrincipalComponentsResiduals} from {@link Project#INTENSITY_PC_FILENAME}
 	 */
 	private static PrincipalComponentsResiduals loadPcResids(Project proj, int numComponents) {
-		String pcFile = proj.getFilename(Project.INTENSITY_PC_FILENAME);
+		String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME);
 		PrincipalComponentsResiduals pcResids;
 		if (Files.exists(proj.getProjectDir() + ext.removeDirectoryInfo(pcFile))) {
 			proj.getLog().report("Info - loading " + ext.removeDirectoryInfo(pcFile));
-			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+//			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
 		} else {
-			proj.getLog().reportError("Error - did not find Intensity PC File " + proj.getProjectDir() + ext.removeDirectoryInfo(pcFile) + " as defined by" + Project.INTENSITY_PC_FILENAME);
+			proj.getLog().reportError("Error - did not find Intensity PC File " + proj.getProjectDir() + ext.removeDirectoryInfo(pcFile) + " as defined by" + proj.INTENSITY_PC_FILENAME);
 			pcResids = null;
 		}
 		return pcResids;
@@ -555,17 +557,17 @@ public class PennCNVPrep {
 			Files.writeList(chunk.toArray(new String[chunk.size()]), proj.getProjectDir() + dir + batches[i][0] + ".txt");
 		}
 		String command = "module load java\n";
-		command += "java -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getFilename(Project.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir;
+		command += "java -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir;
 		Files.qsub("ShadowCNVPrepFormatExport", command + " -shadow sampleChunks=NeedToFillThisIn numThreads=1", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
 		Files.qsub("PennCNVPrepFormatExport", command + " -create", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
 		command += " numMarkerThreads=" + numMarkerThreads + " numThreads=" + numThreads + " numComponents=" + numComponents + " markers=" + proj.getProjectDir() + dir + "[%0].txt";
 		Files.qsub("PennCNVPrepFormatTmpFiles", command, batches, memoryInMB, wallTimeInHours, numThreads);
-		if (!Files.exists(proj.getFilename(Project.INTENSITY_PC_FILENAME))) {
-			proj.getLog().report("Warning - all jobs will fail if the property " + Project.INTENSITY_PC_FILENAME + " in " + proj.getPropertyFilename() + " is not set to an existing file");
-			proj.getLog().report("		  - did not find " + proj.getFilename(Project.INTENSITY_PC_FILENAME));
+		if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
+			proj.getLog().report("Warning - all jobs will fail if the property " + proj.INTENSITY_PC_FILENAME + " in " + proj.getPropertyFilename() + " is not set to an existing file");
+			proj.getLog().report("		  - did not find " + proj.getFilename(proj.INTENSITY_PC_FILENAME));
 		}
 		if (getSampleSex(proj) == null) {
-			proj.getLog().report("Warning - all jobs will fail if sample sex is not provided in " + proj.getFilename(Project.SAMPLE_DATA_FILENAME));
+			proj.getLog().report("Warning - all jobs will fail if sample sex is not provided in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
 			proj.getLog().report("		  - please specify sex for as many individuals as possible");
 		}
 	}

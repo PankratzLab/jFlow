@@ -102,7 +102,7 @@ public class SampleData {
 		}
 		
 		try {
-			filename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+			filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
 			if (!Files.exists(filename, proj.getJarStatus())) {
 				proj.message("SampleData file does not exist: "+filename);
 				return;
@@ -221,10 +221,10 @@ public class SampleData {
 				}
 			}
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
+			System.err.println("Error: file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(Project.SAMPLE_DATA_FILENAME)+"\"");
+			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
 			System.exit(2);
 		}
 		
@@ -626,7 +626,7 @@ public class SampleData {
 
 		Project thisProject = new Project(filename, false);
 
-		if (Files.exists(thisProject.getFilename(Project.SAMPLE_DATA_FILENAME, false, false), thisProject.getJarStatus())) {
+		if (Files.exists(thisProject.getFilename(thisProject.SAMPLE_DATA_FILENAME, false, false), thisProject.getJarStatus())) {
 			thisProject.getSampleData(2, false);
 		} else {
 			System.err.println("Error: Unable to find sample data file in project. Please add sample data file path");
@@ -710,7 +710,7 @@ public class SampleData {
 		boolean covar, negativeValues, largerThanByte;
 		String trav;
 
-		sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
+		sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
 
 		if (!Files.exists(sampleDatafilename, proj.getJarStatus())) {
 			// JOptionPane.showMessageDialog(null, "Cannot add as a color key without an existing SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
@@ -830,7 +830,7 @@ public class SampleData {
 
 	public void removeColorKey(String colorKey) {
 
-		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
 
 		System.out.println("Sample data: " + sampleDatafilename);
 
@@ -904,7 +904,7 @@ public class SampleData {
 		boolean writerWasOpened = false;
 		BufferedReader reader;
 		PrintWriter writer;
-		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME);
+		String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
 		// in memory backup
 		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null, false);
 		String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
@@ -914,7 +914,7 @@ public class SampleData {
 			log.reportError("Error - could not find linker " + linker + " in sample data file " + sampleDatafilename + ", will not add data");
 			add = false;
 		} else {
-			String bakDir = proj.getDir(Project.BACKUP_DIRECTORY, true);
+			String bakDir = proj.getDir(proj.BACKUP_DIRECTORY, true);
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e1) {
@@ -1013,7 +1013,7 @@ public class SampleData {
 	 */
 	public static boolean createMinimalSampleData(Project proj) {
 		boolean created = false;
-		String sampleDatafilename = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
+		String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
 		Logger log = proj.getLog();
 		
 		if (Files.exists(sampleDatafilename)) {

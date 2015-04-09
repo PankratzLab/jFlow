@@ -518,7 +518,7 @@ public class Sample implements Serializable {
 	public float[][][] loadCentroids(Project proj) {
 		Centroids centroids;
 		
-		centroids = Centroids.load(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME), proj.getJarStatus());
+		centroids = Centroids.load(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME), proj.getJarStatus());
 		if (centroids.getFingerprint() != getFingerprint()) {
 			System.err.println("Error - mismatched fingerprint for "+sampleName);
 		}
@@ -1096,7 +1096,7 @@ public class Sample implements Serializable {
 
 	// TODO if Outlier class is created, then move these two methods there
 	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(Project proj) throws Exception {
-		return loadOutOfRangeValuesFromSerializable(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
+		return loadOutOfRangeValuesFromSerializable(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1157,7 +1157,7 @@ public class Sample implements Serializable {
 		try {
 //			for (int i=0; i<samplesProj.length; i++) {
 			for (int i=0; i<100; i++) {
-				file = new RandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + samplesProj[i] + SAMPLE_DATA_FILE_EXTENSION, "r");
+				file = new RandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY, true) + samplesProj[i] + SAMPLE_DATA_FILE_EXTENSION, "r");
 				readBuffer = new byte[(int) file.length()];	//numMarkers * BYTES_PER_SAMPLE_MARKER
 				file.read(readBuffer);
 				file.close();

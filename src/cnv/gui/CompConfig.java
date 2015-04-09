@@ -421,7 +421,8 @@ class CNVPanel extends JPanel implements ActionListener {
 			Project proj = compPlot.getProject();
 			SampleData sampleData = compPlot.getProject().getSampleData(2, true);
 			int[] location = compPlot.getCPLocation();
-			int window = Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
+//			int window = Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
+			int window = compPlot.getProject().getProperty(proj.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER);
 
 			if (selectedCNVs.size() > 1) {
 				// More than 4 seems to run out of heap space
@@ -439,7 +440,7 @@ class CNVPanel extends JPanel implements ActionListener {
 
 							String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
 
-							new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(Project.CNV_FILENAMES), markerPosition);
+							new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(proj.CNV_FILENAMES), markerPosition);
 						}
 					}
 				} else if (checkList.getSelected().size() == 0) {
@@ -454,7 +455,7 @@ class CNVPanel extends JPanel implements ActionListener {
 
 						String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
 
-						new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(Project.CNV_FILENAMES), markerPosition);
+						new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(proj.CNV_FILENAMES), markerPosition);
 					}
 				}
 			} else {
@@ -466,7 +467,7 @@ class CNVPanel extends JPanel implements ActionListener {
 				}
 
 				String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
-				new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(Project.CNV_FILENAMES), markerPosition);
+				new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(proj.CNV_FILENAMES), markerPosition);
 			}
 		}
 	}

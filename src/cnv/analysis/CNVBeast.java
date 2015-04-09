@@ -186,7 +186,7 @@ public class CNVBeast {
 				proj.getLog().reportError("Error reading file \"" + summaryFile + "\"");
 			}
 		} else {
-			proj.getLog().reportError("Error - could look up sample " + config.getSample() + " in sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME));
+			proj.getLog().reportError("Error - could look up sample " + config.getSample() + " in sample data file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
 		}
 		return indCNVariants.toArray(new CNVariant[indCNVariants.size()]);
 	}
@@ -615,13 +615,13 @@ public class CNVBeast {
 	}
 
 	public static void analyze(Project proj, String fullPathToBeastExe, boolean overWriteExistingFiles, String analysisDirectory, String outputCNVFile, String samplesToAnalyzeFile, boolean gcCorrect, int numThreads) {
-		if (gcCorrect && !Files.exists(proj.getFilename(Project.GC_MODEL_FILENAME, false, false))) {
-			proj.getLog().reportError("Error - gc correction was flagged, but the required file " + proj.getFilename(Project.GC_MODEL_FILENAME, false, false) + " could not be found, aborting");
+		if (gcCorrect && !Files.exists(proj.getFilename(proj.GC_MODEL_FILENAME, false, false))) {
+			proj.getLog().reportError("Error - gc correction was flagged, but the required file " + proj.getFilename(proj.GC_MODEL_FILENAME, false, false) + " could not be found, aborting");
 		} else {
 			CNVBeast cnvBeast = new CNVBeast(proj, fullPathToBeastExe, getSubset(proj, samplesToAnalyzeFile), overWriteExistingFiles, analysisDirectory, outputCNVFile, numThreads);
 			GcAdjustor.GcModel gcModel = null;
 			if (gcCorrect) {
-				gcModel = GcAdjustor.GcModel.populateFromFile(proj.getFilename(Project.GC_MODEL_FILENAME, false, false), false, proj.getLog());
+				gcModel = GcAdjustor.GcModel.populateFromFile(proj.getFilename(proj.GC_MODEL_FILENAME, false, false), false, proj.getLog());
 			}
 			cnvBeast.analyzeSampleBased(gcModel);
 		}

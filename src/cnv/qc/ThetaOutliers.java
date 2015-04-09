@@ -35,7 +35,7 @@ public class ThetaOutliers {
 		output = proj.getProjectDir()+"resultOfReclusterByTheta_sd"+stdDev+".txt";
 
 		// load data: sample list
-		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
+		filename = proj.getFilename(proj.SAMPLE_SUBSET_FILENAME, true, false);
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
 			sampleList = proj.getSampleList().getSamples();
 		} else if (Files.exists(filename, proj.getJarStatus())) {

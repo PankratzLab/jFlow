@@ -168,9 +168,9 @@ public class Centroids implements Serializable {
 			System.exit(2);
 		}
 		
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME));
-		Files.backup(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME), "", "");
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME));
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME));
+		Files.backup(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME), "", "");
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME));
 	}
 
 	public static void parseCentroidsFromGenotypes(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold) {
@@ -260,7 +260,7 @@ public class Centroids implements Serializable {
 		} else {
 			System.out.println("Computed mean genotyped centroids for all "+centroids.length+" markers");
 		}
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
 		System.out.println("Computation took "+ext.getTimeElapsed(time));
 	}
 
@@ -279,16 +279,16 @@ public class Centroids implements Serializable {
         markerSet = proj.getMarkerSet();        
         markerNames = markerSet.getMarkerNames();
         hash = HashVec.loadFileToHashString(proj.getProjectDir()+intensityOnlyFlagFile, false);
-        if (!Files.exists(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME), jar)) {
-        	System.err.println("Error - file '"+proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME)+"' does not exist in the project's data directory");
+        if (!Files.exists(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME), jar)) {
+        	System.err.println("Error - file '"+proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME)+"' does not exist in the project's data directory");
         	return;
         }
-        if (!Files.exists(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME), jar)) {
-        	System.err.println("Error - file '"+proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME)+"' does not exist in the project's data directory");
+        if (!Files.exists(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME), jar)) {
+        	System.err.println("Error - file '"+proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME)+"' does not exist in the project's data directory");
         	return;
         }
-       	clustered = Centroids.load(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME), jar);
-       	unclustered = Centroids.load(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME), jar);
+       	clustered = Centroids.load(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME), jar);
+       	unclustered = Centroids.load(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME), jar);
         if (clustered.getFingerprint() != unclustered.getFingerprint()) {
         	System.err.println("Error - the two centroid files cannot be merged, because they do not have the same fingerprint");
         	return;
@@ -320,7 +320,7 @@ public class Centroids implements Serializable {
         if (problem) {
         	System.err.println("Error - chimera centroids generation failed");
         } else {
-    		new Centroids(cents, markerSet.getFingerprint()).serialize(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
+    		new Centroids(cents, markerSet.getFingerprint()).serialize(proj.getFilename(proj.CHIMERA_CENTROIDS_FILENAME));
         	System.out.println("Created chimera centroids in "+ext.getTimeElapsed(time));
         }
 	}
@@ -344,13 +344,13 @@ public class Centroids implements Serializable {
 		for (int i = 0; i < samples.length; i++) {
 			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
 			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
+			sample.saveToRandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
 		}
 		if (outliers.size() > 0) {
-			if (Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser")) {
-				Files.copyFile(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.addToRoot(proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.getTimestampForFilename()));
+			if (Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser")) {
+				Files.copyFile(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.addToRoot(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.getTimestampForFilename()));
 			}
-			Files.writeSerial(outliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
+			Files.writeSerial(outliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
         
 	}
@@ -510,8 +510,8 @@ public class Centroids implements Serializable {
 		String centFile = "CentroidExample.csv";
 		String intensityFlags = "";
 //		String intensityFlags = "intesityFlag.txt";
-//		String clusteredCentroids = Project.DEFAULT_ORIGINAL_CENTROIDS_FILENAME;
-//		String unclusteredCentroids = Project.DEFAULT_GENOTYPE_CENTROIDS_FILENAME;
+//		String clusteredCentroids = proj.DEFAULT_ORIGINAL_CENTROIDS_FILENAME;
+//		String unclusteredCentroids = proj.DEFAULT_GENOTYPE_CENTROIDS_FILENAME;
 		boolean fromGenotypes = false;
 		Project proj;
 		String compute = "";
@@ -526,8 +526,8 @@ public class Centroids implements Serializable {
 			"   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n"+
 			" OR\n"+
 			"   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n"+
-			"   (3) centroid file for clustered markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n"+
-			"   (4) centroid file for intensity only markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n"+
+			"   (3) centroid file for clustered markers (see \"GENOTYPE_CENTROIDS_FILENAME\" in the Project properties file)\n"+
+			"   (4) centroid file for intensity only markers (see \"GENOTYPE_CENTROIDS_FILENAME\" in the Project properties file)\n"+
 			" OR\n"+
 			"   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n"+
 			"";
