@@ -1870,36 +1870,36 @@ public class Files {
 
 		return o;
 	}
-
-	public static void loadProperties(Properties props, String filename, boolean jar, boolean verbose, boolean kill) {
-		InputStream is;
-		
-		try {
-			if (jar) {
-				if (verbose) {
-					System.out.println("Loading '"+filename+"'");
-				}
-				is = ClassLoader.getSystemResourceAsStream(filename);
-			} else {
-				is = new FileInputStream(filename);
-			}
-			props.load(is);
-			is.close();
-        } catch (FileNotFoundException fnfe) {
-        	if (verbose) {
-        		System.err.println("Error: \""+filename+"\" could not be found");
-        	}
-			if (kill) {
-				System.exit(1);
-			}
-        } catch (IOException ioe) {
-			System.err.println("Error - failed to load "+filename);
-			ioe.printStackTrace();
-			if (kill) {
-				System.exit(1);
-			}
-        }
-	}
+//
+//	public static void loadProperties(Properties props, String filename, boolean jar, boolean verbose, boolean kill) {
+//		InputStream is;
+//		
+//		try {
+//			if (jar) {
+//				if (verbose) {
+//					System.out.println("Loading '"+filename+"'");
+//				}
+//				is = ClassLoader.getSystemResourceAsStream(filename);
+//			} else {
+//				is = new FileInputStream(filename);
+//			}
+//			props.load(is);
+//			is.close();
+//        } catch (FileNotFoundException fnfe) {
+//        	if (verbose) {
+//        		System.err.println("Error: \""+filename+"\" could not be found");
+//        	}
+//			if (kill) {
+//				System.exit(1);
+//			}
+//        } catch (IOException ioe) {
+//			System.err.println("Error - failed to load "+filename);
+//			ioe.printStackTrace();
+//			if (kill) {
+//				System.exit(1);
+//			}
+//        }
+//	}
 
 	public static String[] listFullPaths(String directory, final String suffix, boolean jar) {
 		return list(directory, null, suffix, false, jar, true);

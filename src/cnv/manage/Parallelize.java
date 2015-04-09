@@ -167,8 +167,8 @@ public class Parallelize implements Runnable {
 
 		proj = new Project(filename, false);
 
-		if (!proj.getDir(Project.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(Project.SOURCE_DIRECTORY)).exists()) {
-			System.err.println("Error - the project source location is invalid: "+proj.getDir(Project.SOURCE_DIRECTORY));
+		if (!proj.getDir(proj.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(proj.SOURCE_DIRECTORY)).exists()) {
+			System.err.println("Error - the project source location is invalid: "+proj.getDir(proj.SOURCE_DIRECTORY));
 			return;
 		}
 

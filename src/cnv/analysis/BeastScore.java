@@ -314,7 +314,7 @@ public class BeastScore {
 			try {
 				ind = sampleData.lookup(key)[0];
 			} catch (NullPointerException npe) {
-				log.reportError("Error - could not look up the sample " + key + " in the sample data file " + proj.getFilename(Project.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
+				log.reportError("Error - could not look up the sample " + key + " in the sample data file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
 				log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + cNVariantInd[0].getFamilyID() + " and IID=" + cNVariantInd[0].getIndividualID());
 				return score;
 			}

@@ -171,10 +171,10 @@ public class AffyCentroids implements Serializable {
 			AFFYBAFs = getAFFYBAF(markerNames, affyCents, Xs, Ys, i, log);
 			AFFYLRRs = getAFFYLRR(markerNames, affyCents, Xs, Ys, i, log);
 			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), AFFYBAFs, AFFYLRRs, original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.getDir(Project.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, original.getSampleName());
+			sample.saveToRandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, original.getSampleName());
 		}
 		if (allOutliers.size() > 0) {
-			Files.writeSerial(allOutliers, proj.getDir(Project.SAMPLE_DIRECTORY, true) + "outliers.ser");
+			Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
 		}
 	}
 
@@ -248,7 +248,7 @@ public class AffyCentroids implements Serializable {
 		} else {
 			log.report("Computed mean genotyped centroids for all " + centroids.length + " markers");
 		}
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
 		log.report("Computation took " + ext.getTimeElapsed(time));
 	}
 
@@ -471,7 +471,16 @@ public class AffyCentroids implements Serializable {
 		String compute = "";
 		double callConfidence = 0.99;
 		String centFile = "C:/data/ARIC/ARICGenvisis_CEL_11908/data/genotype.cent";
-		String usage = "\n" + "affy.AffyCentroids requires 0-1 arguments\n" + "   (1) project (i.e. proj=" + filename + " (default))\n" + "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n" + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n" + " OR\n" + "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n" + "   (3) centroid file for clustered markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n" + "   (4) centroid file for intensity only markers (see " + Project.GENOTYPE_CENTROIDS_FILENAME + " in the Project properties file)\n" + " OR\n" + "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n" + "";
+		String usage = "\n" 
+						+ "affy.AffyCentroids requires 0-1 arguments\n" 
+						+ "   (1) project (i.e. proj=" + filename + " (default))\n" 
+						+ "   (2) filename (i.e. file=" + centFile + " (default))\n" 
+						+ " OR\n" + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n" 
+						+ " OR\n" + "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n" 
+						+ "   (3) centroid file for clustered markers (see \"GENOTYPE_CENTROIDS_FILENAME\" property in the Project properties file)\n" 
+						+ "   (4) centroid file for intensity only markers (see \"GENOTYPE_CENTROIDS_FILENAME\" property in the Project properties file)\n" 
+						+ " OR\n" + "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n" 
+						+ "";
 		String logfile = null;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {

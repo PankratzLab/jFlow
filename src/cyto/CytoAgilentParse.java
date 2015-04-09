@@ -39,13 +39,13 @@ public class CytoAgilentParse {
 	 * @return the list of parsed files
 	 */
 	public static String[] parseCytoToGenvisis(Project proj, Logger log) {
-		String[] files = Files.list(proj.getDir(Project.SOURCE_DIRECTORY), proj.getProperty(Project.SOURCE_FILENAME_EXTENSION), false);
+		String[] files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		if (files.length < 1) {
 			log.reportError("Error - did not find any files to parse, please make sure the filename extension is set in the project properties file " + proj.getPropertyFilename());
 			return new String[0];
 		} else {
 			for (int i = 0; i < files.length; i++) {
-				files[i] = proj.getDir(Project.SOURCE_DIRECTORY) + files[i];
+				files[i] = proj.getDir(proj.SOURCE_DIRECTORY) + files[i];
 			}
 		}
 		return parseCytoToGenvisis(proj, files, log);
@@ -72,13 +72,13 @@ public class CytoAgilentParse {
 		boolean createdMarkerPostions = false;
 		String[] parsedFiles = new String[filesToParse.length];
 		for (int i = 0; i < filesToParse.length; i++) {
-			String genOutput = proj.getDir(Project.SOURCE_DIRECTORY, true) + ext.rootOf(filesToParse[i]) + GENVISIS_EXT;
+			String genOutput = proj.getDir(proj.SOURCE_DIRECTORY, true) + ext.rootOf(filesToParse[i]) + GENVISIS_EXT;
 			parsedFiles[i] = genOutput;
 			// TODO change to not , currently this overwrites existing files?
 			// if (!Files.exists(genOutput)) {
 			if (parseCytoToGenvisis(proj, filesToParse[i], genOutput, SCALE_FACTOR, log)) {
-				if ((!Files.exists(proj.getFilename(Project.MARKERSET_FILENAME, null, false, false)) && !Files.exists(proj.getFilename(Project.MARKER_POSITION_FILENAME, null, false, false))) || !createdMarkerPostions) {
-					generateMarkerPositions(filesToParse[i], proj.getFilename(Project.MARKER_POSITION_FILENAME), log);
+				if ((!Files.exists(proj.getFilename(proj.MARKERSET_FILENAME, null, false, false)) && !Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, null, false, false))) || !createdMarkerPostions) {
+					generateMarkerPositions(filesToParse[i], proj.getFilename(proj.MARKER_POSITION_FILENAME), log);
 					createdMarkerPostions = true;
 				}
 			} else {
@@ -89,10 +89,11 @@ public class CytoAgilentParse {
 			// }
 		}
 
-		proj.setProperty(Project.SOURCE_FILENAME_EXTENSION, GENVISIS_EXT);
-		proj.setProperty(Project.ID_HEADER, ParseIllumina.FILENAME_AS_ID_OPTION);
-		proj.setProperty(Project.PARSE_AT_AT_SYMBOL, "FALSE");
-		proj.setProperty(Project.SOURCE_FILE_DELIMITER, "TAB");
+		proj.setProperty(proj.SOURCE_FILENAME_EXTENSION, GENVISIS_EXT);
+		proj.setProperty(proj.ID_HEADER, ParseIllumina.FILENAME_AS_ID_OPTION);
+//		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, "FALSE");
+		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, Boolean.FALSE);
+		proj.setProperty(proj.SOURCE_FILE_DELIMITER, "TAB");
 		proj.saveProperties();
 		return parsedFiles;
 	}

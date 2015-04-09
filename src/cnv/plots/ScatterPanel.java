@@ -160,7 +160,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		disabledClassValues = sp.getDisabledClassValues();
 		
-		shiftColorOfSexChromosomes = sp.getProject().getBoolean(Project.SHIFT_SEX_CHR_COLORS_YESNO);
+		shiftColorOfSexChromosomes = sp.getProject().getBoolean(sp.getProject().SHIFT_SEX_CHR_COLORS_YESNO);
 
 		if (!sp.markerDataIsActive()) {
 			return;
@@ -176,11 +176,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		markerIndex = sp.getMarkerIndex();
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
-		datapoints = markerData.getDatapoints(plotType, null, sp.getProject().getSamplesToInclude(null, false), false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), Integer.parseInt(sp.getProject().getProperty(Project.NUM_THREADS)), sp.getCorrectionBox().isSelected(), sp.getProject().getLog());
+//		datapoints = markerData.getDatapoints(plotType, null, sp.getProject().getSamplesToInclude(null, false), false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), Integer.parseInt(sp.getProject().getProperty(Project.NUM_THREADS)), sp.getCorrectionBox().isSelected(), sp.getProject().getLog());
+		datapoints = markerData.getDatapoints(plotType, null, sp.getProject().getSamplesToInclude(null, false), false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), sp.getProject().getProperty(sp.getProject().NUM_THREADS), sp.getCorrectionBox().isSelected(), sp.getProject().getLog());
 		// alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());
-		newGenotypingFilename = sp.getProject().getDir(Project.DATA_DIRECTORY) + sp.getMarkerName() + "_newGenotyping.xln";
+		newGenotypingFilename = sp.getProject().getDir(sp.getProject().DATA_DIRECTORY) + sp.getMarkerName() + "_newGenotyping.xln";
 		if(new File(newGenotypingFilename).exists()) {
 			isNewGenotypingDifferent = loadNewGenotyping(newGenotypingFilename);
 		}
@@ -545,7 +546,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		ClusterFilter currentClusterFilter;
 
 		if (event.getButton() == MouseEvent.BUTTON1) {
-			window = Integer.parseInt(sp.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
+//			window = Integer.parseInt(sp.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
+			window = sp.getProject().getProperty(sp.getProject().WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER);
 			mData = sp.getCurrentMarkerData();
 			markerPosition = "chr"+mData.getChr()+":"+(mData.getPosition()-window)+"-"+(mData.getPosition()+window);
 			if (indicesOfNearbySamples!=null && indicesOfNearbySamples.size()>0) {

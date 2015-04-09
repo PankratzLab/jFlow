@@ -113,7 +113,7 @@ public class PrincipalComponentsValidate {
 		for (int i = 0; i < uniqBatches.length; i++) {
 			batches[i][0] = uniqBatches[i] + "";
 		}
-		String command = JAVA + CP + XMX + VAL_PIPE + "proj=" + proj.getFilename(Project.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir + BATCH + "[%0]/" + "  numThreads=" + numThreads;
+		String command = JAVA + CP + XMX + VAL_PIPE + "proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir + BATCH + "[%0]/" + "  numThreads=" + numThreads;
 		command += " startAtComponent=" + startAtComponent + " stopAtComponent=" + stopAtComponent + " numPcIterations=" + numPcSamplings + " pcType=" + pcType;
 		command += " kfolds=" + kfolds + " mtMarkers=" + mtMarkers + " output=regress[%0]";
 		Files.qsub("Regression", command, batches, MEMORY_MB, WALLTIME, numThreads);
@@ -524,7 +524,7 @@ public class PrincipalComponentsValidate {
 			String batchFile = curDir + batchName;
 			Files.writeList(batches[i], batchFile);
 		}
-		String command = JAVA + CP + XMX + MT_PIPE + "proj=" + proj.getFilename(Project.PROJECT_PROPERTIES_FILENAME) + " PCmarkers=" + pcMarkers + " numComponents=[%1]  medianMarkers=" + proj.getProjectDir() + mtMarkers + " useFile=" + curDir + BATCH + "_[%0] output=" + dir + BATCH + "_[%0]";
+		String command = JAVA + CP + XMX + MT_PIPE + "proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " PCmarkers=" + pcMarkers + " numComponents=[%1]  medianMarkers=" + proj.getProjectDir() + mtMarkers + " useFile=" + curDir + BATCH + "_[%0] output=" + dir + BATCH + "_[%0]";
 		Files.qsub("PCA", command, getIters(batches, log));
 	}
 

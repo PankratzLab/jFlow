@@ -533,7 +533,7 @@ public class AffyPowerTools {
 					System.err.println("Error - must hava a valid project file to merge affy Results");
 				} else {
 					Project proj = new Project(filename, false);
-					mergeFiles(pbsDir, affyResultsDir, proj.getProperty(Project.SOURCE_DIRECTORY), numJobs, totalMemory, walltimeRequestedInHours, javaLocation, javaCP, log);
+					mergeFiles(pbsDir, affyResultsDir, proj.getProperty(proj.SOURCE_DIRECTORY), numJobs, totalMemory, walltimeRequestedInHours, javaLocation, javaCP, log);
 				}
 			} else {
 				affyQC(pbsDir, dataDir, aptExeDir, affyLib, affyResultsDir, numJobs, totalMemory, walltimeRequestedInHours, log);

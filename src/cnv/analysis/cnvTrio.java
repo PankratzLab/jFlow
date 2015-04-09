@@ -269,9 +269,9 @@ public class cnvTrio extends CNVariant {
 		CNVariant[] cnVariants;
 		Hashtable<String, Integer> rawRegionFrequency = new Hashtable<String, Integer>();
 		if (cnvFile == null) {
-			DeNovoCNV.parsePennCnvResult(proj, proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY), proj.getDir(Project.DATA_DIRECTORY) + trioFile, TRIOS[fileType]);
-			rawRegionFrequency = determinRegionFrequencies(CNVariant.loadPlinkFile(proj.getDir(Project.DATA_DIRECTORY) + COMBINED_TRIOS[fileType], false), proj.getLog());
-			cnVariants = CNVariant.loadPlinkFile(proj.getDir(Project.DATA_DIRECTORY) + COMBINED_TRIOS[fileType], false);
+			DeNovoCNV.parsePennCnvResult(proj, proj.getDir(proj.PENNCNV_RESULTS_DIRECTORY), proj.getDir(proj.DATA_DIRECTORY) + trioFile, TRIOS[fileType]);
+			rawRegionFrequency = determinRegionFrequencies(CNVariant.loadPlinkFile(proj.getDir(proj.DATA_DIRECTORY) + COMBINED_TRIOS[fileType], false), proj.getLog());
+			cnVariants = CNVariant.loadPlinkFile(proj.getDir(proj.DATA_DIRECTORY) + COMBINED_TRIOS[fileType], false);
 		} else {
 			cnVariants = CNVariant.loadPlinkFile(proj.getProjectDir() + cnvFile, false);
 			// rawRegionFrequency = determinRegionFrequencies(cnVariants, proj.getLog());
@@ -675,7 +675,7 @@ public class cnvTrio extends CNVariant {
 			Logger log = proj.getLog();
 
 			try {
-				BufferedReader reader = Files.getReader(proj.getDir(Project.DATA_DIRECTORY) + trioFile, false, true, false);
+				BufferedReader reader = Files.getReader(proj.getDir(proj.DATA_DIRECTORY) + trioFile, false, true, false);
 				String[] line = reader.readLine().trim().split(SPLITS[0]);
 				int[] indices = ext.indexFactors(PED_TRIO_HEADER, line, true, true);
 				while (reader.ready()) {
@@ -690,7 +690,7 @@ public class cnvTrio extends CNVariant {
 				log.reportError("Error reading file \"" + proj.getProjectDir() + trioFile + "\"");
 			}
 			if (trioIndex == 0) {
-				log.reportError("Error - did not find any trios in " + proj.getDir(Project.DATA_DIRECTORY) + trioFile);
+				log.reportError("Error - did not find any trios in " + proj.getDir(proj.DATA_DIRECTORY) + trioFile);
 			}
 			log.report(ext.getTime() + " Info - found " + (trioIndex > 1 ? trioIndex + " trios" : trioIndex + " trio"));
 			return alTrio.toArray(new TrioQC[alTrio.size()]);
@@ -750,8 +750,11 @@ public class cnvTrio extends CNVariant {
 		try {
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.getProjectDir() + ouput + COMBINED_TRIOS[2]));
 			PrintWriter writerCNV = new PrintWriter(new FileWriter(proj.getProjectDir() + ouput + COMBINED_TRIOS[2] + COMBINED_TRIOS[3]));
-			PrintWriter writerList = new PrintWriter(new FileWriter(proj.getFilename(Project.INDIVIDUAL_CNV_LIST_FILENAMES)));
-			PrintWriter writerRegion = new PrintWriter(new FileWriter(proj.getFilename(Project.REGION_LIST_FILENAMES)));
+			// TODO potential bug? gets first CNV filename and writes to file
+//			PrintWriter writerList = new PrintWriter(new FileWriter(proj.getFilename(proj.INDIVIDUAL_CNV_LIST_FILENAMES)));
+			PrintWriter writerList = new PrintWriter(new FileWriter(proj.getFilenames(proj.INDIVIDUAL_CNV_LIST_FILENAMES)[0]));
+//			PrintWriter writerRegion = new PrintWriter(new FileWriter(proj.getFilename(proj.REGION_LIST_FILENAMES)));
+			PrintWriter writerRegion = new PrintWriter(new FileWriter(proj.getFilenames(proj.REGION_LIST_FILENAMES)[0]));
 			writerSummary.println(Array.toStr(PLINK_CNV_HEADER) + "\t" + Array.toStr(FILTERED_OUTPUT_HEADER));
 			writerCNV.println(Array.toStr(PLINK_CNV_HEADER));
 			Hashtable<String, String> track = new Hashtable<String, String>();
@@ -1144,8 +1147,8 @@ public class cnvTrio extends CNVariant {
 // private static void writeRegionList(Project proj, String cnvFile) {
 // CNVariant[] cnvs = CNVariant.toCNVariantArray(CNVariant.loadPlinkFile(cnvFile, null, false));
 // proj.getLog().report("Info - updating regions and list using " + cnvs.length + " cnvs");
-// String list = proj.getFilename(Project.INDIVIDUAL_CNV_LIST_FILENAMES).replaceAll(";", "");
-// String regionList = proj.getFilename(Project.REGION_LIST_FILENAMES).replaceAll(";", "");
+// String list = proj.getFilename(proj.INDIVIDUAL_CNV_LIST_FILENAMES).replaceAll(";", "");
+// String regionList = proj.getFilename(proj.REGION_LIST_FILENAMES).replaceAll(";", "");
 // ArrayList<String> lists = new ArrayList<String>();
 // ArrayList<String> bed = new ArrayList<String>();
 // ArrayList<String> regions = new ArrayList<String>();

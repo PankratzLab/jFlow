@@ -27,9 +27,9 @@ public class PennCNV {
 		
 		log = proj.getLog();
 		projDir = proj.getProjectDir();
-		execDir = proj.getDir(Project.PENNCNV_EXECUTABLE_DIRECTORY);
-		pennDir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY);
-		dataDir = pennDir + proj.getProperty(Project.PENNCNV_DATA_DIRECTORY) + dataSubDir;
+		execDir = proj.getDir(proj.PENNCNV_EXECUTABLE_DIRECTORY);
+		pennDir = proj.getDir(proj.PENNCNV_RESULTS_DIRECTORY);
+		dataDir = pennDir + proj.getProperty(proj.PENNCNV_DATA_DIRECTORY) + dataSubDir;
 		resultsDir = pennDir + resultsSubDir;
 		
 		if (pfbFile != null) {
@@ -111,9 +111,9 @@ public class PennCNV {
 		
 		log = proj.getLog();
 		projDir = proj.getProjectDir();
-		execDir = proj.getDir(Project.PENNCNV_EXECUTABLE_DIRECTORY);
-		pennDir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY);
-		dataDir = pennDir + proj.getProperty(Project.PENNCNV_DATA_DIRECTORY) + dataSubDir;
+		execDir = proj.getDir(proj.PENNCNV_EXECUTABLE_DIRECTORY);
+		pennDir = proj.getDir(proj.PENNCNV_RESULTS_DIRECTORY);
+		dataDir = pennDir + proj.getProperty(proj.PENNCNV_DATA_DIRECTORY) + dataSubDir;
 		resultsDir = pennDir + resultsSubDir;
 		
 		if (!Files.exists(proj.getFilename("SAMPLE_DATA_FILENAME", false, false), proj.getJarStatus())) {
@@ -306,7 +306,7 @@ public class PennCNV {
 	}
 
 	private static String writeSexFile(Project proj, SampleData sampleData, String resultsDir, Logger log) {
-		String sampleDataFile = proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false);
+		String sampleDataFile = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
 		String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 		int sexInd = -1;
 		for (int i = 0; i < header.length; i++) {
@@ -353,7 +353,7 @@ public class PennCNV {
 		log.report("Parsing PennCNV warning...");
 		
 		sampleData = proj.getSampleData(2, false);
-		lrrSD_cutoff = proj.getDouble(Project.LRRSD_CUTOFF);
+		lrrSD_cutoff = proj.getDouble(proj.LRRSD_CUTOFF);
 				
 		try {
 			reader = new BufferedReader(new FileReader(filename));
@@ -596,7 +596,7 @@ public class PennCNV {
 					ids = sampleData.lookup(trav);
 					if (ids == null) {
 						if (!hash.containsKey(trav)) {
-							log.reportError("Error - '"+trav+"' was not found in "+proj.getFilename(Project.SAMPLE_DATA_FILENAME));
+							log.reportError("Error - '"+trav+"' was not found in "+proj.getFilename(proj.SAMPLE_DATA_FILENAME));
 							hash.put(trav, "");
 						}
 						famIndPair = trav+"\t"+trav;
@@ -694,7 +694,7 @@ public class PennCNV {
 		Logger log;
 
 		log = proj.getLog();
-		filename = proj.getFilename(Project.SAMPLE_SUBSET_FILENAME, true, false);
+		filename = proj.getFilename(proj.SAMPLE_SUBSET_FILENAME, true, false);
 
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")||!Files.exists(filename, proj.getJarStatus())) {
 			sampleList = proj.getSampleList().getSamples();
@@ -958,7 +958,7 @@ public class PennCNV {
 		}
 		if ((auto && chrx) || (auto && createCombined) || (chrx && createCombined) ) {
 			// write combine script
-			String resultsDir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY);
+			String resultsDir = proj.getDir(proj.PENNCNV_RESULTS_DIRECTORY);
 			String outdir = resultsDir + "penn_scripts/";
 			String outfile = "combineAutoXCNVs";
 			Files.writeList(new String[] {
@@ -979,7 +979,7 @@ public class PennCNV {
 			batch(proj, batch, qsub, files[0], files[2], scriptDir + "male/", "sexSpecific/male/", "sexSpecific/male/");
 			batch(proj, batch, qsub, files[1], files[2], scriptDir + "female/", "sexSpecific/female/", "sexSpecific/female/");
 			// write combine script
-			String resultsDir = proj.getDir(Project.PENNCNV_RESULTS_DIRECTORY);
+			String resultsDir = proj.getDir(proj.PENNCNV_RESULTS_DIRECTORY);
 			String outdir = resultsDir + "penn_scripts/";
 			String outfile = "combineMFCNVs";
 			Files.writeList(new String[] {

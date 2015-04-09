@@ -12,10 +12,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.EventObject;
-import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -23,6 +20,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -43,6 +41,12 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import cnv.LaunchProperties;
+import cnv.filesys.Project.DoubleProperty;
+import cnv.filesys.Project.FileProperty;
+import cnv.filesys.Project.IntegerProperty;
+import cnv.filesys.Project.MultiFileProperty;
+import cnv.filesys.Project.Property;
 import common.Grafik;
 import common.ext;
 
@@ -54,7 +58,7 @@ public class Configurator extends JFrame {
 	private JTable table;
 
 	private Project proj;
-
+	
 	/**
 	 * Launch the application.
 	 */
@@ -62,8 +66,7 @@ public class Configurator extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					boolean configure = JOptionPane.showConfirmDialog(null, "Convert property names?", "Apply conversion?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-					Configurator frame = new Configurator(new Project(), configure);
+					Configurator frame = new Configurator(new Project());
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -75,7 +78,7 @@ public class Configurator extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Configurator(Project project, boolean convertProjects) {
+	public Configurator(Project project) {
 		setTitle("Genvisis - " + project.getNameOfProject() + " - Project Configuration");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 700, 800);
@@ -144,7 +147,7 @@ public class Configurator extends JFrame {
 		fileRenderer.setBackground(Color.WHITE);
 		fileRenderer.add(fileLabel, BorderLayout.CENTER);
 		fileRenderer.add(fileBtn, BorderLayout.EAST);		
-		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(fileBtn, false);
+		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(fileBtn, false, proj.getProperty(proj.PROJECT_DIRECTORY));
 		final DefaultCellEditor stringEditor = new DefaultCellEditor(new JTextField()) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -158,18 +161,50 @@ public class Configurator extends JFrame {
 
 			@Override
 			public Component getTableCellRendererComponent(final JTable table, Object value, boolean isSelected, boolean hasFocus, final int row, final int column) {
+				String projDir = proj.getProperty(proj.PROJECT_DIRECTORY);
 				if (value instanceof Boolean) {
 					rendererChkBx.setSelected(((Boolean) value).booleanValue());
 					return rendererChkBx;
 				} else if (value instanceof File) {
-					fileLabel.setText("./"  +((File) value).getName());
+					String txt = ((File) value).getPath();
+					if (((File) value).isDirectory()) {
+						txt = ext.verifyDirFormat(txt);
+					} else {
+						txt = ext.replaceAllWith(txt, "\\", "/");
+					}
+					if (!txt.startsWith("./") && txt.indexOf(":") == -1) {
+						txt = "./" + txt;
+					}
+					if (txt.startsWith(projDir)) {
+						txt = txt.substring(projDir.length());
+					}
+					fileLabel.setText(txt);
 					return fileRenderer;
 				} else if (value instanceof File[]) {
 					StringBuilder sb = new StringBuilder();
 					if (((File[])value).length > 0) {
-						sb.append(((File[])value)[0].getAbsolutePath());
+						String txt = ((File[])value)[0].getPath();
+						if (((File[]) value)[0].isDirectory()) {
+							txt = ext.verifyDirFormat(txt);
+						} else {
+							txt = ext.replaceAllWith(txt, "\\", "/");
+						}
+						if (txt.startsWith(projDir)) {
+							txt = txt.substring(projDir.length());
+						}
+						
+						sb.append(txt);
 						for (int i = 1; i < ((File[])value).length; i++) {
-							sb.append(";").append(((File[])value)[i].getName());
+							txt = ((File[])value)[i].getPath();
+							if (((File[]) value)[i].isDirectory()) {
+								txt = ext.verifyDirFormat(txt);
+							} else {
+								txt = ext.replaceAllWith(txt, "\\", "/");
+							}
+							if (txt.startsWith(projDir)) {
+								txt = txt.substring(projDir.length());
+							}
+							sb.append(";").append(txt);
 						}
 					}
 					fileLabel.setText(sb.toString());
@@ -177,7 +212,7 @@ public class Configurator extends JFrame {
 				} else if (value instanceof Number) {
 					String propKey = (String) table.getModel().getValueAt(row, 0);
 					Object propVal = table.getModel().getValueAt(row, 1);
-					setByPropertyKey(rendererSpinner, propKey, propVal);
+					setByPropertyKey(rendererSpinner, proj, propKey, propVal);
 					return rendererSpinner;
 				}
 				Component superComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column); 
@@ -213,7 +248,7 @@ public class Configurator extends JFrame {
 				} else if (propVal instanceof Boolean) {
 					 return boolEditor;
 				} else if (propVal instanceof Number) {
-					setByPropertyKey(numberEditor.spinner, propKey, propVal);
+					setByPropertyKey(numberEditor.spinner, proj, propKey, propVal);
 					return numberEditor;
 				} else if (propVal instanceof String) {
 					return stringEditor;
@@ -245,21 +280,9 @@ public class Configurator extends JFrame {
 			public boolean isCellEditable(int row, int column) { return column != 0 && super.isCellEditable(row, column); }
 		};
 		
-		ArrayList<Object> propKeys = new ArrayList<Object>();
-		Enumeration<?> enumer = proj.propertyNames();
-		while(enumer.hasMoreElements()) {
-			Object key = enumer.nextElement();
-			propKeys.add(key);
-		}
-		for (int keyIndex = propKeys.size() - 1; keyIndex >= 0; keyIndex--) {
-			Object origKey = propKeys.get(keyIndex);
-			String key = origKey.toString();
-			if (convertProjects && CONVERSION_MAP.containsKey(key)) {
-				proj.put(CONVERSION_MAP.get(key), proj.remove(origKey));
-				key = CONVERSION_MAP.get(key);
-			}
-			
-			Object[] values = parseProperty(key);
+		String[] keys = proj.getPropertyKeys();
+		for (String key : keys) {
+			Object[] values = parseProperty(proj, key);
 			model.addRow(values);
 		}
 		
@@ -270,6 +293,9 @@ public class Configurator extends JFrame {
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(24);
 		table.setRowMargin(2);
+		table.setShowVerticalLines(false);
+		table.setShowHorizontalLines(false);
+		
 		
 		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actMap = table.getActionMap();
@@ -295,18 +321,45 @@ public class Configurator extends JFrame {
 	
 	
 	private void save() {
+		String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
+		String currProjDir = proj.getProperty(proj.PROJECT_DIRECTORY);
 		int rowCount = table.getRowCount();
 		for (int i = 0; i < rowCount; i++) {
 			String key = (String) table.getValueAt(i, 0);
 			Object rawValue = table.getValueAt(i, 1);
+			System.out.println(rawValue.getClass().getName());
 			String value = "";
 			if (rawValue instanceof File[]) {
 				File[] set = (File[]) rawValue;
 				if (set.length > 0) {
-					value = set[0].toString();
-					for (int k = 1; k < set.length; k++) {
-						value = ";" + set[k];
+					value = set[0].getPath();
+					if (value.startsWith(projectsDir)) {
+						value = value.substring(projectsDir.length());
+					} else if (value.startsWith(currProjDir)) {
+						value = "./" + value.substring(currProjDir.length());
 					}
+					for (int k = 1; k < set.length; k++) {
+						String fNm = set[k].getPath();
+						if (fNm.startsWith(projectsDir)) {
+							fNm = fNm.substring(projectsDir.length());
+						} else if (fNm.startsWith(currProjDir)) {
+							fNm = "./" + fNm.substring(currProjDir.length());
+						}
+						value += ";" + fNm;
+					}
+				}
+			} else if (rawValue instanceof File) { 
+				File set = (File) rawValue;
+				value = set.getPath();
+				if (value.startsWith(projectsDir)) {
+					value = value.substring(projectsDir.length());
+				} else if (value.startsWith(currProjDir)) {
+					value = "./" + value.substring(currProjDir.length());
+				}
+			} else if (rawValue instanceof String[]) {
+				value = ((String[])rawValue)[0];
+				for (int k = 1; k < ((String[])rawValue).length; k++) {
+					value += ";" + ((String[])rawValue)[k];
 				}
 			} else {
 				value = rawValue.toString();
@@ -316,218 +369,46 @@ public class Configurator extends JFrame {
 		proj.saveProperties();
 	}
 
-	private void setByPropertyKey(JSpinner spinner, String propKey, Object propVal) {
-		String[] parts = propKey.split("_");
-		String minBnd = parts[parts.length - 3];
-		String maxBnd = parts[parts.length - 2];
-		String type = parts[parts.length - 1];
+	private void setByPropertyKey(JSpinner spinner, Project proj, String propKey, Object propVal) {
+		Property<?> prop = proj.getProperty(propKey);
 		
-		if ("D".equals(type.toUpperCase())) {
+		if (prop instanceof DoubleProperty) {
 			double value = "".equals(propVal) ? 0.0 : Double.valueOf(propVal.toString()).doubleValue();
-			double minMult = 1.0;
-			if (minBnd.toLowerCase().startsWith("n")) {
-				minMult = -1.0;
-				minBnd = minBnd.substring(1);
-			}
-			String[] befAf = minBnd.split("d");
-			double minimum = minMult * Double.valueOf(befAf[0] + (befAf.length > 1 ? "." + befAf[1] : "")).doubleValue();
-			double maxMult = 1.0;
-			if (maxBnd.toLowerCase().startsWith("n")) {
-				maxMult = -1.0;
-				maxBnd = maxBnd.substring(1);
-			}
-			befAf = maxBnd.split("d");
-			double maximum = maxMult * Double.valueOf(befAf[0] + (befAf.length > 1 ? "." + befAf[1] : "")).doubleValue();
+			double min = ((DoubleProperty) prop).min;
+			double max = ((DoubleProperty) prop).max;
 			double stepSize = 1.0;
 			for (int i = 0; i < ext.getNumSigFig(value); i++) {
 				stepSize /= 10.0;
 			}
-			spinner.setModel(new SpinnerNumberModel(value, minimum, maximum, stepSize));
-		} else if ("I".equals(type.toUpperCase())) {
+			spinner.setModel(new SpinnerNumberModel(value, min, max, stepSize));
+		} else if (prop instanceof IntegerProperty) {
 			int value = "".equals(propVal) ? 0 : Integer.valueOf(propVal.toString()).intValue();
-			int minMult = 1;
-			if (minBnd.toLowerCase().startsWith("n")) {
-				minMult = -1;
-				minBnd = minBnd.substring(1);
-			}
-			int minimum = minMult * Integer.valueOf(minBnd).intValue();
-			int maxMult = 1;
-			if (maxBnd.toLowerCase().startsWith("n")) {
-				maxMult = -1;
-				maxBnd = maxBnd.substring(1);
-			}
-			int maximum = maxMult * Integer.valueOf(maxBnd).intValue();
+			int min = ((IntegerProperty) prop).min;
+			int max = ((IntegerProperty) prop).max;
 			int stepSize = 1;
-			spinner.setModel(new SpinnerNumberModel(value, minimum, maximum, stepSize));
+			spinner.setModel(new SpinnerNumberModel(value, min, max, stepSize));
 		}
+		
 	}
 	
-	private Object[] parseProperty(String prop) {
+	private Object[] parseProperty(Project proj, String propKey) {
 		Object[] keyVal = new Object[2];
-		keyVal[0] = prop;
-		
-		String[] parts = prop.split("_");
-		String sig = parts[parts.length - 1];
-		
-		int index = -1;
-		for (int i = 0; i < SIGNIFIERS.length; i++) {
-			if (SIGNIFIERS[i].equals(sig)) {
-				index = i;
-				break;
+		keyVal[0] = propKey;
+		Property<?> prop = proj.getProperty(propKey);
+		keyVal[1] = prop.getValue();
+		if (prop instanceof FileProperty) {
+			keyVal[1] = new File(((FileProperty)prop).getValue());
+		} else if (prop instanceof MultiFileProperty) {
+			File[] fs = new File[((MultiFileProperty)prop).getValue().length];
+			for (int i = 0; i < fs.length; i++) {
+				fs[i] = new File(((MultiFileProperty)prop).getValue()[i]);
 			}
-		}
-		
-		switch(index) {
-			case 0: // DIRECTORY
-				keyVal[1] = new File(proj.getDir(prop, false, false));
-				break;
-			case 1: // FILENAME
-				keyVal[1] = new File(proj.getFilename(prop, false, false));
-				break;
-			case 2: // FILENAMEs
-				String[] files = proj.getFilenames(prop, true); 
-				keyVal[1] = new File[files.length];
-				for (int i = 0; i < files.length; i++) {
-					((File[])keyVal[1])[i] = new File(files[i]);
-				}
-				break;
-			case 3: // LIST
-				keyVal[1] = proj.getProperty(prop);
-				break;
-			case 4: // YESNO
-				keyVal[1] = proj.getBoolean(prop);
-				break;
-			case 5: // I
-				keyVal[1] = proj.getInt(prop);
-				break;
-			case 6: // D
-				keyVal[1] = proj.getDouble(prop);
-				break;
-			default: // No preset, default to text field
-				keyVal[1] = proj.getProperty(prop);
-				break;
+			keyVal[1] = fs;
 		}
 		
 		return keyVal;	
 	}
 	
-	
-	public static final String[] SIGNIFIERS = new String[] {
-		"DIRECTORY",
-		"FILENAME",
-		"FILENAMES",
-		"LIST",
-		"YESNO",
-		"I",
-		"D"
-	};
-	
-	HashMap<String, String> CONVERSION_MAP = new HashMap<String, String>() {
-		private static final long serialVersionUID = 1L;
-		{
-			put("DISPLAY_QUANTILES", "DISPLAY_QUANTILES_YESNO");
-			put("DISPLAY_ROTATED_QQ", "DISPLAY_ROTATED_QQ_YESNO");
-			put("DISPLAY_STANDARD_QQ", "DISPLAY_STANDARD_QQ_YESNO");
-			put("FID_ALIAS", "FID_ALIAS_LIST");
-			put("GC_THRESHOLD", "GC_THRESHOLD_0d0_1d0_D");
-			put("IID_ALIAS", "IID_ALIAS_LIST");
-			put("INTENSITY_PC_NUM_COMPONENTS", "INTENSITY_PC_NUM_COMPONENTS_0_10000_I");
-			put("JAR_STATUS", "JAR_STATUS_YESNO");
-			put("LOG_LEVEL", "LOG_LEVEL_n1_12_I");
-			put("LONG_FORMAT", "LONG_FORMAT_YESNO");
-			put("LRRSD_CUTOFF", "LRRSD_CUTOFF_0d0_1d0_D");
-			put("MAX_MARKERS_LOADED_PER_CYCLE", "MAX_MARKERS_LOADED_PER_CYCLE_1_10000_I");
-			put("MAX_MEMORY_USED_TO_LOAD_MARKER_DATA", "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA_8_65536_I");
-			put("NUM_THREADS", "NUM_THREADS_1_99_I");
-			put("PARSE_AT_AT_SYMBOL", "PARSE_AT_AT_SYMBOL_YESNO");
-			put("QQ_MAX_NEG_LOG10_PVALUE", "QQ_MAX_NEG_LOG10_PVALUE_1_10000_I");
-			put("SAMPLE_ALIAS", "SAMPLE_ALIAS_LIST");
-			put("TWOD_LOADED_VARIABLES", "TWOD_LOADED_VARIABLES_LIST");
-			put("WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER_100_1000000_I");
-		}	
-	};
-	
-	String[] properties  = new String[]{
-			"AB_LOOKUP_FILENAME",
-			"ANNOTATION_FILENAME",
-			"BACKUP_DIRECTORY",
-			"CHIMERA_CENTROIDS_FILENAME",
-			"CLUSTER_FILTER_COLLECTION_FILENAME",
-			"CNV_FILENAMES",
-			"COMMON_CNP_FILENAME",
-			"CUSTOM_CENTROIDS_FILENAME",
-			"CUSTOM_COLOR_SCHEME_FILENAME",
-			"DATA_DIRECTORY",
-			"DEMO_DIRECTORY",
-			"DISPLAY_MARKERS_FILENAME",
-			"DISPLAY_QUANTILES_YESNO",
-			"DISPLAY_ROTATED_QQ_YESNO",
-			"DISPLAY_STANDARD_QQ_YESNO",
-			"FID_ALIAS_LIST",
-			"FILTERED_MARKERS_FILENAME",
-			"FOREST_PLOT_FILENAMES",
-			"GC_MODEL_FILENAME",
-			"GC_THRESHOLD_0d0_1d0_D",
-			"GENETRACK_FILENAME",
-			"GENOTYPE_CENTROIDS_FILENAME",
-			"ID_HEADER",
-			"IID_ALIAS_LIST",
-			"INDIVIDUAL_CNV_LIST_FILENAMES",
-			"INTENSITY_PC_FILENAME",
-			"INTENSITY_PC_NUM_COMPONENTS_0_10000_I",
-			"JAR_STATUS_YESNO",
-			"LOG_LEVEL_n1_12_I",
-			"LONG_FORMAT_YESNO",
-			"LRRSD_CUTOFF_0d0_1d0_D",
-			"MARKER_COMBINED_CRITERIA_FILENAME",
-			"MARKER_DATA_DIRECTORY",
-			"MARKER_EXCLUSION_CRITERIA_FILENAME",
-			"MARKER_METRICS_FILENAME",
-			"MARKER_POSITION_FILENAME",
-			"MARKER_REVIEW_CRITERIA_FILENAME",
-			"MARKERLOOKUP_FILENAME",
-			"MARKERSET_FILENAME",
-			"MAX_MARKERS_LOADED_PER_CYCLE_1_10000_I",
-			"MAX_MEMORY_USED_TO_LOAD_MARKER_DATA_8_65536_I",
-			"MOSAIC_ARMS_FILENAME",
-			"MOSAIC_COLOR_CODES_FILENAME",
-			"MOSAIC_RESULTS_FILENAME",
-			"NUM_THREADS_1_99_I",
-			"ORIGINAL_CENTROIDS_FILENAME",
-			"PARSE_AT_AT_SYMBOL_YESNO",
-			"PEDIGREE_FILENAME",
-			"PENNCNV_DATA_DIRECTORY",
-			"PENNCNV_EXECUTABLE_DIRECTORY",
-			"PENNCNV_GZIP_YESNO",
-			"PENNCNV_RESULTS_DIRECTORY",
-//			"PROJECT_DIRECTORY",
-//			"PROJECT_NAME",
-//			"PROJECT_PROPERTIES_FILENAME",
-			"QQ_FILENAMES",
-			"QQ_MAX_NEG_LOG10_PVALUE_1_10000_I",
-			"REGION_LIST_FILENAMES",
-			"REPORTED_CNP_FILENAME",
-			"RESULTS_DIRECTORY",
-			"SAMPLE_ALIAS_LIST",
-			"SAMPLE_DATA_FILENAME",
-			"SAMPLE_DIRECTORY",
-			"SAMPLE_QC_FILENAME",
-			"SAMPLE_SUBSET_FILENAME",
-			"SAMPLELIST_FILENAME",
-			"SEX_CENTROIDS_FILENAMES",
-			"SEXCHECK_RESULTS_FILENAME",
-			"SHIFT_SEX_CHR_COLORS_YESNO",
-			"SOURCE_DIRECTORY",
-			"SOURCE_FILE_DELIMITER",
-			"SOURCE_FILENAME_EXTENSION",
-			"STRATIFICATION_RESULTS_FILENAMES",
-			"TARGET_MARKERS_FILENAME",
-			"TWOD_LOADED_FILENAMES",
-			"TWOD_LOADED_VARIABLES_LIST",
-			"UNREPORTED_CNP_FILENAME",
-			"WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER_100_1000000_I",
-		};
-		
 	class FileChooserCellEditor extends DefaultCellEditor implements TableCellEditor {
 		// from http://stackoverflow.com/questions/15644319/jfilechooser-within-a-jtable
 		private static final long serialVersionUID = 1L;
@@ -536,7 +417,7 @@ public class Configurator extends JFrame {
 	    /** meta panel */
 	    private JPanel panel;
 	    /** static display */
-	    private JLabel label;	
+	    private JTextField label;	
 	    /** Editor component */
 	    private JButton button;
 	    /** File chooser */
@@ -546,11 +427,13 @@ public class Configurator extends JFrame {
 	    private JTextField textField;
 	    volatile boolean keyed = false;
 	    volatile int keyedCount = 0;
+	    String defaultLocation;
 	    /**
 	     * Constructor.
 	     */
-	    public FileChooserCellEditor(final JButton button, boolean editable) {
+	    public FileChooserCellEditor(final JButton button, boolean editable, String defaultLocation) {
 	        super(new JTextField());
+	        this.defaultLocation = defaultLocation;
 	        textField = (JTextField) this.editorComponent;
 	        textField.setEditable(editable);
 	        setClickCountToStart(CLICK_COUNT_TO_START);
@@ -560,7 +443,7 @@ public class Configurator extends JFrame {
 	        panel.setBackground(Color.WHITE);
 	        
 	        // Using a JButton as the editor component
-	        label = new JLabel();
+	        label = new JTextField();
 	        label.setBackground(Color.WHITE);
 	        
 	        this.button = button;
@@ -574,7 +457,7 @@ public class Configurator extends JFrame {
 
 	        panel.setBackground(Color.WHITE);
 	        // Dialog which will do the actual editing
-	        fileChooser = new JFileChooser();
+	        fileChooser = new JFileChooser(defaultLocation);
 	    }
 
 	    @Override
@@ -596,7 +479,11 @@ public class Configurator extends JFrame {
 	    	StringBuilder labelText = new StringBuilder();
 	    	ActionListener listener = null;
     		if (value instanceof File) {
-    			labelText.append(((File) value).getAbsolutePath());
+    			if (((File) value).isDirectory()) {
+    				labelText.append(ext.verifyDirFormat(((File) value).getPath()));
+    			} else {
+    				labelText.append(ext.replaceAllWith(((File) value).getPath(), "\\", "/"));
+    			}
     			listener = new ActionListener() {
     				@Override
     				public void actionPerformed(ActionEvent e) {
@@ -617,9 +504,18 @@ public class Configurator extends JFrame {
 	    	} else if (value instanceof File[]) {
 	    		File[] files = (File[]) value;
 	    		if (files.length > 0) {
-	    			labelText.append(files[0].getAbsolutePath());
+	    			if (files[0].isDirectory()) {
+	    				labelText.append(ext.verifyDirFormat(files[0].getPath()));
+	    			} else {
+		    			labelText.append(ext.replaceAllWith(files[0].getPath(), "\\", "/"));
+	    			}
 	    			for (int i = 1; i < files.length; i++) {
-		    			labelText.append(";").append(files[i].getAbsolutePath());
+	    				labelText.append(";");
+	    				if (files[i].isDirectory()) {
+		    				labelText.append(ext.verifyDirFormat(files[i].getPath()));
+		    			} else {
+			    			labelText.append(ext.replaceAllWith(files[i].getPath(), "\\", "/"));
+		    			}
 		    		}
 	    		}
 

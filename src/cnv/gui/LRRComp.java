@@ -261,7 +261,7 @@ public class LRRComp extends JFrame implements Runnable {
 			ButtonGroup correctionRadio = new ButtonGroup();
 			boolean extra = false;
 			int numButtons = BASIC_CORRECTION.length;
-			if (Files.exists(proj.getFilename(Project.INTENSITY_PC_FILENAME))) {
+			if (Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
 				extra = true;
 				numButtons = BASIC_CORRECTION.length + EXTRA_CORRECTION.length;
 			}

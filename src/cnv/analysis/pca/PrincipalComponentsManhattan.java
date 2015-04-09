@@ -300,21 +300,21 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	}
 
 	public static void guiAccess(Project proj, Component parentComponent) {
-		String pcFile = proj.getFilename(Project.INTENSITY_PC_FILENAME, false, false);
+		String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME, false, false);
 		String[] targetMarkers = proj.getTargetMarkers();
 		if (targetMarkers == null) {
-			JOptionPane.showMessageDialog(parentComponent, "Failed to load target markers '" + proj.getFilename(Project.TARGET_MARKERS_FILENAME) + "'; this is the designated marker in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parentComponent, "Failed to load target markers '" + proj.getFilename(proj.TARGET_MARKERS_FILENAME) + "'; this is the designated marker in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		int numMarkers = targetMarkers.length;
 		if (Files.exists(pcFile)) {
 			String ObjButtons[] = { "OK", "Cancel" };
-			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate manhattan plots for " + numMarkers + " marker(s) over " + proj.getInt(Project.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Manhattan Plot", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate manhattan plots for " + numMarkers + " marker(s) over " + proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Manhattan Plot", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
 			if (promptResult == 0) {
 				PrincipalComponentsManhattan.createManhattans(proj);
 			}
 		} else {
-			JOptionPane.showMessageDialog(parentComponent, "Failed to detect " + Project.INTENSITY_PC_FILENAME + " " + pcFile + " ; this is the designated intensity pc filename in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parentComponent, "Failed to detect " + proj.INTENSITY_PC_FILENAME + " " + pcFile + " ; this is the designated intensity pc filename in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -322,13 +322,13 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	 * Mainly for gui access using all defualts
 	 */
 	public static void createManhattans(Project proj) {
-		int numComponents = proj.getInt(Project.INTENSITY_PC_NUM_COMPONENTS);
+		int numComponents = proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS);
 		createManhattans(proj, "Manhattan/manhattan", null, numComponents, 1, false, numComponents >= 250);
 	}
 
 	public static void createManhattans(Project proj, String outputBase, String altDataFile, int numPCs, int numThreads, boolean verbose, boolean svdRegression) {
-		proj.getLog().reportTimeInfo("Loading markers from " + proj.getFilename(Project.TARGET_MARKERS_FILENAME));
-		String[] markers = HashVec.loadFileToStringArray(proj.getFilename(Project.TARGET_MARKERS_FILENAME), false, new int[] { 0 }, true);
+		proj.getLog().reportTimeInfo("Loading markers from " + proj.getFilename(proj.TARGET_MARKERS_FILENAME));
+		String[] markers = HashVec.loadFileToStringArray(proj.getFilename(proj.TARGET_MARKERS_FILENAME), false, new int[] { 0 }, true);
 		PrincipalComponentsManhattan principalComponentsManhattan = new PrincipalComponentsManhattan(proj, markers, altDataFile == null ? null : proj.getProjectDir() + altDataFile, numPCs);
 		principalComponentsManhattan.populateResults(numThreads, verbose, svdRegression);
 		outputBase = proj.getProjectDir() + outputBase;

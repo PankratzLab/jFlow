@@ -53,11 +53,11 @@ public class LrrSd extends Parallelizable {
 			chrs = proj.getMarkerSet().getChrs();
 			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23, chrs.length if all are less, -1 if none are less, 0 if all are greater!
 			if (subIndex <= 0) {
-				proj.getLog().reportError("Error - was not able to detect any autosomal markers for sample QC in " + proj.getFilename(Project.MARKERSET_FILENAME));
+				proj.getLog().reportError("Error - was not able to detect any autosomal markers for sample QC in " + proj.getFilename(proj.MARKERSET_FILENAME));
 				return;
 			}
 			if (chrs[subIndex] != 23) {
-				proj.getLog().report("Info - did not detect chromosome 23 in " + proj.getFilename(Project.MARKERSET_FILENAME));
+				proj.getLog().report("Info - did not detect chromosome 23 in " + proj.getFilename(proj.MARKERSET_FILENAME));
 			}
 			if (markersForEverythingElse != null) {
 				for (int i = subIndex; i < markersForEverythingElse.length; i++) {
@@ -88,7 +88,7 @@ public class LrrSd extends Parallelizable {
 				proj.getLog().report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers") + " for other qc metrics may result in inaccurate sample qc, please consider using more");
 			}
 
-			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.getFilename(Project.SAMPLE_QC_FILENAME), false) + "." + threadNumber));
+			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + "." + threadNumber));
 			writer.println(SAMPLE_COLUMN + "\t" + Array.toStr(NUMERIC_COLUMNS));
 			
 			for (int i = 0; i<samples.length; i++) {
@@ -180,8 +180,8 @@ public class LrrSd extends Parallelizable {
 	public void finalAction() {
 		String[] files; 
 		
-		files = Array.stringArraySequence(numThreads, ext.rootOf(proj.getFilename(Project.SAMPLE_QC_FILENAME), false) + ".");
-		Files.cat(files, proj.getFilename(Project.SAMPLE_QC_FILENAME), Array.intArray(files.length, 0), proj.getLog());
+		files = Array.stringArraySequence(numThreads, ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + ".");
+		Files.cat(files, proj.getFilename(proj.SAMPLE_QC_FILENAME), Array.intArray(files.length, 0), proj.getLog());
 		for (int i = 0; i<files.length; i++) {
 			new File(files[i]).delete();
         }
@@ -255,15 +255,15 @@ public class LrrSd extends Parallelizable {
 				return;
 			}
 		}
-		if (Files.exists(proj.getFilename(Project.GC_MODEL_FILENAME, false, false))) {
-			gcModel = GcAdjustor.GcModel.populateFromFile(proj.getFilename(Project.GC_MODEL_FILENAME, false, false), false, log);
+		if (Files.exists(proj.getFilename(proj.GC_MODEL_FILENAME, false, false))) {
+			gcModel = GcAdjustor.GcModel.populateFromFile(proj.getFilename(proj.GC_MODEL_FILENAME, false, false), false, log);
 			if (gcModel == null) {
-				log.reportError("Error - detected the gc model defined by " + Project.GC_MODEL_FILENAME + " as " + proj.getFilename(Project.GC_MODEL_FILENAME, false, false) + " in property file " + proj.getPropertyFilename() + " exists, but an error occurred while loading the file");
-				log.reportError("	   - If you would like to skip WF and GCWF qc metrics, either change the " + Project.GC_MODEL_FILENAME + " property to a filename that does not exist, or change the name of " + proj.getFilename(Project.GC_MODEL_FILENAME, false, false));
+				log.reportError("Error - detected the gc model defined by " + proj.GC_MODEL_FILENAME + " as " + proj.getFilename(proj.GC_MODEL_FILENAME, false, false) + " in property file " + proj.getPropertyFilename() + " exists, but an error occurred while loading the file");
+				log.reportError("	   - If you would like to skip WF and GCWF qc metrics, either change the " + proj.GC_MODEL_FILENAME + " property to a filename that does not exist, or change the name of " + proj.getFilename(proj.GC_MODEL_FILENAME, false, false));
 				return;
 			}
 		} else {
-			log.report("Info - did not find gc model file " + proj.getFilename(Project.GC_MODEL_FILENAME, false, false) + ", skipping gc correction and related qc");
+			log.report("Info - did not find gc model file " + proj.getFilename(proj.GC_MODEL_FILENAME, false, false) + ", skipping gc correction and related qc");
 		}
 
 		threadSeeds = Parallelizable.splitList(samples, numThreads, false);
@@ -294,7 +294,7 @@ public class LrrSd extends Parallelizable {
 		"   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"+
 		"   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"+
 
-		"   Note: if a gc model is available as defined by " + Project.GC_MODEL_FILENAME + " in the project properties file, WF and GCFW (after adjusting for GC content) will be reported\n" +
+		"   Note: if a gc model is available as defined by the \"GC_MODEL_FILENAME\" property in the project properties file, WF and GCFW (after adjusting for GC content) will be reported\n" +
 		"";
 
 		for (int i = 0; i<args.length; i++) {

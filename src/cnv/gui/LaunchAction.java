@@ -118,7 +118,7 @@ public class LaunchAction extends AbstractAction {
     		for (int i = 0; i < loc.length; i++) {
         		new Trailer(proj,
         					sample,
-        					proj.getFilenames(Project.CNV_FILENAMES),
+        					proj.getFilenames(proj.CNV_FILENAMES),
         					loc[i].endsWith("p")||loc[i].endsWith("q")?loc[i].substring(0, loc[i].length()-1):loc[i],
         					plotStartX,
         					plotStartY[i],
@@ -150,7 +150,7 @@ public class LaunchAction extends AbstractAction {
 	public boolean isEnabled() {
 		switch (type) {
         case LAUNCH_TRAILER:
-    		return Files.exists(proj.getDir(Project.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar); // needs to be updated anyway
+    		return Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar); // needs to be updated anyway
         default:
         	return true;
         }

@@ -399,7 +399,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map());
 			} else if (command.equals(PARSE_FILES_CSV)) {
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);
 			} else if (command.equals(TRANSPOSE_DATA)) {
@@ -425,7 +425,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				if (filename == null) {
 					log.report("No ClusterFilterCollection will be used");
 				} else {
-					log.report("The ClusterFilterCollection in '"+proj.getProperty(Project.DATA_DIRECTORY)+"/"+filename+"' will be used");
+					log.report("The ClusterFilterCollection in '"+proj.getProperty(proj.DATA_DIRECTORY)+"/"+filename+"' will be used");
 				}
 				if ( filename==null || (!filename.equals("cancel")) ) {
 //						String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
@@ -459,7 +459,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				if (filename == null) {
 					log.report("No ClusterFilterCollection will be used");
 				} else {
-					log.report("The ClusterFilterCollection in '"+proj.getProperty(Project.DATA_DIRECTORY)+"/"+filename+"' will be used");
+					log.report("The ClusterFilterCollection in '"+proj.getProperty(proj.DATA_DIRECTORY)+"/"+filename+"' will be used");
 				}
 
 				if (PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true)) {
@@ -472,7 +472,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");
 				cnv.analysis.PennCNV.parseResults(proj, "penncnv.rawcnv", false);
 			} else if (command.equals(LRR_SD)) {
-				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+//				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(proj.NUM_THREADS)));
+				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 			} else if (command.equals(CNP_SCAN)) {
 //					TODO Genotyping
 //					new ScanForCnp(proj, "CNPScanResult.txt");
@@ -481,7 +482,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(SCATTER)) {
 				ScatterPlot.createAndShowGUI(proj, null, null, false);
 			} else if (command.equals(QQ)) {
-				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false, proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
+//				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false, proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
+				QQPlot.loadPvals(proj.getFilenames(proj.QQ_FILENAMES, true), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.getFloat(proj.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
 			} else if (command.equals(STRAT)) {
 				StratPlot.loadStratificationResults(proj);
 			} else if (command.equals(MOSAICISM)) {
@@ -491,7 +493,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(SEX_PLOT)) {
 				SexPlot.loadGenderResults(proj);
 			} else if (command.equals(TRAILER)) {
-				new Trailer(proj, null, proj.getFilenames(Project.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
+				new Trailer(proj, null, proj.getFilenames(proj.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
 			} else if (command.equals(TWOD)) {
 //				TwoDPlot twoDP = 
 				SwingUtilities.invokeLater(new Runnable() {
@@ -521,7 +523,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //				ScatterPlot.createAndShowGUI(proj, null, null, false);
 
 				cnv.qc.SexChecks.sexCheck(proj);
-				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+//				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 				Mosaicism.findOutliers(proj);
 
 				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
@@ -548,8 +551,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(KITANDKABOODLE)) {
 				String filename;
 
-				if (!Files.exists(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false))) {
-					log.reportError("Could not find required file "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+"\n    attempting to generate one for you...");
+				if (!Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false))) {
+					log.reportError("Could not find required file "+proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)+"\n    attempting to generate one for you...");
 					filename = proj.getLocationOfSNP_Map();
 					if (filename == null) {
 						return;
@@ -557,10 +560,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					log.report("Generating from "+filename);
 					cnv.manage.Markers.generateMarkerPositions(proj, filename);
 				}
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(Project.NUM_THREADS));
+				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
 
 				TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
-				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
+//				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(proj.NUM_THREADS)));
+				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 				cnv.qc.SexChecks.sexCheck(proj);
 
 				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
@@ -605,7 +609,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //			log.report("No change in properties file");
 		}
 
-		if (proj != null && timestampOfSampleDataFile < new File(proj.getFilename(Project.SAMPLE_DATA_FILENAME, false, false)).lastModified()) {
+		if (proj != null && timestampOfSampleDataFile < new File(proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false)).lastModified()) {
 			log.report("Detected a change in the sampleData file; reloading sample data");
 			proj.resetSampleData();
 		}	
@@ -617,7 +621,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 			boolean configure = JOptionPane.showConfirmDialog(null, "Use new [in beta] property editor?", "Beta or Notepad?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 			if (configure) {
-				Configurator configurator = new Configurator(proj, JOptionPane.showConfirmDialog(null, "Convert property names?", "Apply conversion?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+				Configurator configurator = new Configurator(proj);
 				configurator.setVisible(true);
 			} else {
 				int index = projectsBox.getSelectedIndex();

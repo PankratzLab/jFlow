@@ -147,7 +147,7 @@ public class PrincipalComponentsApply {
 		this.extrapolatedPCsFile = output;
 		try {
 			if (Files.exists(proj.getProjectDir() + output)) {
-				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(Project.BACKUP_DIRECTORY));
+				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + output));
 			String[] samples = proj.getSampleList().getSamples();

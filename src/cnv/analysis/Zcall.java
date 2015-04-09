@@ -69,7 +69,8 @@ public class Zcall {
  		
         clusterFilterCollection = proj.getClusterFilterCollection();
 
-        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
+//        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
+        gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.getProjectDir() + "GenomeStudioData.txt"));
@@ -115,7 +116,7 @@ public class Zcall {
 			writer.close();
 			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
-			log.reportError("Error writing marker metrics to "+proj.getFilename(Project.MARKER_METRICS_FILENAME, false, false));
+			log.reportError("Error writing marker metrics to "+proj.getFilename(proj.MARKER_METRICS_FILENAME, false, false));
 			e.printStackTrace();
 		}
 	}

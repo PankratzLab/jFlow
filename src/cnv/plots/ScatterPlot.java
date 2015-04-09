@@ -144,14 +144,14 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		correctionRatio =PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO;
 		markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
-		if (!Files.exists(proj.getDir(Project.MARKER_DATA_DIRECTORY), proj.getJarStatus())) {
-			JOptionPane.showMessageDialog(null, "Directory "+proj.getProperty(Project.MARKER_DATA_DIRECTORY)+" does not exist; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
+		if (!Files.exists(proj.getDir(proj.MARKER_DATA_DIRECTORY), proj.getJarStatus())) {
+			JOptionPane.showMessageDialog(null, "Directory "+proj.getProperty(proj.MARKER_DATA_DIRECTORY)+" does not exist; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
 			fail = true;
 			return;
 		}
 
-		if (Files.list(proj.getDir(Project.MARKER_DATA_DIRECTORY), "marker", MarkerData.MARKER_DATA_FILE_EXTENSION, false, proj.getJarStatus()).length==0) {
-			JOptionPane.showMessageDialog(null, "There is no data in directory "+proj.getProperty(Project.MARKER_DATA_DIRECTORY)+"; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
+		if (Files.list(proj.getDir(proj.MARKER_DATA_DIRECTORY), "marker", MarkerData.MARKER_DATA_FILE_EXTENSION, false, proj.getJarStatus()).length==0) {
+			JOptionPane.showMessageDialog(null, "There is no data in directory "+proj.getProperty(proj.MARKER_DATA_DIRECTORY)+"; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
 			fail = true;
 			return;
 		}
@@ -183,7 +183,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 				return;
 			}
 			if (masterMarkerList.length == 0) {
-				JOptionPane.showMessageDialog(null, "Error - file '"+proj.getFilename(Project.DISPLAY_MARKERS_FILENAME)+"' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, "Error - file '"+proj.getFilename(proj.DISPLAY_MARKERS_FILENAME)+"' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
 				fail = true;
 				return;
 			}
@@ -498,7 +498,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		JSlider slider = new JSlider(JSlider.HORIZONTAL, 2, 20, DEFAULT_SIZE);
 		// slider.setSize(new Dimension(150, 20));
 		slider.setBackground(BACKGROUND_COLOR);
-		slider = new JSlider(JSlider.HORIZONTAL, 0,  Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), 0);
+//		slider = new JSlider(JSlider.HORIZONTAL, 0,  Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), 0);
+		slider = new JSlider(JSlider.HORIZONTAL, 0,  proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), 0);
 		slider.setValue(0);
 		slider.setBackground(BACKGROUND_COLOR);
 		if (pcResids == null) {
@@ -726,7 +727,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 					Vector<String> newMarkerList;
 					int index;
 	
-					filename = proj.getFilename(Project.FILTERED_MARKERS_FILENAME);
+					filename = proj.getFilename(proj.FILTERED_MARKERS_FILENAME);
 					if (!new File(filename).exists()) {
 						JOptionPane.showOptionDialog(null, "'Exclude Markers' is not activated due to the following file not found:\n  " + filename, "File Not Found", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[] {"Cancel"}, "Cancel");
 					} else {
@@ -1720,8 +1721,8 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		String[] options = new String[] {"Yes, load and delete old file", "No, just delete old file", "Cancel and close ScatterPlot"};
 		String clusterFilterFilename;
 		
-		clusterFilterFilename = proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME);
-		otherClusterFilterFiles = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".tempClusterFilters.ser", jar);
+		clusterFilterFilename = proj.getFilename(proj.CLUSTER_FILTER_COLLECTION_FILENAME);
+		otherClusterFilterFiles = Files.list(proj.getDir(proj.DATA_DIRECTORY), ".tempClusterFilters.ser", jar);
 		if (otherClusterFilterFiles.length > 0) {
 			choice = JOptionPane.showOptionDialog(null, "Error - either multiple instances of ScatterPlot are running or ScatterPlot failed to close properly\n" +
 														"last time. The ability to generate new ClusterFilters will be disabled until this file has been\n" +
@@ -1729,9 +1730,9 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 												  "Error", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				// load the last one in otherClusterFilerFiles[]
-				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(Project.DATA_DIRECTORY) + otherClusterFilterFiles[otherClusterFilterFiles.length-1], jar);
+				clusterFilterCollection = ClusterFilterCollection.load(proj.getDir(proj.DATA_DIRECTORY) + otherClusterFilterFiles[otherClusterFilterFiles.length-1], jar);
 				for (int i=0; i<otherClusterFilterFiles.length; i++) {
-					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilterFiles[i])).delete();
+					(new File(proj.getDir(proj.DATA_DIRECTORY)+otherClusterFilterFiles[i])).delete();
 				}
 				startAutoSaveToTempFile();
 				setClusterFilterUpdated(true);
@@ -1743,7 +1744,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 					clusterFilterCollection = new ClusterFilterCollection();
 				}
 				for (int i=0; i<otherClusterFilterFiles.length; i++) {
-					(new File(proj.getDir(Project.DATA_DIRECTORY)+otherClusterFilterFiles[i])).delete();
+					(new File(proj.getDir(proj.DATA_DIRECTORY)+otherClusterFilterFiles[i])).delete();
 				}
 			} else {
 				return false;
@@ -1762,7 +1763,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	public void loadAnnotationCollection() {
 		String filename;
 		
-		filename = proj.getFilename(Project.ANNOTATION_FILENAME, false, false);
+		filename = proj.getFilename(proj.ANNOTATION_FILENAME, false, false);
 		if (new File(filename).exists()) {
 			log.report("Loading annotation from: "+filename);
 			annotationCollection = (AnnotationCollection) Files.readSerial(filename);
@@ -1909,7 +1910,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		Vector<String> missingMarkers;
 		
 		missingMarkers = new Vector<String>();
-		filename = proj.getFilename(Project.DISPLAY_MARKERS_FILENAME);
+		filename = proj.getFilename(proj.DISPLAY_MARKERS_FILENAME);
 		//log.report("filename: "+filename);
 		try {
 			try {
@@ -1996,7 +1997,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		Hashtable<String,String> hash;
 		int[] indices;
 		
-		files = Files.list(proj.getDir(Project.DATA_DIRECTORY), ".cent", jar);
+		files = Files.list(proj.getDir(proj.DATA_DIRECTORY), ".cent", jar);
 		//log.report("Found "+files.length+" .cent files in "+proj.getDir(Project.DATA_DIRECTORY));
 		
 		hash = new Hashtable<String,String>();
@@ -2016,10 +2017,10 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		fileList = new Vector<String>(); 
 		for (int i = 0; i<files.length; i++) {
 			log.report("<", false, true);
-			trav = Centroids.load(proj.getDir(Project.DATA_DIRECTORY)+files[i], jar);			
+			trav = Centroids.load(proj.getDir(proj.DATA_DIRECTORY)+files[i], jar);			
 			log.report(">", false, true);
 			if (trav.getFingerprint() != set.getFingerprint()) {
-				log.reportError("Error - Centroids file '"+proj.getDir(Project.DATA_DIRECTORY) + files[i]+"' does not match up with the fingerprint of the current marker set and therefore will not load; if you don't want to see this error message again, then remove the .cent extension from this file.");
+				log.reportError("Error - Centroids file '"+proj.getDir(proj.DATA_DIRECTORY) + files[i]+"' does not match up with the fingerprint of the current marker set and therefore will not load; if you don't want to see this error message again, then remove the .cent extension from this file.");
 			} else {
 				travCents = trav.getCentroids();
 				targetCents = new float[markerList.length][][];
@@ -2371,12 +2372,12 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 
 	public void startAutoSaveToTempFile() {
 		if (autoSave == null) {
-			autoSave = new AutoSaveForScatterPlot(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser", annotationCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser", 30);
+			autoSave = new AutoSaveForScatterPlot(clusterFilterCollection, proj.getDir(proj.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser", annotationCollection, proj.getDir(proj.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser", 30);
 			new Thread(autoSave).start();
 		} else if (clusterFilterCollection != null && autoSave.isClusterFilterNull()) {
-			autoSave.addToAutoSave(clusterFilterCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser");
+			autoSave.addToAutoSave(clusterFilterCollection, proj.getDir(proj.DATA_DIRECTORY) + sessionID + ".tempClusterFilters.ser");
 		} else if (annotationCollection != null && autoSave.isAnnotationNull()) {
-			autoSave.addToAutoSave(annotationCollection, proj.getDir(Project.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser");
+			autoSave.addToAutoSave(annotationCollection, proj.getDir(proj.DATA_DIRECTORY) + sessionID + ".tempAnnotation.ser");
 		}
 		autoSave.saveNow();
 	}
@@ -2414,7 +2415,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		String filename;
 		String clusterFilterFilename;
 
-		clusterFilterFilename = proj.getFilename(Project.CLUSTER_FILTER_COLLECTION_FILENAME, false, false);
+		clusterFilterFilename = proj.getFilename(proj.CLUSTER_FILTER_COLLECTION_FILENAME, false, false);
 		options = new String[] {"Yes, overwrite", "No"};
 		if (isClusterFilterUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
@@ -2435,7 +2436,7 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 		if (isAnnotationUpdated) {
 			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				filename = proj.getFilename(Project.ANNOTATION_FILENAME, false, false);
+				filename = proj.getFilename(proj.ANNOTATION_FILENAME, false, false);
 				annotationCollection.serialize(filename);
 				proj.archiveFile(filename);
 				annotationCollection.serialize(filename);
@@ -2524,11 +2525,12 @@ public class ScatterPlot extends JPanel implements ActionListener, WindowListene
 	}
 
 	private  PrincipalComponentsResiduals loadPcResids() {
-		String pcFile = proj.getFilename(Project.INTENSITY_PC_FILENAME);
+		String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME);
 		PrincipalComponentsResiduals pcResids;
 		if (Files.exists(proj.getProjectDir() + ext.removeDirectoryInfo(pcFile))) {
 			proj.getLog().report("Info - loading " + ext.removeDirectoryInfo(pcFile));
-			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+//			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
+			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
 			setNumComponents(Math.min(numComponents, pcResids.getTotalNumComponents()));
 		} else {
 			proj.getLog().report("Info - did not find " + proj.getProjectDir() + ext.removeDirectoryInfo(pcFile));

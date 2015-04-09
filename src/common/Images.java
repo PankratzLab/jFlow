@@ -5,14 +5,9 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 
-import common.Array;
-import common.HashVec;
-
-import javax.imageio.*;
+import javax.imageio.ImageIO;
 
 public class Images {
 	
@@ -161,8 +156,8 @@ public class Images {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String file = "imagelist.txt";
-		String dir = "D:/data/gedi_gwas/data/";
+		String file = "imageList.txt";
+		String dir = "D:/data/gedi_gwas/data/corrected/";
 		String out = "stitched.png";
 		Color bgColor = Color.WHITE;
 		boolean outerBorder = true;

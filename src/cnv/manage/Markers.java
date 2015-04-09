@@ -225,7 +225,7 @@ public class Markers {
 				snpTable = proj.getProjectDir()+snpTable;
 			}
 			reader = Files.getAppropriateReader(snpTable);
-			writer = new PrintWriter(new FileWriter(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)));
+			writer = new PrintWriter(new FileWriter(proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)));
 			indices = ext.indexFactors(ParseIllumina.SNP_TABLE_FIELDS, reader.readLine().trim().split(delimiter), false, true, true, true);
 			writer.println("Marker\tChr\tPosition");
 			while (reader.ready()) {
@@ -241,7 +241,7 @@ public class Markers {
 			proj.message("Error reading file \""+snpTable+"\"");
 			return;
 		}
-		log.report("Finished parsing "+proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false)+" in " + ext.getTimeElapsed(time));
+		log.report("Finished parsing "+proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)+" in " + ext.getTimeElapsed(time));
 	}
 
 	public static void useAlleleLookup(String filename, int alleleCol, String lookupFile, int setFrom, int setTo) {
