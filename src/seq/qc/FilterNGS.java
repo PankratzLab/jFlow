@@ -635,7 +635,7 @@ public class FilterNGS implements Serializable {
 				VariantContext vcCase = VCOps.getSubset(vc, casePop);
 				pass = caseFilters.filter(vcCase);
 				if (pass.passed()) {
-					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase);
+					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase,-1);
 					pass = caseFilters.filter(vcAlts);
 					if (pass.passed()) {
 					}
@@ -750,7 +750,6 @@ public class FilterNGS implements Serializable {
 		filters.add(getValidRecordFilter());
 		filters.add(getValidReferenceFilter());
 		filters.add(getProperlyPairedFilter());
-
 		return filters;
 	}
 

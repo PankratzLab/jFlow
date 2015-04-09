@@ -153,12 +153,16 @@ public class VCOps {
 	 * @param vc
 	 * @return genotypes containing alt alleles (hom var or het)
 	 */
-	public static VariantContext getAltAlleleContext(final VariantContext vc) {
+	public static VariantContext getAltAlleleContext(final VariantContext vc, int altAlleleDepth) {
 		GenotypesContext gc = vc.getGenotypes();
 		HashSet<String> samplesWithAlt = new HashSet<String>();
 		for (Genotype geno : gc) {
-			if (geno.isHomVar() || geno.isHet()) {
-				samplesWithAlt.add(geno.getSampleName());
+			if ((geno.isHomVar() || geno.isHet())) {
+				if (altAlleleDepth <= 0 || geno.getAD() != null) {
+					if (altAlleleDepth <= 0 || geno.getAD()[1] > altAlleleDepth) {
+						samplesWithAlt.add(geno.getSampleName());
+					}
+				}
 			}
 		}
 		return getSubset(vc, samplesWithAlt);
