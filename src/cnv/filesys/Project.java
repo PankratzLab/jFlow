@@ -982,12 +982,12 @@ public class Project /* extends Properties*/ {
 		BufferedReader reader;
         String trav, key;
         boolean changed;
-        Vector<String> knowns, unknowns, corrections;
+        Vector<String> preknowns, unknowns, corrections;
         int index;
         
         changed = false;
 //        knowns = Array.toStringVector(HashVec.getKeys(this, false, false));
-        knowns = Array.toStringVector(getPropertyKeys());
+        preknowns = Array.toStringVector(getPropertyKeys());
         unknowns = new Vector<String>();
         corrections = new Vector<String>();
         try {
@@ -997,8 +997,8 @@ public class Project /* extends Properties*/ {
 	        	index = trav.trim().indexOf("=");
 	        	if (trav.startsWith("#") || trav.startsWith("??_") || trav.equals("")) {
 	        		corrections.add(trav);
-	        		if (index > 0 && getProperty(trav.substring(1, index)) != null) {
-	        			knowns.remove(trav.substring(1, index));
+	        		if (index > 0 && containsKey(trav.substring(1, index))) {
+	        			preknowns.remove(trav.substring(1, index));
 	        		}
 	        	} else if (index > 0) {
 	        		key = trav.trim().substring(0, index);
@@ -1007,7 +1007,7 @@ public class Project /* extends Properties*/ {
 	        			unknowns.add(key);
 	        			corrections.add("??_"+trav);
 	        		} else {
-	        			knowns.remove(key);
+	        			preknowns.remove(key);
 	        			corrections.add(trav);
 	        		}
 	        	} else {
@@ -1033,12 +1033,12 @@ public class Project /* extends Properties*/ {
         	log.reportError("        "+unknowns.elementAt(i));
 		}
         
-        if (knowns.size() > 0) {
+        if (preknowns.size() > 0) {
         	changed = true;
         	corrections.add("");
         	corrections.add("# A few more parameters that were not originally defined:");
-            for (int i = 0; i < knowns.size(); i++) {
-            	corrections.add("#"+knowns.elementAt(i)+"="+getProperty(knowns.elementAt(i)).getDefaultValueString());
+            for (int i = 0; i < preknowns.size(); i++) {
+            	corrections.add("#"+preknowns.elementAt(i)+"="+getProperty(preknowns.elementAt(i)).getDefaultValueString());
     		}        
         }
         
