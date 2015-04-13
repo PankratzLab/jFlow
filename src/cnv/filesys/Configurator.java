@@ -21,6 +21,7 @@ import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -154,6 +155,17 @@ public class Configurator extends JFrame {
 			public Object getCellEditorValue() {
 				return ((String) super.getCellEditorValue()).trim();
 			}
+			{
+				this.editorComponent.addFocusListener(new FocusListener() {
+					@Override
+					public void focusLost(FocusEvent e) {
+						stopCellEditing();
+					}
+					@Override
+					public void focusGained(FocusEvent e) {
+					}
+				});
+			}
 		};
 
 		final DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
@@ -162,9 +174,13 @@ public class Configurator extends JFrame {
 			@Override
 			public Component getTableCellRendererComponent(final JTable table, Object value, boolean isSelected, boolean hasFocus, final int row, final int column) {
 				String projDir = proj.getProperty(proj.PROJECT_DIRECTORY);
+				
+				String desc = proj.getProperty((String) table.getValueAt(row, 0)).getDescription();
+				Component returnComp;
+				
 				if (value instanceof Boolean) {
 					rendererChkBx.setSelected(((Boolean) value).booleanValue());
-					return rendererChkBx;
+					returnComp = rendererChkBx;
 				} else if (value instanceof File) {
 					String txt = ((File) value).getPath();
 					if (((File) value).isDirectory()) {
@@ -179,7 +195,7 @@ public class Configurator extends JFrame {
 						txt = txt.substring(projDir.length());
 					}
 					fileLabel.setText(txt);
-					return fileRenderer;
+					returnComp = fileRenderer;
 				} else if (value instanceof File[]) {
 					StringBuilder sb = new StringBuilder();
 					if (((File[])value).length > 0) {
@@ -208,15 +224,20 @@ public class Configurator extends JFrame {
 						}
 					}
 					fileLabel.setText(sb.toString());
-					return fileRenderer;
+					returnComp = fileRenderer;
 				} else if (value instanceof Number) {
 					String propKey = (String) table.getModel().getValueAt(row, 0);
 					Object propVal = table.getModel().getValueAt(row, 1);
 					setByPropertyKey(rendererSpinner, proj, propKey, propVal);
-					return rendererSpinner;
+					returnComp = rendererSpinner;
 				}
-				Component superComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column); 
-				return superComp;
+				returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				if (!"".equals(desc)) {
+					((JComponent) returnComp).setToolTipText(desc);
+				} else {
+					((JComponent) returnComp).setToolTipText(null);
+				}
+				return returnComp;
 			}
 		};
 		
@@ -252,7 +273,6 @@ public class Configurator extends JFrame {
 					return numberEditor;
 				} else if (propVal instanceof String) {
 					return stringEditor;
-					
 				}
 				
 				TableCellEditor editor = super.getCellEditor(row, column); 
@@ -327,7 +347,7 @@ public class Configurator extends JFrame {
 		for (int i = 0; i < rowCount; i++) {
 			String key = (String) table.getValueAt(i, 0);
 			Object rawValue = table.getValueAt(i, 1);
-			System.out.println(rawValue.getClass().getName());
+//			System.out.println(rawValue.getClass().getName());
 			String value = "";
 			if (rawValue instanceof File[]) {
 				File[] set = (File[]) rawValue;

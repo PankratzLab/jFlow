@@ -29,86 +29,8 @@ import cnv.manage.TransposeData;
 import cnv.var.SampleData;
 import filesys.GeneSet;
 
-public class Project /* extends Properties*/ {
-//	private static final long serialVersionUID = 1L;
+public class Project {
 
-//	public static final String DEFAULT_PROPERTIES = "cnv/filesys/default.properties";
-
-//	public static final String PROJECT_NAME = "PROJECT_NAME";
-//	public static final String PROJECT_PROPERTIES_FILENAME = "FILENAME";
-//	public static final String PROJECT_DIRECTORY = "PROJECT_DIRECTORY";
-//	public static final String SOURCE_DIRECTORY = "SOURCE_DIRECTORY";
-//	public static final String SOURCE_FILENAME_EXTENSION = "SOURCE_FILENAME_EXTENSION";
-//	public static final String ID_HEADER = "ID_HEADER";
-//	public static final String PARSE_AT_AT_SYMBOL = "PARSE_AT_AT_SYMBOL";
-//	public static final String JAR_STATUS = "JAR_STATUS";
-//	public static final String SAMPLE_DIRECTORY = "SAMPLE_DIRECTORY";
-//	public static final String DATA_DIRECTORY = "DATA_DIRECTORY";
-//	public static final String MARKER_DATA_DIRECTORY = "MARKER_DATA_DIRECTORY";
-//	public static final String RESULTS_DIRECTORY = "RESULTS_DIRECTORY";
-//	public static final String DEMO_DIRECTORY = "DEMO_DIRECTORY";
-//	public static final String MARKER_POSITION_FILENAME = "MARKER_POSITION_FILENAME";
-//	public static final String MARKERSET_FILENAME = "MARKERSET_FILENAME";
-//	public static final String MARKERLOOKUP_FILENAME = "MARKERLOOKUP_FILENAME";
-//	public static final String SAMPLELIST_FILENAME = "SAMPLELIST_FILENAME";
-//	public static final String SAMPLE_SUBSET_FILENAME = "SAMPLE_SUBSET_FILENAME";
-//	public static final String SAMPLE_DATA_FILENAME = "SAMPLE_DATA_FILENAME";
-//	public static final String ORIGINAL_CENTROIDS_FILENAME = "ORIGINAL_CENTROIDS_FILENAME";
-//	public static final String GENOTYPE_CENTROIDS_FILENAME = "GENOTYPE_CENTROIDS_FILENAME";
-//	public static final String CHIMERA_CENTROIDS_FILENAME = "CHIMERA_CENTROIDS_FILENAME";
-//	public static final String CUSTOM_CENTROIDS_FILENAME = "CUSTOM_CENTROIDS_FILENAME";
-//	public static final String SEX_CENTROIDS_FILENAMES = "SEX_CENTROIDS_FILENAMES";
-//	public static final String DISPLAY_MARKERS_FILENAME = "DISPLAY_MARKERS_FILENAME";
-//	public static final String FILTERED_MARKERS_FILENAME = "FILTERED_MARKERS_FILENAME";
-//	public static final String PEDIGREE_FILENAME = "PEDIGREE_FILENAME";
-//	public static final String MOSAIC_COLOR_CODES_FILENAME = "MOSAIC_COLOR_CODES_FILENAME";
-//	public static final String MOSAIC_RESULTS_FILENAME = "MOSAIC_RESULTS_FILENAME";
-//	public static final String INDIVIDUAL_CNV_LIST_FILENAMES = "INDIVIDUAL_CNV_LIST_FILENAMES";
-//	public static final String REGION_LIST_FILENAMES = "REGION_LIST_FILENAMES";
-//	public static final String CNV_FILENAMES = "CNV_FILENAMES";
-//	public static final String STRATIFICATION_RESULTS_FILENAMES = "STRATIFICATION_RESULTS_FILENAMES";
-//	public static final String GC_THRESHOLD = "GC_THRESHOLD";
-//	public static final String QQ_FILENAMES = "QQ_FILENAMES";
-//	public static final String DISPLAY_QUANTILES = "DISPLAY_QUANTILES";
-//	public static final String DISPLAY_STANDARD_QQ = "DISPLAY_STANDARD_QQ";
-//	public static final String DISPLAY_ROTATED_QQ = "DISPLAY_ROTATED_QQ";
-//	public static final String TARGET_MARKERS_FILENAME = "TARGET_MARKERS_FILENAME";
-//	public static final String SOURCE_FILE_DELIMITER = "SOURCE_FILE_DELIMITER";
-//	public static final String PENNCNV_EXECUTABLE_DIRECTORY = "PENNCNV_EXECUTABLE_DIRECTORY";
-//	public static final String PENNCNV_DATA_DIRECTORY = "PENNCNV_DATA_DIRECTORY";
-//	public static final String PENNCNV_GZIP_YESNO = "PENNCNV_GZIP_YESNO";
-//	public static final String PENNCNV_RESULTS_DIRECTORY = "PENNCNV_RESULTS_DIRECTORY";
-//	public static final String LRRSD_CUTOFF = "LRRSD_CUTOFF";
-//	public static final String MOSAIC_ARMS_FILENAME = "MOSAIC_ARMS_FILENAME";
-//	public static final String NUM_THREADS = "NUM_THREADS";
-//	public static final String LONG_FORMAT = "LONG_FORMAT";
-//	public static final String CLUSTER_FILTER_COLLECTION_FILENAME = "CLUSTER_FILTER_COLLECTION_FILENAME";
-//	public static final String SEXCHECK_RESULTS_FILENAME = "SEXCHECK_RESULTS_FILENAME";
-//	public static final String TWOD_LOADED_FILENAMES = "TWOD_LOADED_FILENAMES";
-//	public static final String TWOD_LOADED_VARIABLES = "TWOD_LOADED_VARIABLES";
-//	public static final String GENETRACK_FILENAME = "GENETRACK_FILENAME";
-//	public static final String AB_LOOKUP_FILENAME = "AB_LOOKUP_FILENAME";
-//	public static final String WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER";
-//	public static final String MAX_MARKERS_LOADED_PER_CYCLE = "MAX_MARKERS_LOADED_PER_CYCLE";
-//	public static final String MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA";
-//	public static final String MARKER_METRICS_FILENAME = "MARKER_METRICS_FILENAME";
-//	public static final String MARKER_REVIEW_CRITERIA_FILENAME = "MARKER_REVIEW_CRITERIA_FILENAME";
-//	public static final String MARKER_EXCLUSION_CRITERIA_FILENAME = "MARKER_EXCLUSION_CRITERIA_FILENAME";
-//	public static final String MARKER_COMBINED_CRITERIA_FILENAME = "MARKER_COMBINED_CRITERIA_FILENAME";
-//	public static final String ANNOTATION_FILENAME = "ANNOTATION_FILENAME";
-//	public static final String CUSTOM_COLOR_SCHEME_FILENAME = "ANNOTATION_FILENAME";
-//	public static final String BACKUP_DIRECTORY = "BACKUP_DIRECTORY";
-//	public static final String SHIFT_SEX_CHR_COLORS_YESNO = "SHIFT_SEX_CHR_COLORS_YESNO";
-//	public static final String QQ_MAX_NEG_LOG10_PVALUE = "QQ_MAX_NEG_LOG10_PVALUE";
-//	public static final String GC_MODEL_FILENAME = "GC_MODEL_FILENAME";
-//	public static final String COMMON_CNP_FILENAME = "COMMON_CNP_FILENAME";
-//	public static final String REPORTED_CNP_FILENAME = "REPORTED_CNP_FILENAME";
-//	public static final String UNREPORTED_CNP_FILENAME = "UNREPORTED_CNP_FILENAME";
-//	public static final String LOG_LEVEL = "LOG_LEVEL";
-//	public static final String INTENSITY_PC_FILENAME = "INTENSITY_PC_FILENAME";
-//	public static final String INTENSITY_PC_NUM_COMPONENTS = "INTENSITY_PC_NUM_COMPONENTS";
-//	public static final String FOREST_PLOT_FILENAMES = "FOREST_PLOT_FILENAMES";
-//	public static final String SAMPLE_QC_FILENAME = "SAMPLE_QC_FILENAME";
 	
 	private static String[] verifyFiles(String[] strs, boolean isDir) {
 		String[] verified = new String[strs.length];
@@ -120,16 +42,19 @@ public class Project /* extends Properties*/ {
 	
 	public abstract static class Property<T> {
 		private final String name;
+		private final String desc;
 		private final T defaultValue;
 		private T value;
-		public Property(String name, T defVal) {
+		public Property(String name, String description, T defVal) {
 			this.name = name;
+			this.desc = description;
 			this.defaultValue = defVal;
 			this.value = defaultValue;
 		}
 		public      T        getValue() { return value; }
 		public   void setValue(T value) { this.value = value; }
 		public String         getName() { return name; }
+		public String  getDescription() { return desc; }
 		public      T getDefaultValue() { return defaultValue; }
 		public abstract void parseValue(String valueStr);
 		public String getValueString() { return value.toString(); }
@@ -137,8 +62,8 @@ public class Project /* extends Properties*/ {
 	}
 	
 	public static class StringProperty extends Property<String> {
-		public StringProperty(String name, String defVal) {
-			super(name, defVal);
+		public StringProperty(String name, String desc, String defVal) {
+			super(name, desc, defVal);
 		}
 		@Override
 		public void parseValue(String valueStr) { setValue(valueStr); }
@@ -146,11 +71,11 @@ public class Project /* extends Properties*/ {
 	
 	public static class StringListProperty extends Property<String[]> {
 		static String delim = ";";
-		public StringListProperty(String name, String[] defVal) {
-			super(name, defVal);
+		public StringListProperty(String name, String desc, String[] defVal) {
+			super(name, desc, defVal);
 		}
-		public StringListProperty(String name, String defVal) {
-			super(name, defVal.split(delim));
+		public StringListProperty(String name, String desc, String defVal) {
+			super(name, desc, defVal.split(delim));
 		}
 		@Override
 		public void parseValue(String valueStr) {
@@ -164,8 +89,8 @@ public class Project /* extends Properties*/ {
 	}
 	
 	public static class BooleanProperty extends Property<Boolean> {
-		public BooleanProperty(String name, Boolean defVal) {
-			super(name, defVal);
+		public BooleanProperty(String name, String desc, Boolean defVal) {
+			super(name, desc, defVal);
 		}
 		@Override
 		public void parseValue(String valueStr) { 
@@ -177,8 +102,8 @@ public class Project /* extends Properties*/ {
 	public static class IntegerProperty extends Property<Integer> {
 		int currValue;
 		int min, max;
-		public IntegerProperty(String name, int min, int max, int defValue) {
-			super(name, defValue);
+		public IntegerProperty(String name, String desc, int min, int max, int defValue) {
+			super(name, desc, defValue);
 			if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
 				throw new RuntimeException("Cannot initialize IntegerProperty with: min=" + min + ", max=" + max + ", and default value=" + defValue);
 			}
@@ -203,8 +128,8 @@ public class Project /* extends Properties*/ {
 		double currValue;
 		double min;
 		double max;
-		public DoubleProperty(String name, double min, double max, double defValue) {
-			super(name, defValue);
+		public DoubleProperty(String name, String desc, double min, double max, double defValue) {
+			super(name, desc, defValue);
 			if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
 				throw new RuntimeException("Cannot initialize DoubleProperty['" + name + "'] with: min=" + min + ", max=" + max + ", and default value=" + defValue);
 			}
@@ -231,8 +156,8 @@ public class Project /* extends Properties*/ {
 //			super(name, defVal);
 //			isDir = dirOnly;
 //		}
-		public FileProperty(String name, String defVal, boolean dirOnly) {
-			super(name, dirOnly ? ext.verifyDirFormat(defVal) : ext.replaceAllWith(defVal, "\\", "/")/* == null || "".equals(defVal) ? null : new File(defVal)*/);
+		public FileProperty(String name, String desc, String defVal, boolean dirOnly) {
+			super(name, desc, dirOnly ? ext.verifyDirFormat(defVal) : ext.replaceAllWith(defVal, "\\", "/")/* == null || "".equals(defVal) ? null : new File(defVal)*/);
 			isDir = dirOnly;
 		}
 		@Override
@@ -247,12 +172,12 @@ public class Project /* extends Properties*/ {
 //			super(name, defVal);
 //			isDir = dirOnly;
 //		}
-		public MultiFileProperty(String name, String[] defVal, boolean dirOnly) {
-			super(name, verifyFiles(defVal, dirOnly)/*createFiles(defVal)*/);
+		public MultiFileProperty(String name, String desc, String[] defVal, boolean dirOnly) {
+			super(name, desc, verifyFiles(defVal, dirOnly)/*createFiles(defVal)*/);
 			isDir = dirOnly;
 		}
-		public MultiFileProperty(String name, String defVal, boolean dirOnly) {
-			super(name, verifyFiles(defVal.split(";"), dirOnly) /*createFiles(defVal)*/);
+		public MultiFileProperty(String name, String desc, String defVal, boolean dirOnly) {
+			super(name, desc, verifyFiles(defVal.split(";"), dirOnly) /*createFiles(defVal)*/);
 			isDir = dirOnly;
 		}
 		@Override
@@ -273,11 +198,11 @@ public class Project /* extends Properties*/ {
 	
 	public static class EnumProperty extends StringProperty {
 		String[] options;
-		public EnumProperty(String name, int defaultIndex, String... opts) {
-			this(name, opts[defaultIndex], opts);
+		public EnumProperty(String name, String desc, int defaultIndex, String... opts) {
+			this(name, desc, opts[defaultIndex], opts);
 		}
-		public EnumProperty(String name, String defVal, String... opts) {
-			super(name, defVal);
+		public EnumProperty(String name, String desc, String defVal, String... opts) {
+			super(name, desc, defVal);
 			this.options = opts;
 			boolean found = false;
 			for (String opt : this.options) {
@@ -324,84 +249,84 @@ public class Project /* extends Properties*/ {
 		} 
 	}
 	
-	public   IntegerProperty                            LOG_LEVEL = new   IntegerProperty(                           "LOG_LEVEL", -1, 12, 1);
-	public    StringProperty                         PROJECT_NAME = new    StringProperty(                        "PROJECT_NAME", "New Project");
-	public    StringProperty            SOURCE_FILENAME_EXTENSION = new    StringProperty(           "SOURCE_FILENAME_EXTENSION", ".csv");
-	public    StringProperty                            ID_HEADER = new    StringProperty(                           "ID_HEADER", "Sample Name");
-	public    StringProperty                TWOD_LOADED_VARIABLES = new    StringProperty(               "TWOD_LOADED_VARIABLES", "");
-	public    StringProperty                            FID_ALIAS = new    StringProperty(                           "FID_ALIAS", "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
-	public    StringProperty                            IID_ALIAS = new    StringProperty(                           "IID_ALIAS", "ID;IID;I_ID;IndID;Ind_ID");
-	public    StringProperty                         SAMPLE_ALIAS = new    StringProperty(                        "SAMPLE_ALIAS", "Sample;DNA;DNA#");
-	public   BooleanProperty                   PARSE_AT_AT_SYMBOL = new   BooleanProperty(                  "PARSE_AT_AT_SYMBOL", Boolean.FALSE);
-	public   BooleanProperty                           JAR_STATUS = new   BooleanProperty(                          "JAR_STATUS", Boolean.FALSE);
-	public   BooleanProperty                    DISPLAY_QUANTILES = new   BooleanProperty(                   "DISPLAY_QUANTILES", Boolean.FALSE);
-	public   BooleanProperty                  DISPLAY_STANDARD_QQ = new   BooleanProperty(                 "DISPLAY_STANDARD_QQ", Boolean.TRUE);
-	public   BooleanProperty                   DISPLAY_ROTATED_QQ = new   BooleanProperty(                  "DISPLAY_ROTATED_QQ", Boolean.FALSE);
-	public   BooleanProperty                   PENNCNV_GZIP_YESNO = new   BooleanProperty(                  "PENNCNV_GZIP_YESNO", Boolean.TRUE);
-	public   BooleanProperty                          LONG_FORMAT = new   BooleanProperty(                         "LONG_FORMAT", Boolean.FALSE);
-	public   BooleanProperty           SHIFT_SEX_CHR_COLORS_YESNO = new   BooleanProperty(          "SHIFT_SEX_CHR_COLORS_YESNO", Boolean.TRUE);
-	public    DoubleProperty                         GC_THRESHOLD = new    DoubleProperty(                        "GC_THRESHOLD", 0.0, 1.0, 0.15);
-	public    DoubleProperty                         LRRSD_CUTOFF = new    DoubleProperty(                        "LRRSD_CUTOFF", 0.0, 1.0, 0.32);
-	public   IntegerProperty                          NUM_THREADS = new   IntegerProperty(                         "NUM_THREADS", 1, 99, 1);
-	public   IntegerProperty              QQ_MAX_NEG_LOG10_PVALUE = new   IntegerProperty(             "QQ_MAX_NEG_LOG10_PVALUE", 1, 10000, 100);
-	public   IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new   IntegerProperty("WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", 1, 1000000, 10000);
-	public   IntegerProperty         MAX_MARKERS_LOADED_PER_CYCLE = new   IntegerProperty(        "MAX_MARKERS_LOADED_PER_CYCLE", 1, 10000, 100);
-	public   IntegerProperty  MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new   IntegerProperty( "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA", 8, 65536, 250);
-	public   IntegerProperty          INTENSITY_PC_NUM_COMPONENTS = new   IntegerProperty(         "INTENSITY_PC_NUM_COMPONENTS", 0, 10000, 100);
-	public      FileProperty                    PROJECT_DIRECTORY = new      FileProperty(                   "PROJECT_DIRECTORY", "./", true);
-	public      FileProperty                     SOURCE_DIRECTORY = new      FileProperty(                    "SOURCE_DIRECTORY", "./", true);
-	public      FileProperty                     SAMPLE_DIRECTORY = new      FileProperty(                    "SAMPLE_DIRECTORY", "samples/", true);
-	public      FileProperty                       DATA_DIRECTORY = new      FileProperty(                      "DATA_DIRECTORY", "data/", true);
-	public      FileProperty                MARKER_DATA_DIRECTORY = new      FileProperty(               "MARKER_DATA_DIRECTORY", "transposed/", true);
-	public      FileProperty                    RESULTS_DIRECTORY = new      FileProperty(                   "RESULTS_DIRECTORY", "results/", true);
-	public      FileProperty                       DEMO_DIRECTORY = new      FileProperty(                      "DEMO_DIRECTORY", "demo/", true);
-	public      FileProperty         PENNCNV_EXECUTABLE_DIRECTORY = new      FileProperty(        "PENNCNV_EXECUTABLE_DIRECTORY", "/home/npankrat/bin/", true);
-	public      FileProperty               PENNCNV_DATA_DIRECTORY = new      FileProperty(              "PENNCNV_DATA_DIRECTORY", "penn_data/", true);
-	public      FileProperty            PENNCNV_RESULTS_DIRECTORY = new      FileProperty(           "PENNCNV_RESULTS_DIRECTORY", "penncnv/", true);
-	public      FileProperty                     BACKUP_DIRECTORY = new      FileProperty(                    "BACKUP_DIRECTORY", "backup/", true);
-	public      FileProperty          PROJECT_PROPERTIES_FILENAME = new      FileProperty(                            "FILENAME", "example.properties", false);
-	public      FileProperty             MARKER_POSITION_FILENAME = new      FileProperty(            "MARKER_POSITION_FILENAME", "markerPositions.txt", false);
-	public      FileProperty                   MARKERSET_FILENAME = new      FileProperty(                  "MARKERSET_FILENAME", "data/markers.bim", false);
-	public      FileProperty                MARKERLOOKUP_FILENAME = new      FileProperty(               "MARKERLOOKUP_FILENAME", "data/markerLookup.bml", false);
-	public      FileProperty                  SAMPLELIST_FILENAME = new      FileProperty(                 "SAMPLELIST_FILENAME", "data/samples.bis", false);
-	public      FileProperty               SAMPLE_SUBSET_FILENAME = new      FileProperty(              "SAMPLE_SUBSET_FILENAME", "sampleSubset.txt", false);
-	public      FileProperty                 SAMPLE_DATA_FILENAME = new      FileProperty(                "SAMPLE_DATA_FILENAME", "data/SampleData.txt", false);
-	public      FileProperty          ORIGINAL_CENTROIDS_FILENAME = new      FileProperty(         "ORIGINAL_CENTROIDS_FILENAME", "data/original.cent", false);
-	public      FileProperty          GENOTYPE_CENTROIDS_FILENAME = new      FileProperty(         "GENOTYPE_CENTROIDS_FILENAME", "data/genotype.cent", false);
-	public      FileProperty           CHIMERA_CENTROIDS_FILENAME = new      FileProperty(          "CHIMERA_CENTROIDS_FILENAME", "data/chimera.cent", false);
-	public      FileProperty            CUSTOM_CENTROIDS_FILENAME = new      FileProperty(           "CUSTOM_CENTROIDS_FILENAME", "data/custom.cent", false);
-	public      FileProperty             DISPLAY_MARKERS_FILENAME = new      FileProperty(            "DISPLAY_MARKERS_FILENAME", "data/test.txt", false);
-	public      FileProperty            FILTERED_MARKERS_FILENAME = new      FileProperty(           "FILTERED_MARKERS_FILENAME", "data/drops.dat", false);
-	public      FileProperty                    PEDIGREE_FILENAME = new      FileProperty(                   "PEDIGREE_FILENAME", "pedigree.dat", false);
-	public      FileProperty          MOSAIC_COLOR_CODES_FILENAME = new      FileProperty(         "MOSAIC_COLOR_CODES_FILENAME", "data/mosaic_colors.txt", false);
-	public      FileProperty              MOSAIC_RESULTS_FILENAME = new      FileProperty(             "MOSAIC_RESULTS_FILENAME", "results/Mosaicism.xln", false);
-	public      FileProperty              TARGET_MARKERS_FILENAME = new      FileProperty(             "TARGET_MARKERS_FILENAME", "targetMarkers.txt", false);
-	public      FileProperty                 MOSAIC_ARMS_FILENAME = new      FileProperty(                "MOSAIC_ARMS_FILENAME", "MosaicArms.txt", false);
-	public      FileProperty   CLUSTER_FILTER_COLLECTION_FILENAME = new      FileProperty(  "CLUSTER_FILTER_COLLECTION_FILENAME", "data/clusterFilters.ser", false);
-	public      FileProperty            SEXCHECK_RESULTS_FILENAME = new      FileProperty(           "SEXCHECK_RESULTS_FILENAME", "results/sexCheck.xln", false);
-	public      FileProperty                   GENETRACK_FILENAME = new      FileProperty(                  "GENETRACK_FILENAME", "RefSeq.gtrack", false);
-	public      FileProperty                   AB_LOOKUP_FILENAME = new      FileProperty(                  "AB_LOOKUP_FILENAME", "AB_lookup.dat", false);
-	public      FileProperty              MARKER_METRICS_FILENAME = new      FileProperty(             "MARKER_METRICS_FILENAME", "results/markerQualityChecks.xln", false);
-	public      FileProperty      MARKER_REVIEW_CRITERIA_FILENAME = new      FileProperty(     "MARKER_REVIEW_CRITERIA_FILENAME", "results/review.criteria", false);
-	public      FileProperty   MARKER_EXCLUSION_CRITERIA_FILENAME = new      FileProperty(  "MARKER_EXCLUSION_CRITERIA_FILENAME", "results/exclusion.criteria", false);
-	public      FileProperty    MARKER_COMBINED_CRITERIA_FILENAME = new      FileProperty(   "MARKER_COMBINED_CRITERIA_FILENAME", "results/combined.criteria", false);
-	public      FileProperty                  ANNOTATION_FILENAME = new      FileProperty(                 "ANNOTATION_FILENAME", "data/annotationCollection.ser", false);
-	public      FileProperty         CUSTOM_COLOR_SCHEME_FILENAME = new      FileProperty(        "CUSTOM_COLOR_SCHEME_FILENAME", "", false);
-	public      FileProperty                    GC_MODEL_FILENAME = new      FileProperty(                   "GC_MODEL_FILENAME", "data/custom.gcmodel", false);
-	public      FileProperty                  COMMON_CNP_FILENAME = new      FileProperty(                 "COMMON_CNP_FILENAME", "data/HG19 CNV edit for AGW.txt", false);
-	public      FileProperty                REPORTED_CNP_FILENAME = new      FileProperty(               "REPORTED_CNP_FILENAME", "data/HG19 Reported 2012.05.22.txt", false);
-	public      FileProperty              UNREPORTED_CNP_FILENAME = new      FileProperty(             "UNREPORTED_CNP_FILENAME", "data/HG19 Unreported 2012.05.22-2.txt", false);
-	public      FileProperty                INTENSITY_PC_FILENAME = new      FileProperty(               "INTENSITY_PC_FILENAME", "GENVISIS.PCs.extrapolated.txt", false);
-	public      FileProperty                   SAMPLE_QC_FILENAME = new      FileProperty(                  "SAMPLE_QC_FILENAME", "lrr_sd.xln", false);
-	public MultiFileProperty              SEX_CENTROIDS_FILENAMES = new MultiFileProperty(             "SEX_CENTROIDS_FILENAMES", "", false);
-	public MultiFileProperty                TWOD_LOADED_FILENAMES = new MultiFileProperty(               "TWOD_LOADED_FILENAMES", "", false);
-	public MultiFileProperty                FOREST_PLOT_FILENAMES = new MultiFileProperty(               "FOREST_PLOT_FILENAMES", "", false);
-	public MultiFileProperty        INDIVIDUAL_CNV_LIST_FILENAMES = new MultiFileProperty(       "INDIVIDUAL_CNV_LIST_FILENAMES", "data/list.txt", false);
-	public MultiFileProperty                REGION_LIST_FILENAMES = new MultiFileProperty(               "REGION_LIST_FILENAMES", "data/regions.txt", false);
-	public MultiFileProperty                        CNV_FILENAMES = new MultiFileProperty(                       "CNV_FILENAMES", "", false);
-	public MultiFileProperty     STRATIFICATION_RESULTS_FILENAMES = new MultiFileProperty(    "STRATIFICATION_RESULTS_FILENAMES", "", false);
-	public MultiFileProperty                         QQ_FILENAMES = new MultiFileProperty(                        "QQ_FILENAMES", "", false);
-	public      EnumProperty                SOURCE_FILE_DELIMITER = new      EnumProperty(               "SOURCE_FILE_DELIMITER", 0, "COMMA", "TAB", "SPACE");	
+	public   IntegerProperty                            LOG_LEVEL = new   IntegerProperty(                           "LOG_LEVEL", "", -1, 12, 1);
+	public    StringProperty                         PROJECT_NAME = new    StringProperty(                        "PROJECT_NAME", "Project Name", "New Project");
+	public    StringProperty            SOURCE_FILENAME_EXTENSION = new    StringProperty(           "SOURCE_FILENAME_EXTENSION", "", ".csv");
+	public    StringProperty                            ID_HEADER = new    StringProperty(                           "ID_HEADER", "", "Sample Name");
+	public    StringProperty                TWOD_LOADED_VARIABLES = new    StringProperty(               "TWOD_LOADED_VARIABLES", "", "");
+	public    StringProperty                            FID_ALIAS = new    StringProperty(                           "FID_ALIAS", "", "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
+	public    StringProperty                            IID_ALIAS = new    StringProperty(                           "IID_ALIAS", "", "ID;IID;I_ID;IndID;Ind_ID");
+	public    StringProperty                         SAMPLE_ALIAS = new    StringProperty(                        "SAMPLE_ALIAS", "", "Sample;DNA;DNA#");
+	public   BooleanProperty                   PARSE_AT_AT_SYMBOL = new   BooleanProperty(                  "PARSE_AT_AT_SYMBOL", "", Boolean.FALSE);
+	public   BooleanProperty                           JAR_STATUS = new   BooleanProperty(                          "JAR_STATUS", "", Boolean.FALSE);
+	public   BooleanProperty                    DISPLAY_QUANTILES = new   BooleanProperty(                   "DISPLAY_QUANTILES", "", Boolean.FALSE);
+	public   BooleanProperty                  DISPLAY_STANDARD_QQ = new   BooleanProperty(                 "DISPLAY_STANDARD_QQ", "", Boolean.TRUE);
+	public   BooleanProperty                   DISPLAY_ROTATED_QQ = new   BooleanProperty(                  "DISPLAY_ROTATED_QQ", "", Boolean.FALSE);
+	public   BooleanProperty                   PENNCNV_GZIP_YESNO = new   BooleanProperty(                  "PENNCNV_GZIP_YESNO", "", Boolean.TRUE);
+	public   BooleanProperty                          LONG_FORMAT = new   BooleanProperty(                         "LONG_FORMAT", "", Boolean.FALSE);
+	public   BooleanProperty           SHIFT_SEX_CHR_COLORS_YESNO = new   BooleanProperty(          "SHIFT_SEX_CHR_COLORS_YESNO", "", Boolean.TRUE);
+	public    DoubleProperty                         GC_THRESHOLD = new    DoubleProperty(                        "GC_THRESHOLD", "", 0.0, 1.0, 0.15);
+	public    DoubleProperty                         LRRSD_CUTOFF = new    DoubleProperty(                        "LRRSD_CUTOFF", "", 0.0, 1.0, 0.32);
+	public   IntegerProperty                          NUM_THREADS = new   IntegerProperty(                         "NUM_THREADS", "", 1, 99, 1);
+	public   IntegerProperty              QQ_MAX_NEG_LOG10_PVALUE = new   IntegerProperty(             "QQ_MAX_NEG_LOG10_PVALUE", "", 1, 10000, 100);
+	public   IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new   IntegerProperty("WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", "", 1, 1000000, 10000);
+	public   IntegerProperty         MAX_MARKERS_LOADED_PER_CYCLE = new   IntegerProperty(        "MAX_MARKERS_LOADED_PER_CYCLE", "", 1, 10000, 100);
+	public   IntegerProperty  MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new   IntegerProperty( "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA", "", 8, 65536, 250);
+	public   IntegerProperty          INTENSITY_PC_NUM_COMPONENTS = new   IntegerProperty(         "INTENSITY_PC_NUM_COMPONENTS", "", 0, 10000, 100);
+	public      FileProperty                    PROJECT_DIRECTORY = new      FileProperty(                   "PROJECT_DIRECTORY", "", "./", true);
+	public      FileProperty                     SOURCE_DIRECTORY = new      FileProperty(                    "SOURCE_DIRECTORY", "", "./", true);
+	public      FileProperty                     SAMPLE_DIRECTORY = new      FileProperty(                    "SAMPLE_DIRECTORY", "", "samples/", true);
+	public      FileProperty                       DATA_DIRECTORY = new      FileProperty(                      "DATA_DIRECTORY", "", "data/", true);
+	public      FileProperty                MARKER_DATA_DIRECTORY = new      FileProperty(               "MARKER_DATA_DIRECTORY", "", "transposed/", true);
+	public      FileProperty                    RESULTS_DIRECTORY = new      FileProperty(                   "RESULTS_DIRECTORY", "", "results/", true);
+	public      FileProperty                       DEMO_DIRECTORY = new      FileProperty(                      "DEMO_DIRECTORY", "", "demo/", true);
+	public      FileProperty         PENNCNV_EXECUTABLE_DIRECTORY = new      FileProperty(        "PENNCNV_EXECUTABLE_DIRECTORY", "", "/home/npankrat/bin/", true);
+	public      FileProperty               PENNCNV_DATA_DIRECTORY = new      FileProperty(              "PENNCNV_DATA_DIRECTORY", "", "penn_data/", true);
+	public      FileProperty            PENNCNV_RESULTS_DIRECTORY = new      FileProperty(           "PENNCNV_RESULTS_DIRECTORY", "", "penncnv/", true);
+	public      FileProperty                     BACKUP_DIRECTORY = new      FileProperty(                    "BACKUP_DIRECTORY", "", "backup/", true);
+	public      FileProperty          PROJECT_PROPERTIES_FILENAME = new      FileProperty(                            "FILENAME", "", "example.properties", false);
+	public      FileProperty             MARKER_POSITION_FILENAME = new      FileProperty(            "MARKER_POSITION_FILENAME", "", "markerPositions.txt", false);
+	public      FileProperty                   MARKERSET_FILENAME = new      FileProperty(                  "MARKERSET_FILENAME", "", "data/markers.bim", false);
+	public      FileProperty                MARKERLOOKUP_FILENAME = new      FileProperty(               "MARKERLOOKUP_FILENAME", "", "data/markerLookup.bml", false);
+	public      FileProperty                  SAMPLELIST_FILENAME = new      FileProperty(                 "SAMPLELIST_FILENAME", "", "data/samples.bis", false);
+	public      FileProperty               SAMPLE_SUBSET_FILENAME = new      FileProperty(              "SAMPLE_SUBSET_FILENAME", "", "sampleSubset.txt", false);
+	public      FileProperty                 SAMPLE_DATA_FILENAME = new      FileProperty(                "SAMPLE_DATA_FILENAME", "", "data/SampleData.txt", false);
+	public      FileProperty          ORIGINAL_CENTROIDS_FILENAME = new      FileProperty(         "ORIGINAL_CENTROIDS_FILENAME", "", "data/original.cent", false);
+	public      FileProperty          GENOTYPE_CENTROIDS_FILENAME = new      FileProperty(         "GENOTYPE_CENTROIDS_FILENAME", "", "data/genotype.cent", false);
+	public      FileProperty           CHIMERA_CENTROIDS_FILENAME = new      FileProperty(          "CHIMERA_CENTROIDS_FILENAME", "", "data/chimera.cent", false);
+	public      FileProperty            CUSTOM_CENTROIDS_FILENAME = new      FileProperty(           "CUSTOM_CENTROIDS_FILENAME", "", "data/custom.cent", false);
+	public      FileProperty             DISPLAY_MARKERS_FILENAME = new      FileProperty(            "DISPLAY_MARKERS_FILENAME", "", "data/test.txt", false);
+	public      FileProperty            FILTERED_MARKERS_FILENAME = new      FileProperty(           "FILTERED_MARKERS_FILENAME", "", "data/drops.dat", false);
+	public      FileProperty                    PEDIGREE_FILENAME = new      FileProperty(                   "PEDIGREE_FILENAME", "", "pedigree.dat", false);
+	public      FileProperty          MOSAIC_COLOR_CODES_FILENAME = new      FileProperty(         "MOSAIC_COLOR_CODES_FILENAME", "", "data/mosaic_colors.txt", false);
+	public      FileProperty              MOSAIC_RESULTS_FILENAME = new      FileProperty(             "MOSAIC_RESULTS_FILENAME", "", "results/Mosaicism.xln", false);
+	public      FileProperty              TARGET_MARKERS_FILENAME = new      FileProperty(             "TARGET_MARKERS_FILENAME", "", "targetMarkers.txt", false);
+	public      FileProperty                 MOSAIC_ARMS_FILENAME = new      FileProperty(                "MOSAIC_ARMS_FILENAME", "", "MosaicArms.txt", false);
+	public      FileProperty   CLUSTER_FILTER_COLLECTION_FILENAME = new      FileProperty(  "CLUSTER_FILTER_COLLECTION_FILENAME", "", "data/clusterFilters.ser", false);
+	public      FileProperty            SEXCHECK_RESULTS_FILENAME = new      FileProperty(           "SEXCHECK_RESULTS_FILENAME", "", "results/sexCheck.xln", false);
+	public      FileProperty                   GENETRACK_FILENAME = new      FileProperty(                  "GENETRACK_FILENAME", "", "RefSeq.gtrack", false);
+	public      FileProperty                   AB_LOOKUP_FILENAME = new      FileProperty(                  "AB_LOOKUP_FILENAME", "", "AB_lookup.dat", false);
+	public      FileProperty              MARKER_METRICS_FILENAME = new      FileProperty(             "MARKER_METRICS_FILENAME", "", "results/markerQualityChecks.xln", false);
+	public      FileProperty      MARKER_REVIEW_CRITERIA_FILENAME = new      FileProperty(     "MARKER_REVIEW_CRITERIA_FILENAME", "", "results/review.criteria", false);
+	public      FileProperty   MARKER_EXCLUSION_CRITERIA_FILENAME = new      FileProperty(  "MARKER_EXCLUSION_CRITERIA_FILENAME", "", "results/exclusion.criteria", false);
+	public      FileProperty    MARKER_COMBINED_CRITERIA_FILENAME = new      FileProperty(   "MARKER_COMBINED_CRITERIA_FILENAME", "", "results/combined.criteria", false);
+	public      FileProperty                  ANNOTATION_FILENAME = new      FileProperty(                 "ANNOTATION_FILENAME", "", "data/annotationCollection.ser", false);
+	public      FileProperty         CUSTOM_COLOR_SCHEME_FILENAME = new      FileProperty(        "CUSTOM_COLOR_SCHEME_FILENAME", "", "", false);
+	public      FileProperty                    GC_MODEL_FILENAME = new      FileProperty(                   "GC_MODEL_FILENAME", "", "data/custom.gcmodel", false);
+	public      FileProperty                  COMMON_CNP_FILENAME = new      FileProperty(                 "COMMON_CNP_FILENAME", "", "data/HG19 CNV edit for AGW.txt", false);
+	public      FileProperty                REPORTED_CNP_FILENAME = new      FileProperty(               "REPORTED_CNP_FILENAME", "", "data/HG19 Reported 2012.05.22.txt", false);
+	public      FileProperty              UNREPORTED_CNP_FILENAME = new      FileProperty(             "UNREPORTED_CNP_FILENAME", "", "data/HG19 Unreported 2012.05.22-2.txt", false);
+	public      FileProperty                INTENSITY_PC_FILENAME = new      FileProperty(               "INTENSITY_PC_FILENAME", "", "GENVISIS.PCs.extrapolated.txt", false);
+	public      FileProperty                   SAMPLE_QC_FILENAME = new      FileProperty(                  "SAMPLE_QC_FILENAME", "", "lrr_sd.xln", false);
+	public MultiFileProperty              SEX_CENTROIDS_FILENAMES = new MultiFileProperty(             "SEX_CENTROIDS_FILENAMES", "", "", false);
+	public MultiFileProperty                TWOD_LOADED_FILENAMES = new MultiFileProperty(               "TWOD_LOADED_FILENAMES", "", "", false);
+	public MultiFileProperty                FOREST_PLOT_FILENAMES = new MultiFileProperty(               "FOREST_PLOT_FILENAMES", "", "", false);
+	public MultiFileProperty        INDIVIDUAL_CNV_LIST_FILENAMES = new MultiFileProperty(       "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", false);
+	public MultiFileProperty                REGION_LIST_FILENAMES = new MultiFileProperty(               "REGION_LIST_FILENAMES", "", "data/regions.txt", false);
+	public MultiFileProperty                        CNV_FILENAMES = new MultiFileProperty(                       "CNV_FILENAMES", "", "", false);
+	public MultiFileProperty     STRATIFICATION_RESULTS_FILENAMES = new MultiFileProperty(    "STRATIFICATION_RESULTS_FILENAMES", "", "", false);
+	public MultiFileProperty                         QQ_FILENAMES = new MultiFileProperty(                        "QQ_FILENAMES", "", "", false);
+	public      EnumProperty                SOURCE_FILE_DELIMITER = new      EnumProperty(               "SOURCE_FILE_DELIMITER", "", 0, "COMMA", "TAB", "SPACE");	
 	
 	private boolean jar;
 	private String projectPropertiesFilename;
