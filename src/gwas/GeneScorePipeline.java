@@ -731,20 +731,18 @@ public class GeneScorePipeline {
 		double sum = 0.0;
 		// (Beta^2 * 2 * MAF (1-MAF))
 		for (java.util.Map.Entry<String, double[]> entry : markerMap.entrySet()) {
-			double score = 2 * entry.getValue()[0] * entry.getValue()[0] * entry.getValue()[1] * (1 - entry.getValue()[1]);  
+			double score = 2 * (entry.getValue()[0] * entry.getValue()[0]) * entry.getValue()[1] * (1 - entry.getValue()[1]);  
 			sum += score;
 		}
 		return sum;
 	}
 	
 	private double getChiDistRevScore(HashMap<String, double[]> markerMap) {
-		double[] pvals = new double[markerMap.size()];
-		int index = 0;
+		double sum = 0.0;
 		for (java.util.Map.Entry<String, double[]> entry : markerMap.entrySet()) {
-			pvals[index] = entry.getValue()[2];
-			index++;
+			sum += ProbDist.ChiDistReverse(entry.getValue()[2], 1);
 		}
-		return ProbDist.ChiDistReverse(Array.median(pvals), 1);
+		return sum;
 	}
 	
 	public void runPipeline() {
