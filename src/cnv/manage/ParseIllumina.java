@@ -446,7 +446,8 @@ public class ParseIllumina implements Runnable {
 			if (!reader.ready() || count == 1000) {
 				log.reportError("Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
 				log.reportError("   Perhaps the delimiter, which is currently set to "+proj.getProperty(proj.SOURCE_FILE_DELIMITER)+", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
-
+				log.reportError("   OR perhaps the ID_HEADER property is incorrect; the text '" + proj.getProperty(proj.ID_HEADER) + "' should be present in the following line: [" + Array.toStr(line) + "]");
+				
 				reader.close();
 				reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[0]);
 				delimiterCounts = new int[DELIMITERS.length][count];
