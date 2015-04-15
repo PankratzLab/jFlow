@@ -16,6 +16,7 @@ public class GeneTrack implements Serializable {
 
     private int[][]          starts;
     private GeneData[][]     genes;
+    private String geneSetFilename;
 
     public GeneTrack(String geneSetFilename) {
         Hashtable<String, Vector<GeneData>> hash = new Hashtable<String, Vector<GeneData>>();
@@ -141,6 +142,14 @@ public class GeneTrack implements Serializable {
     
 	public GeneData[][] getGenes() {
 		return genes;
+	}
+
+	public String getGeneSetFilename() {
+		return geneSetFilename;
+	}
+
+	public void setGeneSetFilename(String geneSetFilename) {
+		this.geneSetFilename = geneSetFilename;
 	}
 
 	public void serialize(String filename) {

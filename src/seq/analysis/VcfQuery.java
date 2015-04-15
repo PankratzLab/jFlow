@@ -17,6 +17,7 @@ import java.util.concurrent.Callable;
 
 import seq.manage.VCFOps;
 import seq.manage.VCFOps.VcfPopulation;
+import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -148,7 +149,7 @@ public class VcfQuery {
 			this.outputDir = outputDir;
 			this.org = params.getOrg();
 			this.writer = writer;
-			this.vpop = params.getPopulationFile() == null ? null : VcfPopulation.load(params.getPopulationFile(), log);
+			this.vpop = params.getPopulationFile() == null ? null : VcfPopulation.load(params.getPopulationFile(),POPULATION_TYPE.ANY, log);
 			this.log = log;
 		}
 

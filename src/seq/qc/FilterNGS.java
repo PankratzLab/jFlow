@@ -117,9 +117,13 @@ public class FilterNGS implements Serializable {
 		 */
 		CALL_RATE_LOOSE(0.90, FILTER_TYPE.GTE_FILTER),
 		/**
-		 * Used for filtering on VQSLOD score of variant
+		 * Used for strict filtering on VQSLOD score of variant
 		 */
-		VQSLOD_STRICT(3.0, FILTER_TYPE.GTE_FILTER);
+		VQSLOD_STRICT(3.0, FILTER_TYPE.GTE_FILTER),
+		/**
+		 * Used for loose filtering on VQSLOD score of variant
+		 */
+		VQSLOD_LOOSE(1.0, FILTER_TYPE.GTE_FILTER);
 
 		private double dFilter;
 		private FILTER_TYPE type;
@@ -171,6 +175,9 @@ public class FilterNGS implements Serializable {
 		 * Will pass if the variant is un-ambiguous
 		 */
 		AMBIGUOUS_FILTER(FILTER_TYPE.FALSE_BOOL), /**
+		 * Is true when the variant has not been filtered out previously
+		 */
+		FAILURE_FILTER(FILTER_TYPE.TRUE_BOOL), /**
 		 * Is true when the jexl formatted expression is evaluated
 		 */
 		JEXL(FILTER_TYPE.TRUE_BOOL);
@@ -427,6 +434,15 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
+	private VcFilterBoolean getFailureFilter(VARIANT_FILTER_BOOLEAN bfilter) {
+		return new VcFilterBoolean(bfilter) {
+			@Override
+			public Boolean getValue(VariantContext vc) {
+				return vc.isNotFiltered();
+			}
+		};
+	}
+
 	private VcFilterBoolean getUnambiguousFilter(VARIANT_FILTER_BOOLEAN bfilter) {
 		return new VcFilterBoolean(bfilter) {
 			@Override
@@ -450,6 +466,9 @@ public class FilterNGS implements Serializable {
 				break;
 			case BIALLELIC_FILTER:
 				vBooleans[i] = getBiallelicFilter(bfilter);
+				break;
+			case FAILURE_FILTER:
+				vBooleans[i] = getFailureFilter(bfilter);
 				break;
 			default:
 				log.reportTimeError("Invalid boolean filter type " + bfilter);
@@ -487,6 +506,9 @@ public class FilterNGS implements Serializable {
 				vDoubles[i] = getMAFFilter(dfilter);
 				break;
 			case VQSLOD_STRICT:
+				vDoubles[i] = getVQSLODFilter(dfilter);
+				break;
+			case VQSLOD_LOOSE:
 				vDoubles[i] = getVQSLODFilter(dfilter);
 				break;
 			default:
@@ -635,7 +657,7 @@ public class FilterNGS implements Serializable {
 				VariantContext vcCase = VCOps.getSubset(vc, casePop);
 				pass = caseFilters.filter(vcCase);
 				if (pass.passed()) {
-					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase,-1);
+					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase, -1);
 					pass = caseFilters.filter(vcAlts);
 					if (pass.passed()) {
 					}
@@ -673,7 +695,7 @@ public class FilterNGS implements Serializable {
 			@Override
 			public boolean filterOut(SAMRecord record) {
 				int mapQual = record.getMappingQuality();
-				if (mapQual == 255 || (double)mapQual < doubleFilter) {
+				if (mapQual == 255 || (double) mapQual < doubleFilter) {
 					// TODO Auto-generated method stub
 					return true;
 				} else {

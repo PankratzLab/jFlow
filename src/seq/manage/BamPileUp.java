@@ -33,7 +33,10 @@ public class BamPileUp {
 		/**
 		 * Will only report positions with alternate alleles, and demands a reference genome
 		 */
-		CONTAMINATION, REGULAR;
+		CONTAMINATION, /**
+		 * Pileup to all positions passing filters supplied
+		 */
+		REGULAR;
 	}
 
 	private String bam;
@@ -60,10 +63,10 @@ public class BamPileUp {
 			String error = "A reference genome must be provided to detect reference alleles, cannot detect contamination in bam file " + bam;
 			log.reportTimeError(error);
 			return null;
-		} else if(referenceGenome==null){
+		} else if (referenceGenome == null) {
 			log.reportTimeWarning("A reference genome was not provided, reference and alternate alleles will not be recorded");
 		}
-	
+
 		if (type == PILE_TYPE.CONTAMINATION && binSize != 1) {
 			String error = "A bin size of one must be used for contamination detection on  " + bam;
 			log.reportTimeError(error);
@@ -117,11 +120,11 @@ public class BamPileUp {
 				bamPiles = new ArrayList<BamPileUp.BamPile>(bamPiles.size());
 				while (train.hasNext()) {
 					TmpBamPile tmpBamPile = train.next();
-					if (tmpBamPile.isOverlaps()) {
-						bamPiles.add(tmpBamPile.getBamPile());
+					if (tmpBamPile.overlapsCurrentRecord()) {
+						bamPiles.add(tmpBamPile.getBamPile());// stays in this round
 					} else {
 						BamPile bamPile = tmpBamPile.getBamPile();
-						if (type == PILE_TYPE.CONTAMINATION) {
+						if (referenceGenome != null || type == PILE_TYPE.CONTAMINATION) {
 							bamPile.setReference(referenceGenome);
 						}
 						if (filterNGS.getReadDepthFilter() == null || bamPile.getTotalDepth(false, false) > filterNGS.getReadDepthFilter()[0]) {
@@ -225,7 +228,7 @@ public class BamPileUp {
 		private Logger log;
 		private int index = 0;
 
-		public TmpBamPileProducer(SAMRecord samRecord, Segment samRecordSegment, BamPile[] bamPiles, FilterNGS filterNGS, Logger log) {
+		private TmpBamPileProducer(SAMRecord samRecord, Segment samRecordSegment, BamPile[] bamPiles, FilterNGS filterNGS, Logger log) {
 			super();
 			this.samRecord = samRecord;
 			this.bamPiles = bamPiles;
@@ -269,7 +272,7 @@ public class BamPileUp {
 		private Segment samRecordSegment;
 		private Logger log;
 
-		public TmpBamPile(SAMRecord samRecord, Segment samRecordSegment, BamPile bamPile, FilterNGS filterNGS, Logger log) {
+		private TmpBamPile(SAMRecord samRecord, Segment samRecordSegment, BamPile bamPile, FilterNGS filterNGS, Logger log) {
 			super();
 			this.samRecord = samRecord;
 			this.bamPile = bamPile;
@@ -289,11 +292,11 @@ public class BamPileUp {
 			return this;
 		}
 
-		public BamPile getBamPile() {
+		private BamPile getBamPile() {
 			return bamPile;
 		}
 
-		public boolean isOverlaps() {
+		private boolean overlapsCurrentRecord() {
 			return overlaps;
 		}
 
@@ -315,7 +318,7 @@ public class BamPileUp {
 		private double[] avgMapQ;
 		private double[] avgPhread;
 
-		public static String getHeader() {
+		private static String getHeader() {
 			String header = Array.toStr(BASE_HEADER);
 			for (int i = 0; i < COUNT_HEADER.length; i++) {
 				header += "\t" + COUNT_HEADER[i];
@@ -330,7 +333,7 @@ public class BamPileUp {
 			return header;
 		}
 
-		public BamPile(Segment bin) {
+		private BamPile(Segment bin) {
 			super();
 			this.bin = bin;
 			this.counts = new int[7];// A,G,C,T,N,Del,Ins
@@ -340,7 +343,7 @@ public class BamPileUp {
 
 		}
 
-		public int getTotalDepth(boolean includeIndels, boolean includeNs) {
+		private int getTotalDepth(boolean includeIndels, boolean includeNs) {
 			boolean[] indelmask = new boolean[7];
 			Arrays.fill(indelmask, true);
 			if (!includeIndels) {
@@ -355,7 +358,7 @@ public class BamPileUp {
 
 		}
 
-		public void setReference(ReferenceGenome referenceGenome) {
+		private void setReference(ReferenceGenome referenceGenome) {
 
 			String[] ref = referenceGenome.getSequenceFor(bin);
 			refAllele = ref[0];
@@ -370,7 +373,7 @@ public class BamPileUp {
 			}
 		}
 
-		public String getOuput(Logger log) {
+		private String getOuput(Logger log) {
 			double numRef = (double) getNumRef(log);
 			double numAlt = (double) getNumAlt(log);
 			String out = "";
@@ -392,21 +395,21 @@ public class BamPileUp {
 			return out;
 		}
 
-		public double getPropRef(Logger log) {
+		private double getPropRef(Logger log) {
 			double numRef = (double) getNumRef(log);
 			double numAlt = (double) getNumAlt(log);
 			double total = numRef + numAlt;
 			return numRef / total;
 		}
 
-		public double getPropAlt(Logger log) {
+		private double getPropAlt(Logger log) {
 			double numRef = (double) getNumRef(log);
 			double numAlt = (double) getNumAlt(log);
 			double total = numRef + numAlt;
 			return numAlt / total;
 		}
 
-		public int[] getAltCounts(Logger log) {
+		private int[] getAltCounts(Logger log) {
 			boolean[] referenceMask = new boolean[7];
 			Arrays.fill(referenceMask, true);
 			referenceMask[6] = false;
@@ -430,15 +433,15 @@ public class BamPileUp {
 			return Array.subArray(counts, referenceMask);
 		}
 
-		public int getNumAlt(Logger log) {
+		private int getNumAlt(Logger log) {
 			return Array.sum(getAltCounts(log));
 		}
 
-		public boolean hasOnlyOneAlt(Logger log) {
+		private boolean hasOnlyOneAlt(Logger log) {
 			return Array.countIf(getAltCounts(log), 0) == 3;// everthing else is 0
 		}
 
-		public int getNumRef(Logger log) {
+		private int getNumRef(Logger log) {
 			boolean[] referenceMask = new boolean[7];
 			Arrays.fill(referenceMask, false);
 			referenceMask[6] = false;
@@ -461,11 +464,11 @@ public class BamPileUp {
 			return (Array.sum(Array.subArray(counts, referenceMask)));
 		}
 
-		public boolean hasAltAllele(Logger log) {
+		private boolean hasAltAllele(Logger log) {
 			return getNumAlt(log) > 0;
 		}
 
-		public void summarize() {
+		private void summarize() {
 			for (int i = 0; i < counts.length; i++) {
 				if (counts[i] > 0) {
 					avgMapQ[i] = (double) avgMapQ[i] / counts[i];
@@ -474,11 +477,11 @@ public class BamPileUp {
 			}
 		}
 
-		public Segment getBin() {
+		private Segment getBin() {
 			return bin;
 		}
 
-		public void addRecord(SAMRecord samRecord, double phredFilter, Logger log) {
+		private void addRecord(SAMRecord samRecord, double phredFilter, Logger log) {
 			Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
 			Segment toPile = bin.getUnion(samRecordSegment, log);
 			int mapQ = samRecord.getMappingQuality();
@@ -605,8 +608,16 @@ public class BamPileUp {
 			return histogram;
 		}
 	}
-
+	
+	
+	
+	public static class BamPileUpSummary{
+		
+		private DynamicHistogram proRefHistogram;
+		private Logger log;
+	}
 }
+
 //
 // public static class BamPileProducer implements Producer<Boolean> {
 // private Segment[] q;

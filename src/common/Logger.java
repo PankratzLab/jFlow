@@ -58,6 +58,14 @@ public class Logger implements Serializable {
 	public void reportTimeInfo(String str) {
 		report(ext.getTime() + " Info - " + str, true, true);
 	}
+	
+	/**
+	 * @param file
+	 *            report this file already exists with a time stamp and info message
+	 */
+	public void reportFileExists(String file) {
+		reportTimeInfo("File "+ file+" already exists...");
+	}
 
 	/**
 	 * @param str

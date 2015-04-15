@@ -3,6 +3,7 @@ package seq.manage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,10 +16,15 @@ import java.util.TreeSet;
 import stats.Histogram.DynamicHistogram;
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.tribble.Tribble;
+import htsjdk.tribble.index.Index;
+import htsjdk.tribble.index.IndexFactory;
+import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
+import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
 import common.Array;
@@ -328,18 +334,79 @@ public class VCFOps {
 	 *
 	 */
 	public static class VcfPopulation {
+		public static final String CASE = "CASE";
+		public static final String CONTROL = "CONTROL";
 		private static final String[] HEADER = new String[] { "IID", "Population", "SuperPopulation" };
 		private static final String SKIP = "#N/A";
 		private Hashtable<String, Set<String>> subPop;
 		private Hashtable<String, Set<String>> superPop;
 		private ArrayList<String> uniqSubPop;
 		private ArrayList<String> uniqSuperPop;
+		private POPULATION_TYPE type;
+		private String fileName;
+		private Logger log;
 
-		public VcfPopulation() {
+		public enum POPULATION_TYPE {
+			CASE_CONTROL, ANY, STRATIFICATION;
+		}
+
+		public VcfPopulation(POPULATION_TYPE type, Logger log) {
 			this.subPop = new Hashtable<String, Set<String>>();
 			this.superPop = new Hashtable<String, Set<String>>();
 			this.uniqSubPop = new ArrayList<String>();
 			this.uniqSuperPop = new ArrayList<String>();
+			this.type = type;
+			this.log = log;
+		}
+
+		public boolean generatePlinkSeqPheno(String output) {
+			boolean generated = false;
+			if (type != POPULATION_TYPE.CASE_CONTROL) {
+				log.reportTimeError("Population type must be set to " + POPULATION_TYPE.CASE_CONTROL);
+				return generated;
+			} else if (!valid()) {
+				return generated;
+			} else {
+
+				try {
+					PrintWriter writer = new PrintWriter(new FileWriter(output));
+					writer.println("##" + CASE + ",Integer,0,Primary disease phenotype");
+					writer.println("#ID\t" + CASE);
+					Set<String> cases = subPop.get(CASE);
+					Set<String> controls = subPop.get(CONTROL);
+					for (String aCase : cases) {
+						writer.println(aCase + "\t2");
+					}
+					for (String control : controls) {
+						writer.println(control + "\t1");
+					}
+					writer.close();
+					generated = true;
+				} catch (Exception e) {
+					log.reportError("Error writing to " + output);
+					log.reportException(e);
+				}
+			}
+			return generated;
+		}
+
+		public boolean valid() {
+			boolean valid = true;
+			switch (type) {
+			case ANY:
+				break;
+			case CASE_CONTROL:
+				if (!subPop.containsKey(CASE) || !subPop.containsKey(CONTROL)) {
+					log.reportTimeError("Population type was set to " + type + ", but did not contain " + CASE + " and  " + CONTROL);
+				}
+				break;
+			case STRATIFICATION:
+				break;
+			default:
+				break;
+
+			}
+			return valid;
 		}
 
 		/**
@@ -382,13 +449,22 @@ public class VCFOps {
 		/**
 		 * Breakdown of sample sizes per population
 		 */
-		public void report(Logger log) {
+		public void report() {
+			log.reportTimeInfo("Population type :" + type);
 			for (String key : subPop.keySet()) {
 				log.reportTimeInfo("Sub - population " + key + " had " + subPop.get(key).size() + " individuals");
 			}
 			for (String key : superPop.keySet()) {
 				log.reportTimeInfo("Super - population " + key + " had " + superPop.get(key).size() + " individuals");
 			}
+		}
+
+		public String getFileName() {
+			return fileName;
+		}
+
+		public void setFileName(String fileName) {
+			this.fileName = fileName;
 		}
 
 		private VariantContextWriter[] getWritersForPop(String outputbase, VCFFileReader reader, Logger log) {
@@ -411,8 +487,8 @@ public class VCFOps {
 				log.reportFileNotFound(fullPathToPopFile);
 				return;
 			}
-			VcfPopulation vpop = VcfPopulation.load(fullPathToPopFile, log);
-			vpop.report(log);
+			VcfPopulation vpop = VcfPopulation.load(fullPathToPopFile, POPULATION_TYPE.ANY, log);
+			vpop.report();
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 
 			String dir = ext.parseDirectoryOfFile(vcf);
@@ -440,8 +516,8 @@ public class VCFOps {
 		 * @param log
 		 * @return
 		 */
-		public static VcfPopulation load(String fullPathToPopFile, Logger log) {
-			VcfPopulation vcfPopulation = new VcfPopulation();
+		public static VcfPopulation load(String fullPathToPopFile, POPULATION_TYPE type, Logger log) {
+			VcfPopulation vcfPopulation = new VcfPopulation(type, log);
 			try {
 				BufferedReader reader = Files.getAppropriateReader(fullPathToPopFile);
 				String[] header = Files.getHeaderOfFile(fullPathToPopFile, log);
@@ -463,7 +539,12 @@ public class VCFOps {
 				log.reportError("Error reading file \"" + fullPathToPopFile + "\"");
 				return null;
 			}
-			return vcfPopulation;
+			vcfPopulation.setFileName(fullPathToPopFile);
+			if (!vcfPopulation.valid()) {
+				return null;
+			} else {
+				return vcfPopulation;
+			}
 		}
 
 	}
@@ -544,6 +625,62 @@ public class VCFOps {
 		}
 		vcfFileReader.close();
 		return numVar;
+	}
+
+	/**
+	 * @return true if the index exists and was valid, or was created
+	 */
+	public static boolean verifyIndexRegular(String vcfFile, Logger log) {
+		boolean created = false;
+		if (!vcfFile.endsWith(".vcf")) {
+			log.reportTimeError("Currently can only index regular vcf files");
+		} else {
+			File indexFile = Tribble.indexFile(new File(vcfFile));
+			if (indexFile.canRead()) {
+				log.report("Info - Loading index file " + indexFile);
+				IndexFactory.loadIndex(indexFile.getAbsolutePath());
+				created = true;
+			} else {
+				log.report("Info - creating index file " + indexFile);
+				try {
+					Index index = IndexFactory.createLinearIndex(new File(vcfFile), new VCFCodec());
+					LittleEndianOutputStream stream = new LittleEndianOutputStream(new FileOutputStream(indexFile));
+					index.write(stream);
+					stream.close();
+					created = true;
+				} catch (IOException e) {
+					log.reportError("Error - could not create index file " + indexFile);
+					created = false;
+				}
+			}
+		}
+		return created;
+	}
+
+	/**
+	 * @return true if the vcf file was gzipped
+	 */
+	public static boolean gzipAndIndex(String vcfFile, Logger log) {
+		boolean created = false;
+		String vcfFileGz = vcfFile + ".gz";
+
+		if (Files.exists(vcfFileGz)) {
+			log.reportTimeWarning("Gzipped vcf " + vcfFileGz + " already exists, skipping");
+		} else {
+			if (verifyIndexRegular(vcfFile, log)) {
+				VCFFileReader reader = new VCFFileReader(vcfFile, true);
+				VariantContextWriter writer = initWriter(vcfFileGz, null, reader.getFileHeader().getSequenceDictionary());
+				copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+				for (VariantContext vc : reader) {
+					writer.add(vc);
+				}
+				reader.close();
+				writer.close();
+				created = true;
+
+			}
+		}
+		return created;
 	}
 
 	/**

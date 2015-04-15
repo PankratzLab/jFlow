@@ -72,10 +72,10 @@ public class BamContamination {
 		}
 	}
 
-	public static void runContam(String bamDir, String referenceGenomeFasta, String segFile, FilterNGS filterNGS, int numthreads, Logger log) {
+	public static void runContam(String bamDir, String referenceGenomeFasta, String segFile, String pfbFile, FilterNGS filterNGS, int numthreads, Logger log) {
 
 		String[] bamFiles = Files.listFullPaths(bamDir, ".bam", false);
-		//bamFiles = Array.subArray(bamFiles, 0, numthreads);
+		// bamFiles = Array.subArray(bamFiles, 0, numthreads);
 		Segment[] q = segFile == null ? null : Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 0);
 		ReferenceGenome referenceGenome = referenceGenomeFasta == null ? null : new ReferenceGenome(referenceGenomeFasta, log);
 		BamContaminationProducer producer = new BamContaminationProducer(q, filterNGS, referenceGenome, bamFiles, log);
@@ -116,6 +116,7 @@ public class BamContamination {
 		String segFile = null;
 		String referenceGenomeFasta = "hg19_canonical.fa";
 		String bamDir = null;
+		String pfbFile = null;
 		double minPhred = 30;
 		double minMapQ = 30;
 
@@ -132,9 +133,10 @@ public class BamContamination {
 		usage += "   (4) minimum phred score for a base pair to be piled  (i.e. minPhred=" + minPhred + " (default))\n" + "";
 		usage += "   (5) minimum mapping quality score for a read to be piled  (i.e. minMapQ=" + minMapQ + " (default))\n" + "";
 		usage += "   (6) minimum total depth for a position to be reported  (i.e. minDepth=" + minDepth + " (default))\n" + "";
-		usage += "   (6) minimum alternate allele depth for a position to be reported  (i.e. minAltDepth=" + minAltDepth + " (default, no minimum))\n" + "";
+		usage += "   (7) minimum alternate allele depth for a position to be reported  (i.e. minAltDepth=" + minAltDepth + " (default, no minimum))\n" + "";
+		usage += "   (8) file listing pfbs for known variants  (i.e. pfb= (no default))\n" + "";
 
-		usage += PSF.Ext.getNumThreadsCommand(7, numthreads);
+		usage += PSF.Ext.getNumThreadsCommand(9, numthreads);
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -148,6 +150,9 @@ public class BamContamination {
 				numArgs--;
 			} else if (args[i].startsWith("segs=")) {
 				segFile = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("pfb=")) {
+				pfbFile = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("minPhred=")) {
 				minPhred = ext.parseDoubleArg(args[i]);
@@ -179,7 +184,7 @@ public class BamContamination {
 			logfile = Files.exists(bamDir) ? bamDir + "contam.log" : logfile;
 			log = new Logger(logfile);
 			FilterNGS filterNGS = new FilterNGS(minMapQ, minPhred, new int[] { minDepth, minAltDepth });
-			runContam(bamDir, referenceGenomeFasta, segFile, filterNGS, numthreads, log);
+			runContam(bamDir, referenceGenomeFasta, segFile, pfbFile, filterNGS, numthreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
