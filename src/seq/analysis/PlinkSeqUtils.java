@@ -1,16 +1,25 @@
 package seq.analysis;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Properties;
 
+import seq.analysis.PlinkSeq.BURDEN_Tests;
+import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.Positions;
 import common.ext;
+import filesys.GeneData;
+import filesys.GeneTrack;
 
 /**
  * Handles the project and phenotype system used by PlinkSeq
@@ -207,6 +216,187 @@ public class PlinkSeqUtils {
 
 		public String[] getVcfs() {
 			return vcfs;
+		}
+	}
+
+	public static void generatePlinkSeqLoc(GeneTrack geneTrack, String locFileName, Logger log) {
+		log.reportTimeInfo("Attempting to parse genetrack to" + locFileName);
+		if (!Files.exists(locFileName)) {
+			try {
+				// new File(ext.parseDirectoryOfFile(locFileName))
+				new File(ext.parseDirectoryOfFile(locFileName)).mkdirs();
+				GeneData[][] gDatas = geneTrack.getGenes();
+				PrintWriter writer = new PrintWriter(new FileWriter(locFileName));
+				writer.println("#CHR\tPOS1\tPOS2\tID");
+				for (int i = 0; i < gDatas.length; i++) {
+					for (int j = 0; j < gDatas[i].length; j++) {
+						writer.println(Positions.getChromosomeUCSC(gDatas[i][j].getChr(), true) + "\t" + gDatas[i][j].getStart() + "\t" + gDatas[i][j].getStop() + "\t" + gDatas[i][j].getGeneName());
+					}
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + locFileName);
+				log.reportException(e);
+			}
+		} else {
+			log.reportFileExists(locFileName);
+		}
+
+	}
+
+	public static class PlinkSeqBurdenSummary {
+		private static final String[] HEADER = new String[] { "LOCUS", "POS", "ALIAS", "NVAR", "TEST", "P", "I", "DESC" };
+		private String analysis;
+		private String resultsFile;
+		private Hashtable<String, Integer> locMap;
+		private ArrayList<PlinkSeqLocSummary> locSummaries;
+		private Logger log;
+
+		public PlinkSeqBurdenSummary(String analysis, String resultsFile, Logger log) {
+			super();
+			this.analysis = analysis;
+			this.resultsFile = resultsFile;
+			this.locMap = new Hashtable<String, Integer>();
+			this.locSummaries = new ArrayList<PlinkSeqUtils.PlinkSeqLocSummary>();
+			this.log = log;
+		}
+
+		public void load() {
+			if (Files.exists(resultsFile)) {
+				String[] header = Files.getLineContaining(resultsFile, "\t", HEADER, log);
+				if (header != null) {
+					int[] indices = ext.indexFactors(HEADER, header, true, false);
+					String curLoc = null;
+					int index = 0;
+					try {
+						BufferedReader reader = Files.getAppropriateReader(resultsFile);
+						while (reader.ready()) {
+							String[] line = reader.readLine().trim().split("[\\s]+");
+							if (line.length == HEADER.length) {
+								try {
+									String pos = line[indices[1]];
+									String alias = line[indices[2]];
+									int nvar = Integer.parseInt(line[indices[3]]);
+									BURDEN_Tests type = BURDEN_Tests.valueOf(line[indices[4]]);
+									double p = Double.parseDouble(line[indices[5]]);
+									double i = Double.parseDouble(line[indices[6]]);
+									if (curLoc == null || !curLoc.equals(line[indices[0]])) {
+										curLoc = line[indices[0]];
+										if (locMap.containsKey(curLoc)) {
+											log.reportTimeError("Multiple entries for " + curLoc);
+											return;
+										} else {
+											locSummaries.add(new PlinkSeqLocSummary(curLoc, pos, nvar, alias));
+											locMap.put(curLoc, index);
+											index++;
+										}
+									}
+									locSummaries.get(locSummaries.size() - 1).addTest(curLoc, pos, nvar, type.toString(), p, i, alias, type, log);
+
+								} catch (NumberFormatException nfe) {
+									log.reportTimeInfo("Invalid number on line " + Array.toStr(line));
+									log.reportException(nfe);
+								}
+
+							}
+						}
+						reader.close();
+
+					} catch (FileNotFoundException fnfe) {
+						log.reportError("Error: file \"" + resultsFile + "\" not found in current directory");
+					} catch (IOException ioe) {
+						log.reportError("Error reading file \"" + resultsFile + "\"");
+					}
+				} else {
+				}
+			} else {
+			}
+		}
+	}
+
+	public static class PlinkSeqLocSummary {
+		private String locus;
+		private String pos;
+		private int NVAR;
+		private String alias;
+		private PlinkSeqTestSummary[] summaries;
+
+		public PlinkSeqLocSummary(String locus, String pos, int nVAR, String alias) {
+			super();
+			this.locus = locus;
+			this.pos = pos;
+			this.NVAR = nVAR;
+			this.alias = alias;
+			this.summaries = new PlinkSeqTestSummary[BURDEN_Tests.values().length];
+		}
+
+		public void addTest(String alocus, String apos, int aNVAR, String test, double P, double I, String aAlias, BURDEN_Tests type, Logger log) {
+			if (!locus.equals(alocus) || pos.equals(apos) || aNVAR == NVAR || !alias.equals(aAlias)) {
+				log.reportTimeError("Mismatched tests being added...");
+			} else {
+				switch (type) {
+				case BURDEN:
+					if (summaries[0] != null) {
+						log.reportTimeError("Multiple " + type + " tests for locus...");
+					} else {
+						summaries[0] = new PlinkSeqTestSummary(test, P, I, type);
+					}
+					break;
+				case CALPHA:
+					if (summaries[1] != null) {
+						log.reportTimeError("Multiple " + type + " tests for locus...");
+					} else {
+						summaries[1] = new PlinkSeqTestSummary(test, P, I, type);
+					}
+					break;
+				case FW:
+					if (summaries[2] != null) {
+						log.reportTimeError("Multiple " + type + " tests for locus...");
+					} else {
+						summaries[2] = new PlinkSeqTestSummary(test, P, I, type);
+					}
+					break;
+				case SUMSTAT:
+					if (summaries[3] != null) {
+						log.reportTimeError("Multiple " + type + " tests for locus...");
+					} else {
+						summaries[3] = new PlinkSeqTestSummary(test, P, I, type);
+					}
+					break;
+				case UNIQ:
+					if (summaries[4] != null) {
+						log.reportTimeError("Multiple " + type + " tests for locus...");
+					} else {
+						summaries[4] = new PlinkSeqTestSummary(test, P, I, type);
+					}
+					break;
+				case VT:
+					if (summaries[5] != null) {
+						log.reportTimeError("Multiple " + type + " tests for locus...");
+					} else {
+						summaries[5] = new PlinkSeqTestSummary(test, P, I, type);
+					}
+					break;
+				default:
+					break;
+
+				}
+			}
+		}
+	}
+
+	public static class PlinkSeqTestSummary {
+		private String test;
+		private double P;
+		private double I;
+		private BURDEN_Tests type;
+
+		public PlinkSeqTestSummary(String test, double p, double i, BURDEN_Tests type) {
+			super();
+			this.test = test;
+			P = p;
+			I = i;
+			this.type = type;
 		}
 
 	}

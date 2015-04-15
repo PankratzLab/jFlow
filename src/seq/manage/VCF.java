@@ -40,6 +40,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import seq.manage.VCFOps.VcfPopulation;
+import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.qc.FilterNGS.RareVariantFilter;
 
 public class VCF {
@@ -165,6 +166,7 @@ public class VCF {
 			}
 			// VariantContextUtils.match(vc, g, exps)
 			int report = 0;
+
 			for (VariantContext variantContext : this.vcfFileReader) {
 				// variantContext.getGenotype(1).
 				boolean write = true;
@@ -180,7 +182,7 @@ public class VCF {
 					write = false;
 				}
 				if (write && rareVariantFilter != null) {
-					write = rareVariantFilter.filter(variantContext,log).passed();
+					write = rareVariantFilter.filter(variantContext, log).passed();
 				}
 				if (write && (IDsToExtract.size() > 0)) {
 					write = IDsToExtract.containsKey(variantContext.getID());
@@ -371,10 +373,10 @@ public class VCF {
 		VcfPopulation vpop = null;
 		if (popFile != null) {
 			System.out.println(popFile);
-			vpop = VcfPopulation.load(popFile, log);
-			vpop.report(log);
+			vpop = VcfPopulation.load(popFile,POPULATION_TYPE.ANY, log);
+			vpop.report();
 		}
-		VCF vcf = new VCF(vcfFile, new Logger(ext.rootOf(vcfFile,false)+".log"));
+		VCF vcf = new VCF(vcfFile, new Logger(ext.rootOf(vcfFile, false) + ".log"));
 		Hashtable<String, Vector<String>> IDsToExtract = new Hashtable<String, Vector<String>>();
 		if (idFile != null) {
 			IDsToExtract = HashVec.loadFileToHashVec(idFile, 0, new int[1], "\t", false, true);

@@ -292,7 +292,11 @@ public class BamQC {
 		}
 		for (int i = 0; i < bamQCs.length; i++) {
 			try {
-				bamQCs[i] = tmpResults.get(i).get();
+				try {
+					bamQCs[i] = tmpResults.get(i + "").get();
+				} catch (NullPointerException npe) {
+					log.reportTimeError("Could not get qc for " + inputbams[i]);
+				}
 			} catch (InterruptedException e) {
 				log.reportError("Error - in file " + inputbams[i]);
 				log.reportException(e);
@@ -319,14 +323,18 @@ public class BamQC {
 	}
 
 	public static BamQC qcBam(String inputSamOrBamFile, String outputDir, LibraryNGS libraryNGS, FilterNGS filterNGS, double normalizeDepthsTo, Logger log) {
-		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
-		samReaderFactory.validationStringency(ValidationStringency.LENIENT);
-		SamReader reader = samReaderFactory.open(new File(inputSamOrBamFile));
+
 		LibraryNGS.ReadDepth readDepth = null;
 		if (libraryNGS != null) {
 			readDepth = new LibraryNGS.ReadDepth(libraryNGS, filterNGS, log);
 		}
 		BamQC bamQC = initBamQC(inputSamOrBamFile, outputDir, filterNGS);
+		System.out.println(bamQC.getLibraryReadDepthResultsFile());
+		// if (!Files.exists(bamQC.getLibraryReadDepthResultsFile())) {
+
+		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
+		samReaderFactory.validationStringency(ValidationStringency.LENIENT);
+		SamReader reader = samReaderFactory.open(new File(inputSamOrBamFile));
 		log.report(ext.getTime() + " Info - beginning processing of " + inputSamOrBamFile);
 		int numTotalReads = 0;
 		for (SAMRecord samRecord : reader) {
@@ -385,7 +393,7 @@ public class BamQC {
 			lDepthResults.serialize(bamQC.getLibraryReadDepthResultsFile());
 		} else {
 			double[] nans = new double[filterNGS.getReadDepthFilter().length];
-			Arrays.fill(nans, (0.0D / 0.0D));
+			Arrays.fill(nans, Double.NaN);
 			bamQC.setPercentCoverageAtDepth(nans);
 			bamQC.setTotalTargetedBasePairs(0);
 		}
@@ -397,6 +405,12 @@ public class BamQC {
 		if (bamQC.getNumSecondaryAlignments() > 0) {
 			log.report("Info - " + bamQC.getNumSecondaryAlignments() + " secondary alignment(s) in " + inputSamOrBamFile + " were skipped for computing QC metrics");
 		}
+		// } else {
+		// log.reportTimeInfo("loading pre-computed library results");
+		// LibraryNGS.LibraryReadDepthResults lDepthResults = LibraryNGS.LibraryReadDepthResults.load(bamQC.getLibraryReadDepthResultsFile(), false);
+		// bamQC.setPercentCoverageAtDepth(lDepthResults.getTotalPercentCoveredAtDepth());
+		// bamQC.setTotalTargetedBasePairs(lDepthResults.getTotalBasePairsTargeted());
+		// }
 		return bamQC;
 	}
 

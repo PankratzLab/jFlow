@@ -85,6 +85,16 @@ public class VCOps {
 	}
 
 	/**
+	 * get the alternate allele count for a variant context
+	 */
+	public static double getAAC(VariantContext vc, Set<String> sampleNames) {
+		VariantContext vcSub = getSubset(vc, sampleNames);
+		int[] alleleCounts = getAlleleCounts(vcSub);
+		return (alleleCounts[2] * 2 + alleleCounts[1]);
+
+	}
+
+	/**
 	 * @param names
 	 *            the names corresponding the the array of jexl expressions
 	 * @param expressions
@@ -157,8 +167,8 @@ public class VCOps {
 		GenotypesContext gc = vc.getGenotypes();
 		HashSet<String> samplesWithAlt = new HashSet<String>();
 		for (Genotype geno : gc) {
-			if ((geno.isHomVar() || geno.isHet())) {
-				if (altAlleleDepth <= 0 || geno.getAD() != null) {
+			if (geno.isHomVar() || geno.isHet()) {
+				if (altAlleleDepth <= 0 || geno.hasAD()) {
 					if (altAlleleDepth <= 0 || geno.getAD()[1] > altAlleleDepth) {
 						samplesWithAlt.add(geno.getSampleName());
 					}
@@ -254,7 +264,6 @@ public class VCOps {
 			break;
 
 		}
-		vcSub = sampleNames == null || sampleNames.size() < 1 ? vc : vc.subContextFromSamples(sampleNames);
 		return vcSub;
 	}
 

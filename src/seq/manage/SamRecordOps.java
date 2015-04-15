@@ -8,13 +8,14 @@ import htsjdk.samtools.SAMRecord;
 /**
  * @author lane0212 Class for common manips of {@link SAMRecord}
  */
+
 public class SamRecordOps {
 
 	public static Segment getReferenceSegmentForRecord(SAMRecord samRecord, Logger log) {
 		byte chr = getChromosome(samRecord, log);
 		int start = samRecord.getAlignmentStart();
 		int stop = samRecord.getAlignmentEnd();
-		if (start == 0 || stop == 0) {
+		if (start == 0 || stop == 0) { 
 			log.reportTimeError("Could not determing start and stop for " + samRecord.toString());
 		}
 
