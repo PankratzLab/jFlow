@@ -485,7 +485,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					g.setFont(new Font("Arial", 0, 12));
 					for (int i = startMarker; i<=stopMarker; i++) {
 						// if (genotypes[i] == 1) {
-						if (bafs[i]>0.2&&bafs[i]<0.8) {
+						if (bafs != null && bafs.length > i && bafs[i] > 0.2 && bafs[i] < 0.8) {
 							g.setColor(Color.RED);
 							// colorScheme[2]
 						} else {
@@ -625,8 +625,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 								g.drawString("X", Trailer.this.getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER+5);
 							} else if (genotypes != null && genotypes[i]==-1) {
 								g.drawString("+", Trailer.this.getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-4*HEIGHT_BUFFER))-HEIGHT_BUFFER/2);
-							} else {
+							} else if (bafs != null && bafs.length > i) {
 								g.fillOval(Trailer.this.getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-4*HEIGHT_BUFFER))-HEIGHT_BUFFER, SIZE, SIZE);
+							} else {
+								g.setFont(new Font("Arial", 0, 20));
+								g.drawString("Error - no BAF values present for sample.", (this.getWidth() / 2) - 175, (this.getHeight() / 2) - 10);
 							}
 						}
 					}

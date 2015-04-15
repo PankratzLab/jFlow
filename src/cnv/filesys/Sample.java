@@ -504,8 +504,18 @@ public class Sample implements Serializable {
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
 			writer.println("SNP\tGC Score\tX\tY\tTheta\tR\tLRR\tBAF\tGenotypes");
+			StringBuilder sb;
 			for (int i = 0; i<markerNames.length; i++) {
-				writer.println(markerNames[i]+"\t"+gcs[i]+"\t"+xs[i]+"\t"+ys[i]+"\t"+thetas[i]+"\t"+rs[i]+"\t"+lrrs[i]+"\t"+bafs[i]+"\t"+ALLELE_PAIRS[forwardGenotypes[i]]);
+				sb = new StringBuilder(markerNames[i]).append("\t");
+				sb.append(gcs != null && gcs.length > i ? gcs[i] : ".").append("\t");
+				sb.append(xs != null && xs.length > i ? xs[i] : ".").append("\t");
+				sb.append(ys != null && ys.length > i ? ys[i] : ".").append("\t");
+				sb.append(thetas != null && thetas.length > i ? thetas[i] : ".").append("\t");
+				sb.append(rs != null && rs.length > i ? rs[i] : ".").append("\t");
+				sb.append(lrrs != null && lrrs.length > i ? lrrs[i] : ".").append("\t");
+				sb.append(bafs != null && bafs.length > i ? bafs[i] : ".").append("\t");
+				sb.append(forwardGenotypes != null && forwardGenotypes.length > i ? ALLELE_PAIRS[forwardGenotypes[i]] : ".");
+				writer.println(sb.toString());
 				
 			}
 			writer.close();
@@ -1181,12 +1191,14 @@ public class Sample implements Serializable {
 	public static void main(String[] args) {
 		Project proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
 		String[] samples = proj.getSamples();
-		Sample samp;
+		Sample samp = proj.getFullSampleFromRandomAccessFile(samples[0]);
+		samp.writeToFile(proj.getMarkerNames(), "F:/sampleOut.dat");
 		
-		for (int i = 0; i<samples.length; i++) {
-			samp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-			samp.compareCalculationsFile(proj, proj.getMarkerNames(), proj.getProjectDir()+samples[i]+"_comp.xln");
-        }
+//		
+//		for (int i = 0; i<samples.length; i++) {
+//			samp = proj.getFullSampleFromRandomAccessFile(samples[i]);
+//			samp.compareCalculationsFile(proj, proj.getMarkerNames(), proj.getProjectDir()+samples[i]+"_comp.xln");
+//        }
 
 		//tests
 //		testLoadTime(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false));

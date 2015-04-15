@@ -96,7 +96,7 @@ public class ParseAffySNP6 implements Runnable {
 					return;
 				}
 				try {
-					System.out.println(ext.getTime() + "\t" + (i + 1) + " of " + files.length);
+					System.out.println(ext.getTime() + "\t" + (i + 1) + " of " + files.length + " -- " + files[i]);
 					// reader = new BufferedReader(new FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
 					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[i]);
 					do {

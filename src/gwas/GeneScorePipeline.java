@@ -475,7 +475,7 @@ public class GeneScorePipeline {
 			try {
 				reader = Files.getAppropriateReader(famFile);
 				while ((temp = reader.readLine()) != null) {
-					String[] line = temp.split("\t");
+					String[] line = temp.split("[\\s]+");
 					String affLine = line[0] + "\t" + line[1] + "\t" + (ext.isMissingValue(line[4]) ? "." : -1 * (Integer.parseInt(line[4]) - 2)) + "\t" + line[5];
 					if (!ext.isMissingValue(line[5])) {
 						if (ext.isValidDouble(line[5]) && Double.parseDouble(line[5]) != 0.0) {
