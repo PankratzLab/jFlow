@@ -195,7 +195,7 @@ public class VCFOps {
 			if (CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] { vcf }, outFiles, true, true, false, log)) {
 				Hashtable<String, String> newIDS = new Hashtable<String, String>();
 				newIDS = fixFamFile(log, outFiles[2]);
-				gwas.Qc.fullGamut(dir, false);
+				gwas.Qc.fullGamut(dir, false, new Logger(dir+"fullGamutOfMarkerAndSampleQC.log"));
 				String mdsFile = dir + "genome/mds20.mds";
 				if (Files.exists(mdsFile)) {
 					fixMdsFile(log, dir, newIDS, mdsFile);
@@ -322,7 +322,7 @@ public class VCFOps {
 			}
 			log.reportTimeInfo("Running gwas.qc on the following files in " + dir + ":");
 			log.reportTimeInfo("\t" + Array.toStr(plinkFiles, "\n"));
-			gwas.Qc.fullGamut(dir, false);
+			gwas.Qc.fullGamut(dir, false, new Logger(dir+"fullGamutOfMarkerAndSampleQC.log"));
 		} else {
 			log.reportFileNotFound(vcf);
 		}
