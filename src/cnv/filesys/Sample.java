@@ -503,7 +503,7 @@ public class Sample implements Serializable {
 		}
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			writer.println("SNP\tGC Score\tX\tY\tTheta\tR\tLRR\tBAF\tGenotypes");
+			writer.println("SNP\tGC Score\tX\tY\tTheta\tR\tLRR\tBAF\tGenotypes\tAB_Genotypes");
 			StringBuilder sb;
 			for (int i = 0; i<markerNames.length; i++) {
 				sb = new StringBuilder(markerNames[i]).append("\t");
@@ -514,7 +514,9 @@ public class Sample implements Serializable {
 				sb.append(rs != null && rs.length > i ? rs[i] : ".").append("\t");
 				sb.append(lrrs != null && lrrs.length > i ? lrrs[i] : ".").append("\t");
 				sb.append(bafs != null && bafs.length > i ? bafs[i] : ".").append("\t");
-				sb.append(forwardGenotypes != null && forwardGenotypes.length > i ? ALLELE_PAIRS[forwardGenotypes[i]] : ".");
+				sb.append(forwardGenotypes != null && forwardGenotypes.length > i ? ALLELE_PAIRS[forwardGenotypes[i]] : ".").append("\t");
+				sb.append(abGenotypes != null && abGenotypes.length > i ? (abGenotypes[i] == -1 ? "--" : AB_PAIRS[abGenotypes[i]]) : ".");
+				
 				writer.println(sb.toString());
 				
 			}

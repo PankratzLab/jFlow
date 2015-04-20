@@ -13,35 +13,36 @@ public class Qc {
 		dir = ext.verifyDirFormat(dir);
 
 		new File(dir+"markerQC/").mkdirs();
+		log.report(ext.getTime() + "]\tRunning --mind 0.1");
 		CmdLine.run("plink --bfile ../plink --mind 0.1 --make-bed --noweb", dir+"markerQC/");
 		
 		if (!Files.exists(dir+"markerQC/freq.frq")) {
-			log.report("Running --freq");
+			log.report(ext.getTime() + "]\tRunning --freq");
 			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --freq --out freq --noweb", dir+"markerQC/");
 		}
 		if (!Files.exists(dir+"markerQC/missing.imiss")) {
-			log.report("Running --missing");
+			log.report(ext.getTime() + "]\tRunning --missing");
 			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --missing --out missing --noweb", dir+"markerQC/");
 		}
 		if (!Files.exists(dir+"markerQC/test.missing.missing")) {
-			log.report("Running --test-missing");
+			log.report(ext.getTime() + "]\tRunning --test-missing");
 			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --test-missing --out test.missing --noweb", dir+"markerQC/");
 		}
 		if (!Files.exists(dir+"markerQC/hardy.hwe")) {
-			log.report("Running --hardy");
+			log.report(ext.getTime() + "]\tRunning --hardy");
 			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb", dir+"markerQC/");
 		}
 		if (!Files.exists(dir+"markerQC/mishap.missing.hap")) {
-			log.report("Running --test-mishap");
+			log.report(ext.getTime() + "]\tRunning --test-mishap");
 			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --test-mishap --out mishap --noweb", dir+"markerQC/");
 		}
 		if (!Files.exists(dir+"markerQC/gender.assoc")) {
-			log.report("Running --assoc gender");
+			log.report(ext.getTime() + "]\tRunning --assoc gender");
 			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --assoc --out gender --noweb", dir+"markerQC/");
 		}
 		if (!Files.exists(dir+"markerQC/gender.missing")) {
-			log.report("Running --test-missing gender");
-			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender", dir+"markerQC/");
+			log.report(ext.getTime() + "]\tRunning --test-missing gender");
+			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender --noweb", dir+"markerQC/");
 		}
 		
 		if (!Files.exists(dir+"markerQC/miss_drops.dat")) {
@@ -53,50 +54,49 @@ public class Qc {
 
 		new File(dir+"sampleQC/").mkdirs();
 		if (!Files.exists(dir+"sampleQC/plink.bed")) {
-			log.report("Running --exclude miss_drops.dat");
+			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
 			CmdLine.run("plink --bfile ../plink --exclude ../markerQC/miss_drops.dat --make-bed --noweb", dir+"sampleQC/");
 		}
 		if (!Files.exists(dir+"sampleQC/missing.imiss")) {
-			log.report("Running --missing");
+			log.report(ext.getTime() + "]\tRunning --missing");
 			CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --missing --out missing --noweb", dir+"sampleQC/");
 		}
 		
 		new File(dir+"ldPruning/").mkdirs();
 		if (!Files.exists(dir+"ldPruning/plink.bed")) {
-			log.report("Running --exclude miss_drops.dat");
+			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
 			CmdLine.run("plink --bfile ../sampleQC/plink --mind 0.05 --make-bed --noweb", dir+"ldPruning/");
 		}
 		if (!Files.exists(dir+"ldPruning/plink.prune.in")) {
-			log.report("Running --indep-pairwise 50 5 0.3");
-			CmdLine.run("plink --bfile plink --indep-pairwise 50 5 0.3", dir+"ldPruning/");
+			log.report(ext.getTime() + "]\tRunning --indep-pairwise 50 5 0.3");
+			CmdLine.run("plink --noweb --bfile plink --indep-pairwise 50 5 0.3", dir+"ldPruning/");
 		}
 
 		new File(dir+"genome/").mkdirs();
 		if (!Files.exists(dir+"genome/plink.bed")) {
-			log.report("Running --extract plink.prune.in");
+			log.report(ext.getTime() + "]\tRunning --extract plink.prune.in");
 			CmdLine.run("plink --bfile ../ldPruning/plink --extract ../ldPruning/plink.prune.in --make-bed --noweb", dir+"genome/");
 		}
 		if (!Files.exists(dir+"genome/plink.genome")) {
-			log.report("Running --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""));
-			CmdLine.run("plink --bfile plink --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""), dir+"genome/");
+			log.report(ext.getTime() + "]\tRunning --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""));
+			CmdLine.run("plink --noweb --bfile plink --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""), dir+"genome/");
 		}
 		if (!keepGenomeInfoForRelatedsOnly) {
-			log.report("Running --mds-plot 20");
-			CmdLine.run("plink --bfile plink --read-genome plink.genome --cluster --mds-plot 20 --out mds20", dir+"genome/");
-			
+			log.report(ext.getTime() + "]\tRunning --mds-plot 20");
+			CmdLine.run("plink --bfile plink --read-genome plink.genome --cluster --mds-plot 20 --out mds20 --noweb", dir+"genome/");
 		}
 		if (!Files.exists(dir+"genome/plink.genome_keep.dat")) {
-			log.report("Running flagRelateds");
+			log.report(ext.getTime() + "]\tRunning flagRelateds");
 			Plink.flagRelateds(dir+"genome/plink.genome", dir+"genome/plink.fam", dir+"markerQC/missing.imiss", dir+"genome/lrr_sd.xln", Plink.FLAGS, Plink.THRESHOLDS, 4);
 		}
 		
 		new File(dir+"ancestry/").mkdirs();
 		if (!Files.exists(dir+"ancestry/unrelateds.txt")) {
-			log.report("Copying genome/plink.genome_keep.dat to ancestry/unrelateds.txt");
+			log.report(ext.getTime() + "]\tCopying genome/plink.genome_keep.dat to ancestry/unrelateds.txt");
 			Files.copyFile(dir+"genome/plink.genome_keep.dat", dir+"ancestry/unrelateds.txt");
 		}
 		if (!Files.exists(dir+"ancestry/plink.bed")) {
-			log.report("Running --extract plink.prune.in (again, this time to ancestry/)");
+			log.report(ext.getTime() + "]\tRunning --extract plink.prune.in (again, this time to ancestry/)");
 			CmdLine.run("plink --bfile ../genome/plink --make-bed --noweb", dir+"ancestry/");
 		}
 		
