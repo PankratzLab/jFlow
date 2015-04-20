@@ -47,10 +47,11 @@ public class PlinkSeq {
 	private static final String MAC = "mac=";
 
 	private static final String MASK = "--mask";
+	private static final String VAR_MASK= "var.req=";
 	private static final String V_STATS = "v-stats";
 	private static final String I_STATS = "i-stats";
 
-	private enum ANALYSIS_TYPES {
+	protected enum ANALYSIS_TYPES {
 		/**
 		 * Single variant association test
 		 */
@@ -71,7 +72,7 @@ public class PlinkSeq {
 	 *
 	 */
 	public enum BURDEN_Tests {
-		BURDEN, UNIQ, VT, FW, CALPHA, SUMSTAT
+		BURDEN, UNIQ, VT, FW, CALPHA, SUMSTAT,FRQWGT
 	}
 
 	private enum LOAD_TYPES {
@@ -159,21 +160,21 @@ public class PlinkSeq {
 		return init;
 	}
 
-	public PlinkSeqWorker[] fullGamutAssoc(PseqProject pseqProject, String[] locGroups, String[] masks, int numPerm, String mac, String outputRoot, int numThreads) {
+	public PlinkSeqWorker[] fullGamutAssoc(PseqProject pseqProject, String[] locGroups, String[] varMasks, int numPerm, String mac, String outputRoot, int numThreads) {
 		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(numThreads, 10, log);
 		PseqPhenoTypes[] pseqPhenoTypes = pseqProject.getPhenotypes();
 		if (pseqPhenoTypes != null) {
 			for (int i = 0; i < pseqPhenoTypes.length; i++) {
-				if (masks == null) {
+				if (varMasks == null) {
 					assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, null, pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
 					for (int j = 0; j < locGroups.length; j++) {
 						assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j], null, pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
 					}
 				} else {
-					for (int j = 0; j < masks.length; j++) {
-						assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, masks[j], pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
+					for (int j = 0; j < varMasks.length; j++) {
+						assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, varMasks[j], pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
 						for (int j2 = 0; j2 < locGroups.length; j2++) {
-							assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j2], masks[j], pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
+							assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j2], varMasks[j], pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
 						}
 					}
 				}
@@ -208,17 +209,23 @@ public class PlinkSeq {
 				switch (lTypes) {
 				case VCF:
 					loadCommand = LOAD_VCF;
+//					pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
+//					return true;
 					break;
 				case PHENO:
 					loadCommand = LOAD_PHENO;
 					overideOverWrite = true;
+//					pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
+//					return true;
 					break;
 				case LOC_DB:
 					loadCommand = LOAD_LOC;
 					overideOverWrite = true;
+//					pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
+//					return true;
 					break;
 				default:
-					log.reportTimeError("Invalid load Type");
+					log.reportTimeError("Invalid load Type "+lTypes);
 					break;
 				}
 				String[] command = new String[] { PSEQ, pseqProject.getProjectNameForPseq(), loadCommand };
@@ -269,7 +276,7 @@ public class PlinkSeq {
 	 * @param log
 	 * @return
 	 */
-	private static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String mask, String phenotype, int numPerm, String mac, String outputRoot, boolean overwriteExisting, Logger log) {
+	private static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String varMask, String phenotype, int numPerm, String mac, String outputRoot, boolean overwriteExisting, Logger log) {
 		String outputDirectory = ext.parseDirectoryOfFile(pseqProject.getFilename()) + "assoc/";
 		new File(outputDirectory).mkdirs();
 		String outputFile = outputDirectory + outputRoot + "." + type;
@@ -288,10 +295,10 @@ public class PlinkSeq {
 					ext.addToRoot(outputFile, locGroups);
 
 				}
-				if (mask != null) {
-					ext.addToRoot(outputFile, mask);
-					commandBase = Array.concatAll(commandBase, new String[] { MASK, mask });
-				}
+//				if (varMask != null) {
+//					ext.addToRoot(outputFile, varMask);
+//					commandBase = Array.concatAll(commandBase, new String[] { MASK, varMask });
+//				}
 			}
 			commandBase = addPermCommand(numPerm, commandBase);
 			break;
@@ -303,9 +310,9 @@ public class PlinkSeq {
 				outputFile += "." + phenotype + "." + ext.replaceWithLinuxSafeCharacters(locGroups, true) + ".txt";
 				commandBase = Array.concatAll(commandBase, new String[] { BURDEN }, getPhenoCommand(phenotype));
 				commandBase = Array.concatAll(commandBase, new String[] { MASK, LOC_GROUP + locGroups, mac.equals("0") ? "" : MAC + mac });
-				if (mask != null) {
-					ext.addToRoot(outputFile, mask);
-					commandBase = Array.concatAll(commandBase, new String[] { MASK, mask });
+				if (varMask != null) {
+					outputFile =ext.addToRoot(outputFile, "."+varMask);
+					commandBase = Array.concatAll(commandBase, new String[] { VAR_MASK+varMask });
 				}
 			}
 			if (bTests != null) {
@@ -363,6 +370,14 @@ public class PlinkSeq {
 			this.overWriteExisting = overWriteExisting;
 			this.skipReporting = skipReporting;
 			this.log = log;
+		}
+
+		public ANALYSIS_TYPES getType() {
+			return type;
+		}
+
+		public String[] getOutputFiles() {
+			return outputFiles;
 		}
 
 		@Override

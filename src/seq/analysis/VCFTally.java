@@ -17,8 +17,12 @@ import common.Logger;
 import common.Positions;
 import common.ext;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.VcfPopulation;
+import seq.pathway.GenomeRegions;
+import seq.pathway.Pathway;
+import seq.pathway.Pathways;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
@@ -31,25 +35,25 @@ import filesys.Segment;
  */
 public class VCFTally {
 	private String vcf;
-	protected GeneTrack geneTrack;
+	protected GenomeRegions genomeRegions;
 	protected VcfPopulation vpop;
-	private TallyTracker[] trackersCase, trackersControl, trackersCharge;
+	protected TallyTracker[] trackersCase, trackersControl, trackersCharge;
 	protected Logger log;
 	private static final String AND = "&&";
 	private static final String[] SNPEFF_IMPACTS = { "(SNPEFF_EFFECT=='STOP_LOST'||SNPEFF_EFFECT=='STOP_GAINED')", "SNPEFF_IMPACT=='HIGH'", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE')", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')", "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW'||SNPEFF_IMPACT=='MODIFIER')" };
-	private static final String[] SNPEFF_NAMES = { "SNPEFF_STOPGAIN_LOSS", "SNPEFF_HIGH", "SNPEFF_HIGH_MODERATE", "SNPEFF_HIGH_MODERATE_LOW_", "SNPEFF_HIGH_MODERATE_LOW_MODIFIER", "NO_SNPEFF" };
+	protected static final String[] SNPEFF_NAMES = { "SNPEFF_STOPGAIN_LOSS", "SNPEFF_HIGH", "SNPEFF_HIGH_MODERATE", "SNPEFF_HIGH_MODERATE_LOW", "SNPEFF_HIGH_MODERATE_LOW_MODIFIER", "NO_SNPEFF" };
 	private static final String ESP_FILTER = "(esp6500si_all=='.'||esp6500si_all <= 0.01)";
 	private static final String G1000_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <= 0.01)";
-	private CASE_CONTROL_TYPE type;
+	protected CASE_CONTROL_TYPE type;
 
 	public enum CASE_CONTROL_TYPE {
 		BOTH_PASS, ONE_PASS;
 	}
 
-	public VCFTally(String vcf, GeneTrack geneTrack, VcfPopulation vpop, CASE_CONTROL_TYPE type, Logger log) {
+	public VCFTally(String vcf, GenomeRegions genomeRegions, VcfPopulation vpop, CASE_CONTROL_TYPE type, Logger log) {
 		super();
 		this.vcf = vcf;
-		this.geneTrack = geneTrack;
+		this.genomeRegions = genomeRegions;
 		this.vpop = vpop;
 		this.log = log;
 		this.type = type;
@@ -63,14 +67,17 @@ public class VCFTally {
 			int index = 0;
 
 			VCFFileReader reader = new VCFFileReader(vcf, true);
-			Set<String> cases = vpop.getSubPop().get("CASE");
-			Set<String> controls = vpop.getSubPop().get("CONTROL");
+			Set<String> cases = vpop.getSubPop().get(VCFOps.VcfPopulation.CASE);
+			Set<String> controls = vpop.getSubPop().get(VCFOps.VcfPopulation.CONTROL);
 			log.reportTimeInfo(cases.size() + " Cases and " + controls.size() + " Controls");
 			Set<String> all = new HashSet<String>();
 			all.addAll(cases);
 			all.addAll(controls);
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(outputList, true));
+				PrintWriter writer = new PrintWriter(new FileWriter(outputList, false));
+				// for (int i = 0; i < SNPEFF_NAMES.length; i++) {
+				// writer.println(SNPEFF_NAMES[i] + "\t" + SNPEFF_NAMES[i]);
+				// }
 				for (VariantContext vc : reader) {
 					index++;
 					VariantContext vcCase = VCOps.getSubset(vc, cases);
@@ -81,16 +88,21 @@ public class VCFTally {
 							int controlAdded = trackersControl[i].addIfPasses(vcControl, altAlleleDepth);
 							if (caseAdded + controlAdded > 0) {
 								Segment vcSeg = VCOps.getSegment(vc);
-								writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t" + Positions.getChromosomeUCSC((int) vcSeg.getChr(), true) + ":" + vcSeg.getStart() + ".." + vcSeg.getStop());
+								writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t" + Positions.getChromosomeUCSC((int) vcSeg.getChr(), true) + ":" + vcSeg.getStart() + (vcSeg.getStop() == vcSeg.getStart() ? "" : ".." + vcSeg.getStop()));
 							}
 						}
 					}
 					if (index % 100000 == 0) {
 						log.reportTimeInfo("Scanned " + index + " total variants from " + ext.removeDirectoryInfo(vcf));
+						// log.reportTimeError("JOHN REMEMBER THIS CUTOFF");
+						// writer.close();
+						//
+						// return;
 					}
 				}
-				writer.close();
 				reader.close();
+				writer.close();
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -104,11 +116,11 @@ public class VCFTally {
 		this.trackersCase = null;
 		this.trackersControl = new TallyTracker[SNPEFF_NAMES.length];
 		log.reportTimeInfo("Using vpopulation to report");
-		if (!vpop.getSubPop().containsKey("CASE")) {
-			log.reportTimeError("Vpopulation must contain CASE");
+		if (!vpop.getSubPop().containsKey(VCFOps.VcfPopulation.CASE)) {
+			log.reportTimeError("Vpopulation must contain " + VCFOps.VcfPopulation.CASE);
 		}
-		if (!vpop.getSubPop().containsKey("CONTROL")) {
-			log.reportTimeError("Vpopulation must contain CONTROL");
+		if (!vpop.getSubPop().containsKey(VCFOps.VcfPopulation.CONTROL)) {
+			log.reportTimeError("Vpopulation must contain " + VCFOps.VcfPopulation.CONTROL);
 		}
 		trackersCase = new TallyTracker[SNPEFF_NAMES.length];
 
@@ -117,14 +129,14 @@ public class VCFTally {
 			VariantContextFilter[] vContextFilters = new VariantContextFilter[2];
 			vContextFilters[0] = getQualityFilter(log);
 			vContextFilters[1] = getJEXLAt(i, log);
-			trackersCase[i] = new TallyTracker("CASE_" + SNPEFF_NAMES[i], geneTrack, vContextFilters, log);
-			trackersControl[i] = new TallyTracker("CONTROL_" + SNPEFF_NAMES[i], geneTrack, vContextFilters, log);
+			trackersCase[i] = new TallyTracker("CASE_" + SNPEFF_NAMES[i], genomeRegions, vContextFilters, log);
+			trackersControl[i] = new TallyTracker("CONTROL_" + SNPEFF_NAMES[i], genomeRegions, vContextFilters, log);
 		}
 		VariantContextFilter[] vContextFilters = new VariantContextFilter[2];
 		vContextFilters[0] = getQualityFilter(log);
 		vContextFilters[1] = getJEXLAt(SNPEFF_NAMES.length - 1, log);
-		trackersCase[SNPEFF_NAMES.length - 1] = new TallyTracker("CASE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], geneTrack, vContextFilters, log);
-		trackersControl[SNPEFF_NAMES.length - 1] = new TallyTracker("CONTROL_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], geneTrack, vContextFilters, log);
+		trackersCase[SNPEFF_NAMES.length - 1] = new TallyTracker("CASE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], genomeRegions, vContextFilters, log);
+		trackersControl[SNPEFF_NAMES.length - 1] = new TallyTracker("CONTROL_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], genomeRegions, vContextFilters, log);
 		return totalQuality;
 	}
 
@@ -134,12 +146,12 @@ public class VCFTally {
 		for (int i = 0; i < SNPEFF_IMPACTS.length; i++) {
 			VariantContextFilter[] vContextFilters = new VariantContextFilter[1];
 			vContextFilters[0] = getJEXLAt(i, log);
-			trackersCharge[i] = new TallyTracker("CHARGE_" + SNPEFF_NAMES[i], geneTrack, vContextFilters, log);
+			trackersCharge[i] = new TallyTracker("CHARGE_" + SNPEFF_NAMES[i], genomeRegions, vContextFilters, log);
 			trackersCharge[i].setCharge(true);
 		}
 		VariantContextFilter[] vContextFilters = new VariantContextFilter[1];
 		vContextFilters[0] = getJEXLAt(SNPEFF_NAMES.length - 1, log);
-		trackersCharge[SNPEFF_NAMES.length - 1] = new TallyTracker("CHARGE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], geneTrack, vContextFilters, log);
+		trackersCharge[SNPEFF_NAMES.length - 1] = new TallyTracker("CHARGE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], genomeRegions, vContextFilters, log);
 		trackersCharge[SNPEFF_NAMES.length - 1].setCharge(true);
 		int count = 0;
 		VCFFileReader reader = new VCFFileReader(fullpathToChargeVCF, false);
@@ -150,16 +162,18 @@ public class VCFTally {
 			count++;
 			if (count % 100000 == 0) {
 				log.reportTimeInfo("Scanned " + count + " total variants from " + ext.removeDirectoryInfo(fullpathToChargeVCF));
+				// log.reportTimeError("JOHN REMEMBER THIS CUTOFF");
+				// reader.close();
+				// return;
 			}
 		}
 		reader.close();
-
 	}
 
 	public void summarize(String fullPathToOutput) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
-			writer.print("GENE\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length");
+			writer.print("SET\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length");
 			for (int i = 0; i < trackersCase.length; i++) {
 				writer.print("\t" + trackersCase[i].getTallyName() + "_NUM_VAR" + "\t" + trackersCase[i].getTallyName() + "_NUM_INDS" + "\t" + trackersControl[i].getTallyName() + "_NUM_VAR" + "\t" + trackersControl[i].getTallyName() + "_NUM_INDS" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
 			}
@@ -167,22 +181,18 @@ public class VCFTally {
 				writer.print("\t" + trackersCase[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersCase[i].getTallyName() + "_NUM_INDS" + "\t" + trackersControl[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersControl[i].getTallyName() + "_NUM_INDS" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
 			}
 			writer.println();
-			Set<String> genes = trackersCase[0].getTally().keySet();
-			for (String gene : genes) {
-				String chr = Positions.getChromosomeUCSC(trackersCase[0].getGene(gene)[0].getChr(), true);
-				String start = trackersCase[0].getGene(gene)[0].getStart() + "";
-				String stop = trackersCase[0].getGene(gene)[0].getStop() + "";
+			Set<String> sets = trackersCase[0].getTally().keySet();
+			for (String set : sets) {
+				if (trackersCase[0].getGene(set) != null && trackersCase[0].getGene(set).length > 0) {
+					String chr = Positions.getChromosomeUCSC(trackersCase[0].getGene(set)[0].getChr(), true);
+					String start = trackersCase[0].getGene(set)[0].getStart() + "";
+					String stop = trackersCase[0].getGene(set)[0].getStop() + "";
 
-				writer.print(gene + "\t" + chr + "\t" + start + "\t" + stop + "\t" + trackersCase[0].getGene(gene)[0].getUCSCLink("hg19") + "\t" + trackersCase[0].getGeneTotalLength(gene) + "\t" + trackersCase[0].getGeneTotalMrnaLength(gene));
-				for (int i = 0; i < trackersCase.length; i++) {
-					int numCases = trackersCase[i].getUniqs().get(gene).size();
-					int numControls = trackersControl[i].getUniqs().get(gene).size();
-					writer.print("\t" + trackersCase[i].getTally().get(gene) + "\t" + numCases + "\t" + trackersControl[i].getTally().get(gene) + "\t" + numControls + "\t" + trackersCharge[i].getTallyMAC().get(gene) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(gene)));
-				}
-				for (int i = 0; i < trackersCase.length; i++) {
-					int numCases = trackersCase[i].getUniqs().get(gene).size();
-					int numControls = trackersControl[i].getUniqs().get(gene).size();
-					writer.print("\t" + trackersCase[i].getTallyMAC().get(gene) + "\t" + numCases + "\t" + trackersControl[i].getTallyMAC().get(gene) + "\t" + numControls + "\t" + trackersCharge[i].getTallyMAC().get(gene) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(gene)));
+					writer.print(set + "\t" + chr + "\t" + start + "\t" + stop + "\t" + trackersCase[0].getGene(set)[0].getUCSCLink("hg19") + "\t" + trackersCase[0].getGeneTotalLength(set) + "\t" + trackersCase[0].getGeneTotalMrnaLength(set));
+					printGene(writer, set);
+				} else {
+					writer.print(set + "\tNA\tNA\tNA\tNA\tNA\tNA");
+					printGene(writer, set);
 				}
 				writer.println();
 			}
@@ -208,11 +218,24 @@ public class VCFTally {
 
 	}
 
-	private static class TallyTracker {
+	private void printGene(PrintWriter writer, String set) {
+		for (int i = 0; i < trackersCase.length; i++) {
+			int numCases = trackersCase[i].getUniqs().get(set).size();
+			int numControls = trackersControl[i].getUniqs().get(set).size();
+			writer.print("\t" + trackersCase[i].getTally().get(set) + "\t" + numCases + "\t" + trackersControl[i].getTally().get(set) + "\t" + numControls + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set)));
+		}
+		for (int i = 0; i < trackersCase.length; i++) {
+			int numCases = trackersCase[i].getUniqs().get(set).size();
+			int numControls = trackersControl[i].getUniqs().get(set).size();
+			writer.print("\t" + trackersCase[i].getTallyMAC().get(set) + "\t" + numCases + "\t" + trackersControl[i].getTallyMAC().get(set) + "\t" + numControls + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set)));
+		}
+	}
+
+	protected static class TallyTracker {
 		private Hashtable<String, Float> tally;
 		private Hashtable<String, Float> tallyMAC;
 
-		private GeneTrack geneTrack;
+		private GenomeRegions gRegions;
 		private String tallyName;
 		private Segment[] geneSegs;
 		private Hashtable<Integer, int[]> geneSegTrack;
@@ -222,7 +245,7 @@ public class VCFTally {
 		private Logger log;
 		private boolean charge;
 
-		public TallyTracker(String tallyName, GeneTrack geneTrack, VariantContextFilter[] vContextFilters, Logger log) {
+		public TallyTracker(String tallyName, GenomeRegions geneTrack, VariantContextFilter[] vContextFilters, Logger log) {
 			super();
 			this.log = log;
 
@@ -230,7 +253,7 @@ public class VCFTally {
 			this.tally = getTally(geneTrack, log);
 			this.tallyMAC = getTally(geneTrack, log);
 			this.vContextFilters = vContextFilters;
-			this.geneTrack = geneTrack;
+			this.gRegions = geneTrack;
 			this.charge = false;
 			this.passingLocs = new ArrayList<VCFTally.GenePass>();
 			this.uniqs = new Hashtable<String, HashSet<String>>();
@@ -243,8 +266,8 @@ public class VCFTally {
 
 		private void populateQuery() {
 			this.geneSegTrack = new Hashtable<Integer, int[]>();
-			this.geneSegs = new Segment[total(geneTrack)];
-			GeneData[][] gDatas = geneTrack.getGenes();
+			this.geneSegs = new Segment[total(gRegions.getGeneTrack())];
+			GeneData[][] gDatas = gRegions.getGeneTrack().getGenes();
 			int index = 0;
 			int curChr = 0;
 			int curPos = 0;
@@ -264,6 +287,10 @@ public class VCFTally {
 					index++;
 				}
 			}
+			Pathway[] ways = gRegions.getPathways().getPathways();
+			for (int i = 0; i < ways.length; i++) {
+				uniqs.put(ways[i].getPathwayName(), new HashSet<String>());
+			}
 		}
 
 		private static int total(GeneTrack geneTrack) {
@@ -275,14 +302,19 @@ public class VCFTally {
 			return total;
 		}
 
-		private static Hashtable<String, Float> getTally(GeneTrack geneTrack, Logger log) {
+		private static Hashtable<String, Float> getTally(GenomeRegions genomeRegions, Logger log) {
 			Hashtable<String, Float> tally = new Hashtable<String, Float>();
-			GeneData[][] gDatas = geneTrack.getGenes();
+			GeneData[][] gDatas = genomeRegions.getGeneTrack().getGenes();
 			for (int i = 0; i < gDatas.length; i++) {
 				for (int j = 0; j < gDatas[i].length; j++) {
 					tally.put(gDatas[i][j].getGeneName(), (float) 0.0);
 				}
 			}
+			Pathway[] ways = genomeRegions.getPathways().getPathways();
+			for (int i = 0; i < ways.length; i++) {
+				tally.put(ways[i].getPathwayName(), (float) 0.0);
+			}
+
 			return tally;
 		}
 
@@ -338,16 +370,24 @@ public class VCFTally {
 					GeneData[] geneDatas = new GeneData[matches.length];
 					for (int i = 0; i < geneDatas.length; i++) {
 						int[] indices = geneSegTrack.get(matches[i]);
-						geneDatas[i] = geneTrack.getGenes()[indices[0]][indices[1]];
+						geneDatas[i] = gRegions.getGeneTrack().getGenes()[indices[0]][indices[1]];
 					}
 					if (geneDatas.length > 0) {
 						for (int i = 0; i < geneDatas.length; i++) {
+							Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
 							if (!charge) {
 								passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
 								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
 								uniqs.get(geneDatas[i].getGeneName()).addAll(alts.getSampleNames());
+								for (int j = 0; j < ways.length; j++) {
+									uniqs.get(ways[j].getPathwayName()).addAll(alts.getSampleNames());
+									addTally(ways[j].getPathwayName(), 1, (float) mac);
+								}
 							} else {
 								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
+								for (int j = 0; j < ways.length; j++) {
+									addTally(ways[j].getPathwayName(), 1, (float) mac);
+								}
 							}
 							numAdded++;
 						}
@@ -380,7 +420,7 @@ public class VCFTally {
 		}
 
 		public GeneData[] getGene(String gene) {
-			return geneTrack.lookupAllGeneDatas(gene);
+			return gRegions.getGeneTrack().lookupAllGeneDatas(gene);
 		}
 
 		public int getGeneTotalLength(String agene) {
@@ -430,7 +470,7 @@ public class VCFTally {
 
 		// VARIANT_FILTER_BOOLEAN[] bQualFilts = new VARIANT_FILTER_BOOLEAN[] { amb };
 		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq, vqslod };
-		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] {  }, null, null, log);
+		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, null, null, log);
 		return vContextFilter;
 	}
 
@@ -469,7 +509,7 @@ public class VCFTally {
 				vpop.report();
 				String geneTrackFile = "N:/statgen/NCBI/RefSeq_hg19.gtrack";
 				int altAlleleDepth = 6;
-				VCFTally tally = new VCFTally(vcf, GeneTrack.load(geneTrackFile, false), vpop, CASE_CONTROL_TYPE.values()[j], log);
+				VCFTally tally = new VCFTally(vcf, GenomeRegions.load(geneTrackFile), vpop, CASE_CONTROL_TYPE.values()[j], log);
 				tally.tallyCaseControlVCF(altAlleleDepth, outputList);
 				tally.tallyCharge(fullpathToChargeVCF);
 				tally.summarize(ext.parseDirectoryOfFile(vcf) + ext.rootOf(vpopFiles[i]) + "tallyCounts." + CASE_CONTROL_TYPE.values()[j] + ".txt");
