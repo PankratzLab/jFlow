@@ -2449,16 +2449,50 @@ public class Array {
 		return subarray;
 	}
 	
+	/**
+	 * Creates a new array using only the int values at indices defined by the Integer array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
 	public static int[] subArray(int[] array, int[] use) {
-		int[] subarray;
+		int[] subarray = new int[use.length];
+		int currentIndex = 0;
+		try {
 
-		subarray = new int[array.length];
-		for (int i = 0; i < use.length; i++) {
-			subarray[i] = array[use[i]];
+			for (int i = 0; i < use.length; i++) {
+				currentIndex = use[i];
+				subarray[i] = array[use[i]];
+			}
+		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n=" + array.length + ")");
+			return null;
 		}
-
 		return subarray;
 	}
+	
+	
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T[] subArray(T[] array, int[] use) {
+		T[] subarray;
+		subarray = (T[]) java.lang.reflect.Array.newInstance(array[0].getClass(), use.length);
+		int currentIndex = 0;
+		try {
+			for (int i = 0; i < use.length; i++) {
+				currentIndex = use[i];
+				subarray[i] = array[use[i]];
+			}
+		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+			System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n=" + array.length + ")");
+			return null;
+		}
+		return subarray;
+	}
+	
 	/**
 	 * Creates a new array using only the byte values at indices defined by the Integer array
 	 * 

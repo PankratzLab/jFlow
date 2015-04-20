@@ -76,7 +76,10 @@ public class VCFOps {
 		EXTRACT_SEGMENTS, /**
 		 * Removed variants flagged as filtered
 		 */
-		REMOVE_FILTERED;
+		REMOVE_FILTERED, /**
+		 * gzip and index a vcf file
+		 */
+		GZIP;
 	}
 
 	/**
@@ -165,6 +168,10 @@ public class VCFOps {
 		return samples.toArray(new String[samples.size()]);
 	}
 
+	public static boolean hasInfoLine(VCFFileReader reader, String anno) {
+		return reader.getFileHeader().hasInfoLine(anno);
+	}
+
 	/**
 	 * Retrieves the sequence dictionary from a reader
 	 * 
@@ -195,7 +202,7 @@ public class VCFOps {
 			if (CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] { vcf }, outFiles, true, true, false, log)) {
 				Hashtable<String, String> newIDS = new Hashtable<String, String>();
 				newIDS = fixFamFile(log, outFiles[2]);
-				gwas.Qc.fullGamut(dir, false, new Logger(dir+"fullGamutOfMarkerAndSampleQC.log"));
+				gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 				String mdsFile = dir + "genome/mds20.mds";
 				if (Files.exists(mdsFile)) {
 					fixMdsFile(log, dir, newIDS, mdsFile);
@@ -322,7 +329,7 @@ public class VCFOps {
 			}
 			log.reportTimeInfo("Running gwas.qc on the following files in " + dir + ":");
 			log.reportTimeInfo("\t" + Array.toStr(plinkFiles, "\n"));
-			gwas.Qc.fullGamut(dir, false, new Logger(dir+"fullGamutOfMarkerAndSampleQC.log"));
+			gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 		} else {
 			log.reportFileNotFound(vcf);
 		}
@@ -502,7 +509,10 @@ public class VCFOps {
 					log.reportTimeInfo(progress + " variants read...");
 				}
 				for (int i = 0; i < writers.length; i++) {
-					writers[i].add(VCOps.getSubset(vc, vpop.getSuperPop().get(vpop.getUniqSuperPop().get(i))));
+					VariantContext vcSub = VCOps.getSubset(vc, vpop.getSuperPop().get(vpop.getUniqSuperPop().get(i)));
+					// if (vcSub.getHomVarCount() > 0 || vcSub.getHetCount() > 0) {
+					writers[i].add(vcSub);
+					// }
 				}
 			}
 			for (int i = 0; i < writers.length; i++) {
@@ -829,6 +839,9 @@ public class VCFOps {
 				break;
 			case REMOVE_FILTERED:
 				removeFilteredVariants(vcf, gzip, log);
+				break;
+			case GZIP:
+				gzipAndIndex(vcf, log);
 				break;
 			default:
 				break;
