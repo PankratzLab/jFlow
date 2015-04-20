@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,7 +43,7 @@ public class GeneScorePipeline {
 		Aliases.EFFECTS 
 	};
 	
-	private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tSIG\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tP-VALUE";
+	private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tR-DIFF\tSIG\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tP-VALUE";
 	private String metaDir;
 	
 	private float[] indexThresholds = new float[]{DEFAULT_INDEX_THRESHOLD};
@@ -1002,7 +1003,6 @@ public class GeneScorePipeline {
 					}
 				
 					for (int i = 0; i < study.phenoFiles.size(); i++) {
-						
 						PhenoData pd = study.phenoData.get(study.phenoFiles.get(i));
 						ArrayList<Double> depData = new ArrayList<Double>();
 						ArrayList<double[]> baselineIndeps = new ArrayList<double[]>();
@@ -1104,6 +1104,7 @@ public class GeneScorePipeline {
 												.append(pheno).append("\t")
 												.append(rr.baseRSq).append("\t")
 												.append(rr.rsq).append("\t")
+												.append((Double.isNaN(rr.rsq) || Double.isNaN(rr.baseRSq) ? Double.NaN : (new BigDecimal(rr.rsq + "")).subtract(new BigDecimal(rr.baseRSq + "")))).append("\t")
 												.append(rr.pval).append("\t")
 												.append(rr.beta).append("\t")
 												.append(rr.se).append("\t")
@@ -1150,7 +1151,7 @@ public class GeneScorePipeline {
 //		}
 //		
 //		writer.flush();
-//		writer.close();
+//		writer.close(); 
 //	}
 	
 	public static void main(String[] args) {
