@@ -64,11 +64,12 @@ public class AnalysisFormats implements Runnable {
 		final String sampleDir;
 		final Logger log = proj.getLog();
 		
-		dir = proj.getDir(proj.PENNCNV_RESULTS_DIRECTORY) + proj.getProperty(proj.PENNCNV_DATA_DIRECTORY) + (subDir == null ? "" : subDir);
-		sampleDir = proj.getDir(proj.SAMPLE_DIRECTORY);
+		dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true) + proj.getProperty(proj.PENNCNV_DATA_DIRECTORY) + (subDir == null ? "" : subDir);
+		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 		new File(dir).mkdirs();
-		jar = proj.getJarStatus();
-		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
+		jar = proj.JAR_STATUS.getValue();
+//		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
+		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 		
 		int threadCount = Runtime.getRuntime().availableProcessors();
 
@@ -172,7 +173,7 @@ public class AnalysisFormats implements Runnable {
 			log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
 		}
 		samples = proj.getSamples();
-		sampleDataFile = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
+		sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 		int sexInd = -1;
 		for (int i = 0; i < header.length; i++) {
@@ -393,10 +394,10 @@ public class AnalysisFormats implements Runnable {
 		if (centFiles != null) {
 			log.report("Writing sex-specific Centroid files");
 			
-			centroids[0].serialize(proj.getProjectDir() + centFiles[0]);
+			centroids[0].serialize(proj.PROJECT_DIRECTORY.getValue() + centFiles[0]);
 			Centroids.exportToText(proj, centFiles[0], centFiles[0] + ".txt", allMarkers);
 			
-			centroids[1].serialize(proj.getProjectDir() + centFiles[1]);
+			centroids[1].serialize(proj.PROJECT_DIRECTORY.getValue() + centFiles[1]);
 			Centroids.exportToText(proj, centFiles[1], centFiles[1] + ".txt", allMarkers);
 		}
 		
@@ -426,7 +427,7 @@ public class AnalysisFormats implements Runnable {
 		
 		pennDir = proj.getProperty(proj.PENNCNV_RESULTS_DIRECTORY);
 		pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-		sexDir = proj.getProjectDir() + pennDir + pennData + "sexSpecific/";
+		sexDir = proj.PROJECT_DIRECTORY.getValue() + pennDir + pennData + "sexSpecific/";
 		
 		maleDir = sexDir + "male/";
 		femaleDir = sexDir + "female/";
@@ -475,9 +476,10 @@ public class AnalysisFormats implements Runnable {
 		
 		log.report("Exporting sex-specific sample data");
 		
-		sampleDir = proj.getDir(proj.SAMPLE_DIRECTORY);
-		jar = proj.getJarStatus();
-		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
+		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
+		jar = proj.JAR_STATUS.getValue();
+//		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
+		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 		
 		if (!useExcluded) {
 			includeSamplesList = proj.getSamplesToInclude(null);
@@ -489,7 +491,7 @@ public class AnalysisFormats implements Runnable {
 			allSamples = proj.getSamples();
 		}
 		
-		sampleDataFile = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
+		sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 		int sexInd = -1;
 		for (int i = 0; i < header.length; i++) {
@@ -617,7 +619,7 @@ public class AnalysisFormats implements Runnable {
 
 		pennDir = proj.getProperty(proj.PENNCNV_RESULTS_DIRECTORY);
 		pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-		sexDir = proj.getProjectDir() + pennDir + pennData + "sexSpecific/";
+		sexDir = proj.PROJECT_DIRECTORY.getValue() + pennDir + pennData + "sexSpecific/";
 		
 		maleDir = sexDir + "male/";
 		femaleDir = sexDir + "female/";
@@ -635,8 +637,8 @@ public class AnalysisFormats implements Runnable {
 		
 		centFilePathM = new String[]{pennDir + pennData + "sexSpecific/sexSpecific_Male.cent", ""};
 		centFilePathF = new String[]{pennDir + pennData + "sexSpecific/sexSpecific_Female.cent", ""};
-		centFilePathM[1] = proj.getProjectDir() + centFilePathM[0];
-		centFilePathF[1] = proj.getProjectDir() + centFilePathF[0];
+		centFilePathM[1] = proj.PROJECT_DIRECTORY.getValue() + centFilePathM[0];
+		centFilePathF[1] = proj.PROJECT_DIRECTORY.getValue() + centFilePathF[0];
 		
 		
 		writeCentroids = !Files.exists(centFilePathM[1]) || !Files.exists(centFilePathF[1]);
@@ -674,7 +676,7 @@ public class AnalysisFormats implements Runnable {
 			log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
 		}
 		samples = proj.getSamples();//Array.subArray(proj.getSamples(), inclSampAll);
-		sampleDataFile = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
+		sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 		int sexInd = -1;
 		for (int i = 0; i < header.length; i++) {
@@ -832,9 +834,10 @@ public class AnalysisFormats implements Runnable {
 		
 		log.report("Exporting sex-specific sample data");
 		
-		sampleDir = proj.getDir(proj.SAMPLE_DIRECTORY);
-		jar = proj.getJarStatus();
-		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
+		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
+		jar = proj.JAR_STATUS.getValue();
+//		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
+		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 		
 		for (int i = 0; i < samples.length; i++) {
 			log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
@@ -955,7 +958,7 @@ public class AnalysisFormats implements Runnable {
 		chrs = set.getChrs();
 		positions = set.getPositions();
 
-		new File(proj.getProjectDir()+"quanti_data/").mkdirs();
+		new File(proj.PROJECT_DIRECTORY.getValue()+"quanti_data/").mkdirs();
 		for (int i = 0; i<samples.length; i++) {
 			System.out.println(ext.getTime()+"\tTransforming "+(i+1)+" of "+samples.length);
 			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
@@ -964,7 +967,7 @@ public class AnalysisFormats implements Runnable {
 			bafs = samp.getBAFs();
 			
 			try {
-				writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"quanti_data/"+samples[i]));
+				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"quanti_data/"+samples[i]));
 				writer.println("Name\tChr\tPosition\t"+samples[i]+".Log R Ratio\t"+samples[i]+".B Allele Freq");
 				for (int j = 0; j<markerNames.length; j++) {
 					if (hash == null || hash.contains(markerNames[j])) {
@@ -985,9 +988,10 @@ public class AnalysisFormats implements Runnable {
 		String[] inputs, outputs;
 		String commands, gender;
 
-		genders = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", new String[] {"CLASS=Gender"}, "");
+//		genders = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", new String[] {"CLASS=Gender"}, "");
+		genders = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", new String[] {"CLASS=Gender"}, "");
 		
-		inputs = new File(proj.getProjectDir()+"quanti_data/").list(new FilenameFilter() {
+		inputs = new File(proj.PROJECT_DIRECTORY.getValue()+"quanti_data/").list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return filename.endsWith(".qs");
 			}
@@ -997,14 +1001,14 @@ public class AnalysisFormats implements Runnable {
 			System.err.println("Error - QuantiSNP inputs files have not yet been created");
 		}
 
-		outputs = new File(proj.getDir(proj.RESULTS_DIRECTORY)+"QuantiSNP/").list(new FilenameFilter() {
+		outputs = new File(proj.RESULTS_DIRECTORY.getValue(false, true)+"QuantiSNP/").list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return filename.endsWith("_output.out");
 			}
 		});
 		
 		if (outputs == null) {
-			System.out.println("Found "+inputs.length+" samples; creating output directory for QuantiSNP in "+proj.getDir(proj.RESULTS_DIRECTORY)+"QuantiSNP/");
+			System.out.println("Found "+inputs.length+" samples; creating output directory for QuantiSNP in "+proj.RESULTS_DIRECTORY.getValue(false, true)+"QuantiSNP/");
 			outputs = new String[0];
 		} else {
 			System.out.println("Found "+inputs.length+" samples, as well as results for "+outputs.length+" that have been done (not necessarily the same ones)");
@@ -1033,7 +1037,7 @@ public class AnalysisFormats implements Runnable {
 		System.out.println("Made "+numBatches+" batch files that will take care of the "+v.size()+" files yet to parse");
 
 //		commands = "quantisnp.exe --config ../windows/config.dat  --emiters "+EM_ITERATIONS+" --Lsetting 2000000 --maxcopy 3 --printRS --doGCcorrect --gcdir ../gc/b36/ --output "+OUTPUT_DIRECTORIES[1]+"[%0].out --gender [%1]--input-files ../source/[%0].qs 300\n\n";
-		commands = "quantisnp --output "+proj.getDir(proj.RESULTS_DIRECTORY)+OUTPUT_DIRECTORIES[1]+"[%0].out --gender [%1] --input-files ../source/[%0].qs 300\n\n";
+		commands = "quantisnp --output "+proj.RESULTS_DIRECTORY.getValue(false, true)+OUTPUT_DIRECTORIES[1]+"[%0].out --gender [%1] --input-files ../source/[%0].qs 300\n\n";
 		Files.batchIt("batch", null, numBatches, commands, Matrix.toStringArrays(v));
 	}	
 
@@ -1052,7 +1056,7 @@ public class AnalysisFormats implements Runnable {
 		if (markers == null) {
 			hash = null;
 		} else {
-			hash = HashVec.loadFileToHashSet(proj.getProjectDir()+markers, false);
+			hash = HashVec.loadFileToHashSet(proj.PROJECT_DIRECTORY.getValue()+markers, false);
 		}
 		threads = new Thread[numThreads];
 		for (int i = 0; i<numThreads; i++) {
@@ -1082,13 +1086,13 @@ public class AnalysisFormats implements Runnable {
 		if (regions.equals("")) {
 			segs = new Segment[0];
 		} else {
-			segs = Segment.loadUCSCregions(proj.getProjectDir()+regions, false);
+			segs = Segment.loadUCSCregions(proj.PROJECT_DIRECTORY.getValue()+regions, false);
 		}
 
 		if (list.equals("")) {
 			hash = new HashSet<String>();
 		} else {
-			hash = HashVec.loadFileToHashSet(proj.getProjectDir()+list, false);
+			hash = HashVec.loadFileToHashSet(proj.PROJECT_DIRECTORY.getValue()+list, false);
 		}
 
 		markers = proj.getMarkerSet();
@@ -1097,7 +1101,7 @@ public class AnalysisFormats implements Runnable {
 		positions = markers.getPositions();
 		
 		try {
-	        writer = new PrintWriter(new FileWriter(proj.getProjectDir()+outfile));
+	        writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+outfile));
 	        countFromList = countInRegions = countOverlap = 0;
 			for (int i = 0; i<markerNames.length; i++) {
 				if (segs.length > 0 && Segment.overlapsAny(new Segment(chrs[i], positions[i], positions[i]), segs)) {

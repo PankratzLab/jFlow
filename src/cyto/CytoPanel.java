@@ -68,7 +68,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	public CytoPanel(Project proj, CytoGUI cytoGUI, String startDir, Logger log) {
 		this.proj = proj;
 		this.startDir = startDir;
-		this.log = (log == null ? new Logger(proj.getProjectDir() + ext.getTimestampForFilename() + PANEL_LOG) : log);
+		this.log = (log == null ? new Logger(proj.PROJECT_DIRECTORY.getValue() + ext.getTimestampForFilename() + PANEL_LOG) : log);
 		this.cytoGUI = cytoGUI;
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		initLabels();
@@ -133,7 +133,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		JComponent source = (JComponent) e.getSource();
 		// gather the files from the directory navigated to
 		if (source.equals(selectFilesButton)) {
-			FileChooser fileChooser = new FileChooser(this, proj.getProjectDir(), false, true, SELECT_TITLE, log);
+			FileChooser fileChooser = new FileChooser(this, proj.PROJECT_DIRECTORY.getValue(), false, true, SELECT_TITLE, log);
 			if (fileChooser.isSelected()) {
 				this.startDir = fileChooser.getNavDir();
 				log.report(startDir);
@@ -283,17 +283,18 @@ public class CytoPanel extends JPanel implements ActionListener {
 	 */
 	private void parseAndImport() {
 		if (checkFiles(importFiles, SAMPLES, true)) {
-			Files.write("", proj.getDir(proj.SAMPLE_DIRECTORY, true) + ParseIllumina.OVERWRITE_OPTION_FILE);
+			Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseIllumina.OVERWRITE_OPTION_FILE);
 			ParseIllumina.deleteAllFilesInSampleDirectory(proj);
 			ParseIllumina.deleteAllFilesInMarkerDataDirectory(proj);
 
 			log.report(ext.getTime() + " Info - found " + importFiles.length + " files");
 			CytoAgilentParse.parseCytoToGenvisis(proj, importFiles, log);
-			cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
+//			cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
+			cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
 			deleteSampleList();
 			TransposeData.transposeData(proj, 2000000000, false);
 
-			new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + ParseIllumina.OVERWRITE_OPTION_FILE).delete();
+			new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseIllumina.OVERWRITE_OPTION_FILE).delete();
 		}
 	}
 
@@ -304,7 +305,8 @@ public class CytoPanel extends JPanel implements ActionListener {
 		try {
 			workBenchFiles = getFinalFullPath(benchfileBoxes);
 			if (checkFiles(workBenchFiles, WORKBENCH_TITLE, false)) {
-				CytoCompare.compare(proj, workBenchFiles, proj.getFilename(proj.COMMON_CNP_FILENAME), proj.getFilename(proj.REPORTED_CNP_FILENAME), proj.getFilename(proj.UNREPORTED_CNP_FILENAME), CytoCompare.DEFAULT_SCORE_THRESHOLD, startDir, true, new Logger(startDir + ext.getTimestampForFilename() + "_" + CytoCompare.DEFAULT_LOG));
+//				CytoCompare.compare(proj, workBenchFiles, proj.getFilename(proj.COMMON_CNP_FILENAME), proj.getFilename(proj.REPORTED_CNP_FILENAME), proj.getFilename(proj.UNREPORTED_CNP_FILENAME), CytoCompare.DEFAULT_SCORE_THRESHOLD, startDir, true, new Logger(startDir + ext.getTimestampForFilename() + "_" + CytoCompare.DEFAULT_LOG));
+				CytoCompare.compare(proj, workBenchFiles, proj.COMMON_CNP_FILENAME.getValue(), proj.REPORTED_CNP_FILENAME.getValue(), proj.UNREPORTED_CNP_FILENAME.getValue(), CytoCompare.DEFAULT_SCORE_THRESHOLD, startDir, true, new Logger(startDir + ext.getTimestampForFilename() + "_" + CytoCompare.DEFAULT_LOG));
 			}
 		} catch (Exception exc) {
 			JOptionPane.showMessageDialog(this, "An error occured while parsing the following " + (workBenchFiles.length == 1 ? " file: " : " files: ") + Array.toStr(workBenchFiles, "\n"));
@@ -318,7 +320,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	 *
 	 */
 	private void writeVariants() {
-		String dir = proj.getProjectDir() + CNV_DIR;
+		String dir = proj.PROJECT_DIRECTORY.getValue() + CNV_DIR;
 		if (!Files.exists(dir)) {
 			new File(dir).mkdir();
 		}
@@ -352,7 +354,8 @@ public class CytoPanel extends JPanel implements ActionListener {
 	private static String[] filterCNP(Project proj, String[] files) {
 		ArrayList<String> filter = new ArrayList<String>();
 		for (int i = 0; i < files.length; i++) {
-			if (!linuxSafeRootEquals(proj.getFilename(proj.COMMON_CNP_FILENAME),files[i]) && !linuxSafeRootEquals(proj.getFilename(proj.REPORTED_CNP_FILENAME),files[i]) && !linuxSafeRootEquals(proj.getFilename(proj.UNREPORTED_CNP_FILENAME),files[i])) {
+//			if (!linuxSafeRootEquals(proj.getFilename(proj.COMMON_CNP_FILENAME),files[i]) && !linuxSafeRootEquals(proj.getFilename(proj.REPORTED_CNP_FILENAME),files[i]) && !linuxSafeRootEquals(proj.getFilename(proj.UNREPORTED_CNP_FILENAME),files[i])) {
+			if (!linuxSafeRootEquals(proj.COMMON_CNP_FILENAME.getValue(), files[i]) && !linuxSafeRootEquals(proj.REPORTED_CNP_FILENAME.getValue(), files[i]) && !linuxSafeRootEquals(proj.UNREPORTED_CNP_FILENAME.getValue(), files[i])) {
 				filter.add(files[i]);
 			}
 
@@ -372,9 +375,12 @@ public class CytoPanel extends JPanel implements ActionListener {
 	}
 
 	private static void convertCNPfiles(Project proj, String cnvdir, Logger log) {
-		convertCNPfiles(proj, proj.getFilename(proj.COMMON_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(proj.COMMON_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
-		convertCNPfiles(proj, proj.getFilename(proj.REPORTED_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(proj.REPORTED_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
-		convertCNPfiles(proj, proj.getFilename(proj.UNREPORTED_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(proj.UNREPORTED_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
+//		convertCNPfiles(proj, proj.getFilename(proj.COMMON_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(proj.COMMON_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
+//		convertCNPfiles(proj, proj.getFilename(proj.REPORTED_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(proj.REPORTED_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
+//		convertCNPfiles(proj, proj.getFilename(proj.UNREPORTED_CNP_FILENAME), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(proj.UNREPORTED_CNP_FILENAME)), true) + CytoCNVariant.CNV_EXT, log);
+		convertCNPfiles(proj, proj.COMMON_CNP_FILENAME.getValue(), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.COMMON_CNP_FILENAME.getValue()), true) + CytoCNVariant.CNV_EXT, log);
+		convertCNPfiles(proj, proj.REPORTED_CNP_FILENAME.getValue(), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.REPORTED_CNP_FILENAME.getValue()), true) + CytoCNVariant.CNV_EXT, log);
+		convertCNPfiles(proj, proj.UNREPORTED_CNP_FILENAME.getValue(), cnvdir + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.UNREPORTED_CNP_FILENAME.getValue()), true) + CytoCNVariant.CNV_EXT, log);
 	}
 
 	/**
@@ -384,8 +390,8 @@ public class CytoPanel extends JPanel implements ActionListener {
 		if (!projectHasCNVFile(proj, output, log)) {
 			addCNVFile(proj, output);
 		}
-		if (!Files.exists(proj.getProjectDir() + output)) {
-			convertCNPFile(cnpFile, proj.getProjectDir() + output, log);
+		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
+			convertCNPFile(cnpFile, proj.PROJECT_DIRECTORY.getValue() + output, log);
 		}
 	}
 
@@ -444,8 +450,10 @@ public class CytoPanel extends JPanel implements ActionListener {
 	 */
 	private void deleteSampleList() {
 
-		if (Files.exists(proj.getFilename(proj.SAMPLELIST_FILENAME)) && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
-			new File(proj.getFilename(proj.SAMPLELIST_FILENAME)).delete();
+//		if (Files.exists(proj.getFilename(proj.SAMPLELIST_FILENAME)) && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
+//			new File(proj.getFilename(proj.SAMPLELIST_FILENAME)).delete();
+		if (Files.exists(proj.SAMPLELIST_FILENAME.getValue()) && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
+			new File(proj.SAMPLELIST_FILENAME.getValue()).delete();
 		}
 	}
 
@@ -456,7 +464,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		ArrayList<String> alreadyParsed = new ArrayList<String>();
 		if (importFiles != null && importFiles.length > 0) {
 			for (int i = 0; i < importFiles.length; i++) {
-				String file = proj.getDir(proj.SOURCE_DIRECTORY) + ext.rootOf(importFiles[i], true) + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION);
+				String file = proj.SOURCE_DIRECTORY.getValue(false, true) + ext.rootOf(importFiles[i], true) + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION);
 				if (Files.exists(file)) {
 					alreadyParsed.add(file);
 				}
@@ -465,7 +473,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		if (alreadyParsed.size() > 0) {
 			String[] overwriteOptions = new String[] { "Overwrite All", "Cancel parser" };
 			String samples = alreadyParsed.size() + " " + (alreadyParsed.size() > 1 ? " of the selected samples " : " the selected sample");
-			int response = JOptionPane.showOptionDialog(null, "These data (at least  " + samples + ") have already been parsed to the project source directory " + proj.getDir(proj.SOURCE_DIRECTORY) + ".\n" + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted, or if there are non-unique filenames.\n" + "Select \"" + overwriteOptions[0] + "\" earlier files to overwrite the " + samples + " already processed.\n" + "Otherwise, cancel and manually remove the files.\n" + "What would you like to do?", "Samples already exist", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[1]);
+			int response = JOptionPane.showOptionDialog(null, "These data (at least  " + samples + ") have already been parsed to the project source directory " + proj.SOURCE_DIRECTORY.getValue(false, true) + ".\n" + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted, or if there are non-unique filenames.\n" + "Select \"" + overwriteOptions[0] + "\" earlier files to overwrite the " + samples + " already processed.\n" + "Otherwise, cancel and manually remove the files.\n" + "What would you like to do?", "Samples already exist", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[1]);
 
 			switch (response) {
 			case 0:
@@ -593,7 +601,8 @@ public class CytoPanel extends JPanel implements ActionListener {
 			}
 		}
 		proj.resetSampleData();
-		return verifySampleDataIssues(issues.toArray(new String[issues.size()]), proj.getFilename(proj.SAMPLE_DATA_FILENAME));
+//		return verifySampleDataIssues(issues.toArray(new String[issues.size()]), proj.getFilename(proj.SAMPLE_DATA_FILENAME));
+		return verifySampleDataIssues(issues.toArray(new String[issues.size()]), proj.SAMPLE_DATA_FILENAME.getValue());
 	}
 
 	/**
@@ -602,7 +611,8 @@ public class CytoPanel extends JPanel implements ActionListener {
 	private static boolean addToSampleData(Project proj, FileBox[] fileBoxes, Logger log) {
 		boolean keepGoing = false;
 		fileBoxes = getBoxesToUse(fileBoxes);
-		String sampleDataFile = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+//		String sampleDataFile = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+		String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
 		if (!Files.exists(sampleDataFile)) {
 			keepGoing = writeNewSampleData(fileBoxes, sampleDataFile);
 		} else {
@@ -742,16 +752,22 @@ public class CytoPanel extends JPanel implements ActionListener {
 	private boolean keepGoing() {
 		int response = 1;
 		String[] options = new String[] { "Cancel", "Continue without" };
-		if (!Files.exists(proj.getFilename(proj.COMMON_CNP_FILENAME))) {
-			String dialoge = "Could not find the Common CNP file " + proj.getFilename(proj.COMMON_CNP_FILENAME);
+//		if (!Files.exists(proj.getFilename(proj.COMMON_CNP_FILENAME))) {
+		if (!Files.exists(proj.COMMON_CNP_FILENAME.getValue())) {
+//			String dialoge = "Could not find the Common CNP file " + proj.getFilename(proj.COMMON_CNP_FILENAME);
+			String dialoge = "Could not find the Common CNP file " + proj.COMMON_CNP_FILENAME.getValue();
 			response = JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 		}
-		if (parseResponse(response) && !Files.exists(proj.getFilename(proj.REPORTED_CNP_FILENAME))) {
-			String dialoge = "Could not find the Reported CNP file " + proj.getFilename(proj.REPORTED_CNP_FILENAME);
+//		if (parseResponse(response) && !Files.exists(proj.getFilename(proj.REPORTED_CNP_FILENAME))) {
+//			String dialoge = "Could not find the Reported CNP file " + proj.getFilename(proj.REPORTED_CNP_FILENAME);
+		if (parseResponse(response) && !Files.exists(proj.REPORTED_CNP_FILENAME.getValue())) {
+			String dialoge = "Could not find the Reported CNP file " + proj.REPORTED_CNP_FILENAME.getValue();
 			response = JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 		}
-		if (parseResponse(response) && !Files.exists(proj.getFilename(proj.COMMON_CNP_FILENAME))) {
-			String dialoge = "Could not find the  Un - Reported CNP file " + proj.getFilename(proj.UNREPORTED_CNP_FILENAME);
+//		if (parseResponse(response) && !Files.exists(proj.getFilename(proj.COMMON_CNP_FILENAME))) {
+//			String dialoge = "Could not find the  Un - Reported CNP file " + proj.getFilename(proj.UNREPORTED_CNP_FILENAME);
+		if (parseResponse(response) && !Files.exists(proj.COMMON_CNP_FILENAME.getValue())) {
+			String dialoge = "Could not find the  Un - Reported CNP file " + proj.UNREPORTED_CNP_FILENAME.getValue();
 			response = JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 		}
 		return parseResponse(response);
@@ -881,7 +897,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			JComponent source = (JComponent) e.getSource();
 			if (source.equals(selectButton)) {
-				FileChooser fileChooser = new FileChooser(this, proj.getProjectDir(), false, false, SELECT_TITLE, log);
+				FileChooser fileChooser = new FileChooser(this, proj.PROJECT_DIRECTORY.getValue(), false, false, SELECT_TITLE, log);
 				if (fileChooser.getFiles() != null && fileChooser.getFiles().length > 0) {
 					jFileNameTextField.setText(fileChooser.getFiles()[0]);
 				}

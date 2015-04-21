@@ -95,7 +95,7 @@ public class FocusedSample {
 			Sample samp = original.getFullSampleFromRandomAccessFile(sample);
 			FocusedSample focusedSample = null;
 			if (samp != null) {
-				String newSampleFileName = newFocus.getDir(newFocus.SAMPLE_DIRECTORY, true, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				String newSampleFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION;
 				focusedSample = new FocusedSample(focusedIndices, samp, newFingerPrint, overwriteExisting);
 				focusedSample.saveToRandomAccessFile(newSampleFileName, samp.getSampleName(), original.getLog());
 			} else {
@@ -109,10 +109,10 @@ public class FocusedSample {
 
 	public static boolean focusAProject(Project original, Project newFocus, String[] markersToUse, boolean[] samplesToUse, long newFingerPrint, int numThreads, boolean overwriteExisting, Logger log) {
 		boolean focused = true;
-		if (original.getProjectDir().equals(newFocus.getProjectDir())) {
+		if (original.PROJECT_DIRECTORY.getValue().equals(newFocus.PROJECT_DIRECTORY.getValue())) {
 			log.reportTimeError("The focused project must have a different project directory than the original, halting");
 			focused = false;
-		} else if (original.getDir(original.SAMPLE_DIRECTORY).equals(newFocus.getDir(newFocus.SAMPLE_DIRECTORY))) {
+		} else if (original.SAMPLE_DIRECTORY.getValue(false, true).equals(newFocus.SAMPLE_DIRECTORY.getValue(false, true))) {
 			log.reportTimeError("The focused project must have a different sample directory than the original, halting");
 			focused = false;
 		} else if (markersToUse == null || samplesToUse == null) {
@@ -141,7 +141,7 @@ public class FocusedSample {
 			outliers.putAll(focusedSamples[i].getOutliers());
 		}
 		if (outliers.size() > 0) {
-			String outlierFileName = newFocus.getDir(newFocus.SAMPLE_DIRECTORY, true) + "outliers.ser";
+			String outlierFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";
 			newFocus.getLog().reportTimeInfo("Writing outliers to " + outlierFileName);
 			Files.writeSerial(outliers, outlierFileName);
 		}
@@ -150,7 +150,7 @@ public class FocusedSample {
 	public static void test() {
 		Project proj = new Project(null, false);
 		Project proj2 = new Project(null, false);
-		proj2.setProperty(proj.PROJECT_DIRECTORY, proj.getProjectDir() + "subSample/");
+		proj2.setProperty(proj.PROJECT_DIRECTORY, proj.PROJECT_DIRECTORY.getValue() + "subSample/");
 		String[] markers = proj.getTargetMarkers();
 		focusAProject(proj, proj2, markers, null, proj.getMarkerSet().getFingerprint(), 8, true, proj.getLog());
 		proj2.getMarkerLookup();

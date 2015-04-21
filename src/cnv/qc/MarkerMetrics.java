@@ -56,11 +56,11 @@ public class MarkerMetrics {
         gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 		sexes = getSexes(proj, samples);
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getFilename(proj.MARKER_METRICS_FILENAME, true, false)));
+			writer = new PrintWriter(new FileWriter(proj.MARKER_METRICS_FILENAME.getValue(true, false)));
 			writer.println(Array.toStr(FULL_QC_HEADER));
 			
 			if (markersToInclude != null) {
-				markerNames = HashVec.loadFileToStringArray(proj.getDir(proj.PROJECT_DIRECTORY)+markersToInclude, false, new int[] {0}, false);
+				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)+markersToInclude, false, new int[] {0}, false);
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
@@ -174,7 +174,7 @@ public class MarkerMetrics {
 			writer.close();
 			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
-			log.reportError("Error writing marker metrics to "+proj.getFilename(proj.MARKER_METRICS_FILENAME, false, false));
+			log.reportError("Error writing marker metrics to "+proj.MARKER_METRICS_FILENAME.getValue(false, false));
 			e.printStackTrace();
 		}
 	}
@@ -236,11 +236,11 @@ public class MarkerMetrics {
 		}
         
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"lrrVariance.xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"lrrVariance.xln"));
 			writer.println(Array.toStr(LRR_VARIANCE_HEADER));
 			
 			if (markersToInclude != null) {
-				markerNames = HashVec.loadFileToStringArray(proj.getDir(proj.PROJECT_DIRECTORY)+markersToInclude, false, new int[] {0}, false);
+				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)+markersToInclude, false, new int[] {0}, false);
 			} else {
 				markerNames = proj.getMarkerNames();
 			}
@@ -340,11 +340,11 @@ public class MarkerMetrics {
         gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getDir(proj.RESULTS_DIRECTORY)+"markerGenderChecks.xln"));
+			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)+"markerGenderChecks.xln"));
 			writer.println("SNP\tX_zAA\tY_zBB\tX_tAA\tY_tBB\tMean_Zs\tMean_Ts\tMin_Z\tMin_T\tMAF");
 			
 			if (subset != null) {
-				markerList = HashVec.loadFileToStringArray(proj.getDir(proj.PROJECT_DIRECTORY)+subset, false, new int[] {0}, false);
+				markerList = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)+subset, false, new int[] {0}, false);
 			} else {
 				markerList = proj.getMarkerNames();
 			}
@@ -477,13 +477,13 @@ public class MarkerMetrics {
 		Logger log;
 
 		log = proj.getLog();
-		markerMetricsFilename = proj.getFilename(proj.MARKER_METRICS_FILENAME, false, false);
+		markerMetricsFilename = proj.MARKER_METRICS_FILENAME.getValue(false, false);
 		if (!Files.exists(markerMetricsFilename)) {
 			log.reportError("Error - marker metrics file not found at "+markerMetricsFilename);
 			return;
 		}
 		
-		reviewCriteriaFilename = proj.getFilename(proj.MARKER_REVIEW_CRITERIA_FILENAME, false, false);
+		reviewCriteriaFilename = proj.MARKER_REVIEW_CRITERIA_FILENAME.getValue(false, false);
 		if (Files.exists(reviewCriteriaFilename)) {
 			log.report("Using "+reviewCriteriaFilename+" for the review criteria");
 		} else {
@@ -491,7 +491,7 @@ public class MarkerMetrics {
 			Files.copyFileFromJar(DEFAULT_REVIEW_CRITERIA, reviewCriteriaFilename);
 		}
 
-		exclusionCriteriaFilename = proj.getFilename(proj.MARKER_EXCLUSION_CRITERIA_FILENAME, false, false);
+		exclusionCriteriaFilename = proj.MARKER_EXCLUSION_CRITERIA_FILENAME.getValue(false, false);
 		if (Files.exists(exclusionCriteriaFilename)) {
 			log.report("Using "+exclusionCriteriaFilename+" for the review criteria");
 		} else {
@@ -499,7 +499,7 @@ public class MarkerMetrics {
 			Files.copyFileFromJar(DEFAULT_EXCLUSION_CRITERIA, exclusionCriteriaFilename);
 		}
 		
-		combinedCriteriaFilename = proj.getFilename(proj.MARKER_COMBINED_CRITERIA_FILENAME, false, false);
+		combinedCriteriaFilename = proj.MARKER_COMBINED_CRITERIA_FILENAME.getValue(false, false);
 		if (Files.exists(combinedCriteriaFilename)) {
 			log.report("Using "+combinedCriteriaFilename+" for the review criteria");
 		} else {
@@ -507,9 +507,9 @@ public class MarkerMetrics {
 			Files.copyFileFromJar(DEFAULT_COMBINED_CRITERIA, combinedCriteriaFilename);
 		}
 		
-		FilterDB.filter(markerMetricsFilename, reviewCriteriaFilename, proj.getDir(proj.RESULTS_DIRECTORY)+"markersToReview.out", log);
-		FilterDB.filter(markerMetricsFilename, exclusionCriteriaFilename, proj.getDir(proj.RESULTS_DIRECTORY)+"markersToExclude.out", log);
-		FilterDB.filter(markerMetricsFilename, combinedCriteriaFilename, proj.getDir(proj.RESULTS_DIRECTORY)+"markersToReviewCombined.out", log);
+		FilterDB.filter(markerMetricsFilename, reviewCriteriaFilename, proj.RESULTS_DIRECTORY.getValue(false, true)+"markersToReview.out", log);
+		FilterDB.filter(markerMetricsFilename, exclusionCriteriaFilename, proj.RESULTS_DIRECTORY.getValue(false, true)+"markersToExclude.out", log);
+		FilterDB.filter(markerMetricsFilename, combinedCriteriaFilename, proj.RESULTS_DIRECTORY.getValue(false, true)+"markersToReviewCombined.out", log);
 	}
 	
 	public static void tallyFlaggedReviewedChangedAndDropped(Project proj, boolean checkForDeletedMarkers) {
@@ -544,8 +544,9 @@ public class MarkerMetrics {
 		Logger log;
 		
 		log = proj.getLog();
-		dir = proj.getProjectDir();
-		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+		dir = proj.PROJECT_DIRECTORY.getValue();
+//		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+		gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		shouldBeExcluded = proj.getSamplesToExclude();
 
 		filenames = new String[] {"results/markersToExclude.out", "results/markersToReview.out"};
@@ -796,7 +797,7 @@ public class MarkerMetrics {
 			}
 		}
 		
-		annotationReports(proj, checkForDeletedMarkers, proj.getDir(proj.RESULTS_DIRECTORY)+"annotationReport.xln");
+		annotationReports(proj, checkForDeletedMarkers, proj.RESULTS_DIRECTORY.getValue(false, true)+"annotationReport.xln");
 	}
 	
 	public static void tallyClusterFilters(Project proj, boolean[] samplesToInclude, String markersSubset) {
@@ -812,13 +813,14 @@ public class MarkerMetrics {
 		Logger log;
 		
 		log = proj.getLog();
-		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+//		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+		gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
         clusterFilterCollection = proj.getClusterFilterCollection();
         if (samplesToInclude == null) {
         	samplesToInclude = proj.getSamplesToInclude(null);
         }
 
-        filename = proj.getDir(proj.RESULTS_DIRECTORY)+"reclusteredMarkers.xln";
+        filename = proj.RESULTS_DIRECTORY.getValue(false, true)+"reclusteredMarkers.xln";
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
 			writer.println("Marker\tChr\tPosition\tnumClusterFilters\tnumGenotypesAffected\tproportionGenotypesAffected\tCallrateBefore\tCallrateAfter\tCallrateChange\tmafBefore\tmafAfter");
@@ -887,7 +889,8 @@ public class MarkerMetrics {
 		Logger log;
 		
 		log = proj.getLog();
-		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+//		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+		gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		shouldBeExcluded = proj.getSamplesToExclude();
 
         clusterFilterCollection = proj.getClusterFilterCollection();
@@ -948,7 +951,7 @@ public class MarkerMetrics {
 				writer.println(annotation+"\t"+markersWithAnnotation.length+"\t"+numReclustered+"\t"+numDropped);
 			}
 			writer.println("Any annotation\t"+markerNames.length+"\t"+reclusteredMarkers.size()+"\t"+droppedMarkers.size());
-			Files.writeList(HashVec.getKeys(droppedMarkers), proj.getDir(proj.RESULTS_DIRECTORY)+"markers_that_were_dropped.out");
+			Files.writeList(HashVec.getKeys(droppedMarkers), proj.RESULTS_DIRECTORY.getValue(false, true)+"markers_that_were_dropped.out");
 			
 			allOtherMarkers = HashVec.loadToHashSet(proj.getMarkerNames());
 			for (int j = 0; j < markerNames.length; j++) {
@@ -957,7 +960,7 @@ public class MarkerMetrics {
 			numReclustered = numDropped = 0;
 			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
 			writer.print("Everything else\t"+markerNames.length);
-			Files.writeList(markerNames, proj.getDir(proj.RESULTS_DIRECTORY)+"markers_not_yet_annotated.out");
+			Files.writeList(markerNames, proj.RESULTS_DIRECTORY.getValue(false, true)+"markers_not_yet_annotated.out");
 
 
 			for (int j = 0; j < markerNames.length; j++) {
@@ -1026,10 +1029,11 @@ public class MarkerMetrics {
 		Logger log;
 		
 		log = proj.getLog();
-		filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+//		filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+		filename = proj.SAMPLE_DATA_FILENAME.getValue();
 		header = Files.getHeaderOfFile(filename, log);
 		indices = ext.indexFactors(new String[] {"DNA",  phenotype}, header, false, true);
-		hash = HashVec.loadFileToHashString(filename, new int[] {indices[0]}, new int[] {indices[1]}, filename.endsWith(".csv"), null, true, proj.getJarStatus(), false);
+		hash = HashVec.loadFileToHashString(filename, new int[] {indices[0]}, new int[] {indices[1]}, filename.endsWith(".csv"), null, true, proj.JAR_STATUS.getValue(), false);
 		
 		samples = proj.getSamples();
 		deps = new double[samples.length];
@@ -1041,7 +1045,7 @@ public class MarkerMetrics {
 		
 		markerNames = proj.getMarkerNames();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln"));
 			writer.println("MarkerName\tBAF_p");
 //			markerDataLoader = new MarkerDataLoader(proj, markerNames, -1, log);
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
@@ -1062,7 +1066,7 @@ public class MarkerMetrics {
 
 			writer.close();
 		} catch (Exception e) {
-			log.reportError("Error writing to " + proj.getProjectDir()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln");
+			log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()+ext.replaceWithLinuxSafeCharacters(phenotype, true)+"_regress.xln");
 			log.reportException(e);
 		}
 	}

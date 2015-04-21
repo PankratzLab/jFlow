@@ -49,7 +49,7 @@ public class CNVSampleQC {
 		Logger log = proj.getLog();
 		
 		try {
-			BufferedReader reader = Files.getAppropriateReader(proj.getProjectDir()+QCFile);
+			BufferedReader reader = Files.getAppropriateReader(proj.PROJECT_DIRECTORY.getValue()+QCFile);
 			String[] line;
 			do {
 				line = reader.readLine().trim().split("\t", -1);
@@ -68,10 +68,10 @@ public class CNVSampleQC {
 			
 
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + proj.getProjectDir() + QCFile + "\" not found in current directory");
+			log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + QCFile + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + proj.getProjectDir() + QCFile + "\"");
+			log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + QCFile + "\"");
 			System.exit(1);
 		}
 		return cnvSampleQCs.toArray(new CNVSampleQC[cnvSampleQCs.size()]);

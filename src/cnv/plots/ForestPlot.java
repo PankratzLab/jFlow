@@ -30,14 +30,19 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -289,10 +294,10 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private float maxZScore;
 	private float sumZScore;
 	private String longestStudyName;
-	private JCheckBox chkSortStudies;
+//	private JCheckBox chkSortStudies;
 	private JLayeredPane layeredPane;
 	private JButton first, previous, next, last;
-	private JButton btnScreen, btnScreenAll;
+//	private JButton btnScreen, btnScreenAll;
 	private JTextField navigationField;
 	private JComboBox<String> markerFileList;
 	private HashMap<String, String> markerFileNameLoc = new HashMap<String, String>();
@@ -384,12 +389,72 @@ public class ForestPlot extends JFrame implements WindowListener {
 		
 		add(progressBar, BorderLayout.SOUTH);
 		
+		setJMenuBar(createMenuBar());
+		
 		setVisible(true);
 		
 		loadMarkerFile();
 		// generateShortcutMenus();
 	}
+	
+	
+	private JMenuBar createMenuBar() {
+		JMenuBar bar = new JMenuBar();
+		
+		JMenu actions = new JMenu("Actions", true);
+		actions.setMnemonic(KeyEvent.VK_A);
+		
+		final JCheckBoxMenuItem sortStudies = new JCheckBoxMenuItem();
+		AbstractAction sortAction = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				ForestPlot.this.forestPanel.setSortedDisplay(sortStudies.isSelected());
+				ForestPlot.this.forestPanel.paintAgain();
+			}
+		};
+		sortStudies.setAction(sortAction);
+		sortStudies.setText("Sort Studies");
+		sortStudies.setMnemonic(KeyEvent.VK_S);
+		actions.add(sortStudies);
+		
+		AbstractAction screenAction1 = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!loadingFile && (markerFileName != null && !"".equals(markerFileName))) {
+					ForestPlot.this.screenCap();
+				}
+			}
+		};
+		AbstractAction screenAction2 = new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!loadingFile && (markerFileName != null && !"".equals(markerFileName))) {
+					ForestPlot.this.screenCapAll();
+				}
+			}
+		};
 
+		actions.add(new JSeparator());
+		
+		JMenuItem screenCap1 = new JMenuItem();
+		screenCap1.setAction(screenAction1);
+		screenCap1.setText("Screen Capture");
+		screenCap1.setMnemonic(KeyEvent.VK_C);
+		actions.add(screenCap1);
+		
+		JMenuItem screenCap2 = new JMenuItem();
+		screenCap2.setAction(screenAction2);
+		screenCap2.setText("Screen Capture All");
+		screenCap2.setMnemonic(KeyEvent.VK_A);
+		actions.add(screenCap2);
+		
+		bar.add(actions);
+		
+		return bar;
+	}
 
 	private JPanel createControlPanel() {
 		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
@@ -435,48 +500,6 @@ public class ForestPlot extends JFrame implements WindowListener {
 		last.setActionCommand(LAST);
 		last.setPreferredSize(new Dimension(20, 20));
 		
-		AbstractAction sortAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				 ForestPlot.this.forestPanel.setSortedDisplay(chkSortStudies.isSelected());
-				 ForestPlot.this.forestPanel.paintAgain();
-			}
-		};
-		chkSortStudies = new JCheckBox(sortAction);
-		chkSortStudies.setText("Sort Studies");
-		chkSortStudies.setBackground(BACKGROUND_COLOR);
-		chkSortStudies.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		
-		AbstractAction screenAction1 = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!loadingFile && (markerFileName != null && !"".equals(markerFileName))) {
-					ForestPlot.this.screenCap();
-				}
-			}
-		};
-		AbstractAction screenAction2 = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!loadingFile && (markerFileName != null && !"".equals(markerFileName))) {
-					ForestPlot.this.screenCapAll();
-				}
-			}
-		};
-		btnScreen = new JButton(screenAction1);
-		btnScreen.setText("Screen Capture");
-		btnScreen.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		btnScreen.setMinimumSize(new Dimension(140, 26));
-		btnScreen.setPreferredSize(new Dimension(140, 26));
-		btnScreen.setMaximumSize(new Dimension(140, 26));
-		
-		btnScreenAll = new JButton(screenAction2);
-		btnScreenAll.setText("Screen Capture All");
-		btnScreenAll.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		
 		JPanel subNavPanel = new JPanel();
 		subNavPanel.setBackground(BACKGROUND_COLOR);
 		subNavPanel.add(first);
@@ -488,7 +511,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		Vector<String> items = new Vector<String>();
 		items.add(MARKER_LIST_PLACEHOLDER);
 		if (proj != null) {
-			String[] files = proj.getFilenames(proj.FOREST_PLOT_FILENAMES);
+			String[] files = proj.FOREST_PLOT_FILENAMES.getValue();
 			String name;
 			for (String file : files) {
 				name = ext.rootOf(file);
@@ -541,24 +564,24 @@ public class ForestPlot extends JFrame implements WindowListener {
 		navigationPanel.add(markerFileList);
 		navigationPanel.add(Box.createVerticalGlue());
 		
-		final JPanel subOptPanel = new JPanel();
-		subOptPanel.setLayout(new BoxLayout(subOptPanel, BoxLayout.Y_AXIS));
-		subOptPanel.setBackground(BACKGROUND_COLOR);
-		subOptPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		subOptPanel.add(btnScreen);
-		subOptPanel.add(Box.createRigidArea(new Dimension(0,5)));
-		subOptPanel.add(btnScreenAll);
+//		final JPanel subOptPanel = new JPanel();
+//		subOptPanel.setLayout(new BoxLayout(subOptPanel, BoxLayout.Y_AXIS));
+//		subOptPanel.setBackground(BACKGROUND_COLOR);
+//		subOptPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+//		subOptPanel.add(btnScreen);
+//		subOptPanel.add(Box.createRigidArea(new Dimension(0,5)));
+//		subOptPanel.add(btnScreenAll);
 		
-		JPanel optPanel = new JPanel() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public Dimension getMaximumSize() {
-				return super.getPreferredSize();
-			}
-		};
-		optPanel.setBackground(BACKGROUND_COLOR);
-		optPanel.add(chkSortStudies);
-		optPanel.add(subOptPanel);
+//		JPanel optPanel = new JPanel() {
+//			private static final long serialVersionUID = 1L;
+//			@Override
+//			public Dimension getMaximumSize() {
+//				return super.getPreferredSize();
+//			}
+//		};
+//		optPanel.setBackground(BACKGROUND_COLOR);
+//		optPanel.add(chkSortStudies);
+//		optPanel.add(subOptPanel);
 	
 		
 		JPanel descrPanel = new JPanel();
@@ -567,13 +590,13 @@ public class ForestPlot extends JFrame implements WindowListener {
 		descrPanel.add(Box.createHorizontalGlue());
 		descrPanel.add(Box.createHorizontalGlue());
 		descrPanel.add(Box.createHorizontalGlue());
-		descrPanel.add(Box.createHorizontalGlue());
-		descrPanel.add(Box.createHorizontalGlue());
+//		descrPanel.add(Box.createHorizontalGlue());
+//		descrPanel.add(Box.createHorizontalGlue());
 		descrPanel.add(navigationPanel);
 		descrPanel.add(Box.createHorizontalGlue());
 		descrPanel.add(Box.createHorizontalGlue());
 		descrPanel.add(Box.createHorizontalGlue());
-		descrPanel.add(optPanel);
+//		descrPanel.add(optPanel);
 		descrPanel.setBackground(BACKGROUND_COLOR);
 		return descrPanel;
 	}
@@ -671,7 +694,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	}
 	
 	private void chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null ? proj.getProjectDir() : ext.parseDirectoryOfFile(markerFileName)));
+		JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(markerFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(ForestPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
@@ -746,7 +769,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 			forestPanel.createImage();
 			String marker = "", filename = "", ctrlFile = "";
 			int count = 1;
-			String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.getProjectDir());
+			String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue());
 			marker = getDataIndices().get(getCurrentDataIndex()).marker;
 			ctrlFile = ext.rootOf(markerFileName);
 			filename = marker + "_" + ctrlFile;
@@ -766,7 +789,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private void screenCap() {
 		String marker = "", filename = "", ctrlFile = "";
 		int count = 1;
-		String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.getProjectDir());
+		String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue());
 		marker = getDataIndices().get(getCurrentDataIndex()).marker;
 		ctrlFile = ext.rootOf(markerFileName);
 		filename = marker + "_" + ctrlFile;

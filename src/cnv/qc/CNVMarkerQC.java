@@ -59,7 +59,7 @@ public class CNVMarkerQC implements Runnable {
 		boolean[] samplesToBeUsed = getSamplesToBeUsed(proj, excludeSamples, sampleData);
 		CNVMarkerQC[] markerFrequencies = computeFileMAFS(proj, threads, cabinet, samplesToBeUsed);
 		double[] mafs = summarize(proj, markerFrequencies, markerNames);
-		new MarkerFreqs(mafs, markerSet.getFingerprint()).serialize(proj.getProjectDir() + outputSer);
+		new MarkerFreqs(mafs, markerSet.getFingerprint()).serialize(proj.PROJECT_DIRECTORY.getValue() + outputSer);
 	}
 
 
@@ -221,7 +221,7 @@ public class CNVMarkerQC implements Runnable {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			proj.setLog(new Logger(proj.getProjectDir() + "CNVMarkerQCLog.txt"));
+			proj.setLog(new Logger(proj.PROJECT_DIRECTORY.getValue() + "CNVMarkerQCLog.txt"));
 			if (!convert) {
 				computeMAFs(proj, numThreads, excludeSamples, markerFreqSer);
 			// currently always output .txt format as well since it is small

@@ -81,7 +81,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		boolean exists = false;
 		for (int i = 0; i < FILE_PREFIXES.length; i++) {
 			for (int j = 0; j < FILE_EXT.length; j++) {
-				if (Files.exists(proj.getProjectDir() + FILE_PREFIXES[i] + outputBase + FILE_EXT[j])) {
+				if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[i] + outputBase + FILE_EXT[j])) {
 					exists = true;
 				}
 			}
@@ -92,7 +92,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	// for access from command line
 	public static void computeMedianLrrs(Project proj, String regionFileName, int transfromationType, int scope, String outputBase) {
 		Logger log = proj.getLog();
-		String[] input = readToArray(proj.getProjectDir() + regionFileName, log);
+		String[] input = readToArray(proj.PROJECT_DIRECTORY.getValue() + regionFileName, log);
 		MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope, outputBase, null, false, false, false, false, log);
 		log.report("Starting job for " + input.length + " regions");
 		medianLRRWorker.execute();
@@ -114,7 +114,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			}
 		});
 
-		this.computelog = log == null ? new Logger(proj.getProjectDir() + outputBase + ".log") : log;
+		this.computelog = log == null ? new Logger(proj.PROJECT_DIRECTORY.getValue() + outputBase + ".log") : log;
 		this.markerSet = proj.getMarkerSet();
 		this.markerNames = markerSet.getMarkerNames();
 		this.chrs = markerSet.getChrs();
@@ -136,7 +136,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 	protected String doInBackground() throws Exception {
 		String fileNameToVisualize = "";
-		System.out.println(proj.getProjectDir() + outputBase);
+		System.out.println(proj.PROJECT_DIRECTORY.getValue() + outputBase);
 		progressBar.setValue(0);
 		setProgress(0);
 		newJob(MEDIAN_WORKER_JOBS[0]);
@@ -292,16 +292,20 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		Logger projLog;
 		PrincipalComponentsResiduals pcrs = null;
 		if (correctLRR || correctXY || recomputeLRR) {// not truly necessary for recomputing LRR, but currently forcing it anyway
-			if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
-				String Error = "Error - could not find the file " + proj.getFilename(proj.INTENSITY_PC_FILENAME) + ", cannot perform intensity correction";
+//			if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
+			if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
+//				String Error = "Error - could not find the file " + proj.getFilename(proj.INTENSITY_PC_FILENAME) + ", cannot perform intensity correction";
+				String Error = "Error - could not find the file " + proj.INTENSITY_PC_FILENAME.getValue() + ", cannot perform intensity correction";
 				computelog.reportError(Error);
 				warnAndCancel(Error);
 			} else {
 //				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(proj.INTENSITY_PC_FILENAME), null, Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
-				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(proj.INTENSITY_PC_FILENAME), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
+				pcrs = new PrincipalComponentsResiduals(proj, proj.INTENSITY_PC_FILENAME.getValue(), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
 				samplesToUse = proj.getSamplesToInclude(null);
-				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + " for correction clustering");
-				proj.getLog().reportTimeInfo("Correcting with " + proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS) + " components");
+//				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + " for correction clustering");
+//				proj.getLog().reportTimeInfo("Correcting with " + proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS) + " components");
+				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.SAMPLE_DATA_FILENAME.getValue() + " for correction clustering");
+				proj.getLog().reportTimeInfo("Correcting with " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components");
 			}
 
 		}
@@ -443,21 +447,21 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private int[][][] getRegionCNs(MarkerRegion[] markerRegions) {
 		SampleData sampleData = proj.getSampleData(0, false);
 		int[][][] cnvFileCNs = null;
-		if (proj.getFilenames(proj.CNV_FILENAMES) == null || proj.getFilenames(proj.CNV_FILENAMES).length < 1) {
+		if (proj.CNV_FILENAMES.getValue() == null || proj.CNV_FILENAMES.getValue().length < 1) {
 			computelog.report("Warning - no cnv file was found, not matching regions to cnvs");
 		} else {
 			// region,sample,cnvFile
 			// CN are reported as 1=homzydel,2=hetrodel,3=none,4=hetrodup,5=homozydup;
 			process(0);
-			newJob("loading " + proj.getFilenames(proj.CNV_FILENAMES).length + " cnv " + (proj.getFilenames(proj.CNV_FILENAMES).length > 1 ? " files" : " file"));
+			newJob("loading " + proj.CNV_FILENAMES.getValue().length + " cnv " + (proj.CNV_FILENAMES.getValue().length > 1 ? " files" : " file"));
 			// TODO potential bug in old code - sets array length to length of String, not of value array
 //			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.length()];
 			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.getValue().length];
-			computelog.report("Info - assigning cnvs for " + proj.getFilenames(proj.CNV_FILENAMES).length + " cnv files");
-			sampleData.loadCNVs(proj.getFilenames(proj.CNV_FILENAMES), false);
+			computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length + " cnv files");
+			sampleData.loadCNVs(proj.CNV_FILENAMES.getValue(), false);
 			String[] cnvClasses = sampleData.getCnvClasses();
-			computelog.report("Info - assigning cnvs for " + proj.getFilenames(proj.CNV_FILENAMES).length);
-			newJob(MEDIAN_WORKER_JOBS[4] + proj.getFilenames(proj.CNV_FILENAMES).length + " cnv files");
+			computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length);
+			newJob(MEDIAN_WORKER_JOBS[4] + proj.CNV_FILENAMES.getValue().length + " cnv files");
 			processTracker[1] = 0;
 			for (int i = 0; i < markerRegions.length; i++) {
 				assignSampleProgress();
@@ -512,10 +516,11 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	// print median values
 	private String printMedianLRRs(RegionResults regionResults, MarkerRegion[] markerRegions) {
 		boolean reportCNVCN = false;
-		String output = proj.getProjectDir() + FILE_PREFIXES[0] + outputBase + FILE_EXT[0];
-		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", CLASSES_TO_DUMP, "\t");
+		String output = proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[0] + outputBase + FILE_EXT[0];
+//		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", CLASSES_TO_DUMP, "\t");
+		Hashtable<String, String> hashSamps = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", CLASSES_TO_DUMP, "\t");
 		int[][][] cnvFileCNs = getRegionCNs(markerRegions);
-		String[] cnvFiles = proj.getFilenames(proj.CNV_FILENAMES);
+		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
 		if (cnvFileCNs != null) {
 			computelog.report("Reporting cnvs");
 			regionResults.setCnvFileCNs(cnvFileCNs);
@@ -563,7 +568,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 	// print markers in region
 	private void printRegionMarkers(MarkerRegion[] markerRegions) {
-		String output = proj.getProjectDir() + FILE_PREFIXES[1] + outputBase + FILE_EXT[0];
+		String output = proj.PROJECT_DIRECTORY.getValue() + FILE_PREFIXES[1] + outputBase + FILE_EXT[0];
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			for (int i = 0; i < markerRegions.length; i++) {
@@ -1019,7 +1024,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			log = proj.getLog();
 
 			System.setProperty("java.awt.headless", headless);
-			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.getProjectDir() + regionFileName, log), transformationType, scope, outputBase, null, false, false, correctXY, false, log);
+			MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, readToArray(proj.PROJECT_DIRECTORY.getValue() + regionFileName, log), transformationType, scope, outputBase, null, false, false, correctXY, false, log);
 			medianLRRWorker.execute();
 			while (!medianLRRWorker.isDone()) {
 				Thread.sleep(100);

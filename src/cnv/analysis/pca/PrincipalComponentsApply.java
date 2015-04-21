@@ -58,10 +58,10 @@ public class PrincipalComponentsApply {
 		super();
 		this.proj = proj;
 		this.log = proj.getLog();
-		this.singularValues = new SingularValues(proj.getProjectDir() + singularFile, numComponents, log);
+		this.singularValues = new SingularValues(proj.PROJECT_DIRECTORY.getValue() + singularFile, numComponents, log);
 		this.numComponents = numComponents;
 		this.samplesToUse = samplesToUse;
-		this.markerLoadings = MarkerLoadings.getLoadings(proj.getProjectDir() + markerLoadingFile, numComponents, log);
+		this.markerLoadings = MarkerLoadings.getLoadings(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile, numComponents, log);
 		this.imputeMeanForNaN = imputeMeanForNaN;
 		this.recomputeLRR = recomputeLRR;
 		getMarkers();
@@ -146,10 +146,10 @@ public class PrincipalComponentsApply {
 		SampleData sampleData = proj.getSampleData(0, false);
 		this.extrapolatedPCsFile = output;
 		try {
-			if (Files.exists(proj.getProjectDir() + output)) {
-				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + output));
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
 			String[] samples = proj.getSampleList().getSamples();
 			writer.print("FID\tIID");
 			for (int i = 0; i < numComponents; i++) {

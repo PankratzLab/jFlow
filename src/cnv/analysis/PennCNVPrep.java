@@ -88,7 +88,7 @@ public class PennCNVPrep {
 			markerDataStorage.addToNextIndex(markerDataToStore);
 			index++;
 		}
-		String output = proj.getProjectDir() + dir + STORAGE_BASE + ext.indexLargeFactors(markers, proj.getMarkerNames(), true, proj.getLog(), true, true)[0] + STORAGE_EXT;
+		String output = proj.PROJECT_DIRECTORY.getValue() + dir + STORAGE_BASE + ext.indexLargeFactors(markers, proj.getMarkerNames(), true, proj.getLog(), true, true)[0] + STORAGE_EXT;
 		markerDataStorage.serialize(output);
 		if (notCorrected.size() > 0) {
 			Files.writeList(notCorrected.toArray(new String[notCorrected.size()]), output.replaceAll("\\.ser", "_") + notCorrected.size() + "_markersThatFailedCorrection.txt");
@@ -128,7 +128,7 @@ public class PennCNVPrep {
 			}
 			markerDataStorage.addToNextIndex(markerDataToStore);
 		}
-		String output = proj.getProjectDir() + dir + STORAGE_BASE + ext.indexLargeFactors(markers, proj.getMarkerNames(), true, proj.getLog(), true, true)[0] + STORAGE_EXT;
+		String output = proj.PROJECT_DIRECTORY.getValue() + dir + STORAGE_BASE + ext.indexLargeFactors(markers, proj.getMarkerNames(), true, proj.getLog(), true, true)[0] + STORAGE_EXT;
 		markerDataStorage.serialize(output);
 		if (notCorrected.size() > 0) {
 			Files.writeList(notCorrected.toArray(new String[notCorrected.size()]), output.replaceAll("\\.ser", "_") + notCorrected.size() + "_markersThatFailedCorrection.txt");
@@ -178,7 +178,7 @@ public class PennCNVPrep {
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		int[] subSampleIndicesInProject = ext.indexLargeFactors(Array.subArray(proj.getSamples(), samplesToExport), proj.getSamples(), true, proj.getLog(), true, true);
 		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
-		String dir = proj.getProjectDir() + "shadow" + proj.getProperty(proj.SAMPLE_DIRECTORY);
+		String dir = proj.PROJECT_DIRECTORY.getValue() + "shadow" + proj.getProperty(proj.SAMPLE_DIRECTORY);
 		proj.getLog().report("Info - checking for existing files in " + dir + "...");
 		boolean allExist = true;
 		for (int i = 0; i < subSamples.length; i++) {
@@ -393,14 +393,15 @@ public class PennCNVPrep {
 	 * Grab the {@link PrincipalComponentsResiduals} from {@link Project#INTENSITY_PC_FILENAME}
 	 */
 	private static PrincipalComponentsResiduals loadPcResids(Project proj, int numComponents) {
-		String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME);
+//		String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME);
+		String pcFile = proj.INTENSITY_PC_FILENAME.getValue();
 		PrincipalComponentsResiduals pcResids;
-		if (Files.exists(proj.getProjectDir() + ext.removeDirectoryInfo(pcFile))) {
+		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(pcFile))) {
 			proj.getLog().report("Info - loading " + ext.removeDirectoryInfo(pcFile));
 //			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
 			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
 		} else {
-			proj.getLog().reportError("Error - did not find Intensity PC File " + proj.getProjectDir() + ext.removeDirectoryInfo(pcFile) + " as defined by" + proj.INTENSITY_PC_FILENAME);
+			proj.getLog().reportError("Error - did not find Intensity PC File " + proj.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(pcFile) + " as defined by" + proj.INTENSITY_PC_FILENAME);
 			pcResids = null;
 		}
 		return pcResids;
@@ -443,7 +444,7 @@ public class PennCNVPrep {
 		String[] markers = proj.getMarkerNames();
 		ArrayList<String> files = new ArrayList<String>();
 		for (int i = 0; i < markers.length; i++) {
-			String possibleExist = proj.getProjectDir() + dir + STORAGE_BASE + i + STORAGE_EXT;
+			String possibleExist = proj.PROJECT_DIRECTORY.getValue() + dir + STORAGE_BASE + i + STORAGE_EXT;
 			if (Files.exists(possibleExist)) {
 				files.add(possibleExist);
 			}
@@ -467,7 +468,7 @@ public class PennCNVPrep {
 	 */
 	public static void exportSpecialPennCNV(Project proj, String dir, int numComponents, String markerFile, int numThreads, int numMarkerThreads, boolean exportToPennCNV, boolean shadowSamples, boolean svdRegression, int numSampleChunks) {
 		String[] markers;
-		new File(proj.getProjectDir() + dir).mkdirs();
+		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		if (exportToPennCNV) {
 			boolean[] exportThese = new boolean[proj.getSamples().length];
 			Arrays.fill(exportThese, true);
@@ -546,7 +547,7 @@ public class PennCNVPrep {
 		int[] chunks = Array.splitUp(allMarkers.length, numBatches);
 		int index = 0;
 		String[][] batches = new String[numBatches][1];
-		new File(proj.getProjectDir() + dir).mkdirs();
+		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		for (int i = 0; i < chunks.length; i++) {
 			ArrayList<String> chunk = new ArrayList<String>(chunks[i]);
 			for (int j = 0; j < chunks[i]; j++) {
@@ -554,20 +555,24 @@ public class PennCNVPrep {
 				index++;
 			}
 			batches[i][0] = "batch_" + i + "_" + chunks[i] + "_markers";
-			Files.writeList(chunk.toArray(new String[chunk.size()]), proj.getProjectDir() + dir + batches[i][0] + ".txt");
+			Files.writeList(chunk.toArray(new String[chunk.size()]), proj.PROJECT_DIRECTORY.getValue() + dir + batches[i][0] + ".txt");
 		}
 		String command = "module load java\n";
-		command += "java -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir;
+//		command += "java -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir;
+		command += "java -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue() + " dir=" + dir;
 		Files.qsub("ShadowCNVPrepFormatExport", command + " -shadow sampleChunks=NeedToFillThisIn numThreads=1", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
 		Files.qsub("PennCNVPrepFormatExport", command + " -create", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
-		command += " numMarkerThreads=" + numMarkerThreads + " numThreads=" + numThreads + " numComponents=" + numComponents + " markers=" + proj.getProjectDir() + dir + "[%0].txt";
+		command += " numMarkerThreads=" + numMarkerThreads + " numThreads=" + numThreads + " numComponents=" + numComponents + " markers=" + proj.PROJECT_DIRECTORY.getValue() + dir + "[%0].txt";
 		Files.qsub("PennCNVPrepFormatTmpFiles", command, batches, memoryInMB, wallTimeInHours, numThreads);
-		if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
+//		if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
+		if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
 			proj.getLog().report("Warning - all jobs will fail if the property " + proj.INTENSITY_PC_FILENAME + " in " + proj.getPropertyFilename() + " is not set to an existing file");
-			proj.getLog().report("		  - did not find " + proj.getFilename(proj.INTENSITY_PC_FILENAME));
+//			proj.getLog().report("		  - did not find " + proj.getFilename(proj.INTENSITY_PC_FILENAME));
+			proj.getLog().report("		  - did not find " + proj.INTENSITY_PC_FILENAME.getValue());
 		}
 		if (getSampleSex(proj) == null) {
-			proj.getLog().report("Warning - all jobs will fail if sample sex is not provided in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
+//			proj.getLog().report("Warning - all jobs will fail if sample sex is not provided in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
+			proj.getLog().report("Warning - all jobs will fail if sample sex is not provided in " + proj.SAMPLE_DATA_FILENAME.getValue());
 			proj.getLog().report("		  - please specify sex for as many individuals as possible");
 		}
 	}

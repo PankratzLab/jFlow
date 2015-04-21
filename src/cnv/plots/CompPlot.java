@@ -89,7 +89,7 @@ public class CompPlot extends JFrame {
 		// Position
 
 		// Get a list of the .cnv files
-		files = proj.getFilenames(proj.CNV_FILENAMES);
+		files = proj.CNV_FILENAMES.getValue();
 		if (files.equals("")) {
 			// CNV_FILENAMES is empty, throw an error and exit
 			JOptionPane.showMessageDialog(null, "Error - CNV_FILENAMES property is empty");
@@ -103,7 +103,7 @@ public class CompPlot extends JFrame {
 		}
 
 		// Get the GeneTrack
-		String geneTrackFile = proj.getFilename(proj.GENETRACK_FILENAME, false, false);
+		String geneTrackFile = proj.GENETRACK_FILENAME.getValue(false, false);
 		if (geneTrackFile != null && !geneTrackFile.endsWith("/") && new File(geneTrackFile).exists()) {
 			track = GeneTrack.load(geneTrackFile, false);
 		} else if (new File(GeneSet.REFSEQ_TRACK).exists()) {

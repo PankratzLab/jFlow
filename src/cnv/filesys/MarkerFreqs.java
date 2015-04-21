@@ -49,7 +49,7 @@ public class MarkerFreqs implements Serializable {
 
 	public static void exportToText(String filename, String mafFilename, String exportFilename) {
 		Project proj = new Project(filename, false);
-		MarkerFreqs markerMAF = load(proj.getProjectDir() + mafFilename, false);
+		MarkerFreqs markerMAF = load(proj.PROJECT_DIRECTORY.getValue() + mafFilename, false);
 		MarkerSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		double[] mafs = markerMAF.getMafs();
@@ -64,7 +64,7 @@ public class MarkerFreqs implements Serializable {
 			log.reportError("Error - mismatched marker fingerprints in the project's marker set and the imported AlleleFrequency file (" + mafFilename + "); aborting");
 			System.exit(1);
 		} else {
-			dump(proj.getProjectDir() + exportFilename, mafs, markerNames, markerSet.getFingerprint(), log);
+			dump(proj.PROJECT_DIRECTORY.getValue() + exportFilename, mafs, markerNames, markerSet.getFingerprint(), log);
 		}
 	}
 
@@ -105,7 +105,7 @@ public class MarkerFreqs implements Serializable {
 		}
 		try {
 			int numMafs = 0;
-			reader = new BufferedReader(new FileReader(proj.getProjectDir() + Freqfilename));
+			reader = new BufferedReader(new FileReader(proj.PROJECT_DIRECTORY.getValue() + Freqfilename));
 			header = reader.readLine().trim().split("[\\s]+");
 			indices = Array.intArray(MARKER_FREQ_FIELDS.length, -1);
 			for (int i = 0; i < header.length; i++) {
@@ -136,13 +136,13 @@ public class MarkerFreqs implements Serializable {
 
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + Freqfilename + "\" not found in " + proj.getProjectDir());
+			log.reportError("Error: file \"" + Freqfilename + "\" not found in " + proj.PROJECT_DIRECTORY.getValue());
 			System.exit(1);
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + Freqfilename + "\"");
 			System.exit(2);
 		}
-		new MarkerFreqs(mafs, markerSet.getFingerprint()).serialize(proj.getProjectDir() + outputFileNameSer);
+		new MarkerFreqs(mafs, markerSet.getFingerprint()).serialize(proj.PROJECT_DIRECTORY.getValue() + outputFileNameSer);
 	}
 
 }

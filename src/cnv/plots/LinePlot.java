@@ -192,7 +192,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		});
 
 		setVisible(true);
-		readColorKeyFile(proj.getProjectDir() + File.separator + LINE_PLOT_DIR_NAME + File.separator + LINE_PLOT_COLOR_FILENAME);
+		readColorKeyFile(proj.PROJECT_DIRECTORY.getValue() + File.separator + LINE_PLOT_DIR_NAME + File.separator + LINE_PLOT_COLOR_FILENAME);
 		updateColorKey();
 	}
 
@@ -285,7 +285,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemOpen = new JMenuItem("Open", KeyEvent.VK_O);
 		menuItemOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj.getProjectDir());
+				JFileChooser fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
@@ -693,7 +693,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		String[] keys;
 
 		if (command.equals(ADD_DATA_FILE)) {
-			JFileChooser fileChooser = new JFileChooser(proj.getProjectDir());
+			JFileChooser fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
 			int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 			if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 				for (int i = 0; tree != null && i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {

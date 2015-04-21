@@ -46,7 +46,7 @@ public class AnnotationCollection implements Serializable {
 		
 		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annotation database", "Warning", JOptionPane.ERROR_MESSAGE);
 		if (response == 0) {
-			serialize(proj.getDir(proj.BACKUP_DIRECTORY)+"annotationsBeforeRemoving_"+ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true)+".ser." +(new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+			serialize(proj.BACKUP_DIRECTORY.getValue(false, true)+"annotationsBeforeRemoving_"+ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true)+".ser." +(new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			commentsHash.remove(c);
 			markers = annotationMarkerLists.get(c+"");
 			for (int i=0; markers != null && i < markers.size(); i++) {
@@ -110,7 +110,7 @@ public class AnnotationCollection implements Serializable {
 	}
 	
 	public void dumpLists(Project proj) {
-		dumpLists(proj.getProjectDir());
+		dumpLists(proj.PROJECT_DIRECTORY.getValue());
 	}
 	
 	public void dumpLists(String outputDir) {
@@ -406,9 +406,11 @@ public class AnnotationCollection implements Serializable {
 				if (dump) {
 					annotationCollection.dumpLists(proj);
 				} else if (importList != null) {
-					proj.archiveFile(proj.getFilename(proj.ANNOTATION_FILENAME));
+//					proj.archiveFile(proj.getFilename(proj.ANNOTATION_FILENAME));
+					proj.archiveFile(proj.ANNOTATION_FILENAME.getValue());
 					annotationCollection.importList(importList, log);
-					annotationCollection.serialize(proj.getFilename(proj.ANNOTATION_FILENAME, false, false));
+//					annotationCollection.serialize(proj.getFilename(proj.ANNOTATION_FILENAME, false, false));
+					annotationCollection.serialize(proj.ANNOTATION_FILENAME.getValue(false, false));
 				} else {
 					annotationCollection.exportList(exportList, log);
 				}

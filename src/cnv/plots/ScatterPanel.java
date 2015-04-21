@@ -160,7 +160,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		disabledClassValues = sp.getDisabledClassValues();
 		
-		shiftColorOfSexChromosomes = sp.getProject().getBoolean(sp.getProject().SHIFT_SEX_CHR_COLORS_YESNO);
+//		shiftColorOfSexChromosomes = sp.getProject().getBoolean(sp.getProject().SHIFT_SEX_CHR_COLORS_YESNO);
+		shiftColorOfSexChromosomes = sp.getProject().SHIFT_SEX_CHR_COLORS_YESNO.getValue();
 
 		if (!sp.markerDataIsActive()) {
 			return;
@@ -181,7 +182,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		// alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());
-		newGenotypingFilename = sp.getProject().getDir(sp.getProject().DATA_DIRECTORY) + sp.getMarkerName() + "_newGenotyping.xln";
+		Project r = sp.getProject();
+		newGenotypingFilename = sp.getProject().DATA_DIRECTORY.getValue(false, true) + sp.getMarkerName() + "_newGenotyping.xln";
 		if(new File(newGenotypingFilename).exists()) {
 			isNewGenotypingDifferent = loadNewGenotyping(newGenotypingFilename);
 		}

@@ -108,7 +108,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		log = proj.getLog();
 		size = DEFAULT_SIZE;
 
-		if (Files.exists(proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
 			sampleData = proj.getSampleData(2, false);
 		} else {
 			sampleData = null;
@@ -122,7 +122,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		keyIndices = new Hashtable<String, int[]>();
 		columnMetaData = new Hashtable<Integer, String[]>();
 
-		previouslyLoadedFiles = proj.getFilenames(proj.TWOD_LOADED_FILENAMES);
+		previouslyLoadedFiles = proj.TWOD_LOADED_FILENAMES.getValue();
 		for (String previouslyLoadedFile : previouslyLoadedFiles) {
 			loadFile(previouslyLoadedFile);
 		}
@@ -316,7 +316,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemOpen = new JMenuItem("Open", KeyEvent.VK_O);
 		menuItemOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj.getProjectDir());
+				JFileChooser fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 		        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 		    		loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
@@ -340,7 +340,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
 		menuItemExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						setVisible(false);
+						Component c = TwoDPlot.this.getParent();
+						while (!(c instanceof JFrame)) {
+							c = c.getParent();
+						}
+						((JFrame)c).dispose();
+					}
+				});
 			}
 		});
 		menu.add(menuItemExit);
@@ -395,7 +405,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		found = false;
 		command = ae.getActionCommand();
 		if (command.equals(ADD_DATA_FILE)) {
-			fileChooser = new JFileChooser(proj.getProjectDir());
+			fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
 	        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
         		for (int i=0; tree!=null && i<tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
         			if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/").equals(tree.getModel().getChild(tree.getModel().getRoot(),i).toString())) {
@@ -431,7 +441,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		} else if (command.equals(SET_AS_LINKKEY)) {
 //			setLinkKeyHandler(tree.getSelectionRows());
 		} else if (command.equals(CREATE_SCREENS)) {
-			JFileChooser jfc = new JFileChooser(proj != null ? proj.getProjectDir() : (new File(".")).toString());
+			JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : (new File(".")).toString());
 			jfc.setMultiSelectionEnabled(true);
 			if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
 				File selFile = jfc.getSelectedFile();
@@ -626,7 +636,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		//Make sure to set it back after resetting sample data
 		Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String, Integer>(sampleData.getLinkKeyIndex());
 		proj.resetSampleData();
-		if (Files.exists(proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
 			sampleData = proj.getSampleData(2, false);
 		}
 		sampleData = proj.getSampleData(2, false);

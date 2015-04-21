@@ -166,7 +166,8 @@ public class SampleQC {
 	}
 
 	public static SampleQC loadSampleQC(Project proj, String sampleColumnName, String[] qcTitlesToLoad) {
-		String lrrSdToLoad = proj.getFilename(proj.SAMPLE_QC_FILENAME);
+//		String lrrSdToLoad = proj.getFilename(proj.SAMPLE_QC_FILENAME);
+		String lrrSdToLoad = proj.SAMPLE_QC_FILENAME.getValue();
 		SampleQC sampleQC = null;
 		if (!Files.exists(lrrSdToLoad)) {
 			proj.getLog().reportTimeError("Could not find sample QC file " + lrrSdToLoad);

@@ -63,8 +63,10 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		String[] classes;
 //		Hashtable
 
-		if (!Files.exists(proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), proj.getJarStatus())) {
-			JOptionPane.showMessageDialog(null, "Could not find file: "+proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), "Error", JOptionPane.ERROR_MESSAGE);
+//		if (!Files.exists(proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), proj.getJarStatus())) {
+//			JOptionPane.showMessageDialog(null, "Could not find file: "+proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), "Error", JOptionPane.ERROR_MESSAGE);
+		if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue())) {
+			JOptionPane.showMessageDialog(null, "Could not find file: "+proj.MOSAIC_RESULTS_FILENAME.getValue(), "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		
@@ -77,7 +79,8 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		samples = new Vector<String[]>();
 		datapoints = new Vector<double[]>();
 		try {
-			reader = Files.getReader(proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), proj.getJarStatus(), true, true);
+//			reader = Files.getReader(proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), proj.getJarStatus(), true, true);
+			reader = Files.getReader(proj.MOSAIC_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, true);
 			ext.checkHeader(reader.readLine().trim().split("\t"), MOSAICISM_HEADER, true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
@@ -88,10 +91,11 @@ public class MosaicPlot extends JFrame implements ActionListener {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+proj.getFilename(proj.MOSAIC_RESULTS_FILENAME)+"\" not found in current directory");
+//			System.err.println("Error: file \""+proj.getFilename(proj.MOSAIC_RESULTS_FILENAME)+"\" not found in current directory");
+			System.err.println("Error: file \""+proj.MOSAIC_RESULTS_FILENAME.getValue()+"\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(proj.MOSAIC_RESULTS_FILENAME)+"\"");
+			System.err.println("Error reading file \""+proj.MOSAIC_RESULTS_FILENAME.getValue()+"\"");
 			System.exit(2);
 		}
 

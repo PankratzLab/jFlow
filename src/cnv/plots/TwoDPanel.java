@@ -105,13 +105,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		if (proj == null) {
 			markerLookup = new MarkerLookup(new Hashtable<String, String>());
 		} else {
-			if (Files.exists(proj.getFilename(proj.MARKERLOOKUP_FILENAME, false, false), proj.getJarStatus())) {
+			if (Files.exists(proj.MARKERLOOKUP_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
 				markerLookup = proj.getMarkerLookup();
 				proj.getLog().report("Marker data is available for this project");
 			} else {
 				markerLookup = new MarkerLookup(new Hashtable<String, String>());
 			}
-			if (Files.exists(proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false), proj.getJarStatus())) {
+			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
 				sampleData = proj.getSampleData(1, false);
 				proj.getLog().report("Sample lookup is available for this project");
 			}
@@ -560,7 +560,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				
 				sample = null;
 				// TODO this check will ALWAYS fail!
-				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY, false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
+				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 					sample = keys[2];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
@@ -571,7 +571,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 					if (ids == null) {
 						ids = sampleData.lookup(keys[0]);
 					}
-					if (ids != null && Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY, false, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus())) {
+					if (ids != null && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 						sample = ids[0];
 					}
 				}

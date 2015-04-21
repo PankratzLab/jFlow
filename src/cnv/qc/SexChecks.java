@@ -102,7 +102,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
  		
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getDir(proj.RESULTS_DIRECTORY)+"markerGenderChecks.xln"));
+			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)+"markerGenderChecks.xln"));
 			writer.println("SNP\tX abs(T)\tY abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tBAF p\tLRR p\tBAF/LRR r2");
 			
 	        time = new Date().getTime();
@@ -180,20 +180,21 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 
 		log = proj.getLog();
 		
-		File[] filenames = new File(proj.getDir(proj.RESULTS_DIRECTORY)+RESULTS_DIR).listFiles(new FilenameFilter() {
+		File[] filenames = new File(proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR).listFiles(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return filename.endsWith("_genderChecks.xln");
 			}
 		});
 
 		if (filenames==null) {
-			log.reportError("Error - directory not found: "+proj.getDir(proj.RESULTS_DIRECTORY)+RESULTS_DIR);
+			log.reportError("Error - directory not found: "+proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR);
 
 		} else {
 			log.report("Found results for "+filenames.length+" lookup files");
 		}
 
-		hash = HashVec.loadFileToHashString(proj.getFilename(proj.MARKERSET_FILENAME), 0, new int[] {1, 2}, "\t", true);
+//		hash = HashVec.loadFileToHashString(proj.getFilename(proj.MARKERSET_FILENAME), 0, new int[] {1, 2}, "\t", true);
+		hash = HashVec.loadFileToHashString(proj.MARKERSET_FILENAME.getValue(), 0, new int[] {1, 2}, "\t", true);
 
 		try {
 			writer = new PrintWriter(new FileWriter("GenderChecks.xln"));
@@ -450,7 +451,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 		String famIndPair;
 		
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"sexCheck.xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln"));
 			writer.println(Array.toStr(SEX_HEADER));
 			for (int i = 0; i<samples.length; i++) {
 				famIndPair = sampleData.lookup(samples[i])[1];
@@ -520,7 +521,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
         gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 
         try {
-			writer = new PrintWriter(new FileWriter(proj.getDir(proj.RESULTS_DIRECTORY, true, false)+"pseudoautosomalSearch.xln"));
+			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, false)+"pseudoautosomalSearch.xln"));
 			writer.println("SNP\tChr\tPosition\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 			
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);

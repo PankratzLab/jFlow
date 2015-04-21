@@ -43,7 +43,7 @@ public class GeneScorePipeline {
 		Aliases.EFFECTS 
 	};
 	
-	private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tR-DIFF\tSIG\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tP-VALUE";
+	private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tR-DIFF\tP-VALUE\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tEXCEL-SIG";
 	private String metaDir;
 	
 	private float[] indexThresholds = new float[]{DEFAULT_INDEX_THRESHOLD};
@@ -99,6 +99,18 @@ public class GeneScorePipeline {
 		double se;
 		int num;
 		public double stats;
+		
+		private void dummy() {
+			logistic = true;
+			rsq = Double.NaN;
+			baseRSq = Double.NaN;
+			pval = Double.NaN;
+			beta = Double.NaN;
+			se = Double.NaN;
+			num = 0;
+			stats = Double.NaN;
+		}
+		
 	}
 	
 	private class Constraint {
@@ -813,8 +825,8 @@ public class GeneScorePipeline {
 				do {
 					String[] parts = line.split("[\\s]+");
 					String mkr = parts[bimMkrIndex];
-					String a1 = parts[bimA1Index];
-					String a2 = parts[bimA2Index];
+					String a1 = parts[bimA1Index].toUpperCase();
+					String a2 = parts[bimA2Index].toUpperCase();
 					if (Sequence.validAllele(a1) && Sequence.validAllele(a2) && !a1.equals(Sequence.flip(a2))) {
 						mkrsBim.put(mkr, parts);
 					} else {
@@ -1098,13 +1110,17 @@ public class GeneScorePipeline {
 					for (String pheno : study.phenoFiles) {
 						RegressionResult rr = phenoResults.get(pheno);
 						
+						if (rr == null) {
+							rr = new RegressionResult();
+							rr.dummy();
+						}
 						String pvalExcl = rr.num == 0 ? "." : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")" : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num + ",2)");
 						
 						StringBuilder sb = new StringBuilder(resultPrefix)
 												.append(pheno).append("\t")
 												.append(rr.baseRSq).append("\t")
 												.append(rr.rsq).append("\t")
-												.append((Double.isNaN(rr.rsq) || Double.isNaN(rr.baseRSq) ? Double.NaN : (new BigDecimal(rr.rsq + "")).subtract(new BigDecimal(rr.baseRSq + "")))).append("\t")
+												.append((Double.isNaN(rr.rsq) ? Double.NaN : (Double.isNaN(rr.baseRSq) ?  rr.rsq : (new BigDecimal(rr.rsq + "")).subtract(new BigDecimal(rr.baseRSq + ""))))).append("\t")
 												.append(rr.pval).append("\t")
 												.append(rr.beta).append("\t")
 												.append(rr.se).append("\t")

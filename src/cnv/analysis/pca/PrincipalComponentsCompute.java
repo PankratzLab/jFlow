@@ -316,11 +316,11 @@ public class PrincipalComponentsCompute {
 		if (useFile == null) {
 			return getSamples(proj, excludeSamples);
 		}
-		if (!Files.exists(proj.getProjectDir() + useFile)) {
-			proj.getLog().reportError("Error - could not find the file of samples to use " + proj.getProjectDir() + useFile);
+		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue() + useFile)) {
+			proj.getLog().reportError("Error - could not find the file of samples to use " + proj.PROJECT_DIRECTORY.getValue() + useFile);
 			return null;
 		} else {
-			return getSamplesFromFile(proj, proj.getProjectDir() + useFile);
+			return getSamplesFromFile(proj, proj.PROJECT_DIRECTORY.getValue() + useFile);
 		}
 	}
 
@@ -335,8 +335,8 @@ public class PrincipalComponentsCompute {
 		pcFile = ext.rootOf(output) + OUTPUT_EXT[0];
 		singularValuesFile = ext.rootOf(output) + OUTPUT_EXT[3];
 		markerLoadingFile = ext.rootOf(output) + OUTPUT_EXT[2];
-		if (Files.exists(proj.getProjectDir() + pcFile) && Files.exists(proj.getProjectDir() + singularValuesFile) && Files.exists(proj.getProjectDir() + markerLoadingFile)) {
-			log.report("Detected that the following principal component files already exist:\n" + proj.getProjectDir() + pcFile + "\n" + proj.getProjectDir() + singularValuesFile + "\n" + proj.getProjectDir() + markerLoadingFile + "\n");
+		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + pcFile) && Files.exists(proj.PROJECT_DIRECTORY.getValue() + singularValuesFile) && Files.exists(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile)) {
+			log.report("Detected that the following principal component files already exist:\n" + proj.PROJECT_DIRECTORY.getValue() + pcFile + "\n" + proj.PROJECT_DIRECTORY.getValue() + singularValuesFile + "\n" + proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile + "\n");
 			log.report("Skipping the principal component computation and using these files instead.");
 			log.report("If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the files listed above.\n Alternatively, specify a new analysis name");
 			pcs = new PrincipalComponentsCompute();
@@ -597,12 +597,12 @@ public class PrincipalComponentsCompute {
 	}
 
 	private static void reportMarkersUsed(Project proj, String[] markers, boolean[] markerUsed, double[][] dataToUse, boolean printFullData, boolean[] samplesToUse, String output) {
-		String markersUsedForPCA = proj.getProjectDir() + ext.rootOf(output) + OUTPUT_EXT[1];
+		String markersUsedForPCA = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + OUTPUT_EXT[1];
 		Logger log = proj.getLog();
 
 		try {
 			if (Files.exists(markersUsedForPCA)) {
-				Files.backup(ext.rootOf(output) + OUTPUT_EXT[1], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				Files.backup(ext.rootOf(output) + OUTPUT_EXT[1], proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(markersUsedForPCA));
 			if (!printFullData) {
@@ -659,10 +659,10 @@ public class PrincipalComponentsCompute {
 		output = ext.rootOf(output) + OUTPUT_EXT[3];
 		pcs.setSingularValuesFile(output);
 		try {
-			if (Files.exists(proj.getProjectDir() + output)) {
-				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + output));
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
 			double[] singularValues = pcs.getSingularValues();
 			writer.println(PC_STRING + "\t" + SV_STRING);
 			for (int i = 0; i < singularValues.length; i++) {
@@ -690,10 +690,10 @@ public class PrincipalComponentsCompute {
 		output = ext.rootOf(output) + OUTPUT_EXT[2];
 		pcs.setMarkerLoadingFile(output);
 		try {
-			if (Files.exists(proj.getProjectDir() + output)) {
-				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + output));
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
 			writer.print(MARKER);
 			for (int i = 0; i < pcsBasis.length; i++) {
 				writer.print("\t" + PC_STRING + (i + 1));
@@ -772,12 +772,12 @@ public class PrincipalComponentsCompute {
 		output = ext.rootOf(output) + OUTPUT_EXT[0];
 		pcs.setPcFile(output);
 		try {
-			if (Files.exists(proj.getProjectDir() + output)) {
-				Files.backup(output, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
+				Files.backup(output, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			log.report(ext.getTime() + " Free memory: " + Math.round(((double) Runtime.getRuntime().freeMemory() / (double) Runtime.getRuntime().totalMemory() * 100.0)) + "%");
 			log.report(ext.getTime() + " Reporting top " + numComponents + " PCs");
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + output));
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
 			String[] samples = proj.getSampleList().getSamples();
 			writer.print(SAMPLE[1] + "\t" + SAMPLE[2]);
 			for (int i = 0; i < numComponents; i++) {

@@ -278,7 +278,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		hash = new Hashtable<String,float[][]>();
 		for (int i = 0; i<names.length; i++) {
 			try {
-	            reader = Files.getReader(stratFiles.elementAt(i), proj.getJarStatus(), true, false);
+	            reader = Files.getReader(stratFiles.elementAt(i), proj.JAR_STATUS.getValue(), true, false);
 	            line = reader.readLine().trim().split("[\\s]+");
 	            if (!line[0].equals("FID") || !line[1].equals("IID")) {
 	            	log.reportError("Error - different format than expected; first two columns should be FID and IID");

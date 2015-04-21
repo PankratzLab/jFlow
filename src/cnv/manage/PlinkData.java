@@ -583,7 +583,7 @@ public class PlinkData {
 		Logger log;
 		
 		log = proj.getLog();
-		outFileDirAndFilenameRoot = proj.getProjectDir() + plinkPrefix;
+		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue() + plinkPrefix;
 		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
 			log.reportError("System abort. Plink binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
 			return false;
@@ -624,7 +624,8 @@ public class PlinkData {
 		}
 
 		if (gcThreshold < 0) {
-			gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+//			gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+			gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		}
 		
 		if (isSnpMajor) {
@@ -811,7 +812,7 @@ public class PlinkData {
 			if (clusterFilterCollection == null) {
 				abLookup = null;
 			} else {
-				abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+				abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
 			}
 			
 			out = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
@@ -825,7 +826,7 @@ public class PlinkData {
 				fsamp = proj.getFullSampleFromRandomAccessFile(targetSamples[i]);
 
 				if (fsamp == null) {
-					System.err.println("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION+ " was not found in directory: " + proj.getDir(proj.SAMPLE_DIRECTORY));
+					System.err.println("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION+ " was not found in directory: " + proj.SAMPLE_DIRECTORY.getValue(false, true));
 					genotypes = new byte[1];
 
 				} else {
@@ -918,12 +919,13 @@ public class PlinkData {
 			if (clusterFilterCollection == null) {
 				abLookup = null;
 			} else {
-				abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+//				abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+				abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
 			}
 			
 			sampleFingerPrint = proj.getSampleList().getFingerprint();
 			allSamplesInProj = proj.getSamples();
-			markerDataDir = proj.getDir(proj.MARKER_DATA_DIRECTORY);
+			markerDataDir = proj.MARKER_DATA_DIRECTORY.getValue(false, true);
 			markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0);
 			outliersHash = MarkerDataLoader.loadOutliers(proj);
 			batches = markerDataLoader.getBatches();
@@ -1046,12 +1048,14 @@ public class PlinkData {
 		startTime = new Date().getTime();
 
         clusterFilterCollection = proj.getClusterFilterCollection();
-		if (Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false))) {
-			abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+		if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
+//			abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+			abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
 		} else if (clusterFilterCollection == null) {
 			abLookup = new char[targetMarkers.length][];
 		} else {
-			proj.message("Error - could not find AB lookup file '"+proj.getFilename(proj.AB_LOOKUP_FILENAME)+"'; this file needs to be created, as it is not otherwise possible to export to Plink when there are cluster filters.");
+//			proj.message("Error - could not find AB lookup file '"+proj.getFilename(proj.AB_LOOKUP_FILENAME)+"'; this file needs to be created, as it is not otherwise possible to export to Plink when there are cluster filters.");
+			proj.message("Error - could not find AB lookup file '"+proj.AB_LOOKUP_FILENAME.getValue()+"'; this file needs to be created, as it is not otherwise possible to export to Plink when there are cluster filters.");
 			return null;
 		}
 		
@@ -1065,7 +1069,7 @@ public class PlinkData {
 
 		sampleFingerPrint = proj.getSampleList().getFingerprint();
 		allSamplesInProj = proj.getSamples();
-		dir = proj.getDir(proj.MARKER_DATA_DIRECTORY);
+		dir = proj.MARKER_DATA_DIRECTORY.getValue(false, true);
 		markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0);
 		outliersHash = MarkerDataLoader.loadOutliers(proj);
 		batches = markerDataLoader.getBatches();
@@ -1198,12 +1202,14 @@ public class PlinkData {
 		dna = new Vector<String>();
 
 		try {
-			filename = proj.getFilename(proj.PEDIGREE_FILENAME);
+//			filename = proj.getFilename(proj.PEDIGREE_FILENAME);
+			filename = proj.PEDIGREE_FILENAME.getValue();
 			if (!new File(filename).exists()) {
 				log.reportError("Error - pedigree file ('"+filename+"') is not found. Program aborted.");
 				return null;
 			}
-			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
+//			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
+			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
 			writer = new PrintWriter(new FileWriter(famDirAndFilenameRoot+".fam"));
 			count = 1;
 			while (reader.ready()) {
@@ -1213,16 +1219,18 @@ public class PlinkData {
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
-					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(proj.PEDIGREE_FILENAME)+"'.");
+//					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(proj.PEDIGREE_FILENAME)+"'.");
+					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.PEDIGREE_FILENAME.getValue()+"'.");
 					log.reportError("  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA");
-					log.reportError("  where DNA is the sample name associated with the genotypic data (see the "+proj.getDir(proj.SAMPLE_DIRECTORY)+" directory for examples)");
+					log.reportError("  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
 					reader.close();
 					writer.close();
 					return null;
 				} else if (ext.isMissingValue(line[6])) {
 //					dna.add(null);
 				} else if (ext.indexOfStr(line[6], allSamples) == -1) {
-					log.reportError("Warning - sample '" + line[6] + "' from '" + proj.getFilename(proj.PEDIGREE_FILENAME) + "' is not found in the project's list of samples, and is ignored.");
+//					log.reportError("Warning - sample '" + line[6] + "' from '" + proj.getFilename(proj.PEDIGREE_FILENAME) + "' is not found in the project's list of samples, and is ignored.");
+					log.reportError("Warning - sample '" + line[6] + "' from '" + proj.PEDIGREE_FILENAME.getValue() + "' is not found in the project's list of samples, and is ignored.");
 					if (line.length != 7) {
 						log.reportError("      check to make sure that there are no spaces in your IDs; as this will be parsed as a new column; for example there are "+line.length+" columns here, and we only want 7");
 					}
@@ -2121,13 +2129,13 @@ public class PlinkData {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting Genvisis to Plink text (.ped) data set.");
-			PlinkFormat.createPlink(proj, "gwas", proj.getDir(proj.DATA_DIRECTORY) + proj.CLUSTER_FILTER_COLLECTION_FILENAME);
+			PlinkFormat.createPlink(proj, "gwas", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME);
 
 		} else if (conversionToRun.equals("genvisistobed")) {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting from Genvisis to Plink binary (.bed) data set.");
-			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.getDir(proj.DATA_DIRECTORY) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, gcThreshold, true);
+			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, gcThreshold, true);
 
 		} else if  (conversionToRun.equals("pedtobed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");

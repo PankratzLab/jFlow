@@ -49,7 +49,7 @@ public class PlinkFormat {
 			hash.put(markerNames[i], i+"");
 		}
 		
-		targetMarkers = proj.getFilename(proj.TARGET_MARKERS_FILENAME, false, false);
+		targetMarkers = proj.TARGET_MARKERS_FILENAME.getValue(false, false);
 		if (new File(targetMarkers).exists()) {
 			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
 			indices = new int[targets.length];
@@ -81,7 +81,7 @@ public class PlinkFormat {
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filenameRoot+".map"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".map"));
 			for (int i = 0; i<indices.length; i++) {
 				writer.println(chrs[indices[i]]+" "+markerNames[indices[i]]+" 0 "+positions[indices[i]]);
 			}
@@ -94,7 +94,8 @@ public class PlinkFormat {
 			return false;
 		}
 
-		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+//		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+		gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		if (gcThreshold < 0) {
 			proj.message("Error - GC_THRESHOLD must be greater than zero (not "+gcThreshold+")");
 		}
@@ -106,21 +107,23 @@ public class PlinkFormat {
 		clusterFilterCollection = null;
 		if (clusterFilterFilename != null) {
 			clusterFilterFilename = proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFilterFilename;
-			if (Files.exists(clusterFilterFilename, proj.getJarStatus())) {
-				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.getJarStatus());
+			if (Files.exists(clusterFilterFilename, proj.JAR_STATUS.getValue())) {
+				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.JAR_STATUS.getValue());
 			} else {
 				proj.message("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
 				return false;
 			}
-			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+//			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
+			abLookup = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
 			log.report("Using "+clusterFilterFilename+" and "+proj.getProperty(proj.AB_LOOKUP_FILENAME)+" to call genotypes");
 		} else {
 			abLookup = null;
 		}
 		
 		try {
-			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filenameRoot+".ped"));
+//			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
+			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".ped"));
 			count = 1;
 			invalidAbLookups = new Hashtable<Integer, Integer>();
 			while (reader.ready()) {
@@ -132,9 +135,10 @@ public class PlinkFormat {
 				temp = reader.readLine();
 				line = temp.split(ext.determineDelimiter(temp));
 				if (line.length < 7) {
-					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(proj.PEDIGREE_FILENAME)+"'.\n"+
+//					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(proj.PEDIGREE_FILENAME)+"'.\n"+
+					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.PEDIGREE_FILENAME.getValue()+"'.\n"+
 								"  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n"+
-								"  where DNA is the sample name associated with the genotypic data (see the "+proj.getDir(proj.SAMPLE_DIRECTORY)+" directory for examples)");
+								"  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
 					reader.close();
 					writer.close();
 					return false;
@@ -147,7 +151,7 @@ public class PlinkFormat {
 				} else {
 					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
 					if (fsamp==null) {
-						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.getDir(proj.SAMPLE_DIRECTORY));
+						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.SAMPLE_DIRECTORY.getValue(false, true));
 						for (int i = 0; i<indices.length; i++) {
 							writer.print(" 0 0");
 						}
@@ -184,7 +188,7 @@ public class PlinkFormat {
 			if (invalidAbLookups.size() > 0) {
 				proj.message("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(proj.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
 				try {
-					writer = new PrintWriter(new FileWriter(proj.getDir(proj.DATA_DIRECTORY)+"invalid_AB_codes.out"));
+					writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)+"invalid_AB_codes.out"));
 					writer.println("MarkerNames\tA\tB");
 					indices = Array.toIntArray(invalidAbLookups);
 					for (int i = 0; i < indices.length; i++) {
@@ -192,15 +196,17 @@ public class PlinkFormat {
 					}
 					writer.close();
 				} catch (Exception e) {
-					proj.message("Error writing to " + proj.getDir(proj.DATA_DIRECTORY)+"invalid_AB_codes.out");
+					proj.message("Error writing to " + proj.DATA_DIRECTORY.getValue(false, true)+"invalid_AB_codes.out");
 					log.reportException(e);
 				}
 			}
 		} catch (FileNotFoundException fnfe) {
-			proj.message("Error: file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\" not found");
+//			proj.message("Error: file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\" not found");
+			proj.message("Error: file \""+proj.PEDIGREE_FILENAME.getValue()+"\" not found");
 			return false;
 		} catch (IOException ioe) {
-			proj.message("Error reading file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\"");
+//			proj.message("Error reading file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\"");
+			proj.message("Error reading file \""+proj.PEDIGREE_FILENAME.getValue()+"\"");
 			return false;
 		}
 

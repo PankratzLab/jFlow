@@ -41,7 +41,7 @@ public class LaunchAction extends AbstractAction {
 		super(sample+" "+Array.toStr(loc, " / "));
 		this.type = LAUNCH_TRAILER;
 		this.proj = proj;
-		this.jar = proj.getJarStatus();
+		this.jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		this.loc = loc;
 		this.plotStartX = Trailer.DEFAULT_STARTX; //zx
@@ -58,7 +58,7 @@ public class LaunchAction extends AbstractAction {
 		super(sample+" "+loc);
 		this.type = LAUNCH_TRAILER;
 		this.proj = proj;
-		this.jar = proj.getJarStatus();
+		this.jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		this.loc = new String[] {loc};
 		this.plotStartX = Trailer.DEFAULT_STARTX;
@@ -72,7 +72,7 @@ public class LaunchAction extends AbstractAction {
 		super(marker);
 		this.type = LAUNCH_SCATTER;
 		this.proj = proj;
-		this.jar = proj.getJarStatus();
+		this.jar = proj.JAR_STATUS.getValue();
 		this.marker = marker;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -81,7 +81,7 @@ public class LaunchAction extends AbstractAction {
 		super(sample);
 		this.type = type;
 		this.proj = proj;
-		this.jar = proj.getJarStatus();
+		this.jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -91,7 +91,7 @@ public class LaunchAction extends AbstractAction {
 		this.type = APPEND_ID_TO_FILE;
 		this.filename = filename;
 		this.proj = proj;
-		this.jar = proj.getJarStatus();
+		this.jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -118,7 +118,7 @@ public class LaunchAction extends AbstractAction {
     		for (int i = 0; i < loc.length; i++) {
         		new Trailer(proj,
         					sample,
-        					proj.getFilenames(proj.CNV_FILENAMES),
+        					proj.CNV_FILENAMES.getValue(),
         					loc[i].endsWith("p")||loc[i].endsWith("q")?loc[i].substring(0, loc[i].length()-1):loc[i],
         					plotStartX,
         					plotStartY[i],
@@ -150,7 +150,7 @@ public class LaunchAction extends AbstractAction {
 	public boolean isEnabled() {
 		switch (type) {
         case LAUNCH_TRAILER:
-    		return Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar); // needs to be updated anyway
+    		return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar); // needs to be updated anyway
         default:
         	return true;
         }

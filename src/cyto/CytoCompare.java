@@ -143,9 +143,10 @@ public class CytoCompare {
 		if (computeBeast) {
 			if (proj == null) {
 				log.reportError("Warning - a valid project file is required to compute beast scores, skipping beast scores :(");
-			} else if (!Files.exists(proj.getFilename(proj.MARKERLOOKUP_FILENAME))) {
+//			} else if (!Files.exists(proj.getFilename(proj.MARKERLOOKUP_FILENAME))) {
+			} else if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
 				log.reportError("Warning - a marker lookup file is needed to compute beast scores, skipping beast scores :(");
-			} else if (!Files.exists(proj.getFilename(proj.SAMPLE_DATA_FILENAME))) {
+			} else if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
 				log.reportError("Warning - a sample data file is needed to lookup samples by FID/IID, skipping beast scores :(");
 			} else {
 				log.report(ext.getTime() + " Info - computing beast scores for " + cNVariantInds.length + " individuals");

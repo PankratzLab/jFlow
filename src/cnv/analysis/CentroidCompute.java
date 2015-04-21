@@ -572,7 +572,7 @@ public class CentroidCompute {
 			// System.out.println(cent.computeBAF()[0] + "\tBAF:\t" + Array.toStr(stats.Correlation.Pearson(Array.toDoubleArray(cent.computeBAF()), Array.toDoubleArray(markerData.getBAFs()))));
 			markerDataLoader.releaseIndex(i);
 		}
-		Files.write(min, proj.getProjectDir() + "badcorrel.txt");
+		Files.write(min, proj.PROJECT_DIRECTORY.getValue() + "badcorrel.txt");
 		System.out.println("MINMarker:\t" + min + "\tMINCorrel\t" + mincor);
 	}
 

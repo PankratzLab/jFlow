@@ -63,7 +63,7 @@ public class PCA {
 		// first retrieve the samples to apply marker loadings to
 		boolean[] samplesToUse = PrincipalComponentsCompute.getSamples(proj, excludeSamples, useFile);
 		PrincipalComponentsApply pcApply = new PrincipalComponentsApply(proj, numComponents, singularFile, markerLoadingFile, samplesToUse, imputeMeanForNaN, recomputeLRR);
-		if (pcApply.outputExists(proj.getProjectDir() + ext.rootOf(output) + FILE_EXTs[0], true)) {//warn about existence when checking
+		if (pcApply.outputExists(proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + FILE_EXTs[0], true)) {//warn about existence when checking
 			pcApply.setExtrapolatedPCsFile(ext.rootOf(output) + FILE_EXTs[0]);
 		} else {
 			pcApply.applyLoadings();

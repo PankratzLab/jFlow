@@ -269,14 +269,14 @@ public class cnvTrio extends CNVariant {
 		CNVariant[] cnVariants;
 		Hashtable<String, Integer> rawRegionFrequency = new Hashtable<String, Integer>();
 		if (cnvFile == null) {
-			DeNovoCNV.parsePennCnvResult(proj, proj.getDir(proj.PENNCNV_RESULTS_DIRECTORY), proj.getDir(proj.DATA_DIRECTORY) + trioFile, TRIOS[fileType]);
-			rawRegionFrequency = determinRegionFrequencies(CNVariant.loadPlinkFile(proj.getDir(proj.DATA_DIRECTORY) + COMBINED_TRIOS[fileType], false), proj.getLog());
-			cnVariants = CNVariant.loadPlinkFile(proj.getDir(proj.DATA_DIRECTORY) + COMBINED_TRIOS[fileType], false);
+			DeNovoCNV.parsePennCnvResult(proj, proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true), proj.DATA_DIRECTORY.getValue(false, true) + trioFile, TRIOS[fileType]);
+			rawRegionFrequency = determinRegionFrequencies(CNVariant.loadPlinkFile(proj.DATA_DIRECTORY.getValue(false, true) + COMBINED_TRIOS[fileType], false), proj.getLog());
+			cnVariants = CNVariant.loadPlinkFile(proj.DATA_DIRECTORY.getValue(false, true) + COMBINED_TRIOS[fileType], false);
 		} else {
-			cnVariants = CNVariant.loadPlinkFile(proj.getProjectDir() + cnvFile, false);
+			cnVariants = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
 			// rawRegionFrequency = determinRegionFrequencies(cnVariants, proj.getLog());
 		}
-		parseTrios(cnVariants, trios, proj.getSampleData(0, false), (cnvFile == null ? proj.getProjectDir() + output + COMBINED_TRIOS[fileType] : proj.getProjectDir() + output + ext.rootOf(cnvFile)), log);
+		parseTrios(cnVariants, trios, proj.getSampleData(0, false), (cnvFile == null ? proj.PROJECT_DIRECTORY.getValue() + output + COMBINED_TRIOS[fileType] : proj.PROJECT_DIRECTORY.getValue() + output + ext.rootOf(cnvFile)), log);
 		processTrios(proj, trios, rawRegionFrequency, numThreads);
 		summarizeTrios(proj, trios, (cnvFile == null ? output + COMBINED_TRIOS[fileType] : output + ext.rootOf(cnvFile)));
 
@@ -436,7 +436,7 @@ public class cnvTrio extends CNVariant {
 	 * @param log
 	 */
 	private static void summarizeTrios(Project proj, TrioQC[] trios, String fileType) {
-		PrintWriter writerFullSummary = Files.getAppropriateWriter(proj.getProjectDir() + fileType + BEAST_OUTPUT[0]);
+		PrintWriter writerFullSummary = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + fileType + BEAST_OUTPUT[0]);
 		writerFullSummary.print(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(OUTPUT_HEADER) + "\n");
 		for (int i = 0; i < trios.length; i++) {
 			if (trios[i].hasSummary()) {
@@ -675,7 +675,7 @@ public class cnvTrio extends CNVariant {
 			Logger log = proj.getLog();
 
 			try {
-				BufferedReader reader = Files.getReader(proj.getDir(proj.DATA_DIRECTORY) + trioFile, false, true, false);
+				BufferedReader reader = Files.getReader(proj.DATA_DIRECTORY.getValue(false, true) + trioFile, false, true, false);
 				String[] line = reader.readLine().trim().split(SPLITS[0]);
 				int[] indices = ext.indexFactors(PED_TRIO_HEADER, line, true, true);
 				while (reader.ready()) {
@@ -685,12 +685,12 @@ public class cnvTrio extends CNVariant {
 				}
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \"" + proj.getProjectDir() + trioFile + "\" not found in current directory");
+				log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + trioFile + "\" not found in current directory");
 			} catch (IOException ioe) {
-				log.reportError("Error reading file \"" + proj.getProjectDir() + trioFile + "\"");
+				log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + trioFile + "\"");
 			}
 			if (trioIndex == 0) {
-				log.reportError("Error - did not find any trios in " + proj.getDir(proj.DATA_DIRECTORY) + trioFile);
+				log.reportError("Error - did not find any trios in " + proj.DATA_DIRECTORY.getValue(false, true) + trioFile);
 			}
 			log.report(ext.getTime() + " Info - found " + (trioIndex > 1 ? trioIndex + " trios" : trioIndex + " trio"));
 			return alTrio.toArray(new TrioQC[alTrio.size()]);
@@ -731,7 +731,7 @@ public class cnvTrio extends CNVariant {
 
 	public static void parse(Project proj, String trioResultsFile, CNVTrioFilter trioFilter, boolean excludeFromSampleData, String ouput) {
 		SampleData sampleData = proj.getSampleData(0, false);
-		cnvTrio[] rawCNVTrios = loadTrios(proj.getProjectDir() + trioResultsFile, proj.getLog());
+		cnvTrio[] rawCNVTrios = loadTrios(proj.PROJECT_DIRECTORY.getValue() + trioResultsFile, proj.getLog());
 		ArrayList<Double> tmpMinBestDiffs = new ArrayList<Double>();
 		ArrayList<cnvTrio> tmpFilteredCnvTrios = new ArrayList<cnvTrio>();
 		for (int i = 0; i < rawCNVTrios.length; i++) {
@@ -748,13 +748,13 @@ public class cnvTrio extends CNVariant {
 		cnvTrio[] filteredCNVTrios = tmpFilteredCnvTrios.toArray(new cnvTrio[tmpFilteredCnvTrios.size()]);
 		int[] sorted = common.Sort.quicksort(beastDiffsToSort, 1);
 		try {
-			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.getProjectDir() + ouput + COMBINED_TRIOS[2]));
-			PrintWriter writerCNV = new PrintWriter(new FileWriter(proj.getProjectDir() + ouput + COMBINED_TRIOS[2] + COMBINED_TRIOS[3]));
+			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + ouput + COMBINED_TRIOS[2]));
+			PrintWriter writerCNV = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + ouput + COMBINED_TRIOS[2] + COMBINED_TRIOS[3]));
 			// TODO potential bug? gets first CNV filename and writes to file
 //			PrintWriter writerList = new PrintWriter(new FileWriter(proj.getFilename(proj.INDIVIDUAL_CNV_LIST_FILENAMES)));
-			PrintWriter writerList = new PrintWriter(new FileWriter(proj.getFilenames(proj.INDIVIDUAL_CNV_LIST_FILENAMES)[0]));
+			PrintWriter writerList = new PrintWriter(new FileWriter(proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]));
 //			PrintWriter writerRegion = new PrintWriter(new FileWriter(proj.getFilename(proj.REGION_LIST_FILENAMES)));
-			PrintWriter writerRegion = new PrintWriter(new FileWriter(proj.getFilenames(proj.REGION_LIST_FILENAMES)[0]));
+			PrintWriter writerRegion = new PrintWriter(new FileWriter(proj.REGION_LIST_FILENAMES.getValue()[0]));
 			writerSummary.println(Array.toStr(PLINK_CNV_HEADER) + "\t" + Array.toStr(FILTERED_OUTPUT_HEADER));
 			writerCNV.println(Array.toStr(PLINK_CNV_HEADER));
 			Hashtable<String, String> track = new Hashtable<String, String>();
@@ -778,7 +778,7 @@ public class cnvTrio extends CNVariant {
 			writerList.close();
 			writerRegion.close();
 		} catch (Exception e) {
-			proj.getLog().reportError("Error writing to " + proj.getProjectDir() + ouput + COMBINED_TRIOS[2]);
+			proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + ouput + COMBINED_TRIOS[2]);
 			proj.getLog().reportException(e);
 		}
 

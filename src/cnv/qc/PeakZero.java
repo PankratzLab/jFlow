@@ -33,7 +33,7 @@ public class PeakZero {
 		
 		samples = proj.getSamples();
 		if (!phenoOfSamplesToInclude.equals("")) {
-			hash = HashVec.loadFileToHashString(proj.getDir(proj.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenoOfSamplesToInclude}, "");
+			hash = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(false, true), "DNA", new String[] {phenoOfSamplesToInclude}, "");
 			use = new boolean[samples.length];
 			for (int i = 0; i<samples.length; i++) {
 				trav = hash.get(samples[i]);
@@ -54,8 +54,8 @@ public class PeakZero {
 		drops = proj.getFilteredHash();
 		
 		try {
-			new File(proj.getDir(proj.RESULTS_DIRECTORY)).mkdirs();
-	        writer = new PrintWriter(new FileWriter(proj.getDir(proj.RESULTS_DIRECTORY)+PEAK_ZERO_FILE));
+			new File(proj.RESULTS_DIRECTORY.getValue(false, true)).mkdirs();
+	        writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)+PEAK_ZERO_FILE));
 	        writer.println("Marker\tPeakOffset\t#LRR_Maxima\t#BAF_Maxima\t#X_Maxima\t#Y_Maxima\tDropped");
 
 	        lrrArray = new float[count];
@@ -92,8 +92,8 @@ public class PeakZero {
 	        	yHist = new Histogram(bafArray, 0, 5, 1);
 
 	        	if (DUMP_THESE != null && ext.indexOfStr(markerData.getMarkerName(), DUMP_THESE) >= 0) {
-	        		lrrHist.dump(proj.getProjectDir()+markerData.getMarkerName()+"_lrr_hist.xln");
-	        		bafHist.dump(proj.getProjectDir()+markerData.getMarkerName()+"_baf_hist.xln");
+	        		lrrHist.dump(proj.PROJECT_DIRECTORY.getValue()+markerData.getMarkerName()+"_lrr_hist.xln");
+	        		bafHist.dump(proj.PROJECT_DIRECTORY.getValue()+markerData.getMarkerName()+"_baf_hist.xln");
 	        	}
 	        	
 	        	writer.println(markerData.getMarkerName()+"\t"+lrrHist.getMaxBin()+"\t"+lrrHist.getLocalMaxima().length+"\t"+bafHist.getLocalMaxima().length+"\t"+xHist.getLocalMaxima().length+"\t"+yHist.getLocalMaxima().length+"\t"+(drops.containsKey(markerData.getMarkerName())?1:0));
@@ -105,7 +105,7 @@ public class PeakZero {
 
 	        writer.close();
         } catch (Exception e) {
-	        System.err.println("Error writing to "+proj.getDir(proj.RESULTS_DIRECTORY)+PEAK_ZERO_FILE);
+	        System.err.println("Error writing to "+proj.RESULTS_DIRECTORY.getValue(false, true)+PEAK_ZERO_FILE);
 	        e.printStackTrace();
         }
 	}
