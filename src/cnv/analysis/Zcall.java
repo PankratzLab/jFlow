@@ -70,10 +70,11 @@ public class Zcall {
         clusterFilterCollection = proj.getClusterFilterCollection();
 
 //        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
-        gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+//        gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
+        gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir() + "GenomeStudioData.txt"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "GenomeStudioData.txt"));
 			writer.print(Array.toStr(BASIC_HEADER));
 			for (int i = 0; i < samples.length; i++) {
 				if (samplesToInclude[i]) {
@@ -116,7 +117,7 @@ public class Zcall {
 			writer.close();
 			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
-			log.reportError("Error writing marker metrics to "+proj.getFilename(proj.MARKER_METRICS_FILENAME, false, false));
+			log.reportError("Error writing marker metrics to "+proj.MARKER_METRICS_FILENAME.getValue(false, false));
 			e.printStackTrace();
 		}
 	}
@@ -157,7 +158,7 @@ public class Zcall {
 		try {
 			proj = new Project(filename, logfile, false);
 //			createZcallInputFile(proj, proj.getProjectDir() + samples, proj.getDir(Project.DATA_DIRECTORY) + "test.txt");
-			createZcallInputFile(proj, proj.getProjectDir() + samples, null);
+			createZcallInputFile(proj, proj.PROJECT_DIRECTORY.getValue() + samples, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

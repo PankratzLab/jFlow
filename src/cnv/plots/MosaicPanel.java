@@ -75,7 +75,8 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 
 		colorHash = new Hashtable<String,String>();
 		try {
-			reader = Files.getReader(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME), proj.getJarStatus(), true, false);
+//			reader = Files.getReader(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME), proj.getJarStatus(), true, false);
+			reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader!=null) {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
@@ -84,13 +85,14 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 				reader.close();
 			}
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME)+"\"");
+			System.err.println("Error reading file \""+proj.MOSAIC_COLOR_CODES_FILENAME.getValue()+"\"");
 			System.exit(2);
 		}
 
 		failedHash = new Hashtable<String,String>();
 		try {
-			reader = Files.getReader(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getJarStatus(), true, false);
+//			reader = Files.getReader(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getJarStatus(), true, false);
+			reader = Files.getReader(proj.SAMPLE_DATA_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader!=null) {
 				indices = ext.indexFactors(new String[] {"Sample Name", "CLASS=Suitable for CNV"}, reader.readLine().trim().split("\t", -1), false, false);
 				if (Array.min(indices)>=0) {
@@ -102,7 +104,8 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 				reader.close();
 			}
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
+//			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
+			System.err.println("Error reading file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\"");
 		}
 
 		image = null;
@@ -254,7 +257,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	public void generatePoints() {
 		byte color;
 		String[] files;
-		files = new File(proj.getDir(proj.SAMPLE_DIRECTORY)).list(new FilenameFilter() {
+		files = new File(proj.SAMPLE_DIRECTORY.getValue(false, true)).list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
 			}

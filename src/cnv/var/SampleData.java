@@ -102,12 +102,13 @@ public class SampleData {
 		}
 		
 		try {
-			filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
-			if (!Files.exists(filename, proj.getJarStatus())) {
+//			filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+			filename = proj.SAMPLE_DATA_FILENAME.getValue();
+			if (!Files.exists(filename, proj.JAR_STATUS.getValue())) {
 				proj.message("SampleData file does not exist: "+filename);
 				return;
 			}			
-			reader = Files.getReader(filename, proj.getJarStatus(), true, true); // to do, don't kill?
+			reader = Files.getReader(filename, proj.JAR_STATUS.getValue(), true, true); // to do, don't kill?
 			header = reader.readLine().split("\t");
 			dnaIndex = ext.indexOfStr("DNA", header);
 			famIndex = ext.indexOfStr("FID", header);
@@ -221,15 +222,17 @@ public class SampleData {
 				}
 			}
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
+//			System.err.println("Error: file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
+			System.err.println("Error: file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
+//			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
+			System.err.println("Error reading file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\"");
 			System.exit(2);
 		}
 		
 		if (cnvFilenames.length > 0) {
-			loadCNVs(cnvFilenames, proj.getJarStatus());
+			loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue());
 		} else {
 			cnvClasses =  new String[0];
 		}
@@ -626,7 +629,7 @@ public class SampleData {
 
 		Project thisProject = new Project(filename, false);
 
-		if (Files.exists(thisProject.getFilename(thisProject.SAMPLE_DATA_FILENAME, false, false), thisProject.getJarStatus())) {
+		if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false), thisProject.JAR_STATUS.getValue())) {
 			thisProject.getSampleData(2, false);
 		} else {
 			System.err.println("Error: Unable to find sample data file in project. Please add sample data file path");
@@ -710,9 +713,9 @@ public class SampleData {
 		boolean covar, negativeValues, largerThanByte;
 		String trav;
 
-		sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
+		sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 
-		if (!Files.exists(sampleDatafilename, proj.getJarStatus())) {
+		if (!Files.exists(sampleDatafilename, proj.JAR_STATUS.getValue())) {
 			// JOptionPane.showMessageDialog(null, "Cannot add as a color key without an existing SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
 			System.err.println("Cannot add as a color key without an existing SampleData file");
 			return;
@@ -830,7 +833,7 @@ public class SampleData {
 
 	public void removeColorKey(String colorKey) {
 
-		String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
 
 		System.out.println("Sample data: " + sampleDatafilename);
 
@@ -904,7 +907,8 @@ public class SampleData {
 		boolean writerWasOpened = false;
 		BufferedReader reader;
 		PrintWriter writer;
-		String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+//		String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
+		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
 		// in memory backup
 		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null, false);
 		String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
@@ -914,7 +918,7 @@ public class SampleData {
 			log.reportError("Error - could not find linker " + linker + " in sample data file " + sampleDatafilename + ", will not add data");
 			add = false;
 		} else {
-			String bakDir = proj.getDir(proj.BACKUP_DIRECTORY, true);
+			String bakDir = proj.BACKUP_DIRECTORY.getValue(true, true);
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e1) {
@@ -1013,7 +1017,7 @@ public class SampleData {
 	 */
 	public static boolean createMinimalSampleData(Project proj) {
 		boolean created = false;
-		String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
+		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		Logger log = proj.getLog();
 		
 		if (Files.exists(sampleDatafilename)) {

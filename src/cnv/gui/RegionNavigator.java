@@ -213,7 +213,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				JOptionPane.showMessageDialog(null, "One and only one file must be selected before a .BED File can be generated", "Error", JOptionPane.ERROR_MESSAGE);
 			} else {
 				// Find the full path to the selected file
-				String[] filePaths = proj.getFilenames(proj.CNV_FILENAMES);
+				String[] filePaths = proj.CNV_FILENAMES.getValue();
 				String compressedFile = "";
 				for (String file : filePaths) {
 					if (file.endsWith(files.get(0))) {
@@ -267,7 +267,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	public void loadRegions() {
 		BufferedReader reader;
 		// Get a list of the regions
-		regionsList = proj.getFilenames(proj.REGION_LIST_FILENAMES);
+		regionsList = proj.REGION_LIST_FILENAMES.getValue();
 		regions = new Vector<Region>();
 
 		try {

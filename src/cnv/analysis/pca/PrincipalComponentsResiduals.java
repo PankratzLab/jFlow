@@ -104,7 +104,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * Compute the median data in project order, and then set back to pcfile order, just in case
 	 */
 	public void computeAssessmentDataMedians() {
-		this.markersToAssess = PrincipalComponentsCompute.sortByProjectMarkers(proj, HashVec.loadFileToStringArray(proj.getProjectDir() + markersToAssessFile, false, new int[] { 0 }, true));
+		this.markersToAssess = PrincipalComponentsCompute.sortByProjectMarkers(proj, HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue() + markersToAssessFile, false, new int[] { 0 }, true));
 		getData();
 		double[] projectOrderMedians = getLRRMedian();
 		if (printFull) {
@@ -154,10 +154,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.residOutput = ext.rootOf(output) + MT_REPORT_EXT[0];
 		SampleData sampleData = proj.getSampleData(0, false);
 		try {
-			if (Files.exists(proj.getProjectDir() + residOutput)) {
-				Files.backup(residOutput, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + residOutput)) {
+				Files.backup(residOutput, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + residOutput));
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + residOutput));
 			writer.print(Array.toStr(MT_REPORT));
 			for (int i = 0; i < numComponents; i++) {
 				writer.print("\t" + PrincipalComponentsCompute.PC_STRING + (i + 1));
@@ -392,16 +392,16 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		Logger log = proj.getLog();
 
 		for (int i = 0; i < fileOuts.length; i++) {
-			if (Files.exists(proj.getProjectDir() + fileOuts[i])) {
-				Files.backup(fileOuts[i], proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + fileOuts[i])) {
+				Files.backup(fileOuts[i], proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 			try {
-				writers[i] = new PrintWriter(new FileWriter(proj.getProjectDir() + fileOuts[i]));
+				writers[i] = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + fileOuts[i]));
 			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \"" + proj.getProjectDir() + fileOuts[i] + "\" could not be written to (it's probably open)");
+				log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + fileOuts[i] + "\" could not be written to (it's probably open)");
 				log.reportException(fnfe);
 			} catch (IOException ioe) {
-				log.reportError("Error reading file \"" + proj.getProjectDir() + fileOuts[i] + "\"");
+				log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + fileOuts[i] + "\"");
 				log.reportException(ioe);
 			}
 		}
@@ -418,7 +418,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		if (Files.exists(pcFile) || proj == null) {
 			pcFilefull = pcFile;
 		} else {
-			pcFilefull = proj.getProjectDir() + pcFile;
+			pcFilefull = proj.PROJECT_DIRECTORY.getValue() + pcFile;
 		}
 		log.reportTimeInfo("loading principal components from " + pcFilefull);
 
@@ -431,7 +431,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		ArrayList<String> pcSamps = new ArrayList<String>();
 		int sampIndex = 0;
 		try {
-			BufferedReader reader = Files.getReader(pcFilefull, proj == null ? false : proj.getJarStatus(), true, false);
+			BufferedReader reader = Files.getReader(pcFilefull, proj == null ? false : proj.JAR_STATUS.getValue(), true, false);
 			String[] line = reader.readLine().trim().split("[\\s]+");
 			if (!line[0].equals("FID") || !line[1].equals("IID")) {
 				log.reportError("Error - different format than expected; first column should be FID and second column should be IID, followed by PCs");
@@ -455,7 +455,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			}
 			reader.close();
 			this.pcBasis = new double[numComponents][numSamples];
-			reader = Files.getReader(pcFilefull, proj == null ? false : proj.getJarStatus(), true, false);
+			reader = Files.getReader(pcFilefull, proj == null ? false : proj.JAR_STATUS.getValue(), true, false);
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");

@@ -64,10 +64,10 @@ public class SampleList implements Serializable {
 //			System.exit(1);
 //		}
 
-		if (Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY), false)) {
-			files = Files.list(proj.getDir(proj.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+		if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true), false)) {
+			files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 		} else {
-			log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("+proj.getDir(proj.SAMPLE_DIRECTORY)+"); no SampleList could be generated");
+			log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("+proj.SAMPLE_DIRECTORY.getValue(false, true)+"); no SampleList could be generated");
 			return null;
 		}
 
@@ -82,7 +82,7 @@ public class SampleList implements Serializable {
 		}
 		list = new SampleList(samples);
 		if (samples.length > 0) {
-			list.serialize(proj.getFilename(proj.SAMPLELIST_FILENAME, true, true));
+			list.serialize(proj.SAMPLELIST_FILENAME.getValue(true, true));
 		} else {
 			log.reportError("Error - there are no samples in the samples directory; parsing must have failed, so cannot create a SampleList");
 		}
@@ -95,7 +95,7 @@ public class SampleList implements Serializable {
 
 	public static void serializeOutliers(Project proj) {
 		String[] samples = proj.getSamples();
-		String sampleDir = proj.getDir(proj.SAMPLE_DIRECTORY);
+		String sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 		
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		

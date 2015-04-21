@@ -176,7 +176,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		this.proj = proj;
 		this.log = proj.getLog();
-		jar = proj.getJarStatus();
+		jar = proj.JAR_STATUS.getValue();
 		cnvFilenames = filenames;
 		fail = false;
 		
@@ -189,8 +189,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		if (fail) {
 			return;
 		}
-		if (Files.exists(proj.getFilename(proj.GC_MODEL_FILENAME, false, false))) {
-			gcModel = GcAdjustor.GcModel.populateFromFile(proj.getFilename(proj.GC_MODEL_FILENAME, false, false), true, proj.getLog());
+		if (Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
+			gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), true, proj.getLog());
 		} else {
 			gcModel = null;
 		}
@@ -229,8 +229,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
         time = new Date().getTime();
 //		track = GeneTrack.load(proj.getDir(Project.DATA_DIRECTORY)+GeneSet.REFSEQ_TRACK, jar);
-        if (new File(proj.getFilename(proj.GENETRACK_FILENAME, false, false)).isFile()) {
-        	trackFilename = proj.getFilename(proj.GENETRACK_FILENAME);
+        if (new File(proj.GENETRACK_FILENAME.getValue(false, false)).isFile()) {
+//        	trackFilename = proj.getFilename(proj.GENETRACK_FILENAME);
+        	trackFilename = proj.GENETRACK_FILENAME.getValue();
         } else if (new File(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK).exists()) {
         	trackFilename = GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK;
         } else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
@@ -350,7 +351,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 	
 	private void chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null || regionFileName == null ? proj.getProjectDir() : ext.parseDirectoryOfFile(regionFileName)));
+		JFileChooser jfc = new JFileChooser((proj != null || regionFileName == null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(regionFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
@@ -1436,12 +1437,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //			}
 		namePathMap = new Hashtable<String, String>();
 		Vector<String> centFiles = new Vector<String>();
-		centFiles.add(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME));
-		centFiles.add(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
-		centFiles.add(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME));
-		centFiles.add(proj.getFilename(proj.CHIMERA_CENTROIDS_FILENAME));
+//		centFiles.add(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME));
+//		centFiles.add(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
+//		centFiles.add(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME));
+//		centFiles.add(proj.getFilename(proj.CHIMERA_CENTROIDS_FILENAME));
+		centFiles.add(proj.ORIGINAL_CENTROIDS_FILENAME.getValue());
+		centFiles.add(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
+		centFiles.add(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
+		centFiles.add(proj.CHIMERA_CENTROIDS_FILENAME.getValue());
 		
-		String[] tempFiles = proj.getFilenames(proj.SEX_CENTROIDS_FILENAMES);
+		String[] tempFiles = proj.SEX_CENTROIDS_FILENAMES.getValue();
 		if (tempFiles != null && tempFiles.length > 0) {
 			centFiles.add(SEX_CENT);
 		}
@@ -1684,7 +1689,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		log.report("  Getting a list of all files with extension "+Sample.SAMPLE_DATA_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
 		mess = new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...", proj);
 		new Thread(mess).start();
-		filesPresent = Files.list(proj.getDir(proj.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
+		filesPresent = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
 		log.report("Getting list of files took "+ext.getTimeElapsed(time));
 		time = new Date().getTime();
 		fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
@@ -1696,7 +1701,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		if (filesPresent == null || filesPresent.length == 0) {
 //			samplesPresent = new String[] {proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty", refresh};
-			samplesPresent = new String[] {proj.getDir(proj.SAMPLE_DIRECTORY)+" directory is empty", refresh};
+			samplesPresent = new String[] {proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory is empty", refresh};
 			maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(samplesPresent[0]));
 		} else {
 			samplesPresent = new String[filesPresent.length+1];
@@ -1762,9 +1767,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		samp = proj.getPartialSampleFromRandomAccessFile(sample, false, true, true, true, false);
 		if (samp == null) {
-			System.err.println("Error - sample '"+sample+"' not found in "+proj.getDir(proj.SAMPLE_DIRECTORY));
+			System.err.println("Error - sample '"+sample+"' not found in "+proj.SAMPLE_DIRECTORY.getValue(false, true));
 		} else if ( samp.getFingerprint()!=fingerprint) {
-			System.err.println("Error - Sample "+proj.getDir(proj.SAMPLE_DIRECTORY)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
+			System.err.println("Error - Sample "+proj.SAMPLE_DIRECTORY.getValue(false, true)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
 		} else {
 			
 			if (currentCentroid != null && currentCentroid.startsWith(SEX_CENT)) {
@@ -1872,7 +1877,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			indiPheno = sampleData.getIndiPheno(sample.toLowerCase());
 			if (indiPheno == null) {
 //				if (!sample.equals(proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty")) {
-				if (!sample.equals(proj.getDir(proj.SAMPLE_DIRECTORY)+" directory is empty")) {
+				if (!sample.equals(proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory is empty")) {
 					JOptionPane.showMessageDialog(this, "Sample '"+sample+"' was not present in the SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 				return;
@@ -1892,7 +1897,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 	        }
 			if (!found) {
-				if (Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY)+newSample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+				if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+newSample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
 					createSampleList();
 					updateSample(newSample);
 				} else {
@@ -2221,7 +2226,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		Project proj;
 		
 		proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
-		new Trailer(proj, DEFAULT_SAMPLE, proj.getFilenames(proj.CNV_FILENAMES), DEFAULT_LOCATION);
+		new Trailer(proj, DEFAULT_SAMPLE, proj.CNV_FILENAMES.getValue(), DEFAULT_LOCATION);
 	}
 }
 

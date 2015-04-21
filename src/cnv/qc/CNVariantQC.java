@@ -120,10 +120,10 @@ public class CNVariantQC implements Serializable {
 	}
 
 	public static CNVariantQC[][][] prepCNVQCsForComparison(Project proj, String plinkCnvQCs, Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
-		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.getProjectDir() + plinkCnvQCs, false).getCnVariantQCs();
+		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs, false).getCnVariantQCs();
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
-			proj.getLog().reportError("Error - the cnvQC file " + proj.getProjectDir() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
+			proj.getLog().reportError("Error - the cnvQC file " + proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
 			System.exit(1);
 		}
 		Hashtable<String, CNVariantQC[]> indCNVQCssArrays = getIndCNVQCs(inds, cnVariantQCs);
@@ -132,10 +132,10 @@ public class CNVariantQC implements Serializable {
 	}
 
 	public static void filterCNVQCsByComparison(Project proj, String plinkCnvQCs, Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
-		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.getProjectDir() + plinkCnvQCs, false).getCnVariantQCs();
+		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs, false).getCnVariantQCs();
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
-			proj.getLog().reportError("Error - the cnvQC file " + proj.getProjectDir() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
+			proj.getLog().reportError("Error - the cnvQC file " + proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs + " does not contain any matched IDs found in duplicates file");
 			System.exit(1);
 		}
 		Hashtable<String, CNVariantQC[]> indCNVQCssArrays = getIndCNVQCs(inds, cnVariantQCs);
@@ -148,11 +148,11 @@ public class CNVariantQC implements Serializable {
 				}
 			}
 		}
-		new CNVQC(filteredByComparision.toArray(new CNVariantQC[filteredByComparision.size()])).serialize(proj.getProjectDir() + plinkCnvQCs.replaceAll(".ser", ".comp.ser"));
+		new CNVQC(filteredByComparision.toArray(new CNVariantQC[filteredByComparision.size()])).serialize(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs.replaceAll(".ser", ".comp.ser"));
 	}
 
 	public static CNVariantQC[] getCNVariantQCFromPlinkFile(Project proj, String plinkCnvs) {
-		CNVariant[] fileCNVs = CNVariant.loadPlinkFile(proj.getProjectDir() + plinkCnvs, false);
+		CNVariant[] fileCNVs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + plinkCnvs, false);
 		CNVariantQC[] cnVariantQCs = new CNVariantQC[fileCNVs.length];
 		for (int i = 0; i < fileCNVs.length; i++) {
 			cnVariantQCs[i] = new CNVariantQC(fileCNVs[i]);

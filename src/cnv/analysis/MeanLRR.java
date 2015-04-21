@@ -44,7 +44,7 @@ public class MeanLRR {
 
 		hash = proj.getFilteredHash();
 
-		regions = CNVariant.loadUCSCregions(proj.getProjectDir()+regionsFile, false);
+		regions = CNVariant.loadUCSCregions(proj.PROJECT_DIRECTORY.getValue()+regionsFile, false);
 		components = IntVector.newIntVectors(regions.length);		
 		for (int i = 0; i<positions.length; i++) {
 			for (int j = 0; j<regions.length; j++) {
@@ -65,7 +65,7 @@ public class MeanLRR {
 		
 		transChrs = Array.booleanArray(27, false);
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"MarkersIn_"+ext.rootOf(regionsFile)+".xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"MarkersIn_"+ext.rootOf(regionsFile)+".xln"));
 			for (int i = 0; i<regions.length; i++) {
 				writer.print(regions[i].getUCSClocation()+"\t"+numberOfMarkers[i]+"\t"+regions[i].getChr()+"\t"+regions[i].getStart()+"\t"+regions[i].getStop());
 				transChrs[regions[i].getChr()] = true;
@@ -111,7 +111,7 @@ public class MeanLRR {
 			}
         }
 		
-		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, Transforms.TRANFORMATIONS).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
+		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, Transforms.TRANFORMATIONS).serialize(proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(regionsFile)+".mlrr");
 	}
 	
 	public static void createFilesFromMarkerData(Project proj, String regionsFile) {
@@ -142,7 +142,7 @@ public class MeanLRR {
 
 		hash = proj.getFilteredHash();
 
-		regions = CNVariant.loadUCSCregions(proj.getProjectDir()+regionsFile, false);
+		regions = CNVariant.loadUCSCregions(proj.PROJECT_DIRECTORY.getValue()+regionsFile, false);
 		if (regions == null) {
 			return;
 		}
@@ -164,7 +164,7 @@ public class MeanLRR {
 		numberOfMarkers = new int[regions.length];
 		data = new float[regions.length][samples.length][1]; // only mean will be computed; no normalization
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"MarkersIn_"+ext.rootOf(regionsFile)+".xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"MarkersIn_"+ext.rootOf(regionsFile)+".xln"));
 			for (int i = 0; i<regions.length; i++) {
 				markerNames = Array.toStringArray(components.get(i+""));
 				numberOfMarkers[i] = markerNames.length;
@@ -196,7 +196,7 @@ public class MeanLRR {
 	        e.printStackTrace();
         }
 		
-		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, new String[] {Transforms.TRANFORMATIONS[0]}).serialize(proj.getProjectDir()+ext.rootOf(regionsFile)+".mlrr");
+		new MeanLRRset(sampleList.getFingerprint(), regions, numberOfMarkers, data, new String[] {Transforms.TRANFORMATIONS[0]}).serialize(proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(regionsFile)+".mlrr");
 	}
 
 	public static void analyze(Project proj, String phenotype, String mlrrSetFile) {
@@ -214,7 +214,8 @@ public class MeanLRR {
 		Logger log;
 		
 		log = proj.getLog();		
-		hash = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenotype}, "");
+//		hash = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", new String[] {phenotype}, "");
+		hash = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", new String[] {phenotype}, "");
 		sampleList = proj.getSampleList(); 
 		samples = sampleList.getSamples();
 		pheno = new double[samples.length];
@@ -242,7 +243,7 @@ public class MeanLRR {
 		}
 		
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.rootOf(mlrrSetFile)+".xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(mlrrSetFile)+".xln"));
 			writer.println("Region\tNumberOfMarkersInRegion\tChr\tStart\tStop\tBeta\tOR\tStat\tp-value");
 			for (int i = 0; i<regions.length; i++) {
 				writer.print(regions[i].getUCSClocation()+"\t"+numberOfMarkers[i]+"\t"+regions[i].getChr()+"\t"+regions[i].getStart()+"\t"+regions[i].getStop());
@@ -283,7 +284,8 @@ public class MeanLRR {
 			return;
 		}
 		
-		hash = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", phenotypes, "\t");
+//		hash = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA", phenotypes, "\t");
+		hash = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", phenotypes, "\t");
 		sampleList = proj.getSampleList(); 
 		samples = sampleList.getSamples();
 		
@@ -302,9 +304,9 @@ public class MeanLRR {
 		try {
 			index = -1;
 			if (regionToDumpOrNullForAll == null) {
-				writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.rootOf(mlrrSetFile)+"_dump.xln"));
+				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(mlrrSetFile)+"_dump.xln"));
 			} else {
-				writer = new PrintWriter(new FileWriter(proj.getProjectDir()+ext.replaceAllWith(regionToDumpOrNullForAll, ":", "_") +".xln"));
+				writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+ext.replaceAllWith(regionToDumpOrNullForAll, ":", "_") +".xln"));
 				
 				for (int i = 0; i<regions.length; i++) {
 					if (regionToDumpOrNullForAll.equals(regions[i].getUCSClocation())) {
@@ -481,7 +483,7 @@ public class MeanLRR {
 			time = new Date().getTime();
 			proj = new Project(filename, logfile, false);
 			log = proj.getLog();
-			if (!new File(proj.getProjectDir()+ext.rootOf(regions)+".mlrr").exists()) {
+			if (!new File(proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(regions)+".mlrr").exists()) {
 				if (transform) {
 					createFilesFromFullSample(proj, regions);
 				} else {
@@ -490,14 +492,14 @@ public class MeanLRR {
 			}
 			if (dumpAll) {
 				log.report("Dumping all regions");
-				dump(proj, phenotypes, proj.getProjectDir()+ext.rootOf(regions)+".mlrr", null, transIndex);
+				dump(proj, phenotypes, proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(regions)+".mlrr", null, transIndex);
 			} else if (dump != null) {
 				log.report("Dumping "+dump);
-				dump(proj, phenotypes, proj.getProjectDir()+ext.rootOf(regions)+".mlrr", dump, -1);
+				dump(proj, phenotypes, proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(regions)+".mlrr", dump, -1);
 			}
 			if (analyze) {
 				log.report("Analyzing "+regions+" using "+phenotypes[0]);
-				analyze(proj, phenotypes[0], proj.getProjectDir()+ext.rootOf(regions)+".mlrr");
+				analyze(proj, phenotypes[0], proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(regions)+".mlrr");
 			}
 			log.report("Finished in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {

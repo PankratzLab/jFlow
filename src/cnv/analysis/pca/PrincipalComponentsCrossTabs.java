@@ -52,7 +52,8 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 	}
 
 	public void dumpTables() {
-		String outputDir = getProj().getDir(proj.RESULTS_DIRECTORY);
+		Project r = getProj();
+		String outputDir = proj.RESULTS_DIRECTORY.getValue(false, true);
 		proj.getLog().reportTimeInfo("Dumping data to " + outputDir);
 		new File(outputDir).mkdirs();
 		sTabs.dumpTables(outputDir + "sampleQC_PC.crosstabs");
@@ -106,17 +107,19 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 	}
 
 	public static void guiAccess(Project proj, Component parentComponent) {
-		String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME, false, false);
-		String sampleQCFile = proj.getFilename(proj.SAMPLE_QC_FILENAME, false, false);
+		String pcFile = proj.INTENSITY_PC_FILENAME.getValue(false, false);
+		String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue(false, false);
 		if (!Files.exists(sampleQCFile)) {
 			JOptionPane.showMessageDialog(parentComponent, "Failed to detect " + proj.SAMPLE_QC_FILENAME + " " + sampleQCFile + "'; this is the designated sample QC file in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		if (Files.exists(pcFile)) {
 			String ObjButtons[] = { "OK", "Cancel" };
-			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over " + proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+//			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over " + proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " component(s)?", "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
 			if (promptResult == 0) {
-				crossTabulate(proj, proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS), null, false);
+//				crossTabulate(proj, proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS), null, false);
+				crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, false);
 			}
 		} else {
 			JOptionPane.showMessageDialog(parentComponent, "Failed to detect " + proj.INTENSITY_PC_FILENAME + " " + pcFile + " ; this is the designated intensity pc filename in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
@@ -127,7 +130,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		numPCs = numPCs > 0 ? numPCs : pcResiduals.getNumComponents();
 		PrincipalComponentsCrossTabs pcCorrelation = new PrincipalComponentsCrossTabs(pcResiduals, numPCs, verbose);
-		pcCorrelation.developCrossTabs(alternateDataFile == null ? null : proj.getProjectDir() + alternateDataFile);
+		pcCorrelation.developCrossTabs(alternateDataFile == null ? null : proj.PROJECT_DIRECTORY.getValue() + alternateDataFile);
 		pcCorrelation.dumpTables();
 
 	}

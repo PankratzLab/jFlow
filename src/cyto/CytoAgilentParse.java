@@ -39,13 +39,13 @@ public class CytoAgilentParse {
 	 * @return the list of parsed files
 	 */
 	public static String[] parseCytoToGenvisis(Project proj, Logger log) {
-		String[] files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		String[] files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		if (files.length < 1) {
 			log.reportError("Error - did not find any files to parse, please make sure the filename extension is set in the project properties file " + proj.getPropertyFilename());
 			return new String[0];
 		} else {
 			for (int i = 0; i < files.length; i++) {
-				files[i] = proj.getDir(proj.SOURCE_DIRECTORY) + files[i];
+				files[i] = proj.SOURCE_DIRECTORY.getValue(false, true) + files[i];
 			}
 		}
 		return parseCytoToGenvisis(proj, files, log);
@@ -72,13 +72,15 @@ public class CytoAgilentParse {
 		boolean createdMarkerPostions = false;
 		String[] parsedFiles = new String[filesToParse.length];
 		for (int i = 0; i < filesToParse.length; i++) {
-			String genOutput = proj.getDir(proj.SOURCE_DIRECTORY, true) + ext.rootOf(filesToParse[i]) + GENVISIS_EXT;
+			String genOutput = proj.SOURCE_DIRECTORY.getValue(true, true) + ext.rootOf(filesToParse[i]) + GENVISIS_EXT;
 			parsedFiles[i] = genOutput;
 			// TODO change to not , currently this overwrites existing files?
 			// if (!Files.exists(genOutput)) {
 			if (parseCytoToGenvisis(proj, filesToParse[i], genOutput, SCALE_FACTOR, log)) {
-				if ((!Files.exists(proj.getFilename(proj.MARKERSET_FILENAME, null, false, false)) && !Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, null, false, false))) || !createdMarkerPostions) {
-					generateMarkerPositions(filesToParse[i], proj.getFilename(proj.MARKER_POSITION_FILENAME), log);
+//				if ((!Files.exists(proj.getFilename(proj.MARKERSET_FILENAME, null, false, false)) && !Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, null, false, false))) || !createdMarkerPostions) {
+				if ((!Files.exists(proj.MARKERSET_FILENAME.getValue(false, false)) && !Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) || !createdMarkerPostions) {
+//					generateMarkerPositions(filesToParse[i], proj.getFilename(proj.MARKER_POSITION_FILENAME), log);
+					generateMarkerPositions(filesToParse[i], proj.MARKER_POSITION_FILENAME.getValue(), log);
 					createdMarkerPostions = true;
 				}
 			} else {

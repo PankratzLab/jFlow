@@ -80,12 +80,12 @@ public class ParseIllumina implements Runnable {
 		allOutliers = new Hashtable<String, Float>();
         try {
 			for (int i = 0; i<files.length; i++) {
-				if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true)+CANCEL_OPTION_FILE).exists()) {
+				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+CANCEL_OPTION_FILE).exists()) {
 					return;
 				}
 				try {
 					log.report(ext.getTime()+"\t"+(i+1)+" of "+files.length + " -- " + files[i]);
-					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]);
+					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
@@ -219,12 +219,12 @@ public class ParseIllumina implements Runnable {
 					if (!trav.equals(sampleName)) {
 						if (writer == null) {
 							try {
-								writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+threadId+".txt", true));
-								if (new File(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt").length() == 0) {
+								writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED"+threadId+".txt", true));
+								if (new File(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt").length() == 0) {
 									writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
 								}
 							} catch (Exception e) {
-								log.reportError("Error writing to " + proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+threadId+".txt");
+								log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED"+threadId+".txt");
 								log.reportException(e);
 							}
 						}
@@ -234,7 +234,7 @@ public class ParseIllumina implements Runnable {
 					}
 
 					
-					filename = determineFilename(proj.getDir(proj.SAMPLE_DIRECTORY, true), sampleName, timeBegan, log);
+					filename = determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
 					if (filename == null) {
 						return;
 					}
@@ -254,18 +254,18 @@ public class ParseIllumina implements Runnable {
 
 			if (allOutliers.size()>0) {
 				if (threadId >= 0) {
-					if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser").exists()) {
-						log.reportError("Error - the following file already exists: " + proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser");
+					if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId + ".ser").exists()) {
+						log.reportError("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId + ".ser");
 						return;
 					} else {
-						Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser");
+						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId + ".ser");
 					}
 				} else {
-					if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers0.ser").exists()) {
-						log.reportError("Error - the following file already exists: " + proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers0.ser");
+					if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser").exists()) {
+						log.reportError("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser");
 						return;
 					} else {
-						Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers0.ser");
+						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser");
 					}
 				}
 			}
@@ -386,24 +386,24 @@ public class ParseIllumina implements Runnable {
 		
 		log = proj.getLog();
         timeBegan = new Date().getTime();
-        new File(proj.getDir(proj.SAMPLE_DIRECTORY, true)+OVERWRITE_OPTION_FILE).delete();
-        new File(proj.getDir(proj.SAMPLE_DIRECTORY, true)+HOLD_OPTION_FILE).delete();
-        new File(proj.getDir(proj.SAMPLE_DIRECTORY, true)+CANCEL_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+OVERWRITE_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+HOLD_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+CANCEL_OPTION_FILE).delete();
 
-		if (!proj.getDir(proj.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(proj.SOURCE_DIRECTORY)).exists()) {
-			log.reportError("Error - the Project source location is invalid: "+proj.getDir(proj.SOURCE_DIRECTORY));
+		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")&&!new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
+			log.reportError("Error - the Project source location is invalid: "+proj.SOURCE_DIRECTORY.getValue(false, true));
 			return 0;
 		}
         
-		if (!new File(proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)).exists()) {
-			log.reportError("Error - missing markerPositions: "+proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false));
+		if (!new File(proj.MARKER_POSITION_FILENAME.getValue(false, false)).exists()) {
+			log.reportError("Error - missing markerPositions: "+proj.MARKER_POSITION_FILENAME.getValue(false, false));
 			return 0;
 		}
 
 		delimiter = proj.getSourceFileDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		log.report(ext.getTime()+"\tSearching for "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.getDir(proj.SOURCE_DIRECTORY));
-		files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		log.report(ext.getTime()+"\tSearching for "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.SOURCE_DIRECTORY.getValue(false, true));
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		
 		log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" with a "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" extension");
 		for (int i = 0; i < files.length; i++) {
@@ -421,16 +421,16 @@ public class ParseIllumina implements Runnable {
 		abLookupRequired = false;
 		log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" to parse");
 		fixes = new Hashtable<String,String>();
-		if (new File(proj.getProjectDir()+"fixes.dat").exists()) {
+		if (new File(proj.PROJECT_DIRECTORY.getValue()+"fixes.dat").exists()) {
 			log.report("Also found a 'fixes.dat' file in the project directory, which will be used to rename samples");
-			fixes = HashVec.loadFileToHashString(proj.getProjectDir()+"fixes.dat", false);
+			fixes = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue()+"fixes.dat", false);
 		} else {
 			log.report("Did not find a 'fixes.dat' file; assuming there are no swapped samples to rename");
 		}
 
 		try {
-			reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[0]);
-			log.report("Found appropriate reader for: "+proj.getDir(proj.SOURCE_DIRECTORY)+files[0]);
+			reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
+			log.report("Found appropriate reader for: "+proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 			count = 0;
 			do {
 				line = reader.readLine().trim().split(delimiter, -1);
@@ -449,7 +449,7 @@ public class ParseIllumina implements Runnable {
 				log.reportError("   OR perhaps the ID_HEADER property is incorrect; the text '" + proj.getProperty(proj.ID_HEADER) + "' should be present in the header line.");
 				
 				reader.close();
-				reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[0]);
+				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 				delimiterCounts = new int[DELIMITERS.length][count];
 				for (int i = 0; i < count; i++) {
 					temp = reader.readLine();
@@ -478,7 +478,7 @@ public class ParseIllumina implements Runnable {
 				log.reportError("      - determined delimiter to be "+DELIMITER_DESCRIPTIONS[ext.indexOfStr(delimiter, DELIMITERS)]);
 
 				// Tries again to determine the header fields and column names
-				reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[0]);
+				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
@@ -527,7 +527,7 @@ public class ParseIllumina implements Runnable {
 				}
 				sampleName = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex];
 			}
-			if (new File(proj.getDir(proj.MARKER_DATA_DIRECTORY, false, false)+"markers.0.mdRAF").exists()) {
+			if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, false)+"markers.0.mdRAF").exists()) {
 				
 				if (!System.getProperty("os.name").startsWith("Windows")) {
 					log.reportError("Error - Marker data (at least the first file 'markers.0.mdRAF') have already been parsed. This happens if you had previously transposed the data or if the parser was interrupted and manually restarted. Please delete the marker directory to start over from scratch.");
@@ -561,7 +561,7 @@ public class ParseIllumina implements Runnable {
 				}
 			}
 
-			if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION).exists() || new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + ext.replaceWithLinuxSafeCharacters(sampleName, true) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION).exists() || new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + ext.replaceWithLinuxSafeCharacters(sampleName, true) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 
 				overwriteOptions = new String[] {
 						"Delete All", 
@@ -594,7 +594,7 @@ public class ParseIllumina implements Runnable {
 				}
 			}
 			
-			TransposeData.deleteOlderRafs(proj.getDir(proj.SAMPLE_DIRECTORY, true), new String[] {"outliers"}, new String[] {".ser"}, true, new String[] {"outliers.ser"});
+			TransposeData.deleteOlderRafs(proj.SAMPLE_DIRECTORY.getValue(true, true), new String[] {"outliers"}, new String[] {".ser"}, true, new String[] {"outliers.ser"});
 
 			reader.reset();	
 			
@@ -638,7 +638,8 @@ public class ParseIllumina implements Runnable {
 						reader.close();
 						//we should have all markers now...
 						markerNames = Array.toStringArray(markerNameHash);
-						keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+//						keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+						keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 						if (keys == null) {
 							return checkForSNP_Map(proj, log);
 						} else {
@@ -654,16 +655,17 @@ public class ParseIllumina implements Runnable {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""+proj.getDir(proj.SOURCE_DIRECTORY)+files[0]+"\" not found in current directory");
+			log.reportError("Error: file \""+proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]+"\" not found in current directory");
 			return 0;
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \""+proj.getDir(proj.SOURCE_DIRECTORY)+files[0]+"\"");
+			log.reportError("Error reading file \""+proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]+"\"");
 			log.reportException(ioe);
 			return 0;
 		}
 
 		markerNames = Array.toStringArray(markerNameHash);
-		keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+//		keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+		keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		if (keys == null) {
 			return checkForSNP_Map(proj, log);
 		}
@@ -704,7 +706,7 @@ public class ParseIllumina implements Runnable {
 			}
 		}
 		
-		SampleList.generateSampleList(proj).writeToTextFile(proj.getProjectDir()+"ListOfSamples.txt");
+		SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue()+"ListOfSamples.txt");
 
 		allOutliers = new Hashtable<String, Float>();
 
@@ -712,25 +714,25 @@ public class ParseIllumina implements Runnable {
 		v = new Vector<String>();
 		
 		for (int i = 0; i<numThreads; i++) {
-			if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").exists()) {
-				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser"));
-				new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").delete();
+			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").exists()) {
+				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser"));
+				new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").delete();
 			}
-			if (new File(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+i+".txt").exists()) {
-				v.add(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED"+i+".txt");
+			if (new File(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED"+i+".txt").exists()) {
+				v.add(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED"+i+".txt");
 			}
 		}
 		if (v.size() > 0) {
-			Files.cat(Array.toStringArray(v), proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt", Array.intArray(v.size(), 1), log);
+			Files.cat(Array.toStringArray(v), proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt", Array.intArray(v.size(), 1), log);
 			for (int i = 0; i < v.size(); i++) {
 				new File(v.elementAt(i)).delete();
 			}
 		}
 		
 		if (allOutliers.size()>0) {
-			Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 		}
-		if (abLookupRequired && !Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false))) {
+		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			return 6;
 		} else {
 			return 1;
@@ -751,34 +753,36 @@ public class ParseIllumina implements Runnable {
 
 	public static void deleteAllFilesInSampleDirectory(Project proj) {
 		String[] filesToDelete;
-		filesToDelete = Files.list(proj.getDir(proj.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+		filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 		for (int i = 0; i < filesToDelete.length; i++) {
-			new File(proj.getDir(proj.SAMPLE_DIRECTORY) + filesToDelete[i]).delete();
+			new File(proj.SAMPLE_DIRECTORY.getValue(false, true) + filesToDelete[i]).delete();
 		}
-		new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser").delete();
+		new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").delete();
 	}
 
 	public static void deleteAllFilesInMarkerDataDirectory(Project proj) {
 		String[] filesToDelete;
 		
-		filesToDelete = Files.list(proj.getDir(proj.MARKER_DATA_DIRECTORY), MarkerData.MARKER_DATA_FILE_EXTENSION, false);
+		filesToDelete = Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, true), MarkerData.MARKER_DATA_FILE_EXTENSION, false);
 		for (int i = 0; i < filesToDelete.length; i++) {
-			new File(proj.getDir(proj.MARKER_DATA_DIRECTORY) + filesToDelete[i]).delete();
+			new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filesToDelete[i]).delete();
 		}
-		new File(proj.getDir(proj.MARKER_DATA_DIRECTORY, true) + "outliers.ser").delete();
+		new File(proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser").delete();
 	}
 
 	public static char[][] getABLookup(boolean abLookupRequired, String[] markerNames, Project proj) {
 		ABLookup abLookup; 
 		char[][] lookup;
 		
-		if (abLookupRequired && Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME))) {
-			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, false, proj.getLog());
+//		if (abLookupRequired && Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME))) {
+//			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, false, proj.getLog());
+		if (abLookupRequired && Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+			abLookup = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, false, proj.getLog());
 			lookup = abLookup.getLookup();
             if (lookup == null) {
             	proj.getLog().reportError("Warning - filed to provide columns \""+Sample.GENOTYPE_FIELDS[2][0]+"\" / \""+Sample.GENOTYPE_FIELDS[3][0]+"\" and the specificed AB_lookup file '"+proj.getProperty(proj.AB_LOOKUP_FILENAME)+"' does not exist; you'll need reconstruct the B allele for analysis");
             } else {
-            	abLookup.writeToFile(proj.getProjectDir()+"checkAB.xln", proj.getLog());
+            	abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+"checkAB.xln", proj.getLog());
             }
 		} else {
 			lookup = null;
@@ -817,7 +821,8 @@ public class ParseIllumina implements Runnable {
 			markerIndices.put(markerNames[i], new Integer(i));
 		}
 		
-		log.report("There were "+markerNames.length+" markers present in '"+proj.getFilename(proj.MARKERSET_FILENAME, true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
+//		log.report("There were "+markerNames.length+" markers present in '"+proj.getFilename(proj.MARKERSET_FILENAME, true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
+		log.report("There were "+markerNames.length+" markers present in '"+proj.MARKERSET_FILENAME.getValue(true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
 		
 		int snpIndex, sampIndex, key;
 		String trav, temp;
@@ -833,8 +838,8 @@ public class ParseIllumina implements Runnable {
 		boolean done;
 		int numCols;
 		
-		if (Files.exists(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt")) {
-			Files.backup("FYI_IDS_WERE_CHANGED.txt", proj.getProjectDir(), proj.getProjectDir(), true);
+		if (Files.exists(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt")) {
+			Files.backup("FYI_IDS_WERE_CHANGED.txt", proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue(), true);
 		}
 		
 		count = markerCount = 0;
@@ -846,7 +851,7 @@ public class ParseIllumina implements Runnable {
 			for (int i = 0; i<files.length; i++) {
 				try {
 					log.report(ext.getTime()+"\t"+(i+1)+" of "+files.length+" ("+files[i]+")");
-					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]);
+					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
@@ -895,14 +900,14 @@ public class ParseIllumina implements Runnable {
 							
 							if (!trav.equals(temp) && !renamedIDsHash.containsKey(temp)) {
 								try {
-									writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt", true));
+									writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt", true));
 									if (renamedIDsHash.size() == 0) {
 										writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
 									}
 									writer.println(temp+"\t"+trav);
 									writer.close();
 								} catch (Exception e) {
-									log.reportError("Error writing to " + proj.getProjectDir()+"FYI_IDS_WERE_CHANGED.txt");
+									log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt");
 									log.reportException(e);
 								}
 								renamedIDsHash.put(temp, trav);
@@ -924,7 +929,7 @@ public class ParseIllumina implements Runnable {
 									sampleName = fixes.get(sampleName);
 								}
 								
-								filename = determineFilename(proj.getDir(proj.SAMPLE_DIRECTORY, true), sampleName, timeBegan, log);
+								filename = determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
 								if (filename == null) {
 									return 0;
 								}
@@ -941,9 +946,9 @@ public class ParseIllumina implements Runnable {
 								}
 							}
 							if (!done) {
-								if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+								if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 									log.reportError("Warning - marker data must be out of order, becaue we're seeing "+trav+(fixes.containsKey(trav)?"-->"+fixes.get(trav):"")+" again at line "+count);
-									samp = Sample.loadFromRandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
+									samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue());
 									data = samp.getAllData();
 									genotypes = samp.getAllGenotypes();
 								} else {
@@ -1031,11 +1036,11 @@ public class ParseIllumina implements Runnable {
 			}
 
 			if (allOutliers.size()>0) {
-				if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser").exists()) {
-					log.reportError("Error - the following file already exists: " + proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
+					log.reportError("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 					return 0;
 				} else {
-					Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 				}
 			}
 
@@ -1046,10 +1051,10 @@ public class ParseIllumina implements Runnable {
 
         
 		log.report(ext.getTime()+"\t"+"Parsed "+count+" sample(s)");
-		SampleList.generateSampleList(proj).writeToTextFile(proj.getProjectDir()+"ListOfSamples.txt");
+		SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue()+"ListOfSamples.txt");
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"ListOfMarkers.txt"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"ListOfMarkers.txt"));
 			writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
 			for (int j = 0; j < markerNames.length; j++) {
 				writer.println(markerNames[j]+"\t1\t"+countHash.getCount(markerNames[j])+"\t"+dupHash.getCount(markerNames[j]));
@@ -1065,11 +1070,11 @@ public class ParseIllumina implements Runnable {
 			log.reportException(e);
 		}
 
-        new File(proj.getDir(proj.SAMPLE_DIRECTORY, true)+OVERWRITE_OPTION_FILE).delete();
-        new File(proj.getDir(proj.SAMPLE_DIRECTORY, true)+HOLD_OPTION_FILE).delete();
-        new File(proj.getDir(proj.SAMPLE_DIRECTORY, true)+CANCEL_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+OVERWRITE_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+HOLD_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+CANCEL_OPTION_FILE).delete();
        
-		if (abLookupRequired && !Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false))) {
+		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			return 6;
 		} else {
 			return 1;
@@ -1088,23 +1093,24 @@ public class ParseIllumina implements Runnable {
 		String prev;
 
 		log = proj.getLog();
-		if (!Files.exists(proj.getDir(proj.SOURCE_DIRECTORY, false, false))) {
+		if (!Files.exists(proj.SOURCE_DIRECTORY.getValue(false, false))) {
 			proj.message("Source directory does not exist; change SOURCE_DIRECTORY= to point to the proper files");
 			return;
 		}
 		
 		delimiter = proj.getSourceFileDelimiter();
-		longFormat = proj.getBoolean(proj.LONG_FORMAT);
+//		longFormat = proj.getBoolean(proj.LONG_FORMAT);
+		longFormat = proj.LONG_FORMAT.getValue();
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		log.report(ext.getTime()+"\tSearching for "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.getDir(proj.SOURCE_DIRECTORY));
-		files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		log.report(ext.getTime()+"\tSearching for "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.SOURCE_DIRECTORY.getValue(false, true));
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" to parse");
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+filename));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filename));
 			for (int i = 0; i<files.length; i++) {
 				try {
-					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]);
+					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter);
 					} while (reader.ready()&&(line.length<3 || ext.indexOfStr(idHeader, line)==-1));
@@ -1129,7 +1135,7 @@ public class ParseIllumina implements Runnable {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					log.reportError("Error: file \""+files[i]+"\" not found in "+proj.getDir(proj.SOURCE_DIRECTORY));
+					log.reportError("Error: file \""+files[i]+"\" not found in "+proj.SOURCE_DIRECTORY.getValue(false, true));
 					writer.close();
 					return;
 				} catch (IOException ioe) {
@@ -1159,7 +1165,7 @@ public class ParseIllumina implements Runnable {
 		Logger log;
 
 		log = proj.getLog();
-		files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		if (files.length == 0) {
 			log.reportError("Error - no files to parse");
 			return;
@@ -1176,7 +1182,7 @@ public class ParseIllumina implements Runnable {
 			}
 			try {
 				log.report(ext.getTime()+"\t"+(i+1)+" of "+files.length);
-				reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]);
+				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line)==-1)));
@@ -1261,7 +1267,7 @@ public class ParseIllumina implements Runnable {
 		log = proj.getLog();
 		log.report("Writing to file...", false, true);
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"alleleLookup"+(fileNumber>0?"_atFile"+fileNumber:"")+".xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"alleleLookup"+(fileNumber>0?"_atFile"+fileNumber:"")+".xln"));
 			keys = HashVec.getKeys(hash, false, false);
 			writer.println("SNP\t"+Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (int k = 0; k < keys.length; k++) {
@@ -1269,7 +1275,7 @@ public class ParseIllumina implements Runnable {
 			}
 			writer.close();
 		} catch (Exception e) {
-			log.reportError("Error writing to " + proj.getProjectDir()+"alleleLookup.xln");
+			log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()+"alleleLookup.xln");
 			log.reportException(e);
 		}
 		log.report("done");

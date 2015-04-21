@@ -614,7 +614,7 @@ public class GcAdjustor {
 	public static void test(Project proj, String fullPathToGcModel, String fullPathToFileOfTestSamples) {
 		GcModel gcModel = GcModel.populateFromFile(fullPathToGcModel, false, proj.getLog());
 		String[] samplesToTest = Array.subArray(proj.getSamples(), proj.getSamplesToInclude(fullPathToFileOfTestSamples));
-		String fileTest = proj.getProjectDir() + "testGCWF.txt";
+		String fileTest = proj.PROJECT_DIRECTORY.getValue() + "testGCWF.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fileTest));
 			for (int i = 0; i < samplesToTest.length; i++) {

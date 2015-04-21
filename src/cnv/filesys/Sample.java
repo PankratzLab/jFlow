@@ -530,7 +530,8 @@ public class Sample implements Serializable {
 	public float[][][] loadCentroids(Project proj) {
 		Centroids centroids;
 		
-		centroids = Centroids.load(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME), proj.getJarStatus());
+//		centroids = Centroids.load(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME), proj.getJarStatus());
+		centroids = Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(), proj.JAR_STATUS.getValue());
 		if (centroids.getFingerprint() != getFingerprint()) {
 			System.err.println("Error - mismatched fingerprint for "+sampleName);
 		}
@@ -571,7 +572,7 @@ public class Sample implements Serializable {
 		for (int i = 0; i<lrrs.length; i++) {
 			diffs[i] = lrrs[i]-compLRRs[i];
 		}
-		Files.writeSerial(diffs, proj.getProjectDir()+"comps/"+sampleName+".comp");
+		Files.writeSerial(diffs, proj.PROJECT_DIRECTORY.getValue()+"comps/"+sampleName+".comp");
 	}
 
 	public void serialize(String filename) {
@@ -1108,7 +1109,7 @@ public class Sample implements Serializable {
 
 	// TODO if Outlier class is created, then move these two methods there
 	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(Project proj) throws Exception {
-		return loadOutOfRangeValuesFromSerializable(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+		return loadOutOfRangeValuesFromSerializable(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1169,7 +1170,7 @@ public class Sample implements Serializable {
 		try {
 //			for (int i=0; i<samplesProj.length; i++) {
 			for (int i=0; i<100; i++) {
-				file = new RandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY, true) + samplesProj[i] + SAMPLE_DATA_FILE_EXTENSION, "r");
+				file = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + samplesProj[i] + SAMPLE_DATA_FILE_EXTENSION, "r");
 				readBuffer = new byte[(int) file.length()];	//numMarkers * BYTES_PER_SAMPLE_MARKER
 				file.read(readBuffer);
 				file.close();

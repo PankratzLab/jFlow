@@ -28,7 +28,7 @@ public class Parallelize implements Runnable {
 		switch (type) {
 		case LRR_COMP:
 			samples = proj.getSamples();
-			new File(proj.getProjectDir()+"comps/").mkdirs();
+			new File(proj.PROJECT_DIRECTORY.getValue()+"comps/").mkdirs();
 			count = 0;
 			total = samples.length/numThreads;
 			for (int i = 0; i<samples.length; i++) {
@@ -78,14 +78,14 @@ public class Parallelize implements Runnable {
 	        float[] diffs;
 	        
 	        markerNames = proj.getMarkerNames();
-	        files = Files.list(proj.getProjectDir()+"comps/", ".comp", false);
+	        files = Files.list(proj.PROJECT_DIRECTORY.getValue()+"comps/", ".comp", false);
 	        
 	        totalRaw = new double[markerNames.length];
 	        totalAbs = new double[markerNames.length];
 	        counts = new int[markerNames.length];
 	        for (int i = 0; i<files.length; i++) {
 	        	System.out.println((i+1)+" of "+files.length);
-	        	diffs = (float[])Files.readSerial(proj.getProjectDir()+"comps/"+files[i]);
+	        	diffs = (float[])Files.readSerial(proj.PROJECT_DIRECTORY.getValue()+"comps/"+files[i]);
 	        	for (int j = 0; j<markerNames.length; j++) {
 	        		if (!Float.isNaN(diffs[j])) {
 	        			totalRaw[j] += diffs[j];
@@ -96,7 +96,7 @@ public class Parallelize implements Runnable {
 	        }
 	        
 	        try {
-		        writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"LRR_diff_list.xln"));
+		        writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"LRR_diff_list.xln"));
 		        writer.println("SNP\tAvg diff\tAvg abs(diff)\tcount");
 		        for (int i = 0; i<markerNames.length; i++) {
 		        	writer.println(markerNames[i]+"\t"+(totalRaw[i]/counts[i])+"\t"+(totalAbs[i]/counts[i])+"\t"+counts[i]);
@@ -167,8 +167,8 @@ public class Parallelize implements Runnable {
 
 		proj = new Project(filename, false);
 
-		if (!proj.getDir(proj.SOURCE_DIRECTORY).equals("")&&!new File(proj.getDir(proj.SOURCE_DIRECTORY)).exists()) {
-			System.err.println("Error - the project source location is invalid: "+proj.getDir(proj.SOURCE_DIRECTORY));
+		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")&&!new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
+			System.err.println("Error - the project source location is invalid: "+proj.SOURCE_DIRECTORY.getValue(false, true));
 			return;
 		}
 

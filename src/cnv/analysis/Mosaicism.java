@@ -76,7 +76,7 @@ public class Mosaicism {
 
 		samples = proj.getSamples();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getDir(proj.RESULTS_DIRECTORY, true)+"Mosaicism.xln"));
+			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
 			writer.println("Sample\tBand\tLRR N\tmean LRR\tBAF N\tSD of BAF (0.15-0.85)\tIQR of BAF (0.15-0.85)\t%Homo");
 			for (int i = 0; i<samples.length; i++) {
 				System.out.println((i+1)+" of "+samples.length+" in "+ext.getTimeElapsed(time));
@@ -139,23 +139,23 @@ public class Mosaicism {
         String[] cnvFiles;
         
         time = new Date().getTime();
-        listOfMosaicArms = proj.getFilename(proj.MOSAIC_ARMS_FILENAME, false, false);
-        cnvFiles = proj.getFilenames(proj.CNV_FILENAMES);
+        listOfMosaicArms = proj.MOSAIC_ARMS_FILENAME.getValue(false, false);
+        cnvFiles = proj.CNV_FILENAMES.getValue();
         if (cnvFiles.length == 0) {
         	System.err.println("Error - need to specify the name of a CNV file in the project properties file before running Mosaicism.checkForOverlap()");
         	return;
         }
         sampleData = proj.getSampleData(2, new String[] {cnvFiles[0]});
-        if (Files.exists(proj.getProjectDir()+"lrr_sd.xln", proj.getJarStatus())) {
-        	lrrsdHash = HashVec.loadFileToHashString(proj.getProjectDir()+"lrr_sd.xln", false);
+        if (Files.exists(proj.PROJECT_DIRECTORY.getValue()+"lrr_sd.xln", proj.JAR_STATUS.getValue())) {
+        	lrrsdHash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue()+"lrr_sd.xln", false);
         } else {
         	System.err.println("Warning - could not find 'lrr_sd.xln' in project directory; no flags will be generated");
         	lrrsdHash = new Hashtable<String,String>();
         }
-        if (Files.exists(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME, false, false), proj.getJarStatus())) {
-        	mosaicHash = HashVec.loadFileToHashString(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME, false, false), new int[] {0,1}, new int[] {2,3}, false, "\t", true, proj.getJarStatus(), true);
+        if (Files.exists(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
+        	mosaicHash = HashVec.loadFileToHashString(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false), new int[] {0,1}, new int[] {2,3}, false, "\t", true, proj.JAR_STATUS.getValue(), true);
         } else {
-        	System.err.println("Warning - could not find "+proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME, false, false)+"; no annotation possible");
+        	System.err.println("Warning - could not find "+proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false)+"; no annotation possible");
         	mosaicHash = new Hashtable<String,String>();
         }
         
@@ -245,7 +245,7 @@ public class Mosaicism {
             writer.close();
             
             if (v.size() > 0) {
-                writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"SAMPLES_IN_CNVFILE_NOT_IN_SAMPLE_DATA.txt"));
+                writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"SAMPLES_IN_CNVFILE_NOT_IN_SAMPLE_DATA.txt"));
                 for (int i = 0; i<v.size(); i++) {
                 	writer.println(v.elementAt(i));
                 }

@@ -77,13 +77,13 @@ public class PrincipalComponentsValidate {
 					if (principalComponentsResiduals.length > 1) {
 						compareAcrossFiles(proj, dir, principalComponentsResiduals, startAtComponent, stopAtComponent, numPcSamplings, kfolds, pcType, mtMarkers, numThreads, svdRegression, output, log);
 					} else {
-						log.reportError("Error - must have at least two PC files of type " + PC_TYPES[pcType] + " in directory " + proj.getProjectDir() + dir + " to compare across files");
+						log.reportError("Error - must have at least two PC files of type " + PC_TYPES[pcType] + " in directory " + proj.PROJECT_DIRECTORY.getValue() + dir + " to compare across files");
 					}
 				} else {
 					compareWithinFile(proj, dir, startAtComponent, stopAtComponent, numPcSamplings, kfolds, pcType, numThreads, svdRegression, output, log, principalComponentsResiduals);
 				}
 			} else {
-				log.reportError("Error - did not find any PC files of type " + PC_TYPES[pcType] + " in directory " + proj.getProjectDir() + dir);
+				log.reportError("Error - did not find any PC files of type " + PC_TYPES[pcType] + " in directory " + proj.PROJECT_DIRECTORY.getValue() + dir);
 			}
 			return principalComponentsResiduals;
 		}
@@ -99,11 +99,11 @@ public class PrincipalComponentsValidate {
 			int numTotalComponents = principalComponentsResiduals[i].getTotalNumComponents();
 			componentBatches.add(numTotalComponents + "");
 			String subDir = dir + BATCH + numTotalComponents + "/";
-			if (!new File(proj.getProjectDir() + subDir).exists()) {
-				new File(proj.getProjectDir() + subDir).mkdirs();
+			if (!new File(proj.PROJECT_DIRECTORY.getValue() + subDir).exists()) {
+				new File(proj.PROJECT_DIRECTORY.getValue() + subDir).mkdirs();
 			}
-			if (!Files.exists(proj.getProjectDir() + subDir + ext.removeDirectoryInfo(principalComponentsResiduals[i].getPcFile()))) {
-				Files.copyFile(proj.getProjectDir() + principalComponentsResiduals[i].getPcFile(), proj.getProjectDir() + subDir + ext.removeDirectoryInfo(principalComponentsResiduals[i].getPcFile()));
+			if (!Files.exists(proj.PROJECT_DIRECTORY.getValue() + subDir + ext.removeDirectoryInfo(principalComponentsResiduals[i].getPcFile()))) {
+				Files.copyFile(proj.PROJECT_DIRECTORY.getValue() + principalComponentsResiduals[i].getPcFile(), proj.PROJECT_DIRECTORY.getValue() + subDir + ext.removeDirectoryInfo(principalComponentsResiduals[i].getPcFile()));
 			}
 		}
 
@@ -113,7 +113,8 @@ public class PrincipalComponentsValidate {
 		for (int i = 0; i < uniqBatches.length; i++) {
 			batches[i][0] = uniqBatches[i] + "";
 		}
-		String command = JAVA + CP + XMX + VAL_PIPE + "proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir + BATCH + "[%0]/" + "  numThreads=" + numThreads;
+//		String command = JAVA + CP + XMX + VAL_PIPE + "proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir + BATCH + "[%0]/" + "  numThreads=" + numThreads;
+		String command = JAVA + CP + XMX + VAL_PIPE + "proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue() + " dir=" + dir + BATCH + "[%0]/" + "  numThreads=" + numThreads;
 		command += " startAtComponent=" + startAtComponent + " stopAtComponent=" + stopAtComponent + " numPcIterations=" + numPcSamplings + " pcType=" + pcType;
 		command += " kfolds=" + kfolds + " mtMarkers=" + mtMarkers + " output=regress[%0]";
 		Files.qsub("Regression", command, batches, MEMORY_MB, WALLTIME, numThreads);
@@ -122,8 +123,8 @@ public class PrincipalComponentsValidate {
 
 	private static void compareWithinFile(Project proj, String dir, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, int numThreads, boolean svdRegression, String output, Logger log, PrincipalComponentsResiduals[] principalComponentsResiduals) {
 		assignMedians(principalComponentsResiduals, log);// compute the medians for samples in each PC
-		ValidationResults[] validationResults = computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent, numPcSamplings, kfolds, numThreads, proj.getProjectDir() + dir + "tmp_" + output + OUTPUT, svdRegression, log);
-		summarize(validationResults, principalComponentsResiduals, pcType, proj.getProjectDir() + dir + output + OUTPUT, log);
+		ValidationResults[] validationResults = computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent, numPcSamplings, kfolds, numThreads, proj.PROJECT_DIRECTORY.getValue() + dir + "tmp_" + output + OUTPUT, svdRegression, log);
+		summarize(validationResults, principalComponentsResiduals, pcType, proj.PROJECT_DIRECTORY.getValue() + dir + output + OUTPUT, log);
 	}
 
 	private static void summarize(ValidationResults[] validationResults, PrincipalComponentsResiduals[] principalComponentsResiduals, int pcType, String output, Logger log) {
@@ -153,8 +154,8 @@ public class PrincipalComponentsValidate {
 	 */
 	private static ValidationResults[][][] compareAcrossFiles(Project proj, String dir, PrincipalComponentsResiduals[] principalComponentsResiduals, int startAtComponent, int stopAtComponent, int numPcSamplings, int kfolds, int pcType, String mtMarkers, int numThreads, boolean svdRegression, String output, Logger log) {
 		assignMedians(principalComponentsResiduals, log);
-		ValidationResults[] inSamplevalidationResults = computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent, numPcSamplings, kfolds, numThreads, proj.getProjectDir() + dir + "tmp_" + output + OUTPUT, svdRegression, log);
-		summarize(inSamplevalidationResults, principalComponentsResiduals, pcType, proj.getProjectDir() + dir + output + OUTPUT, log);
+		ValidationResults[] inSamplevalidationResults = computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent, numPcSamplings, kfolds, numThreads, proj.PROJECT_DIRECTORY.getValue() + dir + "tmp_" + output + OUTPUT, svdRegression, log);
+		summarize(inSamplevalidationResults, principalComponentsResiduals, pcType, proj.PROJECT_DIRECTORY.getValue() + dir + output + OUTPUT, log);
 
 		// train #,validation #, PC #
 		ValidationResults[][][] outOfSampleValidationResults = new ValidationResults[principalComponentsResiduals.length][principalComponentsResiduals.length - 1][];// all v all
@@ -178,7 +179,7 @@ public class PrincipalComponentsValidate {
 				}
 			}
 		}
-		summarizePCGenerators(inSamplevalidationResults, outOfSampleValidationResults, principalComponentsResiduals, comparisons, pcType, proj.getProjectDir() + dir + output, log);
+		summarizePCGenerators(inSamplevalidationResults, outOfSampleValidationResults, principalComponentsResiduals, comparisons, pcType, proj.PROJECT_DIRECTORY.getValue() + dir + output, log);
 		return outOfSampleValidationResults;
 	}
 
@@ -483,7 +484,7 @@ public class PrincipalComponentsValidate {
 	 */
 
 	private static PrincipalComponentsResiduals[] initRegressions(Project proj, String dir, int numComponents, int pcType, String mtMarkers, boolean recomputeLRR, Logger log) {
-		String[] files = Files.toFullPaths(Files.list(proj.getProjectDir() + dir, PC_TYPES[pcType], false), dir);
+		String[] files = Files.toFullPaths(Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, PC_TYPES[pcType], false), dir);
 		if (files == null || files.length < 1) {
 			log.reportError("Error - could not find any files of type " + PC_TYPES[pcType]);
 			return new PrincipalComponentsResiduals[0];
@@ -514,7 +515,7 @@ public class PrincipalComponentsValidate {
 	 * @param log
 	 */
 	public static void batchJobs(Project proj, String dir, String indsToValidateFile, int numberOfChunks, int numComponents, String mtMarkers, String pcMarkers, int pcReplicates, Logger log) {
-		String curDir = proj.getProjectDir() + dir;
+		String curDir = proj.PROJECT_DIRECTORY.getValue() + dir;
 		String[] inds = HashVec.loadFileToStringArray(curDir + indsToValidateFile, false, new int[] { 0 }, false);
 		int[] chunks = Array.splitUp(inds.length, numberOfChunks);
 		String[][] batches = getBatches(inds, chunks, pcReplicates, log);
@@ -524,7 +525,8 @@ public class PrincipalComponentsValidate {
 			String batchFile = curDir + batchName;
 			Files.writeList(batches[i], batchFile);
 		}
-		String command = JAVA + CP + XMX + MT_PIPE + "proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " PCmarkers=" + pcMarkers + " numComponents=[%1]  medianMarkers=" + proj.getProjectDir() + mtMarkers + " useFile=" + curDir + BATCH + "_[%0] output=" + dir + BATCH + "_[%0]";
+//		String command = JAVA + CP + XMX + MT_PIPE + "proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " PCmarkers=" + pcMarkers + " numComponents=[%1]  medianMarkers=" + proj.getProjectDir() + mtMarkers + " useFile=" + curDir + BATCH + "_[%0] output=" + dir + BATCH + "_[%0]";
+		String command = JAVA + CP + XMX + MT_PIPE + "proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue() + " PCmarkers=" + pcMarkers + " numComponents=[%1]  medianMarkers=" + proj.PROJECT_DIRECTORY.getValue() + mtMarkers + " useFile=" + curDir + BATCH + "_[%0] output=" + dir + BATCH + "_[%0]";
 		Files.qsub("PCA", command, getIters(batches, log));
 	}
 

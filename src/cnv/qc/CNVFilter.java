@@ -200,7 +200,8 @@ public class CNVFilter {
 			filter.setCNVDefaults(proj);
 		}
 		filter.setCommandLineFiltersInEffect(new Hashtable<String, String>());
-		filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));// resets if neccesary
+//		filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));// resets if neccesary
+		filter.setCentromereBoundariesFromFile(proj.MARKERSET_FILENAME.getValue());// resets if neccesary
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].startsWith(COMMAND_MIN_NUM_MARKERS)) {
 				filter.setMinNumMarkers(ext.parseIntArg(args[i]));
@@ -221,17 +222,18 @@ public class CNVFilter {
 				filter.setMaxScore(ext.parseDoubleArg(args[i]));
 				filter.addCommandLineFilter(args[i], COMMAND_MAX_SCORE);
 			} else if (args[i].startsWith(COMMAND_PROBLEM_REGIONS_FILE)) {
-				filter.setProblemRegionsFromFile(proj.getProjectDir() + ext.parseStringArg(args[i], ""));
+				filter.setProblemRegionsFromFile(proj.PROJECT_DIRECTORY.getValue() + ext.parseStringArg(args[i], ""));
 				filter.addCommandLineFilter(args[i], COMMAND_PROBLEM_REGIONS_FILE);
 			} else if (args[i].startsWith(COMMAND_COMMON_REFERENCE)) {
-				filter.setCommonReferenceFromFile(proj.getProjectDir() + ext.parseStringArg(args[i], ""), DEFAULT_COMMON_IN);
+				filter.setCommonReferenceFromFile(proj.PROJECT_DIRECTORY.getValue() + ext.parseStringArg(args[i], ""), DEFAULT_COMMON_IN);
 				filter.addCommandLineFilter(args[i], COMMAND_COMMON_REFERENCE);
 			} else if (args[i].startsWith(COMMAND_INDIVIDUALS_TO_KEEP)) {
-				filter.setIndividualsToKeepFromFile(proj.getProjectDir() + ext.parseStringArg(args[i], ""));
+				filter.setIndividualsToKeepFromFile(proj.PROJECT_DIRECTORY.getValue() + ext.parseStringArg(args[i], ""));
 				filter.addCommandLineFilter(args[i], COMMAND_INDIVIDUALS_TO_KEEP);
 			} else if (args[i].startsWith(COMMAND_BUILD)) {
 				filter.setBuild(ext.parseIntArg(args[i]));
-				filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
+//				filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
+				filter.setCentromereBoundariesFromFile(proj.MARKERSET_FILENAME.getValue());
 				filter.addCommandLineFilter(args[i], COMMAND_BUILD);
 			} else if (args[i].startsWith(COMMAND_COMMON_IN)) {
 				filter.setCommonIn(ext.parseBooleanArg(args[i]));
@@ -437,7 +439,8 @@ public class CNVFilter {
 	}
 
 	public void setCentromereBoundariesFromProject(Project proj) {
-		setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
+//		setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
+		setCentromereBoundariesFromFile(proj.MARKERSET_FILENAME.getValue());
 	}
 
 	public void setCentromereBoundariesFromFile(String fullPathToMarkerSetFilename) {
@@ -708,9 +711,9 @@ public class CNVFilter {
 	}
 
 	public static void filterCNVFile(Project proj, String cnvFile, String out, CNVFilter cnvFilter) {
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.getProjectDir() + cnvFile, false);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.getProjectDir() + out));
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + out));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < cnvs.length; i++) {
 				CNVFilterPass pass = cnvFilter.getCNVFilterPass(cnvs[i]);
@@ -722,7 +725,7 @@ public class CNVFilter {
 			}
 			writer.close();
 		} catch (Exception e) {
-			proj.getLog().reportError("Error writing to " + proj.getProjectDir() + out);
+			proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + out);
 			proj.getLog().reportException(e);
 		}
 

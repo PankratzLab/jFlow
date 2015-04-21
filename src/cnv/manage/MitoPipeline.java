@@ -161,7 +161,7 @@ public class MitoPipeline {
 	}
 
 	public void initDataDir() {
-		mkdir(proj.getProjectDir() + proj.getProperty(proj.DATA_DIRECTORY), log);
+		mkdir(proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.DATA_DIRECTORY), log);
 	}
 
 	public Project getProj() {
@@ -190,7 +190,7 @@ public class MitoPipeline {
 				log.reportError("aborting MitoPipeline");
 				System.exit(1);
 			} else {
-				log.report("\nParsing " + proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false) + " using " + snpMapFilename);
+				log.report("\nParsing " + proj.MARKER_POSITION_FILENAME.getValue(false, false) + " using " + snpMapFilename);
 				cnv.manage.Markers.generateMarkerPositions(proj, snpMapFilename);
 			}
 		} else if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
@@ -263,7 +263,7 @@ public class MitoPipeline {
 	 *            Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead Note: if sample data already exists, we leave it alone
 	 */
 	public static void createSampleData(String pedFile, String sampleMapCsv, Project proj) {
-		String sampleDataFilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false);
+		String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		if (sampleMapCsv == null && pedFile == null && !Files.exists(sampleDataFilename)) {
 			proj.getLog().report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: " + sampleDataFilename);
 			SampleData.createMinimalSampleData(proj);
@@ -299,11 +299,12 @@ public class MitoPipeline {
 			log.reportError("which will allocate 10 Gb of RAM (likewise, you can set it to -Xmx2g for 2 GB or -Xmx250 for 250Gb)\n");
 		}
 
-		sampleDirectory = proj.getDir(proj.SAMPLE_DIRECTORY, false, false);
+		sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
 		if (Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
 			sampleList = proj.getSampleList();
 			log.report("Detected that " + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length + " samples have" : sampleList.getSamples().length + " sample has") + " already been parsed");
-			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(proj.SAMPLELIST_FILENAME) + " and " + proj.getDir(proj.SAMPLE_DIRECTORY));
+//			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(proj.SAMPLELIST_FILENAME) + " and " + proj.getDir(proj.SAMPLE_DIRECTORY));
+			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.SAMPLELIST_FILENAME.getValue() + " and " + proj.SAMPLE_DIRECTORY.getValue(false, true));
 		} else {
 			result = cnv.manage.ParseIllumina.createFiles(proj, numThreads);
 			if (result == 0) {
@@ -343,9 +344,9 @@ public class MitoPipeline {
 			}
 			// if a useFile is given, all samples must be available
 			if (verifyUseFile(proj, sampleList.getSamples(), useFile)) {
-				if (new File(proj.getDir(proj.MARKER_DATA_DIRECTORY, false, false) + "markers.0.mdRAF").exists()) {
+				if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, false) + "markers.0.mdRAF").exists()) {
 					log.report("Marker data (at least the first file 'markers.0.mdRAF') have already been parsed");
-					log.report("Skipping transpose step for the analysis. If you would like to re-transpose the data, please remove (or change the name of) " + proj.getDir(proj.MARKER_DATA_DIRECTORY, false, false));
+					log.report("Skipping transpose step for the analysis. If you would like to re-transpose the data, please remove (or change the name of) " + proj.MARKER_DATA_DIRECTORY.getValue(false, false));
 				} else {
 					TransposeData.transposeData(proj, 2000000000, false);
 				}
@@ -355,27 +356,28 @@ public class MitoPipeline {
 					String markersForABCallRate = null;
 					String markersForEverythingElse = null;
 					// check that all target markers are available
-					if (verifyAuxMarkers(proj, proj.getFilename(proj.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
+//					if (verifyAuxMarkers(proj, proj.getFilename(proj.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
+					if (verifyAuxMarkers(proj, proj.TARGET_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						if (markerQC) {
 							qcMarkers(proj, markerCallRateFilter);
-							markersForABCallRate = proj.getProjectDir() + MARKERS_FOR_ABCALLRATE;
+							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE;
 							if (!Files.exists(markersForABCallRate)) {
-								log.reportError("Error - markerQC was flagged but the file " + proj.getProjectDir() + MARKERS_FOR_ABCALLRATE + " could not be found");
+								log.reportError("Error - markerQC was flagged but the file " + proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE + " could not be found");
 								return 1;
 							}
 						} else {
-							markersForABCallRate = proj.getProjectDir() + MARKERS_TO_QC_FILE;
+							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
 							writeMarkersToQC(proj);
 						}
 
-						markersForEverythingElse = proj.getProjectDir() + MARKERS_TO_QC_FILE;
+						markersForEverythingElse = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
 
 						counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
 						if (counts == null || counts[1] != sampleList.getSamples().length) {
-							if (counts == null || counts[1] == 0 && Files.exists(proj.getProjectDir() + DEFUALT_QC_FILE)) {
-								log.reportError("Error - was unable to parse QC file " + proj.getProjectDir() + DEFUALT_QC_FILE + ", backing up this file to " + proj.getDir(proj.BACKUP_DIRECTORY, false, false) + " and re-starting sample qc");
-								Files.backup(DEFUALT_QC_FILE, proj.getProjectDir(), proj.getDir(proj.BACKUP_DIRECTORY, true, false), true);
+							if (counts == null || counts[1] == 0 && Files.exists(proj.PROJECT_DIRECTORY.getValue() + DEFUALT_QC_FILE)) {
+								log.reportError("Error - was unable to parse QC file " + proj.PROJECT_DIRECTORY.getValue() + DEFUALT_QC_FILE + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
+								Files.backup(DEFUALT_QC_FILE, proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false), true);
 							}
 							counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
 							if (counts == null || counts[1] != sampleList.getSamples().length) {
@@ -450,7 +452,7 @@ public class MitoPipeline {
 				Files.writeList(available.toArray(new String[available.size()]), haveFile);
 				log.reportError("Error - detected that not all samples (missing " + notAvailable.size() + ") from " + useFile + " are availble in the current project");
 				log.reportError("	   - Please review the missing samples in " + missingFile + " and the samples available in " + haveFile + ". If you wish to continue after review,  change the argument \"" + USE_FILE_COMMAND + useFile + "\" to \"" + USE_FILE_COMMAND + haveFile + "\"");
-				log.reportError("	   - Please note that sample names should correspond to the \"DNA\" column in the sample data file " + proj.getProjectDir() + proj.getProperty(proj.SAMPLE_DATA_FILENAME) + ", and the name of the file (directory and extension removed) in " + proj.getDir(proj.SAMPLE_DIRECTORY, false, false));
+				log.reportError("	   - Please note that sample names should correspond to the \"DNA\" column in the sample data file " + proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME) + ", and the name of the file (directory and extension removed) in " + proj.SAMPLE_DIRECTORY.getValue(false, false));
 			}
 		}
 		return allParsed;
@@ -474,7 +476,8 @@ public class MitoPipeline {
 			}
 		}
 		if (notInSampleData.size() > 0) {
-			log.reportError("Error - detected that some samples (missing " + notInSampleData.size() + ") do not have an entry in the sample data file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + ", halting");
+//			log.reportError("Error - detected that some samples (missing " + notInSampleData.size() + ") do not have an entry in the sample data file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + ", halting");
+			log.reportError("Error - detected that some samples (missing " + notInSampleData.size() + ") do not have an entry in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue() + ", halting");
 			log.reportError("	   - Please make sure the following samples have entries: " + Array.toStr(notInSampleData.toArray(new String[notInSampleData.size()]), "\n"));
 		}
 		return allParsed;
@@ -545,13 +548,14 @@ public class MitoPipeline {
 		String markerMetricsFilename;
 
 		log = proj.getLog();
-		markerMetricsFilename = proj.getFilename(proj.MARKER_METRICS_FILENAME, true, false);
+		markerMetricsFilename = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 		// skip if marker qc file exists
-		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(proj.getProjectDir() + MARKERS_TO_QC_FILE) && Files.countLines(markerMetricsFilename, true) >= Files.countLines(proj.getProjectDir() + MARKERS_TO_QC_FILE, false)) {
-			log.report("Marker QC file " + proj.getFilename(proj.MARKER_METRICS_FILENAME, true, false) + " exists");
+		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE) && Files.countLines(markerMetricsFilename, true) >= Files.countLines(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE, false)) {
+			log.report("Marker QC file " + proj.MARKER_METRICS_FILENAME.getValue(true, false) + " exists");
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
-			log.report("Computing marker QC for markers in " + proj.getFilename(proj.TARGET_MARKERS_FILENAME));
+//			log.report("Computing marker QC for markers in " + proj.getFilename(proj.TARGET_MARKERS_FILENAME));
+			log.report("Computing marker QC for markers in " + proj.TARGET_MARKERS_FILENAME.getValue());
 			writeMarkersToQC(proj);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
@@ -564,8 +568,9 @@ public class MitoPipeline {
 	 * Currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
 	 */
 	private static void writeMarkersToQC(Project proj) {
-		String[] markersToQC = { proj.getFilename(proj.TARGET_MARKERS_FILENAME, true, false) };
-		Files.writeList(setMarkersToQC(proj, markersToQC), proj.getProjectDir() + MARKERS_TO_QC_FILE);
+//		String[] markersToQC = { proj.getFilename(proj.TARGET_MARKERS_FILENAME, true, false) };
+		String[] markersToQC = { proj.TARGET_MARKERS_FILENAME.getValue(true, false) };
+		Files.writeList(setMarkersToQC(proj, markersToQC), proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE);
 	}
 
 	/**
@@ -591,11 +596,13 @@ public class MitoPipeline {
 		Logger log = proj.getLog();
 
 		try {
-			reader = Files.getReader(proj.getFilename(proj.MARKER_METRICS_FILENAME), false, true, false);
+//			reader = Files.getReader(proj.getFilename(proj.MARKER_METRICS_FILENAME), false, true, false);
+			reader = Files.getReader(proj.MARKER_METRICS_FILENAME.getValue(), false, true, false);
 			String[] header = reader.readLine().trim().split("\t");
 			int abIndex = ext.indexOfStr(MarkerMetrics.FULL_QC_HEADER[2], header);
 			if (abIndex == -1) {
-				log.reportError("Error - the necessary marker metrics header " + MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" + proj.getFilename(proj.MARKER_METRICS_FILENAME));
+//				log.reportError("Error - the necessary marker metrics header " + MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" + proj.getFilename(proj.MARKER_METRICS_FILENAME));
+				log.reportError("Error - the necessary marker metrics header " + MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" + proj.MARKER_METRICS_FILENAME.getValue());
 				return false;
 			} else {
 				String[] metrics;
@@ -616,13 +623,15 @@ public class MitoPipeline {
 				return false;
 			} else {
 				log.report("Sample call rate will be computed with " + abMarkersToUse.size() + " markers");
-				Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]), proj.getProjectDir() + MARKERS_FOR_ABCALLRATE);
+				Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]), proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE);
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) + "\" not found in current directory");
+//			log.reportError("Error: file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) + "\" not found in current directory");
+			log.reportError("Error: file \"" + proj.MARKER_METRICS_FILENAME.getValue() + "\" not found in current directory");
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) + "\"");
+//			log.reportError("Error reading file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) + "\"");
+			log.reportError("Error reading file \"" + proj.MARKER_METRICS_FILENAME.getValue() + "\"");
 		}
 
 		return true;
@@ -640,13 +649,13 @@ public class MitoPipeline {
 
 		try {
 			String finalReport = ext.rootOf(residualFile) + PCA_FINAL_REPORT;
-			if (Files.exists(proj.getProjectDir() + finalReport)) {
-				Files.backup(finalReport, proj.getProjectDir(), proj.getProjectDir() + proj.getProperty(proj.BACKUP_DIRECTORY));
+			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + finalReport)) {
+				Files.backup(finalReport, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 
-			DNAIndex = getDNAIndex(proj, proj.getProjectDir() + residualFile);
-			reader = Files.getReader(proj.getProjectDir() + residualFile, false, true, false);
-			writer = Files.getAppropriateWriter(proj.getProjectDir() + finalReport);
+			DNAIndex = getDNAIndex(proj, proj.PROJECT_DIRECTORY.getValue() + residualFile);
+			reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue() + residualFile, false, true, false);
+			writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + finalReport);
 
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
@@ -679,17 +688,17 @@ public class MitoPipeline {
 		Logger log = proj.getLog();
 
 		try {
-			DNAIndex = getDNAIndex(proj, proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY);
-			reader = Files.getReader(proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY, false, true, false);
+			DNAIndex = getDNAIndex(proj, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY);
+			reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY, false, true, false);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
 				qcLookup.put(line[DNAIndex], Array.toStr(Array.subArray(line, 1)));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + proj.getProjectDir() + PCA_SAMPLES_SUMMARY + "\" not found in current directory");
+			log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + PCA_SAMPLES_SUMMARY + "\" not found in current directory");
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + proj.getProjectDir() + PCA_SAMPLES_SUMMARY + "\"");
+			log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + PCA_SAMPLES_SUMMARY + "\"");
 		}
 		return qcLookup;
 	}
@@ -737,9 +746,9 @@ public class MitoPipeline {
 		boolean addToSampleData = checkSampleData(proj, sampleData);
 		Hashtable<String, String> subset = checkSubset(useFile, log);
 
-		if (Files.exists(proj.getProjectDir() + DEFUALT_QC_FILE)) {
-			log.report("The sample qc file " + proj.getProjectDir() + DEFUALT_QC_FILE + " already exists");
-			log.report("Skipping qc computation, filtering on existing qc file " + proj.getProjectDir() + DEFUALT_QC_FILE);
+		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + DEFUALT_QC_FILE)) {
+			log.report("The sample qc file " + proj.PROJECT_DIRECTORY.getValue() + DEFUALT_QC_FILE + " already exists");
+			log.report("Skipping qc computation, filtering on existing qc file " + proj.PROJECT_DIRECTORY.getValue() + DEFUALT_QC_FILE);
 		} else {
 			log.report("Computing sample QC for all samples...");
 			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
@@ -748,9 +757,9 @@ public class MitoPipeline {
 		count = 0;
 		numPassing = 0;
 		try {
-			BufferedReader reader = Files.getReader(proj.getProjectDir() + DEFUALT_QC_FILE, false, true, false);
-			PrintWriter writerUse = new PrintWriter(new FileWriter(proj.getProjectDir() + outputBase + PCA_SAMPLES));
-			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.getProjectDir() + outputBase + PCA_SAMPLES_SUMMARY));
+			BufferedReader reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue() + DEFUALT_QC_FILE, false, true, false);
+			PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES));
+			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY));
 
 			writerSummary.println(Array.toStr(SAMPLE_QC_SUMMARY));
 			if (!reader.ready()) {
@@ -860,7 +869,8 @@ public class MitoPipeline {
 		if (qcAdded(proj)) {
 			addToSampleData = false;
 			log.reportError("Detected that sample data QC metrics have been added already, will not add these again");
-			log.reportError("If new thresholds were used, please remove the columns [" + ext.listWithCommas(SAMPLE_DATA_ADDITION_HEADERS, true) + "] in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
+//			log.reportError("If new thresholds were used, please remove the columns [" + ext.listWithCommas(SAMPLE_DATA_ADDITION_HEADERS, true) + "] in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
+			log.reportError("If new thresholds were used, please remove the columns [" + ext.listWithCommas(SAMPLE_DATA_ADDITION_HEADERS, true) + "] in " + proj.SAMPLE_DATA_FILENAME.getValue());
 		}
 		return addToSampleData;
 	}
@@ -873,7 +883,7 @@ public class MitoPipeline {
 		for (int i = 0; i < indices.length; i++) {
 			if (indices[i] == -1) {
 				allGood = false;
-				proj.getLog().reportError("Error - The sample QC file " + proj.getProjectDir() + DEFUALT_QC_FILE + " did not contain the proper headings, this should not happen");
+				proj.getLog().reportError("Error - The sample QC file " + proj.PROJECT_DIRECTORY.getValue() + DEFUALT_QC_FILE + " did not contain the proper headings, this should not happen");
 			}
 		}
 		return allGood;
@@ -884,7 +894,8 @@ public class MitoPipeline {
 	 */
 	private static boolean qcAdded(Project proj) {
 		boolean added = true;
-		String[] header = Files.getHeaderOfFile(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getLog());
+//		String[] header = Files.getHeaderOfFile(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getLog());
+		String[] header = Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog());
 		int[] indices = ext.indexFactors(SAMPLE_DATA_ADDITION_HEADERS, header, true, proj.getLog(), false, false);
 		for (int i = 0; i < indices.length; i++) {
 			if (indices[i] < 0) {
@@ -903,25 +914,25 @@ public class MitoPipeline {
 		String snpMapFile;
 		abLookup = new ABLookup();
 		abLookup.parseFromGenotypeClusterCenters(proj);
-		abLookup.writeToFile(proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false), proj.getLog());
-		if (Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false))) {
+		abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(false, false), proj.getLog());
+		if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			snpMapFile = proj.getLocationOfSNP_Map();
 			if (snpMapFile != null) {
 				log.report("Info - attempting to fill in missing alleles from " + snpMapFile);
-				ABLookup.fillInMissingAlleles(proj, proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false), snpMapFile, false);
-				if (Files.exists(ext.addToRoot(proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false), "_filledIn"))) {
-					proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.addToRoot(proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false), "_filledIn"));
+				ABLookup.fillInMissingAlleles(proj, proj.AB_LOOKUP_FILENAME.getValue(false, false), snpMapFile, false);
+				if (Files.exists(ext.addToRoot(proj.AB_LOOKUP_FILENAME.getValue(false, false), "_filledIn"))) {
+					proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.addToRoot(proj.AB_LOOKUP_FILENAME.getValue(false, false), "_filledIn"));
 					proj.saveProperties();
 				} else {
-					log.reportError("Error - detected " + snpMapFile + ", but could not fill in missing AB Lookup values. Reverting to " + proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false));
+					log.reportError("Error - detected " + snpMapFile + ", but could not fill in missing AB Lookup values. Reverting to " + proj.AB_LOOKUP_FILENAME.getValue(false, false));
 				}
 			} else {
-				log.report("Warning - will not be able to fill in missing alleles from " + proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false) + ", a SNP_MAP file could not be found");
+				log.report("Warning - will not be able to fill in missing alleles from " + proj.AB_LOOKUP_FILENAME.getValue(false, false) + ", a SNP_MAP file could not be found");
 			}
 			ABLookup.applyABLookupToFullSampleFiles(proj);
 			return 1;
 		} else {
-			log.reportError("Error - detected that an AB Lookup file is required, but failed to create AB Lookup file " + proj.getFilename(proj.AB_LOOKUP_FILENAME, false, false));
+			log.reportError("Error - detected that an AB Lookup file is required, but failed to create AB Lookup file " + proj.AB_LOOKUP_FILENAME.getValue(false, false));
 			return 0;
 		}
 	}
@@ -930,7 +941,7 @@ public class MitoPipeline {
 	 * We use the Individual class as input so that we only need one method to generate the sample data
 	 */
 	public static void generateSampleData(Project proj, Individual[] inds) {
-		String sampleDataFile = proj.getProjectDir() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
+		String sampleDataFile = proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
 		Logger log = proj.getLog();
 
 		try {
@@ -943,10 +954,10 @@ public class MitoPipeline {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + proj.getProjectDir() + sampleDataFile + "\" could not be written to (it's probably open)");
+			log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + sampleDataFile + "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + proj.getProjectDir() + sampleDataFile + "\"");
+			log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + sampleDataFile + "\"");
 			log.reportException(ioe);
 		}
 	}

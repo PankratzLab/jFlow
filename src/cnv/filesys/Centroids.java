@@ -120,7 +120,7 @@ public class Centroids implements Serializable {
 		}		
 		
 		try {
-			reader = new BufferedReader(new FileReader(proj.getProjectDir()+filename));
+			reader = new BufferedReader(new FileReader(proj.PROJECT_DIRECTORY.getValue()+filename));
 			header = reader.readLine().trim().split(",");
 			indices = Array.intArray(ILLUMINA_CENTROID_SUFFIXES.length, -1);
 			for (int i = 0; i<header.length; i++) {
@@ -161,16 +161,19 @@ public class Centroids implements Serializable {
             }
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + filename + "\" not found in "+proj.getProjectDir());
+			System.err.println("Error: file \"" + filename + "\" not found in "+proj.PROJECT_DIRECTORY.getValue());
 			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + filename + "\"");
 			System.exit(2);
 		}
 		
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME));
-		Files.backup(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME), "", "");
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME));
+//		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME));
+//		Files.backup(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME), "", "");
+//		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME));
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.ORIGINAL_CENTROIDS_FILENAME.getValue());
+		Files.backup(proj.CUSTOM_CENTROIDS_FILENAME.getValue(), "", "");
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
 	}
 
 	public static void parseCentroidsFromGenotypes(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold) {
@@ -260,7 +263,8 @@ public class Centroids implements Serializable {
 		} else {
 			System.out.println("Computed mean genotyped centroids for all "+centroids.length+" markers");
 		}
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
+//		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
 		System.out.println("Computation took "+ext.getTimeElapsed(time));
 	}
 
@@ -274,21 +278,23 @@ public class Centroids implements Serializable {
         String flag;
         long time;
 
-        jar = proj.getJarStatus();
+        jar = proj.JAR_STATUS.getValue();
         time = new Date().getTime();
         markerSet = proj.getMarkerSet();        
         markerNames = markerSet.getMarkerNames();
-        hash = HashVec.loadFileToHashString(proj.getProjectDir()+intensityOnlyFlagFile, false);
-        if (!Files.exists(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME), jar)) {
-        	System.err.println("Error - file '"+proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME)+"' does not exist in the project's data directory");
+        hash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue()+intensityOnlyFlagFile, false);
+//        if (!Files.exists(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME), jar)) {
+//        	System.err.println("Error - file '"+proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME)+"' does not exist in the project's data directory");
+        if (!Files.exists(proj.GENOTYPE_CENTROIDS_FILENAME.getValue(), jar)) {
+        	System.err.println("Error - file '"+proj.GENOTYPE_CENTROIDS_FILENAME.getValue()+"' does not exist in the project's data directory");
         	return;
         }
-        if (!Files.exists(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME), jar)) {
-        	System.err.println("Error - file '"+proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME)+"' does not exist in the project's data directory");
+        if (!Files.exists(proj.ORIGINAL_CENTROIDS_FILENAME.getValue(), jar)) {
+        	System.err.println("Error - file '"+proj.ORIGINAL_CENTROIDS_FILENAME.getValue()+"' does not exist in the project's data directory");
         	return;
         }
-       	clustered = Centroids.load(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME), jar);
-       	unclustered = Centroids.load(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME), jar);
+       	clustered = Centroids.load(proj.GENOTYPE_CENTROIDS_FILENAME.getValue(), jar);
+       	unclustered = Centroids.load(proj.ORIGINAL_CENTROIDS_FILENAME.getValue(), jar);
         if (clustered.getFingerprint() != unclustered.getFingerprint()) {
         	System.err.println("Error - the two centroid files cannot be merged, because they do not have the same fingerprint");
         	return;
@@ -320,7 +326,8 @@ public class Centroids implements Serializable {
         if (problem) {
         	System.err.println("Error - chimera centroids generation failed");
         } else {
-    		new Centroids(cents, markerSet.getFingerprint()).serialize(proj.getFilename(proj.CHIMERA_CENTROIDS_FILENAME));
+//        	new Centroids(cents, markerSet.getFingerprint()).serialize(proj.getFilename(proj.CHIMERA_CENTROIDS_FILENAME));
+    		new Centroids(cents, markerSet.getFingerprint()).serialize(proj.CHIMERA_CENTROIDS_FILENAME.getValue());
         	System.out.println("Created chimera centroids in "+ext.getTimeElapsed(time));
         }
 	}
@@ -333,7 +340,7 @@ public class Centroids implements Serializable {
         float[][][] cents;
         
 		markerSet = proj.getMarkerSet();
-		centroids = load(centroidsFile, proj.getJarStatus());
+		centroids = load(centroidsFile, proj.JAR_STATUS.getValue());
 		if (centroids.getFingerprint() != markerSet.getFingerprint()) {
 			System.err.println("Error - fingerprint for Centroids file '"+centroidsFile+"' does not match the fingerprint for the current MarkerSet");
 		}
@@ -344,13 +351,13 @@ public class Centroids implements Serializable {
 		for (int i = 0; i < samples.length; i++) {
 			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
 			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
+			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
 		}
 		if (outliers.size() > 0) {
-			if (Files.exists(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser")) {
-				Files.copyFile(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.addToRoot(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser", ext.getTimestampForFilename()));
+			if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
+				Files.copyFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.addToRoot(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.getTimestampForFilename()));
 			}
-			Files.writeSerial(outliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+			Files.writeSerial(outliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 		}
         
 	}
@@ -416,7 +423,7 @@ public class Centroids implements Serializable {
 		String[] markerNames;
 		String dir;
 		
-		dir = proj.getProjectDir();
+		dir = proj.PROJECT_DIRECTORY.getValue();
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		centObject = Centroids.load(dir+centFilename, false);
@@ -460,7 +467,7 @@ public class Centroids implements Serializable {
 		float[][][] centroids;
 		String dir;
 		
-		dir = proj.getProjectDir();
+		dir = proj.PROJECT_DIRECTORY.getValue();
 		centObject = Centroids.load(dir+centFilename, false);
 		centroids = centObject.getCentroids();
 		

@@ -103,10 +103,10 @@ public class CompareDuplicates {
 		markerNames = proj.getMarkerNames();
 		discordantCounts = new int[markerNames.length];
 		
-		pairs = HashVec.loadFileToStringMatrix(proj.getProjectDir()+pairFile, false, new int[] {0,1}, "\t", proj.getJarStatus(), 100, false);
+		pairs = HashVec.loadFileToStringMatrix(proj.PROJECT_DIRECTORY.getValue()+pairFile, false, new int[] {0,1}, "\t", proj.JAR_STATUS.getValue(), 100, false);
 		
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"DuplicateQC.xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"DuplicateQC.xln"));
 			writer.println("DNA1\tDNA2\tgenotypeConcordance\tx_correlation\tcorr_pval\t#diffGeno");
 			for (int i = 0; i < pairs.length; i++) {
 				System.out.println((i+1)+" of "+pairs.length);
@@ -114,12 +114,12 @@ public class CompareDuplicates {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + proj.getProjectDir()+"DuplicateQC.xln");
+			System.err.println("Error writing to " + proj.PROJECT_DIRECTORY.getValue()+"DuplicateQC.xln");
 			e.printStackTrace();
 		}
 		
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"DuplicateErrors.xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"DuplicateErrors.xln"));
 			writer.println("MarkerName\t#discordant");
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i]+"\t"+discordantCounts[i]);

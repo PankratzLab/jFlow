@@ -498,7 +498,7 @@ public class lab {
 		
 		Centroids newCentObj = new Centroids(newCentroids, ms.getFingerprint());
 		newCentObj.serialize(centFile + ".faked");
-		String dir = proj.getProjectDir();
+		String dir = proj.PROJECT_DIRECTORY.getValue();
 		String relativeFile = centFile.substring(dir.length());
 		Centroids.exportToText(proj, relativeFile + ".faked", relativeFile + ".faked.txt");
 		

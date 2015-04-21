@@ -192,7 +192,7 @@ public class MDL implements Iterator<MarkerData> {
 				String[] line = markerLookup.get(markerNames[i]).split("[\\s]+");
 				if (!line[0].equals(currentFile)) {
 					currentFile = line[0];
-					files.add(new FileMatch(proj.getDir(proj.MARKER_DATA_DIRECTORY) + currentFile));
+					files.add(new FileMatch(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + currentFile));
 					currentIndex++;
 				}
 				files.get(currentIndex).add(markerNames[i], indicesInProject[i], Integer.parseInt(line[1]));
@@ -269,10 +269,10 @@ public class MDL implements Iterator<MarkerData> {
 			this.isLrrNull = Sample.isLrrNull(nullStatus);
 			this.isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
 			this.isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
-			if (new File(proj.getDir(proj.MARKER_DATA_DIRECTORY) + "outliers.ser").exists()) {
-				outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.getDir(proj.MARKER_DATA_DIRECTORY) + "outliers.ser");
+			if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
+				outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 				if (debugMode) {
-					proj.getLog().reportTimeInfo("Loading RAF: " + currentMarkFilename + " and outliers " + proj.getDir(proj.MARKER_DATA_DIRECTORY) + "outliers.ser");
+					proj.getLog().reportTimeInfo("Loading RAF: " + currentMarkFilename + " and outliers " + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 				}
 			} else {
 				outlierHash = new Hashtable<String, Float>();

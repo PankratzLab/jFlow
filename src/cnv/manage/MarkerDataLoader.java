@@ -128,7 +128,7 @@ public class MarkerDataLoader implements Runnable {
 				}
 
 				if (readAheadLimit == -1) {
-					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineNBytesPerMarker(proj.getDir(proj.MARKER_DATA_DIRECTORY)+line[0], log));
+					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineNBytesPerMarker(proj.MARKER_DATA_DIRECTORY.getValue(false, true)+line[0], log));
 					if (readAheadLimit > markerNames.length) {
 						log.report("Read ahead limit was computed to be greater than the number of markers; all markers will be loaded into memory at once");
 					} else {
@@ -300,7 +300,8 @@ public class MarkerDataLoader implements Runnable {
 		}
 		
 		initiate();
-		maxPerCycle = proj.getInt(proj.MAX_MARKERS_LOADED_PER_CYCLE);
+//		maxPerCycle = proj.getInt(proj.MAX_MARKERS_LOADED_PER_CYCLE);
+		maxPerCycle = proj.MAX_MARKERS_LOADED_PER_CYCLE.getValue();
 
 		fingerprint = proj.getSampleList().getFingerprint();
 
@@ -309,8 +310,8 @@ public class MarkerDataLoader implements Runnable {
 		allChrsInProj = markerSet.getChrs();
 		allPosInProj = markerSet.getPositions();
 		allSampsInProj = proj.getSamples();
-		if (new File(proj.getDir(proj.MARKER_DATA_DIRECTORY) + "outliers.ser").exists()) {
-			outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.getDir(proj.MARKER_DATA_DIRECTORY) + "outliers.ser");
+		if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
+			outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 		} else {
 			outlierHash = new Hashtable<String, Float>();
 		}
@@ -328,8 +329,8 @@ public class MarkerDataLoader implements Runnable {
 				currentIndexBeingLoaded += currentDirection;
 			}
 			filename = markerLookup.get(markerNames[currentIndexBeingLoaded]).split("\t")[0];
-			if (!Files.exists(proj.getDir(proj.MARKER_DATA_DIRECTORY)+filename, proj.getJarStatus())) {
-				proj.message("Error - could not load data from '"+proj.getDir(proj.MARKER_DATA_DIRECTORY)+filename+"'; because the file could not be found");
+			if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true)+filename, proj.JAR_STATUS.getValue())) {
+				proj.message("Error - could not load data from '"+proj.MARKER_DATA_DIRECTORY.getValue(false, true)+filename+"'; because the file could not be found");
 				return;
 			}
 
@@ -362,10 +363,10 @@ public class MarkerDataLoader implements Runnable {
 			}
 
 			if (plinkFormat) {
-				collection = PlinkData.loadBedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.getDir(proj.MARKER_DATA_DIRECTORY) + plinkFileRoot + ".bed", markerIndicesInProj, markerIndicesInFile, sampleFingerprint, plinkSampleIndices);
+				collection = PlinkData.loadBedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + plinkFileRoot + ".bed", markerIndicesInProj, markerIndicesInFile, sampleFingerprint, plinkSampleIndices);
 //				collection = PlinkData.loadPedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.getDir(proj.MARKER_DATA_DIRECTORY) + plinkFileRoot + ".bed", markerIndicesInProj, markerIndicesInFile, sampleFingerprint, plinkSampleIndices);
 			} else {
-				collection = loadFromRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.getDir(proj.MARKER_DATA_DIRECTORY)+filename, markerIndicesInProj, markerIndicesInFile, sampleFingerprint, outlierHash, log);
+				collection = loadFromRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.MARKER_DATA_DIRECTORY.getValue(false, true)+filename, markerIndicesInProj, markerIndicesInFile, sampleFingerprint, outlierHash, log);
 			}
 
 			for (int k = 0; k < markerIndicesInProj.length && !killed; k++) {
@@ -411,8 +412,8 @@ public class MarkerDataLoader implements Runnable {
 
 	@SuppressWarnings("unchecked")
 	public static Hashtable<String, Float> loadOutliers(Project proj) {
-		if (new File(proj.getDir(proj.MARKER_DATA_DIRECTORY) + "outliers.ser").exists()) {
-			return (Hashtable<String, Float>) Files.readSerial(proj.getDir(proj.MARKER_DATA_DIRECTORY) + "outliers.ser");
+		if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
+			return (Hashtable<String, Float>) Files.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 		} else {
 			return new Hashtable<String, Float>();
 		}
@@ -679,7 +680,8 @@ public class MarkerDataLoader implements Runnable {
 		int amountToLoadAtOnceInMB;
 		
 		proj.getLog().report("Marker data is loading in an independent thread.");
-		amountToLoadAtOnceInMB = proj.getInt(proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
+//		amountToLoadAtOnceInMB = proj.getInt(proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
+		amountToLoadAtOnceInMB = proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA.getValue();
 		markerDataLoader = new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
 		if (markerDataLoader.isKilled()) {
 			return null;
@@ -709,7 +711,8 @@ public class MarkerDataLoader implements Runnable {
 		int amountToLoadAtOnceInMB;
 		
 		proj.getLog().report("Marker data is loading in the same thread.");
-		amountToLoadAtOnceInMB = proj.getInt(proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
+//		amountToLoadAtOnceInMB = proj.getInt(proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA);
+		amountToLoadAtOnceInMB = proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA.getValue();
 		markerDataLoader= new MarkerDataLoader(proj, markerList, amountToLoadAtOnceInMB);
 		markerDataLoader.run();
 

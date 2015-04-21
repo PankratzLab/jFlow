@@ -31,7 +31,6 @@ import filesys.GeneSet;
 
 public class Project {
 
-	
 	private static String[] verifyFiles(String[] strs, boolean isDir) {
 		String[] verified = new String[strs.length];
 		for (int i = 0; i < strs.length; i++) {
@@ -41,29 +40,32 @@ public class Project {
 	}
 	
 	public abstract static class Property<T> {
+		private final Project myProj;
 		private final String name;
 		private final String desc;
 		private final T defaultValue;
 		private T value;
-		public Property(String name, String description, T defVal) {
+		public Property(Project proj, String name, String description, T defVal) {
+			this.myProj = proj;
 			this.name = name;
 			this.desc = description;
 			this.defaultValue = defVal;
 			this.value = defaultValue;
 		}
-		public      T        getValue() { return value; }
-		public   void setValue(T value) { this.value = value; }
-		public String         getName() { return name; }
-		public String  getDescription() { return desc; }
-		public      T getDefaultValue() { return defaultValue; }
-		public abstract void parseValue(String valueStr);
-		public String getValueString() { return value.toString(); }
-		public String getDefaultValueString() { return defaultValue.toString(); }
+		public Project      getProject() { return myProj; }
+		public       T        getValue() { return value; }
+		public    void setValue(T value) { this.value = value; }
+		public  String         getName() { return name; }
+		public  String  getDescription() { return desc; }
+		public       T getDefaultValue() { return defaultValue; }
+		public  abstract void parseValue(String valueStr);
+		public  String getValueString() { return value.toString(); }
+		public  String getDefaultValueString() { return defaultValue.toString(); }
 	}
 	
 	public static class StringProperty extends Property<String> {
-		public StringProperty(String name, String desc, String defVal) {
-			super(name, desc, defVal);
+		public StringProperty(Project proj, String name, String desc, String defVal) {
+			super(proj, name, desc, defVal);
 		}
 		@Override
 		public void parseValue(String valueStr) { setValue(valueStr); }
@@ -71,11 +73,11 @@ public class Project {
 	
 	public static class StringListProperty extends Property<String[]> {
 		static String delim = ";";
-		public StringListProperty(String name, String desc, String[] defVal) {
-			super(name, desc, defVal);
+		public StringListProperty(Project proj, String name, String desc, String[] defVal) {
+			super(proj, name, desc, defVal);
 		}
-		public StringListProperty(String name, String desc, String defVal) {
-			super(name, desc, defVal.split(delim));
+		public StringListProperty(Project proj, String name, String desc, String defVal) {
+			super(proj, name, desc, defVal.split(delim));
 		}
 		@Override
 		public void parseValue(String valueStr) {
@@ -89,8 +91,8 @@ public class Project {
 	}
 	
 	public static class BooleanProperty extends Property<Boolean> {
-		public BooleanProperty(String name, String desc, Boolean defVal) {
-			super(name, desc, defVal);
+		public BooleanProperty(Project proj, String name, String desc, Boolean defVal) {
+			super(proj, name, desc, defVal);
 		}
 		@Override
 		public void parseValue(String valueStr) { 
@@ -102,8 +104,8 @@ public class Project {
 	public static class IntegerProperty extends Property<Integer> {
 		int currValue;
 		int min, max;
-		public IntegerProperty(String name, String desc, int min, int max, int defValue) {
-			super(name, desc, defValue);
+		public IntegerProperty(Project proj, String name, String desc, int min, int max, int defValue) {
+			super(proj, name, desc, defValue);
 			if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
 				throw new RuntimeException("Cannot initialize IntegerProperty with: min=" + min + ", max=" + max + ", and default value=" + defValue);
 			}
@@ -128,8 +130,8 @@ public class Project {
 		double currValue;
 		double min;
 		double max;
-		public DoubleProperty(String name, String desc, double min, double max, double defValue) {
-			super(name, desc, defValue);
+		public DoubleProperty(Project proj, String name, String desc, double min, double max, double defValue) {
+			super(proj, name, desc, defValue);
 			if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
 				throw new RuntimeException("Cannot initialize DoubleProperty['" + name + "'] with: min=" + min + ", max=" + max + ", and default value=" + defValue);
 			}
@@ -152,32 +154,60 @@ public class Project {
 	
 	public static class FileProperty extends StringProperty {
 		final boolean isDir;
-//		public FileProperty(String name, File defVal, boolean dirOnly) {
-//			super(name, defVal);
-//			isDir = dirOnly;
-//		}
-		public FileProperty(String name, String desc, String defVal, boolean dirOnly) {
-			super(name, desc, dirOnly ? ext.verifyDirFormat(defVal) : ext.replaceAllWith(defVal, "\\", "/")/* == null || "".equals(defVal) ? null : new File(defVal)*/);
+		public FileProperty(Project proj, String name, String desc, String defVal, boolean dirOnly) {
+			super(proj, name, desc, dirOnly ? ext.verifyDirFormat(defVal) : ext.replaceAllWith(defVal, "\\", "/")/* == null || "".equals(defVal) ? null : new File(defVal)*/);
 			isDir = dirOnly;
 		}
 		@Override
 		public void setValue(String value) {
 			super.setValue(isDir ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/"));
 		}
+		@Override
+		public String getValue() {
+			return getValue(false, true);
+		}
+		public String getValue(boolean mkdirs, boolean verbose) {
+			return getValue(null, mkdirs, verbose);
+		}
+		public String getValue(String subdir, boolean mkdirs, boolean verbose) {
+			String valu = super.getValue();
+			valu = ext.replaceTilde(valu);
+			
+			if (!valu.startsWith("/") && valu.indexOf(":") == -1) {
+				if (isDir) {
+					valu = getProject().PROJECT_DIRECTORY.getValue() + valu;
+				} else {
+					valu = getProject().PROJECT_DIRECTORY.getValue() + (subdir == null ? "" : getProject().getProperty(subdir).getValueString()) + valu;
+				}
+			}
+			if (!Files.exists(valu, getProject().JAR_STATUS.getValue())) {
+				if (mkdirs && getProject().JAR_STATUS.getValue()) {
+					(new File(valu)).mkdirs();
+				} else if (verbose) {
+					if (isDir) {
+						getProject().getLog().reportError("Error - directory '"+valu+"' does not exist");
+					} else {
+						if (!Files.exists(ext.parseDirectoryOfFile(valu), getProject().JAR_STATUS.getValue())) {
+							getProject().getLog().reportError("Error - the directory ('"+ext.parseDirectoryOfFile(valu)+"') of the file you're trying to access/create ('"+ext.removeDirectoryInfo(valu)+"') does not exist");
+						} else {
+							getProject().getLog().reportError("Error - file '"+valu+"' does not exist");
+						}
+					}
+				}
+			}
+			
+			return valu;
+		}
 	}
 	
 	public static class MultiFileProperty extends Property<String[]> {
 		final boolean isDir;
-//		public MultiFileProperty(String name, File[] defVal, boolean dirOnly) {
-//			super(name, defVal);
-//			isDir = dirOnly;
-//		}
-		public MultiFileProperty(String name, String desc, String[] defVal, boolean dirOnly) {
-			super(name, desc, verifyFiles(defVal, dirOnly)/*createFiles(defVal)*/);
+		public MultiFileProperty(Project proj, String name, String desc, String[] defVal, boolean dirOnly) {
+			super(proj, name, desc, verifyFiles(defVal, dirOnly)/*createFiles(defVal)*/);
 			isDir = dirOnly;
 		}
-		public MultiFileProperty(String name, String desc, String defVal, boolean dirOnly) {
-			super(name, desc, verifyFiles(defVal.split(";"), dirOnly) /*createFiles(defVal)*/);
+		public MultiFileProperty(Project proj, String name, String desc, String defVal, boolean dirOnly) {
+			super(proj, name, desc, verifyFiles(defVal.split(";"), dirOnly) /*createFiles(defVal)*/);
 			isDir = dirOnly;
 		}
 		@Override
@@ -194,15 +224,44 @@ public class Project {
 			return Array.toStr(getValue(), ";");
 		}
 		public String getDefaultValueString() { return Array.toStr(getDefaultValue(), ";"); }
+
+		@Override
+		public String[] getValue() {
+			return getValue(false);
+		}
+		
+		public String[] getValue(boolean suppressMissing) {
+			String[] files = super.getValue();
+			Vector<String> v = new Vector<String>();
+
+			if (files.length == 1 && files[0].equals("")) {
+				files = new String[0];
+			}
+			
+			for (int i = 0; i < files.length; i++) {
+				if (!files[i].startsWith("/") && files[i].indexOf(":") == -1) {
+					files[i] = getProject().PROJECT_DIRECTORY.getValue() + files[i];
+				}
+				if (!Files.exists(files[i], getProject().JAR_STATUS.getValue()) && !suppressMissing) {
+					System.err.println("Error - file '"+files[i]+"' does not exist");
+				} else {
+					v.add(files[i]);
+				}
+            }
+			
+			return Array.toStringArray(v);
+		}
+		
+		
 	}
 	
 	public static class EnumProperty extends StringProperty {
 		String[] options;
-		public EnumProperty(String name, String desc, int defaultIndex, String... opts) {
-			this(name, desc, opts[defaultIndex], opts);
+		public EnumProperty(Project proj, String name, String desc, int defaultIndex, String... opts) {
+			this(proj, name, desc, opts[defaultIndex], opts);
 		}
-		public EnumProperty(String name, String desc, String defVal, String... opts) {
-			super(name, desc, defVal);
+		public EnumProperty(Project proj, String name, String desc, String defVal, String... opts) {
+			super(proj, name, desc, defVal);
 			this.options = opts;
 			boolean found = false;
 			for (String opt : this.options) {
@@ -249,86 +308,86 @@ public class Project {
 		} 
 	}
 	
-	public   IntegerProperty                            LOG_LEVEL = new   IntegerProperty(                           "LOG_LEVEL", "", -1, 12, 1);
-	public    StringProperty                         PROJECT_NAME = new    StringProperty(                        "PROJECT_NAME", "Project Name", "New Project");
-	public    StringProperty            SOURCE_FILENAME_EXTENSION = new    StringProperty(           "SOURCE_FILENAME_EXTENSION", "", ".csv");
-	public    StringProperty                            ID_HEADER = new    StringProperty(                           "ID_HEADER", "", "Sample Name");
-	public    StringProperty                TWOD_LOADED_VARIABLES = new    StringProperty(               "TWOD_LOADED_VARIABLES", "", "");
-	public    StringProperty                            FID_ALIAS = new    StringProperty(                           "FID_ALIAS", "", "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
-	public    StringProperty                            IID_ALIAS = new    StringProperty(                           "IID_ALIAS", "", "ID;IID;I_ID;IndID;Ind_ID");
-	public    StringProperty                         SAMPLE_ALIAS = new    StringProperty(                        "SAMPLE_ALIAS", "", "Sample;DNA;DNA#");
-	public   BooleanProperty                   PARSE_AT_AT_SYMBOL = new   BooleanProperty(                  "PARSE_AT_AT_SYMBOL", "", Boolean.FALSE);
-	public   BooleanProperty                           JAR_STATUS = new   BooleanProperty(                          "JAR_STATUS", "", Boolean.FALSE);
-	public   BooleanProperty                    DISPLAY_QUANTILES = new   BooleanProperty(                   "DISPLAY_QUANTILES", "", Boolean.FALSE);
-	public   BooleanProperty                  DISPLAY_STANDARD_QQ = new   BooleanProperty(                 "DISPLAY_STANDARD_QQ", "", Boolean.TRUE);
-	public   BooleanProperty                   DISPLAY_ROTATED_QQ = new   BooleanProperty(                  "DISPLAY_ROTATED_QQ", "", Boolean.FALSE);
-	public   BooleanProperty                   PENNCNV_GZIP_YESNO = new   BooleanProperty(                  "PENNCNV_GZIP_YESNO", "", Boolean.TRUE);
-	public   BooleanProperty                          LONG_FORMAT = new   BooleanProperty(                         "LONG_FORMAT", "", Boolean.FALSE);
-	public   BooleanProperty           SHIFT_SEX_CHR_COLORS_YESNO = new   BooleanProperty(          "SHIFT_SEX_CHR_COLORS_YESNO", "", Boolean.TRUE);
-	public    DoubleProperty                         GC_THRESHOLD = new    DoubleProperty(                        "GC_THRESHOLD", "", 0.0, 1.0, 0.15);
-	public    DoubleProperty                         LRRSD_CUTOFF = new    DoubleProperty(                        "LRRSD_CUTOFF", "", 0.0, 1.0, 0.32);
-	public   IntegerProperty                          NUM_THREADS = new   IntegerProperty(                         "NUM_THREADS", "", 1, 99, 1);
-	public   IntegerProperty              QQ_MAX_NEG_LOG10_PVALUE = new   IntegerProperty(             "QQ_MAX_NEG_LOG10_PVALUE", "", 1, 10000, 100);
-	public   IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new   IntegerProperty("WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", "", 1, 1000000, 10000);
-	public   IntegerProperty         MAX_MARKERS_LOADED_PER_CYCLE = new   IntegerProperty(        "MAX_MARKERS_LOADED_PER_CYCLE", "", 1, 10000, 100);
-	public   IntegerProperty  MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new   IntegerProperty( "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA", "", 8, 65536, 250);
-	public   IntegerProperty          INTENSITY_PC_NUM_COMPONENTS = new   IntegerProperty(         "INTENSITY_PC_NUM_COMPONENTS", "", 0, 10000, 100);
-	public      FileProperty                    PROJECT_DIRECTORY = new      FileProperty(                   "PROJECT_DIRECTORY", "", "./", true);
-	public      FileProperty                     SOURCE_DIRECTORY = new      FileProperty(                    "SOURCE_DIRECTORY", "", "./", true);
-	public      FileProperty                     SAMPLE_DIRECTORY = new      FileProperty(                    "SAMPLE_DIRECTORY", "", "samples/", true);
-	public      FileProperty                       DATA_DIRECTORY = new      FileProperty(                      "DATA_DIRECTORY", "", "data/", true);
-	public      FileProperty                MARKER_DATA_DIRECTORY = new      FileProperty(               "MARKER_DATA_DIRECTORY", "", "transposed/", true);
-	public      FileProperty                    RESULTS_DIRECTORY = new      FileProperty(                   "RESULTS_DIRECTORY", "", "results/", true);
-	public      FileProperty                       DEMO_DIRECTORY = new      FileProperty(                      "DEMO_DIRECTORY", "", "demo/", true);
-	public      FileProperty         PENNCNV_EXECUTABLE_DIRECTORY = new      FileProperty(        "PENNCNV_EXECUTABLE_DIRECTORY", "", "/home/npankrat/bin/", true);
-	public      FileProperty               PENNCNV_DATA_DIRECTORY = new      FileProperty(              "PENNCNV_DATA_DIRECTORY", "", "penn_data/", true);
-	public      FileProperty            PENNCNV_RESULTS_DIRECTORY = new      FileProperty(           "PENNCNV_RESULTS_DIRECTORY", "", "penncnv/", true);
-	public      FileProperty                     BACKUP_DIRECTORY = new      FileProperty(                    "BACKUP_DIRECTORY", "", "backup/", true);
-	public      FileProperty          PROJECT_PROPERTIES_FILENAME = new      FileProperty(                            "FILENAME", "", "example.properties", false);
-	public      FileProperty             MARKER_POSITION_FILENAME = new      FileProperty(            "MARKER_POSITION_FILENAME", "", "markerPositions.txt", false);
-	public      FileProperty                   MARKERSET_FILENAME = new      FileProperty(                  "MARKERSET_FILENAME", "", "data/markers.bim", false);
-	public      FileProperty                MARKERLOOKUP_FILENAME = new      FileProperty(               "MARKERLOOKUP_FILENAME", "", "data/markerLookup.bml", false);
-	public      FileProperty                  SAMPLELIST_FILENAME = new      FileProperty(                 "SAMPLELIST_FILENAME", "", "data/samples.bis", false);
-	public      FileProperty               SAMPLE_SUBSET_FILENAME = new      FileProperty(              "SAMPLE_SUBSET_FILENAME", "", "sampleSubset.txt", false);
-	public      FileProperty                 SAMPLE_DATA_FILENAME = new      FileProperty(                "SAMPLE_DATA_FILENAME", "", "data/SampleData.txt", false);
-	public      FileProperty          ORIGINAL_CENTROIDS_FILENAME = new      FileProperty(         "ORIGINAL_CENTROIDS_FILENAME", "", "data/original.cent", false);
-	public      FileProperty          GENOTYPE_CENTROIDS_FILENAME = new      FileProperty(         "GENOTYPE_CENTROIDS_FILENAME", "", "data/genotype.cent", false);
-	public      FileProperty           CHIMERA_CENTROIDS_FILENAME = new      FileProperty(          "CHIMERA_CENTROIDS_FILENAME", "", "data/chimera.cent", false);
-	public      FileProperty            CUSTOM_CENTROIDS_FILENAME = new      FileProperty(           "CUSTOM_CENTROIDS_FILENAME", "", "data/custom.cent", false);
-	public      FileProperty             DISPLAY_MARKERS_FILENAME = new      FileProperty(            "DISPLAY_MARKERS_FILENAME", "", "data/test.txt", false);
-	public      FileProperty            FILTERED_MARKERS_FILENAME = new      FileProperty(           "FILTERED_MARKERS_FILENAME", "", "data/drops.dat", false);
-	public      FileProperty                    PEDIGREE_FILENAME = new      FileProperty(                   "PEDIGREE_FILENAME", "", "pedigree.dat", false);
-	public      FileProperty          MOSAIC_COLOR_CODES_FILENAME = new      FileProperty(         "MOSAIC_COLOR_CODES_FILENAME", "", "data/mosaic_colors.txt", false);
-	public      FileProperty              MOSAIC_RESULTS_FILENAME = new      FileProperty(             "MOSAIC_RESULTS_FILENAME", "", "results/Mosaicism.xln", false);
-	public      FileProperty              TARGET_MARKERS_FILENAME = new      FileProperty(             "TARGET_MARKERS_FILENAME", "", "targetMarkers.txt", false);
-	public      FileProperty                 MOSAIC_ARMS_FILENAME = new      FileProperty(                "MOSAIC_ARMS_FILENAME", "", "MosaicArms.txt", false);
-	public      FileProperty   CLUSTER_FILTER_COLLECTION_FILENAME = new      FileProperty(  "CLUSTER_FILTER_COLLECTION_FILENAME", "", "data/clusterFilters.ser", false);
-	public      FileProperty            SEXCHECK_RESULTS_FILENAME = new      FileProperty(           "SEXCHECK_RESULTS_FILENAME", "", "results/sexCheck.xln", false);
-	public      FileProperty                   GENETRACK_FILENAME = new      FileProperty(                  "GENETRACK_FILENAME", "", "RefSeq.gtrack", false);
-	public      FileProperty                   AB_LOOKUP_FILENAME = new      FileProperty(                  "AB_LOOKUP_FILENAME", "", "AB_lookup.dat", false);
-	public      FileProperty              MARKER_METRICS_FILENAME = new      FileProperty(             "MARKER_METRICS_FILENAME", "", "results/markerQualityChecks.xln", false);
-	public      FileProperty      MARKER_REVIEW_CRITERIA_FILENAME = new      FileProperty(     "MARKER_REVIEW_CRITERIA_FILENAME", "", "results/review.criteria", false);
-	public      FileProperty   MARKER_EXCLUSION_CRITERIA_FILENAME = new      FileProperty(  "MARKER_EXCLUSION_CRITERIA_FILENAME", "", "results/exclusion.criteria", false);
-	public      FileProperty    MARKER_COMBINED_CRITERIA_FILENAME = new      FileProperty(   "MARKER_COMBINED_CRITERIA_FILENAME", "", "results/combined.criteria", false);
-	public      FileProperty                  ANNOTATION_FILENAME = new      FileProperty(                 "ANNOTATION_FILENAME", "", "data/annotationCollection.ser", false);
-	public      FileProperty         CUSTOM_COLOR_SCHEME_FILENAME = new      FileProperty(        "CUSTOM_COLOR_SCHEME_FILENAME", "", "", false);
-	public      FileProperty                    GC_MODEL_FILENAME = new      FileProperty(                   "GC_MODEL_FILENAME", "", "data/custom.gcmodel", false);
-	public      FileProperty                  COMMON_CNP_FILENAME = new      FileProperty(                 "COMMON_CNP_FILENAME", "", "data/HG19 CNV edit for AGW.txt", false);
-	public      FileProperty                REPORTED_CNP_FILENAME = new      FileProperty(               "REPORTED_CNP_FILENAME", "", "data/HG19 Reported 2012.05.22.txt", false);
-	public      FileProperty              UNREPORTED_CNP_FILENAME = new      FileProperty(             "UNREPORTED_CNP_FILENAME", "", "data/HG19 Unreported 2012.05.22-2.txt", false);
-	public      FileProperty                INTENSITY_PC_FILENAME = new      FileProperty(               "INTENSITY_PC_FILENAME", "", "GENVISIS.PCs.extrapolated.txt", false);
-	public      FileProperty                   SAMPLE_QC_FILENAME = new      FileProperty(                  "SAMPLE_QC_FILENAME", "", "lrr_sd.xln", false);
-	public MultiFileProperty              SEX_CENTROIDS_FILENAMES = new MultiFileProperty(             "SEX_CENTROIDS_FILENAMES", "", "", false);
-	public MultiFileProperty                TWOD_LOADED_FILENAMES = new MultiFileProperty(               "TWOD_LOADED_FILENAMES", "", "", false);
-	public MultiFileProperty                FOREST_PLOT_FILENAMES = new MultiFileProperty(               "FOREST_PLOT_FILENAMES", "", "", false);
-	public MultiFileProperty        INDIVIDUAL_CNV_LIST_FILENAMES = new MultiFileProperty(       "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", false);
-	public MultiFileProperty                REGION_LIST_FILENAMES = new MultiFileProperty(               "REGION_LIST_FILENAMES", "", "data/regions.txt", false);
-	public MultiFileProperty                        CNV_FILENAMES = new MultiFileProperty(                       "CNV_FILENAMES", "", "", false);
-	public MultiFileProperty     STRATIFICATION_RESULTS_FILENAMES = new MultiFileProperty(    "STRATIFICATION_RESULTS_FILENAMES", "", "", false);
-	public MultiFileProperty                         QQ_FILENAMES = new MultiFileProperty(                        "QQ_FILENAMES", "", "", false);
-	public      EnumProperty                SOURCE_FILE_DELIMITER = new      EnumProperty(               "SOURCE_FILE_DELIMITER", "", 0, "COMMA", "TAB", "SPACE");	
+	public   IntegerProperty                            LOG_LEVEL = new   IntegerProperty(this,                            "LOG_LEVEL", "", -1, 12, 1);
+	public    StringProperty                         PROJECT_NAME = new    StringProperty(this,                         "PROJECT_NAME", "Project Name", "New Project");
+	public    StringProperty            SOURCE_FILENAME_EXTENSION = new    StringProperty(this,            "SOURCE_FILENAME_EXTENSION", "", ".csv");
+	public    StringProperty                            ID_HEADER = new    StringProperty(this,                            "ID_HEADER", "", "Sample Name");
+	public    StringProperty                TWOD_LOADED_VARIABLES = new    StringProperty(this,                "TWOD_LOADED_VARIABLES", "", "");
+	public    StringProperty                            FID_ALIAS = new    StringProperty(this,                            "FID_ALIAS", "", "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
+	public    StringProperty                            IID_ALIAS = new    StringProperty(this,                            "IID_ALIAS", "", "ID;IID;I_ID;IndID;Ind_ID");
+	public    StringProperty                         SAMPLE_ALIAS = new    StringProperty(this,                         "SAMPLE_ALIAS", "", "Sample;DNA;DNA#");
+	public   BooleanProperty                   PARSE_AT_AT_SYMBOL = new   BooleanProperty(this,                   "PARSE_AT_AT_SYMBOL", "", Boolean.FALSE);
+	public   BooleanProperty                           JAR_STATUS = new   BooleanProperty(this,                           "JAR_STATUS", "", Boolean.FALSE);
+	public   BooleanProperty                    DISPLAY_QUANTILES = new   BooleanProperty(this,                    "DISPLAY_QUANTILES", "", Boolean.FALSE);
+	public   BooleanProperty                  DISPLAY_STANDARD_QQ = new   BooleanProperty(this,                  "DISPLAY_STANDARD_QQ", "", Boolean.TRUE);
+	public   BooleanProperty                   DISPLAY_ROTATED_QQ = new   BooleanProperty(this,                   "DISPLAY_ROTATED_QQ", "", Boolean.FALSE);
+	public   BooleanProperty                   PENNCNV_GZIP_YESNO = new   BooleanProperty(this,                   "PENNCNV_GZIP_YESNO", "", Boolean.TRUE);
+	public   BooleanProperty                          LONG_FORMAT = new   BooleanProperty(this,                          "LONG_FORMAT", "", Boolean.FALSE);
+	public   BooleanProperty           SHIFT_SEX_CHR_COLORS_YESNO = new   BooleanProperty(this,           "SHIFT_SEX_CHR_COLORS_YESNO", "", Boolean.TRUE);
+	public    DoubleProperty                         GC_THRESHOLD = new    DoubleProperty(this,                         "GC_THRESHOLD", "", 0.0, 1.0, 0.15);
+	public    DoubleProperty                         LRRSD_CUTOFF = new    DoubleProperty(this,                         "LRRSD_CUTOFF", "", 0.0, 1.0, 0.32);
+	public   IntegerProperty                          NUM_THREADS = new   IntegerProperty(this,                          "NUM_THREADS", "", 1, 99, 1);
+	public   IntegerProperty              QQ_MAX_NEG_LOG10_PVALUE = new   IntegerProperty(this,              "QQ_MAX_NEG_LOG10_PVALUE", "", 1, 10000, 100);
+	public   IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new   IntegerProperty(this, "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", "", 1, 1000000, 10000);
+	public   IntegerProperty         MAX_MARKERS_LOADED_PER_CYCLE = new   IntegerProperty(this,         "MAX_MARKERS_LOADED_PER_CYCLE", "", 1, 10000, 100);
+	public   IntegerProperty  MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new   IntegerProperty(this,  "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA", "", 8, 65536, 250);
+	public   IntegerProperty          INTENSITY_PC_NUM_COMPONENTS = new   IntegerProperty(this,          "INTENSITY_PC_NUM_COMPONENTS", "", 0, 10000, 100);
+	public      FileProperty                    PROJECT_DIRECTORY = new      FileProperty(this,                    "PROJECT_DIRECTORY", "", "./", true);
+	public      FileProperty                     SOURCE_DIRECTORY = new      FileProperty(this,                     "SOURCE_DIRECTORY", "", "./", true);
+	public      FileProperty                     SAMPLE_DIRECTORY = new      FileProperty(this,                     "SAMPLE_DIRECTORY", "", "samples/", true);
+	public      FileProperty                       DATA_DIRECTORY = new      FileProperty(this,                       "DATA_DIRECTORY", "", "data/", true);
+	public      FileProperty                MARKER_DATA_DIRECTORY = new      FileProperty(this,                "MARKER_DATA_DIRECTORY", "", "transposed/", true);
+	public      FileProperty                    RESULTS_DIRECTORY = new      FileProperty(this,                    "RESULTS_DIRECTORY", "", "results/", true);
+	public      FileProperty                       DEMO_DIRECTORY = new      FileProperty(this,                       "DEMO_DIRECTORY", "", "demo/", true);
+	public      FileProperty         PENNCNV_EXECUTABLE_DIRECTORY = new      FileProperty(this,         "PENNCNV_EXECUTABLE_DIRECTORY", "", "/home/npankrat/bin/", true);
+	public      FileProperty               PENNCNV_DATA_DIRECTORY = new      FileProperty(this,               "PENNCNV_DATA_DIRECTORY", "", "penn_data/", true);
+	public      FileProperty            PENNCNV_RESULTS_DIRECTORY = new      FileProperty(this,            "PENNCNV_RESULTS_DIRECTORY", "", "penncnv/", true);
+	public      FileProperty                     BACKUP_DIRECTORY = new      FileProperty(this,                     "BACKUP_DIRECTORY", "", "backup/", true);
+	public      FileProperty          PROJECT_PROPERTIES_FILENAME = new      FileProperty(this,                             "FILENAME", "", "example.properties", false);
+	public      FileProperty             MARKER_POSITION_FILENAME = new      FileProperty(this,             "MARKER_POSITION_FILENAME", "", "markerPositions.txt", false);
+	public      FileProperty                   MARKERSET_FILENAME = new      FileProperty(this,                   "MARKERSET_FILENAME", "", "data/markers.bim", false);
+	public      FileProperty                MARKERLOOKUP_FILENAME = new      FileProperty(this,                "MARKERLOOKUP_FILENAME", "", "data/markerLookup.bml", false);
+	public      FileProperty                  SAMPLELIST_FILENAME = new      FileProperty(this,                  "SAMPLELIST_FILENAME", "", "data/samples.bis", false);
+	public      FileProperty               SAMPLE_SUBSET_FILENAME = new      FileProperty(this,               "SAMPLE_SUBSET_FILENAME", "", "sampleSubset.txt", false);
+	public      FileProperty                 SAMPLE_DATA_FILENAME = new      FileProperty(this,                 "SAMPLE_DATA_FILENAME", "", "data/SampleData.txt", false);
+	public      FileProperty          ORIGINAL_CENTROIDS_FILENAME = new      FileProperty(this,          "ORIGINAL_CENTROIDS_FILENAME", "", "data/original.cent", false);
+	public      FileProperty          GENOTYPE_CENTROIDS_FILENAME = new      FileProperty(this,          "GENOTYPE_CENTROIDS_FILENAME", "", "data/genotype.cent", false);
+	public      FileProperty           CHIMERA_CENTROIDS_FILENAME = new      FileProperty(this,           "CHIMERA_CENTROIDS_FILENAME", "", "data/chimera.cent", false);
+	public      FileProperty            CUSTOM_CENTROIDS_FILENAME = new      FileProperty(this,            "CUSTOM_CENTROIDS_FILENAME", "", "data/custom.cent", false);
+	public      FileProperty             DISPLAY_MARKERS_FILENAME = new      FileProperty(this,             "DISPLAY_MARKERS_FILENAME", "", "data/test.txt", false);
+	public      FileProperty            FILTERED_MARKERS_FILENAME = new      FileProperty(this,            "FILTERED_MARKERS_FILENAME", "", "data/drops.dat", false);
+	public      FileProperty                    PEDIGREE_FILENAME = new      FileProperty(this,                    "PEDIGREE_FILENAME", "", "pedigree.dat", false);
+	public      FileProperty          MOSAIC_COLOR_CODES_FILENAME = new      FileProperty(this,          "MOSAIC_COLOR_CODES_FILENAME", "", "data/mosaic_colors.txt", false);
+	public      FileProperty              MOSAIC_RESULTS_FILENAME = new      FileProperty(this,              "MOSAIC_RESULTS_FILENAME", "", "results/Mosaicism.xln", false);
+	public      FileProperty              TARGET_MARKERS_FILENAME = new      FileProperty(this,              "TARGET_MARKERS_FILENAME", "", "targetMarkers.txt", false);
+	public      FileProperty                 MOSAIC_ARMS_FILENAME = new      FileProperty(this,                 "MOSAIC_ARMS_FILENAME", "", "MosaicArms.txt", false);
+	public      FileProperty   CLUSTER_FILTER_COLLECTION_FILENAME = new      FileProperty(this,   "CLUSTER_FILTER_COLLECTION_FILENAME", "", "data/clusterFilters.ser", false);
+	public      FileProperty            SEXCHECK_RESULTS_FILENAME = new      FileProperty(this,            "SEXCHECK_RESULTS_FILENAME", "", "results/sexCheck.xln", false);
+	public      FileProperty                   GENETRACK_FILENAME = new      FileProperty(this,                   "GENETRACK_FILENAME", "", "RefSeq.gtrack", false);
+	public      FileProperty                   AB_LOOKUP_FILENAME = new      FileProperty(this,                   "AB_LOOKUP_FILENAME", "", "AB_lookup.dat", false);
+	public      FileProperty              MARKER_METRICS_FILENAME = new      FileProperty(this,              "MARKER_METRICS_FILENAME", "", "results/markerQualityChecks.xln", false);
+	public      FileProperty      MARKER_REVIEW_CRITERIA_FILENAME = new      FileProperty(this,      "MARKER_REVIEW_CRITERIA_FILENAME", "", "results/review.criteria", false);
+	public      FileProperty   MARKER_EXCLUSION_CRITERIA_FILENAME = new      FileProperty(this,   "MARKER_EXCLUSION_CRITERIA_FILENAME", "", "results/exclusion.criteria", false);
+	public      FileProperty    MARKER_COMBINED_CRITERIA_FILENAME = new      FileProperty(this,    "MARKER_COMBINED_CRITERIA_FILENAME", "", "results/combined.criteria", false);
+	public      FileProperty                  ANNOTATION_FILENAME = new      FileProperty(this,                  "ANNOTATION_FILENAME", "", "data/annotationCollection.ser", false);
+	public      FileProperty         CUSTOM_COLOR_SCHEME_FILENAME = new      FileProperty(this,         "CUSTOM_COLOR_SCHEME_FILENAME", "", "", false);
+	public      FileProperty                    GC_MODEL_FILENAME = new      FileProperty(this,                    "GC_MODEL_FILENAME", "", "data/custom.gcmodel", false);
+	public      FileProperty                  COMMON_CNP_FILENAME = new      FileProperty(this,                  "COMMON_CNP_FILENAME", "", "data/HG19 CNV edit for AGW.txt", false);
+	public      FileProperty                REPORTED_CNP_FILENAME = new      FileProperty(this,                "REPORTED_CNP_FILENAME", "", "data/HG19 Reported 2012.05.22.txt", false);
+	public      FileProperty              UNREPORTED_CNP_FILENAME = new      FileProperty(this,              "UNREPORTED_CNP_FILENAME", "", "data/HG19 Unreported 2012.05.22-2.txt", false);
+	public      FileProperty                INTENSITY_PC_FILENAME = new      FileProperty(this,                "INTENSITY_PC_FILENAME", "", "GENVISIS.PCs.extrapolated.txt", false);
+	public      FileProperty                   SAMPLE_QC_FILENAME = new      FileProperty(this,                   "SAMPLE_QC_FILENAME", "", "lrr_sd.xln", false);
+	public MultiFileProperty              SEX_CENTROIDS_FILENAMES = new MultiFileProperty(this,              "SEX_CENTROIDS_FILENAMES", "", "", false);
+	public MultiFileProperty                TWOD_LOADED_FILENAMES = new MultiFileProperty(this,                "TWOD_LOADED_FILENAMES", "", "", false);
+	public MultiFileProperty                FOREST_PLOT_FILENAMES = new MultiFileProperty(this,                "FOREST_PLOT_FILENAMES", "", "", false);
+	public MultiFileProperty        INDIVIDUAL_CNV_LIST_FILENAMES = new MultiFileProperty(this,        "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", false);
+	public MultiFileProperty                REGION_LIST_FILENAMES = new MultiFileProperty(this,                "REGION_LIST_FILENAMES", "", "data/regions.txt", false);
+	public MultiFileProperty                        CNV_FILENAMES = new MultiFileProperty(this,                        "CNV_FILENAMES", "", "", false);
+	public MultiFileProperty     STRATIFICATION_RESULTS_FILENAMES = new MultiFileProperty(this,     "STRATIFICATION_RESULTS_FILENAMES", "", "", false);
+	public MultiFileProperty                         QQ_FILENAMES = new MultiFileProperty(this,                         "QQ_FILENAMES", "", "", false);
+	public      EnumProperty                SOURCE_FILE_DELIMITER = new      EnumProperty(this,                "SOURCE_FILE_DELIMITER", "", 0, "COMMA", "TAB", "SPACE");	
 	
-	private boolean jar;
+//	private boolean jar;
 	private String projectPropertiesFilename;
 	private SampleList sampleList;
 	private SampleData sampleData;
@@ -370,17 +429,18 @@ public class Project {
 //        setProperty(PROJECT_PROPERTIES_FILENAME, filename);
 //		  setProperty(SAMPLE_DIRECTORY, ext.verifyDirFormat(getProperty(SAMPLE_DIRECTORY)));
         
-        this.jar = jar;
+        this.JAR_STATUS.setValue(jar);
         
 		int logLevel;
 		
-		logLevel = getInt(LOG_LEVEL);
+//		logLevel = getInt(LOG_LEVEL);
+		logLevel = LOG_LEVEL.getValue();
 		if (logfile == null) {
 			logfile = "Genvisis_"+new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log";
-			if (!getJarStatus()) {
-				logfile = getProjectDir()+"logs/"+logfile;
-				if (!Files.exists(getProjectDir()+"logs/", getJarStatus())) {
-					new File(getProjectDir()+"logs/").mkdirs();
+			if (!JAR_STATUS.getValue()) {
+				logfile = PROJECT_DIRECTORY.getValue()+"logs/"+logfile;
+				if (!Files.exists(PROJECT_DIRECTORY.getValue()+"logs/", JAR_STATUS.getValue())) {
+					new File(PROJECT_DIRECTORY.getValue()+"logs/").mkdirs();
 				}
 			}
 			log = new Logger(logLevel<0?null:logfile, false, Math.abs(logLevel));
@@ -401,48 +461,6 @@ public class Project {
 		this.log = log;
 	}
 	
-	public String getDir(FileProperty prop) {
-		return getDir(prop, false, true);
-	}
-	public String getDir(FileProperty prop, boolean mkdirs) {
-		return getDir(prop, mkdirs, true);
-	}
-	public String getDir(FileProperty prop, boolean mkdirs, boolean verbose) {
-		return getDir(prop.getName(), mkdirs, verbose);
-	}
-	
-	public String getDir(String property) {
-		return getDir(property, false, true);
-	}
-	
-	public String getDir(String property, boolean mkdirs) {
-		return getDir(property, mkdirs, true);
-	}
-	
-	public String getDir(String property, boolean mkdirs, boolean verbose) {
-		String dir = null;
-		
-		if (containsKey(property)) {
-//			dir = getProperty(property);
-			dir = this.<FileProperty>getProperty(property).getValue();
-			dir = ext.replaceTilde(dir);
-			if (!dir.startsWith("~") && !dir.startsWith("/") && dir.indexOf(":") == -1) {
-				dir = getProperty(PROJECT_DIRECTORY)+dir;
-			}
-			if (!Files.exists(dir, jar)) {
-				if (mkdirs && !jar) {
-					new File(dir).mkdirs();
-				} else if (verbose) {
-					log.reportError("Error - directory '"+dir+"' does not exist");
-				}
-			}
-		} else {
-			log.reportError("Error - directory property '"+property+"' is undefined in cnv.filesys.Project");
-		}
-		
-		return dir;
-	}
-	
 	public String getPropertyFilename() {
 		return projectPropertiesFilename;
 	}
@@ -451,179 +469,9 @@ public class Project {
 		this.projectPropertiesFilename = projectPropertiesFilename;
 	}
 
-	public String getProjectDir() {
-		return getProperty(PROJECT_DIRECTORY);
-	}
-	
-	public String getFilename(FileProperty prop) {
-		return getFilename(prop, false, true);
-	}
-	public String getFilename(FileProperty prop, boolean make, boolean verbose) {
-		return getFilename(prop, null, make, verbose);
-	}
-	public String getFilename(FileProperty prop, String subdir, boolean make, boolean verbose) {
-		return getFilename(prop.getName(), subdir, make, verbose);
-	}
-
-	public String getFilename(String property) {
-		return getFilename(property, false, true);
-	}
-	
-	public String getFilename(String property, boolean make, boolean verbose) {
-		return getFilename(property, null, make, verbose);
-	}
-	
-	public String getFilename(String property, String subdirectory, boolean make, boolean verbose) {
-		String file = null;
-		
-		if (containsKey(property)) {
-//			file = getProperty(property);
-			file = this.<FileProperty>getProperty(property).getValue();
-			if (!file.startsWith("/") && file.indexOf(":") == -1) {
-				file = getProperty(PROJECT_DIRECTORY)+(subdirectory==null?"":getProperty(subdirectory))+file;
-			}
-			if (!Files.exists(file, getJarStatus())) {
-				if (make) {
-					new File(ext.parseDirectoryOfFile(file)).mkdirs();
-				} else if (verbose) {
-					if (!Files.exists(ext.parseDirectoryOfFile(file), getJarStatus())) {
-						System.err.println("Error - the directory ('"+ext.parseDirectoryOfFile(file)+"') of the file you're trying to access/create ('"+ext.removeDirectoryInfo(file)+"') does not exist");
-					} else {
-						System.err.println("Error - file '"+file+"' does not exist");
-					}
-				}
-			}
-		} else {
-			System.err.println("Error - file property '"+property+"' is undefined in cnv.filesys.Project");
-		}
-
-		return file;
-	}
-	
-	public String[] getFilenames(MultiFileProperty prop) {
-		return getFilenames(prop, false);
-	}
-	public String[] getFilenames(MultiFileProperty prop, boolean suppressMissing) {
-		return getFilenames(prop.getName(), suppressMissing);
-	}
-	
-	public String[] getFilenames(String type) {
-		return getFilenames(type, false);
-	}
-	
-	public String[] getFilenames(String type, boolean suppressMissing) {
-		String[] files = null;
-		Vector<String> v;
-		
-		v = new Vector<String>();
-		if (containsKey(type)) {
-//			files = getProperty(type).split(";");
-			files = this.<MultiFileProperty>getProperty(type).getValue();
-			if (files.length == 1 && files[0].equals("")) {
-				files = new String[0];
-			}
-			
-			for (int i = 0; i<files.length; i++) {
-				if (!files[i].startsWith("/") && files[i].indexOf(":") == -1) {
-					files[i] = getProperty(PROJECT_DIRECTORY)+files[i];
-				}
-				if (!Files.exists(files[i], getJarStatus()) && !suppressMissing) {
-					System.err.println("Error - file '"+files[i]+"' does not exist");
-				} else {
-					v.add(files[i]);
-				}
-            }
-		} else {
-			System.err.println("Error - file '"+type+"' is undefined in cnv.filesys.Project");
-		} 
-
-		return Array.toStringArray(v);
-	}
-	
-//	public double getDouble(String variable) {
-//		String trav;
-//		
-//		trav = getProperty(variable);
-//		try {
-//			return Double.parseDouble(trav);
-//		} catch (NumberFormatException nfe) {
-//			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
-//			return Double.NaN;
-//		}		
-//	}
-	public double getDouble(String variable) {
-		return this.<Property<? extends Number>>getProperty(variable).getValue().doubleValue();
-//		try {
-//			return Double.parseDouble(trav);
-//		} catch (NumberFormatException nfe) {
-//			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
-//			return Double.NaN;
-//		}		
-	}
-	public double getDouble(Property<? extends Number> prop) {
-		return prop.getValue().doubleValue();
-	}
-	
-//	public float getFloat(String variable) {
-//		String trav;
-//		
-//		trav = getProperty(variable);
-//		try {
-//			return Float.parseFloat(trav);
-//		} catch (NumberFormatException nfe) {
-//			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
-//			return Float.NaN;
-//		}		
-//	}
-	public float getFloat(String variable) {
-		return this.<Property<? extends Number>>getProperty(variable).getValue().floatValue();
-	}
-	public float getFloat(Property<? extends Number> prop) {
-		return prop.getValue().floatValue();
-	}
-
-//	public int getInt(String variable) {
-//		String trav;
-//		
-//		trav = getProperty(variable);
-//		try {
-//			return Integer.parseInt(trav);
-//		} catch (NumberFormatException nfe) {
-//			System.err.println("Error - '"+trav+"' is not a valid value for "+variable);
-//			return Integer.MIN_VALUE;
-//		}		
-//	}
-	public int getInt(String variable) {
-		return this.<Property<? extends Number>>getProperty(variable).getValue().intValue();
-	}
-	public int getInt(Property<? extends Number> prop) {
-		return prop.getValue().intValue();
-	}
-
-//	public boolean getBoolean(String variable) {
-//		String trav;
-//		trav = getProperty(variable);
-//		if (trav.toLowerCase().equals("true") || trav.toLowerCase().equals("t") || trav.toLowerCase().equals("yes") || trav.toLowerCase().equals("y") || trav.equals("1")) {
-//			return true;
-//		}
-//		if (trav.toLowerCase().equals("false") || trav.toLowerCase().equals("f") || trav.toLowerCase().equals("no") || trav.toLowerCase().equals("n") || trav.equals("0")) {
-//			return false;
-//		}
-//		System.err.println("Error - '"+trav+"' is not a valid boolean value for "+variable);
-//		return false;
-//	}
-	public boolean getBoolean(Property<Boolean> prop) {
-		return prop.getValue();
-	}
-	public boolean getBoolean(String variable) {
-		Boolean trav;
-		trav = this.<Property<Boolean>>getProperty(variable).getValue();
-		return trav;
-	}
-
 	public MarkerSet getMarkerSet() {
-		if (Files.exists(getFilename(MARKERSET_FILENAME), getJarStatus())) {
-			return MarkerSet.load(getFilename(MARKERSET_FILENAME), getJarStatus());
+		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
+			return MarkerSet.load(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
@@ -635,13 +483,13 @@ public class Project {
 
 	public MarkerLookup getMarkerLookup() {
 		if (markerLookup == null) {
-			if (Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
-				markerLookup = MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
+			if (Files.exists(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue())) {
+				markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue());
 			} else {
 				System.out.println("Failed to find MarkerLookup; generating one...");
 				TransposeData.recreateMarkerLookup(this);
-				if (Files.exists(getFilename(MARKERLOOKUP_FILENAME), getJarStatus())) {
-					markerLookup = MarkerLookup.load(getFilename(MARKERLOOKUP_FILENAME), getJarStatus());
+				if (Files.exists(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue())) {
+					markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue());
 				} else {
 					log.reportError("Also failed to create MarkerLookup; failing");
 				}
@@ -652,8 +500,8 @@ public class Project {
 
 	public SampleList getSampleList() {
 		if (sampleList == null) {
-			if (Files.exists(getFilename(SAMPLELIST_FILENAME, false, false), getJarStatus())) {
-				sampleList = SampleList.load(getFilename(SAMPLELIST_FILENAME), getJarStatus());
+			if (Files.exists(SAMPLELIST_FILENAME.getValue(false, false), JAR_STATUS.getValue())) {
+				sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue(), JAR_STATUS.getValue());
 			}
 			if (sampleList == null) {
 				log.report("Failed to find SampleList; generating one...");
@@ -745,32 +593,32 @@ public class Project {
 	}
 	
 	public Sample getFullSampleFromRandomAccessFile(String sample) {
-		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
-			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue())) {
+			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
 	}
 
 	public Sample getFullSampleFromSerialized(String sample) {
-		if (Files.exists(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus())) {
-			return Sample.loadFromSerialized(getDir(SAMPLE_DIRECTORY)+sample+".fsamp", getJarStatus());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true)+sample+".fsamp", JAR_STATUS.getValue())) {
+			return Sample.loadFromSerialized(SAMPLE_DIRECTORY.getValue(false, true)+sample+".fsamp", JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
 	}
 	
 	public Sample getPartialSampleFromRandomAccessFile(String sample) {
-		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
-			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, getJarStatus());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue())) {
+			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
 	}
 	
 	public Sample getPartialSampleFromRandomAccessFile(String sample, boolean gc, boolean xy, boolean baf, boolean lrr, boolean geno) {
-		if (Files.exists(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, getJarStatus())) {
-			return Sample.loadFromRandomAccessFile(getDir(SAMPLE_DIRECTORY) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, gc, xy, baf, lrr, geno, getJarStatus());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue())) {
+			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, gc, xy, baf, lrr, geno, JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
@@ -781,7 +629,7 @@ public class Project {
 	}
 
 	public SampleData getSampleData(int numberOfBasicClassesToLoad, boolean loadCNVs) {
-		return getSampleData(numberOfBasicClassesToLoad, loadCNVs ? getFilenames(this.CNV_FILENAMES) : null);
+		return getSampleData(numberOfBasicClassesToLoad, loadCNVs ? this.CNV_FILENAMES.getValue() : null);
 	}
 
 	public SampleData getSampleData(int numberOfBasicClassesToLoad, String[] cnvFilenames) {
@@ -804,10 +652,10 @@ public class Project {
 	public Hashtable<String,String> getFilteredHash() {
 		if (getProperty(FILTERED_MARKERS_FILENAME).equals("")) {
 			return new Hashtable<String,String>();
-		} else if (Files.exists(getFilename(FILTERED_MARKERS_FILENAME), getJarStatus())) {
-			return HashVec.loadFileToHashString(getFilename(FILTERED_MARKERS_FILENAME), 0, new int[] {0}, "", false, getJarStatus());
+		} else if (Files.exists(FILTERED_MARKERS_FILENAME.getValue(), JAR_STATUS.getValue())) {
+			return HashVec.loadFileToHashString(FILTERED_MARKERS_FILENAME.getValue(), 0, new int[] {0}, "", false, JAR_STATUS.getValue());
 		} else {
-			System.err.println("Error - '"+getProperty(FILTERED_MARKERS_FILENAME)+"' not found");
+			System.err.println("Error - '"+FILTERED_MARKERS_FILENAME.getValue(false, false)+"' not found");
 			return new Hashtable<String,String>();
 		}
 	}
@@ -817,15 +665,15 @@ public class Project {
 		String[] files;
 		Vector<String> v;
 
-		files = Files.list(getProjectDir(), ".mds", getJarStatus());
+		files = Files.list(PROJECT_DIRECTORY.getValue(), ".mds", JAR_STATUS.getValue());
 	
 		v = new Vector<String>();
 		if (files == null) {
 			System.err.println("Error - no .mds files found in directory");
 		} else {
 			for (int i = 0; i<files.length; i++) {
-				v.add(getProjectDir()+files[i]);
-				System.out.println(getProjectDir()+files[i]);
+				v.add(PROJECT_DIRECTORY.getValue()+files[i]);
+				System.out.println(PROJECT_DIRECTORY.getValue()+files[i]);
 	        }
 		}
 		
@@ -852,9 +700,9 @@ public class Project {
 	public ClusterFilterCollection getClusterFilterCollection() {
 		String filename;
 		
-		filename = getFilename(this.CLUSTER_FILTER_COLLECTION_FILENAME, false, false);
+		filename = this.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, false);
         if (Files.exists(filename)) {
-        	return ClusterFilterCollection.load(filename, jar);
+        	return ClusterFilterCollection.load(filename, this.JAR_STATUS.getValue());
         } else {
         	log.reportError("Warning - could not find cluster filter file, assuming no markers have been reclustered ("+filename+")");
         	return null;
@@ -864,10 +712,10 @@ public class Project {
 	public AnnotationCollection getAnnotationCollection() {
 		String filename;
 		
-		filename = getFilename(this.ANNOTATION_FILENAME);
+		filename = this.ANNOTATION_FILENAME.getValue();
         if (Files.exists(filename)) {
     		System.out.println("Loading annotation from: "+filename);
-        	return AnnotationCollection.load(filename, jar);
+        	return AnnotationCollection.load(filename, this.JAR_STATUS.getValue());
         } else {
         	return null;
         }
@@ -877,20 +725,12 @@ public class Project {
 		return getProperty(this.PROJECT_NAME);
 	}
 
-	public boolean getJarStatus() {
-		return jar;
-	}
-	
-	public void setJarStatus(boolean jar) {
-		this.jar = jar;
-	}
-	
 	public String[] getIndividualRegionLists() {
-		return getFilenames(INDIVIDUAL_CNV_LIST_FILENAMES, false);
+		return INDIVIDUAL_CNV_LIST_FILENAMES.getValue(false);
 	}
 	
 	public String[] getRegionLists() {
-		return getFilenames(REGION_LIST_FILENAMES, false);
+		return REGION_LIST_FILENAMES.getValue(false);
 	}
 	
 	public String[] getPropertyKeys() {
@@ -1174,7 +1014,7 @@ public class Project {
 		String targetMarkers;
 		String[] targets;
 
-		targetMarkers = getFilename(this.TARGET_MARKERS_FILENAME, false, false);
+		targetMarkers = this.TARGET_MARKERS_FILENAME.getValue(false, false);
 		if (new File(targetMarkers).exists()) {
 			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, true);
 		} else {
@@ -1190,7 +1030,7 @@ public class Project {
 	public String archiveFile(String filename) {
 		String backup;
 		
-		backup = getDir(this.BACKUP_DIRECTORY, true, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
+		backup = this.BACKUP_DIRECTORY.getValue(true, true)+ext.removeDirectoryInfo(filename) + "." + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
 		new File(filename).renameTo(new File(backup));
 		
 		if (Files.exists(backup)) {
@@ -1219,16 +1059,16 @@ public class Project {
 	public String getLocationOfSNP_Map() {
 		String filename;
 		
-		if (Files.exists(getProjectDir()+"SNP_Map.csv")) {
-			filename = getProjectDir()+"SNP_Map.csv";
-		} else if (Files.exists(getProjectDir()+"SNP_Map.csv.gz")) {
-			filename = getProjectDir()+"SNP_Map.csv.gz";
-		} else if (Files.exists(getDir(this.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv")) {
-			filename = getDir(this.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv";
-		} else if (Files.exists(getDir(this.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv.gz")) {
-			filename = getDir(this.SOURCE_DIRECTORY, false, false)+"SNP_Map.csv.gz";
+		if (Files.exists(PROJECT_DIRECTORY.getValue()+"SNP_Map.csv")) {
+			filename = PROJECT_DIRECTORY.getValue()+"SNP_Map.csv";
+		} else if (Files.exists(PROJECT_DIRECTORY.getValue()+"SNP_Map.csv.gz")) {
+			filename = PROJECT_DIRECTORY.getValue()+"SNP_Map.csv.gz";
+		} else if (Files.exists(this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv")) {
+			filename = this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv";
+		} else if (Files.exists(this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv.gz")) {
+			filename = this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv.gz";
 		} else {
-			log.reportError("Failed; could not find \"SNP_Map.csv\" or \"SNP_Map.csv.gz\" in "+getProjectDir()+" or in "+getDir(this.SOURCE_DIRECTORY, false, false));
+			log.reportError("Failed; could not find \"SNP_Map.csv\" or \"SNP_Map.csv.gz\" in "+PROJECT_DIRECTORY.getValue()+" or in "+this.SOURCE_DIRECTORY.getValue(false, false));
 			return null;
 		}
 		
@@ -1239,14 +1079,15 @@ public class Project {
 	 * Grab the {@link PrincipalComponentsResiduals} from {@link Project#INTENSITY_PC_FILENAME}, will return null if can not be found
 	 */
 	public PrincipalComponentsResiduals loadPcResids() {
-		String pcFile = getFilename(this.INTENSITY_PC_FILENAME);
+//		String pcFile = getFilename(this.INTENSITY_PC_FILENAME);
+		String pcFile = this.INTENSITY_PC_FILENAME.getValue();
 		PrincipalComponentsResiduals pcResids;
 		if (Files.exists(pcFile)) {
 			//getLog().reportTimeInfo("loading Intensity PC File " + ext.removeDirectoryInfo(pcFile));
 //			pcResids = new PrincipalComponentsResiduals(this, pcFile, null, Integer.parseInt(getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
-			pcResids = new PrincipalComponentsResiduals(this, pcFile, null, getProperty(this.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
+			pcResids = new PrincipalComponentsResiduals(this, pcFile, null, this.INTENSITY_PC_NUM_COMPONENTS.getValue(), false, 0, false, false, null);
 		} else {
-			getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by" + this.INTENSITY_PC_FILENAME + "=" + this.getProperty(this.INTENSITY_PC_FILENAME));
+			getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by" + this.INTENSITY_PC_FILENAME.getName() + "=" + this.INTENSITY_PC_FILENAME.getValue());
 			pcResids = null;
 		}
 		return pcResids;
@@ -1260,7 +1101,7 @@ public class Project {
 	 * 
 	 */
 	public String getGeneTrackFileName(boolean report) {
-		String tmp = getFilename(this.GENETRACK_FILENAME, false, false);
+		String tmp = this.GENETRACK_FILENAME.getValue(false, false);
 		if (tmp == null || !Files.exists(tmp)) {
 			tmp = GeneSet.DIRECTORY + GeneSet.REFSEQ_TRACK;
 			if (tmp == null || !Files.exists(tmp)) {

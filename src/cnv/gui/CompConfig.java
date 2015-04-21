@@ -440,7 +440,7 @@ class CNVPanel extends JPanel implements ActionListener {
 
 							String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
 
-							new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(proj.CNV_FILENAMES), markerPosition);
+							new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(), markerPosition);
 						}
 					}
 				} else if (checkList.getSelected().size() == 0) {
@@ -455,7 +455,7 @@ class CNVPanel extends JPanel implements ActionListener {
 
 						String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
 
-						new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(proj.CNV_FILENAMES), markerPosition);
+						new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(), markerPosition);
 					}
 				}
 			} else {
@@ -467,7 +467,7 @@ class CNVPanel extends JPanel implements ActionListener {
 				}
 
 				String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
-				new Trailer(proj, sampleData.lookup(trailerID)[0], proj.getFilenames(proj.CNV_FILENAMES), markerPosition);
+				new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(), markerPosition);
 			}
 		}
 	}

@@ -90,15 +90,15 @@ public class ParseAffySNP6 implements Runnable {
 		delimiter = proj.getSourceFileDelimiter();
 		allOutliers = new Hashtable<String, Float>();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getDir(proj.SOURCE_DIRECTORY) + "blank_list.txt", true));
+			writer = new PrintWriter(new FileWriter(proj.SOURCE_DIRECTORY.getValue(false, true) + "blank_list.txt", true));
 			for (int i = 0; i < files.length; i++) {
-				if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + CANCEL_OPTION_FILE).exists()) {
+				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + CANCEL_OPTION_FILE).exists()) {
 					return;
 				}
 				try {
 					System.out.println(ext.getTime() + "\t" + (i + 1) + " of " + files.length + " -- " + files[i]);
 					// reader = new BufferedReader(new FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
-					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[i]);
+					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
@@ -272,7 +272,7 @@ public class ParseAffySNP6 implements Runnable {
 						sampleName = fixes.get(sampleName);
 					}
 
-					filename = determineFilename(proj.getDir(proj.SAMPLE_DIRECTORY, true), sampleName, timeBegan);
+					filename = determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan);
 					if (filename == null) {
 						return;
 					}
@@ -292,23 +292,23 @@ public class ParseAffySNP6 implements Runnable {
 
 			if (allOutliers.size() > 0) {
 				if (threadId >= 0) {
-					if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser").exists()) {
-						System.err.println("Error - the following file already exists: " + proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser");
+					if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId + ".ser").exists()) {
+						System.err.println("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId + ".ser");
 						System.exit(1);
 					} else {
-						Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + threadId + ".ser");
+						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + threadId + ".ser");
 					}
 				} else {
-					if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers0.ser").exists()) {
-						System.err.println("Error - the following file already exists: " + proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers0.ser");
+					if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser").exists()) {
+						System.err.println("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser");
 						System.exit(1);
 					} else {
-						Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers0.ser");
+						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers0.ser");
 					}
 				}
 			}
 
-			SampleList.generateSampleList(proj).writeToTextFile(proj.getProjectDir() + "ListOfSamples.txt");
+			SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 
 			System.out.println(ext.getTime() + "\tfinished");
 		} catch (Exception e) {
@@ -463,24 +463,24 @@ public class ParseAffySNP6 implements Runnable {
 		Hashtable<String, Float> allOutliers;
 
 		timeBegan = new Date().getTime();
-		new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + OVERWRITE_OPTION_FILE).delete();
-		new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + HOLD_OPTION_FILE).delete();
-		new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + CANCEL_OPTION_FILE).delete();
+		new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + OVERWRITE_OPTION_FILE).delete();
+		new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + HOLD_OPTION_FILE).delete();
+		new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + CANCEL_OPTION_FILE).delete();
 
-		if (!proj.getDir(proj.SOURCE_DIRECTORY).equals("") && !new File(proj.getDir(proj.SOURCE_DIRECTORY)).exists()) {
-			System.err.println("Error - the Project source location is invalid: " + proj.getDir(proj.SOURCE_DIRECTORY));
+		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("") && !new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
+			System.err.println("Error - the Project source location is invalid: " + proj.SOURCE_DIRECTORY.getValue(false, true));
 			return;
 		}
 
-		if (!new File(proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)).exists()) {
-			System.err.println("Error - missing markerPositions: " + proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false));
+		if (!new File(proj.MARKER_POSITION_FILENAME.getValue(false, false)).exists()) {
+			System.err.println("Error - missing markerPositions: " + proj.MARKER_POSITION_FILENAME.getValue(false, false));
 			return;
 		}
 
 		delimiter = proj.getSourceFileDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		System.out.println(ext.getTime() + "\tSearching for " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: " + proj.getDir(proj.SOURCE_DIRECTORY));
-		files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		System.out.println(ext.getTime() + "\tSearching for " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 
 		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s") + " with a " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " extension");
 		for (int i = 0; i < files.length; i++) {
@@ -498,17 +498,17 @@ public class ParseAffySNP6 implements Runnable {
 		abLookupRequired = false;
 		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s") + " to parse");
 		fixes = new Hashtable<String, String>();
-		if (new File(proj.getProjectDir() + "fixes.dat").exists()) {
+		if (new File(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat").exists()) {
 			System.out.println("Also found a 'fixes.dat' file in the project directory, which will be used to rename samples");
-			fixes = HashVec.loadFileToHashString(proj.getProjectDir() + "fixes.dat", false);
+			fixes = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat", false);
 		} else {
 			System.out.println("Did not find a 'fixes.dat' file; assuming you don't want to rename any IDs");
 		}
 
 		try {
 			// reader = new BufferedReader(new FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[0]));
-			reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[0]);
-			System.out.println("Found appropriate reader for: " + proj.getDir(proj.SOURCE_DIRECTORY) + files[0]);
+			reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
+			System.out.println("Found appropriate reader for: " + proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
 			count = 0;
 			do {
 				line = reader.readLine().trim().split(delimiter, -1);
@@ -523,7 +523,7 @@ public class ParseAffySNP6 implements Runnable {
 				System.err.println("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
 
 				reader.close();
-				reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[0]);
+				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
 				delimiterCounts = new int[DELIMITERS.length][count];
 				for (int i = 0; i < count; i++) {
 					temp = reader.readLine();
@@ -551,7 +551,7 @@ public class ParseAffySNP6 implements Runnable {
 
 				System.err.println("      - determined delimiter to be '" + delimiter + "'");
 
-				reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[0]);
+				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
@@ -595,7 +595,7 @@ public class ParseAffySNP6 implements Runnable {
 				reader.reset();
 			}
 
-			if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 
 				overwriteOptions = new String[] { "Delete All", "Customize", "Cancel parser" };
 
@@ -605,11 +605,11 @@ public class ParseAffySNP6 implements Runnable {
 				case -1:
 					break;
 				case 0:
-					filesToDelete = Files.list(proj.getDir(proj.SAMPLE_DIRECTORY), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+					filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
 					for (int i = 0; i < filesToDelete.length; i++) {
-						new File(proj.getDir(proj.SAMPLE_DIRECTORY) + filesToDelete[i]).delete();
+						new File(proj.SAMPLE_DIRECTORY.getValue(false, true) + filesToDelete[i]).delete();
 					}
-					new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser").delete();
+					new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").delete();
 					break;
 				case 1:
 					// keep "outlier.ser"
@@ -621,7 +621,7 @@ public class ParseAffySNP6 implements Runnable {
 					break;
 				}
 			}
-			TransposeData.deleteOlderRafs(proj.getDir(proj.SAMPLE_DIRECTORY, true), new String[] { "outliers" }, new String[] { ".ser" }, true, new String[] { "outliers.ser" });
+			TransposeData.deleteOlderRafs(proj.SAMPLE_DIRECTORY.getValue(true, true), new String[] { "outliers" }, new String[] { ".ser" }, true, new String[] { "outliers.ser" });
 
 //			if (Boolean.parseBoolean(proj.getProperty(proj.LONG_FORMAT))) {
 			if (proj.getProperty(proj.LONG_FORMAT)) {
@@ -655,10 +655,10 @@ public class ParseAffySNP6 implements Runnable {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + proj.getDir(proj.SOURCE_DIRECTORY) + files[0] + "\" not found in current directory");
+			System.err.println("Error: file \"" + proj.SOURCE_DIRECTORY.getValue(false, true) + files[0] + "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + proj.getDir(proj.SOURCE_DIRECTORY) + files[0] + "\"");
+			System.err.println("Error reading file \"" + proj.SOURCE_DIRECTORY.getValue(false, true) + files[0] + "\"");
 			return;
 		}
 
@@ -668,7 +668,8 @@ public class ParseAffySNP6 implements Runnable {
 
 		// markerNames = Array.toStringArray(markerNameHash);
 		markerNames = Array.toStringArray(alNames);
-		keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+//		keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+		keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		if (keys == null) {
 			return;
 		}
@@ -713,13 +714,13 @@ public class ParseAffySNP6 implements Runnable {
 
 		allOutliers = new Hashtable<String, Float>();
 		for (int i = 0; i < numThreads; i++) {
-			if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").exists()) {
-				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser"));
-				new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers" + i + ".ser").delete();
+			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").exists()) {
+				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser"));
+				new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").delete();
 			}
 		}
 		if (allOutliers.size() > 0) {
-			Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 		}
 
 	}
@@ -728,13 +729,15 @@ public class ParseAffySNP6 implements Runnable {
 		ABLookup abLookup;
 		char[][] lookup;
 
-		if (abLookupRequired && Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME))) {
-			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, false, proj.getLog());
+//		if (abLookupRequired && Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME))) {
+//			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, false, proj.getLog());
+		if (abLookupRequired && Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+			abLookup = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, false, proj.getLog());
 			lookup = abLookup.getLookup();
 			if (lookup == null) {
 				System.err.println("Warning - filed to provide columns \"" + GENOTYPE_FIELDS[2][0] + "\" / \"" + GENOTYPE_FIELDS[3][0] + "\" and the specificed AB_lookup file '" + proj.getProperty(proj.AB_LOOKUP_FILENAME) + "' does not exist; you'll need reconstruct the B allele for analysis");
 			} else {
-				abLookup.writeToFile(proj.getProjectDir() + "checkAB.xln", proj.getLog());
+				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue() + "checkAB.xln", proj.getLog());
 			}
 		} else {
 			lookup = null;
@@ -757,7 +760,8 @@ public class ParseAffySNP6 implements Runnable {
 
 		System.out.println("Parsing files using the Long Format algorithm");
 
-		Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+//		Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
+		Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		fingerprint = proj.getMarkerSet().getFingerprint();
@@ -769,7 +773,8 @@ public class ParseAffySNP6 implements Runnable {
 			markerIndices.put(markerNames[i], new Integer(i));
 		}
 
-		System.out.println("There were " + markerNames.length + " markers present in '" + proj.getFilename(proj.MARKERSET_FILENAME, true, true) + "' that will be processed from the source files (fingerprint: " + fingerprint + ")");
+//		System.out.println("There were " + markerNames.length + " markers present in '" + proj.getFilename(proj.MARKERSET_FILENAME, true, true) + "' that will be processed from the source files (fingerprint: " + fingerprint + ")");
+		System.out.println("There were " + markerNames.length + " markers present in '" + proj.MARKERSET_FILENAME.getValue(true, true) + "' that will be processed from the source files (fingerprint: " + fingerprint + ")");
 
 		int snpIndex, sampIndex, key;
 		String trav;
@@ -794,7 +799,7 @@ public class ParseAffySNP6 implements Runnable {
 				try {
 					System.out.println(ext.getTime() + "\t" + (i + 1) + " of " + files.length + " (" + files[i] + ")");
 					// reader = new BufferedReader(new FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
-					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[i]);
+					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || ext.indexOfStr(idHeader, line) == -1));
@@ -844,7 +849,7 @@ public class ParseAffySNP6 implements Runnable {
 									sampleName = fixes.get(sampleName);
 								}
 
-								filename = determineFilename(proj.getDir(proj.SAMPLE_DIRECTORY, true), sampleName, timeBegan);
+								filename = determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan);
 								if (filename == null) {
 									return;
 								}
@@ -852,8 +857,8 @@ public class ParseAffySNP6 implements Runnable {
 								samp = new Sample(sampleName, fingerprint, data, genotypes, true);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
 							}
-							if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
-								samp = Sample.loadFromRandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY, true) + (fixes.containsKey(trav) ? fixes.get(trav) : trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.getJarStatus());
+							if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+								samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav) ? fixes.get(trav) : trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue());
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
 							} else {
@@ -912,11 +917,11 @@ public class ParseAffySNP6 implements Runnable {
 			}
 
 			if (allOutliers.size() > 0) {
-				if (new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser").exists()) {
-					System.err.println("Error - the following file already exists: " + proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
+					System.err.println("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 					System.exit(1);
 				} else {
-					Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 				}
 			}
 
@@ -926,10 +931,10 @@ public class ParseAffySNP6 implements Runnable {
 		}
 
 		System.out.println("Parsed " + count + " sample(s)");
-		SampleList.generateSampleList(proj).writeToTextFile(proj.getProjectDir() + "ListOfSamples.txt");
+		SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir() + "ListOfMarkers.txt"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "ListOfMarkers.txt"));
 			writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
 			for (int j = 0; j < markerNames.length; j++) {
 				writer.println(markerNames[j] + "\t1\t" + countHash.getCount(markerNames[j]) + "\t" + dupHash.getCount(markerNames[j]));
@@ -945,9 +950,9 @@ public class ParseAffySNP6 implements Runnable {
 			e.printStackTrace();
 		}
 
-		new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + OVERWRITE_OPTION_FILE).delete();
-		new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + HOLD_OPTION_FILE).delete();
-		new File(proj.getDir(proj.SAMPLE_DIRECTORY, true) + CANCEL_OPTION_FILE).delete();
+		new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + OVERWRITE_OPTION_FILE).delete();
+		new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + HOLD_OPTION_FILE).delete();
+		new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + CANCEL_OPTION_FILE).delete();
 	}
 
 	public static void mapFilenamesToSamples(Project proj, String filename) {
@@ -960,16 +965,16 @@ public class ParseAffySNP6 implements Runnable {
 
 		delimiter = proj.getSourceFileDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		System.out.println(ext.getTime() + "\tSearching for " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: " + proj.getDir(proj.SOURCE_DIRECTORY));
-		files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		System.out.println(ext.getTime() + "\tSearching for " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s") + " to parse");
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir() + filename));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + filename));
 			for (int i = 0; i < files.length; i++) {
 				try {
 					// reader = new BufferedReader(new FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
-					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[i]);
+					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter);
 					} while (reader.ready() && (line.length < 3 || ext.indexOfStr(idHeader, line) == -1));
@@ -984,7 +989,7 @@ public class ParseAffySNP6 implements Runnable {
 					writer.println(files[i] + "\t" + line[sampIndex] + "\t" + (line[sampIndex].indexOf("@") >= 0 ? line[sampIndex].split("@")[0] : line[sampIndex]));
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \"" + files[i] + "\" not found in " + proj.getDir(proj.SOURCE_DIRECTORY));
+					System.err.println("Error: file \"" + files[i] + "\" not found in " + proj.SOURCE_DIRECTORY.getValue(false, true));
 					writer.close();
 					return;
 				} catch (IOException ioe) {
@@ -1011,23 +1016,23 @@ public class ParseAffySNP6 implements Runnable {
 		String commonSubFolder = "/cc-chp";
 		// check source directory
 
-		if (!proj.getDir(proj.SOURCE_DIRECTORY).equals("") && !new File(proj.getDir(proj.SOURCE_DIRECTORY)).exists()) {
-			System.err.println("Error - the Project source location is invalid: " + proj.getDir(proj.SOURCE_DIRECTORY));
+		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("") && !new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
+			System.err.println("Error - the Project source location is invalid: " + proj.SOURCE_DIRECTORY.getValue(false, true));
 			return;
 		}
 
-		String[] dirList = Files.listDirectories(proj.getDir(proj.SOURCE_DIRECTORY), false);
-		String[] chunkFiles = Files.list(proj.getDir(proj.SOURCE_DIRECTORY) + dirList[0] + commonSubFolder, proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		String[] dirList = Files.listDirectories(proj.SOURCE_DIRECTORY.getValue(false, true), false);
+		String[] chunkFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[0] + commonSubFolder, proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 
 		int counts = 0;
 
 		for (int j = 0; j < chunkFiles.length; j++) {
-			writer = Files.getAppropriateWriter(proj.getDir(proj.SOURCE_DIRECTORY) + chunkFiles[j]);
+			writer = Files.getAppropriateWriter(proj.SOURCE_DIRECTORY.getValue(false, true) + chunkFiles[j]);
 			System.out.println("merging files " + (j + 1) + " of " + chunkFiles.length);
 
 			for (int i = 0; i < dirList.length; i++) {
 				try {
-					reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + dirList[i] + commonSubFolder + "/" + chunkFiles[j]);
+					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[i] + commonSubFolder + "/" + chunkFiles[j]);
 					// filter comments
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
@@ -1046,10 +1051,10 @@ public class ParseAffySNP6 implements Runnable {
 					System.out.println(counts);
 					counts = 0;
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \"" + chunkFiles[j] + "\" not found in " + proj.getDir(proj.SOURCE_DIRECTORY) + dirList[i]);
+					System.err.println("Error: file \"" + chunkFiles[j] + "\" not found in " + proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[i]);
 					return;
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \"" + proj.getDir(proj.SOURCE_DIRECTORY) + dirList[i] + chunkFiles[j] + "\"");
+					System.err.println("Error reading file \"" + proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[i] + chunkFiles[j] + "\"");
 					return;
 				}
 			}
@@ -1119,7 +1124,7 @@ public class ParseAffySNP6 implements Runnable {
 		String[] alleles;
 		int expIndex;
 
-		files = Files.list(proj.getDir(proj.SOURCE_DIRECTORY), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 		if (files.length == 0) {
 			System.err.println("Error - no files to parse");
 			return;
@@ -1137,7 +1142,7 @@ public class ParseAffySNP6 implements Runnable {
 			try {
 				System.out.println(ext.getTime() + "\t" + (i + 1) + " of " + files.length);
 				// reader = new BufferedReader(new FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
-				reader = Files.getAppropriateReader(proj.getDir(proj.SOURCE_DIRECTORY) + files[i]);
+				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
@@ -1220,7 +1225,7 @@ public class ParseAffySNP6 implements Runnable {
 
 		System.out.print("Writing to file...");
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir() + "alleleLookup" + (fileNumber > 0 ? "_atFile" + fileNumber : "") + ".xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "alleleLookup" + (fileNumber > 0 ? "_atFile" + fileNumber : "") + ".xln"));
 			keys = HashVec.getKeys(hash, false, false);
 			writer.println("SNP\t" + Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (int k = 0; k < keys.length; k++) {
@@ -1228,7 +1233,7 @@ public class ParseAffySNP6 implements Runnable {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + proj.getProjectDir() + "alleleLookup.xln");
+			System.err.println("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + "alleleLookup.xln");
 			e.printStackTrace();
 		}
 		System.out.println("done");

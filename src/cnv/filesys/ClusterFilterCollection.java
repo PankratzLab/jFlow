@@ -193,7 +193,7 @@ public class ClusterFilterCollection implements Serializable {
 													"Apply Cluster Filters",
 													JOptionPane.QUESTION_MESSAGE,
 													null,
-													Array.addStrToArray("(--Do not apply any cluster filter--)", Files.list(proj.getDir(proj.DATA_DIRECTORY), null, ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)), false, proj.getJarStatus())),
+													Array.addStrToArray("(--Do not apply any cluster filter--)", Files.list(proj.DATA_DIRECTORY.getValue(false, true), null, ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)), false, proj.JAR_STATUS.getValue())),
 													proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
 		if (result==null) {
 			result = "cancel";

@@ -221,11 +221,11 @@ public class Markers {
 		time = new Date().getTime();
 		delimiter = Files.determineDelimiter(snpTable, log);
 		try {
-			if (!Files.exists(snpTable) && Files.exists(proj.getProjectDir()+snpTable)) {
-				snpTable = proj.getProjectDir()+snpTable;
+			if (!Files.exists(snpTable) && Files.exists(proj.PROJECT_DIRECTORY.getValue()+snpTable)) {
+				snpTable = proj.PROJECT_DIRECTORY.getValue()+snpTable;
 			}
 			reader = Files.getAppropriateReader(snpTable);
-			writer = new PrintWriter(new FileWriter(proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)));
+			writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false)));
 			indices = ext.indexFactors(ParseIllumina.SNP_TABLE_FIELDS, reader.readLine().trim().split(delimiter), false, true, true, true);
 			writer.println("Marker\tChr\tPosition");
 			while (reader.ready()) {
@@ -235,13 +235,13 @@ public class Markers {
 			writer.close();
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			proj.message("Error: file \""+snpTable+"\" not found in "+proj.getProjectDir());
+			proj.message("Error: file \""+snpTable+"\" not found in "+proj.PROJECT_DIRECTORY.getValue());
 			return;
 		} catch (IOException ioe) {
 			proj.message("Error reading file \""+snpTable+"\"");
 			return;
 		}
-		log.report("Finished parsing "+proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)+" in " + ext.getTimeElapsed(time));
+		log.report("Finished parsing "+proj.MARKER_POSITION_FILENAME.getValue(false, false)+" in " + ext.getTimeElapsed(time));
 	}
 
 	public static void useAlleleLookup(String filename, int alleleCol, String lookupFile, int setFrom, int setTo) {

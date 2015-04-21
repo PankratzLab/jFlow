@@ -121,8 +121,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
-		if (!Files.exists(proj.getProjectDir(), proj.getJarStatus())) {
-			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.getProjectDir()+"') for project '"+proj.getNameOfProject()+"' did not exist; creating now. If this was in error, please edit the property file.", "Error", JOptionPane.ERROR_MESSAGE);
+		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
+			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.PROJECT_DIRECTORY.getValue()+"') for project '"+proj.getNameOfProject()+"' did not exist; creating now. If this was in error, please edit the property file.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
 		log = proj.getLog();
@@ -394,12 +394,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 		@Override
 		public void run() {
+			/*
+			 * CAUTION/NOTE/TODO: ALL SWING CALLS OR COMPONENT CREATION SHOULD BE WRAPPED IN SwingUtilities.invokeLater();
+			 */
 			if (command.equals(MAP_FILES)) {
 				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map());
 			} else if (command.equals(PARSE_FILES_CSV)) {
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
+//				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
+				cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);
 			} else if (command.equals(TRANSPOSE_DATA)) {
@@ -408,7 +412,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				ABLookup abLookup;
 				String filename;
 				
-				filename = proj.getProjectDir()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+				filename = proj.PROJECT_DIRECTORY.getValue()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
 				if (!Files.exists(filename)) {
 					abLookup = new ABLookup();
 					abLookup.parseFromOriginalGenotypes(proj);
@@ -437,15 +441,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					if (success) {
 						try {
 							log.report("Converting ped/map files to binary PLINK files...", false, true);
-							if (CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir())) {
+							if (CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue())) {
 								log.report("complete!");
 							} else {
 								log.report("PLINK conversion failed");
 							}
 //							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
-							new File(proj.getProjectDir()+"genome/").mkdirs();
-							CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-							CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+							new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
+							CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+							CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
 //							CmdLine.run("plink --bfile plink --mind 0.1 --geno 0.9 --make-bed --out plinkSlim", proj.getProjectDir());
 						} catch (Exception e) {}
 					}
@@ -483,7 +487,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				ScatterPlot.createAndShowGUI(proj, null, null, false);
 			} else if (command.equals(QQ)) {
 //				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false, proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
-				QQPlot.loadPvals(proj.getFilenames(proj.QQ_FILENAMES, true), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.getFloat(proj.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
+//				QQPlot.loadPvals(proj.getFilenames(proj.QQ_FILENAMES, true), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.getFloat(proj.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
+				QQPlot.loadPvals(proj.QQ_FILENAMES.getValue(true), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
 			} else if (command.equals(STRAT)) {
 				StratPlot.loadStratificationResults(proj);
 			} else if (command.equals(MOSAICISM)) {
@@ -493,31 +498,46 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(SEX_PLOT)) {
 				SexPlot.loadGenderResults(proj);
 			} else if (command.equals(TRAILER)) {
-				new Trailer(proj, null, proj.getFilenames(proj.CNV_FILENAMES), Trailer.DEFAULT_LOCATION);
+				new Trailer(proj, null, proj.CNV_FILENAMES.getValue(), Trailer.DEFAULT_LOCATION);
 			} else if (command.equals(TWOD)) {
-//				TwoDPlot twoDP = 
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
 						TwoDPlot.createGUI(proj, true);
 					}
 				});
-				//TODO: Sample call to test this functionality. Should be removed when seems to work fine.
-				// replace the filename according to the path on local machine
-//				twoDP.showSpecificFile(proj, "/Users/rohitsinha/Documents/development/ra/practice/sexCheck.xln", 5, 9, proj.getLog());
 			} else if (command.equals(LINE_PLOT)) {
-				LinePlot.createAndShowGUI(proj);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						LinePlot.createAndShowGUI(proj);
+					}
+				});
 			} else if (command.equals(COMP)) {
-				new CompPlot(proj);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						new CompPlot(proj);
+					}
+				});
 			} else if (command.equals(FOREST_PLOT)) {
-				ForestPlot plot = new ForestPlot(proj);
-				plot.setVisible(true);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						ForestPlot plot = new ForestPlot(proj);
+					}
+				});
 			} else if (command.equals(POPULATIONBAF)) {
 				cnv.analysis.PennCNV.populationBAF(proj);
 			} else if (command.equals(EXPORT_CNVS)) {
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(CYTO_WORKBENCH)) {
-				new CytoGUI(proj, proj.getProjectDir(), null);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						new CytoGUI(proj, proj.PROJECT_DIRECTORY.getValue(), null);
+					}
+				});
 			} else if (command.equals(TEST)) {
 //				log.report("No new program to test");
 //				ScatterPlot.createAndShowGUI(proj, null, null, false);
@@ -528,14 +548,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				Mosaicism.findOutliers(proj);
 
 				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
-				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-				new File(proj.getProjectDir()+"genome/").mkdirs();
-				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+				CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
+				new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
+				CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+				CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
 
 				
 			} else if (command.equals(GCMODEL)) {
-				cnv.analysis.PennCNV.gcModel(proj, "N:/statgen/NCBI/gc5Base.txt", proj.getProjectDir()+"data/custom.gcModel", 100);
+				cnv.analysis.PennCNV.gcModel(proj, "N:/statgen/NCBI/gc5Base.txt", proj.PROJECT_DIRECTORY.getValue()+"data/custom.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
 				cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null);
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
@@ -547,12 +567,17 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(TALLY_CLUSTER_FILTERS)) {
 				MarkerMetrics.tallyClusterFilters(proj, proj.getSamplesToInclude(null), null);
 			} else if (command.equals(MITOPIPELINE)) {
-//				MitoPipeline.guiLauncher(proj);
+//				SwingUtilities.invokeLater(new Runnable() {
+//					@Override
+//					public void run() {
+//						MitoPipeline.guiLauncher(proj);
+//					}
+//				});
 			} else if (command.equals(KITANDKABOODLE)) {
 				String filename;
 
-				if (!Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false))) {
-					log.reportError("Could not find required file "+proj.getFilename(proj.MARKER_POSITION_FILENAME, false, false)+"\n    attempting to generate one for you...");
+				if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
+					log.reportError("Could not find required file "+proj.MARKER_POSITION_FILENAME.getValue(false, false)+"\n    attempting to generate one for you...");
 					filename = proj.getLocationOfSNP_Map();
 					if (filename == null) {
 						return;
@@ -560,7 +585,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					log.report("Generating from "+filename);
 					cnv.manage.Markers.generateMarkerPositions(proj, filename);
 				}
-				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
+//				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
+				cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
 
 				TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
 //				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(proj.NUM_THREADS)));
@@ -568,18 +594,33 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.qc.SexChecks.sexCheck(proj);
 
 				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
-				CmdLine.run("plink --file gwas --make-bed --out plink", proj.getProjectDir());
-				new File(proj.getProjectDir()+"genome/").mkdirs();
-				CmdLine.run("plink --bfile ../plink --freq", proj.getProjectDir()+"genome/");
-				CmdLine.run("plink --bfile ../plink --missing", proj.getProjectDir()+"genome/");
+				CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
+				new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
+				CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+				CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
 
 
 			} else if (command.equals(PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI)) {
-				PrincipalComponentsManhattan.guiAccess(proj, null);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						PrincipalComponentsManhattan.guiAccess(proj, null);
+					}
+				});
 			} else if (command.equals(PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI)) {
-				PrincipalComponentsCrossTabs.guiAccess(proj, null);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						PrincipalComponentsCrossTabs.guiAccess(proj, null);
+					}
+				});
 			} else if (command.equals(GENERATE_DEMO_PACKAGE)) {
-				DemoPackage.guiAccess(proj);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						DemoPackage.guiAccess(proj);
+					}
+				});
 			} else {
 				log.reportError("Error - unknown command: " + command);
 			}
@@ -609,7 +650,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //			log.report("No change in properties file");
 		}
 
-		if (proj != null && timestampOfSampleDataFile < new File(proj.getFilename(proj.SAMPLE_DATA_FILENAME, false, false)).lastModified()) {
+		if (proj != null && timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false, false)).lastModified()) {
 			log.report("Detected a change in the sampleData file; reloading sample data");
 			proj.resetSampleData();
 		}	
@@ -741,7 +782,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	try {
 	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
-	            		createAndShowGUI();
+            		createAndShowGUI();
 	            }
 	        });
     	} catch (InternalError e) {

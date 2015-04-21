@@ -97,7 +97,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 
 		colorHash = new Hashtable<String,String>();
 		try {
-			reader = Files.getReader(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME), proj.getJarStatus(), true, false);
+//			reader = Files.getReader(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME), proj.getJarStatus(), true, false);
+			reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader!=null) {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
@@ -106,13 +107,15 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				reader.close();
 			}
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME)+"\"");
+//			System.err.println("Error reading file \""+proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME)+"\"");
+			System.err.println("Error reading file \""+proj.MOSAIC_COLOR_CODES_FILENAME.getValue()+"\"");
 			System.exit(2);
 		}
 
 		failedHash = new Hashtable<String,String>();
 		try {
-			reader = Files.getReader(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getJarStatus(), true, false);
+//			reader = Files.getReader(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getJarStatus(), true, false);
+			reader = Files.getReader(proj.SAMPLE_DATA_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader!=null) {
 				indices = ext.indexFactors(new String[] {"Sample Name", "CLASS=Suitable for CNV"}, reader.readLine().trim().split("\t", -1), false, false);
 				if (Array.min(indices)>=0) {
@@ -124,7 +127,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				reader.close();
 			}
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
+//			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
+			System.err.println("Error reading file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\"");
 		}
 
 		image = null;

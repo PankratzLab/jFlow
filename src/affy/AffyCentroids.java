@@ -155,7 +155,7 @@ public class AffyCentroids implements Serializable {
 		log = proj.getLog();
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
-		affyCentroids = Centroids.load(centroidsFile, proj.getJarStatus());
+		affyCentroids = Centroids.load(centroidsFile, proj.JAR_STATUS.getValue());
 		if (affyCentroids.getFingerprint() != markerSet.getFingerprint()) {
 			log.reportError("Error - fingerprint for Centroids file '" + centroidsFile + "' does not match the fingerprint for the current MarkerSet");
 			System.exit(1);
@@ -171,10 +171,10 @@ public class AffyCentroids implements Serializable {
 			AFFYBAFs = getAFFYBAF(markerNames, affyCents, Xs, Ys, i, log);
 			AFFYLRRs = getAFFYLRR(markerNames, affyCents, Xs, Ys, i, log);
 			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), AFFYBAFs, AFFYLRRs, original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.getDir(proj.SAMPLE_DIRECTORY) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, original.getSampleName());
+			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, original.getSampleName());
 		}
 		if (allOutliers.size() > 0) {
-			Files.writeSerial(allOutliers, proj.getDir(proj.SAMPLE_DIRECTORY, true) + "outliers.ser");
+			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 		}
 	}
 
@@ -248,7 +248,8 @@ public class AffyCentroids implements Serializable {
 		} else {
 			log.report("Computed mean genotyped centroids for all " + centroids.length + " markers");
 		}
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
+//		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
 		log.report("Computation took " + ext.getTimeElapsed(time));
 	}
 
@@ -522,7 +523,7 @@ public class AffyCentroids implements Serializable {
 			} else if (!compute.equals("")) {
 				recompute(proj, compute);
 			}
-			Files.backup(logfile, proj.getProjectDir(), proj.getProjectDir());
+			Files.backup(logfile, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

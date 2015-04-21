@@ -156,7 +156,7 @@ public class FilterCalls {
 		SampleData sampleData;
 		
 		// find .cnv and .fam file from fileroot
-		qcFile = (proj == null ? dir : proj.getProjectDir()) + "Sample_QC.xln";
+		qcFile = (proj == null ? dir : proj.PROJECT_DIRECTORY.getValue()) + "Sample_QC.xln";
 		cnvFile = dir + filenameNoExt + ".cnv";
 //		famFile = dir + filenameNoExt + ".fam";
 		
@@ -164,7 +164,7 @@ public class FilterCalls {
 		
 		sampleData = proj == null ? null : proj.getSampleData(0, false);
 		
-		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, proj == null ? false : proj.getJarStatus());
+		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, proj == null ? false : proj.JAR_STATUS.getValue());
 		HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
 		for (CNVariant cnv : cnvList) {
 			ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
@@ -448,7 +448,8 @@ public class FilterCalls {
 				try {
 					ind = sampleData.lookup(fidiid)[0];
 				} catch (NullPointerException npe) {
-					log.reportError("Error - could not look up the sample " + fidiid + " in the sample data file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
+//					log.reportError("Error - could not look up the sample " + fidiid + " in the sample data file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute beast score");
+					log.reportError("Error - could not look up the sample " + fidiid + " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue() + ", cannot load sample to compute beast score");
 					log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + fidiid.split("\t")[0] + " and IID=" + fidiid.split("\t")[1]);
 					continue;
 				}

@@ -92,7 +92,7 @@ public class temp {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.getProjectDir()+"LRRmeans.xln"));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"LRRmeans.xln"));
 			for (int i = 0; i<samples.length; i++) {
 				writer.println(samples[i]+"\t"+(sums[i]/(double)counts[i]));
 			}
