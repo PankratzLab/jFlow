@@ -171,7 +171,9 @@ public class Project {
 		}
 		public String getValue(String subdir, boolean mkdirs, boolean verbose) {
 			String valu = super.getValue();
-			valu = ext.replaceTilde(valu);
+			if (valu.contains("~")) {
+				valu = ext.replaceTilde(valu);
+			}
 			
 			if (!"".equals(valu) && !valu.startsWith(".") && !valu.startsWith("/") && valu.indexOf(":") == -1) {
 				if (isDir) {

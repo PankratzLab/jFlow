@@ -354,6 +354,7 @@ public class Configurator extends JFrame {
 				File[] set = (File[]) rawValue;
 				if (set.length > 0) {
 					value = set[0].getPath();
+					value = set[0].isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
 					if (value.startsWith(projectsDir)) {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
@@ -361,6 +362,7 @@ public class Configurator extends JFrame {
 					}
 					for (int k = 1; k < set.length; k++) {
 						String fNm = set[k].getPath();
+						fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm) : ext.replaceAllWith(fNm, "\\", "/");
 						if (fNm.startsWith(projectsDir)) {
 							fNm = fNm.substring(projectsDir.length());
 						} else if (fNm.startsWith(currProjDir)) {
@@ -372,10 +374,13 @@ public class Configurator extends JFrame {
 			} else if (rawValue instanceof File) { 
 				File set = (File) rawValue;
 				value = set.getPath();
-				if (value.startsWith(projectsDir)) {
-					value = value.substring(projectsDir.length());
-				} else if (value.startsWith(currProjDir)) {
-					value = "./" + value.substring(currProjDir.length());
+				value = set.isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
+				if (!key.equals(proj.SOURCE_DIRECTORY.getName()) && !key.equals(proj.PROJECT_DIRECTORY.getName())) {
+					if (value.startsWith(projectsDir)) {
+						value = value.substring(projectsDir.length());
+					} else if (value.startsWith(currProjDir)) {
+						value = "./" + value.substring(currProjDir.length());
+					}
 				}
 			} else if (rawValue instanceof String[]) {
 				value = ((String[])rawValue)[0];
