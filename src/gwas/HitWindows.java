@@ -72,7 +72,8 @@ public class HitWindows {
 				try {
 					markerNames[count] = line[0];
 					chrs[count] = Positions.chromosomeNumber(line[1]);
-					positions[count] = Integer.parseInt(line[2]);
+//					positions[count] = Integer.parseInt(line[2]);
+					positions[count] = (new java.math.BigDecimal(line[2])).intValueExact();
 					pvals[count] = ext.isMissingValue(line[3])?999:Double.parseDouble(line[3]);
 					for (int i = 0; i < additionalAnnotationVariableNames.length; i++) {
 						annotation[count][i] = line[4+i];
