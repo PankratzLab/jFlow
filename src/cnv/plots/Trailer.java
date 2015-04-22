@@ -1446,15 +1446,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		centFiles.add(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
 		centFiles.add(proj.CHIMERA_CENTROIDS_FILENAME.getValue());
 		
-		String[] tempFiles = proj.SEX_CENTROIDS_FILENAMES.getValue();
-		if (tempFiles != null && tempFiles.length > 0) {
+		String tempFileMale = proj.SEX_CENTROIDS_MALE_FILENAME.getValue();
+		String tempFileFemale = proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue();
+		if (tempFileMale != null && tempFileFemale != null && !"".equals(tempFileMale) && !"".equals(tempFileFemale)) {
 			centFiles.add(SEX_CENT);
 		}
 		
 		for (String file : centFiles) {
 			if (SEX_CENT.equals(file)) {
-				namePathMap.put(SEX_CENT + " - Male", tempFiles[0]);
-				namePathMap.put(SEX_CENT + " - Female", tempFiles[1]);
+				namePathMap.put(SEX_CENT + " - Male", tempFileMale);
+				namePathMap.put(SEX_CENT + " - Female", tempFileFemale);
 			} else if (Files.exists(file)) {
 				String name = file.substring(file.lastIndexOf("/") + 1);
 				name = name.substring(0, name.lastIndexOf("."));

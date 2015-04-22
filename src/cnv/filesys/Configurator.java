@@ -230,8 +230,9 @@ public class Configurator extends JFrame {
 					Object propVal = table.getModel().getValueAt(row, 1);
 					setByPropertyKey(rendererSpinner, proj, propKey, propVal);
 					returnComp = rendererSpinner;
+				} else {
+					returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				}
-				returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				if (!"".equals(desc)) {
 					((JComponent) returnComp).setToolTipText(desc);
 				} else {
