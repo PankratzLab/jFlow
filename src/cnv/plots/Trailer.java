@@ -7,6 +7,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import common.*;
 import cnv.filesys.*;
@@ -158,6 +159,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //	private JComboBox<String> regionFileList;
 	private String regionFileName;
 	private volatile boolean loadingFile = false;
+
+	private JTextField regionField;
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -660,7 +663,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		previousRegion.addActionListener(this);
 		previousRegion.setActionCommand(PREVIOUS_REGION);
 		previousRegion.setPreferredSize(new Dimension(25, 25));
-		sampPanel.add(previousRegion);
+//		sampPanel.add(previousRegion);
 
 		sampleList = new JComboBox<String>();
 		sampleList.setFont(new Font("Arial", 0, 20));
@@ -694,7 +697,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		nextRegion.addActionListener(this);
 		nextRegion.setActionCommand(NEXT_REGION);
 		nextRegion.setPreferredSize(new Dimension(25, 25));
-		sampPanel.add(nextRegion);
+//		sampPanel.add(nextRegion);
 		sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width, sampleList.getPreferredSize().height + 5));
 		descrPanel.add(sampPanel);
 		
@@ -791,9 +794,32 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //		};
 //		regionFileList.addActionListener(markerFileSelectAction);
 		
-		JPanel compPanel = new JPanel(new GridLayout(3, 1, 5, 5));
-		
-//		compPanel.add(regionFileList);
+		JPanel compPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+//		compPanel.setBorder(new LineBorder(Color.BLACK, 1));
+
+		JPanel regionPanel = new JPanel();
+		regionField = new JTextField("", 8);
+		regionField.setHorizontalAlignment(JTextField.CENTER);
+		regionField.setFont(new Font("Arial", 0, 14));
+		//navigationField.setEditable(false);
+//		regionField.setBackground(BACKGROUND_COLOR);
+		regionField.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+				try {
+					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
+					if (trav >=0 && trav < regions.length) {
+						regionIndex = trav;
+						showRegion();
+					}
+				} catch (NumberFormatException nfe) {}
+				updateGUI();
+	        }
+		});
+		regionPanel.add(previousRegion);
+		regionPanel.add(regionField);
+		regionField.setPreferredSize(new Dimension(regionField.getPreferredSize().width, 26));
+		regionPanel.add(nextRegion);
+		compPanel.add(regionPanel);
 		
 //		launchScatterButton = new JButton();
 //		launchScatterButton.setFont(launchScatterButton.getFont().deriveFont(10f));
@@ -806,11 +832,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		commentLabel = new JLabel(" ", JLabel.CENTER);
 		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		commentLabel.setFont(new Font("Arial", 0, 14));
+//		commentLabel.setBorder(new LineBorder(Color.RED, 1));
 		compPanel.add(commentLabel);
 		
 		descrPanel.add(compPanel);
+		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 75));
 
-//		descrPanel.add(Box.createHorizontalGlue());
 
 		JPanel navigateChrPanel = new JPanel();
 		firstChr = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
@@ -2077,8 +2104,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		if (!regions[regionIndex][0].equals(sample)) {
 			updateSample(regions[regionIndex][0]);
 		}
-	}
 
+		regionField.setText((regionIndex + 1) + " of " + regions.length);
+	}
+	
 //	public static Vector<String[]> loadFileToVec(String filename, boolean demo, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent) {
 //		BufferedReader reader = null;
 //		Vector<String[]> v = new Vector<String[]>();
