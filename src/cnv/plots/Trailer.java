@@ -82,7 +82,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private String[] samplesPresent;
 	private JTextField navigationField;
 //	private JTextField regionsField;
-	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, firstRegion, lastRegion, launchScatterButton;
+	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, firstRegion, lastRegion;
 	private Project proj;
 	private String sample;
 	private IndiPheno indiPheno;
@@ -260,7 +260,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		loadCNVsAsRegions();
 		procCNVs(chr);
 		updateGUI();
-		
+		regionIndex = 0;
+		showRegion();
 		
 	}
 	
@@ -1197,12 +1198,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					if (file != null && file.equals(Trailer.this.regionFileName)) {
 						return;
 					}
-					if (!Files.exists(file)) {
+					String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
+					if (!Files.exists(tempFile)) {
 						proj.message("Error - region file '" + shortName + "' doesn't exist.");
 						regionFileNameBtn.get(regionFileName).setSelected(true);
 					} else {
 						Trailer.this.regionFileName = file;
 						loadRegions();
+						regionIndex = 0;
+						showRegion();
 					}
 				} /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
 					// do nothing
@@ -1223,6 +1227,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						loadCNVsAsRegions();
 						procCNVs(chr);
 						updateGUI();
+						regionIndex = 0;
+						showRegion();
 					}
 				} /*else if (REGION_LIST_NEW_FILE.equals(shortName)) {
 					chooseNewFiles();
@@ -1900,8 +1906,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //			if (regionsList.length == 0 || !Files.exists(regionsList[regionsListIndex], jar)) {
 //				loadCNVsAsRegions();
 //			}
-			procCNVs(chr);
-			updateGUI();
+			if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+				loadCNVsAsRegions();
+				procCNVs(chr);
+				updateGUI();
+				regionIndex = 0;
+				showRegion();
+			} else {
+				procCNVs(chr);
+				updateGUI();
+			}
 			System.out.println("updated in "+ext.getTimeElapsed(time));
 		} else {
 			for (int i = 0; i<samplesPresent.length && !found; i++) {
@@ -1959,8 +1973,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		try {
 //			reader = Files.getReader(regionsList[regionsListIndex], jar, false, false);
-//			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + regionFileName : regionFileName;
-			reader = Files.getReader(regionFileName, jar, false, false);
+			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + regionFileName : regionFileName;
+			reader = Files.getReader(file, jar, false, false);
 //			System.out.print("Loading regions from "+regionsList[regionsListIndex]+"...");
 			System.out.print("Loading regions from " + regionFileName + "...");
 	        v = new Vector<String[]>();
@@ -1991,6 +2005,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             	JOptionPane.showMessageDialog(null, "Error - there were "+ignoredLines+" regions in '"+regionFileName+"' that were ignored due to improper formatting", "Error", JOptionPane.ERROR_MESSAGE);
             }
             reader.close();
+            
+            
         } catch (FileNotFoundException fnfe) {
             System.err.println("Error: file \""+regionFileName+"\" not found in data directory");
             System.exit(1);
