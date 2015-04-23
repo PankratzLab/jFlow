@@ -121,7 +121,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private GcModel gcModel;
 	private JCheckBoxMenuItem gcCorrectButton;
 	private Hashtable<String, String> namePathMap;
-	private JComboBox<String> centroidsSelection;
+//	private JComboBox<String> centroidsSelection;
 	private Logger log;
 	private boolean fail;
 	boolean isSettingCentroid = false;
@@ -161,6 +161,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private volatile boolean loadingFile = false;
 
 	private JTextField regionField;
+
+	private HashMap<String, JCheckBoxMenuItem> centButtonMap;
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -1509,6 +1511,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			}
 		}
 		
+		centButtonMap = new HashMap<String, JCheckBoxMenuItem>();
 		ButtonGroup centButtons = new ButtonGroup();
 		JCheckBoxMenuItem centBox = new JCheckBoxMenuItem("None");
 		centBox.addItemListener(centListener);
@@ -1523,6 +1526,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			centBox.setFont(new Font("Arial", 0, 12));
 			centButtons.add(centBox);
 			lbl3.add(centBox);
+			centButtonMap.put(key, centBox);
 		}
 		
 		return menuBar;
@@ -1824,12 +1828,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				int sex = sampleData.getSexForIndividual(samp.getSampleName());
 				if (sex == 1) {
 					if (currentCentroid.endsWith("Female") && !isSettingCentroid) {
-						centroidsSelection.setSelectedItem(SEX_CENT + " - Male");
+						centButtonMap.get(SEX_CENT + " - Male").setSelected(true);
 						log.report("Switching to specified male centroid file");
 					}
 				} else if (sex == 2) {
 					if (currentCentroid.endsWith("Male") && !isSettingCentroid) {
-						centroidsSelection.setSelectedItem(SEX_CENT + " - Female");
+						centButtonMap.get(SEX_CENT + " - Female").setSelected(true);
 						log.report("Switching to specified female centroid file");
 					}
 				} else {
