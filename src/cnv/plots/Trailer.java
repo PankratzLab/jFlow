@@ -2095,6 +2095,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	public void showRegion() {
 		if (regions == null || regions.length == 0) {
+			regionField.setText("");
+			commentLabel.setText("");
 			return;
 		}
 //		System.out.println("regionIndex="+regionIndex+"\t"+"regions.length="+regions.length);
