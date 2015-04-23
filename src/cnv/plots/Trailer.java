@@ -255,6 +255,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //		setBounds(20, 20, 1000, 720);
 		setBounds(startX, startY, width, height);
 		setVisible(true);
+		
+		Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
+		loadCNVsAsRegions();
+		procCNVs(chr);
+		updateGUI();
+		
+		
 	}
 	
 	private void paintLRRPanel(Graphics g) {
@@ -1190,8 +1197,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					if (file != null && file.equals(Trailer.this.regionFileName)) {
 						return;
 					}
-					Trailer.this.regionFileName = file;
-					loadRegions();
+					if (!Files.exists(file)) {
+						proj.message("Error - region file '" + shortName + "' doesn't exist.");
+						regionFileNameBtn.get(regionFileName).setSelected(true);
+					} else {
+						Trailer.this.regionFileName = file;
+						loadRegions();
+					}
 				} /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
 					// do nothing
 				} */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
@@ -1259,6 +1271,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		regionFileNameBtn.put(REGION_LIST_USE_CNVS, item1);
 		regionButtonGroup.add(item1);
 		loadRecentFileMenu.add(item1);
+		item1.setSelected(true);
 		
 		gcCorrectButton = new JCheckBoxMenuItem(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
 		
@@ -1946,6 +1959,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		try {
 //			reader = Files.getReader(regionsList[regionsListIndex], jar, false, false);
+//			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + regionFileName : regionFileName;
 			reader = Files.getReader(regionFileName, jar, false, false);
 //			System.out.print("Loading regions from "+regionsList[regionsListIndex]+"...");
 			System.out.print("Loading regions from " + regionFileName + "...");
