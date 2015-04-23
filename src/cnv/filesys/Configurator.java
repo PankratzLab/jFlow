@@ -188,9 +188,9 @@ public class Configurator extends JFrame {
 					} else {
 						txt = ext.replaceAllWith(txt, "\\", "/");
 					}
-					if (!txt.startsWith("./") && txt.indexOf(":") == -1) {
-						txt = "./" + txt;
-					}
+//					if (!txt.startsWith("./") && txt.indexOf(":") == -1) {
+//						txt = "./" + txt;
+//					}
 					if (txt.startsWith(projDir)) {
 						txt = txt.substring(projDir.length());
 					}
@@ -358,7 +358,10 @@ public class Configurator extends JFrame {
 					if (value.startsWith(projectsDir)) {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
-						value = "./" + value.substring(currProjDir.length());
+						value = value.substring(currProjDir.length());
+						if (!value.startsWith("./")) {
+							value = "./" + value;
+						}
 					}
 					for (int k = 1; k < set.length; k++) {
 						String fNm = set[k].getPath();
@@ -366,7 +369,10 @@ public class Configurator extends JFrame {
 						if (fNm.startsWith(projectsDir)) {
 							fNm = fNm.substring(projectsDir.length());
 						} else if (fNm.startsWith(currProjDir)) {
-							fNm = "./" + fNm.substring(currProjDir.length());
+							fNm = fNm.substring(currProjDir.length());
+							if (!fNm.startsWith("./")) {
+								fNm = "./" + fNm;
+							}
 						}
 						value += ";" + fNm;
 					}
@@ -379,7 +385,10 @@ public class Configurator extends JFrame {
 					if (value.startsWith(projectsDir)) {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
-						value = "./" + value.substring(currProjDir.length());
+						value = value.substring(currProjDir.length());
+						if (!value.startsWith("./")) {
+							value = "./" + value;
+						}
 					}
 				}
 			} else if (rawValue instanceof String[]) {
@@ -563,6 +572,9 @@ public class Configurator extends JFrame {
 			    	}
     			};
 	    	}
+    		if (labelText.toString().startsWith(defaultLocation)) {
+    			labelText = new StringBuilder(labelText.substring(defaultLocation.length()));
+    		}
 	        label.setText(labelText.toString());
 	        for (int i = button.getActionListeners().length - 1; i >= 0; i--) {
 	        	button.removeActionListener(button.getActionListeners()[i]);

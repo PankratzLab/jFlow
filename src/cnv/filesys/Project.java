@@ -175,16 +175,17 @@ public class Project {
 				valu = ext.replaceTilde(valu);
 			}
 			
-			if (!"".equals(valu) && !valu.startsWith(".") && !valu.startsWith("/") && valu.indexOf(":") == -1) {
+			String tempValue = valu;
+			if (!"".equals(valu) /*&& !valu.startsWith(".")*/ && !valu.startsWith("/") && valu.indexOf(":") == -1) {
 				if (isDir) {
-					valu = getProject().PROJECT_DIRECTORY.getValue() + valu;
+					tempValue = getProject().PROJECT_DIRECTORY.getValue() + valu;
 				} else {
-					valu = getProject().PROJECT_DIRECTORY.getValue() + (subdir == null ? "" : getProject().getProperty(subdir).getValueString()) + valu;
+					tempValue = getProject().PROJECT_DIRECTORY.getValue() + (subdir == null ? "" : getProject().getProperty(subdir).getValueString()) + valu;
 				}
 			}
-			if (!Files.exists(valu, getProject().JAR_STATUS.getValue())) {
+			if (!Files.exists(tempValue, getProject().JAR_STATUS.getValue())) {
 				if (mkdirs && getProject().JAR_STATUS.getValue()) {
-					(new File(valu)).mkdirs();
+					(new File(tempValue)).mkdirs();
 				} else if (verbose) {
 					if (isDir) {
 						getProject().getLog().reportError("Error - directory '"+valu+"' does not exist");
@@ -198,7 +199,7 @@ public class Project {
 				}
 			}
 			
-			return valu;
+			return tempValue;
 		}
 	}
 	
