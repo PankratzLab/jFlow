@@ -1,0 +1,99 @@
+package one.JL;
+
+import htsjdk.variant.variantcontext.Allele;
+
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+import common.AlleleFreq;
+import common.Array;
+import cnv.filesys.MarkerData;
+import cnv.filesys.Project;
+import cnv.manage.MDL;
+
+public class MAF {
+
+	public static void computeMAF(Project proj) {
+		MDL mdl = new MDL(proj, proj.getMarkerNames(), 4, 4);
+		String output =  proj.PROJECT_DIRECTORY.getValue() + "mafs.txt";
+		// String sampOutliers = proj.getDir(Project.SAMPLE_DIRECTORY)+"outliers.ser";
+		// Hashtable<String, Float> outSamps = (Hashtable<String, Float>) Files.readSerial(sampOutliers);
+		// System.out.println(outSamps.get("482175\tF10139D\tlrr"));
+		// TransposeData.r
+		// System.exit(1);
+		// for(String sampKey:outSamps.keySet()){
+		// System.out.println(sampKey);
+		// }
+
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			writer.println("NAME\tMAF\tCALLRATE\tA_AF\tB_AF");
+			mdl.setDebugMode(true);
+			mdl.setReportEvery(10000);
+			while (mdl.hasNext()) {
+				MarkerData markerData = mdl.next();
+				try {
+					double maf = markerData.getMAF(null, null, null, 0);
+					int[] counts = markerData.getGenotypeCounts(null, null, null, 0);
+					//AlleleFreq.calcMAF(counts[0], counts[1], counts[2])
+					byte[] genotypes = markerData.getAbGenotypes();
+					int noCall = 0;
+					for (int i = 0; i < genotypes.length; i++) {
+						if (genotypes[i] < 0) {
+							noCall++;
+						}
+					}
+					int called = genotypes.length - noCall;
+					double callRate = (double) called / genotypes.length;
+					writer.println(markerData.getMarkerName() + "\t" + maf + "\t" + callRate);
+				} catch (ArrayIndexOutOfBoundsException aoe) {
+					byte[] genos = markerData.getAbGenotypes();
+					for (int i = 0; i < genos.length; i++) {
+						if (genos[i] == 3) {
+							System.out.println(markerData.getMarkerName() + "\t" + proj.getSamples()[i]);
+						}
+					}
+				}
+				
+			}
+			writer.close();
+		} catch (Exception e) {
+			proj.getLog().reportError("Error writing to " + output);
+			proj.getLog().reportException(e);
+		}
+
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String filename = null;
+		String logfile = null;
+
+		String usage = "\n" + "one.JL.MAF requires 0-1 arguments\n" + "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("proj=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			computeMAF(new Project(filename, false));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}

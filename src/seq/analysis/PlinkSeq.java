@@ -47,7 +47,7 @@ public class PlinkSeq {
 	private static final String MAC = "mac=";
 
 	private static final String MASK = "--mask";
-	private static final String VAR_MASK= "var.req=";
+	private static final String VAR_MASK = "var.req=";
 	private static final String V_STATS = "v-stats";
 	private static final String I_STATS = "i-stats";
 
@@ -72,7 +72,7 @@ public class PlinkSeq {
 	 *
 	 */
 	public enum BURDEN_Tests {
-		BURDEN, UNIQ, VT, FW, CALPHA, SUMSTAT,FRQWGT
+		BURDEN, UNIQ, VT, FW, CALPHA, SUMSTAT, FRQWGT
 	}
 
 	private enum LOAD_TYPES {
@@ -209,23 +209,23 @@ public class PlinkSeq {
 				switch (lTypes) {
 				case VCF:
 					loadCommand = LOAD_VCF;
-//					pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
-//					return true;
+					// pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
+					// return true;
 					break;
 				case PHENO:
 					loadCommand = LOAD_PHENO;
 					overideOverWrite = true;
-//					pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
-//					return true;
+					// pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
+					// return true;
 					break;
 				case LOC_DB:
 					loadCommand = LOAD_LOC;
 					overideOverWrite = true;
-//					pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
-//					return true;
+					// pseqProject.getLog().reportTimeError("JOHN TURN THIS OFF LATER");
+					// return true;
 					break;
 				default:
-					log.reportTimeError("Invalid load Type "+lTypes);
+					log.reportTimeError("Invalid load Type " + lTypes);
 					break;
 				}
 				String[] command = new String[] { PSEQ, pseqProject.getProjectNameForPseq(), loadCommand };
@@ -295,10 +295,10 @@ public class PlinkSeq {
 					ext.addToRoot(outputFile, locGroups);
 
 				}
-//				if (varMask != null) {
-//					ext.addToRoot(outputFile, varMask);
-//					commandBase = Array.concatAll(commandBase, new String[] { MASK, varMask });
-//				}
+				// if (varMask != null) {
+				// ext.addToRoot(outputFile, varMask);
+				// commandBase = Array.concatAll(commandBase, new String[] { MASK, varMask });
+				// }
 			}
 			commandBase = addPermCommand(numPerm, commandBase);
 			break;
@@ -311,15 +311,19 @@ public class PlinkSeq {
 				commandBase = Array.concatAll(commandBase, new String[] { BURDEN }, getPhenoCommand(phenotype));
 				commandBase = Array.concatAll(commandBase, new String[] { MASK, LOC_GROUP + locGroups, mac.equals("0") ? "" : MAC + mac });
 				if (varMask != null) {
-					outputFile =ext.addToRoot(outputFile, "."+varMask);
-					commandBase = Array.concatAll(commandBase, new String[] { VAR_MASK+varMask });
+					outputFile = ext.addToRoot(outputFile, "." + varMask);
+					commandBase = Array.concatAll(commandBase, new String[] { VAR_MASK + varMask });
 				}
 			}
 			if (bTests != null) {
-				String[] tests = new String[bTests.length + 1];
+				String[] tests = new String[bTests.length]; // note that we skip FRQWGT here
 				tests[0] = TESTS;
+				int index = 1;
 				for (int i = 0; i < bTests.length; i++) {
-					tests[i + 1] = (bTests[i] + "").toLowerCase();
+					if (bTests[i] != BURDEN_Tests.FRQWGT) {
+						tests[index] = (bTests[i] + "").toLowerCase();
+						index++;
+					}
 				}
 				commandBase = Array.concatAll(commandBase, tests);
 			}
