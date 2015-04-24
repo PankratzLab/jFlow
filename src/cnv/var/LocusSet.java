@@ -1,4 +1,4 @@
-package seq.pathway;
+package cnv.var;
 
 import java.io.Serializable;
 import java.util.Arrays;

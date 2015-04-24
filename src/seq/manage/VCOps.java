@@ -63,6 +63,22 @@ public class VCOps {
 
 	}
 
+	/**
+	 * @param annosToGet
+	 *            String keys to retrieve from the vc's common info
+	 * @param vc
+	 * @param defaultValue
+	 *            if anno is not found, this will be returned
+	 * @return
+	 */
+	public static String[] getAnnotationsFor(String[] annosToGet, VariantContext vc, String defaultValue) {
+		String[] annos = new String[annosToGet.length];
+		for (int i = 0; i < annos.length; i++) {
+			annos[i] = vc.getCommonInfo().getAttributeAsString(annosToGet[i], defaultValue);
+		}
+		return annos;
+	}
+
 	public static double getMAF(VariantContext vc, Set<String> sampleNames) {
 		VariantContext vcSub = getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
@@ -236,6 +252,19 @@ public class VCOps {
 			}
 		}
 		return overlap.keySet();
+	}
+
+	public static Genotype getGenotypeFor(final VariantContext vc, final String sampleName, VC_SUBSET_TYPE type) {
+		return getSubset(vc, sampleName, type).getGenotype(0);
+	}
+
+	/**
+	 * Subsets to particular samples
+	 */
+	public static VariantContext getSubset(final VariantContext vc, final String sampleName, VC_SUBSET_TYPE type) {
+		HashSet<String> tmp = new HashSet<String>();
+		tmp.add(sampleName);
+		return getSubset(vc, tmp, type);
 	}
 
 	/**

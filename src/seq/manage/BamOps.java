@@ -61,8 +61,29 @@ public class BamOps {
 		}
 		return qIntervals;
 	}
-	
-	public static String getSampleName(String bamFile){
+
+	public static Segment[] converQItoSegs(QueryInterval[] qIntervals, SAMFileHeader sFileHeader, Logger log) {
+		Segment[] segs = new Segment[qIntervals.length];
+		for (int i = 0; i < segs.length; i++) {
+			segs[i] = new Segment(Positions.chromosomeNumber(sFileHeader.getSequence(qIntervals[i].referenceIndex).getSequenceName()), qIntervals[i].start, qIntervals[i].end);
+		}
+		return segs;
+	}
+
+	public static SAMFileHeader getHeader(String bamfile) {
+		SamReader reader = getDefaultReader(bamfile, ValidationStringency.STRICT);
+		SAMFileHeader samFileHeader = reader.getFileHeader();
+		try {
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return samFileHeader;
+
+	}
+
+	public static String getSampleName(String bamFile) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 		String sample = reader.getFileHeader().getReadGroups().get(0).getSample();
 		try {

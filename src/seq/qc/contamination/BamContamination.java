@@ -8,8 +8,8 @@ import seq.manage.BamPileUp.PILE_TYPE;
 import seq.manage.BamPileUp.bamPileWorker;
 import seq.manage.ReferenceGenome;
 import seq.qc.FilterNGS;
+import seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import stats.Histogram.DynamicHistogram;
-import common.Array;
 import common.Files;
 import common.Logger;
 import common.PSF;
@@ -54,7 +54,7 @@ public class BamContamination {
 
 		@Override
 		public Callable<DynamicHistogram> next() {
-			bamPileWorker worker = new bamPileWorker(bamFiles[index], q, filterNGS, referenceGenome, 1, PILE_TYPE.CONTAMINATION, log);
+			bamPileWorker worker = new bamPileWorker(bamFiles[index], q, filterNGS, referenceGenome, 1, PILE_TYPE.CONTAMINATION, SAM_FILTER_TYPE.GENOTYPE, log);
 			index++;
 			return worker;
 		}
@@ -77,6 +77,8 @@ public class BamContamination {
 		String[] bamFiles = Files.listFullPaths(bamDir, ".bam", false);
 		// bamFiles = Array.subArray(bamFiles, 0, numthreads);
 		Segment[] q = segFile == null ? null : Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 0);
+		
+		
 		ReferenceGenome referenceGenome = referenceGenomeFasta == null ? null : new ReferenceGenome(referenceGenomeFasta, log);
 		BamContaminationProducer producer = new BamContaminationProducer(q, filterNGS, referenceGenome, bamFiles, log);
 		log.reportTimeInfo("Detected " + bamFiles.length + " bam files in directory " + bamDir);

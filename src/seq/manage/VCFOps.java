@@ -343,7 +343,7 @@ public class VCFOps {
 	public static class VcfPopulation {
 		public static final String CASE = "CASE";
 		public static final String CONTROL = "CONTROL";
-		private static final String[] HEADER = new String[] { "IID", "Population", "SuperPopulation" };
+		public static final String[] HEADER = new String[] { "IID", "Population", "SuperPopulation" };
 		private static final String SKIP = "#N/A";
 		private Hashtable<String, Set<String>> subPop;
 		private Hashtable<String, Set<String>> superPop;
@@ -357,6 +357,10 @@ public class VCFOps {
 			CASE_CONTROL, ANY, STRATIFICATION;
 		}
 
+		public enum RETRIEVE_TYPE {
+			SUPER, SUB;
+		}
+
 		public VcfPopulation(POPULATION_TYPE type, Logger log) {
 			this.subPop = new Hashtable<String, Set<String>>();
 			this.superPop = new Hashtable<String, Set<String>>();
@@ -364,6 +368,34 @@ public class VCFOps {
 			this.uniqSuperPop = new ArrayList<String>();
 			this.type = type;
 			this.log = log;
+		}
+
+		public String[] getPopulationForInd(String ind, RETRIEVE_TYPE type) {
+			ArrayList<String> tmp = new ArrayList<String>();
+			Set<String> avail;
+			switch (type) {
+			case SUB:
+				avail = subPop.keySet();
+				for (String key : avail) {
+					if (subPop.get(key).contains(ind)) {
+						tmp.add(key);
+					}
+				}
+				break;
+			case SUPER:
+				avail = superPop.keySet();
+				for (String key : avail) {
+					if (superPop.get(key).contains(ind)) {
+						tmp.add(key);
+					}
+				}
+				break;
+			default:
+				log.reportTimeError("Invalid type " + type);
+				break;
+
+			}
+			return tmp.toArray(new String[tmp.size()]);
 		}
 
 		public boolean generatePlinkSeqPheno(String output) {
@@ -729,7 +761,7 @@ public class VCFOps {
 		reader.close();
 		writer.close();
 		if (dyHistogramVQSLOD != null) {
-			String outputHist = ext.addToRoot(vcf, ".hist.VQSLOD");
+			String outputHist = ext.addToRoot(output, ".hist.VQSLOD");
 
 			try {
 				PrintWriter writerHist = new PrintWriter(new FileWriter(outputHist));
