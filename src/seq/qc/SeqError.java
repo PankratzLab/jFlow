@@ -71,9 +71,9 @@ public class SeqError {
 				if (index % 100000 == 0) {
 					log.reportTimeInfo(index + " variants processed..." + ext.getTimeElapsed(time));
 					time = System.currentTimeMillis();
-					reader.close();
-					train.shutdown();
-					return;
+//					reader.close();
+//					train.shutdown();
+//					return;
 				}
 				vc.fullyDecode(header, false);
 				DuplicateProducer producer = new DuplicateProducer(vc, vContextFilterSample, dETwos, filterNGS);
