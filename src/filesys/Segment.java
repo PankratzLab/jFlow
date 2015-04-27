@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 
 import common.Array;
@@ -217,6 +219,13 @@ public class Segment implements Serializable {
 		}
 
 		chr = segments.elementAt(0).getChr();
+		for (int i = 0; i < segments.size(); i++) {
+			if (segments.get(i).getChr() != chr) {
+				System.err.println("Mismatched chromosmes for merging...");
+				segments = null;
+				return;
+			}
+		}
 		segBoundaries = convertListToSortedBoundaries(segments);
 
 		segments.clear();
@@ -535,6 +544,42 @@ public class Segment implements Serializable {
 		}
 
 		return Segment.toArray(v);
+	}
+	
+	public static Segment[][] parseToChromosomeArrays(Segment[] segs, Logger log) {
+		Hashtable<Integer, Integer> track = new Hashtable<Integer, Integer>();
+		int index = 0;
+		for (int i = 0; i < segs.length; i++) {
+			if (!track.containsKey((int) segs[i].getChr())) {
+				track.put((int) segs[i].getChr(), index);
+				index++;
+			}
+		}
+
+		ArrayList<ArrayList<Segment>> tmp = new ArrayList<ArrayList<Segment>>();
+		Set<Integer> indices = track.keySet();
+		for (int i = 0; i < indices.size(); i++) {
+			tmp.add( new ArrayList<Segment>());
+
+		}
+		for (int i = 0; i < segs.length; i++) {
+			tmp.get(track.get((int) segs[i].getChr())).add(segs[i]);
+		}
+
+		Segment[][] parsed = new Segment[tmp.size()][];
+		for (int i = 0; i < parsed.length; i++) {
+			Segment[] chrSegs = tmp.get(i).toArray(new Segment[tmp.get(i).size()]);
+			parsed[i] = chrSegs;
+		}
+		return parsed;
+	}
+	
+	public static Vector<Segment> toVector(Segment[] segs) {
+		Vector<Segment> v = new Vector<Segment>(segs.length);
+		for (int i = 0; i < segs.length; i++) {
+			v.add(segs[i]);
+		}
+		return v;
 	}
 
 	public static void parseFirstInSecond(String firstFile, String secondFile, Logger log) {

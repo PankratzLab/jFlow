@@ -183,7 +183,7 @@ public class VCOps {
 		GenotypesContext gc = vc.getGenotypes();
 		HashSet<String> samplesWithAlt = new HashSet<String>();
 		for (Genotype geno : gc) {
-			if (geno.isHomVar() || geno.isHet()) {
+			if (!geno.isHomRef() && !geno.isNoCall()) {
 				if (altAlleleDepth <= 0 || geno.hasAD()) {
 					if (altAlleleDepth <= 0 || geno.getAD()[1] > altAlleleDepth) {
 						samplesWithAlt.add(geno.getSampleName());

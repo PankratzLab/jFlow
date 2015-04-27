@@ -150,9 +150,9 @@ public class GeneSet implements Serializable {
         finalList = new Vector<GeneData>();
         for (int i = 0; i<geneNames.length; i++) {
     		v = hash.get(geneNames[i]);
-    		overlapping = new Vector<GeneData>();
     		count = 0;
     		while (v.size() > 0) {
+        		overlapping = new Vector<GeneData>();
     			overlapping.add(v.remove(0));
 				strand = overlapping.elementAt(0).getStrand();
     			newlyAdded = true;
@@ -191,7 +191,11 @@ public class GeneSet implements Serializable {
     			Segment.mergeOverlapsAndSort(exons);
     			
     			exonBoundaries = Segment.convertListToSortedBoundaries(exons);
-    			
+    			if (geneNames[i].equals("MIR4444-2")) { // an example of a multi-chr gene
+					for (int j2 = 0; j2 < overlapping.size(); j2++) {
+						System.out.println(i+"\t"+overlapping.get(j2).getUCSClocation()+"\t"+count);
+					}
+				}
         		finalList.add(new GeneData(geneNames[i],
         				Array.toStringArray(assessionNumbers),
         				overlapping.elementAt(0).getChr(),

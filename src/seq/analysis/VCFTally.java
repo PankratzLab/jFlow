@@ -22,7 +22,6 @@ import seq.manage.VCOps;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.pathway.GenomeRegions;
 import seq.pathway.Pathway;
-import seq.pathway.Pathways;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
@@ -82,17 +81,21 @@ public class VCFTally {
 					index++;
 					VariantContext vcCase = VCOps.getSubset(vc, cases);
 					VariantContext vcControl = VCOps.getSubset(vc, controls);
+
 					if ((type == CASE_CONTROL_TYPE.BOTH_PASS && totalQuality.filter(vcCase).passed() && totalQuality.filter(vcControl).passed()) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcCase).passed() || totalQuality.filter(vcControl).passed()))) {
-						for (int i = 0; i < trackersCase.length; i++) {
-							int caseAdded = trackersCase[i].addIfPasses(vcCase, altAlleleDepth);
-							int controlAdded = trackersControl[i].addIfPasses(vcControl, altAlleleDepth);
-							if (caseAdded + controlAdded > 0) {
-								Segment vcSeg = VCOps.getSegment(vc);
-								writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t" + Positions.getChromosomeUCSC((int) vcSeg.getChr(), true) + ":" + vcSeg.getStart() + (vcSeg.getStop() == vcSeg.getStart() ? "" : ".." + vcSeg.getStop()));
+						VariantContext vcAlts = VCOps.getAltAlleleContext(VCOps.getSubset(vc, all), altAlleleDepth);
+						if (totalQuality.filter(vcAlts).passed()) {
+							for (int i = 0; i < trackersCase.length; i++) {
+								int caseAdded = trackersCase[i].addIfPasses(vcCase, altAlleleDepth);
+								int controlAdded = trackersControl[i].addIfPasses(vcControl, altAlleleDepth);
+								if (caseAdded + controlAdded > 0) {
+									Segment vcSeg = VCOps.getSegment(vc);
+									writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t" + Positions.getChromosomeUCSC((int) vcSeg.getChr(), true) + ":" + vcSeg.getStart() + (vcSeg.getStop() == vcSeg.getStart() ? "" : ".." + vcSeg.getStop()));
+								}
 							}
 						}
 					}
-					if (index % 100000 == 0) {
+					if (index % 10000 == 0) {
 						log.reportTimeInfo("Scanned " + index + " total variants from " + ext.removeDirectoryInfo(vcf));
 						// log.reportTimeError("JOHN REMEMBER THIS CUTOFF");
 						// writer.close();
@@ -160,7 +163,7 @@ public class VCFTally {
 				trackersCharge[i].addIfPasses(vc, -1);
 			}
 			count++;
-			if (count % 100000 == 0) {
+			if (count % 10000 == 0) {
 				log.reportTimeInfo("Scanned " + count + " total variants from " + ext.removeDirectoryInfo(fullpathToChargeVCF));
 				// log.reportTimeError("JOHN REMEMBER THIS CUTOFF");
 				// reader.close();
@@ -334,7 +337,6 @@ public class VCFTally {
 			int numAdded = 0;
 			for (int i = 0; i < vContextFilters.length; i++) {
 				if (!vContextFilters[i].filter(vc).passed()) {
-
 					return numAdded;
 				}
 			}
@@ -343,10 +345,10 @@ public class VCFTally {
 				return numAdded;
 			}
 			for (int i = 0; i < vContextFilters.length; i++) {
-				if (!vContextFilters[i].filter(alts).passed()) {
-
-					return numAdded;
-				}
+				// if (!vContextFilters[i].filter(alts).passed()) {
+				//
+				// return numAdded;
+				// }
 			}
 			double mac = Double.NaN;
 			if (!charge) {
@@ -508,7 +510,7 @@ public class VCFTally {
 				VcfPopulation vpop = VcfPopulation.load(vpopFiles[i], POPULATION_TYPE.CASE_CONTROL, log);
 				vpop.report();
 				String geneTrackFile = "N:/statgen/NCBI/RefSeq_hg19.gtrack";
-				int altAlleleDepth = 6;
+				int altAlleleDepth = 0;
 				VCFTally tally = new VCFTally(vcf, GenomeRegions.load(geneTrackFile), vpop, CASE_CONTROL_TYPE.values()[j], log);
 				tally.tallyCaseControlVCF(altAlleleDepth, outputList);
 				tally.tallyCharge(fullpathToChargeVCF);
