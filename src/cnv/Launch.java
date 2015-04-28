@@ -782,7 +782,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	try {
 	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
+	            	System.out.println(ext.getTime() + "]\tStarting Genvisis...");
             		createAndShowGUI();
+            		System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
 	            }
 	        });
     	} catch (InternalError e) {

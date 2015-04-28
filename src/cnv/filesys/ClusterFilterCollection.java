@@ -86,7 +86,11 @@ public class ClusterFilterCollection implements Serializable {
 	}
 
 	public void updateGenotype(String markerName, byte index, byte newGenotype) {
-		hash.get(markerName).get(index).setClusterGenotype(newGenotype);
+		ArrayList<ClusterFilter> temp = hash.get(markerName); 
+		if(temp == null) {
+			return;
+		}
+		temp.get(index).setClusterGenotype(newGenotype);
 	}
 		
 	public byte[] filterMarker(MarkerData markerData, float gcThreshold) {
