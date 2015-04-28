@@ -11,6 +11,7 @@ import seq.qc.FilterNGS;
 import seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import stats.Histogram.DynamicHistogram;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.WorkerTrain;
@@ -72,16 +73,19 @@ public class BamContamination {
 		}
 	}
 
-	public static void runContam(String bamDir, String referenceGenomeFasta, String segFile, String pfbFile, FilterNGS filterNGS, int numthreads, Logger log) {
-
-		String[] bamFiles = Files.listFullPaths(bamDir, ".bam", false);
+	public static void runContam(String bams, String referenceGenomeFasta, String segFile, String pfbFile, FilterNGS filterNGS, int numthreads, Logger log) {
+		String[] bamFiles = null;
+		if (Files.isDirectory(bams)) {
+			bamFiles = Files.listFullPaths(bams, ".bam", false);
+		} else {
+			bamFiles = HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, true);
+		}
 		// bamFiles = Array.subArray(bamFiles, 0, numthreads);
 		Segment[] q = segFile == null ? null : Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 0);
-		
-		
+
 		ReferenceGenome referenceGenome = referenceGenomeFasta == null ? null : new ReferenceGenome(referenceGenomeFasta, log);
 		BamContaminationProducer producer = new BamContaminationProducer(q, filterNGS, referenceGenome, bamFiles, log);
-		log.reportTimeInfo("Detected " + bamFiles.length + " bam files in directory " + bamDir);
+		log.reportTimeInfo("Detected " + bamFiles.length + " bam files in " + bams);
 		DynamicHistogram[] hists = new DynamicHistogram[bamFiles.length];
 		WorkerTrain<DynamicHistogram> train = new WorkerTrain<DynamicHistogram>(producer, numthreads, numthreads, log);
 		int index = 0;
@@ -89,7 +93,7 @@ public class BamContamination {
 			hists[index] = train.next();
 			index++;
 		}
-		String outputHist = bamDir + "contamSummary.txt";
+		String outputHist = bams + "contamSummary.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outputHist));
 			writer.print("PROP_REF_BIN");
@@ -117,7 +121,7 @@ public class BamContamination {
 		int numArgs = args.length;
 		String segFile = null;
 		String referenceGenomeFasta = "hg19_canonical.fa";
-		String bamDir = null;
+		String bams = null;
 		String pfbFile = null;
 		double minPhred = 30;
 		double minMapQ = 30;
@@ -129,7 +133,7 @@ public class BamContamination {
 		String logfile = null;
 		Logger log;
 		String usage = "\n" + "seq.manage.BamPileUp requires 1-2 arguments\n";
-		usage += "   (1) full path to a directory of *.bam files to pile-up (i.e. bamDir=" + bamDir + " (no default))\n" + "";
+		usage += "   (1) full path to a directory of *.bam files or a file listing bam files in the first column, to pile-up (i.e. bams=" + bams + " (no default))\n" + "";
 		usage += "   (2) full path to a reference fasta  (i.e. ref= (no default))\n" + "";
 		usage += "   (3) full path to a file of segments to subset the pile up  (i.e. segs= (no default))\n" + "";
 		usage += "   (4) minimum phred score for a base pair to be piled  (i.e. minPhred=" + minPhred + " (default))\n" + "";
@@ -144,8 +148,8 @@ public class BamContamination {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("bamDir=")) {
-				bamDir = ext.parseStringArg(args[i], null);
+			} else if (args[i].startsWith("bams=")) {
+				bams = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("ref=")) {
 				referenceGenomeFasta = ext.parseStringArg(args[i], null);
@@ -183,10 +187,10 @@ public class BamContamination {
 			System.exit(1);
 		}
 		try {
-			logfile = Files.exists(bamDir) ? bamDir + "contam.log" : logfile;
+			logfile = Files.exists(bams) ? bams + "contam.log" : logfile;
 			log = new Logger(logfile);
 			FilterNGS filterNGS = new FilterNGS(minMapQ, minPhred, new int[] { minDepth, minAltDepth });
-			runContam(bamDir, referenceGenomeFasta, segFile, pfbFile, filterNGS, numthreads, log);
+			runContam(bams, referenceGenomeFasta, segFile, pfbFile, filterNGS, numthreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
