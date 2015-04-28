@@ -12,8 +12,8 @@ public class SampleData {
 	public static final String GENOTYPE = "Genotype";
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
 	public static final String[] MINIMAL_SAMPLE_DATA_HEADER = { "DNA", "FID", "IID" };
-	public static final String[] EUPHAMISMS = {"CleanedSex", "Sex", "CLASS=Sex", "Gender", "CLASS=Gender"};
-	public static final String[] EXCLUDE_ALIASES = {"Exclude", "CLASS=Exclude"};
+	public static final String[] EUPHEMISMS = {"CleanedSex", "Sex", "Gender", };
+	public static final String[] EXCLUDE_ALIASES = {"Exclude"};
 	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
 
 	public static final String[][] LINKERS = {
@@ -168,7 +168,7 @@ public class SampleData {
                 }
 			}
 			
-			sexClassIndex = ext.indexFactors(new String[][] {EUPHAMISMS}, classes, true, false, true, log.getLevel()>=1?true:false, log, false)[0];
+			sexClassIndex = ext.indexFactors(new String[][] {EUPHEMISMS}, classes, true, false, true, log.getLevel()>=1?true:false, log, false)[0];
 			excludeClassIndex = ext.indexFactors(new String[][] {EXCLUDE_ALIASES}, classes, false, false, true, log.getLevel()>=1?true:false, log, false)[0];
 			log.report("Class list: "+Array.toStr(classes), true, true, 1);
 
@@ -218,7 +218,7 @@ public class SampleData {
 						//proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 					}
 				} else {
-					proj.message("Error - variable names '"+Array.toStr(EUPHAMISMS, "/")+"' was not found in the SampleData file; make sure 1=male and 2=female in the coding");
+					proj.message("Error - variable names '"+Array.toStr(EUPHEMISMS, "/")+"' was not found in the SampleData file; make sure 1=male and 2=female in the coding");
 				}
 			}
 		} catch (FileNotFoundException fnfe) {
@@ -268,7 +268,7 @@ public class SampleData {
 		int[] sexes = new int[samples.length];
 
 		if (sexClassIndex < 0) {
-			proj.getLog().reportTimeWarning("Variable names '" + Array.toStr(EUPHAMISMS, "/") + "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
+			proj.getLog().reportTimeWarning("Variable names '" + Array.toStr(EUPHEMISMS, "/") + "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
 		}
 		for (int i = 0; i < samples.length; i++) {
 			sexes[i] = getSexForIndividual(samples[i]);
@@ -1029,7 +1029,7 @@ public class SampleData {
 			} else {
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(sampleDatafilename));
-					writer.println(Array.toStr(MINIMAL_SAMPLE_DATA_HEADER)+"\t"+EUPHAMISMS[2]);
+					writer.println(Array.toStr(MINIMAL_SAMPLE_DATA_HEADER)+"\t"+EUPHEMISMS[2]);
 					for (int i = 0; i < samples.length; i++) {
 						for (int j = 0; j < MINIMAL_SAMPLE_DATA_HEADER.length; j++) {
 							writer.print(samples[i] + (j < (MINIMAL_SAMPLE_DATA_HEADER.length - 1) ? "\t" : ""));
