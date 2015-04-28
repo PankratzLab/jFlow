@@ -40,6 +40,7 @@ public class VCFTallyPSeq extends VCFTally {
 		VCFOps.verifyIndexRegular(vcf, log);
 		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + ".reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(geneTrack, locFile, log);
+
 		// VCFOps.gzipAndIndex(vcf, log);
 		this.plinkSeq = new PlinkSeq(false, true, log);
 		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, vcf, vpop, plinkSeqResourceDirectory, log);
@@ -115,14 +116,14 @@ public class VCFTallyPSeq extends VCFTally {
 				writer.print("\t" + trackersCase[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersCase[i].getTallyName() + "_NUM_INDS" + "\t" + trackersControl[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersControl[i].getTallyName() + "_NUM_INDS" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
 				for (int j = 0; j < BURDEN_Tests.values().length; j++) {
 					BURDEN_Tests test = BURDEN_Tests.values()[j];
-					writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_P" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_I" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_DESC");
+					writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_P" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_I" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_DESC" + (test == BURDEN_Tests.BURDEN ? "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCASE" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCONTROLS" : ""));
 				}
 			}
 			writer.println();
 			writer.flush();
 			Set<String> sets = trackersCase[0].getTally().keySet();
 			for (String set : sets) {
-				if (trackersCase[0].getGene(set) != null&&trackersCase[0].getGene(set).length>0) {
+				if (trackersCase[0].getGene(set) != null && trackersCase[0].getGene(set).length > 0) {
 					String chr = Positions.getChromosomeUCSC(trackersCase[0].getGene(set)[0].getChr(), true);
 					String start = trackersCase[0].getGene(set)[0].getStart() + "";
 					String stop = trackersCase[0].getGene(set)[0].getStop() + "";
@@ -144,8 +145,6 @@ public class VCFTallyPSeq extends VCFTally {
 					int numControls = trackersControl[i].getUniqs().get(set).size();
 					writer.print("\t" + trackersCase[i].getTallyMAC().get(set) + "\t" + numCases + "\t" + trackersControl[i].getTallyMAC().get(set) + "\t" + numControls + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set)));
 					for (int j = 0; j < summaries.length; j++) {
-						// System.out.println(trackersCase[1].getTallyName());
-						// System.out.println(i+"\t"+j+"\t"+trackersCase[i].getTallyName()+"\t"+trackersCase.length+"\t"+summaries[j].getAnalysis());
 						if (trackersCase[i].getTallyName().endsWith(summaries[j].getAnalysis())) {
 							for (int j2 = 0; j2 < BURDEN_Tests.values().length; j2++) {
 								BURDEN_Tests test = BURDEN_Tests.values()[j2];
@@ -155,9 +154,13 @@ public class VCFTallyPSeq extends VCFTally {
 										System.out.println(pstSummary.getType() + "\t" + test);
 										log.reportTimeError("Mismatched parsing error, halting...");
 									}
-									writer.print("\t" + pstSummary.getP() + "\t" + pstSummary.getI() + "\t" + "\"" + pstSummary.getDesc().replaceAll("/", "-") + "\"");
+									String desc[] = pstSummary.getDesc().split("/");
+									if (desc.length != 2 && test == BURDEN_Tests.BURDEN) {
+										log.reportTimeError("Did not find two counts for burden test");
+									}
+									writer.print("\t" + pstSummary.getP() + "\t" + pstSummary.getI() + "\t" + "" + pstSummary.getDesc().replaceAll("/", "::").replaceAll("/", "::") + (test == BURDEN_Tests.BURDEN ? "\t" + Array.toStr(desc) : ""));
 								} else {
-									writer.print("\t1\t1\tNO_TEST");
+									writer.print("\t1\t1\tNO_TEST" + (test == BURDEN_Tests.BURDEN ? "\t0\t0" : ""));
 								}
 							}
 						}
@@ -200,11 +203,19 @@ public class VCFTallyPSeq extends VCFTally {
 		VcfPopulation vpop = VcfPopulation.load(vpopFiles[0], POPULATION_TYPE.CASE_CONTROL, log);
 		vpop.report();
 		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+		// GeneData[][] genes = geneTrack.getGenes();
+		// for (int i = 0; i < genes.length; i++) {
+		// for (int j = 0; j < genes[i].length; j++) {
+		// if (genes[i][j].getGeneName().equals("MIR4444-2")) {
+		// System.out.println(genes[i][j].getChr() + "\t" + genes[i][j].getStart() + "\t" + genes[i][j].getStop() + "\t" + genes[i][j].getMultiLoc());
+		// }
+		// }
+		// }
 		geneTrack.setGeneSetFilename(geneTrackFile);
 		Pathways pathways = Pathways.load(keggPathwayFile);
 		GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
 		VCFTallyPSeq vcfTallyPSeq = new VCFTallyPSeq(vcf, gRegions, vpop, CASE_CONTROL_TYPE.BOTH_PASS, resourceDirectory, null, log);
-		vcfTallyPSeq.fullGamutAssoc(-1, "0", altAlleleDepth, fullpathToChargeVCF, 4);
+		vcfTallyPSeq.fullGamutAssoc(-1, "0", altAlleleDepth, fullpathToChargeVCF, 8);
 		vcfTallyPSeq.summarize();
 	}
 

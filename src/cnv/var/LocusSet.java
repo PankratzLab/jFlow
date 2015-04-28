@@ -1,4 +1,4 @@
-package seq.pathway;
+package cnv.var;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -35,17 +35,23 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		return loci;
 	}
 
-	public T[] getOverLappingLoci(final Segment seg) {
+	public int[] getOverlappingIndices(final Segment seg) {
 		if (!sorted) {
 			log.reportTimeError("Internal error: must sort internal segment array prior to overlap search");
 			return null;
 		} else {
 			int[] indices = Segment.binarySearchForAllOverLappingIndices(seg, loci);
-			if (indices == null) {
-				return null;
-			} else {
-				return Array.subArray(loci, indices);
-			}
+			return indices;
+
+		}
+	}
+
+	public T[] getOverLappingLoci(final Segment seg) {
+		int[] indices = getOverlappingIndices(seg);
+		if (indices == null) {
+			return null;
+		} else {
+			return Array.subArray(loci, indices);
 		}
 	}
 
