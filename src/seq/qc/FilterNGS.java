@@ -218,7 +218,7 @@ public class FilterNGS implements Serializable {
 	 * Handles command variant filtering when dealing with double data
 	 *
 	 */
-	private abstract class VcFilterDouble implements VcFilterI<Double> {
+	public abstract class VcFilterDouble implements VcFilterI<Double> {
 		private VARIANT_FILTER_DOUBLE dfilter;
 		private FILTER_TYPE type;
 		private double filterThreshold;
@@ -228,6 +228,10 @@ public class FilterNGS implements Serializable {
 			this.dfilter = dfilter;
 			this.type = dfilter.getType();
 			this.filterThreshold = dfilter.getDFilter();
+		}
+
+		public double getFilterThreshold() {
+			return filterThreshold;
 		}
 
 		@Override
@@ -288,12 +292,16 @@ public class FilterNGS implements Serializable {
 	 * Handles Filtering with {@link VariantContextUtils.JexlVCMatchExp}
 	 *
 	 */
-	private class VcFilterJEXL extends VcFilterBoolean {
+	public class VcFilterJEXL extends VcFilterBoolean {
 		private List<VariantContextUtils.JexlVCMatchExp> jExps;
 
 		public VcFilterJEXL(VARIANT_FILTER_BOOLEAN bfilter, String[] names, String[] expressions, Logger log) {
 			super(bfilter);
 			this.jExps = VCOps.getJexlVCMathExp(names, expressions, log);
+		}
+
+		public List<VariantContextUtils.JexlVCMatchExp> getjExps() {
+			return jExps;
 		}
 
 		@Override
@@ -541,6 +549,18 @@ public class FilterNGS implements Serializable {
 			}
 		}
 
+		public VcFilterDouble[] getvDoubles() {
+			return vDoubles;
+		}
+
+		public VcFilterBoolean[] getvBooleans() {
+			return vBooleans;
+		}
+
+		public VcFilterJEXL getvFilterJEXL() {
+			return vFilterJEXL;
+		}
+
 		/**
 		 * @param vc
 		 * @return if the variant passed all filters Note that this method returns after the first filter it fails for speed
@@ -726,7 +746,7 @@ public class FilterNGS implements Serializable {
 	}
 
 	/**
-	 * @return filter that removes reads with reference of *
+	 * @return filter that removes reads with reference of star 
 	 */
 	public SamRecordFilter getValidReferenceFilter() {
 		return new SamRecordFilter() {
@@ -761,17 +781,33 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
+	public enum SAM_FILTER_TYPE {
+		GENOTYPE, COPY_NUMBER;
+	}
+
 	/**
 	 * @return pretty standard filteres for samrecords
 	 */
-	public ArrayList<SamRecordFilter> getStandardSAMRecordFilters() {
+	public ArrayList<SamRecordFilter> getStandardSAMRecordFilters(SAM_FILTER_TYPE type, Logger log) {
 		ArrayList<SamRecordFilter> filters = new ArrayList<SamRecordFilter>();
 		filters.add(new DuplicateReadFilter());
 		filters.add(new AlignedFilter(true));
 		filters.add(new SecondaryAlignmentFilter());
 		filters.add(getValidRecordFilter());
 		filters.add(getValidReferenceFilter());
-		filters.add(getProperlyPairedFilter());
+		switch (type) {
+		case COPY_NUMBER:
+			break;
+		case GENOTYPE:
+			filters.add(getProperlyPairedFilter());// This can be evidence of a CNV
+			break;
+		default:
+			log.reportTimeError("Invalid filter type" + type);
+			filters = null;
+			break;
+
+		}
+
 		return filters;
 	}
 
