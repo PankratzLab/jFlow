@@ -229,12 +229,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 		if (!Files.exists(bat)) {
 			Files.write(getLaunchBat(), bat);
+			//Files.chmod(bat);
 		}
 		if (!Files.exists(sh)) {
 			Files.write(getLaunchSH(), sh);
+			Files.chmod(sh);
 		}
 		if (!Files.exists(command)) {
 			Files.write(getLaunchSH(), command);
+			Files.chmod(command);
 		}
 
 	}
