@@ -121,7 +121,7 @@ public class PlinkSeq {
 	/**
 	 * Initializes the project by creating directory structures and loading dbs (if neccesary)
 	 */
-	private boolean createProject(PseqProject pseqProject) {
+	private boolean createProject(PseqProject pseqProject, boolean loadVCF, boolean loadReq) {
 		boolean init = true;
 		if (!fail) {
 			String currentProject = pseqProject.getProjectDirectory() + pseqProject.getProjectName();
@@ -134,7 +134,7 @@ public class PlinkSeq {
 			if (init) {
 				pseqProject.load();
 				init = pseqProject.isLoaded();
-				if (init) {
+				if (init && loadVCF) {
 					init = loadData(pseqProject, LOAD_TYPES.VCF, null);
 				}
 				if (init) {
@@ -143,7 +143,7 @@ public class PlinkSeq {
 				if (init) {
 					String[] reqFiles = Files.listFullPaths(pseqProject.getResourceDirectory(), REQ_FILE, false);
 
-					if (init && reqFiles != null && reqFiles.length > 0) {
+					if (init && loadReq && reqFiles != null && reqFiles.length > 0) {
 						log.reportTimeInfo("Found the following " + REQ_FILE + " files to load into the loc db: ");
 						log.reportTimeInfo(Array.toStr(reqFiles));
 						for (int i = 0; i < reqFiles.length; i++) {
@@ -434,13 +434,13 @@ public class PlinkSeq {
 		return verified;
 	}
 
-	public static PseqProject initialize(PlinkSeq pSeq, String projName, String vcf, VcfPopulation vpop, String resourceDirectory, Logger log) {
+	public static PseqProject initialize(PlinkSeq pSeq, String projName, String vcf, VcfPopulation vpop, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
 		String projectName = projName == null ? PlinkSeqUtils.PSEQ_PROJECT + ext.rootOf(vcf) : PlinkSeqUtils.PSEQ_PROJECT + projName;
 		String projectDirectory = ext.parseDirectoryOfFile(vcf) + projectName + "/";
 		new File(projectDirectory).mkdirs();
 		String phenoFile = projectDirectory + ext.rootOf(vpop.getFileName()) + ".pheno";
 		vpop.generatePlinkSeqPheno(phenoFile);
-		return initialize(pSeq, projectName, projectDirectory, new String[] { vcf }, phenoFile, resourceDirectory, log);
+		return initialize(pSeq, projectName, projectDirectory, new String[] { vcf }, phenoFile, resourceDirectory, loadVCF, loadReq, log);
 	}
 
 	/**
@@ -459,23 +459,23 @@ public class PlinkSeq {
 	 * @param log
 	 * @return
 	 */
-	private static PseqProject initialize(PlinkSeq pSeq, String projName, String vcf, String phenoFile, String resourceDirectory, Logger log) {
+	private static PseqProject initialize(PlinkSeq pSeq, String projName, String vcf, String phenoFile, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
 		String projectName = projName == null ? ext.rootOf(vcf) : PlinkSeqUtils.PSEQ_PROJECT + projName;
 		String projectDirectory = ext.parseDirectoryOfFile(vcf) + projectName + "/";
-		return initialize(pSeq, projectName, projectDirectory, new String[] { vcf }, phenoFile, resourceDirectory, log);
+		return initialize(pSeq, projectName, projectDirectory, new String[] { vcf }, phenoFile, resourceDirectory, loadVCF, loadReq, log);
 	}
 
-	private static PseqProject initialize(PlinkSeq pSeq, String projectName, String projectDirectory, String[] vcfs, String phenoFile, String resourceDirectory, Logger log) {
+	private static PseqProject initialize(PlinkSeq pSeq, String projectName, String projectDirectory, String[] vcfs, String phenoFile, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
 		new File(projectDirectory).mkdirs();
 		String filename = projectDirectory + projectName + "." + PlinkSeq.PSEQ;
 		PseqProject pseqProject = new PseqProject(filename, vcfs, phenoFile, resourceDirectory, log);
-		pSeq.createProject(pseqProject);
+		pSeq.createProject(pseqProject, loadVCF, loadReq);
 		return pseqProject;
 	}
 
-	public static void runPlinkSeq(String projName, String vcf, String phenoFile, String resourceDirectory, String outputRoot, String[] locGroups, boolean overwriteExisting, String mac, int numThreads, Logger log) {
+	public static void runPlinkSeq(String projName, String vcf, String phenoFile, String resourceDirectory, String outputRoot, String[] locGroups, boolean overwriteExisting, boolean loadVCF, boolean loadReq, String mac, int numThreads, Logger log) {
 		PlinkSeq plinkSeq = new PlinkSeq(overwriteExisting, true, log);
-		PlinkSeqUtils.PseqProject pseqProject = initialize(plinkSeq, projName, vcf, phenoFile, resourceDirectory, log);
+		PlinkSeqUtils.PseqProject pseqProject = initialize(plinkSeq, projName, vcf, phenoFile, resourceDirectory, loadVCF, loadReq, log);
 		plinkSeq.fullGamutAssoc(pseqProject, locGroups, null, -1, mac, outputRoot, numThreads);
 	}
 
@@ -544,7 +544,7 @@ public class PlinkSeq {
 			System.exit(1);
 		}
 		try {
-			runPlinkSeq(projName, vcf, phenoFile, resourceDirectory, outputRoot, locGroups, overwriteExisting, mac, numThreads, new Logger());
+			runPlinkSeq(projName, vcf, phenoFile, resourceDirectory, outputRoot, locGroups, overwriteExisting, true, true, mac, numThreads, new Logger());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -558,7 +558,7 @@ public class PlinkSeq {
 		String projName = "PseqTest";
 		Logger log = new Logger();
 		PlinkSeq plinkSeq = new PlinkSeq(true, true, log);
-		PseqProject pseqProject = initialize(plinkSeq, projName, testVCF, testPheno, resourceDirectory, log);
+		PseqProject pseqProject = initialize(plinkSeq, projName, testVCF, testPheno, resourceDirectory, true, true, log);
 		plinkSeq.fullGamutAssoc(pseqProject, new String[] { "refseq" }, null, -1, "2", "test", 4);
 
 	}

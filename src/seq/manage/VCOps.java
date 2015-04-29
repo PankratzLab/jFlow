@@ -1,5 +1,6 @@
 package seq.manage;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -111,6 +112,15 @@ public class VCOps {
 	}
 
 	/**
+	 * Tests whether the minor allele is the alternate allele
+	 */
+	public static boolean isMinorAlleleAlternate(VariantContext vc, Set<String> sampleNames) {
+		VariantContext vcSub = getSubset(vc, sampleNames);
+		double mac = getMAC(vcSub, null);
+		return getAAC(vcSub, null) == mac;
+	}
+
+	/**
 	 * @param names
 	 *            the names corresponding the the array of jexl expressions
 	 * @param expressions
@@ -176,22 +186,123 @@ public class VCOps {
 	}
 
 	/**
-	 * @param vc
-	 * @return genotypes containing alt alleles (hom var or het)
+	 * @author lane0212
+	 * 
+	 *         types of alternate contexts available
+	 *
 	 */
-	public static VariantContext getAltAlleleContext(final VariantContext vc, int altAlleleDepth) {
+	public enum ALT_ALLELE_CONTEXT_TYPE {
+		/**
+		 * All genotypes with a one or two non-reference allele(s) will be returned
+		 */
+		HET_ONLY, /**
+		 * All genotypes with a homozygous non-reference allele will be returned
+		 */
+		HOM_ONLY, /**
+		 * All genotypes with a non-reference allele will be returned
+		 */
+		ALL;
+	}
+
+	public static VariantContext getAltAlleleContext(final VariantContext vc, int altAlleleDepth, Logger log) {
+		return getAltAlleleContext(vc, altAlleleDepth, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+	}
+
+	/**
+	 * @param vc
+	 * @param altAlleleDepth
+	 *            note that this depth will be applied to either the one non-ref alternate allele, or both non ref alternate alleles if applicable
+	 * @param log
+	 * @return
+	 */
+	public static VariantContext getAltAlleleContext(final VariantContext vc, int altAlleleDepth, ALT_ALLELE_CONTEXT_TYPE type, Logger log) {
 		GenotypesContext gc = vc.getGenotypes();
 		HashSet<String> samplesWithAlt = new HashSet<String>();
+		if (altAlleleDepth >= 0) {
+			log.reportTimeError("Alt Allele depth filter is currently not in here, JOHN");
+			return null;
+		}
 		for (Genotype geno : gc) {
-			if (!geno.isHomRef() && !geno.isNoCall()) {
-				if (altAlleleDepth <= 0 || geno.hasAD()) {
-					if (altAlleleDepth <= 0 || geno.getAD()[1] > altAlleleDepth) {
+			boolean use = false;
+			switch (type) {
+			case ALL:
+				use = !geno.isHomRef() && !geno.isNoCall();
+				break;
+			case HET_ONLY:
+				use = geno.isHet();
+				break;
+			case HOM_ONLY:
+				use = geno.isHomVar();
+				break;
+			default:
+				log.reportTimeError("Invalid alt context type " + type);
+				break;
+
+			}
+			if (use) {
+				int[] AD = new int[] { 0, 0 };
+				if (altAlleleDepth >= 0) {
+					AD = getAppropriateAlleleDepths(vc, geno, log);
+				}
+				if (altAlleleDepth < 0 || AD[1] > altAlleleDepth) {
+					if (altAlleleDepth < 0 || !geno.isHetNonRef() || AD[0] > altAlleleDepth) {// handles the case when both alleles are non-reference
 						samplesWithAlt.add(geno.getSampleName());
 					}
 				}
 			}
 		}
 		return getSubset(vc, samplesWithAlt);
+	}
+
+	/**
+	 * Will return the average alt allele ratio for heterozygous calls in this context. Note that the ratio is not always representing the ratio to the reference genome (het non ref)<br>
+	 * min/max will be used in the het-non ref case
+	 */
+	public static double getAverageHetAlleleRatio(VariantContext vc, int altAlleleDepth, Logger log) {
+		double avg = 0;
+		VariantContext vcAlts = getAltAlleleContext(vc, altAlleleDepth, ALT_ALLELE_CONTEXT_TYPE.HET_ONLY, log);
+		GenotypesContext gc = vcAlts.getGenotypes();
+		for (Genotype g : gc) {
+			int[] AD = getAppropriateAlleleDepths(vc, g, log);
+			if (g.isHetNonRef()) {
+				int min = Math.min(AD[0], AD[1]);
+				int max = Math.max(AD[0], AD[1]);
+				avg += (double) min / max;
+			} else if (AD[0] > 0) {
+				avg += (double) AD[1] / AD[0];
+			}
+		}
+		avg = (double) avg / gc.size();
+		return avg;
+	}
+
+	private static int[] getAppropriateAlleleDepths(VariantContext vc, Genotype g, Logger log) {
+		int[] AD = new int[2];
+		Arrays.fill(AD, 0);
+		List<Allele> gAlleles = g.getAlleles();
+
+		if (gAlleles.size() > 2) {
+			log.reportTimeError("Number of alleles should not be greater than 2");
+			return null;
+		} else if (gAlleles.size() == 0 || !g.hasAD()) {
+			List<Allele> varAlleles = vc.getAlleles();
+			int[] gAD = g.getAD();
+			int indexVar = 0;
+			int indexG = 0;
+			for (Allele varAllele : varAlleles) {
+				for (Allele gAllele : gAlleles) {
+					if (gAllele.equals(varAllele)) {
+						AD[indexG] = gAD[indexVar];
+						indexG++;
+					}
+				}
+				indexVar++;
+			}
+		}
+		return AD;
+		// //vc
+		// g.ge
+		// g.getAlleles();
 	}
 
 	public static double getAvgGenotypeInfo(VariantContext vc, Set<String> sampleNames, GENOTYPE_INFO info, Logger log) {
@@ -314,6 +425,9 @@ public class VCOps {
 	}
 
 	public static int[] getAlleleCounts(VariantContext vc) {
+		if ((vc.getHomRefCount() + vc.getHetCount() + vc.getHomVarCount() + vc.getNoCallCount()) != vc.getNSamples()) {
+			System.err.println("Un accounted for genotypes...");
+		}
 		return new int[] { vc.getHomRefCount(), vc.getHetCount(), vc.getHomVarCount() };
 	}
 

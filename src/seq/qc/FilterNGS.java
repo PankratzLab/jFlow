@@ -82,7 +82,7 @@ public class FilterNGS implements Serializable {
 		GTE_FILTER, /**
 		 * Check if less than or equal to
 		 */
-		LTE, /**
+		LTE_FILTER, /**
 		 * Check if equal to
 		 */
 		ET_FILTER, /**
@@ -98,9 +98,12 @@ public class FilterNGS implements Serializable {
 
 		MAC(2.0, FILTER_TYPE.GTE_FILTER),
 
+		/**
+		 * Average GQ across a variant
+		 */
 		GQ(90, FILTER_TYPE.GTE_FILTER),
 		/**
-		 * Depth
+		 * Average Depth across a variant
 		 */
 		DP(10, FILTER_TYPE.GTE_FILTER),
 		/**
@@ -123,7 +126,16 @@ public class FilterNGS implements Serializable {
 		/**
 		 * Used for loose filtering on VQSLOD score of variant
 		 */
-		VQSLOD_LOOSE(1.0, FILTER_TYPE.GTE_FILTER);
+		VQSLOD_LOOSE(1.0, FILTER_TYPE.GTE_FILTER),
+		/**
+		 * Used for filtering by the lower bound for average allelic ratio across alternate calls
+		 */
+		HET_ALLELE_RATIO_LOW(.2, FILTER_TYPE.GTE_FILTER),
+		// /**
+		// * Used for filtering by the upper bound for average allelic ratio across alternate calls
+		// */
+		// ALLELE_RATIO_HIGH(.8, FILTER_TYPE.LTE_FILTER)
+		;
 
 		private double dFilter;
 		private FILTER_TYPE type;
@@ -263,7 +275,7 @@ public class FilterNGS implements Serializable {
 			case GT_FILTER:
 				passes = value > filterThreshold;
 				break;
-			case LTE:
+			case LTE_FILTER:
 				passes = value <= filterThreshold;
 				break;
 			case LT_FILTER:
@@ -405,6 +417,15 @@ public class FilterNGS implements Serializable {
 			}
 		};
 	}
+	
+//	private VcFilterDouble getHetAlleleRatioFilter(VARIANT_FILTER_DOUBLE dfilter){
+//		return new VcFilterDouble(dfilter) {
+//			@Override
+//			public Double getValue(VariantContext vc) {
+//				if(VCOps.getAltAlleleContext(vc, altAlleleDepth, type, log))
+//			}
+//		};
+//	}
 
 	private VcFilterDouble getMACFilter(VARIANT_FILTER_DOUBLE dfilter) {
 		return new VcFilterDouble(dfilter) {
@@ -549,6 +570,10 @@ public class FilterNGS implements Serializable {
 			}
 		}
 
+		public Logger getLog() {
+			return log;
+		}
+
 		public VcFilterDouble[] getvDoubles() {
 			return vDoubles;
 		}
@@ -637,7 +662,7 @@ public class FilterNGS implements Serializable {
 			super();
 			this.casePop = casePop;
 			this.refPop = refPop;
-			mafRef.setType(FILTER_TYPE.LTE);
+			mafRef.setType(FILTER_TYPE.LTE_FILTER);
 			this.totalPop = new HashSet<String>();
 		}
 
@@ -677,7 +702,7 @@ public class FilterNGS implements Serializable {
 				VariantContext vcCase = VCOps.getSubset(vc, casePop);
 				pass = caseFilters.filter(vcCase);
 				if (pass.passed()) {
-					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase, -1);
+					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase, -1, log);
 					pass = caseFilters.filter(vcAlts);
 					if (pass.passed()) {
 					}
@@ -746,7 +771,7 @@ public class FilterNGS implements Serializable {
 	}
 
 	/**
-	 * @return filter that removes reads with reference of star 
+	 * @return filter that removes reads with reference of star
 	 */
 	public SamRecordFilter getValidReferenceFilter() {
 		return new SamRecordFilter() {
