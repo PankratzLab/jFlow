@@ -1,5 +1,6 @@
 package seq.manage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -10,6 +11,8 @@ import common.AlleleFreq;
 import common.Array;
 import common.Logger;
 import common.Positions;
+import filesys.GeneData;
+import filesys.GeneTrack;
 import filesys.Segment;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -405,6 +408,18 @@ public class VCOps {
 
 		}
 		return vcSub;
+	}
+
+	public static GeneData[] getGenesThatOverlap(VariantContext vc, GeneTrack geneTrack, Logger log) {
+		ArrayList<GeneData> tmp = new ArrayList<GeneData>();
+		for (int j = 0; j < geneTrack.getGenes().length; j++) {
+			for (int j2 = 0; j2 < geneTrack.getGenes()[j].length; j2++) {
+				if (VCOps.getSegment(vc).overlaps(geneTrack.getGenes()[j][j2])) {
+					tmp.add(geneTrack.getGenes()[j][j2]);
+				}
+			}
+		}
+		return tmp.toArray(new GeneData[tmp.size()]);
 	}
 
 	public static boolean isInTheseSegments(VariantContext vc, Segment[] orderedSegs) {

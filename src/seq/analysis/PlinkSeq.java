@@ -72,7 +72,8 @@ public class PlinkSeq {
 	 *
 	 */
 	public enum BURDEN_Tests {
-		BURDEN, UNIQ, VT, FW, CALPHA, SUMSTAT, FRQWGT
+		BURDEN
+		// , UNIQ, VT, FW, CALPHA, SUMSTAT, FRQWGT
 	}
 
 	private enum LOAD_TYPES {
@@ -316,14 +317,14 @@ public class PlinkSeq {
 				}
 			}
 			if (bTests != null) {
-				String[] tests = new String[bTests.length]; // note that we skip FRQWGT here
+				String[] tests = new String[bTests.length+1]; // note that we skip FRQWGT here
 				tests[0] = TESTS;
 				int index = 1;
 				for (int i = 0; i < bTests.length; i++) {
-					if (bTests[i] != BURDEN_Tests.FRQWGT) {
-						tests[index] = (bTests[i] + "").toLowerCase();
-						index++;
-					}
+					// if (bTests[i] != BURDEN_Tests.FRQWGT) {
+					tests[index] = (bTests[i] + "").toLowerCase();
+					index++;
+					// }
 				}
 				commandBase = Array.concatAll(commandBase, tests);
 			}
