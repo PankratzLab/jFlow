@@ -259,7 +259,7 @@ public class FilterCalls {
 			for (CNVariant comp : compCNVs) {
 				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				if (comp.getScore() < score) continue;
-				if ((comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 && comp.getNumMarkers() < probes)) continue;
+				if (/*(comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 &&*/ comp.getNumMarkers() < probes/*)*/) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= ((double)(cnv.getSize()) * overlapThreshold)) {
@@ -330,7 +330,7 @@ public class FilterCalls {
 			for (CNVariant comp : compCNVs) {
 				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				if (comp.getScore() < score) continue;
-				if ((comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 && comp.getNumMarkers() < probes)) continue;
+				if (/*(comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 &&*/ comp.getNumMarkers() < probes/*)*/) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= ((double)(cnv.getSize()) * overlapThreshold)) {
@@ -1617,6 +1617,8 @@ public class FilterCalls {
 	
 	
 //	dir="D:/SIDS and IQ/" in="penncnv.cnv" out="IQ/c10_p3,15.cnv" delSize=15 hDelSize=4 dupSize=15 hDupSize=15 filterFile="N:/statgen/NCBI/problematicRegions_hg19.dat" breakCentromere=true
+//	in=D:/data/gedi_gwas/regions.cnv list=D:/data/gedi_gwas/data/merged_split.cnv out=D:/data/gedi_gwas/regions_major.cnv minScore=10 number=15 -stats famFile=D:/data/gedi_gwas/gedi_gwas_plink.fam
+//  in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv list=D:/data/ny_registry/new_york/penncnvShadow/combinedAX.cnv out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_repeat.cnv minScore=10 number=15 -stats
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -1930,3 +1932,18 @@ public class FilterCalls {
 		}
 	}
 }
+
+
+
+
+/*
+   in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv 
+   lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv 
+   out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_repeat.cnv 
+   minScore=10 number=15 -stats
+ 
+   in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv 
+   lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv,D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/female/recodedF.cnv 
+   out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_repeat.cnv 
+   minScore=0 number=0 -stats
+ */
