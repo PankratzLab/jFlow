@@ -1046,13 +1046,15 @@ public class SeqMeta {
 
 	public static String[] procFile(String outputFilename, Logger log) {
 		BufferedReader reader;
-		String[] line;
+		String[] header, line;
 		String temp;
 		int count;
 		String delimiter;
 		DoubleVector[] dvs;
 		String[] metrics;
 		int maxSamples;
+		int pvalIndex, mafIndex, ntotalIndex, betaIndex;
+		boolean[] keeps;
 		
 		count = 0;
 		maxSamples = 0;
@@ -1063,8 +1065,22 @@ public class SeqMeta {
 			reader = new BufferedReader(new FileReader(outputFilename));
 			temp = ext.replaceAllWith(reader.readLine(), "\"", "");
 			delimiter = ext.determineDelimiter(temp);
+			if (delimiter.equals(",")) {
+				header = ext.splitCommasIntelligently(temp, true, log);
+			} else {
+				header = temp.split(delimiter, -1);
+			}
+			
+			keeps = Array.booleanArray(header.length, true);
+			if (header[4].equals("caf")) {
+				keeps[4] = false;
+			}
 
-			if (ext.checkHeader(temp.split(delimiter, -1), HEADER_TYPES[0], Array.intArray(HEADER_TYPES[0].length), false, log, false)) {
+			if (ext.checkHeader(Array.subArray(header, keeps), HEADER_TYPES[0], Array.intArray(HEADER_TYPES[0].length), false, log, false)) {
+				pvalIndex = ext.indexOfStr("p", header, false, true);
+				mafIndex = ext.indexOfStr("maf", header, false, true);
+				ntotalIndex = ext.indexOfStr("ntotal", header, false, true);
+				betaIndex = ext.indexOfStr("beta", header, false, true);
 				while (reader.ready()) {
 					if (delimiter.equals(",")) {
 						line = ext.splitCommasIntelligently(reader.readLine().trim(), true, log);
@@ -1072,22 +1088,22 @@ public class SeqMeta {
 						line = reader.readLine().trim().split(delimiter, -1);
 					}
 					try {
-						if (!line[5].equals("0")) {
+						if (!line[ntotalIndex].equals("0")) {
 							count++;
-							if (Integer.parseInt(line[5]) > maxSamples) {
-								maxSamples = Integer.parseInt(line[5]);
+							if (Integer.parseInt(line[ntotalIndex]) > maxSamples) {
+								maxSamples = Integer.parseInt(line[ntotalIndex]);
 							}
-							if (Double.parseDouble(line[3]) >= 0.01) {
-								dvs[0].add(Double.parseDouble(line[2]));
-								dvs[1].add(Math.abs(Double.parseDouble(line[6])));
+							if (Double.parseDouble(line[mafIndex]) >= 0.01) {
+								dvs[0].add(Double.parseDouble(line[pvalIndex]));
+								dvs[1].add(Math.abs(Double.parseDouble(line[betaIndex])));
 							}
-							if (Double.parseDouble(line[3])*Double.parseDouble(line[5]) >= 10) {
-								dvs[2].add(Double.parseDouble(line[2]));
-								dvs[3].add(Math.abs(Double.parseDouble(line[6])));
+							if (Double.parseDouble(line[mafIndex])*Double.parseDouble(line[ntotalIndex]) >= 10) {
+								dvs[2].add(Double.parseDouble(line[pvalIndex]));
+								dvs[3].add(Math.abs(Double.parseDouble(line[betaIndex])));
 							}
-							if (Double.parseDouble(line[3]) >= 0.05) {
-								dvs[4].add(Double.parseDouble(line[2]));
-								dvs[5].add(Math.abs(Double.parseDouble(line[6])));
+							if (Double.parseDouble(line[mafIndex]) >= 0.05) {
+								dvs[4].add(Double.parseDouble(line[pvalIndex]));
+								dvs[5].add(Math.abs(Double.parseDouble(line[betaIndex])));
 							}
 						}
 					} catch (Exception e) {
@@ -1701,7 +1717,7 @@ public class SeqMeta {
 		}
 		
 		header = Files.getHeaderOfFile(filename, ",!", log);
-		expected = gwas.SkatMeta.getHeaderForMethod(method);
+		expected = getHeaderForMethod(method);
 		if (!ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, false)) {
 			log.reportError("Error - unexpected header for file "+filename);
 			System.exit(1);
@@ -3009,7 +3025,7 @@ public class SeqMeta {
 						return;
 					}
 					
-					
+					// make sure to determine mafIndex, etc. instead of relying on numbers, as old seqMeta results files won't have caf
 //					hash.get(line[1]).put(studyIndex+"\t"+raceIndex, new String[] {line[3], line[5]});
 				}
 			}

@@ -108,9 +108,16 @@ public class ParseSNPlocations {
 								} else if (trav != null) {
 									log.reportError("FYI - "+line[0]+" has merged with rs"+trav);
 									index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
-									chr = dbChrs[index];
-									position = dbPositions[index]+ParseSNPlocations.OFFSET;
-									index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
+									
+									if (index == -1) {
+										log.reportError("Error - could not find rs"+trav+" in "+db+"; must have been added after this db was released");
+										chr = (byte)0;
+										position = 0;
+									} else {
+										chr = dbChrs[index];
+										position = dbPositions[index]+ParseSNPlocations.OFFSET;
+										index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
+									}
 								} else {
 									log.reportError("Error - tried and failed to find a merge record for "+line[0]);
 								}
