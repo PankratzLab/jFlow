@@ -184,7 +184,7 @@ public class Project {
 				}
 			}
 			if (!Files.exists(tempValue, getProject().JAR_STATUS.getValue())) {
-				if (mkdirs && getProject().JAR_STATUS.getValue()) {
+				if (mkdirs/* && getProject().JAR_STATUS.getValue()*/) {
 					(new File(tempValue)).mkdirs();
 				} else if (verbose) {
 					if (isDir) {
