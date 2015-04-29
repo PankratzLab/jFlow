@@ -228,9 +228,15 @@ public class PowerCalculator {
 //			rangeOfMaf(0.01, 0.01, 400, 400, 100000, false); // Diabetes
 //			rangeOfMaf(0.15, 0.01, 882, 838, 118, false); // Indian follow up v1 all samples
 //			rangeOfMaf(0.15, 0.01, 441, 438, 118, false); // Indian follow up v1 early onset cases
-//			rangeOfMaf(0.1, 0.01, 1277, 1237, 169, false); // Indian follow up v2
-//			rangeOfMaf(0.001, 0.01, 285, 1500, 500, false); // Logan's ALL grant
-			rangeOfMaf(0.001, 0.01, 1000, 5000, 100, false); // Logan's ALL grant
+//			rangeOfMaf(0.001, 0.01, 285, 1500, 500, false); // Logan's ALL grant v1
+//			rangeOfMaf(0.001, 0.01, 1500, 1500, 1000, false); // Logan's ALL grant v1
+//			rangeOfMaf(0.001, 0.01, 1350, 1350, 1000, false); // Logan's ALL grant v2
+//			rangeOfMaf(0.001, 0.01, 365, 1350, 500, false); // Logan's ALL grant v2
+			rangeOfMaf(0.001, 0.01, 985, 1350, 500, false); // Logan's ALL grant v2
+//			rangeOfMaf(0.001, 0.01, 1350, 1350, 1, false); // Logan's ALL grant v2
+//			rangeOfMaf(0.001, 0.01, 365, 1350, 1, false); // Logan's ALL grant v2
+//			rangeOfMaf(0.001, 0.01, 985, 1350, 1, false); // Logan's ALL grant v2
+
 			
 			
 //			rangeOfRelativeRisk(0.15, 200, false);

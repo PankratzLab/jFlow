@@ -918,7 +918,9 @@ public class Project {
 				}
 				String[] parts = line.split("=");
 				if (containsKey(parts[0])) {
-					setProperty(parts[0], parts[1]);
+					if (parts.length > 1) {
+						setProperty(parts[0], parts[1]);
+					}
 				} else {
 					System.err.println("Error - unknown property key found: {" + line + "}");
 				}
