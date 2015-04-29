@@ -16,7 +16,6 @@ import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.pathway.GenomeRegions;
 import seq.pathway.Pathways;
 import common.Array;
-import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.Positions;
@@ -38,37 +37,26 @@ public class VCFTallyPSeq extends VCFTally {
 	public VCFTallyPSeq(String vcf, GenomeRegions geneTrack, VcfPopulation vpop, CASE_CONTROL_TYPE type, String plinkSeqResourceDirectory, String plinkSeqProjName, Logger log) {
 		super(vcf, geneTrack, vpop, type, log);
 		VCFOps.verifyIndexRegular(vcf, log);
-		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + ".reg";
+		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(geneTrack, locFile, log);
 
 		// VCFOps.gzipAndIndex(vcf, log);
 		this.plinkSeq = new PlinkSeq(false, true, log);
-		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, vcf, vpop, plinkSeqResourceDirectory, log);
-
-	}
-
-	private void tallyCaseControlVCF(int altAlleleDepth) {
+		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, vcf, vpop, plinkSeqResourceDirectory, true, true, log);
 		this.varList = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName(), true) + ".varList";
-		// if (!Files.exists(varList)) {
-		tallyCaseControlVCF(altAlleleDepth, varList);
-		plinkSeq.eraseAndLoadVarSet(pseqProject, varList);
-		//
-		// } else {
-		// log.reportFileExists(varList);
-		// log.reportTimeWarning("Assuming Variant sets have not changed");
-		// }
+
 	}
 
 	public void fullGamutAssoc(int numPerm, String mac, int altAlleleDepth, String fullpathToChargeVCF, int numThreads) {
-		tallyCaseControlVCF(altAlleleDepth);
+		tallyCaseControlVCF(altAlleleDepth, varList);
 		tallyCharge(fullpathToChargeVCF);
+		plinkSeq.eraseAndLoadVarSet(pseqProject, varList);
 
 		String fullPathToOutput = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName()) + "_" + type + ".summary";
-
+		// System.out.println(varList + "\n" + fullPathToOutput);
 		String[] varMasks = Array.unique(HashVec.loadFileToStringArray(varList, false, new int[] { 1 }, true));
 		summarize(fullPathToOutput);
 		String locFile = pseqProject.getResourceDirectory() + ext.rootOf(genomeRegions.getGeneTrack().getGeneSetFilename() + ".reg");
-		PlinkSeqUtils.generatePlinkSeqLoc(genomeRegions, locFile, log);
 
 		PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, varMasks, numPerm, mac, ext.rootOf(vpop.getFileName()), numThreads);
 		this.summaries = new PlinkSeqBurdenSummary[SNPEFF_NAMES.length];
@@ -82,6 +70,7 @@ public class VCFTallyPSeq extends VCFTally {
 				analysis = analysis.replaceAll("_" + this.type + ".*", "");
 				PlinkSeqBurdenSummary plinkSeqBurdenSummary = new PlinkSeqBurdenSummary(analysis, complete[i].getOutputFiles()[0], log);
 				plinkSeqBurdenSummary.load();
+				plinkSeqBurdenSummary.correctPvalues();
 				summaries[index] = plinkSeqBurdenSummary;
 				index++;
 				break;
@@ -107,16 +96,19 @@ public class VCFTallyPSeq extends VCFTally {
 		String fullPathToOutput = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName()) + "_" + type + ".hit.summary";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
-			writer.print("GENE\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length");
+			writer.print("GENE\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length\tmultiLoc");
 			for (int i = 0; i < trackersCase.length; i++) {
-				writer.print("\t" + trackersCase[i].getTallyName() + "_NUM_VAR" + "\t" + trackersCase[i].getTallyName() + "_NUM_INDS" + "\t" + trackersControl[i].getTallyName() + "_NUM_VAR" + "\t" + trackersControl[i].getTallyName() + "_NUM_INDS" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
-
+				writer.print("\t" + trackersCase[i].getTallyName() + "_NUM_VAR" + "\t" + trackersCase[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersCase[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersControl[i].getTallyName() + "_NUM_VAR" + "\t" + trackersControl[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersControl[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
 			}
 			for (int i = 0; i < trackersCase.length; i++) {
-				writer.print("\t" + trackersCase[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersCase[i].getTallyName() + "_NUM_INDS" + "\t" + trackersControl[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersControl[i].getTallyName() + "_NUM_INDS" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
+				writer.print("\t" + trackersCase[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersCase[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersCase[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersControl[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersControl[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersControl[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
 				for (int j = 0; j < BURDEN_Tests.values().length; j++) {
 					BURDEN_Tests test = BURDEN_Tests.values()[j];
 					writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_P" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_I" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_DESC" + (test == BURDEN_Tests.BURDEN ? "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCASE" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCONTROLS" : ""));
+					writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_BONF_FULL_P");
+					for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+						writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_BONF_I_" + PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS[k] + "_P");
+					}
 				}
 			}
 			writer.println();
@@ -127,23 +119,26 @@ public class VCFTallyPSeq extends VCFTally {
 					String chr = Positions.getChromosomeUCSC(trackersCase[0].getGene(set)[0].getChr(), true);
 					String start = trackersCase[0].getGene(set)[0].getStart() + "";
 					String stop = trackersCase[0].getGene(set)[0].getStop() + "";
-
-					writer.print(set + "\t" + chr + "\t" + start + "\t" + stop + "\t" + trackersCase[0].getGene(set)[0].getUCSCLink("hg19") + "\t" + trackersCase[0].getGeneTotalLength(set) + "\t" + trackersCase[0].getGeneTotalMrnaLength(set));
+					writer.print(set + "\t" + chr + "\t" + start + "\t" + stop + "\t" + trackersCase[0].getGene(set)[0].getUCSCLink("hg19") + "\t" + trackersCase[0].getGeneTotalLength(set) + "\t" + trackersCase[0].getGeneTotalMrnaLength(set) + "\t" + (trackersCase[0].getGene(set)[0].getMultiLoc() > 0));
 				} else {
-					writer.print(set + "\tNA\tNA\tNA\tNA\tNA\tNA");
-
+					writer.print(set + "\tNA\tNA\tNA\tNA\tNA\tNA\tTRUE");
 				}
 
 				for (int i = 0; i < trackersCase.length; i++) {
 					int numCases = trackersCase[i].getUniqs().get(set).size();
 					int numControls = trackersControl[i].getUniqs().get(set).size();
-					writer.print("\t" + trackersCase[i].getTally().get(set) + "\t" + numCases + "\t" + trackersControl[i].getTally().get(set) + "\t" + numControls + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set)));
+					int totalCasesWithAlt = trackersCase[i].getAll().get(set).size();
+					int totalControlsWithAlt = trackersControl[i].getAll().get(set).size();
+
+					writer.print("\t" + trackersCase[i].getTally().get(set) + "\t" + numCases + "\t" + totalCasesWithAlt + "\t" + trackersControl[i].getTally().get(set) + "\t" + numControls + "\t" + totalControlsWithAlt + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set)));
 
 				}
 				for (int i = 0; i < trackersCase.length; i++) {
 					int numCases = trackersCase[i].getUniqs().get(set).size();
 					int numControls = trackersControl[i].getUniqs().get(set).size();
-					writer.print("\t" + trackersCase[i].getTallyMAC().get(set) + "\t" + numCases + "\t" + trackersControl[i].getTallyMAC().get(set) + "\t" + numControls + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set)));
+					int totalCasesWithAlt = trackersCase[i].getAll().get(set).size();
+					int totalControlsWithAlt = trackersControl[i].getAll().get(set).size();
+					writer.print("\t" + trackersCase[i].getTallyMAC().get(set) + "\t" + numCases + "\t" + totalCasesWithAlt + "\t" + trackersControl[i].getTallyMAC().get(set) + "\t" + numControls + "\t" + totalControlsWithAlt + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set)));
 					for (int j = 0; j < summaries.length; j++) {
 						if (trackersCase[i].getTallyName().endsWith(summaries[j].getAnalysis())) {
 							for (int j2 = 0; j2 < BURDEN_Tests.values().length; j2++) {
@@ -159,8 +154,18 @@ public class VCFTallyPSeq extends VCFTally {
 										log.reportTimeError("Did not find two counts for burden test");
 									}
 									writer.print("\t" + pstSummary.getP() + "\t" + pstSummary.getI() + "\t" + "" + pstSummary.getDesc().replaceAll("/", "::").replaceAll("/", "::") + (test == BURDEN_Tests.BURDEN ? "\t" + Array.toStr(desc) : ""));
+									writer.print("\t" + pstSummary.getBonfFull());
+									for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+										writer.print("\t" + pstSummary.getBonfsI()[k]);
+									}
+
 								} else {
 									writer.print("\t1\t1\tNO_TEST" + (test == BURDEN_Tests.BURDEN ? "\t0\t0" : ""));
+									writer.print("\t1");
+									for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+										writer.print("\t1");
+									}
+
 								}
 							}
 						}
@@ -192,13 +197,14 @@ public class VCFTallyPSeq extends VCFTally {
 
 	public static void test() {
 		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
+		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.errorRegions2.vcf";
 		String[] vpopFiles = new String[] { "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt" };
 		String fullpathToChargeVCF = "/panfs/roc/groups/14/tsaim/shared/bin/CHARGE/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
 		String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
 		Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
 		String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
 		String keggPathwayFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/kegg.ser";
-		int altAlleleDepth = 6;
+		int altAlleleDepth = -1;
 
 		VcfPopulation vpop = VcfPopulation.load(vpopFiles[0], POPULATION_TYPE.CASE_CONTROL, log);
 		vpop.report();
