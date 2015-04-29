@@ -37,12 +37,12 @@ public class VCFTallyPSeq extends VCFTally {
 	public VCFTallyPSeq(String vcf, GenomeRegions geneTrack, VcfPopulation vpop, CASE_CONTROL_TYPE type, String plinkSeqResourceDirectory, String plinkSeqProjName, Logger log) {
 		super(vcf, geneTrack, vpop, type, log);
 		VCFOps.verifyIndexRegular(vcf, log);
-		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + ".reg";
+		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(geneTrack, locFile, log);
 
 		// VCFOps.gzipAndIndex(vcf, log);
 		this.plinkSeq = new PlinkSeq(false, true, log);
-		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, vcf, vpop, plinkSeqResourceDirectory, false, false, log);
+		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, vcf, vpop, plinkSeqResourceDirectory, true, true, log);
 		this.varList = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName(), true) + ".varList";
 
 	}
@@ -53,7 +53,7 @@ public class VCFTallyPSeq extends VCFTally {
 		plinkSeq.eraseAndLoadVarSet(pseqProject, varList);
 
 		String fullPathToOutput = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName()) + "_" + type + ".summary";
-		//System.out.println(varList + "\n" + fullPathToOutput);
+		// System.out.println(varList + "\n" + fullPathToOutput);
 		String[] varMasks = Array.unique(HashVec.loadFileToStringArray(varList, false, new int[] { 1 }, true));
 		summarize(fullPathToOutput);
 		String locFile = pseqProject.getResourceDirectory() + ext.rootOf(genomeRegions.getGeneTrack().getGeneSetFilename() + ".reg");
@@ -196,8 +196,8 @@ public class VCFTallyPSeq extends VCFTally {
 	}
 
 	public static void test() {
-		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
-		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.errorRegions2.vcf";
+		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
+		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.errorRegions2.vcf";
 		String[] vpopFiles = new String[] { "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt" };
 		String fullpathToChargeVCF = "/panfs/roc/groups/14/tsaim/shared/bin/CHARGE/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
 		String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
