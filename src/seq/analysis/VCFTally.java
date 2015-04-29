@@ -72,31 +72,43 @@ public class VCFTally {
 			Set<String> all = new HashSet<String>();
 			all.addAll(cases);
 			all.addAll(controls);
+			if (cases.size() >= controls.size()) {
+				log.reportTimeError("Since the case/control ratio is gte 0.5, a filtering procedure to remove minor alleles that are not alternate alleles may exclude informative variants, please add more controls");
+			}
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(outputList, false));
-				// for (int i = 0; i < SNPEFF_NAMES.length; i++) {
-				// writer.println(SNPEFF_NAMES[i] + "\t" + SNPEFF_NAMES[i]);
-				// }
 				for (VariantContext vc : reader) {
 					index++;
-					VariantContext vcCase = VCOps.getSubset(vc, cases);
-					VariantContext vcControl = VCOps.getSubset(vc, controls);
+					VariantContext vcPop = VCOps.getSubset(vc, all);
+					if (VCOps.isMinorAlleleAlternate(vcPop, null) && VCOps.getAAC(vcPop, null) > 0) {// minor allele is alt
 
-					if ((type == CASE_CONTROL_TYPE.BOTH_PASS && totalQuality.filter(vcCase).passed() && totalQuality.filter(vcControl).passed()) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcCase).passed() || totalQuality.filter(vcControl).passed()))) {
-						VariantContext vcAlts = VCOps.getAltAlleleContext(VCOps.getSubset(vc, all), altAlleleDepth);
-						if (totalQuality.filter(vcAlts).passed()) {
-							for (int i = 0; i < trackersCase.length; i++) {
-								int caseAdded = trackersCase[i].addIfPasses(vcCase, altAlleleDepth);
-								int controlAdded = trackersControl[i].addIfPasses(vcControl, altAlleleDepth);
-								if (caseAdded + controlAdded > 0) {
-									Segment vcSeg = VCOps.getSegment(vc);
-									writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t" + Positions.getChromosomeUCSC((int) vcSeg.getChr(), true) + ":" + vcSeg.getStart() + (vcSeg.getStop() == vcSeg.getStart() ? "" : ".." + vcSeg.getStop()));
+						VariantContext vcCase = VCOps.getSubset(vc, cases);
+						VariantContext vcControl = VCOps.getSubset(vc, controls);
+
+						if ((type == CASE_CONTROL_TYPE.BOTH_PASS && totalQuality.filter(vcCase).passed() && totalQuality.filter(vcControl).passed()) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcCase).passed() || totalQuality.filter(vcControl).passed()))) {
+
+							VariantContext vcAltCase = VCOps.getAltAlleleContext(vcCase, altAlleleDepth, log);
+							VariantContext vcAltControl = VCOps.getAltAlleleContext(vcControl, altAlleleDepth, log);
+							boolean hasCaseAlt = vcAltCase.getSampleNames().size() > 0;
+							boolean hasAltControl = vcAltControl.getSampleNames().size() > 0;
+
+							if ((type == CASE_CONTROL_TYPE.BOTH_PASS && (!hasCaseAlt || totalQuality.filter(vcAltCase).passed()) && (!hasAltControl || totalQuality.filter(vcAltControl).passed())) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcAltCase).passed() || totalQuality.filter(vcAltControl).passed()))) {
+								GeneData[] genesThatOverlap = VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
+								for (int i = 0; i < trackersCase.length; i++) {
+									int caseAdded = trackersCase[i].addIfPasses(vcCase, genesThatOverlap, altAlleleDepth);
+									int controlAdded = trackersControl[i].addIfPasses(vcControl, genesThatOverlap, altAlleleDepth);
+									if (caseAdded + controlAdded > 0) {
+										Segment vcSeg = VCOps.getSegment(vc);
+										writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t" + Positions.getChromosomeUCSC((int) vcSeg.getChr(), true) + ":" + vcSeg.getStart() + (vcSeg.getStop() == vcSeg.getStart() ? "" : ".." + vcSeg.getStop()));
+									}
 								}
 							}
 						}
 					}
+					// }
 					if (index % 10000 == 0) {
 						log.reportTimeInfo("Scanned " + index + " total variants from " + ext.removeDirectoryInfo(vcf));
+						log.reportTimeInfo("Currently on " + VCOps.getSegment(vc).getUCSClocation());
 						// log.reportTimeError("JOHN REMEMBER THIS CUTOFF");
 						// writer.close();
 						//
@@ -159,8 +171,9 @@ public class VCFTally {
 		int count = 0;
 		VCFFileReader reader = new VCFFileReader(fullpathToChargeVCF, false);
 		for (VariantContext vc : reader) {
+			GeneData[] genesThatOverlap = VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
 			for (int i = 0; i < trackersCharge.length; i++) {
-				trackersCharge[i].addIfPasses(vc, -1);
+				trackersCharge[i].addIfPasses(vc, genesThatOverlap, -1);
 			}
 			count++;
 			if (count % 10000 == 0) {
@@ -245,6 +258,7 @@ public class VCFTally {
 		private VariantContextFilter[] vContextFilters;
 		private ArrayList<GenePass> passingLocs;
 		private Hashtable<String, HashSet<String>> uniqs;
+		private Hashtable<String, ArrayList<String>> all;
 		private Logger log;
 		private boolean charge;
 
@@ -260,6 +274,7 @@ public class VCFTally {
 			this.charge = false;
 			this.passingLocs = new ArrayList<VCFTally.GenePass>();
 			this.uniqs = new Hashtable<String, HashSet<String>>();
+			this.all = new Hashtable<String, ArrayList<String>>();
 			populateQuery();
 		}
 
@@ -284,6 +299,7 @@ public class VCFTally {
 						curChr = gDatas[chr][chrIndex].getChr();
 						curPos = gDatas[chr][chrIndex].getStart();
 					}
+					all.put(gDatas[chr][chrIndex].getGeneName(), new ArrayList<String>());
 					uniqs.put(gDatas[chr][chrIndex].getGeneName(), new HashSet<String>());
 					geneSegs[index] = new Segment(gDatas[chr][chrIndex].getChr(), gDatas[chr][chrIndex].getStart(), gDatas[chr][chrIndex].getStop());
 					geneSegTrack.put(index, new int[] { chr, chrIndex });
@@ -293,6 +309,7 @@ public class VCFTally {
 			Pathway[] ways = gRegions.getPathways().getPathways();
 			for (int i = 0; i < ways.length; i++) {
 				uniqs.put(ways[i].getPathwayName(), new HashSet<String>());
+				all.put(ways[i].getPathwayName(), new ArrayList<String>());
 			}
 		}
 
@@ -333,66 +350,46 @@ public class VCFTally {
 			return tallyMAC;
 		}
 
-		public int addIfPasses(VariantContext vc, int altAlleleDepth) {
+		public int addIfPasses(VariantContext vc, GeneData[] geneDatas, int altAlleleDepth) {
 			int numAdded = 0;
 			for (int i = 0; i < vContextFilters.length; i++) {
 				if (!vContextFilters[i].filter(vc).passed()) {
 					return numAdded;
 				}
 			}
-			VariantContext alts = VCOps.getAltAlleleContext(vc, altAlleleDepth);
-			if (!charge && alts.getSampleNames().size() <= 0) {
+			if (!charge && VCOps.getAAC(vc, null) <= 0) {
 				return numAdded;
 			}
-			for (int i = 0; i < vContextFilters.length; i++) {
-				// if (!vContextFilters[i].filter(alts).passed()) {
-				//
-				// return numAdded;
-				// }
-			}
+
 			double mac = Double.NaN;
 			if (!charge) {
-				mac = VCOps.getAAC(alts, null);
+				mac = VCOps.getAAC(vc, null);
 			} else {
 				mac = vc.getCommonInfo().getAttributeAsDouble("MAF_whites", 0.0) + vc.getCommonInfo().getAttributeAsDouble("MAF_blacks", 0.0);
-				// System.out.println(vc.getCommonInfo().getAttributeAsDouble("MAF_blacks", 0.0));
 			}
 
 			if (mac > 0) {
-				if (mac < alts.getSampleNames().size()) {// reference is minor allele
-					// System.out.println(alts.toStringWithoutGenotypes());
-					log.reportTimeError("AAC is less than sample size of alt allele context, skipping due to reference minor allele");
-					log.reportTimeError("AAC =" + mac + " for " + alts.getSampleNames().size() + " calls : allele depth = " + altAlleleDepth);
-					log.reportTimeInfo(alts.toStringDecodeGenotypes());
-					System.exit(1);
-					return numAdded;
-				}
-				int[] matches = Segment.binarySearchForAllOverLappingIndices(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()), geneSegs);
-				if (matches != null && matches.length > 0) {
-					GeneData[] geneDatas = new GeneData[matches.length];
+				if (geneDatas.length > 0) {
 					for (int i = 0; i < geneDatas.length; i++) {
-						int[] indices = geneSegTrack.get(matches[i]);
-						geneDatas[i] = gRegions.getGeneTrack().getGenes()[indices[0]][indices[1]];
-					}
-					if (geneDatas.length > 0) {
-						for (int i = 0; i < geneDatas.length; i++) {
-							Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
-							if (!charge) {
-								passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
-								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
-								uniqs.get(geneDatas[i].getGeneName()).addAll(alts.getSampleNames());
-								for (int j = 0; j < ways.length; j++) {
-									uniqs.get(ways[j].getPathwayName()).addAll(alts.getSampleNames());
-									addTally(ways[j].getPathwayName(), 1, (float) mac);
-								}
-							} else {
-								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
-								for (int j = 0; j < ways.length; j++) {
-									addTally(ways[j].getPathwayName(), 1, (float) mac);
-								}
+						Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
+						if (!charge) {
+							passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
+							addTally(geneDatas[i].getGeneName(), 1, (float) mac);
+							Set<String> samplesWithAlts = VCOps.getAltAlleleContext(vc, -1, log).getSampleNames();
+							uniqs.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
+							all.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
+							for (int j = 0; j < ways.length; j++) {
+								uniqs.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
+								all.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
+								addTally(ways[j].getPathwayName(), 1, (float) mac);
 							}
-							numAdded++;
+						} else {
+							addTally(geneDatas[i].getGeneName(), 1, (float) mac);
+							for (int j = 0; j < ways.length; j++) {
+								addTally(ways[j].getPathwayName(), 1, (float) mac);
+							}
 						}
+						numAdded++;
 					}
 				}
 			}
@@ -419,6 +416,10 @@ public class VCFTally {
 
 		public Hashtable<String, HashSet<String>> getUniqs() {
 			return uniqs;
+		}
+
+		public Hashtable<String, ArrayList<String>> getAll() {
+			return all;
 		}
 
 		public GeneData[] getGene(String gene) {

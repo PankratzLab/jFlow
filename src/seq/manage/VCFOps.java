@@ -591,7 +591,7 @@ public class VCFOps {
 
 	}
 
-	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bamDir, String outputDir, boolean skipFiltered, boolean gzipOutput, Logger log) {
+	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
 		if (vcf == null || !Files.exists(vcf)) {
@@ -607,11 +607,15 @@ public class VCFOps {
 		String root = ext.rootOf(vcf).replaceFirst(VCF_EXTENSIONS.REG_VCF.getLiteral(), "");
 
 		VCFFileReader reader = new VCFFileReader(vcf, true);
-		if (bamDir == null) {
+		if (bams == null) {
 			log.reportTimeInfo("A bam directory was not provided, skipping bam extraction");
 		} else {
 			log.reportTimeInfo("A bam directory was provided, extracting bams to " + dir);
-			bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log, true);
+			if (Files.isDirectory(bams)) {
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bams, ".bam", false), log, true);
+			} else {
+				bamSample = new BamExtractor.BamSample(HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, false), log, true);
+			}
 			bamSample.generateMap();
 			bamSample.getBamSampleMap();
 			bamSample.verify(getSamplesInFile(reader));
@@ -787,7 +791,7 @@ public class VCFOps {
 		int bpBuffer = 0;
 		UTILITY_TYPE type = UTILITY_TYPE.GWAS_QC;
 		String segmentFile = null;
-		String bamDir = null;
+		String bams = null;
 		String outDir = null;
 		boolean skipFiltered = false;
 		boolean gzip = false;
@@ -801,7 +805,7 @@ public class VCFOps {
 		usage += "   (4) the type of vcf extension (i.e. pop= (no default))\n" + "";
 		usage += "   (5) full path to a file name with chr,start,stop or *.bim to extract (i.e. segs= (no default))\n" + "";
 		usage += "   (6) bp buffer for segments to extract (i.e. bp=" + bpBuffer + "(default))\n" + "";
-		usage += "   (7) a bam directory to extract associtated reads (i.e. bamdir=" + bamDir + "( no default))\n" + "";
+		usage += "   (7) a bam directory to extract associtated reads (i.e. bams=" + bams + "( no default))\n" + "";
 		usage += "   (8) an output directory for extracted vcfs/minibams (i.e. outDir=" + outDir + "( no default))\n" + "";
 		usage += "   (9) skip filtered variants when extracting (i.e. -skipFiltered (not the default))\n" + "";
 		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
@@ -827,8 +831,8 @@ public class VCFOps {
 			} else if (args[i].startsWith("segs=")) {
 				segmentFile = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith("bamdir=")) {
-				bamDir = ext.parseStringArg(args[i], "");
+			} else if (args[i].startsWith("bams=")) {
+				bams = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("outDir=")) {
 				outDir = ext.parseStringArg(args[i], "");
@@ -867,7 +871,7 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, bpBuffer, bamDir, outDir, skipFiltered, gzip, log);
+				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, log);
 				break;
 			case REMOVE_FILTERED:
 				removeFilteredVariants(vcf, gzip, log);

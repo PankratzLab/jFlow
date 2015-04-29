@@ -54,7 +54,7 @@ public class SeqError {
 	 * @param numthreads
 	 *            if a large number of pairwise comparisons are performed, the number of threads can be increased
 	 */
-	public void populateError(VariantContextFilter vContextFilterVariant, VariantContextFilter vContextFilterSample, FilterNGS filterNGS, int numthreads) {
+	public void populateError(VariantContextFilter vContextFilterVariant, VariantContextFilter vContextFilterSample, FilterNGS filterNGS, int numVariantsToTest, int numthreads) {
 		VCFFileReader reader = new VCFFileReader(vcfFile, true);
 		VCFHeader header = reader.getFileHeader();
 
@@ -71,9 +71,15 @@ public class SeqError {
 				if (index % 100000 == 0) {
 					log.reportTimeInfo(index + " variants processed..." + ext.getTimeElapsed(time));
 					time = System.currentTimeMillis();
-//					reader.close();
-//					train.shutdown();
-//					return;
+					// reader.close();
+					// train.shutdown();
+					// return;
+				}
+				if (numVariantsToTest >= 0 && index == numVariantsToTest) {
+					log.reportTimeInfo(index + " variants processed...," + numVariantsToTest + " variants to test reached " + ext.getTimeElapsed(time));
+					reader.close();
+					train.shutdown();
+					return;
 				}
 				vc.fullyDecode(header, false);
 				DuplicateProducer producer = new DuplicateProducer(vc, vContextFilterSample, dETwos, filterNGS);
@@ -224,7 +230,7 @@ public class SeqError {
 			VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_STRICT);
 			if (variantContextFilter == null || variantContextFilter.filter(vcSub).passed()) {
 				int altAlleleDepth = filterNGS == null || filterNGS.getReadDepthFilter() == null ? 0 : filterNGS.getReadDepthFilter()[0];
-				if (VCOps.getAltAlleleContext(vcSub, altAlleleDepth).getSampleNames().size() > 0) {// has alt call
+				if (VCOps.getAltAlleleContext(vcSub, altAlleleDepth,variantContextFilter.getLog()).getSampleNames().size() > 0) {// has alt call
 					GenotypesContext gc = vcSub.getGenotypes();
 					if (vcSub.getNoCallCount() < dups.size()) {
 						total++;

@@ -18,7 +18,7 @@ import common.WorkerTrain.Producer;
 import common.ext;
 
 public class SeqQCValidation {
-	private static String[] DB_SNP_SETS = new String[] { "snp138=='.'", "snp138!='.'", "(snp138=='.'||snp138!='.')" };
+	private static String[] SNP_SETS = new String[] { "snp138=='.'", "snp138!='.'", "(esp6500si_all=='.'||esp6500si_all <= 0.01)" };
 
 	private FilterNGS filterNGS;
 	private VariantContextFilter vContextFilterSample;
@@ -49,23 +49,25 @@ public class SeqQCValidation {
 		return vContextFilterVariant;
 	}
 
-	public void validate(int numthreads) {
-		seqError.populateError(vContextFilterVariant, vContextFilterSample, filterNGS, numthreads);
+	public void validate(int numVariantsToTest, int numthreads) {
+		seqError.populateError(vContextFilterVariant, vContextFilterSample, filterNGS, numVariantsToTest, numthreads);
 	}
 
 	private static class SeqQCValidationWorker implements Callable<SeqQCValidation> {
 		private SeqQCValidation seqQCValidation;
 		private int numthreads;
+		private int numVariantsToTest;
 
-		public SeqQCValidationWorker(SeqQCValidation seqQCValidation, int numthreads) {
+		public SeqQCValidationWorker(SeqQCValidation seqQCValidation, int numVariantsToTest, int numthreads) {
 			super();
 			this.seqQCValidation = seqQCValidation;
 			this.numthreads = numthreads;
+			this.numVariantsToTest = numVariantsToTest;
 		}
 
 		@Override
 		public SeqQCValidation call() throws Exception {
-			seqQCValidation.validate(numthreads);
+			seqQCValidation.validate(numVariantsToTest, numthreads);
 			return seqQCValidation;
 		}
 
@@ -75,11 +77,13 @@ public class SeqQCValidation {
 
 		private SeqQCValidation[] validations;
 		private int index;
+		private int numVariantsToTest;
 		private Logger log;
 
-		public SeqQCValidationProducer(SeqQCValidation[] validations, Logger log) {
+		public SeqQCValidationProducer(SeqQCValidation[] validations, int numVariantsToTest, Logger log) {
 			super();
 			this.validations = validations;
+			this.numVariantsToTest = numVariantsToTest;
 			this.log = log;
 			this.index = 0;
 		}
@@ -91,7 +95,7 @@ public class SeqQCValidation {
 
 		@Override
 		public Callable<SeqQCValidation> next() {
-			SeqQCValidationWorker worker = new SeqQCValidationWorker(validations[index], 1);
+			SeqQCValidationWorker worker = new SeqQCValidationWorker(validations[index], numVariantsToTest, 1);
 			index++;
 			return worker;
 		}
@@ -111,17 +115,17 @@ public class SeqQCValidation {
 	}
 
 	private static VariantContextFilter[] getWholeVariantFilters(Logger log) {
-		VariantContextFilter[] vContextFilterVariant = new VariantContextFilter[DB_SNP_SETS.length];
+		VariantContextFilter[] vContextFilterVariant = new VariantContextFilter[SNP_SETS.length];
 		for (int i = 0; i < vContextFilterVariant.length; i++) {
-			vContextFilterVariant[i] = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { DB_SNP_SETS[i] }, new String[] { DB_SNP_SETS[i] }, log);
+			vContextFilterVariant[i] = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { SNP_SETS[i] }, new String[] { SNP_SETS[i] }, log);
 		}
 		return vContextFilterVariant;
 	}
 
 	private static VariantContextFilter[] getSampleVariantFilters(Logger log) {
-		double[] GQ_Values = new double[] { -1, 20, 50, 80, 90, 98 };
-		double[] VQSLOD_Values = new double[] { -1, 0, 1, 2, 3 };
-		double[] DEPTH = new double[] { -1, 0, 10, 20 };
+		double[] GQ_Values = new double[] { -1, 20, 30, 40, 50, 60, 70, 80, 90, 98 };
+		double[] VQSLOD_Values = new double[] { -1 };
+		double[] DEPTH = new double[] { -1, 0, 5, 10, 15, 20, 30, 40 };
 		VARIANT_FILTER_BOOLEAN fail = VARIANT_FILTER_BOOLEAN.FAILURE_FILTER;
 
 		VariantContextFilter[] vContextFilterSample = new VariantContextFilter[VQSLOD_Values.length * GQ_Values.length * DEPTH.length];
@@ -171,7 +175,7 @@ public class SeqQCValidation {
 		return filterNGSs;
 	}
 
-	public static void validate(String vcf, String fileOFSamplesForPairWise, int numthreads, Logger log) {
+	public static void validate(String vcf, String fileOFSamplesForPairWise, int numVariantsToTest, int numthreads, Logger log) {
 		String[] sampsForPairWise = fileOFSamplesForPairWise == null ? null : HashVec.loadFileToStringArray(fileOFSamplesForPairWise, false, new int[] { 0 }, true);
 		String output = ext.addToRoot(fileOFSamplesForPairWise, ".validation.summary");
 		FilterNGS[] altDepthFilterNGSs = getAltAlleleDepthFilters(0, 10);
@@ -194,7 +198,7 @@ public class SeqQCValidation {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.println(Array.toStr(SeqError.OUTPUT_HEADER) + "\t" + "SET\tAltDepth\tGQ\tVQSLOD\tDepth");
-			SeqQCValidationProducer producer = new SeqQCValidationProducer(validations, log);
+			SeqQCValidationProducer producer = new SeqQCValidationProducer(validations, numVariantsToTest, log);
 			WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer, numthreads, numthreads, log);
 			while (train.hasNext()) {
 				SeqQCValidation tmp = train.next();
@@ -247,6 +251,7 @@ public class SeqQCValidation {
 		int numArgs = args.length;
 		String vcf = "SeqErrorIterator.vcf";
 		String fileOFSamplesForPairWise = null;
+		int numVariantsToTest = -1;
 		// String fileOFSamplesForPairWise = "D:/data/Project_Tsai_Spector_Joint/ErrorRates/pwise.txt";
 		// String vcf = "D:/data/Project_Tsai_Spector_Joint/joint_genotypes_tsai_21_25_spector_mt.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.vcf.gz";
 
@@ -257,6 +262,8 @@ public class SeqQCValidation {
 		String usage = "\n" + "seq.qc.SeqErrorIterator requires 0-1 arguments\n";
 		usage += "   (1) vcf filename (i.e. vcf=" + vcf + " (default))\n" + "";
 		usage += "   (2) a file of samples for pairwise comparisions (i.e. samples= (no default))\n" + "";
+		usage += "   (3) number of variants to test per comparision (i.e. numVar=" + numVariantsToTest + " (defaults to all variants))\n" + "";
+
 		usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -271,6 +278,9 @@ public class SeqQCValidation {
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("numVar=")) {
+				numVariantsToTest = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -281,7 +291,7 @@ public class SeqQCValidation {
 		}
 		try {
 			log = new Logger(logfile);
-			validate(vcf, fileOFSamplesForPairWise, numThreads, log);
+			validate(vcf, fileOFSamplesForPairWise, numVariantsToTest, numThreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
