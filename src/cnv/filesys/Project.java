@@ -242,7 +242,7 @@ public class Project {
 			}
 			
 			for (int i = 0; i < files.length; i++) {
-				if (null != files[i] && !"".equals(files[i]) && !files[i].startsWith(".") && !files[i].startsWith("/") && files[i].indexOf(":") == -1) {
+				if (null != files[i] && !"".equals(files[i]) /*&& !files[i].startsWith(".")*/ && !files[i].startsWith("/") && files[i].indexOf(":") == -1) {
 					files[i] = getProject().PROJECT_DIRECTORY.getValue() + files[i];
 				}
 				if (!Files.exists(files[i], getProject().JAR_STATUS.getValue()) && !suppressMissing) {
@@ -556,7 +556,7 @@ public class Project {
 	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse) {
 		return getSamplesToInclude(fileWithListOfSamplesToUse, true);
 	}
-
+	
 	/**
 	 * @param fileWithListOfSamplesToUse
 	 *            set filename to null to only include samples not marked in the "Excluded" column of SampleData.txt
@@ -593,7 +593,7 @@ public class Project {
 		if (verbose) {
 			log.report("Number of samples to be included is " + counter + " (out of " + samplesToInclude.length + " total samples)");
 		}
-
+		
 		return samplesToInclude;
 	}
 	

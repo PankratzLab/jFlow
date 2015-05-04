@@ -163,6 +163,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JTextField regionField;
 
 	private HashMap<String, JCheckBoxMenuItem> centButtonMap;
+
+	private JCheckBoxMenuItem autoSwitch;
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -1422,9 +1424,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		act.add(gcCorrectButton).setEnabled(gcModel != null);
 		
 		act.addSeparator();
-		JMenu lbl3 = new JMenu("Derive from Centroids");
-		lbl3.setMnemonic(KeyEvent.VK_D);
-		act.add(lbl3);
+
+		autoSwitch = new JCheckBoxMenuItem();
+		autoSwitch.setText("Auto-Select Sex Centroid by Sample Sex");
+		autoSwitch.setMnemonic(KeyEvent.VK_A);
+		act.add(autoSwitch);
 		
 		ItemListener centListener = new ItemListener() {
 			@Override
@@ -1440,23 +1444,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					}
 					if (!isSettingCentroid) {
 						isSettingCentroid = true;
-//						if (transformation_type == -1) {
-							transformation_type = -1;
-							setCentroid(jrb.getText());
-							loadValues();
-							updateGUI();
-							repaint();
-//						}
+						transformation_type = -1;
+						setCentroid(jrb.getText());
+						loadValues();
+						updateGUI();
+						repaint();
 						isSettingCentroid = false;
 					} else {
 						setCentroid(jrb.getText());
 					}
-					
-//					transformation_type = -1;
-//					setCentroid();
-//					loadValues();
-//					updateGUI();
-//					repaint();
 				} else {
 					currentCentroid = null;
 					centroids = null;
@@ -1467,28 +1463,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 			}
 		};
-//		new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				if (!isSettingCentroid) {
-//					isSettingCentroid = true;
-//					if (transformation_type == -1) {
-//						setCentroid();
-//						loadValues();
-//						updateGUI();
-//						repaint();
-//					}
-//					isSettingCentroid = false;
-//				} else {
-//					setCentroid();
-//				}
-//			}
 		namePathMap = new Hashtable<String, String>();
 		Vector<String> centFiles = new Vector<String>();
-//		centFiles.add(proj.getFilename(proj.ORIGINAL_CENTROIDS_FILENAME));
-//		centFiles.add(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
-//		centFiles.add(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME));
-//		centFiles.add(proj.getFilename(proj.CHIMERA_CENTROIDS_FILENAME));
 		centFiles.add(proj.ORIGINAL_CENTROIDS_FILENAME.getValue());
 		centFiles.add(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
 		centFiles.add(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
@@ -1518,6 +1494,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		centBox.setFont(new Font("Arial", 0, 12));
 		centBox.setSelected(true);
 		centButtons.add(centBox);
+		
+		JMenu lbl3 = new JMenu("Derive from Centroids");
+		lbl3.setMnemonic(KeyEvent.VK_D);
+		act.add(lbl3);
 		lbl3.add(centBox);
 		String[] centKeys = (String[]) namePathMap.keySet().toArray(new String[]{});
 		for (String key : centKeys) {
@@ -1823,7 +1803,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			System.err.println("Error - Sample "+proj.SAMPLE_DIRECTORY.getValue(false, true)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
 		} else {
 			
-			if (currentCentroid != null && currentCentroid.startsWith(SEX_CENT)) {
+			if (currentCentroid != null && currentCentroid.startsWith(SEX_CENT) && autoSwitch.isSelected()) {
 				SampleData sampleData = proj.getSampleData(0, false);
 				int sex = sampleData.getSexForIndividual(samp.getSampleName());
 				if (sex == 1) {
@@ -1942,7 +1922,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				procCNVs(chr);
 				updateGUI();
 				regionIndex = 0;
-				showRegion();
+//				showRegion();
 			} else {
 				procCNVs(chr);
 				updateGUI();

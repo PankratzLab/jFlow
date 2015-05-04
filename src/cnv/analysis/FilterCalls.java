@@ -107,8 +107,10 @@ public class FilterCalls {
 			}
 			
 			int cnt = 0;
+			int ind = 0;
 			ArrayList<CNVariant> pop = lookMajor ? major : minor;
 			for (CNVariant cnv : pop) {
+				System.out.println((ind++) + " " + cnv.getCN());
 				// TODO output warning if CN > 4
 				if (cnv.getCN() == lookingFor || (lookingFor == 4 && cnv.getCN() > lookingFor)) {
 					cnt++;
@@ -244,12 +246,17 @@ public class FilterCalls {
 		for (String file : cnvFiles) {
 			CNVariant[] cnvs = CNVariant.loadPlinkFile(file, false);
 			for (CNVariant cnv : cnvs) {
+				if (cnv.getCN() == 2) {
+					System.out.println(cnv.toPlinkFormat());
+				}
 				compCNVs.add(cnv);
 				ids.add(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
 			}
 		}
 		
 		ArrayList<CNVFilterNode> outputNodes = new ArrayList<FilterCalls.CNVFilterNode>();
+		ArrayList<String> majorMatches = new ArrayList<String>();
+		ArrayList<String> minorMatches = new ArrayList<String>();
 		
 		System.out.println(ext.getTime() + "] Analyzing CNV overlap...");
 		for (CNVariant cnv : srcCNVs) {
@@ -260,12 +267,15 @@ public class FilterCalls {
 				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				if (comp.getScore() < score) continue;
 				if (/*(comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 &&*/ comp.getNumMarkers() < probes/*)*/) continue;
+				if (comp.getCN() == 2) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= ((double)(cnv.getSize()) * overlapThreshold)) {
 					cnvNode.addMajor(comp);
+					majorMatches.add(comp.getFamilyID() + "\t" + comp.getIndividualID() + "\t" + cnv.getChr() + "\t" + cnv.getStart() + "\t" + cnv.getStop() + "\t" + comp.getCN());
 				} else {
 					cnvNode.addMinor(comp);
+					minorMatches.add(comp.getFamilyID() + "\t" + comp.getIndividualID() + "\t" + cnv.getChr() + "\t" + cnv.getStart() + "\t" + cnv.getStop() + "\t" + comp.getCN());					
 				}
 			}
 			
@@ -284,6 +294,23 @@ public class FilterCalls {
 			}
 			writer.flush();
 			writer.close();
+			
+			writer = new PrintWriter(new FileWriter(ext.rootOf(outputFile, false) + ".major"));
+			writer.println("FID\tIID\tCHR\tBP1\tBP2\tCN");
+			for (String str : majorMatches) {
+				writer.println(str);
+			}
+			writer.flush();
+			writer.close();
+			
+			writer = new PrintWriter(new FileWriter(ext.rootOf(outputFile, false) + ".minor"));
+			writer.println("FID\tIID\tCHR\tBP1\tBP2\tCN");
+			for (String str : minorMatches) {
+				writer.println(str);
+			}
+			writer.flush();
+			writer.close();
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -319,6 +346,7 @@ public class FilterCalls {
 		ArrayList<CNVFilterNode> outputNodes = new ArrayList<FilterCalls.CNVFilterNode>();
 		
 		ArrayList<String> majorMatches = new ArrayList<String>();
+		ArrayList<String> minorMatches = new ArrayList<String>();
 		
 		int popCnt = Files.countLines(famFile, 0);
 		
@@ -331,6 +359,7 @@ public class FilterCalls {
 				if (cnv.getFamilyID().equals(comp.getFamilyID()) && cnv.getIndividualID().equals(comp.getIndividualID())) continue;
 				if (comp.getScore() < score) continue;
 				if (/*(comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 &&*/ comp.getNumMarkers() < probes/*)*/) continue;
+				if (comp.getCN() == 2) continue;
 				int overlap = cnv.amountOfOverlapInBasepairs(comp);
 				if (overlap == -1) continue;
 				if (overlap >= ((double)(cnv.getSize()) * overlapThreshold)) {
@@ -338,6 +367,7 @@ public class FilterCalls {
 					majorMatches.add(comp.getFamilyID() + "\t" + comp.getIndividualID() + "\t" + cnv.getChr() + "\t" + cnv.getStart() + "\t" + cnv.getStop() + "\t" + comp.getCN());
 				} else {
 					cnvNode.addMinor(comp);
+					minorMatches.add(comp.getFamilyID() + "\t" + comp.getIndividualID() + "\t" + cnv.getChr() + "\t" + cnv.getStart() + "\t" + cnv.getStop() + "\t" + comp.getCN());					
 				}
 			}
 			
@@ -360,6 +390,14 @@ public class FilterCalls {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(outputFile, false) + ".major"));
 			writer.println("FID\tIID\tCHR\tBP1\tBP2\tCN");
 			for (String str : majorMatches) {
+				writer.println(str);
+			}
+			writer.flush();
+			writer.close();
+			
+			writer = new PrintWriter(new FileWriter(ext.rootOf(outputFile, false) + ".minor"));
+			writer.println("FID\tIID\tCHR\tBP1\tBP2\tCN");
+			for (String str : minorMatches) {
 				writer.println(str);
 			}
 			writer.flush();
@@ -1946,4 +1984,18 @@ public class FilterCalls {
    lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv,D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/female/recodedF.cnv 
    out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_repeat.cnv 
    minScore=0 number=0 -stats
+   
+   ----------------------
+   
+   in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv 
+   lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv,D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/female/recodedF.cnv
+   out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_all.cnv 
+   minScore=0 number=0 -stats
+   
+   in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv 
+   lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv,D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/female/recodedF.cnv
+   out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_filtered.cnv 
+   minScore=10 number=15 -stats
+   
+   
  */

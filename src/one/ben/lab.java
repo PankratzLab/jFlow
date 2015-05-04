@@ -1,7 +1,13 @@
 package one.ben;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -10,10 +16,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -40,6 +49,26 @@ import filesys.Segment;
 import filesys.SnpMarkerSet;
 
 public class lab {
+	
+	private static void countCNVsForIndividuals(String indivFile, String cnvFile, String outFile) throws IOException {
+		Hashtable<String, String> sampleKeyHash = new Hashtable<String, String>();
+		BufferedReader reader = new BufferedReader(new FileReader(indivFile));
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			String[] tmp = line.split("\t");
+			sampleKeyHash.put(tmp[0] + "\t" + tmp[1], "");
+		}
+		reader.close();
+		
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, sampleKeyHash, false);
+		
+		PrintWriter writer = Files.getAppropriateWriter(outFile);
+		for (CNVariant cnv : cnvs) {
+			writer.println(cnv.toPlinkFormat());
+		}
+		writer.flush();
+		writer.close();
+	}
 	
 	private static void filterForMarkers(String dataFile, String markerFile) throws IOException {
 		BufferedReader reader = Files.getAppropriateReader(markerFile);
@@ -674,7 +703,9 @@ public class lab {
 		String usage = "";
 		
 		if (numArgs == 0) {
-//			try {
+			try {
+			countCNVsForIndividuals("D:/data/ny_registry/new_york/stats/puv_ids.txt", "D:/data/ny_registry/new_york/stats/recodedM.cnv", "D:/data/ny_registry/new_york/stats/puv_cnvs.cnv");
+//			testClipboard();
 //				BufferedReader reader = new BufferedReader(new FileReader("D:/ForestPlot/Hb_SingleSNP.csv"));
 //				String line = reader.readLine();
 //				do {
@@ -690,14 +721,14 @@ public class lab {
 //				idSwap(new Project("D:/projects/gedi_gwas.properties", false), "D:/data/gedi_gwas/overlap_ids.txt");
 //			compareMarkers();
 //				filterLDFiles(0.5);
-				formatLDResults();
+//				formatLDResults();
 //				filter();
 //				breakCentromeric();
 //				filterWrong();
-//			} catch (IOException e) {
-////				 TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			} catch (IOException e) {
+//				 TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 //			mockupGUI();
 			return;
 		}
@@ -731,6 +762,39 @@ public class lab {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	private static void testClipboard() {
+		Clipboard systemClipboard;
+		Transferable contents;
+		systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		contents = systemClipboard.getContents(null);
+		if (contents==null) {
+			System.out.println("Clipboard is empty");
+		} else {
+			try {
+//				DataFlavor[] systemFlavors = systemClipboard.getAvailableDataFlavors();
+//				DataFlavor[] transFlavors = contents.getTransferDataFlavors();
+				DataFlavor RTF_FLAVOR = new DataFlavor("text/rtf", "Rich Formatted Text");
+
+				if (contents.isDataFlavorSupported(RTF_FLAVOR)) {
+					ByteArrayInputStream obj = (ByteArrayInputStream) contents.getTransferData(RTF_FLAVOR);
+					int n = obj.available();
+					byte[] bytes = new byte[n];
+					obj.read(bytes, 0, n);
+					String s = new String(bytes, StandardCharsets.UTF_8);
+					System.out.println(s);
+				}
+				System.out.println();
+//				if (contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+//					return (String)contents.getTransferData(DataFlavor.stringFlavor);
+//				}
+			} catch (UnsupportedFlavorException ufe) {
+				ufe.printStackTrace();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
 		}
 	}
 	

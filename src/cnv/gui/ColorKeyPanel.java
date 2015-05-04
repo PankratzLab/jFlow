@@ -74,6 +74,10 @@ public class ColorKeyPanel extends JPanel {
 	public JPanel getClassVariablesPanel() {
 		return classVariablesPanel;
 	}
+	
+	public JPanel getClassValuesPanel() {
+		return classValuesPanel;
+	}
 
 	private SampleData sampleData;
 	private AbstractPanel sisterPanel;
@@ -82,42 +86,52 @@ public class ColorKeyPanel extends JPanel {
 	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel) {
 		this(newSampleData, newSisterPanel, DEFAULT_COLORS);
 	}
-
+	
 	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel, Color[] newColorScheme) {
+		this(newSampleData, newSisterPanel, newColorScheme, null);
+	}
+	
+	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel, Color[] newColorScheme, ItemListener listener) {
 		this.sampleData = newSampleData;
-		this.sisterPanel = newSisterPanel;
+		this.setSisterPanel(newSisterPanel);
 		this.colorScheme = newColorScheme;
 
 		setLayout(new GridLayout(2, 1));
 		classVariablesPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 0, 0));
 		classVariablesPanel.setBackground(BACKGROUND_COLOR);
-		updateColorVariablePanel();
+		updateColorVariablePanel(listener == null ? defaultClassListener : listener);
 		add(classVariablesPanel);
 		classValuesPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 0, 0));
         classValuesPanel.setBackground(BACKGROUND_COLOR);
 		add(classValuesPanel);
 	}
 	
+	final ItemListener defaultClassListener = new ItemListener() {
+		public void itemStateChanged(ItemEvent ie) {
+			JRadioButton jrb = (JRadioButton)ie.getItem();
+			if (sampleData != null && jrb.isSelected()) {
+				for (byte i = 0; i<sampleData.getNumClasses(); i++) {
+					if (jrb.getText().equals(sampleData.getClassName(i))) {
+						currentClass = i;
+						getSisterPanel().paintAgain();
+					}
+				}
+			}
+		}
+	};
+	
 	public void updateColorVariablePanel() {
+		updateColorVariablePanel(defaultClassListener);
+	}
+	
+	public void updateColorVariablePanel(ItemListener classListener) {
 		classVariablesPanel.removeAll();
 		
 		JLabel label = new JLabel("Color code by:");
 		label.setFont(new Font("Arial", 0, 14));
 		classVariablesPanel.add(label);
 
-		ItemListener classListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButton jrb = (JRadioButton)ie.getItem();
-				if (sampleData != null && jrb.isSelected()) {
-					for (byte i = 0; i<sampleData.getNumClasses(); i++) {
-						if (jrb.getText().equals(sampleData.getClassName(i))) {
-							currentClass = i;
-							sisterPanel.paintAgain();
-						}
-					}
-				}
-			}
-		};
+		
 		ButtonGroup classRadio = new ButtonGroup();
 		if (sampleData == null) {
 			classRadioButtons = new JRadioButton[1];
@@ -138,12 +152,16 @@ public class ColorKeyPanel extends JPanel {
 				classRadioButtons[i].setBackground(BACKGROUND_COLOR);
 				classVariablesPanel.add(classRadioButtons[i]);
 			}
-			classRadioButtons[Math.max(sampleData.getBasicClasses().length-1, 0)].setSelected(true);
+//			classRadioButtons[Math.max(sampleData.getBasicClasses().length-1, 0)].setSelected(true);
+			classRadioButtons[getCurrentClass()].setSelected(true);
 		}
 		
 		disabledClassValues = new Hashtable<String, String>();
 
 		classVariablesPanel.validate();
+		if (classValuesPanel != null) {
+			classValuesPanel.validate();
+		}
 	}
 
 	public void updateColorKey(Hashtable<String,String> currentClassUniqueValues) {
@@ -169,7 +187,7 @@ public class ColorKeyPanel extends JPanel {
 					} else {
 						disabledClassValues.put(classValue, "");
 					}
-					sisterPanel.paintAgain();
+					getSisterPanel().paintAgain();
 				}
 			}
 		};
@@ -242,6 +260,9 @@ public class ColorKeyPanel extends JPanel {
 		}
 
 		classValuesPanel.validate();
+		if (classVariablesPanel != null) {
+			classVariablesPanel.validate();
+		}
 	}
 
 	public int getCurrentClass() {
@@ -263,4 +284,13 @@ public class ColorKeyPanel extends JPanel {
 	public void updateSampleData(SampleData sampleData) {
 		this.sampleData = sampleData;
 	}
+
+	public AbstractPanel getSisterPanel() {
+		return sisterPanel;
+	}
+
+	public void setSisterPanel(AbstractPanel sisterPanel) {
+		this.sisterPanel = sisterPanel;
+	}
+	
 }
