@@ -185,7 +185,11 @@ public class Project {
 			}
 			if (!Files.exists(tempValue, getProject().JAR_STATUS.getValue())) {
 				if (mkdirs/* && getProject().JAR_STATUS.getValue()*/) {
-					(new File(tempValue)).mkdirs();
+					if (isDir) {
+						(new File(tempValue)).mkdirs();
+					} else {
+						(new File(ext.parseDirectoryOfFile(tempValue))).mkdirs();
+					}
 				} else if (verbose) {
 					if (isDir) {
 						getProject().getLog().reportError("Error - directory '"+valu+"' does not exist");
@@ -243,7 +247,7 @@ public class Project {
 			
 			for (int i = 0; i < files.length; i++) {
 				if (null != files[i] && !"".equals(files[i]) /*&& !files[i].startsWith(".")*/ && !files[i].startsWith("/") && files[i].indexOf(":") == -1) {
-					files[i] = getProject().PROJECT_DIRECTORY.getValue() + files[i];
+					files[i] = getProject().PROJECT_DIRECTORY.getValue() + (files[i].startsWith("./") ? files[i].substring(2) : files[i]);
 				}
 				if (!Files.exists(files[i], getProject().JAR_STATUS.getValue()) && !suppressMissing) {
 					System.err.println("Error - file '"+files[i]+"' does not exist");
@@ -879,9 +883,9 @@ public class Project {
     	            	props.add("# Properties where the values now differ from the defaults:");
     					changed = true;
     				}
-    				props.add(key+"="+getProperty(key).getValue());
-       				changes.add(key+"="+getProperty(key).getValue());
-					System.out.println("Default is '"+getProperty(key).getDefaultValue()+"' now '"+getProperty(key).getValue()+"'");
+    				props.add(key+"="+getProperty(key).getValueString());
+    				changes.add(key+"="+getProperty(key).getValueString());
+    				System.out.println("Default is '"+getProperty(key).getDefaultValueString()+"' now '"+getProperty(key).getValueString()+"'");
     			}
 			}
         }
