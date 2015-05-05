@@ -537,30 +537,26 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
 
 		eastPanel = new JPanel();
-		eastPanel.setLayout(new BoxLayout(eastPanel, BoxLayout.PAGE_AXIS));
+		eastPanel.setLayout(new MigLayout("", "[grow]", "[grow,fill][fill][fill]"));
 		eastPanel.setBackground(BACKGROUND_COLOR);
-		eastPanel.add(tabbedPane);
+		eastPanel.add(tabbedPane, "cell 0 0, grow");
 				
 		JTabbedPane qcTabbedPanel = new JTabbedPane();
 		qcTabbedPanel.setBackground(BACKGROUND_COLOR);
 		qcPanel = new JPanel();
-		qcPanel.setLayout(new MigLayout("hidemode 0", "[][grow]", "[][][][][][][]"));
-//		qcPanel.setLayout(new GridLayout(8, 1));
-//		qcPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "QC Metrics", TitledBorder.LEADING, TitledBorder.TOP));
-//		qcPanel.setLayout(new BoxLayout(qcPanel, BoxLayout.Y_AXIS));
+		qcPanel.setLayout(new MigLayout("hidemode 0", "[grow][grow 90]", "[][][][][][][]"));
 		qcPanel.setBackground(BACKGROUND_COLOR);
 		qcTabbedPanel.addTab("QC Metrics", null, qcPanel, "Quality Control Metrics");
-		eastPanel.add(qcTabbedPanel);
+		eastPanel.add(qcTabbedPanel, "cell 0 1, grow");
 		
 		JTabbedPane cfTabbedPanel = new JTabbedPane();
 		cfTabbedPanel.setBackground(BACKGROUND_COLOR);
 		JPanel cfPanel = new JPanel();
 		cfPanel.setLayout(new GridLayout(0, 1));
-//		cfPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED), "Cluster Filters", TitledBorder.LEADING, TitledBorder.TOP));
 		cfPanel.setBackground(BACKGROUND_COLOR);
 		cfPanel.add(clusterFilterPanel());
 		cfTabbedPanel.addTab("Cluster Filters", null, cfPanel, "Apply Cluster Filters");
-		eastPanel.add(cfTabbedPanel);
+		eastPanel.add(cfTabbedPanel, "cell 0 2, grow");
 
 		return eastPanel;
     }
@@ -1553,7 +1549,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		annotationPanel.setPreferredSize(new Dimension(200, 500));
 		annotationPanelLowerPart.setPreferredSize(new Dimension(maxWidth+42, ((annotationKeys == null?0:annotationKeys.length)+4)*22));
 
-		annotationPanelLowerPart.validate();
+//		annotationPanelLowerPart.invalidate();
+		annotationPanel.validate();
+		if (annotationScrollPane != null) {
+			annotationScrollPane.validate();
+			annotationScrollPane.repaint();
+		}
 		
 		return annotationPanelLowerPart;
 	}
@@ -2601,8 +2602,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		}
 	}
 
-	public Hashtable<String, String> getDisabledClassValues(/*int index*/) {
-//		return colorKeyPanels[index].getDisabledClassValues();
+	public Hashtable<String, String> getDisabledClassValues() {
 		return colorKeyPanel.getDisabledClassValues();
 	}
 
