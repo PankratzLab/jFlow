@@ -223,6 +223,7 @@ public class ColorKeyPanel extends JPanel {
 			block.setName(currentClass+"\t"+colorKeys[i][0]);
 			block.addMouseListener(mouseListenerForColorKey);
 			label = new JLabel(colorKeys[i][1]+" (n="+(currentClassUniqueValues.containsKey(colorKeys[i][0])?currentClassUniqueValues.get(colorKeys[i][0]):"0")+")");
+			label.setToolTipText("Remove "+colorKeys[i][1]+" from the display by selecting here");
 			label.setName(currentClass+"\t"+colorKeys[i][0]);
 			label.addMouseListener(mouseListenerForColorKey);
 			currentClassUniqueValues.remove(colorKeys[i][0]);
