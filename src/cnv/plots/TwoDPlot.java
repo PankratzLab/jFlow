@@ -23,6 +23,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final long serialVersionUID = 1L;
 	public static final byte DEFAULT_SIZE = 8;
 	public static final int DEFAULT_GC_THRESHOLD = 25;
+	public static final String TWO_D_STICH_COMMAND = "twoDScreenshots";
+	public static final String TWO_D_STICH_COMMAND_DESCRIPTION = "Have two-d plot create a series of images";
 	private static final String ALT_UP = "ALT UP";
 	private static final String ALT_DOWN = "ALT DOWN";
 	private static final String ALT_LEFT = "ALT LEFT";
@@ -936,10 +938,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			outer : for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 				inLine = dataOfSelectedFile.elementAt(i);
 				
-				if (sampleData != null && hideExcludes) {
+				if (sampleData != null && (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
 					for (int k = 0; k < 3; k++) {
 						if (linkKeyColumnLabels[k] >= 0) {
-							if (sampleData.individualShouldBeExcluded(inLine[linkKeyColumnLabels[k]])) {
+							int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(inLine[linkKeyColumnLabels[k]]), (byte) 0, 0);
+							if (hideExcludes && sampleData.individualShouldBeExcluded(inLine[linkKeyColumnLabels[k]])) {
+								continue outer;
+							}
+							if (colorKeyPanel.getDisabledClassValues().containsKey(currentClass + "\t" + sampColorKey)) {
 								continue outer;
 							}
 						}
