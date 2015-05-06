@@ -536,7 +536,7 @@ public class IntensityCorrectionQC {
 		public ClassDefinition(Project proj, String classTitle, int numSamples) {
 			this.classTitle = classTitle;
 			this.classDefs = new String[numSamples];
-			this.sexClass = (ext.indexOfStr(classTitle, SampleData.EUPHAMISMS, false, true) >= 0);
+			this.sexClass = (ext.indexOfStr(classTitle, SampleData.EUPHEMISMS, false, true) >= 0);
 			this.includedInPCDef = (ext.indexOfStr(classTitle, new String[] { "INCLUDE_IN_MODEL" }, false, true) >= 0);
 		}
 
