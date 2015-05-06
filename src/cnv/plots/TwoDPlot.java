@@ -941,8 +941,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				if (sampleData != null && (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
 					for (int k = 0; k < 3; k++) {
 						if (linkKeyColumnLabels[k] >= 0) {
-							int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(inLine[linkKeyColumnLabels[k]]), (byte) 0, 0);
-							if (hideExcludes && sampleData.individualShouldBeExcluded(inLine[linkKeyColumnLabels[k]])) {
+							String curSample = inLine[linkKeyColumnLabels[k]];
+							int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(curSample), (byte) 0, 0);
+							if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
 								continue outer;
 							}
 							if (colorKeyPanel.getDisabledClassValues().containsKey(currentClass + "\t" + sampColorKey)) {

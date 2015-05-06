@@ -218,6 +218,12 @@ public class ColorKeyPanel extends JPanel {
 										{"5", "Triplication"},
 										};
 		}
+		for (String disabled : disabledClassValues.keySet()) {// so that labels are added even if the class value was not seen
+			if (!currentClassUniqueValues.containsKey(disabled)) {
+				currentClassUniqueValues.put(disabled.split("\t")[1], "0");
+			}
+		}
+		
 		for (int i = 0; i<colorKeys.length; i++) {
 			block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(colorKeys[i][0])]));
 			block.setName(currentClass+"\t"+colorKeys[i][0]);
@@ -227,13 +233,8 @@ public class ColorKeyPanel extends JPanel {
 			label.setName(currentClass+"\t"+colorKeys[i][0]);
 			label.addMouseListener(mouseListenerForColorKey);
 			currentClassUniqueValues.remove(colorKeys[i][0]);
-			if (disabledClassValues.containsKey(currentClass+"\t"+colorKeys[i][0])) {
-				label.setForeground(Color.RED);
-				label.setFont(new Font("Arial", Font.ITALIC, 14));
-			} else {
-				label.setForeground(Color.BLACK);
-				label.setFont(new Font("Arial", 0, 14));
-			}
+			colorDisabled(label, colorKeys[i][0]);
+
 			JPanel labelEnclosure = new JPanel();
 			labelEnclosure.setBackground(BACKGROUND_COLOR);
 			labelEnclosure.add(block);
@@ -252,6 +253,8 @@ public class ColorKeyPanel extends JPanel {
 				label.setName(currentClass+"\t"+keys[i]);
 				label.setFont(new Font("Arial", 0, 14));
 				label.addMouseListener(mouseListenerForColorKey);
+				colorDisabled(label, keys[i]);
+				
 				JPanel labelEnclosure = new JPanel();
 				labelEnclosure.setBackground(BACKGROUND_COLOR);
 				labelEnclosure.add(block);
@@ -263,6 +266,21 @@ public class ColorKeyPanel extends JPanel {
 		classValuesPanel.validate();
 		if (classVariablesPanel != null) {
 			classVariablesPanel.validate();
+		}
+	}
+
+	/**
+	 * @param label
+	 *            label to color if the key is disabled
+	 * @param key
+	 */
+	private void colorDisabled(JLabel label, String key) {
+		if (disabledClassValues.containsKey(currentClass + "\t" + key)) {
+			label.setForeground(Color.RED);
+			label.setFont(new Font("Arial", Font.ITALIC, 14));
+		} else {
+			label.setForeground(Color.BLACK);
+			label.setFont(new Font("Arial", 0, 14));
 		}
 	}
 
