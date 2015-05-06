@@ -397,7 +397,17 @@ public class VariantContext implements Feature { // to enable tribble integratio
     // Selectors
     //
     // ---------------------------------------------------------------------------------------------------------
-
+    /**
+	 * John Lane 5/5/2015
+	 * 
+	 * @param sampleNames
+	 * @param rederiveAllelesFromGenotypes
+	 * @return
+	 */
+	public VariantContext subContextFromSamples(Set<String> sampleNames, final boolean rederiveAllelesFromGenotypes) {
+		return subContextFromSamples(sampleNames, rederiveAllelesFromGenotypes, false);
+	}
+    
     /**
      * This method subsets down to a set of samples.
      *
@@ -412,10 +422,10 @@ public class VariantContext implements Feature { // to enable tribble integratio
      * @param rederiveAllelesFromGenotypes if true, returns the alleles to just those in use by the samples, true should be default
      * @return new VariantContext subsetting to just the given samples
      */
-    public VariantContext subContextFromSamples(Set<String> sampleNames, final boolean rederiveAllelesFromGenotypes ) {
-        if ( sampleNames.containsAll(getSampleNames()) && ! rederiveAllelesFromGenotypes ) {
-            return this; // fast path when you don't have any work to do
-        } else {
+	public VariantContext subContextFromSamples(Set<String> sampleNames, final boolean rederiveAllelesFromGenotypes, final boolean skipFastPass) {
+		if (!skipFastPass && sampleNames.containsAll(getSampleNames()) && !rederiveAllelesFromGenotypes) {//getSampleNames() can cause inapprop access across threads
+			return this; // fast path when you don't have any work to do
+		} else {
             VariantContextBuilder builder = new VariantContextBuilder(this);
             GenotypesContext newGenotypes = genotypes.subsetToSamples(sampleNames);
 
