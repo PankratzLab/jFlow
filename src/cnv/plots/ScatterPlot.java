@@ -113,13 +113,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private boolean jar;
 	private SampleData sampleData;
 	private JCheckBox symmetryBox;
-	private JCheckBox excludeMarkerBox;
+//	private JCheckBox excludeMarkerBox;
 	private JCheckBox excludeSampleBox;
 	private JCheckBox correctionBox;
 	private JCheckBox maskMissingBox;
 	private boolean[] correction;
 	private boolean[] symmetry;
 	private boolean[] maskMissing;
+	private boolean[] excludeSamples;
 	private ClusterFilterCollection clusterFilterCollection;
 	private AnnotationCollection annotationCollection;
 	private byte currentClusterFilter;
@@ -242,8 +243,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		
 		annotationAutoAdv = true;
 		
+		// Java initializes boolean arrays as false
 		maskMissing = new boolean[4];
 		symmetry = new boolean[] {true, true, true, true};
+		excludeSamples = new boolean[] {true, true, true, true};
 		correction = new boolean[4];
 		plot_types = new int[] {0, 0, 0, 0};
 		classes = new int[]{1, 1, 1, 1};
@@ -363,30 +366,36 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	
 	private void setFourView() {
 		// some roughly correct combination of invalidation calls...
-//		getContentPane().remove(indivPanels[selectedPanelIndex]);
 		viewPanel.remove(indivPanels[selectedPanelIndex]);
 		scatterOverview.removeAll();
 		for (int i = 0; i < indivPanels.length; i++) {
+			scatterPanels[i].axisXHeight = 0;
+			scatterPanels[i].axisYWidth = 0;
+			scatterPanels[i].shrunk = true;
+			scatterPanels[i].displayXaxis = false;
+			scatterPanels[i].displayYaxis = false;
 			scatterOverview.add(indivPanels[i]);
 			indivPanels[i].invalidate();
 			scatterPanels[i].invalidate();
 		}
 		scatterOverview.invalidate();
 		viewPanel.add(scatterOverview, BorderLayout.CENTER);
-//		getContentPane().add(scatterOverview, BorderLayout.CENTER);
 		getContentPane().invalidate();
 		showingAll = true;
 	}
 	
 	private void setIndividualView() {
 		// some roughly correct combination of invalidation calls...
-//		getContentPane().remove(scatterOverview);
-//		getContentPane().add(indivPanels[selectedPanelIndex], BorderLayout.CENTER);
 		viewPanel.remove(scatterOverview);
 		viewPanel.add(indivPanels[selectedPanelIndex], BorderLayout.CENTER);
 		scatterOverview.removeAll();
 		scatterOverview.invalidate();
 		for (int i = 0; i < indivPanels.length; i++) {
+			scatterPanels[i].axisXHeight = AbstractPanel.HEIGHT_X_AXIS;
+			scatterPanels[i].axisYWidth = AbstractPanel.WIDTH_Y_AXIS;
+			scatterPanels[i].shrunk = false;
+			scatterPanels[i].displayXaxis = true;
+			scatterPanels[i].displayYaxis = true;
 			indivPanels[i].invalidate();
 			scatterPanels[i].invalidate();
 		}
@@ -544,7 +553,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		JTabbedPane qcTabbedPanel = new JTabbedPane();
 		qcTabbedPanel.setBackground(BACKGROUND_COLOR);
 		qcPanel = new JPanel();
-		qcPanel.setLayout(new MigLayout("hidemode 0", "[grow][grow 90]", "[][][][][][][]"));
+		qcPanel.setLayout(new MigLayout("hidemode 0", "[][grow]", "[][][][][][][]"));
 		qcPanel.setBackground(BACKGROUND_COLOR);
 		qcTabbedPanel.addTab("QC Metrics", null, qcPanel, "Quality Control Metrics");
 		eastPanel.add(qcTabbedPanel, "cell 0 1, grow");
@@ -940,52 +949,52 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		symmetryBox.setActionCommand(SYMMETRY);
 		symmetryBox.addActionListener(this);
 
-		ItemListener excludeListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				if (ie.getStateChange() == ItemEvent.SELECTED) {
-					String filename;
-					String[] exclude;
-					Vector<String> newMarkerList;
-					int index;
-	
-					filename = proj.FILTERED_MARKERS_FILENAME.getValue();
-					if (!new File(filename).exists()) {
-						JOptionPane.showOptionDialog(null, "'Exclude Markers' is not activated due to the following file not found:\n  " + filename, "File Not Found", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[] {"Cancel"}, "Cancel");
-					} else {
-						exclude = HashVec.loadFileToStringArray(filename, false, null, false);
-						newMarkerList = new Vector<String>();
-						index = 0;
-						for (int i = 0; i < markerList.length; i++) {
-							for (int j = 0; j < exclude.length; j++) {
-								if (markerList[i].equalsIgnoreCase(exclude[j])) {
-									newMarkerList.add(exclude[j]);
-									if (i == markerIndex) {
-										index = newMarkerList.size() - 1;
-									}
-									break;
-								}
-							}
-						}
-						changeToNewMarkerList(newMarkerList.toArray(new String[0]), index);
-						updateGUI();
-					}
-				} else {
-					int index = markerIndexBak;
-					for (int i = 0; i < masterMarkerList.length; i++) {
-						if(masterMarkerList[i].equalsIgnoreCase(markerList[markerIndex])) {
-							index = i;
-							break;
-						}
-					}
-					revertMarkersToOriginalList(index);
-					updateGUI();
-				}
-			}
-		};
-		excludeMarkerBox = new JCheckBox("<html>Hide Excluded <br />Markers</html>");
-		excludeMarkerBox.setFont(new Font("Arial", 0, 14));
-		excludeMarkerBox.addItemListener(excludeListener);
-		excludeMarkerBox.setBackground(BACKGROUND_COLOR);
+//		ItemListener excludeListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				if (ie.getStateChange() == ItemEvent.SELECTED) {
+//					String filename;
+//					String[] exclude;
+//					Vector<String> newMarkerList;
+//					int index;
+//	
+//					filename = proj.FILTERED_MARKERS_FILENAME.getValue();
+//					if (!new File(filename).exists()) {
+//						JOptionPane.showOptionDialog(null, "'Exclude Markers' is not activated due to the following file not found:\n  " + filename, "File Not Found", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[] {"Cancel"}, "Cancel");
+//					} else {
+//						exclude = HashVec.loadFileToStringArray(filename, false, null, false);
+//						newMarkerList = new Vector<String>();
+//						index = 0;
+//						for (int i = 0; i < markerList.length; i++) {
+//							for (int j = 0; j < exclude.length; j++) {
+//								if (markerList[i].equalsIgnoreCase(exclude[j])) {
+//									newMarkerList.add(exclude[j]);
+//									if (i == markerIndex) {
+//										index = newMarkerList.size() - 1;
+//									}
+//									break;
+//								}
+//							}
+//						}
+//						changeToNewMarkerList(newMarkerList.toArray(new String[0]), index);
+//						updateGUI();
+//					}
+//				} else {
+//					int index = markerIndexBak;
+//					for (int i = 0; i < masterMarkerList.length; i++) {
+//						if(masterMarkerList[i].equalsIgnoreCase(markerList[markerIndex])) {
+//							index = i;
+//							break;
+//						}
+//					}
+//					revertMarkersToOriginalList(index);
+//					updateGUI();
+//				}
+//			}
+//		};
+//		excludeMarkerBox = new JCheckBox("<html>Hide Excluded <br />Markers</html>");
+//		excludeMarkerBox.setFont(new Font("Arial", 0, 14));
+//		excludeMarkerBox.addItemListener(excludeListener);
+//		excludeMarkerBox.setBackground(BACKGROUND_COLOR);
 		
 		excludeSampleBox = new JCheckBox("<html>Hide Excluded <br />Samples</html>");
 		excludeSampleBox.setFont(new Font("Arial", 0, 14));
@@ -993,6 +1002,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		excludeSampleBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
+				excludeSamples[selectedPanelIndex] = e.getStateChange() == ItemEvent.SELECTED;
 				updateGUI();
 			}
 		});
@@ -1030,7 +1040,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		boxPanel.setBackground(BACKGROUND_COLOR);
 		boxPanel.add(symmetryBox);//, gbc);
 		boxPanel.add(correctionBox);//, gbc);
-		boxPanel.add(excludeMarkerBox);//, gbc);
+//		boxPanel.add(excludeMarkerBox);//, gbc);
 		boxPanel.add(excludeSampleBox);//, gbc);
 		boxPanel.add(maskMissingBox);//, gbc);
 		plotPanel.add(boxPanel, BorderLayout.WEST);
@@ -1690,7 +1700,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		actionMap.put(EXCLUDE, new AbstractAction() {
 			public static final long serialVersionUID = 7L;
 			public void actionPerformed(ActionEvent e) {
-				excludeMarkerBox.setSelected(!excludeMarkerBox.isSelected());
+				excludeSampleBox.setSelected(!excludeSampleBox.isSelected());
 			}
 		});
 		actionMap.put(CORRECTION, new AbstractAction() {
@@ -1917,6 +1927,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 						selectedPanelIndex = newIndex;
 						typeRadioButtons[plot_types[newIndex]].setSelected(true);
 						maskMissingBox.setSelected(maskMissing(newIndex));
+						excludeSampleBox.setSelected(hideExcludedSamples(newIndex));
 						symmetryBox.setSelected(symmetricAxes(newIndex));
 						correctionBox.setSelected(getCorrection(newIndex));
 						colorKeyPanel.setSisterPanel(scatterPanels[newIndex]);
@@ -3072,8 +3083,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		return correction[index];
 	}
 
-	public boolean hideExcludedSamples() {
-		return excludeSampleBox.isSelected();
+	public boolean hideExcludedSamples(int index) {
+		return excludeSamples[index];
 	}
 	
 	

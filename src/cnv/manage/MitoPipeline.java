@@ -150,7 +150,9 @@ public class MitoPipeline {
 			log.report("Using project file " + filename + ", you may also specify project filename using the command line argument \"proj=\"");
 		} else {
 			log.report("Project properties file can be found at " + filename);
-			Files.write(proj.PROJECT_NAME + "=" + projectName, filename);
+			if (proj != null) {
+				Files.write(proj.PROJECT_NAME.getName() + "=" + projectName, filename);
+			}
 		}
 		this.proj = new Project(filename, false);
 
@@ -161,7 +163,7 @@ public class MitoPipeline {
 	}
 
 	public void initDataDir() {
-		mkdir(proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.DATA_DIRECTORY), log);
+		mkdir(proj.getProperty(proj.DATA_DIRECTORY), log);
 	}
 
 	public Project getProj() {

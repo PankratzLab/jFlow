@@ -445,7 +445,7 @@ public class ForestPanel extends AbstractPanel {
 				canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
 				canvasSectionMaximumX = getWidth() - rightsize;
 				canvasSectionMinimumY = 0;
-				canvasSectionMaximumY = HEIGHT_X_AXIS;
+				canvasSectionMaximumY = axisXHeight;//HEIGHT_X_AXIS;
 				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
 				plotXmin = plotMinMaxStep[0];
 				plotXmax = plotMinMaxStep[1];
@@ -478,7 +478,7 @@ public class ForestPanel extends AbstractPanel {
 				fontMetrics = g.getFontMetrics();
 				canvasSectionMinimumX = 0;
 				canvasSectionMaximumX = WIDTH_BUFFER + rightsize;
-				canvasSectionMinimumY = HEIGHT_X_AXIS + (fontMetrics.getHeight() * 2);
+				canvasSectionMinimumY = /*HEIGHT_X_AXIS*/axisXHeight + (fontMetrics.getHeight() * 2);
 				canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 				
 //				System.out.println("points: " + (points.length + 1) + "y axis pixel:" + (canvasSectionMaximumY - canvasSectionMinimumY)/(points.length+1)*0.70);
@@ -503,9 +503,9 @@ public class ForestPanel extends AbstractPanel {
 						g.drawString(right, getWidth() - rightsize + 15, getYPixel(y) + 7);
 					}
 				}
-				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
+				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15, getHeight() - axisXHeight/*HEIGHT_X_AXIS*/ - fontMetrics.getHeight() - 10);
 				
-				g.drawString(prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(), forestPlot.getCurrentMetaStudy().getMetaConf()[0], forestPlot.getCurrentMetaStudy().getMetaConf()[1]), getWidth() - rightsize + 15, getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 10);
+				g.drawString(prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(), forestPlot.getCurrentMetaStudy().getMetaConf()[0], forestPlot.getCurrentMetaStudy().getMetaConf()[1]), getWidth() - rightsize + 15, getHeight() - /*HEIGHT_X_AXIS*/axisXHeight - fontMetrics.getHeight() - 10);
 //				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS / 2.0), AXIS_THICKNESS, Color.BLACK);
 //				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
 //				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
@@ -528,7 +528,7 @@ public class ForestPanel extends AbstractPanel {
 		// TODO outercoordinates		
 		canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
 		canvasSectionMaximumX = getWidth() - rightsize;
-		canvasSectionMinimumY = HEIGHT_X_AXIS + (fontMetrics.getHeight() * 2);
+		canvasSectionMinimumY = /*HEIGHT_X_AXIS*/axisXHeight + (fontMetrics.getHeight() * 2);
 		canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 		
 		
@@ -591,7 +591,7 @@ public class ForestPanel extends AbstractPanel {
 			int xM = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta());
 			int xR = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta() + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr());
 			
-			int yM = getHeight() - HEIGHT_X_AXIS - fontMetrics.getHeight() - 15;
+			int yM = getHeight() - /*HEIGHT_X_AXIS*/axisXHeight - fontMetrics.getHeight() - 15;
 			int yU = yM - (fontMetrics.getHeight() / 2) - 1;
 			int yD = yM + (fontMetrics.getHeight() / 2) + 1;
 			
@@ -601,7 +601,7 @@ public class ForestPanel extends AbstractPanel {
 			Grafik.drawThickLine(g, xM, yD, xR, yM, 2, META_COLOR);
 			
 			int yMin = (4 * HEAD_BUFFER) - 5;
-			int yMax = getHeight() - HEIGHT_X_AXIS;
+			int yMax = getHeight() - /*HEIGHT_X_AXIS*/axisXHeight;
 			
 			Grafik.drawThickLine(g, getXPixel(0.0), yMin, getXPixel(0.0), yMax, 3, Color.BLACK);
 			
@@ -750,7 +750,7 @@ public class ForestPanel extends AbstractPanel {
 //		double mkSz = 20 - Math.atan(points.length - 15);
 //		return mkSz;
 		String largestLbl = forestPlot.getLongestStudyName();
-		double yRange = getHeight() - (2 * HEAD_BUFFER) - (2 * HEIGHT_X_AXIS);
+		double yRange = getHeight() - (2 * HEAD_BUFFER) - (2 * axisXHeight/*HEIGHT_X_AXIS*/);
 		double studies = points.length;
 		double xMax = getWidth() / 4;
 		double yMax = yRange / studies;

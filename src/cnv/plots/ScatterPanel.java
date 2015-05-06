@@ -81,6 +81,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	private int mouseEndY;
 	private int panelIndex;
 	CountVector uniqueValueCounts;
+	boolean shrunk = false;
 	
 	public ScatterPanel(ScatterPlot sp, int index) {
 		super();
@@ -97,14 +98,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 //		addComponentListener(this);
 		setZoomable(true, true);
 	}
-
+	
 	public Color[] getColorScheme() {
 		return colorScheme;
 	}
 
 	public void assignAxisLabels() {
-		xAxisLabel = MarkerData.TYPES[sp.getPlotType(panelIndex)][0];
-		yAxisLabel = MarkerData.TYPES[sp.getPlotType(panelIndex)][1];
+		xAxisLabel = shrunk ? " " : MarkerData.TYPES[sp.getPlotType(panelIndex)][0];
+		yAxisLabel = shrunk ? " " : MarkerData.TYPES[sp.getPlotType(panelIndex)][1];
 	}
 	
 	public boolean invertX() {
@@ -174,7 +175,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		markerIndex = sp.getMarkerIndex();
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
-		boolean[] toInclude = sp.hideExcludedSamples() ? sp.getProject().getSamplesToInclude(null, false) : Array.booleanArray(samples.length, true);
+		boolean[] toInclude = sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null, false) : Array.booleanArray(samples.length, true);
 		datapoints = markerData.getDatapoints(plotType, null, toInclude, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), sp.getProject().getProperty(sp.getProject().NUM_THREADS), sp.getCorrection(panelIndex), sp.getProject().getLog());
 		// alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
@@ -246,7 +247,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
 
-			if (indi != null && (sp.hideExcludedSamples() && sampleData.individualShouldBeExcluded(samples[i]))) {
+			if (indi != null && (sp.hideExcludedSamples(panelIndex) && sampleData.individualShouldBeExcluded(samples[i]))) {
 				// if sample should be excluded then do nothing
 				genotype[i]=-3;
 				sex[i] = "e";

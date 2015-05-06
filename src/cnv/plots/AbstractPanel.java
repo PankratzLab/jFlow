@@ -69,6 +69,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected int canvasSectionMaximumX;
 	protected int canvasSectionMinimumY;
 	protected int canvasSectionMaximumY;
+	protected int axisYWidth = WIDTH_Y_AXIS;
+	protected int axisXHeight = HEIGHT_X_AXIS;
 	protected double plotXmax, plotYmax;
 	protected double plotXmin, plotYmin;
 	protected volatile BufferedImage image;
@@ -471,15 +473,14 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 			// Calculate the plot area's range (X-axis, Y-axis)
 			plotMinMaxStep = null;
+			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
+			canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
+			canvasSectionMinimumY = 0;
+			canvasSectionMaximumY = axisXHeight;//HEIGHT_X_AXIS;
+			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
+			plotXmin = plotMinMaxStep[0];
+			plotXmax = plotMinMaxStep[1];
 			if (displayXaxis) {
-				canvasSectionMinimumX = WIDTH_Y_AXIS;
-				canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-				canvasSectionMinimumY = 0;
-				canvasSectionMaximumY = HEIGHT_X_AXIS;
-				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
-				plotXmin = plotMinMaxStep[0];
-				plotXmax = plotMinMaxStep[1];
-
 				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
 				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
@@ -489,19 +490,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 				}
 				Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
-				g.drawString(xAxisLabel, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(xAxisLabel)/2+WIDTH_Y_AXIS, getHeight()-20);
+				g.drawString(xAxisLabel, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(xAxisLabel)/2+axisYWidth/*WIDTH_Y_AXIS*/, getHeight()-20);
 			}
-			
+		
+			canvasSectionMinimumX = 0;
+			canvasSectionMaximumX = axisYWidth;//WIDTH_Y_AXIS;
+			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
+			canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
+			if (!makeSymmetric || plotMinMaxStep == null) {
+				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
+			}
+			plotYmin = plotMinMaxStep[0];
+			plotYmax = plotMinMaxStep[1];
 			if (displayYaxis) {
-				canvasSectionMinimumX = 0;
-				canvasSectionMaximumX = WIDTH_Y_AXIS;
-				canvasSectionMinimumY = HEIGHT_X_AXIS;
-				canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-				if (!makeSymmetric || plotMinMaxStep == null) {
-					plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
-				}
-				plotYmin = plotMinMaxStep[0];
-				plotYmax = plotMinMaxStep[1];
 				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
 				for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
 					if (y >= plotYmin || !truncate) {
@@ -531,7 +532,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				gfx.setColor(Color.BLACK);
 				gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
 
-				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-axisXHeight/*HEIGHT_X_AXIS*/)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
 			}
 
 			/*
@@ -565,16 +566,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 
 			if (errorMessage != null) {
-				g.drawString(errorMessage, (getWidth()-WIDTH_Y_AXIS)/2-fontMetrics.stringWidth(errorMessage)/2+WIDTH_Y_AXIS, (getHeight()-HEAD_BUFFER-HEIGHT_X_AXIS)/2-20+HEAD_BUFFER);
+				g.drawString(errorMessage, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(errorMessage)/2+axisYWidth/*WIDTH_Y_AXIS*/, (getHeight()-HEAD_BUFFER-axisXHeight/*HEIGHT_X_AXIS*/)/2-20+HEAD_BUFFER);
 			}
 		
 		}
 
 		
 		//TODO outercoordinates
-		canvasSectionMinimumX = WIDTH_Y_AXIS;
+		canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-		canvasSectionMinimumY = HEIGHT_X_AXIS;
+		canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
 //		System.err.println("("+canvasSectionMinimumX+"-"+canvasSectionMaximumX+","+canvasSectionMinimumY+"-"+canvasSectionMaximumY+")");
 
@@ -861,9 +862,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			x = event.getX();
 			y = event.getY();
 
-			canvasSectionMinimumX = WIDTH_Y_AXIS;
+			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
 			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
-			canvasSectionMinimumY = HEIGHT_X_AXIS;
+			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
 			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
 			if (!pos.equals(prevPos)) {
@@ -919,9 +920,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 		for (int i = 0; i < 2; i++) {
 			if (i==0) {
-				distance = (startX-curX) * (zoomSubsets[0][1]-zoomSubsets[0][0])/(getWidth()-WIDTH_BUFFER-WIDTH_Y_AXIS);
+				distance = (startX-curX) * (zoomSubsets[0][1]-zoomSubsets[0][0])/(getWidth()-WIDTH_BUFFER-axisYWidth/*WIDTH_Y_AXIS*/);
 			} else {
-				distance = (curY-startY) * (zoomSubsets[1][1]-zoomSubsets[1][0])/(getHeight()-HEAD_BUFFER-HEIGHT_X_AXIS);
+				distance = (curY-startY) * (zoomSubsets[1][1]-zoomSubsets[1][0])/(getHeight()-HEAD_BUFFER-axisXHeight/*HEIGHT_X_AXIS*/);
 			}
 			
 			if (distance<0) {
@@ -1003,12 +1004,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 		proportions = new float[2][2];
 		
-		width = getWidth()-WIDTH_Y_AXIS-WIDTH_BUFFER;
-		x = (float)p.getX()-WIDTH_Y_AXIS;
+		width = getWidth()-/*WIDTH_Y_AXIS*/axisYWidth-WIDTH_BUFFER;
+		x = (float)p.getX()-axisYWidth;//WIDTH_Y_AXIS;
 		proportions[0][0] = x/width;
 		proportions[0][1] = (width-x)/width;
 
-		height = getHeight()-HEIGHT_X_AXIS-HEAD_BUFFER;
+		height = getHeight()-/*HEIGHT_X_AXIS*/axisXHeight-HEAD_BUFFER;
 		y = (float)p.getY()-HEAD_BUFFER; // could be HEAD_BUFFER
 		proportions[1][0] = (height-y)/height; // reversed because of top down
 		proportions[1][1] = y/height;
