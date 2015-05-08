@@ -2,9 +2,11 @@ package one;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import common.CmdLine;
 import common.Files;
@@ -16,6 +18,10 @@ public class ScriptExecutor {
 	ExecutorService executor;
 	
 	public ScriptExecutor(int numThreads) {
+		int threads = numThreads;
+		if (threads == -1) {
+			threads = Runtime.getRuntime().availableProcessors();
+		}
 		this.executor = Executors.newFixedThreadPool(numThreads);
 	}
 	
@@ -27,7 +33,7 @@ public class ScriptExecutor {
 		if (lines.length == 0) {
 			return false;
 		}
-		return outLogEndToken != null && (lines[lines.length - 1].contains(outLogEndToken));
+		return !(outLogEndToken == null) && (lines[lines.length - 1].contains(outLogEndToken));
 	}
 	
 	private void run(String file, String outLogEndToken) throws IOException {
@@ -42,27 +48,38 @@ public class ScriptExecutor {
 		for (int i = 0; i < lines.length; i++) {
 			final int index = i;
 			final String cmdLine = lines[index];
-			final String outLog = fileRoot + ".log_" + index + ".out";
+			final String outLog = "output/" + fileRoot + ".log_" + index + ".out";
 			boolean foundCompleteOutLog = outLogExistsComplete(dir + outLog, outLogEndToken);
 			if (foundCompleteOutLog) continue;
 			Runnable executable = new Runnable() {
 				@Override
 				public void run() {
 					try {
-						CmdLine.run(cmdLine + " > " + dir + outLog, dir);
+						PrintStream ps = new PrintStream(dir + outLog);
+						CmdLine.run(cmdLine, dir, ps);
 					} catch (Exception e) {
 						e.printStackTrace(outWriter);
 					}
 				}
 			};
-			this.executor.execute(executable);
+			outWriter.println("Queuing runnable " + index  + "/" + lines.length);
+			try {
+				this.executor.execute(executable);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		this.executor.shutdown();
+		try {
+			this.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
 	public static void main(String[] args) {
-		int numArgs = 3;
+		int numArgs = args.length;
 		String inputFile = "input.txt";
 		String outlogToken = null;
 		int numThreads = 1;

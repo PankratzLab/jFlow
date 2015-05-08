@@ -164,7 +164,39 @@ public class PlinkData {
 
 		convertFamBedToPed(plinkDirAndFilenameRoot, convertBimToMap(plinkDirAndFilenameRoot), log);
 	}
+	
+	/**
+	 * Load a Plink .bim file and return the list of alleles.
+	 * @param plinkDirAndFilenameRoot
+	 * @return
+	 */
+	public static char[][] loadBimAlleles(String plinkDirAndFilenameRoot) {
+		Vector<char[]> allelesTmp;
+		Scanner reader;
+		String[] line;
+		char[][] alleles;
+		
+		allelesTmp = new Vector<char[]>();
+		try {
+			reader = new Scanner(new FileInputStream(plinkDirAndFilenameRoot + ".bim"));
+			reader.nextLine();
+			while (reader.hasNext()) {
+				line = reader.nextLine().split("\t");
+				allelesTmp.add(new char[] {line[4].charAt(0), line[5].charAt(0)});
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		alleles = new char[allelesTmp.size()][2];
+		for (int i = 0; i < alleles.length; i++) {
+			alleles[i] = allelesTmp.elementAt(i);
+		}
 
+		return alleles;
+	}
+	
 	/**
 	 * Convert a Plink .bim file to Plink .map file and return the list of alleles.
 	 * This is normally used as part of PlinkData.convertBedToPed(...)
@@ -1920,7 +1952,16 @@ public class PlinkData {
 		result = new MarkerData[markersIndicesInProj.length];
 		try {
 			in = new RandomAccessFile(bedFileName, "r");
+
 			//Test the plink file header && Marker Dominant or Sample Dominant?
+			byte[] isSnpMajor = new byte[3];
+			in.read(isSnpMajor);
+			if (isSnpMajor[2] == 0) {
+				// sample dominant
+				System.err.println("Error - .bed file is sample-dominant.");
+			} else {
+				
+			}
 
 			// Sort the markerList for sequential loading
 
