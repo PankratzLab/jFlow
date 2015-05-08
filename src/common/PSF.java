@@ -79,12 +79,20 @@ public class PSF {
 			return ECHO + "\"" + toEcho + "\"";
 		}
 
+		public static final String getSedCommand(String fullPathToInput, String fullPathToOutput, String reg1, String reg2) {
+			String sed = "";
+			//sed 's/1000g2014oct_all/g10002014oct_all/g' 
+			
+			return sed;
+		}
+
 		public static final String PERL = "perl";
 
 		public static final String SED = "sed";
 
 	}
 
+	
 	/**
 	 * related to anything
 	 *

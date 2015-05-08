@@ -123,7 +123,7 @@ public class Files {
 	}
 
 		
-	private static void writeQsubHeader(PrintWriter writer, String filename, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String nodeToUse, boolean profile) {
+	private static void writeQsubHeader(PrintWriter writer, String filename, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String nodeToUse, boolean defualtMods) {
 		Vector<String> params;
 		int hours, minutes;
 
@@ -153,8 +153,8 @@ public class Files {
         }
 		writer.println();
 		
-		if (profile) {
-			writer.println(PSF.Load.MODULE_LOAD_RISS_UTIL);
+		if (defualtMods) {
+			writer.println(Array.toStr(PSF.Load.getAllModules(),"\n"));
 			writer.println(PSF.Cmd.getProfilePLWithOutput(ext.rootOf(filename, false) + ".profile"));
 		}
 		
