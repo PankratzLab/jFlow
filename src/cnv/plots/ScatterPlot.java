@@ -1,35 +1,98 @@
 // replace all exits with a proper disposal of all resources
 package cnv.plots;
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SpringLayout;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
 import stats.CTable;
 import stats.ContingencyTable;
 import stats.ProbDist;
-
-import java.awt.*;
-import java.awt.event.*;
-
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.*;
+import cnv.filesys.AnnotationCollection;
+import cnv.filesys.Centroids;
+import cnv.filesys.ClusterFilter;
+import cnv.filesys.ClusterFilterCollection;
+import cnv.filesys.MarkerData;
+import cnv.filesys.MarkerLookup;
+import cnv.filesys.MarkerSet;
+import cnv.filesys.Project;
+import cnv.filesys.SampleList;
 import cnv.gui.AnnotationAction;
 import cnv.gui.AutoSaveForScatterPlot;
 import cnv.gui.ColorKeyPanel;
 import cnv.gui.CycleRadio;
 import cnv.manage.MarkerDataLoader;
-import common.*;
-import cnv.var.*;
+import cnv.var.SampleData;
+
+import common.AlleleFreq;
+import common.Array;
+import common.Files;
+import common.Grafik;
+import common.Logger;
+import common.Matrix;
+import common.ext;
 
 public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
@@ -2700,7 +2763,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         qcPanelLabel = new JLabel("Minor Allele Frequency:   ", JLabel.LEFT);
         qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 0 2");
-		qcPanelLabel = new JLabel(ext.prettyP(minorAlleleFrequency), JLabel.LEFT);
+		qcPanelLabel = new JLabel(ext.prettyP(minorAlleleFrequency+"", 4, 5, 1, false), JLabel.LEFT);
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 1 2");
 
