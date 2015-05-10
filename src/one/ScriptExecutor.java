@@ -30,10 +30,7 @@ public class ScriptExecutor {
 			return false;
 		}
 		String[] lines = HashVec.loadFileToStringArray(outLog, false, null, false);
-		if (lines.length == 0) {
-			return false;
-		}
-		return !(outLogEndToken == null) && (lines[lines.length - 1].contains(outLogEndToken));
+		return !(outLogEndToken == null) && lines.length > 0 && (lines[lines.length - 1].contains(outLogEndToken));
 	}
 	
 	private void run(String file, String outLogEndToken) throws IOException {
