@@ -2971,7 +2971,9 @@ public class Files {
 	}
 	
 	private static String determineDelimiterFromFirstLine(String filename, Logger log) {
-		return ext.determineDelimiter(Files.getFirstNLinesOfFile(filename, 1,null, log)[0]);
+		String[] lines = Files.getFirstNLinesOfFile(filename, 1, null, log);
+		if (lines.length == 0) return "";
+		return ext.determineDelimiter(lines[0]);
 	}
 	
 	public static void moveFilesMoved(String filesMoved, String dir) {
