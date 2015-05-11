@@ -2648,7 +2648,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		
 		if (showingAll) {
 			for (int i = 0; i < indivPanels.length; i++) {
-				String plotTitle = MarkerData.TYPES[plot_types[i] + 1][0] + "/" + MarkerData.TYPES[plot_types[i] + 1][1];
+				String plotTitle = MarkerData.TYPES[plot_types[i] + 1][0] + "/" + MarkerData.TYPES[plot_types[i] + 1][1] + " - " + sampleData.getClassName(classes[i]);
 				if (i == selectedPanelIndex) {
 					TitledBorder tb = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED, Color.RED, Color.GRAY), plotTitle, TitledBorder.LEADING, TitledBorder.TOP);
 					indivPanels[i].setBorder(tb);

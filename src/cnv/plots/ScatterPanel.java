@@ -81,7 +81,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	private int mouseEndY;
 	private int panelIndex;
 	CountVector uniqueValueCounts;
-	boolean shrunk = false;
+	protected boolean shrunk = false;
 	
 	public ScatterPanel(ScatterPlot sp, int index) {
 		super();
