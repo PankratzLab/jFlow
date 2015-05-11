@@ -2972,7 +2972,7 @@ public class Files {
 	
 	private static String determineDelimiterFromFirstLine(String filename, Logger log) {
 		String[] lines = Files.getFirstNLinesOfFile(filename, 1, null, log);
-		if (lines.length == 0) return "";
+		if (lines == null || lines.length == 0) return "";
 		return ext.determineDelimiter(lines[0]);
 	}
 	

@@ -267,8 +267,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		loadCNVsAsRegions();
 		procCNVs(chr);
 		updateGUI();
-		regionIndex = 0;
-		showRegion();
+		regionIndex = -1;
+		if (location.equals(DEFAULT_LOCATION)) {
+			regionIndex = 0;
+			showRegion();
+		}
 		
 	}
 	

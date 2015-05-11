@@ -1,5 +1,6 @@
 package one;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -45,9 +46,14 @@ public class ScriptExecutor {
 		for (int i = 0; i < lines.length; i++) {
 			final int index = i;
 			final String cmdLine = lines[index];
-			final String outLog = "output/" + fileRoot + ".log_" + index + ".out";
-			boolean foundCompleteOutLog = outLogExistsComplete(dir + outLog, outLogEndToken);
-			if (foundCompleteOutLog) continue;
+			
+			String outLogTemp = "output/" + fileRoot + ".log_" + index + ".out";
+			boolean foundCompleteOutLog = outLogExistsComplete(dir + outLogTemp, outLogEndToken);
+			if (foundCompleteOutLog) {
+				outWriter.println("Ignoring runnable " + index  + "/" + lines.length + "; output logfile [" + outLogTemp + "] contains given token [" + outLogEndToken + "]");
+				continue;
+			}
+			final String outLog = ensureWriteableOutLog(dir + "output/" + fileRoot + ".log_" + index);
 			Runnable executable = new Runnable() {
 				@Override
 				public void run() {
@@ -63,7 +69,7 @@ public class ScriptExecutor {
 			try {
 				this.executor.execute(executable);
 			} catch (Exception e) {
-				e.printStackTrace();
+				e.printStackTrace(outWriter);
 			}
 		}
 		this.executor.shutdown();
@@ -72,9 +78,25 @@ public class ScriptExecutor {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		outWriter.flush();
+		outWriter.close();
 	}
 	
 	
+	private String ensureWriteableOutLog(String outLog) {
+		String tempLogFile = outLog + ".out";
+		File outLogFile = new File(tempLogFile);
+		if (outLogFile.exists() && !outLogFile.canWrite()) {
+			int cnt = 1;
+			do {
+				tempLogFile = outLog + "_" + cnt + ".out";
+				outLogFile = new File(tempLogFile);
+				cnt++;
+			} while (outLogFile.exists() && !outLogFile.canWrite());
+		}
+		return tempLogFile;
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String inputFile = "input.txt";
