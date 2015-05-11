@@ -58,7 +58,8 @@ public class ScriptExecutor {
 				@Override
 				public void run() {
 					try {
-						PrintStream ps = new PrintStream(dir + outLog);
+						(new File(outLog)).createNewFile();
+						PrintStream ps = new PrintStream(outLog);
 						CmdLine.run(cmdLine, dir, ps);
 					} catch (Exception e) {
 						e.printStackTrace(outWriter);

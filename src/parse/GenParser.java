@@ -545,7 +545,7 @@ public class GenParser {
 	    "";
 
 //	    args = new String [] {"subset.genome_parsed.xln out=admixedUnrelatedsCheck.txt 0 1 2 3 6 7 8 9 !9>0.2"};
-	    args = new String [] {"ESFreeze3_snpinfo_042913.csv.gz	out=ESFreeze3_snpinfo_042913_min.csv'SNP' 'CHROM' 'POS' 'REF' 'ALT' 'MAF' 'SKATgene' 'sc_nonsynSplice'"};
+//	    args = new String [] {"ESFreeze3_snpinfo_042913.csv.gz	out=ESFreeze3_snpinfo_042913_min.csv'SNP' 'CHROM' 'POS' 'REF' 'ALT' 'MAF' 'SKATgene' 'sc_nonsynSplice'"};
 	    
 	    if (args.length == 1) {
 	    	args = ext.removeQuotes(args[0]).trim().split("[\\s]+");
