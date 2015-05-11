@@ -1,6 +1,8 @@
 package one;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -80,6 +82,40 @@ public class FASTScriptBuilder {
 		
 	}
 	
+	private static void concatResults(String resultsDir, String resultsFile) {
+		String[] filenames = (new File(resultsDir)).list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".Linear.txt");
+			}
+		});
+		
+		PrintWriter writer = Files.getAppropriateWriter(resultsDir + resultsFile);
+		boolean first = true;
+		System.out.print("Concatenating results files: <");
+		for (String str : filenames) {
+			BufferedReader reader;
+			try {
+				reader = Files.getAppropriateReader(resultsDir + str);
+				String line = reader.readLine();
+				if (first) {
+					writer.println(line);
+					first = false;
+				}
+				while((line = reader.readLine()) != null) {
+					writer.println(line);
+				}
+				reader.close();
+				System.out.print("-");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println(">");
+		writer.flush();
+		writer.close();
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String fast = "~/FAST";
@@ -89,8 +125,11 @@ public class FASTScriptBuilder {
 		String suffix = ".impute2.gz";
 		String run = "~/runFAST/";
 		int covars = 0;
+		String results = "~/FAST/output/";
+		String out = "finalResults.txt";
+		boolean concat = false;
 		
-		String usage = "one.FASTScriptBuilder requires 7 arguments\n" + 
+		String usage = "one.FASTScriptBuilder requires 7 or 2 arguments\n" + 
 					   "   (1) Full-path to FAST script (including /FAST) (i.e. fast=" + fast + " (default))\n" + 
 					   "   (2) Full-path to data directory (i.e. data=" + data + " (default))\n" +
 					   "   (3) Full-path to .indiv file (i.e. indiv=" + indiv + " (default))\n" +
@@ -98,6 +137,10 @@ public class FASTScriptBuilder {
 					   "   (5) Suffix by which to identify data files in the data directory (i.e. suffix=" + suffix + " (default))\n" +
 					   "   (6) Full-path to the directory in which you want to run these scripts (must include a folder named 'output') (i.e. rundir=" + run + " (default))\n" +
 					   "   (7) Number of covariates in .trait file (i.e. covars=" + covars + " (default))\n" +
+					   " OR " +
+					   "   (1) Path to directory with results files (i.e. results=" + results + " (default))\n" +
+					   "   (2) Desired name of concatenated result file (i.e. out=" + out + " (default))\n" +
+					   "   (3) flag to indicate results processing is desired (i.e. -concat (not the default))\n" +
 					   "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -122,8 +165,17 @@ public class FASTScriptBuilder {
 			} else if (args[i].startsWith("rundir=")) {
 				run = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("results=")) {
+				results = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				out = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("covars=")) {
 				covars = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("-concat")) {
+				concat = true;
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -134,7 +186,11 @@ public class FASTScriptBuilder {
 			System.exit(1);
 		}
 		try {
-			new FASTScriptBuilder(fast, data, indiv, trait, suffix, run, covars).run();
+			if (concat) {
+				concatResults(results, out);
+			} else {
+				new FASTScriptBuilder(fast, data, indiv, trait, suffix, run, covars).run();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
