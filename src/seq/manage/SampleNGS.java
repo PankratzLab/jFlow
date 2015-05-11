@@ -4,12 +4,11 @@ import htsjdk.variant.variantcontext.Genotype;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Set;
 
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-
 import common.Array;
 import common.Logger;
 
@@ -31,6 +30,10 @@ public class SampleNGS {
 		this.xs = new ArrayList<Float>(1000000);
 		this.ys = new ArrayList<Float>(1000000);
 		this.gcs = new ArrayList<Float>(1000000);
+	}
+
+	public String getSampleName() {
+		return sampleName;
 	}
 
 	public void addGeno(Genotype geno, Logger log) {
@@ -138,7 +141,7 @@ public class SampleNGS {
 		return allOutliers;
 	}
 
-	public static SampleNGS[] getSamples(Set<String> samples) {
+	public static SampleNGS[] getSamples(HashSet<String> samples) {
 		SampleNGS[] vcfSamples = new SampleNGS[samples.size()];
 		int index = 0;
 		for (String sample : samples) {

@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -22,6 +23,7 @@ import seq.manage.VCOps;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.pathway.GenomeRegions;
 import seq.pathway.Pathway;
+import seq.qc.FilterNGS;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
@@ -32,7 +34,11 @@ import filesys.Segment;
 /**
  * @author lane0212 A somewhat specific class that sums gene counts in a case/control fashion and compares to charge mafs
  */
-public class VCFTally {
+public class VCFTally implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String vcf;
 	protected GenomeRegions genomeRegions;
 	protected VcfPopulation vpop;
@@ -58,7 +64,19 @@ public class VCFTally {
 		this.type = type;
 	}
 
-	public void tallyCaseControlVCF(int altAlleleDepth, String outputList) {
+	public VCFTally(String vcf, GenomeRegions genomeRegions, VcfPopulation vpop, TallyTracker[] trackersCase, TallyTracker[] trackersControl, TallyTracker[] trackersCharge, Logger log, CASE_CONTROL_TYPE type) {
+		super();
+		this.vcf = vcf;
+		this.genomeRegions = genomeRegions;
+		this.vpop = vpop;
+		this.trackersCase = trackersCase;
+		this.trackersControl = trackersControl;
+		this.trackersCharge = trackersCharge;
+		this.log = log;
+		this.type = type;
+	}
+
+	public void tallyCaseControlVCF(FilterNGS filterNGS, String outputList) {
 
 		if (vpop != null) {
 			VariantContextFilter totalQuality = initializeTrackers();
@@ -87,16 +105,16 @@ public class VCFTally {
 
 						if ((type == CASE_CONTROL_TYPE.BOTH_PASS && totalQuality.filter(vcCase).passed() && totalQuality.filter(vcControl).passed()) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcCase).passed() || totalQuality.filter(vcControl).passed()))) {
 
-							VariantContext vcAltCase = VCOps.getAltAlleleContext(vcCase, altAlleleDepth, log);
-							VariantContext vcAltControl = VCOps.getAltAlleleContext(vcControl, altAlleleDepth, log);
+							VariantContext vcAltCase = VCOps.getAltAlleleContext(vcCase, filterNGS, log);
+							VariantContext vcAltControl = VCOps.getAltAlleleContext(vcControl, filterNGS, log);
 							boolean hasCaseAlt = vcAltCase.getSampleNames().size() > 0;
 							boolean hasAltControl = vcAltControl.getSampleNames().size() > 0;
 
 							if ((type == CASE_CONTROL_TYPE.BOTH_PASS && (!hasCaseAlt || totalQuality.filter(vcAltCase).passed()) && (!hasAltControl || totalQuality.filter(vcAltControl).passed())) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcAltCase).passed() || totalQuality.filter(vcAltControl).passed()))) {
 								GeneData[] genesThatOverlap = VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
 								for (int i = 0; i < trackersCase.length; i++) {
-									int caseAdded = trackersCase[i].addIfPasses(vcCase, genesThatOverlap, altAlleleDepth);
-									int controlAdded = trackersControl[i].addIfPasses(vcControl, genesThatOverlap, altAlleleDepth);
+									int caseAdded = trackersCase[i].addIfPasses(vcCase, genesThatOverlap, filterNGS);
+									int controlAdded = trackersControl[i].addIfPasses(vcControl, genesThatOverlap, filterNGS);
 									if (caseAdded + controlAdded > 0) {
 										Segment vcSeg = VCOps.getSegment(vc);
 										writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t" + Positions.getChromosomeUCSC((int) vcSeg.getChr(), true) + ":" + vcSeg.getStart() + (vcSeg.getStop() == vcSeg.getStart() ? "" : ".." + vcSeg.getStop()));
@@ -127,7 +145,7 @@ public class VCFTally {
 		}
 	}
 
-	private VariantContextFilter initializeTrackers() {
+	protected VariantContextFilter initializeTrackers() {
 		this.trackersCase = null;
 		this.trackersControl = new TallyTracker[SNPEFF_NAMES.length];
 		log.reportTimeInfo("Using vpopulation to report");
@@ -170,10 +188,11 @@ public class VCFTally {
 		trackersCharge[SNPEFF_NAMES.length - 1].setCharge(true);
 		int count = 0;
 		VCFFileReader reader = new VCFFileReader(fullpathToChargeVCF, false);
+
 		for (VariantContext vc : reader) {
 			GeneData[] genesThatOverlap = VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
 			for (int i = 0; i < trackersCharge.length; i++) {
-				trackersCharge[i].addIfPasses(vc, genesThatOverlap, -1);
+				trackersCharge[i].addIfPasses(vc, genesThatOverlap, null);
 			}
 			count++;
 			if (count % 10000 == 0) {
@@ -231,7 +250,14 @@ public class VCFTally {
 			log.reportError("Error writing to " + bed);
 			log.reportException(e);
 		}
+	}
 
+	// public void serialize(String filename) {
+	// Files.writeSerial(this, filename);
+	// }
+
+	public static VCFTally load(String filename) {
+		return (VCFTally) Files.readSerial(filename, false, false);
 	}
 
 	private void printGene(PrintWriter writer, String set) {
@@ -247,13 +273,16 @@ public class VCFTally {
 		}
 	}
 
-	protected static class TallyTracker {
+	protected static class TallyTracker implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private Hashtable<String, Float> tally;
 		private Hashtable<String, Float> tallyMAC;
 
 		private GenomeRegions gRegions;
 		private String tallyName;
-		private Segment[] geneSegs;
 		private Hashtable<Integer, int[]> geneSegTrack;
 		private VariantContextFilter[] vContextFilters;
 		private ArrayList<GenePass> passingLocs;
@@ -278,13 +307,27 @@ public class VCFTally {
 			populateQuery();
 		}
 
+		public TallyTracker(Hashtable<String, Float> tally, Hashtable<String, Float> tallyMAC, GenomeRegions gRegions, String tallyName, Segment[] geneSegs, Hashtable<Integer, int[]> geneSegTrack, VariantContextFilter[] vContextFilters, ArrayList<GenePass> passingLocs, Hashtable<String, HashSet<String>> uniqs, Hashtable<String, ArrayList<String>> all, Logger log, boolean charge) {
+			super();
+			this.tally = tally;
+			this.tallyMAC = tallyMAC;
+			this.gRegions = gRegions;
+			this.tallyName = tallyName;
+			this.geneSegTrack = geneSegTrack;
+			this.vContextFilters = vContextFilters;
+			this.passingLocs = passingLocs;
+			this.uniqs = uniqs;
+			this.all = all;
+			this.log = log;
+			this.charge = charge;
+		}
+
 		public void setCharge(boolean charge) {
 			this.charge = charge;
 		}
 
 		private void populateQuery() {
 			this.geneSegTrack = new Hashtable<Integer, int[]>();
-			this.geneSegs = new Segment[total(gRegions.getGeneTrack())];
 			GeneData[][] gDatas = gRegions.getGeneTrack().getGenes();
 			int index = 0;
 			int curChr = 0;
@@ -301,7 +344,6 @@ public class VCFTally {
 					}
 					all.put(gDatas[chr][chrIndex].getGeneName(), new ArrayList<String>());
 					uniqs.put(gDatas[chr][chrIndex].getGeneName(), new HashSet<String>());
-					geneSegs[index] = new Segment(gDatas[chr][chrIndex].getChr(), gDatas[chr][chrIndex].getStart(), gDatas[chr][chrIndex].getStop());
 					geneSegTrack.put(index, new int[] { chr, chrIndex });
 					index++;
 				}
@@ -350,7 +392,7 @@ public class VCFTally {
 			return tallyMAC;
 		}
 
-		public int addIfPasses(VariantContext vc, GeneData[] geneDatas, int altAlleleDepth) {
+		public int addIfPasses(VariantContext vc, GeneData[] geneDatas, FilterNGS filterNGS) {
 			int numAdded = 0;
 			for (int i = 0; i < vContextFilters.length; i++) {
 				if (!vContextFilters[i].filter(vc).passed()) {
@@ -375,7 +417,8 @@ public class VCFTally {
 						if (!charge) {
 							passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
 							addTally(geneDatas[i].getGeneName(), 1, (float) mac);
-							Set<String> samplesWithAlts = VCOps.getAltAlleleContext(vc, -1, log).getSampleNames();
+							// TODO alt allele context
+							Set<String> samplesWithAlts = VCOps.getAltAlleleContext(vc, filterNGS, log).getSampleNames();
 							uniqs.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
 							all.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
 							for (int j = 0; j < ways.length; j++) {
@@ -477,7 +520,11 @@ public class VCFTally {
 		return vContextFilter;
 	}
 
-	private static class GenePass {
+	private static class GenePass implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private Segment varSeg;
 		private String geneName;
 
@@ -513,7 +560,7 @@ public class VCFTally {
 				String geneTrackFile = "N:/statgen/NCBI/RefSeq_hg19.gtrack";
 				int altAlleleDepth = 0;
 				VCFTally tally = new VCFTally(vcf, GenomeRegions.load(geneTrackFile), vpop, CASE_CONTROL_TYPE.values()[j], log);
-				tally.tallyCaseControlVCF(altAlleleDepth, outputList);
+				tally.tallyCaseControlVCF(null, outputList);
 				tally.tallyCharge(fullpathToChargeVCF);
 				tally.summarize(ext.parseDirectoryOfFile(vcf) + ext.rootOf(vpopFiles[i]) + "tallyCounts." + CASE_CONTROL_TYPE.values()[j] + ".txt");
 			}
@@ -547,4 +594,41 @@ public class VCFTally {
 			e.printStackTrace();
 		}
 	}
+
+	public String getVcf() {
+		return vcf;
+	}
+
+	public GenomeRegions getGenomeRegions() {
+		return genomeRegions;
+	}
+
+	public VcfPopulation getVpop() {
+		return vpop;
+	}
+
+	public TallyTracker[] getTrackersCase() {
+		return trackersCase;
+	}
+
+	public TallyTracker[] getTrackersControl() {
+		return trackersControl;
+	}
+
+	public TallyTracker[] getTrackersCharge() {
+		return trackersCharge;
+	}
+
+	public Logger getLog() {
+		return log;
+	}
+
+	public static String[] getSnpeffNames() {
+		return SNPEFF_NAMES;
+	}
+
+	public CASE_CONTROL_TYPE getType() {
+		return type;
+	}
+
 }

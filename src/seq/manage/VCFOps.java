@@ -7,12 +7,19 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import seq.analysis.PlinkSeq;
+import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
+import seq.analysis.PlinkSeq.LOAD_TYPES;
+import seq.analysis.PlinkSeq.PlinkSeqWorker;
+import seq.analysis.PlinkSeqUtils.PseqProject;
 import stats.Histogram.DynamicHistogram;
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -34,6 +41,7 @@ import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.Positions;
+import common.WorkerHive;
 import common.ext;
 
 /**
@@ -79,7 +87,11 @@ public class VCFOps {
 		REMOVE_FILTERED, /**
 		 * gzip and index a vcf file
 		 */
-		GZIP;
+		GZIP,
+		/**
+		 * Use plinkSeq to qc a vcf
+		 */
+		QC;
 	}
 
 	/**
@@ -164,7 +176,7 @@ public class VCFOps {
 	}
 
 	public static String[] getSamplesInFile(VCFFileReader reader) {
-		ArrayList<String> samples = reader.getFileHeader().getSampleNamesInOrder();
+		List<String> samples = reader.getFileHeader().getGenotypeSamples();
 		return samples.toArray(new String[samples.size()]);
 	}
 
@@ -340,9 +352,14 @@ public class VCFOps {
 	 * Can be used for HWE tests on sub and super populations etc...
 	 *
 	 */
-	public static class VcfPopulation {
+	public static class VcfPopulation implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		public static final String CASE = "CASE";
 		public static final String CONTROL = "CONTROL";
+		public static final String EXCLUDE = "EXCLUDE";
 		public static final String[] HEADER = new String[] { "IID", "Population", "SuperPopulation" };
 		private static final String SKIP = "#N/A";
 		private Hashtable<String, Set<String>> subPop;
@@ -368,6 +385,10 @@ public class VCFOps {
 			this.uniqSuperPop = new ArrayList<String>();
 			this.type = type;
 			this.log = log;
+		}
+
+		public Logger getLog() {
+			return log;
 		}
 
 		public String[] getPopulationForInd(String ind, RETRIEVE_TYPE type) {
@@ -591,7 +612,7 @@ public class VCFOps {
 
 	}
 
-	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, Logger log) {
+	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, int numThreads, Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
 		if (vcf == null || !Files.exists(vcf)) {
@@ -604,6 +625,7 @@ public class VCFOps {
 		}
 
 		String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
+		new File(dir).mkdirs();
 		String root = ext.rootOf(vcf).replaceFirst(VCF_EXTENSIONS.REG_VCF.getLiteral(), "");
 
 		VCFFileReader reader = new VCFFileReader(vcf, true);
@@ -650,7 +672,7 @@ public class VCFOps {
 				}
 			}
 			if (bamSample != null) {
-				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, 1, log);
+				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam", false), log, true);
 				bamSample.generateMap();
 				bamSample.dumpToIGVMap(output);
@@ -783,6 +805,16 @@ public class VCFOps {
 		}
 	}
 
+	public static void qcVCF(String vcf, Logger log) {
+		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vcf), vcf, null, ext.parseDirectoryOfFile(vcf), true, false, log);
+		plinkSeq.createNewProject(pseqProject);
+		plinkSeq.loadData(pseqProject, LOAD_TYPES.VCF, null);
+		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(1, 10, log);
+		assocHive.addCallable(PlinkSeq.generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, null, -1, "0", pseqProject.getProjectName(), true, log));
+		assocHive.execute(true);
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String vcf = "Avcf.vcf";
@@ -871,7 +903,7 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, log);
+				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, 1, log);
 				break;
 			case REMOVE_FILTERED:
 				removeFilteredVariants(vcf, gzip, log);
@@ -879,7 +911,11 @@ public class VCFOps {
 			case GZIP:
 				gzipAndIndex(vcf, log);
 				break;
+			case QC:
+				qcVCF(vcf, log);
+				break;
 			default:
+				System.err.println("Invalid utility type");
 				break;
 			}
 		} catch (Exception e) {

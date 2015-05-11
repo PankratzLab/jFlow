@@ -1,5 +1,7 @@
 package cnv.var;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -11,7 +13,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	protected static final long serialVersionUID = 1L;
 	private T[] loci;
 	private boolean sorted;
 	private Logger log;
@@ -53,6 +55,51 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		} else {
 			return Array.subArray(loci, indices);
 		}
+	}
+
+	public enum TO_STRING_TYPE {
+		/**
+		 * calls the {@link Segment#getUCSClocation()}, or any overide
+		 */
+		UCSC, /**
+		 * calls the {@link Segment#toString()}, or any override
+		 */
+		REGULAR;
+	}
+
+	/**
+	 * @param array
+	 *            writes according to the to string method of the class
+	 * @param filename
+	 * @param log
+	 * @return
+	 */
+	public boolean writeRegions(String filename, TO_STRING_TYPE type, Logger log) {
+		log.reportTimeInfo("Writing " + loci.length + " loci to " + filename);
+		boolean written = true;
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(filename));
+			for (int i = 0; i < loci.length; i++) {
+				switch (type) {
+				case REGULAR:
+					writer.println(loci[i].toString());
+					break;
+				case UCSC:
+					writer.println(loci[i].getUCSClocation());
+					break;
+				default:
+					log.reportTimeError("Invalid type " + type);
+					written = false;
+					break;
+				}
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + filename);
+			log.reportException(e);
+			written = false;
+		}
+		return written;
 	}
 
 	private T[] putInOrder(final T[] array, int[] order) {

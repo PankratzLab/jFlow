@@ -469,7 +469,7 @@ public class BamQC {
 	}
 
 	private static double computePercent(int top, int bottom) {
-		return bottom > 0 ? top / bottom : 0;
+		return bottom > 0 ? (double) top / bottom : 0;
 	}
 
 	private static BamQC initBamQC(String inputSamOrBamFile, String outputDir, FilterNGS filterNGS) {

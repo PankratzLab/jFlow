@@ -12,13 +12,10 @@ import java.util.concurrent.Callable;
 import one.JL.MAF;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.Builder;
-import cnv.analysis.PennCNVPrep;
-import cnv.analysis.pca.PCA;
+import cnv.analysis.PennCNV;
 import cnv.filesys.Centroids;
 import cnv.filesys.Project;
-import cnv.filesys.Sample;
 import cnv.manage.Markers;
-import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
@@ -32,21 +29,13 @@ import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import common.Array;
 import common.Files;
-import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.WorkerHive;
 import common.WorkerTrain;
-import common.WorkerTrain.Producer;
 import common.ext;
-import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypesContext;
-import htsjdk.variant.variantcontext.LazyGenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFFileReader;
-import htsjdk.variant.vcf.VCFHeader;
 
 /**
  * Class to import a vcf into Genvisis format
@@ -198,7 +187,6 @@ public class VCFImporter {
 			ConversionResults results = importer.importVCF(proj, samples, vcf, createMarkerPositions);
 
 			return results;
-			// TODO Auto-generated method stub
 		}
 	}
 
@@ -294,13 +282,12 @@ public class VCFImporter {
 		// }
 	}
 
-	public static void test(Project proj, String vcf, int numRounds, int numThreads) {
+	public static void test(Project proj, String vcf, String gc5Base, PREPPED_SAMPLE_TYPE type, int numRounds, int numThreads) {
 		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(vcf, true));
 
 		ArrayList<String[]> sampleChunks = Array.splitUpArray(samples, numRounds, proj.getLog());
 		WorkerHive<ConversionResults> hive = new WorkerHive<VCFImporter.ConversionResults>(numThreads, 10, proj.getLog());
 		proj.SAMPLE_DIRECTORY.getValue(true, false);
-
 		proj.MARKER_DATA_DIRECTORY.getValue(true, false);
 		proj.DATA_DIRECTORY.getValue(true, false);
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
@@ -338,7 +325,7 @@ public class VCFImporter {
 					proj.getLog().reportTimeInfo("Constructing outlierHash");
 					allOutliers = proj.loadOutliersFromSamples();
 				} catch (Exception e) {
-					proj.getLog().reportException(e);
+					proj.getLog().reportException(e); 
 					e.printStackTrace();
 				}
 			}
@@ -347,42 +334,96 @@ public class VCFImporter {
 		if (allOutliers.size() > 0) {
 			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
 		}
+		processExt(proj, gc5Base);
+
+		processCentroids(proj, vcf, numThreads);
+
+		String newProjectDir = proj.PROJECT_DIRECTORY.getValue() + type + "/";
+		new File(newProjectDir).mkdirs();
+
+		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), false, proj.getLog());
+
+		String newProjectFile = ext.addToRoot(proj.getPropertyFilename(), type + "");
+		Files.copyFile(proj.getPropertyFilename(), newProjectFile);
+		Project projNorm = new Project(newProjectFile, false);
+		projNorm.PROJECT_NAME.setValue(projNorm.PROJECT_NAME.getValue() + type);
+		projNorm.PROJECT_DIRECTORY.setValue(newProjectDir + type);
+		projNorm.saveProperties();
+		projNorm.DATA_DIRECTORY.getValue(true, false);
+
+		if (projNorm.getSamples() == null) {
+			VCFSamplePrepWorker vPrepWorker = new VCFSamplePrepWorker(proj, projNorm.SAMPLE_DIRECTORY.getValue(true, false), PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED, gcModel);
+			Hashtable<String, Float> allNewOutliers = new Hashtable<String, Float>();
+			WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(vPrepWorker, numThreads, 0, proj.getLog());
+
+			int index = 0;
+			while (train.hasNext()) {
+				index++;
+				if (index % 10 == 0) {
+					proj.getLog().reportTimeInfo(index + " of " + proj.getSamples().length);
+				}
+				Hashtable<String, Float> outliers = train.next();
+				if (outliers.size() > 0) {
+					allNewOutliers.putAll(outliers);
+				}
+			}
+			train.shutdown();
+			if (allNewOutliers.size() > 0) {
+				Files.writeSerial(allNewOutliers, projNorm.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
+			}
+			projNorm.getSamples();
+		} else {
+			projNorm.getLog().reportTimeInfo("Assuming that all samples have been gc-corrected, skipping");
+		}
+		Files.copyFile(proj.MARKER_POSITION_FILENAME.getValue(), projNorm.MARKER_POSITION_FILENAME.getValue());
+		processExt(projNorm, gc5Base);
+		processCentroids(projNorm, vcf, numThreads);
+	}
+	
+	
+
+	// }
+	// MitoPipeline.catAndCaboodle( proj, numThreads, "0.98", proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false), 100,"VCF_PCS", true,true, 0.98, null, null,null, true,true, false, true) ;
+
+	private static void processExt(Project proj, String gc5Base) {
 		if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
 			SampleData.createMinimalSampleData(proj);
 		}
+		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+			Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(), proj.getLog());
+		}
 		if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
 			TransposeData.transposeData(proj, 2000000000, false);
-		} else {
-			proj.getLog().reportTimeError("Skipping transpose step");
 		}
-		// Files.copyFile(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false), proj.getFilename(Project.DISPLAY_MARKERS_FILENAME, false, false));
-		// String[] samplesToUse = Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
-		// proj.setProperty(Project.SAMPLE_SUBSET_FILENAME, proj.getProjectDir() + "samplesToUse.txt");
-		// Files.writeList(samplesToUse, proj.getFilename(Project.SAMPLE_SUBSET_FILENAME));
-		// // PCA.computePrincipalComponents(proj, true, 100, false, true, true, true, true, true, proj.getFilename(Project.SAMPLE_SUBSET_FILENAME), "VCF_PCS_WOExclude_Centered");
-		// // PCA.computePrincipalComponents(proj, true, 100, false, false, true, true, true, true, proj.getFilename(Project.SAMPLE_SUBSET_FILENAME), "VCF_PCS_WOExclude_NO_Centered");
-		// TODO uncomment
-		// for (int i = 0; i < 99; i++) {
-		Builder builder = new Builder();
+		if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
+			PennCNV.gcModel(proj, gc5Base, proj.GC_MODEL_FILENAME.getValue(), 100);
+		} else {
+			proj.getLog().reportTimeInfo("Skipping transpose step");
+		}
+	}
+
+	private static void processCentroids(Project proj, String vcf, int numThreads) {
 		double qual = .8;
-		builder.gcThreshold(qual);
 		String cent = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(vcf) + "qual" + ext.formDeci(qual, 2) + ".cent";
-		CentroidCompute.computeAndDumpCentroids(proj, cent, builder, numThreads, 3);
-		proj.CUSTOM_CENTROIDS_FILENAME.setValue(cent);
-		Centroids.recompute(proj, cent);
-		proj.saveProperties();
-		
-		// }
-		// MitoPipeline.catAndCaboodle( proj, numThreads, "0.98", proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false), 100,"VCF_PCS", true,true, 0.98, null, null,null, true,true, false, true) ;
+		if (!Files.exists(cent)) {
+			Builder builder = new Builder();
+			builder.gcThreshold(qual);
+			CentroidCompute.computeAndDumpCentroids(proj, cent, builder, numThreads, 3);
+			proj.CUSTOM_CENTROIDS_FILENAME.setValue(cent);
+			Centroids.recompute(proj, cent);
+			proj.saveProperties();
+		}else{
+			proj.getLog().reportFileExists(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
+		}
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "C:/workspace/Genvisis/projects/Project_Tsai_21_25_26_spector.properties";
 		String vcf = "D:/data/Project_Tsai_21_25_26_spector/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf.gz";
+		String gc5Base = "N:/statgen/NCBI/gc5Base.txt";
 		int numRounds = 4;
-		int numThreads = 1;
-		int numDecompressThreads = 2;
+		int numThreads = 4;
 		String usage = "\n" + "seq.manage.VCFImporter requires 0-1 arguments\n";
 		usage += "   (1) full path to project file name (i.e. file=" + filename + " (default))\n" + "";
 		usage += "   (2) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
@@ -415,7 +456,7 @@ public class VCFImporter {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			test(proj, vcf, numRounds, 1);
+			test(proj, vcf, gc5Base, PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED, numRounds, 1);
 			// test2(proj, vcf, numRounds, numThreads, numDecompressThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -604,3 +645,12 @@ public class VCFImporter {
 // return VCOps.getSubset(vc, verifiedSamples, VC_SUBSET_TYPE.SUBSET_STRICT);
 // }
 // }
+
+// Files.copyFile(proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false), proj.getFilename(Project.DISPLAY_MARKERS_FILENAME, false, false));
+// String[] samplesToUse = Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
+// proj.setProperty(Project.SAMPLE_SUBSET_FILENAME, proj.getProjectDir() + "samplesToUse.txt");
+// Files.writeList(samplesToUse, proj.getFilename(Project.SAMPLE_SUBSET_FILENAME));
+// // PCA.computePrincipalComponents(proj, true, 100, false, true, true, true, true, true, proj.getFilename(Project.SAMPLE_SUBSET_FILENAME), "VCF_PCS_WOExclude_Centered");
+// // PCA.computePrincipalComponents(proj, true, 100, false, false, true, true, true, true, proj.getFilename(Project.SAMPLE_SUBSET_FILENAME), "VCF_PCS_WOExclude_NO_Centered");
+// TODO uncomment
+// for (int i = 0; i < 99; i++) {

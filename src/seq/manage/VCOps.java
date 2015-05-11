@@ -7,6 +7,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
+import seq.qc.FilterNGS;
+import seq.qc.FilterNGS.VariantContextFilter;
 import common.AlleleFreq;
 import common.Array;
 import common.Logger;
@@ -207,23 +209,29 @@ public class VCOps {
 		ALL;
 	}
 
-	public static VariantContext getAltAlleleContext(final VariantContext vc, int altAlleleDepth, Logger log) {
-		return getAltAlleleContext(vc, altAlleleDepth, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+	public static VariantContext getAltAlleleContext(final VariantContext vc, FilterNGS filterNGS, Logger log) {
+		return getAltAlleleContext(vc, filterNGS, null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
 	}
 
 	/**
 	 * @param vc
-	 * @param altAlleleDepth
-	 *            note that this depth will be applied to either the one non-ref alternate allele, or both non ref alternate alleles if applicable
+	 * @param filterNGS
+	 *            used for alternate allele depth,note that this depth will be applied to either the one non-ref alternate allele, or both non ref alternate alleles if applicable
+	 * @param variantContextFilter
+	 *            will be applied to each sample with an alternate call
+	 * @param type
+	 *            see {@link ALT_ALLELE_CONTEXT_TYPE}
 	 * @param log
 	 * @return
 	 */
-	public static VariantContext getAltAlleleContext(final VariantContext vc, int altAlleleDepth, ALT_ALLELE_CONTEXT_TYPE type, Logger log) {
+	public static VariantContext getAltAlleleContext(final VariantContext vc, FilterNGS filterNGS, final VariantContextFilter variantContextFilter, final ALT_ALLELE_CONTEXT_TYPE type, final Logger log) {
 		GenotypesContext gc = vc.getGenotypes();
 		HashSet<String> samplesWithAlt = new HashSet<String>();
-		if (altAlleleDepth >= 0) {
-			log.reportTimeError("Alt Allele depth filter is currently not in here, JOHN");
-			return null;
+		int altAlleleDepth = -1;
+		if (filterNGS != null && filterNGS.getAltAlleleDepthFilter() != null && filterNGS.getAltAlleleDepthFilter()[0] >= 0) {
+			// log.reportTimeError("Alt Allele depth filter is currently not in here, JOHN");
+			altAlleleDepth = filterNGS.getAltAlleleDepthFilter()[0];
+			// return null;
 		}
 		for (Genotype geno : gc) {
 			boolean use = false;
@@ -240,7 +248,6 @@ public class VCOps {
 			default:
 				log.reportTimeError("Invalid alt context type " + type);
 				break;
-
 			}
 			if (use) {
 				int[] AD = new int[] { 0, 0 };
@@ -249,7 +256,11 @@ public class VCOps {
 				}
 				if (altAlleleDepth < 0 || AD[1] > altAlleleDepth) {
 					if (altAlleleDepth < 0 || !geno.isHetNonRef() || AD[0] > altAlleleDepth) {// handles the case when both alleles are non-reference
-						samplesWithAlt.add(geno.getSampleName());
+						HashSet<String> tmp = new HashSet<String>();
+						tmp.add(geno.getSampleName());
+						if (variantContextFilter == null || variantContextFilter.filter(getSubset(vc, tmp)).passed()) {
+							samplesWithAlt.add(geno.getSampleName());
+						}
 					}
 				}
 			}
@@ -261,9 +272,9 @@ public class VCOps {
 	 * Will return the average alt allele ratio for heterozygous calls in this context. Note that the ratio is not always representing the ratio to the reference genome (het non ref)<br>
 	 * min/max will be used in the het-non ref case
 	 */
-	public static double getAverageHetAlleleRatio(VariantContext vc, int altAlleleDepth, Logger log) {
+	public static double getAverageHetAlleleRatio(VariantContext vc, FilterNGS filterNGS, VariantContextFilter variantContextFilter, Logger log) {
 		double avg = 0;
-		VariantContext vcAlts = getAltAlleleContext(vc, altAlleleDepth, ALT_ALLELE_CONTEXT_TYPE.HET_ONLY, log);
+		VariantContext vcAlts = getAltAlleleContext(vc, filterNGS, variantContextFilter, ALT_ALLELE_CONTEXT_TYPE.HET_ONLY, log);
 		GenotypesContext gc = vcAlts.getGenotypes();
 		for (Genotype g : gc) {
 			int[] AD = getAppropriateAlleleDepths(vc, g, log);
@@ -279,7 +290,7 @@ public class VCOps {
 		return avg;
 	}
 
-	private static int[] getAppropriateAlleleDepths(VariantContext vc, Genotype g, Logger log) {
+	public static int[] getAppropriateAlleleDepths(VariantContext vc, Genotype g, Logger log) {
 		int[] AD = new int[2];
 		Arrays.fill(AD, 0);
 		List<Allele> gAlleles = g.getAlleles();
@@ -288,18 +299,26 @@ public class VCOps {
 			log.reportTimeError("Number of alleles should not be greater than 2");
 			return null;
 		} else if (gAlleles.size() == 0 || !g.hasAD()) {
+		} else {
 			List<Allele> varAlleles = vc.getAlleles();
 			int[] gAD = g.getAD();
-			int indexVar = 0;
-			int indexG = 0;
-			for (Allele varAllele : varAlleles) {
-				for (Allele gAllele : gAlleles) {
-					if (gAllele.equals(varAllele)) {
-						AD[indexG] = gAD[indexVar];
-						indexG++;
+
+			if (gAlleles.size() == 1) {
+				AD[0] = gAD[0];
+				AD[1] = gAD[1];
+			} else {
+				int indexVar = 0;
+				int indexG = 0;
+				for (Allele varAllele : varAlleles) {
+					for (Allele gAllele : gAlleles) {
+						if (gAllele.equals(varAllele)) {
+							AD[indexG] = gAD[indexVar];
+							indexG++;
+							break;
+						}
 					}
+					indexVar++;
 				}
-				indexVar++;
 			}
 		}
 		return AD;
@@ -395,10 +414,10 @@ public class VCOps {
 		VariantContext vcSub = null;
 		switch (type) {
 		case SUBSET_LOOSE:
-			vcSub = vc.subContextFromSamples(sampleNames);
+			vcSub = vc.subContextFromSamples(sampleNames, true, true);
 			break;
 		case SUBSET_STRICT:
-			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()));
+			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()), true, true);
 			break;
 		case NO_SUBSET:
 			vcSub = vc;
@@ -412,10 +431,11 @@ public class VCOps {
 
 	public static GeneData[] getGenesThatOverlap(VariantContext vc, GeneTrack geneTrack, Logger log) {
 		ArrayList<GeneData> tmp = new ArrayList<GeneData>();
-		for (int j = 0; j < geneTrack.getGenes().length; j++) {
-			for (int j2 = 0; j2 < geneTrack.getGenes()[j].length; j2++) {
-				if (VCOps.getSegment(vc).overlaps(geneTrack.getGenes()[j][j2])) {
-					tmp.add(geneTrack.getGenes()[j][j2]);
+		Segment vcSeg = getSegment(vc);
+		for (int i = 0; i < geneTrack.getGenes().length; i++) {
+			for (int j = 0; j < geneTrack.getGenes()[i].length; j++) {
+				if (vcSeg.overlaps(geneTrack.getGenes()[i][j])) {
+					tmp.add(geneTrack.getGenes()[i][j]);
 				}
 			}
 		}
@@ -427,7 +447,7 @@ public class VCOps {
 	}
 
 	public static int[] getOverlappingSegments(VariantContext vc, Segment[] orderedSegs) {
-		Segment vcSeg = new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getStart());
+		Segment vcSeg = getSegment(vc);
 		int[] indices = Segment.binarySearchForAllOverLappingIndices(vcSeg, orderedSegs);
 		return indices;
 	}
@@ -476,6 +496,68 @@ public class VCOps {
 			}
 		}
 		return ambiguous;
+	}
+
+	public static List<Allele> getAllelesFor(VariantContext vc, String sampleName) {
+		HashSet<String> tmp = new HashSet<String>();
+		tmp.add(sampleName);
+		return getAllelesFor(vc, tmp);
+	}
+
+	public static List<Allele> getAllelesFor(VariantContext vc, Set<String> sampleNames) {
+		return getSubset(vc, sampleNames).getAlleles();
+	}
+
+	public static String allelesToString(List<Allele> alleles) {
+		String tmp = "";
+		boolean first = true;
+		if (alleles.size() == 1) {
+			tmp = alleles.get(0).getDisplayString() + "/" + alleles.get(0).getDisplayString();
+		} else {
+			for (Allele a : alleles) {
+				tmp += first ? a.getDisplayString() : "/" + a.getDisplayString();
+			}
+		}
+		return tmp;
+	}
+
+	public static class Transmission {
+		private String child;
+		private String p1;
+		private String p2;
+
+		private List<Allele> childAlleles;
+		private List<Allele> p1Alleles;
+		private List<Allele> p2Alleles;
+		private Allele ref;
+
+		public Transmission(String child, String p1, String p2) {
+			super();
+			this.child = child;
+			this.p1 = p1;
+			this.p2 = p2;
+		}
+
+		public void parseAlleles(VariantContext vc) {
+			this.childAlleles = getAllelesFor(vc, child);
+			this.p1Alleles = getAllelesFor(vc, p1);
+			this.p2Alleles = getAllelesFor(vc, p2);
+			for (Allele a : vc.getAlleles()) {
+				if (a.isReference()) {
+					ref = a;
+					break;
+				}
+			}
+		}
+
+		public String getSummary() {
+			String summary = "";
+			summary += "\t" + child + ": " + allelesToString(childAlleles);
+			summary += "\t" + p1 + ": " + allelesToString(p1Alleles);
+			summary += "\t" + p2 + ": " + allelesToString(p2Alleles);
+			summary += "\t" + "ref: " + ref.getDisplayString();
+			return summary;
+		}
 	}
 
 	public static class LocusID {

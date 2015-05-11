@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
 
+
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -196,7 +197,11 @@ public class Segment implements Serializable {
 		}
 		return new Segment(chr, Math.max(start, seg.start), Math.min(stop, seg.stop));
 	}
-
+	
+	@Override
+	public String toString() {
+		return chr + "\t" + start + "\t" + stop + "\t";
+	}
 
 	public static boolean addIfAbsent(Segment seg, Vector<Segment> exons) {
 		for (int i = 0; i<exons.size(); i++) {

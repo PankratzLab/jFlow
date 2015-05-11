@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import seq.manage.VCFOps;
 import seq.manage.VCOps;
+import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
 import seq.qc.FilterNGS.VariantContextFilter;
 import common.Array;
@@ -29,15 +29,13 @@ import common.ext;
 public class SeqError {
 	public static final String[] OUTPUT_HEADER = new String[] { "Samp1", "Samp2", "total", "allMismatched", "allNonMissingMismatched", "proportionAgreeTotal", "proportionAgreeNonMissing" };
 	private String vcfFile;
-	private String[] sampsForPairWise;
 	private DuplicateETwo[] dETwos;
 	private Logger log;
 
-	public SeqError(String vcfFile, String[] sampsForPairWise, Logger log) {
+	public SeqError(String vcfFile, DuplicateETwo[] dETwos, Logger log) {
 		super();
 		this.vcfFile = vcfFile;
-		this.sampsForPairWise = sampsForPairWise == null ? VCFOps.getSamplesInFile(new VCFFileReader(vcfFile, true)) : sampsForPairWise;
-		this.dETwos = getDups(this.sampsForPairWise, log);
+		this.dETwos = dETwos;
 		this.log = log;
 	}
 
@@ -54,40 +52,41 @@ public class SeqError {
 	 * @param numthreads
 	 *            if a large number of pairwise comparisons are performed, the number of threads can be increased
 	 */
-	public void populateError(VariantContextFilter vContextFilterVariant, VariantContextFilter vContextFilterSample, FilterNGS filterNGS, int numVariantsToTest, int numthreads) {
+	public void populateError(VariantContextFilter setFilter, int numVariantsToTest, int numthreads) {
+
 		VCFFileReader reader = new VCFFileReader(vcfFile, true);
 		VCFHeader header = reader.getFileHeader();
+		HashSet<String> allDEs = DuplicateETwo.getUniqSamples(dETwos);
 
-		log.reportTimeInfo("Computing pairwise comparisons for " + sampsForPairWise.length + " samples (" + dETwos.length + ") comparisons per variant");
-		int index = 0;
+		log.reportTimeInfo("Computing concordance for (" + dETwos.length + ") comparisons per variant");
+		int numTotal = 0;
+		int numSetPass = 0;
 		WorkerTrain<DuplicateETwo> train = new WorkerTrain<SeqError.DuplicateETwo>(null, numthreads, numthreads, log);
 		train.setAutoShutDown(false);
 		long time = System.currentTimeMillis();
-		for (VariantContext vc : reader) {
-
-			if (vContextFilterVariant == null || vContextFilterVariant.filter(vc).passed()) {
-				index++;
-
-				if (index % 100000 == 0) {
-					log.reportTimeInfo(index + " variants processed..." + ext.getTimeElapsed(time));
-					time = System.currentTimeMillis();
-					// reader.close();
-					// train.shutdown();
-					// return;
-				}
-				if (numVariantsToTest >= 0 && index == numVariantsToTest) {
-					log.reportTimeInfo(index + " variants processed...," + numVariantsToTest + " variants to test reached " + ext.getTimeElapsed(time));
-					reader.close();
-					train.shutdown();
-					return;
-				}
-				vc.fullyDecode(header, false);
-				DuplicateProducer producer = new DuplicateProducer(vc, vContextFilterSample, dETwos, filterNGS);
-				train.setProducer(producer);
-				int tmpI = 0;
-				while (train.hasNext()) {
-					dETwos[tmpI] = train.next();
-					tmpI++;
+		for (VariantContext vcTmp : reader) {
+			numTotal++;
+			if (numTotal % 10000 == 0) {
+				log.reportTimeInfo(numTotal + " variants processed...with " + numSetPass + " passing the set filter " + ext.getTimeElapsed(time));
+				time = System.currentTimeMillis();
+			}
+			if (setFilter == null || setFilter.filter(vcTmp).passed()) {
+				if (VCOps.getAAC(vcTmp, allDEs) > 0) {
+					VariantContext vc = vcTmp.fullyDecode(header, false);
+					if (numVariantsToTest >= 0 && numTotal == numVariantsToTest) {
+						log.reportTimeInfo(numTotal + " variants processed...," + numVariantsToTest + " variants to test reached " + ext.getTimeElapsed(time));
+						reader.close();
+						train.shutdown();
+						return;
+					}
+					numSetPass++;
+					DuplicateProducer producer = new DuplicateProducer(vc, dETwos);
+					train.setProducer(producer);
+					int tmpI = 0;
+					while (train.hasNext()) {
+						dETwos[tmpI] = train.next();
+						tmpI++;
+					}
 				}
 			}
 
@@ -114,16 +113,12 @@ public class SeqError {
 		private VariantContext vc;
 		private DuplicateETwo[] dETwos;
 		private int index;
-		private VariantContextFilter variantContextFilter;
-		private FilterNGS filterNGS;
 
-		private DuplicateProducer(final VariantContext vc, final VariantContextFilter variantContextFilter, final DuplicateETwo[] dETwos, FilterNGS filterNGS) {
+		private DuplicateProducer(final VariantContext vc, final DuplicateETwo[] dETwos) {
 			super();
 			this.vc = vc;
 			this.dETwos = dETwos;
 			this.index = 0;
-			this.variantContextFilter = variantContextFilter;
-			this.filterNGS = filterNGS;
 		}
 
 		@Override
@@ -133,20 +128,18 @@ public class SeqError {
 
 		@Override
 		public Callable<DuplicateETwo> next() {
-			DuplicateWorker worker = new DuplicateWorker(vc, dETwos[index], variantContextFilter, filterNGS);
+			DuplicateWorker worker = new DuplicateWorker(vc, dETwos[index]);
 			index++;
 			return worker;
 		}
 
 		@Override
 		public void remove() {
-			// TODO Auto-generated method stub
 
 		}
 
 		@Override
 		public void shutdown() {
-			// TODO Auto-generated method stub
 
 		}
 
@@ -155,25 +148,21 @@ public class SeqError {
 	private static class DuplicateWorker implements Callable<DuplicateETwo> {
 		private VariantContext vc;
 		private DuplicateETwo deTwo;
-		private VariantContextFilter variantContextFilter;
-		private FilterNGS filterNGS;
 
-		private DuplicateWorker(VariantContext vc, DuplicateETwo deTwo, VariantContextFilter variantContextFilter, FilterNGS filterNGS) {
+		private DuplicateWorker(VariantContext vc, DuplicateETwo deTwo) {
 			super();
 			this.vc = vc;
 			this.deTwo = deTwo;
-			this.variantContextFilter = variantContextFilter;
-			this.filterNGS = filterNGS;
 		}
 
 		@Override
 		public DuplicateETwo call() throws Exception {
-			deTwo.addVC(vc, variantContextFilter, filterNGS);
+			deTwo.addVC(vc);
 			return deTwo;
 		}
 	}
 
-	private static DuplicateETwo[] getDups(String[] allSamps, Logger log) {
+	public static DuplicateETwo[] getDups(String[] allSamps, DUPLICATE_COMP_TYPE type, MODE mode, VariantContextFilter vContextFilterSample, FilterNGS filterNGS, Logger log) {
 		DuplicateETwo[] dETwos = new DuplicateETwo[(allSamps.length * (allSamps.length - 1)) / 2];
 		int index = 0;
 		for (int i = 0; i < allSamps.length; i++) {
@@ -181,11 +170,36 @@ public class SeqError {
 				HashSet<String> curDups = new HashSet<String>();
 				curDups.add(allSamps[i]);
 				curDups.add(allSamps[j]);
-				dETwos[index] = new DuplicateETwo(curDups, log);
+				dETwos[index] = new DuplicateETwo(curDups, type, mode, vContextFilterSample, filterNGS, log);
 				index++;
 			}
 		}
 		return dETwos;
+	}
+
+	public enum DUPLICATE_COMP_TYPE {
+		/**
+		 * Variant must past the sample filter for both
+		 */
+		ALL_PASS, /**
+		 * Variant must past the sample filter for one
+		 */
+		ONE_PASS,
+		/**
+		 * // * // * Variant must past the sample filter on the average of the two //
+		 */
+		// AVERAGE_PASS
+		;
+	}
+
+	public enum MODE {
+		/**
+		 * Will only compute concordance if both samples are called and pass according to {@link DUPLICATE_COMP_TYPE}
+		 */
+		BOTH_MUST_BE_CALLED, /**
+		 * 
+		 */
+		ONE_MUST_BE_CALLED;
 	}
 
 	/**
@@ -194,15 +208,37 @@ public class SeqError {
 	 */
 	public static class DuplicateETwo {
 		private Set<String> dups;
-		private int allMismatched;
-		private int nonMissingMismatched;
+		private DUPLICATE_COMP_TYPE type;
+		private MODE mode;
+		private VariantContextFilter vContextFilterSample;
+		private FilterNGS filterNGS;
+		private int missing;
+		private int matched;
 		private int total;
+		private Logger log;
 
 		// private Logger log;
 
-		private DuplicateETwo(Set<String> dups, Logger log) {
+		public DuplicateETwo(Set<String> dups, DUPLICATE_COMP_TYPE type, MODE mode, VariantContextFilter vContextFilterSample, FilterNGS filterNGS, Logger log) {
 			super();
 			this.dups = dups;
+			this.type = type;
+			this.mode = mode;
+			this.vContextFilterSample = vContextFilterSample;
+			this.filterNGS = filterNGS;
+			this.log = log;
+		}
+
+		public VariantContextFilter getvContextFilterSample() {
+			return vContextFilterSample;
+		}
+
+		public FilterNGS getFilterNGS() {
+			return filterNGS;
+		}
+
+		public Set<String> getDups() {
+			return dups;
 		}
 
 		public String getSummary() {
@@ -212,49 +248,153 @@ public class SeqError {
 				summary += (index == 0 ? "" : "\t") + dup;
 				index++;
 			}
-
-			double mm6 = (double) allMismatched / total;
-			double mm7 = (double) nonMissingMismatched / total;
-			mm6 = 1 - mm6;
-			mm7 = 1 - mm7;
-
+			double percentMissing = (double) missing / total;
+			double percentMatched = (double) matched / total;
+			percentMissing = 1 - percentMissing;
+			percentMatched = 1 - percentMatched;
 			summary += "\t" + total;
-			summary += "\t" + allMismatched;
-			summary += "\t" + nonMissingMismatched;
-			summary += "\t" + mm6;
-			summary += "\t" + mm7;
+			summary += "\t" + missing;
+			summary += "\t" + matched;
+			summary += "\t" + percentMissing;
+			summary += "\t" + percentMatched;
 			return summary;
 		}
 
-		private void addVC(VariantContext vc, VariantContextFilter variantContextFilter, FilterNGS filterNGS) {
-			VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_STRICT);
-			if (variantContextFilter == null || variantContextFilter.filter(vcSub).passed()) {
-				int altAlleleDepth = filterNGS == null || filterNGS.getReadDepthFilter() == null ? 0 : filterNGS.getReadDepthFilter()[0];
-				if (VCOps.getAltAlleleContext(vcSub, altAlleleDepth,variantContextFilter.getLog()).getSampleNames().size() > 0) {// has alt call
-					GenotypesContext gc = vcSub.getGenotypes();
-					if (vcSub.getNoCallCount() < dups.size()) {
-						total++;
-						boolean allCalled = true;
-						boolean allMatched = true;
-						for (Genotype g : gc) {
-							for (Genotype g2 : gc) {
-								if (g.isNoCall()) {
-									allCalled = false;
-								}
-								if (!g.sameGenotype(g2)) {
-									allMatched = false;
+		private void addVC(VariantContext vc) {
+			VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_LOOSE);
+			VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);// start with unfiltered easy test;
+			if (vcAlts.getSampleNames().size() > 0) {// no variant calls, we do not care
+				boolean tally = true;
+				VariantContext vcFilteredAlts = null;
+				switch (type) {
+				case ALL_PASS:
+					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+					tally = vcFilteredAlts.getSampleNames().size() == vcAlts.getSampleNames().size();
+					break;
+				case ONE_PASS:
+					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+					tally = vcFilteredAlts.getSampleNames().size() > 0;
+					break;
+				default:
+					log.reportTimeError("Invalid Comparison type " + type);
+					break;
+				}
+				if (tally) {
+					tally = vcFilteredAlts.getSampleNames().size() > 0;// all alts were filtered out, move on
+				}
+				if (tally) {
+					if (vcFilteredAlts.getSampleNames().size() < dups.size()) {// some but not all of the alts were filtered out
+						tallyMissingAlts();
+					} else {
+						GenotypesContext gc = vcSub.getGenotypes();
+						if (vcSub.getNoCallCount() < dups.size()) {
+							total++;
+							boolean allCalled = true;
+							boolean allMatched = true;
+							for (Genotype g : gc) {
+								for (Genotype g2 : gc) {
+									if (g.isNoCall()) {
+										allCalled = false;
+									}
+									if (!g.sameGenotype(g2)) {
+										allMatched = false;
+									}
 								}
 							}
-						}
-						if (allCalled && !allMatched) {
-							nonMissingMismatched++;
-						}
-						if (!allMatched) {
-							allMismatched++;
+							if (allCalled && allMatched) {
+								matched++;
+							}
+							if (!allMatched) {
+								tallyMissingAlts();
+							}
 						}
 					}
 				}
 			}
 		}
+
+		private void tallyMissingAlts() {
+			switch (mode) {
+			case BOTH_MUST_BE_CALLED:
+				break;
+			case ONE_MUST_BE_CALLED:
+				missing++;
+				total++;
+				break;
+			default:
+				log.reportTimeError("Invalid Mode type " + type);
+				break;
+
+			}
+		}
+
+		public static HashSet<String> getUniqSamples(DuplicateETwo[] dETwos) {
+			HashSet<String> uniq = new HashSet<String>();
+			for (int i = 0; i < dETwos.length; i++) {
+				uniq.addAll(dETwos[i].getDups());
+			}
+			return uniq;
+		}
 	}
 }
+
+// private void addVC(VariantContext vc) {
+// VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_STRICT);
+// VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);// start with unfiltered easy test;
+// if (vcAlts.getSampleNames().size() > 0) {// no variant calls, we do not care
+//
+// boolean tally = true;
+// VariantContext vcFilteredAlts = null;
+// if (vContextFilterSample == null) {
+// switch (type) {
+// // case AVERAGE_PASS:
+// // vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, null, null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+// // tally = vContextFilterSample.filter(vcSub).passed();
+// // log.reportTimeWarning("Not sure the best method here any more");
+// // break;
+// case ALL_PASS:
+// vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+// tally = vcFilteredAlts.getSampleNames().size() == vcAlts.getSampleNames().size();
+// break;
+// case ONE_PASS:
+// vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+// tally = vcFilteredAlts.getSampleNames().size() > 0;
+// break;
+// default:
+// log.reportTimeError("Invalid Comparison type " + type);
+// break;
+// }
+// }
+// if (tally) {
+// tally = vcFilteredAlts.getSampleNames().size() > 0;// all alts were filtered out
+// }
+// if (tally) {
+// if (vcFilteredAlts.getSampleNames().size() < dups.size()) {// one of the alts was filtered out
+// tallyMissingAlts();
+// } else {
+// GenotypesContext gc = vcSub.getGenotypes();
+// if (vcSub.getNoCallCount() < dups.size()) {
+// total++;
+// boolean allCalled = true;
+// boolean allMatched = true;
+// for (Genotype g : gc) {
+// for (Genotype g2 : gc) {
+// if (g.isNoCall()) {
+// allCalled = false;
+// }
+// if (!g.sameGenotype(g2)) {
+// allMatched = false;
+// }
+// }
+// }
+// if (allCalled && allMatched) {
+// matched++;
+// }
+// if (!allMatched) {
+// tallyMissingAlts();
+// }
+// }
+// }
+// }
+// }
+// }

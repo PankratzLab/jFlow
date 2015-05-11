@@ -1140,4 +1140,20 @@ public class Project {
 		}
 		return indices;
 	}
+	
+	/**
+	 * @return the oulier hash from all samples
+	 * @throws Exception
+	 */
+	public Hashtable<String, Float> loadOutliersFromSamples() throws Exception {
+		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+		String[] samples = getSamples();
+		for (int i = 0; i < samples.length; i++) {
+			Hashtable<String, Float> sOutliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(SAMPLE_DIRECTORY.getValue() + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION);
+			if (sOutliers != null && sOutliers.size() > 0) {
+				outliers.putAll(sOutliers);
+			}
+		}
+		return outliers;
+	}
 }
