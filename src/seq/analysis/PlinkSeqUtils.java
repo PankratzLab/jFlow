@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -30,13 +31,18 @@ import filesys.GeneTrack;
 public class PlinkSeqUtils {
 
 	public static final String PSEQ_PROJECT = "pseqProj_";
-	public static final String GENVISIS_GENE = "_GENVISIS";
+	public static final String GENVISIS_GENE = "_GENVISIS_GENE";
+	public static final String GENVISIS_PATHWAY = "_GENVISIS_PATHWAY";
 
 	/**
 	 * Class for the phenotypes used in pseq, manages the file for later association testing
 	 *
 	 */
-	public static class PseqPhenoTypes {
+	public static class PseqPhenoTypes implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private String name, type, missingValue, description;
 		private Logger log;
 
@@ -122,7 +128,7 @@ public class PlinkSeqUtils {
 
 	}
 
-	public static class PseqProject extends Properties {
+	public static class PseqProject extends Properties implements Serializable {
 		/**
 		 * 
 		 */
@@ -244,7 +250,7 @@ public class PlinkSeqUtils {
 			for (int i = 0; i < ways.length; i++) {
 				GeneData[] pathGenes = ways[i].getLoci();
 				for (int j = 0; j < pathGenes.length; j++) {
-					writer.println(Positions.getChromosomeUCSC(pathGenes[j].getChr(), true) + "\t" + pathGenes[j].getStart() + "\t" + pathGenes[j].getStop() + "\t" + ways[i].getPathwayName());
+					writer.println(Positions.getChromosomeUCSC(pathGenes[j].getChr(), true) + "\t" + pathGenes[j].getStart() + "\t" + pathGenes[j].getStop() + "\t" + ways[i].getPathwayName() + GENVISIS_PATHWAY);
 				}
 			}
 			writer.close();
@@ -258,13 +264,19 @@ public class PlinkSeqUtils {
 
 	}
 
-	public static class PlinkSeqBurdenSummary {
+	public static class PlinkSeqBurdenSummary implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private static final String[] HEADER = new String[] { "LOCUS", "POS", "ALIAS", "NVAR", "TEST", "P", "I", "DESC" };
 		public static final double[] I_THRESHOLDS = new double[] { 0.5, 0.1, 0.01, 0.001 };
 		private String analysis;
 		private String resultsFile;
 		private Hashtable<String, Integer> locMap;
 		private ArrayList<PlinkSeqLocSummary> locSummaries;
+		private int[] numTotalTests;
+		private int[][] numTestsAtI;
 		private Logger log;
 
 		public PlinkSeqBurdenSummary(String analysis, String resultsFile, Logger log) {
@@ -273,6 +285,8 @@ public class PlinkSeqUtils {
 			this.resultsFile = resultsFile;
 			this.locMap = new Hashtable<String, Integer>();
 			this.locSummaries = new ArrayList<PlinkSeqUtils.PlinkSeqLocSummary>();
+			this.numTotalTests = new int[BURDEN_Tests.values().length];
+			this.numTestsAtI = new int[BURDEN_Tests.values().length][I_THRESHOLDS.length];
 			this.log = log;
 		}
 
@@ -291,15 +305,13 @@ public class PlinkSeqUtils {
 		public void correctPvalues() {
 			// int bonfFullNumTests = locSummaries.size();
 			for (int i = 0; i < BURDEN_Tests.values().length; i++) {
-				int bonfFullNumTests = 0;
-				int[] bonfIThresholds = new int[I_THRESHOLDS.length];
 				for (int j = 0; j < locSummaries.size(); j++) {
 					PlinkSeqTestSummary curSummary = locSummaries.get(j).getSummaries()[i];
 					if (curSummary != null) {
-						bonfFullNumTests++;
+						numTotalTests[i]++;
 						for (int k = 0; k < I_THRESHOLDS.length; k++) {
 							if (curSummary.getI() < I_THRESHOLDS[k]) {
-								bonfIThresholds[k]++;
+								numTestsAtI[i][k]++;
 							}
 						}
 					}
@@ -307,14 +319,14 @@ public class PlinkSeqUtils {
 				for (int j = 0; j < locSummaries.size(); j++) {
 					PlinkSeqTestSummary curSummary = locSummaries.get(j).getSummaries()[i];
 					if (curSummary != null) {
-						curSummary.setBonfFull(bonfFullNumTests);
-						curSummary.setbonfsI(bonfIThresholds);
+						curSummary.setBonfFull(numTotalTests[i]);
+						curSummary.setbonfsI(numTestsAtI[i]);
 					}
 				}
 				log.reportTimeInfo("Correction summary for " + analysis + " in " + resultsFile + ":");
-				log.reportTimeInfo("Full number of tests performed: " + bonfFullNumTests);
+				log.reportTimeInfo("Full number of tests performed: " + numTotalTests[i]);
 				for (int j = 0; j < I_THRESHOLDS.length; j++) {
-					log.reportTimeInfo("Ithreshold " + I_THRESHOLDS[j] + ": " + bonfIThresholds[j]);
+					log.reportTimeInfo("Ithreshold " + I_THRESHOLDS[j] + ": " + numTestsAtI[i][j]);
 				}
 			}
 
@@ -341,8 +353,8 @@ public class PlinkSeqUtils {
 									double p = Double.parseDouble(line[indices[5]]);
 									double i = Double.parseDouble(line[indices[6]]);
 									String desc = line[indices[7]];
-									if (curLoc == null || !curLoc.equals(line[indices[0]].replaceAll(GENVISIS_GENE, ""))) {
-										curLoc = line[indices[0]].replaceAll(GENVISIS_GENE, "");
+									if (curLoc == null || !curLoc.equals(line[indices[0]])) {
+										curLoc = line[indices[0]];
 										if (locMap.containsKey(curLoc)) {
 											log.reportTimeError("Multiple entries for " + curLoc);
 											return;
@@ -375,7 +387,11 @@ public class PlinkSeqUtils {
 		}
 	}
 
-	public static class PlinkSeqLocSummary {
+	public static class PlinkSeqLocSummary implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private String locus;
 		private String pos;
 		private int NVAR;
@@ -456,7 +472,11 @@ public class PlinkSeqUtils {
 		}
 	}
 
-	public static class PlinkSeqTestSummary {
+	public static class PlinkSeqTestSummary implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		public static final String[] SUMMARY = new String[] { "P_VAL", "I" };
 		private String test;
 		private double P;
@@ -481,13 +501,21 @@ public class PlinkSeqUtils {
 		}
 
 		public void setBonfFull(int numTests) {
-			this.bonfFull = (double) P / numTests;
+			if (numTests > 0) {
+				this.bonfFull = Math.max((double) P * numTests, 1);
+			} else {
+				this.bonfFull = P;
+			}
 		}
 
 		public void setbonfsI(int[] tests) {
 			this.bonfsI = new double[tests.length];
 			for (int i = 0; i < tests.length; i++) {
-				bonfsI[i] = (double) P / tests[i];
+				if (tests[i] > 0) {
+					bonfsI[i] = Math.max((double) P * tests[i], 1);
+				} else {
+					bonfsI[i] = P;
+				}
 			}
 		}
 

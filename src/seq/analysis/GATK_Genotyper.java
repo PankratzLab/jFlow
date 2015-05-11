@@ -370,7 +370,7 @@ public class GATK_Genotyper {
 			if (progress) {
 				if (gatk.getRegionsFile() != null) {
 					log.reportTimeInfo("Subsetting the vcf to regions defined in " + regionsFile + " with a 100 bp buffer");
-					String subsetVcf = VCFOps.extractSegments(jGatkGenotyper.getRawVCF(), regionsFile, 100, null, rootOutputDir, false, false, log);
+					String subsetVcf = VCFOps.extractSegments(jGatkGenotyper.getRawVCF(), regionsFile, 100, null, rootOutputDir, false, false, 1, log);
 					String newOutput = ext.removeDirectoryInfo(subsetVcf);
 					jGatkGenotyper.setOutput(newOutput);
 					jGatkGenotyper.initOutputs();// now starting with the subset vcf

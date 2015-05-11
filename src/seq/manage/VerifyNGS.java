@@ -1,4 +1,4 @@
-package one.JL;
+package seq.manage;
 
 import java.io.IOException;
 
@@ -7,8 +7,6 @@ import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
-import seq.manage.BamOps;
-import seq.manage.VCFOps;
 import common.Files;
 import common.Logger;
 

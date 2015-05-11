@@ -23,6 +23,7 @@ public class FilterNGS implements Serializable {
 	private double mappingQualityFilter;
 	private double phreadScoreFilter;
 	private int[] readDepthFilter;
+	private int[] altAlleleDepthFilter;
 
 	public FilterNGS() {
 
@@ -32,6 +33,14 @@ public class FilterNGS implements Serializable {
 		this.mappingQualityFilter = mappingQualityFilter;
 		this.phreadScoreFilter = phreadScoreFilter;
 		this.readDepthFilter = readDepthFilter;
+	}
+
+	public int[] getAltAlleleDepthFilter() {
+		return altAlleleDepthFilter;
+	}
+
+	public void setAltAlleleDepthFilter(int[] altAlleleDepthFilter) {
+		this.altAlleleDepthFilter = altAlleleDepthFilter;
 	}
 
 	public double getMappingQualityFilter() {
@@ -131,6 +140,11 @@ public class FilterNGS implements Serializable {
 		 * Used for filtering by the lower bound for average allelic ratio across alternate calls
 		 */
 		HET_ALLELE_RATIO_LOW(.2, FILTER_TYPE.GTE_FILTER),
+
+		/**
+		 * Filters by the alternate allele depth
+		 */
+		ALT_ALLELE_DEPTH(5, FILTER_TYPE.GTE_FILTER),
 		// /**
 		// * Used for filtering by the upper bound for average allelic ratio across alternate calls
 		// */
@@ -230,7 +244,11 @@ public class FilterNGS implements Serializable {
 	 * Handles command variant filtering when dealing with double data
 	 *
 	 */
-	public abstract class VcFilterDouble implements VcFilterI<Double> {
+	public abstract class VcFilterDouble implements VcFilterI<Double>, Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private VARIANT_FILTER_DOUBLE dfilter;
 		private FILTER_TYPE type;
 		private double filterThreshold;
@@ -263,7 +281,7 @@ public class FilterNGS implements Serializable {
 		@Override
 		public VariantContextFilterPass filter(VariantContext vc, Logger log) {
 			double value = getValue(vc);
-			String testPerformed = "Type: " + dfilter + " Directon: " + type + " Threshold " + filterThreshold;
+			String testPerformed = "Type: " + dfilter + " Directon: " + type + " Threshold: " + filterThreshold + " Value :" + value;
 			boolean passes = false;
 			switch (type) {
 			case ET_FILTER:
@@ -304,21 +322,29 @@ public class FilterNGS implements Serializable {
 	 * Handles Filtering with {@link VariantContextUtils.JexlVCMatchExp}
 	 *
 	 */
-	public class VcFilterJEXL extends VcFilterBoolean {
-		private List<VariantContextUtils.JexlVCMatchExp> jExps;
+	public class VcFilterJEXL extends VcFilterBoolean implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private String[] names, expressions;
+		private Logger log;
+
+		// private List<VariantContextUtils.JexlVCMatchExp> jExps;
 
 		public VcFilterJEXL(VARIANT_FILTER_BOOLEAN bfilter, String[] names, String[] expressions, Logger log) {
 			super(bfilter);
-			this.jExps = VCOps.getJexlVCMathExp(names, expressions, log);
+			this.names = names;
+			this.expressions = expressions;
 		}
 
 		public List<VariantContextUtils.JexlVCMatchExp> getjExps() {
-			return jExps;
+			return VCOps.getJexlVCMathExp(names, expressions, log);
 		}
 
 		@Override
 		public Boolean getValue(VariantContext vc) {
-			return VCOps.passesJexls(vc, jExps);
+			return VCOps.passesJexls(vc, VCOps.getJexlVCMathExp(names, expressions, log));
 		}
 	}
 
@@ -326,7 +352,11 @@ public class FilterNGS implements Serializable {
 	 * Handles boolean based filtering
 	 *
 	 */
-	private abstract class VcFilterBoolean implements VcFilterI<Boolean> {
+	private abstract class VcFilterBoolean implements VcFilterI<Boolean>, Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private VARIANT_FILTER_BOOLEAN bfilter;
 		private FILTER_TYPE type;
 
@@ -380,6 +410,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterDouble getMAFFilter(VARIANT_FILTER_DOUBLE dfilter) {
 		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Double getValue(VariantContext vc) {
 				return VCOps.getMAF(vc, null);
@@ -389,6 +424,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterDouble getHWEFilter(VARIANT_FILTER_DOUBLE dfilter) {
 		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Double getValue(VariantContext vc) {
 				return VCOps.getHWE(vc, null);
@@ -398,6 +438,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterDouble getCallRateFilter(VARIANT_FILTER_DOUBLE dfilter) {
 		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Double getValue(VariantContext vc) {
 				return VCOps.getCallRate(vc, null);
@@ -407,6 +452,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterDouble getVQSLODFilter(VARIANT_FILTER_DOUBLE dfilter) {
 		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Double getValue(VariantContext vc) {
 				if (!vc.hasAttribute("VQSLOD")) {
@@ -417,18 +467,23 @@ public class FilterNGS implements Serializable {
 			}
 		};
 	}
-	
-//	private VcFilterDouble getHetAlleleRatioFilter(VARIANT_FILTER_DOUBLE dfilter){
-//		return new VcFilterDouble(dfilter) {
-//			@Override
-//			public Double getValue(VariantContext vc) {
-//				if(VCOps.getAltAlleleContext(vc, altAlleleDepth, type, log))
-//			}
-//		};
-//	}
+
+	// private VcFilterDouble getHetAlleleRatioFilter(VARIANT_FILTER_DOUBLE dfilter){
+	// return new VcFilterDouble(dfilter) {
+	// @Override
+	// public Double getValue(VariantContext vc) {
+	// if(VCOps.getAltAlleleContext(vc, altAlleleDepth, type, log))
+	// }
+	// };
+	// }
 
 	private VcFilterDouble getMACFilter(VARIANT_FILTER_DOUBLE dfilter) {
 		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Double getValue(VariantContext vc) {
 				return VCOps.getMAC(vc, null);
@@ -438,6 +493,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterDouble getAvgGQFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
 		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Double getValue(VariantContext vc) {
 				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.GQ, log);
@@ -447,6 +507,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterDouble getAvgDPFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
 		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Double getValue(VariantContext vc) {
 				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.DP, log);
@@ -456,6 +521,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterBoolean getBiallelicFilter(VARIANT_FILTER_BOOLEAN bfilter) {
 		return new VcFilterBoolean(bfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Boolean getValue(VariantContext vc) {
 				return VCOps.isBiallelic(vc);
@@ -465,6 +535,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterBoolean getFailureFilter(VARIANT_FILTER_BOOLEAN bfilter) {
 		return new VcFilterBoolean(bfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Boolean getValue(VariantContext vc) {
 				return vc.isNotFiltered();
@@ -474,6 +549,11 @@ public class FilterNGS implements Serializable {
 
 	private VcFilterBoolean getUnambiguousFilter(VARIANT_FILTER_BOOLEAN bfilter) {
 		return new VcFilterBoolean(bfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Boolean getValue(VariantContext vc) {
 				return VCOps.isAmbiguous(vc);
@@ -540,6 +620,10 @@ public class FilterNGS implements Serializable {
 			case VQSLOD_LOOSE:
 				vDoubles[i] = getVQSLODFilter(dfilter);
 				break;
+
+			// case ALT_ALLELE_DEPTH:
+			//
+			// break;
 			default:
 				log.reportTimeError("Invalid double filter type " + dfilter);
 				vDoubles[i] = null;
@@ -553,7 +637,11 @@ public class FilterNGS implements Serializable {
 	 * Combines the type specific filters
 	 *
 	 */
-	public static class VariantContextFilter {
+	public static class VariantContextFilter implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private VcFilterDouble[] vDoubles;
 		private VcFilterBoolean[] vBooleans;
 		private VcFilterJEXL vFilterJEXL;
@@ -702,7 +790,7 @@ public class FilterNGS implements Serializable {
 				VariantContext vcCase = VCOps.getSubset(vc, casePop);
 				pass = caseFilters.filter(vcCase);
 				if (pass.passed()) {
-					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase, -1, log);
+					VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase, null, log);
 					pass = caseFilters.filter(vcAlts);
 					if (pass.passed()) {
 					}

@@ -1,8 +1,8 @@
 package seq.analysis;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
@@ -22,7 +22,11 @@ import common.ext;
  * Wrapper for the plinkSeq package (https://atgu.mgh.harvard.edu/plinkseq/index.shtml)
  *
  */
-public class PlinkSeq {
+public class PlinkSeq implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static String PSEQ = "pseq";
 	private static final String NEW_PROJECT = "new-project";
 	private static final String LOAD_VCF = "load-vcf";
@@ -51,7 +55,7 @@ public class PlinkSeq {
 	private static final String V_STATS = "v-stats";
 	private static final String I_STATS = "i-stats";
 
-	protected enum ANALYSIS_TYPES {
+	public enum ANALYSIS_TYPES {
 		/**
 		 * Single variant association test
 		 */
@@ -76,7 +80,7 @@ public class PlinkSeq {
 		// , UNIQ, VT, FW, CALPHA, SUMSTAT, FRQWGT
 	}
 
-	private enum LOAD_TYPES {
+	public enum LOAD_TYPES {
 		VCF, PHENO, LOC_DB
 	}
 
@@ -125,13 +129,7 @@ public class PlinkSeq {
 	private boolean createProject(PseqProject pseqProject, boolean loadVCF, boolean loadReq) {
 		boolean init = true;
 		if (!fail) {
-			String currentProject = pseqProject.getProjectDirectory() + pseqProject.getProjectName();
-			String[] vcfs = getVCFCommands(pseqProject);
-			String[] command = new String[] { PSEQ, pseqProject.getProjectDirectory() + pseqProject.getProjectName(), NEW_PROJECT, pseqProject.getCommandFor(PROPERTIES.RESOURCES), pseqProject.getResourceDirectory() };
-			command = Array.concatAll(command, vcfs);
-			String[] outputs = new String[] { currentProject + "." + PSEQ };
-			String[] inputs = pseqProject.getVcfs();
-			init = CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, verbose, overwriteExisting, false, log);
+			init = createNewProject(pseqProject);
 			if (init) {
 				pseqProject.load();
 				init = pseqProject.isLoaded();
@@ -158,6 +156,18 @@ public class PlinkSeq {
 		} else {
 			init = false;
 		}
+		return init;
+	}
+
+	public boolean createNewProject(PseqProject pseqProject) {
+		boolean init;
+		String currentProject = pseqProject.getProjectDirectory() + pseqProject.getProjectName();
+		String[] vcfs = getVCFCommands(pseqProject);
+		String[] command = new String[] { PSEQ, pseqProject.getProjectDirectory() + pseqProject.getProjectName(), NEW_PROJECT, pseqProject.getCommandFor(PROPERTIES.RESOURCES), pseqProject.getResourceDirectory() };
+		command = Array.concatAll(command, vcfs);
+		String[] outputs = new String[] { currentProject + "." + PSEQ };
+		String[] inputs = pseqProject.getVcfs();
+		init = CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, verbose, overwriteExisting, false, log);
 		return init;
 	}
 
@@ -200,7 +210,7 @@ public class PlinkSeq {
 		return vcfs;
 	}
 
-	private boolean loadData(PseqProject pseqProject, LOAD_TYPES lTypes, String file) {
+	public boolean loadData(PseqProject pseqProject, LOAD_TYPES lTypes, String file) {
 		boolean loaded = true;
 		if (!fail) {
 			String loadCommand = "";
@@ -277,7 +287,7 @@ public class PlinkSeq {
 	 * @param log
 	 * @return
 	 */
-	private static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String varMask, String phenotype, int numPerm, String mac, String outputRoot, boolean overwriteExisting, Logger log) {
+	public static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String varMask, String phenotype, int numPerm, String mac, String outputRoot, boolean overwriteExisting, Logger log) {
 		String outputDirectory = ext.parseDirectoryOfFile(pseqProject.getFilename()) + "assoc/";
 		new File(outputDirectory).mkdirs();
 		String outputFile = outputDirectory + outputRoot + "." + type;
@@ -317,7 +327,7 @@ public class PlinkSeq {
 				}
 			}
 			if (bTests != null) {
-				String[] tests = new String[bTests.length+1]; // note that we skip FRQWGT here
+				String[] tests = new String[bTests.length + 1]; // note that we skip FRQWGT here
 				tests[0] = TESTS;
 				int index = 1;
 				for (int i = 0; i < bTests.length; i++) {
@@ -439,9 +449,12 @@ public class PlinkSeq {
 		String projectName = projName == null ? PlinkSeqUtils.PSEQ_PROJECT + ext.rootOf(vcf) : PlinkSeqUtils.PSEQ_PROJECT + projName;
 		String projectDirectory = ext.parseDirectoryOfFile(vcf) + projectName + "/";
 		new File(projectDirectory).mkdirs();
-		String phenoFile = projectDirectory + ext.rootOf(vpop.getFileName()) + ".pheno";
-		vpop.generatePlinkSeqPheno(phenoFile);
-		return initialize(pSeq, projectName, projectDirectory, new String[] { vcf }, phenoFile, resourceDirectory, loadVCF, loadReq, log);
+		String phenoFile = null;
+		if (vpop != null) {
+			phenoFile = projectDirectory + ext.rootOf(vpop.getFileName()) + ".pheno";
+			vpop.generatePlinkSeqPheno(phenoFile);
+		}
+		return initialize(pSeq, projectName, projectDirectory, new String[] { vcf }, vpop == null ? null : phenoFile, resourceDirectory, loadVCF, loadReq, log);
 	}
 
 	/**
@@ -466,7 +479,7 @@ public class PlinkSeq {
 		return initialize(pSeq, projectName, projectDirectory, new String[] { vcf }, phenoFile, resourceDirectory, loadVCF, loadReq, log);
 	}
 
-	private static PseqProject initialize(PlinkSeq pSeq, String projectName, String projectDirectory, String[] vcfs, String phenoFile, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
+	public static PseqProject initialize(PlinkSeq pSeq, String projectName, String projectDirectory, String[] vcfs, String phenoFile, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
 		new File(projectDirectory).mkdirs();
 		String filename = projectDirectory + projectName + "." + PlinkSeq.PSEQ;
 		PseqProject pseqProject = new PseqProject(filename, vcfs, phenoFile, resourceDirectory, log);

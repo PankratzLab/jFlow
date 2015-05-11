@@ -1029,7 +1029,7 @@ public class SampleData {
 			} else {
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(sampleDatafilename));
-					writer.println(Array.toStr(MINIMAL_SAMPLE_DATA_HEADER)+"\t"+EUPHEMISMS[2]);
+					writer.println(Array.toStr(MINIMAL_SAMPLE_DATA_HEADER)+"\tCLASS="+EUPHEMISMS[1]);
 					for (int i = 0; i < samples.length; i++) {
 						for (int j = 0; j < MINIMAL_SAMPLE_DATA_HEADER.length; j++) {
 							writer.print(samples[i] + (j < (MINIMAL_SAMPLE_DATA_HEADER.length - 1) ? "\t" : ""));
