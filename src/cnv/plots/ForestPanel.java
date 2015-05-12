@@ -123,7 +123,7 @@ public class ForestPanel extends AbstractPanel {
 
 	private String prepareRightMarkers(float beta, float conf0, float conf1) {
 		if (beta == 0.0f && conf0 == 0.0f && conf1 == 0.0f) {
-			return "  ";
+			return " monomorphic ";
 		}
 		return String.format("%1$4s (%2$4s, %3$4s)", 
 								precision2Decimal.format(beta), 
