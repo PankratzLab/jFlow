@@ -14,7 +14,7 @@ public class SampleData {
 	public static final String[] MINIMAL_SAMPLE_DATA_HEADER = { "DNA", "FID", "IID" };
 	public static final String[] EUPHEMISMS = {"CleanedSex", "Sex", "Gender", };
 	public static final String[] EXCLUDE_ALIASES = {"Exclude"};
-	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
+	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
 
 	public static final String[][] LINKERS = {
 			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
@@ -94,6 +94,8 @@ public class SampleData {
 		
 		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
 			log.reportError("Error - selected number of basic classes to use exceeds the number defined");
+			numberOfBasicClassesToUse = BASIC_CLASSES.length;
+		} else if (numberOfBasicClassesToUse > 0) {
 			numberOfBasicClassesToUse = BASIC_CLASSES.length;
 		}
 		basicClasses = new String[numberOfBasicClassesToUse];
@@ -519,10 +521,12 @@ public class SampleData {
         case 0:
 			if (basicClasses[indices[1]].equals("All")) {
 				return 0;
-			} else if (basicClasses[indices[1]].equals("Genotype")) {
+			} else if (basicClasses[indices[1]].equals(GENOTYPE)) {
 				return (byte)(alleleCount+1);
 			} else if (basicClasses[indices[1]].equals(HEATMAP)) {
 				return 0;
+//			} else if (basicClasses[indices[1]].equals(PLINK)) {
+//				return 0;
 			} else {
 				System.err.println("Error - codeFromClass not defined for type: "+indices[1]);
 				System.err.println("        ("+basicClasses[indices[1]]+")");
@@ -1049,3 +1053,4 @@ public class SampleData {
 		return created;
 	}
 }
+

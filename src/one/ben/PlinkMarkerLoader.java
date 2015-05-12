@@ -27,7 +27,7 @@ public class PlinkMarkerLoader {
 		System.out.println(ext.getTime() + "]\tFinished");
 	}
 	
-	public static int[] markerLookup(String plinkFileRoot, String[] markers) {
+	private static int[] markerLookup(String plinkFileRoot, String[] markers) {
 		BufferedReader reader;
 		String[] line;
 		HashSet<String> lookFor = new HashSet<String>();
@@ -99,7 +99,7 @@ public class PlinkMarkerLoader {
 		return sortedPositions;
 	}
 	
-	private byte[][] run(String plinkDirAndFilenameRoot, String[] markers) {
+	public byte[][] run(String plinkDirAndFilenameRoot, String[] markers) {
 		RandomAccessFile in = null;
 
 		HashMap<String, byte[]> mkrGenotypes = new HashMap<String, byte[]>();

@@ -64,6 +64,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import one.ben.PlinkMarkerLoader;
 import net.miginfocom.swing.MigLayout;
 import stats.CTable;
 import stats.ContingencyTable;
@@ -85,7 +86,6 @@ import cnv.gui.ColorKeyPanel;
 import cnv.gui.CycleRadio;
 import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
-
 import common.AlleleFreq;
 import common.Array;
 import common.Files;
@@ -156,6 +156,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private String[] masterCommentList;
 	private String[] markerList;
 	private String[] commentList;
+	private byte[][] plinkGenotypes;
 	private float[][][][] cents;
 	private String[] centList;
 	private JCheckBox[] centBoxes;
@@ -2477,7 +2478,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public void loadMarkerDataFromList(int newMarkerIndex) {
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 //		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerList);
-
+		
+//		String plinkDirFileRoot = proj.DATA_DIRECTORY.getValue() + proj.PLINK_FILEROOT.getValue();
+//		plinkGenotypes = (new PlinkMarkerLoader()).run(plinkDirFileRoot, markerList);
+		
 		markerIndex = newMarkerIndex;
 		updateMarkerIndexHistory();
 		previousMarkerIndex = -1;

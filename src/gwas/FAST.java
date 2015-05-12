@@ -1,4 +1,4 @@
-package one;
+package gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 
 import common.Files;
 
-public class FASTScriptBuilder {
+public class FAST {
 	
 	String FAST_LOC = "/home/pankarne/saonlib2/1000genomes/LnFXI/FAST.1.8.mc/FAST";
 	String dir = "/home/pankarne/chandap/ARIC.whites.impute2/";
@@ -20,7 +20,7 @@ public class FASTScriptBuilder {
 	String runDir = "/home/pankarne/saonlib2/1000genomes/LnFXI/FAST/FAST_pC/";
 	int covarCount = 4;
 	
-	public FASTScriptBuilder(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount) {
+	public FAST(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount) {
 		this.FAST_LOC = FASTloc;
 		this.dir = dataDir;
 		this.indivFile = indivFile;
@@ -189,7 +189,7 @@ public class FASTScriptBuilder {
 			if (concat) {
 				concatResults(results, out);
 			} else {
-				new FASTScriptBuilder(fast, data, indiv, trait, suffix, run, covars).run();
+				new FAST(fast, data, indiv, trait, suffix, run, covars).run();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
