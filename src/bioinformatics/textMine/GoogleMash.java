@@ -13,7 +13,6 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.concurrent.Callable;
 
-import seq.pathway.Pathways;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -29,11 +28,35 @@ import common.WorkerTrain.Producer;
  */
 public class GoogleMash implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	// public static String GOOGLE_API = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=";
 	public static String DEFAULT_GOOGLE = "https://www.google.com/search?q=";
+	public static String DEFAULT_GOOGLE_SCHOLAR = "https://scholar.google.com/scholar?hl=en&q=";
 	public static String CHAR_SET = "UTF-8";
 	private GQuery[] queries;
 	private Logger log;
+
+	public enum QUERY_TYPE {
+		GOOGLE_SCHOLAR(DEFAULT_GOOGLE_SCHOLAR), GOOGLE_REGULAR(DEFAULT_GOOGLE);
+
+		private String address;
+
+		private QUERY_TYPE(String address) {
+			this.address = address;
+		}
+
+		public String getAddress() {
+			return address;
+		}
+
+		public void setAddress(String address) {
+			this.address = address;
+		}
+
+	}
 
 	public GoogleMash(GQuery[] queries, Logger log) {
 		super();
@@ -78,7 +101,6 @@ public class GoogleMash implements Serializable {
 
 		@Override
 		public boolean hasNext() {
-			// TODO Auto-generated method stub
 			return index < queries.length;
 		}
 
@@ -99,13 +121,11 @@ public class GoogleMash implements Serializable {
 
 		@Override
 		public void remove() {
-			// TODO Auto-generated method stub
 
 		}
 
 		@Override
 		public void shutdown() {
-			// TODO Auto-generated method stub
 
 		}
 
@@ -116,40 +136,43 @@ public class GoogleMash implements Serializable {
 		String[] extras = HashVec.loadFileToStringArray(queryFile, false, new int[] { 0 }, true);
 		log.reportTimeInfo(bases.length + " bases with " + extras.length + " extras");
 		GoogleMash[] googleMashs = new GoogleMash[bases.length];
-		String output = ext.addToRoot(baseFile, ".gQuery");
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.print("BASE_QUERY");
-			for (int i = 0; i < extras.length; i++) {
-				writer.print("\t" + extras[i]);
-			}
-			writer.println();
-			for (int i = 0; i < bases.length; i++) {
-				String serFile = ext.addToRoot(baseFile, "." + bases[i] + ".ser");
-				if (!Files.exists(serFile)) {
-					GQuery[] gQueries = new GQuery[extras.length];
-					for (int j = 0; j < extras.length; j++) {
-						gQueries[j] = new GQuery(DEFAULT_GOOGLE, bases[i], extras[j], log);
-					}
-					googleMashs[i] = new GoogleMash(gQueries, log);
-					googleMashs[i].queryAll(numThreads);
-				} else {
-					log.reportFileExists(serFile);
-					googleMashs[i] = load(serFile);
-				}
-				writer.print(bases[i]);
-				for (int j = 0; j < googleMashs[i].getQueries().length; j++) {
-					writer.print("\t" + googleMashs[i].getQueries()[j].getHits());
+
+		for (int i = 0; i < QUERY_TYPE.values().length; i++) {
+			String output = ext.addToRoot(baseFile, "." + QUERY_TYPE.values()[i] + ".gQuery");
+
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				writer.print("BASE_QUERY");
+				for (int j = 0; j < extras.length; j++) {
+					writer.print("\t" + extras[j]);
 				}
 				writer.println();
-				writer.flush();
+				for (int k = 0; k < bases.length; k++) {
+					String serFile = ext.addToRoot(baseFile, "." + bases[k] + ".ser");
+					if (!Files.exists(serFile)) {
+						GQuery[] gQueries = new GQuery[extras.length];
+						for (int k2 = 0; k2 < extras.length; k2++) {
+							gQueries[k2] = new GQuery(QUERY_TYPE.values()[i], bases[k], extras[k2], log);
+						}
+						googleMashs[k] = new GoogleMash(gQueries, log);
+						googleMashs[k].queryAll(numThreads);
+					} else {
+						log.reportFileExists(serFile);
+						googleMashs[k] = load(serFile);
+					}
+					writer.print(bases[k]);
+					for (int j = 0; j < googleMashs[k].getQueries().length; j++) {
+						writer.print("\t" + googleMashs[k].getQueries()[j].getHits());
+					}
+					writer.println();
+					writer.flush();
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + output);
+				log.reportException(e);
 			}
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing to " + output);
-			log.reportException(e);
 		}
-
 	}
 
 	private static class GQuery implements Serializable {
@@ -157,15 +180,15 @@ public class GoogleMash implements Serializable {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
-		private String address;
+		private QUERY_TYPE type;
 		private String base;
 		private String extra;
 		private int hits;
 		private Logger log;
 
-		public GQuery(String address, String base, String extra, Logger log) {
+		public GQuery(QUERY_TYPE type, String base, String extra, Logger log) {
 			super();
-			this.address = address;
+			this.type = type;
 			this.base = base;
 			this.extra = extra;
 			this.log = log;
@@ -181,19 +204,17 @@ public class GoogleMash implements Serializable {
 
 		public void query() {
 			try {
-				String spec = address + URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET) + "&aqs=chrome..69i57.8559j0j7&sourceid=chrome&es_sm=122&ie=UTF-8";
+				String spec = type.getAddress() + URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET) + "&aqs=chrome..69i57.8559j0j7&sourceid=chrome&es_sm=122&ie=UTF-8";
 				URL url = new URL(spec);
 				log.reportTimeInfo(spec);
 				try {
 					double rand = Math.random();
-					int randomSleep = (int) (rand * 5000);
-					System.out.println(1000 + randomSleep);
-					Thread.sleep(randomSleep);
+					int randomSleep = (int) (rand * 10000);
+					Thread.sleep(randomSleep + 1000);
 				} catch (InterruptedException ie) {
 				}
 				final URLConnection connection = url.openConnection();
 				connection.setConnectTimeout(60000);
-
 				connection.setReadTimeout(60000);
 				connection.addRequestProperty("User-Agent", "Chrome/12.0.742.5");
 				BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -204,33 +225,58 @@ public class GoogleMash implements Serializable {
 					Thread.sleep(1000 + randomSleep);
 				} catch (InterruptedException ie) {
 				}
-				while (in.ready()) {
+				readme: while (in.ready()) {
 					String line = in.readLine().trim();
-					if (line.contains("id=\"resultStats\">")) {
-						String result = line.replaceAll(".*id=\"resultStats\">About ", "");
-						result = result.replaceAll(" results.*", "");
-						result = result.replaceAll(",", "");
-						log.reportTimeInfo(spec + "\n" + result);
-						try {
-							int tmpHits = Integer.parseInt(result);
-							setHits(tmpHits);
-						} catch (NumberFormatException nfe) {
-							log.reportTimeError("invalid number " + result);
+					switch (type) {
+					case GOOGLE_REGULAR:
+						if (hasCount(spec, line, "id=\"resultStats\">", ".*id=\"resultStats\">About ")) {
+							break readme;
 						}
 						break;
+					case GOOGLE_SCHOLAR:
+						if (hasCount(spec, line, "id=\"gs_ab_md\">About ", ".*id=\"gs_ab_md\">About ")) {
+							break readme;
+						}
+						break;
+					default:
+						break;
+
 					}
 				}
 				in.close();
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
+				log.reportException(e);
 				e.printStackTrace();
 			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
+				log.reportException(e);
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				log.reportException(e);
 				e.printStackTrace();
 			}
+		}
+
+		private boolean hasCount(String spec, String line, String patternCount, String patternRegex) {
+			boolean hasCount = false;
+			if (line.contains(patternCount)) {
+				String result = line.replaceAll(patternRegex, "");
+				result = finalize(result);
+				log.reportTimeInfo(spec + "\n" + result);
+				hasCount = true;
+				try {
+					int tmpHits = Integer.parseInt(result);
+					setHits(tmpHits);
+				} catch (NumberFormatException nfe) {
+					log.reportTimeError("invalid number " + result);
+				}
+			}
+			return hasCount;
+		}
+
+		private String finalize(String result) {
+			result = result.replaceAll(" results.*", "");
+			result = result.replaceAll(",", "");
+			return result;
 		}
 	}
 
