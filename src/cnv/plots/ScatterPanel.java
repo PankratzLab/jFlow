@@ -266,6 +266,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				// additional genotypeFilters
 				if (currentClass == 1) {
 					classCode = genotypeCode;
+//				} else if (sampleData.getClassName(currentClass).equals(SampleData.PLINK)) {
+//					
 				} else {
 					classCode = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position);
 				}
