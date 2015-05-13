@@ -1,7 +1,7 @@
 package common;
 
 public class Aliases {
-	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "rs_id", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests", "RSID" };
+	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP.id", "rs_id", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests", "RSID" };
 	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 	
 	public static final String[] CHRS = {"Chr", "Chromosome", "CHROM"};
