@@ -12,7 +12,7 @@ import common.Files;
 
 public class FAST {
 	
-	String FAST_LOC = "/home/pankarne/saonlib2/1000genomes/LnFXI/FAST.1.8.mc/FAST";
+	String FAST_LOC = "FAST";
 	String dir = "/home/pankarne/chandap/ARIC.whites.impute2/";
 	String indivFile = "~/ordered9489.indiv";
 	String traitFile = "~/ordered9489.trait";
@@ -80,6 +80,7 @@ public class FAST {
 		
 		Files.qsub(runDir + "master.qsub", command, 10000, 8, threads);
 		
+		(new File(runDir + "output/")).mkdirs();
 	}
 	
 	private static void concatResults(String resultsDir, String resultsFile) {
