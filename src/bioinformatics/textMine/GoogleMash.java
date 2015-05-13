@@ -204,7 +204,7 @@ public class GoogleMash implements Serializable {
 
 		public void query() {
 			try {
-				String spec = type.getAddress() + URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET) + "&aqs=chrome..69i57.8559j0j7&sourceid=chrome&es_sm=122&ie=UTF-8";
+				String spec = type.getAddress() + URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET) ;
 				URL url = new URL(spec);
 				log.reportTimeInfo(spec);
 				try {
