@@ -17,6 +17,8 @@ import htsjdk.samtools.ValidationStringency;
  *
  */
 public class BamOps {
+	public static final String BAM_EXT = ".bam";
+	public static final String BAI_EXT = ".bai";
 
 	/**
 	 * @param bamOrSam
