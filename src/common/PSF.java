@@ -35,6 +35,13 @@ public class PSF {
 			}
 			return javaJar;
 		}
+
+		public static String[] buildJavaCPXMX(String fullPathTojarFile, String cp, int memoryInMb) {
+			String[] javaGenCP = buildJavaCP(fullPathTojarFile);
+			String[] add = new String[] { XMX + memoryInMb + "m", cp };
+			return Array.concatAll(javaGenCP, add);
+
+		}
 	}
 
 	/**
