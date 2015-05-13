@@ -75,6 +75,20 @@ public class Rscript {
 		Files.chmod(dir+"master");
 	}
 	
+	/**
+	 * @param toVector
+	 *            String[] that will be converted to c("toVector[0]",toVector[1]...);
+	 * @return
+	 */
+	public static String generateRVector(String[] toVector) {
+		String rV = "c(";
+		for (int i = 0; i < toVector.length; i++) {
+			rV += (i == 0 ? "" : ",") +"\""+ toVector[i] +"\"";
+		}
+		rV += ")\n";
+		return rV;
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		boolean batchUp = false;
