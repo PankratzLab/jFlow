@@ -32,7 +32,7 @@ public class VerifyNGS {
 				e.printStackTrace();
 			}
 		}
-		String[] vcfs = Files.list(vcfDir, null, ".vcfs", true, false, true);
+		String[] vcfs = Files.list(vcfDir, null, ".vcf", true, false, true);
 		for (int i = 0; i < vcfs.length; i++) {
 			log.reportTimeInfo("Validating " + vcfs[i]);
 			VCFFileReader reader = new VCFFileReader(vcfs[i], true);
