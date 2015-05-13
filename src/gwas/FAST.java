@@ -24,9 +24,11 @@ public class FAST {
 	public static final String[] FORMATS = new String[]{CHARGE_FORMAT}; 
 	
 	public static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
-		String finalFormat = concattedResultsFile + " tab " + outFileName + FORMAT.replace("<>", count + "");
+		System.out.println(ext.getTime() + "]\tParsing results file according to given FORMAT...");
+		String finalFormat = concattedResultsFile + " tab out=" + outFileName + FORMAT.replace("<>", count + "");
 		String[] args = ext.removeQuotes(finalFormat).trim().split("[\\s]+");
 		GenParser.parse(args, new Logger());
+		System.out.println(ext.getTime() + "]\tParsing complete!");
 	}
 	
 	
@@ -139,7 +141,7 @@ public class FAST {
 		
 		PrintWriter pvalWriter = writePValThresh ? Files.getAppropriateWriter(resultsDir + "meetsPVal_" + ".out") : null;
 		boolean first = true;
-		System.out.print("Concatenating results files: <");
+		System.out.print(ext.getTime() + "]\tConcatenating results files: <");
 		for (String str : filenames) {
 			BufferedReader reader;
 			try {
@@ -174,10 +176,12 @@ public class FAST {
 			pvalWriter.flush();
 			pvalWriter.close();
 		}
-		
+		System.out.println(ext.getTime() + "]\tConcatenation complete!");
 		if (runHitWindows) {
+			System.out.println(ext.getTime() + "]\tRunning HitWindows analysis...");
 			String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000, 0.000005f, new String[0]);
 			Files.writeMatrix(results, resultsDir + "hits.out", "\t");
+			System.out.println(ext.getTime() + "]\tHitWindows analysis complete!");
 		}
 	}
 	
@@ -218,6 +222,9 @@ public class FAST {
 					   "   (1) Flag to indicate results processing is desired (i.e. -concat (not the default))\n" +
 					   "   (2) Path to directory with results files (i.e. results=" + results + " (default))\n" +
 					   "   (3) Desired name of concatenated result file (i.e. out=" + out + " (default))\n" +
+					   "   (4) -writePVals \n" +
+					   "   (5) P-Value threshold (i.e. pval=" + pval + "\n" + 
+					   "   (6) -hitWindows \n" + 
 					   " OR \n" +
 					   "   (1) Flag to indicate format conversion processing is desired (i.e. -convert (not the default))\n" +
 					   "   (2) Path to concatenated result files (i.e. results=" + results + " (default))\n" +
@@ -234,6 +241,9 @@ public class FAST {
 					   "           FORMATS:\n" + 
 					   "               0: CHARGE format \n" +
 					   "   (5) Number of individuals in analysis (i.e. count=" + count + " (not the default))\n" +
+					   "   (6) -writePVals \n" +
+					   "   (7) P-Value threshold (i.e. pval=" + pval + "\n" + 
+					   "   (8) -hitWindows \n" + 
 					   "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -273,6 +283,9 @@ public class FAST {
 			} else if (args[i].startsWith("covars=")) {
 				covars = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith("pval=")) {
+				pval = Double.parseDouble(args[i].split("=")[1]);
+				numArgs--;
 			} else if (args[i].startsWith("-concat")) {
 				concat = true;
 				numArgs--;
@@ -297,7 +310,7 @@ public class FAST {
 			if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);
-				runParser(FORMATS[format], midOut, out, count);
+				runParser(FORMATS[format], ext.verifyDirFormat(results) + midOut, ext.verifyDirFormat(results) + out, count);
 			} else if (concat) {
 				concatResults(results, out, pval, printPVals, runHitWindows);
 			} else if (convert) {
