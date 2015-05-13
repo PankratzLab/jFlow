@@ -2,15 +2,28 @@ package gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import parse.GenParser;
 import common.Files;
+import common.Logger;
+import common.ext;
 
 public class FAST {
+
+	private static final String CHARGE_FORMAT = " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#<>=N 'Coded.Allele'=Effect_allele 'NonCoded.Allele'=Other_allele 'Coded.Af'=EAF 'Qual'=Imp_info 'Beta' 'Se'=SE 'Pval'=PValue";
+	
+	public static final String[] FORMATS = new String[]{CHARGE_FORMAT}; 
+	
+	public static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
+		String finalFormat = concattedResultsFile + " tab " + outFileName + FORMAT.replace("<>", count + "");
+		String[] args = ext.removeQuotes(finalFormat).trim().split("[\\s]+");
+		GenParser.parse(args, new Logger());
+	}
+	
 	
 	String FAST_LOC = "FAST";
 	String dir = "/home/pankarne/chandap/ARIC.whites.impute2/";
@@ -22,11 +35,11 @@ public class FAST {
 	
 	public FAST(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount) {
 		this.FAST_LOC = FASTloc;
-		this.dir = dataDir;
+		this.dir = ext.verifyDirFormat(dataDir);
 		this.indivFile = indivFile;
 		this.traitFile = traitFile;
 		this.filePattern = dataFileSuffix;
-		this.runDir = runDir;
+		this.runDir = ext.verifyDirFormat(runDir);
 		this.covarCount = covarCount;
 	}
 	
@@ -83,7 +96,8 @@ public class FAST {
 		(new File(runDir + "output/")).mkdirs();
 	}
 	
-	private static void concatResults(String resultsDir, String resultsFile) {
+	private static void concatResults(String resultsDirectory, String resultsFile) {
+		String resultsDir = ext.verifyDirFormat(resultsDirectory);
 		String[] filenames = (new File(resultsDir)).list(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
@@ -130,7 +144,11 @@ public class FAST {
 		String out = "finalResults.txt";
 		boolean concat = false;
 		
-		String usage = "one.FASTScriptBuilder requires 7 or 2 arguments\n" + 
+		int format = 0;
+		boolean convert = false;
+		int count = 0;
+		
+		String usage = "gwas.FAST requires 7, 3, or 5 arguments\n" + 
 					   "   (1) Full-path to FAST script (including /FAST) (i.e. fast=" + fast + " (default))\n" + 
 					   "   (2) Full-path to data directory (i.e. data=" + data + " (default))\n" +
 					   "   (3) Full-path to .indiv file (i.e. indiv=" + indiv + " (default))\n" +
@@ -138,10 +156,26 @@ public class FAST {
 					   "   (5) Suffix by which to identify data files in the data directory (i.e. suffix=" + suffix + " (default))\n" +
 					   "   (6) Full-path to the directory in which you want to run these scripts (must include a folder named 'output') (i.e. rundir=" + run + " (default))\n" +
 					   "   (7) Number of covariates in .trait file (i.e. covars=" + covars + " (default))\n" +
-					   " OR " +
-					   "   (1) Path to directory with results files (i.e. results=" + results + " (default))\n" +
-					   "   (2) Desired name of concatenated result file (i.e. out=" + out + " (default))\n" +
-					   "   (3) flag to indicate results processing is desired (i.e. -concat (not the default))\n" +
+					   " OR \n" +
+					   "   (1) Flag to indicate results processing is desired (i.e. -concat (not the default))\n" +
+					   "   (2) Path to directory with results files (i.e. results=" + results + " (default))\n" +
+					   "   (3) Desired name of concatenated result file (i.e. out=" + out + " (default))\n" +
+					   " OR \n" +
+					   "   (1) Flag to indicate format conversion processing is desired (i.e. -convert (not the default))\n" +
+					   "   (2) Path to concatenated result files (i.e. results=" + results + " (default))\n" +
+					   "   (3) Desired name of processed result file (i.e. out=" + out + " (default))\n" +
+					   "   (4) Format flag: (i.e. format=" + format + " (default))\n" + 
+					   "              0: CHARGE format \n" +
+					   "   (5) Number of individuals in analysis (i.e. count=" + covars + " (not the default))\n" +
+					   " OR \n" +
+					   "   -concat and -convert can be combined:\n" +
+					   "   (1) Both -concat and -convert flags\n" +
+					   "   (2) Path to directory with results files (i.e. results=" + results + " (default))\n" +
+					   "   (3) Desired name of processed result file (i.e. out=" + out + " (default))\n" +
+					   "   (4) Format flag: (i.e. format=" + format + " (default))\n" + 
+					   "           FORMATS:\n" + 
+					   "               0: CHARGE format \n" +
+					   "   (5) Number of individuals in analysis (i.e. count=" + count + " (not the default))\n" +
 					   "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -169,6 +203,12 @@ public class FAST {
 			} else if (args[i].startsWith("results=")) {
 				results = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("format=")) {
+				format = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("count=")) {
+				count = Integer.parseInt(args[i].split("=")[1]);
+				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				out = args[i].split("=")[1];
 				numArgs--;
@@ -177,6 +217,9 @@ public class FAST {
 				numArgs--;
 			} else if (args[i].startsWith("-concat")) {
 				concat = true;
+				numArgs--;
+			} else if (args[i].startsWith("-convert")) {
+				convert = true;
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -187,8 +230,14 @@ public class FAST {
 			System.exit(1);
 		}
 		try {
-			if (concat) {
+			if (concat && convert) {
+				String midOut = "concatenated.result";
+				concatResults(results, midOut);
+				runParser(FORMATS[format], midOut, out, count);
+			} else if (concat) {
 				concatResults(results, out);
+			} else if (convert) {
+				runParser(FORMATS[format], results, out, count);
 			} else {
 				new FAST(fast, data, indiv, trait, suffix, run, covars).run();
 			}
