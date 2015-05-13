@@ -117,7 +117,11 @@ public class ExomeDepth {
 		script += "start = " + EXOME_COUNTS_DAFR + "$start,";
 		script += "end = " + EXOME_COUNTS_DAFR + "$end,";
 		script += "name = " + EXOME_COUNTS_DAFR + "$names)\n";
-		script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getExomeDepthOutput() + "\", sep=\"\\t\")";
+		script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getExomeDepthOutput() + "\", sep=\"\\t\")\n";
+		script += MY_ALL_EXONS_VAR + "<- AnnotateExtra(x = " + MY_ALL_EXONS_VAR + ",";
+		script += "reference.annotation = Conrad.hg19.common.CNVs, min.overlap = 0.5, column.name = 'Conrad.hg19')\n";
+		script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getAnnoExomeDepthOutput() + "\", sep=\"\\t\")\n";
+
 		eAnalysis.setScript(script);
 		Files.write(script, eAnalysis.getrScriptFile());
 		return eAnalysis;
@@ -146,7 +150,7 @@ public class ExomeDepth {
 		String script = generateBamBaiScript();
 		script += MY_COUNTS_VAR + " <- getBamCounts(bed.frame = exons.hg19 , bam.files=BAMFILES, include.chr=TRUE, index.files=BAIFILES )\n";
 		script += EXOME_COUNTS_DAFR + " <- as(" + MY_COUNTS_VAR + "[, colnames(" + MY_COUNTS_VAR + ")], 'data.frame')\n";
-		script += EXOME_COUNTS_DAFR + "$chromosome <- gsub(as.charachter(" + EXOME_COUNTS_DAFR + "$space),pattern = 'chr', replacement = '')\n";
+		script += EXOME_COUNTS_DAFR + "$chromosome <- gsub(as.character(" + EXOME_COUNTS_DAFR + "$space),pattern = 'chr', replacement = '')\n";
 		script += "save(" + EXOME_COUNTS_DAFR + ",file=\"" + getCountFile() + "\")\n";
 		return script;
 	}
@@ -200,8 +204,8 @@ public class ExomeDepth {
 
 				@Override
 				public ExomeDepthAnalysis call() throws Exception {
-					log.reportTimeInfo("Running ExomeDepth on " + exomeDepth.getAnalysisBamFiles()[index]);
-					CmdLine.runCommandWithFileChecks(new String[] { "Rscript", eAnalysis.getrScriptFile() }, "", exomeDepth.getAllReferenceBAMFiles(), new String[] { eAnalysis.getExomeDepthOutput() }, true, false, false, log);
+					log.reportTimeInfo("Running ExomeDepth on " + eAnalysis.getInputBam());
+					CmdLine.runCommandWithFileChecks(new String[] { "Rscript", eAnalysis.getrScriptFile() }, "", exomeDepth.getAllReferenceBAMFiles(), new String[] { eAnalysis.getExomeDepthOutput(), eAnalysis.getAnnoExomeDepthOutput() }, true, false, false, log);
 					return eAnalysis;
 				}
 			};
@@ -230,6 +234,7 @@ public class ExomeDepth {
 		private String exomeDepthOutput;
 		private String script;
 		private String rScriptFile;
+		private String rData;// stores the calls
 		private boolean fail;
 		private Logger log;
 
@@ -260,6 +265,10 @@ public class ExomeDepth {
 
 		public String getExomeDepthOutput() {
 			return exomeDepthOutput;
+		}
+
+		public String getAnnoExomeDepthOutput() {
+			return ext.addToRoot(exomeDepthOutput, ".anno");
 		}
 
 	}
