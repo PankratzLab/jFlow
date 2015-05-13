@@ -75,10 +75,10 @@ public class FAST {
 		scriptInputWriter.flush();
 		scriptInputWriter.close();
 		
-		int threads = 48;
-		String command = "java -cp ~/park.jar one.ScriptExecutor file="+runDir+"input.txt token=null threads="+threads;
+		int threads = 24;
+		String command = "java -cp ~/park.jar one.ScriptExecutor file="+runDir+"input.txt token=took threads="+threads;
 		
-		Files.qsub(runDir + "master.qsub", command, 10000, 4, threads);
+		Files.qsub(runDir + "master.qsub", command, 10000, 8, threads);
 		
 	}
 	
