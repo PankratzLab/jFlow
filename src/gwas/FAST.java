@@ -6,8 +6,13 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import parse.GenParser;
+import common.Aliases;
+import common.Array;
 import common.Files;
 import common.Logger;
 import common.ext;
@@ -96,7 +101,7 @@ public class FAST {
 		(new File(runDir + "output/")).mkdirs();
 	}
 	
-	private static void concatResults(String resultsDirectory, String resultsFile) {
+	private static void concatResults(String resultsDirectory, String resultsFile, double pvalThreshold, boolean writePValThresh, boolean runHitWindows) {
 		String resultsDir = ext.verifyDirFormat(resultsDirectory);
 		String[] filenames = (new File(resultsDir)).list(new FilenameFilter() {
 			@Override
@@ -104,8 +109,35 @@ public class FAST {
 				return name.endsWith(".Linear.txt");
 			}
 		});
+		Arrays.sort(filenames, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				String[] pts1 = o1.split("\\.");
+				String[] pts2 = o2.split("\\.");
+				
+				Integer chr1 = Integer.valueOf(pts1[0].substring(3));
+				Integer chr2 = Integer.valueOf(pts2[0].substring(3));
+				
+				int chrComp = chr1.compareTo(chr2);
+				if (chrComp != 0) return chrComp;
+				
+				BigInteger pos1 = new BigInteger(pts1[1]);
+				BigInteger pos2 = new BigInteger(pts2[1]);
+
+				int posComp1 = pos1.compareTo(pos2);
+				if (posComp1 != 0) return posComp1;
+				
+				BigInteger pos12 = new BigInteger(pts1[2]);
+				BigInteger pos22 = new BigInteger(pts2[2]);
+				
+				return pos12.compareTo(pos22);
+			}
+		});
 		
 		PrintWriter writer = Files.getAppropriateWriter(resultsDir + resultsFile);
+		int[] indices = null;
+		
+		PrintWriter pvalWriter = writePValThresh ? Files.getAppropriateWriter(resultsDir + "meetsPVal_" + ".out") : null;
 		boolean first = true;
 		System.out.print("Concatenating results files: <");
 		for (String str : filenames) {
@@ -114,10 +146,19 @@ public class FAST {
 				reader = Files.getAppropriateReader(resultsDir + str);
 				String line = reader.readLine();
 				if (first) {
+					if (writePValThresh) {
+						indices = ext.indexFactors(new String[][] {Aliases.PVALUES}, line.split("[\\s]+"), false, true, true, false);
+					}
 					writer.println(line);
 					first = false;
 				}
 				while((line = reader.readLine()) != null) {
+					if (writePValThresh && indices[0] != -1) {
+						double pval = Double.parseDouble(line.split("[\\s]+")[indices[0]]);
+						if (pval <= pvalThreshold) {
+							pvalWriter.println(line);
+						}
+					}
 					writer.println(line);
 				}
 				reader.close();
@@ -129,6 +170,15 @@ public class FAST {
 		System.out.println(">");
 		writer.flush();
 		writer.close();
+		if (writePValThresh) {
+			pvalWriter.flush();
+			pvalWriter.close();
+		}
+		
+		if (runHitWindows) {
+			String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000, 0.000005f, new String[0]);
+			Files.writeMatrix(results, resultsDir + "hits.out", "\t");
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -147,6 +197,14 @@ public class FAST {
 		int format = 0;
 		boolean convert = false;
 		int count = 0;
+		
+		double pval = 0.0001;
+		boolean printPVals = false;
+		
+		boolean runHitWindows = false;
+//		default p<5E-8, window p<5E-6
+		//  0.00000005
+		//  0.000005
 		
 		String usage = "gwas.FAST requires 7, 3, or 5 arguments\n" + 
 					   "   (1) Full-path to FAST script (including /FAST) (i.e. fast=" + fast + " (default))\n" + 
@@ -221,6 +279,12 @@ public class FAST {
 			} else if (args[i].startsWith("-convert")) {
 				convert = true;
 				numArgs--;
+			} else if (args[i].startsWith("-writePVals")) {
+				printPVals = true;
+				numArgs--;
+			} else if (args[i].startsWith("-hitWindows")) {
+				runHitWindows = true;
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -232,10 +296,10 @@ public class FAST {
 		try {
 			if (concat && convert) {
 				String midOut = "concatenated.result";
-				concatResults(results, midOut);
+				concatResults(results, midOut, pval, printPVals, runHitWindows);
 				runParser(FORMATS[format], midOut, out, count);
 			} else if (concat) {
-				concatResults(results, out);
+				concatResults(results, out, pval, printPVals, runHitWindows);
 			} else if (convert) {
 				runParser(FORMATS[format], results, out, count);
 			} else {
@@ -246,5 +310,5 @@ public class FAST {
 		}
 	}
 	
-	
 }
+	
