@@ -437,6 +437,7 @@ public class Metal {
 		
 		batchFile = "run_"+ext.rootOf(filename, false)+".bat";
 		Files.write("metal < "+filename+" > "+ext.rootOf(filename, false)+".log", dir+batchFile);
+		Files.chmod(dir+batchFile, false);
 		if (!CmdLine.run(batchFile, dir, System.out, false)) {
 			log.report("metal < "+filename);
 		}

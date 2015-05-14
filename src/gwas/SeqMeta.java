@@ -3290,6 +3290,129 @@ public class SeqMeta {
 		}
 	}
 
+	public static void conatenateHits(String dir, MetaAnalysisParams maps, String hitsDirectory, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] groups;
+		String filename;
+		String[][] phenotypes, methods;
+		
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		dir = ext.verifyDirFormat(dir);
+		hitsDirectory = ext.verifyDirFormat(hitsDirectory);
+		
+		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
+		methods = maps.getMethods();
+
+		groups = new String[] {};
+		for (int m = 0; m < methods.length; m++) {
+			if (ext.indexOfStr(methods[m][1], groups) == -1) {
+				groups = Array.addStrToArray(methods[m][1], groups);
+			}
+		}
+
+		for (int g = 0; g < groups.length; g++) {
+			try {
+				writer = new PrintWriter(new FileWriter(dir+hitsDirectory+"AllPhenotypes_"+groups[g]+".csv"));
+				for (int i = 0; i < phenotypes.length; i++) {
+					filename = phenotypes[i][0]+"_"+groups[g]+".csv";
+					
+					if (Files.exists(dir+hitsDirectory+filename)) {
+						try {
+							reader = Files.getAppropriateReader(dir+hitsDirectory+filename);
+							if (i==0) {
+								writer.println("Trait,FileLocation,"+reader.readLine());
+							} else {
+								reader.readLine();
+							}
+							while (reader.ready()) {
+								writer.println(phenotypes[i][0]+","+phenotypes[i][0]+"/SingleSNP/"+phenotypes[i][0]+"_SingleSNP.csv,"+reader.readLine());
+							}
+							reader.close();
+						} catch (IOException ioe) {
+							log.reportError("Error reading file \"" + dir+hitsDirectory+filename + "\"");
+							return;
+						}
+					} else {
+						log.reportError("Error - could not find expected file: "+dir+hitsDirectory+filename);
+					}
+				}
+				writer.close();
+			} catch (IOException ioe) {
+				log.reportException(ioe);
+			}
+		}
+	}
+
+	public static void prepForestFile(String dir, MetaAnalysisParams maps, String forestMarkerList, String hitsDirectory) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] groups, line;
+		String filename;
+		String[][] phenotypes, methods;
+		Logger log;
+		Hashtable<String,String> hash;
+		
+		log = new Logger();
+		if (dir == null || dir.equals("")) {
+			dir = new File("").getAbsolutePath()+"/";
+		}
+		dir = ext.verifyDirFormat(dir);
+		hitsDirectory = ext.verifyDirFormat(hitsDirectory);
+		
+		phenotypes = maps.getPhenotypesWithFilenameAliases(true);
+		methods = maps.getMethods();
+
+		groups = new String[] {};
+		for (int m = 0; m < methods.length; m++) {
+			if (ext.indexOfStr(methods[m][1], groups) == -1) {
+				groups = Array.addStrToArray(methods[m][1], groups);
+			}
+		}
+		
+		hash = HashVec.loadFileToHashString(forestMarkerList, new int[] {0}, null, false, null, false, false, false);
+
+		for (int g = 0; g < groups.length; g++) {
+			try {
+				writer = new PrintWriter(new FileWriter(ext.rootOf(forestMarkerList)+"_"+groups[g]+"_forest.input"));
+				for (int i = 0; i < phenotypes.length; i++) {
+					filename = phenotypes[i][0]+"_"+groups[g]+".csv";
+					
+					if (Files.exists(dir+hitsDirectory+filename)) {
+						try {
+							reader = Files.getAppropriateReader(dir+hitsDirectory+filename);
+							while (reader.ready()) {
+								line = ext.splitCommasIntelligently(reader.readLine(), true, log);
+								if (hash.containsKey(line[0])) {
+									writer.println(line[0]+"\t"+phenotypes[i][0]+"/SingleSNP/"+phenotypes[i][0]+"_SingleSNP.csv\t"+phenotypes[i][0]+" in "+line[3]+" (All p="+ext.prettyP(line[9])+"; EA p="+ext.prettyP(line[16])+"; AA p="+ext.prettyP(line[23])+"; HA p="+ext.prettyP(line[30])+")");
+									hash.put(line[0], "present");
+								}
+							}
+							reader.close();
+						} catch (IOException ioe) {
+							log.reportError("Error reading file \"" + dir+hitsDirectory+filename + "\"");
+							return;
+						}
+					} else {
+						log.reportError("Error - could not find expected file: "+dir+hitsDirectory+filename);
+					}
+				}
+				writer.close();
+			} catch (IOException ioe) {
+				log.reportException(ioe);
+			}
+		}
+		
+		line = HashVec.getKeys(hash);
+		for (int i = 0; i < line.length; i++) {
+			if (!hash.get(line[i]).equals("present")) {
+				log.report("Did not find "+line[i]+" in any of the hits files");
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String logfile = null;
@@ -3332,12 +3455,14 @@ public class SeqMeta {
 		String genoPattern = "chr#.csv.gz";
 		boolean plinkFormat = false;
 		boolean metasOnly = false;
+		String forestMarkerList = null;
+		boolean concatenateHits = false;
 		
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/", "Hct_SingleSNP.csv", new Logger());
 //		metalCohortSensitivity("D:/ExomeChip/Hematology/results/08_withFHS_and_others/", "Whites_Hb_SingleSNP.csv", new Logger());
 //		System.exit(1);
-
+		
 		String usage = "\n" + 
 		"gwas.SeqMeta requires 0-1 arguments\n" + 
 		"   (0) directory (i.e. dir=" + dir + " (default))\n" + 
@@ -3406,6 +3531,14 @@ public class SeqMeta {
 		"   (2) line up negative log p-values to check for pleiotropy (i.e. -pleiotropy (not the default))\n" +
 		"   (3) minor allele count threshold to be included in the table (i.e. macThresholdTotal="+macThresholdTotal+" (default))\n" + 
 		"   (4) maximum p-value allowed to be counted as a trait providing evidence of pleiotropy in count column (i.e. maxP="+maxPval+" (default))\n" + 
+		" OR\n" +
+		"   (2) concatenate hits files across all phenotypes (i.e. -concat (not the default))\n" +
+		"   (3) directory containing the assembled hits (i.e. hitsDir="+hitsDirectory+" (default))\n" +
+		" OR\n" +
+		"   (2) ForestPlot - list of markers to search hits and prep all associations (i.e. forest=markerList.txt (not the default))\n" +
+		"   (3) directory containing the assembled hits (i.e. hitsDir="+hitsDirectory+" (default))\n" +
+		"  [future work would be to have p-value and maf filters to automatically geneate list]\n" +
+		
 		" \n" + 
 		"   CURRENTLY HAVING TROUBLE RUNNING SOME ANALYSES, HAVE BEEN USING gwas.SkatMeta TO RUN and gwas.SeqMeta TO SUMMARIZE\n" + 
 		"";
@@ -3524,6 +3657,12 @@ public class SeqMeta {
 				numArgs--;
 			} else if (args[i].startsWith("-plinkFormat")) {
 				plinkFormat = true;
+				numArgs--;
+			} else if (args[i].startsWith("forest=")) {
+				forestMarkerList = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-concat")) {
+				concatenateHits = true;
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -3645,6 +3784,10 @@ public class SeqMeta {
 					checkMAFs(dir, maps);
 				} else if (pleiotropy) {
 					pleiotropy(dir, maps, macThresholdTotal, maxPval);
+				} else if (concatenateHits) {
+					conatenateHits(dir, maps, hitsDirectory, log);
+				} else if (forestMarkerList != null) {
+					prepForestFile(dir, maps, forestMarkerList, hitsDirectory);
 				}
 			}
 		} catch (Exception e) {
