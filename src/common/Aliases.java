@@ -10,7 +10,7 @@ public class Aliases {
 
 	public static final String[][] ALLELES = {
 		{"coded_all", "A1", "Al1", "Allele1", "ALT", "Effect_allele", "EA"},
-		{"noncoded_all", "A2", "Al2", "Allele2", "REF", "OTHER", "Reference_allele", "NEA"},		
+		{"noncoded_all", "A2", "Al2", "Allele2", "REF", "OTHER", "Reference_allele", "NEA", "Other_allele"},		
 	};
 	public static final String[] EFFECTS = {"beta", "beta_SNP_add", "Effect"};
 	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add"};

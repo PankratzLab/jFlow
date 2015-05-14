@@ -18,7 +18,7 @@ public class PhenoPrep {
 	private int numAboveUpperThreshold;
 	private Logger log;
 
-	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
+	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean fastFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
 		if (phenos == null) {
 			log.reportError("Error - phenos is null");
 			return;
@@ -30,12 +30,12 @@ public class PhenoPrep {
 			return;
 		} else {
 			for (int i = 0; i < phenos.length; i++) {
-				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, zscore, signZ, log);
 			}
 		}
 	}
 
-	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
+	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean fastFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
 		PhenoPrep prep;
 		String[] covars;
 		
@@ -66,8 +66,8 @@ public class PhenoPrep {
 			return;
 		}
 		
-		if (variablesAllInOneFile && plinkFormat && (idFile == null || !idFile.toLowerCase().endsWith(".fam"))) {
-			log.reportError("Error - you have selected to make a plink FID/IID file with all variables in one file, but have not provided a .fam file");
+		if ((plinkFormat || fastFormat) && (idFile == null || !idFile.toLowerCase().endsWith(".fam"))) {
+			log.reportError("Error - you have selected to make a PLINK or FAST formatted file with FID/IID, but have not provided a .fam file");
 			return;
 		}
 
@@ -135,7 +135,7 @@ public class PhenoPrep {
 			prep.sort();
 		}
 
-		prep.writeFinalFile(dir+outFile, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, idFile, finalHeader);
+		prep.writeFinalFile(dir+outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, idFile, finalHeader);
 		prep.summarizeCentralMoments(idFile);
 	}
 	
@@ -462,29 +462,33 @@ public class PhenoPrep {
 		database = Matrix.toDoubleArrays(vData);
 	}
 	
-	public void writeFinalFile(String filename, boolean plinkFormat, boolean pedFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String idFile, boolean printFinalHeader)	{
+	public void writeFinalFile(String filename, boolean plinkFormat, boolean pedFormat, boolean fastFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String idFile, boolean printFinalHeader)	{
 		Hashtable<String, String> hash;
 		PrintWriter writer;
 		String delimiter;
 		
 		delimiter = Files.suggestDelimiter(filename, log);
 
-		if (plinkFormat || pedFormat) {
+		if (plinkFormat || pedFormat || fastFormat) {
 			if (idFile == null || !idFile.toLowerCase().endsWith(".fam")) {
 				log.reportError("Error - cannot export to plink format without an idFile.fam to lookup the FIDs");
 				return;
 			}
 			
-			if (pedFormat) {
+			if (pedFormat || fastFormat) {
 				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1, 2, 3, 4}, false, delimiter, false, false, false);
 			} else {
 				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1}, false, delimiter, false, false, false);
 			}
-			if (variablesAllInOneFile) {
+			if (variablesAllInOneFile || fastFormat) {
 				try {
 					writer = new PrintWriter(new FileWriter(filename));
 					if (printFinalHeader) {
-						writer.println("FID"+delimiter+"IID"+delimiter+(pedFormat?"FA"+delimiter+"MO"+delimiter+"SEX"+delimiter:"")+ Array.toStr(finalHeader, delimiter));
+						if (fastFormat) {
+							writer.println("#Fam_ID"+delimiter+"Ind_ID"+delimiter+"Dad_ID"+delimiter+"Mom_ID"+delimiter+"Sex"+delimiter+"Phenotype"+delimiter+Array.toStr(Array.subArray(finalHeader, 1), delimiter));
+						} else {
+							writer.println("FID"+delimiter+"IID"+delimiter+(pedFormat?"FA"+delimiter+"MO"+delimiter+"SEX"+delimiter:"")+ Array.toStr(finalHeader, delimiter));
+						}
 					}
 					for (int i = 0; i < finalIDs.length; i++) {
 						if (hash.containsKey(finalIDs[i])) {
@@ -761,7 +765,7 @@ public class PhenoPrep {
 								log.report(outFile);
 								outFile += ".csv";
 								if (!Files.exists(dir+outFile)) {
-									PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, false, false, false, true, true, null, outFile, true, false, false, normalize, normSigned, log);
+									PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, false, false, false, false, true, true, null, outFile, true, false, false, normalize, normSigned, log);
 								}
 								if (Files.exists(dir+outFile)) {
 									rawData = HashVec.loadFileToStringArray(dir+outFile, false, true, new int[] {1}, false, false, Files.determineDelimiter(dir+outFile, log));
@@ -819,6 +823,7 @@ public class PhenoPrep {
 		boolean signZ = false;
 		int normalization = 2;
 		boolean pedFormat = false;
+		boolean fastFormat = true;
 		boolean excludeMissingValues = false;
 
 //		dir = "";
@@ -867,7 +872,15 @@ public class PhenoPrep {
 //		
 //		summarizeAll(dir, idColName, phenos, covarsCommaDelimited, null);
 //		System.exit(1);
-		
+
+//		dir = "D:/LITE/phenotypes/1000G_FAST_runs/raw_PhenoScan/";
+//		idColName = "ID";
+//		phenos = "ARIC_AA_APTT,ARIC_AA_ProteinC,ARIC_EA_APTT,ARIC_EA_ProteinC";
+//		covarsCommaDelimited = "Age,Male,PC1,PC2";
+//		
+//		summarizeAll(dir, idColName, phenos, covarsCommaDelimited, 0, null);
+//		System.exit(1);
+
 
 		String usage = "\n"+
 				"gwas.PhenoPrep requires 0-1 arguments\n" +
@@ -891,13 +904,14 @@ public class PhenoPrep {
 				"	(16) output using FID and IID; FID is obtained from the ID file, which must have a .fam extension (i.e. plinkFormat=" + plinkFormat + " (default))\n" +
 				"	(17) use PLINK FID and IID from .fam file, but have all variables in one file (i.e. variablesAllInOneFile=" + variablesAllInOneFile + " (default))\n" +
 				"	(18) use the .fam file to create .ped files instead (i.e. pedFormat="+pedFormat+" (default))\n" +
-				"	(19) remove NaN values (i.e. excludeMissing="+excludeMissingValues+" (default))\n" +
-				"	(20) include a header with the final file(s) (i.e. finalHeader=" + finalHeader + " (default))\n" +
-				"	(21) add an intercept variable (value equals 1 constantly) as the 3rd column (i.e. addintercept=" + addintercept + " (default))\n" +
-				"	(22) sort the output by the 1st column (i.e. sort=" + sort + " (default))\n" +
-				"	(23) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
-				"	(24) convert final phenotype into a z-score (i.e. zscore=" + zscore + " (default))\n" +
-				"	(25) z-score uses positive-only (mirrored) and negative-only (mirrored) distributions to compute the standard deviation for the z-scores (i.e. signZ="+signZ+" (default))\n" +
+				"	(19) use the .fam file to create FAST format .trait files instead (i.e. fastFormat="+fastFormat+" (default))\n" +
+				"	(20) remove NaN values (i.e. excludeMissing="+excludeMissingValues+" (default))\n" +
+				"	(21) include a header with the final file(s) (i.e. finalHeader=" + finalHeader + " (default))\n" +
+				"	(22) add an intercept variable (value equals 1 constantly) as the 3rd column (i.e. addintercept=" + addintercept + " (default))\n" +
+				"	(23) sort the output by the 1st column (i.e. sort=" + sort + " (default))\n" +
+				"	(24) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
+				"	(25) convert final phenotype into a z-score (i.e. zscore=" + zscore + " (default))\n" +
+				"	(26) z-score uses positive-only (mirrored) and negative-only (mirrored) distributions to compute the standard deviation for the z-scores (i.e. signZ="+signZ+" (default))\n" +
 				"  OR:\n" +
 				"	 (6) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n" +
 				"	 (7) include normaliation transformations (i.e. normalization="+normalization+" (default; 0=none, 1=standard, 2=standard and sign-specific stdevs))\n" +
@@ -968,6 +982,9 @@ public class PhenoPrep {
 			} else if (args[i].startsWith("pedFormat=")) {
 				pedFormat = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("fastFormat=")) {
+				fastFormat = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("excludeMissing=")) {
 				excludeMissingValues = ext.parseBooleanArg(args[i]);
 				numArgs--;
@@ -1015,9 +1032,9 @@ public class PhenoPrep {
 			if (summarizeAll) {
 				summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile);
 			} else if (phenos.contains(",")) {
-				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs, finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs, finalHeader, addintercept, sort, zscore, signZ, log);
 			} else {
-				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, excludeMissingValues, variablesAllInOneFile, extras, outFile, finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outFile, finalHeader, addintercept, sort, zscore, signZ, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
