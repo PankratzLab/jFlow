@@ -18,14 +18,15 @@ import common.Logger;
 import common.ext;
 
 public class FAST {
-
-	private static final String CHARGE_FORMAT = " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#<>=N 'Coded.Allele'=Effect_allele 'NonCoded.Allele'=Other_allele 'Coded.Af'=EAF 'Qual'=Imp_info 'Beta' 'Se'=SE 'Pval'=PValue";
+	
+	private static final String COUNT_SYMB = "<>";
+	private static final String CHARGE_FORMAT = " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#" + COUNT_SYMB + "=N 'Coded.Allele'=Effect_allele 'NonCoded.Allele'=Other_allele 'Coded.Af'=EAF 'Qual'=Imp_info 'Beta' 'Se'=SE 'Pval'=PValue";
 	
 	public static final String[] FORMATS = new String[]{CHARGE_FORMAT}; 
 	
 	public static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
 		System.out.println(ext.getTime() + "]\tParsing results file according to given FORMAT...");
-		String finalFormat = concattedResultsFile + " tab out=" + outFileName + FORMAT.replace("<>", count + "");
+		String finalFormat = concattedResultsFile + " tab out=" + outFileName + FORMAT.replace(COUNT_SYMB, count + "");
 		String[] args = ext.removeQuotes(finalFormat).trim().split("[\\s]+");
 		GenParser.parse(args, new Logger());
 		System.out.println(ext.getTime() + "]\tParsing complete!");
@@ -210,7 +211,7 @@ public class FAST {
 		//  0.00000005
 		//  0.000005
 		
-		String usage = "gwas.FAST requires 7, 3, or 5 arguments\n" + 
+		String usage = "gwas.FAST requires 5-8 arguments\n" + 
 					   "   (1) Full-path to FAST script (including /FAST) (i.e. fast=" + fast + " (default))\n" + 
 					   "   (2) Full-path to data directory (i.e. data=" + data + " (default))\n" +
 					   "   (3) Full-path to .indiv file (i.e. indiv=" + indiv + " (default))\n" +

@@ -104,8 +104,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	}
 
 	public void assignAxisLabels() {
-		xAxisLabel = shrunk ? " " : MarkerData.TYPES[sp.getPlotType(panelIndex)][0];
-		yAxisLabel = shrunk ? " " : MarkerData.TYPES[sp.getPlotType(panelIndex)][1];
+		xAxisLabel = shrunk ? " " : ScatterPlot.TYPES[sp.getPlotType(panelIndex)][0];
+		yAxisLabel = shrunk ? " " : ScatterPlot.TYPES[sp.getPlotType(panelIndex)][1];
 	}
 	
 	public boolean invertX() {
@@ -203,7 +203,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			errorMessage = null;
 		}
 		
-		if (plotType == 1 || plotType == 2||plotType>=5) {
+		if (plotType == 0 || plotType == 1 || plotType >= 4) {
 			numCents = Array.booleanArraySum(displayCents);
 			points = new PlotPoint[samples.length+numCents*3];
 
@@ -232,7 +232,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			numCents = 0;
 		}
 		
-		if (plotType < 2||plotType>=5) {
+		if (plotType < 1 || plotType >= 4) {
 			forcePlotXmax = Float.NaN;
 		} else {
 			forcePlotXmax = 1;

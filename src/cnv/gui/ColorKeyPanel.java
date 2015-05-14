@@ -88,13 +88,14 @@ public class ColorKeyPanel extends JPanel {
 	}
 	
 	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel, Color[] newColorScheme) {
-		this(newSampleData, newSisterPanel, newColorScheme, null);
+		this(newSampleData, newSisterPanel, newColorScheme, null, 0);
 	}
 	
-	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel, Color[] newColorScheme, ItemListener listener) {
+	public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel, Color[] newColorScheme, ItemListener listener, int clazz) {
 		this.sampleData = newSampleData;
 		this.setSisterPanel(newSisterPanel);
 		this.colorScheme = newColorScheme;
+		this.currentClass = clazz;
 
 		setLayout(new GridLayout(2, 1));
 		classVariablesPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 0, 0));

@@ -21,9 +21,6 @@ public class MarkerData implements Serializable {
 	public static final String MARKER_DATA_FILE_EXTENSION = ".mdRAF";
 	//Use for more alternate correction types
 	//public static final String[][] TYPES = { { "X Raw", "Y Raw" }, { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }, { "BAF2", "LRR2" }, { "missThetaX", "missThetaY" },{ "twostageX", "twostageY" } ,{ "NstageX", "NstageY" },{ "N+1stageXResidual", "N+1stageYResidual" }};
-	//Use for original scatter plot behavior
-	//public static final String[][] TYPES = { { "X Raw", "Y Raw" }, { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }};
-	public static final String[][] TYPES = { { "X Raw", "Y Raw" }, { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }};
 
 	// TODO remove X Raw / Y Raw from the entire project
 	
@@ -67,28 +64,28 @@ public class MarkerData implements Serializable {
 
 	public float[][] getDatapoints(int type, int[] sampleSex, boolean[] samplesToUse, boolean intensityOnly, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, PrincipalComponentsResiduals pcResids, int numComponents, int nstage, double residStandardDeviationFilter, double correctionRatio, int numThreads, boolean correctedData, Logger log) {
 		switch (type) {
+//		case 0:
+//			return new float[][] { xRaws, yRaws };
 		case 0:
-			return new float[][] { xRaws, yRaws };
-		case 1:
 			if (correctedData) {
 				return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, correctionRatio, PrincipalComponentsIntensity.XY_RETURN, numThreads, log);
 			} else {
 				return new float[][] { xs, ys };
 			}
-		case 2:
+		case 1:
 			// return new float[][] {thetas, rs};
 			if (correctedData) {
 				return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, correctionRatio, PrincipalComponentsIntensity.THETA_R_RETURN, numThreads, log);
 			} else {
 				return new float[][] { getThetas(), getRs() };
 			}
-		case 3:
+		case 2:
 			if (correctedData) {
 				return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, correctionRatio, PrincipalComponentsIntensity.BAF_LRR_RETURN, numThreads, log);
 			} else {
 				return new float[][] { bafs, lrrs };
 			}
-//		case 4:
+//		case 3:
 //			return getRecomputedLRR_BAF(sampleSex, samplesToUse, intensityOnly, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, false, log);
 //			// case 5:
 //			// return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 0, 0, 0, false, log);
@@ -97,9 +94,9 @@ public class MarkerData implements Serializable {
 //			// case 7:
 //			// return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, 0, false, log);
 //		//new case 5
-//		case 5:
+//		case 4:
 //			return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, false,numThreads, log);
-//		case 6:
+//		case 2:
 //			return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, true, numThreads,log);
 
 		default:
@@ -292,24 +289,39 @@ public class MarkerData implements Serializable {
 			// get appropriate data (X/Y Theta/R LRR/BAF)
 			switch(clusterFilter.getPlotType()) {
 			case 0:
-				realX = getX_Raws();
-				realY = getY_Raws();
-				break;
-			case 1:
 				realX = getXs();
 				realY = getYs();
 				break;
-			case 2:
+			case 1:
 				realX = getThetas();
 				realY = getRs();
 				break;
-			case 3:
+			case 2:
 				realX = getBAFs();
 				realY = getLRRs();
 				break;
 			default:
 				realX = getXs();
 				realY = getYs();
+//			case 0:
+//				realX = getX_Raws();
+//				realY = getY_Raws();
+//				break;
+//			case 1:
+//				realX = getXs();
+//				realY = getYs();
+//				break;
+//			case 2:
+//				realX = getThetas();
+//				realY = getRs();
+//				break;
+//			case 3:
+//				realX = getBAFs();
+//				realY = getLRRs();
+//				break;
+//			default:
+//				realX = getXs();
+//				realY = getYs();
 			}
 			// iterate through all samples
 			for (int j=0; j<result.length; j++) {
@@ -366,18 +378,18 @@ public class MarkerData implements Serializable {
 			clusterFilter = clusterFilters.get(i);
 			switch(clusterFilter.getPlotType()) {
 			case 0:
-				realX = getX_Raws();
-				realY = getY_Raws();
-				break;
-			case 1:
+//				realX = getX_Raws();
+//				realY = getY_Raws();
+//				break;
+//			case 1:
 				realX = getXs();
 				realY = getYs();
 				break;
-			case 2:
+			case 1:
 				realX = getThetas();
 				realY = getRs();
 				break;
-			case 3:
+			case 2:
 				realX = getBAFs();
 				realY = getLRRs();
 				break;
