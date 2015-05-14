@@ -124,7 +124,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public static final String DEFAULT_MESSAGE = "enter new annotation here";
 	public static final String[] GENOTYPE_OPTIONS = new String[] {"-","A/A","A/B","B/B"};
 	public static final int NUM_MARKERS_TO_SAVE_IN_HISTORY = 10;
-
+	public static final String[][] TYPES = { /*{ "X Raw", "Y Raw" },*/ { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }};
 
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
@@ -168,8 +168,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private int previousMarkerIndex;
 	private JTextField markerName, commentLabel;
 	private String[] samples;
-	private int[] plot_types;
-	private int[] classes;
+	private volatile int[] plot_types;
+	private volatile int[] classes;
 	private byte size;
 	private float gcThreshold;
 	private long sampleListFingerprint;
@@ -181,10 +181,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JCheckBox excludeSampleBox;
 	private JCheckBox correctionBox;
 	private JCheckBox maskMissingBox;
-	private boolean[] correction;
-	private boolean[] symmetry;
-	private boolean[] maskMissing;
-	private boolean[] excludeSamples;
+	private volatile boolean[] correction;
+	private volatile boolean[] symmetry;
+	private volatile boolean[] maskMissing;
+	private volatile boolean[] excludeSamples;
 	private ClusterFilterCollection clusterFilterCollection;
 	private AnnotationCollection annotationCollection;
 	private byte currentClusterFilter;
@@ -313,7 +313,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		excludeSamples = new boolean[] {true, true, true, true};
 		correction = new boolean[4];
 		plot_types = new int[] {0, 0, 0, 0};
-		classes = new int[]{1, 1, 1, 1};
+		classes = new int[]{2, 2, 2, 2};
 		scatterPanels = new ScatterPanel[4];
 		for (int i = 0; i < scatterPanels.length; i++) {
 			scatterPanels[i] = new ScatterPanel(this, i);
@@ -350,13 +350,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			indivPanels[i].addMouseListener(clickAdapter);
 			scatterPanels[i].addMouseListener(clickAdapter);
 			indivPanels[i].add(scatterPanels[i], BorderLayout.CENTER);
-			indivPanels[i].setDoubleBuffered(true);
-			scatterPanels[i].setDoubleBuffered(true);
+//			indivPanels[i].setDoubleBuffered(true);
+//			scatterPanels[i].setDoubleBuffered(true);
 			scatterPanels[i].setSymmetricAxes(true);
 			scatterOverview.add(indivPanels[i]);
 		}
-		colorKeyPanel = new ColorKeyPanel(sampleData, scatterPanels[0], scatterPanels[0].colorScheme, classListener);
-		scatterOverview.setDoubleBuffered(true);
+		colorKeyPanel = new ColorKeyPanel(sampleData, scatterPanels[0], scatterPanels[0].colorScheme, classListener, 2);
+		
+//		scatterOverview.setDoubleBuffered(true);
 		viewPanel = new JPanel(new BorderLayout());
 		viewPanel.add(indivPanels[selectedPanelIndex], BorderLayout.CENTER);
 		viewPanel.add(markerPanel(), BorderLayout.NORTH);
@@ -401,13 +402,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		previous.setActionMap(actionMap);
 		scatterPanels[selectedPanelIndex].grabFocus();
 
-		((JComponent)getContentPane()).setDoubleBuffered(true);
-		
+//		((JComponent)getContentPane()).setDoubleBuffered(true);
 		updateGUI();
 
-		for (int i = 0; i < scatterPanels.length; i++) {
-			scatterPanels[i].paintAgain();
-		}
+//		for (int i = 0; i < scatterPanels.length; i++) {
+//			scatterPanels[i].paintAgain();
+//		}
 //		setBounds(20, 20, 1000, 720);
 //		setVisible(true);
 	}
@@ -647,8 +647,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				JRadioButton jrb = (JRadioButton)ie.getItem();
 				if (jrb.isSelected()) {
 					// skip X/Y RAW
-					for (int i = 0; i < MarkerData.TYPES.length - 1; i++) {
-						if (jrb.getText().equals(MarkerData.TYPES[i+1][0]+"/"+MarkerData.TYPES[i+1][1])) {
+					for (int i = 0; i < ScatterPlot.TYPES.length; i++) {
+						if (jrb.getText().equals(ScatterPlot.TYPES[i][0]+"/"+ScatterPlot.TYPES[i][1]) ||
+								jrb.getText().equals("<html>" + ScatterPlot.TYPES[i][0]+"/<br />"+ScatterPlot.TYPES[i][1] + "</html>")) {
 							plot_types[selectedPanelIndex] = i;
 //							seletedScatterPanel.setPointsGeneratable(true);
 //							seletedScatterPanel.setQcPanelUpdatable(true);
@@ -664,12 +665,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		};
 		// --- Beginning of the original block ---
 		ButtonGroup typeRadio = new ButtonGroup();
-		typeRadioButtons = new JRadioButton[MarkerData.TYPES.length - 1];
+		typeRadioButtons = new JRadioButton[ScatterPlot.TYPES.length];
 		// skip X/Y RAW
-		for (int i = 0; i<MarkerData.TYPES.length-1; i++) {
-			String label = MarkerData.TYPES[i+1][0]+"/"+MarkerData.TYPES[i+1][1];
+		for (int i = 0; i < ScatterPlot.TYPES.length; i++) {
+			String label = ScatterPlot.TYPES[i][0]+"/"+ScatterPlot.TYPES[i][1];
 			if (label.length() > 15) {
-				label = "<html>" + MarkerData.TYPES[i+1][0]+"/<br />"+MarkerData.TYPES[i+1][1] + "</html>";
+				label = "<html>" + ScatterPlot.TYPES[i][0]+"/<br />"+ScatterPlot.TYPES[i][1] + "</html>";
 			}
 			typeRadioButtons[i] = new JRadioButton(label, false);
 			typeRadioButtons[i].setFont(new Font("Arial", 0, 14));
@@ -1833,6 +1834,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	}
 	
 	public void finishProcessing() {
+
+//		long t1 = System.currentTimeMillis();
 		updateMarkerIndexHistory();
 		displayIndex(navigationField);
 		if (showingAll) {
@@ -1844,9 +1847,15 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			scatterPanels[selectedPanelIndex].setPointsGeneratable(true);
 			scatterPanels[selectedPanelIndex].setQcPanelUpdatable(true);
 		}
+//		long t2 = System.currentTimeMillis();
 		setCurrentClusterFilter();
 		updateGUI();
 		displayClusterFilterIndex();
+//		long t3 = System.currentTimeMillis();
+//		System.out.println("Updated: ");
+//		System.out.println("\tt1: " + t1);
+//		System.out.println("\tt2: " + t2);
+//		System.out.println("\tt3: " + t3);
 	}
 
 	public void actionPerformed(ActionEvent ae) {
@@ -1959,6 +1968,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			if (sampleData != null && jrb.isSelected() && ie.getStateChange() == ItemEvent.SELECTED) {
 				for (byte i = 0; i<sampleData.getNumClasses(); i++) {
 					if (jrb.getText().equals(sampleData.getClassName(i))) {
+						System.out.println("SETTING AGAIN");
 						classes[selectedPanelIndex] = i;
 						if (colorKeyPanel != null) {
 							colorKeyPanel.setCurrentClass(i);
@@ -2039,7 +2049,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		}
 		for (int i = 0; i < scatterPanels.length; i++) {
 			do {
-				filename = markerList[markerIndex]+"_" + MarkerData.TYPES[plot_types[i] + 1][0] + "-" + MarkerData.TYPES[plot_types[i] + 1][1] + "_" + (count == 1 ? "" : "v" + count);
+				filename = markerList[markerIndex]+"_" + ScatterPlot.TYPES[plot_types[i]][0] + "-" + ScatterPlot.TYPES[plot_types[i]][1] + "_" + (count == 1 ? "" : "v" + count);
 				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 				count++;
 			} while (new File(proj.PROJECT_DIRECTORY.getValue()+filename+".png").exists());
@@ -2318,15 +2328,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		currentClass = newCurrentClass;
 //	}
 
-//	public int getCurrentClass() {
 	public int getCurrentClass(int index) {
-//		return colorKeyPanels[index].getCurrentClass();
-//		return colorKeyPanel.getCurrentClass();
 		return classes[index];
 	}
 
 	public int getPlotType(int index) {
-		return plot_types[index] + 1;
+		return plot_types[index];
 	}
 
 	public byte getPointSize() {
@@ -2596,6 +2603,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	}
 
 	public void updateGUI() {
+//		long t1 = System.currentTimeMillis();
 		if (markerDataLoader == null) {
 			return;
 		}
@@ -2612,16 +2620,21 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			markerName.setText(markerList[markerIndex]);
 			commentLabel.setText(commentList[markerIndex]);
 		}
-		if (plot_types[selectedPanelIndex] >= 2 && plot_types[selectedPanelIndex] != 5) {
+		if (plot_types[selectedPanelIndex] >= 1 && plot_types[selectedPanelIndex] != 4) {
+//			if (plot_types[selectedPanelIndex] >= 2 && plot_types[selectedPanelIndex] != 5) {
 			symmetryBox.setEnabled(false);
-			symmetry[selectedPanelIndex] = false;
+			symmetryBox.setSelected(false);
+//			symmetry[selectedPanelIndex] = false;
 			scatterPanels[selectedPanelIndex].setSymmetricAxes(false);
 		} else {
 			symmetryBox.setEnabled(true);
+			symmetryBox.setSelected(symmetricAxes(selectedPanelIndex));
 //			scatterPanels[selectedPanelIndex].setSymmetricAxes(symmetryBox.isSelected());
 			scatterPanels[selectedPanelIndex].setSymmetricAxes(symmetricAxes(selectedPanelIndex));
 		}
-		if (plot_types[selectedPanelIndex] == 3) {
+		// BAF/LRR ???
+		if (plot_types[selectedPanelIndex] == 2) {
+//			if (plot_types[selectedPanelIndex] == 3) {
 			boolean recomputed = false;
 			for (int i = 0; i<centBoxes.length; i++) {
 				if (centBoxes[i].isSelected()) {
@@ -2652,7 +2665,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		
 		if (showingAll) {
 			for (int i = 0; i < indivPanels.length; i++) {
-				String plotTitle = MarkerData.TYPES[plot_types[i] + 1][0] + "/" + MarkerData.TYPES[plot_types[i] + 1][1] + " - " + sampleData.getClassName(classes[i]);
+				String plotTitle = ScatterPlot.TYPES[plot_types[i]][0] + "/" + ScatterPlot.TYPES[plot_types[i]][1] + " - " + sampleData.getClassName(classes[i]);
 				if (i == selectedPanelIndex) {
 					TitledBorder tb = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED, Color.RED, Color.GRAY), plotTitle, TitledBorder.LEADING, TitledBorder.TOP);
 					indivPanels[i].setBorder(tb);
@@ -2664,6 +2677,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		} else {
 			indivPanels[selectedPanelIndex].setBorder(null);
 		}
+
+//		long t2 = System.currentTimeMillis();
 		if (showingAll) {
 			for (int i = 0; i < scatterPanels.length; i++) {
 				scatterPanels[i].paintAgain();
@@ -2671,6 +2686,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		} else {
 			scatterPanels[selectedPanelIndex].paintAgain();
 		}
+
+//		long t3 = System.currentTimeMillis();
+//		System.out.println("Updated: ");
+//		System.out.println("\tt1: " + t1);
+//		System.out.println("\tt2: " + t2);
+//		System.out.println("\tt3: " + t3);
 	}
 
 	public void updateColorKey(Hashtable<String,String> hash, int index) {

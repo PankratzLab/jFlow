@@ -385,19 +385,19 @@ public class Sample implements Serializable {
 					clusterFilter = clusterFilterArray.get(j);
 					switch(clusterFilter.getPlotType()) {
 					case 0:
-						realX = -9;
-						realY = -9;
-						System.err.println("Error - PlotType cannot be 0 for ClusterFilter #"+(j+1)+" for marker '"+markerNames[i]+"' as we've done away with raw Xs and Ys");
-						break;
-					case 1:
+//						realX = -9;
+//						realY = -9;
+//						System.err.println("Error - PlotType cannot be 0 for ClusterFilter #"+(j+1)+" for marker '"+markerNames[i]+"' as we've done away with raw Xs and Ys");
+//						break;
+//					case 1:
 						realX = xs[i];
 						realY = ys[i];
 						break;
-					case 2:
+					case 1:
 						realX = thetas[i];
 						realY = rs[i];
 						break;
-					case 3:
+					case 2:
 						realX = bafs[i];
 						realY = lrrs[i];
 						break;
@@ -439,19 +439,19 @@ public class Sample implements Serializable {
 						clusterFilter = clusterFilterArray.get(j);
 						switch(clusterFilter.getPlotType()) {
 						case 0:
-							realX = -9;
-							realY = -9;
-							System.err.println("Error - PlotType cannot be 0 for ClusterFilter #" + (j + 1) + " for marker '" + targetMarkers[i] + "' as we've done away with raw Xs and Ys");
-							break;
-						case 1:
+//							realX = -9;
+//							realY = -9;
+//							System.err.println("Error - PlotType cannot be 0 for ClusterFilter #" + (j + 1) + " for marker '" + targetMarkers[i] + "' as we've done away with raw Xs and Ys");
+//							break;
+//						case 1:
 							realX = xs[indicesOfTargetMarkersInProj[i]];
 							realY = ys[indicesOfTargetMarkersInProj[i]];
 							break;
-						case 2:
+						case 1:
 							realX = thetas[indicesOfTargetMarkersInProj[i]];
 							realY = rs[indicesOfTargetMarkersInProj[i]];
 							break;
-						case 3:
+						case 2:
 							realX = bafs[indicesOfTargetMarkersInProj[i]];
 							realY = lrrs[indicesOfTargetMarkersInProj[i]];
 							break;

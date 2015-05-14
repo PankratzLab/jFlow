@@ -666,6 +666,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			boolean configure = JOptionPane.showConfirmDialog(null, "Use new [in beta] property editor?", "Beta or Notepad?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 			if (configure) {
 				Configurator configurator = new Configurator(proj);
+				configurator.addWindowListener(new WindowAdapter() {
+					public void windowClosed(WindowEvent e) {
+						Launch.this.requestFocus();
+					};
+				});
 				configurator.setVisible(true);
 			} else {
 				int index = projectsBox.getSelectedIndex();

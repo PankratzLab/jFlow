@@ -94,18 +94,18 @@ public class ClusterFilter implements Serializable {
 		
 		switch(getPlotType()) {
 		case 0:
-			realX = markerData.getX_Raws();
-			realY = markerData.getY_Raws();
-			break;
-		case 1:
+//			realX = markerData.getX_Raws();
+//			realY = markerData.getY_Raws();
+//			break;
+//		case 1:
 			realX = markerData.getXs();
 			realY = markerData.getYs();
 			break;
-		case 2:
+		case 1:
 			realX = markerData.getThetas();
 			realY = markerData.getRs();
 			break;
-		case 3:
+		case 2:
 			realX = markerData.getBAFs();
 			realY = markerData.getLRRs();
 			break;
@@ -221,18 +221,18 @@ public class ClusterFilter implements Serializable {
 		
 		switch(getPlotType()) {
 		case 0:
-			realX = markerData.getX_Raws();
-			realY = markerData.getY_Raws();
-			break;
-		case 1:
+//			realX = markerData.getX_Raws();
+//			realY = markerData.getY_Raws();
+//			break;
+//		case 1:
 			realX = markerData.getXs();
 			realY = markerData.getYs();
 			break;
-		case 2:
+		case 1:
 			realX = markerData.getThetas();
 			realY = markerData.getRs();
 			break;
-		case 3:
+		case 2:
 			realX = markerData.getBAFs();
 			realY = markerData.getLRRs();
 			break;
