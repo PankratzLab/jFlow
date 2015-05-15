@@ -2,6 +2,7 @@ package gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -240,9 +241,13 @@ public class FAST {
 			dd.popcode = parts[1];
 			dd.dataDir = parts[2];
 			dd.dataSuffix = parts[3];
-			dd.sexDir = parts[4];
-			dd.sexSuffix = parts[5];
-			dd.indivFile = parts[6];
+			if (parts.length == 5) {
+			    dd.indivFile = parts[4];
+			} else {
+			    dd.sexDir = parts[4];
+			    dd.sexSuffix = parts[5];
+			    dd.indivFile = parts[6];
+			}
 			
 			HashMap<String, DataDefinitions> defsMap = defs.get(dd.study);
 			if (defsMap == null) {
@@ -260,7 +265,28 @@ public class FAST {
 		return hdr.length - 6;
 	}
 	
-	private static void constructFAST(String traitDir, String dataFile) throws IOException {
+	private static String sexCopyTraitFile(String destDir, String traitFile, int sex) throws IOException {
+	    (new File(destDir)).mkdirs();
+	    BufferedReader reader = Files.getAppropriateReader(traitFile);
+	    String newFile = destDir + ext.rootOf(traitFile, true) + "_" + (sex == 1 ? "male" : "female") + ".trait";
+	    PrintWriter writer = Files.getAppropriateWriter(newFile);
+	    
+	    String line = null;
+	    writer.println(reader.readLine());
+	    while((line = reader.readLine()) != null) {
+	        String sexStr = line.split("\t")[4];
+	        if (Integer.parseInt(sexStr) == sex) {
+	            writer.println(line);
+	        }
+	    }
+	    writer.flush();
+	    writer.close();
+	    reader.close();
+	    
+	    return newFile;
+    }
+
+    private static void prepareFAST(String traitDir, String dataFile) throws IOException {
 		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
 		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
 
@@ -268,8 +294,6 @@ public class FAST {
 		
 		// TODO ensure 1-1 keymapping between traits and data maps
 		// TODO ensure 1-1 keymapping between study.pop in both maps
-		
-		StringBuilder output = new StringBuilder();
 		
 		/*
 		 mkdir STUDY
@@ -283,25 +307,21 @@ public class FAST {
 			String study = entry.getKey();
 			HashMap<String, HashMap<String, String>> factorToPopToTraitMap = entry.getValue();
 			
-			StringBuilder studyStr = new StringBuilder();
-			studyStr.append("mkdir ").append(study).append("/\n");
+			(new File(study)).mkdir();
+			
 			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
 				String factor = factors.getKey();
 				HashMap<String, String> popToTraitMap = factors.getValue();
-				studyStr.append("mkdir ").append(study).append("/").append(factor).append("/\n");
+				(new File(study+"/"+factor+"/")).mkdir();
 				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
 					String pop = popEntry.getKey();
 					String traitFile = popEntry.getValue();
-					studyStr.append("mkdir ").append(study).append("/").append(factor).append("/").append(pop).append("/\n");
-					studyStr.append("cp ").append(traitFile).append(" ").append(study).append("/").append(factor).append("/").append(pop).append("/\n");
+	                (new File(study+"/"+factor+"/"+pop)).mkdir();
+	                Files.copyFile(traitDir + traitFile, study+"/"+factor+"/"+pop + "/" + traitFile);
 				}
-				studyStr.append("\n");
 			}
 			
-			output.append(studyStr).append("\n");
 		}
-		
-		output.append("\n\n");
 		
 		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
 			String study = entry.getKey();
@@ -318,32 +338,22 @@ public class FAST {
 					String traitFile = popEntry.getValue();
 					
 					DataDefinitions dataDef = popToDataDef.get(pop);
-					
-					output.append("java -cp ~/park.jar gwas.FAST")
-						.append(" data=\"").append(dataDef.dataDir).append("\"")
-						.append(" indiv=\"").append(dataDef.indivFile).append("\"")
-						.append(" suffix=").append(dataDef.dataSuffix)
-						.append(" trait=\"").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append(traitFile).append("\"")
-						.append(" rundir=\"").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\"")
-						.append(" covars=").append(countCovars(traitDir + traitFile)).append("\n");
+					int covars = countCovars(traitDir + traitFile);
+					new FAST("FAST", dataDef.dataDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/"+traitFile, dataDef.dataSuffix, runDir+study+"/"+factor+"/"+pop, covars).run();
+					if (dataDef.sexDir != null) {
+					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, 1);
+					    String femaleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/female/", traitDir + traitFile, 0);
+	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/male/"+maleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/male/", covars).run();
+	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/female/"+femaleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/female/", covars).run();
+					}
 				}
 			}
 		}
-		/*
-		 java -cp ~/park.jar gwas.FAST 
-					fast="/home/pankrat2/public/bin/FAST" 
-					data="/home/pankarne/chandap/ARIC.blacks.impute2/chunks/" 
-					indiv="/home/pankarne/cole0482/AA.indiv" 
-					suffix=".imputed.gz" 
-					covars=7 
-					rundir=/home/pankarne/shared/1000G/FAST/adjgamma/AA/ 
-					trait=/home/pankarne/shared/1000G/FAST/adjgamma/AA/ARIC_AA_adjgamma.trait
-		 */
-		Files.write(output.toString(), traitDir + "prepFast.script");
-		System.out.println();
 	}
 	    
 	public static void main(String[] args) {
+//	    results="F:/FAST analysis/FVIII/output/" out=finalResults.txt -concat
+//	    trait="F:/FAST analysis/construct test/" data="F:/FAST analysis/construct test/data.txt" -prep
 		int numArgs = args.length;
 		String fast = "~/FAST";
 		String data = "~/data/";
@@ -472,7 +482,7 @@ public class FAST {
 		}
 		try {
 		    if (prep) {
-		        constructFAST(trait, data);
+		        prepareFAST(trait, data);
 		    } else if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);
