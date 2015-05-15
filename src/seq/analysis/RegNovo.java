@@ -194,7 +194,7 @@ public class RegNovo {
 			LocusSet<Segment> set = new LocusSet<Segment>(segsToReview.toArray(new Segment[segsToReview.size()]), false, log) {
 				private static final long serialVersionUID = 1L;
 			};
-			set.writeRegions(segSummary, TO_STRING_TYPE.REGULAR, log);
+			set.writeRegions(segSummary, TO_STRING_TYPE.REGULAR, false, log);
 			String countSummary = ext.addToRoot(outputSummary, ".counts");
 			PrintWriter writer2 = Files.getAppropriateWriter(countSummary);
 			writer2.println("OFFSPRING\tDENOVO_EXTRA");
@@ -329,7 +329,7 @@ public class RegNovo {
 		LocusSet<Segment> set = new LocusSet<Segment>(segsToReview.toArray(new Segment[segsToReview.size()]), false, log) {
 			private static final long serialVersionUID = 1L;
 		};
-		set.writeRegions(segFile, TO_STRING_TYPE.REGULAR, log);
+		set.writeRegions(segFile, TO_STRING_TYPE.REGULAR, false, log);
 		VCFOps.extractSegments(outputVCF, segFile, 100, bams, ext.parseDirectoryOfFile(vpop.getFileName()) + root + "_extracted/", true, true, 2, log);
 	}
 

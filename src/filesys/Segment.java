@@ -198,9 +198,13 @@ public class Segment implements Serializable {
 		return new Segment(chr, Math.max(start, seg.start), Math.min(stop, seg.stop));
 	}
 	
-	@Override
-	public String toString() {
+	
+	public String toAnalysisString() {
 		return chr + "\t" + start + "\t" + stop + "\t";
+	}
+	
+	public String[] getHeader() {
+		return new String[] { "chr", "start", "stop" };
 	}
 
 	public static boolean addIfAbsent(Segment seg, Vector<Segment> exons) {

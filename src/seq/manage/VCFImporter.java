@@ -16,6 +16,7 @@ import cnv.analysis.PennCNV;
 import cnv.filesys.Centroids;
 import cnv.filesys.Project;
 import cnv.manage.Markers;
+import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
@@ -325,7 +326,7 @@ public class VCFImporter {
 					proj.getLog().reportTimeInfo("Constructing outlierHash");
 					allOutliers = proj.loadOutliersFromSamples();
 				} catch (Exception e) {
-					proj.getLog().reportException(e); 
+					proj.getLog().reportException(e);
 					e.printStackTrace();
 				}
 			}
@@ -376,14 +377,16 @@ public class VCFImporter {
 			projNorm.getLog().reportTimeInfo("Assuming that all samples have been gc-corrected, skipping");
 		}
 		Files.copyFile(proj.MARKER_POSITION_FILENAME.getValue(), projNorm.MARKER_POSITION_FILENAME.getValue());
-		processExt(projNorm, gc5Base);
-		processCentroids(projNorm, vcf, numThreads);
-	}
-	
-	
 
-	// }
-	// MitoPipeline.catAndCaboodle( proj, numThreads, "0.98", proj.getFilename(Project.MARKER_POSITION_FILENAME, false, false), 100,"VCF_PCS", true,true, 0.98, null, null,null, true,true, false, true) ;
+		processExt(projNorm, gc5Base);
+		projNorm.TARGET_MARKERS_FILENAME.setValue(ext.rootOf(vcf) + ".targetMarkers");
+		Files.writeList(projNorm.getAutosomalMarkers(), projNorm.TARGET_MARKERS_FILENAME.getValue());
+		processCentroids(projNorm, vcf, numThreads);
+		projNorm.LRRSD_CUTOFF.setValue(2.2);
+		projNorm.getLog().reportTimeError("Remember that the LRR_SD cutoff is set to 2.2");
+		projNorm.saveProperties();
+		MitoPipeline.catAndCaboodle(projNorm, numThreads, "0.98", proj.MARKER_POSITION_FILENAME.getValue(), 100, "VCF_PCS", true, true, 0.98, null, null, null, true, true, false, true);
+	}
 
 	private static void processExt(Project proj, String gc5Base) {
 		if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
@@ -412,7 +415,7 @@ public class VCFImporter {
 			proj.CUSTOM_CENTROIDS_FILENAME.setValue(cent);
 			Centroids.recompute(proj, cent);
 			proj.saveProperties();
-		}else{
+		} else {
 			proj.getLog().reportFileExists(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
 		}
 	}
