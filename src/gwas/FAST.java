@@ -58,6 +58,9 @@ public class FAST {
 			if (chr.charAt(1) == '.') {
 				chr = "" + chr.charAt(0);
 			}
+			if (chr.charAt(0) == 'X' || chr.charAt(0) == 'x') {
+			    chr = "23";
+			}
 		
 			StringBuilder fastString = new StringBuilder(FAST_LOC)
 				.append(" --mode genotype --impute2-geno-file ")
@@ -386,7 +389,6 @@ public class FAST {
 		
 		double pval = 0.0001;
 		boolean printPVals = false;
-		
 		boolean runHitWindows = false;
 		
 		boolean prep = false;
