@@ -25,15 +25,6 @@ public class FAST {
 	
 	public static final String[] FORMATS = new String[]{CHARGE_FORMAT}; 
 	
-	public static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
-		System.out.println(ext.getTime() + "]\tParsing results file according to given FORMAT...");
-		String finalFormat = concattedResultsFile + " tab out=" + outFileName + FORMAT.replace(COUNT_SYMB, count + "");
-		String[] args = ext.removeQuotes(finalFormat).trim().split("[\\s]+");
-		GenParser.parse(args, new Logger());
-		System.out.println(ext.getTime() + "]\tParsing complete!");
-	}
-	
-	
 	String FAST_LOC = "FAST";
 	String dir = "/home/pankarne/chandap/ARIC.whites.impute2/";
 	String indivFile = "~/ordered9489.indiv";
@@ -105,7 +96,15 @@ public class FAST {
 		(new File(runDir + "output/")).mkdirs();
 	}
 	
-	private static void concatResults(String resultsDirectory, String resultsFile, double pvalThreshold, boolean writePValThresh, boolean runHitWindows) {
+	public static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
+    	System.out.println(ext.getTime() + "]\tParsing results file according to given FORMAT...");
+    	String finalFormat = concattedResultsFile + " tab out=" + outFileName + FORMAT.replace(COUNT_SYMB, count + "");
+    	String[] args = ext.removeQuotes(finalFormat).trim().split("[\\s]+");
+    	GenParser.parse(args, new Logger());
+    	System.out.println(ext.getTime() + "]\tParsing complete!");
+    }
+
+    private static void concatResults(String resultsDirectory, String resultsFile, double pvalThreshold, boolean writePValThresh, boolean runHitWindows) {
 		String resultsDir = ext.verifyDirFormat(resultsDirectory);
 		String[] filenames = (new File(resultsDir)).list(new FilenameFilter() {
 			@Override
@@ -487,7 +486,7 @@ public class FAST {
 		    } else if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);
-				runParser(FORMATS[format], ext.verifyDirFormat(results) + midOut, ext.verifyDirFormat(results) + out, count);
+				runParser(FORMATS[format], ext.verifyDirFormat(results) + midOut, ext.verifyDirFormat(results) + "../" + out, count);
 			} else if (concat) {
 				concatResults(results, out, pval, printPVals, runHitWindows);
 			} else if (convert) {
