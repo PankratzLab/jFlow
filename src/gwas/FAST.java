@@ -265,19 +265,20 @@ public class FAST {
 		return hdr.length - 6;
 	}
 	
-	private static String sexCopyTraitFile(String destDir, String traitFile, int sex) throws IOException {
+	private static String sexCopyTraitFile(String destDir, String traitFile, boolean male) throws IOException {
 	    (new File(destDir)).mkdirs();
 	    BufferedReader reader = Files.getAppropriateReader(traitFile);
-	    String newFile = destDir + ext.rootOf(traitFile, true) + "_" + (sex == 1 ? "male" : "female") + ".trait";
+	    String newFile = destDir + ext.rootOf(traitFile, true) + "_" + (male ? "male" : "female") + ".trait";
 	    PrintWriter writer = Files.getAppropriateWriter(newFile);
 	    
 	    String line = null;
 	    writer.println(reader.readLine());
 	    while((line = reader.readLine()) != null) {
 	        String sexStr = line.split("\t")[4];
-	        if (Integer.parseInt(sexStr) == sex) {
-	            writer.println(line);
-	        }
+            if ((Integer.parseInt(sexStr) == 1 && male) ||
+                    ((Integer.parseInt(sexStr) != 1 && !male))) {
+                writer.println(line);
+            }
 	    }
 	    writer.flush();
 	    writer.close();
@@ -341,8 +342,8 @@ public class FAST {
 					int covars = countCovars(traitDir + traitFile);
 					new FAST("FAST", dataDef.dataDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/"+traitFile, dataDef.dataSuffix, runDir+study+"/"+factor+"/"+pop, covars).run();
 					if (dataDef.sexDir != null) {
-					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, 1);
-					    String femaleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/female/", traitDir + traitFile, 0);
+					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, true);
+					    String femaleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/female/", traitDir + traitFile, false);
 	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/male/"+maleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/male/", covars).run();
 	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/female/"+femaleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/female/", covars).run();
 					}
