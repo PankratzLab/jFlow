@@ -9,10 +9,10 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 
 import parse.GenParser;
 import common.Aliases;
-import common.Array;
 import common.Files;
 import common.Logger;
 import common.ext;
@@ -186,6 +186,163 @@ public class FAST {
 		}
 	}
 	
+	private static HashMap<String, HashMap<String, HashMap<String, String>>> loadTraitFiles(String traitDir) {
+		String[] files = (new File(traitDir)).list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.split("_").length == 3 && name.endsWith(".trait");
+			}
+		});
+		System.out.println("Found " + files.length + " trait files");
+		
+		HashMap<String, HashMap<String, HashMap<String, String>>> studyToFactorToPopToFile = new HashMap<String, HashMap<String,HashMap<String,String>>>();
+		
+		for (String file : files) {
+			String[] pts = file.substring(0, file.lastIndexOf(".")).split("_");
+			String study = pts[0];
+			String pop = pts[1];
+			String factor = pts[2];
+			HashMap<String, HashMap<String, String>> factorMap = studyToFactorToPopToFile.get(study);
+			if (factorMap == null) {
+				factorMap = new HashMap<String, HashMap<String,String>>();
+				studyToFactorToPopToFile.put(study, factorMap);
+			}
+			HashMap<String, String> popMap = factorMap.get(factor);
+			if (popMap == null) {
+				popMap = new HashMap<String, String>();
+				factorMap.put(factor, popMap);
+			}
+			popMap.put(pop, file);
+		}
+		return studyToFactorToPopToFile;
+	}
+	
+	static class DataDefinitions {
+		String study;
+		String popcode;
+		String dataDir;
+		String dataSuffix;
+		String sexDir;
+		String sexSuffix;
+		String indivFile;
+	}
+	
+	private static HashMap<String, HashMap<String, DataDefinitions>> parseFile(String file) throws IOException {
+		HashMap<String, HashMap<String, DataDefinitions>> defs = new HashMap<String, HashMap<String, DataDefinitions>>();
+		
+		BufferedReader reader = Files.getAppropriateReader(file);
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			String[] parts = line.split("\t");
+			// currently index based
+			DataDefinitions dd = new DataDefinitions();
+			dd.study = parts[0];
+			dd.popcode = parts[1];
+			dd.dataDir = parts[2];
+			dd.dataSuffix = parts[3];
+			dd.sexDir = parts[4];
+			dd.sexSuffix = parts[5];
+			dd.indivFile = parts[6];
+			
+			HashMap<String, DataDefinitions> defsMap = defs.get(dd.study);
+			if (defsMap == null) {
+				defsMap = new HashMap<String, DataDefinitions>();
+				defs.put(dd.study, defsMap);
+			}
+			defsMap.put(dd.popcode, dd);
+		}
+		return defs;
+	}
+	
+	private static int countCovars(String traitFile) {
+//		#Fam_ID	Ind_ID	Dad_ID	Mom_ID	Sex	Phenotype	Age	PC1	PC2	Sex
+		String[] hdr = Files.getHeaderOfFile(traitFile, null);
+		return hdr.length - 6;
+	}
+	
+	private static void constructFAST(String traitDir, String dataFile) throws IOException {
+		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
+		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
+
+		String runDir = ext.verifyDirFormat(System.getProperty("user.dir"));
+		
+		// TODO ensure 1-1 keymapping between traits and data maps
+		// TODO ensure 1-1 keymapping between study.pop in both maps
+		
+		StringBuilder output = new StringBuilder();
+		
+		/*
+		 mkdir STUDY
+		 for each FACTOR:
+		    mkdir FACTOR
+		    for each POP:
+		    	mkdir POP
+				cp TRAITFILE > POP_DIR
+		*/
+		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
+			String study = entry.getKey();
+			HashMap<String, HashMap<String, String>> factorToPopToTraitMap = entry.getValue();
+			
+			StringBuilder studyStr = new StringBuilder();
+			studyStr.append("mkdir ").append(study).append("/\n");
+			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
+				String factor = factors.getKey();
+				HashMap<String, String> popToTraitMap = factors.getValue();
+				studyStr.append("mkdir ").append(study).append("/").append(factor).append("/\n");
+				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
+					String pop = popEntry.getKey();
+					String traitFile = popEntry.getValue();
+					studyStr.append("mkdir ").append(study).append("/").append(factor).append("/").append(pop).append("/\n");
+					studyStr.append("cp ").append(traitFile).append(" ").append(study).append("/").append(factor).append("/").append(pop).append("/\n");
+				}
+				studyStr.append("\n");
+			}
+			
+			output.append(studyStr).append("\n");
+		}
+		
+		output.append("\n\n");
+		
+		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
+			String study = entry.getKey();
+			HashMap<String, HashMap<String, String>> factorToPopToTraitMap = entry.getValue();
+			
+			HashMap<String, DataDefinitions> popToDataDef = data.get(study);
+			
+			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
+				String factor = factors.getKey();
+				HashMap<String, String> popToTraitMap = factors.getValue();
+				
+				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
+					String pop = popEntry.getKey();
+					String traitFile = popEntry.getValue();
+					
+					DataDefinitions dataDef = popToDataDef.get(pop);
+					
+					output.append("java -cp ~/park.jar gwas.FAST")
+						.append(" data=\"").append(dataDef.dataDir).append("\"")
+						.append(" indiv=\"").append(dataDef.indivFile).append("\"")
+						.append(" suffix=").append(dataDef.dataSuffix)
+						.append(" trait=\"").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append(traitFile).append("\"")
+						.append(" rundir=\"").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\"")
+						.append(" covars=").append(countCovars(traitDir + traitFile)).append("\n");
+				}
+			}
+		}
+		/*
+		 java -cp ~/park.jar gwas.FAST 
+					fast="/home/pankrat2/public/bin/FAST" 
+					data="/home/pankarne/chandap/ARIC.blacks.impute2/chunks/" 
+					indiv="/home/pankarne/cole0482/AA.indiv" 
+					suffix=".imputed.gz" 
+					covars=7 
+					rundir=/home/pankarne/shared/1000G/FAST/adjgamma/AA/ 
+					trait=/home/pankarne/shared/1000G/FAST/adjgamma/AA/ARIC_AA_adjgamma.trait
+		 */
+		Files.write(output.toString(), traitDir + "prepFast.script");
+		System.out.println();
+	}
+	    
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String fast = "~/FAST";
@@ -207,11 +364,14 @@ public class FAST {
 		boolean printPVals = false;
 		
 		boolean runHitWindows = false;
-//		default p<5E-8, window p<5E-6
-		//  0.00000005
-		//  0.000005
 		
-		String usage = "gwas.FAST requires 5-8 arguments\n" + 
+		boolean prep = false;
+		
+		String usage = "gwas.FAST requires 3-8 arguments\n" +
+					   "   (1) Path to directory containing .trait files (i.e. trait=C:/traitFiles/ (not the default))\n" +
+					   "   (2) Location of data definitions file (i.e. data=C:/dataFile.txt (not the default))\n" + 
+					   "   (3) -prep flag \n" + 
+					   " OR \n" +
 					   "   (1) Full-path to FAST script (including /FAST) (i.e. fast=" + fast + " (default))\n" + 
 					   "   (2) Full-path to data directory (i.e. data=" + data + " (default))\n" +
 					   "   (3) Full-path to .indiv file (i.e. indiv=" + indiv + " (default))\n" +
@@ -299,6 +459,9 @@ public class FAST {
 			} else if (args[i].startsWith("-hitWindows")) {
 				runHitWindows = true;
 				numArgs--;
+			} else if (args[i].startsWith("-prep")) {
+			    prep = true;
+			    numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -308,7 +471,9 @@ public class FAST {
 			System.exit(1);
 		}
 		try {
-			if (concat && convert) {
+		    if (prep) {
+		        constructFAST(trait, data);
+		    } else if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);
 				runParser(FORMATS[format], ext.verifyDirFormat(results) + midOut, ext.verifyDirFormat(results) + out, count);
