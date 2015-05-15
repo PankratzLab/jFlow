@@ -174,6 +174,45 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location, int startX, int startY, int width, int height) {
 		super("Genvisis - Trailer - " + proj.getNameOfProject());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (Trailer.this.proj != null) {
+					ArrayList<String> files = new ArrayList<String>(regionFileNameLoc.values());
+					String[] currSet = Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue();
+					
+					ArrayList<String> newSet = new ArrayList<String>();
+					outer: for (String s : files) {
+						for (int i = 0; i < currSet.length; i++) {
+							if (currSet[i].equals(s)) {
+								continue outer;
+							}
+						}
+						newSet.add(s);
+					}
+					
+					// TODO ask if should save
+					
+					String[] newList = new String[currSet.length + newSet.size()];
+					
+					// set as new property
+					
+//					newList[0] = rawfile;
+//					for (int i = 1; i < newList.length; i++) {
+//						newList[i] = current[i - 1];
+//					}
+//					Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(newList);
+				}
+				
+				
+				
+				super.windowClosing(e);
+				
+				
+				
+				
+			}
+		});
 		
 		System.out.println("startX: "+startX+"\t startY: "+startY+"\t width: "+width+"\t height: "+height);
 		System.out.println(Array.toStr(filenames, "; "));
@@ -430,6 +469,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		regionFileNameBtn.put(name, item);
 		regionButtonGroup.add(item);
 		loadRecentFileMenu.add(item);
+		
 	}
 	
 	public void generateComponents() {
