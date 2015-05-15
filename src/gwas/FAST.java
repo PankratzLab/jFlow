@@ -343,21 +343,25 @@ public class FAST {
 					int covars = countCovars(traitDir + traitFile);
 					new FAST("FAST", dataDef.dataDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/"+traitFile, dataDef.dataSuffix, runDir+study+"/"+factor+"/"+pop, covars).run();
 					
-					masterScript.append("qsub ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/master.qsub\n");
+					masterScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
+					masterScript.append("qsub master.qsub\n");
 					
 					if (dataDef.sexDir != null) {
 					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, true);
 					    String femaleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/female/", traitDir + traitFile, false);
 	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/male/"+maleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/male/", covars).run();
 	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/female/"+femaleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/female/", covars).run();
-	                    masterScript.append("qsub ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/male/master.qsub\n");
-	                    masterScript.append("qsub ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/master.qsub\n");
+	                    masterScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/male/\n");
+	                    masterScript.append("qsub master.qsub\n");
+	                    masterScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
+	                    masterScript.append("qsub master.qsub\n");
 					}
 				}
 			}
 		}
 		
 		Files.write(masterScript.toString(), runDir+"runFAST.sh");
+		Files.chmod(runDir+"runFAST.sh");
 		
 	}
 	    
