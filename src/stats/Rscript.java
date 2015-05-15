@@ -5,6 +5,8 @@ import java.util.*;
 import common.*;
 
 public class Rscript {
+	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-"));
+	public static final String R_REPLACEMENT = ".";
 	public static final String[] RSCRIPT_EXECS = {
 //		"/soft/R/3.0.1/bin/Rscript", // MSI
 		"/soft/R/2.15.1/bin/Rscript", // Itasca nodes can only see this
@@ -74,21 +76,38 @@ public class Rscript {
 		Files.writeList(Array.toStringArray(v), dir+"master");
 		Files.chmod(dir+"master");
 	}
-	
+
 	/**
 	 * @param toVector
 	 *            String[] that will be converted to c("toVector[0]",toVector[1]...);
 	 * @return
 	 */
-	public static String generateRVector(String[] toVector) {
+	public static String generateRVector(String[] toVector, boolean quotes) {
 		String rV = "c(";
 		for (int i = 0; i < toVector.length; i++) {
-			rV += (i == 0 ? "" : ",") +"\""+ toVector[i] +"\"";
+			rV += (i == 0 ? "" : ",");
+			if (quotes) {
+				rV += "\"" + toVector[i] + "\"";
+			} else {
+				rV += toVector[i];
+			}
 		}
-		rV += ")\n";
+		rV += ")";
 		return rV;
 	}
-	
+
+	/**
+	 * @param s
+	 * @return s with invalid r charcters replaced
+	 */
+	public static String makeRSafe(final String s) {
+		String rSafe = s;
+		for (String toReplace : R_INVALID_CHARS) {
+			rSafe = rSafe.replaceAll(toReplace, R_REPLACEMENT);
+		}
+		return rSafe;
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		boolean batchUp = false;

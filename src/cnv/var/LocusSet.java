@@ -74,15 +74,18 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	 * @param log
 	 * @return
 	 */
-	public boolean writeRegions(String filename, TO_STRING_TYPE type, Logger log) {
+	public boolean writeRegions(String filename, TO_STRING_TYPE type, boolean header, Logger log) {
 		log.reportTimeInfo("Writing " + loci.length + " loci to " + filename);
 		boolean written = true;
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i < loci.length; i++) {
+				if (i == 0 && header) {
+					writer.println(Array.toStr(loci[i].getHeader()));
+				}
 				switch (type) {
 				case REGULAR:
-					writer.println(loci[i].toString());
+					writer.println(loci[i].toAnalysisString());
 					break;
 				case UCSC:
 					writer.println(loci[i].getUCSClocation());

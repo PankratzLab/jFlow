@@ -1,8 +1,17 @@
-package seq.analysis;
+package seq.cnv;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import cnv.var.CNVariant;
+import cnv.var.LocusSet;
+import cnv.var.LocusSet.TO_STRING_TYPE;
+import seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
 import seq.manage.BamOps;
 import stats.Rscript;
 import common.Array;
@@ -11,6 +20,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.PSF;
+import common.Positions;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
@@ -25,11 +35,13 @@ public class ExomeDepth {
 	private static final String MY_MATRIX_VAR = "my.matrix";
 	private static final String MY_ALL_EXONS_VAR = "all.exons";
 	private static final String MY_CHOICE_VAR = "my.choice";
+	private static final String[] RESULT_PARSE = new String[] { "type", "nexons", "start", "end", "chromosome", "BF", "reads.expected", "reads.observed", "reads.ratio" };
 
 	private String[] allReferenceBAMFiles, allReferenceBAIFiles, analysisBamFiles;
 	private String outputDir;
 	private String outputRoot;
 	private boolean fail;
+	private Hashtable<String, HashSet<String>> excludeFromReference;
 
 	private Logger log;
 
@@ -37,7 +49,7 @@ public class ExomeDepth {
 		super();
 		this.allReferenceBAMFiles = allReferenceBamFiles;
 		this.log = log;
-
+		this.excludeFromReference = new Hashtable<String, HashSet<String>>();
 		this.fail = gatherBai();
 		this.analysisBamFiles = analysisBamFiles;
 		this.outputDir = outputDir;
@@ -76,9 +88,14 @@ public class ExomeDepth {
 				log.reportTimeError("Could not find " + allReferenceBAMFiles[i] + " with corresponding .bai file" + bai);
 			} else {
 				allReferenceBAIFiles[i] = bai;
+				excludeFromReference.put(allReferenceBAMFiles[i], new HashSet<String>());
 			}
 		}
 		return verify;
+	}
+
+	public Hashtable<String, HashSet<String>> getExcludeFromReference() {
+		return excludeFromReference;
 	}
 
 	/**
@@ -89,17 +106,17 @@ public class ExomeDepth {
 	private ExomeDepthAnalysis generateCallingScript(final ExomeDepthAnalysis eAnalysis) {
 		String script = addBaseLoadScript("");
 		script += loadCountFileScript() + "\n";
-		script += MY_TEST_VAR + " <- " + EXOME_COUNTS_DAFR + "$" + ext.removeDirectoryInfo(eAnalysis.getInputBam()) + "\n";
+		script += MY_TEST_VAR + " <- " + EXOME_COUNTS_DAFR + "$" + Rscript.makeRSafe(ext.removeDirectoryInfo(eAnalysis.getInputBam())) + "\n";
 		String[] tmpRef = new String[allReferenceBAMFiles.length - 1];
 		int index = 0;
 		for (int i = 0; i < allReferenceBAMFiles.length; i++) {
-			if (!allReferenceBAMFiles[i].equals(eAnalysis.getInputBam())) {
-				tmpRef[index] = ext.removeDirectoryInfo(allReferenceBAMFiles[i]);
+			if (!allReferenceBAMFiles[i].equals(eAnalysis.getInputBam()) && !eAnalysis.getExcludeFromRef().contains(allReferenceBAMFiles[i])) {
+				tmpRef[index] = Rscript.makeRSafe(ext.removeDirectoryInfo(allReferenceBAMFiles[i]));
 				index++;
 			}
 		}
 
-		script += MY_REF_SAMPLES_VAR + " <- " + Rscript.generateRVector(tmpRef) + "\n";
+		script += MY_REF_SAMPLES_VAR + " <- " + Rscript.generateRVector(tmpRef, true) + "\n";
 		script += MY_REF_SET_VAR + " <- " + "as.matrix(" + EXOME_COUNTS_DAFR + "[, " + MY_REF_SAMPLES_VAR + "])\n";
 
 		script += MY_CHOICE_VAR + " <- " + "select.reference.set (test.counts = " + MY_TEST_VAR + ",reference.counts = " + MY_REF_SET_VAR;
@@ -117,11 +134,11 @@ public class ExomeDepth {
 		script += "start = " + EXOME_COUNTS_DAFR + "$start,";
 		script += "end = " + EXOME_COUNTS_DAFR + "$end,";
 		script += "name = " + EXOME_COUNTS_DAFR + "$names)\n";
-		script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getExomeDepthOutput() + "\", sep=\"\\t\")\n";
+		script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getExomeDepthOutput() + "\", sep=\"\\t\", row.names = FALSE , quote=FALSE)\n";
 		script += MY_ALL_EXONS_VAR + "<- AnnotateExtra(x = " + MY_ALL_EXONS_VAR + ",";
 		script += "reference.annotation = Conrad.hg19.common.CNVs, min.overlap = 0.5, column.name = 'Conrad.hg19')\n";
-		script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getAnnoExomeDepthOutput() + "\", sep=\"\\t\")\n";
-
+		script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getAnnoExomeDepthOutput() + "\", sep=\"\\t\", row.names = FALSE , quote=FALSE)\n";
+		script += "save(" + MY_ALL_EXONS_VAR + ",file=\"" + eAnalysis.getRDafrExomeDepthOutput() + "\")\n";
 		eAnalysis.setScript(script);
 		Files.write(script, eAnalysis.getrScriptFile());
 		return eAnalysis;
@@ -140,9 +157,9 @@ public class ExomeDepth {
 		boolean created = true;
 		String scriptFile = outputDir + outputRoot + "Exome_Counts.Rscript";
 		String script = generateCountsScripts();
+
 		CmdLine.prepareBatchForCommandLine(new String[] { script }, scriptFile, true, log);
 		created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", allReferenceBAMFiles, new String[] { getCountFile() }, true, false, false, log);
-
 		return created;
 	}
 
@@ -151,6 +168,7 @@ public class ExomeDepth {
 		script += MY_COUNTS_VAR + " <- getBamCounts(bed.frame = exons.hg19 , bam.files=BAMFILES, include.chr=TRUE, index.files=BAIFILES )\n";
 		script += EXOME_COUNTS_DAFR + " <- as(" + MY_COUNTS_VAR + "[, colnames(" + MY_COUNTS_VAR + ")], 'data.frame')\n";
 		script += EXOME_COUNTS_DAFR + "$chromosome <- gsub(as.character(" + EXOME_COUNTS_DAFR + "$space),pattern = 'chr', replacement = '')\n";
+		script += EXOME_COUNTS_DAFR + "$space <- gsub(as.character(" + EXOME_COUNTS_DAFR + "$space),pattern = 'chr', replacement = '')\n";
 		script += "save(" + EXOME_COUNTS_DAFR + ",file=\"" + getCountFile() + "\")\n";
 		return script;
 	}
@@ -163,7 +181,7 @@ public class ExomeDepth {
 		return "load(\"" + getCountFile() + "\")";
 	}
 
-	private String addBaseLoadScript(String script) {
+	private static String addBaseLoadScript(String script) {
 		script += "library(ExomeDepth)\n";
 		script += "data(exons.hg19)\n";
 		script += "data(Conrad.hg19)\n";
@@ -172,8 +190,8 @@ public class ExomeDepth {
 
 	private String[] generateBamBaiRVectors() {
 		String[] bamBaiV = new String[2];
-		bamBaiV[0] = Rscript.generateRVector(allReferenceBAMFiles);
-		bamBaiV[1] = Rscript.generateRVector(allReferenceBAIFiles);
+		bamBaiV[0] = Rscript.generateRVector(allReferenceBAMFiles, true);
+		bamBaiV[1] = Rscript.generateRVector(allReferenceBAIFiles, true);
 		return bamBaiV;
 	}
 
@@ -191,14 +209,13 @@ public class ExomeDepth {
 
 		@Override
 		public boolean hasNext() {
-
-			// TODO Auto-generated method stub
 			return index < exomeDepth.getAnalysisBamFiles().length;
 		}
 
 		@Override
 		public Callable<ExomeDepthAnalysis> next() {
-			final ExomeDepthAnalysis eAnalysis = new ExomeDepthAnalysis(exomeDepth.getAnalysisBamFiles()[index], exomeDepth.getOutputDir(), exomeDepth.getOutputRoot());
+			final ExomeDepthAnalysis eAnalysis = new ExomeDepthAnalysis(exomeDepth.getAnalysisBamFiles()[index], exomeDepth.getOutputDir(), exomeDepth.getOutputRoot(), log);
+			eAnalysis.setExcludeFromRef(exomeDepth.getExcludeFromReference().get(exomeDepth.getAnalysisBamFiles()[index]));
 			exomeDepth.generateCallingScript(eAnalysis);
 			Callable<ExomeDepthAnalysis> callable = new Callable<ExomeDepth.ExomeDepthAnalysis>() {
 
@@ -206,6 +223,7 @@ public class ExomeDepth {
 				public ExomeDepthAnalysis call() throws Exception {
 					log.reportTimeInfo("Running ExomeDepth on " + eAnalysis.getInputBam());
 					CmdLine.runCommandWithFileChecks(new String[] { "Rscript", eAnalysis.getrScriptFile() }, "", exomeDepth.getAllReferenceBAMFiles(), new String[] { eAnalysis.getExomeDepthOutput(), eAnalysis.getAnnoExomeDepthOutput() }, true, false, false, log);
+					eAnalysis.plotCNVs(0.5);
 					return eAnalysis;
 				}
 			};
@@ -215,40 +233,55 @@ public class ExomeDepth {
 
 		@Override
 		public void remove() {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void shutdown() {
-			// TODO Auto-generated method stub
-
 		}
-
 	}
 
 	private static class ExomeDepthAnalysis {
+		private String sampleName;
 		private String inputBam;
-		private String outputDir;
-		private String outputRoot;
 		private String exomeDepthOutput;
+		private String rDafrexomeDepthOutput;
+		private String exomeDepthPDFOutput;
+		private HashSet<String> excludeFromRef;
 		private String script;
 		private String rScriptFile;
-		private String rData;// stores the calls
 		private boolean fail;
 		private Logger log;
 
-		private ExomeDepthAnalysis(String inputBam, String outputDir, String outputRoot) {
+		private ExomeDepthAnalysis(String inputBam, String outputDir, String outputRoot, Logger log) {
 			super();
 			this.inputBam = inputBam;
-			this.outputDir = outputDir;
-			this.outputRoot = outputRoot;
 			this.exomeDepthOutput = outputDir + outputRoot + ext.rootOf(inputBam) + ".exCNV";
 			this.rScriptFile = outputDir + outputRoot + ext.rootOf(inputBam) + ".RScript";
+			this.rDafrexomeDepthOutput = outputDir + outputRoot + ext.rootOf(inputBam) + ".dafr";
+			this.exomeDepthPDFOutput = outputDir + outputRoot + ext.rootOf(inputBam) + "cnvs.pdf";
+			this.sampleName = BamOps.getSampleName(inputBam);
+			this.excludeFromRef = new HashSet<String>();
+			this.log = log;
+		}
+
+		public HashSet<String> getExcludeFromRef() {
+			return excludeFromRef;
+		}
+
+		public String getSampleName() {
+			return sampleName;
+		}
+
+		public String getRDafrExomeDepthOutput() {
+			return rDafrexomeDepthOutput;
 		}
 
 		public String getrScriptFile() {
 			return rScriptFile;
+		}
+
+		public void setExcludeFromRef(HashSet<String> excludeFromRef) {
+			this.excludeFromRef = excludeFromRef;
 		}
 
 		public String getScript() {
@@ -271,6 +304,99 @@ public class ExomeDepth {
 			return ext.addToRoot(exomeDepthOutput, ".anno");
 		}
 
+		public boolean plotCNVs(double bufferPercent) {
+			String script = "";
+			script += addBaseLoadScript(script);
+			script += "pdf(file = \"" + exomeDepthPDFOutput + "\")\n";
+			script += getCNVPlotScript(bufferPercent);
+			script += "dev.off()";
+			String scriptFile = exomeDepthPDFOutput + ".Rscript";
+			CmdLine.prepareBatchForCommandLine(new String[] { script }, scriptFile, true, log);
+			boolean created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", new String[] { rDafrexomeDepthOutput }, new String[] { exomeDepthPDFOutput }, true, true, false, log);
+			return created;
+
+		}
+
+		public String getCNVPlotScript(double bufferPercent) {
+			SeqCNVariant[] cnvs = processCNVs();
+			ArrayList<SeqCNVariant> tmp = CNVariant.sortByQuality(cnvs, 1);
+			cnvs = tmp.toArray(new SeqCNVariant[tmp.size()]);
+			String script = "";
+			script += "load(\"" + rDafrexomeDepthOutput + "\")\n";
+			for (int i = 0; i < cnvs.length; i++) {
+				script = getPlotFor(bufferPercent, cnvs[i], script);
+			}
+			return script;
+		}
+
+		private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script) {
+			script += "plot(all.exons , sequence = \"" + cnv.getChr() + "\",";
+			int buffer = (int) (bufferPercent * cnv.getSize());
+			String[] curBoundary = new String[] { cnv.getStart() + " - " + buffer, cnv.getStop() + " + " + buffer };
+			script += "xlim = " + Rscript.generateRVector(curBoundary, false) + ",";
+			script += "main = '" + cnv.getIndividualID();
+			// + sampleName + "_" + i;
+			for (int i = 0; i < cnv.getcExtraInfos().length; i++) {
+				script += "\\n" + cnv.getcExtraInfos()[i].getsExtra() + "=" + cnv.getcExtraInfos()[i].getdExtra();
+			}
+			script += "\\nscore=" + cnv.getScore() + "' , cex.lab = 0.8,";
+			script += "with.gene = FALSE)\n";
+			return script;
+		}
+
+		public SeqCNVariant[] processCNVs() {
+
+			ArrayList<SeqCNVariant> cnvs = new ArrayList<SeqCNVariant>();
+			if (!Files.exists(getExomeDepthOutput())) {
+				log.reportFileNotFound(getExomeDepthOutput());
+			} else {
+				String[] header = Files.getHeaderOfFile(getExomeDepthOutput(), log);
+				int[] indices = ext.indexFactors(RESULT_PARSE, header, true, false);
+				if (Array.countIf(indices, -1) > 0) {
+					log.reportTimeError("Did not find complete header " + Array.toStr(RESULT_PARSE) + " in " + getExomeDepthOutput());
+				} else {
+					try {
+						BufferedReader reader = Files.getAppropriateReader(getExomeDepthOutput());
+						reader.readLine();
+						while (reader.ready()) {
+							String[] line = reader.readLine().trim().split("\t");
+							try {
+								int cn = -99;
+								if (line[indices[0]].equals("deletion")) {
+									cn = -1;
+								} else if (line[indices[0]].equals("duplication")) {
+									cn = 3;
+								} else {
+									log.reportTimeError("Invalid copy number type on line " + Array.toStr(line));
+									return null;
+								}
+								int nexons = Integer.parseInt(line[indices[1]]);
+								int start = Integer.parseInt(line[indices[2]]);
+								int stop = Integer.parseInt(line[indices[3]]);
+								byte chr = Positions.chromosomeNumber(line[indices[4]]);
+								double score = Double.parseDouble(line[indices[5]]);
+								ExomeDepthEI[] eis = new ExomeDepthEI[3];
+								eis[0] = new ExomeDepthEI(EXTRA_INFO_TYPE.EXOME_DEPTH, RESULT_PARSE[6], Double.parseDouble(line[indices[6]]));
+								eis[1] = new ExomeDepthEI(EXTRA_INFO_TYPE.EXOME_DEPTH, RESULT_PARSE[7], Double.parseDouble(line[indices[7]]));
+								eis[2] = new ExomeDepthEI(EXTRA_INFO_TYPE.EXOME_DEPTH, RESULT_PARSE[8], Double.parseDouble(line[indices[8]]));
+
+								SeqCNVariant cnVariant = new SeqCNVariant(sampleName, sampleName, chr, start, stop, cn, score, nexons, 99, eis);
+								cnvs.add(cnVariant);
+							} catch (NumberFormatException nfe) {
+								log.reportTimeError("Invalid number on line " + Array.toStr(line));
+								return null;
+							}
+						}
+						reader.close();
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return cnvs.toArray(new SeqCNVariant[cnvs.size()]);
+		}
 	}
 
 	public static void runExomeDepth(String bams, String outputDir, String outputRoot, int numBatches, int numthreads, int wallTimeInHours, int memoryInMb, Logger log) {
@@ -294,27 +420,59 @@ public class ExomeDepth {
 
 				String qsub = outputDir + outputRoot + "ExomeDepth_" + i + ".pbs";
 				String command = "";
-				command += Array.toStr(PSF.Java.buildJavaCPXMX(PSF.Java.GENVISIS, "seq.analysis.ExomeDepth", memoryInMb), " ");
+				command += Array.toStr(PSF.Java.buildJavaCPXMX(PSF.Java.GENVISIS, "seq.cnv.ExomeDepth", memoryInMb), " ");
 				command += " bams=" + tmpBams;
 				command += " numBatches=0";
 				command += " " + PSF.Ext.OUTPUT_DIR_COMMAND + outputDir;
 				command += " root=" + outputRoot;
 				command += " " + PSF.Ext.NUM_THREADS_COMMAND + numthreads;
 				Files.qsub(qsub, command, memoryInMb, wallTimeInHours, numthreads);
-				String script = exomeDepth.generateBamBaiScript();
-				System.out.println(script);
 			}
 		} else {
 			ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir, outputRoot, log);
-			if (!Files.exists(exomeDepth.getCountFile())) {
-				log.reportTimeError("Did not find " + exomeDepth.getCountFile() + ", please start the analysis in batch mode first");
-				return;
+			callCNVs(exomeDepth, outputDir, outputRoot, numthreads, log);
+		}
+	}
+
+	private static void callCNVs(ExomeDepth exomeDepth, String outputDir, String outputRoot, int numthreads, Logger log) {
+		if (!Files.exists(exomeDepth.getCountFile())) {
+			log.reportTimeError("Did not find " + exomeDepth.getCountFile() + ", please start the analysis in batch mode first");
+			return;
+		}
+		ExomeDepthAnalysis[] eAnalysis = new ExomeDepthAnalysis[exomeDepth.getAnalysisBamFiles().length];
+
+		ExomeDepthAnalysisProducer producer = new ExomeDepthAnalysisProducer(exomeDepth, log);
+		WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<ExomeDepth.ExomeDepthAnalysis>(producer, numthreads, numthreads, log);
+		int index = 0;
+		while (train.hasNext()) {
+			eAnalysis[index] = train.next();
+			index++;
+		}
+		ArrayList<SeqCNVariant> allTmp = new ArrayList<SeqCNVariant>();
+		for (int i = 0; i < eAnalysis.length; i++) {
+			SeqCNVariant[] tmp = eAnalysis[i].processCNVs();
+			for (int j = 0; j < tmp.length; j++) {
+				allTmp.add(tmp[j]);
 			}
-			ExomeDepthAnalysisProducer producer = new ExomeDepthAnalysisProducer(exomeDepth, log);
-			WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<ExomeDepth.ExomeDepthAnalysis>(producer, numthreads, numthreads, log);
-			while (train.hasNext()) {
-				train.next();
-			}
+		}
+		allTmp = CNVariant.sortByQuality(allTmp.toArray(new SeqCNVariant[allTmp.size()]), 1);
+		LocusSet<SeqCNVariant> set = new LocusSet<SeqCNVariant>(allTmp.toArray(new SeqCNVariant[allTmp.size()]), true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+		};
+		set.writeRegions(outputDir + outputRoot + ".all.cnvs", TO_STRING_TYPE.REGULAR, true, log);
+	}
+
+	private static class ExomeDepthEI extends CNVExtraInfo {
+		private static final long serialVersionUID = 1L;
+
+		public ExomeDepthEI(EXTRA_INFO_TYPE type, String title, double extra) {
+			super(EXTRA_INFO_TYPE.EXOME_DEPTH);
+			this.dExtra = extra;
+			this.sExtra = title;
 		}
 	}
 

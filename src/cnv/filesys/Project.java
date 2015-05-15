@@ -333,7 +333,7 @@ public class Project {
 	public   BooleanProperty                          LONG_FORMAT = new   BooleanProperty(this,                          "LONG_FORMAT", "", Boolean.FALSE);
 	public   BooleanProperty           SHIFT_SEX_CHR_COLORS_YESNO = new   BooleanProperty(this,           "SHIFT_SEX_CHR_COLORS_YESNO", "", Boolean.TRUE);
 	public    DoubleProperty                         GC_THRESHOLD = new    DoubleProperty(this,                         "GC_THRESHOLD", "", 0.0, 1.0, 0.15);
-	public    DoubleProperty                         LRRSD_CUTOFF = new    DoubleProperty(this,                         "LRRSD_CUTOFF", "", 0.0, 1.0, 0.32);
+	public    DoubleProperty                         LRRSD_CUTOFF = new    DoubleProperty(this,                         "LRRSD_CUTOFF", "", 0.0, 3.0, 0.32);
 	public   IntegerProperty                          NUM_THREADS = new   IntegerProperty(this,                          "NUM_THREADS", "", 1, 99, 1);
 	public   IntegerProperty              QQ_MAX_NEG_LOG10_PVALUE = new   IntegerProperty(this,              "QQ_MAX_NEG_LOG10_PVALUE", "", 1, 10000, 100);
 	public   IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new   IntegerProperty(this, "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", "", 1, 1000000, 10000);
@@ -1155,5 +1155,17 @@ public class Project {
 			}
 		}
 		return outliers;
+	}
+	
+	public String[] getAutosomalMarkers() {
+		MarkerSet markerSet = getMarkerSet();
+		byte[] chrs = markerSet.getChrs();
+		ArrayList<String> tmp = new ArrayList<String>();
+		for (int i = 0; i < chrs.length; i++) {
+			if (chrs[i] < 23) {
+				tmp.add(markerSet.getMarkerNames()[i]);
+			}
+		}
+		return tmp.toArray(new String[tmp.size()]);
 	}
 }

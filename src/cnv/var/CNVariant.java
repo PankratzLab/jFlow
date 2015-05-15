@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -15,6 +16,7 @@ import common.ByteVector;
 import common.Files;
 import common.IntVector;
 import common.Positions;
+import common.Sort;
 import common.StringVector;
 import common.ext;
 import filesys.Segment;
@@ -439,6 +441,24 @@ public class CNVariant extends Segment {
 		return putInOrder(array, quicksort(array));
 	}
 
+	/**
+	 * @param array
+	 *            sort by the quality scores
+	 * @return
+	 */
+	public static <T extends CNVariant> ArrayList<T> sortByQuality(final T[] array, int direction) {
+		double[] scores = new double[array.length];
+		for (int i = 0; i < array.length; i++) {
+			scores[i] = array[i].getScore();
+		}
+		int[] order = Sort.quicksort(scores, direction);
+		ArrayList<T> sorted = new ArrayList<T>(array.length);
+		for (int i = 0; i < order.length; i++) {
+			sorted.add(array[order[i]]);
+		}
+		return sorted;
+	}
+	
 	public CNVariant clone() {
 		return new CNVariant(familyID, individualID, chr, start, stop, cn, score, numMarkers, source);
 	}
@@ -510,6 +530,18 @@ public class CNVariant extends Segment {
 	public String toString() {
 		return getIndividualID();
 	}
+
+	@Override
+	public String toAnalysisString() {
+		return toPlinkFormat();
+	}
+
+	@Override
+	public String[] getHeader() {
+		return PLINK_CNV_HEADER;
+	}
+
+	
 
 }
 
