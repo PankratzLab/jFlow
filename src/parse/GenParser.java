@@ -431,10 +431,10 @@ public class GenParser {
         time = new Date().getTime();
         parser = new GenParser(line, log);
     	
-    	try {
+//    	try {
     		filename = parser.getOutfile();
     		delimiter = Files.suggestDelimiter(filename, log);
-            writer = new PrintWriter(new FileWriter(filename));
+            writer = Files.getAppropriateWriter(filename);//new PrintWriter(new FileWriter(filename));
             if (log.getLevel() > 8) {
             	log.report("Parsing '"+line[0]+"'", true, true, 1);
             }
@@ -456,13 +456,13 @@ public class GenParser {
             }
             parser.close();
             writer.close();
-        } catch (FileNotFoundException fnfe) {
-            log.reportError("Error: file \""+line[0]+"\" not found in current directory");
-            return;
-        } catch (IOException ioe) {
-            log.reportError("Error reading file \""+line[0]+"\"");
-            return;
-        }	
+//        } catch (FileNotFoundException fnfe) {
+//            log.reportError("Error: file \""+line[0]+"\" not found in current directory");
+//            return;
+//        } catch (IOException ioe) {
+//            log.reportError("Error reading file \""+line[0]+"\"");
+//            return;
+//        }	
         if (log.getLevel() > 8) {
         	log.report(" which took "+ext.getTimeElapsed(time), true, true, 1);
         }
