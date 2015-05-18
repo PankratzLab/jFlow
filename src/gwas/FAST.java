@@ -2,14 +2,15 @@ package gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 
 import parse.GenParser;
@@ -21,9 +22,14 @@ import common.ext;
 public class FAST {
 	
 	private static final String COUNT_SYMB = "<>";
-	private static final String CHARGE_FORMAT = " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#" + COUNT_SYMB + "=N 'Coded.Allele'=Effect_allele 'NonCoded.Allele'=Other_allele 'Coded.Af'=EAF 'Qual'=Imp_info 'Beta' 'Se'=SE 'Pval'=PValue";
+	private static final String CHARGE_FORMAT = " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#" + COUNT_SYMB + "=N 'Coded.Allele'=Effect_allele 'NonCoded.Allele'=Other_allele 'Coded.Af'=EAF 'Qual'=Imp_info 'Beta' 'Se'=SE 'Pval'=Pvalue";
 	
 	public static final String[] FORMATS = new String[]{CHARGE_FORMAT}; 
+	
+	public static final String RUN_SCRIPT_NAME = "master_run.qsub";
+	public static final String PROCESS_SCRIPT_NAME = "master_process.qsub";
+	
+	public static final String DATA_BUILD_1000G = "APR12";
 	
 	String FAST_LOC = "FAST";
 	String dir = "/home/pankarne/chandap/ARIC.whites.impute2/";
@@ -32,6 +38,10 @@ public class FAST {
 	String filePattern = ".impute2.gz";
 	String runDir = "/home/pankarne/saonlib2/1000genomes/LnFXI/FAST/FAST_pC/";
 	int covarCount = 4;
+	String study = null;
+	String pop = null;
+	String factor = null;
+	int sex = -2;
 	
 	public FAST(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount) {
 		this.FAST_LOC = FASTloc;
@@ -93,9 +103,29 @@ public class FAST {
 		
 		int threads = 24;
 		String command = "java -cp ~/park.jar one.ScriptExecutor file="+runDir+"input.txt token=took threads="+threads;
-		
-		Files.qsub(runDir + "master.qsub", command, 10000, 8, threads);
-		
+		String procFileOut = "";
+		if (study != null) {
+		    procFileOut += study + "_";
+		}
+		if (pop != null) {
+		    procFileOut += pop + "_";
+		}
+		if (factor != null) {
+		    procFileOut += factor + "_";
+		}
+		procFileOut += DATA_BUILD_1000G + "_";
+	    if (sex == 0) {
+            procFileOut += "CHRXF_";
+        } else if (sex == 1) {
+            procFileOut += "CHRXM_";
+        } else {
+            procFileOut += "AUTO_";
+        }
+	    procFileOut += (new SimpleDateFormat("ddMMMyyyy")).format(new Date());
+	    procFileOut += ".csv.gz";
+		String processCommand = "cd " + runDir + "\njava -cp ~/park.jar gwas.FAST -convert -concat -writePVals -hitWindows out=" + procFileOut + " results="+runDir+"output/ trait="+traitFile;
+		Files.qsub(runDir + RUN_SCRIPT_NAME, command, 10000, 8, threads);
+		Files.qsub(runDir + PROCESS_SCRIPT_NAME, processCommand, 10000, 8, threads);
 		(new File(runDir + "output/")).mkdirs();
 	}
 	
@@ -121,8 +151,8 @@ public class FAST {
 				String[] pts1 = o1.split("\\.");
 				String[] pts2 = o2.split("\\.");
 				
-				Integer chr1 = Integer.valueOf(pts1[0].substring(3));
-				Integer chr2 = Integer.valueOf(pts2[0].substring(3));
+				Integer chr1 = pts1[0].substring(3).charAt(0) == 'X' ? 23 : pts1[0].substring(3).charAt(0) == 'Y' ? 24 : Integer.valueOf(pts1[0].substring(3));
+				Integer chr2 = pts2[0].substring(3).charAt(0) == 'X' ? 23 : pts2[0].substring(3).charAt(0) == 'Y' ? 24 : Integer.valueOf(pts2[0].substring(3));
 				
 				int chrComp = chr1.compareTo(chr2);
 				if (chrComp != 0) return chrComp;
@@ -261,6 +291,23 @@ public class FAST {
 		return defs;
 	}
 	
+	private static int countValid(String traitFile) throws IOException {
+	    BufferedReader reader = Files.getAppropriateReader(traitFile);
+	    reader.readLine();
+	    String line = null;
+	    int count = 0;
+	    read: while((line = reader.readLine()) != null) {
+	        String[] pts = line.split("\t");
+	        for (String str : pts) {
+	            if (ext.isMissingValue(str)) {
+	                continue read;
+	            }
+	        }
+	        count++;
+	    }
+	    return count;
+	}
+	
 	private static int countCovars(String traitFile) {
 //		#Fam_ID	Ind_ID	Dad_ID	Mom_ID	Sex	Phenotype	Age	PC1	PC2	Sex
 		String[] hdr = Files.getHeaderOfFile(traitFile, null);
@@ -296,7 +343,15 @@ public class FAST {
 	    
 	    return newFile;
     }
-
+	
+	private static void writeMetalCRF(String dir, String factor, boolean isSex) {
+	    StringBuilder metalCRF = new StringBuilder("metal\n")
+	                                    .append(factor).append("\n")
+	                                    .append("buil=37\ngenomic_control=TRUE\nhits_p<=0.0001\n")
+	                                    .append("[INSERT PROCESSED FILE NAMES HERE]");
+	    Files.write(metalCRF.toString(), ext.verifyDirFormat(dir) + "metal_"+factor+(isSex ? "sex" : "") +".crf");
+	}
+	
     private static void prepareFAST(String traitDir, String dataFile) throws IOException {
 		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
 		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
@@ -323,7 +378,9 @@ public class FAST {
 			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
 				String factor = factors.getKey();
 				HashMap<String, String> popToTraitMap = factors.getValue();
-				(new File(study+"/"+factor+"/")).mkdir();
+				File factorDir = new File(study+"/"+factor+"/");
+				(factorDir).mkdir();
+//				writeMetalCRF(factorDir.getAbsolutePath(), factor, false);
 				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
 					String pop = popEntry.getKey();
 					String traitFile = popEntry.getValue();
@@ -334,7 +391,8 @@ public class FAST {
 			
 		}
 		
-		StringBuilder masterScript = new StringBuilder();
+		StringBuilder masterRunScript = new StringBuilder();
+		StringBuilder masterProcessScript = new StringBuilder();
 		
 		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
 			String study = entry.getKey();
@@ -352,26 +410,46 @@ public class FAST {
 					
 					DataDefinitions dataDef = popToDataDef.get(pop);
 					int covars = countCovars(traitDir + traitFile);
-					new FAST("FAST", dataDef.dataDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/"+traitFile, dataDef.dataSuffix, runDir+study+"/"+factor+"/"+pop, covars).run();
+					FAST fastRun = new FAST("FAST", dataDef.dataDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/"+traitFile, dataDef.dataSuffix, runDir+study+"/"+factor+"/"+pop, covars);
+					fastRun.study = study;
+					fastRun.factor = factor;
+					fastRun.pop = pop;
+					fastRun.sex = -1;
+					fastRun.run();
 					
-					masterScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
-					masterScript.append("qsub master.qsub\n");
+					masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
+					masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+					masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
+//					java -cp ~/park.jar gwas.FAST -convert -concat -writePVals -hitWindows out=ARIC_EA_F7_APR12_AUTO_18MAY2015.csv.gz results=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/output/ trait=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/ARIC_EA_F7.trait
+
+					
 					
 					if (dataDef.sexDir != null) {
 					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, true);
 					    String femaleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/female/", traitDir + traitFile, false);
-	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+maleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/male/", covars).run();
-	                    new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+femaleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/female/", covars).run();
-	                    masterScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/male/\n");
-	                    masterScript.append("qsub master.qsub\n");
-	                    masterScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
-	                    masterScript.append("qsub master.qsub\n");
+	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+maleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/male/", covars);
+	                    fastRun.study = study;
+	                    fastRun.factor = factor;
+	                    fastRun.pop = pop;
+	                    fastRun.sex = 1;
+	                    fastRunMale.run();
+	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+femaleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/female/", covars);
+	                    fastRun.study = study;
+	                    fastRun.factor = factor;
+	                    fastRun.pop = pop;
+	                    fastRun.sex = 0;
+	                    fastRunFemale.run();
+	                    masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/male/\n");
+	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+	                    masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
+	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+//	                    writeMetalCRF(runDir+study+"/"+factor+"/"+pop+"/", factor, true);
 					}
 				}
 			}
 		}
 		
-		Files.write(masterScript.toString(), runDir+"runFAST.sh");
+		Files.write(masterRunScript.toString(), runDir+"runFAST.sh");
 		Files.chmod(runDir+"runFAST.sh");
 		
 	}
@@ -393,7 +471,7 @@ public class FAST {
 		
 		int format = 0;
 		boolean convert = false;
-		int count = 0;
+		int count = -1;
 		
 		double pval = 0.0001;
 		boolean printPVals = false;
@@ -426,7 +504,8 @@ public class FAST {
 					   "   (3) Desired name of processed result file (i.e. out=" + out + " (default))\n" +
 					   "   (4) Format flag: (i.e. format=" + format + " (default))\n" + 
 					   "              0: CHARGE format \n" +
-					   "   (5) Number of individuals in analysis (i.e. count=" + covars + " (not the default))\n" +
+					   "   (5) Number of individuals in analysis (i.e. count=" + count + " (not the default))\n" +
+					   "     (5a) OPTIONAL: specify a .trait file instead of a count value, and the non-NaN and non-NA will be summed as the count value (i.e. trait= (not the default))\n" + 
 					   " OR \n" +
 					   "   -concat and -convert can be combined:\n" +
 					   "   (1) Both -concat and -convert flags\n" +
@@ -436,6 +515,7 @@ public class FAST {
 					   "           FORMATS:\n" + 
 					   "               0: CHARGE format \n" +
 					   "   (5) Number of individuals in analysis (i.e. count=" + count + " (not the default))\n" +
+					   "     (5a) OPTIONAL: specify a .trait file instead of a count value, and the non-NaN and non-NA will be summed as the count value (i.e. trait= (not the default))\n" + 
 					   "   (6) -writePVals \n" +
 					   "   (7) P-Value threshold (i.e. pval=" + pval + "\n" + 
 					   "   (8) -hitWindows \n" + 
@@ -510,11 +590,11 @@ public class FAST {
 		    } else if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);
-				runParser(FORMATS[format], ext.verifyDirFormat(results) + midOut, ext.verifyDirFormat(results) + "../" + out, count);
+				runParser(FORMATS[format], ext.verifyDirFormat(results) + midOut, ext.verifyDirFormat(results) + "../" + out, count == -1 ? countValid(trait) : count);
 			} else if (concat) {
 				concatResults(results, out, pval, printPVals, runHitWindows);
 			} else if (convert) {
-				runParser(FORMATS[format], results, out, count);
+				runParser(FORMATS[format], results, out, count == -1 ? countValid(trait) : count);
 			} else {
 				new FAST(fast, data, indiv, trait, suffix, run, covars).run();
 			}

@@ -716,9 +716,10 @@ public class Metal {
 				if (indices[0] != -1 && indices[0] != -1) {
 					try {
 						reader = new BufferedReader(new FileReader(inputFiles[i]));
-						reader.readLine(); // header
+						String hdr = reader.readLine(); // header
+						String delim = ext.determineDelimiter(hdr);
 						while (reader.ready()) {
-							line = reader.readLine().split("\t");
+							line = reader.readLine().split(delim);
 							if (!ext.isMissingValue(line[indices[0]])) {
 								trav = new int[] {Integer.parseInt(line[indices[0]]), Integer.parseInt(line[indices[1]])};
 								if (markerPositionHash.containsKey(line[0])) {
