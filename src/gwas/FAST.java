@@ -182,11 +182,10 @@ public class FAST {
     					fastRun.run();
     					
     					masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
-    					masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+    					masterRunScript.append("qsub ").append(RUN_SCRIPT_NAME).append("\n");
     					masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
-    //					java -cp ~/park.jar gwas.FAST -convert -concat -writePVals -hitWindows out=ARIC_EA_F7_APR12_AUTO_18MAY2015.csv.gz results=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/output/ trait=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/ARIC_EA_F7.trait
-    
-    					
+    					masterProcessScript.append("qsub ").append(PROCESS_SCRIPT_NAME).append("\n");
+//    					java -cp ~/park.jar gwas.FAST -convert -concat -writePVals -hitWindows out=ARIC_EA_F7_APR12_AUTO_18MAY2015.csv.gz results=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/output/ trait=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/ARIC_EA_F7.trait
     					
     					if (dataDef.sexDir != null) {
     					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, true);
@@ -207,6 +206,10 @@ public class FAST {
     	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
     	                    masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
     	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+    	                    masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/male/\n");
+    	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
+    	                    masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
+    	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
     //	                    writeMetalCRF(runDir+study+"/"+factor+"/"+pop+"/", factor, true);
     					}
     				}
@@ -214,7 +217,9 @@ public class FAST {
     		}
     		
     		Files.write(masterRunScript.toString(), runDir+"runFAST.sh");
+            Files.write(masterProcessScript.toString(), runDir+"processFAST.sh");
     		Files.chmod(runDir+"runFAST.sh");
+    		Files.chmod(runDir+"processFAST.sh");
     		
     	}
 
