@@ -3,6 +3,7 @@ package seq.manage;
 import filesys.Segment;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.variant.variantcontext.VariantContext;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,6 +17,7 @@ public class ReferenceGenome {
 	private String referenceFasta;
 	private IndexedFastaSequenceFile indexedFastaSequenceFile;
 	private byte[] currentSeq;
+	private int defaultBuffer;
 	private ReferenceSequence referenceSequence;
 	private Logger log;
 
@@ -35,17 +37,22 @@ public class ReferenceGenome {
 		}
 	}
 
+	public int getDefaultBuffer() {
+		return defaultBuffer;
+	}
+
+	public void setDefaultBuffer(int defaultBuffer) {
+		this.defaultBuffer = defaultBuffer;
+	}
+
 	public String[] getSequenceFor(Segment segment) {
 		String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true);
 		if (!referenceSequence.getName().equals(requestedContig)) {
 			referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
 			currentSeq = referenceSequence.getBases();
 		}
-		byte[] subTmp = Array.subArray(currentSeq, segment.getStart() - 1, segment.getStop());
-		if(subTmp.length>1){
-			System.out.println(segment.getUCSClocation());
-			System.exit(1);
-		}
+		byte[] subTmp = Array.subArray(currentSeq, segment.getStart() - 1 - defaultBuffer, segment.getStop() + defaultBuffer);
+
 		String[] requestedSeq = new String[subTmp.length];
 		try {
 			for (int i = 0; i < requestedSeq.length; i++) {
@@ -56,6 +63,18 @@ public class ReferenceGenome {
 			e.printStackTrace();
 		}
 		return requestedSeq;
+	}
+
+	public double getGCContentFor(Segment seg) {
+		String[] seq = getSequenceFor(seg);
+		int gs = Array.countIf(seq, "G");
+		int cs = Array.countIf(seq, "C");
+		int gsCs = gs + cs;
+		return (double) gsCs / seq.length;
+	}
+
+	public double getGCContentFor(VariantContext vc) {
+		return getGCContentFor(VCOps.getSegment(vc));
 	}
 
 }

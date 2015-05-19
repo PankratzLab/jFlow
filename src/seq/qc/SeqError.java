@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import seq.manage.ReferenceGenome;
 import seq.manage.VCOps;
 import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
@@ -27,7 +28,7 @@ import common.ext;
  *
  */
 public class SeqError {
-	public static final String[] OUTPUT_HEADER = new String[] { "Samp1", "Samp2", "total", "missing", "matched", "proportionMissing", "proportionAgree" };
+	public static final String[] OUTPUT_HEADER = new String[] { "Samp1", "Samp2", "total", "missing", "matched", "proportionMissing", "proportionAgree", "averageGC" };
 	private String vcfFile;
 	private DuplicateETwo[] dETwos;
 	private Logger log;
@@ -52,7 +53,7 @@ public class SeqError {
 	 * @param numthreads
 	 *            if a large number of pairwise comparisons are performed, the number of threads can be increased
 	 */
-	public void populateError(VariantContextFilter setFilter, int numVariantsToTest, int numthreads) {
+	public void populateError(VariantContextFilter setFilter, ReferenceGenome referenceGenome, int numVariantsToTest, int numthreads) {
 
 		VCFFileReader reader = new VCFFileReader(vcfFile, true);
 		VCFHeader header = reader.getFileHeader();
@@ -81,7 +82,7 @@ public class SeqError {
 				if (VCOps.getAAC(vcTmp, allDEs) > 0) {
 					VariantContext vc = vcTmp.fullyDecode(header, false);
 					numSetPass++;
-					DuplicateProducer producer = new DuplicateProducer(vc, dETwos);
+					DuplicateProducer producer = new DuplicateProducer(vc, dETwos, referenceGenome);
 
 					train.setProducer(producer);
 					int tmpI = 0;
@@ -92,7 +93,6 @@ public class SeqError {
 					}
 				}
 			}
-
 		}
 		reader.close();
 		train.shutdown();
@@ -115,13 +115,15 @@ public class SeqError {
 	private static class DuplicateProducer implements Producer<DuplicateETwo> {
 		private VariantContext vc;
 		private DuplicateETwo[] dETwos;
+		private ReferenceGenome referenceGenome;
 		private int index;
 
-		private DuplicateProducer(final VariantContext vc, final DuplicateETwo[] dETwos) {
+		private DuplicateProducer(final VariantContext vc, final DuplicateETwo[] dETwos, final ReferenceGenome referenceGenome) {
 			super();
 			this.vc = vc;
 			this.dETwos = dETwos;
 			this.index = 0;
+			this.referenceGenome = referenceGenome;
 		}
 
 		@Override
@@ -131,7 +133,7 @@ public class SeqError {
 
 		@Override
 		public Callable<DuplicateETwo> next() {
-			DuplicateWorker worker = new DuplicateWorker(vc, dETwos[index]);
+			DuplicateWorker worker = new DuplicateWorker(vc, dETwos[index], referenceGenome);
 			index++;
 			return worker;
 		}
@@ -151,16 +153,18 @@ public class SeqError {
 	private static class DuplicateWorker implements Callable<DuplicateETwo> {
 		private VariantContext vc;
 		private DuplicateETwo deTwo;
+		private ReferenceGenome referenceGenome;
 
-		private DuplicateWorker(VariantContext vc, DuplicateETwo deTwo) {
+		private DuplicateWorker(VariantContext vc, DuplicateETwo deTwo, ReferenceGenome referenceGenome) {
 			super();
 			this.vc = vc;
 			this.deTwo = deTwo;
+			this.referenceGenome = referenceGenome;
 		}
 
 		@Override
 		public DuplicateETwo call() throws Exception {
-			deTwo.addVC(vc);
+			deTwo.addVC(vc, referenceGenome);
 			return deTwo;
 		}
 	}
@@ -218,6 +222,7 @@ public class SeqError {
 		private int missing;
 		private int matched;
 		private int total;
+		private double averageGC;
 		private Logger log;
 
 		// private Logger log;
@@ -253,6 +258,7 @@ public class SeqError {
 			}
 			double percentMissing = (double) missing / total;
 			double percentMatched = (double) matched / total;
+			averageGC = (double) averageGC / total;
 			// percentMissing = 1 - percentMissing;
 			// percentMatched = 1 - percentMatched;
 			summary += "\t" + total;
@@ -260,10 +266,11 @@ public class SeqError {
 			summary += "\t" + matched;
 			summary += "\t" + percentMissing;
 			summary += "\t" + percentMatched;
+			summary += "\t" + averageGC;
 			return summary;
 		}
 
-		private void addVC(VariantContext vc) {
+		private void addVC(VariantContext vc, ReferenceGenome referenceGenome) {
 			VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_LOOSE);
 			VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);// start with unfiltered easy test;
 			if (vcAlts.getSampleNames().size() > 0) {// no variant calls, we do not care
@@ -311,6 +318,9 @@ public class SeqError {
 						if (allCalled && allMatched) {
 							matched++;
 							total++;
+							if (referenceGenome != null) {
+								averageGC += referenceGenome.getGCContentFor(vcSub);
+							}
 						}
 						if (!allMatched) {
 							tallyMissingAlts();
