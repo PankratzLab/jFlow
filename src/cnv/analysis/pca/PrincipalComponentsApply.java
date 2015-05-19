@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
+import cnv.manage.MDL;
 import cnv.var.SampleData;
 import common.Array;
 import common.Files;
@@ -107,15 +107,18 @@ public class PrincipalComponentsApply {
 			log.reportError("Error - the boolean array of samples to use does not equal the length of the samples in the project, exiting");
 			return;
 		} else {
-			MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
-			for (int i = 0; i < markers.length; i++) {
-				if (i % 1000 == 0) {
+			MDL mdl = new MDL(proj, markers, 2, 100);
+			// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
+			int index = 0;
+			while (mdl.hasNext()) {
+				// for (int index = 0; index < markers.length; index++) {
+				if (index % 1000 == 0) {
 					float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 					float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
 					float maxMemory = Runtime.getRuntime().maxMemory();
-					log.report(ext.getTime() + "\tData loaded = " + Math.round(((double) i / (double) markers.length * 100.0)) + "%\tFree memory: " + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+					log.report(ext.getTime() + "\tData loaded = " + Math.round(((double) index / (double) markers.length * 100.0)) + "%\tFree memory: " + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
 				}
-				MarkerData markerData = markerDataLoader.requestMarkerData(i);
+				MarkerData markerData = mdl.next();
 				float[] lrrs;
 				if (recomputeLRR) {
 					lrrs = markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, log)[1];
@@ -123,18 +126,17 @@ public class PrincipalComponentsApply {
 					lrrs = markerData.getLRRs();
 				}
 				if (!hasNAN(lrrs)) {
-					applyMarkerLoading(lrrs, i);
+					applyMarkerLoading(lrrs, index);
 				} else if (imputeMeanForNaN) {
-					lrrs = PrincipalComponentsCompute.imputeMeanForNaN(markers[i], lrrs, samplesToUse, log);
-					applyMarkerLoading(lrrs, i);
+					lrrs = PrincipalComponentsCompute.imputeMeanForNaN(markers[index], lrrs, samplesToUse, log);
+					applyMarkerLoading(lrrs, index);
 				} else {
-					log.reportError("Warning - marker " + markers[i] + " contained a NaN value in the extrapolated dataset, skipping it for extrapolation");
+					log.reportError("Warning - marker " + markers[index] + " contained a NaN value in the extrapolated dataset, skipping it for extrapolation");
 				}
-				markerDataLoader.releaseIndex(i);
+				index++;
+				// markerDataLoader.releaseIndex(index);
 			}
-
-			markerDataLoader.reportWaitTimes();
-
+			// markerDataLoader.reportWaitTimes();
 			applySingularValues();
 		}
 	}

@@ -2,7 +2,6 @@ package seq.manage;
 
 import java.util.ArrayList;
 
-
 import cnv.var.LocusSet;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Allele;
@@ -82,13 +81,13 @@ public class BamImport {
 					tmpBin = new TmpBin(overlaps[0]);
 				}
 				if (!tmpBin.getCurrentPile().equals(overlaps[0])) {
-					ngsSample.addGeno(tmpBin.developFakeGenotype(), log);
+					ngsSample.addGeno(null, tmpBin.developFakeGenotype(), log);
 					tmpBin = new TmpBin(overlaps[0]);
 					CloseableIterator<VariantContext> reg = reader.query(Positions.getChromosomeUCSC(overlaps[0].getChr(), true), overlaps[0].getStart(), overlaps[0].getStop());
 					while (reg.hasNext()) {
 						VariantContext vc = reg.next();
 						if (niceAllele.filter(vc).passed()) {
-							ngsSample.addGeno(VCOps.getGenotypeFor(vc, bamSample, VC_SUBSET_TYPE.SUBSET_STRICT), log);
+							ngsSample.addGeno(vc, VCOps.getGenotypeFor(vc, bamSample, VC_SUBSET_TYPE.SUBSET_STRICT), log);
 						}
 					}
 				}

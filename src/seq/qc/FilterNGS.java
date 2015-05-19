@@ -24,6 +24,7 @@ public class FilterNGS implements Serializable {
 	private double phreadScoreFilter;
 	private int[] readDepthFilter;
 	private int[] altAlleleDepthFilter;
+	private double[] altAlleleDepthRatioFilter;
 
 	public FilterNGS() {
 
@@ -37,6 +38,16 @@ public class FilterNGS implements Serializable {
 
 	public int[] getAltAlleleDepthFilter() {
 		return altAlleleDepthFilter;
+	}
+	
+	
+
+	public double[] getAltAlleleDepthRatioFilter() {
+		return altAlleleDepthRatioFilter;
+	}
+
+	public void setAltAlleleDepthRatioFilter(double[] altAlleleDepthRatioFilter) {
+		this.altAlleleDepthRatioFilter = altAlleleDepthRatioFilter;
 	}
 
 	public void setAltAlleleDepthFilter(int[] altAlleleDepthFilter) {

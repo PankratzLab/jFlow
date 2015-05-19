@@ -20,6 +20,7 @@ import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
+import cnv.qc.SampleQC;
 import cnv.var.SampleData;
 import seq.manage.VCFSamplePrep.PREPPED_SAMPLE_TYPE;
 import seq.manage.VCFSamplePrep.VCFSamplePrepWorker;
@@ -72,7 +73,7 @@ public class VCFImporter {
 					HashSet<String> tmp = new HashSet<String>();
 					tmp.add(vcSamples[i].getSampleName());
 					VariantContext vcSub = VCOps.getSubset(vc, tmp, VC_SUBSET_TYPE.SUBSET_STRICT);
-					vcSamples[i].addGeno(vcSub.getGenotype(0), log);
+					vcSamples[i].addGeno(vc,vcSub.getGenotype(0), log);
 				}
 			} else {
 				numSkipped++;
@@ -385,7 +386,13 @@ public class VCFImporter {
 		projNorm.LRRSD_CUTOFF.setValue(2.2);
 		projNorm.getLog().reportTimeError("Remember that the LRR_SD cutoff is set to 2.2");
 		projNorm.saveProperties();
-		MitoPipeline.catAndCaboodle(projNorm, numThreads, "0.98", proj.MARKER_POSITION_FILENAME.getValue(), 100, "VCF_PCS", true, true, 0.98, null, null, null, true, true, false, true);
+		String pretendMedian = projNorm.PROJECT_DIRECTORY.getValue() + "pretendMedian.txt";
+
+		Files.writeList(Array.subArray(projNorm.getAutosomalMarkers(), 0, 100), pretendMedian);
+		MitoPipeline.catAndCaboodle(projNorm, numThreads, "0.98", pretendMedian, 100, "VCF_PCS", true, true, 0.98, null, null, null, true, true, false, true);
+		SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
+		sampleQC.addQCsToSampleData(5, true);
+		sampleQC.addPCsToSampleData(5, 10, true);
 	}
 
 	private static void processExt(Project proj, String gc5Base) {

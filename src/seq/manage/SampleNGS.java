@@ -1,6 +1,7 @@
 package seq.manage;
 
 import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,18 +37,13 @@ public class SampleNGS {
 		return sampleName;
 	}
 
-	public void addGeno(Genotype geno, Logger log) {
+	public void addGeno(VariantContext vc, Genotype geno, Logger log) {
 		if (!geno.getSampleName().equals(sampleName)) {
 			log.reportTimeError("Sample names do not match");
 		} else {
-			if (!geno.hasAD()) {
-				log.reportTimeError("Genotype does not have AD annotation,setting X and Y to 0");
-				addFloat(0, DATA_TYPE.X, log);
-				addFloat(0, DATA_TYPE.Y, log);
-			} else {
-				addFloat(geno.getAD()[0], DATA_TYPE.X, log);
-				addFloat(geno.getAD()[1], DATA_TYPE.Y, log);
-			}
+			int[] ad = vc == null ? geno.getAD() : VCOps.getAppropriateAlleleDepths(vc, geno, log);
+			addFloat(ad[0], DATA_TYPE.X, log);
+			addFloat(ad[1], DATA_TYPE.Y, log);
 			if (!geno.hasGQ()) {
 				addFloat(0, DATA_TYPE.GC, log);
 				// log.reportTimeError("Genotype does not have GQ annotation, setting to 0");

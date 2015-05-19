@@ -81,7 +81,12 @@ public class VCFOps {
 		SUBSET_SUPER, /**
 		 * Extracts var
 		 */
-		EXTRACT_SEGMENTS, /**
+		EXTRACT_SEGMENTS,
+		/**
+		 * Extract rsids from a vcf
+		 */
+		EXTRACT_IDS,
+		/**
 		 * Removed variants flagged as filtered
 		 */
 		REMOVE_FILTERED, /**
@@ -337,7 +342,7 @@ public class VCFOps {
 			String[] plinkFiles = PSF.Plink.getPlinkBedBimFam("plink");
 			if (!Files.exists(dir, plinkFiles)) {
 				log.reportTimeInfo("Generating plink files for " + vcf + " in " + dir);
-				convertToPlinkSet(vcf, dir + "plink", log);
+				convertToPlinkSet(vcf, "plink", log);
 			}
 			log.reportTimeInfo("Running gwas.qc on the following files in " + dir + ":");
 			log.reportTimeInfo("\t" + Array.toStr(plinkFiles, "\n"));
@@ -371,7 +376,7 @@ public class VCFOps {
 		private Logger log;
 
 		public enum POPULATION_TYPE {
-			CASE_CONTROL, ANY, STRATIFICATION;
+			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH;
 		}
 
 		public enum RETRIEVE_TYPE {
@@ -381,6 +386,7 @@ public class VCFOps {
 		public VcfPopulation(POPULATION_TYPE type, Logger log) {
 			this.subPop = new Hashtable<String, Set<String>>();
 			this.superPop = new Hashtable<String, Set<String>>();
+			superPop.put(EXCLUDE, new HashSet<String>());
 			this.uniqSubPop = new ArrayList<String>();
 			this.uniqSuperPop = new ArrayList<String>();
 			this.type = type;
@@ -612,6 +618,70 @@ public class VCFOps {
 
 	}
 
+	public static String getAppropriateRoot(String vcf, boolean removeDirectoryInfo) {
+		String root = "";
+		if (vcf.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral())) {
+			StringBuilder b = new StringBuilder(vcf);
+			b.replace(vcf.lastIndexOf(VCF_EXTENSIONS.GZIP_VCF.getLiteral()), vcf.lastIndexOf(VCF_EXTENSIONS.GZIP_VCF.getLiteral()) + VCF_EXTENSIONS.GZIP_VCF.getLiteral().length(), "");
+			root = b.toString();
+
+		} else {
+			root = ext.rootOf(vcf, false);
+		}
+		if (removeDirectoryInfo) {
+			root = ext.removeDirectoryInfo(root);
+		}
+		return root;
+	}
+
+	public static String extractIDs(String vcf, String idFile, String outputDir, boolean skipFiltered, boolean gzipOutput, Logger log) {
+		if (idFile == null || !Files.exists(idFile)) {
+			log.reportFileNotFound(idFile);
+			return null;
+		}
+		if (vcf == null || !Files.exists(vcf)) {
+			log.reportFileNotFound(vcf);
+			return null;
+		} else {
+			String[] ids = HashVec.loadFileToStringArray(idFile, false, new int[] { 0 }, true);
+			HashSet<String> tmp = new HashSet<String>();
+			for (int i = 0; i < ids.length; i++) {
+				tmp.add(ids[i]);
+			}
+			String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
+			new File(dir).mkdirs();
+			String root = getAppropriateRoot(vcf, true);
+			String outputVCF = outputDir + root + "." + ext.rootOf(idFile) + ".vcf" + (gzipOutput ? ".gz" : "");
+
+			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
+			copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
+			int progress = 0;
+			int found = 0;
+			if (hasInfoLine(reader, "snp138")) {
+				for (VariantContext vc : reader) {
+					progress++;
+					if (progress % 100000 == 0) {
+						log.reportTimeInfo(progress + " variants read...");
+						log.reportTimeInfo(found + " variants found...");
+
+					}
+					if ((!skipFiltered || !vc.isFiltered()) && tmp.contains(VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".")[0])) {
+						writer.add(vc);
+						found++;
+					}
+				}
+			} else {
+				log.reportTimeError("This method relies on the  \"snp138\" annotation, and none was detected, sorry");
+			}
+			log.reportTimeInfo(progress + " total variants read...");
+			log.reportTimeInfo(found + " variants found...");
+			reader.close();
+			writer.close();
+		}
+		return null;
+	}
+
 	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, int numThreads, Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
@@ -626,7 +696,7 @@ public class VCFOps {
 
 		String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
 		new File(dir).mkdirs();
-		String root = ext.rootOf(vcf).replaceFirst(VCF_EXTENSIONS.REG_VCF.getLiteral(), "");
+		String root = getAppropriateRoot(vcf, true);
 
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		if (bams == null) {
@@ -823,6 +893,7 @@ public class VCFOps {
 		int bpBuffer = 0;
 		UTILITY_TYPE type = UTILITY_TYPE.GWAS_QC;
 		String segmentFile = null;
+		String idFile = null;
 		String bams = null;
 		String outDir = null;
 		boolean skipFiltered = false;
@@ -841,6 +912,7 @@ public class VCFOps {
 		usage += "   (8) an output directory for extracted vcfs/minibams (i.e. outDir=" + outDir + "( no default))\n" + "";
 		usage += "   (9) skip filtered variants when extracting (i.e. -skipFiltered (not the default))\n" + "";
 		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
+		usage += "   (11) full path to a file of ids (i.e. idFile= (no default))\n" + "";
 
 		usage += "   NOTE: available utilities are:\n";
 
@@ -862,6 +934,9 @@ public class VCFOps {
 				numArgs--;
 			} else if (args[i].startsWith("segs=")) {
 				segmentFile = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("idFile=")) {
+				idFile = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("bams=")) {
 				bams = ext.parseStringArg(args[i], "");
@@ -914,6 +989,10 @@ public class VCFOps {
 			case QC:
 				qcVCF(vcf, log);
 				break;
+			case EXTRACT_IDS:
+				extractIDs(vcf, idFile, outDir, skipFiltered, gzip, log);
+				break;
+
 			default:
 				System.err.println("Invalid utility type");
 				break;
