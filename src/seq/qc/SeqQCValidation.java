@@ -25,7 +25,7 @@ import common.WorkerTrain.Producer;
 import common.ext;
 
 public class SeqQCValidation {
-	private static String[] SNP_SETS = new String[] { "snp138=='.'", "snp138!='.'", "(esp6500si_all=='.'||esp6500si_all <= 0.01)" };
+	private static String[] SNP_SETS = new String[] { "(esp6500si_all=='.'||esp6500si_all <= 0.01)&&(g10002014oct_all=='.'||g10002014oct_all <= 0.01)", "snp138=='.'", "snp138!='.'" };
 	// , "(esp6500si_all=='.'||esp6500si_all <= 0.01)"
 
 	private SeqError seqError;
@@ -112,12 +112,16 @@ public class SeqQCValidation {
 	}
 
 	private static VariantContextFilter[] getSampleVariantFilters(Logger log) {
-		double[] GQ_Values = new double[] { -1, 20, 30, 40, 50, 60, 70, 80, 90, 98 };
-		double[] VQSLOD_Values = new double[] { -1, 0, 1, 2 };
-		double[] DEPTH = new double[] { -1, 0, 5, 10, 15, 20, 30, 40 };
+		double[] GQ_Values = new double[] { -1, 20, 30, 35, 40, 45, 50, 55, 60, 70, 90, 98 };
+		// double[] GQ_Values = new double[] { -1 };
+
+		double[] VQSLOD_Values = new double[] { -1 };
+		double[] DEPTH = new double[] { -1, 5, 10, 15, 20, 25 };
+		// double[] DEPTH = new double[] { -1 };
+
 		VARIANT_FILTER_BOOLEAN fail = VARIANT_FILTER_BOOLEAN.FAILURE_FILTER;
 
-		VariantContextFilter[] vContextFilterSample = new VariantContextFilter[VQSLOD_Values.length * GQ_Values.length * DEPTH.length * SNP_SETS.length];
+		VariantContextFilter[] vContextFilterSample = new VariantContextFilter[VQSLOD_Values.length * GQ_Values.length * DEPTH.length];
 		int index = 0;
 		for (int i = 0; i < VQSLOD_Values.length; i++) {
 			for (int j = 0; j < GQ_Values.length; j++) {
@@ -136,15 +140,18 @@ public class SeqQCValidation {
 		return vContextFilterSample;
 	}
 
-	private static FilterNGS[] getAltAlleleDepthFilters(int start, int stop) {
-		FilterNGS[] filterNGSs = new FilterNGS[stop + 1 - start];
-		int index = 0;
-		for (int i = start; i <= stop; i++) {
-			filterNGSs[index] = new FilterNGS(0, 0, null);
-			filterNGSs[index].setAltAlleleDepthFilter(new int[] { i });
-			index++;
+	private static FilterNGS[] getAltAlleleDepthFilters(int startDepth, int stopDepth, int jumpDepth, double startRatio, double stopRatio, double jumpRatio) {
+		ArrayList<FilterNGS> filterNGSs = new ArrayList<FilterNGS>();
+		for (int i = startDepth; i <= stopDepth; i += jumpDepth) {
+			for (double j = startRatio; j <= stopRatio; j += jumpRatio) {
+				FilterNGS filterNGS = new FilterNGS(0, 0, null);
+				filterNGS.setAltAlleleDepthFilter(new int[] { i });
+				filterNGS.setAltAlleleDepthRatioFilter(new double[] { j });
+				filterNGSs.add(filterNGS);
+			}
+
 		}
-		return filterNGSs;
+		return filterNGSs.toArray(new FilterNGS[filterNGSs.size()]);
 	}
 
 	private static String[][] loadPairWise(String fileOFSamplesForPairWise, Logger log) {
@@ -177,7 +184,8 @@ public class SeqQCValidation {
 	public static void validate(String vcf, String fileOFSamplesForPairWise, int numVariantsToTest, int numthreads, Logger log) {
 		String[][] sampsForPairWise = loadPairWise(fileOFSamplesForPairWise, log);
 		String output = ext.addToRoot(fileOFSamplesForPairWise, ".validation.summary");
-		FilterNGS[] altDepthFilterNGSs = getAltAlleleDepthFilters(0, 10);
+		FilterNGS[] altDepthFilterNGSs = getAltAlleleDepthFilters(-1, 12, 1, 0.0, 0.7, 0.1);
+		log.reportTimeInfo(altDepthFilterNGSs.length + " alt depth filters");
 		VariantContextFilter[] vContextFilterSamples = getSampleVariantFilters(log);
 		int numComp = altDepthFilterNGSs.length * vContextFilterSamples.length * sampsForPairWise.length;
 		log.reportTimeInfo("Running " + (altDepthFilterNGSs.length * vContextFilterSamples.length) + " validations over " + sampsForPairWise.length + " pairwise comparisons for a total of " + numComp + " tests on each variant");
@@ -189,27 +197,32 @@ public class SeqQCValidation {
 					HashSet<String> curDups = new HashSet<String>();
 					curDups.add(sampsForPairWise[j2][0]);
 					curDups.add(sampsForPairWise[j2][1]);
-					deETwos.add(new DuplicateETwo(curDups, DUPLICATE_COMP_TYPE.ONE_PASS, MODE.ONE_MUST_BE_CALLED, vContextFilterSamples[i], altDepthFilterNGSs[j], log));
+					deETwos.add(new DuplicateETwo(curDups, DUPLICATE_COMP_TYPE.ALL_PASS, MODE.ONE_MUST_BE_CALLED, vContextFilterSamples[i], altDepthFilterNGSs[j], log));
 				}
 			}
 		}
+		ArrayList<DuplicateETwo[]> duplicateETwos = Array.splitUpArray(deETwos.toArray(new DuplicateETwo[deETwos.size()]), numthreads, log);
+		SeqQCValidation[] setSeqQCValidations = new SeqQCValidation[SNP_SETS.length * duplicateETwos.size()];
 
-		SeqError seqError = new SeqError(vcf, deETwos.toArray(new DuplicateETwo[deETwos.size()]), log);
-		SeqQCValidation[] setSeqQCValidations = new SeqQCValidation[SNP_SETS.length];
+		int index = 0;
 		for (int i = 0; i < SNP_SETS.length; i++) {
-			VariantContextFilter setFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { SNP_SETS[i] }, new String[] { SNP_SETS[i] }, log);
-			setSeqQCValidations[i] = new SeqQCValidation(seqError, setFilter);
+			for (int j = 0; j < duplicateETwos.size(); j++) {
+				SeqError seqError = new SeqError(vcf, duplicateETwos.get(j), log);
+				VariantContextFilter setFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] { VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER }, new String[] { SNP_SETS[i] }, new String[] { SNP_SETS[i] }, log);
+				setSeqQCValidations[index] = new SeqQCValidation(seqError, setFilter);
+				index++;
+			}
 		}
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(SeqError.OUTPUT_HEADER) + "\t" + "SET\tAltDepth\tGQ\tVQSLOD\tDepth");
-			SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations, numVariantsToTest, numthreads, log);
-			WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer, 1, 2, log);
+			writer.println(Array.toStr(SeqError.OUTPUT_HEADER) + "\t" + "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
+			SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations, numVariantsToTest, 1, log);
+			WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer, numthreads, 2, log);
 			while (train.hasNext()) {
 				SeqQCValidation tmp = train.next();
 				DuplicateETwo[] dETwos = tmp.getSeqError().getdETwos();
 				for (int i = 0; i < dETwos.length; i++) {
-					writer.print(dETwos[i].getSummary() + "\t" + dETwos[i].getvContextFilterSample().getvFilterJEXL().getjExps().get(0).name + "\t" + dETwos[i].getFilterNGS().getAltAlleleDepthFilter()[0]);
+					writer.print(dETwos[i].getSummary() + "\t" + tmp.getSetFilter().getvFilterJEXL().getjExps().get(0).name + "\t" + dETwos[i].getFilterNGS().getAltAlleleDepthFilter()[0] + "\t" + dETwos[i].getFilterNGS().getAltAlleleDepthRatioFilter()[0]);
 					VcFilterDouble[] doubles = dETwos[i].getvContextFilterSample().getvDoubles();
 					int GQIndex = -1;
 					int VQSLODIndex = -1;
@@ -260,7 +273,7 @@ public class SeqQCValidation {
 		// String fileOFSamplesForPairWise = "D:/data/Project_Tsai_Spector_Joint/ErrorRates/pwise.txt";
 		// String vcf = "D:/data/Project_Tsai_Spector_Joint/joint_genotypes_tsai_21_25_spector_mt.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.vcf.gz";
 
-		int numThreads = 2;
+		int numThreads = 8;
 		String logfile = null;
 		Logger log;
 

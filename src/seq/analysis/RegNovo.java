@@ -1,6 +1,8 @@
 package seq.analysis;
 
 import filesys.Segment;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -139,6 +141,7 @@ public class RegNovo {
 									if (!famInd.equals(off)) {
 										parents.add(famInd);
 										VariantContext vcFam = VCOps.getSubset(vc, famInd, VC_SUBSET_TYPE.SUBSET_STRICT);
+
 										int[] alleleDepths = VCOps.getAppropriateAlleleDepths(vcFam, vcFam.getGenotype(0), log);
 										pString += "\t" + alleleDepths[0];
 										pString += "\t" + alleleDepths[1];
@@ -149,7 +152,15 @@ public class RegNovo {
 										}
 									}
 								}
-								if (VCOps.getAAC(vcOffAlt, null) > VCOps.getAAC(vc, parents)) {
+								boolean diffGeno = true;
+								GenotypesContext gcParents = VCOps.getSubset(vc, parents).getGenotypes();
+								Genotype gOff = vcOffAlt.getGenotype(0);
+								for (Genotype parentGeno : gcParents) {
+									if (gOff.sameGenotype(parentGeno)) {
+										diffGeno = false;
+									}
+								}
+								if (diffGeno && VCOps.getAAC(vcOffAlt, null) > VCOps.getAAC(vc, parents)) {
 									String passesAllControls = filterControl.filter(vcControls).getTestPerformed();
 									denovo++;
 									if (filterControl.filter(vcControls).passed()) {

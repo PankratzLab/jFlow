@@ -84,6 +84,14 @@ public class BamOps {
 		return samFileHeader;
 
 	}
+	
+	public static String[] getSampleNames(String[] bamFiles){
+		String[] sampleNames = new String[bamFiles.length];
+		for (int i = 0; i < sampleNames.length; i++) {
+			sampleNames[i] = getSampleName(bamFiles[i]);
+		}
+		return sampleNames;
+	}
 
 	public static String getSampleName(String bamFile) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);

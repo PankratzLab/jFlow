@@ -27,7 +27,7 @@ import common.ext;
  *
  */
 public class SeqError {
-	public static final String[] OUTPUT_HEADER = new String[] { "Samp1", "Samp2", "total", "allMismatched", "allNonMissingMismatched", "proportionAgreeTotal", "proportionAgreeNonMissing" };
+	public static final String[] OUTPUT_HEADER = new String[] { "Samp1", "Samp2", "total", "missing", "matched", "proportionMissing", "proportionAgree" };
 	private String vcfFile;
 	private DuplicateETwo[] dETwos;
 	private Logger log;
@@ -70,19 +70,22 @@ public class SeqError {
 				log.reportTimeInfo(numTotal + " variants processed...with " + numSetPass + " passing the set filter " + ext.getTimeElapsed(time));
 				time = System.currentTimeMillis();
 			}
+			if (numVariantsToTest >= 0 && numSetPass == numVariantsToTest) {
+				log.reportTimeInfo(numTotal + " variants processed...," + numVariantsToTest + " variants to test reached " + ext.getTimeElapsed(time));
+				reader.close();
+				train.shutdown();
+				return;
+			}
 			if (setFilter == null || setFilter.filter(vcTmp).passed()) {
+				// System.out.println(vcTmp.getCommonInfo().getAttribute("esp6500si_all"));
 				if (VCOps.getAAC(vcTmp, allDEs) > 0) {
 					VariantContext vc = vcTmp.fullyDecode(header, false);
-					if (numVariantsToTest >= 0 && numTotal == numVariantsToTest) {
-						log.reportTimeInfo(numTotal + " variants processed...," + numVariantsToTest + " variants to test reached " + ext.getTimeElapsed(time));
-						reader.close();
-						train.shutdown();
-						return;
-					}
 					numSetPass++;
 					DuplicateProducer producer = new DuplicateProducer(vc, dETwos);
+
 					train.setProducer(producer);
 					int tmpI = 0;
+					dETwos = new DuplicateETwo[dETwos.length];
 					while (train.hasNext()) {
 						dETwos[tmpI] = train.next();
 						tmpI++;
@@ -250,8 +253,8 @@ public class SeqError {
 			}
 			double percentMissing = (double) missing / total;
 			double percentMatched = (double) matched / total;
-			percentMissing = 1 - percentMissing;
-			percentMatched = 1 - percentMatched;
+			// percentMissing = 1 - percentMissing;
+			// percentMatched = 1 - percentMatched;
 			summary += "\t" + total;
 			summary += "\t" + missing;
 			summary += "\t" + matched;
@@ -269,48 +272,53 @@ public class SeqError {
 				switch (type) {
 				case ALL_PASS:
 					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
-					tally = vcFilteredAlts.getSampleNames().size() == vcAlts.getSampleNames().size();
+					tally = vcFilteredAlts.getSampleNames().size() == vcAlts.getSampleNames().size();// all dup variants pass
+					if (tally) {
+						tally = vContextFilterSample == null ? true : VCOps.getIndividualPassingContext(vcSub, vContextFilterSample, log).getSampleNames().size() == dups.size();// all dups pass
+
+					}
 					break;
 				case ONE_PASS:
 					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
-					tally = vcFilteredAlts.getSampleNames().size() > 0;
+					tally = vcFilteredAlts.getSampleNames().size() > 0;// one of the dup variants pass
+					if (tally) {
+						tally = vContextFilterSample == null ? true : VCOps.getIndividualPassingContext(vcSub, vContextFilterSample, log).getSampleNames().size() > 0;
+					}
 					break;
 				default:
 					log.reportTimeError("Invalid Comparison type " + type);
 					break;
 				}
 				if (tally) {
-					tally = vcFilteredAlts.getSampleNames().size() > 0;// all alts were filtered out, move on
-				}
-				if (tally) {
-					if (vcFilteredAlts.getSampleNames().size() < dups.size()) {// some but not all of the alts were filtered out
+					if (vcFilteredAlts.getSampleNames().size() < dups.size() && vcFilteredAlts.getSampleNames().size() > 0) {
 						tallyMissingAlts();
-					} else {
+						tally = false;
+					} else if (vcFilteredAlts.getSampleNames().size() > 0) {// if ==0, all were filtered out,so no countem
 						GenotypesContext gc = vcSub.getGenotypes();
-						if (vcSub.getNoCallCount() < dups.size()) {
-							total++;
-							boolean allCalled = true;
-							boolean allMatched = true;
-							for (Genotype g : gc) {
-								for (Genotype g2 : gc) {
-									if (g.isNoCall()) {
-										allCalled = false;
-									}
-									if (!g.sameGenotype(g2)) {
-										allMatched = false;
-									}
+
+						boolean allCalled = true;
+						boolean allMatched = true;
+						for (Genotype g : gc) {
+							for (Genotype g2 : gc) {
+								if (g.isNoCall()) {
+									allCalled = false;
+								}
+								if (!g.sameGenotype(g2)) {
+									allMatched = false;
 								}
 							}
-							if (allCalled && allMatched) {
-								matched++;
-							}
-							if (!allMatched) {
-								tallyMissingAlts();
-							}
+						}
+						if (allCalled && allMatched) {
+							matched++;
+							total++;
+						}
+						if (!allMatched) {
+							tallyMissingAlts();
 						}
 					}
 				}
 			}
+
 		}
 
 		private void tallyMissingAlts() {
