@@ -438,7 +438,7 @@ public class Metal {
 		batchFile = "run_"+ext.rootOf(filename, false)+".bat";
 		Files.write("metal < "+filename+" > "+ext.rootOf(filename, false)+".log", dir+batchFile);
 		Files.chmod(dir+batchFile, false);
-		if (!CmdLine.run(batchFile, dir, System.out, false)) {
+		if (!CmdLine.run("./" + batchFile, dir, System.out, false)) {
 			log.report("metal < "+filename);
 		}
 
@@ -666,13 +666,18 @@ public class Metal {
 				build = 37;
 			}
 			inputFiles = Array.toStringArray(params);
+			
 //			backupDir = "./backup";
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 			log.report("Running inverse variance weighted meta-analysis...");
+
+//            String dir = ext.verifyDirFormat((new File("./")).getAbsolutePath());
 			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
+//			metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
 			log.report("Running sample size weighted meta-analysis...");
 			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcControlOn, log);
+//			metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcControlOn, log);
 			
 //			check to see if file exists, report error otherwise
 //			Files.backup(filename, sourceDir, backupDir);
@@ -715,7 +720,7 @@ public class Metal {
 				indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true, false, true, true, log, false);
 				if (indices[0] != -1 && indices[0] != -1) {
 					try {
-						reader = new BufferedReader(new FileReader(inputFiles[i]));
+						reader = Files.getAppropriateReader(inputFiles[i]);//new BufferedReader(new FileReader(inputFiles[i]));
 						String hdr = reader.readLine(); // header
 						String delim = ext.determineDelimiter(hdr);
 						while (reader.ready()) {

@@ -6,15 +6,22 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import parse.GenParser;
 import common.Aliases;
+import common.CmdLine;
 import common.Files;
 import common.Logger;
 import common.ext;
@@ -25,12 +32,13 @@ public class FAST {
 	private static final String CHARGE_FORMAT = " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#" + COUNT_SYMB + "=N 'Coded.Allele'=Effect_allele 'NonCoded.Allele'=Other_allele 'Coded.Af'=EAF 'Qual'=Imp_info 'Beta' 'Se'=SE 'Pval'=Pvalue";
 	
 	public static final String[] FORMATS = new String[]{CHARGE_FORMAT}; 
+	public static final String DEFAULT_FORMAT = CHARGE_FORMAT;
 	
 	public static final String RUN_SCRIPT_NAME = "master_run.qsub";
 	public static final String PROCESS_SCRIPT_NAME = "master_process.qsub";
 	
 	public static final String DATA_BUILD_1000G = "APR12";
-	public static final String PROCESSED_RESULT_FILE_EXT = ".csv.gz";
+	public static final String PROCESSED_RESULT_FILE_EXT = ".csv";
 	
 	public static final int METAL_QSUB_RAM_MB = 10000;
 	public static final int METAL_QSUB_TIME_HRS = 8;
@@ -48,19 +56,200 @@ public class FAST {
 	String factor = null;
 	int sex = -2;
 	
+	private static FilenameFilter dirFilter = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return (new File(dir, name)).isDirectory();
+        }
+    };
+    private static FilenameFilter dataFileFilter = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.endsWith(PROCESSED_RESULT_FILE_EXT) && name.contains(DATA_BUILD_1000G);
+        }
+    };
+    private static FilenameFilter resultsFileFilter = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.endsWith(".Linear.txt");
+        }
+    };
+    
+    
+	private static void processAndPrepareMETAL(final String studyDir) {
+	    String tempName = ext.verifyDirFormat(studyDir);
+	    final String studyName = ext.rootOf(tempName.substring(0, tempName.length() - 1), true);
+	    
+	    
+	    File[] factorDirs = (new File(studyDir)).listFiles(dirFilter);
+	    System.out.println(ext.getTime() + "]\tProcessing study " + studyName + " with " + factorDirs.length + " threads");
+	    
+	    ExecutorService executor = Executors.newFixedThreadPool(factorDirs.length); 
+	    
+        for (final File factorDir : factorDirs) {
+            Runnable parseMetalRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    ArrayList<String> metalAnalyses = new ArrayList<String>();
+                    String factorName = ext.rootOf(factorDir.getName(), true);
+                    Logger factorLog = new Logger(studyDir + factorName +".log");
+                    factorLog.report(ext.getTime() + "]\tBegin processing for factor " + factorName);
+                    File[] popDirs = factorDir.listFiles(dirFilter);
+                    factorLog.report(ext.getTime() + "]\tFound " + popDirs.length + " populations");
+                    StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName));
+                    int foundCount = 0;
+                    for (File popDir : popDirs) {
+                        String popName = ext.rootOf(popDir.getName(), true);
+                        
+                        auto : {
+                            String[] names = popDir.list(dataFileFilter);                
+                            boolean parsed = false;
+                            // names.length should only ever be 1 or 0
+                            if (names.length == 0) {
+                                factorLog.report(ext.getTime() + "]\tNo parsed datafile found for population " + popName + " - will attempt to parse results files");
+                                File resultsDir = new File(popDir, "output/"); 
+                                if (!resultsDir.exists()) {
+                                    factorLog.report(ext.getTime() + "]\tNo output directory found for population " + popName + "!");
+                                    break auto;
+                                } else {
+                                    try {
+                                        String resultsDirPath = resultsDir.getAbsolutePath();
+                                        String midOut = "concatenated.result";
+                                        String finalOut = buildFinalFilename(studyName, popName, factorName, -1);
+                                        String traitFile = ext.verifyDirFormat(popDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + ".trait";
+                                        concatResults(resultsDirPath, midOut, 0.0001, true, true);
+                                        runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPath) + midOut, ext.verifyDirFormat(resultsDirPath) + "../" + finalOut, countValid(traitFile));
+                                        factorLog.report(ext.getTime() + "]\tParsing complete.");
+                                        parsed = true;
+                                        names = popDir.list(dataFileFilter);
+                                    } catch (IOException e) {
+                                        factorLog.report(ext.getTime() + "]\tError occurred while counting valid individuals in .trait file:");
+                                        factorLog.report("\t" + e.getMessage());
+                                    }
+                                }
+                            }
+                            // Check again, in case we parsed new files
+                            if (names.length == 0 && parsed) {
+                                factorLog.report(ext.getTime() + "]\tParsing failed - do final result files exist?");
+                                break auto;
+                                // uh-oh; parsing failed!
+                            } else {
+                                foundCount += names.length;
+                                for (String name : names) {
+                                    metalFileContents.append(popName).append("/").append(name).append("\n");
+                                }
+                            }
+                        }
+        
+                        File femaleDir = new File(popDir, "female/");
+                        File maleDir = new File(popDir, "male/");
+        
+                        StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName));
+                        if (femaleDir.exists() && femaleDir.isDirectory() && maleDir.exists() && maleDir.isDirectory()) {
+                            String[] dataFilesF = femaleDir.list(dataFileFilter);
+                            String[] dataFilesM = maleDir.list(dataFileFilter);
+                            boolean parsedF = false;
+                            boolean parsedM = false;
+                            if (dataFilesF.length == 0) {
+                                File femaleResultsDir = new File(popDir, "female/output/");
+                                if (!femaleResultsDir.exists()) {
+                                    factorLog.report(ext.getTime() + "]\tNo female-specific output directory found for population " + popName + "!");
+                                } else {
+                                    try {
+                                        String resultsDirPathFemale = femaleResultsDir.getAbsolutePath();
+                                        String midOutF = "concatenated.result";
+                                        String finalOutF = buildFinalFilename(studyName, popName, factorName, 0);
+                                        String traitFileF = ext.verifyDirFormat(femaleDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + "_female.trait";
+                                        concatResults(resultsDirPathFemale, midOutF, 0.0001, true, true);
+                                        runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPathFemale) + midOutF, ext.verifyDirFormat(resultsDirPathFemale) + "../" + finalOutF, countValid(traitFileF));
+                                        factorLog.report(ext.getTime() + "]\tParsing complete.");
+                                        parsedF = true;
+                                        dataFilesF = femaleDir.list(dataFileFilter);
+                                    } catch (IOException e) {
+                                        factorLog.report(ext.getTime() + "]\tError occurred while counting valid individuals in .trait file:");
+                                        factorLog.report("\t" + e.getMessage());
+                                    }
+                                }
+                            }
+                            if (dataFilesF.length == 0 && parsedF) {
+                                factorLog.report(ext.getTime() + "]\tParsing failed - do final result files exist?");
+                                // uh-oh; parsing failed!
+                            } else {
+                                for (String dataF : dataFilesF) {
+                                    metaSex.append("female/").append(dataF).append("\n");
+                                }
+                            }
+                            if (dataFilesM.length == 0) {
+                                File maleResultsDir = new File(popDir, "male/output/");
+                                if (!maleResultsDir.exists()) {
+                                    factorLog.report(ext.getTime() + "]\tNo male-specific output directory found for population " + popName + "!");
+                                } else {
+                                    try {
+                                        String resultsDirPathMale = maleResultsDir.getAbsolutePath();
+                                        String midOutM = "concatenated.result";
+                                        String finalOutM = buildFinalFilename(studyName, popName, factorName, 1);
+                                        String traitFileM = ext.verifyDirFormat(maleDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + "_male.trait";
+                                        concatResults(resultsDirPathMale, midOutM, 0.0001, true, true);
+                                        runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPathMale) + midOutM, ext.verifyDirFormat(resultsDirPathMale) + "../" + finalOutM, countValid(traitFileM));
+                                        parsedM = true;
+                                        dataFilesM = maleDir.list(dataFileFilter);
+                                    } catch (IOException e) {
+                                        factorLog.report(ext.getTime() + "]\tError occurred while counting valid individuals in .trait file:");
+                                        factorLog.report("\t" + e.getMessage());
+                                    }
+                                }
+                            }
+                            if (dataFilesM.length == 0 && parsedM) {
+                                factorLog.report(ext.getTime() + "]\tParsing failed - do final result files exist?");
+                                // uh-oh; parsing failed!
+                            } else {
+                                for (String dataM : dataFilesM) {
+                                    metaSex.append("male/").append(dataM).append("\n");
+                                }
+                            }
+                            if (dataFilesF.length >= 1 && dataFilesM.length >= 1) {
+                                String metalName = "metal_" + factorName + "_" + popName + "_sex.crf";
+                                Files.write(metaSex.toString(), ext.verifyDirFormat(popDir.getAbsolutePath()) + metalName);
+                                metalAnalyses.add(ext.verifyDirFormat(popDir.getAbsolutePath()) + metalName);
+                            }
+                        }
+                    }
+                    if (popDirs.length > 1 && foundCount > 1) {
+                        String metalName = "metal_" + factorName + ".crf";
+                        Files.write(metalFileContents.toString(), ext.verifyDirFormat(factorDir.getAbsolutePath()) + metalName);
+                        metalAnalyses.add(ext.verifyDirFormat(factorDir.getAbsolutePath()) + metalName);
+                    }
+                    factorLog.report(ext.getTime() + "]\tProcessing complete - will now run " + metalAnalyses.size() + " METAL analyses.");
+                    for (String metalCRF : metalAnalyses) {
+                        // Runtime.exec doesn't play well with '~', so we have to find the location of the park.jar file
+                        String path = FAST.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+                        String decodedPath = path;
+                        try {
+                            decodedPath = URLDecoder.decode(path, "UTF-8");
+                        } catch (UnsupportedEncodingException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalCRF}, ext.parseDirectoryOfFile(metalCRF), System.out, System.err, factorLog, false);
+                    }
+                }
+            };
+            try {
+                executor.execute(parseMetalRunnable);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+	}
+	
+	
 	private static void prepareMETAL(String studyDir) {
-	    FilenameFilter dirFilter = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return (new File(dir, name)).isDirectory();
-            }
-        };
-        FilenameFilter dataFileFilter = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(PROCESSED_RESULT_FILE_EXT) && name.contains(DATA_BUILD_1000G);
-            }
-        };
 	    File[] factorDirs = (new File(studyDir)).listFiles(dirFilter);
 	    
 	    StringBuilder runMetal = new StringBuilder();
@@ -116,7 +305,7 @@ public class FAST {
 	    return metalCRF.toString();
 	}
 
-    private static void prepareFAST(String traitDir, String dataFile) throws IOException {
+    private static void prepareFAST(String traitDir, String dataFile, boolean run) throws IOException {
     		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
     		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
     
@@ -144,7 +333,6 @@ public class FAST {
     				HashMap<String, String> popToTraitMap = factors.getValue();
     				File factorDir = new File(study+"/"+factor+"/");
     				(factorDir).mkdir();
-    //				writeMetalCRF(factorDir.getAbsolutePath(), factor, false);
     				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
     					String pop = popEntry.getKey();
     					String traitFile = popEntry.getValue();
@@ -185,7 +373,6 @@ public class FAST {
     					masterRunScript.append("qsub ").append(RUN_SCRIPT_NAME).append("\n");
     					masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
     					masterProcessScript.append("qsub ").append(PROCESS_SCRIPT_NAME).append("\n");
-//    					java -cp ~/park.jar gwas.FAST -convert -concat -writePVals -hitWindows out=ARIC_EA_F7_APR12_AUTO_18MAY2015.csv.gz results=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/output/ trait=/home/pankarne/shared/1000G/FAST_withSex/ARIC/F7/EA/ARIC_EA_F7.trait
     					
     					if (dataDef.sexDir != null) {
     					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, true);
@@ -210,7 +397,6 @@ public class FAST {
     	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
     	                    masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
     	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
-    //	                    writeMetalCRF(runDir+study+"/"+factor+"/"+pop+"/", factor, true);
     					}
     				}
     			}
@@ -220,7 +406,9 @@ public class FAST {
             Files.write(masterProcessScript.toString(), runDir+"processFAST.sh");
     		Files.chmod(runDir+"runFAST.sh");
     		Files.chmod(runDir+"processFAST.sh");
-    		
+    		if (run) {
+    		    CmdLine.run("./runFAST.sh", runDir);
+    		}
     	}
 
     public FAST(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount) {
@@ -291,6 +479,10 @@ public class FAST {
 	}
 	
 	private String buildFinalFilename() {
+	    return FAST.buildFinalFilename(this.study, this.pop, this.factor, this.sex);
+	}
+	
+	private static String buildFinalFilename(String study, String pop, String factor, int sex) {
 	    // TODO could cache this result
 	    StringBuilder procFileOut = new StringBuilder();
 	    if (study != null) {
@@ -433,12 +625,7 @@ public class FAST {
 
     private static void concatResults(String resultsDirectory, String resultsFile, double pvalThreshold, boolean writePValThresh, boolean runHitWindows) {
 		String resultsDir = ext.verifyDirFormat(resultsDirectory);
-		String[] filenames = (new File(resultsDir)).list(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".Linear.txt");
-			}
-		});
+		String[] filenames = (new File(resultsDir)).list(resultsFileFilter);
 		Arrays.sort(filenames, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
@@ -556,11 +743,14 @@ public class FAST {
 		
 		boolean prep = false;
 		boolean metal = false; 
+		boolean runFAST = false; 
+		boolean process = false;
 		
 		String usage = "gwas.FAST requires 3-8 arguments\n" +
 					   "   (1) Path to directory containing .trait files (i.e. trait=C:/traitFiles/ (not the default))\n" +
 					   "   (2) Location of data definitions file (i.e. data=C:/dataFile.txt (not the default))\n" + 
-					   "   (3) -prep flag \n" + 
+					   "   (3) -prep flag \n" +
+					   "   (4) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
 					   " OR \n" +
 					   "   (1) Full-path to FAST script (including /FAST) (i.e. fast=" + fast + " (default))\n" + 
 					   "   (2) Full-path to data directory (i.e. data=" + data + " (default))\n" +
@@ -657,8 +847,14 @@ public class FAST {
 			} else if (args[i].startsWith("-prep")) {
 			    prep = true;
 			    numArgs--;
+			} else if (args[i].startsWith("-run")) {
+			    runFAST = true;
+			    numArgs--;
 			} else if (args[i].startsWith("-metal")) {
 			    metal = true;
+			    numArgs--;
+			} else if (args[i].startsWith("-process")) {
+			    process = true;
 			    numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -672,7 +868,9 @@ public class FAST {
 		    if (metal) {
 		        prepareMETAL(data);
 		    } else if (prep) {
-		        prepareFAST(trait, data);
+		        prepareFAST(trait, data, runFAST);
+		    } else if (process) {
+		        processAndPrepareMETAL(data);
 		    } else if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);

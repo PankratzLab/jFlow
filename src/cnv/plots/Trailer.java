@@ -191,26 +191,18 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						newSet.add(s);
 					}
 					
-					// TODO ask if should save
-					
-					String[] newList = new String[currSet.length + newSet.size()];
-					
-					// set as new property
-					
-//					newList[0] = rawfile;
-//					for (int i = 1; i < newList.length; i++) {
-//						newList[i] = current[i - 1];
-//					}
-//					Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(newList);
+					if (newSet.size() > 0) {
+					    String[] newList = files.toArray(new String[]{});
+
+				        String message = newSet.size() + " files have been added.  ";
+				        int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time Trailer is loaded?", "Preserve Trailer workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+				        if (choice == 0) {
+				            Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(newList);
+				            Trailer.this.proj.saveProperties();
+				        }
+					}
 				}
-				
-				
-				
 				super.windowClosing(e);
-				
-				
-				
-				
 			}
 		});
 		
