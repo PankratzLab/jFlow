@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,6 +13,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.EventObject;
 
 import javax.swing.AbstractAction;
@@ -54,6 +56,146 @@ import common.Grafik;
 import common.ext;
 
 public class Configurator extends JFrame {
+    
+    String[][] propertySets = new String[][]{
+            {
+                "Project Name and Locations",
+                "PROJECT_NAME",
+                "PROJECT_DIRECTORY",
+                "DATA_DIRECTORY",
+                "SAMPLE_DATA_FILENAME",
+                "SAMPLE_DIRECTORY",
+                "MARKER_DATA_DIRECTORY",
+                "RESULTS_DIRECTORY",
+                "DEMO_DIRECTORY",
+                "BACKUP_DIRECTORY"
+            },
+            {
+                "Import",
+                "SOURCE_DIRECTORY",
+                "SOURCE_FILENAME_EXTENSION",
+                "LONG_FORMAT",
+                "SOURCE_FILE_DELIMITER",
+                "ID_HEADER",
+                "PARSE_AT_AT_SYMBOL",
+                "MARKER_POSITION_FILENAME",
+                "SAMPLE_ALIAS",
+                "FID_ALIAS",
+                "IID_ALIAS"
+            },
+            {
+                "Global",
+                "NUM_THREADS",
+                "LOG_LEVEL",
+                "CUSTOM_COLOR_SCHEME_FILENAME",
+                "CLUSTER_FILTER_COLLECTION_FILENAME",
+                "ANNOTATION_FILENAME",
+                "AB_LOOKUP_FILENAME",
+                "GENETRACK_FILENAME",
+                "GC_MODEL_FILENAME"
+            },
+            {
+                "Centroids",
+//                "SEX_CENTROIDS_FILENAMES",
+                "SEX_CENTROIDS_MALE_FILENAME",
+                "SEX_CENTROIDS_FEMALE_FILENAME",
+                "ORIGINAL_CENTROIDS_FILENAME",
+                "GENOTYPE_CENTROIDS_FILENAME",
+                "CHIMERA_CENTROIDS_FILENAME",
+                "CUSTOM_CENTROIDS_FILENAME"
+            },
+            {
+                "DataExport",
+                "PEDIGREE_FILENAME",
+                "FILTERED_MARKERS_FILENAME",
+                "SAMPLE_SUBSET_FILENAME",
+                "TARGET_MARKERS_FILENAME",
+                "GC_THRESHOLD",
+            },
+            {
+                "MosaicPlot",
+                "MOSAIC_RESULTS_FILENAME",
+                "MOSAIC_COLOR_CODES_FILENAME",
+                "MOSAIC_ARMS_FILENAME"
+            },
+            {
+                "Data Cleaning",
+                "SAMPLE_QC_FILENAME",
+                "SEXCHECK_RESULTS_FILENAME",
+                "LRRSD_CUTOFF",
+                "MARKER_METRICS_FILENAME",
+                "MARKER_EXCLUSION_CRITERIA_FILENAME",
+                "MARKER_REVIEW_CRITERIA_FILENAME",
+                "MARKER_COMBINED_CRITERIA_FILENAME"
+            },
+            {
+                "CNV Files",
+                "CNV_FILENAMES"
+            },
+            {
+                "CompPlot",
+                "REGION_LIST_FILENAMES"
+            },
+            {
+                "Trailer",
+                "INDIVIDUAL_CNV_LIST_FILENAMES",
+                "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER"
+            },
+            {
+                "ScatterPlot",
+                "DISPLAY_MARKERS_FILENAME",
+                "SHIFT_SEX_CHR_COLORS_YESNO"
+            },
+            {
+                "TwoDPlot",
+                "TWOD_LOADED_FILENAMES",
+                "TWOD_LOADED_VARIABLES"
+            },
+            {
+                "ForestPlot",
+                "FOREST_PLOT_FILENAMES"
+            },
+            {
+                "QQ-plot",
+                "QQ_FILENAMES",
+                "DISPLAY_QUANTILES",
+                "DISPLAY_STANDARD_QQ",
+                "DISPLAY_ROTATED_QQ",
+                "QQ_MAX_NEG_LOG10_PVALUE"
+            },
+            {
+                "PennCNV",
+                "PENNCNV_EXECUTABLE_DIRECTORY",
+                "PENNCNV_DATA_DIRECTORY",
+                "PENNCNV_RESULTS_DIRECTORY",
+                "PENNCNV_GZIP_YESNO"
+            }, 
+            {
+                "CytoSpecific",
+                "UNREPORTED_CNP_FILENAME",
+                "COMMON_CNP_FILENAME",
+                "REPORTED_CNP_FILENAME"
+            },
+            {
+                "PC Intensity Correction",
+                "INTENSITY_PC_FILENAME",
+                "INTENSITY_PC_NUM_COMPONENTS"
+            },
+            {
+                "Optimization parameters",
+                "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA",
+                "MAX_MARKERS_LOADED_PER_CYCLE"
+            }
+    };
+    String[] hiddenProperties = new String[]{
+            "PROJECT_PROPERTIES_FILENAME",
+            "MARKERSET_FILENAME",
+            "MARKERLOOKUP_FILENAME",
+            "SAMPLELIST_FILENAME",
+            "JAR_STATUS",
+            "STRATIFICATION_RESULTS_FILENAMES"
+    };
+    
 	private static final long serialVersionUID = 1L;
 
 	private JPanel contentPane;
@@ -61,6 +203,8 @@ public class Configurator extends JFrame {
 	private JTable table;
 
 	private Project proj;
+	
+	private ArrayList<Integer> labelRows = new ArrayList<Integer>();
 	
 	/**
 	 * Launch the application.
@@ -200,10 +344,15 @@ public class Configurator extends JFrame {
 			@Override
 			public Component getTableCellRendererComponent(final JTable table, Object value, boolean isSelected, boolean hasFocus, final int row, final int column) {
 				String projDir = proj.getProperty(proj.PROJECT_DIRECTORY);
-				
-				String desc = proj.getProperty((String) table.getValueAt(row, 0)).getDescription();
+				String tempKey = (String) table.getValueAt(row, 0);
 				Component returnComp;
-				
+				if (labelRows.contains(row)) {
+				    returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    ((JComponent) returnComp).setToolTipText(null);
+                    ((JComponent) returnComp).setFont(((JComponent) returnComp).getFont().deriveFont(Font.BOLD, 14f));
+                    return returnComp;
+				}
+				String desc = proj.getProperty(tempKey).getDescription();
 				if (value instanceof Boolean) {
 					rendererChkBx.setSelected(((Boolean) value).booleanValue());
 					returnComp = rendererChkBx;
@@ -214,9 +363,6 @@ public class Configurator extends JFrame {
 					} else {
 						txt = ext.replaceAllWith(txt, "\\", "/");
 					}
-//					if (!txt.startsWith("./") && txt.indexOf(":") == -1) {
-//						txt = "./" + txt;
-//					}
 					if (txt.startsWith(projDir)) {
 						txt = txt.substring(projDir.length());
 					}
@@ -280,7 +426,12 @@ public class Configurator extends JFrame {
 					setByPropertyKey(rendererSpinner, proj, propKey, propVal);
 					returnComp = rendererSpinner;
 				} else {
-					returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				    if (column == 0) {
+				        returnComp = super.getTableCellRendererComponent(table, "            "+value, isSelected, hasFocus, row, column);
+					    ((JComponent) returnComp).setFont(((JComponent) returnComp).getFont().deriveFont(Font.PLAIN, 12f));
+					} else {
+					    returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+					}
 				}
 				if (!"".equals(desc)) {
 					((JComponent) returnComp).setToolTipText(desc);
@@ -364,13 +515,22 @@ public class Configurator extends JFrame {
 		DefaultTableModel model = new DefaultTableModel(new String[]{"Property Name", "Property Value"}, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public boolean isCellEditable(int row, int column) { return column != 0 && super.isCellEditable(row, column); }
+			public boolean isCellEditable(int row, int column) { 
+			    return column != 0 && !labelRows.contains(row) && super.isCellEditable(row, column); 
+		    }
 		};
 		
-		String[] keys = proj.getPropertyKeys();
-		for (String key : keys) {
-			Object[] values = parseProperty(proj, key);
-			model.addRow(values);
+		int count = 0;
+		for (String[] propKeySet : propertySets) {
+		    String setName = propKeySet[0];
+		    model.addRow(new Object[]{setName, ""});
+		    labelRows.add(count);
+		    count++;
+		    for (int i = 1; i < propKeySet.length; i++) {
+		        Object[] values = parseProperty(proj, propKeySet[i]);
+	            model.addRow(values);
+	            count++;
+		    }
 		}
 		
 		table.setModel(model);
@@ -412,7 +572,10 @@ public class Configurator extends JFrame {
 		String currProjDir = proj.getProperty(proj.PROJECT_DIRECTORY);
 		int rowCount = table.getRowCount();
 		for (int i = 0; i < rowCount; i++) {
-			String key = (String) table.getValueAt(i, 0);
+		    if (labelRows.contains(i)) {
+		        continue;
+		    }
+			String key = ((String) table.getValueAt(i, 0)).trim();
 			Object rawValue = table.getValueAt(i, 1);
 			String value = "";
 			if (rawValue instanceof File[]) {

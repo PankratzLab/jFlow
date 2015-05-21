@@ -371,7 +371,6 @@ public class Project {
 	public StringListProperty                         QQ_FILENAMES = new StringListProperty(this,                         "QQ_FILENAMES", "", "", true, false);
 	public      EnumProperty                SOURCE_FILE_DELIMITER = new      EnumProperty(this,                "SOURCE_FILE_DELIMITER", "", 0, "COMMA", "TAB", "SPACE");	
 	
-//	private boolean jar;
 	private String projectPropertiesFilename;
 	private SampleList sampleList;
 	private SampleData sampleData;
@@ -381,7 +380,6 @@ public class Project {
 	private boolean gui;
 
 	public Project() {
-//		Files.loadProperties(this, DEFAULT_PROPERTIES, true, true, false);
 		sampleList = null;
 		sampleData = null;
 		cnvFilesLoadedInSampleData = new HashSet<String>();
@@ -405,7 +403,6 @@ public class Project {
 		
 		this.projectPropertiesFilename = filename;
 		screenProperties();
-//		Files.loadProperties(this, filename, jar, true, false);
 		loadProperties(filename, jar);
 
 //        setProperty(PROJECT_DIRECTORY, ext.verifyDirFormat(getProperty(PROJECT_DIRECTORY)));
@@ -417,7 +414,6 @@ public class Project {
         
 		int logLevel;
 		
-//		logLevel = getInt(LOG_LEVEL);
 		logLevel = LOG_LEVEL.getValue();
 		if (logfile == null) {
 			logfile = "Genvisis_"+new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log";
