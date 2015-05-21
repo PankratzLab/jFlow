@@ -20,6 +20,9 @@ import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import seq.analysis.PlinkSeq.LOAD_TYPES;
 import seq.analysis.PlinkSeq.PlinkSeqWorker;
 import seq.analysis.PlinkSeqUtils.PseqProject;
+import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import seq.qc.FilterNGS.VariantContextFilter;
 import stats.Histogram.DynamicHistogram;
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -28,6 +31,7 @@ import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
@@ -217,6 +221,7 @@ public class VCFOps {
 		if (!Files.exists(dir, outFiles)) {
 			plinkCommand = PSF.Plink.getPlinkVCFCommand(vcf, rootOut);
 			if (CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] { vcf }, outFiles, true, true, false, log)) {
+
 				Hashtable<String, String> newIDS = new Hashtable<String, String>();
 				newIDS = fixFamFile(log, outFiles[2]);
 				gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
@@ -558,7 +563,7 @@ public class VCFOps {
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 
 			String dir = ext.parseDirectoryOfFile(vcf);
-			String root = ext.rootOf(vcf).replaceFirst(VCF_EXTENSIONS.REG_VCF.getLiteral(), "");
+			String root = getAppropriateRoot(vcf, true);
 
 			VariantContextWriter[] writers = vpop.getWritersForPop(dir + root, reader, log);
 			int progress = 0;
@@ -652,13 +657,13 @@ public class VCFOps {
 			new File(dir).mkdirs();
 			String root = getAppropriateRoot(vcf, true);
 			String outputVCF = outputDir + root + "." + ext.rootOf(idFile) + ".vcf" + (gzipOutput ? ".gz" : "");
-
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 			VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 			copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
 			int progress = 0;
 			int found = 0;
 			if (hasInfoLine(reader, "snp138")) {
+				log.reportTimeWarning("If a variant has an ID of \".\", the snp138 annotation will be added");
 				for (VariantContext vc : reader) {
 					progress++;
 					if (progress % 100000 == 0) {
@@ -666,8 +671,16 @@ public class VCFOps {
 						log.reportTimeInfo(found + " variants found...");
 
 					}
-					if ((!skipFiltered || !vc.isFiltered()) && tmp.contains(VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".")[0])) {
-						writer.add(vc);
+					String anno = VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".")[0];
+					if ((!skipFiltered || !vc.isFiltered()) && tmp.contains(anno)) {
+						VariantContextBuilder builder = new VariantContextBuilder(vc);
+
+						if (vc.getID().equals(".")) {
+							builder.id(anno);
+						} else {
+							builder.id(new VCOps.LocusID(vc).getId());
+						}
+						writer.add(builder.make());
 						found++;
 					}
 				}
@@ -824,9 +837,11 @@ public class VCFOps {
 	/**
 	 * Creates a new vcf with filtered variants removed
 	 */
-	public static void removeFilteredVariants(String vcf, boolean gzipOutput, Logger log) {
+	public static void removeFilteredVariants(String vcf, boolean gzipOutput, boolean standardFilters, Logger log) {
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		String output = ext.addToRoot(vcf.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral()) ? vcf.replaceAll(".gz", "") : vcf, ".filtered") + (gzipOutput ? ".gz" : "");
+
+		output = getAppropriateRoot(vcf, false) + ".filtered" + (gzipOutput ? VCF_EXTENSIONS.GZIP_VCF.getLiteral() : VCF_EXTENSIONS.REG_VCF.getLiteral());
 		log.reportTimeInfo("Will write filtered variants to " + output);
 		VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 		VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
@@ -835,13 +850,19 @@ public class VCFOps {
 			log.reportTimeInfo("Detected info header line for VQSLOD, creating a histogram of scores for passing variants");
 			dyHistogramVQSLOD = new DynamicHistogram(0, 100, 0);
 		}
+		VARIANT_FILTER_DOUBLE[] vDoubles = new VARIANT_FILTER_DOUBLE[0];
+		if (standardFilters) {
+			VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_LOOSE;
+			VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
+			vDoubles = new VARIANT_FILTER_DOUBLE[] { gq, dp };
+		}
+		VariantContextFilter variantContextFilter = new VariantContextFilter(vDoubles, new VARIANT_FILTER_BOOLEAN[] { VARIANT_FILTER_BOOLEAN.FAILURE_FILTER }, null, null, log);
 		int count = 0;
 		int countFiltered = 0;
 		int countPassed = 0;
 		for (VariantContext vc : reader) {
 			count++;
-
-			if (!vc.isFiltered()) {
+			if (variantContextFilter.filter(vc).passed()) {
 				writer.add(vc);
 				if (dyHistogramVQSLOD != null) {
 					dyHistogramVQSLOD.addDataPointToHistogram(vc.getCommonInfo().getAttributeAsDouble("VQSLOD", 0.0));
@@ -856,6 +877,8 @@ public class VCFOps {
 		}
 		reader.close();
 		writer.close();
+		log.reportTimeInfo(count + " total variants read...");
+		log.reportTimeInfo(countPassed + " variants passed the filters...");
 		if (dyHistogramVQSLOD != null) {
 			String outputHist = ext.addToRoot(output, ".hist.VQSLOD");
 
@@ -897,6 +920,7 @@ public class VCFOps {
 		String bams = null;
 		String outDir = null;
 		boolean skipFiltered = false;
+		boolean standardFilters = false;
 		boolean gzip = false;
 
 		Logger log;
@@ -913,6 +937,7 @@ public class VCFOps {
 		usage += "   (9) skip filtered variants when extracting (i.e. -skipFiltered (not the default))\n" + "";
 		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
 		usage += "   (11) full path to a file of ids (i.e. idFile= (no default))\n" + "";
+		usage += "   (12) when removing filtered variants, apply our standard filters as well (i.e. -standardFilters (not the default, GQ >=" + VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() + " and DP >=" + VARIANT_FILTER_DOUBLE.DP.getDFilter() + "))\n" + "";
 
 		usage += "   NOTE: available utilities are:\n";
 
@@ -953,6 +978,9 @@ public class VCFOps {
 			} else if (args[i].startsWith("-skipFiltered")) {
 				skipFiltered = true;
 				numArgs--;
+			} else if (args[i].startsWith("-standardFilters")) {
+				standardFilters = true;
+				numArgs--;
 			} else if (args[i].startsWith("-gzip")) {
 				gzip = true;
 				numArgs--;
@@ -981,7 +1009,7 @@ public class VCFOps {
 				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, 1, log);
 				break;
 			case REMOVE_FILTERED:
-				removeFilteredVariants(vcf, gzip, log);
+				removeFilteredVariants(vcf, gzip, standardFilters, log);
 				break;
 			case GZIP:
 				gzipAndIndex(vcf, log);

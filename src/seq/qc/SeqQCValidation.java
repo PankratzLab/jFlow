@@ -132,7 +132,7 @@ public class SeqQCValidation {
 				for (int k = 0; k < DEPTH.length; k++) {
 					VARIANT_FILTER_DOUBLE vq = VARIANT_FILTER_DOUBLE.VQSLOD_LOOSE;
 					vq.setDFilter(VQSLOD_Values[i]);
-					VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ;
+					VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_STRICT;
 					gq.setDFilter(GQ_Values[j]);
 					VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
 					dp.setDFilter(DEPTH[k]);
@@ -226,7 +226,7 @@ public class SeqQCValidation {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.println(Array.toStr(SeqError.OUTPUT_HEADER) + "\t" + "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
 			SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations, numVariantsToTest, 1, log);
-			WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer, numthreads, 2, log);
+			WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer, numthreads, 1, log);
 			while (train.hasNext()) {
 				SeqQCValidation tmp = train.next();
 				DuplicateETwo[] dETwos = tmp.getSeqError().getdETwos();
@@ -237,7 +237,7 @@ public class SeqQCValidation {
 					int VQSLODIndex = -1;
 					int dpIndex = -1;
 					for (int j = 0; j < doubles.length; j++) {
-						if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.GQ) {
+						if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.GQ_STRICT) {
 							GQIndex = j;
 						}
 						if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.VQSLOD_LOOSE) {

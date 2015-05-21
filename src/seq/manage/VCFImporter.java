@@ -73,7 +73,7 @@ public class VCFImporter {
 					HashSet<String> tmp = new HashSet<String>();
 					tmp.add(vcSamples[i].getSampleName());
 					VariantContext vcSub = VCOps.getSubset(vc, tmp, VC_SUBSET_TYPE.SUBSET_STRICT);
-					vcSamples[i].addGeno(vc,vcSub.getGenotype(0), log);
+					vcSamples[i].addGeno(vc, vcSub.getGenotype(0), log);
 				}
 			} else {
 				numSkipped++;
@@ -293,7 +293,7 @@ public class VCFImporter {
 		proj.MARKER_DATA_DIRECTORY.getValue(true, false);
 		proj.DATA_DIRECTORY.getValue(true, false);
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
-		if (proj.getSamples() == null) {
+		if (proj.getSamples() == null || proj.getSamples().length == 0) {
 			for (int i = 0; i < sampleChunks.size(); i++) {
 				hive.addCallable(new VCFImporterWorker(proj, vcf, getset(sampleChunks.get(i)), i == 0));
 			}
@@ -306,8 +306,10 @@ public class VCFImporter {
 				}
 			}
 		}
+
 		if (proj.getSamples() != null && proj.getSamples().length != samples.length) {
 			proj.getLog().reportTimeError("A different number of samples appear to be parsed in " + proj.SAMPLE_DIRECTORY.getValue());
+			proj.getLog().reportTimeError("Found " + samples.length + " samples in the vcf and " + proj.getSamples().length + " samples were parsed");
 			return;
 		}
 
@@ -353,7 +355,7 @@ public class VCFImporter {
 		projNorm.saveProperties();
 		projNorm.DATA_DIRECTORY.getValue(true, false);
 
-		if (projNorm.getSamples() == null) {
+		if (projNorm.getSamples() == null || projNorm.getSamples().length == 0) {
 			VCFSamplePrepWorker vPrepWorker = new VCFSamplePrepWorker(proj, projNorm.SAMPLE_DIRECTORY.getValue(true, false), PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED, gcModel);
 			Hashtable<String, Float> allNewOutliers = new Hashtable<String, Float>();
 			WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(vPrepWorker, numThreads, 0, proj.getLog());
@@ -389,7 +391,10 @@ public class VCFImporter {
 		String pretendMedian = projNorm.PROJECT_DIRECTORY.getValue() + "pretendMedian.txt";
 
 		Files.writeList(Array.subArray(projNorm.getAutosomalMarkers(), 0, 100), pretendMedian);
-		MitoPipeline.catAndCaboodle(projNorm, numThreads, "0.98", pretendMedian, 100, "VCF_PCS", true, true, 0.98, null, null, null, true, true, false, true);
+		String useFile = projNorm.PROJECT_DIRECTORY.getValue() + "VCF_SAMPLES_TO_USE.txt";
+		Files.writeList(Array.subArray(projNorm.getSamples(), projNorm.getSamplesToInclude(null, true)), useFile);
+		projNorm.getSamplesToInclude(null);
+		MitoPipeline.catAndCaboodle(projNorm, numThreads, "0.98", pretendMedian, 100, "VCF_PCS", true, true, 0.98, useFile, null, null, true, true, false, true);
 		SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
 		sampleQC.addQCsToSampleData(5, true);
 		sampleQC.addPCsToSampleData(5, 10, true);
@@ -413,14 +418,15 @@ public class VCFImporter {
 	}
 
 	private static void processCentroids(Project proj, String vcf, int numThreads) {
-		double qual = .8;
+		double qual = VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() / 100;
 		String cent = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(vcf) + "qual" + ext.formDeci(qual, 2) + ".cent";
 		if (!Files.exists(cent)) {
 			Builder builder = new Builder();
 			builder.gcThreshold(qual);
-			CentroidCompute.computeAndDumpCentroids(proj, cent, builder, numThreads, 3);
+			CentroidCompute.computeAndDumpCentroids(proj, proj.getSamplesToInclude(null), cent, builder, numThreads, 3);
 			proj.CUSTOM_CENTROIDS_FILENAME.setValue(cent);
 			Centroids.recompute(proj, cent);
+			TransposeData.transposeData(proj, 2000000000, false);
 			proj.saveProperties();
 		} else {
 			proj.getLog().reportFileExists(proj.CUSTOM_CENTROIDS_FILENAME.getValue());

@@ -353,6 +353,10 @@ public class LibraryNGS implements Serializable {
 			return this.totalPercentCoveredAtDepth;
 		}
 
+		public double[] getTotalPercentGCAtDepth() {
+			return totalPercentGCAtDepth;
+		}
+
 		public LibraryNGS.TargetReadDepthResults[] getTargetReadDepthResults() {
 			return this.targetReadDepthResults;
 		}
