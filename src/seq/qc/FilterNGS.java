@@ -39,8 +39,6 @@ public class FilterNGS implements Serializable {
 	public int[] getAltAlleleDepthFilter() {
 		return altAlleleDepthFilter;
 	}
-	
-	
 
 	public double[] getAltAlleleDepthRatioFilter() {
 		return altAlleleDepthRatioFilter;
@@ -121,7 +119,12 @@ public class FilterNGS implements Serializable {
 		/**
 		 * Average GQ across a variant
 		 */
-		GQ(90, FILTER_TYPE.GTE_FILTER),
+		GQ_STRICT(90, FILTER_TYPE.GTE_FILTER),
+		/**
+		 * Average GQ across a variant
+		 */
+		GQ_LOOSE(50, FILTER_TYPE.GTE_FILTER),
+
 		/**
 		 * Average Depth across a variant
 		 */
@@ -607,7 +610,10 @@ public class FilterNGS implements Serializable {
 			case MAC:
 				vDoubles[i] = getMACFilter(dfilter);
 				break;
-			case GQ:
+			case GQ_STRICT:
+				vDoubles[i] = getAvgGQFilter(dfilter, log);
+				break;
+			case GQ_LOOSE:
 				vDoubles[i] = getAvgGQFilter(dfilter, log);
 				break;
 			case DP:
@@ -752,7 +758,7 @@ public class FilterNGS implements Serializable {
 
 		private VARIANT_FILTER_DOUBLE macCase = VARIANT_FILTER_DOUBLE.MAC;
 		private VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
-		private VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ;
+		private VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_STRICT;
 		private VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
 		private VariantContextFilter refFilters;
 		private VariantContextFilter caseFilters;

@@ -27,10 +27,10 @@ public class SampleNGS {
 	public SampleNGS(String sampleName) {
 		super();
 		this.sampleName = sampleName;
-		this.geno = new ArrayList<Byte>(1000000);
-		this.xs = new ArrayList<Float>(1000000);
-		this.ys = new ArrayList<Float>(1000000);
-		this.gcs = new ArrayList<Float>(1000000);
+		this.geno = new ArrayList<Byte>(2000000);
+		this.xs = new ArrayList<Float>(2000000);
+		this.ys = new ArrayList<Float>(2000000);
+		this.gcs = new ArrayList<Float>(2000000);
 	}
 
 	public String getSampleName() {
@@ -41,9 +41,15 @@ public class SampleNGS {
 		if (!geno.getSampleName().equals(sampleName)) {
 			log.reportTimeError("Sample names do not match");
 		} else {
-			int[] ad = vc == null ? geno.getAD() : VCOps.getAppropriateAlleleDepths(vc, geno, log);
-			addFloat(ad[0], DATA_TYPE.X, log);
-			addFloat(ad[1], DATA_TYPE.Y, log);
+			try {
+				int[] ad = vc == null ? geno.getAD() : VCOps.getAppropriateAlleleDepths(vc, geno, log);
+				addFloat(ad[0], DATA_TYPE.X, log);
+				addFloat(ad[1], DATA_TYPE.Y, log);
+			} catch (IllegalStateException ils) {
+				log.reportTimeWarning("setting invalid allele depths to 0");
+				addFloat(0, DATA_TYPE.X, log);
+				addFloat(0, DATA_TYPE.Y, log);
+			}
 			if (!geno.hasGQ()) {
 				addFloat(0, DATA_TYPE.GC, log);
 				// log.reportTimeError("Genotype does not have GQ annotation, setting to 0");

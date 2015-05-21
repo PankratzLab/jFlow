@@ -689,10 +689,10 @@ public class CentroidCompute {
 	 * @param numDecompressThreads
 	 *            number of threads for decompressing marker data
 	 */
-	public static void computeAndDumpCentroids(Project proj, String fullpathToCentFile, Builder builder, int numCentThreads, int numDecompressThreads) {
+	public static void computeAndDumpCentroids(Project proj, boolean[] samplesToUse, String fullpathToCentFile, Builder builder, int numCentThreads, int numDecompressThreads) {
 		String[] markers = proj.getMarkerNames();
 		float[][][] centroids = new float[markers.length][][];
-		CentroidProducer producer = new CentroidProducer(proj, markers, builder, numDecompressThreads);
+		CentroidProducer producer = new CentroidProducer(proj, markers, samplesToUse, builder, numDecompressThreads);
 		WorkerTrain<CentroidCompute> train = new WorkerTrain<CentroidCompute>(producer, numCentThreads, 10, proj.getLog());
 		int index = 0;
 		while (train.hasNext()) {
@@ -714,11 +714,12 @@ public class CentroidCompute {
 		private final MDL mdl;
 		private int count;
 
-		public CentroidProducer(Project proj, String[] markers, Builder builder, int numDecompressThreads) {
+		public CentroidProducer(Project proj, String[] markers, boolean[] samplesToUse, Builder builder, int numDecompressThreads) {
 			super();
 			this.proj = proj;
 			this.markers = markers;
 			this.builder = builder;
+			builder.samplesToUse(samplesToUse);
 			this.mdl = new MDL(proj, markers, numDecompressThreads, 100);
 
 			this.count = 0;
@@ -764,7 +765,7 @@ public class CentroidCompute {
 		String[] markers = proj.getMarkerNames();
 		long time = System.currentTimeMillis();
 		Builder builder = new Builder();
-		CentroidProducer producer = new CentroidProducer(proj, markers, builder, 2);
+		CentroidProducer producer = new CentroidProducer(proj, markers, null, builder, 2);
 		WorkerTrain<CentroidCompute> train = new WorkerTrain<CentroidCompute>(producer, 6, 100, proj.getLog());
 		int index = 0;
 		while (train.hasNext()) {

@@ -59,6 +59,7 @@ public class BamQC {
 	private double percentUnMapped;
 	private double percentOnTarget;
 	private double[] percentCoverageAtDepth;
+	private double[] totalPercentGCAtDepth;
 	private double[] averageInsertSize;
 	private Histogram.DynamicHistogram[] gHistograms;
 	private Histogram.DynamicHistogram[] insertHistograms;
@@ -95,6 +96,7 @@ public class BamQC {
 		this.percentUnMapped = 0;
 		this.percentOnTarget = 0;
 		this.percentCoverageAtDepth = new double[filterNGS.getReadDepthFilter().length];
+		this.totalPercentGCAtDepth = new double[filterNGS.getReadDepthFilter().length];
 		this.gHistograms = Histogram.DynamicHistogram.initHistograms(NUM_GC_HISTOGRAMS, 0, 1.0, 2);
 		this.insertHistograms = Histogram.DynamicHistogram.initHistograms(NUM_INSERT_HISTOGRAMS, 0.0, 2000.0, 0);
 		this.filterNGS = filterNGS;
@@ -126,6 +128,14 @@ public class BamQC {
 
 	public void setPercentCoverageAtDepth(double[] percentCoverageAtDepth) {
 		this.percentCoverageAtDepth = percentCoverageAtDepth;
+	}
+
+	public double[] getTotalPercentGCAtDepth() {
+		return totalPercentGCAtDepth;
+	}
+
+	public void setTotalPercentGCAtDepth(double[] totalPercentGCAtDepth) {
+		this.totalPercentGCAtDepth = totalPercentGCAtDepth;
 	}
 
 	public void addNumTotal() {
@@ -234,7 +244,7 @@ public class BamQC {
 
 	public String getSummary() {
 		String summary = "";
-		summary = summary + this.inputSamOrBamFile + "\t" + this.numTotal + "\t" + this.numUnique + "\t" + this.numDuplicated + "\t" + this.numUnMapped + "\t" + this.numOnTarget + "\t" + this.numSecondaryAlignments + "\t" + this.numInvalidAligments + "\t" + this.percentDuplicated + "\t" + this.percentUnMapped + "\t" + this.percentOnTarget + "\t" + this.averageInsertSize[NO_QC_INSERT_HISTOGRAM] + "\t" + this.averageInsertSize[QC_INSERT_HISTOGRAM] + "\t" + this.filterNGS.getMappingQualityFilter() + "\t" + this.filterNGS.getPhreadScoreFilter() + "\t" + this.totalTargetedBasePairs + "\t" + Array.toStr(this.percentCoverageAtDepth);
+		summary = summary + this.inputSamOrBamFile + "\t" + this.numTotal + "\t" + this.numUnique + "\t" + this.numDuplicated + "\t" + this.numUnMapped + "\t" + this.numOnTarget + "\t" + this.numSecondaryAlignments + "\t" + this.numInvalidAligments + "\t" + this.percentDuplicated + "\t" + this.percentUnMapped + "\t" + this.percentOnTarget + "\t" + this.averageInsertSize[NO_QC_INSERT_HISTOGRAM] + "\t" + this.averageInsertSize[QC_INSERT_HISTOGRAM] + "\t" + this.filterNGS.getMappingQualityFilter() + "\t" + this.filterNGS.getPhreadScoreFilter() + "\t" + this.totalTargetedBasePairs + "\t" + Array.toStr(this.percentCoverageAtDepth) + "\t" + Array.toStr(totalPercentGCAtDepth);
 		return summary;
 	}
 
@@ -389,6 +399,7 @@ public class BamQC {
 			LibraryNGS.LibraryReadDepthResults lDepthResults = readDepth.getDepthResults(libraryNGS, filterNGS, normalizeFactor);
 			bamQC.setPercentCoverageAtDepth(lDepthResults.getTotalPercentCoveredAtDepth());
 			bamQC.setTotalTargetedBasePairs(lDepthResults.getTotalBasePairsTargeted());
+			bamQC.setTotalPercentGCAtDepth(lDepthResults.getTotalPercentCoveredAtDepth());
 			lDepthResults.dump(ext.rootOf(bamQC.getLibraryReadDepthResultsFile(), false) + ".txt", log);
 			lDepthResults.serialize(bamQC.getLibraryReadDepthResultsFile());
 		} else {
@@ -504,6 +515,9 @@ public class BamQC {
 			writer.print(Array.toStr(QC_HEADER));
 			for (int i = 0; i < filterNGS.getReadDepthFilter().length; i++) {
 				writer.print("\tPercent Coverage At " + filterNGS.getReadDepthFilter()[i]);
+			}
+			for (int i = 0; i < filterNGS.getReadDepthFilter().length; i++) {
+				writer.print("\tPercent GC At coverage " + filterNGS.getReadDepthFilter()[i]);
 			}
 			writer.println();
 			for (int i = 0; i < bamQCs.length; i++) {
