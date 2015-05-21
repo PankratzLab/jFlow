@@ -120,8 +120,10 @@ public class DemoProject extends Project {
 		setProperty(propertyWithMultipleFiles, propertyValueNew);
 
 //		String[] filesOriginal = proj.getFilenames(propertyWithMultipleFiles);
-		String[] filesOriginal = proj.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue();
-		String[] filesNew = this.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue(true);
+//		String[] filesOriginal = proj.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue();
+//		String[] filesNew = this.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue(true);
+		String[] filesOriginal = proj.<StringListProperty>getProperty(propertyWithMultipleFiles).getValue();
+		String[] filesNew = this.<StringListProperty>getProperty(propertyWithMultipleFiles).getValue();
 		copyFiles(filesOriginal, filesNew);
 	}
 
