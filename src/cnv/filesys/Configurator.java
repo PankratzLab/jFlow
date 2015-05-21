@@ -46,8 +46,10 @@ import cnv.LaunchProperties;
 import cnv.filesys.Project.DoubleProperty;
 import cnv.filesys.Project.FileProperty;
 import cnv.filesys.Project.IntegerProperty;
-import cnv.filesys.Project.MultiFileProperty;
+//import cnv.filesys.Project.MultiFileProperty;
 import cnv.filesys.Project.Property;
+import cnv.filesys.Project.StringListProperty;
+import common.Array;
 import common.Grafik;
 import common.ext;
 
@@ -167,6 +169,30 @@ public class Configurator extends JFrame {
 				});
 			}
 		};
+		final DefaultCellEditor stringListEditor = new DefaultCellEditor(new JTextField()) {
+		    private static final long serialVersionUID = 1L;
+		    @Override
+		    public Object getCellEditorValue() {
+		        return ((String) super.getCellEditorValue()).trim().split(";");
+		    }
+		    @Override
+		    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+		        String[] val = (String[]) value;
+		        String valueString = Array.toStr(val, ";");
+		        return super.getTableCellEditorComponent(table, valueString, isSelected, row, column);
+		    }
+		    {
+		        this.editorComponent.addFocusListener(new FocusListener() {
+		            @Override
+		            public void focusLost(FocusEvent e) {
+		                stopCellEditing();
+		            }
+		            @Override
+		            public void focusGained(FocusEvent e) {
+		            }
+		        });
+		    }
+		};
 
 		final DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
 			private static final long serialVersionUID = 1L;
@@ -225,7 +251,30 @@ public class Configurator extends JFrame {
 					}
 					fileLabel.setText(sb.toString());
 					returnComp = fileRenderer;
-				} else if (value instanceof Number) {
+				} else  if (value instanceof String[]) {
+                    StringBuilder sb = new StringBuilder();
+                    String[] values = (String[]) value;
+                    for (int i = 0; i < values.length; i++) {
+                        if (values[i].equals("")) {
+                            continue;
+                        }
+                        if (values[i].startsWith(projDir)) {
+                            sb.append(values[i].substring(projDir.length()));
+                        } else {
+                            sb.append(values[i]);
+                        }
+                        if (i < values.length - 1) {
+                            sb.append(";");
+                        }
+                    }
+                    StringListProperty prop = proj.getProperty((String) table.getValueAt(row, 0));
+                    if (prop.isFile || prop.isDir) {
+                        fileLabel.setText(sb.toString());
+                        returnComp = fileRenderer;
+                    } else {
+                        returnComp = super.getTableCellRendererComponent(table, sb.toString(), isSelected, hasFocus, row, column);
+                    }
+			    } else if (value instanceof Number) {
 					String propKey = (String) table.getModel().getValueAt(row, 0);
 					Object propVal = table.getModel().getValueAt(row, 1);
 					setByPropertyKey(rendererSpinner, proj, propKey, propVal);
@@ -274,6 +323,23 @@ public class Configurator extends JFrame {
 					return numberEditor;
 				} else if (propVal instanceof String) {
 					return stringEditor;
+				} else if (propVal instanceof String[]) {
+				    StringListProperty prop = ((StringListProperty)proj.getProperty((String) table.getValueAt(row, 0)));
+				    if (prop.isFile || prop.isDir) {
+				        String[] valStrs = (String[]) propVal;
+				        File[] vals = new File[valStrs.length];
+				        for (int i = 0; i < valStrs.length; i++) {
+				            vals[i] = new File(valStrs[i]);
+				        }
+				        if (getEditRow() != row) {
+	                        setEditRow(row);
+	                        fileEditor.reset();
+	                    }
+	                    fileEditor.setValue(vals);
+	                    return fileEditor;
+				    } else {
+				        return stringListEditor;
+				    }
 				}
 				
 				TableCellEditor editor = super.getCellEditor(row, column); 
@@ -348,7 +414,6 @@ public class Configurator extends JFrame {
 		for (int i = 0; i < rowCount; i++) {
 			String key = (String) table.getValueAt(i, 0);
 			Object rawValue = table.getValueAt(i, 1);
-//			System.out.println(rawValue.getClass().getName());
 			String value = "";
 			if (rawValue instanceof File[]) {
 				File[] set = (File[]) rawValue;
@@ -359,9 +424,6 @@ public class Configurator extends JFrame {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
 						value = value.substring(currProjDir.length());
-						if (!value.startsWith("./")) {
-							value = "./" + value;
-						}
 					}
 					for (int k = 1; k < set.length; k++) {
 						String fNm = set[k].getPath();
@@ -370,9 +432,6 @@ public class Configurator extends JFrame {
 							fNm = fNm.substring(projectsDir.length());
 						} else if (fNm.startsWith(currProjDir)) {
 							fNm = fNm.substring(currProjDir.length());
-							if (!fNm.startsWith("./")) {
-								fNm = "./" + fNm;
-							}
 						}
 						value += ";" + fNm;
 					}
@@ -386,9 +445,6 @@ public class Configurator extends JFrame {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
 						value = value.substring(currProjDir.length());
-						if (!value.startsWith("./")) {
-							value = "./" + value;
-						}
 					}
 				}
 			} else if (rawValue instanceof String[]) {
@@ -433,12 +489,14 @@ public class Configurator extends JFrame {
 		keyVal[1] = prop.getValue();
 		if (prop instanceof FileProperty) {
 			keyVal[1] = new File(((FileProperty)prop).getValue());
-		} else if (prop instanceof MultiFileProperty) {
-			File[] fs = new File[((MultiFileProperty)prop).getValue().length];
-			for (int i = 0; i < fs.length; i++) {
-				fs[i] = new File(((MultiFileProperty)prop).getValue()[i]);
-			}
-			keyVal[1] = fs;
+		} else if (prop instanceof StringListProperty) {
+		    if (((StringListProperty)prop).isDir || ((StringListProperty)prop).isFile) { 
+		        File[] fs = new File[((StringListProperty)prop).getValue().length];
+		        for (int i = 0; i < fs.length; i++) {
+		            fs[i] = new File(((StringListProperty)prop).getValue()[i]);
+		        }
+		        keyVal[1] = fs;
+		    }
 		}
 		
 		return keyVal;	
@@ -515,9 +573,17 @@ public class Configurator extends JFrame {
 	    	ActionListener listener = null;
     		if (value instanceof File) {
     			if (((File) value).isDirectory()) {
-    				labelText.append(ext.verifyDirFormat(((File) value).getPath()));
+    			    String pathStr = ext.verifyDirFormat(((File) value).getPath());
+                    if (pathStr.startsWith(defaultLocation)) {
+                        pathStr = pathStr.substring(defaultLocation.length());
+                    }
+    				labelText.append(pathStr);
     			} else {
-    				labelText.append(ext.replaceAllWith(((File) value).getPath(), "\\", "/"));
+    			    String pathStr = ext.replaceAllWith(((File) value).getPath(), "\\", "/");
+                    if (pathStr.startsWith(defaultLocation)) {
+                        pathStr = pathStr.substring(defaultLocation.length());
+                    }
+    				labelText.append(pathStr);
     			}
     			listener = new ActionListener() {
     				@Override
@@ -539,18 +605,23 @@ public class Configurator extends JFrame {
 	    	} else if (value instanceof File[]) {
 	    		File[] files = (File[]) value;
 	    		if (files.length > 0) {
-	    			if (files[0].isDirectory()) {
-	    				labelText.append(ext.verifyDirFormat(files[0].getPath()));
-	    			} else {
-		    			labelText.append(ext.replaceAllWith(files[0].getPath(), "\\", "/"));
-	    			}
-	    			for (int i = 1; i < files.length; i++) {
-	    				labelText.append(";");
+	    			for (int i = 0; i < files.length; i++) {
 	    				if (files[i].isDirectory()) {
-		    				labelText.append(ext.verifyDirFormat(files[i].getPath()));
+	    				    String pathStr = ext.verifyDirFormat(files[i].getPath());
+	    				    if (pathStr.startsWith(defaultLocation)) {
+                                pathStr = pathStr.substring(defaultLocation.length());
+                            }
+		    				labelText.append(pathStr);
 		    			} else {
-			    			labelText.append(ext.replaceAllWith(files[i].getPath(), "\\", "/"));
+		    			    String pathStr = ext.replaceAllWith(files[i].getPath(), "\\", "/");
+		    			    if (pathStr.startsWith(defaultLocation)) {
+		    			        pathStr = pathStr.substring(defaultLocation.length());
+		    			    }
+			    			labelText.append(pathStr);
 		    			}
+	    				if (i < files.length - 1) {
+	                        labelText.append(";");
+	    				}
 		    		}
 	    		}
 

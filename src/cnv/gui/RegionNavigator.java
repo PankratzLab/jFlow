@@ -218,7 +218,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				for (String file : filePaths) {
 					if (file.endsWith(files.get(0))) {
 						System.out.println("File path is " + file);
-						compressedFile = file + ".bed..gz";
+						compressedFile = file + ".bed..gz"; // TODO this should be .bed.gz?
 						// Generate BED file with:
 						UCSCtrack.makeTrack(file, file, proj.getLog());
 						break;
