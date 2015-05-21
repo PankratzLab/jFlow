@@ -230,7 +230,12 @@ public class FAST {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
-                        CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalCRF}, ext.parseDirectoryOfFile(metalCRF), System.out, System.err, factorLog, false);
+                        String metalDir = ext.parseDirectoryOfFile(metalCRF);
+                        CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalCRF}, metalDir, System.out, System.err, factorLog, false);
+                        System.out.println(ext.getTime() + "]\tRunning HitWindows analysis on METAL results...");
+                        String[][] results = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
+                        Files.writeMatrix(results, metalDir + "topHitWindows.out", "\t");
+                        System.out.println(ext.getTime() + "]\tHitWindows analysis of METAL results complete!");
                     }
                 }
             };
