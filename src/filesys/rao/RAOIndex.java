@@ -56,11 +56,12 @@ public class RAOIndex implements RAObject {
 	}
 
 	public void serialize() {
-		Files.writeSerial(this, indexFileName, true);
+		Files.writeSerial(this, indexFileName);
+		//TODO change this
 	}
 
 	public static RAOIndex load(String indexFileName, Logger log) {
-		return (RAOIndex) Files.readSerial(indexFileName, false, log, false, true);
+		return (RAOIndex) Files.readSerial(indexFileName, false, log, false);
 	}
 
 }
