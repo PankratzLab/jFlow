@@ -117,7 +117,7 @@ public class SeqQCValidation {
 
 	private static VariantContextFilter[] getSampleVariantFilters(Logger log) {
 		double[] GQ_Values = new double[] { -1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 90, 98 };
-		// double[] GQ_Values = new double[] { -1 };
+		//double[] GQ_Values = new double[] { -1 };
 
 		double[] VQSLOD_Values = new double[] { -1 };
 		double[] DEPTH = new double[] { -1, 3, 5, 8, 10, 12, 15, 20, 25 };
@@ -188,6 +188,7 @@ public class SeqQCValidation {
 	public static void validate(String vcf, String fileOFSamplesForPairWise, String referenceGenomeFasta, int numVariantsToTest, int numthreads, Logger log) {
 		String[][] sampsForPairWise = loadPairWise(fileOFSamplesForPairWise, log);
 		String output = ext.addToRoot(fileOFSamplesForPairWise, ".validation.summary");
+		// FilterNGS[] altDepthFilterNGSs = getAltAlleleDepthFilters(-1, 0, 1, 0.0, 0.1, 0.1);
 		FilterNGS[] altDepthFilterNGSs = getAltAlleleDepthFilters(-1, 12, 1, 0.0, 0.7, 0.1);
 		log.reportTimeInfo(altDepthFilterNGSs.length + " alt depth filters");
 		VariantContextFilter[] vContextFilterSamples = getSampleVariantFilters(log);

@@ -11,10 +11,9 @@ public class RAOExt {
 	public static ByteArrayOutputStream convertToByte(RAObject raObject) throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(0);
 		ObjectOutputStream oos = new ObjectOutputStream(bos);
-		
 		oos.writeObject(raObject);
 		oos.flush();
-		oos.close();
+		//oos.close();
 		return bos;
 	}
 

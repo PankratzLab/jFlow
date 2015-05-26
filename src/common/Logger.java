@@ -58,6 +58,14 @@ public class Logger implements Serializable {
 	public void reportTimeInfo(String str) {
 		report(ext.getTime() + " Info - " + str, true, true);
 	}
+
+	/**
+	 * @param str
+	 *            report this string with a time stamp and info message
+	 */
+	public void reportTimeElapsed( long time) {
+		reportTimeInfo("Time elapsed: " + ext.getTimeElapsed(time));
+	}
 	
 	/**
 	 * @param file

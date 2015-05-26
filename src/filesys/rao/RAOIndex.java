@@ -1,5 +1,8 @@
 package filesys.rao;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -56,12 +59,31 @@ public class RAOIndex implements RAObject {
 	}
 
 	public void serialize() {
-		Files.writeSerial(this, indexFileName);
-		//TODO change this
+		Files.writeSerial(this, indexFileName, true);
 	}
 
 	public static RAOIndex load(String indexFileName, Logger log) {
-		return (RAOIndex) Files.readSerial(indexFileName, false, log, false);
+		return (RAOIndex) Files.readSerial(indexFileName, false, log, false, true);
+	}
+
+	public RAOIndex() {
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(indexFileName);
+		out.writeObject(index);
+		out.writeLong(maxSize);
+		// TODO Auto-generated method stub
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		this.indexFileName = (String) in.readObject();
+		this.index = (Hashtable<String, ArrayList<Long>>) in.readObject();
+		this.maxSize = in.readLong();
 	}
 
 }

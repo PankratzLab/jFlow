@@ -1810,12 +1810,21 @@ public class Files {
 		return exists(handle) && new File(handle).isDirectory();
 	}
 	
-
+	
+	
 	public static void writeSerial(Object o, String filename) {
+		writeSerial(o, filename, false);
+	}
+
+	public static void writeSerial(Object o, String filename, boolean gzip) {
 		ObjectOutputStream oos;
 
 		try {
-			oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(filename)));
+			if (gzip) {
+				oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(filename)));
+			} else {
+				oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(filename)));
+			}
 			oos.writeObject(o);
 			oos.flush();
 			oos.close();
@@ -1862,15 +1871,23 @@ public class Files {
 	}
 
 	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill) {
+		return readSerial(filename, jar, log, kill, false);
+	}
+
+	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill, boolean gzipped) {
 		ObjectInputStream ois;
 		Object o = null;
 
 		try {
 			if (jar) {
 				ois = new ObjectInputStream(new BufferedInputStream(ClassLoader.getSystemResourceAsStream(filename)));
+			} else if (gzipped) {
+				ois = new ObjectInputStream(new GZIPInputStream(new FileInputStream(filename)));
 			} else {
 				ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(filename)));
 			}
+			
+			
 			o = ois.readObject();
 			ois.close();
 		} catch (Exception e) {

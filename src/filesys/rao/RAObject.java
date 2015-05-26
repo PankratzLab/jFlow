@@ -1,8 +1,8 @@
 package filesys.rao;
 
-import java.io.Serializable;
+import java.io.Externalizable;
 
-public interface RAObject extends Serializable {
+public interface RAObject extends Externalizable {
 	/**
 	 * @return the keys that will be used for the indexed retrieval of data
 	 */

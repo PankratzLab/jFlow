@@ -1,11 +1,14 @@
 package filesys.rao;
 
+import htsjdk.samtools.util.BlockCompressedInputStream;
+import htsjdk.samtools.util.BlockCompressedOutputStream;
+
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -46,13 +49,20 @@ public class RAOWriter {
 		} else {
 			try {
 				String indexFile = fullPathToFile + RAO_INDEX_EXT;
-				FileOutputStream fos = new FileOutputStream(fullPathToFile);
-				// GZIPOutputStream gos = new GZIPOutputStream(fos);
+				RandomAccessFile file = new RandomAccessFile(fullPathToFile, "rw");
+				FileOutputStream fos = new FileOutputStream(file.getFD());
+				GZIPOutputStream gos = new GZIPOutputStream(fos);
+				BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(fullPathToFile, 9);
 				RAOIndex index = new RAOIndex(indexFile, new Hashtable<String, ArrayList<Long>>());
-				index = writeToFile(fos, index);
+				index = writeToFile(bcos, index);
 				index.serialize();
 				// gos.close();
+				bcos.close();
+				System.exit(1);
 				fos.close();
+				file.close();
+				BlockCompressedInputStream bcis = new BlockCompressedInputStream(new File(fullPathToFile));
+				//bcis.getFileBlock(bgzfOffset);
 				writeComplete.setWritten(true);
 			} catch (FileNotFoundException e) {
 				log.reportFileNotFound(fullPathToFile);
@@ -67,7 +77,7 @@ public class RAOWriter {
 		return writeComplete;
 	}
 
-	private RAOIndex writeToFile(OutputStream fos, RAOIndex index) throws IOException {
+	private RAOIndex writeToFile(BlockCompressedOutputStream fos, RAOIndex index) throws IOException {
 		long offset = 0;
 		long maxSize = 0;
 
@@ -77,29 +87,34 @@ public class RAOWriter {
 			for (int i = 0; i < indexKeys.length; i++) {
 				if (!index.getIndex().containsKey(indexKeys[i])) {
 					index.getIndex().put(indexKeys[i], new ArrayList<Long>());
+
 				}
 			}
-//			ObjectOutputStream oos = new ObjectOutputStream(bos);
-//			oos.writeObject(rObject);
-//			oos.flush();
-//			ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
-//			GZIPOutputStream gzipOutput = new GZIPOutputStream(byteOutput);
-//			gzipOutput.write(bos.toByteArray());
+			// ObjectOutputStream oos = new ObjectOutputStream(bos);
+			// oos.writeObject(rObject);
+			// oos.flush();
+			// ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+			// GZIPOutputStream gzipOutput = new GZIPOutputStream(byteOutput);
+			// gzipOutput.write(bos.toByteArray());
 			ByteArrayOutputStream bos = RAOExt.convertAndCompress(rObject);
-			bos.writeTo(fos);
-
+			fos.write(bos.toByteArray());
+			//bos.writeTo(fos);
+			bos.close();
+			// for (int i = 0; i < bos.toByteArray().length; i++) {
+			// System.out.println(bos.toByteArray()[i]);
+			// }
 			long size = (long) bos.size();
-			if(size>maxSize){
-				maxSize=size+1;
+			if (size > maxSize) {
+				maxSize = size + 1;
 			}
 			if (offset % 10000 == 0) {
 				System.out.println(offset + "\t" + size + "\t" + bos.size());
 			}
-		
+
 			for (int i = 0; i < indexKeys.length; i++) {
 				index.getIndex().get(indexKeys[i]).add(offset);
 			}
-			offset+=size;
+			offset += size;
 		}
 		index.setMaxSize(maxSize);
 		return index;

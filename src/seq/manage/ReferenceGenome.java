@@ -51,7 +51,26 @@ public class ReferenceGenome {
 			referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
 			currentSeq = referenceSequence.getBases();
 		}
-		byte[] subTmp = Array.subArray(currentSeq, segment.getStart() - 1 - defaultBuffer, segment.getStop() + defaultBuffer);
+		int start = segment.getStart() - 1 - defaultBuffer;
+		int stop = segment.getStop() + defaultBuffer;
+		if (start < 0) {
+			log.reportTimeWarning("Buffer of " + defaultBuffer + " adjusts base pair extraction to index less than 0, adjusting start to index 0 (bp 1)");
+			start = 0;
+		}
+		if (stop >= currentSeq.length) {
+			stop = currentSeq.length - 1;
+			log.reportTimeWarning("Buffer of " + defaultBuffer + " ,adjusts base pair extraction to index greater than sequence length,  adjusting stop to index " + (currentSeq.length - 1));
+		}
+		byte[] subTmp = null;
+		try {
+			subTmp = Array.subArray(currentSeq, start, stop);
+		} catch (Exception e) {
+			log.reportTimeError("Could not extract bases:");
+			log.reportTimeError("Segment: " + segment.getUCSClocation());
+			log.reportTimeError("Ref: " + referenceSequence.getName());
+			log.reportTimeError("Start : " + start);
+			log.reportTimeError("Stop : " + stop);
+		}
 
 		String[] requestedSeq = new String[subTmp.length];
 		try {
@@ -74,6 +93,9 @@ public class ReferenceGenome {
 	}
 
 	public double getGCContentFor(VariantContext vc) {
+		// defaultBuffer=0;
+		// System.out.println("REF\t"+Array.toStr(getSequenceFor(VCOps.getSegment(vc))));
+		// System.out.println("VARIANT_A\t"+vc.getAlleles().toString());
 		return getGCContentFor(VCOps.getSegment(vc));
 	}
 
