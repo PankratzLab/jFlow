@@ -229,6 +229,7 @@ public class VCFOps {
 				if (Files.exists(mdsFile)) {
 					fixMdsFile(log, dir, newIDS, mdsFile);
 					CmdLine.run("runEigenstrat2", dir + "ancestry/");
+					// fixMdsFile(log, dir + "ancestry/", newIDS, combo_fancy_postnormed_eigens.xln);
 
 				}
 
@@ -351,7 +352,7 @@ public class VCFOps {
 			}
 			log.reportTimeInfo("Running gwas.qc on the following files in " + dir + ":");
 			log.reportTimeInfo("\t" + Array.toStr(plinkFiles, "\n"));
-			gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
+			//gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 		} else {
 			log.reportFileNotFound(vcf);
 		}
@@ -539,24 +540,34 @@ public class VCFOps {
 		}
 
 		private VariantContextWriter[] getWritersForPop(String outputbase, VCFFileReader reader, Logger log) {
-			VariantContextWriter[] writers = new VariantContextWriter[uniqSuperPop.size()];
-			for (int i = 0; i < uniqSuperPop.size(); i++) {
+			String[] filenames = getFileNamesForPop(outputbase, log);
+			VariantContextWriter[] writers = new VariantContextWriter[filenames.length];
+
+			for (int i = 0; i < filenames.length; i++) {
 				String sPop = uniqSuperPop.get(i);
-				String out = outputbase + "." + uniqSuperPop.get(i) + ".vcf.gz";
-				writers[i] = initWriter(out, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
+				writers[i] = initWriter(filenames[i], DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 				copyHeader(reader, writers[i], superPop.get(sPop), HEADER_COPY_TYPE.SUBSET_STRICT, log);
 			}
 			return writers;
 		}
 
-		public static void splitVcfByPopulation(String vcf, String fullPathToPopFile, Logger log) {
+		public String[] getFileNamesForPop(String outputbase, Logger log) {
+			String[] filenames = new String[uniqSuperPop.size()];
+			for (int i = 0; i < uniqSuperPop.size(); i++) {
+				filenames[i] = outputbase + "." + uniqSuperPop.get(i) + ".vcf.gz";
+			}
+			return filenames;
+
+		}
+
+		public static String[] splitVcfByPopulation(String vcf, String fullPathToPopFile, Logger log) {
 			if (vcf != null && !Files.exists(vcf)) {
 				log.reportFileNotFound(vcf);
-				return;
+				return null;
 			}
 			if (fullPathToPopFile != null && !Files.exists(fullPathToPopFile)) {
 				log.reportFileNotFound(fullPathToPopFile);
-				return;
+				return null;
 			}
 			VcfPopulation vpop = VcfPopulation.load(fullPathToPopFile, POPULATION_TYPE.ANY, log);
 			vpop.report();
@@ -582,6 +593,7 @@ public class VCFOps {
 			for (int i = 0; i < writers.length; i++) {
 				writers[i].close();
 			}
+			return vpop.getFileNamesForPop(dir + root, log);
 		}
 
 		/**
@@ -640,6 +652,7 @@ public class VCFOps {
 	}
 
 	public static String extractIDs(String vcf, String idFile, String outputDir, boolean skipFiltered, boolean gzipOutput, Logger log) {
+		String outputVCF = null;
 		if (idFile == null || !Files.exists(idFile)) {
 			log.reportFileNotFound(idFile);
 			return null;
@@ -656,7 +669,7 @@ public class VCFOps {
 			String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
 			new File(dir).mkdirs();
 			String root = getAppropriateRoot(vcf, true);
-			String outputVCF = outputDir + root + "." + ext.rootOf(idFile) + ".vcf" + (gzipOutput ? ".gz" : "");
+			outputVCF = outputDir + root + "." + ext.rootOf(idFile) + ".vcf" + (gzipOutput ? ".gz" : "");
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 			VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 			copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
@@ -691,8 +704,9 @@ public class VCFOps {
 			log.reportTimeInfo(found + " variants found...");
 			reader.close();
 			writer.close();
+
 		}
-		return null;
+		return outputVCF;
 	}
 
 	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, int numThreads, Logger log) {
@@ -837,7 +851,7 @@ public class VCFOps {
 	/**
 	 * Creates a new vcf with filtered variants removed
 	 */
-	public static void removeFilteredVariants(String vcf, boolean gzipOutput, boolean standardFilters, Logger log) {
+	public static String removeFilteredVariants(String vcf, boolean gzipOutput, boolean standardFilters, Logger log) {
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		String output = ext.addToRoot(vcf.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral()) ? vcf.replaceAll(".gz", "") : vcf, ".filtered") + (gzipOutput ? ".gz" : "");
 
@@ -896,6 +910,7 @@ public class VCFOps {
 				log.reportException(e);
 			}
 		}
+		return output;
 	}
 
 	public static void qcVCF(String vcf, Logger log) {

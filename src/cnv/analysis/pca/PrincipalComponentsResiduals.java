@@ -450,7 +450,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 					numSamples++;
 				} else {
 					log.reportError("Error - could not find " + line[0] + "\t" + line[1] + " in sample Data");
-					System.exit(1);
+					return;
 				}
 			}
 			reader.close();
