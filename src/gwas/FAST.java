@@ -233,8 +233,10 @@ public class FAST {
                         String metalDir = ext.parseDirectoryOfFile(metalCRF);
                         CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalCRF}, metalDir, System.out, System.err, factorLog, false);
                         System.out.println(ext.getTime() + "]\tRunning HitWindows analysis on METAL results...");
-                        String[][] results = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
-                        Files.writeMatrix(results, metalDir + "topHitWindows.out", "\t");
+                        String[][] results1 = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
+                        Files.writeMatrix(results1, metalDir + factorName + "_topHitWindows.out", "\t");
+                        String[][] results2 = HitWindows.determine(metalDir + factorName + "_InvVar1.out", 0.00000005f, 500000, 0.000005f, new String[0]);
+                        Files.writeMatrix(results2, metalDir + factorName + "_InvVar1_hitWindows.out", "\t");
                         System.out.println(ext.getTime() + "]\tHitWindows analysis of METAL results complete!");
                     }
                 }
