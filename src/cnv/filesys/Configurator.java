@@ -13,8 +13,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
 import java.util.EventObject;
+import java.util.HashSet;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -294,7 +296,7 @@ public class Configurator extends JFrame {
 		fileRenderer.setBackground(Color.WHITE);
 		fileRenderer.add(fileLabel, BorderLayout.CENTER);
 		fileRenderer.add(fileBtn, BorderLayout.EAST);		
-		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(fileBtn, false, proj.getProperty(proj.PROJECT_DIRECTORY));
+		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(fileBtn, true, proj.getProperty(proj.PROJECT_DIRECTORY));
 		final DefaultCellEditor stringEditor = new DefaultCellEditor(new JTextField()) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -521,16 +523,38 @@ public class Configurator extends JFrame {
 		};
 		
 		int count = 0;
+		HashSet<String> allKeys = new HashSet<String>();
+		for (String key : proj.getPropertyKeys()) {
+		    allKeys.add(key);
+		}
 		for (String[] propKeySet : propertySets) {
 		    String setName = propKeySet[0];
 		    model.addRow(new Object[]{setName, ""});
 		    labelRows.add(count);
 		    count++;
 		    for (int i = 1; i < propKeySet.length; i++) {
-		        Object[] values = parseProperty(proj, propKeySet[i]);
-	            model.addRow(values);
-	            count++;
+		        boolean removed = allKeys.remove(propKeySet[i]);
+		        if (removed) {
+    		        Object[] values = parseProperty(proj, propKeySet[i]);
+    	            model.addRow(values);
+    	            count++;
+		        } else {
+		            System.out.println("Unknown key found: " + propKeySet[i]);
+		        }
 		    }
+		}
+		HashSet<String> excludedKeys = new HashSet<String>();
+		for (String key : hiddenProperties) {
+		    excludedKeys.add(key);
+		}
+		ArrayList<String> leftovers = new ArrayList<String>();
+		for (String leftoverKey : allKeys) {
+		    if (!excludedKeys.contains(leftoverKey)) {
+		        leftovers.add(leftoverKey);
+		    }
+		}
+		if (!leftovers.isEmpty()) {
+		    System.out.println("Found " + leftovers.size() + " unknown keys: " + leftovers.toString());
 		}
 		
 		table.setModel(model);
@@ -680,18 +704,21 @@ public class Configurator extends JFrame {
 	    private JFileChooser fileChooser;
 	    /** Selected file(s) */
 	    private Object value;
-	    private JTextField textField;
+//	    private JTextField textField;
 	    volatile boolean keyed = false;
 	    volatile int keyedCount = 0;
 	    String defaultLocation;
+	    volatile boolean editing = false;
 	    /**
 	     * Constructor.
 	     */
 	    public FileChooserCellEditor(final JButton button, boolean editable, String defaultLocation) {
 	        super(new JTextField());
 	        this.defaultLocation = defaultLocation;
-	        textField = (JTextField) this.editorComponent;
-	        textField.setEditable(editable);
+	        label = (JTextField) this.editorComponent;
+	        label.setEditable(editable);
+//	        textField = (JTextField) this.editorComponent;
+//	        textField.setEditable(editable);
 	        setClickCountToStart(CLICK_COUNT_TO_START);
 	        setBackground(Color.WHITE);
 	        
@@ -699,8 +726,21 @@ public class Configurator extends JFrame {
 	        panel.setBackground(Color.WHITE);
 	        
 	        // Using a JButton as the editor component
-	        label = new JTextField();
+//	        label = new JTextField();
 	        label.setBackground(Color.WHITE);
+	        panel.addFocusListener(new FocusListener() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    value = new File(label.getText());
+                    editing = false;
+                    stopCellEditing();
+                    fireEditingStopped();
+                }
+                @Override
+                public void focusGained(FocusEvent e) {
+                    editing = true;
+                }
+            });
 	        
 	        this.button = button;
 //	        button = new JButton("...");
@@ -718,11 +758,17 @@ public class Configurator extends JFrame {
 
 	    @Override
 	    public Object getCellEditorValue() {
+	        String newLoc = label.getText();
+            if (!"".equals(newLoc) && !newLoc.startsWith(".") && !newLoc.startsWith("/") && newLoc.indexOf(":") == -1) {
+                value = new File(defaultLocation + newLoc);
+            } else {
+                value = new File(newLoc);
+            }
 	        return value;
 	    }
 	    
 	    private void setValue(Object val) {
-	    	this.value = val;
+ 	    	this.value = val;
 	    }
 	    
 	    private void reset() {

@@ -27,11 +27,11 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import mining.Distance;
 import stats.Maths;
-
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -230,13 +230,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		extraLayersVisible = layers;
 	}
 
-	public void paintComponent(Graphics g) {
-		if (getFinalImage()&&image==null) {
+	public void paintComponent(final Graphics g) {
+		if (getFinalImage() && image==null) {
 			createImage();
 			// TODO extra paint appears to be unnecessary
 //			repaint();
 		}
-		g.drawImage(image, 0, 0, this);
+        g.drawImage(image, 0, 0, AbstractPanel.this);
 		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
 			drawAll(g, false);
 		}
@@ -247,7 +247,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		}
 
 	}
-
+	
 	public void screenCapture(String filename) {
 		try {
 			ImageIO.write(image, "png", new File(filename));
@@ -327,6 +327,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		ProgressBarDialog prog;//zx
     	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
 //    	int index;
+    	
+//    	long t1 = System.currentTimeMillis();
     	
     	if (g instanceof Graphics2D) {
     		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -758,6 +760,15 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		*/
 		
 		refreshOtherComponents();
+//		
+//		long t100 = System.currentTimeMillis();
+//		
+//		System.out.println("\tDiff: " + (t100 - t1) + " - " + SwingUtilities.isEventDispatchThread());
+//		  
+//        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+//        for (int i = 2; i < 4; i++) {
+//            System.out.println(stack[i].toString());
+//        }
 	}
 	
 	public void refreshOtherComponents() {

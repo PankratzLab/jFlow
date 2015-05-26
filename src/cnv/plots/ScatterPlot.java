@@ -2601,13 +2601,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		displayIndex(navigationField);
 		updateGUI();
 	}
-
-	public void updateGUI() {
-//		long t1 = System.currentTimeMillis();
+	
+	public synchronized void updateGUI() {
 		if (markerDataLoader == null) {
 			return;
 		}
-//		if (markerData[markerIndex]==null) {
+
+		//		if (markerData[markerIndex]==null) {
 //			log.report("Marker data is null at index "+markerIndex);
 ////			create visual that we're loading data, (write to scatter panel "Loading data from file")
 //			loadMarkerData(markerIndex);
@@ -2680,9 +2680,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 
 //		long t2 = System.currentTimeMillis();
 		if (showingAll) {
-			for (int i = 0; i < scatterPanels.length; i++) {
-				scatterPanels[i].paintAgain();
-			}
+            for (int i = 0; i < scatterPanels.length; i++) {
+                scatterPanels[i].createImage();
+            }
+            for (int i = 0; i < scatterPanels.length; i++) {
+                scatterPanels[i].repaint();
+//				scatterPanels[i].paintAgain();
+            }
 		} else {
 			scatterPanels[selectedPanelIndex].paintAgain();
 		}
