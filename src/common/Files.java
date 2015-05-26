@@ -274,6 +274,19 @@ public class Files {
 		Files.chmod(ext.parseDirectoryOfFile(batchRoot)+"master."+ext.removeDirectoryInfo(batchRoot));
 	}
 
+	public static void qsubTrain(String dir, Vector<String> commandsWithAbsolutePaths, IntVector jobSizes, String batchDir, String batchRoot, int numProcs, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
+		String[] commands;
+		
+		if (jobSizes == null) {
+			commands = Array.toStringArray(commandsWithAbsolutePaths);
+		} else {
+			commands = Sort.putInOrder(Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING), Array.toStringArray(commandsWithAbsolutePaths));
+		}
+		
+		Files.writeList(commands, batchRoot+".chain");
+		Files.qsub(batchRoot+".pbs", "cd "+dir+"\njava -cp ~/park.jar one.ScriptExecutor file="+batchRoot+".chain threads="+numProcs, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
+	}
+
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[][] iterations) {
 		PrintWriter[] writers = new PrintWriter[numBatches];
 		PrintWriter writer;
