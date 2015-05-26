@@ -126,7 +126,7 @@ public class Project {
 		}
 		@Override
 		public void parseValue(String valueStr) { 
-			Boolean newValue = Boolean.valueOf(valueStr);
+			Boolean newValue = valueStr.equals("") ? this.getDefaultValue() : Boolean.valueOf(valueStr);
 			setValue(newValue); 
 		}
 	}
@@ -144,7 +144,7 @@ public class Project {
 		}
 		@Override
 		public void parseValue(String valueStr) {
-			Integer newValue = Integer.valueOf(valueStr);
+			Integer newValue = valueStr.equals("") ? this.getDefaultValue() : Integer.valueOf(valueStr);
 			setValue(newValue);
 		}
 		@Override
@@ -170,7 +170,7 @@ public class Project {
 		}
 		@Override
 		public void parseValue(String valueStr) {
-			Double newValue = Double.valueOf(valueStr);
+			Double newValue = valueStr.equals("") ? this.getDefaultValue() : Double.valueOf(valueStr);
 			setValue(newValue);
 		}
 		@Override
@@ -896,9 +896,7 @@ public class Project {
 				}
 				String[] parts = line.split("=");
 				if (containsKey(parts[0])) {
-					if (parts.length > 1) {
-						setProperty(parts[0], parts[1]);
-					}
+					setProperty(parts[0], parts.length > 1 ? parts[1] : "");
 				} else {
 					System.err.println("Error - unknown property key found: {" + line + "}");
 				}
