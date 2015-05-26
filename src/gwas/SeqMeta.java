@@ -193,7 +193,7 @@ public class SeqMeta {
 		Logger log;
 		String localDir;
 		String filename;
-		Vector<String> toBeSplit, commands;
+		Vector<String> commands;
 		String objectName, snpInfoName, chrom, subsetObject;
 		String[][] phenotypes;
 		String[] studies;
@@ -256,18 +256,17 @@ public class SeqMeta {
 		new File(dir+"snpInfos/").mkdirs();
 		Files.qsub(dir+"batchSplits/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+getRscriptExecutable(maps, log)+" --no-save "+filename, 5000, 0.25, 1);
 		
-		toBeSplit = new Vector<String>();
-		toBeSplit.add("# make sure to run \"qsub "+ext.rootOf(filename)+".qsub\" first!!!");
-		toBeSplit.add("cd batchSplits/");
-
 		jobNames = new Vector<String>();
 		jobSizes = new IntVector();
 		
 		dir = ext.verifyDirFormat(dir);
 		finalSets = identifySet(maps, files, log);
 		for (int i = 0; i < phenotypes.length; i++) {
+//			log.report("Phenotype: "+phenotypes[i][0]);
 			for (int j = 0; j < studies.length; j++) {
+//				log.report("  Study: "+studies[j]);
 				for (int k = 0; k < races.length; k++) {
+//					log.report("    Race: "+races[k][0]);
 					if (!finalSets[i][j][k].equals("<missing>")) {
 						localDir = dir+"objects/"+studies[j]+"/"+races[k][0]+"/"+phenotypes[i][0]+"/";
 						new File(localDir).mkdirs();
@@ -330,11 +329,8 @@ public class SeqMeta {
 								filename = dir+"batchSplits/"+studies[j]+"_"+races[k][0]+"_"+phenotypes[i][0]+"_f"+f+".R";
 								Files.writeList(Array.toStringArray(commands), filename);
 	
-								Files.qsub(dir+"batchSplits/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+getRscriptExecutable(maps, log)+" --no-save "+filename, 10000, 0.5, 1);
-								toBeSplit.add("qsub "+ext.rootOf(filename)+".qsub");
-								jobNames.add(dir+"batchSplits/"+ext.rootOf(filename)+".qsub");
+								jobNames.add(getRscriptExecutable(maps, log)+" --no-save "+filename);
 								jobSizes.add((int)(new File(dir+files[f]).length()));
-//								jobSizes.add((int)(new File(dir+files[f]).length()+chrsToDo.size()*2/maxChr*new File(dir+files[f]).length()));
 							}
 						}
 					}
@@ -347,16 +343,16 @@ public class SeqMeta {
 			return;
 		}
 		
-		toBeSplit.add("# make sure to run \"SeqMeta -consolidate\" after everything else is run!!!");
-		Files.writeList(Array.toStringArray(toBeSplit), dir+"master.toBeSplit");
-		Files.chmod(dir+"master.toBeSplit");
+		if (jobNames.size() > 0) { 
+			Files.qsubTrain(dir, jobNames, jobSizes, "chunks/", "chunkSplit", 24, 62000, 2);
+		} else {
+			log.report("\nLooks like everything has been split");
+		}
 		
 		log.report("");
 		log.report("Make sure to run \"qsub splitChrs.qsub\" first!!!");
-		log.report("Then run ./master.toBeSplit");
-		log.report("And finally SeqMeta -consolidate");
-		
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkSplit", 8, true, null, -1, 22000, 2);
+		log.report("Then run \"qsub chunks/chunkSplit.pbs\"");
+		log.report("Make sure to run \"seq -consolidate\" after everything else is run!!!");
 	}
 	
 	public static void consolidate(String dir, MetaAnalysisParams maps) {
@@ -464,7 +460,7 @@ public class SeqMeta {
 		Logger log;
 		String localDir;
 		String root, filename, objectFilename, outputFilename;
-		Vector<String> toBeRunIndividually, toBeRunMetad, commands, objects;
+		Vector<String> commands, objects;
 		int count;
 		String originalObjectName, objectName, snpInfoFile, snpInfoName, chrom;
 		String[][] phenotypes, races;
@@ -527,10 +523,6 @@ public class SeqMeta {
 			}
 		}
 		
-		toBeRunIndividually = new Vector<String>();
-		toBeRunIndividually.add("cd batchRuns/");
-		toBeRunMetad = new Vector<String>();
-		toBeRunMetad.add("cd batchRuns/");
 		new File(dir+"batchRuns/").mkdir();
 		dir = ext.verifyDirFormat(dir);
 		for (int i = 0; i < phenotypes.length; i++) {
@@ -624,9 +616,7 @@ public class SeqMeta {
 								} while (Files.exists(filename));
 								Files.writeList(Array.toStringArray(commands), filename);
 			
-								Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+getRscriptExecutable(maps, log)+" --no-save "+filename, 5000, 1, 1);
-								toBeRunIndividually.add("qsub "+ext.rootOf(filename)+".qsub");
-								jobNames.add(dir+"batchRuns/"+ext.rootOf(filename)+".qsub");
+								jobNames.add(getRscriptExecutable(maps, log)+" --no-save "+filename);
 								jobSizes.add(infoSizes[chr]);
 							}
 						}
@@ -635,16 +625,14 @@ public class SeqMeta {
 			}
 		}
 
-		Files.writeList(Array.toStringArray(toBeRunIndividually), dir+"master.toBeRunIndividually");
-		Files.chmod(dir+"master.toBeRunIndividually");
-		if (toBeRunIndividually.size() == 1) {
+		if (jobNames.size() == 0) {
 			log.report("All cohorts have been run for all phenotypes");
-		} else if (toBeRunIndividually.size() == 2) {
-			log.report("There is one remaining individual cohort analysis yet to be run using:   ./master.toBeRunIndividually");
+		} else if (jobNames.size() == 1) {
+			log.report("There is one remaining individual cohort analysis yet to be run using:   qsub chunkRun.pbs");
 		} else {
-			log.report("There are "+(toBeRunIndividually.size()-1)+" individual cohort analyses yet to be run using:   ./master.toBeRunIndividually");
+			log.report("There are "+jobNames.size()+" individual cohort analyses yet to be run using:   qsub chunkRun.pbs");
 		}
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
+		Files.qsubTrain(dir, jobNames, jobSizes, "chunks/", "chunkRun", 24, 62000, 24);
 		
 		jobNames = new Vector<String>();
 		jobSizes = new IntVector();
@@ -719,9 +707,7 @@ public class SeqMeta {
 						} while (Files.exists(filename));
 						Files.writeList(Array.toStringArray(commands), filename);
 			
-						Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+getRscriptExecutable(maps, log)+" --no-save "+filename, 25000, 2, 1);
-						toBeRunMetad.add("qsub "+ext.rootOf(filename)+".qsub");
-						jobNames.add(dir+"batchRuns/"+ext.rootOf(filename)+".qsub");
+						jobNames.add(getRscriptExecutable(maps, log)+" --no-save "+filename);
 						jobSizes.add(infoSizes[chr]);
 					}
 				}
@@ -797,24 +783,20 @@ public class SeqMeta {
 					} while (Files.exists(filename));
 					Files.writeList(Array.toStringArray(commands), filename);
 		
-					Files.qsub(dir+"batchRuns/"+ext.rootOf(filename)+".qsub", "cd "+dir+"\n"+getRscriptExecutable(maps, log)+" --no-save "+filename, 30000, 2, 1);
-					toBeRunMetad.add("qsub "+ext.rootOf(filename)+".qsub");
-					jobNames.add(dir+"batchRuns/"+ext.rootOf(filename)+".qsub");
+					jobNames.add(getRscriptExecutable(maps, log)+" --no-save "+filename);
 					jobSizes.add(infoSizes[chr]);
 				}
 			}
 		}
-		Files.writeList(Array.toStringArray(toBeRunMetad), dir+"master.toBeMetaAnalyzed");
-		Files.chmod(dir+"master.toBeMetaAnalyzed");
 		
-		if (toBeRunMetad.size() == 1) {
+		if (jobNames.size() == 0) {
 			log.report("All meta-analyses have been run for all phenotypes");
-		} else if (toBeRunMetad.size() == 2) {
-			log.report("There is one meta-analysis yet to be run using:   ./master.toBeMetaAnalyzed");
+		} else if (jobNames.size() == 1) {
+			log.report("There is one meta-analysis yet to be run using:   qsub chunkMeta.pbs");
 		} else {
-			log.report("There are "+(toBeRunMetad.size()-1)+" meta-analyses yet to be run using:   ./master.toBeMetaAnalyzed");
+			log.report("There are "+jobNames.size()+" meta-analyses yet to be run using:   qsub chunkMeta.pbs");
 		}
-		Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);
+		Files.qsubTrain(dir, jobNames, jobSizes, "chunks/", "chunkMeta", 24, 62000, 24);
 	}
 
 	public static String[] getHeaderForMethod(String[] method) {
