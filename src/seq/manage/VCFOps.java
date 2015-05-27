@@ -26,6 +26,7 @@ import seq.qc.FilterNGS.VariantContextFilter;
 import stats.Histogram.DynamicHistogram;
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
@@ -352,7 +353,7 @@ public class VCFOps {
 			}
 			log.reportTimeInfo("Running gwas.qc on the following files in " + dir + ":");
 			log.reportTimeInfo("\t" + Array.toStr(plinkFiles, "\n"));
-			//gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
+			// gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 		} else {
 			log.reportFileNotFound(vcf);
 		}
@@ -587,6 +588,7 @@ public class VCFOps {
 					VariantContext vcSub = VCOps.getSubset(vc, vpop.getSuperPop().get(vpop.getUniqSuperPop().get(i)));
 					// if (vcSub.getHomVarCount() > 0 || vcSub.getHetCount() > 0) {
 					writers[i].add(vcSub);
+					// System.out.println(vpop.getFileNamesForPop(dir + root, log)[i]);
 					// }
 				}
 			}
@@ -846,6 +848,24 @@ public class VCFOps {
 			}
 		}
 		return created;
+	}
+
+	public static VariantContext lookupExactVariant(String vcf, VariantContext vc, Logger log) {
+		VCFFileReader reader = new VCFFileReader(vcf, true);
+		Segment vcSeg = VCOps.getSegment(vc);
+		CloseableIterator<VariantContext> cIterator = reader.query(vcSeg.getChromosomeUCSC(), vcSeg.getStart(), vcSeg.getStop());
+		VariantContext vcMatch = null;
+		while (cIterator.hasNext()) {
+			VariantContext vcTmp = cIterator.next();
+			if (vcSeg.equals(VCOps.getSegment(vcTmp))) {
+				if (vcTmp.getReference().equals(vc.getReference(), false) && vcTmp.hasSameAlternateAllelesAs(vc)) {
+					vcMatch = vcTmp;
+					break;
+				}
+			}
+		}
+		reader.close();
+		return vcMatch;
 	}
 
 	/**
