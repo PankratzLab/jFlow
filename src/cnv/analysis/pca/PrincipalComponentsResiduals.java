@@ -861,7 +861,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * @param toExtract
 	 *            must be the same length as the samples in the project
 	 */
-	private double[][] getTrimmedPreppedProjectPCsFor(boolean[] toExtract, int numComponents) {
+	public double[][] getTrimmedPreppedProjectPCsFor(boolean[] toExtract, int numComponents) {
 		double[][] prepped;
 		prepped = getTrimmedPreppedPCs(numComponents, sortedByProject);
 		if (toExtract == null) {
