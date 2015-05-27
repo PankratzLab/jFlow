@@ -372,6 +372,7 @@ public class VCFOps {
 		public static final String CASE = "CASE";
 		public static final String CONTROL = "CONTROL";
 		public static final String EXCLUDE = "EXCLUDE";
+		public static final String DETERMINE_ANCESTRY = "DETERMINE_ANCESTRY";
 		public static final String[] HEADER = new String[] { "IID", "Population", "SuperPopulation" };
 		private static final String SKIP = "#N/A";
 		private Hashtable<String, Set<String>> subPop;
@@ -383,7 +384,7 @@ public class VCFOps {
 		private Logger log;
 
 		public enum POPULATION_TYPE {
-			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH;
+			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY;
 		}
 
 		public enum RETRIEVE_TYPE {
@@ -474,6 +475,14 @@ public class VCFOps {
 				}
 				break;
 			case STRATIFICATION:
+				break;
+			case PC_ANCESTRY:
+				if (!superPop.containsKey(DETERMINE_ANCESTRY)) {
+					log.reportTimeError("Population type was set to " + type + ", but did not contain " + DETERMINE_ANCESTRY);
+					log.reportTimeError( DETERMINE_ANCESTRY+" must be present in the "+HEADER[2]+" column as a flag to determine ancestry, all other categories will be used as cluster generators");
+
+					valid = false;
+				}
 				break;
 			default:
 				break;
