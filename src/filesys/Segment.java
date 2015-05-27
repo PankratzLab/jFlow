@@ -98,6 +98,10 @@ public class Segment implements Serializable {
 	public String getUCSClocation() {
 		return Positions.getUCSCformat(new int[] { getChr(), getStart(), getStop() });
 	}
+	
+	public String getChromosomeUCSC() {
+		return Positions.getChromosomeUCSC(chr, true);
+	}
 
 	public String getUCSCLink(String hgBuild) {
 		return Positions.getUCSClinkInExcel(new int[] { getChr(), getStart(), getStop() }, hgBuild);

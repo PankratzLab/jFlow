@@ -20,9 +20,9 @@ public class Ancestry {
 		String[] filenames = VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, log);
 		for (int i = 0; i < filenames.length; i++) {
 			if (filenames[i].endsWith(".USE.vcf.gz")) {
-				curVCF = VCFOps.removeFilteredVariants(vcf, true, true, log);
-				Files.copyFile(curVCF, ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz");
-				Files.copyFile(curVCF + ".tbi", ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz.tbi");
+				curVCF = VCFOps.removeFilteredVariants(curVCF, true, true, log);
+				Files.copyFileUsingFileChannels(new File(curVCF), new File(ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz"), log);
+				Files.copyFileUsingFileChannels(new File(curVCF + ".tbi"), new File(ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz.tbi"), log);
 				curVCF = ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz";
 				VCFOps.vcfGwasQC(curVCF, log);
 				return;

@@ -52,7 +52,12 @@ public class VCOps {
 		DP("DP"), /**
 		 * Mapping quality
 		 */
-		MQ("MQ");
+		MQ("MQ"),
+		
+		/**
+		 * Mapping quality
+		 */
+		GQ("GQ");
 
 		/**
 		 * flag represented in vcf file

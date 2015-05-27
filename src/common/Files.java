@@ -4,6 +4,7 @@ package common;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.nio.channels.FileChannel;
 import java.util.jar.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -506,6 +507,39 @@ public class Files {
 		return chmod(filename, true);
 	}
 
+	/**
+	 * Method should handle gzip and other binary /compressed formats like .ser
+	 * 
+	 * @param source
+	 *            source file
+	 * @param dest
+	 *            destination file
+	 * @param log
+	 * @return if the copy was a success
+	 */
+	public static boolean copyFileUsingFileChannels(File source, File dest, Logger log) {
+		FileChannel inputChannel = null;
+		FileChannel outputChannel = null;
+		boolean copy = false;
+		try {
+			inputChannel = new FileInputStream(source).getChannel();
+			outputChannel = new FileOutputStream(dest).getChannel();
+			outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+			inputChannel.close();
+			outputChannel.close();
+			copy = true;
+		} catch (FileNotFoundException e) {
+			log.reportFileNotFound(source.getPath());
+			log.reportException(e);
+			e.printStackTrace();
+		} catch (IOException e) {
+			log.reportException(e);
+			e.printStackTrace();
+		}
+		return copy;
+	}
+	
+	
 // causes trouble with Serialized data
 	public static boolean copyFile(String from, String to) {
 		FileReader in;
