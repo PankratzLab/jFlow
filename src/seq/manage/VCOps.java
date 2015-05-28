@@ -53,7 +53,7 @@ public class VCOps {
 		 * Mapping quality
 		 */
 		MQ("MQ"),
-		
+
 		/**
 		 * Mapping quality
 		 */
@@ -282,7 +282,7 @@ public class VCOps {
 					log.reportTimeError("Could not compute appropriate allele Depths");
 					log.reportException(ise);
 				}
-				//TODO gte vs gt
+				// TODO gte vs gt
 				if (altAlleleDepth <= 0 || AD[1] >= altAlleleDepth) {
 					if (altAlleleDepth <= 0 || !geno.isHetNonRef() || AD[0] >= altAlleleDepth) {// handles the case when both alleles are non-reference
 						double ratio = (double) AD[1] / geno.getDP();
@@ -324,57 +324,90 @@ public class VCOps {
 
 	public static int[] getAppropriateAlleleDepths(VariantContext vc, Genotype g, Logger log) {
 		int[] AD = new int[2];
-		if (!vc.isBiallelic()) {
-			log.reportTimeWarning("JOHN REMEMBER THE BIALLELIC ISSUE!");
-		}
+//		if (!vc.isBiallelic()) {
+//			log.reportTimeWarning("JOHN REMEMBER THE BIALLELIC ISSUE!");
+//		}
 		Arrays.fill(AD, 0);
 		List<Allele> gAlleles = g.getAlleles();
+
+		List<Allele> varAlleles = vc.getAlleles();
 
 		if (gAlleles.size() != 2 && g.hasAD()) {
 			log.reportTimeError("Number of alleles must equal 2");
 			return null;
 		} else if (gAlleles.size() == 0 || !g.hasAD()) {
+			throw new IllegalStateException("Invalid Allele retrieval");
+
+		} else if (varAlleles.size() < gAlleles.size()) {
+			throw new IllegalStateException("Variant does not capture genotyped alleles");
 		} else {
-			List<Allele> varAlleles = vc.getAlleles();
 			int[] gAD = g.getAD();
 			if (gAlleles.size() == 1) {
 				AD[0] = gAD[0];
 				AD[1] = gAD[1];
 			} else {
-				int indexVar = 0;
-				int indexG = 0;
-				for (Allele varAllele : varAlleles) {
-					for (Allele gAllele : gAlleles) {
-						if (indexVar < gAD.length && gAllele.equals(varAllele)) {
-							int aIndex = -1;
-							if (varAllele.isReference()) {// always index 0
-								aIndex = 0;
-							} else if (indexG == 0 && g.isHetNonRef()) {// first is index 0
-								aIndex = 0;
-							} else {
-								aIndex = 1;
-							}
-							if (AD[aIndex] != 0) {
-								log.reportTimeError("Invalid allele matching");
-								log.reportTimeError(varAlleles.toString());
-								log.reportTimeError(gAlleles.toString());
-								throw new IllegalStateException("Invalid allele matching");
-							}
-							// if (gAD[indexVar] == 0) {
-							// while (indexVar < gAD.length - 1 && gAD[indexVar] == 0) {
-							// indexVar++;
-							// }
-							// }
-							AD[aIndex] = gAD[indexVar];
-							indexG++;
-							break;
+				if (gAD.length != varAlleles.size()) {
+					String error = "an allelic depth must be present for every allele in the variant";
+					log.reportTimeError(error);
+					log.reportTimeError(varAlleles.toString());
+					log.reportTimeError(gAlleles.toString());
+					log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+					log.reportTimeError(vc.toStringWithoutGenotypes());
+					log.reportTimeError(g.toString());
+					return null;
+				}
+				ArrayList<Allele> uniqs = new ArrayList<Allele>();
+				for (int i = 0; i < gAlleles.size(); i++) {
+					boolean have = false;
+					for (int j = 0; j < uniqs.size(); j++) {
+						if (gAlleles.get(i).equals(uniqs.get(j), false)) {
+							have = true;
 						}
 					}
-					indexVar++;
+					if (!have) {
+						uniqs.add(gAlleles.get(i));
+					}
 				}
-				if (g.isHomVar() && Array.sum(AD) == 0 && gAD[0] > 0) {
-					AD[0] = gAD[0];
+				ArrayList<Integer> gAlleleIndices = new ArrayList<Integer>();
+				int index = 0;
+				for (Allele varAllele : varAlleles) {
+					for (Allele gAllele : uniqs) {
+						if (varAllele.equals(gAllele)) {
+							gAlleleIndices.add(index);
+						}
+					}
+					index++;
 				}
+
+				if (gAlleleIndices.size() > 2 || gAlleleIndices.size() == 0) {
+					log.reportTimeError("Invalid Allelic depth extraction");
+					log.reportTimeError(varAlleles.toString());
+					log.reportTimeError(gAlleles.toString());
+					log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+					log.reportTimeError(vc.toStringWithoutGenotypes());
+					log.reportTimeError(g.toString());
+					throw new IllegalStateException("Invalid Allelic depth extraction");
+				}
+				if (gAlleleIndices.size() == 1) {
+					if (g.isHomRef()) {
+						AD[0] = gAD[gAlleleIndices.get(0)];
+					} else if (g.isHomVar()) {
+						AD[1] = gAD[gAlleleIndices.get(0)];
+					} else {
+						log.reportTimeError("Invalid Allelic depth extraction for 1 index");
+						log.reportTimeError(varAlleles.toString());
+						log.reportTimeError(gAlleles.toString());
+						log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportTimeError(vc.toStringWithoutGenotypes());
+						log.reportTimeError(g.toString());
+						throw new IllegalStateException("Invalid Allelic depth extraction for 1 index");
+					}
+				} else {
+					for (int i = 0; i < gAlleleIndices.size(); i++) {
+						AD[i] = gAD[gAlleleIndices.get(i)];
+					}
+				}
+
 				if (g.isHet() && (AD[1] == 0 || AD[0] == 0) && Array.sum(gAD) != AD[0] && Array.sum(gAD) != AD[1]) {// there can actually be het calls with 0 ref or 0 alt, or both...apparently, I would'nt do that but whatever. So anyways we do not test AD[0]
 					log.reportTimeError("Invalid Het allele depth, Het non-ref " + g.isHetNonRef());
 					log.reportTimeError(varAlleles.toString());
@@ -402,6 +435,7 @@ public class VCOps {
 				}
 			}
 		}
+
 		return AD;
 		// //vc
 		// g.ge
@@ -495,10 +529,10 @@ public class VCOps {
 		VariantContext vcSub = null;
 		switch (type) {
 		case SUBSET_LOOSE:
-			vcSub = vc.subContextFromSamples(sampleNames, true, true);
+			vcSub = vc.subContextFromSamples(sampleNames, false, true);
 			break;
 		case SUBSET_STRICT:
-			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()), true, true);
+			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()), false, true);
 			break;
 		case NO_SUBSET:
 			vcSub = vc;

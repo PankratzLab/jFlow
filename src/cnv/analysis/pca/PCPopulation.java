@@ -43,6 +43,7 @@ public class PCPopulation {
 		this.populations = getPopulations(pResiduals, vpop);
 		determinePCClusters();
 		Hashtable<String, TestSampleDistances> dists = new Hashtable<String, TestSampleDistances>();
+		Hashtable<String, TestPopulationDistances> pdists = new Hashtable<String, TestPopulationDistances>();
 		for (int i = 0; i < populations.length; i++) {
 			if (populations[i].isTest()) {
 				for (int j = 0; j < populations.length; j++) {
@@ -58,11 +59,20 @@ public class PCPopulation {
 						}
 					}
 				}
+			} else {
+				pdists.put(populations[i].getName(), new TestPopulationDistances(populations[i]));
+				for (int j = 0; j < populations.length; j++) {
+					if (!populations[j].isTest()) {
+						pdists.get(populations[i].getName()).add(populations[j]);
+					}
+				}
 			}
 		}
 		ArrayList<TestSampleDistances> finalizedDists = new ArrayList<PCPopulation.TestSampleDistances>(dists.size());
 		for (String ind : dists.keySet()) {
-			finalizedDists.add(dists.get(ind));
+			TestSampleDistances curDist = dists.get(ind);
+
+			finalizedDists.add(curDist);
 		}
 		return finalizedDists.toArray(new TestSampleDistances[finalizedDists.size()]);
 	}
@@ -100,9 +110,59 @@ public class PCPopulation {
 
 	}
 
+	private static class TestPopulationDistances {
+		private Population population;
+		private ArrayList<Double> otherDistances;
+		private ArrayList<String> otherPopulations;
+
+		public TestPopulationDistances(Population population) {
+			super();
+			this.population = population;
+			this.otherDistances = new ArrayList<Double>();
+			this.otherPopulations = new ArrayList<String>();
+		}
+
+		public Population getPopulation() {
+			return population;
+		}
+
+		public void add(Population otherPopulation) {
+			if (otherPopulation.isTest()) {
+				throw new IllegalStateException("This method must not be called on the test case");
+			} else {
+				double tmpDist = 0;
+				for (int i = 0; i < population.getClusterCenters().length; i++) {
+					tmpDist += Math.pow(population.getClusterCenters()[i] - otherPopulation.getClusterCenters()[i], 2);
+				}
+				tmpDist = Math.sqrt(tmpDist);
+				otherDistances.add(tmpDist);
+				otherPopulations.add(otherPopulation.getName());
+			}
+		}
+
+		public ArrayList<Double> getOtherDistances() {
+			return otherDistances;
+		}
+
+		public void setOtherDistances(ArrayList<Double> otherDistances) {
+			this.otherDistances = otherDistances;
+		}
+
+		public ArrayList<String> getOtherPopulations() {
+			return otherPopulations;
+		}
+
+		public void setOtherPopulations(ArrayList<String> otherPopulations) {
+			this.otherPopulations = otherPopulations;
+		}
+
+	}
+
 	private static class TestSampleDistances {
 		private String sample;
 		private ArrayList<Double> distances;
+		private ArrayList<Double> normDistances;
+
 		private ArrayList<String> populations;
 
 		public TestSampleDistances(String sample) {
@@ -110,11 +170,22 @@ public class PCPopulation {
 			this.sample = sample;
 			this.distances = new ArrayList<Double>();
 			this.populations = new ArrayList<String>();
+			this.normDistances = new ArrayList<Double>();
 
 		}
 
 		public String getSample() {
 			return sample;
+		}
+
+		public void computeNormDist(Hashtable<String, TestPopulationDistances> pdists) {
+			for (int i = 0; i < populations.size(); i++) {
+				String curPop = populations.get(i);
+				TestPopulationDistances curPopulationDistance = pdists.get(curPop);
+				double distToCur = distances.get(i);
+				
+			}
+
 		}
 
 		public double[] getDistances() {
@@ -186,6 +257,10 @@ public class PCPopulation {
 			return pcMatchedMask;
 		}
 
+		public double[] getClusterCenters() {
+			return clusterCenters;
+		}
+
 		public Set<String> getSamples() {
 			return samples;
 		}
@@ -216,13 +291,12 @@ public class PCPopulation {
 		public void determineClusters(int clusterComponents, PrincipalComponentsResiduals pResiduals, Logger log) {
 			if (isTest) {
 				throw new IllegalStateException("This method cannot be called on the test case");
-
 			} else {
 				this.clusterCenters = new double[clusterComponents];
 				double[][] trimmedPcs = PrincipalComponentsResiduals.trimPcBasis(clusterComponents, pResiduals.getPcBasis(), log);
 				for (int i = 0; i < clusterCenters.length; i++) {
 					clusterCenters[i] = Array.median(Array.subArray(trimmedPcs[i], pcMatchedMask));
-					System.out.println(name + " Cluster " + i + " : " + clusterCenters[i]);
+					log.reportTimeInfo(name + " Cluster " + i + " : " + clusterCenters[i]);
 				}
 			}
 		}

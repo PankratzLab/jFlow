@@ -134,6 +134,11 @@ public class TargetRegions<T extends Segment> {
 		vpop.report();
 		Segment[] segs = new Segment[] { new Segment("chr15:50714579-50795277") };
 		LocusSet<Segment> set = new LocusSet<Segment>(segs, true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 		};
 		TargetRegions<Segment> targetRegions = new TargetRegions<Segment>(vcf, set, vpop, log);
 		targetRegions.summarizeRegions(output, toMatchVCF, toMatchAnnotations);

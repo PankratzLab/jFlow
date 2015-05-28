@@ -15,15 +15,28 @@ public class Ancestry {
 		new File(outputDirectory).mkdirs();
 
 		Logger log = new Logger(outputDirectory + "ancestry.log");
+		log.reportTimeInfo("Output directory: "+outputDirectory);
+
 		String curVCF = VCFOps.extractIDs(vcf, g1000RsIds, outputDirectory, true, true, log);
+		log.reportTimeInfo("Current VCF: "+curVCF);
 		curVCF = VCFOps.extractIDs(curVCF, hapMapRsIds, outputDirectory, true, true, log);
+		log.reportTimeInfo("Current VCF: "+curVCF);
+
 		String[] filenames = VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, log);
 		for (int i = 0; i < filenames.length; i++) {
 			if (filenames[i].endsWith(".USE.vcf.gz")) {
+				curVCF = filenames[i];
+				log.reportTimeInfo("Current VCF: "+curVCF);
+
 				curVCF = VCFOps.removeFilteredVariants(curVCF, true, true, log);
-				Files.copyFileUsingFileChannels(new File(curVCF), new File(ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz"), log);
-				Files.copyFileUsingFileChannels(new File(curVCF + ".tbi"), new File(ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz.tbi"), log);
-				curVCF = ext.parseDirectoryOfFile(curVCF) + "ancestry.vcf.gz";
+				log.reportTimeInfo("Current VCF: "+curVCF);
+
+				String copyVcf = ext.parseDirectoryOfFile(curVCF) + ext.rootOf(vpopFile) + "ancestry.vcf.gz";
+				Files.copyFileUsingFileChannels(new File(curVCF), new File(copyVcf), log);
+				Files.copyFileUsingFileChannels(new File(curVCF + ".tbi"), new File(copyVcf + ".tbi"), log);
+				curVCF = copyVcf;
+				log.reportTimeInfo("Current VCF: "+curVCF);
+
 				VCFOps.vcfGwasQC(curVCF, log);
 				return;
 			}

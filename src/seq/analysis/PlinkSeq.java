@@ -445,9 +445,9 @@ public class PlinkSeq implements Serializable {
 		return verified;
 	}
 
-	public static PseqProject initialize(PlinkSeq pSeq, String projName, String vcf, VcfPopulation vpop, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
+	public static PseqProject initialize(PlinkSeq pSeq, String projName,String directory, String vcf, VcfPopulation vpop, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
 		String projectName = projName == null ? PlinkSeqUtils.PSEQ_PROJECT + ext.rootOf(vcf) : PlinkSeqUtils.PSEQ_PROJECT + projName;
-		String projectDirectory = ext.parseDirectoryOfFile(vcf) + projectName + "/";
+		String projectDirectory =directory==null?ext.parseDirectoryOfFile(vcf) + projectName + "/":directory;
 		new File(projectDirectory).mkdirs();
 		String phenoFile = null;
 		if (vpop != null) {

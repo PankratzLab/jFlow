@@ -53,7 +53,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(geneTrack, locFile, log);
 		this.plinkSeq = new PlinkSeq(false, true, log);
-		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, vcf, vpop, plinkSeqResourceDirectory, false, false, log);
+		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, plinkSeqResourceDirectory, false, false, log);
 		this.varList = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName(), true) + ".varList";
 	}
 
@@ -284,13 +284,8 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 		}
 	}
 
-	public static void test() {
-		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
-		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.errorRegions2.vcf";
-		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vPopCaseControl.vcf";
-		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.CUSHINGS.vcf.gz";
+	public static void test(String vcf, String[] vpopFiles) {
 
-		String[] vpopFiles = new String[] { "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt", "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControlAllRaces.txt" };
 		for (int i = 0; i < vpopFiles.length; i++) {
 			String fullpathToChargeVCF = "/panfs/roc/groups/14/tsaim/shared/bin/CHARGE/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
 			String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
@@ -316,11 +311,11 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 			geneTrack.setGeneSetFilename(geneTrackFile);
 			Pathways pathways = Pathways.load(keggPathwayFile);
 			GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
-			VCFTallyPSeq vcfTallyPSeq = new VCFTallyPSeq(vcf, gRegions, vpop, CASE_CONTROL_TYPE.BOTH_PASS, resourceDirectory, null, log);
+			VCFTallyPSeq vcfTallyPSeq = new VCFTallyPSeq(vcf, gRegions, vpop, CASE_CONTROL_TYPE.BOTH_PASS, resourceDirectory, ext.rootOf(vpop.getFileName()), log);
 			if (Files.exists(vcfTallyPSeq.getSerFile())) {
 				vcfTallyPSeq = load(vcfTallyPSeq.getSerFile());
 			}
-			vcfTallyPSeq.fullGamutAssoc(-1, "0", filterNGS, fullpathToChargeVCF, 8);
+			vcfTallyPSeq.fullGamutAssoc(-1, "0", filterNGS, fullpathToChargeVCF, 24);
 			vcfTallyPSeq.summarize();
 		}
 
@@ -328,16 +323,28 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String filename = "VCFTallyPSeq.dat";
+		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
+		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.errorRegions2.vcf";
+		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vPopCaseControl.vcf";
+		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.CUSHINGS.vcf.gz";
+		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
+		String[] vpopFiles = new String[] { "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt", "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControlAllRaces.txt" };
+
 		String logfile = null;
 		Logger log;
-		String usage = "\n" + "seq.analysis.VCFTallyPSeq requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n" + "seq.analysis.VCFTallyPSeq requires 0-1 arguments\n";
+		usage += "   (1) vcf file (i.e. file=" + vcf + " (default))\n" + "";
+		usage += "   (2) vpop files, comma delimited (i.e. vpop=" + Array.toStr(vpopFiles) + " (default))\n" + "";
+
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
+			} else if (args[i].startsWith("vcf=")) {
+				vcf = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("vpop=")) {
+				vpopFiles = args[i].split("=")[1].split(",");
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -352,7 +359,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 		}
 		try {
 			log = new Logger(logfile);
-			test();
+			test(vcf, vpopFiles);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

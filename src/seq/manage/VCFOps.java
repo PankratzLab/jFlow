@@ -479,7 +479,7 @@ public class VCFOps {
 			case PC_ANCESTRY:
 				if (!superPop.containsKey(DETERMINE_ANCESTRY)) {
 					log.reportTimeError("Population type was set to " + type + ", but did not contain " + DETERMINE_ANCESTRY);
-					log.reportTimeError( DETERMINE_ANCESTRY+" must be present in the "+HEADER[2]+" column as a flag to determine ancestry, all other categories will be used as cluster generators");
+					log.reportTimeError(DETERMINE_ANCESTRY + " must be present in the " + HEADER[2] + " column as a flag to determine ancestry, all other categories will be used as cluster generators");
 
 					valid = false;
 				}
@@ -895,9 +895,12 @@ public class VCFOps {
 		}
 		VARIANT_FILTER_DOUBLE[] vDoubles = new VARIANT_FILTER_DOUBLE[0];
 		if (standardFilters) {
-			VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_LOOSE;
+			VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_STRICT;
 			VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
-			vDoubles = new VARIANT_FILTER_DOUBLE[] { gq, dp };
+			VARIANT_FILTER_DOUBLE maf = VARIANT_FILTER_DOUBLE.MAF;
+			VARIANT_FILTER_DOUBLE cr = VARIANT_FILTER_DOUBLE.CALL_RATE;
+			
+			vDoubles = new VARIANT_FILTER_DOUBLE[] { cr, maf, gq, dp };
 		}
 		VariantContextFilter variantContextFilter = new VariantContextFilter(vDoubles, new VARIANT_FILTER_BOOLEAN[] { VARIANT_FILTER_BOOLEAN.FAILURE_FILTER }, null, null, log);
 		int count = 0;
@@ -944,7 +947,7 @@ public class VCFOps {
 
 	public static void qcVCF(String vcf, Logger log) {
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
-		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vcf), vcf, null, ext.parseDirectoryOfFile(vcf), true, false, log);
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vcf), null, vcf, null, ext.parseDirectoryOfFile(vcf), true, false, log);
 		plinkSeq.createNewProject(pseqProject);
 		plinkSeq.loadData(pseqProject, LOAD_TYPES.VCF, null);
 		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(1, 10, log);
