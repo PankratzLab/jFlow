@@ -249,6 +249,7 @@ public class Configurator extends JFrame {
                     }
                     for (File f : files) {
                         if (!hasAllPLINKFiles(f)) {
+                            proj.message("Error - couldn't find all files {.bim/.fam/.bed} for PLINK root [" + ext.rootOf(f.getPath(), true) + "]");
                             return false;
                         }
                     }
@@ -869,6 +870,7 @@ public class Configurator extends JFrame {
 	        label.addFocusListener(new FocusListener() {
 	            @Override
 	            public void focusLost(FocusEvent e) {
+	                if (editing) return;
 	                String newText = label.getText();
 	                
 	                Object newValue = value;
