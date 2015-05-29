@@ -33,19 +33,15 @@ public class MarkerDataLoader implements Runnable {
 	private long sampleFingerprint;
 	private int readAheadLimit;
 	private int numberCurrentlyLoaded;
-	private boolean plinkFormat;
-	private String plinkFileRoot;
-	private int[] plinkSampleIndices;
+//	private boolean plinkFormat;
+//	private String plinkFileRoot;
+//	private int[] plinkSampleIndices;
 	private Thread thread;
 	private Logger log;
 	private CountHash finalWaitTimeCounts;
 	private HashSet<Integer> waitTimesSeen;
-
-	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
-		this(proj, markerNames, amountToLoadAtOnceInMB, null);	
-	}
 	
-	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB, String plinkFileRoot) {
+	public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
 		Hashtable<String, Integer> markerHash;
 		Vector<String> missingMarkers, v;
 		String[] markerNamesProj;
@@ -92,16 +88,16 @@ public class MarkerDataLoader implements Runnable {
 			}
 		}
 
-		if (plinkFileRoot != null) {
-			this.plinkFormat = true;
-			this.plinkFileRoot = plinkFileRoot;
-			markerLookup = PlinkData.parseMarkerLookup(plinkFileRoot); // Note: markerLookup from PlinkData contains alleles, unlike its standard counterpart 
-			plinkSampleIndices = PlinkData.parseSampleIndicesForProject(proj, plinkFileRoot);
-		} else {
-			this.plinkFormat = false;
-			this.plinkFileRoot = null;
+//		if (plinkFileRoot != null) {
+//			this.plinkFormat = true;
+//			this.plinkFileRoot = plinkFileRoot;
+//			markerLookup = PlinkData.parseMarkerLookup(plinkFileRoot); // Note: markerLookup from PlinkData contains alleles, unlike its standard counterpart 
+//			plinkSampleIndices = PlinkData.parseSampleIndicesForProject(proj, plinkFileRoot);
+//		} else {
+//			this.plinkFormat = false;
+//			this.plinkFileRoot = null;
 			markerLookup = proj.getMarkerLookup();
-		}
+//		}
 
 		if (amountToLoadAtOnceInMB <= 0) {
 			amountToLoadAtOnceInMB = (int)((double)Runtime.getRuntime().maxMemory()/1024/1024*0.80);
@@ -121,11 +117,11 @@ public class MarkerDataLoader implements Runnable {
 					hash.put(line[0], v = new Vector<String>(100000));
 					filenames.put(line[0], "");
 				}
-				if (plinkFormat) {
-					v.add(markerNames[i]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]);
-				} else {
+//				if (plinkFormat) {
+//					v.add(markerNames[i]+"\t"+line[1]+"\t"+line[2]+"\t"+line[3]);
+//				} else {
 					v.add(markerNames[i]+"\t"+line[1]);
-				}
+//				}
 
 				if (readAheadLimit == -1) {
 					readAheadLimit = (int)Math.floor((double)amountToLoadAtOnceInMB *1024*1024 / (double)determineNBytesPerMarker(proj.MARKER_DATA_DIRECTORY.getValue(false, true)+line[0], log));
@@ -293,7 +289,7 @@ public class MarkerDataLoader implements Runnable {
 		long time, subtime;
 		int maxPerCycle;
 		Hashtable<String, Float> outlierHash;
-		String[][] plinkMarkerAlleles;
+//		String[][] plinkMarkerAlleles;
 		
 		if (killed) {
 			return;
@@ -348,7 +344,7 @@ public class MarkerDataLoader implements Runnable {
 			markerIndicesInFile = new int[v.size()];
 			markerIndicesInProj = new int[v.size()];
 			markerIndicesInSelection = new int[v.size()][];
-			plinkMarkerAlleles = new String[v.size()][];
+//			plinkMarkerAlleles = new String[v.size()][];
 			for (int j = 0; j<v.size() && !killed; j++) {
 				line = v.elementAt(j).split("[\\s]+");
 				markerIndicesInProj[j] = ext.indexOfStr(line[0], allMarkersInProj, true, true);	//modified here to fix the bug
@@ -357,17 +353,17 @@ public class MarkerDataLoader implements Runnable {
 				if (markerIndicesInSelection[j].length > 1) {
 					log.report("FYI, marker "+line[0]+" was requested "+markerIndicesInSelection[j].length+" times");
 				}
-				if (plinkFormat) {
-					plinkMarkerAlleles[j] = new String[] {line[2], line[3]};
-				}
+//				if (plinkFormat) {
+//					plinkMarkerAlleles[j] = new String[] {line[2], line[3]};
+//				}
 			}
 
-			if (plinkFormat) {
-				collection = PlinkData.loadBedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + plinkFileRoot + ".bed", markerIndicesInProj, markerIndicesInFile, sampleFingerprint, plinkSampleIndices);
+//			if (plinkFormat) {
+//				collection = PlinkData.loadBedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + plinkFileRoot + ".bed", markerIndicesInProj, markerIndicesInFile, sampleFingerprint, plinkSampleIndices);
 //				collection = PlinkData.loadPedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.getDir(proj.MARKER_DATA_DIRECTORY) + plinkFileRoot + ".bed", markerIndicesInProj, markerIndicesInFile, sampleFingerprint, plinkSampleIndices);
-			} else {
+//			} else {
 				collection = loadFromRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj, proj.MARKER_DATA_DIRECTORY.getValue(false, true)+filename, markerIndicesInProj, markerIndicesInFile, sampleFingerprint, outlierHash, log);
-			}
+//			}
 
 			for (int k = 0; k < markerIndicesInProj.length && !killed; k++) {
 				for (int i = 0; i < markerIndicesInSelection[k].length; i++) {

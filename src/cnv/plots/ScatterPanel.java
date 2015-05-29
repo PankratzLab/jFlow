@@ -244,6 +244,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		sex = new String[samples.length];
 		otherClass = new String[samples.length];
 		uniqueValueCounts = new CountVector();
+		
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
 
@@ -253,7 +254,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				sex[i] = "e";
 				otherClass[i] = "e";
 				
-			} else if (indi!=null) {
+			} else if (indi != null) {
 				genotypeCode = (byte)(alleleCounts[i]+1);
 //				genotypeCode = determineCodeFromClass(1, alleleCounts[i], indi, chr, position);
 //				if (gcScores[i]<gcThreshold) {
@@ -266,18 +267,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				// additional genotypeFilters
 				if (currentClass == 1) {
 					classCode = genotypeCode;
-//				} else if (sampleData.getClassName(currentClass).equals(SampleData.PLINK)) {
-//					
+				} else if (sampleData.getClassName(currentClass).startsWith(SampleData.PLINK_CLASS_PREFIX)) {
+				    byte indiCode = sp.getPlinkGenotypeForIndi(samples[i], currentClass);// chr1:159,937,288-159,945,728
+					classCode = (byte)((int)indiCode + 1);
 				} else {
 					classCode = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position);
 				}
 				
-				// TODO what was this for? 5/4/15, BRC
-				if (sampleData.getSexClassIndex() == -1) {
-				} else {
-				}
-				
-				//System.out.println("Current loop:\t"+i+"\t code:\t"+code+"\t alleleCounts: "+alleleCounts[i]+"\t gcScores: "+gcScores[i]);
 				if (classCode <= -1 && !sp.maskMissing(panelIndex)) {
 					classCode = 0;
 				}
@@ -470,10 +466,13 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			i = indicesOfNearbySamples.elementAt(l);
 			if (i < samples.length) { // can also be centroids or other points
 				indi = sampleData.getIndiFromSampleHash(samples[i]);
-				g.setColor(colorScheme[Math.min(sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position), colorScheme.length-1)]);
-				//g.setColor(Color.YELLOW);
-	//			if (gcScores[i]<gcThreshold) {
-	//			if (currentClass==1 && alleleCounts[i]==-1) {
+				byte classCode;
+				if (sampleData.getClassName(currentClass).startsWith(SampleData.PLINK_CLASS_PREFIX))  {
+				    classCode = (byte)((int)sp.getPlinkGenotypeForIndi(samples[i], currentClass) + 1);
+				} else {
+				    classCode = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position);
+				}
+				g.setColor(colorScheme[Math.min(classCode, colorScheme.length-1)]);
 				if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
 					g.drawString("X", getXPixel(datapoints[0][i])-xWidth/2, getYPixel(datapoints[1][i])+(int)(xFontSize/2.0));
 				} else {

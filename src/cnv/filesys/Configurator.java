@@ -13,9 +13,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import javax.swing.AbstractAction;
@@ -41,6 +44,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -187,6 +191,10 @@ public class Configurator extends JFrame {
                 "Optimization parameters",
                 "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA",
                 "MAX_MARKERS_LOADED_PER_CYCLE"
+            },
+            {
+                "Plink Directory/Filename Roots (edit to remove extension)",
+                "PLINK_DIR_FILEROOTS"
             }
     };
     String[] hiddenProperties = new String[]{
@@ -207,6 +215,71 @@ public class Configurator extends JFrame {
 	private Project proj;
 	
 	private ArrayList<Integer> labelRows = new ArrayList<Integer>();
+	
+	private abstract class InputValidator {
+	    abstract Object processNewValue(Object newValue, Object oldValue);
+	    abstract boolean acceptNewValue(Object newValue);
+	}
+	
+	private HashMap<String, InputValidator> validators = new HashMap<String, Configurator.InputValidator>() {{
+	    put("PLINK_DIR_FILEROOTS", new InputValidator() {
+            @Override
+            Object processNewValue(Object newValue, Object oldValue) {
+                if (newValue instanceof File[]) {
+                    if (((File[])newValue).length == 0 || (((File[])newValue).length == 1 && ((File[])newValue)[0].getPath().equals(""))) {
+                        return newValue;
+                    }
+                    File[] newFiles = new File[((File[])newValue).length];
+                    for (int i = 0; i < ((File[])newValue).length; i++) {
+                        String newPath = ext.rootOf(((File[])newValue)[i].getAbsolutePath(), false);
+                        newFiles[i] = new File(newPath);
+                    }
+                    return newFiles;
+                } else {
+                    System.out.println("ERROR - new value should be a File[] (array)!");
+                    return oldValue;
+                }
+            }
+            @Override
+            boolean acceptNewValue(Object newValue) {
+                if (newValue instanceof File[]) {
+                    File[] files = (File[]) newValue;
+                    if (files.length == 0 || (files.length == 1 && files[0].getPath().equals(""))) {
+                        return true;
+                    }
+                    for (File f : files) {
+                        if (!hasAllPLINKFiles(f)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                } else {
+                    System.out.println("ERROR - new value should be a File[] (array)!");
+                    return false;
+                }
+            }
+            private boolean hasAllPLINKFiles(File f) {
+                String[] files = f.getParentFile().list(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.endsWith(".fam") || name.endsWith(".bim") || name.endsWith(".bed");
+                    }
+                });
+                if (files.length < 3) return false;
+                boolean hasBed = false, hasFam = false, hasBim = false;
+                for (String file : files) {
+                    if (file.endsWith(".fam")) {
+                        hasFam = true;
+                    } else if (file.endsWith(".bim")) {
+                        hasBim = true;
+                    } else if (file.endsWith(".bed")) {
+                        hasBed = true;
+                    }
+                }
+                return hasBed && hasFam && hasBim;
+            }
+        });
+	}};
 	
 	/**
 	 * Launch the application.
@@ -512,6 +585,23 @@ public class Configurator extends JFrame {
 				}
 				return superComp;
 			}
+			@Override
+		    public void editingStopped(ChangeEvent e) {
+		        // Take in the new value
+		        TableCellEditor editor = getCellEditor();
+		        if (editor != null) {
+		            Object value = editor.getCellEditorValue();
+	                String propKey = (String) this.getModel().getValueAt(this.editingRow, 0);
+		            Object oldValue = getValueAt(editingRow, editingColumn);
+	                if (acceptNewValue(propKey, value)) {
+    		            value = processNewValue(propKey, value, oldValue);
+    		            setValueAt(value, editingRow, editingColumn);
+	                } else {
+	                    setValueAt(oldValue, editingRow, editingColumn);
+	                }
+		            removeEditor();
+		        }
+		    }
 		};
 		
 		DefaultTableModel model = new DefaultTableModel(new String[]{"Property Name", "Property Value"}, 0) {
@@ -600,6 +690,9 @@ public class Configurator extends JFrame {
 		        continue;
 		    }
 			String key = ((String) table.getValueAt(i, 0)).trim();
+			if (key.contains("PLINK")) {
+			    System.out.println("found");
+			}
 			Object rawValue = table.getValueAt(i, 1);
 			String value = "";
 			if (rawValue instanceof File[]) {
@@ -635,12 +728,28 @@ public class Configurator extends JFrame {
 					}
 				}
 			} else if (rawValue instanceof String[]) {
-				value = ((String[])rawValue)[0];
-				for (int k = 1; k < ((String[])rawValue).length; k++) {
-					value += ";" + ((String[])rawValue)[k];
+				value = "";//((String[])rawValue)[0];
+				for (int k = 0; k < ((String[])rawValue).length; k++) {
+				    String tempValue = ((String[])rawValue)[k]; 
+				    if (tempValue.startsWith(projectsDir)) {
+				        value += tempValue.substring(projectsDir.length());
+				    } else if (tempValue.startsWith(currProjDir)) {
+			            value += tempValue.substring(currProjDir.length());
+			        } else {
+				        value += tempValue;
+				    }
+				    if (k < ((String[])rawValue).length - 1) {
+				        value += ";";
+				    }
 				}
 			} else {
-				value = rawValue.toString();
+                if (rawValue.toString().startsWith(projectsDir)) {
+                    value += rawValue.toString().substring(projectsDir.length());
+                } else if (rawValue.toString().startsWith(currProjDir)) {
+                        value += rawValue.toString().substring(currProjDir.length());
+                } else {
+                    value += rawValue.toString();
+                }
 			}
 			proj.setProperty(key, value);
 		}
@@ -689,6 +798,17 @@ public class Configurator extends JFrame {
 		return keyVal;	
 	}
 	
+	private boolean acceptNewValue(String propKey, Object newValue) {
+	    InputValidator validator = validators.get(propKey);
+	    return validator == null || validator.acceptNewValue(newValue);
+	}
+	
+	private Object processNewValue(String propKey, Object newValue, Object oldValue) {
+        InputValidator validator = validators.get(propKey);
+        return validator == null ? newValue : validator.processNewValue(newValue, oldValue);
+	}
+	
+	
 	class FileChooserCellEditor extends DefaultCellEditor implements TableCellEditor {
 		// from http://stackoverflow.com/questions/15644319/jfilechooser-within-a-jtable
 		private static final long serialVersionUID = 1L;
@@ -706,9 +826,11 @@ public class Configurator extends JFrame {
 	    private Object value;
 //	    private JTextField textField;
 	    volatile boolean keyed = false;
+	    volatile boolean isMulti = false;
 	    volatile int keyedCount = 0;
 	    String defaultLocation;
 	    volatile boolean editing = false;
+	    JTable table;
 	    /**
 	     * Constructor.
 	     */
@@ -731,16 +853,50 @@ public class Configurator extends JFrame {
 	        panel.addFocusListener(new FocusListener() {
                 @Override
                 public void focusLost(FocusEvent e) {
-                    value = new File(label.getText());
                     editing = false;
                     stopCellEditing();
                     fireEditingStopped();
+                    if (table != null) {
+                        ((DefaultTableModel)table.getModel()).fireTableDataChanged();
+                    }
+                    System.out.println("PANEL FOCUS LOST");
                 }
                 @Override
                 public void focusGained(FocusEvent e) {
                     editing = true;
                 }
             });
+	        label.addFocusListener(new FocusListener() {
+	            @Override
+	            public void focusLost(FocusEvent e) {
+	                String newText = label.getText();
+	                
+	                Object newValue = value;
+	                if (isMulti) {
+	                    String[] pts = newText.split(";");
+	                    File[] newFiles = new File[pts.length];
+	                    for (int i = 0; i < pts.length; i++) {
+	                        newFiles[i] = new File(pts[i]);
+	                    }
+	                    newValue = newFiles;
+	                } else {
+	                    newValue = new File(newText);
+	                }
+	                setValue(newValue);
+	                
+	                editing = false;
+	                stopCellEditing();
+	                fireEditingStopped();
+	                if (table != null) {
+	                    ((DefaultTableModel)table.getModel()).fireTableDataChanged();
+	                }
+	                System.out.println("LABEL FOCUS LOST");
+	            }
+	            @Override
+	            public void focusGained(FocusEvent e) {
+	                editing = true;
+	            }
+	        });
 	        
 	        this.button = button;
 //	        button = new JButton("...");
@@ -759,16 +915,71 @@ public class Configurator extends JFrame {
 	    @Override
 	    public Object getCellEditorValue() {
 	        String newLoc = label.getText();
-            if (!"".equals(newLoc) && !newLoc.startsWith(".") && !newLoc.startsWith("/") && newLoc.indexOf(":") == -1) {
-                value = new File(defaultLocation + newLoc);
-            } else {
-                value = new File(newLoc);
-            }
-	        return value;
+	        Object newValue;
+	        if (isMulti) {
+	            String[] pts = newLoc.split(";");
+	            newValue = new File[pts.length];
+	            for (int i = 0; i < pts.length; i++) {
+	                if (!"".equals(pts[i]) && !pts[i].startsWith(".") && !pts[i].startsWith("/") && pts[i].indexOf(":") == -1) {
+	                    ((File[])newValue)[i] = new File(defaultLocation + pts[i]);
+	                } else {
+	                    ((File[])newValue)[i] = new File(pts[i]);
+	                }
+	            }
+	        } else {
+	            if (!"".equals(newLoc) && !newLoc.startsWith(".") && !newLoc.startsWith("/") && newLoc.indexOf(":") == -1) {
+	                newValue = new File(defaultLocation + newLoc);
+	            } else {
+	                newValue = new File(newLoc);
+	            }
+	        }
+	        return newValue;
 	    }
 	    
 	    private void setValue(Object val) {
  	    	this.value = val;
+ 	    	StringBuilder labelText = new StringBuilder();
+ 	    	if (value instanceof File) {
+                if (((File) value).isDirectory()) {
+                    String pathStr = ext.verifyDirFormat(((File) value).getPath());
+                    if (pathStr.startsWith(defaultLocation)) {
+                        pathStr = pathStr.substring(defaultLocation.length());
+                    }
+                    labelText.append(pathStr);
+                } else {
+                    String pathStr = ext.replaceAllWith(((File) value).getPath(), "\\", "/");
+                    if (pathStr.startsWith(defaultLocation)) {
+                        pathStr = pathStr.substring(defaultLocation.length());
+                    }
+                    labelText.append(pathStr);
+                }
+            } else if (value instanceof File[]) {
+                File[] files = (File[]) value;
+                if (files.length > 0) {
+                    for (int i = 0; i < files.length; i++) {
+                        if (files[i].isDirectory()) {
+                            String pathStr = ext.verifyDirFormat(files[i].getPath());
+                            if (pathStr.startsWith(defaultLocation)) {
+                                pathStr = pathStr.substring(defaultLocation.length());
+                            }
+                            labelText.append(pathStr);
+                        } else {
+                            String pathStr = ext.replaceAllWith(files[i].getPath(), "\\", "/");
+                            if (pathStr.startsWith(defaultLocation)) {
+                                pathStr = pathStr.substring(defaultLocation.length());
+                            }
+                            labelText.append(pathStr);
+                        }
+                        if (i < files.length - 1) {
+                            labelText.append(";");
+                        }
+                    }
+                }
+            }
+            if (labelText.toString().startsWith(defaultLocation)) {
+                labelText = new StringBuilder(labelText.substring(defaultLocation.length()));
+            }
+            label.setText(labelText.toString());
 	    }
 	    
 	    private void reset() {
@@ -778,9 +989,11 @@ public class Configurator extends JFrame {
 	    
 	    @Override
 	    public Component getTableCellEditorComponent(final JTable table, final Object value, boolean isSelected, final int row, final int column) {
+	        this.table = table;
 	    	StringBuilder labelText = new StringBuilder();
 	    	ActionListener listener = null;
     		if (value instanceof File) {
+    		    isMulti = false;
     			if (((File) value).isDirectory()) {
     			    String pathStr = ext.verifyDirFormat(((File) value).getPath());
                     if (pathStr.startsWith(defaultLocation)) {
@@ -807,11 +1020,17 @@ public class Configurator extends JFrame {
 				                	setValue(value);
 				                }
 				                fireEditingStopped();
+				                if (table != null) {
+				                    
+				                    ((DefaultTableModel)table.getModel()).fireTableCellUpdated(row, column);
+			                        ((DefaultTableModel)table.getModel()).fireTableDataChanged();
+			                    }
 				            }
 				        });
     				}
     			};
 	    	} else if (value instanceof File[]) {
+	    	    isMulti = true;
 	    		File[] files = (File[]) value;
 	    		if (files.length > 0) {
 	    			for (int i = 0; i < files.length; i++) {
@@ -841,12 +1060,24 @@ public class Configurator extends JFrame {
 				            public void run() {
 				            	fileChooser.setMultiSelectionEnabled(true);
 				            	fileChooser.setSelectedFiles((File[]) value);
+				            	Object newValue = value;
 				            	if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
-				                    setValue(fileChooser.getSelectedFiles());
-				                } else {
-				                	setValue(value);
-				                }
+//				            	    FileChooserCellEditor.this.setValue(fileChooser.getSelectedFiles());
+//                                    table.setValueAt(fileChooser.getSelectedFiles(), row, column);
+				            	    newValue = fileChooser.getSelectedFiles();
+				                } /*else {
+				                    
+				                    FileChooserCellEditor.this.setValue(value);
+				                }*/
+				            	
+				            	setValue(newValue);
+//				            	table.setValueAt(newValue, row, column);
+				            	
 				                fireEditingStopped();
+				                if (table != null) {
+			                        ((DefaultTableModel)table.getModel()).fireTableCellUpdated(row, column);
+			                        ((DefaultTableModel)table.getModel()).fireTableDataChanged();
+			                    }
 				            }
 				        });
 			    	}
@@ -882,6 +1113,7 @@ public class Configurator extends JFrame {
         JSpinner.DefaultEditor editor;
         JTextField textField;
         boolean valueSet;
+        JTable table;
         
         // Initializes the spinner.
         public SpinnerEditor() {
@@ -909,12 +1141,16 @@ public class Configurator extends JFrame {
             textField.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ae) {
                     stopCellEditing();
+                    if (table != null) {
+                        ((DefaultTableModel)table.getModel()).fireTableDataChanged();
+                    }
                 }
             });
         }
 
         // Prepares the spinner component and returns it.
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            this.table = table;
             if (!valueSet) {
                 spinner.setValue(value);
             }
@@ -951,6 +1187,9 @@ public class Configurator extends JFrame {
                 spinner.commitEdit();
             } catch (java.text.ParseException e) {
                 JOptionPane.showMessageDialog(null, "Invalid value, discarding.");
+            }
+            if (table != null) {
+                ((DefaultTableModel)table.getModel()).fireTableDataChanged();
             }
             return super.stopCellEditing();
         }

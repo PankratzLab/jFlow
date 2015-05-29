@@ -699,6 +699,14 @@ public class lab {
 		String logfile = null;
 		String file = null;
 		
+		boolean test = true;
+		if (test) {
+		    String str1 = "rs4378200";
+		    String str2 = "rs4378200";
+		    System.out.println(str1.compareTo(str2));
+		    return;
+		}
+		
 		
 		String usage = "";
 		

@@ -36,13 +36,15 @@ public class SampleData {
 	
 //	public static final String[] BASIC_FILTERS = {"GC"};
 
-	private Project proj;
+	public static final String PLINK_CLASS_PREFIX = "PLINK: ";
+    private Project proj;
 	private String[] basicClasses;
 	private String[] filters;
 	private String[] covars;
 	private String[] classes;
 	private String[][][] classColorKeys;
 	private String[] cnvClasses;
+	private String[] plinkClasses;
 //	private Hashtable<String,String> sampleLookup;
 //	private Hashtable<String,String> famIndLookup;
 //	private Hashtable<String,String> indLookup;
@@ -236,7 +238,14 @@ public class SampleData {
 		if (cnvFilenames.length > 0) {
 			loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue());
 		} else {
-			cnvClasses =  new String[0];
+			cnvClasses = new String[0];
+		}
+		
+		String[] plinkFilenames = proj.PLINK_DIR_FILEROOTS.getValue();
+		if (plinkFilenames.length > 0) {
+		    loadPlinkFiles(plinkFilenames, proj.JAR_STATUS.getValue());
+		} else {
+		    plinkClasses = new String[0];
 		}
 		
 		failedToLoad = false;
@@ -375,6 +384,19 @@ public class SampleData {
 		System.out.println("Added CNV data in "+ext.getTimeElapsed(time));
 	}
 	
+	public void loadPlinkFiles(String[] files, boolean jar) {
+	    String[] tempPlinkClasses = new String[files.length];
+	    int cnt = 0;
+	    for (int i = 0; i < files.length; i++) {
+	        if ("".equals(files[i])) {
+	            continue;
+	        }
+	        tempPlinkClasses[cnt] = PLINK_CLASS_PREFIX + ext.rootOf(files[i]);
+	        cnt++;
+	    }
+	    plinkClasses = Array.trimArray(tempPlinkClasses);
+	}
+	
 	public String[] getFilters() {
 		if (filters == null) {
 			return new String[0];
@@ -424,7 +446,10 @@ public class SampleData {
 	public String[] getCnvClasses() {
 		return cnvClasses;
 	}
-
+	
+	public String[] getPlinkClasses() {
+	    return plinkClasses;
+	}
 	
 	public String[] lookup(String str) {
 		return lookup.get(str.toLowerCase());
@@ -459,7 +484,7 @@ public class SampleData {
 	}
 	
 	public int getNumClasses() {
-		return basicClasses.length+classes.length+cnvClasses.length;
+		return basicClasses.length + classes.length + cnvClasses.length + plinkClasses.length;
 	}
 
 	public int getNumActualClasses() {
@@ -468,19 +493,36 @@ public class SampleData {
 		}
 		return classes.length;
 	}
+	
+	public int getNumCNVClasses() {
+	    if (cnvClasses == null) {
+	        return 0;
+	    }
+	    return cnvClasses.length;
+	}
+	
+	public int getNumPLINKClasses() {
+	    if (plinkClasses == null) {
+	        return 0;
+	    }
+	    return plinkClasses.length;
+	}
 
 	public int[] getClassCategoryAndIndex(int index) {
 		int[] indices = new int[2];
 
-		if (index<basicClasses.length) {
+		if (index < basicClasses.length) {
 			indices[0] = 0;
 			indices[1] = index;
-		} else if (index<basicClasses.length+classes.length) {
+		} else if (index < basicClasses.length + classes.length) {
 			indices[0] = 1;
-			indices[1] = index-basicClasses.length;
-		} else if (index<basicClasses.length+classes.length+cnvClasses.length) {
+			indices[1] = index - basicClasses.length;
+		} else if (index < basicClasses.length + classes.length + cnvClasses.length) {
 			indices[0] = 2;
-			indices[1] = index-basicClasses.length-classes.length;
+			indices[1] = index - basicClasses.length - classes.length;
+		} else if (index < basicClasses.length + classes.length + cnvClasses.length + plinkClasses.length) { 
+		    indices[0] = 3;
+		    indices[1] = index - basicClasses.length - classes.length - cnvClasses.length;
 		} else {
 			System.err.println("Error - invalid class index");
 		}
@@ -498,6 +540,8 @@ public class SampleData {
 			return classes[indices[1]];
 		case 2:
 			return cnvClasses[indices[1]];
+		case 3:
+		    return plinkClasses[indices[1]];
 		default:
 			return null;
 		}
@@ -525,13 +569,12 @@ public class SampleData {
 				return (byte)(alleleCount+1);
 			} else if (basicClasses[indices[1]].equals(HEATMAP)) {
 				return 0;
-//			} else if (basicClasses[indices[1]].equals(PLINK)) {
-//				return 0;
 			} else {
 				System.err.println("Error - codeFromClass not defined for type: "+indices[1]);
 				System.err.println("        ("+basicClasses[indices[1]]+")");
 				return 0;
 			}
+//			break; // DEAD CODE
         case 1:
     		classes = indi.getClasses();
 			if (classes[indices[1]] == Integer.MIN_VALUE) {
@@ -539,6 +582,7 @@ public class SampleData {
 			} else {
 				return (byte)classes[indices[1]];
 			}
+//            break; // DEAD CODE
         case 2:
 			segs = indi.getCNVs(indices[1], chr);
 			if (segs == null) {
@@ -551,6 +595,9 @@ public class SampleData {
 					return (byte)(segs[index].getCN()+1);
 				}
 			}
+//            break; // DEAD CODE
+        case 3: 
+            return (byte)(alleleCount+1); // fake as genotype - we'll load PLINK genotypes elsewhere as needed 
         default:
         	System.err.println("Error - invalid class index");
         	return 0;
