@@ -768,12 +768,27 @@ public class FAST {
 		boolean runFAST = false; 
 		boolean process = false;
 		
-		String usage = "gwas.FAST requires 3-8 arguments\n" +
-					   "   (1) Path to directory containing .trait files (i.e. trait=C:/traitFiles/ (not the default))\n" +
-					   "   (2) Location of data definitions file (i.e. data=C:/dataFile.txt (not the default))\n" + 
-					   "   (3) -prep flag \n" +
-					   "   (4) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
-					   " OR \n" +
+		String usage = "gwas.FAST requires 2-8 arguments:\n" + 
+		                "   (1) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
+		                "         Data file must be tab-delimited in the following order:\n" +
+		                "             POPULATION\n" + 
+		                "             FACTOR\n" + 
+		                "             DATA FOLDER\n" + 
+		                "             DATA FILE SUFFIX\n" +
+		                "             (Optional:)" + 
+		                "                 SEX DATA FOLDER\n" +
+		                "                 SEX DATA FILE SUFFIX\n" +
+		                "             PATH TO .indiv FILE \n" + 
+		                "   (2) Path to folder containing .trait files (i.e. trait=~/traits/ (not the default))\n" + 
+		                "   (3) -prep flag\n" +
+	                    "   (4) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
+		                " OR: \n" +
+		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. data=~/FAST/ARIC/ (not the default))\n" +
+		                "   (2) -process flag\n" + 
+		                "\n" +
+		                "  These two options (-prep and -process) are, given no errors, the only commands needed to run multiple FAST analyses from start to finish.\n" + 
+		                "  However, FAST includes other options for partial processing:\n" + 
+		                "\n" + 
 					   "   (1) Full-path to FAST script (including /FAST) (i.e. fast=" + fast + " (default))\n" + 
 					   "   (2) Full-path to data directory (i.e. data=" + data + " (default))\n" +
 					   "   (3) Full-path to .indiv file (i.e. indiv=" + indiv + " (default))\n" +
