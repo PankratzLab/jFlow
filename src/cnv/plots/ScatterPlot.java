@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -64,7 +65,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import one.ben.PlinkMarkerLoader;
 import net.miginfocom.swing.MigLayout;
 import stats.CTable;
 import stats.ContingencyTable;
@@ -85,6 +85,7 @@ import cnv.gui.AutoSaveForScatterPlot;
 import cnv.gui.ColorKeyPanel;
 import cnv.gui.CycleRadio;
 import cnv.manage.MarkerDataLoader;
+import cnv.manage.PlinkMarkerLoader;
 import cnv.var.SampleData;
 import common.AlleleFreq;
 import common.Array;
@@ -156,7 +157,6 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private String[] masterCommentList;
 	private String[] markerList;
 	private String[] commentList;
-	private byte[][] plinkGenotypes;
 	private float[][][][] cents;
 	private String[] centList;
 	private JCheckBox[] centBoxes;
@@ -167,7 +167,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private int[] markerIndexHistory;
 	private int previousMarkerIndex;
 	private JTextField markerName, commentLabel;
-	private String[] samples;
+	private String[] samples, sampleFIDIIDs;
 	private volatile int[] plot_types;
 	private volatile int[] classes;
 	private byte size;
@@ -210,7 +210,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JPanel scatterOverview;
 	private JPanel viewPanel;
 	
-	public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
+	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
+
+    public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
 		super("Genvisis - ScatterPlot - " + project.getNameOfProject());
 		
 		JPanel scatterPlotPanel = new JPanel();
@@ -256,6 +258,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		samples = sampleList.getSamples();
 		sampleListFingerprint = sampleList.getFingerprint();
 		sampleData = proj.getSampleData(3, true);
+		convertSamples();
 		
 		fail = sampleData.failedToLoad();
 		if (fail) {
@@ -412,7 +415,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		setVisible(true);
 	}
 	
-	private void swapView() {
+	private void convertSamples() {
+	    sampleFIDIIDs = new String[samples.length];
+        for (int i = 0; i < sampleFIDIIDs.length; i++) {
+            sampleFIDIIDs[i] = sampleData.lookup(samples[i])[1];
+        }
+    }
+
+    private void swapView() {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -1966,15 +1976,18 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		public void itemStateChanged(ItemEvent ie) {
 			JRadioButton jrb = (JRadioButton)ie.getItem();
 			if (sampleData != null && jrb.isSelected() && ie.getStateChange() == ItemEvent.SELECTED) {
-				for (byte i = 0; i<sampleData.getNumClasses(); i++) {
+				for (byte i = 0; i < sampleData.getNumClasses(); i++) {
 					if (jrb.getText().equals(sampleData.getClassName(i))) {
-						System.out.println("SETTING AGAIN");
 						classes[selectedPanelIndex] = i;
 						if (colorKeyPanel != null) {
 							colorKeyPanel.setCurrentClass(i);
 						}
 						scatterPanels[selectedPanelIndex].paintAgain();
 						scatterOverview.repaint();
+    					int plinkIndex = i - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses() - sampleData.getBasicClasses().length;
+    					if (plinkIndex >= 0) {
+    					    loadPlink(plinkIndex);
+    					}
 					}
 				}
 			}
@@ -2486,13 +2499,27 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 //		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerList);
 		
+//		String[] plinkRoots = proj.PLINK_DIR_FILEROOTS.getValue();
 //		String plinkDirFileRoot = proj.DATA_DIRECTORY.getValue() + proj.PLINK_FILEROOT.getValue();
 //		plinkGenotypes = (new PlinkMarkerLoader()).run(plinkDirFileRoot, markerList);
+		for (String fileRoot : plinkMarkerLoaders.keySet()) {
+		    plinkMarkerLoaders.put(fileRoot, PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj, fileRoot, markerList, sampleFIDIIDs));
+		}
 		
 		markerIndex = newMarkerIndex;
 		updateMarkerIndexHistory();
 		previousMarkerIndex = -1;
 //		navigationField.getActionListeners()[0].actionPerformed(e);
+	}
+	
+	public void loadPlink(int plinkIndex) {
+	    String plinkFileRoot = proj.PLINK_DIR_FILEROOTS.getValue()[plinkIndex];
+	    if (plinkMarkerLoaders.containsKey(plinkFileRoot)) {
+	        return;
+	    } else {
+	        PlinkMarkerLoader pml = PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj, plinkFileRoot, markerList, sampleFIDIIDs);
+	        plinkMarkerLoaders.put(plinkFileRoot, pml);
+	    }
 	}
 	
 	public boolean markerDataIsActive() {
@@ -3086,6 +3113,19 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (autoSave != null) {
 			autoSave.kill();
 		}
+//		if (plinkMarkerLoader != null) {
+//		    plinkMarkerLoader.kill();
+//		    count = 0;
+//		    while (!plinkMarkerLoader.killComplete()) {
+//		        try {
+//		            Thread.sleep(250);
+//		        } catch (InterruptedException ie) {}
+//		        count++;
+//		        if (count > 0) {
+//		            log.reportError("Waiting for markerDataLoader to wind down...");
+//		        }
+//		    }
+//		}
 		if (markerDataLoader != null) {
 			markerDataLoader.kill();
 			count = 0;
@@ -3178,6 +3218,15 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public boolean hideExcludedSamples(int index) {
 		return excludeSamples[index];
 	}
+
+    public byte getPlinkGenotypeForIndi(String sampleID, int currentClass) {
+        int plinkIndex = currentClass - sampleData.getBasicClasses().length - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses();
+        String plinkRoot = proj.PLINK_DIR_FILEROOTS.getValue()[plinkIndex];
+        String[] lookup = sampleData.lookup(sampleID); 
+        String fidiid = lookup[1];
+        String marker = markerList[markerIndex];
+        return plinkMarkerLoaders.get(plinkRoot).getGenotypeForIndi(marker, fidiid);
+    }
 	
 	
 }

@@ -75,7 +75,7 @@ public class FAST {
         }
     };
     
-    
+    private static final Object OUT_LOCK = new Object();
 	private static void processAndPrepareMETAL(final String studyDir) {
 	    String tempName = ext.verifyDirFormat(studyDir);
 	    final String studyName = ext.rootOf(tempName.substring(0, tempName.length() - 1), true);
@@ -220,24 +220,39 @@ public class FAST {
                         metalAnalyses.add(ext.verifyDirFormat(factorDir.getAbsolutePath()) + metalName);
                     }
                     factorLog.report(ext.getTime() + "]\tProcessing complete - will now run " + metalAnalyses.size() + " METAL analyses.");
-                    for (String metalCRF : metalAnalyses) {
-                        // Runtime.exec doesn't play well with '~', so we have to find the location of the park.jar file
-                        String path = FAST.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-                        String decodedPath = path;
+                    for (String metalCRF : metalAnalyses) { 
                         try {
-                            decodedPath = URLDecoder.decode(path, "UTF-8");
-                        } catch (UnsupportedEncodingException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            factorLog.report("Running METAL analysis: " + metalCRF);
+                            // Runtime.exec doesn't play well with '~', so we have to find the location of the park.jar file
+                            String path = FAST.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+                            String decodedPath = path;
+                            try {
+                                decodedPath = URLDecoder.decode(path, "UTF-8");
+                            } catch (UnsupportedEncodingException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                            String metalDir = ext.parseDirectoryOfFile(metalCRF);
+                            CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalCRF}, metalDir, System.out, System.err, factorLog, false);
+                            factorLog.report(ext.getTime() + "]\tRunning HitWindows analysis on METAL results...");
+                            try {
+                                String[][] results1 = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
+                                Files.writeMatrix(results1, metalDir + factorName + "_topHitWindows.out", "\t");
+                            } catch (Exception e) {
+                                factorLog.report("ERROR - " + e.getMessage());
+                            }
+                            // Can't run HitWindows on InvVar1.out; columns Chr and Pos are missing 
+//                            try {
+//                                String[][] results2 = HitWindows.determine(metalDir + factorName + "_InvVar1.out", 0.00000005f, 500000, 0.000005f, new String[0]);
+//                                Files.writeMatrix(results2, metalDir + factorName + "_InvVar1_hitWindows.out", "\t");
+//                            } catch (Exception e) {
+//                                System.out.println("ERROR - " + e.getMessage());
+//                            }
+                            factorLog.report(ext.getTime() + "]\tHitWindows analysis of METAL results complete!");
+                        } catch (Exception e) {
+                            factorLog.report("ERROR - " + e.getMessage());
+                            continue;
                         }
-                        String metalDir = ext.parseDirectoryOfFile(metalCRF);
-                        CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalCRF}, metalDir, System.out, System.err, factorLog, false);
-                        System.out.println(ext.getTime() + "]\tRunning HitWindows analysis on METAL results...");
-                        String[][] results1 = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
-                        Files.writeMatrix(results1, metalDir + factorName + "_topHitWindows.out", "\t");
-                        String[][] results2 = HitWindows.determine(metalDir + factorName + "_InvVar1.out", 0.00000005f, 500000, 0.000005f, new String[0]);
-                        Files.writeMatrix(results2, metalDir + factorName + "_InvVar1_hitWindows.out", "\t");
-                        System.out.println(ext.getTime() + "]\tHitWindows analysis of METAL results complete!");
                     }
                 }
             };

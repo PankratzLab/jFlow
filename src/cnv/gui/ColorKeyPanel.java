@@ -169,7 +169,7 @@ public class ColorKeyPanel extends JPanel {
 		JLabel label, block;
 		String[][] colorKeys;
 		String[] keys;
-		int numBasicClasses, numRegularClasses;
+		int numBasicClasses, numRegularClasses, numCNVClasses, numPLINKClasses;
 		MouseListener mouseListenerForColorKey;
 		
 		mouseListenerForColorKey = new MouseListener() {
@@ -196,9 +196,13 @@ public class ColorKeyPanel extends JPanel {
 		if (sampleData == null) {
 			numBasicClasses = 1;
 			numRegularClasses = 0;
+			numCNVClasses = 0;
+			numPLINKClasses = 0;
 		} else {
 			numBasicClasses = sampleData.getBasicClasses().length;
 			numRegularClasses = sampleData.getNumActualClasses();
+			numCNVClasses = sampleData.getNumCNVClasses();
+			numPLINKClasses = sampleData.getNumPLINKClasses();
 		}
 		
 		classValuesPanel.removeAll();
@@ -209,15 +213,25 @@ public class ColorKeyPanel extends JPanel {
 		classValuesPanel.add(label);
 		if (currentClass < numBasicClasses) {
 			colorKeys = SampleData.KEYS_FOR_BASIC_CLASSES[currentClass];
-		} else if (currentClass < numBasicClasses+numRegularClasses) {		
+		} else if (currentClass < numBasicClasses + numRegularClasses) {		
 			colorKeys = sampleData.getActualClassColorKey(currentClass - numBasicClasses);
-		} else {
+	    } else if (currentClass < numBasicClasses + numRegularClasses + numCNVClasses){
 			colorKeys = new String[][] {{"0", "Not in a CNV"},
 										{"1", "Homozygous deletion"},
 										{"2", "Heterozygous deletion"},
 										{"4", "Duplication"},
 										{"5", "Triplication"},
 										};
+		} else if (currentClass < numBasicClasses + numRegularClasses + numCNVClasses + numPLINKClasses) {
+//		    colorKeys = new String[][] {{"-1", "Missing"}, {"0", "AA"}, {"1", "AB"}, {"2", "BB"}};
+		    colorKeys = new String[][] {{"0", "Missing"}, {"1", "AA"}, {"2", "AB"}, {"3", "BB"}};
+		} else {
+		    colorKeys = new String[][] {{"0", "Not in a CNV"},
+		            {"1", "Homozygous deletion"},
+		            {"2", "Heterozygous deletion"},
+		            {"4", "Duplication"},
+		            {"5", "Triplication"},
+		    };
 		}
 		for (String disabled : disabledClassValues.keySet()) {// so that labels are added even if the class value was not seen
 			if (!currentClassUniqueValues.containsKey(disabled)) {
