@@ -14,9 +14,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,7 +25,6 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -57,6 +54,7 @@ import cnv.filesys.Project.IntegerProperty;
 //import cnv.filesys.Project.MultiFileProperty;
 import cnv.filesys.Project.Property;
 import cnv.filesys.Project.StringListProperty;
+
 import common.Array;
 import common.Grafik;
 import common.ext;
@@ -221,7 +219,9 @@ public class Configurator extends JFrame {
 	    abstract boolean acceptNewValue(Object newValue);
 	}
 	
-	private HashMap<String, InputValidator> validators = new HashMap<String, Configurator.InputValidator>() {{
+	private HashMap<String, InputValidator> validators = new HashMap<String, Configurator.InputValidator>() {
+        private static final long serialVersionUID = 1L;
+    {
 	    put("PLINK_DIR_FILEROOTS", new InputValidator() {
             @Override
             Object processNewValue(Object newValue, Object oldValue) {
@@ -630,7 +630,7 @@ public class Configurator extends JFrame {
     	            model.addRow(values);
     	            count++;
 		        } else {
-		            System.out.println("Unknown key found: " + propKeySet[i]);
+		            proj.getLog().reportError("Unknown key found: " + propKeySet[i]);
 		        }
 		    }
 		}
@@ -645,7 +645,7 @@ public class Configurator extends JFrame {
 		    }
 		}
 		if (!leftovers.isEmpty()) {
-		    System.out.println("Found " + leftovers.size() + " unknown keys: " + leftovers.toString());
+		    proj.getLog().report("Found " + leftovers.size() + " unknown keys: " + leftovers.toString());
 		}
 		
 		table.setModel(model);
@@ -691,9 +691,6 @@ public class Configurator extends JFrame {
 		        continue;
 		    }
 			String key = ((String) table.getValueAt(i, 0)).trim();
-			if (key.contains("PLINK")) {
-			    System.out.println("found");
-			}
 			Object rawValue = table.getValueAt(i, 1);
 			String value = "";
 			if (rawValue instanceof File[]) {
@@ -860,7 +857,6 @@ public class Configurator extends JFrame {
                     if (table != null) {
                         ((DefaultTableModel)table.getModel()).fireTableDataChanged();
                     }
-                    System.out.println("PANEL FOCUS LOST");
                 }
                 @Override
                 public void focusGained(FocusEvent e) {
@@ -892,7 +888,6 @@ public class Configurator extends JFrame {
 	                if (table != null) {
 	                    ((DefaultTableModel)table.getModel()).fireTableDataChanged();
 	                }
-	                System.out.println("LABEL FOCUS LOST");
 	            }
 	            @Override
 	            public void focusGained(FocusEvent e) {
