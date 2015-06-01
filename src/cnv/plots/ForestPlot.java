@@ -132,10 +132,10 @@ class MetaStudy {
 			TreeMap<String, String> zeroStudyMap = new TreeMap<String, String>();
 			TreeMap<Float, String> betaStudyMap = new TreeMap<Float, String>();
 			for (StudyData study : studies) {
-				if (study.getBeta() == 0.0f) {
+				if (study.getBeta(false) == 0.0f) {
 					zeroStudyMap.put(study.getLabel(), study.getLabel());
 				} else {
-					betaStudyMap.put(study.getBeta(), study.getLabel());
+					betaStudyMap.put(study.getBeta(false), study.getLabel());
 				}
 			}
 			ArrayList<StudyData> desc = new ArrayList<StudyData>();
@@ -166,8 +166,15 @@ class MetaStudy {
 	}
 
 	public float getMetaStderr() {
-		return metaStderr;
+	    return metaStderr;
 	}
+//	public float getMetaBeta(boolean odds) {
+//	    return (float) (odds ? Math.exp(metaBeta) : metaBeta);
+//	}
+//	
+//	public float getMetaStderr(boolean odds) {
+//	    return (float) (odds ? Math.exp(metaStderr) : metaStderr);
+//	}
 
     public void setSort(boolean sortedDisplay, ArrayList<String> sortOrder) {
         this.shouldSort = sortedDisplay;
@@ -211,12 +218,12 @@ class StudyData {
 		return label;
 	}
 
-	public float getBeta() {
-		return beta;
+	public float getBeta(boolean odds) {
+		return (float) (odds ? Math.exp(beta) : beta);
 	}
 
-	public float getStderr() {
-		return stderr;
+	public float getStderr(boolean odds) {
+		return (float) (odds ? Math.exp(stderr) : stderr);
 	}
 
 	public int getColor() {
@@ -227,8 +234,8 @@ class StudyData {
 		return shape;
 	}
 
-	public float[] getConfInterval() {
-		return confInterval;
+	public float[] getConfInterval(boolean odds) {
+		return odds ? new float[]{(float) Math.exp(confInterval[0]), (float) Math.exp(confInterval[1])} : confInterval;
 	}
 
 	public float getZScore() {
@@ -439,6 +446,21 @@ public class ForestPlot extends JFrame implements WindowListener {
 		JMenu actions = new JMenu("Actions", true);
 		actions.setMnemonic(KeyEvent.VK_A);
 		
+		final JCheckBoxMenuItem oddsRatioButton = new JCheckBoxMenuItem();
+		AbstractAction oddsRatioAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ForestPlot.this.setOddsRatioDisplay(oddsRatioButton.isSelected());
+                ForestPlot.this.forestPanel.paintAgain();                
+            }
+        };
+		oddsRatioButton.setAction(oddsRatioAction);
+		oddsRatioButton.setText("Display as Odds Ratios");
+		oddsRatioButton.setMnemonic(KeyEvent.VK_O);
+		actions.add(oddsRatioButton);
+		
+		actions.add(new JSeparator());
+        
 		final JRadioButtonMenuItem noSortButton = new JRadioButtonMenuItem();
 		AbstractAction noSortAction = new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -537,7 +559,11 @@ public class ForestPlot extends JFrame implements WindowListener {
 		return bar;
 	}
 
-	private JPanel createControlPanel() {
+	protected void setOddsRatioDisplay(boolean selected) {
+        this.forestPanel.oddsDisplay = selected;
+    }
+
+    private JPanel createControlPanel() {
 		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
 		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
 		first.addActionListener(navFirstAction);
