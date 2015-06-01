@@ -47,6 +47,7 @@ public class ForestPanel extends AbstractPanel {
 	private boolean rectangleGeneratable;
 	private DecimalFormat precision2Decimal;
 	private boolean antiAlias = true;
+	boolean oddsDisplay = false;
 
 	public ForestPanel(ForestPlot forestPlot, Logger log) {
 		super();
@@ -102,27 +103,27 @@ public class ForestPanel extends AbstractPanel {
 //			if(currentData.get(i).getBeta() != 0.0 && currentData.get(i).getStderr() != 0.0){
 		    if (currentData.get(i) instanceof StudyBreak) {
                 yAxisValue = (float) i + 1;
-                PlotPoint leftEnd = new PlotPoint("", (byte) 0, 0, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+                PlotPoint leftEnd = new PlotPoint("", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
                 yAxisValue = (float) i + 1;
-                PlotPoint rightEnd = new PlotPoint("", (byte) 0, 0, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+                PlotPoint rightEnd = new PlotPoint("", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
                 linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
                 
                 yAxisValue = (float) i + 1;
-                tempPoints[i] = new PlotPoint(" | ", (byte) 0, 0, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
+                tempPoints[i] = new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
                 tempPoints[i].setVisible(false);
 		    } else {
-				xAxisValue = currentData.get(i).getConfInterval()[0];
+				xAxisValue = currentData.get(i).getConfInterval(oddsDisplay)[0];
 				yAxisValue = (float) i + 1;
 				PlotPoint leftEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
-				xAxisValue = currentData.get(i).getConfInterval()[1];
+				xAxisValue = currentData.get(i).getConfInterval(oddsDisplay)[1];
 				yAxisValue = (float) i + 1;
 				PlotPoint rightEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
 				linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
 				
-				xAxisValue = currentData.get(i).getBeta();
+				xAxisValue = currentData.get(i).getBeta(oddsDisplay);
 				yAxisValue = (float) i + 1;
 				tempPoints[i] = new PlotPoint(currentData.get(i).getLabel() + "|" + prepareRightMarkers(currentData.get(i)), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
 				tempPoints[i].setVisible(false);
@@ -133,7 +134,8 @@ public class ForestPanel extends AbstractPanel {
 	}
 
 	private String prepareRightMarkers(float beta, float conf0, float conf1) {
-		if (beta == 0.0f && conf0 == 0.0f && conf1 == 0.0f) {
+		if ((beta == 0.0f && conf0 == 0.0f && conf1 == 0.0f) ||
+		        (oddsDisplay && beta == 1.0f && conf0 == 1.0f && conf1 == 1.0f)) {
 			return " monomorphic ";
 		}
 		return String.format("%1$4s (%2$4s, %3$4s)", 
@@ -143,9 +145,9 @@ public class ForestPanel extends AbstractPanel {
 	}
 	
 	private String prepareRightMarkers(StudyData forestTree) {
-		return prepareRightMarkers(forestTree.getBeta(), 
-									forestTree.getConfInterval()[0], 
-									forestTree.getConfInterval()[1]);
+		return prepareRightMarkers(forestTree.getBeta(oddsDisplay), 
+									forestTree.getConfInterval(oddsDisplay)[0], 
+									forestTree.getConfInterval(oddsDisplay)[1]);
 	}
 
 	private void generateRectangles(Graphics g) {
@@ -161,8 +163,8 @@ public class ForestPanel extends AbstractPanel {
 		yAxisStep = Math.max(yAxisStep, 0.1f);
 		
 		for (int i = 0; i < currentData.size(); i++) {
-			if(currentData.get(i).getBeta() != 0 && currentData.get(i).getStderr() != 0){
-				xAxisValue = currentData.get(i).getBeta();
+			if(currentData.get(i).getBeta(oddsDisplay) != 0 && currentData.get(i).getStderr(oddsDisplay) != 0){
+				xAxisValue = currentData.get(i).getBeta(oddsDisplay);
 				yAxisValue = (float) i + 1;
 				// max scale = .25
 //				float scale = currentData.get(i).getZScore() / forestPlot.getMaxZScore() / 4;
@@ -599,9 +601,18 @@ public class ForestPanel extends AbstractPanel {
 		
 		if(base) {
 			g.setColor(Color.BLACK);
-			int xL = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta() - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr());
-			int xM = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta());
-			int xR = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta() + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr());
+			double val = forestPlot.getCurrentMetaStudy().getMetaBeta() - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr();
+			if (oddsDisplay) { val = Math.exp(val); }
+			int xL = getXPixel(val);
+			val = forestPlot.getCurrentMetaStudy().getMetaBeta();
+			if (oddsDisplay) { val = Math.exp(val); }
+			int xM = getXPixel(val);
+			val = forestPlot.getCurrentMetaStudy().getMetaBeta() + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr();
+			if (oddsDisplay) { val = Math.exp(val); }
+			int xR = getXPixel(val);
+//			int xL = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay) - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay));
+//			int xM = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay));
+//			int xR = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay) + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay));
 			
 			int yM = getHeight() - /*HEIGHT_X_AXIS*/axisXHeight - fontMetrics.getHeight() - 15;
 			int yU = yM - (fontMetrics.getHeight() / 2) - 1;
@@ -615,7 +626,7 @@ public class ForestPanel extends AbstractPanel {
 			int yMin = (4 * HEAD_BUFFER) - 5;
 			int yMax = getHeight() - /*HEIGHT_X_AXIS*/axisXHeight;
 			
-			Grafik.drawThickLine(g, getXPixel(0.0), yMin, getXPixel(0.0), yMax, 3, Color.BLACK);
+			Grafik.drawThickLine(g, getXPixel(oddsDisplay ? 1.0 : 0.0), yMin, getXPixel(oddsDisplay ? 1.0 : 0.0), yMax, 3, Color.BLACK);
 			
 			int dashSize = 10;
 			int dashSpacing = 5;
@@ -636,104 +647,6 @@ public class ForestPanel extends AbstractPanel {
 			}
 		}
 		
-		
-		
-//		// Draw the rectangle outlined by dragging the mouse
-//		if (highlightRectangle != null) {
-//			rectangleXPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
-//			rectangleYPixel = Math.min(getYPixel(highlightRectangle.getStartYValue()), getYPixel(highlightRectangle.getStopYValue()));
-//			rectangleWidthPixel = Math.abs(getXPixel(highlightRectangle.getStartXValue()) - getXPixel(highlightRectangle.getStopXValue()));
-//			rectangleHeightPixel = (Math.abs(getYPixel(highlightRectangle.getStartYValue()) - getYPixel(highlightRectangle.getStopYValue())));
-//			g.setColor(colorScheme[0]);
-//			drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, (byte) 1);
-//		}
-
-//		// Draw data points, also build the lookup matrix for nearby points.
-//		locLookup.clear();
-//		prog = null;
-//		time = new Date().getTime();
-//		step = Math.max((points.length) / 100, 1);
-//		layers = new Hashtable<String, Vector<PlotPoint>>();
-//
-//		if (chartType == HEAT_MAP_TYPE) {
-//			drawHeatMap(g, null);
-//		} else if (chartType == SCATTER_PLOT_TYPE) {
-//			for (int i = 0; i < points.length && isFlow(); i++) {
-//				if (base && i % step == 0) {
-//					if (new Date().getTime() - time > 1000) {
-//						if (prog == null) {
-//							prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);// zx
-//						}
-//						prog.setProgress(i);// zx
-//					}
-//				}
-//				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
-//
-//				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() - plotXmax > plotXmax / 1000.0 || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
-//				} else {
-//					trav = points[i].getLayer() + "";
-//					if (points[i].isHighlighted() || (base && (getLayersInBase() == null || Array.indexOfByte(getLayersInBase(), points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(getExtraLayersVisible(), points[i].getLayer()) >= 0)) {
-//						if (trav.equals("0")) {
-//							if (points[i].getType() != PlotPoint.NOT_A_NUMBER) {
-//								drawPoint(g, points[i]);
-//							} else if (base) {
-//								setNumberOfNaNSamples(getNumberOfNaNSamples() + 1);
-//							}
-//						} else {
-//							if (layers.containsKey(trav)) {
-//								layer = layers.get(trav);
-//							} else {
-//								layers.put(trav, layer = new Vector<PlotPoint>());
-//							}
-//							layer.add(points[i]);
-//						}
-//					}
-//					if (createLookup && points[i] != null) {
-//						xLook = (int) Math.floor(getXPixel(points[i].getRawX()) / getLookupResolution());
-//						yLook = (int) Math.floor(getYPixel(points[i].getRawY()) / getLookupResolution());
-//						for (int j = xLook - 1; j <= xLook + 1; j++) {
-//							for (int k = yLook - 1; k <= yLook + 1; k++) {
-//								pos = j + "x" + k;
-//								if (locLookup.containsKey(pos)) {
-//									locLookup.get(pos).add(i);
-//								} else {
-//									locLookup.put(pos, new IntVector(new int[] { i }));
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//
-//			// Draw those points with layer>0.
-//			keys = HashVec.getKeys(layers);
-//			order = Sort.quicksort(Array.toIntArray(keys));
-//			for (int i = 0; i < keys.length && isFlow(); i++) {
-//				layer = layers.get(keys[order[i]]);
-//				for (int j = 0; j < layer.size(); j++) {
-//					if (layer.elementAt(j).getType() != PlotPoint.NOT_A_NUMBER) {
-//						drawPoint(g, layer.elementAt(j));
-//					} else {
-//						setNumberOfNaNSamples(getNumberOfNaNSamples() + 1);
-//					}
-//				}
-//			}
-//		} else {
-//			log.reportError("Error - invalid chart type: " + chartType);
-//		}
-
-//		if (getNumberOfNaNSamples() > 0) {
-//			g.drawString(PlotPoint.NAN_STR + " (n=" + getNumberOfNaNSamples() + ")", getXPixel(0) - nanWidth / 2, getYPixel(0) + 60 + points[0].getSize() / 2);
-//		}
-
-//		if (base && displayGrid) {
-//			for (double d = 0; d < 1.0; d += 0.1) {
-//				g.drawLine(getXPixel(d), getYPixel(0), getXPixel(d), getYPixel(canvasSectionMaximumY));
-//			}
-//			for (double d = -0.5; d < 0.5; d += 0.1) {
-//				g.drawLine(getXPixel(0), getYPixel(d), getXPixel(canvasSectionMaximumX), getYPixel(d));
-//			}
-//		}
 		setFinalImage(true);
 
 //		if (base && prog != null) {
