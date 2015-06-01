@@ -14,33 +14,38 @@ import common.ext;
  *
  */
 public class StatsCrossTabs {
-	public static enum CORREL_TYPE {
-		SPEARMAN, PEARSON
+	public static enum STAT_TYPE {
+		SPEARMAN_CORREL, PEARSON_CORREL, LIN_REGRESSION
+
 	}
 
-	private static enum VALUE_TYPE {
+	public static enum VALUE_TYPE {
 		STAT, PVALUE
 	}
 
-	private double[][] data;
+	private double[][] data, indeps;
 	private double[][] statisticTable, sigTable;
 	private String[] dataTitles;
 	private boolean verify;
 	private boolean verbose;
 	private Logger log;
-	private CORREL_TYPE cType;
+	private STAT_TYPE sType;
 
 	/**
 	 * @param data
 	 *            organized as data[variable][dataForVariable]
+	 * @param data
+	 *            organized as data[dataForVariable][variable], must be the same length as data
+	 * 
 	 * @param dataTitles
 	 *            must be the same length as data
-	 * @param cType
-	 *            type of test to run, see {@link CORREL_TYPE}
+	 * 
+	 * @param sType
+	 *            type of test to run, see {@link STAT_TYPE}
 	 * 
 	 * @param log
 	 */
-	public StatsCrossTabs(double[][] data, String[] dataTitles, CORREL_TYPE cType, boolean verbose, Logger log) {
+	public StatsCrossTabs(double[][] data, double[][] indeps, String[] dataTitles, STAT_TYPE sType, boolean verbose, Logger log) {
 		super();
 		this.verbose = verbose;
 		this.data = data;
@@ -48,7 +53,8 @@ public class StatsCrossTabs {
 		this.log = log;
 		this.statisticTable = new double[data.length][data.length];
 		this.sigTable = new double[data.length][data.length];
-		this.cType = cType;
+		this.sType = sType;
+		this.indeps = indeps;
 		this.verify = verify();
 	}
 
@@ -63,16 +69,32 @@ public class StatsCrossTabs {
 					if (!complete.containsKey(j)) {
 						double[][] dataToCorrel = cleanNaNs(new double[][] { data[i], data[j] }, new String[] { dataTitles[i], dataTitles[j] }, verbose, log);
 						double[] result;
-						switch (cType) {
-						case PEARSON:
+						switch (sType) {
+						case PEARSON_CORREL:
 							result = stats.Correlation.Pearson(dataToCorrel);
+
 							stat = result[0];
 							sig = result[1];
 							break;
-						case SPEARMAN:
+						case SPEARMAN_CORREL:
 							result = stats.Correlation.Spearman(dataToCorrel);
 							stat = result[0];
 							sig = result[1];
+							break;
+						case LIN_REGRESSION:
+							double[][] newIndeps = new double[data[i].length][indeps == null ? 1 : 1 + indeps[0].length];
+							for (int k = 0; k < newIndeps.length; k++) {
+								for (int k2 = 0; k2 < newIndeps[0].length; k2++) {
+									newIndeps[k][0] = data[1][k];
+									newIndeps[k][k2 + 1] = indeps[k][k2];
+								}
+							}
+							log.reportTimeInfo("Using " + newIndeps[0].length + " independant predictors for regression");
+							RegressionModel model = new LeastSquares(data[i], newIndeps, null, false, verbose, false);
+							stat = model.getRsquare();
+							sig = model.getOverallSig();
+							break;
+						default:
 							break;
 						}
 					}
@@ -84,13 +106,27 @@ public class StatsCrossTabs {
 		}
 	}
 
+//	public int[] getInOrder(VALUE_TYPE type) {
+//		switch (type) {
+//		case PVALUE:
+//			return Array
+//			break;
+//		case STAT:
+//			break;
+//		default:
+//			log.reportTimeError("Invalid type " + type);
+//			break;
+//
+//		}
+//	}
+
 	public void dumpTables(String fullPathToOutputBase) {
-		dump(ext.addToRoot(fullPathToOutputBase, "." + cType + "_" + VALUE_TYPE.STAT), dataTitles, statisticTable, cType, VALUE_TYPE.STAT, log);
-		dump(ext.addToRoot(fullPathToOutputBase, "." + cType + "_" + VALUE_TYPE.PVALUE), dataTitles, sigTable, cType, VALUE_TYPE.PVALUE, log);
+		dump(ext.addToRoot(fullPathToOutputBase, "." + sType + "_" + VALUE_TYPE.STAT), dataTitles, statisticTable, sType, VALUE_TYPE.STAT, log);
+		dump(ext.addToRoot(fullPathToOutputBase, "." + sType + "_" + VALUE_TYPE.PVALUE), dataTitles, sigTable, sType, VALUE_TYPE.PVALUE, log);
 
 	}
 
-	private static void dump(String fullPathToFile, String[] dataTitles, double[][] dataTable, CORREL_TYPE cType, VALUE_TYPE vType, Logger log) {
+	private static void dump(String fullPathToFile, String[] dataTitles, double[][] dataTable, STAT_TYPE cType, VALUE_TYPE vType, Logger log) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToFile));
 			writer.println(cType + "_" + vType + "\t" + Array.toStr(dataTitles));
@@ -109,6 +145,16 @@ public class StatsCrossTabs {
 		if (dataTitles.length != data.length) {
 			log.reportTimeError("Data titles and data matrix must be the same size");
 			verify = false;
+		}
+		if (indeps != null && data[0].length != indeps.length) {
+			log.reportTimeError("Independant predictors and data must be the same size");
+			verify = false;
+		}
+		if (sType == STAT_TYPE.LIN_REGRESSION && indeps == null) {
+			log.reportTimeWarning("Independent predictors were not provided for stat type " + sType);
+		} else if (sType != STAT_TYPE.LIN_REGRESSION && indeps != null) {
+			log.reportTimeWarning("Independent predictors were provided for stat type " + sType + " and will be skipped");
+
 		}
 		return verify;
 	}
@@ -144,7 +190,7 @@ public class StatsCrossTabs {
 	}
 
 	public static void test() {
-		StatsCrossTabs cTable = new StatsCrossTabs(new double[][] { { 1, 2, 3, 4 }, { 1, 2, 3, 4 }, { 1, 6, 3, 5 }, { 1, 6, 3, Double.NaN } }, new String[] { "1", "2", "3", "hasNaN" }, CORREL_TYPE.SPEARMAN, true, new Logger());
+		StatsCrossTabs cTable = new StatsCrossTabs(new double[][] { { 1, 2, 3, 4 }, { 1, 2, 3, 4 }, { 1, 6, 3, 5 }, { 1, 6, 3, Double.NaN } }, null, new String[] { "1", "2", "3", "hasNaN" }, STAT_TYPE.SPEARMAN_CORREL, true, new Logger());
 		cTable.computeTable();
 		cTable.dumpTables("D:/data/singapore_PCs/Manhattan/test.correl");
 	}

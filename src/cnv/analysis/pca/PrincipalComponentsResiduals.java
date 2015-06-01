@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -22,6 +23,7 @@ import stats.RegressionModel;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
+import cnv.manage.MDL;
 import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import common.Array;
@@ -247,7 +249,8 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * 
 	 */
 	private void getData() {
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess);
+		MDL mdl = new MDL(proj, markersToAssess, 2, 100);
+		// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess);
 		int count = numUsed(samplesToUse);
 		this.fullData = new double[markersToAssess.length][count];
 		this.abGenotypesAfterFilters = new byte[markersToAssess.length][count];
@@ -262,8 +265,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			log.report("Info - did not find the cluster filter file " + proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME) + "; using original genotypes");
 		}
 
-		for (int i = 0; i < markersToAssess.length; i++) {
-			MarkerData markerData = markerDataLoader.requestMarkerData(i);
+		int index = 0;
+		while (mdl.hasNext()) {
+			// for (int index = 0;index < markersToAssess.length; index++) {
+			MarkerData markerData = mdl.next();
 			if (recomputeLRR) {
 				// TODO, I think it is important to cluster on everyone at this point, since we may get inaccurate applications of the clusters
 				// i.e Penncnv demands all three genotype clusters or none, we allow 1,2,and 3.
@@ -272,19 +277,20 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			} else {
 				lrrs = markerData.getLRRs();
 			}
-			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[i], gcThreshold);
+			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[index], gcThreshold);
 			int sampleIndex = 0;
 			for (int k = 0; k < samplesToUse.length; k++) {
 				if (samplesToUse[k]) {
-					fullData[i][sampleIndex] = lrrs[k];
-					abGenotypesAfterFilters[i][sampleIndex] = abGenos[k];
+					fullData[index][sampleIndex] = lrrs[k];
+					abGenotypesAfterFilters[index][sampleIndex] = abGenos[k];
 					sampleIndex++;
 				}
 			}
-			markerDataLoader.releaseIndex(i);
+			// markerDataLoader.releaseIndex(index);
+			index++;
 		}
 
-		markerDataLoader.reportWaitTimes();
+		// markerDataLoader.reportWaitTimes();
 	}
 
 	/**
@@ -507,6 +513,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 
 	public int getNumComponents() {
 		return numComponents;
+	}
+
+	public void setNumComponents(int numComponents) {
+		this.numComponents = numComponents;
 	}
 
 	public int getNumSamples() {
@@ -784,9 +794,15 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		return sortedByProject;
 	}
 
+	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title, boolean verbose) {
+		return getCorrectedDataAt(data, null, samplesTobuildModel, numComponentsForModel, svdRegression, title, verbose);
+	}
+
 	/**
 	 * @param data
 	 *            the data to be corrected with the PCs {@link PrincipalComponentsResiduals } object, currently the data must correspond in length and order to all samples in the project. Set to NaN to mask
+	 * @param extraIndeps
+	 *            this can be null, but if not, this data will be included in the regression model with the PCs
 	 * @param samplesTobuildModel
 	 *            if not null, must correpsond in length and order to project samples, these individual will be used to build the regression model
 	 * @param numComponentsForModel
@@ -800,7 +816,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 * @return a computed {@link CrossValidation}
 	 * 
 	 */
-	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title, boolean verbose) {
+	public CrossValidation getCorrectedDataAt(double[] data, double[][] extraIndeps, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title, boolean verbose) {
 		int numSamples = proj.getSamples().length;
 		boolean go = true;
 		CrossValidation cval;
@@ -827,6 +843,11 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			proj.getLog().reportError("Error - too many components (" + numComponentsForModel + ") were specified for the model, only have " + numComponents + " available");
 			go = false;
 		}
+
+		if (extraIndeps != null && extraIndeps.length != samplesInPc.size()) {
+			proj.getLog().reportError("The size of the independent variable array did not match the number of samples in the pc data");
+			go = false;
+		}
 		if (!sortedByProject) {// this could happen if the extrapolated pcs are not used...encourage the full pc file since it is matched to the project
 			proj.getLog().report("Warning - detected that the PC file is not perfectly matched to the project");
 			if (numSamples != samplesInPc.size()) {
@@ -839,8 +860,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			cval.setAnalysisFailed(true);
 		} else {
 			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
-			double[][] train_indeps = getTrimmedPreppedProjectPCsFor(samplesTobuildModel, numComponentsForModel);
-			double[][] val_indeps = getTrimmedPreppedProjectPCsFor(null, numComponentsForModel);
+
+			double[][] train_indeps = getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel);
+			double[][] val_indeps = getTrimmedPreppedIndepsProjectPCsFor(null, extraIndeps, numComponentsForModel);
+
 			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, verbose, svdRegression, proj.getLog());
 			cval.train();
 			cval.computePredictedValues();
@@ -853,6 +876,27 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	 */
 	public static CrossValidation getCorrectedDataAt(PrincipalComponentsResiduals principalComponentsResiduals, float[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title) {
 		return principalComponentsResiduals.getCorrectedDataAt(Array.toDoubleArray(data), samplesTobuildModel, numComponentsForModel, svdRegression, title, true);
+	}
+
+	/**
+	 * @param toExtract
+	 * @param additionalData
+	 *            tags this extra data onto the pcs, does not do any error checking
+	 * @param numComponents
+	 * @return
+	 */
+	private double[][] getTrimmedPreppedIndepsProjectPCsFor(boolean[] toExtract, double[][] additionalData, int numComponents) {
+		double[][] preppedPcs = getTrimmedPreppedProjectPCsFor(toExtract, numComponents);
+		if (additionalData != null) {
+			double[][] tmp = new double[preppedPcs.length][numComponents + additionalData[0].length];
+			for (int i = 0; i < preppedPcs.length; i++) {
+				tmp[i] = Array.concatDubs(preppedPcs[i], additionalData[i]);
+			}
+			preppedPcs = tmp;
+		}
+
+		return preppedPcs;
+
 	}
 
 	/**
@@ -1006,6 +1050,45 @@ public class PrincipalComponentsResiduals implements Cloneable {
 
 	public String[] getSamplesToReport() {
 		return samplesToReport;
+	}
+
+	public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals> {
+		private PrincipalComponentsResiduals pcResids;
+		private int[] order;
+		private int index;
+
+		public PrincipalComponentsIterator(PrincipalComponentsResiduals pcResids, int[] order) {
+			super();
+			this.pcResids = pcResids;
+			this.order = order;
+			this.index = 1;// one based extraction
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < (order == null ? pcResids.getNumComponents() : order.length);
+
+		}
+
+		@Override
+		public PrincipalComponentsResiduals next() {
+			double[][] newBasis = new double[index][];
+			for (int i = 0; i < index; i++) {
+				newBasis[i] = pcResids.getBasisAt(order == null ? i+1 : order[i]);
+			}
+			PrincipalComponentsResiduals newPcResiduals = pcResids.clone();
+			newPcResiduals.setPcBasis(newBasis);
+			newPcResiduals.setNumComponents(index);
+			index++;
+			return newPcResiduals;
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 }
