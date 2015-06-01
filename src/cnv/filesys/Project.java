@@ -87,7 +87,8 @@ public class Project {
 		}
 		@Override
 		public void parseValue(String valueStr) {
-			this.setValue(valueStr.split(delim));
+		    String[] pts = "".equals(valueStr) ? new String[0] : valueStr.split(delim);
+			this.setValue(pts);
 		}
 		@Override
 		public String getValueString() {
