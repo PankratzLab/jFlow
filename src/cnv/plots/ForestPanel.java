@@ -45,7 +45,6 @@ public class ForestPanel extends AbstractPanel {
 	private ForestPlot forestPlot;
 	private Logger log;
 	private boolean rectangleGeneratable;
-	private boolean sortedDisplay = false;
 	private DecimalFormat precision2Decimal;
 	private boolean antiAlias = true;
 
@@ -92,7 +91,7 @@ public class ForestPanel extends AbstractPanel {
 			
 			return;
 		}
-		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies(sortedDisplay);
+		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies();
 		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
 		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
 
@@ -101,6 +100,18 @@ public class ForestPanel extends AbstractPanel {
 		
 		for (int i = 0; i < currentData.size(); i++) {
 //			if(currentData.get(i).getBeta() != 0.0 && currentData.get(i).getStderr() != 0.0){
+		    if (currentData.get(i) instanceof StudyBreak) {
+                yAxisValue = (float) i + 1;
+                PlotPoint leftEnd = new PlotPoint("", (byte) 0, 0, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+                yAxisValue = (float) i + 1;
+                PlotPoint rightEnd = new PlotPoint("", (byte) 0, 0, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+
+                linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
+                
+                yAxisValue = (float) i + 1;
+                tempPoints[i] = new PlotPoint(" | ", (byte) 0, 0, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
+                tempPoints[i].setVisible(false);
+		    } else {
 				xAxisValue = currentData.get(i).getConfInterval()[0];
 				yAxisValue = (float) i + 1;
 				PlotPoint leftEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
@@ -115,7 +126,7 @@ public class ForestPanel extends AbstractPanel {
 				yAxisValue = (float) i + 1;
 				tempPoints[i] = new PlotPoint(currentData.get(i).getLabel() + "|" + prepareRightMarkers(currentData.get(i)), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
 				tempPoints[i].setVisible(false);
-//			}
+			}
 		}
 		points = tempPoints;
 		lines = Array.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
@@ -138,7 +149,7 @@ public class ForestPanel extends AbstractPanel {
 	}
 
 	private void generateRectangles(Graphics g) {
-		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies(sortedDisplay);
+		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies();
 		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
 		rectangles = new GenericRectangle[0];
 		
@@ -275,7 +286,7 @@ public class ForestPanel extends AbstractPanel {
 		int sigFigs;
 		String str;
 		FontMetrics fontMetrics = g.getFontMetrics();
-		int[] order = null;
+//		int[] order = null;
 		int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
 		
     	if (g instanceof Graphics2D) {
@@ -292,27 +303,28 @@ public class ForestPanel extends AbstractPanel {
 //		} else 
 		if (isPointsGeneratable()) {
 			generatePoints();
-			if (isPointsGeneratable()) {
-				TreeMap<Float, Integer> scoreIndexMap = new TreeMap<Float, Integer>();
-				TreeSet<Integer> zeros = new TreeSet<Integer>();
-				for (int i = 0; i < forestPlot.getCurrentMetaStudy().getStudies().size(); i++) {
-					if (forestPlot.getCurrentMetaStudy().getStudies().get(i).getZScore() != 0.0) {
-						scoreIndexMap.put((forestPlot.getCurrentMetaStudy().getStudies().get(i).getZScore() / forestPlot.getSumZScore()) * 100, i);
-					} else {
-						zeros.add(i);
-					}
-				}
-				order = new int[forestPlot.getCurrentMetaStudy().getStudies().size()];
-				int ind = scoreIndexMap.size() - 1;
-				for (java.util.Map.Entry<Float, Integer> entry : scoreIndexMap.entrySet()) {
-					order[ind] = entry.getValue().intValue();
-					ind--;
-				}
-				Iterator<Integer> iter = zeros.iterator();
-				for (int i = scoreIndexMap.size(); i < order.length; i++) {
-					order[i] = iter.next().intValue();
-				}
-			}
+//			if (isPointsGeneratable()) {
+//				TreeMap<Float, Integer> scoreIndexMap = new TreeMap<Float, Integer>();
+//				TreeSet<Integer> zeros = new TreeSet<Integer>();
+//				ArrayList<StudyData> currentStudies = forestPlot.getCurrentMetaStudy().getStudies(); 
+//				for (int i = 0; i < currentStudies.size(); i++) {
+//					if (currentStudies.get(i).getZScore() != 0.0) {
+//						scoreIndexMap.put((currentStudies.get(i).getZScore() / forestPlot.getSumZScore()) * 100, i);
+//					} else {
+//						zeros.add(i);
+//					}
+//				}
+//				order = new int[currentStudies.size()];
+//				int ind = scoreIndexMap.size() - 1;
+//				for (java.util.Map.Entry<Float, Integer> entry : scoreIndexMap.entrySet()) {
+//					order[ind] = entry.getValue().intValue();
+//					ind--;
+//				}
+//				Iterator<Integer> iter = zeros.iterator();
+//				for (int i = scoreIndexMap.size(); i < order.length; i++) {
+//					order[i] = iter.next().intValue();
+//				}
+//			}
 		}
 //		highlightPoints();
 
@@ -765,7 +777,4 @@ public class ForestPanel extends AbstractPanel {
 		return fontSz;
 	}
 
-	public void setSortedDisplay(boolean sorted) {
-		this.sortedDisplay = sorted;
-	}
 }

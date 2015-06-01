@@ -26,10 +26,10 @@ import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -42,6 +42,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -62,6 +63,9 @@ class MetaStudy {
 	private final float metaBeta;
 	private final float metaStderr;
 	private final float[] metaConf = new float[2];
+    private ArrayList<String> sortOrder = null;
+    private boolean shouldSort;
+    private boolean currentSortIsNaturalSort = false;
 	
 	public MetaStudy(float metaBeta, float metaStderr) {
 		studies = new ArrayList<StudyData>();
@@ -73,13 +77,13 @@ class MetaStudy {
 	}
 	
 	public void addStudy(StudyData studyData) {
-		getStudies().add(studyData);
+		studies.add(studyData);
 		nameMap.put(studyData.getLabel(), studyData);
 	}
 
 	String findLongestStudyName() {
 		String longest = "";
-		for(StudyData ft : getStudies()){
+		for(StudyData ft : studies){
 			longest = longest.length() < ft.getLabel().length() ? ft.getLabel() : longest;
 		}
 		return longest;
@@ -87,7 +91,7 @@ class MetaStudy {
 	
 	float calcSumZScore() {
 		float sum = 0;
-		for	(StudyData ft : getStudies()){
+		for	(StudyData ft : studies){
 			sum += ft.getZScore();
 		}
 		return sum;
@@ -95,23 +99,39 @@ class MetaStudy {
 	
 	float findMaxZScore() {
 		float max = Float.MIN_VALUE;
-		for (StudyData data: getStudies()) {
+		for (StudyData data: studies) {
 			max = Math.max(max, data.getZScore());
 		}
 		return max;
 	}
-
-	public ArrayList<StudyData> getStudies(boolean sorted) {
-		return sorted ? getSorted() : this.studies;
+	
+	private ArrayList<StudyData> getSorted(ArrayList<String> order) {
+	    if (this.sorted == null || currentSortIsNaturalSort) {
+	        this.sorted = new ArrayList<StudyData>();
+	        for (int i = order.size() - 1; i >= 0; i--) {
+	            String name = order.get(i);
+	            if (name.equals("")) {
+	                this.sorted.add(new StudyBreak());
+	            } else {
+	                StudyData sd = nameMap.get(name);
+	                if (sd == null) {
+	                    sd = new StudyBreak();
+	                }
+	                sorted.add(sd);
+	            }
+	        }
+	    }
+        currentSortIsNaturalSort = false;
+	    return this.sorted;
 	}
 	
 	private ArrayList<StudyData> getSorted() {
-		if (this.sorted == null) {
+		if (this.sorted == null || !currentSortIsNaturalSort) {
 			this.sorted = new ArrayList<StudyData>();
 			
 			TreeMap<String, String> zeroStudyMap = new TreeMap<String, String>();
 			TreeMap<Float, String> betaStudyMap = new TreeMap<Float, String>();
-			for (StudyData study : getStudies()) {
+			for (StudyData study : studies) {
 				if (study.getBeta() == 0.0f) {
 					zeroStudyMap.put(study.getLabel(), study.getLabel());
 				} else {
@@ -129,12 +149,12 @@ class MetaStudy {
 				sorted.add(desc.get(i));
 			}
 		}
-		
+		currentSortIsNaturalSort = true;
 		return this.sorted;
 	}
 
 	public ArrayList<StudyData> getStudies() {
-		return studies;
+	    return this.shouldSort ? this.sortOrder == null || this.sortOrder.isEmpty() ? getSorted() : getSorted(this.sortOrder) : this.studies;
 	}
 
 	public float[] getMetaConf() {
@@ -148,7 +168,22 @@ class MetaStudy {
 	public float getMetaStderr() {
 		return metaStderr;
 	}
+
+    public void setSort(boolean sortedDisplay, ArrayList<String> sortOrder) {
+        this.shouldSort = sortedDisplay;
+        this.sortOrder = sortOrder;
+    }
 	
+}
+
+class StudyBreak extends StudyData {
+    // placeholder class for visual breaks
+    public StudyBreak() {
+        this ("", 0f, 0f, 0, (byte) 0);
+    }
+    private StudyBreak(String label, float beta, float stderr, int color, byte shape) {
+        super(label, beta, stderr, color, shape);
+    }
 }
 
 class StudyData {
@@ -304,6 +339,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 //	int curMarkerIndex;
 	private int currentDataIndex;
 	private boolean atleastOneStudy;
+    private boolean sortedDisplay = false;
 
 	private String markerFileName;
 
@@ -397,19 +433,32 @@ public class ForestPlot extends JFrame implements WindowListener {
 		// generateShortcutMenus();
 	}
 	
-	
 	private JMenuBar createMenuBar() {
 		JMenuBar bar = new JMenuBar();
 		
 		JMenu actions = new JMenu("Actions", true);
 		actions.setMnemonic(KeyEvent.VK_A);
 		
-		final JCheckBoxMenuItem sortStudies = new JCheckBoxMenuItem();
+		final JRadioButtonMenuItem noSortButton = new JRadioButtonMenuItem();
+		AbstractAction noSortAction = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ForestPlot.this.setSortedDisplay(false);
+                ForestPlot.this.forestPanel.paintAgain();                
+            }
+        };
+        noSortButton.setAction(noSortAction);
+        noSortButton.setText("No Sorting");
+        noSortButton.setMnemonic(KeyEvent.VK_N);
+        actions.add(noSortButton);
+		
+		final JRadioButtonMenuItem sortStudies = new JRadioButtonMenuItem();
 		AbstractAction sortAction = new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				ForestPlot.this.forestPanel.setSortedDisplay(sortStudies.isSelected());
+				ForestPlot.this.setSortedDisplay(true);
 				ForestPlot.this.forestPanel.paintAgain();
 			}
 		};
@@ -417,6 +466,38 @@ public class ForestPlot extends JFrame implements WindowListener {
 		sortStudies.setText("Sort Studies");
 		sortStudies.setMnemonic(KeyEvent.VK_S);
 		actions.add(sortStudies);
+		
+		final JRadioButtonMenuItem sortFileStudies = new JRadioButtonMenuItem();
+		AbstractAction sortFileAction = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                JFileChooser jfc = new JFileChooser(new File(proj.PROJECT_DIRECTORY.getValue()));
+                int returnVal = jfc.showOpenDialog(null);
+                
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    loadOrderFile(jfc.getSelectedFile().getAbsolutePath());
+                    ForestPlot.this.setSortedDisplay(true);
+                    ForestPlot.this.forestPanel.paintAgain();
+                } else {
+                    noSortButton.setSelected(true);
+                    ForestPlot.this.setSortedDisplay(false);
+                    ForestPlot.this.forestPanel.paintAgain();
+                }
+            }
+        };
+    	sortFileStudies.setAction(sortFileAction);
+    	sortFileStudies.setText("Sort Studies with File");
+    	sortFileStudies.setMnemonic(KeyEvent.VK_S);
+    	actions.add(sortFileStudies);
+        
+        ButtonGroup sortGroup = new ButtonGroup();
+        sortGroup.add(noSortButton);
+        sortGroup.add(sortStudies);
+        sortGroup.add(sortFileStudies);
+        
+        noSortButton.setSelected(true);
 		
 		AbstractAction screenAction1 = new AbstractAction() {
 			private static final long serialVersionUID = 1L;
@@ -1206,8 +1287,27 @@ public class ForestPlot extends JFrame implements WindowListener {
 	};
 
 	private JProgressBar progressBar;
+	private ArrayList<String> sortOrder = null;
+	
+	private void loadOrderFile(String filename) {
+	    ArrayList<String> order = new ArrayList<String>();
+	    try {
+    	    BufferedReader reader = Files.getAppropriateReader(filename);
+    	    String line = null;
+            while((line = reader.readLine()) != null) {
+                order.add(line.trim());
+            }
+        } catch (IOException e) {
+            proj.message("Error occurred while loading study order file: " + e.getMessage());
+            log.reportException(e);
+        }
+	    this.sortOrder = order;
+	}
 	
 	public MetaStudy getCurrentMetaStudy() {
+	    if (currMetaStudy != null) {
+	        currMetaStudy.setSort(this.sortedDisplay, this.sortOrder);
+	    }
 		return currMetaStudy;
 	}
 
@@ -1225,7 +1325,6 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private void setCurrentDataIndex(int currentDataIndex) {
 		this.currentDataIndex = currentDataIndex;
 	}
-
 
 	public ArrayList<ForestInput> getDataIndices() {
 		return dataIndices;
@@ -1246,7 +1345,10 @@ public class ForestPlot extends JFrame implements WindowListener {
 		this.plotLabel = plotLabel;
 	}
 
-
+    public void setSortedDisplay(boolean sorted) {
+        this.sortedDisplay = sorted;
+    }
+    
 	@Override
 	public void windowOpened(WindowEvent e) {/**/}
 
