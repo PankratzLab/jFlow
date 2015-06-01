@@ -95,6 +95,8 @@ public class GenParser {
     			outfile = line[j].split("=")[1];
     		} else if (line[j].startsWith("replace=")) {
     			replaceBlanks = ext.parseStringArg(line[j], "");
+    		} else if (line[j].equals("simplifyQuotes")) {
+    			log.report("The GenParser argument \"simplifyQuotes\" has been deprecated; it is now the default functionality and you must use \"doNotSimplifyQuotes\" if you don't want it");
     		} else if (line[j].equalsIgnoreCase("tab") || line[j].equals(",") || line[j].equalsIgnoreCase("doNotSimplifyQuotes")) {
     			// already taken care of
     		} else if (line[j].equalsIgnoreCase("fail")) {
