@@ -4028,6 +4028,24 @@ public class Array {
 		return ret;
 	}
 
+	
+	
+	public static double[] concatDubs(double[] first, double[]... rest) {
+		int totalLength = first.length;
+		for (double[] array : rest) {
+			totalLength += array.length;
+		}
+		double[] result = new double[totalLength];
+		int offset = first.length;
+		for (double[] array : rest) {
+			System.arraycopy(array, 0, result, offset, array.length);
+			offset += array.length;
+		}
+		return result;
+	}
+	
+	
+	
 	/**
 	 * Function to concat n number of Arrays.
 	 *

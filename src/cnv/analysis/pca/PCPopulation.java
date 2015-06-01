@@ -14,6 +14,7 @@ import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.Sort;
 import common.ext;
 import cnv.filesys.Project;
 import cnv.var.SampleData;
@@ -71,8 +72,9 @@ public class PCPopulation {
 		ArrayList<TestSampleDistances> finalizedDists = new ArrayList<PCPopulation.TestSampleDistances>(dists.size());
 		for (String ind : dists.keySet()) {
 			TestSampleDistances curDist = dists.get(ind);
-
+			curDist.computeNormDist(pdists, log);
 			finalizedDists.add(curDist);
+
 		}
 		return finalizedDists.toArray(new TestSampleDistances[finalizedDists.size()]);
 	}
@@ -178,18 +180,128 @@ public class PCPopulation {
 			return sample;
 		}
 
-		public void computeNormDist(Hashtable<String, TestPopulationDistances> pdists) {
+		public void computeNormDist(Hashtable<String, TestPopulationDistances> pdists, Logger log) {
+			double minDist = Double.MAX_VALUE;
+			String minDistPop = null;
+			double[] allDists = new double[populations.size()];
 			for (int i = 0; i < populations.size(); i++) {
 				String curPop = populations.get(i);
+
 				TestPopulationDistances curPopulationDistance = pdists.get(curPop);
 				double distToCur = distances.get(i);
+				allDists[i] = distToCur;
+
+				if (distToCur < minDist) {
+					minDist = distToCur;
+					minDistPop = curPop;
+				}
+
+				// for (int j = 0; j < populations.size(); j++) {
+				// if (i != j) {
+				// if (!curPopulationDistance.getOtherPopulations().get(j).equals(populations.get(j))) {
+				// log.reportTimeError("Mismatched populations");
+				// } else {
+				//
+				// double diff = curPopulationDistance.getOtherDistances().get(j)-distances.get(j);
+				//
+				// distToCur+=diff;
+				// // System.out.println(sample + "\t" + curPop + "\t" + distToCur + "\t" + curPopulationDistance.getOtherPopulations().get(j) + "\t" + curPopulationDistance.getOtherDistances().get(j));
+				// if (sample.startsWith("F10607D")) {
+				// // System.out.println("SDF\t" + sample + "\tcurPop " + curPop + " > " + populations.get(j) + "\t" + distances.get(j) + "\t" + curPopulationDistance.getOtherDistances().get(j) + "\t" + diff);
+				// //System.out.println(curPopulationDistance.getPopulation().getName() + "\t" + curPopulationDistance.getOtherDistances().get(j)+"\t"+populations.get(j) + "\t" + distances.get(j));
+				// System.out.println("The difference from the "+curPopulationDistance.getPopulation().getName() + " cluster to the "+curPopulationDistance.getOtherPopulations().get(j)+ " cluster is "+ curPopulationDistance.getOtherDistances().get(j));
+				// System.out.println("The distance from this sample to the  "+populations.get(j)+" cluster is"+distances.get(j));
+				// System.out.println("The difference in distances is "+diff);
+				// System.out.println();
+				//
+				// }
+				//
+				// // distToCur+=
+				// //
+				// // curPopulationDistance.getOtherPopulations().get(i);
+				// }
+				// }
+				// }
+				//
+
+			}
+			// System.out.println(Array.toStr(allDists));
+			int[] order = Sort.quicksort(allDists);
+			// System.out.println(Array.toStr(order));
+			// System.out.println(Array.toStr(allDists));
+
+			// if (sample.startsWith("F10626D")) {
+			// System.out.println(sample + "\t" + minDist + "\t" + minDistPop);
+			// }
+			// TestPopulationDistances clusterPop = pdists.get(minDistPop);
+			for (int i = 0; i < populations.size(); i++) {
+				double normDist = Double.NaN;
+
+				String curPop = populations.get(i);
+				// if (curPop.equals(minDistPop)) {
+
+				// if (sample.startsWith("F10626D")) {
+				// System.out.println("The distance from this sample to the  " + populations.get(i) + " cluster is" + distances.get(i));
+				// System.out.println(clusterPop.getOtherPopulations().get(i) + "\t" + clusterPop.getOtherDistances().get(i));
+				// System.out.println(clusterPop.getOtherDistances().get(i) - distances.get(i));
+				// }
+				TestPopulationDistances clusterPop = pdists.get(curPop);
+				boolean[] mask = new boolean[populations.size()];
+				Arrays.fill(mask, true);
+				mask[i] = false;
+				double sumTotalDists = Array.sum(Array.subArray(getDistances(), mask));
+				normDist = distances.get(i) / sumTotalDists;
+//				System.out.println("The difference from the " + clusterPop.getPopulation().getName() + " cluster to the " + clusterPop.getOtherPopulations().get(i) + " cluster is " + clusterPop.getOtherDistances().get(i));
+//				System.out.println("The distance from this sample to the  " + populations.get(j) + " cluster is" + distances.get(j));
+//				System.out.println("The difference in distances is " + diff + "  with percent diff ");
+//				System.out.println("The current percentage " + curPop + " is " + (1 - normDist));
 				
+				
+				// for (int j = 0; j < populations.size(); j++) {
+				// if (i != j) {
+				// double diff = distances.get(j) - clusterPop.getOtherDistances().get(j);
+				// normDist += (diff / Array.sum(getDistances()));
+				//
+				// // double percentCurrent = diff <0?(diff/distances.get(j)):(diff/clusterPop.getOtherDistances().get(j));
+				// // normDist+=percentCurrent;
+				//
+				// // if(percentCurrent<1){
+				// // normDist+=Math.abs(percentCurrent);
+				// // if(percentCurrent>0){
+				// // normDist += percentCurrent;
+				// // }else{
+				// // normDist +=1;
+				// // }
+				// // }
+				//
+				// if (sample.startsWith("F10626M")) {
+				// System.out.println("The difference from the " + clusterPop.getPopulation().getName() + " cluster to the " + clusterPop.getOtherPopulations().get(j) + " cluster is " + clusterPop.getOtherDistances().get(j));
+				//
+				// System.out.println("The distance from this sample to the  " + populations.get(j) + " cluster is" + distances.get(j));
+				// System.out.println("The difference in distances is " + diff + "  with percent diff ");
+				// // System.out.println(clusterPop.getOtherPopulations().get(j) + "\t" + clusterPop.getOtherDistances().get(j));
+				// System.out.println("The current percentage " + curPop + " is " + (1 - normDist));
+				// }
+				// }
+				// }
+
+				// if (sample.startsWith("D180")) {
+				// System.out.println("The distance from this sample to the  " + populations.get(i) + " cluster is" + distances.get(i));
+				// System.out.println(clusterPop.getOtherPopulations().get(i) + "\t" + clusterPop.getOtherDistances().get(i));
+				// System.out.println("The current percentage is" + normDist);
+				// }
+				// }
+				normDistances.add(Math.max(Math.min(1 - normDist, 1), 0));
 			}
 
 		}
 
 		public double[] getDistances() {
 			return Array.toDoubleArray(distances);
+		}
+
+		public double[] getNormDistances() {
+			return Array.toDoubleArray(normDistances);
 		}
 
 		public String[] getPopulations() {
@@ -302,25 +414,30 @@ public class PCPopulation {
 		}
 	}
 
-	public static void test(Project proj, String genoPCfile) {
+	public static void test(Project proj, String genoPCfile, int numComponents) {
 		PrincipalComponentsResiduals pResiduals = new PrincipalComponentsResiduals(genoPCfile, Files.getHeaderOfFile(genoPCfile, proj.getLog()).length - 2, proj.getLog());
 		VcfPopulation vpop = VcfPopulation.load(proj.SAMPLE_DATA_FILENAME.getValue(), POPULATION_TYPE.PC_ANCESTRY, proj.getLog());
 		vpop.report();
-		PCPopulation pcPopulation = new PCPopulation(proj, pResiduals, vpop, 2, true);
-		TestSampleDistances[] testSampleDistances = pcPopulation.computeDistance();
-		String output = ext.rootOf(genoPCfile, false) + ".ancestry.txt";
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println("DNA\tSTUDY\t" + Array.toStr(testSampleDistances[0].getPopulations()));
-			for (int i = 0; i < testSampleDistances.length; i++) {
-				String sample = testSampleDistances[i].getSample();
-				writer.println(sample + "\t" + vpop.getPopulationForInd(sample, RETRIEVE_TYPE.SUB)[0] + "\t" + Array.toStr(testSampleDistances[i].getDistances()));
+		if (vpop.valid()) {
+			proj.getLog().reportTimeInfo("Detected " + (vpop.getSuperPop().size() - 1) + " seed populations");
+			if (numComponents < (vpop.getSuperPop().size() - 2)) {
+				proj.getLog().reportTimeWarning("Usually " + (vpop.getSuperPop().size() - 2) + " populations should be clustered across at least " + (vpop.getSuperPop().size() - 3) + " principal components");
 			}
-
-			writer.close();
-		} catch (Exception e) {
-			proj.getLog().reportError("Error writing to " + output);
-			proj.getLog().reportException(e);
+			PCPopulation pcPopulation = new PCPopulation(proj, pResiduals, vpop, numComponents, true);
+			TestSampleDistances[] testSampleDistances = pcPopulation.computeDistance();
+			String output = ext.rootOf(genoPCfile, false) + ".ancestry.txt";
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				writer.println("DNA\tSTUDY\t" + Array.toStr(testSampleDistances[0].getPopulations()) + "\t" + Array.toStr(testSampleDistances[0].getPopulations()));
+				for (int i = 0; i < testSampleDistances.length; i++) {
+					String sample = testSampleDistances[i].getSample();
+					writer.println(sample + "\t" + vpop.getPopulationForInd(sample, RETRIEVE_TYPE.SUB)[0] + "\t" + Array.toStr(testSampleDistances[i].getDistances()) + "\t" + Array.toStr(testSampleDistances[i].getNormDistances()));
+				}
+				writer.close();
+			} catch (Exception e) {
+				proj.getLog().reportError("Error writing to " + output);
+				proj.getLog().reportException(e);
+			}
 		}
 
 		// for (int i = 0; i < testSampleDistances.length; i++) {
@@ -333,12 +450,14 @@ public class PCPopulation {
 		int numArgs = args.length;
 		String filename = null;
 		String genoPCfile = null;
+		int numComponents = 2;
 		String logfile = null;
 		Logger log;
 
 		String usage = "\n" + "cnv.analysis.pca.PCPopulation requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
 		usage += "   (2) full path to a genotype pc file (i.e. file=" + filename + " (default))\n" + "";
+		usage += "   (3) number of components (i.e. numComp=" + numComponents + " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -349,6 +468,9 @@ public class PCPopulation {
 				numArgs--;
 			} else if (args[i].startsWith("pc=")) {
 				genoPCfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("numComp=")) {
+				numComponents = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
@@ -363,7 +485,7 @@ public class PCPopulation {
 		}
 		try {
 			log = new Logger(logfile);
-			test(new Project(filename, false), genoPCfile);
+			test(new Project(filename, false), genoPCfile, numComponents);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

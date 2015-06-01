@@ -9,7 +9,7 @@ import javax.swing.JOptionPane;
 import common.Files;
 import common.ext;
 import stats.StatsCrossTabs;
-import stats.StatsCrossTabs.CORREL_TYPE;
+import stats.StatsCrossTabs.STAT_TYPE;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
 import cnv.manage.ExtProjectDataParser.Builder;
@@ -46,7 +46,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 			additionalDataTitles = extSampleFileParser.getNumericDataTitles();
 		}
 		log.reportTimeInfo("Developing cross tabs...");
-		this.sTabs = getCorrelationTable(this, numPCs, sampleQC, CORREL_TYPE.PEARSON, additionalData, additionalDataTitles, verbose);
+		this.sTabs = getCorrelationTable(this, numPCs, sampleQC, STAT_TYPE.PEARSON_CORREL, additionalData, additionalDataTitles, verbose);
 		log.reportTimeInfo("Finished developing cross tabs...");
 
 	}
@@ -74,7 +74,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 		return extSampleFileParser;
 	}
 
-	private static StatsCrossTabs getCorrelationTable(PrincipalComponentsCrossTabs pCorrelation, int numPcs, SampleQC sampleQC, StatsCrossTabs.CORREL_TYPE cType, double[][] additionalData, String[] additionalDataTitles, boolean verbose) {
+	private static StatsCrossTabs getCorrelationTable(PrincipalComponentsCrossTabs pCorrelation, int numPcs, SampleQC sampleQC, StatsCrossTabs.STAT_TYPE cType, double[][] additionalData, String[] additionalDataTitles, boolean verbose) {
 		int numCorrels = sampleQC.getQctitles().length + numPcs + (additionalData == null ? 0 : additionalData.length);
 		double[][] data = new double[numCorrels][];
 		String[] titles = new String[numCorrels];
@@ -101,7 +101,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 				}
 			}
 		}
-		StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, titles, cType, verbose, pCorrelation.getProj().getLog());
+		StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, null, titles, cType, verbose, pCorrelation.getProj().getLog());
 		statsCrossTabs.computeTable();
 		return statsCrossTabs;
 	}
@@ -115,10 +115,10 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 		}
 		if (Files.exists(pcFile)) {
 			String ObjButtons[] = { "OK", "Cancel" };
-//			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over " + proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+			// int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over " + proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
 			int promptResult = JOptionPane.showOptionDialog(parentComponent, "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " component(s)?", "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
 			if (promptResult == 0) {
-//				crossTabulate(proj, proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS), null, false);
+				// crossTabulate(proj, proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS), null, false);
 				crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, false);
 			}
 		} else {
