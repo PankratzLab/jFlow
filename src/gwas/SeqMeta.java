@@ -572,6 +572,7 @@ public class SeqMeta {
 							}
 
 							commands = new Vector<String>();
+							commands.add("print(.libPaths())");
 							commands.add("library(bdsmatrix)");
 							commands.add("library(seqMeta)");
 							commands.add("load(\""+dir+snpInfoFile+"\")");
@@ -604,6 +605,9 @@ public class SeqMeta {
 										commands.add("write.table( results, \""+outputFilename+"\", sep=\",\", row.names = F)");
 										count++;
 									} else {
+										if (chr < 23) {
+											log.report("Creating a dummy file for "+outputFilename+" because "+objectFilename+" has a filesize of "+new File(objectFilename).length());
+										}
 										Files.write(Array.toStr(getHeaderForMethod(methods[m]), ","), outputFilename);
 									}
 								}
@@ -642,6 +646,7 @@ public class SeqMeta {
 				for (int chr = 1; chr <= (runningByChr?maxChr:1); chr++) {
 					chrom = chr==23?"X":(chr==24?"Y":chr+"");
 					commands = new Vector<String>();
+					commands.add("print(.libPaths())");
 					commands.add("library(bdsmatrix)");
 					commands.add("library(seqMeta)");
 					if (runningByChr) {
@@ -717,6 +722,7 @@ public class SeqMeta {
 			for (int chr = 1; chr <= (runningByChr?maxChr:1); chr++) {
 				chrom = chr==23?"X":(chr==24?"Y":chr+"");
 				commands = new Vector<String>();
+				commands.add("print(.libPaths())");
 				commands.add("library(bdsmatrix)");
 				commands.add("library(seqMeta)");
 				if (runningByChr) {
@@ -1037,7 +1043,9 @@ public class SeqMeta {
 		int maxSamples;
 		int pvalIndex, mafIndex, ntotalIndex, betaIndex;
 		boolean[] keeps;
+		boolean problem;
 		
+		problem = false;
 		count = 0;
 		maxSamples = 0;
 		metrics = Array.stringArray(14, "");
@@ -1063,14 +1071,18 @@ public class SeqMeta {
 				mafIndex = ext.indexOfStr("maf", header, false, true);
 				ntotalIndex = ext.indexOfStr("ntotal", header, false, true);
 				betaIndex = ext.indexOfStr("beta", header, false, true);
+				log.report(outputFilename);
+				log.report(Array.toStr(header,"/"));
+				log.report("p="+pvalIndex+"="+header[pvalIndex]+" maf="+mafIndex+"="+header[mafIndex]+" ntotal="+ntotalIndex+"="+header[ntotalIndex]+" beta="+betaIndex+"="+header[betaIndex]);
 				while (reader.ready()) {
+					temp = reader.readLine().trim();
 					if (delimiter.equals(",")) {
-						line = ext.splitCommasIntelligently(reader.readLine().trim(), true, log);
+						line = ext.splitCommasIntelligently(temp, true, log);
 					} else {
-						line = reader.readLine().trim().split(delimiter, -1);
+						line = temp.split(delimiter, -1);
 					}
 					try {
-						if (!line[ntotalIndex].equals("0")) {
+						if (!line[ntotalIndex].equals("0") && !line[betaIndex].equals("NA")) {
 							count++;
 							if (Integer.parseInt(line[ntotalIndex]) > maxSamples) {
 								maxSamples = Integer.parseInt(line[ntotalIndex]);
@@ -1089,7 +1101,11 @@ public class SeqMeta {
 							}
 						}
 					} catch (Exception e) {
-						log.reportError("Error parsing line: "+Array.toStr(line, delimiter));
+						if (!problem) {
+							problem = true;
+							log.reportError("Problem with file "+outputFilename);
+						}
+						log.reportError("Error parsing line: "+temp+" into "+Array.toStr(line, delimiter)+"   line[ntotalIndex/"+ntotalIndex+"]="+line[ntotalIndex]+"  line[betaIndex/"+betaIndex+"]="+line[betaIndex]);
 					}
 				}
 				metrics[0] = maxSamples+"";
@@ -1295,7 +1311,7 @@ public class SeqMeta {
 		}
 		
 		
-		if (!methods[0][0].equals("SingleSNP")) {
+		if (!methods[0][0].startsWith("SingleSNP")) {
 			System.err.println("Error - this program erroneously assumed that the first model was SingleSNP and got confused (it's actually "+methods[0][0]+"); aborting");
 			return;
 		}
@@ -1461,6 +1477,7 @@ public class SeqMeta {
 		String[][] groupAnnotationParams;
 		int count;
 		Vector<String> lineCounts;
+		boolean problem;
 		
 		if (dir == null || dir.equals("")) {
 			dir = new File("").getAbsolutePath()+"/";
@@ -1474,9 +1491,29 @@ public class SeqMeta {
 		races = maps.getRacesWithFilenameAliases();
 		methods = maps.getMethods();
 		groupAnnotationParams = maps.getGroupAnnotationParams();
-
+		
 		log = new Logger(dir+"assembleHits.log");
 		log.report("Using MAC thresholds of "+macThresholdStudy+" for study / "+macThresholdTotal+" for meta-analysis");
+		
+		problem = false;
+		if (groupAnnotationParams.length > 0) {
+			log.report("Testing for presence of Group annotation files");
+			for (int i = 0; i < groupAnnotationParams.length; i++) {
+				temp = groupAnnotationParams[i][1].split("[\\s]+")[0];
+				if (Files.exists(temp)) {
+					log.report("Found ", false, true);
+				} else {
+					log.report("Could not find ", false, true);
+					problem = true;
+				}
+				log.report(groupAnnotationParams[i][0]+" annotation file '"+temp+"' (needed for arguments '"+groupAnnotationParams[i][1].substring(temp.length()+1)+"')");
+			}
+		}
+
+		if (problem) {
+			System.exit(1);
+		}
+
 
 		// match all rdata files to pheno/study/race
 		files = Files.list(dir, ".Rdata", false);
@@ -1685,11 +1722,12 @@ public class SeqMeta {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] header, expected;
-		int index, mafIndex, macIndex, ntotalIndex;
+		int index, mafIndex, macIndex, ntotalIndex, geneIndex, variantIndex;
 		Hashtable<String,String> macHash;
 		String[] line;
 //		double mafThreshold;
 		int count;
+		boolean[] keeps;
 		
 		count = -1;
 		
@@ -1700,7 +1738,13 @@ public class SeqMeta {
 		
 		header = Files.getHeaderOfFile(filename, ",!", log);
 		expected = getHeaderForMethod(method);
-		if (!ext.checkHeader(header, expected, Array.intArray(expected.length), false, log, false)) {
+
+		keeps = Array.booleanArray(header.length, true);
+		if (header[4].equals("caf")) {
+			keeps[4] = false;
+		}
+
+		if (!ext.checkHeader(Array.subArray(header, keeps), expected, Array.intArray(expected.length), false, log, false)) {
 			log.reportError("Error - unexpected header for file "+filename);
 			System.exit(1);
 		}
@@ -1725,6 +1769,8 @@ public class SeqMeta {
 				if (method[1].equals("SingleVariant")) {
 					mafIndex = ext.indexOfStr("maf", header, false, true);
 					ntotalIndex = ext.indexOfStr("ntotal", header, false, true);
+					geneIndex = ext.indexOfStr("gene", header, false, true);
+					variantIndex = ext.indexOfStr("Name", header, false, true);
 					if (mafIndex == -1) {
 						log.reportError("Error - no maf listed in single gene test result: "+filename);
 					} else if (ntotalIndex == -1) {
@@ -1734,12 +1780,13 @@ public class SeqMeta {
 						while (reader.ready()) {
 							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 							if (!line[mafIndex].equals("NA") && Double.parseDouble(line[mafIndex])*Double.parseDouble(line[ntotalIndex])*2 >= macThreshold && Double.parseDouble(line[mafIndex]) >= mafThreshold) {
-								writer.println(line[1]+"\t"+line[index]);
+								writer.println(line[variantIndex]+"\t"+line[index]);
 							}
 							count++;
 						}
 					}
 				} else if (method[1].equals("BurdenTests")) {
+					geneIndex = ext.indexOfStr("gene", header, false, true);
 					macHash = macHashes.get(method[3]);
 					line = macHash.get("studies").split("\t");
 					macIndex = ext.indexOfStr(study, line);
@@ -1749,11 +1796,11 @@ public class SeqMeta {
 						writer.println("Gene\tpval");
 						while (reader.ready()) {
 							line = ext.splitCommasIntelligently(reader.readLine(), true, log);
-							if (macHash.containsKey(line[0])) {
-								if (Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) >= macThreshold) {
-									writer.println(line[0]+"\t"+line[index]);
+							if (macHash.containsKey(line[geneIndex])) {
+								if (Integer.parseInt(macHash.get(line[geneIndex]).split("\t")[macIndex]) >= macThreshold) {
+									writer.println(line[geneIndex]+"\t"+line[index]);
 //								} else {
-//									log.report(Integer.parseInt(macHash.get(line[0]).split("\t")[macIndex]) +" < "+ macThreshold);
+//									log.report(Integer.parseInt(macHash.get(line[geneIndex]).split("\t")[macIndex]) +" < "+ macThreshold);
 								}
 							}
 							count++;
@@ -2425,7 +2472,7 @@ public class SeqMeta {
 		time = new Date().getTime();
 		dir = ext.verifyDirFormat(dir);
 		
-		if (!methods[0][0].equals("SingleSNP")) {
+		if (!methods[0][0].startsWith("SingleSNP")) {
 			System.err.println("Error - this program erroneously assumed that the first model was SingleSNP and got confused (it's actually "+methods[0][0]+"); aborting");
 			return;
 		}
