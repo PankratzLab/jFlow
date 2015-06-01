@@ -19,6 +19,7 @@ import common.Elision;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.Sort;
 import common.ext;
 
 public class PlinkMarkerLoader implements Runnable {
@@ -193,7 +194,8 @@ public class PlinkMarkerLoader implements Runnable {
     				int famCnt = Files.countLines(fileRoot + ".fam", 0); 
     				int blockSize = (int) ((double) famCnt / 4.0d); // TODO check for non-completeness (i.e. N not evenly divisible by 4)
     				String[] markersSorted = sortMarkers(markerList, markerPositions);
-    				int[] markerIndices = sortMarkerIndices(markerPositions);
+//    				int[] markerIndices = sortMarkerIndices(markerPositions);
+    				int[] markerIndices = Sort.putInOrder(markerPositions);
     				
     				for (int i = 0; i < markerIndices.length; i++) {
     				    if (markerIndices[i] == -1) {
@@ -297,26 +299,8 @@ public class PlinkMarkerLoader implements Runnable {
 		}
 		return allMarkers;
 	}
-	
-	private static int[] sortMarkerIndices(int[] positions) {
-		int[] sortedPositions = new int[positions.length];
-		ArrayList<Integer> sort = new ArrayList<Integer>();
-		for (int pos : positions) {
-			sort.add(pos);
-		}
-		sort.sort(new Comparator<Integer>() {
-			@Override
-			public int compare(Integer o1, Integer o2) {
-				return o1.compareTo(o2);
-			}
-		});
-		for (int i = 0; i < sort.size(); i++) {
-			sortedPositions[i] = sort.get(i).intValue();
-		}
-		return sortedPositions;
-	}
-	
-	public byte[] getGenotypesForMarker(String marker) {
+
+    public byte[] getGenotypesForMarker(String marker) {
 	    int markerIndex = markerIndicesLookup.get(marker) == null ? -1 : markerIndicesLookup.get(marker);
         if (markerIndex == -1) {
             return Array.byteArray(idList.length, (byte) -1);
