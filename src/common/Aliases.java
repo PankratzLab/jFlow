@@ -19,4 +19,6 @@ public class Aliases {
 	public static final String[] NS = {"N", "NMISS", "sampleN"};
 	
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF"};
+	
+	public static final String[] QC = {"imp_info", "rsq"};
 }

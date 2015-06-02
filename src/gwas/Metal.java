@@ -709,7 +709,7 @@ public class Metal {
 			fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
 			for (int i=0; i<inputFiles.length; i++) {
 				header = Files.getHeaderOfFile(inputFiles[i], log);
-				indices = ext.indexFactors(new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1], Aliases.ALLELE_FREQS, Aliases.NS, Aliases.EFFECTS, Aliases.STD_ERRS, Aliases.PVALUES}, header, true, false, true, true, log, false);
+				indices = ext.indexFactors(new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1], Aliases.ALLELE_FREQS, Aliases.NS, Aliases.EFFECTS, Aliases.STD_ERRS, Aliases.PVALUES, Aliases.QC}, header, true, false, true, true, log, false);
 				fileParameters[i + 4] = inputFiles[i]+" 0";
 				for (int j = 0; j < indices.length; j++) {
 					if (indices[j] != -1) {
