@@ -81,7 +81,7 @@ public class Project {
 			isDir = dir;
 		}
 		public StringListProperty(Project proj, String name, String desc, String defVal, boolean file, boolean dir) {
-			super(proj, name, desc, defVal.split(delim));
+			super(proj, name, desc, defVal.equals("") ? new String[0] : defVal.split(delim));
 			isFile = file;
 			isDir = dir;
 		}

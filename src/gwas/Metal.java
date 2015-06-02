@@ -695,7 +695,7 @@ public class Metal {
 //			markername, chr, postition, geneName
 //			From InvVar results: Allele1, Allele2, Effect=Beta,StdErr,P-value,Direction,
 //			From NWeighted results: Weight, P-value
-//			From each individual input file: Allele1, Allele2, AlleleFreq, N, Beta, SE, P-value
+//			From each individual input file: Allele1, Allele2, AlleleFreq, N, Beta, SE, P-value, Impute_info/RSq
 
 //			markers = new Vector<String>();
 //			chrs = new Vector<String>();
@@ -743,7 +743,7 @@ public class Metal {
 				}
 			}
 			
-			hitList = HashVec.loadFileToStringArray("hits.txt", true, new int[] {0}, false);
+			hitList = HashVec.loadFileToStringArray("hits.txt", false, new int[] {0}, false);
 			try {
 				writer = new PrintWriter(new FileWriter("genes.txt"));
 				writer.println("MarkerName\tChr\tPosition\tGene(s)");
