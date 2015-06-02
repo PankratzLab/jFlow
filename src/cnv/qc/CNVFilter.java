@@ -53,6 +53,7 @@ public class CNVFilter {
 	public static final String COMMAND_CNV_FILE = "cnvFile=";
 	public static final String COMMAND_CNV_FILE_OUT = "out=";
 	public static final String COMMAND_CNV_FILTER = "-filter";
+	public static final String COMMAND_MERGE = "-merge";
 
 	public static final String COMMAND_CNV_FILTER_CRF = "cnvFilter";
 	public static final String COMMAND_CNV_FILTER_DESCRIPTION = "filter a file of cnvs";
@@ -327,12 +328,15 @@ public class CNVFilter {
 		params[21] = "# the genome build to use for centromere locations";
 		params[22] = COMMAND_BUILD + DEFAULT_BUILD;
 
-		params[23] = "# break up CNVs spanning centromers, defualts to removing cnvs that span centromeres(" + DEFAULT_BREAK_UP_CENTROMERES + ")";
+		params[23] = "# break up CNVs spanning centromers, defaults to removing cnvs that span centromeres (" + DEFAULT_BREAK_UP_CENTROMERES + ")";
 		params[24] = "#" + COMMAND_BREAK_UP_CENTROMERES;
 
 		params[25] = "# exclude indivudals as defined by sample data";
 		params[26] = COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + DEFAULT_EXCLUDE_SAMPLE_DATA;
-
+		
+		params[27] = "# merge CNVs based on frequency and distance prior to filtering. Default to false.";
+		params[28] = "# " + COMMAND_MERGE;
+		
 		return params;
 	}
 
@@ -710,17 +714,34 @@ public class CNVFilter {
 		}
 	}
 
-	public static void filterCNVFile(Project proj, String cnvFile, String out, CNVFilter cnvFilter) {
+	public static void filterCNVFile(Project proj, String cnvFile, String out, CNVFilter cnvFilter, boolean mergePrior) {
 		CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
+		
+		if (mergePrior) {
+		    
+		}
+		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + out));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < cnvs.length; i++) {
 				CNVFilterPass pass = cnvFilter.getCNVFilterPass(cnvs[i]);
-				if (pass.passedFilter()) {
-					writer.println(cnvs[i].toPlinkFormat());
+				if (pass.isCentromeric()) {
+				    CNVariant[] newCNVs = cnvFilter.breakUpCentromere(pass, cnvs[i]);
+				    for (CNVariant cnv : newCNVs) {
+				        CNVFilterPass cnvfp = cnvFilter.getCNVFilterPass(cnv);
+				        if (cnvfp.passedFilter()) {
+	                        writer.println(cnv.toPlinkFormat());
+	                    } else {
+	                        // proj.getLog().report(pass.getReasonNotPassing()+"\t"+cnvs[i].toPlinkFormat());
+	                    }
+				    }
 				} else {
-					// proj.getLog().report(pass.getReasonNotPassing()+"\t"+cnvs[i].toPlinkFormat());
+    				if (pass.passedFilter()) {
+    					writer.println(cnvs[i].toPlinkFormat());
+    				} else {
+    					// proj.getLog().report(pass.getReasonNotPassing()+"\t"+cnvs[i].toPlinkFormat());
+    				}
 				}
 			}
 			writer.close();
@@ -737,6 +758,7 @@ public class CNVFilter {
 		String cnvFile = "Genvisis.cnv";
 		String out = "Genvisis.filt.cnv";
 		boolean filter = false;
+		boolean merge = false;
 		String logfile = null;
 		Project proj;
 
@@ -772,6 +794,9 @@ public class CNVFilter {
 			} else if (args[i].startsWith(COMMAND_CNV_FILTER)) {
 				filter = true;
 				numArgs--;
+			} else if (args[i].startsWith(COMMAND_MERGE)) {
+			    merge = true;
+			    numArgs--;
 			} else if (cnvFilter.isCommandLineFilterInEffect(args[i])) {
 				numArgs--;
 			} else {
@@ -784,7 +809,7 @@ public class CNVFilter {
 		}
 		try {
 			if (filter) {
-				filterCNVFile(proj, cnvFile, out, cnvFilter);
+				filterCNVFile(proj, cnvFile, out, cnvFilter, merge);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
