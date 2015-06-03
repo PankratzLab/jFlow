@@ -1568,7 +1568,94 @@ public class FilterCalls {
 			return;
         }	
 	}	
+	
+	public static CNVariant[] filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj, CNVariant[] cnvs, int totalRequired, int delRequired, int dupRequired, int totalLimitedTo, int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion) {
+	    MarkerSet markerSet;
+        int[][] positions;
+        int[][][] counts;
+        int firstSNP, lastSNP, indel;
+        ;
+        int index;
+        boolean[][] acceptableSNPs;
+        boolean accepted;
+        int dels, dups;
+        int countAcceptable;
+        long time;
+        
+        time = new Date().getTime();
+        
+        markerSet = proj.getMarkerSet();
+        positions = markerSet.getPositionsByChr();
+        counts = new int[positions.length][][];
+        acceptableSNPs = new boolean[positions.length][];
+        for (int i = 0; i<positions.length; i++) {
+            counts[i] = new int[positions[i].length][2];
+            acceptableSNPs[i] = new boolean[positions[i].length];
+        }
+        
+        System.out.println(ext.getTime()+"\tDetermining acceptability...");
+        for (int i = 0; i<cnvs.length; i++) {
+            firstSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
+            lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
+            if (firstSNP == -1 || lastSNP == -1) {
+                System.err.println("Error - could not locate start or stop position for "+cnvs[i].getUCSClocation());
+            } else {
+                indel = cnvs[i].getCN()<2?0:1;
+                for (int j = firstSNP; j<=lastSNP; j++) {
+                    counts[cnvs[i].getChr()][j][indel]++;
+                }
+            }
+        }
+        
+        for (int i = 0; i<positions.length; i++) {
+            for (int j = 0; j<positions[i].length; j++) {
+                dels = counts[i][j][0];
+                dups = counts[i][j][1];
+                acceptableSNPs[i][j] = dels + dups >= totalRequired && dels >= delRequired && dups >= dupRequired && dels + dups <= totalLimitedTo && dels <= delLimitedTo && dups <= dupLimitedTo;  
+            }
+        }
+        
+        ArrayList<CNVariant> acceptable = new ArrayList<CNVariant>();
+        
+        System.out.println(ext.getTime()+"\tFiltering CNVs...");
+        for (int i = 0; i<cnvs.length; i++) {
+            firstSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
+            lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
+            indel = cnvs[i].getCN()<2?0:1;
 
+            
+            if (firstSNP == -1 || lastSNP == -1) {
+                accepted = false;
+            } else {
+                if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
+                    countAcceptable = 0;
+                    for (int j = firstSNP; j <= lastSNP; j++) {
+                        if (acceptableSNPs[cnvs[i].getChr()][j]) {
+                            countAcceptable++;
+                        }
+                    }
+                    accepted = (double)countAcceptable / (double)(lastSNP - firstSNP + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
+                } else {
+                    index = firstSNP;
+                    accepted = false;
+                    while (!accepted && index <= lastSNP) {
+                        if (acceptableSNPs[cnvs[i].getChr()][index]) {
+                            accepted = true;
+                        }
+                        index++;
+                    }
+                }
+            }
+            
+            if (accepted) {
+                acceptable.add(cnvs[i]);
+            }
+        }
+        
+        System.out.println("Finished in " + ext.getTimeElapsed(time));
+        return acceptable.toArray(new CNVariant[acceptable.size()]);
+	}
+	
 	public static void filterBasedOnNumberOfCNVsAtLocus(Project proj, String filein, String fileout, int totalRequired, int delRequired, int dupRequired, int totalLimitedTo, int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion) {
 		PrintWriter writer;
 		MarkerSet markerSet;
