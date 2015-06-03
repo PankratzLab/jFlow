@@ -6,18 +6,17 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import cnv.analysis.FilterCalls;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
-
 import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.ext;
-
 import filesys.Segment;
 
 public class CNVFilter {
@@ -718,7 +717,9 @@ public class CNVFilter {
 		CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
 		
 		if (mergePrior) {
-		    
+		    int numPrior = cnvs.length;
+		    cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
+		    proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
 		}
 		
 		try {
