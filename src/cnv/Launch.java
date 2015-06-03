@@ -14,6 +14,7 @@ import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
+import cnv.gui.KitAndKaboodleGUI;
 //import cnv.gui.GuiManager;
 //import cnv.gui.PropertyEditor;
 import cnv.manage.*;
@@ -578,31 +579,52 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //					}
 //				});
 			} else if (command.equals(KITANDKABOODLE)) {
-				String filename;
-
-				if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
-					log.reportError("Could not find required file "+proj.MARKER_POSITION_FILENAME.getValue(false, false)+"\n    attempting to generate one for you...");
-					filename = proj.getLocationOfSNP_Map();
-					if (filename == null) {
-						return;
-					}
-					log.report("Generating from "+filename);
-					cnv.manage.Markers.generateMarkerPositions(proj, filename);
+				KitAndKaboodleGUI kkGUI = new KitAndKaboodleGUI();
+				kkGUI.setModal(true);
+				kkGUI.setVisible(true);
+				
+				if (kkGUI.getCancelled() == true) {
+				    return;
 				}
-//				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
-				cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
-
-				TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
-//				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(proj.NUM_THREADS)));
-				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
-				cnv.qc.SexChecks.sexCheck(proj);
-
-				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
-				CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
-				new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
-				CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-				CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-
+				
+			    boolean[] options = kkGUI.getSelectedOptions();
+			    
+			    String filename;
+				if (options[0]) {
+    				if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
+    					log.reportError("Could not find required file "+proj.MARKER_POSITION_FILENAME.getValue(false, false)+"\n    attempting to generate one for you...");
+    					filename = proj.getLocationOfSNP_Map();
+    					if (filename == null) {
+    						return;
+    					}
+    					log.report("Generating from "+filename);
+    					cnv.manage.Markers.generateMarkerPositions(proj, filename);
+    				}
+				}
+				if (options[1]) {
+				    log.report("Parsing sample files");
+				    cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
+				}
+				if (options[2]) {
+				    log.report("Transposing data");
+				    TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
+				}
+				if (options[3]) {
+				    log.report("Running LrrSd");
+				    cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
+				}
+				if (options[4]) {
+				    log.report("Running SexCheck");
+				    cnv.qc.SexChecks.sexCheck(proj);
+				}
+				if (options[5]) {
+				    log.report("Running PLINK");
+    				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
+    				CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
+    				new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
+    				CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+    				CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+				}
 
 			} else if (command.equals(PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI)) {
 				SwingUtilities.invokeLater(new Runnable() {
