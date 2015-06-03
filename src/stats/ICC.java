@@ -180,7 +180,7 @@ public class ICC {
 					addIndex++;
 				}
 				rowEffects[i] = new ResponseEffect(currentLabel, tmpdata);
-				if (!rowEffects[i].isValid() || rowEffects[i].getN() < 2) {
+				if ((!rowEffects[i].isValid() || rowEffects[i].getN() < 2)&&verbose) {
 					log.reportError("Error - data for class " + currentLabel + " containing " + rowEffects[i].getN() + " " + (rowEffects[i].getN() == 1 ? "data point is " : "data points are") + " not valid , will not include in the ICC");
 				} else {
 					numValidClasses++;

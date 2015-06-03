@@ -101,7 +101,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 				}
 			}
 		}
-		StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, null, titles, cType, verbose, pCorrelation.getProj().getLog());
+		StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, null, null, titles, cType, verbose, pCorrelation.getProj().getLog());
 		statsCrossTabs.computeTable();
 		return statsCrossTabs;
 	}

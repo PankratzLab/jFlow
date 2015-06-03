@@ -221,6 +221,21 @@ public class ExtProjectDataParser {
 		return data;
 	}
 
+	public double[] getNumericDataForTitle(String title) {
+		int index = numericData == null ? -1 : ext.indexOfStr(title, numericDataTitles);
+		double[] data = new double[] {};
+		if (index < 0 || numericData == null) {
+			proj.getLog().reportTimeError("Data for " + title + " was not found");
+			proj.getLog().reportTimeError(numericData == null ? "No Numeric data Titles available" : Array.toStr(numericDataTitles));
+			if (numericData == null) {
+				proj.getLog().reportTimeError("No Numeric data available");
+			}
+		} else {
+			data = numericData[index];
+		}
+		return data;
+	}
+
 	public String[] getNumericDataTitles() {
 		return numericDataTitles;
 	}
