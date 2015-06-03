@@ -683,6 +683,7 @@ public class Configurator extends JFrame {
 	
 	
 	private void save() {
+	    table.editingStopped(new ChangeEvent(table));
 		String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
 		String currProjDir = proj.getProperty(proj.PROJECT_DIRECTORY);
 		int rowCount = table.getRowCount();

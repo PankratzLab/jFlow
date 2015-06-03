@@ -670,13 +670,21 @@ public class Metal {
 //			backupDir = "./backup";
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
-			log.report("Running inverse variance weighted meta-analysis...");
 
 //            String dir = ext.verifyDirFormat((new File("./")).getAbsolutePath());
-			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
+			if (!Files.exists(outputFile+"_InvVar1.out")) {
+	            log.report("Running inverse variance weighted meta-analysis...");
+			    metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
+			} else {
+			    log.report("Found inverse variance weighted meta-analysis results - skipping.");
+			}
 //			metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
-			log.report("Running sample size weighted meta-analysis...");
-			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcControlOn, log);
+			if (!Files.exists(outputFile+"_NWeighted1.out")) {
+    			log.report("Running sample size weighted meta-analysis...");
+    			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcControlOn, log);
+			} else {
+			    log.report("Found sample size weighted meta-analysis results - skipping.");
+			}
 //			metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcControlOn, log);
 			
 //			check to see if file exists, report error otherwise
@@ -686,10 +694,12 @@ public class Metal {
 //			}
 			
 //			sort results for both, determine minimum-pvalue, report only those minP<0.001
-			hits = new Hits();
-			hits.incorporateFromFile(outputFile+"_InvVar1.out", thresholdForHits, log);
-			hits.incorporateFromFile(outputFile+"_NWeighted1.out", thresholdForHits, log);
-			hits.writeHits("hits.txt");
+			if (!Files.exists("hits.txt")) {
+    			hits = new Hits();
+    			hits.incorporateFromFile(outputFile+"_InvVar1.out", thresholdForHits, log);
+    			hits.incorporateFromFile(outputFile+"_NWeighted1.out", thresholdForHits, log);
+    			hits.writeHits("hits.txt");
+			} 
 			
 //			summarize data, Results/packager
 //			markername, chr, postition, geneName
