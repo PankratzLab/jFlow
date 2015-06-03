@@ -1225,22 +1225,24 @@ public class ForestPlot extends JFrame implements WindowListener {
 	
 	private LinkedHashSet<ForestInput> readMarkerFile(String markerFile) {
 		LinkedHashSet<ForestInput> markerNames = new LinkedHashSet<ForestInput>();
-		BufferedReader markerReader = Files.getReader(markerFile, false, true, true);
+		BufferedReader markerReader = Files.getReader(markerFile, false, true, false);
 		
-		try {
-			while (markerReader.ready() && !Thread.interrupted()) {
-				String[] line = markerReader.readLine().trim().split("\\t");
-				if (line.length >= 2) {
-					markerNames.add(new ForestInput(line[0], line[1], line.length > 2 ? line[2] : ""));
-				} else if (line.length == 1) {
-					markerNames.add(new ForestInput(line[0], "", ""));
-				}
-			}
-		} catch (IOException e) {
-			log.reportException(e);
+		if (markerReader != null) {
+    		try {
+    			while (markerReader.ready() && !Thread.interrupted()) {
+    				String[] line = markerReader.readLine().trim().split("\\t");
+    				if (line.length >= 2) {
+    					markerNames.add(new ForestInput(line[0], line[1], line.length > 2 ? line[2] : ""));
+    				} else if (line.length == 1) {
+    					markerNames.add(new ForestInput(line[0], "", ""));
+    				}
+    			}
+    		} catch (IOException e) {
+    			log.reportException(e);
+    		}
 		}
 		
-		return Thread.interrupted() ? new LinkedHashSet<ForestInput>() : markerNames;
+		return markerReader == null || Thread.interrupted() ? new LinkedHashSet<ForestInput>() : markerNames;
 	}
 
 	public float getMaxZScore() {
