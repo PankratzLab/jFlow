@@ -20,11 +20,14 @@ import java.util.concurrent.TimeUnit;
 import stats.CrossValidation;
 import stats.LeastSquares;
 import stats.RegressionModel;
+import stats.StatsCrossTabs;
+import stats.StatsCrossTabs.STAT_TYPE;
+import stats.StatsCrossTabs.StatsCrossTabRank;
+import stats.StatsCrossTabs.VALUE_TYPE;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.manage.MDL;
-import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import common.Array;
 import common.Files;
@@ -45,7 +48,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	private static final String[] MT_RESIDUAL_CROSS_VALIDATED_REPORT = { "Time Completed", "Time to complete(seconds)", "PC", "Cross-validation Average SSerr", "Cross-validation Average R-squared", "Average Standard Error of Betas", "Full model R-squared", "Full model SSerr" };
 
 	private String markersToAssessFile, output, residOutput, pcFile;
-	private String[] markersToAssess, samplesToReport, allProjSamples;
+	private String[] markersToAssess, samplesToReport, allProjSamples, pcTitles;
 	private double[] assesmentData, residuals, invTResiduals;
 	private double[][] fullData, pcBasis;
 	private byte[][] abGenotypesAfterFilters;
@@ -100,6 +103,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		loadPcFile(pcFile, useIID);
 		parseSamplesToUse();
 		this.sortedByProject = determineSortedByProject();
+	}
+
+	public String[] getPcTitles() {
+		return pcTitles;
 	}
 
 	/**
@@ -447,6 +454,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 				log.reportError("Warning - cannot use " + numComponents + " components when only " + (line.length - 2) + " are provided, only loading " + (line.length - 2));
 				numComponents = line.length - 2;
 			}
+			this.pcTitles = Array.subArray(line, 2, numComponents + 2);
 			this.totalNumComponents = line.length - 2;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -1030,7 +1038,35 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		} else {
 			return pcBasis[PC - 1];
 		}
+	}
 
+	private boolean verifyDataSampleSize(double[] data, Logger log) {
+		boolean matched = true;
+		if (data.length != samplesInPc.size()) {
+			matched = false;
+			log.reportTimeError("Input data (" + data.length + ") does not match the number of samples in the pc file (" + samplesInPc.size() + ")");
+			log.reportTimeError("Consider masking ");
+
+		}
+		return matched;
+	}
+
+	public StatsCrossTabRank getStatRankFor(double[] data, boolean[] samplesForRanking, String title, STAT_TYPE statType, VALUE_TYPE rankType, Logger log) {
+		String[] allTitles = Array.concatAll(new String[] { title }, pcTitles);
+		if (verifyDataSampleSize(data, log)) {
+			double[][] basis = getPcBasis();
+			double[][] toRank = new double[basis.length + 1][];
+			toRank[0] = samplesForRanking == null ? data : Array.subArray(data, samplesForRanking);
+			for (int i = 0; i < basis.length; i++) {
+				toRank[i + 1] = samplesForRanking == null ? basis[i] : Array.subArray(basis[i], samplesForRanking);
+			}
+			boolean[] mask = Array.booleanArray(toRank.length, false);
+			mask[0] = true;
+			StatsCrossTabs sCrossTabs = new StatsCrossTabs(toRank, null, mask, allTitles, statType, true, log);
+			sCrossTabs.computeTable();
+			return sCrossTabs.getInOrder(0, rankType, log);
+		}
+		return null;
 	}
 
 	/**
@@ -1061,7 +1097,7 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			super();
 			this.pcResids = pcResids;
 			this.order = order;
-			this.index = 1;// one based extraction
+			this.index = 0;// one based extraction, but the first iter is 0 components
 		}
 
 		@Override
@@ -1073,8 +1109,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		@Override
 		public PrincipalComponentsResiduals next() {
 			double[][] newBasis = new double[index][];
-			for (int i = 0; i < index; i++) {
-				newBasis[i] = pcResids.getBasisAt(order == null ? i+1 : order[i]);
+			if (index > 0) {
+				for (int i = 0; i < index; i++) {
+					newBasis[i] = pcResids.getBasisAt(order == null ? i + 1 : order[i]);
+				}
 			}
 			PrincipalComponentsResiduals newPcResiduals = pcResids.clone();
 			newPcResiduals.setPcBasis(newBasis);
