@@ -448,6 +448,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		
 		final JCheckBoxMenuItem oddsRatioButton = new JCheckBoxMenuItem();
 		AbstractAction oddsRatioAction = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
                 ForestPlot.this.setOddsRatioDisplay(oddsRatioButton.isSelected());
@@ -494,8 +495,8 @@ public class ForestPlot extends JFrame implements WindowListener {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                JFileChooser jfc = new JFileChooser(new File(proj.PROJECT_DIRECTORY.getValue()));
+                
+                JFileChooser jfc = new JFileChooser(new File(proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue()));
                 int returnVal = jfc.showOpenDialog(null);
                 
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
