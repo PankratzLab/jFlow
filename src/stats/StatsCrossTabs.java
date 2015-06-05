@@ -242,6 +242,7 @@ public class StatsCrossTabs {
 	 * @author lane0212 Stores the results of the ranking procedure
 	 */
 	public static class StatsCrossTabRank {
+		public static final String[] HEADER = new String[] { "Title", "OriginalOrder", "Stat", "Sig" };
 		private String rankedTo;
 		private int[] order;
 		private double[] sigs;
@@ -286,9 +287,9 @@ public class StatsCrossTabs {
 		public void dump(String fullPathToFile, boolean ranked, Logger log) {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(fullPathToFile));
-				writer.println("Title\tStat\tSig");
+				writer.println(Array.toStr(HEADER));
 				for (int i = 0; i < order.length; i++) {
-					writer.println(titlesRanked[ranked ? order[i] : i] + "\t" + stats[ranked ? order[i] : i] + "\t" + sigs[ranked ? order[i] : i]);
+					writer.println(titlesRanked[ranked ? order[i] : i] + "\t" + (i + 1) + "\t" + stats[ranked ? order[i] : i] + "\t" + sigs[ranked ? order[i] : i]);
 				}
 				writer.close();
 			} catch (Exception e) {
