@@ -20,12 +20,52 @@ import cnv.manage.ExtProjectDataParser;
 import cnv.qc.LrrSd;
 
 class CorrectionIterator {
+	private Project proj;
+	private String markesToEvaluate;
+	private String samplesToBuildModels;
+	private ITERATION_TYPE iType;
+	private ORDER_TYPE oType;
+	private MODEL_BUILDER_TYPE bType;
+	private String outputDir;
+	private boolean svd;
+	private int numthreads;
+
+	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, int numthreads) {
+		super();
+		this.proj = proj;
+		this.markesToEvaluate = markesToEvaluate;
+		this.samplesToBuildModels = samplesToBuildModels;
+		this.iType = iType;
+		this.oType = oType;
+		this.bType = bType;
+		this.outputDir = outputDir;
+		this.svd = svd;
+		this.numthreads = numthreads;
+	}
+
+	public String run() {
+		return run(proj, markesToEvaluate, samplesToBuildModels, iType, oType, bType, outputDir, svd, numthreads);
+	}
 
 	public enum ITERATION_TYPE {
 		/**
 		 * The evaluation happens with the addition of other independent variables in addition to PCs
 		 */
-		WITHOUT_INDEPS, WITH_INDEPS;
+		WITHOUT_INDEPS, /**
+		 * other independent variables are not added
+		 */
+		WITH_INDEPS;
+
+	}
+
+	public enum MODEL_BUILDER_TYPE {
+		/**
+		 * We load the additional sample (union with not excluded) file for model building
+		 */
+		WITH_BUILDERS, /**
+		 * We build models with everyone, except excluded individuals
+		 */
+		WITHOUT_BUILDERS;
 
 	}
 
@@ -44,13 +84,13 @@ class CorrectionIterator {
 
 	}
 
-	private static String run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, String outputDir, boolean svd, int numthreads) {
+	private static String run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, int numthreads) {
 		Logger log = proj.getLog();
 		if (outputDir == null) {
 			outputDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue()) + "_eval/";
 
 		}
-		String output = outputDir + "correctionEval_" + iType + "_" + oType;
+		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		String ser = output + ".summary.ser";
 		if (!Files.exists(ser)) {
 			proj.getLog().reportTimeInfo("Loading " + proj.INTENSITY_PC_FILENAME.getValue());
@@ -60,19 +100,36 @@ class CorrectionIterator {
 			log.reportTimeInfo("PC file: " + proj.INTENSITY_PC_FILENAME.getValue());
 			log.reportTimeInfo("Iteration type : " + iType);
 			log.reportTimeInfo("Order type : " + oType);
+			log.reportTimeInfo("Model building type: " + bType);
 
 			PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 			pcResiduals.setMarkersToAssessFile(markesToEvaluate);
 			pcResiduals.setHomozygousOnly(true);
 			pcResiduals.computeAssessmentDataMedians();
+			boolean[] samplesForModels = null;
+			boolean valid = true;
 
-			boolean[] samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+			switch (bType) {
+			case WITHOUT_BUILDERS:
+				samplesForModels = proj.getSamplesToInclude(null, true, true);
+				break;
+			case WITH_BUILDERS:
+				if (!Files.exists(samplesToBuildModels)) {
+					log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
+					valid = false;
+				} else {
+					samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+				}
+				break;
+			default:
+				break;
+
+			}
 
 			CorrectionEvaluator cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, svd);
 			int[] order = null;
 			double[][] extraIndeps = null;
 			StatsCrossTabRank sTabRank = null;
-			boolean valid = true;
 			switch (iType) {
 			case WITHOUT_INDEPS:
 				log.reportTimeInfo("Evaluating with " + Array.booleanArraySum(samplesForModels) + " samples, no additional independent variables");
@@ -148,6 +205,7 @@ class CorrectionIterator {
 						EvaluationResult result = train.next();
 						result.setItType(iType);
 						result.setOrType(oType);
+						result.setbType(bType);
 						if (index == 0) {
 							writer.println(Array.toStr(result.getHeader()));
 						}
@@ -206,13 +264,12 @@ class CorrectionIterator {
 		System.out.println("JDOFJSDF remember the pcs");
 		for (int i = 0; i < ITERATION_TYPE.values().length; i++) {
 			for (int j = 0; j < ORDER_TYPE.values().length; j++) {
-				String ser = run(proj, markesToEvaluate, samplesToBuildModels, ITERATION_TYPE.values()[i], ORDER_TYPE.values()[j], outputDir, svd, numthreads);
-				EvaluationResult[] results = EvaluationResult.readSerial(ser, proj.getLog());
-				for (int k = 0; k < results.length; k++) {
-					// System.out.println(Array.toStr(results[i].getData()));
+				for (int j2 = 0; j2 < MODEL_BUILDER_TYPE.values().length; j2++) {
+					String ser = run(proj, markesToEvaluate, samplesToBuildModels, ITERATION_TYPE.values()[i], ORDER_TYPE.values()[j], MODEL_BUILDER_TYPE.values()[j2], outputDir, svd, numthreads);
 				}
 			}
 		}
+
 	}
 
 	public static void main(String[] args) {
