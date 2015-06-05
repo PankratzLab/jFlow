@@ -42,6 +42,7 @@ import common.ext;
  *
  */
 public class PrincipalComponentsResiduals implements Cloneable {
+	public static final int NUM_PC_SVD_OVERIDE = 160;
 	private static final String[] MT_REPORT = { "DNA", "FID", "IID", "Sex", "median_MT_LRR_raw", "median_MT_LRR_PC_residuals", "median_MT_LRR_PC_residuals_inverseTransformed" };
 	private static final String[] MT_REPORT_EXT = { ".report.txt" };
 	private static final String[] MT_REPORT_MARKERS_USED = { ".MedianMarkers.MarkersUsed.txt", ".MedianMarkers.RawValues.txt" };
@@ -872,6 +873,13 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0], true, svdRegression, proj.getLog());
 			cval.setAnalysisFailed(true);
 		} else {
+			if (svdRegression) {
+				svdRegression = numComponentsForModel > NUM_PC_SVD_OVERIDE;
+				if (!svdRegression) {
+					log.reportTimeWarning("Over-riding SVD method since " + numComponentsForModel + " < " + NUM_PC_SVD_OVERIDE);
+				}
+			}
+
 			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
 			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel) : Array.subArray(extraIndeps, samplesTobuildModel);
 			double[][] val_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(null, extraIndeps, numComponentsForModel) : extraIndeps;
