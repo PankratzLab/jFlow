@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
+import cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
 import cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
 import common.Files;
 import common.Logger;
@@ -17,6 +18,7 @@ class EvaluationResult implements Serializable {
 	private String title;
 	private ORDER_TYPE orType;
 	private ITERATION_TYPE itType;
+	private MODEL_BUILDER_TYPE bType;
 	private double[] estimateData;
 	private double rSquared;
 	private ArrayList<ICC> iccs;
@@ -41,6 +43,10 @@ class EvaluationResult implements Serializable {
 		this.orType = orType;
 	}
 
+	public void setbType(MODEL_BUILDER_TYPE bType) {
+		this.bType = bType;
+	}
+
 	public void setItType(ITERATION_TYPE itType) {
 		this.itType = itType;
 	}
@@ -50,6 +56,8 @@ class EvaluationResult implements Serializable {
 		tmp.add("Evaluated");
 		tmp.add("IterationType");
 		tmp.add("OrderType");
+		tmp.add("Model Building type");
+
 		tmp.add("Rsquare_correction");
 		for (int i = 0; i < iccTitles.size(); i++) {
 			tmp.add("ICC_" + iccTitles.get(i));
@@ -79,6 +87,8 @@ class EvaluationResult implements Serializable {
 		tmp.add(title);
 		tmp.add(itType == null ? "NA" : itType.toString());
 		tmp.add(orType == null ? "NA" : orType.toString());
+		tmp.add(bType == null ? "NA" : bType.toString());
+
 		tmp.add(rSquared + "");
 		for (int i = 0; i < iccs.size(); i++) {
 			tmp.add(iccs.get(i).getICC() + "");
