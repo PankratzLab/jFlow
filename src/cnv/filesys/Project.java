@@ -534,13 +534,19 @@ public class Project {
 		return getSamplesToInclude(fileWithListOfSamplesToUse, true);
 	}
 	
+	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, boolean verbose) {
+		return getSamplesToInclude(fileWithListOfSamplesToUse, false, verbose);
+	}
+
 	/**
 	 * @param fileWithListOfSamplesToUse
 	 *            set filename to null to only include samples not marked in the "Excluded" column of SampleData.txt
+	 * @param overlapExclude
+	 *            if a file is provided, the union of the file and samples not marked in the "Excluded" can be obtained
 	 * @param verbose
 	 *            report number to be included
 	 */
-	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, boolean verbose) {
+	public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, boolean overlapExclude, boolean verbose) {
 		boolean[] samplesToInclude;
 		String[] samples;
 		SampleData sampleData;
@@ -559,6 +565,8 @@ public class Project {
 		for (int i = 0; i < samples.length; i++) {
 			if (hash == null) {
 				samplesToInclude[i] = !sampleData.individualShouldBeExcluded(samples[i]);
+			} else if (hash != null && overlapExclude) {
+				samplesToInclude[i] = !sampleData.individualShouldBeExcluded(samples[i]) && hash.contains(samples[i]);
 			} else {
 				samplesToInclude[i] = hash.contains(samples[i]);
 			}

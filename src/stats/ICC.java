@@ -3,6 +3,7 @@ package stats;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,7 +26,11 @@ import common.ext;
  * 
  * Issue: not absolutely positive this handles inconsistent group sizes correctly//TODO
  */
-public class ICC {
+public class ICC implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private double[] parsedData;
 	private Logger log;
 	private String[] response, maskedResponses, onlyTheseResponses;
@@ -62,6 +67,12 @@ public class ICC {
 		this.verbose = verbose;
 		init(initData);// modifies parsed data
 		populateFullStats();
+	}
+
+	public void shrink() {
+		this.response = null;
+		this.rowEffects = null;
+		this.parsedData = null;
 	}
 
 	/**
@@ -180,7 +191,7 @@ public class ICC {
 					addIndex++;
 				}
 				rowEffects[i] = new ResponseEffect(currentLabel, tmpdata);
-				if ((!rowEffects[i].isValid() || rowEffects[i].getN() < 2)&&verbose) {
+				if ((!rowEffects[i].isValid() || rowEffects[i].getN() < 2) && verbose) {
 					log.reportError("Error - data for class " + currentLabel + " containing " + rowEffects[i].getN() + " " + (rowEffects[i].getN() == 1 ? "data point is " : "data points are") + " not valid , will not include in the ICC");
 				} else {
 					numValidClasses++;
@@ -227,7 +238,11 @@ public class ICC {
 		return valid;
 	}
 
-	private static class ResponseEffect {
+	private static class ResponseEffect implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private String label;
 		private double[] data;
 		private double sum, rowMean, SS, MS;
