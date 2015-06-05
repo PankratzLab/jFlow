@@ -1,42 +1,63 @@
 package filesys.rao;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+
 import java.io.ObjectInputStream;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
 
-import common.Array;
-import common.Files;
 import common.Logger;
 
-public class RAOReader<T extends RAObject> {
+public class RAOReader<T extends RAObject> implements Iterator<T> {
 
 	private String fullPathToFile;
 	private RAOIndex raoIndex;
 	private String indexFileName;
+	private int numLoaded;
 	private FileInputStream fis;
+	private long[] allPositions;
 	private Logger log;
 
-	public RAOReader(String fullPathToFile, String indexFileName, Logger log) {
+	public RAOReader(String fullPathToFile, Logger log) throws FileNotFoundException {
 		super();
 		this.fullPathToFile = fullPathToFile;
+		this.indexFileName = fullPathToFile + RAOWriter.RAO_INDEX_EXT;
 		this.raoIndex = RAOIndex.load(indexFileName, log);
-		this.indexFileName = indexFileName;
 		this.log = log;
-		try {
-			this.fis = new FileInputStream(fullPathToFile);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		this.fis = new FileInputStream(fullPathToFile);
+		this.numLoaded = 0;
+
+	}
+
+	public String getFullPathToFile() {
+		return fullPathToFile;
+	}
+	public void close() throws IOException{
+		fis.close();
+	}
+
+	@Override
+	public boolean hasNext() {
+		if (allPositions == null) {
+			this.allPositions = raoIndex.getPostionsInOrder();
+			log.reportTimeInfo("Number to load :" + allPositions.length);
 		}
+		return numLoaded < allPositions.length;
+	}
+
+	@Override
+	public T next() {
+		T t = loadPosition(allPositions[numLoaded]);
+		numLoaded++;
+		return t;
+	}
+
+	@Override
+	public void remove() {
+		// TODO Auto-generated method stub
 
 	}
 
@@ -48,6 +69,7 @@ public class RAOReader<T extends RAObject> {
 		// }
 
 		try {
+			System.out.println("Position "+position);
 			fis.getChannel().position(position);
 			byte[] data = new byte[(int) raoIndex.getMaxSize()];
 			fis.read(data);

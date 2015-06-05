@@ -7,7 +7,6 @@ import java.util.concurrent.Callable;
 import stats.Correlation;
 import stats.CrossValidation;
 import stats.ICC;
-
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -18,22 +17,22 @@ import cnv.manage.ExtProjectDataParser;
 
 class CorrectionEvaluator implements Producer<EvaluationResult> {
 	private static final String[] STRING_DATA = new String[] {};// CLASS Sex
-	private static final String[][] EVAL_MASKS = new String[][] { { "0" }, { "0", "-1" } };
+	private static final String[][] EVAL_MASKS = new String[][] { { "0", "-1", "NaN" }, { "0", "-1" } };
 	private static final String[] DOUBLE_DATA = new String[] { "AGE" };
 	private static final String[] DOUBLE_DATA_PATTERN = new String[] { "EVAL_DATA", "AGE" };// For Correlation(Spearman by ICC)
 	private static final String[] STRING_DATA_PATTERN = new String[] { "EVAL_CLASS", "AGE" };// For ICC
 	public static final String[] INDEPS = new String[] { "CLASS=SEX", "AGE" };
 
-	// private static final String GEN_TAG = "GEN_ESTIMATE";
 	private Project proj;
 	private PrincipalComponentsIterator iterator;
-	private boolean[] samplesToInclude;
+	private boolean[][] samplesToInclude;
 	private String[] matchDouble, matchString;
 	private double[][] extraIndeps;
 	private ExtProjectDataParser parser;
 	private Logger log;
+	private boolean svd;
 
-	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, int[] order, boolean[] samplesToExclude, double[][] extraIndeps) {
+	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, int[] order, boolean[][] samplesToExclude, double[][] extraIndeps, boolean svd) {
 		super();
 		this.proj = proj;
 		this.samplesToInclude = samplesToExclude;
@@ -43,6 +42,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		loadSampleData();
 		this.extraIndeps = extraIndeps;
 		this.iterator = new PrincipalComponentsIterator(pcResiduals, order);
+		this.svd = svd;
 
 	}
 
@@ -57,7 +57,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 
 	@Override
 	public Callable<EvaluationResult> next() {
-		return new EvaluationWorker(iterator.next(), extraIndeps, matchString, matchDouble, samplesToInclude, parser, log);
+		return new EvaluationWorker(iterator.next(), extraIndeps, matchString, matchDouble, samplesToInclude, parser, svd, log);
 	}
 
 	@Override
@@ -76,11 +76,12 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		private double[][] extraIndeps;
 		private String[] matchString;
 		private String[] matchDouble;
-		private boolean[] samplesToInclude;
+		private boolean[][] samplesToInclude;
+		private boolean svd;
 		private ExtProjectDataParser parser;
 		private Logger log;
 
-		public EvaluationWorker(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, boolean[] samplesToInclude, ExtProjectDataParser parser, Logger log) {
+		public EvaluationWorker(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, boolean[][] samplesToInclude, ExtProjectDataParser parser, boolean svd, Logger log) {
 			super();
 			this.tmpResiduals = tmpResiduals;
 			this.extraIndeps = extraIndeps;
@@ -88,36 +89,47 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 			this.matchDouble = matchDouble;
 			this.samplesToInclude = samplesToInclude;
 			this.parser = parser;
+			this.svd = svd;
 			this.log = log;
 		}
 
 		@Override
 		public EvaluationResult call() throws Exception {
-			return evaluate(tmpResiduals, extraIndeps, matchString, matchDouble, samplesToInclude, parser, log);
+			return evaluate(tmpResiduals, extraIndeps, matchString, matchDouble, samplesToInclude, parser, svd, log);
 		}
 
 	}
 
-	private static EvaluationResult evaluate(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, boolean[] samplesToInclude, ExtProjectDataParser parser, Logger log) {
+	private static EvaluationResult evaluate(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, boolean[][] samplesToInclude, ExtProjectDataParser parser, boolean svd, Logger log) {
 		String baseTitle = "" + tmpResiduals.getNumComponents();
-		EvaluationResult evaluationResult = new EvaluationResult(baseTitle);
 		double[] estimate = null;
-
-		if (tmpResiduals.getNumComponents() > 0) {
-			CrossValidation cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude, tmpResiduals.getNumComponents(), false, "HFDS", true);
+		CrossValidation cValidation = null;
+		if (tmpResiduals.getNumComponents() > 0 || extraIndeps != null) {
+			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), samplesToInclude[0], tmpResiduals.getNumComponents(), svd, "HFDS", true);
 			estimate = cValidation.getResiduals();
 		} else {
 			estimate = tmpResiduals.getMedians();
 		}
+		if (estimate.length != tmpResiduals.getProj().getSamples().length) {
+			throw new IllegalStateException("Could not obtain estimate for all samples in project");
+		}
+
+		EvaluationResult evaluationResult = new EvaluationResult(baseTitle, estimate, cValidation == null ? 0 : cValidation.getRsquare());
 		for (int i = 0; i < matchString.length; i++) {
-			String[] response = parser.getStringDataForTitle(matchString[i]);
-			ICC icc = new ICC(estimate, response, EVAL_MASKS[0], null, false, log);
+			String[] response = Array.subArray(parser.getStringDataForTitle(matchString[i]), samplesToInclude[1]);
+			double[] data = Array.subArray(estimate, samplesToInclude[1]);
+			if (Array.removeNaN(data).length != data.length) {
+				throw new IllegalStateException("Invalid data array");
+
+			}
+			ICC icc = new ICC(data, response, EVAL_MASKS[0], null, false, log);
 			icc.computeICC();
 			evaluationResult.getIccs().add(icc);
 			evaluationResult.getIccTitles().add(matchString[i]);
+			log.reportTimeInfo("ICC: " + matchString[i] + " -> " + icc.getICC() + " NumComps = " + tmpResiduals.getNumComponents());
 		}
 		for (int i = 0; i < matchDouble.length; i++) {
-			StatPrep result = prepData(estimate, parser.getNumericDataForTitle(matchDouble[i]), matchDouble[i], true, log);
+			StatPrep result = prepData(estimate, parser.getNumericDataForTitle(matchDouble[i]), samplesToInclude[1], matchDouble[i], true, log);
 			ICC icc = new ICC(result.getFinalData(), result.getFinalResponse(), null, null, false, log);
 			icc.computeICC();
 			evaluationResult.getIccs().add(icc);
@@ -132,7 +144,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		return evaluationResult;
 	}
 
-	private static StatPrep prepData(double[] internalEstimate, double[] externalEstimate, String title, boolean normalize, Logger log) {
+	private static StatPrep prepData(double[] internalEstimate, double[] externalEstimate, boolean[] samplesToInclude, String title, boolean normalize, Logger log) {
 		StatPrep result = null;
 		if (internalEstimate.length != externalEstimate.length) {
 			log.reportTimeError("For " + title + ", internal n=" + internalEstimate.length + " data points do not match external n=" + externalEstimate.length + " datapoints");
@@ -144,7 +156,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 			ArrayList<String> tmpResponseExternal = new ArrayList<String>();
 
 			for (int i = 0; i < externalEstimate.length; i++) {
-				if (!Double.isNaN(internalEstimate[i]) && !Double.isNaN(externalEstimate[i])) {
+				if (samplesToInclude[i] && !Double.isNaN(internalEstimate[i]) && !Double.isNaN(externalEstimate[i])) {
 					tmpResponseInternal.add(i + "");
 					tmpInternals.add(internalEstimate[i]);
 					tmpResponseExternal.add(i + "");
@@ -154,6 +166,9 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 
 			double[] internals = Array.toDoubleArray(tmpInternals);
 			double[] externals = Array.toDoubleArray(tmpExternals);
+			double[] internalNotNorm = internals;
+			double[] externalNotNorm = externals;
+
 			double[] finalData = new double[externals.length * 2];
 			String[] finalResponse = new String[externals.length * 2];
 			int index = 0;
@@ -169,7 +184,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 				finalResponse[index] = i + "";
 				index++;
 			}
-			result = new StatPrep(finalData, finalResponse, internals, externals);
+			result = new StatPrep(finalData, finalResponse, internalNotNorm, externalNotNorm);
 		}
 		return result;
 	}
@@ -216,7 +231,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		builder.verbose(true);
 		builder.dataKeyColumnName("DNA");
 		builder.stringDataTitles(Array.concatAll(STRING_DATA, matchString));
-		builder.numericDataTitles(Array.concatAll(DOUBLE_DATA, matchDouble));
+		builder.numericDataTitles(Array.concatAll(DOUBLE_DATA, matchDouble, INDEPS));
 		try {
 			log.reportTimeInfo("Loading " + proj.SAMPLE_DATA_FILENAME.getValue());
 			this.parser = builder.build(proj, proj.SAMPLE_DATA_FILENAME.getValue());
@@ -242,92 +257,56 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		}
 		return matches.toArray(new String[matches.size()]);
 	}
-
-	// public static void run(Project proj, String markesToEvaluate, String outputDir) {
-	// proj.getLog().reportTimeInfo("Loading " + proj.INTENSITY_PC_FILENAME.getValue());
-	// if (outputDir == null) {
-	// outputDir = proj.PROJECT_DIRECTORY.getValue() + "mitoEval/";
-	//
-	// }
-	// new File(outputDir).mkdirs();
-	//
-	// PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
-	// pcResiduals.setMarkersToAssessFile(markesToEvaluate);
-	// pcResiduals.computeAssessmentDataMedians();
-	// StatsCrossTabRank sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), null, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, proj.getLog());
-	// int[] pcs = new int[sTabRank.getOrder().length];
-	//
-	// for (int i = 0; i < sTabRank.getOrder().length; i++) {
-	// pcs[i] = sTabRank.getOrder()[i] + 1;
-	// }
-	// proj.getLog().reportTimeInfo("Finished loading " + proj.INTENSITY_PC_FILENAME.getValue());
-	// boolean[] samplesToInclude = proj.getSamplesToInclude(null);
-	//
-	// CorrectionEvaluator cEvaluator = new CorrectionEvaluator(proj, pcResiduals, pcs, samplesToInclude, null);
-	// String output = outputDir + "mitos.eval.txt";
-	// // sTabRank.dump(ext.addToRoot(output, ".rank"), proj.getLog());
-	// try {
-	// PrintWriter writer = new PrintWriter(new FileWriter(output));
-	// WorkerTrain<EvaluationResult> train = new WorkerTrain<EvaluationResult>(cEvaluator, 8, 3, proj.getLog());
-	// int index = 0;
-	// while (train.hasNext()) {
-	// EvaluationResult result = train.next();
-	// if (index == 0) {
-	// writer.println(Array.toStr(result.getHeader()));
-	// }
-	// writer.println(Array.toStr(result.getData()));
-	// index++;
-	// }
-	// index++;
-	//
-	// writer.close();
-	// } catch (Exception e) {
-	// proj.getLog().reportError("Error writing to " + output);
-	// proj.getLog().reportException(e);
-	// }
-	//
-	// // cEvaluator.evaluate();
-	// }
-	//
-	// public static void main(String[] args) {
-	// int numArgs = args.length;
-	// String proj = null;
-	// String markers = null;
-	// String defaultDir = null;
-	//
-	// String usage = "\n" + "cnv.analysis.pca.CorrectionEvaluator requires 0-1 arguments\n";
-	// usage += "   (1) project filename (i.e. proj=" + proj + " (default))\n" + "";
-	// usage += "   (2) markers to Evaluate (i.e. markers=" + markers + " (default))\n" + "";
-	// usage += PSF.Ext.getOutputDirCommand(3, defaultDir);
-	// for (int i = 0; i < args.length; i++) {
-	// if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-	// System.err.println(usage);
-	// System.exit(1);
-	// } else if (args[i].startsWith("proj=")) {
-	// proj = args[i].split("=")[1];
-	// numArgs--;
-	// } else if (args[i].startsWith("markers=")) {
-	// markers = args[i].split("=")[1];
-	// numArgs--;
-	// } else if (args[i].startsWith(PSF.Ext.OUTPUT_DIR_COMMAND)) {
-	// defaultDir = args[i].split("=")[1];
-	// numArgs--;
-	// } else if (args[i].startsWith("log=")) {
-	// logfile = args[i].split("=")[1];
-	// numArgs--;
-	// } else {
-	// System.err.println("Error - invalid argument: " + args[i]);
-	// }
-	// }
-	// if (numArgs != 0) {
-	// System.err.println(usage);
-	// System.exit(1);
-	// }
-	// try {
-	// run(new Project(proj, false), markers, defaultDir);
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
-
 }
+// if (cds != null) {
+// icc = new ICC(estimate, cds, EVAL_MASKS[0], null, false, log);
+// icc.computeICC();
+// log.reportTimeInfo("DFDSFDSFICC: " + matchString[i] + " -> " + icc.getICC() + " NumComps = " + tmpResiduals.getNumComponents());
+// log.reportTimeInfo("OTHERMETHOD"+others[ic]);
+// }
+// String[] samples = Array.subArray(tmpResiduals.getProj().getSamples(), samplesToInclude[1]);
+// String[] cds = null;
+// for (int j = 0; j < classDefinitions.length; j++) {
+// if (classDefinitions[j].getClassTitle().equals("DuplicateNotNA") && matchString[i].equals("EVAL_CLASS_DUPLICATE")) {
+// cds =classDefinitions[j].getClassDefs();
+// ic=j;
+// }
+// }
+//
+// if (tmpResiduals.getNumComponents() == 100) {
+// String[] wtf = new String[tmpResiduals.getProj().getSamples().length];
+// for (int j = 0; j < tmpResiduals.getProj().getSamples().length; j++) {
+// wtf[j] = tmpResiduals.getProj().getSamples()[j] + "\t" + tmpResiduals.getMedians()[j] + "\t" + estimate[j];
+// }
+// Files.writeList(wtf, tmpResiduals.getProj().PROJECT_DIRECTORY.getValue() + "WTF.resid");
+// //System.exit(1);
+//
+// }
+// // for (int j = 0; j < data.length; j++) {
+// // ArrayList<String> dupResponse = new ArrayList<String>();
+// // ArrayList<Double> dupData = new ArrayList<Double>();
+//
+// // if (matchString[i].equals("EVAL_CLASS_DUPLICATE") && ext.indexOfStr(response[j], EVAL_MASKS[0]) < 0) {
+// // dupResponse.add(response[j]);
+// // dupData.add(data[j]);
+// // System.out.println(samples[j] + "\t" + matchString[i] + "\t" + data[j] + "\t" + response[j]);
+// // if (tmpResiduals.getNumComponents() < 3) {
+// // String name = tmpResiduals.getProj().PROJECT_DIRECTORY.getValue() + "ICC/icc." + tmpResiduals.getNumComponents() + ".txt";
+// //
+// // try {
+// // PrintWriter writer = new PrintWriter(new FileWriter(name));
+// // for (int k = 0; k < dupResponse.size(); k++) {
+// // writer.println(dupResponse.get(k) + "\t" + dupData.get(k));
+// // }
+// // writer.close();
+// // } catch (Exception e) {
+// // log.reportError("Error writing to " + name);
+// // log.reportException(e);
+// // }
+// // }
+// // }
+// // }
+//
+// ClassDefinition[] classDefinitions = ClassDefinition.getClassDefinitionsFromSampleData(tmpResiduals.getProj());
+// double[] others = IntensityCorrectionQC.computeAt(tmpResiduals.getMedians(), svd, tmpResiduals, classDefinitions, samplesToInclude[0], tmpResiduals.getNumComponents(), log);
+

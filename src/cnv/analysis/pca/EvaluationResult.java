@@ -1,20 +1,35 @@
 package cnv.analysis.pca;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
+import cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
+import cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
+import common.Files;
+import common.Logger;
 import stats.ICC;
 
-class EvaluationResult {
+class EvaluationResult implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String title;
+	private ORDER_TYPE orType;
+	private ITERATION_TYPE itType;
+	private double[] estimateData;
+	private double rSquared;
 	private ArrayList<ICC> iccs;
 	private ArrayList<String> iccTitles;
 	private ArrayList<double[]> pearsonCorrels;
 	private ArrayList<double[]> spearmanCorrel;
 	private ArrayList<String> correlTitles;
 
-	public EvaluationResult(String title) {
+	public EvaluationResult(String title, double[] estimateData, double rSquared) {
 		super();
 		this.title = title;
+		this.rSquared = rSquared;
+		this.estimateData = estimateData;
 		this.iccs = new ArrayList<ICC>();
 		this.iccTitles = new ArrayList<String>();
 		this.pearsonCorrels = new ArrayList<double[]>();
@@ -22,13 +37,24 @@ class EvaluationResult {
 		this.correlTitles = new ArrayList<String>();
 	}
 
+	public void setOrType(ORDER_TYPE orType) {
+		this.orType = orType;
+	}
+
+	public void setItType(ITERATION_TYPE itType) {
+		this.itType = itType;
+	}
+
 	public String[] getHeader() {
 		ArrayList<String> tmp = new ArrayList<String>();
 		tmp.add("Evaluated");
-
+		tmp.add("IterationType");
+		tmp.add("OrderType");
+		tmp.add("Rsquare_correction");
 		for (int i = 0; i < iccTitles.size(); i++) {
 			tmp.add("ICC_" + iccTitles.get(i));
 		}
+
 		for (int i = 0; i < correlTitles.size(); i++) {
 			tmp.add("PEARSON_CORREL_" + correlTitles.get(i));
 			tmp.add("PEARSON_P_" + correlTitles.get(i));
@@ -38,10 +64,22 @@ class EvaluationResult {
 		return tmp.toArray(new String[tmp.size()]);
 	}
 
+	public double[] getEstimateData() {
+		return estimateData;
+	}
+
+	public void shrink() {
+		for (int i = 0; i < iccs.size(); i++) {
+			iccs.get(i).shrink();
+		}
+	}
+
 	public String[] getData() {
 		ArrayList<String> tmp = new ArrayList<String>();
 		tmp.add(title);
-
+		tmp.add(itType == null ? "NA" : itType.toString());
+		tmp.add(orType == null ? "NA" : orType.toString());
+		tmp.add(rSquared + "");
 		for (int i = 0; i < iccs.size(); i++) {
 			tmp.add(iccs.get(i).getICC() + "");
 		}
@@ -79,5 +117,18 @@ class EvaluationResult {
 	public ArrayList<String> getCorrelTitles() {
 		return correlTitles;
 	}
+
+	public static void serialize(EvaluationResult[] results, String fileName) {
+		Files.writeSerial(results, fileName, true);
+	}
+
+	public static EvaluationResult[] readSerial(String fileName, Logger log) {
+		return (EvaluationResult[]) Files.readSerial(fileName, false, log, false, true);
+	}
+
+	// @Override
+	// public String[] getIndexKeys() {
+	// return new String[] { title };
+	// }
 
 }
