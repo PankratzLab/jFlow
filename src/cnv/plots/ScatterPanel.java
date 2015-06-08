@@ -472,7 +472,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				} else {
 				    classCode = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position);
 				}
-				g.setColor(colorScheme[Math.min(classCode, colorScheme.length-1)]);
+				g.setColor(colorScheme[Math.max(0, Math.min(classCode, colorScheme.length-1))]);
 				if (sp.getGCthreshold() > 0 && alleleCounts[i]==-1) {
 					g.drawString("X", getXPixel(datapoints[0][i])-xWidth/2, getYPixel(datapoints[1][i])+(int)(xFontSize/2.0));
 				} else {
@@ -531,20 +531,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	setExtraLayersVisible(new byte[] {99});
     	repaint();
     }
-
-//	public void paintComponent(Graphics g) {
-//		System.out.println("inner");
-//		this.paintComponent(g);
-////		super(g);
-//	}
     
 	public void mouseClicked(MouseEvent event) {
 		JPopupMenu menu;
 		MarkerData mData;
 		String markerPosition;
-		int window;
-		int numberToInclude;
-		byte newClusterFilter;
+		int window, position;
+		int numberToInclude, currentClass;
+		byte newClusterFilter, chr;
 //		byte currentGenotype;
 //		ClusterFilter currentClusterFilter;
 
@@ -552,15 +546,22 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			window = sp.getProject().WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER.getValue();
 			mData = sp.getCurrentMarkerData();
 			markerPosition = "chr"+mData.getChr()+":"+(mData.getPosition()-window)+"-"+(mData.getPosition()+window);
+	        currentClass = sp.getCurrentClass(panelIndex);
+	        chr = mData.getChr();
+	        position = mData.getPosition();
 			if (indicesOfNearbySamples!=null && indicesOfNearbySamples.size()>0) {
 				menu = new JPopupMenu();
 				numberToInclude = Math.min(50, indicesOfNearbySamples.size());
 				for (int i = 0; i<numberToInclude; i++) {
-					// menu.add(samples[prox.elementAt(i)] +"
-					// ("+datapoints[0][prox.elementAt(i)]+",
-					// "+datapoints[1][prox.elementAt(i)]+")");
-	
-					menu.add(new LaunchAction(sp.getProject(), samples[indicesOfNearbySamples.elementAt(i)], markerPosition, Color.BLACK));
+				    int sampleIndex = indicesOfNearbySamples.elementAt(i);
+				    IndiPheno indi = sampleData.getIndiFromSampleHash(samples[sampleIndex]);
+	                byte classCode;
+	                if (sampleData.getClassName(currentClass).startsWith(SampleData.PLINK_CLASS_PREFIX))  {
+	                    classCode = (byte)((int)sp.getPlinkGenotypeForIndi(samples[sampleIndex], currentClass) + 1);
+	                } else {
+	                    classCode = sampleData.determineCodeFromClass(currentClass, alleleCounts[sampleIndex], indi, chr, position);
+	                }
+					menu.add(new LaunchAction(sp.getProject(), samples[sampleIndex], markerPosition, colorScheme[Math.max(0, Math.min(classCode, colorScheme.length-1))]));
 				}
 				if (indicesOfNearbySamples.size() > 50) {
 					menu.add(new LaunchAction("Plus "+(indicesOfNearbySamples.size() - 50)+" additional samples"));
@@ -603,10 +604,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			}
 		}
 	}
-
-//	public static void main(String[] args) {
-//		ScatterPlot.main(new String[] {"-notJar"});
-//	}
 
 	public void setQcPanelUpdatable(boolean updateQcPanel) {
 		this.updateQcPanel = updateQcPanel;

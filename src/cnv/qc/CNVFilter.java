@@ -187,7 +187,7 @@ public class CNVFilter {
 	 * @param filter
 	 *            a pre-existing filter, can be null
 	 * @param defaults
-	 *            set the filter to the defualt values as defined by {@link CNVFilter#setCNVDefaults(Project)}
+	 *            set the filter to the default values as defined by {@link CNVFilter#setCNVDefaults(Project)}
 	 * @param log
 	 * @return
 	 */

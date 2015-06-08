@@ -404,7 +404,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			if (command.equals(MAP_FILES)) {
 				cnv.manage.ParseIllumina.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
-				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map());
+				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map(true));
 			} else if (command.equals(PARSE_FILES_CSV)) {
 //				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
 				cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
@@ -423,7 +423,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					abLookup.writeToFile(filename, proj.getLog());
 				}
 				
-				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(), false);
+				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
 			} else if (command.equals(GENERATE_PLINK_FILES)) {
 				String filename;
 				boolean success;
@@ -579,52 +579,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //					}
 //				});
 			} else if (command.equals(KITANDKABOODLE)) {
-				KitAndKaboodleGUI kkGUI = new KitAndKaboodleGUI();
-				kkGUI.setModal(true);
-				kkGUI.setVisible(true);
-				
-				if (kkGUI.getCancelled() == true) {
-				    return;
-				}
-				
-			    boolean[] options = kkGUI.getSelectedOptions();
 			    
-			    String filename;
-				if (options[0]) {
-    				if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
-    					log.reportError("Could not find required file "+proj.MARKER_POSITION_FILENAME.getValue(false, false)+"\n    attempting to generate one for you...");
-    					filename = proj.getLocationOfSNP_Map();
-    					if (filename == null) {
-    						return;
-    					}
-    					log.report("Generating from "+filename);
-    					cnv.manage.Markers.generateMarkerPositions(proj, filename);
-    				}
-				}
-				if (options[1]) {
-				    log.report("Parsing sample files");
-				    cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
-				}
-				if (options[2]) {
-				    log.report("Transposing data");
-				    TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
-				}
-				if (options[3]) {
-				    log.report("Running LrrSd");
-				    cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
-				}
-				if (options[4]) {
-				    log.report("Running SexCheck");
-				    cnv.qc.SexChecks.sexCheck(proj);
-				}
-				if (options[5]) {
-				    log.report("Running PLINK");
-    				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
-    				CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
-    				new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
-    				CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-    				CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-				}
+			    KitAndKaboodle kAndK = new KitAndKaboodle(proj);
+			    kAndK.showDialogAndRun();
 
 			} else if (command.equals(PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI)) {
 				SwingUtilities.invokeLater(new Runnable() {
