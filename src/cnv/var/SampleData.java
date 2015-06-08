@@ -371,8 +371,6 @@ public class SampleData {
 		inds = HashVec.getKeys(sampleHash);
 		for (int i = 0; i<inds.length; i++) {
 			indi = sampleHash.get(inds[i]);
-//			trav = lookup.get(inds[i]);
-//			trav = famIndLookup.get("S_"+inds[i]);
 			trav = lookup.get(inds[i].toLowerCase())[1];
 
 			finalHashes = new Vector<Hashtable<String,CNVariant[]>>();

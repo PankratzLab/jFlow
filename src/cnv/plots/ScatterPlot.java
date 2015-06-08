@@ -3113,18 +3113,20 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (autoSave != null) {
 			autoSave.kill();
 		}
-//		if (plinkMarkerLoader != null) {
-//		    plinkMarkerLoader.kill();
-//		    count = 0;
-//		    while (!plinkMarkerLoader.killComplete()) {
-//		        try {
-//		            Thread.sleep(250);
-//		        } catch (InterruptedException ie) {}
-//		        count++;
-//		        if (count > 0) {
-//		            log.reportError("Waiting for markerDataLoader to wind down...");
-//		        }
-//		    }
+		// Killing doesn't actually do anything... 
+//		for (PlinkMarkerLoader pml : plinkMarkerLoaders.values()) {
+//            pml.kill();
+//            count = 0;
+//            while (!pml.killComplete()) {
+//                try {
+//                    Thread.sleep(250);
+//                } catch (InterruptedException ie) {
+//                }
+//                count++;
+//                if (count > 0) {
+//                    log.reportError("Waiting for PlinkMarkerLoader to wind down...");
+//                }
+//            }
 //		}
 		if (markerDataLoader != null) {
 			markerDataLoader.kill();

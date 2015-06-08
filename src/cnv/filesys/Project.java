@@ -1059,7 +1059,7 @@ public class Project {
 		}
 	}
 	
-	public String getLocationOfSNP_Map() {
+	public String getLocationOfSNP_Map(boolean verbose) {
 		String filename;
 		
 		if (Files.exists(PROJECT_DIRECTORY.getValue()+"SNP_Map.csv")) {
@@ -1071,7 +1071,9 @@ public class Project {
 		} else if (Files.exists(this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv.gz")) {
 			filename = this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv.gz";
 		} else {
-			log.reportError("Failed; could not find \"SNP_Map.csv\" or \"SNP_Map.csv.gz\" in "+PROJECT_DIRECTORY.getValue()+" or in "+this.SOURCE_DIRECTORY.getValue(false, false));
+			if (verbose) {
+			    log.reportError("Failed; could not find \"SNP_Map.csv\" or \"SNP_Map.csv.gz\" in "+PROJECT_DIRECTORY.getValue()+" or in "+this.SOURCE_DIRECTORY.getValue(false, false));
+			}
 			return null;
 		}
 		

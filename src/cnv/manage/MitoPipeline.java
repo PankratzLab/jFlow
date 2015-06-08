@@ -186,7 +186,7 @@ public class MitoPipeline {
 		}
 		if (markerPositions == null) {
 			log.report("Info - markerPositions was set to null, so attempting to auto-create from SNP_Map.csv");
-			String snpMapFilename = proj.getLocationOfSNP_Map();
+			String snpMapFilename = proj.getLocationOfSNP_Map(true);
 			if (snpMapFilename == null) {
 				log.reportError("Error - unfortunately a SNP_Map.csv file could not be found; either create a markerPositions.txt file with MarkerName/Chr/Position, or supply a SNP_Map.csv file");
 				log.reportError("aborting MitoPipeline");
@@ -918,7 +918,7 @@ public class MitoPipeline {
 		abLookup.parseFromGenotypeClusterCenters(proj);
 		abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(false, false), proj.getLog());
 		if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
-			snpMapFile = proj.getLocationOfSNP_Map();
+			snpMapFile = proj.getLocationOfSNP_Map(true);
 			if (snpMapFile != null) {
 				log.report("Info - attempting to fill in missing alleles from " + snpMapFile);
 				ABLookup.fillInMissingAlleles(proj, proj.AB_LOOKUP_FILENAME.getValue(false, false), snpMapFile, false);

@@ -741,7 +741,7 @@ public class ParseIllumina implements Runnable {
 
 	private static int checkForSNP_Map(Project proj, Logger log) {
 		String filename;
-		filename = proj.getLocationOfSNP_Map();
+		filename = proj.getLocationOfSNP_Map(true);
 		if (filename != null) {
 			log.reportError("\nSuch a file was found: "+filename);
 			log.reportError("\nIn order to process it use the command:");
