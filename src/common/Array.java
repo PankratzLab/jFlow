@@ -2674,6 +2674,36 @@ public class Array {
 	}
 	
 	/**
+	 * Creates a new array using only the double values at indices with a true in the boolean array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static double[][] subArray(double[][] array, boolean[] use) {
+		double[][] subarray;
+		int count;
+
+		if (array.length != use.length) {
+			System.err.println("Error - mismatched array lengths for the aray (n=" + array.length + ") and the boolean subset (n=" + use.length + ")");
+			return null;
+		}
+
+		count = 0;
+		subarray = new double[booleanArraySum(use)][];
+		for (int i = 0; i < array.length; i++) {
+			if (use[i]) {
+				subarray[count] = array[i];
+				count++;
+			}
+		}
+
+		return subarray;
+	}
+	
+	/**
 	 * Creates a new array using only the double values at indices defined by the Integer array
 	 * 
 	 * @param array
@@ -4030,16 +4060,18 @@ public class Array {
 
 	
 	
-	public static double[] concatDubs(double[] first, double[]... rest) {
-		int totalLength = first.length;
-		for (double[] array : rest) {
-			totalLength += array.length;
-		}
+	public static double[] concatDubs(double[] first, double[] other) {
+		int totalLength = first.length+other.length;
+	
 		double[] result = new double[totalLength];
-		int offset = first.length;
-		for (double[] array : rest) {
-			System.arraycopy(array, 0, result, offset, array.length);
-			offset += array.length;
+		int index =0;
+		for (int i = 0; i < first.length; i++) {
+			result[index] =first[i];
+			index++;
+		}
+		for (int i = 0; i < other.length; i++) {
+			result[index] =other[i];
+			index++;
 		}
 		return result;
 	}

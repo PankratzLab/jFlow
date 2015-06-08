@@ -16,7 +16,16 @@ import common.ext;
  */
 public class StatsCrossTabs {
 	public static enum STAT_TYPE {
-		SPEARMAN_CORREL, PEARSON_CORREL, LIN_REGRESSION
+		/**
+		 * stat = r, pvalue = p
+		 */
+		SPEARMAN_CORREL, /**
+		 * stat = r, pvalue = p
+		 */
+		PEARSON_CORREL, /**
+		 * stat = R2, pvalue = p
+		 */
+		LIN_REGRESSION
 
 	}
 
@@ -120,50 +129,32 @@ public class StatsCrossTabs {
 	 * @param variableIndex
 	 * @param type
 	 * @param log
-	 * @return the order by {@link VALUE_TYPE} requested, note that the returned order is number of variables -1, the comparision with itself is not included
+	 * @return {@link StatsCrossTabRank} ordered by the {@link VALUE_TYPE} requested, note that the length of the order array is number of variables -1, the comparison with itself is not included
 	 */
 	public StatsCrossTabRank getInOrder(int variableIndex, VALUE_TYPE type, Logger log) {
 		StatsCrossTabRank sRank = null;
 		String[] titlesRanked = new String[dataTitles.length - 1];
 		if (verify && variableIndex < data.length) {
-			double[] vals = new double[data.length - 1];// skip itself;
+			double[] sigs = new double[data.length - 1];// skip itself;
+			double[] stats = new double[data.length - 1];// skip itself;
+
 			// go over to variable index, then go down to bottom
 			int curIndex = 0;
 			for (int i = 0; i < variableIndex; i++) {
-				switch (type) {
-				case PVALUE:
-					vals[curIndex] = sigTable[variableIndex][i];
-					break;
-				case STAT:
-					vals[curIndex] = statisticTable[variableIndex][i];
-					break;
-				default:
-					log.reportTimeError("Invalid type " + type);
-					break;
-				}
+
+				sigs[curIndex] = sigTable[variableIndex][i];
+				stats[curIndex] = statisticTable[variableIndex][i];
 				titlesRanked[curIndex] = dataTitles[i];
 				curIndex++;
 			}
 			for (int i = variableIndex + 1; i < data.length; i++) {
-				switch (type) {
-				case PVALUE:
-					vals[curIndex] = sigTable[i][variableIndex];
-					break;
-				case STAT:
-					vals[curIndex] = statisticTable[i][variableIndex];
-					break;
-				default:
-					log.reportTimeError("Invalid type " + type);
-					break;
-				}
+				sigs[curIndex] = sigTable[i][variableIndex];
+				stats[curIndex] = statisticTable[i][variableIndex];
 				titlesRanked[curIndex] = dataTitles[i];
-
 				curIndex++;
 			}
-			int[] order = Sort.quicksort(vals, 1);
-
-			sRank = new StatsCrossTabRank(dataTitles[variableIndex], order, vals, titlesRanked);
-
+			int[] order = Sort.quicksort(type == VALUE_TYPE.STAT ? stats : sigs, 1);
+			sRank = new StatsCrossTabRank(dataTitles[variableIndex], order, sigs, stats, titlesRanked);
 		} else {
 			log.reportTimeError("Variable index greater than variable array length " + data.length);
 		}
@@ -247,17 +238,33 @@ public class StatsCrossTabs {
 		cTable.dumpTables("D:/data/singapore_PCs/Manhattan/test.correl");
 	}
 
+	/**
+	 * @author lane0212 Stores the results of the ranking procedure
+	 */
 	public static class StatsCrossTabRank {
+		public static final String[] HEADER = new String[] { "Title", "OriginalOrder", "Stat", "Sig" };
 		private String rankedTo;
 		private int[] order;
-		private double[] underlyingData;
+		private double[] sigs;
+		private double[] stats;
 		private String[] titlesRanked;
 
-		public StatsCrossTabRank(String rankedTo, int[] order, double[] underlyingData, String[] titlesRanked) {
+		/**
+		 * @param rankedTo
+		 *            what the other variables are ranked to
+		 * @param order
+		 *            the ranking order
+		 * @param underlyingData
+		 *            the data(un-ranked
+		 * @param titlesRanked
+		 *            the data that was ranked
+		 */
+		public StatsCrossTabRank(String rankedTo, int[] order, double[] sigs, double[] stats, String[] titlesRanked) {
 			super();
 			this.rankedTo = rankedTo;
 			this.order = order;
-			this.underlyingData = underlyingData;
+			this.sigs = sigs;
+			this.stats = stats;
 			this.titlesRanked = titlesRanked;
 		}
 
@@ -269,16 +276,20 @@ public class StatsCrossTabs {
 			return rankedTo;
 		}
 
-		public double[] getUnderlyingData() {
-			return underlyingData;
+		public double[] getStats() {
+			return stats;
+		}
+
+		public double[] getSigs() {
+			return sigs;
 		}
 
 		public void dump(String fullPathToFile, boolean ranked, Logger log) {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(fullPathToFile));
-				writer.println("Title\tValue");
+				writer.println(Array.toStr(HEADER));
 				for (int i = 0; i < order.length; i++) {
-					writer.println(titlesRanked[ranked ? order[i] : i] + "\t" + underlyingData[ranked ? order[i] : i]);
+					writer.println(titlesRanked[ranked ? order[i] : i] + "\t" + (i + 1) + "\t" + stats[ranked ? order[i] : i] + "\t" + sigs[ranked ? order[i] : i]);
 				}
 				writer.close();
 			} catch (Exception e) {

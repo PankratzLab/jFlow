@@ -42,6 +42,7 @@ import common.ext;
  *
  */
 public class PrincipalComponentsResiduals implements Cloneable {
+	public static final int NUM_PC_SVD_OVERIDE = 160;
 	private static final String[] MT_REPORT = { "DNA", "FID", "IID", "Sex", "median_MT_LRR_raw", "median_MT_LRR_PC_residuals", "median_MT_LRR_PC_residuals_inverseTransformed" };
 	private static final String[] MT_REPORT_EXT = { ".report.txt" };
 	private static final String[] MT_REPORT_MARKERS_USED = { ".MedianMarkers.MarkersUsed.txt", ".MedianMarkers.RawValues.txt" };
@@ -829,8 +830,13 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		boolean go = true;
 		CrossValidation cval;
 		if (numComponentsForModel <= 0) {
-			proj.getLog().reportError("Error - number of components specified must be greater than 0");
-			go = false;
+			if (extraIndeps == null) {
+				proj.getLog().reportError("Error - number of components specified must be greater than 0");
+				go = false;
+			} else {
+				proj.getLog().reportTimeWarning(numComponentsForModel + " components were specified, so only using the extra independen variables provided");
+			}
+
 		}
 		if (data == null || willFailNAN(data, numComponentsForModel)) {
 			int numNonNaN = data == null ? 0 : Array.removeNaN(data).length;
@@ -867,10 +873,16 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0], true, svdRegression, proj.getLog());
 			cval.setAnalysisFailed(true);
 		} else {
-			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
+			if (svdRegression) {
+				svdRegression = numComponentsForModel > NUM_PC_SVD_OVERIDE;
+				if (!svdRegression) {
+					log.reportTimeWarning("Over-riding SVD method since " + numComponentsForModel + " < " + NUM_PC_SVD_OVERIDE);
+				}
+			}
 
-			double[][] train_indeps = getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel);
-			double[][] val_indeps = getTrimmedPreppedIndepsProjectPCsFor(null, extraIndeps, numComponentsForModel);
+			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
+			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel) : Array.subArray(extraIndeps, samplesTobuildModel);
+			double[][] val_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(null, extraIndeps, numComponentsForModel) : extraIndeps;
 
 			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, verbose, svdRegression, proj.getLog());
 			cval.train();
@@ -897,8 +909,13 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		double[][] preppedPcs = getTrimmedPreppedProjectPCsFor(toExtract, numComponents);
 		if (additionalData != null) {
 			double[][] tmp = new double[preppedPcs.length][numComponents + additionalData[0].length];
+			double[][] tmpAdd = toExtract == null ? additionalData : Array.subArray(additionalData, toExtract);
+			if (preppedPcs.length != tmpAdd.length) {
+				System.err.println("Mismatched array addition for additional data");
+				return null;
+			}
 			for (int i = 0; i < preppedPcs.length; i++) {
-				tmp[i] = Array.concatDubs(preppedPcs[i], additionalData[i]);
+				tmp[i] = Array.concatDubs(preppedPcs[i], tmpAdd[i]);
 			}
 			preppedPcs = tmp;
 		}
@@ -1051,8 +1068,35 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		return matched;
 	}
 
-	public StatsCrossTabRank getStatRankFor(double[] data, boolean[] samplesForRanking, String title, STAT_TYPE statType, VALUE_TYPE rankType, Logger log) {
+	/**
+	 * @param data
+	 *            organized as data[variable][dataForAllSamples]
+	 * @param extraIndeps
+	 *            organized as extraIndeps[sample][indepsForSample]
+	 * @param samplesForRanking
+	 *            stats will be calculated with these samples only
+	 * @param titles
+	 *            must have same length as data, essentially variable titles
+	 * @param statType
+	 *            see {@link STAT_TYPE}
+	 * @param rankType
+	 *            see {@link VALUE_TYPE}
+	 * @param log
+	 * @return the {@link StatsCrossTabRank } array for all data requested
+	 * 
+	 *         NOTE: the data is only ranked against individual PCs, not
+	 */
+	public StatsCrossTabRank[] getStatRanksFor(double[][] data, double[][] extraIndeps, boolean[] samplesForRanking, String[] titles, STAT_TYPE statType, VALUE_TYPE rankType, Logger log) {
+		StatsCrossTabRank[] sRanks = new StatsCrossTabRank[data.length];
+		for (int i = 0; i < sRanks.length; i++) {
+			sRanks[i] = getStatRankFor(data[i], extraIndeps, samplesForRanking, titles[i], statType, rankType, log);
+		}
+		return sRanks;
+	}
+
+	public StatsCrossTabRank getStatRankFor(final double[] data, final double[][] extraIndeps, final boolean[] samplesForRanking, final String title, final STAT_TYPE statType, final VALUE_TYPE rankType, Logger log) {
 		String[] allTitles = Array.concatAll(new String[] { title }, pcTitles);
+		double[][] tmp = extraIndeps;
 		if (verifyDataSampleSize(data, log)) {
 			double[][] basis = getPcBasis();
 			double[][] toRank = new double[basis.length + 1][];
@@ -1060,9 +1104,12 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			for (int i = 0; i < basis.length; i++) {
 				toRank[i + 1] = samplesForRanking == null ? basis[i] : Array.subArray(basis[i], samplesForRanking);
 			}
+			if (extraIndeps != null && samplesForRanking != null) {
+				tmp = Array.subArray(extraIndeps, samplesForRanking);
+			}
 			boolean[] mask = Array.booleanArray(toRank.length, false);
 			mask[0] = true;
-			StatsCrossTabs sCrossTabs = new StatsCrossTabs(toRank, null, mask, allTitles, statType, true, log);
+			StatsCrossTabs sCrossTabs = new StatsCrossTabs(toRank, tmp, mask, allTitles, statType, true, log);
 			sCrossTabs.computeTable();
 			return sCrossTabs.getInOrder(0, rankType, log);
 		}
@@ -1088,6 +1135,24 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		return samplesToReport;
 	}
 
+	/**
+	 * Constructor mainly used by {@link PrincipalComponentsIterator}
+	 *
+	 */
+
+	public PrincipalComponentsResiduals(PrincipalComponentsResiduals principalComponentsResiduals, double[][] basis, double[] assesmentData) {
+		this.numComponents = basis.length;
+		this.pcBasis = basis;
+		this.samplesToUse = principalComponentsResiduals.getSamplesToUse();
+		this.proj = principalComponentsResiduals.getProj();
+		this.samplesInPc = principalComponentsResiduals.getSamplesInPc();
+		this.allProjSamples = principalComponentsResiduals.getAllProjSamples();
+		this.sortedByProject = principalComponentsResiduals.isSortedByProject();
+		this.assesmentData = assesmentData;
+		this.log = proj.getLog();
+
+	}
+
 	public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals> {
 		private PrincipalComponentsResiduals pcResids;
 		private int[] order;
@@ -1106,6 +1171,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 
 		}
 
+		public PrincipalComponentsResiduals getPcResids() {
+			return pcResids;
+		}
+
 		@Override
 		public PrincipalComponentsResiduals next() {
 			double[][] newBasis = new double[index][];
@@ -1114,9 +1183,8 @@ public class PrincipalComponentsResiduals implements Cloneable {
 					newBasis[i] = pcResids.getBasisAt(order == null ? i + 1 : order[i]);
 				}
 			}
-			PrincipalComponentsResiduals newPcResiduals = pcResids.clone();
-			newPcResiduals.setPcBasis(newBasis);
-			newPcResiduals.setNumComponents(index);
+			PrincipalComponentsResiduals newPcResiduals = new PrincipalComponentsResiduals(pcResids, newBasis, pcResids.getMedians());
+
 			index++;
 			return newPcResiduals;
 		}
@@ -1130,3 +1198,21 @@ public class PrincipalComponentsResiduals implements Cloneable {
 	}
 
 }
+// int trainIndex = 0;
+// for (int i = 0; i < proj.getSamples().length; i++) {
+// if (samplesTobuildModel[i]) {
+// // System.out.println("TRAIN\t"+proj.getSamples()[trainIndex] + "\t" + data[trainIndex] + "\t" + Array.toStr(train_indeps[trainIndex]));
+// if (train_deps[trainIndex] != data[i] || !Arrays.equals(train_indeps[trainIndex], val_indeps[i])) {
+// System.out.println("DSFDSF\t" + proj.getSamples()[trainIndex] + "\t" + proj.getSamples()[i]);
+// System.out.println("TRAIN\t" + proj.getSamples()[trainIndex] + "\t" + data[trainIndex] + "\t" + Array.toStr(train_indeps[trainIndex]));
+// }
+// trainIndex++;
+//
+// }
+// // System.out.println("REG\t"+proj.getSamples()[i] + "\t" + data[i] + "\t" + Array.toStr(train_indeps[i]));
+//
+// }
+
+// for (int i = 0; i < proj.getSamples().length; i++) {
+// System.out.println(proj.getSamples()[i] + "\t" + data[i]);
+// }
