@@ -181,6 +181,28 @@ public class Rscript {
 
 	}
 	
+	public enum GEOM_POINT_SIZE {
+		GEOM_POINT("size =", 1);
+
+		private String call;
+		private double size;
+
+		private GEOM_POINT_SIZE(String call, double size) {
+			this.call = call;
+			this.size = size;
+		}
+
+		public String getCall() {
+			return call + size;
+		}
+
+		public void setSize(double size) {
+			this.size = size;
+		}
+		
+
+	}
+	
 	
 	/**
 	 * @author lane0212 For plotting that mimics Excel's scatter plots using ggplot2
@@ -202,6 +224,7 @@ public class Rscript {
 		private Logger log;
 		private SCATTER_TYPE sType;
 		private LEGEND_POSITION lPosition;
+		private GEOM_POINT_SIZE gPoint_SIZE;
 		private boolean valid;
 		private int fontsize;
 		private String title;
@@ -223,6 +246,9 @@ public class Rscript {
 		}
 		
 		
+		public void setOutput(String output) {
+			this.output = output;
+		}
 
 		public void setTitle(String title) {
 			this.title = title;
@@ -243,12 +269,16 @@ public class Rscript {
 			this.yRange = yRange;
 		}
 
+		public void setgPoint_SIZE(GEOM_POINT_SIZE gPoint_SIZE) {
+			this.gPoint_SIZE = gPoint_SIZE;
+		}
+
 		@Override
 		public boolean execute() {
 			String[] rScript = developScript();
-			log.report(Array.toStr(rScript,"\n"));
+			log.report(Array.toStr(rScript, "\n"));
 			Files.writeList(rScript, rScriptFile);
-			boolean ran = CmdLine.runCommandWithFileChecks(new String[]{"Rscript",rScriptFile}, "", new String[]{rScriptFile}, new String[]{output}, true, true, false, log);
+			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { output }, true, true, false, log);
 			return ran;
 		}
 
@@ -274,9 +304,9 @@ public class Rscript {
 					rCmd.add(melt);
 					dataTable = DATA_TABLE_MELT_VAR;
 					plot += PLOT_VAR + " <- ggplot(" + dataTable + ",aes(x=" + rSafeXColumn + ", y=value, group=variable)) ";
-					plot += " + " + sType.getCall() + "(aes(colour =variable))";
-				
-				}else{
+					plot += " + " + sType.getCall() + "(aes(colour =variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
+
+				} else {
 					plot += PLOT_VAR + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
 					plot += " + " + sType.getCall() + "(aes(y = " + dataTable + "$" + rSafeYColumns[0] + "))";
 				}

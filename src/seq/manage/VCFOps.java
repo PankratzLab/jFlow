@@ -98,6 +98,11 @@ public class VCFOps {
 		 * gzip and index a vcf file
 		 */
 		GZIP,
+
+		/**
+		 * Creates a vpop file with all cases
+		 */
+		DUMP_SAMPLES,
 		/**
 		 * Use plinkSeq to qc a vcf
 		 */
@@ -899,7 +904,7 @@ public class VCFOps {
 			VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
 			VARIANT_FILTER_DOUBLE maf = VARIANT_FILTER_DOUBLE.MAF;
 			VARIANT_FILTER_DOUBLE cr = VARIANT_FILTER_DOUBLE.CALL_RATE;
-			
+
 			vDoubles = new VARIANT_FILTER_DOUBLE[] { cr, maf, gq, dp };
 		}
 		VariantContextFilter variantContextFilter = new VariantContextFilter(vDoubles, new VARIANT_FILTER_BOOLEAN[] { VARIANT_FILTER_BOOLEAN.FAILURE_FILTER }, null, null, log);
@@ -953,6 +958,36 @@ public class VCFOps {
 		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(1, 10, log);
 		assocHive.addCallable(PlinkSeq.generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, null, -1, "0", pseqProject.getProjectName(), true, log));
 		assocHive.execute(true);
+	}
+
+	/**
+	 * @param vcf
+	 *            Samples from this vcf will be dumped to a {@link VcfPopulation} formatted file
+	 * @param log
+	 */
+	public static void extractSamps(String vcf, Logger log) {
+		VCFFileReader reader = new VCFFileReader(vcf, false);
+		String[] samples = getSamplesInFile(reader);
+		reader.close();
+		String output = getAppropriateRoot(vcf, false) + ".vpop";
+		if (!Files.exists(output)) {
+			log.reportTimeInfo("Detected " + samples.length + " samples in vcf " + vcf);
+			log.reportTimeInfo("exporting to " + output);
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				writer.println(Array.toStr(VcfPopulation.HEADER));
+				for (int i = 0; i < samples.length; i++) {
+					writer.println(samples[i] + "\t" + VcfPopulation.CONTROL + "\t" + VcfPopulation.CONTROL);
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + output);
+				log.reportException(e);
+			}
+			
+		} else {
+			log.reportFileExists(output);
+		}
 	}
 
 	public static void main(String[] args) {
@@ -1042,6 +1077,7 @@ public class VCFOps {
 		try {
 			log = new Logger(logfile);
 			log.reportTimeInfo("Running utiltity type: " + type);
+
 			switch (type) {
 			case GWAS_QC:
 				vcfGwasQC(vcf, log);
@@ -1067,9 +1103,13 @@ public class VCFOps {
 			case EXTRACT_IDS:
 				extractIDs(vcf, idFile, outDir, skipFiltered, gzip, log);
 				break;
-
+			case DUMP_SAMPLES:
+				extractSamps(vcf, log);
 			default:
-				System.err.println("Invalid utility type");
+				System.err.println("Invalid utility type: Available are ->");
+				for (int i = 0; i < UTILITY_TYPE.values().length; i++) {
+					usage += UTILITY_TYPE.values()[i] + "\n";
+				}
 				break;
 			}
 		} catch (Exception e) {

@@ -10,7 +10,7 @@ import common.ext;
 
 public class GATK {
 	public static final String GATK_LOCATION_COMMAND = "gatk=";
-
+	public static final String DEFAULT_GATK = "/home/pankrat2/public/bin/GATK/";
 	public static final String SPLIT = ",";
 
 	public static final String DEFAULT_JAVA = "java";
@@ -24,6 +24,7 @@ public class GATK {
 	public static final String ANALYZE_COVARIATES = "AnalyzeCovariates";
 	public static final String HAPLOTYPE_CALLER = "HaplotypeCaller";
 	public static final String GENOTYPEGVCFS = "GenotypeGVCFs";
+	public static final String COMBINE_VARIANTS = "CombineVariants";
 	public static final String VARIANT_RECALIBRATOR = "VariantRecalibrator";
 	public static final String APPLY_RECALIBRATION = "ApplyRecalibration";
 	public static final String VARIANT_ANNOTATOR = "VariantAnnotator";
@@ -132,6 +133,15 @@ public class GATK {
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExisting;
 		this.log = log;
+	}
+
+	public GATK(String gATKLocation, String referenceGenomeFasta, boolean verbose, boolean overWriteExisting, Logger log) {
+		this.GATKLocation = gATKLocation;
+		this.referenceGenomeFasta = referenceGenomeFasta;
+		this.verbose = verbose;
+		this.overWriteExistingOutput = overWriteExisting;
+		this.log = log;
+		this.fail = verifyGATKLocation();
 	}
 
 	public String getRegionsFile() {
@@ -448,6 +458,27 @@ public class GATK {
 		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, GENOTYPEGVCFS, R, referenceGenomeFasta, O, output, NT, numWithinSampleThreads + "" };
 		command = Array.concatAll(command, inputGVCFArgs);
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, new String[] { output }, verbose, overWriteExistingOutput, true, (altLog == null ? log : altLog));
+	}
+
+	/**
+	 * @param vcfs
+	 *            these vcfs will be merged to the output file
+	 * @param output
+	 * @param log
+	 * @return true on successful merge
+	 */
+	public boolean mergeVCFs(String[] vcfs, String output, Logger log) {
+		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, COMBINE_VARIANTS, R, referenceGenomeFasta, O, output, "-genotypeMergeOption", "UNIQUIFY" };
+		String[] inputArgVCF = new String[vcfs.length * 2];
+		int index = 0;
+		for (int i = 0; i < vcfs.length; i++) {
+			inputArgVCF[index] = VARIANT;
+			index++;
+			inputArgVCF[index] = vcfs[i];
+			index++;
+		}
+		command = Array.concatAll(command, inputArgVCF);
+		return CmdLine.runCommandWithFileChecks(command, "", vcfs, new String[] { output }, verbose, overWriteExistingOutput, true, log);
 	}
 
 	private static String[] buildAns(boolean SNP) {

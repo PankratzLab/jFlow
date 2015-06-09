@@ -14,6 +14,7 @@ import common.Logger;
 import common.Positions;
 
 public class ReferenceGenome {
+	public static final String DEFAULT_REFERENCE = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
 	private String referenceFasta;
 	private IndexedFastaSequenceFile indexedFastaSequenceFile;
 	private byte[] currentSeq;
@@ -36,33 +37,22 @@ public class ReferenceGenome {
 			e.printStackTrace();
 		}
 	}
-	
-	
 
 	public IndexedFastaSequenceFile getIndexedFastaSequenceFile() {
 		return indexedFastaSequenceFile;
 	}
 
-
-
-	public void setIndexedFastaSequenceFile(
-			IndexedFastaSequenceFile indexedFastaSequenceFile) {
+	public void setIndexedFastaSequenceFile(IndexedFastaSequenceFile indexedFastaSequenceFile) {
 		this.indexedFastaSequenceFile = indexedFastaSequenceFile;
 	}
-
-
 
 	public ReferenceSequence getReferenceSequence() {
 		return referenceSequence;
 	}
 
-
-
 	public void setReferenceSequence(ReferenceSequence referenceSequence) {
 		this.referenceSequence = referenceSequence;
 	}
-
-
 
 	public int getDefaultBuffer() {
 		return defaultBuffer;
@@ -97,15 +87,15 @@ public class ReferenceGenome {
 			log.reportTimeError("Ref: " + referenceSequence.getName());
 			log.reportTimeError("Start : " + start);
 			log.reportTimeError("Stop : " + stop);
-			return new String[]{};
+			return new String[] {};
 		}
-		if(!referenceSequence.getName().equals(requestedContig)){
+		if (!referenceSequence.getName().equals(requestedContig)) {
 			log.reportTimeError("Mismatched request");
 			log.reportTimeError("Segment: " + segment.getUCSClocation());
 			log.reportTimeError("Ref: " + referenceSequence.getName());
 			log.reportTimeError("Start : " + start);
 			log.reportTimeError("Stop : " + stop);
-			return new String[]{};
+			return new String[] {};
 		}
 
 		String[] requestedSeq = new String[subTmp.length];

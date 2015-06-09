@@ -100,8 +100,8 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 			tallyCharge(fullpathToChargeVCF);
 			// summarize(fullPathToOutput);
 			serialize(serFile);
+			plinkSeq.eraseAndLoadVarSet(pseqProject, varList);
 		}
-		plinkSeq.eraseAndLoadVarSet(pseqProject, varList);
 	}
 
 	public void fullGamutAssoc(int numPerm, String mac, FilterNGS filterNGS, String fullpathToChargeVCF, int numThreads) {
@@ -143,125 +143,132 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 	}
 
 	public void summarize() {
-		String fullPathToOutput = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName()) + "_" + type + ".hit.summary3";
+		String fullPathToOutput = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName()) + "_" + type + ".hit.summary4";
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
-			writer.print("GENE\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length\tmultiLoc");
-			for (int i = 0; i < trackersCase.length; i++) {
-				writer.print("\t" + trackersCase[i].getTallyName() + "_NUM_VAR" + "\t" + trackersCase[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersCase[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersControl[i].getTallyName() + "_NUM_VAR" + "\t" + trackersControl[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersControl[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
-			}
-			for (int i = 0; i < trackersCase.length; i++) {
-				writer.print("\t" + trackersCase[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersCase[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersCase[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersControl[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersControl[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersControl[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
-				for (int j = 0; j < BURDEN_Tests.values().length; j++) {
-					BURDEN_Tests test = BURDEN_Tests.values()[j];
-					writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_P" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_I" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_DESC" + (test == BURDEN_Tests.BURDEN ? "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCASE" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCONTROLS" : ""));
-					writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_BONF_FULL_P");
-					for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
-						writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_BONF_I_" + PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS[k] + "_P");
+			if (!Files.exists(fullPathToOutput)) {
+				PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
+				writer.print("GENE\tCHR\tSTART\tSTOP\tUCSC\tTotal_length\tMrna_length\tmultiLoc");
+				for (int i = 0; i < trackersCase.length; i++) {
+					writer.print("\t" + trackersCase[i].getTallyName() + "_NUM_VAR" + "\t" + trackersCase[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersCase[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersControl[i].getTallyName() + "_NUM_VAR" + "\t" + trackersControl[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersControl[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
+				}
+				for (int i = 0; i < trackersCase.length; i++) {
+					writer.print("\t" + trackersCase[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersCase[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersCase[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersControl[i].getTallyName() + "_ALT_ALLELE_COUNT" + "\t" + trackersControl[i].getTallyName() + "_NUM_UNIQ_INDS" + "\t" + trackersControl[i].getTallyName() + "_TotalWithAlt" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B" + "\t" + trackersCharge[i].getTallyName() + "_CMAF_W_B_CASE_Expect");
+					for (int j = 0; j < BURDEN_Tests.values().length; j++) {
+						BURDEN_Tests test = BURDEN_Tests.values()[j];
+						writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_P" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_I" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_DESC" + (test == BURDEN_Tests.BURDEN ? "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCASE" + "\t" + trackersCase[i].getTallyName() + "_" + test + "_NUMCONTROLS" : ""));
+						writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_BONF_FULL_P");
+						for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+							writer.print("\t" + trackersCase[i].getTallyName() + "_" + test + "_BONF_I_" + PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS[k] + "_P");
+						}
 					}
 				}
-			}
-			writer.println();
-			Set<String> sets = trackersCase[0].getTally().keySet();
+				writer.println();
+				Set<String> sets = trackersCase[0].getTally().keySet();
 
-			for (String set : sets) {
-				long time = System.currentTimeMillis();
-				log.reportTimeInfo("1" + ext.getTimeElapsed(time));
+				for (String set : sets) {
+					long time = System.currentTimeMillis();
+					log.reportTimeInfo("1" + ext.getTimeElapsed(time));
 
-				String curString = "";
-				if (trackersCase[0].getGene(set) != null && trackersCase[0].getGene(set).length > 0) {
-					String chr = Positions.getChromosomeUCSC(trackersCase[0].getGene(set)[0].getChr(), true);
-					String start = trackersCase[0].getGene(set)[0].getStart() + "";
-					String stop = trackersCase[0].getGene(set)[0].getStop() + "";
-					curString += set + "\t" + chr + "\t" + start + "\t" + stop + "\t" + trackersCase[0].getGene(set)[0].getUCSCLink("hg19") + "\t" + trackersCase[0].getGeneTotalLength(set) + "\t" + trackersCase[0].getGeneTotalMrnaLength(set) + "\t" + (trackersCase[0].getGene(set)[0].getMultiLoc() > 0);
-				} else {
-					curString += set + "\tNA\tNA\tNA\tNA\tNA\tNA\tTRUE";
-				}
-				for (int i = 0; i < trackersCase.length; i++) {
-					int numCases = trackersCase[i].getUniqs().get(set).size();
-					int numControls = trackersControl[i].getUniqs().get(set).size();
-					int totalCasesWithAlt = trackersCase[i].getAll().get(set).size();
-					int totalControlsWithAlt = trackersControl[i].getAll().get(set).size();
-					curString += "\t" + trackersCase[i].getTally().get(set) + "\t" + numCases + "\t" + totalCasesWithAlt + "\t" + trackersControl[i].getTally().get(set) + "\t" + numControls + "\t" + totalControlsWithAlt + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set));
-				}
+					String curString = "";
+					if (trackersCase[0].getGene(set) != null && trackersCase[0].getGene(set).length > 0) {
+						String chr = Positions.getChromosomeUCSC(trackersCase[0].getGene(set)[0].getChr(), true);
+						String start = trackersCase[0].getGene(set)[0].getStart() + "";
+						String stop = trackersCase[0].getGene(set)[0].getStop() + "";
+						curString += set + "\t" + chr + "\t" + start + "\t" + stop + "\t" + trackersCase[0].getGene(set)[0].getUCSCLink("hg19") + "\t" + trackersCase[0].getGeneTotalLength(set) + "\t" + trackersCase[0].getGeneTotalMrnaLength(set) + "\t" + (trackersCase[0].getGene(set)[0].getMultiLoc() > 0);
+					} else {
+						curString += set + "\tNA\tNA\tNA\tNA\tNA\tNA\tTRUE";
+					}
+					for (int i = 0; i < trackersCase.length; i++) {
+						int numCases = trackersCase[i].getUniqs().get(set).size();
+						int numControls = trackersControl[i].getUniqs().get(set).size();
+						int totalCasesWithAlt = trackersCase[i].getAll().get(set).size();
+						int totalControlsWithAlt = trackersControl[i].getAll().get(set).size();
+						curString += "\t" + trackersCase[i].getTally().get(set) + "\t" + numCases + "\t" + totalCasesWithAlt + "\t" + trackersControl[i].getTally().get(set) + "\t" + numControls + "\t" + totalControlsWithAlt + "\t" + trackersCharge[i].getTallyMAC().get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * trackersCharge[i].getTallyMAC().get(set));
+					}
 
-				for (int i = 0; i < trackersCase.length; i++) {
-					log.reportTimeInfo("3" + ext.getTimeElapsed(time));
+					for (int i = 0; i < trackersCase.length; i++) {
+						log.reportTimeInfo("3" + ext.getTimeElapsed(time));
 
-					int numCases = trackersCase[i].getUniqs().get(set).size();
-					int numControls = trackersControl[i].getUniqs().get(set).size();
-					int totalCasesWithAlt = trackersCase[i].getAll().get(set).size();
-					int totalControlsWithAlt = trackersControl[i].getAll().get(set).size();
-					log.reportTimeInfo("4" + ext.getTimeElapsed(time));
+						int numCases = trackersCase[i].getUniqs().get(set).size();
+						int numControls = trackersControl[i].getUniqs().get(set).size();
+						int totalCasesWithAlt = trackersCase[i].getAll().get(set).size();
+						int totalControlsWithAlt = trackersControl[i].getAll().get(set).size();
+						log.reportTimeInfo("4" + ext.getTimeElapsed(time));
 
-					Hashtable<String, Float> caseMac = trackersCase[i].getTallyMAC();
-					Hashtable<String, Float> controlMac = trackersControl[i].getTallyMAC();
-					Hashtable<String, Float> chargeMac = trackersCharge[i].getTallyMAC();
+						Hashtable<String, Float> caseMac = trackersCase[i].getTallyMAC();
+						Hashtable<String, Float> controlMac = trackersControl[i].getTallyMAC();
+						Hashtable<String, Float> chargeMac = trackersCharge[i].getTallyMAC();
 
-					curString += "\t" + caseMac.get(set) + "\t" + numCases + "\t" + totalCasesWithAlt + "\t" + controlMac.get(set) + "\t" + numControls + "\t" + totalControlsWithAlt + "\t" + chargeMac.get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * chargeMac.get(set));
-					for (int j = 0; j < summaries.length; j++) {
-						PlinkSeqBurdenSummary curSummary = summaries[j];
-						if (trackersCase[i].getTallyName().endsWith(curSummary.getAnalysis())) {
-							for (int j2 = 0; j2 < BURDEN_Tests.values().length; j2++) {
-								BURDEN_Tests test = BURDEN_Tests.values()[j2];
-								String key = set;
-								boolean hasGenvisisTest = false;
-								if (curSummary.hasSummaryFor(key + PlinkSeqUtils.GENVISIS_GENE)) {
-									key = set + PlinkSeqUtils.GENVISIS_GENE;
-									hasGenvisisTest = true;
-								} else if (curSummary.hasSummaryFor(key + PlinkSeqUtils.GENVISIS_PATHWAY)) {
-									key = set + PlinkSeqUtils.GENVISIS_PATHWAY;
-									hasGenvisisTest = true;
-								}
-								if (hasGenvisisTest && curSummary.hasSummaryFor(key) && curSummary.getPlinkSeqLocSummaryFor(key).getSummaries()[j2] != null) {
-									PlinkSeqTestSummary pstSummary = curSummary.getPlinkSeqLocSummaryFor(key).getSummaries()[j2];
-									if (pstSummary.getType() != test) {
-										System.out.println(pstSummary.getType() + "\t" + test);
-										log.reportTimeError("Mismatched parsing error, halting...");
+						curString += "\t" + caseMac.get(set) + "\t" + numCases + "\t" + totalCasesWithAlt + "\t" + controlMac.get(set) + "\t" + numControls + "\t" + totalControlsWithAlt + "\t" + chargeMac.get(set) + "\t" + ((double) vpop.getSubPop().get("CASE").size() * chargeMac.get(set));
+						for (int j = 0; j < summaries.length; j++) {
+							PlinkSeqBurdenSummary curSummary = summaries[j];
+							if (trackersCase[i].getTallyName().endsWith(curSummary.getAnalysis())) {
+								for (int j2 = 0; j2 < BURDEN_Tests.values().length; j2++) {
+									BURDEN_Tests test = BURDEN_Tests.values()[j2];
+									String key = set;
+									boolean hasGenvisisTest = false;
+									if (curSummary.hasSummaryFor(key + PlinkSeqUtils.GENVISIS_GENE)) {
+										key = set + PlinkSeqUtils.GENVISIS_GENE;
+										hasGenvisisTest = true;
+									} else if (curSummary.hasSummaryFor(key + PlinkSeqUtils.GENVISIS_PATHWAY)) {
+										key = set + PlinkSeqUtils.GENVISIS_PATHWAY;
+										hasGenvisisTest = true;
+									} else if (curSummary.hasSummaryFor(key + PlinkSeqUtils.GENVISIS)) {
+										key = set + PlinkSeqUtils.GENVISIS;
+										hasGenvisisTest = true;
 									}
-									String desc[] = pstSummary.getDesc().split("/");
-									if (desc.length != 2 && test == BURDEN_Tests.BURDEN) {
-										log.reportTimeError("Did not find two counts for burden test");
-									}
-									curString += "\t" + pstSummary.getP() + "\t" + pstSummary.getI() + "\t" + "" + pstSummary.getDesc().replaceAll("/", "::").replaceAll("/", "::") + (test == BURDEN_Tests.BURDEN ? "\t" + Array.toStr(desc) : "");
-									curString += "\t" + pstSummary.getBonfFull();
-									for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
-										curString += "\t" + pstSummary.getBonfsI()[k];
-									}
-								} else {
-									curString += "\t1\t1\tNO_TEST" + (test == BURDEN_Tests.BURDEN ? "\t0\t0" : "");
-									curString += "\t1";
-									for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+									if (hasGenvisisTest && curSummary.hasSummaryFor(key) && curSummary.getPlinkSeqLocSummaryFor(key).getSummaries()[j2] != null) {
+										PlinkSeqTestSummary pstSummary = curSummary.getPlinkSeqLocSummaryFor(key).getSummaries()[j2];
+										if (pstSummary.getType() != test) {
+											System.out.println(pstSummary.getType() + "\t" + test);
+											log.reportTimeError("Mismatched parsing error, halting...");
+										}
+										String desc[] = pstSummary.getDesc().split("/");
+										if (desc.length != 2 && test == BURDEN_Tests.BURDEN) {
+											log.reportTimeError("Did not find two counts for burden test");
+										}
+										curString += "\t" + pstSummary.getP() + "\t" + pstSummary.getI() + "\t" + "" + pstSummary.getDesc().replaceAll("/", "::").replaceAll("/", "::") + (test == BURDEN_Tests.BURDEN ? "\t" + Array.toStr(desc) : "");
+										curString += "\t" + pstSummary.getBonfFull();
+										for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+											curString += "\t" + pstSummary.getBonfsI()[k];
+										}
+									} else {
+										curString += "\t1\t1\tNO_TEST" + (test == BURDEN_Tests.BURDEN ? "\t0\t0" : "");
 										curString += "\t1";
+										for (int k = 0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+											curString += "\t1";
+										}
 									}
 								}
 							}
 						}
 					}
+					log.reportTimeInfo(ext.getTimeElapsed(time));
+					writer.println(curString);
 				}
-				log.reportTimeInfo(ext.getTimeElapsed(time));
-				writer.println(curString);
+				writer.close();
+			} else {
+				log.reportFileExists(fullPathToOutput);
 			}
-			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing to " + fullPathToOutput);
 			log.reportException(e);
 		}
 
-		// String bed = fullPathToOutput + ".CASE.bed";
-		// try {
-		// PrintWriter writer = new PrintWriter(new FileWriter(bed));
-		// for (int i = 0; i < trackersCase.length; i++) {
-		// String[] tbed = trackersCase[i].getBed();
-		// for (int j = 0; j < tbed.length; j++) {
-		// writer.println(tbed[j]);
-		// }
-		// }
-		// writer.close();
-		// } catch (Exception e) {
-		// log.reportError("Error writing to " + bed);
-		// log.reportException(e);
-		// }
+		String bed = fullPathToOutput + ".CASE.bed";
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(bed));
+			for (int i = 0; i < trackersCase.length; i++) {
+				String[] tbed = trackersCase[i].getBed();
+				for (int j = 0; j < tbed.length; j++) {
+					writer.println(tbed[j]);
+				}
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + bed);
+			log.reportException(e);
+		}
 
 	}
 

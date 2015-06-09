@@ -272,13 +272,13 @@ public class SeqError {
 
 		private void addVC(VariantContext vc, ReferenceGenome referenceGenome) {
 			VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_LOOSE);
-			VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);// start with unfiltered easy test;
+			VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null, ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);// start with unfiltered easy test;
 			if (vcAlts.getSampleNames().size() > 0) {// no variant calls, we do not care
 				boolean tally = true;
 				VariantContext vcFilteredAlts = null;
 				switch (type) {
 				case ALL_PASS:
-					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
 					tally = vcFilteredAlts.getSampleNames().size() == vcAlts.getSampleNames().size();// all dup variants pass
 					if (tally) {
 						tally = vContextFilterSample == null ? true : VCOps.getIndividualPassingContext(vcSub, vContextFilterSample, log).getSampleNames().size() == dups.size();// all dups pass
@@ -286,7 +286,7 @@ public class SeqError {
 					}
 					break;
 				case ONE_PASS:
-					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+					vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample, ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
 					tally = vcFilteredAlts.getSampleNames().size() > 0;// one of the dup variants pass
 					if (tally) {
 						tally = vContextFilterSample == null ? true : VCOps.getIndividualPassingContext(vcSub, vContextFilterSample, log).getSampleNames().size() > 0;

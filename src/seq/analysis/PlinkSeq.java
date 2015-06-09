@@ -325,6 +325,9 @@ public class PlinkSeq implements Serializable {
 					outputFile = ext.addToRoot(outputFile, "." + varMask);
 					commandBase = Array.concatAll(commandBase, new String[] { VAR_MASK + varMask });
 				}
+				if (!mac.equals("0")) {
+					outputFile = ext.addToRoot(outputFile, "mac_" + mac);
+				}
 			}
 			if (bTests != null) {
 				String[] tests = new String[bTests.length + 1]; // note that we skip FRQWGT here
