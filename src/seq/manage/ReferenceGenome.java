@@ -36,6 +36,33 @@ public class ReferenceGenome {
 			e.printStackTrace();
 		}
 	}
+	
+	
+
+	public IndexedFastaSequenceFile getIndexedFastaSequenceFile() {
+		return indexedFastaSequenceFile;
+	}
+
+
+
+	public void setIndexedFastaSequenceFile(
+			IndexedFastaSequenceFile indexedFastaSequenceFile) {
+		this.indexedFastaSequenceFile = indexedFastaSequenceFile;
+	}
+
+
+
+	public ReferenceSequence getReferenceSequence() {
+		return referenceSequence;
+	}
+
+
+
+	public void setReferenceSequence(ReferenceSequence referenceSequence) {
+		this.referenceSequence = referenceSequence;
+	}
+
+
 
 	public int getDefaultBuffer() {
 		return defaultBuffer;
