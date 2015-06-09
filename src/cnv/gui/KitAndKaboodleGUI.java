@@ -2,6 +2,7 @@ package cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
 
@@ -24,9 +25,9 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.swing.JSeparator;
 import javax.swing.JCheckBox;
 
 import cnv.filesys.Project;
@@ -42,8 +43,10 @@ public class KitAndKaboodleGUI extends JDialog {
     
     volatile boolean[] selected = Array.booleanArray(KitAndKaboodle.STEPS.values().length, true);
 
-    private HashMap<String, JCheckBox> checkBoxes = new HashMap<String, JCheckBox>();
-    private HashMap<String, JLabel> descLabels = new HashMap<String, JLabel>();
+    private HashMap<STEPS, JCheckBox> checkBoxes = new HashMap<STEPS, JCheckBox>();
+    private HashMap<STEPS, JLabel> descLabels = new HashMap<STEPS, JLabel>();
+    private HashMap<STEPS, ArrayList<JLabel>> requirementsLabels = new HashMap<STEPS, ArrayList<JLabel>>();
+    private HashMap<STEPS, JPanel> panels = new HashMap<KitAndKaboodle.STEPS, JPanel>();
     
     volatile boolean cancelled = false;
 
@@ -54,7 +57,14 @@ public class KitAndKaboodleGUI extends JDialog {
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         JPanel optionPanel = new JPanel();
-        JScrollPane scrollPane = new JScrollPane(optionPanel);
+        JScrollPane scrollPane = new JScrollPane(optionPanel) {
+//            @Override
+//            public Dimension getPreferredSize() { return contentPanel.getPreferredSize(); }
+//            @Override
+//            public Dimension getMaximumSize() { return contentPanel.getMaximumSize(); }
+//            @Override
+//            public Dimension getMinimumSize() { return contentPanel.getMinimumSize(); }
+        };
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         contentPanel.setLayout(new MigLayout("", "[grow]", "[][][]"));
@@ -69,7 +79,9 @@ public class KitAndKaboodleGUI extends JDialog {
         {
             for (int i = 0; i < KitAndKaboodle.STEPS.values().length; i++) {
                 final int index = i;
-                optionPanel.add(createPanel(proj, index), "cell 0 " + (i) + ", alignx left, growx");
+                JPanel panel = createPanel(proj, index);
+                optionPanel.add(panel, "cell 0 " + (i) + ", alignx left, growx");
+                panels.put(KitAndKaboodle.STEPS.values()[i], panel);
             }
         }
         {
@@ -108,10 +120,17 @@ public class KitAndKaboodleGUI extends JDialog {
                 super.windowClosing(e);
             }
         });
-        setBounds(100, 100, 660, 950);
+        refreshLabels(proj);
+        setBounds(100, 100, 660, 850);
+        // panels start out visible to help with spacing (otherwise the containing jscrollpane is too small)
+        for (JPanel panel : panels.values()) {
+            ((JAccordionPanel) panel).shrink();
+        }
     }
     
     private JPanel createPanel(final Project proj, final int index) {
+        STEPS step = KitAndKaboodle.STEPS.values()[index];
+        
         final JCheckBox chckbx = new JCheckBox();
         chckbx.setAction(new AbstractAction() {
             static final long serialVersionUID = 1L;
@@ -123,38 +142,45 @@ public class KitAndKaboodleGUI extends JDialog {
         });
         chckbx.setFont(chckbx.getFont().deriveFont(Font.PLAIN));
         chckbx.setSelected(selected[index]);
-        chckbx.setToolTipText(KitAndKaboodle.STEPS.values()[index].stepDesc);
-        chckbx.setText((index+1) + ": " + KitAndKaboodle.STEPS.values()[index].stepName);
+        chckbx.setToolTipText(step.stepDesc);
+        chckbx.setText((index+1) + ": " + step.stepName);
         
-        checkBoxes.put(KitAndKaboodle.STEPS.values()[index].stepName, chckbx);
-        
-        
-        JPanel panel = new JPanel(new MigLayout("", "[][300px][grow][]", "[][][]"));
-        panel.add(chckbx, "cell 0 0 3 1");
-        /*
-        // TODO add file selection field if necessary:
-        JTextField fileField = new JTextField();
-        panel.add(fileField, "cell 2 1, growx");
-        JButton fileButton = new JButton("...");
-        fileButton.setMargin(new Insets(0, 0, 0, 0));
-        panel.add(fileButton, "cell 3 1");
-        */
-        
-        JLabel descLbl = new JLabel("<html><center><p>" + KitAndKaboodle.STEPS.values()[index].stepDesc + "</p></center></html>");
+        checkBoxes.put(step, chckbx);
+
+        JLabel descLbl = new JLabel("<html><center><p>" + step.stepDesc + "</p></center></html>");
         descLbl.setVerticalAlignment(SwingConstants.TOP);
         descLbl.setHorizontalAlignment(SwingConstants.LEFT);
-        descLbl.setFont(descLbl.getFont().deriveFont(Font.PLAIN, 11f));
-        panel.add(descLbl, "cell 1 1 1 2");
-        descLabels.put(KitAndKaboodle.STEPS.values()[index].stepName, descLbl);
-        if (KitAndKaboodle.STEPS.values()[index].hasRequirements(proj, checkBoxes)) {
-            descLbl.setForeground(Color.GREEN.darker());
-        } else {
-            descLbl.setForeground(Color.RED);
-        }
+        descLbl.setFont(descLbl.getFont().deriveFont(Font.PLAIN));
+        descLabels.put(step, descLbl);
+        
+        JAccordionPanel panel = new JAccordionPanel();
+        panel.topPanel.add(chckbx, "cell 0 0");
         
         panel.setBorder(new LineBorder(Color.GRAY.brighter(), 1, true));
+        String rows = "[][]";
+        for (int i = 0; i < step.getRequirements().length; i++) {
+            rows = rows + "[]";
+        }
+        panel.contentPanel.setLayout(new MigLayout("", "", rows));
+        panel.contentPanel.add(descLbl, "cell 0 0");
+        
+        String[] reqs = step.getRequirements();
+        if (reqs.length > 0) {
+            JLabel reqLbl = new JLabel("Requires" + (reqs.length > 1 ? " (one of):" : ":"));
+            panel.contentPanel.add(reqLbl, "cell 0 1");
+        
+            ArrayList<JLabel> reqLbls = new ArrayList<JLabel>();
+            for (int i = 0; i < reqs.length; i++) {
+                JLabel requirementLbl = new JLabel("- " + reqs[i]);
+                requirementLbl.setFont(requirementLbl.getFont().deriveFont(Font.PLAIN));
+                panel.contentPanel.add(requirementLbl, "gapleft 10, cell 0 " + (i +2));
+                reqLbls.add(requirementLbl);
+            }
+            requirementsLabels.put(step, reqLbls);
+        }
         
         return panel;
+        
     }
     
     public boolean[] getSelectedOptions() {
@@ -170,10 +196,23 @@ public class KitAndKaboodleGUI extends JDialog {
             @Override
             public void run() {
                 for (STEPS step : KitAndKaboodle.STEPS.values()) {
-                    if (step.hasRequirements(proj, checkBoxes)) {
-                        descLabels.get(step.stepName).setForeground(Color.GREEN.darker());
+                    boolean[] reqVals = step.hasRequirements(proj, checkBoxes);
+                    if (Array.booleanArraySum(reqVals) > 0) {
+                        descLabels.get(step).setForeground(Color.GREEN.darker());
+                        checkBoxes.get(step).setForeground(Color.GREEN.darker());
                     } else {
-                        descLabels.get(step.stepName).setForeground(Color.RED);
+                        descLabels.get(step).setForeground(Color.RED);
+                        checkBoxes.get(step).setForeground(Color.RED);
+                    }
+                    ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
+                    if (reqLbls != null && reqLbls.size() == reqVals.length) {
+                        for (int i = 0; i < reqVals.length; i++) {
+                            if (reqVals[i]) {
+                                reqLbls.get(i).setForeground(Color.GREEN.darker());
+                            } else {
+                                reqLbls.get(i).setForeground(Color.RED);
+                            }
+                        }
                     }
                 }
             }
