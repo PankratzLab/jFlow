@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import stats.Rscript.LEGEND_POSITION;
+import stats.Rscript.GEOM_POINT_SIZE;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
 import stats.StatsCrossTabs.STAT_TYPE;
@@ -14,7 +14,6 @@ import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
 import common.Array;
 import common.Files;
-import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.WorkerTrain;
@@ -51,7 +50,7 @@ class CorrectionIterator {
 	public void run() {
 		this.iterationResult = run(proj, markesToEvaluate, samplesToBuildModels, iType, oType, bType, outputDir, svd, numthreads);
 		iterationResult.plotRank(proj.getLog());
-		iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX", "PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, proj.getLog());
+		iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX", "PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, proj.getLog());
 	}
 
 	public IterationResult getIterationResult() {
@@ -202,8 +201,14 @@ class CorrectionIterator {
 				case QC_ASSOCIATION:
 					order = PCSelector.select(proj, 0.10);
 					if (order.length < 1) {
-						log.reportTimeError("Could not select PCs from QC metrics");
-						return null;
+						log.reportTimeError("Could not select PCs from QC metrics, trying again");
+						Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
+						new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
+						LrrSd.init(proj, null, null, numthreads);
+						order = PCSelector.select(proj, 0.10);
+						if (order.length < 1) {
+							return null;
+						}
 					}
 				default:
 					break;
@@ -278,7 +283,10 @@ class CorrectionIterator {
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setyLabel("Rsq");
 			rScatter.setTitle(iType + " " + bType);
+			rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
 			rScatter.execute();
+			
+			
 		}
 
 		public void plotSummary(String[] dataColumns, Logger log) {
@@ -286,6 +294,11 @@ class CorrectionIterator {
 			rScatter.setyRange(new double[] { -1, 1 });
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setTitle(iType + " " + bType);
+			rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
+
+			rScatter.execute();
+			rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
+			rScatter.setxRange(new double[] { 0, 50});
 			rScatter.execute();
 		}
 
@@ -339,7 +352,6 @@ class CorrectionIterator {
 	}
 
 	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, int numthreads) {
-		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(900);
 		ArrayList<CorrectionIterator> cIterators = new ArrayList<CorrectionIterator>();
 		System.out.println("JDOFJSDF remember the pcs");
 		for (int i = 0; i < ITERATION_TYPE.values().length; i++) {
@@ -353,7 +365,7 @@ class CorrectionIterator {
 	}
 
 	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, int numthreads) {
-		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(900);
+		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(400);
 		System.out.println("JDOFJSDF remember the pcs");
 		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, svd, numthreads);
 		for (int i = 0; i < cIterators.length; i++) {
