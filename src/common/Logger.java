@@ -100,6 +100,24 @@ public class Logger implements Serializable {
 	}
 
 	/**
+	 * @param filenames
+	 *            report the files that do not exist in this string array
+	 * 
+	 */
+	public void reportFilesNotFound(String[] filenames) {
+		if (filenames == null) {
+			reportTimeError("No file handles provided");
+		} else {
+			for (int i = 0; i < filenames.length; i++) {
+				if (!Files.exists(filenames[i])) {
+					String str = "file \"" + filename + "\" not found in current directory";
+					reportTimeError(str);
+				}
+			}
+		}
+	}
+
+	/**
 	 * @param filename
 	 *            report that this file had an IO err with time stamp and error message
 	 */

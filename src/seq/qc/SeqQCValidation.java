@@ -117,7 +117,7 @@ public class SeqQCValidation {
 
 	private static VariantContextFilter[] getSampleVariantFilters(Logger log) {
 		double[] GQ_Values = new double[] { -1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 90, 98 };
-		//double[] GQ_Values = new double[] { -1 };
+		// double[] GQ_Values = new double[] { -1 };
 
 		double[] VQSLOD_Values = new double[] { -1 };
 		double[] DEPTH = new double[] { -1, 3, 5, 8, 10, 12, 15, 20, 25 };
@@ -323,7 +323,7 @@ public class SeqQCValidation {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+			log = new Logger(Files.exists(fileOFSamplesForPairWise) ? fileOFSamplesForPairWise + "er.log" : null);
 			validate(vcf, fileOFSamplesForPairWise, referenceGenomeFasta, numVariantsToTest, numThreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();

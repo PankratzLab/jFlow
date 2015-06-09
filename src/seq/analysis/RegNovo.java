@@ -142,7 +142,7 @@ public class RegNovo {
 										parents.add(famInd);
 										VariantContext vcFam = VCOps.getSubset(vc, famInd, VC_SUBSET_TYPE.SUBSET_STRICT);
 
-										int[] alleleDepths = VCOps.getAppropriateAlleleDepths(vcFam, vcFam.getGenotype(0), log);
+										int[] alleleDepths = VCOps.getAppropriateAlleleDepths(vcFam, vcFam.getGenotype(0), true, log);
 										pString += "\t" + alleleDepths[0];
 										pString += "\t" + alleleDepths[1];
 										pString += "\t" + vcFam.getGenotypes().get(0).getGQ() + "";
@@ -181,7 +181,7 @@ public class RegNovo {
 									segsToReview.add(VCOps.getSegment(vc));
 
 									String[] anno = VCOps.getAnnotationsFor(TO_REPORT, vc, ".");
-									int[] alleleDepths = VCOps.getAppropriateAlleleDepths(vcOffAlt, vcOffAlt.getGenotype(0), log);
+									int[] alleleDepths = VCOps.getAppropriateAlleleDepths(vcOffAlt, vcOffAlt.getGenotype(0), true, log);
 									String sum = "\t" + alleleDepths[0];
 									sum += "\t" + alleleDepths[1];
 									sum += "\t" + vcOffAlt.getGenotypes().get(0).getGQ() + "";

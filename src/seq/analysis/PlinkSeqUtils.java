@@ -22,7 +22,6 @@ import common.Logger;
 import common.Positions;
 import common.ext;
 import filesys.GeneData;
-import filesys.GeneTrack;
 
 /**
  * Handles the project and phenotype system used by PlinkSeq
@@ -32,6 +31,8 @@ public class PlinkSeqUtils {
 
 	public static final String PSEQ_PROJECT = "pseqProj_";
 	public static final String GENVISIS_GENE = "_GENVISIS_GENE";
+	public static final String GENVISIS = "_GENVISIS";
+
 	public static final String GENVISIS_PATHWAY = "_GENVISIS_PATHWAY";
 
 	/**
