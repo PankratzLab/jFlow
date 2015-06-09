@@ -28,7 +28,7 @@ public class VCFFlip {
 
 	private static VCFFileReader reader;
 
-	public static void flip(String inputVCF, Logger log) {
+	public static void flip(String inputVCF, boolean justGenoFlip, Logger log) {
 		reader = new VCFFileReader(inputVCF, true);
 		String output = inputVCF;
 		if (inputVCF.endsWith(".vcf.gz")) {
@@ -52,76 +52,115 @@ public class VCFFlip {
 		int skipped = 0;
 		int count = 0;
 		for (VariantContext vc : reader) {
-			count++;
-			VariantContextBuilder builder = new VariantContextBuilder(vc);
-			List<Allele> alleles = vc.getAlleles();
-			List<Allele> newAlleles = new ArrayList<Allele>();
-			Allele newRef = null;
-			Allele newAlt = null;
 
-			for (Allele a : alleles) {
-				if (a.isReference()) {
-					if (newAlt != null) {
-						log.reportTimeError("Multiple new alts....");
-						return;
+			if (vc.isBiallelic()) {
+				count++;
+				VariantContextBuilder builder = new VariantContextBuilder(vc);
+
+				GenotypesContext genotypesContext = vc.getGenotypes();
+				GenotypesContext newGenotypes = GenotypesContext.create();
+
+				if (!justGenoFlip) {
+					List<Allele> alleles = vc.getAlleles();
+					List<Allele> newAlleles = new ArrayList<Allele>();
+					Allele newRef = null;
+					Allele newAlt = null;
+
+					for (Allele a : alleles) {
+						if (a.isReference()) {
+							if (newAlt != null) {
+								log.reportTimeError("Multiple new alts....");
+								return;
+							}
+							newAlt = Allele.create(a.getBases(), false);
+							newAlleles.add(Allele.create(a.getBases(), false));
+						} else {
+							if (newRef != null) {
+								log.reportTimeError("Multiple new refs...." + newRef.getBaseString());
+							}
+							newRef = Allele.create(a.getBases(), true);
+
+							newAlleles.add(Allele.create(a.getBases(), true));
+						}
 					}
-					newAlt = Allele.create(a.getBases(), false);
-					newAlleles.add(Allele.create(a.getBases(), false));
+					if (newRef.getBases().length != newAlt.getBases().length) {
+						builder.start(vc.getStart());
+						builder.stop(vc.getStart() + newRef.getBases().length - 1);
+
+					}
+					builder.alleles(newAlleles);
+
+					ArrayList<Allele> newHomRef = new ArrayList<Allele>();
+					newHomRef.add(newRef);
+					newHomRef.add(newRef);
+					ArrayList<Allele> newHomAlt = new ArrayList<Allele>();
+					newHomAlt.add(newAlt);
+					newHomAlt.add(newAlt);
+
+					ArrayList<Allele> newHet = new ArrayList<Allele>();
+					newHet.add(newRef);
+					newHet.add(newAlt);
+
+					for (Genotype g : genotypesContext) {
+						GenotypeBuilder gbuilder = new GenotypeBuilder(g);
+						if (g.isHomRef()) {
+							gbuilder.alleles(newHomAlt);
+						} else if (g.isHomVar()) {
+							gbuilder.alleles(newHomRef);
+						} else if (g.isHet()) {
+							gbuilder.alleles(newHet);
+						}
+						newGenotypes.add(gbuilder.make());
+					}
 				} else {
-					if (newRef != null) {
-						log.reportTimeError("Multiple new refs...." + newRef.getBaseString());
+					builder.alleles(vc.getAlleles());
+					ArrayList<Allele> newHomRef = new ArrayList<Allele>();
+					newHomRef.add(vc.getReference());
+					newHomRef.add(vc.getReference());
+					ArrayList<Allele> newHomAlt = new ArrayList<Allele>();
+					newHomAlt.add(vc.getAlternateAlleles().get(0));
+					newHomAlt.add(vc.getAlternateAlleles().get(0));
+
+					ArrayList<Allele> newHet = new ArrayList<Allele>();
+					newHet.add(vc.getReference());
+					newHet.add(vc.getAlternateAlleles().get(0));
+
+					for (Genotype g : genotypesContext) {
+						GenotypeBuilder gbuilder = new GenotypeBuilder(g);
+						if (g.isHomRef()) {
+							gbuilder.alleles(newHomAlt);
+						} else if (g.isHomVar()) {
+							gbuilder.alleles(newHomRef);
+						} else if (g.isHet()) {
+							gbuilder.alleles(newHet);
+						}
+						newGenotypes.add(gbuilder.make());
 					}
-					newRef = Allele.create(a.getBases(), true);
-
-					newAlleles.add(Allele.create(a.getBases(), true));
 				}
-			}
-			if (newRef.getBases().length != newAlt.getBases().length) {
-				builder.start(vc.getStart());
-				builder.stop(vc.getStart() + newRef.getBases().length - 1);
 
-			}
-			builder.alleles(newAlleles);
-			ArrayList<Allele> newHomRef = new ArrayList<Allele>();
-			newHomRef.add(newRef);
-			newHomRef.add(newRef);
-			ArrayList<Allele> newHomAlt = new ArrayList<Allele>();
-			newHomAlt.add(newAlt);
-			newHomAlt.add(newAlt);
+				builder.genotypes(newGenotypes);
+				try {
+					if (vc.isBiallelic()) {
+						VariantContext flippedVC = builder.make();
+						writer.add(flippedVC);
+					} else {
+						writerError.add(vc);
+					}
 
-			ArrayList<Allele> newHet = new ArrayList<Allele>();
-			newHet.add(newRef);
-			newHet.add(newAlt);
-
-			GenotypesContext genotypesContext = vc.getGenotypes();
-			GenotypesContext newGenotypes = GenotypesContext.create();
-			for (Genotype g : genotypesContext) {
-				GenotypeBuilder gbuilder = new GenotypeBuilder(g);
-				if (g.isHomRef()) {
-					gbuilder.alleles(newHomAlt);
-				} else if (g.isHomVar()) {
-					gbuilder.alleles(newHomRef);
-				} else if (g.isHet()) {
-					gbuilder.alleles(newHet);
+				} catch (IllegalArgumentException ile) {
+					log.reportException(ile);
+					skipped++;
+					log.reportTimeError("Could not flip variant context " + vc.toStringWithoutGenotypes() + ", reverting to original context...");
+					writerError.add(vc);
+					// writer.add(vc);
 				}
-				newGenotypes.add(gbuilder.make());
-			}
-			builder.genotypes(newGenotypes);
-			try {
-				VariantContext flippedVC = builder.make();
-				writer.add(flippedVC);
+				if (count % 10000 == 0) {
+					log.reportTimeInfo("Flipped " + count + " variants");
+				}
 
-			} catch (IllegalArgumentException ile) {
-				log.reportException(ile);
-				skipped++;
-				log.reportTimeError("Could not flip variant context " + vc.toStringWithoutGenotypes() + ", reverting to original context...");
+			} else {
 				writerError.add(vc);
-				writer.add(vc);
 			}
-			if (count % 100000 == 0) {
-				log.reportTimeInfo("Flipped " + count + " variants");
-			}
-
 		}
 		writer.close();
 		writerError.close();
@@ -159,7 +198,7 @@ public class VCFFlip {
 		}
 		try {
 			log = new Logger(logfile);
-			flip(vcf, log);
+			flip(vcf, true, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
