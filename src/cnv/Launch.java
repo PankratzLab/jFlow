@@ -14,7 +14,7 @@ import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
-import cnv.gui.KitAndKaboodleGUI;
+//import cnv.gui.KitAndKaboodleGUI;
 //import cnv.gui.GuiManager;
 //import cnv.gui.PropertyEditor;
 import cnv.manage.*;
@@ -155,7 +155,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	private static void createAndShowGUI() {
     	String launchPropertiesFile;
         Launch frame;
-    	String path;
+//    	String path;
     	
 //		try {
 //			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -474,7 +474,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					log.report("Success!");
 				}
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
-				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null);
+				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null, proj.NUM_THREADS.getValue());
 			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
 				// TODO make dialog to ask for filenames with a JCheckBox for denovo parsing
 				cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");
@@ -529,7 +529,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						ForestPlot plot = new ForestPlot(proj);
+						new ForestPlot(proj);
 					}
 				});
 			} else if (command.equals(POPULATIONBAF)) {
