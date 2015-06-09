@@ -823,7 +823,7 @@ public class PhenoPrep {
 		boolean signZ = false;
 		int normalization = 2;
 		boolean pedFormat = false;
-		boolean fastFormat = true;
+		boolean fastFormat = false;
 		boolean excludeMissingValues = false;
 
 //		dir = "";
