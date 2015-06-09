@@ -20,24 +20,18 @@ import seq.manage.ReferenceGenome;
  */
 public class ShannonEntropy {
 
-	private static ArrayList<String> getWords(ReferenceGenome referenceGenome,
-			int wordSize, Logger log) {
+	private static ArrayList<String> getWords(ReferenceGenome referenceGenome, int wordSize, Logger log) {
 		ArrayList<String> words = new ArrayList<String>(300000000);
-		SAMSequenceDictionary samSequenceDictionary = referenceGenome
-				.getIndexedFastaSequenceFile().getSequenceDictionary();
+		SAMSequenceDictionary samSequenceDictionary = referenceGenome.getIndexedFastaSequenceFile().getSequenceDictionary();
 
-		for (SAMSequenceRecord samSequenceRecord : samSequenceDictionary
-				.getSequences()) {
+		for (SAMSequenceRecord samSequenceRecord : samSequenceDictionary.getSequences()) {
 			int totalLen = 0;
-			byte[] seq = referenceGenome.getIndexedFastaSequenceFile()
-					.getSequence(samSequenceRecord.getSequenceName())
-					.getBases();
+			byte[] seq = referenceGenome.getIndexedFastaSequenceFile().getSequence(samSequenceRecord.getSequenceName()).getBases();
 			while (totalLen < samSequenceRecord.getSequenceLength()) {
 				String word = "";
 				for (int i = totalLen; i < wordSize; i++) {
 					try {
-						word += new String(new byte[] { seq[i] }, "UTF-8")
-								.toUpperCase();
+						word += new String(new byte[] { seq[i] }, "UTF-8").toUpperCase();
 					} catch (UnsupportedEncodingException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -56,8 +50,7 @@ public class ShannonEntropy {
 		private Logger log;
 		private int index;
 
-		public ShannonProducer(ReferenceGenome referenceGenome,
-				int[] wordSizes, Logger log) {
+		public ShannonProducer(ReferenceGenome referenceGenome, int[] wordSizes, Logger log) {
 			super();
 			this.referenceGenome = referenceGenome;
 			this.wordSizes = wordSizes;
@@ -76,8 +69,7 @@ public class ShannonEntropy {
 		@Override
 		public Callable<Double> next() {
 			// TODO Auto-generated method stub
-			ShannonWorker worker = new ShannonWorker(referenceGenome,
-					wordSizes[index], log);
+			ShannonWorker worker = new ShannonWorker(referenceGenome, wordSizes[index], log);
 			index++;
 			return worker;
 
@@ -89,6 +81,12 @@ public class ShannonEntropy {
 
 		}
 
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 	private static class ShannonWorker implements Callable<Double> {
@@ -96,8 +94,7 @@ public class ShannonEntropy {
 		private int wordSize;
 		private Logger log;
 
-		public ShannonWorker(ReferenceGenome referenceGenome, int wordSize,
-				Logger log) {
+		public ShannonWorker(ReferenceGenome referenceGenome, int wordSize, Logger log) {
 			super();
 			this.referenceGenome = referenceGenome;
 			this.wordSize = wordSize;
@@ -112,8 +109,7 @@ public class ShannonEntropy {
 	}
 
 	/**
-	 * pilfered from 
-	 * http://whaticode.com/2010/05/24/a-java-implementation-for-shannon-entropy/
+	 * pilfered from http://whaticode.com/2010/05/24/a-java-implementation-for-shannon-entropy/
 	 */
 	private static Double calculateShannonEntropy(List<String> values) {
 		Map<String, Integer> map = new HashMap<String, Integer>();
@@ -134,14 +130,10 @@ public class ShannonEntropy {
 		return result;
 	}
 
-	private static double[] getShannonEntropies(
-			ReferenceGenome referenceGenome, int[] wordSizes, int numThreads,
-			Logger log) {
+	private static double[] getShannonEntropies(ReferenceGenome referenceGenome, int[] wordSizes, int numThreads, Logger log) {
 		double[] se = new double[wordSizes.length];
-		ShannonProducer producer = new ShannonProducer(referenceGenome,
-				wordSizes, log);
-		WorkerTrain<Double> train = new WorkerTrain<>(producer, numThreads,
-				numThreads, log);
+		ShannonProducer producer = new ShannonProducer(referenceGenome, wordSizes, log);
+		WorkerTrain<Double> train = new WorkerTrain<Double>(producer, numThreads, numThreads, log);
 		int index = 0;
 		while (train.hasNext()) {
 			se[index] = train.next();

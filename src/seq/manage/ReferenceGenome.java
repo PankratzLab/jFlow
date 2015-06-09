@@ -97,6 +97,15 @@ public class ReferenceGenome {
 			log.reportTimeError("Ref: " + referenceSequence.getName());
 			log.reportTimeError("Start : " + start);
 			log.reportTimeError("Stop : " + stop);
+			return new String[]{};
+		}
+		if(!referenceSequence.getName().equals(requestedContig)){
+			log.reportTimeError("Mismatched request");
+			log.reportTimeError("Segment: " + segment.getUCSClocation());
+			log.reportTimeError("Ref: " + referenceSequence.getName());
+			log.reportTimeError("Start : " + start);
+			log.reportTimeError("Stop : " + stop);
+			return new String[]{};
 		}
 
 		String[] requestedSeq = new String[subTmp.length];
