@@ -456,6 +456,7 @@ public class GenParser {
             		writer.println(Array.toStr(trav, delimiter));
             	}
             }
+            writer.flush();
             parser.close();
             writer.close();
 //        } catch (FileNotFoundException fnfe) {
