@@ -106,7 +106,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		CrossValidation cValidation = null;
 		if (tmpResiduals.getNumComponents() > 0 || extraIndeps != null) {
 			
-			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), samplesToInclude[0], tmpResiduals.getNumComponents(), svd, "HFDS", true);
+			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude[0], tmpResiduals.getNumComponents(), svd, "HFDS", true);
 			estimate = cValidation.getResiduals();
 		} else {
 			estimate = tmpResiduals.getMedians();
@@ -119,10 +119,10 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		for (int i = 0; i < matchString.length; i++) {
 			String[] response = Array.subArray(parser.getStringDataForTitle(matchString[i]), samplesToInclude[1]);
 			double[] data = Array.subArray(estimate, samplesToInclude[1]);
-			if (Array.removeNaN(data).length != data.length) {
-				throw new IllegalStateException("Invalid data array");
-
-			}
+//			if (Array.removeNaN(data).length != data.length) {
+//				throw new IllegalStateException("Invalid data array");
+//
+//			}
 			ICC icc = new ICC(data, response, EVAL_MASKS[0], null, false, log);
 			icc.computeICC();
 			evaluationResult.getIccs().add(icc);

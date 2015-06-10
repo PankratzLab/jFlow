@@ -931,7 +931,7 @@ public class PennCNV {
 
 			if (auto) {
 				proj.getLog().report("Transforming data for autosomal CNV analysis");
-				AnalysisFormats.penncnv(proj, samples, null, null);
+				AnalysisFormats.penncnv(proj, samples, null, null, Runtime.getRuntime().availableProcessors());
 			}
 			if (chrx) {
 				MarkerSet ms = proj.getMarkerSet();
@@ -947,7 +947,7 @@ public class PennCNV {
 							xMarkers.add(markers[i]);
 						}
 					}
-					AnalysisFormats.penncnv(proj, samples, xMarkers, "chrX/");
+					AnalysisFormats.penncnv(proj, samples, xMarkers, "chrX/", Runtime.getRuntime().availableProcessors());
 				}
 			}
 		}

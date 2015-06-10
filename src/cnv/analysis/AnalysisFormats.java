@@ -33,18 +33,20 @@ public class AnalysisFormats implements Runnable {
 	private String[] samples;
 	private int program;
 	private HashSet<String> hash;
+	private int threadCount;
 
-	public AnalysisFormats(Project proj, String[] samples, int program, HashSet<String> hash) {
+	public AnalysisFormats(Project proj, String[] samples, int program, HashSet<String> hash, int threadCount) {
 		this.proj = proj;
 		this.samples = samples;
 		this.program = program;
 		this.hash = hash;
+		this.threadCount = threadCount;
 	}
 
 	public void run() {
 		switch (program) {
 		case PENN_CNV:
-			penncnv(proj, samples, hash, null);
+			penncnv(proj, samples, hash, null, threadCount);
 			break;
 		case QUANTISNP:
 			quantisnp(proj, samples, hash);
@@ -56,7 +58,7 @@ public class AnalysisFormats implements Runnable {
 
 	}
 
-	public static void penncnv(Project proj, final String[] samples, final HashSet<String> markersToWrite, String subDir) {
+	public static void penncnv(Project proj, final String[] samples, final HashSet<String> markersToWrite, String subDir, int threadCount) {
 		final String[] markerNames = proj.getMarkerNames();
 		final boolean jar;
 		final boolean gzip;
@@ -64,14 +66,14 @@ public class AnalysisFormats implements Runnable {
 		final String sampleDir;
 		final Logger log = proj.getLog();
 		
-		dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true) + proj.getProperty(proj.PENNCNV_DATA_DIRECTORY) + (subDir == null ? "" : subDir);
+		dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true) + (subDir == null ? "" : subDir);
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 		new File(dir).mkdirs();
 		jar = proj.JAR_STATUS.getValue();
 //		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
 		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 		
-		int threadCount = Runtime.getRuntime().availableProcessors();
+//		int threadCount = Runtime.getRuntime().availableProcessors();
 
 		final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues = new ConcurrentLinkedQueue[threadCount];
 		for (int i = 0; i < threadCount; i++) {
@@ -1041,6 +1043,7 @@ public class AnalysisFormats implements Runnable {
 		Files.batchIt("batch", null, numBatches, commands, Matrix.toStringArrays(v));
 	}	
 
+	// TODO convert this to an Executer
 	public static void launch(Project proj, int program, String markers, int numThreads) {
 		Vector<Vector<String>> sampleLists = new Vector<Vector<String>>();
 		String[] samples = proj.getSamples();
@@ -1060,7 +1063,7 @@ public class AnalysisFormats implements Runnable {
 		}
 		threads = new Thread[numThreads];
 		for (int i = 0; i<numThreads; i++) {
-			threads[i] = new Thread(new AnalysisFormats(proj, Array.toStringArray(sampleLists.elementAt(i)), program, hash));
+			threads[i] = new Thread(new AnalysisFormats(proj, Array.toStringArray(sampleLists.elementAt(i)), program, hash, 1));
 			threads[i].start();
 			try {
 				Thread.sleep(100L);
