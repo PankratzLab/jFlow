@@ -780,12 +780,12 @@ public class Files {
 
 		try {
 			if (filename.endsWith(".gz")) {
-				writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(filename)), true);
+				writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(filename)));
 			} else if (filename.endsWith(".zip")) {
-				writer = new PrintWriter(new ZipOutputStream(new FileOutputStream(filename)), true);
+				writer = new PrintWriter(new ZipOutputStream(new FileOutputStream(filename)));
 			} else {
-				writer = new PrintWriter(new FileWriter(filename), true);
-			}
+				writer = new PrintWriter(new FileWriter(filename));
+			}			
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" could not be written to (it's probably open)");
 			System.exit(1);
