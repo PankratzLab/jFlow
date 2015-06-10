@@ -101,6 +101,8 @@ class CorrectionIterator {
 		}
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		IterationResult iterationResult = new IterationResult(output, iType, oType, bType);
+		// if (!Files.exists(iterationResult.getOutputSer())) {
+
 		//
 		// iterationResult.plotRank(log);
 		// iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX","PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001","PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, log);
@@ -152,7 +154,7 @@ class CorrectionIterator {
 			log.reportTimeInfo("Evaluating with " + Array.booleanArraySum(samplesForModels) + " samples, no additional independent variables");
 			break;
 		case WITH_INDEPS:
-			extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10 }, { -1 } }, log);
+			extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10, Double.NaN }, { -1, Double.NaN } }, log);
 			if (extraIndeps == null) {
 				log.reportTimeError("type = " + iType + " and were missing some of the following " + Array.toStr(CorrectionEvaluator.INDEPS));
 				log.reportTimeError("Available = " + Array.toStr(cEvaluator.getParser().getNumericDataTitles()));
@@ -245,6 +247,7 @@ class CorrectionIterator {
 				EvaluationResult.serialize(store.toArray(new EvaluationResult[store.size()]), iterationResult.getOutputSer());
 			}
 		}
+		// }
 		return iterationResult;
 	}
 
@@ -285,8 +288,7 @@ class CorrectionIterator {
 			rScatter.setTitle(iType + " " + bType);
 			rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
 			rScatter.execute();
-			
-			
+
 		}
 
 		public void plotSummary(String[] dataColumns, Logger log) {
@@ -298,7 +300,7 @@ class CorrectionIterator {
 
 			rScatter.execute();
 			rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
-			rScatter.setxRange(new double[] { 0, 50});
+			rScatter.setxRange(new double[] { 0, 50 });
 			rScatter.execute();
 		}
 

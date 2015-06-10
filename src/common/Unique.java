@@ -154,9 +154,13 @@ public class Unique {
 			proc(files, skips, delimiters, out, outCounts, true);
 		}
 	}
-	
+
 	public static String proc(String[] array) {
-		Hashtable<String,String> hash = new Hashtable<String,String>();
+		return proc(array, true);
+	}
+	
+	public static String proc(String[] array, boolean sorted) {
+		Hashtable<String,Integer> hash = new Hashtable<String,Integer>();
 	    StringBuilder stringBuilder;
 		String[] keys;
 	    String ls, temp;
@@ -166,25 +170,33 @@ public class Unique {
 		count = 0;
 		for (int i = 0; i<array.length; i++) {
 			if (!hash.containsKey(array[i])) {
-				hash.put(array[i], "1");
+				hash.put(array[i],1);
 			} else {
-				hash.put(array[i], (Integer.parseInt(hash.get(array[i]))+1)+"");
+				hash.put(array[i],hash.get(array[i])+1);
 			}
 			count++;
 		};
 
 		System.out.println("Found "+hash.size()+" unique records among "+count+" total records");
+		stringBuilder = new StringBuilder();
+		ls = System.getProperty("line.separator");
+		stringBuilder.append(hash.keySet().size());
+		stringBuilder.append(ls);
+		stringBuilder.append(ls);
 		
-		keys = HashVec.getKeys(hash, false, false);
-		
-	    stringBuilder = new StringBuilder();
-	    ls = System.getProperty("line.separator");
-        stringBuilder.append(keys.length);
-        stringBuilder.append(ls);
-        stringBuilder.append(ls);
-		for (int i = 0; i<keys.length; i++) {
-	        stringBuilder.append(keys[i]+"\t"+hash.get(keys[i]));
-	        stringBuilder.append(ls);
+		if(sorted){
+			String[] aSort = getSorted(hash);
+			for (int i = 0; i < aSort.length; i++) {
+				stringBuilder.append(aSort[i]);
+				stringBuilder.append(ls);
+			}
+			
+		} else {
+			keys = HashVec.getKeys(hash, false, false);
+			for (int i = 0; i < keys.length; i++) {
+				stringBuilder.append(keys[i] + "\t" + hash.get(keys[i]));
+				stringBuilder.append(ls);
+			}
 		}
 		temp = stringBuilder.toString();
 
@@ -192,6 +204,27 @@ public class Unique {
 		return temp;
 	}
 
+	/**
+	 * @param hash
+	 *            count hash
+	 * @return String[] with entries ordered by the integer value of the keyset (key\tint)
+	 */
+	private static String[] getSorted(final Hashtable<String, Integer> hash) {
+		int[] counts = new int[hash.keySet().size()];
+		String[] keys = new String[counts.length];
+		int index = 0;
+		for (String key : hash.keySet()) {
+			counts[index] = hash.get(key);
+			keys[index] = key;
+			index++;
+		}
+		int[] order = Sort.quicksort(counts, 1);
+		String[] sorted = new String[order.length];
+		for (int i = 0; i < sorted.length; i++) {
+			sorted[i] = keys[order[i]] + "\t" + counts[order[i]];
+		}
+		return sorted;
+	}
 	public static String[][] proc(String[][] arrays, boolean verbose) {
 		Hashtable<String,int[]> hash = new Hashtable<String,int[]>();
 		String[] keys;
