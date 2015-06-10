@@ -20,5 +20,5 @@ public class Aliases {
 	
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF"};
 	
-	public static final String[] QC = {"imp_info", "rsq"};
+	public static final String[] IMPUTATION_EFFICIENCY = {"imp_info", "rsq"};
 }
