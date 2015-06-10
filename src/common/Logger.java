@@ -108,11 +108,15 @@ public class Logger implements Serializable {
 		if (filenames == null) {
 			reportTimeError("No file handles provided");
 		} else {
+			boolean haveMissing =false;
 			for (int i = 0; i < filenames.length; i++) {
 				if (!Files.exists(filenames[i])) {
-					String str = "file \"" + filename + "\" not found in current directory";
-					reportTimeError(str);
+					reportFileNotFound(filenames[i]);
+					haveMissing =true;
 				}
+			}
+			if (!haveMissing) {
+				reportTimeInfo("All " + filenames.length + " files exist");
 			}
 		}
 	}
