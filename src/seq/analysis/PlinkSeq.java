@@ -1,7 +1,6 @@
 package seq.analysis;
 
 import java.io.File;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -16,6 +15,7 @@ import common.Files;
 import common.Logger;
 import common.PSF;
 import common.WorkerHive;
+import common.WorkerTrain.Producer;
 import common.ext;
 
 /**
@@ -172,30 +172,40 @@ public class PlinkSeq implements Serializable {
 	}
 
 	public PlinkSeqWorker[] fullGamutAssoc(PseqProject pseqProject, String[] locGroups, String[] varMasks, int numPerm, String mac, String outputRoot, int numThreads) {
-		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(numThreads, 10, log);
+		return fullGamutAssoc(pseqProject, locGroups, varMasks, numPerm, mac, outputRoot, true, numThreads);
+	}
+
+	public PlinkSeqWorker[] fullGamutAssoc(PseqProject pseqProject, String[] locGroups, String[] varMasks, int numPerm, String mac, String outputRoot, boolean execute, int numThreads) {
+		ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeqWorker>();
 		PseqPhenoTypes[] pseqPhenoTypes = pseqProject.getPhenotypes();
 		if (pseqPhenoTypes != null) {
 			for (int i = 0; i < pseqPhenoTypes.length; i++) {
 				if (varMasks == null) {
-					assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, null, pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
+					workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, null, pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
 					for (int j = 0; j < locGroups.length; j++) {
-						assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j], null, pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
+						workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j], null, pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
 					}
 				} else {
 					for (int j = 0; j < varMasks.length; j++) {
-						assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, varMasks[j], pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
+						workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.V_ASSOC, null, null, varMasks[j], pseqPhenoTypes[i].getName(), numPerm, "0", outputRoot, overwriteExisting, log));
 						for (int j2 = 0; j2 < locGroups.length; j2++) {
-							assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j2], varMasks[j], pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
+							workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.BURDEN, BURDEN_Tests.values(), locGroups[j2], varMasks[j], pseqPhenoTypes[i].getName(), numPerm, mac, outputRoot, overwriteExisting, log));
 						}
 					}
 				}
 			}
 		}
-		assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, null, 0, "0", outputRoot, overwriteExisting, log));
-		assocHive.addCallable(generateAWorker(pseqProject, ANALYSIS_TYPES.V_SUMMARY, null, null, null, null, 0, "0", outputRoot, overwriteExisting, log));
-		assocHive.execute(true);
-		ArrayList<PlinkSeqWorker> complete = assocHive.getResults();
-		return complete.toArray(new PlinkSeqWorker[complete.size()]);
+		workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, null, 0, "0", outputRoot, overwriteExisting, log));
+		workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.V_SUMMARY, null, null, null, null, 0, "0", outputRoot, overwriteExisting, log));
+		if (execute) {
+			WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(numThreads, 10, log);
+			assocHive.addCallables(workers.toArray(new PlinkSeqWorker[workers.size()]));
+			assocHive.execute(true);
+			ArrayList<PlinkSeqWorker> complete = assocHive.getResults();
+			return complete.toArray(new PlinkSeqWorker[complete.size()]);
+		} else {
+			return workers.toArray(new PlinkSeqWorker[workers.size()]);
+		}
 	}
 
 	private static String[] getVCFCommands(PseqProject pseqProject) {
@@ -448,9 +458,9 @@ public class PlinkSeq implements Serializable {
 		return verified;
 	}
 
-	public static PseqProject initialize(PlinkSeq pSeq, String projName,String directory, String vcf, VcfPopulation vpop, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
+	public static PseqProject initialize(PlinkSeq pSeq, String projName, String directory, String vcf, VcfPopulation vpop, String resourceDirectory, boolean loadVCF, boolean loadReq, Logger log) {
 		String projectName = projName == null ? PlinkSeqUtils.PSEQ_PROJECT + ext.rootOf(vcf) : PlinkSeqUtils.PSEQ_PROJECT + projName;
-		String projectDirectory =directory==null?ext.parseDirectoryOfFile(vcf) + projectName + "/":directory;
+		String projectDirectory = directory == null ? ext.parseDirectoryOfFile(vcf) + projectName + "/" : directory;
 		new File(projectDirectory).mkdirs();
 		String phenoFile = null;
 		if (vpop != null) {
@@ -494,6 +504,45 @@ public class PlinkSeq implements Serializable {
 		PlinkSeq plinkSeq = new PlinkSeq(overwriteExisting, true, log);
 		PlinkSeqUtils.PseqProject pseqProject = initialize(plinkSeq, projName, vcf, phenoFile, resourceDirectory, loadVCF, loadReq, log);
 		plinkSeq.fullGamutAssoc(pseqProject, locGroups, null, -1, mac, outputRoot, numThreads);
+	}
+
+	public static class PlinkSeqProducer implements Producer<PlinkSeqWorker> {
+		private PlinkSeqWorker[] plinkSeqWorkers;
+		private int index;
+		private Logger log;
+
+		public PlinkSeqProducer(PlinkSeqWorker[] plinkSeqWorkers, Logger log) {
+			super();
+			this.plinkSeqWorkers = plinkSeqWorkers;
+			this.log = log;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			// TODO Auto-generated method stub
+			return index < plinkSeqWorkers.length;
+		}
+
+		@Override
+		public Callable<PlinkSeqWorker> next() {
+			PlinkSeqWorker tmp = plinkSeqWorkers[index];
+			index++;
+			return tmp;
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 	public static void main(String[] args) {

@@ -1,16 +1,27 @@
 package seq.analysis;
 
+import java.util.ArrayList;
+import java.util.concurrent.Callable;
+
 import htsjdk.variant.vcf.VCFFileReader;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
+import seq.analysis.PlinkSeq.PlinkSeqProducer;
 import seq.analysis.PlinkSeq.PlinkSeqWorker;
 import seq.analysis.PlinkSeqUtils.PlinkSeqBurdenSummary;
 import seq.analysis.PlinkSeqUtils.PseqProject;
 import seq.manage.VCFOps;
+import seq.manage.VCFOps.ChrSplitResults;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.pathway.GenomeRegions;
 import seq.pathway.Pathways;
+import common.Array;
+import common.Files;
+import common.HashVec;
 import common.Logger;
+import common.PSF;
+import common.WorkerTrain;
+import common.WorkerTrain.Producer;
 import common.ext;
 import filesys.GeneTrack;
 
@@ -39,11 +50,11 @@ public class PlinkSeqMegs {
 
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
 
-		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, resourceDirectory, false, false, log);
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()) + VCFOps.getAppropriateRoot(vcf, true) + "/", vcf, vpop, resourceDirectory, false, false, log);
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
-		//System.exit(1);
+		// System.exit(1);
 
 		PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, macFilter + "", ext.rootOf(vpop.getFileName()), numthreads);
 		PlinkSeqBurdenSummary[] summaries = new PlinkSeqBurdenSummary[1];
@@ -73,6 +84,136 @@ public class PlinkSeqMegs {
 		}
 	}
 
+	private static class ImportProducer implements Producer<PlinkSeqWorker[]> {
+		private String[] vcfs;
+		private String vpopFile;
+		private String resourceDirectory;
+		private String geneTrackFile;
+		private String keggPathwayFile;
+		private double maf;
+		private boolean loadLoc;
+		private Logger log;
+		private int index;
+
+		public ImportProducer(String[] vcfs, String vpopFile, String resourceDirectory, String geneTrackFile, String keggPathwayFile, double maf, boolean loadLoc, Logger log) {
+			super();
+			this.vcfs = vcfs;
+			this.vpopFile = vpopFile;
+			this.resourceDirectory = resourceDirectory;
+			this.geneTrackFile = geneTrackFile;
+			this.keggPathwayFile = keggPathwayFile;
+			this.maf = maf;
+			this.log = log;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < vcfs.length;
+		}
+
+		@Override
+		public Callable<PlinkSeqWorker[]> next() {
+			final String tmpVcf = vcfs[index];
+			System.out.println("DSFDSFDS");
+			Callable<PlinkSeqWorker[]> callable = new Callable<PlinkSeq.PlinkSeqWorker[]>() {
+
+				@Override
+				public PlinkSeqWorker[] call() throws Exception {
+					return prepToImport(tmpVcf, vpopFile, resourceDirectory, ext.parseDirectoryOfFile(tmpVcf), geneTrackFile, keggPathwayFile, maf, loadLoc && index == 0, 1, log);
+				}
+
+			};
+			index++;
+			return callable;
+		}
+
+		@Override
+		public void remove() {
+
+		}
+
+		@Override
+		public void shutdown() {
+
+		}
+	}
+
+	public static void runVcfs(String vcfFile, String vpopFile, String resourceDirectory, String geneTrackFile, String keggPathwayFile, double maf, int numthreads, boolean loadLoc, Logger log) {
+
+		String[] vcfs = HashVec.loadFileToStringArray(vcfFile, false, new int[] { 0 }, true);
+		System.out.println(Array.toStr(vcfs));
+
+		ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeq.PlinkSeqWorker>();
+		ImportProducer importer = new ImportProducer(vcfs, vpopFile, resourceDirectory, geneTrackFile, keggPathwayFile, maf, loadLoc, log);
+		WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(importer, numthreads, numthreads, log);
+		while (importTrain.hasNext()) {
+			PlinkSeqWorker[] tmp = importTrain.next();
+			for (int j = 0; j < tmp.length; j++) {
+				workers.add(tmp[j]);
+			}
+		}
+		PlinkSeqProducer producer = new PlinkSeqProducer(workers.toArray(new PlinkSeqWorker[workers.size()]), log);
+		WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<PlinkSeq.PlinkSeqWorker>(producer, numthreads, numthreads, log);
+		while (train.hasNext()) {
+			train.next();
+		}
+	}
+
+	private static PlinkSeqWorker[] prepToImport(String vcf, String vpopFile, String resourceDirectory, String directory, String geneTrackFile, String keggPathwayFile, double maf, boolean loadLoc, int numthreads, Logger log) {
+		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.CASE_CONTROL, log);
+		vpop.report();
+
+		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+
+		geneTrack.setGeneSetFilename(geneTrackFile);
+		Pathways pathways = Pathways.load(keggPathwayFile);
+		GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
+
+		VCFOps.verifyIndex(vcf, log);
+		String locFile = resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
+		PlinkSeqUtils.generatePlinkSeqLoc(gRegions, locFile, log);
+
+		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
+		// ext.parseDirectoryOfFile(vpop.getFileName())
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), directory, vcf, vpop, resourceDirectory, true, loadLoc, log);
+		VCFFileReader reader = new VCFFileReader(vcf, true);
+		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
+		reader.close();
+		return plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, macFilter + "", ext.rootOf(vpop.getFileName()), false, numthreads);
+	}
+
+	public static void prepareBatches(String vcf, String vpopFile, String fullPathTojarFile, int totalMemoryRequestedInMb, int walltimeRequestedInHours, int numthreads, int numBatches, Logger log) {
+		log.reportTimeInfo("Utilizing " + (numthreads) + " total threads per batch");
+		ChrSplitResults[] cSplitResults = VCFOps.splitByChrs(vcf, numthreads, true, log);
+		ArrayList<ChrSplitResults[]> cSplitResultsBatched = Array.splitUpArray(cSplitResults, numBatches, log);
+		String[] baseCommand = Array.concatAll(PSF.Java.buildJavaCP(fullPathTojarFile), new String[] { "seq.analysis.PlinkSeqMegs", "vpop=" + vpopFile, PSF.Ext.NUM_THREADS_COMMAND + numthreads + "" });
+		ArrayList<String> batches = new ArrayList<String>();
+		ArrayList<String> masterVCFS = new ArrayList<String>();
+		String rootOut = ext.parseDirectoryOfFile(vpopFile);
+		for (int i = 0; i < cSplitResultsBatched.size(); i++) {
+			String batch = rootOut + "megs" + i + ".pbs";
+			String vcfFile = rootOut + "vcfs." + i + ".txt";
+			ArrayList<String> vcfs = new ArrayList<String>();
+			for (int j = 0; j < cSplitResultsBatched.get(i).length; j++) {
+				String tmpVCF = cSplitResultsBatched.get(i)[j].getOutputVCF();
+				vcfs.add(tmpVCF);
+				masterVCFS.add(tmpVCF);
+			}
+			Files.writeList(vcfs.toArray(new String[vcfs.size()]), vcfFile);
+			String[] batchCommand = new String[] { "vcfs=" + vcfFile, (i == 0 ? "-loadLoc" : "") };
+
+			batches.add("qsub -q " + batch);
+			Files.qsub(batch, Array.toStr(Array.concatAll(baseCommand, batchCommand), " "), totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
+		}
+		Files.writeList(batches.toArray(new String[batches.size()]), rootOut + ext.rootOf(vpopFile) + "master.sh");
+		Files.writeList(masterVCFS.toArray(new String[masterVCFS.size()]), rootOut + ext.rootOf(vpopFile) + "master.vcfs.txt");
+
+		// Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, batchRoot, maxJobsPerBatch, forceMaxJobs, queueName, memoryPerProcRequestedInMb, totalMemoryRequestedInMb, walltimeRequestedInHours);
+
+		//
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
@@ -80,20 +221,31 @@ public class PlinkSeqMegs {
 		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vPopCaseControl.vcf";
 		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.CUSHINGS.vcf.gz";
 		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
-
-
-		
+		String fileOfVcfs = null;
+		boolean batch = false;
 		String vpopFile = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt";
 		String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
 		Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
 		String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
 		String keggPathwayFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/kegg.ser";
 		String logfile = null;
-		int numthreads = 24;
+		int numthreads = 4;
+		int numBatches = 4;
+		int memoryInMb = 62000;
+		int wallTimeInHours = 24;
+		String fullPathTojarFile = "/panfs/roc/groups/14/tsaim/lane0212/parkPseq.jar";
+		boolean loadLoc = false;
+
 		double maf = 0.05;
 		String usage = "\n" + "seq.analysis.VCFTallyPSeq requires 0-1 arguments\n";
 		usage += "   (1) vcf file (i.e. file=" + vcf + " (default))\n" + "";
-		usage += "   (2) vpop files, comma delimited (i.e. vpop=" + vpopFile + " (default))\n" + "";
+		usage += "   (2) vpop file,(i.e. vpop=" + vpopFile + " (default))\n" + "";
+		usage += "   (3) batch (i.e -batch (not the default))\n" + "";
+		usage += PSF.Ext.getNumThreadsCommand(4, numthreads);
+		usage += "   (5) number of batches,(i.e. numBatches=" + numBatches + " (default))\n" + "";
+		usage += "   (6) file of vcfs to run(i.e. vcfs= (no default))\n" + "";
+		usage += PSF.Ext.getMemoryMbCommand(7, memoryInMb);
+		usage += PSF.Ext.getWallTimeCommand(8, wallTimeInHours);
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -102,11 +254,32 @@ public class PlinkSeqMegs {
 			} else if (args[i].startsWith("vcf=")) {
 				vcf = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("vcfs=")) {
+				fileOfVcfs = args[i].split("=")[1];
+				numArgs--;
 			} else if (args[i].startsWith("vpop=")) {
 				vpopFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("-batch")) {
+				batch = true;
+				numArgs--;
+			} else if (args[i].startsWith("-loadLoc")) {
+				loadLoc = true;
+				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numthreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.MEMORY_MB)) {
+				memoryInMb = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.WALLTIME_HRS)) {
+				wallTimeInHours = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("numBatches=")) {
+				numBatches = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -118,7 +291,13 @@ public class PlinkSeqMegs {
 		}
 		try {
 			log = new Logger(logfile);
-			runBig(vcf, vpopFile, resourceDirectory, geneTrackFile, keggPathwayFile, maf, numthreads, log);
+			if (batch) {
+				prepareBatches(vcf, vpopFile, fullPathTojarFile, memoryInMb, wallTimeInHours, numthreads, numBatches, log);
+			} else if (fileOfVcfs != null) {
+				runVcfs(fileOfVcfs, vpopFile, resourceDirectory, geneTrackFile, keggPathwayFile, maf, numthreads, loadLoc, log);
+			} else {
+				runBig(vcf, vpopFile, resourceDirectory, geneTrackFile, keggPathwayFile, maf, numthreads, log);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
