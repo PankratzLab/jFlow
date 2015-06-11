@@ -33,15 +33,17 @@ public class PlinkSeqMegs {
 		Pathways pathways = Pathways.load(keggPathwayFile);
 		GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
 
-		VCFOps.verifyIndexRegular(vcf, log);
+		VCFOps.verifyIndex(vcf, log);
 		String locFile = resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(gRegions, locFile, log);
 
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
-		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, resourceDirectory, true, true, log);
+
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, resourceDirectory, false, false, log);
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
+		System.exit(1);
 
 		PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, macFilter + "", ext.rootOf(vpop.getFileName()), numthreads);
 		PlinkSeqBurdenSummary[] summaries = new PlinkSeqBurdenSummary[1];
@@ -78,6 +80,9 @@ public class PlinkSeqMegs {
 		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqTallyTest/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vPopCaseControl.vcf";
 		// String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.CUSHINGS.vcf.gz";
 		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
+
+
+		
 		String vpopFile = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt";
 		String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
 		Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");

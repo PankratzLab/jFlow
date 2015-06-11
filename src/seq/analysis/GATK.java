@@ -137,6 +137,7 @@ public class GATK {
 
 	public GATK(String gATKLocation, String referenceGenomeFasta, boolean verbose, boolean overWriteExisting, Logger log) {
 		this.GATKLocation = gATKLocation;
+		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
 		this.referenceGenomeFasta = referenceGenomeFasta;
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExisting;
@@ -467,9 +468,13 @@ public class GATK {
 	 * @param log
 	 * @return true on successful merge
 	 */
-	public boolean mergeVCFs(String[] vcfs, String output, Logger log) {
-		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, COMBINE_VARIANTS, R, referenceGenomeFasta, O, output, "-genotypeMergeOption", "UNIQUIFY" };
+	public boolean mergeVCFs(String[] vcfs, String output, int numthreads, boolean skipReporting, Logger log) {
+		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, COMBINE_VARIANTS, R, referenceGenomeFasta, O, output, "-genotypeMergeOptions", "UNIQUIFY" };
+		if (numthreads > 1) {
+			command = Array.concatAll(command, new String[] { NT, numthreads + "" });
+		}
 		String[] inputArgVCF = new String[vcfs.length * 2];
+
 		int index = 0;
 		for (int i = 0; i < vcfs.length; i++) {
 			inputArgVCF[index] = VARIANT;
@@ -478,7 +483,7 @@ public class GATK {
 			index++;
 		}
 		command = Array.concatAll(command, inputArgVCF);
-		return CmdLine.runCommandWithFileChecks(command, "", vcfs, new String[] { output }, verbose, overWriteExistingOutput, true, log);
+		return CmdLine.runCommandWithFileChecks(command, "", vcfs, new String[] { output }, verbose, overWriteExistingOutput, skipReporting, log);
 	}
 
 	private static String[] buildAns(boolean SNP) {

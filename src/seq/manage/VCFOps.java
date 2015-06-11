@@ -28,9 +28,14 @@ import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.Tribble;
+import htsjdk.tribble.index.DynamicIndexCreator;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
+import htsjdk.tribble.index.tabix.TabixFormat;
+import htsjdk.tribble.index.tabix.TabixIndex;
+import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.Options;
@@ -207,6 +212,19 @@ public class VCFOps {
 	 */
 	public static SAMSequenceDictionary getSequenceDictionary(final VCFFileReader vcfFileReader) {
 		return vcfFileReader.getFileHeader().getSequenceDictionary();
+	}
+
+	/**
+	 * Retrieves the sequence dictionary from a reader
+	 * 
+	 * @param vcfFileReader
+	 * @return
+	 */
+	public static SAMSequenceDictionary getSequenceDictionary(final String vcf) {
+		VCFFileReader reader = new VCFFileReader(vcf, false);
+		SAMSequenceDictionary samSequenceDictionary = getSequenceDictionary(reader);
+		reader.close();
+		return samSequenceDictionary;
 	}
 
 	/**
@@ -809,30 +827,72 @@ public class VCFOps {
 	}
 
 	/**
+	 * @return true if the index exists or was created for all vcfs
+	 */
+	public static boolean verifyIndices(String[] vcfFiles, Logger log) {
+		boolean verify = true;
+		for (int i = 0; i < vcfFiles.length; i++) {
+			if (!verifyIndex(vcfFiles[i], log)) {
+				verify = false;
+			}
+		}
+		return verify;
+	}
+
+	/**
 	 * @return true if the index exists and was valid, or was created
 	 */
-	public static boolean verifyIndexRegular(String vcfFile, Logger log) {
+	public static boolean verifyIndex(String vcfFile, Logger log) {
 		boolean created = false;
-		if (!vcfFile.endsWith(".vcf")) {
-			log.reportTimeError("Currently can only index regular vcf files");
+		if (!vcfFile.endsWith(VCF_EXTENSIONS.REG_VCF.getLiteral()) && !vcfFile.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral())) {
+			log.reportTimeError("We currently can only index the following extensions");
+			log.reportTimeError(VCF_EXTENSIONS.REG_VCF.getLiteral());
+			log.reportTimeError(VCF_EXTENSIONS.GZIP_VCF.getLiteral());
+
 		} else {
-			File indexFile = Tribble.indexFile(new File(vcfFile));
-			if (indexFile.canRead()) {
-				log.report("Info - Loading index file " + indexFile);
-				IndexFactory.loadIndex(indexFile.getAbsolutePath());
-				created = true;
-			} else {
-				log.report("Info - creating index file " + indexFile);
-				try {
-					Index index = IndexFactory.createLinearIndex(new File(vcfFile), new VCFCodec());
-					LittleEndianOutputStream stream = new LittleEndianOutputStream(new FileOutputStream(indexFile));
-					index.write(stream);
-					stream.close();
+			if (vcfFile.endsWith(VCF_EXTENSIONS.REG_VCF.getLiteral())) {
+				File indexFile = Tribble.indexFile(new File(vcfFile));
+				if (indexFile.canRead()) {
+					log.report("Info - Loading index file " + indexFile);
+					IndexFactory.loadIndex(indexFile.getAbsolutePath());
 					created = true;
-				} catch (IOException e) {
-					log.reportError("Error - could not create index file " + indexFile);
-					created = false;
+				} else {
+					log.report("Info - creating index file " + indexFile);
+					try {
+						Index index = IndexFactory.createLinearIndex(new File(vcfFile), new VCFCodec());
+						LittleEndianOutputStream stream = new LittleEndianOutputStream(new FileOutputStream(indexFile));
+						index.write(stream);
+						stream.close();
+						created = true;
+					} catch (IOException e) {
+						log.reportError("Error - could not create index file " + indexFile);
+						created = false;
+					}
 				}
+			} else if (vcfFile.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral())) {
+				// return false;
+				String indexFile = vcfFile + TabixUtils.STANDARD_INDEX_EXTENSION;
+				if (Files.exists(indexFile)) {
+					created = true;
+				} else {
+					created = false;
+					log.reportTimeError("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral());
+
+				}
+				// // TabixIndexCreator idxCreator = new TabixIndexCreator( getSequenceDictionary(vcfFile), TabixFormat.VCF);
+				// // VCFFileReader reader = new VCFFileReader(vcfFile, false);
+				// // for(VariantContext vc:reader){
+				// // idxCreator.addFeature(vc, 1);
+				// // }
+				//
+				// // initWriter(output, options, sequenceDictionary)
+				// TabixIndex tbi = IndexFactory.createTabixIndex(new File(vcfFile), new VCFCodec(), TabixFormat.VCF, getSequenceDictionary(vcfFile));
+				//
+				//
+				// VCFFileReader reader = new VCFFileReader(vcfFile, false);
+				//
+
+				// }
 			}
 		}
 		return created;
@@ -848,7 +908,7 @@ public class VCFOps {
 		if (Files.exists(vcfFileGz)) {
 			log.reportTimeWarning("Gzipped vcf " + vcfFileGz + " already exists, skipping");
 		} else {
-			if (verifyIndexRegular(vcfFile, log)) {
+			if (verifyIndex(vcfFile, log)) {
 				VCFFileReader reader = new VCFFileReader(vcfFile, true);
 				VariantContextWriter writer = initWriter(vcfFileGz, null, reader.getFileHeader().getSequenceDictionary());
 				copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
@@ -984,7 +1044,7 @@ public class VCFOps {
 				log.reportError("Error writing to " + output);
 				log.reportException(e);
 			}
-			
+
 		} else {
 			log.reportFileExists(output);
 		}

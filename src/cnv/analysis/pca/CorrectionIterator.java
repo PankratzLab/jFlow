@@ -6,8 +6,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.GEOM_POINT_SIZE;
+import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
+import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
 import stats.StatsCrossTabs.STAT_TYPE;
 import stats.StatsCrossTabs.StatsCrossTabRank;
@@ -18,8 +21,10 @@ import common.Logger;
 import common.PSF;
 import common.WorkerTrain;
 import common.ext;
+import cnv.analysis.pca.PCSelector.SelectionResult;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
+import cnv.manage.TransposeData;
 import cnv.qc.LrrSd;
 
 class CorrectionIterator {
@@ -49,8 +54,6 @@ class CorrectionIterator {
 
 	public void run() {
 		this.iterationResult = run(proj, markesToEvaluate, samplesToBuildModels, iType, oType, bType, outputDir, svd, numthreads);
-		iterationResult.plotRank(proj.getLog());
-		iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX", "PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, proj.getLog());
 	}
 
 	public IterationResult getIterationResult() {
@@ -87,6 +90,11 @@ class CorrectionIterator {
 		 * PCS are ranked by the amount of variance explained in the estimate of interest
 		 */
 		RANK_R2,
+
+		/**
+		 * PCS are ranked by spearman abs r
+		 */
+		// RANK_R,
 		/**
 		 * PCs are filtered for an association with known QC metrics from {@link LrrSd}
 		 */
@@ -96,100 +104,98 @@ class CorrectionIterator {
 
 	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, int numthreads) {
 		Logger log = proj.getLog();
-		if (outputDir == null) {
-			outputDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue()) + "_eval/";
-		}
+
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		IterationResult iterationResult = new IterationResult(output, iType, oType, bType);
-		// if (!Files.exists(iterationResult.getOutputSer())) {
+		if (!Files.exists(iterationResult.getOutputSer()) || oType == ORDER_TYPE.QC_ASSOCIATION) {
 
-		//
-		// iterationResult.plotRank(log);
-		// iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX","PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001","PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, log);
-		// // rScatter.setxLabel("Principal Component ("+oType+")");
-		//
-		// // public RScatter(String dataFile, String rSriptFile, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
-		//
-		// System.exit(1);
+			//
+			// iterationResult.plotRank(log);
+			// iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX","PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001","PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, log);
+			// // rScatter.setxLabel("Principal Component ("+oType+")");
+			//
+			// // public RScatter(String dataFile, String rSriptFile, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
+			//
+			// System.exit(1);
 
-		proj.getLog().reportTimeInfo("Loading " + proj.INTENSITY_PC_FILENAME.getValue());
+			proj.getLog().reportTimeInfo("Loading " + proj.INTENSITY_PC_FILENAME.getValue());
 
-		new File(outputDir).mkdirs();
-		log.reportTimeInfo("Beginning iteration evaluation:");
-		log.reportTimeInfo("PC file: " + proj.INTENSITY_PC_FILENAME.getValue());
-		log.reportTimeInfo("Iteration type : " + iType);
-		log.reportTimeInfo("Order type : " + oType);
-		log.reportTimeInfo("Model building type: " + bType);
+			new File(outputDir).mkdirs();
+			log.reportTimeInfo("Beginning iteration evaluation:");
+			log.reportTimeInfo("PC file: " + proj.INTENSITY_PC_FILENAME.getValue());
+			log.reportTimeInfo("Iteration type : " + iType);
+			log.reportTimeInfo("Order type : " + oType);
+			log.reportTimeInfo("Model building type: " + bType);
 
-		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
-		pcResiduals.setMarkersToAssessFile(markesToEvaluate);
-		pcResiduals.setHomozygousOnly(true);
-		pcResiduals.computeAssessmentDataMedians();
-		boolean[] samplesForModels = null;
-		boolean valid = true;
+			PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
+			pcResiduals.setMarkersToAssessFile(markesToEvaluate);
+			pcResiduals.setHomozygousOnly(true);
+			pcResiduals.computeAssessmentDataMedians();
+			boolean[] samplesForModels = null;
+			boolean valid = true;
 
-		switch (bType) {
-		case WITHOUT_BUILDERS:
-			samplesForModels = proj.getSamplesToInclude(null, true, true);
-			break;
-		case WITH_BUILDERS:
-			if (!Files.exists(samplesToBuildModels)) {
-				log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
-				valid = false;
-			} else {
-				samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+			switch (bType) {
+			case WITHOUT_BUILDERS:
+				samplesForModels = proj.getSamplesToInclude(null, true, true);
+				break;
+			case WITH_BUILDERS:
+				if (!Files.exists(samplesToBuildModels)) {
+					log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
+					valid = false;
+				} else {
+					samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+				}
+				break;
+			default:
+				break;
+
 			}
-			break;
-		default:
-			break;
 
-		}
+			CorrectionEvaluator cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, svd);
+			int[] order = null;
+			double[][] extraIndeps = null;
+			StatsCrossTabRank sTabRank = null;
+			switch (iType) {
+			case WITHOUT_INDEPS:
+				log.reportTimeInfo("Evaluating with " + Array.booleanArraySum(samplesForModels) + " samples, no additional independent variables");
+				break;
+			case WITH_INDEPS:
+				extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10, Double.NaN }, { -1, Double.NaN } }, log);
+				if (extraIndeps == null) {
+					log.reportTimeError("type = " + iType + " and were missing some of the following " + Array.toStr(CorrectionEvaluator.INDEPS));
+					log.reportTimeError("Available = " + Array.toStr(cEvaluator.getParser().getNumericDataTitles()));
+					valid = false;
+				} else {
+					boolean[] tmpInclude = new boolean[samplesForModels.length];
+					Arrays.fill(tmpInclude, false);
+					for (int i = 0; i < extraIndeps.length; i++) {
 
-		CorrectionEvaluator cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, svd);
-		int[] order = null;
-		double[][] extraIndeps = null;
-		StatsCrossTabRank sTabRank = null;
-		switch (iType) {
-		case WITHOUT_INDEPS:
-			log.reportTimeInfo("Evaluating with " + Array.booleanArraySum(samplesForModels) + " samples, no additional independent variables");
-			break;
-		case WITH_INDEPS:
-			extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10, Double.NaN }, { -1, Double.NaN } }, log);
-			if (extraIndeps == null) {
-				log.reportTimeError("type = " + iType + " and were missing some of the following " + Array.toStr(CorrectionEvaluator.INDEPS));
-				log.reportTimeError("Available = " + Array.toStr(cEvaluator.getParser().getNumericDataTitles()));
-				valid = false;
-			} else {
-				boolean[] tmpInclude = new boolean[samplesForModels.length];
-				Arrays.fill(tmpInclude, false);
-				for (int i = 0; i < extraIndeps.length; i++) {
-
-					if (samplesForModels[i]) {
-						boolean hasNan = false;
-						for (int j = 0; j < extraIndeps[i].length; j++) {
-							if (Double.isNaN(extraIndeps[i][j])) {
-								hasNan = true;
+						if (samplesForModels[i]) {
+							boolean hasNan = false;
+							for (int j = 0; j < extraIndeps[i].length; j++) {
+								if (Double.isNaN(extraIndeps[i][j])) {
+									hasNan = true;
+								}
+							}
+							if (!hasNan) {
+								tmpInclude[i] = true;
 							}
 						}
-						if (!hasNan) {
-							tmpInclude[i] = true;
-						}
 					}
+					log.reportTimeInfo("Original number of samples: " + Array.booleanArraySum(samplesForModels));
+					log.reportTimeInfo("Number of samples with valid independant variables, final evaluation set: " + Array.booleanArraySum(tmpInclude));
+					samplesForModels = tmpInclude;
 				}
-				log.reportTimeInfo("Original number of samples: " + Array.booleanArraySum(samplesForModels));
-				log.reportTimeInfo("Number of samples with valid independant variables, final evaluation set: " + Array.booleanArraySum(tmpInclude));
-				samplesForModels = tmpInclude;
-			}
-			break;
-		default:
-			break;
+				break;
+			default:
+				break;
 
-		}
-		iterationResult.setValid(valid);
-		if (valid) {
-			sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, proj.getLog());
-			sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL, log);
-			if (!Files.exists(iterationResult.getOutputSer())) {
+			}
+			iterationResult.setValid(valid);
+			if (valid) {
+				sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, proj.getLog());
+				sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL, log);
+
 				switch (oType) {
 				case NATURAL:
 					order = null;
@@ -201,13 +207,16 @@ class CorrectionIterator {
 					}
 					break;
 				case QC_ASSOCIATION:
-					order = PCSelector.select(proj, 0.10);
-					if (order.length < 1) {
+
+					SelectionResult result = PCSelector.select(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL);
+					order = result.getOrder();
+					if (result == null || order.length < 1) {
 						log.reportTimeError("Could not select PCs from QC metrics, trying again");
 						Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
 						new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
 						LrrSd.init(proj, null, null, numthreads);
-						order = PCSelector.select(proj, 0.10);
+						result = PCSelector.select(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL);
+						order = result.getOrder();
 						if (order.length < 1) {
 							return null;
 						}
@@ -215,39 +224,40 @@ class CorrectionIterator {
 				default:
 					break;
 				}
-				boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
-				log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " samples for models");
-				log.reportTimeInfo(Array.booleanArraySum(samplesToEvaluate) + " samples for evaluation");
+				if (!Files.exists(iterationResult.getOutputSer())) {
+					boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
+					log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " samples for models");
+					log.reportTimeInfo(Array.booleanArraySum(samplesToEvaluate) + " samples for evaluation");
 
-				cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, svd);
-				ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
+					cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, svd);
+					ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
 
-				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(iterationResult.getOutputSummary()));
-					WorkerTrain<EvaluationResult> train = new WorkerTrain<EvaluationResult>(cEvaluator, numthreads, numthreads, proj.getLog());
-					int index = 0;
-					while (train.hasNext()) {
-						EvaluationResult result = train.next();
-						result.setItType(iType);
-						result.setOrType(oType);
-						result.setbType(bType);
-						if (index == 0) {
-							writer.println(Array.toStr(result.getHeader()));
+					try {
+						PrintWriter writer = new PrintWriter(new FileWriter(iterationResult.getOutputSummary()));
+						WorkerTrain<EvaluationResult> train = new WorkerTrain<EvaluationResult>(cEvaluator, numthreads, numthreads, proj.getLog());
+						int index = 0;
+						while (train.hasNext()) {
+							EvaluationResult result = train.next();
+							result.setItType(iType);
+							result.setOrType(oType);
+							result.setbType(bType);
+							if (index == 0) {
+								writer.println(Array.toStr(result.getHeader()));
+							}
+							writer.println(Array.toStr(result.getData()));
+							index++;
+							result.shrink();
+							store.add(result);
 						}
-						writer.println(Array.toStr(result.getData()));
-						index++;
-						result.shrink();
-						store.add(result);
+						writer.close();
+					} catch (Exception e) {
+						proj.getLog().reportError("Error writing to " + iterationResult.getOutputSummary());
+						proj.getLog().reportException(e);
 					}
-					writer.close();
-				} catch (Exception e) {
-					proj.getLog().reportError("Error writing to " + iterationResult.getOutputSummary());
-					proj.getLog().reportException(e);
+					EvaluationResult.serialize(store.toArray(new EvaluationResult[store.size()]), iterationResult.getOutputSer());
 				}
-				EvaluationResult.serialize(store.toArray(new EvaluationResult[store.size()]), iterationResult.getOutputSer());
 			}
 		}
-		// }
 		return iterationResult;
 	}
 
@@ -280,28 +290,31 @@ class CorrectionIterator {
 			this.bType = bType;
 		}
 
-		public void plotRank(Logger log) {
-			RScatter rScatter = new RScatter(outputRank, rankRscript, rankplot, "OriginalOrder", new String[] { "Stat" }, SCATTER_TYPE.POINT, log);
+		public RScatter plotRank(Logger log) {
+			RScatter rScatter = new RScatter(outputRank, rankRscript, ext.rootOf(outputRank), rankplot, "OriginalOrder", new String[] { "Stat" }, SCATTER_TYPE.POINT, log);
 			rScatter.setyRange(new double[] { 0, 1 });
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setyLabel("Rsq");
 			rScatter.setTitle(iType + " " + bType);
 			rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
 			rScatter.execute();
-
+			return rScatter;
 		}
 
-		public void plotSummary(String[] dataColumns, Logger log) {
-			RScatter rScatter = new RScatter(outputSummary, evalRscript, evalPlot, "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
+		public RScatter plotSummary(String[] dataColumns, Logger log) {
+			RScatter rScatter = new RScatter(outputSummary, evalRscript, ext.rootOf(outputSummary), evalPlot, "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
 			rScatter.setyRange(new double[] { -1, 1 });
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setTitle(iType + " " + bType);
 			rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
-
 			rScatter.execute();
 			rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
 			rScatter.setxRange(new double[] { 0, 50 });
 			rScatter.execute();
+			rScatter.setOutput(evalPlot);
+			rScatter.setxRange(null);
+			return rScatter;
+
 		}
 
 		public void setValid(boolean valid) {
@@ -369,10 +382,27 @@ class CorrectionIterator {
 	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, int numthreads) {
 		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(400);
 		System.out.println("JDOFJSDF remember the pcs");
+		if (outputDir == null) {
+			outputDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue()) + "_eval/";
+		}
+		if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue() + "markers.0.mdRAF")) {
+			proj.getLog().reportTimeWarning("Did not see " + proj.MARKER_DATA_DIRECTORY.getValue() + "markers.0.mdRAF, attempting to transpose now");
+			TransposeData.transposeData(proj, 2000000000, false);
+		}
 		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, svd, numthreads);
+		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+
 		for (int i = 0; i < cIterators.length; i++) {
 			cIterators[i].run();
+			IterationResult iterationResult = cIterators[i].getIterationResult();
+			iterationResult.plotRank(proj.getLog());
+			RScatter rScatter = iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number" }, proj.getLog());
+			rScatters.add(rScatter);
+			rScatters.add(iterationResult.plotRank(proj.getLog()));
 		}
+		String outputRoot = outputDir + "finalSummary";
+		RScatters finalScatters = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), outputRoot + ".rscript", outputRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_2, PLOT_DEVICE.PDF, proj.getLog());
+		finalScatters.execute();
 		return cIterators;
 	}
 

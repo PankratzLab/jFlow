@@ -49,7 +49,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 
 	public VCFTallyPSeq(String vcf, GenomeRegions geneTrack, VcfPopulation vpop, CASE_CONTROL_TYPE type, String plinkSeqResourceDirectory, String plinkSeqProjName, Logger log) {
 		super(vcf, geneTrack, vpop, type, log);
-		VCFOps.verifyIndexRegular(vcf, log);
+		VCFOps.verifyIndex(vcf, log);
 		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(geneTrack, locFile, log);
 		this.plinkSeq = new PlinkSeq(false, true, log);

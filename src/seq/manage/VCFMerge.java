@@ -4,6 +4,7 @@ import seq.analysis.GATK;
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.PSF;
 import common.ext;
 
 /**
@@ -11,22 +12,39 @@ import common.ext;
  */
 public class VCFMerge {
 
-	public static void merge(String[] vcfs, String mergeOut, String gatkLoc, String referenceGenomeFasta, Logger log) {
+	public static void merge(String[] vcfs, String mergeOut, String gatkLoc, String referenceGenomeFasta, int numthreads, Logger log) {
 		GATK gatk = new GATK(gatkLoc, referenceGenomeFasta, true, false, log);
+		System.out.println("HID1");
+
 		if (vcfs != null) {
+			System.out.println("HID2");
+
 			if (mergeOut != null) {
-				if (!Files.exists("", vcfs)) {
-					boolean merged = gatk.mergeVCFs(vcfs, mergeOut, log);
-					if (merged) {
-						log.reportTimeInfo("Merged " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
-						VCFOps.extractSamps(mergeOut, log);
+				System.out.println("HID3");
+
+				if (!Files.exists(mergeOut)) {
+					System.out.println("HID4");
+
+					if (Files.exists("", vcfs)) {
+						if (VCFOps.verifyIndices(vcfs, log)) {
+							log.reportTimeInfo("Beginning to merge " + vcfs.length + " vcfs");
+							boolean merged = gatk.mergeVCFs(vcfs, mergeOut, numthreads, false, log);
+							if (merged) {
+								log.reportTimeInfo("Merged " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
+								VCFOps.extractSamps(mergeOut, log);
+							} else {
+								log.reportTimeError("Could not merge " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
+							}
+						} else {
+							log.reportTimeError("Could not verify all index files ");
+						}
 					} else {
-						log.reportTimeError("Could not merge " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
+						log.reportFilesNotFound(vcfs);
 					}
 				} else {
-					log.reportFilesNotFound(vcfs);
+					log.reportFileExists(mergeOut);
 				}
-			}else{
+			} else {
 				log.reportTimeError("Must provide an output file for the merged results");
 			}
 		} else {
@@ -40,13 +58,13 @@ public class VCFMerge {
 		String mergeOut = null;
 		String referenceGenomeFasta = ReferenceGenome.DEFAULT_REFERENCE;
 		String gatk = GATK.DEFAULT_GATK;
-
+		int numthreads = 1;
 		String usage = "\n" + "seq.manage.VCFMerge requires 0-1 arguments\n";
 		usage += "   (1) comma delimited full paths to vcf files (i.e. vcfs= (no default))\n" + "";
 		usage += "   (2) full path to the merged output (i.e. mergeOut= (no default))\n" + "";
 		usage += "   (3) full path to the gatk directory (i.e. gatk=" + gatk + " (default))\n" + "";
 		usage += "   (4) full path to the reference genome  (i.e. ref=" + gatk + " (default))\n" + "";
-
+		usage += PSF.Ext.getNumThreadsCommand(5, numthreads);
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -63,6 +81,9 @@ public class VCFMerge {
 			} else if (args[i].startsWith("ref=")) {
 				referenceGenomeFasta = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numthreads = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -72,7 +93,7 @@ public class VCFMerge {
 			System.exit(1);
 		}
 		try {
-			merge(vcfs, mergeOut, gatk, referenceGenomeFasta, new Logger(vcfs == null ? null : ext.addToRoot(vcfs[0], "mergeLog.log")));
+			merge(vcfs, mergeOut, gatk, referenceGenomeFasta, numthreads, new Logger(vcfs == null ? null : ext.addToRoot(vcfs[0], "mergeLog.log")));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

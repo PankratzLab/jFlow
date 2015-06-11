@@ -119,10 +119,6 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 		for (int i = 0; i < matchString.length; i++) {
 			String[] response = Array.subArray(parser.getStringDataForTitle(matchString[i]), samplesToInclude[1]);
 			double[] data = Array.subArray(estimate, samplesToInclude[1]);
-//			if (Array.removeNaN(data).length != data.length) {
-//				throw new IllegalStateException("Invalid data array");
-//
-//			}
 			ICC icc = new ICC(data, response, EVAL_MASKS[0], null, false, log);
 			icc.computeICC();
 			evaluationResult.getIccs().add(icc);
