@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
 import seq.analysis.PlinkSeq;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -26,14 +27,11 @@ import seq.qc.FilterNGS.VariantContextFilter;
 import stats.Histogram.DynamicHistogram;
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.Tribble;
-import htsjdk.tribble.index.DynamicIndexCreator;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
-import htsjdk.tribble.index.tabix.TabixFormat;
-import htsjdk.tribble.index.tabix.TabixIndex;
-import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -52,7 +50,9 @@ import common.Logger;
 import common.PSF;
 import common.Positions;
 import common.WorkerHive;
+import common.WorkerTrain;
 import common.ext;
+import common.WorkerTrain.Producer;
 
 /**
  * Class for common actions on a VCF
@@ -839,6 +839,197 @@ public class VCFOps {
 		return verify;
 	}
 
+	public static ChrSplitResults[] splitByChrs(String vcf, int numthreads, boolean onlyWithVariants, Logger log) {
+		String[] toSplit = getAllContigs(vcf, log);
+		log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
+		log.reportTimeInfo(Array.toStr(toSplit, "\n"));
+		VCFSplitProducer producer = new VCFSplitProducer(vcf, toSplit, log);
+		WorkerTrain<ChrSplitResults> train = new WorkerTrain<VCFOps.ChrSplitResults>(producer, numthreads, numthreads, log);
+		ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<ChrSplitResults>();
+		while (train.hasNext()) {
+			ChrSplitResults tmp = train.next();
+			if (onlyWithVariants) {
+				if (tmp.hasVariants()) {
+					chrSplitResults.add(tmp);
+				} else {
+					log.reportTimeWarning("skipping " + tmp.getChr() + " , no variants were found");
+				}
+			} else {
+				chrSplitResults.add(tmp);
+			}
+		}
+		return chrSplitResults.toArray(new ChrSplitResults[chrSplitResults.size()]);
+	}
+
+	private static class VCFSplitProducer implements Producer<ChrSplitResults> {
+		private String vcfFile;
+		private String[] toSplit;
+		private Logger log;
+		private int index;
+
+		private VCFSplitProducer(String vcfFile, String[] toSplit, Logger log) {
+			super();
+			this.vcfFile = vcfFile;
+			this.toSplit = toSplit;
+			this.log = log;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < toSplit.length;
+		}
+
+		@Override
+		public Callable<ChrSplitResults> next() {
+			final String chr = toSplit[index];
+			String dir = ext.parseDirectoryOfFile(vcfFile) + chr + "/";
+			new File(dir).mkdirs();
+			final String output = dir + getAppropriateRoot(vcfFile, true) + "." + chr + VCF_EXTENSIONS.GZIP_VCF.getLiteral();
+			Callable<ChrSplitResults> callable = new Callable<VCFOps.ChrSplitResults>() {
+
+				@Override
+				public ChrSplitResults call() throws Exception {
+
+					return splitByChr(vcfFile, output, chr, log);
+				}
+
+			};
+			index++;
+			return callable;
+		}
+
+		@Override
+		public void remove() {
+
+		}
+
+		@Override
+		public void shutdown() {
+
+		}
+
+	}
+
+	public static String[] getAllContigs(String vcfFile, Logger log) {
+		List<SAMSequenceRecord> sList = getAllSAMSequenceRecords(vcfFile, log);
+		String[] all = new String[sList.size()];
+		for (int i = 0; i < all.length; i++) {
+			all[i] = sList.get(i).getSequenceName();
+		}
+		return all;
+	}
+
+	public static List<SAMSequenceRecord> getAllSAMSequenceRecords(String vcfFile, Logger log) {
+		SAMSequenceDictionary samSequenceDictionary = getSequenceDictionary(vcfFile);
+		List<SAMSequenceRecord> sList = samSequenceDictionary.getSequences();
+		return sList;
+	}
+
+	private static boolean hasSomeVariants(String vcfFile, Logger log) {
+		VCFFileReader reader = new VCFFileReader(vcfFile, false);
+
+		int count = 0;
+		for (VariantContext vc : reader) {
+			vc.getChr();
+			count++;
+			if (count > 0) {
+				reader.close();
+				return true;
+			}
+		}
+		reader.close();
+		return false;
+	}
+
+	public static ChrSplitResults splitByChr(String vcfFile, String outputVCF, String chr, Logger log) {
+		int numChr = 0;
+		int numTotal = 0;
+		ChrSplitResults chrSplitResults = null;
+		if (!Files.exists(outputVCF) || !verifyIndex(outputVCF, log)) {
+			log.reportTimeInfo("Extracting chr " + chr + " from " + vcfFile + " to " + outputVCF);
+			SAMSequenceDictionary samSequenceDictionary = getSequenceDictionary(vcfFile);
+			VCFFileReader reader = new VCFFileReader(vcfFile, true);
+			VariantContextWriter writer = initWriter(outputVCF, null, samSequenceDictionary);
+			copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+			// samSequenceDictionary.getSequence(chr).g
+
+			CloseableIterator<VariantContext> iterator = reader.query(chr, 1, samSequenceDictionary.getSequence(chr).getSequenceLength() + 100);
+
+			while (iterator.hasNext()) {
+				VariantContext vc = iterator.next();
+				if (numTotal % 100000 == 0) {
+					log.reportTimeInfo("Scanned " + numTotal + " variants from " + vcfFile + " (" + numChr + " matching " + chr + ")");
+				}
+				if (vc.getChr().equals(chr)) {
+					writer.add(vc);
+					numChr++;
+				} else {
+					throw new IllegalStateException("Iterator returned invalid sequence...");
+				}
+				numTotal++;
+			}
+
+			writer.close();
+			reader.close();
+			chrSplitResults = new ChrSplitResults(chr, vcfFile, outputVCF, numChr);
+		} else {
+			log.reportFileExists(outputVCF);
+			chrSplitResults = new ChrSplitResults(chr, vcfFile, outputVCF, numChr);
+			chrSplitResults.setHasVariants(hasSomeVariants(outputVCF, log));
+			chrSplitResults.setSkippedExists(true);
+		}
+		return chrSplitResults;
+	}
+
+	public static class ChrSplitResults {
+		private String inputVCF;
+		private String outputVCF;
+		private String chr;
+		private int numChr;
+		private boolean skippedExists;
+		private boolean hasVariants;
+
+		public ChrSplitResults(String chr, String inputVCF, String outputVCF, int numChr) {
+			super();
+			this.inputVCF = inputVCF;
+			this.outputVCF = outputVCF;
+			this.numChr = numChr;
+			this.skippedExists = false;
+			this.hasVariants = numChr > 0;
+		}
+
+		public String getChr() {
+			return chr;
+		}
+
+		public String getOutputVCF() {
+			return outputVCF;
+		}
+
+		public boolean isSkippedExists() {
+			return skippedExists;
+		}
+
+		public boolean hasVariants() {
+			return hasVariants;
+		}
+
+		public void setHasVariants(boolean hasVariants) {
+			this.hasVariants = hasVariants;
+		}
+
+		public void setSkippedExists(boolean skippedExists) {
+			this.skippedExists = skippedExists;
+		}
+
+		public String getSummary() {
+			String summary = "Extracted chr " + chr + " from " + inputVCF + " to " + outputVCF;
+			summary += "Found " + numChr + " total variants on " + chr;
+			return summary;
+		}
+	}
+
 	/**
 	 * @return true if the index exists and was valid, or was created
 	 */
@@ -876,7 +1067,7 @@ public class VCFOps {
 					created = true;
 				} else {
 					created = false;
-					log.reportTimeError("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral());
+					log.reportTimeWarning("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral());
 
 				}
 				// // TabixIndexCreator idxCreator = new TabixIndexCreator( getSequenceDictionary(vcfFile), TabixFormat.VCF);
@@ -1063,10 +1254,9 @@ public class VCFOps {
 		String outDir = null;
 		boolean skipFiltered = false;
 		boolean standardFilters = false;
-		boolean gzip = false;
-
+		boolean gzip = true;
 		Logger log;
-
+		
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
 		usage += "   (1) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
 		usage += "   (2) utility type (i.e. utility=" + type + " (default))\n" + "";
