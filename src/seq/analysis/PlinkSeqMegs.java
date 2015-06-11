@@ -43,7 +43,7 @@ public class PlinkSeqMegs {
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
-		System.exit(1);
+		//System.exit(1);
 
 		PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, macFilter + "", ext.rootOf(vpop.getFileName()), numthreads);
 		PlinkSeqBurdenSummary[] summaries = new PlinkSeqBurdenSummary[1];
