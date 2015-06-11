@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import common.Array;
-import common.Sort;
 import common.ext;
-import link.sepByFam;
+import stats.Rscript.RScatter;
+import stats.Rscript.SCATTER_TYPE;
 import stats.StatsCrossTabs.STAT_TYPE;
 import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
@@ -22,6 +22,7 @@ import cnv.qc.SampleQC;
  *         Try to find most significant PCs associated with our quality metrics from {@link LrrSd}
  */
 public class PCSelector implements Iterator<StatsCrossTabRank> {
+
 	private Project proj;
 	private PrincipalComponentsResiduals pResiduals;
 	private SampleQC sampleQC;
@@ -71,20 +72,25 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 
 	@Override
 	public void remove() {
+
 	}
 
-	public static int[] select(Project proj, double absStatMin) {
-		PCSelector selector = new PCSelector(proj, STAT_TYPE.PEARSON_CORREL);
-		ArrayList<Integer> sigPCs = new ArrayList<Integer>();
+	public static SelectionResult select(Project proj, double absStatMin, STAT_TYPE sType) {
 
+		PCSelector selector = new PCSelector(proj, sType);
+		ArrayList<Integer> sigPCs = new ArrayList<Integer>();
+		SelectionResult rankResult = null;
 		if (selector.isValid()) {
 			String output = ext.addToRoot(proj.INTENSITY_PC_FILENAME.getValue(), ".significantPCs");
 			try {
+				ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
 				HashSet<Integer> has = new HashSet<Integer>();
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
+
 				writer.println("TYPE\tQC_METRIC\t" + Array.toStr(selector.getpResiduals().getPcTitles()));
 				while (selector.hasNext()) {
 					StatsCrossTabRank sRank = selector.next();
+					ranks.add(sRank);
 					writer.println("SIG\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getSigs()));
 					writer.println("STAT\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getStats()));
 					for (int i = 0; i < sRank.getStats().length; i++) {
@@ -94,14 +100,64 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 					}
 				}
 				writer.close();
+				proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + absStatMin);
+				String[] minMax = new String[] { "Min_" + sType, "Max_" + sType };
+				String outputT = ext.addToRoot(output, ".transposedStat");
+				writer = new PrintWriter(new FileWriter(outputT));
+				writer.print("PCTitle\tPC\t" + Array.toStr(minMax));
+				for (int i = 0; i < ranks.size(); i++) {
+					writer.print("\t" + ranks.get(i).getRankedTo());
+				}
+				writer.println();
+				String[] titles = selector.getpResiduals().getPcTitles();
+				for (int i = 0; i < titles.length; i++) {
+					writer.print(titles[i] + "\t" + (i + 1) + "\t" + (-1 * absStatMin) + "\t" + absStatMin);
+					for (int j = 0; j < ranks.size(); j++) {
+						writer.print("\t" + ranks.get(j).getStats()[i]);
+					}
+					writer.println();
+				}
+
+				writer.close();
+				String title = "QC_Association: n=" + sigPCs.size() + " PCs at abs(r) > "+absStatMin;
+				RScatter rScatter = new RScatter(outputT, outputT + ".rscript", ext.rootOf(outputT), outputT + ".pdf", "PC", Array.concatAll(minMax, LrrSd.NUMERIC_COLUMNS), SCATTER_TYPE.POINT, proj.getLog());
+				rScatter.setyLabel(sType.toString());
+				rScatter.setOverWriteExisting(true);
+				rScatter.setxLabel("PC");
+				rScatter.setTitle(title);
+				rScatter.execute();
+
+				rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatter);
 			} catch (Exception e) {
 				proj.getLog().reportError("Error writing to " + output);
 				proj.getLog().reportException(e);
 			}
+
 		} else {
 			proj.getLog().reportTimeError("Could not select QC associated PCs...");
 		}
-		return Array.toIntArray(sigPCs);
+		return rankResult;
+
+	}
+
+	public static class SelectionResult {
+		private int[] order;
+		private RScatter rScatter;
+
+		public SelectionResult(int[] order, RScatter rScatter) {
+			super();
+			this.order = order;
+			this.rScatter = rScatter;
+		}
+
+		public int[] getOrder() {
+			return order;
+		}
+
+		public RScatter getrScatter() {
+			return rScatter;
+		}
+
 	}
 
 	public static void main(String[] args) {
@@ -132,7 +188,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			System.exit(1);
 		}
 		Project proj = new Project(filename, false);
-		select(proj, absStatMin);
+		select(proj, absStatMin,STAT_TYPE.SPEARMAN_CORREL);
 		try {
 		} catch (Exception e) {
 			e.printStackTrace();
