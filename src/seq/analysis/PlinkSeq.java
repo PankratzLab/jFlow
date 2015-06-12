@@ -48,7 +48,7 @@ public class PlinkSeq implements Serializable {
 	 * Command for how the burden tests are collapsed in the locdb
 	 */
 	private static final String LOC_GROUP = "loc.group=";
-	private static final String MAC = "mac=";
+	private static final String MAF = "maf=";
 
 	private static final String MASK = "--mask";
 	private static final String VAR_MASK = "var.req=";
@@ -297,7 +297,7 @@ public class PlinkSeq implements Serializable {
 	 * @param log
 	 * @return
 	 */
-	public static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String varMask, String phenotype, int numPerm, String mac, String outputRoot, boolean overwriteExisting, Logger log) {
+	public static PlinkSeqWorker generateAWorker(PseqProject pseqProject, ANALYSIS_TYPES type, BURDEN_Tests[] bTests, String locGroups, String varMask, String phenotype, int numPerm, String maf, String outputRoot, boolean overwriteExisting, Logger log) {
 		String outputDirectory = ext.parseDirectoryOfFile(pseqProject.getFilename()) + "assoc/";
 		new File(outputDirectory).mkdirs();
 		String outputFile = outputDirectory + outputRoot + "." + type;
@@ -330,13 +330,13 @@ public class PlinkSeq implements Serializable {
 			} else {
 				outputFile += "." + phenotype + "." + ext.replaceWithLinuxSafeCharacters(locGroups, true) + ".txt";
 				commandBase = Array.concatAll(commandBase, new String[] { BURDEN }, getPhenoCommand(phenotype));
-				commandBase = Array.concatAll(commandBase, new String[] { MASK, LOC_GROUP + locGroups, mac.equals("0") ? "" : MAC + mac });
+				commandBase = Array.concatAll(commandBase, new String[] { MASK, LOC_GROUP + locGroups, maf.equals("0") ? "" : MAF +"0:"+ maf });
 				if (varMask != null) {
 					outputFile = ext.addToRoot(outputFile, "." + varMask);
 					commandBase = Array.concatAll(commandBase, new String[] { VAR_MASK + varMask });
 				}
-				if (!mac.equals("0")) {
-					outputFile = ext.addToRoot(outputFile, "mac_" + mac);
+				if (!maf.equals("0")) {
+					outputFile = ext.addToRoot(outputFile, "maf_" + maf);
 				}
 			}
 			if (bTests != null) {

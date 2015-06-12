@@ -56,7 +56,7 @@ public class PlinkSeqMegs {
 		reader.close();
 		// System.exit(1);
 
-		PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, macFilter + "", ext.rootOf(vpop.getFileName()), numthreads);
+		PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1,maf+"", ext.rootOf(vpop.getFileName()), numthreads);
 		PlinkSeqBurdenSummary[] summaries = new PlinkSeqBurdenSummary[1];
 		int index = 0;
 		for (int i = 0; i < complete.length; i++) {
@@ -180,7 +180,7 @@ public class PlinkSeqMegs {
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
-		return plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, macFilter + "", ext.rootOf(vpop.getFileName()), false, numthreads);
+		return plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, maf+"", ext.rootOf(vpop.getFileName()), false, numthreads);
 	}
 
 	public static void prepareBatches(String vcf, String vpopFile, String fullPathTojarFile, int totalMemoryRequestedInMb, int walltimeRequestedInHours, int numthreads, int numBatches, Logger log) {
