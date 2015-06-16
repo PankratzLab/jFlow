@@ -370,6 +370,21 @@ public class Array {
 	 *            array of Strings to be converted
 	 * @return array of the converted numbers
 	 */
+	public static double[][] toDoubleArrays(String[][] array) {
+		double[][] arr = new double[array.length][];
+		for (int i = 0; i < array.length; i++) {
+			arr[i] = Array.toDoubleArray(array[i]);
+		}
+		return arr;
+	}
+	
+	/**
+	 * Creates an array of numbers from the contents of a string array
+	 * 
+	 * @param array
+	 *            array of Strings to be converted
+	 * @return array of the converted numbers
+	 */
 	public static double[] toDoubleArray(String[] array) {
 		double[] arr = new double[array.length];
 		for (int i = 0; i<array.length; i++) {
@@ -2725,6 +2740,31 @@ public class Array {
 		return subarray;
 	}
 
+	/**
+	 * Creates a new array using only the indices between start and stop
+	 * 
+	 * @param array
+	 *            an array of double[]
+	 * @param start
+	 *            first index to use
+	 * @param stop
+	 *            last index to use
+	 * @return the subset of the original array
+	 */
+	public static double[][] subArray(double[][] array, int start, int stopBefore) {
+		double[][] arr;
+
+		if (start < 0 || stopBefore > array.length || stopBefore <= start) {
+			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore + ") indicies for an array");
+		}
+		arr = new double[stopBefore - start][];
+		for (int i = start; i < stopBefore; i++) {
+			arr[i - start] = array[i];
+		}
+
+		return arr;
+	}
+	
 	/**
 	 * Creates a new array using only the indices between start and stop
 	 * 

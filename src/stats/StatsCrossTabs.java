@@ -70,7 +70,13 @@ public class StatsCrossTabs {
 		this.verify = verify();
 	}
 
+	public double[][] getStatisticTable() {
+		return statisticTable;
+	}
 	public void computeTable() {
+		computeTable(false);
+	}
+	public void computeTable(boolean all) {
 		if (verify) {
 			Hashtable<Integer, Integer> complete = new Hashtable<Integer, Integer>();
 			for (int i = 0; i < statisticTable.length; i++) {
@@ -79,7 +85,7 @@ public class StatsCrossTabs {
 						double stat = Double.NaN;
 						double sig = Double.NaN;
 
-						if (!complete.containsKey(j)) {
+						if (all || !complete.containsKey(j)) {
 							double[][] dataToCorrel = cleanNaNs(new double[][] { data[i], data[j] }, new String[] { dataTitles[i], dataTitles[j] }, verbose, log);
 							double[] result;
 							switch (sType) {

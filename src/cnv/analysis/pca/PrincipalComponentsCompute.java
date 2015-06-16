@@ -116,7 +116,7 @@ public class PrincipalComponentsCompute {
 
 	public void computeBasis(int numComponents, boolean center) {
 		if (numComponents > A.getNumCols())
-			throw new IllegalArgumentException("More components requested than the data's length.");
+			throw new IllegalArgumentException("More components requested than the data's length. Have " + A.getNumCols() + " available and " + numComponents + " were requested");
 		if (sampleIndex != A.getNumRows())
 			throw new IllegalArgumentException("Not all the data has been added");
 		if (numComponents > sampleIndex)

@@ -3,11 +3,12 @@ package cnv.analysis.pca;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 
 import common.Array;
 import common.ext;
+import stats.SimpleM;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
 import stats.StatsCrossTabs.STAT_TYPE;
@@ -42,14 +43,33 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		return pResiduals;
 	}
 
+	public SampleQC getSampleQC() {
+		return sampleQC;
+	}
+
 	private void load() {
 		this.pResiduals = proj.loadPcResids();
+		pResiduals.fillInMissing();
 		valid = pResiduals != null;
 		if (valid) {
 			this.sampleQC = SampleQC.loadSampleQC(proj);
 			valid = sampleQC != null;
 			this.index = 0;
 		}
+	}
+
+	public int determineEffectiveNumberOfTests() {
+		SimpleM.Builder builder = new SimpleM.Builder();
+
+		SimpleM simpleMQcVar = builder.build(sampleQC.getQcMatrix(), proj.getLog());
+		int effQc = simpleMQcVar.determineM();
+		SimpleM simpleMPCVar = builder.build(pResiduals.getPcBasis(), proj.getLog());
+		int effPC = simpleMPCVar.determineM();
+		int numTests = effPC * effQc;
+		proj.getLog().reportTimeInfo("Effective num QC metrics tested = " + effQc);
+		proj.getLog().reportTimeInfo("Effective num Pcs tested = " + effPC);
+		proj.getLog().reportTimeInfo("Effective number of tests = " + effQc + " X " + effPC + " = " + numTests);
+		return numTests;
 	}
 
 	public boolean isValid() {
@@ -75,16 +95,69 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 
 	}
 
-	public static SelectionResult select(Project proj, double absStatMin, STAT_TYPE sType) {
+	public enum SELECTION_TYPE {
+		/**
+		 * filtered by the {@link STAT_TYPE } actual stat
+		 */
+		STAT, /**
+		 * filtered by the {@link STAT_TYPE } p-value
+		 */
+		P_VAL,
+		/**
+		 * pval cutoff after effective M correction, see {@link SimpleM}
+		 */
+		EFFECTIVE_M_CORRECTED;
+	}
+
+	public static SelectionResult v(Project proj, double filterValue, STAT_TYPE sType, SELECTION_TYPE selType) {
+		PCSelector selector = new PCSelector(proj, sType);
+		ArrayList<Integer> sigPCs = new ArrayList<Integer>();
+		SelectionResult rankResult = null;
+		ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
+
+		if (selector.isValid()) {
+			proj.getLog().reportTimeInfo("Stat type: " + sType);
+			proj.getLog().reportTimeInfo("Selection type: " + selType);
+
+			while (selector.hasNext()) {
+				ranks.add(selector.next());
+			}
+			switch (selType) {
+			case EFFECTIVE_M_CORRECTED:
+				int numTests = selector.determineEffectiveNumberOfTests();
+				proj.getLog().reportTimeInfo("Controling type I error at " + filterValue + "; " + filterValue + "/" + numTests + " = " + ((double) filterValue / numTests));
+				filterValue = (double) filterValue / numTests;
+				proj.getLog().reportTimeInfo("Filter value : " + filterValue);
+				break;
+			case P_VAL:
+				proj.getLog().reportTimeInfo("Filter value : " + filterValue);
+				break;
+			case STAT:
+				proj.getLog().reportTimeInfo("Filter value : " + filterValue);
+				break;
+			default:
+				proj.getLog().reportTimeError("Invalid selection type " + selType);
+				break;
+
+			}
+		}
+
+		return rankResult;
+
+	}
+
+	public static SelectionResult select(Project proj, double absStatMin, STAT_TYPE sType, SELECTION_TYPE selType) {
 
 		PCSelector selector = new PCSelector(proj, sType);
 		ArrayList<Integer> sigPCs = new ArrayList<Integer>();
 		SelectionResult rankResult = null;
 		if (selector.isValid()) {
+			double filterValue = Double.NaN;
+
 			String output = ext.addToRoot(proj.INTENSITY_PC_FILENAME.getValue(), ".significantPCs");
 			try {
 				ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
-				HashSet<Integer> has = new HashSet<Integer>();
+				Hashtable<String, Integer> has = new Hashtable<String, Integer>();
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
 
 				writer.println("TYPE\tQC_METRIC\t" + Array.toStr(selector.getpResiduals().getPcTitles()));
@@ -93,9 +166,31 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 					ranks.add(sRank);
 					writer.println("SIG\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getSigs()));
 					writer.println("STAT\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getStats()));
+					double bonf = (double) absStatMin / LrrSd.NUMERIC_COLUMNS.length * selector.getpResiduals().getPcTitles().length;
+
 					for (int i = 0; i < sRank.getStats().length; i++) {
-						if (has.add(i + 1) && Math.abs(sRank.getStats()[i]) > absStatMin) {
+						boolean add = false;
+						if (!has.containsKey((i + 1) + "")) {
+							switch (selType) {
+							case EFFECTIVE_M_CORRECTED:
+
+								break;
+							case P_VAL:
+								break;
+							case STAT:
+								if (Math.abs(sRank.getStats()[i]) > absStatMin) {
+									add = true;
+
+								}
+								break;
+							default:
+								proj.getLog().reportTimeError("Invalid selection type " + selType);
+								break;
+							}
+						}
+						if (add) {
 							sigPCs.add(i + 1);
+							has.put((i + 1) + "", (i + 1));
 						}
 					}
 				}
@@ -119,14 +214,13 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 				}
 
 				writer.close();
-				String title = "QC_Association: n=" + sigPCs.size() + " PCs at abs(r) > "+absStatMin;
+				String title = "QC_Association: n=" + sigPCs.size() + " PCs at abs(r) > " + absStatMin;
 				RScatter rScatter = new RScatter(outputT, outputT + ".rscript", ext.rootOf(outputT), outputT + ".pdf", "PC", Array.concatAll(minMax, LrrSd.NUMERIC_COLUMNS), SCATTER_TYPE.POINT, proj.getLog());
 				rScatter.setyLabel(sType.toString());
 				rScatter.setOverWriteExisting(true);
 				rScatter.setxLabel("PC");
 				rScatter.setTitle(title);
 				rScatter.execute();
-
 				rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatter);
 			} catch (Exception e) {
 				proj.getLog().reportError("Error writing to " + output);
@@ -188,7 +282,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			System.exit(1);
 		}
 		Project proj = new Project(filename, false);
-		select(proj, absStatMin,STAT_TYPE.SPEARMAN_CORREL);
+		select(proj, absStatMin, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.STAT);
 		try {
 		} catch (Exception e) {
 			e.printStackTrace();

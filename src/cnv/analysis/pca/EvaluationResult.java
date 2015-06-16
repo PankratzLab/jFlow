@@ -1,13 +1,21 @@
 package cnv.analysis.pca;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
+import link.Heritability;
 import cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
 import cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
 import cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
+import cnv.filesys.Project;
+import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
+import common.ext;
 import stats.ICC;
 
 class EvaluationResult implements Serializable {
@@ -135,6 +143,90 @@ class EvaluationResult implements Serializable {
 	public static EvaluationResult[] readSerial(String fileName, Logger log) {
 		return (EvaluationResult[]) Files.readSerial(fileName, false, log, false, true);
 	}
+
+	
+	
+	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, String serFile) {
+		Logger log = proj.getLog();
+		EvaluationResult[] evaluationResults = readSerial(serFile, log);
+		log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
+		String db = ext.rootOf(serFile, false) + ".heritability.dat";
+		String crf = ext.rootOf(serFile, false) + ".heritability.crf";
+		generateHeritabilityDb(proj, evaluationResults, db, ped, crf, log);
+		Heritability.fromParameters(crf, log);
+		EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
+		return evalHeritabilityResult;
+	}
+
+	public static class EvalHeritabilityResult {
+		private String ped;
+		private String db;
+		private String crf;
+
+		public EvalHeritabilityResult(String ped, String db, String crf) {
+			super();
+			this.ped = ped;
+			this.db = db;
+			this.crf = crf;
+		}
+
+		public String getPed() {
+			return ped;
+		}
+
+		public String getDb() {
+			return db;
+		}
+
+		public String getCrf() {
+			return crf;
+		}
+	}
+	
+	
+	
+
+	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, String output,String ped, String crf,Logger log) {
+		log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db " + output);
+		log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
+
+		try {
+			Hashtable<String , String > pedHash = HashVec.loadFileToHashString(ped, 6, new int[]{0,1,2,3,4,5}, "\t", false);
+			String[] samples = proj.getSamples();
+			String[] titles = new String[results.length];
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			writer.print("IID\tFID");
+			for (int i = 0; i < results.length; i++) {
+				writer.print("\t" + i);
+				titles[i] = i + "";
+			}
+			writer.println();
+
+			for (int i = 0; i < samples.length; i++) {
+				if (pedHash.containsKey(samples[i])) {
+				String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
+					writer.print(fidIid[1]+"\t"+fidIid[0]);
+					for (int j = 0; j < results.length; j++) {
+						writer.print("\t" + results[j].getEstimateData()[i]);
+					}
+					writer.println();
+
+				} else {
+					log.reportTimeWarning("Skipping sample " + samples[i] + " , did not see in ped file");
+				}
+			}
+
+			writer.close();
+			Heritability.developCrf(ped, output, crf, ext.rootOf(output), Array.subArray(titles, 0, 4), log);
+		} catch (Exception e) {
+			log.reportError("Error writing to " + output);
+			log.reportException(e);
+		}
+	}
+	
+	
+	
+	
 
 	// @Override
 	// public String[] getIndexKeys() {
