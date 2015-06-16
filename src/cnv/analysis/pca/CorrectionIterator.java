@@ -216,14 +216,14 @@ class CorrectionIterator {
 					break;
 				case QC_ASSOCIATION:
 
-					SelectionResult result = PCSelector.v(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL,SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
+					SelectionResult result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL,SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
 					order = result.getOrder();
 					if (result == null || order.length < 1) {
 						log.reportTimeError("Could not select PCs from QC metrics, trying again");
 						Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
 						new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
 						LrrSd.init(proj, null, null, numthreads);
-						result = PCSelector.select(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
+						result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
 						order = result.getOrder();
 						if (order.length < 1) {
 							return null;
