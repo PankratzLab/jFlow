@@ -21,6 +21,7 @@ public class DosageData implements Serializable {
 	public static final int MINIMAC_DOSE_FORMAT = 5;
 	public static final int IMPUTE2_DOSE_FORMAT = 6;
 	public static final int DATABASE_DOSE_FORMAT = 7;
+	public static final int BEAGLE_DOSE_FORMAT = 8; // not currently included in determineType
 
 	public static final int MACH_ID_TYPE = 0;
 	public static final int SEPARATE_FILE_ID_TYPE = 1;
@@ -46,6 +47,7 @@ public class DosageData implements Serializable {
 											  {MACH_ID_TYPE,          2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
 											  {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT,     3, 0, 1,  3,  4, -1,  2, 0, 1, 3, 3}, // .impute2
 											  {FID_IID_TYPE,          3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,  3,  4, -1,  2, 0, 6, 3, 3}, // .db.xln
+											  {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT,     3, 1, 0,  1,  2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
 	};
 
 	private SnpMarkerSet markerSet;
@@ -1015,9 +1017,10 @@ public class DosageData implements Serializable {
 		"        2   .fhsR     input file for GWAF\n" + 
 		"        3   .dosage   input file for PLINK\n" + 
 		"        4   .mlprob   MACH style .mlprob file\n" + 
-		"        5   .dosage   output from MINIMAC\n" + 
+		"        5   .dose     output from MINIMAC\n" + 
 		"        6   .impute2  output from IMPUTE2\n" + 
 		"        7   .db.xln   database format\n" + 
+		"        8   .dose     BEAGLE format\n" + 
 		"        [Files may also be zipped or gzipped]" +
 		"";
 

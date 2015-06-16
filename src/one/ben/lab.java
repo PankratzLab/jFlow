@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -692,6 +693,51 @@ public class lab {
 		
 	}
 	
+	private static void processSNPPositions(String file, String out) throws IOException {
+	    BufferedReader reader = Files.getAppropriateReader(file);
+        PrintWriter writer = Files.getAppropriateWriter(out);
+        
+        String line = reader.readLine();
+        writer.println(line);
+        while((line = reader.readLine()) != null) {
+            String[] parts = line.split("[\\s]+");
+            
+            String rs = parts[0];
+            
+            if (rs.indexOf(":") != -1) {
+                String[] sub = rs.split(":");
+                writer.println(rs + "\t" + sub[0] + "\t" + sub[1]);
+            } else {
+                writer.println(line);
+            }
+            
+        }
+        
+        writer.flush();
+        writer.close();
+	}
+	
+	private static void orderAlleles(String file, String out) throws IOException {
+	    BufferedReader reader = Files.getAppropriateReader(file);
+	    PrintWriter writer = Files.getAppropriateWriter(out);
+	    
+	    String line = null;
+	    while((line = reader.readLine()) != null) {
+	        String[] parts = line.split("[\\s]+");
+	        
+	        String rs = parts[0];
+	        String a1 = parts[1];
+	        String a2 = parts[2];
+	        String ma = parts[3];
+	        
+	        String oa = ma.equalsIgnoreCase(a1) ? a2 : a1;
+	        writer.println(rs + " " + ma + " " + oa);
+	    }
+	    
+	    writer.flush();
+	    writer.close();
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
@@ -701,9 +747,25 @@ public class lab {
 		
 		boolean test = true;
 		if (test) {
-		    String str1 = "rs4378200";
-		    String str2 = "rs4378200";
-		    System.out.println(str1.compareTo(str2));
+		    
+		    String dir = "F:/CARDIA processing/";
+		    
+		    String[] files = (new File(dir)).list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith("positions.xln");
+                }
+            });
+		    
+		    for (String file2 : files) {
+		        try {
+                    processSNPPositions(dir + file2, dir + ext.rootOf(file2) + ".proc.xln");
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+		    }
+		    
 		    return;
 		}
 		
