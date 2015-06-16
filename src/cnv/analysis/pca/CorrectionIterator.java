@@ -1,10 +1,14 @@
 package cnv.analysis.pca;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.GEOM_POINT_SIZE;
@@ -20,7 +24,9 @@ import common.Files;
 import common.Logger;
 import common.PSF;
 import common.WorkerTrain;
+import common.WorkerTrain.Producer;
 import common.ext;
+import cnv.analysis.pca.PCSelector.SELECTION_TYPE;
 import cnv.analysis.pca.PCSelector.SelectionResult;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
@@ -128,7 +134,9 @@ class CorrectionIterator {
 			log.reportTimeInfo("Model building type: " + bType);
 
 			PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
+			pcResiduals.fillInMissing();
 			pcResiduals.setMarkersToAssessFile(markesToEvaluate);
+
 			pcResiduals.setHomozygousOnly(true);
 			pcResiduals.computeAssessmentDataMedians();
 			boolean[] samplesForModels = null;
@@ -208,14 +216,14 @@ class CorrectionIterator {
 					break;
 				case QC_ASSOCIATION:
 
-					SelectionResult result = PCSelector.select(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL);
+					SelectionResult result = PCSelector.v(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL,SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
 					order = result.getOrder();
 					if (result == null || order.length < 1) {
 						log.reportTimeError("Could not select PCs from QC metrics, trying again");
 						Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
 						new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
 						LrrSd.init(proj, null, null, numthreads);
-						result = PCSelector.select(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL);
+						result = PCSelector.select(proj, 0.10, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
 						order = result.getOrder();
 						if (order.length < 1) {
 							return null;
@@ -258,21 +266,26 @@ class CorrectionIterator {
 				}
 			}
 		}
-		return iterationResult;
+	return iterationResult;
 	}
 
 	private static class IterationResult {
+		private static final String[] MERLIN_ADDITIONS = new String[] { "NUM_PC", "PERCENT_HERITABLITY" };
 		private String outputRoot;
 		private String outputSer;
 		private String outputRank;
 		private String outputSummary;
 		private String rankRscript;
 		private String evalRscript;
+		private String heritRscript;
+		private String heritSummary;
+
 		private ITERATION_TYPE iType;
 		private MODEL_BUILDER_TYPE bType;
 		private ORDER_TYPE oType;
 		private String rankplot;
 		private String evalPlot;
+		private String heritPlot;
 		private boolean valid;
 
 		public IterationResult(String outputRoot, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType) {
@@ -306,7 +319,7 @@ class CorrectionIterator {
 			rScatter.setyRange(new double[] { -1, 1 });
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setTitle(iType + " " + bType);
-			rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
+			//rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
 			rScatter.execute();
 			rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
 			rScatter.setxRange(new double[] { 0, 50 });
@@ -314,7 +327,57 @@ class CorrectionIterator {
 			rScatter.setOutput(evalPlot);
 			rScatter.setxRange(null);
 			return rScatter;
+		}
 
+		public RScatter plotHeritability(Project proj, String pedFile, Logger log) {
+			this.heritRscript = outputRoot + "..summary.heritability.rscript";
+			this.heritPlot = outputRoot + ".summary.heritability.pdf";
+			this.heritSummary = outputRoot + ".summary.heritability_summary.parsed.xln";
+			if (pedFile != null) {
+				if (!Files.exists(heritSummary) || Files.countLines(heritSummary, false) != Files.countLines(outputSummary, false)) {
+					EvaluationResult.prepareHeritability(proj, pedFile, outputSer);
+					String tmpHerit = outputRoot + ".summary.heritability_summary.xln";
+					try {
+						BufferedReader reader = Files.getAppropriateReader(tmpHerit);
+						int merlinIndex = ext.indexOfStr("Merlin_est.", Files.getHeaderOfFile(tmpHerit, log));
+						if (merlinIndex < 0) {
+							log.reportTimeError("Could not find Merlin_est. in " + tmpHerit);
+							return null;
+						}
+						PrintWriter writer = new PrintWriter(new FileWriter(heritSummary));
+						writer.println(Array.toStr(MERLIN_ADDITIONS) + reader.readLine().trim());
+						int index = 0;
+						while (reader.ready()) {
+							String[] line = reader.readLine().trim().split("\t");
+							writer.println(index + "\t" + Double.parseDouble(line[merlinIndex].replaceAll("%", "")) + Array.toStr(line));
+						}
+						reader.close();
+						writer.close();
+					} catch (FileNotFoundException fnfe) {
+						log.reportError("Error: file \"" + tmpHerit + "\" not found in current directory");
+						return null;
+					} catch (IOException ioe) {
+						log.reportError("Error reading file \"" + tmpHerit + "\"");
+						return null;
+					} catch (Exception e) {
+						log.reportError("Error writing to " + heritSummary);
+						log.reportException(e);
+					}
+				} else {
+					log.reportFileExists(heritSummary);
+				}
+
+				RScatter rScatter = new RScatter(heritSummary, heritRscript, ext.rootOf(heritSummary), heritPlot, MERLIN_ADDITIONS[0], new String[] { MERLIN_ADDITIONS[1] }, SCATTER_TYPE.POINT, log);
+				rScatter.setyRange(new double[] { 0, 100 });
+				rScatter.setxLabel("PC (" + oType + " - sorted)");
+				rScatter.setTitle(iType + " " + bType);
+				rScatter.setyLabel("Percent Heritability");
+				rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
+				rScatter.execute();
+				return rScatter;
+			}
+
+			return null;
 		}
 
 		public void setValid(boolean valid) {
@@ -379,7 +442,7 @@ class CorrectionIterator {
 		return cIterators.toArray(new CorrectionIterator[cIterators.size()]);
 	}
 
-	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, int numthreads) {
+	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pedFile, boolean svd, int numthreads) {
 		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(400);
 		System.out.println("JDOFJSDF remember the pcs");
 		if (outputDir == null) {
@@ -394,16 +457,86 @@ class CorrectionIterator {
 
 		for (int i = 0; i < cIterators.length; i++) {
 			cIterators[i].run();
-			IterationResult iterationResult = cIterators[i].getIterationResult();
-			iterationResult.plotRank(proj.getLog());
-			RScatter rScatter = iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number" }, proj.getLog());
-			rScatters.add(rScatter);
-			rScatters.add(iterationResult.plotRank(proj.getLog()));
+			// IterationResult iterationResult = cIterators[i].getIterationResult();
+			// RScatter rScatter = iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number" }, proj.getLog());
+			// rScatters.add(rScatter);
+			// rScatters.add(iterationResult.plotRank(proj.getLog()));
+			// if (pedFile != null) {
+			// proj.getLog().reportTimeInfo("Since a ped file " + pedFile + " was provided, we will generate heritability estimates");
+			// EvaluationResult.prepareHeritability(proj, pedFile, iterationResult.getOutputSer());
+			// }
+
 		}
+		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, pedFile);
+		WorkerTrain<RScatter[]> summaryTrain = new WorkerTrain<RScatter[]>(producer, numthreads, numthreads, proj.getLog());
+		while (summaryTrain.hasNext()) {
+			RScatter[] rScattersTmp = summaryTrain.next();
+			for (int i = 0; i < rScattersTmp.length; i++) {
+				rScatters.add(rScattersTmp[i]);
+			}
+		}
+
 		String outputRoot = outputDir + "finalSummary";
 		RScatters finalScatters = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), outputRoot + ".rscript", outputRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_2, PLOT_DEVICE.PDF, proj.getLog());
 		finalScatters.execute();
 		return cIterators;
+	}
+
+	public static class IterSummaryProducer implements Producer<RScatter[]> {
+		private Project proj;
+		private CorrectionIterator[] cIterators;
+		private String pedFile;
+		private int index;
+
+		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String pedFile) {
+			super();
+			this.proj = proj;
+			this.cIterators = cIterators;
+			this.pedFile = pedFile;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			// TODO Auto-generated method stub
+			return index < cIterators.length;
+		}
+
+		@Override
+		public Callable<RScatter[]> next() {
+			final CorrectionIterator tmp = cIterators[index];
+			final Logger log = proj.getLog();
+			Callable<RScatter[]> callable = new Callable<RScatter[]>() {
+				@Override
+				public RScatter[] call() throws Exception {
+					IterationResult iterationResult = tmp.getIterationResult();
+					RScatter[] scatters = new RScatter[pedFile == null ? 2 : 3];
+					RScatter rScatterSummary = iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number" }, proj.getLog());
+					scatters[0] = rScatterSummary;
+					scatters[1] = iterationResult.plotRank(log);
+					if (pedFile != null) {
+						scatters[2] = iterationResult.plotHeritability(proj, pedFile, log);
+					}
+					return scatters;
+				}
+
+			};
+			index++;
+			return callable;
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 	public static void main(String[] args) {
@@ -414,6 +547,7 @@ class CorrectionIterator {
 		boolean svd = false;
 		int numThreads = 3;
 		String samplesToBuildModels = null;
+		String pedFile = null;
 		String usage = "\n" + "cnv.analysis.pca.CorrectionEvaluator requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + proj + " (default))\n" + "";
 		usage += "   (2) markers to Evaluate (i.e. markers=" + markers + " (default))\n" + "";
@@ -421,7 +555,7 @@ class CorrectionIterator {
 		usage += PSF.Ext.getNumThreadsCommand(4, numThreads);
 		usage += "   (5) svd regression (i.e.-svd (not default))\n" + "";
 		usage += "   (6) samples to generate models (i.e.samples= (no default))\n" + "";
-
+		usage += "   (7) ped file to generate heritability (i.e.ped= (no default))\n" + "";
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -434,6 +568,9 @@ class CorrectionIterator {
 				numArgs--;
 			} else if (args[i].startsWith("samples=")) {
 				samplesToBuildModels = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("ped=")) {
+				pedFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("-svd")) {
 				svd = true;
@@ -453,7 +590,7 @@ class CorrectionIterator {
 			System.exit(1);
 		}
 		try {
-			runAll(new Project(proj, false), markers, samplesToBuildModels, defaultDir, svd, numThreads);
+			runAll(new Project(proj, false), markers, samplesToBuildModels, defaultDir, pedFile, svd, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

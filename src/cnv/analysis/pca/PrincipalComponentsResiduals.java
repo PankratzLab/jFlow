@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+
 import stats.CrossValidation;
 import stats.LeastSquares;
 import stats.RegressionModel;
@@ -220,6 +221,10 @@ public class PrincipalComponentsResiduals implements Cloneable {
 		this.assesmentData = new double[projectOrderMedians.length];
 		int sampleIndex = 0;
 		for (int i = 0; i < allProjSamples.length; i++) {
+//			System.out.println(samplesToUse[i]);
+//			System.out.println(allProjSamples[i]);
+//			System.out.println(projectOrderMedians[sampleIndex]);
+//			System.out.println(assesmentData.length);
 			if (samplesToUse[i]) {
 				assesmentData[samplesInPc.get(allProjSamples[i])] = projectOrderMedians[sampleIndex];
 				sampleIndex++;
@@ -1194,9 +1199,58 @@ public class PrincipalComponentsResiduals implements Cloneable {
 			// TODO Auto-generated method stub
 
 		}
-
 	}
 
+	/**
+	 * Reformats the pcBasis so that the pcs are in strict project order, with missing samples set to Nan.<br>
+	 * Only valid for a subset of the samples, i.e. PCs cannot contain non-project samples<br>
+	 */
+	public void fillInMissing() {
+		String[] samples = proj.getSamples();
+		if (ext.containsAll(samples, samplesInPc.keySet().toArray(new String[samplesInPc.size()]))) {
+			log.reportTimeInfo("All project samples detected in pc file");
+		} else {
+			Arrays.fill(samplesToUse, true);
+			log.reportTimeInfo("Reformatting pc basis");
+
+			double[][] tmpBasis = new double[numComponents][samples.length];
+			Hashtable<String, Integer> tmpSampsInPC = new Hashtable<String, Integer>();
+			int[] sampleMap = new int[samples.length];
+			Arrays.fill(sampleMap, -1);
+			for (int i = 0; i < samples.length; i++) {
+				if (ext.indexOfStr(samples[i], samples) < 0) {
+					throw new IllegalStateException("All sample must come from the project " + proj.getPropertyFilename() + " , did not find " + samples[i] + " in the project");
+				} else if (samplesInPc.containsKey(samples[i])) {
+					sampleMap[i] = samplesInPc.get(samples[i]);
+					tmpSampsInPC.put(samples[i], i);
+				} else {
+					// samplesToUse[i] = false;
+					tmpSampsInPC.put(samples[i], i);
+				}
+			}
+			log.reportTimeInfo("Filling in missing samples with NaN");
+
+			for (int i = 0; i < pcBasis.length; i++) {
+
+				for (int j = 0; j < samples.length; j++) {
+					if (sampleMap[j] >= 0) {
+						tmpBasis[i][j] = pcBasis[i][sampleMap[j]];
+					} else {
+						tmpBasis[i][j] = Double.NaN;
+					}
+				}
+			}
+			log.reportTimeInfo(Array.booleanArraySum(samplesToUse) + " project samples had PC values, " + (samples.length - Array.booleanArraySum(samplesToUse)) + " samples were set to NaN");
+
+			samplesInPc = tmpSampsInPC;
+			samplesToReport = samples;
+			allProjSamples = samples;
+			pcBasis = tmpBasis;
+			sortedByProject = true;
+			System.out.println(samplesInPc.size() + ": hash samples ; " + samplesToReport.length + " report Samples");
+			System.out.println(allProjSamples.length + ": project samples ; " + pcBasis[0].length + " pc Samples");
+		}
+	}
 }
 // int trainIndex = 0;
 // for (int i = 0; i < proj.getSamples().length; i++) {

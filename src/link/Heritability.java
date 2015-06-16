@@ -2,10 +2,12 @@ package link;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import parse.GenParser;
 import stats.RegressionModel;
 import common.*;
+import common.WorkerTrain.Producer;
 import filesys.FamilyStructure;
 
 public class Heritability {
@@ -366,6 +368,65 @@ public class Heritability {
 		}
 	}
 	
+	
+	
+	public static class HeritabilityProducer implements Producer<String> {
+
+		@Override
+		public boolean hasNext() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public Callable<String> next() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+	
+	/**
+	 * For internal generation of heritability .crfs
+	 * 
+	 * @param pedfile
+	 *            ped file
+	 * @param db
+	 *            db file
+	 * @param crf
+	 *            full path to the desired crf
+	 * @param modelRoot
+	 *            will be concatenated with models[i]
+	 * @param models
+	 * @param log
+	 */
+	public static void developCrf(String pedfile, String db, String crf, String modelRoot, String[] models, Logger log) {
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(crf));
+			writer.println("heritability");
+			writer.println("ped=" + pedfile);
+			writer.println("db=" + db);
+			for (int i = 0; i < models.length; i++) {
+				writer.println(modelRoot + "_" + models[i] + "\t" + models[i]);
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + crf);
+			log.reportException(e);
+		}
+	}
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
