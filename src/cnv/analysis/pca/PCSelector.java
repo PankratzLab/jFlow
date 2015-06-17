@@ -1,6 +1,8 @@
 package cnv.analysis.pca;
 
+import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -9,8 +11,11 @@ import java.util.Iterator;
 import common.Array;
 import common.ext;
 import stats.SimpleM;
+import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
+import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
+import stats.SimpleM.MODE;
 import stats.StatsCrossTabs.STAT_TYPE;
 import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
@@ -60,7 +65,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 
 	public int determineEffectiveNumberOfTests() {
 		SimpleM.Builder builder = new SimpleM.Builder();
-
+		builder.verbose(false);
 		SimpleM simpleMQcVar = builder.build(sampleQC.getQcMatrix(), proj.getLog());
 		int effQc = simpleMQcVar.determineM();
 		SimpleM simpleMPCVar = builder.build(pResiduals.getPcBasis(), proj.getLog());
@@ -109,139 +114,152 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		EFFECTIVE_M_CORRECTED;
 	}
 
-	public static SelectionResult v(Project proj, double filterValue, STAT_TYPE sType, SELECTION_TYPE selType) {
+	public static SelectionResult select(Project proj, double filterValue, STAT_TYPE sType, SELECTION_TYPE selType) {
 		PCSelector selector = new PCSelector(proj, sType);
 		ArrayList<Integer> sigPCs = new ArrayList<Integer>();
 		SelectionResult rankResult = null;
-		ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
+		StatsCrossTabRank[] ranks = new StatsCrossTabRank[LrrSd.NUMERIC_COLUMNS.length];
 
 		if (selector.isValid()) {
 			proj.getLog().reportTimeInfo("Stat type: " + sType);
 			proj.getLog().reportTimeInfo("Selection type: " + selType);
 
+			int index = 0;
 			while (selector.hasNext()) {
-				ranks.add(selector.next());
+				ranks[index] = selector.next();
+				index++;
 			}
+			String title = "QC_Association: ";
+
 			switch (selType) {
 			case EFFECTIVE_M_CORRECTED:
 				int numTests = selector.determineEffectiveNumberOfTests();
 				proj.getLog().reportTimeInfo("Controling type I error at " + filterValue + "; " + filterValue + "/" + numTests + " = " + ((double) filterValue / numTests));
+			//	String originalP = filterValue + "";
 				filterValue = (double) filterValue / numTests;
+				title += "p < " + ext.prettyP(filterValue) + " (" + numTests + " tests)";
 				proj.getLog().reportTimeInfo("Filter value : " + filterValue);
 				break;
 			case P_VAL:
 				proj.getLog().reportTimeInfo("Filter value : " + filterValue);
+				title += "p < " + ext.prettyP(filterValue);
 				break;
 			case STAT:
 				proj.getLog().reportTimeInfo("Filter value : " + filterValue);
+				title += "abs(r) > " + filterValue;
 				break;
 			default:
 				proj.getLog().reportTimeError("Invalid selection type " + selType);
 				break;
 
 			}
-		}
+			Hashtable<String, Integer> has = new Hashtable<String, Integer>();
 
-		return rankResult;
-
-	}
-
-	public static SelectionResult select(Project proj, double absStatMin, STAT_TYPE sType, SELECTION_TYPE selType) {
-
-		PCSelector selector = new PCSelector(proj, sType);
-		ArrayList<Integer> sigPCs = new ArrayList<Integer>();
-		SelectionResult rankResult = null;
-		if (selector.isValid()) {
-			double filterValue = Double.NaN;
-
-			String output = ext.addToRoot(proj.INTENSITY_PC_FILENAME.getValue(), ".significantPCs");
-			try {
-				ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
-				Hashtable<String, Integer> has = new Hashtable<String, Integer>();
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
-
-				writer.println("TYPE\tQC_METRIC\t" + Array.toStr(selector.getpResiduals().getPcTitles()));
-				while (selector.hasNext()) {
-					StatsCrossTabRank sRank = selector.next();
-					ranks.add(sRank);
-					writer.println("SIG\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getSigs()));
-					writer.println("STAT\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getStats()));
-					double bonf = (double) absStatMin / LrrSd.NUMERIC_COLUMNS.length * selector.getpResiduals().getPcTitles().length;
-
-					for (int i = 0; i < sRank.getStats().length; i++) {
-						boolean add = false;
-						if (!has.containsKey((i + 1) + "")) {
-							switch (selType) {
-							case EFFECTIVE_M_CORRECTED:
-
-								break;
-							case P_VAL:
-								break;
-							case STAT:
-								if (Math.abs(sRank.getStats()[i]) > absStatMin) {
-									add = true;
-
-								}
-								break;
-							default:
-								proj.getLog().reportTimeError("Invalid selection type " + selType);
-								break;
+			for (int i = 0; i < ranks.length; i++) {
+				StatsCrossTabRank sRank = ranks[i];
+				for (int j = 0; j < sRank.getStats().length; j++) {
+					boolean add = false;
+					if (!has.containsKey((j + 1) + "")) {
+						switch (selType) {
+						case EFFECTIVE_M_CORRECTED:
+							if (sRank.getSigs()[j] < filterValue) {
+								add = true;
 							}
-						}
-						if (add) {
-							sigPCs.add(i + 1);
-							has.put((i + 1) + "", (i + 1));
+							break;
+						case P_VAL:
+							if (sRank.getSigs()[j] < filterValue) {
+								add = true;
+							}
+							break;
+						case STAT:
+							if (Math.abs(sRank.getStats()[j]) > filterValue) {
+								add = true;
+							}
+							break;
+						default:
+							proj.getLog().reportTimeError("Invalid selection type " + selType);
+							break;
 						}
 					}
+					if (add) {
+						sigPCs.add(j + 1);
+						has.put((j + 1) + "", (j + 1));
+					}
 				}
-				writer.close();
-				proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + absStatMin);
-				String[] minMax = new String[] { "Min_" + sType, "Max_" + sType };
-				String outputT = ext.addToRoot(output, ".transposedStat");
-				writer = new PrintWriter(new FileWriter(outputT));
-				writer.print("PCTitle\tPC\t" + Array.toStr(minMax));
-				for (int i = 0; i < ranks.size(); i++) {
-					writer.print("\t" + ranks.get(i).getRankedTo());
-				}
-				writer.println();
-				String[] titles = selector.getpResiduals().getPcTitles();
-				for (int i = 0; i < titles.length; i++) {
-					writer.print(titles[i] + "\t" + (i + 1) + "\t" + (-1 * absStatMin) + "\t" + absStatMin);
-					for (int j = 0; j < ranks.size(); j++) {
-						writer.print("\t" + ranks.get(j).getStats()[i]);
+			}
+			
+			int[] finalSelection = Array.toIntArray(sigPCs);
+			proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + filterValue);
+			
+			String dir = proj.PROJECT_DIRECTORY.getValue()+"PC_QC/";
+			new File(dir).mkdirs();
+			String base = ext.removeDirectoryInfo(proj.INTENSITY_PC_FILENAME.getValue());
+			
+			String outputAll = dir + ext.addToRoot(base, ".QC_assoc.all");
+			String outputSelect = dir + ext.addToRoot(base, ".QC_assoc.selected");
+			String outputBoth = dir + ext.addToRoot(base, ".QC_assoc");
+
+			String[] titles = summarize(ranks, selector.getpResiduals().getPcTitles(), null, outputAll);
+			summarize(ranks, selector.getpResiduals().getPcTitles(), finalSelection, outputSelect);
+
+			RScatter rScatterAll = plot(proj, sType, " n=" + selector.getpResiduals().getPcTitles().length + " total PCs", outputAll, titles);
+			RScatter rScatterSelect = plot(proj, sType, title + "; n=" + sigPCs.size() + " QC PCs", outputSelect, titles);
+
+			RScatters rScatters = new RScatters(new RScatter[] { rScatterAll, rScatterSelect }, outputBoth + ".rscript", outputBoth + ".pdf", null, PLOT_DEVICE.PDF, proj.getLog());
+			rScatters.execute();
+			rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatterAll, rScatterSelect);
+
+		}
+		return rankResult;
+	}
+
+	private static RScatter plot(Project proj, STAT_TYPE sType, String title, String output, String[] titles) {
+		RScatter rScatter = new RScatter(output, output + ".rscript", ext.rootOf(output), output + ".pdf", "PC", titles, SCATTER_TYPE.POINT, proj.getLog());
+		rScatter.setyLabel(sType.toString());
+		rScatter.setOverWriteExisting(true);
+		rScatter.setxLabel("PC");
+		rScatter.setTitle(title);
+		return rScatter;
+	}
+
+	private static String[] summarize(StatsCrossTabRank[] ranks, String[] titles, int[] sigPCs, String output) {
+		ArrayList<String> titleSummary = new ArrayList<String>();
+
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			writer.print("PCTitle\tPC");
+			for (int i = 0; i < ranks.length; i++) {
+				titleSummary.add(ranks[i].getRankedTo());
+				writer.print("\t" + ranks[i].getRankedTo() + "\t" + ranks[i].getRankedTo() + "_p");
+			}
+			writer.println();
+			for (int i = 0; i < titles.length; i++) {
+				if (sigPCs == null || ext.indexOfInt((i + 1), sigPCs) >= 0) {
+					writer.print(titles[i] + "\t" + (i + 1));
+					for (int j = 0; j < ranks.length; j++) {
+						writer.print("\t" + ranks[j].getStats()[i] + "\t" + ranks[j].getSigs()[i]);
 					}
 					writer.println();
 				}
-
-				writer.close();
-				String title = "QC_Association: n=" + sigPCs.size() + " PCs at abs(r) > " + absStatMin;
-				RScatter rScatter = new RScatter(outputT, outputT + ".rscript", ext.rootOf(outputT), outputT + ".pdf", "PC", Array.concatAll(minMax, LrrSd.NUMERIC_COLUMNS), SCATTER_TYPE.POINT, proj.getLog());
-				rScatter.setyLabel(sType.toString());
-				rScatter.setOverWriteExisting(true);
-				rScatter.setxLabel("PC");
-				rScatter.setTitle(title);
-				rScatter.execute();
-				rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatter);
-			} catch (Exception e) {
-				proj.getLog().reportError("Error writing to " + output);
-				proj.getLog().reportException(e);
 			}
-
-		} else {
-			proj.getLog().reportTimeError("Could not select QC associated PCs...");
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return rankResult;
-
+		return titleSummary.toArray(new String[titleSummary.size()]);
 	}
+
+
 
 	public static class SelectionResult {
 		private int[] order;
-		private RScatter rScatter;
+		private RScatter rScatterAll, rScatterSelect;
 
-		public SelectionResult(int[] order, RScatter rScatter) {
+		public SelectionResult(int[] order, RScatter rScatterAll, RScatter rScatterSelect) {
 			super();
 			this.order = order;
-			this.rScatter = rScatter;
+			this.rScatterAll = rScatterAll;
+			this.rScatterSelect = rScatterSelect;
 		}
 
 		public int[] getOrder() {
@@ -249,7 +267,11 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		}
 
 		public RScatter getrScatter() {
-			return rScatter;
+			return rScatterAll;
+		}
+
+		public RScatter getrScatterSelect() {
+			return rScatterSelect;
 		}
 
 	}
@@ -282,7 +304,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			System.exit(1);
 		}
 		Project proj = new Project(filename, false);
-		select(proj, absStatMin, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.STAT);
+		//select(proj, absStatMin, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.STAT);
 		try {
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -290,3 +312,91 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 	}
 
 }
+
+//public static SelectionResult select(Project proj, double absStatMin, STAT_TYPE sType, SELECTION_TYPE selType) {
+//
+//	PCSelector selector = new PCSelector(proj, sType);
+//	ArrayList<Integer> sigPCs = new ArrayList<Integer>();
+//	SelectionResult rankResult = null;
+//	if (selector.isValid()) {
+//		double filterValue = Double.NaN;
+//
+//		String output = ext.addToRoot(proj.INTENSITY_PC_FILENAME.getValue(), ".significantPCs");
+//		try {
+//			ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
+//			Hashtable<String, Integer> has = new Hashtable<String, Integer>();
+//			PrintWriter writer = new PrintWriter(new FileWriter(output));
+//
+//			writer.println("TYPE\tQC_METRIC\t" + Array.toStr(selector.getpResiduals().getPcTitles()));
+//			while (selector.hasNext()) {
+//				StatsCrossTabRank sRank = selector.next();
+//				ranks.add(sRank);
+//				writer.println("SIG\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getSigs()));
+//				writer.println("STAT\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getStats()));
+//				double bonf = (double) absStatMin / LrrSd.NUMERIC_COLUMNS.length * selector.getpResiduals().getPcTitles().length;
+//
+//				for (int j = 0; j < sRank.getStats().length; j++) {
+//					boolean add = false;
+//					if (!has.containsKey((j + 1) + "")) {
+//						switch (selType) {
+//						case EFFECTIVE_M_CORRECTED:
+//
+//							break;
+//						case P_VAL:
+//							break;
+//						case STAT:
+//							if (Math.abs(sRank.getStats()[j]) > absStatMin) {
+//								add = true;
+//
+//							}
+//							break;
+//						default:
+//							proj.getLog().reportTimeError("Invalid selection type " + selType);
+//							break;
+//						}
+//					}
+//					if (add) {
+//						sigPCs.add(j + 1);
+//						has.put((j + 1) + "", (j + 1));
+//					}
+//				}
+//			}
+//			writer.close();
+//			proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + absStatMin);
+//			String[] minMax = new String[] { "Min_" + sType, "Max_" + sType };
+//			String outputT = ext.addToRoot(output, ".transposedStat");
+//			writer = new PrintWriter(new FileWriter(outputT));
+//			writer.print("PCTitle\tPC\t" + Array.toStr(minMax));
+//			for (int i = 0; i < ranks.size(); i++) {
+//				writer.print("\t" + ranks.get(i).getRankedTo());
+//			}
+//			writer.println();
+//			String[] titles = selector.getpResiduals().getPcTitles();
+//			for (int i = 0; i < titles.length; i++) {
+//				writer.print(titles[i] + "\t" + (i + 1) + "\t" + (-1 * absStatMin) + "\t" + absStatMin);
+//				for (int j = 0; j < ranks.size(); j++) {
+//					writer.print("\t" + ranks.get(j).getStats()[i]);
+//				}
+//				writer.println();
+//			}
+//
+//			writer.close();
+//			String title = "QC_Association: n=" + sigPCs.size() + " PCs at abs(r) > " + absStatMin;
+//			RScatter rScatter = new RScatter(outputT, outputT + ".rscript", ext.rootOf(outputT), outputT + ".pdf", "PC", Array.concatAll(minMax, LrrSd.NUMERIC_COLUMNS), SCATTER_TYPE.POINT, proj.getLog());
+//			rScatter.setyLabel(sType.toString());
+//			rScatter.setOverWriteExisting(true);
+//			rScatter.setxLabel("PC");
+//			rScatter.setTitle(title);
+//			rScatter.execute();
+//			//rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatter);
+//		} catch (Exception e) {
+//			proj.getLog().reportError("Error writing to " + output);
+//			proj.getLog().reportException(e);
+//		}
+//
+//	} else {
+//		proj.getLog().reportTimeError("Could not select QC associated PCs...");
+//	}
+//	return rankResult;
+//
+//}
