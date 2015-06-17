@@ -3,6 +3,9 @@ package gwas;
 import java.io.*;
 import java.util.*;
 
+import cnv.filesys.Project;
+import cnv.plots.TwoDPlot;
+import cnv.plots.TwoDPlot.ScreenToCapture;
 import stats.LeastSquares;
 import mining.Transformations;
 import common.*;
@@ -137,6 +140,33 @@ public class PhenoPrep {
 
 		prep.writeFinalFile(dir+outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, idFile, finalHeader);
 		prep.summarizeCentralMoments(idFile);
+		
+		boolean histogram = true;
+		if (histogram) {
+		    String header;
+            try {
+                BufferedReader reader = Files.getAppropriateReader(dir + filename);
+                header = reader.readLine();
+                String delim = ext.determineDelimiter(header);
+    		    String[] parts = header.split(delim);
+    		    int idIndex = ext.indexOfStr(idColName, parts);
+    		    int dataIndex = ext.indexOfStr(pheno, parts);
+    		    
+    		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false);
+    		    ArrayList<ScreenToCapture> screens = new ArrayList<ScreenToCapture>();
+    		    float minx = 0, maxx = 5, miny = 0, maxy = 5;
+    		    screens.add(new ScreenToCapture(new String[]{filename, null, null}, new int[]{dataIndex, 0, 0}, new int[]{idIndex, 0, 0}, new float[]{minx, maxx, miny, maxy}, false, false, false, true));
+    		    tdp.createScreenshots(dir, screens);
+    		    tdp.windowClosing(null);
+            } catch (FileNotFoundException fnfe) {
+                log.reportError("Error: file \"" + filename + "\" not found in current directory");
+                log.reportException(fnfe);
+            } catch (IOException ioe) {
+                log.reportError("Error reading file \"" + filename + "\"");
+                log.reportException(ioe);
+            }
+		}
+		
 	}
 	
 	private void summarizeCentralMoments(String idFile) {
