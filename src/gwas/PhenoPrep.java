@@ -21,7 +21,7 @@ public class PhenoPrep {
 	private int numAboveUpperThreshold;
 	private Logger log;
 
-	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean fastFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
+	public static void parse(String dir, String filename, String idColName, String[] phenos, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covars, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean fastFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String[] outputs, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, boolean histogram, Logger log) {
 		if (phenos == null) {
 			log.reportError("Error - phenos is null");
 			return;
@@ -33,12 +33,12 @@ public class PhenoPrep {
 			return;
 		} else {
 			for (int i = 0; i < phenos.length; i++) {
-				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covars, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs[i], finalHeader, addintercept, sort, zscore, signZ, histogram, log);
 			}
 		}
 	}
 
-	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean fastFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, Logger log) {
+	public static void parse(String dir, String filename, String idColName, String pheno, String transform, double sdThreshold, boolean winsorize, boolean remove, boolean makeResids, boolean afterResids, boolean inverseNormalize, String covarList, String idFile, boolean matchIdOrder, boolean plinkFormat, boolean pedFormat, boolean fastFormat, boolean excludeMissingValues, boolean variablesAllInOneFile, String extras, String outFile, boolean finalHeader, boolean addintercept, boolean sort, boolean zscore, boolean signZ, boolean histogram, Logger log) {
 		PhenoPrep prep;
 		String[] covars;
 		
@@ -141,7 +141,6 @@ public class PhenoPrep {
 		prep.writeFinalFile(dir+outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, idFile, finalHeader);
 		prep.summarizeCentralMoments(idFile);
 		
-		boolean histogram = true;
 		if (histogram) {
 		    String header;
             try {
@@ -716,7 +715,7 @@ public class PhenoPrep {
 		}
 	}
 	
-	public static void summarizeAll(String dir, String idColName, String phenosCommaDelimited, String covarsCommaDelimited, int normalization, String idFile) {
+	public static void summarizeAll(String dir, String idColName, String phenosCommaDelimited, String covarsCommaDelimited, int normalization, String idFile, boolean histogram) {
 		PrintWriter writer;
 		String[] phenos, transforms;
 		Logger log;
@@ -795,7 +794,7 @@ public class PhenoPrep {
 								log.report(outFile);
 								outFile += ".csv";
 								if (!Files.exists(dir+outFile)) {
-									PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, false, false, false, false, true, true, null, outFile, true, false, false, normalize, normSigned, log);
+									PhenoPrep.parse(dir, phenos[i]+".csv", idColName, phenos[i], transforms[j], 3.0, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, false, false, false, false, true, true, null, outFile, true, false, false, normalize, normSigned, histogram, log);
 								}
 								if (Files.exists(dir+outFile)) {
 									rawData = HashVec.loadFileToStringArray(dir+outFile, false, true, new int[] {1}, false, false, Files.determineDelimiter(dir+outFile, log));
@@ -855,6 +854,7 @@ public class PhenoPrep {
 		boolean pedFormat = false;
 		boolean fastFormat = false;
 		boolean excludeMissingValues = false;
+		boolean histogram = true;
 
 //		dir = "";
 //		filename = "N:/statgen/BOSS/phenotypes/PhenoPrep/taste/Taste_withOtherIDs.xln";
@@ -942,6 +942,7 @@ public class PhenoPrep {
 				"	(24) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n" +
 				"	(25) convert final phenotype into a z-score (i.e. zscore=" + zscore + " (default))\n" +
 				"	(26) z-score uses positive-only (mirrored) and negative-only (mirrored) distributions to compute the standard deviation for the z-scores (i.e. signZ="+signZ+" (default))\n" +
+				"   (27) create a histogram of the phenotype data (i.e. histogram="+histogram+" (default))\n" + 
 				"  OR:\n" +
 				"	 (6) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n" +
 				"	 (7) include normalization transformations (i.e. normalization="+normalization+" (default; 0=none, 1=standard, 2=standard and sign-specific stdevs))\n" +
@@ -1006,6 +1007,9 @@ public class PhenoPrep {
 			} else if (args[i].startsWith("match=")) {
 				matchIdOrder = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("histogram=")) {
+			    histogram = ext.parseBooleanArg(args[i]);
+			    numArgs--;
 			} else if (args[i].startsWith("plinkFormat=")) {
 				plinkFormat = ext.parseBooleanArg(args[i]);
 				numArgs--;
@@ -1060,11 +1064,11 @@ public class PhenoPrep {
 		
 		try {
 			if (summarizeAll) {
-				summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile);
+				summarizeAll(dir, idColName, phenos, covarsCommaDelimited, normalization, idFile, histogram);
 			} else if (phenos.contains(",")) {
-				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs, finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos.split(","), transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outputs, finalHeader, addintercept, sort, zscore, signZ, histogram, log);
 			} else {
-				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outFile, finalHeader, addintercept, sort, zscore, signZ, log);
+				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove, makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras, outFile, finalHeader, addintercept, sort, zscore, signZ, histogram, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
