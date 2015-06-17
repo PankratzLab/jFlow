@@ -113,8 +113,8 @@ class CorrectionIterator {
 
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		IterationResult iterationResult = new IterationResult(output, iType, oType, bType);
-		if (!Files.exists(iterationResult.getOutputSer()) || oType == ORDER_TYPE.QC_ASSOCIATION) {
-
+		if (!Files.exists(iterationResult.getOutputSer()) ) {
+			//|| oType == ORDER_TYPE.QC_ASSOCIATION
 			//
 			// iterationResult.plotRank(log);
 			// iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX","PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001","PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, log);

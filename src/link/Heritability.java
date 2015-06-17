@@ -281,7 +281,8 @@ public class Heritability {
 	    			} else {
 	    				root = line[0];
 	    				root = ext.replaceWithLinuxSafeCharacters(root, false);
-	    				new File(root).mkdirs();
+	    				
+	    				new File(dir+root).mkdirs();
 
 	    				dbDelimiter = Files.determineDelimiter(dbFile, log);
 	    				dbHeader = Files.getHeaderOfFile(dbFile, dbDelimiter, log);
@@ -296,8 +297,9 @@ public class Heritability {
 	    				
 	    				numNotInPed = 0;
 						counter = new CountHash();
-	    				try {
-							writer = new PrintWriter(new FileWriter(root+"/pheno.dat"));
+						try {
+							System.out.println(dir + root + "/pheno.dat");
+							writer = new PrintWriter(new FileWriter(dir + root + "/pheno.dat"));
 							writer.println("FID\tIID\t"+line[1]);
 							for (int j = 0; j < use.length; j++) {
 								if (use[j]) {
