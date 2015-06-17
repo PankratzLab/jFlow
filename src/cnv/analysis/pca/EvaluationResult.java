@@ -144,8 +144,6 @@ class EvaluationResult implements Serializable {
 		return (EvaluationResult[]) Files.readSerial(fileName, false, log, false, true);
 	}
 
-	
-	
 	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, String serFile) {
 		Logger log = proj.getLog();
 		EvaluationResult[] evaluationResults = readSerial(serFile, log);
@@ -182,16 +180,13 @@ class EvaluationResult implements Serializable {
 			return crf;
 		}
 	}
-	
-	
-	
 
-	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, String output,String ped, String crf,Logger log) {
+	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, String output, String ped, String crf, Logger log) {
 		log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db " + output);
 		log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
 
 		try {
-			Hashtable<String , String > pedHash = HashVec.loadFileToHashString(ped, 6, new int[]{0,1,2,3,4,5}, "\t", false);
+			Hashtable<String, String> pedHash = HashVec.loadFileToHashString(ped, 6, new int[] { 0, 1, 2, 3, 4, 5 }, "\t", false);
 			String[] samples = proj.getSamples();
 			String[] titles = new String[results.length];
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
@@ -204,8 +199,8 @@ class EvaluationResult implements Serializable {
 
 			for (int i = 0; i < samples.length; i++) {
 				if (pedHash.containsKey(samples[i])) {
-				String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
-					writer.print(fidIid[1]+"\t"+fidIid[0]);
+					String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
+					writer.print(fidIid[1] + "\t" + fidIid[0]);
 					for (int j = 0; j < results.length; j++) {
 						writer.print("\t" + results[j].getEstimateData()[i]);
 					}
@@ -217,15 +212,12 @@ class EvaluationResult implements Serializable {
 			}
 
 			writer.close();
-			Heritability.developCrf(ped, output, crf, ext.rootOf(output), Array.subArray(titles, 0, 4), log);
+			Heritability.developCrf(ped, output, crf, ext.rootOf(output), titles, log);
 		} catch (Exception e) {
 			log.reportError("Error writing to " + output);
 			log.reportException(e);
 		}
 	}
-	
-	
-	
 	
 
 	// @Override
