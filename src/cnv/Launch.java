@@ -29,12 +29,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EXIT = "Exit";
 	public static final String EDIT = "Project Properties";
 	public static final String REFRESH = "Refresh";
+	public static final String PIPELINE = "Genvisis Project Pipeline";
 
 	public static final String MAP_FILES = "Map .csv files to IDs";
 	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
 	public static final String PARSE_FILES_CSV = "Parse .csv files";
 	public static final String TRANSPOSE_DATA = "Transpose data";
-	public static final String KITANDKABOODLE = "Kit and Kaboodle";
+//	public static final String KITANDKABOODLE = "Kit and Kaboodle";
 	public static final String MITOPIPELINE = "MitoPipeline";
 
 	public static final String CHECK_SEX = "Check sex";
@@ -75,7 +76,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String TEST = "Test new program";
 	
 	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
-			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, KITANDKABOODLE}, // , MITOPIPELINE
+			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
 			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, TEST},
@@ -334,8 +335,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	private JPanel topIconBar() {
 		JPanel iconBar;
 		JButton button;
-		String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg", "images/forestPlot1.png"};
-		String[] commands = {"", EDIT, REFRESH, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD, FOREST_PLOT};
+		String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/gen_pipe_1.png", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg", "images/forestPlot1.png"};
+		String[] commands = {"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD, FOREST_PLOT};
 		
 		iconBar = new JPanel();
 		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -578,8 +579,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //						MitoPipeline.guiLauncher(proj);
 //					}
 //				});
-			} else if (command.equals(KITANDKABOODLE)) {
-			    
+			} else if (command.equals(PIPELINE)) {
 			    KitAndKaboodle kAndK = new KitAndKaboodle(proj);
 			    kAndK.showDialogAndRun();
 
@@ -671,6 +671,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
 			log.report("Refreshed list of projects");
+		} else if (command.equals(PIPELINE)) {
+
+            final KitAndKaboodle kAndK = new KitAndKaboodle(proj);
+            kAndK.showDialogAndRun();
+            
+		} else if (command.equals("New")) {
+		    
+		    final KitAndKaboodle kAndK = new KitAndKaboodle(null);
+		    kAndK.showDialogAndRun();
+		    
 		} else if (command.endsWith(" ")) {
 			for (int i=0; i<projects.length; i++) {
 				if (command.equals(ext.rootOf(projects[i])+" ")) {

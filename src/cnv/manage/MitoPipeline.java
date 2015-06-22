@@ -43,11 +43,11 @@ public class MitoPipeline {
 	private static final String DNA_LINKER = "DNA";
 	private static final String MARKERS_TO_QC_FILE = "markers_to_QC.txt";
 	private static final String MARKERS_FOR_ABCALLRATE = "markers_ABCallRate.txt";
-	private static final String PCA_SAMPLES = ".samples.USED_PC.txt";
+	protected static final String PCA_SAMPLES = ".samples.USED_PC.txt";
 	private static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
 	private static final String PCA_FINAL_REPORT = ".finalReport.txt";
 	private static final String[] SPLITS = { "\t", "," };
-	private static final String PROJECT_EXT = ".properties";
+	public static final String PROJECT_EXT = ".properties";
 	private static final String DEFUALT_QC_FILE = "lrr_sd.xln";
 	private static final String PC_MARKER_COMMAND = "PCmarkers=";
 	private static final String MEDIAN_MARKER_COMMAND = "medianMarkers=";
@@ -264,19 +264,23 @@ public class MitoPipeline {
 	 * @param log
 	 *            Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead Note: if sample data already exists, we leave it alone
 	 */
-	public static void createSampleData(String pedFile, String sampleMapCsv, Project proj) {
+	public static int createSampleData(String pedFile, String sampleMapCsv, Project proj) {
 		String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		if (sampleMapCsv == null && pedFile == null && !Files.exists(sampleDataFilename)) {
 			proj.getLog().report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: " + sampleDataFilename);
 			SampleData.createMinimalSampleData(proj);
+			return 0;
 		} else if (!Files.exists(sampleDataFilename)) {
 			if (pedFile != null) {
 				generateSampleDataPed(proj, pedFile);
+				return 1;
 			} else {
 				generateSampleDataMap(proj, sampleMapCsv);
+				return 2;
 			}
 		} else {
 			proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename + ", skipping sampleData creation");
+			return -1;
 		}
 	}
 
@@ -943,7 +947,8 @@ public class MitoPipeline {
 	 * We use the Individual class as input so that we only need one method to generate the sample data
 	 */
 	public static void generateSampleData(Project proj, Individual[] inds) {
-		String sampleDataFile = proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
+//		String sampleDataFile = proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
+		String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, true);
 		Logger log = proj.getLog();
 
 		try {
@@ -956,10 +961,10 @@ public class MitoPipeline {
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + sampleDataFile + "\" could not be written to (it's probably open)");
+			log.reportError("Error: file \"" + sampleDataFile + "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + sampleDataFile + "\"");
+			log.reportError("Error reading file \"" + sampleDataFile + "\"");
 			log.reportException(ioe);
 		}
 	}
@@ -980,7 +985,9 @@ public class MitoPipeline {
 		ArrayList<Individual> al = new ArrayList<Individual>();
 		try {
 			BufferedReader reader = Files.getReader(pedFile, false, true, false);
-			line = reader.readLine().trim().split(SPLITS[0]);
+			String temp = reader.readLine().trim();
+			String delim = ext.determineDelimiter(temp);
+			line = temp.split(delim);
 			int[] indices = ext.indexFactors(PED_INPUT, line, true, false);
 			for (int i = 0; i < indices.length; i++) {
 				if (indices[i] < 0) {
@@ -989,7 +996,7 @@ public class MitoPipeline {
 				}
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split(SPLITS[0]);
+				line = reader.readLine().trim().split(delim);
 				al.add(new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]));
 			}
 			reader.close();
@@ -1182,6 +1189,8 @@ public class MitoPipeline {
 		usage += "   Editing the project properties file can be useful when a command line option is not available\n";
 
 		usage += "";
+		
+		
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {

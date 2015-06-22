@@ -47,7 +47,7 @@ public class DosageData implements Serializable {
 											  {MACH_ID_TYPE,          2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
 											  {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT,     3, 0, 1,  3,  4, -1,  2, 0, 1, 3, 3}, // .impute2
 											  {FID_IID_TYPE,          3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,  3,  4, -1,  2, 0, 6, 3, 3}, // .db.xln
-											  {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT,     3, 1, 0,  1,  2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
+											  {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT,     1, 1, 0,  1,  2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
 	};
 
 	private SnpMarkerSet markerSet;

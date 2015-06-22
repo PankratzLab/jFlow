@@ -540,10 +540,10 @@ public class ParseIllumina implements Runnable {
 				};
 				
 				response = JOptionPane.showOptionDialog(null, 
-						"Marker data (at least the first file 'markers.0.mdRAF') have already been parsed.\n"+
+						"Marker data files (at least the first file 'markers.0.mdRAF') have already been parsed.\n"+
 						"This happens if you had previously transposed the data or if the parser was interrupted and manually restarted.\n"+
 						"If you would like to start from scratch, select \"Delete All\" earlier files.\n"+
-						"Otherwise, press cancel.\n"+
+						"Otherwise, press Cancel.\n"+
 						"What would you like to do?"
 					, "Marker data exists", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[1]);
 
@@ -570,10 +570,10 @@ public class ParseIllumina implements Runnable {
 				};
 				
 				response = JOptionPane.showOptionDialog(null, 
-						"These data (at least the first sample '"+sampleName+"') have already been parsed.\n"+
+						"Sample data files (at least the first sample '"+sampleName+"') have already been parsed.\n"+
 						"This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"+
 						"If you would like to start from scratch, select \"Delete All\" earlier files.\n"+
-						"Otherwise, cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis.\n"+
+						"Otherwise, Cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis.\n"+
 						"What would you like to do?"
 					, "Samples already exist", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[2]);
 
@@ -584,6 +584,7 @@ public class ParseIllumina implements Runnable {
 					deleteAllFilesInSampleDirectory(proj);
 					break;
 				case 1:
+				    // TODO complete 'customize' option for sample parsing
 					// keep "outlier.ser"
 					break;
 				case 2:

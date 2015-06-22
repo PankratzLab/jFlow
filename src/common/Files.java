@@ -1662,6 +1662,7 @@ public class Files {
         			huge = ext.parseBooleanArg(line[i]);
         		} else if (line[i].startsWith("forceStep=")) {
         			step = ext.parseIntArg(line[i]);
+        			System.out.println("Set step to " + step);
         		} else {
         			log.reportError("Error - don't know what to do with argument: "+line[i]);
         		}
