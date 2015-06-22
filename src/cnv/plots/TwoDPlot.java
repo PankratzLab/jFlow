@@ -1362,7 +1362,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 	
 	
-	static class ScreenToCapture {
+	public static class ScreenToCapture {
 		String dataXFile;
 		String dataYFile;
 		String colorFile;
@@ -1507,7 +1507,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return caps;
 	}
 	
-	private void createScreenshots(String baseDir, ArrayList<ScreenToCapture> screens) {
+	public void createScreenshots(String baseDir, ArrayList<ScreenToCapture> screens) {
 		this.generatingScreenshots = true;
 		HashSet<String> dataFiles = new HashSet<String>();
 

@@ -15,6 +15,11 @@ import java.awt.event.ActionEvent;
 
 public class JAccordionPanel extends JPanel {
 
+    /**
+     * Auto-generated svUID
+     */
+    private static final long serialVersionUID = 1L;
+
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -47,7 +52,7 @@ public class JAccordionPanel extends JPanel {
         topPanel.add(panel, "east");
         panel.setLayout(new MigLayout("", "[]", "[]"));
         
-        expandoButton = new JButton(DOWN);
+        expandoButton = new JButton(UP);
         panel.add(expandoButton, "cell 0 0");
         expandoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -58,7 +63,7 @@ public class JAccordionPanel extends JPanel {
                 }
             }
         });
-        expandoButton.setMargin(new Insets(0, 2, 0, 2));
+        expandoButton.setMargin(new Insets(0, 5, 0, 5));
         
         contentPanel = new JPanel();
         add(contentPanel, "cell 0 0,grow");

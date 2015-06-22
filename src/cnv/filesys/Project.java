@@ -31,13 +31,13 @@ import filesys.GeneSet;
 
 public class Project {
 
-	private static String[] verifyFiles(String[] strs, boolean isDir) {
-		String[] verified = new String[strs.length];
-		for (int i = 0; i < strs.length; i++) {
-			verified[i] = isDir ? ext.verifyDirFormat(strs[i]) : ext.replaceAllWith(strs[i], "\\", "/");
-		}
-		return verified;
-	}
+//	private static String[] verifyFiles(String[] strs, boolean isDir) {
+//		String[] verified = new String[strs.length];
+//		for (int i = 0; i < strs.length; i++) {
+//			verified[i] = isDir ? ext.verifyDirFormat(strs[i]) : ext.replaceAllWith(strs[i], "\\", "/");
+//		}
+//		return verified;
+//	}
 	
 	public abstract static class Property<T> {
 		private final Project myProj;

@@ -467,7 +467,11 @@ class CNVPanel extends JPanel implements ActionListener {
 				}
 
 				String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
-				new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(), markerPosition);
+				// TODO errors if IDs is null
+				String[] ids = sampleData.lookup(trailerID);
+				String id = ids[0];
+				String[] fns = proj.CNV_FILENAMES.getValue();
+				new Trailer(proj, id, fns, markerPosition);
 			}
 		}
 	}
