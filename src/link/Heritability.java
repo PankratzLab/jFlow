@@ -83,9 +83,13 @@ public class Heritability {
 			}
 			
 			writer.close();
-			new LinkageMap(1, new String[] {"rs007"}, 2, new double[] {1}, false, false).createFile();
-			Merlin.createMerlinFiles(1, dir+"chr01", Merlin.QUANTITATIVE_TRAIT, covarHeader);
-			new File("map01.dat").delete();
+			new LinkageMap(1, new String[] { "rs007" }, 2, new double[] { 1 }, false, false).createFileInDir(dir);
+			Merlin.createMerlinFiles(dir, 1, dir + "chr01", Merlin.QUANTITATIVE_TRAIT, covarHeader);
+			// System.exit(1);
+			// if (Files.exists("map01.dat")) {
+			// new File("map01.dat").delete();
+			// }
+
 			try {
 				CmdLine.run(merlinExec+" -d chr01.dat -p re_chrom01.pre -m chr01.map --vc"+(covarHeader.length>0?" --useCovariates":"")+" --bits 1000 --megabytes 8000 --tabulate --step 5 --markerNames --information --prefix "+prefix, dir, new PrintStream(new File(dir+prefix+"_merlin.log")));
 			} catch (IOException ioe) {
@@ -357,6 +361,7 @@ public class Heritability {
 						log.report("Number of samples: " + numOfAllSamples + "\nNumber of families: " + counter.getSize() + "\nNumber of families of size>=2: " + numOfFamiliesSizedTwoOrAbove + "\nAverage size of families of size>=2: " + ext.formDeci((numOfAllSamples - numOfFamiliesSizedOne) / (float) numOfFamiliesSizedTwoOrAbove, 3) + "\nNumber of families of size=1: " + numOfFamiliesSizedOne);
 //						summary.println(root + "\t" + merlinEstimate + "\t" + solarEstimate[0] + "\t" + solarEstimate[1] + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
 						summary.println(root + "\t" + merlinEstimate + "\t\t\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + numOfFamiliesSizedOne);
+						summary.flush();
 						log.report("");
 	    			}
 				}				
