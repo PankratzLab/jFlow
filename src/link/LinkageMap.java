@@ -243,6 +243,9 @@ public class LinkageMap {
 		createFile(filename, currentlyInMorgans);
 	}
 
+	public void createFileInDir(String dir) {
+		createFile(dir + "map" + ext.chrome(chr) + ".dat", currentlyInMorgans);
+	}
 	public void createFile() {
 		createFile("map"+ext.chrome(chr)+".dat", currentlyInMorgans);
 	}

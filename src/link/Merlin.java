@@ -116,15 +116,19 @@ public class Merlin {
 	public static void createMerlinFiles(int chr, int trait) {
 		createMerlinFiles(chr, "chr"+ext.chrome(chr), trait, null);
 	}
-	
+
 	public static void createMerlinFiles(int chr, String root, int trait, String[] covariateNames) {
-		PrintWriter writer;
+		createMerlinFiles(null, chr, root, trait, covariateNames);
+	}
+
+	public static void createMerlinFiles(String dir, int chr, String root, int trait, String[] covariateNames) {
+	PrintWriter writer;
 		LinkageMap map;
 		String[] markerNames;
 		double[] positions;
 		double[][] alleleFreqs;
 		
-		map = new LinkageMap(chr);
+		map = dir == null ? new LinkageMap(chr) : new LinkageMap(dir, chr);
 		markerNames = map.getMarkerNames();
 		positions = map.getCumulativePositions(false);
 		alleleFreqs = map.getAlleleFreqs();

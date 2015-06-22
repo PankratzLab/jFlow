@@ -3,7 +3,9 @@ package cnv.var;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Vector;
 
 import common.Array;
 import common.Logger;
@@ -35,6 +37,50 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
 	public T[] getLoci() {
 		return loci;
+	}
+
+	public LocusSet<Segment> mergeOverlapping() {
+
+		if (!sorted) {
+			log.reportTimeError("Internal error: must sort internal segment array prior to merge");
+			return null;
+		} else {
+			byte currentChr = -1;
+			ArrayList<Segment> merged = new ArrayList<Segment>();
+			Vector<Segment> tmp = new Vector<Segment>();
+			int originalSize = loci.length;
+			for (int i = 0; i < loci.length; i++) {
+				if (loci[i].getChr() != currentChr) {
+					if (tmp.size() > 0) {
+						Segment.mergeOverlapsAndSort(tmp);
+						for (int j = 0; j < tmp.size(); j++) {
+							merged.add(tmp.get(j));
+						}
+						tmp.clear();
+					}
+				}
+				currentChr = loci[i].getChr();
+				tmp.add(loci[i]);
+
+			}
+			if (tmp.size() > 0) {
+				Segment.mergeOverlapsAndSort(tmp);
+				for (int j = 0; j < tmp.size(); j++) {
+					merged.add(tmp.get(j));
+				}
+				tmp.clear();
+			}
+			log.reportTimeInfo("Merged "+originalSize +" segments to "+merged.size());
+			LocusSet<Segment> mergedSet = new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]), true, log) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+			return mergedSet;
+		}
 	}
 
 	public int[] getOverlappingIndices(final Segment seg) {
@@ -114,6 +160,19 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		}
 
 		return newArray;
+	}
+
+	public static LocusSet<Segment> loadSegmentSetFromFile(String file, int chrCol, int startCol, int stopCol, int skipNumLines, boolean inclusiveStart, boolean inclusiveStop, int bpBuffer, Logger log) {
+		Segment[] segs = Segment.loadRegions(file, chrCol, startCol, stopCol, skipNumLines, inclusiveStart, inclusiveStop, bpBuffer);
+		LocusSet<Segment> lSet = new LocusSet<Segment>(segs, true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		return lSet;
 	}
 
 }

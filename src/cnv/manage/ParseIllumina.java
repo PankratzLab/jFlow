@@ -8,6 +8,7 @@ import javax.swing.JOptionPane;
 
 import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerData;
+import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -15,7 +16,7 @@ import cnv.filesys.SampleList;
 import common.*;
 
 public class ParseIllumina implements Runnable {
-	public static final String[][] SNP_HEADER_OPTIONS = {{"SNP Name", "rsID"}};
+	public static final String[][] SNP_HEADER_OPTIONS = {{"SNP Name", "rsID","Probe Set ID","ProbeSet"}};
 	public static final int EXP_NUM_MARKERS = 650000;
 	public static final String[] FIELDS = {"Sample ID", "Sample Name"};
 	public static final String[][] SNP_TABLE_FIELDS = {{"Name"}, {"Chr", "Chromosome"}, {"Position"}};
@@ -24,8 +25,8 @@ public class ParseIllumina implements Runnable {
     public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
     public static final String CANCEL_OPTION_FILE = ".cancel_option";
     public static final String HOLD_OPTION_FILE = ".hold_option";
-	public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";	
 
+    public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";	
 	private Project proj;
 	private String[] files;
 	private String[] markerNames;
@@ -36,6 +37,7 @@ public class ParseIllumina implements Runnable {
 	private long timeBegan;
 	private int threadId;
 	private String delimiter;
+	private boolean splitAB;
 
 	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, String delimiter, long fingerprint, Hashtable<String,String> fixes, long timeBegan) {
 		this(proj, files, markerNames, keysKeys, abLookup, delimiter, fingerprint, fixes, timeBegan, -1);
@@ -52,6 +54,8 @@ public class ParseIllumina implements Runnable {
 		this.fixes = fixes;
 		this.timeBegan = timeBegan;
 		this.threadId = threadId;
+		this.splitAB = false;
+		
 	}
 
 	public void run() {
@@ -162,6 +166,9 @@ public class ParseIllumina implements Runnable {
 								if (dataIndices[j] != -1) {
 									if (ext.isMissingValue(line[dataIndices[j]])) {
 										data[j][key] = Float.NaN;
+									} else if ((j == 3 || j == 4) && proj.XY_SCALE_FACTOR.getValue() != 1) {
+										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
+										data[j][key] = (float) (data[j][key] / proj.XY_SCALE_FACTOR.getValue());
 									} else {
 										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 									}
@@ -176,7 +183,31 @@ public class ParseIllumina implements Runnable {
 							}
 						}
 
+						if (line[genotypeIndices[0]].length() > 1) {
+							if (i == 0 && !splitAB) {
+								log.reportTimeInfo("Detected genotype calls for each allele are in the same column (Such as in Affymetrix .chp format) ");
+								splitAB = true;
+							}
+							if (splitAB) {
+								String tmp0 = line[genotypeIndices[0]].substring(0, 1);
+								String tmp1 = line[genotypeIndices[0]].substring(1, 2);
+								line[genotypeIndices[0]] = tmp0;
+								line[genotypeIndices[1]] = tmp1;
+								if (!ignoreAB) {
+									String tmp2 = line[genotypeIndices[2]].substring(0, 1);
+									String tmp3 = line[genotypeIndices[2]].substring(1, 2);
+									line[genotypeIndices[2]] = tmp2;
+									line[genotypeIndices[3]] = tmp3;
+								}
+							} else {
+								log.reportTimeError("Inconsistant genotype call lengths");
+							}
+						}else if(splitAB){
+							log.reportTimeError("Detected previously that genotype calls should be split, but the calls on line "+Array.toStr(line) +" did not");
+							return;
+						}
 						genotypes[0][key] = (byte)ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALLELE_PAIRS);
+						
 						if (genotypes[0][key] == -1) {
 							if (ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALT_NULLS) == -1) {
 								log.reportError("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+markerNames[count]+" of sample "+files[i]+"; setting to missing");
@@ -383,7 +414,7 @@ public class ParseIllumina implements Runnable {
 		Hashtable<String, Float> allOutliers;
 		Vector<String> v;
 		Logger log;
-		
+		AffyProcess affyProcess =null;
 		log = proj.getLog();
         timeBegan = new Date().getTime();
         new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+OVERWRITE_OPTION_FILE).delete();
@@ -427,6 +458,26 @@ public class ParseIllumina implements Runnable {
 		} else {
 			log.report("Did not find a 'fixes.dat' file; assuming there are no swapped samples to rename");
 		}
+		ARRAY array = proj.getArrayType();
+		switch (array) {
+		case AFFY_GW6:
+			
+			break;
+		case AFFY_GW6_CN:
+			log.reportTimeInfo("Initializing parser for array type " + array);
+			affyProcess = new AffyProcess(proj, Files.toFullPaths(files, proj.SOURCE_DIRECTORY.getValue(false, true)), delimiter, log);
+			affyProcess.matchCn();
+			affyProcess.combineFirst();
+			for (int i = 0; i < files.length; i++) {
+				files[i] = ext.removeDirectoryInfo(affyProcess.getCombinedOutputFiles()[i]);
+			}
+			break;
+		case ILLUMINA:
+			break;
+		default:
+			log.reportTimeError("Invalid array type " + array);
+			break;
+		}
 
 		try {
 			reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
@@ -447,7 +498,8 @@ public class ParseIllumina implements Runnable {
 				log.reportError("Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
 				log.reportError("   Perhaps the delimiter, which is currently set to "+proj.getProperty(proj.SOURCE_FILE_DELIMITER)+", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
 				log.reportError("   OR perhaps the ID_HEADER property is incorrect; the text '" + proj.getProperty(proj.ID_HEADER) + "' should be present in the header line.");
-				
+				log.reportError("   OR perhaps the ARRAY_TYPE property is incorrect;  options are " + Array.toStr(proj.ARRAY_TYPE.getValidOptions()));
+
 				reader.close();
 				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 				delimiterCounts = new int[DELIMITERS.length][count];
@@ -672,9 +724,14 @@ public class ParseIllumina implements Runnable {
 		keysKeys = Sort.quicksort(keys); // very important
 		fingerprint = proj.getMarkerSet().getFingerprint();
 		log.report("There are "+markerNames.length+" markers being processed (fingerprint: "+fingerprint+")");
-
+		if (proj.XY_SCALE_FACTOR.getValue() != 1) {
+			log.report("The XY_SCALE_FACTOR was set to " + proj.XY_SCALE_FACTOR.getValue() + ", scaling X and Y values...");
+		}
 		lookup = getABLookup(abLookupRequired, markerNames, proj);
 
+		if (affyProcess != null) {
+			affyProcess.combineAll(numThreads);
+		}
 		fileCabinet = new Vector<Vector<String>>();
 		for (int i = 0; i<numThreads; i++) {
 			fileCabinet.add(new Vector<String>());

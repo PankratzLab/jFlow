@@ -272,12 +272,20 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (masterMarkerList == null) {
 			loadMarkerListFromFile();
 			if (masterMarkerList == null) {
-				fail = true;
-				return;
+				String[] tmp = Array.subArray(proj.getMarkerNames(), 0, Math.min(10, proj.getMarkerNames().length));
+				Files.writeList(tmp, proj.DISPLAY_MARKERS_FILENAME.getValue());
+				loadMarkerListFromFile();
+				if (masterMarkerList == null) {
+					fail = true;
+					return;
+				} else {
+					JOptionPane.showMessageDialog(null, "Generated a temporary display file at '" + proj.DISPLAY_MARKERS_FILENAME.getValue() + "'", "Created marker list", JOptionPane.INFORMATION_MESSAGE);
+				}
 			}
 			if (masterMarkerList.length == 0) {
 //				JOptionPane.showMessageDialog(null, "Error - file '"+proj.getFilename(proj.DISPLAY_MARKERS_FILENAME)+"' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
 				JOptionPane.showMessageDialog(null, "Error - file '"+proj.DISPLAY_MARKERS_FILENAME.getValue()+"' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
+				
 				fail = true;
 				return;
 			}
