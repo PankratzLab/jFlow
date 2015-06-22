@@ -109,9 +109,15 @@ public class SampleData {
 //			filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
 			filename = proj.SAMPLE_DATA_FILENAME.getValue();
 			if (!Files.exists(filename, proj.JAR_STATUS.getValue())) {
-				proj.message("SampleData file does not exist: "+filename);
-				return;
-			}			
+				proj.message("SampleData file does not exist: " + filename);
+				SampleData.createMinimalSampleData(proj);
+				if (!Files.exists(filename, proj.JAR_STATUS.getValue())) {
+					proj.message("Could not create a minimal sample data file at: " + filename);
+					return;
+				} else {
+					proj.message("Generated a temporary sample data file at " + filename);
+				}
+			}		
 			reader = Files.getReader(filename, proj.JAR_STATUS.getValue(), true, true); // to do, don't kill?
 			header = reader.readLine().split("\t");
 			dnaIndex = ext.indexOfStr("DNA", header);

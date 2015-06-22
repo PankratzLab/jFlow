@@ -19,6 +19,8 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
+
+
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -309,6 +311,7 @@ public class Project {
 	public   BooleanProperty                          LONG_FORMAT = new    BooleanProperty(this,                          "LONG_FORMAT", "", Boolean.FALSE);
 	public   BooleanProperty           SHIFT_SEX_CHR_COLORS_YESNO = new    BooleanProperty(this,           "SHIFT_SEX_CHR_COLORS_YESNO", "", Boolean.TRUE);
 	public    DoubleProperty                         GC_THRESHOLD = new     DoubleProperty(this,                         "GC_THRESHOLD", "", 0.0, 1.0, 0.15);
+	public    DoubleProperty                      XY_SCALE_FACTOR = new     DoubleProperty(this,                         "XY_SCALE_FACTOR", "", 0.001, Double.MAX_VALUE, 1);
 	public    DoubleProperty                         LRRSD_CUTOFF = new     DoubleProperty(this,                         "LRRSD_CUTOFF", "", 0.0, 3.0, 0.32);
 	public   IntegerProperty                          NUM_THREADS = new    IntegerProperty(this,                          "NUM_THREADS", "", 1, 99, 1);
 	public   IntegerProperty              QQ_MAX_NEG_LOG10_PVALUE = new    IntegerProperty(this,              "QQ_MAX_NEG_LOG10_PVALUE", "", 1, 10000, 100);
@@ -372,7 +375,8 @@ public class Project {
 	public StringListProperty                        QQ_FILENAMES = new StringListProperty(this,                         "QQ_FILENAMES", "", "", true, false);
 	public StringListProperty                 PLINK_DIR_FILEROOTS = new StringListProperty(this,                  "PLINK_DIR_FILEROOTS", "", "", true, false);
 	public      EnumProperty                SOURCE_FILE_DELIMITER = new       EnumProperty(this,                "SOURCE_FILE_DELIMITER", "", 0, "COMMA", "TAB", "SPACE");	
-	
+	public      EnumProperty                ARRAY_TYPE            = new       EnumProperty(this,                "ARRAY_TYPE", "", 0, ARRAY.ILLUMINA.toString(), ARRAY.AFFY_GW6.toString(), ARRAY.AFFY_GW6_CN.toString());	
+
 	private String projectPropertiesFilename;
 	private SampleList sampleList;
 	private SampleData sampleData;
@@ -1170,4 +1174,59 @@ public class Project {
 		}
 		return tmp.toArray(new String[tmp.size()]);
 	}
+	
+	
+	public ARRAY getArrayType() {
+		return ARRAY.valueOf(ARRAY_TYPE.getValue());
+	}
+	/**
+	 * Used for determining how to import, compute LRR, etc
+	 *
+	 */
+	public enum ARRAY {
+
+		/**
+		 * Your friendly Illumina arrays
+		 */
+		ILLUMINA(new String[] { "cnvi" }), /**
+		 * Supports CHP format 
+		 */
+		AFFY_GW6(new String[] { "CN_" }),
+		/**
+		 * Supports CHP and CNCHP formated input
+		 */
+		AFFY_GW6_CN(new String[] { "CN_" });
+
+		/**
+		 * Used for copy number only probe-set identification
+		 */
+		private String[] cnFlags;
+
+		private ARRAY(String[] cnFlags) {
+			this.cnFlags = cnFlags;
+		}
+
+		public String[] getCnFlags() {
+			return cnFlags;
+		}
+
+		public void setCnFlags(String[] cnFlags) {
+			this.cnFlags = cnFlags;
+		}
+
+		/**
+		 * @param markerName
+		 * @return whether the marker trips the {@link ARRAY#cnFlags} flags
+		 */
+		public boolean isCNOnly(String markerName) {
+			for (int i = 0; i < cnFlags.length; i++) {
+				if (ext.indexOfStartsWith(cnFlags[i], new String[] { markerName }, false) >= 0) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+	}
+	
 }
