@@ -202,6 +202,7 @@ public class Project {
 		public String getValue(boolean mkdirs, boolean verbose) {
 			return getValue(null, mkdirs, verbose);
 		}
+		// TODO NP asks: When is this subdir option ever used?
 		public String getValue(String subdir, boolean mkdirs, boolean verbose) {
 			String valu = super.getValue();
 			if (valu.contains("~")) {
