@@ -4,7 +4,11 @@ import java.io.*;
 
 import common.*;
 
-public class Histogram {
+public class Histogram implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public final static int DEFAULT_WINDOW = 7;
 	public final static float DEFAULT_PEAK_THRESHOLD = 0.02f;
 	
@@ -341,7 +345,12 @@ public class Histogram {
 	 * Extension of {@link Histogram} that allows data to be added on the fly, useful when there are many millions of data points that do not need to be kept in memory
 	 *
 	 */
-	public static class DynamicHistogram extends Histogram {
+	public static class DynamicHistogram extends Histogram implements Serializable {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		public DynamicHistogram(double min, double max, int sigfigs) {
 			super(min, max, sigfigs);
@@ -370,6 +379,35 @@ public class Histogram {
 				dynamicHistograms[i] = new DynamicHistogram(min, max, sigFigs);
 			}
 			return dynamicHistograms;
+		}
+
+		/**
+		 * @param histograms
+		 *            must be the same length
+		 */
+		public static void dumpToSameFile(DynamicHistogram[] histograms, String[] titles, String output,boolean proportion, Logger log) {
+			if (histograms.length != titles.length) {
+				log.reportTimeError("Titles and histogram array must be the same length");
+			}
+			try {
+				double[] totals = new double[histograms.length];
+				for (int i = 0; i < totals.length; i++) {
+					totals[i] = proportion ? Array.sum(histograms[i].getCounts()) : 1;
+				}
+				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				writer.println("Bin\t" + Array.toStr(titles));
+				for (int i = 0; i < histograms[0].getBins().length; i++) {
+					writer.print(histograms[0].getBins()[i]);
+					for (int j = 0; j < histograms.length; j++) {
+						writer.print("\t" + (proportion ? histograms[j].getCounts()[i] / totals[j] : histograms[j].getCounts()[i]));
+					}
+					writer.println();
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + output);
+				log.reportException(e);
+			}
 		}
 	}
 
