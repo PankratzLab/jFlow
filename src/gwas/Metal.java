@@ -790,6 +790,10 @@ public class Metal {
 
 			fileParameters[0] = "genes.txt" + " 0=MarkerName 1=Chr 2=Position 3=Gene(s)";
 			Files.combine(hitList, fileParameters, null, "MarkerName", ".", "topHits.xln", log, true, true, false);
+
+			String[][] results = HitWindows.determine("topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
+            Files.writeMatrix(results, "topHitWindows.out", "\t");
+			
 		}
 	}
 	

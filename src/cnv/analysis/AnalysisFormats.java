@@ -66,7 +66,7 @@ public class AnalysisFormats implements Runnable {
 		final String sampleDir;
 		final Logger log = proj.getLog();
 		
-		dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true) + (subDir == null ? "" : subDir);
+		dir = proj.PENNCNV_DATA_DIRECTORY.getValue(false, false) + (subDir == null ? "" : subDir);
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 		new File(dir).mkdirs();
 		jar = proj.JAR_STATUS.getValue();
@@ -172,7 +172,7 @@ public class AnalysisFormats implements Runnable {
 
 		inclSampAll = proj.getSamplesToInclude(null);
 		if (!sampleData.hasExcludedIndividuals()) {
-			log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
+			log.report("Warning - there is no 'Exclude' column in SampleData.txt; centroids will be determined using all samples.");
 		}
 		samples = proj.getSamples();
 		sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
@@ -406,7 +406,7 @@ public class AnalysisFormats implements Runnable {
 		return centroids;
 	}
 	
-	public static String[] pennCNVSexHackMultiThreaded(Project proj, String gcModelFile, boolean useExcluded) {
+	public static String[] pennCNVSexHackMultiThreaded(Project proj, String gcModelFile, boolean useExcluded, int threadCount) {
 		String sampleDataFile;
 		final String sampleDir;
 		String sexDir, pennDir, pennData;
@@ -486,7 +486,7 @@ public class AnalysisFormats implements Runnable {
 		if (!useExcluded) {
 			includeSamplesList = proj.getSamplesToInclude(null);
 			if (!sampleData.hasExcludedIndividuals()) {
-				log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
+				log.report("Warning - there is no 'Exclude' column in SampleData.txt; centroids will be determined using all samples.");
 			}
 			allSamples = Array.subArray(proj.getSamples(), includeSamplesList);
 		} else {
@@ -508,8 +508,9 @@ public class AnalysisFormats implements Runnable {
 		}
 		sexData = HashVec.loadFileToHashVec(sampleDataFile, 0, new int[] { sexInd }, "\t", true, false);
 		
-		
-		int threadCount = Runtime.getRuntime().availableProcessors();
+		if (threadCount == -1) {
+			threadCount = Runtime.getRuntime().availableProcessors();
+		}
 
 		final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues = new ConcurrentLinkedQueue[threadCount];
 		for (int i = 0; i < threadCount; i++) {
@@ -675,7 +676,7 @@ public class AnalysisFormats implements Runnable {
 		
 		inclSampAll = proj.getSamplesToInclude(null);
 		if (!sampleData.hasExcludedIndividuals()) {
-			log.report("Warning – there is no ‘Exclude’ column in SampleData.txt; centroids will be determined using all samples.");
+			log.report("Warning - there is no 'Exclude' column in SampleData.txt; centroids will be determined using all samples.");
 		}
 		samples = proj.getSamples();//Array.subArray(proj.getSamples(), inclSampAll);
 		sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);

@@ -29,7 +29,7 @@ public class PennCNV {
 		projDir = proj.PROJECT_DIRECTORY.getValue();
 		execDir = proj.PENNCNV_EXECUTABLE_DIRECTORY.getValue(false, true);
 		pennDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
-		dataDir = pennDir + proj.getProperty(proj.PENNCNV_DATA_DIRECTORY) + dataSubDir;
+		dataDir = proj.PENNCNV_DATA_DIRECTORY.getValue(false, true) + dataSubDir;
 		resultsDir = pennDir + resultsSubDir;
 		
 		if (pfbFile != null) {
@@ -55,13 +55,20 @@ public class PennCNV {
 		}
 		
 		new File(resultsDir).mkdirs();
+		new File(dataDir).mkdirs();
 		
 		files = new File(dataDir).list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
 				return file.length()>1000;
 			}
 		});
-		log.report("Found "+files.length+" files");
+		
+		if (files==null) {
+			log.reportError("Found zero files in "+dataDir);
+			log.reportError("Will not proceed");
+			return;
+		}
+		log.report("Found "+files.length+" files in "+dataDir);
 
 		step = (int)Math.ceil((double)files.length/(double)numBatches);
 		log.report("Which means the step for "+numBatches+" batches would be "+step);
@@ -86,6 +93,8 @@ public class PennCNV {
 		init = "cd "+dataDir;
 		commands = execDir+"detect_cnv.pl -test -conf -hmm "+execDir+"lib/hhall.hmm -pfb "+(pfbFile==null?execDir+"lib/hhall.hg18.pfb":pfbFile)+" -gcmodel "+(gcmodelFile==null?execDir+"lib/hhall.hg18.gcmodel":gcmodelFile)+" -list "+resultsDir+"list[%0].txt -log "+resultsDir+"[%0].log -out "+resultsDir+"[%0].rawcnv > "+resultsDir+"[%0].out";
 
+		new File(pennDir + scriptSubDir).mkdirs();
+		
 		if (qsub) {
 			Files.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numBatches, commands, Matrix.toMatrix(Array.stringArraySequence(numBatches, "")), 2200, 16);
 		} else {
@@ -113,7 +122,7 @@ public class PennCNV {
 		projDir = proj.PROJECT_DIRECTORY.getValue();
 		execDir = proj.PENNCNV_EXECUTABLE_DIRECTORY.getValue(false, true);
 		pennDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
-		dataDir = pennDir + proj.getProperty(proj.PENNCNV_DATA_DIRECTORY) + dataSubDir;
+		dataDir = proj.PENNCNV_DATA_DIRECTORY.getValue(false, true) + dataSubDir;
 		resultsDir = pennDir + resultsSubDir;
 		
 //		if (!Files.exists(proj.getFilename("SAMPLE_DATA_FILENAME", false, false), proj.getJarStatus())) {
@@ -152,6 +161,7 @@ public class PennCNV {
 		}
 		
 		new File(resultsDir).mkdirs();
+		new File(dataDir).mkdirs();
 		
 		String newGCFile = dataDir + "chrX.gcModel";
 		String newPFBFile = dataDir + "chrX.pfb";
@@ -195,6 +205,8 @@ public class PennCNV {
 		init = "cd " + dataDir;
 		commands = execDir + "detect_cnv.pl -test -conf -hmm " + execDir + "lib/hhall.hmm -pfb " + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel " + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile) + " -chrx -sexfile " + dataDir + "sex_file.txt -list " + resultsDir + "list[%0].txt -log " + resultsDir + "[%0].log -out " + resultsDir + "[%0].rawcnv > " + resultsDir + "[%0].out";
 	
+		new File(pennDir + scriptSubDir).mkdirs();
+		
 		if (qsub) {
 			Files.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numBatches, commands, Matrix.toMatrix(Array.stringArraySequence(numBatches, "")), 2200, 16);
 		} else {
@@ -914,20 +926,32 @@ public class PennCNV {
 		}
 	}
 	
-	private static String[] getSamplesForTransform(Project proj, boolean incl, boolean excl) {
-		if (incl && excl) {
-			return proj.getSamples();
-		} else if (incl) {
+	private static String[] getSamplesForTransform(Project proj, boolean excludeExcludeds) {
+		if (excludeExcludeds) {
 			return Array.subArray(proj.getSamples(), proj.getSamplesToInclude(null));
-		} else if (excl) {
-			return Array.subArray(proj.getSamples(), Array.booleanNegative(proj.getSamplesToInclude(null)));
-		} else return null;
+		} else {
+			return proj.getSamples();
+		}
 	}
 
-	public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent, boolean transformData, int batch, boolean qsub, String pfbFile, String gcmodelFile, boolean submitImmed, boolean createCombined, boolean useExcludes) {
+	public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent, boolean transformData, int batch, boolean qsub, String pfbFile, String gcmodelFile, boolean submitImmed, boolean createCombined, boolean useExcludes, int threadCount) {
+		boolean problem = false;
+		
+		if (pfbFile != null && !Files.exists(pfbFile)) {
+			System.err.println("Error - could not find "+pfbFile);
+			problem = true;
+		}
+		if (gcmodelFile != null && !Files.exists(gcmodelFile)) {
+			System.err.println("Error - could not find "+gcmodelFile);
+			problem = true;
+		}
+		if (problem) {
+			return;
+		}
+		
 		if (transformData) {
 			
-			String[] samples = getSamplesForTransform(proj, false, useExcludes);
+			String[] samples = getSamplesForTransform(proj, !useExcludes);
 
 			if (auto) {
 				proj.getLog().report("Transforming data for autosomal CNV analysis");
@@ -963,6 +987,7 @@ public class PennCNV {
 			// write combine script
 			String resultsDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
 			String outdir = resultsDir + "penn_scripts/";
+			new File(outdir).mkdirs();
 			String outfile = "combineAutoXCNVs";
 			Files.writeList(new String[] {
 					"cd " + resultsDir,
@@ -974,7 +999,7 @@ public class PennCNV {
 			proj.getLog().report("Transforming data for 'faked' chromosomal CNV analysis");
 			// [males.pfb, females.pfb, sexSpecific.gcModel]
 			
-			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes);
+			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes, threadCount);
 //			String[] files = AnalysisFormats.pennCNVSexHackSingleThreaded(proj, gcmodelFile);
 
 			proj.getLog().report("Creating batch scripts for 'faked' chromosomal CNV analysis");
@@ -1031,6 +1056,7 @@ public class PennCNV {
 		boolean recode = false;
 		boolean submit = false;
 		boolean excludes = false;
+		int numThreads = 1;
 		
 		String usage = "\n"+
 		"cnv.park.PennCNV requires 0-1 arguments\n"+
@@ -1043,8 +1069,9 @@ public class PennCNV {
 		"   (4) generate PennCNV scripts to analyze X Chromosome (i.e. chrx=TRUE (default))\n" + 
 		"   (5) recompute centroids of chr23-26 (X, Y, XY, MT) and recode as chr1-4 in subdirectory (i.e. sexSpecificCentroids=TRUE (default))\n" + 
 		"   (6) transform sample data into PennCNV data files (i.e. data=TRUE (default))\n"+
-		"   (7) (optional) use custom pfb file (i.e. pfb=custom.pfb (not the default))\n"+
-		"   (8) (optional) use custom gcmodel file (i.e. gcmodel=custom.gcmodel (not the default))\n"+
+		"   (7) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
+		"   (8) (optional) use custom pfb file (i.e. pfb=custom.pfb (not the default))\n"+
+		"   (9) (optional) use custom gcmodel file (i.e. gcmodel=custom.gcmodel (not the default))\n"+
 		" OR\n"+
 		"   (1) compute file containing project based b allele frequencies for file using parameters in properties file (i.e. -pfb (not the default))\n"+
 		" OR\n"+
@@ -1067,7 +1094,7 @@ public class PennCNV {
 				filename = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("batch=")) {
-				batch = Integer.parseInt(args[i].split("=")[1]);
+				batch = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("-qsub")) {
 				qsub = true;
@@ -1123,6 +1150,9 @@ public class PennCNV {
 			} else if (args[i].startsWith("-useExcluded")) {
 				excludes = true;
 				numArgs--;
+			} else if (args[i].startsWith("threads=")) {
+				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -1143,6 +1173,13 @@ public class PennCNV {
 //			qsub = true;
 //			pfbFile = "gedi.pfb";
 //			gcmodelFile = "gedi.gcmodel";
+//
+//			batch = 1;
+//			filename = "C:/data/FarrarMike/default.properties";
+//			qsub = true;
+//			pfbFile = "C:/data/FarrarMike/custom.pfb";
+//			gcmodelFile = "C:/data/FarrarMike/data/custom.gcmodel";
+//			numThreads = 5;
 			
 			proj = new Project(filename, logfile, false);
 			if (parsePFB) {
@@ -1152,7 +1189,7 @@ public class PennCNV {
 				gcModel(proj, gc5base, proj.PROJECT_DIRECTORY.getValue()+"custom.gcmodel", 100);
 			}
 			if (batch > 0) {
-				doBatch(proj, auto, chrx, sexCent, transformData, batch, qsub, pfbFile, gcmodelFile, qsub ? submit : false, recode, excludes);
+				doBatch(proj, auto, chrx, sexCent, transformData, batch, qsub, pfbFile, gcmodelFile, qsub ? submit : false, recode, excludes, numThreads);
 			}
 			if (rawlog != null) {
 				parseWarnings(proj, rawlog);
