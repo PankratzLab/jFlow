@@ -1,6 +1,7 @@
 package cnv.analysis.pca;
 
 import java.io.FileNotFoundException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
@@ -15,7 +16,11 @@ import cnv.analysis.pca.PrincipalComponentsResiduals.PrincipalComponentsIterator
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
 
-class CorrectionEvaluator implements Producer<EvaluationResult> {
+class CorrectionEvaluator implements Producer<EvaluationResult>,Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final String[] STRING_DATA = new String[] {};// CLASS Sex
 	private static final String[][] EVAL_MASKS = new String[][] { { "0", "-1", "NaN" }, { "0", "-1" } };
 	private static final String[] DOUBLE_DATA = new String[] { "AGE" };
@@ -32,10 +37,10 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 	private Logger log;
 	private boolean svd;
 
-	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, int[] order, boolean[][] samplesToExclude, double[][] extraIndeps, boolean svd) {
+	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, int[] order, boolean[][] samplesToInclude, double[][] extraIndeps, boolean svd) {
 		super();
 		this.proj = proj;
-		this.samplesToInclude = samplesToExclude;
+		this.samplesToInclude = samplesToInclude;
 		this.log = proj.getLog();
 		this.matchDouble = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), DOUBLE_DATA_PATTERN, log);
 		this.matchString = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), STRING_DATA_PATTERN, log);
@@ -46,8 +51,21 @@ class CorrectionEvaluator implements Producer<EvaluationResult> {
 
 	}
 
+	public static void serialize(CorrectionEvaluator cEvaluator, String fileName) {
+		Files.writeSerial(cEvaluator, fileName, true);
+	}
+
+	public static CorrectionEvaluator readSerial(String fileName, Logger log) {
+		return (CorrectionEvaluator) Files.readSerial(fileName, false, log, false, true);
+	}
+
 	public ExtProjectDataParser getParser() {
 		return parser;
+	}
+	
+
+	public boolean[][] getSamplesToInclude() {
+		return samplesToInclude;
 	}
 
 	@Override
