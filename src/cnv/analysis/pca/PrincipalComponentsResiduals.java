@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -16,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 
 
 import stats.CrossValidation;
@@ -42,7 +44,11 @@ import common.ext;
  * 
  *
  */
-public class PrincipalComponentsResiduals implements Cloneable {
+public class PrincipalComponentsResiduals implements Cloneable,Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final int NUM_PC_SVD_OVERIDE = 160;
 	private static final String[] MT_REPORT = { "DNA", "FID", "IID", "Sex", "median_MT_LRR_raw", "median_MT_LRR_PC_residuals", "median_MT_LRR_PC_residuals_inverseTransformed" };
 	private static final String[] MT_REPORT_EXT = { ".report.txt" };
@@ -1158,7 +1164,11 @@ public class PrincipalComponentsResiduals implements Cloneable {
 
 	}
 
-	public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals> {
+	public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals>,Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private PrincipalComponentsResiduals pcResids;
 		private int[] order;
 		private int index;

@@ -455,7 +455,7 @@ public class Rscript {
 				plot += "panel.background = element_blank())";
 				plot += title == null ? "" : "+ labs(title = \"" + title + "\")";
 				rCmd.add(plot);
-				rCmd.add("ggsave(file=\"" + output + "\", width= 8, height = 4)");
+				rCmd.add("ggsave(file=\"" + output + "\", width= 11, height = 6)");
 
 				return rCmd.toArray(new String[rCmd.size()]);
 

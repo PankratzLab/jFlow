@@ -95,9 +95,18 @@ public class LocusSets<T extends Segment> {
 			log.reportTimeInfo("Loaded " + tmp.getLoci().length + " segments from " + files[i]);
 			sets.add(tmp.mergeOverlapping());
 		}
+		
+		
 
 		LocusSets<Segment> lSets = new LocusSets<Segment>(sets, log);
 		LocusSet<Segment> union = lSets.getUnion();
+		int unionSize = union.getBpCovered();
+		for (int i = 0; i < sets.size(); i++) {
+			int curCov = sets.get(i).getBpCovered();
+			double corPerecent = (double) unionSize / curCov;
+			log.reportTimeInfo("Regions in " + files[i] + " had bp covered and " + corPerecent + " percent was in the union");
+		}
+
 		union.writeRegions(output, TO_STRING_TYPE.REGULAR, false, log);
 
 	}

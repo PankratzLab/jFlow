@@ -245,7 +245,7 @@ public class RegNovo {
 
 		PrintWriter writer = Files.getAppropriateWriter(output);
 		System.out.println(all.size());
-		String header = "CHR\tSTART\tSTOP\tID\tNUM_OFFSPRING\tAAC_OFFSPRING\tHQ_NUMOFFSPRING\tHQ_AAC_OFFSPRING\tNUM_RENTS\tAAC_RENTS\tHQ_NUM_RENTS\tHQ_AAC_RENTS\t";
+		String header = "CHR\tSTART\tSTOP\tREF\tALT\tID\tNUM_OFFSPRING\tAAC_OFFSPRING\tHQ_NUMOFFSPRING\tHQ_AAC_OFFSPRING\tNUM_RENTS\tAAC_RENTS\tHQ_NUM_RENTS\tHQ_AAC_RENTS\t";
 		header += "NUM_EXCLUDE\tAAC_EXCLUDE\t";
 		header += "GATK_FILTER\tGENVISIS_HQ_All\tGENVISIS_HQ_All_ALT";
 		header += "\t" + Array.toStr(TO_REPORT) + "\tINFO";
@@ -349,6 +349,8 @@ public class RegNovo {
 		out += vcSeg.getChr();
 		out += "\t" + vcSeg.getStart();
 		out += "\t" + vcSeg.getStop();
+		out += "\t" +vc.getReference().getDisplayString();
+		out += "\t" +vc.getAlternateAlleles().toString();
 		out += "\t" + vc.getID();
 		out += "\t" + VCOps.getAltAlleleContext(vcOff, null, log).getSampleNames().size();
 		out += "\t" + VCOps.getAAC(vcOff, null);
@@ -389,7 +391,8 @@ public class RegNovo {
 		FilterNGS readDepths = new FilterNGS(0, 0, null);
 		readDepths.setAltAlleleDepthFilter(new int[] { 5 });
 		RegNovo regNovo = new RegNovo(vcf, bams, vpop, getQualityFilter(log), getQualityFilter(log), readDepths, ext.parseDirectoryOfFile(vpopFile), log);
-		Segment[] segs = new Segment[] { new Segment("chr9:14079842-14400982"), new Segment("chr17:7571520-7590968"), new Segment("chr8:119933796-119966383") };
+		//Segment[] segs = new Segment[] { new Segment("chr9:14079842-14400982"), new Segment("chr17:7571520-7590968"), new Segment("chr8:119933796-119966383") };
+		Segment[] segs = new Segment[] {  new Segment("chr17:7571520-7590968") };
 
 		regNovo.scanAndReportSelection(segs, readDepths, getQualityFilter(log), "TP53_NFIB_TNFRSF11B");
 		regNovo.scanForDenovo();

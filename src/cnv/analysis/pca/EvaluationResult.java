@@ -144,13 +144,17 @@ class EvaluationResult implements Serializable {
 		return (EvaluationResult[]) Files.readSerial(fileName, false, log, false, true);
 	}
 
-	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, String serFile) {
+	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, boolean[] samplesToEvaluate, String serFile) {
 		Logger log = proj.getLog();
 		EvaluationResult[] evaluationResults = readSerial(serFile, log);
 		log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
 		String db = ext.rootOf(serFile, false) + ".heritability.dat";
 		String crf = ext.rootOf(serFile, false) + ".heritability.crf";
-		generateHeritabilityDb(proj, evaluationResults, db, ped, crf, log);
+//		System.out.println(db);
+//		System.out.println(crf);
+//		System.out.println(ext.rootOf(crf, false)+"_summary.xln");
+//		System.exit(1);
+		generateHeritabilityDb(proj, evaluationResults, samplesToEvaluate, db, ped, crf, log);
 		Heritability.fromParameters(crf, log);
 		EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
 		return evalHeritabilityResult;
@@ -181,10 +185,12 @@ class EvaluationResult implements Serializable {
 		}
 	}
 
-	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, String output, String ped, String crf, Logger log) {
+	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, boolean[] samplesToEvaluate, String output, String ped, String crf, Logger log) {
 		log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db " + output);
 		log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
-
+		if (samplesToEvaluate != null) {
+			log.reportTimeInfo("Using " + Array.booleanArraySum(samplesToEvaluate) + " samples that are not excluded");
+		}
 		try {
 			Hashtable<String, String> pedHash = HashVec.loadFileToHashString(ped, 6, new int[] { 0, 1, 2, 3, 4, 5 }, "\t", false);
 			String[] samples = proj.getSamples();
@@ -197,28 +203,35 @@ class EvaluationResult implements Serializable {
 			}
 			writer.println();
 
+			ArrayList<String> sampsNotSeen = new ArrayList<String>();
 			for (int i = 0; i < samples.length; i++) {
-				if (pedHash.containsKey(samples[i])) {
-					String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
-					writer.print(fidIid[1] + "\t" + fidIid[0]);
-					for (int j = 0; j < results.length; j++) {
-						writer.print("\t" + results[j].getEstimateData()[i]);
-					}
-					writer.println();
+				if (samplesToEvaluate == null || samplesToEvaluate[i]) {
+					if (pedHash.containsKey(samples[i])) {
+						String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
+						writer.print(fidIid[1] + "\t" + fidIid[0]);
+						for (int j = 0; j < results.length; j++) {
+							writer.print("\t" + results[j].getEstimateData()[i]);
+						}
+						writer.println();
 
-				} else {
-					log.reportTimeWarning("Skipping sample " + samples[i] + " , did not see in ped file");
+					} else {
+						sampsNotSeen.add(samples[i]);
+					}
 				}
 			}
 
 			writer.close();
+			if (sampsNotSeen.size() > 0) {
+				String missing = ext.addToRoot(ped, ".missing");
+				log.reportTimeWarning(sampsNotSeen.size() + " samples were not found in the ped file , writing to " + missing);
+				Files.writeList(sampsNotSeen.toArray(new String[sampsNotSeen.size()]), missing);
+			}
 			Heritability.developCrf(ped, output, crf, ext.rootOf(output), titles, log);
 		} catch (Exception e) {
 			log.reportError("Error writing to " + output);
 			log.reportException(e);
 		}
 	}
-	
 
 	// @Override
 	// public String[] getIndexKeys() {

@@ -15,7 +15,6 @@ import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
-import stats.SimpleM.MODE;
 import stats.StatsCrossTabs.STAT_TYPE;
 import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
@@ -202,8 +201,8 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			String[] titles = summarize(ranks, selector.getpResiduals().getPcTitles(), null, outputAll);
 			summarize(ranks, selector.getpResiduals().getPcTitles(), finalSelection, outputSelect);
 
-			RScatter rScatterAll = plot(proj, sType, " n=" + selector.getpResiduals().getPcTitles().length + " total PCs", outputAll, titles);
-			RScatter rScatterSelect = plot(proj, sType, title + "; n=" + sigPCs.size() + " QC PCs", outputSelect, titles);
+			RScatter rScatterAll = plot(proj, sType, " n=" + selector.getpResiduals().getPcTitles().length + " total PCs", selector.getpResiduals().getPcTitles().length + 1, outputAll, titles);
+			RScatter rScatterSelect = plot(proj, sType, title + "; n=" + sigPCs.size() + " QC PCs", selector.getpResiduals().getPcTitles().length + 1, outputSelect, titles);
 
 			RScatters rScatters = new RScatters(new RScatter[] { rScatterAll, rScatterSelect }, outputBoth + ".rscript", outputBoth + ".pdf", null, PLOT_DEVICE.PDF, proj.getLog());
 			rScatters.execute();
@@ -213,12 +212,13 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		return rankResult;
 	}
 
-	private static RScatter plot(Project proj, STAT_TYPE sType, String title, String output, String[] titles) {
+	private static RScatter plot(Project proj, STAT_TYPE sType, String title,int xmax, String output, String[] titles) {
 		RScatter rScatter = new RScatter(output, output + ".rscript", ext.rootOf(output), output + ".pdf", "PC", titles, SCATTER_TYPE.POINT, proj.getLog());
 		rScatter.setyLabel(sType.toString());
 		rScatter.setOverWriteExisting(true);
 		rScatter.setxLabel("PC");
 		rScatter.setTitle(title);
+		rScatter.setxRange(new double[] { 0, xmax  });
 		return rScatter;
 	}
 

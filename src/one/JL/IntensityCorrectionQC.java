@@ -46,7 +46,7 @@ public class IntensityCorrectionQC {
 
 		String[] allClasses = getAllClasses(classDefinitions);
 		output = proj.PROJECT_DIRECTORY.getValue() + dir + output + ".icc";
-		new File( proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
+		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		int numTests = 0;
 		for (int j = startPC; j < stopPC; j += jumpPC) {
 			numTests++;
@@ -66,7 +66,7 @@ public class IntensityCorrectionQC {
 		index = 0;
 		for (int i = startPC; i < stopPC; i += jumpPC) {
 			try {
-				allResults[index] = tmpResults.get(i+"").get();
+				allResults[index] = tmpResults.get(i + "").get();
 				index++;
 			} catch (InterruptedException e) {
 				proj.getLog().reportError("Error - when running GATK Base recalibraion on internal index " + i);
@@ -125,18 +125,23 @@ public class IntensityCorrectionQC {
 		}
 	}
 
-	private static double[] computeAt(double[] data, boolean svdRegression, PrincipalComponentsResiduals pcComponentsResiduals, ClassDefinition[] classDefinitions, boolean[] modelDefMask, int pc, Logger log) {
+	public static double[] computeAt(double[] data, boolean svdRegression, PrincipalComponentsResiduals pcComponentsResiduals, ClassDefinition[] classDefinitions, boolean[] modelDefMask, int pc, Logger log) {
 		double[] currentData = null;
 		if (pc == 0) {
 			currentData = data;
 		} else {
 			CrossValidation crossValidation = pcComponentsResiduals.getCorrectedDataAt(data, modelDefMask, pc, svdRegression, "PC" + pc, false);
 			currentData = crossValidation.getResiduals();
+			if(pc==100){
+				Files.writeList(Array.toStringArray(currentData), pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue()+"DFSD.txt");
+				System.exit(1);
+			}
 		}
 		log.report("Info - test on PC " + pc);
 		double[] iccs = new double[classDefinitions.length];
 		String summary = "";
 		summary = summary + pc;
+		String title = "";
 		for (int j = 0; j < classDefinitions.length; j++) {
 			double icc = Double.NaN;
 			if (classDefinitions[j].isValidForICC()) {
@@ -147,7 +152,10 @@ public class IntensityCorrectionQC {
 			}
 			summary = summary + "\t" + icc;
 			iccs[j] = icc;
+			title +="\t" + classDefinitions[j].getClassTitle();
 		}
+		log.report(title);
+
 		log.report(summary);
 		return iccs;
 	}
@@ -159,8 +167,8 @@ public class IntensityCorrectionQC {
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		int[] sampleSex = getSexDef(classDefinitions);
 		boolean[] samplesToUseCluster = proj.getSamplesToInclude(null);
-		output =  proj.PROJECT_DIRECTORY.getValue() + dir + output + ".icc";
-		new File( proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
+		output = proj.PROJECT_DIRECTORY.getValue() + dir + output + ".icc";
+		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		int numTests = 0;
 		for (int j = startPC; j <= stopPC; j += jumpPC) {
 			numTests++;
@@ -278,7 +286,7 @@ public class IntensityCorrectionQC {
 	}
 
 	public static void dumpToText(Project proj, String dir) {
-		String[] batches = Files.list( proj.PROJECT_DIRECTORY.getValue() + dir, ".icc", false);
+		String[] batches = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".icc", false);
 		ICCMarkerResultsBatch[] icMarkerResultsBatchs = new ICCMarkerResultsBatch[batches.length];
 		String[] classDefs = null;
 		int[] pcsTested = null;
@@ -288,7 +296,7 @@ public class IntensityCorrectionQC {
 			proj.getLog().reportError("Error - did not find any result files");
 			return;
 		}
-		icMarkerResultsBatchs[0] = ICCMarkerResultsBatch.loadSerial( proj.PROJECT_DIRECTORY.getValue() + dir + batches[0]);
+		icMarkerResultsBatchs[0] = ICCMarkerResultsBatch.loadSerial(proj.PROJECT_DIRECTORY.getValue() + dir + batches[0]);
 
 		classDefs = icMarkerResultsBatchs[0].getClasses();
 		pcsTested = icMarkerResultsBatchs[0].getPcsTested();
@@ -300,12 +308,12 @@ public class IntensityCorrectionQC {
 			icClassResults[i] = new ICCClassResults(pcsTested, classDefs[i]);
 		}
 		for (int i = 0; i < icMarkerResultsBatchs.length; i++) {
-			icMarkerResultsBatchs[i] = ICCMarkerResultsBatch.loadSerial( proj.PROJECT_DIRECTORY.getValue() + dir + batches[i]);
+			icMarkerResultsBatchs[i] = ICCMarkerResultsBatch.loadSerial(proj.PROJECT_DIRECTORY.getValue() + dir + batches[i]);
 			System.out.println(batches[i]);
 			if (icMarkerResultsBatchs[i].verify(classDefs, pcsTested)) {
 				String[] classes = icMarkerResultsBatchs[i].getClasses();
 				for (int j = 0; j < classes.length; j++) {
-					String currentOutput =  proj.PROJECT_DIRECTORY.getValue() + dir + classes[j] + "_fullResults.txt";
+					String currentOutput = proj.PROJECT_DIRECTORY.getValue() + dir + classes[j] + "_fullResults.txt";
 					try {
 						double[][] iccs = icMarkerResultsBatchs[i].getAllICCsForClass(j);
 						for (int k = 0; k < iccs.length; k++) {
@@ -327,7 +335,7 @@ public class IntensityCorrectionQC {
 		}
 		for (int i = 0; i < icClassResults.length; i++) {
 			icClassResults[i].finalizeArrays();
-			String currentOutput = proj.PROJECT_DIRECTORY.getValue()+ dir + classDefs[i] + "_summary.txt";
+			String currentOutput = proj.PROJECT_DIRECTORY.getValue() + dir + classDefs[i] + "_summary.txt";
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(currentOutput));
 				writer.println("NumMarkers\tPC\tAvgICC\tMedianICC\tStdevICC");

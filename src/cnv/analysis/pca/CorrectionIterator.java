@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -33,7 +34,11 @@ import cnv.manage.ExtProjectDataParser;
 import cnv.manage.TransposeData;
 import cnv.qc.LrrSd;
 
-class CorrectionIterator {
+class CorrectionIterator implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Project proj;
 	private String markesToEvaluate;
 	private String samplesToBuildModels;
@@ -110,11 +115,12 @@ class CorrectionIterator {
 
 	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, int numthreads) {
 		Logger log = proj.getLog();
-
+		CorrectionEvaluator cEvaluator = null;
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		IterationResult iterationResult = new IterationResult(output, iType, oType, bType);
-		if (!Files.exists(iterationResult.getOutputSer()) ) {
-			//|| oType == ORDER_TYPE.QC_ASSOCIATION
+		if (!Files.exists(iterationResult.getOutputSer())  ) {
+			//|| !Files.exists(iterationResult.getBasePrep())
+			// || oType == ORDER_TYPE.QC_ASSOCIATION
 			//
 			// iterationResult.plotRank(log);
 			// iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX","PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001","PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, log);
@@ -141,25 +147,25 @@ class CorrectionIterator {
 			pcResiduals.computeAssessmentDataMedians();
 			boolean[] samplesForModels = null;
 			boolean valid = true;
+			if (!Files.exists(iterationResult.getBasePrep()) || oType == ORDER_TYPE.QC_ASSOCIATION)
+				switch (bType) {
+				case WITHOUT_BUILDERS:
+					samplesForModels = proj.getSamplesToInclude(null, true, true);
+					break;
+				case WITH_BUILDERS:
+					if (!Files.exists(samplesToBuildModels)) {
+						log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
+						valid = false;
+					} else {
+						samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+					}
+					break;
+				default:
+					break;
 
-			switch (bType) {
-			case WITHOUT_BUILDERS:
-				samplesForModels = proj.getSamplesToInclude(null, true, true);
-				break;
-			case WITH_BUILDERS:
-				if (!Files.exists(samplesToBuildModels)) {
-					log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
-					valid = false;
-				} else {
-					samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
 				}
-				break;
-			default:
-				break;
 
-			}
-
-			CorrectionEvaluator cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, svd);
+			cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, svd);
 			int[] order = null;
 			double[][] extraIndeps = null;
 			StatsCrossTabRank sTabRank = null;
@@ -216,7 +222,7 @@ class CorrectionIterator {
 					break;
 				case QC_ASSOCIATION:
 
-					SelectionResult result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL,SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
+					SelectionResult result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
 					order = result.getOrder();
 					if (result == null || order.length < 1) {
 						log.reportTimeError("Could not select PCs from QC metrics, trying again");
@@ -232,12 +238,16 @@ class CorrectionIterator {
 				default:
 					break;
 				}
+				boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
+				cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, svd);
+
+				BasicPrep basicPrep = new BasicPrep(cEvaluator.getParser().getNumericData(), cEvaluator.getParser().getNumericDataTitles(), samplesToEvaluate, samplesForModels);
+				BasicPrep.serialize(basicPrep, iterationResult.getBasePrep());
+				iterationResult.setBasicPrep(basicPrep);
 				if (!Files.exists(iterationResult.getOutputSer())) {
-					boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
 					log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " samples for models");
 					log.reportTimeInfo(Array.booleanArraySum(samplesToEvaluate) + " samples for evaluation");
 
-					cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, svd);
 					ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
 
 					try {
@@ -265,11 +275,62 @@ class CorrectionIterator {
 					EvaluationResult.serialize(store.toArray(new EvaluationResult[store.size()]), iterationResult.getOutputSer());
 				}
 			}
+		} else {
+			BasicPrep basicPrep = BasicPrep.readSerial(iterationResult.getBasePrep(), log);
+			iterationResult.setBasicPrep(basicPrep);
 		}
-	return iterationResult;
+		return iterationResult;
 	}
 
-	private static class IterationResult {
+	private static class BasicPrep implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private double[][] numericData;
+		private boolean[] samplesForModels;
+		private boolean[] samplesToEvaluate;
+		private String[] numericTitles;
+
+		public BasicPrep(double[][] numericData, String[] numericTitles, boolean[] samplesToEvaluate, boolean[] samplesForModels) {
+			super();
+			this.numericData = numericData;
+			this.samplesToEvaluate = samplesToEvaluate;
+			this.samplesForModels = samplesForModels;
+			this.numericTitles = numericTitles;
+		}
+
+		public boolean[] getSamplesForModels() {
+			return samplesForModels;
+		}
+
+		public boolean[] getSamplesToEvaluate() {
+			return samplesToEvaluate;
+		}
+
+		public double[][] getNumericData() {
+			return numericData;
+		}
+
+		public String[] getNumericTitles() {
+			return numericTitles;
+		}
+
+		public static void serialize(BasicPrep basicPrep, String fileName) {
+			Files.writeSerial(basicPrep, fileName, true);
+		}
+
+		public static BasicPrep readSerial(String fileName, Logger log) {
+			return (BasicPrep) Files.readSerial(fileName, false, log, false, true);
+		}
+
+	}
+
+	private static class IterationResult implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private static final String[] MERLIN_ADDITIONS = new String[] { "NUM_PC", "PERCENT_HERITABLITY" };
 		private String outputRoot;
 		private String outputSer;
@@ -279,13 +340,14 @@ class CorrectionIterator {
 		private String evalRscript;
 		private String heritRscript;
 		private String heritSummary;
-
+		private BasicPrep basicPrep;
 		private ITERATION_TYPE iType;
 		private MODEL_BUILDER_TYPE bType;
 		private ORDER_TYPE oType;
 		private String rankplot;
 		private String evalPlot;
 		private String heritPlot;
+		private String basePrep;
 		private boolean valid;
 
 		public IterationResult(String outputRoot, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType) {
@@ -298,9 +360,22 @@ class CorrectionIterator {
 			this.rankplot = outputRoot + ".rank.Plot.pdf";
 			this.evalRscript = outputRoot + ".eval.rscript";
 			this.evalPlot = outputRoot + ".eval.Plot.pdf";
+			this.basePrep = outputRoot + "basePrep.ser";
 			this.iType = iType;
 			this.oType = oType;
 			this.bType = bType;
+		}
+
+		public String getBasePrep() {
+			return basePrep;
+		}
+
+		public void setBasicPrep(BasicPrep basicPrep) {
+			this.basicPrep = basicPrep;
+		}
+
+		public BasicPrep getBasicPrep() {
+			return basicPrep;
 		}
 
 		public RScatter plotRank(Logger log) {
@@ -319,7 +394,7 @@ class CorrectionIterator {
 			rScatter.setyRange(new double[] { -1, 1 });
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setTitle(iType + " " + bType);
-			//rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
+			// rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
 			rScatter.execute();
 			rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
 			rScatter.setxRange(new double[] { 0, 50 });
@@ -329,27 +404,43 @@ class CorrectionIterator {
 			return rScatter;
 		}
 
-		public RScatter plotHeritability(Project proj, String pedFile, Logger log) {
-			this.heritRscript = outputRoot + "..summary.heritability.rscript";
+		public RScatter plotHeritability(Project proj, String pedFile, boolean[] samplesToEvaluate, Logger log) {
+			this.heritRscript = outputRoot + ".summary.heritability.rscript";
 			this.heritPlot = outputRoot + ".summary.heritability.pdf";
 			this.heritSummary = outputRoot + ".summary.heritability_summary.parsed.xln";
+			String tmpHerit = outputRoot + ".summary.heritability_summary.xln";
+
 			if (pedFile != null) {
+
 				if (!Files.exists(heritSummary) || Files.countLines(heritSummary, false) != Files.countLines(outputSummary, false)) {
-					EvaluationResult.prepareHeritability(proj, pedFile, outputSer);
-					String tmpHerit = outputRoot + ".summary.heritability_summary.xln";
+					if (!Files.exists(tmpHerit) || Files.countLines(tmpHerit, false) != Files.countLines(outputSummary, false)) {
+						// System.out.println(Files.exists(tmpHerit) + "\t" + tmpHerit);
+						// System.out.println(outputSer);
+						// System.out.println(outputRoot);
+
+						EvaluationResult.prepareHeritability(proj, pedFile, samplesToEvaluate, outputSer);
+					}
 					try {
 						BufferedReader reader = Files.getAppropriateReader(tmpHerit);
 						int merlinIndex = ext.indexOfStr("Merlin_est.", Files.getHeaderOfFile(tmpHerit, log));
+
 						if (merlinIndex < 0) {
 							log.reportTimeError("Could not find Merlin_est. in " + tmpHerit);
 							return null;
 						}
 						PrintWriter writer = new PrintWriter(new FileWriter(heritSummary));
-						writer.println(Array.toStr(MERLIN_ADDITIONS) + reader.readLine().trim());
+						writer.println(Array.toStr(MERLIN_ADDITIONS) + "\t" + reader.readLine().trim());
 						int index = 0;
 						while (reader.ready()) {
 							String[] line = reader.readLine().trim().split("\t");
-							writer.println(index + "\t" + Double.parseDouble(line[merlinIndex].replaceAll("%", "")) + Array.toStr(line));
+							try {
+								double est = Double.parseDouble(line[merlinIndex].replaceAll("%", ""));
+
+								writer.println(index + "\t" + est + "\t" + Array.toStr(line));
+							} catch (NumberFormatException nfe) {
+								log.reportTimeWarning("Skipping line " + Array.toStr(line) + " , invalid estimate");
+							}
+							index++;
 						}
 						reader.close();
 						writer.close();
@@ -366,13 +457,19 @@ class CorrectionIterator {
 				} else {
 					log.reportFileExists(heritSummary);
 				}
+				int numFamIndex = ext.indexOfStr("n_Families_size>1", Files.getHeaderOfFile(tmpHerit, log));
+				int numSampsIndex = ext.indexOfStr("n_Samples", Files.getHeaderOfFile(tmpHerit, log));
+				String[] line = Files.getHeaderOfFile(tmpHerit, "\t", new String[] { "Model" }, log);
+				int numFam = Integer.parseInt(line[numFamIndex]);
+				int numSamps = Integer.parseInt(line[numSampsIndex]);
 
 				RScatter rScatter = new RScatter(heritSummary, heritRscript, ext.rootOf(heritSummary), heritPlot, MERLIN_ADDITIONS[0], new String[] { MERLIN_ADDITIONS[1] }, SCATTER_TYPE.POINT, log);
 				rScatter.setyRange(new double[] { 0, 100 });
 				rScatter.setxLabel("PC (" + oType + " - sorted)");
-				rScatter.setTitle(iType + " " + bType);
+				rScatter.setTitle(iType + " " + bType + "; nInd=" + numSamps + ", nFam=" + numFam);
 				rScatter.setyLabel("Percent Heritability");
 				rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
+				rScatter.setOverWriteExisting(true);
 				rScatter.execute();
 				return rScatter;
 			}
@@ -386,6 +483,14 @@ class CorrectionIterator {
 
 		public String getOutputSer() {
 			return outputSer;
+		}
+
+		public void setOutputSer(String outputSer) {
+			this.outputSer = outputSer;
+		}
+
+		public void setOutputRoot(String outputRoot) {
+			this.outputRoot = outputRoot;
 		}
 
 		public String getOutputRank() {
@@ -467,7 +572,13 @@ class CorrectionIterator {
 			// }
 
 		}
-		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, pedFile);
+		String[] plotTitlesForSummary = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number" };
+		String[] subsetDataHeritability = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number" };
+		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, plotTitlesForSummary, pedFile);
+		if (pedFile != null) {
+			producer.setSubsetDataHeritability(subsetDataHeritability);
+		}
+
 		WorkerTrain<RScatter[]> summaryTrain = new WorkerTrain<RScatter[]>(producer, numthreads, numthreads, proj.getLog());
 		while (summaryTrain.hasNext()) {
 			RScatter[] rScattersTmp = summaryTrain.next();
@@ -485,15 +596,22 @@ class CorrectionIterator {
 	public static class IterSummaryProducer implements Producer<RScatter[]> {
 		private Project proj;
 		private CorrectionIterator[] cIterators;
+		private String[] plotTitlesForSummary;
+		private String[] subsetDataHeritability;
 		private String pedFile;
 		private int index;
 
-		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String pedFile) {
+		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String[] plotTitlesForSummary, String pedFile) {
 			super();
 			this.proj = proj;
 			this.cIterators = cIterators;
 			this.pedFile = pedFile;
+			this.plotTitlesForSummary = plotTitlesForSummary;
 			this.index = 0;
+		}
+
+		public void setSubsetDataHeritability(String[] subsetDataHeritability) {
+			this.subsetDataHeritability = subsetDataHeritability;
 		}
 
 		@Override
@@ -510,16 +628,56 @@ class CorrectionIterator {
 				@Override
 				public RScatter[] call() throws Exception {
 					IterationResult iterationResult = tmp.getIterationResult();
-					RScatter[] scatters = new RScatter[pedFile == null ? 2 : 3];
-					RScatter rScatterSummary = iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number" }, proj.getLog());
-					scatters[0] = rScatterSummary;
-					scatters[1] = iterationResult.plotRank(log);
+					ArrayList<RScatter> scatters = new ArrayList<RScatter>();
+					RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary, proj.getLog());
+					scatters.add(rScatterSummary);
 					if (pedFile != null) {
-						scatters[2] = iterationResult.plotHeritability(proj, pedFile, log);
-					}
-					return scatters;
-				}
 
+						if (subsetDataHeritability == null) {
+							scatters.add(iterationResult.plotHeritability(proj, pedFile, iterationResult.getBasicPrep().getSamplesToEvaluate(), log));
+							scatters.add(iterationResult.plotRank(log));
+						} else {
+							if (iterationResult.getBasicPrep() == null) {
+								log.reportTimeError("must have data basic prep object");
+								return null;
+							} else {
+
+								scatters.add(iterationResult.plotHeritability(proj, pedFile, iterationResult.getBasicPrep().getSamplesToEvaluate(), log));
+
+								for (int i = 0; i < subsetDataHeritability.length; i++) {
+									IterationResult tmpR = tmp.getIterationResult();
+
+									int index = ext.indexOfStr(subsetDataHeritability[i], iterationResult.getBasicPrep().getNumericTitles());
+									if (index >= 0) {
+										String newSer = ext.addToRoot(iterationResult.getOutputSer(), "." + subsetDataHeritability[i] + ".summary");
+										Files.copyFileUsingFileChannels(new File(iterationResult.getOutputSer()), new File(newSer), log);
+										double[] data = iterationResult.getBasicPrep().getNumericData()[index];
+										tmpR.setOutputRoot(ext.rootOf(ext.rootOf(newSer, false), false));
+										tmpR.setOutputSer(newSer);
+
+										boolean[] currentModel = new boolean[iterationResult.getBasicPrep().getSamplesToEvaluate().length];
+										for (int j = 0; j < currentModel.length; j++) {
+											if (iterationResult.getBasicPrep().getSamplesToEvaluate()[j] && !Double.isNaN(data[j])) {
+												currentModel[j] = true;
+											} else {
+												currentModel[j] = false;
+											}
+										}
+										RScatter tmpherit = tmpR.plotHeritability(proj, pedFile, currentModel, log);
+										tmpherit.setTitle(subsetDataHeritability[i] + " - matched samples n=" + Array.booleanArraySum(currentModel));
+										scatters.add(tmpR.plotHeritability(proj, pedFile, currentModel, log));
+									} else {
+										log.reportTimeWarning("Skipping " + subsetDataHeritability[i]);
+									}
+								}
+								scatters.add(iterationResult.plotRank(log));
+							}
+						}
+					} else {
+						scatters.add(iterationResult.plotRank(log));
+					}
+					return scatters.toArray(new RScatter[scatters.size()]);
+				}
 			};
 			index++;
 			return callable;
