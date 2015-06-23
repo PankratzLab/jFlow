@@ -942,7 +942,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					for (int k = 0; k < 3; k++) {
 						if (linkKeyColumnLabels[k] >= 0) {
 							String curSample = inLine[linkKeyColumnLabels[k]];
-							int sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(curSample), (byte) 0, 0);
+
+							IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
+
+							int sampColorKey = 0;
+							if (indi != null) {
+								sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi, (byte) 0, 0);
+							}
 							if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
 								continue outer;
 							}
