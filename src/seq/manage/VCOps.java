@@ -91,7 +91,7 @@ public class VCOps {
 	}
 
 	public static double getMAF(VariantContext vc, Set<String> sampleNames) {
-		VariantContext vcSub = getSubset(vc, sampleNames);
+		VariantContext vcSub =sampleNames==null?vc: getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
 		double maf = AlleleFreq.calcMAF(alleleCounts[0], alleleCounts[1], alleleCounts[2]);
 		return maf;
@@ -546,17 +546,30 @@ public class VCOps {
 		return getSubset(vc, sampleNames, sampleNames == null ? VC_SUBSET_TYPE.NO_SUBSET : VC_SUBSET_TYPE.SUBSET_STRICT);
 	}
 
+	public static VariantContext getSubset(final VariantContext vc, final Set<String> sampleNames, VC_SUBSET_TYPE type) {
+		return getSubset(vc, sampleNames, type, true);
+	}
+
+	/**
+	 * @param vc
+	 * @return the number of samples that do not have homozygous reference calls or no calls
+	 */
+	public static int getNumWithAlt(VariantContext vc) {
+		int numSamps = vc.getSampleNames().size();
+		return (numSamps - vc.getHomRefCount() - vc.getNoCallCount());
+	}
+
 	/**
 	 * Subsets to particular samples
 	 */
-	public static VariantContext getSubset(final VariantContext vc, final Set<String> sampleNames, VC_SUBSET_TYPE type) {
+	public static VariantContext getSubset(final VariantContext vc, final Set<String> sampleNames, VC_SUBSET_TYPE type, boolean rederiveAllelesFromGenotypes) {
 		VariantContext vcSub = null;
 		switch (type) {
 		case SUBSET_LOOSE:
-			vcSub = vc.subContextFromSamples(sampleNames, false, true);
+			vcSub = vc.subContextFromSamples(sampleNames, rederiveAllelesFromGenotypes, true);
 			break;
 		case SUBSET_STRICT:
-			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()), false, true);
+			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()), rederiveAllelesFromGenotypes, true);
 			break;
 		case NO_SUBSET:
 			vcSub = vc;

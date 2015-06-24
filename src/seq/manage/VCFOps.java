@@ -1202,9 +1202,10 @@ public class VCFOps {
 	}
 
 	public static void qcVCF(String vcf, Logger log) {
+		//verifyIndex(vcf, log);
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
-		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vcf), null, vcf, null, ext.parseDirectoryOfFile(vcf), true, false, log);
-		plinkSeq.createNewProject(pseqProject);
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vcf), null, vcf, null, ext.parseDirectoryOfFile(vcf), true, true, log);
+		//plinkSeq.createNewProject(pseqProject);
 		plinkSeq.loadData(pseqProject, LOAD_TYPES.VCF, null);
 		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(1, 10, log);
 		assocHive.addCallable(PlinkSeq.generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, null, -1, "0", pseqProject.getProjectName(), true, log));
