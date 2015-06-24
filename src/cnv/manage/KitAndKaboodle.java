@@ -8,6 +8,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 
+import cnv.Launch;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
@@ -25,6 +26,7 @@ public class KitAndKaboodle {
     Project proj;
     Logger log;
     private KitAndKaboodleGUI gui;
+    private Launch launch;
 
     public static enum STEPS {
 
@@ -96,8 +98,13 @@ public class KitAndKaboodle {
             
             @Override
             public void run(Project proj, HashMap<STEPS, ArrayList<? extends JComponent>> variableFields) {
-                String pedFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
-                String sampleMapCsv = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+                String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
+                String setDir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
+                if (!ext.verifyDirFormat(setDir).equals(projDir)) {
+                    proj.SAMPLE_DIRECTORY.setValue(setDir);
+                }
+                String pedFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+                String sampleMapCsv = ((JTextField)variableFields.get(this).get(2)).getText().trim();
                 proj.getLog().report("Creating SampleData.txt");
                 /*int retStat = */MitoPipeline.createSampleData(pedFile, sampleMapCsv, proj);
             }
@@ -451,13 +458,14 @@ public class KitAndKaboodle {
         BOOL()
     }
     
-    public KitAndKaboodle(Project project) {
+    public KitAndKaboodle(Project project, Launch launch) {
         this.proj = project;
         this.log = project == null ? new Logger() : project.getLog();
+        this.launch = launch;
     }
     
     public void showDialogAndRun() {
-        gui = new KitAndKaboodleGUI(this.proj);
+        gui = new KitAndKaboodleGUI(this.proj, this.launch);
         if (!gui.getCancelled()) {
             gui.setModal(true);
             gui.setVisible(true);

@@ -468,7 +468,8 @@ public class Centroids implements Serializable {
 		String dir;
 		
 		dir = proj.PROJECT_DIRECTORY.getValue();
-		centObject = Centroids.load(dir+centFilename, false);
+		String file = centFilename.startsWith(dir) || centFilename.contains(":") || centFilename.startsWith("/") ? centFilename : dir + centFilename;
+		centObject = Centroids.load(file, false);
 		centroids = centObject.getCentroids();
 		
 		if (markerNames.length != centroids.length) {
@@ -481,8 +482,9 @@ public class Centroids implements Serializable {
 			return;
 		}
 		
+		String outFile = exportFilename.startsWith(dir) || exportFilename.contains(":") || exportFilename.startsWith("/") ? exportFilename : dir + exportFilename;
 		try {
-			writer = new PrintWriter(new FileWriter(dir+exportFilename));
+			writer = new PrintWriter(new FileWriter(outFile));
 			writer.println("marker_fingerprint="+centObject.getFingerprint());
 			writer.println("MarkerName\tAA_Theta_Mean\tAA_R_Mean\tAB_Theta_Mean\tAB_R_Mean\tBB_Theta_Mean\tBB_R_Mean");
 			for (int i = 0; i < markerNames.length; i++) {
@@ -498,7 +500,7 @@ public class Centroids implements Serializable {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + exportFilename);
+			System.err.println("Error writing to " + outFile);
 			e.printStackTrace();
 		}
 	}

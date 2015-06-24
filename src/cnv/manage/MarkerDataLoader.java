@@ -529,7 +529,12 @@ public class MarkerDataLoader implements Runnable {
 						}
 						if (xs[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 //							xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
-							xs[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tx");
+						    Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tx"); 
+						    if (f == null) {
+						        log.reportError("Error - value for X is an outlier [Marker: " + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j] + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+						        return null; // TODO better return value than null?
+						    }
+							xs[j] = f.floatValue();
 						}
 						indexReadBuffer += bytesPerSampleMarker;
 					}
@@ -548,7 +553,12 @@ public class MarkerDataLoader implements Runnable {
 						}
 						if (ys[j]==Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 //							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
-							ys[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\ty");
+						    Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\ty"); 
+                            if (f == null) {
+                                log.reportError("Error - value for Y is an outlier [Marker: " + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j] + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+                                return null; // TODO better return value than null?
+                            }
+						    ys[j] = f.floatValue();
 						}
 						indexReadBuffer += bytesPerSampleMarker;
 					}
@@ -575,7 +585,12 @@ public class MarkerDataLoader implements Runnable {
 						lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
 						if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
 //							lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
-							lrrs[j] = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tlrr");
+						    Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tlrr");
+                            if (f == null) {
+                                log.reportError("Error - value for LRR is an outlier [Marker: " + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j] + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+                                return null; // TODO better return value than null?
+                            }
+					        lrrs[j] = f.floatValue();
 						}
 						indexReadBuffer += bytesPerSampleMarker;
 					}

@@ -122,23 +122,30 @@ public class MitoPipeline {
 	 */
 	public static String initGenvisisProject() {
 		String launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
-		String path;
-		try {
-			path = ext.parseDirectoryOfFile(new File(launchPropertiesFile).getCanonicalPath());
-		} catch (IOException ioe) {
-			path = "";
-		}
-		if (!new File(path + "projects/").exists()) {
-			new File(path + "projects/").mkdirs();
+		String path = LaunchProperties.directoryOfLaunchProperties(launchPropertiesFile);
+		path = (new LaunchProperties(path + launchPropertiesFile)).getDirectory();
+//		if (!new File(path + "projects/").exists()) {
+//			new File(path + "projects/").mkdirs();
+//		}
+		if (!new File(path).exists()) {
+		    new File(path).mkdirs();
 		}
 		if (!new File(launchPropertiesFile).exists()) {
 			new File(path + "example/").mkdirs();
-			Files.writeList(new String[] { "LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR=" + path + "projects/" }, launchPropertiesFile);
-			if (!new File(path + "projects/example.properties").exists()) {
-				Files.writeList(new String[] { "PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/" }, path + "projects/example.properties");
+			Files.writeList(new String[] { "LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR=" + path }, launchPropertiesFile);
+			if (!new File(path + "example.properties").exists()) {
+				Files.writeList(new String[] { "PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/" }, path + "example.properties");
 			}
 		}
-		return path + "projects/";
+		return path;
+//		if (!new File(launchPropertiesFile).exists()) {
+//		    new File(path + "example/").mkdirs();
+//		    Files.writeList(new String[] { "LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR=" + path + "projects/" }, launchPropertiesFile);
+//		    if (!new File(path + "projects/example.properties").exists()) {
+//		        Files.writeList(new String[] { "PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/", "SOURCE_DIRECTORY=sourceFiles/" }, path + "projects/example.properties");
+//		    }
+//		}
+//		return path + "projects/";
 	}
 
 	/**
@@ -266,7 +273,7 @@ public class MitoPipeline {
 	 */
 	public static int createSampleData(String pedFile, String sampleMapCsv, Project proj) {
 		String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
-		if (sampleMapCsv == null && pedFile == null && !Files.exists(sampleDataFilename)) {
+		if ((sampleMapCsv == null || "".equals(sampleMapCsv) || !Files.exists(sampleMapCsv)) && (pedFile == null || "".equals(pedFile) || !Files.exists(pedFile)) && !Files.exists(sampleDataFilename)) {
 			proj.getLog().report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: " + sampleDataFilename);
 			SampleData.createMinimalSampleData(proj);
 			return 0;

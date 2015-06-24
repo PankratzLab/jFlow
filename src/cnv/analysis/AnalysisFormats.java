@@ -396,10 +396,10 @@ public class AnalysisFormats implements Runnable {
 		if (centFiles != null) {
 			log.report("Writing sex-specific Centroid files");
 			
-			centroids[0].serialize(proj.PROJECT_DIRECTORY.getValue() + centFiles[0]);
+			centroids[0].serialize(centFiles[0]);
 			Centroids.exportToText(proj, centFiles[0], centFiles[0] + ".txt", allMarkers);
 			
-			centroids[1].serialize(proj.PROJECT_DIRECTORY.getValue() + centFiles[1]);
+			centroids[1].serialize(centFiles[1]);
 			Centroids.exportToText(proj, centFiles[1], centFiles[1] + ".txt", allMarkers);
 		}
 		
@@ -429,7 +429,7 @@ public class AnalysisFormats implements Runnable {
 		
 		pennDir = proj.getProperty(proj.PENNCNV_RESULTS_DIRECTORY);
 		pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-		sexDir = proj.PROJECT_DIRECTORY.getValue() + pennDir + pennData + "sexSpecific/";
+		sexDir = pennData + "sexSpecific/";
 		
 		maleDir = sexDir + "male/";
 		femaleDir = sexDir + "female/";
@@ -442,8 +442,8 @@ public class AnalysisFormats implements Runnable {
 		femalePFBFile = sexDir + "females.pfb";
 		newGCFile = sexDir + "sexSpecific.gcModel";
 		
-		centFilePathM = pennDir + pennData + "sexSpecific/sexSpecific_Male.cent";
-		centFilePathF = pennDir + pennData + "sexSpecific/sexSpecific_Female.cent";
+		centFilePathM = pennData + "sexSpecific/sexSpecific_Male.cent";
+		centFilePathF = pennData + "sexSpecific/sexSpecific_Female.cent";
 
 		ms = proj.getMarkerSet();
 		sampleData = proj.getSampleData(0, false);
