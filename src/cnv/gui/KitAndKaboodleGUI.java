@@ -6,10 +6,13 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 import net.miginfocom.swing.MigLayout;
+import cnv.Launch;
 import cnv.filesys.Project;
 import cnv.manage.KitAndKaboodle;
 import cnv.manage.KitAndKaboodle.RequirementInputType;
@@ -66,7 +70,7 @@ public class KitAndKaboodleGUI extends JDialog {
     /**
      * Create the dialog.
      */
-    public KitAndKaboodleGUI(Project proj) {
+    public KitAndKaboodleGUI(Project proj, final Launch launch) {
         if (proj == null) {
             this.proj = createNewProject();
         } else {
@@ -75,6 +79,8 @@ public class KitAndKaboodleGUI extends JDialog {
         if (this.proj == null) {
             doClose();
             return;
+        } else {
+            launch.setIndexOfCurrentProject(this.proj.getNameOfProject());
         }
         selected = Array.booleanArray(KitAndKaboodle.STEPS.values().length, true);
         getContentPane().setLayout(new BorderLayout());
@@ -142,6 +148,15 @@ public class KitAndKaboodleGUI extends JDialog {
         });
         refreshLabels();
         setBounds(100, 100, 660, 850);
+        addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowLostFocus(WindowEvent e) {}
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                launch.toFront();
+                KitAndKaboodleGUI.this.toFront();
+            }
+        });
         // panels start out visible to help with spacing (otherwise the containing jscrollpane is too small)
 //        for (JPanel panel : panels.values()) {
 //            ((JAccordionPanel) panel).shrink();

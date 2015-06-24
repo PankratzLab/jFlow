@@ -580,7 +580,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //					}
 //				});
 			} else if (command.equals(PIPELINE)) {
-			    KitAndKaboodle kAndK = new KitAndKaboodle(proj);
+			    KitAndKaboodle kAndK = new KitAndKaboodle(proj, Launch.this);
 			    kAndK.showDialogAndRun();
 
 			} else if (command.equals(PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI)) {
@@ -673,12 +673,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			log.report("Refreshed list of projects");
 		} else if (command.equals(PIPELINE)) {
 
-            final KitAndKaboodle kAndK = new KitAndKaboodle(proj);
+            final KitAndKaboodle kAndK = new KitAndKaboodle(proj, Launch.this);
             kAndK.showDialogAndRun();
             
 		} else if (command.equals("New")) {
 		    
-		    final KitAndKaboodle kAndK = new KitAndKaboodle(null);
+		    final KitAndKaboodle kAndK = new KitAndKaboodle(null, Launch.this);
 		    kAndK.showDialogAndRun();
 		    
 		} else if (command.endsWith(" ")) {
