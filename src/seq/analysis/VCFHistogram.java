@@ -319,6 +319,7 @@ public class VCFHistogram implements Serializable {
 
 		outputDir = outputDir == null ? ext.parseDirectoryOfFile(vpop) : outputDir;
 		outputRoot += ".MAF_" + ext.formDeci(maf, 2);
+		System.out.println(outputRoot);
 		new File(outputDir).mkdirs();
 		String ser = outputDir + outputRoot + ".ser";
 		VCFHistogram histogram = null;
@@ -345,6 +346,7 @@ public class VCFHistogram implements Serializable {
 		for (int i = 0; i < mafs.length; i++) {
 			for (int j = 0; j < allIters.length; j++) {
 				histInits[index] = new HistInit(allIters[j], mafs[i]);
+				System.out.println(histInits[index].getMaf()+"\t"+histInits[index].getVpop());
 				index++;
 			}
 		}
@@ -367,7 +369,7 @@ public class VCFHistogram implements Serializable {
 		String logfile = null;
 		Logger log;
 		int numthreads = 2;
-		double[] mafs = new double[] { 0, .05 };
+		double[] mafs = new double[] {  .05,0 };
 
 		String usage = "\n" + "seq.analysis.VCFHistogram requires 0-1 arguments\n";
 		usage += "   (1) vcf (i.e. vcf=" + vcf + " (default))\n" + "";

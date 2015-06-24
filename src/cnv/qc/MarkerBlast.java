@@ -214,6 +214,7 @@ public class MarkerBlast {
 		int blastWordSize = 30;
 		int reportWordSize = 40;
 		boolean report = false;
+		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
 		usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
 		usage += "   (2) full path to a fasta file to search (i.e. fastaDb=" + fastaDb + " (default))\n" + "";
@@ -258,7 +259,7 @@ public class MarkerBlast {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			blastEm(proj, fileSeq, FILE_SEQUENCE_TYPE.MANIFEST_FILE, fastaDb, blastWordSize, reportWordSize, numThreads, report);
+			blastEm(proj, fileSeq, fSequence_TYPE, fastaDb, blastWordSize, reportWordSize, numThreads, report);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
