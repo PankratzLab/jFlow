@@ -53,7 +53,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(geneTrack, locFile, log);
 		this.plinkSeq = new PlinkSeq(false, true, log);
-		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, plinkSeqResourceDirectory, false, false, log);
+		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, plinkSeqResourceDirectory, true, true, log);
 		this.varList = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName(), true) + ".varList";
 	}
 
