@@ -36,9 +36,9 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	private static final long serialVersionUID = 1L;
 
 	private String displayMode = "Full";
-	private int probes = 5; // Default to 5 probes
+	private int probes = 0; // Default to 0 probes
 	private int minSize = 0; // Default to no minimum size
-	private int qualityScore = 10; // Default to a score of 10
+	private int qualityScore = 0; // Default to a score of 0
 	private int rectangleHeight = 10; // Default rectangle height
 	CompPlot compPlot;
 
