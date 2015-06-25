@@ -542,7 +542,13 @@ public class FilterNGS implements Serializable {
 				if (vc.getSampleNames().size() > 1) {
 					throw new IllegalArgumentException("Alt allele depth filter can only be applied on single sample variant contexts");
 				} else {
-					return (double) VCOps.getAppropriateAlleleDepths(vc, vc.getGenotype(0), true, new Logger())[1];
+					double apad = 0;
+					try{
+						apad = (double) VCOps.getAppropriateAlleleDepths(vc, vc.getGenotype(0), true, new Logger())[1];
+					}catch(IllegalStateException illegalStateException){
+						illegalStateException.printStackTrace();
+					}
+					return apad;
 				}
 			}
 		};
