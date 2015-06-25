@@ -18,8 +18,10 @@ import filesys.GeneTrack;
 import filesys.Segment;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.VariantContextUtils;
 
 /**
@@ -91,7 +93,7 @@ public class VCOps {
 	}
 
 	public static double getMAF(VariantContext vc, Set<String> sampleNames) {
-		VariantContext vcSub =sampleNames==null?vc: getSubset(vc, sampleNames);
+		VariantContext vcSub = sampleNames == null ? vc : getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
 		double maf = AlleleFreq.calcMAF(alleleCounts[0], alleleCounts[1], alleleCounts[2]);
 		return maf;
@@ -331,9 +333,9 @@ public class VCOps {
 
 	public static int[] getAppropriateAlleleDepths(VariantContext vc, Genotype g, boolean verbose, Logger log) {
 		int[] AD = new int[2];
-		// if (!vc.isBiallelic()) {
-		// log.reportTimeWarning("JOHN REMEMBER THE BIALLELIC ISSUE!");
-		// }
+		if (!vc.isBiallelic()) {
+			log.reportTimeWarning("JOHN REMEMBER THE BIALLELIC ISSUE!");
+		}
 		Arrays.fill(AD, 0);
 		List<Allele> gAlleles = g.getAlleles();
 
@@ -476,10 +478,10 @@ public class VCOps {
 				numWith++;
 				switch (info) {
 				case AD_REF:
-					avgGI += geno.getAD()[0];
+					avgGI += getAppropriateAlleleDepths(vcSub, geno, false, log)[0];
 					break;
 				case AD_ALT:
-					avgGI += geno.getAD()[1];
+					avgGI += getAppropriateAlleleDepths(vcSub, geno, false, log)[1];
 					break;
 				case DP:
 					avgGI += geno.getDP();
@@ -579,6 +581,32 @@ public class VCOps {
 
 		}
 		return vcSub;
+	}
+
+	/**
+	 * @param vc
+	 * @param samplesToSetMissing
+	 *            sample names in this hashset will be set to missing in the returned {@link VariantContext}
+	 * @return
+	 */
+	public static VariantContext setTheseSamplesToMissing(VariantContext vc, HashSet<String> samplesToSetMissing) {
+		VariantContextBuilder builder = new VariantContextBuilder(vc);
+		if (samplesToSetMissing == null) {
+			return builder.make();
+		} else {
+			Set<String> samples = vc.getSampleNames();
+			ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
+			for (String sample : samples) {
+
+				GenotypeBuilder gbuilder = new GenotypeBuilder(vc.getGenotype(sample));
+				if (samplesToSetMissing.contains(sample)) {
+					gbuilder.alleles(GenotypeOps.getNoCall());
+				}
+				genotypes.add(gbuilder.make());
+			}
+			builder.genotypes(genotypes);
+			return builder.make();
+		}
 	}
 
 	public static GeneData[] getGenesThatOverlap(VariantContext vc, GeneTrack geneTrack, Logger log) {

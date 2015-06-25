@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import common.Array;
 import common.Logger;
 import seq.manage.VCOps;
 import seq.manage.VCOps.GENOTYPE_INFO;
@@ -153,7 +154,12 @@ public class FilterNGS implements Serializable {
 		/**
 		 * Used for filtering by the lower bound for average allelic ratio across alternate calls
 		 */
-		HET_ALLELE_RATIO_LOW(.2, FILTER_TYPE.GTE_FILTER),
+		HET_ALLELE_RATIO_LOW(.25, FILTER_TYPE.GTE_FILTER),
+
+		/**
+		 * Used for filtering by the lower bound for average allelic ratio across alternate calls
+		 */
+		HET_ALLELE_RATIO_HIGH(.75, FILTER_TYPE.LTE_FILTER),
 
 		/**
 		 * Filters by the alternate allele depth
@@ -295,7 +301,7 @@ public class FilterNGS implements Serializable {
 		@Override
 		public VariantContextFilterPass filter(VariantContext vc, Logger log) {
 			double value = getValue(vc);
-			String testPerformed = "Type: " + dfilter + " Directon: " + type + " Threshold: " + filterThreshold + " Value :" + value;
+			String testPerformed = "Type: " + dfilter + " Directon: " + type + " Threshold: " + filterThreshold + " Value :" + value + (vc.getSampleNames().size() == 1 ? vc.getGenotype(0).toString() : "");
 			boolean passes = false;
 			switch (type) {
 			case ET_FILTER:
@@ -445,7 +451,24 @@ public class FilterNGS implements Serializable {
 
 			@Override
 			public Double getValue(VariantContext vc) {
-				return VCOps.getHWE(vc, null);
+				double hwe = VCOps.getHWE(vc, null);
+				if (Double.isNaN(hwe)) {
+					if (vc.getHomRefCount() + vc.getNoCallCount() == vc.getSampleNames().size()) {
+						hwe = 1.0;
+					} else if (vc.getHomVarCount() + vc.getNoCallCount() == vc.getSampleNames().size()) {
+						hwe = 1.0;
+					} else {
+						String error = "HWE came back NaN but the variant context had valid data\n";
+						error += "Total Samples: " + vc.getSampleNames().size();
+						error += "\nHomRef: " + vc.getHomRefCount();
+						error += "\nHet : " + vc.getHetCount();
+						error += "\nHomVar : " + vc.getHomVarCount();
+						error += "\nNoCall : " + vc.getNoCallCount();
+						error += "\n" + vc.toStringWithoutGenotypes();
+						throw new IllegalStateException(error);
+					}
+				}
+				return hwe;
 			}
 		};
 	}
@@ -460,6 +483,67 @@ public class FilterNGS implements Serializable {
 			@Override
 			public Double getValue(VariantContext vc) {
 				return VCOps.getCallRate(vc, null);
+			}
+		};
+	}
+
+	/**
+	 * This will ONLY test Het Calls, use {@link FilterNGS#getAltAlleleDepthFilter()} for hom alt etc
+	 */
+	private VcFilterDouble getHetAltAlleleDepthRatioFilter(VARIANT_FILTER_DOUBLE dfilter) {
+		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Double getValue(VariantContext vc) {
+				if (vc.getSampleNames().size() > 1) {
+					throw new IllegalArgumentException("Alt allele depth filter can only be applied on single sample variant contexts");
+				} else if (vc.getGenotype(0).isHet()) {
+					int[] AD = VCOps.getAppropriateAlleleDepths(vc, vc.getGenotype(0), false, new Logger());
+					if (AD[0] == 0) {
+						return 1.0;
+					} else {
+						double sum = Array.sum(AD);
+						return (double) AD[1] / sum;
+					}
+				} else {// we only test het calls, and return a passing value if it is not
+					switch (getDfilter().getType()) {
+					case GTE_FILTER:
+						return getDfilter().getDFilter() + .01;
+					case GT_FILTER:
+						return getDfilter().getDFilter() + .01;
+					case LTE_FILTER:
+						return getDfilter().getDFilter() - .01;
+					case LT_FILTER:
+						return getDfilter().getDFilter() - .01;
+					case NO_FILTER:
+						return 1.0;
+					default:
+						throw new IllegalArgumentException("Invalid Type filter " + getDfilter().getType() + " for double filter");
+
+					}
+				}
+			}
+		};
+	}
+
+	private VcFilterDouble getAltAlleleDepthFilter(VARIANT_FILTER_DOUBLE dfilter) {
+		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Double getValue(VariantContext vc) {
+				if (vc.getSampleNames().size() > 1) {
+					throw new IllegalArgumentException("Alt allele depth filter can only be applied on single sample variant contexts");
+				} else {
+					return (double) VCOps.getAppropriateAlleleDepths(vc, vc.getGenotype(0), true, new Logger())[1];
+				}
 			}
 		};
 	}
@@ -638,9 +722,15 @@ public class FilterNGS implements Serializable {
 				vDoubles[i] = getVQSLODFilter(dfilter);
 				break;
 
-			// case ALT_ALLELE_DEPTH:
-			//
-			// break;
+			case ALT_ALLELE_DEPTH:
+				vDoubles[i] = getAltAlleleDepthFilter(dfilter);
+				break;
+			case HET_ALLELE_RATIO_LOW:
+				vDoubles[i] = getHetAltAlleleDepthRatioFilter(dfilter);
+				break;
+			case HET_ALLELE_RATIO_HIGH:
+				vDoubles[i] = getHetAltAlleleDepthRatioFilter(dfilter);
+				break;
 			default:
 				log.reportTimeError("Invalid double filter type " + dfilter);
 				vDoubles[i] = null;
@@ -703,25 +793,20 @@ public class FilterNGS implements Serializable {
 					return vcfp;
 				}
 			}
-			for (int i = 0; i < vBooleans.length; i++) {
-				VariantContextFilterPass vcfp = vBooleans[i].filter(vc, log);
-				if (!vcfp.passed()) {
-					// if(vBooleans[i].getBfilter()==VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER){
-					// System.out.println(VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER);
-					// System.exit(1);
-					// }
-					return vcfp;
+			if (vBooleans != null) {
+				for (int i = 0; i < vBooleans.length; i++) {
+					VariantContextFilterPass vcfp = vBooleans[i].filter(vc, log);
+					if (!vcfp.passed()) {
+						return vcfp;
+					}
 				}
 			}
-			for (int i = 0; i < vDoubles.length; i++) {
-				VariantContextFilterPass vcfp = vDoubles[i].filter(vc, log);
-
-				if (!vcfp.passed()) {
-					// if (vDoubles[i].getDfilter() == VARIANT_FILTER_DOUBLE.MAF) {
-					// System.out.println(VARIANT_FILTER_DOUBLE.MAF);
-					// System.exit(1);
-					// }
-					return vcfp;
+			if (vDoubles != null) {
+				for (int i = 0; i < vDoubles.length; i++) {
+					VariantContextFilterPass vcfp = vDoubles[i].filter(vc, log);
+					if (!vcfp.passed()) {
+						return vcfp;
+					}
 				}
 			}
 			return new VariantContextFilterPass(true, "ALL");
