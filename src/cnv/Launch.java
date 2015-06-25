@@ -75,7 +75,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 	public static final String TEST = "Test new program";
 	
-	public static String[][] MENUS = {{"File", "Select Project", EDIT, "Preferences", EXIT},
+	public static String[][] MENUS = {{"File", "New Project", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
@@ -284,14 +284,20 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				}
 				if (MENUS[i][j]=="1") {
 					menu.addSeparator();
+				} else if (MENUS[i][j].equals("New Project")) {
+//				    submenu = new JMenu(MENUS[i][j]);
+				    menuItem = new JMenuItem("New Project");
+				    menuItem.addActionListener(this);
+//				    submenu.add(menuItem);
+                    menu.add(menuItem);
 				} else if (MENUS[i][j].equals("Select Project")) {
 					submenu = new JMenu(MENUS[i][j]);
 //			        submenu.setMnemonic(KeyEvent.VK_S);
 
-			        menuItem = new JMenuItem("New");
+//			        menuItem = new JMenuItem("New");
 //			        menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
-			        menuItem.addActionListener(this);
-			        submenu.add(menuItem);
+//			        menuItem.addActionListener(this);
+//			        submenu.add(menuItem);
 					projects = Files.list(launchProperties.getDirectory(), ".properties", false);
 					for (int k = 0; k<projects.length; k++) {
 				        menuItem = new JMenuItem(ext.rootOf(projects[k], true)+" ");
@@ -676,7 +682,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
             final KitAndKaboodle kAndK = new KitAndKaboodle(proj, Launch.this);
             kAndK.showDialogAndRun();
             
-		} else if (command.equals("New")) {
+		} else if (command.equals("New Project")) {
 		    
 		    final KitAndKaboodle kAndK = new KitAndKaboodle(null, Launch.this);
 		    kAndK.showDialogAndRun();

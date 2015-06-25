@@ -30,6 +30,7 @@ import net.miginfocom.swing.MigLayout;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JComboBox;
 
 public class ProjectCreationGUI extends JDialog {
 
@@ -101,6 +102,7 @@ public class ProjectCreationGUI extends JDialog {
             
         }
     };
+    private JComboBox comboBoxArrayType;
 
     /**
      * Launch the application.
@@ -129,7 +131,7 @@ public class ProjectCreationGUI extends JDialog {
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]", "[][][grow][][][][][][][][][grow][][]"));
+        contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]", "[][][grow][][][][][][][][][][grow][][]"));
         
         JLabel lblGenvisisProjectCreation = new JLabel("Genvisis Project Creation");
         lblGenvisisProjectCreation.setFont(new Font("Arial", Font.BOLD, 16));
@@ -173,18 +175,25 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(txtFldIDHdr, "cell 2 7,growx");
         txtFldIDHdr.setColumns(10);
         
+        JLabel lblArrayType = new JLabel("Array Type:");
+        contentPane.add(lblArrayType, "cell 0 8,alignx trailing");
+        
+        comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
+        comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
+        contentPane.add(comboBoxArrayType, "cell 2 8,growx");
+        
         JLabel lblLogrRatioStddev = new JLabel("Log-R Ratio Std.Dev. Cut-off Threshold:");
-        contentPane.add(lblLogrRatioStddev, "cell 0 8,alignx trailing");
+        contentPane.add(lblLogrRatioStddev, "cell 0 9,alignx trailing");
         
         spinnerLrrSd = new JSpinner();
         spinnerLrrSd.setModel(new SpinnerNumberModel(proj.LRRSD_CUTOFF.getDefaultValue().doubleValue(), 0.0, 3.0, 0.0));
-        contentPane.add(spinnerLrrSd, "cell 2 8,growx");
+        contentPane.add(spinnerLrrSd, "cell 2 9,growx");
         
-        JLabel lblTargetMarkersFile = new JLabel("Target Markers File:");
-        contentPane.add(lblTargetMarkersFile, "cell 0 9,alignx trailing");
+        JLabel lblTargetMarkersFile = new JLabel("[Optional] Target Markers File:");
+        contentPane.add(lblTargetMarkersFile, "cell 0 10,alignx trailing");
         
         txtFldTgtMkrs = new JTextField(proj.TARGET_MARKERS_FILENAME.getDefaultValueString());
-        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 9,growx");
+        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 10,growx");
         txtFldTgtMkrs.setColumns(10);
         
         Insets fileBtnInsets = new Insets(0, 3, 0, 3);
@@ -204,10 +213,10 @@ public class ProjectCreationGUI extends JDialog {
         btnTgtMkrs.setMargin(fileBtnInsets);
         btnTgtMkrs.setText("...");
         btnTgtMkrs.setActionCommand("TARGET");
-        contentPane.add(btnTgtMkrs, "cell 2 9");
+        contentPane.add(btnTgtMkrs, "cell 2 10");
         
         JSeparator separator_1 = new JSeparator();
-        contentPane.add(separator_1, "cell 0 12 4 1,growx");
+        contentPane.add(separator_1, "cell 0 13 4 1,growx");
         
         JPanel panel = new JPanel();
         contentPane.add(panel, "south");
@@ -318,6 +327,7 @@ public class ProjectCreationGUI extends JDialog {
         File file = new File(projDir);
         
         Project dummy = new Project();
+        dummy.setGuiState(true);
         if (!file.exists()) {
             if (file.mkdirs()) {
                 dummy.getLog().report("\n" + ext.getTime() + " Created directory " + projDir);
@@ -349,6 +359,7 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.ID_HEADER.setValue(idHdr);
         actualProj.LRRSD_CUTOFF.setValue(lrrSd);
         actualProj.TARGET_MARKERS_FILENAME.setValue(ext.removeDirectoryInfo(tgtMkrs));
+        actualProj.ARRAY_TYPE.setValue(comboBoxArrayType.getSelectedItem().toString());
         // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
         // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
         // }

@@ -5,6 +5,18 @@ import java.util.*;
 import common.*;
 
 public class Qc {
+    
+    /** A rough listing of the Folders created by fullGamut */
+    public static String[] FOLDERS_CREATED = {"markerQC/", "sampleQC/", "ldPruning/", "genome/", "ancestry/"};
+    /** A rough listing of the files created, by folder, by fullGamut */
+    public static String[][] FILES_CREATED = {
+        {"plink.bed", "freq.frq", "missing.imiss", "test.missing.missing", "hardy.hwe", "mishap.missing.hap", "gender.assoc", "gender.missing", "miss_drops.dat"},
+        {"plink.bed", "missing.imiss"},
+        {"plink.bed", "plink.prune.in"},
+        {"plink.bed", "plink.genome", "plink.genome_keep.dat"},
+        {"plink.bed", "unrelateds.txt"}
+    };
+    
 	public static void fullGamut(String dir, boolean keepGenomeInfoForRelatedsOnly, Logger log) {
 		long time;
 		
