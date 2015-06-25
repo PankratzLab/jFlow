@@ -6,8 +6,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -39,7 +37,8 @@ import cnv.Launch;
 import cnv.filesys.Project;
 import cnv.manage.KitAndKaboodle;
 import cnv.manage.KitAndKaboodle.RequirementInputType;
-import cnv.manage.KitAndKaboodle.STEPS;
+import cnv.manage.KitAndKaboodle.STEP;
+
 import common.Array;
 import common.Grafik;
 import common.ext;
@@ -51,30 +50,30 @@ public class KitAndKaboodleGUI extends JDialog {
     private final JPanel contentPanel = new JPanel();
     
 
-    private HashMap<STEPS, JCheckBox> checkBoxes = new HashMap<STEPS, JCheckBox>();
-    private HashMap<STEPS, JLabel> descLabels = new HashMap<STEPS, JLabel>();
-    private HashMap<STEPS, ArrayList<JLabel>> requirementsLabels = new HashMap<STEPS, ArrayList<JLabel>>();
-    private HashMap<STEPS, JPanel> panels = new HashMap<KitAndKaboodle.STEPS, JPanel>();
-    public HashMap<STEPS, ArrayList<? extends JComponent>> varFields = new HashMap<KitAndKaboodle.STEPS, ArrayList<? extends JComponent>>();
-    public HashMap<STEPS, JProgressBar> progBars = new HashMap<KitAndKaboodle.STEPS, JProgressBar>();
+    private HashMap<STEP, JCheckBox> checkBoxes = new HashMap<STEP, JCheckBox>();
+    private HashMap<STEP, JLabel> descLabels = new HashMap<STEP, JLabel>();
+    private HashMap<STEP, ArrayList<JLabel>> requirementsLabels = new HashMap<STEP, ArrayList<JLabel>>();
+    private HashMap<STEP, JAccordionPanel> panels = new HashMap<KitAndKaboodle.STEP, JAccordionPanel>();
+    public HashMap<STEP, ArrayList<? extends JComponent>> varFields = new HashMap<KitAndKaboodle.STEP, ArrayList<? extends JComponent>>();
+    public HashMap<STEP, JProgressBar> progBars = new HashMap<KitAndKaboodle.STEP, JProgressBar>();
+    public HashMap<STEP, JLabel> alreadyRunLbls = new HashMap<KitAndKaboodle.STEP, JLabel>();
     
     Project proj;
     
     private static final String TOP_LABEL = "Genvisis Project Pipeline:";
-//    private static final String TOP_LABEL = ""Kit and Kaboodle Steps:"";
-    
     
     volatile boolean cancelled = false;
     volatile boolean[] selected;
+    STEP[] steps;
     
     /**
      * Create the dialog.
      */
-    public KitAndKaboodleGUI(Project proj, final Launch launch) {
-        if (proj == null) {
+    public KitAndKaboodleGUI(Project proj2, final Launch launch) {
+        if (proj2 == null) {
             this.proj = createNewProject();
         } else {
-            this.proj = proj;
+            this.proj = proj2;
         }
         if (this.proj == null) {
             doClose();
@@ -82,7 +81,8 @@ public class KitAndKaboodleGUI extends JDialog {
         } else {
             launch.setIndexOfCurrentProject(this.proj.getNameOfProject());
         }
-        selected = Array.booleanArray(KitAndKaboodle.STEPS.values().length, true);
+        this.steps = KitAndKaboodle.getStepsForProject(this.proj);
+        selected = Array.booleanArray(this.steps.length, true);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         JPanel optionPanel = new JPanel();
@@ -99,11 +99,11 @@ public class KitAndKaboodleGUI extends JDialog {
             contentPanel.add(lblKitAndKaboodle, "cell 0 0,alignx center");
         }
         {
-            for (int i = 0; i < KitAndKaboodle.STEPS.values().length; i++) {
+            for (int i = 0; i < this.steps.length; i++) {
                 final int index = i;
-                JPanel panel = createPanel(index);
+                JAccordionPanel panel = createPanel(index);
                 optionPanel.add(panel, "cell 0 " + (i) + ", alignx left, growx");
-                panels.put(KitAndKaboodle.STEPS.values()[i], panel);
+                panels.put(this.steps[i], panel);
             }
         }
         {
@@ -143,9 +143,19 @@ public class KitAndKaboodleGUI extends JDialog {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                if (running) {
+                    return;
+                }
                 doClose();
             }
         });
+        for (STEP step : this.steps) {
+            if (step.checkIfOutputExists(this.proj, varFields)) {
+                checkBoxes.get(step).setSelected(false);
+                alreadyRunLbls.get(step).setVisible(true);
+                panels.get(step).shrink();
+            }
+        }
         refreshLabels();
         setBounds(100, 100, 660, 850);
         addWindowFocusListener(new WindowFocusListener() {
@@ -177,14 +187,14 @@ public class KitAndKaboodleGUI extends JDialog {
             String[] parts = e.getActionCommand().split(":");
             int stepIndex = Integer.parseInt(parts[0]);
             int fieldIndex = Integer.parseInt(parts[1]);
-            JTextField fileField = (JTextField) varFields.get(STEPS.values()[stepIndex]).get(fieldIndex);
+            JTextField fileField = (JTextField) varFields.get(KitAndKaboodleGUI.this.steps[stepIndex]).get(fieldIndex);
             
             String current = fileField.getText();
             
             String dir = current.equals("") ? proj.PROJECT_DIRECTORY.getValue(false, false) : ext.parseDirectoryOfFile(current); 
             JFileChooser chooser = new JFileChooser(dir);
             chooser.setMultiSelectionEnabled(false);
-            RequirementInputType[][] reqs = STEPS.values()[stepIndex].reqTypes;
+            RequirementInputType[][] reqs = KitAndKaboodleGUI.this.steps[stepIndex].reqTypes;
             int accum = 0;
             RequirementInputType type = null;
             outer: for (int i = 0; i < reqs.length; i++) {
@@ -225,8 +235,8 @@ public class KitAndKaboodleGUI extends JDialog {
         }
     };
     
-    private JPanel createPanel(final int index) {
-        STEPS step = KitAndKaboodle.STEPS.values()[index];
+    private JAccordionPanel createPanel(final int index) {
+        STEP step = this.steps[index];
         final JAccordionPanel panel = new JAccordionPanel();
         
         final JCheckBox chckbx = new JCheckBox();
@@ -250,14 +260,17 @@ public class KitAndKaboodleGUI extends JDialog {
         JProgressBar stepProgBar = new JProgressBar();
         progBars.put(step, stepProgBar);
         stepProgBar.setVisible(false);
-        panel.topPanel.add(stepProgBar, "cell 1 0, alignx right, hidemode 3");
+        panel.topPanel.add(stepProgBar, "cell 1 0, alignx right, hidemode 3, split 1");
+        JLabel alreadyRanLbl = new JLabel("Output Already Exists!");
+        alreadyRanLbl.setVisible(false);
+        alreadyRunLbls.put(step, alreadyRanLbl);
+        panel.topPanel.add(alreadyRanLbl, "cell 1 0, alignx right, hidemode 3");
 
         JLabel descLbl = new JLabel("<html><center><p>" + step.stepDesc + "</p></center></html>");
         descLbl.setVerticalAlignment(SwingConstants.TOP);
         descLbl.setHorizontalAlignment(SwingConstants.LEFT);
         descLbl.setFont(descLbl.getFont().deriveFont(Font.PLAIN));
         descLabels.put(step, descLbl);
-        
         
         panel.setBorder(new LineBorder(Color.GRAY.brighter(), 1, true));
         String rows = "[][]";
@@ -370,14 +383,14 @@ public class KitAndKaboodleGUI extends JDialog {
         return cancelled;
     }
     
-    public void startStep(STEPS step) {
+    public void startStep(STEP step) {
         progBars.get(step).setString("Running...");
         progBars.get(step).setStringPainted(true);
         progBars.get(step).setIndeterminate(true);
         progBars.get(step).setVisible(true);
     }
     
-    public void endStep(STEPS step) {
+    public void endStep(STEP step) {
         progBars.get(step).setString("Complete!");
         progBars.get(step).setIndeterminate(false);
     }
@@ -385,22 +398,38 @@ public class KitAndKaboodleGUI extends JDialog {
     
     public void refreshLabels() {
         Color greenDark = Color.GREEN.darker();
-        for (STEPS step : KitAndKaboodle.STEPS.values()) {
-            if (step.hasRequirements(proj, checkBoxes, varFields)) {
-                descLabels.get(step).setForeground(greenDark);
-                checkBoxes.get(step).setForeground(greenDark);
+        Color dark = Color.BLACK;
+        for (STEP step : this.steps) {
+            if (!step.checkIfOutputExists(proj, varFields) || checkBoxes.get(step).isSelected()) {
+                if (step.hasRequirements(proj, checkBoxes, varFields)) {
+                    descLabels.get(step).setForeground(greenDark);
+                    checkBoxes.get(step).setForeground(greenDark);
+                } else {
+                    descLabels.get(step).setForeground(Color.RED);
+                    checkBoxes.get(step).setForeground(Color.RED);
+                }
+                ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
+                boolean[][] reqVals = step.checkRequirements(proj, checkBoxes, varFields);
+                int lblIndex = 0;
+                for (int i = 0; i < reqVals.length; i++) {
+                    for (int j = 0; j < reqVals[i].length; j++) {
+                        reqLbls.get(lblIndex).setForeground(reqVals[i][j] ? greenDark : Color.RED);
+                        lblIndex++;
+                    }
+                }
             } else {
-                descLabels.get(step).setForeground(Color.RED);
-                checkBoxes.get(step).setForeground(Color.RED);
-            }
-            ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
-            boolean[][] reqVals = step.checkRequirements(proj, checkBoxes, varFields);
-            int lblIndex = 0;
-            for (int i = 0; i < reqVals.length; i++) {
-                for (int j = 0; j < reqVals[i].length; j++) {
-//                    (i * reqVals[i].length) + j
-                    reqLbls.get(lblIndex).setForeground(reqVals[i][j] ? greenDark : Color.RED);
-                    lblIndex++;
+                checkBoxes.get(step).setSelected(false);
+                alreadyRunLbls.get(step).setVisible(true);
+                descLabels.get(step).setForeground(dark);
+                checkBoxes.get(step).setForeground(dark);
+                boolean[][] reqVals = step.checkRequirements(proj, checkBoxes, varFields);
+                int lblIndex = 0;
+                ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
+                for (int i = 0; i < reqVals.length; i++) {
+                    for (int j = 0; j < reqVals[i].length; j++) {
+                        reqLbls.get(lblIndex).setForeground(dark);
+                        lblIndex++;
+                    }
                 }
             }
         }
@@ -439,18 +468,17 @@ public class KitAndKaboodleGUI extends JDialog {
                 lockup(true);
                 
                 boolean[] options = getSelectedOptions();
-                
                
                 if (checkRequirementsAndNotify()) {
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
-                            startStep(STEPS.values()[i]);
+                            startStep(KitAndKaboodleGUI.this.steps[i]);
                             try {
-                                STEPS.values()[i].run(proj, varFields);
+                                KitAndKaboodleGUI.this.steps[i].run(proj, varFields);
                             } catch (Exception e) {
                                 // TODO show error message, stop execution
                             }
-                            endStep(STEPS.values()[i]);
+                            endStep(KitAndKaboodleGUI.this.steps[i]);
                         }
                     }
                 }
@@ -468,9 +496,8 @@ public class KitAndKaboodleGUI extends JDialog {
         ArrayList<String> reqMsgs = new ArrayList<String>();
         for (int i = 0; i < options.length; i++) {
             if (options[i]) {
-                STEPS step = STEPS.values()[i];
+                STEP step = this.steps[i];
                 if (!step.hasRequirements(proj, checkBoxes, varFields)) {
-//                    boolean[][] reqs = step.checkRequirements(proj, checkBoxes, varFields);
                     reqMsgs.add((i + 1) + ". " + step.stepName);
                 }
             }

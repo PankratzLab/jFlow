@@ -63,7 +63,7 @@ public class PennCNV {
 			}
 		});
 		
-		if (files==null) {
+		if (files == null || files.length == 0) {
 			log.reportError("Found zero files in "+dataDir);
 			log.reportError("Will not proceed");
 			return;
@@ -181,7 +181,13 @@ public class PennCNV {
 			}
 		});
 		log.report("Found "+files.length+" files");
-	
+    	
+
+        if (files == null || files.length == 0) {
+            log.reportError("Found zero files in " + dataDir);
+            log.reportError("Will not proceed");
+            return;
+        }
 		step = (int)Math.ceil((double)files.length/(double)numBatches);
 		log.report("Which means the step for "+numBatches+" batches would be "+step);
 		
