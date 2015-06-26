@@ -42,6 +42,7 @@ public class ExtProjectDataParser {
 	private String commentString;
 	private String[] headerFlags;
 	private boolean sampleBased;
+	private boolean concatMultipleStringEntries;
 
 	public void loadData() {
 		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
@@ -77,6 +78,16 @@ public class ExtProjectDataParser {
 							return;
 						}
 					} else {
+						boolean concat = dataPresent[dataIndex];
+						if (concat && (!concatMultipleStringEntries || typedFileLine.hasNumericData())) {
+							if (typedFileLine.hasNumericData()) {
+								proj.getLog().reportTimeError("Multiple entries for the same " + (sampleBased ? "sample" : "marker") + " " + data + " were found and numeric indices were requested, cannot load...");
+
+							} else {
+								proj.getLog().reportTimeError("Multiple entries for the same " + (sampleBased ? "sample" : "marker") + " " + data + " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
+							}
+							return;
+						}
 						dataPresent[dataIndex] = true;
 						if (typedFileLine.hasNumericData() && numericData != null) {
 							for (int i = 0; i < numericData.length; i++) {
@@ -86,7 +97,7 @@ public class ExtProjectDataParser {
 						}
 						if (typedFileLine.hasStringData() && stringData != null) {
 							for (int i = 0; i < stringData.length; i++) {
-								stringData[i][dataIndex] = typedFileLine.getStringData()[1][i];// 0 is reserved for the samples
+								stringData[i][dataIndex] = (concat ? stringData[i][dataIndex] + typedFileParser.getSeparator() + typedFileLine.getStringData()[1][i] : typedFileLine.getStringData()[1][i]);// 0 is reserved for the samples
 							}
 						}
 					}
@@ -378,6 +389,7 @@ public class ExtProjectDataParser {
 		private String commentString = null;
 		private boolean verbose = true;
 		private String[] headerFlags = null;
+		private boolean concatMultipleStringEntries = false;
 
 		/**
 		 * @param separator
@@ -541,6 +553,16 @@ public class ExtProjectDataParser {
 		}
 
 		/**
+		 * @param concatMultipleStringEntries
+		 *            if multiple entries are found for either a marker or sample, the results will be concatenated
+		 * @return
+		 */
+		public Builder concatMultipleStringEntries(boolean concatMultipleStringEntries) {
+			this.concatMultipleStringEntries = concatMultipleStringEntries;
+			return this;
+		}
+
+		/**
 		 * Construct the parser with the options set by the builder
 		 * 
 		 * @param proj
@@ -573,6 +595,7 @@ public class ExtProjectDataParser {
 		this.commentString = builder.commentString;
 		this.verbose = builder.verbose;
 		this.headerFlags = builder.headerFlags;
+		this.concatMultipleStringEntries = builder.concatMultipleStringEntries;
 		this.typedFileParser = typeBuilder.build(Files.getAppropriateReader(fullPathToDataFile));
 	}
 }

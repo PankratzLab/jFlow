@@ -46,6 +46,10 @@ public class ReferenceGenome {
 		this.indexedFastaSequenceFile = indexedFastaSequenceFile;
 	}
 
+	public String getReferenceFasta() {
+		return referenceFasta;
+	}
+
 	public ReferenceSequence getReferenceSequence() {
 		return referenceSequence;
 	}

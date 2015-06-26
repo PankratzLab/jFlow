@@ -32,6 +32,7 @@ import seq.qc.AricWesFilter;
 import seq.qc.VariantFilterSample;
 import seq.qc.VariantFilterSample.FILTER_METHOD;
 import seq.qc.VariantFilterSample.VariantFilterSamplePass;
+import stats.Histogram.DumpResult;
 import stats.Histogram.DynamicHistogram;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.PLOT_DEVICE;
@@ -97,12 +98,13 @@ public class VCFHistogram implements Serializable {
 			private static final long serialVersionUID = 1L;
 		};
 		toDump.writeRegions(dir + root + ".segments", TO_STRING_TYPE.REGULAR, false, log);
+				
 		for (int i = 0; i < histograms[0].length; i++) {
 			ArrayList<String> tmpTitles = new ArrayList<String>();
 			ArrayList<DynamicHistogram> tmpHists = new ArrayList<DynamicHistogram>();
 			String output = dir + root;
 			for (int j = 0; j < histograms.length; j++) {
-				tmpTitles.add(histTitles[j][i] + "_Proportion");
+				tmpTitles.add(histTitles[j][i] + "_n_"+Array.sum(histograms[j][i].getCounts()));
 				tmpHists.add(histograms[j][i]);
 				output += "_" + histTitles[j][i];
 
@@ -110,13 +112,25 @@ public class VCFHistogram implements Serializable {
 			output += "_" + METRICS_TRACKED[i] + ".txt";
 
 			String[] aTmpTitles = tmpTitles.toArray(new String[tmpTitles.size()]);
-			DynamicHistogram.dumpToSameFile(tmpHists.toArray(new DynamicHistogram[tmpHists.size()]), aTmpTitles, output, true, log);
+			DumpResult dump=	DynamicHistogram.dumpToSameFile(tmpHists.toArray(new DynamicHistogram[tmpHists.size()]), aTmpTitles, output, true, log);
 			RScatter rScatter = new RScatter(output, output + ".rscript", ext.rootOf(output), output + ".pdf", "Bin", aTmpTitles, SCATTER_TYPE.POINT, log);
 			rScatter.setOverWriteExisting(true);
 			rScatter.setyLabel("Proportion");
 			rScatter.setxLabel(METRICS_TRACKED[i]);
-			rScatter.setTitle(root);
-			rScatter.setyRange(new double[] { 0.0000000000000001, 1.001 });
+			rScatter.setTitle(Array.toStr(root.split("_")," "));
+			double[] minMax = new double[] { 0, 1 };
+			if (i == 0) {
+				minMax = new double[] { 0, .65 };
+			}
+			if (i == 1) {
+				minMax = new double[] { 0, .1 };
+			}
+			if (i == 2 || i == 3) {
+				minMax = new double[] { 0, .1 };
+			}
+			
+			rScatter.setyRange(minMax);
+			rScatter.setFontsize(10);
 			rScatter.execute();
 			rScatters.add(rScatter);
 		}
@@ -284,7 +298,7 @@ public class VCFHistogram implements Serializable {
 						}
 						writer.close();
 						VcfPopulation tmp = VcfPopulation.load(newFile, POPULATION_TYPE.CASE_CONTROL, log);
-						if (!superPop.equals("ARIC")) {
+						if (!superPop.equals("ARIC")&&superPop.equals("EPP")&&superPopComp.equals("ARIC")) {
 							if (tmp.getSubPop().containsKey(VcfPopulation.CONTROL) && tmp.getSubPop().containsKey(VcfPopulation.CASE)) {
 								if (tmp.getSubPop().get(VcfPopulation.CONTROL).size() > 0 && tmp.getSubPop().get(VcfPopulation.CASE).size() > 0) {
 									tmp.report();
@@ -337,7 +351,7 @@ public class VCFHistogram implements Serializable {
 
 	}
 
-	private static class HistProducer implements Producer<RScatters> {
+	private static class HistProducer implements Producer<VCFHistogram> {
 		private HistInit[] histInits;
 		private String vcf, outputDir;
 		private String referenceGenomeFasta;
@@ -359,7 +373,7 @@ public class VCFHistogram implements Serializable {
 		}
 
 		@Override
-		public Callable<RScatters> next() {
+		public Callable<VCFHistogram> next() {
 			final String currentRoot = ext.rootOf(histInits[index].getVpop()) + histInits[index].getOutputRoot();
 			HistWorker worker = new HistWorker(histInits[index], vcf, referenceGenomeFasta, outputDir, currentRoot, log);
 			index++;
@@ -378,7 +392,7 @@ public class VCFHistogram implements Serializable {
 
 	}
 
-	private static class HistWorker implements Callable<RScatters> {
+	private static class HistWorker implements Callable<VCFHistogram> {
 		private HistInit histInits;
 		private String vcf;
 		private String referenceGenomeFasta;
@@ -397,12 +411,12 @@ public class VCFHistogram implements Serializable {
 		}
 
 		@Override
-		public RScatters call() throws Exception {
+		public VCFHistogram call() throws Exception {
 			return createHistogram(vcf, histInits.getVpop(), outputDir, outputRoot, referenceGenomeFasta, histInits.getMaf(), histInits.getVaSample(), log);
 		}
 	}
 
-	private static RScatters createHistogram(String vcf, String vpop, String outputDir, String outputRoot, String referenceGenomeFasta, double maf, VariantFilterSample vaSample, Logger log) {
+	private static VCFHistogram createHistogram(String vcf, String vpop, String outputDir, String outputRoot, String referenceGenomeFasta, double maf, VariantFilterSample vaSample, Logger log) {
 
 		outputDir = outputDir == null ? ext.parseDirectoryOfFile(vpop) : outputDir;
 		outputRoot += ".MAF_" + ext.formDeci(maf, 2);
@@ -420,7 +434,8 @@ public class VCFHistogram implements Serializable {
 			histogram.populateHists(referenceGenome, maf, vaSample);
 			histogram.writeSerial(ser);
 		}
-		return histogram.dumpAndPlot(outputDir, outputRoot);
+		histogram.dumpAndPlot(outputDir, outputRoot);
+		return histogram;
 	}
 
 	public static void createHistograms(String vcf, String vpop, String outputDir, String outputRoot, String referenceGenomeFasta, double[] mafs, int numthreads, Logger log) {
@@ -443,11 +458,26 @@ public class VCFHistogram implements Serializable {
 		}
 
 		HistProducer producer = new HistProducer(histInits, vcf, outputDir, outputRoot, referenceGenomeFasta, log);
-		WorkerTrain<RScatters> train = new WorkerTrain<RScatters>(producer, numthreads, numthreads, log);
+		WorkerTrain<VCFHistogram> train = new WorkerTrain<VCFHistogram>(producer, numthreads, numthreads, log);
+		VCFHistogram[] hists = new VCFHistogram[histInits.length];
+		int indext = 0;
 		while (train.hasNext()) {
-			train.next();
+			hists[indext] = train.next();
 		}
 		train.shutdown();
+//		
+//		try {
+//			String finalOutput  = outputDir+outputRoot+"_final";
+//			String finalText= finalOutput+".txt";
+//			PrintWriter writer = new PrintWriter(new FileWriter(finalText));
+////			for (int i = 0; i < histInits.length; i++) {
+////				writer.p
+////			}
+//			writer.close();
+//		} catch (Exception e) {
+//			log.reportError("Error writing to " + finalText);
+//			log.reportException(e);
+//		}
 	}
 
 	public static void main(String[] args) {
