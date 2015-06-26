@@ -1024,6 +1024,17 @@ public class PennCNV {
 			}, outdir + outfile);
 			Files.chmod(outdir + outfile);
 			
+			if (auto) {
+			    outfile = "combineAMFCNVs";
+			    Files.writeList(new String[]{
+			            "cd " + resultsDir,
+	                    "java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+	                    "java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+	                    "java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",
+			    }, outdir + outfile);
+			    Files.chmod(outdir + outfile);
+			}
+			
 		}
 		
 		if (qsub && submitImmed) {
