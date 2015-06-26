@@ -371,6 +371,8 @@ public class Project {
 	public      FileProperty                   SAMPLE_QC_FILENAME = new       FileProperty(this,                   "SAMPLE_QC_FILENAME", "", "lrr_sd.xln", false);
 	public      FileProperty          SEX_CENTROIDS_MALE_FILENAME = new       FileProperty(this,          "SEX_CENTROIDS_MALE_FILENAME", "", "", false);
 	public      FileProperty        SEX_CENTROIDS_FEMALE_FILENAME = new       FileProperty(this,        "SEX_CENTROIDS_FEMALE_FILENAME", "", "", false);
+	public      FileProperty      REFERENCE_GENOME_FASTA_FILENAME = new       FileProperty(this,        "REFERENCE_GENOME_FASTA_FILENAME", "", "hg19_canonical.fa", false);
+
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
 	public StringListProperty               FOREST_PLOT_FILENAMES = new StringListProperty(this,                "FOREST_PLOT_FILENAMES", "", "", true, false);
 	public StringListProperty       INDIVIDUAL_CNV_LIST_FILENAMES = new StringListProperty(this,        "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", true, false);
@@ -1208,7 +1210,7 @@ public class Project {
 		 * Your friendly Illumina arrays
 		 */
 		ILLUMINA(new String[] { "cnvi" }), /**
-		 * Supports CHP format 
+		 * Supports CHP format
 		 */
 		AFFY_GW6(new String[] { "CN_" }),
 		/**
