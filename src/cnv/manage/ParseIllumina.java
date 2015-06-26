@@ -496,9 +496,9 @@ public class ParseIllumina implements Runnable {
 			// The following code checks all of the common delimiters (tab, comma, space) and determines which one to use when it tries for a second time
 			if (!reader.ready() || count == 1000) {
 				log.reportError("Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
-				log.reportError("   Perhaps the delimiter, which is currently set to "+proj.getProperty(proj.SOURCE_FILE_DELIMITER)+", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
+				log.reportError("   Perhaps the delimiter, which is currently set to "+proj.getProperty(proj.SOURCE_FILE_DELIMITER).getDelimiter() +", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
 				log.reportError("   OR perhaps the ID_HEADER property is incorrect; the text '" + proj.getProperty(proj.ID_HEADER) + "' should be present in the header line.");
-				log.reportError("   OR perhaps the ARRAY_TYPE property is incorrect;  options are " + Array.toStr(proj.ARRAY_TYPE.getValidOptions()));
+				log.reportError("   OR perhaps the ARRAY_TYPE property is incorrect;  options are " + Array.toStr(Project.ARRAY.class, ","));
 
 				reader.close();
 				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);

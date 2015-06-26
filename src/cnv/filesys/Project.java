@@ -11,15 +11,12 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
-
-
 
 import common.Array;
 import common.Files;
@@ -241,26 +238,33 @@ public class Project {
 		}
 	}
 	
-	public static class EnumProperty extends StringProperty {
-		String[] options;
-		public EnumProperty(Project proj, String name, String desc, int defaultIndex, String... opts) {
-			this(proj, name, desc, opts[defaultIndex], opts);
-		}
-		public EnumProperty(Project proj, String name, String desc, String defVal, String... opts) {
-			super(proj, name, desc, defVal);
-			this.options = opts;
-			boolean found = false;
-			for (String opt : this.options) {
-				if (opt.equals(defVal)) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				throw new RuntimeException("Cannot initialize EnumProperty['" + name + "'] with: default value=" + defVal + ", and options [" + Arrays.toString(opts) + "]");
-			}
-		}
-		public String[] getValidOptions() { return options; }
+	public static class EnumProperty<T extends Enum<T>> extends Property<T> {
+	    T[] enumValues;
+	    int defaultIndex;
+	    public EnumProperty(Project proj, String name, String description, int defaultIndex, Class<T> opts) {
+            super(proj, name, description, opts.getEnumConstants()[defaultIndex]);
+            this.enumValues = opts.getEnumConstants();
+            this.defaultIndex = defaultIndex;
+        }
+	    public EnumProperty(Project proj, String name, String description, T defaultOpt, Class<T> opts) {
+	        super(proj, name, description, defaultOpt);
+	        this.enumValues = opts.getEnumConstants();
+	        for (int i = 0; i < enumValues.length; i++) {
+	            if (defaultOpt == enumValues[i]) {
+	                this.defaultIndex = i;
+	                break;
+	            }
+	        }
+        }
+
+        @Override
+        public void parseValue(String valueStr) {
+            for (T val : enumValues) {
+                if (val.toString().equals(valueStr)) {
+                    this.setValue(val);
+                }
+            }
+        }
 	}
 	
 	public <T> T getProperty(Property<T> prop) {
@@ -375,8 +379,8 @@ public class Project {
 	public StringListProperty    STRATIFICATION_RESULTS_FILENAMES = new StringListProperty(this,     "STRATIFICATION_RESULTS_FILENAMES", "", "", true, false);
 	public StringListProperty                        QQ_FILENAMES = new StringListProperty(this,                         "QQ_FILENAMES", "", "", true, false);
 	public StringListProperty                 PLINK_DIR_FILEROOTS = new StringListProperty(this,                  "PLINK_DIR_FILEROOTS", "", "", true, false);
-	public      EnumProperty                SOURCE_FILE_DELIMITER = new       EnumProperty(this,                "SOURCE_FILE_DELIMITER", "", 0, "COMMA", "TAB", "SPACE");	
-	public      EnumProperty                ARRAY_TYPE            = new       EnumProperty(this,                "ARRAY_TYPE", "", 0, ARRAY.ILLUMINA.toString(), ARRAY.AFFY_GW6.toString(), ARRAY.AFFY_GW6_CN.toString());	
+	public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<SOURCE_FILE_DELIMITERS>(this, "SOURCE_FILE_DELIMITER", "", 0, SOURCE_FILE_DELIMITERS.class);	
+	public EnumProperty<ARRAY>                 ARRAY_TYPE            = new EnumProperty<ARRAY>(this, "ARRAY_TYPE", "", 0, ARRAY.class);	
 
 	private String projectPropertiesFilename;
 	private SampleList sampleList;
@@ -679,18 +683,19 @@ public class Project {
 	public String getSourceFileDelimiter() {
 		String str;
 		
-		str = getProperty(SOURCE_FILE_DELIMITER);
-		
-		if (str.toUpperCase().equals("COMMA")) {
-			return ",";
-		} else if (str.toUpperCase().equals("TAB")) {
-			return "\t";
-		} else if (str.toUpperCase().equals("SPACE")) {
-			return "[\\s]+";
-		} else {
-			System.err.println("Error - invalid delimiter specified: '"+str+"'");
-			return ",";
-		} 
+		str = getProperty(SOURCE_FILE_DELIMITER).getDelimiter();
+		return str;
+//		
+//		if (str.toUpperCase().equals("COMMA")) {
+//			return ",";
+//		} else if (str.toUpperCase().equals("TAB")) {
+//			return "\t";
+//		} else if (str.toUpperCase().equals("SPACE")) {
+//			return "[\\s]+";
+//		} else {
+//			System.err.println("Error - invalid delimiter specified: '"+str+"'");
+//			return ",";
+//		} 
 	}
 	
 	public ClusterFilterCollection getClusterFilterCollection() {
@@ -1176,9 +1181,22 @@ public class Project {
 		return tmp.toArray(new String[tmp.size()]);
 	}
 	
+	public enum SOURCE_FILE_DELIMITERS {
+	    COMMA(","),
+	    TAB("\t"),
+	    SPACE(" ");
+	    
+	    String delim;
+	    private SOURCE_FILE_DELIMITERS(String delimValue) {
+	        this.delim = delimValue;
+        }
+	    public String getDelimiter() {
+	        return this.delim;
+	    }
+	}
 	
 	public ARRAY getArrayType() {
-		return ARRAY.valueOf(ARRAY_TYPE.getValue());
+		return ARRAY_TYPE.getValue();
 	}
 	/**
 	 * Used for determining how to import, compute LRR, etc

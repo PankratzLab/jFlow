@@ -56,6 +56,7 @@ public class KitAndKaboodleGUI extends JDialog {
     private HashMap<STEP, JAccordionPanel> panels = new HashMap<KitAndKaboodle.STEP, JAccordionPanel>();
     public HashMap<STEP, ArrayList<? extends JComponent>> varFields = new HashMap<KitAndKaboodle.STEP, ArrayList<? extends JComponent>>();
     public HashMap<STEP, JProgressBar> progBars = new HashMap<KitAndKaboodle.STEP, JProgressBar>();
+    public HashMap<STEP, ArrayList<JButton>> fileBtns = new HashMap<KitAndKaboodle.STEP, ArrayList<JButton>>();
     public HashMap<STEP, JLabel> alreadyRunLbls = new HashMap<KitAndKaboodle.STEP, JLabel>();
     
     Project proj;
@@ -358,6 +359,12 @@ public class KitAndKaboodleGUI extends JDialog {
                             fileBtn.setActionCommand((index) + ":" + (reqInputFields.size() - 1));
                             fileBtn.setMargin(new Insets(1, 4, 0, 3));
                             panel.contentPanel.add(fileBtn, "cell 1 " + rowIndex);
+                            ArrayList<JButton> list = fileBtns.get(step);
+                            if (list == null) {
+                                list = new ArrayList<JButton>();
+                                fileBtns.put(step, list);
+                            }
+                            list.add(fileBtn);
                         }
                     }
                     rowIndex++;
@@ -384,21 +391,24 @@ public class KitAndKaboodleGUI extends JDialog {
     }
     
     public void startStep(STEP step) {
+        if (alreadyRunLbls.get(step).isVisible()) {
+            alreadyRunLbls.get(step).setVisible(false);
+        }
         progBars.get(step).setString("Running...");
         progBars.get(step).setStringPainted(true);
         progBars.get(step).setIndeterminate(true);
         progBars.get(step).setVisible(true);
     }
     
-    public void endStep(STEP step) {
-        progBars.get(step).setString("Complete!");
+    public void endStep(STEP step, boolean failed) {
+        progBars.get(step).setString(failed ? "Failed!" : "Complete!");
         progBars.get(step).setIndeterminate(false);
     }
     
     
     public void refreshLabels() {
         Color greenDark = Color.GREEN.darker();
-        Color dark = Color.BLACK;
+        Color dark = Color.GRAY;
         for (STEP step : this.steps) {
             if (!step.checkIfOutputExists(proj, varFields) || checkBoxes.get(step).isSelected()) {
                 if (step.hasRequirements(proj, checkBoxes, varFields)) {
@@ -451,6 +461,11 @@ public class KitAndKaboodleGUI extends JDialog {
                             fld.setEnabled(!lock);
                         }
                     }
+                    for (ArrayList<JButton> btns : fileBtns.values()) {
+                        for (JButton btn : btns) {
+                            btn.setEnabled(!lock);
+                        }
+                    }
                 }
             });
         } catch (InvocationTargetException e) {
@@ -468,21 +483,35 @@ public class KitAndKaboodleGUI extends JDialog {
                 lockup(true);
                 
                 boolean[] options = getSelectedOptions();
-               
+                
                 if (checkRequirementsAndNotify()) {
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
                             startStep(KitAndKaboodleGUI.this.steps[i]);
+                            Exception e = null;
                             try {
                                 KitAndKaboodleGUI.this.steps[i].run(proj, varFields);
-                            } catch (Exception e) {
-                                // TODO show error message, stop execution
+                            } catch (Exception e1) {
+                                e = e1;
                             }
-                            endStep(KitAndKaboodleGUI.this.steps[i]);
+                            boolean failed = false;
+                            if (e != null || KitAndKaboodleGUI.this.steps[i].getFailed() || !KitAndKaboodleGUI.this.steps[i].checkIfOutputExists(proj, varFields)) {
+                                failed = true;
+                            }
+                            endStep(KitAndKaboodleGUI.this.steps[i], failed);
+                            if (e != null) {
+                                // TODO failed spectacularly
+                            } else if (KitAndKaboodleGUI.this.steps[i].getFailed()) {
+                                // TODO step failed and we recognized it, might even have an error message...
+                            } else if (!KitAndKaboodleGUI.this.steps[i].checkIfOutputExists(proj, varFields)) {
+                                // TODO step failed and we didn't recognize it [failed = false, but no output]
+                            } else {
+                                
+                            }
                         }
                     }
                 }
-                    
+                
                 lockup(false);
                 running = false;
             }

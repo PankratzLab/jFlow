@@ -95,7 +95,7 @@ public class CytoAgilentParse {
 		proj.setProperty(proj.ID_HEADER, ParseIllumina.FILENAME_AS_ID_OPTION);
 //		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, "FALSE");
 		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, Boolean.FALSE);
-		proj.setProperty(proj.SOURCE_FILE_DELIMITER, "TAB");
+		proj.setProperty(proj.SOURCE_FILE_DELIMITER, Project.SOURCE_FILE_DELIMITERS.TAB);//"TAB");
 		proj.saveProperties();
 		return parsedFiles;
 	}

@@ -1577,7 +1577,22 @@ public class Array {
 	public static String toStr(String[] array) {
 		return toStr(array, null, "\t", null);
 	}
-
+	
+	/**
+	 * Prints all values of an enum, separated by the specified delimiter
+	 * @param enumValue An enum class, must be passed as ENUM.class (not the enum itself, but "&lt;enum&gt;.class")
+	 * @param delimiter
+	 * @return
+	 */
+	public static <T extends Enum<?>> String toStr(Class<T> enumValue, String delimiter) {
+        T[] values = enumValue.getEnumConstants();
+        String[] arr = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
+            arr[i] = values[i].toString();
+        }
+        return Array.toStr(arr, null, delimiter, null);
+    }
+	
 	/**
 	 * Prints an array of objects separated by the specified delimiter
 	 * 
