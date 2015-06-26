@@ -440,13 +440,18 @@ public class PennCNVPrep {
 		return sex;
 	}
 
-	private static String[] getSortedFileNames(Project proj, String dir) {
+	private static String[] getSortedFileNames(Project proj, String dir,String tmpDir) {
 		String[] markers = proj.getMarkerNames();
 		ArrayList<String> files = new ArrayList<String>();
+		int diff =-1;
 		for (int i = 0; i < markers.length; i++) {
-			String possibleExist = proj.PROJECT_DIRECTORY.getValue() + dir + STORAGE_BASE + i + STORAGE_EXT;
+			String possibleExist = (tmpDir==null?proj.PROJECT_DIRECTORY.getValue():tmpDir) + dir + STORAGE_BASE + i + STORAGE_EXT;
 			if (Files.exists(possibleExist)) {
+
+				
 				files.add(possibleExist);
+				proj.getLog().reportTimeInfo("Found file " + possibleExist + " Diff " + (diff - i)+" Num "+files.size());
+				diff = i;
 			}
 		}
 		proj.getLog().report("Info - detected " + files.size() + " files to use for the PennCNV export");
@@ -475,7 +480,7 @@ public class PennCNVPrep {
 			// TODO, samples for Clustering!
 
 			PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, exportThese, null, null, null, numComponents, dir, svdRegression, numThreads, numMarkerThreads);
-			String[] sortedFileNames = getSortedFileNames(proj, dir);
+			String[] sortedFileNames = getSortedFileNames(proj, dir,tmpDir);
 			if (sortedFileNames == null || sortedFileNames.length == 0) {
 				proj.getLog().reportError("Error - did not find any files to export from");
 
@@ -484,12 +489,17 @@ public class PennCNVPrep {
 			}
 		}
 		if (shadowSamples) {
+
 			boolean[][] batches = Array.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks, proj.getLog());
+
 			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 			Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<String, Future<Boolean>>();
 			for (int i = 0; i < batches.length; i++) {
+
 				PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, null, null, null, null, numComponents, dir, svdRegression, numThreads, numMarkerThreads);
-				String[] sortedFileNames = getSortedFileNames(proj, dir);
+
+				String[] sortedFileNames = getSortedFileNames(proj, dir,tmpDir);
+				proj.getLog().reportTimeInfo("Found "+sortedFileNames.length+" special files");
 
 				if (sortedFileNames == null || sortedFileNames.length == 0) {
 					proj.getLog().reportError("Error - did not find any files to export from");
@@ -498,7 +508,8 @@ public class PennCNVPrep {
 				}
 			}
 			for (int i = 0; i < batches.length; i++) {
-				String[] sortedFileNames = getSortedFileNames(proj, dir);
+				String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
+				proj.getLog().reportTimeInfo("Found "+sortedFileNames.length+" special files");
 				try {
 					if (sortedFileNames == null || sortedFileNames.length == 0) {
 						proj.getLog().reportError("Error - did not find any files to export from");

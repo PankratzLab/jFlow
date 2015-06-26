@@ -333,7 +333,7 @@ public class Rscript {
 			this.dataXvalueColumn = dataXvalueColumn;
 			this.dataYvalueColumns = dataYvalueColumns;
 			this.log = log;
-			this.output = output;
+			this.output = ext.rootOf(output, false) + ".jpeg";
 			this.sType = sType;
 			this.rSafeXColumn = makeRSafe(dataXvalueColumn);
 			this.rSafeYColumns = makeRSafe(dataYvalueColumns);
@@ -346,6 +346,11 @@ public class Rscript {
 		
 		public void setOverWriteExisting(boolean overWriteExisting) {
 			this.overWriteExisting = overWriteExisting;
+		}
+
+
+		public void setFontsize(int fontsize) {
+			this.fontsize = fontsize;
 		}
 
 
