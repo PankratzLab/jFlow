@@ -23,6 +23,9 @@ public class Blast {
 	private static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };
 	private static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score" };
 	private static final String DB = "-db";
+	private static final String IN = "-in";
+	private static final String DB_TYPE = "-dbtype";
+
 	private static final String OUT_FMT = "-outfmt";
 	private static final int DEFAULT_OUT_FMT = 7;
 	private static final String WORD_SIZE = "-word_size";
@@ -128,8 +131,8 @@ public class Blast {
 	public static boolean initDb(BLAST_DB_TYPE type, String fastaDb, Logger log) {
 		boolean dbCreated = true;
 		if (!Files.exists("", getDBFiles(fastaDb))) {
-			String[] dbCommand = new String[] { BLAST_COMMANDS.MAKE_DB.getCommand(), DB, fastaDb, type.getTYPE() };
-			CmdLine.runCommandWithFileChecks(dbCommand, "", new String[] { fastaDb }, getDBFiles(fastaDb), true, false, false, log);
+			String[] dbCommand = new String[] { BLAST_COMMANDS.MAKE_DB.getCommand(), IN, fastaDb, DB_TYPE, type.getTYPE() };
+			dbCreated = CmdLine.runCommandWithFileChecks(dbCommand, "", new String[] { fastaDb }, getDBFiles(fastaDb), true, false, false, log);
 		} else {
 			log.reportTimeInfo("Using existing data base files : " + ext.rootOf(fastaDb) + " (" + Array.toStr(DB_EXTs, ",") + ")");
 
