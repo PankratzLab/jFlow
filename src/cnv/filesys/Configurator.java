@@ -25,6 +25,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -71,7 +72,7 @@ public class Configurator extends JFrame {
                 "MARKER_DATA_DIRECTORY",
                 "RESULTS_DIRECTORY",
                 "DEMO_DIRECTORY",
-                "BACKUP_DIRECTORY"
+                "BACKUP_DIRECTORY",
             },
             {
                 "Import",
@@ -472,7 +473,7 @@ public class Configurator extends JFrame {
 					}
 					fileLabel.setText(sb.toString());
 					returnComp = fileRenderer;
-				} else  if (value instanceof String[]) {
+				} else if (value instanceof String[]) {
                     StringBuilder sb = new StringBuilder();
                     String[] values = (String[]) value;
                     for (int i = 0; i < values.length; i++) {
@@ -500,6 +501,10 @@ public class Configurator extends JFrame {
 					Object propVal = table.getModel().getValueAt(row, 1);
 					setByPropertyKey(rendererSpinner, proj, propKey, propVal);
 					returnComp = rendererSpinner;
+			    } else if (value instanceof Enum<?>) {
+//			        System.out.println("Found ENUM; values: [" + Array.toStr(((Enum) value).getDeclaringClass(), ",") + "]");
+			        // use string renderer for enums
+                    returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				} else {
 				    if (column == 0) {
 				        returnComp = super.getTableCellRendererComponent(table, "            "+value, isSelected, hasFocus, row, column);
@@ -566,6 +571,13 @@ public class Configurator extends JFrame {
 				    } else {
 				        return stringListEditor;
 				    }
+				} else if (propVal instanceof Enum<?>) {
+				    @SuppressWarnings("rawtypes")
+                    Object[] values = ((Enum)propVal).getDeclaringClass().getEnumConstants();
+                    DefaultCellEditor enumEditor = new DefaultCellEditor(new JComboBox<Object>(values));
+				    return enumEditor;
+				} else {
+//				    System.out.println("Not found: Class<" + propVal.getClass().getName() + ">");
 				}
 				
 				TableCellEditor editor = super.getCellEditor(row, column); 

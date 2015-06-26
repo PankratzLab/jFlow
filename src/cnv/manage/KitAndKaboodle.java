@@ -607,7 +607,7 @@ public class KitAndKaboodle {
     private static STEP[] AFFY_NOCN_STEPS = {};
     
     public static STEP[] getStepsForProject(Project proj) {
-        switch (Project.ARRAY.valueOf(proj.ARRAY_TYPE.getValue())) {
+        switch (proj.ARRAY_TYPE.getValue()) {
             case AFFY_GW6: 
                 return AFFY_NOCN_STEPS;
             case AFFY_GW6_CN:

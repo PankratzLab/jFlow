@@ -25,11 +25,13 @@ import common.Array;
 import common.Files;
 import common.ext;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.manage.MitoPipeline;
 import net.miginfocom.swing.MigLayout;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
 import javax.swing.JComboBox;
 
 public class ProjectCreationGUI extends JDialog {
@@ -102,7 +104,7 @@ public class ProjectCreationGUI extends JDialog {
             
         }
     };
-    private JComboBox comboBoxArrayType;
+    private JComboBox<Project.ARRAY> comboBoxArrayType;
 
     /**
      * Launch the application.
@@ -339,17 +341,11 @@ public class ProjectCreationGUI extends JDialog {
         }
         String filename = path + name + MitoPipeline.PROJECT_EXT;
         if (Files.exists(filename)) {
-            // TODO Error - project already exists
-            // Files.backup(ext.removeDirectoryInfo(filename), path, path + "backup/", false);
             dummy.getLog().reportError("Project " + name + " already exists");
             dummy.message("Error - Project " + name + " already exists");
-//            dummy.getLog().reportError("Using project file " + filename + ", you may also specify project filename using the command line argument \"proj=\"");
             return false;
         } else {
-            // log.report("Project properties file can be found at " + filename);
-            // if (proj != null) {
             Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
-            // }
         }
         Project actualProj = new Project(filename, false);
         actualProj.PROJECT_NAME.setValue(name);
@@ -359,7 +355,7 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.ID_HEADER.setValue(idHdr);
         actualProj.LRRSD_CUTOFF.setValue(lrrSd);
         actualProj.TARGET_MARKERS_FILENAME.setValue(ext.removeDirectoryInfo(tgtMkrs));
-        actualProj.ARRAY_TYPE.setValue(comboBoxArrayType.getSelectedItem().toString());
+        actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
         // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
         // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
         // }
