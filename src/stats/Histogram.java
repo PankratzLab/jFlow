@@ -385,11 +385,15 @@ public class Histogram implements Serializable {
 		 * @param histograms
 		 *            must be the same length
 		 */
-		public static void dumpToSameFile(DynamicHistogram[] histograms, String[] titles, String output,boolean proportion, Logger log) {
+		public static DumpResult dumpToSameFile(DynamicHistogram[] histograms, String[] titles, String output,boolean proportion, Logger log) {
+			double max=Double.MIN_VALUE;
+			double min = Double.MAX_VALUE;
 			if (histograms.length != titles.length) {
 				log.reportTimeError("Titles and histogram array must be the same length");
+				return null;
 			}
 			try {
+		
 				double[] totals = new double[histograms.length];
 				for (int i = 0; i < totals.length; i++) {
 					totals[i] = proportion ? Array.sum(histograms[i].getCounts()) : 1;
@@ -399,7 +403,13 @@ public class Histogram implements Serializable {
 				for (int i = 0; i < histograms[0].getBins().length; i++) {
 					writer.print(histograms[0].getBins()[i]);
 					for (int j = 0; j < histograms.length; j++) {
-						writer.print("\t" + (proportion ? histograms[j].getCounts()[i] / totals[j] : histograms[j].getCounts()[i]));
+						double val =  (proportion ? histograms[j].getCounts()[i] / totals[j] : histograms[j].getCounts()[i]);
+						writer.print("\t" +val);
+						if(val>max){
+							max=val;
+						}else if(val<min){
+							min =val;
+						}
 					}
 					writer.println();
 				}
@@ -408,7 +418,26 @@ public class Histogram implements Serializable {
 				log.reportError("Error writing to " + output);
 				log.reportException(e);
 			}
+			return new DumpResult(max, min);
 		}
+	}
+	
+	
+	public static class DumpResult {
+		private double maxCount;
+		private double minCount;
+		public DumpResult(double maxCount, double minCount) {
+			super();
+			this.maxCount = maxCount;
+			this.minCount = minCount;
+		}
+		public double getMaxCount() {
+			return maxCount;
+		}
+		public double getMinCount() {
+			return minCount;
+		}
+
 	}
 
 	public static void main(String[] args) {

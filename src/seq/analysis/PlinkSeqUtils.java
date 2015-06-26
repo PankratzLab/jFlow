@@ -247,13 +247,14 @@ public class PlinkSeqUtils {
 					writer.println(Positions.getChromosomeUCSC(gDatas[i][j].getChr(), true) + "\t" + gDatas[i][j].getStart() + "\t" + gDatas[i][j].getStop() + "\t" + gDatas[i][j].getGeneName() + GENVISIS_GENE);
 				}
 			}
-			Pathway[] ways = gRegions.getPathways().getPathways();
-			for (int i = 0; i < ways.length; i++) {
-				GeneData[] pathGenes = ways[i].getLoci();
-				for (int j = 0; j < pathGenes.length; j++) {
-					writer.println(Positions.getChromosomeUCSC(pathGenes[j].getChr(), true) + "\t" + pathGenes[j].getStart() + "\t" + pathGenes[j].getStop() + "\t" + ways[i].getPathwayName() + GENVISIS_PATHWAY);
-				}
-			}
+			// }
+			// Pathway[] ways = gRegions.getPathways().getPathways();
+			// for (int i = 0; i < ways.length; i++) {
+			// GeneData[] pathGenes = ways[i].getLoci();
+			// for (int j = 0; j < pathGenes.length; j++) {
+			// writer.println(Positions.getChromosomeUCSC(pathGenes[j].getChr(), true) + "\t" + pathGenes[j].getStart() + "\t" + pathGenes[j].getStop() + "\t" + ways[i].getPathwayName() + GENVISIS_PATHWAY);
+			// }
+			// }
 			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing to " + locFileName);

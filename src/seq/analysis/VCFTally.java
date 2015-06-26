@@ -21,6 +21,7 @@ import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.VcfPopulation;
+import seq.manage.VCOps.VC_SUBSET_TYPE;
 import seq.pathway.GenomeRegions;
 import seq.pathway.Pathway;
 import seq.qc.FilterNGS;
@@ -97,11 +98,11 @@ public class VCFTally implements Serializable {
 				PrintWriter writer = new PrintWriter(new FileWriter(outputList, false));
 				for (VariantContext vc : reader) {
 					index++;
-					VariantContext vcPop = VCOps.getSubset(vc, all);
+					VariantContext vcPop = VCOps.getSubset(vc, all, VC_SUBSET_TYPE.SUBSET_STRICT, false);
 					if (VCOps.isMinorAlleleAlternate(vcPop, null) && VCOps.getAAC(vcPop, null) > 0) {// minor allele is alt
 
-						VariantContext vcCase = VCOps.getSubset(vc, cases);
-						VariantContext vcControl = VCOps.getSubset(vc, controls);
+						VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+						VariantContext vcControl =  VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT, false);
 
 						if ((type == CASE_CONTROL_TYPE.BOTH_PASS && totalQuality.filter(vcCase).passed() && totalQuality.filter(vcControl).passed()) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcCase).passed() || totalQuality.filter(vcControl).passed()))) {
 
