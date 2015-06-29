@@ -48,7 +48,7 @@ public class MarkerMetrics {
 			String[] tmpQc = new String[batches.size()];
 			for (int i = 0; i < batches.size(); i++) {
 				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
-				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, markerNames, tmp));
+				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp));
 				tmpQc[i] = tmp;
 			}
 
