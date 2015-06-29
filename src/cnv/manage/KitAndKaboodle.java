@@ -420,6 +420,7 @@ public class KitAndKaboodle {
     };
     
     static final STEP S10_MARKER_QC = new STEP("Run Marker QC Metrics", "",
+            // # threads
             // MarkerSet file, or step 1
             // TargetMarkers file
             // SampleList or Parsed Sample Files (will create SampleList)
@@ -430,7 +431,7 @@ public class KitAndKaboodle {
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             double markerCallRateFilter = Double.parseDouble(((JTextField)variableFields.get(this).get(0)).getText().trim());
-            MitoPipeline.qcMarkers(proj, markerCallRateFilter);
+            MitoPipeline.qcMarkers(proj, markerCallRateFilter, 1); // number of threads
         }
         
         @Override
