@@ -81,6 +81,7 @@ public class PlinkFormat {
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		try {
+		    log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".map");
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".map"));
 			for (int i = 0; i<indices.length; i++) {
 				writer.println(chrs[indices[i]]+" "+markerNames[indices[i]]+" 0 "+positions[indices[i]]);
@@ -124,6 +125,7 @@ public class PlinkFormat {
 //			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
 			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".ped"));
+			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".ped");
 			count = 1;
 			invalidAbLookups = new Hashtable<Integer, Integer>();
 			while (reader.ready()) {

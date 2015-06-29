@@ -787,9 +787,10 @@ public class ParseIllumina implements Runnable {
 			}
 		}
 		
-		if (allOutliers.size()>0) {
-			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
-		}
+//		if (allOutliers.size()>0) {
+		// changed 6-26-15 to always write an outliers.ser, even if no outliers exist
+		Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+//		}
 		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			return 6;
 		} else {

@@ -59,9 +59,15 @@ public class Qc {
 		
 		if (!Files.exists(dir+"markerQC/miss_drops.dat")) {
 			new File(dir+"markerQC/miss.crf").delete();
-			MarkerQC.parseParameters(dir+"markerQC/miss.crf", log); // first generates a file with the defaults
+			int runCode1 = MarkerQC.parseParameters(dir+"markerQC/miss.crf", log, false); // first generates a file with the defaults
+			if (runCode1 != 0) {
+			    // ERROR!  TODO not sure if we should quit here; for now, continue;
+			}
 			Files.writeList(Array.addStrToArray("dir="+dir+"markerQC/", HashVec.loadFileToStringArray(dir+"markerQC/miss.crf", false, new int[] {0}, false), 1), dir+"markerQC/miss.crf");
-			MarkerQC.parseParameters(dir+"markerQC/miss.crf", log); // second runs the filtering
+			int runCode2 = MarkerQC.parseParameters(dir+"markerQC/miss.crf", log, false); // second runs the filtering
+			if (runCode2 != 0) {
+			    // ERROR  TODO not sure if we should quit here; for now, continue;
+			}
 		}
 
 		new File(dir+"sampleQC/").mkdirs();
@@ -99,7 +105,7 @@ public class Qc {
 		}
 		if (!Files.exists(dir+"genome/plink.genome_keep.dat")) {
 			log.report(ext.getTime() + "]\tRunning flagRelateds");
-			Plink.flagRelateds(dir+"genome/plink.genome", dir+"genome/plink.fam", dir+"markerQC/missing.imiss", dir+"genome/lrr_sd.xln", Plink.FLAGS, Plink.THRESHOLDS, 4);
+			Plink.flagRelateds(dir+"genome/plink.genome", dir+"genome/plink.fam", dir+"markerQC/missing.imiss", dir+"genome/lrr_sd.xln", Plink.FLAGS, Plink.THRESHOLDS, 4, false);
 		}
 		
 		new File(dir+"ancestry/").mkdirs();

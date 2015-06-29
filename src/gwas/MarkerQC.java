@@ -20,7 +20,7 @@ public class MarkerQC {
 	public static final String[] FINAL_HEADER = {"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value", "miss.hap min p-value", "P_MISS"};
 //	public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero", "minmishap", "p_miss"};
 
-	public static void parse(String dir, String[][] params, Logger log) {
+	public static int parse(String dir, String[][] params, Logger log, boolean kill) {
 		BufferedReader reader;
         String[] line;
         Hashtable<String,String[]> hash;
@@ -87,11 +87,19 @@ public class MarkerQC {
                     } catch (FileNotFoundException fnfe) {
                     	log.reportError("Error: file \""+params[i][1]+"\" not found in current directory");
                     	log.reportException(fnfe);
-	                    System.exit(1);
+                    	if (kill) {
+                    	    System.exit(1);
+                    	} else {
+                    	    return 1;
+                    	}
                     } catch (IOException ioe) {
                     	log.reportError("Error reading file \""+params[i][1]+"\"");
                     	log.reportException(ioe);
-	                    System.exit(2);
+                    	if (kill) {
+                    	    System.exit(2);
+                    	} else {
+                    	    return 2;
+                    	}
                     }
 					v.add(dir+params[i][1]+" 0 $MIN7");
 					headers.add(MISSHAP_HEADER);
@@ -120,11 +128,16 @@ public class MarkerQC {
 			log.report("Finished in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportException(e);
-			System.exit(2);
+			if (kill) {
+			    System.exit(2);
+			} else {
+			    return 2;
+			}
 		}
+		return 0;
 	}
 	
-	public static void testThresholds(String dir, String[][] params, Logger log) {
+	public static int testThresholds(String dir, String[][] params, Logger log, boolean kill) {
 		BufferedReader reader;
         PrintWriter[] writers;
         PrintWriter writer;
@@ -140,7 +153,7 @@ public class MarkerQC {
         		log.report("Using existing file: "+dir+params[0][1]);
         	} else {
         		log.report("Generating new source file: "+dir+params[0][1]);
-        		parse(dir, params, log);
+        		int parseReturnCode = parse(dir, params, log, kill);
         	}
 	        
         	ops = new String[params.length-3];
@@ -164,7 +177,11 @@ public class MarkerQC {
 		        		thresholds[i] = Double.parseDouble(params[i+3][2].substring(ops[i].length()));
 		        	} catch (NumberFormatException nfe) {
 		        		log.reportError("Error - threshold for "+params[i+3][0]+" ('"+params[i+3][2].substring(1)+"') is not a valid number");
-		        		System.exit(1);
+		        		if (kill) {
+		        		    System.exit(1);
+		        		} else {
+		        		    return 1;
+		        		}
 		        	}
 	        	}
             }
@@ -219,11 +236,19 @@ public class MarkerQC {
             } catch (FileNotFoundException fnfe) {
             	log.reportError("Error: file \""+params[0][1]+"\" not found in current directory");
             	log.reportException(fnfe);
-	            System.exit(1);
+            	if (kill) {
+            	    System.exit(1);
+            	} else {
+            	    return 1;
+            	}
             } catch (IOException ioe) {
             	log.reportError("Error reading file \""+params[0][1]+"\"");
             	log.reportException(ioe);
-	            System.exit(2);
+            	if (kill) {
+            	    System.exit(2);
+            	} else {
+            	    return 2;
+            	}
             }
             
             maxSize = 0;
@@ -257,10 +282,16 @@ public class MarkerQC {
         } catch (Exception e) {
         	log.reportError("Error writing to "+params[2][1]+".out");
         	log.reportException(e);
+        	if (kill) {
+        	    System.exit(1);
+        	} else {
+        	    return 1;
+        	}
         }       
+        return 0;
 	}
 
-	public static void parseParameters(String filename, Logger log) {
+	public static int parseParameters(String filename, Logger log, boolean kill) {
         String[] line, record;
         Vector<String[]> v;
         String key;
@@ -303,21 +334,37 @@ public class MarkerQC {
 	        }
 	        if (file == null) {
 	        	log.reportError("Error - no file listed (i.e. file=markerQC.xln)");
-	        	System.exit(1);
+	        	if (kill) {
+	        	    System.exit(1);
+	        	} else {
+	        	    return 1;
+	        	}
 	        } else {
 	        	v.insertElementAt(file, 0);
 	        }
 
 	        if (markers == null) {
 	        	log.reportError("Error - need to define the marker list/order, even if it's just markers=freq.frq,1");
-	        	System.exit(1);
+	        	if (kill) {
+	        	    System.exit(1);
+	        	} else {
+	        	    return 1;
+	        	}
 	        } else {
 	        	v.insertElementAt(markers, 1);
 	        }
 
 	    	v.insertElementAt(new String[] {"root", ext.rootOf(filename)}, 2);
-	        testThresholds(dir, Matrix.toStringArrays(v), log);
+	        int testCode = testThresholds(dir, Matrix.toStringArrays(v), log, kill);
+	        if (testCode != 0) {
+    	        if (kill) {
+    	            System.exit(testCode);
+    	        } else {
+    	            return testCode;
+    	        }
+	        }
 		}
+		return 0;
 	}
 	
 	public static void main(String[] args) throws IOException {
@@ -347,7 +394,7 @@ public class MarkerQC {
 		
 		log = new Logger(ext.rootOf(filename, false)+".log");
 		try {
-			parseParameters(filename, log);
+			parseParameters(filename, log, true);
 		} catch (Exception e) {
 			log.reportException(e);
 		}

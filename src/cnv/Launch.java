@@ -288,6 +288,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //				    submenu = new JMenu(MENUS[i][j]);
 				    menuItem = new JMenuItem("New Project");
 				    menuItem.addActionListener(this);
+				    menuItem.setMnemonic(KeyEvent.VK_N);
 //				    submenu.add(menuItem);
                     menu.add(menuItem);
 				} else if (MENUS[i][j].equals("Select Project")) {
@@ -647,32 +648,35 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		if (command.equals(EXIT)) {
 			System.exit(0);
 		} else if (command.equals(EDIT)) {
-//			new PropertyEditor(proj);
-
-			boolean configure = JOptionPane.showConfirmDialog(null, "Use new [in beta] property editor?", "Beta or Notepad?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-			if (configure) {
-				Configurator configurator = new Configurator(proj);
-				configurator.addWindowListener(new WindowAdapter() {
-					public void windowClosed(WindowEvent e) {
-						Launch.this.requestFocus();
-					};
-				});
-				configurator.setVisible(true);
+		    boolean promptNodepad = false;
+		    if (System.getProperty("os.name").startsWith("Windows")) {
+		        promptNodepad = Files.programExists("notepad.exe");
+		    }
+		    boolean notepad = false;
+		    if (promptNodepad) {
+		        notepad = JOptionPane.showConfirmDialog(null, "Use Notepad to edit?", "Use Notepad?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+		    }
+			if (notepad) {
+			    log.report("Launching notepad...");
+    			int index = projectsBox.getSelectedIndex();
+    			String dir = launchProperties.getDirectory();
+    			try {
+    			    Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
+    			    if (!new File(dir+projects[index]).exists()) {
+    			        log.report("Tried to open "+projects[index]+" which does not exist");
+    			    }
+    			} catch (IOException ioe) {
+    			    log.reportError("Error - failed to open Notepad");
+    			}
 			} else {
-				int index = projectsBox.getSelectedIndex();
-				String dir = launchProperties.getDirectory();
-				try {
-					if (System.getProperty("os.name").startsWith("Windows")) {
-						Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
-						if (!new File(dir+projects[index]).exists()) {
-							log.report("Tried to open "+projects[index]+" which does not exist");
-						}
-					} else {
-						JOptionPane.showMessageDialog(null, "This button currently only works for the Windows operating system; a full feature property editor will be arriving in due course", "Sorry", JOptionPane.ERROR_MESSAGE);
-					}
-				} catch (IOException ioe) {
-					log.reportError("Error - failed to open Notepad");
-				}
+                log.report("Launching project properties editor...");
+    			Configurator configurator = new Configurator(proj);
+    			configurator.addWindowListener(new WindowAdapter() {
+    				public void windowClosed(WindowEvent e) {
+    					Launch.this.requestFocus();
+    				};
+    			});
+    			configurator.setVisible(true);
 			}
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
