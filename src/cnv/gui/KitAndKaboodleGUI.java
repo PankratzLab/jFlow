@@ -23,6 +23,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -38,7 +39,6 @@ import cnv.filesys.Project;
 import cnv.manage.KitAndKaboodle;
 import cnv.manage.KitAndKaboodle.RequirementInputType;
 import cnv.manage.KitAndKaboodle.STEP;
-
 import common.Array;
 import common.Grafik;
 import common.ext;
@@ -150,11 +150,13 @@ public class KitAndKaboodleGUI extends JDialog {
                 doClose();
             }
         });
-        for (STEP step : this.steps) {
+        for (int i = 0; i < this.steps.length; i++) {
+            STEP step = this.steps[i];
             if (step.checkIfOutputExists(this.proj, varFields)) {
                 checkBoxes.get(step).setSelected(false);
                 alreadyRunLbls.get(step).setVisible(true);
                 panels.get(step).shrink();
+                selected[i] = false;
             }
         }
         refreshLabels();
@@ -499,15 +501,34 @@ public class KitAndKaboodleGUI extends JDialog {
                                 failed = true;
                             }
                             endStep(KitAndKaboodleGUI.this.steps[i], failed);
+                            StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(i + 1);
                             if (e != null) {
-                                // TODO failed spectacularly
+                                proj.getLog().reportException(e);
+                                failureMessage.append("\n").append(e.getMessage());
                             } else if (KitAndKaboodleGUI.this.steps[i].getFailed()) {
-                                // TODO step failed and we recognized it, might even have an error message...
+                                for (String msg : KitAndKaboodleGUI.this.steps[i].getFailureMessages()) {
+                                    failureMessage.append("\n").append(msg);
+                                }
                             } else if (!KitAndKaboodleGUI.this.steps[i].checkIfOutputExists(proj, varFields)) {
-                                // TODO step failed and we didn't recognize it [failed = false, but no output]
-                            } else {
-                                
+                                failureMessage.append("\nUnknown error occurred.");
                             }
+                            if (failed) {
+                                failureMessage.append("\nPlease check project log for more details.");
+                                String[] opts = {"Continue", "Retry", "Cancel"};
+                                int opt = JOptionPane.showOptionDialog(KitAndKaboodleGUI.this, failureMessage.toString(), "Error!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, opts, opts[2]);
+                                if (opt == JOptionPane.CLOSED_OPTION || opt == 2) { // closed or cancel
+                                    for (STEP step : KitAndKaboodleGUI.this.steps) {
+                                        step.resetRun();
+                                    }
+                                    break;
+                                } else if (opt == 1) { // retry
+                                    KitAndKaboodleGUI.this.steps[i].resetRun();
+                                    i--;
+                                } else {
+                                    // continue
+                                }
+                            }
+                            
                         }
                     }
                 }

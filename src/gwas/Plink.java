@@ -341,7 +341,7 @@ public class Plink {
 		}
 	}
 	
-	public static void flagRelateds(String genomeFile, String famFile, String iMissFile, String lrrFile, String[] flags, double[][] thresholds, int removeOutTo) {
+	public static int flagRelateds(String genomeFile, String famFile, String iMissFile, String lrrFile, String[] flags, double[][] thresholds, int removeOutTo, boolean kill) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, metrics, ids;
@@ -500,10 +500,18 @@ public class Plink {
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + genomeFile + "\" not found in current directory");
-			System.exit(1);
+            if (kill) {
+                System.exit(1);
+            } else {
+                return 1;
+            }
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + genomeFile + "\"");
-			System.exit(2);
+            if (kill) {
+                System.exit(2);
+            } else {
+                return 2;
+            }
 		}
 		if (numExtras >= 20) {
 			log.report("There were "+numExtras+" samples that were in the .genome file but not predefined in a .fam file");
@@ -524,10 +532,18 @@ public class Plink {
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + temp + "\" not found in current directory");
-			System.exit(1);
+			if (kill) {
+			    System.exit(1);
+			} else {
+			    return 1;
+			}
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + temp + "\"");
-			System.exit(2);
+			if (kill) {
+			    System.exit(2);
+			} else {
+			    return 2;
+			}
 		}
 		new File(temp).renameTo(new File("trash"));
 		
@@ -604,11 +620,12 @@ public class Plink {
 			log.report("Failed to locate file 'ofInterest.txt'");
 		}
 		log.report(ext.getTime()+"\tDone!");
+		return 0;
 	}
 	
 	// pair with a .log file if it exists to check numRepsEach and replace if need be
 	// use hashtable instead so that mperms with only the most significant markers can get their extra reps (requires numRepsTotal to be an array)
-	public static void collapseMperms(String patternAndCount) {
+	public static int collapseMperms(String patternAndCount, boolean kill) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -658,10 +675,18 @@ public class Plink {
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \"" + filename + "\" not found in current directory");
-					System.exit(1);
+					if (kill) {
+					    System.exit(1);
+					} else {
+					    return 1;
+					}
 				} catch (IOException ioe) {
 					System.err.println("Error reading file \"" + filename + "\"");
-					System.exit(2);
+					if (kill) {
+					    System.exit(2);
+					} else {
+					    return 2;
+					}
 				}
 
 				numRepsTotal += numReps;
@@ -683,8 +708,14 @@ public class Plink {
 			} catch (Exception e) {
 				System.err.println("Error writing to " + filename);
 				e.printStackTrace();
+				if (kill) {
+				    System.exit(1);
+				} else {
+				    return 1;
+				}
 			}
 		}
+		return 0;
 	}
 	
 	public static void parseDiffMode6(String filename) {
@@ -994,9 +1025,9 @@ public class Plink {
 			} else if (removeFiles != null) {
 				removeIndividuals(removeFiles[0], removeFiles[1]);
 			} else if (genomeFile != null) {
-				flagRelateds(genomeFile, famFile, iMissFile, lrrFile, FLAGS, THRESHOLDS, removeOutTo);
+				flagRelateds(genomeFile, famFile, iMissFile, lrrFile, FLAGS, THRESHOLDS, removeOutTo, true);
 			} else if (mperm != null) {
-				collapseMperms(mperm);
+				collapseMperms(mperm, true);
 			} else if (diff != null) {
 				parseDiffMode6(diff);
 			} else if (shift != null) {

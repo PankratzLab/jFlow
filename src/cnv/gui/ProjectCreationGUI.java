@@ -104,7 +104,8 @@ public class ProjectCreationGUI extends JDialog {
             
         }
     };
-    private JComboBox<Project.ARRAY> comboBoxArrayType;
+//    private JComboBox<Project.ARRAY> comboBoxArrayType;
+    private JComboBox<String> comboBoxArrayType;
 
     /**
      * Launch the application.
@@ -129,11 +130,11 @@ public class ProjectCreationGUI extends JDialog {
         Project proj = new Project();
         
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 544, 332);
+        setBounds(100, 100, 544, 400);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]", "[][][grow][][][][][][][][][][grow][][]"));
+        contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]", "[grow][][grow][][][grow][][][][][grow][][][grow][]"));
         
         JLabel lblGenvisisProjectCreation = new JLabel("Genvisis Project Creation");
         lblGenvisisProjectCreation.setFont(new Font("Arial", Font.BOLD, 16));
@@ -157,45 +158,46 @@ public class ProjectCreationGUI extends JDialog {
         txtFldProjDir.setColumns(10);
         
         JLabel lblSourceFileDirectory = new JLabel("Source File Directory:");
-        contentPane.add(lblSourceFileDirectory, "cell 0 5,alignx trailing");
+        contentPane.add(lblSourceFileDirectory, "cell 0 6,alignx trailing");
         
         txtFldSrcDir = new JTextField(proj.SOURCE_DIRECTORY.getDefaultValueString());
-        contentPane.add(txtFldSrcDir, "flowx,cell 2 5,growx");
+        contentPane.add(txtFldSrcDir, "flowx,cell 2 6,growx");
         txtFldSrcDir.setColumns(10);
         
         JLabel lblSourceFileExtension = new JLabel("Source File Extension:");
-        contentPane.add(lblSourceFileExtension, "cell 0 6,alignx trailing");
+        contentPane.add(lblSourceFileExtension, "cell 0 7,alignx trailing");
         
         txtFldSrcExt = new JTextField(proj.SOURCE_FILENAME_EXTENSION.getDefaultValueString());
-        contentPane.add(txtFldSrcExt, "cell 2 6,growx");
+        contentPane.add(txtFldSrcExt, "cell 2 7,growx");
         txtFldSrcExt.setColumns(10);
         
         JLabel lblIdHeader = new JLabel("ID Header:");
-        contentPane.add(lblIdHeader, "cell 0 7,alignx trailing");
+        contentPane.add(lblIdHeader, "cell 0 8,alignx trailing");
         
         txtFldIDHdr = new JTextField(proj.ID_HEADER.getDefaultValueString());
-        contentPane.add(txtFldIDHdr, "cell 2 7,growx");
+        contentPane.add(txtFldIDHdr, "cell 2 8,growx");
         txtFldIDHdr.setColumns(10);
         
         JLabel lblArrayType = new JLabel("Array Type:");
-        contentPane.add(lblArrayType, "cell 0 8,alignx trailing");
+        contentPane.add(lblArrayType, "cell 0 9,alignx trailing");
         
-        comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
+//        comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
+        comboBoxArrayType = new JComboBox<String>();
         comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
-        contentPane.add(comboBoxArrayType, "cell 2 8,growx");
+        contentPane.add(comboBoxArrayType, "cell 2 9,growx");
         
         JLabel lblLogrRatioStddev = new JLabel("Log-R Ratio Std.Dev. Cut-off Threshold:");
-        contentPane.add(lblLogrRatioStddev, "cell 0 9,alignx trailing");
+        contentPane.add(lblLogrRatioStddev, "cell 0 11,alignx trailing");
         
         spinnerLrrSd = new JSpinner();
         spinnerLrrSd.setModel(new SpinnerNumberModel(proj.LRRSD_CUTOFF.getDefaultValue().doubleValue(), 0.0, 3.0, 0.0));
-        contentPane.add(spinnerLrrSd, "cell 2 9,growx");
+        contentPane.add(spinnerLrrSd, "cell 2 11,growx");
         
         JLabel lblTargetMarkersFile = new JLabel("[Optional] Target Markers File:");
-        contentPane.add(lblTargetMarkersFile, "cell 0 10,alignx trailing");
+        contentPane.add(lblTargetMarkersFile, "cell 0 12,alignx trailing");
         
         txtFldTgtMkrs = new JTextField(proj.TARGET_MARKERS_FILENAME.getDefaultValueString());
-        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 10,growx");
+        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 12,growx");
         txtFldTgtMkrs.setColumns(10);
         
         Insets fileBtnInsets = new Insets(0, 3, 0, 3);
@@ -209,16 +211,16 @@ public class ProjectCreationGUI extends JDialog {
         btnSrcDir.setMargin(fileBtnInsets);
         btnSrcDir.setText("...");
         btnSrcDir.setActionCommand("SOURCE");
-        contentPane.add(btnSrcDir, "cell 2 5");
+        contentPane.add(btnSrcDir, "cell 2 6");
         
         JButton btnTgtMkrs = new JButton(fileSelectAction);
         btnTgtMkrs.setMargin(fileBtnInsets);
         btnTgtMkrs.setText("...");
         btnTgtMkrs.setActionCommand("TARGET");
-        contentPane.add(btnTgtMkrs, "cell 2 10");
+        contentPane.add(btnTgtMkrs, "cell 2 12");
         
         JSeparator separator_1 = new JSeparator();
-        contentPane.add(separator_1, "cell 0 13 4 1,growx");
+        contentPane.add(separator_1, "cell 0 14 4 1,growx");
         
         JPanel panel = new JPanel();
         contentPane.add(panel, "south");

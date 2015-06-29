@@ -30,7 +30,7 @@ public class KitAndKaboodle {
     private KitAndKaboodleGUI gui;
     private Launch launch;
 
-    static final STEP S1_CREATE_MKR_POS = new STEP("Create Illumina Marker Positions (if not already exists)", 
+    static final STEP S1I_CREATE_MKR_POS = new STEP("Create Illumina Marker Positions (if not already exists)", 
                       "", 
                       new String[][]{{"An Illumina SNP_map file."}}, 
                       new RequirementInputType[][]{{RequirementInputType.FILE}}) {
@@ -58,12 +58,14 @@ public class KitAndKaboodle {
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
-            return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
+            boolean mkrPosFile = Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
+            boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
+            return mkrPosFile && mkrSetFile;
         };
         
     };
     
-    static final STEP S2_PARSE_SAMPLES = new STEP("Parse Illumina Sample Files", 
+    static final STEP S2I_PARSE_SAMPLES = new STEP("Parse Illumina Sample Files", 
                      "", 
                      new String[][]{{"Option 1 must be selected and valid.", "Parsed markerPositions file must already exist."}}, 
                      new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}}) {
@@ -87,6 +89,7 @@ public class KitAndKaboodle {
             case 1:
                 break;
             case 6:
+                // TODO ab genotypes not in samples files, show warning when parsing sample file headers
                 this.failReasons.add("ABLookup ");
                 break;
             }
@@ -95,7 +98,7 @@ public class KitAndKaboodle {
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             return new boolean[][]{
-                    { checkBoxes.get(S1_CREATE_MKR_POS).isSelected() && S1_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields),
+                    { checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields),
                     Files.exists(ext.verifyDirFormat(((JTextField)variableFields.get(this).get(0)).getText().trim())),}
             };
         }
@@ -136,7 +139,7 @@ public class KitAndKaboodle {
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             String sampDir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
             return new boolean[][]{
-                    {checkBoxes.get(S2_PARSE_SAMPLES).isSelected() && S2_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
+                    {checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
                         (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0), 
                             Files.exists(((JTextField)variableFields.get(this).get(1)).getText().trim()), 
                             Files.exists(((JTextField)variableFields.get(this).get(2)).getText().trim())}};
@@ -174,7 +177,7 @@ public class KitAndKaboodle {
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             String sampDir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
             return new boolean[][]{
-                    {checkBoxes.get(S2_PARSE_SAMPLES).isSelected() && S2_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
+                    {checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
                     (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0),}
             };
         }
@@ -211,7 +214,7 @@ public class KitAndKaboodle {
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             String sampDir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
             return new boolean[][]{
-                    {checkBoxes.get(S2_PARSE_SAMPLES).isSelected() && S2_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
+                    {checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
                     (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0),}
             };
         }
@@ -249,7 +252,7 @@ public class KitAndKaboodle {
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             String sampDir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
             return new boolean[][]{
-                    {checkBoxes.get(S2_PARSE_SAMPLES).isSelected() && S2_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
+                    {checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
                      (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
                     {checkBoxes.get(S3_CREATE_SAMPLEDATA).isSelected() && S3_CREATE_SAMPLEDATA.hasRequirements(proj, checkBoxes, variableFields),
                      Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))}, 
@@ -270,8 +273,8 @@ public class KitAndKaboodle {
     
     static final STEP S7_RUN_PLINK = new STEP("Create/Run PLINK Files", 
                  "", 
-                 new String[][]{{"Option 2 must be selected and valid.", "Parsed sample files must already exist."}}, 
-                 new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}}) {
+                 new String[][]{{"Option 2 must be selected and valid.", "Parsed sample files must already exist."}, {"A pedigree.dat file is must exist."}}, 
+                 new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE}}) {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
@@ -280,8 +283,13 @@ public class KitAndKaboodle {
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
+            String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
+            String pedFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            if (!pedFile.equals(projPedFile)) {
+                proj.PEDIGREE_FILENAME.setValue(pedFile);
+            }
+            
             proj.getLog().report("Running PLINK");
-            // TODO Requires pedigree file exist
             
             boolean create = cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
             if (create) {
@@ -296,22 +304,24 @@ public class KitAndKaboodle {
                 }
             } else {
                 setFailed();
-                this.failReasons.add("Creation of initial PLINK files failed. Please check log for more information and try again.");
+                this.failReasons.add("Creation of initial PLINK files failed.");
             }
         }
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             String sampDir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
-            return new boolean[][]{{
-                    checkBoxes.get(S2_PARSE_SAMPLES).isSelected() && S2_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
-                    (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)}
+            String pedFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            return new boolean[][]{
+                    {checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
+                        (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
+                    {Files.exists(pedFile)}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{proj.SAMPLE_DIRECTORY.getValue(false, false)};
+            return new Object[]{proj.SAMPLE_DIRECTORY.getValue(false, false), proj.PEDIGREE_FILENAME.getValue(false, false)};
         }
 
         @Override
@@ -325,7 +335,7 @@ public class KitAndKaboodle {
     
     static final STEP S8_GWAS_QC = new STEP("Run GWAS QC", 
                "", 
-               new String[][]{{"Option 7 must be selected", "PLINK files must already exist"}, {"Keep genome info for unrelateds only?"}},
+               new String[][]{{"Option 7 must be selected and valid.", "PLINK files must already exist."}, {"Keep genome info for unrelateds only?"}},
                new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.BOOL}}) {
         
         @Override
@@ -365,9 +375,91 @@ public class KitAndKaboodle {
         
     };
     
-    static final STEP S9_CREATE_PCS = new STEP("Create Principal Components File", 
+    static final STEP S9_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "", 
+            new String[][]{{"Option 1 must be selected and valid.", "A MarkerSet file must already exist."}, {"Option 2 must be selected and valid.", "Parsed sample files must already exist."}},
+            new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
+            String mkrPosFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
+            String setDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
+            String sampDir = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            if (!mkrPosProj.equals(mkrPosFile)) {
+                proj.MARKERSET_FILENAME.setValue(mkrPosFile);
+            }
+            if (!ext.verifyDirFormat(setDir).equals(sampDir)) {
+                proj.SAMPLE_DIRECTORY.setValue(sampDir);
+            }
+            if (MitoPipeline.generateABLookup(proj, proj.getLog()) == 0) {
+                setFailed();
+            }
+        }
+        
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new Object[]{proj.MARKERSET_FILENAME.getValue(false, false), proj.SAMPLE_DIRECTORY.getValue(false, false)};
+        }
+        
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String mkrPosFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
+            String sampDir = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            return new boolean[][]{
+                    {checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields), 
+                        Files.exists(mkrPosFile)},
+                    {checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
+                        (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
+            };
+        }
+        
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
+        }
+    };
+    
+    static final STEP S10_MARKER_QC = new STEP("Run Marker QC Metrics", "",
+            // MarkerSet file, or step 1
+            // TargetMarkers file
+            // SampleList or Parsed Sample Files (will create SampleList)
+            new String[][]{{"Marker Call-Rate Filter Threshold"}},
+            new RequirementInputType[][]{{RequirementInputType.INT}}
+            ) {
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            double markerCallRateFilter = Double.parseDouble(((JTextField)variableFields.get(this).get(0)).getText().trim());
+            MitoPipeline.qcMarkers(proj, markerCallRateFilter);
+        }
+        
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new Object[]{0.98};
+        }
+        
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            double mkr = -1;
+            try {
+                mkr = Double.parseDouble(((JTextField)variableFields.get(this).get(0)).getText().trim());
+            } catch (NumberFormatException e) {}
+            return new boolean[][]{{mkr != -1}};
+        }
+        
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE;
+            if (!Files.exists(markersForABCallRate)) {
+                return false;
+            }
+            return true;
+        }
+    };
+    
+    static final STEP S11_CREATE_PCS = new STEP("Create Principal Components File", 
                   "", 
-                  new String[][]{{"Option 4 must be selected.", "Parsed marker data files must already exist."}, {"Median Markers file"}, {"Number of Principal Components"}, {"Should impute mean value for NaN?"}, {"Should recompute Log-R ratio?"}, {"Should recompute Log-R ratio median?"}, {"Homozygous only?"}, {"Output directory"}},
+                  new String[][]{{"Option 4 must be selected and valid.", "Parsed marker data files must already exist."}, {"Median Markers file"}, {"Number of Principal Components"}, {"Should impute mean value for NaN?"}, {"Should recompute Log-R ratio?"}, {"Should recompute Log-R ratio median?"}, {"Homozygous only?"}, {"Output directory"}},
                   new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE}, {RequirementInputType.INT}, {RequirementInputType.BOOL}, {RequirementInputType.BOOL}, {RequirementInputType.BOOL}, {RequirementInputType.BOOL}, {RequirementInputType.DIR}}) {
         
         @Override
@@ -446,7 +538,7 @@ public class KitAndKaboodle {
         
     };
     
-    static final STEP S10_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
+    static final STEP S12_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
                         "", 
                         new String[][]{},
                         new RequirementInputType[][]{}) {
@@ -471,7 +563,7 @@ public class KitAndKaboodle {
         }
     };
     
-    static final STEP S11_PENNCNV = new STEP("Export PennCNV Files", 
+    static final STEP S13_PENNCNV = new STEP("Export PennCNV Files", 
                 "", 
                 new String[][]{},
                 new RequirementInputType[][]{}) {
@@ -496,7 +588,7 @@ public class KitAndKaboodle {
         }
     };
     
-    static final STEP S12_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
+    static final STEP S14_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
                        "", 
                        new String[][]{},
                        new RequirementInputType[][]{}) {
@@ -545,6 +637,10 @@ public class KitAndKaboodle {
         public String[][] getRequirements() { return reqs; }
         public RequirementInputType[][] getRequirementInputTypes() { return this.reqTypes; }
         public abstract boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields);
+        public void resetRun() {
+            failed = false;
+            failReasons.clear();
+        }
         /**
          * Get the default values for requirements in the order they're set [skipping NONE input types]
          * @param proj
@@ -590,18 +686,20 @@ public class KitAndKaboodle {
     }
 
     private static STEP[] ILLUMINA_STEPS = {
-        S1_CREATE_MKR_POS,
-        S2_PARSE_SAMPLES,
+        S1I_CREATE_MKR_POS,
+        S2I_PARSE_SAMPLES,
         S3_CREATE_SAMPLEDATA,
         S4_TRANSPOSE_TO_MDF,
         S5_EXTRACT_LRRSD,
         S6_SEX_CHECKS,
         S7_RUN_PLINK,
         S8_GWAS_QC,
-        S9_CREATE_PCS,
-        S10_CREATE_MT_CN_EST,
-        S11_PENNCNV,
-        S12_SHADOW_SAMPLES
+        S9_GENERATE_ABLOOKUP,
+        S10_MARKER_QC,
+        S11_CREATE_PCS,
+        S12_CREATE_MT_CN_EST,
+        S13_PENNCNV,
+        S14_SHADOW_SAMPLES
     };
     private static STEP[] AFFY_STEPS = {};
     private static STEP[] AFFY_NOCN_STEPS = {};

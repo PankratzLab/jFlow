@@ -44,7 +44,7 @@ public class Launch {
 			} else if (temp.equals("counts")) {
 				DummyDataset.createReverseFromParameters(filename, log);
 			} else if (temp.equals("miss")) {
-				MarkerQC.parseParameters(filename, log);
+				MarkerQC.parseParameters(filename, log, true);
 			} else if (temp.equals("indep")) {
 				IndependentSNPs.selectFromParameters(filename, log);
 			} else if (temp.equals("genes")) {

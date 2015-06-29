@@ -3371,4 +3371,22 @@ public class Files {
 			e.printStackTrace();
 		}
 	}
+
+    public static boolean programExists(String programName) {
+        String cmd = "";
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            cmd = "where " + programName;
+        } else {
+            cmd = "which " + programName;
+        }
+        boolean exists = false;
+        try {
+            if (Runtime.getRuntime().exec(cmd).waitFor() == 0) {
+                exists = true;
+            }
+        } catch (InterruptedException e1) {
+        } catch (IOException e1) {}
+        return exists;
+    }
+    
 }
