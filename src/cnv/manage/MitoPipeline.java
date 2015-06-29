@@ -373,7 +373,7 @@ public class MitoPipeline {
 					if (verifyAuxMarkers(proj, proj.TARGET_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						if (markerQC) {
-							qcMarkers(proj, markerCallRateFilter);
+							qcMarkers(proj, markerCallRateFilter, numThreads);
 							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE;
 							if (!Files.exists(markersForABCallRate)) {
 								log.reportError("Error - markerQC was flagged but the file " + proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE + " could not be found");
@@ -556,7 +556,7 @@ public class MitoPipeline {
 		return allParsed;
 	}
 
-	public static void qcMarkers(Project proj, double markerCallRateFilter) {
+	public static void qcMarkers(Project proj, double markerCallRateFilter, int numthreads) {
 		Logger log;
 		String markerMetricsFilename;
 
@@ -572,7 +572,7 @@ public class MitoPipeline {
 			writeMarkersToQC(proj);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
-			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE);
+			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE, numthreads);
 		}
 		filterMarkerMetricsFile(proj, markerCallRateFilter);
 	}

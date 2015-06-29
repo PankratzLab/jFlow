@@ -2,6 +2,7 @@ package cnv.qc;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import stats.LeastSquares;
 import stats.LogisticRegression;
@@ -22,7 +23,47 @@ public class MarkerMetrics {
 	public static final String DEFAULT_EXCLUSION_CRITERIA = "cnv/qc/default_exclusion.criteria";
 	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
 	
-	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude) {
+	/**
+	 * @param proj
+	 * @param samplesToExclude
+	 *            these samples will not be included in the QC computation
+	 * @param markersToInclude
+	 *            compute qc over the markers in this file only
+	 * @param numThreads
+	 */
+	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude, int numThreads) {
+		String[] markerNames;
+		String finalQcFile = proj.MARKER_METRICS_FILENAME.getValue(true, false);
+
+		if (markersToInclude != null) {
+			markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true) + markersToInclude, false, new int[] { 0 }, false);
+		} else {
+			markerNames = proj.getMarkerNames();
+		}
+		if (numThreads <= 1) {
+			fullQC(proj, samplesToExclude, markerNames, finalQcFile);
+		} else {
+			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
+			ArrayList<String[]> batches = Array.splitUpArray(markerNames, numThreads, proj.getLog());
+			String[] tmpQc = new String[batches.size()];
+			for (int i = 0; i < batches.size(); i++) {
+				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
+				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp));
+				tmpQc[i] = tmp;
+			}
+
+			hive.execute(true);
+			ArrayList<Boolean> complete = hive.getResults();
+			if (Array.booleanArraySum(Array.toBooleanArray(complete)) == complete.size()) {
+				Files.cat(tmpQc, proj.MARKER_METRICS_FILENAME.getValue(), new int[] { 0 }, proj.getLog());
+			} else {
+				proj.getLog().reportTimeError("Could not complete marker QC");
+			}
+		}
+	}
+	
+	
+	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput) {
 		PrintWriter writer;
 		String[] samples;
 		float[] thetas, rs, lrrs;
@@ -32,8 +73,7 @@ public class MarkerMetrics {
         ClusterFilterCollection clusterFilterCollection;
 		float gcThreshold, lrrsd;
         long time;
-        MarkerDataLoader markerDataLoader;
-        String[] markerNames;
+      //  MarkerDataLoader markerDataLoader;
         String line, eol;
 		int[] counts, sexes;
 		double[] sumTheta, sumR, meanTheta, sdTheta;
@@ -56,16 +96,12 @@ public class MarkerMetrics {
         gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
 		sexes = getSexes(proj, samples);
 		try {
-			writer = new PrintWriter(new FileWriter(proj.MARKER_METRICS_FILENAME.getValue(true, false)));
+			writer = new PrintWriter(new FileWriter(fullPathToOutput));
 			writer.println(Array.toStr(FULL_QC_HEADER));
 			
-			if (markersToInclude != null) {
-				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)+markersToInclude, false, new int[] {0}, false);
-			} else {
-				markerNames = proj.getMarkerNames();
-			}
+		
 			//markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
-			MDL mdl = new MDL(proj, markerNames, 3, 0);
+			MDL mdl = new MDL(proj, markerNames, 2, 100);
 			line = "";
 			time = new Date().getTime();
 			//for (int i = 0; i < markerNames.length; i++) {
@@ -172,13 +208,13 @@ public class MarkerMetrics {
 			mdl.shutdown();
 			writer.print(line);
 			writer.close();
-			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
+			log.report("Finished analyzing " + markerNames.length + " in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {
-			log.reportError("Error writing marker metrics to "+proj.MARKER_METRICS_FILENAME.getValue(false, false));
+			log.reportError("Error writing marker metrics to " + fullPathToOutput);
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Retrieves Sex coding (1=male, 2=female) for all samples <p>
 	 * @author John Lane
@@ -1071,6 +1107,40 @@ public class MarkerMetrics {
 		}
 	}
 
+	/**
+	 * @author lane0212 Computes Qc metrics for a subset of markers
+	 */
+	private static class MarkerMetricsWorker implements Callable<Boolean> {
+		private Project proj;
+		private boolean[] samplesToExclude;
+		private String[] markerNames;
+		private String fullPathToOutput;
+
+		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput) {
+			super();
+			this.proj = proj;
+			this.samplesToExclude = samplesToExclude;
+			this.markerNames = markerNames;
+			this.fullPathToOutput = fullPathToOutput;
+		}
+
+		@Override
+		public Boolean call() throws Exception {
+			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput);
+			if (Files.exists(fullPathToOutput) && Files.countLines(fullPathToOutput, true) == markerNames.length) {
+				return true;
+			} else {
+				if (!Files.exists(fullPathToOutput)) {
+					proj.getLog().reportTimeError("Could not compute marker metrics on " + Thread.currentThread().toString());
+					proj.getLog().reportFileNotFound(fullPathToOutput);
+				} else {
+					proj.getLog().reportTimeError("Found " + Files.countLines(fullPathToOutput, true) + " markers in " + fullPathToOutput + " but should have found " + markerNames.length);
+				}
+				return false;
+			}
+		}
+	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String markersSubset = null;
@@ -1086,12 +1156,14 @@ public class MarkerMetrics {
 		boolean checkForDeletedMarkers = true;
 		String pheno = null;
 		boolean countFilters = false;
+		int numThreads = 1;
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
 				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) filename of subset of samples to include (i.e. samples=" + samples + " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n" +
 				"   (3) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
+					PSF.Ext.getNumThreadsCommand(4, numThreads) +
 				"  AND\n" + 
 				"   (4) look at intensity separation between males and females (i.e. -separation (not the default))\n" + 
 				"  OR\n" + 
@@ -1146,7 +1218,10 @@ public class MarkerMetrics {
 			} else if (args[i].startsWith("pheno=")) {
 				pheno = args[i].substring(6);
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
+			}  else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			}else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
@@ -1188,9 +1263,9 @@ public class MarkerMetrics {
 			
 			if (sexSeparation) {
 				separationOfSexes(proj, markersSubset);
-			} 
-			if (fullQC) {			
-				fullQC(proj, proj.getSamplesToExclude(), markersSubset);
+			}
+			if (fullQC) {
+				fullQC(proj, proj.getSamplesToExclude(), markersSubset, numThreads);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);
