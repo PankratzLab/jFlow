@@ -55,7 +55,7 @@ public class MarkerMetrics {
 			hive.execute(true);
 			ArrayList<Boolean> complete = hive.getResults();
 			if (Array.booleanArraySum(Array.toBooleanArray(complete)) == complete.size()) {
-				Files.cat(tmpQc, proj.MARKER_METRICS_FILENAME.getValue(), new int[] { 0 }, proj.getLog());
+				Files.cat(tmpQc, proj.MARKER_METRICS_FILENAME.getValue(), new int[0], proj.getLog());
 			} else {
 				proj.getLog().reportTimeError("Could not complete marker QC");
 			}
@@ -1126,6 +1126,7 @@ public class MarkerMetrics {
 
 		@Override
 		public Boolean call() throws Exception {
+			
 			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput);
 			if (Files.exists(fullPathToOutput) && Files.countLines(fullPathToOutput, true) == markerNames.length) {
 				return true;
