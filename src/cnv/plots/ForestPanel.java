@@ -8,11 +8,9 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 import stats.Maths;
+
 import common.Array;
 import common.Grafik;
 import common.Logger;

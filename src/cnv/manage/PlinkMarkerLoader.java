@@ -340,10 +340,10 @@ public class PlinkMarkerLoader implements Runnable {
 	public static PlinkMarkerLoader loadPlinkDataFromListInSeparateThread(Project proj, String plinkDirFileRoot, String[] markerList, String[] sampleIDList) {
         PlinkMarkerLoader plinkMarkerLoader;
         Thread thread;
-        int amountToLoadAtOnceInMB;
+//        int amountToLoadAtOnceInMB;
         
         proj.getLog().report("PLINK marker data is loading in an independent thread.");
-        amountToLoadAtOnceInMB = proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA.getValue();
+//        amountToLoadAtOnceInMB = proj.MAX_MEMORY_USED_TO_LOAD_MARKER_DATA.getValue();
         plinkMarkerLoader = new PlinkMarkerLoader(proj, plinkDirFileRoot, markerList, sampleIDList);//, amountToLoadAtOnceInMB);
         if (plinkMarkerLoader.isKilled()) {
             return null;
