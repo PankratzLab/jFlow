@@ -67,8 +67,8 @@ public class KitAndKaboodle {
     
     static final STEP S2I_PARSE_SAMPLES = new STEP("Parse Illumina Sample Files", 
                      "", 
-                     new String[][]{{"Option 1 must be selected and valid.", "Parsed markerPositions file must already exist."}}, 
-                     new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}}) {
+                     new String[][]{{"Option 1 must be selected and valid.", "Parsed markerPositions file must already exist."}, {"Number of Threads to Use"}}, 
+                     new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.INT}}) {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
@@ -80,7 +80,14 @@ public class KitAndKaboodle {
             if (!mkrFile.equals(projFile)) {
                 proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
             }
-            int retCode = cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
+            int numThreads = proj.NUM_THREADS.getValue();
+        	try {
+        		numThreads = Integer.parseInt(((JTextField)variableFields.get(this).get(1)).getText().trim());
+        	} catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+            	proj.NUM_THREADS.setValue(numThreads);
+            }
+            int retCode = cnv.manage.ParseIllumina.createFiles(proj, numThreads);
             switch (retCode) {
             case 0:
                 this.setFailed();
@@ -97,15 +104,20 @@ public class KitAndKaboodle {
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+        	int numThreads = -1;
+        	try {
+        		numThreads = Integer.parseInt(((JTextField)variableFields.get(this).get(1)).getText().trim());
+        	} catch (NumberFormatException e) {}
             return new boolean[][]{
                     { checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields),
-                    Files.exists(ext.verifyDirFormat(((JTextField)variableFields.get(this).get(0)).getText().trim())),}
+                    	Files.exists(ext.verifyDirFormat(((JTextField)variableFields.get(this).get(0)).getText().trim())),},
+                	{numThreads != -1 && numThreads > 0}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{proj.MARKER_POSITION_FILENAME.getValue(false, false)};
+            return new Object[]{proj.MARKER_POSITION_FILENAME.getValue(false, false), proj.NUM_THREADS.getValue()};
         }
 
         @Override
@@ -196,8 +208,8 @@ public class KitAndKaboodle {
     
     static final STEP S5_EXTRACT_LRRSD = new STEP("Extract Sample Data to Lrrsd.xln File", 
                           "", 
-                          new String[][]{{"Option 2 must be selected and valid.", "Parsed sample files must already exist."}}, 
-                          new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}}) {
+                          new String[][]{{"Option 2 must be selected and valid.", "Parsed sample files must already exist."}, {"Number of Threads to Use"}}, 
+                          new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.INT}}) {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
@@ -207,21 +219,33 @@ public class KitAndKaboodle {
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
-            cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
+            int numThreads = proj.NUM_THREADS.getValue();
+        	try {
+        		numThreads = Integer.parseInt(((JTextField)variableFields.get(this).get(1)).getText().trim());
+        	} catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+            	proj.NUM_THREADS.setValue(numThreads);
+            }
+            cnv.qc.LrrSd.init(proj, null, null, numThreads);
         }
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+        	int numThreads = -1;
+        	try {
+        		numThreads = Integer.parseInt(((JTextField)variableFields.get(this).get(1)).getText().trim());
+        	} catch (NumberFormatException e) {}
             String sampDir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
             return new boolean[][]{
                     {checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields),
-                    (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0),}
+                    	(Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0),},
+                    {numThreads != -1 && numThreads > 0}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{proj.SAMPLE_DIRECTORY.getValue(false, false)};
+            return new Object[]{proj.SAMPLE_DIRECTORY.getValue(false, false), proj.NUM_THREADS.getValue()};
         }
 
         @Override
@@ -420,23 +444,50 @@ public class KitAndKaboodle {
     };
     
     static final STEP S10_MARKER_QC = new STEP("Run Marker QC Metrics", "",
-            // # threads
-            // MarkerSet file, or step 1
-            // TargetMarkers file
-            // SampleList or Parsed Sample Files (will create SampleList)
-            new String[][]{{"Marker Call-Rate Filter Threshold"}},
-            new RequirementInputType[][]{{RequirementInputType.INT}}
+            new String[][]{{"Marker Call-Rate Filter Threshold"},
+    						{"Option 1 must be selected and valid.", "A MarkerSet file must already exist."}, 
+    						{"Option 2 must be selected and valid (will create a SampleList file)", "A SampleList file must already exist."},
+    						{"A targetMarkers files listing the markers to QC"},
+    						{"Number of Threads to Use"}},
+            new RequirementInputType[][]{{RequirementInputType.INT},
+    									 {RequirementInputType.NONE, RequirementInputType.FILE}, 
+    									 {RequirementInputType.NONE, RequirementInputType.FILE},
+    									 {RequirementInputType.FILE},
+    									 {RequirementInputType.INT}}
             ) {
-        
+    	
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             double markerCallRateFilter = Double.parseDouble(((JTextField)variableFields.get(this).get(0)).getText().trim());
-            MitoPipeline.qcMarkers(proj, markerCallRateFilter, 1); // number of threads
+            String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
+            String mkrPosFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
+            String sampList = ((JTextField)variableFields.get(this).get(2)).getText().trim();
+            String setTgtFile = proj.TARGET_MARKERS_FILENAME.getValue(false, false);
+            String tgtFile = ((JTextField)variableFields.get(this).get(3)).getText().trim();
+            if (!mkrPosProj.equals(mkrPosFile)) {
+                proj.MARKERSET_FILENAME.setValue(mkrPosFile);
+            }
+            if (!ext.verifyDirFormat(setSampList).equals(sampList)) {
+                proj.SAMPLELIST_FILENAME.setValue(sampList);
+            }
+            if (!setTgtFile.equals(tgtFile)) {
+            	proj.TARGET_MARKERS_FILENAME.setValue(tgtFile);
+            }
+        	int numThreads = proj.NUM_THREADS.getValue();
+        	try {
+        		numThreads = Integer.parseInt(((JTextField)variableFields.get(this).get(4)).getText().trim());
+        	} catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+            	proj.NUM_THREADS.setValue(numThreads);
+            }
+            
+            MitoPipeline.qcMarkers(proj, markerCallRateFilter, numThreads);
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{0.98};
+            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), proj.TARGET_MARKERS_FILENAME.getValue(), proj.NUM_THREADS.getValue()};
         }
         
         @Override
@@ -445,7 +496,19 @@ public class KitAndKaboodle {
             try {
                 mkr = Double.parseDouble(((JTextField)variableFields.get(this).get(0)).getText().trim());
             } catch (NumberFormatException e) {}
-            return new boolean[][]{{mkr != -1}};
+            String mkrPosFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            String sampDir = ((JTextField)variableFields.get(this).get(2)).getText().trim();
+            String tgtFile = ((JTextField)variableFields.get(this).get(3)).getText().trim();
+        	int numThreads = -1;
+        	try {
+        		numThreads = Integer.parseInt(((JTextField)variableFields.get(this).get(4)).getText().trim());
+        	} catch (NumberFormatException e) {}
+            boolean step11 = checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields);
+            boolean step12 = Files.exists(mkrPosFile);
+            boolean step21 = checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields);
+            boolean step22 = (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0);
+            boolean step3 = Files.exists(tgtFile);
+            return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {step3}, {numThreads != -1 && numThreads > 0}};
         }
         
         @Override
