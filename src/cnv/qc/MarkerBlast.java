@@ -48,21 +48,23 @@ public class MarkerBlast {
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
 			new File(dir).mkdirs();
 
-			String output = dir + ext.rootOf(fileSeq, true) + ".blasted.ws." + blastWordSize + ".rep." + reportWordSize;
-			String outputOneHitWonders = dir + ext.rootOf(fileSeq, true) + ".oneHitWonders";
+			String root = dir + ext.rootOf(fileSeq, true) + ".blasted.ws." + blastWordSize + ".rep." + reportWordSize;
+			String output = root + ".blasted";
+			String outputOneHitWonders = root + ".oneHitWonders";
+
+			WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
+			FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
+			ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
+			BlastWorker[] workers = new BlastWorker[splits.size()];
+			String[] tmps = new String[workers.length];
+			if (fastaEntries != null && fastaEntries.length > 0) {
+				for (int i = 0; i < splits.size(); i++) {
+					tmps[i] = root + ".tmp" + i;
+					workers[i] = new BlastWorker(blast, splits.get(i), reportToTmp ? tmps[i] : null);
+				}
+			}
 
 			if (!Files.exists(output) || !Files.exists(outputOneHitWonders)) {
-				WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
-				FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
-				ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
-				BlastWorker[] workers = new BlastWorker[splits.size()];
-				String[] tmps = new String[workers.length];
-				if (fastaEntries != null && fastaEntries.length > 0) {
-					for (int i = 0; i < splits.size(); i++) {
-						tmps[i] = dir + ext.rootOf(fileSeq, true) + ".tmp" + i;
-						workers[i] = new BlastWorker(blast, splits.get(i), reportToTmp ? tmps[i] : null);
-					}
-				}
 				hive.addCallables(workers);
 				hive.setReportEvery(1);
 				hive.execute(true);
@@ -74,18 +76,49 @@ public class MarkerBlast {
 				proj.getLog().reportFileExists(output);
 				proj.getLog().reportFileExists(outputOneHitWonders);
 			}
-			return new MarkerBlastResult(output, outputOneHitWonders);
+			int seqSize = fastaEntries[0].getSequence().length();
+			proj.getLog().reportTimeWarning("Assuming that all sequences have length "+seqSize);
+			MarkerBlastResult result = new MarkerBlastResult(output, outputOneHitWonders, blastWordSize, reportWordSize, seqSize);
+			result.setTmpFiles(tmps);
+			return result;
 		}
 	}
 
 	public static class MarkerBlastResult {
 		private String output;
 		private String outputOneHitWonders;
+		private String[] tmpFiles;
+		private int blastWordSize;
+		private int reportWordSize;
+		private int sequenceSize;
 
-		public MarkerBlastResult(String output, String outputOneHitWonders) {
+		public MarkerBlastResult(String output, String outputOneHitWonders, int blastWordSize, int reportWordSize, int sequenceSize) {
 			super();
 			this.output = output;
 			this.outputOneHitWonders = outputOneHitWonders;
+			this.blastWordSize = blastWordSize;
+			this.reportWordSize = reportWordSize;
+			this.sequenceSize=sequenceSize;
+		}
+
+		public int getSequenceSize() {
+			return sequenceSize;
+		}
+
+		public void setTmpFiles(String[] tmpFiles) {
+			this.tmpFiles = tmpFiles;
+		}
+
+		public String[] getTmpFiles() {
+			return tmpFiles;
+		}
+
+		public int getBlastWordSize() {
+			return blastWordSize;
+		}
+
+		public int getReportWordSize() {
+			return reportWordSize;
 		}
 
 		public String getOutput() {
@@ -107,11 +140,13 @@ public class MarkerBlast {
 			for (int i = 0; i < bSummaries.size(); i++) {
 				for (int j = 0; j < bSummaries.get(i).length; j++) {
 					if (bSummaries.get(i)[j].getNumPerfectMatches() == 1) {
-						int currentMarkerIndex = indices.get(bSummaries.get(i)[j].getName());
-						Segment markerSegment = new Segment(chrs[currentMarkerIndex], pos[currentMarkerIndex] - 1, pos[currentMarkerIndex] + 1);
-						Segment blastPerfectSegment = bSummaries.get(i)[j].getPerfectMatchSegment();
-						if (blastPerfectSegment != null && blastPerfectSegment.overlaps(markerSegment)) {
-							writer.println(bSummaries.get(i)[j].getName() + "\t" + chrs[currentMarkerIndex] + "\t" + pos[currentMarkerIndex] + "\t" + blastPerfectSegment.getChr() + "\t" + blastPerfectSegment.getStart() + "\t" + blastPerfectSegment.getStop());
+						if (Array.countIf(bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts(), 0) == bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts().length - 1) {
+							int currentMarkerIndex = indices.get(bSummaries.get(i)[j].getName());
+							Segment markerSegment = new Segment(chrs[currentMarkerIndex], pos[currentMarkerIndex] - 1, pos[currentMarkerIndex] + 1);
+							Segment blastPerfectSegment = bSummaries.get(i)[j].getPerfectMatchSegment();
+							if (blastPerfectSegment != null && blastPerfectSegment.overlaps(markerSegment)) {
+								writer.println(bSummaries.get(i)[j].getName() + "\t" + chrs[currentMarkerIndex] + "\t" + pos[currentMarkerIndex] + "\t" + blastPerfectSegment.getChr() + "\t" + blastPerfectSegment.getStart() + "\t" + blastPerfectSegment.getStop());
+							}
 						}
 					}
 				}
@@ -130,7 +165,7 @@ public class MarkerBlast {
 			Hashtable<String, Integer> indices = proj.getMarkerIndices();
 			byte[] chrs = proj.getMarkerSet().getChrs();
 			writer.print("Marker\tDesignContig\tNumTotalContigs");
-			double[] bins = bSummaries.get(0)[0].getDynamicHistogram().getBins();
+			double[] bins = bSummaries.get(0)[0].getPercentIdentityHistogram().getBins();
 			HashSet<String> allContigs = new HashSet<String>();
 			ArrayList<String> uniqContigs = new ArrayList<String>();
 			for (int i = 0; i < bSummaries.size(); i++) {
@@ -148,7 +183,7 @@ public class MarkerBlast {
 			writer.println();
 			for (int i = 0; i < bSummaries.size(); i++) {
 				for (int j = 0; j < bSummaries.get(i).length; j++) {
-					int[] counts = bSummaries.get(i)[j].getDynamicHistogram().getCounts();
+					int[] counts = bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts();
 					int contigHits = bSummaries.get(i)[j].getHitCounts().size();
 					String chr = Positions.getChromosomeUCSC(chrs[indices.get(bSummaries.get(i)[j].getName())], true);
 					writer.print(bSummaries.get(i)[j].getName() + "\t" + chr + "\t" + contigHits + "\t" + Array.toStr(counts));
@@ -174,11 +209,11 @@ public class MarkerBlast {
 	private static FastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type) {
 		FastaEntry[] fastaEntries = new FastaEntry[0];
 		ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
-
 		switch (type) {
 		case MANIFEST_FILE:
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {
-				proj.getLog().reportTimeWarning("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
+				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
+				return null;
 			}
 			builder.separator(",");
 			builder.dataKeyColumnName("Name");
@@ -187,7 +222,9 @@ public class MarkerBlast {
 			break;
 		case STRAND_REPORT:
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {
-				proj.getLog().reportTimeWarning("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
+				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
+				return null;
+
 			}
 			builder.dataKeyColumnName("SNP_Name");
 			builder.commentString("##");
@@ -195,7 +232,8 @@ public class MarkerBlast {
 			break;
 		case AFFY_ANNOT:
 			if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
-				proj.getLog().reportTimeWarning("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
+				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
+				return null;
 			}
 			builder.separator("\t");
 			builder.dataKeyColumnName("PROBESET_ID");
@@ -209,7 +247,7 @@ public class MarkerBlast {
 		builder.sampleBased(false);
 		builder.treatAllNumeric(false);
 		builder.requireAll(false);
-		builder.verbose(true);
+		builder.verbose(false);
 		try {
 
 			ExtProjectDataParser parser = builder.build(proj, strandReportFile);

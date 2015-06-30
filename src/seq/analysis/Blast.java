@@ -21,7 +21,7 @@ import filesys.Segment;
 
 public class Blast {
 	private static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };
-	private static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score" };
+	public static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score" };
 	private static final String DB = "-db";
 	private static final String IN = "-in";
 	private static final String DB_TYPE = "-dbtype";
@@ -215,6 +215,10 @@ public class Blast {
 			return ">" + name + "\n" + sequence;
 		}
 
+		public String getSequence() {
+			return sequence;
+		}
+
 		public String getSubProcessForLinuxShell() {
 			String sub = PSF.Ext.REV_CARROT;
 			sub += "(echo -e '" + getFastaFormat() + "')";
@@ -262,6 +266,23 @@ public class Blast {
 			if (blastLine.length > 12) {
 				this.taxID = blastLine[12];
 			}
+		}
+
+		public Segment getSegment() {
+			return new Segment(Positions.chromosomeNumber(subjectID), sstart, sstop);
+
+		}
+
+		public int getMismatches() {
+			return mismatches;
+		}
+
+		public int getGapOpens() {
+			return gapOpens;
+		}
+
+		public double getEvalue() {
+			return evalue;
 		}
 
 		public String getTaxID() {
@@ -327,7 +348,7 @@ public class Blast {
 	}
 
 	public static class BlastResultsSummary {
-		private DynamicHistogram dynamicHistogram;
+		private DynamicHistogram percentIdentityHistogram, evalueHistogram;
 		private String name;
 		private Hashtable<String, Integer> hitCounts;
 		private Segment perfectMatchSegment;
@@ -339,7 +360,8 @@ public class Blast {
 			this.name = name;
 			this.taxonMode = taxonMode;
 			this.hitCounts = new Hashtable<String, Integer>();
-			this.dynamicHistogram = new DynamicHistogram(reportWordSize, 100, 0);
+			this.percentIdentityHistogram = new DynamicHistogram(reportWordSize, 100, 0);
+			this.evalueHistogram = new DynamicHistogram(0, 1, 2);
 			this.numPerfectMatches = 0;
 			this.perfectMatchSegment = null;
 		}
@@ -348,7 +370,8 @@ public class Blast {
 			if (!blastResults.getQueryID().equals(name)) {
 				log.reportTimeError("Query id and summary name do not match");
 			} else {
-				dynamicHistogram.addDataPointToHistogram(blastResults.getPercentIdentity());
+				percentIdentityHistogram.addDataPointToHistogram(blastResults.getPercentIdentity());
+				evalueHistogram.addDataPointToHistogram(blastResults.getEvalue());
 				if (!hitCounts.containsKey(blastResults.getSubjectID())) {
 					if (taxonMode) {
 						hitCounts.put(blastResults.getTaxID(), 0);
@@ -390,8 +413,12 @@ public class Blast {
 			return numPerfectMatches;
 		}
 
-		public DynamicHistogram getDynamicHistogram() {
-			return dynamicHistogram;
+		public DynamicHistogram getPercentIdentityHistogram() {
+			return percentIdentityHistogram;
+		}
+
+		public DynamicHistogram getEvalueHistogram() {
+			return evalueHistogram;
 		}
 
 	}
