@@ -104,8 +104,8 @@ public class ProjectCreationGUI extends JDialog {
             
         }
     };
-//    private JComboBox<Project.ARRAY> comboBoxArrayType;
-    private JComboBox<String> comboBoxArrayType;
+    private JComboBox<Project.ARRAY> comboBoxArrayType;
+//    private JComboBox<String> comboBoxArrayType;
 
     /**
      * Launch the application.
@@ -181,8 +181,8 @@ public class ProjectCreationGUI extends JDialog {
         JLabel lblArrayType = new JLabel("Array Type:");
         contentPane.add(lblArrayType, "cell 0 9,alignx trailing");
         
-//        comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
-        comboBoxArrayType = new JComboBox<String>();
+        comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
+//        comboBoxArrayType = new JComboBox<String>();
         comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
         contentPane.add(comboBoxArrayType, "cell 2 9,growx");
         

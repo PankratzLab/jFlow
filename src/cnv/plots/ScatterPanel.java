@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import javax.swing.JPopupMenu;
@@ -191,8 +192,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		position = markerData.getPosition();
 		size = sp.getPointSize();
 		xFontSize = (byte)(size*2);
-		displayCents = sp.getDisplayCents();
-		cents = sp.getCents();
+		displayCents = sp.getDisplayCentroids();
+		cents = sp.getCentroids();
 		centSize = 20;
 		
 		if (datapoints[0] == null || datapoints[1] == null) {
@@ -221,7 +222,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 							x = cents[i][markerIndex][j][0];
 							y = cents[i][markerIndex][j][1];
 						}
-						points[count*3+j] = new PlotPoint("Centoids", PlotPoint.FILLED_CIRCLE, x, y, centSize, (byte)(5+i), (byte)10);
+						points[count*3+j] = new PlotPoint("Centroids", PlotPoint.FILLED_CIRCLE, x, y, centSize, (byte)(5+i), (byte)10);
 
 	                }
 					count++;
@@ -364,10 +365,33 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		if (sp.getCurrentClusterFilter()>=0) {
 			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
 		}
+		if (sp.displayMendelianErrors(panelIndex)) {
+		    generateLines();
+		}
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 	}
 
-	private boolean[] loadNewGenotyping(String alternativeGenotypingFilename) {
+	private void generateLines() {
+	    ArrayList<GenericLine> linesList = new ArrayList<GenericLine>();
+	    int plotType = sp.getPlotType(panelIndex);
+	    int centroidOffset = (plotType == 0 || plotType == 1 || plotType >= 4 ? Array.booleanArraySum(sp.getDisplayCentroids()) : 0);
+	    centroidOffset *= 3;
+	    for (int i = 0; i < samples.length; i++) {
+	        PlotPoint indiPoint = points[centroidOffset + i];
+	        // TODO mendelian errors
+//	        if (mendelianErrorExistsMom) {
+//	            PlotPoint momPoint = points[centroidOffset + findMomSampleIndex()];
+//	            GenericLine gl = new GenericLine(momPoint, indiPoint, thickness, color, layer, swapAxes)
+//	        }
+//	        if (mendelianErrorExistsDad) {
+//	            PlotPoint dadPoint = points[centroidOffset + findDadSampleIndex()];
+//	            GenericLine gl = new GenericLine(dadPoint, indiPoint, thickness, color, layer, swapAxes)
+//	        }
+	    }
+	    lines = linesList.toArray(new GenericLine[linesList.size()]);
+    }
+
+    private boolean[] loadNewGenotyping(String alternativeGenotypingFilename) {
 		Hashtable<String, Byte> alleleCountsNew;
 		boolean[] isNewGenotypingDifferent;
 		BufferedReader reader;

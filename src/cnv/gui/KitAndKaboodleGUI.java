@@ -115,8 +115,8 @@ public class KitAndKaboodleGUI extends JDialog {
             okButton.setActionCommand("OK");
             buttonPane.add(okButton);
             getRootPane().setDefaultButton(okButton);
-            JButton cancelButton = new JButton("Cancel");
-            cancelButton.setActionCommand("Cancel");
+            JButton cancelButton = new JButton("Close");
+            cancelButton.setActionCommand("Close");
             buttonPane.add(cancelButton);
             
             AbstractAction listener = new AbstractAction() {
@@ -127,7 +127,7 @@ public class KitAndKaboodleGUI extends JDialog {
                     if (running) {
                         return;
                     }
-                    if (e.getActionCommand().equals("Cancel")) {
+                    if (e.getActionCommand().equals("Close")) {
                         cancelled = true;
                         doClose();
                     } else {

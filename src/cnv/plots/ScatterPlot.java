@@ -121,6 +121,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private static final String[] RADIOBUTTON_TEXTS = new String[] {TRAVERSE_ALL, TRAVERSE_ANNOTATED_ONLY, TRAVERSE_UNANNOTATED_ONLY};
 	public static final String MASK_MISSING = "Mask missing values";
 	public static final String UNMASK_MISSING = "Unmask missing values";
+	public static final String MENDELIAN_ERROR = "Mendelian Errors";
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String DEFAULT_MESSAGE = "enter new annotation here";
 	public static final String[] GENOTYPE_OPTIONS = new String[] {"-","A/A","A/B","B/B"};
@@ -157,11 +158,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private String[] masterCommentList;
 	private String[] markerList;
 	private String[] commentList;
-	private float[][][][] cents;
+	private float[][][][] centroids;
 	private String[] centList;
 	private JCheckBox[] centBoxes;
-	private boolean[] displayCents;
-	private JLabel[] centLabels;
+	private boolean[] displayCentroids;
+	private JLabel[] centroidLabels;
 	private int markerIndex;
 	private int markerIndexBak;
 	private int[] markerIndexHistory;
@@ -181,10 +182,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JCheckBox excludeSampleBox;
 	private JCheckBox correctionBox;
 	private JCheckBox maskMissingBox;
+	private JCheckBox mendelianErrorBox;
 	private volatile boolean[] correction;
 	private volatile boolean[] symmetry;
 	private volatile boolean[] maskMissing;
 	private volatile boolean[] excludeSamples;
+	private volatile boolean[] displayMendelianErrors;
 	private ClusterFilterCollection clusterFilterCollection;
 	private AnnotationCollection annotationCollection;
 	private byte currentClusterFilter;
@@ -323,6 +326,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		symmetry = new boolean[] {true, true, true, true};
 		excludeSamples = new boolean[] {true, true, true, true};
 		correction = new boolean[4];
+		displayMendelianErrors = new boolean[4];
 		plot_types = new int[] {0, 0, 0, 0};
 		classes = new int[]{2, 2, 2, 2};
 		scatterPanels = new ScatterPanel[4];
@@ -1026,8 +1030,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		sliderPanel.add(nstageStdevSliderPanel());//, gbc);
 //		sliderPanel.add(nstageCorrectionRatio());//, gbc);
 		
+		Font checkBoxFont = new Font("Arial", 0, 14);
+		
 		symmetryBox = new JCheckBox("Symmetric axes");
-		symmetryBox.setFont(new Font("Arial", 0, 14));
+		symmetryBox.setFont(checkBoxFont);
 		symmetryBox.setBackground(BACKGROUND_COLOR);
 		symmetryBox.setActionCommand(SYMMETRY);
 		symmetryBox.addActionListener(this);
@@ -1080,7 +1086,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		excludeMarkerBox.setBackground(BACKGROUND_COLOR);
 		
 		excludeSampleBox = new JCheckBox("<html>Hide Excluded <br />Samples</html>");
-		excludeSampleBox.setFont(new Font("Arial", 0, 14));
+		excludeSampleBox.setFont(checkBoxFont);
 		excludeSampleBox.setBackground(BACKGROUND_COLOR);
 		excludeSampleBox.addItemListener(new ItemListener() {
 			@Override
@@ -1101,11 +1107,17 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		
 		maskMissingBox = new JCheckBox("Mask Missing");
 //		maskMissingBox.setToolTipText("The keyboard shortcut for this function is ctrl+D");
-		maskMissingBox.setFont(new Font("Arial", 0, 14));
+		maskMissingBox.setFont(checkBoxFont);
 //		maskMissingBox.addItemListener(correctionListener);
 		maskMissingBox.setBackground(BACKGROUND_COLOR);
 		maskMissingBox.setActionCommand(MASK_MISSING);
 		maskMissingBox.addActionListener(this);
+		
+		mendelianErrorBox = new JCheckBox("<html>Display Mendelian <br />Errors</html>");
+		mendelianErrorBox.setFont(checkBoxFont);
+		mendelianErrorBox.setBackground(BACKGROUND_COLOR);
+		mendelianErrorBox.setActionCommand(MENDELIAN_ERROR);
+		mendelianErrorBox.addActionListener(this);
 		
 //		JPanel boxPanel = new JPanel();
 //		boxPanel.setLayout(new GridLayout(3, 2));
@@ -1126,6 +1138,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		boxPanel.add(excludeMarkerBox);//, gbc);
 		boxPanel.add(excludeSampleBox);//, gbc);
 		boxPanel.add(maskMissingBox);//, gbc);
+		boxPanel.add(mendelianErrorBox);
 		plotPanel.add(boxPanel, BorderLayout.WEST);
 		controlPanel.add(plotPanel);
 
@@ -1154,8 +1167,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		ItemListener centListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
 				int index= ext.indexOfStr(((JCheckBox)ie.getSource()).getText(), centList);
-				displayCents[index] = ((JCheckBox)ie.getSource()).isSelected();
-				centLabels[index].setVisible(displayCents[index]);
+				displayCentroids[index] = ((JCheckBox)ie.getSource()).isSelected();
+				centroidLabels[index].setVisible(displayCentroids[index]);
 //				seletedScatterPanel.setPointsGeneratable(true);
 //				seletedScatterPanel.setQcPanelUpdatable(false);
 				for (int i = 0; i < scatterPanels.length; i++) {
@@ -1175,12 +1188,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		centroidPanel.add(label, gbc);
 //		tabPanel.add(label);
 		centBoxes = new JCheckBox[centList.length];
-		displayCents = new boolean[centList.length];
-		centLabels = new JLabel[centList.length];
+		displayCentroids = new boolean[centList.length];
+		centroidLabels = new JLabel[centList.length];
 		for (int i = 0; i<centList.length; i++) {
 			centBoxes[i] = new JCheckBox(centList[i]);
 			centBoxes[i].setFont(new Font("Arial", 0, 14));
-			centBoxes[i].setSelected(displayCents[i]);
+			centBoxes[i].setSelected(displayCentroids[i]);
 			centBoxes[i].addItemListener(centListener);
 			centBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5+i], 5));
 			centBoxes[i].setBorderPainted(true);
@@ -1188,9 +1201,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			centroidPanel.add(centBoxes[i], gbc);
 //			tabPanel.add(centBoxes[i]);
 			
-			centLabels[i] = new JLabel("LRR correlation not performed");
-			centLabels[i].setVisible(displayCents[i]);
-			centroidPanel.add(centLabels[i], gbc);
+			centroidLabels[i] = new JLabel("LRR correlation not performed");
+			centroidLabels[i].setVisible(displayCentroids[i]);
+			centroidPanel.add(centroidLabels[i], gbc);
 //			tabPanel.add(centLabels[i]);
 		}
 
@@ -1975,7 +1988,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				scatterPanels[i].setQcPanelUpdatable(true);
 			}
 			updateGUI();
-		} else {
+		} else if (command.equals(MENDELIAN_ERROR)) {
+		    displayMendelianErrors[selectedPanelIndex] = mendelianErrorBox.isSelected();
+		    updateGUI();
+	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}
 	}
@@ -2365,8 +2381,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		return gcThreshold;
 	}
 
-	public boolean[] getDisplayCents() {
-		return displayCents;
+	public boolean[] getDisplayCentroids() {
+		return displayCentroids;
 	}
 
 	public ClusterFilterCollection getClusterFilterCollection() {
@@ -2380,8 +2396,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		return currentClusterFilter;
 	}
 	
-	public float[][][][] getCents() {
-		return cents;
+	public float[][][][] getCentroids() {
+		return centroids;
 	}
 	
 	public void setCurrentClusterFilter(byte currentClusterFilter) {
@@ -2429,7 +2445,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			markerData = getCurrentMarkerData();
 			if (markerData.getLRRs() != null) {
 				for (int i = 0; i<centList.length; i++) {
-					comp = markerData.compareLRRs(cents[i][markerIndex]);
+					comp = markerData.compareLRRs(centroids[i][markerIndex]);
 					str = comp[0]+"";
 		
 					for (int j = 2; j<str.length(); j++) {
@@ -2437,8 +2453,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 							str = str.substring(0, Math.min(j+2, str.length()));
 						}
 			        }
-					if (centLabels != null) {
-						centLabels[i].setText("LRR corr="+str+", err="+ext.formDeci(comp[1], 3));
+					if (centroidLabels != null) {
+						centroidLabels[i].setText("LRR corr="+str+", err="+ext.formDeci(comp[1], 3));
 					}
 		        }
 			}
@@ -2451,6 +2467,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	
 	public boolean symmetricAxes(int index) {
 		return symmetry[index];
+	}
+	
+	public boolean displayMendelianErrors(int index) {
+	    return displayMendelianErrors[index];
 	}
 	
 	public void loadMarkerListFromFile() {
@@ -2599,9 +2619,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			}
         }
 		log.report("");
-		cents = new float[v.size()][][][];
-		for (int i = 0; i<cents.length; i++) {
-			cents[i] = v.elementAt(i);
+		centroids = new float[v.size()][][][];
+		for (int i = 0; i<centroids.length; i++) {
+			centroids[i] = v.elementAt(i);
         }
 		centList = Array.toStringArray(fileList);
 	}
@@ -2674,7 +2694,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			for (int i = 0; i<centBoxes.length; i++) {
 				if (centBoxes[i].isSelected()) {
 					if (!recomputed) {
-						getCurrentMarkerData().recompute(cents[i][markerIndex]);
+						getCurrentMarkerData().recompute(centroids[i][markerIndex]);
 						recomputed = true;
 					} else {
 						centBoxes[i].setSelected(false);

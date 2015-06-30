@@ -51,7 +51,7 @@ import filesys.SnpMarkerSet;
 
 public class lab {
 	
-	private static void countCNVsForIndividuals(String indivFile, String cnvFile, String outFile) throws IOException {
+    private static void countCNVsForIndividuals(String indivFile, String cnvFile, String outFile) throws IOException {
 		Hashtable<String, String> sampleKeyHash = new Hashtable<String, String>();
 		BufferedReader reader = new BufferedReader(new FileReader(indivFile));
 		String line = null;
@@ -738,6 +738,21 @@ public class lab {
 	    writer.close();
 	}
 	
+
+    
+	
+	public enum TEST {
+	    TEST1,
+	    TEST2,
+	    TEST3;
+	}
+	
+	public static <T extends Enum<T>> void enumValues(Class<T> enumType) {
+        for (T c : enumType.getEnumConstants()) {
+             System.out.println(c.name());
+        }
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		Project proj;
@@ -747,26 +762,38 @@ public class lab {
 		
 		boolean test = true;
 		if (test) {
-		   
 		    
-		    String dir = "F:/CARDIA processing/";
+		    try {
+                Process p = Runtime.getRuntime().exec("where notepad.exe");
+                int waitCode = p.waitFor();
+                int outCode = p.exitValue();
+                System.out.println("wait: " + waitCode + "| out: " + outCode);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 		    
-		    String[] files = (new File(dir)).list(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith("positions.xln");
-                }
-            });
-		    
-		    for (String file2 : files) {
-		        try {
-                    processSNPPositions(dir + file2, dir + ext.rootOf(file2) + ".proc.xln");
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-		    }
-		    
+//            String dir = "F:/CARDIA processing/";
+//
+//            String[] files = (new File(dir)).list(new FilenameFilter() {
+//                @Override
+//                public boolean accept(File dir, String name) {
+//                    return name.endsWith("positions.xln");
+//                }
+//            });
+//
+//            for (String file2 : files) {
+//                try {
+//                    processSNPPositions(dir + file2, dir + ext.rootOf(file2) + ".proc.xln");
+//                } catch (IOException e) {
+//                    // TODO Auto-generated catch block
+//                    e.printStackTrace();
+//                }
+//            }
+
 		    return;
 		}
 		
