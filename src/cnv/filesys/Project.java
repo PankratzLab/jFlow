@@ -23,6 +23,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+import cnv.LaunchProperties;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.manage.TransposeData;
 import cnv.var.SampleData;
@@ -209,7 +210,11 @@ public class Project {
 			String tempValue = valu;
 			if (!"".equals(valu) && !valu.startsWith(".") && !valu.startsWith("/") && valu.indexOf(":") == -1) {
 				if (isDir) {
-					tempValue = getProject().PROJECT_DIRECTORY.getValue() + valu;
+					if (this.getName().equals("PROJECT_DIRECTORY")) { // happens with example.properties
+					 	tempValue = LaunchProperties.directoryOfLaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE) + valu;
+					} else {
+						tempValue = getProject().PROJECT_DIRECTORY.getValue() + valu;
+					}
 				} else {
 					tempValue = getProject().PROJECT_DIRECTORY.getValue() + (subdir == null ? "" : getProject().getProperty(subdir).getValueString()) + valu;
 				}
