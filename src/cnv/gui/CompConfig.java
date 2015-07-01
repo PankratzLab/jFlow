@@ -469,9 +469,13 @@ class CNVPanel extends JPanel implements ActionListener {
 				String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
 				// TODO errors if IDs is null
 				String[] ids = sampleData.lookup(trailerID);
-				String id = ids[0];
-				String[] fns = proj.CNV_FILENAMES.getValue();
-				new Trailer(proj, id, fns, markerPosition);
+				if (ids == null) {
+					proj.message("Error - could not find a lookup for individual "+selectedCNV.getFamilyID()+"-"+selectedCNV.getIndividualID()+" in the SampleData file; cannot launch Trailer without knowing which DNA sample to open");
+				} else {
+					String id = ids[0];
+					String[] fns = proj.CNV_FILENAMES.getValue();
+					new Trailer(proj, id, fns, markerPosition);
+				}
 			}
 		}
 	}

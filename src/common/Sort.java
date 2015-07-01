@@ -777,7 +777,7 @@ public class Sort {
 			}
 		}
 		if (inOrder) {
-			log.report("Markers were already in order");
+			log.report("Markers were already in order", true, true, 10);
 			return Array.intArray(second.length);
 		}
 

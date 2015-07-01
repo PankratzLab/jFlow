@@ -1,7 +1,7 @@
 package common;
 
 public class Aliases {
-	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP.id", "rs_id", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests", "RSID" };
+	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNPID", "SNP.id", "rs_id", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests", "RSID" };
 	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 	
 	public static final String[] CHRS = {"Chr", "Chromosome", "CHROM"};
@@ -16,7 +16,7 @@ public class Aliases {
 	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add"};
 	
 	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "Pvalue", "mbpval", "minPval"};
-	public static final String[] NS = {"N", "NMISS", "sampleN"};
+	public static final String[] NS = {"N", "NMISS", "sampleN", "n_total"};
 	
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF"};
 	
