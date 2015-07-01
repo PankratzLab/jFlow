@@ -1122,6 +1122,20 @@ public class Project {
 		}
 		return pcResids;
 	}
+
+	/**
+	 * @return the {@link Pedigree} if the {@link Project#PEDIGREE_FILENAME} exists, null otherwise
+	 */
+	public Pedigree loadPedigree() {
+		String ped = PEDIGREE_FILENAME.getValue();
+		Pedigree pedigree = null;
+		if (!Files.exists(ped)) {
+			log.reportTimeWarning("Did not find pedigree file " + ped);
+		} else {
+			pedigree = Pedigree.loadPedigree(this, ped);
+		}
+		return pedigree;
+	}
 	
 	/**
 	 * Attempts to return the gene track file from the properties, and then attempts the statgen default (only valid for local)
@@ -1214,30 +1228,44 @@ public class Project {
 		/**
 		 * Your friendly Illumina arrays
 		 */
-		ILLUMINA(new String[] { "cnvi" }), /**
+		ILLUMINA(new String[] { "cnvi" }, 50), /**
 		 * Supports CHP format
 		 */
-		AFFY_GW6(new String[] { "CN_" }),
+		AFFY_GW6(new String[] { "CN_" }, 25),
 		/**
 		 * Supports CHP and CNCHP formated input
 		 */
-		AFFY_GW6_CN(new String[] { "CN_" });
+		AFFY_GW6_CN(new String[] { "CN_" }, 25);
 
 		/**
 		 * Used for copy number only probe-set identification
 		 */
 		private String[] cnFlags;
+		/**
+		 * Length of the probe sequences on the array
+		 */
+		private int probeLength;
 
-		private ARRAY(String[] cnFlags) {
+		private ARRAY(String[] cnFlags, int probeLength) {
 			this.cnFlags = cnFlags;
+			this.probeLength = probeLength;
 		}
 
 		public String[] getCnFlags() {
+
 			return cnFlags;
 		}
 
 		public void setCnFlags(String[] cnFlags) {
 			this.cnFlags = cnFlags;
+		}
+
+		public int getProbeLength() {
+			return probeLength;
+		}
+
+		public void setProbeLength(int probeLength) {
+			this.probeLength = probeLength;
 		}
 
 		/**

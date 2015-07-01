@@ -78,6 +78,7 @@ import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.MarkerSet;
+import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.filesys.SampleList;
 import cnv.gui.AnnotationAction;
@@ -209,6 +210,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private double stdevFilter, correctionRatio;
 	private int numComponents ;
 	private PrincipalComponentsResiduals pcResids;
+	private Pedigree pedigree;
 	private JPanel[] indivPanels;
 	private JPanel scatterOverview;
 	private JPanel viewPanel;
@@ -307,7 +309,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		
 		loadMarkerDataFromList(0);
 		pcResids = loadPcResids();// returns null if not found, marker data should return original x/y if null
-		numComponents = 0;//initialize to 0 PCs
+		numComponents = 0;// initialize to 0 PCs
+		pedigree = proj.loadPedigree();// returns null if not found
 		loadCentroids();
 		sessionID = (new Date().getTime()+"").substring(5);
 		isClusterFilterUpdated = false;
@@ -3224,6 +3227,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		}
 		return pcResids;
 	}
+	
 
 	public int getNumComponents() {
 		return numComponents;
@@ -3256,7 +3260,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         String fidiid = lookup[1];
         String marker = markerList[markerIndex];
         return plinkMarkerLoaders.get(plinkRoot).getGenotypeForIndi(marker, fidiid);
-    }
-	
-	
+	}
+
+	public Pedigree getPedigree() {
+		return pedigree;
+	}
+
 }

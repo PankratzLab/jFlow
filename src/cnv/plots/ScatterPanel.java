@@ -20,6 +20,7 @@ import cnv.filesys.ClusterFilter;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.gui.LaunchAction;
+import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.SampleData;
 import cnv.var.IndiPheno;
 import common.CountVector;
@@ -366,28 +367,38 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			rectangles[sp.getCurrentClusterFilter()].setColor((byte)0);
 		}
 		if (sp.displayMendelianErrors(panelIndex)) {
-		    generateLines();
+		    generateLines(sex);
 		}
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 	}
 
-	private void generateLines() {
-	    ArrayList<GenericLine> linesList = new ArrayList<GenericLine>();
-	    int plotType = sp.getPlotType(panelIndex);
-	    int centroidOffset = (plotType == 0 || plotType == 1 || plotType >= 4 ? Array.booleanArraySum(sp.getDisplayCentroids()) : 0);
-	    centroidOffset *= 3;
-	    for (int i = 0; i < samples.length; i++) {
-	        PlotPoint indiPoint = points[centroidOffset + i];
-	        // TODO mendelian errors
-//	        if (mendelianErrorExistsMom) {
-//	            PlotPoint momPoint = points[centroidOffset + findMomSampleIndex()];
-//	            GenericLine gl = new GenericLine(momPoint, indiPoint, thickness, color, layer, swapAxes)
-//	        }
-//	        if (mendelianErrorExistsDad) {
-//	            PlotPoint dadPoint = points[centroidOffset + findDadSampleIndex()];
-//	            GenericLine gl = new GenericLine(dadPoint, indiPoint, thickness, color, layer, swapAxes)
-//	        }
-	    }
+	private void generateLines(String[] sex) {
+		ArrayList<GenericLine> linesList = new ArrayList<GenericLine>();
+		int plotType = sp.getPlotType(panelIndex);
+		int centroidOffset = (plotType == 0 || plotType == 1 || plotType >= 4 ? Array.booleanArraySum(sp.getDisplayCentroids()) : 0);
+		centroidOffset *= 3;
+		if (sp.getPedigree() != null) {
+			MendelErrorCheck[] mendelErrorChecks = sp.getPedigree().checkMendelErrors(sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold());
+			for (int i = 0; i < samples.length; i++) {
+				PlotPoint indiPoint = points[centroidOffset + i];
+				// TODO mendelian errors
+				if (mendelErrorChecks[i].hasMoMendelError()) {
+					// System.out.println(sp.getPedigree().getPedigreeEntries()[i].getMoDNAIndex());
+
+					PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getPedigreeEntries()[i].getMoDNAIndex()];
+					GenericLine gl = new GenericLine(momPoint, indiPoint, (byte) 6, (byte) 7, (byte) 1, false);
+					linesList.add(gl);
+				}
+				if (mendelErrorChecks[i].hasFaMendelError()) {
+					// System.out.println(sp.getPedigree().getPedigreeEntries()[i].getFaDNAIndex());
+					PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getPedigreeEntries()[i].getFaDNAIndex()];
+					GenericLine gl = new GenericLine(dadPoint, indiPoint, (byte) 6, (byte) 6, (byte) 1, false);
+					linesList.add(gl);
+				}
+
+		    }
+		}
+	    
 	    lines = linesList.toArray(new GenericLine[linesList.size()]);
     }
 
