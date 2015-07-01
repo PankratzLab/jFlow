@@ -49,38 +49,50 @@ public class MendelErrors {
 		if (moGenotype == -1 && faGenotype == -1) {
 			return new MendelErrorCheck(-1, false, false);
 		}
-		if (faGenotype == 0 && moGenotype == 0 && offGenotype == 1) {
-			return new MendelErrorCheck(1, true, true);
-		}
-		if (faGenotype == 2 && moGenotype == 2 && offGenotype == 1) {
-			return new MendelErrorCheck(2, true, true);
-		}
-		if (faGenotype == 2 && offGenotype == 0) {
-			return new MendelErrorCheck(3, true, moGenotype >= 0);
-		}
-		if (moGenotype == 2 && offGenotype == 0) {
-			return new MendelErrorCheck(4, faGenotype >= 0, true);
-		}
-		if (faGenotype == 2 && moGenotype == 2 && offGenotype == 0) {
-			return new MendelErrorCheck(5, true, true);
-		}
-		if (faGenotype == 0 && offGenotype == 2) {
-			return new MendelErrorCheck(6, true, moGenotype >= 0);
-		}
-		if (moGenotype == 0 && offGenotype == 2) {
-			return new MendelErrorCheck(7, faGenotype >= 0, true);
-		}
-		if (faGenotype == 0 && moGenotype == 0 && offGenotype == 2) {
-			return new MendelErrorCheck(8, true, true);
-		}
-		if (chr == 23 && offSex == 1 && moGenotype == 0 && offGenotype == 2) {
-			return new MendelErrorCheck(9, false, true);
-		}
-		if (chr == 23 && offSex == 1 && moGenotype == 2 && offGenotype == 0) {
-			return new MendelErrorCheck(10, false, true);
+		if (chr < 23) {
+			// note these are not in error code order
+			if (faGenotype == 0 && moGenotype == 0 && offGenotype == 1) {
+				return new MendelErrorCheck(1, true, true);
+			}
+			if (faGenotype == 2 && moGenotype == 2 && offGenotype == 1) {
+				return new MendelErrorCheck(2, true, true);
+			}
+			if (faGenotype == 2 && moGenotype == 2 && offGenotype == 0) {
+				return new MendelErrorCheck(5, true, true);
+			}
+			if (faGenotype == 0 && moGenotype == 0 && offGenotype == 2) {
+				return new MendelErrorCheck(8, true, true);
+			}
+			if (faGenotype == 2 && offGenotype == 0) {
+				return new MendelErrorCheck(3, true, false);
+			}
+			if (moGenotype == 2 && offGenotype == 0) {
+				return new MendelErrorCheck(4, false, true);
+			}
+			if (faGenotype == 0 && offGenotype == 2) {
+				return new MendelErrorCheck(6, true, false);
+			}
+			if (moGenotype == 0 && offGenotype == 2) {
+				return new MendelErrorCheck(7, false, true);
+			}
+
+		} else if (chr == 23) {
+			if (offSex == 1 && moGenotype == 0 && offGenotype == 2) {
+				return new MendelErrorCheck(9, false, true);
+			}
+			if (offSex == 1 && moGenotype == 2 && offGenotype == 0) {
+				return new MendelErrorCheck(10, false, true);
+			}
+		} else if (chr == 26) {
+
+			if (moGenotype == 2 && offGenotype != 2) {
+				return new MendelErrorCheck(11, false, true);
+			}
+			if (moGenotype == 0 && offGenotype != 0) {
+				return new MendelErrorCheck(12, false, true);
+			}
 		}
 		return new MendelErrorCheck(-1, false, false);
-
 	}
 
 	/**
@@ -106,6 +118,10 @@ public class MendelErrors {
 		 * 
 		 * 9 ** , AA -> BB (X chromosome male offspring)<br>
 		 * 10 ** , BB -> AA (X chromosome male offspring)<br>
+		 * 
+		 * 11 **,AA -> !AA (Mitochondrial, maternal) <br>
+		 * 12 **,BB -> !BB (Mitochondrial, maternal)
+		 * 
 		 */
 		private int errorCode;
 		private boolean faMendelError;
