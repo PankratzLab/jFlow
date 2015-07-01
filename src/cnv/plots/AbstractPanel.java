@@ -27,11 +27,11 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import mining.Distance;
 import stats.Maths;
+
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -584,7 +584,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		// Draw the lines
 		for (int i = 0; lines!=null && i<lines.length && flow; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
-				Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()), getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()]);
+				Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()), getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()], lines[i].getDirection());
 			}
         }
 
