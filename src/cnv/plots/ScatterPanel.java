@@ -377,22 +377,25 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int plotType = sp.getPlotType(panelIndex);
 		int centroidOffset = (plotType == 0 || plotType == 1 || plotType >= 4 ? Array.booleanArraySum(sp.getDisplayCentroids()) : 0);
 		centroidOffset *= 3;
+		byte size = (byte) 3;
+		byte momColor = (byte) 6;
+		byte dadColor = (byte) 7;
+		byte layer = (byte) 1;
+		boolean swapAxes = false;
+		
+		
 		if (sp.getPedigree() != null) {
 			MendelErrorCheck[] mendelErrorChecks = sp.getPedigree().checkMendelErrors(sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold());
 			for (int i = 0; i < samples.length; i++) {
 				PlotPoint indiPoint = points[centroidOffset + i];
-				// TODO mendelian errors
 				if (mendelErrorChecks[i].hasMoMendelError()) {
-					// System.out.println(sp.getPedigree().getPedigreeEntries()[i].getMoDNAIndex());
-
 					PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getPedigreeEntries()[i].getMoDNAIndex()];
-					GenericLine gl = new GenericLine(momPoint, indiPoint, (byte) 6, (byte) 7, (byte) 1, false);
+					GenericLine gl = new GenericLine(momPoint, indiPoint, size, momColor, layer, swapAxes, 1);
 					linesList.add(gl);
 				}
 				if (mendelErrorChecks[i].hasFaMendelError()) {
-					// System.out.println(sp.getPedigree().getPedigreeEntries()[i].getFaDNAIndex());
 					PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getPedigreeEntries()[i].getFaDNAIndex()];
-					GenericLine gl = new GenericLine(dadPoint, indiPoint, (byte) 6, (byte) 6, (byte) 1, false);
+					GenericLine gl = new GenericLine(dadPoint, indiPoint, size, dadColor, layer, swapAxes, 1);
 					linesList.add(gl);
 				}
 
