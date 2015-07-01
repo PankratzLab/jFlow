@@ -29,7 +29,7 @@ public class Blast {
 	private static final String OUT_FMT = "-outfmt";
 	private static final int DEFAULT_OUT_FMT = 7;
 	private static final String WORD_SIZE = "-word_size";
-	public static final int DEFAULT_WORD_SIZE = 111;
+	public static final int DEFAULT_WORD_SIZE = 11;
 
 	private enum BLAST_COMMANDS {
 		MAKE_DB("makeblastdb"), BLASTN("blastn");

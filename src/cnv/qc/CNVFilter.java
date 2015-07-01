@@ -291,7 +291,7 @@ public class CNVFilter {
 	 * @return a String array of the default parameters, typically used for creating a .crf
 	 */
 	public static String[] getDefaultCNVParams() {
-		String[] params = new String[27];
+		String[] params = new String[29];
 		params[0] = "# CNV Specific Filters: ";
 
 		params[1] = "# minimum number of markers";
@@ -321,7 +321,7 @@ public class CNVFilter {
 		params[17] = "# if a common reference is provided, keep only variants in the common regions. Defaults to removing (" + DEFAULT_COMMON_IN + ")";
 		params[18] = COMMAND_COMMON_IN + DEFAULT_COMMON_IN;
 
-		params[19] = "# a path (relative to the project directory) to a file common individuals to use (note this will override " + COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + ")";
+		params[19] = "# a path (relative to the project directory) to a file of individuals to use (note this will override " + COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + ")";
 		params[20] = "#" + COMMAND_INDIVIDUALS_TO_KEEP;
 
 		params[21] = "# the genome build to use for centromere locations";
