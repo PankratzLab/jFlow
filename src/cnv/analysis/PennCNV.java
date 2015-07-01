@@ -341,9 +341,14 @@ public class PennCNV {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(resultsDir + "sex_file.txt"));
 			for (Map.Entry<String, Vector<String>> lineData : sexData.entrySet()) {
-				int estSex = Integer.parseInt(lineData.getValue().get(0));
-				estSex = SexChecks.KARYOTYPES[estSex].contains("XX") ? 2 : 1;
-				writer.println(lineData.getKey() + "\t" + estSex);
+			    String estSexStr = lineData.getValue().get(0);
+			    if (!ext.isMissingValue(estSexStr)) {
+    				int estSex = Integer.parseInt(estSexStr);
+    				estSex = SexChecks.KARYOTYPES[estSex].contains("XX") ? 2 : 1;
+    				writer.println(lineData.getKey() + "\t" + estSex);
+			    } else {
+			        writer.println(lineData.getKey() + "\t.");
+			    }
 			}
 			writer.close();
 		} catch (IOException e) {
