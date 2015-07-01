@@ -52,19 +52,23 @@ public class MarkerBlast {
 			String output = root + ".blasted";
 			String outputOneHitWonders = root + ".oneHitWonders";
 
-			WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
-			FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
-			ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
-			BlastWorker[] workers = new BlastWorker[splits.size()];
-			String[] tmps = new String[workers.length];
-			if (fastaEntries != null && fastaEntries.length > 0) {
-				for (int i = 0; i < splits.size(); i++) {
-					tmps[i] = root + ".tmp" + i;
-					workers[i] = new BlastWorker(blast, splits.get(i), reportToTmp ? tmps[i] : null);
-				}
+			String[] tmps = new String[numThreads];
+			for (int i = 0; i < numThreads; i++) {
+				tmps[i] = root + ".tmp" + i;
 			}
 
 			if (!Files.exists(output) || !Files.exists(outputOneHitWonders)) {
+				WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
+				FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
+				ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
+
+				BlastWorker[] workers = new BlastWorker[splits.size()];
+				if (fastaEntries != null && fastaEntries.length > 0) {
+					for (int i = 0; i < splits.size(); i++) {
+						workers[i] = new BlastWorker(blast, splits.get(i), reportToTmp ? tmps[i] : null);
+					}
+				}
+
 				hive.addCallables(workers);
 				hive.setReportEvery(1);
 				hive.execute(true);
@@ -76,9 +80,8 @@ public class MarkerBlast {
 				proj.getLog().reportFileExists(output);
 				proj.getLog().reportFileExists(outputOneHitWonders);
 			}
-			int seqSize = fastaEntries[0].getSequence().length();
-			proj.getLog().reportTimeWarning("Assuming that all sequences have length "+seqSize);
-			MarkerBlastResult result = new MarkerBlastResult(output, outputOneHitWonders, blastWordSize, reportWordSize, seqSize);
+			proj.getLog().reportTimeWarning("Assuming that all sequences have length " + proj.getArrayType().getProbeLength() + " based on array type " + proj.getArrayType());
+			MarkerBlastResult result = new MarkerBlastResult(output, outputOneHitWonders, blastWordSize, reportWordSize, proj.getArrayType().getProbeLength());
 			result.setTmpFiles(tmps);
 			return result;
 		}
@@ -98,7 +101,7 @@ public class MarkerBlast {
 			this.outputOneHitWonders = outputOneHitWonders;
 			this.blastWordSize = blastWordSize;
 			this.reportWordSize = reportWordSize;
-			this.sequenceSize=sequenceSize;
+			this.sequenceSize = sequenceSize;
 		}
 
 		public int getSequenceSize() {
@@ -249,7 +252,7 @@ public class MarkerBlast {
 		builder.requireAll(false);
 		builder.verbose(false);
 		try {
-
+			int seqLength = proj.ARRAY_TYPE.getValue().getProbeLength();
 			ExtProjectDataParser parser = builder.build(proj, strandReportFile);
 			parser.determineIndicesFromTitles();
 			parser.loadData();
@@ -262,16 +265,24 @@ public class MarkerBlast {
 
 					if (type != FILE_SEQUENCE_TYPE.AFFY_ANNOT) {
 						seq = parser.getStringData()[0][i];
+						if (seq.length() != seqLength) {
+							proj.getLog().reportTimeError("Sequence " + seq + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
+							return null;
+						}
 						entries.add(new FastaEntry(parser.getDataToLoad()[i], seq));
 					} else {
 						String[] tmpSeq = Array.unique(parser.getStringData()[0][i].split("\t"));
 						if (tmpSeq.length != 2) {
-							proj.getLog().reportTimeError("Marker " + parser.getDataToLoad()[i] + " had did not have 2 unique probe designs");
+							proj.getLog().reportTimeError("Marker " + parser.getDataToLoad()[i] + " did not have 2 unique probe designs");
 							proj.getLog().reportTimeError("found the following " + parser.getDataToLoad()[i] + "\t" + Array.toStr(tmpSeq));
 							return null;
 						} else {
-							entries.add(new FastaEntry(parser.getDataToLoad()[i], tmpSeq[0]));
-							entries.add(new FastaEntry(parser.getDataToLoad()[i], tmpSeq[1]));
+							if (tmpSeq[0].length() != seqLength || tmpSeq[1].length() != seqLength) {
+								proj.getLog().reportTimeError("Sequence " + tmpSeq[0] + " or " + tmpSeq[1] + "  did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
+								return null;
+							}
+							entries.add(new FastaEntry(parser.getDataToLoad()[i]+"_A", tmpSeq[0]));
+							entries.add(new FastaEntry(parser.getDataToLoad()[i]+"_B", tmpSeq[1]));
 						}
 					}
 				}

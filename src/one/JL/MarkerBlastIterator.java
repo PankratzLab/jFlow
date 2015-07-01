@@ -16,6 +16,7 @@ import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
 import cnv.manage.ExtProjectDataParser.Builder;
 import cnv.qc.MarkerBlast;
@@ -32,7 +33,7 @@ import filesys.Segment;
 public class MarkerBlastIterator {
 
 	private static final String[] PLOT_FILE_HEADER = new String[] { "MarkerName", "PercentAppropriateMatch", "EvalAppropriateMatch", "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength", "NumCrossHyb" };
-	private static final String[] X_COLUMNS_PLOT = new String[] { "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength" };
+	private static final String[] X_COLUMNS_PLOT = new String[] { "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength", "NumCrossHyb" };
 	private static final int[][] QC_GROUPINGS = new int[][] { { 2 }, { 3, 4, 5 }, { 6, 7 }, { 8, 9, 10 }, { 24 } };
 	private static final String[] QC_TITLES = new String[] { "CallRate", "MeanClusterTheta", "DiffTheta", "SDClusterTheta", "LRR_SD" };
 
@@ -48,6 +49,8 @@ public class MarkerBlastIterator {
 		int[] reportWordSizes = new int[] { 0 };
 		double appropriateMatchPercent = 100;
 		double mafFilter = 0.05;
+		double minCrossHybLength = 15;
+		double minExpect = 0.05;
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			proj.getLog().reportTimeInfo("Creating file " + proj.MARKER_METRICS_FILENAME.getValue());
@@ -69,7 +72,6 @@ public class MarkerBlastIterator {
 
 		for (int i = 0; i < results.length; i++) {
 			String catResults = ext.addToRoot(results[i].getOutput(), ".all.blasts");
-			String plotFile = catResults + ".plot.txt";
 			if (Files.exists(catResults)) {
 				new File(catResults).delete();
 			}
@@ -84,27 +86,38 @@ public class MarkerBlastIterator {
 					if (line.length == Blast.BLAST_HEADER.length && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
 
 						BlastResults blastResults = new BlastResults(line, log);
+						String marker = blastResults.getQueryID();
+						if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
+							if (marker.endsWith("_A") || marker.endsWith("_B")) {
+								marker = marker.substring(0, marker.length() - 2);
+							} else {
+								proj.getLog().reportTimeError("Query id did not end with _A or _B which is required for an AFFY array");
+							}
 
-						boolean hasMarker = trackResults.containsKey(blastResults.getQueryID());
+						}
+						boolean hasMarker = trackResults.containsKey(marker);
 						int summaryindex = -1;
 						if (hasMarker) {
-							summaryindex = trackResults.get(blastResults.getQueryID());
+							summaryindex = trackResults.get(marker);
 						} else {
 							summaryindex = summaries.size();
-							trackResults.put(blastResults.getQueryID(), summaryindex);
-							summaries.add(new MarkerIterationSummary(blastResults.getQueryID()));
+							trackResults.put(marker, summaryindex);
+							summaries.add(new MarkerIterationSummary(marker));
 						}
 
 						Segment blastSeg = blastResults.getSegment();
-						int markerIndex = indices.get(blastResults.getQueryID());
-						Segment markerSeg = new Segment(chrs[markerIndex], pos[markerIndex], pos[markerIndex]);
+						int markerIndex = indices.get(marker);
+						Segment markerSeg = new Segment(chrs[markerIndex], pos[markerIndex] - 1, pos[markerIndex] + 1);
 						boolean straight = blastResults.getMismatches() == 0 && blastResults.getGapOpens() == 0;
 						boolean match = blastResults.getPercentIdentity() == appropriateMatchPercent && results[i].getSequenceSize() == blastResults.getAlignmentLength();
-						if (!summaries.get(summaryindex).isHasAppropriateMatch() && blastSeg.overlaps(markerSeg) && straight && match) {
+						if (match) {
+							match = blastResults.getEvalue() < minExpect;
+						}
+						if (blastSeg.overlaps(markerSeg) && straight && match) {
 							summaries.get(summaryindex).setHasAppropriateMatch(true);
 							summaries.get(summaryindex).setEvalueAppropriateMatch(blastResults.getEvalue());
 							summaries.get(summaryindex).setPercentAppropriateMatch(blastResults.getPercentIdentity());
-						} else if (!blastSeg.overlaps(markerSeg)) {// we do not want to count probe A/B if probe A is perfect and probe B is not
+						} else if (blastResults.getEvalue() < minExpect && blastResults.getAlignmentLength() > minCrossHybLength && !blastSeg.overlaps(markerSeg)) {// we do not want to count probe A/B if probe A is perfect and probe B is not but is in the right spot
 							summaries.get(summaryindex).getCrossHybEvalue().add(blastResults.getEvalue());
 							summaries.get(summaryindex).getCrossHybPercentMatch().add(blastResults.getPercentIdentity());
 							summaries.get(summaryindex).getCrossHybLength().add((double) blastResults.getAlignmentLength());
@@ -113,9 +126,14 @@ public class MarkerBlastIterator {
 					}
 				}
 				reader.close();
+				String plotFileMatch = catResults + ".plot.match.txt";
+				String plotFileNoMatch = catResults + ".plot.Nomatch.txt";
 
-				PrintWriter writer = Files.getAppropriateWriter(plotFile);
-				writer.println(Array.toStr(PLOT_FILE_HEADER) + "\t" + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
+				PrintWriter writerMatch = Files.getAppropriateWriter(plotFileMatch);
+				PrintWriter writerNoMatch = Files.getAppropriateWriter(plotFileNoMatch);
+
+				writerMatch.println(Array.toStr(PLOT_FILE_HEADER) + "\t" + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
+				writerNoMatch.println(Array.toStr(PLOT_FILE_HEADER) + "\t" + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
 				Builder builder = new ExtProjectDataParser.Builder();
 				builder.separator("\t");
 				builder.sampleBased(false);
@@ -128,35 +146,33 @@ public class MarkerBlastIterator {
 				for (int j = 0; j < summaries.size(); j++) {
 					numMarkers++;
 					int markerIndex = indices.get(summaries.get(j).getMarkerName());
-					if (summaries.get(j).isHasAppropriateMatch() && parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
-						numMatch++;
-						writer.print(summaries.get(j).getSummary());
+					if (parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
+
+						PrintWriter currentWriter = summaries.get(j).isHasAppropriateMatch() ? writerMatch : writerNoMatch;
+						numMatch = summaries.get(j).isHasAppropriateMatch() ? numMatch + 1 : numMatch;
+						currentWriter.print(summaries.get(j).getSummary());
 
 						for (int j2 = 0; j2 < parser.getNumericData().length; j2++) {
-							writer.print("\t" + parser.getNumericData()[j2][markerIndex]);
+							currentWriter.print("\t" + parser.getNumericData()[j2][markerIndex]);
 						}
-						writer.println();
+						currentWriter.println();
 					}
 
 				}
 				log.reportTimeInfo("Found a total of " + numMarkers + " markers that were blasted and " + numMatch + " matched the correct location at percent " + appropriateMatchPercent + " and maf > " + mafFilter);
-				writer.close();
+				writerMatch.close();
 				ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
 				for (int j = 0; j < X_COLUMNS_PLOT.length; j++) {
 					for (int j2 = 0; j2 < QC_GROUPINGS.length; j2++) {
 						String[] yColumns = Array.subArray(MarkerMetrics.FULL_QC_HEADER, QC_GROUPINGS[j2]);
-						String rootOut = ext.addToRoot(plotFile, X_COLUMNS_PLOT[j] + "_" + QC_TITLES[j2]);
-						RScatter rScatter = new RScatter(plotFile, rootOut + ".rscript", ext.rootOf(rootOut), rootOut + ".jpeg", X_COLUMNS_PLOT[j], yColumns, SCATTER_TYPE.POINT, proj.getLog());
-						rScatter.setTitle(X_COLUMNS_PLOT[j]);
-						rScatter.setxLabel(X_COLUMNS_PLOT[j]);
-						rScatter.setyLabel(QC_TITLES[j2]);
-						rScatter.setOverWriteExisting(true);
-						rScatter.execute();
-						rScatters.add(rScatter);
+						rScatters.add(plot(proj, plotFileMatch, X_COLUMNS_PLOT[j], QC_TITLES[j2], yColumns));
+						rScatters.add(plot(proj, plotFileNoMatch, X_COLUMNS_PLOT[j], QC_TITLES[j2], yColumns));
+
 					}
 				}
-				RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), plotFile + ".rscript", plotFile + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+				RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), plotFileMatch + ".rscript", plotFileMatch + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+
 				rScattersAll.execute();
 
 			} catch (FileNotFoundException fnfe) {
@@ -171,6 +187,17 @@ public class MarkerBlastIterator {
 
 		// has match and has cross hyb with % id gt than X;
 
+	}
+
+	private static RScatter plot(Project proj, String plotFile, String xColumn, String title, String[] yColumns) {
+		String rootOut = ext.addToRoot(plotFile, xColumn + "_" + title);
+		RScatter rScatterMatch = new RScatter(plotFile, rootOut + ".rscript", ext.rootOf(rootOut), rootOut + ".jpeg", xColumn, yColumns, SCATTER_TYPE.POINT, proj.getLog());
+		rScatterMatch.setTitle(ext.removeDirectoryInfo(plotFile) + "_" + xColumn);
+		rScatterMatch.setxLabel(xColumn);
+		rScatterMatch.setyLabel(title);
+		rScatterMatch.setOverWriteExisting(true);
+		rScatterMatch.execute();
+		return rScatterMatch;
 	}
 
 	private static class MarkerIterationSummary {
@@ -197,8 +224,7 @@ public class MarkerBlastIterator {
 			summary += "\t" + evalueAppropriateMatch;
 			summary += "\t" + (crossHybPercentMatch.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybPercentMatch), true) : "0");
 			summary += "\t" + (crossHybEvalue.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybEvalue), true) : "1");
-			summary += "\t" + (crossHybLength.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybLength), true) : "1");
-
+			summary += "\t" + (crossHybLength.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybLength), true) : "0");
 			summary += "\t" + crossHybEvalue.size();
 
 			return summary;
