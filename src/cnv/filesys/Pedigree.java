@@ -51,7 +51,7 @@ public class Pedigree {
 			proj.getLog().reportTimeError("Pedigree file must be in project order, internal error");
 			return null;
 		} else {
-			
+
 			for (int i = 0; i < pedigreeEntries.length; i++) {
 				if (pedigreeEntries[i] != null && (samplesToCheck == null || samplesToCheck[i]) && pedigreeEntries[i].getiDNAIndex() >= 0) {
 					int sampleIndex = pedigreeEntries[i].getiDNAIndex();
@@ -75,7 +75,7 @@ public class Pedigree {
 					} catch (NumberFormatException nfe) {
 
 					}
-					//System.out.println(faGenotype+"\t"+moGenotype);
+					// System.out.println(faGenotype+"\t"+moGenotype);
 					MendelErrors mendelErrors = new MendelErrors(markerData.getChr(), sampleSex, genotypes[sampleIndex], faGenotype, moGenotype);
 					mendelErrorChecks[i] = mendelErrors.checkMendelError();
 				} else {
@@ -91,8 +91,8 @@ public class Pedigree {
 		SampleData sampleData = proj.getSampleData(0, false);
 		String[] samples = proj.getSamples();
 		int numAdded = 0;
-		int numTrio =0;
-		int numChildOffspring =0;
+		int numTrio = 0;
+		int numChildOffspring = 0;
 
 		try {
 			BufferedReader reader = Files.getAppropriateReader(ped);
@@ -109,22 +109,23 @@ public class Pedigree {
 				} else {
 					String FID = line[0];
 
-					String faFidIid = FID +"\t"+ line[2];
-					String moFidIid = FID +"\t"+ line[3];
-				
+					String faFidIid = FID + "\t" + line[2];
+					String moFidIid = FID + "\t" + line[3];
+
 					String DNA = line[6];
 					int iDNAIndex = getSampleIndex(DNA, sampleData, samples);
 					int faDNAIndex = getSampleIndex(faFidIid, sampleData, samples);
 					int moDNAIndex = getSampleIndex(moFidIid, sampleData, samples);
 
-					PedigreeEntry pedigreeEntry = new PedigreeEntry(FID, line[1], line[2], line[3], line[4], line[4], DNA, iDNAIndex, faDNAIndex, moDNAIndex);
+					PedigreeEntry pedigreeEntry = new PedigreeEntry(FID, line[1], line[2], line[3], line[4], line[5], DNA, iDNAIndex, faDNAIndex, moDNAIndex);
 					if (iDNAIndex >= 0) {
-						if(faDNAIndex>=0){
-							numChildOffspring++;
-						}if(moDNAIndex>=0){
+						if (faDNAIndex >= 0) {
 							numChildOffspring++;
 						}
-						if(moDNAIndex>=0&&faDNAIndex>=0){
+						if (moDNAIndex >= 0) {
+							numChildOffspring++;
+						}
+						if (moDNAIndex >= 0 && faDNAIndex >= 0) {
 							numTrio++;
 						}
 						pedigreeEntries[iDNAIndex] = pedigreeEntry;
