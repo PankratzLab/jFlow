@@ -45,6 +45,7 @@ public class MarkerBlast {
 		} else {
 
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
+			blast.setEvalue(10000);//we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
 			new File(dir).mkdirs();
 
@@ -58,8 +59,6 @@ public class MarkerBlast {
 			}
 
 			if (!Files.exists(output) || !Files.exists(outputOneHitWonders)) {
-				System.out.println(output+"\t"+outputOneHitWonders);
-				System.exit(1);
 				WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
 				FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
 				ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
