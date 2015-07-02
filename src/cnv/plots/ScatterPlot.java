@@ -65,6 +65,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import park.showMe;
 import net.miginfocom.swing.MigLayout;
 import stats.CTable;
 import stats.ContingencyTable;
@@ -1121,6 +1122,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		mendelianErrorBox.setBackground(BACKGROUND_COLOR);
 		mendelianErrorBox.setActionCommand(MENDELIAN_ERROR);
 		mendelianErrorBox.addActionListener(this);
+		if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
+		    mendelianErrorBox.setEnabled(false);
+		}
 		
 //		JPanel boxPanel = new JPanel();
 //		boxPanel.setLayout(new GridLayout(3, 2));
@@ -2043,6 +2047,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 						maskMissingBox.setSelected(maskMissing(newIndex));
 						excludeSampleBox.setSelected(hideExcludedSamples(newIndex));
 						symmetryBox.setSelected(symmetricAxes(newIndex));
+						mendelianErrorBox.setSelected(displayMendelianErrors(newIndex));
 						correctionBox.setSelected(getCorrection(newIndex));
 						colorKeyPanel.setSisterPanel(scatterPanels[newIndex]);
 						if (scatterPanels[newIndex].uniqueValueCounts != null) {

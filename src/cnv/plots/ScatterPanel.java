@@ -368,6 +368,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 		if (sp.displayMendelianErrors(panelIndex)) {
 		    generateLines(sex);
+		} else {
+		    lines = new GenericLine[0];
 		}
 //		sp.setCurrentClusterFilter(sp.getCurrentClusterFilter()); // what did this patch? this causes a continuous loop
 	}
@@ -522,52 +524,63 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	}
 
     public void mousePressed(MouseEvent e) {
-    	mouseStartX = e.getX();
-    	mouseStartY = e.getY();
+        if (e.getButton() == MouseEvent.BUTTON3) {
+        	mouseStartX = e.getX();
+        	mouseStartY = e.getY();
+        } else {
+            super.mousePressed(e);
+        }
     }
 
     public void mouseReleased(MouseEvent e) {
     	mouseEndX = e.getX();
     	mouseEndY = e.getY();
     	highlightRectangle = null;
-    	
-    	if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2) || Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2)) {
-	    	// Automatically predict the new genotype and assigns to the last filter.
-	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
-	    											  new ClusterFilter((byte)sp.getPlotType(panelIndex),
-																		(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
-																		(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
-																		(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
-																		(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
-																		sp.getCurrentMarkerData()));
-//	    	sp.startAutoSaveToTempFile();
-	    	sp.setClusterFilterUpdated(true);
-			setPointsGeneratable(true);
-			setQcPanelUpdatable(true);
-	    	generateRectangles();
-			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
-			sp.displayClusterFilterIndex();
-			paintAgain();
-	    }
+    	if (e.getButton() == MouseEvent.BUTTON3) {
+        	if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2) || Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2)) {
+    	    	// Automatically predict the new genotype and assigns to the last filter.
+    	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
+    	    											  new ClusterFilter((byte)sp.getPlotType(panelIndex),
+    																		(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+    																		(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
+    																		(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+    																		(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
+    																		sp.getCurrentMarkerData()));
+    //	    	sp.startAutoSaveToTempFile();
+    	    	sp.setClusterFilterUpdated(true);
+    			setPointsGeneratable(true);
+    			setQcPanelUpdatable(true);
+    	    	generateRectangles();
+    			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
+    			sp.displayClusterFilterIndex();
+    			paintAgain();
+    	    }
+    	} else {
+    	    super.mouseReleased(e);
+    	}
 
     	//TODO Save the filters into files on hard drives;
     }
 
     public void mouseDragged(MouseEvent e) {
-    	ClusterFilter clusterFilter;
-    	mouseEndX = e.getX();
-    	mouseEndY = e.getY();
-    	highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(mouseStartX), (float)getYValueFromYPixel(mouseStartY), (float)getXValueFromXPixel(mouseEndX), (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
-
-    	clusterFilter = new ClusterFilter((byte)sp.getPlotType(panelIndex),
-    			(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
-    			(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
-    			(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
-    			(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
-    			(byte)0);
-    	highlightPoints(sp.getCurrentMarkerData().getHighlightStatus(clusterFilter));
-    	setExtraLayersVisible(new byte[] {99});
-    	repaint();
+        if (e.getButton() == MouseEvent.BUTTON3) {
+        	ClusterFilter clusterFilter;
+        	mouseEndX = e.getX();
+        	mouseEndY = e.getY();
+        	highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(mouseStartX), (float)getYValueFromYPixel(mouseStartY), (float)getXValueFromXPixel(mouseEndX), (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
+    
+        	clusterFilter = new ClusterFilter((byte)sp.getPlotType(panelIndex),
+        			(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+        			(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
+        			(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
+        			(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
+        			(byte)0);
+        	highlightPoints(sp.getCurrentMarkerData().getHighlightStatus(clusterFilter));
+        	setExtraLayersVisible(new byte[] {99});
+        	repaint();
+        } else {
+            super.mouseDragged(e);
+        }
     }
     
 	public void mouseClicked(MouseEvent event) {
@@ -577,8 +590,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int window, position;
 		int numberToInclude, currentClass;
 		byte newClusterFilter, chr;
-//		byte currentGenotype;
-//		ClusterFilter currentClusterFilter;
 
 		if (event.getButton() == MouseEvent.BUTTON1) {
 			window = sp.getProject().WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER.getValue();
@@ -608,38 +619,21 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				menu.show(this, event.getX(), event.getY());
 			}
 
-			newClusterFilter = lookupNearbyRectangles(event.getX(), event.getY());
-			if (newClusterFilter >= 0) {
-				sp.setCurrentClusterFilter(newClusterFilter);
-			}
-//			sp.updateGUI();
-
-		} else if (event.getButton() == MouseEvent.BUTTON2) {
+		} else if (event.getButton() == MouseEvent.BUTTON3) {
 			newClusterFilter = lookupNearbyRectangles(event.getX(), event.getY());
 			if (newClusterFilter >= 0) {
 				ClusterFilterCollection clusterFilterCollection;
 				clusterFilterCollection = sp.getClusterFilterCollection();
 				clusterFilterCollection.deleteClusterFilter(sp.getMarkerName(), newClusterFilter);
 				sp.setCurrentClusterFilter((byte) Math.min(newClusterFilter, clusterFilterCollection.getSize(sp.getMarkerName())-1));
-//				sp.startAutoSaveToTempFile();
 		    	sp.setClusterFilterUpdated(true);
-				//clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+" of "+clusterFilterCollection.getSize(getMarkerName()));
 				sp.displayClusterFilterIndex();
-//					annotationPanelLowerPart();
 				setPointsGeneratable(true);
 				setQcPanelUpdatable(true);
-				//repaint();
-				//paintAgain();
 				generateRectangles();
 				sp.updateGUI();
 			}
 
-		} else if (event.getButton() == MouseEvent.BUTTON3) {
-			newClusterFilter = lookupResidingRectangles(event.getX(), event.getY());
-			if (newClusterFilter >= 0) {
-				sp.setCurrentClusterFilter(newClusterFilter);
-				sp.updateCurrentClusterFiltersGenotype();
-			}
 		}
 	}
 
