@@ -27,9 +27,12 @@ public class Blast {
 	private static final String DB_TYPE = "-dbtype";
 
 	private static final String OUT_FMT = "-outfmt";
+	private static final String E = "-evalue";
+
 	private static final int DEFAULT_OUT_FMT = 7;
 	private static final String WORD_SIZE = "-word_size";
 	public static final int DEFAULT_WORD_SIZE = 11;
+	public static final double DEFAULT_EVALUE = 10;
 
 	private enum BLAST_COMMANDS {
 		MAKE_DB("makeblastdb"), BLASTN("blastn");
@@ -61,6 +64,7 @@ public class Blast {
 	private Logger log;
 	private boolean fail, taxonMode, overwriteExisting, verbose;
 	private int blastWordSize, reportWordSize;
+	private double evalue;
 
 	public Blast(String fastaDb, int blastWordSize, int reportWordSize, Logger log, boolean overwriteExisting, boolean verbose) {
 		super();
@@ -73,9 +77,14 @@ public class Blast {
 		this.overwriteExisting = overwriteExisting;
 		this.verbose = verbose;
 		this.taxonMode = false;
+		this.evalue = DEFAULT_EVALUE;
 		if (!this.fail) {
 			this.fail = !initDb(BLAST_DB_TYPE.NUCL, fastaDb, log);
 		}
+	}
+
+	public void setEvalue(double evalue) {
+		this.evalue = evalue;
 	}
 
 	public Logger getLog() {
@@ -91,7 +100,7 @@ public class Blast {
 
 		if (!System.getProperty("os.name").startsWith("Windows")) {
 			if (!fail) {
-				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : ""), WORD_SIZE, blastWordSize + "" };
+				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : ""), WORD_SIZE, blastWordSize + "", evalue != DEFAULT_EVALUE ? E : "", evalue != DEFAULT_EVALUE ? evalue + "" : "" };
 				FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
 				CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
 				builder.STIN(fStream);
