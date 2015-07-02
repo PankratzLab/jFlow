@@ -32,6 +32,14 @@ public class PennCNV {
 		dataDir = proj.PENNCNV_DATA_DIRECTORY.getValue(false, true) + dataSubDir;
 		resultsDir = pennDir + resultsSubDir;
 		
+		String penncnvExecutable = execDir+"detect_cnv.pl";
+		if (!Files.exists(penncnvExecutable)) {
+		    log.reportError("WARNING - couldn't find PennCNV executable 'detect_cnv.pl' in given directory: " + execDir);
+		    if (Files.programExists("detect_cnv.pl")) {
+		        log.report("PennCNV executable 'detect_cnv.pl' found on the PATH; please check the PENNCNV_EXECUTABLE_DIRECTORY project property.");
+		    }
+		} 
+		
 		if (pfbFile != null) {
 			pfbFile = ext.replaceTilde(pfbFile);
 			if (!pfbFile.startsWith("/") && (pfbFile.charAt(1) != ':')) {

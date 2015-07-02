@@ -110,20 +110,25 @@ public class AnalysisFormats implements Runnable {
 						lrrs = mySample.getLRRs();
 						bafs = mySample.getBAFs();
 						genotypes = mySample.getAB_Genotypes();
-			
-						try {
-							writer = Files.getAppropriateWriter(dir + sampleName + (gzip ? ".gz" : ""));
-							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
-							for (int j = 0; j < markerNames.length; j++) {
-								if (markersToWrite == null || markersToWrite.contains(markerNames[j])) {
-									writer.println(markerNames[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrrs[j] + "\t" + bafs[j]);
-								}
-							}
-							writer.close();
-						} catch (Exception e) {
-							log.reportError("Error writing PennCNV data for " + sampleName);
-							log.reportException(e);
-						}
+						
+						String exportFileName = dir + sampleName + (gzip ? ".gz" : "");
+						if (!Files.exists(exportFileName)) {
+    						try {
+    							writer = Files.getAppropriateWriter(exportFileName);
+    							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
+    							for (int j = 0; j < markerNames.length; j++) {
+    								if (markersToWrite == null || markersToWrite.contains(markerNames[j])) {
+    									writer.println(markerNames[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrrs[j] + "\t" + bafs[j]);
+    								}
+    							}
+    							writer.close();
+    						} catch (Exception e) {
+    							log.reportError("Error writing PennCNV data for " + sampleName);
+    							log.reportException(e);
+    						}
+						} else {
+                            log.report("PennCNV data file " + exportFileName + " already exists - skipping export...");
+                        }
 						
 						mySampleCount++;
 					}
@@ -469,7 +474,7 @@ public class AnalysisFormats implements Runnable {
 					break;
 			}
 		}
-		
+		 
 		Centroids[] centroids = computeCentroids(proj, includeMarkersList, new String[]{malePFBFile, femalePFBFile}, new String[]{centFilePathM, centFilePathF}, true);
 		final float[][][] rawCentroidsMale;
 		final float[][][] rawCentroidsFemale;
@@ -555,24 +560,28 @@ public class AnalysisFormats implements Runnable {
 						thetas = mySample.getThetas();
 						rs = mySample.getRs();
 						genotypes = mySample.getAB_Genotypes();
-
-						try {
-							writer = Files.getAppropriateWriter((compFemale ? femaleDir : maleDir) + sampleName + (gzip ? ".gz" : ""));
-							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
-							for (int j = 0; j < allMarkers.length; j++) {
-								if (!includeMarkersList[j] || null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) continue;
-								
-								float lrr = Centroids.calcLRR(thetas[j], rs[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-								float baf = Centroids.calcBAF(thetas[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-								
-								writer.println(allMarkers[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrr + "\t" + baf);
-							}
-							writer.close();
-						} catch (Exception e) {
-							log.reportError("Error writing sex-specific ("+ (compFemale ? "female" : "male") +") PennCNV data for " + sampleName);
-							log.reportException(e);
-						}
 						
+						String exportFileName = (compFemale ? femaleDir : maleDir) + sampleName + (gzip ? ".gz" : "");
+						if (!Files.exists(exportFileName)) {
+    						try {
+    							writer = Files.getAppropriateWriter(exportFileName);
+    							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
+    							for (int j = 0; j < allMarkers.length; j++) {
+    								if (!includeMarkersList[j] || null == (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j])) continue;
+    								
+    								float lrr = Centroids.calcLRR(thetas[j], rs[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+    								float baf = Centroids.calcBAF(thetas[j], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+    								
+    								writer.println(allMarkers[j] + "\t" + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]]) + "\t" + lrr + "\t" + baf);
+    							}
+    							writer.close();
+    						} catch (Exception e) {
+    							log.reportError("Error writing sex-specific ("+ (compFemale ? "female" : "male") +") PennCNV data for " + sampleName);
+    							log.reportException(e);
+    						}
+						} else {
+						    log.report("Sex-specific file " + exportFileName + " already exists - skipping export...");
+						}
 						mySampleCount++;
 					}
 
@@ -861,23 +870,27 @@ public class AnalysisFormats implements Runnable {
 			thetas = samp.getThetas();
 			rs = samp.getRs();
 			genotypes = samp.getAB_Genotypes();
-			
-			try {
-				writer = Files.getAppropriateWriter((compFemale ? femaleDir : maleDir) + samples[i] + (gzip ? ".gz" : ""));
-				writer.println("Name\t" + samples[i] + ".GType\t" + samples[i] + ".Log R Ratio\t" + samples[i] + ".B Allele Freq");
-				for (int j = 0; j < sexMarkers.length; j++) {
-					int markerIndex = sexMarkerToIndex.get(sexMarkers[j]).intValue();
-					
-					float lrr = Centroids.calcLRR(thetas[markerIndex], rs[markerIndex], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-					float baf = Centroids.calcBAF(thetas[markerIndex], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-					
-					writer.println(sexMarkers[j] + "\t" + (genotypes[markerIndex] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[markerIndex]]) + "\t" + lrr + "\t" + baf);
-				}
-				writer.close();
-			} catch (Exception e) {
-				log.reportError("Error writing sex-specific ("+ (compFemale ? "female" : "male") +") PennCNV data for " + samples[i]);
-				log.reportException(e);
-			}
+			String exportFileName = (compFemale ? femaleDir : maleDir) + samples[i] + (gzip ? ".gz" : "");
+			if (!Files.exists(exportFileName)) {
+    			try {
+    				writer = Files.getAppropriateWriter(exportFileName);
+    				writer.println("Name\t" + samples[i] + ".GType\t" + samples[i] + ".Log R Ratio\t" + samples[i] + ".B Allele Freq");
+    				for (int j = 0; j < sexMarkers.length; j++) {
+    					int markerIndex = sexMarkerToIndex.get(sexMarkers[j]).intValue();
+    					
+    					float lrr = Centroids.calcLRR(thetas[markerIndex], rs[markerIndex], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+    					float baf = Centroids.calcBAF(thetas[markerIndex], (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+    					
+    					writer.println(sexMarkers[j] + "\t" + (genotypes[markerIndex] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[markerIndex]]) + "\t" + lrr + "\t" + baf);
+    				}
+    				writer.close();
+    			} catch (Exception e) {
+    				log.reportError("Error writing sex-specific ("+ (compFemale ? "female" : "male") +") PennCNV data for " + samples[i]);
+    				log.reportException(e);
+    			}
+			} else {
+                log.report("Sex-specific file " + exportFileName + " already exists - skipping export...");
+            }
 			
 		}
 		
