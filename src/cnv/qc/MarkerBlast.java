@@ -58,6 +58,8 @@ public class MarkerBlast {
 			}
 
 			if (!Files.exists(output) || !Files.exists(outputOneHitWonders)) {
+				System.out.println(output+"\t"+outputOneHitWonders);
+				System.exit(1);
 				WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
 				FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
 				ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());

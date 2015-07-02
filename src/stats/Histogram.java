@@ -356,18 +356,24 @@ public class Histogram implements Serializable {
 			super(min, max, sigfigs);
 		}
 
-		public void addDataPointToHistogram(double data) {
+		public int addDataPointToHistogram(double data) {
 			addToSumTotal();
+			int indexAdded = -1;
 			if (Double.isNaN(data)) {
 
 			} else if (data < getMin()) {
-				getCounts()[0]++;
+				indexAdded = 0;
 			} else if (data > getMax()) {
-				getCounts()[getCounts().length - 1]++;
+				indexAdded = getCounts().length - 1;
 			} else {
-				getCounts()[(int)((data+determineStep()/2)*Math.pow(10, getSigfigs())-determineStart()*Math.pow(10, getSigfigs()))]++;
-				
+				indexAdded = (int) ((data + determineStep() / 2) * Math.pow(10, getSigfigs()) - determineStart() * Math.pow(10, getSigfigs()));
+
 			}
+			if (indexAdded > 0) {
+				getCounts()[indexAdded]++;
+			}
+
+			return indexAdded;
 		}
 
 		/**
@@ -420,6 +426,57 @@ public class Histogram implements Serializable {
 			}
 			return new DumpResult(max, min);
 		}
+	}
+
+	/**
+	 * @author lane0212<br>
+	 *         A histogram that also tracks the average of a separate paired metric...sort of like an "averageIf" in excel
+	 */
+	public static class DynamicAveragingHistogram extends DynamicHistogram {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		private double[] averages;
+
+		public DynamicAveragingHistogram(double min, double max, int sigfigs) {
+			super(min, max, sigfigs);
+			this.averages = new double[getCounts().length];
+		}
+
+		public double[] getAverages() {
+
+			return averages;
+		}
+
+		public void setAverages(double[] averages) {
+			this.averages = averages;
+		}
+
+		/**
+		 * @param dataBin
+		 *            this determines which bin of the histogram will be tallied
+		 * @param dataToAverage
+		 *            this data point will be added to the the bins average
+		 */
+		public void addDataPair(double dataBin, double dataToAverage) {
+			if (!Double.isNaN(dataToAverage)) {
+				int binIndex = addDataPointToHistogram(dataBin);
+				if (binIndex >= 0) {
+					averages[binIndex] += dataToAverage;
+				}
+			}
+		}
+
+		public void average() {
+			for (int i = 0; i < getCounts().length; i++) {
+				if (getCounts()[i] > 0) {
+					averages[i] = averages[i] / getCounts()[i];
+				}
+			}
+		}
+
 	}
 	
 	
