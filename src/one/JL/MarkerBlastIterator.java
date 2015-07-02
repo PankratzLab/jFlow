@@ -37,11 +37,11 @@ public class MarkerBlastIterator {
 
 	private static final String[] PLOT_FILE_HEADER = new String[] { "MarkerName", "PercentAppropriateMatch", "EvalAppropriateMatch", "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength", "NumCrossHyb" };
 	private static final String[] X_COLUMNS_PLOT = new String[] { "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength", "NumCrossHyb" };
-	private static final int[][] QC_GROUPINGS = new int[][] { { 2 }, { 3, 4, 5 }, { 6, 7 }, { 8, 9, 10 }, { 24 } };
-	private static final String[] QC_TITLES = new String[] { "CallRate", "MeanClusterTheta", "DiffTheta", "SDClusterTheta", "LRR_SD" };
+	private static final int[][] QC_GROUPINGS = new int[][] { { 1 }, { 2, 3, 4 }, { 5, 6 }, { 7, 8, 9 }, { 10, 11, 12 }, { 23 } };
+	private static final String[] QC_TITLES = new String[] { "CallRate", "MeanClusterTheta", "DiffTheta", "SDClusterTheta", "MeanClusterR", "LRR_SD" };
 
 	private enum BLAST_METRICS {
-		CROSS_HYBE_PERCENT_MATCH(0, 100, 0), CROSS_HYBE_EVAL(0, 1, 2), CROSS_HYBE_LENGTH(10, 50, 0);
+		CROSS_HYBE_PERCENT_MATCH(0, 100, 1), CROSS_HYBE_EVAL(0, 1, 2), CROSS_HYBE_LENGTH(10, 50, 0);
 
 		private double minVal;
 		private double maxVal;
@@ -82,15 +82,16 @@ public class MarkerBlastIterator {
 	public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int numThreads, boolean reportToTmp) throws FileNotFoundException {
 		Logger log = proj.getLog();
 		final Hashtable<String, Integer> indices = proj.getMarkerIndices();
-		final int[] blastWordSizes = new int[] { 10 };
+		final int[] blastWordSizes = new int[] { 15 };
 		final int[] reportWordSizes = new int[] { 0 };
 		final byte[] chrs = proj.getMarkerSet().getChrs();
 		final int[] pos = proj.getMarkerSet().getPositions();
 		final double appropriateMatchPercent = 100;
-		final double mafFilter = 0;
+		final double mafFilter = 0.05;
 		final double minCrossHybLength = 0;
-		final double minExpect = 20;
-
+		final double maxExpect = 20;
+		final int plotFontSize =6;
+		final int crossHybBufferDistance =proj.getArrayType().getProbeLength();
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			proj.getLog().reportTimeInfo("Creating file " + proj.MARKER_METRICS_FILENAME.getValue());
 			MarkerMetrics.fullQC(proj, null, null, numThreads);
@@ -108,7 +109,6 @@ public class MarkerBlastIterator {
 		for (int i = 0; i < results.length; i++) {
 			Hashtable<String, Integer> trackResults = new Hashtable<String, Integer>();
 			ArrayList<MarkerIterationSummary> summaries = new ArrayList<MarkerIterationSummary>();
-
 			for (int j = 0; j < results[i].getTmpFiles().length; j++) {
 
 				try {
@@ -118,7 +118,7 @@ public class MarkerBlastIterator {
 						String[] line = reader.readLine().trim().split("\t");
 						if (line.length == Blast.BLAST_HEADER.length && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
 							numEntries++;
-							if (numEntries % 2000000 == 0) {
+							if (numEntries % 1000000 == 0) {
 								proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
 								break;
 							}
@@ -143,18 +143,20 @@ public class MarkerBlastIterator {
 							}
 
 							Segment blastSeg = blastResults.getSegment();
+							
 							int markerIndex = indices.get(marker);
 							Segment markerSeg = new Segment(chrs[markerIndex], pos[markerIndex] - 1, pos[markerIndex] + 1);
 							boolean straight = blastResults.getMismatches() == 0 && blastResults.getGapOpens() == 0;
 							boolean match = blastResults.getPercentIdentity() == appropriateMatchPercent && results[i].getSequenceSize() == blastResults.getAlignmentLength();
 							if (match) {
-								match = blastResults.getEvalue() < minExpect;
+								match = blastResults.getEvalue() < maxExpect;
 							}
 							if (blastSeg.overlaps(markerSeg) && straight && match) {
 								summaries.get(summaryindex).setHasAppropriateMatch(true);
 								summaries.get(summaryindex).setEvalueAppropriateMatch(blastResults.getEvalue());
 								summaries.get(summaryindex).setPercentAppropriateMatch(blastResults.getPercentIdentity());
-							} else if (straight && blastResults.getEvalue() < minExpect && blastResults.getAlignmentLength() > minCrossHybLength && !blastSeg.overlaps(markerSeg)) {// we do not want to count probe A/B if probe A is perfect and probe B is not but is in the right spot
+								//blastSeg.getChr()!=markerSeg.getChr()&&
+							} else if (straight && blastResults.getEvalue() < maxExpect && blastResults.getAlignmentLength() > minCrossHybLength && !blastSeg.overlaps(markerSeg.getBufferedSegment(crossHybBufferDistance))) {// we do not want to count probe A/B if probe A is perfect and probe B is not but is in the right spot
 								summaries.get(summaryindex).getCrossHybEvalue().add(blastResults.getEvalue());
 								summaries.get(summaryindex).getCrossHybPercentMatch().add(blastResults.getPercentIdentity());
 								summaries.get(summaryindex).getCrossHybLength().add((double) blastResults.getAlignmentLength());
@@ -184,7 +186,7 @@ public class MarkerBlastIterator {
 				BLAST_METRICS metric = BLAST_METRICS.values()[k];
 				switch (metric) {
 				case CROSS_HYBE_EVAL:
-					metric.setMaxVal(minExpect);
+					metric.setMaxVal(maxExpect);
 					break;
 				case CROSS_HYBE_LENGTH:
 					metric.setMaxVal(proj.getArrayType().getProbeLength());
@@ -269,14 +271,37 @@ public class MarkerBlastIterator {
 					ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
 					for (int l = 0; l < QC_GROUPINGS.length; l++) {
-						String groupPlot =  ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l];
-						String[] yColumns = Array.subArray(MarkerMetrics.FULL_QC_HEADER, QC_GROUPINGS[l]);
-						RScatter rScatterGroup = new RScatter(allPlotFiles[j], groupPlot + ".rscript", ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", QC_TITLES[l], yColumns, SCATTER_TYPE.POINT, proj.getLog());
-						rScatterGroup.setxLabel(BLAST_METRICS.values()[j].toString());
-						rScatterGroup.setyLabel(QC_TITLES[l]);
-						rScatterGroup.setOverWriteExisting(false);
-						rScatterGroup.execute();
-						rScatters.add(rScatterGroup);
+						String groupPlot = ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l];
+						String title = "n="+Array.sum(dHistograms[j][0].getCounts());
+						ArrayList<String> ys = new ArrayList<String>();
+						for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
+							ys.add(titles[3 * QC_GROUPINGS[l][k] + 2]);
+						}
+						String[] yColumns = ys.toArray(new String[ys.size()]);
+						RScatter rScatterGroupAvg = new RScatter(allPlotFiles[j], groupPlot + ".rscript", ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0], yColumns, SCATTER_TYPE.POINT, proj.getLog());
+						rScatterGroupAvg.setxLabel(BLAST_METRICS.values()[j].toString());
+						rScatterGroupAvg.setyLabel(QC_TITLES[l]);
+						rScatterGroupAvg.setOverWriteExisting(false);
+						rScatterGroupAvg.setFontsize(plotFontSize);
+						rScatterGroupAvg.setTitle(title);
+						rScatterGroupAvg.execute();
+						rScatters.add(rScatterGroupAvg);
+
+						groupPlot = ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l] + "_counts";
+						ys = new ArrayList<String>();
+						for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
+							ys.add(titles[3 * QC_GROUPINGS[l][k] + 1]);
+						}
+						yColumns = ys.toArray(new String[ys.size()]);
+						RScatter rScatterGroupCounts = new RScatter(allPlotFiles[j], groupPlot + ".rscript", ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0], yColumns, SCATTER_TYPE.POINT, proj.getLog());
+						rScatterGroupCounts.setxLabel(BLAST_METRICS.values()[j].toString());
+						rScatterGroupCounts.setyLabel("COUNTS");
+						rScatterGroupCounts.setOverWriteExisting(false);
+						rScatterGroupCounts.setFontsize(plotFontSize);
+						rScatterGroupCounts.setTitle(title);
+						rScatterGroupCounts.execute();
+						rScatters.add(rScatterGroupCounts);
+
 					}
 					for (int k = 0; k < dHistograms[j].length; k++) {
 						String plotRoot = ext.rootOf(allPlotFiles[j], false) + "_" + parser.getNumericDataTitles()[k];
@@ -550,28 +575,15 @@ public class MarkerBlastIterator {
 			return markerName;
 		}
 
-		public void setMarkerName(String markerName) {
-			this.markerName = markerName;
-		}
 
-		public boolean isHasAppropriateMatch() {
-			return hasAppropriateMatch;
-		}
 
 		public void setHasAppropriateMatch(boolean hasAppropriateMatch) {
 			this.hasAppropriateMatch = hasAppropriateMatch;
 		}
 
-		public double getPercentAppropriateMatch() {
-			return percentAppropriateMatch;
-		}
 
 		public void setPercentAppropriateMatch(double percentAppropriateMatch) {
 			this.percentAppropriateMatch = percentAppropriateMatch;
-		}
-
-		public double getEvalueAppropriateMatch() {
-			return evalueAppropriateMatch;
 		}
 
 		public void setEvalueAppropriateMatch(double evalueAppropriateMatch) {
@@ -588,7 +600,6 @@ public class MarkerBlastIterator {
 		int numThreads = 4;
 		int blastWordSize = 30;
 		int reportWordSize = 40;
-		boolean report = false;
 		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.AFFY_ANNOT;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
 		usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";

@@ -138,6 +138,10 @@ public class Segment implements Serializable {
 		return amountOfOverlapInBasepairs(seg)>0;
 	}
 
+	public Segment getBufferedSegment(int buffer) {
+		return new Segment(chr, start - buffer, stop + buffer);
+	}
+
 	public boolean significantOverlap(Segment seg) {
 		return amountOfOverlapInBasepairs(seg) > Math.min(getSize(), seg.getSize()) / 2;
 	}
