@@ -344,7 +344,7 @@ public class SeqMeta {
 		}
 		
 		if (jobNames.size() > 0) { 
-			Files.qsubTrain(dir, jobNames, jobSizes, "chunks/", "chunkSplit", 24, 62000, 2);
+			Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkSplit", 24, 62000, 2);
 		} else {
 			log.report("\nLooks like everything has been split");
 		}
@@ -636,7 +636,7 @@ public class SeqMeta {
 		} else {
 			log.report("There are "+jobNames.size()+" individual cohort analyses yet to be run using:   qsub chunkRun.pbs");
 		}
-		Files.qsubTrain(dir, jobNames, jobSizes, "chunks/", "chunkRun", 24, 62000, 24);
+		Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkRun", 24, 62000, 24);
 		
 		jobNames = new Vector<String>();
 		jobSizes = new IntVector();
@@ -802,7 +802,7 @@ public class SeqMeta {
 		} else {
 			log.report("There are "+jobNames.size()+" meta-analyses yet to be run using:   qsub chunkMeta.pbs");
 		}
-		Files.qsubTrain(dir, jobNames, jobSizes, "chunks/", "chunkMeta", 24, 62000, 24);
+		Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkMeta", 24, 62000, 24);
 	}
 
 	public static String[] getHeaderForMethod(String[] method) {

@@ -96,23 +96,24 @@ public class AnalysisFormats implements Runnable {
 					float[] lrrs, bafs;
 					byte[] genotypes; 
 					Sample mySample;
+            		int skippedExports = 0;
 
 					while(!sampleIndexQueues[myIndex].isEmpty()) {
 						int sampleIndex = sampleIndexQueues[myIndex].poll();
 						sampleName = samples[sampleIndex];
-						log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + samples.length);
-						if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-							mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
-						} else {
-							log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
-							return;
-						}
-						lrrs = mySample.getLRRs();
-						bafs = mySample.getBAFs();
-						genotypes = mySample.getAB_Genotypes();
-						
 						String exportFileName = dir + sampleName + (gzip ? ".gz" : "");
 						if (!Files.exists(exportFileName)) {
+							log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + samples.length+"\t"+sampleName);
+							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
+							} else {
+								log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+								return;
+							}
+							lrrs = mySample.getLRRs();
+							bafs = mySample.getBAFs();
+							genotypes = mySample.getAB_Genotypes();
+						
     						try {
     							writer = Files.getAppropriateWriter(exportFileName);
     							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
@@ -127,13 +128,13 @@ public class AnalysisFormats implements Runnable {
     							log.reportException(e);
     						}
 						} else {
-                            log.report("PennCNV data file " + exportFileName + " already exists - skipping export...");
+                    		skippedExports++;
                         }
 						
 						mySampleCount++;
 					}
 
-					System.out.println("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime));
+					log.report("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime)+(skippedExports>0?"; skipped "+skippedExports+" samples that had been exported previously":""));
 				}
 			});
 		}
@@ -148,7 +149,7 @@ public class AnalysisFormats implements Runnable {
 
 	}
 	
-	private static Centroids[] computeCentroids(final Project proj, final boolean[] includeList, String[] pfbFiles, String[] centFiles, final boolean shiftPFBForSex) {
+	private static Centroids[] computeCentroids(final Project proj, final boolean[] includeList, String[] pfbFiles, String[] centFiles, final boolean shiftPFBForSex, int threadCount) {
 		PrintWriter writerM, writerF;
 		MarkerSet markerSet;
 		String sampleDataFile;
@@ -212,8 +213,10 @@ public class AnalysisFormats implements Runnable {
 				// Leave these for now, but when computing LRRs and BAFs, will need to be crafty....
 			}
 		}
-		
-		int threadCount = Runtime.getRuntime().availableProcessors();
+
+		if (threadCount == -1) {
+			threadCount = Runtime.getRuntime().availableProcessors();
+		}
 		markerIndexQueues = new ConcurrentLinkedQueue[threadCount];
 		markerLists = new Vector[threadCount];
 		fullToTruncMarkerIndices = new Hashtable[threadCount];
@@ -429,6 +432,7 @@ public class AnalysisFormats implements Runnable {
 		final boolean[] includeMarkersList;
 		boolean[] includeSamplesList;
 		final Hashtable<String, Vector<String>> sexData;
+		Centroids[] centroids;
 		
 		final Logger log = proj.getLog();
 		
@@ -474,8 +478,12 @@ public class AnalysisFormats implements Runnable {
 					break;
 			}
 		}
-		 
-		Centroids[] centroids = computeCentroids(proj, includeMarkersList, new String[]{malePFBFile, femalePFBFile}, new String[]{centFilePathM, centFilePathF}, true);
+		
+		if (Files.exists(centFilePathM) && Files.exists(centFilePathF)) {
+			centroids = new Centroids[] {Centroids.load(centFilePathM, proj.JAR_STATUS.getValue()), Centroids.load(centFilePathM, proj.JAR_STATUS.getValue())};
+		} else {
+			centroids = computeCentroids(proj, includeMarkersList, new String[]{malePFBFile, femalePFBFile}, new String[]{centFilePathM, centFilePathF}, true, threadCount);
+		}
 		final float[][][] rawCentroidsMale;
 		final float[][][] rawCentroidsFemale;
 		rawCentroidsMale = centroids[0].getCentroids();
@@ -538,31 +546,33 @@ public class AnalysisFormats implements Runnable {
 					String sampleName;
 					float[] thetas, rs;
 					byte[] genotypes; 
+					int skippedExports = 0;
+					
 					while(!sampleIndexQueues[myIndex].isEmpty()) {
 						Sample mySample;
 						int sampleIndex = sampleIndexQueues[myIndex].poll();
 						sampleName = allSamples[sampleIndex];
-						log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + allSamples.length);
-						if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-							mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
-						} else {
-							log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
-							// TODO okay to just skip this sample instead of halting entirely?
-							continue;
-						}
-						
 						int sex = sampleData.getSexForIndividual(sampleName);
 						if (sex == -1) {
 							sex = Integer.parseInt(sexData.get(sampleName.toUpperCase()).get(0));
 						}
 						boolean compFemale = SexChecks.KARYOTYPES[sex].contains("XX");
-						
-						thetas = mySample.getThetas();
-						rs = mySample.getRs();
-						genotypes = mySample.getAB_Genotypes();
-						
 						String exportFileName = (compFemale ? femaleDir : maleDir) + sampleName + (gzip ? ".gz" : "");
 						if (!Files.exists(exportFileName)) {
+							log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + allSamples.length);
+							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
+							} else {
+								log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+								// TODO okay to just skip this sample instead of halting entirely?
+								continue;
+							}
+							
+							
+							thetas = mySample.getThetas();
+							rs = mySample.getRs();
+							genotypes = mySample.getAB_Genotypes();
+						
     						try {
     							writer = Files.getAppropriateWriter(exportFileName);
     							writer.println("Name\t" + sampleName + ".GType\t" + sampleName + ".Log R Ratio\t" + sampleName + ".B Allele Freq");
@@ -580,12 +590,12 @@ public class AnalysisFormats implements Runnable {
     							log.reportException(e);
     						}
 						} else {
-						    log.report("Sex-specific file " + exportFileName + " already exists - skipping export...");
+						    skippedExports++;
 						}
 						mySampleCount++;
 					}
 
-					System.out.println("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime));
+					log.report("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime)+(skippedExports>0?"; skipped "+skippedExports+" samples that had been exported previously":""));
 				}
 			});
 		}
@@ -851,28 +861,30 @@ public class AnalysisFormats implements Runnable {
 //		gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
 		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 		
+		int skippedExports = 0;
 		for (int i = 0; i < samples.length; i++) {
-			log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
-			if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-				samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
-			} else {
-				log.reportError("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
-				// TODO okay to just skip this sample instead of halting entirely?
-				continue;
-			}
-			
 			int sex = sampleData.getSexForIndividual(samples[i]);
 			if (sex == -1) {
 				sex = Integer.parseInt(sexData.get(samples[i].toUpperCase()).get(0));
 			}
 			boolean compFemale = SexChecks.KARYOTYPES[sex].contains("XX");
-			
-			thetas = samp.getThetas();
-			rs = samp.getRs();
-			genotypes = samp.getAB_Genotypes();
+
 			String exportFileName = (compFemale ? femaleDir : maleDir) + samples[i] + (gzip ? ".gz" : "");
 			if (!Files.exists(exportFileName)) {
-    			try {
+				log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
+				if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+					samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
+				} else {
+					log.reportError("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+					// TODO okay to just skip this sample instead of halting entirely?
+					continue;
+				}
+				
+				thetas = samp.getThetas();
+				rs = samp.getRs();
+				genotypes = samp.getAB_Genotypes();
+
+				try {
     				writer = Files.getAppropriateWriter(exportFileName);
     				writer.println("Name\t" + samples[i] + ".GType\t" + samples[i] + ".Log R Ratio\t" + samples[i] + ".B Allele Freq");
     				for (int j = 0; j < sexMarkers.length; j++) {
@@ -889,10 +901,11 @@ public class AnalysisFormats implements Runnable {
     				log.reportException(e);
     			}
 			} else {
-                log.report("Sex-specific file " + exportFileName + " already exists - skipping export...");
+				skippedExports++;
             }
-			
 		}
+
+		log.report(skippedExports>0?"Skipped "+skippedExports+" of "+samples.length+" samples that had been exported previously":"");
 		
 		if (writeGCFile) {
 			filterSexSpecificGCModel(proj, gcModelFile, newGCFile, new String[]{"23", "X", "24", "Y", "25", "XY", "26", "M"});
@@ -1057,7 +1070,7 @@ public class AnalysisFormats implements Runnable {
 		Files.batchIt("batch", null, numBatches, commands, Matrix.toStringArrays(v));
 	}	
 
-	// TODO convert this to an Executer
+	// TODO convert this to an Executor
 	public static void launch(Project proj, int program, String markers, int numThreads) {
 		Vector<Vector<String>> sampleLists = new Vector<Vector<String>>();
 		String[] samples = proj.getSamples();

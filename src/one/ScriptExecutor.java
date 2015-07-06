@@ -43,6 +43,8 @@ public class ScriptExecutor {
 		final String[] lines = HashVec.loadFileToStringArray(file, false, null, false);
 		final String fileRoot = ext.rootOf(file, true);
 		final PrintWriter outWriter = new PrintWriter(new FileWriter(dir + fileRoot + ".outlog"));
+		
+		new File(dir+"output/").mkdirs();
 		for (int i = 0; i < lines.length; i++) {
 			final int index = i;
 			final String cmdLine = lines[index];
