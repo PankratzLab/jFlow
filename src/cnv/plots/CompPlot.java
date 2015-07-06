@@ -10,6 +10,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -18,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.gui.ChromosomeViewer;
 import cnv.gui.CompConfig;
@@ -27,10 +29,8 @@ import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
 import cnv.var.CNVariantHash;
 import cnv.var.Region;
-
 import common.Files;
 import common.Positions;
-
 import filesys.GeneSet;
 import filesys.GeneTrack;
 
@@ -75,13 +75,43 @@ public class CompPlot extends JFrame {
 
 	// From RegionNavigator
 	int[] location = new int[3];
+	MarkerSet markerSet;
+	int[] positions;
+	String[] markerNames;
+	boolean[] dropped;
+	int[][] chrBoundaries;
 
 	ArrayList<CNVariantHash> hashes;
 
 	public CompPlot(Project proj) {
 		super("Genvisis - CompPlot - " + proj.getNameOfProject());
 		this.proj = proj;
-
+		this.markerSet = this.proj.getMarkerSet();
+		if (markerSet != null) {
+		    this.positions = this.markerSet.getPositions();
+	        this.markerNames = markerSet.getMarkerNames();
+	        Hashtable<String,String> hash = proj.getFilteredHash();
+	        byte[] chrs = markerSet.getChrs();
+		    dropped = new boolean[markerNames.length];
+            chrBoundaries = new int[27][2];
+            for (int i = 0; i < chrBoundaries.length; i++) {
+                chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
+            }
+            byte chr = 0;
+            for (int i = 0; i < markerNames.length; i++) {
+                dropped[i] = hash.containsKey(markerNames[i]);
+                if (chrs[i] > chr) {
+                    if (chr != 0) {
+                        chrBoundaries[chr][1] = i - 1;
+                    }
+                    chr = chrs[i];
+                    chrBoundaries[chr][0] = i;
+                }
+            }
+            chrBoundaries[chr][1] = markerNames.length - 1;
+            chrBoundaries[0][0] = 0;
+            chrBoundaries[0][1] = markerNames.length-1;
+		}
 		init();
 	}
 
@@ -259,7 +289,23 @@ public class CompPlot extends JFrame {
 	 */
 	public void setRegion(Region region) {
 		location = Positions.parseUCSClocation(region.getRegion());
-		chromosomeViewer.updateView(location[0], location[1], location[2]);
+		byte chr;
+		int start, stop;
+
+        chr = (byte)location[0];
+        if (chr==-1) {
+            return;
+        }
+        start = location[1];
+        stop = location[2];
+        if (start == -1 || start < 0) {
+            start = 1;
+        }
+        if (stop == -1 || stop > positions[chrBoundaries[chr][1]]) {
+            stop = positions[chrBoundaries[chr][1]];
+        }
+        regionNavigator.getTextField().setText(Positions.getUCSCformat(new int[]{chr, start, stop}));
+		chromosomeViewer.updateView(chr, start, stop);
 		loadCNVs(location);
 		chromosomeViewer.repaint();
 	}

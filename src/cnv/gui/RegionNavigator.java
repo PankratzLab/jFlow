@@ -79,11 +79,11 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		leftButton.addActionListener(this);
 		add(leftButton);
 
-		textField = new JTextField();
-		textField.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		textField.addActionListener(this);
-		add(textField);
-		textField.setColumns(20);
+		setTextField(new JTextField());
+		getTextField().setFont(new Font("Tahoma", Font.PLAIN, 14));
+		getTextField().addActionListener(this);
+		add(getTextField());
+		getTextField().setColumns(20);
 
 		rightButton = new JButton(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
 		rightButton.addActionListener(this);
@@ -142,7 +142,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		regionIndex = index;
 
 		// Update the text field
-		textField.setText(regions.get(regionIndex).getRegion());
+		getTextField().setText(regions.get(regionIndex).getRegion());
 
 		// Update the region indicator
 		location.setText("Region " + (regionIndex + 1) + " of " + regions.size());
@@ -166,7 +166,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	}
 
 	public void setLocation(int[] location) {
-		textField.setText(Positions.getUCSCformat(location));
+		getTextField().setText(Positions.getUCSCformat(location));
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 			regionIndex = regions.size() - 1;
 		} else if (source.equals(UCSCButton)) {
 			Desktop desktop = Desktop.getDesktop();
-			String URL = Positions.getUCSClink(Positions.parseUCSClocation(textField.getText()));
+			String URL = Positions.getUCSClink(Positions.parseUCSClocation(getTextField().getText()));
 
 			// UCSC uses chrX and chrY instead of 23 and 24
 			URL = URL.replaceAll("chr23", "chrX");
@@ -227,7 +227,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 
 				// Direct the user to the BED upload page at UCSC Genome Browser
 				Desktop desktop = Desktop.getDesktop();
-				String URL = Positions.getUCSCUploadLink(Positions.parseUCSClocation(textField.getText()), compressedFile);
+				String URL = Positions.getUCSCUploadLink(Positions.parseUCSClocation(getTextField().getText()), compressedFile);
 
 				// UCSC uses chrX and chrY instead of 23 and 24
 				URL = URL.replaceAll("chr23", "chrX");
@@ -245,19 +245,19 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		}
 		if (lastRegionIndex != regionIndex) {
 			setRegion(regionIndex);
-		} else if (source.equals(textField)) {
+		} else if (source.equals(getTextField())) {
 			// TODO: Provide facility to export the list of regions, and expand the list of regions any time someone enters one manually
-			int[] newLocation = Positions.parseUCSClocation(textField.getText());
-			if ((newLocation[0] < 0) || (newLocation[1] < 0) || (newLocation[2] < 0)) {
-				JOptionPane.showMessageDialog(this.getParent(), "Invalid UCSC location - " + textField.getText());
-			} else {
+			int[] newLocation = Positions.parseUCSClocation(getTextField().getText());
+//			if ((newLocation[0] < 0) || (newLocation[1] < 0) || (newLocation[2] < 0)) {
+//				JOptionPane.showMessageDialog(this.getParent(), "Invalid UCSC location - " + textField.getText());
+//			} else {
 				setLocation(newLocation);
 
 				// Pass along the property change
 				firePropertyChange("location", regions.get(lastRegionIndex), new Region(newLocation));
-			}
+//			}
 		} else if (source.equals(LRRButton)) {
-			new Thread(new LRRComp(proj, textField.getText())).start();
+			new Thread(new LRRComp(proj, getTextField().getText())).start();
 		}
 	}
 
@@ -299,4 +299,12 @@ public class RegionNavigator extends JPanel implements ActionListener {
 			regions.add(new Region(DEFAULT_LOCATION));
 		}
 	}
+
+    public JTextField getTextField() {
+        return textField;
+    }
+
+    public void setTextField(JTextField textField) {
+        this.textField = textField;
+    }
 }

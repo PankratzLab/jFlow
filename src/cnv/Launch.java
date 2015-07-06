@@ -342,8 +342,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	private JPanel topIconBar() {
 		JPanel iconBar;
 		JButton button;
-		String[] icons = {"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/gen_pipe_1.png", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg", "images/forestPlot1.png"};
-		String[] commands = {"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD, FOREST_PLOT};
+		String[] icons = null;
+		String[] commands = null;
+		
+	    icons = new String[]{"images/save1.png", "images/edit1.png", "images/refresh.gif", "images/gen_pipe_1.png", "images/scatterPlot2.png", "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg", "images/forestPlot1.png"};
+        commands = new String[]{"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD, FOREST_PLOT};
+		
 		
 		iconBar = new JPanel();
 		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -649,27 +653,27 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		if (command.equals(EXIT)) {
 			System.exit(0);
 		} else if (command.equals(EDIT)) {
-		    boolean promptNodepad = false;
-		    if (System.getProperty("os.name").startsWith("Windows")) {
-		        promptNodepad = Files.programExists("notepad.exe");
-		    }
-		    boolean notepad = false;
-		    if (promptNodepad) {
-		        notepad = JOptionPane.showConfirmDialog(null, "Use Notepad to edit?", "Use Notepad?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-		    }
-			if (notepad) {
-			    log.report("Launching notepad...");
-    			int index = projectsBox.getSelectedIndex();
-    			String dir = launchProperties.getDirectory();
-    			try {
-    			    Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
-    			    if (!new File(dir+projects[index]).exists()) {
-    			        log.report("Tried to open "+projects[index]+" which does not exist");
-    			    }
-    			} catch (IOException ioe) {
-    			    log.reportError("Error - failed to open Notepad");
-    			}
-			} else {
+//		    boolean promptNodepad = false;
+//		    if (System.getProperty("os.name").startsWith("Windows")) {
+//		        promptNodepad = Files.programExists("notepad.exe");
+//		    }
+//		    boolean notepad = false;
+//		    if (promptNodepad) {
+//		        notepad = JOptionPane.showConfirmDialog(null, "Use Notepad to edit?", "Use Notepad?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+//		    }
+//			if (notepad) {
+//			    log.report("Launching notepad...");
+//    			int index = projectsBox.getSelectedIndex();
+//    			String dir = launchProperties.getDirectory();
+//    			try {
+//    			    Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+dir+projects[index]+"\"");
+//    			    if (!new File(dir+projects[index]).exists()) {
+//    			        log.report("Tried to open "+projects[index]+" which does not exist");
+//    			    }
+//    			} catch (IOException ioe) {
+//    			    log.reportError("Error - failed to open Notepad");
+//    			}
+//			} else {
                 log.report("Launching project properties editor...");
     			Configurator configurator = new Configurator(proj);
     			configurator.addWindowListener(new WindowAdapter() {
@@ -678,7 +682,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     				};
     			});
     			configurator.setVisible(true);
-			}
+//			}
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
 			log.report("Refreshed list of projects");

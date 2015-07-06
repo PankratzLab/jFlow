@@ -52,7 +52,7 @@ public class CNVFilter {
 	public static final String COMMAND_CNV_FILE = "cnvFile=";
 	public static final String COMMAND_CNV_FILE_OUT = "out=";
 	public static final String COMMAND_CNV_FILTER = "-filter";
-	public static final String COMMAND_MERGE = "-merge";
+	public static final String COMMAND_MERGE = "merge=";
 
 	public static final String COMMAND_CNV_FILTER_CRF = "cnvFilter";
 	public static final String COMMAND_CNV_FILTER_DESCRIPTION = "filter a file of cnvs";
@@ -796,7 +796,7 @@ public class CNVFilter {
 				filter = true;
 				numArgs--;
 			} else if (args[i].startsWith(COMMAND_MERGE)) {
-			    merge = true;
+			    merge = ext.parseBooleanArg(args[i]);
 			    numArgs--;
 			} else if (cnvFilter.isCommandLineFilterInEffect(args[i])) {
 				numArgs--;

@@ -44,8 +44,16 @@ public class Positions {
 			} else if (str.contains(":")) {
 				chr = Positions.chromosomeNumber(str.substring(3, str.indexOf(":")));
 				if (str.contains("-")) {
-					start = Integer.parseInt(str.substring(str.indexOf(":") + 1, str.indexOf("-")));
-					stop = Integer.parseInt(str.substring(str.indexOf("-") + 1));
+				    try {
+				        start = Integer.parseInt(str.substring(str.indexOf(":") + 1, str.indexOf("-")));
+				    } catch (NumberFormatException e) {
+				        start = -1;
+				    }
+				    try {
+				        stop = Integer.parseInt(str.substring(str.indexOf("-") + 1));
+				    } catch (NumberFormatException e) {
+				        stop = -1;
+				    }
 				} else {
 					start = stop = Integer.parseInt(str.substring(str.indexOf(":") + 1));
 				}
