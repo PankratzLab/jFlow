@@ -275,7 +275,7 @@ public class Files {
 		Files.chmod(ext.parseDirectoryOfFile(batchRoot)+"master."+ext.removeDirectoryInfo(batchRoot));
 	}
 
-	public static void qsubTrain(String dir, Vector<String> commandsWithAbsolutePaths, IntVector jobSizes, String batchDir, String batchRoot, int numProcs, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
+	public static void qsubExecutor(String dirToSwitchToBeforeRunning, Vector<String> commandsWithAbsolutePaths, IntVector jobSizes, String batchRoot, int numProcs, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
 		String[] commands;
 		
 		if (jobSizes == null) {
@@ -285,7 +285,7 @@ public class Files {
 		}
 		
 		Files.writeList(commands, batchRoot+".chain");
-		Files.qsub(batchRoot+".pbs", "cd "+dir+"\njava -cp ~/park.jar one.ScriptExecutor file="+batchRoot+".chain threads="+numProcs, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
+		Files.qsub(batchRoot+".pbs", "cd "+dirToSwitchToBeforeRunning+"\njava -cp ~/park.jar one.ScriptExecutor file="+batchRoot+".chain threads="+numProcs, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
 	}
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[][] iterations) {
@@ -481,6 +481,42 @@ public class Files {
 			chmod(filename, false);
 		} catch (IOException ioe) {
 			throw new RuntimeException("Problem creating "+filename);
+		}
+	}
+	
+	public static void execListAdd(Vector<String> execList, String commands, String[] iterations, Logger log) {
+		execListAdd(execList, commands, Matrix.toMatrix(iterations), log);
+	}
+	
+	public static void execListAdd(Vector<String> execList, String commands, String[][] iterations, Logger log) {
+		String trav;
+
+		if (iterations == null || iterations.length == 0) {
+			log.reportError("No iterations specified to add to the execList");
+			return;			
+		}
+
+		if (execList == null) {
+			log.reportError("execList is null");
+			return;			
+		}
+
+		if (commands == null) {
+			log.reportError("commands is null, cannot be added to the execList");
+			return;			
+		}
+		
+		if (commands.split("\\n").length > 1) {
+			log.reportError("Addition to execList has multiple lines, not appropriate for a serial executor");
+			return;			
+		}
+		
+		for (int i = 0; i<iterations.length; i++) {
+			trav = commands;
+			for (int j = 0; j<iterations[i].length; j++) {
+				trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
+			}
+			execList.addElement(trav);
 		}
 	}
 

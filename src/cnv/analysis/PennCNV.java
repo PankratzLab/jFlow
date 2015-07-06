@@ -17,8 +17,8 @@ public class PennCNV {
 	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values", "waviness factor values", "Small-sized CNV calls", "NoCall rate"};
 	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
 
-	public static void batch(Project proj, int numBatches, boolean qsub, String pfbFile, String gcmodelFile, String scriptSubDir, String dataSubDir, String resultsSubDir) {
-		String init, commands;
+	public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile, String gcmodelFile, String scriptSubDir, String dataSubDir, String resultsSubDir) {
+		String commands;
 		PrintWriter writer;
 		String[] files;
 		int step;
@@ -78,10 +78,10 @@ public class PennCNV {
 		}
 		log.report("Found "+files.length+" files in "+dataDir);
 
-		step = (int)Math.ceil((double)files.length/(double)numBatches);
-		log.report("Which means the step for "+numBatches+" batches would be "+step);
+		step = (int)Math.ceil((double)files.length/(double)numChunks);
+		log.report("Which means the step for "+numChunks+" chunks would be "+step);
 		
-		for (int i = 0; i<numBatches; i++) {
+		for (int i = 0; i<numChunks; i++) {
 			try {
 				writer = new PrintWriter(new FileWriter(resultsDir+"list"+(i+1)+".txt"));
 				for (int j = i*step; j<Math.min(files.length, (i+1)*step); j++) {
@@ -98,16 +98,16 @@ public class PennCNV {
 			}
 		}
 
-		init = "cd "+dataDir;
 		commands = execDir+"detect_cnv.pl -test -conf -hmm "+execDir+"lib/hhall.hmm -pfb "+(pfbFile==null?execDir+"lib/hhall.hg18.pfb":pfbFile)+" -gcmodel "+(gcmodelFile==null?execDir+"lib/hhall.hg18.gcmodel":gcmodelFile)+" -list "+resultsDir+"list[%0].txt -log "+resultsDir+"[%0].log -out "+resultsDir+"[%0].rawcnv > "+resultsDir+"[%0].out";
 
 		new File(pennDir + scriptSubDir).mkdirs();
 		
-		if (qsub) {
-			Files.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numBatches, commands, Matrix.toMatrix(Array.stringArraySequence(numBatches, "")), 2200, 16);
+		if (execList == null) {
+			Files.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numChunks, commands, Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
-			Files.batchIt(pennDir + scriptSubDir + "penn", init, numBatches, commands, Array.stringArraySequence(numBatches, ""));
+			Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
 		}
+		
 		Files.writeList(new String[] {
 				"cd " + projDir,
 				"cat " + resultsDir + "*.log > " + resultsDir + "penncnv.rawlog",
@@ -118,8 +118,8 @@ public class PennCNV {
 		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
 
-	public static void batchX(Project proj, int numBatches, boolean qsub, String pfbFile, String gcmodelFile, String scriptSubDir, String dataSubDir, String resultsSubDir) {
-		String init, commands;
+	public static void batchX(Project proj, int numChunks, Vector<String> execList, String pfbFile, String gcmodelFile, String scriptSubDir, String dataSubDir, String resultsSubDir) {
+		String commands;
 		PrintWriter writer;
 		String[] files;
 		int step;
@@ -196,10 +196,10 @@ public class PennCNV {
             log.reportError("Will not proceed");
             return;
         }
-		step = (int)Math.ceil((double)files.length/(double)numBatches);
-		log.report("Which means the step for "+numBatches+" batches would be "+step);
+		step = (int)Math.ceil((double)files.length/(double)numChunks);
+		log.report("Which means the step for "+numChunks+" chunks would be "+step);
 		
-		for (int i = 0; i<numBatches; i++) {
+		for (int i = 0; i<numChunks; i++) {
 			try {
 				writer = new PrintWriter(new FileWriter(resultsDir+"list"+(i+1)+".txt"));
 				for (int j = i*step; j<Math.min(files.length, (i+1)*step); j++) {
@@ -216,15 +216,14 @@ public class PennCNV {
 			}
 		}
 	
-		init = "cd " + dataDir;
 		commands = execDir + "detect_cnv.pl -test -conf -hmm " + execDir + "lib/hhall.hmm -pfb " + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel " + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile) + " -chrx -sexfile " + dataDir + "sex_file.txt -list " + resultsDir + "list[%0].txt -log " + resultsDir + "[%0].log -out " + resultsDir + "[%0].rawcnv > " + resultsDir + "[%0].out";
 	
 		new File(pennDir + scriptSubDir).mkdirs();
 		
-		if (qsub) {
-			Files.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numBatches, commands, Matrix.toMatrix(Array.stringArraySequence(numBatches, "")), 2200, 16);
+		if (execList == null) {
+			Files.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numChunks, commands, Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
 		} else {
-			Files.batchIt(pennDir + scriptSubDir + "pennX", init, numBatches, commands, Array.stringArraySequence(numBatches, ""));
+			Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
 		}
 		Files.writeList(new String[] {
 				"cd " + projDir,
@@ -953,8 +952,9 @@ public class PennCNV {
 		}
 	}
 
-	public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent, boolean transformData, int batch, boolean qsub, String pfbFile, String gcmodelFile, boolean submitImmed, boolean createCombined, boolean useExcludes, int threadCount) {
+	public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent, boolean transformData, int numChunks, boolean separateQsubFiles, String pfbFile, String gcmodelFile, boolean submitImmed, boolean createCombined, boolean useExcludes, int threadCount) {
 		boolean problem = false;
+		Vector<String> execList;
 		
 		if (pfbFile != null && !Files.exists(pfbFile)) {
 			System.err.println("Error - could not find "+pfbFile);
@@ -966,6 +966,12 @@ public class PennCNV {
 		}
 		if (problem) {
 			return;
+		}
+		
+		if (separateQsubFiles) {
+			execList = null;
+		} else {
+			execList = new Vector<String>();
 		}
 		
 		if (transformData) {
@@ -996,11 +1002,11 @@ public class PennCNV {
 		}
 		if (auto) {
 			proj.getLog().report("Creating batch scripts for autosomal CNV analysis");
-			batch(proj, batch, qsub, pfbFile, gcmodelFile, "penn_scripts/", "", "");
+			batch(proj, numChunks, execList, pfbFile, gcmodelFile, "penn_scripts/", "", "");
 		}
 		if (chrx) {
 			proj.getLog().report("Creating batch scripts for chromosomal CNV analysis");
-			batchX(proj, batch, qsub, pfbFile, gcmodelFile, "penn_scripts/chrX/", "chrX/", "chrX/");
+			batchX(proj, numChunks, execList, pfbFile, gcmodelFile, "penn_scripts/chrX/", "chrX/", "chrX/");
 		}
 		if ((auto && chrx) || (auto && createCombined) || (chrx && createCombined) ) {
 			// write combine script
@@ -1023,8 +1029,8 @@ public class PennCNV {
 
 			proj.getLog().report("Creating batch scripts for 'faked' chromosomal CNV analysis");
 			String scriptDir = "penn_scripts/sexSpecific/";
-			batch(proj, batch, qsub, files[0], files[2], scriptDir + "male/", "sexSpecific/male/", "sexSpecific/male/");
-			batch(proj, batch, qsub, files[1], files[2], scriptDir + "female/", "sexSpecific/female/", "sexSpecific/female/");
+			batch(proj, numChunks, execList, files[0], files[2], scriptDir + "male/", "sexSpecific/male/", "sexSpecific/male/");
+			batch(proj, numChunks, execList, files[1], files[2], scriptDir + "female/", "sexSpecific/female/", "sexSpecific/female/");
 			// write combine script
 			String resultsDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
 			String outdir = resultsDir + "penn_scripts/";
@@ -1050,17 +1056,19 @@ public class PennCNV {
 			
 		}
 		
-		if (qsub && submitImmed) {
-			
-			// run ./master.runPenn scripts:
-			//  - auto
-			//  - chrx
-			//  - sex/fem
-			//  - sex/mal
-			
+		if (execList != null) {
+			Files.qsubExecutor(proj.PROJECT_DIRECTORY.getValue(), execList, null, proj.PENNCNV_RESULTS_DIRECTORY.getValue()+"runAllPenncnv", 24, 5000, 8);
+			proj.getLog().report("All PennCNV files and scripts have been prepped. The next thing would be to qsub "+proj.PENNCNV_RESULTS_DIRECTORY.getValue()+"runAllPenncnv.pbs");
 		}
-		
-		
+		String dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue();
+		Files.writeList(new String[] {
+				dir+"assemblePenncnv",
+				dir+"chrX/assemblePenncnv",
+				dir+"sexSpecific/female/assemblePenncnv",
+				dir+"sexSpecific/male/assemblePenncnv",
+				dir+"penn_scripts/combineAMFCNVs"
+		}, dir+"parseAllPenncnv");
+		Files.chmod(dir+"parseAllPenncnv");
 	}
 	
 	public static void main(String[] args) {
@@ -1068,9 +1076,9 @@ public class PennCNV {
 		String filename = null;
 		String rawlog = null;
 		String rawcnvs = null;
-		int batch = 0;
+		int numChunks = 0;
 		boolean transformData = true;
-		boolean qsub = false;
+		boolean separateQsubs = false;
 		boolean auto = true;
 		boolean chrx = true;
 		boolean sexCent = true;
@@ -1092,9 +1100,8 @@ public class PennCNV {
 		"cnv.park.PennCNV requires 0-1 arguments\n"+
 		"   (0) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		" AND\n" + 
-		"   (1) number of batches to do (i.e. batch=12 (not the default))\n"+
-		"   (2) generate qsub files instead of batch files (i.e. -qsub (not the default))\n"+
-		//"   (3) if -qsub is specified, -submit can be used to automatically start the scripts generated by PennCNV (i.e. -submit (not the default))\n" + 
+		"   (1) number of chunks to split everything in to (i.e. chunks="+numChunks+" (default))\n"+
+		"   (2) generate seperate qsub files instead of a single executor chain (i.e. -sepqsub (not the default))\n"+
 		"   (3) generate PennCNV scripts to analyze autosomes (i.e. auto=TRUE (default))\n" + 
 		"   (4) generate PennCNV scripts to analyze X Chromosome (i.e. chrx=TRUE (default))\n" + 
 		"   (5) recompute centroids of chr23-26 (X, Y, XY, MT) and recode as chr1-4 in subdirectory (i.e. sexSpecificCentroids=TRUE (default))\n" + 
@@ -1123,11 +1130,11 @@ public class PennCNV {
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("batch=")) {
-				batch = ext.parseIntArg(args[i]);
+			} else if (args[i].startsWith("chunks=")) {
+				numChunks = ext.parseIntArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("-qsub")) {
-				qsub = true;
+			} else if (args[i].startsWith("-sepqsub")) {
+				separateQsubs = true;
 				numArgs--;
 			} else if (args[i].startsWith("rawlog=")) {
 				rawlog = args[i].split("=")[1];
@@ -1218,8 +1225,8 @@ public class PennCNV {
 			if (gc5base != null) {
 				gcModel(proj, gc5base, proj.PROJECT_DIRECTORY.getValue()+"custom.gcmodel", 100);
 			}
-			if (batch > 0) {
-				doBatch(proj, auto, chrx, sexCent, transformData, batch, qsub, pfbFile, gcmodelFile, qsub ? submit : false, recode, excludes, numThreads);
+			if (numChunks > 0) {
+				doBatch(proj, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile, gcmodelFile, separateQsubs ? submit : false, recode, excludes, numThreads);
 			}
 			if (rawlog != null) {
 				parseWarnings(proj, rawlog);
