@@ -119,8 +119,35 @@ public class Grafik {
     	    double xD = -(len) * Math.sin(radT45);
     	    double yD = (len) * Math.cos(radT45);
     	    
-//    	    drawThickLine(g, xH, yH, (int)(direction == 1 ? xH + xD : xH - xD), (int)(yH - yD), 2, c, 0, scaleThickness);
     	    drawThickLine(g, xH, yH, (int)(direction == 1 ? xH + xD : xH - xD), (int)(yH + yD), 2, c, 0, scaleThickness);
+    	    
+
+            xH = x1 + (dX / 3);
+            yH = y1 + (dY / 3);
+            len = thickness * 4;
+            
+            radO = Math.atan2(dX, dY);
+            radT = (Math.PI / 2d) - radO;
+            radT45 = radT + (Math.PI / 4d); // add 45deg
+            xD = -(len) * Math.sin(radT45);
+            yD = (len) * Math.cos(radT45);
+            
+            drawThickLine(g, xH, yH, (int)(direction == 1 ? xH + xD : xH - xD), (int)(yH + yD), 2, c, 0, scaleThickness);
+
+            xH = x1 + 2 * (dX / 3);
+            yH = y1 + 2 * (dY / 3);
+            len = thickness * 4;
+            
+            radO = Math.atan2(dX, dY);
+            radT = (Math.PI / 2d) - radO;
+            radT45 = radT + (Math.PI / 4d); // add 45deg
+            xD = -(len) * Math.sin(radT45);
+            yD = (len) * Math.cos(radT45);
+            
+            drawThickLine(g, xH, yH, (int)(direction == 1 ? xH + xD : xH - xD), (int)(yH + yD), 2, c, 0, scaleThickness);
+            
+
+    	    
     	    
 	    }
 	}

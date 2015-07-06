@@ -579,13 +579,30 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-//		System.err.println("("+canvasSectionMinimumX+"-"+canvasSectionMaximumX+","+canvasSectionMinimumY+"-"+canvasSectionMaximumY+")");
-
+        
+        g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX), (int)(getHeight() - axisXHeight - 24));
+        
 		// Draw the lines
-		for (int i = 0; lines!=null && i<lines.length && flow; i++) {
-			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
-				Grafik.drawThickLine(g, getXPixel(lines[i].getStartX()), getYPixel(lines[i].getStartY()), getXPixel(lines[i].getStopX()), getYPixel(lines[i].getStopY()), (int)lines[i].getThickness(), colorScheme[lines[i].getColor()], lines[i].getDirection());
-			}
+        for (int i = 0; lines!=null && i<lines.length && flow; i++) {
+            if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
+                double x1raw = lines[i].getStartX();
+                double y1raw = lines[i].getStartY();
+                double x2raw = lines[i].getStopX();
+                double y2raw = lines[i].getStopY();
+
+                double x1final = x1raw, y1final = y1raw, x2final = x2raw, y2final = y2raw;
+                
+                int x1 = getXPixel(x1final);
+                int y1 = getYPixel(y1final);
+                int x2 = getXPixel(x2final);
+                int y2 = getYPixel(y2final);
+                
+                Grafik.drawThickLine(g, x1, y1, 
+                        x2, y2, 
+                        (int)lines[i].getThickness(), 
+                        colorScheme[lines[i].getColor()], 
+                        lines[i].getDirection());
+            }
         }
 
 		// Draw the rectangles for clusterFilters
@@ -626,7 +643,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
         }
-
+		
+		g.setClip(null);
+		
 		// Draw the rectangle outlined by dragging the mouse
 		if (highlightRectangle != null) {
 			rectangleXPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
@@ -1248,7 +1267,20 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			return plotYmin - ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
 		}
 	}
-	
+	   
+    public double getXIntercept(double x1, double y1, double x2, double y2, double yNew) {
+//        return (x1 * (y1 - 2*y2 + yNew) + x2 * (y2 - yNew)) / (y1 - y2);
+        
+        return ((x2 - x1) * (yNew - y2 + x2 * ((y2 - y1) / (x2 - x1)))) / (y2 - y1);
+        
+    }
+    
+    public double getYIntercept(double x1, double y1, double x2, double y2, double xNew) {
+        double s = ((y2 - y1) / (x2 - x1));
+        double b = y2 - s * x2;
+        return s * xNew + b;
+    }
+    
 //	/**
 //	 * Screens the data points to find out those that fall into the range of (double rawXmin, double rawXmax, double rawYmin, double rawYmax)
 //	 * @param rawXmin

@@ -844,7 +844,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		regionField.addActionListener(new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
 				try {
-					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
+					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().trim().split("[\\s]+")[0]).intValue()-1;
 					if (trav >=0 && trav < regions.length) {
 						regionIndex = trav;
 						showRegion();
@@ -894,7 +894,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		navigationField.addActionListener(new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
 	        	JTextField navField;
-	        	
 	        	navField = (JTextField)e.getSource();
 	        	navField.setText(navField.getText().trim());
 				parseLocation(navField.getText());

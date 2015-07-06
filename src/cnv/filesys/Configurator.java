@@ -14,6 +14,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.miginfocom.swing.MigLayout;
 import cnv.LaunchProperties;
 import cnv.filesys.Project.DoubleProperty;
 import cnv.filesys.Project.FileProperty;
@@ -56,6 +58,7 @@ import cnv.filesys.Project.Property;
 import cnv.filesys.Project.StringListProperty;
 //import cnv.filesys.Project.MultiFileProperty;
 import common.Array;
+import common.Files;
 import common.Grafik;
 import common.ext;
 
@@ -314,6 +317,34 @@ public class Configurator extends JFrame {
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.SOUTH);
 		
+        JButton notepad = new JButton("Edit with Notepad");
+        notepad.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                proj.getLog().report("Launching notepad...");
+                try {
+                    Process p = Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+proj.getPropertyFilename()+"\"");
+                    try {
+                        p.waitFor();
+                    } catch (InterruptedException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                    // TODO update properties in Project and Configurator - they may have changed
+                } catch (IOException ioe) {
+                    proj.getLog().reportError("Error - failed to open Notepad");
+                }
+            }
+        });
+        panel.add(notepad);
+        
+        
+        boolean includeNotepad = false;
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            includeNotepad = Files.programExists("notepad.exe");
+        }
+	    notepad.setVisible(includeNotepad);
+        
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
 			@Override
@@ -362,15 +393,19 @@ public class Configurator extends JFrame {
 		final JSpinner rendererSpinner = new JSpinner();
 		rendererSpinner.setBorder(null);
 		final SpinnerEditor numberEditor = new SpinnerEditor();
-		final JPanel fileRenderer = new JPanel(new BorderLayout());
+		final JPanel fileRenderer = new JPanel(new MigLayout("ins -1 0 0 0, hidemode 3", "[grow][]", ""));//new BorderLayout());
 		final JLabel fileLabel = new JLabel();
-		final JButton fileBtn = new JButton("...");
-		fileBtn.setMargin(new Insets(1, 1, 0, 1));
+		final JButton fileBtn2 = new JButton("...");
+		final JButton fileAddBtn2 = new JButton(" + ");
+		fileAddBtn2.setFont(fileAddBtn2.getFont().deriveFont(Font.BOLD));
+		fileBtn2.setMargin(new Insets(1, 1, 0, 1));
+		fileAddBtn2.setMargin(new Insets(1, 1, 0, 1));
 		fileLabel.setBackground(Color.WHITE);
 		fileRenderer.setBackground(Color.WHITE);
-		fileRenderer.add(fileLabel, BorderLayout.CENTER);
-		fileRenderer.add(fileBtn, BorderLayout.EAST);		
-		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(fileBtn, true, proj.getProperty(proj.PROJECT_DIRECTORY));
+		fileRenderer.add(fileLabel, "cell 0 0");
+		fileRenderer.add(fileAddBtn2, "cell 1 0, width 21px, split 1");
+		fileRenderer.add(fileBtn2, "cell 1 0, width 21px");
+		final FileChooserCellEditor fileEditor = new FileChooserCellEditor(true, proj.getProperty(proj.PROJECT_DIRECTORY));
 		final DefaultCellEditor stringEditor = new DefaultCellEditor(new JTextField()) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -443,6 +478,8 @@ public class Configurator extends JFrame {
 						txt = txt.substring(projDir.length());
 					}
 					fileLabel.setText(txt);
+					fileAddBtn2.setVisible(false);
+                    fileBtn2.setVisible(true);
 					returnComp = fileRenderer;
 				} else if (value instanceof File[]) {
 					StringBuilder sb = new StringBuilder();
@@ -471,6 +508,8 @@ public class Configurator extends JFrame {
 							sb.append(";").append(txt);
 						}
 					}
+                    fileAddBtn2.setVisible(true);
+                    fileBtn2.setVisible(false);
 					fileLabel.setText(sb.toString());
 					returnComp = fileRenderer;
 				} else if (value instanceof String[]) {
@@ -492,6 +531,8 @@ public class Configurator extends JFrame {
                     StringListProperty prop = proj.getProperty((String) table.getValueAt(row, 0));
                     if (prop.isFile || prop.isDir) {
                         fileLabel.setText(sb.toString());
+                        fileAddBtn2.setVisible(true);
+                        fileBtn2.setVisible(false);
                         returnComp = fileRenderer;
                     } else {
                         returnComp = super.getTableCellRendererComponent(table, sb.toString(), isSelected, hasFocus, row, column);
@@ -829,7 +870,9 @@ public class Configurator extends JFrame {
 	    /** static display */
 	    private JTextField label;	
 	    /** Editor component */
-	    private JButton button;
+	    private JButton buttonReplace;
+	    /** Editor component */
+	    private JButton buttonAppend;
 	    /** File chooser */
 	    private JFileChooser fileChooser;
 	    /** Selected file(s) */
@@ -844,7 +887,7 @@ public class Configurator extends JFrame {
 	    /**
 	     * Constructor.
 	     */
-	    public FileChooserCellEditor(final JButton button, boolean editable, String defaultLocation) {
+	    public FileChooserCellEditor(boolean editable, String defaultLocation) {
 	        super(new JTextField());
 	        this.defaultLocation = defaultLocation;
 	        label = (JTextField) this.editorComponent;
@@ -854,7 +897,7 @@ public class Configurator extends JFrame {
 	        setClickCountToStart(CLICK_COUNT_TO_START);
 	        setBackground(Color.WHITE);
 	        
-	        panel = new JPanel(new BorderLayout());
+	        panel = new JPanel(new MigLayout("insets -1 0 0 0, hidemode 3", "[grow][]", ""));//new BorderLayout());
 	        panel.setBackground(Color.WHITE);
 	        
 	        // Using a JButton as the editor component
@@ -906,15 +949,15 @@ public class Configurator extends JFrame {
 	                editing = true;
 	            }
 	        });
+	        this.buttonReplace = new JButton("...");
+	        this.buttonAppend = new JButton(" + ");
+	        this.buttonAppend.setFont(this.buttonAppend.getFont().deriveFont(Font.BOLD));
+	        this.buttonReplace.setMargin(new Insets(1, 1, 0, 1));
+	        this.buttonAppend.setMargin(new Insets(1, 1, 0, 1));
 	        
-	        this.button = button;
-//	        button = new JButton("...");
-//	        button.setFont(button.getFont().deriveFont(Font.PLAIN));
-//	        button.setBorder(null);
-//	        button.setMargin(new Insets(0, 0, 0, 0));
-	        
-	        panel.add(label, BorderLayout.CENTER);
-	        panel.add(button, BorderLayout.EAST);
+	        panel.add(label, "cell 0 0, grow");
+	        panel.add(this.buttonAppend, "cell 1 0, split 1");
+	        panel.add(this.buttonReplace, "cell 1 0");
 
 	        panel.setBackground(Color.WHITE);
 	        // Dialog which will do the actual editing
@@ -1023,7 +1066,7 @@ public class Configurator extends JFrame {
 				            public void run() {
 				            	fileChooser.setMultiSelectionEnabled(false);
 				            	fileChooser.setSelectedFile((File) value);
-				            	if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
+				            	if (fileChooser.showOpenDialog(buttonReplace) == JFileChooser.APPROVE_OPTION) {
 				                    setValue(fileChooser.getSelectedFile());
 				                } else {
 				                	setValue(value);
@@ -1065,12 +1108,13 @@ public class Configurator extends JFrame {
     			listener = new ActionListener() {
     				@Override
     				public void actionPerformed(ActionEvent e) {
+                        final JButton sourceButton = (JButton) e.getSource();
 			    		SwingUtilities.invokeLater(new Runnable() {
 				            public void run() {
 				            	fileChooser.setMultiSelectionEnabled(true);
 				            	fileChooser.setSelectedFiles((File[]) value);
 				            	Object newValue = value;
-				            	if (fileChooser.showOpenDialog(button) == JFileChooser.APPROVE_OPTION) {
+				            	if (fileChooser.showOpenDialog(sourceButton) == JFileChooser.APPROVE_OPTION) {
 //				            	    FileChooserCellEditor.this.setValue(fileChooser.getSelectedFiles());
 //                                    table.setValueAt(fileChooser.getSelectedFiles(), row, column);
 				            	    newValue = fileChooser.getSelectedFiles();
@@ -1079,7 +1123,18 @@ public class Configurator extends JFrame {
 				                    FileChooserCellEditor.this.setValue(value);
 				                }*/
 				            	
-				            	setValue(newValue);
+				            	if (sourceButton == buttonReplace) {
+				            	    setValue(newValue);
+				            	} else {
+				            	    HashSet<File> values = new HashSet<File>();
+				            	    for (File f : (File[]) value) {
+				            	        values.add(f);
+				            	    }
+				            	    for (File f : (File[]) newValue) {
+				            	        values.add(f);
+				            	    }
+				            	    setValue(values.toArray(new File[values.size()]));
+				            	}
 //				            	table.setValueAt(newValue, row, column);
 				            	
 				                fireEditingStopped();
@@ -1096,11 +1151,24 @@ public class Configurator extends JFrame {
     			labelText = new StringBuilder(labelText.substring(defaultLocation.length()));
     		}
 	        label.setText(labelText.toString());
-	        for (int i = button.getActionListeners().length - 1; i >= 0; i--) {
-	        	button.removeActionListener(button.getActionListeners()[i]);
+	        
+	        if (isMulti) {
+	            buttonAppend.setVisible(true);
+	            buttonReplace.setVisible(false);
+	        } else {
+	            buttonAppend.setVisible(false);
+	            buttonReplace.setVisible(true);
+	        }
+	        for (int i = buttonAppend.getActionListeners().length - 1; i >= 0; i--) {
+	            buttonAppend.removeActionListener(buttonAppend.getActionListeners()[i]);
         	}
+	        for (int i = buttonReplace.getActionListeners().length - 1; i >= 0; i--) {
+	            buttonReplace.removeActionListener(buttonReplace.getActionListeners()[i]);
+	        }
         	final ActionListener finalListener = listener;
-	        button.addActionListener(finalListener);
+        	buttonReplace.addActionListener(finalListener);
+        	buttonAppend.addActionListener(finalListener);
+	        
 	        if (keyed) {
 	        	keyedCount++;
 	        	if (keyedCount == CLICK_COUNT_TO_START) {

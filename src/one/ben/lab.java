@@ -762,20 +762,25 @@ public class lab {
 		
 		boolean test = true;
 		if (test) {
+		    String s = "10000000000";
+		    long l = Long.parseLong(s);
+		    System.out.println(l > Integer.MAX_VALUE);
+		    int d = Integer.parseInt(s);
 		    
-		    try {
-                Process p = Runtime.getRuntime().exec("where notepad.exe");
-                int waitCode = p.waitFor();
-                int outCode = p.exitValue();
-                System.out.println("wait: " + waitCode + "| out: " + outCode);
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-		    
+//		    
+//		    try {
+//                Process p = Runtime.getRuntime().exec("where notepad.exe");
+//                int waitCode = p.waitFor();
+//                int outCode = p.exitValue();
+//                System.out.println("wait: " + waitCode + "| out: " + outCode);
+//            } catch (IOException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            } catch (InterruptedException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+//		    
 //            String dir = "F:/CARDIA processing/";
 //
 //            String[] files = (new File(dir)).list(new FilenameFilter() {
