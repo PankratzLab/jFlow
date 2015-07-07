@@ -1,5 +1,7 @@
 package cnv.manage;
 
+import gwas.Qc;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -439,7 +441,7 @@ public class KitAndKaboodle {
         public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
             String dir = ((JTextField)variableFields.get(this).get(0)).getText().trim();
             boolean keepUnrelatedsOnly = ((JCheckBox)variableFields.get(this).get(1)).isSelected();
-            gwas.Qc.fullGamut(dir, keepUnrelatedsOnly, proj.getLog());
+            Qc.fullGamut(dir, keepUnrelatedsOnly, proj.getLog());
         }
         
         @Override

@@ -351,7 +351,6 @@ public class Project {
 	public      FileProperty          GENOTYPE_CENTROIDS_FILENAME = new       FileProperty(this,          "GENOTYPE_CENTROIDS_FILENAME", "", "data/genotype.cent", false);
 	public      FileProperty           CHIMERA_CENTROIDS_FILENAME = new       FileProperty(this,           "CHIMERA_CENTROIDS_FILENAME", "", "data/chimera.cent", false);
 	public      FileProperty            CUSTOM_CENTROIDS_FILENAME = new       FileProperty(this,            "CUSTOM_CENTROIDS_FILENAME", "", "data/custom.cent", false);
-	public      FileProperty             DISPLAY_MARKERS_FILENAME = new       FileProperty(this,             "DISPLAY_MARKERS_FILENAME", "", "data/test.txt", false);
 	public      FileProperty            FILTERED_MARKERS_FILENAME = new       FileProperty(this,            "FILTERED_MARKERS_FILENAME", "", "data/drops.dat", false);
 	public      FileProperty                    PEDIGREE_FILENAME = new       FileProperty(this,                    "PEDIGREE_FILENAME", "", "pedigree.dat", false);
 	public      FileProperty          MOSAIC_COLOR_CODES_FILENAME = new       FileProperty(this,          "MOSAIC_COLOR_CODES_FILENAME", "", "data/mosaic_colors.txt", false);
@@ -378,6 +377,8 @@ public class Project {
 	public      FileProperty        SEX_CENTROIDS_FEMALE_FILENAME = new       FileProperty(this,        "SEX_CENTROIDS_FEMALE_FILENAME", "", "", false);
 	public      FileProperty      REFERENCE_GENOME_FASTA_FILENAME = new       FileProperty(this,        "REFERENCE_GENOME_FASTA_FILENAME", "", "hg19_canonical.fa", false);
 
+//	public      FileProperty             DISPLAY_MARKERS_FILENAME = new       FileProperty(this,             "DISPLAY_MARKERS_FILENAME", "", "data/test.txt", false);
+	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
 	public StringListProperty               FOREST_PLOT_FILENAMES = new StringListProperty(this,                "FOREST_PLOT_FILENAMES", "", "", true, false);
 	public StringListProperty       INDIVIDUAL_CNV_LIST_FILENAMES = new StringListProperty(this,        "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", true, false);

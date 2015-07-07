@@ -385,7 +385,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		byte layer = (byte) 1;
 		boolean swapAxes = false;
 		
-		
 		if (sp.getPedigree() != null) {
 			MendelErrorCheck[] mendelErrorChecks = sp.getPedigree().checkMendelErrors(sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold());
 			for (int i = 0; i < samples.length; i++) {

@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -51,6 +52,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
@@ -95,6 +97,7 @@ import common.Files;
 import common.Grafik;
 import common.Logger;
 import common.Matrix;
+import common.Sort;
 import common.ext;
 
 public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, WindowListener {
@@ -129,6 +132,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public static final String[] GENOTYPE_OPTIONS = new String[] {"-","A/A","A/B","B/B"};
 	public static final int NUM_MARKERS_TO_SAVE_IN_HISTORY = 10;
 	public static final String[][] TYPES = { /*{ "X Raw", "Y Raw" },*/ { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }};
+    private static final String NEW_LIST_COMMAND = "New List";
 
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
@@ -276,22 +280,21 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		masterMarkerList = initMarkerList;
 		masterCommentList = initCommentList;
 		if (masterMarkerList == null) {
-			loadMarkerListFromFile();
+		    String filename = proj.DISPLAY_MARKERS_FILENAMES.getValue()[0];
+			loadMarkerListFromFile(filename);
 			if (masterMarkerList == null) {
 				String[] tmp = Array.subArray(proj.getMarkerNames(), 0, Math.min(10, proj.getMarkerNames().length));
-				Files.writeList(tmp, proj.DISPLAY_MARKERS_FILENAME.getValue());
-				loadMarkerListFromFile();
+				Files.writeList(tmp, proj.DISPLAY_MARKERS_FILENAMES.getValue()[0]);
+				loadMarkerListFromFile(filename);
 				if (masterMarkerList == null) {
 					fail = true;
 					return;
 				} else {
-					JOptionPane.showMessageDialog(null, "Generated a temporary display file at '" + proj.DISPLAY_MARKERS_FILENAME.getValue() + "'", "Created marker list", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(null, "Generated a temporary display file at '" + filename + "'", "Created marker list", JOptionPane.INFORMATION_MESSAGE);
 				}
 			}
 			if (masterMarkerList.length == 0) {
-//				JOptionPane.showMessageDialog(null, "Error - file '"+proj.getFilename(proj.DISPLAY_MARKERS_FILENAME)+"' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
-				JOptionPane.showMessageDialog(null, "Error - file '"+proj.DISPLAY_MARKERS_FILENAME.getValue()+"' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
-				
+				JOptionPane.showMessageDialog(null, "Error - file '" + filename + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
 				fail = true;
 				return;
 			}
@@ -300,30 +303,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			masterCommentList = Array.stringArray(masterMarkerList.length, "");
 		}
 		
-		markerList = masterMarkerList;
-		commentList = masterCommentList;
-		showAllMarkersOrNot = true;
-		showAnnotatedOrUnannotated = true;
-		showAnnotationShortcuts = true;
-		isInitilizing = true;
-		indexOfAnnotationUsedAsMarkerList = -1;
-		
-		loadMarkerDataFromList(0);
-		pcResids = loadPcResids();// returns null if not found, marker data should return original x/y if null
-		numComponents = 0;// initialize to 0 PCs
-		pedigree = proj.loadPedigree();// returns null if not found
-		loadCentroids();
-		sessionID = (new Date().getTime()+"").substring(5);
-		isClusterFilterUpdated = false;
-		isAnnotationUpdated = false;
-		autoSave = null;
-		fail = !loadClusterFilterFiles();
-		if (fail) {
-			proj.getLog().reportError("Chose to ignore prompt for autosaved cluster filters; ScatterPlot will not start");
-			return;
-		}
-		
-		annotationAutoAdv = true;
+		resetAfterLoad();
 		
 		// Java initializes boolean arrays as false
 		maskMissing = new boolean[4];
@@ -421,17 +401,38 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		previous.setActionMap(actionMap);
 		scatterPanels[selectedPanelIndex].grabFocus();
 
-//		((JComponent)getContentPane()).setDoubleBuffered(true);
 		updateGUI();
 
-//		for (int i = 0; i < scatterPanels.length; i++) {
-//			scatterPanels[i].paintAgain();
-//		}
-//		setBounds(20, 20, 1000, 720);
-//		setVisible(true);
 	}
 	
-	private void convertSamples() {
+	private void resetAfterLoad() {
+	    markerList = masterMarkerList;
+        commentList = masterCommentList;
+        showAllMarkersOrNot = true;
+        showAnnotatedOrUnannotated = true;
+        showAnnotationShortcuts = true;
+        isInitilizing = true;
+        indexOfAnnotationUsedAsMarkerList = -1;
+    
+        loadMarkerDataFromList(0);
+        pcResids = loadPcResids();// returns null if not found, marker data should return original x/y if null
+        numComponents = 0;// initialize to 0 PCs
+        pedigree = proj.loadPedigree();// returns null if not found
+        loadCentroids();
+        sessionID = (new Date().getTime()+"").substring(5);
+        isClusterFilterUpdated = false;
+        isAnnotationUpdated = false;
+        autoSave = null;
+        fail = !loadClusterFilterFiles();
+        if (fail) {
+            proj.getLog().reportError("Chose to ignore prompt for autosaved cluster filters; ScatterPlot will not start");
+            return;
+        }
+    
+        annotationAutoAdv = true;
+    }
+
+    private void convertSamples() {
 	    sampleFIDIIDs = new String[samples.length];
         for (int i = 0; i < sampleFIDIIDs.length; i++) {
             sampleFIDIIDs[i] = sampleData.lookup(samples[i])[1];
@@ -496,6 +497,241 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JMenuBar createJMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic(KeyEvent.VK_F);
+		
+		JMenu loadItem = new JMenu();
+		loadItem.setMnemonic(KeyEvent.VK_L);
+		loadItem.setText("Marker List");
+		fileMenu.add(loadItem);
+		
+		JMenuItem newListItem = new JMenuItem();
+		newListItem.setMnemonic(KeyEvent.VK_N);
+		newListItem.setActionCommand(NEW_LIST_COMMAND);
+		newListItem.addActionListener(this);
+		newListItem.setText("New List");
+		loadItem.add(newListItem);
+		
+		final JMenu previousListItem = new JMenu();
+		previousListItem.setMnemonic(KeyEvent.VK_P);
+		previousListItem.setText("Previous List");
+		loadItem.add(previousListItem);
+		
+		final ActionListener loadFileListener = new ActionListener() {
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        String cmd = e.getActionCommand();
+                        if (Files.exists(cmd)) {
+                            proj.getLog().report("Loading marker list file: " + cmd);
+                            loadMarkerListFromFile(cmd);
+                            if (masterMarkerList.length == 0) {
+                                JOptionPane.showMessageDialog(null, "Error - file '" + cmd + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
+                                fail = true;
+                                return;
+                            }
+                            if (masterCommentList == null) {
+                                masterCommentList = Array.stringArray(masterMarkerList.length, "");
+                            }
+                            resetAfterLoad();
+                            finishProcessing();
+                            updateGUI();
+                        } else {
+                            proj.getLog().reportError("Error - file " + cmd + " now found");
+                        }
+                    }
+                });
+            }
+        };
+		
+		String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+        HashSet<String> mnemonics = new HashSet<String>();
+        for (String val : vals) {
+            JMenuItem listEntry = new JMenuItem();
+            String[] tmp = val.split("/");
+            String mnemChar = tmp[tmp.length - 1].charAt(0) + "";
+            int cnt = 1;
+            while (mnemonics.contains(mnemChar) && cnt < tmp[tmp.length - 1].length()) {
+                mnemChar = tmp[tmp.length - 1].charAt(cnt) + "";
+                cnt++;
+            }
+            if (!mnemonics.contains(mnemChar)) {
+                listEntry.setMnemonic(mnemChar.charAt(0));
+            }
+            listEntry.addActionListener(loadFileListener);
+            listEntry.setActionCommand(val);
+            listEntry.setText(val);
+            previousListItem.add(listEntry);
+        }
+		
+		JMenu sortItem = new JMenu();
+		sortItem.setMnemonic(KeyEvent.VK_S);
+		sortItem.setText("Sort Previous Lists");
+		loadItem.add(sortItem);
+		
+		ActionListener sortListener = new ActionListener() {
+		    String prevSort = "list";
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                if (ae.getActionCommand().equals(prevSort)) {
+                    return;
+                }
+                prevSort = ae.getActionCommand();
+                previousListItem.removeAll();
+                String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+                HashSet<String> mnemonics = new HashSet<String>();
+                if ("alpha".equals(ae.getActionCommand())) {
+                    int[] indices = Sort.quicksort(vals);
+                    for (int i = 0; i < indices.length; i++) {
+                        JMenuItem listEntry = new JMenuItem();
+                        String[] tmp = vals[indices[i]].split("/");
+                        String mnemChar = tmp[tmp.length - 1].charAt(0) + "";
+                        int cnt = 1;
+                        while (mnemonics.contains(mnemChar) && cnt < tmp[tmp.length - 1].length()) {
+                            mnemChar = tmp[tmp.length - 1].charAt(cnt) + "";
+                            cnt++;
+                        }
+                        if (!mnemonics.contains(mnemChar)) {
+                            listEntry.setMnemonic(mnemChar.charAt(0));
+                        }
+                        listEntry.addActionListener(loadFileListener);
+                        listEntry.setActionCommand(vals[indices[i]]);
+                        listEntry.setText(vals[indices[i]]);
+                        previousListItem.add(listEntry);
+                    }
+                } else if ("time".equals(ae.getActionCommand())) {
+                    long[] times = new long[vals.length];
+                    for (int i = 0; i < vals.length; i++) {
+                        File f = new File(vals[i]);
+                        times[i] = f.lastModified();
+                    }
+                    int[] indices = Sort.quicksort(times);
+                    for (int i = indices.length - 1; i >= 0; i--) {
+                        JMenuItem listEntry = new JMenuItem();
+                        String[] tmp = vals[indices[i]].split("/");
+                        String mnemChar = tmp[tmp.length - 1].charAt(0) + "";
+                        int cnt = 1;
+                        while (mnemonics.contains(mnemChar) && cnt < tmp[tmp.length - 1].length()) {
+                            mnemChar = tmp[tmp.length - 1].charAt(cnt) + "";
+                            cnt++;
+                        }
+                        if (!mnemonics.contains(mnemChar)) {
+                            listEntry.setMnemonic(mnemChar.charAt(0));
+                        }
+                        listEntry.addActionListener(loadFileListener);
+                        listEntry.setActionCommand(vals[indices[i]]);
+                        listEntry.setText(vals[indices[i]]);
+                        previousListItem.add(listEntry);
+                    }
+                } else /*if ("list".equals(ae.getActionCommand()))*/ {
+                    for (String val : vals) {
+                        JMenuItem listEntry = new JMenuItem();
+                        String[] tmp = val.split("/");
+                        String mnemChar = tmp[tmp.length - 1].charAt(0) + "";
+                        int cnt = 1;
+                        while (mnemonics.contains(mnemChar) && cnt < tmp[tmp.length - 1].length()) {
+                            mnemChar = tmp[tmp.length - 1].charAt(cnt) + "";
+                            cnt++;
+                        }
+                        if (!mnemonics.contains(mnemChar)) {
+                            listEntry.setMnemonic(mnemChar.charAt(0));
+                        }
+                        listEntry.addActionListener(loadFileListener);
+                        listEntry.setActionCommand(val);
+                        listEntry.setText(val);
+                        previousListItem.add(listEntry);
+                    }
+                }
+            }
+        };
+		
+		JRadioButtonMenuItem sortListOrder = new JRadioButtonMenuItem();
+		sortListOrder.setMnemonic(KeyEvent.VK_O);
+		sortListOrder.addActionListener(sortListener);
+		sortListOrder.setActionCommand("list");
+		sortListOrder.setText("Listed Order");
+		sortItem.add(sortListOrder);
+		
+		JRadioButtonMenuItem sortAlphaNum = new JRadioButtonMenuItem();
+		sortAlphaNum.setMnemonic(KeyEvent.VK_A);
+		sortAlphaNum.addActionListener(sortListener);
+		sortAlphaNum.setActionCommand("alpha");
+		sortAlphaNum.setText("Alphanumeric");
+		sortItem.add(sortAlphaNum);
+		
+		JRadioButtonMenuItem sortTimestamp = new JRadioButtonMenuItem();
+		sortTimestamp.setMnemonic(KeyEvent.VK_T);
+		sortTimestamp.addActionListener(sortListener);
+		sortTimestamp.setActionCommand("time");
+		sortTimestamp.setText("Timestamp");
+		sortItem.add(sortTimestamp);
+		
+		ButtonGroup bg = new ButtonGroup();
+		bg.add(sortListOrder);
+		bg.add(sortAlphaNum);
+		bg.add(sortTimestamp);
+		sortListOrder.setSelected(true);
+		// sorting will rearrange items on previousListItem menu; likely have to be either final or field
+		
+		JMenu delFileMenu = new JMenu();
+		delFileMenu.setMnemonic(KeyEvent.VK_D);
+		delFileMenu.setText("Delete Previous List");
+		loadItem.add(delFileMenu);
+		
+		ActionListener deleteFileListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String toDelete = e.getActionCommand();
+                int opt = JOptionPane.showConfirmDialog(ScatterPlot.this, "Delete file on disk?", "Delete Marker List File?", JOptionPane.YES_NO_CANCEL_OPTION);
+                boolean delete = false;
+                if (opt == JOptionPane.YES_OPTION) {
+                    delete = true;
+                } else if (opt == JOptionPane.NO_OPTION) {
+                    delete = false;
+                } else {
+                    return; // cancelled
+                }
+                String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+                String[] newVals = new String[vals.length - 1];
+                int cnt = 0;
+                for (String val : vals) {
+                    if (!toDelete.equals(val)) {
+                        newVals[cnt] = val;
+                        cnt++;
+                    }
+                }
+                if (delete) {
+                    (new File(toDelete)).delete();
+                }
+                proj.DISPLAY_MARKERS_FILENAMES.setValue(newVals);
+                ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
+                ScatterPlot.this.revalidate();
+                ScatterPlot.this.repaint();
+            }
+        };
+		
+        mnemonics = new HashSet<String>();
+        for (String val : vals) {
+            JMenuItem listEntry = new JMenuItem();
+            String[] tmp = val.split("/");
+            String mnemChar = tmp[tmp.length - 1].charAt(0) + "";
+            int cnt = 1;
+            while (mnemonics.contains(mnemChar) && cnt < tmp[tmp.length - 1].length()) {
+                mnemChar = tmp[tmp.length - 1].charAt(cnt) + "";
+                cnt++;
+            }
+            if (!mnemonics.contains(mnemChar)) {
+                listEntry.setMnemonic(mnemChar.charAt(0));
+            }
+            listEntry.addActionListener(deleteFileListener);
+            listEntry.setActionCommand(val);
+            listEntry.setText(val);
+            delFileMenu.add(listEntry);
+        }
+		
+		
 		JMenu actMenu = new JMenu("Actions");
 		actMenu.setMnemonic(KeyEvent.VK_A);
 		
@@ -521,6 +757,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		maskMissingItem.setMnemonic(KeyEvent.VK_M);
 //		actMenu.add(maskMissingItem);
 		
+		menuBar.add(fileMenu);
 		menuBar.add(actMenu);
 		
 		return menuBar;
@@ -2481,16 +2718,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    return displayMendelianErrors[index];
 	}
 	
-	public void loadMarkerListFromFile() {
+	public void loadMarkerListFromFile(String filename) {
 		BufferedReader reader;
 		Vector<String> markerNames = new Vector<String>();
 		Vector<String> markerComments = new Vector<String>();
 		String[] line;
-		String filename;
 		Vector<String> missingMarkers;
 		
 		missingMarkers = new Vector<String>();
-		filename = proj.DISPLAY_MARKERS_FILENAME.getValue();
 		try {
 			try {
 				reader = Files.getReader(filename, jar, true, false);
@@ -2509,7 +2744,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				}
 				reader.close();
 				if (missingMarkers.size() > 0) {
-					JOptionPane.showMessageDialog(null, "Error - the following markers were not found in the MarkerSet:\n"+Array.toStr(Array.toStringArray(missingMarkers), "\n"), "Error", JOptionPane.ERROR_MESSAGE);
+//					JOptionPane.showMessageDialog(null, "Error - the following markers were not found in the MarkerSet:\n"+Array.toStr(Array.toStringArray(missingMarkers), "\n"), "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} catch (FileNotFoundException fnfe) {
 				JOptionPane.showMessageDialog(null, "Error - could not find \""+filename+"\"", "Error", JOptionPane.ERROR_MESSAGE);

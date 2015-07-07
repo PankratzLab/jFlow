@@ -572,6 +572,13 @@ public class FilterCalls {
         return mergedCNVs.toArray(new CNVariant[mergedCNVs.size()]);
 	}
 	
+	/**
+	 * 
+	 * @param proj
+	 * @param in
+	 * @param out
+	 * @param distanceQuotient
+	 */
 	public static void mergeCNVs(Project proj, String in, String out, double distanceQuotient) {
 		Logger log = proj.getLog();
 		log.report(ext.getTime() + "] Loading CNV file...");
