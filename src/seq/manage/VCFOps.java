@@ -602,6 +602,7 @@ public class VCFOps {
 				log.reportFileNotFound(fullPathToPopFile);
 				return null;
 			}
+			log.reportTimeWarning("Variant context ids that are set to \".\" will be updated");
 			VcfPopulation vpop = VcfPopulation.load(fullPathToPopFile, POPULATION_TYPE.ANY, log);
 			vpop.report();
 			VCFFileReader reader = new VCFFileReader(vcf, true);
@@ -616,8 +617,14 @@ public class VCFOps {
 				if (progress % 100000 == 0) {
 					log.reportTimeInfo(progress + " variants read...");
 				}
+				if (vc.getID().equals(".")) {
+					VariantContextBuilder builder = new VariantContextBuilder(vc);
+					builder.id(new VCOps.LocusID(vc).getId());
+					vc = builder.make();
+				}
 				for (int i = 0; i < writers.length; i++) {
 					VariantContext vcSub = VCOps.getSubset(vc, vpop.getSuperPop().get(vpop.getUniqSuperPop().get(i)));
+
 					// if (vcSub.getHomVarCount() > 0 || vcSub.getHetCount() > 0) {
 					writers[i].add(vcSub);
 					// System.out.println(vpop.getFileNamesForPop(dir + root, log)[i]);
@@ -1202,10 +1209,10 @@ public class VCFOps {
 	}
 
 	public static void qcVCF(String vcf, Logger log) {
-		//verifyIndex(vcf, log);
+		// verifyIndex(vcf, log);
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
 		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vcf), null, vcf, null, ext.parseDirectoryOfFile(vcf), true, true, log);
-		//plinkSeq.createNewProject(pseqProject);
+		// plinkSeq.createNewProject(pseqProject);
 		plinkSeq.loadData(pseqProject, LOAD_TYPES.VCF, null);
 		WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(1, 10, log);
 		assocHive.addCallable(PlinkSeq.generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null, null, null, null, -1, "0", pseqProject.getProjectName(), true, log));
@@ -1257,7 +1264,7 @@ public class VCFOps {
 		boolean standardFilters = false;
 		boolean gzip = true;
 		Logger log;
-		
+
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
 		usage += "   (1) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
 		usage += "   (2) utility type (i.e. utility=" + type + " (default))\n" + "";
