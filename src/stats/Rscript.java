@@ -141,8 +141,8 @@ public class Rscript {
 		public boolean validate();
 	}
 
-	public enum SCATTER_TYPE{
-		LINE("geom_line"),POINT("geom_point");
+	public enum SCATTER_TYPE {
+		LINE("geom_line"), POINT("geom_point");
 
 		private String call;
 
@@ -157,11 +157,10 @@ public class Rscript {
 		public void setCall(String call) {
 			this.call = call;
 		}
-		
 
 	}
-	
-	public enum LEGEND_POSITION{
+
+	public enum LEGEND_POSITION {
 		BOTTOM("legend.position=\"bottom\"");
 
 		private String call;
@@ -196,7 +195,7 @@ public class Rscript {
 			this.call = call;
 		}
 	}
-	
+
 	public enum GEOM_POINT_SIZE {
 		GEOM_POINT("size =", 1);
 
@@ -237,27 +236,24 @@ public class Rscript {
 		}
 
 	}
-	
-	
-	
+
 	public static class RScatters implements RCommand {
-		
+
 		private RScatter[] rScatters;
 		private String mergeOutput;
 		private String rScriptFile;
 		private COLUMNS_MULTIPLOT cMultiplot;
 		private PLOT_DEVICE device;
 		private Logger log;
-		
-		
-		public RScatters(RScatter[] rScatter, String rScriptFile,String mergeOutput,COLUMNS_MULTIPLOT cMultiplot,PLOT_DEVICE device,Logger log) {
+
+		public RScatters(RScatter[] rScatter, String rScriptFile, String mergeOutput, COLUMNS_MULTIPLOT cMultiplot, PLOT_DEVICE device, Logger log) {
 			super();
 			this.rScatters = rScatter;
 			this.mergeOutput = mergeOutput;
-			this.cMultiplot =cMultiplot;
-			this.device =device;
-			this.rScriptFile =rScriptFile;
-			this.log=log;
+			this.cMultiplot = cMultiplot;
+			this.device = device;
+			this.rScriptFile = rScriptFile;
+			this.log = log;
 		}
 
 		public COLUMNS_MULTIPLOT getcMultiplot() {
@@ -297,9 +293,9 @@ public class Rscript {
 		public boolean validate() {
 			return false;
 		}
-		
+
 	}
-	
+
 	/**
 	 * @author lane0212 For plotting that mimics Excel's scatter plots using ggplot2
 	 */
@@ -315,6 +311,7 @@ public class Rscript {
 		private String[] dataYvalueColumns, rSafeYColumns;
 		private String dataXvalueColumn, rSafeXColumn;
 		private double[] xRange, yRange;
+		private double yMin;
 		private String xLabel;
 		private String yLabel;
 		private Logger log;
@@ -326,7 +323,8 @@ public class Rscript {
 		private String title;
 		private String plotVar;
 		private boolean overWriteExisting;
-		public RScatter(String dataFile, String rSriptFile,String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
+
+		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
 			super();
 			this.dataFile = dataFile;
 			this.rScriptFile = rSriptFile;
@@ -338,21 +336,19 @@ public class Rscript {
 			this.rSafeXColumn = makeRSafe(dataXvalueColumn);
 			this.rSafeYColumns = makeRSafe(dataYvalueColumns);
 			this.valid = validate();
-			this.fontsize=4;
+			this.fontsize = 4;
 			this.plotVar = (plotVar == null ? PLOT_VAR : makeRSafe(plotVar));
-			this.overWriteExisting =false;
+			this.overWriteExisting = false;
+			this.yMin = Double.NaN;
 		}
-		
-		
+
 		public void setOverWriteExisting(boolean overWriteExisting) {
 			this.overWriteExisting = overWriteExisting;
 		}
 
-
 		public void setFontsize(int fontsize) {
 			this.fontsize = fontsize;
 		}
-
 
 		public String getPlotVar() {
 			return plotVar;
@@ -370,12 +366,9 @@ public class Rscript {
 			this.title = title;
 		}
 
-
 		public void setlPosition(LEGEND_POSITION lPosition) {
 			this.lPosition = lPosition;
 		}
-
-
 
 		public void setxRange(double[] xRange) {
 			this.xRange = xRange;
@@ -415,28 +408,27 @@ public class Rscript {
 				rCmd.add(dataTable + "=read.table(\"" + dataFile + "\", header=T, sep=\"\\t\")");
 
 				String plot = "";
-				//if (dataYvalueColumns.length > 1) {
+				// if (dataYvalueColumns.length > 1) {
 
-					String[] toExtract = Array.concatAll(new String[] { rSafeXColumn }, rSafeYColumns);
-					String extract = dataTableExtract + " <- " + dataTable + "[," + generateRVector(toExtract, true) + "]";
-					rCmd.add(extract);
-					String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
-					rCmd.add(melt);
-					dataTable = dataTableMelt;
-					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=" + rSafeXColumn + ", y=value, group=variable)) ";
-					plot += " + " + sType.getCall() + "(aes(colour =variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
+				String[] toExtract = Array.concatAll(new String[] { rSafeXColumn }, rSafeYColumns);
+				String extract = dataTableExtract + " <- " + dataTable + "[," + generateRVector(toExtract, true) + "]";
+				rCmd.add(extract);
+				String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
+				rCmd.add(melt);
+				dataTable = dataTableMelt;
+				plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=" + rSafeXColumn + ", y=value, group=variable)) ";
+				plot += " + " + sType.getCall() + "(aes(colour =variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
 
-//				} else {
-//					plot += plotVar + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
-//					plot += " + " + sType.getCall() + "(aes(y = " + dataTable + "$" + rSafeYColumns[0] + "))";
-//				}
-			
-				
-//				
-//				plot += PLOT_VAR + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
-//				for (int i = 0; i < rSafeYColumns.length; i++) {
-//					plot += " + " + sType.getCall() + "(aes(y = " + dataTable + "$" + rSafeYColumns[i] + "))";
-//				}
+				// } else {
+				// plot += plotVar + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
+				// plot += " + " + sType.getCall() + "(aes(y = " + dataTable + "$" + rSafeYColumns[0] + "))";
+				// }
+
+				//
+				// plot += PLOT_VAR + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
+				// for (int i = 0; i < rSafeYColumns.length; i++) {
+				// plot += " + " + sType.getCall() + "(aes(y = " + dataTable + "$" + rSafeYColumns[i] + "))";
+				// }
 				if (xLabel != null) {
 					plot += " + xlab(\"" + xLabel + "\")";
 				}
@@ -446,8 +438,12 @@ public class Rscript {
 				if (xRange != null) {
 					plot += " + xlim(" + xRange[0] + "," + xRange[1] + ")";
 				}
-				if (yRange != null) {
-					plot += " + ylim(" + yRange[0] + "," + yRange[1] + ")";
+				if (yRange != null || !Double.isNaN(yMin)) {
+					if (yRange != null) {
+						plot += " + ylim(" + yRange[0] + "," + yRange[1] + ")";
+					} else {
+						plot += " + expand_limits(y=" + yMin + ")";
+					}
 				}
 				plot += " + theme(axis.line = element_line(colour = \"black\"), ";
 				plot += "panel.grid.major = element_blank(), ";
@@ -477,7 +473,7 @@ public class Rscript {
 			} else {
 
 				if (!Files.headerOfFileContainsAll(dataFile, dataYvalueColumns, log)) {
-					
+
 					log.reportTimeError("Could not find all Y value columns in " + dataFile);
 					int[] indices = ext.indexFactors(dataYvalueColumns, Files.getHeaderOfFile(dataFile, log), true, false);
 					boolean[] extract = Array.booleanArray(indices.length, false);
@@ -488,8 +484,8 @@ public class Rscript {
 					}
 					dataYvalueColumns = Array.subArray(dataYvalueColumns, extract);
 					rSafeYColumns = makeRSafe(dataYvalueColumns);
-					log.reportTimeWarning("Using available columns\t\t\n" + Array.toStr(dataYvalueColumns,"\n"));
-					if(dataYvalueColumns.length<1){
+					log.reportTimeWarning("Using available columns\t\t\n" + Array.toStr(dataYvalueColumns, "\n"));
+					if (dataYvalueColumns.length < 1) {
 						log.reportTimeError("Could not find any Y value columns, invalid plotting");
 						valid = false;
 					}
@@ -521,8 +517,13 @@ public class Rscript {
 			this.yLabel = yLabel;
 		}
 
+		public void setyMin(double yMin) {
+			this.yMin = yMin;
+		}
+
 	}
-	private static String getMultiPlotFunc(){
+
+	private static String getMultiPlotFunc() {
 		String multiPlot = "";
 		multiPlot += "multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {\n";
 		multiPlot += "  require(grid)\n";
@@ -559,9 +560,10 @@ public class Rscript {
 		multiPlot += "   }\n";
 		multiPlot += " }\n";
 		multiPlot += "}\n";
-		
+
 		return multiPlot;
 	}
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		boolean batchUp = false;

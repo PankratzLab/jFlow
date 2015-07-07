@@ -278,7 +278,7 @@ public class Blast {
 		}
 
 		public Segment getSegment() {
-			return new Segment(Positions.chromosomeNumber(subjectID), sstart, sstop);
+			return new Segment(Positions.chromosomeNumber(subjectID, false, new Logger()), Math.min(sstart, sstop), Math.max(sstart, sstop));
 
 		}
 
