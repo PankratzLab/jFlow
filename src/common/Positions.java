@@ -182,6 +182,10 @@ public class Positions {
 	}
 
 	public static byte chromosomeNumber(String chromosome, Logger log) {
+		return chromosomeNumber(chromosome, true, log);
+	}
+
+	public static byte chromosomeNumber(String chromosome, boolean verbose, Logger log) {
 		byte chr = -1;
 
 		if (chromosome.startsWith("chr")) {
@@ -208,7 +212,9 @@ public class Positions {
 					log.reportError("Error - chromosome number '" + chromosome + "' out of range for homo sapiens", true, true, 10);
 				}
 			} catch (NumberFormatException nfe) {
-				log.reportError("Error - '" + chromosome + "' is an invalid chromosome", true, true, 10);
+				if (verbose) {
+					log.reportError("Error - '" + chromosome + "' is an invalid chromosome", true, true, 10);
+				}
 			}
 		}
 

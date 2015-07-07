@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 
 
+
 import stats.CrossValidation;
 import stats.LeastSquares;
 import stats.RegressionModel;
@@ -139,7 +140,9 @@ public class PrincipalComponentsResiduals implements Cloneable,Serializable {
 	 */
 	public double computeResiduals() {
 		// TODO, add svdRegression option
-		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
+		//RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
+		
+		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, numComponents > NUM_PC_SVD_OVERIDE);
 		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
 			this.residuals = model.getResiduals();
