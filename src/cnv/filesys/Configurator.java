@@ -150,7 +150,7 @@ public class Configurator extends JFrame {
             },
             {
                 "ScatterPlot",
-                "DISPLAY_MARKERS_FILENAME",
+                "DISPLAY_MARKERS_FILENAMES",
                 "SHIFT_SEX_CHR_COLORS_YESNO"
             },
             {
@@ -469,7 +469,7 @@ public class Configurator extends JFrame {
 					returnComp = rendererChkBx;
 				} else if (value instanceof File) {
 					String txt = ((File) value).getPath();
-					if (((File) value).isDirectory()) {
+					if (((File) value).isDirectory() || ((FileProperty)proj.getProperty(tempKey)).isDir) {
 						txt = ext.verifyDirFormat(txt);
 					} else {
 						txt = ext.replaceAllWith(txt, "\\", "/");
@@ -477,14 +477,23 @@ public class Configurator extends JFrame {
 					if (txt.startsWith(projDir)) {
 						txt = txt.substring(projDir.length());
 					}
-					fileLabel.setText(txt);
+					boolean isDefault = txt.equals(proj.getProperty(tempKey).getDefaultValueString());
+					if (!isDefault && !Files.exists(((File) value).getPath())) {
+					    txt = "<font color='red'>" + txt + "</font>";
+					} else {
+					    txt = "<font>" + txt + "</font>";
+					}
+					fileLabel.setText("<html><nobr>"+txt+"</nobr></html>");
 					fileAddBtn2.setVisible(false);
                     fileBtn2.setVisible(true);
 					returnComp = fileRenderer;
 				} else if (value instanceof File[]) {
-					StringBuilder sb = new StringBuilder();
+					StringBuilder sb = new StringBuilder("<html><nobr>");
+					boolean exists = false;
+					String defVal = proj.getProperty(tempKey).getDefaultValueString();
 					if (((File[])value).length > 0) {
 						String txt = ((File[])value)[0].getPath();
+						exists = Files.exists(txt);
 						if (((File[]) value)[0].isDirectory()) {
 							txt = ext.verifyDirFormat(txt);
 						} else {
@@ -493,10 +502,18 @@ public class Configurator extends JFrame {
 						if (txt.startsWith(projDir)) {
 							txt = txt.substring(projDir.length());
 						}
-						
+                        if (!exists && !defVal.contains(txt)) {
+						    sb.append("<font color='red'>");
+						} else {
+						    exists = true;
+						}
 						sb.append(txt);
+                        if (!exists) {
+                            sb.append("</font>");
+                        }
 						for (int i = 1; i < ((File[])value).length; i++) {
 							txt = ((File[])value)[i].getPath();
+							exists = Files.exists(txt);
 							if (((File[]) value)[i].isDirectory()) {
 								txt = ext.verifyDirFormat(txt);
 							} else {
@@ -505,30 +522,48 @@ public class Configurator extends JFrame {
 							if (txt.startsWith(projDir)) {
 								txt = txt.substring(projDir.length());
 							}
-							sb.append(";").append(txt);
+							sb.append(";");
+                            if (!exists && !defVal.contains(txt)) {
+                                sb.append("<font color='red'>");
+                            } else {
+                                exists = true;
+                            }
+                            sb.append(txt);
+                            if (!exists) {
+                                sb.append("</font>");
+                            }
 						}
+						sb.append("</nobr></html>");
 					}
                     fileAddBtn2.setVisible(true);
                     fileBtn2.setVisible(false);
 					fileLabel.setText(sb.toString());
 					returnComp = fileRenderer;
 				} else if (value instanceof String[]) {
-                    StringBuilder sb = new StringBuilder();
+				    StringListProperty prop = proj.getProperty((String) table.getValueAt(row, 0));
+                    StringBuilder sb = new StringBuilder("<html><nobr>");
                     String[] values = (String[]) value;
                     for (int i = 0; i < values.length; i++) {
                         if (values[i].equals("")) {
                             continue;
+                        }
+                        boolean exists = (!prop.isFile && !prop.isDir) || Files.exists(values[i]);
+                        if (!exists) {
+                            sb.append("<font color='red'>");
                         }
                         if (values[i].startsWith(projDir)) {
                             sb.append(values[i].substring(projDir.length()));
                         } else {
                             sb.append(values[i]);
                         }
+                        if (!exists) {
+                            sb.append("</font>");
+                        }
                         if (i < values.length - 1) {
                             sb.append(";");
                         }
                     }
-                    StringListProperty prop = proj.getProperty((String) table.getValueAt(row, 0));
+                    sb.append("</nobr></html>");
                     if (prop.isFile || prop.isDir) {
                         fileLabel.setText(sb.toString());
                         fileAddBtn2.setVisible(true);
@@ -1065,7 +1100,9 @@ public class Configurator extends JFrame {
     					SwingUtilities.invokeLater(new Runnable() {
 				            public void run() {
 				            	fileChooser.setMultiSelectionEnabled(false);
-				            	fileChooser.setSelectedFile((File) value);
+				            	if (Files.exists(value.toString())) {
+				            	    fileChooser.setSelectedFile((File) value);
+				            	}
 				            	if (fileChooser.showOpenDialog(buttonReplace) == JFileChooser.APPROVE_OPTION) {
 				                    setValue(fileChooser.getSelectedFile());
 				                } else {
@@ -1112,7 +1149,6 @@ public class Configurator extends JFrame {
 			    		SwingUtilities.invokeLater(new Runnable() {
 				            public void run() {
 				            	fileChooser.setMultiSelectionEnabled(true);
-				            	fileChooser.setSelectedFiles((File[]) value);
 				            	Object newValue = value;
 				            	if (fileChooser.showOpenDialog(sourceButton) == JFileChooser.APPROVE_OPTION) {
 //				            	    FileChooserCellEditor.this.setValue(fileChooser.getSelectedFiles());
