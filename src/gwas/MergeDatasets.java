@@ -17,21 +17,34 @@ public class MergeDatasets {
 	public static final double LOOSE_HOMOGENEITY_THRESHOLD = 0.05;
 	
 	public static void checkForHomogeneity(String dir) {
+		checkForHomogeneity(dir, null, null, "UNAFF", new Logger());
+	}
+
+	public static void checkForHomogeneity(String dir, String[] dirs, String outputDir,String hweCountFlag, Logger log) {
         Hashtable<String,Hashtable<String,String>> hashes;
         Vector<String> v = new Vector<String>();
         Hashtable<String,String> hash;
         BufferedReader reader;
-        PrintWriter writer, writer2, writer3;
-        String[] line, dirs, markerNames, keys, refAlleles, gCounts;
+		PrintWriter writer, writer2, writer3, writerProblematic;
+        String[] line, markerNames, keys, refAlleles, gCounts;
         int[][] alleleCounts, genotypeCounts;
         double[] freqs;
         int index, temp;
         double p;
-        String filename;
-        
-        dirs = Files.listDirectories(dir, false);
+		String filename;
+		System.out.println(Array.toStr(dirs));
+		if (dirs == null) {
+			dirs = Files.listDirectories(dir, false);
+		} else if (dir == null) {
+			dir = "";
+		} else {
+			log.reportTimeError("Can only provide a single top directory, or multiple data dirs");
+			return;
+		}
+		outputDir = outputDir == null ? dir : outputDir;
         for (int i = 0; i<dirs.length; i++) {
         	dirs[i] = ext.verifyDirFormat(dirs[i]);
+        	System.out.println(dir+dirs[i]+"hardy.hwe");
         	if (new File(dir+dirs[i]+"hardy.hwe").exists() || new File(dir+dirs[i]+"plink.hwe").exists()) {
         		v.add(dirs[i]);
         	}
@@ -47,7 +60,7 @@ public class MergeDatasets {
     			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MarkerQC.HWE_HEADER, true);
     			while (reader.ready()) {
     				line = reader.readLine().trim().split("[\\s]+");
-    				if (line[2].equals("UNAFF")) {
+    				if (line[2].equals(hweCountFlag)) {
     					HashVec.addToHashHash(hashes, line[1].toLowerCase(), i+"", line[3]+" "+line[4]+" "+line[5]);
     				}
     			}
@@ -63,11 +76,15 @@ public class MergeDatasets {
         
         markerNames = HashVec.getKeys(hashes, false, false);
         try {
-	        writer = new PrintWriter(new FileWriter(dir+"lackOfHomogeneity.dat"));
-	        writer2 = new PrintWriter(new FileWriter(dir+"homogeneityTests.xln"));
+	        writer = new PrintWriter(new FileWriter(outputDir+"lackOfHomogeneity.dat"));
+	        writer2 = new PrintWriter(new FileWriter(outputDir+"homogeneityTests.xln"));
+	        
 	        writer2.println("SNP\t"+Array.toStr(dirs)+"\t"+Array.toStr(dirs)+"\t2allele_p-value\t3genotype_p-value");
-	        writer3 = new PrintWriter(new FileWriter(dir+"homo.R"));
+	        writer3 = new PrintWriter(new FileWriter(outputDir+"homo.R"));
+	        
+			writerProblematic = new PrintWriter(new FileWriter(outputDir + "problematic.dat"));
 	        System.out.println(ext.getTime()+"\tComputing tests of homogeneity...");
+	        Hashtable<String, String> problematicTrack = new Hashtable<String, String>();
 	        for (int i = 0; i<markerNames.length; i++) {
 	        	hash = hashes.get(markerNames[i]);
 	        	keys = HashVec.getKeys(hash, false, false);
@@ -96,10 +113,18 @@ public class MergeDatasets {
 	        		case Metal.STRAND_CONFIG_BOTH_NULL:
 	        			break;
 	        		case Metal.STRAND_CONFIG_DIFFERENT_ALLELES:
-	        			System.err.println("Error - for marker "+markerNames[i]+" "+dirs[index]+" has different alleles ("+line[0]+"/"+line[1]+") than the rest ("+refAlleles[0]+"/"+refAlleles[1]+")");
-	        			break;
-	        		case Metal.STRAND_CONFIG_SPECIAL_CASE:
-	        			System.err.println("Warning - marker "+markerNames[i]+" has a special case starting with "+dirs[index]+": alleles ("+line[0]+"/"+line[1]+") where previous had only ("+refAlleles[0]+"/"+refAlleles[1]+")");
+						if (!problematicTrack.containsKey(markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES)) {
+							writerProblematic.println(markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES + "\t" + dirs[index]);
+							problematicTrack.put(markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES, markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES);
+						}
+						System.err.println("Error - for marker " + markerNames[i] + " " + dirs[index] + " has different alleles (" + line[0] + "/" + line[1] + ") than the rest (" + refAlleles[0] + "/" + refAlleles[1] + ")");
+						break;
+					case Metal.STRAND_CONFIG_SPECIAL_CASE:
+						if (!problematicTrack.containsKey(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE)) {
+							writerProblematic.println(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE + "\t" + dirs[index]);
+							problematicTrack.put(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE, markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE);
+						}
+	        			//System.err.println("Warning - marker "+markerNames[i]+" has a special case starting with "+dirs[index]+": alleles ("+line[0]+"/"+line[1]+") where previous had only ("+refAlleles[0]+"/"+refAlleles[1]+")");
 	                    break;
                     default:
                     	System.err.println("Error - unknown determineStrandConfig return code");
@@ -154,7 +179,7 @@ public class MergeDatasets {
 	        writer.close();
 	        writer2.close();
 	        writer3.close();
-	        writer3 = new PrintWriter(new FileWriter(dir+"split.crf"));
+	        writer3 = new PrintWriter(new FileWriter(outputDir+"split.crf"));
 	        writer3.println("split\nhomo.R numFiles=12 sizeOfHeader=0 blockSize=4 root=homo ext=.R");
             writer3.close();
 //	        writer3 = new PrintWriter(new FileWriter(dir+"master"));
@@ -163,12 +188,12 @@ public class MergeDatasets {
 //            }
 //            writer3.close();
         } catch (Exception e) {
-	        System.err.println("Error writing to "+dir+"lackOfHomogeneity.dat");
+	        System.err.println("Error writing to "+outputDir+"lackOfHomogeneity.dat");
 	        e.printStackTrace();
         }
         System.out.println("Splitting up file");
-    	Files.splitFile(dir+"homo.R", 12, 0, 4, dir+"homo", ".R", false);
-    	Files.qsub(dir+"runHomo", null, -1, Rscript.getRExecutable(new Logger())+" CMD BATCH homo[%0].R", Matrix.toMatrix(Array.stringArraySequence(12, "")), 1000, 12);
+    	Files.splitFile(outputDir+"homo.R", 12, 0, 4, outputDir+"homo", ".R", false);
+		Files.qsub(outputDir + "runHomo", null, -1, Rscript.getRExecutable(new Logger()) + " CMD BATCH " + outputDir + "homo[%0].R " + outputDir + "homo[%0].Rout", Matrix.toMatrix(Array.stringArraySequence(12, "")), 1000, 12);
         System.out.println("Now run Fisher's exact with permutations in R using either ./master or ./master.runHomo");
         System.out.println(ext.getTime()+"\tDone!");
 	}
