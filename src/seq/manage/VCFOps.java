@@ -264,12 +264,22 @@ public class VCFOps {
 				}
 				double g1000 = -1;
 				try {
-					g1000 =Double.parseDouble(VCOps.getAnnotationsFor(new String[] { "g10002014oct_all" }, vc, ".")[0]);
+					if (vc.getCommonInfo().hasAttribute("g10002014oct_all")) {
+
+						String g = VCOps.getAnnotationsFor(new String[] { "g10002014oct_all" }, vc, ".")[0];
+						if (g.equals(".")) {
+							g1000 = 0;
+						} else {
+							g1000 = Double.parseDouble(g);
+						}
+
+					} else {
+						// notAnnotated.addDataPair(VCOps.getCallRate(vc, null), Double.parseDouble(vc.getCommonInfo().getAttributeAsDouble("AF", "0")));
+					}
 				} catch (NumberFormatException nfe) {
 
 				}
-
-				dynamicAveragingHistogram.addDataPair(VCOps.getCallRate(vc, null), g1000);
+				dynamicAveragingHistogram.addDataPair(g1000, VCOps.getCallRate(vc, null));
 			}
 			reader.close();
 			writer.close();
