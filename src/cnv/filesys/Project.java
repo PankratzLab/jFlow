@@ -95,6 +95,7 @@ public class Project {
 			return Array.toStr(getValue(), delim);
 		}
 		public String getDefaultValueString() { return Array.toStr(getDefaultValue(), delim); }
+		public String getDelimiter() { return delim; }
 		@Override
 		public String[] getValue() {
 		    String[] values = super.getValue();
@@ -377,7 +378,6 @@ public class Project {
 	public      FileProperty        SEX_CENTROIDS_FEMALE_FILENAME = new       FileProperty(this,        "SEX_CENTROIDS_FEMALE_FILENAME", "", "", false);
 	public      FileProperty      REFERENCE_GENOME_FASTA_FILENAME = new       FileProperty(this,        "REFERENCE_GENOME_FASTA_FILENAME", "", "hg19_canonical.fa", false);
 
-//	public      FileProperty             DISPLAY_MARKERS_FILENAME = new       FileProperty(this,             "DISPLAY_MARKERS_FILENAME", "", "data/test.txt", false);
 	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
 	public StringListProperty               FOREST_PLOT_FILENAMES = new StringListProperty(this,                "FOREST_PLOT_FILENAMES", "", "", true, false);
