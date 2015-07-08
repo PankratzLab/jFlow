@@ -178,7 +178,8 @@ public class PennCNVPrep {
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 		int[] subSampleIndicesInProject = ext.indexLargeFactors(Array.subArray(proj.getSamples(), samplesToExport), proj.getSamples(), true, proj.getLog(), true, true);
 		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
-		String dir = proj.PROJECT_DIRECTORY.getValue() + "shadow" + proj.getProperty(proj.SAMPLE_DIRECTORY);
+		String dir = proj.PROJECT_DIRECTORY.getValue() + "shadowSamples3/";
+		new File(dir).mkdirs();
 		proj.getLog().report("Info - checking for existing files in " + dir + "...");
 		boolean allExist = true;
 		for (int i = 0; i < subSamples.length; i++) {
@@ -192,21 +193,48 @@ public class PennCNVPrep {
 
 			ShadowSample[] shadowSamples = new ShadowSample[Array.booleanArraySum(samplesToExport)];
 			for (int i = 0; i < shadowSamples.length; i++) {
-				shadowSamples[i] = new ShadowSample(subSamples[i], proj.getMarkerNames());
+				shadowSamples[i] = new ShadowSample(subSamples[i],
+						proj.getMarkerNames());
+				if (i % 200 == 0) {
+					float usedMemory = Runtime.getRuntime().totalMemory()
+							- Runtime.getRuntime().freeMemory();
+					float freeMemory = Runtime.getRuntime().maxMemory()
+							- usedMemory;
+					float maxMemory = Runtime.getRuntime().maxMemory();
+					proj.getLog()
+							.report(ext.getTime()
+									+ "\tData loaded = "
+									+ Math.round(((double) i
+											/ (double) shadowSamples.length * 100.0))
+									+ "%\tFree memory: "
+									+ Math.round(((double) freeMemory
+											/ (double) maxMemory * 100.0))
+									+ "%");
+
+				}
 			}
 			int currentIndex = 0;
 			for (int i = 0; i < fileNamesOfMarkerDataInOrder.length; i++) {
-				MarkerDataStorage markerDataStorage = MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i], false);
+				proj.getLog().reportTimeInfo("Loading "+fileNamesOfMarkerDataInOrder[i]);
+
+				MarkerDataStorage markerDataStorage = MarkerDataStorage.load(
+						fileNamesOfMarkerDataInOrder[i], false);
+				proj.getLog().reportTimeInfo(
+						"Finished loading " + fileNamesOfMarkerDataInOrder[i]);
+
 				MarkerData[] markerDatas = markerDataStorage.getMarkerDatas();
 				for (int j = 0; j < markerDatas.length; j++) {
 					if ((j + 1) % 100 == 0) {
 						proj.getLog().report("Info - exporting marker " + (j + 1) + " of " + markerDatas.length + " from file " + fileNamesOfMarkerDataInOrder[i]);
+						float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+						float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
+						float maxMemory = Runtime.getRuntime().maxMemory();
+						proj.getLog().report(ext.getTime() + "\tData loaded = " + Math.round(((double) i / (double) proj.getMarkerNames().length * 100.0)) + "%\tFree memory: " + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
 					}
+					MarkerData markerData = markerDatas[j];
 					for (int j2 = 0; j2 < subSampleIndicesInProject.length; j2++) {
 						int sampIndex = subSampleIndicesInProject[j2];
-						float[] fakeGcs = new float[markerDatas[j].getXs().length];
-						Arrays.fill(fakeGcs, 0.1f);
-						shadowSamples[j2].addData(proj.getSamples()[sampIndex], currentIndex, markerDatas[j].getMarkerName(), markerDatas[j].getXs()[sampIndex], markerDatas[j].getYs()[sampIndex], markerDatas[j].getGCs()[sampIndex], markerDatas[j].getBAFs()[sampIndex], markerDatas[j].getLRRs()[sampIndex], markerDatas[j].getAbGenotypes()[sampIndex], proj.getLog());
+						shadowSamples[j2].addData(proj.getSamples()[sampIndex], currentIndex, markerData.getMarkerName(), markerData.getXs()[sampIndex], markerData.getYs()[sampIndex],markerData.getGCs()[sampIndex], markerData.getBAFs()[sampIndex], markerData.getLRRs()[sampIndex], markerData.getAbGenotypes()[sampIndex], proj.getLog());
 					}
 					currentIndex++;
 				}
@@ -494,11 +522,12 @@ public class PennCNVPrep {
 
 			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 			Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<String, Future<Boolean>>();
+			String[] sortedFileNames = getSortedFileNames(proj, dir,tmpDir);
+
 			for (int i = 0; i < batches.length; i++) {
 
 				PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, null, null, null, null, numComponents, dir, svdRegression, numThreads, numMarkerThreads);
 
-				String[] sortedFileNames = getSortedFileNames(proj, dir,tmpDir);
 				proj.getLog().reportTimeInfo("Found "+sortedFileNames.length+" special files");
 
 				if (sortedFileNames == null || sortedFileNames.length == 0) {
@@ -508,7 +537,6 @@ public class PennCNVPrep {
 				}
 			}
 			for (int i = 0; i < batches.length; i++) {
-				String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
 				proj.getLog().reportTimeInfo("Found "+sortedFileNames.length+" special files");
 				try {
 					if (sortedFileNames == null || sortedFileNames.length == 0) {
