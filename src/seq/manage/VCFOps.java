@@ -805,7 +805,7 @@ public class VCFOps {
 					}
 					String[] callRateRemove = HashVec.loadFileToStringArray(callRateFiltered, false, new int[] { 0 }, true);
 					log.reportTimeInfo(callRateRemove.length + " variants removed from " + splits[j] + " at callrate " + callRateFiltered);
-					// toRemove = Array.unique(Array.concatAll(toRemove, callRateRemove));
+					toRemove = Array.unique(Array.concatAll(toRemove, callRateRemove));
 				}
 			}
 			String lackOfHomoGeneity = dir + "lackOfHomogeneity.dat";
@@ -901,8 +901,10 @@ public class VCFOps {
 				copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
 				int progress = 0;
 				int found = 0;
+				
 				if (hasInfoLine(reader, "snp138") || locusID) {
 					log.reportTimeWarning("If a variant has an ID of \".\", the" + (locusID ? " locusID" : " snp138 ") + "annotation will be added");
+					
 					for (VariantContext vc : reader) {
 						progress++;
 						if (progress % 100000 == 0) {
@@ -911,6 +913,7 @@ public class VCFOps {
 
 						}
 						String anno = locusID ? new VCOps.LocusID(vc).getId() : VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".")[0];
+						
 						if ((!skipFiltered || !vc.isFiltered()) && (keepIDs && tmp.contains(anno)) || (!keepIDs && !tmp.contains(anno))) {
 							VariantContextBuilder builder = new VariantContextBuilder(vc);
 							if (vc.getID().equals(".")) {
@@ -918,7 +921,8 @@ public class VCFOps {
 							} else {
 								builder.id(new VCOps.LocusID(vc).getId());
 							}
-							writer.add(samples == null ? builder.make() : VCOps.getSubset(builder.make(), samples, VC_SUBSET_TYPE.SUBSET_STRICT, false));
+							VariantContext vcAdd = samples == null ? builder.make() : VCOps.getSubset(builder.make(), samples, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+							writer.add(vcAdd);
 							found++;
 						}
 					}
