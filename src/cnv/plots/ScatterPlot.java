@@ -67,7 +67,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import park.showMe;
 import net.miginfocom.swing.MigLayout;
 import stats.CTable;
 import stats.ContingencyTable;
@@ -88,6 +87,7 @@ import cnv.gui.AnnotationAction;
 import cnv.gui.AutoSaveForScatterPlot;
 import cnv.gui.ColorKeyPanel;
 import cnv.gui.CycleRadio;
+import cnv.gui.NewMarkerListDialog;
 import cnv.manage.MarkerDataLoader;
 import cnv.manage.PlinkMarkerLoader;
 import cnv.var.SampleData;
@@ -500,22 +500,22 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic(KeyEvent.VK_F);
 		
-		JMenu loadItem = new JMenu();
-		loadItem.setMnemonic(KeyEvent.VK_L);
-		loadItem.setText("Marker List");
-		fileMenu.add(loadItem);
+//		JMenu loadItem = new JMenu();
+//		loadItem.setMnemonic(KeyEvent.VK_L);
+//		loadItem.setText("Marker List");
+//		fileMenu.add(loadItem);
 		
 		JMenuItem newListItem = new JMenuItem();
 		newListItem.setMnemonic(KeyEvent.VK_N);
 		newListItem.setActionCommand(NEW_LIST_COMMAND);
 		newListItem.addActionListener(this);
-		newListItem.setText("New List");
-		loadItem.add(newListItem);
+		newListItem.setText("New Marker List");
+		fileMenu.add(newListItem);
 		
 		final JMenu previousListItem = new JMenu();
 		previousListItem.setMnemonic(KeyEvent.VK_P);
-		previousListItem.setText("Previous List");
-		loadItem.add(previousListItem);
+		previousListItem.setText("Marker Lists");
+		fileMenu.add(previousListItem);
 		
 		final ActionListener loadFileListener = new ActionListener() {
             @Override
@@ -526,6 +526,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
                         String cmd = e.getActionCommand();
                         if (Files.exists(cmd)) {
                             proj.getLog().report("Loading marker list file: " + cmd);
+
                             loadMarkerListFromFile(cmd);
                             if (masterMarkerList.length == 0) {
                                 JOptionPane.showMessageDialog(null, "Error - file '" + cmd + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
@@ -536,10 +537,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
                                 masterCommentList = Array.stringArray(masterMarkerList.length, "");
                             }
                             resetAfterLoad();
+                            ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
+                            ScatterPlot.this.revalidate();
                             finishProcessing();
-                            updateGUI();
                         } else {
-                            proj.getLog().reportError("Error - file " + cmd + " now found");
+                            proj.getLog().reportError("Error - file " + cmd + " not found");
                         }
                     }
                 });
@@ -569,7 +571,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		JMenu sortItem = new JMenu();
 		sortItem.setMnemonic(KeyEvent.VK_S);
 		sortItem.setText("Sort Previous Lists");
-		loadItem.add(sortItem);
+		fileMenu.add(sortItem);
 		
 		ActionListener sortListener = new ActionListener() {
 		    String prevSort = "list";
@@ -678,7 +680,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		JMenu delFileMenu = new JMenu();
 		delFileMenu.setMnemonic(KeyEvent.VK_D);
 		delFileMenu.setText("Delete Previous List");
-		loadItem.add(delFileMenu);
+		fileMenu.add(delFileMenu);
 		
 		ActionListener deleteFileListener = new ActionListener() {
             @Override
@@ -2235,6 +2237,29 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		} else if (command.equals(MENDELIAN_ERROR)) {
 		    displayMendelianErrors[selectedPanelIndex] = mendelianErrorBox.isSelected();
 		    updateGUI();
+		} else if (command.equals(NEW_LIST_COMMAND)) {
+		    NewMarkerListDialog newMkrList = new NewMarkerListDialog(proj.getMarkerNames());
+		    newMkrList.setModal(true);
+		    if (newMkrList.getReturnCode() == JOptionPane.YES_OPTION) {
+		        String mkrFile = newMkrList.getFileName();
+		        String[] mkrFiles = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+		        mkrFiles = Array.addStrToArray(mkrFile, mkrFiles, 0);
+		        proj.DISPLAY_MARKERS_FILENAMES.setValue(mkrFiles);
+		        
+		        loadMarkerListFromFile(mkrFile);
+                if (masterMarkerList.length == 0) {
+                    JOptionPane.showMessageDialog(null, "Error - file '" + mkrFile + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
+                    fail = true;
+                    return;
+                }
+                if (masterCommentList == null) {
+                    masterCommentList = Array.stringArray(masterMarkerList.length, "");
+                }
+                resetAfterLoad();
+                finishProcessing();
+                updateGUI();
+		    }
+		    
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}

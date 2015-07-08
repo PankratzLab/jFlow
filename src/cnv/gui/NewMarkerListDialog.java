@@ -1,14 +1,18 @@
 package cnv.gui;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JLabel;
@@ -19,14 +23,21 @@ import javax.swing.JTextField;
 import javax.swing.JSeparator;
 import javax.swing.JButton;
 
-public class NewMarkerListDialog extends JFrame implements ActionListener {
+import common.Files;
+import cnv.filesys.Project;
 
-    private JPanel contentPane;
+public class NewMarkerListDialog extends JDialog implements ActionListener {
+
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
     private JTextField textField;
     private JTextArea textArea;
     private HashSet<String> markerSet;
     private JButton btnCreate;
     private JButton btnCancel;
+    private Project proj;
+    private int returnCode = JOptionPane.DEFAULT_OPTION;
+    
 
     /**
      * Launch the application.
@@ -36,6 +47,7 @@ public class NewMarkerListDialog extends JFrame implements ActionListener {
             public void run() {
                 try {
                     NewMarkerListDialog frame = new NewMarkerListDialog(new String[0]);
+//                    NewMarkerListDialog frame = new NewMarkerListDialog(new Project());
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -47,7 +59,8 @@ public class NewMarkerListDialog extends JFrame implements ActionListener {
     /**
      * Create the frame.
      */
-    public NewMarkerListDialog(String[] markers) {
+    public NewMarkerListDialog(String[] markers) {//Project proj) {
+//        this.proj = proj;
         setTitle("Create New Marker List");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 450, 300);
@@ -68,7 +81,8 @@ public class NewMarkerListDialog extends JFrame implements ActionListener {
         JLabel lblFileName = new JLabel("File name:");
         contentPane.add(lblFileName, "cell 0 2");
         
-        textField = new JTextField();
+//        String file = proj.DISPLAY_MARKERS_FILENAMES.getDefaultValue()[0];
+        textField = new JTextField();//file);
         contentPane.add(textField, "cell 0 3,growx");
         textField.setColumns(10);
         
@@ -77,7 +91,7 @@ public class NewMarkerListDialog extends JFrame implements ActionListener {
         
         JPanel panel = new JPanel();
         contentPane.add(panel, "south,alignx right,growy");
-        panel.setLayout(new MigLayout("alignx right, ins 5 0 3  0", "[65px][65px]", "[23px]"));
+        panel.setLayout(new MigLayout("alignx right, ins 5 0 3 0", "[65px][65px]", "[23px]"));
         
         btnCreate = new JButton();
         btnCreate.addActionListener(this);
@@ -90,6 +104,7 @@ public class NewMarkerListDialog extends JFrame implements ActionListener {
         panel.add(btnCancel, "cell 1 0,alignx left,aligny top");
         
         markerSet = new HashSet<String>();
+//        String[] markers = proj.getMarkerNames();
         for (String marker : markers) {
             markerSet.add(marker);
         }
@@ -97,6 +112,10 @@ public class NewMarkerListDialog extends JFrame implements ActionListener {
     
     public String getFileName() {
         return textField.getText();
+    }
+
+    public int getReturnCode() {
+        return returnCode;
     }
     
     public String[] getMarkers() {
@@ -106,15 +125,58 @@ public class NewMarkerListDialog extends JFrame implements ActionListener {
         }
         return mkrs;
     }
-
+    
+    private boolean doCreate() {
+        String[] mkrs = getMarkers();
+        ArrayList<String> invalid = new ArrayList<String>();
+        for (String mkr : mkrs) {
+        	if (!markerSet.contains(mkr)) {
+        		invalid.add(mkr);
+        	}
+        }
+        if (invalid.size() > 0) {
+            String[] options = {"Ignore and Continue", "Return"};
+            int opt = JOptionPane.showOptionDialog(this, "", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+            if (opt != 0) {
+                return false;
+            }
+        }
+        
+        String filepath = textField.getText();
+        String dir = "";//proj.DATA_DIRECTORY.getValue();
+        File newFile = new File(dir + filepath);
+        boolean reachable = false;
+        try {
+            filepath = newFile.getCanonicalPath();
+            reachable = true;
+        } catch (IOException e) {
+            reachable = false;
+        }
+        if (!reachable) {
+            proj.message("Error - file name [" + filepath + "] is invalid.");
+            return false;
+        } else if (Files.exists(dir + filepath)) {
+            proj.message("Error - file [" + filepath + "] already exists.");
+            return false;
+        }
+        
+        Files.writeList(mkrs, filepath);
+        textField.setText(filepath);
+        return true;
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnCreate) {
-            // TODO doCreate
-            String[] mkrs = getMarkers();
-//            ArrayList<String> 
+            boolean success = doCreate();
+            if (!success) return;
+            else {
+                returnCode = JOptionPane.YES_OPTION;
+                setVisible(false);
+            }
         } else {
-            // TODO doCancel
+            returnCode = JOptionPane.NO_OPTION;
+            setVisible(false);
         }
     }
     
