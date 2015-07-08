@@ -24,7 +24,6 @@ import javax.swing.JSeparator;
 import javax.swing.JButton;
 
 import common.Files;
-import cnv.filesys.Project;
 
 public class NewMarkerListDialog extends JDialog implements ActionListener {
 
@@ -35,7 +34,6 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     private HashSet<String> markerSet;
     private JButton btnCreate;
     private JButton btnCancel;
-    private Project proj;
     private int returnCode = JOptionPane.DEFAULT_OPTION;
     
 
@@ -62,7 +60,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     public NewMarkerListDialog(String[] markers) {//Project proj) {
 //        this.proj = proj;
         setTitle("Create New Marker List");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 450, 300);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -78,7 +76,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
         JLabel lblMarkerNamesone = new JLabel("Marker names (one per line): ");
         contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
         
-        JLabel lblFileName = new JLabel("File name:");
+        JLabel lblFileName = new JLabel("File name (full path):");
         contentPane.add(lblFileName, "cell 0 2");
         
 //        String file = proj.DISPLAY_MARKERS_FILENAMES.getDefaultValue()[0];
@@ -136,7 +134,11 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
         }
         if (invalid.size() > 0) {
             String[] options = {"Ignore and Continue", "Return"};
-            int opt = JOptionPane.showOptionDialog(this, "", "", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+            StringBuilder msg = new StringBuilder("Warning - ").append(invalid.size()).append(" markers are not present in the current marker set:");
+            for (String inv : invalid) {
+                msg.append("\n").append(inv);
+            }
+            int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid markers!", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
             if (opt != 0) {
                 return false;
             }
@@ -153,10 +155,10 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
             reachable = false;
         }
         if (!reachable) {
-            proj.message("Error - file name [" + filepath + "] is invalid.");
+            JOptionPane.showMessageDialog(null, "Error - file name [" + filepath + "] is invalid.", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         } else if (Files.exists(dir + filepath)) {
-            proj.message("Error - file [" + filepath + "] already exists.");
+            JOptionPane.showMessageDialog(null, "Error - file [" + filepath + "] already exists.", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
         

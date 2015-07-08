@@ -25,6 +25,7 @@ import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -133,6 +134,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public static final int NUM_MARKERS_TO_SAVE_IN_HISTORY = 10;
 	public static final String[][] TYPES = { /*{ "X Raw", "Y Raw" },*/ { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }};
     private static final String NEW_LIST_COMMAND = "New List";
+    private static final String LOAD_LIST_COMMAND = "Load List";
 
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
@@ -494,16 +496,34 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		showingAll = false;
 	}
 	
+	private void loadMarkerFile(String file) {
+	    if (Files.exists(file)) {
+            proj.getLog().report("Loading marker list file: " + file);
+
+            loadMarkerListFromFile(file);
+            if (masterMarkerList.length == 0) {
+                JOptionPane.showMessageDialog(null, "Error - file '" + file + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
+                fail = true;
+                return;
+            }
+            if (masterCommentList == null) {
+                masterCommentList = Array.stringArray(masterMarkerList.length, "");
+            }
+            resetAfterLoad();
+            ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
+            ScatterPlot.this.revalidate();
+            finishProcessing();
+        } else {
+            proj.getLog().reportError("Error - file " + file + " not found");
+        }
+	}
+	
 	private JMenuBar createJMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 		
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic(KeyEvent.VK_F);
 		
-//		JMenu loadItem = new JMenu();
-//		loadItem.setMnemonic(KeyEvent.VK_L);
-//		loadItem.setText("Marker List");
-//		fileMenu.add(loadItem);
 		
 		JMenuItem newListItem = new JMenuItem();
 		newListItem.setMnemonic(KeyEvent.VK_N);
@@ -511,6 +531,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		newListItem.addActionListener(this);
 		newListItem.setText("New Marker List");
 		fileMenu.add(newListItem);
+		
+		JMenuItem loadItem = new JMenuItem();
+		loadItem.setMnemonic(KeyEvent.VK_L);
+		loadItem.setActionCommand(LOAD_LIST_COMMAND);
+		loadItem.addActionListener(this);
+		loadItem.setText("Load Marker List");
+		fileMenu.add(loadItem);
 		
 		final JMenu previousListItem = new JMenu();
 		previousListItem.setMnemonic(KeyEvent.VK_P);
@@ -524,25 +551,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
                     @Override
                     public void run() {
                         String cmd = e.getActionCommand();
-                        if (Files.exists(cmd)) {
-                            proj.getLog().report("Loading marker list file: " + cmd);
-
-                            loadMarkerListFromFile(cmd);
-                            if (masterMarkerList.length == 0) {
-                                JOptionPane.showMessageDialog(null, "Error - file '" + cmd + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
-                                fail = true;
-                                return;
-                            }
-                            if (masterCommentList == null) {
-                                masterCommentList = Array.stringArray(masterMarkerList.length, "");
-                            }
-                            resetAfterLoad();
-                            ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
-                            ScatterPlot.this.revalidate();
-                            finishProcessing();
-                        } else {
-                            proj.getLog().reportError("Error - file " + cmd + " not found");
-                        }
+                        loadMarkerFile(cmd);
                     }
                 });
             }
@@ -2240,26 +2249,32 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		} else if (command.equals(NEW_LIST_COMMAND)) {
 		    NewMarkerListDialog newMkrList = new NewMarkerListDialog(proj.getMarkerNames());
 		    newMkrList.setModal(true);
+		    newMkrList.setVisible(true);
 		    if (newMkrList.getReturnCode() == JOptionPane.YES_OPTION) {
 		        String mkrFile = newMkrList.getFileName();
 		        String[] mkrFiles = proj.DISPLAY_MARKERS_FILENAMES.getValue();
 		        mkrFiles = Array.addStrToArray(mkrFile, mkrFiles, 0);
 		        proj.DISPLAY_MARKERS_FILENAMES.setValue(mkrFiles);
-		        
-		        loadMarkerListFromFile(mkrFile);
-                if (masterMarkerList.length == 0) {
-                    JOptionPane.showMessageDialog(null, "Error - file '" + mkrFile + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
-                    fail = true;
-                    return;
-                }
-                if (masterCommentList == null) {
-                    masterCommentList = Array.stringArray(masterMarkerList.length, "");
-                }
-                resetAfterLoad();
-                finishProcessing();
-                updateGUI();
+		        loadMarkerFile(mkrFile);
 		    }
-		    
+		} else if (command.equals(LOAD_LIST_COMMAND)) {
+		    JFileChooser jfc = new JFileChooser();
+		    jfc.setMultiSelectionEnabled(false);
+		    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		    jfc.setDialogTitle("Load marker list file");
+		    int code = jfc.showDialog(this, "Load File");
+		    if (code == JFileChooser.APPROVE_OPTION) {
+		        try {
+                    String file = jfc.getSelectedFile().getCanonicalPath();
+                    file = ext.replaceAllWith(file, "\\", "/");
+                    String[] mkrFiles = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+                    mkrFiles = Array.addStrToArray(file, mkrFiles, 0);
+                    proj.DISPLAY_MARKERS_FILENAMES.setValue(mkrFiles);
+                    loadMarkerFile(file);
+                } catch (IOException e) {
+                    proj.message("Error - invalid file selected");
+                }
+		    }
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}
