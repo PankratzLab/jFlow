@@ -2,12 +2,15 @@ package link;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
+import filesys.LDdatabase;
 import bioinformatics.HapMapParser;
+import bioinformatics.ParseSNPlocations;
 import link.LinkageToPlink;
 
 public class CheckForLD {
-	public static final String DBSNP_SOURCE = "/home/npankrat/NCBI/b129_SNPChrPosOnRef_36_3.bcp";
+	public static final String DBSNP_SOURCE = ParseSNPlocations.DEFAULT_B36_SOURCE_FILENAME;
 	public static final String DBSNP_LOCAL = "6K_b129.bcp";
 	public static final String[] LD_HEADER = {"L1", "L2", "D'", "LOD", "r^2", "CIlow", "CIhi", "Dist", "T-int"};
 	public static final String[] CHECK_HEADER = {"#", "Name", "Position", "ObsHET", "PredHET", "HWpval", "%Geno", "FamTrio", "MendErr", "MAF", "Alleles", "Rating"};
@@ -172,7 +175,8 @@ public class CheckForLD {
 				e.printStackTrace();
 			}
 
-			CmdLine.run("plink --bfile /home/npankrat/NCBI/HapMap/hapmap-ceu-chr"+i+" --extract hapmap"+chrome+".info --missing-phenotype 0 --recode --out hapmap"+chrome, root+checkDir);
+			// LDdatabase.MASTER_HAPMAP_ROOT used to be hard coded as /home/npankrat/NCBI/HapMap/hapmap-ceu-chr"+i
+			CmdLine.run("plink --bfile "+LDdatabase.MASTER_HAPMAP_ROOT+" --extract hapmap"+chrome+".info --missing-phenotype 0 --recode --out hapmap"+chrome, root+checkDir);
 			HapMapParser.plinkMapToHaploviewInfo(root+checkDir+"hapmap"+chrome+".map", root+checkDir+"hapmap"+chrome+".info");
 			new File(root+checkDir+"hapmap"+chrome+".pre").delete();
 			new File(root+checkDir+"hapmap"+chrome+".ped").renameTo(new File(root+checkDir+"hapmap"+chrome+".pre"));
@@ -192,7 +196,7 @@ public class CheckForLD {
 		try {
 			System.out.println("Creating a faster local copy of the SNP positions found in "+DBSNP_SOURCE);
 			time = new Date().getTime();
-			reader = new BufferedReader(new FileReader(DBSNP_SOURCE));
+			reader = Files.getAppropriateReader(DBSNP_SOURCE);
 			writer = new PrintWriter(new FileWriter(fileout));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");

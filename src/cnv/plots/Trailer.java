@@ -265,24 +265,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //		regionIndex = -1;
 
         time = new Date().getTime();
-//		track = GeneTrack.load(proj.getDir(Project.DATA_DIRECTORY)+GeneSet.REFSEQ_TRACK, jar);
-        if (new File(proj.GENETRACK_FILENAME.getValue(false, false)).isFile()) {
-//        	trackFilename = proj.getFilename(proj.GENETRACK_FILENAME);
-        	trackFilename = proj.GENETRACK_FILENAME.getValue();
-        } else if (new File(GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK).exists()) {
-        	trackFilename = GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK;
-        } else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
-        	trackFilename = GeneSet.REFSEQ_TRACK;
-        } else {
-//			JOptionPane.showMessageDialog(this, "Gene track is not installed. Gene boundaries will not be displayed.", "FYI", JOptionPane.INFORMATION_MESSAGE);
-        	trackFilename = null;
-        }
+        
+        trackFilename = proj.getGeneTrackFilename(false);
         if (trackFilename != null) {
         	log.report("Loading track from "+trackFilename);	
         	track = GeneTrack.load(trackFilename, jar);
+            log.report("Loaded track in "+ext.getTimeElapsed(time));
         }
-        log.report("Loaded track in "+ext.getTimeElapsed(time));
-		
 		
 		updateSample(sample);
 		

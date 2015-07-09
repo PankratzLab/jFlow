@@ -35,7 +35,7 @@ public class Algorithm {
 	// public static final String DEFAULT_LD_LOC = "C:\\Documents and
 	// Settings\\npankrat\\My Documents\\gwas\\udall\\LD\\";
 
-	public static void procFile(String dir, String filename, int p_column, int variate_column, String ldRoot, int window, String outfile) {
+	public static void procFile(String dir, String filename, int p_column, int variate_column, String ldRoot, int window, String outfile, int genomeBuild) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -225,7 +225,8 @@ public class Algorithm {
 				markerPositions[i][0] = Integer.parseInt(line[1]);
 				markerPositions[i][1] = Integer.parseInt(line[2]);
 			}
-			genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, window, new Logger());
+			genes = MapSNPsAndGenes.mapSNPsToGenesLoosely(markerPositions, 0, genomeBuild, new Logger());
+			
 			writer = new PrintWriter(new FileWriter(dir+outfile));
 			writer.println("Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"+(variate_column==-1?"":"\tvars"));
 			for (int i = 0; i<v.size(); i++) {
@@ -832,6 +833,7 @@ public class Algorithm {
 		boolean formDist = false;
 		boolean prep = false;
 		String ldRoot = LDdatabase.MASTER_HAPMAP_ROOT;
+		int genomeBuild = 37;
 
 		// String filename = "plink.assoc.logistic.flipped";
 		// String dir = "C:\\Documents and Settings\\npankrat\\My
@@ -875,6 +877,7 @@ public class Algorithm {
 		"   (2) proc map for Haploview (i.e. procMap=4 for chromosome 4 (not the default))\n"+
 		"   (3) batch haploview LD computation, using N files (i.e. batch=N (not the default))\n"+
 		"   (4) simulate null distribution (i.e. sim=100 to do 100 replicates (not the default))\n"+
+		"   (5) the genome build to determine genes (i.e. build="+genomeBuild+" (default))\n"+
 		"   (3) parse simulations (i.e. -parseSims (not the default))\n"+
 		"   (3) process simulation results (i.e. -procSims (not the default))\n"+
 		"   (3) form distributions (i.e. -formDist (not the default))\n"+
@@ -967,7 +970,7 @@ public class Algorithm {
 				// procFile(dir, filename, 15, var, DEFAULT_WINDOW,
 				// "Meta_Rec_Nrss.xln");
 
-				procFile(dir, filename, col, var, ldRoot, DEFAULT_WINDOW, "2q_Add.xln");
+				procFile(dir, filename, col, var, ldRoot, DEFAULT_WINDOW, "2q_Add.xln", genomeBuild);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

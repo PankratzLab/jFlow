@@ -572,8 +572,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 				
 			} else if (command.equals(GCMODEL)) {
-				// TODO This file location should probably be autodetected, or at least search several different locations, such as C:/bin/ncbi/gc5Base.txt and ./gc5Base.txt
-				cnv.analysis.PennCNV.gcModel(proj, "N:/statgen/NCBI/gc5Base.txt", proj.PROJECT_DIRECTORY.getValue()+"data/custom.gcModel", 100);
+				cnv.analysis.PennCNV.gcModel(proj, Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt", true, false, log), proj.PROJECT_DIRECTORY.getValue()+"data/custom.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
 				cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, 1);
 			} else if (command.equals(FILTER_MARKER_METRICS)) {

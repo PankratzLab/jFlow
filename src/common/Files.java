@@ -745,16 +745,32 @@ public class Files {
 		}
 	}
 
-	public static BufferedReader getReader(String filename, String alt_loc) throws FileNotFoundException {
-		return getReader(filename, new String[] {alt_loc});
+	/**
+	 * Searches the current directory and then the alternate location for a file and then opens it with the appropriate reader
+	 * 
+	 * @param filename					the name of the filename to search for
+	 * @param alt_locations				the alternate directories in which to search for the file
+	 * @return							a BufferedReader for this file
+	 * @throws FileNotFoundException	if the file does not exist in any of the locations
+	 */
+	public static BufferedReader getReader(String filename, String alt_location) throws FileNotFoundException {
+		return getReader(filename, new String[] {alt_location});
 	}
 
-	public static BufferedReader getReader(String filename, String[] alt_locs) throws FileNotFoundException {
+	/**
+	 * Searches the current directory and then all of the alternate locations until it finds the file and then opens it with the appropriate reader
+	 * 
+	 * @param filename					the name of the filename to search for
+	 * @param alt_locations				the alternate directories in which to search for the file
+	 * @return							a BufferedReader for this file
+	 * @throws FileNotFoundException	if the file does not exist in any of the locations
+	 */
+	public static BufferedReader getReader(String filename, String[] alt_locations) throws FileNotFoundException {
 		BufferedReader reader;
 
 		reader = null;
-		for (int i = -1; reader==null&&i<alt_locs.length; i++) {
-			reader = getAppropriateReader(i==-1?filename:alt_locs[i]+"/"+filename);
+		for (int i = -1; reader==null&&i<alt_locations.length; i++) {
+			reader = getAppropriateReader(i==-1?filename:alt_locations[i]+"/"+filename);
 		}
 
 		if (reader==null) {
@@ -1754,17 +1770,56 @@ public class Files {
 		}
 	}
 
-	public static String firstDirectoryThatExists(String[] dirs, boolean verbose, boolean kill) {
+	/**
+	 * Searches all of the directories in the array to see if any of them exist
+	 * 
+	 * @param dirs		the array of directories to search
+	 * @param verbose	whether to report an error if none of the locations exists
+	 * @param kill		whether to System.exit() if no valid directory is found
+	 * @return String	first directory that exists, otherwise null
+	 */
+	public static String firstDirectoryThatExists(String[] dirs, boolean verbose, boolean kill, Logger log) {
 		for (int i = 0; i<dirs.length; i++) {
+			dirs[i] = ext.verifyDirFormat(dirs[i]);
 			if (new File(dirs[i]).exists()) {
 				return dirs[i];
 			}
 		}
 
 		if (verbose) {
-			System.err.println("Error - none of the following directories exists... terminating");
+			log.reportError("Error - none of the following directories exists..."+(kill?" terminating":""));
 			for (int i = 0; i<dirs.length; i++) {
-				System.err.println("   "+dirs[i]);
+				log.reportError("   "+dirs[i]);
+			}
+		}
+		if (kill) {
+			System.exit(1);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Searches all of the directories in the array to see if it contains the specified file
+	 * 
+	 * @param dirs		the array of directories to search
+	 * @param filename	the filename to search for
+	 * @param verbose	whether to report an error if none of the locations exists or if none of the locations contains the specified file
+	 * @param kill		whether to System.exit() if no valid directory is found
+	 * @return String	the full path to the file of interest if it exists in one of the directories, otherwise null
+	 */
+	public static String firstPathToFileThatExists(String[] dirs, String filename, boolean verbose, boolean kill, Logger log) {
+		for (int i = 0; i<dirs.length; i++) {
+			dirs[i] = ext.verifyDirFormat(dirs[i]);
+			if (new File(dirs[i]+filename).exists()) {
+				return dirs[i]+filename;
+			}
+		}
+
+		if (verbose) {
+			log.reportError("Error - none of the following directories contains the file '"+filename+"' "+(kill?"... terminating":""));
+			for (int i = 0; i<dirs.length; i++) {
+				log.reportError("   "+dirs[i]);
 			}
 		}
 		if (kill) {

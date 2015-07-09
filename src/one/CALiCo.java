@@ -242,7 +242,7 @@ public class CALiCo {
 		for (int i=0; i<markerPositions.length; i++) {
 			markerPositions[i] = markerPositionHash.get(uniqueMarkers[i]);
 		}
-		genes = MapSNPsAndGenes.mapSNPsToGenes(markerPositions, 0, log);
+		genes = MapSNPsAndGenes.mapSNPsToGenesLoosely(markerPositions, 0, 36, log);
 		
 		double[] minPvalues = new double[uniqueMarkers.length];
         try {

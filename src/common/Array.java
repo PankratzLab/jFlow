@@ -1931,7 +1931,7 @@ public class Array {
 	 * @param v
 	 *            vector of Strings
 	 * @param order
-	 *            order of elementes
+	 *            order of elements
 	 * @return an array of ordered Strings from the Vector
 	 */
 	public static String[] toStringArray(Vector<String> v, int[] order) {

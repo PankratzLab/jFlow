@@ -890,7 +890,7 @@ public class Polymutt {
 		boolean batchPolymutt = false;
 		boolean filterDenovo = false;
 		String bamDir = "./";
-		String vcfDir = Files.firstDirectoryThatExists(COMMON_VCF_LOCATIONS, true, false);
+		String vcfDir = Files.firstDirectoryThatExists(COMMON_VCF_LOCATIONS, true, false, new Logger());
 		String annotationDir = null;
 		String findDenovo = null;
 		boolean findAll = false;

@@ -92,7 +92,7 @@ public class DemoProject extends Project {
 	}
 
 	private static void copyGeneTrack(Project original, Project demo) {
-		String geneTrack = original.getGeneTrackFileName(true);
+		String geneTrack = original.getGeneTrackFilename(true);
 		if (geneTrack != null && Files.exists(geneTrack)) {
 			demo.setProperty(demo.GENETRACK_FILENAME, ext.removeDirectoryInfo(geneTrack));
 			original.getLog().reportTimeInfo("Detected " + geneTrack + ", copying to " + demo.GENETRACK_FILENAME.getValue(false, false) + "\n\t (this takes a while due to byte by byte copying)");

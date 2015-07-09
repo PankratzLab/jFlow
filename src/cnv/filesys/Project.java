@@ -18,6 +18,7 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
+import common.Aliases;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -1139,28 +1140,27 @@ public class Project {
 	}
 	
 	/**
-	 * Attempts to return the gene track file from the properties, and then attempts the statgen default (only valid for local)
+	 * Attempts to return the gene track file from the properties, and then attempts other default locations
 	 * 
-	 * @param report
-	 *            log which file is used
-	 * 
+	 * @param verbose	whether to report
+	 * @return			GeneTrack, if it found one, otherwise null
 	 */
-	public String getGeneTrackFileName(boolean report) {
-		String tmp = this.GENETRACK_FILENAME.getValue(false, false);
-		if (tmp == null || !Files.exists(tmp)) {
-			tmp = GeneSet.DIRECTORY + GeneSet.REFSEQ_TRACK;
-			if (tmp == null || !Files.exists(tmp)) {
-				tmp = null;
+	public String getGeneTrackFilename(boolean verbose) {
+		String geneTrackFilename = this.GENETRACK_FILENAME.getValue(false, false);
+		if (geneTrackFilename == null || !Files.exists(geneTrackFilename)) {
+			geneTrackFilename = Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, GeneSet.REFSEQ_TRACK, true, false, log);
+			if (geneTrackFilename == null || !Files.exists(geneTrackFilename)) {
+				geneTrackFilename = null;
 			}
 		}
-		if (report) {
-			if (tmp == null) {
-				log.reportTimeWarning("Did not find a gene track to use");
+		if (verbose) {
+			if (geneTrackFilename == null) {
+				log.reportTimeWarning("Did not find a GeneTrack to use");
 			} else {
-				log.reportTimeInfo("Using gene track " + tmp);
+				log.reportTimeInfo("Using gene track " + geneTrackFilename);
 			}
 		}
-		return tmp;
+		return geneTrackFilename;
 	}
 	
 	/**
