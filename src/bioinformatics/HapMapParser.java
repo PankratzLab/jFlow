@@ -83,7 +83,7 @@ public class HapMapParser {
 		}
 
 		try {
-			reader = Files.getReader(famstruct, new String[] {dir, "/home/npankrat/NCBI/", "C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\runtime\\"});
+			reader = Files.getAppropriateReader(famstruct);
 			writer = new PrintWriter(new FileWriter((new File(dir).exists()?dir:"")+root+".pre"));
 			while (reader.ready()) {
 				line = reader.readLine().split("[\\s]+");
@@ -180,30 +180,15 @@ public class HapMapParser {
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		String dir = "";
-//		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\SNCA\\";
-//		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\followup\\APOJ\\";
-		// String filename = "2qCEU-GENOS.tsv";
-		// String filename = "39rGV1lKEW5.tsv";
-		// String filename = "kept39rGV1lKEW2.tsv";
-		// String filename = "SNCA_50kb.tsv";
-		// String filename = "SNCA_50kb_43tags.tsv";
-		// String filename = "SNCA_50kb_21tags.tsv";
-		// String filename = "mapt.tsv";
-		// String filename = "CTNNA2.tsv";
-		// String filename = "deleteriousTau.tsv";
-		// String filename = "GAKimputed.tsv";
-		// String filename = "maptUTRsigs.tsv";
-		// String filename = "gakExonic.tsv";
-		// String filename = "maptUTR2.tsv";
-//		String filename = "LAMP1.tsv";
-//		String filename = "APOJ.tsv";
 		String filename = null;
-		String map = "";		
+		String map = "";
+		String famstruct;
 
-//		String famstruct = "famstruct_CEU.dat";
-//		String famstruct = "/home/npankrat/NCBI/pedinfo2sample_CEU.txt";
-//		String famstruct = "/home/npankrat/NCBI/fakeIDs_for_CEU.txt";
-		String famstruct = "/home/npankrat/NCBI/CEU_structUnrelated.dat";
+//		famstruct = "famstruct_CEU.dat";
+//		famstruct = "pedinfo2sample_CEU.txt";
+//		famstruct = "fakeIDs_for_CEU.txt";
+		famstruct = "CEU_structUnrelated.dat";
+		famstruct = Aliases.getPathToFileInReferenceDirectory(famstruct, false, new Logger());
 		
 		String bed = "";
 		String ped = "";
@@ -218,7 +203,8 @@ public class HapMapParser {
 		"   (3) split bed by chromosome (i.e. bed=plink (not the default)\n"+
 		"   (4) split ped by chromosome (i.e. ped=plink (not the default)\n"+
 		"   (5) fix affection status in fam files (i.e. fix=plink (not the default)\n"+
-		"   (6) generate Haploview batch file from PLINK files (i.e. map=plink.map (not the default)\n"+
+		"  OR:\n"+
+		"   (1) generate Haploview batch file from PLINK files (i.e. map=plink.map (not the default)\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {

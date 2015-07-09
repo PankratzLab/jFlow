@@ -1316,7 +1316,7 @@ public class FilterCalls {
 		filter.setBreakupCentromeres(breakupCentromeres);
 		if (commonInOutOrIgnore != COMMON_IGNORED) {
 			filter.setCommonIn(commonInOutOrIgnore == COMMON_IN);
-			filter.setCommonReference(Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true)+DEFAULT_COMMON_CNP_REFERENCE, false));
+			filter.setCommonReference(Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true, log)+DEFAULT_COMMON_CNP_REFERENCE, false));
 		}
 		filter.setIndividualsToKeepFromFile(individualsToKeepFile);
 		if (filenameOfProblematicRegions != null && !"".equals(filenameOfProblematicRegions)) {
@@ -1460,7 +1460,7 @@ public class FilterCalls {
 		problemRegions = filenameOfProblematicRegions==null?new Segment[0]:Segment.loadUCSCregions(filenameOfProblematicRegions, 0, false, log);
 		centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres, build, log);
 		centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
-		commonReference = commonInOutOrIgnore!=COMMON_IGNORED?Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true)+DEFAULT_COMMON_CNP_REFERENCE, false):new Segment[0];
+		commonReference = commonInOutOrIgnore!=COMMON_IGNORED?Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true, log)+DEFAULT_COMMON_CNP_REFERENCE, false):new Segment[0];
 		indHash = individualsToKeepList==null?null:HashVec.loadToHashSet(individualsToKeepList);
 		
 		try {
@@ -1826,8 +1826,8 @@ public class FilterCalls {
 		FilterCalls.filter(dir, filename, root+"_allAbove10.0_filtered.cnv", new int[]{1, 1}, new int[]{1, 1}, new int[]{1, 1}, 10, DEFAULT_PROBLEMATIC_REGIONS, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks, build, log);
 		FilterCalls.filter(dir, filename, root+"_ConservativeCalls.cnv", new int[]{100, 100}, new int[]{100, 100}, new int[]{20, 20}, 10, DEFAULT_PROBLEMATIC_REGIONS, COMMON_IGNORED, pedfile, true, null, makeUCSCtracks, build, log);
 
-		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inGenes.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_SEGS, false);
-		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inExons.cnv", GeneSet.DIRECTORY+GeneSet.REFSEQ_EXONS, false);
+		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inGenes.cnv", Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_SEGS, true, log), false);
+		FilterCalls.filterOnSegments(dir, root+"_allAbove10.0_filtered.cnv", root+"_allAbove10.0_filtered_inExons.cnv", Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_EXONS, true, log), false);
 
 //		FilterCalls.filterBasedOnNumberOfCNVsAtLocus(new Project(cnv.Launch.getDefaultDebugProjectFile(), false), dir+root+"_0kb_5SNP_10.0_CNPstatusIgnored.cnv", dir+root+"_0kb_5SNP_10.0_3dels_LT2dups.cnv", 0, 3, 0, Integer.MAX_VALUE, 1);
 //		FilterCalls.filterBasedOnNumberOfCNVsAtLocus(new Project(cnv.Launch.getDefaultDebugProjectFile(), false), dir+root+"_0kb_5SNP_10.0_CNPstatusIgnored.cnv", dir+root+"_0kb_5SNP_10.0_3dups_LT2dels.cnv", 0, 0, 3, 1, Integer.MAX_VALUE);
@@ -1842,10 +1842,11 @@ public class FilterCalls {
 	
 	public static void fromParameters(String filename, Logger log) {
 		Vector<String> params;
-		String dir = "";
+		String problematicRegionsLocation = "";
 
-		if (Files.exists("N:/statgen/NCBI/")) {
-			dir = "N:/statgen/NCBI/";
+		problematicRegionsLocation = Aliases.getPathToFileInReferenceDirectory("problematicRegions_hg19.dat", false, log);
+		if (problematicRegionsLocation == null) {
+			problematicRegionsLocation = "problematicRegions_hg19.dat";
 		}
 
 		params = Files.parseControlFile(filename, "filterCNVs", new String[] {
@@ -1863,7 +1864,7 @@ public class FilterCalls {
 				"# minimum number of homozygous SNPs:",
 				"hNumber=15",
 				"minScore=10.0",
-				"filterFile="+dir+"problematicRegions_hg19.dat",
+				"filterFile="+problematicRegionsLocation,
 				"# pedfile to be used as a filter:",
 				"ped=plink.fam",
 				"# if CNV spans centromere, break into two spanning actual markers",

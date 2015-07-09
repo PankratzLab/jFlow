@@ -5,126 +5,85 @@ import java.io.*;
 
 import common.*;
 
-// TODO was not a clean merge, could be undetected issues
 public class MapSNPsAndGenes {
 //	public static final boolean AUTOMATICALLY_ADD_ONE = true;
 //	public static final boolean AUTOMATICALLY_ADD_ONE = false;
-	public static final String GENES36 = "C:/bin/NCBI/genes36.xln";// "N:/statgen/NCBI/genes36.xln";
-	public static final String GENES37 = "C:/bin/NCBI/genes37.xln";//"N:/statgen/NCBI/genes37.xln";
-//	public static final int DEFAULT_WIGGLE_ROOM = 0;
+	public static final String GENES36_FILENAME = "genes36.xln";
+	public static final String GENES37_FILENAME = "genes37.xln";
+
 	public static final int DEFAULT_WIGGLE_ROOM = 15000;
-//	public static final int DEFAULT_WIGGLE_ROOM = 100000;
 	public static final int UCSC_WINDOW = DEFAULT_WIGGLE_ROOM;
 
-//	public static final String DEFAULT_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\udall\\";
-//	public static final String DEFAULT_FILENAME = "combinedMarkerPositions.xln";
-
-	public static final String DEFAULT_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\";
-
-	// public static final String DEFAULT_FILENAME = "COGA.txt";
-	// public static final String DEFAULT_FILENAME = "FIA_snp_list.txt";
-	// public static final String DEFAULT_FILENAME = "FIA_snps.xln";
-	// public static final String DEFAULT_FILENAME = "top5000nathan.txt";
-	// public static final String DEFAULT_FILENAME = "bone snps.txt";
-	// public static final String DEFAULT_FILENAME = "top_snps_for_nathan_2009_04_16.txt";
-	// public static final String DEFAULT_FILENAME = "top_aa_snps_positions.txt";
-//	public static final String DEFAULT_FILENAME = "cpru.txt";
-//	public static final String DEFAULT_FILENAME = "aff.txt";
-//	public static final String DEFAULT_FILENAME = "onset.txt";
-//	public static final String DEFAULT_FILENAME = "CARE_hits.txt";
-//	public static final String DEFAULT_FILENAME = "CARE_X_hits.txt";
-	public static final String DEFAULT_FILENAME = "SNPs.txt";
-//	public static final String DEFAULT_FILENAME = "E3E3_LTE0.05.txt";
-	
-	public static String[] mapSNPsToGenes(int[][] markerPositions, int wiggleRoom, Logger log) {
-		BufferedReader reader;
-		String[] line, genes;
-		int[] chr_start_stop;
-
-		genes = Array.stringArray(markerPositions.length, "");
-		try {
-			reader = new BufferedReader(new FileReader(GENES36));
-			reader.readLine();
-			chr_start_stop = new int[3];
-			while (reader.ready()) {
-				line = reader.readLine().split("[\\s]+");
-				if (!line[3].equals(".")) {
-					chr_start_stop[0] = line[2].equals("X")?23:(line[2].equals("Y")?24:(line[2].equals("XY")?25:(line[2].equals("MT")?26:(line[2].equals("Un")?27:Integer.parseInt(line[2])))));
-					chr_start_stop[1] = Integer.parseInt(line[3]);
-					chr_start_stop[2] = Integer.parseInt(line[4]);
-	
-					for (int j = 0; j<markerPositions.length; j++) {
-						if (markerPositions[j][0]==chr_start_stop[0]&&markerPositions[j][1]>=chr_start_stop[1]-wiggleRoom&&markerPositions[j][1]<=chr_start_stop[2]+wiggleRoom) {
-							genes[j] += (genes[j].equals("")?"":"|")+line[1];
-						}
-					}
-				}
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""+GENES36+"\" not found");
-			System.exit(1);
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \""+GENES36+"\"");
-			System.exit(2);
-		}
-
-		return genes;
-	}
-
-	public static String getGeneDB(byte build, Logger log) {
+	public static String getGeneDB(int build, Logger log) {
 		String geneDB;
 		
-		geneDB = GENES37;
+		geneDB = GENES37_FILENAME;
 		switch (build) {
 		case 36:
-			geneDB = GENES36;
+			geneDB = GENES36_FILENAME;
 			break;
 		case 37:
-			geneDB = GENES37;
+			geneDB = GENES37_FILENAME;
 			break;
 		default:
 			log.reportError("Error - unknown build '"+build+"'; using the default instead (b37/hg19)");
 			break;
 		}
 
-		return geneDB;
+		return Aliases.getPathToFileInReferenceDirectory(geneDB, true, log);
 	}
 	
-	public static String getSNPDB(byte build, Logger log) {
-		String snpDB;
+	public static String getSNPDB(int build, Logger log) {
+		String snpDB = null;
+		boolean satisfied;
 		
-		snpDB = ParseSNPlocations.DEFAULT_B37_DB;
-		switch (build) {
-		case 36:
-			snpDB = ParseSNPlocations.DEFAULT_B36_DB;
-			break;
-		case 37:
-			snpDB = ParseSNPlocations.DEFAULT_B37_DB;
-			break;
-		default:
-			log.reportError("Error - unknown build '"+build+"'; using the default instead (b37/hg19)");
-			break;
+		satisfied = false;
+		while (!satisfied) {
+			switch (build) {
+			case 36:
+				snpDB = ParseSNPlocations.DEFAULT_B36_DB_FILENAME;
+				satisfied = true;
+				break;
+			case 37:
+				snpDB = ParseSNPlocations.DEFAULT_B37_DB_FILENAME;
+				satisfied = true;
+				break;
+			default:
+				log.reportError("Error - unknown build '"+build+"'; using the default instead (build "+ParseSNPlocations.DEFAULT_BUILD+")");
+				build = ParseSNPlocations.DEFAULT_BUILD;
+				break;
+			}
 		}
-
-		return snpDB;
+		
+		return Aliases.getPathToFileInReferenceDirectory(snpDB, true, log);
 	}
 	
-	public static String[][] mapSNPsToGenes(int[][] markerPositions, byte build, int wiggleRoom, Logger log) {
+	public static String getMergeDB(Logger log) {
+		return Aliases.getPathToFileInReferenceDirectory(ParseSNPlocations.DEFAULT_MERGE_FILENAME, true, log);
+	}
+	
+	public static String[] mapSNPsToGenesLoosely(int[][] markerPositions, int wiggleRoom, int build, Logger log) {
+		return Matrix.extractColumn(mapSNPsToGenes(markerPositions, build, wiggleRoom, log), 1);
+	}
+
+	public static String[][] mapSNPsToGenes(int[][] markerPositions, int build, int wiggleRoom, Logger log) {
 		return mapSNPsToGenes(markerPositions, getGeneDB(build, log), wiggleRoom, log);
 	}
 	
 	/**
 	 * Map chromosome positions to genes.
+	 * 
 	 * @param markerPositions a two dimensional array of marker positions. An example of the format is
 	 * 			0	1
 	 * 		0	chr	pos
 	 * 		1	chr	pos
 	 * 		...
-	 * @param geneDB
-	 * @param wiggleRoom
-	 * @param log
-	 * @return
+	 * @param geneDB		the database containing the start and stop positions of the genes
+	 * @param wiggleRoom	the number of basepairs on either side of the position to search for genes
+	 * @param log			the Logger
+	 * @return				a matrix of genes 	String[0][] is the nearest match
+	 * 											String[1][] are all matches
+	 * 											String[2][] are all of the exact matches
 	 */
 	public static String[][] mapSNPsToGenes(int[][] markerPositions, String geneDB, int wiggleRoom, Logger log) {
 		BufferedReader reader;
@@ -213,18 +172,14 @@ public class MapSNPsAndGenes {
 	}
 
 
-	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, byte build, Logger log) {
+	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log) {
 		PrintWriter writer;
 		String[] line;
 		String[] data, markers;
 		String[][] genes;
 		int[][] markerPositions;
-		String snpDB, geneDB;
 
-		snpDB = getSNPDB(build, log);
-		geneDB = getGeneDB(build, log);
-		ParseSNPlocations.lowMemParse(dir+snps, snpDB, ParseSNPlocations.DEFAULT_MERGE, true, log);
-//		ParseSNPlocations.lowMemParse(dir+snps, true, log);
+		ParseSNPlocations.lowMemParse(dir+snps, getSNPDB(build, log), getMergeDB(log), true, log);
 		
 		data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir+snps, false)+"_positions.xln", false, false, false));
 
@@ -237,8 +192,7 @@ public class MapSNPsAndGenes {
 			markerPositions[i][1] = Integer.parseInt(line[2]);
 		}
 
-//		genes = mapSNPsToGenes1_zx(markerPositions, wiggleRoom, log);
-		genes = mapSNPsToGenes(markerPositions, geneDB, wiggleRoom, log);
+		genes = mapSNPsToGenes(markerPositions, getGeneDB(build, log), wiggleRoom, log);
 
 		try {
 			System.out.println(dir+ext.rootOf(snps)+"_genes.xln");
@@ -258,9 +212,9 @@ public class MapSNPsAndGenes {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String dir = DEFAULT_DIRECTORY;
-		String filename = DEFAULT_FILENAME;
-		int wiggleRoom = DEFAULT_WIGGLE_ROOM;
+		String dir = "";
+		String filename = "list.snps";
+		int wiggleRoom = 15000;
 		String temp;
 		byte build = 37;
 		Logger log;
