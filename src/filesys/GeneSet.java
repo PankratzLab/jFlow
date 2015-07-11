@@ -6,10 +6,8 @@ import common.*;
 
 public class GeneSet implements Serializable {
 	public static final long serialVersionUID = 1L;
-//	public static final String DIRECTORY = "/home/npankrat/NCBI/";
-	public static final String DIRECTORY = "N:/statgen/NCBI/";
 //	public static final String REFSEQ_FILE = "refGene.txt";
-	public static final String REFSEQ_FILE = "refGene_hg19.txt";
+//	public static final String REFSEQ_FILE = "refGene_hg19.txt";
 	public static final String REFSEQ_DB = "RefSeq.genes";
 	public static final String REFSEQ_TRACK = "RefSeq.gtrack";
 	public static final String REFSEQ_SEGS = "RefSeq_2k.segs";
@@ -108,7 +106,7 @@ public class GeneSet implements Serializable {
 		return new SegmentLists(lists);
 	}
 	
-	public static void parseRefSeqGenes() {
+	public static void parseRefSeqGenes(String sourceFile) {
 		BufferedReader reader;
         Hashtable<String,Vector<GeneData>> hash = new Hashtable<String,Vector<GeneData>>();
         Vector<GeneData> v, overlapping, finalList;
@@ -121,10 +119,13 @@ public class GeneSet implements Serializable {
         byte count;
         int[][] exonBoundaries;
         GeneSet geneSet;
+        String dir;
+        
+        dir = ext.parseDirectoryOfFile(sourceFile);
         
         System.out.println("Parsing gene info...");
         try {
-	        reader = new BufferedReader(new FileReader(DIRECTORY+REFSEQ_FILE));
+	        reader = new BufferedReader(new FileReader(sourceFile));
 	        while (reader.ready()) {
 	        	gene = new GeneData(reader.readLine());
 	        	if (gene.isFinalized()) {
@@ -138,10 +139,10 @@ public class GeneSet implements Serializable {
 	        }	        	
 	        reader.close();
         } catch (FileNotFoundException fnfe) {
-	        System.err.println("Error: file \""+DIRECTORY+REFSEQ_FILE+"\" not found in current directory");
+	        System.err.println("Error: file \""+sourceFile+"\" not found in current directory");
 	        System.exit(1);
         } catch (IOException ioe) {
-	        System.err.println("Error reading file \""+DIRECTORY+REFSEQ_FILE+"\"");
+	        System.err.println("Error reading file \""+sourceFile+"\"");
 	        System.exit(2);
         }
         
@@ -210,21 +211,21 @@ public class GeneSet implements Serializable {
         }
         
         geneSet = new GeneSet(finalList);
-        geneSet.serialize(DIRECTORY+REFSEQ_DB);
+        geneSet.serialize(dir+REFSEQ_DB);
         System.out.println("Parsing gene segments...");
-        geneSet.determineGeneSegments(2000).serialize(DIRECTORY+REFSEQ_SEGS);
+        geneSet.determineGeneSegments(2000).serialize(dir+REFSEQ_SEGS);
         System.out.println("Parsing exon segments...");
-        geneSet.determineExonSegments(2000).serialize(DIRECTORY+REFSEQ_EXONS);
+        geneSet.determineExonSegments(2000).serialize(dir+REFSEQ_EXONS);
         System.out.println("Parsing gene track...");
-        new GeneTrack(DIRECTORY+REFSEQ_DB).serialize(DIRECTORY+REFSEQ_TRACK);
+        new GeneTrack(dir+REFSEQ_DB).serialize(dir+REFSEQ_TRACK);
 	}
 
 	public static void parseUCSCknownGenes() {
 	}
 	
-	public static GeneSet loadRefSeqGenes() {
-		return load(DIRECTORY+REFSEQ_DB, false);
-	}
+//	public static GeneSet loadRefSeqGenes() {
+//		return load(DIRECTORY+REFSEQ_DB, false);
+//	}
 
 	public static void main(String[] args) {
 	    int numArgs = args.length;
@@ -254,7 +255,7 @@ public class GeneSet implements Serializable {
 	    }
 	    try {
 	    	if (refseq) {
-	    		parseRefSeqGenes();
+	    		parseRefSeqGenes(Aliases.getPathToFileInReferenceDirectory("gc5Base.txt", true, new Logger()));
 	    	}
 	    	if (known) {
 	    		parseUCSCknownGenes();

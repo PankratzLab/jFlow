@@ -7,6 +7,7 @@ import java.util.*;
 
 import common.*;
 import link.LinkageMap;
+import bioinformatics.MapSNPsAndGenes;
 import bioinformatics.ParseSNPlocations;
 
 public class SnpMarkerSet implements Serializable {
@@ -60,6 +61,7 @@ public class SnpMarkerSet implements Serializable {
 	private char[][] alleles;
 	private String[][] annotation;
 	private Vector<String> nonRSmarkerNames;
+	private int build;
 
 	public SnpMarkerSet(String[] markerNames) {
 		convertMarkerNamesToRSnumbers(markerNames, true);
@@ -80,6 +82,7 @@ public class SnpMarkerSet implements Serializable {
 		this.positions = rawPositions;
 		this.alleles = alleles;
 		this.annotation = annotation;
+		this.build = ParseSNPlocations.DEFAULT_BUILD;
 		
 		convertMarkerNamesToRSnumbers(markerNames, verbose);
 		fingerprint = fingerprint(rsNumbers);
@@ -219,6 +222,24 @@ public class SnpMarkerSet implements Serializable {
 	
 	public int[] getRSnumbers() {
 		return rsNumbers;
+	}
+	
+	/**
+	 * Sets the genome build for this marker set
+	 * 
+	 * @param build		build of the genome (36, 37, 38, etc)
+	 */
+	public void setBuild(int build) {
+		this.build = build;
+	}
+
+	/**
+	 * Returns the genome build for this marker set
+	 * 
+	 * @return			build of the genome (36, 37, 38, etc)
+	 */
+	public int getBuild() {
+		return build;
 	}
 	
 	public String[] getMarkerNames() {
@@ -545,9 +566,8 @@ public class SnpMarkerSet implements Serializable {
 		parseSNPlocations(new Logger());
 	}
 	
-	// TODO this needs to be dynamic, need a SnpMarkerSet variable for version
 	public void parseSNPlocations(Logger log) {
-		parseSNPlocations(ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, log);
+		parseSNPlocations(MapSNPsAndGenes.getSNPDB(build, log), MapSNPsAndGenes.getMergeDB(log), log);
 	}
 	
 	public void setPositions(SnpMarkerSet refSet) {

@@ -369,8 +369,9 @@ public class procGenePositions {
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
-		String dir = "/home/npankrat/NCBI/NCBI/";
 		String filename = "seq_gene.md";
+		String dir = Aliases.getPathToFileInReferenceDirectory(filename, true, new Logger());
+
 		// latest found in:
 		// ftp://ftp.ncbi.nih.gov/genomes/MapView/Homo_sapiens/sequence/BUILD.37.3/initial_release/
 
@@ -385,8 +386,6 @@ public class procGenePositions {
 				System.exit(1);
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
-				dir = ext.parseDirectoryOfFile(filename);
-				filename = ext.removeDirectoryInfo(filename);
 				numArgs--;
 			}
 		}
@@ -395,6 +394,8 @@ public class procGenePositions {
 			System.exit(1);
 		}
 		try {
+			dir = ext.parseDirectoryOfFile(filename);
+			filename = ext.removeDirectoryInfo(filename);
 			runProcGenePositions(dir, filename);
 		} catch (Exception e) {
 			e.printStackTrace();

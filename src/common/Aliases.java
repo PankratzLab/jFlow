@@ -21,4 +21,21 @@ public class Aliases {
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF"};
 	
 	public static final String[] IMPUTATION_EFFICIENCY = {"imp_info", "rsq"};
+	
+	public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "N:/statgen/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/", "/home/npankrat/NCBI/", ""};
+	
+	
+	/**
+	 * Searches all of the reference directories to see if it contains the specified file
+	 * 
+	 * @param filename	the filename to search for
+	 * @param verbose	whether to report an error if none of the locations exists or if none of the locations contains the specified file
+	 * @param log		a Logger to report any errors if verbose
+	 * @return			the full path to the file of interest if it exists in one of the directories, otherwise null
+	 */
+	public static String getPathToFileInReferenceDirectory(String filename, boolean verbose, Logger log) {
+		// TODO allow customizable paths from some future Genvisis global properties file
+		return Files.firstPathToFileThatExists(REFERENCE_FOLDERS, filename, verbose, false, log);
+	}
+		
 }
