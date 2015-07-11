@@ -33,7 +33,7 @@ public class LDdatabase implements Serializable {
 	
 	public static final String[] HAPLOVIEW_LD_HEADER = {"L1", "L2", "D'", "LOD", "r^2", "CIlow", "CIhi", "Dist", "T-int"};
 	public static final String[] FREQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
-	public static final String MASTER_HAPMAP_ROOT = "/home/npankrat/NCBI/HapMap/CEU_founders/CEU_founders";
+	public static final String MASTER_HAPMAP_ROOT = ext.rootOf(Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "HapMap/CEU_founders/CEU_founders"+".bim", true, false, new Logger()), false);
 	public static final String HAPLOVIEW_LOC = "/home/npankrat/Haploview.jar";
 	public static final String LDDB_ROOT = "lddb";
 	public static final String LDDB_TARGETS = "targets";

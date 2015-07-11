@@ -270,7 +270,7 @@ public class DNAcopy {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String root = Files.firstDirectoryThatExists(ROOT_DIRS, true, true);
+		String root = Files.firstDirectoryThatExists(ROOT_DIRS, true, true, new Logger());
 		String inputs = CNV_DIRECTORY;
 		String batches = DEFAULT_BATCH;
 		String outputs = DEFAULT_OUTPUT;

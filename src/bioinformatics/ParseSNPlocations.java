@@ -11,27 +11,25 @@ import filesys.SerialHash;
 import filesys.SnpMarkerSet;
 
 public class ParseSNPlocations {
-	public static final String DEFAULT_NCBI_DIRECTORY = "C:/bin/NCBI/";
-//	public static final String DEFAULT_NCBI_DIRECTORY = "N:/statgen/NCBI/";
+	public static final String DEFAULT_B36_SOURCE_FILENAME = "b130_SNPChrPosOnRef_36_3.bcp.gz";
+	public static final String DEFAULT_B36_DB_FILENAME = "b130_36_3.ser";
 
-	public static final String DEFAULT_B36_SOURCE = DEFAULT_NCBI_DIRECTORY+"b130_SNPChrPosOnRef_36_3.bcp.gz";
-	public static final String DEFAULT_B36_DB = DEFAULT_NCBI_DIRECTORY+"b130_36_3.ser";
+	public static final String DEFAULT_B37_SOURCE_FILENAME = "b138_SNPChrPosOnRef.bcp.gz";
+	public static final String DEFAULT_B37_DB_FILENAME = "b138_37_3.ser";
 
-	public static final String DEFAULT_B37_SOURCE = DEFAULT_NCBI_DIRECTORY+"b138_SNPChrPosOnRef.bcp.gz";
-	public static final String DEFAULT_B37_DB = DEFAULT_NCBI_DIRECTORY+"b138_37_3.ser";
-
-	public static final String DEFAULT_MERGE_SOURCE = DEFAULT_NCBI_DIRECTORY+"RsMergeArch.bcp.gz";
-	public static final String DEFAULT_MERGE = DEFAULT_NCBI_DIRECTORY+"RsMerge.ser";
+	public static final String DEFAULT_MERGE_SOURCE_FILENAME = "RsMergeArch.bcp.gz";
+	public static final String DEFAULT_MERGE_FILENAME = "RsMerge.ser";
 	
+	public static final int DEFAULT_BUILD = 37;
 	
 	public static final int OFFSET = 1;
 	public static final int MULTIPLE_POSITIONS = -2;
 	public static final int UNMAPPED = -9;
 
-	public static void lowMemParse(String snpListFile, boolean useExistingPositions, Logger log) {
-		lowMemParse(snpListFile, ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, useExistingPositions, log);
-	}
-	
+//	public static void lowMemParse(String snpListFile, boolean useExistingPositions, Logger log) {
+//		lowMemParse(snpListFile, ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, useExistingPositions, log);
+//	}
+//	
 	public static void lowMemParse(String snpListFile, String db, String mergeDB, boolean useExistingPositions, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -414,8 +412,9 @@ public class ParseSNPlocations {
 		int numArgs = args.length;
 		String source = "";
 		String mergeSource = "";
-		String db = DEFAULT_B37_DB;
-		String merge = DEFAULT_MERGE;
+		String dir = Files.firstDirectoryThatExists(Aliases.REFERENCE_FOLDERS, false, false, new Logger());
+		String db = DEFAULT_B37_DB_FILENAME;
+		String merge = DEFAULT_MERGE_FILENAME;
 
 		// uncomment one of these to compile
 //		source = DEFAULT_B37_SOURCE;
@@ -426,25 +425,15 @@ public class ParseSNPlocations {
 		
 //		mergeSource = DEFAULT_MERGE_SOURCE;
 
-		// String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\PD-singleton\\";
-		// String filename = "pd.recode.map";
-		// String filename = "whathappened.dat";
-		// boolean plinkFormat = true;
-
-		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\";
-//		String filename = "top_snplist_neck.txt";
-//		String filename = "top_aa_snps.txt";
-//		String filename = "aff.txt";
-//		String filename = "CARE_hits.txt";
-//		String filename = "CARE_X_hits.txt";
-//		String filename = "X_diffs.txt";
 		String filename = "list.txt";
-		
 		boolean plinkFormat = false;
 
 		String usage = "\n"+
 		"bioinformatics.ParseSNPlocations requires 0-1 arguments\n"+
-		"   (0) file from which to create db (i.e. source="+DEFAULT_B37_SOURCE+" (not the default))\n"+
+		"   (1) file from which to create snp db (i.e. source="+DEFAULT_B37_SOURCE_FILENAME+" (not the default))\n"+
+		"  OR:\n"+
+		"   (1) file from which to create merge db (i.e. source="+DEFAULT_MERGE_SOURCE_FILENAME+" (not the default))\n"+
+		"  OR:\n"+
 		"   (1) snpDB (i.e. db="+db+" (default))\n"+
 		"   (2) merge DB (i.e. merge="+merge+" (default))\n"+
 		"   (3) dir (i.e. dir="+dir+" (default))\n"+
@@ -475,9 +464,9 @@ public class ParseSNPlocations {
 		}
 		try {
 			if (!source.equals("")) {
-				createFromSource(source, db);
+				createFromSource(dir+source, dir+db);
 			} else if (!mergeSource.equals("")) {
-				createMergeDBfromSource(mergeSource, merge);
+				createMergeDBfromSource(dir+mergeSource, dir+merge);
 			} else {
 				SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger());
 				map.parseSNPlocations(db, merge, new Logger());

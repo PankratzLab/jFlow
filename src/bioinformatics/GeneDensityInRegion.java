@@ -17,7 +17,7 @@ public class GeneDensityInRegion {
         int sum;
         int[][] exonBoundaries;
         
-        geneSet = GeneSet.loadRefSeqGenes();
+        geneSet = GeneSet.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_DB, true, new Logger()), false);
         genes = geneSet.getSet();
         loc = Positions.parseUCSClocation(region);
         regionAsGene = new GeneData("", new String[0], (byte)loc[0], true, (byte)0, loc[1], loc[2], new int[][] {}, (byte)0);
