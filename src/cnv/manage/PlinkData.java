@@ -1848,7 +1848,7 @@ public class PlinkData {
 			count = 0;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\\s+");
-				hash.put(line[1], ":\t"+count+"\t"+line[4]+"\t"+line[5]);
+				hash.put(line[1], ":\t"+count+"\t"+line[0] + "\t" + line[3] + "\t" + line[4]+"\t"+line[5]);
 				count++;
 			}
 			reader.close();
