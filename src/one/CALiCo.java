@@ -868,11 +868,11 @@ public class CALiCo {
 		while (models.hasMoreElements()) {
 			model = models.nextElement();
 			model1 = model.replaceAll(" ", "").split("\t");
-			if (! model1[1].startsWith("rs")) {
-				filename = model1[0] + "_rs" + model1[1];
-			} else {
-				filename = model1[0] + "_" + model1[1];
-			}
+//			if (!model1[1].startsWith("rs")) {
+//				filename = model1[0] + "_rs" + model1[1];
+//			} else {
+				filename = model1[0] + "_" + ext.replaceWithLinuxSafeCharacters(model1[1], false);
+//			}
 			modelLine = modelList.get(model);
 			resultsSnp = SkatMeta.loadFile(resultFilesDir + filename + ".out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
 			resultsIndex = SkatMeta.loadFile(resultFilesDir + filename + "_cov.out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
@@ -897,7 +897,7 @@ public class CALiCo {
 						+ delimiterForOutputFile + snpLine[1]	//snp.noncoded
 						+ delimiterForOutputFile + snpLine[4]	//snp.BETA
 						+ delimiterForOutputFile + snpLine[5]	//snp.SE
-						+ delimiterForOutputFile				//snp.Stat
+						+ delimiterForOutputFile 				//snp.Stat
 						+ delimiterForOutputFile + snpLine[6]	//snp.P
 						+ ((snpLine[4].equals("NA") || snpLine[4].equals("NA"))?
 								(delimiterForOutputFile + delimiterForOutputFile) :
@@ -906,19 +906,19 @@ public class CALiCo {
 						+ delimiterForOutputFile + (numSamples - Integer.parseInt(snpLine[3]))	//snp.NMISS
 						+ delimiterForOutputFile + snpLine[2]	//snp.CAF
 						+ delimiterForOutputFile + (snpLine[2].equals("NA")? "" : (Double.parseDouble(snpLine[2]) * Integer.parseInt(snpLine[3]) * 2))	//snp.CAC
-						+ delimiterForOutputFile + indexLine[4]	//index.BETA
-						+ delimiterForOutputFile + indexLine[5]	//index.SE
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[4])	//index.BETA
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[5])	//index.SE
 						+ delimiterForOutputFile	//index.Stat
-						+ delimiterForOutputFile + indexLine[6]	//index.P
-						+ ((indexLine[4].equals("NA") || indexLine[4].equals("NA"))?
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[6])	//index.P
+						+ ((indexLine == null || indexLine.length < 6 || indexLine[4].equals("NA")) ?
 								(delimiterForOutputFile + delimiterForOutputFile) :
 								(delimiterForOutputFile + (Double.parseDouble(indexLine[4]) - 1.95 * Double.parseDouble(indexLine[5]))
 								+ delimiterForOutputFile + (Double.parseDouble(indexLine[4]) + 1.95 * Double.parseDouble(indexLine[5]))))	//index.L95	index.U95
-						+ delimiterForOutputFile + (numSamples - Integer.parseInt(indexLine[3]))	//index.NMISS
-						+ delimiterForOutputFile + indexLine[2]	//index.CAF
-						+ delimiterForOutputFile + (indexLine[2].equals("NA")? "" : (Double.parseDouble(indexLine[2]) * Integer.parseInt(indexLine[3]) * 2))	//index.CAC
-						+ delimiterForOutputFile + indexLine[0]	//index.coded
-						+ delimiterForOutputFile + indexLine[1]	//index.noncoded
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 5 ? "NA" : (numSamples - Integer.parseInt(indexLine[3])))	//index.NMISS
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[2]	//index.CAF
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 4 || indexLine[2].equals("NA")? "" : (Double.parseDouble(indexLine[2]) * Integer.parseInt(indexLine[3]) * 2)))	//index.CAC
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[0])	//index.coded
+						+ delimiterForOutputFile + (indexLine == null || indexLine.length < 5 ? "NA" : indexLine[1])	//index.noncoded
 						;
 				outFile.add(outLine);
 			}
@@ -1150,7 +1150,7 @@ public class CALiCo {
 				log.reportError("Warning --- Scratch directory " + scratchDir + " already exists. Existing files might be reused or overwritten.");
 			}
 			
-			if (phenoCovarDir != null) {
+			if (plinkCommand != null) {
 //				parseAllFilesInDirectory(dir, genos, scratchDir);
 //				if (Files.exists(phenoCovarDir + CONDITIONALS_TXT_FILE)) {
 //					runConditional(genos, phenoCovarDir, resultDir, scratchDir, log);
@@ -1158,10 +1158,11 @@ public class CALiCo {
 					parseAllFilesInDirectory(geno, phenoCovarDir, resultDir, scratchDir, plinkCommand, log);
 //				}
 
-			} else if (outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper != null) {
+			} else if (phenoCovarFilename != null) {
 				parsePhenotypes(geno, phenoCovarFilename, SAMPLE_ID_SYNONYMS[1], resultDir, log);
 
 			} else {
+			    System.out.println("Parse Results");
 				parseResultsForPageGlucoseInsulinPaperFormat(modelListFileNameWhenParsingForPageGlucoseInsulinConditionalPaper, resultDir, outputFileNameWhenParsingForPageGlucoseInsulinConditionalPaper);
 			}
 
