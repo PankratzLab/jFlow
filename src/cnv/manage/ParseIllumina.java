@@ -169,6 +169,9 @@ public class ParseIllumina implements Runnable {
 									} else if ((j == 3 || j == 4) && proj.XY_SCALE_FACTOR.getValue() != 1) {
 										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 										data[j][key] = (float) (data[j][key] / proj.XY_SCALE_FACTOR.getValue());
+									} else if (j == 0 && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
+										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
+										data[j][key] = 1 - data[j][key]; // try to make affy conf scores similar to illumina gc
 									} else {
 										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 									}
@@ -461,9 +464,10 @@ public class ParseIllumina implements Runnable {
 		ARRAY array = proj.getArrayType();
 		switch (array) {
 		case AFFY_GW6:
-			
+			log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
 			break;
 		case AFFY_GW6_CN:
+			log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
 			log.reportTimeInfo("Initializing parser for array type " + array);
 			affyProcess = new AffyProcess(proj, Files.toFullPaths(files, proj.SOURCE_DIRECTORY.getValue(false, true)), delimiter, log);
 			affyProcess.matchCn();
