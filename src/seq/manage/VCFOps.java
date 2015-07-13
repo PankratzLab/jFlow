@@ -16,11 +16,14 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 
+import cnv.var.LocusSet;
 import seq.analysis.PlinkSeq;
+import seq.analysis.PlinkSeqMegs;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import seq.analysis.PlinkSeq.LOAD_TYPES;
 import seq.analysis.PlinkSeq.PlinkSeqWorker;
 import seq.analysis.PlinkSeqUtils.PseqProject;
+import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
@@ -28,6 +31,8 @@ import seq.qc.FilterNGS.VariantContextFilter;
 import stats.Histogram.DynamicAveragingHistogram;
 import stats.Histogram.DynamicHistogram;
 import filesys.Segment;
+import gwas.MatchSamples;
+import gwas.MatchesVisualized;
 import gwas.MergeDatasets;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -242,7 +247,7 @@ public class VCFOps {
 		GWAS_QC, HOMOGENEITY;
 	}
 
-	public static String reportCallRateHWEFiltered(String vcf, String outputFile, double callRate, double hweP, Logger log) {
+	public static String[] reportCallRateHWEFiltered(String vcf, String outputFile, double callRate, double hweP, Logger log) {
 		VARIANT_FILTER_DOUBLE callRateFilter = VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE;
 		VARIANT_FILTER_DOUBLE hwe = VARIANT_FILTER_DOUBLE.HWE;
 		hwe.setDFilter(hweP);
@@ -252,6 +257,10 @@ public class VCFOps {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+			PrintWriter writerAll = new PrintWriter(new FileWriter(ext.addToRoot(outputFile, ".all")));
+			String segFile = ext.addToRoot(outputFile, ".segment");
+			PrintWriter writerFilteredSeg = new PrintWriter(new FileWriter(segFile));
+
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 			int count = 0;
 			for (VariantContext vc : reader) {
@@ -261,7 +270,10 @@ public class VCFOps {
 				}
 				if (!filter.filter(vc).passed()) {
 					writer.println((vc.getID().equals(".") ? new VCOps.LocusID(vc).getId() : vc.getID()) + "\t" + vc.getNoCallCount() + "\t" + vc.getNSamples());
+					Segment vcSeg = VCOps.getSegment(vc);
+					writerFilteredSeg.println(vcSeg.getChr() + "\t" + vcSeg.getStart() + "\t" + vcSeg.getStop());
 				}
+				writerAll.println((vc.getID().equals(".") ? new VCOps.LocusID(vc).getId() : vc.getID()) + "\t" + vc.getNoCallCount() + "\t" + vc.getNSamples());
 				double g1000 = -1;
 				try {
 					if (vc.getCommonInfo().hasAttribute("g10002014oct_all")) {
@@ -283,15 +295,17 @@ public class VCFOps {
 			}
 			reader.close();
 			writer.close();
+			writerAll.close();
+			writerFilteredSeg.close();
 			String hist = ext.addToRoot(outputFile, ".callrateHist");
 			PrintWriter writerHist = new PrintWriter(new FileWriter(hist));
-			writerHist.println("CallRateBin\tCount\t1000GFreq");
+			writerHist.println("g1000Bin\tCount\tAvgCallRate");
 			dynamicAveragingHistogram.average();
 			for (int i = 0; i < dynamicAveragingHistogram.getBins().length; i++) {
 				writerHist.println(dynamicAveragingHistogram.getBins()[i] + "\t" + dynamicAveragingHistogram.getCounts()[i] + "\t" + dynamicAveragingHistogram.getAverages()[i]);
 			}
 			writerHist.close();
-			return hist;
+			return new String[] { hist, segFile };
 		} catch (Exception e) {
 			log.reportError("Error writing to " + outputFile);
 			log.reportException(e);
@@ -332,9 +346,9 @@ public class VCFOps {
 				gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 				String mdsFile = dir + "genome/mds20.mds";
 				if (Files.exists(mdsFile)) {
-					fixMdsFile(log, dir, newIDS, mdsFile);
-					CmdLine.run("runEigenstratWoHapMap", dir);
-					CmdLine.run("runEigenstrat2", dir + "ancestry/");
+					// fixMdsFile(log, dir, newIDS, mdsFile);
+					// CmdLine.run("runEigenstratWoHapMap", dir + "ancestry/");
+					// CmdLine.run("runEigenstrat2", dir + "ancestry/");
 					// fixMdsFile(log, dir + "ancestry/", newIDS, combo_fancy_postnormed_eigens.xln);
 				}
 			} else if (mode == PLINK_SET_MODE.HOMOGENEITY) {
@@ -478,6 +492,8 @@ public class VCFOps {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
+		public static final String ANCHOR = "ANCHOR";
+		public static final String BARNACLE = "BARNACLE";
 		public static final String CASE = "CASE";
 		public static final String CONTROL = "CONTROL";
 		public static final String EXCLUDE = "EXCLUDE";
@@ -493,7 +509,7 @@ public class VCFOps {
 		private Logger log;
 
 		public enum POPULATION_TYPE {
-			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY;
+			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY, ANCHOR_BARNACLE;
 		}
 
 		public enum RETRIEVE_TYPE {
@@ -590,6 +606,12 @@ public class VCFOps {
 					log.reportTimeError("Population type was set to " + type + ", but did not contain " + DETERMINE_ANCESTRY);
 					log.reportTimeError(DETERMINE_ANCESTRY + " must be present in the " + HEADER[2] + " column as a flag to determine ancestry, all other categories will be used as cluster generators");
 
+					valid = false;
+				}
+				break;
+			case ANCHOR_BARNACLE:
+				if (!superPop.containsKey(ANCHOR) || !superPop.containsKey(ANCHOR)) {
+					log.reportTimeError("Population type was set to " + type + ", but did not contain " + ANCHOR + " AND " + BARNACLE);
 					valid = false;
 				}
 				break;
@@ -789,68 +811,186 @@ public class VCFOps {
 	 * @param log
 	 */
 	public static void runHomoGeneity(String vcf, String[] fullPathToPopFiles, Logger log) {
+		HashSet<String> toRemoveHash = new HashSet<String>();
 		String[] toRemove = new String[] {};
+		Segment[] toRemoveSeg = new Segment[] {};
 		double callRate = 0.80;
 		double hwe = .00001;
+		int numBarnsPerSample = 5;
 		String finalSamples = vcf + ".finalSamples";
+		String[] matchUpVpops = Files.listFullPaths(ext.parseDirectoryOfFile(vcf), ".homogeneity.vpop", false);
+		if (matchUpVpops.length < 1) {
+			log.reportTimeError("Required file(s) ending with .homogeneity.vpop in directory " + ext.parseDirectoryOfFile(vcf) + " were not found");
+			return;
+		}
 		if (!Files.exists(finalSamples)) {
 			log.reportTimeError("Required file " + finalSamples + " is missing");
 			return;
 		}
-		String[] samples = HashVec.loadFileToStringArray(finalSamples, false, new int[] { 0 }, false);
-		log.reportTimeInfo("Found " + samples.length + " samples for the final analysis");
-		for (int i = 0; i < fullPathToPopFiles.length; i++) {
-			String fullPathToPopFile = fullPathToPopFiles[i];
-			String[] splits = VcfPopulation.splitVcfByPopulation(vcf, fullPathToPopFile, log);
-			String[] dirs = new String[splits.length];
-			String dir = ext.parseDirectoryOfFile(vcf) + ext.rootOf(fullPathToPopFile) + "/";
-			for (int j = 0; j < splits.length; j++) {
-
-				String export = dir + "plink_" + ext.rootOf(splits[j]) + "/";
-				dirs[j] = ext.parseDirectoryOfFile(convertToPlinkSet(export, splits[j], "plink", PLINK_SET_MODE.HOMOGENEITY, log)[0]);
-				if (VCFOps.getSamplesInFile(splits[j]).length > 50) {
-					String callRateFiltered = dir + ext.rootOf(splits[j]) + ".CR." + callRate + ".hwe." + hwe + ".txt";
-					if (!Files.exists(callRateFiltered)) {
-						reportCallRateHWEFiltered(splits[j], callRateFiltered, callRate, hwe, log);
-					}
-					String[] callRateRemove = HashVec.loadFileToStringArray(callRateFiltered, false, new int[] { 0 }, true);
-					log.reportTimeInfo(callRateRemove.length + " variants removed from " + splits[j] + " at callrate " + callRateFiltered);
-					toRemove = Array.unique(Array.concatAll(toRemove, callRateRemove));
-				}
-			}
-			String lackOfHomoGeneity = dir + "lackOfHomogeneity.dat";
-			String problems = dir + "problematic.dat";
-
-			if (!Files.exists(lackOfHomoGeneity)) {
-				MergeDatasets.checkForHomogeneity(null, dirs, dir, "ALL", log);
-
-			} else {
-				log.reportTimeInfo("Found " + lackOfHomoGeneity + ", assuming this has run to completion");
-			}
-
-			String[] lackOfHomoGeneityIDs = HashVec.loadFileToStringArray(lackOfHomoGeneity, false, new int[] { 0 }, true);
-			log.reportTimeInfo(lackOfHomoGeneityIDs.length + " markers lacking homogeneity from " + fullPathToPopFiles[i]);
-			toRemove = Array.unique(Array.concatAll(toRemove, lackOfHomoGeneityIDs));
-
-			if (Files.exists(problems)) {
-				String[] problematic = HashVec.loadFileToStringArray(problems, false, new int[] { 0 }, true);
-				log.reportTimeInfo(problematic.length + " markers with problems from " + fullPathToPopFiles[i]);
-				toRemove = Array.unique(Array.concatAll(toRemove, problematic));
-			}
-
-		}
-
 		String finalDir = ext.parseDirectoryOfFile(vcf) + "homogeneity/";
 		new File(finalDir).mkdirs();
 		String idFile = finalDir + "variants_Removed.txt";
-		Files.writeList(toRemove, idFile);
-		HashSet<String> sampleHash = new HashSet<String>();
-		for (int i = 0; i < samples.length; i++) {
-			sampleHash.add(samples[i]);
+		String mdsFile = finalDir + "/genome/mds20.mds";
+
+		if (!Files.exists(idFile) || !Files.exists(mdsFile)) {
+
+			String[] samples = HashVec.loadFileToStringArray(finalSamples, false, new int[] { 0 }, false);
+			log.reportTimeInfo("Found " + samples.length + " samples for the final analysis");
+			for (int i = 0; i < fullPathToPopFiles.length; i++) {
+				String fullPathToPopFile = fullPathToPopFiles[i];
+				String[] splits = VcfPopulation.splitVcfByPopulation(vcf, fullPathToPopFile, log);
+				String[] dirs = new String[splits.length];
+				String dir = ext.parseDirectoryOfFile(vcf) + ext.rootOf(fullPathToPopFile) + "/";
+				for (int j = 0; j < splits.length; j++) {
+
+					String export = dir + "plink_" + ext.rootOf(splits[j]) + "/";
+					dirs[j] = ext.parseDirectoryOfFile(convertToPlinkSet(export, splits[j], "plink", PLINK_SET_MODE.HOMOGENEITY, log)[0]);
+					if (VCFOps.getSamplesInFile(splits[j]).length > 50) {
+						String callRateFiltered = dir + ext.rootOf(splits[j]) + ".CR." + callRate + ".hwe." + hwe + ".txt";
+						if (!Files.exists(callRateFiltered)) {
+							reportCallRateHWEFiltered(splits[j], callRateFiltered, callRate, hwe, log);
+						}
+						LocusSet<Segment> segs = LocusSet.loadSegmentSetFromFile(ext.addToRoot(callRateFiltered, ".segment"), 0, 1, 2, 0, true, true, 0, log);
+						// toRemoveSeg = Array.concatAll(toRemoveSeg, segs.getLoci());
+						String[] callRateRemove = HashVec.loadFileToStringArray(callRateFiltered, false, new int[] { 0 }, true);
+						for (int k = 0; k < callRateRemove.length; k++) {
+							toRemoveHash.add(callRateRemove[k]);
+						}
+						log.reportTimeInfo(callRateRemove.length + " variants removed from " + splits[j] + " at callrate " + callRateFiltered);
+						toRemove = Array.unique(Array.concatAll(toRemove, callRateRemove));
+					}
+				}
+				String lackOfHomoGeneity = dir + "lackOfHomogeneity.dat";
+				String problems = dir + "problematic.dat";
+
+				if (!Files.exists(lackOfHomoGeneity)) {
+					MergeDatasets.checkForHomogeneity(null, dirs, dir, "ALL", log);
+
+				} else {
+					log.reportTimeInfo("Found " + lackOfHomoGeneity + ", assuming this has run to completion");
+				}
+
+				String[] lackOfHomoGeneityIDs = HashVec.loadFileToStringArray(lackOfHomoGeneity, false, new int[] { 0 }, true);
+				log.reportTimeInfo(lackOfHomoGeneityIDs.length + " markers lacking homogeneity from " + fullPathToPopFiles[i]);
+				toRemove = Array.unique(Array.concatAll(toRemove, lackOfHomoGeneityIDs));
+				for (int j = 0; j < lackOfHomoGeneityIDs.length; j++) {
+					toRemoveHash.add(lackOfHomoGeneityIDs[j]);
+				}
+				if (Files.exists(problems)) {
+					String[] problematic = HashVec.loadFileToStringArray(problems, false, new int[] { 0 }, true);
+					log.reportTimeInfo(problematic.length + " markers with problems from " + fullPathToPopFiles[i]);
+					// toRemove = Array.unique(Array.concatAll(toRemove, problematic));
+				}
+			}
+
+			Files.writeList(toRemoveHash.toArray(new String[toRemoveHash.size()]), idFile);
+			HashSet<String> sampleHash = new HashSet<String>();
+			for (int i = 0; i < samples.length; i++) {
+				sampleHash.add(samples[i]);
+			}
+			LocusSet<Segment> sort = new LocusSet<Segment>(toRemoveSeg, true, log) {
+
+				/**
+			 * 
+			 */
+				private static final long serialVersionUID = 1L;
+
+			};
+
+			log.reportTimeInfo("Removing " + toRemove.length + " variants from " + vcf);
+			log.reportTimeInfo("Removing " + toRemoveSeg.length + " segments as well");
+			log.reportTimeInfo("Subsetting to " + sampleHash.size() + " samples");
+			String extractVCF = extractIDs(vcf, idFile, finalDir, true, true, sampleHash, sort.getLoci(), true, false, log);
+
+			if (!Files.exists(mdsFile)) {
+				convertToPlinkSet(finalDir, extractVCF, "plink", PLINK_SET_MODE.GWAS_QC, log);
+			}
+		} else {
+			log.reportTimeWarning("found file " + idFile + " and " + mdsFile + " , assuming processing up to this point has been completed");
 		}
-		log.reportTimeInfo("Removing " + toRemove.length + " variants from " + vcf);
-		String extractVCF = extractIDs(vcf, idFile, finalDir, true, true, sampleHash, true, false, log);
-		convertToPlinkSet(finalDir, extractVCF, "plink", PLINK_SET_MODE.GWAS_QC, log);
+		widgets.TabVersion.make(mdsFile);
+		mdsFile = mdsFile + ".xln";
+
+		for (int i = 1; i < matchUpVpops.length; i++) {
+			VcfPopulation vpop = VcfPopulation.load(matchUpVpops[i], POPULATION_TYPE.ANCHOR_BARNACLE, log);
+			vpop.report();
+			String matchDir = finalDir + "match_" + ext.rootOf(matchUpVpops[i]) + "/";
+			new File(matchDir).mkdirs();
+
+			String factorFile = matchDir + "plink.mds";
+			Files.copyFileUsingFileChannels(new File(mdsFile), new File(factorFile), log);
+			String[] barnacleIdsPresent = HashVec.loadFileToStringArray(factorFile, true, new int[] { 0 }, true);
+
+			Set<String> anchors = vpop.getSuperPop().get(VcfPopulation.ANCHOR);
+			Set<String> barnacles = vpop.getSuperPop().get(VcfPopulation.BARNACLE);
+
+			ArrayList<String> currentBarns = new ArrayList<String>();
+
+			for (int j = 0; j < numBarnsPerSample; j++) {
+				HashSet<String> barnaclesPresent = new HashSet<String>();
+				String[] currentBarnsA = currentBarns.toArray(new String[currentBarns.size()]);
+				System.out.println("SIZE" + Array.unique(currentBarnsA).length);
+				for (String barn : barnacles) {
+					if (ext.indexOfStr(barn, barnacleIdsPresent) >= 0 && ext.indexOfStr(barn, currentBarnsA) < 0) {
+						barnaclesPresent.add(barn);
+					} else {
+						// log.reportTimeWarning("Missing sample " + barn + " in file " + factorFile);
+					}
+				}
+
+				System.out.println(barnaclesPresent.size());
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException ie) {
+				}
+				String anchorList = matchDir + "anchors.txt";
+				String barnacleList = matchDir + j + "barnacles.txt";
+
+				Files.writeList(anchors.toArray(new String[anchors.size()]), anchorList);
+				Files.writeList(barnaclesPresent.toArray(new String[barnaclesPresent.size()]), barnacleList);
+				String[] run = new String[] { "C1", "C3" };
+				System.out.println("RUNNING match1");
+				String matchFile = MatchSamples.matchMaker(matchDir, ext.removeDirectoryInfo(anchorList), ext.removeDirectoryInfo(barnacleList), ext.removeDirectoryInfo(factorFile), run, new double[] { 1, 1 }, false);
+				System.out.println("RUNNING match2");
+
+				matchFile = MatchSamples.normalizeDistances(matchDir, matchFile, 0, 100);
+				System.out.println("RUNNING match3");
+
+				String pairs = matchDir + MatchSamples.matchPairs(matchDir, matchFile, true);
+				System.out.println("RUNNING match4");
+
+				Files.copyFileUsingFileChannels(new File(pairs), new File(pairs + j + ".selection"), log);
+				
+				String[] barnesPicked = HashVec.loadFileToStringArray(pairs, true, new int[] { 1 }, true);
+				String[] deletes = Files.listFullPaths(matchDir, ".xln", false);
+				new MatchesVisualized(matchDir, ext.removeDirectoryInfo(anchorList), ext.removeDirectoryInfo(barnacleList), ext.removeDirectoryInfo(factorFile), ext.indexFactors(run, Files.getHeaderOfFile(factorFile, log), true, false), ext.removeDirectoryInfo(pairs));
+
+				for (int k = 0; k < deletes.length; k++) {
+					new File(deletes[k]).delete();
+				}
+				System.out.println(Array.toStr(barnesPicked));
+				for (int k = 0; k < barnesPicked.length; k++) {
+					currentBarns.add(barnesPicked[k]);
+				}
+
+
+			}
+			String finalVpop = matchDir + "barnacle.vpop";
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(finalVpop));
+				writer.println(Array.toStr(VcfPopulation.HEADER));
+				for (int j = 0; j < currentBarns.size(); j++) {
+					writer.println(currentBarns.get(j) + "\t" + VcfPopulation.CONTROL + "\t" + VcfPopulation.CONTROL);
+				}
+				for (String anchor : anchors) {
+					writer.println(anchor + "\t" + VcfPopulation.CASE + "\t" + VcfPopulation.CASE);
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + finalVpop);
+				log.reportException(e);
+			}
+		}
 
 	}
 
@@ -886,7 +1026,7 @@ public class VCFOps {
 	 * @param log
 	 * @return
 	 */
-	public static String extractIDs(String vcf, String idFile, String outputDir, boolean skipFiltered, boolean gzipOutput, HashSet<String> samples, boolean locusID, boolean keepIDs, Logger log) {
+	public static String extractIDs(String vcf, String idFile, String outputDir, boolean skipFiltered, boolean gzipOutput, HashSet<String> samples, Segment[] segsToExclude, boolean locusID, boolean keepIDs, Logger log) {
 		String outputVCF = null;
 		if (idFile == null || !Files.exists(idFile)) {
 			log.reportFileNotFound(idFile);
@@ -908,7 +1048,7 @@ public class VCFOps {
 			if (!Files.exists(outputVCF)) {
 				VCFFileReader reader = new VCFFileReader(vcf, true);
 				VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
-				copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
+				copyHeader(reader, writer, samples == null ? BLANK_SAMPLE : samples, HEADER_COPY_TYPE.SUBSET_STRICT, log);
 				int progress = 0;
 				int found = 0;
 
@@ -922,18 +1062,27 @@ public class VCFOps {
 							log.reportTimeInfo(found + " variants found...");
 
 						}
+						// if (found == 10000) {
+						// writer.close();
+						// reader.close();
+						// return outputVCF;
+						// }
 						String anno = locusID ? new VCOps.LocusID(vc).getId() : VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".")[0];
 
 						if ((!skipFiltered || !vc.isFiltered()) && (keepIDs && tmp.contains(anno)) || (!keepIDs && !tmp.contains(anno))) {
-							VariantContextBuilder builder = new VariantContextBuilder(vc);
-							if (vc.getID().equals(".")) {
-								builder.id(anno);
-							} else {
-								builder.id(new VCOps.LocusID(vc).getId());
+							if (segsToExclude == null || (keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc), segsToExclude) != null) || (!keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc), segsToExclude) == null)) {
+								VariantContextBuilder builder = new VariantContextBuilder(vc);
+								if (vc.getID().equals(".")) {
+									builder.id(anno);
+								}
+								VariantContext vcAdd = builder.make();
+
+								if (samples != null) {
+									vcAdd = VCOps.getSubset(vcAdd, samples, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+								}
+								writer.add(vcAdd);
+								found++;
 							}
-							VariantContext vcAdd = samples == null ? builder.make() : VCOps.getSubset(builder.make(), samples, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-							writer.add(vcAdd);
-							found++;
 						}
 					}
 				} else {
@@ -1557,7 +1706,7 @@ public class VCFOps {
 				qcVCF(vcf, log);
 				break;
 			case EXTRACT_IDS:
-				extractIDs(vcf, idFile, outDir, skipFiltered, gzip, null, false, true, log);
+				extractIDs(vcf, idFile, outDir, skipFiltered, gzip, null, null, false, true, log);
 				break;
 			case DUMP_SAMPLES:
 				extractSamps(vcf, log);

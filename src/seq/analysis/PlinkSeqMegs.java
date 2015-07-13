@@ -50,7 +50,7 @@ public class PlinkSeqMegs {
 
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
 
-		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()) + VCFOps.getAppropriateRoot(vcf, true) + "/", vcf, vpop, resourceDirectory, false, false, log);
+		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()) + VCFOps.getAppropriateRoot(vcf, true) + "/", vcf, vpop, resourceDirectory, true, true, log);
 		VCFFileReader reader = new VCFFileReader(vcf, true);
 		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();

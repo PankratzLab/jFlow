@@ -99,7 +99,7 @@ public class Qc {
 			log.report(ext.getTime() + "]\tRunning --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""));
 			CmdLine.run("plink --noweb --bfile plink --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""), dir+"genome/");
 		}
-		if (!keepGenomeInfoForRelatedsOnly) {
+		if (!keepGenomeInfoForRelatedsOnly && !Files.exists(dir + "genome/mds20.mds")) {
 			log.report(ext.getTime() + "]\tRunning --mds-plot 20");
 			CmdLine.run("plink --bfile plink --read-genome plink.genome --cluster --mds-plot 20 --out mds20 --noweb", dir+"genome/");
 		}
