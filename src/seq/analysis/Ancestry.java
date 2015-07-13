@@ -17,9 +17,9 @@ public class Ancestry {
 		Logger log = new Logger(outputDirectory + "ancestry.log");
 		log.reportTimeInfo("Output directory: " + outputDirectory);
 
-		String curVCF = VCFOps.extractIDs(vcf, g1000RsIds, outputDirectory, true, true, null, false, true, log);
+		String curVCF = VCFOps.extractIDs(vcf, g1000RsIds, outputDirectory, true, true, null, null, false, true, log);
 		log.reportTimeInfo("Current VCF: " + curVCF);
-		curVCF = VCFOps.extractIDs(curVCF, hapMapRsIds, outputDirectory, true, true, null, false, true, log);
+		curVCF = VCFOps.extractIDs(curVCF, hapMapRsIds, outputDirectory, true, true, null, null, false, true, log);
 		log.reportTimeInfo("Current VCF: " + curVCF);
 
 		String[] filenames = VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, log);

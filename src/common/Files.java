@@ -411,7 +411,7 @@ public class Files {
 	
 	
 	public static void qsub(String root, String commands, String[][] iterations) {
-		qsub(root, commands, iterations, -1, -1, -1);
+		qsub(root, commands, iterations, -1, 10, -1);
 	}
 
 	public static void qsub(String root, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs) {
