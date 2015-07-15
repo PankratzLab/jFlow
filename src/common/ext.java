@@ -1407,7 +1407,7 @@ public class ext {
 
 	public static String removeAndSimplifyQuotes(String str, Logger log) {
 		if (str.startsWith("\"")) {
-			if (!str.endsWith("\"")) {
+			if (!str.endsWith("\"") && log != null) {
 				log.reportError("Error - improperly formed quotes in comma delimited token:");
 				log.reportError(str);
 			}

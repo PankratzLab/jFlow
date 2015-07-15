@@ -697,7 +697,7 @@ public class Metal {
 			if (!Files.exists("hits.txt")) {
     			hits = new Hits();
     			hits.incorporateFromFile(outputFile+"_InvVar1.out", thresholdForHits, log);
-    			hits.incorporateFromFile(outputFile+"_NWeighted1.out", thresholdForHits, log);
+//    			hits.incorporateFromFile(outputFile+"_NWeighted1.out", thresholdForHits, log);
     			hits.writeHits("hits.txt");
 			} 
 			

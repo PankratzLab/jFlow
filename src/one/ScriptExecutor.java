@@ -26,7 +26,7 @@ public class ScriptExecutor {
 		this.executor = Executors.newFixedThreadPool(numThreads);
 	}
 	
-	private boolean outLogExistsComplete(String outLog, String outLogEndToken) {
+	public static boolean outLogExistsComplete(String outLog, String outLogEndToken) {
 		if (!Files.exists(outLog)) {
 			return false;
 		}
@@ -34,7 +34,7 @@ public class ScriptExecutor {
 		return !(outLogEndToken == null) && lines.length > 0 && (lines[lines.length - 1].contains(outLogEndToken));
 	}
 	
-	private void run(String file, String outLogEndToken) throws IOException {
+	public void run(String file, String outLogEndToken) throws IOException {
 		String dirTemp = ext.parseDirectoryOfFile(file);
 		if (!dirTemp.endsWith("/")) {
 			dirTemp = dirTemp + "/";
