@@ -76,7 +76,7 @@ public class FAST {
     };
     
     private static final Object OUT_LOCK = new Object();
-	private static void processAndPrepareMETAL(final String studyDir) {
+	public static void processAndPrepareMETAL(final String studyDir) {
 	    String tempName = ext.verifyDirFormat(studyDir);
 	    final String studyName = ext.rootOf(tempName.substring(0, tempName.length() - 1), true);
 	    
@@ -327,111 +327,114 @@ public class FAST {
 	    return metalCRF.toString();
 	}
 
-    private static void prepareFAST(String traitDir, String dataFile, boolean run) throws IOException {
-    		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
-    		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
-    
-    		String runDir = ext.verifyDirFormat(System.getProperty("user.dir"));
-    		
-    		// TODO ensure 1-1 keymapping between traits and data maps
-    		// TODO ensure 1-1 keymapping between study.pop in both maps
-    		
-    		/*
-    		 mkdir STUDY
-    		 for each FACTOR:
-    		    mkdir FACTOR
-    		    for each POP:
-    		    	mkdir POP
-    				cp TRAITFILE > POP_DIR
-    		*/
-    		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
-    			String study = entry.getKey();
-    			HashMap<String, HashMap<String, String>> factorToPopToTraitMap = entry.getValue();
-    			
-    			(new File(study)).mkdir();
-    			
-    			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
-    				String factor = factors.getKey();
-    				HashMap<String, String> popToTraitMap = factors.getValue();
-    				File factorDir = new File(study+"/"+factor+"/");
-    				(factorDir).mkdir();
-    				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
-    					String pop = popEntry.getKey();
-    					String traitFile = popEntry.getValue();
-    	                (new File(study+"/"+factor+"/"+pop)).mkdir();
-    	                Files.copyFile(traitDir + traitFile, study+"/"+factor+"/"+pop + "/" + traitFile);
-    				}
-    			}
-    			
-    		}
-    		
-    		StringBuilder masterRunScript = new StringBuilder();
-    		StringBuilder masterProcessScript = new StringBuilder();
-    		
-    		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
-    			String study = entry.getKey();
-    			HashMap<String, HashMap<String, String>> factorToPopToTraitMap = entry.getValue();
-    			
-    			HashMap<String, DataDefinitions> popToDataDef = data.get(study);
-    			
-    			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
-    				String factor = factors.getKey();
-    				HashMap<String, String> popToTraitMap = factors.getValue();
-    				
-    				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
-    					String pop = popEntry.getKey();
-    					String traitFile = popEntry.getValue();
-    					
-    					DataDefinitions dataDef = popToDataDef.get(pop);
-    					int covars = countCovars(traitDir + traitFile);
-    					FAST fastRun = new FAST("FAST", dataDef.dataDir, dataDef.indivFile, runDir+study+"/"+factor+"/"+pop+"/"+traitFile, dataDef.dataSuffix, runDir+study+"/"+factor+"/"+pop, covars);
-    					fastRun.study = study;
-    					fastRun.factor = factor;
-    					fastRun.pop = pop;
-    					fastRun.sex = -1;
-    					fastRun.run();
-    					
-    					masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
-    					masterRunScript.append("qsub ").append(RUN_SCRIPT_NAME).append("\n");
-    					masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/\n");
-    					masterProcessScript.append("qsub ").append(PROCESS_SCRIPT_NAME).append("\n");
-    					
-    					if (dataDef.sexDir != null) {
-    					    String maleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/male/", traitDir + traitFile, true);
-    					    String femaleTraitFile = sexCopyTraitFile(study+"/"+factor+"/"+pop+"/female/", traitDir + traitFile, false);
-    	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+maleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/male/", covars);
-    	                    fastRun.study = study;
-    	                    fastRun.factor = factor;
-    	                    fastRun.pop = pop;
-    	                    fastRun.sex = 1;
-    	                    fastRunMale.run();
-    	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+femaleTraitFile, dataDef.sexSuffix, runDir+study+"/"+factor+"/"+pop+"/female/", covars);
-    	                    fastRun.study = study;
-    	                    fastRun.factor = factor;
-    	                    fastRun.pop = pop;
-    	                    fastRun.sex = 0;
-    	                    fastRunFemale.run();
-    	                    masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/male/\n");
-    	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
-    	                    masterRunScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
-    	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
-    	                    masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/male/\n");
-    	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
-    	                    masterProcessScript.append("cd ").append(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/female/\n");
-    	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
-    					}
-    				}
-    			}
-    		}
-    		
-    		Files.write(masterRunScript.toString(), runDir+"runFAST.sh");
-            Files.write(masterProcessScript.toString(), runDir+"processFAST.sh");
-    		Files.chmod(runDir+"runFAST.sh");
-    		Files.chmod(runDir+"processFAST.sh");
-    		if (run) {
-    		    CmdLine.run("./runFAST.sh", runDir);
-    		}
-    	}
+    public static String[] prepareFAST(String traitDir, String dataFile, String runDir, boolean run) throws IOException {
+		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
+		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
+		ArrayList<String> dirs = new ArrayList<String>();
+		// TODO ensure 1-1 keymapping between traits and data maps
+		// TODO ensure 1-1 keymapping between study.pop in both maps
+		
+		/*
+		 mkdir STUDY
+		 for each FACTOR:
+		    mkdir FACTOR
+		    for each POP:
+		    	mkdir POP
+				cp TRAITFILE > POP_DIR
+		*/
+		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
+			String study = entry.getKey();
+			HashMap<String, HashMap<String, String>> factorToPopToTraitMap = entry.getValue();
+			
+			(new File(runDir + study)).mkdir();
+			
+			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
+				String factor = factors.getKey();
+				HashMap<String, String> popToTraitMap = factors.getValue();
+				File factorDir = new File(runDir + study+"/"+factor+"/");
+				(factorDir).mkdir();
+				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
+					String pop = popEntry.getKey();
+					String traitFile = popEntry.getValue();
+	                (new File(runDir + study+"/"+factor+"/"+pop)).mkdir();
+	                Files.copyFile(traitDir + traitFile, runDir + study+"/"+factor+"/"+pop + "/" + traitFile);
+				}
+			}
+			
+		}
+		
+		StringBuilder masterRunScript = new StringBuilder();
+		StringBuilder masterProcessScript = new StringBuilder();
+		
+		for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
+			String study = entry.getKey();
+			HashMap<String, HashMap<String, String>> factorToPopToTraitMap = entry.getValue();
+			
+			HashMap<String, DataDefinitions> popToDataDef = data.get(study);
+			
+			for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
+				String factor = factors.getKey();
+				HashMap<String, String> popToTraitMap = factors.getValue();
+				
+				for (java.util.Map.Entry<String, String> popEntry : popToTraitMap.entrySet()) {
+					String pop = popEntry.getKey();
+					String traitFile = popEntry.getValue();
+					String dir = new StringBuilder(runDir).append(study).append("/").append(factor).append("/").append(pop).append("/").toString();
+					
+					DataDefinitions dataDef = popToDataDef.get(pop);
+					int covars = countCovars(traitDir + traitFile);
+					FAST fastRun = new FAST("FAST", dataDef.dataDir, dataDef.indivFile, dir+traitFile, dataDef.dataSuffix, dir, covars);
+					fastRun.study = study;
+					fastRun.factor = factor;
+					fastRun.pop = pop;
+					fastRun.sex = -1;
+					fastRun.run();
+					
+					dirs.add(dir);
+					
+					masterRunScript.append("cd ").append(dir).append("\n");
+					masterRunScript.append("qsub ").append(RUN_SCRIPT_NAME).append("\n");
+					masterProcessScript.append("cd ").append(dir).append("\n");
+					masterProcessScript.append("qsub ").append(PROCESS_SCRIPT_NAME).append("\n");
+					
+					if (dataDef.sexDir != null) {
+					    String maleTraitFile = sexCopyTraitFile(dir + "male/", traitDir + traitFile, true);
+					    String femaleTraitFile = sexCopyTraitFile(dir + "female/", traitDir + traitFile, false);
+	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+maleTraitFile, dataDef.sexSuffix, dir + "male/", covars);
+	                    fastRun.study = study;
+	                    fastRun.factor = factor;
+	                    fastRun.pop = pop;
+	                    fastRun.sex = 1;
+	                    fastRunMale.run();
+	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+femaleTraitFile, dataDef.sexSuffix, dir + "female/", covars);
+	                    fastRun.study = study;
+	                    fastRun.factor = factor;
+	                    fastRun.pop = pop;
+	                    fastRun.sex = 0;
+	                    fastRunFemale.run();
+	                    masterRunScript.append("cd ").append(dir).append("male/\n");
+	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+	                    masterRunScript.append("cd ").append(dir).append("female/\n");
+	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+	                    masterProcessScript.append("cd ").append(dir).append("male/\n");
+	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
+	                    masterProcessScript.append("cd ").append(dir).append("female/\n");
+	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
+					}
+				}
+			}
+		}
+		
+		Files.write(masterRunScript.toString(), runDir+"runFAST.sh");
+        Files.write(masterProcessScript.toString(), runDir+"processFAST.sh");
+		Files.chmod(runDir+"runFAST.sh");
+		Files.chmod(runDir+"processFAST.sh");
+		if (run) {
+		    CmdLine.run("./runFAST.sh", runDir);
+		}
+		
+		return dirs.toArray(new String[dirs.size()]);
+	}
 
     public FAST(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount) {
 		this.FAST_LOC = FASTloc;
@@ -468,8 +471,8 @@ public class FAST {
 				.append(dataFiles[i])
 				.append(" --impute2-info-file ")
 				.append(dir)
-				.append(dataFiles[i].substring(0, dataFiles[i].length() - 3))
-				.append("_info --indiv-file ")
+				.append(dataFiles[i].substring(0, dataFiles[i].length() - 3)) // TODO assuming files are gzipped
+				.append("_info --indiv-file ") // assuming info files end with _info
 				.append(indivFile)
 				.append(" --trait-file ")
 				.append(traitFile)
@@ -529,14 +532,13 @@ public class FAST {
         return procFileOut.toString();
     }
 
-    private static HashMap<String, HashMap<String, HashMap<String, String>>> loadTraitFiles(String traitDir) {
+    public static HashMap<String, HashMap<String, HashMap<String, String>>> loadTraitFiles(String traitDir) {
     	String[] files = (new File(traitDir)).list(new FilenameFilter() {
     		@Override
     		public boolean accept(File dir, String name) {
     			return name.split("_").length == 3 && name.endsWith(".trait");
     		}
     	});
-    	System.out.println("Found " + files.length + " trait files");
     	
     	HashMap<String, HashMap<String, HashMap<String, String>>> studyToFactorToPopToFile = new HashMap<String, HashMap<String,HashMap<String,String>>>();
     	
@@ -560,7 +562,7 @@ public class FAST {
     	return studyToFactorToPopToFile;
     }
 
-    private static HashMap<String, HashMap<String, DataDefinitions>> parseFile(String file) throws IOException {
+    public static HashMap<String, HashMap<String, DataDefinitions>> parseFile(String file) throws IOException {
     	HashMap<String, HashMap<String, DataDefinitions>> defs = new HashMap<String, HashMap<String, DataDefinitions>>();
     	
     	BufferedReader reader = Files.getAppropriateReader(file);
@@ -627,14 +629,14 @@ public class FAST {
         return newFile;
     }
 
-    static class DataDefinitions {
-    	String study;
-    	String popcode;
-    	String dataDir;
-    	String dataSuffix;
-    	String sexDir;
-    	String sexSuffix;
-    	String indivFile;
+    public static class DataDefinitions {
+    	public String study;
+    	public String popcode;
+    	public String dataDir;
+    	public String dataSuffix;
+    	public String sexDir;
+    	public String sexSuffix;
+    	public String indivFile;
     }
 
     private static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
@@ -749,7 +751,7 @@ public class FAST {
 		String indiv = "~/indiv.txt";
 		String trait = "~/trait.txt";
 		String suffix = ".impute2.gz";
-		String run = "~/runFAST/";
+		String run = ext.verifyDirFormat(System.getProperty("user.dir"));
 		int covars = 0;
 		String results = "~/FAST/output/";
 		String out = "finalResults.txt";
@@ -780,8 +782,9 @@ public class FAST {
 		                "                 SEX DATA FILE SUFFIX\n" +
 		                "             PATH TO .indiv FILE \n" + 
 		                "   (2) Path to folder containing .trait files (i.e. trait=~/traits/ (not the default))\n" + 
-		                "   (3) -prep flag\n" +
-	                    "   (4) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
+		                "   (3) Full-path to the directory in which you want to run these scripts (must include a folder named 'output') (i.e. rundir=" + run + " (default))\n" +
+		                "   (4) -prep flag\n" +
+	                    "   (5) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
 		                " OR: \n" +
 		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. data=~/FAST/ARIC/ (not the default))\n" +
 		                "   (2) -process flag\n" + 
@@ -905,7 +908,7 @@ public class FAST {
 		    if (metal) {
 		        prepareMETAL(data);
 		    } else if (prep) {
-		        prepareFAST(trait, data, runFAST);
+		        prepareFAST(trait, data, run, runFAST);
 		    } else if (process) {
 		        processAndPrepareMETAL(data);
 		    } else if (concat && convert) {
