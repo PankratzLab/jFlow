@@ -224,7 +224,7 @@ public class ConditionalAnalysisPipeline {
             String dir = region.analysisRootDir + region.regionDirNameRoot;
             
             int offset = 5; // column index offset to start of geno data
-            String[] genoData = region.genoData.split(" ");
+            String[] genoData = region.genoData.split("[\\s]+");
             
             ArrayList<String> missing = new ArrayList<String>();
             
@@ -245,7 +245,10 @@ public class ConditionalAnalysisPipeline {
                         missing.add(iid);
                     } else {
                         int iidInd = iidIndex.intValue();
-                        geno = genoData[offset + iidInd];
+//                        double geno1 = Double.parseDouble(genoData[offset + (3 * iidInd)]);
+                        double geno2 = Double.parseDouble(genoData[offset + (3 * iidInd) + 1]);
+                        double geno3 = Double.parseDouble(genoData[offset + (3 * iidInd) + 2]);
+                        geno = "" + (geno2 + (2 * geno3));
                     }
                     
                     writer.println(line + "\t" + geno);
