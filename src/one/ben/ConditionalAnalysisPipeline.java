@@ -239,10 +239,9 @@ public class ConditionalAnalysisPipeline {
                 
                 while ((line = reader.readLine()) != null) {
                     String iid = line.split("\t")[1];
-                    Integer iidIndex = iids.get(iid); // TODO nullcheck
+                    Integer iidIndex = iids.get(iid);
                     String geno = MISSING_DATA;
                     if (iidIndex == null) {
-//                        System.out.println("NULL lookup for iid [" + iid + "]; indexMap size: " + iids.size());
                         missing.add(iid);
                     } else {
                         int iidInd = iidIndex.intValue();
@@ -254,6 +253,8 @@ public class ConditionalAnalysisPipeline {
                 writer.flush();
                 writer.close();
                 reader.close();
+                
+                synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tWARNING - " + missing.size() + " individuals from .trait file are missing genotype data."); }
                 
             } catch (FileNotFoundException e) {
                 // TODO Auto-generated catch block
@@ -316,14 +317,13 @@ public class ConditionalAnalysisPipeline {
             try {
                 synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tPreparing FAST analysis in directory [" + regionPath + "]..."); }
                 String[] analysisDirs = FAST.prepareFAST(regionPath, newDataFile, regionPath, false);
-//                System.out.println(ext.getTime() + "]\tRegion Complete! >> " + region.toString());
                 
-//                removeExtraTraitFiles(dataFileAndTraitDir[1]);
-
                 synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tRunning " + analysisDirs.length + " FAST analyses..."); }
-                for (String dir : analysisDirs) {
-                    (new ScriptExecutor(NUM_THREADS)).run(dir + "input.txt", "took");
-                    if (!ScriptExecutor.outLogExistsComplete(dir + "output/input.log_0.out", "took")) {
+                boolean[] runs = Array.booleanArray(analysisDirs.length, false);
+                for (int i = 0; i < analysisDirs.length; i++) {
+                    (new ScriptExecutor(NUM_THREADS)).run(analysisDirs[i] + "input.txt", "took");
+                    runs[i] = ScriptExecutor.outLogExistsComplete(analysisDirs[i] + "output/input.log_0.out", "took");
+                    if (!runs[i]) {
                         // TODO Error - FAST failed!
                     }
                 }
@@ -430,22 +430,6 @@ public class ConditionalAnalysisPipeline {
             
             return minPValSNP;
         }
-
-        private static void removeExtraTraitFiles(String dir) {
-         // TODO remove extra .trait files
-            String[] files = (new File(dir)).list(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.split("_").length == 3 && name.endsWith(".trait");
-                }
-            });
-            synchronized(PRINT_LOCK) {
-                System.out.println(ext.getTime() + "]\tRemoving " + files.length + " extraneous .trait files...");
-            }
-            for (String traitFile : files) {
-                (new File(dir + traitFile)).delete();
-            }
-        }
         
     }
     
@@ -486,7 +470,7 @@ public class ConditionalAnalysisPipeline {
         Region[] rgns = parseSetupFile(inputFile);
         System.out.println(ext.getTime() + "]\tFound " + rgns.length + " regions for analysis");
         boolean[] dirCreation = buildAnalysisFolders(analysisDir, rgns);
-        System.out.println(ext.getTime() + "]\tParsing data file...");
+        System.out.println(ext.getTime() + "]\tParsing data file..."); // TODO divorce from FAST?
         HashMap<String, HashMap<String, DataDefinitions>> dataDefs = null;
         try {
             dataDefs = FAST.parseFile(dataFile);
