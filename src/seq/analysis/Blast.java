@@ -1,5 +1,9 @@
 package seq.analysis;
 
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
@@ -21,7 +25,7 @@ import filesys.Segment;
 
 public class Blast {
 	private static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };
-	public static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score" };
+	public static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score" ,"BTOP"};
 	private static final String DB = "-db";
 	private static final String IN = "-in";
 	private static final String DB_TYPE = "-dbtype";
@@ -100,7 +104,7 @@ public class Blast {
 
 		if (!System.getProperty("os.name").startsWith("Windows")) {
 			if (!fail) {
-				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : ""), WORD_SIZE, blastWordSize + "", evalue != DEFAULT_EVALUE ? E : "", evalue != DEFAULT_EVALUE ? evalue + "" : "" };
+				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : " btop"), WORD_SIZE, blastWordSize + "", evalue != DEFAULT_EVALUE ? E : "", evalue != DEFAULT_EVALUE ? evalue + "" : "" };
 				FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
 				CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
 				builder.STIN(fStream);
@@ -258,8 +262,13 @@ public class Blast {
 		private double evalue;
 		private double bitScore;
 		private String taxID;
+		private String btop;
 
 		public BlastResults(String[] blastLine, Logger log) {
+			this(blastLine, false, log);
+		}
+
+		public BlastResults(String[] blastLine, boolean taxonMode, Logger log) {
 			this.queryID = blastLine[0];
 			this.subjectID = blastLine[1];
 			this.percentIdentity = tryDouble(blastLine[2], log);
@@ -272,8 +281,10 @@ public class Blast {
 			this.sstop = tryInt(blastLine[9], log);
 			this.evalue = tryDouble(blastLine[10], log);
 			this.bitScore = tryDouble(blastLine[11], log);
-			if (blastLine.length > 12) {
+			if (taxonMode && blastLine.length > 12) {
 				this.taxID = blastLine[12];
+			} else {
+				this.btop = blastLine[12];
 			}
 		}
 
@@ -331,7 +342,7 @@ public class Blast {
 		}
 
 		private String[] getResults() {
-			return new String[] { queryID, subjectID, percentIdentity + "", alignmentLength + "", mismatches + "", gapOpens + "", qstart + "", qstop + "", sstart + "", sstop + "", evalue + "", bitScore + "" };
+			return new String[] { queryID, subjectID, percentIdentity + "", alignmentLength + "", mismatches + "", gapOpens + "", qstart + "", qstop + "", sstart + "", sstop + "", evalue + "", bitScore + "", btop };
 		}
 
 		private double tryDouble(String ad, Logger log) {

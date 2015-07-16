@@ -118,8 +118,8 @@ class CorrectionIterator implements Serializable {
 		CorrectionEvaluator cEvaluator = null;
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		IterationResult iterationResult = new IterationResult(output, iType, oType, bType);
-		if (!Files.exists(iterationResult.getOutputSer())  ) {
-			//|| !Files.exists(iterationResult.getBasePrep())
+		if (!Files.exists(iterationResult.getOutputSer())) {
+			// || !Files.exists(iterationResult.getBasePrep())
 			// || oType == ORDER_TYPE.QC_ASSOCIATION
 			//
 			// iterationResult.plotRank(log);
@@ -547,8 +547,11 @@ class CorrectionIterator implements Serializable {
 		return cIterators.toArray(new CorrectionIterator[cIterators.size()]);
 	}
 
-	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pedFile, boolean svd, int numthreads) {
+	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pcFile, String pedFile, boolean svd, int numthreads) {
 		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(400);
+		if (pcFile != null) {
+			proj.INTENSITY_PC_FILENAME.setValue(pcFile);
+		}
 		System.out.println("JDOFJSDF remember the pcs");
 		if (outputDir == null) {
 			outputDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue()) + "_eval/";
@@ -705,6 +708,7 @@ class CorrectionIterator implements Serializable {
 		boolean svd = false;
 		int numThreads = 3;
 		String samplesToBuildModels = null;
+		String pcFile = null;
 		String pedFile = null;
 		String usage = "\n" + "cnv.analysis.pca.CorrectionEvaluator requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + proj + " (default))\n" + "";
@@ -714,6 +718,8 @@ class CorrectionIterator implements Serializable {
 		usage += "   (5) svd regression (i.e.-svd (not default))\n" + "";
 		usage += "   (6) samples to generate models (i.e.samples= (no default))\n" + "";
 		usage += "   (7) ped file to generate heritability (i.e.ped= (no default))\n" + "";
+		usage += "   (8) alternate pc file to use (i.e.pcFile= (no default))\n" + "";
+
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -733,6 +739,9 @@ class CorrectionIterator implements Serializable {
 			} else if (args[i].startsWith("-svd")) {
 				svd = true;
 				numArgs--;
+			} else if (args[i].startsWith("pcFile=")) {
+				pcFile = ext.parseStringArg(args[i], "");
+				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.OUTPUT_DIR_COMMAND)) {
 				defaultDir = args[i].split("=")[1];
 				numArgs--;
@@ -748,7 +757,7 @@ class CorrectionIterator implements Serializable {
 			System.exit(1);
 		}
 		try {
-			runAll(new Project(proj, false), markers, samplesToBuildModels, defaultDir, pedFile, svd, numThreads);
+			runAll(new Project(proj, false), markers, samplesToBuildModels, defaultDir, pcFile, pedFile, svd, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
