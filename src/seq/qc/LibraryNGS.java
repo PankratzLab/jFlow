@@ -749,7 +749,7 @@ public class LibraryNGS implements Serializable {
 			for (int i = 0; i < this.baits.length; i++) {
 				int[] libraryIndices = libraryNGS.indicesInLibrary(this.baits[i]);
 				if (libraryIndices == null) {
-					this.log.reportError("Error - the bait " + this.baits[i].getUCSClocation() + " could not be mapped to the library");
+					//this.log.reportError("Error - the bait " + this.baits[i].getUCSClocation() + " could not be mapped to the library");
 				} else {
 					for (int j = 0; j < libraryIndices.length; j++) {
 						baitsPerTarget[libraryIndices[j]] += 1;

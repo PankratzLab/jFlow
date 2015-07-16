@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
 
@@ -23,6 +24,7 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.WorkerHive;
 import common.ext;
 import cnv.LaunchProperties;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
@@ -1283,5 +1285,57 @@ public class Project {
 		}
 
 	}
-	
+
+	/**
+	 * Even if there are not outliers we still enforce "outliers.ser" to exist. 
+	 */
+	@SuppressWarnings("unchecked")
+	public void verifyAndGenerateOutliers(boolean verbose) {
+		String outlierFileName = SAMPLE_DIRECTORY.getValue() + "outliers.ser";
+		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+		
+		
+		if (Files.exists(outlierFileName)) {
+			if (verbose) {
+				getLog().reportTimeError(outlierFileName + " already exists, cancelling");
+			}
+		} else {
+			log.reportTimeInfo("Did not see " + outlierFileName + ", generating now");
+			WorkerHive<Hashtable<String, Float>> hive = new WorkerHive<Hashtable<String, Float>>(NUM_THREADS.getValue(), 10, getLog());
+			for (int i = 0; i < getSamples().length; i++) {
+				final String currentSampleRAF = SAMPLE_DIRECTORY.getValue() + getSamples()[i] + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				final int index = i;
+				final Logger log = getLog();
+				Callable<Hashtable<String, Float>> outCallable = new Callable<Hashtable<String, Float>>() {
+
+					@Override
+					public Hashtable<String, Float> call() throws Exception {
+						// TODO Auto-generated method stub
+						if (index % 100 == 0) {
+							log.reportTimeInfo("loading sample " + (index + 1) + " on " + Thread.currentThread().getName());
+						}
+						return Sample.loadOutOfRangeValuesFromRandomAccessFile(currentSampleRAF);
+					}
+
+				};
+				hive.addCallable(outCallable);
+			}
+			hive.execute(true);
+			ArrayList<Hashtable<String, Float>> outlierHashtables = hive.getResults();
+			for (int i = 0; i < outlierHashtables.size(); i++) {
+				if (outlierHashtables.get(i) != null && outlierHashtables.get(i).size() > 0) {
+					outliers.putAll(outlierHashtables.get(i));
+				}
+			}
+			getLog().reportTimeInfo("Writing outliers to " + outlierFileName);
+			Files.writeSerial(outliers, outlierFileName);
+		}
+		if (!Files.exists(MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser")) {
+			if (Files.exists(outlierFileName)) {
+				outliers = (Hashtable<String, Float>) Files.readSerial(outlierFileName);
+			}
+			getLog().reportTimeInfo("Writing outliers to " + MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+			Files.writeSerial(outliers, MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+		}
+	}
 }

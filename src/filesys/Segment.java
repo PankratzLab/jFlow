@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.Vector;
 
 
+
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -205,8 +206,40 @@ public class Segment implements Serializable {
 		}
 		return new Segment(chr, Math.max(start, seg.start), Math.min(stop, seg.stop));
 	}
-	
-	
+
+	/**
+	 * **Warning, not really tested
+	 * @param seg
+	 * @param log
+	 * @return
+	 */
+	public Segment[] remove(Segment seg, Logger log) {
+		Segment[] removed =null;
+		if (!overlaps(seg)) {
+			removed = new Segment[] { this };
+		} else {
+			Segment union = getUnion(seg, log);
+			if (equals(union)) {
+				removed = null;// removed all
+			} else if (union.getStart() > getStart() && union.getStop() < getStop()) {//split
+				Segment first = new Segment(getChr(), getStart(), union.getStart() - 1);
+				Segment second = new Segment(getChr(), union.getStop() + 1, getStop());
+				removed = new Segment[] { first, second };
+			} else if (union.getStart() > getStart() && union.getStop() >= getStop()) {
+				Segment head = new Segment(getChr(), getStart(), union.getStart() - 1);
+				removed = new Segment[] { head };
+			} else if (union.getStart() <= getStart() && union.getStop() < getStop()) {
+				Segment tail = new Segment(getChr(), union.getStart() + 1, getStop());
+				removed = new Segment[] { tail };
+			} else {
+				String error = "Un accounted for remove" + getUCSClocation() + " trying to remove " + seg.getUCSClocation();
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+		}
+		return removed;
+	}
+
 	public String toAnalysisString() {
 		return chr + "\t" + start + "\t" + stop + "\t";
 	}

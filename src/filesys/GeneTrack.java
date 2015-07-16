@@ -156,6 +156,18 @@ public class GeneTrack implements Serializable {
         Files.writeSerial(this, filename);
     }
 
+	public GeneData[] getOverlappingGenes(Segment seg) {
+		ArrayList<GeneData> tmp = new ArrayList<GeneData>();
+		for (int i = 0; i < genes.length; i++) {
+			for (int j = 0; j < genes[i].length; j++) {
+				if (seg.overlaps(genes[i][j])) {
+					tmp.add(genes[i][j]);
+				}
+			}
+		}
+		return tmp.toArray(new GeneData[tmp.size()]);
+	}
+	
     public static GeneTrack load(String filename, boolean jar) {
         return (GeneTrack) Files.readSerial(filename, jar, false);
     }

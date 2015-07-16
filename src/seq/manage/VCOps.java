@@ -610,16 +610,8 @@ public class VCOps {
 	}
 
 	public static GeneData[] getGenesThatOverlap(VariantContext vc, GeneTrack geneTrack, Logger log) {
-		ArrayList<GeneData> tmp = new ArrayList<GeneData>();
 		Segment vcSeg = getSegment(vc);
-		for (int i = 0; i < geneTrack.getGenes().length; i++) {
-			for (int j = 0; j < geneTrack.getGenes()[i].length; j++) {
-				if (vcSeg.overlaps(geneTrack.getGenes()[i][j])) {
-					tmp.add(geneTrack.getGenes()[i][j]);
-				}
-			}
-		}
-		return tmp.toArray(new GeneData[tmp.size()]);
+		return geneTrack.getOverlappingGenes(vcSeg);
 	}
 
 	public static boolean isInTheseSegments(VariantContext vc, Segment[] orderedSegs) {

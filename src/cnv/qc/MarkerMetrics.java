@@ -40,6 +40,8 @@ public class MarkerMetrics {
 		} else {
 			markerNames = proj.getMarkerNames();
 		}
+		proj.verifyAndGenerateOutliers(false);
+
 		if (numThreads <= 1) {
 			fullQC(proj, samplesToExclude, markerNames, finalQcFile);
 		} else {
