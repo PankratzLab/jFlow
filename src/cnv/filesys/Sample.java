@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.concurrent.Callable;
 
 import common.Array;
 import common.DoubleVector;
@@ -19,6 +20,7 @@ import common.Elision;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.WorkerHive;
 import common.ext;
 
 public class Sample implements Serializable {
@@ -1156,6 +1158,81 @@ public class Sample implements Serializable {
 		
 	}
 
+	@SuppressWarnings("unchecked")
+	public static void verifyAndGenerateOutliers(Project proj, int numthreads, boolean verbose) {
+		String outlierFileName = proj.SAMPLE_DIRECTORY.getValue() + "outliers.ser";
+		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+
+		if (Files.exists(outlierFileName)) {
+			if (verbose) {
+				proj.getLog().reportTimeError(outlierFileName + " already exists, cancelling");
+			}
+		} else {
+			proj.getLog().reportTimeInfo("Did not see " + outlierFileName + ", generating now");
+			class HashLoadResult {
+				private Hashtable<String, Float> outlier;
+				private String sampleName;
+
+				public HashLoadResult(Hashtable<String, Float> outlier, String sampleName) {
+					super();
+					this.outlier = outlier;
+					this.sampleName = sampleName;
+				}
+
+				public Hashtable<String, Float> getOutlier() {
+					return outlier;
+				}
+
+				public String getSampleName() {
+					return sampleName;
+				}
+
+			}
+			WorkerHive<HashLoadResult> hive = new WorkerHive<HashLoadResult>(numthreads, 10, proj.getLog());
+
+			for (int i = 0; i < proj.getSamples().length; i++) {
+				final String currentSampleRAF = proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i] + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				final String sampleName = proj.getSamples()[i];
+
+				final int index = i;
+				final Logger log = proj.getLog();
+				Callable<HashLoadResult> outCallable = new Callable<HashLoadResult>() {
+
+					@Override
+					public HashLoadResult call() throws Exception {
+						// TODO Auto-generated method stub
+						if (index % 100 == 0) {
+							log.reportTimeInfo("loading sample " + (index + 1) + " on " + Thread.currentThread().getName());
+						}
+
+						Hashtable<String, Float> outs = Sample.loadOutOfRangeValuesFromRandomAccessFile(currentSampleRAF);
+						return new HashLoadResult(outs, sampleName);
+					}
+
+				};
+				hive.addCallable(outCallable);
+			}
+			hive.execute(true);
+			ArrayList<HashLoadResult> hashLoadResults = hive.getResults();
+			for (int i = 0; i < hashLoadResults.size(); i++) {
+				if (hashLoadResults.get(i).getOutlier() != null && hashLoadResults.get(i).getOutlier().size() > 0) {
+					for (String key : hashLoadResults.get(i).getOutlier().keySet()) {
+						String[] newKey = key.split("\t");
+						outliers.put(newKey[0] + "\t" + hashLoadResults.get(i).getSampleName() + "\t" + newKey[1], hashLoadResults.get(i).getOutlier().get(key));
+					}
+				}
+			}
+			proj.getLog().reportTimeInfo("Writing outliers to " + outlierFileName);
+			Files.writeSerial(outliers, outlierFileName);
+		}
+		if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser")) {
+			if (Files.exists(outlierFileName)) {
+				outliers = (Hashtable<String, Float>) Files.readSerial(outlierFileName);
+			}
+			proj.getLog().reportTimeInfo("Writing outliers to " + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+			Files.writeSerial(outliers, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+		}
+	}
 	/**
 	 * Load data from Random Access Files organized by samples.
 	 */
