@@ -112,15 +112,20 @@ public class FAST {
                                     break auto;
                                 } else {
                                     try {
-                                        String resultsDirPath = resultsDir.getAbsolutePath();
+                                        String resultsDirPath = ext.verifyDirFormat(resultsDir.getAbsolutePath());
                                         String midOut = "concatenated.result";
                                         String finalOut = buildFinalFilename(studyName, popName, factorName, -1);
                                         String traitFile = ext.verifyDirFormat(popDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + ".trait";
                                         concatResults(resultsDirPath, midOut, 0.0001, true, true);
-                                        runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPath) + midOut, ext.verifyDirFormat(resultsDirPath) + "../" + finalOut, countValid(traitFile));
-                                        factorLog.report(ext.getTime() + "]\tParsing complete.");
-                                        parsed = true;
-                                        names = popDir.list(dataFileFilter);
+                                        if (Files.exists(resultsDirPath + midOut) && Files.getSize(resultsDirPath + midOut, false) > 0) { 
+                                            runParser(DEFAULT_FORMAT, resultsDirPath + midOut, resultsDirPath + "../" + finalOut, countValid(traitFile));
+                                            factorLog.report(ext.getTime() + "]\tParsing complete.");
+                                            parsed = true;
+                                            names = popDir.list(dataFileFilter);
+                                        } else {
+                                            factorLog.reportError(ext.getTime() + "]\tError - concatenated result file is either missing or empty; cannot create a final results file without results!");
+                                            break auto;
+                                        }
                                     } catch (IOException e) {
                                         factorLog.report(ext.getTime() + "]\tError occurred while counting valid individuals in .trait file:");
                                         factorLog.report("\t" + e.getMessage());
@@ -129,7 +134,7 @@ public class FAST {
                             }
                             // Check again, in case we parsed new files
                             if (names.length == 0 && parsed) {
-                                factorLog.report(ext.getTime() + "]\tParsing failed - do final result files exist?");
+                                factorLog.report(ext.getTime() + "]\tError - Parsing failed; do final result files exist?");
                                 break auto;
                                 // uh-oh; parsing failed!
                             } else {
@@ -160,10 +165,14 @@ public class FAST {
                                         String finalOutF = buildFinalFilename(studyName, popName, factorName, 0);
                                         String traitFileF = ext.verifyDirFormat(femaleDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + "_female.trait";
                                         concatResults(resultsDirPathFemale, midOutF, 0.0001, true, true);
-                                        runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPathFemale) + midOutF, ext.verifyDirFormat(resultsDirPathFemale) + "../" + finalOutF, countValid(traitFileF));
-                                        factorLog.report(ext.getTime() + "]\tParsing complete.");
-                                        parsedF = true;
-                                        dataFilesF = femaleDir.list(dataFileFilter);
+                                        if (Files.exists(resultsDirPathFemale + midOutF) && Files.getSize(resultsDirPathFemale + midOutF, false) > 0) { 
+                                            runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPathFemale) + midOutF, ext.verifyDirFormat(resultsDirPathFemale) + "../" + finalOutF, countValid(traitFileF));
+                                            factorLog.report(ext.getTime() + "]\tParsing complete.");
+                                            parsedF = true;
+                                            dataFilesF = femaleDir.list(dataFileFilter);
+                                        } else {
+                                            factorLog.reportError(ext.getTime() + "]\tError - concatenated result file is either missing or empty; cannot create a final results file without results!");
+                                        }
                                     } catch (IOException e) {
                                         factorLog.report(ext.getTime() + "]\tError occurred while counting valid individuals in .trait file:");
                                         factorLog.report("\t" + e.getMessage());
@@ -184,14 +193,19 @@ public class FAST {
                                     factorLog.report(ext.getTime() + "]\tNo male-specific output directory found for population " + popName + "!");
                                 } else {
                                     try {
-                                        String resultsDirPathMale = maleResultsDir.getAbsolutePath();
+                                        String resultsDirPathMale = ext.verifyDirFormat(maleResultsDir.getAbsolutePath());
                                         String midOutM = "concatenated.result";
                                         String finalOutM = buildFinalFilename(studyName, popName, factorName, 1);
                                         String traitFileM = ext.verifyDirFormat(maleDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + "_male.trait";
                                         concatResults(resultsDirPathMale, midOutM, 0.0001, true, true);
-                                        runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPathMale) + midOutM, ext.verifyDirFormat(resultsDirPathMale) + "../" + finalOutM, countValid(traitFileM));
-                                        parsedM = true;
-                                        dataFilesM = maleDir.list(dataFileFilter);
+                                        if (Files.exists(resultsDirPathMale + midOutM) && Files.getSize(resultsDirPathMale + midOutM, false) > 0) {
+                                            runParser(DEFAULT_FORMAT, resultsDirPathMale + midOutM, resultsDirPathMale + "../" + finalOutM, countValid(traitFileM));
+                                            factorLog.report(ext.getTime() + "]\tParsing complete.");
+                                            parsedM = true;
+                                            dataFilesM = maleDir.list(dataFileFilter);
+                                        } else {
+                                            factorLog.reportError(ext.getTime() + "]\tError - concatenated result file is either missing or empty; cannot create a final results file without results!");
+                                        }
                                     } catch (IOException e) {
                                         factorLog.report(ext.getTime() + "]\tError occurred while counting valid individuals in .trait file:");
                                         factorLog.report("\t" + e.getMessage());
@@ -382,7 +396,8 @@ public class FAST {
 					
 					DataDefinitions dataDef = popToDataDef.get(pop);
 					int covars = countCovars(traitDir + traitFile);
-					FAST fastRun = new FAST("FAST", dataDef.dataDir, dataDef.indivFile, dir+traitFile, dataDef.dataSuffix, dir, covars);
+					
+					FAST fastRun = new FAST("FAST", dataDef.dataDir, dataDef.indivFile, traitDir + traitFile, dataDef.dataSuffix, dir, covars);
 					fastRun.study = study;
 					fastRun.factor = factor;
 					fastRun.pop = pop;
