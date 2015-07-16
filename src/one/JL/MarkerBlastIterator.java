@@ -231,7 +231,7 @@ public class MarkerBlastIterator {
 					if (summaries.get(k).getCrossHybLength().size() == 0 || Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())) < oneHitWonderDef) {
 						oneHitters.add(summaries.get(k).getMarkerName());
 					} else {
-						notOneHitters.add(summaries.get(k).getMarkerName()+"\t"+markerSet.getChrs()[markerIndex]);
+						notOneHitters.add(summaries.get(k).getMarkerName() + "\t" + markerSet.getChrs()[markerIndex]);
 						notOneHittersMaxCrossHybe.add(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())));
 					}
 					if (parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
@@ -261,10 +261,10 @@ public class MarkerBlastIterator {
 						}
 					}
 				} else {
-					noAppropriateMatch.add(summaries.get(k).getMarkerName()+"\t"+markerSet.getChrs()[markerIndex]);
+					noAppropriateMatch.add(summaries.get(k).getMarkerName() + "\t" + markerSet.getChrs()[markerIndex]);
 					if (summaries.get(k).getCrossHybLength().size() > 0) {
 						noAppropriateMatchMaxCrossHybe.add(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())));
-					}else{
+					} else {
 						noAppropriateMatchMaxCrossHybe.add((double) 0);
 					}
 				}
@@ -285,8 +285,6 @@ public class MarkerBlastIterator {
 					extractOneHitWondersFrom(otherMarkersToExtract[j], Array.toStringArray(oneHitters), ext.addToRoot(otherMarkersToExtract[j], ".oneHitWonders_" + oneHitWonderDef), log);
 				}
 			}
-			System.exit(1);
-
 			String[] allPlotFiles = new String[BLAST_METRICS.values().length];
 			String[] extras = new String[] { "_bin", "_count", "_average" };
 			String resultsPlot = ext.addToRoot(results[i].getOutput(), ".hist.blasts");
@@ -594,12 +592,16 @@ public class MarkerBlastIterator {
 		int[] indices = ext.indexLargeFactors(toExtracts, oneHitters, true, log, false, false);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+			PrintWriter writerNot = new PrintWriter(new FileWriter(ext.addToRoot(outputFile, "Not")));
+
 			for (int i = 0; i < indices.length; i++) {
 				if (indices[i] > 0) {
 					writer.println(toExtracts[i]);
+				} else {
+					writerNot.println(toExtracts[i]);
 				}
 			}
-
+			writerNot.close();
 			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing to " + outputFile);
