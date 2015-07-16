@@ -80,7 +80,6 @@ public class FAST {
 	    String tempName = ext.verifyDirFormat(studyDir);
 	    final String studyName = ext.rootOf(tempName.substring(0, tempName.length() - 1), true);
 	    
-	    
 	    File[] factorDirs = (new File(studyDir)).listFiles(dirFilter);
 	    System.out.println(ext.getTime() + "]\tProcessing study " + studyName + " with " + factorDirs.length + " threads");
 	    
@@ -717,10 +716,14 @@ public class FAST {
 		}
 		System.out.println(ext.getTime() + "]\tConcatenation complete!");
 		if (runHitWindows) {
-			System.out.println(ext.getTime() + "]\tRunning HitWindows analysis...");
-			String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000, 0.000005f, new String[0]);
-			Files.writeMatrix(results, resultsDir + "hits.out", "\t");
-			System.out.println(ext.getTime() + "]\tHitWindows analysis complete!");
+		    if (Files.exists(resultsDir + resultsFile) && Files.getSize(resultsDir + resultsFile, false) > 0) {
+    			System.out.println(ext.getTime() + "]\tRunning HitWindows analysis...");
+    			String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000, 0.000005f, new String[0]);
+    			Files.writeMatrix(results, resultsDir + "hits.out", "\t");
+    			System.out.println(ext.getTime() + "]\tHitWindows analysis complete!");
+		    } else {
+		        System.err.println(ext.getTime() + "]\tError - Can't run HitWindows; input file [" + resultsDir + resultsFile + "] either doesn't exist or is empty!");
+		    }
 		}
 	}
 	
