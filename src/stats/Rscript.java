@@ -322,6 +322,8 @@ public class Rscript {
 		private int fontsize;
 		private String title;
 		private String plotVar;
+		private boolean logTransformX;
+		private boolean logTransformY;
 		private boolean overWriteExisting;
 
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
@@ -338,12 +340,22 @@ public class Rscript {
 			this.valid = validate();
 			this.fontsize = 4;
 			this.plotVar = (plotVar == null ? PLOT_VAR : makeRSafe(plotVar));
+			this.logTransformX = false;
+			this.logTransformY = false;
 			this.overWriteExisting = false;
 			this.yMin = Double.NaN;
 		}
 
 		public void setOverWriteExisting(boolean overWriteExisting) {
 			this.overWriteExisting = overWriteExisting;
+		}
+
+		public void setLogTransformX(boolean logTransformX) {
+			this.logTransformX = logTransformX;
+		}
+
+		public void setLogTransformY(boolean logTransformY) {
+			this.logTransformY = logTransformY;
 		}
 
 		public void setFontsize(int fontsize) {
@@ -444,6 +456,12 @@ public class Rscript {
 					} else {
 						plot += " + expand_limits(y=" + yMin + ")";
 					}
+				}
+				if (logTransformX) {
+					plot += "+ scale_x_log10()";
+				}
+				if (logTransformY) {
+					plot += "+ scale_y_log10()";
 				}
 				plot += " + theme(axis.line = element_line(colour = \"black\"), ";
 				plot += "panel.grid.major = element_blank(), ";

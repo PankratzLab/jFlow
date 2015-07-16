@@ -16,6 +16,7 @@ import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
@@ -26,8 +27,10 @@ import cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import cnv.qc.MarkerBlast.MarkerBlastResult;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.PSF;
+import common.Sort;
 import common.ext;
 import filesys.Segment;
 
@@ -77,10 +80,10 @@ public class MarkerBlastIterator {
 
 	}
 
-	public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int numThreads, boolean reportToTmp) throws FileNotFoundException {
+	public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int numThreads, boolean reportToTmp, String[] otherMarkersToExtract) throws FileNotFoundException {
 		Logger log = proj.getLog();
 		final Hashtable<String, Integer> indices = proj.getMarkerIndices();
-		final int[] blastWordSizes = new int[] { 15 };
+		final int[] blastWordSizes = new int[] { blastWordSize };
 		final int[] reportWordSizes = new int[] { 0 };
 		final byte[] chrs = proj.getMarkerSet().getChrs();
 		final int[] pos = proj.getMarkerSet().getPositions();
@@ -89,7 +92,9 @@ public class MarkerBlastIterator {
 		final double minCrossHybLength = 0;
 		final double maxExpect = 20;
 		final int plotFontSize = 6;
-		final double yMin=0.00001;
+		final double yMin = 0.00001;
+		int oneHitWonderDef = proj.ARRAY_TYPE.getValue() == ARRAY.ILLUMINA ? 20 : 20;
+
 		final int crossHybBufferDistance = proj.getArrayType().getProbeLength();
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			proj.getLog().reportTimeInfo("Creating file " + proj.MARKER_METRICS_FILENAME.getValue());
@@ -120,8 +125,8 @@ public class MarkerBlastIterator {
 							numEntries++;
 							if (numEntries % 100000 == 0) {
 								proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
-								reader.close();
-								break;
+								// reader.close();
+								// break;
 							}
 							BlastResults blastResults = new BlastResults(line, log);
 							String marker = blastResults.getQueryID();
@@ -213,40 +218,79 @@ public class MarkerBlastIterator {
 
 			}
 			int numMarkers = 0;
+			ArrayList<String> oneHitters = new ArrayList<String>();
+			ArrayList<String> notOneHitters = new ArrayList<String>();
+			ArrayList<Double> notOneHittersMaxCrossHybe = new ArrayList<Double>();
+			ArrayList<String> noAppropriateMatch = new ArrayList<String>();
+			ArrayList<Double> noAppropriateMatchMaxCrossHybe = new ArrayList<Double>();
+			MarkerSet markerSet = proj.getMarkerSet();
 			for (int k = 0; k < summaries.size(); k++) {
 				numMarkers++;
 				int markerIndex = indices.get(summaries.get(k).getMarkerName());
-				if (parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
-					if (summaries.get(k).getCrossHybLength().size() > 0) {
-						for (int l = 0; l < parser.getNumericData().length; l++) {
+				if (summaries.get(k).isHasAppropriateMatch()) {
+					if (summaries.get(k).getCrossHybLength().size() == 0 || Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())) < oneHitWonderDef) {
+						oneHitters.add(summaries.get(k).getMarkerName());
+					} else {
+						notOneHitters.add(summaries.get(k).getMarkerName()+"\t"+markerSet.getChrs()[markerIndex]);
+						notOneHittersMaxCrossHybe.add(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())));
+					}
+					if (parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
+						if (summaries.get(k).getCrossHybLength().size() > 0) {
+							for (int l = 0; l < parser.getNumericData().length; l++) {
 
-							for (int m = 0; m < BLAST_METRICS.values().length; m++) {
-								BLAST_METRICS metric = BLAST_METRICS.values()[m];
-								switch (metric) {
-								case CROSS_HYBE_EVAL:
-									dHistograms[m][l].addDataPair(Array.min(Array.toDoubleArray(summaries.get(k).getCrossHybEvalue())), parser.getNumericData()[l][markerIndex]);
-									break;
-								case CROSS_HYBE_LENGTH:
-									dHistograms[m][l].addDataPair(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())), parser.getNumericData()[l][markerIndex]);
+								for (int m = 0; m < BLAST_METRICS.values().length; m++) {
+									BLAST_METRICS metric = BLAST_METRICS.values()[m];
+									switch (metric) {
+									case CROSS_HYBE_EVAL:
+										dHistograms[m][l].addDataPair(Array.min(Array.toDoubleArray(summaries.get(k).getCrossHybEvalue())), parser.getNumericData()[l][markerIndex]);
+										break;
+									case CROSS_HYBE_LENGTH:
+										dHistograms[m][l].addDataPair(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())), parser.getNumericData()[l][markerIndex]);
 
-									break;
-								case CROSS_HYBE_PERCENT_MATCH:
-									dHistograms[m][l].addDataPair((double)Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength()))/proj.getArrayType().getProbeLength(), parser.getNumericData()[l][markerIndex]);
-									break;
-								default:
-									proj.getLog().reportTimeError("Invalid Metric " + metric);
+										break;
+									case CROSS_HYBE_PERCENT_MATCH:
+										dHistograms[m][l].addDataPair((double) Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())) / proj.getArrayType().getProbeLength(), parser.getNumericData()[l][markerIndex]);
+										break;
+									default:
+										proj.getLog().reportTimeError("Invalid Metric " + metric);
 
-									break;
+										break;
+									}
 								}
 							}
 						}
 					}
+				} else {
+					noAppropriateMatch.add(summaries.get(k).getMarkerName()+"\t"+markerSet.getChrs()[markerIndex]);
+					if (summaries.get(k).getCrossHybLength().size() > 0) {
+						noAppropriateMatchMaxCrossHybe.add(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())));
+					}else{
+						noAppropriateMatchMaxCrossHybe.add((double) 0);
+					}
 				}
 
 			}
-			String resultsPlot = ext.addToRoot(results[i].getOutput(), ".hist.blasts");
+			String notOneHittersOut = ext.addToRoot(results[i].getOutput(), ".NOToneHitWonders_" + oneHitWonderDef);
+			String notAppropriateMatchOut = ext.addToRoot(results[i].getOutput(), ".NOTAppropriateMatch_" + oneHitWonderDef);
+
+			dumpMiss(log, oneHitWonderDef, notOneHittersOut, notOneHitters, notOneHittersMaxCrossHybe);
+			dumpMiss(log, oneHitWonderDef, notAppropriateMatchOut, noAppropriateMatch, noAppropriateMatchMaxCrossHybe);
+
+			String oneHitWonders = ext.addToRoot(results[i].getOutput(), ".oneHitWonders_" + oneHitWonderDef);
+			String oneHitTargets = ext.addToRoot(proj.TARGET_MARKERS_FILENAME.getValue(), ".oneHitWonders_" + oneHitWonderDef);
+			Files.writeArrayList(oneHitters, oneHitWonders);
+			extractOneHitWondersFrom(proj.TARGET_MARKERS_FILENAME.getValue(), Array.toStringArray(oneHitters), oneHitTargets, log);
+			if (otherMarkersToExtract != null) {
+				for (int j = 0; j < otherMarkersToExtract.length; j++) {
+					extractOneHitWondersFrom(otherMarkersToExtract[j], Array.toStringArray(oneHitters), ext.addToRoot(otherMarkersToExtract[j], ".oneHitWonders_" + oneHitWonderDef), log);
+				}
+			}
+			System.exit(1);
+
 			String[] allPlotFiles = new String[BLAST_METRICS.values().length];
 			String[] extras = new String[] { "_bin", "_count", "_average" };
+			String resultsPlot = ext.addToRoot(results[i].getOutput(), ".hist.blasts");
+
 			try {
 
 				for (int j = 0; j < dHistograms.length; j++) {// for each blast metric
@@ -308,6 +352,7 @@ public class MarkerBlastIterator {
 						rScatterGroupCounts.setxLabel(BLAST_METRICS.values()[j].toString());
 						rScatterGroupCounts.setyMin(yMin);
 						rScatterGroupCounts.setyLabel("COUNTS");
+						rScatterGroupCounts.setLogTransformY(true);
 						rScatterGroupCounts.setOverWriteExisting(false);
 						rScatterGroupCounts.setFontsize(plotFontSize);
 						rScatterGroupCounts.setTitle(title);
@@ -349,7 +394,21 @@ public class MarkerBlastIterator {
 
 	}
 
-	public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int numThreads, boolean reportToTmp, boolean haha) {
+	private static void dumpMiss(Logger log, int oneHitWonderDef, String output, ArrayList<String> notOneHitters, ArrayList<Double> notOneHittersMaxCrossHybe) {
+		int[] sorted = Sort.quicksort(Array.toDoubleArray(notOneHittersMaxCrossHybe));
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			for (int j = 0; j < sorted.length; j++) {
+				writer.println(notOneHitters.get(sorted[j]) + "\t" + notOneHittersMaxCrossHybe.get(sorted[j]));
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + output);
+			log.reportException(e);
+		}
+	}
+
+	public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int numThreads, boolean reportToTmp) {
 
 		// int[] blastWordSizes = new int[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
 		// int[] reportWordSizes = new int[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 };
@@ -357,7 +416,7 @@ public class MarkerBlastIterator {
 		//
 
 		Logger log = proj.getLog();
-		final int[] blastWordSizes = new int[] { 10 };
+		final int[] blastWordSizes = new int[] { blastWordSize };
 		final int[] reportWordSizes = new int[] { 0 };
 		final double appropriateMatchPercent = 100;
 		final double mafFilter = 0.05;
@@ -530,6 +589,24 @@ public class MarkerBlastIterator {
 
 	}
 
+	private static void extractOneHitWondersFrom(String toExtractFile, String[] oneHitters, String outputFile, Logger log) {
+		String[] toExtracts = HashVec.loadFileToStringArray(toExtractFile, false, new int[] { 0 }, false);
+		int[] indices = ext.indexLargeFactors(toExtracts, oneHitters, true, log, false, false);
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+			for (int i = 0; i < indices.length; i++) {
+				if (indices[i] > 0) {
+					writer.println(toExtracts[i]);
+				}
+			}
+
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + outputFile);
+			log.reportException(e);
+		}
+	}
+
 	private static RScatter plot(Project proj, String plotFile, String xColumn, String title, String[] yColumns) {
 		String rootOut = ext.addToRoot(plotFile, xColumn + "_" + title);
 		RScatter rScatterMatch = new RScatter(plotFile, rootOut + ".rscript", ext.rootOf(rootOut), rootOut + ".jpeg", xColumn, yColumns, SCATTER_TYPE.POINT, proj.getLog());
@@ -587,6 +664,10 @@ public class MarkerBlastIterator {
 			return markerName;
 		}
 
+		public boolean isHasAppropriateMatch() {
+			return hasAppropriateMatch;
+		}
+
 		public void setHasAppropriateMatch(boolean hasAppropriateMatch) {
 			this.hasAppropriateMatch = hasAppropriateMatch;
 		}
@@ -609,6 +690,7 @@ public class MarkerBlastIterator {
 		int numThreads = 4;
 		int blastWordSize = 30;
 		int reportWordSize = 40;
+		String[] otherMarkersToExtract = null;
 		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.AFFY_ANNOT;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
 		usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
@@ -617,6 +699,7 @@ public class MarkerBlastIterator {
 		usage += "   (4) word size for initial match in blast db  (i.e. blastWordSize=" + blastWordSize + " (default))\n" + "";
 		usage += "   (5) number of base pairs with an exact match to report (i.e. reportWordSize=" + reportWordSize + " (default))\n" + "";
 		usage += "   (6) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n" + ", Options are:\n ";
+		usage += "   (7) list of marker filenames to subset to one-hit wonders (i.e. marks= (no default))\n";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -640,6 +723,9 @@ public class MarkerBlastIterator {
 			} else if (args[i].startsWith("seqType=")) {
 				fSequence_TYPE = FILE_SEQUENCE_TYPE.valueOf(ext.parseStringArg(args[i], FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
 				numArgs--;
+			} else if (args[i].startsWith("marks=")) {
+				otherMarkersToExtract = ext.parseStringArg(args[i], "").split(",");
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -651,7 +737,7 @@ public class MarkerBlastIterator {
 		Project proj = new Project(filename, false);
 
 		try {
-			blastIter(proj, fileSeq, fSequence_TYPE, numThreads, true);
+			blastIter(proj, fileSeq, fSequence_TYPE, blastWordSize, numThreads, true, otherMarkersToExtract);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

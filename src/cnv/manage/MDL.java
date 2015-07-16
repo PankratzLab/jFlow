@@ -95,30 +95,36 @@ public class MDL implements Iterator<MarkerData> {
 
 	@Override
 	public MarkerData next() throws IllegalStateException {
-		if (numLoaded == 0 && fileIndex == 0) {
-			initTrain(files.get(fileIndex));
-			this.numLoadedForFile = 0;
-		} else if (numLoadedForFile == files.get(fileIndex).getMarkersToLoad().size()) {
-			fileIndex++;
-			initTrain(files.get(fileIndex));
-			numLoadedForFile = 0;
-		}
-		decompTrain.hasNext();
-		if (!decompTrain.hasNext()) {
-			String error = "Internal index error, halting";
-			proj.getLog().reportTimeError(error);
-			throw new IllegalStateException(error);
-		}
-		numLoadedForFile++;
-		numLoaded++;
-		if (numLoaded % reportEvery == 0) {
-			proj.getLog().reportTimeInfo("Loaded " + numLoaded + " of " + markerNames.length + " markers");
-		}
-		MarkerData markerData = decompTrain.next();
-		if (!markerData.getMarkerName().equals(markerNames[numLoaded - 1])) {
-			String error = "Internal index error - mismatched marker data found, halting";
-			proj.getLog().reportTimeError(error);
-			throw new IllegalStateException(error);
+		MarkerData markerData = null;
+		try {
+			if (numLoaded == 0 && fileIndex == 0) {
+				initTrain(files.get(fileIndex));
+				this.numLoadedForFile = 0;
+			} else if (numLoadedForFile == files.get(fileIndex).getMarkersToLoad().size()) {
+				fileIndex++;
+				initTrain(files.get(fileIndex));
+				numLoadedForFile = 0;
+			}
+			decompTrain.hasNext();
+			if (!decompTrain.hasNext()) {
+				String error = "Internal index error, halting";
+				proj.getLog().reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+			numLoadedForFile++;
+			numLoaded++;
+			if (numLoaded % reportEvery == 0) {
+				proj.getLog().reportTimeInfo("Loaded " + numLoaded + " of " + markerNames.length + " markers");
+			}
+			markerData = decompTrain.next();
+			if (!markerData.getMarkerName().equals(markerNames[numLoaded - 1])) {
+				String error = "Internal index error - mismatched marker data found, halting";
+				proj.getLog().reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+		} catch (NullPointerException npe) {
+			proj.getLog().reportTimeError("Could not load "+markerNames[numLoaded - 1]+", this is usually caused by a corrupt or missing outlier file");
+			
 		}
 		return markerData;
 	}

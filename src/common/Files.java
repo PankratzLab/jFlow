@@ -2526,10 +2526,14 @@ public class Files {
 	        e.printStackTrace();
         }
 	}
-	
+
+	public static void writeArrayList(ArrayList<String> list, String filename) {
+		Files.writeList(Array.toStringArray(list), filename);
+	}
+
 	public static void writeList(String[] list, String filename) {
-        PrintWriter writer;
-        
+		PrintWriter writer;
+
 		try {
 	        writer = new PrintWriter(new FileWriter(filename));
 	        for (int i = 0; i<list.length; i++) {
