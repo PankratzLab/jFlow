@@ -95,7 +95,8 @@ public class ConditionalAnalysisPipeline {
         
         private static String extractGenoAndInfoDataForRegion(final Region region, final DataDefinitions dataDefs, String[] dataFiles, String tempDir) {
             // create subdir for study/pop
-            String tempDataDir = tempDir + region.regionDirNameRoot + dataDefs.study + "_" + dataDefs.popcode + "/";
+            // TODO currently DOES NOT reuse data files!  This majorly increases space used, but we have problems reading from shared files in a multi-threaded environment
+            String tempDataDir = tempDir + region.label + "/" + region.indexSNP + "/" + dataDefs.study + "_" + dataDefs.popcode + "/";
             new File(tempDataDir).mkdirs();
             
             String infoHeader = "snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
@@ -122,7 +123,8 @@ public class ConditionalAnalysisPipeline {
             boolean found = false;
             if (Files.exists(tempDataDir + newGenoFileName) && Files.exists(tempDataDir + newInfoFileName)) {
                 synchronized(PRINT_LOCK) {
-                    System.out.println(ext.getTime() + "]\tSkipping data file export - files already found!");
+                    System.out.println(ext.getTime() + "]\tWARNING - Skipping data file export, files already exist!");
+                    System.out.println(ext.getTime() + "]\tLoading geno/info data for index SNP [" + region.indexSNP + "]...");
                 }
                 found = true;
             }
@@ -142,14 +144,19 @@ public class ConditionalAnalysisPipeline {
                     BufferedReader infoReader = Files.getAppropriateReader(dataDefs.dataDir + file.substring(0, file.length() - 3) + "_info");
                     
                     String infoLine = infoReader.readLine();
+                    String delim = ext.determineDelimiter(infoLine);
                     String genoLine = null;
-                    
+                    int count = 0;
                     while((infoLine = infoReader.readLine()) != null && (genoLine = genoReader.readLine()) != null) {
+                        count++;
                         // geno/info lines should be one to one
-                        String[] infoParts = infoLine.split(" "); // TODO assuming space delimited
-                        if (infoParts[1].equals(region.indexSNP)) {
+                        String[] infoParts = infoLine.split(delim);
+                        if (infoParts[1].trim().equals(region.indexSNP)) {
                             region.genoData = genoLine;
                             region.infoData = infoLine;
+                            if (found) {
+                                break;
+                            }
                         }
                         int mkrPos = Integer.parseInt(infoParts[2]);
                         if (mkrPos < region.start || mkrPos > region.stop) {
@@ -160,6 +167,7 @@ public class ConditionalAnalysisPipeline {
                             infoWriter.println(infoLine);
                         }
                     }
+                    System.out.println(ext.getTime() + "]\tRead " + count + " data/info lines...");
                     
                     genoReader.close();
                     infoReader.close();
@@ -212,7 +220,7 @@ public class ConditionalAnalysisPipeline {
             String study = pts[0];
             String pop = pts[1];
             String factor = pts[2];
-            String newTraitFile = study + "_" + pop + "_" + factor + ext.replaceWithLinuxSafeCharacters(region.indexSNP, false) + ".trait";
+            String newTraitFile = study + "_" + pop + "_" + factor/* + (ext.replaceWithLinuxSafeCharacters(region.indexSNP, false).replaceAll("_", ""))*/ + ".trait";
             String dir = region.analysisRootDir + region.regionDirNameRoot;
             
             int offset = 5; // column index offset to start of geno data
@@ -281,18 +289,16 @@ public class ConditionalAnalysisPipeline {
             
             ArrayList<String> newDataDefs = new ArrayList<String>();
             for (DataDefinitions dd : allDefs) {
-                synchronized(PRINT_LOCK) {
-                    System.out.println(ext.getTime() + "]\tRetrieving required data files...");
-                }
+                
+                synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tRetrieving required data files..."); }
                 String[] files = findFiles(region, dd);
-                synchronized(PRINT_LOCK) {
-                    System.out.println(ext.getTime() + "]\tExtracting region-specific geno/info data...");
-                }
+                
+                synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tExtracting region-specific geno/info data..."); }
                 String dir = extractGenoAndInfoDataForRegion(region, dd, files, tempDir);
-                synchronized(PRINT_LOCK) {
-                    System.out.println(ext.getTime() + "]\tCreating new .trait files...");
-                }
+                
+                synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tCreating new .trait files..."); }
                 createNewTraitFiles(region, traitDir, dd);
+                
                 StringBuilder newDef = new StringBuilder();
                 newDef.append(dd.study).append("\t")
                         .append(dd.popcode).append("\t")
@@ -302,25 +308,19 @@ public class ConditionalAnalysisPipeline {
                         .append(dd.indivFile);
                 newDataDefs.add(newDef.toString());
             }
-            synchronized(PRINT_LOCK) {
-                System.out.println(ext.getTime() + "]\tWriting new data.txt file...");
-            }
+            synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tWriting new data.txt file..."); }
             String newDataFile = region.analysisRootDir + region.regionDirNameRoot + "data_" + ext.replaceWithLinuxSafeCharacters(region.indexSNP, false) + ".txt";
             Files.writeList(newDataDefs.toArray(new String[newDataDefs.size()]), newDataFile);
             String regionPath = region.analysisRootDir + region.regionDirNameRoot;
             
             try {
-                synchronized(PRINT_LOCK) {
-                    System.out.println(ext.getTime() + "]\tPreparing FAST analysis...");
-                }
+                synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tPreparing FAST analysis in directory [" + regionPath + "]..."); }
                 String[] analysisDirs = FAST.prepareFAST(regionPath, newDataFile, regionPath, false);
 //                System.out.println(ext.getTime() + "]\tRegion Complete! >> " + region.toString());
                 
 //                removeExtraTraitFiles(dataFileAndTraitDir[1]);
 
-                synchronized(PRINT_LOCK) {
-                    System.out.println(ext.getTime() + "]\tRunning " + analysisDirs.length + " FAST analyses...");
-                }
+                synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tRunning " + analysisDirs.length + " FAST analyses..."); }
                 for (String dir : analysisDirs) {
                     (new ScriptExecutor(NUM_THREADS)).run(dir + "input.txt", "took");
                     if (!ScriptExecutor.outLogExistsComplete(dir + "output/input.log_0.out", "took")) {
@@ -328,11 +328,15 @@ public class ConditionalAnalysisPipeline {
                     }
                 }
 
-                synchronized(PRINT_LOCK) {
-                    System.out.println(ext.getTime() + "]\tProcessing FAST results...");
-                }
+                synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tProcessing FAST results..."); }
                 for (String study : dataDefs.keySet()) {
                     String studyDir = regionPath + study + "/";
+                    
+                    if (!Files.exists(studyDir)) {
+                        System.err.println(ext.getTime() + "]\tERROR - analysis directory [" + studyDir + "] does not exist.");
+                        continue;
+                    }
+                    
                     FAST.processAndPrepareMETAL(studyDir);
                     
                     HashMap<String, DataDefinitions> popDefs = dataDefs.get(study);
@@ -377,7 +381,7 @@ public class ConditionalAnalysisPipeline {
                             }
                         } else {
                             synchronized(PRINT_LOCK) {
-                                System.out.println(ext.getTime() + "]\tError - file [] not found!");
+                                System.out.println(ext.getTime() + "]\tError - file [" + dir + file + "] not found!");
                             }
                             // TODO error message - result file not found!
                         }
@@ -464,7 +468,7 @@ public class ConditionalAnalysisPipeline {
     private boolean[] buildAnalysisFolders(String dir, Region[] rgns) {
         boolean[] results = Array.booleanArray(rgns.length, false);
         for (int i = 0; i < rgns.length; i++) {
-            String newDir = rgns[i].label + "_" + ext.replaceWithLinuxSafeCharacters(rgns[i].indexSNP, false)/* + "_" + rgns[i].chr + "_" + rgns[i].start + "_" + rgns[i].stop*/ + "/";
+            String newDir = rgns[i].label + "_iter0_" + (ext.replaceWithLinuxSafeCharacters(rgns[i].indexSNP, false).replaceAll("_", ""))/* + "_" + rgns[i].chr + "_" + rgns[i].start + "_" + rgns[i].stop*/ + "/";
             results[i] = new File(dir + newDir).mkdirs();
             rgns[i].analysisRootDir = dir;
             rgns[i].regionDirNameRoot = newDir;
