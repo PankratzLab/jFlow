@@ -115,13 +115,14 @@ public class MarkerBlastIterator {
 			ArrayList<MarkerIterationSummary> summaries = new ArrayList<MarkerIterationSummary>();
 			ArrayList<String> markersOffTargetPerfectMatch = new ArrayList<String>();
 			for (int j = 0; j < results[i].getTmpFiles().length; j++) {
+				proj.getLog().reportTimeInfo("Processing " + results[i].getTmpFiles()[j] + " blast results");
 
 				try {
 					BufferedReader reader = Files.getAppropriateReader(results[i].getTmpFiles()[j]);
 					int numEntries = 0;
 					while (reader.ready()) {
 						String[] line = reader.readLine().trim().split("\t");
-						if (line.length == Blast.BLAST_HEADER.length && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
+						if ((line.length == Blast.BLAST_HEADER.length-1||line.length == Blast.BLAST_HEADER.length) && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
 							numEntries++;
 							if (numEntries % 100000 == 0) {
 								proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
@@ -595,7 +596,7 @@ public class MarkerBlastIterator {
 			PrintWriter writerNot = new PrintWriter(new FileWriter(ext.addToRoot(outputFile, "Not")));
 
 			for (int i = 0; i < indices.length; i++) {
-				if (indices[i] > 0) {
+				if (indices[i] >= 0) {
 					writer.println(toExtracts[i]);
 				} else {
 					writerNot.println(toExtracts[i]);
