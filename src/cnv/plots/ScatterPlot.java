@@ -134,6 +134,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public static final int NUM_MARKERS_TO_SAVE_IN_HISTORY = 10;
 	public static final String[][] TYPES = { /*{ "X Raw", "Y Raw" },*/ { "X", "Y" }, { "Theta", "R" }, { "B Allele Freq", "Log R Ratio" }};
     private static final String NEW_LIST_COMMAND = "New List";
+    private static final String SAVE_LIST_COMMAND = "Save List";
     private static final String LOAD_LIST_COMMAND = "Load List";
 
 	private JButton first, previous, next, last;
@@ -532,6 +533,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		newListItem.setText("New Marker List");
 		fileMenu.add(newListItem);
 		
+		JMenuItem saveItem = new JMenuItem();
+		saveItem.setMnemonic(KeyEvent.VK_S);
+		saveItem.setActionCommand(SAVE_LIST_COMMAND);
+		saveItem.addActionListener(this);
+		saveItem.setText("Save Current Marker List");
+		fileMenu.add(saveItem);
+		        
 		JMenuItem loadItem = new JMenuItem();
 		loadItem.setMnemonic(KeyEvent.VK_L);
 		loadItem.setActionCommand(LOAD_LIST_COMMAND);
@@ -2261,6 +2269,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		    JFileChooser jfc = new JFileChooser();
 		    jfc.setMultiSelectionEnabled(false);
 		    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		    jfc.setDialogType(JFileChooser.OPEN_DIALOG);
 		    jfc.setDialogTitle("Load marker list file");
 		    int code = jfc.showDialog(this, "Load File");
 		    if (code == JFileChooser.APPROVE_OPTION) {
@@ -2274,6 +2283,17 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
                 } catch (IOException e) {
                     proj.message("Error - invalid file selected");
                 }
+		    }
+		} else if (command.equals(SAVE_LIST_COMMAND)) {
+		    
+		    JFileChooser jfc = new JFileChooser();
+		    jfc.setMultiSelectionEnabled(false);
+		    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		    jfc.setDialogTitle("Save Marker List");
+		    jfc.setDialogType(JFileChooser.SAVE_DIALOG);
+		    int code = jfc.showSaveDialog(this);
+		    if (code == JFileChooser.APPROVE_OPTION) {
+		        Files.writeList(markerList, jfc.getSelectedFile().getAbsolutePath());
 		    }
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
