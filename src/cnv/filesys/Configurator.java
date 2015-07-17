@@ -76,6 +76,8 @@ public class Configurator extends JFrame {
                 "RESULTS_DIRECTORY",
                 "DEMO_DIRECTORY",
                 "BACKUP_DIRECTORY",
+                "ARRAY_TYPE",
+                "XY_SCALE_FACTOR"
             },
             {
                 "Import",
@@ -99,7 +101,8 @@ public class Configurator extends JFrame {
                 "ANNOTATION_FILENAME",
                 "AB_LOOKUP_FILENAME",
                 "GENETRACK_FILENAME",
-                "GC_MODEL_FILENAME"
+                "GC_MODEL_FILENAME",
+                "REFERENCE_GENOME_FASTA_FILENAME"
             },
             {
                 "Centroids",
@@ -205,6 +208,10 @@ public class Configurator extends JFrame {
             "SAMPLELIST_FILENAME",
             "JAR_STATUS",
             "STRATIFICATION_RESULTS_FILENAMES"
+    };
+    String[] uneditableProperties = new String[] {
+            "ARRAY_TYPE",
+            "XY_SCALE_FACTOR"
     };
     
 	private static final long serialVersionUID = 1L;
@@ -476,6 +483,9 @@ public class Configurator extends JFrame {
 					}
 					if (txt.startsWith(projDir)) {
 						txt = txt.substring(projDir.length());
+						if (txt.trim().length() == 0) {
+						    txt = projDir;
+						}
 					}
 					boolean isDefault = txt.equals(proj.getProperty(tempKey).getDefaultValueString());
 					if (!isDefault && !Files.exists(((File) value).getPath())) {
@@ -597,7 +607,12 @@ public class Configurator extends JFrame {
 				return returnComp;
 			}
 		};
-		
+
+        final HashSet<String> disabledKeys = new HashSet<String>();
+        for (String key : uneditableProperties) {
+            disabledKeys.add(key);
+        }
+        
 		final Color bgColor2 = new Color(184,207,229);
 		table = new JTable() {
 			private static final long serialVersionUID = 1L;
@@ -616,20 +631,21 @@ public class Configurator extends JFrame {
 				String propKey = (String) this.getModel().getValueAt(row, 0);
 				Object propVal = this.getModel().getValueAt(row, 1);
 				
+				javax.swing.table.TableCellEditor editor;
 				if (propVal instanceof File || propVal instanceof File[]) {
 					if (getEditRow() != row) {
 						setEditRow(row);
 						fileEditor.reset();
 					}
 					fileEditor.setValue(this.getValueAt(row, column));
-					return fileEditor;
+					editor = fileEditor;
 				} else if (propVal instanceof Boolean) {
-					 return boolEditor;
+					 editor = boolEditor;
 				} else if (propVal instanceof Number) {
 					setByPropertyKey(numberEditor.spinner, proj, propKey, propVal);
-					return numberEditor;
+					editor = numberEditor;
 				} else if (propVal instanceof String) {
-					return stringEditor;
+					editor = stringEditor;
 				} else if (propVal instanceof String[]) {
 				    StringListProperty prop = ((StringListProperty)proj.getProperty((String) table.getValueAt(row, 0)));
 				    if (prop.isFile || prop.isDir) {
@@ -643,20 +659,20 @@ public class Configurator extends JFrame {
 	                        fileEditor.reset();
 	                    }
 	                    fileEditor.setValue(vals);
-	                    return fileEditor;
+	                    editor = fileEditor;
 				    } else {
-				        return stringListEditor;
+				        editor = stringListEditor;
 				    }
 				} else if (propVal instanceof Enum<?>) {
 				    @SuppressWarnings("rawtypes")
                     Object[] values = ((Enum)propVal).getDeclaringClass().getEnumConstants();
                     DefaultCellEditor enumEditor = new DefaultCellEditor(new JComboBox<Object>(values));
-				    return enumEditor;
+				    editor = enumEditor;
 				} else {
 //				    System.out.println("Not found: Class<" + propVal.getClass().getName() + ">");
+				    editor = super.getCellEditor(row, column);
 				}
 				
-				TableCellEditor editor = super.getCellEditor(row, column); 
 				return editor;
 			}
 			@Override
@@ -670,6 +686,11 @@ public class Configurator extends JFrame {
 					superComp.setBackground(bgColor2);
 				} else {
 					superComp.setBackground(Color.WHITE);
+				}
+				if (disabledKeys.contains(getValueAt(row, 0))) {
+				    superComp.setEnabled(false);
+				} else {
+				    superComp.setEnabled(true);
 				}
 				return superComp;
 			}
@@ -691,13 +712,14 @@ public class Configurator extends JFrame {
 		        }
 		    }
 		};
-		
+
 		DefaultTableModel model = new DefaultTableModel(new String[]{"Property Name", "Property Value"}, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isCellEditable(int row, int column) { 
-			    return column != 0 && !labelRows.contains(row) && super.isCellEditable(row, column); 
+			    return column != 0 && !labelRows.contains(row) && super.isCellEditable(row, column) && !disabledKeys.contains(getValueAt(row, 0)); 
 		    }
+			
 		};
 		
 		int count = 0;
@@ -1031,6 +1053,10 @@ public class Configurator extends JFrame {
                     String pathStr = ext.verifyDirFormat(((File) value).getPath());
                     if (pathStr.startsWith(defaultLocation)) {
                         pathStr = pathStr.substring(defaultLocation.length());
+                        if (pathStr.length() == 0) {
+                            // semi-hack for PROJECT_DIRECTORY
+                            pathStr = defaultLocation;
+                        }
                     }
                     labelText.append(pathStr);
                 } else {
@@ -1048,6 +1074,10 @@ public class Configurator extends JFrame {
                             String pathStr = ext.verifyDirFormat(files[i].getPath());
                             if (pathStr.startsWith(defaultLocation)) {
                                 pathStr = pathStr.substring(defaultLocation.length());
+                                if (pathStr.length() == 0) {
+                                    // semi-hack for PROJECT_DIRECTORY
+                                    pathStr = defaultLocation;
+                                }
                             }
                             labelText.append(pathStr);
                         } else {
@@ -1065,6 +1095,10 @@ public class Configurator extends JFrame {
             }
             if (labelText.toString().startsWith(defaultLocation)) {
                 labelText = new StringBuilder(labelText.substring(defaultLocation.length()));
+                if (labelText.length() == 0) {
+                    // semi-hack for PROJECT_DIRECTORY
+                    labelText.append(defaultLocation);
+                }
             }
             label.setText(labelText.toString());
 	    }
@@ -1085,6 +1119,10 @@ public class Configurator extends JFrame {
     			    String pathStr = ext.verifyDirFormat(((File) value).getPath());
                     if (pathStr.startsWith(defaultLocation)) {
                         pathStr = pathStr.substring(defaultLocation.length());
+                        if (pathStr.trim().length() == 0) {
+                            // semi-hack for PROJECT_DIRECTORY
+                            pathStr = defaultLocation;
+                        }
                     }
     				labelText.append(pathStr);
     			} else {
@@ -1127,6 +1165,10 @@ public class Configurator extends JFrame {
 	    				    String pathStr = ext.verifyDirFormat(files[i].getPath());
 	    				    if (pathStr.startsWith(defaultLocation)) {
                                 pathStr = pathStr.substring(defaultLocation.length());
+                                if (pathStr.trim().length() == 0) {
+                                    // semi-hack for PROJECT_DIRECTORY
+                                    pathStr = defaultLocation;
+                                }
                             }
 		    				labelText.append(pathStr);
 		    			} else {
@@ -1185,6 +1227,9 @@ public class Configurator extends JFrame {
 	    	}
     		if (labelText.toString().startsWith(defaultLocation)) {
     			labelText = new StringBuilder(labelText.substring(defaultLocation.length()));
+    			if (labelText.length() == 0) {
+    			    labelText.append(defaultLocation);
+    			}
     		}
 	        label.setText(labelText.toString());
 	        
