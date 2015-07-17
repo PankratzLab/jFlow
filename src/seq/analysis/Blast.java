@@ -283,8 +283,11 @@ public class Blast {
 			this.bitScore = tryDouble(blastLine[11], log);
 			if (taxonMode && blastLine.length > 12) {
 				this.taxID = blastLine[12];
-			} else {
+			} else if(blastLine.length > 12){
 				this.btop = blastLine[12];
+			}else{
+				this.taxID="NA";
+				this.btop="NA";
 			}
 		}
 
