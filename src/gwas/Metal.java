@@ -792,10 +792,64 @@ public class Metal {
 			Files.combine(hitList, fileParameters, null, "MarkerName", ".", "topHits.xln", log, true, true, false);
 
 			String[][] results = HitWindows.determine("topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
+			try {
+                results = includeExtraInfoFromTopHits(results);
+            } catch (IOException e) {
+                System.err.println("Error - exception occured while incorporating topHits.xln data into topHitWindows.xln");
+                e.printStackTrace();
+            }
             Files.writeMatrix(results, "topHitWindows.out", "\t");
 			
 		}
 	}
+	
+	private static String[][] includeExtraInfoFromTopHits(String[][] hwResults) throws IOException {
+	    BufferedReader reader = Files.getAppropriateReader("topHits.xln");
+	    
+	    String[][] newResults = new String[hwResults.length][];
+	    
+	    int[] hwInd = ext.indexFactors(new String[][]{Aliases.MARKER_NAMES}, hwResults[0], false, true, false, false);
+	    int mkrInd = hwInd[0];
+	    
+	    HashSet<String> hwMkrs = new HashSet<String>();
+	    for (String[] res : hwResults) {
+	        hwMkrs.add(res[mkrInd]);
+	    }
+	    HashMap<String, String[]> topHitsParts = new HashMap<String, String[]>();
+	    
+	    String readLine = reader.readLine().trim();
+	    String delim = ext.determineDelimiter(readLine);
+	    String[] line = readLine.split(delim);
+	    int[] topInd = ext.indexFactors(new String[][]{Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS}, line, false, true, false, false);
+	    int topMkrInd = topInd[0];
+	    
+	    while ((readLine = reader.readLine()) != null) {
+	        line = readLine.split(delim);
+	        if (hwMkrs.contains(line[topMkrInd])) {
+	            topHitsParts.put(line[topMkrInd], line);
+	        }
+	    }
+	    reader.close();
+	    
+	    for (int i = 0; i < hwResults.length; i++) {
+	        String hwMkr = hwResults[i][mkrInd];
+	        String[] topData = topHitsParts.get(hwMkr);
+	        String[] newTopData = new String[topData.length - 3];
+	        int cntInd = 0;
+	        for (int j = 0; j < topData.length; j++) {
+	            if (j == topInd[0] || j == topInd[1] || j == topInd[2]) {
+	                continue;
+	            }
+	            newTopData[cntInd++] = topData[j];
+	        }
+	        
+	        String[] newStringArray = Array.concatAll(hwResults[i], newTopData);
+	        newResults[i] = newStringArray;
+	    }
+	    
+	    return newResults;
+	}
+	
 	
 	public static void createUnionOfMap(String[] filenames, String mapOut) {
 
