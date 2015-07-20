@@ -12,6 +12,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -313,7 +316,7 @@ public class Configurator extends JFrame {
 	 */
 	public Configurator(Project project) {
 		setTitle("Genvisis - " + project.getNameOfProject() + " - Project Configuration");
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 700, 800);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -330,13 +333,8 @@ public class Configurator extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 proj.getLog().report("Launching notepad...");
                 try {
-                    Process p = Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+proj.getPropertyFilename()+"\"");
-                    try {
-                        p.waitFor();
-                    } catch (InterruptedException e1) {
-                        // TODO Auto-generated catch block
-                        e1.printStackTrace();
-                    }
+                    /*Process p = */Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+proj.getPropertyFilename()+"\"");
+                    Configurator.this.setVisible(false);
                     // TODO update properties in Project and Configurator - they may have changed
                 } catch (IOException ioe) {
                     proj.getLog().reportError("Error - failed to open Notepad");
@@ -365,9 +363,7 @@ public class Configurator extends JFrame {
 		btnSaveAndClose.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Configurator.this.save();
-				Configurator.this.setVisible(false);
-				Configurator.this.dispose();
+			    doClose(true, false);
 			}
 		});
 		panel.add(btnSaveAndClose);
@@ -376,8 +372,7 @@ public class Configurator extends JFrame {
 		btnClose.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Configurator.this.setVisible(false);
-				Configurator.this.dispose();
+			    doClose(false, true);
 			}
 		});
 		panel.add(btnClose);
@@ -788,69 +783,118 @@ public class Configurator extends JFrame {
 		table.setSurrendersFocusOnKeystroke(true);
 
 		scrollPane.setViewportView(table);
+		
+		addWindowListener(new WindowAdapter() {
+		    @Override
+		    public void windowClosing(WindowEvent e) {
+		        doClose(false, true);
+		    }
+        });
+		
 	}
 	
-	
-	private void save() {
+	protected void doClose(boolean save, boolean promptChanges) {
+	    HashMap<String, String> changes = extract();
+	    if (changes.size() > 0) {
+	        StringBuilder message = new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
+	        int cnt = 0;
+	        for (String key : changes.keySet()) {
+	            if (cnt == 10) {
+	                message.append("\n... and ").append(changes.size() - cnt).append(" additional changes...");
+	                break;
+	            }
+	            message.append("\n").append(key);
+	            cnt++;
+	        }
+	        String title = "Save changes?";
+	        int opt = JOptionPane.showConfirmDialog(Configurator.this, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+	        if (opt == JOptionPane.CLOSED_OPTION || opt == JOptionPane.CANCEL_OPTION) {
+	            return;
+	        } else if (opt == JOptionPane.YES_OPTION) {
+	            save(changes);
+	        }
+	    }
+        Configurator.this.setVisible(false);
+        Configurator.this.dispose();
+    }
+
+    private HashMap<String, String> extract() {
 	    table.editingStopped(new ChangeEvent(table));
-		String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
-		String currProjDir = proj.getProperty(proj.PROJECT_DIRECTORY);
-		int rowCount = table.getRowCount();
-		for (int i = 0; i < rowCount; i++) {
-		    if (labelRows.contains(i)) {
-		        continue;
-		    }
-			String key = ((String) table.getValueAt(i, 0)).trim();
-			Object rawValue = table.getValueAt(i, 1);
-			String value = "";
-			if (rawValue instanceof File[]) {
-				File[] set = (File[]) rawValue;
-				if (set.length > 0) {
-					value = set[0].getPath();
-					value = set[0].isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
-					if (value.startsWith(projectsDir)) {
-						value = value.substring(projectsDir.length());
-					} else if (value.startsWith(currProjDir)) {
-						value = value.substring(currProjDir.length());
-					}
-					for (int k = 1; k < set.length; k++) {
-						String fNm = set[k].getPath();
-						fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm) : ext.replaceAllWith(fNm, "\\", "/");
-						if (fNm.startsWith(projectsDir)) {
-							fNm = fNm.substring(projectsDir.length());
-						} else if (fNm.startsWith(currProjDir)) {
-							fNm = fNm.substring(currProjDir.length());
-						}
-						value += ";" + fNm;
-					}
-				}
-			} else if (rawValue instanceof File) { 
-				File set = (File) rawValue;
-				value = set.getPath();
-				value = set.isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
-				if (!key.equals(proj.SOURCE_DIRECTORY.getName()) && !key.equals(proj.PROJECT_DIRECTORY.getName())) {
-					if (value.startsWith(projectsDir)) {
-						value = value.substring(projectsDir.length());
-					} else if (value.startsWith(currProjDir)) {
-						value = value.substring(currProjDir.length());
-					}
-				}
-			} else if (rawValue instanceof String[]) {
-				value = "";//((String[])rawValue)[0];
-				for (int k = 0; k < ((String[])rawValue).length; k++) {
-				    String tempValue = ((String[])rawValue)[k]; 
-				    if (tempValue.startsWith(projectsDir)) {
-				        value += tempValue.substring(projectsDir.length());
-				    } else if (tempValue.startsWith(currProjDir)) {
-			            value += tempValue.substring(currProjDir.length());
-			        } else {
-				        value += tempValue;
-				    }
-				    if (k < ((String[])rawValue).length - 1) {
-				        value += ";";
-				    }
-				}
-			} else {
+        String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
+        String currProjDir = proj.getProperty(proj.PROJECT_DIRECTORY);
+        int rowCount = table.getRowCount();
+        
+        HashMap<String, String> newValues = new HashMap<String, String>();
+        
+        for (int i = 0; i < rowCount; i++) {
+            if (labelRows.contains(i)) {
+                continue;
+            }
+            String key = ((String) table.getValueAt(i, 0)).trim();
+            Object rawValue = table.getValueAt(i, 1);
+            
+            String value = "";
+            if (rawValue instanceof File[]) {
+                File[] set = (File[]) rawValue;
+                if (set.length > 0) {
+                    value = set[0].getPath();
+                    if (!set[0].exists()) {
+                        value = ((StringListProperty)proj.getProperty(key)).isDir ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/"); 
+                    } else {
+                        value = set[0].isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
+                    }
+                    value = set[0].isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
+                    if (value.startsWith(projectsDir)) {
+                        value = value.substring(projectsDir.length());
+                    } else if (value.startsWith(currProjDir)) {
+                        value = value.substring(currProjDir.length());
+                    }
+                    for (int k = 1; k < set.length; k++) {
+                        String fNm = set[k].getPath();
+                        if (!set[k].exists()) {
+                            fNm = ((StringListProperty)proj.getProperty(key)).isDir ? ext.verifyDirFormat(fNm) : ext.replaceAllWith(fNm, "\\", "/");
+                        } else {
+                            fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm) : ext.replaceAllWith(fNm, "\\", "/");
+                        }
+                        if (fNm.startsWith(projectsDir)) {
+                            fNm = fNm.substring(projectsDir.length());
+                        } else if (fNm.startsWith(currProjDir)) {
+                            fNm = fNm.substring(currProjDir.length());
+                        }
+                        value += ";" + fNm;
+                    }
+                }
+            } else if (rawValue instanceof File) { 
+                File set = (File) rawValue;
+                value = set.getPath();
+                if (!set.exists()) {
+                    value = ((FileProperty)proj.getProperty(key)).isDir ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
+                } else {
+                    value = set.isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
+                }
+                if (!key.equals(proj.SOURCE_DIRECTORY.getName()) && !key.equals(proj.PROJECT_DIRECTORY.getName())) {
+                    if (value.startsWith(projectsDir)) {
+                        value = value.substring(projectsDir.length());
+                    } else if (value.startsWith(currProjDir)) {
+                        value = value.substring(currProjDir.length());
+                    }
+                }
+            } else if (rawValue instanceof String[]) {
+                value = "";//((String[])rawValue)[0];
+                for (int k = 0; k < ((String[])rawValue).length; k++) {
+                    String tempValue = ((String[])rawValue)[k]; 
+                    if (tempValue.startsWith(projectsDir)) {
+                        value += tempValue.substring(projectsDir.length());
+                    } else if (tempValue.startsWith(currProjDir)) {
+                        value += tempValue.substring(currProjDir.length());
+                    } else {
+                        value += tempValue;
+                    }
+                    if (k < ((String[])rawValue).length - 1) {
+                        value += ";";
+                    }
+                }
+            } else {
                 if (rawValue.toString().startsWith(projectsDir)) {
                     value += rawValue.toString().substring(projectsDir.length());
                 } else if (rawValue.toString().startsWith(currProjDir)) {
@@ -858,10 +902,35 @@ public class Configurator extends JFrame {
                 } else {
                     value += rawValue.toString();
                 }
-			}
-			proj.setProperty(key, value);
-		}
-		proj.saveProperties();
+            }
+            
+            HashSet<String> ignorePrefix = new HashSet<String>();
+            ignorePrefix.add("PROJECT_DIRECTORY");
+            ignorePrefix.add("SOURCE_DIRECTORY");
+            
+            String t1 = proj.getProperty(key).getValueString();
+            if (!ignorePrefix.contains(proj.getProperty(key).getName())) {
+                t1 = t1.replaceAll(proj.PROJECT_DIRECTORY.getValue(), "");
+            }
+            boolean same = t1.equals(value);
+            if (!same) {
+                newValues.put(key, value);
+            }
+        }
+        
+        return newValues;
+    }
+	
+    private void save(HashMap<String, String> newValues) {
+        for (Entry<String, String> pair : newValues.entrySet()) {
+            proj.setProperty(pair.getKey(), pair.getValue());
+        }
+        proj.saveProperties();
+    }
+    
+	private void save() {
+	    HashMap<String, String> newValues = extract();
+	    save(newValues);
 	}
 
 	private void setByPropertyKey(JSpinner spinner, Project proj, String propKey, Object propVal) {

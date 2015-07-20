@@ -53,6 +53,8 @@ public class CNVFilter {
 	public static final String COMMAND_CNV_FILE_OUT = "out=";
 	public static final String COMMAND_CNV_FILTER = "-filter";
 	public static final String COMMAND_MERGE = "merge=";
+	public static final String COMMAND_FREQ_FILTER = "freqFilter=";
+	public static final String COMMAND_MERGE_FIRST = "mergeThenFreq=";
 
 	public static final String COMMAND_CNV_FILTER_CRF = "cnvFilter";
 	public static final String COMMAND_CNV_FILTER_DESCRIPTION = "filter a file of cnvs";
@@ -178,6 +180,74 @@ public class CNVFilter {
 			filterPass.setFailed("cnv was not copy number" + CN, ";");
 		}
 		return filterPass;
+	}
+	
+	static class FreqFilter {
+        public int totalRequired;
+        public int delRequired;
+        public int dupRequired;
+        public int totalLimitedTo;
+        public int delLimitedTo;
+        public int dupLimitedTo;
+        public double proportionOfProbesThatNeedToPassForFinalInclusion;
+	}
+	
+	public static FreqFilter setupFreqFilterFromArgs(Project proj, String[] args, CNVFilter filter) {
+        double totalRequired = 0.0;
+        double delRequired = 0.0;
+        double dupRequired = 0.0;
+        double totalLimitedTo = 0.0;
+        double delLimitedTo = 0.0;
+        double dupLimitedTo = 0.0;
+	    
+	    FreqFilter f = new FreqFilter();
+	    String famFile = null;
+	    for (int i = 0; i < args.length; i++) {
+    	    if(args[i].startsWith("famFile=")) {
+                famFile = args[i].split("=")[1];
+                filter.addCommandLineFilter(args[i], null);
+            } else if(args[i].startsWith("totalRequired=")) {
+                totalRequired = ext.parseDoubleArg(args[i]);
+                filter.addCommandLineFilter(args[i], null);
+            } else if(args[i].startsWith("delRequired=")) {
+                delRequired = ext.parseDoubleArg(args[i]);
+                filter.addCommandLineFilter(args[i], null);
+            } else if(args[i].startsWith("dupRequired=")) {
+                dupRequired = ext.parseDoubleArg(args[i]);
+                filter.addCommandLineFilter(args[i], null);
+            } else if(args[i].startsWith("totalLimitedTo=")) {
+                totalLimitedTo = ext.parseDoubleArg(args[i]);
+                filter.addCommandLineFilter(args[i], null);
+            } else if(args[i].startsWith("delLimitedTo=")) {
+                delLimitedTo = ext.parseDoubleArg(args[i]);
+                filter.addCommandLineFilter(args[i], null);
+            } else if(args[i].startsWith("dupLimitedTo=")) {
+                dupLimitedTo = ext.parseDoubleArg(args[i]);
+                filter.addCommandLineFilter(args[i], null);
+            } else if(args[i].startsWith("proportion=")) {
+                f.proportionOfProbesThatNeedToPassForFinalInclusion = ext.parseDoubleArg(args[i]);
+                filter.addCommandLineFilter(args[i], null);
+            }
+	    }
+	    
+	    if (famFile == null) {
+	        proj.getLog().report("WARNING - No .fam file specified - skipping frequency-based filtering");
+	        return null;
+	    } else {
+            int famCnt = Files.countLines(famFile, 0);
+            if (famCnt == 0) {
+                proj.getLog().reportError("ERROR - specified .fam file is empty!");
+                return null;
+            }
+            f.totalRequired = (int) (totalRequired * famCnt * 2.0);
+            f.delRequired = (int) (delRequired * famCnt * 2.0);
+            f.dupRequired = (int) (dupRequired * famCnt * 2.0);
+            f.totalLimitedTo = (int)(totalLimitedTo * famCnt * 2.0);
+            f.delLimitedTo = (int)(delLimitedTo * famCnt * 2.0);
+            f.dupLimitedTo = (int)(dupLimitedTo * famCnt * 2.0);
+            return f;
+	    }
+	    
 	}
 
 	/**
@@ -335,6 +405,25 @@ public class CNVFilter {
 		
 		params[27] = "# merge CNVs based on frequency and distance prior to filtering. Default to false.";
 		params[28] = "# " + COMMAND_MERGE;
+		
+		params[29] = "# filter CNVs based on frequency of CNVs at a locus";
+		params[30] = "# " + COMMAND_FREQ_FILTER;
+		params[31] = "# location of .fam file, from which to extract population count";
+        params[32] = "# famFile=";
+        params[33] = "# Total number of CNVs required to qualify a locus for final inclusion";
+        params[34] = "# totalRequired=";
+        params[35] = "# Number of deletions required to qualify a locus for final inclusion";
+        params[36] = "# delRequired=";
+        params[37] = "# Number of duplications required to qualify a locus for final inclusion";
+        params[38] = "# dupRequired=";
+        params[39] = "# Total number of CNVs allowed prior to locus disqualification";
+        params[40] = "# totalLimitedTo=";
+        params[41] = "# Number of deletions allowed prior to locus disqualification";
+        params[42] = "# delLimitedTo=";
+        params[43] = "# Number of duplications allowed prior to locus disqualification";
+        params[44] = "# dupLimitedTo=";
+        params[45] = "# proportion of probes that need to pass for final inclusion";
+        params[46] = "# proportion=";
 		
 		return params;
 	}
@@ -692,6 +781,7 @@ public class CNVFilter {
 		params[4] = COMMAND_CNV_FILE;
 		params[5] = "# the path (relative to the project directory) for the filtered output";
 		params[6] = COMMAND_CNV_FILE_OUT;
+		
 		params = Array.concatAll(params, getDefaultCNVParams());
 		return params;
 	}
@@ -713,13 +803,35 @@ public class CNVFilter {
 		}
 	}
 
-	public static void filterCNVFile(Project proj, String cnvFile, String out, CNVFilter cnvFilter, boolean mergePrior) {
+	public static void filterCNVFile(Project proj, String cnvFile, String out, CNVFilter cnvFilter, boolean mergePrior, boolean freqFilterPrior, FreqFilter freqFilter, boolean ifMergeAndFreqMergeFirst) {
 		CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
 		
-		if (mergePrior) {
-		    int numPrior = cnvs.length;
-		    cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
-		    proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+		if (mergePrior && freqFilterPrior) {
+		    if (ifMergeAndFreqMergeFirst) {
+	            int numPrior = cnvs.length;
+	            cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
+	            proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+
+	            numPrior = cnvs.length;
+	            cnvs = FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs, freqFilter.totalRequired, freqFilter.delRequired, freqFilter.dupRequired, freqFilter.totalLimitedTo, freqFilter.delLimitedTo, freqFilter.dupLimitedTo, freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion);
+	            proj.getLog().report("CNV filtering by frequency complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+		    } else {
+	            int numPrior = cnvs.length;
+	            cnvs = FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs, freqFilter.totalRequired, freqFilter.delRequired, freqFilter.dupRequired, freqFilter.totalLimitedTo, freqFilter.delLimitedTo, freqFilter.dupLimitedTo, freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion);
+	            proj.getLog().report("CNV filtering by frequency complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+	            
+	            numPrior = cnvs.length;
+                cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
+                proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+		    }
+		} else if (mergePrior) {
+            int numPrior = cnvs.length;
+            cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
+            proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+		} else if (freqFilterPrior) {
+            int numPrior = cnvs.length;
+            cnvs = FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs, freqFilter.totalRequired, freqFilter.delRequired, freqFilter.dupRequired, freqFilter.totalLimitedTo, freqFilter.delLimitedTo, freqFilter.dupLimitedTo, freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion);
+            proj.getLog().report("CNV filtering by frequency complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
 		}
 		
 		try {
@@ -760,6 +872,8 @@ public class CNVFilter {
 		String out = "Genvisis.filt.cnv";
 		boolean filter = false;
 		boolean merge = false;
+		boolean freq = false;
+		boolean mergeFirst = false;
 		String logfile = null;
 		Project proj;
 
@@ -774,6 +888,7 @@ public class CNVFilter {
 			proj = new Project(filename, null, false);
 		}
 		CNVFilter cnvFilter = setupCNVFilterFromArgs(proj, args, null, true, proj.getLog());
+		FreqFilter freqFilter = setupFreqFilterFromArgs(proj, args, cnvFilter);
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -798,6 +913,12 @@ public class CNVFilter {
 			} else if (args[i].startsWith(COMMAND_MERGE)) {
 			    merge = ext.parseBooleanArg(args[i]);
 			    numArgs--;
+			} else if (args[i].startsWith(COMMAND_FREQ_FILTER)) {
+			    freq = ext.parseBooleanArg(args[i]);
+			    numArgs--;
+			} else if (args[i].startsWith(COMMAND_MERGE_FIRST)) {
+			    mergeFirst = ext.parseBooleanArg(args[i]);
+			    numArgs--;
 			} else if (cnvFilter.isCommandLineFilterInEffect(args[i])) {
 				numArgs--;
 			} else {
@@ -810,7 +931,7 @@ public class CNVFilter {
 		}
 		try {
 			if (filter) {
-				filterCNVFile(proj, cnvFile, out, cnvFilter, merge);
+				filterCNVFile(proj, cnvFile, out, cnvFilter, merge, false, freqFilter, mergeFirst);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
