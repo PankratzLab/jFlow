@@ -3,6 +3,9 @@ package cnv.annotation;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
+/**
+ * @author lane0212 Stores the annotation value pair
+ */
 public class AnnotationData extends Annotation {
 	private String data;
 

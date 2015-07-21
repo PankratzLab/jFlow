@@ -1,6 +1,7 @@
 package cnv.annotation;
 
 import common.Files;
+import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
@@ -29,7 +30,10 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 		return overWriteExisting;
 	}
 
-
+	/**
+	 * @param locusAnnotation
+	 *            we convert this to a minimal {@link VariantContext} and write to the underlying {@link VariantContextWriter}
+	 */
 	public void write(LocusAnnotation locusAnnotation) {
 		if (writer != null) {
 			writer.add(locusAnnotation.annotateLocus());
@@ -62,12 +66,12 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 				VCFInfoHeaderLine vHeaderLine = new VCFInfoHeaderLine(annotations[i].getName(), 1, annotations[i].getType(), annotations[i].getDescription());
 				vcfHeader.addMetaDataLine(vHeaderLine);
 			}
-//			if(analysisInfo!=null){
-//				for (int i = 0; i < analysisInfo.length; i++) {
-//					VCFHeaderLine vcfHeaderLine = new VCFInfoHeaderLine(name, count, type, description)
-//
-//				}
-//			}
+			// if(analysisInfo!=null){
+			// for (int i = 0; i < analysisInfo.length; i++) {
+			// VCFHeaderLine vcfHeaderLine = new VCFInfoHeaderLine(name, count, type, description)
+			//
+			// }
+			// }
 			VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(annotationFilename);
 			builder.clearOptions();
 			builder.setOption(Options.INDEX_ON_THE_FLY);

@@ -1,5 +1,8 @@
 package cnv.annotation;
 
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarOperator;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,8 +11,9 @@ import java.util.Hashtable;
 
 import seq.analysis.Blast;
 import seq.analysis.Blast.BlastResults;
+import seq.manage.CigarOps;
 import common.Array;
-import common.ArraySpecialList.ArrayIntList;
+import common.ArraySpecialList.*;
 import common.Files;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.LocusAnnotation.Builder;
@@ -47,10 +51,10 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 		String[] markerNames = proj.getMarkerNames();
 
 		LocusAnnotation[] anDatas = new LocusAnnotation[markerNames.length];
-		AnnotationData[] annotationDatas = BlastAnnotationTypes.getAnnotationDatas();
+		//AnnotationData[] annotationDatas = BlastAnnotationTypes.getAnnotationDatas();
 		for (int i = 0; i < anDatas.length; i++) {
 			Builder builder = new Builder();
-			builder.annotations(annotationDatas);
+			builder.annotations(BlastAnnotationTypes.getAnnotationDatas());
 			Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
 			anDatas[i] = builder.build(markerNames[i], markerSeg);
 		}
@@ -66,16 +70,18 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				// reader.close();
 				// break;
 			}
+			//System.out.println("HI"+annotations[i].getAnnotations()[0].getData());
 			write(annotations[i]);
 		}
 	}
 
 	private static LocusAnnotation[] summarizeResultFile(Project proj, String blastResultFile, int minAlignmentLength, int maxGaps, int maxMismatches, int maxAlignmentsReported) {
+		int seqLength = proj.getArrayType().getProbeLength();
 		LocusAnnotation[] anDatas = initializeSummaries(proj);
-		ArrayIntList[][] intLists = new ArrayIntList[anDatas.length][BLAST_ANNOTATION_TYPES.values().length];
+		ArrayCigarList[][] intLists = new ArrayCigarList[anDatas.length][BLAST_ANNOTATION_TYPES.values().length];
 		for (int i = 0; i < intLists.length; i++) {
 			for (int j = 0; j < intLists[i].length; j++) {
-				intLists[i][j] = new ArrayIntList(100);
+				intLists[i][j] = new ArrayCigarList(maxAlignmentsReported);
 			}
 		}
 		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
@@ -98,7 +104,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 					for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
 						if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults, BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
-							intLists[markerIndex][i].add(blastResults.getAlignmentLength());
+							intLists[markerIndex][i].add(Blast.convertBtopToCigar(blastResults, seqLength, proj.getLog()));
 						}
 					}
 				}
@@ -119,14 +125,20 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				// break;
 			}
 			for (int j = 0; j < anDatas[i].getAnnotations().length; j++) {
-				int[] tmp = Array.toIntArray(intLists[i][j]);
+				Cigar[] tmp = intLists[i][j].toArray(new Cigar[intLists[i][j].size()]);
 				if (tmp.length > 0) {
-					Arrays.sort(tmp);
-					tmp = Array.subArray(tmp, 0, Math.min(tmp.length, maxAlignmentsReported));
-					anDatas[i].getAnnotations()[j].setData(Array.toStr(tmp, BLAST_ANNOTATION_TYPES.values()[j].getSep()));
-				} else {
-					anDatas[i].getAnnotations()[j].setData("0");
-				}
+					tmp = CigarOps.sortByRefMatchLength(tmp);
+					tmp = Array.subArray(tmp, Array.intArray(Math.min(tmp.length, maxAlignmentsReported)));
+					anDatas[i].getAnnotations()[j].setData(Array.toStr(CigarOps.toStringArray(tmp), BLAST_ANNOTATION_TYPES.values()[j].getSep()));
+					
+					System.out.println(anDatas[i].getLocusName()+"\n"+Array.toStr(CigarOps.toStringArray(tmp), BLAST_ANNOTATION_TYPES.values()[j].getSep()));
+					
+					//System.out.println(anDatas[i].getAnnotations()[j].getData()+"\n"+Array.toStr(CigarOps.toStringArray(tmp), BLAST_ANNOTATION_TYPES.values()[j].getSep()));
+
+				} 
+				//else {
+//					anDatas[i].getAnnotations()[j].setData(CigarOps.getConstantCigar(seqLength, CigarOperator.X).toString());
+//				}
 			}
 		}
 		return anDatas;
@@ -135,7 +147,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	public static void test() {
 		Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
 		String outfile = proj.PROJECT_DIRECTORY.getValue() + "Blasts/blast.anno.gz";
-		String[] blastResultFiles = new String[] { proj.PROJECT_DIRECTORY.getValue() + "Blasts/GPL18544_humanexome-12v1_a.csv.blasted.ws.15.rep.0.tmp7" };
+		String[] blastResultFiles = new String[] { proj.PROJECT_DIRECTORY.getValue() + "Blasts/GPL18544_humanexome-12v1_a.csv.blasted.ws.30.rep.0.tmp6" };
 		int minAlignmentLength = proj.getArrayType().getProbeLength() - 10;
 		int maxGaps = 0;
 		int maxMismatches = 0;

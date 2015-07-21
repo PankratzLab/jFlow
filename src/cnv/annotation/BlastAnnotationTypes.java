@@ -13,7 +13,7 @@ public class BlastAnnotationTypes {
 
 	private static final String ANNO_DELIM = ",";
 	private static final String DEFAULT_VALUE = ".";
-	private static final String DEFAULT_VALUE_PM = "False";
+	private static final String DEFAULT_VALUE_PM = ".";
 
 	public enum BLAST_ANNOTATION_TYPES {
 		/**

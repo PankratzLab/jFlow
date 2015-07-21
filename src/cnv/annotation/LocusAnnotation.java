@@ -2,7 +2,6 @@ package cnv.annotation;
 
 import java.util.ArrayList;
 
-import common.Positions;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -41,6 +40,10 @@ public class LocusAnnotation {
 
 	public Segment getSeg() {
 		return seg;
+	}
+	public String getLocusName() {
+		
+		return locusName;
 	}
 
 	public AnnotationData[] getAnnotations() {
