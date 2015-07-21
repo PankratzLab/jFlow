@@ -5,6 +5,7 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
@@ -25,7 +26,7 @@ import filesys.Segment;
 
 public class Blast {
 	private static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };
-	public static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score" ,"BTOP"};
+	public static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score", "BTOP" };
 	private static final String DB = "-db";
 	private static final String IN = "-in";
 	private static final String DB_TYPE = "-dbtype";
@@ -283,11 +284,11 @@ public class Blast {
 			this.bitScore = tryDouble(blastLine[11], log);
 			if (taxonMode && blastLine.length > 12) {
 				this.taxID = blastLine[12];
-			} else if(blastLine.length > 12){
+			} else if (blastLine.length > 12) {
 				this.btop = blastLine[12];
-			}else{
-				this.taxID="NA";
-				this.btop="NA";
+			} else {
+				this.taxID = "NA";
+				this.btop = "NA";
 			}
 		}
 
@@ -322,6 +323,10 @@ public class Blast {
 
 		public int getQstart() {
 			return qstart;
+		}
+
+		public String getBtop() {
+			return btop;
 		}
 
 		public int getQstop() {
@@ -473,6 +478,167 @@ public class Blast {
 
 	}
 
+	/**
+	 * @param blastResults
+	 *            must have the btop entry present or will fail
+	 * @param initialSequencLength
+	 *            used to check the resulting length of the cigar string
+	 * @param log
+	 * @return the {@link Cigar } representation of the btop in {@link BlastResults}
+	 */
+	public static Cigar convertBtopToCigar(BlastResults blastResults, int initialSequencLength, Logger log) {
+		String btop = blastResults.getBtop();
+		ArrayList<CigarElement> cigarElements = new ArrayList<CigarElement>();
+		Cigar cigar = null;
+
+		if (btop == null) {
+			String error = "Blast results must contain a \"btop\" entry in order to use this function...";
+			log.reportTimeError(error);
+			throw new IllegalArgumentException(error);
+		} else {
+			if (isAllMatched(blastResults, initialSequencLength)) {// perfect alignment, completely equals the reference...
+				cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.EQ));
+				cigar = new Cigar(cigarElements);
+			} else if (isInt(btop)) {// partial alignment of all matching bps
+				int alignmentLength = Integer.parseInt(btop);
+				if (blastResults.getQstart() - 1 > 0) {//
+					cigarElements.add(new CigarElement(blastResults.getQstart() - 1, CigarOperator.X));
+				}
+				cigarElements.add(new CigarElement(alignmentLength, CigarOperator.EQ));
+				if (blastResults.getQstop() != initialSequencLength) {
+					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.EQ));
+				}
+				cigar = new Cigar(cigarElements);
+				if (cigar.getReadLength() != initialSequencLength) {
+					String error = "INT ONLY REP: Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
+					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
+					error += "\n CIGAR:  " + cigar.toString();
+					log.reportTimeError(error);
+					throw new IllegalArgumentException(error);
+				}
+			} else {// has gaps and or mismatches
+				if (blastResults.getQstart() - 1 > 0) {//
+					cigarElements.add(new CigarElement(blastResults.getQstart() - 1, CigarOperator.X));
+				}
+				String[] btopBroken = breakUpBtop(btop, log);
+				for (int i = 0; i < btopBroken.length; i++) {
+					if (isInt(btopBroken[i])) {
+						cigarElements.add(new CigarElement(Integer.parseInt(btopBroken[i]), CigarOperator.EQ));
+					} else {
+						if (btopBroken[i].length() == 2) {
+
+							if (btopBroken[i].startsWith("-")) {// query has deletion compared to ref
+								cigarElements.add(new CigarElement(1, CigarOperator.D));
+							} else if (btopBroken[i].endsWith("-")) {// query has insertion compared to ref
+								cigarElements.add(new CigarElement(1, CigarOperator.I));
+							} else {
+								cigarElements.add(new CigarElement(1, CigarOperator.X));
+							}
+						} else {
+							String error = "Non int btop strings were supposed to have length two..";
+							log.reportTimeError(error);
+							throw new IllegalArgumentException(error);
+						}
+					}
+				}
+				if (blastResults.getQstop() != initialSequencLength) {
+					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.EQ));
+				}
+				cigar = new Cigar(cigarElements);
+				if (cigar.getReadLength() != initialSequencLength) {
+					String error = "STRING INT REP: Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
+					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
+					error += "\n CIGAR:  " + cigar.toString();
+
+					log.reportTimeError(error);
+					throw new IllegalArgumentException(error);
+				}
+
+			}
+
+		}
+		if (cigar != null && cigar.getReadLength() != initialSequencLength) {
+			String error = "Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
+			log.reportTimeError(error);
+			throw new IllegalArgumentException(error);
+		}
+		// log.reportTimeInfo("BTOP -> " + blastResults.getBtop());
+		// log.reportTimeInfo(" : CIGAR " + cigar.toString());
+		return cigar;
+	}
+
+	/**
+	 * Break up the btop entry into Integer strings and String strings for later processing
+	 * 
+	 * @param btop
+	 * @param log
+	 * @return
+	 */
+	private static String[] breakUpBtop(String btop, Logger log) {
+		ArrayList<String> btopBroken = new ArrayList<String>();
+		String currentInt = null;
+		String currentString = null;
+		for (int i = 0; i < btop.length(); i++) {
+			if (currentString != null && currentString.length() == 2) {
+				btopBroken.add(currentString);
+				currentString = null;
+			}
+
+			if (isInt(btop.charAt(i) + "")) {// integer representing reference match
+				if (currentString != null) {
+					if (currentString.length() != 2) {
+						String error = "Internal error, unaccounted for string breakup length";
+						log.reportTimeError(error);
+						throw new IllegalStateException(error);
+					}
+					btopBroken.add(currentString);
+					currentString = null;
+				}
+				if (currentInt == null) {
+					currentInt = "";
+				}
+				currentInt += btop.charAt(i);
+			}
+
+			else {
+				if (currentInt != null) {
+					btopBroken.add(currentInt);
+					currentInt = null;
+				}
+				if (currentString == null) {
+					currentString = "";
+				}
+
+				currentString += btop.charAt(i);
+			}
+		}
+		if (currentInt != null && currentString != null) {
+			String error = "Internal error, unaccounted for breakup";
+			log.reportTimeError(error);
+			throw new IllegalStateException(error);
+		}
+		if (currentInt != null) {
+			btopBroken.add(currentInt);
+		}
+		if (currentString != null) {
+			btopBroken.add(currentString);
+		}
+		return Array.toStringArray(btopBroken);
+	}
+
+	private static boolean isAllMatched(BlastResults blastResults, int initialSequencLength) {
+		return blastResults.getAlignmentLength() == initialSequencLength && blastResults.getGapOpens() == 0 && blastResults.getMismatches() == 0;
+	}
+
+	private static boolean isInt(String potentialInt) {
+		try {
+			Integer.parseInt(potentialInt);
+			return true;
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
+	}
+
 	public static void test() {
 		String fastaDb = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
 		Blast blast = new Blast(fastaDb, 60, 100, new Logger(), true, true);
@@ -515,3 +681,15 @@ public class Blast {
 		}
 	}
 }
+//
+// else if ((btop.charAt(i) + "").equals("-")) {//gap
+// if (currentString != null) {
+// btopBroken.add(currentString);
+// currentString = null;
+// }
+// if (currentInt != null) {
+// btopBroken.add(currentInt);
+// currentInt = null;
+// }
+// btopBroken.add(btop.charAt(i) + "");
+// }
