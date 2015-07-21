@@ -506,7 +506,7 @@ public class Blast {
 				}
 				cigarElements.add(new CigarElement(alignmentLength, CigarOperator.EQ));
 				if (blastResults.getQstop() != initialSequencLength) {
-					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.EQ));
+					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.X));
 				}
 				cigar = new Cigar(cigarElements);
 				if (cigar.getReadLength() != initialSequencLength) {
@@ -542,7 +542,7 @@ public class Blast {
 					}
 				}
 				if (blastResults.getQstop() != initialSequencLength) {
-					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.EQ));
+					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.X));
 				}
 				cigar = new Cigar(cigarElements);
 				if (cigar.getReadLength() != initialSequencLength) {
@@ -553,9 +553,7 @@ public class Blast {
 					log.reportTimeError(error);
 					throw new IllegalArgumentException(error);
 				}
-
 			}
-
 		}
 		if (cigar != null && cigar.getReadLength() != initialSequencLength) {
 			String error = "Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;

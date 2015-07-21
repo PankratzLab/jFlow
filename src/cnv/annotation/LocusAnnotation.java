@@ -2,6 +2,8 @@ package cnv.annotation;
 
 import java.util.ArrayList;
 
+import common.Positions;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -25,7 +27,7 @@ public class LocusAnnotation {
 		}
 
 		VariantContextBuilder vBuilder = new VariantContextBuilder();
-		vBuilder.chr("chr"+seg.getChr());
+		vBuilder.chr(Positions.getChromosomeUCSC(seg.getChr(), true));
 		vBuilder.start(seg.getStart());
 		vBuilder.stop(seg.getStop());
 		vBuilder.id(locusName);

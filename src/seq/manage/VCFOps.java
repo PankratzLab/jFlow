@@ -34,6 +34,8 @@ import filesys.Segment;
 import gwas.MatchSamples;
 import gwas.MatchesVisualized;
 import gwas.MergeDatasets;
+import htsjdk.samtools.QueryInterval;
+import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;
@@ -960,7 +962,7 @@ public class VCFOps {
 				System.out.println("RUNNING match4");
 
 				Files.copyFileUsingFileChannels(new File(pairs), new File(pairs + j + ".selection"), log);
-				
+
 				String[] barnesPicked = HashVec.loadFileToStringArray(pairs, true, new int[] { 1 }, true);
 				String[] deletes = Files.listFullPaths(matchDir, ".xln", false);
 				new MatchesVisualized(matchDir, ext.removeDirectoryInfo(anchorList), ext.removeDirectoryInfo(barnacleList), ext.removeDirectoryInfo(factorFile), ext.indexFactors(run, Files.getHeaderOfFile(factorFile, log), true, false), ext.removeDirectoryInfo(pairs));
@@ -972,7 +974,6 @@ public class VCFOps {
 				for (int k = 0; k < barnesPicked.length; k++) {
 					currentBarns.add(barnesPicked[k]);
 				}
-
 
 			}
 			String finalVpop = matchDir + "barnacle.vpop";
@@ -1597,6 +1598,37 @@ public class VCFOps {
 		} else {
 			log.reportFileExists(output);
 		}
+	}
+
+	/**
+	 * @param segs
+	 *            Genvisis type segments to search
+	 * @param vcfHeader
+	 *            an {@link VCFHeader}
+	 * @param bpBuffer
+	 *            bp buffer to be added to the segments
+	 * @param optimize
+	 *            perform an extra step to make a more efficient query
+	 * @param log
+	 * @return array of {@link QueryInterval} that can be queried by a bamfile reader
+	 */
+	public static QueryInterval[] convertSegsToQI(Segment[] segs, VCFHeader vcfHeader, int bpBuffer, boolean optimize, Logger log) {
+		QueryInterval[] qIntervals = new QueryInterval[segs.length];
+		segs = Segment.sortSegments(segs);
+		for (int i = 0; i < qIntervals.length; i++) {
+			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
+
+			int referenceIndex = vcfHeader.getSequenceDictionary().getSequenceIndex(sequenceName);
+			if (referenceIndex < 0) {
+				log.reportError("Error - could not find " + sequenceName + " in the sequence dictionary, halting");
+				return null;
+			}
+			qIntervals[i] = new QueryInterval(referenceIndex, segs[i].getStart() - bpBuffer, segs[i].getStop() + bpBuffer);
+		}
+		if (optimize) {
+			qIntervals = QueryInterval.optimizeIntervals(qIntervals);
+		}
+		return qIntervals;
 	}
 
 	public static void main(String[] args) {

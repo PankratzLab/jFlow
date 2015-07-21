@@ -97,6 +97,10 @@ public class Positions {
 		return "chr" + getChromosomeUCSC(pos[0], false) + (pos.length > 1 ? ":" + pos[1] + (pos.length == 3 ? "-" + pos[2] : "") : "");
 	}
 
+	public static String getChromosomeUCSC(int chr, boolean addChr) {
+		return getChromosomeUCSC(chr, addChr, false);
+	}
+
 	/**
 	 * This function is necessary due to UCSC representing the following chromosomes as follows
 	 * <p>
@@ -114,10 +118,12 @@ public class Positions {
 	 *            integer representing the chromosome to parse
 	 * @param addChr
 	 *            add "chr" to the string returned
+	 * @param pseudoAutosmalSetToX
+	 *            in some internal cases, it is useful to keep the "chrXY" designation
 	 * @return the original chromosome if it is less than 23. Else, the parsed version, or "" if unable to parse;
 	 */
 
-	public static String getChromosomeUCSC(int chr, boolean addChr) {
+	public static String getChromosomeUCSC(int chr, boolean addChr, boolean pseudoAutosmalSetToX) {
 		String chrUCSC = "";
 		if (chr < 23) {
 			chrUCSC = chr + "";
@@ -126,7 +132,7 @@ public class Positions {
 		} else if (chr == 24) {
 			chrUCSC = "Y";
 		} else if (chr == 25) {
-			chrUCSC = "X";
+			chrUCSC = pseudoAutosmalSetToX ? "X" : "XY";
 		} else if (chr == 26) {
 			chrUCSC = "M";
 		}
