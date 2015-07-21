@@ -13,8 +13,7 @@ public class CigarOps {
 	 * @param cigars
 	 * @return an array of {@link Cigar} ordered by their length matched to the reference
 	 */
-	public static Cigar[] sortByRefMatchLength(Cigar[] cigars) {
-		Cigar[] cigarSorted = new Cigar[cigars.length];
+	public static int[] sortByRefMatchLength(Cigar[] cigars) {
 		int[] refLengthMatch = new int[cigars.length];
 		for (int i = 0; i < cigars.length; i++) {
 			int reftmp = 0;
@@ -26,10 +25,8 @@ public class CigarOps {
 			refLengthMatch[i] = reftmp;
 		}
 		int[] order = Sort.quicksort(refLengthMatch, Sort.DESCENDING);
-		for (int i = 0; i < order.length; i++) {
-			cigarSorted[i] = cigars[order[i]];
-		}
-		return cigarSorted;
+
+		return order;
 	}
 
 	/**
