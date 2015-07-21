@@ -85,7 +85,11 @@ public class FAST {
 	    
 	    ExecutorService executor = Executors.newFixedThreadPool(factorDirs.length); 
 	    
-        for (final File factorDir : factorDirs) {
+        
+//	    double pvalThresh = 0.0001;
+	    final double pvalThresh = 0.001;
+	    
+	    for (final File factorDir : factorDirs) {
             Runnable parseMetalRunnable = new Runnable() {
                 @Override
                 public void run() {
@@ -95,7 +99,7 @@ public class FAST {
                     factorLog.report(ext.getTime() + "]\tBegin processing for factor " + factorName);
                     File[] popDirs = factorDir.listFiles(dirFilter);
                     factorLog.report(ext.getTime() + "]\tFound " + popDirs.length + " populations");
-                    StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName));
+                    StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
                     int foundCount = 0;
                     for (File popDir : popDirs) {
                         String popName = ext.rootOf(popDir.getName(), true);
@@ -116,7 +120,7 @@ public class FAST {
                                         String midOut = "concatenated.result";
                                         String finalOut = buildFinalFilename(studyName, popName, factorName, -1);
                                         String traitFile = ext.verifyDirFormat(popDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + ".trait";
-                                        concatResults(resultsDirPath, midOut, 0.0001, true, true);
+                                        concatResults(resultsDirPath, midOut, pvalThresh, true, true);
                                         if (Files.exists(resultsDirPath + midOut) && Files.getSize(resultsDirPath + midOut, false) > 0) { 
                                             runParser(DEFAULT_FORMAT, resultsDirPath + midOut, resultsDirPath + "../" + finalOut, countValid(traitFile));
                                             factorLog.report(ext.getTime() + "]\tParsing complete.");
@@ -148,7 +152,7 @@ public class FAST {
                         File femaleDir = new File(popDir, "female/");
                         File maleDir = new File(popDir, "male/");
         
-                        StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName));
+                        StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
                         if (femaleDir.exists() && femaleDir.isDirectory() && maleDir.exists() && maleDir.isDirectory()) {
                             String[] dataFilesF = femaleDir.list(dataFileFilter);
                             String[] dataFilesM = maleDir.list(dataFileFilter);
@@ -164,7 +168,7 @@ public class FAST {
                                         String midOutF = "concatenated.result";
                                         String finalOutF = buildFinalFilename(studyName, popName, factorName, 0);
                                         String traitFileF = ext.verifyDirFormat(femaleDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + "_female.trait";
-                                        concatResults(resultsDirPathFemale, midOutF, 0.0001, true, true);
+                                        concatResults(resultsDirPathFemale, midOutF, pvalThresh, true, true);
                                         if (Files.exists(resultsDirPathFemale + midOutF) && Files.getSize(resultsDirPathFemale + midOutF, false) > 0) { 
                                             runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPathFemale) + midOutF, ext.verifyDirFormat(resultsDirPathFemale) + "../" + finalOutF, countValid(traitFileF));
                                             factorLog.report(ext.getTime() + "]\tParsing complete.");
@@ -197,7 +201,7 @@ public class FAST {
                                         String midOutM = "concatenated.result";
                                         String finalOutM = buildFinalFilename(studyName, popName, factorName, 1);
                                         String traitFileM = ext.verifyDirFormat(maleDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + "_male.trait";
-                                        concatResults(resultsDirPathMale, midOutM, 0.0001, true, true);
+                                        concatResults(resultsDirPathMale, midOutM, pvalThresh, true, true);
                                         if (Files.exists(resultsDirPathMale + midOutM) && Files.getSize(resultsDirPathMale + midOutM, false) > 0) {
                                             runParser(DEFAULT_FORMAT, resultsDirPathMale + midOutM, resultsDirPathMale + "../" + finalOutM, countValid(traitFileM));
                                             factorLog.report(ext.getTime() + "]\tParsing complete.");
@@ -289,9 +293,11 @@ public class FAST {
 	    
 	    StringBuilder runMetal = new StringBuilder();
 	    
+	    double pvalThresh = 0.001;
+	    
 	    for (File factorDir : factorDirs) {
 	        String factorName = ext.rootOf(factorDir.getName(), true);
-	        StringBuilder metaFileContents = new StringBuilder(writeMetalCRF(factorName));
+	        StringBuilder metaFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
 	        int foundCount = 0;
 	        File[] popDirs = factorDir.listFiles(dirFilter);
 	        for (File popDir : popDirs) {
@@ -304,7 +310,7 @@ public class FAST {
 	            File femDir = new File(popDir, "female");
 	            File malDir = new File(popDir, "male");
 	            if (femDir.exists() && femDir.isDirectory() && malDir.exists() && malDir.isDirectory()) {
-	                StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName));
+	                StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
 	                String[] dataFilesF = femDir.list(dataFileFilter);
 	                String[] dataFilesM = malDir.list(dataFileFilter);
 	                for (String dataF : dataFilesF) {
@@ -333,10 +339,10 @@ public class FAST {
         Files.qsub(ext.verifyDirFormat(studyDir) + "master_runMETAL.qsub", runMetal.toString(), METAL_QSUB_RAM_MB, METAL_QSUB_TIME_HRS, METAL_QSUB_THREADS);
 	}
 	
-	private static String writeMetalCRF(String factor) {
+	private static String writeMetalCRF(String factor, double pvalThresh) {
 	    StringBuilder metalCRF = new StringBuilder("metal\n")
                                 	    .append(factor).append("\n")
-                                	    .append("build=37\ngenomic_control=TRUE\nhits_p<=0.0001\n");
+                                	    .append("build=37\ngenomic_control=TRUE\nhits_p<="+pvalThresh+"\n");
 	    return metalCRF.toString();
 	}
 

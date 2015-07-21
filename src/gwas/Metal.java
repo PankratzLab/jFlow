@@ -804,25 +804,25 @@ public class Metal {
 	}
 	
 	private static String[][] includeExtraInfoFromTopHits(String[][] hwResults) throws IOException {
-	    BufferedReader reader = Files.getAppropriateReader("topHits.xln");
-	    
 	    String[][] newResults = new String[hwResults.length][];
 	    
 	    int[] hwInd = ext.indexFactors(new String[][]{Aliases.MARKER_NAMES}, hwResults[0], false, true, false, false);
 	    int mkrInd = hwInd[0];
 	    
 	    HashSet<String> hwMkrs = new HashSet<String>();
-	    for (String[] res : hwResults) {
-	        hwMkrs.add(res[mkrInd]);
+        for (int i = 1; i < hwResults.length; i++) {
+	        hwMkrs.add(hwResults[i][mkrInd]);
 	    }
+        
 	    HashMap<String, String[]> topHitsParts = new HashMap<String, String[]>();
 	    
-	    String readLine = reader.readLine().trim();
-	    String delim = ext.determineDelimiter(readLine);
-	    String[] line = readLine.split(delim);
+	    BufferedReader reader = Files.getAppropriateReader("topHits.xln");
+	    String headerLine = reader.readLine().trim();
+	    String delim = ext.determineDelimiter(headerLine);
+	    String[] line = headerLine.split(delim);
 	    int[] topInd = ext.indexFactors(new String[][]{Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS}, line, false, true, false, false);
 	    int topMkrInd = topInd[0];
-	    
+	    String readLine = null;
 	    while ((readLine = reader.readLine()) != null) {
 	        line = readLine.split(delim);
 	        if (hwMkrs.contains(line[topMkrInd])) {
@@ -831,7 +831,20 @@ public class Metal {
 	    }
 	    reader.close();
 	    
-	    for (int i = 0; i < hwResults.length; i++) {
+	    String[] hdr = hwResults[0];
+	    String[] pts = headerLine.split(delim);
+	    String[] newHdr = new String[pts.length - 3];
+	    int cnt = 0;
+	    for (int i = 0; i < pts.length; i++) {
+            if (i == topInd[0] || i == topInd[1] || i == topInd[2]) {
+                continue;
+            }
+            newHdr[cnt] = pts[i];            
+            cnt++;
+	    }
+	    newResults[0] = Array.concatAll(hdr, newHdr);
+	    
+	    for (int i = 1; i < hwResults.length; i++) {
 	        String hwMkr = hwResults[i][mkrInd];
 	        String[] topData = topHitsParts.get(hwMkr);
 	        String[] newTopData = new String[topData.length - 3];
@@ -840,7 +853,8 @@ public class Metal {
 	            if (j == topInd[0] || j == topInd[1] || j == topInd[2]) {
 	                continue;
 	            }
-	            newTopData[cntInd++] = topData[j];
+	            newTopData[cntInd] = topData[j];
+	            cntInd++;
 	        }
 	        
 	        String[] newStringArray = Array.concatAll(hwResults[i], newTopData);
