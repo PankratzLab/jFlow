@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import one.ScriptExecutor;
-
+import stats.LeastSquares;
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -39,10 +39,12 @@ public class ConditionalAnalysisPipeline {
         String analysisRootDir;
         String regionDirNameRoot;
         // set programmatically:
-        String genoData;
-        String infoData;
+        String[] genoData;
+        String[] infoData;
         
         HashSet<String> prevSNPs = new HashSet<String>();
+        HashMap<String, String[]> prevSNPdata = new HashMap<String, String[]>();
+        HashMap<String, String[]> prevSNPinfo = new HashMap<String, String[]>();
         
         @Override
         public String toString() {
@@ -152,11 +154,14 @@ public class ConditionalAnalysisPipeline {
                         // geno/info lines should be one to one
                         String[] infoParts = infoLine.split(delim);
                         if (infoParts[1].trim().equals(region.indexSNP)) {
-                            region.genoData = genoLine;
-                            region.infoData = infoLine;
-                            if (found) {
-                                break;
-                            }
+                            region.genoData = genoLine.split("[\\s]+");
+                            region.infoData = infoLine.split("[\\s]+");
+//                            if (found) {
+//                                break; // don't break anymore - we have to load data for each index SNP we've tracked
+//                            }
+                        } else if (region.prevSNPs.contains(infoParts[1])) {
+                            region.prevSNPdata.put(infoParts[1], genoLine.split("[\\s]+"));
+                            region.prevSNPinfo.put(infoParts[1], infoLine.split("[\\s]+"));
                         }
                         int mkrPos = Integer.parseInt(infoParts[2]);
                         if (mkrPos < region.start || mkrPos > region.stop) {
@@ -208,11 +213,141 @@ public class ConditionalAnalysisPipeline {
                         if (!dd.popcode.equals(pop)) {
                             continue;
                         }
-                        createNewTraitFile(region, traitDir, popMap.getValue(), indexMap);
+//                        createNewTraitFile(region, traitDir, popMap.getValue(), indexMap);
+                        regressNewTraitFile(region, traitDir, popMap.getValue(), indexMap);
                     }
                 }
             }
             
+        }
+        
+        private static void regressNewTraitFile(Region region, String traitDir, String traitFile, HashMap<String, Integer> iids) {
+            String[] pts = traitFile.substring(0, traitFile.lastIndexOf(".")).split("_");
+            String study = pts[0];
+            String pop = pts[1];
+            String factor = pts[2];
+            String newTraitFile = study + "_" + pop + "_" + factor + ".trait";
+            String dir = region.analysisRootDir + region.regionDirNameRoot;
+            
+            int offset = 5; // column index offset to start of geno data
+
+            ArrayList<String> missing = new ArrayList<String>();
+            
+            try {
+                int traitCount = Files.countLines(traitDir + traitFile, 1);
+                BufferedReader reader = Files.getAppropriateReader(traitDir + traitFile);
+                
+                int phenoCol = 5;
+                
+                double[] phenoData = new double[traitCount];
+                double[][] indepData = new double[traitCount][];
+                
+                String line = reader.readLine(); // header
+                String[] parts = line.split("[\\s]+");
+                ArrayList<String> colNames = new ArrayList<String>();
+                
+                for (int i = 6; i < parts.length; i++) {
+                    colNames.add(parts[i]);
+                }
+                colNames.add(region.indexSNP);
+                for (String snp : region.prevSNPs) {
+                    colNames.add(snp);
+                }
+                
+                int cnt = 0;
+                while((line = reader.readLine()) != null) {
+                    parts = line.split("[\\s]+");
+
+                    ArrayList<Double> lineData = new ArrayList<Double>();
+                    
+                    for (int i = 6; i < parts.length; i++) {
+                        lineData.add(Double.parseDouble(parts[i]));
+                    }
+                    
+                    String iid = parts[1];
+                    Integer iidIndex = iids.get(iid);
+                    double geno = Double.NaN;
+                    if (iidIndex == null) {
+                        missing.add(iid);
+                        lineData.add(0.0); // TODO missing values!
+                        for (int i = 0; i < region.prevSNPs.size(); i++) {
+                            lineData.add(0.0);
+                        }
+                    } else {
+                        int iidInd = iidIndex.intValue();
+//                        double geno1 = Double.parseDouble(genoData[offset + (3 * iidInd)]);
+                        double geno2 = Double.parseDouble(region.genoData[offset + (3 * iidInd) + 1]);
+                        double geno3 = Double.parseDouble(region.genoData[offset + (3 * iidInd) + 2]);
+                        geno = (geno2 + (2 * geno3));
+                        lineData.add(geno);
+                        
+                        // TODO include each previous SNP?  Comment out to remove
+                        for (String snp : region.prevSNPs) {
+                            geno2 = Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd) + 1]);
+                            geno3 = Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd) + 2]);
+                            geno = (geno2 + (2 * geno3));
+                            lineData.add(geno);
+                        }
+                        
+                    }
+                    
+                    phenoData[cnt] = Double.parseDouble(parts[phenoCol]);
+                    
+                    indepData[cnt] = Array.toDoubleArray(lineData);
+                    cnt++;
+                }
+                reader.close();
+                
+                String[] cols = colNames.toArray(new String[colNames.size()]);
+                
+                PrintWriter testWriter = Files.getAppropriateWriter(dir + "traitTEST.txt");
+                testWriter.println(colNames.toString());
+                for (double[] dat : indepData) {
+                    testWriter.println(Array.toStr(dat));
+                }
+                testWriter.flush();
+                testWriter.close();
+                
+                LeastSquares lsReg = new LeastSquares(phenoData, indepData, cols, true, false); // TODO should bypass data check?? - could easily have NaNs in there
+                
+                double[] resids = lsReg.getResiduals();
+                if (resids.length != traitCount) {
+                    // TODO error!
+                }
+                
+                String header = "#Fam_ID\tInd_ID\tDad_ID\tMom_ID\tSex\tPhenotype";
+
+                PrintWriter writer = Files.getAppropriateWriter(dir + newTraitFile);
+                writer.println(header);
+                
+                reader = Files.getAppropriateReader(traitDir + traitFile);
+                reader.readLine(); // header
+                cnt = 0;
+                while((line = reader.readLine()) != null) {
+                    parts = line.split("[\\s]+");
+                    StringBuilder lineStr = new StringBuilder();
+                    lineStr.append(parts[0]).append("\t")
+                            .append(parts[1]).append("\t")
+                            .append(parts[2]).append("\t")
+                            .append(parts[3]).append("\t")
+                            .append(parts[4]).append("\t")
+                            .append(resids[cnt]);
+                    
+                    writer.println(lineStr.toString());
+                    
+                    cnt++;
+                }
+                reader.close();
+                writer.flush();
+                writer.close();
+                
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
         
         private static void createNewTraitFile(Region region, String traitDir, String traitFile, HashMap<String, Integer> iids) {
@@ -224,7 +359,6 @@ public class ConditionalAnalysisPipeline {
             String dir = region.analysisRootDir + region.regionDirNameRoot;
             
             int offset = 5; // column index offset to start of geno data
-            String[] genoData = region.genoData.split("[\\s]+");
             
             ArrayList<String> missing = new ArrayList<String>();
             
@@ -246,8 +380,8 @@ public class ConditionalAnalysisPipeline {
                     } else {
                         int iidInd = iidIndex.intValue();
 //                        double geno1 = Double.parseDouble(genoData[offset + (3 * iidInd)]);
-                        double geno2 = Double.parseDouble(genoData[offset + (3 * iidInd) + 1]);
-                        double geno3 = Double.parseDouble(genoData[offset + (3 * iidInd) + 2]);
+                        double geno2 = Double.parseDouble(region.genoData[offset + (3 * iidInd) + 1]);
+                        double geno3 = Double.parseDouble(region.genoData[offset + (3 * iidInd) + 2]);
                         geno = "" + (geno2 + (2 * geno3));
                     }
                     
@@ -312,9 +446,11 @@ public class ConditionalAnalysisPipeline {
                         .append(dd.indivFile);
                 newDataDefs.add(newDef.toString());
             }
+            
             synchronized(PRINT_LOCK) { System.out.println(ext.getTime() + "]\tWriting new data.txt file..."); }
             String newDataFile = region.analysisRootDir + region.regionDirNameRoot + "data_" + ext.replaceWithLinuxSafeCharacters(region.indexSNP, false) + ".txt";
             Files.writeList(newDataDefs.toArray(new String[newDataDefs.size()]), newDataFile);
+            
             String regionPath = region.analysisRootDir + region.regionDirNameRoot;
             
             try {
@@ -380,7 +516,8 @@ public class ConditionalAnalysisPipeline {
                                 r2.regionDirNameRoot = newDir;
                                 r2.prevSNPs.addAll(region.prevSNPs);
                                 r2.prevSNPs.add(region.indexSNP);
-                                (new ConditionalAnalysisToolset_FAST(r2, dataFile, regionPath, tempDir, dataDefs)).run();
+                                (new ConditionalAnalysisToolset_FAST(r2, dataFile, traitDir, tempDir, dataDefs)).run();
+//                                (new ConditionalAnalysisToolset_FAST(r2, dataFile, regionPath, tempDir, dataDefs)).run();
                             }
                         } else {
                             synchronized(PRINT_LOCK) {
