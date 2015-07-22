@@ -10,12 +10,14 @@ public abstract class Annotation {
 	private VCFHeaderLineType type;
 	protected String name;
 	private String description;
+	private String defaultValue;
 
-	public Annotation(VCFHeaderLineType type, String name, String description) {
+	public Annotation(VCFHeaderLineType type, String name, String description, String defaultValue) {
 		super();
 		this.type = type;
 		this.name = name;
 		this.description = description;
+		this.defaultValue = defaultValue;
 	}
 
 	public VCFHeaderLineType getType() {
@@ -29,5 +31,10 @@ public abstract class Annotation {
 	public String getDescription() {
 		return description;
 	}
+
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+	
 
 }

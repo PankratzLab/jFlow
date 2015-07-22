@@ -85,7 +85,7 @@ public class BlastAnnotationTesting {
 	public static void main(String[] args) {
 		Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
 		String annoFile = proj.PROJECT_DIRECTORY.getValue() + "TestBlastLoad/blast.anno.vcf.gz";
-	//	test(proj,annoFile);
+		test(proj,annoFile);
 		testLoad(proj, annoFile);
 	}
 }

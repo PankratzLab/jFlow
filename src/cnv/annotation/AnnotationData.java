@@ -9,8 +9,8 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class AnnotationData extends Annotation {
 	private String data;
 
-	public AnnotationData(VCFHeaderLineType type, String name, String description, String data) {
-		super(type, name, description);
+	public AnnotationData(VCFHeaderLineType type, String name, String description, String data, String defaultValue) {
+		super(type, name, description, defaultValue);
 		this.data = data;
 	}
 

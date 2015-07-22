@@ -134,7 +134,6 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		public VariantContext next() {
 			return currentIterator.next();
 		}
-
 	}
 
 }
