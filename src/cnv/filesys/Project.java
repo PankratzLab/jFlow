@@ -368,6 +368,7 @@ public class Project {
 	public      FileProperty   MARKER_EXCLUSION_CRITERIA_FILENAME = new       FileProperty(this,   "MARKER_EXCLUSION_CRITERIA_FILENAME", "", "results/exclusion.criteria", false);
 	public      FileProperty    MARKER_COMBINED_CRITERIA_FILENAME = new       FileProperty(this,    "MARKER_COMBINED_CRITERIA_FILENAME", "", "results/combined.criteria", false);
 	public      FileProperty                  ANNOTATION_FILENAME = new       FileProperty(this,                  "ANNOTATION_FILENAME", "", "data/annotationCollection.ser", false);
+	public      FileProperty            BLAST_ANNOTATION_FILENAME = new       FileProperty(this,            "BLAST_ANNOTATION_FILENAME", "", "data/blast.vcf.gz", false);
 	public      FileProperty         CUSTOM_COLOR_SCHEME_FILENAME = new       FileProperty(this,         "CUSTOM_COLOR_SCHEME_FILENAME", "", "", false);
 	public      FileProperty                    GC_MODEL_FILENAME = new       FileProperty(this,                    "GC_MODEL_FILENAME", "", "data/custom.gcmodel", false);
 	public      FileProperty                  COMMON_CNP_FILENAME = new       FileProperty(this,                  "COMMON_CNP_FILENAME", "", "data/HG19 CNV edit for AGW.txt", false);

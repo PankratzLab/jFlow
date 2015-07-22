@@ -74,6 +74,8 @@ import stats.ContingencyTable;
 import stats.ProbDist;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.annotation.BlastAnnotationLoader;
+import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
 import cnv.filesys.AnnotationCollection;
 import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilter;
@@ -145,6 +147,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JLabel sizeLabel;
 	private JLabel gcLabel;
 	private JPanel qcPanel;
+	private JPanel blastPanel;
 	private JLabel pcLabel, nStageStDevLabel, correctionRatioLabel;
 	private JScrollPane annotationScrollPane;
 	private JPanel annotationPanel;
@@ -222,6 +225,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JPanel[] indivPanels;
 	private JPanel scatterOverview;
 	private JPanel viewPanel;
+	private boolean hasBlastAnnotations = false;
+	private BlastAnnotationLoader blastAnnotationLoader;
+	private MarkerBlastResult[] blastResults = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
 
@@ -278,6 +284,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			proj.getLog().reportError("Without a SampleData file, ScatterPlot will not start");
 			JOptionPane.showMessageDialog(null, "Without a SampleData file, ScatterPlot will not start", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
+		}
+		
+		String annoFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
+		if (Files.exists(annoFile)) {
+		    blastAnnotationLoader = new BlastAnnotationLoader(proj, annoFile, true);
+		    hasBlastAnnotations = true;
 		}
 		
 		masterMarkerList = initMarkerList;
@@ -433,6 +445,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         }
     
         annotationAutoAdv = true;
+
+        if (hasBlastAnnotations) {
+            try {
+                blastResults = blastAnnotationLoader.loadBlastAnnotationsFor(masterMarkerList);
+            } catch (Exception e) {
+                blastResults = null;
+            }
+        }
     }
 
     private void convertSamples() {
@@ -517,6 +537,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         } else {
             proj.getLog().reportError("Error - file " + file + " not found");
         }
+	}
+	
+	private void loadBLASTAnnotations() {
+	    
 	}
 	
 	private JMenuBar createJMenuBar() {
@@ -892,7 +916,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
 
 		eastPanel = new JPanel();
-		eastPanel.setLayout(new MigLayout("", "[grow]", "[grow,fill][fill][fill]"));
+		eastPanel.setLayout(new MigLayout("", "[grow]", "[grow,fill][fill][fill][fill]"));
 		eastPanel.setBackground(BACKGROUND_COLOR);
 		eastPanel.add(tabbedPane, "cell 0 0, grow");
 				
@@ -904,6 +928,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		qcTabbedPanel.addTab("QC Metrics", null, qcPanel, "Quality Control Metrics");
 		eastPanel.add(qcTabbedPanel, "cell 0 1, grow");
 		
+		JTabbedPane blastTabbedPanel = new JTabbedPane();
+		blastTabbedPanel.setBackground(BACKGROUND_COLOR);
+		blastPanel = new JPanel();
+		blastPanel.setLayout(new MigLayout("hidemode 0", "[][grow]", "[][][][][][][]"));
+		blastPanel.setBackground(BACKGROUND_COLOR);
+		blastTabbedPanel.addTab("BLAST Metrics", null, blastPanel, "Basic Local Alignment Search Tool Metrics");
+		eastPanel.add(blastTabbedPanel, "cell 0 2, grow");
+		
 		JTabbedPane cfTabbedPanel = new JTabbedPane();
 		cfTabbedPanel.setBackground(BACKGROUND_COLOR);
 		JPanel cfPanel = new JPanel();
@@ -911,7 +943,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		cfPanel.setBackground(BACKGROUND_COLOR);
 		cfPanel.add(clusterFilterPanel());
 		cfTabbedPanel.addTab("Cluster Filters", null, cfPanel, "Apply Cluster Filters");
-		eastPanel.add(cfTabbedPanel, "cell 0 2, grow");
+		eastPanel.add(cfTabbedPanel, "cell 0 3, grow");
 
 		return eastPanel;
     }
@@ -2826,7 +2858,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		}
 	}
 	
-	public void loadMarkerDataFromList(int newMarkerIndex) {
+	private void loadMarkerDataFromList(int newMarkerIndex) {
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
 //		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSameThread(proj, markerList);
 		
@@ -3066,7 +3098,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public Hashtable<String, String> getDisabledClassValues() {
 		return colorKeyPanel.getDisabledClassValues();
 	}
-
+	
+	
+	
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass, int index) {
 		int numCalledGenotypes;
 		double callrate;
