@@ -10,6 +10,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -299,14 +300,6 @@ public class ConditionalAnalysisPipeline {
                 reader.close();
                 
                 String[] cols = colNames.toArray(new String[colNames.size()]);
-                
-                PrintWriter testWriter = Files.getAppropriateWriter(dir + "traitTEST.txt");
-                testWriter.println(colNames.toString());
-                for (double[] dat : indepData) {
-                    testWriter.println(Array.toStr(dat));
-                }
-                testWriter.flush();
-                testWriter.close();
                 
                 LeastSquares lsReg = new LeastSquares(phenoData, indepData, cols, true, false); // TODO should bypass data check?? - could easily have NaNs in there
                 
@@ -640,6 +633,130 @@ public class ConditionalAnalysisPipeline {
             e.printStackTrace();
         }
         
+        for (Region region : rgns) {
+            processAndWriteResults(region, dataDefs);
+        }
+        
+    }
+    
+    private void processAndWriteResults(final Region region, HashMap<String, HashMap<String, DataDefinitions>> dataDefs) {
+        String[] iterDirs = (new File(region.analysisRootDir)).list(new FilenameFilter() {
+            @Override
+            public boolean accept(File arg0, String arg1) {
+                return arg1.startsWith(region.label + "_iter");
+            }
+        });
+        
+        Arrays.sort(iterDirs, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                String[] parts1 = o1.split("_");
+                String[] parts2 = o2.split("_");
+                String iter1 = parts1[1].substring(4);
+                String iter2 = parts2[1].substring(4);
+                return new Integer(iter1).compareTo(new Integer(iter2));
+            }
+        });
+        
+        String[][] factors = new String[][]{Aliases.MARKER_NAMES, Aliases.EFFECTS, Aliases.STD_ERRS, Aliases.PVALUES};
+        
+        HashMap<String, HashMap<String, StringBuilder>> headerMap = new HashMap<String, HashMap<String,StringBuilder>>();
+        HashMap<String, HashMap<String, HashMap<String, StringBuilder>>> resultsMap = new HashMap<String, HashMap<String, HashMap<String, StringBuilder>>>();
+        
+        for (String regionIter : iterDirs) {
+            String iterMarker = regionIter.split("_")[2];
+            
+            String iterPath = ext.verifyDirFormat(region.analysisRootDir + regionIter);
+            
+            for (String study : dataDefs.keySet()) {
+                String iterStudyDir = iterPath + study + "/";
+                
+                if (!Files.exists(iterStudyDir)) {
+//                    System.err.println(ext.getTime() + "]\tERROR - analysis directory [" + iterStudyDir + "] does not exist.");
+                    continue;
+                }
+                
+                HashMap<String, StringBuilder> factorHeaderMap = headerMap.get(study);
+                if (factorHeaderMap == null) {
+                    factorHeaderMap = new HashMap<String, StringBuilder>();
+                    headerMap.put(study, factorHeaderMap);
+                }
+                HashMap<String, HashMap<String, StringBuilder>> factorResultsMap = resultsMap.get(study);
+                if (factorResultsMap== null) {
+                    factorResultsMap = new HashMap<String, HashMap<String, StringBuilder>>();
+                    resultsMap.put(study, factorResultsMap);
+                }
+                
+                HashMap<String, DataDefinitions> popDefs = dataDefs.get(study);
+                
+                // should only ever be one directory...
+                String[] factorDirs = Files.listDirectories(iterStudyDir, false);
+                for (String factorDir : factorDirs) {
+                    String dir = iterStudyDir + factorDir + "/";
+                    String file = null;
+                    if (popDefs.size() == 1) {
+                        // one population, no meta analysis from which to pull results
+                        file = popDefs.keySet().toArray(new String[1])[0] + "/output/concatenated.result";
+                    } else {
+                        file = factorDir + "_InvVar1.out";
+                    }
+
+                    if (Files.exists(dir + file)) {
+                        StringBuilder sb = factorHeaderMap.get(factorDir);
+                        if (sb == null) {
+                            sb = new StringBuilder("MarkerName");
+                            factorHeaderMap.put(factorDir, sb);
+                        }
+                        sb.append("\t").append(iterMarker).append("_beta\t").append(iterMarker).append("_SE\t").append(iterMarker).append("_pval");
+                        factorHeaderMap.put(factorDir, sb); // because StringBuilders are immutable, we need to replace the instance each time
+                        
+                        int[] indices = ext.indexFactors(factors, Files.getHeaderOfFile(dir + file, null), false, true, false, false);
+                        String[][] fileData = HashVec.loadFileToStringMatrix(dir + file, true, indices, false);
+                        
+                        HashMap<String, StringBuilder> markerResultsMap = factorResultsMap.get(factorDir);
+                        if (markerResultsMap == null) {
+                            markerResultsMap = new HashMap<String, StringBuilder>();
+                            factorResultsMap.put(factorDir, markerResultsMap);
+                        }
+                        
+                        for (String[] markerData : fileData) {
+                            String mkr = markerData[0];
+                            String beta = markerData[1];
+                            String se = markerData[2];
+                            String pval = markerData[3];
+                            
+                            StringBuilder markerResults = markerResultsMap.get(mkr);
+                            if (markerResults == null) {
+                                markerResults = new StringBuilder(mkr);
+                                markerResultsMap.put(mkr, markerResults);
+                            }
+                            markerResults.append("\t").append(beta).append("\t").append(se).append("\t").append(pval);
+                            markerResultsMap.put(mkr, markerResults);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Entry<String, HashMap<String, StringBuilder>> headerByStudy : headerMap.entrySet()) {
+            String study = headerByStudy.getKey();
+            
+            for (Entry<String, StringBuilder> headerByFactorDir : headerByStudy.getValue().entrySet()) {
+                String factor = headerByFactorDir.getKey();
+                
+                String file = region.analysisRootDir + region.label + "_" + study + "_" + factor + "_iterations.xln";
+                
+                PrintWriter writer = Files.getAppropriateWriter(file);
+                writer.println(headerByFactorDir.getValue().toString());
+                
+                for (StringBuilder sb : resultsMap.get(study).get(factor).values()) {
+                    writer.println(sb.toString());
+                }
+                writer.flush();
+                writer.close();
+            }
+        }
+        
     }
     
     public static void main(String[] args) {
@@ -681,7 +798,7 @@ public class ConditionalAnalysisPipeline {
             System.err.println(Array.toStr(args, "\n"));
             System.exit(1);
         }
-        (new ConditionalAnalysisPipeline()).setup(analysisDir, inputFile, dataFile, tempDataDir, traitDir);
+        (new ConditionalAnalysisPipeline()).setup(ext.verifyDirFormat(analysisDir), inputFile, dataFile, ext.verifyDirFormat(tempDataDir), ext.verifyDirFormat(traitDir));
     }
     
     
