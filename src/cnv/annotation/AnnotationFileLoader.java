@@ -39,6 +39,10 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 	}
 
+	public AnnotationQuery getAnnotationQuery() {
+		return getAnnotationQuery(null);
+	}
+	
 	public AnnotationQuery getAnnotationQuery(Segment[] segs) {
 		if (valid) {
 			AnnotationQuery annotationIterator = new AnnotationQuery(annotationFilename, segs, indexRequired, proj.getLog());
@@ -97,13 +101,22 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		private VCFHeader vcfHeader;
 		private CloseableIterator<VariantContext> currentIterator;
 
+		/**
+		 * @param annotationFile
+		 *            the file to load from
+		 * @param segs
+		 *            can be null, if not null, only these regions will be returned. Otherwise the iterator will traverse the entire file
+		 * @param requireIndex
+		 *            should always be true
+		 * @param log
+		 */
 		public AnnotationQuery(String annotationFile, Segment[] segs, boolean requireIndex, Logger log) {
 			super();
 			this.vcfFileReader = new VCFFileReader(annotationFile, requireIndex);
 			this.vcfHeader = vcfFileReader.getFileHeader();
 			this.currentIndex = 0;
-			this.queryIntervals = VCFOps.convertSegsToQI(segs, vcfHeader, 0, true, log);
-			this.currentIterator = vcfFileReader.query(vcfHeader.getSequenceDictionary().getSequence(queryIntervals[currentIndex].referenceIndex).getSequenceName(), queryIntervals[currentIndex].start, queryIntervals[currentIndex].end);
+			this.queryIntervals = segs == null ? null : VCFOps.convertSegsToQI(segs, vcfHeader, 0, true, log);
+			this.currentIterator = queryIntervals == null ? vcfFileReader.iterator() : vcfFileReader.query(vcfHeader.getSequenceDictionary().getSequence(queryIntervals[currentIndex].referenceIndex).getSequenceName(), queryIntervals[currentIndex].start, queryIntervals[currentIndex].end);
 		}
 
 		@Override
@@ -111,17 +124,15 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 			boolean hasNext = false;
 			if (currentIterator.hasNext()) {
 				hasNext = true;
-			} else {
+			} else if (queryIntervals != null) {// try the next interval if they exist
 				while (!currentIterator.hasNext()) {
 					currentIndex++;
 					if (currentIndex >= queryIntervals.length) {
 						break;
 					}
-
 					currentIterator = vcfFileReader.query(vcfHeader.getSequenceDictionary().getSequence(queryIntervals[currentIndex].referenceIndex).getSequenceName(), queryIntervals[currentIndex].start, queryIntervals[currentIndex].end);
 				}
 				hasNext = currentIterator.hasNext();
-
 			}
 			if (!hasNext) {
 				vcfFileReader.close();

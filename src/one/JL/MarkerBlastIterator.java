@@ -105,7 +105,7 @@ public class MarkerBlastIterator {
 		int index = 0;
 		for (int i = 0; i < blastWordSizes.length; i++) {
 			for (int j = 0; j < reportWordSizes.length; j++) {
-				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], numThreads, reportToTmp);
+				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], Integer.MAX_VALUE, numThreads, reportToTmp);
 				index++;
 			}
 		}
@@ -122,7 +122,7 @@ public class MarkerBlastIterator {
 					int numEntries = 0;
 					while (reader.ready()) {
 						String[] line = reader.readLine().trim().split("\t");
-						if ((line.length == Blast.BLAST_HEADER.length-1||line.length == Blast.BLAST_HEADER.length) && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
+						if ((line.length == Blast.BLAST_HEADER.length - 1 || line.length == Blast.BLAST_HEADER.length) && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
 							numEntries++;
 							if (numEntries % 100000 == 0) {
 								proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
@@ -431,7 +431,7 @@ public class MarkerBlastIterator {
 		int index = 0;
 		for (int i = 0; i < blastWordSizes.length; i++) {
 			for (int j = 0; j < reportWordSizes.length; j++) {
-				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], numThreads, reportToTmp);
+				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], Integer.MAX_VALUE, numThreads, reportToTmp);
 				index++;
 			}
 		}
