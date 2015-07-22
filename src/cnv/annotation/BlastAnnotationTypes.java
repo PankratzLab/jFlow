@@ -119,7 +119,7 @@ public class BlastAnnotationTypes {
 
 		ArrayList<Annotation> annotations = new ArrayList<Annotation>();
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
-			annotations.add(new Annotation(BLAST_ANNOTATION_TYPES.values()[i].getvType(), BLAST_ANNOTATION_TYPES.values()[i].getName(), BLAST_ANNOTATION_TYPES.values()[i].getDescription()) {
+			annotations.add(new Annotation(BLAST_ANNOTATION_TYPES.values()[i].getvType(), BLAST_ANNOTATION_TYPES.values()[i].getName(), BLAST_ANNOTATION_TYPES.values()[i].getDescription(),BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue()) {
 			});
 		}
 		return annotations.toArray(new Annotation[annotations.size()]);
@@ -128,7 +128,7 @@ public class BlastAnnotationTypes {
 	public static AnnotationData[] getAnnotationDatas() {
 		ArrayList<AnnotationData> annotations = new ArrayList<AnnotationData>();
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
-			annotations.add(new AnnotationData(BLAST_ANNOTATION_TYPES.values()[i].getvType(), BLAST_ANNOTATION_TYPES.values()[i].getName(), BLAST_ANNOTATION_TYPES.values()[i].getDescription(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue()) {
+			annotations.add(new AnnotationData(BLAST_ANNOTATION_TYPES.values()[i].getvType(), BLAST_ANNOTATION_TYPES.values()[i].getName(), BLAST_ANNOTATION_TYPES.values()[i].getDescription(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue()) {
 			});
 		}
 		return annotations.toArray(new AnnotationData[annotations.size()]);
