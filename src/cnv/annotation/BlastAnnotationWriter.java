@@ -129,7 +129,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 					anDatas[i].getAnnotations()[j].setData(Array.toStr(BlastAnnotation.toAnnotationString(toReport), BLAST_ANNOTATION_TYPES.values()[j].getSep()));
 				} else {
-					anDatas[i].getAnnotations()[j].setData(CigarOps.getConstantCigar(seqLength, CigarOperator.X).toString() + "/" + new Segment((byte) 0, 0, 0).getUCSClocation());
+					anDatas[i].getAnnotations()[j].setData(BLAST_ANNOTATION_TYPES.values()[j].getDefaultValue());
 				}
 			}
 		}

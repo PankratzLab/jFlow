@@ -3,12 +3,14 @@ package cnv.annotation;
 import htsjdk.samtools.TextCigarCodec;
 import htsjdk.variant.variantcontext.VariantContext;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
 import common.Array;
 import common.ArraySpecialList.ArrayBlastAnnotationList;
+import common.Logger;
 import common.ext;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
@@ -47,10 +49,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 			throw new IllegalArgumentException(error);
 		}
 
-		MarkerBlastResult[] blastAnnotations = new MarkerBlastResult[markers.length];
-		for (int i = 0; i < blastAnnotations.length; i++) {
-			blastAnnotations[i] = new MarkerBlastResult(BLAST_ANNOTATION_TYPES.values());
-		}
+		MarkerBlastResult[] blastAnnotations = initResults(markers);
 
 		Segment[] segs = getSegmentsForMarkers(markers);
 
@@ -71,23 +70,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 				proj.getLog().reportTimeWarning("Query has returned un-desired marker " + id + ", ignoring");
 			} else {
 				found[annoIndex] = true;
-				for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a separate key in the file
-					String info = vc.getCommonInfo().getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(), ".");
-					List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
-					for (String group : groups) {
-						String[] segCigar = group.split("/");
-						try {
-							blastAnnotations[annoIndex].getAnnotationLists()[i].add(new BlastAnnotation(TextCigarCodec.getSingleton().decode(segCigar[0]), new Segment(segCigar[1])));
-						} catch (IllegalArgumentException ile) {
-							proj.getLog().reportException(ile);
-							for (String key : vc.getCommonInfo().getAttributes().keySet()) {
-								System.out.println(vc.getID() + "\t" + vc.getCommonInfo().getAttributes().get(key));
-							}
-							System.out.println(group);
-							proj.getLog().reportTimeError("Could not properly load data for " + markers[annoIndex]);
-						}
-					}
-				}
+				blastAnnotations[annoIndex].addBlastAnnotation(vc);
 			}
 		}
 		if (Array.booleanArraySum(found) != markers.length) {
@@ -106,6 +89,14 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 		return blastAnnotations;
 	}
 
+	private MarkerBlastResult[] initResults(String[] markers) {
+		MarkerBlastResult[] blastAnnotations = new MarkerBlastResult[markers.length];
+		for (int i = 0; i < blastAnnotations.length; i++) {
+			blastAnnotations[i] = new MarkerBlastResult(BLAST_ANNOTATION_TYPES.values(), 100);
+		}
+		return blastAnnotations;
+	}
+
 	private Segment[] getSegmentsForMarkers(final String[] markers) {
 		Segment[] segs = new Segment[markers.length];
 		for (int i = 0; i < segs.length; i++) {
@@ -116,21 +107,33 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 		return segs;
 	}
 
-	public static class MarkerBlastQuery {
-
-	}
-
+	/**
+	 * @author lane0212 Probably could be its own class
+	 */
 	public static class MarkerBlastResult {
 		private BLAST_ANNOTATION_TYPES[] bTypes;
 		private ArrayBlastAnnotationList[] annotationLists;
 
-		public MarkerBlastResult(BLAST_ANNOTATION_TYPES[] bTypes) {
+		public MarkerBlastResult(BLAST_ANNOTATION_TYPES[] bTypes, int initialCapacity) {
 			super();
 			this.bTypes = bTypes;
 			this.annotationLists = new ArrayBlastAnnotationList[bTypes.length];
 			for (int i = 0; i < annotationLists.length; i++) {
-				annotationLists[i] = new ArrayBlastAnnotationList(100);
+				annotationLists[i] = new ArrayBlastAnnotationList(initialCapacity);
 			}
+		}
+
+		public boolean hasPerfectMatch(Logger log) {
+			return getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).size() > 0;
+		}
+
+		public int getNumOffTarget(Logger log) {
+			return getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log).size();
+		}
+
+		public ArrayList<BlastAnnotation> getAnnotationsFor(BLAST_ANNOTATION_TYPES btype, Logger log) {
+			int testIndex = getAnnotationIndexFor(btype, log);
+			return annotationLists[testIndex];
 		}
 
 		public BLAST_ANNOTATION_TYPES[] getbTypes() {
@@ -141,6 +144,36 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 			return annotationLists;
 		}
 
-	}
+		private int getAnnotationIndexFor(BLAST_ANNOTATION_TYPES bType, Logger log) {
+			int index = -1;
+			for (int i = 0; i < bTypes.length; i++) {
+				if (bTypes[i] == BLAST_ANNOTATION_TYPES.PERFECT_MATCH) {
+					index = i;
+					break;
+				}
+			}
+			if (index < 0) {
+				String error = "Internal error: Annotation does not contain " + BLAST_ANNOTATION_TYPES.PERFECT_MATCH;
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+			return index;
+		}
 
+		/**
+		 * Can use this later when loading other annotations
+		 */
+		private void addBlastAnnotation(VariantContext vc) {
+			for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a separate key in the file
+				String info = vc.getCommonInfo().getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
+				if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
+					List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
+					for (String group : groups) {
+						String[] segCigar = group.split("/");
+						annotationLists[i].add(new BlastAnnotation(TextCigarCodec.getSingleton().decode(segCigar[0]), new Segment(segCigar[1])));
+					}
+				}
+			}
+		}
+	}
 }
