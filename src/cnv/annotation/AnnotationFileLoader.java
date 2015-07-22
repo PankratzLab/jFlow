@@ -15,10 +15,22 @@ import common.Logger;
 import cnv.filesys.Project;
 import cnv.filesys.ReadingFilePrep;
 
+/**
+ * @author lane0212 Does tabix-based loading for annotations
+ */
 public abstract class AnnotationFileLoader extends AnnotationFile implements ReadingFilePrep {
 	boolean indexRequired;
 	boolean valid;
 
+	/**
+	 * @param proj
+	 * @param annotations
+	 *            these annotations will be loaded from the annotation file
+	 * @param annotationFilename
+	 *            the file must be in proper vcf format and contain all annotations requested
+	 * @param indexRequired
+	 *            this should always be true, but may be optional at a later time
+	 */
 	public AnnotationFileLoader(Project proj, Annotation[] annotations, String annotationFilename, boolean indexRequired) {
 		super(proj, annotationFilename);
 		setAnnotations(annotations);
@@ -75,6 +87,9 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 	}
 
+	/**
+	 * @author lane0212 Class that returns each {@link VariantContext} by the {@link Segment} query
+	 */
 	public static class AnnotationQuery implements Iterator<VariantContext> {
 		private VCFFileReader vcfFileReader;;
 		private int currentIndex;
