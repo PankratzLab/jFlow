@@ -147,13 +147,13 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 		private int getAnnotationIndexFor(BLAST_ANNOTATION_TYPES bType, Logger log) {
 			int index = -1;
 			for (int i = 0; i < bTypes.length; i++) {
-				if (bTypes[i] == BLAST_ANNOTATION_TYPES.PERFECT_MATCH) {
+				if (bTypes[i] == bType) {
 					index = i;
 					break;
 				}
 			}
 			if (index < 0) {
-				String error = "Internal error: Annotation does not contain " + BLAST_ANNOTATION_TYPES.PERFECT_MATCH;
+				String error = "Internal error: Annotation does not contain " + bType;
 				log.reportTimeError(error);
 				throw new IllegalStateException(error);
 			}

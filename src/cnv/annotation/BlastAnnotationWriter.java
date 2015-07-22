@@ -1,7 +1,6 @@
 package cnv.annotation;
 
 import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarOperator;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -34,7 +33,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	private int maxAlignmentsReported;
 
 	public BlastAnnotationWriter(Project proj, String outputFile, String[] blastResultFiles, int minAlignmentLength, int maxGaps, int maxMismatches, int maxAlignmentsReported) {
-		super(proj, BlastAnnotationTypes.getBaseAnnotations(), outputFile, true);
+		super(proj, BlastAnnotationTypes.getBaseAnnotations(), outputFile, false);
 		this.proj = proj;
 		this.blastResultFiles = blastResultFiles;
 		this.minAlignmentLength = minAlignmentLength;
@@ -84,7 +83,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 							// break;
 						}
 						BlastResults blastResults = new BlastResults(line, proj.getLog());
-						
+
 						if (blastResults.getAlignmentLength() >= minAlignmentLength && blastResults.getGapOpens() <= maxGaps && blastResults.getMismatches() <= maxMismatches) {
 							String marker = blastResults.getQueryID();
 							int markerIndex = markerIndices.get(marker);
@@ -108,6 +107,11 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				return null;
 			}
 		}
+		summarize(proj, maxAlignmentsReported, anDatas, intLists);
+		return anDatas;
+	}
+
+	private static void summarize(Project proj, int maxAlignmentsReported, LocusAnnotation[] anDatas, ArrayBlastAnnotationList[][] intLists) {
 		for (int i = 0; i < anDatas.length; i++) {
 			if (i % 100000 == 0) {
 				proj.getLog().reportTimeInfo("Summarized " + i + " markers ");
@@ -133,7 +137,6 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				}
 			}
 		}
-		return anDatas;
 	}
 
 	/**
@@ -141,6 +144,13 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	 * @return initialized blast summaries for all markers
 	 */
 	private static LocusAnnotation[] initializeSummaries(Project proj) {
+		// ABLookup abLookup = null;
+		// if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+		// proj.getLog().reportTimeInfo("Ref and alt alleles will be determined by " + proj.AB_LOOKUP_FILENAME.getValue());
+		// abLookup = new ABLookup(proj.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
+		// } else {
+		// proj.getLog().reportTimeWarning(proj.AB_LOOKUP_FILENAME.getValue() + " did not exist so ref and alt alleles will be in-accurate");
+		// }
 		MarkerSet markerSet = proj.getMarkerSet();
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();
@@ -148,11 +158,18 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 		LocusAnnotation[] anDatas = new LocusAnnotation[markerNames.length];
 		for (int i = 0; i < anDatas.length; i++) {
 			Builder builder = new Builder();
+			// if (abLookup != null) {
+			// String ref = abLookup.getLookup()[i][0] + "";
+			// String alt = abLookup.getLookup()[i][1] + "";
+			// if (!alt.equals("B") && !alt.equals("I") && !alt.equals("D")) {
+			// builder.ref(ref);
+			// builder.alts(new String[] { alt });
+			// }
+			// }
 			builder.annotations(BlastAnnotationTypes.getAnnotationDatas());
 			Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
 			anDatas[i] = builder.build(markerNames[i], markerSeg);
 		}
 		return anDatas;
 	}
-
 }

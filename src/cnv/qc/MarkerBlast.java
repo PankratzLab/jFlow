@@ -2,33 +2,28 @@ package cnv.qc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
 
 import common.Array;
 import common.Files;
-import common.Logger;
 import common.PSF;
-import common.Positions;
 import common.WorkerHive;
 import common.ext;
+import cnv.annotation.BlastAnnotationWriter;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
-import filesys.Segment;
 import seq.analysis.Blast;
 import seq.analysis.Blast.BlastWorker;
 import seq.analysis.Blast.FastaEntry;
 
 public class MarkerBlast {
 	public enum FILE_SEQUENCE_TYPE {
+		// /**
+		// * like HumanOmni2-5-8-v1-2-A-Strand-Report-FDT.txt
+		// */
+		// STRAND_REPORT,
 		/**
-		 * like HumanOmni2-5-8-v1-2-A-Strand-Report-FDT.txt
-		 */
-		STRAND_REPORT, /**
 		 * Like HumanExome-12-v1-0-B.csv
 		 */
 		MANIFEST_FILE, /**
@@ -37,7 +32,7 @@ public class MarkerBlast {
 		AFFY_ANNOT;
 	}
 
-	public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int reportWordSize, int numThreads, boolean reportToTmp) {
+	public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int reportWordSize, int maxAlignmentsReported, int numThreads, boolean reportToTmp) {
 		String fastaDb = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 		if (!Files.exists(fastaDb)) {
 			proj.getLog().reportTimeError("Was not able to find reference genome defined by " + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
@@ -45,61 +40,68 @@ public class MarkerBlast {
 		} else {
 
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
-			blast.setEvalue(10000);//we rely on the wordSize instead
+			blast.setEvalue(10000);// we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
 			new File(dir).mkdirs();
 
 			String root = dir + ext.rootOf(fileSeq, true) + ".blasted.ws." + blastWordSize + ".rep." + reportWordSize;
 			String output = root + ".blasted";
-			String outputOneHitWonders = root + ".oneHitWonders";
 
 			String[] tmps = new String[numThreads];
 			for (int i = 0; i < numThreads; i++) {
-				tmps[i] = root + ".tmp" + i;
+				tmps[i] = root + ".tmp" + i + ".gz";
 			}
 
-			if (!Files.exists(output) || !Files.exists(outputOneHitWonders)) {
-				WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
+			if (!Files.exists("", tmps)) {
 				FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
 				ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
 
-				BlastWorker[] workers = new BlastWorker[splits.size()];
+				ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 				if (fastaEntries != null && fastaEntries.length > 0) {
 					for (int i = 0; i < splits.size(); i++) {
-						workers[i] = new BlastWorker(blast, splits.get(i), reportToTmp ? tmps[i] : null);
+						if (!Files.exists(tmps[i])) {
+							workers.add(new BlastWorker(blast, splits.get(i), reportToTmp ? tmps[i] : null));
+						} else {
+							proj.getLog().reportTimeWarning("Skipping index " + i + ", " + tmps[i] + " exists");
+						}
 					}
 				}
 
-				hive.addCallables(workers);
-				hive.setReportEvery(1);
-				hive.execute(true);
-				ArrayList<Blast.BlastResultsSummary[]> bSummaries = hive.getResults();
-
-				summarize(proj, bSummaries, output, proj.getLog());
-				summarizeOneHitWonders(proj, bSummaries, outputOneHitWonders, proj.getLog());
+				if (workers.size() > 0) {
+					WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads, 10, proj.getLog());
+					hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));
+					hive.setReportEvery(1);
+					hive.execute(true);
+					// ArrayList<Blast.BlastResultsSummary[]> bSummaries =
+					hive.getResults();
+				}
 			} else {
-				proj.getLog().reportFileExists(output);
-				proj.getLog().reportFileExists(outputOneHitWonders);
+				for (int i = 0; i < tmps.length; i++) {
+					proj.getLog().reportFileExists(tmps[i]);
+				}
 			}
 			proj.getLog().reportTimeWarning("Assuming that all sequences have length " + proj.getArrayType().getProbeLength() + " based on array type " + proj.getArrayType());
-			MarkerBlastResult result = new MarkerBlastResult(output, outputOneHitWonders, blastWordSize, reportWordSize, proj.getArrayType().getProbeLength());
+			MarkerBlastResult result = new MarkerBlastResult(output, blastWordSize, reportWordSize, proj.getArrayType().getProbeLength());
 			result.setTmpFiles(tmps);
+
+			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
+			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
+			blastAnnotationWriter.summarizeResultFiles();
+
 			return result;
 		}
 	}
 
 	public static class MarkerBlastResult {
 		private String output;
-		private String outputOneHitWonders;
 		private String[] tmpFiles;
 		private int blastWordSize;
 		private int reportWordSize;
 		private int sequenceSize;
 
-		public MarkerBlastResult(String output, String outputOneHitWonders, int blastWordSize, int reportWordSize, int sequenceSize) {
+		public MarkerBlastResult(String output, int blastWordSize, int reportWordSize, int sequenceSize) {
 			super();
 			this.output = output;
-			this.outputOneHitWonders = outputOneHitWonders;
 			this.blastWordSize = blastWordSize;
 			this.reportWordSize = reportWordSize;
 			this.sequenceSize = sequenceSize;
@@ -128,86 +130,6 @@ public class MarkerBlast {
 		public String getOutput() {
 			return output;
 		}
-
-		public String getOutputOneHitWonders() {
-			return outputOneHitWonders;
-		}
-
-	}
-
-	private static void summarizeOneHitWonders(Project proj, ArrayList<Blast.BlastResultsSummary[]> bSummaries, String outputFile, Logger log) {
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
-			Hashtable<String, Integer> indices = proj.getMarkerIndices();
-			byte[] chrs = proj.getMarkerSet().getChrs();
-			int[] pos = proj.getMarkerSet().getPositions();
-			for (int i = 0; i < bSummaries.size(); i++) {
-				for (int j = 0; j < bSummaries.get(i).length; j++) {
-					if (bSummaries.get(i)[j].getNumPerfectMatches() == 1) {
-						if (Array.countIf(bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts(), 0) == bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts().length - 1) {
-							int currentMarkerIndex = indices.get(bSummaries.get(i)[j].getName());
-							Segment markerSegment = new Segment(chrs[currentMarkerIndex], pos[currentMarkerIndex] - 1, pos[currentMarkerIndex] + 1);
-							Segment blastPerfectSegment = bSummaries.get(i)[j].getPerfectMatchSegment();
-							if (blastPerfectSegment != null && blastPerfectSegment.overlaps(markerSegment)) {
-								writer.println(bSummaries.get(i)[j].getName() + "\t" + chrs[currentMarkerIndex] + "\t" + pos[currentMarkerIndex] + "\t" + blastPerfectSegment.getChr() + "\t" + blastPerfectSegment.getStart() + "\t" + blastPerfectSegment.getStop());
-							}
-						}
-					}
-				}
-			}
-
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing to " + outputFile);
-			log.reportException(e);
-		}
-	}
-
-	private static void summarize(Project proj, ArrayList<Blast.BlastResultsSummary[]> bSummaries, String outputFile, Logger log) {
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
-			Hashtable<String, Integer> indices = proj.getMarkerIndices();
-			byte[] chrs = proj.getMarkerSet().getChrs();
-			writer.print("Marker\tDesignContig\tNumTotalContigs");
-			double[] bins = bSummaries.get(0)[0].getPercentIdentityHistogram().getBins();
-			HashSet<String> allContigs = new HashSet<String>();
-			ArrayList<String> uniqContigs = new ArrayList<String>();
-			for (int i = 0; i < bSummaries.size(); i++) {
-				for (int j = 0; j < bSummaries.get(i).length; j++) {
-					allContigs.addAll(bSummaries.get(i)[j].getHitCounts().keySet());
-				}
-			}
-			uniqContigs.addAll(allContigs);
-			for (int i = 0; i < bins.length; i++) {
-				writer.print("\t" + ext.formDeci(bins[i], 0) + "_PercentIdentity");
-			}
-			for (String contig : uniqContigs) {
-				writer.print("\t" + contig);
-			}
-			writer.println();
-			for (int i = 0; i < bSummaries.size(); i++) {
-				for (int j = 0; j < bSummaries.get(i).length; j++) {
-					int[] counts = bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts();
-					int contigHits = bSummaries.get(i)[j].getHitCounts().size();
-					String chr = Positions.getChromosomeUCSC(chrs[indices.get(bSummaries.get(i)[j].getName())], true);
-					writer.print(bSummaries.get(i)[j].getName() + "\t" + chr + "\t" + contigHits + "\t" + Array.toStr(counts));
-					for (String contig : uniqContigs) {
-						if (bSummaries.get(i)[j].getHitCounts().containsKey(contig)) {
-							writer.print("\t" + bSummaries.get(i)[j].getHitCounts().get(contig));
-						} else {
-							writer.print("\t" + "0");
-						}
-					}
-					writer.println();
-				}
-
-			}
-
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing to " + outputFile);
-			log.reportException(e);
-		}
 	}
 
 	private static FastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type) {
@@ -224,16 +146,16 @@ public class MarkerBlast {
 			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq" });
 			builder.headerFlags(new String[] { "Name", "AlleleA_ProbeSeq" });
 			break;
-		case STRAND_REPORT:
-			if (proj.getArrayType() != ARRAY.ILLUMINA) {
-				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
-				return null;
-
-			}
-			builder.dataKeyColumnName("SNP_Name");
-			builder.commentString("##");
-			builder.stringDataTitles(new String[] { "Design_Seq" });
-			break;
+		// case STRAND_REPORT:
+		// if (proj.getArrayType() != ARRAY.ILLUMINA) {
+		// proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
+		// return null;
+		//
+		// }
+		// builder.dataKeyColumnName("SNP_Name");
+		// builder.commentString("##");
+		// builder.stringDataTitles(new String[] { "Design_Seq" });
+		// break;
 		case AFFY_ANNOT:
 			if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
 				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
@@ -282,8 +204,8 @@ public class MarkerBlast {
 								proj.getLog().reportTimeError("Sequence " + tmpSeq[0] + " or " + tmpSeq[1] + "  did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
 								return null;
 							}
-							entries.add(new FastaEntry(parser.getDataToLoad()[i]+"_A", tmpSeq[0]));
-							entries.add(new FastaEntry(parser.getDataToLoad()[i]+"_B", tmpSeq[1]));
+							entries.add(new FastaEntry(parser.getDataToLoad()[i] + "_A", tmpSeq[0]));
+							entries.add(new FastaEntry(parser.getDataToLoad()[i] + "_B", tmpSeq[1]));
 						}
 					}
 				}
@@ -309,17 +231,19 @@ public class MarkerBlast {
 		// String fastaDb = "hg19_canonical.fa";
 		String fileSeq = "HumanExome-12-v1-0-B.csv";
 		int numThreads = 4;
-		int blastWordSize = 30;
-		int reportWordSize = 40;
-		boolean report = false;
+		int blastWordSize = -1;
+		int reportWordSize = -1;
+		int maxAlignmentsReported = 20;
+		// boolean report = true;
 		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
 		usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
 		usage += "   (2) full path to an Illumina manifest file  (i.e. fileSeq=" + fileSeq + " (default))\n" + "";
 		usage += "   (3) number of threads to use  (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads + " (default))\n" + "";
-		usage += "   (4) word size for initial match in blast db  (i.e. blastWordSize=" + blastWordSize + " (default))\n" + "";
-		usage += "   (5) number of base pairs with an exact match to report (i.e. reportWordSize=" + reportWordSize + " (default))\n" + "";
-		usage += "   (6) report results to temporary files (i.e. -report (not the default))\n" + "";
+		usage += "   (4) word size for initial match in blast db  (i.e. blastWordSize=" + blastWordSize + " (defaults are array dependent))\n" + "";
+		usage += "   (5) number of base pairs with an exact match to report (i.e. reportWordSize=" + reportWordSize + " (defaults are array dependent))\n" + "";
+		// usage += "   (6) report results to temporary files (i.e. -report (not the default))\n" + "";
+		usage += "   (6) the maximum number of alignments to summarize (i.e. maxAlignmentsReported=" + maxAlignmentsReported + " (default))\n" + "";
 		usage += "   (7) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n" + ", Options are:\n ";
 		for (int i = 0; i < FILE_SEQUENCE_TYPE.values().length; i++) {
 			usage += FILE_SEQUENCE_TYPE.values()[i] + "\n";
@@ -347,8 +271,8 @@ public class MarkerBlast {
 			} else if (args[i].startsWith("seqType=")) {
 				fSequence_TYPE = FILE_SEQUENCE_TYPE.valueOf(ext.parseStringArg(args[i], FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
 				numArgs--;
-			} else if (args[i].startsWith("-report")) {
-				report = true;
+			} else if (args[i].startsWith("maxAlignmentsReported=")) {
+				maxAlignmentsReported = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -360,7 +284,42 @@ public class MarkerBlast {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, numThreads, report);
+			if (reportWordSize == -1) {
+				switch (proj.getArrayType()) {
+				case AFFY_GW6:
+					reportWordSize = 15;
+					break;
+				case AFFY_GW6_CN:
+					reportWordSize = 15;
+					break;
+				case ILLUMINA:
+					reportWordSize = 25;
+					break;
+				default:
+					proj.getLog().reportTimeError("Invalid array type " + proj.getArrayType());
+					break;
+				}
+				proj.getLog().reportTimeInfo("report word size updated to default " + reportWordSize + " for array " + proj.getArrayType());
+			}
+			if (blastWordSize == -1) {
+				switch (proj.getArrayType()) {
+				case AFFY_GW6:
+					blastWordSize = 15;
+					break;
+				case AFFY_GW6_CN:
+					blastWordSize = 15;
+					break;
+				case ILLUMINA:
+					blastWordSize = 25;
+					break;
+				default:
+					proj.getLog().reportTimeError("Invalid array type " + proj.getArrayType());
+					break;
+				}
+				proj.getLog().reportTimeInfo("blast word size updated to default " + blastWordSize + " for array " + proj.getArrayType());
+
+			}
+			blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, maxAlignmentsReported, numThreads, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -389,4 +348,80 @@ public class MarkerBlast {
 //
 // return true;
 //
+// }
+
+//
+// private static void summarizeOneHitWonders(Project proj, ArrayList<Blast.BlastResultsSummary[]> bSummaries, String outputFile, Logger log) {
+// try {
+// PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+// Hashtable<String, Integer> indices = proj.getMarkerIndices();
+// byte[] chrs = proj.getMarkerSet().getChrs();
+// int[] pos = proj.getMarkerSet().getPositions();
+// for (int i = 0; i < bSummaries.size(); i++) {
+// for (int j = 0; j < bSummaries.get(i).length; j++) {
+// if (bSummaries.get(i)[j].getNumPerfectMatches() == 1) {
+// if (Array.countIf(bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts(), 0) == bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts().length - 1) {
+// int currentMarkerIndex = indices.get(bSummaries.get(i)[j].getName());
+// Segment markerSegment = new Segment(chrs[currentMarkerIndex], pos[currentMarkerIndex] - 1, pos[currentMarkerIndex] + 1);
+// Segment blastPerfectSegment = bSummaries.get(i)[j].getPerfectMatchSegment();
+// if (blastPerfectSegment != null && blastPerfectSegment.overlaps(markerSegment)) {
+// writer.println(bSummaries.get(i)[j].getName() + "\t" + chrs[currentMarkerIndex] + "\t" + pos[currentMarkerIndex] + "\t" + blastPerfectSegment.getChr() + "\t" + blastPerfectSegment.getStart() + "\t" + blastPerfectSegment.getStop());
+// }
+// }
+// }
+// }
+// }
+//
+// writer.close();
+// } catch (Exception e) {
+// log.reportError("Error writing to " + outputFile);
+// log.reportException(e);
+// }
+// }
+//
+// private static void summarize(Project proj, ArrayList<Blast.BlastResultsSummary[]> bSummaries, String outputFile, Logger log) {
+// try {
+// PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
+// Hashtable<String, Integer> indices = proj.getMarkerIndices();
+// byte[] chrs = proj.getMarkerSet().getChrs();
+// writer.print("Marker\tDesignContig\tNumTotalContigs");
+// double[] bins = bSummaries.get(0)[0].getPercentIdentityHistogram().getBins();
+// HashSet<String> allContigs = new HashSet<String>();
+// ArrayList<String> uniqContigs = new ArrayList<String>();
+// for (int i = 0; i < bSummaries.size(); i++) {
+// for (int j = 0; j < bSummaries.get(i).length; j++) {
+// allContigs.addAll(bSummaries.get(i)[j].getHitCounts().keySet());
+// }
+// }
+// uniqContigs.addAll(allContigs);
+// for (int i = 0; i < bins.length; i++) {
+// writer.print("\t" + ext.formDeci(bins[i], 0) + "_PercentIdentity");
+// }
+// for (String contig : uniqContigs) {
+// writer.print("\t" + contig);
+// }
+// writer.println();
+// for (int i = 0; i < bSummaries.size(); i++) {
+// for (int j = 0; j < bSummaries.get(i).length; j++) {
+// int[] counts = bSummaries.get(i)[j].getPercentIdentityHistogram().getCounts();
+// int contigHits = bSummaries.get(i)[j].getHitCounts().size();
+// String chr = Positions.getChromosomeUCSC(chrs[indices.get(bSummaries.get(i)[j].getName())], true);
+// writer.print(bSummaries.get(i)[j].getName() + "\t" + chr + "\t" + contigHits + "\t" + Array.toStr(counts));
+// for (String contig : uniqContigs) {
+// if (bSummaries.get(i)[j].getHitCounts().containsKey(contig)) {
+// writer.print("\t" + bSummaries.get(i)[j].getHitCounts().get(contig));
+// } else {
+// writer.print("\t" + "0");
+// }
+// }
+// writer.println();
+// }
+//
+// }
+//
+// writer.close();
+// } catch (Exception e) {
+// log.reportError("Error writing to " + outputFile);
+// log.reportException(e);
+// }
 // }
