@@ -2,10 +2,8 @@ package cnv.annotation;
 
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
-
 /**
- * @author lane0212
- *Used for forming the annotation header of an {@link AnnotationFile}
+ * @author lane0212 Used for forming the annotation header of an {@link AnnotationFile}
  */
 public abstract class Annotation {
 

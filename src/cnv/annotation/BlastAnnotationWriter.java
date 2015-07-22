@@ -21,6 +21,9 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import filesys.Segment;
 
+/**
+ * Handles
+ */
 public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 	private Project proj;
@@ -40,37 +43,21 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 		this.maxAlignmentsReported = maxAlignmentsReported;
 	}
 
-	/**
-	 * @param proj
-	 * @return initialized blast summaries for all markers
-	 */
-	private static LocusAnnotation[] initializeSummaries(Project proj) {
-		MarkerSet markerSet = proj.getMarkerSet();
-		byte[] chrs = markerSet.getChrs();
-		int[] pos = markerSet.getPositions();
-		String[] markerNames = proj.getMarkerNames();
-		LocusAnnotation[] anDatas = new LocusAnnotation[markerNames.length];
-		for (int i = 0; i < anDatas.length; i++) {
-			Builder builder = new Builder();
-			builder.annotations(BlastAnnotationTypes.getAnnotationDatas());
-			Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
-			anDatas[i] = builder.build(markerNames[i], markerSeg);
-		}
-		return anDatas;
-	}
-
 	public void summarizeResultFiles() {
 		LocusAnnotation[] annotations = summarizeResultFile(proj, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, maxAlignmentsReported);
 		for (int i = 0; i < annotations.length; i++) {
 			if ((i + 1) % 100000 == 0) {
 				proj.getLog().reportTimeInfo("Written " + i + " markers ");
 				proj.getLog().reportTimeInfo(" Free memory " + proj.getLog().memoryPercentFree());
-				
+
 			}
 			write(annotations[i]);
 		}
 	}
 
+	/**
+	 * @return the {@link LocusAnnotation } array for the markers in the project. This could also be passed to another {@link AnnotationFileWriter} instead of writing here
+	 */
 	private static LocusAnnotation[] summarizeResultFile(Project proj, String[] blastResultFile, int minAlignmentLength, int maxGaps, int maxMismatches, int maxAlignmentsReported) {
 		int seqLength = proj.getArrayType().getProbeLength();
 		LocusAnnotation[] anDatas = initializeSummaries(proj);
@@ -97,14 +84,17 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 							// break;
 						}
 						BlastResults blastResults = new BlastResults(line, proj.getLog());
-						String marker = blastResults.getQueryID();
-						int markerIndex = markerIndices.get(marker);
-						Segment markerSeg = anDatas[markerIndex].getSeg().getBufferedSegment(1);
+						
+						if (blastResults.getAlignmentLength() >= minAlignmentLength && blastResults.getGapOpens() <= maxGaps && blastResults.getMismatches() <= maxMismatches) {
+							String marker = blastResults.getQueryID();
+							int markerIndex = markerIndices.get(marker);
+							Segment markerSeg = anDatas[markerIndex].getSeg().getBufferedSegment(1);
 
-						for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
-							if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults, BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
-								BlastAnnotation blastAnnotation = new BlastAnnotation(Blast.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment());
-								intLists[markerIndex][i].add(blastAnnotation);
+							for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
+								if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults, BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
+									BlastAnnotation blastAnnotation = new BlastAnnotation(Blast.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment());
+									intLists[markerIndex][i].add(blastAnnotation);
+								}
 							}
 						}
 					}
@@ -122,8 +112,6 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 			if (i % 100000 == 0) {
 				proj.getLog().reportTimeInfo("Summarized " + i + " markers ");
 				proj.getLog().reportTimeInfo(" Free memory " + proj.getLog().memoryPercentFree());
-				// reader.close();
-				// break;
 			}
 			for (int j = 0; j < anDatas[i].getAnnotations().length; j++) {
 				BlastAnnotation[] tmp = intLists[i][j].toArray(new BlastAnnotation[intLists[i][j].size()]);
@@ -144,6 +132,25 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 					anDatas[i].getAnnotations()[j].setData(CigarOps.getConstantCigar(seqLength, CigarOperator.X).toString() + "/" + new Segment((byte) 0, 0, 0).getUCSClocation());
 				}
 			}
+		}
+		return anDatas;
+	}
+
+	/**
+	 * @param proj
+	 * @return initialized blast summaries for all markers
+	 */
+	private static LocusAnnotation[] initializeSummaries(Project proj) {
+		MarkerSet markerSet = proj.getMarkerSet();
+		byte[] chrs = markerSet.getChrs();
+		int[] pos = markerSet.getPositions();
+		String[] markerNames = proj.getMarkerNames();
+		LocusAnnotation[] anDatas = new LocusAnnotation[markerNames.length];
+		for (int i = 0; i < anDatas.length; i++) {
+			Builder builder = new Builder();
+			builder.annotations(BlastAnnotationTypes.getAnnotationDatas());
+			Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
+			anDatas[i] = builder.build(markerNames[i], markerSeg);
 		}
 		return anDatas;
 	}

@@ -77,12 +77,6 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 				VCFInfoHeaderLine vHeaderLine = new VCFInfoHeaderLine(annotations[i].getName(), 1, annotations[i].getType(), annotations[i].getDescription());
 				vcfHeader.addMetaDataLine(vHeaderLine);
 			}
-			// if(analysisInfo!=null){
-			// for (int i = 0; i < analysisInfo.length; i++) {
-			// VCFHeaderLine vcfHeaderLine = new VCFInfoHeaderLine(name, count, type, description)
-			//
-			// }
-			// }
 
 			VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(annotationFilename);
 			builder.clearOptions();
@@ -91,6 +85,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 
 			String refGenome = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 			proj.getLog().reportTimeInfo("Using reference genome" + refGenome);
+
 			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(refGenome, proj.getLog()).getIndexedFastaSequenceFile().getSequenceDictionary();
 			MarkerSet markerSet = proj.getMarkerSet();
 			if (samSequenceDictionary.getSequenceIndex("chrXY") == -1 && markerSet.getIndicesByChr()[25].length > 0) {
