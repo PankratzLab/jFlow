@@ -37,9 +37,9 @@ public class BlastAnnotationTypes {
 		// */
 		// OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS(VCFHeaderLineType.String, "OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS", "Off-target Alignments without gaps AND without mismatches (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
-		OFF_T_BLAST_ALIGNMENTS(VCFHeaderLineType.String, "Off-target alignments sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		OFF_T_ALIGNMENTS(VCFHeaderLineType.String, "Off-target alignments sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
-		ON_T_NON_PERFECT_MATCH(VCFHeaderLineType.String, "On-target alignments (but not perfectly matched) sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		ON_T_ALIGNMENTS_NON_PERFECT(VCFHeaderLineType.String, "On-target alignments (but not perfectly matched) sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
 		/**
 		 * 
@@ -95,10 +95,10 @@ public class BlastAnnotationTypes {
 	public static boolean shouldBeAnnotatedAs(Project proj, BlastResults blastResults, BLAST_ANNOTATION_TYPES type, Segment seg, Logger log) {
 		boolean annotatedAs = false;
 		switch (type) {
-		case OFF_T_BLAST_ALIGNMENTS:
+		case OFF_T_ALIGNMENTS:
 			annotatedAs = !blastResults.getSegment().overlaps(seg);
 			break;
-		case ON_T_NON_PERFECT_MATCH:
+		case ON_T_ALIGNMENTS_NON_PERFECT:
 			if (blastResults.getSegment().overlaps(seg)) {
 				if (blastResults.getMismatches() > 0 || blastResults.getGapOpens() > 0 || blastResults.getAlignmentLength() != proj.getArrayType().getProbeLength()) {
 					annotatedAs = true;

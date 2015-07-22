@@ -93,18 +93,25 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 		@Override
 		public boolean hasNext() {
+			boolean hasNext = false;
 			if (currentIterator.hasNext()) {
-				return true;
+				hasNext = true;
 			} else {
-				while ( !currentIterator.hasNext()) {
+				while (!currentIterator.hasNext()) {
 					currentIndex++;
-					if(currentIndex >= queryIntervals.length ){
+					if (currentIndex >= queryIntervals.length) {
 						break;
 					}
+
 					currentIterator = vcfFileReader.query(vcfHeader.getSequenceDictionary().getSequence(queryIntervals[currentIndex].referenceIndex).getSequenceName(), queryIntervals[currentIndex].start, queryIntervals[currentIndex].end);
 				}
-				return currentIterator.hasNext();
+				hasNext = currentIterator.hasNext();
+
 			}
+			if (!hasNext) {
+				vcfFileReader.close();
+			}
+			return hasNext;
 
 		}
 
