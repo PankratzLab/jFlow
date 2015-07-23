@@ -1,6 +1,7 @@
 package cnv.annotation;
 
 import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 /**
@@ -9,8 +10,8 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class AnnotationData extends Annotation {
 	private String data;
 
-	public AnnotationData(VCFHeaderLineType type, String name, String description, String data, String defaultValue) {
-		super(type, name, description, defaultValue);
+	public AnnotationData(VCFHeaderLineType type, VCFHeaderLineCount count, int number, String name, String description, String data, String defaultValue) {
+		super(type, count, number, name, description, defaultValue);
 		this.data = data;
 	}
 

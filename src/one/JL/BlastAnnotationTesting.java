@@ -79,8 +79,8 @@ public class BlastAnnotationTesting {
 		blastAnnotation = new BlastAnnotationWriter(proj, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles();
 		blastAnnotation.close();
-		// (Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting)
-		AnnotationFileWriter test = new AnnotationFileWriter(proj, new AnnotationData[] { new AnnotationData(VCFHeaderLineType.String, "TestAdd", "TestAddidtion", "DSF", ".") }, annoFile, false) {
+		// (Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting
+		AnnotationFileWriter test = new AnnotationFileWriter(proj, new AnnotationData[] { new AnnotationData(VCFHeaderLineType.String, null, 1, "TestAdd", "TestAddidtion", "DSF", ".") }, annoFile, false) {
 		};
 		LocusAnnotation[] testAdd = getTestAddition(proj);
 		for (int i = 0; i < testAdd.length; i++) {
@@ -116,7 +116,7 @@ public class BlastAnnotationTesting {
 			// builder.alts(new String[] { alt });
 			// }
 			// }
-			builder.annotations(new AnnotationData[] { new AnnotationData(VCFHeaderLineType.String, "TestAdd", "TestAddidtion", "DSF_"+markerNames[i], ".") });
+			builder.annotations(new AnnotationData[] { new AnnotationData(VCFHeaderLineType.String, null, 1, "TestAdd", "TestAddidtion", "DSF_" + markerNames[i], ".") });
 			Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
 			anDatas[i] = builder.build(markerNames[i], markerSeg);
 		}

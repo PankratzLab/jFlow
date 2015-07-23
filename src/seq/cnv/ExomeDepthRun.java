@@ -1,5 +1,7 @@
 package seq.cnv;
 
+import java.io.File;
+
 import seq.cnv.ExomeDepth.ExomeDepthAnalysis;
 import seq.manage.BamOps;
 import seq.manage.VCFOps.VcfPopulation;
@@ -19,6 +21,7 @@ public class ExomeDepthRun {
 		VcfPopulation vpop = null;
 		String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams, BamOps.BAM_EXT, false) : HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, true);
 		outputDir = outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir;
+		new File(outputDir).mkdirs();
 		ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir, outputRoot, log);
 		if (!Files.exists(exomeDepth.getCountFile())) {
 			log.reportTimeWarning("Did not find " + exomeDepth.getCountFile() + ", generating it now (takes a long time)");
