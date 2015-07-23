@@ -116,7 +116,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			sampleData = null;
 		}
 
-		sampleData = proj.getSampleData(2, false);
 		treeFilenameLookup = new Vector<String>();
 		dataHash = new Hashtable<String, Vector<String[]>>();
 		namesHash = new Hashtable<String, String[]>();
@@ -1518,9 +1517,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		HashSet<String> dataFiles = new HashSet<String>();
 
 		for (ScreenToCapture cap : screens) {
-			dataFiles.add(cap.dataXFile);
-			dataFiles.add(cap.dataYFile);
-			dataFiles.add(cap.colorFile);
+			if (cap.dataXFile != null) dataFiles.add(cap.dataXFile);
+			if (cap.dataYFile != null) dataFiles.add(cap.dataYFile);
+			if (cap.colorFile != null) dataFiles.add(cap.colorFile);
 		}
 		
 		for (String file : dataFiles) {
@@ -1532,28 +1531,41 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		updateTree();
 		
 		for (ScreenToCapture screencap : screens) {			
+		    this.hideExcludes = screencap.hideExcluded;
+		    this.isHistPlot = screencap.isHistogram;
+		    
+		    twoDPanel.forcePlotXmin = screencap.minX;
+		    twoDPanel.forcePlotXmax = screencap.maxX;
+		    twoDPanel.forcePlotYmin = screencap.minY;
+		    twoDPanel.forcePlotYmax = screencap.maxY;
+		    
 			if (screencap.colorFile != null && !screencap.colorFile.equals("")) {
 				loadColor(baseDir, screencap);
 			}
 			
-			tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
-			tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);	
+			if (screencap.dataXFile != null) {
+			    tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
+			}
+			if (screencap.dataYFile != null) {
+			    tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);
+			}
 
-			this.hideExcludes = screencap.hideExcluded;
-			this.isHistPlot = screencap.isHistogram;
-			
-			twoDPanel.forcePlotXmin = screencap.minX;
-			twoDPanel.forcePlotXmax = screencap.maxX;
-			twoDPanel.forcePlotYmin = screencap.minY;
-			twoDPanel.forcePlotYmax = screencap.maxY;
-			
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
 			this.colorKeyPanel.getClassRadioButtons()[this.colorKeyPanel.getClassRadioButtons().length - 1].setSelected(true);
 			
 			twoDPanel.createImage();
 			
 			int count = 1;
-			String basename = namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex] + "_" + namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
+			String basename = "";
+			if (screencap.dataXFile != null) {
+			    basename += namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex];
+			}
+			if (screencap.dataYFile != null) {
+			    if (!basename.equals("")) {
+			        basename += "_";
+			    }
+			    basename += namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
+			}
 			String screenname = basename;
 			while((new File(baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true) + ".png")).exists()) {
 				screenname = basename + "_v" + count;
@@ -1642,11 +1654,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //			filename = ext.removeDirectoryInfo(filename); // Strip "/" from filename
 
 			readBuffer = reader.readLine();
-			if (readBuffer.contains("\t")) {
-				header = readBuffer.trim().split("\t",-1);
-			} else {
-				header = readBuffer.trim().split("[\\s]+");
-			}
+			String delim = ext.determineDelimiter(readBuffer);
+			header = readBuffer.trim().split(delim);
 			namesHash.put(filename, header);
 			
 			linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
@@ -1680,19 +1689,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         	for (int i=0; i<numericHash.get(filename).length; i++) {
         		numericHash.get(filename)[i] = true;
         	}
-
-			sampleData.initLinkKey(filename);	// initialize the link key
+        	
+        	if (sampleData != null) {
+        	    sampleData.initLinkKey(filename);	// initialize the link key
+        	}
 			//createLinkKeyToDataHash(filename, linkKeyIndices);
         	dataHash.put(filename, new Vector<String[]>());
         	
         	String tempLine = "";
         	while ((tempLine = reader.readLine()) != null) {
         		if ("".equals(tempLine)) continue;
-				if (readBuffer.contains("\t")) {
-					line = tempLine.trim().split("\t",-1);
-				} else {
-					line = tempLine.trim().split("[\\s]+");
-				}
+				line = tempLine.trim().split(delim);
             	dataHash.get(filename).add(line);
             	for (int i=0; i<header.length; i++) {
             		if (!ext.isValidDouble(line[i])) {
