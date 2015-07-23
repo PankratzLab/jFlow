@@ -4315,7 +4315,16 @@ public class Array {
 		}
 		return false;
 	}
-
+	
+	public static String[] removeMissingValues(String[] array) {
+	    ArrayList<String> valid = new ArrayList<String>();
+	    for (String str : array) {
+	        if (str == null || !ext.isValidDouble(str)) continue;
+	        valid.add(str);
+	    }
+	    return valid.toArray(new String[valid.size()]);
+	}
+	
 	public static void main(String[] args) {
 	    double alleleFreq = 0.2;
 	    double stdev = 0.12;

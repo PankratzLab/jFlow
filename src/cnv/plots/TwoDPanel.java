@@ -205,7 +205,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		if (tdp.isHistPlot) {
 			zoomable = false;
 			tdp.size = 0;
-			points = new PlotPoint[currentData.size()];
+			points = new PlotPoint[0];//currentData.size()];
 			for (int i = 0; i < points.length; i++) {
 				points[i] = new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]), PlotPoint.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]), Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0, (byte) 0);
 			}
@@ -279,33 +279,40 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		index = (byte) (includeColorKeyValue? 4 : 3);
 		if (currentData.size()>0) {
 			setOfKeys = new String[currentData.size()][currentData.elementAt(0).length - index];
+		} else {
+		    rectangles = new GenericRectangle[0];
+		    return;
 		}
 		
-		double min = 9999.0;
-		double max = -9999.0;
 		double minDiff = 9999.0;
-		for (int i = 0; i < currentData.size()-1; i++) {
-			double x1 = Double.parseDouble(currentData.get(i)[1]);
-			double x2 = Double.parseDouble(currentData.get(i + 1)[1]);
-			minDiff = Math.min(minDiff, Math.abs(x1 - x2));
-			min = Math.min(min, Math.min(x1, x2));
-			max = Math.max(max, Math.max(x1, x2));
+		double val1 = Double.parseDouble(currentData.get(0)[1]); // TODO could be missing
+		double min = val1;
+		double max = val1;
+		for (int i = 1; i < currentData.size(); i++) {
+		    double val2 = Double.parseDouble(currentData.get(i)[1]);
+		    if (Math.abs(val1 - val2) < minDiff) {
+		        minDiff = Math.abs(val1 - val2);
+		    }
+            min = Math.min(min, Math.min(val1, val2));
+            max = Math.max(max, Math.max(val1, val2));
 		}
 		
 		int sig = ext.getNumSigFig(minDiff);
-		minDiff = ext.roundToSignificantFigures(minDiff, sig);
+		if (sig > 0) { 
+		    minDiff = ext.roundToSignificantFigures(minDiff, sig);
+		}
 		float binHalf = (float) (currentData.size() > 1 ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1) : DEFAULT_HALF_BIN_SIZE);
 		
 //		forcePlotXmax = (float) (max + (minDiff / 2.0));
 //		forcePlotXmin = (float) (min - (minDiff / 2.0));
-		forcePlotXmax = (float) (max + binHalf);
-		forcePlotXmin = (float) (min - binHalf);
+		forcePlotXmax = (float) (max + minDiff);
+		forcePlotXmin = (float) (min - minDiff);
 		
 		rectangles = new GenericRectangle[currentData.size()];
 		for (int i = 0; i < rectangles.length; i++) {
 			line = currentData.get(i);
 			boolean missing = false;
-
+			
 			for (String miss : TwoDPlot.MISSING_VALUES) {
 				if (miss.equals(line[1]) || miss.equals(line[2])) {
 					missing = true;
@@ -334,13 +341,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			float startX, startY, stopX, stopY;
 			if (swapAxes) {
 				startX = 0f;
-				startY = (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig);
+				startY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig) : (float)(xAxisValue - binHalf);
 				stopX = yAxisValue;
-				stopY = (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig);
+				stopY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig) : (float)(xAxisValue + binHalf);
 			} else {
-				startX = (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig);
+				startX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig) : (float)(xAxisValue - binHalf);
 				startY = 0f; 
-				stopX = (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig);
+				stopX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig) : (float)(xAxisValue + binHalf);
 				stopY = yAxisValue;
 			}
 			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false, Byte.parseByte(line[3]), (byte) 2, (byte) 0);
