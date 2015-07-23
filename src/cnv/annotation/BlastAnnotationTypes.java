@@ -2,6 +2,7 @@ package cnv.annotation;
 
 import filesys.Segment;
 import htsjdk.samtools.Cigar;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 import java.util.ArrayList;
@@ -14,11 +15,11 @@ public class BlastAnnotationTypes {
 
 	private static final String ANNO_DELIM = ",";
 	private static final String DEFAULT_VALUE = ".";
-	private static final String DEFAULT_VALUE_PM = ".";
+	private static final int DEFAULT_NUMBER = 1;
+	private static final VCFHeaderLineCount DEFAULT_COUNT = VCFHeaderLineCount.UNBOUNDED; // unknown number of entries
 
 	/**
-	 * @author lane0212
-	 * Define a key value entry method in the vcf
+	 * @author lane0212 Define a key value entry method in the vcf
 	 */
 	public enum BLAST_ANNOTATION_TYPES {
 		// /**
@@ -37,14 +38,14 @@ public class BlastAnnotationTypes {
 		// */
 		// OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS(VCFHeaderLineType.String, "OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS", "Off-target Alignments without gaps AND without mismatches (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
-		OFF_T_ALIGNMENTS(VCFHeaderLineType.String, "Off-target alignments sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		OFF_T_ALIGNMENTS(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Off-target alignments sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
-		ON_T_ALIGNMENTS_NON_PERFECT(VCFHeaderLineType.String, "On-target alignments (but not perfectly matched) sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		ON_T_ALIGNMENTS_NON_PERFECT(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "On-target alignments (but not perfectly matched) sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
 		/**
 		 * 
 		 */
-		PERFECT_MATCH(VCFHeaderLineType.String, "There is a perfect match Alignment", ANNO_DELIM, DEFAULT_VALUE_PM), /**
+		PERFECT_MATCH(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Alignments that perfectly cover the region", ANNO_DELIM, DEFAULT_VALUE), /**
 		 * 
 		 */
 		// NON_PERFECT_MATCH_ON_TARGET(VCFHeaderLineType.String, "HAS_PERFECT_MATCH", "There is a perfect match Alignment", ANNO_DELIM, DEFAULT_VALUE_PM),
@@ -52,19 +53,24 @@ public class BlastAnnotationTypes {
 		;
 
 		private String name;
+		private int number;
 		private String Description;
 		private VCFHeaderLineType vType;
+		private VCFHeaderLineCount count;
 		private String sep;
 		private String defaultValue;
 
 		/**
-		 * @param vType this is not really used on our end
+		 * @param vType
+		 *            this is not really used on our end
 		 * @param Description
 		 * @param sep
 		 * @param defaultValue
 		 */
-		private BLAST_ANNOTATION_TYPES(VCFHeaderLineType vType, String Description, String sep, String defaultValue) {
+		private BLAST_ANNOTATION_TYPES(VCFHeaderLineType vType, VCFHeaderLineCount count, int number, String Description, String sep, String defaultValue) {
 			this.vType = vType;
+			this.count = count;
+			this.number = number;
 			this.name = this.toString();
 			this.Description = Description;
 			this.sep = sep;
@@ -90,6 +96,15 @@ public class BlastAnnotationTypes {
 		public String getSep() {
 			return sep;
 		}
+
+		public int getNumber() {
+			return number;
+		}
+
+		public VCFHeaderLineCount getCount() {
+			return count;
+		}
+
 	}
 
 	public static boolean shouldBeAnnotatedAs(Project proj, BlastResults blastResults, BLAST_ANNOTATION_TYPES type, Segment seg, Logger log) {
@@ -119,7 +134,8 @@ public class BlastAnnotationTypes {
 
 		ArrayList<Annotation> annotations = new ArrayList<Annotation>();
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
-			annotations.add(new Annotation(BLAST_ANNOTATION_TYPES.values()[i].getvType(), BLAST_ANNOTATION_TYPES.values()[i].getName(), BLAST_ANNOTATION_TYPES.values()[i].getDescription(),BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue()) {
+			BLAST_ANNOTATION_TYPES btype = BLAST_ANNOTATION_TYPES.values()[i];
+			annotations.add(new Annotation(btype.getvType(), btype.getCount(), btype.getNumber(), btype.getName(), btype.getDescription(), btype.getDefaultValue()) {
 			});
 		}
 		return annotations.toArray(new Annotation[annotations.size()]);
@@ -128,7 +144,8 @@ public class BlastAnnotationTypes {
 	public static AnnotationData[] getAnnotationDatas() {
 		ArrayList<AnnotationData> annotations = new ArrayList<AnnotationData>();
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
-			annotations.add(new AnnotationData(BLAST_ANNOTATION_TYPES.values()[i].getvType(), BLAST_ANNOTATION_TYPES.values()[i].getName(), BLAST_ANNOTATION_TYPES.values()[i].getDescription(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue()) {
+			BLAST_ANNOTATION_TYPES btype = BLAST_ANNOTATION_TYPES.values()[i];
+			annotations.add(new AnnotationData(btype.getvType(), btype.getCount(), btype.getNumber(), btype.getName(), btype.getDescription(), btype.getDefaultValue(), btype.getDefaultValue()) {
 			});
 		}
 		return annotations.toArray(new AnnotationData[annotations.size()]);
