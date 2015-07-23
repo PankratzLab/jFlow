@@ -1547,7 +1547,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			    tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
 			}
 			if (screencap.dataYFile != null) {
-			    tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);
+			    // 07/23/15 BRC -- this was screencap.dataXFile, which doesn't make sense (changed it to dataYFile).  If it breaks, put it back.
+			    tree.performCheckBoxAction(screencap.dataYFile, namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);
 			}
 
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
@@ -1558,12 +1559,16 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			int count = 1;
 			String basename = "";
 			if (screencap.dataXFile != null) {
+			    basename += ext.rootOf(screencap.dataXFile, true);
+			    basename += "_";
 			    basename += namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex];
 			}
 			if (screencap.dataYFile != null) {
 			    if (!basename.equals("")) {
 			        basename += "_";
 			    }
+			    basename += ext.rootOf(screencap.dataYFile, true);
+			    basename += "_";
 			    basename += namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
 			}
 			String screenname = basename;

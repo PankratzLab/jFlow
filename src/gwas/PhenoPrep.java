@@ -6,6 +6,7 @@ import java.util.*;
 import cnv.filesys.Project;
 import cnv.plots.TwoDPlot;
 import cnv.plots.TwoDPlot.ScreenToCapture;
+import stats.Histogram;
 import stats.LeastSquares;
 import mining.Transformations;
 import common.*;
@@ -151,10 +152,23 @@ public class PhenoPrep {
     		    int idIndex = ext.indexOfStr(idColName, parts);
     		    int dataIndex = ext.indexOfStr(pheno, parts);
     		    
+    		    String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true, new int[]{dataIndex}, false);
+    		    String[] valid = Array.removeMissingValues(dataStrs);
+    		    int missing = dataStrs.length - valid.length;
+    		    log.report("Warning - " + missing + " missing values were found");
+    		    double[] data = Array.toDoubleArray(valid);
+    		    Histogram hist = new Histogram(data);
+    		    String file = dir + ext.rootOf(filename, false) + "_hist.txt";
+    		    int cnt = 1;
+    		    while (Files.exists(file)) {
+    		        file = dir + ext.rootOf(filename, false) + "_hist_" + cnt++ + ".txt";
+    		    }
+    		    
+    		    hist.dump(file);
     		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false);
     		    ArrayList<ScreenToCapture> screens = new ArrayList<ScreenToCapture>();
-    		    float minx = 0, maxx = 5, miny = 0, maxy = 5;
-    		    screens.add(new ScreenToCapture(new String[]{filename, null, null}, new int[]{dataIndex, 0, 0}, new int[]{idIndex, 0, 0}, new float[]{minx, maxx, miny, maxy}, false, false, false, true));
+    		    float minx = (float) hist.getMin(), maxx = (float) hist.getMax(), miny = 0, maxy = Array.max(hist.getCounts());
+    		    screens.add(new ScreenToCapture(new String[]{file, file, null}, new int[]{0, 1, 0}, new int[]{0, 0, 0}, new float[]{minx, maxx, miny, maxy}, false, false, false, true));
     		    tdp.createScreenshots(dir, screens);
     		    tdp.windowClosing(null);
             } catch (FileNotFoundException fnfe) {

@@ -389,8 +389,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
         }
 
-		for (int i = 0; lines != null && i<lines.length&&flow; i++) {
-//		for (int i = 0; lines != null && i<lines.length; i++) {
+		for (int i = 0; lines != null && i<lines.length && flow; i++) {
 			if (lines[i] != null) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, lines[i].getStartX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, lines[i].getStartX());
@@ -403,6 +402,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				maximumObservedRawY = Maths.max(maximumObservedRawY, lines[i].getStopY());
 			}
         }
+		for (int i = 0; rectangles != null && i < rectangles.length && flow; i++) {
+		    if (rectangles[i] != null) {
+		        minimumObservedRawX = Maths.min(minimumObservedRawX, rectangles[i].getStartXValue());
+		        maximumObservedRawX = Maths.max(maximumObservedRawX, rectangles[i].getStartXValue());
+		        minimumObservedRawY = Maths.min(minimumObservedRawY, rectangles[i].getStartYValue());
+		        maximumObservedRawY = Maths.max(maximumObservedRawY, rectangles[i].getStartYValue());
+		        
+		        minimumObservedRawX = Maths.min(minimumObservedRawX, rectangles[i].getStopXValue());
+		        maximumObservedRawX = Maths.max(maximumObservedRawX, rectangles[i].getStopXValue());
+		        minimumObservedRawY = Maths.min(minimumObservedRawY, rectangles[i].getStopYValue());
+		        maximumObservedRawY = Maths.max(maximumObservedRawY, rectangles[i].getStopYValue());
+		    }
+		}
 		
 		minimumObservedRawX = minimumObservedRawX==Float.MAX_VALUE?0:minimumObservedRawX;
 		maximumObservedRawX = maximumObservedRawX==Float.MIN_VALUE?1:maximumObservedRawX;
@@ -525,16 +537,18 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					}
 				}
 				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
-				
-				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
-				gfx = yLabel.createGraphics();
-				gfx.setFont(new Font("Arial", 0, axisFontSize));
-				gfx.setColor(Color.WHITE);
-				gfx.fillRect(0, 0, getWidth(), getHeight());
-				gfx.setColor(Color.BLACK);
-				gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
-
-				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-axisXHeight/*HEIGHT_X_AXIS*/)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+				int strWidth = fontMetrics.stringWidth(yAxisLabel);
+				if (strWidth > 0) {
+    				yLabel = new BufferedImage(strWidth, 36, BufferedImage.TYPE_INT_RGB);
+    				gfx = yLabel.createGraphics();
+    				gfx.setFont(new Font("Arial", 0, axisFontSize));
+    				gfx.setColor(Color.WHITE);
+    				gfx.fillRect(0, 0, getWidth(), getHeight());
+    				gfx.setColor(Color.BLACK);
+    				gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
+    
+    				g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-axisXHeight/*HEIGHT_X_AXIS*/)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+				}
 			}
 
 			/*
