@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,6 +78,7 @@ import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.annotation.BlastAnnotationLoader;
 import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.filesys.AnnotationCollection;
 import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilter;
@@ -3136,12 +3138,16 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         typeLabel = new JLabel("# On-Target (mismatched) Alignments: ", JLabel.LEFT);
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 0 2");
-        typeLabel = new JLabel(" " + blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, log),  JLabel.LEFT);
+        ArrayList<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, log);
+        String lbl = onTaligns == null ? " 0" : " " + onTaligns.size();
+        typeLabel = new JLabel(lbl,  JLabel.LEFT);
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 1 2");
         
-        JButton blastButton = new JButton("More Details");
-        blastPanel.add(blastButton, "cell 0 3 2 1");
+        JButton blastButton = new JButton();
+        blastButton.setText("More Details");
+        blastButton.setEnabled(false);
+        blastPanel.add(blastButton, "cell 0 3 2 1, center");
         
         blastPanel.revalidate();
         blastPanel.repaint();
