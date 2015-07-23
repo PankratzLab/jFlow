@@ -132,7 +132,13 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			VCFHeader vcfHeader = additionMode ? new VCFFileReader(annotationFilename, true).getFileHeader() : new VCFHeader();// take previous header if needed
 			for (int i = 0; i < annotations.length; i++) {
 				if (!vcfHeader.hasInfoLine(annotations[i].getName())) {
-					VCFInfoHeaderLine vHeaderLine = new VCFInfoHeaderLine(annotations[i].getName(), 1, annotations[i].getType(), annotations[i].getDescription());
+					VCFInfoHeaderLine vHeaderLine = null;
+					if (annotations[i].getCount() != null) {
+						vHeaderLine = new VCFInfoHeaderLine(annotations[i].getName(), annotations[i].getCount(), annotations[i].getType(), annotations[i].getDescription());
+					} else {
+						vHeaderLine = new VCFInfoHeaderLine(annotations[i].getName(), annotations[i].getNumber(), annotations[i].getType(), annotations[i].getDescription());
+					}
+
 					vcfHeader.addMetaDataLine(vHeaderLine);
 				} else {
 					proj.getLog().reportTimeWarning("Detected that info line " + annotations[i].getName() + " is already present, any new data added will overwrite previous");
