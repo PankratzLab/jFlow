@@ -416,7 +416,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		next.setActionMap(actionMap);
 //		previous.setActionMap(actionMap);
 		scatterPanels[selectedPanelIndex].grabFocus();
-
+		
+		updateBLASTPanel();
 		updateGUI();
 
 	}
@@ -929,7 +930,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		JTabbedPane blastTabbedPanel = new JTabbedPane();
 		blastTabbedPanel.setBackground(BACKGROUND_COLOR);
 		blastPanel = new JPanel();
-		blastPanel.setLayout(new MigLayout("hidemode 0", "[][grow]", "[][][][][][][]"));
+		blastPanel.setLayout(new MigLayout("hidemode 0", "", ""));
 		blastPanel.setBackground(BACKGROUND_COLOR);
 		blastTabbedPanel.addTab("BLAST Metrics", null, blastPanel, "Basic Local Alignment Search Tool Metrics");
 		eastPanel.add(blastTabbedPanel, "cell 0 2, grow");
@@ -3103,9 +3104,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    blastPanel.repaint();
 
 	    if (!hasBlastAnnotations || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length) {
-	        JLabel blastLabel = new JLabel("BLAST Unavailable");
+	        JLabel blastLabel = new JLabel("BLAST Metrics Unavailable", SwingConstants.CENTER);
 	        blastLabel.setFont(new Font("Arial", 0, 14));
-	        blastPanel.add(blastLabel, "cell 0 0 2 1");
+	        blastPanel.add(blastLabel, "dock center, grow");
+	        blastPanel.revalidate();
+	        blastPanel.repaint();
 	        return;
 	    }
 	    
@@ -3139,6 +3142,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         
         JButton blastButton = new JButton("More Details");
         blastPanel.add(blastButton, "cell 0 3 2 1");
+        
+        blastPanel.revalidate();
+        blastPanel.repaint();
 	}
 	
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass, int index) {
