@@ -157,7 +157,8 @@ public class Configurator extends JFrame {
             {
                 "ScatterPlot",
                 "DISPLAY_MARKERS_FILENAMES",
-                "SHIFT_SEX_CHR_COLORS_YESNO"
+                "SHIFT_SEX_CHR_COLORS_YESNO",
+                "BLAST_ANNOTATION_FILENAME"
             },
             {
                 "TwoDPlot",

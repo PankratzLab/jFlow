@@ -82,7 +82,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 			}
 			proj.getLog().reportTimeError(error);
 			System.out.println(Array.toStr(markers));
-			throw new IllegalStateException(error);
+//			throw new IllegalStateException(error);
 		} else {
 			proj.getLog().reportTimeInfo("Loaded " + markers.length + " marker annotations");
 		}
