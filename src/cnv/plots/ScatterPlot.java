@@ -76,6 +76,7 @@ import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.annotation.BlastAnnotationLoader;
 import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
+import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.filesys.AnnotationCollection;
 import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilter;
@@ -451,6 +452,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
                 blastResults = blastAnnotationLoader.loadBlastAnnotationsFor(masterMarkerList);
             } catch (Exception e) {
                 blastResults = null;
+                proj.getLog().reportException(e);
             }
         }
     }
@@ -537,10 +539,6 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         } else {
             proj.getLog().reportError("Error - file " + file + " not found");
         }
-	}
-	
-	private void loadBLASTAnnotations() {
-	    
 	}
 	
 	private JMenuBar createJMenuBar() {
@@ -2175,6 +2173,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		}
 //		long t2 = System.currentTimeMillis();
 		setCurrentClusterFilter();
+		updateBLASTPanel();
 		updateGUI();
 		displayClusterFilterIndex();
 //		long t3 = System.currentTimeMillis();
@@ -3099,7 +3098,48 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		return colorKeyPanel.getDisabledClassValues();
 	}
 	
-	
+	private void updateBLASTPanel() {
+	    blastPanel.removeAll();
+	    blastPanel.repaint();
+
+	    if (!hasBlastAnnotations || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length) {
+	        JLabel blastLabel = new JLabel("BLAST Unavailable");
+	        blastLabel.setFont(new Font("Arial", 0, 14));
+	        blastPanel.add(blastLabel, "cell 0 0 2 1");
+	        return;
+	    }
+	    
+	    System.out.println("Selected marker index " + markerIndex);
+	    
+	    MarkerBlastResult blastResult = blastResults[markerIndex];
+        
+        JLabel typeLabel = new JLabel("Has Perfect Match? ", JLabel.LEFT);
+        typeLabel.setFont(new Font("Arial", 0, 14));
+        blastPanel.add(typeLabel, "cell 0 0");
+        boolean has = blastResult.hasPerfectMatch(log);
+        String result = has ? "YES" : "NO";
+        typeLabel = new JLabel(result, JLabel.LEFT);
+        typeLabel.setFont(new Font("Arial", 0, 14));
+        typeLabel.setForeground(has ? Color.GREEN : Color.RED);
+        blastPanel.add(typeLabel, "cell 1 0");
+	    
+        typeLabel = new JLabel("# Off-Target Alignments: ", JLabel.LEFT);
+        typeLabel.setFont(new Font("Arial", 0, 14));
+        blastPanel.add(typeLabel, "cell 0 1");
+        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
+        typeLabel.setFont(new Font("Arial", 0, 14));
+        blastPanel.add(typeLabel, "cell 1 1");
+	    
+        typeLabel = new JLabel("# On-Target (mismatched) Alignments: ", JLabel.LEFT);
+        typeLabel.setFont(new Font("Arial", 0, 14));
+        blastPanel.add(typeLabel, "cell 0 2");
+        typeLabel = new JLabel(" " + blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, log),  JLabel.LEFT);
+        typeLabel.setFont(new Font("Arial", 0, 14));
+        blastPanel.add(typeLabel, "cell 1 2");
+        
+        JButton blastButton = new JButton("More Details");
+        blastPanel.add(blastButton, "cell 0 3 2 1");
+	}
 	
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass, int index) {
 		int numCalledGenotypes;
