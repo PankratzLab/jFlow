@@ -135,16 +135,14 @@ public class ExomeDepth {
 		String script = addBaseLoadScript("");
 		script += loadCountFileScript() + "\n";
 		script += MY_TEST_VAR + " <- " + EXOME_COUNTS_DAFR + "$" + Rscript.makeRSafe(ext.removeDirectoryInfo(eAnalysis.getInputBam())) + "\n";
-		String[] tmpRef = new String[allReferenceBAMFiles.length - 1];
-		int index = 0;
+		ArrayList<String> tmpRef = new ArrayList<String>();
 		for (int i = 0; i < allReferenceBAMFiles.length; i++) {
 			if (!allReferenceBAMFiles[i].equals(eAnalysis.getInputBam()) && !eAnalysis.getExcludeFromRef().contains(allSampleNames[i]) && !globalExclude.contains(allSampleNames[i])) {
-				tmpRef[index] = Rscript.makeRSafe(ext.removeDirectoryInfo(allReferenceBAMFiles[i]));
-				index++;
+				tmpRef.add(Rscript.makeRSafe(ext.removeDirectoryInfo(allReferenceBAMFiles[i])));
 			}
 		}
 
-		script += MY_REF_SAMPLES_VAR + " <- " + Rscript.generateRVector(tmpRef, true) + "\n";
+		script += MY_REF_SAMPLES_VAR + " <- " + Rscript.generateRVector(Array.toStringArray(tmpRef), true) + "\n";
 		script += MY_REF_SET_VAR + " <- " + "as.matrix(" + EXOME_COUNTS_DAFR + "[, " + MY_REF_SAMPLES_VAR + "])\n";
 
 		script += MY_CHOICE_VAR + " <- " + "select.reference.set (test.counts = " + MY_TEST_VAR + ",reference.counts = " + MY_REF_SET_VAR;

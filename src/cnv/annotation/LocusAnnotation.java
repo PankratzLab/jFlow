@@ -28,8 +28,14 @@ public class LocusAnnotation {
 
 		VariantContextBuilder vBuilder = new VariantContextBuilder();
 		vBuilder.chr(Positions.getChromosomeUCSC(seg.getChr(), true));
-		vBuilder.start(seg.getStart());
-		vBuilder.stop(seg.getStop());
+		if (seg.getChr() == 0) {
+			vBuilder.start(seg.getStart() <= 0 ? 1 : seg.getStart());
+			vBuilder.stop(seg.getStop() <= 0 ? 1 : seg.getStop());
+
+		} else {
+			vBuilder.start(seg.getStart());
+			vBuilder.stop(seg.getStop());
+		}
 		vBuilder.id(locusName);
 		vBuilder.alleles(alleles);
 		if (annotations != null) {
@@ -43,8 +49,9 @@ public class LocusAnnotation {
 	public Segment getSeg() {
 		return seg;
 	}
+
 	public String getLocusName() {
-		
+
 		return locusName;
 	}
 

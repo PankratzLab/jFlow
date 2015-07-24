@@ -1,6 +1,8 @@
 package cnv.annotation;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import seq.manage.ReferenceGenome;
 import seq.manage.VCOps;
@@ -55,6 +57,11 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	public void write(LocusAnnotation locusAnnotation) {
 		if (writer != null) {
 			VariantContext vcAnno = locusAnnotation.annotateLocus();
+			if (vcAnno.getStart() <= 0 || vcAnno.getEnd() <= 0) {
+				String error = "Entry " + vcAnno.toStringWithoutGenotypes() + " had postion less than or equal to zero. Most readers will skip";
+				proj.getLog().reportTimeError(error);
+				throw new IllegalArgumentException(error);
+			}
 			if (additionReader != null) {
 				if (!additionReader.hasNext()) {
 					String error = "Mismatched number of entries in " + annotationFilename + " , cancelling addition...";
@@ -70,15 +77,13 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 						vcAnno = builder.make();
 					} else {
 						String error = "Entries must be in the exact same order to be added together, ";
-						error += vcAdd.toStringWithoutGenotypes() + " from " + annotationFilename;
-						error += vcAnno.toStringWithoutGenotypes() + " being added";
+						error += vcAdd.getID() + "\t" + vcAdd.toStringWithoutGenotypes() + " from " + annotationFilename;
+						error += vcAnno.getID() + "\t" + vcAnno.toStringWithoutGenotypes() + " being added";
 						proj.getLog().reportTimeError(error);
 						throw new IllegalStateException(error);
 					}
-
 				}
 			}
-
 			writer.add(vcAnno);
 		} else {
 			String error = "annotation writer has not been intialized";
@@ -154,21 +159,69 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			proj.getLog().reportTimeInfo("Using reference genome" + refGenome);
 
 			SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(refGenome, proj.getLog()).getIndexedFastaSequenceFile().getSequenceDictionary();
-			MarkerSet markerSet = proj.getMarkerSet();
+			SAMSequenceDictionary upDatedSamSequenceDictionary = getUpdatedSamSequenceDictionary(proj, samSequenceDictionary);
 
-			if (samSequenceDictionary.getSequenceIndex("chrXY") == -1 && markerSet.getIndicesByChr()[25].length > 0) {// not always present in ref
-				int[] xyLen = Array.subArray(markerSet.getPositions(), markerSet.getIndicesByChr()[25]);
-				proj.getLog().reportTimeInfo("Since the project contained markers designated as pseudo-autosomal, a chrXY contig is being added");
-				samSequenceDictionary.addSequence(new SAMSequenceRecord("chrXY", Array.max(xyLen)));
-			}
-			builder.setReferenceDictionary(samSequenceDictionary);
-			vcfHeader.setSequenceDictionary(samSequenceDictionary);
+			builder.setReferenceDictionary(upDatedSamSequenceDictionary);
+			vcfHeader.setSequenceDictionary(upDatedSamSequenceDictionary);
 			this.writer = builder.build();
 			writer.writeHeader(vcfHeader);
 
 		} else {
 			proj.getLog().reportTimeError("Could not intialize annotation file " + annotationFilename);
 		}
+	}
+
+	/**
+	 * If the {@link SAMSequenceDictionary} of the reference fasta does not contain a contig for a project, it will cause an error that looks like:<br>
+	 * java.lang.NullPointerException at htsjdk.tribble.index.tabix.TabixIndexCreator.advanceToReference(TabixIndexCreator.java:116) at htsjdk.tribble.index.tabix.TabixIndexCreator.addFeature(TabixIndexCreator.java:96)
+	 */
+	private static SAMSequenceDictionary getUpdatedSamSequenceDictionary(Project proj, SAMSequenceDictionary samSequenceDictionary) {
+		MarkerSet markerSet = proj.getMarkerSet();
+		List<SAMSequenceRecord> samSequenceRecords = samSequenceDictionary.getSequences();
+		ArrayList<SAMSequenceRecord> updatedRecords = new ArrayList<SAMSequenceRecord>();
+		SAMSequenceRecord mitoRecord = null;
+		int currentIndex = 0;
+		if (samSequenceDictionary.getSequenceIndex("chr0") == -1 && markerSet.getIndicesByChr()[0].length > 0) {// not always present in ref
+			int[] chr0Len = Array.subArray(markerSet.getPositions(), markerSet.getIndicesByChr()[0]);
+			proj.getLog().reportTimeInfo("Since the project contained markers designated as chr0, a chr0 contig is being added");
+			if (Array.countIf(chr0Len, 0) > 0) {
+				proj.getLog().reportTimeWarning("VCF files cannot have positions of 0, positions will be updated to chr0:1");
+			}
+			SAMSequenceRecord samSequenceRecord = new SAMSequenceRecord("chr0", Array.max(chr0Len) + 1);
+			samSequenceRecord.setSequenceIndex(currentIndex);
+			updatedRecords.add(samSequenceRecord);
+			currentIndex++;
+		}
+		for (SAMSequenceRecord samSequenceRecord : samSequenceRecords) {
+			if (!samSequenceRecord.getSequenceName().equals("chrM")) {
+				samSequenceRecord.setSequenceIndex(currentIndex);
+				currentIndex++;
+				updatedRecords.add(samSequenceRecord);
+			} else {
+				mitoRecord = samSequenceRecord;
+			}
+		}
+
+		if (samSequenceDictionary.getSequenceIndex("chrXY") == -1 && markerSet.getIndicesByChr()[25].length > 0) {// not always present in ref
+			int[] chrxyLen = Array.subArray(markerSet.getPositions(), markerSet.getIndicesByChr()[25]);
+			proj.getLog().reportTimeInfo("Since the project contained markers designated as pseudo-autosomal, a chrXY contig is being added");
+			SAMSequenceRecord samSequenceRecord = new SAMSequenceRecord("chrXY", Array.max(chrxyLen) + 1);
+			samSequenceRecord.setSequenceIndex(currentIndex);
+			currentIndex++;
+			updatedRecords.add(samSequenceRecord);
+		}
+		if (markerSet.getIndicesByChr()[26].length > 0) {// not always present in ref
+			int[] chrMLen = Array.subArray(markerSet.getPositions(), markerSet.getIndicesByChr()[26]);
+			proj.getLog().reportTimeInfo("Since the project contained markers designated as mitochondrial, a chrM entry is being added");
+			mitoRecord = mitoRecord != null ? mitoRecord : new SAMSequenceRecord("chrM", Array.max(chrMLen) + 1);
+			mitoRecord.setSequenceIndex(currentIndex);
+			updatedRecords.add(mitoRecord);
+		}
+		// System.out.println(currentIndex);
+		// for(SAMSequenceRecord samSequenceRecord :updatedRecords){
+		// System.out.println(samSequenceRecord.toString());
+		// }
+		return new SAMSequenceDictionary(updatedRecords);
 	}
 
 	private static String getTmpFile(String annotationFilename) {

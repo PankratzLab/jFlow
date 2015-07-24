@@ -41,7 +41,13 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 		this.markerIndices = proj.getMarkerIndices();
 	}
 
-	public MarkerBlastResult[] loadBlastAnnotationsFor(String[] markers) {
+	/**
+	 * @param markers
+	 * @param otherQueries
+	 *            these queries can be null, but if not the appropriate annotations will be parsed
+	 * @return
+	 */
+	public MarkerBlastResult[] loadBlastAnnotationsFor(String[] markers, AnnotationParser[] otherQueries) {
 
 		if (Array.unique(markers).length != markers.length) {
 			String error = "Internal error, markers for blast annotation retrieval must be unique";
@@ -64,13 +70,20 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 				proj.getLog().reportTimeInfo("Loaded " + count + " annotations");
 			}
 			VariantContext vc = annotationQuery.next();
+			if (otherQueries != null) {
+				for (int i = 0; i < otherQueries.length; i++) {
+					if (otherQueries[i].shouldAnnotateWith(vc, proj.getLog())) {
+						otherQueries[i].parseAnnotation(vc, proj.getLog());
+					}
+				}
+			}
 			String id = vc.getID();
 			int annoIndex = ext.indexOfStr(id, markers);
 			if (annoIndex < 0) {
 				proj.getLog().reportTimeWarning("Query has returned un-desired marker " + id + ", ignoring");
 			} else {
 				found[annoIndex] = true;
-				blastAnnotations[annoIndex].addBlastAnnotation(vc);
+				blastAnnotations[annoIndex].parseAnnotation(vc, proj.getLog());
 			}
 		}
 		if (Array.booleanArraySum(found) != markers.length) {
@@ -81,8 +94,8 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 				}
 			}
 			proj.getLog().reportTimeError(error);
-			System.out.println(Array.toStr(markers));
-//			throw new IllegalStateException(error);
+			proj.getLog().reportTimeError(Array.toStr(markers));
+			// throw new IllegalStateException(error);
 		} else {
 			proj.getLog().reportTimeInfo("Loaded " + markers.length + " marker annotations");
 		}
@@ -110,7 +123,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 	/**
 	 * @author lane0212 Probably could be its own class
 	 */
-	public static class MarkerBlastResult {
+	public static class MarkerBlastResult implements AnnotationParser {
 		private BLAST_ANNOTATION_TYPES[] bTypes;
 		private ArrayBlastAnnotationList[] annotationLists;
 
@@ -160,10 +173,8 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 			return index;
 		}
 
-		/**
-		 * Can use this later when loading other annotations
-		 */
-		private void addBlastAnnotation(VariantContext vc) {
+		@Override
+		public void parseAnnotation(VariantContext vc, Logger log) {
 			for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a separate key in the file
 				String info = vc.getCommonInfo().getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
 				if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
@@ -175,5 +186,12 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 				}
 			}
 		}
+
+		@Override
+		public boolean shouldAnnotateWith(VariantContext vc, Logger log) {
+			log.reportTimeError("Method not implemented");
+			return false;
+		}
+
 	}
 }

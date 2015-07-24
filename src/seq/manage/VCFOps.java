@@ -1623,7 +1623,15 @@ public class VCFOps {
 				log.reportError("Error - could not find " + sequenceName + " in the sequence dictionary, halting");
 				return null;
 			}
-			qIntervals[i] = new QueryInterval(referenceIndex, segs[i].getStart() - bpBuffer, segs[i].getStop() + bpBuffer);
+			int start = segs[i].getStart();
+			int stop = segs[i].getStop();
+			if (segs[i].getChr() == 0 && segs[i].getStart() <= 0) {
+				start = 1;
+				if (segs[i].getStop() <= 0) {
+					stop = 1;
+				}
+			}
+			qIntervals[i] = new QueryInterval(referenceIndex, start - bpBuffer, stop + bpBuffer);
 		}
 		if (optimize) {
 			qIntervals = QueryInterval.optimizeIntervals(qIntervals);
