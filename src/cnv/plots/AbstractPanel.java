@@ -27,11 +27,11 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
 import mining.Distance;
 import stats.Maths;
-
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -82,9 +82,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected GenericRectangle highlightRectangle;
 	protected String xAxisLabel;
 	protected String yAxisLabel;
+	protected String title;
 	protected boolean displayXaxis;
 	protected boolean displayYaxis;
 	protected boolean displayGrid;
+	protected boolean displayTitle;
 	protected int missingWidth;
 	protected int nanWidth;
 	protected int axisFontSize = AXIS_FONT_SIZE;
@@ -106,6 +108,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	private boolean inDrag;
 	private int startX, startY;
+//	private int titleX, titleY;
+	private int titleLocation;
 	private int plotPointSetSize;
 	private int totalNumPlotPointSets;
 	private int currentPlotPointSet;
@@ -315,7 +319,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		String str, pos;
 		int xLook, yLook;
 		BufferedImage yLabel;
-		FontMetrics fontMetrics;
+		FontMetrics fontMetrics = null;
 		Graphics gfx;
 		Hashtable<String, Vector<PlotPoint>> layers;
 		Vector<PlotPoint> layer;
@@ -584,9 +588,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			if (errorMessage != null) {
 				g.drawString(errorMessage, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(errorMessage)/2+axisYWidth/*WIDTH_Y_AXIS*/, (getHeight()-HEAD_BUFFER-axisXHeight/*HEIGHT_X_AXIS*/)/2-20+HEAD_BUFFER);
 			}
-		
+			
 		}
-
 		
 		//TODO outercoordinates
 		canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
@@ -768,6 +771,31 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				g.drawLine(getXPixel(0), getYPixel(d), getXPixel(canvasSectionMaximumX), getYPixel(d));
 			}
 		}
+		
+		if (base && displayTitle && title != null && !title.equals("")) {
+		    int titleX, titleY;
+		    int PAD = 5;
+		    int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
+		    int titleWidth = (fontMetrics == null ? title.length() * PAD : fontMetrics.stringWidth(title));
+		    
+	        switch (titleLocation) {
+	            default: // DEFAULT TO TOP
+	            case SwingConstants.NORTH:
+	                titleX = (getWidth()-axisYWidth) / 2 + axisYWidth - titleWidth / 2;
+	                titleY = PAD + fontHeight;
+	                break;
+	            case SwingConstants.NORTH_EAST:
+	                titleX = getWidth() - 2 * PAD - titleWidth;
+	                titleY = PAD + fontHeight;
+	                break;
+	            case SwingConstants.NORTH_WEST:
+	                titleX = axisYWidth + 2 * PAD;
+	                titleY = PAD + fontHeight;
+	                break;
+	        }
+            g.drawString(title, titleX, titleY);
+		}
+		
 		setFinalImage(true);
 		
 		if (base && prog != null) {
@@ -793,16 +821,35 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		*/
 		
 		refreshOtherComponents();
-//		
-//		long t100 = System.currentTimeMillis();
-//		
-//		System.out.println("\tDiff: " + (t100 - t1) + " - " + SwingUtilities.isEventDispatchThread());
-//		  
-//        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-//        for (int i = 2; i < 4; i++) {
-//            System.out.println(stack[i].toString());
-//        }
+
 	}
+	
+	/**
+	 * Currently works with:<br />
+	 * <ul>
+	 * <li>SwingConstants.NORTH</li>
+	 * <li>SwingConstants.NORTH_EAST</li>
+	 * <li>SwingConstants.NORTH_WEST</li>
+	 * </ul>
+	 * @param loc
+	 */
+	public void setTitleLocation(int loc) {
+	    this.titleLocation = loc;
+	}
+
+	public void setTitle(String title) {
+	    this.title = title;
+	}
+	
+	public void setDisplayTitle(boolean show) {
+	    this.displayTitle = show;
+	}
+	
+	public boolean getDisplayTitle() {
+	    return this.displayTitle;
+	}
+	
+	public String getTitle() { return this.title; }
 	
 	public void refreshOtherComponents() {
 	}
