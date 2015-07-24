@@ -32,7 +32,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	private int maxMismatches;
 	private int maxAlignmentsReported;
 
-	public BlastAnnotationWriter(Project proj, String outputFile, String[] blastResultFiles, int minAlignmentLength, int maxGaps, int maxMismatches, int maxAlignmentsReported) {
+	public BlastAnnotationWriter(Project proj, String outputFile,  String[] blastResultFiles, int minAlignmentLength, int maxGaps, int maxMismatches, int maxAlignmentsReported) {
 		super(proj, BlastAnnotationTypes.getBaseAnnotations(), outputFile, false);
 		this.proj = proj;
 		this.blastResultFiles = blastResultFiles;
@@ -144,32 +144,19 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	 * @return initialized blast summaries for all markers
 	 */
 	private static LocusAnnotation[] initializeSummaries(Project proj) {
-		// ABLookup abLookup = null;
-		// if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-		// proj.getLog().reportTimeInfo("Ref and alt alleles will be determined by " + proj.AB_LOOKUP_FILENAME.getValue());
-		// abLookup = new ABLookup(proj.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
-		// } else {
-		// proj.getLog().reportTimeWarning(proj.AB_LOOKUP_FILENAME.getValue() + " did not exist so ref and alt alleles will be in-accurate");
-		// }
 		MarkerSet markerSet = proj.getMarkerSet();
+		//TODO ablookup for annovar etc...
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();
 		String[] markerNames = proj.getMarkerNames();
 		LocusAnnotation[] anDatas = new LocusAnnotation[markerNames.length];
 		for (int i = 0; i < anDatas.length; i++) {
 			Builder builder = new Builder();
-			// if (abLookup != null) {
-			// String ref = abLookup.getLookup()[i][0] + "";
-			// String alt = abLookup.getLookup()[i][1] + "";
-			// if (!alt.equals("B") && !alt.equals("I") && !alt.equals("D")) {
-			// builder.ref(ref);
-			// builder.alts(new String[] { alt });
-			// }
-			// }
 			builder.annotations(BlastAnnotationTypes.getAnnotationDatas());
 			Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
 			anDatas[i] = builder.build(markerNames[i], markerSeg);
 		}
 		return anDatas;
 	}
+
 }

@@ -1,5 +1,6 @@
 package one.JL;
 
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 import java.io.File;
@@ -76,6 +77,8 @@ public class BlastAnnotationTesting {
 		blastAnnotation.summarizeResultFiles();
 		blastAnnotation.close();
 
+		Annotation annotation = new Annotation(VCFHeaderLineType.String, null, 1, "test analysis ", "a test analysis addition", "DSDF") {
+		};
 		blastAnnotation = new BlastAnnotationWriter(proj, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles();
 		blastAnnotation.close();

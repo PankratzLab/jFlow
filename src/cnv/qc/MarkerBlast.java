@@ -3,19 +3,28 @@ package cnv.qc;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import common.Array;
 import common.Files;
 import common.PSF;
 import common.WorkerHive;
 import common.ext;
+import cnv.annotation.AnnotationData;
+import cnv.annotation.AnnotationFileWriter;
 import cnv.annotation.BlastAnnotationWriter;
+import cnv.annotation.LocusAnnotation;
+import cnv.annotation.LocusAnnotation.Builder;
+import cnv.annotation.MarkerGCAnnotation;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
+import filesys.Segment;
 import seq.analysis.Blast;
 import seq.analysis.Blast.BlastWorker;
 import seq.analysis.Blast.FastaEntry;
+import seq.manage.ReferenceGenome;
 
 public class MarkerBlast {
 	public enum FILE_SEQUENCE_TYPE {
@@ -32,7 +41,7 @@ public class MarkerBlast {
 		AFFY_ANNOT;
 	}
 
-	public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int reportWordSize, int maxAlignmentsReported, int numThreads, boolean reportToTmp) {
+	public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int reportWordSize, int maxAlignmentsReported, int numThreads, boolean reportToTmp, boolean annotateGCContent) {
 		String fastaDb = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 		if (!Files.exists(fastaDb)) {
 			proj.getLog().reportTimeError("Was not able to find reference genome defined by " + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
@@ -53,8 +62,8 @@ public class MarkerBlast {
 			}
 
 			if (!Files.exists("", tmps)) {
-				FastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
-				ArrayList<FastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
+				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
+				ArrayList<MarkerFastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
 
 				ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 				if (fastaEntries != null && fastaEntries.length > 0) {
@@ -72,7 +81,6 @@ public class MarkerBlast {
 					hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));
 					hive.setReportEvery(1);
 					hive.execute(true);
-					// ArrayList<Blast.BlastResultsSummary[]> bSummaries =
 					hive.getResults();
 				}
 			} else {
@@ -87,9 +95,55 @@ public class MarkerBlast {
 			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
 			blastAnnotationWriter.summarizeResultFiles();
+			if (annotateGCContent) {
+				annotateGCContent(proj, fileSeq, type);
+			}
 
 			return result;
 		}
+	}
+
+	/**
+	 * Adds the gc content annotation to the summary file, does some repeat loading but oh well.
+	 */
+	private static void annotateGCContent(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type) {
+		MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
+		Hashtable<String, Integer> indices = proj.getMarkerIndices();
+		// ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, proj.getLog());
+		LocusAnnotation[] gcAnnotations = new LocusAnnotation[proj.getMarkerNames().length];
+		for (int i = 0; i < fastaEntries.length; i++) {
+			String marker = fastaEntries[i].getName();
+			switch (proj.getArrayType()) {
+			// we have to remove the "_A" or "_B" from affy markers
+			case AFFY_GW6:
+				marker = marker.substring(0, marker.length() - 2);
+				break;
+			case AFFY_GW6_CN:
+				marker = marker.substring(0, marker.length() - 2);
+				break;
+			case ILLUMINA:
+				break;
+			default:
+				proj.getLog().reportTimeError("Invalid Array type " + proj.getArrayType());
+				break;
+			}
+			int index = indices.get(marker);
+			double gcContent = fastaEntries[i].getGCMinusInterrogationPosition();
+			Builder builder = new Builder();
+			AnnotationData annotationData = MarkerGCAnnotation.getGCAnnotationDatas();
+			annotationData.setData(gcContent + "");
+			builder.annotations(new AnnotationData[] { annotationData });
+			MarkerGCAnnotation markerGCAnnotation = new MarkerGCAnnotation(builder, marker, fastaEntries[i].getMarkerSegment());
+			gcAnnotations[index] = markerGCAnnotation;
+		}
+		AnnotationFileWriter writer = new AnnotationFileWriter(proj, new AnnotationData[] { MarkerGCAnnotation.getGCAnnotationDatas() }, proj.BLAST_ANNOTATION_FILENAME.getValue(), false) {
+		};
+		for (int i = 0; i < gcAnnotations.length; i++) {
+			if (gcAnnotations[i] != null) {// currently some markers may not be represented, such as affy CN markers
+				writer.write(gcAnnotations[i]);
+			}
+		}
+		writer.close();
 	}
 
 	public static class MarkerBlastResult {
@@ -132,8 +186,8 @@ public class MarkerBlast {
 		}
 	}
 
-	private static FastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type) {
-		FastaEntry[] fastaEntries = new FastaEntry[0];
+	private static MarkerFastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type) {
+		MarkerFastaEntry[] fastaEntries = new MarkerFastaEntry[0];
 		ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
 		switch (type) {
 		case MANIFEST_FILE:
@@ -146,16 +200,7 @@ public class MarkerBlast {
 			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq" });
 			builder.headerFlags(new String[] { "Name", "AlleleA_ProbeSeq" });
 			break;
-		// case STRAND_REPORT:
-		// if (proj.getArrayType() != ARRAY.ILLUMINA) {
-		// proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
-		// return null;
-		//
-		// }
-		// builder.dataKeyColumnName("SNP_Name");
-		// builder.commentString("##");
-		// builder.stringDataTitles(new String[] { "Design_Seq" });
-		// break;
+
 		case AFFY_ANNOT:
 			if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
 				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
@@ -179,44 +224,87 @@ public class MarkerBlast {
 			ExtProjectDataParser parser = builder.build(proj, strandReportFile);
 			parser.determineIndicesFromTitles();
 			parser.loadData();
-			ArrayList<FastaEntry> entries = new ArrayList<FastaEntry>(Array.booleanArraySum(parser.getDataPresent()));
+			ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(Array.booleanArraySum(parser.getDataPresent()));
+			MarkerSet markerSet = proj.getMarkerSet();
 			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
 			for (int i = 0; i < parser.getDataPresent().length; i++) {
 				if (parser.getDataPresent()[i]) {
 
 					String seq = null;
-
+					String markerName = parser.getDataToLoad()[i];
+					Segment markerSegment = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]);
 					if (type != FILE_SEQUENCE_TYPE.AFFY_ANNOT) {
 						seq = parser.getStringData()[0][i];
 						if (seq.length() != seqLength) {
 							proj.getLog().reportTimeError("Sequence " + seq + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
 							return null;
 						}
-						entries.add(new FastaEntry(parser.getDataToLoad()[i], seq));
+						entries.add(new MarkerFastaEntry(markerName, seq, seqLength, markerSegment));
 					} else {
 						String[] tmpSeq = Array.unique(parser.getStringData()[0][i].split("\t"));
 						if (tmpSeq.length != 2) {
-							proj.getLog().reportTimeError("Marker " + parser.getDataToLoad()[i] + " did not have 2 unique probe designs");
-							proj.getLog().reportTimeError("found the following " + parser.getDataToLoad()[i] + "\t" + Array.toStr(tmpSeq));
+							proj.getLog().reportTimeError("Marker " + markerName + " did not have 2 unique probe designs");
+							proj.getLog().reportTimeError("found the following " + markerName + "\t" + Array.toStr(tmpSeq));
 							return null;
 						} else {
 							if (tmpSeq[0].length() != seqLength || tmpSeq[1].length() != seqLength) {
 								proj.getLog().reportTimeError("Sequence " + tmpSeq[0] + " or " + tmpSeq[1] + "  did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
 								return null;
 							}
-							entries.add(new FastaEntry(parser.getDataToLoad()[i] + "_A", tmpSeq[0]));
-							entries.add(new FastaEntry(parser.getDataToLoad()[i] + "_B", tmpSeq[1]));
+							int interrogationPosition = -1;
+							for (int j = 0; j < tmpSeq[0].length(); j++) {
+								if (tmpSeq[0].charAt(j) != tmpSeq[1].charAt(j)) {
+									if (interrogationPosition != -1) {
+										proj.getLog().reportTimeError("Multiple interrogation position for " + markerName);
+										return null;
+									}
+									interrogationPosition = j;
+								}
+							}
+
+							entries.add(new MarkerFastaEntry(markerName + "_A", tmpSeq[0], interrogationPosition, markerSegment));
+							entries.add(new MarkerFastaEntry(markerName + "_B", tmpSeq[1], interrogationPosition, markerSegment));
 						}
 					}
 				}
 			}
-			fastaEntries = entries.toArray(new FastaEntry[entries.size()]);
+			fastaEntries = entries.toArray(new MarkerFastaEntry[entries.size()]);
 		} catch (FileNotFoundException e) {
 			proj.getLog().reportFileNotFound(strandReportFile);
 			e.printStackTrace();
 		}
 		proj.getLog().reportTimeInfo("Found " + fastaEntries.length + " marker sequences to blast");
 		return fastaEntries;
+	}
+
+	private static class MarkerFastaEntry extends FastaEntry {
+		private int interrogationPosition;// Illumina = sequence length, affy = somewhere in the middle
+		private Segment markerSegment;
+
+		public MarkerFastaEntry(String name, String sequence, int interrogationPosition, Segment markerSegment) {
+			super(name, sequence);
+			this.interrogationPosition = interrogationPosition;
+			this.markerSegment = markerSegment;
+		}
+
+		public Segment getMarkerSegment() {
+			return markerSegment;
+		}
+
+		public double getGCMinusInterrogationPosition() {
+			int GorC = 0;
+			int total = 0;
+			for (int i = 0; i < sequence.length(); i++) {
+				if (i != interrogationPosition) {
+					total++;
+					if ((sequence.charAt(i) + "").equalsIgnoreCase("G") || (sequence.charAt(i) + "").equalsIgnoreCase("C")) {
+						GorC++;
+					}
+				}
+			}
+			return (double) GorC / total;
+		}
+
 	}
 
 	// public static void test() {
@@ -234,6 +322,7 @@ public class MarkerBlast {
 		int blastWordSize = -1;
 		int reportWordSize = -1;
 		int maxAlignmentsReported = 20;
+		boolean annotateGCContent = true;
 		// boolean report = true;
 		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
@@ -244,7 +333,9 @@ public class MarkerBlast {
 		usage += "   (5) number of base pairs with an exact match to report (i.e. reportWordSize=" + reportWordSize + " (defaults are array dependent))\n" + "";
 		// usage += "   (6) report results to temporary files (i.e. -report (not the default))\n" + "";
 		usage += "   (6) the maximum number of alignments to summarize (i.e. maxAlignmentsReported=" + maxAlignmentsReported + " (default))\n" + "";
-		usage += "   (7) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n" + ", Options are:\n ";
+		usage += "   (7) annotate the summary file with GC content, both the probe's gc content and the regions gc content  (i.e. annoGC=" + annotateGCContent + " (default))\n";
+		usage += "   (8) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n" + ", Options are:\n ";
+
 		for (int i = 0; i < FILE_SEQUENCE_TYPE.values().length; i++) {
 			usage += FILE_SEQUENCE_TYPE.values()[i] + "\n";
 		}
@@ -271,9 +362,13 @@ public class MarkerBlast {
 			} else if (args[i].startsWith("seqType=")) {
 				fSequence_TYPE = FILE_SEQUENCE_TYPE.valueOf(ext.parseStringArg(args[i], FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
 				numArgs--;
+			} else if (args[i].startsWith("annoGC=")) {
+				annotateGCContent = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("maxAlignmentsReported=")) {
 				maxAlignmentsReported = ext.parseIntArg(args[i]);
 				numArgs--;
+
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -319,7 +414,7 @@ public class MarkerBlast {
 				proj.getLog().reportTimeInfo("blast word size updated to default " + blastWordSize + " for array " + proj.getArrayType());
 
 			}
-			blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, maxAlignmentsReported, numThreads, true);
+			blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, maxAlignmentsReported, numThreads, true, annotateGCContent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -425,3 +520,14 @@ public class MarkerBlast {
 // log.reportException(e);
 // }
 // }
+
+// case STRAND_REPORT:
+// if (proj.getArrayType() != ARRAY.ILLUMINA) {
+// proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
+// return null;
+//
+// }
+// builder.dataKeyColumnName("SNP_Name");
+// builder.commentString("##");
+// builder.stringDataTitles(new String[] { "Design_Seq" });
+// break;

@@ -215,9 +215,10 @@ public class Blast {
 
 	}
 
+	
 	public static class FastaEntry {
-		private String name;
-		private String sequence;
+		protected String name;
+		protected String sequence;
 
 		public FastaEntry(String name, String sequence) {
 			super();
