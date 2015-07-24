@@ -1061,12 +1061,13 @@ public class PennCNV {
 			proj.getLog().report("All PennCNV files and scripts have been prepped. The next thing would be to qsub "+proj.PENNCNV_RESULTS_DIRECTORY.getValue()+"runAllPenncnv.pbs");
 		}
 		String dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue();
+		dir += "penn_scripts/";
 		Files.writeList(new String[] {
 				dir+"assemblePenncnv",
 				dir+"chrX/assemblePenncnv",
 				dir+"sexSpecific/female/assemblePenncnv",
 				dir+"sexSpecific/male/assemblePenncnv",
-				dir+"penn_scripts/combineAMFCNVs"
+				dir+"combineAMFCNVs"
 		}, dir+"parseAllPenncnv");
 		Files.chmod(dir+"parseAllPenncnv");
 	}

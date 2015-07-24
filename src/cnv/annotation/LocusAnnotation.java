@@ -48,6 +48,10 @@ public class LocusAnnotation {
 		return locusName;
 	}
 
+	public void setAnnotations(AnnotationData[] annotations) {
+		this.annotations = annotations;
+	}
+
 	public AnnotationData[] getAnnotations() {
 		return annotations;
 	}
@@ -77,7 +81,7 @@ public class LocusAnnotation {
 		}
 	}
 
-	private LocusAnnotation(Builder builder, String locusName, Segment seg) {
+	public LocusAnnotation(Builder builder, String locusName, Segment seg) {
 		this.locusName = locusName;
 		this.seg = seg;
 		this.annotations = builder.annotations;
