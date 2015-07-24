@@ -51,7 +51,7 @@ public class BlastAnnotationTesting {
 		proj.getLog().reportTimeInfo("Loading " + t.size() + " markers");
 		BlastAnnotationLoader blastAnnotationLoader = new BlastAnnotationLoader(proj, annoFile, true);
 
-		MarkerBlastResult[] markerBlastResults = blastAnnotationLoader.loadBlastAnnotationsFor(Array.toStringArray(t));
+		MarkerBlastResult[] markerBlastResults = blastAnnotationLoader.loadBlastAnnotationsFor(Array.toStringArray(t), null);
 		proj.getLog().reportTimeElapsed(time);
 		for (int i = 0; i < markerBlastResults.length; i++) {
 			for (int j = 0; j < markerBlastResults[i].getAnnotationLists().length; j++) {

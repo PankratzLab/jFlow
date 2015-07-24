@@ -1,5 +1,8 @@
 package cnv.qc;
 
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -24,7 +27,6 @@ import filesys.Segment;
 import seq.analysis.Blast;
 import seq.analysis.Blast.BlastWorker;
 import seq.analysis.Blast.FastaEntry;
-import seq.manage.ReferenceGenome;
 
 public class MarkerBlast {
 	public enum FILE_SEQUENCE_TYPE {
@@ -47,7 +49,6 @@ public class MarkerBlast {
 			proj.getLog().reportTimeError("Was not able to find reference genome defined by " + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
 			return null;
 		} else {
-
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
 			blast.setEvalue(10000);// we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
@@ -95,6 +96,7 @@ public class MarkerBlast {
 			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
 			blastAnnotationWriter.summarizeResultFiles();
+			blastAnnotationWriter.close();
 			if (annotateGCContent) {
 				annotateGCContent(proj, fileSeq, type);
 			}
@@ -108,6 +110,8 @@ public class MarkerBlast {
 	 */
 	private static void annotateGCContent(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type) {
 		MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type);
+		String[] markerNames = proj.getMarkerNames();
+		MarkerSet markerSet = proj.getMarkerSet();
 		Hashtable<String, Integer> indices = proj.getMarkerIndices();
 		// ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, proj.getLog());
 		LocusAnnotation[] gcAnnotations = new LocusAnnotation[proj.getMarkerNames().length];
@@ -135,12 +139,21 @@ public class MarkerBlast {
 			builder.annotations(new AnnotationData[] { annotationData });
 			MarkerGCAnnotation markerGCAnnotation = new MarkerGCAnnotation(builder, marker, fastaEntries[i].getMarkerSegment());
 			gcAnnotations[index] = markerGCAnnotation;
-		}
+		}	
 		AnnotationFileWriter writer = new AnnotationFileWriter(proj, new AnnotationData[] { MarkerGCAnnotation.getGCAnnotationDatas() }, proj.BLAST_ANNOTATION_FILENAME.getValue(), false) {
 		};
 		for (int i = 0; i < gcAnnotations.length; i++) {
 			if (gcAnnotations[i] != null) {// currently some markers may not be represented, such as affy CN markers
 				writer.write(gcAnnotations[i]);
+				
+			} else {
+				double gcContent = Double.NaN;
+				Builder builder = new Builder();
+				AnnotationData annotationData = MarkerGCAnnotation.getGCAnnotationDatas();
+				annotationData.setData(gcContent + "");
+				builder.annotations(new AnnotationData[] { annotationData });
+				MarkerGCAnnotation blank = new MarkerGCAnnotation(builder, markerNames[i], new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]));
+				writer.write(blank);
 			}
 		}
 		writer.close();

@@ -76,6 +76,7 @@ import stats.ProbDist;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.annotation.BlastAnnotationLoader;
+import cnv.annotation.MarkerGCAnnotation;
 import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
@@ -452,7 +453,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 
         if (hasBlastAnnotations) {
             try {
-                blastResults = blastAnnotationLoader.loadBlastAnnotationsFor(masterMarkerList);
+				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList, null, null);
+                blastResults = blastAnnotationLoader.loadBlastAnnotationsFor(masterMarkerList,gcAnnotations);
+                for (int i = 0; i < gcAnnotations.length; i++) {
+					System.out.println(masterMarkerList[i] + "\t" + gcAnnotations[i].getAnnotations()[0].getData());
+				}
             } catch (Exception e) {
                 blastResults = null;
                 proj.getLog().reportException(e);

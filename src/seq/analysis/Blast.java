@@ -473,7 +473,9 @@ public class Blast {
 				writer.println(Array.toStr(BLAST_HEADER));
 
 			}
+			
 			BlastResultsSummary[] blasts = blast.blastSequence(fastaEntries, writer);
+			writer.close();
 			return blasts;
 		}
 
