@@ -22,7 +22,14 @@ public interface AnnotationParser {
 	 */
 	public boolean shouldAnnotateWith(VariantContext vc, Logger log);
 
+	/**
+	 * @param found
+	 *            can be used to store whether this annotation was found in an annotation file
+	 */
 	public void setFound(boolean found);
 
+	/**
+	 * @return whether the annotation was found or not
+	 */
 	public boolean isFound();
 }

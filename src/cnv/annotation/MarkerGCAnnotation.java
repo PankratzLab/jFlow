@@ -1,5 +1,7 @@
 package cnv.annotation;
 
+import java.util.Hashtable;
+
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import common.Logger;
@@ -40,19 +42,20 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 		return getLocusName().equals(vc.getID());
 	}
 
-	public static MarkerGCAnnotation[] initForMarkers(Project proj, String[] markers, MarkerSet markerSet, int[] markerIndicesInProject) {
+	public static MarkerGCAnnotation[] initForMarkers(Project proj, String[] markers, MarkerSet markerSet, Hashtable<String, Integer> indices) {
 		if (markerSet == null) {
 			markerSet = proj.getMarkerSet();
 		}
-		if (markerIndicesInProject == null) {
-			markerIndicesInProject = ext.indexLargeFactors(markers, proj.getMarkerNames(), true, proj.getLog(), true, false);
+		if (indices == null) {
+			indices = proj.getMarkerIndices();
 		}
 
 		MarkerGCAnnotation[] markerGCAnnotations = new MarkerGCAnnotation[markers.length];
 		for (int i = 0; i < markerGCAnnotations.length; i++) {
 			Builder builder = new Builder();
 			builder.annotations(new AnnotationData[] { getGCAnnotationDatas() });
-			markerGCAnnotations[i] = new MarkerGCAnnotation(builder, markers[i], new Segment(markerSet.getChrs()[markerIndicesInProject[i]], markerSet.getPositions()[markerIndicesInProject[i]], markerSet.getPositions()[markerIndicesInProject[i]]));
+			int index = indices.get(markers[i]);
+			markerGCAnnotations[i] = new MarkerGCAnnotation(builder, markers[i], new Segment(markerSet.getChrs()[index], markerSet.getPositions()[index], markerSet.getPositions()[index]));
 		}
 		return markerGCAnnotations;
 	}

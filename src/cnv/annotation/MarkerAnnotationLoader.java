@@ -11,23 +11,48 @@ import filesys.Segment;
  * @author lane0212 Class that concentrates on loading annotations for specific markers
  */
 public class MarkerAnnotationLoader extends AnnotationFileLoader {
+	private MarkerSet markerSet;
+	private Hashtable<String, Integer> indices;
 	private byte[] chrs;
 	private int[] pos;
 	private Hashtable<String, Integer> markerIndices;
 
+	/**
+	 * @param proj
+	 * @param annotationFilename
+	 * @param markerSet
+	 *            will be loaded if null, can save time if it is already available
+	 * @param indexRequired
+	 *            should always be true for now
+	 */
 	public MarkerAnnotationLoader(Project proj, String annotationFilename, MarkerSet markerSet, boolean indexRequired) {
 		super(proj, null, annotationFilename, indexRequired);
 		if (markerSet == null) {
 			markerSet = proj.getMarkerSet();
 		}
+		this.indices = proj.getMarkerIndices();
+		this.markerSet = markerSet;
 		this.chrs = markerSet.getChrs();
 		this.pos = markerSet.getPositions();
 		this.markerIndices = proj.getMarkerIndices();
 	}
 
-	public void fillAnnotations(final String[] markers, List<AnnotationParser[]> parsers) {
+	public MarkerSet getMarkerSet() {
+		return markerSet;
+	}
+
+	public Hashtable<String, Integer> getIndices() {
+		return indices;
+	}
+
+	/**
+	 * @param markers
+	 * @param parsersQueries
+	 *            typically each entry in the {@link AnnotationParser} array represents a single marker
+	 */
+	public void fillAnnotations(final String[] markers, List<AnnotationParser[]> parsersQueries) {
 		Segment[] markerSegments = getSegmentsForMarkers(markers);
-		query(markerSegments, parsers);
+		query(markerSegments, parsersQueries);
 	}
 
 	private Segment[] getSegmentsForMarkers(final String[] markers) {
