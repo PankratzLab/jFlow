@@ -75,7 +75,10 @@ import stats.ContingencyTable;
 import stats.ProbDist;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.annotation.AnnotationParser;
 import cnv.annotation.BlastAnnotationLoader;
+import cnv.annotation.MarkerAnnotationLoader;
+import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.MarkerGCAnnotation;
 import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
@@ -230,8 +233,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JPanel scatterOverview;
 	private JPanel viewPanel;
 	private boolean hasBlastAnnotations = false;
+	private MarkerAnnotationLoader annotationLoader = null;
 	private BlastAnnotationLoader blastAnnotationLoader;
-	private MarkerBlastResult[] blastResults = null;
+	private MarkerBlastAnnotation[] blastResults = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
 
@@ -294,6 +298,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (Files.exists(annoFile)) {
 		    blastAnnotationLoader = new BlastAnnotationLoader(proj, annoFile, true);
 		    hasBlastAnnotations = true;
+			annotationLoader = new MarkerAnnotationLoader(proj, annoFile, proj.getMarkerSet(), true);
 		}
 		
 		masterMarkerList = initMarkerList;
@@ -454,7 +459,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         if (hasBlastAnnotations) {
             try {
 				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList, null, null);
-                blastResults = blastAnnotationLoader.loadBlastAnnotationsFor(masterMarkerList,gcAnnotations);
+				blastResults = MarkerBlastAnnotation.initForMarkers(masterMarkerList);
+				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
+				parsers.add(blastResults);
+				parsers.add(gcAnnotations);
+				annotationLoader.fillAnnotations(masterMarkerList, parsers);
+			//	blastResults = blastAnnotationLoader.loadBlastAnnotationsFor(masterMarkerList,gcAnnotations);
                 for (int i = 0; i < gcAnnotations.length; i++) {
 					System.out.println(masterMarkerList[i] + "\t" + gcAnnotations[i].getAnnotations()[0].getData());
 				}
@@ -3121,7 +3131,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    
 	    System.out.println("Selected marker index " + markerIndex);
 	    
-	    MarkerBlastResult blastResult = blastResults[markerIndex];
+		MarkerBlastAnnotation blastResult = blastResults[markerIndex];
         
         JLabel typeLabel = new JLabel("Has Perfect Match? ", JLabel.LEFT);
         typeLabel.setFont(new Font("Arial", 0, 14));

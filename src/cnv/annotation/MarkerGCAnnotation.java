@@ -14,6 +14,7 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 		MARKER_GC_CONTENT;
 	}
 
+	private boolean found;
 	private static final String DEFAULT_VALUE = ".";
 
 	public MarkerGCAnnotation(Builder builder, String locusName, Segment seg) {
@@ -54,6 +55,16 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 			markerGCAnnotations[i] = new MarkerGCAnnotation(builder, markers[i], new Segment(markerSet.getChrs()[markerIndicesInProject[i]], markerSet.getPositions()[markerIndicesInProject[i]], markerSet.getPositions()[markerIndicesInProject[i]]));
 		}
 		return markerGCAnnotations;
+	}
+
+	@Override
+	public void setFound(boolean found) {
+		this.found = found;
+	}
+
+	@Override
+	public boolean isFound() {
+		return found;
 	}
 
 }
