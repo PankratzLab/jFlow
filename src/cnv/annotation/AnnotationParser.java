@@ -21,4 +21,8 @@ public interface AnnotationParser {
 	 * @return true if to use this {@link VariantContext } for parsing
 	 */
 	public boolean shouldAnnotateWith(VariantContext vc, Logger log);
+
+	public void setFound(boolean found);
+
+	public boolean isFound();
 }

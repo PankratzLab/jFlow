@@ -1,6 +1,7 @@
 package cnv.annotation;
 
 import java.util.Iterator;
+import java.util.List;
 
 import seq.manage.VCFOps;
 import filesys.Segment;
@@ -39,10 +40,25 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 	}
 
+	public void query(Segment[] segs, List<AnnotationParser[]> parsersQueries) {
+		AnnotationQuery annotationQuery = getAnnotationQuery(segs);
+		while (annotationQuery.hasNext()) {
+			VariantContext vc = annotationQuery.next();
+			for (AnnotationParser[] parsers : parsersQueries) {
+				for (int i = 0; i < parsers.length; i++) {
+					if (parsers[i].shouldAnnotateWith(vc, proj.getLog())) {
+						parsers[i].parseAnnotation(vc, proj.getLog());
+						parsers[i].setFound(true);
+					}
+				}
+			}
+		}
+	}
+
 	public AnnotationQuery getAnnotationQuery() {
 		return getAnnotationQuery(null);
 	}
-	
+
 	public AnnotationQuery getAnnotationQuery(Segment[] segs) {
 		if (valid) {
 			AnnotationQuery annotationIterator = new AnnotationQuery(annotationFilename, segs, indexRequired, proj.getLog());
@@ -63,12 +79,13 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		if (!Files.exists(annotationFilename)) {
 			proj.getLog().reportTimeError("Could not find annotation file " + annotationFilename);
 			return false;
-		} else {
+		} else if (annotations != null) {
 			try {
 				VCFFileReader reader = new VCFFileReader(annotationFilename, indexRequired);
 				VCFHeader vcfHeader = reader.getFileHeader();
 
 				boolean hasAllAnno = true;
+
 				for (int i = 0; i < annotations.length; i++) {
 					if (!vcfHeader.hasInfoLine(annotations[i].getName())) {
 						proj.getLog().reportTimeError("Could not find annotation " + annotations[i].getName() + " in " + annotationFilename);
@@ -84,6 +101,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				return false;
 			}
 		}
+		return true;
 	}
 
 	@Override

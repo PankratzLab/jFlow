@@ -2,6 +2,7 @@ package cnv.qc;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -361,71 +362,72 @@ public class CNVFilter {
 	 * @return a String array of the default parameters, typically used for creating a .crf
 	 */
 	public static String[] getDefaultCNVParams() {
-		String[] params = new String[29];
-		params[0] = "# CNV Specific Filters: ";
-
-		params[1] = "# minimum number of markers";
-		params[2] = COMMAND_MIN_NUM_MARKERS + DEFAULT_MIN_NUM_MARKERS;
-
-		params[3] = "# maximum number of markers";
-		params[4] = "#" + COMMAND_MAX_NUM_MARKERS;
-
-		params[5] = "# minimum size in bp";
-		params[6] = "#" + COMMAND_MIN_SIZE;
-
-		params[7] = "# maximum size in bp";
-		params[8] = "#" + COMMAND_MAX_SIZE;
-
-		params[9] = "# minimum score (recomended 15 for PennCNV and 2.5 for cnv.Beast";
-		params[10] = "#" + COMMAND_MIN_SCORE + DEFAULT_MIN_SCORE_THRESHOLD;
-
-		params[11] = "# maximum score";
-		params[12] = "#" + COMMAND_MAX_SCORE;
-
-		params[13] = "# a path (relative to the project directory) to a file of problematic regions.";
-		params[14] = "#" + COMMAND_PROBLEM_REGIONS_FILE;
-
-		params[15] = "# a path (relative to the project directory) to a file common regions";
-		params[16] = "#" + COMMAND_COMMON_REFERENCE;
-
-		params[17] = "# if a common reference is provided, keep only variants in the common regions. Defaults to removing (" + DEFAULT_COMMON_IN + ")";
-		params[18] = COMMAND_COMMON_IN + DEFAULT_COMMON_IN;
-
-		params[19] = "# a path (relative to the project directory) to a file of individuals to use (note this will override " + COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + ")";
-		params[20] = "#" + COMMAND_INDIVIDUALS_TO_KEEP;
-
-		params[21] = "# the genome build to use for centromere locations";
-		params[22] = COMMAND_BUILD + DEFAULT_BUILD;
-
-		params[23] = "# break up CNVs spanning centromers, defaults to removing cnvs that span centromeres (" + DEFAULT_BREAK_UP_CENTROMERES + ")";
-		params[24] = "#" + COMMAND_BREAK_UP_CENTROMERES;
-
-		params[25] = "# exclude indivudals as defined by sample data";
-		params[26] = COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + DEFAULT_EXCLUDE_SAMPLE_DATA;
 		
-		params[27] = "# merge CNVs based on frequency and distance prior to filtering. Default to false.";
-		params[28] = "# " + COMMAND_MERGE;
+		ArrayList<String> params = new ArrayList<String>();
+		params.add( "# CNV Specific Filters: ");
+
+		params.add( "# minimum number of markers");
+		params.add( COMMAND_MIN_NUM_MARKERS + DEFAULT_MIN_NUM_MARKERS);
+
+		params.add( "# maximum number of markers");
+		params.add( "#" + COMMAND_MAX_NUM_MARKERS);
+
+		params.add( "# minimum size in bp");
+		params.add( "#" + COMMAND_MIN_SIZE);
+
+		params.add( "# maximum size in bp");
+		params.add( "#" + COMMAND_MAX_SIZE);
+
+		params.add("# minimum score (recomended 15 for PennCNV and 2.5 for cnv.Beast");
+		params.add( "#" + COMMAND_MIN_SCORE + DEFAULT_MIN_SCORE_THRESHOLD);
+
+		params.add( "# maximum score");
+		params.add("#" + COMMAND_MAX_SCORE);
+
+		params.add( "# a path (relative to the project directory) to a file of problematic regions.");
+		params.add("#" + COMMAND_PROBLEM_REGIONS_FILE);
+
+		params.add( "# a path (relative to the project directory) to a file common regions");
+		params.add( "#" + COMMAND_COMMON_REFERENCE);
+
+		params.add("# if a common reference is provided, keep only variants in the common regions. Defaults to removing (" + DEFAULT_COMMON_IN + ")");
+		params.add( COMMAND_COMMON_IN + DEFAULT_COMMON_IN);
+
+		params.add( "# a path (relative to the project directory) to a file of individuals to use (note this will override " + COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + ")");
+		params.add( "#" + COMMAND_INDIVIDUALS_TO_KEEP);
+
+		params.add( "# the genome build to use for centromere locations");
+		params.add( COMMAND_BUILD + DEFAULT_BUILD);
+
+		params.add("# break up CNVs spanning centromers, defaults to removing cnvs that span centromeres (" + DEFAULT_BREAK_UP_CENTROMERES + ")");
+		params.add("#" + COMMAND_BREAK_UP_CENTROMERES);
+
+		params.add( "# exclude indivudals as defined by sample data");
+		params.add( COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA + DEFAULT_EXCLUDE_SAMPLE_DATA);
 		
-		params[29] = "# filter CNVs based on frequency of CNVs at a locus";
-		params[30] = "# " + COMMAND_FREQ_FILTER;
-		params[31] = "# location of .fam file, from which to extract population count";
-        params[32] = "# famFile=";
-        params[33] = "# Total number of CNVs required to qualify a locus for final inclusion";
-        params[34] = "# totalRequired=";
-        params[35] = "# Number of deletions required to qualify a locus for final inclusion";
-        params[36] = "# delRequired=";
-        params[37] = "# Number of duplications required to qualify a locus for final inclusion";
-        params[38] = "# dupRequired=";
-        params[39] = "# Total number of CNVs allowed prior to locus disqualification";
-        params[40] = "# totalLimitedTo=";
-        params[41] = "# Number of deletions allowed prior to locus disqualification";
-        params[42] = "# delLimitedTo=";
-        params[43] = "# Number of duplications allowed prior to locus disqualification";
-        params[44] = "# dupLimitedTo=";
-        params[45] = "# proportion of probes that need to pass for final inclusion";
-        params[46] = "# proportion=";
+		params.add( "# merge CNVs based on frequency and distance prior to filtering. Default to false.");
+		params.add( "# " + COMMAND_MERGE);
 		
-		return params;
+		params.add( "# filter CNVs based on frequency of CNVs at a locus");
+		params.add( "# " + COMMAND_FREQ_FILTER);
+		params.add( "# location of .fam file, from which to extract population count");
+		params.add( "# famFile=");
+		params.add( "# Total number of CNVs required to qualify a locus for final inclusion");
+		params.add("# totalRequired=");
+		params.add("# Number of deletions required to qualify a locus for final inclusion");
+		params.add( "# delRequired=");
+		params.add( "# Number of duplications required to qualify a locus for final inclusion");
+		params.add("# dupRequired=");
+		params.add( "# Total number of CNVs allowed prior to locus disqualification");
+		params.add("# totalLimitedTo=");
+		params.add( "# Number of deletions allowed prior to locus disqualification");
+		params.add( "# delLimitedTo=");
+		params.add( "# Number of duplications allowed prior to locus disqualification");
+		params.add( "# dupLimitedTo=");
+		params.add( "# proportion of probes that need to pass for final inclusion");
+		params.add( "# proportion=");
+		
+		return Array.toStringArray(params);
 	}
 
 	public boolean passesCNVFilter(CNVariant cnv) {
