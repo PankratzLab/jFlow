@@ -42,6 +42,9 @@ public class PlinkFormat {
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		
+		String PROG_KEY = "PLINKEXPORT";
+		proj.progressMonitor.beginTask(PROG_KEY, "Exporting marker data for PLINK analysis", true, 0);
+		
 		for (int i = 0; i<markerNames.length; i++) {
 			if (hash.containsKey(markerNames[i])) {
 				proj.message("Warning - duplicate marker name: "+markerNames[i]);
@@ -77,7 +80,10 @@ public class PlinkFormat {
 //			}
 			indices = Array.intArray(markerNames.length);
 		}
-
+		
+		proj.progressMonitor.updateTask(PROG_KEY);
+		proj.progressMonitor.beginTask(PROG_KEY + "_MAPEXPORT", "Exporting marker data to .map file", false, indices.length);
+		
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		try {
@@ -85,15 +91,23 @@ public class PlinkFormat {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".map"));
 			for (int i = 0; i<indices.length; i++) {
 				writer.println(chrs[indices[i]]+" "+markerNames[indices[i]]+" 0 "+positions[indices[i]]);
+				proj.progressMonitor.updateTask(PROG_KEY + "_MAPEXPORT");
 			}
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			proj.message("Error: failed to write to "+filenameRoot+".map (in use?)");
+			proj.progressMonitor.endTask(PROG_KEY + "_MAPEXPORT");
+			proj.progressMonitor.endTask(PROG_KEY);
 			return false;
 		} catch (IOException ioe) {
 			proj.message("Error writing to "+filenameRoot+".map");
+			proj.progressMonitor.endTask(PROG_KEY + "_MAPEXPORT");
+			proj.progressMonitor.endTask(PROG_KEY);
 			return false;
 		}
+		proj.progressMonitor.endTask(PROG_KEY + "_MAPEXPORT");
+		
+		proj.progressMonitor.updateTask(PROG_KEY);
 
 //		gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
 		gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
@@ -112,6 +126,7 @@ public class PlinkFormat {
 				clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFilename, proj.JAR_STATUS.getValue());
 			} else {
 				proj.message("Error - cluster filter collection is not found at '"+clusterFilterFilename+"'");
+	            proj.progressMonitor.endTask(PROG_KEY);
 				return false;
 			}
 //			abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
@@ -121,8 +136,10 @@ public class PlinkFormat {
 			abLookup = null;
 		}
 		
+		int exp = Files.countLines(proj.PEDIGREE_FILENAME.getValue(), 0);
+		proj.progressMonitor.beginTask(PROG_KEY + "_PEDEXPORT", "Exporting sample data to .ped file", false, exp);
+		
 		try {
-//			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
 			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".ped"));
 			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".ped");
@@ -130,9 +147,9 @@ public class PlinkFormat {
 			invalidAbLookups = new Hashtable<Integer, Integer>();
 			while (reader.ready()) {
 				count++;
-				if (count % 100 == 0) {
-					System.out.println(count);
-				}
+//				if (count % 100 == 0) {
+//					System.out.println(count);
+//				}
 				
 				temp = reader.readLine();
 				line = temp.split(ext.determineDelimiter(temp));
@@ -143,6 +160,8 @@ public class PlinkFormat {
 								"  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
 					reader.close();
 					writer.close();
+		            proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
+		            proj.progressMonitor.endTask(PROG_KEY);
 					return false;
 				}
 				writer.print(line[0]+" "+line[1]+" "+line[2]+" "+line[3]+" "+line[4]+" "+line[5]);
@@ -184,9 +203,14 @@ public class PlinkFormat {
 				}
 				writer.println();
 				writer.flush();
+				
+	            proj.progressMonitor.updateTask(PROG_KEY + "_PEDEXPORT");
 			}
 			reader.close();
 			writer.close();
+
+			proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
+			
 			if (invalidAbLookups.size() > 0) {
 				proj.message("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(proj.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
 				try {
@@ -202,17 +226,25 @@ public class PlinkFormat {
 					log.reportException(e);
 				}
 			}
+
+            
 		} catch (FileNotFoundException fnfe) {
 //			proj.message("Error: file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\" not found");
 			proj.message("Error: file \""+proj.PEDIGREE_FILENAME.getValue()+"\" not found");
-			return false;
+            proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
+            proj.progressMonitor.endTask(PROG_KEY);
+            return false;
 		} catch (IOException ioe) {
 //			proj.message("Error reading file \""+proj.getFilename(proj.PEDIGREE_FILENAME)+"\"");
 			proj.message("Error reading file \""+proj.PEDIGREE_FILENAME.getValue()+"\"");
+			proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
+            proj.progressMonitor.endTask(PROG_KEY);
 			return false;
 		}
 
 		log.report(ext.getTime());
+        proj.progressMonitor.endTask(PROG_KEY);
+        
 		return true;
 	}
 

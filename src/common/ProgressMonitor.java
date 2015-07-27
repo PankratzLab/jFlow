@@ -3,8 +3,10 @@ package common;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
@@ -12,7 +14,7 @@ class Task {
     
     public Task(String name) {
         this.name = name;
-        this.lastUpdate = System.currentTimeMillis();
+        this.lastUpdate = System.nanoTime();
     }
     
     private final String name;
@@ -31,22 +33,34 @@ class Task {
     public int getExpectedUpdateCount() { return this.numExp; }
 
     private int updateCount;
-    public void setUpdateCount(int cnt) { this.updateCount = cnt; }
     public int getUpdateCount() { return this.updateCount; }
+
+    private int timeoutMins = ProgressMonitor.DEFAULT_TIMEOUT_MINS;
+    public void setTimeout(int timeout) { this.timeoutMins = timeout; }
+    public int getTimeout() { return this.timeoutMins; }
+    
+    private long lastUpdate;
+    protected void updateTime() { this.lastUpdate = System.nanoTime(); }
+    public long getLastUpdate() { return this.lastUpdate; }
+    
+    private boolean hasWarned = false;
+    public void warned() { this.hasWarned = true; }
+    public boolean alreadyWarned() { return hasWarned; }
     
     protected void updateOnce() {
         updateCount++;
+        if (updateCount > numExp) {
+            numExp = updateCount;
+        }
         updateTime();
     }
     
-    protected void updateTime() {
-        this.lastUpdate = System.currentTimeMillis();
-    }
     
-    long lastUpdate;
 }
 
 public class ProgressMonitor { 
+    
+    public static final int DEFAULT_TIMEOUT_MINS = 10;
     
     HashMap<String, Task> taskMap = new HashMap<String, Task>();
     // subclass for no-duplicates behavior ("HashStack")
@@ -62,14 +76,34 @@ public class ProgressMonitor {
     
     public ProgressMonitor(JProgressBar progBar) {
         this.internalProgBar = progBar;
+        Timer timer = new Timer("TaskMonitorTimer", true);
+        timer.schedule(monitorTask, 60 * 1000, 60 * 1000); // wait a minute to begin monitoring, and wait a minute between each check
     }
     
     public synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount) {
+        beginTask(taskName, label, indeterminate, expectedUpdateCount, DEFAULT_TIMEOUT_MINS);
+    }
+    
+    /**
+     * Begin tracking a new task
+     * 
+     * @param taskName Unique ID for task
+     * @param label Initial display label for task (can be changed later)
+     * @param indeterminate Is the task indeterminate or not
+     * @param expectedUpdateCount Expected number of update calls (used to display progress and calculate percentage complete)
+     * @param timeout Time (in minutes) before a notice is displayed to the user
+     */
+    public synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount, int timeout) {
+        if (taskMap.containsKey(taskName)) {
+            // likely programmer error, or trying to run a task twice at the same time
+            throw new IllegalArgumentException("Error - task with key [" + taskName + "] already exists!"); 
+        }
+        
         Task newTask = new Task(taskName);
         newTask.setLabel(label);
         newTask.setIndeterminate(indeterminate);
         newTask.setExpectedUpdateCount(expectedUpdateCount);
-        
+        newTask.setTimeout(timeout);
         this.taskMap.put(taskName, newTask);
         
         updateDisplay(newTask);
@@ -177,14 +211,37 @@ public class ProgressMonitor {
                 }
             });
         } else {
-            // TODO console logging?
+            // TODO console logging
+            // TODO time elapsed logging for indeterminate tasks ("Task [] progress updated")
+            // TODO tasks with large exp updates only update when cnt % (10 * sigdig) == 0 OR when some amount of time elapses 
         }
     }
     
     TimerTask monitorTask = new TimerTask() {
         @Override
         public void run() {
-            // TODO monitor jobs, warning for long running (could be programmer forgetting to endTask())
+            if (taskUpdateStack.size() == 0) return;
+            String[] keys = new String[taskUpdateStack.size()];
+            taskUpdateStack.copyInto(keys);
+            for (String str : keys) {
+                Task task = taskMap.get(str);
+                if (task == null) continue; // probably removed before we got this far
+                synchronized(this) {
+                    int elapsed = (int) ((System.nanoTime() - task.getLastUpdate()) / (60 * 1000000000));
+                    if (elapsed > task.getTimeout() && !task.alreadyWarned()) {
+                        task.warned();
+                        String msg = "Alert! A long-running task has failed to progress in the past " + task.getTimeout() + " minutes.";
+                        String[] opts = new String[]{"Continue", "Exit Genvisis"};
+                        int opt = JOptionPane.showOptionDialog(internalProgBar, msg, "Warning - stalled task!", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, opts, 0);
+                        if (opt == 0 || opt == JOptionPane.CLOSED_OPTION) {
+                            continue;
+                        } else {
+                            System.exit(1);
+                        }
+                    }
+                }
+            }
+            // TODO monitor jobs, warning for long running (could be programmer forgetting to endTask()!)
             // ProgressMonitor can't control running processes (pause or stop), but could work as a System.exit() 
         }
     };
