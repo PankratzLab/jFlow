@@ -96,6 +96,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     private long timestampOfPropertiesFile;
     private long timestampOfSampleDataFile;
     private Logger log;
+    
+    private JProgressBar progBar;
 
 	public Launch(String launchPropertiesFile, boolean jar) {
 		super("Genvisis");
@@ -129,6 +131,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		
 		log = proj.getLog();
 	    log.linkTextArea(output);
+	    
+	    progBar.setIndeterminate(false);
+	    progBar.setValue(0);
+	    progBar.setMaximum(0);
+	    progBar.setMinimum(0);
+	    progBar.setString(null);
+	    progBar.setStringPainted(false);
+	    
+	    proj.initializeProgressMonitor(progBar);
 	}
 
 	public void setIndexOfCurrentProject(String projPropertiesFileName) {
@@ -261,7 +272,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 	    //Add the text area to the content pane.
 	    contentPane.add(scrollPane, BorderLayout.CENTER);
-	
+	    
+	    progBar = new JProgressBar();
+	    contentPane.add(progBar, BorderLayout.SOUTH);
+	    progBar.setVisible(false);
+	    
 	    return contentPane;
 	}
 
@@ -619,15 +634,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				log.reportError("Error - unknown command: " + command);
 			}
 		}
-
 	}
 	
 	public void actionPerformed(ActionEvent ae) {
 		String command = ae.getActionCommand();
 		Thread thread;
 		
-//		output.append("Action performed: " + command + "\n");
-//		output.setCaretPosition(output.getDocument().getLength());
 		if (log == null) {
 			log = new Logger();
 		}

@@ -43,6 +43,11 @@ public class LrrSd extends Parallelizable {
 		int subIndex = -1;
 		Logger log;
 		
+		String PROG_KEY = "LRRSTDEV_" + threadNumber;
+		String progDesc = "Compute Log-R Ratio Std.Dev. in Thread " + threadNumber;
+		
+		proj.progressMonitor.beginTask(PROG_KEY, progDesc, false, samples.length + 1);
+		
 		log = proj.getLog();
 		try {
 			if (centroidsFile==null) {
@@ -50,6 +55,9 @@ public class LrrSd extends Parallelizable {
 			} else {
 				cents = Centroids.load(centroidsFile, false).getCentroids(); 
 			}
+			
+			proj.progressMonitor.updateTask(PROG_KEY);
+			
 			chrs = proj.getMarkerSet().getChrs();
 			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23, chrs.length if all are less, -1 if none are less, 0 if all are greater!
 			if (subIndex <= 0) {
@@ -66,7 +74,6 @@ public class LrrSd extends Parallelizable {
 					markersForEverythingElse[i] = false;
 				}
 			}
-			
 			
 			int numAb = (markersForCallrate == null ? chrs.length : Array.booleanArraySum(markersForCallrate));
 			int numAllElse = (markersForEverythingElse == null ? subIndex : Array.booleanArraySum(markersForEverythingElse));
@@ -89,7 +96,7 @@ public class LrrSd extends Parallelizable {
 			if (numAllElse < 1000) {
 				proj.getLog().report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers") + " for other qc metrics may result in inaccurate sample qc, please consider using more");
 			}
-
+			
 //			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + "." + threadNumber));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false) + "." + threadNumber));
 			writer.println(SAMPLE_COLUMN + "\t" + Array.toStr(NUMERIC_COLUMNS));
@@ -173,11 +180,14 @@ public class LrrSd extends Parallelizable {
 					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + "\t" + abCallRate + "\t" + forwardCallRate + "\t" + wfPrior + "\t" + gcwfPrior + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
 					writer.flush();
 				}
+				proj.progressMonitor.updateTask(PROG_KEY);
 			}
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		proj.progressMonitor.endTask(PROG_KEY);
 	}
 	
 	public void finalAction() {
@@ -223,6 +233,7 @@ public class LrrSd extends Parallelizable {
 		boolean[] markersForCallrate, markersForEverythingElse;
 		GcModel gcModel;
 		Logger log;
+		
 		
 		error = false;
 		log = proj.getLog();

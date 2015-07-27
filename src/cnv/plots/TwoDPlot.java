@@ -1193,7 +1193,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             }
 		}
 		*/
-		
+	    
 		twoDPanel.paintAgain();
 	}
 
