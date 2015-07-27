@@ -76,11 +76,9 @@ import stats.ProbDist;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.annotation.AnnotationParser;
-import cnv.annotation.BlastAnnotationLoader;
 import cnv.annotation.MarkerAnnotationLoader;
 import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.MarkerGCAnnotation;
-import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.filesys.AnnotationCollection;
@@ -232,9 +230,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JPanel[] indivPanels;
 	private JPanel scatterOverview;
 	private JPanel viewPanel;
-	private boolean hasBlastAnnotations = false;
+	private boolean hasAnnotationFile = false;
 	private MarkerAnnotationLoader annotationLoader = null;
-	private BlastAnnotationLoader blastAnnotationLoader;
 	private MarkerBlastAnnotation[] blastResults = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
@@ -296,8 +293,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		
 		String annoFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
 		if (Files.exists(annoFile)) {
-		    blastAnnotationLoader = new BlastAnnotationLoader(proj, annoFile, true);
-		    hasBlastAnnotations = true;
+		    hasAnnotationFile = true;
 			annotationLoader = new MarkerAnnotationLoader(proj, annoFile, proj.getMarkerSet(), true);
 		}
 		
@@ -456,15 +452,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
     
         annotationAutoAdv = true;
 
-        if (hasBlastAnnotations) {
+        if (hasAnnotationFile) {
             try {
-				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList, null, null);
+				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList, annotationLoader.getMarkerSet(), annotationLoader.getIndices());
 				blastResults = MarkerBlastAnnotation.initForMarkers(masterMarkerList);
 				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
 				parsers.add(blastResults);
 				parsers.add(gcAnnotations);
 				annotationLoader.fillAnnotations(masterMarkerList, parsers);
-			//	blastResults = blastAnnotationLoader.loadBlastAnnotationsFor(masterMarkerList,gcAnnotations);
                 for (int i = 0; i < gcAnnotations.length; i++) {
 					System.out.println(masterMarkerList[i] + "\t" + gcAnnotations[i].getAnnotations()[0].getData());
 				}
@@ -3120,7 +3115,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    blastPanel.removeAll();
 	    blastPanel.repaint();
 
-	    if (!hasBlastAnnotations || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length) {
+	    if (!hasAnnotationFile || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length) {
 	        JLabel blastLabel = new JLabel("BLAST Metrics Unavailable", SwingConstants.CENTER);
 	        blastLabel.setFont(new Font("Arial", 0, 14));
 	        blastPanel.add(blastLabel, "dock center, grow");
