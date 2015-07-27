@@ -233,6 +233,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private boolean hasAnnotationFile = false;
 	private MarkerAnnotationLoader annotationLoader = null;
 	private MarkerBlastAnnotation[] blastResults = null;
+	private MarkerGCAnnotation[] gcAnnotations = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
 
@@ -454,7 +455,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 
         if (hasAnnotationFile) {
             try {
-				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList, annotationLoader.getMarkerSet(), annotationLoader.getIndices());
+				gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList, annotationLoader.getMarkerSet(), annotationLoader.getIndices());
 				blastResults = MarkerBlastAnnotation.initForMarkers(masterMarkerList);
 				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
 				parsers.add(blastResults);
@@ -3115,7 +3116,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    blastPanel.removeAll();
 	    blastPanel.repaint();
 
-	    if (!hasAnnotationFile || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length) {
+	    if (!hasAnnotationFile || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length || !blastResults[markerIndex].isFound()) {
 	        JLabel blastLabel = new JLabel("BLAST Metrics Unavailable", SwingConstants.CENTER);
 	        blastLabel.setFont(new Font("Arial", 0, 14));
 	        blastPanel.add(blastLabel, "dock center, grow");

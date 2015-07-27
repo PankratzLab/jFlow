@@ -17,12 +17,14 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 
 import common.Aliases;
 import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.ProgressMonitor;
 import common.ext;
 import cnv.LaunchProperties;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
@@ -399,6 +401,7 @@ public class Project {
 	private MarkerLookup markerLookup;
 	private Logger log;
 	private boolean gui;
+	public ProgressMonitor progressMonitor;
 
 	public Project() {
 		sampleList = null;
@@ -1078,6 +1081,10 @@ public class Project {
 	
 	public void setGuiState(boolean state) {
 		gui = state;
+	}
+	
+	public void initializeProgressMonitor(JProgressBar progBar) {
+	    this.progressMonitor = new ProgressMonitor(progBar);
 	}
 	
 	public void message(String str, String windowTitle, int messageIcon) {

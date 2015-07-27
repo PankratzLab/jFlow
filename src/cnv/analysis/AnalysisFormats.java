@@ -58,13 +58,15 @@ public class AnalysisFormats implements Runnable {
 
 	}
 
-	public static void penncnv(Project proj, final String[] samples, final HashSet<String> markersToWrite, String subDir, int threadCount) {
+	public static void penncnv(final Project proj, final String[] samples, final HashSet<String> markersToWrite, String subDir, int threadCount) {
 		final String[] markerNames = proj.getMarkerNames();
 		final boolean jar;
 		final boolean gzip;
 		final String dir;
 		final String sampleDir;
 		final Logger log = proj.getLog();
+		
+		final String PROG_KEY = "GeneratePennCNV";
 		
 		dir = proj.PENNCNV_DATA_DIRECTORY.getValue(false, false) + (subDir == null ? "" : subDir);
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
@@ -83,10 +85,13 @@ public class AnalysisFormats implements Runnable {
 			sampleIndexQueues[i % threadCount].add(i);	
 		}
 
+		
 		ExecutorService computeHub = Executors.newFixedThreadPool(threadCount);
 		for (int threadI = 0; threadI < threadCount; threadI++) {
 			final int myIndex = threadI;
 			final long myStartTime = System.currentTimeMillis();
+			final String MY_PROG_KEY = PROG_KEY + "_thread" + myIndex;
+			
 			computeHub.execute(new Runnable() {
 				@Override
 				public void run() {
@@ -97,7 +102,9 @@ public class AnalysisFormats implements Runnable {
 					byte[] genotypes; 
 					Sample mySample;
             		int skippedExports = 0;
-
+            		
+                    proj.progressMonitor.beginTask(MY_PROG_KEY, "Generate PennCNV Files in Thread " + (myIndex + 1), false, sampleIndexQueues[myIndex].size());
+                    
 					while(!sampleIndexQueues[myIndex].isEmpty()) {
 						int sampleIndex = sampleIndexQueues[myIndex].poll();
 						sampleName = samples[sampleIndex];
@@ -108,6 +115,7 @@ public class AnalysisFormats implements Runnable {
 								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
 							} else {
 								log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+								proj.progressMonitor.endTask(MY_PROG_KEY);
 								return;
 							}
 							lrrs = mySample.getLRRs();
@@ -131,10 +139,13 @@ public class AnalysisFormats implements Runnable {
                     		skippedExports++;
                         }
 						
+						proj.progressMonitor.updateTask(MY_PROG_KEY);
 						mySampleCount++;
 					}
 
+					proj.progressMonitor.endTask(MY_PROG_KEY);
 					log.report("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime)+(skippedExports>0?"; skipped "+skippedExports+" samples that had been exported previously":""));
+					
 				}
 			});
 		}
