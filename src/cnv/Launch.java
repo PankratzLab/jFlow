@@ -497,7 +497,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					log.report("The ClusterFilterCollection in '"+proj.getProperty(proj.DATA_DIRECTORY)+"/"+filename+"' will be used");
 				}
 
-				if (PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true)) {
+				if (PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkBinary", filename, -1, true)) {
 					log.report("Success!");
 				}
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
