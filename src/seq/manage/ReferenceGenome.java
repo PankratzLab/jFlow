@@ -1,6 +1,7 @@
 package seq.manage;
 
 import filesys.Segment;
+import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -10,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 
 import common.Array;
+import common.Array.BYTE_DECODE_FORMAT;
 import common.Logger;
 import common.Positions;
 
@@ -28,10 +30,9 @@ public class ReferenceGenome {
 		this.log = log;
 		this.indexedFastaSequenceFile = null;
 		this.referenceSequence = null;
+		this.defaultBuffer = 0;
 		try {
 			indexedFastaSequenceFile = new IndexedFastaSequenceFile(new File(referenceFasta));
-			referenceSequence = indexedFastaSequenceFile.nextSequence();
-			currentSeq = referenceSequence.getBases();
 		} catch (FileNotFoundException e) {
 			log.reportFileNotFound(referenceFasta);
 			e.printStackTrace();
@@ -42,20 +43,12 @@ public class ReferenceGenome {
 		return indexedFastaSequenceFile;
 	}
 
-	public void setIndexedFastaSequenceFile(IndexedFastaSequenceFile indexedFastaSequenceFile) {
-		this.indexedFastaSequenceFile = indexedFastaSequenceFile;
-	}
-
 	public String getReferenceFasta() {
 		return referenceFasta;
 	}
 
 	public ReferenceSequence getReferenceSequence() {
 		return referenceSequence;
-	}
-
-	public void setReferenceSequence(ReferenceSequence referenceSequence) {
-		this.referenceSequence = referenceSequence;
 	}
 
 	public int getDefaultBuffer() {
@@ -66,9 +59,48 @@ public class ReferenceGenome {
 		this.defaultBuffer = defaultBuffer;
 	}
 
+	/**
+	 * @param segs
+	 *            these should be sorted in chromosomal order if speed is desired
+	 * @return
+	 */
+	public String[][] getSequencesFor(Segment[] segs) {
+		String[][] seqs = new String[segs.length][];
+		for (int i = 0; i < seqs.length; i++) {
+			seqs[i] = getSequenceFor(segs[i]);
+		}
+		return seqs;
+	}
+
+	public boolean hasContig(String contig) {
+		return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig) != null;
+	}
+
+	/**
+	 * @param segment
+	 * @return will return null if {@link Positions#getChromosomeUCSC(int, boolean, boolean)} returns a contig not in the files {@link SAMSequenceDictionary}
+	 */
 	public String[] getSequenceFor(Segment segment) {
+		String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true, true);
+		if (hasContig(requestedContig)) {
+			ReferenceSequence referenceSequence = indexedFastaSequenceFile.getSubsequenceAt(requestedContig, segment.getStart() - defaultBuffer, segment.getStop() + defaultBuffer);
+			String[] requestedSeq = Array.decodeByteArray(referenceSequence.getBases(), BYTE_DECODE_FORMAT.UPPER_CASE, log);
+			return requestedSeq;
+
+		} else {
+			// log.reportTimeError("Requested contig " + requestedContig + " was not in the sequence dictionary for " + referenceFasta);
+			return null;
+		}
+
+	}
+
+	/**
+	 * This method is slow, it loads the complete chromosome into memory and then subsets.
+	 */
+	@Deprecated
+	public String[] getSequenceForOld(Segment segment) {
 		String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true);
-		if (!referenceSequence.getName().equals(requestedContig)) {
+		if (referenceSequence == null || currentSeq == null || !referenceSequence.getName().equals(requestedContig)) {
 			referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
 			currentSeq = referenceSequence.getBases();
 		}
