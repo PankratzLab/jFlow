@@ -865,7 +865,7 @@ public class PennCNV {
 
 		// load gcFile
 		try {
-			reader = new BufferedReader(new FileReader(inputGcBaseFullPath));
+			reader = Files.getAppropriateReader(inputGcBaseFullPath);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				curchr = Positions.chromosomeNumber(line[1]);

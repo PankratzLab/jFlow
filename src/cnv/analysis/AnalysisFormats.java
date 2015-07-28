@@ -85,7 +85,7 @@ public class AnalysisFormats implements Runnable {
 			sampleIndexQueues[i % threadCount].add(i);	
 		}
 
-		
+		proj.initializeProgressMonitor(null);
 		ExecutorService computeHub = Executors.newFixedThreadPool(threadCount);
 		for (int threadI = 0; threadI < threadCount; threadI++) {
 			final int myIndex = threadI;
