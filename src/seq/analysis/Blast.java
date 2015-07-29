@@ -215,7 +215,6 @@ public class Blast {
 
 	}
 
-	
 	public static class FastaEntry {
 		protected String name;
 		protected String sequence;
@@ -473,7 +472,7 @@ public class Blast {
 				writer.println(Array.toStr(BLAST_HEADER));
 
 			}
-			
+
 			BlastResultsSummary[] blasts = blast.blastSequence(fastaEntries, writer);
 			writer.close();
 			return blasts;
@@ -498,6 +497,9 @@ public class Blast {
 			String error = "Blast results must contain a \"btop\" entry in order to use this function...";
 			log.reportTimeError(error);
 			throw new IllegalArgumentException(error);
+		} else if (btop.equals("NA")) {
+			cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.X));
+			cigar = new Cigar(cigarElements);
 		} else {
 			if (isAllMatched(blastResults, initialSequencLength)) {// perfect alignment, completely equals the reference...
 				cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.EQ));

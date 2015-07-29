@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
+import stats.CategoricalPredictor;
+import stats.CategoricalPredictor.DummyCoding;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.GEOM_POINT_SIZE;
 import stats.Rscript.PLOT_DEVICE;
@@ -119,6 +121,7 @@ class CorrectionIterator implements Serializable {
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		IterationResult iterationResult = new IterationResult(output, iType, oType, bType);
 		if (!Files.exists(iterationResult.getOutputSer())) {
+
 			// || !Files.exists(iterationResult.getBasePrep())
 			// || oType == ORDER_TYPE.QC_ASSOCIATION
 			//
@@ -138,7 +141,6 @@ class CorrectionIterator implements Serializable {
 			log.reportTimeInfo("Iteration type : " + iType);
 			log.reportTimeInfo("Order type : " + oType);
 			log.reportTimeInfo("Model building type: " + bType);
-
 			PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 			pcResiduals.fillInMissing();
 			pcResiduals.setMarkersToAssessFile(markesToEvaluate);
@@ -174,7 +176,8 @@ class CorrectionIterator implements Serializable {
 					log.reportTimeInfo("Evaluating with " + Array.booleanArraySum(samplesForModels) + " samples, no additional independent variables");
 					break;
 				case WITH_INDEPS:
-					extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10, Double.NaN }, { -1, Double.NaN } }, log);
+					extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10, Double.NaN }, { -1, Double.NaN } }, CorrectionEvaluator.INDEPS_CATS, new String[] { "NaN" }, log);
+
 					if (extraIndeps == null) {
 						log.reportTimeError("type = " + iType + " and were missing some of the following " + Array.toStr(CorrectionEvaluator.INDEPS));
 						log.reportTimeError("Available = " + Array.toStr(cEvaluator.getParser().getNumericDataTitles()));
@@ -504,10 +507,11 @@ class CorrectionIterator implements Serializable {
 
 	}
 
-	private static double[][] loadIndeps(CorrectionEvaluator cEvaluator, String[] indepHeaders, double[][] indepMasks, Logger log) {
+	private static double[][] loadIndeps(CorrectionEvaluator cEvaluator, String[] indepHeaders, double[][] indepMasks, String[] catHeaders, String[] catHeaderMask, Logger log) {
 		ExtProjectDataParser parser = cEvaluator.getParser();
 
 		double[][] extraIndeps = new double[Array.booleanArraySum(parser.getDataPresent())][indepHeaders.length];
+
 		for (int i = 0; i < indepHeaders.length; i++) {
 			int curSum = 0;
 			if (parser.getNumericDataForTitle(indepHeaders[i]).length <= 0) {
@@ -532,6 +536,27 @@ class CorrectionIterator implements Serializable {
 			}
 			log.reportTimeInfo(curSum + " samples for independant variable " + indepHeaders[i]);
 		}
+		for (int i = 0; i < catHeaders.length; i++) {
+
+			if (parser.getStringDataForTitle(catHeaders[i]).length <= 0) {
+				log.reportTimeError("Did not find " + catHeaders[i] + " to load for independent variable");
+				return null;
+			} else {
+				String[] data = parser.getStringDataForTitle(catHeaders[i]);
+				CategoricalPredictor predictor = new CategoricalPredictor(data, catHeaderMask, log);
+				DummyCoding dummyCoding = predictor.createDummyCoding(false);
+				for (int j = 0; j < dummyCoding.getDummyBoolean().length; j++) {
+					double[] dummyData = Array.doubleArray(dummyCoding.getTitles().length, Double.NaN);
+					if (dummyCoding.getDummyBoolean()[j]) {
+						for (int k = 0; k < dummyData.length; k++) {
+							dummyData[k] = dummyCoding.getDummyData()[k][j];
+						}
+					}
+					extraIndeps[j] = Array.concatDubs(extraIndeps[j], dummyData);
+				}
+			}
+		}
+
 		return extraIndeps;
 	}
 
@@ -576,7 +601,7 @@ class CorrectionIterator implements Serializable {
 			// }
 
 		}
-		String[] plotTitlesForSummary = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number","SPEARMAN_CORREL_EVAL_DATA_Ratio.ND1" ,"SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs"};
+		String[] plotTitlesForSummary = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number", "SPEARMAN_CORREL_EVAL_DATA_Ratio.ND1", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs" };
 		String[] subsetDataHeritability = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number" };
 		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, plotTitlesForSummary, pedFile);
 		if (pedFile != null) {

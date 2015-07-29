@@ -167,13 +167,18 @@ public class Histogram implements Serializable {
 	}
 
 	public double[] getBins() {
+		return getBins(false);
+	}
+	public double[] getBins(boolean verbose) {
 		double[] bins = new double[counts.length];
 		int count = 0;
 		double d = min, step = Double.parseDouble(ext.formDeci(Math.pow(10, -1*(sigfigs+EXTRA_STEPS[extrastep])), sigfigs+1));
 		
 		d = determineStart();
-				
-		System.out.println("min: "+min+"; max: "+max+"; start: "+d+"; step: "+step);
+		
+		if (verbose) {
+			System.out.println("min: " + min + "; max: " + max + "; start: " + d + "; step: " + step);
+		}
 		while (count < counts.length && d<=max) {
 			bins[count++] = d;
 			d += step;

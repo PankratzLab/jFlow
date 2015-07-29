@@ -5,7 +5,6 @@ import java.util.Hashtable;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import common.Logger;
-import common.ext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import filesys.Segment;
