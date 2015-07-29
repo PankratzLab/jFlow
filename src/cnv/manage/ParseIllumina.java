@@ -417,7 +417,9 @@ public class ParseIllumina implements Runnable {
 		Hashtable<String, Float> allOutliers;
 		Vector<String> v;
 		Logger log;
-		AffyProcess affyProcess =null;
+		int foundIDon, foundSNPon;
+		AffyProcess affyProcess = null;
+		
 		log = proj.getLog();
         timeBegan = new Date().getTime();
         new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+OVERWRITE_OPTION_FILE).delete();
@@ -487,20 +489,35 @@ public class ParseIllumina implements Runnable {
 			reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 			log.report("Found appropriate reader for: "+proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 			count = 0;
+			foundSNPon = -1;
+			foundIDon = -2;
 			do {
 				line = reader.readLine().trim().split(delimiter, -1);
 				count++;
-//				if (count < 20) {
-//					log.report(Array.toStr(line));
-//				}
-			} while (reader.ready() && count < 1000 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
+				if (count < 20) {
+					log.report(Array.toStr(line), true, true, 11);
+				}
+				if (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] != -1) {
+					foundSNPon = count;
+				}
+				if (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) != -1) {
+					foundIDon = count;
+				}
+				
+			} while (reader.ready() && count < 1000 && foundIDon != foundSNPon);
 			
 			// If we reached the end of the file, it means that we didn't find the header we are looking for
 			// The most common cause of this is that the delimiter was misspecified
 			// The following code checks all of the common delimiters (tab, comma, space) and determines which one to use when it tries for a second time
 			if (!reader.ready() || count == 1000) {
-				log.reportError("Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0]));
-				log.reportError("   Perhaps the delimiter, which is currently set to "+proj.getProperty(proj.SOURCE_FILE_DELIMITER).getDelimiter() +", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
+				if (foundSNPon == -1) {
+					log.reportError("Could not find a header with the following tokens: "+Array.toStr(SNP_HEADER_OPTIONS[0], " / "));
+				}
+				if (foundIDon == -2) {
+					log.reportError("Could not find a header with the selected id type: "+idHeader);
+				}
+				
+				log.reportError("   Perhaps the delimiter, which is currently set to \""+proj.getProperty(proj.SOURCE_FILE_DELIMITER).getDelimiter() +"\", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
 				log.reportError("   OR perhaps the ID_HEADER property is incorrect; the text '" + proj.getProperty(proj.ID_HEADER) + "' should be present in the header line.");
 				log.reportError("   OR perhaps the ARRAY_TYPE property is incorrect;  options are " + Array.toStr(Project.ARRAY.class, ","));
 

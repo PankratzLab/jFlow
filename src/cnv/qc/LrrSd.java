@@ -10,7 +10,7 @@ import common.*;
 
 public class LrrSd extends Parallelizable {
 	
-	public static final String[] NUMERIC_COLUMNS = {  "LRR_AVG", "LRR_SD", "BAF1585_SD", "AB_callrate", "Forward_callrate", "WF_Prior_Correction", "GCWF_Prior_Correction", "WF_Post_Correction", "GCWF_Post_Correction", "LRR_SD_Post_Correction" };
+	public static final String[] NUMERIC_COLUMNS = {  "LRR_AVG", "LRR_SD", "BAF1585_SD", "Genotype_callrate", "Genotype_heterozygosity", "WF_Prior_Correction", "GCWF_Prior_Correction", "WF_Post_Correction", "GCWF_Post_Correction", "LRR_SD_Post_Correction" };
 	public static final String SAMPLE_COLUMN = "Sample";
 	private Project proj;
 	private String[] samples;
@@ -37,7 +37,7 @@ public class LrrSd extends Parallelizable {
 		float[][][] cents;
 		byte[] chrs, abGenotypes, forwardGenotypes;
 		float[] lrrs, bafs, bafsWide;
-		double abCallRate, forwardCallRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdPost;
+		double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdPost;
 		int[] bafBinCounts;
 		boolean multimodal;
 		int subIndex = -1;
@@ -137,23 +137,31 @@ public class LrrSd extends Parallelizable {
 							bafsWide[j] = Float.NaN;
 						}
 					}
-					abCallRate = 0;
+					abCallRate = abHetRate = 0;
 					if (abGenotypes != null) {
 						for (int j = 0; j < abGenotypes.length; j++) {
 							if (abGenotypes[j] >= 0) {
 								abCallRate++;
 							}
+							if (abGenotypes[j] == 1) {
+								abHetRate++;
+							}
+							
 						}
+						abHetRate /= abCallRate;
 						abCallRate /= abGenotypes.length;
-						
 					}
-					forwardCallRate = 0;
+					forwardCallRate = forwardHetRate = 0;
 					if (forwardGenotypes != null) {
 						for (int j = 0; j < forwardGenotypes.length; j++) {
 							if (forwardGenotypes[j] > 0) {
 								forwardCallRate++;
 							}
+							if (forwardGenotypes[j] == 1) {
+								forwardHetRate++;
+							}
 						}
+						forwardHetRate /= forwardCallRate;
 						forwardCallRate /= forwardGenotypes.length;
 					}
 					wfPrior = Double.NaN;
@@ -177,7 +185,7 @@ public class LrrSd extends Parallelizable {
 					}
 					
 					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + "\t" + abCallRate + "\t" + forwardCallRate + "\t" + wfPrior + "\t" + gcwfPrior + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
+					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + (abCallRate>0?"\t" + abCallRate + "\t" + abHetRate:"\t" + forwardCallRate + "\t" + forwardHetRate) + "\t" + wfPrior + "\t" + gcwfPrior + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
 					writer.flush();
 				}
 				proj.progressMonitor.updateTask(PROG_KEY);
