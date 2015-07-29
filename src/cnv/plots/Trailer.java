@@ -607,6 +607,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
 						txtBld.append(" Stop: ").append(ext.addCommas(cnv.getStop())).append("<br/>");
 						txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
+						txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
 						txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
 //						UIManager.put("ToolTip.background", new javax.swing.plaf.ColorUIResource(colorScheme[selectedCNV[0]][cnv.getCN() < 2 ? 0 : 1]));
 	//					cnvPanel.createToolTip();
