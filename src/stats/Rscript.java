@@ -263,7 +263,7 @@ public class Rscript {
 		@Override
 		public boolean execute() {
 			String[] rScript = developScript();
-			log.report(Array.toStr(rScript, "\n"));
+			//log.report(Array.toStr(rScript, "\n"));
 			Files.writeList(rScript, rScriptFile);
 			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { mergeOutput }, true, true, false, log);
 			return ran;
@@ -397,7 +397,7 @@ public class Rscript {
 		@Override
 		public boolean execute() {
 			String[] rScript = developScript();
-			log.report(Array.toStr(rScript, "\n"));
+			//log.report(Array.toStr(rScript, "\n"));
 			Files.writeList(rScript, rScriptFile);
 			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { output }, true, overWriteExisting, false, log);
 			return ran;

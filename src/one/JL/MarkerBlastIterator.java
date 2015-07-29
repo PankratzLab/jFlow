@@ -93,7 +93,7 @@ public class MarkerBlastIterator {
 		final double maxExpect = 20;
 		final int plotFontSize = 6;
 		final double yMin = 0.00001;
-		int oneHitWonderDef = proj.ARRAY_TYPE.getValue() == ARRAY.ILLUMINA ? 20 : 20;
+		int oneHitWonderDef = proj.ARRAY_TYPE.getValue() == ARRAY.ILLUMINA ? 40 : 20;
 
 		final int crossHybBufferDistance = proj.getArrayType().getProbeLength();
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {

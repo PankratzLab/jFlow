@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -15,6 +16,7 @@ import java.util.Vector;
 import common.ByteVector;
 import common.Files;
 import common.IntVector;
+import common.Logger;
 import common.Positions;
 import common.Sort;
 import common.StringVector;
@@ -156,8 +158,17 @@ public class CNVariant extends Segment {
 		return familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && amountOfOverlapInBasepairs(cnv) > 0;
 	}
 	
-	public boolean overlapsLocAndIndividualSignificantly(CNVariant cnv) {
-		return familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && significantOverlap(cnv);
+	/**
+	 * @param cnv
+	 * @param cnAware take into account the copy number
+	 * @return
+	 */
+	public boolean overlapsLocAndIndividualSignificantly(CNVariant cnv, boolean cnAware) {
+		boolean overlapsLocAndIndividualSignificantly = familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && significantOverlap(cnv);
+		if (cnAware && overlapsLocAndIndividualSignificantly) {
+			overlapsLocAndIndividualSignificantly = cn == cnv.getCN();
+		}
+		return overlapsLocAndIndividualSignificantly;
 	}
 
 	public String toPlinkFormat() {
@@ -300,7 +311,18 @@ public class CNVariant extends Segment {
 		}
 	}
 	
-	public static void findSignificantConsensus(String file1, String file2) {
+	
+	public enum CONSENSUS_TYPE{
+		/**
+		 * Check copy number state, 
+		 */
+		CN_AWARE,/**
+		 * Do not check copy number state
+		 */
+		NOT_CN_AWARE;
+	}
+	
+	public static MatchResults findSignificantConsensus(String file1, String file2, CONSENSUS_TYPE cType) {
 		PrintWriter writer;
 		CNVariant[] list1, list2;
 		HashSet<CNVariant> matched1 = new HashSet<CNVariant>();
@@ -312,10 +334,10 @@ public class CNVariant extends Segment {
 		
 		list1 = loadPlinkFile(file1, false);
 		list2 = loadPlinkFile(file2, false);
-		
+
 		for (int i = 0; i < list1.length; i++) {
 			for (int j = 0; j < list2.length; j++) {
-				if (list1[i].overlapsLocAndIndividualSignificantly(list2[j])) {
+				if (list1[i].overlapsLocAndIndividualSignificantly(list2[j], cType == CONSENSUS_TYPE.CN_AWARE)) {
 					matched1.add(list1[i]);
 					matched2.add(list2[j]);
 				}
@@ -334,7 +356,7 @@ public class CNVariant extends Segment {
 			if (matched2.contains(list2[i])) {
 				outputLines.add(list2[i].toPlinkFormat() + "\t3");
 			} else {
-				unmatched2.add(list1[i]);
+				unmatched2.add(list2[i]);
 			}
 		}
 		
@@ -346,7 +368,6 @@ public class CNVariant extends Segment {
 		while(unmatchedIterator.hasNext()) {
 			outputLines.add(unmatchedIterator.next().toPlinkFormat() + "\t2");
 		}
-		
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_signif_consensus.cnv"));
@@ -357,6 +378,64 @@ public class CNVariant extends Segment {
 		} catch (Exception e) {
 			System.err.println("Error writing significant-consensus file");
 			e.printStackTrace();
+		}
+		return new MatchResults(file1, file2, matched1, matched2, unmatched1, unmatched2);
+		
+	}
+	
+	public static class MatchResults implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private String file1;
+		private String file2;
+		private HashSet<CNVariant> matched1;
+		private HashSet<CNVariant> matched2;
+
+		private HashSet<CNVariant> unmatched1;
+		private HashSet<CNVariant> unmatched2;
+
+		public MatchResults(String file1, String file2, HashSet<CNVariant> matched1, HashSet<CNVariant> matched2, HashSet<CNVariant> unmatched1, HashSet<CNVariant> unmatched2) {
+			super();
+			this.file1 = file1;
+			this.file2 = file2;
+			this.matched1 = matched1;
+			this.matched2 = matched2;
+			this.unmatched1 = unmatched1;
+			this.unmatched2 = unmatched2;
+		}
+
+		public String getFile1() {
+			return file1;
+		}
+
+		public String getFile2() {
+			return file2;
+		}
+
+		public HashSet<CNVariant> getMatched1() {
+			return matched1;
+		}
+
+		public HashSet<CNVariant> getMatched2() {
+			return matched2;
+		}
+
+		public HashSet<CNVariant> getUnmatched1() {
+			return unmatched1;
+		}
+
+		public HashSet<CNVariant> getUnmatched2() {
+			return unmatched2;
+		}
+		
+		public void writeSerial(String fileName){
+			Files.writeSerial(this, fileName, true);
+		}
+
+		public static MatchResults readSerial(String fileName, Logger log) {
+			return (MatchResults) Files.readSerial(fileName, false, log, false, true);
 		}
 		
 		
@@ -504,7 +583,7 @@ public class CNVariant extends Segment {
 		}
 		try {
 			if (signif) {
-				findSignificantConsensus(filename1, filename2);
+				findSignificantConsensus(filename1, filename2, CONSENSUS_TYPE.NOT_CN_AWARE);
 			} else {
 				findConsensus(filename1, filename2);
 			}

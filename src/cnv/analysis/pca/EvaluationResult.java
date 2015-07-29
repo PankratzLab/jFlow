@@ -35,6 +35,10 @@ class EvaluationResult implements Serializable {
 	private ArrayList<double[]> spearmanCorrel;
 	private ArrayList<String> correlTitles;
 
+	private ArrayList<Integer> numIndsIcc;
+	private ArrayList<Integer> numIndsSpearmanCorrel;
+	private ArrayList<Integer> numIndsPearsonCorrel;
+
 	public EvaluationResult(String title, double[] estimateData, double rSquared) {
 		super();
 		this.title = title;
@@ -45,6 +49,9 @@ class EvaluationResult implements Serializable {
 		this.pearsonCorrels = new ArrayList<double[]>();
 		this.spearmanCorrel = new ArrayList<double[]>();
 		this.correlTitles = new ArrayList<String>();
+		this.numIndsIcc = new ArrayList<Integer>();
+		this.numIndsPearsonCorrel = new ArrayList<Integer>();
+		this.numIndsSpearmanCorrel = new ArrayList<Integer>();
 	}
 
 	public void setOrType(ORDER_TYPE orType) {
@@ -150,10 +157,10 @@ class EvaluationResult implements Serializable {
 		log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
 		String db = ext.rootOf(serFile, false) + ".heritability.dat";
 		String crf = ext.rootOf(serFile, false) + ".heritability.crf";
-//		System.out.println(db);
-//		System.out.println(crf);
-//		System.out.println(ext.rootOf(crf, false)+"_summary.xln");
-//		System.exit(1);
+		// System.out.println(db);
+		// System.out.println(crf);
+		// System.out.println(ext.rootOf(crf, false)+"_summary.xln");
+		// System.exit(1);
 		generateHeritabilityDb(proj, evaluationResults, samplesToEvaluate, db, ped, crf, log);
 		Heritability.fromParameters(crf, log);
 		EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);

@@ -231,8 +231,8 @@ public class PennCNV {
 				"cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnvX.rawcnv",
 				// don't parse warnings; the parseWarnings method isn't written to parse X-chromosome warnings
 				"java -cp ~/park.jar cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnvX.rawcnv",
-		}, pennDir + scriptSubDir + "assemblePenncnvX");
-		Files.chmod(pennDir + scriptSubDir + "assemblePenncnvX");
+		}, pennDir + scriptSubDir + "assemblePenncnv");
+		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
 
 	private static String filterGCModel(Project proj, String gcModelFile, String newGCFile, String[] chrs) {
