@@ -70,6 +70,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
+import seq.manage.ReferenceGenome;
 import stats.CTable;
 import stats.ContingencyTable;
 import stats.ProbDist;
@@ -107,6 +108,7 @@ import common.Logger;
 import common.Matrix;
 import common.Sort;
 import common.ext;
+import filesys.Segment;
 
 public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
@@ -143,6 +145,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
     private static final String NEW_LIST_COMMAND = "New List";
     private static final String SAVE_LIST_COMMAND = "Save List";
     private static final String LOAD_LIST_COMMAND = "Load List";
+    private static final String BLAST_DETAILS_COMMAND = "BLAST Details";
 
 	private JButton first, previous, next, last;
 	private JTextField navigationField;
@@ -234,6 +237,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private MarkerAnnotationLoader annotationLoader = null;
 	private MarkerBlastAnnotation[] blastResults = null;
 	private MarkerGCAnnotation[] gcAnnotations = null;
+	private ReferenceGenome referenceGenome = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
 
@@ -296,6 +300,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (Files.exists(annoFile)) {
 		    hasAnnotationFile = true;
 			annotationLoader = new MarkerAnnotationLoader(proj, annoFile, proj.getMarkerSet(), true);
+		}
+		String fastaFile = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+		if (Files.exists(fastaFile)) {
+		    referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 		}
 		
 		masterMarkerList = initMarkerList;
@@ -461,9 +469,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				parsers.add(blastResults);
 				parsers.add(gcAnnotations);
 				annotationLoader.fillAnnotations(masterMarkerList, parsers);
-                for (int i = 0; i < gcAnnotations.length; i++) {
-					System.out.println(masterMarkerList[i] + "\t" + gcAnnotations[i].getAnnotations()[0].getData());
-				}
+//                for (int i = 0; i < gcAnnotations.length; i++) {
+//					System.out.println(masterMarkerList[i] + "\t" + gcAnnotations[i].getAnnotations()[0].getData());
+//				}
             } catch (Exception e) {
                 blastResults = null;
                 proj.getLog().reportException(e);
@@ -2340,6 +2348,18 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		    if (code == JFileChooser.APPROVE_OPTION) {
 		        Files.writeList(markerList, jfc.getSelectedFile().getAbsolutePath());
 		    }
+	    } else if (command.equals(BLAST_DETAILS_COMMAND)) {
+	        
+	        MarkerData md = getCurrentMarkerData();
+	        String[] seq = null;
+	        if (referenceGenome != null) {
+	            int start = md.getPosition() - proj.ARRAY_TYPE.getValue().getProbeLength();
+	            int stop = md.getPosition();
+	            seq = referenceGenome.getSequenceFor(new Segment(md.getChr(), start, stop));
+	        }
+
+//	        showBLAST(seq);
+	        
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}
@@ -3125,8 +3145,6 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	        return;
 	    }
 	    
-	    System.out.println("Selected marker index " + markerIndex);
-	    
 		MarkerBlastAnnotation blastResult = blastResults[markerIndex];
         
         JLabel typeLabel = new JLabel("Has Perfect Match? ", JLabel.LEFT);
@@ -3156,8 +3174,15 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         blastPanel.add(typeLabel, "cell 1 2");
         
         JButton blastButton = new JButton();
+        blastButton.setActionCommand(BLAST_DETAILS_COMMAND);
         blastButton.setText("More Details");
-        blastButton.setEnabled(false);
+        blastButton.addActionListener(this);
+        
+//        if (referenceGenome == null) {
+//            blastButton.setToolTipText("Error - No reference genome found!");
+//            blastButton.setEnabled(false);
+//        }
+        
         blastPanel.add(blastButton, "cell 0 3 2 1, center");
         
         blastPanel.revalidate();
