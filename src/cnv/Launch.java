@@ -463,13 +463,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					log.report("The ClusterFilterCollection in '"+proj.getProperty(proj.DATA_DIRECTORY)+"/"+filename+"' will be used");
 				}
 				if ( filename==null || (!filename.equals("cancel")) ) {
-//						String lookupTable = ClusterFilterCollection.getGenotypeLookupTableSelection(proj);
 //						if () {
 //							
 //						}
 					//success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
 					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename);
 					if (success) {
+					    String PROG_KEY = "RUNPLINKEXPORT";
+				        proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK conversion");
 						try {
 							log.report("Converting ped/map files to binary PLINK files...", false, true);
 							if (CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue())) {
@@ -477,12 +478,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 							} else {
 								log.report("PLINK conversion failed");
 							}
+							proj.progressMonitor.endTask(PROG_KEY);
+							proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK analysis");							
 //							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
 							new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
 							CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
 							CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
 //							CmdLine.run("plink --bfile plink --mind 0.1 --geno 0.9 --make-bed --out plinkSlim", proj.getProjectDir());
 						} catch (Exception e) {}
+						proj.progressMonitor.endTask(PROG_KEY);
 					}
 		//			vis cnv.manage.PlinkFormat root=../plink genome=6
 				}

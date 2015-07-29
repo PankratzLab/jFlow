@@ -762,24 +762,26 @@ public class lab {
 		
 		boolean test = true;
 		if (test) {
-		    String s = "10000000000";
-		    long l = Long.parseLong(s);
-		    System.out.println(l > Integer.MAX_VALUE);
-		    int d = Integer.parseInt(s);
+//		    String s = "10000000000";
+//		    long l = Long.parseLong(s);
+//		    System.out.println(l > Integer.MAX_VALUE);
+//		    int d = Integer.parseInt(s);
 		    
 //		    
-//		    try {
+		    try {
 //                Process p = Runtime.getRuntime().exec("where notepad.exe");
 //                int waitCode = p.waitFor();
 //                int outCode = p.exitValue();
 //                System.out.println("wait: " + waitCode + "| out: " + outCode);
-//            } catch (IOException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            } catch (InterruptedException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            }
+		        processData();
+		        concatData();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } /*catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }*/
 //		    
 //            String dir = "F:/CARDIA processing/";
 //
@@ -798,7 +800,8 @@ public class lab {
 //                    e.printStackTrace();
 //                }
 //            }
-
+		    
+		    
 		    return;
 		}
 		
@@ -868,7 +871,74 @@ public class lab {
 		}
 	}
 
-	private static void testClipboard() {
+	private static void concatData() throws IOException {
+        String file = "C:/workspace/temp/region1/region1_snpInfo";
+	    String indivFile = "C:/workspace/temp/region1/EA.indiv";
+        String traitFile = "C:/workspace/temp/region1/ARIC_EA_ProteinC.trait";
+        
+        String[] iids = HashVec.loadFileToStringArray(indivFile, false, new int[]{0}, false);
+        HashMap<String, Integer> indexMap = new HashMap<String, Integer>();
+        for (int i = 0; i < iids.length; i++) {
+            indexMap.put(iids[i], i);
+        }
+        
+        String[] genoData = HashVec.loadFileToStringArray(file + "_collapsed.xln", false, null, false);
+        
+        String[] traitData = HashVec.loadFileToStringArray(traitFile, false, null, false);
+        
+        PrintWriter writer = Files.getAppropriateWriter(file + "_withTrait.xln");
+        
+        writer.println(traitData[0] + "\t" + genoData[0]);
+        for (int i = 1; i < traitData.length; i++) {
+            String iid = traitData[i].split("[\\s]+")[1];
+            Integer intgr = indexMap.get(iid); 
+            if (intgr == null) continue;
+            int index = intgr.intValue();
+            writer.println(traitData[i] + "\t" + genoData[6 + index]);
+            
+            
+        }
+        writer.flush();
+        writer.close();
+        
+	}
+	
+	private static void processData() throws IOException {
+        String file = "C:/workspace/temp/region1/region1_snpInfo";
+        
+        BufferedReader reader = Files.getAppropriateReader(file + ".txt");
+        PrintWriter writer = Files.getAppropriateWriter(file + "_collapsed.xln");
+        
+        for (int i = 0; i < 6; i++) {
+            String line = reader.readLine();
+            writer.println(line);
+        }
+        String line = null;
+        String line2, line3 = null;
+        String[] parts1, parts2, parts3;
+        while((line = reader.readLine()) != null) {
+            line2 = reader.readLine();
+            line3 = reader.readLine();
+            
+            parts1 = line.split("[\\s]+");
+            parts2 = line2.split("[\\s]+");
+            parts3 = line3.split("[\\s]+");
+            
+            String[] newVals = new String[parts1.length];
+            for (int i = 0; i < parts1.length; i++) {
+                double d2 = Double.parseDouble(parts2[i]);
+                double d3 = Double.parseDouble(parts3[i]);
+                newVals[i] = "" + (d2 + (2 * d3));
+            }
+            writer.println(Array.toStr(newVals));
+            
+        }
+        writer.flush();
+        writer.close();
+        
+    }
+
+    private static void testClipboard() {
 		Clipboard systemClipboard;
 		Transferable contents;
 		systemClipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

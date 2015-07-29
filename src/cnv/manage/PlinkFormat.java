@@ -43,7 +43,7 @@ public class PlinkFormat {
 		markerNames = markerSet.getMarkerNames();
 		
 		String PROG_KEY = "PLINKEXPORT";
-		proj.progressMonitor.beginTask(PROG_KEY, "Exporting marker data for PLINK analysis", true, 0);
+		proj.progressMonitor.beginTask(PROG_KEY, "Exporting marker data for PLINK analysis");
 		
 		for (int i = 0; i<markerNames.length; i++) {
 			if (hash.containsKey(markerNames[i])) {

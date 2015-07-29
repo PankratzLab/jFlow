@@ -14,8 +14,12 @@ class Task {
     
     public Task(String name) {
         this.name = name;
+        this.creationTime = System.nanoTime();
         this.lastUpdate = System.nanoTime();
     }
+    
+    private final long creationTime;
+    public long getCreationTime() { return creationTime; }
     
     private final String name;
     public String getName() { return this.name; }
@@ -61,6 +65,7 @@ class Task {
 public class ProgressMonitor { 
     
     public static final int DEFAULT_TIMEOUT_MINS = 10;
+    private static final int INDET_ELAPSED_LOG_MINUTES = 3;
     
     HashMap<String, Task> taskMap = new HashMap<String, Task>();
     // subclass for no-duplicates behavior ("HashStack")
@@ -80,6 +85,22 @@ public class ProgressMonitor {
         timer.schedule(monitorTask, 60 * 1000, 60 * 1000); // wait a minute to begin monitoring, and wait a minute between each check
     }
     
+    /**
+     * Start monitoring a new indeterminate task with a default timeout
+     * @param taskName Unique String ID for task
+     * @param label Initial display label for task (can be changed later)
+     */
+    public synchronized void beginTask(String taskName, String label) {
+        beginTask(taskName, label, true, 0, DEFAULT_TIMEOUT_MINS);
+    }
+    
+    /**
+     * Begin monitoring a new task, with a default timeout
+     * @param taskName Unique String ID for task
+     * @param label Initial display label for task (can be changed later)
+     * @param indeterminate Is the task indeterminate or not?
+     * @param expectedUpdateCount Number of expected update calls (used to display progress and calculate percentage complete)
+     */
     public synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount) {
         beginTask(taskName, label, indeterminate, expectedUpdateCount, DEFAULT_TIMEOUT_MINS);
     }
@@ -87,10 +108,10 @@ public class ProgressMonitor {
     /**
      * Begin tracking a new task
      * 
-     * @param taskName Unique ID for task
+     * @param taskName Unique String ID for task
      * @param label Initial display label for task (can be changed later)
-     * @param indeterminate Is the task indeterminate or not
-     * @param expectedUpdateCount Expected number of update calls (used to display progress and calculate percentage complete)
+     * @param indeterminate Is the task indeterminate or not?
+     * @param expectedUpdateCount Number of expected update calls (used to display progress and calculate percentage complete)
      * @param timeout Time (in minutes) before a notice is displayed to the user
      */
     public synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount, int timeout) {
@@ -211,6 +232,24 @@ public class ProgressMonitor {
                 }
             });
         } else {
+            if (task.getIndeterminate()) {
+                int elapsed = (int) ((task.getLastUpdate() - task.getCreationTime()) / (60 * 1000000000));
+                if (elapsed % INDET_ELAPSED_LOG_MINUTES == 0) {
+                    String msg = ext.getTime() + "]\tTask " + task.getName() + " with status " + task.getLabel() + " has been updated";
+                    System.out.println(msg);
+                }
+            } else {
+                double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
+                String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 0) + "%)");
+                String msg = ext.getTime() + "]\tTask " + task.getName() + " with status " + task.getLabel() + " is [" + pct + "] complete";
+                if (task.getExpectedUpdateCount() > 100) {
+                    if (task.getExpectedUpdateCount() % task.getUpdateCount() == 0) {
+                        System.out.println(msg);
+                    }
+                } else {
+                    System.out.println(msg);
+                }
+            }
             // TODO console logging
             // TODO time elapsed logging for indeterminate tasks ("Task [] progress updated")
             // TODO tasks with large exp updates only update when cnt % (10 * sigdig) == 0 OR when some amount of time elapses 

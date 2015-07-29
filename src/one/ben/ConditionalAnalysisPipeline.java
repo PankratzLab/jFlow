@@ -41,11 +41,11 @@ public class ConditionalAnalysisPipeline {
         String regionDirNameRoot;
         // set programmatically:
         String[] genoData;
-        String[] infoData;
+//        String[] infoData;
         
         HashSet<String> prevSNPs = new HashSet<String>();
         HashMap<String, String[]> prevSNPdata = new HashMap<String, String[]>();
-        HashMap<String, String[]> prevSNPinfo = new HashMap<String, String[]>();
+//        HashMap<String, String[]> prevSNPinfo = new HashMap<String, String[]>();
         
         @Override
         public String toString() {
@@ -156,13 +156,13 @@ public class ConditionalAnalysisPipeline {
                         String[] infoParts = infoLine.split(delim);
                         if (infoParts[1].trim().equals(region.indexSNP)) {
                             region.genoData = genoLine.split("[\\s]+");
-                            region.infoData = infoLine.split("[\\s]+");
+//                            region.infoData = infoLine.split("[\\s]+");
 //                            if (found) {
 //                                break; // don't break anymore - we have to load data for each index SNP we've tracked
 //                            }
                         } else if (region.prevSNPs.contains(infoParts[1])) {
                             region.prevSNPdata.put(infoParts[1], genoLine.split("[\\s]+"));
-                            region.prevSNPinfo.put(infoParts[1], infoLine.split("[\\s]+"));
+//                            region.prevSNPinfo.put(infoParts[1], infoLine.split("[\\s]+"));
                         }
                         int mkrPos = Integer.parseInt(infoParts[2]);
                         if (mkrPos < region.start || mkrPos > region.stop) {
@@ -239,9 +239,10 @@ public class ConditionalAnalysisPipeline {
                 BufferedReader reader = Files.getAppropriateReader(traitDir + traitFile);
                 
                 int phenoCol = 5;
-                
+//                
                 double[] phenoData = new double[traitCount];
-                double[][] indepData = new double[traitCount][];
+//                double[][] indepData = new double[traitCount][];
+                ArrayList<double[]> indepDataLines = new ArrayList<double[]>();
                 
                 String line = reader.readLine(); // header
                 String[] parts = line.split("[\\s]+");
@@ -256,25 +257,28 @@ public class ConditionalAnalysisPipeline {
                 }
                 
                 int cnt = 0;
+                ArrayList<Double> phenoDataList = new ArrayList<Double>();
+
                 while((line = reader.readLine()) != null) {
                     parts = line.split("[\\s]+");
-
+                    
                     ArrayList<Double> lineData = new ArrayList<Double>();
-                    
-                    for (int i = 6; i < parts.length; i++) {
-                        lineData.add(Double.parseDouble(parts[i]));
-                    }
-                    
+
                     String iid = parts[1];
                     Integer iidIndex = iids.get(iid);
                     double geno = Double.NaN;
                     if (iidIndex == null) {
                         missing.add(iid);
-                        lineData.add(0.0); // TODO missing values!
-                        for (int i = 0; i < region.prevSNPs.size(); i++) {
-                            lineData.add(0.0);
-                        }
+//                        lineData.add(0.0); // TODO missing values!
+//                        for (int i = 0; i < region.prevSNPs.size(); i++) {
+//                            lineData.add(0.0);
+//                        }
+                        continue;
                     } else {
+                        for (int i = 6; i < parts.length; i++) {
+                            lineData.add(Double.parseDouble(parts[i]));
+                        }
+                        
                         int iidInd = iidIndex.intValue();
 //                        double geno1 = Double.parseDouble(genoData[offset + (3 * iidInd)]);
                         double geno2 = Double.parseDouble(region.genoData[offset + (3 * iidInd) + 1]);
@@ -290,14 +294,21 @@ public class ConditionalAnalysisPipeline {
                             lineData.add(geno);
                         }
                         
+                        phenoDataList.add(Double.parseDouble(parts[phenoCol]));
+                        
+//                        indepData[cnt] = Array.toDoubleArray(lineData);
+                        indepDataLines.add(Array.toDoubleArray(lineData));
+                        cnt++;
                     }
                     
-                    phenoData[cnt] = Double.parseDouble(parts[phenoCol]);
+//                    phenoData[cnt] = Array.toDoubleArray(phenoDataList); //Double.parseDouble(parts[phenoCol]);
                     
-                    indepData[cnt] = Array.toDoubleArray(lineData);
-                    cnt++;
+                    
                 }
                 reader.close();
+
+                phenoData = Array.toDoubleArray(phenoDataList); //Double.parseDouble(parts[phenoCol]);
+                double[][] indepData = indepDataLines.toArray(new double[0][]);
                 
                 String[] cols = colNames.toArray(new String[colNames.size()]);
                 
@@ -317,18 +328,26 @@ public class ConditionalAnalysisPipeline {
                 reader.readLine(); // header
                 cnt = 0;
                 while((line = reader.readLine()) != null) {
-                    parts = line.split("[\\s]+");
-                    StringBuilder lineStr = new StringBuilder();
-                    lineStr.append(parts[0]).append("\t")
-                            .append(parts[1]).append("\t")
-                            .append(parts[2]).append("\t")
-                            .append(parts[3]).append("\t")
-                            .append(parts[4]).append("\t")
-                            .append(resids[cnt]);
+                    parts = line.split("[\\s]+");            
+                    String iid = parts[1];
+                    Integer iidIndex = iids.get(iid);        
+
+                    if (iidIndex != null) {
+                        StringBuilder lineStr = new StringBuilder();
+                        lineStr.append(parts[0]).append("\t")
+                                .append(parts[1]).append("\t")
+                                .append(parts[2]).append("\t")
+                                .append(parts[3]).append("\t")
+                                .append(parts[4]).append("\t");
+                        
+                        lineStr.append(resids[cnt++]);
+                        
+                        writer.println(lineStr.toString());
+                    } else {
+//                        lineStr.append(".");
+                    }
                     
-                    writer.println(lineStr.toString());
-                    
-                    cnt++;
+//                    cnt++;
                 }
                 reader.close();
                 writer.flush();
@@ -489,6 +508,9 @@ public class ConditionalAnalysisPipeline {
                             String newSNP = extractIndexSnp(dir + file, region, PVAL_THRESHOLD);
                             
                             if (newSNP == null) {
+                                
+                                dumpRegion(region);
+                                
                                 synchronized (PRINT_LOCK) {
                                     System.out.println(ext.getTime() + "]\tCouldn't find a candidate SNP for iterative analysis; recursive analysis for region [" + region.label + "] complete.");
                                 }
@@ -530,6 +552,31 @@ public class ConditionalAnalysisPipeline {
         }
         
         
+        private void dumpRegion(Region region2) {
+            PrintWriter writer = Files.getAppropriateWriter(region.analysisRootDir + region.label + "_snpInfo.txt");
+            StringBuilder sb = new StringBuilder();
+            sb.append(region.indexSNP);
+            ArrayList<String> keyListOrder = new ArrayList<String>();
+            for (String key : region.prevSNPdata.keySet()) {
+                keyListOrder.add(key);
+                sb.append("\t").append(key);
+            }
+            
+            writer.println(sb.toString());
+            
+            int cnt = region.genoData.length;
+            for (int i = 0; i < cnt; i++) {
+                sb = new StringBuilder();
+                sb.append(region.genoData[i]);
+                for (String key : keyListOrder) {
+                    sb.append("\t").append(region.prevSNPdata.get(key)[i]);
+                }
+                writer.println(sb.toString());
+            }
+            writer.flush();
+            writer.close();
+        }
+
         private static String extractIndexSnp(String resultFile, Region region, double thresh) throws IOException {
             String[][] aliases = {Aliases.MARKER_NAMES, Aliases.PVALUES};
             

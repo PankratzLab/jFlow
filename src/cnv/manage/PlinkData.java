@@ -626,8 +626,13 @@ public class PlinkData {
 //			new File(outFileDirAndFilenameRoot + ".bim").delete();
 //			new File(outFileDirAndFilenameRoot + ".fam").delete();
 //		}
-
+		
+		String PROG_KEY = "PLINKBINARYEXPORT";
+		proj.progressMonitor.beginTask(PROG_KEY, "Creating .fam file");
 		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot);
+		proj.progressMonitor.endTask(PROG_KEY);
+		
+		proj.progressMonitor.beginTask(PROG_KEY, "Loading sample and marker data");
 		allSamplesInProj = proj.getSamples();
 		if (targetSamples != null) {
 			indicesOfTargetSamplesInProj = getSortedIndicesOfTargetSamplesInProj(allSamplesInProj, targetSamples, log);
@@ -659,13 +664,16 @@ public class PlinkData {
 //			gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
 			gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		}
+		proj.progressMonitor.endTask(PROG_KEY);
 		
+		proj.progressMonitor.beginTask(PROG_KEY, "Creating .bed file");
 		if (isSnpMajor) {
 			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot);
 //			abLookup = createBedFileSnpMajorAllInMemory(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot);
 		} else {
 			abLookup = createBedFileIndividualMajor(proj, targetSamples, targetMarkers, indicesOfTargetMarkersInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot);
 		}
+		proj.progressMonitor.endTask(PROG_KEY);
 		
 		if (abLookup == null) {
 			log.reportError("Error - failed to create Plink files due to lack of an AB lookup file");
@@ -673,7 +681,9 @@ public class PlinkData {
 			return false;
 		}
 
+		proj.progressMonitor.beginTask(PROG_KEY, "Creating .bim file");
 		createBimFile(targetMarkers, chrsOfTargetMarkers, posOfTargetMarkers, abLookup, outFileDirAndFilenameRoot, log);
+		proj.progressMonitor.endTask(PROG_KEY);
 
 		return true;
 	}
@@ -840,6 +850,9 @@ public class PlinkData {
 
         clusterFilterCollection = proj.getClusterFilterCollection();
 
+        String PROG_KEY = "EXPORTBINARYBEDBATCH";
+        proj.progressMonitor.beginTask(PROG_KEY, "Exporting data to .bed file", false, targetSamples.length);
+        
 		try {
 			if (clusterFilterCollection == null) {
 				abLookup = null;
@@ -896,6 +909,8 @@ public class PlinkData {
 //						}
 //					}
 				}
+				
+				proj.progressMonitor.updateTask(PROG_KEY);
 			}
 
 			out.close();
@@ -904,6 +919,8 @@ public class PlinkData {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		proj.progressMonitor.endTask(PROG_KEY);
 		
 		return abLookup;
 	}
@@ -1107,7 +1124,10 @@ public class PlinkData {
 		batches = markerDataLoader.getBatches();
 		filenames = HashVec.getKeys(batches);
 		genotypesOfTargetSamples = new byte[indicesOfTargetSamplesInProj.length];
-
+		
+		String PROG_KEY = "EXPORTBINARYBEDBATCH";
+		proj.progressMonitor.beginTask(PROG_KEY, "Exporting data to .bed file", false, filenames.length);
+		
 		try {
 			out = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
 			outStream = new byte[3];
@@ -1159,6 +1179,7 @@ public class PlinkData {
 					out.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypesOfTargetSamples));
 				}
 				System.out.println("Done writing in "+ext.getTimeElapsed(subTime));
+				proj.progressMonitor.updateTask(PROG_KEY);
 			}
 			out.close();
 
@@ -1168,6 +1189,7 @@ public class PlinkData {
 			e.printStackTrace();
 		}
 		
+		proj.progressMonitor.endTask(PROG_KEY);
 		proj.getLog().report("Finished creating binary PLINK files in "+ext.getTimeElapsed(startTime));
 
 		return abLookup;
