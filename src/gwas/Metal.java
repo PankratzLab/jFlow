@@ -639,6 +639,7 @@ public class Metal {
 		int countMissing;
 		boolean gcControlOn;
 		double thresholdForHits;
+		int countMismatches;
 		
 		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37", "genomic_control=TRUE", "hits_p<=0.001", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
 
@@ -713,6 +714,7 @@ public class Metal {
 //			geneNames = new Vector<String>();
 			markerPositionHash = new Hashtable<String, int[]>();
 
+			countMismatches = 0;
 			fileParameters = new String[4 + inputFiles.length];
 			fileParameters[1] = "hits.txt 0 1=minPval skip=0";
 			fileParameters[2] = outputFile + "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
@@ -735,12 +737,17 @@ public class Metal {
 						String delim = ext.determineDelimiter(hdr);
 						while (reader.ready()) {
 							line = reader.readLine().split(delim);
-							if (!ext.isMissingValue(line[indices[0]])) {
+							if (!ext.isMissingValue(line[indices[0]]) && !ext.isMissingValue(line[indices[1]])) {
 								trav = new int[] {Integer.parseInt(line[indices[0]]), Integer.parseInt(line[indices[1]])};
 								if (markerPositionHash.containsKey(line[0])) {
 									chrPosition = markerPositionHash.get(line[0]);
 									if (trav[0] != chrPosition[0] || trav[1] != chrPosition[1]) {
-										log.reportError("Error - mismatched positions for marker "+line[0]+" ("+Array.toStr(trav, ":")+" versus "+Array.toStr(chrPosition, ":")+")");
+										if (countMismatches < 42) {
+											log.reportError("Error - mismatched positions for marker "+line[0]+" ("+Array.toStr(trav, ":")+" versus "+Array.toStr(chrPosition, ":")+")");
+										} else if (countMismatches == 42) {
+											log.reportError("...");
+										}
+										countMismatches++;
 									}
 								}
 								markerPositionHash.put(line[0], trav);
@@ -752,6 +759,8 @@ public class Metal {
 					}
 				}
 			}
+			log.report("There were a total of "+countMismatches+" mismatches on position");
+			
 			
 			hitList = HashVec.loadFileToStringArray("hits.txt", false, new int[] {0}, false);
 			try {
