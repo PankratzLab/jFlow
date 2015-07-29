@@ -1,5 +1,6 @@
 package common;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -538,6 +539,48 @@ public class Array {
 			arr[i] = initValue;
 		}
 		return arr;
+	}
+	
+	public enum BYTE_DECODE_FORMAT{
+		/**
+		 * String will be converted to upper case
+		 */
+		UPPER_CASE, /**
+		 * String will be converted to lower case
+		 */
+		LOWER_CASE, /**
+		 * String will be left as is
+		 */
+		AS_IS
+	}
+
+	public static String[] decodeByteArray(byte[] b, BYTE_DECODE_FORMAT format, Logger log) {
+		return decodeByteArray(b, "UTF-8", format, log);
+	}
+	
+	public static String[] decodeByteArray(byte[] b, Logger log) {
+		return decodeByteArray(b, "UTF-8", BYTE_DECODE_FORMAT.AS_IS, log);
+	}
+
+	/**
+	 * @param b
+	 *            each entry will be converted to a string
+	 * @param charsetName
+	 * @param format
+	 * @param log
+	 * @return
+	 */
+	public static String[] decodeByteArray(byte[] b, String charsetName, BYTE_DECODE_FORMAT format, Logger log) {
+		String[] s = new String[b.length];
+		for (int i = 0; i < s.length; i++) {
+			try {
+				s[i] = new String(new byte[] { b[i] }, charsetName).toUpperCase();
+			} catch (UnsupportedEncodingException e) {
+				log.reportTimeError("Could not convert reference byte " + b[i] + " to string with charsetName" + charsetName);
+				e.printStackTrace();
+			}
+		}
+		return s;
 	}
 
 	/**
@@ -2242,6 +2285,46 @@ public class Array {
 		}
 
 		return array;
+	}
+	
+	
+	/**
+	 * convert a string array into a boolean representation <br>
+	 * masks will all be set to false
+	 */
+	public static BooleanClassifier classifyStringsToBoolean(String[] toClassify, String[] masks) {
+		String[] uniqs = unique(toClassify);
+		boolean[][] classified = new boolean[uniqs.length][];
+		for (int i = 0; i < classified.length; i++) {
+			classified[i] = booleanArray(toClassify.length, false);
+		}
+		for (int i = 0; i < toClassify.length; i++) {
+			int index = ext.indexOfStr(toClassify[i], uniqs);
+			if (index >= 0 && ext.indexOfStr(toClassify[i], masks) < 0) {
+				classified[index][i] = true;
+			}
+		}
+		return new BooleanClassifier(classified, uniqs);
+	}
+
+	public static class BooleanClassifier {
+		private boolean[][] classified;
+		private String[] titles;
+
+		public boolean[][] getClassified() {
+			return classified;
+		}
+
+		public BooleanClassifier(boolean[][] classified, String[] titles) {
+			super();
+			this.classified = classified;
+			this.titles = titles;
+		}
+
+		public String[] getTitles() {
+			return titles;
+		}
+
 	}
 
 //	/**
