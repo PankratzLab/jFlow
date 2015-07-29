@@ -18,9 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-
-
-
 import stats.CrossValidation;
 import stats.LeastSquares;
 import stats.RegressionModel;
@@ -45,7 +42,7 @@ import common.ext;
  * 
  *
  */
-public class PrincipalComponentsResiduals implements Cloneable,Serializable {
+public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	/**
 	 * 
 	 */
@@ -140,9 +137,13 @@ public class PrincipalComponentsResiduals implements Cloneable,Serializable {
 	 */
 	public double computeResiduals() {
 		// TODO, add svdRegression option
-		//RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
-		
-		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, numComponents > NUM_PC_SVD_OVERIDE);
+		// RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
+		boolean svd = false;
+		if (numComponents > NUM_PC_SVD_OVERIDE) {
+			log.reportTimeInfo("Number of components " + numComponents + " greater than " + NUM_PC_SVD_OVERIDE + ", switching to svd regression");
+			svd = true;
+		}
+		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, svd);
 		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
 			this.residuals = model.getResiduals();
@@ -230,10 +231,10 @@ public class PrincipalComponentsResiduals implements Cloneable,Serializable {
 		this.assesmentData = new double[projectOrderMedians.length];
 		int sampleIndex = 0;
 		for (int i = 0; i < allProjSamples.length; i++) {
-//			System.out.println(samplesToUse[i]);
-//			System.out.println(allProjSamples[i]);
-//			System.out.println(projectOrderMedians[sampleIndex]);
-//			System.out.println(assesmentData.length);
+			// System.out.println(samplesToUse[i]);
+			// System.out.println(allProjSamples[i]);
+			// System.out.println(projectOrderMedians[sampleIndex]);
+			// System.out.println(assesmentData.length);
 			if (samplesToUse[i]) {
 				assesmentData[samplesInPc.get(allProjSamples[i])] = projectOrderMedians[sampleIndex];
 				sampleIndex++;
@@ -1167,7 +1168,7 @@ public class PrincipalComponentsResiduals implements Cloneable,Serializable {
 
 	}
 
-	public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals>,Serializable {
+	public static class PrincipalComponentsIterator implements Iterator<PrincipalComponentsResiduals>, Serializable {
 		/**
 		 * 
 		 */
