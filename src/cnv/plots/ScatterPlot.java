@@ -1,6 +1,9 @@
 // replace all exits with a proper disposal of all resources
 package cnv.plots;
 
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -2357,13 +2360,98 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	            int stop = md.getPosition();
 	            seq = referenceGenome.getSequenceFor(new Segment(md.getChr(), start, stop));
 	        }
-
+//	        blastResults[markerIndex]
 //	        showBLAST(seq);
 	        
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}
 	}
+	
+	static class CigarStringParser {
+//	    static final String CIGAR_REGEX = "\\*|([0-9]+[MIDNSHPX=])+"; // don't need this? 
+	    static final String MISSING_FASTA_DNA_CHAR = "X";
+	    static final String DELETION = "-";
+	    static final String INSERTION = "+";
+	    static final String MISMATCH = "-";
+	    
+	    static String parse(Project proj, ArrayList<BlastAnnotation> annotations, String seq) {
+//	        annotations = annot.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog());
+	        
+	        String rawRef = buildRef(proj, seq);
+	        String[] rawLines = new String[annotations.size()];
+	        for (int i = 0; i < rawLines.length; i++) {
+	            rawLines[i] = buildCigar(proj, annotations.get(i), rawRef);
+            }
+	        
+	        {
+	            
+	        }
+	        
+	        return null;
+	    }
+	    
+	    private static String buildRef(Project proj, String seq) {
+	        StringBuilder ref = new StringBuilder();
+	        if (seq == null) {
+	            for (int i = 0, len = proj.ARRAY_TYPE.getValue().getProbeLength(); i < len; i++) {
+	                ref.append(MISSING_FASTA_DNA_CHAR);
+	            }
+                return ref.toString();
+	        }
+            if (seq.length() < proj.ARRAY_TYPE.getValue().getProbeLength()) {
+                proj.getLog().report("Warning - given FASTA sequence is shorter than the probe length specified by the ARRAY_TYPE project property");
+            }
+            return seq.toUpperCase();
+	    }
+	    
+	    private static String buildCigar(Project proj, BlastAnnotation annot, String ref) {
+	        StringBuilder line = new StringBuilder();
+	        Cigar cig = annot.getCigar();
+	        int charAt = 0;
+	        for (CigarElement el : cig.getCigarElements()) {
+	            switch (el.getOperator()) {
+                    case D:
+                        for (int i = 0; i < el.getLength(); i++) {
+                            line.append(DELETION);
+                        }
+                        break;
+                    case EQ:
+                        for (int i = 0; i < el.getLength(); i++) {
+                            line.append(ref == null ? MISSING_FASTA_DNA_CHAR : ref.charAt(charAt++));
+                        }
+                        break;
+                    case H:
+                        break;
+                    case I:
+                        for (int i = 0; i < el.getLength(); i++) {
+                            line.append(INSERTION);
+                        }
+                        break;
+                    case M:
+                        break;
+                    case N:
+                        break;
+                    case P:
+                        break;
+                    case S:
+                        break;
+                    case X:
+                        for (int i = 0; i < el.getLength(); i++) {
+                            line.append(MISMATCH);
+                        }
+                        break;
+                    default:
+                        break;
+	            }
+	        }
+	        
+	        return line.toString();
+	    }
+	    
+	}
+	
+	
 	
 	private ItemListener classListener = new ItemListener() {
 		public void itemStateChanged(ItemEvent ie) {
