@@ -374,7 +374,7 @@ public class Histogram implements Serializable {
 				indexAdded = (int) ((data + determineStep() / 2) * Math.pow(10, getSigfigs()) - determineStart() * Math.pow(10, getSigfigs()));
 
 			}
-			if (indexAdded > 0) {
+			if (indexAdded >= 0) {
 				getCounts()[indexAdded]++;
 			}
 
