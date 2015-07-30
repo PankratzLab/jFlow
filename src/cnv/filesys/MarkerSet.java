@@ -1,7 +1,10 @@
 package cnv.filesys;
 
 import java.io.*;
+import java.util.ArrayList;
+
 import common.*;
+import filesys.Segment;
 
 public class MarkerSet implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -151,6 +154,23 @@ public class MarkerSet implements Serializable {
 		}
 
 		return sum;
+	}
+
+	public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
+		int index = seg.getChr();
+		ArrayList<String> markersIn = new ArrayList<String>();
+		int[] indices = indicesByChr == null ? getIndicesByChr()[index] : indicesByChr[index];
+		for (int i = 0; i < indices.length; i++) {
+			int bp = positions[indices[i]];
+
+			if (bp >= seg.getStart() && bp <= seg.getStop()) {
+				markersIn.add(markerNames[indices[i]]);
+			}
+			if (bp > seg.getStop()) {
+				break;
+			}
+		}
+		return Array.toStringArray(markersIn);
 	}
 	
 	public void checkFingerprint(Sample samp) {

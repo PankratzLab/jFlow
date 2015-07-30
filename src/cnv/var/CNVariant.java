@@ -158,16 +158,8 @@ public class CNVariant extends Segment {
 		return familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && amountOfOverlapInBasepairs(cnv) > 0;
 	}
 	
-	/**
-	 * @param cnv
-	 * @param cnAware take into account the copy number
-	 * @return
-	 */
-	public boolean overlapsLocAndIndividualSignificantly(CNVariant cnv, boolean cnAware) {
-		boolean overlapsLocAndIndividualSignificantly = familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && significantOverlap(cnv);
-		if (cnAware && overlapsLocAndIndividualSignificantly) {
-			overlapsLocAndIndividualSignificantly = cn == cnv.getCN();
-		}
+	public boolean overlapsLocAndIndividualSignificantly(CNVariant cnv) {
+		boolean overlapsLocAndIndividualSignificantly = familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID) && significantOverlap(cnv);	
 		return overlapsLocAndIndividualSignificantly;
 	}
 
@@ -322,7 +314,22 @@ public class CNVariant extends Segment {
 		NOT_CN_AWARE;
 	}
 	
-	public static MatchResults findSignificantConsensus(String file1, String file2, CONSENSUS_TYPE cType) {
+	public enum OVERLAP_TYPE {
+		/**
+		 * Must have significant overlap
+		 */
+		OVERLAP_LOC_AND_INDIVIDUAL_SIGNIFICANTLY, /**
+		 * Any overlap
+		 */
+		OVERLAP_LOC_AND_INDIVIDUAL;
+	}
+
+	public static MatchResults findSignificantConsensus(String file1, String file2, CONSENSUS_TYPE cType,OVERLAP_TYPE oType) {
+		String output = ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_signif_consensus.cnv";
+		return findSignificantConsensus(file1, file2, output, cType, oType);
+	}
+
+	public static MatchResults findSignificantConsensus(String file1, String file2,String output, CONSENSUS_TYPE cType,OVERLAP_TYPE oType) {
 		PrintWriter writer;
 		CNVariant[] list1, list2;
 		HashSet<CNVariant> matched1 = new HashSet<CNVariant>();
@@ -337,7 +344,30 @@ public class CNVariant extends Segment {
 
 		for (int i = 0; i < list1.length; i++) {
 			for (int j = 0; j < list2.length; j++) {
-				if (list1[i].overlapsLocAndIndividualSignificantly(list2[j], cType == CONSENSUS_TYPE.CN_AWARE)) {
+				boolean match = false;
+				switch(oType){
+				case OVERLAP_LOC_AND_INDIVIDUAL:
+					match = list1[i].overlapsLocAndIndividual(list2[j]);
+					break;
+				case OVERLAP_LOC_AND_INDIVIDUAL_SIGNIFICANTLY:
+					match = list1[i].overlapsLocAndIndividualSignificantly(list2[j]);
+					break;
+				default:
+					break;
+				}
+				if (match) {
+					switch (cType) {
+					case CN_AWARE:
+						match = list1[i].getCN() == list2[j].getCN();
+						break;
+					case NOT_CN_AWARE:
+						break;
+					default:
+						break;
+
+					}
+				}
+				if (match) {
 					matched1.add(list1[i]);
 					matched2.add(list2[j]);
 				}
@@ -370,7 +400,7 @@ public class CNVariant extends Segment {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_signif_consensus.cnv"));
+			writer = new PrintWriter(new FileWriter(output));
 			for (int i = 0; i < outputLines.size(); i++) {
 				writer.println(outputLines.get(i));
 			}
@@ -583,7 +613,7 @@ public class CNVariant extends Segment {
 		}
 		try {
 			if (signif) {
-				findSignificantConsensus(filename1, filename2, CONSENSUS_TYPE.NOT_CN_AWARE);
+				findSignificantConsensus(filename1, filename2, CONSENSUS_TYPE.NOT_CN_AWARE,OVERLAP_TYPE.OVERLAP_LOC_AND_INDIVIDUAL_SIGNIFICANTLY);
 			} else {
 				findConsensus(filename1, filename2);
 			}
