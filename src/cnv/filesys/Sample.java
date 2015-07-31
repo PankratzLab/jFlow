@@ -26,7 +26,7 @@ import common.ext;
 public class Sample implements Serializable {
 	public static final long serialVersionUID = 1L;
 	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence","Confidence"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue", "Log Ratio", "intensity_1","Signal A"}, {"Y", "Yvalue", "Strength", "intensity_2","Signal B"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
-	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1", "genotype1", "Allele1 - Top","Forward Strand Base Calls"}, {"Allele2 - Forward", "Forward Strand Base Calls", "genotype2", "Allele2 - Top","Allele B"}, {"Allele1 - AB","Call Codes"}, {"Allele2 - AB","Call Codes"}}; // , {"Forward Strand Base Calls"}, {"Call Codes"}
+	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1", "genotype1", "Allele1 - Top","Forward Strand Base Calls","Forced Call","Forced Call Codes"}, {"Allele2 - Forward", "Forward Strand Base Calls", "genotype2", "Allele2 - Top","Allele B","Forced Call","Forced Call Codes"}, {"Allele1 - AB","Call Codes","Call"}, {"Allele2 - AB","Call Codes","Call"}}; // , {"Forward Strand Base Calls"}, {"Call Codes"}
 	public static final String[] ALL_STANDARD_GENOTYPE_FIELDS = {"Allele1 - AB", "Allele2 - AB", "Allele1 - Forward", "Allele2 - Forward", "Allele1 - Top", "Allele2 - Top", "Allele1 - Design", "Allele2 - Design"};
 	public static final String[] ALLELE_PAIRS = {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT", "DD", "DI", "II", "ID"};
 	public static final String[] ALT_NULL = {"-", "0"};

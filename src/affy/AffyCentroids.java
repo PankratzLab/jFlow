@@ -6,12 +6,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 
+import cnv.analysis.CentroidCompute;
+import cnv.analysis.CentroidCompute.Builder;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
+import cnv.manage.MDL;
 import cnv.manage.MarkerDataLoader;
 import cnv.var.SampleData;
 import stats.Maths;
@@ -117,10 +120,14 @@ public class AffyCentroids implements Serializable {
 		float[] AFFYBAFs;
 		AFFYBAFs = new float[markerNames.length];
 		for (int k = 0; k < markerNames.length; k++) {
-			if (markerNames[k].startsWith("CN_")) {
-				AFFYBAFs[k] = 0;
-			} else if (!markerNames[k].startsWith("CN_")) {
-				AFFYBAFs[k] = calcBAF(calcTheta(Xs[k], Ys[k]), affyCents[k]);
+			if (affyCents[k] == null) {
+				AFFYBAFs[k] = Float.NaN;
+			} else {
+				if (markerNames[k].startsWith("CN_")) {
+					AFFYBAFs[k] = 0;
+				} else if (!markerNames[k].startsWith("CN_")) {
+					AFFYBAFs[k] = calcBAF(calcTheta(Xs[k], Ys[k]), affyCents[k]);
+				}
 			}
 		}
 		return AFFYBAFs;
@@ -130,11 +137,15 @@ public class AffyCentroids implements Serializable {
 		float[] AFFYLRRs;
 		AFFYLRRs = new float[Xs.length];
 		for (int k = 0; k < markerNames.length; k++) {
-			if (markerNames[k].startsWith("CN_")) {
-				// if a copy number probeset, take the log2 intensity value - median log2 intensity
-				AFFYLRRs[k] = (float) (Maths.log2(Xs[k]) - affyCents[k][0][1]);
-			} else if (!markerNames[k].startsWith("CN_")) {
-				AFFYLRRs[k] = calcLRR(calcTheta(Xs[k], Ys[k]), calcR(Xs[k], Ys[k]), affyCents[k], log);
+			if (affyCents[k] == null) {
+				AFFYLRRs[k] = Float.NaN;
+			} else {
+				if (markerNames[k].startsWith("CN_")) {
+					// if a copy number probeset, take the log2 intensity value - median log2 intensity
+					AFFYLRRs[k] = (float) (Maths.log2(Xs[k]) - affyCents[k][0][1]);
+				} else if (!markerNames[k].startsWith("CN_")) {
+					AFFYLRRs[k] = calcLRR(calcTheta(Xs[k], Ys[k]), calcR(Xs[k], Ys[k]), affyCents[k], log);
+				}
 			}
 		}
 		return AFFYLRRs;
@@ -151,36 +162,39 @@ public class AffyCentroids implements Serializable {
 		float[] AFFYBAFs;
 		float[] AFFYLRRs;
 		Logger log;
-		
+
 		log = proj.getLog();
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		affyCentroids = Centroids.load(centroidsFile, proj.JAR_STATUS.getValue());
+
 		if (affyCentroids.getFingerprint() != markerSet.getFingerprint()) {
 			log.reportError("Error - fingerprint for Centroids file '" + centroidsFile + "' does not match the fingerprint for the current MarkerSet");
 			System.exit(1);
 		}
 		affyCents = affyCentroids.getCentroids();
-		samples = proj.getSamples();
-		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
-		for (int i = 0; i < samples.length; i++) {
-			log.report(samples[i]);
-			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
-			Xs = original.getXs();
-			Ys = original.getYs();
-			AFFYBAFs = getAFFYBAF(markerNames, affyCents, Xs, Ys, i, log);
-			AFFYLRRs = getAFFYLRR(markerNames, affyCents, Xs, Ys, i, log);
-			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), AFFYBAFs, AFFYLRRs, original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, original.getSampleName());
-		}
-		if (allOutliers.size() > 0) {
-			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
-		}
+		Centroids.recompute(proj, centroidsFile);
+//		
+//		samples = proj.getSamples();
+//		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+//		for (int i = 0; i < samples.length; i++) {
+//			log.report(samples[i]);
+//			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
+//			Xs = original.getXs();
+//			Ys = original.getYs();
+//			AFFYBAFs = getAFFYBAF(markerNames, affyCents, Xs, Ys, i, log);
+//			AFFYLRRs = getAFFYLRR(markerNames, affyCents, Xs, Ys, i, log);
+//			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), AFFYBAFs, AFFYLRRs, original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
+//			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, original.getSampleName());
+//		}
+//		if (allOutliers.size() > 0) {
+//			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+//		}
 	}
 
 	public static void parseCentroidsFilteredSamples(Project proj, double missingnessThreshold, double confThreshold) {
 		Logger log = proj.getLog();
-		
+
 		if (!proj.getSampleData(1, false).hasExcludedIndividuals()) {
 			log.reportError("Error - cannot exclude individuals for centroid computations , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
 			System.exit(1);
@@ -207,12 +221,11 @@ public class AffyCentroids implements Serializable {
 		int count;
 		SampleList sampleList;
 		MarkerDataLoader markerDataLoader;
-		MarkerData markerData;
 		SampleData sampleData;
 		long time;
 		MarkerSet markerSet;
 		Logger log;
-		
+
 		log = proj.getLog();
 		time = new Date().getTime();
 		log.report("Computing centroids from intensity means");
@@ -226,31 +239,8 @@ public class AffyCentroids implements Serializable {
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
-		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
-
-		time = new Date().getTime();
-		for (int i = 0; i < markerNames.length; i++) {
-			markerData = markerDataLoader.requestMarkerData(i);
-			centroids[i] = computeCluster(proj, samplesToBeUsed, missingnessThreshold, samples, sampleData, markerData, i, confThreshold);
-			markerDataLoader.releaseIndex(i);
-		}
-		count = 0;
-		for (int i = 0; i < centroids.length; i++) {
-			if (centroids[i] == null) {
-				if (count == 0) {
-					log.report("The following marker(s) could not be computed:");
-				}
-				count++;
-			}
-		}
-		if (count > 0) {
-			log.report("Computed mean genotyped centroids for " + (centroids.length - count) + " of " + centroids.length + " markers, " + count + " missing");
-		} else {
-			log.report("Computed mean genotyped centroids for all " + centroids.length + " markers");
-		}
-//		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
-		log.report("Computation took " + ext.getTimeElapsed(time));
+		Builder builder = new Builder();
+		CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, 2, 2);
 	}
 
 	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, SampleData sampleData, MarkerData markerData, int i, double confThreshold) {
@@ -265,7 +255,7 @@ public class AffyCentroids implements Serializable {
 		PrintWriter writer = null;
 		String markerName;
 		Logger log;
-		
+
 		log = proj.getLog();
 		markerName = markerData.getMarkerName();
 		meanThetas = new double[5];
@@ -472,16 +462,7 @@ public class AffyCentroids implements Serializable {
 		String compute = "";
 		double callConfidence = 0.99;
 		String centFile = "C:/data/ARIC/ARICGenvisis_CEL_11908/data/genotype.cent";
-		String usage = "\n" 
-						+ "affy.AffyCentroids requires 0-1 arguments\n" 
-						+ "   (1) project (i.e. proj=" + filename + " (default))\n" 
-						+ "   (2) filename (i.e. file=" + centFile + " (default))\n" 
-						+ " OR\n" + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n" 
-						+ " OR\n" + "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n" 
-						+ "   (3) centroid file for clustered markers (see \"GENOTYPE_CENTROIDS_FILENAME\" property in the Project properties file)\n" 
-						+ "   (4) centroid file for intensity only markers (see \"GENOTYPE_CENTROIDS_FILENAME\" property in the Project properties file)\n" 
-						+ " OR\n" + "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n" 
-						+ "";
+		String usage = "\n" + "affy.AffyCentroids requires 0-1 arguments\n" + "   (1) project (i.e. proj=" + filename + " (default))\n" + "   (2) filename (i.e. file=" + centFile + " (default))\n" + " OR\n" + "   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n" + " OR\n" + "   (2) file with intensity only flags (i.e. flags=intensityFlags.dat (not the default))\n" + "   (3) centroid file for clustered markers (see \"GENOTYPE_CENTROIDS_FILENAME\" property in the Project properties file)\n" + "   (4) centroid file for intensity only markers (see \"GENOTYPE_CENTROIDS_FILENAME\" property in the Project properties file)\n" + " OR\n" + "   (2) recompute BAF/LRR and generate new Sample files using these centroids (i.e. compute=genotype.cent (not the default))\n" + "";
 		String logfile = null;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -523,7 +504,7 @@ public class AffyCentroids implements Serializable {
 			} else if (!compute.equals("")) {
 				recompute(proj, compute);
 			}
-			Files.backup(logfile, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue());
+			// Files.backup(logfile, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

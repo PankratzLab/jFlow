@@ -105,7 +105,7 @@ public class AffySNP6Tables {
 				mkdir(outputDirectory);
 				append = false;
 				writer = getWriter(outputDirectory + header[j] + ".IND.txt", append);
-				writer.print("ProbeSetName\tCall\tConfidence\tSignal A\tSignal B\tForced Call\n");
+				writer.print("Probe Set ID\tCall Codes\tConfidence\tSignal A\tSignal B\tForced Call Codes\n");
 				writer.print(indFiles[j - 1]);
 				writer.close();
 				indFiles[j - 1] = "";
