@@ -203,7 +203,7 @@ public class AffySNP6Tables {
 							printIt(header, chunkCount);
 							lineCount = 0;
 							chunkCount++;
-							System.out.println("Parsed " + chunkCount * numLinesBuffer + " lines out of " + totalLines);
+							System.out.println("Parsed " + chunkCount * numLinesBuffer + " marker lines");
 						}
 					} else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A") || !sigBLine[0].equals(callLine[0] + "-B")) {
 						System.err.println("Error: probeset identifier mismatch between calls/confidence/signal files ");
