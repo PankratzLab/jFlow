@@ -32,6 +32,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import one.ben.ConditionalAnalysisPipeline.ConditionalAnalysisToolset_FAST;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -768,20 +769,21 @@ public class lab {
 //		    int d = Integer.parseInt(s);
 		    
 //		    
-		    try {
+//		    try {
 //                Process p = Runtime.getRuntime().exec("where notepad.exe");
 //                int waitCode = p.waitFor();
 //                int outCode = p.exitValue();
 //                System.out.println("wait: " + waitCode + "| out: " + outCode);
-		        processData();
-		        concatData();
-            } catch (IOException e) {
+//		        processData();
+//		        concatData();
+		        ConditionalAnalysisPipeline.processOnly(args[0], args[1], args[2]);
+//            } catch (IOException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            } /*catch (InterruptedException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
-            } /*catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }*/
+//                e.printStackTrace();
+//            }*/
 //		    
 //            String dir = "F:/CARDIA processing/";
 //
@@ -872,9 +874,9 @@ public class lab {
 	}
 
 	private static void concatData() throws IOException {
-        String file = "C:/workspace/temp/region1/region1_snpInfo";
-	    String indivFile = "C:/workspace/temp/region1/EA.indiv";
-        String traitFile = "C:/workspace/temp/region1/ARIC_EA_ProteinC.trait";
+        String file = "C:/workspace/temp/temp2/region1_snpInfo";
+	    String indivFile = "C:/workspace/temp/temp2/EA.indiv";
+        String traitFile = "C:/workspace/temp/temp2/ARIC_EA_ProteinC.trait";
         
         String[] iids = HashVec.loadFileToStringArray(indivFile, false, new int[]{0}, false);
         HashMap<String, Integer> indexMap = new HashMap<String, Integer>();
@@ -904,7 +906,7 @@ public class lab {
 	}
 	
 	private static void processData() throws IOException {
-        String file = "C:/workspace/temp/region1/region1_snpInfo";
+        String file = "C:/workspace/temp/temp2/region1_snpInfo";
         
         BufferedReader reader = Files.getAppropriateReader(file + ".txt");
         PrintWriter writer = Files.getAppropriateWriter(file + "_collapsed.xln");

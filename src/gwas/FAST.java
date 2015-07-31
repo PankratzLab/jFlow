@@ -55,6 +55,7 @@ public class FAST {
 	String pop = null;
 	String factor = null;
 	int sex = -2;
+	boolean isLinear;
 	
 	private static FilenameFilter dirFilter = new FilenameFilter() {
         @Override
@@ -346,7 +347,7 @@ public class FAST {
 	    return metalCRF.toString();
 	}
 
-    public static String[] prepareFAST(String traitDir, String dataFile, String runDir, boolean run) throws IOException {
+    public static String[] prepareFAST(String traitDir, String dataFile, String runDir, boolean isLinear, boolean run) throws IOException {
 		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
 		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
 		ArrayList<String> dirs = new ArrayList<String>();
@@ -403,7 +404,7 @@ public class FAST {
 					DataDefinitions dataDef = popToDataDef.get(pop);
 					int covars = countCovars(traitDir + traitFile);
 					
-					FAST fastRun = new FAST("FAST", dataDef.dataDir, dataDef.indivFile, traitDir + traitFile, dataDef.dataSuffix, dir, covars);
+					FAST fastRun = new FAST("FAST", dataDef.dataDir, dataDef.indivFile, traitDir + traitFile, dataDef.dataSuffix, dir, covars, isLinear);
 					fastRun.study = study;
 					fastRun.factor = factor;
 					fastRun.pop = pop;
@@ -420,13 +421,13 @@ public class FAST {
 					if (dataDef.sexDir != null) {
 					    String maleTraitFile = sexCopyTraitFile(dir + "male/", traitDir + traitFile, true);
 					    String femaleTraitFile = sexCopyTraitFile(dir + "female/", traitDir + traitFile, false);
-	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+maleTraitFile, dataDef.sexSuffix, dir + "male/", covars);
+	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+maleTraitFile, dataDef.sexSuffix, dir + "male/", covars, isLinear);
 	                    fastRun.study = study;
 	                    fastRun.factor = factor;
 	                    fastRun.pop = pop;
 	                    fastRun.sex = 1;
 	                    fastRunMale.run();
-	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+femaleTraitFile, dataDef.sexSuffix, dir + "female/", covars);
+	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+femaleTraitFile, dataDef.sexSuffix, dir + "female/", covars, isLinear);
 	                    fastRun.study = study;
 	                    fastRun.factor = factor;
 	                    fastRun.pop = pop;
@@ -456,13 +457,14 @@ public class FAST {
 		return dirs.toArray(new String[dirs.size()]);
 	}
 
-    public FAST(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount) {
+    public FAST(String FASTloc, String dataDir, String indivFile, String traitFile, String dataFileSuffix, String runDir, int covarCount, boolean isLinear) {
 		this.FAST_LOC = FASTloc;
 		this.dir = ext.verifyDirFormat(dataDir);
 		this.indivFile = indivFile;
 		this.traitFile = traitFile;
 		this.filePattern = dataFileSuffix;
 		this.runDir = ext.verifyDirFormat(runDir);
+		this.isLinear = isLinear;
 		this.covarCount = covarCount;
 	}
 	
@@ -498,7 +500,7 @@ public class FAST {
 				.append(traitFile)
 				.append(" --num-covariates ")
 				.append(covarCount)
-				.append(" --linear-snp ")
+				.append(isLinear ? " --linear-snp " : " --logistic-snp")
 				.append(" --chr ")
 				.append(chr)
 				.append(" --out-file ")
@@ -793,6 +795,7 @@ public class FAST {
 		boolean metal = false; 
 		boolean runFAST = false; 
 		boolean process = false;
+		boolean linear = true;
 		
 		String usage = "gwas.FAST requires 2-8 arguments:\n" + 
 		                "   (1) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
@@ -920,7 +923,10 @@ public class FAST {
 			} else if (args[i].startsWith("-process")) {
 			    process = true;
 			    numArgs--;
-			} else {
+			} else if (args[i].startsWith("-logistic")) { 
+			    linear = false;
+			    numArgs--;
+		    } else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -932,7 +938,7 @@ public class FAST {
 		    if (metal) {
 		        prepareMETAL(data);
 		    } else if (prep) {
-		        prepareFAST(trait, data, run, runFAST);
+		        prepareFAST(trait, data, run, linear, runFAST);
 		    } else if (process) {
 		        processAndPrepareMETAL(data);
 		    } else if (concat && convert) {
@@ -944,7 +950,7 @@ public class FAST {
 			} else if (convert) {
 				runParser(FORMATS[format], results, out, count == -1 ? countValid(trait) : count);
 			} else {
-				new FAST(fast, data, indiv, trait, suffix, run, covars).run();
+				new FAST(fast, data, indiv, trait, suffix, run, covars, linear).run();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -793,7 +793,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	                titleY = PAD + fontHeight;
 	                break;
 	        }
+	        Color currColor = g.getColor();
+	        g.setColor(Color.black);
             g.drawString(title, titleX, titleY);
+            g.setColor(currColor);
 		}
 		
 		setFinalImage(true);
