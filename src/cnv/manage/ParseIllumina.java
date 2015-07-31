@@ -197,10 +197,16 @@ public class ParseIllumina implements Runnable {
 								line[genotypeIndices[0]] = tmp0;
 								line[genotypeIndices[1]] = tmp1;
 								if (!ignoreAB) {
+									try{
 									String tmp2 = line[genotypeIndices[2]].substring(0, 1);
 									String tmp3 = line[genotypeIndices[2]].substring(1, 2);
 									line[genotypeIndices[2]] = tmp2;
 									line[genotypeIndices[3]] = tmp3;
+									}catch (Exception e){
+										log.reportTimeError("Could not parse genotypes on line "+Array.toStr(line));
+										log.reportException(e);
+										return;
+									}
 								}
 							} else {
 								log.reportTimeError("Inconsistant genotype call lengths");
@@ -212,10 +218,19 @@ public class ParseIllumina implements Runnable {
 						genotypes[0][key] = (byte)ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALLELE_PAIRS);
 						
 						if (genotypes[0][key] == -1) {
-							if (ext.indexOfStr(line[genotypeIndices[0]]+line[genotypeIndices[1]], Sample.ALT_NULLS) == -1) {
-								log.reportError("Error - failed to lookup "+line[genotypeIndices[0]]+line[genotypeIndices[1]]+" for marker "+markerNames[count]+" of sample "+files[i]+"; setting to missing");
-							}								
-							genotypes[0][key] = 0;
+							if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use ALLELE_PAIRS
+
+								if (ext.indexOfStr(line[genotypeIndices[0]] + line[genotypeIndices[1]], Sample.ALT_NULLS) == -1) {
+									log.reportError("Error - failed to lookup " + line[genotypeIndices[0]] + line[genotypeIndices[1]] + " for marker " + markerNames[count] + " of sample " + files[i] + "; setting to missing");
+								}
+								genotypes[0][key] = 0;
+							} else {
+								genotypes[0][key] = (byte) ext.indexOfStr(line[genotypeIndices[2]] + line[genotypeIndices[3]], Sample.AB_PAIRS);
+								if (genotypes[0][key] == -1) {
+									log.reportError("Error - failed to lookup " + line[genotypeIndices[0]] + line[genotypeIndices[1]] + " for marker " + markerNames[count] + " of sample " + files[i] + "; setting to missing");
+									genotypes[0][key] = 0;
+								}
+							}
 						}
 						if (ignoreAB) {
 							// do nothing, will need to use these files to determine AB lookup table
@@ -500,9 +515,9 @@ public class ParseIllumina implements Runnable {
 				if (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] != -1) {
 					foundSNPon = count;
 				}
-				if (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) != -1) {
+				if (idHeader.equals(FILENAME_AS_ID_OPTION) ||ext.indexOfStr(idHeader, line) != -1) {
 					foundIDon = count;
-				}
+				} 
 				
 			} while (reader.ready() && count < 1000 && foundIDon != foundSNPon);
 			
