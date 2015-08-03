@@ -606,6 +606,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						StringBuilder txtBld = new StringBuilder();
 						txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
 						txtBld.append(" Stop: ").append(ext.addCommas(cnv.getStop())).append("<br/>");
+						txtBld.append(" Length: ").append((cnv.getStop() - cnv.getStart())).append("<br/>");
 						txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
 						txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
 						txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
