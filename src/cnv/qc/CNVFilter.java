@@ -811,8 +811,13 @@ public class CNVFilter {
 		if (mergePrior && freqFilterPrior) {
 		    if (ifMergeAndFreqMergeFirst) {
 	            int numPrior = cnvs.length;
-	            cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
-	            proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+	            int iter = 1;
+	            do {
+	                numPrior = cnvs.length;
+	                proj.getLog().report("Merging CNVs, iteration " + iter);
+	                cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
+	                proj.getLog().report("CNV merging iteration " + iter++ + " + complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+	            } while (numPrior > cnvs.length);
 
 	            numPrior = cnvs.length;
 	            cnvs = FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs, freqFilter.totalRequired, freqFilter.delRequired, freqFilter.dupRequired, freqFilter.totalLimitedTo, freqFilter.delLimitedTo, freqFilter.dupLimitedTo, freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion);
@@ -821,15 +826,25 @@ public class CNVFilter {
 	            int numPrior = cnvs.length;
 	            cnvs = FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs, freqFilter.totalRequired, freqFilter.delRequired, freqFilter.dupRequired, freqFilter.totalLimitedTo, freqFilter.delLimitedTo, freqFilter.dupLimitedTo, freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion);
 	            proj.getLog().report("CNV filtering by frequency complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
-	            
-	            numPrior = cnvs.length;
-                cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
-                proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+
+                numPrior = cnvs.length;
+                int iter = 1;
+                do {
+                    numPrior = cnvs.length;
+                    proj.getLog().report("Merging CNVs, iteration " + iter);
+                    cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
+                    proj.getLog().report("CNV merging iteration " + iter++ + " + complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+                } while (numPrior > cnvs.length);
 		    }
 		} else if (mergePrior) {
             int numPrior = cnvs.length;
-            cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
-            proj.getLog().report("CNV merging complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+            int iter = 1;
+            do {
+                numPrior = cnvs.length;
+                proj.getLog().report("Merging CNVs, iteration " + iter);
+                cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
+                proj.getLog().report("CNV merging iteration " + iter++ + " + complete: started with " + numPrior + " CNVs, now have " + cnvs.length + " CNVs remaining.");
+            } while (numPrior > cnvs.length);
 		} else if (freqFilterPrior) {
             int numPrior = cnvs.length;
             cnvs = FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs, freqFilter.totalRequired, freqFilter.delRequired, freqFilter.dupRequired, freqFilter.totalLimitedTo, freqFilter.delLimitedTo, freqFilter.dupLimitedTo, freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion);
