@@ -285,7 +285,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemOpen = new JMenuItem("Open", KeyEvent.VK_O);
 		menuItemOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
+				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
@@ -299,7 +299,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemSave = new JMenuItem("Save Image", KeyEvent.VK_S);
 		menuItemSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
+				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					File fileToOpen = fileChooser.getSelectedFile();
@@ -693,7 +693,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		String[] keys;
 
 		if (command.equals(ADD_DATA_FILE)) {
-			JFileChooser fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
+			JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 			int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 			if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 				for (int i = 0; tree != null && i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
