@@ -632,6 +632,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					
 					if (x >= xBegin && x <= xEnd && y > yMin && y < yMax) {
 						selectedCNV = cnvInd;
+						
+						MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, y, 0, false);
+						ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
+						this.mouseMoved(phantom);
 						Trailer.this.repaint();
 						return;
 					}
